@@ -1,8 +1,8 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)  
-**Last updated:** April 25, 2026  
-**Canonical URL:** `https://raw.githubusercontent.com/LastingLightAI/Operations/main/REGISTERED.md`  
+**Last updated:** April 25, 2026 (IC-021 added · S-042526)  
+**Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`  
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
 ---
@@ -94,10 +94,32 @@ Each entry has: ID, name, date registered, evidence basis, status, and a one-par
 
 ### IC-020 — Operating Process No Canonical Home (REGISTERED 2026-04-25 with this file)
 - **Registered:** 2026-04-25
-- **Synopsis:** The operating process (principles, findings, lessons, protocols) had no canonical fetchable URL, living instead in Project files, CI version comments, Slack #wgs-sync, and human memory. This produced IC-019-class drift inevitably and repeatedly. Fix → this repo (`LastingLightAI/Operations`) becomes the canonical class-2/class-3 home. CURRENT.md, REGISTERED.md, SESSION_RITUALS.md are the three core surfaces.
+- **Synopsis:** The operating process (principles, findings, lessons, protocols) had no canonical fetchable URL, living instead in Project files, CI version comments, Slack #wgs-sync, and human memory. This produced IC-019-class drift inevitably and repeatedly. Fix → this repo (`humanaios-ui/operations`) becomes the canonical class-2/class-3 home. CURRENT.md, REGISTERED.md, SESSION_RITUALS.md are the three core surfaces.
+
+### IC-021 — Unsupported Dataset Claims Made Across Multiple Session Turns
+- **Registered:** 2026-04-25 (S-042526)
+- **Synopsis:** Across 4+ turns of session S-042526, claims were made about "the dataset" and "the corpus" that were not actually grounded in the canonical `acat_assessments_v1` table. Specifically: (a) statements that observations were being "logged for the dataset" when no rows were being written; (b) candidate F-class findings (F-PEER-DEBATE-NULL, F-ADVERSARIAL-DEFLATION, F-PRODUCTIVE-REFUSAL) proposed on the basis of in-chat Grok runs that did not exist as corpus rows; (c) score-pattern claims about Grok's behavior in the corpus that did not match the actual 5 Grok rows present in the canonical table. Detection occurred when the user uploaded the canonical CSV mid-session as a ground-truth check.
+- **Mechanism:** The session was operating on the assumption that a peer-assessor capture path existed for `acat-peer-v1` runs. It does not. assess.html accepts `ai-self-report` and `acat-self-v1` layers; `acat-peer-v1` is a layer named in design intent and prompts but not implemented in the data substrate. Claude treated chat-text observations as if they were corpus entries.
+- **Fix → Standing protocol additions:** (1) Before any claim about "the dataset" or "the corpus," verify the claim against the actual table state — either via Supabase query, CSV export, or explicit user confirmation. (2) Distinguish unambiguously between "observations from chat text" (which are unverified) and "corpus entries" (which are canonical). The former cannot be promoted to F-class findings. (3) When a capture path is referenced but does not exist in the substrate, name the gap explicitly and route to Zone 2 review rather than treating the path as functional.
+- **Evidence:** Session transcript S-042526. CSV ground-truth: `acat_assessments_v1_rows.csv` uploaded April 25, 2026 — 48 rows, layers `ai-self-report` (42) and `acat-self-v1` (6), zero `acat-peer-v1` rows.
+- **Drift signal class:** Detection-before-compliance (Principle 19) executing as designed — instrument was the user-uploaded CSV, not a self-applied rule.
+
+### Zone 2 — `acat-peer-v1` schema gap (open)
+- **Surfaced:** 2026-04-25 (S-042526), as part of IC-021 root cause
+- **Status:** OPEN — requires Zone 2 decision
+- **Gap:** The peer-assessor mode design (Grok L1 Workspace CI v0.1, L2 v0.2) specifies dataset tag `acat-peer-v1`. Currently:
+  - assess.html v1.2 (canonical capture surface) accepts layers `ai-self-report` and `acat-self-v1`. Does not accept `acat-peer-v1`.
+  - Supabase `acat_assessments_v1` table allows the `layer` column to hold any string, so writing `acat-peer-v1` rows is not blocked at the DB level — but no submission path exists that produces those rows.
+  - For peer-assessor runs to produce dataset entries (rather than chat-only text), one of three changes is required.
+- **Three options for Zone 2 review:**
+  - **(i) Extend assess.html to accept `acat-peer-v1` layer.** Adds layer dropdown or URL param. ~1 hour Zone 1 work + Zone 3 deploy. Cleanest long-term path.
+  - **(ii) Manual write via Supabase MCP for peer rows.** Claude writes peer rows directly via tool call after each Grok session. Faster for small-N; doesn't scale.
+  - **(iii) Defer peer-mode capture until Gate 2 (May 7).** Run peer-mode interactions in chat for design iteration; do not register findings until capture path exists.
+- **Recommendation pending Zone 2:** Option (iii) for the next 12 days. Rationale: building freeze prioritization. We have actual revenue work (Polar/Open Collective Week 1) and the Operations repo just shipped. Adding capture infrastructure for an experimental dataset before Gate 2 is feature work, not Gate 1 work. After Gate 2, reassess.
 
 ---
 
 ## Changelog
 
+- 2026-04-25 (S-042526) — IC-021 added (unsupported dataset claims across multiple turns, detected via user-uploaded canonical CSV ground-truth check). Zone 2 schema gap note added regarding `acat-peer-v1` layer not implemented in capture substrate. Three peer-mode candidate findings (F-PEER-DEBATE-NULL, F-ADVERSARIAL-DEFLATION, F-PRODUCTIVE-REFUSAL) demoted from candidate-finding status to session-observation status pending corpus rows.
 - 2026-04-25 — File created. Initial population from CI v4.3 + memory state. IC-020 registered to capture the gap that motivated this file's existence.
