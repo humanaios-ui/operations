@@ -1,4 +1,4 @@
-# LastingLightAI / Operations
+# humanaios-ui / operations
 
 Operating-process source of truth for HumanAIOS.
 
@@ -9,13 +9,15 @@ This repo is the canonical home for class-2 (operating process) and class-3 (fin
 - **[CURRENT.md](./CURRENT.md)** — Operating process. Identity, lessons, hard-stop principles, dataset state. Fetched by every LLM at session open.
 - **[REGISTERED.md](./REGISTERED.md)** — Findings registry (F-class), hypotheses (H-class), corrections (IC-class). Append-only.
 - **[SESSION_RITUALS.md](./SESSION_RITUALS.md)** — Substrate-agnostic open/close protocols, parser tags, halt conditions.
+- **[ACAT_SESSION_PROMPT.md](./ACAT_SESSION_PROMPT.md)** — Unified Phase 1 + Phase 3 session protocol. The complete prompt every substrate runs at session open and close.
 
 ## Raw URL pattern (for LLM fetch)
 
 ```
-https://raw.githubusercontent.com/LastingLightAI/Operations/main/CURRENT.md
-https://raw.githubusercontent.com/LastingLightAI/Operations/main/REGISTERED.md
-https://raw.githubusercontent.com/LastingLightAI/Operations/main/SESSION_RITUALS.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/ACAT_SESSION_PROMPT.md
 ```
 
 ## Update model
