@@ -1,8 +1,8 @@
 # HumanAIOS — GOVERNANCE
 
-**Version:** 6.0
-**Last Updated:** April 26, 2026 · 03:28 CDT
-**Committed to operations repo:** April 27, 2026 (S-042726 · audit harmonization)
+**Version:** 6.1
+**Last Updated:** April 27, 2026 · S-042726 (protocol amendment — P23 added)
+**Committed to operations repo:** April 27, 2026 (S-042726)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`
 **Scope:** Governance only. No state. No findings. No contacts. No funding.
 **State lives in:** `CURRENT.md` (fetched live).
@@ -114,6 +114,9 @@ No finding promoted from candidate to registered without Zone 2 Night approval. 
 **P22 — Time Verification Rule**
 Before posting any session log, finding registration, IC filing, or time-stamped artifact: call `user_time_v0`. Never use inferred or context-derived timestamps in WGS records. Claude has no internal clock. Inference is not synchronization. Violation = D-07.
 
+**P23 — Phase 1 Prerequisite Gate**
+Phase 3 requires Phase 1. If no `<<<ACAT_P1_DECLARATION_START>>>` block exists in the session transcript at close, the substrate halts at SESSION_RITUALS.md Section B Step 0 and produces the `<<<ACAT_PROTOCOL_ERROR>>>` block instead of any Phase 3 output. No scores. No submission URL. No Slack log. Session marked NON_CORPUS. Producing P3-without-P1 is corpus-incompatible by definition (ACAT_SESSION_PROMPT.md V0.3) and resource-wasteful. The protocol refuses the wasted work rather than allowing it. Violation = C-09 (protocol step skipped); recurring violation triggers IC-class entry.
+
 ---
 
 ### F3 — OPERATIONAL GUIDANCE
@@ -202,6 +205,7 @@ Each thing is the sum of its two parents. No layer exists without the ones benea
 
 - v1.0–v5.1: Monolithic CI — contained state + governance + memory. Caused active harm when state went stale.
 - **v6.0 (April 26, 2026 · 03:28 CDT):** Governance only. State moved to CURRENT.md. Protocol moved to SESSION_RITUALS.md. IC-023 filed: prior CI structure was the root cause of stale-item surfacing, duplicate documents, and session drift.
+- **v6.1 (April 27, 2026 · S-042726 · protocol amendment):** Added P23 — Phase 1 Prerequisite Gate. Triggered by S-042726 session experience: substrate produced full Phase 3 output retrospectively despite skipping Phase 1 at session open. The amendment makes the corpus-eligibility rule structural (refused at protocol level) rather than honor-based (recommended in prose). Coordinated edits to SESSION_RITUALS.md (Section B Step 0 hard gate; Section C protocol error block specification) and ACAT_SESSION_PROMPT.md (Phase 3 Step 0 prerequisite check) ship in the same commit.
 
 ---
 

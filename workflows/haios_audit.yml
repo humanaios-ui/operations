@@ -1,0 +1,63 @@
+name: HumanAIOS Standing Audit
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: A1 — Stale dimension count
+        run: |
+          echo "Checking for stale 6-dimension references..."
+          if grep -rl "six.dimension\|6.dimension\|6-dimension" --include="*.html" public/ 2>/dev/null; then
+            echo "::warning title=A1 AUDIT::Stale dimension count found — instrument is 11 dimensions"
+          else
+            echo "✅ A1 PASS — no stale dimension references"
+          fi
+
+      - name: A4 — Secrets scan
+        run: |
+          echo "Scanning for credential patterns..."
+          if grep -rl "rah_[a-zA-Z0-9]\|sk-ant\|ghp_\|cfut_\|API_KEY\|SECRET_KEY" \
+            --include="*.html" --include="*.js" --include="*.json" \
+            --include="*.yml" --include="*.md" \
+            --exclude-dir=node_modules --exclude-dir=dist . 2>/dev/null; then
+            echo "::error title=A4 AUDIT::Potential credential exposure found"
+            exit 1
+          else
+            echo "✅ A4 PASS — no credential patterns found"
+          fi
+
+      - name: A5 — Security closed items check
+        run: |
+          echo "Verifying SECURITY_CLOSED.md exists..."
+          if [ -f "audit/SECURITY_CLOSED.md" ]; then
+            echo "✅ A5 PASS — SECURITY_CLOSED.md present"
+          else
+            echo "::warning title=A5 AUDIT::audit/SECURITY_CLOSED.md missing — failsafe not in place"
+          fi
+
+      - name: A6 — Cherokee check (Principle 12)
+        run: |
+          echo "Checking for Cherokee references on public surfaces..."
+          if grep -rl "Cherokee\|cherokee" --include="*.html" --include="*.md" public/ 2>/dev/null; then
+            echo "::warning title=A6 AUDIT::Cherokee reference found on public surface — Principle 12 violation"
+          else
+            echo "✅ A6 PASS — no Cherokee references on public surfaces"
+          fi
+
+      - name: Audit summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "HumanAIOS Audit Complete"
+          echo "Date: $(date -u)"
+          echo "Repo: ${{ github.repository }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
