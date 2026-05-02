@@ -10,10 +10,16 @@ This repo is the canonical home for class-2 (operating process), class-3 (findin
 - **[GOVERNANCE.md](./GOVERNANCE.md)** — Standing principles (the 22-principle ladder), zone system, drift signal table.
 - **[REGISTERED.md](./REGISTERED.md)** — Findings registry (F-class), hypotheses (H-class), corrections (IC-class). Append-only.
 - **[SESSION_RITUALS.md](./SESSION_RITUALS.md)** — Substrate-agnostic open/close protocols, parser tags, halt conditions.
+- **[Z3_PROTOCOL.md](./Z3_PROTOCOL.md)** — Operator-side execution discipline. Pre-flight, commit standard, P3 verification, ledger format, failure protocol.
 - **[ACAT_SESSION_PROMPT.md](./ACAT_SESSION_PROMPT.md)** — Unified Phase 1 + Phase 3 session protocol. The complete prompt every substrate runs at session open and close.
 
 ## Raw URL pattern (for LLM fetch)
-https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md https://raw.githubusercontent.com/humanaios-ui/operations/main/ACAT_SESSION_PROMPT.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/Z3_PROTOCOL.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/ACAT_SESSION_PROMPT.md
 ## Update model
 
 - **Zone 1 (Claude/Grok):** Drafts changes
