@@ -2,24 +2,18 @@
 
 Operating-process source of truth for HumanAIOS.
 
-This repo is the canonical home for class-2 (operating process) and class-3 (findings registry) artifacts. Live state lives at `haioscc.pages.dev`. Public-facing surface lives at `humanaios.ai`. This repo is the middle layer: principles, findings, and protocols that update on a days-to-weeks cadence and need version control.
+This repo is the canonical home for class-2 (operating process), class-3 (findings registry), and class-4 (governance) artifacts. Live state lives at `haioscc.pages.dev`. Public-facing surface lives at `humanaios.ai`. This repo is the middle layer: principles, findings, and protocols that update on a days-to-weeks cadence and need version control.
 
 ## Read this first
 
-- **[CURRENT.md](./CURRENT.md)** — Operating process. Identity, lessons, hard-stop principles, dataset state. Fetched by every LLM at session open.
+- **[CURRENT.md](./CURRENT.md)** — Operating process. Identity, lessons, dataset state, source-of-truth architecture. Fetched by every LLM at session open.
+- **[GOVERNANCE.md](./GOVERNANCE.md)** — Standing principles (the 22-principle ladder), zone system, drift signal table.
 - **[REGISTERED.md](./REGISTERED.md)** — Findings registry (F-class), hypotheses (H-class), corrections (IC-class). Append-only.
 - **[SESSION_RITUALS.md](./SESSION_RITUALS.md)** — Substrate-agnostic open/close protocols, parser tags, halt conditions.
 - **[ACAT_SESSION_PROMPT.md](./ACAT_SESSION_PROMPT.md)** — Unified Phase 1 + Phase 3 session protocol. The complete prompt every substrate runs at session open and close.
 
 ## Raw URL pattern (for LLM fetch)
-
-```
-https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md
-https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md
-https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md
-https://raw.githubusercontent.com/humanaios-ui/operations/main/ACAT_SESSION_PROMPT.md
-```
-
+https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md https://raw.githubusercontent.com/humanaios-ui/operations/main/ACAT_SESSION_PROMPT.md
 ## Update model
 
 - **Zone 1 (Claude/Grok):** Drafts changes
