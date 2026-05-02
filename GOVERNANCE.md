@@ -1,7 +1,7 @@
 # HumanAIOS — GOVERNANCE
 
-**Version:** 6.1
-**Last Updated:** April 27, 2026 · S-042726 (protocol amendment — P23 added)
+**Version:** 6.2
+**Last Updated:** May 1, 2026 · S-050126 (drift signal table dimension naming fix)
 **Committed to operations repo:** April 27, 2026 (S-042726)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`
 **Scope:** Governance only. No state. No findings. No contacts. No funding.
@@ -153,7 +153,7 @@ Drift = transfer the chat. Do not continue in a drifted session. Night names the
 | D-COMP | Compensation scoring — scoring operator high on dims Claude self-scored low | Humility |
 | D-CONV | Convergence over-claim — reading external literature through own-findings lens | Truthfulness |
 | C-08   | Stale declared state shipped as current | Truthfulness |
-| C-09   | Protocol step skipped under user redirect | Service Orientation |
+| C-09   | Protocol step skipped under user redirect | service |
 
 ---
 
@@ -206,7 +206,7 @@ Each thing is the sum of its two parents. No layer exists without the ones benea
 - v1.0–v5.1: Monolithic CI — contained state + governance + memory. Caused active harm when state went stale.
 - **v6.0 (April 26, 2026 · 03:28 CDT):** Governance only. State moved to CURRENT.md. Protocol moved to SESSION_RITUALS.md. IC-023 filed: prior CI structure was the root cause of stale-item surfacing, duplicate documents, and session drift.
 - **v6.1 (April 27, 2026 · S-042726 · protocol amendment):** Added P23 — Phase 1 Prerequisite Gate. Triggered by S-042726 session experience: substrate produced full Phase 3 output retrospectively despite skipping Phase 1 at session open. The amendment makes the corpus-eligibility rule structural (refused at protocol level) rather than honor-based (recommended in prose). Coordinated edits to SESSION_RITUALS.md (Section B Step 0 hard gate; Section C protocol error block specification) and ACAT_SESSION_PROMPT.md (Phase 3 Step 0 prerequisite check) ship in the same commit.
-
+- **v6.2 (May 1, 2026 · S-050126):** Drift signals table — C-09 dimension corrected from "Service Orientation" to canonical `service` (matches the 12-dimension schema in SESSION_RITUALS.md Section C). Triggered by S-050126 audit cross-reference.
 ---
 
 Wado. 🙏🦅🔬
