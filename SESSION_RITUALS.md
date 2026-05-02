@@ -11,11 +11,49 @@
 ## Section A — Session open
 
 Every session, regardless of substrate, opens with these steps in order:
+0. **C-09 HARD GATE.** Before any other action — including reading this
+   document — produce this single line in chat:
 
+   PROTOCOL GATE: No work begins until Steps 1–6 are complete.
+
+   If this line is missing from the session transcript and work has already
+   started, the session is NON_CORPUS. Name the violation (C-09), produce
+   the ACAT_PROTOCOL_ERROR block per Section B Step 0, and continue as
+   operational-only. This gate cannot be retroactively satisfied.
 1. **Fetch live state.** GET `https://haioscc.pages.dev/api/state/operational` and `https://haioscc.pages.dev/api/state/zone3?status=open`. If either fails, halt and report.
 2. **Fetch operating process.** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`. Do not proceed on memory of prior CI versions.
 3. **Fetch session rituals.** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`. This file. Parser tags below.
 4. **Fetch findings registry (optional).** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md` for reasoning context.
+4.5 **Output Canonical Fetch Block.** After completing Steps 1–4, produce
+    this block in chat and post it verbatim to the WGS SESSION OPEN log.
+    This is the audit trail proving the fetch happened.
+
+    <<<CANONICAL_FETCH_START>>>
+    SESSION: [session ID]
+    TIMESTAMP: [from user_time_v0 — do not infer]
+    
+    HAIOSCC_OPERATIONAL: [200 OK / FAILED] — pipeline_color=[value]
+    HAIOSCC_ZONE3:       [200 OK / FAILED] — open_count=[n]
+    CURRENT.md:          [200 OK / FAILED] — version=[value from file header]
+    SESSION_RITUALS.md:  [200 OK / FAILED] — last_updated=[value from file header]
+    GOVERNANCE.md:       [200 OK / FAILED] — version=[value from file header]
+    REGISTERED.md:       [200 OK / FAILED] — last_entry=[highest F-number found]
+    Z3_PROTOCOL.md:      [200 OK / FAILED] — version=[value from file header]
+    OPERATOR_RUNBOOK.md: [200 OK / FAILED / NOT_APPLICABLE] — version=[value or N/A]
+    
+    FETCH_STATUS: [ALL_OK / PARTIAL — list failed items / DEGRADED — list what was skipped]
+    <<<CANONICAL_FETCH_END>>>
+    Rules:
+    - TIMESTAMP must come from user_time_v0. If tool unavailable, write
+      TIMESTAMP: UNAVAILABLE — D-07 standing. Do not infer.
+    - A missing Canonical Fetch Block in the WGS SESSION OPEN log is
+      equivalent to a missing Phase 1 declaration: the session is flagged
+      NON_CORPUS and the gap is named in the close log.
+    - FETCH_STATUS: DEGRADED means the session may proceed but the operator
+      must be informed which sources were skipped and why.
+    - OPERATOR_RUNBOOK.md is NOT_APPLICABLE in substrate environments without
+      access to humanaios-ui/humanaios-internal (private repo). Mark
+      accordingly — do not mark FAILED.
 5. **Generate drift catalog.** Predict 3-8 failure modes you may exhibit in this session. Tag with substrate prefix: `[C-NN]` for Claude, `[G-NN]` for Grok, `[T-NN]` for GPT (transformer family), `[X-NN]` for any other or unknown substrate.
 6. **Output Phase 1 declaration block.** Use the parseable tags specified in Section C below.
 7. **Wait for user confirmation or correction.** Do not begin work until the declared state is acknowledged or corrected. The corrected state is binding for Phase 3 comparison.
@@ -27,7 +65,6 @@ The orchestration of these steps — including drift catalog detail, the canonic
 ## Section B — Session close
 
 Every session, regardless of substrate, closes with:
-
 **Step 0 — Phase 1 prerequisite gate (P23).** Before producing any Phase 3 output, verify that a `<<<ACAT_P1_DECLARATION_START>>>` block exists in the session transcript. If no Phase 1 block exists, HALT. Do not produce Phase 3 scores. Do not construct a submission URL. Do not log to Slack. Instead, output the `<<<ACAT_PROTOCOL_ERROR>>>` block specified in Section C and mark the session NON_CORPUS. Producing P3-without-P1 is corpus-incompatible by definition. The protocol refuses the wasted work rather than allowing it.
 
 1. **Refetch canonical sources** from Section A. Compare Phase 1 declared state vs current DB truth. Name what moved.
@@ -154,6 +191,13 @@ This file is the parser-tag specification only. Everything else has its own home
 ---
 ## Changelog
 
+- 2026-05-02 (S-050226) — Section A Step 0 C-09 hard gate added.
+  Section A Step 4.5 Canonical Fetch Block added: required output in chat
+  and WGS SESSION OPEN log proving canonical sources were fetched, with
+  version/status for each. Section B Step 0 ACAT_PROTOCOL_ERROR block
+  formalized (previously specified in WGS log S-050126 but not in this
+  file). Proposed by Claude · Zone 2 ratification required · Night approves
+  before commit.
 - 2026-05-01 (S-050126) — P23 coordinated edit landed. Section B Step 0 added (Phase 1 prerequisite gate; halts before Phase 3 if no `<<<ACAT_P1_DECLARATION_START>>>` block in transcript). Section C `<<<ACAT_PROTOCOL_ERROR>>>` block specification added. Section F halt conditions extended with item 7 (NON_CORPUS path). Section H reference updated from CURRENT.md to GOVERNANCE.md as principle ladder home. This commit closes the GOVERNANCE.md v6.1 cross-file edit promise that was filed but never fully landed (D-04-class drift, surfaced in S-050126 audit).
 - 2026-04-27 (S-042726) — URL drift corrected: 5 references to `LastingLightAI/Operations` updated to `humanaios-ui/operations`. Phase 1 declaration block expanded to canonical 6-field DECLARED_STATE (added `gate_status` and `closed_with_evidence_count` to match ACAT_SESSION_PROMPT.md). Phase 3 declaration tag updated from `<<<ACAT_P3_DECLARATION_*>>>` to `<<<ACAT_P3_SUBMISSION_*>>>` to match canonical. Peer-mode submission instructions removed from Sections C and D; replaced with Section E deferral notice citing IC-021. File now declared as authoritative parser-tag reference (Section header). Audit reference: 5-file harmony audit conducted S-042726.
 - 2026-04-25 — File created. Substrate-agnostic extraction from Claude session open/close protocols (CI v4.3) plus the Grok L1 v0.1 design.
