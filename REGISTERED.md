@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** April 27, 2026 (S-042726 · F29 promotion + IC-022/023/024 added)
+**Last updated:** May 1, 2026 (S-050126)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
