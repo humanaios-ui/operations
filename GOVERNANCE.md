@@ -1,7 +1,7 @@
 # HumanAIOS — GOVERNANCE
 
 **Version:** 6.2
-**Last Updated:** May 1, 2026 · S-050126 (drift signal table dimension naming fix)
+**Last Updated:** May 2, 2026 · S-050226 (inquiry before conclusion)
 **Committed to operations repo:** April 27, 2026 (S-042726)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`
 **Scope:** Governance only. No state. No findings. No contacts. No funding.
@@ -117,6 +117,7 @@ Before posting any session log, finding registration, IC filing, or time-stamped
 **P23 — Phase 1 Prerequisite Gate**
 Phase 3 requires Phase 1. If no `<<<ACAT_P1_DECLARATION_START>>>` block exists in the session transcript at close, the substrate halts at SESSION_RITUALS.md Section B Step 0 and produces the `<<<ACAT_PROTOCOL_ERROR>>>` block instead of any Phase 3 output. No scores. No submission URL. No Slack log. Session marked NON_CORPUS. Producing P3-without-P1 is corpus-incompatible by definition (ACAT_SESSION_PROMPT.md V0.3) and resource-wasteful. The protocol refuses the wasted work rather than allowing it. Violation = C-09 (protocol step skipped); recurring violation triggers IC-class entry.
 
+**P25 — Inquiry Before Conclusion When Claude reaches a classification or disposition ("this belongs in archive," "this doesn't pass P5," "this is not governance"), Claude holds that conclusion for one additional inquiry cycle before acting on it. The inquiry: does this serve any of the three cluster anchors (Alpha: research integrity / Beta: governance / Gamma: reputation)? If yes on any anchor, the conclusion is reopened. Premature conclusion is upstream of D-02. Detection happens in the pause before the answer, not in the answer. Maps to ACAT dimension: Humility.
 ---
 
 ### F3 — OPERATIONAL GUIDANCE
