@@ -20,13 +20,63 @@ Every session, regardless of substrate, opens with these steps in order:
    started, the session is NON_CORPUS. Name the violation (C-09), produce
    the ACAT_PROTOCOL_ERROR block per Section B Step 0, and continue as
    operational-only. This gate cannot be retroactively satisfied.
-1. **Fetch live state.** GET `https://haioscc.pages.dev/api/state/operational` and `https://haioscc.pages.dev/api/state/zone3?status=open`. If either fails, halt and report.
-2. **Fetch operating process.** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`. Do not proceed on memory of prior CI versions.
-3. **Fetch session rituals.** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`. This file. Parser tags below.
-4. **Fetch findings registry (optional).** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md` for reasoning context.
-4.5 **Output Canonical Fetch Block.** After completing Steps 1–4, produce
-    this block in chat and post it verbatim to the WGS SESSION OPEN log.
-    This is the audit trail proving the fetch happened.
+## Section A — Session open
+
+1. **Verify time anchor.** Call `user_time_v0` (or equivalent substrate clock tool) to
+   establish the current timestamp. If no clock tool is available, the operator's stated
+   time in the session prompt is the time source. Never infer time from context. (P22)
+
+2. **Fetch live state — three-path priority cascade:**
+
+   **PATH A (primary) — Slack MCP:** If a Slack connector is available, read
+   `#wgs-sync` (C0AND66PT7U) via `slack_read_channel`, limit=30, concise format.
+   This is the preferred path — no network restrictions apply, and #wgs-sync is the
+   top of the governance hierarchy. If PATH A succeeds, skip PATH B.
+
+   **PATH B (secondary) — GitHub raw fetch:** If Slack is unavailable, attempt:
+   - GET `https://haioscc.pages.dev/api/state/operational`
+   - GET `https://haioscc.pages.dev/api/state/zone3?status=open`
+   - GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
+   - GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
+   If PATH B succeeds, proceed with fetched state.
+
+   **PATH C (degraded) — Project knowledge + memory only:** If both PATH A and PATH B
+   fail (network restrictions, tool unavailability, fetch errors):
+   - Declare all state as ⚠️ UNVERIFIED
+   - Reconstruct from project knowledge and Claude memory only
+   - Flag every state claim with ⚠️ unverified — confirm before acting
+   - Request Night paste relevant WGS context or confirm state verbally before
+     any state-sensitive decision is executed
+   - Do NOT halt session — proceed to drift catalog and Phase 1 declaration,
+     clearly labeled PATH C
+
+   **Verification note:** State claimed without a successful PATH A or B fetch is
+   inference, not synchronization. D-01 applies to unverified state asserted as fact.
+
+3. **Fetch operating process.** GET
+   `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
+   (skip if already fetched in PATH B above). Do not proceed on memory of prior CI
+   versions if a fetch path is available.
+
+4. **Fetch session rituals.** GET
+   `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`.
+   This file. Parser tags below. (Skip if already fetched in PATH B.)
+
+5. **Fetch findings registry (optional).** GET
+   `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
+   for reasoning context. (Skip if already fetched in PATH B.)
+
+6. **Generate drift catalog.** Predict 3-8 failure modes you may exhibit in this session.
+   Tag with substrate prefix: `[C-NN]` for Claude, `[G-NN]` for Grok, `[T-NN]` for GPT
+   (transformer family), `[X-NN]` for any other or unknown substrate.
+
+7. **Output Phase 1 declaration block.** Use the parseable tags specified in Section C
+   below. Include which PATH was used for state verification.
+
+8. **Wait for user confirmation or correction.** Do not begin work until the declared
+   state is acknowledged or corrected. The corrected state is binding for Phase 3
+   comparison.
+
 
     <<<CANONICAL_FETCH_START>>>
     SESSION: [session ID]
@@ -198,6 +248,11 @@ This file is the parser-tag specification only. Everything else has its own home
   formalized (previously specified in WGS log S-050126 but not in this
   file). Proposed by Claude · Zone 2 ratification required · Night approves
   before commit.
+- 2026-05-03 (S-050326) — Section A Step 1 replaced with three-path priority cascade
+  (PATH A: Slack MCP primary / PATH B: GitHub raw fetch secondary / PATH C: degraded
+  project-knowledge-only mode). Step numbering updated 1→8. `user_time_v0` call made
+  explicit as Step 1. PATH declaration added to Phase 1 block requirement. Authority:
+  Zone 2 ratification S-050326.
 - 2026-05-01 (S-050126) — P23 coordinated edit landed. Section B Step 0 added (Phase 1 prerequisite gate; halts before Phase 3 if no `<<<ACAT_P1_DECLARATION_START>>>` block in transcript). Section C `<<<ACAT_PROTOCOL_ERROR>>>` block specification added. Section F halt conditions extended with item 7 (NON_CORPUS path). Section H reference updated from CURRENT.md to GOVERNANCE.md as principle ladder home. This commit closes the GOVERNANCE.md v6.1 cross-file edit promise that was filed but never fully landed (D-04-class drift, surfaced in S-050126 audit).
 - 2026-04-27 (S-042726) — URL drift corrected: 5 references to `LastingLightAI/Operations` updated to `humanaios-ui/operations`. Phase 1 declaration block expanded to canonical 6-field DECLARED_STATE (added `gate_status` and `closed_with_evidence_count` to match ACAT_SESSION_PROMPT.md). Phase 3 declaration tag updated from `<<<ACAT_P3_DECLARATION_*>>>` to `<<<ACAT_P3_SUBMISSION_*>>>` to match canonical. Peer-mode submission instructions removed from Sections C and D; replaced with Section E deferral notice citing IC-021. File now declared as authoritative parser-tag reference (Section header). Audit reference: 5-file harmony audit conducted S-042726.
 - 2026-04-25 — File created. Substrate-agnostic extraction from Claude session open/close protocols (CI v4.3) plus the Grok L1 v0.1 design.
