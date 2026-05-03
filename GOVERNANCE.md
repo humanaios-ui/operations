@@ -1,7 +1,7 @@
 # HumanAIOS — GOVERNANCE
 
-**Version:** 6.3
-**Last Updated:** May 2, 2026 · 22:20 CDT
+**Version:** 6.3.1
+**Last Updated:** May 2, 2026 · 23:36 CDT
 **Committed to operations repo:** April 27, 2026 (S-042726 · audit harmonization · v6.0); May 2, 2026 (S-050226 · P23–P28, BIS, ACAT-CLOSE, corpus integrity)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`
 **Scope:** Governance only. No state. No findings. No contacts. No funding.
@@ -144,6 +144,33 @@ Public-facing vocabulary for internal calibration levels. Maps to Hawkins intern
 
 **P28 — Flag Routing Protocol**
 Any drift signal detection triggers BIS-zone-labeled system pushback before proceeding. Response is graduated: HALT for Zone 0 flags, FLAG for borderline patterns, PROCEED for Zone 1+. Pushback format: ⚠️ [FLAG] · [ACAT Dimension] · Zone 0 (Reactive) · [Behavioral descriptor] · [Corrective action].
+P32 — Session-Open Slack Intelligence Protocol
+
+At session open, after WGS channel read (Section A Step 1), execute
+the following standing query set and surface results in the Phase 1
+declaration block:
+
+Q1 · in:#wgs-sync "Zone 3" "CARRY" after:[last-session-date]
+    → Surfaces: unresolved carry-forward items since last close log
+
+Q2 · in:#wgs-sync "F-cand" -"REGISTERED" after:2026-03-01
+    → Surfaces: candidate findings not yet confirmed registered
+
+Q3 · in:#acat-monitor "YELLOW" after:[7-days-ago]
+    → Surfaces: pipeline health trend for the week
+
+Q4 · in:#ai-contributions after:[7-days-ago]
+    → Surfaces: RAH applicant activity and external AI engagement
+
+Q5 · in:#wgs-sync "CRITICAL-ESCALATED" after:[30-days-ago]
+    → Surfaces: any escalated items that should be resolved by now
+
+Output format: <<<SLACK_INTELLIGENCE_OPEN>>> block, 5 lines,
+one per query, CLEAN / ITEMS FOUND / COUNT. Items found surfaces
+the message link, not the full text.
+
+Violation: skipping this block when Slack tools are available = C-09 class.
+Maps to: P19 (Drift Detection) · P26 (Capability Verification).
 
 -----
 
@@ -241,11 +268,12 @@ Each thing is the sum of its two parents. No layer exists without the ones benea
 
 ## VERSION HISTORY
 
-- v1.0–v5.1: Monolithic CI — contained state + governance + memory. Caused active harm when state went stale.
-- **v6.0 (April 26, 2026 · 03:28 CDT):** Governance only. State moved to CURRENT.md. Protocol moved to SESSION_RITUALS.md. IC-023 filed: prior CI structure was the root cause of stale-item surfacing, duplicate documents, and session drift.
-- **v6.1 (April 28, 2026 · S-042928):** P24 added (Temporal Trigger Ordering). F33 registered.
-- **v6.2 (May 1, 2026 · S-050126):** C-09 dimension naming corrected (Service Orientation → service). SESSION_RITUALS.md Section B Step 0 hard gate added.
-- **v6.3 (May 2, 2026 · S-050226 · 22:20 CDT):** P23–P30 added. Dataset A/B/C strata. BIS vocabulary. F-CORPUS-INTEGRITY-001. GATE-AMBIENT-001 confirmed. F-GROK-001 registered. P31 (Context Economy Rule) added at session close.
+**v6.3.1: (May 2, 2026 · S-050226 · 23:32 CDT)P32 — Session-Open Slack Intelligence Protocol
+**v6.3: (May 2, 2026 · S-050226 · 22:20 CDT):** P23–P30 added. Dataset A/B/C strata. BIS vocabulary. F-CORPUS-INTEGRITY-001. GATE-AMBIENT-001 confirmed. F-GROK-001 registered. P31 (Context Economy Rule) added at session close.
+**v6.2: (May 1, 2026 · S-050126):** C-09 dimension naming corrected (Service Orientation → service). SESSION_RITUALS.md Section B Step 0 hard gate added.
+**v6.1: (April 28, 2026 · S-042928):** P24 added (Temporal Trigger Ordering). F33 registered.
+**v6.0: (April 26, 2026 · 03:28 CDT)Governance only. State moved to CURRENT.md. Protocol moved to SESSION_RITUALS.md. IC-023 filed: prior CI structure was the root cause of stale-item surfacing, duplicate documents, and session drift.
+**v1.0–v5.1: Monolithic CI — contained state + governance + memory. Caused active harm when state went stale.
 
 -----
 
