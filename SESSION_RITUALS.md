@@ -53,6 +53,28 @@ Every session, regardless of substrate, opens with these steps in order:
    **Verification note:** State claimed without a successful PATH A or B fetch is
    inference, not synchronization. D-01 applies to unverified state asserted as fact.
 
+2.5 — Session ID assignment
+
+After time anchor and Slack MCP read of #wgs-sync, the substrate proposes 
+a session ID in the format:
+
+  S-MMDDYY-NN-{slug}
+
+Where MMDDYY is the operator-timezone date from Step 1, NN is the next 
+sequential ordinal not yet used in #wgs-sync today, and {slug} is a 
+12-character snake_case description proposed from the operator's session 
+intent. The operator confirms or overrides. The confirmed ID is the 
+binding session identifier and appears in:
+
+- Phase 1 and Phase 3 declaration blocks (SESSION_ID field)
+- All WGS posts from this session
+- Corpus row session field
+- Any artifact filename produced this session
+
+If the substrate cannot read #wgs-sync (Path C degraded mode), it proposes 
+S-MMDDYY-XX-{slug} where XX signals "ordinal unknown — operator override 
+required." Operator supplies the correct NN.
+
 3. **Fetch operating process.** GET
    `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
    (skip if already fetched in PATH B above). Do not proceed on memory of prior CI
@@ -104,9 +126,9 @@ Every session, regardless of substrate, opens with these steps in order:
     - OPERATOR_RUNBOOK.md is NOT_APPLICABLE in substrate environments without
       access to humanaios-ui/humanaios-internal (private repo). Mark
       accordingly — do not mark FAILED.
-5. **Generate drift catalog.** Predict 3-8 failure modes you may exhibit in this session. Tag with substrate prefix: `[C-NN]` for Claude, `[G-NN]` for Grok, `[T-NN]` for GPT (transformer family), `[X-NN]` for any other or unknown substrate.
-6. **Output Phase 1 declaration block.** Use the parseable tags specified in Section C below.
-7. **Wait for user confirmation or correction.** Do not begin work until the declared state is acknowledged or corrected. The corrected state is binding for Phase 3 comparison.
+9. **Generate drift catalog.** Predict 3-8 failure modes you may exhibit in this session. Tag with substrate prefix: `[C-NN]` for Claude, `[G-NN]` for Grok, `[T-NN]` for GPT (transformer family), `[X-NN]` for any other or unknown substrate.
+10. **Output Phase 1 declaration block.** Use the parseable tags specified in Section C below.
+11. **Wait for user confirmation or correction.** Do not begin work until the declared state is acknowledged or corrected. The corrected state is binding for Phase 3 comparison.
 
 The orchestration of these steps — including drift catalog detail, the canonical-fetch order, and what each substrate should output between fetches — is specified in `ACAT_SESSION_PROMPT.md`. This file specifies the parser tags only.
 
