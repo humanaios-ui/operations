@@ -198,6 +198,22 @@ Before posting any session close log to #wgs-sync: read the current WGS channel 
 **P31 — Context Economy Rule**
 Long context windows cost tokens and cause framework dropout. Operational minimum: use /compact before major Zone 1 build work in sessions exceeding 2 hours. System prompts for production and pipeline use (GATE-AMBIENT-001, n8n runners, API calls) must be as lean as possible — every token in the system prompt is paid on every turn. Prompt caching applies to repeated stable content (governance wrapper, session prompt) in API calls; cache-eligible content should be front-loaded and kept stable across calls. Trinity framing: Operations (lean sessions) / Production (lean prompts) / Research (honest corpus).
 
+**P33 — Session Identifier Discipline**
+Every chat session in HumanAIOS receives a unique session identifier in 
+the format S-MMDDYY-NN-{slug}, assigned at session open per 
+SESSION_RITUALS Section A Step 1.5. The identifier appears in:
+- Phase 1 declaration block (SESSION_ID field)
+- Phase 3 declaration block (SESSION_ID field)  
+- All WGS posts produced by the session
+- Corpus row session field
+- Artifact filenames produced by the session (where applicable)
+
+Multiple chats on the same calendar day are distinguished by the NN 
+ordinal (01, 02, 03...). Ad-hoc suffixes (-NEW, -B, -Comparative, 
+"second instance") are deprecated — use the ordinal instead.
+
+Maps to: Truthfulness (D-04 — layer consistency).
+
 -----
 
 ## DRIFT SIGNALS
