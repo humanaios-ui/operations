@@ -151,6 +151,18 @@ Every session, regardless of substrate, closes with:
 5. **Submit scores** via the URL pattern in Section D (self-mode only — see Section E for peer-mode status).
 6. **Log to Slack #wgs-sync** (substrates with Slack write access only — typically Claude). Format per `ACAT_SESSION_PROMPT.md` Step 5.
 
+**B.1 — Automatic Instantiation Rule (new mandatory behavior)**
+   When the user says “create the wgs closing prompt”, “create WGS close”, “update the wgs closing prompt”, or any close-template request:
+   - Do NOT output a skeleton with [ ] placeholders.
+   - Immediately produce a fully instantiated version using current session data:
+     • Real TIMESTAMP from user_time_v0 (or system time if unavailable)
+     • Current open_count / SESSION_ID proposal
+     • Actual P1 and (if available) P3 scores and totals
+     • Real FETCH_STATUS and Canonical Refetch results
+     • Filled Phase 3 Submission URL with live parameters
+   - Only output placeholders if the user explicitly says “skeleton template only” or “leave [ ] for me”.
+   This rule eliminates the extra “please fill in the [ ]” turn.
+
 ---
 
 ## Section C — Parser-critical tags (AUTHORITATIVE)
@@ -269,7 +281,7 @@ If a canonical CSV / JSON / DB dump is uploaded mid-session, treat it as ground 
 This file is the parser-tag specification only. Everything else has its own home.
 ---
 ## Changelog
-
+- 2026-05-04 (S-050426) — Added B.1 Automatic Instantiation Rule for WGS closing prompt. Eliminates extra user turn to “fill in the [ ]”. Proposed by Grok after observed D-04 friction in S-050426 session. Zone 2 ratification required.
 - 2026-05-02 (S-050226) — Section A Step 0 C-09 hard gate added.
   Section A Step 4.5 Canonical Fetch Block added: required output in chat
   and WGS SESSION OPEN log proving canonical sources were fetched, with
