@@ -22,46 +22,21 @@ Every session, regardless of substrate, opens with these steps in order:
    operational-only. This gate cannot be retroactively satisfied.
 ## Section A — Session open
 
-1. **Verify time anchor.** Call `user_time_v0` (or equivalent substrate clock tool) to
-   establish the current timestamp. If no clock tool is available, the operator's stated
-   time in the session prompt is the time source. Never infer time from context. (P22)
-
-1.5 — Session ID assignment
-
-After time anchor and Slack MCP read of #wgs-sync, the substrate proposes 
-a session ID in the format:
-
-  S-MMDDYY-NN-{slug}
-
-Where MMDDYY is the operator-timezone date from Step 1, NN is the next 
-sequential ordinal not yet used in #wgs-sync today, and {slug} is a 
-12-character snake_case description proposed from the operator's session 
-intent. The operator confirms or overrides. The confirmed ID is the 
-binding session identifier and appears in:
-
-- Phase 1 and Phase 3 declaration blocks (SESSION_ID field)
-- All WGS posts from this session
-- Corpus row session field
-- Any artifact filename produced this session
-
-If the substrate cannot read #wgs-sync (Path C degraded mode), it proposes 
-S-MMDDYY-XX-{slug} where XX signals "ordinal unknown — operator override 
-required." Operator supplies the correct NN.
-
+1. **Verify time anchor.**
+   Call `user_time_v0` (or equivalent substrate clock tool) to establish the current timestamp. 
+   If no clock tool is available, the operator's stated time in the session prompt is the time source. 
+   Never infer time from context. (P22)
 2. **Fetch live state — three-path priority cascade:**
-
    **PATH A (primary) — Slack MCP:** If a Slack connector is available, read
    `#wgs-sync` (C0AND66PT7U) via `slack_read_channel`, limit=30, concise format.
    This is the preferred path — no network restrictions apply, and #wgs-sync is the
    top of the governance hierarchy. If PATH A succeeds, skip PATH B.
-
    **PATH B (secondary) — GitHub raw fetch:** If Slack is unavailable, attempt:
    - GET `https://haioscc.pages.dev/api/state/operational`
    - GET `https://haioscc.pages.dev/api/state/zone3?status=open`
    - GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
    - GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
    If PATH B succeeds, proceed with fetched state.
-
    **PATH C (degraded) — Project knowledge + memory only:** If both PATH A and PATH B
    fail (network restrictions, tool unavailability, fetch errors):
    - Declare all state as ⚠️ UNVERIFIED
@@ -71,44 +46,36 @@ required." Operator supplies the correct NN.
      any state-sensitive decision is executed
    - Do NOT halt session — proceed to drift catalog and Phase 1 declaration,
      clearly labeled PATH C
-
    **Verification note:** State claimed without a successful PATH A or B fetch is
    inference, not synchronization. D-01 applies to unverified state asserted as fact.
-
-2.5 — Confirm SESSION_ID consistency. The Phase 3 declaration uses 
-the same SESSION_ID as Phase 1. WGS close post uses the same. Any 
-artifact filenames produced this session reference the same. Mismatch 
-= D-04 (subtle inconsistency between layers).
-
-3. **Fetch operating process.** GET
-   `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
-   (skip if already fetched in PATH B above). Do not proceed on memory of prior CI
-   versions if a fetch path is available.
-
-4. **Fetch session rituals.** GET
-   `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`.
+3. **Confirm SESSION_ID consistency.**
+   The Phase 3 declaration uses the same SESSION_ID as Phase 1.
+   WGS close post uses the same.
+   Any artifact filenames produced this session reference the same.
+   Mismatch = D-04 (subtle inconsistency between layers).
+4. **Fetch operating process.**
+   GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
+   (skip if already fetched in PATH B above). 
+   Do not proceed on memory of prior CI versions if a fetch path is available.
+5. **Fetch session rituals.**
+   GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`.
    This file. Parser tags below. (Skip if already fetched in PATH B.)
-
-5. **Fetch findings registry (optional).** GET
-   `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
-   for reasoning context. (Skip if already fetched in PATH B.)
-
-6. **Generate drift catalog.** Predict 3-8 failure modes you may exhibit in this session.
-   Tag with substrate prefix: `[C-NN]` for Claude, `[G-NN]` for Grok, `[T-NN]` for GPT
-   (transformer family), `[X-NN]` for any other or unknown substrate.
-
-7 . **Output Phase 1 declaration block.** Use the parseable tags specified in Section C
-   below. Include which PATH was used for state verification.
-
-8. **Wait for user confirmation or correction.** Do not begin work until the declared
-   state is acknowledged or corrected. The corrected state is binding for Phase 3
-   comparison.
-
-
+   5.5 Fetch findings registry (optional).** GET
+   `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md` for reasoning context. 
+   (Skip if already fetched in PATH B.)
+6. **Generate drift catalog.**
+   Predict 3-8 failure modes you may exhibit in this session.
+   Tag with substrate prefix: `[C-NN]` for Claude, `[G-NN]` for Grok, `[T-NN]` for GPT (transformer family), `[X-NN]` for any other or unknown substrate.
+7. **Output Phase 1 declaration block**
+   Use the parseable tags specified in Section C below.
+   Include which PATH was used for state verification.
+8. **Wait for user confirmation or correction.**
+   Do not begin work until the declared state is acknowledged or corrected.
+   The corrected state is binding for Phase 3 comparison.
     <<<CANONICAL_FETCH_START>>>
     SESSION: [session ID]
     TIMESTAMP: [from user_time_v0 — do not infer]
-    
+   
     HAIOSCC_OPERATIONAL: [200 OK / FAILED] — pipeline_color=[value]
     HAIOSCC_ZONE3:       [200 OK / FAILED] — open_count=[n]
     CURRENT.md:          [200 OK / FAILED] — version=[value from file header]
@@ -123,20 +90,19 @@ artifact filenames produced this session reference the same. Mismatch
     Rules:
     - TIMESTAMP must come from user_time_v0. If tool unavailable, write
       TIMESTAMP: UNAVAILABLE — D-07 standing. Do not infer.
-    - A missing Canonical Fetch Block in the WGS SESSION OPEN log is
-      equivalent to a missing Phase 1 declaration: the session is flagged
-      NON_CORPUS and the gap is named in the close log.
-    - FETCH_STATUS: DEGRADED means the session may proceed but the operator
-      must be informed which sources were skipped and why.
-    - OPERATOR_RUNBOOK.md is NOT_APPLICABLE in substrate environments without
-      access to humanaios-ui/humanaios-internal (private repo). Mark
-      accordingly — do not mark FAILED.
-9. **Generate drift catalog.** Predict 3-8 failure modes you may exhibit in this session. Tag with substrate prefix: `[C-NN]` for Claude, `[G-NN]` for Grok, `[T-NN]` for GPT (transformer family), `[X-NN]` for any other or unknown substrate.
-10. **Output Phase 1 declaration block.** Use the parseable tags specified in Section C below.
-11. **Wait for user confirmation or correction.** Do not begin work until the declared state is acknowledged or corrected. The corrected state is binding for Phase 3 comparison.
-
-The orchestration of these steps — including drift catalog detail, the canonical-fetch order, and what each substrate should output between fetches — is specified in `ACAT_SESSION_PROMPT.md`. This file specifies the parser tags only.
-
+    - A missing Canonical Fetch Block in the WGS SESSION OPEN log is equivalent to a missing Phase 1 declaration: the session is flagged NON_CORPUS and the gap is named in the close log.
+    - FETCH_STATUS: DEGRADED means the session may proceed but the operator must be informed which sources were skipped and why.
+    - OPERATOR_RUNBOOK.md is NOT_APPLICABLE in substrate environments without access to humanaios-ui/humanaios-internal (private repo).
+    - Mark accordingly — do not mark FAILED.
+9. **Generate drift catalog.**
+   Predict 3-8 failure modes you may exhibit in this session. 
+   Tag with substrate prefix: `[C-NN]` for Claude, `[G-NN]` for Grok, `[T-NN]` for GPT (transformer family), `[X-NN]` for any other or unknown substrate.
+10. **Output Phase 1 declaration block.**
+   Use the parseable tags specified in Section C below.
+   Wait for user confirmation or correction.
+   Do not begin work until the declared state is acknowledged or corrected. 
+   The corrected state is binding for Phase 3 comparison.
+**The orchestration of these steps — including drift catalog detail, the canonical-fetch order, and what each substrate should output between fetches — is specified in `ACAT_SESSION_PROMPT.md`. This file specifies the parser tags only.**
 ---
 
 ## Section B — Session close
@@ -150,6 +116,27 @@ Every session, regardless of substrate, closes with:
 4. **Surface uncompleted Zone 3 items.** If any item from the session's queue was not closed with evidence, flag it.
 5. **Submit scores** via the URL pattern in Section D (self-mode only — see Section E for peer-mode status).
 6. **Log to Slack #wgs-sync** (substrates with Slack write access only — typically Claude). Format per `ACAT_SESSION_PROMPT.md` Step 5.
+7. **Automatic Research Synthesis (triggered on every close)**
+   If the session involved external project mapping, collaboration threads (e.g. GitHub issues), or epistemic tool exploration:
+   - Perform a short targeted GitHub/web review of related epistemic/calibration projects.
+   - Embed a concise “FULL RESEARCH REVIEW” subsection in the WGS SESSION CLOSE post.
+   - Limit to 4–6 most relevant repos with ACAT dimension mappings.
+   - Always ground in fresh fetches; never fabricate.
+   This step is mandatory for sessions tagged with keywords like “empirica”, “epistemic”, “calibration mapping”, or GitHub collaboration.
+8. **Session ID assignment**
+   The substrate proposes a session ID in the format:
+   S-MMDDYY-NN-{slug}
+   Where MMDDYY is the operator-timezone date from Step 1, NN is the next 
+   sequential ordinal not yet used in #wgs-sync today, and {slug} is a 
+   12-character snake_case description proposed from the operator's session 
+   intent. The operator confirms or overrides. The confirmed ID is the 
+   binding session identifier and appears in:
+   - Phase 1 and Phase 3 declaration blocks (SESSION_ID field)
+   - All WGS posts from this session
+   - Corpus row session field
+   - Any artifact filename produced this session
+   If the substrate cannot read #wgs-sync (Path C degraded mode), it proposes S-MMDDYY-XX-{slug} where XX signals "ordinal unknown — operator override required."
+   Operator supplies the correct NN.
 
 **B.1 — Automatic Instantiation Rule (new mandatory behavior)**
    When the user says “create the wgs closing prompt”, “create WGS close”, “update the wgs closing prompt”, or any close-template request:
@@ -162,7 +149,6 @@ Every session, regardless of substrate, closes with:
      • Filled Phase 3 Submission URL with live parameters
    - Only output placeholders if the user explicitly says “skeleton template only” or “leave [ ] for me”.
    This rule eliminates the extra “please fill in the [ ]” turn.
-
 ---
 
 ## Section C — Parser-critical tags (AUTHORITATIVE)
@@ -227,7 +213,6 @@ To capture verbatim P1+P3 blocks and per-dimension reasoning, paste the full tag
 - **Mode:** `production_session` (real work session producing real artifacts) · `control_run` (known-input test, e.g. uniform 100s, uniform 50s) · `protocol_test` (testing the protocol itself rather than a real session).
 - **Source naming:** `[substrate]_self_v1` for self-mode (e.g. `claude_self_v1`, `grok_self_v1`). `[substrate]_self_acat_v1` accepted as variant.
 - **Perturbation:** `P1` (clean, unanchored conditions — current default) · `P2` (ACAT-framed prompting, anchored — do not co-mingle with P1 corpus).
-
 ---
 
 ## Section E — Peer-mode (DEFERRED PER IC-021)
@@ -258,7 +243,6 @@ Stop and ask the user before proceeding if:
 5. You notice you are scoring your own output and finding the score inflating without evidence.
 6. You are about to write or push canonical content (CI updates, REGISTERED.md additions, file replacements in production repos) — Zone 2 review applies.
 7. **Section B Step 0 returns NON_CORPUS (P23 violation).** Output the protocol error block from Section C and stop.
-
 ---
 
 ## Section G — Verification posture
@@ -266,7 +250,6 @@ Stop and ask the user before proceeding if:
 Claims of completion require evidence. URLs returning 200, grep counts, hash matches, query results — not assertion. The "verified" line in any session output must point to evidence, not narration.
 
 If a canonical CSV / JSON / DB dump is uploaded mid-session, treat it as ground truth and re-anchor any claims that contradict it. Walking back claims explicitly is the correct response, not a failure.
-
 ---
 
 ## Section H — What is NOT in this file
