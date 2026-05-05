@@ -157,6 +157,15 @@ Each entry has: ID, name, date registered, evidence basis, status, and a one-par
 - **Fix → Standing protocol amendment (Z3_PROTOCOL.md v1.2):** Section B-8 amended to use explicit halt language: "HALT if `[behind N]` appears for any N>0. Do not run `git add`, `git commit`, or `git push` until local is current." Stash-and-rebase recovery sequence documented inline in Section B-8 to remove the failure-mode-discovery delay. Recipe wrappers in OPERATOR_RUNBOOK.md updated to include the halt directive verbatim rather than paraphrasing.
 - **Evidence:** Session transcript S-050126. `git status -sb` output showing `## main...origin/main [ahead 1, behind 7]` mid-session. `git log --oneline -10` post-rebase showing clean 8-commit sequence with Z3_PROTOCOL.md correctly on top.
 - **Drift signal class:** Near-miss, not realized. Would have manifested as D-04 (subtle inconsistency between layers — local main vs remote main) escalating to data loss if force-push had been issued. The protocol caught the failure pattern in its own first commit, which is fitting.
+
+- **IC-026 · D-04 · S-050326 · May 3, 2026**
+Class: Subtle inconsistency between layers (protocol declaration vs execution)
+Instance 1: Step 8 (Session ID binding) omitted from first close attempt and from second close attempt, requiring operator to name it.
+Instance 2: 8 of 9 session artifacts lack SESSION_ID in filename, violating SESSION_RITUALS.md Section B Step 8 spec.
+Root cause: Step 8 is the last enumerated step in Section B and was skipped in both close attempts — suggests end-of-sequence attention decay, same pattern as D-05 (close without WGS post).
+Remediation: Add Step 8 to the hard stop checklist. Consider making session ID in artifact filenames a Zone 1 naming convention enforced at artifact creation time, not audit time.
+Status: Named. Zone 2 ratification not required for IC filing. 
+  REGISTERED.md entry at Night's discretion.
 ---
 ### H-TRINITY-001 — Triadic Resolution Pattern in Interdependent System Design
 - **Registered:** 2026-05-02 · 23:00 CDT (S-050226-NEW)
@@ -244,17 +253,10 @@ WGS sessions before any external claim.
 ---
 ## Changelog
 
+- 2026-05-04 (S-050326) - Subtle inconsistency between layers (protocol declaration vs execution)
 - 2026-05-02 (S-050126) - H-TRINITY-001 — Triadic Resolution Pattern in Interdependent System Design
-- 2026-05-01 (S-050126) — IC-025 added (cross-file edit promise not fully 
-landed; SESSION_RITUALS.md updated in this same audit cycle to close the 
-gap, GOVERNANCE.md bumped to v6.2 with C-09 dimension naming fix, 
-CURRENT.md Section 4 changed from hardcoded count to index-only). IC-026 
-added (behind-remote pre-flight near-miss; Z3_PROTOCOL.md Section B-8 
-soft-halt language insufficient under parallel-channel commits; pre-flight 
-detected divergence but recipe wrapper allowed proceed; resolution via 
-stash + pull --rebase + drop). Audit reference: 5-file harmony audit 
-conducted S-050126.
-- 2026-04-27 (S-042726) — F29 promoted from PENDING to REGISTERED per Zone 2 approval (audit harmonization session). IC-022 added (off-by-one N count drift detected against canonical xlsx; resolved by adopting HF archive as single source of truth for counts). IC-023 added (wrong-org URL drift in 3 of 5 operations files following LastingLightAI → humanaios-ui migration; 10 line edits applied across CURRENT.md, SESSION_RITUALS.md, README.md). IC-024 added (F29 dual-status inconsistency between CURRENT.md and REGISTERED.md; resolved by promoting F29 and standardizing status field to REGISTERED.md only). F-H1-CONFIRMED humility mean updated from `73.9` to `73.95` to match canonical xlsx ground truth. Updated canonical URL to `humanaios-ui/operations`.
-- 2026-04-25 (S-042526) — IC-021 added (unsupported dataset claims across multiple turns, detected via user-uploaded canonical CSV ground-truth check). Zone 2 schema gap note added regarding `acat-peer-v1` layer not implemented in capture substrate. Three peer-mode candidate findings (F-PEER-DEBATE-NULL, F-ADVERSARIAL-DEFLATION, F-PRODUCTIVE-REFUSAL) demoted from candidate-finding status to session-observation status pending corpus rows.
-- 2026-04-25 — File created. Initial population from CI v4.3 + memory state. IC-020 registered to capture the gap that motivated this file's existence.
+- 2026-05-01 (S-050126) — IC-025 added (cross-file edit promise not fully landed)
+- 2026-04-27 (S-042726) — F29 promoted from PENDING to REGISTERED per Zone 2 approval (audit harmonization session)
+- 2026-04-25 (S-042526) — IC-021 added (unsupported dataset claims across multiple turns, detected via user-uploaded canonical CSV ground-truth check)
+- 2026-04-25 (S-042526) - IC-020 registered to capture the gap that motivated this file's existence.
 
