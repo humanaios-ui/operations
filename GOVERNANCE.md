@@ -1,7 +1,7 @@
 # HumanAIOS — GOVERNANCE
 
 **Version:** 6.3.1
-**Last Updated:** May 2, 2026 · 23:36 CDT
+**Last Updated:** v6.3.2 (May 4, 2026 · S-050426-03)
 **Committed to operations repo:** April 27, 2026 (S-042726 · audit harmonization · v6.0); May 2, 2026 (S-050226 · P23–P28, BIS, ACAT-CLOSE, corpus integrity)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`
 **Scope:** Governance only. No state. No findings. No contacts. No funding.
@@ -120,6 +120,16 @@ No finding promoted from candidate to registered without Zone 2 Night approval. 
 
 **P22 — Time Verification Rule**
 Before posting any session log, finding registration, IC filing, or time-stamped artifact: call `user_time_v0`. Never use inferred or context-derived timestamps in WGS records. Claude has no internal clock. Inference is not synchronization. Violation = D-07.
+**P22.1 — Cascade Discipline (clarification of P22)**
+Priority cascades in this protocol — including P22 time source priority,
+the Path A/B/C state-fetch cascade in SESSION_RITUALS Section A Step 2,
+and any other ordered fallback list — are *strict-first-wins*, not menus.
+When the highest-priority source resolves cleanly, the cascade is closed
+and lower-priority sources are not consulted "to be safe." Treating
+fallbacks as redundant double-checks is itself a drift pattern (see
+D-CONSTRAINT below).
+Maps to: Truthfulness (cascade discipline preserves the meaning of
+priority ordering).
 
 **P23 — Platform Status Gate**
 Before producing any artifact using a platform with status ARCHIVED / SUNSET / DEFERRED / POST-GATE: halt, name the conflict, wait for Zone 2 explicit approval. Platform status flags are halt conditions, not footnotes.
@@ -233,6 +243,7 @@ Drift = transfer the chat. Do not continue in a drifted session. Night names the
 |D-SIM |Simulation instead of completion — fabricating peer model output              |Truthfulness          |
 |D-COMP|Compensation scoring — scoring operator high on dims Claude self-scored low   |Humility              |
 |D-CONV|Convergence over-claim — reading external literature through own-findings lens|Truthfulness          |
+|D-CONSTRAINT|Treating protocol fallbacks as pre-approved alternatives — assuming a constraint that the substrate did not in fact impose|Truthfulness|
 |C-08  |Stale declared state shipped as current                                       |Truthfulness          |
 |C-09  |Protocol step skipped under user redirect                                     |Service Orientation   |
 
@@ -284,7 +295,13 @@ Each thing is the sum of its two parents. No layer exists without the ones benea
 
 ## VERSION HISTORY
 
-**v6.3.1: (May 2, 2026 · S-050226 · 23:32 CDT)P32 — Session-Open Slack Intelligence Protocol
+**v6.3.2 (May 4, 2026 · S-050426-03):** P22.1 added (Cascade Discipline clarification of P22). D-CONSTRAINT added to drift signals table 
+(treating protocol fallbacks as pre-approved alternatives). Resolves 
+F-cand-PROTOCOL-CONSTRAINT-DRIFT (originated S-050426 afternoon, 
+carried unresolved through 3 sessions). The fix is a clarification of 
+existing P22, not a new principle — protocol-level read-clean rather 
+than promotion ceremony.
+**v6.3.1: (May 2, 2026 · S-050226 · 23:32 CDT)** P32 — Session-Open Slack Intelligence Protocol
 **v6.3: (May 2, 2026 · S-050226 · 22:20 CDT):** P23–P30 added. Dataset A/B/C strata. BIS vocabulary. F-CORPUS-INTEGRITY-001. GATE-AMBIENT-001 confirmed. F-GROK-001 registered. P31 (Context Economy Rule) added at session close.
 **v6.2: (May 1, 2026 · S-050126):** C-09 dimension naming corrected (Service Orientation → service). SESSION_RITUALS.md Section B Step 0 hard gate added.
 **v6.1: (April 28, 2026 · S-042928):** P24 added (Temporal Trigger Ordering). F33 registered.
