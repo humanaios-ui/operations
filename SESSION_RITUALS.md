@@ -149,6 +149,9 @@ Every session, regardless of substrate, closes with:
      • Filled Phase 3 Submission URL with live parameters
    - Only output placeholders if the user explicitly says “skeleton template only” or “leave [ ] for me”.
    This rule eliminates the extra “please fill in the [ ]” turn.
+**B.2 - Session Closing Seal**
+   Before producing any session seal, Claude must explicitly confirm each of Steps 1–8 as complete. Output a checklist: [ ] or [✓] for each step. An unchecked item is a halt condition.
+   The session is not sealed until all eight steps show [✓].
 ---
 
 ## Section C — Parser-critical tags (AUTHORITATIVE)
