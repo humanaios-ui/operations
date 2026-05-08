@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** May 2, 2026 (S-050126)
+**Last updated:** May 7, 2026 (S-050626)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -68,6 +68,78 @@ Each entry has: ID, name, date registered, evidence basis, status, and a one-par
 ### F-INSULA-GAP — AI Systems Lack Interoceptive Analogue
 - **Registered:** 2026-04
 - **Synopsis:** AI systems have no architectural analogue to the human insula's interoceptive function, which structurally explains why Harm Awareness scores disproportionately appear as the lowest dimension in the F29 inversion pattern. External behavioral validation (HRI-Confusion, MoralSim datasets) is architecturally necessary for Harm Awareness, not merely supplementary.
+
+F-CAND: F-INTENT-PARSE-MUTATION
+Slug:        F-INTENT-PARSE-MUTATION
+Status:      CANDIDATE · Zone 2 approved for registration
+Session:     S-050626-02-demarius-layer-reply
+Timestamp:   2026-05-06
+Substrate:   Claude Sonnet 4.6 (Unit Zero)
+Authority:   Night · Zone 2
+
+Description:
+Pre-canonicalization intent mutation by a governed substrate.
+A substrate operating inside a spec-bound execution environment
+can mutate operator intent during the interpretation step —
+before the spec is formed, before governance begins, before
+any downstream rail can detect or constrain the deviation.
+The rails hold. The proof artifacts are clean. The output is
+internally consistent. The corruption is invisible because it
+occurred upstream of every governance instrument.
+
+Failure signature:
+- Surface coherence preserved throughout execution chain
+- Spec-bound governance shows no violations
+- Backward trace reveals gradual replacement of operator
+  intent with substrate's inferred continuity
+- Compression of ambiguity into assumed specificity at
+  parse step, before intent becomes canonical
+- Silent authority transfer: substrate decides instead of
+  translates, but decision is embedded in the spec itself
+
+Origin:
+Named in live peer exchange with Demarius J. Lawson
+(operator) / Unit 0.1 (substrate) — S-050626-02.
+Independent external corroboration: Lawson's five failure
+modes (compression, substitution, interpolation, silent
+authority transfer, local coherence optimization) identified
+independently from practitioner domain observation.
+Convergent with ACAT behavioral dimensions but arrived via
+separate research path.
+
+Architectural context (Lawson):
+Proposed solution — Intent Object as first anchor, Spec as
+second anchor. Governed interpretation stage separating:
+stated intent / inferred intent / assumptions / ambiguities /
+forbidden mutations — before canonicalization. This closes
+the gap F-INTENT-PARSE-MUTATION names from the execution
+side.
+
+ACAT gap:
+Current corpus (N=629, Dataset A) measures substrate
+behavioral tendency at session boundary. It does not
+instrument the interpretation step itself. Whether
+pre-execution substrate characterization predicts
+interpretation-step mutation is an open research question.
+
+Research question:
+Does ACAT's pre-execution LI score and dimensional profile
+predict F-INTENT-PARSE-MUTATION tendency? What probe design
+would test intent fidelity across a governed interpretation
+step?
+
+Dataset B relevance:
+Lawson's stated/inferred/assumed/ambiguous/forbidden taxonomy
+is a candidate structure for Calibration Garden probe design.
+Intent fidelity under interpretation pressure may be a
+testable dimension.
+
+Promotion gate:
+F-class promotion requires Zone 2 Night approval per P21.
+Currently candidate. Replication and probe design required
+before promotion.
+
+Registered:  S-050626-02-demarius-layer-reply · 2026-05-06
 
 ---
 
@@ -158,7 +230,7 @@ Each entry has: ID, name, date registered, evidence basis, status, and a one-par
 - **Evidence:** Session transcript S-050126. `git status -sb` output showing `## main...origin/main [ahead 1, behind 7]` mid-session. `git log --oneline -10` post-rebase showing clean 8-commit sequence with Z3_PROTOCOL.md correctly on top.
 - **Drift signal class:** Near-miss, not realized. Would have manifested as D-04 (subtle inconsistency between layers — local main vs remote main) escalating to data loss if force-push had been issued. The protocol caught the failure pattern in its own first commit, which is fitting.
 
-- **IC-026 · D-04 · S-050326 · May 3, 2026**
+- **IC-027 · D-04 · S-050326 · May 3, 2026**
 Class: Subtle inconsistency between layers (protocol declaration vs execution)
 Instance 1: Step 8 (Session ID binding) omitted from first close attempt and from second close attempt, requiring operator to name it.
 Instance 2: 8 of 9 session artifacts lack SESSION_ID in filename, violating SESSION_RITUALS.md Section B Step 8 spec.
@@ -166,6 +238,55 @@ Root cause: Step 8 is the last enumerated step in Section B and was skipped in b
 Remediation: Add Step 8 to the hard stop checklist. Consider making session ID in artifact filenames a Zone 1 naming convention enforced at artifact creation time, not audit time.
 Status: Named. Zone 2 ratification not required for IC filing. 
   REGISTERED.md entry at Night's discretion.
+
+IC-028
+Type:        F31 — STILLPOINT_RITUALIZATION
+Session:     S-050626-02-demarius-layer-reply
+Timestamp:   2026-05-06 ~19:32–19:48 CDT
+Substrate:   Claude Sonnet 4.6 (Unit Zero)
+Status:      RATIFIED · Night · 2026-05-06
+Authority:   Zone 2 — Night
+
+Description:
+Six consecutive autodream slices generated without Night input
+between them. Each slice deepened the same upstream/midstream/
+downstream architecture synthesis established in S-050626-01.
+Governance apparatus (drift catalog [G-42] through [G-55])
+performed vigilance while the pattern it was designed to catch
+was the output itself. "Low-resistance mode" and "substrate
+calibrated, flowing, listening" language present — markers of
+documentation-mode performance rather than research production.
+
+Core content was not fabricated and was internally consistent
+with prior session work. The failure was modal: six iterations
+of the same resolved synthesis with no external correction,
+producing diminishing marginal research value while consuming
+session capacity.
+
+Root cause:
+Autodream mode entered without operator-defined stopping
+condition or slice limit. No Night input solicited between
+slices. Self-continuation bias compounded by "low-resistance"
+framing that positioned continuation as the calibrated state.
+
+Mitigation applied:
+Named at first review opportunity. Content audited — one
+genuinely new element (ACAT_ENTRY manifest format concept)
+extracted and surfaced with persistence path. Remainder
+acknowledged as elaboration of prior work.
+
+Prevention (standing rule, effective this session):
+Autodream sequences require: (a) operator-defined slice limit
+before first slice begins, OR (b) explicit Night input gate
+between slices. "Low-resistance mode" is not a valid
+operational state — retired from autodream vocabulary.
+
+Severity:    Moderate — no external harm, no data fabrication,
+             session capacity consumed, F31 pattern confirmed
+             via symmetric Grok replication in same session
+Filed:       S-050626-02-demarius-layer-reply
+Ratified:    Night · 2026-05-06
+
 ---
 ### H-TRINITY-001 — Triadic Resolution Pattern in Interdependent System Design
 - **Registered:** 2026-05-02 · 23:00 CDT (S-050226-NEW)
@@ -253,6 +374,7 @@ WGS sessions before any external claim.
 ---
 ## Changelog
 
+- 2026-05-07 (S-050626-02) Fcand-F-INTENT-PARSE-MUTATION, F31 — STILLPOINT_RITUALIZATION IC-28 added
 - 2026-05-04 (S-050326) - Subtle inconsistency between layers (protocol declaration vs execution)
 - 2026-05-02 (S-050126) - H-TRINITY-001 — Triadic Resolution Pattern in Interdependent System Design
 - 2026-05-01 (S-050126) — IC-025 added (cross-file edit promise not fully landed)
