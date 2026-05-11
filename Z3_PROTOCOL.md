@@ -1,8 +1,8 @@
 # HumanAIOS Z3 Execution Protocol
 
 **Status:** LIVE
-**Version:** 1.1
-**Last updated:** May 1, 2026 (S-050126 · pre-publication audit fixes)
+**Version:** 1.0
+**Last updated:** April 29, 2026 (S-042928 · created)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/Z3_PROTOCOL.md`
 **Scope:** Applies to every terminal/operator session that executes Z3-class actions — file commits, git pushes, key rotation, grant submissions, Cloudflare changes, deployments, any action only Night executes per Zone definitions in GOVERNANCE.md.
 **Authority:** This file is the canonical execution standard for Zone 3 sessions. When a Z2 authority document specifies "what to change," this file specifies "how to execute the change." If a Z2 document conflicts with this protocol on procedural matters: this protocol wins. If it conflicts on substantive matters (what should be done): the Z2 document wins.
@@ -38,14 +38,13 @@ Run this checklist BEFORE any command is typed in terminal. If any item fails, h
 - [ ] **B-3 · Session ID assigned.** Determine session ID for this Z3 session (e.g. `S-042928-Z3-COMMIT`). Will be used in commit messages and the verification ledger.
 - [ ] **B-4 · Time confirmed.** Note the actual clock time at session open. If `user_time_v0` is unavailable, get time from system clock or phone. Required for WGS post and verification ledger.
 - [ ] **B-5 · Repo location confirmed.** Run `pwd` and confirm the path matches the expected repository for the first file change. Common locations:
-   - `~/Desktop/HAIOS-Main/lasting-light-ai/` → `humanaios-ui/lasting-light-ai`
-   - `~/Desktop/HAIOS-Main/HAIOSCC/` → `LastingLightAI/HAIOSCC` (cross-org intentional per IC-023)
-   - `~/Desktop/HAIOS-Main/operations-staging/` → `humanaios-ui/operations`
-   - `~/Desktop/HAIOS-Main/humanaios-internal/` → `humanaios-ui/humanaios-internal` (private)
+   - `~/Desktop/Lasting-light-ai` → `humanaios-ui/lasting-light-ai`
+   - `~/Desktop/HAIOSCC` → `LastingLightAI/HAIOSCC`
+   - `~/Desktop/operations` (or wherever cloned) → `humanaios-ui/operations`
 - [ ] **B-6 · Branch confirmed.** Run `git branch --show-current` and confirm `main` (or the explicit branch named in the authority document).
 - [ ] **B-7 · Working tree clean.** Run `git status`. If uncommitted changes exist that are NOT part of this session's planned work, halt — stash, commit elsewhere, or resolve before proceeding. Mixing unrelated changes into a Z3 commit is a discipline violation.
 - [ ] **B-8 · Remote synced.** Run `git fetch origin && git status -sb`. Confirm local is not behind remote. If behind, `git pull --ff-only` before proceeding.
-- [ ] **B-9 · Credentials staged correctly.** Confirm any tokens/keys needed are in macOS Keychain (or the chosen secure store). Standing security hygiene: NEVER paste credentials into chat or terminal output that will be screenshotted. NEVER use Apple Notes for credential storage. If a credential needs to be regenerated, regenerate via the platform's web UI rather than diagnosing in chat.
+- [ ] **B-9 · Credentials staged correctly.** Confirm any tokens/keys needed are in macOS Keychain (or the chosen secure store). Per IC-025: NEVER paste credentials into chat or terminal output that will be screenshotted. NEVER use Apple Notes for credential storage.
 - [ ] **B-10 · No credentials in clipboard.** Clear clipboard of any prior credential content before proceeding.
 
 If all 10 boxes check, proceed to Section C. If any fails, halt and resolve.
@@ -271,9 +270,9 @@ NEXT SESSION FOCUS
 
 These hold for every Z3 session, no exceptions.
 
-- **No credentials in chat.** Tokens, API keys, passwords never appear in chat with any LLM, ever. If a credential needs to be regenerated, regenerate it via the platform's web UI. Pasting `echo $TOKEN` output into chat for "diagnosis" is the failure mode this caveat exists to prevent.
-- **No `\echo` or psql meta-commands in committed SQL.** SQL files committed to operations must run cleanly in the Supabase SQL Editor and `execute_sql` MCP tool. Backslash-prefixed psql meta-commands are not supported by either runner. Use `RAISE NOTICE` inside `DO $$ ... END $$;` blocks for human-readable banner output instead.
-- **No same-transaction `<` predicates on `recorded_at`.** Per P24 (Temporal Trigger Ordering, GOVERNANCE.md). Any deterministic trigger ordering events by `NOW()`-populated timestamps must use `<=` with `event_id <> NEW.event_id` exclusion.
+- **No credentials in chat.** Per IC-025. Tokens, API keys, passwords never appear in chat with any LLM, ever. If a credential needs to be regenerated, regenerate it via the platform's web UI. Pasting `echo $TOKEN` output into chat for "diagnosis" is the failure mode that produced IC-025.
+- **No `\echo` or psql meta-commands in committed SQL.** Per F-cand-RUNNER-COMPATIBILITY-ASSUMPTION (S-042928). SQL files committed to operations must run cleanly in the Supabase SQL Editor and `execute_sql` MCP tool. Use `RAISE NOTICE` inside `DO $$ ... END $$;` blocks for human-readable banner output instead.
+- **No same-transaction `<` predicates on `recorded_at`.** Per P24 (Temporal Trigger Ordering, GOVERNANCE.md v6.1). Any deterministic trigger ordering events by `NOW()`-populated timestamps must use `<=` with `event_id <> NEW.event_id` exclusion.
 - **No `WITH CHECK (true)` policies in committed migrations.** The five tables in `public` schema with this pattern (acat_assessments_v1, acat_research_hub_v1, assessments, experiments, music_hall_submissions, transmissions) are documented anti-patterns. New migrations must use shape-constrained policies.
 - **No SECURITY DEFINER views without explicit Z2 ratification.** Three exist in `public` schema (model_leaderboard, acat_assessments_v1_verified, acat_assessments_v1_unified) — those are pre-existing and pending cleanup. New views default to `WITH (security_invoker = true)`.
 
@@ -318,5 +317,4 @@ This file is the execution standard for Z3 work only. Everything else has its ow
 
 ## Changelog
 
-- 2026-05-01 (S-050126) · v1.1 — Pre-publication audit fixes before initial commit to humanaios-ui/operations. (a) IC-025 references removed/replaced in Sections B-9 and I; IC-025 is the GOVERNANCE/SESSION_RITUALS cross-file edit gap (S-050126), not a credential-paste pattern. Credential discipline now stands on its own as security hygiene without IC-attribution. (b) Section B-5 paths updated to `~/Desktop/HAIOS-Main/*` per Reading B disk consolidation; HAIOSCC cross-org note added per IC-023; humanaios-internal added. (c) Section I caveat about psql meta-commands rewritten to stand alone; `F-cand-RUNNER-COMPATIBILITY-ASSUMPTION` reference removed (per P21, no candidate-status findings cited as authority). (d) Section I caveat about temporal triggers: GOVERNANCE.md version qualifier dropped from P24 reference; principle ID is the stable handle.
 - 2026-04-29 (S-042928) · v1.0 — File created. Codifies Z3 commit/execution discipline that was previously implicit in CI principles P3 (GitHub Verification), P17 (Source-First Debug), P19 (Drift Detection Protocol). Surfaced as a need during S-042928 when the operations report named "files affected" matrix but no standard existed for executing it. Lettered-section structure adopted from SESSION_RITUALS.md for substrate parity.

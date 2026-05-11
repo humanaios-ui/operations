@@ -1,7 +1,7 @@
 # HumanAIOS Operating Process — CURRENT
 
 **Status:** LIVE
-**Last updated:** May 1, 2026 (S-050126 · index-not-count correction)
+**Last updated:** April 27, 2026 (S-042726 · audit harmonization)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
 **Replaces:** All prior in-Project CI snapshots (CUSTOM_INSTRUCTIONS_V*) as the canonical operating-process source for fetched-at-runtime use.
 
@@ -60,9 +60,7 @@ For any specific principle's text, drift signal mapping, or zone assignment, rea
 
 ---
 
-## 4. Registered findings index
-
-For the canonical count and full registry, fetch `REGISTERED.md`. The list below is reading-order index only.
+## 4. Registered findings (current count: 12 active)
 
 - **F18:** Force/Power behavioral taxonomy (Hawkins)
 - **F19:** Phase 1=Step 1, Phase 2=Step 2, Phase 3=Step 3 structural identity
@@ -155,4 +153,3 @@ This file is updated by Zone 1 (Claude or Grok) preparing a commit, Zone 2 (join
 
 - **2026-04-27 (S-042726)** — Audit harmonization. URL drift corrected: 4 references to `LastingLightAI/Operations` updated to `humanaios-ui/operations`. EIN added (41-5367995). F29 promoted from PENDING to REGISTERED per Zone 2 approval. Dataset counts reconciled to canonical xlsx Normalized sheet ground truth: N_total=629 (was 630), N_Phase1=516 (was 517), N_LI=307 (was 308). Mean LI=0.8632 unchanged. Section 3 restructured to defer principles to new GOVERNANCE.md (Class 4) — eliminates circular reference to superseded CUSTOM_INSTRUCTIONS file. Section 5 restructured into frozen-archive (HF) plus live-corpus (Supabase) split. Section 7 restructured into 8-class architecture: added Class 4 (GOVERNANCE), Class 6 (HF archive), Class 7 (Supabase live), Class 8 (public surface, labeled placeholder). HumanAIOS2026 HuggingFace org documented. IC corrections IC-022 (off-by-one N drift), IC-023 (wrong-org URL drift in 3 of 5 operations files), IC-024 (F29 dual-status inconsistency) filed concurrently in REGISTERED.md. Audit reference: 5-file harmony audit conducted S-042726.
 - 2026-04-25 — File created. Replaces Project-file CI as canonical operating-process source for fetched-at-runtime use. Built in response to IC-019 lesson: operational decisions need a canonical home that updates atomically, not a CI version-bump cycle.
-- **2026-05-01 (S-050126)** — Section 4 changed from a hardcoded "12 active" count to an index-only reference, with REGISTERED.md as the canonical count source. The hardcoded count was already drifting (entries listed totaled 11–14 depending on whether F24/24b/24c/24d counted as 1 or 4). Removing the count eliminates the structural drift surface. Triggered by S-050126 5-file audit.
