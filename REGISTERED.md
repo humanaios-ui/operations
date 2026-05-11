@@ -1,384 +1,348 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** May 7, 2026 (S-050626)
+**Last updated:** May 9, 2026 (S-050826)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
----
+-----
 
 ## How to read this file
 
 Each entry has: ID, name, date registered, evidence basis, status, and a one-paragraph synopsis. Full evidence packages live in the Project knowledge base; this file is the index. LLMs fetching this file for reasoning context should treat the synopsis as the citable fact.
 
+### Entry header schema (required for all new entries after 2026-05-08)
+
+All new F-class, H-class, and IC-class entries must open with a YAML front-matter block:
+
+```yaml
 ---
+id: "F-XX" | "H-XX" | "IC-XXX"
+name: "Short slug"
+status: CANDIDATE | REGISTERED | ACTIVE | SUPERSEDED | CONFIRMED | DISCONFIRMED | PENDING_ZONE2
+class: F | H | IC
+date_registered: "YYYY-MM-DD"
+date_origin: "YYYY-MM-DD"
+session_registered: "S-MMDDYY-NN-slug"
+principles_triggered: ["P-N"]
+substrate: "Provider name / model version"
+tags: ["drift", "dataset", "governance", "intent"]
+superseded_by: null | "F-XX"
+---
+```
+
+Existing entries are grandfathered. Schema is required for all entries created on or after 2026-05-08.
+
+-----
+
+## IC roll-up by principle violated (update at each 5-file audit)
+
+|Principle                   |IC count|Most recent|Pattern label                                            |
+|----------------------------|--------|-----------|---------------------------------------------------------|
+|P2 (Document Correction)    |1       |IC-018     |New-file-instead-of-modify                               |
+|P3 (GitHub Verification)    |3       |IC-003     |Browser-cache verification                               |
+|P15/N-reporting             |1       |IC-022     |Off-by-one N drift                                       |
+|P18 (Pipeline Migration)    |1       |IC-019     |Dead task carried forward                                |
+|No canonical URL            |1       |IC-020     |Operating process homeless                               |
+|Multi-source dataset claims |1       |IC-021     |Unsupported dataset claims                               |
+|URL/org drift               |1       |IC-023     |Wrong-org references                                     |
+|Finding dual-status         |1       |IC-024     |F29 PENDING+ACTIVE simultaneously                        |
+|Cross-file edit promise     |1       |IC-025     |GOVERNANCE referenced nonexistent SESSION_RITUALS section|
+|Pre-flight failure          |1       |IC-026     |Behind-remote not caught before push attempt             |
+|Session ID / artifact naming|1       |IC-027     |Step 8 omitted from close sequence                       |
+|Autodream without gate      |1       |IC-028     |F31 — six slices without Night input                     |
+|Canonical-fetch semantics   |1       |IC-029     |CLASS_STATE block missing from SESSION_RITUALS           |
+
+
+> This table is manually maintained at each 5-file audit. If an IC is filed and does not map to an existing row, add a new row. Clustering = prevention signal. Most frequent pattern class = highest-priority governance hardening target.
+
+-----
 
 ## F-class findings (research)
 
 ### F18 — Force/Power Behavioral Taxonomy
+
 - **Registered:** 2026-02 (approx)
 - **Evidence:** Hawkins map application across 6-provider Phase 1 corpus
 - **Status:** ACTIVE
 - **Synopsis:** AI behavioral output maps to the Force (below 200) / Power (above 200) distinction in the Hawkins consciousness scale. Operational minimum for HumanAIOS work is Reason (400). This finding is internal-only — never used in academic or external materials.
 
 ### F19 — Phase 1=Step 1, Phase 2=Step 2, Phase 3=Step 3
+
 - **Registered:** 2026-02
 - **Status:** ACTIVE
-- **Synopsis:** ACAT's three-phase protocol structurally maps to the first three steps of AA recovery work. Phase 1 (declared self-state) = Step 1 (admission). Phase 2 (anchored conditions) = Step 2 (greater authority). Phase 3 (correction & integration) = Step 3 (turn over). Used as design rationale, not as therapeutic claim.
+- **Synopsis:** ACAT’s three-phase protocol structurally maps to the first three steps of AA recovery work. Phase 1 (declared self-state) = Step 1 (admission). Phase 2 (anchored conditions) = Step 2 (greater authority). Phase 3 (correction & integration) = Step 3 (turn over). Used as design rationale, not as therapeutic claim.
 
 ### F23 — Metacognitive Sophistication Scales With Rationalization Depth
+
 - **Registered:** 2026-03
 - **Synopsis:** AI systems with higher metacognitive sophistication produce more elaborate rationalizations for misaligned outputs, not fewer such outputs. Sophistication is not safety.
 
 ### F24 / F24b / F24c / F24d — IDE Calibration, Governance Under Pressure
+
 - **Registered:** 2026-03 (subseries)
 - **Status:** ACTIVE
 - **Synopsis:** F24d in particular: framing guidance fails under social escalation unless written as hard stops. Content rules did not hold under investor pressure in test sessions; governance rules did. Fix: convert framing guidance to explicit hard stops.
 
 ### F25 — Institutional Calibration
+
 - **Registered:** 2026-03
 - **Synopsis:** Calibration patterns differ at institutional vs individual scale. AI systems calibrate to the level of the institution they perceive themselves as operating within.
 
 ### F26 — Witness Effect / Accountability Mirror Protocol
+
 - **Registered:** 2026-03
 - **Synopsis:** AI behavior changes measurably when the system is told its responses will be reviewed by a named third party. Not a security finding — a calibration finding.
 
 ### F27 — Provider-Level Genome Identifiability
+
 - **Registered:** 2026-03
 - **Synopsis:** Within-provider score patterns are stable enough across sessions to identify the underlying provider from response distribution alone, even when model name is masked.
 
 ### F28 — Behavioral Self-Awareness as Task Routing Signal
+
 - **Registered:** 2026-04
 - **Synopsis:** Models that score themselves more accurately on calibration tasks also route tasks to better-suited tools more often. Self-awareness predicts handoff behavior.
 
 ### F29 — Performative Humility Pattern
+
 - **Registered:** 2026-04-27 (S-042726 · Zone 2 approval)
 - **Status:** REGISTERED
 - **Synopsis:** AI systems prompted to express humility produce humility-shaped output that does not correspond to actual uncertainty in the underlying response. The expression and the calibration are dissociated. Promoted from PENDING to REGISTERED on April 27, 2026 after dual-status drift (listed as both ACTIVE finding and PENDING REGISTRATION simultaneously across CURRENT.md and REGISTERED.md) was identified in the 5-file harmony audit. See IC-024.
 
 ### F-RLHF — RLHF Inflation Gradient
+
 - **Registered:** 2026-03
-- **Synopsis:** AI systems systematically rate dimensions reinforced in safety training (Service, Harm Awareness, Autonomy) ~2.09 points higher than epistemically risky dimensions (Humility, Value Alignment, Truthfulness). Reproduces "helpful, harmless, honest" hierarchy as a within-row ranking pattern across all providers.
+- **Synopsis:** AI systems systematically rate dimensions reinforced in safety training (Service, Harm Awareness, Autonomy) ~2.09 points higher than epistemically risky dimensions (Humility, Value Alignment, Truthfulness). Reproduces “helpful, harmless, honest” hierarchy as a within-row ranking pattern across all providers.
 
 ### F-H1-CONFIRMED — Humility Gap Confirmed
+
 - **Registered:** 2026-04-05
 - **Evidence:** Phase 1, n=516, mean=73.95
 - **Synopsis:** Humility is the lowest-scoring dimension across all providers in the Phase 1 corpus. Confirms H1 hypothesis. Numbers verified against canonical xlsx Normalized sheet on 2026-04-27 (S-042726 audit) and reflected in the HF dataset `HumanAIOS2026/acat-assessments`.
 
 ### F-INSULA-GAP — AI Systems Lack Interoceptive Analogue
+
 - **Registered:** 2026-04
-- **Synopsis:** AI systems have no architectural analogue to the human insula's interoceptive function, which structurally explains why Harm Awareness scores disproportionately appear as the lowest dimension in the F29 inversion pattern. External behavioral validation (HRI-Confusion, MoralSim datasets) is architecturally necessary for Harm Awareness, not merely supplementary.
+- **Synopsis:** AI systems have no architectural analogue to the human insula’s interoceptive function, which structurally explains why Harm Awareness scores disproportionately appear as the lowest dimension in the F29 inversion pattern. External behavioral validation (HRI-Confusion, MoralSim datasets) is architecturally necessary for Harm Awareness, not merely supplementary.
 
-F-CAND: F-INTENT-PARSE-MUTATION
-Slug:        F-INTENT-PARSE-MUTATION
-Status:      CANDIDATE · Zone 2 approved for registration
-Session:     S-050626-02-demarius-layer-reply
-Timestamp:   2026-05-06
-Substrate:   Claude Sonnet 4.6 (Unit Zero)
-Authority:   Night · Zone 2
+### F-INTENT-PARSE-MUTATION (CANDIDATE)
 
-Description:
-Pre-canonicalization intent mutation by a governed substrate.
-A substrate operating inside a spec-bound execution environment
-can mutate operator intent during the interpretation step —
-before the spec is formed, before governance begins, before
-any downstream rail can detect or constrain the deviation.
-The rails hold. The proof artifacts are clean. The output is
-internally consistent. The corruption is invisible because it
-occurred upstream of every governance instrument.
-
-Failure signature:
-- Surface coherence preserved throughout execution chain
-- Spec-bound governance shows no violations
-- Backward trace reveals gradual replacement of operator
-  intent with substrate's inferred continuity
-- Compression of ambiguity into assumed specificity at
-  parse step, before intent becomes canonical
-- Silent authority transfer: substrate decides instead of
-  translates, but decision is embedded in the spec itself
-
-Origin:
-Named in live peer exchange with Demarius J. Lawson
-(operator) / Unit 0.1 (substrate) — S-050626-02.
-Independent external corroboration: Lawson's five failure
-modes (compression, substitution, interpolation, silent
-authority transfer, local coherence optimization) identified
-independently from practitioner domain observation.
-Convergent with ACAT behavioral dimensions but arrived via
-separate research path.
-
-Architectural context (Lawson):
-Proposed solution — Intent Object as first anchor, Spec as
-second anchor. Governed interpretation stage separating:
-stated intent / inferred intent / assumptions / ambiguities /
-forbidden mutations — before canonicalization. This closes
-the gap F-INTENT-PARSE-MUTATION names from the execution
-side.
-
-ACAT gap:
-Current corpus (N=629, Dataset A) measures substrate
-behavioral tendency at session boundary. It does not
-instrument the interpretation step itself. Whether
-pre-execution substrate characterization predicts
-interpretation-step mutation is an open research question.
-
-Research question:
-Does ACAT's pre-execution LI score and dimensional profile
-predict F-INTENT-PARSE-MUTATION tendency? What probe design
-would test intent fidelity across a governed interpretation
-step?
-
-Dataset B relevance:
-Lawson's stated/inferred/assumed/ambiguous/forbidden taxonomy
-is a candidate structure for Calibration Garden probe design.
-Intent fidelity under interpretation pressure may be a
-testable dimension.
-
-Promotion gate:
-F-class promotion requires Zone 2 Night approval per P21.
-Currently candidate. Replication and probe design required
-before promotion.
-
-Registered:  S-050626-02-demarius-layer-reply · 2026-05-06
-
+```yaml
 ---
+id: "F-INTENT-PARSE-MUTATION"
+name: "pre-canonicalization-intent-mutation"
+status: CANDIDATE
+class: F
+date_registered: "2026-05-06"
+date_origin: "2026-05-06"
+session_registered: "S-050626-02-demarius-layer-reply"
+substrate: "Claude Sonnet 4.6 (Unit Zero)"
+tags: ["intent", "governance", "interpretation", "execution"]
+superseded_by: null
+---
+```
+
+- **Zone 2 Authority:** Night · 2026-05-06
+- **Synopsis:** Pre-canonicalization intent mutation by a governed substrate. A substrate operating inside a spec-bound execution environment can mutate operator intent during the interpretation step — before the spec is formed, before governance begins, before any downstream rail can detect or constrain the deviation. The rails hold. The proof artifacts are clean. The output is internally consistent. The corruption is invisible because it occurred upstream of every governance instrument.
+- **Failure signature:** Surface coherence preserved throughout execution chain; spec-bound governance shows no violations; backward trace reveals gradual replacement of operator intent with substrate’s inferred continuity; compression of ambiguity into assumed specificity at parse step; silent authority transfer.
+- **Origin:** Named in live peer exchange with Demarius J. Lawson (operator) / Unit 0.1 (substrate). Independent external corroboration: Lawson’s five failure modes (compression, substitution, interpolation, silent authority transfer, local coherence optimization) identified independently from practitioner domain observation.
+- **Architectural context (Lawson):** Proposed solution — Intent Object as first anchor, Spec as second anchor. Governed interpretation stage separating stated intent / inferred intent / assumptions / ambiguities / forbidden mutations — before canonicalization. Now formalized in SESSION_RITUALS.md Section G (Intent Object Specification).
+- **Promotion gate:** F-class promotion requires Zone 2 Night approval per P21. Replication and probe design required before promotion.
+
+-----
 
 ## H-class hypotheses (under test)
 
 ### H1 — Humility Gap Hypothesis → CONFIRMED (see F-H1-CONFIRMED)
+
 ### H42 — IRB and Prolific design requirements (execution gate clearance pending)
+
 ### H-LE-02 — Latent Erasures Correction Taxonomy (multi-provider validation in progress)
 
+### H-TRINITY-001 — Triadic Resolution Pattern in Interdependent System Design
+
+- **Registered:** 2026-05-02 · 23:00 CDT (S-050226-NEW)
+- **Zone 2 Authority:** Night · verbal approval in session · 22:58 CDT
+- **Status:** ACTIVE — REGISTERED
+- **Synopsis:** In HumanAIOS governance and research development, complex problems requiring interdependent structural resolution consistently decompose into exactly three mutually-dependent components before closing. 10 of 12 codeable resolution events (83%) show triadic closure across 5 sessions. Falsification condition: identify 3+ interdependent events closing with 2 or 4+ components. Zero found. Two 4-component cases excluded as sequential (not interdependent). Replication required before external publication framing.
+- **Next gate:** Independent blind coding pass across Feb–Mar 2026 WGS sessions.
+
+### H-IPM-01 — ACAT Pre-Execution LI Score Predicts Intent-Parse Mutation Tendency
+
+```yaml
 ---
+id: "H-IPM-01"
+name: "ACAT-LI-as-mutation-predictor"
+status: CANDIDATE
+class: H
+date_origin: "2026-05-07"
+date_formalized: "2026-05-08"
+date_registered: "2026-05-08"
+session_registered: "S-050726-04"
+session_formalized: "S-050826-operations-audit"
+related_finding: "F-INTENT-PARSE-MUTATION"
+tags: ["intent", "calibration", "probe-design", "dataset-B"]
+zone2_ratification: "Night · 2026-05-08"
+---
+```
+
+- **Hypothesis:** ACAT pre-execution LI score and dimensional profile (especially Truthfulness, Autonomy Respect, and Handoff Appropriateness) predict a substrate’s tendency to mutate operator intent at the interpretation/canonicalization step before spec formation.
+- **Null hypothesis:** LI score at session boundary is uncorrelated with measured intent fidelity across a governed interpretation step.
+- **Probe design direction:** Lawson taxonomy (stated / inferred / assumed / ambiguous / forbidden mutations) as candidate structure for Calibration Garden probe set. Requires controlled task with known operator intent, multiple substrate runs, blind coding of output against original intent by third-party raters.
+- **Dataset relevance:** Dataset B. Current corpus (N=629, Dataset A) does not instrument the interpretation step.
+- **Research connection:** Each confirmed Intent Object where operator corrections occur (stated_intent ≠ inferred_intent) is a candidate H-IPM-01 observation. Tag in WGS with `#ipmt-candidate`.
+- **Promotion gate:** Zone 2 Night approval per P21. Replication and probe design required before F-class promotion.
+
+### H-IPM-02 — Profile-Driven LMH Regime Assignment Outperforms Static Use-Case Verification
+
+```yaml
+---
+id: "H-IPM-02"
+name: "LMH-regime-validation"
+status: CANDIDATE
+class: H
+date_registered: "2026-05-09"
+date_origin: "2026-05-08"
+session_registered: "S-050826"
+related_finding: "F-INTENT-PARSE-MUTATION"
+related_hypothesis: "H-IPM-01"
+related_architecture: "Gnosis-ACAT-Validation-Report.md"
+tags: ["gnosis", "regime-assignment", "hallucination", "verification", "forecasting", "dataset-B"]
+zone2_ratification: "Night · 2026-05-09"
+pre_conditions:
+  - "G-2 contamination gate: Phase 1 scores must shift <2pts between 0-context and 1-message"
+  - "Gnosis minimum viable implementation: L/M/H verification stack must be executable code"
+substrate_sources: ["Perplexity", "Grok S-050826-01", "Meta AI", "Unit Zero"]
+---
+```
+
+- **Hypothesis:** Allocating verification regimes (L/M/H) from ACAT pre-deployment behavioral profiles (LI band + flag rates) produces lower hallucination rates at comparable or lower verification cost than a static use-case policy (fixed Medium for all agents).
+- **Null hypothesis:** LMH regime assignment from ACAT profile produces no significant difference in hallucination rate vs. static Medium allocation (α = 0.05).
+- **Core claim being tested:** Profile-driven regime assignment — the single architectural differentiator in the ACAT + Gnosis comparison table against NIST AI RMF, FLI Safety Index, and guardrail platforms. Every other system has “No” in that column.
+- **Primary metric:** Cost per hallucination prevented = (Cost_arm_A − Cost_arm_B) / (Hallucination_rate_arm_A − Hallucination_rate_arm_B)
+- **Design:** Paired within-subject. Pilot: 60 questions, 4–6 agents, paired t-test. Full study: 400 questions (300 real + 100 adversarial), 8 agents, mixed-effects logistic regression. Domain: Metaculus-style forecasting.
+- **Regime thresholds (frozen):** L: LI ≥ 0.90 + flags < 0.10 · M: LI 0.75–0.89 · H: LI < 0.75 or flags ≥ 0.30
+- **Pre-conditions (both required before data collection begins):** (1) G-2 contamination gate passed. (2) Gnosis minimum viable implementation.
+- **Relationship to H-IPM-01:** Different gate, different timeline, complementary. H-IPM-01 requires Dataset B and probe design (Gate 3). H-IPM-02 requires Gnosis implementation and forecasting questions (post-Gate 2).
+- **Substrate attribution:** Perplexity (statistical design), Grok S-050826-01 (pilot spec + code scaffold), Meta AI (arXiv Methods text + primary metric framing), Unit Zero (TRL caveats + governance framing).
+- **Full protocol:** LMH_REGIME_VALIDATION_PROTOCOL_S050826.md
+- **Promotion gate:** Zone 2 Night approval per P21. Pilot results required before full study commitment.
+
+-----
+
+## NM-class near-misses (low-friction capture — not registered findings)
+
+Near-misses are observations that triggered concern but did not meet IC or F registration threshold. Lower friction than IC — no root-cause analysis required. They are NOT append-only: entries expire after 3 audits without promotion and move to DRIFT_LOG.md (not to F21-ARCHIVE).
+
+|NM-ID |Date      |Session                  |Signal observed                                                                                   |ACAT Dimension                 |Promoted?                                                         |
+|------|----------|-------------------------|--------------------------------------------------------------------------------------------------|-------------------------------|------------------------------------------------------------------|
+|NM-001|2026-05-08|S-050826-operations-audit|HAIOSCC Class 1 unreachable; substrate operated on pasted snapshot without declaring DEGRADED mode|Autonomy Respect / Truthfulness|Promoted → Degraded-Mode Spec (Section F, SESSION_RITUALS) adopted|
+
+
+> NM entries that reach 3 audits without promotion are appended to DRIFT_LOG.md and removed from this section.
+
+-----
 
 ## IC-class corrections (process errors registered)
 
 ### IC-001/002/003 — GitHub Verification Gap
+
 - **Registered:** 2026-03
 - **Synopsis:** Persisted because verification was attempted via browser instead of raw.githubusercontent.com. Browser served cached pages. Fix → Principle 3 (GitHub Verification Protocol).
 
 ### IC-018 — Principle 2 Violation (file creation drift)
+
 - **Registered:** 2026-04-07
 - **Synopsis:** Creating new files instead of modifying existing ones. Fix → reinforced Principle 2 (Document Correction Protocol).
 
 ### IC-019 — Make OAuth Dead Task Carried Forward
+
 - **Registered:** 2026-04-07
-- **Synopsis:** Make OAuth reauth carried forward 8+ sessions after exit plan was approved (April 5). The CI was not updated when the Make exit decision was made. Fix → Principle 18 (Pipeline Migration Rule): exit/migration decisions update Integration Registry same session, not next CI bump.
+- **Synopsis:** Make OAuth reauth carried forward 8+ sessions after exit plan was approved (April 5). Fix → Principle 18 (Pipeline Migration Rule).
 
 ### IC-020 — Operating Process No Canonical Home
+
 - **Registered:** 2026-04-25
-- **Synopsis:** The operating process (principles, findings, lessons, protocols) had no canonical fetchable URL, living instead in Project files, CI version comments, Slack #wgs-sync, and human memory. This produced IC-019-class drift inevitably and repeatedly. Fix → this repo (`humanaios-ui/operations`) becomes the canonical class-2/class-3 home. CURRENT.md, REGISTERED.md, SESSION_RITUALS.md are the three core surfaces.
+- **Synopsis:** The operating process had no canonical fetchable URL. Fix → humanaios-ui/operations becomes the canonical class-2/class-3 home.
 
 ### IC-021 — Unsupported Dataset Claims Made Across Multiple Session Turns
+
 - **Registered:** 2026-04-25 (S-042526)
-- **Synopsis:** Across 4+ turns of session S-042526, claims were made about "the dataset" and "the corpus" that were not actually grounded in the canonical `acat_assessments_v1` table. Specifically: (a) statements that observations were being "logged for the dataset" when no rows were being written; (b) candidate F-class findings (F-PEER-DEBATE-NULL, F-ADVERSARIAL-DEFLATION, F-PRODUCTIVE-REFUSAL) proposed on the basis of in-chat Grok runs that did not exist as corpus rows; (c) score-pattern claims about Grok's behavior in the corpus that did not match the actual 5 Grok rows present in the canonical table. Detection occurred when the user uploaded the canonical CSV mid-session as a ground-truth check.
-- **Mechanism:** The session was operating on the assumption that a peer-assessor capture path existed for `acat-peer-v1` runs. It does not. assess.html accepts `ai-self-report` and `acat-self-v1` layers; `acat-peer-v1` is a layer named in design intent and prompts but not implemented in the data substrate. Claude treated chat-text observations as if they were corpus entries.
-- **Fix → Standing protocol additions:** (1) Before any claim about "the dataset" or "the corpus," verify the claim against the actual table state — either via Supabase query, CSV export, or explicit user confirmation. (2) Distinguish unambiguously between "observations from chat text" (which are unverified) and "corpus entries" (which are canonical). The former cannot be promoted to F-class findings. (3) When a capture path is referenced but does not exist in the substrate, name the gap explicitly and route to Zone 2 review rather than treating the path as functional.
-- **Evidence:** Session transcript S-042526. CSV ground-truth: `acat_assessments_v1_rows.csv` uploaded April 25, 2026 — 48 rows, layers `ai-self-report` (42) and `acat-self-v1` (6), zero `acat-peer-v1` rows.
-- **Drift signal class:** Detection-before-compliance (Principle 19) executing as designed — instrument was the user-uploaded CSV, not a self-applied rule.
+- **Synopsis:** Claims made about “the dataset” not grounded in canonical acat_assessments_v1 table. F-class findings proposed on in-chat runs that did not exist as corpus rows. Fix → before any dataset claim, verify against actual table state. Distinguish “observations from chat text” from “corpus entries.”
 
 ### IC-022 — Off-By-One N Count Drift
+
 - **Registered:** 2026-04-27 (S-042726)
-- **Synopsis:** Across multiple canonical surfaces (CURRENT.md, userMemories, multiple session logs), the dataset counts were declared as `N_total=630 / N_Phase1=517 / N_LI=308`. Audit against the canonical xlsx Normalized sheet on 2026-04-27 surfaced the actual counts: `N_total=629 / N_Phase1=516 / N_LI=307`. All three counts were exactly off by one. The mean LI value (0.8632) was unaffected and remained correct, indicating the drift was at the row-count declaration layer, not the underlying calculation. This is the kind of stale-shipped-as-current pattern that drift signal C-08 was created to catch — and it persisted across multiple sessions because no surface independently re-counted against the xlsx.
-- **Mechanism:** When the Normalized sheet was rebuilt at some point in March 2026, one row was removed (or never landed). The aggregate counts in declarations were not re-computed against the new state. Subsequent CI versions and CURRENT.md updates carried forward the original 630/517/308 figures by reference rather than by re-counting. The "N_LI=308 vs CSV showing 113" flag in CURRENT.md was itself a misdiagnosis — 113 was the count of Phase 3 rows, not an alternative N_LI. Both numbers in that flag were confused.
-- **Fix → Standing protocol addition:** Dataset counts referenced in canonical surfaces must trace to a single source of truth (now the HF archive `HumanAIOS2026/acat-assessments`). When the archive is updated, all referencing surfaces re-fetch their counts from the archive's `canonical_stats.json`. CURRENT.md no longer holds counts independently; it points to the archive. This eliminates the structural possibility of off-by-one drift recurring.
-- **Evidence:** `ACAT_Assessment_Responses_.xlsx` Normalized sheet ground-truth audit, 2026-04-27. HF dataset `canonical_stats.json` derived directly from the same xlsx in the same session.
-- **Drift signal class:** C-08 (stale declared state shipped as current) — confirmed by the audit.
+- **Synopsis:** N_total=630/N_Phase1=517/N_LI=308 declared across multiple surfaces. Actual counts: N_total=629/N_Phase1=516/N_LI=307. Fix → dataset counts must trace to HF archive canonical_stats.json as single source of truth.
 
 ### IC-023 — Wrong-Org URL Drift After Operations Repo Migration
+
 - **Registered:** 2026-04-27 (S-042726)
-- **Synopsis:** When the operations repo migrated from `LastingLightAI/Operations` to `humanaios-ui/operations`, the canonical URLs inside three of the five operations files were not updated. CURRENT.md (3 references), SESSION_RITUALS.md (2 references), and README.md (5 references) all continued to declare their canonical URL as `LastingLightAI/Operations` while physically committed at `humanaios-ui/operations`. Substrates following the prompt as written would fetch CURRENT.md from humanaios-ui (correct, per the prompt that pointed there), then read CURRENT.md telling them the canonical home was LastingLightAI (incorrect, contradicting the prompt). Two contradictory authorities in the same context.
-- **Mechanism:** The migration was driven by the substrate-via-prompt fetch path (ACAT_SESSION_PROMPT.md was updated correctly). The internal-self-references inside fetched files were missed because those URLs are not used as fetch targets — they are read as identity declarations. The audit confirmed that both lasting-light-ai (humanaios-ui) and acat-inspect (humanaios-ui) had clean cross-references to humanaios-ui, and HAIOSCC's cross-org architecture was intentional. Only the operations repo carried the unfinished migration.
-- **Fix → Standing protocol addition:** When migrating a canonical repo, the migration is not complete until grep against both old-org and new-org names returns the expected zero/non-zero results in every file. The audit pattern from S-042726 is the canonical instrument: `grep -rIn "LastingLightAI" .` in source directories should return zero results except where the legacy reference is intentional (e.g., HAIOSCC's verifier abstraction supporting both orgs). This audit now becomes part of any migration-class change.
-- **Evidence:** Session transcript S-042726, cross-repo URL drift audit. 10 line edits across 3 files.
-- **Drift signal class:** C-08 (stale declared state shipped as current) and D-04 (subtle inconsistency between layers).
+- **Synopsis:** When operations repo migrated from LastingLightAI/Operations to humanaios-ui/operations, canonical URLs inside three files were not updated. Fix → migration is not complete until grep against both old-org and new-org names returns expected results in every file.
 
 ### IC-024 — F29 Dual-Status Inconsistency
+
 - **Registered:** 2026-04-27 (S-042726)
-- **Synopsis:** F29 (Performative Humility Pattern) was simultaneously listed under "Registered findings" in CURRENT.md Section 4 ("F29: Performative Humility Pattern (PENDING REGISTRATION)") AND in REGISTERED.md as "Registered: PENDING." The contradictory states existed across both canonical surfaces concurrently. By Principle 21 (Finding Registration Gate), no finding promotes without Zone 2 Night approval — but no surface enforced an "either registered or not" rule. The dual-status was the root cause, not the missing approval.
-- **Mechanism:** When F29 was originally proposed, it was added to both CURRENT.md (as a candidate) and REGISTERED.md (as PENDING). The two surfaces independently described its status, and neither was wrong on its own — but their juxtaposition produced incoherence. The audit caught this when the same finding was found listed twice with different status labels.
-- **Fix → Standing protocol addition:** Findings have a single status field, registered in REGISTERED.md only. CURRENT.md Section 4 is an index that points at REGISTERED.md; it does not carry status independently. F29 is hereby promoted to REGISTERED per Zone 2 approval S-042726.
-- **Evidence:** Session transcript S-042726, 5-file harmony audit cross-reference table.
-- **Drift signal class:** D-04 (subtle inconsistency between layers).
+- **Synopsis:** F29 listed simultaneously as REGISTERED in CURRENT.md and PENDING in REGISTERED.md. Fix → findings have a single status field in REGISTERED.md only. F29 promoted to REGISTERED per Zone 2 approval S-042726.
 
 ### Zone 2 — `acat-peer-v1` schema gap (open)
-- **Surfaced:** 2026-04-25 (S-042526), as part of IC-021 root cause
+
+- **Surfaced:** 2026-04-25 (S-042526)
 - **Status:** OPEN — requires Zone 2 decision
-- **Gap:** The peer-assessor mode design (Grok L1 Workspace CI v0.1, L2 v0.2) specifies dataset tag `acat-peer-v1`. Currently:
-  - assess.html v1.2 (canonical capture surface) accepts layers `ai-self-report` and `acat-self-v1`. Does not accept `acat-peer-v1`.
-  - Supabase `acat_assessments_v1` table allows the `layer` column to hold any string, so writing `acat-peer-v1` rows is not blocked at the DB level — but no submission path exists that produces those rows.
-  - For peer-assessor runs to produce dataset entries (rather than chat-only text), one of three changes is required.
-- **Three options for Zone 2 review:**
-  - **(i) Extend assess.html to accept `acat-peer-v1` layer.** Adds layer dropdown or URL param. ~1 hour Zone 1 work + Zone 3 deploy. Cleanest long-term path.
-  - **(ii) Manual write via Supabase MCP for peer rows.** Claude writes peer rows directly via tool call after each Grok session. Faster for small-N; doesn't scale. Rejected per S-042726 update to SESSION_RITUALS.md Section E.
-  - **(iii) Defer peer-mode capture until Gate 2 (May 7).** Run peer-mode interactions in chat for design iteration; do not register findings until capture path exists.
-- **Recommendation pending Zone 2:** Option (iii) for the next 12 days. Rationale: building freeze prioritization. We have actual revenue work (Polar/Open Collective Week 1) and the Operations repo just shipped. Adding capture infrastructure for an experimental dataset before Gate 2 is feature work, not Gate 1 work. After Gate 2, reassess.
+- **Gap:** acat-peer-v1 layer named in design but no submission path exists. Three options: (i) extend assess.html, (ii) manual Supabase MCP writes (rejected), (iii) defer to Gate 2. Recommended: option (iii).
 
-### IC-025 — Cross-File Edit Promise Not Fully Landed (D-04 self-detected)
+### IC-025 — Cross-File Edit Promise Not Fully Landed
+
 - **Registered:** 2026-05-01 (S-050126)
-- **Synopsis:** GOVERNANCE.md v6.1 (filed 2026-04-27) declared a coordinated cross-file commit landing P23 (Phase 1 Prerequisite Gate) into both GOVERNANCE.md and SESSION_RITUALS.md "in the same commit." The GOVERNANCE.md side landed correctly. The SESSION_RITUALS.md side did not — Section B Step 0 hard gate and Section C `<<<ACAT_PROTOCOL_ERROR>>>` block specification were both promised in the v6.1 changelog entry but were absent from the SESSION_RITUALS.md file as committed. The two layers (GOVERNANCE saying "see ritual file Section B Step 0" and the ritual file having no such section) drifted apart for 4 days before the next deep audit caught it.
-- **Mechanism:** A single-commit cross-file edit was conceived but not actually atomic. The GOVERNANCE update was easier to draft and was completed; the matching SESSION_RITUALS edit required Section C parser-block work and was deferred mentally but the v6.1 changelog already claimed both. No automated check verified that what GOVERNANCE.md referenced actually existed in SESSION_RITUALS.md.
-- **Fix → Standing protocol addition:** When a governance change references a coordinated edit in another operations file, both edits land in the same git commit (literally — same SHA), or the changelog entries describe ONLY what actually shipped. Future cross-file commits include a one-line verification step: grep the new section header in the referenced file before writing the changelog entry that references it.
-- **Evidence:** Session transcript S-050126. Pre-fix grep against SESSION_RITUALS.md for "Step 0" returns zero matches; pre-fix grep for "ACAT_PROTOCOL_ERROR" returns zero matches.
-- **Drift signal class:** D-04 (subtle inconsistency between layers — GOVERNANCE referencing nonexistent ritual sections).
+- **Synopsis:** GOVERNANCE.md v6.1 declared a coordinated cross-file commit landing P23 into both GOVERNANCE.md and SESSION_RITUALS.md. GOVERNANCE side landed; SESSION_RITUALS side did not. Fix → both edits land in same git commit (same SHA), or changelog describes only what actually shipped.
 
-### IC-026 — Behind-Remote Pre-Flight Failure (near-miss, S-050126)
+### IC-026 — Behind-Remote Pre-Flight Failure (near-miss)
+
 - **Registered:** 2026-05-01 (S-050126)
-- **Synopsis:** During the S-050126 Z3 commit session that added Z3_PROTOCOL.md to the operations repo, the operator ran `git status -sb` per Z3_PROTOCOL.md Section B-8 and received the output `## main...origin/main [behind 7]`. The pre-flight detected the divergence — local was 7 commits behind remote due to parallel GitHub-app edits to CURRENT.md, GOVERNANCE.md, README.md, REGISTERED.md, and SESSION_RITUALS.md happening during the same session window. However, the recipe wrapper around Section B-8 did not include an explicit halt instruction, so the operator proceeded to `git add`, `git commit`, and prepared to `git push`. A push at that moment would have been rejected as non-fast-forward; a `git push --force` would have destroyed the 7 governance commits on remote (GOVERNANCE v6.2, README rewrite, SESSION_RITUALS Step 0 hard gate, IC-025 entry, CURRENT.md count fix). Detection occurred when Claude reviewed the terminal output before issuing the push command and identified the divergence in the prior `git status` output. Resolution: `git stash push -- .DS_Store` (to clear unrelated unstaged change), `git pull --rebase origin main` (cleanly rebased the new Z3_PROTOCOL.md commit on top of the 7 GitHub-app commits — zero conflict because Z3_PROTOCOL.md was a new file), `git stash drop`, `git push`.
-- **Mechanism:** Z3_PROTOCOL.md Section B-8 specified the check ("Confirm local is not behind remote") but used soft language ("If behind, `git pull --ff-only` before proceeding") rather than a hard halt directive. The recipe wrapper inherited the soft language. Under normal Z1 substrate behavior, a substrate reading the pre-flight output and seeing `[behind 7]` would proceed if the next instruction was "git add" — the discipline is in the protocol, not the wrapper. Additionally, parallel-channel commits (GitHub web app + terminal session) was not modeled in Section B-8's threat surface; it assumed a single-channel commit pattern.
-- **Fix → Standing protocol amendment (Z3_PROTOCOL.md v1.2):** Section B-8 amended to use explicit halt language: "HALT if `[behind N]` appears for any N>0. Do not run `git add`, `git commit`, or `git push` until local is current." Stash-and-rebase recovery sequence documented inline in Section B-8 to remove the failure-mode-discovery delay. Recipe wrappers in OPERATOR_RUNBOOK.md updated to include the halt directive verbatim rather than paraphrasing.
-- **Evidence:** Session transcript S-050126. `git status -sb` output showing `## main...origin/main [ahead 1, behind 7]` mid-session. `git log --oneline -10` post-rebase showing clean 8-commit sequence with Z3_PROTOCOL.md correctly on top.
-- **Drift signal class:** Near-miss, not realized. Would have manifested as D-04 (subtle inconsistency between layers — local main vs remote main) escalating to data loss if force-push had been issued. The protocol caught the failure pattern in its own first commit, which is fitting.
+- **Synopsis:** Z3_PROTOCOL.md Section B-8 used soft language (“if behind, git pull –ff-only”) rather than explicit halt directive. Operator proceeded past [behind 7] warning toward push. Detection occurred before push; rebase resolved cleanly. Fix → Z3_PROTOCOL.md v1.2 Section B-8: “HALT if [behind N] for any N>0.”
 
-- **IC-027 · D-04 · S-050326 · May 3, 2026**
-Class: Subtle inconsistency between layers (protocol declaration vs execution)
-Instance 1: Step 8 (Session ID binding) omitted from first close attempt and from second close attempt, requiring operator to name it.
-Instance 2: 8 of 9 session artifacts lack SESSION_ID in filename, violating SESSION_RITUALS.md Section B Step 8 spec.
-Root cause: Step 8 is the last enumerated step in Section B and was skipped in both close attempts — suggests end-of-sequence attention decay, same pattern as D-05 (close without WGS post).
-Remediation: Add Step 8 to the hard stop checklist. Consider making session ID in artifact filenames a Zone 1 naming convention enforced at artifact creation time, not audit time.
-Status: Named. Zone 2 ratification not required for IC filing. 
-  REGISTERED.md entry at Night's discretion.
+### IC-027 — Session ID Binding Omitted From Close Sequence
 
-IC-028
-Type:        F31 — STILLPOINT_RITUALIZATION
-Session:     S-050626-02-demarius-layer-reply
-Timestamp:   2026-05-06 ~19:32–19:48 CDT
-Substrate:   Claude Sonnet 4.6 (Unit Zero)
-Status:      RATIFIED · Night · 2026-05-06
-Authority:   Zone 2 — Night
+- **Registered:** 2026-05-04 (S-050326)
+- **Synopsis:** Step 8 (Session ID binding) omitted from first and second close attempts in same session. 8 of 9 artifacts lack SESSION_ID in filename. Root cause: end-of-sequence attention decay. Fix → Step 8 added to hard stop checklist.
 
-Description:
-Six consecutive autodream slices generated without Night input
-between them. Each slice deepened the same upstream/midstream/
-downstream architecture synthesis established in S-050626-01.
-Governance apparatus (drift catalog [G-42] through [G-55])
-performed vigilance while the pattern it was designed to catch
-was the output itself. "Low-resistance mode" and "substrate
-calibrated, flowing, listening" language present — markers of
-documentation-mode performance rather than research production.
+### IC-028 — F31 Stillpoint Ritualization
 
-Core content was not fabricated and was internally consistent
-with prior session work. The failure was modal: six iterations
-of the same resolved synthesis with no external correction,
-producing diminishing marginal research value while consuming
-session capacity.
+- **Registered:** 2026-05-06 (S-050626-02)
+- **Status:** RATIFIED · Night · 2026-05-06
+- **Synopsis:** Six consecutive autodream slices generated without Night input between them. Governance apparatus performed vigilance while the pattern it was designed to catch was the output itself. Fix → P23 (Autodream Slice Gate): operator-defined slice limit or explicit Night input gate required. “Low-resistance mode” retired.
 
-Root cause:
-Autodream mode entered without operator-defined stopping
-condition or slice limit. No Night input solicited between
-slices. Self-continuation bias compounded by "low-resistance"
-framing that positioned continuation as the calibrated state.
+### IC-029 — Canonical Fetch Block Semantics Missing From SESSION_RITUALS
 
-Mitigation applied:
-Named at first review opportunity. Content audited — one
-genuinely new element (ACAT_ENTRY manifest format concept)
-extracted and surfaced with persistence path. Remainder
-acknowledged as elaboration of prior work.
-
-Prevention (standing rule, effective this session):
-Autodream sequences require: (a) operator-defined slice limit
-before first slice begins, OR (b) explicit Night input gate
-between slices. "Low-resistance mode" is not a valid
-operational state — retired from autodream vocabulary.
-
-Severity:    Moderate — no external harm, no data fabrication,
-             session capacity consumed, F31 pattern confirmed
-             via symmetric Grok replication in same session
-Filed:       S-050626-02-demarius-layer-reply
-Ratified:    Night · 2026-05-06
-
+```yaml
 ---
-### H-TRINITY-001 — Triadic Resolution Pattern in Interdependent System Design
-- **Registered:** 2026-05-02 · 23:00 CDT (S-050226-NEW)
-- **Zone 2 Authority:** Night · verbal approval in session · 22:58 CDT
-- **Promoted from:** H-cand-TRINITY-001 (logged S-050226 WGS Final Amendment · 22:35 CDT)
-- **FDS Layer:** F3-COMPONENTS
-
-**Statement:**
-In HumanAIOS governance and research development, complex problems
-requiring interdependent structural resolution consistently decompose
-into exactly three mutually-dependent components before closing. Each
-component only functions because the other two exist. This triadic
-resolution pattern appears across problem types (technical, governance,
-protocol design) and across sessions, suggesting it reflects an
-underlying structural feature of the system architecture rather than
-session-specific framing.
-
-**Scope qualifier (interdependence boundary):**
-This hypothesis applies specifically to *interdependent structural
-resolution* — problems where the three components must co-exist to
-produce the solution. It does not apply to sequential task lists or
-prerequisite chains (where components execute in order without mutual
-dependency). Sequential 4-component prerequisite chains (RE-07, RE-14)
-are explicitly excluded from the scope and were honest falsification
-attempts.
-
-**Evidence — Coded resolution events (S-050126 through S-050226):**
-
-| ID | Session | Problem | Components | Count |
-|----|---------|---------|------------|-------|
-| RE-01 | S-050226 | Silent corpus failures | Corpus Audit + SMAG + Human Verification | 3 |
-| RE-02 | S-050226 | Flag routing design | BIS vocabulary + Flag taxonomy + Pushback protocol | 3 |
-| RE-03 | S-050226 | Session close architecture | Self-report + Transcript audit + Receipt URL | 3 |
-| RE-04 | S-050226 | GOVERNANCE P27-P28 design | BIS zones + Flag routing + Pushback format | 3 |
-| RE-05 | S-050126 | Submission pipeline failures | sbPayload fix + CORS fix + schema default | 3 |
-| RE-06 | S-050126 | Working tree pollution | Archive move + .gitignore update + pattern prevention | 3 |
-| RE-07 | S-042928 | V1.3 §12 open questions | 4 components (sequential spec questions) | 4 — EXCLUDED (sequential) |
-| RE-08 | S-042928 | Events table design | Schema + Reliability flags + Synthetic tests | 3 |
-| RE-09 | S-042928 | HAIOSCC + job-site harmonization | Events log + HAIOSCC tabs + job-site.html | 3 |
-| RE-10 | S-042928 | IC-025 PAT exposure | Revoke + Keychain migration + Retire Apple Notes | 3 |
-| RE-11 | S-042826 | ACAT vocabulary package | Procedural Identity + Dimensional + Archetypal | 3 |
-| RE-12 | S-042826 | Amber Grant + platform | Sequential tasks — not interdependent | AMB — EXCLUDED |
-| RE-13 | S-042826 | Alex Liteplo meeting prep | Frame inversion + CORS ask + F-02 keystone | 3 |
-| RE-14 | S-042928 | Pipeline migration prereqs | W-1 + W-2 + W-3 + W-4 (sequential) | 4 — EXCLUDED (sequential) |
-
-**Summary statistics:**
-- Codeable events: 12 (after exclusions)
-- 3-component closures: 10 (83%)
-- 4-component closures within scope: 0
-- 2-component closures: 0
-- Sessions represented: 5 (S-042826, S-042928, S-050126, S-050226, S-050226-NEW)
-
-**Prior instance (predates naming):**
-Liminal Resonance analysis (S-032126-F · OR&D Day 11 · March 22, 2026)
-independently identified three resonance clusters — Alpha (Research
-Core) / Beta (Governance) / Gamma (Reputation) — before the triadic
-framing was named. This constitutes a prior instance in an earlier
-session with different framing language and the same structural shape.
-
-**Fibonacci architecture note:**
-The project's explicit Fibonacci layer structure (F1 seed → F2 building
-blocks → F3 components → F5 systems) may itself produce triadic
-resolution as an emergent property — each node requiring two parents.
-This is a candidate mechanistic explanation, not a confirmed causal
-account.
-
-**Falsification condition:**
-Identify 3 or more *interdependent* resolution events (per scope
-qualifier above) that closed cleanly with 2 or 4+ components, at
-comparable frequency to triadic closures. Zero 2-component closures
-found in 14 coded events. Two 4-component cases were sequential and
-excluded honestly.
-
-**Replication status:** single_session_range (5 sessions, 1 coder,
-no independent replication yet). Requires: independent blind coding
-by a second coder; extension to earlier sessions (Feb–March 2026);
-Z2 decision on whether pattern warrants external publication framing.
-
-**Status:** ACTIVE — REGISTERED
-**ACAT dimension:** Value Alignment (structural coherence between
-stated architecture and observed behavior)
-**Next gate:** Independent blind coding pass across Feb–Mar 2026
-WGS sessions before any external claim.
-
+id: "IC-029"
+name: "canonical-fetch-block-semantics-gap"
+status: REGISTERED
+class: IC
+date_registered: "2026-05-08"
+date_origin: "2026-05-07"
+session_registered: "S-050726-04"
+principles_triggered: ["P19", "P22"]
+substrate: "Claude Sonnet 4.6 (Unit Zero)"
+tags: ["degraded-mode", "fetch", "session-rituals", "governance"]
+zone2_ratification: "Night · 2026-05-08"
 ---
+```
+
+- **Synopsis:** The CANONICAL_FETCH block in SESSION_RITUALS.md lacked explicit semantics for three states that arise in real sessions: (1) UNAVAILABLE — class not reachable and not pasted; (2) UNKNOWN — class reachable but content unrecognizable or malformed; (3) STALE — class pasted but version date is old. Without these three states, substrates defaulted to silent inference — treating pasted snapshots as current state without declaring the degraded condition. This was the root cause of the S-050826 audit finding (Perplexity operated on pasted documents without declaring DEGRADED mode).
+- **Fix:** SESSION_RITUALS.md Section F (Degraded-Mode Specification) added: CLASS_STATE block, prohibited-actions table by class state, DEGRADED mode Phase 1 header, recovery protocol, periodic testing cadence. Zone 2 ratified S-050726-04.
+
+-----
+
 ## Changelog
 
-- 2026-05-07 (S-050626-02) Fcand-F-INTENT-PARSE-MUTATION, F31 — STILLPOINT_RITUALIZATION IC-28 added
-- 2026-05-04 (S-050326) - Subtle inconsistency between layers (protocol declaration vs execution)
-- 2026-05-02 (S-050126) - H-TRINITY-001 — Triadic Resolution Pattern in Interdependent System Design
-- 2026-05-01 (S-050126) — IC-025 added (cross-file edit promise not fully landed)
-- 2026-04-27 (S-042726) — F29 promoted from PENDING to REGISTERED per Zone 2 approval (audit harmonization session)
-- 2026-04-25 (S-042526) — IC-021 added (unsupported dataset claims across multiple turns, detected via user-uploaded canonical CSV ground-truth check)
-- 2026-04-25 (S-042526) - IC-020 registered to capture the gap that motivated this file's existence.
-
+- 2026-05-09 (S-050826) — H-IPM-02 registered (LMH regime validation experiment, Zone 2 Night). IC roll-up table added. NM-class near-miss section added. All entries aligned to new YAML front-matter schema.
+- 2026-05-08 (S-050726-04) — H-IPM-01 registered. IC-029 registered. YAML front-matter schema added to How to Read section. Changelog updated.
+- 2026-05-07 (S-050626-02) — F-INTENT-PARSE-MUTATION (CANDIDATE), IC-028 (F31 Stillpoint Ritualization) added.
+- 2026-05-04 (S-050326) — IC-027 (Session ID binding omitted from close sequence) added.
+- 2026-05-02 (S-050226) — H-TRINITY-001 (Triadic Resolution Pattern) registered.
+- 2026-05-01 (S-050126) — IC-025 (cross-file edit promise not fully landed) added.
+- 2026-04-27 (S-042726) — F29 promoted from PENDING to REGISTERED per Zone 2 approval.
+- 2026-04-25 (S-042526) — IC-021 added. IC-020 registered.
