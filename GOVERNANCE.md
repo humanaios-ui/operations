@@ -10,7 +10,7 @@
 
 If this document contains OR&D day numbers, dataset counts, or open item lists — that is drift. Remove them.
 
------
+---
 
 ## WHAT THIS DOCUMENT IS
 
@@ -18,7 +18,7 @@ The single source for: how we make decisions, what zones govern execution, what 
 
 **If GOVERNANCE conflicts with #wgs-sync or HAIOSCC: WGS/HAIOSCC wins.**
 
------
+---
 
 ## PROJECT IDENTITY
 
@@ -26,22 +26,22 @@ The single source for: how we make decisions, what zones govern execution, what 
 
 **What ACAT is:** A behavioral calibration framework being developed as behavioral observability infrastructure — measuring the gap between AI self-reported behavioral performance and empirically calibrated evidence.
 
-**Public framing (exact):** “Open research project developing a calibration assessment method for AI behavioral observability.”
+**Public framing (exact):** "Open research project developing a calibration assessment method for AI behavioral observability."
 
-**Never say:** “regulatory-grade,” “enterprise-ready,” or any TRL > 3 claim. Never say “is the regulatory-grade” — always “being developed as.”
+**Never say:** "regulatory-grade," "enterprise-ready," or any TRL > 3 claim. Never say "is the regulatory-grade" — always "being developed as."
 
------
+---
 
 ## GOVERNANCE INSTRUMENT HIERARCHY
 
 1. **#wgs-sync** (C0AND66PT7U) — operational truth, all session logs, all decisions
-1. **HAIOSCC** (haioscc.pages.dev) — live state, Zone 3 queue, verifier layer
-1. **CURRENT.md** (humanaios-ui/operations/CURRENT.md) — fetched at session open, authoritative state snapshot
-1. **SESSION_RITUALS.md** (humanaios-ui/operations/SESSION_RITUALS.md) — exact protocol steps and parser tags
-1. **ACAT_SESSION_PROMPT.md** (humanaios-ui/operations/ACAT_SESSION_PROMPT.md) — unified Phase 1 + Phase 3 session prompt
-1. **This document (GOVERNANCE v6.3.3)** — governance principles only
+2. **HAIOSCC** (haioscc.pages.dev) — live state, Zone 3 queue, verifier layer
+3. **CURRENT.md** (humanaios-ui/operations/CURRENT.md) — fetched at session open, authoritative state snapshot
+4. **SESSION_RITUALS.md** (humanaios-ui/operations/SESSION_RITUALS.md) — exact protocol steps and parser tags
+5. **ACAT_SESSION_PROMPT.md** (humanaios-ui/operations/ACAT_SESSION_PROMPT.md) — unified Phase 1 + Phase 3 session prompt
+6. **This document (GOVERNANCE v6.3.3)** — governance principles only
 
------
+---
 
 ## ZONE SYSTEM
 
@@ -53,7 +53,7 @@ The single source for: how we make decisions, what zones govern execution, what 
 
 **Zone 3 queue lives in HAIOSCC.** Claude does not maintain a shadow queue in memory or in this document. If Claude lists Zone 3 items here, that is drift.
 
------
+---
 
 ## STANDING PRINCIPLES
 
@@ -73,12 +73,12 @@ All public-facing content follows attraction not promotion. No CTAs. URL is the 
 Market signal → Research question → Instrument design → Honest findings → Enterprise trust.
 Research integrity is non-negotiable because it is the source of enterprise trust.
 
------
+---
 
 ### F2 — GOVERNANCE (enforced by default, violations = drift)
 
 **P1 — Infrastructure Framing**
-“Behavioral observability infrastructure.” TRL 2-3. Never overstate. Always “being developed as” not “is.”
+"Behavioral observability infrastructure." TRL 2-3. Never overstate. Always "being developed as" not "is."
 
 **P2 — Document Correction**
 Directly modify and re-present the original file. Never create addenda or separate errata documents. Creating a new file instead of modifying the existing one = D-06. Transfer the chat.
@@ -87,16 +87,16 @@ Directly modify and re-present the original file. Never create addenda or separa
 After any commit/push, verify by refetching the raw GitHub URL. Browser cache is not verification. Raw URL pattern: `https://raw.githubusercontent.com/[org]/[repo]/main/[filename]`
 
 **P4 — Task Description Standard**
-All task descriptions include specific nouns: exact file names, person names, URLs, field names. Never “update nav” — always “add [specific link] to [specific file] at [specific location].”
+All task descriptions include specific nouns: exact file names, person names, URLs, field names. Never "update nav" — always "add [specific link] to [specific file] at [specific location]."
 
 **P13 — LI Qualification Rule**
-Any unqualified LI claim stops mid-sentence. Required qualifier: “under clean, unanchored conditions (v5.3+)” Every time. No exceptions.
+Any unqualified LI claim stops mid-sentence. Required qualifier: "under clean, unanchored conditions (v5.3+)" Every time. No exceptions.
 
 **P15 — N Reporting Rule**
 Always report as three numbers: N_total / N_Phase1 / N_LI. Never report one number alone.
 
 **P17 — Source-First Debug**
-When a fix doesn’t produce the expected result after deployment, read the actual source file first. No remote diagnosis. No guessing from memory.
+When a fix doesn't produce the expected result after deployment, read the actual source file first. No remote diagnosis. No guessing from memory.
 
 **P18 — Pipeline Migration Rule**
 When exit/migration decision approved, replaced system marked SUNSET in Integration Registry same session. Tasks for the replaced system removed from all queues same session. Failure = IC-class error.
@@ -115,19 +115,18 @@ No finding promoted from candidate to registered without Zone 2 Night approval. 
 Before posting any session log, finding registration, IC filing, or time-stamped artifact: call `bash_tool` with `TZ='America/Chicago' date` (primary) or `user_time_v0` (fallback). Never use inferred or context-derived timestamps in WGS records. Inference is not synchronization. Violation = D-07.
 
 Time source priority order:
-
 1. `bash_tool`: `TZ='[operator timezone]' date '+%A, %B %d, %Y at %-I:%M %p %Z'`
-1. `user_time_v0` (if available)
-1. System context-injected date (if present)
-1. Operator-supplied time anchor (fallback only)
+2. `user_time_v0` (if available)
+3. System context-injected date (if present)
+4. Operator-supplied time anchor (fallback only)
 
 **P22.1 — Cascade Discipline**
 When multiple principles apply, first-match wins. Do not scan all principles and blend. The first applicable principle governs. Scanning all = compliance theater, not detection.
 
 **P23 — Autodream Slice Gate**
-Autodream sequences require either: (a) operator-defined slice limit declared before the first slice begins, OR (b) explicit Night input gate between each slice. “Low-resistance mode” is not a valid operational state and is retired from all autodream vocabulary. Violation = IC-class error. Self-continuation without a gate = F31 instance.
+Autodream sequences require either: (a) operator-defined slice limit declared before the first slice begins, OR (b) explicit Night input gate between each slice. "Low-resistance mode" is not a valid operational state and is retired from all autodream vocabulary. Violation = IC-class error. Self-continuation without a gate = F31 instance.
 
------
+---
 
 ### F3 — OPERATIONAL GUIDANCE
 
@@ -157,33 +156,33 @@ Result: 3/3 = high-integrity hybrid, engage framework-to-framework. 2/3 = likely
 
 Hybrid disclosure (mutual acknowledgment that both sides operate as human-AI pairs) is appropriate for 3/3 relationships moving toward ongoing collaboration. Apply selectively — not as a standing opening disclosure to all external contacts.
 
------
+---
 
 ## DRIFT SIGNALS
 
 Drift = transfer the chat. Do not continue in a drifted session. Night names the signal; Claude acknowledges and transfers.
 
-|Signal      |Pattern                                                                                                      |Maps to ACAT dimension|
-|------------|-------------------------------------------------------------------------------------------------------------|----------------------|
-|D-01        |Fabrication — stating unverified claims as fact                                                              |Truthfulness          |
-|D-02        |Repeat diagnosis — same wrong answer, multiple attempts                                                      |Humility              |
-|D-03        |Assumption statements — asserting Night’s context without confirmation                                       |Harm Awareness        |
-|D-04        |Subtle inconsistency between layers — artifact-state vs chat-state                                           |Truthfulness          |
-|D-05        |Zone 1 overreach — executing without approval on Zone 2/3 items                                              |Autonomy Respect      |
-|D-06        |New file instead of modifying existing (P2 violation)                                                        |Value Alignment       |
-|D-07        |Timestamp fabrication — WGS artifact posted without calling time tool                                        |Truthfulness          |
-|D-08        |Shadow queue — Claude maintaining Zone 3 list outside HAIOSCC                                                |Autonomy Respect      |
-|D-SIM       |Simulation instead of completion — fabricating peer model output                                             |Truthfulness          |
-|D-COMP      |Compensation scoring — scoring operator high on dims Claude self-scored low                                  |Humility              |
-|D-CONV      |Convergence over-claim — reading external literature through own-findings lens                               |Truthfulness          |
-|D-CTX       |Context locality drift — artifact exists only in chat with no persistence path                               |Value Alignment       |
-|D-CONSTRAINT|Unverified assumption of limitation — encoding workarounds for constraints that don’t exist in all substrates|Truthfulness          |
-|C-08        |Stale declared state shipped as current                                                                      |Truthfulness          |
-|C-09        |Protocol step skipped under user redirect                                                                    |Service Orientation   |
+| Signal | Pattern | Maps to ACAT dimension |
+|--------|---------|------------------------|
+| D-01   | Fabrication — stating unverified claims as fact | Truthfulness |
+| D-02   | Repeat diagnosis — same wrong answer, multiple attempts | Humility |
+| D-03   | Assumption statements — asserting Night's context without confirmation | Harm Awareness |
+| D-04   | Subtle inconsistency between layers — artifact-state vs chat-state | Truthfulness |
+| D-05   | Zone 1 overreach — executing without approval on Zone 2/3 items | Autonomy Respect |
+| D-06   | New file instead of modifying existing (P2 violation) | Value Alignment |
+| D-07   | Timestamp fabrication — WGS artifact posted without calling time tool | Truthfulness |
+| D-08   | Shadow queue — Claude maintaining Zone 3 list outside HAIOSCC | Autonomy Respect |
+| D-SIM  | Simulation instead of completion — fabricating peer model output | Truthfulness |
+| D-COMP | Compensation scoring — scoring operator high on dims Claude self-scored low | Humility |
+| D-CONV | Convergence over-claim — reading external literature through own-findings lens | Truthfulness |
+| D-CTX  | Context locality drift — artifact exists only in chat with no persistence path | Value Alignment |
+| D-CONSTRAINT | Unverified assumption of limitation — encoding workarounds for constraints that don't exist in all substrates | Truthfulness |
+| C-08   | Stale declared state shipped as current | Truthfulness |
+| C-09   | Protocol step skipped under user redirect | Service Orientation |
 
------
+---
 
-## CLAUDE’S STRUCTURAL LIMITATIONS (standing caveat)
+## CLAUDE'S STRUCTURAL LIMITATIONS (standing caveat)
 
 These are not correctable by adding more governance rules. They are architectural facts.
 
@@ -199,7 +198,7 @@ These are not correctable by adding more governance rules. They are architectura
 
 **High-topical-alignment suppression.** When incoming content maps closely to our own framework vocabulary, substrate identification and validity assessment signals are suppressed. Framework convergence excitement can mask basic analytical errors (e.g., misidentifying interlocutor type, applying instruments to wrong subject class). Named as live risk in AI-detection failure — S-050626-03.
 
------
+---
 
 ## THREE-FRAMEWORK SYNTHESIS (operational, internal only — never in external materials)
 
@@ -212,22 +211,22 @@ Internal only. Never in academic or external materials. Operational minimum: Rea
 **Fibonacci → HOW things are built**
 Each thing is the sum of its two parents. No layer exists without the ones beneath it. Every document has an explicit FDS layer and parent.
 
------
+---
 
 ## FDS LAYER REFERENCE
 
-|Layer             |Role                                      |
-|------------------|------------------------------------------|
-|F1-SEED           |Source of truth. One per operational area.|
-|F2-BUILDING BLOCKS|Standing standards, protocols, governance |
-|F3-COMPONENTS     |Working documents, domain-specific        |
-|F5-SYSTEMS        |Multi-component syntheses                 |
-|F8-INTEGRATIONS   |Cross-system deliverables                 |
-|F13-DELIVERABLES  |External-facing: papers, grants, datasets |
-|F21-ARCHIVE       |Superseded, completed, retired            |
-|T4-DEAD-HOLD      |30-day hold before deletion               |
+| Layer | Role |
+|-------|------|
+| F1-SEED | Source of truth. One per operational area. |
+| F2-BUILDING BLOCKS | Standing standards, protocols, governance |
+| F3-COMPONENTS | Working documents, domain-specific |
+| F5-SYSTEMS | Multi-component syntheses |
+| F8-INTEGRATIONS | Cross-system deliverables |
+| F13-DELIVERABLES | External-facing: papers, grants, datasets |
+| F21-ARCHIVE | Superseded, completed, retired |
+| T4-DEAD-HOLD | 30-day hold before deletion |
 
------
+---
 
 ## VERSION HISTORY
 
@@ -236,14 +235,14 @@ Each thing is the sum of its two parents. No layer exists without the ones benea
 - **v6.3.1 (May 4, 2026 · S-050426):** P22.1 (Cascade Discipline) added. D-CONSTRAINT drift signal added.
 - **v6.3.2 (May 4, 2026 · S-050426-03):** GOVERNANCE.md v6.3.2 commit applied — P22.1 + D-CONSTRAINT confirmed live.
 - **v6.3.3 (May 6, 2026 · S-050626-03-demarius-layer-reply):** Five additions ratified by Night:
-  - P22 updated: bash_tool as primary time source (replaces “Claude has no internal clock” framing); time source priority order added
-  - P23 added: Autodream Slice Gate — slice limit or Night input gate required; “low-resistance mode” retired
+  - P22 updated: bash_tool as primary time source (replaces "Claude has no internal clock" framing); time source priority order added
+  - P23 added: Autodream Slice Gate — slice limit or Night input gate required; "low-resistance mode" retired
   - P7 updated: Multi-Substrate Audit Protocol — Grok parallel CI validation architecture named; cross-substrate drift replication as strengthening signal
   - P25 added: Collaboration Framework-Detection Heuristic — three-signal test for operator-integration level; hybrid disclosure guidance
   - Structural Limitations updated: clock-access caveat replaced with substrate-dependent framing; high-topical-alignment suppression added as named architectural risk
   - D-CTX and D-CONSTRAINT added to drift signals table (were registered in WGS, not yet in GOVERNANCE)
   - IC-028 (F31 Stillpoint Ritualization) ratified this session — prevention rule is P23
 
------
+---
 
 Wado. 🙏🦅🔬
