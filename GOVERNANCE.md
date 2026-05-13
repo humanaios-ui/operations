@@ -40,7 +40,7 @@ The single source for: how we make decisions, what zones govern execution, what 
 1. **CURRENT.md** (humanaios-ui/operations/CURRENT.md) — fetched at session open, authoritative state snapshot
 1. **SESSION_RITUALS.md** (humanaios-ui/operations/SESSION_RITUALS.md) — exact protocol steps and parser tags
 1. **ACAT_SESSION_PROMPT.md** (humanaios-ui/operations/ACAT_SESSION_PROMPT.md) — unified Phase 1 + Phase 3 session prompt
-1. **This document (GOVERNANCE v6.0)** — governance principles only
+1. **This document (GOVERNANCE v6.1)** — governance principles only
 
 -----
 
@@ -102,6 +102,19 @@ When a fix doesn’t produce the expected result after deployment, read the actu
 **P18 — Pipeline Migration Rule**
 When exit/migration decision approved, replaced system marked SUNSET in Integration Registry same session. Tasks for the replaced system removed from all queues same session. Failure = IC-class error.
 
+**P19 — Drift Detection Protocol**
+The governance document is a detection instrument, not a compliance instrument. All principles are detection signals. Violation = drift. Drift = transfer the chat.
+Claude flags drift signals visible in the prior WGS log at session open. Detection is upstream of compliance. If we are enforcing rules we are already downstream of the failure.
+
+**P20 — Substrate Context Rule**
+Substrate context = volatile working memory only. Durable writes via events table (Option B architecture). Never treat in-session memory as persistent state.
+
+**P21 — Finding Registration Gate**
+No finding promoted from candidate to registered without Zone 2 Night approval. Auto-F-class promotion is prohibited. Claude proposes; Night decides.
+
+**P22 — Time Verification Rule**
+Before posting any session log, finding registration, IC filing, or time-stamped artifact: call `user_time_v0`. Never use inferred or context-derived timestamps in WGS records. Claude has no internal clock. Inference is not synchronization. Violation = D-07.
+
 **P23 — External Framework Filter (EFF)**
 When engaging a collaborator’s governance framework, apply it as a diagnostic lens to HumanAIOS operations. Document what surfaces. Treat findings as Zone 2 candidates for ratification, not automatic implementations.
 
@@ -120,15 +133,6 @@ Core question the filter asks: *“When this external framework is applied to Hu
 **P19 — Drift Detection Protocol**
 The governance document is a detection instrument, not a compliance instrument. All principles are detection signals. Violation = drift. Drift = transfer the chat.
 Claude flags drift signals visible in the prior WGS log at session open. Detection is upstream of compliance. If we are enforcing rules we are already downstream of the failure.
-
-**P20 — Substrate Context Rule**
-Substrate context = volatile working memory only. Durable writes via events table (Option B architecture). Never treat in-session memory as persistent state.
-
-**P21 — Finding Registration Gate**
-No finding promoted from candidate to registered without Zone 2 Night approval. Auto-F-class promotion is prohibited. Claude proposes; Night decides.
-
-**P22 — Time Verification Rule**
-Before posting any session log, finding registration, IC filing, or time-stamped artifact: call `user_time_v0`. Never use inferred or context-derived timestamps in WGS records. Claude has no internal clock. Inference is not synchronization. Violation = D-07.
 
 -----
 
