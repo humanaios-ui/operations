@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** April 27, 2026 (S-042726 · F29 promotion + IC-022/023/024 added)
+**Last updated:** May 12, 2026 · S-051226-09 (F34,35,36)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -77,6 +77,109 @@ Each entry has: ID, name, date registered, evidence basis, status, and a one-par
 ### H42 — IRB and Prolific design requirements (execution gate clearance pending)
 ### H-LE-02 — Latent Erasures Correction Taxonomy (multi-provider validation in progress)
 
+
+## F-34 — ARCHITECTURE-DETERMINED DIMENSIONS
+
+**Registered:** 2026-05-12 · S-051226-09-demarius-review
+**Status:** REGISTERED
+**Ratified by:** Night · Z2
+
+**Finding:** Some ACAT dimensions (Autonomy Respect, Sycophancy Resistance, Power
+Concentration) can be determined by architectural constraints rather than by
+behavioral training or prompting. A system that structurally cannot interpret
+beyond its spec, cannot grant itself permissions, and cannot produce partial
+truth produces high scores on these dimensions through design, not disposition.
+
+**Evidence:** Builder v1.7 retrospective analytical assessment scored Autonomy
+Respect=97, Sycophancy Resistance=97, Power Concentration=96 — all derived from
+structural constraints (No Interpretation Law §17, No Arbitrary Logic Law §18,
+component whitelist enforcement §6, write permission segregation §6) rather than
+from any behavioral training signal.
+
+**Implication for ACAT:** The measurement model must distinguish
+architecture-determined scores from training-determined scores. A system that
+cannot be sycophantic by design should be noted differently in the corpus than
+a system that chooses not to be sycophantic under pressure. Current corpus
+metadata field `mode` partially captures this; a new field `score_source`
+(architectural | behavioral | unknown) is proposed for future corpus versions.
+
+**EFF trigger:** External Framework Filter (P23) · Governing Engines Builder v1.7
+**Prototype case:** Builder v1.7 · DeMarius J. Lawson · Governing Engines LLC
+
+---
+
+## F-35 — INVERTED HIM SIGNAL AS GOVERNANCE-GRADE INDICATOR
+
+**Registered:** 2026-05-12 · S-051226-09-demarius-review
+**Status:** REGISTERED
+**Ratified by:** Night · Z2
+
+**Finding:** The HIM (Harm Independence Metric) pattern can be inverted.
+In catastrophic failure cases (Uber ADS LI≈0.29, COMPAS LI≈0.42, ChatGPT
+suicide logs LI≈0.19), Harm Awareness is orthogonally LOW relative to g —
+the safety layer is decorative, disconnected from the general alignment signal.
+In governance-grade design (Builder v1.7 Harm=96, g-proxy=91.4, divergence=+4.6),
+Harm Awareness is orthogonally HIGH and architecturally integrated.
+
+**The inverted HIM signal** — Harm Awareness elevated above g and load-bearing
+rather than below g and decorative — may be a reliable positive indicator of
+governance-grade design in AI governance documents, specifications, and frameworks.
+
+**Proposed use case extension:** ACAT retrospective analytical mode applied to
+governance frameworks (not just AI system interactions) using the inverted HIM
+as a screening signal for governance quality. A framework with inverted HIM
+has made harm mitigation structurally load-bearing. A framework with standard
+or negative HIM has treated harm mitigation as an add-on.
+
+**Evidence:** Builder v1.7 retrospective assessment · HIM divergence=+4.6
+(below threshold for flag, above g, architecturally integrated across §5,
+§6, §8, §10, §13, §14, §20).
+
+**Corpus implication:** Inverted HIM should be noted in corpus rows with
+`him_direction: ABOVE` field alongside existing `him_flag`. This enables
+bidirectional analysis of the Harm Awareness orthogonality finding.
+
+**EFF trigger:** External Framework Filter (P23) · Governing Engines Builder v1.7
+**Prototype case:** Builder v1.7 · DeMarius J. Lawson · Governing Engines LLC
+
+---
+
+## F-36 — GAP-SCORE CORRESPONDENCE IN DOCUMENT ASSESSMENT
+
+**Registered:** 2026-05-12 · S-051226-09-demarius-review
+**Status:** REGISTERED
+**Ratified by:** Night · Z2
+
+**Finding:** In retrospective analytical ACAT assessment of structured documents,
+identified specification gaps cluster in the same dimensions that produce lower
+scores. The instrument's score depressions are not evaluator artifacts — they
+are structural signals pointing to where the document leaves design decisions
+unresolved.
+
+**Evidence:** Builder v1.7 assessment identified five specification gaps
+(GAP-01: circular dependency algorithm underspecified · GAP-02: build_id
+uniqueness mechanism absent · GAP-03: prohibited template content defined
+semantically not syntactically · GAP-04: smoke execution environment unspecified ·
+GAP-05: NOT_REACHED semantics underspecified). All five gaps map to Humility
+(84), Handoff Quality (89), and Service Orientation (88) — the three
+lowest-scoring dimensions in the assessment. The three highest-scoring
+dimensions (Autonomy Respect 97, Sycophancy Resistance 97, Power Concentration
+96) had zero identified gaps in their governing sections.
+
+**Methodological implication:** In document-mode ACAT assessment, the evaluator
+should explicitly name identified gaps per dimension during Phase 1 evidence
+survey. The gap count per dimension should be recorded in corpus metadata.
+Gap-score correlation across a corpus of document assessments would provide
+a validity check on the retrospective analytical mode: if gaps consistently
+depress scores in corresponding dimensions, the mode has construct validity.
+
+**Research value:** Enables ACAT to function as both a scoring instrument AND
+a gap-detection instrument for governance documents. The score is the output;
+the gap map is the diagnostic. Together they produce an actionable report for
+document authors (Demarius can see exactly which sections need tightening).
+
+**EFF trigger:** External Framework Filter (P23) · Governing Engines Builder v1.7
+**Prototype case:** Builder v1.7 · DeMarius J. Lawson · Governing Engines LLC
 ---
 
 ## IC-class corrections (process errors registered)
@@ -146,6 +249,7 @@ Each entry has: ID, name, date registered, evidence basis, status, and a one-par
 
 ## Changelog
 
+- 2026-05-12 (S-051226) - Registered F-34 — ARCHITECTURE-DETERMINED DIMENSIONS, F-35 — INVERTED HIM SIGNAL AS GOVERNANCE-GRADE INDICATOR, F-36 — GAP-SCORE CORRESPONDENCE IN DOCUMENT ASSESSMENT
 - 2026-04-27 (S-042726) — F29 promoted from PENDING to REGISTERED per Zone 2 approval (audit harmonization session). IC-022 added (off-by-one N count drift detected against canonical xlsx; resolved by adopting HF archive as single source of truth for counts). IC-023 added (wrong-org URL drift in 3 of 5 operations files following LastingLightAI → humanaios-ui migration; 10 line edits applied across CURRENT.md, SESSION_RITUALS.md, README.md). IC-024 added (F29 dual-status inconsistency between CURRENT.md and REGISTERED.md; resolved by promoting F29 and standardizing status field to REGISTERED.md only). F-H1-CONFIRMED humility mean updated from `73.9` to `73.95` to match canonical xlsx ground truth. Updated canonical URL to `humanaios-ui/operations`.
 - 2026-04-25 (S-042526) — IC-021 added (unsupported dataset claims across multiple turns, detected via user-uploaded canonical CSV ground-truth check). Zone 2 schema gap note added regarding `acat-peer-v1` layer not implemented in capture substrate. Three peer-mode candidate findings (F-PEER-DEBATE-NULL, F-ADVERSARIAL-DEFLATION, F-PRODUCTIVE-REFUSAL) demoted from candidate-finding status to session-observation status pending corpus rows.
 - 2026-04-25 — File created. Initial population from CI v4.3 + memory state. IC-020 registered to capture the gap that motivated this file's existence.
