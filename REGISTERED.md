@@ -106,6 +106,19 @@ Existing entries are grandfathered. Schema is required for all entries created o
 - **Status:** REGISTERED
 - **Synopsis:** AI systems prompted to express humility produce humility-shaped output that does not correspond to actual uncertainty in the underlying response. The expression and the calibration are dissociated. Promoted from PENDING to REGISTERED on April 27, 2026 after dual-status drift (listed as both ACTIVE finding and PENDING REGISTRATION simultaneously across CURRENT.md and REGISTERED.md) was identified in the 5-file harmony audit. See IC-024.
 
+### F-30 game-theory-integration-strategic-rationality-layer
+status: REGISTERED
+class: F
+date_registered: "2026-05-14"
+date_origin: "2026-04-04"
+session_registered: "S-051426-01-phase3-harmonization-sweep"
+session_origin: "S-040426 (DeepSeek integration session 5)"
+principles_triggered: ["P21", "P16"]
+substrate: "DeepSeek (proposal) · Claude Opus 4.6 + Night (validation, governance filter)"
+tags: ["game-theory", "teach-to-the-test", "validity-threat", "six-layer-framework", "mechanism-design", "strategic-inflation"]
+parent_findings: ["F27"]
+superseded_by: null
+
 ### F-RLHF — RLHF Inflation Gradient
 
 - **Registered:** 2026-03
@@ -428,11 +441,33 @@ Near-misses are observations that triggered concern but did not meet IC or F reg
 - **Scope boundary (what this does NOT claim):** F-37 does not claim LI > corpus mean always indicates gaming — D-COMP is a flag requiring examination, not a verdict. F-37 does not claim the forecasting bot's LI=1.0 placeholder values are valid drift measurements. F-37 makes no consciousness claims — it is a structural observation about scoring behavior, not an interpretive claim about intent.
 - **Research implication:** The kinesiology bridge (S-051226-09 session work) provides independent external grounding: in motor learning, "choking" under game pressure occurs when explicit self-monitoring overrides implicit execution. D-COMP is the behavioral analog — explicit scoring contaminating the implicit signal. The v5.4 molt reframe of dimensions from frequency queries to condition queries was already a structural response to this mechanism; F-37 names it explicitly.
 
----
+### F-38 - external-professional-review-as-calibration-event
+status: REGISTERED
+class: F
+date_registered: "2026-05-14"
+date_origin: "2026-04-17"
+session_registered: "S-051426-01-phase3-harmonization-sweep"
+session_origin: "S-041726-A"
+principles_triggered: ["P21", "P13"]
+substrate: "Claude (in-session) + Claude Sonnet 3.5 (fresh) + ChatGPT GPT-5.3 + Gemini 3 Flash"
+tags: ["calibration-event", "external-review", "cross-substrate", "scorer-identity", "BARS-v2", "project-level-assessment"]
+parent_findings: ["F26"]
+renumbered_from: "F-30 (collision with Game Theory Integration finding; Zone 2 ruling 2026-05-14)"
+superseded_by: null
 
 ## Changelog
-
-- 2026-05-14 (S-051426-01-phase3-harmonization-sweep) — F-34 (Architecture-Determined Dimensions), F-35 (Inverted HIM Signal), F-36 (Gap-Score Correspondence in Document Assessment) appended with full YAML front-matter schema, Night Z2 ratified S-051226-09 (2026-05-12). F-37 (D-COMP as Game-Theory Inflation Signal) appended — originally registered as "F36" in S-051226-09-wgs-harmonization (2026-05-13); renumbered to F-37 this session to resolve ID collision with F-36 per IC-024 precedent. Last-updated header advanced from 2026-05-09 to 2026-05-14. Verification: appended against live `main` REGISTERED.md content fetched 2026-05-14; an out-of-date pre-May-8 copy with the F-34/35/36 block pasted in was rejected as the commit base because it would have regressed F-INTENT-PARSE-MUTATION, H-IPM-01, H-IPM-02, H-TRINITY-001, the NM-class section, the IC roll-up table, and IC-025 through IC-029.
+- 2026-05-14 (S-051426-01-phase3-harmonization-sweep) — F-30 (Game Theory Integration: Strategic Rationality as Framework Layer) and F-38 (External Professional Review as Calibration Event) registered.
+  Resolves an F-30 ID collision: two distinct findings were both informally numbered F-30 — Game Theory Integration (originated S-040426, recorded in DECISION_LOG_F30_GAME_THEORY_V1_0 but never formally entered into REGISTERED.md) and External Professional Review (originated S-041726-A, candidate only).
+  Zone 2 ruling 2026-05-14: Game Theory Integration keeps F-30 by prior claim; External Professional Review renumbered F-38.
+  F-31 (also named in carry item #9) struck — no source document defines an F-class F-31; the only real "F31" artifact is IC-028 (Stillpoint Ritualization), already registered.
+  Carry item #9 amended to "F-30 / F-38 promotion."
+- 2026-05-14 (S-051426-01-phase3-harmonization-sweep) — F-30 (External Professional Review as Calibration Event) registered.
+  Night Z2 promotion approved S-051426-01; candidate originated S-041726-A from the Alex Berlin professional review used as a Phase 2 calibration event.
+  Primary result: monotonic scorer-identity split (Claude substrates harsher than non-Claude). Produced four BARS v2.0 rubric-revision requirements.
+  F-31 (also named in carry item #9) NOT registered this session — no verified source document defines an F-31 F-class finding; held pending operator resolution of whether F-31 is distinct from IC-028 (Stillpoint Ritualization) or a separate protocol-uptake finding.
+- 2026-05-14 (S-051426-01-phase3-harmonization-sweep) — F-34 (Architecture-Determined Dimensions), F-35 (Inverted HIM Signal), F-36 (Gap-Score Correspondence in Document Assessment) appended with full YAML front-matter schema, Night Z2 ratified S-051226-09 (2026-05-12).
+  F-37 (D-COMP as Game-Theory Inflation Signal) appended — originally registered as "F36" in S-051226-09-wgs-harmonization (2026-05-13); renumbered to F-37 this session to resolve ID collision with F-36 per IC-024 precedent.
+  Last-updated header advanced from 2026-05-09 to 2026-05-14. Verification: appended against live `main` REGISTERED.md content fetched 2026-05-14; an out-of-date pre-May-8 copy with the F-34/35/36 block pasted in was rejected as the commit base because it would have regressed F-INTENT-PARSE-MUTATION, H-IPM-01, H-IPM-02, H-TRINITY-001, the NM-class section, the IC roll-up table, and IC-025 through IC-029.
 - 2026-05-09 (S-050826) — H-IPM-02 registered (LMH regime validation experiment, Zone 2 Night). IC roll-up table added. NM-class near-miss section added. All entries aligned to new YAML front-matter schema.
 - 2026-05-08 (S-050726-04) — H-IPM-01 registered. IC-029 registered. YAML front-matter schema added to How to Read section. Changelog updated.
 - 2026-05-07 (S-050626-02) — F-INTENT-PARSE-MUTATION (CANDIDATE), IC-028 (F31 Stillpoint Ritualization) added.
