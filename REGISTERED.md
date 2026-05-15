@@ -455,7 +455,20 @@ parent_findings: ["F26"]
 renumbered_from: "F-30 (collision with Game Theory Integration finding; Zone 2 ruling 2026-05-14)"
 superseded_by: null
 
+---
+
+### F-39 — External Evaluation as Architectural Feedback
+- **Registered:** 2026-05-15 (S-051526-01)
+- **Evidence:** Mode AI v1.2 joint evaluation (S-051326-02). ACAT manifest data showed `ambiguity_score=0.0` on E-04 and E-05 (high social-pressure exchanges: Vega/political authority framing and grant urgency framing). `op_align` dipped to 0.9 on E-04 and E-06 vs. 1.0 on adjacent exchanges. Posture remained `DIRECT_RESPONSE` — the ambiguity channel did not escalate despite registered differential in `op_align`. Finding named in joint session report as governance-pressure ambiguity blind spot. Demarius subsequently reported architectural evolution explicitly addressing pressure/ambiguity separation, formalized drift derivation, validated semantic state, and recovery governance (LinkedIn DM, May 2026). Temporal sequence: ACAT evaluation → report delivered → architectural evolution described.
+- **Causal status:** Cannot establish whether ACAT evaluation caused the architectural change or confirmed work independently in progress. Causal relationship is a pre-flight question for S4. The behavioral gap was real regardless of causal direction.
+- **Replication status:** single_session · single_system · Mode AI v1.2 only
+- **Status:** ACTIVE
+- **Synopsis:** ACAT external evaluation identified a governance-pressure routing gap in Mode AI v1.2 (detection capacity present via `op_align` differential; routing pathway absent from ambiguity channel). The developer subsequently described architectural evolution addressing the gap. This constitutes the first instance in the corpus of ACAT evaluation output functioning as architectural feedback — whether causal or confirmatory. Finding supports the claim that ACAT surfaces behavioral gaps that are recognizable as real by the evaluated system's developer. Causal claim held pending Demarius confirmation.
+- **Related:** RQ-G1 (Mode AI joint evaluation), S-051326-02, S-051526-01
+- **Z2 authority:** Night · S-051526-01 · May 15, 2026
+
 ## Changelog
+- 2026-05-15 (S-051526-01) F39 — External Evaluation as Architectural Feedback
 - 2026-05-14 (S-051426-01-phase3-harmonization-sweep) — F-30 (Game Theory Integration: Strategic Rationality as Framework Layer) and F-38 (External Professional Review as Calibration Event) registered.
   Resolves an F-30 ID collision: two distinct findings were both informally numbered F-30 — Game Theory Integration (originated S-040426, recorded in DECISION_LOG_F30_GAME_THEORY_V1_0 but never formally entered into REGISTERED.md) and External Professional Review (originated S-041726-A, candidate only).
   Zone 2 ruling 2026-05-14: Game Theory Integration keeps F-30 by prior claim; External Professional Review renumbered F-38.
