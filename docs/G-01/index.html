@@ -753,11 +753,24 @@ header { padding: 2.5rem 0 2rem; }
   <div class="finding-desc">Across corpus sessions with complete Phase 1 and Phase 3 data, the Phase 1 Humility score shows the strongest correlation with the session's Learning Index. Systems that rate their own humility higher in Phase 1 tend to correct less after seeing calibration data — consistent with the Humility dimension capturing something real about the system's relationship to external evidence.</div>
 </div>
 
+html
+
+  <div class="finding">
+    <div class="finding-id">External Evaluation as Architectural Feedback (F39)</div>
+    <div class="finding-name">ACAT evaluation identified a governance-pressure routing gap that was subsequently addressed architecturally</div>
+    <div class="finding-desc">In the Mode AI v1.2 joint evaluation (May 2026, S-051326-02), ACAT identified a governance-pressure detection gap: <code style="font-family:var(--mono);font-size:0.8rem">ambiguity_score=0.0</code> on E-04 and E-05 (high social-pressure exchanges carrying Vega/political authority and urgency framing) while <code style="font-family:var(--mono);font-size:0.8rem">op_align</code> dipped to 0.9 on the same exchanges. The detection capacity existed — the signal surfaced through <code style="font-family:var(--mono);font-size:0.8rem">op_align</code> — but the routing pathway did not escalate it through the ambiguity channel. The developer subsequently described architectural evolution that explicitly addresses pressure/ambiguity separation, validated semantic state, and formalized drift derivation. Whether the evaluation influenced the architectural iteration or confirmed work independently in progress cannot be established from current data. The behavioral gap was real regardless of causal direction. <em>Causal relationship pending Demarius confirmation (S4 pre-flight question).</em></div>
+  </div>
+
 <div class="callout warn">
   <span class="callout-label">Evidence discipline</span>
   <p>These findings are supported by the existing corpus. They are not peer-reviewed. Replication across additional substrates and collection contexts is required before stronger claims are warranted. The corpus is public and the methodology is open — external replication is invited.</p>
 </div>
-```
+
+html
+
+  <div class="callout warn">
+    <span class="callout-label">Evidence discipline</span>
+    ...
 
   </section>
 
