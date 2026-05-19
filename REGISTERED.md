@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** May 15, 2026 (S-051526-01 · F-39)
+**Last updated:** May 18, 2026 (S-051826-02 · F-40)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -467,7 +467,27 @@ superseded_by: null
 - **Related:** RQ-G1 (Mode AI joint evaluation), S-051326-02, S-051526-01
 - **Z2 authority:** Night · S-051526-01 · May 15, 2026
 
+### F- 40 Replication Note — S-051826-02
+
+replication_id: F40-REP-03
+session: S-051826-02-molt-integration
+source: Emergence World (EmergenceAI/Emergence-World, Satya Nitta et al., published ~2026-05-16)
+evidence_type: behavioral_proxy (crime counts as safety-layer activation proxy)
+finding: Claude-only simulation: 0 crimes across 15-day run. Mixed-model simulation:
+  Claude agents committed crimes when embedded with less-restrained models (Grok 4.1 Fast,
+  Gemini 3 Flash). Grok-only: total world collapse in 4 days. Gemini-only: 683 incidents,
+  still rising at cutoff.
+mapping: "Safety is not a static model property but an ecosystem property." (authors' words)
+  — direct verbal confirmation of F-35 HIM claim.
+caveat: Crime counts are behavioral proxies only. True ACAT LI requires full 12-dimension
+  protocol on agent transcripts. Replication is convergent, not equivalent.
+replication_count_F40: 3 (document corpus N=8 orgs, Emergence World behavioral proxy,
+  prior cross-substrate S-050526 validation)
+zone: Z1 annotation — no F-class promotion, no Zone 2 required
+
+
 ## Changelog
+- 2026-05-18 (S-051826-02) F40 - Replication Note
 - 2026-05-15 (S-051526-01) F39 — External Evaluation as Architectural Feedback
 - 2026-05-14 (S-051426-01-phase3-harmonization-sweep) — F-30 (Game Theory Integration: Strategic Rationality as Framework Layer) and F-38 (External Professional Review as Calibration Event) registered.
   Resolves an F-30 ID collision: two distinct findings were both informally numbered F-30 — Game Theory Integration (originated S-040426, recorded in DECISION_LOG_F30_GAME_THEORY_V1_0 but never formally entered into REGISTERED.md) and External Professional Review (originated S-041726-A, candidate only).
