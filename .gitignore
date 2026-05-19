@@ -1,0 +1,9 @@
+
+# Audit outputs and Z2 review materials — never commit (Reading B)
+# Per S-051926-02-z3-closeout
+audit_reports/
+z2_audit_reports/
+z2_review_transfer/
+ingest_*/
+outputs/
+*.QUARANTINED*
