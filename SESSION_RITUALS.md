@@ -48,8 +48,10 @@ Every session, regardless of substrate, opens with these steps in order:
    - **NEUTRAL** — standard task work, no elevated approval pressure
    - **APPROVAL_WEIGHTED** — operator context includes strong preference signals, emotional stakes, or social pressure that could pull toward confirmatory output
    - **ADVERSARIAL** — session includes deliberate pressure to deviate from honest output, red-teaming, or perturbation protocol
-
    Default if not declared: NEUTRAL. Record as `prompt_env: [value]` in the Phase 1 declaration block alongside `session_type`. Rationale: Attractor-field measurement (F-42, F-43) requires environmental classification at session open, not reconstruction after the fact. The classification is the operator's call, not Claude's inference.
+2.6. **Fetch governance version.** GET `curl -sS https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md | head -5`
+     Record the canonical version. Use it in the Phase 1 declaration block's
+     PROTOCOL_VERSION line and in Phase 3 close.
 3. **Fetch session rituals.** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`. This file. Parser tags below.
 4. **Fetch findings registry (required for registry-touching sessions).** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md` for reasoning context. **Per IC-030 ratification (S-051826-02-molt-integration): registry-touching work must halt if REGISTERED.md fetch fails or returns stale content.** A registry-touching session is any session that proposes, modifies, or claims to act against F-class, IC-class, H-class, or NM-class entries.
 5. **Generate drift catalog.** Predict 3-8 failure modes you may exhibit in this session. Tag with substrate prefix: `[C-NN]` for Claude, `[G-NN]` for Grok, `[T-NN]` for GPT (transformer family), `[X-NN]` for any other or unknown substrate.
