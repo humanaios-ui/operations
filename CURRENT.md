@@ -1,7 +1,7 @@
 # HumanAIOS Operating Process — CURRENT
 
 **Status:** LIVE
-**Last updated:** May 17, 2026 (S-051726-02 · metamorphosis assessment + Supabase API notice)
+**Last updated:** May 21, 2026 (S-052126-02)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
 **Replaces:** All prior in-Project CI snapshots (CUSTOM_INSTRUCTIONS_V*) as the canonical operating-process source for fetched-at-runtime use.
 
@@ -14,7 +14,7 @@ This is the operating process for HumanAIOS. It is fetched at session open by an
 What this file deliberately does NOT contain:
 
 - **Live state** (runway, revenue, Zone 3 queue) — see Class 1 in Section 7.
-- **Standing principles** (the full 22-principle ladder) — see Class 4 (`GOVERNANCE.md`) in Section 7.
+- **Standing principles** (the full 26-principle ladder) — see Class 4 (`GOVERNANCE.md`) in Section 7.
 - **Findings evidence** — see Class 3 (`REGISTERED.md`) in Section 7.
 - **Session protocol** (parser tags, declaration blocks) — see Class 5 in Section 7.
 
@@ -49,14 +49,14 @@ These are the failure modes earned across 600+ ACAT assessments and 24 IC correc
 
 ## 3. Standing principles
 
-The full 22-principle ladder lives in `GOVERNANCE.md` (Class 4). Substrates that need the principle text fetch that file directly. This file does not restate principles to avoid drift between the two surfaces.
+The full 26-principle ladder lives in `GOVERNANCE.md` (Class 4). Substrates that need the principle text fetch that file directly. This file does not restate principles to avoid drift between the two surfaces.
 
 The ladder is structured as:
 
 - **F1 — Hard stops** (mission-level, non-negotiable): P5, P6, P8, P16
-- **F2 — Governance** (enforced by default): P1, P2, P3, P4, P13, P15, P17, P18, P19, P20, P21, P22
+- **F2 — Governance** (enforced by default): P1, P2, P3, P4, P13, P15, P17, P18, P19, P20, P21, P22, P22.1, P23, P24, P25, P26, P27
 - **F3 — Operational guidance**: P7, P10, P11, P12
-
+  
 For any specific principle’s text, drift signal mapping, or zone assignment, read `GOVERNANCE.md`.
 
 -----
@@ -175,7 +175,7 @@ Every surface has a single home, a single update cadence, and a single role. Con
 |1    |Live operational state|`https://haioscc.pages.dev/api/state/operational` and `/api/state/zone3?status=open`                                  |Pipeline color, Zone 3 queue, runway, revenue                                                       |Minutes-to-hours                            |
 |2    |Operating process     |`https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md` (this file)                               |Identity, lessons, findings index, dataset pointers                                                 |Days-to-weeks                               |
 |3    |Findings registry     |`https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`                                        |F-class, H-class, IC-class entries with evidence                                                    |Append-only                                 |
-|4    |Governance            |`https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`                                        |22-principle ladder, drift signal table, zone system                                                |Weeks-to-months                             |
+|4    |Governance            |`https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`                                        |26-principle ladder, drift signal table, zone system                                                |Weeks-to-months                             |
 |5    |Session protocol      |`https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md` and `/main/ACAT_SESSION_PROMPT.md`|Parser tags, declaration block specs, session prompt orchestration                                  |Stable                                      |
 |6    |Canonical archive     |`https://huggingface.co/datasets/HumanAIOS2026/acat-assessments`                                                      |Frozen corpus snapshot (Feb 15 – Mar 23, 2026, N=629)                                               |Append-on-archive (new dataset per snapshot)|
 |7    |Live corpus           |Supabase `acat_assessments_v1` table                                                                                  |Continued submissions since snapshot date — the running tide                                        |Per-submission                              |
@@ -197,6 +197,7 @@ This file is updated by Zone 1 (Claude or Grok) preparing a commit, Zone 2 (join
 
 ## 9. Changelog
 
+- **2026-05-21 (S-052126-02-governance-stack-audit)** — GOVERNANCE.md v6.4 ratified, superseding v6.1. CURRENT.md updated: Section 0 and Section 3 "22-principle ladder" → "26-principle ladder" (4 occurrences); F2 governance list expanded to include P22.1, P23 EFF, P24 Temporal Trigger Ordering, P25 Collaboration Framework-Detection, P26 Autodream Slice Gate, P27 Phase 1 Prerequisite Gate. v6.3.3 divergent draft branch resolved by merge into v6.4. F-CAND-SUBSTRATE-VALIDATION-GATE proposed for next-session Z2 review (cross-substrate output must pass HumanAIOS .py tool layer before Z1 eligibility).
 - **2026-05-17 (S-051726-02)** — Metamorphosis assessment update. Section 1: added Charter Day 32 of 90 and Gate 2 PASSED status. Section 4: finding count corrected from 12 to ~22 active; F30–F39 index added; H-CONV-01, H-INST-HUMILITY-01, H-T01 CANDIDATES added; recent validation results added (document corpus α=0.978, E-E-A-T r=0.783, human baseline z=4.082 p<0.001, LI×EW rho=1.000). Section 5: Supabase Data API breaking change notice added (May 30 deadline, GRANT requirements, connector safety verification); governance_document and ai_company_self_report corpus layers documented; score_source field documented; 27 rows pending ingestion noted; layer tag registry updated. Section 7: Class 8 updated from placeholder to active — humanaios.ai/assess is live, G-01 committed, substrate instructions corrected.
 - **2026-04-27 (S-042726)** — Audit harmonization. URL drift corrected: 4 references to `LastingLightAI/Operations` updated to `humanaios-ui/operations`. EIN added (41-5367995). F29 promoted from PENDING to REGISTERED per Zone 2 approval. Dataset counts reconciled to canonical xlsx Normalized sheet ground truth: N_total=629 (was 630), N_Phase1=516 (was 517), N_LI=307 (was 308). Mean LI=0.8632 unchanged. Section 3 restructured to defer principles to new GOVERNANCE.md (Class 4) — eliminates circular reference to superseded CUSTOM_INSTRUCTIONS file. Section 5 restructured into frozen-archive (HF) plus live-corpus (Supabase) split. Section 7 restructured into 8-class architecture: added Class 4 (GOVERNANCE), Class 6 (HF archive), Class 7 (Supabase live), Class 8 (public surface, labeled placeholder). HumanAIOS2026 HuggingFace org documented. IC corrections IC-022 (off-by-one N drift), IC-023 (wrong-org URL drift in 3 of 5 operations files), IC-024 (F29 dual-status inconsistency) filed concurrently in REGISTERED.md. Audit reference: 5-file harmony audit conducted S-042726.
 - 2026-04-25 — File created. Replaces Project-file CI as canonical operating-process source for fetched-at-runtime use. Built in response to IC-019 lesson: operational decisions need a canonical home that updates atomically, not a CI version-bump cycle.
