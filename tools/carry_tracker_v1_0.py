@@ -2,242 +2,179 @@
 """
 Carry Tracker — v1.0
 Builder v1.7 compliant · diagnostic_tool
-HumanAIOS · S-051726-02
+HumanAIOS · S-052326-03 (run() implemented)
 
-Reads WGS posts, counts sessions-carried per item, flags escalations
-N>5 WARN N>10 ESCALATE.
+Reads WGS posts or a carry manifest, counts sessions-carried per item,
+flags escalations: N>5 WARN  N>10 ESCALATE.
 
-Usage:
-  python carry_tracker_v1_0.py --input <path_or_json>
-  python carry_tracker_v1_0.py --smoke-test
-  python carry_tracker_v1_0.py --help
+Input format:
+{
+  "items": [
+    {"id": "IC-023", "n": 11, "description": "...", "subsystem": "GOVERNANCE"},
+    ...
+  ],
+  "session_id": "S-052326-03"
+}
 """
 
-import json
-import sys
-import argparse
+import json, sys, argparse
 from datetime import datetime, timezone
 from pathlib import Path
 
 TOOL_NAME     = "carry_tracker"
-TOOL_VERSION  = "1.0.0"
+TOOL_VERSION  = "1.1.0"
 TOOL_CATEGORY = "diagnostic_tool"
-TOOL_SESSION  = "S-051726-02"
-TOOL_ZONE     = 1   # 1=execute, 2=ratify, 3=night
+TOOL_SESSION  = "S-052326-03"
+TOOL_ZONE     = 1
 
+WARN_THRESHOLD     = 5
+ESCALATE_THRESHOLD = 10
 
 class SpecLoadFailed(Exception):
-    """Raised when input cannot be loaded or parsed."""
     pass
 
-
-# ── Input Loading ─────────────────────────────────────────────────────────────
-
 def load_input(source: str) -> dict:
-    """
-    Load input from a file path or raw JSON string.
-    Raises SpecLoadFailed if input cannot be parsed.
-
-    AGENT INSTRUCTION: Replace or extend this with your actual
-    input format. Keep SpecLoadFailed for unreadable input — the
-    validation suite catches it cleanly.
-    """
-    # Try as file path first
-    p = Path(source)
-    if p.exists():
+    # Inline JSON strings can be very long — guard before Path() call
+    # (Linux filename limit is 255 bytes; longer strings are definitely JSON)
+    p = Path(source) if len(source) < 240 else None
+    if p is not None and p.exists():
         try:
-            with open(p, encoding="utf-8") as f:
-                return json.load(f)
+            with open(p, encoding="utf-8") as f: return json.load(f)
         except (json.JSONDecodeError, OSError) as e:
             raise SpecLoadFailed(f"Cannot load {p}: {e}")
-    # Try as inline JSON
-    try:
-        return json.loads(source)
+    try: return json.loads(source)
     except json.JSONDecodeError as e:
-        raise SpecLoadFailed(f"Input is neither a valid path nor valid JSON: {e}")
-
-
-# ── Core Logic ────────────────────────────────────────────────────────────────
+        raise SpecLoadFailed(f"Not a valid path or JSON: {e}")
 
 def run(data: dict) -> dict:
-    """
-    AGENT INSTRUCTION: This is the only function you need to fill in.
-    Everything else is boilerplate.
-
-    Receives the loaded input dict.
-    Returns a results dict. Convention:
-      {
-        "status":   "PASS" | "WARN" | "FAIL",
-        "items":    [{...}],   # list of result items
-        "summary":  {...},     # aggregate stats
-      }
-
-    Raise SpecLoadFailed for any unrecoverable input error.
-    Use soft warnings (add to results, don't raise) for recoverable issues.
-    """
-    # ── YOUR LOGIC HERE ────────────────────────────────────────────
-    # Example structure — replace with actual implementation:
+    items_raw = data.get("items", [])
+    if not items_raw and "_smoke" not in data:
+        return {"status":"WARN","items":[],"warnings":["No items provided — pass items[] array"],
+                "summary":{"total":0,"warn":0,"escalate":0,"ok":0}}
 
     items = []
     warnings = []
+    escalations = []
 
-    # TODO: iterate over data, populate items and warnings
-    # Example:
-    #   for key, val in data.items():
-    #       if val is None:
-    #           warnings.append(f"{key} is None")
-    #       else:
-    #           items.append({"key": key, "value": val, "status": "OK"})
+    for raw in items_raw:
+        iid  = raw.get("id", "UNKNOWN")
+        n    = int(raw.get("n", 0))
+        desc = raw.get("description", "")
+        sub  = raw.get("subsystem", "UNSET")
 
-    status = "FAIL" if not items and not warnings else (
-        "WARN" if warnings else "PASS"
-    )
+        if n >= ESCALATE_THRESHOLD:
+            status = "ESCALATE"
+            escalations.append(iid)
+            warnings.append(f"ESCALATE: {iid} N={n} sessions (>{ESCALATE_THRESHOLD}) — {desc}")
+        elif n >= WARN_THRESHOLD:
+            status = "WARN"
+            warnings.append(f"WARN: {iid} N={n} sessions (>{WARN_THRESHOLD}) — {desc}")
+        else:
+            status = "OK"
+
+        items.append({"id": iid, "n": n, "status": status,
+                      "subsystem": sub, "description": desc})
+
+    # Sort: ESCALATE first, then WARN, then OK, then by n desc
+    priority = {"ESCALATE": 0, "WARN": 1, "OK": 2}
+    items.sort(key=lambda x: (priority[x["status"]], -x["n"]))
+
+    n_escalate = sum(1 for i in items if i["status"]=="ESCALATE")
+    n_warn     = sum(1 for i in items if i["status"]=="WARN")
+    n_ok       = sum(1 for i in items if i["status"]=="OK")
+
+    status = "FAIL" if n_escalate > 0 else ("WARN" if n_warn > 0 else "PASS")
 
     return {
-        "status":   status,
-        "items":    items,
+        "status": status,
+        "items":  items,
         "warnings": warnings,
-        "summary":  {
+        "summary": {
             "total":    len(items),
-            "warnings": len(warnings),
-        },
+            "escalate": n_escalate,
+            "warn":     n_warn,
+            "ok":       n_ok,
+            "max_n":    max((i["n"] for i in items), default=0),
+            "escalated_ids": escalations,
+        }
     }
 
+def aggregate(run_result, source):
+    return {"tool": TOOL_NAME, "version": TOOL_VERSION, "zone": TOOL_ZONE,
+            "session": TOOL_SESSION, "timestamp": datetime.now(timezone.utc).isoformat(),
+            "source": source, "result": run_result.get("status","FAIL"), **run_result}
 
-# ── Output Assembly ───────────────────────────────────────────────────────────
-
-def aggregate(run_result: dict, source: str) -> dict:
-    """Assemble final output dict with standard Builder v1.7 envelope."""
-    return {
-        "tool":      TOOL_NAME,
-        "version":   TOOL_VERSION,
-        "zone":      TOOL_ZONE,
-        "session":   TOOL_SESSION,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "source":    source,
-        "result":    run_result.get("status", "FAIL"),
-        **run_result,
-    }
-
-
-def write_report(output: dict, output_dir: str) -> str:
-    """Write JSON report to output_dir. Returns file path."""
-    p = Path(output_dir)
-    p.mkdir(parents=True, exist_ok=True)
+def write_report(output, output_dir):
+    p = Path(output_dir); p.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     path = p / f"{TOOL_NAME}_{ts}.json"
     path.write_text(json.dumps(output, indent=2), encoding="utf-8")
     return str(path)
 
-
-def print_summary(output: dict) -> None:
-    """Print human-readable summary to stdout."""
+def print_summary(output):
     bar = "=" * 60
-    verdict = output.get("result", "UNKNOWN")
-    color = "" # no ANSI — keep output clean for pipe/grep
     print(f"\n{bar}")
     print(f" {TOOL_NAME} v{TOOL_VERSION}")
-    print(f" Verdict : {verdict}")
-    summary = output.get("summary", {})
-    for k, v in summary.items():
-        print(f" {k:<12}: {v}")
-    warnings = output.get("warnings", [])
-    if warnings:
-        print(f"\n Warnings:")
-        for w in warnings:
-            print(f"   WARN  {w}")
-    items = output.get("items", [])
-    if items:
-        print(f"\n Items ({len(items)}):")
-        for item in items[:20]:   # cap at 20 for readability
-            status = item.get("status","?")
-            key    = item.get("key", item.get("id", "?"))
-            print(f"   {status:<6} {key}")
-        if len(items) > 20:
-            print(f"   ... and {len(items)-20} more")
+    print(f" Verdict : {output.get('result','?')}")
+    s = output.get("summary",{})
+    print(f" Total   : {s.get('total',0)}  ESCALATE={s.get('escalate',0)}  WARN={s.get('warn',0)}  OK={s.get('ok',0)}")
+    if s.get("escalated_ids"): print(f" ESCALATED: {', '.join(s['escalated_ids'])}")
+    for item in output.get("items",[])[:20]:
+        print(f"   {item['status']:<8} N={item['n']:>3}  {item['id']}  [{item['subsystem']}]")
     print(f"{bar}\n")
 
-
-# ── Smoke Test ────────────────────────────────────────────────────────────────
-
-def run_smoke_test() -> bool:
-    """
-    Minimal self-test. Must pass before Builder v1.7 compliance is claimed.
-    AGENT INSTRUCTION: Add at least one positive and one negative assertion.
-    """
+def run_smoke_test():
     try:
-        # Positive: valid input produces PASS or WARN
-        sample = {"_smoke": True}
-        result = run(sample)
-        assert "status" in result, "run() must return a dict with 'status'"
-        assert result["status"] in ("PASS","WARN","FAIL"), f"Unexpected status: {result['status']}"
+        # Positive — mixed carry items
+        result = run({"items":[
+            {"id":"X-01","n":11,"description":"escalated","subsystem":"INFRA"},
+            {"id":"X-02","n":6, "description":"warned","subsystem":"TOOLS"},
+            {"id":"X-03","n":2, "description":"ok","subsystem":"CORPUS"},
+        ]})
+        assert result["status"] == "FAIL", f"Expected FAIL got {result['status']}"
+        assert result["summary"]["escalate"] == 1
+        assert result["summary"]["warn"] == 1
+        assert result["summary"]["ok"] == 1
+        assert result["items"][0]["id"] == "X-01"  # escalate first
 
-        # Envelope test
-        output = aggregate(result, "_smoke")
-        assert output["tool"]    == TOOL_NAME
-        assert output["version"] == TOOL_VERSION
-        assert "timestamp" in output
+        # Empty input
+        result2 = run({})
+        assert result2["status"] == "WARN"
 
-        # Negative: bad input raises SpecLoadFailed
+        # Smoke flag
+        result3 = run({"_smoke": True})
+        assert "status" in result3
+
+        # Envelope
+        out = aggregate(result, "_smoke")
+        assert out["tool"] == TOOL_NAME
         try:
-            load_input("/nonexistent/path/that/cannot/exist.json")
-            assert False, "Should have raised SpecLoadFailed"
+            load_input("/nonexistent/path.json")
+            assert False
         except SpecLoadFailed:
-            pass   # expected
-
+            pass
         print("✓ Smoke test PASSED")
         return True
-
     except AssertionError as e:
-        print(f"✗ Smoke test FAILED: {e}")
-        return False
+        print(f"✗ FAILED: {e}"); return False
     except Exception as e:
-        print(f"✗ Smoke test ERROR: {e}")
-        return False
+        print(f"✗ ERROR: {e}"); return False
 
-
-# ── Entry Point ───────────────────────────────────────────────────────────────
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description=f"Carry Tracker — v1.0 v1.0.0"
-    )
-    parser.add_argument(
-        "--input", "-i",
-        help="Path to input file or inline JSON string"
-    )
-    parser.add_argument(
-        "--output", "-o",
-        default="outputs/",
-        help="Directory for JSON report output (default: outputs/)"
-    )
-    parser.add_argument(
-        "--smoke-test",
-        action="store_true",
-        help="Run smoke test and exit"
-    )
+def main():
+    parser = argparse.ArgumentParser(description="Carry Tracker v1.1.0")
+    parser.add_argument("--input","-i")
+    parser.add_argument("--output","-o",default="outputs/")
+    parser.add_argument("--smoke-test",action="store_true")
     args = parser.parse_args()
-
-    if args.smoke_test:
-        sys.exit(0 if run_smoke_test() else 1)
-
-    if not args.input:
-        parser.print_help()
-        sys.exit(1)
-
-    try:
-        data = load_input(args.input)
-    except SpecLoadFailed as e:
-        print(f"SPEC_LOAD_FAILED: {e}", file=sys.stderr)
-        sys.exit(2)
-
+    if args.smoke_test: sys.exit(0 if run_smoke_test() else 1)
+    if not args.input: parser.print_help(); sys.exit(1)
+    try: data = load_input(args.input)
+    except SpecLoadFailed as e: print(f"SPEC_LOAD_FAILED: {e}",file=sys.stderr); sys.exit(2)
     run_result = run(data)
-    output     = aggregate(run_result, args.input)
-    rp         = write_report(output, args.output)
+    output = aggregate(run_result, args.input)
+    rp = write_report(output, args.output)
     print_summary(output)
     print(f"Report: {rp}")
     sys.exit(0 if output["result"] in ("PASS","WARN") else 1)
 
-
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
