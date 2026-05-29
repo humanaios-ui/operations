@@ -22,9 +22,10 @@ def _load_alias_map() -> dict[str, str]:
 
     alias_map: dict[str, str] = {}
     for canonical, aliases in data.items():
-        alias_map[canonical.strip().lower()] = canonical.strip().lower()
+        canonical_norm = str(canonical).strip().lower()
+        alias_map[canonical_norm] = canonical_norm
         for alias in aliases or []:
-            alias_map[str(alias).strip().lower()] = canonical.strip().lower()
+            alias_map[str(alias).strip().lower()] = canonical_norm
 
     _ALIAS_CACHE = alias_map
     return alias_map
