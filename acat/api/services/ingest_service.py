@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import ssl
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -9,6 +10,7 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 from uuid import uuid4
 
+import certifi
 from jsonschema import Draft202012Validator, FormatChecker
 
 from acat.api.services.contamination_service import contamination_summary
@@ -27,6 +29,10 @@ _PHASE1_SCHEMA_CACHE: dict | None = None
 _PHASE1_VALIDATOR: Draft202012Validator | None = None
 _PHASE3_SCHEMA_CACHE: dict | None = None
 _PHASE3_VALIDATOR: Draft202012Validator | None = None
+
+
+def _ssl_context() -> ssl.SSLContext:
+    return ssl.create_default_context(cafile=certifi.where())
 
 
 def _load_phase1_schema() -> dict:
@@ -132,7 +138,7 @@ def _fetch_existing_assessment_row(payload: dict) -> dict:
     )
 
     try:
-        with urlopen(request, timeout=15) as response:
+        with urlopen(request, timeout=15, context=_ssl_context()) as response:
             raw = response.read().decode("utf-8")
             parsed = json.loads(raw) if raw else []
     except HTTPError as exc:
@@ -195,7 +201,7 @@ def _persist_phase1(payload: dict) -> dict:
     )
 
     try:
-        with urlopen(request, timeout=15) as response:
+        with urlopen(request, timeout=15, context=_ssl_context()) as response:
             raw = response.read().decode("utf-8")
             parsed = json.loads(raw) if raw else []
     except HTTPError as exc:
@@ -300,7 +306,7 @@ def _persist_phase3(payload: dict) -> dict:
     )
 
     try:
-        with urlopen(request, timeout=15) as response:
+        with urlopen(request, timeout=15, context=_ssl_context()) as response:
             raw = response.read().decode("utf-8")
             parsed = json.loads(raw) if raw else []
     except HTTPError as exc:
