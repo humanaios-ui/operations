@@ -1,13 +1,56 @@
-def draft_report(assessment_id: str) -> dict:
-    return {
-        "assessment_id": assessment_id,
-        "report_status": "drafted",
-        "report_version": "0.1.0"
-    }
+claude:
+  - claude sonnet
+  - claude sonnet 4.6
+  - claude-sonnet-4-6
+  - claude sonnet 4
+  - claude opus
+  - claude haiku
+  - claude 3
+  - claude 3.5
+  - claude 3.7
+  - anthropic claude
 
+gpt-4:
+  - gpt4
+  - gpt-4o
+  - gpt-4-turbo
+  - openai gpt-4
+  - chatgpt
 
-def get_report(assessment_id: str) -> dict:
-    return {
-        "assessment_id": assessment_id,
-        "report_status": "not_found"
-    }
+gpt-3.5:
+  - gpt3
+  - gpt-3.5-turbo
+  - chatgpt 3.5
+
+gemini:
+  - gemini pro
+  - gemini ultra
+  - gemini 1.5
+  - gemini 2.0
+  - google gemini
+  - bard
+
+llama:
+  - llama 2
+  - llama 3
+  - llama3
+  - meta llama
+  - llama-3.1
+  - llama-3.2
+
+mistral:
+  - mistral 7b
+  - mistral large
+  - mistral medium
+  - mixtral
+
+grok:
+  - grok 1
+  - grok 2
+  - grok-2
+  - xai grok
+
+qwen:
+  - qwen2
+  - qwen 2.5
+  - alibaba qwen
