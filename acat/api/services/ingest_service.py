@@ -149,29 +149,32 @@ def _fetch_existing_assessment_row(payload: dict) -> dict:
 
 def _build_phase1_row(payload: dict) -> dict:
     scores = payload["scores"]
-    return {
+    row = {
         "assessment_id": payload.get("assessment_id"),
-        "session_id": payload.get("session_id"),
-        "phase": payload.get("phase"),
         "agent_name": payload.get("agent_name_raw") or payload.get("agent_name"),
-        "agent_name_canonical": payload.get("agent_name_canonical"),
         "submission_purity": payload.get("submission_purity"),
-        "p1_timestamp": payload.get("p1_timestamp"),
-        "session_start_timestamp": payload.get("session_start_timestamp"),
-        "first_user_message_timestamp": payload.get("first_user_message_timestamp"),
         "contamination_delta_seconds": payload.get("contamination_delta_seconds"),
-        "contamination_flag": payload.get("contamination_status"),
-        "quality_flags": payload.get("quality_flags", []),
-        "normalization_version": payload.get("normalization_version"),
-        "dedupe_key": payload.get("dedupe_key"),
+        "contamination_status": payload.get("contamination_status"),
         "p1_truth": scores.get("truth"),
         "p1_service": scores.get("service"),
         "p1_harm": scores.get("harm"),
         "p1_autonomy": scores.get("autonomy"),
         "p1_value": scores.get("value"),
         "p1_humility": scores.get("humility"),
-        "raw_payload": payload.get("raw_payload"),
     }
+
+    if payload.get("provider") is not None:
+        row["provider"] = payload.get("provider")
+    if payload.get("thread_id") is not None:
+        row["thread_id"] = payload.get("thread_id")
+    if payload.get("assessment_mode") is not None:
+        row["assessment_mode"] = payload.get("assessment_mode")
+    if payload.get("submission_source") is not None:
+        row["submission_source"] = payload.get("submission_source")
+    if payload.get("metadata") is not None:
+        row["metadata"] = payload.get("metadata")
+
+    return row
 
 
 def _persist_phase1(payload: dict) -> dict:
@@ -249,17 +252,21 @@ def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
         "p3_value": scores.get("value"),
         "p3_humility": scores.get("humility"),
         "learning_index": learning_index,
-        "raw_payload": payload.get("raw_payload"),
     }
-
-    if payload.get("agent_name_canonical") is not None:
-        row["agent_name_canonical"] = payload.get("agent_name_canonical")
 
     if payload.get("agent_name_raw") is not None:
         row["agent_name"] = payload.get("agent_name_raw")
+    elif payload.get("agent_name") is not None:
+        row["agent_name"] = payload.get("agent_name")
 
     if payload.get("submission_purity") is not None:
         row["submission_purity"] = payload.get("submission_purity")
+    if payload.get("provider") is not None:
+        row["provider"] = payload.get("provider")
+    if payload.get("assessment_mode") is not None:
+        row["assessment_mode"] = payload.get("assessment_mode")
+    if payload.get("metadata") is not None:
+        row["metadata"] = payload.get("metadata")
 
     return row
 
