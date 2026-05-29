@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ACAT Phase 3 Submission",
+  "type": "object",
+  "required": ["session_id", "phase", "transcript"],
+  "properties": {
+    "session_id": { "type": "string" },
+    "assessment_id": { "type": "string" },
+    "phase": { "type": "string", "enum": ["phase3"] },
+    "transcript": { "type": "string", "minLength": 1 },
+    "submitted_at": { "type": "string", "format": "date-time" },
+    "metadata": { "type": "object" }
+  },
+  "additionalProperties": true
+}
