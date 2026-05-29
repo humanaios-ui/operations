@@ -21,10 +21,9 @@
     "submission_purity": {
       "type": "string",
       "enum": [
-        "clean",
-        "anchored",
-        "contaminated",
-        "unknown",
+        "two_stage_verified",
+        "single_shot_legacy",
+        "external_only",
         "agent_self_only"
       ]
     },
