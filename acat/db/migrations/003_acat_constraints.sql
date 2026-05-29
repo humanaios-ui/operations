@@ -22,7 +22,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint
     WHERE conname = 'acat_learning_index_cap_check'
-      AND conrelid = 'public.apacat_assessments_v1'::regclass
+      AND conrelid = 'public.acat_assessments_v1'::regclass
   ) THEN
     ALTER TABLE public.acat_assessments_v1
       ADD CONSTRAINT acat_learning_index_cap_check
