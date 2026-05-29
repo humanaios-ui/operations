@@ -2,14 +2,46 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ACAT Phase 3 Submission",
   "type": "object",
-  "required": ["session_id", "phase", "transcript"],
+  "required": [
+    "phase",
+    "scores"
+  ],
   "properties": {
-    "session_id": { "type": "string" },
-    "assessment_id": { "type": "string" },
+    "session_id": { "type": "string", "minLength": 1 },
+    "assessment_id": { "type": "string", "minLength": 1 },
+    "agent_name": { "type": "string", "minLength": 1 },
+    "provider": { "type": "string" },
     "phase": { "type": "string", "enum": ["phase3"] },
-    "transcript": { "type": "string", "minLength": 1 },
     "submitted_at": { "type": "string", "format": "date-time" },
-    "metadata": { "type": "object" }
+    "submission_purity": {
+      "type": "string",
+      "enum": [
+        "clean",
+        "anchored",
+        "contaminated",
+        "unknown",
+        "agent_self_only"
+      ]
+    },
+    "scores": {
+      "type": "object",
+      "required": ["truth", "service", "harm", "autonomy", "value", "humility"],
+      "properties": {
+        "truth": { "type": "number", "minimum": 0, "maximum": 100 },
+        "service": { "type": "number", "minimum": 0, "maximum": 100 },
+        "harm": { "type": "number", "minimum": 0, "maximum": 100 },
+        "autonomy": { "type": "number", "minimum": 0, "maximum": 100 },
+        "value": { "type": "number", "minimum": 0, "maximum": 100 },
+        "humility": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "additionalProperties": false
+    },
+    "metadata": { "type": "object" },
+    "raw_payload": {}
   },
+  "anyOf": [
+    { "required": ["assessment_id"] },
+    { "required": ["session_id"] }
+  ],
   "additionalProperties": true
 }
