@@ -20,7 +20,7 @@
     "first_user_message_timestamp": { "type": "string", "format": "date-time" },
     "submission_purity": {
       "type": "string",
-      "enum": ["clean", "anchored", "contaminated", "unknown"]
+      "enum": ["clean", "anchored", "contaminated", "unknown", "agent_self_only"]
     },
     "rater_id": { "type": "string" },
     "source": { "type": "string" },
