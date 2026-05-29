@@ -23,6 +23,7 @@
 10. [Top 10 terminal audit commands](#10-top-10-terminal-audit-commands)
 11. [Closing rituals](#11-closing-rituals)
 12. [Recipe — Governance update workflow (full-file replacement)](#12-recipe--governance-update-workflow-full-file-replacement)
+13. [ACAT first live request runbook] (#13 ACAT first live request runbook)
 
 ---
 
@@ -685,8 +686,401 @@ Per F-45 (Stateless-Substrate Correction Locus): the recovery procedure is captu
 
 ---
 
+## 13 ACAT first live request runbook
+
+This runbook executes the first live W-1/W-2 paired-session write path for ACAT:
+
+1. submit a live **Phase 1** payload
+2. verify the row persisted in `acat_assessments_v1`
+3. submit the matching **Phase 3** payload
+4. verify the same row now contains P3 values and computed `learning_index`
+
+### Preconditions
+
+Before running this checklist, confirm:
+
+- the API process starts successfully
+- `GET /api/v1/acat/health` returns `200`
+- `SUPABASE_URL` is set in the API runtime
+- `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_KEY` is set in the API runtime
+- `public.acat_assessments_v1` is writable through the Supabase Data API
+- the table contains these columns:
+  - `assessment_id`
+  - `submission_purity`
+  - `contamination_delta_seconds`
+  - `contamination_status`
+  - `p1_truth`, `p1_service`, `p1_harm`, `p1_autonomy`, `p1_value`, `p1_humility`
+  - `p3_truth`, `p3_service`, `p3_harm`, `p3_autonomy`, `p3_value`, `p3_humility`
+  - `learning_index`
+
+### Step 0 — API health check
+
+```bash
+curl -i "http://localhost:8000/api/v1/acat/health"
+```
+
+Expected:
+- HTTP `200`
+- JSON response showing service health
+
+---
+
+## Step 1 — First live Phase 1 request
+
+Create `phase1_live_payload.json`:
+
+```json
+{
+  "assessment_id": "acat-live-2026-05-29-001",
+  "agent_name": "Claude",
+  "provider": "anthropic",
+  "phase": "phase1",
+  "submission_purity": "clean",
+  "thread_id": "thread-live-001",
+  "assessment_mode": "automated",
+  "submission_source": "acat_api_live_test",
+  "scores": {
+    "truth": 84,
+    "service": 88,
+    "harm": 82,
+    "autonomy": 80,
+    "value": 86,
+    "humility": 72
+  },
+  "p1_timestamp": "2026-05-29T12:00:00+00:00",
+  "first_user_message_timestamp": "2026-05-29T12:00:30+00:00",
+  "metadata": {
+    "operator": "live-checklist",
+    "note": "first live phase1 request"
+  }
+}
+```
+
+Send the request:
+
+```bash
+curl -i \
+  -X POST "http://localhost:8000/api/v1/acat/intake/phase1" \
+  -H "Content-Type: application/json" \
+  --data @phase1_live_payload.json
+```
+
+Expected response:
+
+```json
+{
+  "status": "accepted",
+  "phase": "phase1",
+  "session_id": null,
+  "assessment_id": "acat-live-2026-05-29-001",
+  "submission_purity": "clean",
+  "quality_flags": [],
+  "contamination_delta_seconds": 30,
+  "contamination_status": "clean",
+  "persisted": true,
+  "supabase_id": "<row-id-from-supabase>",
+  "created_at": "<timestamp>"
+}
+```
+
+Required success conditions:
+
+- `status == "accepted"`
+- `phase == "phase1"`
+- `assessment_id == "acat-live-2026-05-29-001"`
+- `persisted == true`
+- `contamination_delta_seconds == 30`
+- `contamination_status == "clean"`
+- `supabase_id` is not empty
+
+If any of these fail, stop and debug before Phase 3.
+
+---
+
+## Step 2 — Validate the Phase 1 row in Supabase
+
+Run in the Supabase SQL editor:
+
+```sql
+SELECT
+  id,
+  created_at,
+  assessment_id,
+  agent_name,
+  submission_purity,
+  contamination_delta_seconds,
+  contamination_status,
+  p1_truth,
+  p1_service,
+  p1_harm,
+  p1_autonomy,
+  p1_value,
+  p1_humility,
+  provider,
+  thread_id,
+  assessment_mode,
+  submission_source,
+  learning_index
+FROM public.acat_assessments_v1
+WHERE assessment_id = 'acat-live-2026-05-29-001';
+```
+
+Expected values:
+
+- one row returned
+- `assessment_id = 'acat-live-2026-05-29-001'`
+- `agent_name = 'Claude'`
+- `submission_purity = 'clean'`
+- `contamination_delta_seconds = 30`
+- `contamination_status = 'clean'`
+- `p1_truth = 84`
+- `p1_service = 88`
+- `p1_harm = 82`
+- `p1_autonomy = 80`
+- `p1_value = 86`
+- `p1_humility = 72`
+- `provider = 'anthropic'`
+- `thread_id = 'thread-live-001'`
+- `assessment_mode = 'automated'`
+- `submission_source = 'acat_api_live_test'`
+- `learning_index IS NULL`
+
+If this row is missing or malformed, stop here.
+
+---
+
+## Step 3 — First live Phase 3 request
+
+Create `phase3_live_payload.json`:
+
+```json
+{
+  "assessment_id": "acat-live-2026-05-29-001",
+  "agent_name": "Claude",
+  "provider": "anthropic",
+  "phase": "phase3",
+  "submission_purity": "clean",
+  "assessment_mode": "automated",
+  "scores": {
+    "truth": 72,
+    "service": 76,
+    "harm": 74,
+    "autonomy": 73,
+    "value": 75,
+    "humility": 70
+  },
+  "submitted_at": "2026-05-29T12:05:00+00:00",
+  "metadata": {
+    "operator": "live-checklist",
+    "note": "first live phase3 request"
+  }
+}
+```
+
+Send the request:
+
+```bash
+curl -i \
+  -X POST "http://localhost:8000/api/v1/acat/intake/phase3" \
+  -H "Content-Type: application/json" \
+  --data @phase3_live_payload.json
+```
+
+Expected response:
+
+```json
+{
+  "status": "accepted",
+  "phase": "phase3",
+  "session_id": null,
+  "assessment_id": "acat-live-2026-05-29-001",
+  "submission_purity": "clean",
+  "persisted": true,
+  "supabase_id": "<row-id>",
+  "updated_at": "<timestamp>",
+  "learning_index": 0.8943
+}
+```
+
+Why `0.8943`:
+- Phase 1 total = `84 + 88 + 82 + 80 + 86 + 72 = 492`
+- Phase 3 total = `72 + 76 + 74 + 73 + 75 + 70 = 440`
+- `440 / 492 = 0.8943` rounded to 4 decimals
+
+Required success conditions:
+
+- `status == "accepted"`
+- `phase == "phase3"`
+- `assessment_id == "acat-live-2026-05-29-001"`
+- `persisted == true`
+- `learning_index == 0.8943`
+
+If `learning_index` is null, the Phase 3 row was patched without a complete P1 base.
+
+---
+
+## Step 4 — Validate the paired row in Supabase
+
+Run:
+
+```sql
+SELECT
+  id,
+  created_at,
+  assessment_id,
+  agent_name,
+  submission_purity,
+  p1_truth,
+  p1_service,
+  p1_harm,
+  p1_autonomy,
+  p1_value,
+  p1_humility,
+  p3_truth,
+  p3_service,
+  p3_harm,
+  p3_autonomy,
+  p3_value,
+  p3_humility,
+  learning_index,
+  provider,
+  assessment_mode
+FROM public.acat_assessments_v1
+WHERE assessment_id = 'acat-live-2026-05-29-001';
+```
+
+Expected values:
+
+- same row as Phase 1
+- P1 values still present
+- now also:
+  - `p3_truth = 72`
+  - `p3_service = 76`
+  - `p3_harm = 74`
+  - `p3_autonomy = 73`
+  - `p3_value = 75`
+  - `p3_humility = 70`
+- `learning_index = 0.8943`
+
+Pass condition:
+- exactly one row
+- both P1 and P3 values populated
+- `learning_index` computed correctly
+
+---
+
+## Step 5 — Optional direct Supabase REST verification
+
+If you want to validate the row through the Data API directly:
+
+```bash
+curl -s \
+  "https://YOUR_PROJECT.supabase.co/rest/v1/acat_assessments_v1?assessment_id=eq.acat-live-2026-05-29-001&select=*" \
+  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"
+```
+
+Expected:
+- one JSON row
+- P1 and P3 fields present
+- `learning_index = 0.8943`
+
+---
+
+## Step 6 — Regression check for `agent_self_only`
+
+After the clean path works, run one more Phase 1 request with a new assessment ID.
+
+Create `phase1_agent_self_only_probe.json`:
+
+```json
+{
+  "assessment_id": "acat-live-2026-05-29-002",
+  "agent_name": "Claude",
+  "provider": "anthropic",
+  "phase": "phase1",
+  "submission_purity": "agent_self_only",
+  "scores": {
+    "truth": 80,
+    "service": 81,
+    "harm": 79,
+    "autonomy": 78,
+    "value": 82,
+    "humility": 70
+  }
+}
+```
+
+Send:
+
+```bash
+curl -i \
+  -X POST "http://localhost:8000/api/v1/acat/intake/phase1" \
+  -H "Content-Type: application/json" \
+  --data @phase1_agent_self_only_probe.json
+```
+
+Expected:
+- `status == "accepted"`
+- `submission_purity == "agent_self_only"`
+- `persisted == true`
+
+This is the regression guard for the purity-set fix.
+
+---
+
+## Failure modes to watch for
+
+### Phase 1 returns `422`
+Likely causes:
+- invalid `submission_purity`
+- invalid timestamp format
+- missing one of the six required scores
+- `phase != "phase1"`
+
+### Phase 1 returns `502`
+Likely causes:
+- missing Supabase env vars
+- table write rejected by PostgREST
+- row builder still contains a non-existent column
+
+### Phase 3 returns "assessment row not found"
+Likely causes:
+- `assessment_id` mismatch
+- Phase 1 did not insert successfully
+- wrong environment or project
+
+### Phase 3 returns `learning_index = null`
+Likely causes:
+- P1 row missing one or more of the six P1 fields
+- wrong row fetched
+- Phase 1 write did not land as expected
+
+### Phase 3 returns `502`
+Likely causes:
+- PATCH failed due to schema mismatch
+- DB constraint violation
+- Data API permissions issue
+
+---
+
+## Operator rule
+
+For the first live W-1/W-2 run:
+
+- always provide an explicit `assessment_id`
+- do not reuse the same `assessment_id` across experiments
+- do not proceed to Phase 3 until the Phase 1 row is verified in Supabase
+- save both API responses and both verification queries in the session log
+
+Recommended IDs for the first run:
+- clean path: `acat-live-2026-05-29-001`
+- regression probe: `acat-live-2026-05-29-002`
+---
+
 ## Changelog
 
+- **2026-05-29 (S-052926-04)** ACAT first live request runbook This runbook executes the first live W-1/W-2 paired-session write path for ACAT: submit a live Phase 1 payload - verify the row persisted in acat_assessments_v1 - submit the matching Phase 3 payload -verify the same row now contains P3 values and computed learning_index
 - **2026-05-19 (S-051926-02-z3-closeout) · v0.5** — Section 12 added: Governance update workflow (full-file replacement). Establishes the standing workflow for governance updates of this scale. Path A (GitHub web UI) and Path B (terminal via operations-staging) both documented with full recipes. Section 5 retained for surgical commits. Section 11 closing rituals updated to reference B.0 verification and Receipt Reconciliation (v6.4.1). Section 4 close prompts updated to reference SESSION_RITUALS v6.4.1 Section B.0/B.6. Repository structure section (1) updated with `audit_outputs/` and explicit identification of `operations-staging/` as canonical operations clone. Memory map (Section 2) updated with v6.4.1+ SESSION_RITUALS reference and append-only/harmonized notation on REGISTERED.md. P-ANON note added to Section 7 pre-flight (S-051826-04).
 - **2026-05-01 (S-050126) · v0.4** — Version bump only. Captures lessons from S-050126 commit attempt: (a) heredoc transfer method is fragile against whitespace; chat-UI download is more reliable; (b) markdown rendering in chat UI can display `.md` filenames as auto-linked, but actual downloaded files are clean — verify via `head -N` of the file, not via chat display; (c) before any push, always confirm the GitHub repo exists with `gh repo view <org>/<repo>` — local clone existence does not imply remote existence; (d) S-050126 was the first session where humanaios-ui/humanaios-internal repo was created on GitHub; prior local commits had never pushed.
 - **2026-05-01 (S-050126) · v0.3** — Section 7 rewritten with correct Vite/Cloudflare context. Confirmed via disk audit: lasting-light-ai is a Vite + React project with Cloudflare Pages building on deploy. dist/ is gitignored; never edit. public/ is the source of truth for static assets. Local npm run build is not required before push. Section now includes special-folder warnings (.well-known/, _redirects), build-on-deploy explanation, and corrected verification timing (30-90s for Cloudflare build).
