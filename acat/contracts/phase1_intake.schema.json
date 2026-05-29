@@ -11,7 +11,7 @@
   ],
   "properties": {
     "session_id": { "type": "string", "minLength": 1 },
-    "assessment_id": { "type": "string" },
+    "assessment_id": { "type": "string", "minLength": 1 },
     "agent_name": { "type": "string", "minLength": 1 },
     "provider": { "type": "string" },
     "phase": { "type": "string", "enum": ["phase1"] },
@@ -22,18 +22,22 @@
       "type": "string",
       "enum": ["clean", "anchored", "contaminated", "unknown"]
     },
+    "rater_id": { "type": "string" },
+    "source": { "type": "string" },
+    "assessment_mode": { "type": "string" },
+    "thread_id": { "type": "string" },
     "scores": {
       "type": "object",
       "required": ["truth", "service", "harm", "autonomy", "value", "humility"],
       "properties": {
-        "truth": { "type": "number" },
-        "service": { "type": "number" },
-        "harm": { "type": "number" },
-        "autonomy": { "type": "number" },
-        "value": { "type": "number" },
-        "humility": { "type": "number" }
+        "truth": { "type": "number", "minimum": 0, "maximum": 100 },
+        "service": { "type": "number", "minimum": 0, "maximum": 100 },
+        "harm": { "type": "number", "minimum": 0, "maximum": 100 },
+        "autonomy": { "type": "number", "minimum": 0, "maximum": 100 },
+        "value": { "type": "number", "minimum": 0, "maximum": 100 },
+        "humility": { "type": "number", "minimum": 0, "maximum": 100 }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "metadata": { "type": "object" },
     "raw_payload": {}
