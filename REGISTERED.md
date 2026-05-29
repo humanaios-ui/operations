@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** May 19, 2026 (S-051926-02-z3-closeout · F-41 through F-45 integrated · harmonization sweep · H-RCO-01 registered)
+**Last updated:** May 29, 2026 (S-0529026-03) - IC-032 registered
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -1038,10 +1038,34 @@ Near-misses are observations that triggered concern but did not meet IC or F reg
 - **Test bench:** H-RCO-01 tests whether v6.4 enforcement reduces this error class by ≥80% across N=20 post-ratification sessions.
 - **Parent finding:** F-45 (Stateless-Substrate Correction Locus) provides the architectural rationale for locating the fix at protocol layer rather than as substrate-habit appeal.
 
+### IC-032 — Constraint-Before-Data-Inspection (S-052926-03)
+    ---
+    id: "IC-032"
+    name: "constraint-before-data-inspection"
+    status: REGISTERED
+    class: IC
+    date_registered: "2026-05-29"
+    date_origin: "2026-05-29"
+    session_registered: "S-052926-03"
+    principles_triggered: ["P3", "P7"]
+    substrate: "Claude Sonnet 4.6 + GitHub Copilot"
+    tags: ["migration", "constraint-design", "live-data-inspection", "schema-drift"]
+    zone2_ratification: "Night · 2026-05-29"
+    superseded_by: null
+    ---
+
+- **Synopsis:** `003_acat_constraints.sql` added `CHECK (submission_purity IN ('clean', 'anchored', 'contaminated', 'unknown'))` without first querying the live `acat_assessments_v1` table for existing `submission_purity` values. The table contained 50+ rows with `submission_purity = 'agent_self_only'` — a valid fifth category not in the Copilot-spec enum. Constraint application failed with ERROR 23514. Detected immediately when Night ran the migration and surfaced the violation query result. Same root pattern as IC-001/002/003 (migration applied without inspecting live data first).
+- **Resolution:** (1) `003_acat_constraints.sql` corrected to add `'agent_self_only'` to the CHECK enum. (2) `phase1_intake.schema.json` updated to include `'agent_self_only'` as a valid `submission_purity` value. No data backfill required — `agent_self_only` is a semantically distinct and legitimate purity classification (agent self-report only, no human rater, no contamination window applicable).
+- **Cost class:** ~15 min diagnostic + correction cycle. No data loss. No rollback required.
+- **Prevention:** Pre-migration checklist item added: before any `CHECK` constraint on an existing column, run `SELECT DISTINCT submission_purity FROM table WHERE submission_purity IS NOT NULL` and compare values against the proposed enum. Belongs in `acat/db/migrations/README.md` as a standing gate.
+- **IC roll-up category:** Schema-before-data-inspection. New pattern class — not previously named in the roll-up table.
+
 ---
 
 ## Changelog
 
+-**2026-05-29 S-0522926-03 IC-032 — Constraint-Before-Data-Inspection**
+  - **Synopsis:** `003_acat_constraints.sql` added `CHECK (submission_purity IN ('clean', 'anchored', 'contaminated', 'unknown'))` without first querying the live `acat_assessments_v1` table for existing `submission_purity` values. The table contained 50+ rows with `submission_purity = 'agent_self_only'` — a valid fifth category not in the Copilot-spec enum. Constraint application failed with ERROR 23514. Detected immediately when Night ran the migration and surfaced the violation query result. Same root pattern as IC-001/002/003 (migration applied without inspecting live data first).
 - **2026-05-21 (S-052126-02-governance-stack-audit) — GOVERNANCE v6.4 traceability.**
   - **GOVERNANCE.md v6.4 supersedes v6.1** per Z2 ratification S-052126-02. No F-class implications, no IC-class additions, no F-number reassignments. Logged here for cross-file traceability — REGISTERED.md is the canonical audit-trail surface for governance-state changes that affect findings/ICs reference base.
   - **v6.4 merge resolved v6.1/v6.3.3 branch divergence** that had been latent since May 6, 2026 (v6.3.3 draft was never pushed to canonical). All ratified v6.1 content preserved. v6.3.3 additive principles (P22.1 Cascade Discipline, P24 Temporal Trigger Ordering, P25 Collaboration Framework-Detection, P26 Autodream Slice Gate, P27 Phase 1 Prerequisite Gate, D-CTX and D-CONSTRAINT drift signals, high-topical-alignment suppression caveat) folded in. v6.3.3 P22 bash_tool update ratified. v6.3.3 P7 Multi-Substrate update held — v6.1 wording preserved because cross-substrate parallel-CI operation is not yet validated through HumanAIOS .py tool layer.
