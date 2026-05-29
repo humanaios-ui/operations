@@ -23,7 +23,7 @@
 10. [Top 10 terminal audit commands](#10-top-10-terminal-audit-commands)
 11. [Closing rituals](#11-closing-rituals)
 12. [Recipe — Governance update workflow (full-file replacement)](#12-recipe--governance-update-workflow-full-file-replacement)
-13. [ACAT first live request runbook](#13 ACAT first live request runbook)
+13. [ ACAT first live request runbook]
 
 ---
 
