@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import ssl
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -95,6 +95,15 @@ def _utcnow_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _parse_iso_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+
+
 def _ensure_assessment_id(payload: dict) -> str:
     existing = payload.get("assessment_id")
     if existing:
@@ -153,6 +162,23 @@ def _fetch_existing_assessment_row(payload: dict) -> dict:
     return parsed[0]
 
 
+def _should_promote_to_two_stage_verified(
+    requested_purity: str | None,
+    p1_committed_at: str | None,
+    p3_committed_at: str | None,
+) -> bool:
+    if requested_purity != "two_stage_verified":
+        return False
+
+    p1_dt = _parse_iso_datetime(p1_committed_at)
+    p3_dt = _parse_iso_datetime(p3_committed_at)
+
+    if p1_dt is None or p3_dt is None:
+        return False
+
+    return p3_dt >= (p1_dt + timedelta(seconds=60))
+
+
 def _build_phase1_row(payload: dict) -> dict:
     scores = payload["scores"]
     row = {
@@ -167,6 +193,7 @@ def _build_phase1_row(payload: dict) -> dict:
         "p1_autonomy": scores.get("autonomy"),
         "p1_value": scores.get("value"),
         "p1_humility": scores.get("humility"),
+        "p1_committed_at": payload.get("p1_committed_at"),
     }
 
     if payload.get("provider") is not None:
@@ -218,6 +245,7 @@ def _persist_phase1(payload: dict) -> dict:
         "persisted": True,
         "supabase_id": row0.get("id"),
         "created_at": row0.get("created_at"),
+        "p1_committed_at": row0.get("p1_committed_at", row.get("p1_committed_at")),
     }
 
 
@@ -248,6 +276,20 @@ def _compute_learning_index(existing_row: dict, phase3_scores: dict) -> float | 
 
 def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
     scores = payload["scores"]
+    p3_committed_at = payload.get("p3_committed_at")
+    requested_purity = payload.get("submission_purity")
+
+    if requested_purity == "two_stage_verified":
+        if not _should_promote_to_two_stage_verified(
+            requested_purity=requested_purity,
+            p1_committed_at=existing_row.get("p1_committed_at"),
+            p3_committed_at=p3_committed_at,
+        ):
+            raise IntakeValidationError(
+                "submission_purity 'two_stage_verified' requires p1_committed_at and "
+                "p3_committed_at at least 60 seconds apart"
+            )
+
     learning_index = _compute_learning_index(existing_row, scores)
 
     row = {
@@ -258,6 +300,7 @@ def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
         "p3_value": scores.get("value"),
         "p3_humility": scores.get("humility"),
         "learning_index": learning_index,
+        "p3_committed_at": p3_committed_at,
     }
 
     if payload.get("agent_name_raw") is not None:
@@ -265,8 +308,8 @@ def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
     elif payload.get("agent_name") is not None:
         row["agent_name"] = payload.get("agent_name")
 
-    if payload.get("submission_purity") is not None:
-        row["submission_purity"] = payload.get("submission_purity")
+    if requested_purity is not None:
+        row["submission_purity"] = requested_purity
     if payload.get("provider") is not None:
         row["provider"] = payload.get("provider")
     if payload.get("assessment_mode") is not None:
@@ -324,6 +367,8 @@ def _persist_phase3(payload: dict) -> dict:
         "supabase_id": row0.get("id"),
         "updated_at": row0.get("updated_at") or row0.get("created_at"),
         "learning_index": row0.get("learning_index", row.get("learning_index")),
+        "p3_committed_at": row0.get("p3_committed_at", row.get("p3_committed_at")),
+        "submission_purity": row0.get("submission_purity", row.get("submission_purity")),
     }
 
 
@@ -332,6 +377,7 @@ def ingest_phase1(payload: dict) -> dict:
 
     working = dict(payload)
     working.setdefault("p1_timestamp", _utcnow_iso())
+    working.setdefault("p1_committed_at", _utcnow_iso())
     working["assessment_id"] = _ensure_assessment_id(working)
 
     validate_phase1_payload(working)
@@ -363,6 +409,7 @@ def ingest_phase1(payload: dict) -> dict:
         "persisted": persisted.get("persisted", False),
         "supabase_id": persisted.get("supabase_id"),
         "created_at": persisted.get("created_at"),
+        "p1_committed_at": persisted.get("p1_committed_at"),
     }
 
 
@@ -371,6 +418,7 @@ def ingest_phase3(payload: dict) -> dict:
 
     working = dict(payload)
     working.setdefault("submitted_at", _utcnow_iso())
+    working.setdefault("p3_committed_at", _utcnow_iso())
 
     validate_phase3_payload(working)
 
@@ -389,9 +437,10 @@ def ingest_phase3(payload: dict) -> dict:
         "phase": "phase3",
         "session_id": working.get("session_id"),
         "assessment_id": working.get("assessment_id"),
-        "submission_purity": working.get("submission_purity"),
+        "submission_purity": persisted.get("submission_purity", working.get("submission_purity")),
         "persisted": persisted.get("persisted", False),
         "supabase_id": persisted.get("supabase_id"),
         "updated_at": persisted.get("updated_at"),
         "learning_index": persisted.get("learning_index"),
+        "p3_committed_at": persisted.get("p3_committed_at"),
     }
