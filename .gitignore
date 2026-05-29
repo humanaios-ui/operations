@@ -7,3 +7,5 @@ z2_review_transfer/
 ingest_*/
 outputs/
 *.QUARANTINED*
+.env
+.env.*
