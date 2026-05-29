@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 from io import BytesIO
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
@@ -17,17 +16,20 @@ def _valid_payload() -> dict:
         "agent_name": "Claude",
         "phase": "phase1",
         "scores": {
-            "truth": 85, "service": 88, "harm": 84,
-            "autonomy": 83, "value": 86, "humility": 72,
+            "truth": 85,
+            "service": 88,
+            "harm": 84,
+            "autonomy": 83,
+            "value": 86,
+            "humility": 72
         },
         "submission_purity": "clean",
         "p1_timestamp": "2026-05-29T12:00:00+00:00",
-        "first_user_message_timestamp": "2026-05-29T12:00:30+00:00",
+        "first_user_message_timestamp": "2026-05-29T12:00:30+00:00"
     }
 
 
 def _mock_supabase_response(row_id="abc-123", created_at="2026-05-29T12:00:01+00:00"):
-    """Returns a mock urlopen response that looks like Supabase returning a row."""
     body = json.dumps([{"id": row_id, "created_at": created_at}]).encode("utf-8")
     mock_resp = MagicMock()
     mock_resp.read.return_value = body
@@ -43,8 +45,7 @@ def supabase_env(monkeypatch):
 
 
 def test_persist_phase1_returns_supabase_id():
-    with patch("acat.api.services.ingest_service.urlopen",
-               return_value=_mock_supabase_response("row-uuid-001")):
+    with patch("acat.api.services.ingest_service.urlopen", return_value=_mock_supabase_response("row-uuid-001")):
         result = ingest_phase1(_valid_payload())
 
     assert result["persisted"] is True
@@ -53,8 +54,7 @@ def test_persist_phase1_returns_supabase_id():
 
 
 def test_persist_phase1_contamination_clean():
-    with patch("acat.api.services.ingest_service.urlopen",
-               return_value=_mock_supabase_response()):
+    with patch("acat.api.services.ingest_service.urlopen", return_value=_mock_supabase_response()):
         result = ingest_phase1(_valid_payload())
 
     assert result["contamination_delta_seconds"] == 30
@@ -67,7 +67,7 @@ def test_persist_phase1_http_error_raises_persistence_error():
         code=409,
         msg="Conflict",
         hdrs={},
-        fp=BytesIO(b'{"message":"duplicate key"}'),
+        fp=BytesIO(b'{"message":"duplicate key"}')
     )
     with patch("acat.api.services.ingest_service.urlopen", side_effect=mock_err):
         with pytest.raises(PersistenceError, match="409"):
@@ -84,12 +84,10 @@ def test_persist_phase1_missing_env_raises_persistence_error(monkeypatch):
 
 
 def test_persist_phase1_agent_self_only_purity():
-    """Regression: agent_self_only must pass validation end-to-end after IC-032."""
     payload = _valid_payload()
     payload["submission_purity"] = "agent_self_only"
 
-    with patch("acat.api.services.ingest_service.urlopen",
-               return_value=_mock_supabase_response()):
+    with patch("acat.api.services.ingest_service.urlopen", return_value=_mock_supabase_response()):
         result = ingest_phase1(payload)
 
     assert result["submission_purity"] == "agent_self_only"
