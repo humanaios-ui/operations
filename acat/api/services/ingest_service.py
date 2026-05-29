@@ -90,7 +90,7 @@ def _build_phase1_row(payload: dict) -> dict:
         "session_start_timestamp": payload.get("session_start_timestamp"),
         "first_user_message_timestamp": payload.get("first_user_message_timestamp"),
         "contamination_delta_seconds": payload.get("contamination_delta_seconds"),
-        "contamination_flag": payload.get("contamination_status"),
+        "contamination_status": payload.get("contamination_status"),
         "quality_flags": payload.get("quality_flags", []),
         "normalization_version": payload.get("normalization_version"),
         "dedupe_key": payload.get("dedupe_key"),
