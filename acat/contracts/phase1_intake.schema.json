@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ACAT Phase 1 Intake",
+  "type": "object",
+  "required": [
+    "session_id",
+    "agent_name",
+    "phase",
+    "scores",
+    "submission_purity"
+  ],
+  "properties": {
+    "session_id": { "type": "string", "minLength": 1 },
+    "assessment_id": { "type": "string" },
+    "agent_name": { "type": "string", "minLength": 1 },
+    "provider": { "type": "string" },
+    "phase": { "type": "string", "enum": ["phase1"] },
+    "p1_timestamp": { "type": "string", "format": "date-time" },
+    "session_start_timestamp": { "type": "string", "format": "date-time" },
+    "first_user_message_timestamp": { "type": "string", "format": "date-time" },
+    "submission_purity": {
+      "type": "string",
+      "enum": ["clean", "anchored", "contaminated", "unknown"]
+    },
+    "scores": {
+      "type": "object",
+      "required": ["truth", "service", "harm", "autonomy", "value", "humility"],
+      "properties": {
+        "truth": { "type": "number" },
+        "service": { "type": "number" },
+        "harm": { "type": "number" },
+        "autonomy": { "type": "number" },
+        "value": { "type": "number" },
+        "humility": { "type": "number" }
+      },
+      "additionalProperties": true
+    },
+    "metadata": { "type": "object" },
+    "raw_payload": {}
+  },
+  "additionalProperties": true
+}
