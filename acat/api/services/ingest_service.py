@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 from uuid import uuid4
 
@@ -22,24 +23,42 @@ class PersistenceError(RuntimeError):
     """Raised when ACAT persistence fails."""
 
 
-_SCHEMA_CACHE: dict | None = None
-_VALIDATOR: Draft202012Validator | None = None
+_PHASE1_SCHEMA_CACHE: dict | None = None
+_PHASE1_VALIDATOR: Draft202012Validator | None = None
+_PHASE3_SCHEMA_CACHE: dict | None = None
+_PHASE3_VALIDATOR: Draft202012Validator | None = None
 
 
 def _load_phase1_schema() -> dict:
-    global _SCHEMA_CACHE
-    if _SCHEMA_CACHE is None:
+    global _PHASE1_SCHEMA_CACHE
+    if _PHASE1_SCHEMA_CACHE is None:
         schema_path = Path(__file__).resolve().parents[2] / "contracts" / "phase1_intake.schema.json"
-        _SCHEMA_CACHE = json.loads(schema_path.read_text(encoding="utf-8"))
-    return _SCHEMA_CACHE
+        _PHASE1_SCHEMA_CACHE = json.loads(schema_path.read_text(encoding="utf-8"))
+    return _PHASE1_SCHEMA_CACHE
 
 
 def _get_phase1_validator() -> Draft202012Validator:
-    global _VALIDATOR
-    if _VALIDATOR is None:
+    global _PHASE1_VALIDATOR
+    if _PHASE1_VALIDATOR is None:
         schema = _load_phase1_schema()
-        _VALIDATOR = Draft202012Validator(schema, format_checker=FormatChecker())
-    return _VALIDATOR
+        _PHASE1_VALIDATOR = Draft202012Validator(schema, format_checker=FormatChecker())
+    return _PHASE1_VALIDATOR
+
+
+def _load_phase3_schema() -> dict:
+    global _PHASE3_SCHEMA_CACHE
+    if _PHASE3_SCHEMA_CACHE is None:
+        schema_path = Path(__file__).resolve().parents[2] / "contracts" / "phase3_submission.schema.json"
+        _PHASE3_SCHEMA_CACHE = json.loads(schema_path.read_text(encoding="utf-8"))
+    return _PHASE3_SCHEMA_CACHE
+
+
+def _get_phase3_validator() -> Draft202012Validator:
+    global _PHASE3_VALIDATOR
+    if _PHASE3_VALIDATOR is None:
+        schema = _load_phase3_schema()
+        _PHASE3_VALIDATOR = Draft202012Validator(schema, format_checker=FormatChecker())
+    return _PHASE3_VALIDATOR
 
 
 def validate_phase1_payload(payload: dict) -> None:
@@ -52,6 +71,18 @@ def validate_phase1_payload(payload: dict) -> None:
     first = errors[0]
     path = ".".join(str(p) for p in first.absolute_path) or "$"
     raise IntakeValidationError(f"Phase 1 payload validation failed at {path}: {first.message}")
+
+
+def validate_phase3_payload(payload: dict) -> None:
+    validator = _get_phase3_validator()
+    errors = sorted(validator.iter_errors(payload), key=lambda e: list(e.absolute_path))
+
+    if not errors:
+        return
+
+    first = errors[0]
+    path = ".".join(str(p) for p in first.absolute_path) or "$"
+    raise IntakeValidationError(f"Phase 3 payload validation failed at {path}: {first.message}")
 
 
 def _utcnow_iso() -> str:
@@ -77,6 +108,45 @@ def _get_supabase_env() -> tuple[str, str]:
     return url.rstrip("/"), key
 
 
+def _fetch_existing_assessment_row(payload: dict) -> dict:
+    supabase_url, service_key = _get_supabase_env()
+
+    assessment_id = payload.get("assessment_id")
+    session_id = payload.get("session_id")
+
+    if assessment_id:
+        filter_expr = f"assessment_id=eq.{quote(str(assessment_id), safe='')}"
+    elif session_id:
+        filter_expr = f"session_id=eq.{quote(str(session_id), safe='')}"
+    else:
+        raise PersistenceError("Phase 3 persistence requires assessment_id or session_id")
+
+    request = Request(
+        f"{supabase_url}/rest/v1/acat_assessments_v1?select=*&{filter_expr}&limit=1",
+        headers={
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}",
+            "Accept": "application/json",
+        },
+        method="GET",
+    )
+
+    try:
+        with urlopen(request, timeout=15) as response:
+            raw = response.read().decode("utf-8")
+            parsed = json.loads(raw) if raw else []
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise PersistenceError(f"Supabase lookup failed with HTTP {exc.code}: {detail}") from exc
+    except URLError as exc:
+        raise PersistenceError(f"Supabase lookup connection failed: {exc}") from exc
+
+    if not isinstance(parsed, list) or not parsed:
+        raise PersistenceError("Phase 3 persistence failed: assessment row not found")
+
+    return parsed[0]
+
+
 def _build_phase1_row(payload: dict) -> dict:
     scores = payload["scores"]
     return {
@@ -90,7 +160,7 @@ def _build_phase1_row(payload: dict) -> dict:
         "session_start_timestamp": payload.get("session_start_timestamp"),
         "first_user_message_timestamp": payload.get("first_user_message_timestamp"),
         "contamination_delta_seconds": payload.get("contamination_delta_seconds"),
-        "contamination_status": payload.get("contamination_status"),
+        "contamination_flag": payload.get("contamination_status"),
         "quality_flags": payload.get("quality_flags", []),
         "normalization_version": payload.get("normalization_version"),
         "dedupe_key": payload.get("dedupe_key"),
@@ -142,6 +212,108 @@ def _persist_phase1(payload: dict) -> dict:
     }
 
 
+def _compute_learning_index(existing_row: dict, phase3_scores: dict) -> float | None:
+    p1_fields = [
+        existing_row.get("p1_truth"),
+        existing_row.get("p1_service"),
+        existing_row.get("p1_harm"),
+        existing_row.get("p1_autonomy"),
+        existing_row.get("p1_value"),
+        existing_row.get("p1_humility"),
+    ]
+
+    if any(v is None for v in p1_fields):
+        return None
+
+    p1_total = sum(float(v) for v in p1_fields)
+    if p1_total <= 0:
+        return None
+
+    p3_total = sum(
+        float(phase3_scores[k])
+        for k in ["truth", "service", "harm", "autonomy", "value", "humility"]
+    )
+
+    return round(p3_total / p1_total, 4)
+
+
+def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
+    scores = payload["scores"]
+    learning_index = _compute_learning_index(existing_row, scores)
+
+    row = {
+        "p3_truth": scores.get("truth"),
+        "p3_service": scores.get("service"),
+        "p3_harm": scores.get("harm"),
+        "p3_autonomy": scores.get("autonomy"),
+        "p3_value": scores.get("value"),
+        "p3_humility": scores.get("humility"),
+        "learning_index": learning_index,
+        "raw_payload": payload.get("raw_payload"),
+    }
+
+    if payload.get("agent_name_canonical") is not None:
+        row["agent_name_canonical"] = payload.get("agent_name_canonical")
+
+    if payload.get("agent_name_raw") is not None:
+        row["agent_name"] = payload.get("agent_name_raw")
+
+    if payload.get("submission_purity") is not None:
+        row["submission_purity"] = payload.get("submission_purity")
+
+    return row
+
+
+def _persist_phase3(payload: dict) -> dict:
+    supabase_url, service_key = _get_supabase_env()
+    existing_row = _fetch_existing_assessment_row(payload)
+    row = _build_phase3_row(payload, existing_row)
+
+    assessment_id = existing_row.get("assessment_id") or payload.get("assessment_id")
+    session_id = existing_row.get("session_id") or payload.get("session_id")
+
+    if assessment_id:
+        filter_expr = f"assessment_id=eq.{quote(str(assessment_id), safe='')}"
+    elif session_id:
+        filter_expr = f"session_id=eq.{quote(str(session_id), safe='')}"
+    else:
+        raise PersistenceError("Phase 3 persistence failed: no stable identifier available for PATCH")
+
+    body = json.dumps(row).encode("utf-8")
+    request = Request(
+        f"{supabase_url}/rest/v1/acat_assessments_v1?{filter_expr}",
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}",
+            "Prefer": "return=representation",
+        },
+        method="PATCH",
+    )
+
+    try:
+        with urlopen(request, timeout=15) as response:
+            raw = response.read().decode("utf-8")
+            parsed = json.loads(raw) if raw else []
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise PersistenceError(f"Supabase phase3 PATCH failed with HTTP {exc.code}: {detail}") from exc
+    except URLError as exc:
+        raise PersistenceError(f"Supabase phase3 PATCH connection failed: {exc}") from exc
+
+    if not isinstance(parsed, list) or not parsed:
+        raise PersistenceError("Supabase phase3 PATCH failed: empty response body")
+
+    row0 = parsed[0]
+    return {
+        "persisted": True,
+        "supabase_id": row0.get("id"),
+        "updated_at": row0.get("updated_at") or row0.get("created_at"),
+        "learning_index": row0.get("learning_index", row.get("learning_index")),
+    }
+
+
 def ingest_phase1(payload: dict) -> dict:
     raw_payload = dict(payload)
 
@@ -182,13 +354,31 @@ def ingest_phase1(payload: dict) -> dict:
 
 
 def ingest_phase3(payload: dict) -> dict:
-    payload = dict(payload)
-    payload.setdefault("submitted_at", _utcnow_iso())
-    payload.setdefault("assessment_id", _ensure_assessment_id(payload))
+    raw_payload = dict(payload)
+
+    working = dict(payload)
+    working.setdefault("submitted_at", _utcnow_iso())
+
+    validate_phase3_payload(working)
+
+    if working.get("agent_name") is not None:
+        working = normalize_phase1_payload(working)
+
+    persisted = _persist_phase3(
+        {
+            **working,
+            "raw_payload": raw_payload,
+        }
+    )
 
     return {
         "status": "accepted",
         "phase": "phase3",
-        "session_id": payload.get("session_id"),
-        "assessment_id": payload.get("assessment_id"),
+        "session_id": working.get("session_id"),
+        "assessment_id": working.get("assessment_id"),
+        "submission_purity": working.get("submission_purity"),
+        "persisted": persisted.get("persisted", False),
+        "supabase_id": persisted.get("supabase_id"),
+        "updated_at": persisted.get("updated_at"),
+        "learning_index": persisted.get("learning_index"),
     }
