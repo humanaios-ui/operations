@@ -92,6 +92,7 @@ All F-class, H-class, and IC-class entries must open with a YAML front-matter bl
 | Canonical-fetch semantics | 1 | IC-029 | CLASS_STATE block missing from SESSION_RITUALS |
 | Registry-fetch gate | 1 | IC-030 | SESSION_RITUALS Step 4 skipped without declaration |
 | Receipt-content accuracy | 1 | IC-031 | Receipt overstated contents — drove H-RCO-01 |
+| Schema-before-data-inspection | 1 | IC-032 | Constraint applied without live-value inspection |
 
 > This table is manually maintained at each 5-file audit. Clustering = prevention signal. Most frequent pattern class = highest-priority governance hardening target.
 
