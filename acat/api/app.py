@@ -11,6 +11,20 @@ app.include_router(intake_router, prefix="/api/v1/acat", tags=["acat"])
 app.include_router(assess_router, prefix="/api/v1/acat", tags=["acat"])
 
 
+@app.get("/")
+def root() -> dict:
+    return {
+        "status": "ok",
+        "service": "acat-api",
+        "message": "ACAT API is running",
+        "health_url": "/api/v1/acat/health",
+        "intake_phase1_url": "/api/v1/acat/intake/phase1",
+        "intake_phase3_url": "/api/v1/acat/intake/phase3",
+        "assess_url": "/api/v1/acat/assess",
+        "version": "0.1.0",
+    }
+
+
 @app.get("/api/v1/acat/health")
 def health() -> dict:
     return {
