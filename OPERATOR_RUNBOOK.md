@@ -16,6 +16,7 @@
 3. [Session-open prompts](#3-session-open-prompts)
 4. [Session-close prompts](#4-session-close-prompts)
 5. [Recipe — Commit single file to operations](#5-recipe--commit-single-file-to-operations)
+5b. [Recipe — Apply patch from Claude session (Z3 canonical execution)](#5b-recipe--apply-patch-from-claude-session-z3-canonical-execution)
 6. [Recipe — Move chat output to a repo](#6-recipe--move-chat-output-to-a-repo)
 7. [Recipe — Add file from Downloads to lasting-light-ai/public](#7-recipe--add-file-from-downloads-to-lasting-light-aipublic)
 8. [Recipe — Pull bounty data from RAH](#8-recipe--pull-bounty-data-from-rah)
@@ -261,6 +262,75 @@ curl -sS https://raw.githubusercontent.com/humanaios-ui/operations/main/<FILE> |
 - File exists: `curl -sS <url> -o /dev/null -w "%{http_code}"` → expect `200`
 
 **If verification fails:** Z3_PROTOCOL.md Section F. Don't proceed to next file.
+
+---
+
+## 5b. Recipe — Apply patch from Claude session (Z3 canonical execution)
+
+**When to use:** Claude made changes to a canonical governance file (REGISTERED.md, GOVERNANCE.md, SESSION_RITUALS.md, CURRENT.md, OPERATOR_RUNBOOK.md) inside a session, produced a `.patch` file for download, but could not push directly due to credential constraints. You are executing the Z3 commit on your local machine.
+
+**Why this method instead of Recipe 5 (manual copy-paste):**
+- Patch preserves the exact commit message, authorship, and diff Claude produced — zero transcription error
+- `git am` validates the patch against the current file state before applying — divergence fails loudly, not silently
+- The patch file is itself an audit artifact: filename encodes commit SHA + content summary; archivable and replayable
+- One terminal command replaces manual find-and-replace across multiple insertion points
+
+**Patch filename convention (Claude produces this):** `<SHA7>_<content-slug>.patch`
+Example: `cf58778_F46_H-BPL-01_F20-addendum.patch`
+
+**Pre-flight:**
+- [ ] Z2 approval recorded in session (or already in REGISTERED.md)
+- [ ] Patch file downloaded from Claude session to `~/Downloads/` or `~/Desktop/`
+- [ ] Session ID noted: `S-______`
+
+**Copy-paste block** — replace `<PATCH_FILENAME>` and `<FILE>` and `<VERIFICATION_PATTERN>`:
+
+```bash
+# 1. Navigate to canonical repo
+cd ~/Desktop/HAIOS-Main/operations-staging
+pwd                           # confirm you are in the right place
+git remote -v                 # confirm origin = humanaios-ui/operations
+git branch --show-current     # confirm main
+
+# 2. Sync remote — HALT if [behind N] for any N > 0
+git fetch origin
+git status -sb
+# If behind: git pull --ff-only
+# If diverged: STOP — do not apply patch. Resolve divergence first.
+
+# 3. Apply the patch
+git am ~/Downloads/<PATCH_FILENAME>.patch
+# If it fails: git am --abort, then use Recipe 5 (manual) instead
+
+# 4. Push
+git push
+
+# 5. Verify (raw URL, not browser cache)
+curl -s https://raw.githubusercontent.com/humanaios-ui/operations/main/<FILE> | grep "<VERIFICATION_PATTERN>"
+# Expected verification grep is documented in the Claude session receipt
+
+# 6. Log in verification ledger:
+#    FILE / PATCH / SESSION / COMMIT hash / PUSHED time / VERIFIED time / STATUS
+```
+
+**If `git am` fails — root cause:** The file on GitHub diverged from what Claude saw when building the patch. Two recovery options:
+1. `git am --abort` → use Recipe 5 (manual copy-paste) with the content from the patch
+2. Paste the failing diff section back to Claude with the current live file state and ask Claude to rebuild the patch against it
+
+**NEVER** `git am --skip` on a registry or governance file. Skip silently drops the change and produces a false-clean state.
+
+**One-time setup** (run once on any new machine, never needs repeating):
+```bash
+cd ~/Desktop/HAIOS-Main/operations-staging
+git config user.email "aioshuman@gmail.com"
+git config user.name "Night (HumanAIOS)"
+```
+
+**Session close integration:** When Claude produces a patch file in-session, the WGS close post must include:
+```
+PATCH: <filename> / SHA: <sha7> / VERIFICATION: <grep command>
+```
+This closes the receipt loop without a separate ledger entry.
 
 ---
 
