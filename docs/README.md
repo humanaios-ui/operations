@@ -11,6 +11,11 @@ This repo is the canonical home for class-2 (operating process) and class-3 (fin
 - **[SESSION_RITUALS.md](./SESSION_RITUALS.md)** — Substrate-agnostic open/close protocols, parser tags, halt conditions.
 - **[ACAT_SESSION_PROMPT.md](./ACAT_SESSION_PROMPT.md)** — Unified Phase 1 + Phase 3 session protocol. The complete prompt every substrate runs at session open and close.
 
+## Repository guides
+
+- **[USER_PLAYBOOK.md](./USER_PLAYBOOK.md)** — Practical orientation for new users, contributors, maintainers, collaborators, and AI assistants.
+- **[OPEN_SOURCE_REPO_RECOMMENDATIONS.md](./OPEN_SOURCE_REPO_RECOMMENDATIONS.md)** — Curated open-source repositories worth studying, referencing, or selectively forking after human review.
+
 ## Raw URL pattern (for LLM fetch)
 
 ```
