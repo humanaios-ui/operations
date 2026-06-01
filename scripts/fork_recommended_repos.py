@@ -31,13 +31,14 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-REPO_RE = re.compile(r"\b([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)\b")
+REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+GITHUB_URL_RE = re.compile(r"https?://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)")
 
 
 def extract_repos_from_text(text: str) -> list[str]:
     found: list[str] = []
     seen: set[str] = set()
-    for match in REPO_RE.findall(text):
+    for match in GITHUB_URL_RE.findall(text):
         if match not in seen:
             seen.add(match)
             found.append(match)
@@ -56,6 +57,8 @@ def normalize_repo_list(repos: Iterable[str]) -> list[str]:
         repo = repo.strip()
         if not repo:
             continue
+        if not REPO_RE.fullmatch(repo):
+            raise ValueError(f"Invalid repository slug: {repo}")
         if repo not in seen:
             seen.add(repo)
             out.append(repo)
@@ -183,7 +186,11 @@ def main() -> None:
             raise SystemExit(2)
         repos.extend(load_repos_from_file(args.list))
 
-    repos = normalize_repo_list(repos)
+    try:
+        repos = normalize_repo_list(repos)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        raise SystemExit(2)
 
     if not repos:
         print("ERROR: no repositories selected.", file=sys.stderr)
