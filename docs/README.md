@@ -11,6 +11,14 @@ This repo is the canonical home for class-2 (operating process) and class-3 (fin
 - **[SESSION_RITUALS.md](./SESSION_RITUALS.md)** — Substrate-agnostic open/close protocols, parser tags, halt conditions.
 - **[ACAT_SESSION_PROMPT.md](./ACAT_SESSION_PROMPT.md)** — Unified Phase 1 + Phase 3 session protocol. The complete prompt every substrate runs at session open and close.
 
+## Discovery and onboarding docs
+
+- **[RESEARCH_OVERVIEW.md](./RESEARCH_OVERVIEW.md)** — 10-minute collaborator orientation to methods, findings, and open questions.
+- **[FUNDING_DISCOVERY.md](./FUNDING_DISCOVERY.md)** — Public funding-source discovery map.
+- **[TOOLS_DISCOVERY.md](./TOOLS_DISCOVERY.md)** — Free/open tool options mapped to research infrastructure needs.
+- **[COLLABORATION_DISCOVERY.md](./COLLABORATION_DISCOVERY.md)** — Collaboration organizations and network map.
+- **[TOOL_GAP_LIST.md](./TOOL_GAP_LIST.md)** — Proposed tooling scaffolds for active research threads.
+
 ## Raw URL pattern (for LLM fetch)
 
 ```
