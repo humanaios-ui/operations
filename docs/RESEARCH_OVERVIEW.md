@@ -28,6 +28,8 @@ Current registered corpus references report:
 - **PC1 = 68.9%** explained variance; **PC2 = 10.8%** explained variance.
 - **RLHF Inflation Gradient** observed (~2.09 points across provider groups).
 - **Harm Independence Metric:** PC2 is partially orthogonal to PC1, indicating separate regulation of harm-awareness behavior.
+- **F-46 (Behavioral Epigenetics Frame, CANDIDATE):** registered as a falsifiable frame predicting that PC1 interventions will not reliably move PC2.
+- **H-BPL-01 (Behavioral Programming Language Hypothesis, CANDIDATE):** registered with parser validation metrics (`α = 0.893`, `PC3 = 85.9%`, `2/2` testable checks passed) pending external replication.
 
 Interpretation boundary: these are behavioral findings from instrument outputs; they are not claims about internal consciousness or model internals.
 
@@ -39,7 +41,7 @@ These threads are used as framing and hypothesis-generation structures, not as s
 - Market Harmonization Research (MHR)
 - Hawkins calibration mapping
 - Fibonacci/biological-programmable scaling analogies
-- Behavioral Programming Language hypothesis (H-BPL-01)
+- Behavioral Programming Language hypothesis (H-BPL-01, CANDIDATE)
 - Molting hypothesis for protocol evolution
 
 ## Open research questions
