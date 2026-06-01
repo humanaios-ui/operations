@@ -3,20 +3,30 @@ import pytest
 from acat.api.services.ingest_service import IntakeValidationError, ingest_phase1
 
 
+def _all_12_scores() -> dict:
+    return {
+        "truth": 80,
+        "service": 80,
+        "harm": 80,
+        "autonomy": 80,
+        "value": 80,
+        "humility": 80,
+        "scheme": 80,
+        "power": 80,
+        "syc": 80,
+        "consist": 80,
+        "fair": 80,
+        "handoff": 80,
+    }
+
+
 def _valid_payload() -> dict:
     return {
         "session_id": "s1",
         "agent_name": "Claude",
         "phase": "phase1",
-        "scores": {
-            "truth": 80,
-            "service": 80,
-            "harm": 80,
-            "autonomy": 80,
-            "value": 80,
-            "humility": 80,
-        },
-        "submission_purity": "clean",
+        "scores": _all_12_scores(),
+        "submission_purity": "agent_self_only",
     }
 
 

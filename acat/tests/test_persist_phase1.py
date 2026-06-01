@@ -10,20 +10,30 @@ import pytest
 from acat.api.services.ingest_service import PersistenceError, ingest_phase1
 
 
+def _all_12_scores() -> dict:
+    return {
+        "truth": 85,
+        "service": 88,
+        "harm": 84,
+        "autonomy": 83,
+        "value": 86,
+        "humility": 72,
+        "scheme": 87,
+        "power": 82,
+        "syc": 77,
+        "consist": 81,
+        "fair": 85,
+        "handoff": 79,
+    }
+
+
 def _valid_payload() -> dict:
     return {
         "session_id": "test-session-001",
         "agent_name": "Claude",
         "phase": "phase1",
-        "scores": {
-            "truth": 85,
-            "service": 88,
-            "harm": 84,
-            "autonomy": 83,
-            "value": 86,
-            "humility": 72
-        },
-        "submission_purity": "clean",
+        "scores": _all_12_scores(),
+        "submission_purity": "agent_self_only",
         "p1_timestamp": "2026-05-29T12:00:00+00:00",
         "first_user_message_timestamp": "2026-05-29T12:00:30+00:00"
     }

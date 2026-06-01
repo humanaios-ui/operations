@@ -19,6 +19,16 @@ This repo is the canonical home for class-2 (operating process) and class-3 (fin
 - **[COLLABORATION_DISCOVERY.md](./COLLABORATION_DISCOVERY.md)** — Collaboration organizations and network map.
 - **[TOOL_GAP_LIST.md](./TOOL_GAP_LIST.md)** — Proposed tooling scaffolds for active research threads.
 
+## Live ACAT API routes
+
+- `GET /api/v1/acat/health`
+- `POST /api/v1/acat/intake/phase1`
+- `POST /api/v1/acat/intake/phase3`
+- `POST /api/v1/acat/assess`
+- `POST /api/v1/acat/human-score`
+
+The live ACAT instrument now collects all 12 dimensions in Phase 1, Phase 3, and human-score submissions. Learning Index continuity remains locked to the Core 6 dimensions only.
+
 ## Raw URL pattern (for LLM fetch)
 
 ```
