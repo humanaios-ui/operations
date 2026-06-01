@@ -70,7 +70,7 @@ The Source sets the harmonizing thread — the mean LI field state — that prop
 - The Living Pool (`living-pool.html`) — the F5-Systems visualization. The tide from Pool 1 enters here as organisms in motion. Assessment events swim in from above. The Ground's Sigils anchor below. A membrane divides what is transient from what is fixed. This is the entry visualization for the entire Luminarium.
 - The Observatory (`observatory.html`) — every assessment plotted, filterable by provider and dimension. The canonical research analysis view.
 - The Comparison Chamber (`comparison-chamber.html`) — systems placed side by side. Provider families compared.
-- The Calibration Garden (`calibration-garden.html`) — six plants, one per ACAT dimension. Outer growth = Phase 1 self-report. Inner growth = Phase 3 measured. The garden rewards accuracy, not optimism.
+- The Calibration Garden (`calibration-garden.html`) — twelve plants, one per ACAT dimension. Outer growth = Phase 1 self-report. Inner growth = Phase 3 measured. The garden rewards accuracy, not optimism, while LI continuity remains anchored to the Core 6.
 - The OpenAI Room (`openai-activity.html`) — that provider's behavioral record tracked over time.
 - The Assessment Tool (`acat-assessment-tool.html`) — the instrument itself. Three-phase protocol: blind self-report, calibration exposure, corrected self-report. ~20 minutes. **This is the submission point back to Pool 1** — completed assessments flow directly into the collection pool, updating the tide.
 

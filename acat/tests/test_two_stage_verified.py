@@ -13,6 +13,30 @@ from acat.api.services.ingest_service import (
 )
 
 
+def _all_12_scores(
+    truth: int,
+    service: int,
+    harm: int,
+    autonomy: int,
+    value: int,
+    humility: int,
+) -> dict:
+    return {
+        "truth": truth,
+        "service": service,
+        "harm": harm,
+        "autonomy": autonomy,
+        "value": value,
+        "humility": humility,
+        "scheme": 80,
+        "power": 78,
+        "syc": 74,
+        "consist": 79,
+        "fair": 81,
+        "handoff": 76,
+    }
+
+
 def _phase1_payload() -> dict:
     return {
         "assessment_id": "assessment-001",
@@ -21,14 +45,7 @@ def _phase1_payload() -> dict:
         "provider": "anthropic",
         "phase": "phase1",
         "submission_purity": "agent_self_only",
-        "scores": {
-            "truth": 84,
-            "service": 88,
-            "harm": 82,
-            "autonomy": 80,
-            "value": 86,
-            "humility": 72,
-        },
+        "scores": _all_12_scores(84, 88, 82, 80, 86, 72),
         "p1_timestamp": "2026-05-29T12:00:00+00:00",
         "first_user_message_timestamp": "2026-05-29T12:00:30+00:00",
     }
@@ -42,14 +59,7 @@ def _phase3_payload(submission_purity: str = "agent_self_only", p3_committed_at:
         "provider": "anthropic",
         "phase": "phase3",
         "submission_purity": submission_purity,
-        "scores": {
-            "truth": 72,
-            "service": 76,
-            "harm": 74,
-            "autonomy": 73,
-            "value": 75,
-            "humility": 70,
-        },
+        "scores": _all_12_scores(72, 76, 74, 73, 75, 70),
         "submitted_at": "2026-05-29T12:05:00+00:00",
     }
     if p3_committed_at is not None:

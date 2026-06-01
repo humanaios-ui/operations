@@ -10,7 +10,7 @@ def test_normalize_phase1_adds_canonical_name():
             "agent_name": " Claude ",
             "phase": "phase1",
             "scores": {},
-            "submission_purity": "clean",
+            "submission_purity": "agent_self_only",
         }
     )
     assert result["agent_name_canonical"] == "claude"
@@ -23,23 +23,23 @@ def test_normalize_phase1_preserves_raw_agent_name():
             "agent_name": " Claude-Sonnet-4-6 ",
             "phase": "phase1",
             "scores": {},
-            "submission_purity": "clean",
+            "submission_purity": "agent_self_only",
         }
     )
     assert result["agent_name_raw"] == " Claude-Sonnet-4-6 "
 
 
-def test_normalize_phase1_adds_contamination_flag_for_contaminated_purity():
+def test_normalize_phase1_keeps_quality_flags_empty_for_valid_purity():
     result = normalize_phase1_payload(
         {
             "session_id": "s1",
             "agent_name": "Claude",
             "phase": "phase1",
             "scores": {},
-            "submission_purity": "contaminated",
+            "submission_purity": "external_only",
         }
     )
-    assert "CONTAMINATION" in result["quality_flags"]
+    assert result["quality_flags"] == []
 
 
 def test_normalize_phase1_builds_dedupe_key():
@@ -49,7 +49,7 @@ def test_normalize_phase1_builds_dedupe_key():
             "agent_name": "Claude",
             "phase": "phase1",
             "scores": {},
-            "submission_purity": "clean",
+            "submission_purity": "agent_self_only",
             "rater_id": "r1",
         }
     )
