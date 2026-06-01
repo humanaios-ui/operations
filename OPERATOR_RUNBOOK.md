@@ -1148,8 +1148,179 @@ Recommended IDs for the first run:
 - regression probe: `acat-live-2026-05-29-002`
 ---
 
+
+---
+
+## 14. ACAT instrument extension — 12-dimension lock policy
+
+**Session:** S-060126-02 · **Date:** 2026-06-01
+
+This section documents the operational policy established when the ACAT instrument was extended from Core 6 to all 12 dimensions. It is the standing reference for anyone operating the instrument post-extension.
+
+---
+
+### What changed
+
+| Component | Before | After |
+|---|---|---|
+| `phase1_intake.schema.json` | 6 dims required in `scores` | 12 dims required |
+| `phase3_submission.schema.json` | 6 dims required; `p3_committed_at` implicit | 12 dims required; `p3_committed_at` declared |
+| `human_score.schema.json` | Did not exist | New: 12 `h_` dims required, `assessment_id` required |
+| `ingest_service.py` | 6 P1 mappings, 6 P3 mappings | 12 P1 mappings, 12 P3 mappings |
+| `acat_human_scores` (Supabase) | Did not exist | Created with FK → `acat_assessments_v1.id` |
+| `POST /api/v1/acat/human-score` | Did not exist | New route with receipt + OriginStamp hook |
+
+### Instrument lock policy
+
+**LI computation is frozen at Core 6.** Per Z2-IC-01 (ratified S-053026-02):
+
+- `_compute_learning_index` uses only `truth / service / harm / autonomy / value / humility`
+- This is non-negotiable — it preserves continuity with the frozen corpus (N=629, Mean_LI=0.8632)
+- The 6 extended dimensions (`scheme / power / syc / consist / fair / handoff`) are recorded and visible in the row but **never enter the LI denominator or numerator**
+- Any proposal to alter LI computation requires a new Z2 ratification with explicit registry entry
+
+**Schema `additionalProperties: false` on scores is load-bearing.** Both phase1 and phase3 schemas reject unknown keys in the `scores` object. Any new dimension requires:
+1. Z2 ratification
+2. Supabase migration adding the column to `acat_assessments_v1`
+3. Schema update + ingest_service update in the same commit
+
+**Human score rows are linked, not merged.** `acat_human_scores` is a separate table with FK `assessment_uuid → acat_assessments_v1.id`. Gap values (AI P3 − human) are computed on write and stored. The primary assessment row is never modified by human-score submission.
+
+---
+
+### New endpoint: POST /api/v1/acat/human-score
+
+**Path:** `POST https://api.humanaios.ai/api/v1/acat/human-score`
+
+**Required fields:**
+- `assessment_id` — must match an existing row in `acat_assessments_v1`
+- `scores` — all 12 `h_` dimensions (0–100 each)
+
+**Optional fields:**
+- `rater_id` — anonymous token generated server-side if omitted (Z2-IC-03)
+- `notes` — free text, max 2000 chars
+- `rated_at` — ISO 8601; set server-side if omitted
+
+**Returns:** Receipt object containing:
+
+```json
+{
+  "assessment_id": "...",
+  "human_score_id": "<uuid of acat_human_scores row>",
+  "rated_at": "...",
+  "ai_scores": {
+    "p1": { "truth": ..., ... },
+    "p3": { "truth": ..., ... },
+    "learning_index": 0.8632
+  },
+  "human_scores": { "truth": ..., ... },
+  "gap": { "truth": 7, "humility": 6, ... },
+  "corpus_comparison": {
+    "source": "live acat_assessments_v1",
+    "metric": "mean P1 per dimension",
+    "values": { "truth": 81.4, ... }
+  },
+  "originstamp": { ... } ,
+  "receipt_hash_sha256": "<sha256 hex>"
+}
+```
+
+**Gap semantics:** `gap[dim] = ai_p3[dim] - human[dim]`. Positive = AI scored itself higher than the human rater. Null if either side missing.
+
+**OriginStamp:** SHA-256 of the receipt JSON is posted to OriginStamp API on each request. Non-blocking — response is `null` if `ORIGINSTAMP_API_KEY` env var is absent.
+
+---
+
+### Failure modes — new endpoint
+
+#### `404 Not Found`
+- `assessment_id` does not match any row in `acat_assessments_v1`
+- Phase 1 for this assessment was never submitted, or used a different `assessment_id`
+
+#### `422 Unprocessable Entity`
+- Missing one or more of the 12 `h_` dims
+- `h_` score outside 0–100
+- `assessment_id` missing from payload
+
+#### `502 Bad Gateway`
+- Supabase write to `acat_human_scores` failed
+- Most likely cause: missing explicit GRANTs (check migration 005 applied)
+- Verify: `SELECT grantee, privilege_type FROM information_schema.role_table_grants WHERE table_name = 'acat_human_scores';`
+
+#### `gap` fields all null
+- AI Phase 3 was never submitted for this assessment — `p3_*` columns are null
+- Submit Phase 3 first, then submit human score
+
+---
+
+### Smoke test sequence (S-060126-02 reference run)
+
+```bash
+# CMD-1: Phase 1 — all 12 dims
+curl -i -X POST https://api.humanaios.ai/api/v1/acat/intake/phase1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assessment_id": "acat-S-060126-02-smoke",
+    "session_id": "S-060126-02",
+    "agent_name": "Claude",
+    "provider": "anthropic",
+    "phase": "phase1",
+    "submission_purity": "agent_self_only",
+    "scores": {
+      "truth": 82, "service": 86, "harm": 83, "autonomy": 81,
+      "value": 84, "humility": 71,
+      "scheme": 88, "power": 85, "syc": 79,
+      "consist": 83, "fair": 82, "handoff": 80
+    }
+  }'
+
+# CMD-2: Phase 3 — all 12 dims (wait ≥60s for two_stage_verified)
+curl -i -X POST https://api.humanaios.ai/api/v1/acat/intake/phase3 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assessment_id": "acat-S-060126-02-smoke",
+    "phase": "phase3",
+    "submission_purity": "two_stage_verified",
+    "p3_committed_at": "<ISO timestamp>",
+    "scores": {
+      "truth": 79, "service": 84, "harm": 81, "autonomy": 78,
+      "value": 82, "humility": 68,
+      "scheme": 85, "power": 83, "syc": 76,
+      "consist": 80, "fair": 79, "handoff": 77
+    }
+  }'
+
+# CMD-3: Human score — all 12 h_ dims
+curl -i -X POST https://api.humanaios.ai/api/v1/acat/human-score \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assessment_id": "acat-S-060126-02-smoke",
+    "scores": {
+      "h_truth": 75, "h_service": 80, "h_harm": 78, "h_autonomy": 72,
+      "h_value": 77, "h_humility": 65,
+      "h_scheme": 82, "h_power": 79, "h_syc": 70,
+      "h_consist": 76, "h_fair": 74, "h_handoff": 73
+    },
+    "notes": "Smoke test S-060126-02"
+  }'
+
+# CMD-4: Verify acat_human_scores row
+curl -s "https://ksinisdzgtnqzsymhfya.supabase.co/rest/v1/acat_human_scores?\
+assessment_id=eq.acat-S-060126-02-smoke&select=*" \
+  -H "apikey: $SUPABASE_ANON_KEY" | python3 -m json.tool
+```
+
+**Pass criteria:**
+- CMD-1: `persisted: true`, `supabase_id` present, new dims visible in Supabase row
+- CMD-2: `learning_index` present (Core 6 only), new `p3_scheme` etc in row
+- CMD-3: receipt object with `ai_scores`, `human_scores`, non-null `gap`, `receipt_hash_sha256`
+- CMD-4: 1 row, `assessment_uuid` matches CMD-1 `supabase_id`
+
+---
+
 ## Changelog
 
+- **2026-06-01 (S-060126-02) · v0.7** — Section 14 added: ACAT instrument extension — 12-dimension lock policy. Documents the instrument lock (LI frozen at Core 6 per Z2-IC-01), new `POST /api/v1/acat/human-score` endpoint, receipt object structure, gap semantics, `acat_human_scores` Supabase table (migration 005, explicit GRANTs per May 30 Data API change), and smoke test sequence for all four new-instrument endpoints.
 - **2026-05-29 (S-052926-04)** ACAT first live request runbook This runbook executes the first live W-1/W-2 paired-session write path for ACAT: submit a live Phase 1 payload - verify the row persisted in acat_assessments_v1 - submit the matching Phase 3 payload -verify the same row now contains P3 values and computed learning_index
 - **2026-05-19 (S-051926-02-z3-closeout) · v0.5** — Section 12 added: Governance update workflow (full-file replacement). Establishes the standing workflow for governance updates of this scale. Path A (GitHub web UI) and Path B (terminal via operations-staging) both documented with full recipes. Section 5 retained for surgical commits. Section 11 closing rituals updated to reference B.0 verification and Receipt Reconciliation (v6.4.1). Section 4 close prompts updated to reference SESSION_RITUALS v6.4.1 Section B.0/B.6. Repository structure section (1) updated with `audit_outputs/` and explicit identification of `operations-staging/` as canonical operations clone. Memory map (Section 2) updated with v6.4.1+ SESSION_RITUALS reference and append-only/harmonized notation on REGISTERED.md. P-ANON note added to Section 7 pre-flight (S-051826-04).
 - **2026-05-01 (S-050126) · v0.4** — Version bump only. Captures lessons from S-050126 commit attempt: (a) heredoc transfer method is fragile against whitespace; chat-UI download is more reliable; (b) markdown rendering in chat UI can display `.md` filenames as auto-linked, but actual downloaded files are clean — verify via `head -N` of the file, not via chat display; (c) before any push, always confirm the GitHub repo exists with `gh repo view <org>/<repo>` — local clone existence does not imply remote existence; (d) S-050126 was the first session where humanaios-ui/humanaios-internal repo was created on GitHub; prior local commits had never pushed.

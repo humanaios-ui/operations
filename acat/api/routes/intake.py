@@ -8,8 +8,12 @@ from acat.api.services.ingest_service import (
     ingest_phase1,
     ingest_phase3,
 )
+from acat.api.routes.human_score_route import router as human_score_router
 
 router = APIRouter()
+
+# Register human-score sub-route
+router.include_router(human_score_router)
 
 
 @router.post("/intake/phase1", status_code=status.HTTP_201_CREATED)
