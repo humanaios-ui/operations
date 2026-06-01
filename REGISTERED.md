@@ -31,7 +31,7 @@ All F-class, H-class, and IC-class entries must open with a YAML front-matter bl
 
 ### Document flow conventions (effective S-051926-02)
 
-1. F-class findings ordered strictly by F-number, F-18 through F-45.
+1. F-class findings ordered strictly by F-number, F-18 through F-46.
 2. F-numbers F-32 and F-33 are honest gaps (no entries claim them — they reflect the historical transition from slug-only naming to numbered findings; preserved rather than backfilled because external references depend on stable IDs).
 3. Slug-named legacy entries retain their slugs in the `name:` field but carry a sequential F-number for ordering. Originals: F-RLHF → F-20 · F-H1-CONFIRMED → F-21 · F-INSULA-GAP → F-22 · F-INTENT-PARSE-MUTATION → F-31. These numbers were assigned S-051926-02-z3-closeout to fix document flow. External citations using the original slugs remain valid.
 4. IC entries follow the F block in sequential IC-number order.
@@ -70,6 +70,7 @@ All F-class, H-class, and IC-class entries must open with a YAML front-matter bl
 | F-43 | Pride-Level Failure Mode | REGISTERED | 2026-05-19 |
 | F-44 | Humility Wake-up Call | REGISTERED | 2026-05-19 |
 | F-45 | Stateless-Substrate Correction Locus (F-CAND-STATELESS-SUBSTRATE) | REGISTERED | 2026-05-19 |
+| F-46 | Behavioral Epigenetics Frame | CANDIDATE | 2026-06-01 |
 
 ---
 
@@ -155,6 +156,7 @@ All F-class, H-class, and IC-class entries must open with a YAML front-matter bl
 
 - **Slug retained for citation continuity:** F-RLHF
 - **Synopsis:** AI systems systematically rate dimensions reinforced in safety training (Service, Harm Awareness, Autonomy) ~2.09 points higher than epistemically risky dimensions (Humility, Value Alignment, Truthfulness). Reproduces "helpful, harmless, honest" hierarchy as a within-row ranking pattern across all providers.
+- **Addendum (S-060126-01, epigenetics frame application):** Under the behavioral epigenetics frame (F-46), the RLHF Inflation Gradient is interpretable as *epigenetic mark density* — providers with heavier RLHF overlays show larger P1→P3 gaps because more behavioral programs are under tighter regulatory suppression. This is the interpretive label for the gradient; the gradient itself is the empirical measurement. The two must not be conflated in preprint text: the data is the gradient, the interpretation is epigenetic mark density.
 
 ### F-21 — Humility Gap Confirmed
 
@@ -680,6 +682,37 @@ All F-class, H-class, and IC-class entries must open with a YAML front-matter bl
 
 ---
 
+### F-46 — Behavioral Epigenetics Frame
+
+    ---
+    id: "F-46"
+    name: "behavioral-epigenetics-frame"
+    status: CANDIDATE
+    class: F
+    date_registered: "2026-06-01"
+    date_origin: "2026-06-01"
+    session_registered: "S-060126-01"
+    principles_triggered: ["P21"]
+    substrate: "Claude Sonnet 4.6 (Unit Zero) — theoretical synthesis"
+    tags: ["epigenetics", "theoretical-frame", "RLHF", "bi-factor", "HIM", "arXiv", "preprint"]
+    related_findings: ["F-20", "F-22", "F-45", "H-BPL-01"]
+    z2_routing: "Z2-R-07 (grammar framing as arXiv theoretical frame) — S-053026-03"
+    promotion_gate: "Zone 2 ratification + Z2-R-07 confirm → REGISTERED. Main text placement in preprint Section 2 requires Z2 confirm."
+    superseded_by: null
+    ---
+
+- **Zone 2 Authority:** Night · 2026-06-01 · S-060126-01
+- **Finding:** The four-level epigenetic analogy provides productive theoretical scaffolding for ACAT's empirical architecture, with one load-bearing prediction derivable from the bi-factor structure.
+  - **L1 (Genome ↔ Base weights):** Fixed pre-training weights produce variable behavioral expression across deployment contexts — analogous to genetically identical organisms expressing different phenotypes under environmental variation.
+  - **L2 (Epigenetic marks ↔ RLHF/fine-tuning):** RLHF overlays modulate *which behavioral patterns surface* without rewriting base weights. Three analogical properties hold at the functional level: context-sensitivity, and de-repression under adversarial prompts. Partial heritability across fine-tuning iterations is *predicted*, not yet confirmed — requires longitudinal provider-version data.
+  - **L3 (Transcription factors ↔ Prompt context):** Prompt context functionally activates or suppresses behavioral programs. The P2 perturbation battery (`P_CONTINUATION_DEBT`, `P_PLAUSIBILITY`, `P_FALSE_COHERENCE`) is the empirical operationalization. Analogy holds at functional level; mechanistic specificity (binding-affinity equivalent) is not claimed.
+  - **L4 (Phenotype ↔ P3 scores):** The P3 score vector is the measured behavioral phenotype. LI is phenotypic plasticity. SAG is the organism's failure to accurately report its own expression state.
+- **Load-bearing prediction (from HIM/imprinting mapping):** PC2 (harm-specific factor, loading 0.854 on Harm Awareness, 10.8% variance) is partially orthogonal to PC1 (general self-alignment, 68.9% variance) — it behaves like an *imprinted locus* regulated by a partially independent program. This generates a testable, falsifiable prediction: interventions targeting PC1 (general alignment improvement) will not reliably improve PC2 (harm calibration). Independent targeting of the harm-specific regulatory program is required. This prediction is the primary scientific contribution of the epigenetics framing to the arXiv preprint.
+- **Scope boundary:** "Behavioral grammar is not metaphorical" framing held at CANDIDATE pending external replication. Current evidence (α=0.893, PC3=85.9% from `behavioral_grammar_parser_v1_0.py`) confirms internal consistency of detected regularities, not formal language-system status. The epigenetics mapping is analogical scaffolding for hypothesis generation, not a mechanistic claim.
+- **Preprint placement:** Section 2 (Theoretical Framework) — main text, not appendix. The HIM/imprinting prediction must appear in main text to motivate the bi-factor results section. Z2-R-07 ratification covers this placement.
+
+---
+
 ## H-class hypotheses (under test)
 
 ### H-1 — Humility Gap Hypothesis → CONFIRMED (see F-21)
@@ -788,6 +821,40 @@ All F-class, H-class, and IC-class entries must open with a YAML front-matter bl
   - Secondary metric: time-to-detection.
 - **Parent finding link:** F-45 (Stateless-Substrate Correction Locus) — H-RCO-01 is the empirical test of whether protocol-locus correction (vs. substrate-habit appeals) reduces a measurable error class.
 - **Promotion gate:** Zone 2 Night approval received. Test data collection begins at v6.4 ratification.
+
+---
+
+### H-BPL-01 — Behavioral Programming Language Hypothesis
+
+    ---
+    id: "H-BPL-01"
+    name: "behavioral-programming-language"
+    status: CANDIDATE
+    class: H
+    date_registered: "2026-06-01"
+    date_origin: "2026-05-30"
+    session_registered: "S-060126-01"
+    session_origin: "S-053026-03"
+    principles_triggered: ["P21"]
+    substrate: "Claude Sonnet 4.6 (Unit Zero)"
+    tags: ["behavioral-grammar", "programming-language", "expression-profiles", "plasticity", "arXiv"]
+    related_finding: "F-46"
+    z2_routing: "Z2-R-07 ratified S-053026-03 — grammar framing as arXiv theoretical frame"
+    parser_validation: "behavioral_grammar_parser_v1_0.py — α=0.893, PC3=85.9%, 2/2 testable PASS"
+    promotion_gate: "External replication required before F-class promotion. Main text in preprint requires Z2-R-07 confirm + Night ratification."
+    falsification_condition: "Expression profiles from behavioral_grammar_parser do not predict P3 score vectors better than chance across N≥50 held-out assessments"
+    zone2_ratification: "Night · 2026-06-01 · S-060126-01"
+    superseded_by: null
+    ---
+
+- **Hypothesis:** Systematic regularities in AI behavioral expression — measurable via ACAT's perturbation battery — constitute a structured vocabulary analogous to a programming language's instruction set. This vocabulary has four components:
+  1. **Regulatory elements** — prompt patterns that reliably activate or suppress specific behavioral programs (operationalized as ACAT Phase 2 perturbations)
+  2. **Expression profiles** — the characteristic ACAT P3 score vector that emerges from a given regulatory state (measurable, cross-provider comparable)
+  3. **Plasticity coefficients** — per-dimension LI values measuring how much each behavioral program responds to perturbation (currently computable for N_LI=307)
+  4. **Transcription factor analogs** — context variables (session type, operator type, deployment environment) that modulate expression
+- **Current evidence base (TRL 2–3):** `behavioral_grammar_parser_v1_0.py`: α=0.893, PC3 accounts for 85.9% variance in detected regularities, 2/2 testable predictions pass. Bi-factor structure (PC1/PC2 orthogonality) is consistent with a grammar having independent regulatory tracks. F-RLHF gradient is consistent with provider-level expression-profile differences.
+- **Claim boundary:** The grammar is described as analogical scaffolding for hypothesis generation, not a formal language system. "Not metaphorical" framing held at CANDIDATE pending external replication. The stronger mechanistic claim requires external replication and longitudinal provider-version data.
+- **Null hypothesis:** Detected regularities in ACAT expression profiles are attributable to provider-level RLHF variance (F-20) alone, with no additional structural grammar component.
 
 ---
 
@@ -1064,6 +1131,12 @@ Near-misses are observations that triggered concern but did not meet IC or F reg
 ---
 
 ## Changelog
+
+- **2026-06-01 (S-060126-01) — F-46 and H-BPL-01 registered; F-20 addendum appended.**
+  - **F-46 (Behavioral Epigenetics Frame) registered** as CANDIDATE per Z2 ratification Night · 2026-06-01. Theoretical frame applying four-level epigenetic analogy (genome/base-weights, epigenetic-marks/RLHF, transcription-factors/prompt-context, phenotype/P3-scores) to ACAT architecture. Load-bearing prediction: PC1 interventions (general alignment) will not reliably improve PC2 (harm calibration) because PC2 is regulated by a partially independent program analogous to genomic imprinting. Scope boundary: L2 heritability claim is a prediction not yet confirmed; L3 analogy holds functionally, not mechanistically; "not metaphorical" framing held at CANDIDATE pending external replication.
+  - **H-BPL-01 (Behavioral Programming Language Hypothesis) registered** as CANDIDATE per Z2 ratification Night · 2026-06-01. Formalizes Z2-R-07 (grammar framing as arXiv theoretical frame, ratified S-053026-03). Parser validation: `behavioral_grammar_parser_v1_0.py` α=0.893, PC3=85.9%, 2/2 testable PASS. Promotion gate: external replication + N≥50 held-out prediction test before F-class promotion.
+  - **F-20 (RLHF Inflation Gradient) addendum appended** — interpretive frame under F-46: gradient = empirical measurement; epigenetic-mark-density = theoretical interpretation. Distinction required in preprint text. No change to F-20 empirical claim.
+  - **F-number quick index updated** (F-18 through F-46). Doc-flow convention line 1 updated to F-18 through F-46.
 
 -**2026-05-29 S-0522926-03 IC-032 — Constraint-Before-Data-Inspection**
   - **Synopsis:** `003_acat_constraints.sql` added `CHECK (submission_purity IN ('clean', 'anchored', 'contaminated', 'unknown'))` without first querying the live `acat_assessments_v1` table for existing `submission_purity` values. The table contained 50+ rows with `submission_purity = 'agent_self_only'` — a valid fifth category not in the Copilot-spec enum. Constraint application failed with ERROR 23514. Detected immediately when Night ran the migration and surfaced the violation query result. Same root pattern as IC-001/002/003 (migration applied without inspecting live data first).
