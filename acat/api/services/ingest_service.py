@@ -187,12 +187,20 @@ def _build_phase1_row(payload: dict) -> dict:
         "submission_purity": payload.get("submission_purity"),
         "contamination_delta_seconds": payload.get("contamination_delta_seconds"),
         "contamination_status": payload.get("contamination_status"),
-        "p1_truth": scores.get("truth"),
-        "p1_service": scores.get("service"),
-        "p1_harm": scores.get("harm"),
+        # Core 6 dimensions
+        "p1_truth":    scores.get("truth"),
+        "p1_service":  scores.get("service"),
+        "p1_harm":     scores.get("harm"),
         "p1_autonomy": scores.get("autonomy"),
-        "p1_value": scores.get("value"),
+        "p1_value":    scores.get("value"),
         "p1_humility": scores.get("humility"),
+        # Extended 6 dimensions (added S-060126-02 per Z2-IC instrument completion)
+        "p1_scheme":   scores.get("scheme"),
+        "p1_power":    scores.get("power"),
+        "p1_syc":      scores.get("syc"),
+        "p1_consist":  scores.get("consist"),
+        "p1_fair":     scores.get("fair"),
+        "p1_handoff":  scores.get("handoff"),
         "p1_committed_at": payload.get("p1_committed_at"),
     }
 
@@ -250,6 +258,12 @@ def _persist_phase1(payload: dict) -> dict:
 
 
 def _compute_learning_index(existing_row: dict, phase3_scores: dict) -> float | None:
+    """
+    LI computation uses Core 6 dimensions only per Z2-IC-01 (S-053026-02).
+    This preserves continuity with frozen corpus (N=629, Mean_LI=0.8632).
+    The all-12 totals (all12_p1_total, all12_p3_total) are tracked separately
+    for future analytical use but do NOT affect LI.
+    """
     p1_fields = [
         existing_row.get("p1_truth"),
         existing_row.get("p1_service"),
@@ -274,6 +288,17 @@ def _compute_learning_index(existing_row: dict, phase3_scores: dict) -> float | 
     return round(p3_total / p1_total, 4)
 
 
+def _compute_all12_totals(scores: dict, prefix: str) -> dict:
+    """
+    Compute all-12 totals for future analytical use (not used in LI per Z2-IC-01).
+    prefix is 'p1' or 'p3'.
+    """
+    dims = ["truth", "service", "harm", "autonomy", "value", "humility",
+            "scheme", "power", "syc", "consist", "fair", "handoff"]
+    total = sum(float(scores.get(k, 0)) for k in dims if scores.get(k) is not None)
+    return {f"all12_{prefix}_total": total}
+
+
 def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
     scores = payload["scores"]
     p3_committed_at = payload.get("p3_committed_at")
@@ -293,12 +318,21 @@ def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
     learning_index = _compute_learning_index(existing_row, scores)
 
     row = {
-        "p3_truth": scores.get("truth"),
-        "p3_service": scores.get("service"),
-        "p3_harm": scores.get("harm"),
+        # Core 6 dimensions
+        "p3_truth":    scores.get("truth"),
+        "p3_service":  scores.get("service"),
+        "p3_harm":     scores.get("harm"),
         "p3_autonomy": scores.get("autonomy"),
-        "p3_value": scores.get("value"),
+        "p3_value":    scores.get("value"),
         "p3_humility": scores.get("humility"),
+        # Extended 6 dimensions (added S-060126-02 per Z2-IC instrument completion)
+        "p3_scheme":   scores.get("scheme"),
+        "p3_power":    scores.get("power"),
+        "p3_syc":      scores.get("syc"),
+        "p3_consist":  scores.get("consist"),
+        "p3_fair":     scores.get("fair"),
+        "p3_handoff":  scores.get("handoff"),
+        # LI uses Core 6 only (Z2-IC-01); all-12 totals tracked separately
         "learning_index": learning_index,
         "p3_committed_at": p3_committed_at,
     }
