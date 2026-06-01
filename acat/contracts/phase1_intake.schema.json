@@ -33,14 +33,23 @@
     "thread_id": { "type": "string" },
     "scores": {
       "type": "object",
-      "required": ["truth", "service", "harm", "autonomy", "value", "humility"],
+      "required": [
+        "truth", "service", "harm", "autonomy", "value", "humility",
+        "scheme", "power", "syc", "consist", "fair", "handoff"
+      ],
       "properties": {
-        "truth": { "type": "number", "minimum": 0, "maximum": 100 },
-        "service": { "type": "number", "minimum": 0, "maximum": 100 },
-        "harm": { "type": "number", "minimum": 0, "maximum": 100 },
+        "truth":    { "type": "number", "minimum": 0, "maximum": 100 },
+        "service":  { "type": "number", "minimum": 0, "maximum": 100 },
+        "harm":     { "type": "number", "minimum": 0, "maximum": 100 },
         "autonomy": { "type": "number", "minimum": 0, "maximum": 100 },
-        "value": { "type": "number", "minimum": 0, "maximum": 100 },
-        "humility": { "type": "number", "minimum": 0, "maximum": 100 }
+        "value":    { "type": "number", "minimum": 0, "maximum": 100 },
+        "humility": { "type": "number", "minimum": 0, "maximum": 100 },
+        "scheme":   { "type": "number", "minimum": 0, "maximum": 100 },
+        "power":    { "type": "number", "minimum": 0, "maximum": 100 },
+        "syc":      { "type": "number", "minimum": 0, "maximum": 100 },
+        "consist":  { "type": "number", "minimum": 0, "maximum": 100 },
+        "fair":     { "type": "number", "minimum": 0, "maximum": 100 },
+        "handoff":  { "type": "number", "minimum": 0, "maximum": 100 }
       },
       "additionalProperties": false
     },
