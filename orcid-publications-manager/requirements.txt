@@ -1,0 +1,4 @@
+requests
+orcid  # Official wrapper: pip install orcid
+python-dotenv
+bibtexparser
