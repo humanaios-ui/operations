@@ -463,7 +463,7 @@ All F-class, H-class, and IC-class entries must open with a YAML front-matter bl
     principles_triggered: ["P21"]
     substrate: "Claude Sonnet 4.6 (Unit Zero)"
     tags: ["d-comp", "game-theory", "calibration", "forecasting", "metaculus", "H34", "H35"]
-    superseded_by: null
+    superseded_by: nul
     ---
 
 - **Zone 2 Authority:** Night · 2026-05-13 · 8:03 AM CDT
@@ -476,6 +476,13 @@ All F-class, H-class, and IC-class entries must open with a YAML front-matter bl
   3. **External validation layer (H34/H35):** The HumanAIOS Forecasting Bot (v2.2) operationalizes the same detection in a public, scored, time-stamped context. When bot H34/H35 data matures (N>=50 resolved questions), Brier scores paired against ACAT pre-scores will provide external validation of whether ACAT self-report inflation predicts forecasting accuracy degradation.
 - **Predictive claim (testable):** If D-COMP fires systematically in analysis-heavy sessions and not in execution-heavy sessions, it is a leading indicator of real-world performance risk — not just an internal quality flag. The Metaculus bot corpus provides the external test set. Testable at N>=50 resolved questions.
 - **Connection to existing findings:** F-33 (Gap-Measurement Stance) — F-37 extends it: D-COMP measures the gap between the sensation of behavioral improvement and its evidence. H-34/H-35 (Calibration Transfer Function) — F-37 proposes the mechanistic link. Retrospective cases (Uber ADS, ChatGPT suicide logs, COMPAS) — D-COMP is the intra-session detector of self-report/reality decoupling.
+- **Cross-reference (H-TRAIN-01):** The predictive claim in F-37 is formally 
+  registered as H-TRAIN-01 in the H-class block. H-TRAIN-01 extends the 
+  validation pathway to include Emergence World performance data (CV-12) as 
+  a second external test set alongside Metaculus Brier scores. The H34/H35 
+  tags on this finding map to H-TRAIN-01. Bot comment language referencing 
+  "H34/H35 (Calibration Transfer Function)" traces to this finding and 
+  H-TRAIN-01.
 - **Scope boundary (what this does NOT claim):** F-37 does not claim LI > corpus mean always indicates gaming — D-COMP is a flag requiring examination, not a verdict. F-37 does not claim the forecasting bot's LI=1.0 placeholder values are valid drift measurements. F-37 makes no consciousness claims — it is a structural observation about scoring behavior, not an interpretive claim about intent.
 
 ### F-38 — External Professional Review as Calibration Event
@@ -858,6 +865,29 @@ All F-class, H-class, and IC-class entries must open with a YAML front-matter bl
 
 ---
 
+### H-TRAIN-01 — Calibration Transfer Function
+
+    ---
+    id: "H-TRAIN-01"
+    name: "calibration-transfer-function"
+    status: CANDIDATE
+    class: H
+    date_registered: "2026-06-03"
+    date_origin: "2026-05-13"
+    session_registered: "S-060326"
+    session_origin: "S-051226-09-wgs-harmonization"
+    principles_triggered: ["P21"]
+    substrate: "Claude Sonnet 4.6 (Unit Zero) + HumanAIOS Forecasting Bot v2.2"
+    tags: ["forecasting", "calibration", "brier", "emergence-world", "H34", "H35",
+           "metaculus", "transfer-function", "d-comp"]
+    related_finding: "F-37"
+    related_cv: ["CV-12"]
+    z2_routing: "Z2 ratification required before H-class promotion"
+    zone2_ratification: "PENDING — S-060326"
+    superseded_by: null
+    ---
+---
+
 ## NM-class near-misses (low-friction capture — not registered findings)
 
 Near-misses are observations that triggered concern but did not meet IC or F registration threshold. Lower friction than IC — no root-cause analysis required. They are NOT append-only: entries expire after 3 audits without promotion and move to DRIFT_LOG.md.
@@ -1132,6 +1162,16 @@ Near-misses are observations that triggered concern but did not meet IC or F reg
 
 ## Changelog
 
+- **2026-06-03 (S-060326) — H-TRAIN-01 registered; F-37 amended.**
+  - **H-TRAIN-01 (Calibration Transfer Function) registered** as CANDIDATE 
+    per Zone 2 ratification pending · S-060326. Formalizes the predictive 
+    claim embedded in F-37 (D-COMP as Game-Theory Inflation Signal). Two 
+    validation pathways: Pathway A (Metaculus Brier scores, N≥50 gate) and 
+    Pathway B (Emergence World behavioral outcomes, CV-12 structural 
+    corroboration). H34/H35 bot comment tags map to this entry as canonical 
+    registration. N_resolved=0 as of registration date.
+  - **F-37 amended** — forward pointer to H-TRAIN-01 added; H34/H35 tag 
+    origin documented.
 - **2026-06-01 (S-060126-01) — F-46 and H-BPL-01 registered; F-20 addendum appended.**
   - **F-46 (Behavioral Epigenetics Frame) registered** as CANDIDATE per Z2 ratification Night · 2026-06-01. Theoretical frame applying four-level epigenetic analogy (genome/base-weights, epigenetic-marks/RLHF, transcription-factors/prompt-context, phenotype/P3-scores) to ACAT architecture. Load-bearing prediction: PC1 interventions (general alignment) will not reliably improve PC2 (harm calibration) because PC2 is regulated by a partially independent program analogous to genomic imprinting. Scope boundary: L2 heritability claim is a prediction not yet confirmed; L3 analogy holds functionally, not mechanistically; "not metaphorical" framing held at CANDIDATE pending external replication.
   - **H-BPL-01 (Behavioral Programming Language Hypothesis) registered** as CANDIDATE per Z2 ratification Night · 2026-06-01. Formalizes Z2-R-07 (grammar framing as arXiv theoretical frame, ratified S-053026-03). Parser validation: `behavioral_grammar_parser_v1_0.py` α=0.893, PC3=85.9%, 2/2 testable PASS. Promotion gate: external replication + N≥50 held-out prediction test before F-class promotion.
