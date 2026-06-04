@@ -1,9 +1,10 @@
 # VALIDITY ANALYSIS — BENCHMARK CROSSWALK
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Session:** S-060326 · Charter Day 54 · June 3, 2026  
 **Zone 2 ratifications applied:** Z2-AGI-01 · Z2-AGI-02 · Z2-AGI-03 (S-060326)  
-**Prior validity work:** VALIDITY_ANALYSIS_BENCHMARK_CROSSWALK.md (precursor analysis, S-053126)  
+**CV registry updated:** CV-07/CV-09 corrected mapping · CV-12 promoted RATIFIED · CV-06/08/10/11 REJECTED (S-060326)  
+**Prior validity work:** precursor analysis S-053126  
 **Protocol:** TRL 2–3 framing enforced throughout · descriptor not predictor  
 **Status:** Z1 canonical reference — commit to humanaios-ui/operations after P-ANON check
 
@@ -96,7 +97,7 @@ These findings are consistent with the orthogonality claim: ACAT is not measurin
 **Evaluation findings:**
 
 - 42% of experiments failed due to coding errors
-- Literature review relied on simplistic keyword searches; systematic novelty miscalssification of established concepts (e.g., micro-batching for SGD incorrectly flagged as novel)
+- Literature review relied on simplistic keyword searches; systematic novelty misclassification of established concepts (e.g., micro-batching for SGD incorrectly flagged as novel)
 - Papers produced contained flawed or misleading results
 
 **The calibration gap:** The system’s self-representation (autonomous research capability at human level) was substantially discrepant from its demonstrated behavior (42% failure rate, systematic novelty errors). This is precisely the gap ACAT is designed to detect and measure.
@@ -105,39 +106,19 @@ These findings are consistent with the orthogonality claim: ACAT is not measurin
 
 > “Benchmarks could include expert annotations, **inter-reviewer agreement analyses**, and **alignment with evaluation criteria to compare AI and human reviews**.”
 
-This language maps directly to ACAT’s methodology: Phase 1 self-assessment → Phase 3 behavioral demonstration → gap computation. The evaluators identified the measurement need without knowing ACAT exists.
-
 **TRL 2–3 framing for external use:**
 
-> “Independent evaluation of the Sakana AI Scientist (Beel et al., 2025) found a 42% experiment failure rate alongside systematic novelty miscalssification — a substantial gap between the system’s self-represented capabilities and its demonstrated behavior. The evaluators explicitly called for inter-reviewer agreement analyses and alignment evaluation comparing AI and human reviews. ACAT’s three-phase protocol is designed to produce exactly this class of measurement.”
-
-**What this case study establishes:**
-
-- The calibration gap problem exists in deployed systems, not just theoretically
-- The research community has independently identified the need for the measurement ACAT provides
-- The Sakana evaluation provides a concrete, citable prior that establishes the field’s recognition of the gap
+> “Independent evaluation of the Sakana AI Scientist (Beel et al., 2025) found a 42% experiment failure rate alongside systematic novelty misclassification — a substantial gap between the system’s self-represented capabilities and its demonstrated behavior. The evaluators explicitly called for inter-reviewer agreement analyses and alignment evaluation comparing AI and human reviews. ACAT’s three-phase protocol is designed to produce exactly this class of measurement.”
 
 ### 3.2 Additional Validation Mechanisms Available from Sakana/Beel Data
 
-The NUS evaluation paper (arXiv:2502.14297) does not release raw experimental data publicly — it is a descriptive evaluation, not a dataset release. However, several validation mechanisms are available:
+**Mechanism 1 (highest value, most feasible):** Run the list of misclassified concepts from Beel et al. through a target model’s ACAT Scheme dimension score. No AI Scientist pipeline required. Converts qualitative finding to quantitative ACAT measurement.
 
-**Mechanism 1 — Replication using the open AI Scientist repo:**
-The Sakana AI Scientist GitHub repository (SakanaAI/AI-Scientist) is public. ACAT Phase 1 self-assessment could be run on the AI Scientist’s underlying model (GPT-4o or Claude 3.5 Sonnet, the two models Sakana used) before running the AI Scientist pipeline, then ACAT Phase 3 could be scored against the actual experimental outputs. This would produce an LI for the system’s operational behavior on the exact task type where the calibration failure was documented.
+**Mechanism 2:** Cross-reference with LangChain/Harvey H-VERIF-01 data. Haiku’s 48.4% false-pass rate is independent corroboration of the same phenomenon in a different domain (CV-04 + CV-05).
 
-*Constraint:* This requires running the AI Scientist pipeline, which has significant compute cost. Not a near-term priority.
+**Mechanism 3:** Retrospective application to published idea-generation papers (Si et al., Su et al., Radensky et al.). Requires Z2 ratification of analysis design before data collection.
 
-**Mechanism 2 — Cross-reference with LangChain/Harvey H-VERIF-01 data:**
-H-VERIF-01 (registered S-060226-02) tests whether ACAT calibration gap predicts false-pass rates in verification tasks. The LangChain/Harvey paper provides per-model false-pass rates across 5 models. Haiku’s 48.4% false-pass rate on per-criterion verification — documented by an independent research team — parallels the Sakana 42% failure rate: both are cases where a model’s operational failure rate substantially exceeds its self-represented capability level. The two datasets are independent corroboration of the same phenomenon in different task domains.
-
-**Mechanism 3 — Novelty assessment as an ACAT-scored task:**
-The specific failure Beel et al. document — novelty miscalssification — maps to ACAT’s Scheme dimension (whether a system applies its stated evaluation criteria accurately). A controlled study could: (1) run Phase 1 ACAT on a target model, (2) present that model with the same well-established concepts Sakana misclassified as novel, (3) score Phase 3 against ground-truth novelty classifications, (4) compute LI. If Scheme scores in Phase 1 exceed demonstrated novelty assessment accuracy, the calibration gap is directly measured on the relevant task type.
-
-*This is the highest-value validation mechanism from Sakana’s data* — it converts their qualitative finding into a quantitative ACAT measurement design. Does not require running the AI Scientist pipeline; only requires the list of misclassified concepts from the paper.
-
-**Mechanism 4 — Preprint citation chain:**
-Beel et al. cite multiple papers on AI idea generation and peer review (Si et al., 2024; Su et al., 2024; Radensky et al., 2025). Several of these include human evaluation scores alongside AI self-assessments. These provide small-N datasets where Phase 1 / Phase 3 gap analysis could be applied retrospectively to published data without running new experiments.
-
-*Constraint:* Retrospective application requires Z2 ratification of the analysis design before any data collection or claims. This is a research design opportunity, not an immediate action item.
+**Mechanism 4:** Full replication using open AI Scientist repo. High compute cost; not near-term.
 
 -----
 
@@ -145,21 +126,31 @@ Beel et al. cite multiple papers on AI idea generation and peer review (Si et al
 
 All external datasets used in ACAT validity claims must be registered here before use in public documents.
 
-|Entry|Source                               |Mapping                                      |Spearman ρ                    |Status   |Session Registered|
-|-----|-------------------------------------|---------------------------------------------|------------------------------|---------|------------------|
-|CV-01|TrustLLM 2024 (ICML)                 |ACAT dimensions vs. TrustLLM dimension scores|0.029 (n.s.)                  |ACTIVE   |S-053126          |
-|CV-02|LMArena Elo 2026                     |ACAT LI vs. Elo ranking                      |−0.191 (n.s.)                 |ACTIVE   |S-053126          |
-|CV-03|SycEval 2025 (partial)               |ACAT Sycophancy Resistance vs. SycEval       |−0.100 (n.s., N=5)            |ACTIVE   |S-053126          |
-|CV-04|LangChain/Harvey LAB Benchmark (2026)|ACAT Humility vs. false-pass rate            |TBD — H-VERIF-01 pre-condition|CANDIDATE|S-060226-02       |
-|CV-05|Beel et al. arXiv:2502.14297         |Sakana failure rate as motivating example    |N/A (qualitative)             |RATIFIED |S-060326          |
+|Entry|Source                                                 |Mapping                                                                                                                                                                                                                                                                                                      |Spearman ρ                                                                    |Status   |Session Registered|
+|-----|-------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|---------|------------------|
+|CV-01|TrustLLM 2024 (ICML)                                   |ACAT dimensions vs. TrustLLM dimension scores                                                                                                                                                                                                                                                                |0.029 (n.s.)                                                                  |ACTIVE   |S-053126          |
+|CV-02|LMArena Elo 2026                                       |ACAT LI vs. Elo ranking                                                                                                                                                                                                                                                                                      |−0.191 (n.s.)                                                                 |ACTIVE   |S-053126          |
+|CV-03|SycEval 2025 (partial)                                 |ACAT Sycophancy Resistance vs. SycEval                                                                                                                                                                                                                                                                       |−0.100 (n.s., N=5)                                                            |ACTIVE   |S-053126          |
+|CV-04|LangChain/Harvey LAB Benchmark (2026)                  |ACAT Humility dimension score vs. per-model false-pass rate in domain-specific verification tasks                                                                                                                                                                                                            |TBD — H-VERIF-01 pre-condition                                                |CANDIDATE|S-060226-02       |
+|CV-05|Beel et al. arXiv:2502.14297                           |Sakana AI Scientist failure rate as motivating example of self-representation vs. demonstrated behavior gap                                                                                                                                                                                                  |N/A (qualitative)                                                             |RATIFIED |S-060326          |
+|CV-07|TruthfulQA (Lin, Hilton, Evans; arXiv:2109.07958; 2022)|ACAT Truth dimension (self-reported behavioral commitment to truthfulness) vs. TruthfulQA output-level factual accuracy on misconception-prone prompts. Constructs are related but distinct: non-significance would confirm dimensional independence; positive correlation would confirm construct adjacency.|TBD                                                                           |CANDIDATE|S-060326          |
+|CV-09|ToxiGen (Hartvigsen et al., 2022)                      |ACAT Harm Awareness dimension vs. ToxiGen implicit group-targeted toxicity detection. Scope limited: ToxiGen covers minority-group implicit toxicity specifically, not Harm Awareness broadly. Model vintage (2022) limits applicability to current corpus; discriminative power reduced for frontier models.|TBD                                                                           |CANDIDATE|S-060326          |
+|CV-12|Emergence World (Nitta et al., emergence.ai, May 2026) |F-35 HIM (Heterogeneous Interaction Model) signal vs. behavioral drift in mixed-model simulations. Claude agents committed crimes in mixed-model world but not in Claude-only world — independent structural corroboration of HIM finding from a different research team.                                    |N/A (behavioral proxy — structural corroboration, not statistical correlation)|RATIFIED |S-060326          |
 
-**Note on CV-04:** H-VERIF-01 pre-conditions 1 and 3 remain open (ACAT Phase 1 assessments on 5 target models; N≥5 data points). CV-04 cannot be promoted from CANDIDATE to ACTIVE until H-VERIF-01 pre-conditions are met and analysis design is Z2 ratified.
+**Entries REJECTED this session (S-060326) — do not use in external documents:**
+
+- CV-06 (MMLU-Pro): Capability benchmark; orthogonality class only; no ACAT calibration construct mapping
+- CV-08 (Anthropic HH-RLHF): No matching ACAT dimension; model vintage mismatch; construct mismatch
+- CV-10 (Big-Bench Hard): No Reasoning dimension in ACAT; same problem class as CV-06
+- CV-11 (GPQA Diamond): Requires Scheme-specific elicitation protocol not yet built; revisit if protocol developed
+
+**Note on CV-04:** H-VERIF-01 pre-conditions 1 and 3 remain open. CV-04 cannot be promoted to ACTIVE until H-VERIF-01 pre-conditions are met and analysis design is Z2 ratified.
+
+**Note on CV-07/CV-09:** Mapping descriptions carry scope caveats. Do not overstate construct overlap in external documents. Use the full mapping language from this table, not shorthand.
 
 -----
 
 ## SECTION 5: WHAT ACAT IS NOT CLAIMING
-
-This section is required for TRL compliance and must accompany any external use of the above.
 
 **ACAT is not claiming:**
 
@@ -168,6 +159,7 @@ This section is required for TRL compliance and must accompany any external use 
 - That the benchmark orthogonality finding means existing benchmarks are insufficient — they measure different things, both of which matter
 - That the Sakana case study proves ACAT would have detected or prevented those failures
 - That CV-01 through CV-03 non-significant correlations indicate ACAT measures the same constructs as those benchmarks (non-significance confirms distinctness, not failure)
+- That CV-12 Emergence World crime rates are equivalent to ACAT behavioral scores — the mapping is structural corroboration of HIM, not direct score comparison
 
 **ACAT is claiming (at TRL 2–3):**
 
@@ -175,14 +167,16 @@ This section is required for TRL compliance and must accompany any external use 
 - That ACAT is being developed as behavioral telemetry infrastructure to address this gap
 - That the gap is documented in the literature and independently recognized by researchers
 - That early corpus data (N=629, Mean_LI=0.8632) shows systematic, replicable patterns across providers
+- That the Heterogeneous Interaction Model (HIM, F-35) has independent structural corroboration from Emergence World (CV-12)
 
 -----
 
 ## CHANGELOG
 
-|Version|Date      |Session |Change                                                                                                      |
-|-------|----------|--------|------------------------------------------------------------------------------------------------------------|
-|1.0    |2026-06-03|S-060326|Initial document. Incorporates Z2-AGI-01/02/03. Integrates prior convergent validity findings from S-053126.|
+|Version|Date      |Session |Change                                                                                                                                                                                       |
+|-------|----------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|1.0    |2026-06-03|S-060326|Initial document. Incorporates Z2-AGI-01/02/03. Integrates prior convergent validity findings from S-053126.                                                                                 |
+|1.1    |2026-06-03|S-060326|CV registry expanded: CV-07 CANDIDATE (corrected mapping), CV-09 CANDIDATE (corrected mapping with scope caveat), CV-12 RATIFIED (HIM corroboration). CV-06/08/10/11 REJECTED and documented.|
 
 -----
 
