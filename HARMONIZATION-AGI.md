@@ -1,4 +1,4 @@
-# HARMONIZATION — AGI Landscape, Income Strategy, Orchestration Architecture
+# HARMONIZATION — Orchestration Architecture
 
 **Session:** S-060326 · Charter Day 54 · June 3, 2026  
 **Zone 2 ratification:** Night · PENDING  
@@ -12,7 +12,7 @@
 This session produced three bodies of work requiring integration into the active system:
 
 1. **AGI landscape research** — three-domain sweep (research codebases, evaluation benchmarks, orchestration frameworks) with direct implications for ACAT positioning and preprint content
-1. **RentAHuman income strategy** — income model using orchestrated human+AI fulfillment, ratified as harmonized with research charter
+1. **human+AI fulfillment strategy** — model using orchestrated human+AI fulfillment, ratified as harmonized with research charter
 1. **Migration 006** — Supabase schema for the RentAHuman orchestration spine (`006_rah_orchestration.sql`)
 
 Each requires a ratification decision and a harmonization action. This document specifies both, then lists the resulting carry-forward state.
