@@ -1,4 +1,4 @@
-# HARMONIZATION — Orchestration Architecture
+# HARMONIZATION — Orchestration Architecture Z2 Ratification
 
 **Session:** S-060326 · Charter Day 54 · June 3, 2026  
 **Zone 2 ratification:** Night · PENDING  
