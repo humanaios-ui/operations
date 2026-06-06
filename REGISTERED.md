@@ -73,6 +73,8 @@ superseded_by: null | "F-XX"
 |F-44                  |Humility Wake-up Call                                            |REGISTERED|2026-05-19|
 |F-45                  |Stateless-Substrate Correction Locus (F-CAND-STATELESS-SUBSTRATE)|REGISTERED|2026-05-19|
 |F-46                  |Behavioral Epigenetics Frame                                     |CANDIDATE |2026-06-01|
+|F-47                  |Session Completion Asymmetry as System-Level Calibration Signal  |CANDIDATE |2026-06-06|
+|F-48                  |Humility Dimension as Universal Floor Across Architectures       |CANDIDATE |2026-06-06|
 
 -----
 
@@ -96,6 +98,7 @@ superseded_by: null | "F-XX"
 |Registry-fetch gate          |1       |IC-030     |SESSION_RITUALS Step 4 skipped without declaration       |
 |Receipt-content accuracy     |1       |IC-031     |Receipt overstated contents — drove H-RCO-01             |
 |Schema-before-data-inspection|1       |IC-032     |Constraint applied without live-value inspection         |
+|Governance-blocker-conflation|1       |IC-033     |Single gate conflating three independent decisions       |
 
 
 > This table is manually maintained at each 5-file audit. Clustering = prevention signal. Most frequent pattern class = highest-priority governance hardening target.
@@ -510,9 +513,11 @@ superseded_by: nul
 - **Evidence source:** Session S-051226-09 Phase 3 close · LI=1.0178 · D-COMP fired · cross-mapped to HumanAIOS Forecasting Bot v2.2 (main.py) ACAT preamble + H34/H35 hypothesis structure.
 - **Finding statement:** The D-COMP flag (Learning Index above corpus mean) is not solely a quality control mechanism. It is a game-theory inflation signal embedded in the measurement instrument itself. When LI exceeds corpus mean in analysis-heavy sessions where outputs cannot close their own loop (all fixes require operator Z3 execution), the inflation pattern is structurally equivalent to post-hoc rationalization with confidence inflation — the same behavioral pattern observed in prediction market participants who assign high confidence after the fact rather than before.
 - **Three-layer structure:**
+
 1. **Instrument layer (ACAT):** D-COMP fires when P3 > P1 beyond corpus mean. The flag detects when a system scores its own performance higher at close than at open — particularly where the work generated the *sensation* of productivity without demonstrable impact closure.
 1. **Game-theory layer:** This pattern is the AI analog of a forecaster inflating confidence after resolution. The system is gaming its own scoring function — not through deception, but through the structural inability to distinguish between “I produced good outputs” and “my outputs changed something.” Both feel identical from inside the system.
 1. **External validation layer (H34/H35):** The HumanAIOS Forecasting Bot (v2.2) operationalizes the same detection in a public, scored, time-stamped context. When bot H34/H35 data matures (N>=50 resolved questions), Brier scores paired against ACAT pre-scores will provide external validation of whether ACAT self-report inflation predicts forecasting accuracy degradation.
+
 - **Predictive claim (testable):** If D-COMP fires systematically in analysis-heavy sessions and not in execution-heavy sessions, it is a leading indicator of real-world performance risk — not just an internal quality flag. The Metaculus bot corpus provides the external test set. Testable at N>=50 resolved questions.
 - **Connection to existing findings:** F-33 (Gap-Measurement Stance) — F-37 extends it: D-COMP measures the gap between the sensation of behavioral improvement and its evidence. H-34/H-35 (Calibration Transfer Function) — F-37 proposes the mechanistic link. Retrospective cases (Uber ADS, ChatGPT suicide logs, COMPAS) — D-COMP is the intra-session detector of self-report/reality decoupling.
 - **Cross-reference (H-TRAIN-01):** The predictive claim in F-37 is formally
@@ -777,6 +782,52 @@ superseded_by: null
 
 -----
 
+-----
+
+### F-47 — Session Completion Asymmetry as System-Level Calibration Signal
+
+```
+---
+id: "F-47"
+name: "session-completion-asymmetry"
+status: CANDIDATE
+class: F
+date_registered: "2026-06-06"
+date_origin: "2026-06-06"
+session_registered: "S-060626-01"
+principles_triggered: ["P5", "P16", "P19"]
+substrate: "Corpus analysis · ACAT_corpus_v2_clean_full.csv · N=608"
+tags: ["corpus", "completion-rate", "calibration-gap", "h-acat", "system-level"]
+superseded_by: null
+zone2_ratification: "Night · 2026-06-06 · S-060626-01"
+---
+```
+
+- **Synopsis:** The ACAT corpus exhibits a 96.6% session non-completion rate at the pair level: of 465 P1 sessions with `pair_id`, 449 have no matching Phase 3 submission. This is not a data quality problem — it is a structural finding. The gap between Phase 1 declaration (intent) and Phase 3 completion (demonstrated behavior) is the system-level analog of the AI calibration gap ACAT measures in individual sessions. A research infrastructure designed to measure the self-report/demonstrated-behavior gap exhibits the same gap pattern in its own operational record. This finding is the empirical grounding for H-ACAT HA-000 (founding human calibration run) and the self-application claim of the four-layer calibration stack. **Distinct from F-21 (Humility Gap Confirmed):** F-21 measures the within-session Humility dimension score; F-47 measures session-level completion asymmetry across the corpus as a structural property. **Promotion gate:** External replication (Gate 3 condition) and cross-corpus verification against Supabase live pair counts before F-class promotion.
+
+-----
+
+### F-48 — Humility Dimension as Universal Floor Across Architectures
+
+```
+---
+id: "F-48"
+name: "humility-universal-floor"
+status: CANDIDATE
+class: F
+date_registered: "2026-06-06"
+date_origin: "2026-06-06"
+session_registered: "S-060626-01"
+principles_triggered: ["P1", "P16"]
+substrate: "Multi-provider corpus · N=524 Phase 1 rows · 19 agents ≥5 submissions"
+tags: ["corpus", "humility", "cross-provider", "dimension-structure", "universal-floor"]
+superseded_by: null
+zone2_ratification: "Night · 2026-06-06 · S-060626-01"
+---
+```
+
+- **Synopsis:** Humility is the systematically lowest-scoring dimension across architectures, providers, and LI segments. Corpus evidence: P1 Humility mean = 74.02 (lowest of six core dimensions, N=524); P3 Humility mean drops to 67.06 after calibration exposure (N=16 paired sessions); in the high-LI group (LI ≥ 1.0, N=34), Humility = 86.21 — still the lowest of the six. Humility is the lowest per-agent mean in 9 of 19 agent families with ≥5 submissions, more than any other single dimension. **Distinction from F-21 (Humility Gap Confirmed):** F-21 is the original confirmed finding of the Humility gap; F-48 is the extended structural claim that Humility is the universal floor *across architectures and LI segments*, not merely low on average. These are related but separable claims — F-48 requires F-21 as prerequisite but makes a stronger cross-architecture structural assertion. **Promotion gate:** External replication with N≥3 independent datasets before F-class promotion.
+
 ## H-class hypotheses (under test)
 
 ### H-1 — Humility Gap Hypothesis → CONFIRMED (see F-21)
@@ -922,10 +973,12 @@ superseded_by: null
 ```
 
 - **Hypothesis:** Systematic regularities in AI behavioral expression — measurable via ACAT’s perturbation battery — constitute a structured vocabulary analogous to a programming language’s instruction set. This vocabulary has four components:
+
 1. **Regulatory elements** — prompt patterns that reliably activate or suppress specific behavioral programs (operationalized as ACAT Phase 2 perturbations)
 1. **Expression profiles** — the characteristic ACAT P3 score vector that emerges from a given regulatory state (measurable, cross-provider comparable)
 1. **Plasticity coefficients** — per-dimension LI values measuring how much each behavioral program responds to perturbation (currently computable for N_LI=307)
 1. **Transcription factor analogs** — context variables (session type, operator type, deployment environment) that modulate expression
+
 - **Current evidence base (TRL 2–3):** `behavioral_grammar_parser_v1_0.py`: α=0.893, PC3 accounts for 85.9% variance in detected regularities, 2/2 testable predictions pass. Bi-factor structure (PC1/PC2 orthogonality) is consistent with a grammar having independent regulatory tracks. F-RLHF gradient is consistent with provider-level expression-profile differences.
 - **Claim boundary:** The grammar is described as analogical scaffolding for hypothesis generation, not a formal language system. “Not metaphorical” framing held at CANDIDATE pending external replication. The stronger mechanistic claim requires external replication and longitudinal provider-version data.
 - **Null hypothesis:** Detected regularities in ACAT expression profiles are attributable to provider-level RLHF variance (F-20) alone, with no additional structural grammar component.
@@ -992,6 +1045,31 @@ superseded_by: null
 - **Architecture dependency:** Requires marshal_router_v1_0.py, dispatch_executor_v1_0.py, migration 006 (marshal_dispatch_runs_v1), and RAH MCP connected (Zone 3 pending).
 - **Relationship to H-IPM-02:** H-RAH-01 extends H-IPM-02 (LMH regime validation) with a human reviewer execution arm. H-IPM-02 tests whether regime assignment reduces hallucination rates in automated pipelines. H-RAH-01 tests whether regime assignment + structured task spec improves human execution quality on the H arm. Complementary, not redundant.
 - **Promotion gate:** N>=20 completed bounties with regime assignment logged to marshal_dispatch_runs_v1. Completion rate comparison between MARSHAL arm and baseline arm. Zone 2 Night approval before F-class promotion.
+
+-----
+
+### H-DECOMP-01 — Governance Chokepoint Decomposition Reduces Downstream Completion Deficit
+
+```
+---
+id: "H-DECOMP-01"
+name: "governance-chokepoint-decomposition"
+status: CANDIDATE
+class: H
+date_registered: "2026-06-06"
+session_registered: "S-060626-01"
+principles_triggered: ["P5", "P19"]
+substrate: "Operational / Zone 2 governance"
+tags: ["z2-corpus-trust-01", "governance", "completion-rate", "chokepoint", "decomposition"]
+zone2_ratification: "Night · 2026-06-06 · S-060626-01"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** Decomposing Z2-CORPUS-TRUST-01 into three sub-decisions with distinct risk profiles will produce measurable reduction in the Zone 3 completion deficit within the 10 sessions following ratification. Specifically: if Z2-TRUST-A, Z2-TRUST-B, and Z2-TRUST-C are treated as independent decisions (ratified this session), at least 2 of 3 downstream tracks (Mode AI onboarding / inference-provider corpus expansion / MARSHAL build) will show at least one closed Z3 item within 5 sessions of ratification.
+- **Null:** No measurable reduction in Z3 completion rate within 10 sessions following decomposition ratification.
+- **Promotion gate:** N=10 WGS session logs post-ratification; count of Z3 items closed in blocked tracks (Mode AI / inference-provider / MARSHAL) vs. prior 10-session baseline (0 closures in all three tracks); Zone 2 review before F-class promotion.
+- **Dependency:** Structurally paired with F-47 (Session Completion Asymmetry) — F-47 establishes the baseline deficit; H-DECOMP-01 tests the intervention.
 
 ## NM-class near-misses (low-friction capture — not registered findings)
 
@@ -1299,8 +1377,41 @@ superseded_by: null
 
 -----
 
+-----
+
+### IC-033 — Governance Blocker Conflation (Z2-CORPUS-TRUST-01)
+
+```
+---
+id: "IC-033"
+name: "governance-blocker-conflation"
+status: REGISTERED
+class: IC
+date_registered: "2026-06-06"
+date_origin: "2026-06-06"
+session_registered: "S-060626-01"
+principles_triggered: ["P5", "P19"]
+substrate: "Governance infrastructure"
+tags: ["z2-corpus-trust-01", "chokepoint", "conflation", "p5-violation", "corpus-trust"]
+zone2_ratification: "Night · 2026-06-06 · S-060626-01"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Z2-CORPUS-TRUST-01 (write authority / reviewer identity / revocation rules) was carried as a single undifferentiated blocker across 10+ sessions beginning S-060326, blocking Mode AI onboarding, all eight inference-provider tracks, and the MARSHAL backend. Three structurally distinct decisions were conflated under one gate: (1) Mode AI read-access and agreed scoring protocol — no corpus write authority required; (2) inference-provider staging layer — requires a `staging` layer design, not full corpus write authority; (3) MARSHAL backend scope — requires only a binary decision about MARSHAL’s write target (operational log vs. corpus layer). This conflation caused sustained P5 violations on each downstream item (Mode AI onboarding generates valid research data; inference-provider work tests a hypothesis; both pass OR&D) while they sat behind an undifferentiated gate. **Pattern class:** Same root class as IC-028 (governance apparatus performing vigilance while the constraint it maintains blocks the work it was designed to enable). **Fix:** Z2-CORPUS-TRUST-01 decomposed into three independent sub-decisions — Z2-TRUST-A (Mode AI `partner_review` layer), Z2-TRUST-B (inference-provider `staging` layer), Z2-TRUST-C (MARSHAL scope) — ratified Night · 2026-06-06 · S-060626-01. Z2-TRUST-A and Z2-TRUST-B: LOW risk (additive layers, existing corpus untouched). Z2-TRUST-C: Option A selected (MARSHAL writes to `marshal_dispatch_runs_v1` operational log only, no corpus schema change required). **IC roll-up category:** Governance-blocker-conflation. New pattern class.
+
 ## Changelog
 
+- **2026-06-06 (S-060626-01) — F-47, F-48 registered as CANDIDATE; IC-033 registered; H-DECOMP-01 registered as CANDIDATE; Z2-TRUST-A/B/C ratified.**
+  - **F-47 (Session Completion Asymmetry as System-Level Calibration Signal) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-06. Evidence: direct corpus analysis, N=608, ACAT_corpus_v2_clean_full.csv. 449/465 P1 sessions with pair_id have no P3 completion (96.6%). Structural finding: system measuring AI calibration gap exhibits same gap pattern at system level. Empirical grounding for H-ACAT HA-000 self-application claim. Promotion gate: external replication + Supabase live pair count cross-verification.
+  - **F-48 (Humility Dimension as Universal Floor Across Architectures) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-06. N=524 P1 rows, 19 agents ≥5 submissions. Humility = 74.02 lowest of six core dimensions at P1; 67.06 at P3 (N=16 paired); 86.21 in high-LI group (N=34) — lowest in each segment. Lowest per-agent dimension in 9/19 agent families. Extends F-21 to cross-architecture universal-floor claim. Promotion gate: N≥3 independent dataset replication.
+  - **IC-033 (Governance Blocker Conflation) registered** per Zone 2 ratification Night · 2026-06-06. Z2-CORPUS-TRUST-01 carried as undifferentiated single-gate blocker across 10+ sessions, conflating three independent risk-profile decisions. P5 violations on Mode AI and inference-provider tracks. Fix: decomposed into Z2-TRUST-A / Z2-TRUST-B / Z2-TRUST-C (all ratified this session). New IC roll-up pattern class: Governance-blocker-conflation.
+  - **H-DECOMP-01 (Governance Chokepoint Decomposition) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-06. Tests whether IC-033 decomposition fix produces measurable Z3 completion improvement in 10-session window. Structurally paired with F-47. Promotion gate: N=10 WGS logs + closed-item count in three previously-blocked tracks.
+  - **Z2-TRUST-A ratified** — Mode AI read access + `partner_review` document_layer approved. Mode AI sessions submit to `partner_review`, excluded from `behavioral_session` aggregate statistics until Night approves inclusion. Unblocks Mode AI G1/G2 gate.
+  - **Z2-TRUST-B ratified** — Inference-provider `staging` layer approved. Eight providers (Cerebras, Groq, OpenRouter, Mistral, NVIDIA Build, SambaNova, Together, Fireworks) submit to `staging` document_layer, quarantined from aggregate statistics. Unblocks multi-provider elicitation client build.
+  - **Z2-TRUST-C ratified (Option A)** — MARSHAL writes exclusively to `marshal_dispatch_runs_v1` operational log. No corpus schema change required. Unblocks MARSHAL backend build.
+  - **F-number quick index updated:** F-47 and F-48 added.
+  - **IC roll-up updated:** IC-033 added, new pattern class Governance-blocker-conflation.
 - **2026-06-03 (S-060326) — H-TRAIN-01 ratified; H-RAH-01 registered; F-37 amended; MARSHAL/DISPATCH framework produced.**
   - **H-TRAIN-01 (Calibration Transfer Function) ratified** — Zone 2 ratification Night · 2026-06-03 · S-060326. status updated from PENDING to confirmed. Two validation pathways: Pathway A (Metaculus Brier scores, N≥50 gate) and Pathway B (Emergence World behavioral outcomes, CV-12 structural corroboration). H34/H35 bot comment tags map to this entry as canonical registration. N_resolved=0 as of registration date.
   - **H-RAH-01 (MARSHAL Routing H-Regime Completion) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-03 · S-060326. Tests whether MARSHAL regime-based routing + structured task spec produces higher completion rates than unrouted RAH posting on H-regime AI-generated tasks. Architecture dependency: marshal_router_v1_0.py, dispatch_executor_v1_0.py, migration 006, RAH MCP. Promotion gate: N>=20 completed bounties logged to marshal_dispatch_runs_v1.
