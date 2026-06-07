@@ -152,6 +152,7 @@ These are findings that have passed Zone 2 ratification and have evidence basis 
 |arXiv preprint       |self_assessment_gap_v5                    |On manual review hold — not yet public       |
 |WordPress public site|IONOS (thefreewebsiteguys.com build)      |In progress · Basic theme selected 2026-05-08|
 |Poco Loco’s freelance|findlocaltattooartists.com                |Active · scoping stage · revenue work        |
+|HAIOSCC visualization candidate | github.com/le5le-com/meta2d.js | NOT BUILT · Candidate library for Observatory layer — real-time 2D canvas engine, MIT license, TypeScript, native subscribe/message pattern maps to Supabase realtime · DO NOT BUILD until migration_007 Layer 2 tables are live · Tagged S-060726 |
 
 ### 6.2 The Molt Architecture (three layers, sequential)
 
@@ -162,7 +163,8 @@ This file (SEED.md) is Layer 1. The operations repo becomes the single source of
 
 **Layer 2 — Document Management Engine (post-Gate 2, Zone 1 build):**
 The HAIOSCC build plan (HAIOSCC_OPERATIONAL_BUILD_PLAN_V1_0) executed as a document management engine rather than a display layer. The documents ARE the state. The engine keeps them in sync with live systems automatically. When a finding is ratified → REGISTERED.md updates. When Zone 3 item closes → zone3_queue resolves. When corpus numbers change → CURRENT.md updates. The UI is a view into document state, not a separate system.
-Building Freeze applies. Design work only until Gate 3.
+Building Freeze applies. Design work only until Gate 3. Visualization candidate for Observatory layer: meta2d.js (github.com/le5le-com/meta2d.js) — real-time 2D canvas engine, MIT, TypeScript, subscribe/message pattern compatible with Supabase realtime. Evaluate after migration_007 Layer 2 tables are live. Tagged S-060726.
+
 
 Canonical build spec: **HAIOSCC_OPERATIONAL_BUILD_PLAN_V1_0** (humanaios-ui/operations/architecture/).
 Schema foundation: Option B events table with bitemporal columns (valid_from, valid_to, recorded_at) and JSONB payload. Must absorb arbitrary future modalities — text, audio, visual, programmatic.
