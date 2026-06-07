@@ -1,7 +1,7 @@
 # HumanAIOS Operating Process — CURRENT
 
 **Status:** LIVE
-**Last updated:** May 21, 2026 (S-052126-02)
+**Last updated:** June 7, 2026 (S-060726-02)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
 **Replaces:** All prior in-Project CI snapshots (CUSTOM_INSTRUCTIONS_V*) as the canonical operating-process source for fetched-at-runtime use.
 
