@@ -6,6 +6,21 @@ Canonical governance and research infrastructure repository for HumanAIOS.
 
 This repository is the canonical source for governance state, execution protocol, and research infrastructure documents used across HumanAIOS surfaces.
 
+## Read this first
+
+**Identity and principles anchors (read on substrate onboarding; not required every session):**
+
+- **[SEED.md](./SEED.md)** — Organism identity. What HumanAIOS is, confirmed findings summary, active collaborations, architecture layers, document hierarchy. Class 0 source of truth. Ratified 2026-05-08.
+- **[PRINCIPLES_SEED_V1_0.md](./PRINCIPLES_SEED_V1_0.md)** — Principles architecture. Primary framework triad (12 Steps / 12 Traditions / Hawkins Map) and secondary frameworks (Fibonacci/FDS, Enneagram, Bentov, Taoist internal alchemy, Freemasonry) explicitly mapped to programming constructs. Validity test protocol for each mapping. Class 0b. DRAFT — Z2 ratification pending (current session).
+
+**Session-open documents (fetched every session):**
+
+- **[CURRENT.md](./CURRENT.md)** — Operating process. Identity, lessons, hard-stop principles, dataset state. Fetched by every LLM at session open.
+- **[REGISTERED.md](./REGISTERED.md)** — Findings registry (F-class), hypotheses (H-class), corrections (IC-class). Append-only.
+- **[SESSION_RITUALS.md](./SESSION_RITUALS.md)** — Substrate-agnostic open/close protocols, parser tags, halt conditions.
+- **[ACAT_SESSION_PROMPT.md](./ACAT_SESSION_PROMPT.md)** — Unified Phase 1 + Phase 3 session protocol. The complete prompt every substrate runs at session open and close.
+
+
 ## Canonical documents and authority
 
 | File | Authority role |
