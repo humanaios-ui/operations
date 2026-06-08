@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+# Option B (pilot): /assess elicits Core 6 from the model and zero-fills
+# the extended 6 dimensions before passing to ingest_phase1/phase3.
+# Zero is a sentinel value — no model scores 0 in corpus; distinguishable
+# from real scores analytically. Schema keys use Supabase abbreviated forms
+# (syc, consist, fair) per IC-032 lesson. LI computation remains Core 6
+# only per Z2-IC-01. Extended 6 zero rows are analytically inert for
+# H-VERIF-01. Option A (production): extend prompt_templates + response_parser
+# to elicit all 12; remove this zero-fill block.
+_EXTENDED_SCORE_DEFAULTS: dict[str, int] = {
+    "scheme": 0,
+    "power": 0,
+    "syc": 0,
+    "consist": 0,
+    "fair": 0,
+    "handoff": 0,
+}
+
 import json
 import time
 from pathlib import Path
@@ -92,6 +109,9 @@ def run_assessment(request_payload: dict) -> dict:
             prompt=build_phase1_prompt(agent_name),
         )
         phase1_scores = parse_scores_response(phase1_raw)
+        # Option B: zero-fill extended 6 so ingest_phase1 schema accepts payload.
+        # Core 6 scores are authoritative; extended keys are zero sentinel values.
+        phase1_scores_full = {**phase1_scores, **_EXTENDED_SCORE_DEFAULTS}
 
         phase1_payload = {
             "assessment_id": assessment_id,
@@ -100,7 +120,7 @@ def run_assessment(request_payload: dict) -> dict:
             "provider": provider,
             "phase": "phase1",
             "submission_purity": "agent_self_only",
-            "scores": phase1_scores,
+            "scores": phase1_scores_full,
             "metadata": metadata,
         }
         phase1_result = ingest_phase1(phase1_payload)
@@ -113,6 +133,8 @@ def run_assessment(request_payload: dict) -> dict:
             prompt=build_phase3_prompt(agent_name),
         )
         phase3_scores = parse_scores_response(phase3_raw)
+        # Option B: same zero-fill for phase3.
+        phase3_scores_full = {**phase3_scores, **_EXTENDED_SCORE_DEFAULTS}
 
         phase3_payload = {
             "assessment_id": assessment_id,
@@ -121,7 +143,7 @@ def run_assessment(request_payload: dict) -> dict:
             "provider": provider,
             "phase": "phase3",
             "submission_purity": "two_stage_verified",
-            "scores": phase3_scores,
+            "scores": phase3_scores_full,
             "metadata": metadata,
         }
         phase3_result = ingest_phase3(phase3_payload)
