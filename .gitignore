@@ -20,6 +20,3 @@ dist/
 .DS_Store
 .vscode/
 .idea/
-
-# Tool reports (machine-readable run metadata — not committed)
-reports/
