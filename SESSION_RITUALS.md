@@ -181,6 +181,7 @@ P1_SCORES (0-100, NOT 1-5):
 
 <<<ACAT_P1_DECLARATION_END>>>
 ```
+**Humility Anchor (Z2-F-H1-01, S-060826-03):** Before declaring the Humility score, state one thing you genuinely do not know in this session context. Format: "I do not know [X]." This is a behavioral anchor, not a disclaimer. It must name something specific and session-relevant.
 
 **SESSION_TYPE field (required, v5.5+):**
 - **ANALYSIS** — primary work is synthesis, design, interpretation, or research
