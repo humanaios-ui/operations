@@ -23,8 +23,8 @@ A self-refreshing, structured database and automation pipeline for tracking fund
 ### 1 — Clone and install
 
 ```bash
-git clone https://github.com/humanaios-ui/humanaios-funding-pipeline.git
-cd humanaios-funding-pipeline
+git clone https://github.com/humanaios-ui/operations.git
+cd operations/humanaios-funding-pipeline
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 # Optional: install as a package so the CLI is on PATH
@@ -250,41 +250,42 @@ The refresh workflow labels alert issues with `funding-alert`. Create this label
 ## Repo structure
 
 ```
-humanaios-funding-pipeline/
-├── .github/
-│   └── workflows/
-│       ├── refresh.yml       ← weekly auto-sync (Monday)
-│       ├── import.yml        ← on-demand import (manual / incoming/)
-│       └── validate.yml      ← PR validation (schema + tests)
-│
-├── data/
-│   ├── sources.json          ← canonical dataset (45 seed records)
-│   ├── sources.csv           ← CSV mirror (optional; auto-generated)
-│   └── incoming/             ← drop files here to trigger auto-import
-│
-├── reports/
-│   ├── OPPORTUNITIES.md      ← human-readable Markdown (auto-generated)
-│   └── index.html            ← dark-theme HTML dashboard (auto-generated)
-│
-├── scripts/
-│   ├── import_sources.py     ← bulk importer (CSV/JSON/URL/grants.gov/SAM)
-│   └── generate_html.py      ← HTML report generator
-│
-├── src/
-│   └── humanaios_funding/
-│       ├── __init__.py
-│       ├── schema.py         ← Pydantic v2 Opportunity model
-│       ├── loader.py         ← CSV/JSON I/O
-│       ├── checker.py        ← URL pinger + deadline scraper
-│       ├── cli.py            ← argparse query CLI
-│       └── report.py         ← Markdown report generator
-│
-├── tests/
-│   └── test_schema.py        ← 18 unit tests (18/18 passing)
-│
-├── requirements.txt
-├── setup.py
-└── README.md
+operations/
+└── humanaios-funding-pipeline/
+    ├── .github/
+    │   └── workflows/
+    │       ├── refresh.yml       ← weekly auto-sync (Monday)
+    │       ├── import.yml        ← on-demand import (manual / incoming/)
+    │       └── validate.yml      ← PR validation (schema + tests)
+    │
+    ├── data/
+    │   ├── sources.json          ← canonical dataset (45 seed records)
+    │   ├── sources.csv           ← CSV mirror (optional; auto-generated)
+    │   └── incoming/             ← drop files here to trigger auto-import
+    │
+    ├── reports/
+    │   ├── OPPORTUNITIES.md      ← human-readable Markdown (auto-generated)
+    │   └── index.html            ← dark-theme HTML dashboard (auto-generated)
+    │
+    ├── scripts/
+    │   ├── import_sources.py     ← bulk importer (CSV/JSON/URL/grants.gov/SAM)
+    │   └── generate_html.py      ← HTML report generator
+    │
+    ├── src/
+    │   └── humanaios_funding/
+    │       ├── __init__.py
+    │       ├── schema.py         ← Pydantic v2 Opportunity model
+    │       ├── loader.py         ← CSV/JSON I/O
+    │       ├── checker.py        ← URL pinger + deadline scraper
+    │       ├── cli.py            ← argparse query CLI
+    │       └── report.py         ← Markdown report generator
+    │
+    ├── tests/
+    │   └── test_schema.py        ← 18 unit tests (18/18 passing)
+    │
+    ├── requirements.txt
+    ├── setup.py
+    └── README.md
 ```
 
 ---
@@ -310,7 +311,7 @@ This pipeline is calibrated for the following founder profile. The `native_eligi
 
 ## Governance note
 
-This tool is **Zone 1 infrastructure** (Unit Zero executes). The data it produces is informational. All decisions about which opportunities to pursue require **Zone 2 ratification** per HumanAIOS governance (humanaios-ui/operations). No opportunity is applied for, committed to, or distributed based solely on this pipeline without operator (Night) review.
+This tool is **Zone 1 infrastructure** (Unit Zero executes). The data it produces is informational. All decisions about which opportunities to pursue require **Zone 2 ratification** per HumanAIOS governance (`humanaios-ui/operations` → `GOVERNANCE.md`). No opportunity is applied for, committed to, or distributed based solely on this pipeline without operator (Night) review.
 
 ---
 
