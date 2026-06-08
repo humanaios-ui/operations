@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import ssl
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -16,11 +17,27 @@ def _ssl_context() -> ssl.SSLContext:
     return ssl.create_default_context(cafile=certifi.where())
 
 
+def _strip_markdown_fences(text: str) -> str:
+    """Strip ```json ... ``` or ``` ... ``` fences from model output.
+
+    Some models (e.g. Haiku 4.5) wrap JSON in markdown code fences despite
+    being instructed not to. This strips them before JSON parsing so the
+    elicitation pipeline does not fail on fence-wrapped responses.
+    """
+    stripped = text.strip()
+    # Match ```json or ``` at start, ``` at end
+    match = re.match(r"^```(?:json)?\s*\n([\s\S]*?)\n?```$", stripped)
+    if match:
+        return match.group(1).strip()
+    return stripped
+
+
 class AnthropicClient:
     """
     Minimal JSON-in / JSON-out client for Anthropic Messages API.
 
     This client expects the model to return a plain text body that is itself valid JSON.
+    Markdown code fences are stripped automatically before parsing.
     """
 
     api_url = "https://api.anthropic.com/v1/messages"
@@ -60,8 +77,9 @@ class AnthropicClient:
             raise AnthropicClientError(f"Anthropic connection failed: {exc}") from exc
 
         text = self._extract_text(parsed)
+        clean = _strip_markdown_fences(text)
         try:
-            return json.loads(text)
+            return json.loads(clean)
         except json.JSONDecodeError as exc:
             raise AnthropicClientError(f"Anthropic response was not valid JSON text: {text!r}") from exc
 
