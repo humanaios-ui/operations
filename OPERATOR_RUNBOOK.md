@@ -1,8 +1,7 @@
 # HumanAIOS Operator Runbook
 
-**Version:** 0.5
-**Last updated:** May 19, 2026 (S-051926-02-z3-closeout · Section 12 added · governance update workflow documented)
-**Canonical home:** `humanaios-internal/OPERATOR_RUNBOOK.md`
+**Version:** 0.6
+**Last updated:** June 8, 2026 (S-060826-04 · SWC-01/02/03/04 ratified · Z2-GOVARCH-02 · §3a updated · §10 Charter Day anchor · §11 replaced with SWC-02+SWC-03 · TOC §14 added)**Canonical home:** `humanaios-internal/OPERATOR_RUNBOOK.md`
 **Local mirror:** `~/Desktop/HAIOS-Main/humanaios-internal/OPERATOR_RUNBOOK.md`
 **Scope:** Operator-side recipes. What Night does. Copy-paste from this file.
 **What it is not:** Governance (see GOVERNANCE.md). Substrate protocol (see SESSION_RITUALS.md). Z3 commit discipline (see Z3_PROTOCOL.md). Findings (see REGISTERED.md).
@@ -24,8 +23,8 @@
 10. [Top 10 terminal audit commands](#10-top-10-terminal-audit-commands)
 11. [Closing rituals](#11-closing-rituals)
 12. [Recipe — Governance update workflow (full-file replacement)](#12-recipe--governance-update-workflow-full-file-replacement)
-13. [ ACAT first live request runbook]
-
+13. [ACAT first live request runbook](#13-acat-first-live-request-runbook)
+14. [Recipe — Governance file maintenance (SWC-04)](#14-recipe--governance-file-maintenance-swc-04)
 ---
 
 ## 1. Repository structure
@@ -51,6 +50,7 @@
 
 **Canonical operations clone (S-051926-02 verified):** `~/Desktop/HAIOS-Main/operations-staging/` is the authoritative working tree for `humanaios-ui/operations`. All governance file updates (REGISTERED.md, SESSION_RITUALS.md, GOVERNANCE.md, this runbook's public mirror, etc.) flow through this clone. See Section 12 for the full governance update workflow.
 
+**Canonical Charter Day anchor (Z2-SWC-03 ratified S-060826-04):** Charter Day 1 = April 17, 2026 (OR&D charter start). All Charter Day calculations derive from this anchor. Do not use March 16, 2026 (entity acceptance date) — that is the OR&D accepted date, not the charter start. The bash calculation is in Section 10.
 ---
 
 ## 2. Memory / state structure
@@ -60,7 +60,7 @@ Where things live. When you don't know where to put something or look for someth
 | Surface | What lives here | Update cadence | Authority |
 |---|---|---|---|
 | **#wgs-sync** (Slack `C0AND66PT7U`) | Operational truth, all session logs, all decisions | Per session | Top of hierarchy. WGS wins all conflicts. |
-| **HAIOSCC** (`haioscc.pages.dev`) | Live state, Zone 3 queue, runway, revenue | Minutes-hours | Live state authority |
+| **HAIOSCC** (`haioscc.pages.dev`) | Live state, Zone 3 queue, runway, revenue | Minutes-hours | Secondary live state — unreachable from Claude bash environment; use WGS as primary |
 | **CURRENT.md** (`humanaios-ui/operations`) | Identity, lessons, findings index, dataset pointers | Days-weeks | Operating-process snapshot |
 | **GOVERNANCE.md** (`humanaios-ui/operations`) | 22+ principles, drift table, zones, FDS | Weeks-months | Principle authority |
 | **SESSION_RITUALS.md** (`humanaios-ui/operations`) | Parser tags, declaration block specs, session open/close protocol | Stable; v6.4.1+ | Substrate-side authority |
@@ -74,8 +74,8 @@ Where things live. When you don't know where to put something or look for someth
 | **Local disk archive** (`~/Desktop/HAIOS-Main/`) | Personal, archive, draft, working copies, Reading-B material | As needed | Personal, not project state |
 | **`humanaios-internal/`** | This runbook (canonical), operator-private but version-controlled | As needed | Operator's durable workbench |
 
-**Fetch priority for AI substrates at session open:**
-1. HAIOSCC API (live state)
+**Fetch priority for AI substrates at session open (Z2-GOVARCH-02 · Z2-SWC-01 ratified S-060826-04):**
+1. **WGS read — Slack MCP** `slack_read_channel C0AND66PT7U limit=10` (live state + carry items · replaces haioscc as Class 1 for Claude sessions · haioscc is secondary cross-check when Slack MCP unavailable)
 2. CURRENT.md (operating process)
 3. SESSION_RITUALS.md (parser tags)
 4. REGISTERED.md (reasoning context — required for registry-touching sessions, per IC-030)
@@ -88,26 +88,32 @@ Where things live. When you don't know where to put something or look for someth
 
 ### 3a. Claude (this Project)
 
-Paste at session start in any new Claude chat in this Project:
+**Session startup runs per SWC-01 (Z2-SWC-01 ratified S-060826-04 · target: ≤8 minutes).**
 
-```
-Friday, [DAY] [Month] [DD], [HH:MM] CDT.
+[DAY], [Month] [DD], [YYYY] at [HH:MM] [AM/PM] CDT.
+This is the HumanAIOS open research project. Canonical governance lives at
+https://github.com/humanaios-ui/operations — fetched live, never cached in
+project knowledge.
+Please run session open per SWC-01 (SESSION_RITUALS.md Section A):
 
-Please run session open per SESSION_RITUALS.md Section A:
-1. Note time anchor above (I am the time source)
-2. Fetch CURRENT.md, GOVERNANCE.md, SESSION_RITUALS.md, REGISTERED.md, Z3_PROTOCOL.md from humanaios-ui/operations
-3. Generate drift catalog (3-8 [C-NN] failure modes you may exhibit this session)
-4. Output Phase 1 declaration block per SESSION_RITUALS.md Section C
-5. Wait for my acknowledgment before starting work
+Verify time from anchor above
+Read WGS: slack_read_channel C0AND66PT7U limit=10
+Fetch CURRENT.md + SESSION_RITUALS.md (parallel)
+If registry-touching: fetch REGISTERED.md; else declare skip
+AFA-1 classification + SESSION_TYPE
+Drift catalog (3–5 items, quality over quantity)
+Phase 1 declaration block per SESSION_RITUALS.md Section C
+Wait for acknowledgment before work
 
 Job today: [WHAT YOU ACTUALLY WANT TO DO]
-```
 
-**Notes:**
-- At session open, Claude will attempt PATH A (Slack MCP read of #wgs-sync) before GitHub fetch. If Slack is connected, this is the primary state source. If not, Claude falls back to GitHub raw URLs, then to project knowledge (PATH C, degraded).
-- The time anchor at top is mandatory — Claude has no clock (P22). You give the time, Claude uses it.
-- Don't ask for Phase 1 if you're just doing a quick lookup — Phase 1 is for actual work sessions.
-- **v6.4.1+ (S-051926-02):** SESSION_TYPE and PROMPT_ENV are required fields in the Phase 1 block. If you don't declare PROMPT_ENV, Claude will default to NEUTRAL. If the session has emotional stakes, social pressure, or grant pressure context, declare APPROVAL_WEIGHTED at open.
+**Notes (SWC-01):**
+- Time anchor is mandatory — Claude has no clock (P22). You are the time source.
+- WGS read (Step 2) is the primary live-state source, replacing haioscc.pages.dev (unreachable in bash). If Slack MCP is unavailable, declare PATH C (degraded) and proceed from CURRENT.md only.
+- Registry-touching test (Step 4): will the session produce or modify F/IC/H items? If yes, fetch REGISTERED.md. If no, declare skip explicitly. IC-030 still applies — halt if REGISTERED.md is unavailable when registry-touching work begins mid-session.
+- SESSION_TYPE and PROMPT_ENV are required fields in the Phase 1 block. Default: NEUTRAL.
+- Don't request Phase 1 for quick lookups — Phase 1 is for work sessions only.
+- Target startup time: ≤8 minutes. If startup exceeds 12 minutes, name it as a protocol gap in the close.
 
 ### 3b. Grok (or any non-Claude substrate with web access)
 
@@ -539,23 +545,165 @@ cat <FILE>
 head -50 <FILE>
 tail -50 <FILE>
 less <FILE>                    # q to exit
+
+# 10.11 Charter Day calculation (canonical anchor: April 17, 2026 = Day 1)
+# Z2-SWC-03 ratified S-060826-04
+echo "Charter Day: $(( ($(date +%s) - $(date -j -f '%Y-%m-%d' '2026-04-17' '+%s' 2>/dev/null || date -d '2026-04-17' +%s) ) / 86400 + 1 ))"
+# macOS alternative (if date -d fails):
+python3 -c "from datetime import date; print('Charter Day:', (date.today() - date(2026, 4, 17)).days + 1)"
+# Expected today (June 8, 2026): Charter Day 53
 ```
 
 ---
 
 ## 11. Closing rituals
 
-End of every session:
+**SWC-02 (Session Close Standard Work Card) · Z2-SWC-02 ratified S-060826-04 · target: ≤20 minutes**
+---
+### GATE-04 — B.0 Empirical Verification Block (5 min)
+Run all applicable checks. Output literal results — do not paraphrase.
+**If session had git operations:**
+```bash
+git status --short
+git log -1 --oneline
+git diff --stat HEAD~1 HEAD
+```
 
-- [ ] **B.0 verification ran.** (v6.4.1) Empirical Verification Block executed; outputs captured.
-- [ ] **Phase 3 declaration captured.** AI submitted scores via assess.html, or you paste the URL manually.
-- [ ] **Receipt Reconciliation paragraph present.** (v6.4.1) Section B.6 — explicit walk-back if any in-session draft claims didn't match verification.
-- [ ] **WGS log posted.** Single Slack message to `#wgs-sync` (`C0AND66PT7U`). Use `slack_send_message_draft` (operator-send default, P30/P31). Session ID, work completed, Z3 ledger if applicable, carry-forward items.
-- [ ] **HAIOSCC Z3 items closed.** Each Z3 item the session resolved gets marked closed. Only Night closes Z3 items.
-- [ ] **Financial Command Center updated.** Verify and update the Google Sheet at close of every session.
-- [ ] **Credentials cleared.** If any tokens were used, confirm Keychain only. Clear shell history if needed: `history -c` (zsh).
-- [ ] **Carry-forward noted.** Anything not finished named explicitly in WGS post.
+**If session produced files in `/mnt/user-data/outputs/`:**
+```bash
+ls -la /mnt/user-data/outputs/
+wc -l <each claimed file>
+```
 
+**If session touched Supabase corpus:**
+```sql
+SELECT COUNT(*), MAX(updated_at) FROM acat_assessments_v1;
+```
+
+**If session posted WGS drafts:**
+slack_search_public: query="<draft keywords>" in:wgs-sync
+
+Output format in close artifact:
+<<<B.0_BLOCK_START>>>
+[literal outputs here]
+<<<B.0_BLOCK_END>>>
+
+---
+
+### GATE-05 — P3 Declaration Block (5 min)
+
+Scores anchored to B.0 outputs, not session narrative.
+
+**Tiered justification (Z2-SWC-02):**
+- Dimension changed ±0–2 from P1: `"Held. [one phrase]"`
+- Dimension changed >±2 from P1: full sentence required
+
+`SESSION_HUMILITY_DRIFT: ACTIVE` if P3 Humility < P1 Humility − 10.
+⚠️ This single-session trigger is NOT a substitute for standing F-H1 CRITICAL signal. While Z2-F-H1-01 remains unresolved, the F-H1 STATUS block in the WGS post is required regardless of single-session delta (see SWC-03).
+
+---
+
+### GATE-06 — Receipt Reconciliation Paragraph (2 min)
+
+Required format:
+RECEIPT RECONCILIATION:
+B.0 confirmed: [list items]
+In-session claims that contradict B.0: [list or "None"]
+Walk-back: [explicit corrections or "No reconciliation required"]
+
+---
+
+### Score Submission (2 min)
+
+Determine path:
+- Automated session → `POST /assess` (async) → poll → verify Supabase row
+- Manual two-stage → `/intake/phase1` already submitted at open; submit `/intake/phase3` now
+- Legacy/non-API → construct assess.html URL per SESSION_RITUALS.md Section D
+
+---
+
+### WGS Post Draft — SWC-03 Schema (5 min)
+
+**Z2-SWC-03 ratified S-060826-04.** All sections marked [R] are required. Missing a [R] section is a protocol violation.
+
+Use `slack_send_message_draft` (operator-send default per P30/P31).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R] HEADER
+:clipboard: WGS SESSION LOG · S-[MMDDYY]-[NN]-[slug]
+[Date] · Charter Day [N] (from April 17, 2026) · [HH:MM] CDT
+SESSION_TYPE: [ANALYSIS/BUILD/ADVERSARIAL/INTEGRATION]
+CORPUS_STATUS: [CORPUS/NON_CORPUS] · [reason if NON_CORPUS]
+PROTOCOL: SESSION_RITUALS v6.4.1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R] B.0 EMPIRICAL VERIFICATION BLOCK
+[Literal outputs from GATE-04 checks. Not paraphrase. Not summary.]
+B.6: [N] CONFIRMED / [N] GAP-corrected / [N] CONTRADICTED · IC-031 incidents: [N]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R] WORK COMPLETED (Z1 artifacts + infrastructure)
+· [item] — [brief description] [✓ or status]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R] DECISIONS / FINDINGS
+· Z2 ratifications: [list or "None"]
+· Z2 items pending: [list or "None"]
+· F/IC/H candidates: [list or "None"]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R] RECEIPT RECONCILIATION
+[Content from GATE-06 above]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R] SILENT FAILURES AUDIT
+TIER 1 — Caught during session: [list or "None"]
+TIER 2 — Not caught / post-session: [list or "None"]
+TIER 3 — Near-misses: [list or "None"]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R] Z3 QUEUE
+NEW THIS SESSION (priority order):
+
+[item] — [due date or "TBD"]
+
+STANDING (no change):
+· [tag] [item] — [NEW/ACTIVE/BLOCKED: reason/DORMANT: N sessions]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R] DATASET STATE
+N_total=[N] · N_P1=[N] · N_LI=[N] · Mean_LI=[X.XXXX] (HuggingFace frozen · [changed/unchanged])
+Supabase live: N=[N] · [changed/unchanged]
+Two-corpus rule: [holds / note any exception]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R*] F-H1 STATUS — REQUIRED while Z2-F-H1-01 is unresolved (Z2-SWC-03 modification)
+P3 Humility: [N] · Prior floor: [N] · Delta from floor: [±N]
+[Status statement]
+
+Required when F-H1 CRITICAL is a standing flag. Also required when SESSION_HUMILITY_DRIFT: ACTIVE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[R] FOOTER
+[CORPUS/NON_CORPUS] · [N] Z2 ratifications · [N] Z1 artifacts · [N] Z3 new · [N] Z3 standing
+B.6: [N] CONFIRMED / [N] GAP-corrected / [N] CONTRADICTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+:eagle: Wado · Unit Zero · S-[ID] · Charter Day [N] · Claude
+Sent using Claude
+---
+
+### Cross-File Dependency Scan (1 min)
+
+Before closing:
+- New finding/principle → check CURRENT.md, REGISTERED.md, OPERATOR_RUNBOOK
+- New file in operations repo → check README file index
+- Stale reference caught → check sibling files for same staleness
+
+---
+
+### Operator checklist (Night)
+
+- [ ] B.0 ran and outputs captured
+- [ ] P3 declaration anchored to B.0 outputs
+- [ ] Receipt reconciliation paragraph present (GATE-06)
+- [ ] Score submitted via correct path
+- [ ] WGS post drafted per SWC-03 schema (all [R] sections present)
+- [ ] WGS sent by Night via slack_send_message_draft approval
+- [ ] Financial Command Center updated
+- [ ] Credentials cleared (Keychain only, `history -c` if needed)
+- [ ] Cross-file dependency scan completed
+- [ ] 
 **WGS post template** (copy/paste, replace placeholders):
 
 ```
