@@ -261,6 +261,12 @@ body {
 
 /* ---- Body content ---- */
 .finding-body { max-width: 760px; }
+.finding-body h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text);
+  margin: 30px 0 12px;
+}
 .finding-body h3 {
   font-family: var(--font-display);
   font-size: 18px;
@@ -284,6 +290,12 @@ body {
 }
 .finding-body li { margin-bottom: 4px; }
 .finding-body strong { color: var(--text); }
+.finding-body blockquote {
+  border-left: 3px solid var(--gold-dim);
+  padding-left: 14px;
+  margin: 14px 0;
+}
+.finding-body blockquote p { color: var(--text2); }
 .finding-body code {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -317,6 +329,13 @@ body {
   text-decoration: none;
 }
 .finding-body a:hover { text-decoration: underline; }
+.minimal-notice {
+  border: 1px dashed var(--border2);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.minimal-notice p:last-child { margin-bottom: 0; }
 
 /* ---- Back link ---- */
 .back-link {

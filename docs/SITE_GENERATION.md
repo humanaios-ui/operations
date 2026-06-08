@@ -179,6 +179,10 @@ without a build step.
 
 ## Assumptions and limitations
 
+- **Boundary correctness is required:** Generated pages must preserve canonical
+  entry boundaries — no cross-entry bleed and no major-section spillover
+  (e.g. H/IC/NM/changelog content appearing in the wrong entry page).
+
 - **Entry ID uniqueness:** The generator uses the `id:` YAML field as the HTML
   filename.  If two entries share an `id:` value, the second will overwrite the
   first.  The registry schema requires unique IDs, so this should not occur.
@@ -186,11 +190,10 @@ without a build step.
 - **Incomplete YAML:** Entries without YAML front-matter still render, but
   metadata fields (dates, substrate, tags) are omitted from the detail page.
 
-- **Markdown fidelity:** The inline converter handles the patterns actually
-  present in `REGISTERED.md`.  Unusual constructs (nested lists, tables,
-  block-quotes) are passed through as plain text and may not render perfectly.
-  If richer rendering is needed, add `markdown` to `requirements.txt` and
-  swap in `import markdown; body_html = markdown.markdown(body_md)`.
+- **Markdown fidelity:** The inline converter handles headings (`##`, `###`,
+  `####`), blockquotes, lists, links, emphasis, fenced code blocks, and rules.
+  More advanced constructs (such as tables or deeply nested lists) are rendered
+  in a simplified form.
 
 - **No server required:** The output is pure static HTML.  Open
   `site/index.html` in any browser.  All relative paths (`../assets/style.css`,

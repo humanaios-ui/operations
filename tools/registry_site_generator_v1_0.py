@@ -84,6 +84,9 @@ ENTRY_HEADING = re.compile(
     re.MULTILINE,
 )
 
+# Intra-section marker headings (not entry bodies) that should terminate slicing.
+SECTION_MARKER_HEADING = re.compile(r'^###\s+Zone\s+\d+\s*[—–-].*$', re.MULTILINE)
+
 # YAML front-matter block inside a triple-backtick fence
 YAML_FENCE = re.compile(
     r'```\s*\n---\n(.*?)\n---\n```',
@@ -127,6 +130,15 @@ def _detect_class(raw_id: str, section: str) -> str:
     return "?"
 
 
+def _is_nullish(value: Any) -> bool:
+    """Return True for empty/null placeholder metadata values."""
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip().lower() in {"", "null", "nul", "none", "nil", "n/a", "na", "-"}
+    return False
+
+
 def parse_registry(path: Path) -> list[dict[str, Any]]:
     """
     Parse REGISTERED.md and return a list of entry dicts.
@@ -136,54 +148,56 @@ def parse_registry(path: Path) -> list[dict[str, Any]]:
     """
     text = _load_text(path)
 
-    # ---- split into major sections so we can tag each entry with its class --
-    # We track which section heading we last passed.
-    section_pattern = re.compile(r'^## (.+?)$', re.MULTILINE)
-    section_spans: list[tuple[int, str]] = [
-        (m.start(), m.group(1)) for m in section_pattern.finditer(text)
-    ]
-
-    def _section_at(pos: int) -> str:
-        label = ""
-        for (spos, slabel) in section_spans:
-            if spos <= pos:
-                label = slabel
-        return label
-
-    # ---- find all entry headings -------------------------------------------
-    matches = list(ENTRY_HEADING.finditer(text))
     entries: list[dict[str, Any]] = []
+    section_pattern = re.compile(r'^## (.+?)$', re.MULTILINE)
+    section_matches = list(section_pattern.finditer(text))
 
-    for i, m in enumerate(matches):
-        raw_id = m.group(1).strip()
-        title = m.group(2).strip()
-        start = m.end()
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        body_raw = text[start:end].strip()
+    for i, sec in enumerate(section_matches):
+        section = sec.group(1).strip()
+        if not any(key in section for key in ("F-class", "H-class", "IC-class")):
+            continue
 
-        section = _section_at(m.start())
-        meta = _parse_yaml_block(body_raw)
-        body_md = _strip_yaml_block(body_raw)
+        sec_start = sec.end()
+        sec_end = section_matches[i + 1].start() if i + 1 < len(section_matches) else len(text)
+        section_text = text[sec_start:sec_end]
 
-        # Determine values (prefer YAML, fall back to heuristics)
-        entry_id: str = str(meta.get("id", raw_id)).strip('"')
-        entry_class: str = str(meta.get("class", _detect_class(raw_id, section))).upper()
-        entry_status: str = str(meta.get("status", "")).upper()
+        # Parse entries only inside the current major section boundary.
+        matches = list(ENTRY_HEADING.finditer(section_text))
+        for j, m in enumerate(matches):
+            raw_id = m.group(1).strip()
+            title = m.group(2).strip()
+            start = m.end()
+            end = matches[j + 1].start() if j + 1 < len(matches) else len(section_text)
+            marker = SECTION_MARKER_HEADING.search(section_text, start)
+            if marker and marker.start() < end:
+                end = marker.start()
+            body_raw = section_text[start:end].strip()
 
-        # Skip honest-gap placeholders (F-32 / F-33)
-        if "honest gap" in title.lower() or "honest gap" in body_md[:80].lower():
-            entry_status = entry_status or "GAP"
+            meta = _parse_yaml_block(body_raw)
+            body_md = _strip_yaml_block(body_raw)
 
-        entries.append({
-            "id": entry_id,
-            "raw_id": raw_id,
-            "title": title,
-            "class": entry_class,
-            "status": entry_status,
-            "yaml_meta": meta,
-            "body_md": body_md,
-            "section": section,
-        })
+            # Determine values (prefer YAML, fall back to heuristics)
+            raw_entry_id = meta.get("id", raw_id)
+            entry_id = raw_id if _is_nullish(raw_entry_id) else str(raw_entry_id).strip('"')
+            raw_class = meta.get("class", _detect_class(raw_id, section))
+            entry_class = _detect_class(raw_id, section) if _is_nullish(raw_class) else str(raw_class).upper()
+            raw_status = meta.get("status", "")
+            entry_status = "" if _is_nullish(raw_status) else str(raw_status).upper()
+
+            # Skip honest-gap placeholders (F-32 / F-33)
+            if "honest gap" in title.lower() or "honest gap" in body_md[:80].lower():
+                entry_status = entry_status or "GAP"
+
+            entries.append({
+                "id": entry_id,
+                "raw_id": raw_id,
+                "title": title,
+                "class": entry_class,
+                "status": entry_status,
+                "yaml_meta": meta,
+                "body_md": body_md,
+                "section": section,
+            })
 
     return entries
 
@@ -263,6 +277,37 @@ def _md_to_html(md: str) -> str:
             close_p()
             out.append("<hr>")
             i += 1
+            continue
+
+        # ---- headings (## / ### / ####)
+        m_h = re.match(r'^(#{2,4})\s+(.+?)\s*$', line)
+        if m_h:
+            close_list()
+            close_p()
+            level = len(m_h.group(1))
+            out.append(f"<h{level}>{inline(m_h.group(2))}</h{level}>")
+            i += 1
+            continue
+
+        # ---- blockquote lines
+        if re.match(r'^\s*>\s*', line):
+            close_list()
+            close_p()
+            quote_lines: list[str] = []
+            while i < len(lines) and re.match(r'^\s*>\s*', lines[i]):
+                quote_lines.append(re.sub(r'^\s*>\s*', '', lines[i]))
+                i += 1
+
+            out.append("<blockquote>")
+            para: list[str] = []
+            for q in quote_lines + [""]:
+                if q.strip():
+                    para.append(q.strip())
+                    continue
+                if para:
+                    out.append(f"<p>{inline(' '.join(para))}</p>")
+                    para = []
+            out.append("</blockquote>")
             continue
 
         # ---- ordered list item  "1. …"
@@ -581,6 +626,12 @@ body {
 
 /* ---- Body content ---- */
 .finding-body { max-width: 760px; }
+.finding-body h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text);
+  margin: 30px 0 12px;
+}
 .finding-body h3 {
   font-family: var(--font-display);
   font-size: 18px;
@@ -604,6 +655,12 @@ body {
 }
 .finding-body li { margin-bottom: 4px; }
 .finding-body strong { color: var(--text); }
+.finding-body blockquote {
+  border-left: 3px solid var(--gold-dim);
+  padding-left: 14px;
+  margin: 14px 0;
+}
+.finding-body blockquote p { color: var(--text2); }
 .finding-body code {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -637,6 +694,13 @@ body {
   text-decoration: none;
 }
 .finding-body a:hover { text-decoration: underline; }
+.minimal-notice {
+  border: 1px dashed var(--border2);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.minimal-notice p:last-child { margin-bottom: 0; }
 
 /* ---- Back link ---- */
 .back-link {
@@ -741,9 +805,9 @@ def build_finding_page(entry: dict[str, Any], all_entries: list[dict[str, Any]],
     title = entry["title"]
 
     tags: list[str] = meta.get("tags", []) or []
-    tags = [str(t) for t in tags]
+    tags = [str(t) for t in tags if not _is_nullish(t)]
     principles: list[str] = meta.get("principles_triggered", []) or []
-    principles = [str(p) for p in principles]
+    principles = [str(p) for p in principles if not _is_nullish(p)]
 
     date_reg = meta.get("date_registered", "")
     date_orig = meta.get("date_origin", "")
@@ -752,25 +816,32 @@ def build_finding_page(entry: dict[str, Any], all_entries: list[dict[str, Any]],
     superseded_by = meta.get("superseded_by")
     name_slug = meta.get("name", "")
 
-    body_html = _md_to_html(entry["body_md"])
+    body_html = _md_to_html(entry["body_md"]).strip()
+    if not body_html:
+        body_html = (
+            '<div class="minimal-notice">'
+            '<p>Minimal registry stub — canonical reference only.</p>'
+            '<p>See source registry for current status/context.</p>'
+            '</div>'
+        )
 
     # Build meta grid items
     meta_items: list[tuple[str, str]] = []
-    if cls:
+    if cls and not _is_nullish(cls):
         meta_items.append(("Class", CLASS_LABEL.get(cls.upper(), cls)))
-    if status:
+    if status and not _is_nullish(status):
         meta_items.append(("Status", status))
-    if date_reg:
+    if date_reg and not _is_nullish(date_reg):
         meta_items.append(("Date registered", str(date_reg)))
-    if date_orig and date_orig != date_reg:
+    if date_orig and not _is_nullish(date_orig) and date_orig != date_reg:
         meta_items.append(("Date origin", str(date_orig)))
-    if session_reg:
+    if session_reg and not _is_nullish(session_reg):
         meta_items.append(("Session", str(session_reg)))
-    if substrate:
+    if substrate and not _is_nullish(substrate):
         meta_items.append(("Substrate", str(substrate)))
     if principles:
         meta_items.append(("Principles", ", ".join(principles)))
-    if superseded_by:
+    if superseded_by and not _is_nullish(superseded_by):
         meta_items.append(("Superseded by", str(superseded_by)))
 
     meta_html = "\n".join(
