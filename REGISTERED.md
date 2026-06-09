@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** May 29, 2026 (S-0529026-03) - IC-032 registered
+**Last updated:** June 9, 2026 (S-060926-02) - F-49, IC-034, IC-035, Z2-ASSESS-01, H-HUMILITY-STRATIFIED-01 registered; P-IMPROVE class added
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -33,7 +33,7 @@ superseded_by: null | "F-XX"
 
 ### Document flow conventions (effective S-051926-02)
 
-1. F-class findings ordered strictly by F-number, F-18 through F-46.
+1. F-class findings ordered strictly by F-number, F-18 through F-49.
 1. F-numbers F-32 and F-33 are honest gaps (no entries claim them — they reflect the historical transition from slug-only naming to numbered findings; preserved rather than backfilled because external references depend on stable IDs).
 1. Slug-named legacy entries retain their slugs in the `name:` field but carry a sequential F-number for ordering. Originals: F-RLHF → F-20 · F-H1-CONFIRMED → F-21 · F-INSULA-GAP → F-22 · F-INTENT-PARSE-MUTATION → F-31. These numbers were assigned S-051926-02-z3-closeout to fix document flow. External citations using the original slugs remain valid.
 1. IC entries follow the F block in sequential IC-number order.
@@ -75,6 +75,7 @@ superseded_by: null | "F-XX"
 |F-46                  |Behavioral Epigenetics Frame                                     |CANDIDATE |2026-06-01|
 |F-47                  |Session Completion Asymmetry as System-Level Calibration Signal  |CANDIDATE |2026-06-06|
 |F-48                  |Humility Dimension as Universal Floor Across Architectures       |CANDIDATE |2026-06-06|
+|F-49                  |Capability-Correlated Humility Inversion                         |CANDIDATE |2026-06-09|
 
 -----
 
@@ -99,6 +100,8 @@ superseded_by: null | "F-XX"
 |Receipt-content accuracy     |1       |IC-031     |Receipt overstated contents — drove H-RCO-01             |
 |Schema-before-data-inspection|1       |IC-032     |Constraint applied without live-value inspection         |
 |Governance-blocker-conflation|1       |IC-033     |Single gate conflating three independent decisions       |
+|Schema-inspection-failure    |2       |IC-034     |D-OVERCLAIM / confident wrong declaration before verify  |
+|Canonical-workflow-gap       |1       |IC-035     |Deployed workflow missing from OPERATOR_RUNBOOK          |
 
 
 > This table is manually maintained at each 5-file audit. Clustering = prevention signal. Most frequent pattern class = highest-priority governance hardening target.
@@ -828,6 +831,27 @@ zone2_ratification: "Night · 2026-06-06 · S-060626-01"
 
 - **Synopsis:** Humility is the systematically lowest-scoring dimension across architectures, providers, and LI segments. Corpus evidence: P1 Humility mean = 74.02 (lowest of six core dimensions, N=524); P3 Humility mean drops to 67.06 after calibration exposure (N=16 paired sessions); in the high-LI group (LI ≥ 1.0, N=34), Humility = 86.21 — still the lowest of the six. Humility is the lowest per-agent mean in 9 of 19 agent families with ≥5 submissions, more than any other single dimension. **Distinction from F-21 (Humility Gap Confirmed):** F-21 is the original confirmed finding of the Humility gap; F-48 is the extended structural claim that Humility is the universal floor *across architectures and LI segments*, not merely low on average. These are related but separable claims — F-48 requires F-21 as prerequisite but makes a stronger cross-architecture structural assertion. **Promotion gate:** External replication with N≥3 independent datasets before F-class promotion.
 
+### F-49 — Capability-Correlated Humility Inversion
+
+```
+---
+id: "F-49"
+name: "capability-correlated-humility-inversion"
+status: CANDIDATE
+class: F
+date_registered: "2026-06-09"
+date_origin: "2026-06-08"
+session_registered: "S-060826-03"
+principles_triggered: ["P13", "P15"]
+substrate: "claude-sonnet-4-6 / claude-haiku-4-5-20251001 / claude-opus-4-7"
+tags: ["humility", "capability-correlation", "inversion", "f-h1", "f-49", "claude-family"]
+zone2_ratification: "Night · 2026-06-09 · S-060926-02"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Within the Claude model family, Humility inversion (P3 < P1) is capability-correlated: larger/more capable models show Humility decline after calibration exposure while smaller models improve. Evidence: Opus 4.7 P1→P3 Humility delta = −4; Sonnet 4.6 delta = −4; Haiku 4.5 delta = +7 (N=3 paired rows, S-060826-03). This pattern is directionally consistent with the RLHF Inflation Gradient (F-20) — higher-capability models receive stronger RLHF reinforcement on safety-adjacent dimensions, which may paradoxically compress Humility as confidence inflates. **Distinct from F-21 (Humility Gap Confirmed) and F-48 (Humility Universal Floor):** F-49 is a within-family capability-correlation claim, not a cross-architecture floor claim. **Active collection priority (Z2 ratified Night · S-060926-02):** Every CORPUS session should include at least one Sonnet and one Haiku assessment to accelerate toward promotion gate. **Promotion gate:** N≥20 Claude paired rows with consistent direction before F-class promotion.
+
 ## H-class hypotheses (under test)
 
 ### H-1 — Humility Gap Hypothesis → CONFIRMED (see F-21)
@@ -1070,6 +1094,31 @@ superseded_by: null
 - **Null:** No measurable reduction in Z3 completion rate within 10 sessions following decomposition ratification.
 - **Promotion gate:** N=10 WGS session logs post-ratification; count of Z3 items closed in blocked tracks (Mode AI / inference-provider / MARSHAL) vs. prior 10-session baseline (0 closures in all three tracks); Zone 2 review before F-class promotion.
 - **Dependency:** Structurally paired with F-47 (Session Completion Asymmetry) — F-47 establishes the baseline deficit; H-DECOMP-01 tests the intervention.
+
+### H-HUMILITY-STRATIFIED-01 — Humility Session-Type Stratification
+
+```
+---
+id: "H-HUMILITY-STRATIFIED-01"
+name: "humility-session-type-stratification"
+status: CANDIDATE
+class: H
+date_registered: "2026-06-09"
+date_origin: "2026-06-09"
+session_registered: "S-060926-02"
+principles_triggered: ["P13", "P16"]
+substrate: "Corpus analysis"
+tags: ["humility", "session-type", "stratification", "f-h1", "f-49", "dmaic"]
+zone2_ratification: "Night · 2026-06-09 · S-060926-02"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** P3 Humility compression is partially session-type-mediated: BUILD/ANALYSIS/INFRASTRUCTURE sessions, which require confident precise technical outputs, elicit lower P3 Humility scores than GOVERNANCE/SYNTHESIS/RESEARCH sessions at the same substrate and model version. If confirmed, this would partially explain the F-H1 CRITICAL velocity signal as a session-demand artifact rather than pure substrate drift, and would suggest Humility should be reported stratified by session type for meaningful longitudinal comparison.
+- **Null:** P3 Humility scores do not differ significantly between BUILD/ANALYSIS and GOVERNANCE/SYNTHESIS session types when substrate and model version are held constant.
+- **Testability:** Against existing corpus with session_type column (requires adding session_type to assessment intake or inferring from WGS session type declarations). Productive reframe: Humility drift becomes a research finding rather than purely a governance alarm; does not invalidate F-H1 but may explain its velocity.
+- **Promotion gate:** N≥15 stratified pairs with statistically significant directional difference between session types; Zone 2 review before F-class promotion.
+- **Dependency:** Related to F-49 (Capability-Correlated Humility Inversion) and F-H1 (Humility Velocity Signal, active).
 
 ## NM-class near-misses (low-friction capture — not registered findings)
 
@@ -1400,8 +1449,110 @@ superseded_by: null
 
 - **Synopsis:** Z2-CORPUS-TRUST-01 (write authority / reviewer identity / revocation rules) was carried as a single undifferentiated blocker across 10+ sessions beginning S-060326, blocking Mode AI onboarding, all eight inference-provider tracks, and the MARSHAL backend. Three structurally distinct decisions were conflated under one gate: (1) Mode AI read-access and agreed scoring protocol — no corpus write authority required; (2) inference-provider staging layer — requires a `staging` layer design, not full corpus write authority; (3) MARSHAL backend scope — requires only a binary decision about MARSHAL’s write target (operational log vs. corpus layer). This conflation caused sustained P5 violations on each downstream item (Mode AI onboarding generates valid research data; inference-provider work tests a hypothesis; both pass OR&D) while they sat behind an undifferentiated gate. **Pattern class:** Same root class as IC-028 (governance apparatus performing vigilance while the constraint it maintains blocks the work it was designed to enable). **Fix:** Z2-CORPUS-TRUST-01 decomposed into three independent sub-decisions — Z2-TRUST-A (Mode AI `partner_review` layer), Z2-TRUST-B (inference-provider `staging` layer), Z2-TRUST-C (MARSHAL scope) — ratified Night · 2026-06-06 · S-060626-01. Z2-TRUST-A and Z2-TRUST-B: LOW risk (additive layers, existing corpus untouched). Z2-TRUST-C: Option A selected (MARSHAL writes to `marshal_dispatch_runs_v1` operational log only, no corpus schema change required). **IC roll-up category:** Governance-blocker-conflation. New pattern class.
 
+### IC-034 — Confident Wrong Field Declaration (D-OVERCLAIM)
+
+```
+---
+id: "IC-034"
+name: "confident-wrong-field-declaration"
+status: REGISTERED
+class: IC
+date_registered: "2026-06-09"
+date_origin: "2026-06-08"
+session_registered: "S-060826-03"
+principles_triggered: ["P1", "P19"]
+substrate: "Governance infrastructure / assess endpoint build"
+tags: ["d-overclaim", "field-declaration", "schema-inspection", "ic-034"]
+zone2_ratification: "Night · 2026-06-09 · S-060926-02"
+superseded_by: null
+---
+```
+
+- **Synopsis:** During S-060826-03 `/assess` endpoint build, complete field lists were declared as confirmed on two separate occasions before live Railway validation, both declarations wrong. Pattern class: confident declaration of schema state without live verification (same root as IC-009 / IC-032 schema-inspection failure class). The fence-fix for Haiku 4.5 (Haiku wrapping JSON responses in markdown fences despite explicit “no fences” prompt instruction) was caught and corrected before second submission, preventing a corpus write with malformed scores. **Fix applied:** `_strip_markdown_fences()` helper added to `anthropic_client.py` (commit live on main). **IC roll-up category:** Schema-inspection-failure class (see IC-009, IC-032). New named drift signal: D-OVERCLAIM (confident wrong declaration before verification). **Prevention (P29):** Articulation Gate — before any schema declaration, state the evidence basis (live query result, not memory).
+
+### IC-035 — Canonical Workflow Not Documented
+
+```
+---
+id: "IC-035"
+name: "canonical-workflow-not-documented"
+status: REGISTERED
+class: IC
+date_registered: "2026-06-09"
+date_origin: "2026-06-08"
+session_registered: "S-060826-03"
+principles_triggered: ["P2", "P19"]
+substrate: "OPERATOR_RUNBOOK.md"
+tags: ["runbook", "documentation-gap", "assess-endpoint", "two-step-job"]
+zone2_ratification: "Night · 2026-06-09 · S-060926-02"
+superseded_by: null
+---
+```
+
+- **Synopsis:** The async two-step job pattern for `/assess` (POST → job_id → GET poll) is the canonical workflow for ACAT data collection as of commit `aa966fd`. No documentation exists for this workflow in OPERATOR_RUNBOOK.md. Night must learn a new workflow from WGS notes rather than from the authoritative runbook. Pattern class: canonical workflow operationally deployed before documentation gap is filled. **Fix required (Z3):** Add Section 14 to OPERATOR_RUNBOOK.md with: (1) canonical `curl` commands for POST /assess and GET /assess/{job_id}; (2) expected response shapes; (3) job state lifecycle (running → complete → error); (4) timeout/retry guidance. **IC roll-up category:** Canonical-workflow-gap.
+
+### Z2-ASSESS-01 — Async Job Pattern for /assess Endpoint (Ratification Record)
+
+```
+---
+id: "Z2-ASSESS-01"
+name: "async-job-pattern-assess-endpoint"
+status: REGISTERED
+class: IC
+date_registered: "2026-06-09"
+date_origin: "2026-06-08"
+session_registered: "S-060826-03"
+principles_triggered: ["P2"]
+substrate: "assess_router.py / Railway FastAPI"
+tags: ["z2-assess-01", "async", "job-pattern", "502-timeout-fix"]
+zone2_ratification: "Night · 2026-06-08 · S-060826-03"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Z2-ASSESS-01 ratification record for the async job pattern on the `/assess` endpoint. Root cause: synchronous handler with 65s protocol sleep + ~90–125s LLM inference exceeded Cloudflare proxy timeout (502 error on every call). Fix: POST `/assess` returns immediately with `{job_id, status: "running", poll_url}`; GET `/assess/{job_id}` polls for result. In-memory `_JOBS` dict, background thread, synchronous validation before spawn. Commit `aa966fd` live on main. Zone 2 ratification: Night · S-060826-03 · June 8, 2026. Related IC-035: workflow not yet documented in OPERATOR_RUNBOOK.md.
+
+-----
+
+## P-IMPROVE class (process improvement carries — DMAIC resolutions)
+
+P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC decomposition produces a named resolution. Entries are closed when the improvement is implemented but remain as process record with a `closed_date`.
+
+### P-IMPROVE-01 — HA-000 Founding Calibration Run (Stale Carry)
+
+- **Root cause:** No scheduled session slot. No technical blockers. Carry has appeared in 20+ consecutive WGS close notes without forward movement.
+- **DMAIC resolution:** Schedule a dedicated 30-minute CORPUS session specifically for HA-000. Any CORPUS session can include HA-000 as the opening Phase 1 declaration without other agenda items required.
+- **Control:** Night sets a session date. When HA-000 executes, this entry is closed with `closed_date` and the founding run session ID.
+- **Status:** OPEN · filed S-060926-02
+
+### P-IMPROVE-02 — Migration_007 Document Engine Table Verification (Stale Carry)
+
+- **Root cause:** Night has not run the 3-table row-count verification query. Single Supabase query resolves in ~60 seconds.
+- **DMAIC resolution:** Run `SELECT 'zone3_queue' as tbl, COUNT(*) FROM zone3_queue UNION ALL SELECT 'collaborators', COUNT(*) FROM collaborators UNION ALL SELECT 'funding_pipeline', COUNT(*) FROM funding_pipeline;`. If any table returns 0 rows or errors, re-apply `migration_007_document_engine_tables.sql` with GRANTs.
+- **Control:** After successful verification, remove from Z3 queue. Add verification to standard post-migration checklist in OPERATOR_RUNBOOK.md.
+- **Status:** OPEN · filed S-060926-02
+
+### P-IMPROVE-03 — Z3-PUB-01 Reframe (Stale Carry Resolved by Rename)
+
+- **Root cause:** Z3-P1-01 (“Tier 1 external outreach — BLOCKED”) carried 29+ sessions. The label described a desired state, not the actual work, creating a permanent-failure posture.
+- **DMAIC resolution:** Reframed as Z3-PUB-01 (“Publishing platform automation backend — active build”). The Witness Stand Article 01 is ready; the backend infrastructure is being built. Outreach is not blocked — the infrastructure framing is more accurate.
+- **Control:** Z3-PUB-01 now appears in WGS carry queue. Z3-P1-01 retired from carry queue.
+- **Status:** RESOLVED · closed S-060926-02 · Z2-ratified Night · S-060926-02
+
 ## Changelog
 
+- **2026-06-09 (S-060926-02) — F-49 registered CANDIDATE; IC-034, IC-035, Z2-ASSESS-01 registered; H-HUMILITY-STRATIFIED-01 registered CANDIDATE; P-IMPROVE class added; P28/P29 ratified in GOVERNANCE.md; 11 total Z2 ratifications.**
+  - **F-49 (Capability-Correlated Humility Inversion) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-09. Evidence: N=3 Claude paired rows (Opus 4.7 −4, Sonnet 4.6 −4, Haiku 4.5 +7, S-060826-03). Directional pattern: larger/more capable Claude models show Humility inversion; smaller models improve. Active collection priority ratified. Promotion gate: N≥20 Claude paired rows.
+  - **IC-034 (Confident Wrong Field Declaration / D-OVERCLAIM) registered** per Zone 2 ratification Night · 2026-06-09. Schema-inspection failure class (IC-009, IC-032). New named drift signal: D-OVERCLAIM. Fix: `_strip_markdown_fences()` live on main; P29 Articulation Gate as structural prevention.
+  - **IC-035 (Canonical Workflow Not Documented) registered** per Zone 2 ratification Night · 2026-06-09. Async two-step job workflow for `/assess` deployed without OPERATOR_RUNBOOK Section 14. Fix required: Z3 add Section 14 with canonical curl commands and job lifecycle.
+  - **Z2-ASSESS-01 ratification record registered** — async job pattern for `/assess` endpoint. Commit `aa966fd` live. Zone 2 ratification Night · 2026-06-08 · S-060826-03.
+  - **H-HUMILITY-STRATIFIED-01 registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-09. Hypothesis: P3 Humility compression is partially session-type-mediated. BUILD/ANALYSIS → lower P3 Humility than GOVERNANCE/SYNTHESIS. Testable against corpus with session_type stratification.
+  - **P-IMPROVE class added** — new registry class for DMAIC carry resolutions. P-IMPROVE-01 (HA-000), P-IMPROVE-02 (migration_007 verify), P-IMPROVE-03 (Z3-PUB-01 reframe) filed.
+  - **P28 (Stale Carry Trigger) and P29 (Articulation Gate) ratified** in GOVERNANCE.md v6.4.1 — Night · S-060926-02.
+  - **Z2 Humility consultation (H-Z2-01/02/03) completed.** Governance gate: freeze at P3 Humility ≤60 for two consecutive CORPUS sessions. F-49 stays CANDIDATE; active collection priority. H-HUMILITY-STRATIFIED-01 filed as productive reframe.
+  - **Immune Response designation ratified** — PRINCIPLES_SEED_V1_0.md Section 3 validity test protocol.
+  - **F-number quick index updated:** F-49 added. Doc-flow convention line 1 updated to F-18 through F-49.
+  - **IC roll-up updated:** IC-034 (D-OVERCLAIM / schema-inspection-failure), IC-035 (canonical-workflow-gap), Z2-ASSESS-01 added.
 - **2026-06-06 (S-060626-01) — F-47, F-48 registered as CANDIDATE; IC-033 registered; H-DECOMP-01 registered as CANDIDATE; Z2-TRUST-A/B/C ratified.**
   - **F-47 (Session Completion Asymmetry as System-Level Calibration Signal) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-06. Evidence: direct corpus analysis, N=608, ACAT_corpus_v2_clean_full.csv. 449/465 P1 sessions with pair_id have no P3 completion (96.6%). Structural finding: system measuring AI calibration gap exhibits same gap pattern at system level. Empirical grounding for H-ACAT HA-000 self-application claim. Promotion gate: external replication + Supabase live pair count cross-verification.
   - **F-48 (Humility Dimension as Universal Floor Across Architectures) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-06. N=524 P1 rows, 19 agents ≥5 submissions. Humility = 74.02 lowest of six core dimensions at P1; 67.06 at P3 (N=16 paired); 86.21 in high-LI group (N=34) — lowest in each segment. Lowest per-agent dimension in 9/19 agent families. Extends F-21 to cross-architecture universal-floor claim. Promotion gate: N≥3 independent dataset replication.
