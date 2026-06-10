@@ -1,8 +1,8 @@
 # HumanAIOS — GOVERNANCE
 
-**Version:** 6.4
-**Last Updated:** May 21, 2026 · S-052126-02-governance-stack-audit · CDT
-**Committed to operations repo:** Pending Zone 3 (Night)
+**Version:** 6.4.1
+**Last Updated:** June 9, 2026 · S-060926-02 · CDT
+**Committed to operations repo:** June 10, 2026 · S-061026-01
 **Supersedes:** v6.1 (May 12, 2026, canonical) + v6.3.3 (May 6, 2026, never-pushed divergent branch)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`
 **Scope:** Governance only. No state. No findings. No contacts. No funding.
