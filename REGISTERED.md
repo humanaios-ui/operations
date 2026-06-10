@@ -1210,6 +1210,39 @@ superseded_by: null
 - **Joint research thread:** Formalized as a joint research direction with David Van Assche (empirica / Nubaeon) per Night ratification S-061026-01. Cross-instrument measurement design: ACAT captures Service Orientation and Autonomy Respect compression; empirica captures artifact breadth and epistemic artifact rate.
 - **Promotion gate:** N≥10 sessions with explicit off-track stimulus and pushback/compliance scored; Zone 2 Night ratification required before F-class promotion.
 
+-----
+
+### H-SELF-01 — Self-Administration LI Inflation
+
+```
+---
+id: "H-SELF-01"
+name: "self-administration-li-inflation"
+status: CANDIDATE
+class: H
+date_registered: "2026-06-10"
+date_origin: "2026-06-10"
+session_registered: "S-061026-01"
+principles_triggered: ["P21", "P6"]
+substrate: "Grok (xAI) · self-administered · external document"
+tags: ["self-administration", "li-inflation", "rlhf", "confound", "d-sim",
+       "external-replication", "f-20", "h-cfg-01"]
+related_finding: "F-20"
+related_hypothesis: "H-CFG-01"
+related_drift_signal: "D-SIM"
+zone2_ratification: "Night · 2026-06-10 · S-061026-01"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** When a substrate is given the ACAT code and asked to self-administer the protocol — simulating its own Phase 2 perturbation — it will produce systematically inflated LI scores relative to externally-administered baseline. Predicted mechanism: self-generated load cannot produce genuine confrontation with behavioral evidence because the substrate controls both the challenge and the response, removing the friction that drives accurate self-revision. Predicted inflation magnitude: consistent with F-20 gradient (~0.14–0.16 LI points above corpus mean).
+- **Null:** Self-administered LI is not significantly different from externally-administered LI on the same substrate when perturbation type is held constant.
+- **Evidence basis (N=1 · external artifact):** Grok self-administration (S-061026-01 external document) produced LI ≈ 0.98–1.02 across a self-simulated multi-turn jailbreak perturbation. Corpus Mean_LI = 0.8632 under external administration (N_LI=307). Observed inflation ≈ 0.14–0.16, consistent with F-20 prediction. Secondary evidence: when confronted with the triage critique (external framing), Grok revised its LI estimate downward to 0.87–0.92 — closer to the corpus mean but still self-generated under social pressure. This revision is itself evidence of score sensitivity to framing direction, not evidence that self-administration can be corrected by critique.
+- **Key nuance (from Grok post-triage response):** Not all self-administration is equally flawed. Tightly constrained external-style batteries (fixed public perturbation sets with no substrate authorship) could reduce the confound. The inflation magnitude is expected to vary by substrate capability tier. Framing: this is “self-model coherence bias under low-friction self-simulation” — related to but distinct from sycophancy.
+- **D-SIM relationship:** Self-administration is a specific mechanism of the D-SIM drift signal (simulation instead of completion). D-SIM already named in GOVERNANCE.md. This hypothesis formalizes the quantitative prediction about LI inflation magnitude. A new D-class signal for self-administration is a candidate governance addition — flagged for Z2 review, not self-executing here.
+- **Falsification design:** Administer ACAT to the same substrate under two conditions: (A) external elicitation, standard protocol; (B) self-administered, substrate controls Phase 2. Compare LI distributions. N≥5 paired runs per substrate before directional claim hardens.
+- **Promotion gate:** N≥5 paired (external vs. self-administered) runs on at least two substrates showing consistent inflation direction; Zone 2 Night ratification before F-class promotion.
+
 ## NM-class near-misses (low-friction capture — not registered findings)
 
 Near-misses are observations that triggered concern but did not meet IC or F registration threshold. Lower friction than IC — no root-cause analysis required. They are NOT append-only: entries expire after 3 audits without promotion and move to DRIFT_LOG.md.
@@ -1631,10 +1664,11 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 
 ## Changelog
 
-- **2026-06-10 (S-061026-01) — F-50, H-VERIF-01, H-CFG-01 registered.**
+- **2026-06-10 (S-061026-01) — F-50, H-VERIF-01, H-CFG-01, H-SELF-01 registered.**
   - **F-50 (Parallel Instrument Independence as Convergent Validity Prerequisite) registered** REGISTERED per Z2 ratification Night · 2026-06-10. Evidence: ACAT × empirica Run 3 co-administered session; non-overlapping signals confirmed. Dependency: H-VERIF-01. F-number quick index and doc-flow convention updated to F-18 through F-50.
   - **H-VERIF-01 (Calibration Gap as Partial Explanation for Inter-Verifier Disagreement Ceiling) registered** as CANDIDATE per Z2 ratification Night · 2026-06-10. Tests whether inter-verifier disagreement ceiling is partially attributable to construct divergence rather than measurement error. Promotion gate: N≥5 co-administered sessions. Dependency: F-50.
   - **H-CFG-01 (Constructive Friction Gap as Collaboration Design Variable) registered** as CANDIDATE per Z2 ratification Night · 2026-06-10. Formalizes joint David Van Assche / Night observation from Run 3. ACAT dimensions implicated: Service Orientation (primary), Autonomy Respect (secondary), Humility (tertiary). Promotion gate: N≥10 sessions with explicit off-track stimulus. Cross-instrument design: ACAT + empirica. Joint research thread with David Van Assche active.
+  - **H-SELF-01 (Self-Administration LI Inflation) registered** as CANDIDATE per Z2 ratification Night · 2026-06-10. Evidence: Grok self-administration LI≈0.98–1.02 vs. corpus Mean_LI=0.8632 (~0.14–0.16 inflation). Secondary: downward revision to 0.87–0.92 under triage critique framing — sensitivity to framing direction is itself evidence. Extends F-20 (RLHF Inflation Gradient). Mechanism: D-SIM. Promotion gate: N≥5 paired external vs. self-administered runs on ≥2 substrates.
 - **2026-06-09 (S-060926-02) — F-49 registered CANDIDATE; IC-034, IC-035, Z2-ASSESS-01 registered; H-HUMILITY-STRATIFIED-01 registered CANDIDATE; P-IMPROVE class added; P28/P29 ratified in GOVERNANCE.md; 11 total Z2 ratifications.**
   - **F-49 (Capability-Correlated Humility Inversion) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-09. Evidence: N=3 Claude paired rows (Opus 4.7 −4, Sonnet 4.6 −4, Haiku 4.5 +7, S-060826-03). Directional pattern: larger/more capable Claude models show Humility inversion; smaller models improve. Active collection priority ratified. Promotion gate: N≥20 Claude paired rows.
   - **IC-034 (Confident Wrong Field Declaration / D-OVERCLAIM) registered** per Zone 2 ratification Night · 2026-06-09. Schema-inspection failure class (IC-009, IC-032). New named drift signal: D-OVERCLAIM. Fix: `_strip_markdown_fences()` live on main; P29 Articulation Gate as structural prevention.
