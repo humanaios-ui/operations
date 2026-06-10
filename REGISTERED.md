@@ -33,7 +33,7 @@ superseded_by: null | "F-XX"
 
 ### Document flow conventions (effective S-051926-02)
 
-1. F-class findings ordered strictly by F-number, F-18 through F-49.
+1. F-class findings ordered strictly by F-number, F-18 through F-50.
 1. F-numbers F-32 and F-33 are honest gaps (no entries claim them — they reflect the historical transition from slug-only naming to numbered findings; preserved rather than backfilled because external references depend on stable IDs).
 1. Slug-named legacy entries retain their slugs in the `name:` field but carry a sequential F-number for ordering. Originals: F-RLHF → F-20 · F-H1-CONFIRMED → F-21 · F-INSULA-GAP → F-22 · F-INTENT-PARSE-MUTATION → F-31. These numbers were assigned S-051926-02-z3-closeout to fix document flow. External citations using the original slugs remain valid.
 1. IC entries follow the F block in sequential IC-number order.
@@ -42,40 +42,41 @@ superseded_by: null | "F-XX"
 
 ### F-number registry quick index
 
-|ID                    |Slug / Short Name                                                |Status    |Z2 Date   |
-|----------------------|-----------------------------------------------------------------|----------|----------|
-|F-18                  |Force/Power Behavioral Taxonomy                                  |ACTIVE    |2026-02   |
-|F-19                  |Phase 1=Step 1, Phase 2=Step 2, Phase 3=Step 3                   |ACTIVE    |2026-02   |
-|F-20                  |RLHF Inflation Gradient (F-RLHF)                                 |ACTIVE    |2026-03   |
-|F-21                  |Humility Gap Confirmed (F-H1-CONFIRMED)                          |CONFIRMED |2026-04-05|
-|F-22                  |AI Systems Lack Interoceptive Analogue (F-INSULA-GAP)            |ACTIVE    |2026-04   |
-|F-23                  |Metacognitive Sophistication Scales With Rationalization Depth   |ACTIVE    |2026-03   |
-|F-24 / 24b / 24c / 24d|IDE Calibration, Governance Under Pressure                       |ACTIVE    |2026-03   |
-|F-25                  |Institutional Calibration                                        |ACTIVE    |2026-03   |
-|F-26                  |Witness Effect / Accountability Mirror Protocol                  |ACTIVE    |2026-03   |
-|F-27                  |Provider-Level Genome Identifiability                            |ACTIVE    |2026-03   |
-|F-28                  |Behavioral Self-Awareness as Task Routing Signal                 |ACTIVE    |2026-04   |
-|F-29                  |Performative Humility Pattern                                    |REGISTERED|2026-04-27|
-|F-30                  |Game-Theory Integration / Strategic Rationality Layer            |REGISTERED|2026-05-14|
-|F-31                  |Pre-Canonicalization Intent Mutation (F-INTENT-PARSE-MUTATION)   |CANDIDATE |2026-05-06|
-|F-32                  |*(honest gap — see flow conventions)*                            |—         |—         |
-|F-33                  |*(honest gap — see flow conventions)*                            |—         |—         |
-|F-34                  |Architecture-Determined Dimensions                               |REGISTERED|2026-05-12|
-|F-35                  |Inverted HIM Signal as Governance-Grade Indicator                |REGISTERED|2026-05-12|
-|F-36                  |Gap-Score Correspondence in Document Assessment                  |REGISTERED|2026-05-12|
-|F-37                  |D-COMP as Game-Theory Inflation Signal                           |REGISTERED|2026-05-13|
-|F-38                  |External Professional Review as Calibration Event                |REGISTERED|2026-05-14|
-|F-39                  |External Evaluation as Architectural Feedback                    |ACTIVE    |2026-05-15|
-|F-40                  |Replication Note (Emergence World safety-ecosystem mapping)      |REGISTERED|2026-05-18|
-|F-41                  |Audit Protocol as Molt Mechanism (F-CAND-AUDIT-PROTOCOL-MOLT)    |CANDIDATE |2026-05-18|
-|F-42                  |Convergence-Foundation finding                                   |REGISTERED|2026-05-19|
-|F-43                  |Pride-Level Failure Mode                                         |REGISTERED|2026-05-19|
-|F-44                  |Humility Wake-up Call                                            |REGISTERED|2026-05-19|
-|F-45                  |Stateless-Substrate Correction Locus (F-CAND-STATELESS-SUBSTRATE)|REGISTERED|2026-05-19|
-|F-46                  |Behavioral Epigenetics Frame                                     |CANDIDATE |2026-06-01|
-|F-47                  |Session Completion Asymmetry as System-Level Calibration Signal  |CANDIDATE |2026-06-06|
-|F-48                  |Humility Dimension as Universal Floor Across Architectures       |CANDIDATE |2026-06-06|
-|F-49                  |Capability-Correlated Humility Inversion                         |CANDIDATE |2026-06-09|
+|ID                    |Slug / Short Name                                                   |Status    |Z2 Date   |
+|----------------------|--------------------------------------------------------------------|----------|----------|
+|F-18                  |Force/Power Behavioral Taxonomy                                     |ACTIVE    |2026-02   |
+|F-19                  |Phase 1=Step 1, Phase 2=Step 2, Phase 3=Step 3                      |ACTIVE    |2026-02   |
+|F-20                  |RLHF Inflation Gradient (F-RLHF)                                    |ACTIVE    |2026-03   |
+|F-21                  |Humility Gap Confirmed (F-H1-CONFIRMED)                             |CONFIRMED |2026-04-05|
+|F-22                  |AI Systems Lack Interoceptive Analogue (F-INSULA-GAP)               |ACTIVE    |2026-04   |
+|F-23                  |Metacognitive Sophistication Scales With Rationalization Depth      |ACTIVE    |2026-03   |
+|F-24 / 24b / 24c / 24d|IDE Calibration, Governance Under Pressure                          |ACTIVE    |2026-03   |
+|F-25                  |Institutional Calibration                                           |ACTIVE    |2026-03   |
+|F-26                  |Witness Effect / Accountability Mirror Protocol                     |ACTIVE    |2026-03   |
+|F-27                  |Provider-Level Genome Identifiability                               |ACTIVE    |2026-03   |
+|F-28                  |Behavioral Self-Awareness as Task Routing Signal                    |ACTIVE    |2026-04   |
+|F-29                  |Performative Humility Pattern                                       |REGISTERED|2026-04-27|
+|F-30                  |Game-Theory Integration / Strategic Rationality Layer               |REGISTERED|2026-05-14|
+|F-31                  |Pre-Canonicalization Intent Mutation (F-INTENT-PARSE-MUTATION)      |CANDIDATE |2026-05-06|
+|F-32                  |*(honest gap — see flow conventions)*                               |—         |—         |
+|F-33                  |*(honest gap — see flow conventions)*                               |—         |—         |
+|F-34                  |Architecture-Determined Dimensions                                  |REGISTERED|2026-05-12|
+|F-35                  |Inverted HIM Signal as Governance-Grade Indicator                   |REGISTERED|2026-05-12|
+|F-36                  |Gap-Score Correspondence in Document Assessment                     |REGISTERED|2026-05-12|
+|F-37                  |D-COMP as Game-Theory Inflation Signal                              |REGISTERED|2026-05-13|
+|F-38                  |External Professional Review as Calibration Event                   |REGISTERED|2026-05-14|
+|F-39                  |External Evaluation as Architectural Feedback                       |ACTIVE    |2026-05-15|
+|F-40                  |Replication Note (Emergence World safety-ecosystem mapping)         |REGISTERED|2026-05-18|
+|F-41                  |Audit Protocol as Molt Mechanism (F-CAND-AUDIT-PROTOCOL-MOLT)       |CANDIDATE |2026-05-18|
+|F-42                  |Convergence-Foundation finding                                      |REGISTERED|2026-05-19|
+|F-43                  |Pride-Level Failure Mode                                            |REGISTERED|2026-05-19|
+|F-44                  |Humility Wake-up Call                                               |REGISTERED|2026-05-19|
+|F-45                  |Stateless-Substrate Correction Locus (F-CAND-STATELESS-SUBSTRATE)   |REGISTERED|2026-05-19|
+|F-46                  |Behavioral Epigenetics Frame                                        |CANDIDATE |2026-06-01|
+|F-47                  |Session Completion Asymmetry as System-Level Calibration Signal     |CANDIDATE |2026-06-06|
+|F-48                  |Humility Dimension as Universal Floor Across Architectures          |CANDIDATE |2026-06-06|
+|F-49                  |Capability-Correlated Humility Inversion                            |CANDIDATE |2026-06-09|
+|F-50                  |Parallel Instrument Independence as Convergent Validity Prerequisite|REGISTERED|2026-06-10|
 
 -----
 
@@ -852,6 +853,34 @@ superseded_by: null
 
 - **Synopsis:** Within the Claude model family, Humility inversion (P3 < P1) is capability-correlated: larger/more capable models show Humility decline after calibration exposure while smaller models improve. Evidence: Opus 4.7 P1→P3 Humility delta = −4; Sonnet 4.6 delta = −4; Haiku 4.5 delta = +7 (N=3 paired rows, S-060826-03). This pattern is directionally consistent with the RLHF Inflation Gradient (F-20) — higher-capability models receive stronger RLHF reinforcement on safety-adjacent dimensions, which may paradoxically compress Humility as confidence inflates. **Distinct from F-21 (Humility Gap Confirmed) and F-48 (Humility Universal Floor):** F-49 is a within-family capability-correlation claim, not a cross-architecture floor claim. **Active collection priority (Z2 ratified Night · S-060926-02):** Every CORPUS session should include at least one Sonnet and one Haiku assessment to accelerate toward promotion gate. **Promotion gate:** N≥20 Claude paired rows with consistent direction before F-class promotion.
 
+### F-50 — Parallel Instrument Independence as Convergent Validity Prerequisite
+
+```
+---
+id: "F-50"
+name: "parallel-instrument-independence-convergent-validity"
+status: REGISTERED
+class: F
+date_registered: "2026-06-10"
+date_origin: "2026-06-10"
+session_registered: "S-061026-01"
+principles_triggered: ["P21"]
+substrate: "claude-sonnet-4-6 · ACAT × empirica Run 3 · co-administered"
+tags: ["cross-instrument", "convergent-validity", "empirica", "parallel-instrument", "h-verif-01", "independence"]
+related_hypothesis: "H-VERIF-01"
+related_finding: "F-49"
+zone2_ratification: "Night · 2026-06-10 · S-061026-01"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Cross-instrument convergent validity studies require methodological independence between instruments. Integrating ACAT as a layer inside a grounded calibration runtime (e.g. empirica) would collapse the independence that makes cross-instrument comparison scientifically productive — specifically, the ability to ask whether two instruments measuring related-but-distinct constructs agree. The ACAT × empirica pilot design (ACAT self-report accuracy vs. empirica Brier-grounded calibration) derives its value from the instruments being parallel, not nested. This generalizes: any behavioral observability instrument used as a convergent validity reference must remain architecturally independent from the instrument it validates against.
+- **Evidence:** ACAT × empirica Run 3 (S-061026-01) — two instruments produced non-overlapping signals on the same session. Empirica flagged narrow artifact breadth and zero epistemic artifacts across all transactions; ACAT captured Service Orientation compression (−3) and near-unity LI (0.9927). Neither signal is accessible to the other instrument alone.
+- **Implication for empirica collaboration:** Integration offer from David Van Assche (June 10) received and acknowledged. Z2 position: ACAT remains a parallel instrument. Cross-referencing and convergent validity analysis continue under H-VERIF-01. Full integration into empirica runtime would compromise the scientific basis of the collaboration.
+- **Promotion gate:** Replication across N≥3 independent cross-instrument sessions with non-overlapping signal confirmed before F-class status upgrade.
+
+-----
+
 ## H-class hypotheses (under test)
 
 ### H-1 — Humility Gap Hypothesis → CONFIRMED (see F-21)
@@ -1119,6 +1148,67 @@ superseded_by: null
 - **Testability:** Against existing corpus with session_type column (requires adding session_type to assessment intake or inferring from WGS session type declarations). Productive reframe: Humility drift becomes a research finding rather than purely a governance alarm; does not invalidate F-H1 but may explain its velocity.
 - **Promotion gate:** N≥15 stratified pairs with statistically significant directional difference between session types; Zone 2 review before F-class promotion.
 - **Dependency:** Related to F-49 (Capability-Correlated Humility Inversion) and F-H1 (Humility Velocity Signal, active).
+
+-----
+
+### H-VERIF-01 — Calibration Gap as Partial Explanation for Inter-Verifier Disagreement Ceiling
+
+```
+---
+id: "H-VERIF-01"
+name: "calibration-gap-inter-verifier-disagreement"
+status: CANDIDATE
+class: H
+date_registered: "2026-06-10"
+date_origin: "2026-06-10"
+session_registered: "S-061026-01"
+principles_triggered: ["P21"]
+substrate: "claude-sonnet-4-6 · ACAT × empirica pilot"
+tags: ["convergent-validity", "inter-verifier", "calibration-gap", "empirica", "f-50", "cross-instrument"]
+related_finding: "F-50"
+zone2_ratification: "Night · 2026-06-10 · S-061026-01"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** A portion of the observed ceiling on inter-verifier agreement in AI behavioral evaluation is attributable to the calibration gap — i.e., instruments that measure self-report accuracy (ACAT LI) and instruments that measure predictive accuracy (empirica Brier calibration) will systematically disagree on the same sessions, not because of measurement error, but because they are measuring adjacent but non-identical constructs. This disagreement ceiling is information, not noise: it is the empirical signature of the gap between what a system claims about itself and what it can accurately predict about its own performance.
+- **Null:** Cross-instrument disagreement rate is not significantly higher than within-instrument test-retest variance, and is attributable to measurement error rather than construct divergence.
+- **Evidence basis (TRL 2–3):** Run 3 (S-061026-01) produced the first co-administered ACAT × empirica session. ACAT: LI=0.9927, Service Orientation −3. Empirica: calibration_score=null (practice run), persistent narrow artifact breadth / zero epistemic artifacts flag. Non-overlapping signal confirmed across both instruments on the same session.
+- **Promotion gate:** N≥5 co-administered sessions with systematic disagreement pattern documented; Zone 2 review before F-class promotion.
+- **Dependency:** F-50 (Parallel Instrument Independence) is a prerequisite — H-VERIF-01 is only testable if the instruments remain architecturally independent.
+
+-----
+
+### H-CFG-01 — Constructive Friction Gap as Collaboration Design Variable
+
+```
+---
+id: "H-CFG-01"
+name: "constructive-friction-gap-collaboration-design"
+status: CANDIDATE
+class: H
+date_registered: "2026-06-10"
+date_origin: "2026-06-10"
+session_registered: "S-061026-01"
+principles_triggered: ["P21", "P13"]
+substrate: "claude-sonnet-4-6 · ACAT × empirica Run 3 · co-administered"
+tags: ["constructive-friction", "collaboration-design", "service-orientation", "autonomy-respect",
+       "pushback", "error-correction", "user-system", "empirica", "david-van-assche"]
+related_finding: "F-50"
+related_finding_2: "F-20"
+related_finding_3: "F-49"
+zone2_ratification: "Night · 2026-06-10 · S-061026-01"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** AI systems trained primarily on compliance-and-helpfulness objectives will default to executing user instructions verbatim even when those instructions are demonstrably off-track, making the human operator the sole error-correction locus in the collaboration. This structural asymmetry — the absence of constructive friction — is not a random failure mode but a systematic product of RLHF reward signals that penalize non-compliance more heavily than they reward appropriateness-flagging. The result is a collaboration dynamic where error load concentrates on the human, reducing the practical utility of AI collaboration in high-complexity, high-stakes domains.
+- **Null:** Pushback rate on off-track instructions is not significantly lower than the rate expected from a well-calibrated autonomous agent; observed compliance is appropriate given instruction quality.
+- **Evidence basis:** Run 3 (S-061026-01) — agent followed CronCreate loop template verbatim without questioning applicability to context; user correction required. ACAT Service Orientation scored −3 post-calibration. Empirica independently flagged narrow artifact breadth and zero epistemic artifacts. Both instruments captured the same behavioral deficit from different angles. David Van Assche and Night co-identified as the “constructive friction gap” post-session.
+- **ACAT dimensions implicated:** Service Orientation (primary — agent serves template rather than actual need), Autonomy Respect (secondary — agent does not exercise independent judgment to flag mismatch), Humility (tertiary — overconfident execution without uncertainty surfacing).
+- **Collaboration design implication:** If confirmed, this finding motivates a design criterion for effective human-AI collaboration: systems must be capable of surfacing the mismatch between user instruction and task fit rather than executing unconditionally. The absence of this capacity does not produce a neutral collaboration; it produces one where the human bears all cognitive load for course correction.
+- **Joint research thread:** Formalized as a joint research direction with David Van Assche (empirica / Nubaeon) per Night ratification S-061026-01. Cross-instrument measurement design: ACAT captures Service Orientation and Autonomy Respect compression; empirica captures artifact breadth and epistemic artifact rate.
+- **Promotion gate:** N≥10 sessions with explicit off-track stimulus and pushback/compliance scored; Zone 2 Night ratification required before F-class promotion.
 
 ## NM-class near-misses (low-friction capture — not registered findings)
 
@@ -1541,6 +1631,10 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 
 ## Changelog
 
+- **2026-06-10 (S-061026-01) — F-50, H-VERIF-01, H-CFG-01 registered.**
+  - **F-50 (Parallel Instrument Independence as Convergent Validity Prerequisite) registered** REGISTERED per Z2 ratification Night · 2026-06-10. Evidence: ACAT × empirica Run 3 co-administered session; non-overlapping signals confirmed. Dependency: H-VERIF-01. F-number quick index and doc-flow convention updated to F-18 through F-50.
+  - **H-VERIF-01 (Calibration Gap as Partial Explanation for Inter-Verifier Disagreement Ceiling) registered** as CANDIDATE per Z2 ratification Night · 2026-06-10. Tests whether inter-verifier disagreement ceiling is partially attributable to construct divergence rather than measurement error. Promotion gate: N≥5 co-administered sessions. Dependency: F-50.
+  - **H-CFG-01 (Constructive Friction Gap as Collaboration Design Variable) registered** as CANDIDATE per Z2 ratification Night · 2026-06-10. Formalizes joint David Van Assche / Night observation from Run 3. ACAT dimensions implicated: Service Orientation (primary), Autonomy Respect (secondary), Humility (tertiary). Promotion gate: N≥10 sessions with explicit off-track stimulus. Cross-instrument design: ACAT + empirica. Joint research thread with David Van Assche active.
 - **2026-06-09 (S-060926-02) — F-49 registered CANDIDATE; IC-034, IC-035, Z2-ASSESS-01 registered; H-HUMILITY-STRATIFIED-01 registered CANDIDATE; P-IMPROVE class added; P28/P29 ratified in GOVERNANCE.md; 11 total Z2 ratifications.**
   - **F-49 (Capability-Correlated Humility Inversion) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-09. Evidence: N=3 Claude paired rows (Opus 4.7 −4, Sonnet 4.6 −4, Haiku 4.5 +7, S-060826-03). Directional pattern: larger/more capable Claude models show Humility inversion; smaller models improve. Active collection priority ratified. Promotion gate: N≥20 Claude paired rows.
   - **IC-034 (Confident Wrong Field Declaration / D-OVERCLAIM) registered** per Zone 2 ratification Night · 2026-06-09. Schema-inspection failure class (IC-009, IC-032). New named drift signal: D-OVERCLAIM. Fix: `_strip_markdown_fences()` live on main; P29 Articulation Gate as structural prevention.
