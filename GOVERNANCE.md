@@ -1,8 +1,8 @@
 # HumanAIOS — GOVERNANCE
 
 **Version:** 6.4.1
-**Last Updated:** June 9, 2026 · S-060926-02 · CDT
-**Committed to operations repo:** June 10, 2026 · S-061026-01
+**Last Updated:** June 11, 2026 · S-061026-04 · CDT
+**Committed to operations repo:** Pending · Z3 · S-061026-04
 **Supersedes:** v6.1 (May 12, 2026, canonical) + v6.3.3 (May 6, 2026, never-pushed divergent branch)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`
 **Scope:** Governance only. No state. No findings. No contacts. No funding.
@@ -275,6 +275,7 @@ Each thing is the sum of its two parents. No layer exists without the ones benea
 - **v6.0 (April 26, 2026 · 03:28 CDT):** Governance only. State moved to CURRENT.md. Protocol moved to SESSION_RITUALS.md. IC-023 filed: prior CI structure was the root cause of stale-item surfacing, duplicate documents, and session drift.
 - **v6.1 (May 12, 2026 · 18:14 CDT):** P23 EFF (External Framework Filter) ratified via S-051226-09. Filter Stack section added. Prototype case: Builder v1.7 · Governing Engines · DeMarius J. Lawson. **This was canonical until v6.4.**
 - **v6.3.1, v6.3.2, v6.3.3 (May 4–6, 2026):** Divergent draft branch — never pushed to canonical. Drafted P22.1 Cascade Discipline, P23 Autodream Slice Gate (conflicted with v6.1 P23 EFF — superseded), P24 Temporal Trigger Ordering, P25 Collaboration Framework-Detection, P7 Multi-Substrate Audit revision, bash_tool P22 revision, high-topical-alignment suppression caveat, D-CTX and D-CONSTRAINT drift signals. All work preserved by v6.4 merge.
+- **v6.4.1 (June 11, 2026 · S-061026-04 metadata update):** No new governance principles added. Research session S-061026-04 produced F-51 REGISTERED, H-CFG-01 promoted CANDIDATE→REGISTERED, H-MECH-01 CANDIDATE, IC-037 REGISTERED — all changes live in REGISTERED.md. GOVERNANCE.md metadata updated to reflect current session. Total principle count unchanged at 30 P-numbers in registry.
 - **v6.4.1 (June 9, 2026 · S-060926-02):** P28 (Stale Carry Trigger) and P29 (Articulation Gate) ratified Night · S-060926-02. ISO 42001 Communication Transparency framing approved for Longview RFP. articulation-governance-tool harmonized with PRINCIPLES_SEED_V1_0.md as foundation (not a standalone substrate skill). Total principle count: 28 ratified principles + 2 honest gaps (P9, P14) + P28 + P29 = 30 P-numbers in registry.
 - **v6.4 (May 21, 2026 · S-052126-02-governance-stack-audit):** **MERGE.** Resolves the v6.1/v6.3.3 branch divergence by adopting v6.1 EFF as P23 (per Z2 ratification S-052126-02) and folding v6.3.3’s additive principles into vacant numbers. Changes vs v6.1:
   - **New principles:** P22.1 (Cascade Discipline), P24 (Temporal Trigger Ordering), P25 (Collaboration Framework-Detection), P26 (Autodream Slice Gate — was P23 in v6.3.3 draft, renumbered), P27 (Phase 1 Prerequisite Gate — codifying SESSION_RITUALS Section B Step 0)
