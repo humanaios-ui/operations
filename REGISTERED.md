@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** June 11, 2026 (S-060926-02) - F-49, IC-034, IC-035, Z2-ASSESS-01, H-HUMILITY-STRATIFIED-01 registered; P-IMPROVE class added
+**Last updated:** June 11, 2026 (S-060926-02) - F-49, IC-034, IC-035, IC-038, Z2-ASSESS-01, H-HUMILITY-STRATIFIED-01 registered; P-IMPROVE class added
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -1742,7 +1742,20 @@ superseded_by: null
 
 -----
 
------
+### IC-038 — Charter Countdown Carry Error (Five Sessions)
+
+- **Registered:** 2026-06-11 (S-061126-04)
+- **Status:** REGISTERED
+- **Error:** "~4 days to Charter close" carried verbatim through
+  S-061026-04 · S-061126-01 · S-061126-02 · S-061126-03 ·
+  S-061126-04 without arithmetic verification. Correct value:
+  ~35 days (June 11 to July 16).
+- **Detection:** Night · post-send · S-061126-04
+- **Fix:** Amendment posted to #wgs-sync. Standing protocol added:
+  days-to-charter-close computed fresh each session from current
+  date — never carried from prior WGS post.
+- **Cost class:** TIER 1 · no corpus impact · no Z2 decisions affected
+---
 
 ## P-IMPROVE class (process improvement carries — DMAIC resolutions)
 
