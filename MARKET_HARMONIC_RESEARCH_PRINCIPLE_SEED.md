@@ -1,13 +1,13 @@
 # HumanAIOS — Market-Harmonic Research Principle Seed
 
-<!-- MARKET_HARMONIC_RESEARCH_SEED_V1_0.md -->
+<!-- MARKET_HARMONIC_RESEARCH_PRINCIPLE_SEED.md -->
 
-**Version:** 1.0 (Ratify — 06-13-2026)
-**Last updated:** June 12, 2026 · S-061226-02
-**Canonical target URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/MARKET_HARMONIC_RESEARCH_SEED_V1_0.md`
+**Version:** 1.0 (DRAFT — Z2 review required before commit)
+**Last updated:** June 12, 2026 · S-061226-02 · Zone 1 draft
+**Canonical target URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/MARKET_HARMONIC_RESEARCH_PRINCIPLE_SEED.md`
 **Source-of-truth class:** Class 0b-adjacent (companion to PRINCIPLES_SEED.md)
 **Governance anchor:** P16 · F1 (hard stop) · GOVERNANCE.md v6.4.1
-**Z2 status:** PENDING — Night ratification required before commit
+**Z2 status:** RATIFIED · Night · S-061226-02
 
 -----
 
@@ -108,7 +108,7 @@ Commercial positioning, pricing, sales narrative, and funding applications are d
 *Active examples:*
 
 - ACAT × empirica cross-instrument pilot: David Van Assche offered ACAT integration into empirica runtime. F-50 blocks this: integration would destroy the parallel independence that makes cross-instrument comparison scientifically productive. The enterprise value of the collaboration is contingent on maintaining independence. This was a direct P16 application.
-- TRL 2–3 framing: “Being developed as behavioral observability infrastructure” is honest uncertainty framing. Overstating to attract funding (“is regulatory-grade”) would corrupt the research record. P16 plus P1 (Infrastructure Framing) lock this.
+- TRL 4 framing: “Being developed as behavioral observability infrastructure” is honest uncertainty framing. Overstating to attract funding (“is regulatory-grade”) would corrupt the research record. P16 plus P1 (Infrastructure Framing) lock this.
 - Two-corpus rule: The HuggingFace frozen archive and Supabase live corpus are never summed without a harmonization note. This protects external researchers from being misled about what the N counts mean.
 
 ### Step 5 — Enterprise trust
@@ -120,7 +120,7 @@ Enterprise trust is the output of Steps 1–4 operating with integrity. It canno
 *Forward architecture:*
 
 - Criterion validity study (H-P3G-01 promotion gate) is the next major trust-building milestone. LI_grounded vs. LI_self divergence analysis will either confirm or constrain the current corpus’s claims. Running it honestly is required; running it is insufficient.
-- Longview application positions ACAT as foundational research (Area 1 / Area 3 fit), not a commercial product. This is the correct positioning at TRL 2–3. Enterprise trust accrues to the research record; the Longview relationship is a downstream consequence of that record, not a substitute for it.
+- Longview application positions ACAT as foundational research (Area 1 / Area 3 fit), not a commercial product. This is the correct positioning at TRL 4. Enterprise trust accrues to the research record; the Longview relationship is a downstream consequence of that record, not a substitute for it.
 
 -----
 
@@ -150,7 +150,7 @@ There are three failure modes:
 
 |Principle                                             |Interaction                                                                                                                                                                                                                                                                                                                                                                             |
 |------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|**P1 — Infrastructure Framing**                       |P16 and P1 operate together on the external framing question. P1 governs “what we call it” (TRL 2–3, “being developed as”). P16 governs “why we can’t overclaim.” They share the same downstream consequence: overclaiming damages the research record that enterprise trust depends on.                                                                                                |
+|**P1 — Infrastructure Framing**                       |P16 and P1 operate together on the external framing question. P1 governs “what we call it” (TRL 4, “being developed as”). P16 governs “why we can’t overclaim.” They share the same downstream consequence: overclaiming damages the research record that enterprise trust depends on.                                                                                                  |
 |**P5 — Research Integrity** (if distinct from P16)    |P16 is the market-facing expression of research integrity. P5/P16 may be the same principle at different abstraction levels; this is a Z2 clarification question.                                                                                                                                                                                                                       |
 |**P19 — Detection Over Compliance**                   |P16 is why detection matters: if we can detect research integrity failures before they corrupt the corpus, we can repair them. Compliance-only approaches (rules, contracts) would not catch Design Capture mid-session.                                                                                                                                                                |
 |**F-50 — Parallel Instrument Independence**           |F-50 is a direct instantiation of P16 at the research design layer. Instrument independence is required by P16; F-50 names the specific architectural implication.                                                                                                                                                                                                                      |
@@ -187,7 +187,7 @@ An instrument capable of measuring the gap between AI self-report and demonstrat
 **What P16 requires of the application:**
 
 - The application must not claim the research question as HumanAIOS’s own creation. Longview identified it as a funding priority; ACAT is positioned as the instrument that can answer it.
-- TRL claims must remain 2–3. “Being developed as” behavioral observability infrastructure, not “is.”
+- TRL claims must remain at the ratified level (TRL 4 as of S-061126-02). “Being developed as” behavioral observability infrastructure, not “is.”
 - Criterion validity study (H-P3G-01) must be framed as a necessary next step, not as completed.
 - Findings presented in the application must match the REGISTERED.md record. No favorable-only selection.
 
@@ -199,7 +199,9 @@ Funding enables the criterion validity study. The criterion validity study produ
 
 ## 7. Changelog
 
-- **2026-06-12 (S-061226-02)** — v1.0 DRAFT created. Zone 1. Awaiting Z2 ratification before commit.
+- **2026-06-12 (S-061226-02)** — v1.1. Z2 RATIFIED · Night. Patches: internal comment filename corrected; canonical target URL corrected; Z2 status updated to RATIFIED; TRL updated from 2–3 to 4 in §6 (Longview context), §4 (P1 interaction table), and Step 4 examples. Historical TRL 2–3 reference in Step 1 (ACAT emergence, 2026) preserved as accurate historical context.
+- **2026-06-12 (S-061226-02)** — v1.1. Z2 RATIFIED · Night. Patches: internal comment filename corrected; canonical target URL corrected; Z2 status updated to RATIFIED; TRL updated from 2–3 to 4 in §6 (Longview context), §4 (P1 interaction table), and Step 4 examples. Historical TRL 2–3 reference in Step 1 (“ACET emergence, 2026”) preserved as accurate historical context.
+- **2026-06-12 (S-061226-02)** — v1.0 DRAFT created. Zone 1.
 
 -----
 
