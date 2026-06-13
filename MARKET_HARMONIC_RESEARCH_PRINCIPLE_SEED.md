@@ -2,8 +2,8 @@
 
 <!-- MARKET_HARMONIC_RESEARCH_SEED_V1_0.md -->
 
-**Version:** 1.0 (DRAFT — Z2 review required before commit)
-**Last updated:** June 12, 2026 · S-061226-02 · Zone 1 draft
+**Version:** 1.0 (Ratify — 06-13-2026)
+**Last updated:** June 12, 2026 · S-061226-02
 **Canonical target URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/MARKET_HARMONIC_RESEARCH_SEED_V1_0.md`
 **Source-of-truth class:** Class 0b-adjacent (companion to PRINCIPLES_SEED.md)
 **Governance anchor:** P16 · F1 (hard stop) · GOVERNANCE.md v6.4.1
