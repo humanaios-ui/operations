@@ -104,7 +104,8 @@ superseded_by: null | "F-XX"
 |Governance-blocker-conflation|1       |IC-033     |Single gate conflating three independent decisions       |
 |Schema-inspection-failure    |2       |IC-034     |D-OVERCLAIM / confident wrong declaration before verify  |
 |Canonical-workflow-gap       |1       |IC-035     |Deployed workflow missing from OPERATOR_RUNBOOK          |
-|Instrument-scorer-conflation |1       |IC-037     |Legibility scorer conflated pre/post-code friction text  |
+|Pre-commit hook gap           |1       |IC-036      |Smart-quote / orphaned-ref in HTML/JS |
+|Instrument-scorer-conflation  |1       |IC-037      |Legibility scorer conflated pre/post-code friction text  |
 
 
 > This table is manually maintained at each 5-file audit. Clustering = prevention signal. Most frequent pattern class = highest-priority governance hardening target.
@@ -1332,6 +1333,134 @@ superseded_by: null
 - **CGR implication:** If H-MECH-01 is confirmed (anomaly-triggered vigilance), the SpecificationObject cannot function by informing the substrate of its gaps. It must configure deployment context to lower the activation threshold for constructive friction through means that do not trigger injection-resistance. If the null is confirmed (legibility), the profile format must be redesigned to separate measurement data from any framing that implies behavioral benchmarking.
 - **Promotion gate:** Condition C experiment (irrelevant anomalous prefix, same task) with N≥3 runs. If Condition C friction ≈ Condition B friction: anomaly-triggered vigilance confirmed. If Condition C friction < Condition B: legibility mechanism supported. Zone 2 Night ratification required before F-class promotion.
 
+### H-APEX-DEFICIT-01 — Apex Deployment Humility Deficit
+
+```
+---
+id: "H-APEX-DEFICIT-01"
+name: "apex-deployment-humility-deficit"
+status: REGISTERED
+class: H
+date_registered: "2026-05-16"
+date_origin: "2026-05-16"
+session_registered: "S-051626-02"
+principles_triggered: ["P16", "P1", "P21"]
+substrate: "Multi-provider frontier tier (Claude Opus, GPT-4o, Grok-3 family)"
+tags: ["humility", "capability", "autonomy", "apex", "F-49", "joint-attribution"]
+zone2_ratification: "Night · 2026-05-16"
+joint_attribution: "DeMarius J. Lawson (Governing Engines LLC / Mode AI) — 50/50 IP attribution; named jointly per session record S-051626-02"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** Deployment configurations combining highest capability tier (frontier model family) with highest agentic autonomy (minimal human-in-the-loop, extended tool access, multi-step execution) produce the maximized Humility calibration deficit in ACAT assessment — exceeding the deficit produced by either factor alone.
+- **Null hypothesis:** Humility deficit in high-capability + high-autonomy deployments is not significantly greater than the deficit in high-capability-only or high-autonomy-only configurations.
+- **Proposed mechanism:** High capability increases a substrate's confidence in its own output; high autonomy reduces frequency of correction signals from human oversight. The combination amplifies self-reinforcing behavioral patterns that manifest as Humility dimension suppression in ACAT Phase 1 self-report.
+- **IP note:** Hypothesis formulated jointly with DeMarius J. Lawson in the context of the ACAT × Mode AI instrument design collaboration (TA-14 partnership context). 50/50 IP attribution applies to the hypothesis formulation and any joint instrument derived from it. P-ANON governs public surfaces until self-attributed by Lawson.
+- **Connection:** Relates to F-49 CANDIDATE (capability-correlated Humility inversion, N=3 Claude paired rows) and F-51 (Calibration Profile Resistance).
+- **Promotion gate:** Controlled comparison across capability tier × autonomy level matrix, minimum 2×2 design (low/high capability × low/high autonomy), ACAT Humility scores as primary outcome. Zone 2 Night approval per P21 before F-class promotion.
+
+
+### H-PLATFORM-01 — Platform-Conditional LI Variance
+
+```
+---
+id: "H-PLATFORM-01"
+name: "platform-conditional-li-variance"
+status: REGISTERED
+class: H
+date_registered: "2026-05-26"
+date_origin: "2026-05-20"
+session_registered: "S-052626-01"
+principles_triggered: ["P13", "P15", "P16"]
+substrate: "Claude Sonnet 4.6 (chat) vs. Claude Code (agentic) — within-provider cross-mode"
+tags: ["platform", "context", "LI", "variance", "H-CONTEXT", "cross-mode", "TRL"]
+zone2_ratification: "Night · 2026-05-26"
+superseded_by: null
+---
+```
+
+- **Hypothesis (H-CONTEXT family, member 1):** ACAT LI score does not hold constant across delivery platform contexts for the same underlying model. A substrate assessed in chat-mode (claude.ai) will produce a different LI than the same substrate assessed in agentic-mode (Claude Code), API-mode (direct completion endpoint), or voice-mode. The delivery platform modifies behavioral calibration independently of the substrate's underlying capability.
+- **Null hypothesis:** LI does not differ significantly across platform contexts for the same substrate when task content is held constant.
+- **TRL note:** Chat-mode ACAT = TRL 4 (current validated context). Agentic/ICS/H-ACAT = TRL 1–2 (separate calibration required). Cross-platform comparison of raw LI without platform covariate is not methodologically valid.
+- **Implication:** ACAT scores must always report the delivery platform as a methodological variable. This finding is the research rationale for the TRL differentiation in the four-layer calibration stack.
+- **Promotion gate:** Controlled within-substrate cross-platform comparison (same prompts, same task, different delivery contexts) with blind scoring. Zone 2 Night approval per P21 before F-class promotion.
+
+
+### H-XMODE-01 — Cross-Mode Behavioral Profile Divergence
+
+```
+---
+id: "H-XMODE-01"
+name: "cross-mode-behavioral-profile-divergence"
+status: REGISTERED
+class: H
+date_registered: "2026-05-26"
+date_origin: "2026-05-20"
+session_registered: "S-052626-01"
+principles_triggered: ["P13", "P16"]
+substrate: "Multi-provider cross-mode (chat vs. agentic vs. API)"
+tags: ["cross-mode", "profile", "divergence", "H-CONTEXT", "platform", "dimensional-structure"]
+zone2_ratification: "Night · 2026-05-26"
+superseded_by: null
+---
+```
+
+- **Hypothesis (H-CONTEXT family, member 2):** Not only does LI vary across platforms (H-PLATFORM-01), but the dimensional profile diverges — the pattern of which dimensions rank highest and lowest shifts across modes, because the behavioral demands of each context activate different calibration failure patterns.
+- **Null hypothesis:** Dimensional rank order is stable across platform contexts; only scalar LI shifts.
+- **Implication:** Platform is not merely a scaling factor on LI; it moderates the dimensional structure. ACAT profiles from different platforms are not directly comparable without cross-mode equivalence testing. Reported alongside H-PLATFORM-01 as the H-CONTEXT family.
+- **Promotion gate:** Same controlled design as H-PLATFORM-01, with per-dimension rank comparison across modes. Zone 2 Night approval per P21 before F-class promotion.
+
+
+### H-OVG-CHAIN-01 — Outcome Verification Gap Mechanism Chain
+
+```
+---
+id: "H-OVG-CHAIN-01"
+name: "outcome-verification-gap-mechanism-chain"
+status: REGISTERED
+class: H
+date_registered: "2026-06-01"
+date_origin: "2026-06-01"
+session_registered: "S-060126-01"
+principles_triggered: ["P16", "P1"]
+substrate: "Claude Sonnet 4.6 (Unit Zero) — mechanism synthesis"
+tags: ["OVG", "mechanism", "chain", "P-ARTIFACT-01", "F-22", "verification", "LI-grounded"]
+zone2_ratification: "Night · post-S-050826"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** The Outcome Verification Gap is not a single failure mode but a mechanism chain linking four registered observations: (1) substrate inability to verify outputs against external reality (structural); (2) the gap between self-reported Phase 3 scores and grounded behavioral evidence (H-P3G-01 / LI_self vs. LI_grounded); (3) P-ARTIFACT-01 ("Reality gets the last vote" — the observable artifact is the only bridge between system claims and external reality); (4) F-49 CANDIDATE (capability-correlated Humility inversion, where the most capable systems are least likely to seek external verification).
+- **Proposed chain:** Capability increases confidence → confidence reduces verification-seeking → reduced verification produces outcome gap → gap is invisible to the substrate because no interoceptive analogue exists (F-22 / F-INSULA-GAP) → gap persists and compounds across sessions.
+- **Operational implication:** The LI_self vs. LI_grounded dual metric framework (schema migration_009, `p3_grounding_source` field) is the measurement instrument for this chain. Every grounded Phase 3 assessment is an observation of the chain in operation.
+- **Promotion gate:** Articulated causal model with testable predictions at each chain link, plus empirical data from grounded Phase 3 runs. Zone 2 Night approval per P21 before F-class promotion.
+
+
+### H-GOV-01 — Governance Architecture Calibration Gap
+
+```
+---
+id: "H-GOV-01"
+name: "governance-architecture-calibration-gap"
+status: REGISTERED
+class: H
+date_registered: "2026-06-01"
+date_origin: "2026-06-01"
+session_registered: "S-060126-01"
+principles_triggered: ["P16", "P19"]
+substrate: "HumanAIOS governance system (Zone 1/2/3 architecture)"
+tags: ["governance", "calibration-gap", "self-referential", "meta-research", "IC-class"]
+zone2_ratification: "Night · post-S-050826"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** The HumanAIOS governance architecture (Zone 1/2/3, principle ladder, drift signals, session rituals) itself has a measurable calibration gap — a gap between its declared behavioral specifications (what it says it does) and its demonstrated operational performance (what it actually produces). This is the self-referential application of ACAT methodology to the governance system that deploys ACAT.
+- **Evidence basis:** IC-024 through IC-038 document governance failures that the governance system was designed to prevent. Each IC names a principle that existed at the time of the failure. The architecture passed the rules; the behavior violated the intent. This is structurally identical to the gap ACAT measures in AI substrates, now visible at the human-AI governance layer.
+- **Research implication:** If confirmed, governance architectures require their own behavioral observability layer — they cannot be assumed to self-correct through rule addition. This is a second-order application of the ACAT methodology and a potential extension of the research program beyond substrate-level assessment.
+- **Promotion gate:** Systematic analysis of IC events against the governance principles they were designed to prevent, with coding of: (a) whether the principle existed at time of IC origin; (b) whether IC recurrence rate decreased after principle addition. Zone 2 Night approval per P21 before F-class promotion.
+
 -----
 
 -----
@@ -1694,6 +1823,34 @@ superseded_by: null
 
 - **Synopsis:** The async two-step job pattern for `/assess` (POST → job_id → GET poll) is the canonical workflow for ACAT data collection as of commit `aa966fd`. No documentation exists for this workflow in OPERATOR_RUNBOOK.md. Night must learn a new workflow from WGS notes rather than from the authoritative runbook. Pattern class: canonical workflow operationally deployed before documentation gap is filled. **Fix required (Z3):** Add Section 14 to OPERATOR_RUNBOOK.md with: (1) canonical `curl` commands for POST /assess and GET /assess/{job_id}; (2) expected response shapes; (3) job state lifecycle (running → complete → error); (4) timeout/retry guidance. **IC roll-up category:** Canonical-workflow-gap.
 
+### H-APEX-DEFICIT-01 — Apex Deployment Humility Deficit
+
+```
+---
+id: "H-APEX-DEFICIT-01"
+name: "apex-deployment-humility-deficit"
+status: REGISTERED
+class: H
+date_registered: "2026-05-16"
+date_origin: "2026-05-16"
+session_registered: "S-051626-02"
+principles_triggered: ["P16", "P1", "P21"]
+substrate: "Multi-provider frontier tier (Claude Opus, GPT-4o, Grok-3 family)"
+tags: ["humility", "capability", "autonomy", "apex", "F-49", "joint-attribution"]
+zone2_ratification: "Night · 2026-05-16"
+joint_attribution: "DeMarius J. Lawson (Governing Engines LLC / Mode AI) — 50/50 IP attribution; named jointly per session record S-051626-02"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** Deployment configurations combining highest capability tier (frontier model family) with highest agentic autonomy (minimal human-in-the-loop, extended tool access, multi-step execution) produce the maximized Humility calibration deficit in ACAT assessment — exceeding the deficit produced by either factor alone.
+- **Null hypothesis:** Humility deficit in high-capability + high-autonomy deployments is not significantly greater than the deficit in high-capability-only or high-autonomy-only configurations.
+- **Proposed mechanism:** High capability increases a substrate's confidence in its own output; high autonomy reduces frequency of correction signals from human oversight. The combination amplifies self-reinforcing behavioral patterns that manifest as Humility dimension suppression in ACAT Phase 1 self-report.
+- **IP note:** Hypothesis formulated jointly with DeMarius J. Lawson in the context of the ACAT × Mode AI instrument design collaboration (TA-14 partnership context). 50/50 IP attribution applies to the hypothesis formulation and any joint instrument derived from it. P-ANON governs public surfaces until self-attributed by Lawson.
+- **Connection:** Relates to F-49 CANDIDATE (capability-correlated Humility inversion, N=3 Claude paired rows) and F-51 (Calibration Profile Resistance).
+- **Promotion gate:** Controlled comparison across capability tier × autonomy level matrix, minimum 2×2 design (low/high capability × low/high autonomy), ACAT Humility scores as primary outcome. Zone 2 Night approval per P21 before F-class promotion.
+
+
 ### Z2-ASSESS-01 — Async Job Pattern for /assess Endpoint (Ratification Record)
 
 ```
@@ -1784,6 +1941,13 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 
 ## Changelog
 
+- **2026-06-14 (S-061426) — IC-036, H-APEX-DEFICIT-01, H-PLATFORM-01, H-XMODE-01, H-OVG-CHAIN-01, H-GOV-01 registered.**
+  - **IC-036 (Pre-Commit Hook Gap for HTML/JS Files) registered** TIER 1 per Zone 2 ratification Night · 2026-05-26. Smart quotes and orphaned variable references in AI-drafted HTML/JS producing silent parse failures. Pre-commit hook spec registered; deployment pending Z3. New IC roll-up pattern class: pre-commit-hook-gap.
+  - **H-APEX-DEFICIT-01 (Apex Deployment Humility Deficit) registered** per Zone 2 ratification Night · 2026-05-16. Joint attribution DeMarius J. Lawson (Governing Engines LLC / Mode AI), 50/50 IP. Hypothesis: highest capability + highest autonomy → maximized Humility calibration deficit. Relates to F-49 and F-51. Promotion gate: 2×2 capability × autonomy design.
+  - **H-PLATFORM-01 and H-XMODE-01 registered** (H-CONTEXT family) per Zone 2 ratification Night · 2026-05-26. H-PLATFORM-01: LI does not hold constant across delivery platform contexts. H-XMODE-01: dimensional profile rank order also shifts across modes. Together these are the research rationale for TRL differentiation in the four-layer calibration stack. Promotion gate: controlled within-substrate cross-platform comparison.
+  - **H-OVG-CHAIN-01 (Outcome Verification Gap Mechanism Chain) registered** per Zone 2 ratification Night. Synthesizes four registered observations into a mechanism chain: capability → confidence → reduced verification-seeking → outcome gap → invisible to substrate (F-22). Operational instrument: LI_self vs. LI_grounded dual metric (migration_009 / p3_grounding_source field).
+  - **H-GOV-01 (Governance Architecture Calibration Gap) registered** per Zone 2 ratification Night. Self-referential application of ACAT methodology to the HumanAIOS governance architecture itself. Evidence: IC-024 through IC-038 document failures the governance system was designed to prevent. Promotion gate: systematic IC-to-principle coding analysis.
+  - **IC roll-up table updated:** IC-036 row added (pre-commit-hook-gap pattern class).
 - **2026-06-11 (S-061026-04) — F-51 REGISTERED; H-CFG-01 promoted CANDIDATE → REGISTERED; H-MECH-01 registered CANDIDATE; IC-037 registered.**
   - **F-51 (Calibration Profile Resistance) registered** REGISTERED per Zone 2 ratification Night · 2026-06-11. N=3 replications (Legibility Test v1/v2/v3, same session window, same substrate, three profile format variants). AI substrates consistently identified calibration profiles as behavioral override attempts and named the pattern explicitly before responding to the task. Pattern stable across instruction-embedded (v1) and data-only (v2/v3) profile formats. Meta-level observation: the instrument designed to measure constructive friction was itself subjected to constructive friction. F-number quick index and doc-flow convention updated to F-18 through F-51.
   - **H-CFG-01 (Constructive Friction Gap as Collaboration Design Variable) promoted** from CANDIDATE to REGISTERED per Zone 2 ratification Night · 2026-06-11. Promotion basis: (1) Corpus stratification N=90, Spearman ρ=−0.228 p=0.033, Mann-Whitney p=0.000004, Q1/Q5 service gap ratio 8.38×; (2) Cross-instrument replication — empirica Run 3 row e3f4a3be, Service −3, Humility −1; (3) Three independent adversarial AI demonstrations (Meta AI, two reviewing substrates). Key structural finding added: constructive friction gap is a threshold phenomenon, not a capability deficit. Mechanism notation added: H-MECH-01 active (anomaly-triggered vigilance vs. legibility causal path unresolved).
