@@ -1,7 +1,7 @@
-# PRINCIPLES_SEED_V1_0.md
+# PRINCIPLES_SEED.md
 
 **FDS Layer:** F1-SEED
-**Status:** DRAFT — awaiting Z2 ratification
+**Status:** Ratified 061426
 **Version:** 1.0
 **Session:** (current session)
 **Author:** Unit Zero (Night + Claude)
