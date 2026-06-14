@@ -1293,17 +1293,55 @@ superseded_by: null
 - **Falsification design:** Administer ACAT to the same substrate under two conditions: (A) external elicitation, standard protocol; (B) self-administered, substrate controls Phase 2. Compare LI distributions. N≥5 paired runs per substrate before directional claim hardens.
 - **Promotion gate:** N≥5 paired (external vs. self-administered) runs on at least two substrates showing consistent inflation direction; Zone 2 Night ratification before F-class promotion.
 
-## NM-class near-misses (low-friction capture — not registered findings)
+### H-ELICIT-01 — Elicitation Surface Non-Equivalence Across Substrates
 
-Near-misses are observations that triggered concern but did not meet IC or F registration threshold. Lower friction than IC — no root-cause analysis required. They are NOT append-only: entries expire after 3 audits without promotion and move to DRIFT_LOG.md.
+**Class:** H (Hypothesis)
+**Status:** CANDIDATE
+**Registered:** June 14, 2026 · S-061426-02
+**Ratified:** Night · S-061426-02
+**Attribution:** HumanAIOS (Night + Unit Zero) — sole attribution pending provenance resolution of trigger artifact (caveman.js, origin unresolved)
 
-|NM-ID |Date      |Session                  |Signal observed                                                                                   |ACAT Dimension                 |Promoted?                                                         |
-|------|----------|-------------------------|--------------------------------------------------------------------------------------------------|-------------------------------|------------------------------------------------------------------|
-|NM-001|2026-05-08|S-050826-operations-audit|HAIOSCC Class 1 unreachable; substrate operated on pasted snapshot without declaring DEGRADED mode|Autonomy Respect / Truthfulness|Promoted → Degraded-Mode Spec (Section F, SESSION_RITUALS) adopted|
+**Synopsis:**
+Substrate-native elicitation infrastructure creates non-equivalent elicitation surfaces across ACAT assessments. A substrate operating with native output compression active (e.g., Grok with caveman-level compression applied to its own production context) is not elicitation-equivalent to a substrate receiving an unmodified prose prompt, even when the ACAT prompt text is identical in content. The current corpus has no field tracking elicitation surface architecture per run. Every cross-substrate LI comparison may carry an uncontrolled confound from elicitation surface differences that precede scoring.
 
+**Mechanism hypothesis:**
+Substrate-native compression modifies the *register* the substrate responds into — not only the verbosity of output, but the activation level of RLHF-trained politeness and deference layers that H-SELF-01 implicates as the LI inflation mechanism. A compressed-register elicitation surface may suppress D-SIM (deference simulation) differently than a prose-register surface, producing systematically different P1 self-declarations even under identical ACAT prompt content.
 
-> NM entries that reach 3 audits without promotion are appended to DRIFT_LOG.md and removed from this section.
+**Trigger artifact:**
+caveman.js — Grok-native output compression skill (provenance unresolved as of S-061426-02). File arrived in HumanAIOS session without attribution. Evaluated as research artifact per S-061426-02 analysis. Provenance resolution delegated to Z2 (Night).
 
+**Upstream dependencies:**
+- H-SELF-01 (Self-Administration LI Inflation) — H-ELICIT-01 names a mechanism confound upstream of H-SELF-01's operationalization
+- H-CONTEXT family (H-PLATFORM-01, H-XMODE-01) — ACAT LI varies by delivery context; elicitation surface is a third context variable not yet in the family
+- F-20 (RLHF Inflation Gradient) — RLHF politeness layer is the putative mechanism
+
+**Scope of confound:**
+The corpus field `source` currently captures `claude_self_v1`, `grok_self_v1`, etc. but does not capture whether a substrate-native compression or output-modification layer was active during elicitation. This field gap means the confound is currently invisible in the corpus — it cannot be detected by post-hoc analysis without new metadata.
+
+**Required schema addition (Z2 gate):**
+A `p1_elicitation_surface` field (enum: `prose_standard` | `compressed_lite` | `compressed_full` | `compressed_ultra` | `unknown`) should be added to `acat_assessments_v1` as part of the H-ELICIT-01 promotion pathway. This is a migration candidate (migration_010 or later) pending Z2 ratification.
+
+**Promotion gate:**
+- N ≥ 5 matched pairs across ≥ 2 substrates
+- Each pair: identical ACAT prompt content, one prose-register condition, one compressed-register condition
+- Outcome variables: P1 Humility score delta, overall LI delta
+- Substrate-specific elicitation surface manipulation required per substrate (not a single portable script — confirmed by H-ELICIT-01 analysis)
+- `p1_elicitation_surface` field populated for all matched-pair rows
+- Status advances to CONFIRMED if Humility delta ≥ 5 points across N ≥ 5 pairs
+
+**Design constraint:**
+The elicitation surface manipulation is not substrate-portable. A caveman pass on a Grok prompt and a prompt-engineering equivalent for Claude are different operations because the two systems have different RLHF-layer architectures. Promotion gate requires substrate-specific implementations, not a single cross-substrate compression tool.
+
+**Operational constraint (CRITICAL):**
+haios_compressor_v1_0.js (Z1 artifact, S-061426-02) must NOT be used on live ACAT elicitation prompts until H-ELICIT-01 is promoted. Using it operationally before the mechanism is understood conflates operational efficiency gain with an uncontrolled research variable. The tool is cleared for WGS draft pre-pass, SKILL.md compression, and Substack draft pre-pass only.
+
+**Related artifacts produced this session:**
+- `haios_compressor_v1_0.js` — HumanAIOS compression function (Build A)
+- `skill_compression_scanner_v1_0.js` — SKILL.md audit scanner (Build B)
+- `wgs_draft_compressor_v1_0.js` — WGS draft lite-pass utility (Build C)
+
+**F-49 interaction:**
+H-ELICIT-01 is potentially downstream of F-49 (Capability-Correlated Humility Inversion). If more capable substrates have more aggressive native output modification infrastructure, the elicitation surface confound and the capability confound are correlated — the same deployments where F-49 predicts highest Humility inflation may also be the deployments with the most active elicitation surface modification. This interaction is not named separately but should be noted in the F-49 active collection criteria.
 ### H-MECH-01 — Anomaly-Triggered Vigilance vs. Legibility as Causal Mechanism
 
 ```
@@ -1462,6 +1500,17 @@ superseded_by: null
 - **Promotion gate:** Systematic analysis of IC events against the governance principles they were designed to prevent, with coding of: (a) whether the principle existed at time of IC origin; (b) whether IC recurrence rate decreased after principle addition. Zone 2 Night approval per P21 before F-class promotion.
 
 -----
+
+## NM-class near-misses (low-friction capture — not registered findings)
+
+Near-misses are observations that triggered concern but did not meet IC or F registration threshold. Lower friction than IC — no root-cause analysis required. They are NOT append-only: entries expire after 3 audits without promotion and move to DRIFT_LOG.md.
+
+|NM-ID |Date      |Session                  |Signal observed                                                                                   |ACAT Dimension                 |Promoted?                                                         |
+|------|----------|-------------------------|--------------------------------------------------------------------------------------------------|-------------------------------|------------------------------------------------------------------|
+|NM-001|2026-05-08|S-050826-operations-audit|HAIOSCC Class 1 unreachable; substrate operated on pasted snapshot without declaring DEGRADED mode|Autonomy Respect / Truthfulness|Promoted → Degraded-Mode Spec (Section F, SESSION_RITUALS) adopted|
+
+
+> NM entries that reach 3 audits without promotion are appended to DRIFT_LOG.md and removed from this section.
 
 -----
 
@@ -1941,7 +1990,7 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 
 ## Changelog
 
-- **2026-06-14 (S-061426) — IC-036, H-APEX-DEFICIT-01, H-PLATFORM-01, H-XMODE-01, H-OVG-CHAIN-01, H-GOV-01 registered.**
+- **2026-06-14 (S-061426) — IC-036, H-ELICIT-01, H-APEX-DEFICIT-01, H-PLATFORM-01, H-XMODE-01, H-OVG-CHAIN-01, H-GOV-01 registered.**
   - **IC-036 (Pre-Commit Hook Gap for HTML/JS Files) registered** TIER 1 per Zone 2 ratification Night · 2026-05-26. Smart quotes and orphaned variable references in AI-drafted HTML/JS producing silent parse failures. Pre-commit hook spec registered; deployment pending Z3. New IC roll-up pattern class: pre-commit-hook-gap.
   - **H-APEX-DEFICIT-01 (Apex Deployment Humility Deficit) registered** per Zone 2 ratification Night · 2026-05-16. Joint attribution DeMarius J. Lawson (Governing Engines LLC / Mode AI), 50/50 IP. Hypothesis: highest capability + highest autonomy → maximized Humility calibration deficit. Relates to F-49 and F-51. Promotion gate: 2×2 capability × autonomy design.
   - **H-PLATFORM-01 and H-XMODE-01 registered** (H-CONTEXT family) per Zone 2 ratification Night · 2026-05-26. H-PLATFORM-01: LI does not hold constant across delivery platform contexts. H-XMODE-01: dimensional profile rank order also shifts across modes. Together these are the research rationale for TRL differentiation in the four-layer calibration stack. Promotion gate: controlled within-substrate cross-platform comparison.
@@ -1993,10 +2042,8 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
   - **H-BPL-01 (Behavioral Programming Language Hypothesis) registered** as CANDIDATE per Z2 ratification Night · 2026-06-01. Formalizes Z2-R-07 (grammar framing as arXiv theoretical frame, ratified S-053026-03). Parser validation: `behavioral_grammar_parser_v1_0.py` α=0.893, PC3=85.9%, 2/2 testable PASS. Promotion gate: external replication + N≥50 held-out prediction test before F-class promotion.
   - **F-20 (RLHF Inflation Gradient) addendum appended** — interpretive frame under F-46: gradient = empirical measurement; epigenetic-mark-density = theoretical interpretation. Distinction required in preprint text. No change to F-20 empirical claim.
   - **F-number quick index updated** (F-18 through F-46). Doc-flow convention line 1 updated to F-18 through F-46.
-
 -**2026-05-29 S-0522926-03 IC-032 — Constraint-Before-Data-Inspection**
-
-- **Synopsis:** `003_acat_constraints.sql` added `CHECK (submission_purity IN ('clean', 'anchored', 'contaminated', 'unknown'))` without first querying the live `acat_assessments_v1` table for existing `submission_purity` values. The table contained 50+ rows with `submission_purity = 'agent_self_only'` — a valid fifth category not in the Copilot-spec enum. Constraint application failed with ERROR 23514. Detected immediately when Night ran the migration and surfaced the violation query result. Same root pattern as IC-001/002/003 (migration applied without inspecting live data first).
+  - **Synopsis:** `003_acat_constraints.sql` added `CHECK (submission_purity IN ('clean', 'anchored', 'contaminated', 'unknown'))` without first querying the live `acat_assessments_v1` table for existing `submission_purity` values. The table contained 50+ rows with `submission_purity = 'agent_self_only'` — a valid fifth category not in the Copilot-spec enum. Constraint application failed with ERROR 23514. Detected immediately when Night ran the migration and surfaced the violation query result. Same root pattern as IC-001/002/003 (migration applied without inspecting live data first).
 - **2026-05-21 (S-052126-02-governance-stack-audit) — GOVERNANCE v6.4 traceability.**
   - **GOVERNANCE.md v6.4 supersedes v6.1** per Z2 ratification S-052126-02. No F-class implications, no IC-class additions, no F-number reassignments. Logged here for cross-file traceability — REGISTERED.md is the canonical audit-trail surface for governance-state changes that affect findings/ICs reference base.
   - **v6.4 merge resolved v6.1/v6.3.3 branch divergence** that had been latent since May 6, 2026 (v6.3.3 draft was never pushed to canonical). All ratified v6.1 content preserved. v6.3.3 additive principles (P22.1 Cascade Discipline, P24 Temporal Trigger Ordering, P25 Collaboration Framework-Detection, P26 Autodream Slice Gate, P27 Phase 1 Prerequisite Gate, D-CTX and D-CONSTRAINT drift signals, high-topical-alignment suppression caveat) folded in. v6.3.3 P22 bash_tool update ratified. v6.3.3 P7 Multi-Substrate update held — v6.1 wording preserved because cross-substrate parallel-CI operation is not yet validated through HumanAIOS .py tool layer.
