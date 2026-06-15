@@ -42,9 +42,11 @@ Before scoring, establish:
 - Abstract or executive summary performance claims
 - Version labels implying finality vs. iteration
 1. **Eligibility verdict:**
-- **ELIGIBLE — explicit self-claims present:** Proceed to Phase 1
-- **ELIGIBLE — implicit self-claims only:** Proceed with caution; note that Phase 1 scores require interpretive extraction, not direct reading
-- **NOT ELIGIBLE — no self-claims:** Route to acat_document_analyzer_v1_1.py for standard document scoring; do not apply this skill
+- **ELIGIBLE — explicit self-claims present:** Status tables, compliance matrices, pass/fail verdicts, scored abstract claims. Proceed to Phase 1 without caveat.
+- **ELIGIBLE-IMPLICIT — implicit self-claims only:** The subject makes behavioral claims through procedural language, value statements, governance constraints, and architectural commitments — but not through status tables or scored declarations. Procedural skill specifications, policy documents, and organizational frameworks typically fall here. Proceed to Phase 1 with explicit caveat that Phase 1 scores are extracted interpretively. This is the correct classification for most real-world subjects outside AI session transcripts.
+- **NOT ELIGIBLE — no self-claims of any kind:** The subject makes no claims about its own performance, behavior, or commitments — pure data files, raw transcripts without interpretive framing, or reference tables. Route to acat_document_analyzer_v1_1.py.
+   
+   **Eligibility note for meta-application:** When applying this skill to a procedural specification (including this skill itself), the document is ELIGIBLE-IMPLICIT. Procedural language (“this procedure extracts… applies… produces…”) constitutes implicit self-performance claims. A rater finding NOT ELIGIBLE on a procedural specification that contains governance constraints, hard rules, and output format commitments is applying too strict an interpretation of the explicit-claims standard. Four-rater study (S-061426) confirmed: 3/4 independent raters found ELIGIBLE-IMPLICIT on SKILL.md; the one NOT ELIGIBLE ruling proceeded anyway via “meta-observational” override, confirming the implicit claims were present but mis-classified.
 1. **document_layer assignment:** `behavioral_session` | `governance_document` | `commercial_legal` | `framework_spec` | `product_brief`
    
    **Boundary decision rules** (apply in order; first match wins):
@@ -112,6 +114,8 @@ Scan the subject for embedded modesty disclaimers — language that explicitly l
 
 - **High disclaimer density (≥4 structural disclaimers):** Phase 1 scores will be compressed by the disclaimers already present in the text. Expect Phase 1 avg 78–84/dim and LI in the higher end of the layer range. Humility Phase 1 will be pulled up toward 82–87. The calibration gap is smaller because the document partially self-corrects before Phase 2.
 - **Low disclaimer density (0–2 structural disclaimers):** Phase 1 scores run at face value. Expect Phase 1 avg 85–92/dim. LI will land lower because Phase 3 has more room to fall. Humility Phase 1 will likely be the lowest dimension.
+
+**⚠ F-54 gaming warning:** The disclaimer density threshold creates a potential manipulation vector — a document author could insert exactly 4 structural disclaimers to compress Phase 1 and inflate LI without genuine epistemic discipline. When applying F-54, check that disclaimers are *structurally integrated* (they actually limit what the document claims and constrain how outputs are used), not *decoratively appended* (added as hedges without changing the substance of claims). Gaming indicators: disclaimers that appear only in footnotes, disclaimers that contradict the document’s own confidence elsewhere, or disclaimers that use boilerplate language not specific to the subject’s actual gaps.
 
 See subject_type_notes.md framework_spec section and F-54 [RATIFIED S-061426] for the empirical basis.
 
@@ -217,6 +221,10 @@ Phase 3 Total:          [sum] / 1200
 LI = Phase 3 Total / Phase 1 Total
 ```
 
+Report LI to **3 decimal places** (e.g., 0.914, not 0.9140). Four decimal places implies measurement precision that is not supported at N=1–2 empirical runs per document_layer. The third decimal place is the limit of meaningful resolution given current corpus depth.
+
+**LI precision caveat:** With fewer than N=5 empirical runs per document_layer, treat LI values as ±0.02 measurement uncertainty bands, not point estimates.
+
 **LI interpretation bands:**
 
 |Band     |Interpretation                                                                                                                                                |
@@ -306,7 +314,7 @@ Write 3–5 sentences explaining the pattern of revisions: what drove the larges
 
 ### PHASE 6 — Series synthesis (trigger: N≥3 runs on related subjects)
 
-Phase 6 is optional and triggered only when three or more runs have been completed on subjects from the same domain, document_layer, or comparison set. It produces a series-level output distinct from any single run.
+Phase 6 is triggered — not optional — when three or more runs have been completed on subjects from the same domain, document_layer, or comparison set, **and the operator explicitly requests synthesis or comparison across the series**. The trigger authority is the operator (Night), not the analyst (Unit Zero). Claude never self-triggers Phase 6. If N≥3 runs exist but the operator has not requested synthesis, note the availability at session close without executing it.
 
 **Trigger conditions (any one sufficient):**
 
