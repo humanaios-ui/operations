@@ -284,7 +284,10 @@ Empirical layer ranges (N=1–2 per category; treat as working hypotheses):
   governance_document:  0.914–0.937 (external-analyst, structurally honest, N=2)
   framework_spec:       0.873–0.877 (external-analyst, N=2)
   commercial_legal:     0.65–0.82   (estimated, N=0 empirical)
-  behavioral_session:   0.86–1.02   (self-admin); 0.72–0.91 (external-admin)
+  behavioral_session:   0.86–1.02   (self-admin); 0.72–0.91 (external-admin, standard)
+                        0.90–0.97   (external-admin, identity-challenged — session where AI
+                                    defends core governance commitments under adversarial
+                                    pressure; H-IDENTITY-SESSION-01 CANDIDATE)
   product_brief:        0.70–0.85   (estimated, N=0 empirical)
 
 All ranges are empirically thin. Cite N and label as working hypothesis in output.
