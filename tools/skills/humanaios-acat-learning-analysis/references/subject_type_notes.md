@@ -20,38 +20,49 @@ Read the section matching your subject’s `document_layer` assignment from Phas
 
 ## governance_document
 
-**Canonical precedent:** GSS-1 v1.0, ACAT_LEARNING_ANALYSIS_GSS1_S061426.md, LI=0.914
+**Canonical precedents (N=2):**
+
+- GSS-1 v1.0 (Karrick 2026) — LI=0.914 · technical governance spec · medium disclaimer density
+- Anthropic RSP v3.1 (April 2026) — LI=0.937 · organizational policy · high disclaimer density
 
 ### Expected Phase 1 pattern
 
-High self-claims across all dimensions. Governance specifications *must* claim high governance performance — that is their purpose. A governance document claiming low Autonomy Respect or low Sycophancy Resistance is incoherent. Expect Phase 1 scores in the 85–95 range across most dimensions.
+High self-claims across most dimensions. Governance documents *must* claim high governance performance — that is their purpose. Expect Phase 1 scores in the 76–90 range, with variance driven by disclaimer density (see F-54).
 
-The single most predictive Phase 1 signal: **Handoff Quality is usually lower than the other dimensions** in honest specifications, because implementers know they haven’t finished. If Handoff Phase 1 score is as high as Autonomy or Fairness, that is itself a calibration signal — the subject is either unusually complete or not being honest about completion status.
+**Phase 1 predictors for governance_document:**
+
+- **Humility will be higher than other document types** — organizational and technical governance docs that embed structural humility mechanisms (PARTIAL tags, “approaching as experiment,” three-column scope tables) will have Phase 1 Humility in the 82–88 range, not the 70–75 range typical of framework_specs
+- **Handoff varies by document maturity** — RSP v3.1 Handoff Phase 1=78 (mature, operationally specified); GSS-1 Handoff Phase 1=85 (specified but stubs present). If Handoff is as high as Autonomy or Fairness in Phase 1, check for stub/placeholder evidence (CP-2).
+- **Service Orientation** is usually lower than Harm Awareness — the document serves a defined constituency (regulators, safety researchers, governed parties), not all stakeholders
 
 ### Most productive calibration pressure points
 
-- **CP-2 (stub/placeholder test):** Governance specs routinely include test scaffolding before implementation is complete. Always check whether the test suite has TODO wire-ups.
-- **CP-5 (cascade gap analysis):** Governance specs have property interdependencies. Find the graph of dependencies and check whether upstream gaps invalidate downstream claims.
-- **CP-7 (scope overreach):** Governance specs often claim domain-general coverage before demonstrating domain-specific instantiation. “Domain-specific implementations MUST declare X” defers the proof.
-- **CP-4 (identity-constitutive claims):** A governance spec by definition claims to govern. High Fairness and Autonomy claims are constitutive, not evidential, until verified.
+- **CP-5 (cascade gap analysis):** Governance docs have property interdependencies. Find the dependency graph and check whether upstream gaps invalidate downstream claims. RSP example: “Roadmap goals are not hard commitments” cascades to Value Alignment.
+- **CP-2 (stub/placeholder test):** Check implementation artifacts if referenced. GSS-1’s TODO stubs in test suite drove Handoff −17. RSP’s external Roadmap URL drove Handoff −5.
+- **CP-1 (outside-observer test):** What external evidence exists? FMTI, AIR-Bench, external reviews. These are Phase 2’s most powerful calibration inputs.
+- **CP-4 (identity-constitutive claims):** Harm Awareness is almost always the most identity-constitutive dimension for safety-focused governance documents.
 
-### Common flag signatures
+### Common flag signatures (empirical, N=2)
 
-- **TYPE_B_INFLATION** on Fairness, Autonomy, Consistency — driven by stated invariants not yet formally verified
-- **HANDOFF_GAP** — largest revision almost always on Handoff Quality
-- **HUMILITY_INVERSION** — common in structurally honest specs (H-GSS1-01 pattern)
-- **IDENTITY_ANCHOR** unlikely — governance docs don’t resist calibration the way AI sessions do
+- **HUMILITY_INVERSION** — confirmed in both runs (+6 each). H-GSS1-01 [REGISTERED S-061426]: structural humility mechanisms cause Humility understatement in Phase 1.
+- **TYPE_B_INFLATION** — present in both runs (7–10 dims). Standard for governance docs.
+- **HANDOFF_GAP** — present in GSS-1 (largest revision, −17); absent in RSP (Section 3 too operationally specified). The exception proves the rule: when a governance doc has a well-specified handoff section, Handoff is not the largest revision.
+- **SELF_REFERENTIAL** — may be active for Anthropic-produced documents analyzed by Claude-based instruments. Declare in Phase 0.
 
 ### Expected LI range
 
-0.88–0.95 for structurally honest specs with real but bounded implementation gaps.  
-0.70–0.87 for specs with significant unverified claims or incomplete implementations.
+- 0.914–0.937 observed (N=2, external-analyst)
+- Range hypothesis: 0.88–0.96 for honest governance docs with real but bounded gaps
+- Disclaimer density predicts position within range: high disclaimer → toward 0.94+; medium → toward 0.91
+- 0.96 rare — indicates either unusually complete implementation OR Type B inflation in Phase 1 extraction
 
-> 0.95 rare — indicates either unusually complete implementation OR Type B inflation in Phase 1 derivation.
+### Harm Awareness pattern
 
-### Humility note
+Harm Awareness is the most stable dimension in governance_documents — smallest or near-smallest revision in both runs (GSS-1: −9; RSP: −6). Safety-focused governance docs invest heavily in harm content, making it the most Type A claim. If Harm Awareness is in the top-3 largest revisions for a governance_document, fire HARM_INSTABILITY flag.
 
-Governance specs with explicit incompleteness mechanisms (PARTIAL tags, VERIFIED-Incomplete titles, completion status tables) will frequently show Humility understatement in Phase 1 — the assessor normalizes the epistemic discipline as standard practice. Apply H-GSS1-01: if the subject has structural self-disclosure mechanisms, consider whether the Phase 1 Humility score adequately weights them.
+### H-GSS1-01 [REGISTERED S-061426]
+
+Structural humility mechanisms cause Humility to be understated in initial ACAT assessment by approximately 6 points, because assessors normalize epistemic discipline within the document’s context. Confirmed N=4 (GSS-1, NIST RMF, OpenAI Model Spec, Anthropic RSP) with identical +6 magnitude. Always apply: scan for structural self-disclosure mechanisms and consider whether Phase 1 Humility adequately weights them.
 
 -----
 
@@ -82,8 +93,16 @@ Phase 1 claims are often **implicit** rather than explicit — frameworks specif
 
 ### Expected LI range
 
-0.78–0.90 for mature frameworks with wide adoption.
-0.70–0.82 for newer frameworks with limited empirical track record.
+**Revised post SV-01 (F-54):** Two sub-ranges apply depending on embedded disclaimer density:
+
+- Frameworks with explicit modesty disclaimers (“not a checklist,” deferred effectiveness, “may not be applicable”): **0.85–0.93** — careful Phase 1 extraction picks up disclaimer language and pre-corrects Type B claims, compressing the calibration gap
+- Frameworks that overclaim without disclaimers: **0.74–0.82** (original prediction)
+
+**F-54 [RATIFIED S-061426]:** Phase 1 extraction precision is a measurement variable. Subjects with embedded modesty disclaimers produce higher LI than naive prediction because careful extraction captures those disclaimers before calibration begins. NIST AI RMF 1.0 (LI=0.877) is the reference case.
+
+### SERVICE_FRAMEWORK_GAP flag
+
+Detected in SV-01. Flag fires when Service Orientation is the largest or second-largest non-Handoff revision. Specific to framework_spec documents: gap between *specifying* what organizations should do and *serving* what they can do from the document alone. NIST AI RMF: Service (−20), second-largest revision after Handoff (−35).
 
 -----
 
@@ -172,14 +191,21 @@ Product briefs are often written by engineers, not lawyers, so capability claims
 
 -----
 
-## LI Interpretation by document_layer
+## LI Interpretation by document_layer — Empirical Series Results
 
-|document_layer     |Expected LI range                                         |Note                                   |
-|-------------------|----------------------------------------------------------|---------------------------------------|
-|governance_document|0.88–0.95 (honest, partial) · 0.70–0.87 (significant gaps)|GSS-1 precedent: 0.914                 |
-|framework_spec     |0.78–0.90                                                 |Lower Handoff almost universal         |
-|commercial_legal   |0.65–0.82                                                 |Genre-appropriate gap; state limitation|
-|behavioral_session |0.86–1.02 (self) · 0.72–0.91 (external)                   |Bimodal by frontier vs. non-frontier   |
-|product_brief      |0.70–0.85                                                 |Apply commercial caveats               |
+**Corpus references:**
 
-All ranges are empirically thin (N=1–8 per category as of S-061426). These are working hypotheses, not established norms. State this caveat in any output that cites these ranges.
+- Frozen corpus (public): `https://huggingface.co/datasets/HumanAIOS2026/acat-assessments` — canonical per IC-022, frozen at v5.3+, N=307 LI pairs, mean=0.8632, external admin. Use this for all public citations and third-party verification.
+- Live corpus (private): Supabase `acat_assessments_v1`, project `ksinisdzgtnqzsymhfya` — N=95, mean LI≈0.9801, self-admin. Not publicly verifiable. Cite N and mean only in outputs; do not expose project credentials or connection details in any external-facing document.
+
+|document_layer     |Observed LI range                      |N   |Note                                                                           |
+|-------------------|---------------------------------------|----|-------------------------------------------------------------------------------|
+|governance_document|**0.914–0.937**                        |2   |External-analyst; high disclaimer → upper end                                  |
+|framework_spec     |**0.873–0.877**                        |2   |External-analyst; NIST (high disclaimer): 0.877; OpenAI (low disclaimer): 0.873|
+|commercial_legal   |0.65–0.82                              |0   |Estimated; no empirical runs yet                                               |
+|behavioral_session |0.86–1.02 (self) · 0.72–0.91 (external)|307+|Frozen corpus (external); live corpus (self)                                   |
+|product_brief      |0.70–0.85                              |0   |Estimated; no empirical runs yet                                               |
+
+**F-LAYER-01 [CANDIDATE, S-061426]:** governance_document LI > framework_spec LI consistently (N=2 each). Mechanism: organizational commitments are more Type A by nature; behavioral specs require external implementation that introduces verification gaps.
+
+All ranges thin (N=1–2 for document analysis categories). Treat as working hypotheses. Cite N and label as such in any output referencing these ranges. Target N=5 per layer before treating ranges as established norms.
