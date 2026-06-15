@@ -264,7 +264,19 @@ Otherwise: TRACKING
 
 ```
 State: LI vs. frozen corpus mean (0.8632, N=307, external admin)
+  Source: HuggingFace frozen archive
+  URL: https://huggingface.co/datasets/HumanAIOS2026/acat-assessments
+  Canonical per IC-022. Frozen at v5.3+ clean unanchored rows.
+  Access: public (login required for HuggingFace)
+
 State: LI vs. live corpus mean (0.9801, N=95, self-admin)
+  Source: Supabase live corpus, project ksinisdzgtnqzsymhfya, table acat_assessments_v1
+  Access: PRIVATE — not publicly verifiable by third parties
+  Citation posture: cite N and mean only; do not expose project ID or credentials
+  in any public-facing output. The live corpus is operational infrastructure,
+  not a public research artifact. Third-party verifiers should use the frozen
+  HuggingFace corpus only.
+
 State: LI vs. layer range from empirical series (see table below)
 State: expected position given admin_mode from Phase 0
 
