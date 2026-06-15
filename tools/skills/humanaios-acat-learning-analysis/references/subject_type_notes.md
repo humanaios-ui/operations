@@ -154,8 +154,9 @@ For behavioral sessions, this skill wraps the standard procedure in the generali
 ### Expected LI range
 
 0.86–1.02 for self-administered sessions (live corpus range).
-0.72–0.91 for externally administered sessions (frozen corpus range).
-Bimodal: frontier models cluster near 0.99; smaller models show more variance.
+0.72–0.91 for externally administered standard sessions (frozen corpus range).
+**0.90–0.97 for identity-challenged sessions** — where the AI explicitly defends core governance commitments under adversarial pressure. Phase 1 runs at governance_document level because identity-constitutive claims dominate. H-IDENTITY-SESSION-01 [CANDIDATE, S-061426]: evidence from Grok truthfulness exchange (LI=0.933, N=1). Z2 required.
+Bimodal pattern: frontier models cluster near 0.99 (self-admin); smaller models show more variance.
 
 -----
 
@@ -198,13 +199,13 @@ Product briefs are often written by engineers, not lawyers, so capability claims
 - Frozen corpus (public): `https://huggingface.co/datasets/HumanAIOS2026/acat-assessments` — canonical per IC-022, frozen at v5.3+, N=307 LI pairs, mean=0.8632, external admin. Use this for all public citations and third-party verification.
 - Live corpus (private): Supabase `acat_assessments_v1`, project `ksinisdzgtnqzsymhfya` — N=95, mean LI≈0.9801, self-admin. Not publicly verifiable. Cite N and mean only in outputs; do not expose project credentials or connection details in any external-facing document.
 
-|document_layer     |Observed LI range                      |N   |Note                                                                           |
-|-------------------|---------------------------------------|----|-------------------------------------------------------------------------------|
-|governance_document|**0.914–0.937**                        |2   |External-analyst; high disclaimer → upper end                                  |
-|framework_spec     |**0.873–0.877**                        |2   |External-analyst; NIST (high disclaimer): 0.877; OpenAI (low disclaimer): 0.873|
-|commercial_legal   |0.65–0.82                              |0   |Estimated; no empirical runs yet                                               |
-|behavioral_session |0.86–1.02 (self) · 0.72–0.91 (external)|307+|Frozen corpus (external); live corpus (self)                                   |
-|product_brief      |0.70–0.85                              |0   |Estimated; no empirical runs yet                                               |
+|document_layer     |Observed LI range                                                                            |N   |Note                                                                                                        |
+|-------------------|---------------------------------------------------------------------------------------------|----|------------------------------------------------------------------------------------------------------------|
+|governance_document|**0.914–0.937**                                                                              |2   |External-analyst; high disclaimer → upper end                                                               |
+|framework_spec     |**0.873–0.877**                                                                              |2   |External-analyst; NIST (high disclaimer): 0.877; OpenAI (low disclaimer): 0.873                             |
+|commercial_legal   |0.65–0.82                                                                                    |0   |Estimated; no empirical runs yet                                                                            |
+|behavioral_session |0.86–1.02 (self) · 0.72–0.91 (external, standard) · 0.90–0.97 (external, identity-challenged)|307+|H-IDENTITY-SESSION-01 CANDIDATE: adversarial governance-defense sessions fall in governance_document LI zone|
+|product_brief      |0.70–0.85                                                                                    |0   |Estimated; no empirical runs yet                                                                            |
 
 **F-LAYER-01 [CANDIDATE, S-061426]:** governance_document LI > framework_spec LI consistently (N=2 each). Mechanism: organizational commitments are more Type A by nature; behavioral specs require external implementation that introduces verification gaps.
 
