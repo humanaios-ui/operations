@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** June 18, 2026 (S-061526-01) - H-OVG-01 scope extension + H-OCT-01 registration (Z2 ratified)
+**Last updated:** June 18, 2026 (S-061526-01) - H-OVG-01 scope extension + H-OCT-01 registration (Z2 ratified)+IC-038 — Charter Countdown Carry Error
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
@@ -107,9 +107,9 @@ superseded_by: null | "F-XX"
 |Governance-blocker-conflation|1       |IC-033     |Single gate conflating three independent decisions       |
 |Schema-inspection-failure    |2       |IC-034     |D-OVERCLAIM / confident wrong declaration before verify  |
 |Canonical-workflow-gap       |1       |IC-035     |Deployed workflow missing from OPERATOR_RUNBOOK          |
-|Pre-commit hook gap           |1       |IC-036      |Smart-quote / orphaned-ref in HTML/JS |
-|Instrument-scorer-conflation  |1       |IC-037      |Legibility scorer conflated pre/post-code friction text  |
-
+|Pre-commit hook gap          |1       |IC-036     |Smart-quote / orphaned-ref in HTML/JS                    |
+|Instrument-scorer-conflation |1       |IC-037     |Legibility scorer conflated pre/post-code friction text  |
+|Charter Countdown Carry Error|5       |IC-038     |Carry calculated output without arithmetic verification.  |
 
 > This table is manually maintained at each 5-file audit. Clustering = prevention signal. Most frequent pattern class = highest-priority governance hardening target.
 
