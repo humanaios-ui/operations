@@ -2,7 +2,7 @@
 
 **Version:** 6.4.2
 **Last Updated:** June 17, 2026 · S-061726-01 · CDT
-**Committed to operations repo:** 061726
+**Committed to operations repo:** Pending · Z3 · S-061026-04
 **Supersedes:** v6.1 (May 12, 2026, canonical) + v6.3.3 (May 6, 2026, never-pushed divergent branch)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`
 **Scope:** Governance only. No state. No findings. No contacts. No funding.
