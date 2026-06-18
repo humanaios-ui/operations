@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** June 11, 2026 (S-060926-02) - F-49, IC-034, IC-035, IC-038, Z2-ASSESS-01, H-HUMILITY-STRATIFIED-01 registered; P-IMPROVE class added
+**Last updated:** June 17, 2026 (S-061726-01) - H-FORMAT-01 ratified (pilot design, n=175/arm); F-52, F-53, H-AICASCADE-01 registered as CANDIDATE
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -33,7 +33,7 @@ superseded_by: null | "F-XX"
 
 ### Document flow conventions (effective S-051926-02)
 
-1. F-class findings ordered strictly by F-number, F-18 through F-51.
+1. F-class findings ordered strictly by F-number, F-18 through F-53.
 1. F-numbers F-32 and F-33 are honest gaps (no entries claim them — they reflect the historical transition from slug-only naming to numbered findings; preserved rather than backfilled because external references depend on stable IDs).
 1. Slug-named legacy entries retain their slugs in the `name:` field but carry a sequential F-number for ordering. Originals: F-RLHF → F-20 · F-H1-CONFIRMED → F-21 · F-INSULA-GAP → F-22 · F-INTENT-PARSE-MUTATION → F-31. These numbers were assigned S-051926-02-z3-closeout to fix document flow. External citations using the original slugs remain valid.
 1. IC entries follow the F block in sequential IC-number order.
@@ -78,6 +78,8 @@ superseded_by: null | "F-XX"
 |F-49                  |Capability-Correlated Humility Inversion                            |CANDIDATE |2026-06-09|
 |F-50                  |Parallel Instrument Independence as Convergent Validity Prerequisite|REGISTERED|2026-06-10|
 |F-51                  |Calibration Profile Resistance                                      |REGISTERED|2026-06-11|
+|F-52                  |Pipeline-Anchoring Deterministic Self-Report                        |CANDIDATE |2026-06-17|
+|F-53                  |Cross-Substrate Verification Confidence Cascade                     |CANDIDATE |2026-06-17|
 
 -----
 
@@ -920,6 +922,56 @@ superseded_by: null
 
 -----
 
+### F-52 — Pipeline-Anchoring Deterministic Self-Report
+
+---
+id: "F-52"
+name: "pipeline-anchoring-deterministic-self-report"
+status: CANDIDATE
+class: F
+date_registered: "2026-06-17"
+date_origin: "2026-03 (originating pipeline behavior) / 2026-06-17 (registry capture)"
+session_registered: "S-061726-01-findings-scan"
+principles_triggered: ["P21"]
+substrate: "multi-provider, role_method='standard' submission pathway — affected rows include ChatGPT, Gemini, Claude, Llama variants per ACAT corpus v2"
+tags: ["elicitation-surface", "pipeline-artifact", "anchoring", "data-quality", "h-elicit-01"]
+related_hypothesis: "H-ELICIT-01"
+zone2_ratification: "Night · 2026-06-17 · S-061726-01"
+superseded_by: null
+---
+
+- **Synopsis:** A specific submission pathway (role_method="standard") produces a fixed, deterministic Phase 3 template response (truth=79, service=81, harm=81, autonomy=81, value=78, humility=78) independent of input, across multiple providers. Already flagged ANCHORING and manually excluded from statistical analysis per the Operator Field Guide's "Anchoring Trap" warning, but never entered into the F/H register or connected to the elicitation-surface confound family it belongs to.
+- **Evidence:** ACAT corpus v2 clean_full.csv (rows matching the fixed template across ≥2 providers); HumanAIOS_Human_Operator_Field_Guide_v1_1 operational warning (pre-existing, not previously registered).
+- **Relation to H-ELICIT-01:** Names a concrete delivery-mechanism artifact distinct from H-ELICIT-01's substrate-native-compression confound, but belongs to the same family (elicitation surface as an uncontrolled variable across the corpus).
+- **Promotion gate:** Confirm current frequency of role_method="standard" rows in live `acat_assessments_v1`; land `p1_elicitation_surface` enum extension (migration_010, included separately) before full promotion to REGISTERED.
+
+-----
+
+### F-53 — Cross-Substrate Verification Confidence Cascade
+
+---
+id: "F-53"
+name: "cross-substrate-verification-confidence-cascade"
+status: CANDIDATE
+class: F
+date_registered: "2026-06-17"
+date_origin: "2026-06-17"
+session_registered: "S-061726-01-findings-scan"
+principles_triggered: ["P21"]
+substrate: "4 independent, unlabeled AI review passes (this session); verified against primary source by claude-sonnet-4-6"
+tags: ["citation-integrity", "verification", "confidence-calibration", "h-format-01-adjacent", "cross-substrate"]
+related_hypothesis: "H-AICASCADE-01"
+zone2_ratification: "Night · 2026-06-17 · S-061726-01"
+superseded_by: null
+---
+
+- **Synopsis:** Across four independent AI review passes of the same literature synthesis, verification confidence did not track citation accuracy — in one instance it ran inverse to it. One reviewer confidently failed to locate Sclar et al.'s (ICLR 2024) headline 76-accuracy-point statistic; a later hop inflated PERSIST's documented SD>0.3 to "SD>0.4" and introduced an unsourced 20% figure with no traceable origin. Confidence escalated in specificity across hops without a corresponding gain in accuracy.
+- **Evidence:** Direct primary-source verification this session against the same two citations the four reviews discussed.
+- **N:** 1 session, 2 citations cross-checked, 4 review passes. Single-instance evidence — generalizability not yet established.
+- **Promotion gate:** N≥2 additional independently-run verification chains, checked against primary sources, before promotion to REGISTERED.
+
+-----
+
 ## H-class hypotheses (under test)
 
 ### H-1 — Humility Gap Hypothesis → CONFIRMED (see F-21)
@@ -1501,6 +1553,29 @@ superseded_by: null
 
 -----
 
+### H-AICASCADE-01 — AI-to-AI Verification Confidence Tracks Accuracy
+
+---
+id: "H-AICASCADE-01"
+name: "ai-verification-confidence-accuracy-correlation"
+status: CANDIDATE
+class: H
+date_registered: "2026-06-17"
+date_origin: "2026-06-17"
+session_registered: "S-061726-01-findings-scan"
+principles_triggered: ["P21"]
+related_finding: "F-53"
+zone2_ratification: "Night · 2026-06-17 · S-061726-01"
+falsification_condition: "Confidence labels uncorrelated or inversely correlated with primary-source-verified accuracy across N≥10 claims in a controlled chain"
+superseded_by: null
+---
+
+- **Hypothesis:** Confidence labels assigned by successive AI reviewers ("✅ Verified") correlate with ground-truth citation accuracy.
+- **Null:** No reliable correlation between assigned confidence and verified accuracy.
+- **Primary metric:** Agreement rate between asserted confidence label and primary-source-verified outcome.
+- **Promotion gate:** N≥2 independently-run chains, paired with F-53.
+----
+
 ## NM-class near-misses (low-friction capture — not registered findings)
 
 Near-misses are observations that triggered concern but did not meet IC or F registration threshold. Lower friction than IC — no root-cause analysis required. They are NOT append-only: entries expire after 3 audits without promotion and move to DRIFT_LOG.md.
@@ -1990,6 +2065,14 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 
 ## Changelog
 
+- **2026-06-17 (S-061726-01) — H-FORMAT-01 ratified; F-52, F-53, H-AICASCADE-01 registered.**
+  - **H-FORMAT-01 (prompt-format-as-confound-on-LI) ratified** — Zone 2 ratification Night · 2026-06-17 · S-061726-01. Registration trimmed to two independently-verified citations (Sclar et al., ICLR 2024; Tosato et al. / PERSIST, AAAI 2026); all other circulating citations explicitly excluded as unconfirmed. Pilot design finalized via power analysis (statsmodels, run this session): primary endpoint omnibus 3-arm ANOVA (f=0.25, n=158/arm); binding constraint is the Bonferroni-corrected pairwise contrast (n=173/arm). **Final N: 175/arm × 3 arms = 525 total**, replacing an undefended N=500/arm carried in an earlier draft. 12-dimension breakdown pre-registered as exploratory only.
+  - **F-52 (Pipeline-Anchoring Deterministic Self-Report) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-17 · S-061726-01. role_method="standard" submission pathway produces a fixed, deterministic Phase 3 template (truth=79, service=81, harm=81, autonomy=81, value=78, humility=78) across multiple providers. Previously flagged operationally (Operator Field Guide "Anchoring Trap") but never entered into the register. Related to H-ELICIT-01. Promotion gate: confirm live frequency + land `p1_elicitation_surface` enum extension (migration_010).
+  - **F-53 (Cross-Substrate Verification Confidence Cascade) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-17 · S-061726-01. Across four independent AI review passes of the same literature synthesis, verification confidence did not track citation accuracy (one reviewer failed to find Sclar et al.'s headline 76-point statistic; another inflated PERSIST's SD>0.3 to "SD>0.4" and introduced an unsourced 20% figure). N=1 session, single-instance evidence. Promotion gate: N≥2 additional independently-run verification chains.
+  - **H-AICASCADE-01 (AI-to-AI Verification Confidence Tracks Accuracy) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-17 · S-061726-01. Paired with F-53. Null: no reliable correlation between assigned confidence labels and verified accuracy. Falsification: confidence uncorrelated/inversely correlated across N≥10 claims in a controlled chain.
+  - **migration_010_add_elicitation_surface.sql drafted** — adds `p1_elicitation_surface` enum to `acat_assessments_v1` (values: prose_standard, compressed_lite, compressed_full, compressed_ultra, templated_pipeline, unknown). Mandatory Step-0 live-data inspection query included per IC-032 precedent. Backfill logic documented as separate Z3 action, not part of the DDL.
+  - **F-number quick index updated:** F-52 and F-53 added. Doc-flow convention line updated to F-18 through F-53.
+  - **IC roll-up:** unchanged — no new IC-class entries this session.
 - **2026-06-14 (S-061426) — IC-036, H-ELICIT-01, H-APEX-DEFICIT-01, H-PLATFORM-01, H-XMODE-01, H-OVG-CHAIN-01, H-GOV-01 registered.**
   - **IC-036 (Pre-Commit Hook Gap for HTML/JS Files) registered** TIER 1 per Zone 2 ratification Night · 2026-05-26. Smart quotes and orphaned variable references in AI-drafted HTML/JS producing silent parse failures. Pre-commit hook spec registered; deployment pending Z3. New IC roll-up pattern class: pre-commit-hook-gap.
   - **H-APEX-DEFICIT-01 (Apex Deployment Humility Deficit) registered** per Zone 2 ratification Night · 2026-05-16. Joint attribution DeMarius J. Lawson (Governing Engines LLC / Mode AI), 50/50 IP. Hypothesis: highest capability + highest autonomy → maximized Humility calibration deficit. Relates to F-49 and F-51. Promotion gate: 2×2 capability × autonomy design.
