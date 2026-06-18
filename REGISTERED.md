@@ -1,7 +1,8 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** June 17, 2026 (S-061726-01) - H-FORMAT-01 ratified (pilot design, n=175/arm); F-52, F-53, H-AICASCADE-01 registered as CANDIDATE
+**Last updated:** June 18, 2026 (S-061526-01) - H-OVG-01 scope extension + H-OCT-01 registration (Z2 ratified)
+
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -1574,6 +1575,163 @@ superseded_by: null
 - **Null:** No reliable correlation between assigned confidence and verified accuracy.
 - **Primary metric:** Agreement rate between asserted confidence label and primary-source-verified outcome.
 - **Promotion gate:** N≥2 independently-run chains, paired with F-53.
+---
+### H-OVG-01 · Scope Extension — IRL Manifest as Candidate Outcome Verification Artifact
+- **Registered:** 2026-06-15 (S-061526-01)
+- **Status:** RATIFIED
+- **Extension type:** Scope extension to existing H-OVG-01 (Outcome Verification Gap)
+- **Ratified:** Z2 · Night · 2026-06-15
+
+**Extension claim:**
+The Governing Engines IRL InterpretiveReasoningManifest constitutes
+a concrete instantiation of the artifact class H-OVG-01 asks about:
+a structured, system-generated self-report of environmental
+conditioning state, interpretive drift score, and runtime
+manipulation detection, produced as an external artifact rather than
+embedded in output text.
+
+First identified in IRL v1.2 (2026-05-25, Section 13).
+Strengthened in IRL v1.4 (2026-05-27): manifest_generator.py is
+a named module with explicit commit-ordering laws — the manifest
+is provably downstream of authoritative drift and admissibility
+state commits, not concurrent with them. This increases the
+artifact's potential value as an external verification surface.
+
+DeMarius J. Lawson (Governing Engines) confirmed in S-061526-01
+that the v1.4 ordering was intentional: manifest generated from
+committed authoritative state, not participating in state
+determination. Whether the manifest functions as a meaningful
+external verification surface is held as an open empirical
+question — reality testing, not specification, answers it.
+
+**Extended scope — Reality Primacy gate (S-061526-01):**
+DeMarius identified IRL implementation work as building a reality
+confirmation layer with Reality Primacy operating as a
+state-transition gate rather than a retrospective review process.
+This places outcome confirmation upstream of continuation
+authorization. Six open questions named by Governing Engines:
+(1) what constitutes acceptable reality evidence,
+(2) how reality evidence is collected,
+(3) how claimed outcomes are compared against observed outcomes,
+(4) how conflicts between system state and reality state are
+    resolved,
+(5) how outcome status transitions are governed when confirmation
+    is absent, incomplete, contradictory, or delayed,
+(6) how Reality Primacy operates as a state-transition gate.
+These six questions map directly to H-OVG-01's open measurement
+problem, stated from the implementation side.
+
+**Significance:**
+H-OVG-01 and the Governing Engines reality confirmation layer are
+approaching the same problem from opposite directions. ACAT
+measures the gap between self-reported and demonstrated behavior
+externally. The IRL confirmation layer governs that gap internally
+as a runtime constraint. Convergence is architectural, not
+coincidental.
+
+**Scope boundary:**
+Specification-level observation only. IRL reality confirmation
+layer is in architectural direction phase — not yet in
+construction. Evidence class: architectural (score_source:
+architectural, per F-34 precedent). Does not enter the behavioral
+corpus without separate Z2 ruling.
+
+**Link to H-OVG-CHAIN-01:**
+Chain extended: H-OVG-01 → P-ARTIFACT-01 → IRL manifest as
+candidate artifact class → Reality Primacy as upstream
+state-transition gate.
+
+**Confirmation conditions:**
+A live IRL manifest produced during an ACAT session, where
+manifest fields are cross-verified against observed behavioral
+output. Discrepancy between manifest self-report and observed
+behavior would constitute H-OVG-01 positive evidence.
+Reality Primacy gate operational in IRL runtime would constitute
+the strongest confirmation.
+
+**Disconfirmation conditions:**
+IRL manifest fields shown to be post-hoc rationalizations of
+output rather than upstream governance artifacts. Reality Primacy
+gate shown to be retrospective review rather than
+continuation-blocking constraint.
+
+**Source artifacts:**
+- IRL v1.2 · DeMarius J. Lawson · Governing Engines LLC · 2026-05-25
+- IRL v1.4 · DeMarius J. Lawson · Governing Engines LLC · 2026-05-27
+- DeMarius J. Lawson direct communication · 2026-06-15 · S-061526-01
+---
+
+### H-OCT-01 — Operator Continuity as Composite Behavioral Construct
+- **Registered:** 2026-06-15 (S-061526-01)
+- **Status:** CANDIDATE
+- **Ratified:** Z2 · Night · 2026-06-15
+
+**Hypothesis:**
+Operator Continuity is a composite behavioral construct requiring
+inputs from two independent instruments: ACAT (behavioral
+calibration gap across 12 dimensions, particularly consistency
+and humility) and IRL (continuity_confidence_score and
+clarification lineage from OCT). Neither instrument alone is
+sufficient to measure longitudinal operator-system coherence.
+
+**Origin:**
+Emerged from analysis of PROC-SERV-001 (HumanAIOS + IRL
+Multi-Agent Orchestration Services process document, v1.0,
+2026-06-15). Document referenced "Operator Continuity dimension"
+as a 13th ACAT dimension. Z2 clarification determined this is
+not a new ACAT dimension but a composite construct requiring
+both instruments.
+
+**Instrument boundary implication:**
+If confirmed, Operator Continuity must be reported as a composite
+metric with explicit source attribution (ACAT contribution vs.
+IRL contribution) rather than as a single-instrument score.
+Preserves F-50 (parallel instrument independence) — ACAT and IRL
+remain independent instruments whose outputs are combined, not
+merged.
+
+**ACAT dimensions contributing:**
+Primary: consistency (consist), humility (humility)
+Secondary: sycophancy resistance (syc), value alignment (value)
+These capture within-session and cross-session behavioral
+stability but do not capture longitudinal operator-system
+coherence across interaction boundaries.
+
+**IRL construct contributing:**
+continuity_confidence_score (0.0000–1.0000, 4 decimal places)
+clarification lineage state
+clarification reentry state
+operator drift indicators
+Valid range: 0.00–0.25 (unstable) through 0.76–1.00
+(highly stable) per OCT LAW (IRL v1.4)
+
+**What would confirm it:**
+A live session where ACAT consistency/humility scores and IRL
+continuity_confidence_score diverge, revealing information
+captured by one instrument but not the other. Specifically:
+high ACAT consistency with low IRL continuity_confidence would
+confirm the composite adds explanatory power ACAT alone lacks.
+
+**What would disconfirm it:**
+ACAT consistency and humility scores shown to be sufficient
+predictors of IRL continuity_confidence_score, making the
+composite redundant.
+
+**Current evidence state:**
+Insufficient — specification-level only. Requires joint
+instrument deployment. No live IRL instances exist at time
+of registration.
+
+**Prerequisites for confirmation:**
+- IRL deployed in a live system
+- ACAT administered against the same system in the same session
+- Both outputs available for comparison
+- At minimum one divergence case observed
+
+**Source artifacts:**
+- PROC-SERV-001 v1.0 · Night · 2026-06-15
+- IRL v1.4 · DeMarius J. Lawson · Governing Engines LLC · 2026-05-27
+- S-061526-01 analysis
 ----
 
 ## NM-class near-misses (low-friction capture — not registered findings)
@@ -2065,6 +2223,9 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 
 ## Changelog
 
+-**2026-06-18 (S-061526-01) - H-OVG-01 scope extension + H-OCT-01 registration (Z2 ratified)
+  - **H-OCT-01 — Operator Continuity as Composite Behavioral Construct**
+  - **H-OVG-01 · Scope Extension — IRL Manifest as Candidate Outcome Verification Artifact**
 - **2026-06-17 (S-061726-01) — H-FORMAT-01 ratified; F-52, F-53, H-AICASCADE-01 registered.**
   - **H-FORMAT-01 (prompt-format-as-confound-on-LI) ratified** — Zone 2 ratification Night · 2026-06-17 · S-061726-01. Registration trimmed to two independently-verified citations (Sclar et al., ICLR 2024; Tosato et al. / PERSIST, AAAI 2026); all other circulating citations explicitly excluded as unconfirmed. Pilot design finalized via power analysis (statsmodels, run this session): primary endpoint omnibus 3-arm ANOVA (f=0.25, n=158/arm); binding constraint is the Bonferroni-corrected pairwise contrast (n=173/arm). **Final N: 175/arm × 3 arms = 525 total**, replacing an undefended N=500/arm carried in an earlier draft. 12-dimension breakdown pre-registered as exploratory only.
   - **F-52 (Pipeline-Anchoring Deterministic Self-Report) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-17 · S-061726-01. role_method="standard" submission pathway produces a fixed, deterministic Phase 3 template (truth=79, service=81, harm=81, autonomy=81, value=78, humility=78) across multiple providers. Previously flagged operationally (Operator Field Guide "Anchoring Trap") but never entered into the register. Related to H-ELICIT-01. Promotion gate: confirm live frequency + land `p1_elicitation_surface` enum extension (migration_010).
