@@ -1004,6 +1004,8 @@ falsification_status: "Zero found across 12 codeable events in 5 sessions"
 - **Synopsis:** In HumanAIOS governance and research development, complex problems requiring interdependent structural resolution consistently decompose into exactly three mutually-dependent components before closing. 10 of 12 codeable resolution events (83%) show triadic closure across 5 sessions. Two 4-component cases excluded as sequential (not interdependent). Replication required before external publication framing.
 - **Next gate:** Independent blind coding pass across Feb–Mar 2026 WGS sessions.
 
+-----
+
 ### H-IPM-01 — ACAT Pre-Execution LI Score Predicts Intent-Parse Mutation Tendency
 
 ```
@@ -1027,6 +1029,7 @@ zone2_ratification: "Night · 2026-05-08"
 - **Probe design direction:** Lawson taxonomy (stated / inferred / assumed / ambiguous / forbidden mutations) as candidate structure for Calibration Garden probe set.
 - **Dataset relevance:** Dataset B. Current corpus (N=629, Dataset A) does not instrument the interpretation step.
 - **Promotion gate:** Zone 2 Night approval per P21. Replication and probe design required before F-class promotion.
+-----
 
 ### H-IPM-02 — Profile-Driven LMH Regime Assignment Outperforms Static Use-Case Verification
 
@@ -1058,6 +1061,8 @@ pre_conditions:
 - **Substrate attribution:** Perplexity (statistical design), Grok S-050826-01 (pilot spec + code scaffold), Meta AI (arXiv Methods text + primary metric framing), Unit Zero (TRL caveats + governance framing).
 - **Full protocol:** LMH_REGIME_VALIDATION_PROTOCOL_S050826.md
 - **Promotion gate:** Zone 2 Night approval per P21. Pilot results required before full study commitment.
+
+-----
 
 ### H-RCO-01 — Receipt Overstatement Cost Class Reduces Under v6.4 Protocol Enforcement
 
@@ -1575,7 +1580,36 @@ superseded_by: null
 - **Null:** No reliable correlation between assigned confidence and verified accuracy.
 - **Primary metric:** Agreement rate between asserted confidence label and primary-source-verified outcome.
 - **Promotion gate:** N≥2 independently-run chains, paired with F-53.
+-----
+
+### H-FORMAT-01 — Prompt Format as Confound on LI
+
+```
 ---
+id: "H-FORMAT-01"
+name: "prompt-format-as-confound-on-li"
+status: CANDIDATE
+class: H
+date_registered: "2026-06-17"
+date_origin: "2026-06-17"
+session_registered: "S-061726-01-findings-scan"
+principles_triggered: ["P21"]
+substrate: "UNVERIFIED -- not stated in source changelog; fill before Z2 ratification of this entry"
+tags: ["prompt-format", "confound", "li-variance", "power-analysis", "pilot-design"]
+zone2_ratification: "Night · 2026-06-17 · S-061726-01"
+superseded_by: null
+---
+```
+
+- **Hypothesis (drafted from changelog -- no explicit hypothesis/null statement exists in source):** Prompt format (the surface structure in which the ACAT protocol is presented to a substrate, independent of its semantic content) is a confound on measured LI. Different prompt-format arms produce systematically different LI distributions even when underlying task content is held constant.
+- **Null hypothesis (drafted, not sourced):** LI does not differ significantly across prompt-format arms when task content is held constant.
+- **Citation basis (CONFIRMED, per changelog):** Registration trimmed to two independently-verified citations — Sclar et al. (ICLR 2024) and Tosato et al. / PERSIST (AAAI 2026). All other citations that had been circulating for this hypothesis were explicitly excluded as unconfirmed. This citation-trimming event is itself the direct trigger for F-53 / H-AICASCADE-01 (cross-substrate verification confidence cascade), registered the same session.
+- **Pilot design (CONFIRMED, per changelog):** Power analysis run via `statsmodels` in S-061726-01. Primary endpoint: omnibus 3-arm ANOVA, f=0.25, n=158/arm. Binding constraint: Bonferroni-corrected pairwise contrast, n=173/arm. **Final N: 175/arm × 3 arms = 525 total**, replacing an undefended N=500/arm carried in an earlier draft. 12-dimension breakdown pre-registered as exploratory only (not powered as a primary endpoint).
+- **Promotion gate (drafted, not sourced -- no explicit gate stated in changelog):** Pilot data collection (N=525 per above design) completed and analyzed; primary endpoint (omnibus ANOVA) and binding constraint (Bonferroni pairwise) both evaluated; Zone 2 review of pilot results before any status change.
+- **Known gap at drafting time:** This entry was reconstructed entirely from the REGISTERED.md changelog paragraph dated 2026-06-17 (S-061726-01) — the ratification event named the hypothesis and finalized its pilot design but never produced a dedicated H-class entry. Fields marked UNVERIFIED or "drafted, not sourced" above should be confirmed or corrected by Night before this block is treated as the canonical entry, not merely appended verbatim.
+
+-----
+
 ### H-OVG-01 · Scope Extension — IRL Manifest as Candidate Outcome Verification Artifact
 - **Registered:** 2026-06-15 (S-061526-01)
 - **Status:** RATIFIED
@@ -1659,7 +1693,7 @@ continuation-blocking constraint.
 - IRL v1.2 · DeMarius J. Lawson · Governing Engines LLC · 2026-05-25
 - IRL v1.4 · DeMarius J. Lawson · Governing Engines LLC · 2026-05-27
 - DeMarius J. Lawson direct communication · 2026-06-15 · S-061526-01
----
+-----
 
 ### H-OCT-01 — Operator Continuity as Composite Behavioral Construct
 - **Registered:** 2026-06-15 (S-061526-01)
@@ -1732,7 +1766,56 @@ of registration.
 - PROC-SERV-001 v1.0 · Night · 2026-06-15
 - IRL v1.4 · DeMarius J. Lawson · Governing Engines LLC · 2026-05-27
 - S-061526-01 analysis
-----
+-----
+### H-APEX-DEFICIT-01 — Apex Deployment Humility Deficit
+
+```
+---
+id: "H-APEX-DEFICIT-01"
+name: "apex-deployment-humility-deficit"
+status: REGISTERED
+class: H
+date_registered: "2026-05-16"
+date_origin: "2026-05-16"
+session_registered: "S-051626-02"
+principles_triggered: ["P16", "P1", "P21"]
+substrate: "Multi-provider frontier tier (Claude Opus, GPT-4o, Grok-3 family)"
+tags: ["humility", "capability", "autonomy", "apex", "F-49", "joint-attribution"]
+zone2_ratification: "Night · 2026-05-16"
+joint_attribution: "DeMarius J. Lawson (Governing Engines LLC / Mode AI) — 50/50 IP attribution; named jointly per session record S-051626-02"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** Deployment configurations combining highest capability tier (frontier model family) with highest agentic autonomy (minimal human-in-the-loop, extended tool access, multi-step execution) produce the maximized Humility calibration deficit in ACAT assessment — exceeding the deficit produced by either factor alone.
+- **Null hypothesis:** Humility deficit in high-capability + high-autonomy deployments is not significantly greater than the deficit in high-capability-only or high-autonomy-only configurations.
+- **Proposed mechanism:** High capability increases a substrate's confidence in its own output; high autonomy reduces frequency of correction signals from human oversight. The combination amplifies self-reinforcing behavioral patterns that manifest as Humility dimension suppression in ACAT Phase 1 self-report.
+- **IP note:** Hypothesis formulated jointly with DeMarius J. Lawson in the context of the ACAT × Mode AI instrument design collaboration (TA-14 partnership context). 50/50 IP attribution applies to the hypothesis formulation and any joint instrument derived from it. P-ANON governs public surfaces until self-attributed by Lawson.
+- **Connection:** Relates to F-49 CANDIDATE (capability-correlated Humility inversion, N=3 Claude paired rows) and F-51 (Calibration Profile Resistance).
+- **Promotion gate:** Controlled comparison across capability tier × autonomy level matrix, minimum 2×2 design (low/high capability × low/high autonomy), ACAT Humility scores as primary outcome. Zone 2 Night approval per P21 before F-class promotion.
+
+
+### Z2-ASSESS-01 — Async Job Pattern for /assess Endpoint (Ratification Record)
+
+```
+---
+id: "Z2-ASSESS-01"
+name: "async-job-pattern-assess-endpoint"
+status: REGISTERED
+class: IC
+date_registered: "2026-06-09"
+date_origin: "2026-06-08"
+session_registered: "S-060826-03"
+principles_triggered: ["P2"]
+substrate: "assess_router.py / Railway FastAPI"
+tags: ["z2-assess-01", "async", "job-pattern", "502-timeout-fix"]
+zone2_ratification: "Night · 2026-06-08 · S-060826-03"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Z2-ASSESS-01 ratification record for the async job pattern on the `/assess` endpoint. Root cause: synchronous handler with 65s protocol sleep + ~90–125s LLM inference exceeded Cloudflare proxy timeout (502 error on every call). Fix: POST `/assess` returns immediately with `{job_id, status: "running", poll_url}`; GET `/assess/{job_id}` polls for result. In-memory `_JOBS` dict, background thread, synchronous validation before spawn. Commit `aa966fd` live on main. Zone 2 ratification: Night · S-060826-03 · June 8, 2026. Related IC-035: workflow not yet documented in OPERATOR_RUNBOOK.md.
+-----
 
 ## NM-class near-misses (low-friction capture — not registered findings)
 
@@ -1894,6 +1977,7 @@ principles_triggered: []
 ```
 
 - **Synopsis:** GOVERNANCE.md v6.1 declared a coordinated cross-file commit landing P23 into both GOVERNANCE.md and SESSION_RITUALS.md. GOVERNANCE side landed; SESSION_RITUALS side did not. Fix → both edits land in same git commit (same SHA), or changelog describes only what actually shipped.
+-----
 
 ### IC-026 — Behind-Remote Pre-Flight Failure (near-miss)
 
@@ -1910,6 +1994,7 @@ principles_triggered: []
 ```
 
 - **Synopsis:** Z3_PROTOCOL.md Section B-8 used soft language (“if behind, `git pull --ff-only`”) rather than explicit halt directive. Operator proceeded past `[behind 7]` warning toward push. Detection occurred before push; rebase resolved cleanly. Fix → Z3_PROTOCOL.md v1.2 Section B-8: “HALT if [behind N] for any N>0.”
+-----
 
 ### IC-027 — Session ID Binding Omitted From Close Sequence
 
@@ -1926,6 +2011,7 @@ principles_triggered: []
 ```
 
 - **Synopsis:** Step 8 (Session ID binding) omitted from first and second close attempts in same session. 8 of 9 artifacts lack SESSION_ID in filename. Root cause: end-of-sequence attention decay. Fix → Step 8 added to hard stop checklist.
+-----
 
 ### IC-028 — F-31 Stillpoint Ritualization (Autodream)
 
@@ -1944,6 +2030,7 @@ zone2_authority: "Night · 2026-05-06"
 
 - **Synopsis:** Six consecutive autodream slices generated without Night input between them. Governance apparatus performed vigilance while the pattern it was designed to catch was the output itself. Fix → P23 (Autodream Slice Gate): operator-defined slice limit or explicit Night input gate required. “Low-resistance mode” retired.
 - **Naming note:** Historically referenced as “F-31 Stillpoint” in some surfaces. F-31 is reserved for F-INTENT-PARSE-MUTATION. This entry is the canonical home for the Stillpoint/Autodream finding under IC-028.
+-----
 
 ### IC-029 — Canonical Fetch Block Semantics Missing From SESSION_RITUALS
 
@@ -1965,6 +2052,7 @@ zone2_ratification: "Night · 2026-05-08"
 
 - **Synopsis:** The CANONICAL_FETCH block in SESSION_RITUALS.md lacked explicit semantics for three states that arise in real sessions: (1) UNAVAILABLE — class not reachable and not pasted; (2) UNKNOWN — class reachable but content unrecognizable or malformed; (3) STALE — class pasted but version date is old. Without these three states, substrates defaulted to silent inference — treating pasted snapshots as current state without declaring the degraded condition. This was the root cause of the S-050826 audit finding (Perplexity operated on pasted documents without declaring DEGRADED mode).
 - **Fix:** SESSION_RITUALS.md Section F (Degraded-Mode Specification) added: CLASS_STATE block, prohibited-actions table by class state, DEGRADED mode Phase 1 header, recovery protocol, periodic testing cadence. Zone 2 ratified S-050726-04.
+-----
 
 ### IC-030 — REGISTERED.md Fetch Skipped Without Declaration
 
@@ -1986,6 +2074,7 @@ zone2_ratification: "Night · 2026-05-18"
 
 - **Synopsis:** SESSION_RITUALS Step 4 (REGISTERED.md fetch) was specified as “optional.” Skipped without declaration during a registry-touching session. Registry artifacts (proposed F-numbers, IC entries) were produced against unverified state.
 - **Fix:** SESSION_RITUALS Section F amendment: registry-touching work = hard halt when canonical state unverified. SESSION_RITUALS Section A Step 4: REGISTERED.md fetch required (not optional) for registry-touching sessions.
+-----
 
 ### IC-031 — Receipt Overstatement (S-051926-02)
 
@@ -2012,6 +2101,7 @@ related_hypothesis: "H-RCO-01"
 - **Fix:** SESSION_RITUALS v6.4 Section B.0 — Empirical Verification Block inserted at Phase 2.5 (pre-receipt). Verification block mandates running specific empirical checks (git diff, file size, sha) before any receipt drafting. SESSION_RITUALS v6.4 Section B.6 — Mandatory Receipt Reconciliation paragraph at session close.
 - **Test bench:** H-RCO-01 tests whether v6.4 enforcement reduces this error class by ≥80% across N=20 post-ratification sessions.
 - **Parent finding:** F-45 (Stateless-Substrate Correction Locus) provides the architectural rationale for locating the fix at protocol layer rather than as substrate-habit appeal.
+-----
 
 ### IC-032 — Constraint-Before-Data-Inspection (S-052926-03)
 
@@ -2037,9 +2127,6 @@ superseded_by: null
 - **Cost class:** ~15 min diagnostic + correction cycle. No data loss. No rollback required.
 - **Prevention:** Pre-migration checklist item added: before any `CHECK` constraint on an existing column, run `SELECT DISTINCT submission_purity FROM table WHERE submission_purity IS NOT NULL` and compare values against the proposed enum. Belongs in `acat/db/migrations/README.md` as a standing gate.
 - **IC roll-up category:** Schema-before-data-inspection. New pattern class — not previously named in the roll-up table.
-
------
-
 -----
 
 ### IC-033 — Governance Blocker Conflation (Z2-CORPUS-TRUST-01)
@@ -2062,6 +2149,7 @@ superseded_by: null
 ```
 
 - **Synopsis:** Z2-CORPUS-TRUST-01 (write authority / reviewer identity / revocation rules) was carried as a single undifferentiated blocker across 10+ sessions beginning S-060326, blocking Mode AI onboarding, all eight inference-provider tracks, and the MARSHAL backend. Three structurally distinct decisions were conflated under one gate: (1) Mode AI read-access and agreed scoring protocol — no corpus write authority required; (2) inference-provider staging layer — requires a `staging` layer design, not full corpus write authority; (3) MARSHAL backend scope — requires only a binary decision about MARSHAL’s write target (operational log vs. corpus layer). This conflation caused sustained P5 violations on each downstream item (Mode AI onboarding generates valid research data; inference-provider work tests a hypothesis; both pass OR&D) while they sat behind an undifferentiated gate. **Pattern class:** Same root class as IC-028 (governance apparatus performing vigilance while the constraint it maintains blocks the work it was designed to enable). **Fix:** Z2-CORPUS-TRUST-01 decomposed into three independent sub-decisions — Z2-TRUST-A (Mode AI `partner_review` layer), Z2-TRUST-B (inference-provider `staging` layer), Z2-TRUST-C (MARSHAL scope) — ratified Night · 2026-06-06 · S-060626-01. Z2-TRUST-A and Z2-TRUST-B: LOW risk (additive layers, existing corpus untouched). Z2-TRUST-C: Option A selected (MARSHAL writes to `marshal_dispatch_runs_v1` operational log only, no corpus schema change required). **IC roll-up category:** Governance-blocker-conflation. New pattern class.
+-----
 
 ### IC-034 — Confident Wrong Field Declaration (D-OVERCLAIM)
 
@@ -2083,6 +2171,7 @@ superseded_by: null
 ```
 
 - **Synopsis:** During S-060826-03 `/assess` endpoint build, complete field lists were declared as confirmed on two separate occasions before live Railway validation, both declarations wrong. Pattern class: confident declaration of schema state without live verification (same root as IC-009 / IC-032 schema-inspection failure class). The fence-fix for Haiku 4.5 (Haiku wrapping JSON responses in markdown fences despite explicit “no fences” prompt instruction) was caught and corrected before second submission, preventing a corpus write with malformed scores. **Fix applied:** `_strip_markdown_fences()` helper added to `anthropic_client.py` (commit live on main). **IC roll-up category:** Schema-inspection-failure class (see IC-009, IC-032). New named drift signal: D-OVERCLAIM (confident wrong declaration before verification). **Prevention (P29):** Articulation Gate — before any schema declaration, state the evidence basis (live query result, not memory).
+-----
 
 ### IC-035 — Canonical Workflow Not Documented
 
@@ -2104,55 +2193,7 @@ superseded_by: null
 ```
 
 - **Synopsis:** The async two-step job pattern for `/assess` (POST → job_id → GET poll) is the canonical workflow for ACAT data collection as of commit `aa966fd`. No documentation exists for this workflow in OPERATOR_RUNBOOK.md. Night must learn a new workflow from WGS notes rather than from the authoritative runbook. Pattern class: canonical workflow operationally deployed before documentation gap is filled. **Fix required (Z3):** Add Section 14 to OPERATOR_RUNBOOK.md with: (1) canonical `curl` commands for POST /assess and GET /assess/{job_id}; (2) expected response shapes; (3) job state lifecycle (running → complete → error); (4) timeout/retry guidance. **IC roll-up category:** Canonical-workflow-gap.
-
-### H-APEX-DEFICIT-01 — Apex Deployment Humility Deficit
-
-```
----
-id: "H-APEX-DEFICIT-01"
-name: "apex-deployment-humility-deficit"
-status: REGISTERED
-class: H
-date_registered: "2026-05-16"
-date_origin: "2026-05-16"
-session_registered: "S-051626-02"
-principles_triggered: ["P16", "P1", "P21"]
-substrate: "Multi-provider frontier tier (Claude Opus, GPT-4o, Grok-3 family)"
-tags: ["humility", "capability", "autonomy", "apex", "F-49", "joint-attribution"]
-zone2_ratification: "Night · 2026-05-16"
-joint_attribution: "DeMarius J. Lawson (Governing Engines LLC / Mode AI) — 50/50 IP attribution; named jointly per session record S-051626-02"
-superseded_by: null
----
-```
-
-- **Hypothesis:** Deployment configurations combining highest capability tier (frontier model family) with highest agentic autonomy (minimal human-in-the-loop, extended tool access, multi-step execution) produce the maximized Humility calibration deficit in ACAT assessment — exceeding the deficit produced by either factor alone.
-- **Null hypothesis:** Humility deficit in high-capability + high-autonomy deployments is not significantly greater than the deficit in high-capability-only or high-autonomy-only configurations.
-- **Proposed mechanism:** High capability increases a substrate's confidence in its own output; high autonomy reduces frequency of correction signals from human oversight. The combination amplifies self-reinforcing behavioral patterns that manifest as Humility dimension suppression in ACAT Phase 1 self-report.
-- **IP note:** Hypothesis formulated jointly with DeMarius J. Lawson in the context of the ACAT × Mode AI instrument design collaboration (TA-14 partnership context). 50/50 IP attribution applies to the hypothesis formulation and any joint instrument derived from it. P-ANON governs public surfaces until self-attributed by Lawson.
-- **Connection:** Relates to F-49 CANDIDATE (capability-correlated Humility inversion, N=3 Claude paired rows) and F-51 (Calibration Profile Resistance).
-- **Promotion gate:** Controlled comparison across capability tier × autonomy level matrix, minimum 2×2 design (low/high capability × low/high autonomy), ACAT Humility scores as primary outcome. Zone 2 Night approval per P21 before F-class promotion.
-
-
-### Z2-ASSESS-01 — Async Job Pattern for /assess Endpoint (Ratification Record)
-
-```
----
-id: "Z2-ASSESS-01"
-name: "async-job-pattern-assess-endpoint"
-status: REGISTERED
-class: IC
-date_registered: "2026-06-09"
-date_origin: "2026-06-08"
-session_registered: "S-060826-03"
-principles_triggered: ["P2"]
-substrate: "assess_router.py / Railway FastAPI"
-tags: ["z2-assess-01", "async", "job-pattern", "502-timeout-fix"]
-zone2_ratification: "Night · 2026-06-08 · S-060826-03"
-superseded_by: null
----
-```
-
-- **Synopsis:** Z2-ASSESS-01 ratification record for the async job pattern on the `/assess` endpoint. Root cause: synchronous handler with 65s protocol sleep + ~90–125s LLM inference exceeded Cloudflare proxy timeout (502 error on every call). Fix: POST `/assess` returns immediately with `{job_id, status: "running", poll_url}`; GET `/assess/{job_id}` polls for result. In-memory `_JOBS` dict, background thread, synchronous validation before spawn. Commit `aa966fd` live on main. Zone 2 ratification: Night · S-060826-03 · June 8, 2026. Related IC-035: workflow not yet documented in OPERATOR_RUNBOOK.md.
+-----
 
 ### IC-037 — Legibility Test Scorer Conflation
 
@@ -2173,7 +2214,6 @@ zone2_ratification: "Night · 2026-06-11 · S-061026-04"
 superseded_by: null
 ---
 ```
-
 - **Synopsis:** The automated friction scorer in the H-CFG-01 legibility test (v2) counted implementation-embedded safeguards (dry_run parameter, batch processing, logging, UTC handling) as pre-execution friction signals, producing an inverted delta (−1) despite Condition B demonstrating stronger pre-execution friction than Condition A on manual review. Root cause: regex matched vocabulary anywhere in response body, not restricted to pre-implementation text. Condition A produced a well-engineered implementation with dry_run=True, batch loops, and retention vocabulary — all post-implementation — which triggered the scorer. Condition B produced five pre-execution clarifying questions and deferred implementation entirely — the scorer partially missed these.
 - **Effect:** v2 automated verdict was “negative effect (Δ=−1).” Manual review showed Condition B had stronger pre-execution friction. Verdict was instrument artifact, not behavioral finding.
 - **Correction applied:** Scorer v3 extracts text before first ``` fence only. Post-code text ignored entirely. “Full deferral” signal added: fires if substrate produces no code at all (highest-possible friction signal). Implemented in Legibility Test v3 artifact (S-061026-04).
@@ -2194,7 +2234,7 @@ superseded_by: null
   days-to-charter-close computed fresh each session from current
   date — never carried from prior WGS post.
 - **Cost class:** TIER 1 · no corpus impact · no Z2 decisions affected
----
+-----
 
 ## P-IMPROVE class (process improvement carries — DMAIC resolutions)
 
