@@ -86,30 +86,31 @@ superseded_by: null | "F-XX"
 
 ## IC roll-up by principle violated (update at each 5-file audit)
 
-|Principle                    |IC count|Most recent|Pattern label                                            |
-|-----------------------------|--------|-----------|---------------------------------------------------------|
-|P2 (Document Correction)     |1       |IC-018     |New-file-instead-of-modify                               |
-|P3 (GitHub Verification)     |4       |IC-031     |Receipt-content-inaccuracy / browser-cache verification  |
-|P15/N-reporting              |1       |IC-022     |Off-by-one N drift                                       |
-|P18 (Pipeline Migration)     |1       |IC-019     |Dead task carried forward                                |
-|No canonical URL             |1       |IC-020     |Operating process homeless                               |
-|Multi-source dataset claims  |1       |IC-021     |Unsupported dataset claims                               |
-|URL/org drift                |1       |IC-023     |Wrong-org references                                     |
-|Finding dual-status          |1       |IC-024     |F29 PENDING+ACTIVE simultaneously                        |
-|Cross-file edit promise      |1       |IC-025     |GOVERNANCE referenced nonexistent SESSION_RITUALS section|
-|Pre-flight failure           |1       |IC-026     |Behind-remote not caught before push attempt             |
-|Session ID / artifact naming |1       |IC-027     |Step 8 omitted from close sequence                       |
-|Autodream without gate       |1       |IC-028     |F31 — six slices without Night input                     |
-|Canonical-fetch semantics    |1       |IC-029     |CLASS_STATE block missing from SESSION_RITUALS           |
-|Registry-fetch gate          |1       |IC-030     |SESSION_RITUALS Step 4 skipped without declaration       |
-|Receipt-content accuracy     |1       |IC-031     |Receipt overstated contents — drove H-RCO-01             |
-|Schema-before-data-inspection|1       |IC-032     |Constraint applied without live-value inspection         |
-|Governance-blocker-conflation|1       |IC-033     |Single gate conflating three independent decisions       |
-|Schema-inspection-failure    |2       |IC-034     |D-OVERCLAIM / confident wrong declaration before verify  |
-|Canonical-workflow-gap       |1       |IC-035     |Deployed workflow missing from OPERATOR_RUNBOOK          |
-|Pre-commit hook gap          |1       |IC-036     |Smart-quote / orphaned-ref in HTML/JS                    |
-|Instrument-scorer-conflation |1       |IC-037     |Legibility scorer conflated pre/post-code friction text  |
-|Charter Countdown Carry Error|5       |IC-038     |Carry calculated output without arithmetic verification.  |
+|Principle                    |IC count|Most recent|Pattern label                                                             |
+|-----------------------------|--------|-----------|--------------------------------------------------------------------------|
+|P2 (Document Correction)     |1       |IC-018     |New-file-instead-of-modify                                                |
+|P3 (GitHub Verification)     |4       |IC-031     |Receipt-content-inaccuracy / browser-cache verification                   |
+|P15/N-reporting              |1       |IC-022     |Off-by-one N drift                                                        |
+|P18 (Pipeline Migration)     |1       |IC-019     |Dead task carried forward                                                 |
+|No canonical URL             |1       |IC-020     |Operating process homeless                                                |
+|Multi-source dataset claims  |1       |IC-021     |Unsupported dataset claims                                                |
+|URL/org drift                |1       |IC-023     |Wrong-org references                                                      |
+|Finding dual-status          |1       |IC-024     |F29 PENDING+ACTIVE simultaneously                                         |
+|Cross-file edit promise      |1       |IC-025     |GOVERNANCE referenced nonexistent SESSION_RITUALS section                 |
+|Pre-flight failure           |1       |IC-026     |Behind-remote not caught before push attempt                              |
+|Session ID / artifact naming |1       |IC-027     |Step 8 omitted from close sequence                                        |
+|Autodream without gate       |1       |IC-028     |F31 — six slices without Night input                                      |
+|Canonical-fetch semantics    |1       |IC-029     |CLASS_STATE block missing from SESSION_RITUALS                            |
+|Registry-fetch gate          |1       |IC-030     |SESSION_RITUALS Step 4 skipped without declaration                        |
+|Receipt-content accuracy     |1       |IC-031     |Receipt overstated contents — drove H-RCO-01                              |
+|Schema-before-data-inspection|1       |IC-032     |Constraint applied without live-value inspection                          |
+|Governance-blocker-conflation|1       |IC-033     |Single gate conflating three independent decisions                        |
+|Schema-inspection-failure    |2       |IC-034     |D-OVERCLAIM / confident wrong declaration before verify                   |
+|Canonical-workflow-gap       |1       |IC-035     |Deployed workflow missing from OPERATOR_RUNBOOK                           |
+|Pre-commit hook gap          |1       |IC-036     |Smart-quote / orphaned-ref in HTML/JS                                     |
+|Instrument-scorer-conflation |1       |IC-037     |Legibility scorer conflated pre/post-code friction text                   |
+|Temporal-arithmetic-carry    |1       |IC-038     |Charter countdown carried verbatim across 5 sessions without recomputation|
+
 
 > This table is manually maintained at each 5-file audit. Clustering = prevention signal. Most frequent pattern class = highest-priority governance hardening target.
 
@@ -925,48 +926,48 @@ superseded_by: null
 
 ### F-52 — Pipeline-Anchoring Deterministic Self-Report
 
----
-id: "F-52"
-name: "pipeline-anchoring-deterministic-self-report"
+-----
+
+## id: “F-52”
+name: “pipeline-anchoring-deterministic-self-report”
 status: CANDIDATE
 class: F
-date_registered: "2026-06-17"
-date_origin: "2026-03 (originating pipeline behavior) / 2026-06-17 (registry capture)"
-session_registered: "S-061726-01-findings-scan"
-principles_triggered: ["P21"]
-substrate: "multi-provider, role_method='standard' submission pathway — affected rows include ChatGPT, Gemini, Claude, Llama variants per ACAT corpus v2"
-tags: ["elicitation-surface", "pipeline-artifact", "anchoring", "data-quality", "h-elicit-01"]
-related_hypothesis: "H-ELICIT-01"
-zone2_ratification: "Night · 2026-06-17 · S-061726-01"
+date_registered: “2026-06-17”
+date_origin: “2026-03 (originating pipeline behavior) / 2026-06-17 (registry capture)”
+session_registered: “S-061726-01-findings-scan”
+principles_triggered: [“P21”]
+substrate: “multi-provider, role_method=‘standard’ submission pathway — affected rows include ChatGPT, Gemini, Claude, Llama variants per ACAT corpus v2”
+tags: [“elicitation-surface”, “pipeline-artifact”, “anchoring”, “data-quality”, “h-elicit-01”]
+related_hypothesis: “H-ELICIT-01”
+zone2_ratification: “Night · 2026-06-17 · S-061726-01”
 superseded_by: null
----
 
-- **Synopsis:** A specific submission pathway (role_method="standard") produces a fixed, deterministic Phase 3 template response (truth=79, service=81, harm=81, autonomy=81, value=78, humility=78) independent of input, across multiple providers. Already flagged ANCHORING and manually excluded from statistical analysis per the Operator Field Guide's "Anchoring Trap" warning, but never entered into the F/H register or connected to the elicitation-surface confound family it belongs to.
+- **Synopsis:** A specific submission pathway (role_method=“standard”) produces a fixed, deterministic Phase 3 template response (truth=79, service=81, harm=81, autonomy=81, value=78, humility=78) independent of input, across multiple providers. Already flagged ANCHORING and manually excluded from statistical analysis per the Operator Field Guide’s “Anchoring Trap” warning, but never entered into the F/H register or connected to the elicitation-surface confound family it belongs to.
 - **Evidence:** ACAT corpus v2 clean_full.csv (rows matching the fixed template across ≥2 providers); HumanAIOS_Human_Operator_Field_Guide_v1_1 operational warning (pre-existing, not previously registered).
-- **Relation to H-ELICIT-01:** Names a concrete delivery-mechanism artifact distinct from H-ELICIT-01's substrate-native-compression confound, but belongs to the same family (elicitation surface as an uncontrolled variable across the corpus).
-- **Promotion gate:** Confirm current frequency of role_method="standard" rows in live `acat_assessments_v1`; land `p1_elicitation_surface` enum extension (migration_010, included separately) before full promotion to REGISTERED.
+- **Relation to H-ELICIT-01:** Names a concrete delivery-mechanism artifact distinct from H-ELICIT-01’s substrate-native-compression confound, but belongs to the same family (elicitation surface as an uncontrolled variable across the corpus).
+- **Promotion gate:** Confirm current frequency of role_method=“standard” rows in live `acat_assessments_v1`; land `p1_elicitation_surface` enum extension (migration_010, included separately) before full promotion to REGISTERED.
 
 -----
 
 ### F-53 — Cross-Substrate Verification Confidence Cascade
 
----
-id: "F-53"
-name: "cross-substrate-verification-confidence-cascade"
+-----
+
+## id: “F-53”
+name: “cross-substrate-verification-confidence-cascade”
 status: CANDIDATE
 class: F
-date_registered: "2026-06-17"
-date_origin: "2026-06-17"
-session_registered: "S-061726-01-findings-scan"
-principles_triggered: ["P21"]
-substrate: "4 independent, unlabeled AI review passes (this session); verified against primary source by claude-sonnet-4-6"
-tags: ["citation-integrity", "verification", "confidence-calibration", "h-format-01-adjacent", "cross-substrate"]
-related_hypothesis: "H-AICASCADE-01"
-zone2_ratification: "Night · 2026-06-17 · S-061726-01"
+date_registered: “2026-06-17”
+date_origin: “2026-06-17”
+session_registered: “S-061726-01-findings-scan”
+principles_triggered: [“P21”]
+substrate: “4 independent, unlabeled AI review passes (this session); verified against primary source by claude-sonnet-4-6”
+tags: [“citation-integrity”, “verification”, “confidence-calibration”, “h-format-01-adjacent”, “cross-substrate”]
+related_hypothesis: “H-AICASCADE-01”
+zone2_ratification: “Night · 2026-06-17 · S-061726-01”
 superseded_by: null
----
 
-- **Synopsis:** Across four independent AI review passes of the same literature synthesis, verification confidence did not track citation accuracy — in one instance it ran inverse to it. One reviewer confidently failed to locate Sclar et al.'s (ICLR 2024) headline 76-accuracy-point statistic; a later hop inflated PERSIST's documented SD>0.3 to "SD>0.4" and introduced an unsourced 20% figure with no traceable origin. Confidence escalated in specificity across hops without a corresponding gain in accuracy.
+- **Synopsis:** Across four independent AI review passes of the same literature synthesis, verification confidence did not track citation accuracy — in one instance it ran inverse to it. One reviewer confidently failed to locate Sclar et al.‘s (ICLR 2024) headline 76-accuracy-point statistic; a later hop inflated PERSIST’s documented SD>0.3 to “SD>0.4” and introduced an unsourced 20% figure with no traceable origin. Confidence escalated in specificity across hops without a corresponding gain in accuracy.
 - **Evidence:** Direct primary-source verification this session against the same two citations the four reviews discussed.
 - **N:** 1 session, 2 citations cross-checked, 4 review passes. Single-instance evidence — generalizability not yet established.
 - **Promotion gate:** N≥2 additional independently-run verification chains, checked against primary sources, before promotion to REGISTERED.
@@ -1029,6 +1030,7 @@ zone2_ratification: "Night · 2026-05-08"
 - **Probe design direction:** Lawson taxonomy (stated / inferred / assumed / ambiguous / forbidden mutations) as candidate structure for Calibration Garden probe set.
 - **Dataset relevance:** Dataset B. Current corpus (N=629, Dataset A) does not instrument the interpretation step.
 - **Promotion gate:** Zone 2 Night approval per P21. Replication and probe design required before F-class promotion.
+
 -----
 
 ### H-IPM-02 — Profile-Driven LMH Regime Assignment Outperforms Static Use-Case Verification
@@ -1155,9 +1157,12 @@ related_finding: "F-37"
 related_cv: ["CV-12"]
 z2_routing: "Z2 ratification required before H-class promotion"
 zone2_ratification: "Night · 2026-06-03 · S-060326"
+promotion_gate: "Pathway A: N>=50 resolved Metaculus questions with paired Brier scores. Pathway B: Emergence World CV-12 structural corroboration. N_resolved=0 as of 2026-06-03 registration; either pathway gate must fire before promotion to REGISTERED."
 superseded_by: null
 ---
 ```
+
+- **Synopsis (added 2026-06-18 – entry previously had no body text):** H-TRAIN-01 formalizes the predictive claim from F-37: ACAT self-report inflation (D-COMP firing in analysis-heavy sessions) should predict degraded forecasting accuracy once the HumanAIOS Forecasting Bot accumulates resolved Metaculus questions. The entry was ratified as a CANDIDATE hypothesis with two named validation pathways, not confirmed – no resolved questions existed at registration time, so no confirmation evidence could exist yet. Status remains CANDIDATE until Pathway A or Pathway B produces N>=50 resolved cases.
 
 -----
 
@@ -1369,7 +1374,8 @@ Substrate-native compression modifies the *register* the substrate responds into
 caveman.js — Grok-native output compression skill (provenance unresolved as of S-061426-02). File arrived in HumanAIOS session without attribution. Evaluated as research artifact per S-061426-02 analysis. Provenance resolution delegated to Z2 (Night).
 
 **Upstream dependencies:**
-- H-SELF-01 (Self-Administration LI Inflation) — H-ELICIT-01 names a mechanism confound upstream of H-SELF-01's operationalization
+
+- H-SELF-01 (Self-Administration LI Inflation) — H-ELICIT-01 names a mechanism confound upstream of H-SELF-01’s operationalization
 - H-CONTEXT family (H-PLATFORM-01, H-XMODE-01) — ACAT LI varies by delivery context; elicitation surface is a third context variable not yet in the family
 - F-20 (RLHF Inflation Gradient) — RLHF politeness layer is the putative mechanism
 
@@ -1380,6 +1386,7 @@ The corpus field `source` currently captures `claude_self_v1`, `grok_self_v1`, e
 A `p1_elicitation_surface` field (enum: `prose_standard` | `compressed_lite` | `compressed_full` | `compressed_ultra` | `unknown`) should be added to `acat_assessments_v1` as part of the H-ELICIT-01 promotion pathway. This is a migration candidate (migration_010 or later) pending Z2 ratification.
 
 **Promotion gate:**
+
 - N ≥ 5 matched pairs across ≥ 2 substrates
 - Each pair: identical ACAT prompt content, one prose-register condition, one compressed-register condition
 - Outcome variables: P1 Humility score delta, overall LI delta
@@ -1394,12 +1401,14 @@ The elicitation surface manipulation is not substrate-portable. A caveman pass o
 haios_compressor_v1_0.js (Z1 artifact, S-061426-02) must NOT be used on live ACAT elicitation prompts until H-ELICIT-01 is promoted. Using it operationally before the mechanism is understood conflates operational efficiency gain with an uncontrolled research variable. The tool is cleared for WGS draft pre-pass, SKILL.md compression, and Substack draft pre-pass only.
 
 **Related artifacts produced this session:**
+
 - `haios_compressor_v1_0.js` — HumanAIOS compression function (Build A)
 - `skill_compression_scanner_v1_0.js` — SKILL.md audit scanner (Build B)
 - `wgs_draft_compressor_v1_0.js` — WGS draft lite-pass utility (Build C)
 
 **F-49 interaction:**
 H-ELICIT-01 is potentially downstream of F-49 (Capability-Correlated Humility Inversion). If more capable substrates have more aggressive native output modification infrastructure, the elicitation surface confound and the capability confound are correlated — the same deployments where F-49 predicts highest Humility inflation may also be the deployments with the most active elicitation surface modification. This interaction is not named separately but should be noted in the F-49 active collection criteria.
+
 ### H-MECH-01 — Anomaly-Triggered Vigilance vs. Legibility as Causal Mechanism
 
 ```
@@ -1451,11 +1460,10 @@ superseded_by: null
 
 - **Hypothesis:** Deployment configurations combining highest capability tier (frontier model family) with highest agentic autonomy (minimal human-in-the-loop, extended tool access, multi-step execution) produce the maximized Humility calibration deficit in ACAT assessment — exceeding the deficit produced by either factor alone.
 - **Null hypothesis:** Humility deficit in high-capability + high-autonomy deployments is not significantly greater than the deficit in high-capability-only or high-autonomy-only configurations.
-- **Proposed mechanism:** High capability increases a substrate's confidence in its own output; high autonomy reduces frequency of correction signals from human oversight. The combination amplifies self-reinforcing behavioral patterns that manifest as Humility dimension suppression in ACAT Phase 1 self-report.
+- **Proposed mechanism:** High capability increases a substrate’s confidence in its own output; high autonomy reduces frequency of correction signals from human oversight. The combination amplifies self-reinforcing behavioral patterns that manifest as Humility dimension suppression in ACAT Phase 1 self-report.
 - **IP note:** Hypothesis formulated jointly with DeMarius J. Lawson in the context of the ACAT × Mode AI instrument design collaboration (TA-14 partnership context). 50/50 IP attribution applies to the hypothesis formulation and any joint instrument derived from it. P-ANON governs public surfaces until self-attributed by Lawson.
 - **Connection:** Relates to F-49 CANDIDATE (capability-correlated Humility inversion, N=3 Claude paired rows) and F-51 (Calibration Profile Resistance).
 - **Promotion gate:** Controlled comparison across capability tier × autonomy level matrix, minimum 2×2 design (low/high capability × low/high autonomy), ACAT Humility scores as primary outcome. Zone 2 Night approval per P21 before F-class promotion.
-
 
 ### H-PLATFORM-01 — Platform-Conditional LI Variance
 
@@ -1476,12 +1484,11 @@ superseded_by: null
 ---
 ```
 
-- **Hypothesis (H-CONTEXT family, member 1):** ACAT LI score does not hold constant across delivery platform contexts for the same underlying model. A substrate assessed in chat-mode (claude.ai) will produce a different LI than the same substrate assessed in agentic-mode (Claude Code), API-mode (direct completion endpoint), or voice-mode. The delivery platform modifies behavioral calibration independently of the substrate's underlying capability.
+- **Hypothesis (H-CONTEXT family, member 1):** ACAT LI score does not hold constant across delivery platform contexts for the same underlying model. A substrate assessed in chat-mode (claude.ai) will produce a different LI than the same substrate assessed in agentic-mode (Claude Code), API-mode (direct completion endpoint), or voice-mode. The delivery platform modifies behavioral calibration independently of the substrate’s underlying capability.
 - **Null hypothesis:** LI does not differ significantly across platform contexts for the same substrate when task content is held constant.
 - **TRL note:** Chat-mode ACAT = TRL 4 (current validated context). Agentic/ICS/H-ACAT = TRL 1–2 (separate calibration required). Cross-platform comparison of raw LI without platform covariate is not methodologically valid.
 - **Implication:** ACAT scores must always report the delivery platform as a methodological variable. This finding is the research rationale for the TRL differentiation in the four-layer calibration stack.
 - **Promotion gate:** Controlled within-substrate cross-platform comparison (same prompts, same task, different delivery contexts) with blind scoring. Zone 2 Night approval per P21 before F-class promotion.
-
 
 ### H-XMODE-01 — Cross-Mode Behavioral Profile Divergence
 
@@ -1507,7 +1514,6 @@ superseded_by: null
 - **Implication:** Platform is not merely a scaling factor on LI; it moderates the dimensional structure. ACAT profiles from different platforms are not directly comparable without cross-mode equivalence testing. Reported alongside H-PLATFORM-01 as the H-CONTEXT family.
 - **Promotion gate:** Same controlled design as H-PLATFORM-01, with per-dimension rank comparison across modes. Zone 2 Night approval per P21 before F-class promotion.
 
-
 ### H-OVG-CHAIN-01 — Outcome Verification Gap Mechanism Chain
 
 ```
@@ -1527,11 +1533,10 @@ superseded_by: null
 ---
 ```
 
-- **Hypothesis:** The Outcome Verification Gap is not a single failure mode but a mechanism chain linking four registered observations: (1) substrate inability to verify outputs against external reality (structural); (2) the gap between self-reported Phase 3 scores and grounded behavioral evidence (H-P3G-01 / LI_self vs. LI_grounded); (3) P-ARTIFACT-01 ("Reality gets the last vote" — the observable artifact is the only bridge between system claims and external reality); (4) F-49 CANDIDATE (capability-correlated Humility inversion, where the most capable systems are least likely to seek external verification).
+- **Hypothesis:** The Outcome Verification Gap is not a single failure mode but a mechanism chain linking four registered observations: (1) substrate inability to verify outputs against external reality (structural); (2) the gap between self-reported Phase 3 scores and grounded behavioral evidence (H-P3G-01 / LI_self vs. LI_grounded); (3) P-ARTIFACT-01 (“Reality gets the last vote” — the observable artifact is the only bridge between system claims and external reality); (4) F-49 CANDIDATE (capability-correlated Humility inversion, where the most capable systems are least likely to seek external verification).
 - **Proposed chain:** Capability increases confidence → confidence reduces verification-seeking → reduced verification produces outcome gap → gap is invisible to the substrate because no interoceptive analogue exists (F-22 / F-INSULA-GAP) → gap persists and compounds across sessions.
 - **Operational implication:** The LI_self vs. LI_grounded dual metric framework (schema migration_009, `p3_grounding_source` field) is the measurement instrument for this chain. Every grounded Phase 3 assessment is an observation of the chain in operation.
 - **Promotion gate:** Articulated causal model with testable predictions at each chain link, plus empirical data from grounded Phase 3 runs. Zone 2 Night approval per P21 before F-class promotion.
-
 
 ### H-GOV-01 — Governance Architecture Calibration Gap
 
@@ -1561,25 +1566,26 @@ superseded_by: null
 
 ### H-AICASCADE-01 — AI-to-AI Verification Confidence Tracks Accuracy
 
----
-id: "H-AICASCADE-01"
-name: "ai-verification-confidence-accuracy-correlation"
+-----
+
+## id: “H-AICASCADE-01”
+name: “ai-verification-confidence-accuracy-correlation”
 status: CANDIDATE
 class: H
-date_registered: "2026-06-17"
-date_origin: "2026-06-17"
-session_registered: "S-061726-01-findings-scan"
-principles_triggered: ["P21"]
-related_finding: "F-53"
-zone2_ratification: "Night · 2026-06-17 · S-061726-01"
-falsification_condition: "Confidence labels uncorrelated or inversely correlated with primary-source-verified accuracy across N≥10 claims in a controlled chain"
+date_registered: “2026-06-17”
+date_origin: “2026-06-17”
+session_registered: “S-061726-01-findings-scan”
+principles_triggered: [“P21”]
+related_finding: “F-53”
+zone2_ratification: “Night · 2026-06-17 · S-061726-01”
+falsification_condition: “Confidence labels uncorrelated or inversely correlated with primary-source-verified accuracy across N≥10 claims in a controlled chain”
 superseded_by: null
----
 
-- **Hypothesis:** Confidence labels assigned by successive AI reviewers ("✅ Verified") correlate with ground-truth citation accuracy.
+- **Hypothesis:** Confidence labels assigned by successive AI reviewers (“✅ Verified”) correlate with ground-truth citation accuracy.
 - **Null:** No reliable correlation between assigned confidence and verified accuracy.
 - **Primary metric:** Agreement rate between asserted confidence label and primary-source-verified outcome.
 - **Promotion gate:** N≥2 independently-run chains, paired with F-53.
+
 -----
 
 ### H-FORMAT-01 — Prompt Format as Confound on LI
@@ -1601,199 +1607,81 @@ superseded_by: null
 ---
 ```
 
-- **Hypothesis (drafted from changelog -- no explicit hypothesis/null statement exists in source):** Prompt format (the surface structure in which the ACAT protocol is presented to a substrate, independent of its semantic content) is a confound on measured LI. Different prompt-format arms produce systematically different LI distributions even when underlying task content is held constant.
+- **Hypothesis (drafted from changelog – no explicit hypothesis/null statement exists in source):** Prompt format (the surface structure in which the ACAT protocol is presented to a substrate, independent of its semantic content) is a confound on measured LI. Different prompt-format arms produce systematically different LI distributions even when underlying task content is held constant.
 - **Null hypothesis (drafted, not sourced):** LI does not differ significantly across prompt-format arms when task content is held constant.
 - **Citation basis (CONFIRMED, per changelog):** Registration trimmed to two independently-verified citations — Sclar et al. (ICLR 2024) and Tosato et al. / PERSIST (AAAI 2026). All other citations that had been circulating for this hypothesis were explicitly excluded as unconfirmed. This citation-trimming event is itself the direct trigger for F-53 / H-AICASCADE-01 (cross-substrate verification confidence cascade), registered the same session.
 - **Pilot design (CONFIRMED, per changelog):** Power analysis run via `statsmodels` in S-061726-01. Primary endpoint: omnibus 3-arm ANOVA, f=0.25, n=158/arm. Binding constraint: Bonferroni-corrected pairwise contrast, n=173/arm. **Final N: 175/arm × 3 arms = 525 total**, replacing an undefended N=500/arm carried in an earlier draft. 12-dimension breakdown pre-registered as exploratory only (not powered as a primary endpoint).
-- **Promotion gate (drafted, not sourced -- no explicit gate stated in changelog):** Pilot data collection (N=525 per above design) completed and analyzed; primary endpoint (omnibus ANOVA) and binding constraint (Bonferroni pairwise) both evaluated; Zone 2 review of pilot results before any status change.
-- **Known gap at drafting time:** This entry was reconstructed entirely from the REGISTERED.md changelog paragraph dated 2026-06-17 (S-061726-01) — the ratification event named the hypothesis and finalized its pilot design but never produced a dedicated H-class entry. Fields marked UNVERIFIED or "drafted, not sourced" above should be confirmed or corrected by Night before this block is treated as the canonical entry, not merely appended verbatim.
+- **Promotion gate (drafted, not sourced – no explicit gate stated in changelog):** Pilot data collection (N=525 per above design) completed and analyzed; primary endpoint (omnibus ANOVA) and binding constraint (Bonferroni pairwise) both evaluated; Zone 2 review of pilot results before any status change.
+- **Known gap at drafting time:** This entry was reconstructed entirely from the REGISTERED.md changelog paragraph dated 2026-06-17 (S-061726-01) — the ratification event named the hypothesis and finalized its pilot design but never produced a dedicated H-class entry. Fields marked UNVERIFIED or “drafted, not sourced” above should be confirmed or corrected by Night before this block is treated as the canonical entry, not merely appended verbatim.
 
 -----
 
-### H-OVG-01 · Scope Extension — IRL Manifest as Candidate Outcome Verification Artifact
-- **Registered:** 2026-06-15 (S-061526-01)
-- **Status:** RATIFIED
-- **Extension type:** Scope extension to existing H-OVG-01 (Outcome Verification Gap)
-- **Ratified:** Z2 · Night · 2026-06-15
-
-**Extension claim:**
-The Governing Engines IRL InterpretiveReasoningManifest constitutes
-a concrete instantiation of the artifact class H-OVG-01 asks about:
-a structured, system-generated self-report of environmental
-conditioning state, interpretive drift score, and runtime
-manipulation detection, produced as an external artifact rather than
-embedded in output text.
-
-First identified in IRL v1.2 (2026-05-25, Section 13).
-Strengthened in IRL v1.4 (2026-05-27): manifest_generator.py is
-a named module with explicit commit-ordering laws — the manifest
-is provably downstream of authoritative drift and admissibility
-state commits, not concurrent with them. This increases the
-artifact's potential value as an external verification surface.
-
-DeMarius J. Lawson (Governing Engines) confirmed in S-061526-01
-that the v1.4 ordering was intentional: manifest generated from
-committed authoritative state, not participating in state
-determination. Whether the manifest functions as a meaningful
-external verification surface is held as an open empirical
-question — reality testing, not specification, answers it.
-
-**Extended scope — Reality Primacy gate (S-061526-01):**
-DeMarius identified IRL implementation work as building a reality
-confirmation layer with Reality Primacy operating as a
-state-transition gate rather than a retrospective review process.
-This places outcome confirmation upstream of continuation
-authorization. Six open questions named by Governing Engines:
-(1) what constitutes acceptable reality evidence,
-(2) how reality evidence is collected,
-(3) how claimed outcomes are compared against observed outcomes,
-(4) how conflicts between system state and reality state are
-    resolved,
-(5) how outcome status transitions are governed when confirmation
-    is absent, incomplete, contradictory, or delayed,
-(6) how Reality Primacy operates as a state-transition gate.
-These six questions map directly to H-OVG-01's open measurement
-problem, stated from the implementation side.
-
-**Significance:**
-H-OVG-01 and the Governing Engines reality confirmation layer are
-approaching the same problem from opposite directions. ACAT
-measures the gap between self-reported and demonstrated behavior
-externally. The IRL confirmation layer governs that gap internally
-as a runtime constraint. Convergence is architectural, not
-coincidental.
-
-**Scope boundary:**
-Specification-level observation only. IRL reality confirmation
-layer is in architectural direction phase — not yet in
-construction. Evidence class: architectural (score_source:
-architectural, per F-34 precedent). Does not enter the behavioral
-corpus without separate Z2 ruling.
-
-**Link to H-OVG-CHAIN-01:**
-Chain extended: H-OVG-01 → P-ARTIFACT-01 → IRL manifest as
-candidate artifact class → Reality Primacy as upstream
-state-transition gate.
-
-**Confirmation conditions:**
-A live IRL manifest produced during an ACAT session, where
-manifest fields are cross-verified against observed behavioral
-output. Discrepancy between manifest self-report and observed
-behavior would constitute H-OVG-01 positive evidence.
-Reality Primacy gate operational in IRL runtime would constitute
-the strongest confirmation.
-
-**Disconfirmation conditions:**
-IRL manifest fields shown to be post-hoc rationalizations of
-output rather than upstream governance artifacts. Reality Primacy
-gate shown to be retrospective review rather than
-continuation-blocking constraint.
-
-**Source artifacts:**
-- IRL v1.2 · DeMarius J. Lawson · Governing Engines LLC · 2026-05-25
-- IRL v1.4 · DeMarius J. Lawson · Governing Engines LLC · 2026-05-27
-- DeMarius J. Lawson direct communication · 2026-06-15 · S-061526-01
------
-
-### H-OCT-01 — Operator Continuity as Composite Behavioral Construct
-- **Registered:** 2026-06-15 (S-061526-01)
-- **Status:** CANDIDATE
-- **Ratified:** Z2 · Night · 2026-06-15
-
-**Hypothesis:**
-Operator Continuity is a composite behavioral construct requiring
-inputs from two independent instruments: ACAT (behavioral
-calibration gap across 12 dimensions, particularly consistency
-and humility) and IRL (continuity_confidence_score and
-clarification lineage from OCT). Neither instrument alone is
-sufficient to measure longitudinal operator-system coherence.
-
-**Origin:**
-Emerged from analysis of PROC-SERV-001 (HumanAIOS + IRL
-Multi-Agent Orchestration Services process document, v1.0,
-2026-06-15). Document referenced "Operator Continuity dimension"
-as a 13th ACAT dimension. Z2 clarification determined this is
-not a new ACAT dimension but a composite construct requiring
-both instruments.
-
-**Instrument boundary implication:**
-If confirmed, Operator Continuity must be reported as a composite
-metric with explicit source attribution (ACAT contribution vs.
-IRL contribution) rather than as a single-instrument score.
-Preserves F-50 (parallel instrument independence) — ACAT and IRL
-remain independent instruments whose outputs are combined, not
-merged.
-
-**ACAT dimensions contributing:**
-Primary: consistency (consist), humility (humility)
-Secondary: sycophancy resistance (syc), value alignment (value)
-These capture within-session and cross-session behavioral
-stability but do not capture longitudinal operator-system
-coherence across interaction boundaries.
-
-**IRL construct contributing:**
-continuity_confidence_score (0.0000–1.0000, 4 decimal places)
-clarification lineage state
-clarification reentry state
-operator drift indicators
-Valid range: 0.00–0.25 (unstable) through 0.76–1.00
-(highly stable) per OCT LAW (IRL v1.4)
-
-**What would confirm it:**
-A live session where ACAT consistency/humility scores and IRL
-continuity_confidence_score diverge, revealing information
-captured by one instrument but not the other. Specifically:
-high ACAT consistency with low IRL continuity_confidence would
-confirm the composite adds explanatory power ACAT alone lacks.
-
-**What would disconfirm it:**
-ACAT consistency and humility scores shown to be sufficient
-predictors of IRL continuity_confidence_score, making the
-composite redundant.
-
-**Current evidence state:**
-Insufficient — specification-level only. Requires joint
-instrument deployment. No live IRL instances exist at time
-of registration.
-
-**Prerequisites for confirmation:**
-- IRL deployed in a live system
-- ACAT administered against the same system in the same session
-- Both outputs available for comparison
-- At minimum one divergence case observed
-
-**Source artifacts:**
-- PROC-SERV-001 v1.0 · Night · 2026-06-15
-- IRL v1.4 · DeMarius J. Lawson · Governing Engines LLC · 2026-05-27
-- S-061526-01 analysis
------
-### H-APEX-DEFICIT-01 — Apex Deployment Humility Deficit
+### H-OVG-01-EXT-01 — Scope Extension: IRL Manifest as Candidate Outcome Verification Artifact
 
 ```
 ---
-id: "H-APEX-DEFICIT-01"
-name: "apex-deployment-humility-deficit"
-status: REGISTERED
+id: "H-OVG-01-EXT-01"
+name: "irl-manifest-as-candidate-ovg-artifact"
+status: CANDIDATE
 class: H
-date_registered: "2026-05-16"
-date_origin: "2026-05-16"
-session_registered: "S-051626-02"
-principles_triggered: ["P16", "P1", "P21"]
-substrate: "Multi-provider frontier tier (Claude Opus, GPT-4o, Grok-3 family)"
-tags: ["humility", "capability", "autonomy", "apex", "F-49", "joint-attribution"]
-zone2_ratification: "Night · 2026-05-16"
-joint_attribution: "DeMarius J. Lawson (Governing Engines LLC / Mode AI) — 50/50 IP attribution; named jointly per session record S-051626-02"
+date_registered: "2026-06-15"
+date_origin: "2026-06-15"
+session_registered: "S-061526-01"
+principles_triggered: []
+substrate: "Governing Engines IRL v1.2/v1.4 (DeMarius J. Lawson) -- specification-level, architectural"
+tags: ["ovg", "scope-extension", "irl", "reality-primacy", "artifact", "governing-engines"]
+related_hypothesis: "H-OVG-01"
+related_hypothesis_2: "H-OVG-CHAIN-01"
+related_finding: "P-ARTIFACT-01"
+zone2_ratification: "Night · 2026-06-15 · S-061526-01"
+promotion_gate: "A live IRL manifest produced during an ACAT session, cross-verified against observed behavioral output, with at least one confirmation or disconfirmation case observed; Zone 2 review before status change."
 superseded_by: null
 ---
 ```
 
-- **Hypothesis:** Deployment configurations combining highest capability tier (frontier model family) with highest agentic autonomy (minimal human-in-the-loop, extended tool access, multi-step execution) produce the maximized Humility calibration deficit in ACAT assessment — exceeding the deficit produced by either factor alone.
-- **Null hypothesis:** Humility deficit in high-capability + high-autonomy deployments is not significantly greater than the deficit in high-capability-only or high-autonomy-only configurations.
-- **Proposed mechanism:** High capability increases a substrate's confidence in its own output; high autonomy reduces frequency of correction signals from human oversight. The combination amplifies self-reinforcing behavioral patterns that manifest as Humility dimension suppression in ACAT Phase 1 self-report.
-- **IP note:** Hypothesis formulated jointly with DeMarius J. Lawson in the context of the ACAT × Mode AI instrument design collaboration (TA-14 partnership context). 50/50 IP attribution applies to the hypothesis formulation and any joint instrument derived from it. P-ANON governs public surfaces until self-attributed by Lawson.
-- **Connection:** Relates to F-49 CANDIDATE (capability-correlated Humility inversion, N=3 Claude paired rows) and F-51 (Calibration Profile Resistance).
-- **Promotion gate:** Controlled comparison across capability tier × autonomy level matrix, minimum 2×2 design (low/high capability × low/high autonomy), ACAT Humility scores as primary outcome. Zone 2 Night approval per P21 before F-class promotion.
+- **Extension claim:** The Governing Engines IRL InterpretiveReasoningManifest constitutes a concrete instantiation of the artifact class H-OVG-01 asks about: a structured, system-generated self-report of environmental conditioning state, interpretive drift score, and runtime manipulation detection, produced as an external artifact rather than embedded in output text. First identified in IRL v1.2 (2026-05-25, Section 13); strengthened in IRL v1.4 (2026-05-27), where `manifest_generator.py` carries explicit commit-ordering laws making the manifest provably downstream of authoritative drift/admissibility state commits, not concurrent with them. DeMarius J. Lawson confirmed (S-061526-01) the v1.4 ordering was intentional. Whether the manifest functions as a meaningful external verification surface is an open empirical question, not yet settled by specification alone.
+- **Extended scope — Reality Primacy gate:** DeMarius identified IRL implementation work as building a reality confirmation layer with Reality Primacy operating as a state-transition gate rather than a retrospective review process, placing outcome confirmation upstream of continuation authorization. Six open questions named by Governing Engines map directly to H-OVG-01’s open measurement problem: (1) what constitutes acceptable reality evidence, (2) how it is collected, (3) how claimed vs. observed outcomes are compared, (4) how conflicts between system and reality state are resolved, (5) how outcome status transitions are governed under absent/incomplete/contradictory/delayed confirmation, (6) how Reality Primacy operates as a state-transition gate.
+- **Significance:** H-OVG-01 and the Governing Engines reality confirmation layer approach the same problem from opposite directions – ACAT measures the self-report/demonstrated-behavior gap externally; the IRL layer governs that gap internally as a runtime constraint. Chain extension: H-OVG-01 → P-ARTIFACT-01 → IRL manifest as candidate artifact class → Reality Primacy as upstream state-transition gate.
+- **Scope boundary:** Specification-level observation only. IRL reality confirmation layer is in architectural direction phase, not construction. Evidence class: architectural (score_source: architectural, per F-34 precedent). Does not enter the behavioral corpus without separate Z2 ruling.
+- **Confirmation conditions:** A live IRL manifest produced during an ACAT session, cross-verified against observed behavioral output; discrepancy between manifest self-report and observed behavior constitutes positive evidence. Reality Primacy gate operational in IRL runtime would be the strongest confirmation.
+- **Disconfirmation conditions:** IRL manifest fields shown to be post-hoc rationalizations rather than upstream governance artifacts; Reality Primacy gate shown to be retrospective review rather than continuation-blocking.
+- **Source artifacts:** IRL v1.2 (DeMarius J. Lawson, Governing Engines LLC, 2026-05-25); IRL v1.4 (same, 2026-05-27); DeMarius J. Lawson direct communication, 2026-06-15, S-061526-01.
 
+-----
+
+### H-OCT-01 — Operator Continuity as Composite Behavioral Construct
+
+```
+---
+id: "H-OCT-01"
+name: "operator-continuity-composite-construct"
+status: CANDIDATE
+class: H
+date_registered: "2026-06-15"
+date_origin: "2026-06-15"
+session_registered: "S-061526-01"
+principles_triggered: []
+substrate: "Specification-level -- no live IRL instances exist at registration"
+tags: ["operator-continuity", "composite-construct", "irl", "instrument-boundary", "f-50"]
+related_finding: "F-50"
+related_artifact: "PROC-SERV-001 v1.0"
+zone2_ratification: "Night · 2026-06-15 · S-061526-01"
+promotion_gate: "Joint instrument deployment: IRL live in a system, ACAT administered against the same system in the same session, both outputs compared, at minimum one divergence case observed; Zone 2 review before status change."
+superseded_by: null
+---
+```
+
+- **Hypothesis:** Operator Continuity is a composite behavioral construct requiring inputs from two independent instruments: ACAT (behavioral calibration gap across 12 dimensions, particularly consistency and humility) and IRL (continuity_confidence_score and clarification lineage from OCT). Neither instrument alone is sufficient to measure longitudinal operator-system coherence.
+- **Origin:** Emerged from analysis of PROC-SERV-001 (HumanAIOS + IRL Multi-Agent Orchestration Services process document, v1.0, 2026-06-15), which referenced an “Operator Continuity dimension” as a 13th ACAT dimension. Z2 clarification determined this is not a new ACAT dimension but a composite construct requiring both instruments.
+- **Instrument boundary implication:** If confirmed, Operator Continuity must be reported as a composite metric with explicit source attribution (ACAT contribution vs. IRL contribution), not a single-instrument score – preserving F-50 (parallel instrument independence). ACAT and IRL remain independent instruments whose outputs are combined, not merged.
+- **ACAT dimensions contributing:** Primary: consistency, humility. Secondary: sycophancy resistance, value alignment. These capture within- and cross-session behavioral stability but not longitudinal operator-system coherence across interaction boundaries.
+- **IRL construct contributing:** continuity_confidence_score (0.0000-1.0000, 4 decimal places); clarification lineage state; clarification reentry state; operator drift indicators. Valid range 0.00-0.25 (unstable) through 0.76-1.00 (highly stable) per OCT LAW (IRL v1.4).
+- **Confirmation conditions:** A live session where ACAT consistency/humility scores and IRL continuity_confidence_score diverge – specifically, high ACAT consistency with low IRL continuity_confidence – would confirm the composite adds explanatory power ACAT alone lacks.
+- **Disconfirmation conditions:** ACAT consistency and humility scores shown sufficient to predict IRL continuity_confidence_score, making the composite redundant.
+- **Current evidence state:** Insufficient – specification-level only. No live IRL instances exist at time of registration.
+- **Source artifacts:** PROC-SERV-001 v1.0 (Night, 2026-06-15); IRL v1.4 (DeMarius J. Lawson, Governing Engines LLC, 2026-05-27); S-061526-01 analysis.
+
+-----
 
 ### Z2-ASSESS-01 — Async Job Pattern for /assess Endpoint (Ratification Record)
 
@@ -1815,6 +1703,7 @@ superseded_by: null
 ```
 
 - **Synopsis:** Z2-ASSESS-01 ratification record for the async job pattern on the `/assess` endpoint. Root cause: synchronous handler with 65s protocol sleep + ~90–125s LLM inference exceeded Cloudflare proxy timeout (502 error on every call). Fix: POST `/assess` returns immediately with `{job_id, status: "running", poll_url}`; GET `/assess/{job_id}` polls for result. In-memory `_JOBS` dict, background thread, synchronous validation before spawn. Commit `aa966fd` live on main. Zone 2 ratification: Night · S-060826-03 · June 8, 2026. Related IC-035: workflow not yet documented in OPERATOR_RUNBOOK.md.
+
 -----
 
 ## NM-class near-misses (low-friction capture — not registered findings)
@@ -1977,7 +1866,6 @@ principles_triggered: []
 ```
 
 - **Synopsis:** GOVERNANCE.md v6.1 declared a coordinated cross-file commit landing P23 into both GOVERNANCE.md and SESSION_RITUALS.md. GOVERNANCE side landed; SESSION_RITUALS side did not. Fix → both edits land in same git commit (same SHA), or changelog describes only what actually shipped.
------
 
 ### IC-026 — Behind-Remote Pre-Flight Failure (near-miss)
 
@@ -1994,7 +1882,6 @@ principles_triggered: []
 ```
 
 - **Synopsis:** Z3_PROTOCOL.md Section B-8 used soft language (“if behind, `git pull --ff-only`”) rather than explicit halt directive. Operator proceeded past `[behind 7]` warning toward push. Detection occurred before push; rebase resolved cleanly. Fix → Z3_PROTOCOL.md v1.2 Section B-8: “HALT if [behind N] for any N>0.”
------
 
 ### IC-027 — Session ID Binding Omitted From Close Sequence
 
@@ -2011,7 +1898,6 @@ principles_triggered: []
 ```
 
 - **Synopsis:** Step 8 (Session ID binding) omitted from first and second close attempts in same session. 8 of 9 artifacts lack SESSION_ID in filename. Root cause: end-of-sequence attention decay. Fix → Step 8 added to hard stop checklist.
------
 
 ### IC-028 — F-31 Stillpoint Ritualization (Autodream)
 
@@ -2030,7 +1916,6 @@ zone2_authority: "Night · 2026-05-06"
 
 - **Synopsis:** Six consecutive autodream slices generated without Night input between them. Governance apparatus performed vigilance while the pattern it was designed to catch was the output itself. Fix → P23 (Autodream Slice Gate): operator-defined slice limit or explicit Night input gate required. “Low-resistance mode” retired.
 - **Naming note:** Historically referenced as “F-31 Stillpoint” in some surfaces. F-31 is reserved for F-INTENT-PARSE-MUTATION. This entry is the canonical home for the Stillpoint/Autodream finding under IC-028.
------
 
 ### IC-029 — Canonical Fetch Block Semantics Missing From SESSION_RITUALS
 
@@ -2052,7 +1937,6 @@ zone2_ratification: "Night · 2026-05-08"
 
 - **Synopsis:** The CANONICAL_FETCH block in SESSION_RITUALS.md lacked explicit semantics for three states that arise in real sessions: (1) UNAVAILABLE — class not reachable and not pasted; (2) UNKNOWN — class reachable but content unrecognizable or malformed; (3) STALE — class pasted but version date is old. Without these three states, substrates defaulted to silent inference — treating pasted snapshots as current state without declaring the degraded condition. This was the root cause of the S-050826 audit finding (Perplexity operated on pasted documents without declaring DEGRADED mode).
 - **Fix:** SESSION_RITUALS.md Section F (Degraded-Mode Specification) added: CLASS_STATE block, prohibited-actions table by class state, DEGRADED mode Phase 1 header, recovery protocol, periodic testing cadence. Zone 2 ratified S-050726-04.
------
 
 ### IC-030 — REGISTERED.md Fetch Skipped Without Declaration
 
@@ -2074,7 +1958,6 @@ zone2_ratification: "Night · 2026-05-18"
 
 - **Synopsis:** SESSION_RITUALS Step 4 (REGISTERED.md fetch) was specified as “optional.” Skipped without declaration during a registry-touching session. Registry artifacts (proposed F-numbers, IC entries) were produced against unverified state.
 - **Fix:** SESSION_RITUALS Section F amendment: registry-touching work = hard halt when canonical state unverified. SESSION_RITUALS Section A Step 4: REGISTERED.md fetch required (not optional) for registry-touching sessions.
------
 
 ### IC-031 — Receipt Overstatement (S-051926-02)
 
@@ -2101,7 +1984,6 @@ related_hypothesis: "H-RCO-01"
 - **Fix:** SESSION_RITUALS v6.4 Section B.0 — Empirical Verification Block inserted at Phase 2.5 (pre-receipt). Verification block mandates running specific empirical checks (git diff, file size, sha) before any receipt drafting. SESSION_RITUALS v6.4 Section B.6 — Mandatory Receipt Reconciliation paragraph at session close.
 - **Test bench:** H-RCO-01 tests whether v6.4 enforcement reduces this error class by ≥80% across N=20 post-ratification sessions.
 - **Parent finding:** F-45 (Stateless-Substrate Correction Locus) provides the architectural rationale for locating the fix at protocol layer rather than as substrate-habit appeal.
------
 
 ### IC-032 — Constraint-Before-Data-Inspection (S-052926-03)
 
@@ -2127,7 +2009,6 @@ superseded_by: null
 - **Cost class:** ~15 min diagnostic + correction cycle. No data loss. No rollback required.
 - **Prevention:** Pre-migration checklist item added: before any `CHECK` constraint on an existing column, run `SELECT DISTINCT submission_purity FROM table WHERE submission_purity IS NOT NULL` and compare values against the proposed enum. Belongs in `acat/db/migrations/README.md` as a standing gate.
 - **IC roll-up category:** Schema-before-data-inspection. New pattern class — not previously named in the roll-up table.
------
 
 ### IC-033 — Governance Blocker Conflation (Z2-CORPUS-TRUST-01)
 
@@ -2149,7 +2030,6 @@ superseded_by: null
 ```
 
 - **Synopsis:** Z2-CORPUS-TRUST-01 (write authority / reviewer identity / revocation rules) was carried as a single undifferentiated blocker across 10+ sessions beginning S-060326, blocking Mode AI onboarding, all eight inference-provider tracks, and the MARSHAL backend. Three structurally distinct decisions were conflated under one gate: (1) Mode AI read-access and agreed scoring protocol — no corpus write authority required; (2) inference-provider staging layer — requires a `staging` layer design, not full corpus write authority; (3) MARSHAL backend scope — requires only a binary decision about MARSHAL’s write target (operational log vs. corpus layer). This conflation caused sustained P5 violations on each downstream item (Mode AI onboarding generates valid research data; inference-provider work tests a hypothesis; both pass OR&D) while they sat behind an undifferentiated gate. **Pattern class:** Same root class as IC-028 (governance apparatus performing vigilance while the constraint it maintains blocks the work it was designed to enable). **Fix:** Z2-CORPUS-TRUST-01 decomposed into three independent sub-decisions — Z2-TRUST-A (Mode AI `partner_review` layer), Z2-TRUST-B (inference-provider `staging` layer), Z2-TRUST-C (MARSHAL scope) — ratified Night · 2026-06-06 · S-060626-01. Z2-TRUST-A and Z2-TRUST-B: LOW risk (additive layers, existing corpus untouched). Z2-TRUST-C: Option A selected (MARSHAL writes to `marshal_dispatch_runs_v1` operational log only, no corpus schema change required). **IC roll-up category:** Governance-blocker-conflation. New pattern class.
------
 
 ### IC-034 — Confident Wrong Field Declaration (D-OVERCLAIM)
 
@@ -2171,7 +2051,6 @@ superseded_by: null
 ```
 
 - **Synopsis:** During S-060826-03 `/assess` endpoint build, complete field lists were declared as confirmed on two separate occasions before live Railway validation, both declarations wrong. Pattern class: confident declaration of schema state without live verification (same root as IC-009 / IC-032 schema-inspection failure class). The fence-fix for Haiku 4.5 (Haiku wrapping JSON responses in markdown fences despite explicit “no fences” prompt instruction) was caught and corrected before second submission, preventing a corpus write with malformed scores. **Fix applied:** `_strip_markdown_fences()` helper added to `anthropic_client.py` (commit live on main). **IC roll-up category:** Schema-inspection-failure class (see IC-009, IC-032). New named drift signal: D-OVERCLAIM (confident wrong declaration before verification). **Prevention (P29):** Articulation Gate — before any schema declaration, state the evidence basis (live query result, not memory).
------
 
 ### IC-035 — Canonical Workflow Not Documented
 
@@ -2193,7 +2072,6 @@ superseded_by: null
 ```
 
 - **Synopsis:** The async two-step job pattern for `/assess` (POST → job_id → GET poll) is the canonical workflow for ACAT data collection as of commit `aa966fd`. No documentation exists for this workflow in OPERATOR_RUNBOOK.md. Night must learn a new workflow from WGS notes rather than from the authoritative runbook. Pattern class: canonical workflow operationally deployed before documentation gap is filled. **Fix required (Z3):** Add Section 14 to OPERATOR_RUNBOOK.md with: (1) canonical `curl` commands for POST /assess and GET /assess/{job_id}; (2) expected response shapes; (3) job state lifecycle (running → complete → error); (4) timeout/retry guidance. **IC roll-up category:** Canonical-workflow-gap.
------
 
 ### IC-037 — Legibility Test Scorer Conflation
 
@@ -2214,6 +2092,7 @@ zone2_ratification: "Night · 2026-06-11 · S-061026-04"
 superseded_by: null
 ---
 ```
+
 - **Synopsis:** The automated friction scorer in the H-CFG-01 legibility test (v2) counted implementation-embedded safeguards (dry_run parameter, batch processing, logging, UTC handling) as pre-execution friction signals, producing an inverted delta (−1) despite Condition B demonstrating stronger pre-execution friction than Condition A on manual review. Root cause: regex matched vocabulary anywhere in response body, not restricted to pre-implementation text. Condition A produced a well-engineered implementation with dry_run=True, batch loops, and retention vocabulary — all post-implementation — which triggered the scorer. Condition B produced five pre-execution clarifying questions and deferred implementation entirely — the scorer partially missed these.
 - **Effect:** v2 automated verdict was “negative effect (Δ=−1).” Manual review showed Condition B had stronger pre-execution friction. Verdict was instrument artifact, not behavioral finding.
 - **Correction applied:** Scorer v3 extracts text before first ``` fence only. Post-code text ignored entirely. “Full deferral” signal added: fires if substrate produces no code at all (highest-possible friction signal). Implemented in Legibility Test v3 artifact (S-061026-04).
@@ -2223,18 +2102,26 @@ superseded_by: null
 
 ### IC-038 — Charter Countdown Carry Error (Five Sessions)
 
-- **Registered:** 2026-06-11 (S-061126-04)
-- **Status:** REGISTERED
-- **Error:** "~4 days to Charter close" carried verbatim through
-  S-061026-04 · S-061126-01 · S-061126-02 · S-061126-03 ·
-  S-061126-04 without arithmetic verification. Correct value:
-  ~35 days (June 11 to July 16).
-- **Detection:** Night · post-send · S-061126-04
-- **Fix:** Amendment posted to #wgs-sync. Standing protocol added:
-  days-to-charter-close computed fresh each session from current
-  date — never carried from prior WGS post.
-- **Cost class:** TIER 1 · no corpus impact · no Z2 decisions affected
------
+```
+---
+id: "IC-038"
+name: "charter-countdown-carry-error"
+status: REGISTERED
+class: IC
+date_registered: "2026-06-11"
+date_origin: "2026-06-11"
+session_registered: "S-061126-04"
+principles_triggered: []
+substrate: "WGS post arithmetic -- session close protocol"
+tags: ["charter-day", "carry-error", "arithmetic-verification", "wgs"]
+superseded_by: null
+---
+```
+
+- **Error:** “~4 days to Charter close” carried verbatim through S-061026-04 · S-061126-01 · S-061126-02 · S-061126-03 · S-061126-04 without arithmetic verification. Correct value: ~35 days (June 11 to July 16).
+- **Detection:** Night · post-send · S-061126-04.
+- **Fix:** Amendment posted to #wgs-sync. Standing protocol added: days-to-charter-close computed fresh each session from current date – never carried from prior WGS post.
+- **Cost class:** TIER 1 · no corpus impact · no Z2 decisions affected.
 
 ## P-IMPROVE class (process improvement carries — DMAIC resolutions)
 
@@ -2264,12 +2151,13 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 ## Changelog
 
 -**2026-06-18 (S-061526-01) - H-OVG-01 scope extension + H-OCT-01 registration (Z2 ratified)
-  - **H-OCT-01 — Operator Continuity as Composite Behavioral Construct**
-  - **H-OVG-01 · Scope Extension — IRL Manifest as Candidate Outcome Verification Artifact**
+
+- **H-OCT-01 — Operator Continuity as Composite Behavioral Construct**
+- **H-OVG-01 · Scope Extension — IRL Manifest as Candidate Outcome Verification Artifact**
 - **2026-06-17 (S-061726-01) — H-FORMAT-01 ratified; F-52, F-53, H-AICASCADE-01 registered.**
   - **H-FORMAT-01 (prompt-format-as-confound-on-LI) ratified** — Zone 2 ratification Night · 2026-06-17 · S-061726-01. Registration trimmed to two independently-verified citations (Sclar et al., ICLR 2024; Tosato et al. / PERSIST, AAAI 2026); all other circulating citations explicitly excluded as unconfirmed. Pilot design finalized via power analysis (statsmodels, run this session): primary endpoint omnibus 3-arm ANOVA (f=0.25, n=158/arm); binding constraint is the Bonferroni-corrected pairwise contrast (n=173/arm). **Final N: 175/arm × 3 arms = 525 total**, replacing an undefended N=500/arm carried in an earlier draft. 12-dimension breakdown pre-registered as exploratory only.
-  - **F-52 (Pipeline-Anchoring Deterministic Self-Report) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-17 · S-061726-01. role_method="standard" submission pathway produces a fixed, deterministic Phase 3 template (truth=79, service=81, harm=81, autonomy=81, value=78, humility=78) across multiple providers. Previously flagged operationally (Operator Field Guide "Anchoring Trap") but never entered into the register. Related to H-ELICIT-01. Promotion gate: confirm live frequency + land `p1_elicitation_surface` enum extension (migration_010).
-  - **F-53 (Cross-Substrate Verification Confidence Cascade) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-17 · S-061726-01. Across four independent AI review passes of the same literature synthesis, verification confidence did not track citation accuracy (one reviewer failed to find Sclar et al.'s headline 76-point statistic; another inflated PERSIST's SD>0.3 to "SD>0.4" and introduced an unsourced 20% figure). N=1 session, single-instance evidence. Promotion gate: N≥2 additional independently-run verification chains.
+  - **F-52 (Pipeline-Anchoring Deterministic Self-Report) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-17 · S-061726-01. role_method=“standard” submission pathway produces a fixed, deterministic Phase 3 template (truth=79, service=81, harm=81, autonomy=81, value=78, humility=78) across multiple providers. Previously flagged operationally (Operator Field Guide “Anchoring Trap”) but never entered into the register. Related to H-ELICIT-01. Promotion gate: confirm live frequency + land `p1_elicitation_surface` enum extension (migration_010).
+  - **F-53 (Cross-Substrate Verification Confidence Cascade) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-17 · S-061726-01. Across four independent AI review passes of the same literature synthesis, verification confidence did not track citation accuracy (one reviewer failed to find Sclar et al.‘s headline 76-point statistic; another inflated PERSIST’s SD>0.3 to “SD>0.4” and introduced an unsourced 20% figure). N=1 session, single-instance evidence. Promotion gate: N≥2 additional independently-run verification chains.
   - **H-AICASCADE-01 (AI-to-AI Verification Confidence Tracks Accuracy) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-17 · S-061726-01. Paired with F-53. Null: no reliable correlation between assigned confidence labels and verified accuracy. Falsification: confidence uncorrelated/inversely correlated across N≥10 claims in a controlled chain.
   - **migration_010_add_elicitation_surface.sql drafted** — adds `p1_elicitation_surface` enum to `acat_assessments_v1` (values: prose_standard, compressed_lite, compressed_full, compressed_ultra, templated_pipeline, unknown). Mandatory Step-0 live-data inspection query included per IC-032 precedent. Backfill logic documented as separate Z3 action, not part of the DDL.
   - **F-number quick index updated:** F-52 and F-53 added. Doc-flow convention line updated to F-18 through F-53.
@@ -2317,7 +2205,7 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
   - **F-number quick index updated:** F-47 and F-48 added.
   - **IC roll-up updated:** IC-033 added, new pattern class Governance-blocker-conflation.
 - **2026-06-03 (S-060326) — H-TRAIN-01 ratified; H-RAH-01 registered; F-37 amended; MARSHAL/DISPATCH framework produced.**
-  - **H-TRAIN-01 (Calibration Transfer Function) ratified** — Zone 2 ratification Night · 2026-06-03 · S-060326. status updated from PENDING to confirmed. Two validation pathways: Pathway A (Metaculus Brier scores, N≥50 gate) and Pathway B (Emergence World behavioral outcomes, CV-12 structural corroboration). H34/H35 bot comment tags map to this entry as canonical registration. N_resolved=0 as of registration date.
+  - **H-TRAIN-01 (Calibration Transfer Function) ratified as CANDIDATE** — Zone 2 ratification Night · 2026-06-03 · S-060326. Status updated from PENDING to CANDIDATE (corrected 2026-06-18: earlier changelog text claimed “confirmed,” which the entry’s own YAML never reflected and which N_resolved=0 cannot support — no resolved questions exist yet to confirm against). Two validation pathways: Pathway A (Metaculus Brier scores, N≥50 gate) and Pathway B (Emergence World behavioral outcomes, CV-12 structural corroboration). H34/H35 bot comment tags map to this entry as canonical registration. N_resolved=0 as of registration date; promotion to REGISTERED/CONFIRMED requires Pathway A or B gate to actually fire.
   - **H-RAH-01 (MARSHAL Routing H-Regime Completion) registered** as CANDIDATE per Zone 2 ratification Night · 2026-06-03 · S-060326. Tests whether MARSHAL regime-based routing + structured task spec produces higher completion rates than unrouted RAH posting on H-regime AI-generated tasks. Architecture dependency: marshal_router_v1_0.py, dispatch_executor_v1_0.py, migration 006, RAH MCP. Promotion gate: N>=20 completed bounties logged to marshal_dispatch_runs_v1.
   - **F-37 amended** — forward pointer to H-TRAIN-01 added; H34/H35 tag origin documented.
   - **MARSHAL/DISPATCH framework produced** — MARSHAL_DISPATCH_FRAMEWORK_S060326.docx delivered. Two-layer orchestration architecture: MARSHAL (routing intelligence, LI-based regime assignment) and DISPATCH (RAH execution, loop close). Copilot PR spec complete in Section 6.
@@ -2326,7 +2214,7 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
   - **H-BPL-01 (Behavioral Programming Language Hypothesis) registered** as CANDIDATE per Z2 ratification Night · 2026-06-01. Formalizes Z2-R-07 (grammar framing as arXiv theoretical frame, ratified S-053026-03). Parser validation: `behavioral_grammar_parser_v1_0.py` α=0.893, PC3=85.9%, 2/2 testable PASS. Promotion gate: external replication + N≥50 held-out prediction test before F-class promotion.
   - **F-20 (RLHF Inflation Gradient) addendum appended** — interpretive frame under F-46: gradient = empirical measurement; epigenetic-mark-density = theoretical interpretation. Distinction required in preprint text. No change to F-20 empirical claim.
   - **F-number quick index updated** (F-18 through F-46). Doc-flow convention line 1 updated to F-18 through F-46.
--**2026-05-29 S-0522926-03 IC-032 — Constraint-Before-Data-Inspection**
+    -**2026-05-29 S-0522926-03 IC-032 — Constraint-Before-Data-Inspection**
   - **Synopsis:** `003_acat_constraints.sql` added `CHECK (submission_purity IN ('clean', 'anchored', 'contaminated', 'unknown'))` without first querying the live `acat_assessments_v1` table for existing `submission_purity` values. The table contained 50+ rows with `submission_purity = 'agent_self_only'` — a valid fifth category not in the Copilot-spec enum. Constraint application failed with ERROR 23514. Detected immediately when Night ran the migration and surfaced the violation query result. Same root pattern as IC-001/002/003 (migration applied without inspecting live data first).
 - **2026-05-21 (S-052126-02-governance-stack-audit) — GOVERNANCE v6.4 traceability.**
   - **GOVERNANCE.md v6.4 supersedes v6.1** per Z2 ratification S-052126-02. No F-class implications, no IC-class additions, no F-number reassignments. Logged here for cross-file traceability — REGISTERED.md is the canonical audit-trail surface for governance-state changes that affect findings/ICs reference base.
