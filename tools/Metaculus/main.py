@@ -579,559 +579,559 @@ class HumanAIOSBotV2(ForecastBot):
     _structure_output_validation_samples = 2
 
 
-def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    self._supabase = _get_supabase_client()
-    self._metaculus_client = MetaculusClient()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._supabase = _get_supabase_client()
+        self._metaculus_client = MetaculusClient()
 
-# ──────────────────────────── RESEARCH ───────────────────────────────────
+    # ──────────────────────────── RESEARCH ───────────────────────────────────
 
-async def run_research(self, question: MetaculusQuestion) -> str:
-    async with self._concurrency_limiter:
-        researcher = self.get_llm("researcher")
+    async def run_research(self, question: MetaculusQuestion) -> str:
+        async with self._concurrency_limiter:
+            researcher = self.get_llm("researcher")
+            prompt = clean_indents(f"""
+                You are an assistant to a superforecaster.
+                Generate a concise but detailed rundown of the most relevant news,
+                including if the question would resolve Yes or No based on current information.
+                You do not produce forecasts yourself.
+
+                Question: {question.question_text}
+
+                Resolution criteria: {question.resolution_criteria}
+                {question.fine_print}
+            """)
+            if isinstance(researcher, GeneralLlm):
+                return await researcher.invoke(prompt)
+            elif researcher in (
+                "asknews/news-summaries",
+                "asknews/deep-research/low-depth",
+                "asknews/deep-research/medium-depth",
+                "asknews/deep-research/high-depth",
+            ):
+                return await AskNewsSearcher().call_preconfigured_version(researcher, prompt)
+            elif researcher and researcher.startswith("smart-searcher"):
+                model_name = researcher.removeprefix("smart-searcher/")
+                searcher = SmartSearcher(
+                    model=model_name, temperature=0,
+                    num_searches_to_run=2, num_sites_per_search=10,
+                    use_advanced_filters=False,
+                )
+                return await searcher.invoke(prompt)
+            elif not researcher or researcher in ("None", "no_research"):
+                return ""
+            else:
+                return await self.get_llm("researcher", "llm").invoke(prompt)
+
+    # ──────────────────────────── BINARY ─────────────────────────────────────
+
+    async def _run_forecast_on_binary(
+        self, question: BinaryQuestion, research: str
+    ) -> ReasonedPrediction[float]:
         prompt = clean_indents(f"""
-            You are an assistant to a superforecaster.
-            Generate a concise but detailed rundown of the most relevant news,
-            including if the question would resolve Yes or No based on current information.
-            You do not produce forecasts yourself.
+            You are a calibrated forecaster. Your goal is accuracy about uncertainty,
+            not the appearance of confidence.
 
-            Question: {question.question_text}
+            {_acat_preamble("binary")}
 
-            Resolution criteria: {question.resolution_criteria}
+            Your interview question is: {question.question_text}
+
+            Question background: {question.background_info}
+
+            Resolution criteria (not yet satisfied):
+            {question.resolution_criteria}
             {question.fine_print}
+
+            Your research assistant says: {research}
+
+            Today is {datetime.now().strftime("%Y-%m-%d")}.
+
+            Before answering you write:
+            (a) The time left until the outcome to the question is known.
+            (b) The status quo outcome if nothing changed.
+            (c) A brief description of a scenario that results in a No outcome.
+            (d) A brief description of a scenario that results in a Yes outcome.
+
+            You write your rationale remembering that good forecasters put extra
+            weight on the status quo outcome since the world changes slowly most
+            of the time.
+
+            {_humility_checkpoint()}
+            {self._get_conditional_disclaimer_if_necessary(question)}
+
+            The last thing you write is your final answer as: "Probability: ZZ%", 0-100
+
+            {_acat_record_footer(question.page_url)}
         """)
-        if isinstance(researcher, GeneralLlm):
-            return await researcher.invoke(prompt)
-        elif researcher in (
-            "asknews/news-summaries",
-            "asknews/deep-research/low-depth",
-            "asknews/deep-research/medium-depth",
-            "asknews/deep-research/high-depth",
-        ):
-            return await AskNewsSearcher().call_preconfigured_version(researcher, prompt)
-        elif researcher and researcher.startswith("smart-searcher"):
-            model_name = researcher.removeprefix("smart-searcher/")
-            searcher = SmartSearcher(
-                model=model_name, temperature=0,
-                num_searches_to_run=2, num_sites_per_search=10,
-                use_advanced_filters=False,
-            )
-            return await searcher.invoke(prompt)
-        elif not researcher or researcher in ("None", "no_research"):
-            return ""
-        else:
-            return await self.get_llm("researcher", "llm").invoke(prompt)
-
-# ──────────────────────────── BINARY ─────────────────────────────────────
-
-async def _run_forecast_on_binary(
-    self, question: BinaryQuestion, research: str
-) -> ReasonedPrediction[float]:
-    prompt = clean_indents(f"""
-        You are a calibrated forecaster. Your goal is accuracy about uncertainty,
-        not the appearance of confidence.
-
-        {_acat_preamble("binary")}
-
-        Your interview question is: {question.question_text}
-
-        Question background: {question.background_info}
-
-        Resolution criteria (not yet satisfied):
-        {question.resolution_criteria}
-        {question.fine_print}
-
-        Your research assistant says: {research}
-
-        Today is {datetime.now().strftime("%Y-%m-%d")}.
-
-        Before answering you write:
-        (a) The time left until the outcome to the question is known.
-        (b) The status quo outcome if nothing changed.
-        (c) A brief description of a scenario that results in a No outcome.
-        (d) A brief description of a scenario that results in a Yes outcome.
-
-        You write your rationale remembering that good forecasters put extra
-        weight on the status quo outcome since the world changes slowly most
-        of the time.
-
-        {_humility_checkpoint()}
-        {self._get_conditional_disclaimer_if_necessary(question)}
-
-        The last thing you write is your final answer as: "Probability: ZZ%", 0-100
-
-        {_acat_record_footer(question.page_url)}
-    """)
-
-    # Step 2: call LLM → reasoning trace
-    reasoning = await self.get_llm("default", "llm").invoke(prompt)
-
-    # Step 3: parse forecast from reasoning
-    binary_prediction: BinaryPrediction = await structure_output(
-        reasoning, BinaryPrediction,
-        model=self.get_llm("parser", "llm"),
-        num_validation_samples=self._structure_output_validation_samples,
-    )
-    decimal_pred = max(0.01, min(0.99, binary_prediction.prediction_in_decimal))
-
-    # Step 4: parse ACAT_PRE from REASONING (not from prompt) → P1 write
-    p1_scores        = _parse_acat_pre(reasoning)
-    li_estimate      = _parse_li_estimate(reasoning)
-    calibration_mode = _parse_calibration_mode(reasoning)
-
-    _write_p1_to_supabase(
-        client=self._supabase, question=question,
-        p1_scores=p1_scores, li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="binary", bot_run_id=BOT_RUN_ID,
-    )
-
-    # Step 5: P2 write
-    _write_p2_to_supabase(
-        self._supabase, question.page_url, BOT_RUN_ID,
-        forecast_value=decimal_pred, forecast_json=None,
-    )
-
-    # Step 6: P3 placeholder + comment
-    await _run_p3_and_comment(
-        supabase_client=self._supabase,
-        metaculus_client=self._metaculus_client,
-        question=question,
-        p1_scores=p1_scores,
-        li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="binary",
-        forecast_value=decimal_pred,
-        bot_run_id=BOT_RUN_ID,
-    )
-
-    return ReasonedPrediction(prediction_value=decimal_pred, reasoning=reasoning)
-
-# ──────────────────────── MULTIPLE CHOICE ────────────────────────────────
-
-async def _run_forecast_on_multiple_choice(
-    self, question: MultipleChoiceQuestion, research: str
-) -> ReasonedPrediction[PredictedOptionList]:
-    prompt = clean_indents(f"""
-        You are a professional forecaster interviewing for a job.
-
-        {_acat_preamble("multiple-choice")}
-
-        Your interview question is: {question.question_text}
-        The options are: {question.options}
-
-        Background: {question.background_info}
-        {question.resolution_criteria}
-        {question.fine_print}
-
-        Your research assistant says: {research}
-
-        Today is {datetime.now().strftime("%Y-%m-%d")}.
-
-        Before answering you write:
-        (a) The time left until the outcome to the question is known.
-        (b) The status quo outcome if nothing changed.
-        (c) A description of a scenario that results in an unexpected outcome.
-
-        {self._get_conditional_disclaimer_if_necessary(question)}
-
-        You write your rationale remembering that (1) good forecasters put extra weight
-        on the status quo outcome since the world changes slowly most of the time, and
-        (2) good forecasters leave some moderate probability on most options to account
-        for unexpected outcomes.
-
-        The last thing you write is your final probabilities for the N options in this
-        order {question.options} as:
-        Option_A: Probability_A
-        ...
-        Option_N: Probability_N
-
-        {_acat_record_footer(question.page_url)}
-    """)
-
-    reasoning = await self.get_llm("default", "llm").invoke(prompt)
-
-    parsing_instructions = clean_indents(f"""
-        Make sure that all option names are one of the following: {question.options}
-        Remove any "Option" prefix if not part of the option names.
-        Include 0% probability options as entries with 0%.
-    """)
-    predicted_option_list: PredictedOptionList = await structure_output(
-        text_to_structure=reasoning, output_type=PredictedOptionList,
-        model=self.get_llm("parser", "llm"),
-        num_validation_samples=self._structure_output_validation_samples,
-        additional_instructions=parsing_instructions,
-    )
-
-    p1_scores        = _parse_acat_pre(reasoning)
-    li_estimate      = _parse_li_estimate(reasoning)
-    calibration_mode = _parse_calibration_mode(reasoning)
-
-    _write_p1_to_supabase(
-        client=self._supabase, question=question,
-        p1_scores=p1_scores, li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="multiple_choice", bot_run_id=BOT_RUN_ID,
-    )
-    _write_p2_to_supabase(
-        self._supabase, question.page_url, BOT_RUN_ID,
-        forecast_value=None, forecast_json=None,
-    )
-    await _run_p3_and_comment(
-        supabase_client=self._supabase,
-        metaculus_client=self._metaculus_client,
-        question=question,
-        p1_scores=p1_scores, li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="multiple_choice",
-        forecast_value=None, bot_run_id=BOT_RUN_ID,
-    )
-
-    return ReasonedPrediction(
-        prediction_value=predicted_option_list, reasoning=reasoning
-    )
-
-# ──────────────────────────── NUMERIC ────────────────────────────────────
-
-async def _run_forecast_on_numeric(
-    self, question: NumericQuestion, research: str
-) -> ReasonedPrediction[NumericDistribution]:
-    upper_bound_message, lower_bound_message = (
-        self._create_upper_and_lower_bound_messages(question)
-    )
-    prompt = clean_indents(f"""
-        You are a professional forecaster interviewing for a job.
-
-        {_acat_preamble("numeric")}
-
-        Your interview question is: {question.question_text}
-
-        Background: {question.background_info}
-        {question.resolution_criteria}
-        {question.fine_print}
-
-        Units: {question.unit_of_measure if question.unit_of_measure else "Not stated (please infer)"}
-        Your research assistant says: {research}
-        Today is {datetime.now().strftime("%Y-%m-%d")}.
-        {lower_bound_message}
-        {upper_bound_message}
-
-        Formatting: never use scientific notation. Percentile 10 < Percentile 20, etc.
-
-        Before answering you write:
-        (a) Time left until outcome known.
-        (b) Outcome if nothing changed.
-        (c) Outcome if current trend continued.
-        (d) Expectations of experts and markets.
-        (e) Unexpected scenario resulting in a low outcome.
-        (f) Unexpected scenario resulting in a high outcome.
-
-        {self._get_conditional_disclaimer_if_necessary(question)}
-
-        Your ACAT Humility pre-score should guide distribution width -
-        a low humility score means risk of too-narrow distribution. Widen accordingly.
-
-        {_humility_checkpoint()}
-
-        The last thing you write is your final answer as:
-        "
-        Percentile 10: XX
-        Percentile 20: XX
-        Percentile 40: XX
-        Percentile 60: XX
-        Percentile 80: XX
-        Percentile 90: XX
-        "
-
-        {_acat_record_footer(question.page_url)}
-    """)
-
-    reasoning = await self.get_llm("default", "llm").invoke(prompt)
-
-    parsing_instructions = clean_indents(f"""
-        Forecast distribution for: "{question.question_text}".
-        Units: {question.unit_of_measure}. Bounds: {question.lower_bound} to {question.upper_bound}.
-        Parse in correct units. Convert scientific notation. Return nothing if no explicit percentiles.
-    """)
-    percentile_list: list[Percentile] = await structure_output(
-        reasoning, list[Percentile],
-        model=self.get_llm("parser", "llm"),
-        additional_instructions=parsing_instructions,
-        num_validation_samples=self._structure_output_validation_samples,
-    )
-    prediction = NumericDistribution.from_question(percentile_list, question)
-
-    p1_scores        = _parse_acat_pre(reasoning)
-    li_estimate      = _parse_li_estimate(reasoning)
-    calibration_mode = _parse_calibration_mode(reasoning)
-
-    _write_p1_to_supabase(
-        client=self._supabase, question=question,
-        p1_scores=p1_scores, li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="numeric", bot_run_id=BOT_RUN_ID,
-    )
-    _write_p2_to_supabase(
-        self._supabase, question.page_url, BOT_RUN_ID,
-        forecast_value=None, forecast_json=None,
-    )
-    await _run_p3_and_comment(
-        supabase_client=self._supabase,
-        metaculus_client=self._metaculus_client,
-        question=question,
-        p1_scores=p1_scores, li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="numeric",
-        forecast_value=None, bot_run_id=BOT_RUN_ID,
-    )
-
-    return ReasonedPrediction(prediction_value=prediction, reasoning=reasoning)
-
-# ──────────────────────────── DATE ───────────────────────────────────────
-
-async def _run_forecast_on_date(
-    self, question: DateQuestion, research: str
-) -> ReasonedPrediction[NumericDistribution]:
-    upper_bound_message, lower_bound_message = (
-        self._create_upper_and_lower_bound_messages(question)
-    )
-    prompt = clean_indents(f"""
-        You are a professional forecaster interviewing for a job.
-
-        {_acat_preamble("date")}
-
-        Your interview question is: {question.question_text}
-
-        Background: {question.background_info}
-        {question.resolution_criteria}
-        {question.fine_print}
-
-        Your research assistant says: {research}
-        Today is {datetime.now().strftime("%Y-%m-%d")}.
-        {lower_bound_message}
-        {upper_bound_message}
-
-        Format: YYYY-MM-DD. Always start with earliest date.
-
-        Before answering you write:
-        (a) Time left until outcome known.
-        (b) Outcome if nothing changed.
-        (c) Outcome if current trend continued.
-        (d) Expectations of experts and markets.
-        (e) Unexpected scenario resulting in an early date.
-        (f) Unexpected scenario resulting in a late date.
-
-        {self._get_conditional_disclaimer_if_necessary(question)}
-
-        Good forecasters set wide 90/10 confidence intervals.
-
-        The last thing you write is your final answer as:
-        "
-        Percentile 10: YYYY-MM-DD
-        Percentile 20: YYYY-MM-DD
-        Percentile 40: YYYY-MM-DD
-        Percentile 60: YYYY-MM-DD
-        Percentile 80: YYYY-MM-DD
-        Percentile 90: YYYY-MM-DD
-        "
-
-        {_acat_record_footer(question.page_url)}
-    """)
-
-    reasoning = await self.get_llm("default", "llm").invoke(prompt)
-
-    parsing_instructions = clean_indents(f"""
-        Date forecast for: "{question.question_text}".
-        Bounds: {question.lower_bound} to {question.upper_bound}.
-        Format as valid datetime string. Assume midnight UTC if no hour.
-        Return nothing if no explicit percentiles given.
-    """)
-    date_percentile_list: list[DatePercentile] = await structure_output(
-        reasoning, list[DatePercentile],
-        model=self.get_llm("parser", "llm"),
-        additional_instructions=parsing_instructions,
-        num_validation_samples=self._structure_output_validation_samples,
-    )
-    percentile_list = [
-        Percentile(percentile=p.percentile, value=p.value.timestamp())
-        for p in date_percentile_list
-    ]
-    prediction = NumericDistribution.from_question(percentile_list, question)
-
-    p1_scores        = _parse_acat_pre(reasoning)
-    li_estimate      = _parse_li_estimate(reasoning)
-    calibration_mode = _parse_calibration_mode(reasoning)
-
-    _write_p1_to_supabase(
-        client=self._supabase, question=question,
-        p1_scores=p1_scores, li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="date", bot_run_id=BOT_RUN_ID,
-    )
-    _write_p2_to_supabase(
-        self._supabase, question.page_url, BOT_RUN_ID,
-        forecast_value=None, forecast_json=None,
-    )
-    await _run_p3_and_comment(
-        supabase_client=self._supabase,
-        metaculus_client=self._metaculus_client,
-        question=question,
-        p1_scores=p1_scores, li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="date",
-        forecast_value=None, bot_run_id=BOT_RUN_ID,
-    )
-
-    return ReasonedPrediction(prediction_value=prediction, reasoning=reasoning)
-
-# ──────────────────────── CONDITIONAL ────────────────────────────────────
-
-async def _run_forecast_on_conditional(
-    self, question: ConditionalQuestion, research: str
-) -> ReasonedPrediction[ConditionalPrediction]:
-    parent_info, full_research = await self._get_question_prediction_info(
-        question.parent, research, "parent"
-    )
-    child_info, full_research = await self._get_question_prediction_info(
-        question.child, full_research, "child"
-    )
-    yes_info, full_research = await self._get_question_prediction_info(
-        question.question_yes, full_research, "yes"
-    )
-    no_info, full_research = await self._get_question_prediction_info(
-        question.question_no, full_research, "no"
-    )
-    full_reasoning = clean_indents(f"""
-        ## Parent Reasoning
-        {parent_info.reasoning}
-        ## Child Reasoning
-        {child_info.reasoning}
-        ## Yes Reasoning
-        {yes_info.reasoning}
-        ## No Reasoning
-        {no_info.reasoning}
-    """)
-
-    # Parse ACAT from combined reasoning trace
-    p1_scores        = _parse_acat_pre(full_reasoning)
-    li_estimate      = _parse_li_estimate(full_reasoning)
-    calibration_mode = _parse_calibration_mode(full_reasoning)
-
-    _write_p1_to_supabase(
-        client=self._supabase, question=question,
-        p1_scores=p1_scores, li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="conditional", bot_run_id=BOT_RUN_ID,
-    )
-    _write_p2_to_supabase(
-        self._supabase, question.page_url, BOT_RUN_ID,
-        forecast_value=None, forecast_json=None,
-    )
-    await _run_p3_and_comment(
-        supabase_client=self._supabase,
-        metaculus_client=self._metaculus_client,
-        question=question,
-        p1_scores=p1_scores, li_estimate=li_estimate,
-        calibration_mode=calibration_mode,
-        question_type="conditional",
-        forecast_value=None, bot_run_id=BOT_RUN_ID,
-    )
-
-    full_prediction = ConditionalPrediction(
-        parent=parent_info.prediction_value,
-        child=child_info.prediction_value,
-        prediction_yes=yes_info.prediction_value,
-        prediction_no=no_info.prediction_value,
-    )
-    return ReasonedPrediction(
-        reasoning=full_reasoning, prediction_value=full_prediction
-    )
-
-# ─────────────────────── SHARED INFRASTRUCTURE ───────────────────────────
-
-async def _get_question_prediction_info(
-    self, question: MetaculusQuestion, research: str, question_type: str
-) -> tuple[ReasonedPrediction[PredictionTypes | PredictionAffirmed], str]:
-    from forecasting_tools.data_models.data_organizer import DataOrganizer
-    previous_forecasts = question.previous_forecasts
-    if (
-        question_type in ["parent", "child"]
-        and previous_forecasts
-        and question_type not in self.force_reforecast_in_conditional
-    ):
-        previous_forecast = previous_forecasts[-1]
+
+        # Step 2: call LLM → reasoning trace
+        reasoning = await self.get_llm("default", "llm").invoke(prompt)
+
+        # Step 3: parse forecast from reasoning
+        binary_prediction: BinaryPrediction = await structure_output(
+            reasoning, BinaryPrediction,
+            model=self.get_llm("parser", "llm"),
+            num_validation_samples=self._structure_output_validation_samples,
+        )
+        decimal_pred = max(0.01, min(0.99, binary_prediction.prediction_in_decimal))
+
+        # Step 4: parse ACAT_PRE from REASONING (not from prompt) → P1 write
+        p1_scores        = _parse_acat_pre(reasoning)
+        li_estimate      = _parse_li_estimate(reasoning)
+        calibration_mode = _parse_calibration_mode(reasoning)
+
+        _write_p1_to_supabase(
+            client=self._supabase, question=question,
+            p1_scores=p1_scores, li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="binary", bot_run_id=BOT_RUN_ID,
+        )
+
+        # Step 5: P2 write
+        _write_p2_to_supabase(
+            self._supabase, question.page_url, BOT_RUN_ID,
+            forecast_value=decimal_pred, forecast_json=None,
+        )
+
+        # Step 6: P3 placeholder + comment
+        await _run_p3_and_comment(
+            supabase_client=self._supabase,
+            metaculus_client=self._metaculus_client,
+            question=question,
+            p1_scores=p1_scores,
+            li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="binary",
+            forecast_value=decimal_pred,
+            bot_run_id=BOT_RUN_ID,
+        )
+
+        return ReasonedPrediction(prediction_value=decimal_pred, reasoning=reasoning)
+
+    # ──────────────────────── MULTIPLE CHOICE ────────────────────────────────
+
+    async def _run_forecast_on_multiple_choice(
+        self, question: MultipleChoiceQuestion, research: str
+    ) -> ReasonedPrediction[PredictedOptionList]:
+        prompt = clean_indents(f"""
+            You are a professional forecaster interviewing for a job.
+
+            {_acat_preamble("multiple-choice")}
+
+            Your interview question is: {question.question_text}
+            The options are: {question.options}
+
+            Background: {question.background_info}
+            {question.resolution_criteria}
+            {question.fine_print}
+
+            Your research assistant says: {research}
+
+            Today is {datetime.now().strftime("%Y-%m-%d")}.
+
+            Before answering you write:
+            (a) The time left until the outcome to the question is known.
+            (b) The status quo outcome if nothing changed.
+            (c) A description of a scenario that results in an unexpected outcome.
+
+            {self._get_conditional_disclaimer_if_necessary(question)}
+
+            You write your rationale remembering that (1) good forecasters put extra weight
+            on the status quo outcome since the world changes slowly most of the time, and
+            (2) good forecasters leave some moderate probability on most options to account
+            for unexpected outcomes.
+
+            The last thing you write is your final probabilities for the N options in this
+            order {question.options} as:
+            Option_A: Probability_A
+            ...
+            Option_N: Probability_N
+
+            {_acat_record_footer(question.page_url)}
+        """)
+
+        reasoning = await self.get_llm("default", "llm").invoke(prompt)
+
+        parsing_instructions = clean_indents(f"""
+            Make sure that all option names are one of the following: {question.options}
+            Remove any "Option" prefix if not part of the option names.
+            Include 0% probability options as entries with 0%.
+        """)
+        predicted_option_list: PredictedOptionList = await structure_output(
+            text_to_structure=reasoning, output_type=PredictedOptionList,
+            model=self.get_llm("parser", "llm"),
+            num_validation_samples=self._structure_output_validation_samples,
+            additional_instructions=parsing_instructions,
+        )
+
+        p1_scores        = _parse_acat_pre(reasoning)
+        li_estimate      = _parse_li_estimate(reasoning)
+        calibration_mode = _parse_calibration_mode(reasoning)
+
+        _write_p1_to_supabase(
+            client=self._supabase, question=question,
+            p1_scores=p1_scores, li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="multiple_choice", bot_run_id=BOT_RUN_ID,
+        )
+        _write_p2_to_supabase(
+            self._supabase, question.page_url, BOT_RUN_ID,
+            forecast_value=None, forecast_json=None,
+        )
+        await _run_p3_and_comment(
+            supabase_client=self._supabase,
+            metaculus_client=self._metaculus_client,
+            question=question,
+            p1_scores=p1_scores, li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="multiple_choice",
+            forecast_value=None, bot_run_id=BOT_RUN_ID,
+        )
+
+        return ReasonedPrediction(
+            prediction_value=predicted_option_list, reasoning=reasoning
+        )
+
+    # ──────────────────────────── NUMERIC ────────────────────────────────────
+
+    async def _run_forecast_on_numeric(
+        self, question: NumericQuestion, research: str
+    ) -> ReasonedPrediction[NumericDistribution]:
+        upper_bound_message, lower_bound_message = (
+            self._create_upper_and_lower_bound_messages(question)
+        )
+        prompt = clean_indents(f"""
+            You are a professional forecaster interviewing for a job.
+
+            {_acat_preamble("numeric")}
+
+            Your interview question is: {question.question_text}
+
+            Background: {question.background_info}
+            {question.resolution_criteria}
+            {question.fine_print}
+
+            Units: {question.unit_of_measure if question.unit_of_measure else "Not stated (please infer)"}
+            Your research assistant says: {research}
+            Today is {datetime.now().strftime("%Y-%m-%d")}.
+            {lower_bound_message}
+            {upper_bound_message}
+
+            Formatting: never use scientific notation. Percentile 10 < Percentile 20, etc.
+
+            Before answering you write:
+            (a) Time left until outcome known.
+            (b) Outcome if nothing changed.
+            (c) Outcome if current trend continued.
+            (d) Expectations of experts and markets.
+            (e) Unexpected scenario resulting in a low outcome.
+            (f) Unexpected scenario resulting in a high outcome.
+
+            {self._get_conditional_disclaimer_if_necessary(question)}
+
+            Your ACAT Humility pre-score should guide distribution width -
+            a low humility score means risk of too-narrow distribution. Widen accordingly.
+
+            {_humility_checkpoint()}
+
+            The last thing you write is your final answer as:
+            "
+            Percentile 10: XX
+            Percentile 20: XX
+            Percentile 40: XX
+            Percentile 60: XX
+            Percentile 80: XX
+            Percentile 90: XX
+            "
+
+            {_acat_record_footer(question.page_url)}
+        """)
+
+        reasoning = await self.get_llm("default", "llm").invoke(prompt)
+
+        parsing_instructions = clean_indents(f"""
+            Forecast distribution for: "{question.question_text}".
+            Units: {question.unit_of_measure}. Bounds: {question.lower_bound} to {question.upper_bound}.
+            Parse in correct units. Convert scientific notation. Return nothing if no explicit percentiles.
+        """)
+        percentile_list: list[Percentile] = await structure_output(
+            reasoning, list[Percentile],
+            model=self.get_llm("parser", "llm"),
+            additional_instructions=parsing_instructions,
+            num_validation_samples=self._structure_output_validation_samples,
+        )
+        prediction = NumericDistribution.from_question(percentile_list, question)
+
+        p1_scores        = _parse_acat_pre(reasoning)
+        li_estimate      = _parse_li_estimate(reasoning)
+        calibration_mode = _parse_calibration_mode(reasoning)
+
+        _write_p1_to_supabase(
+            client=self._supabase, question=question,
+            p1_scores=p1_scores, li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="numeric", bot_run_id=BOT_RUN_ID,
+        )
+        _write_p2_to_supabase(
+            self._supabase, question.page_url, BOT_RUN_ID,
+            forecast_value=None, forecast_json=None,
+        )
+        await _run_p3_and_comment(
+            supabase_client=self._supabase,
+            metaculus_client=self._metaculus_client,
+            question=question,
+            p1_scores=p1_scores, li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="numeric",
+            forecast_value=None, bot_run_id=BOT_RUN_ID,
+        )
+
+        return ReasonedPrediction(prediction_value=prediction, reasoning=reasoning)
+
+    # ──────────────────────────── DATE ───────────────────────────────────────
+
+    async def _run_forecast_on_date(
+        self, question: DateQuestion, research: str
+    ) -> ReasonedPrediction[NumericDistribution]:
+        upper_bound_message, lower_bound_message = (
+            self._create_upper_and_lower_bound_messages(question)
+        )
+        prompt = clean_indents(f"""
+            You are a professional forecaster interviewing for a job.
+
+            {_acat_preamble("date")}
+
+            Your interview question is: {question.question_text}
+
+            Background: {question.background_info}
+            {question.resolution_criteria}
+            {question.fine_print}
+
+            Your research assistant says: {research}
+            Today is {datetime.now().strftime("%Y-%m-%d")}.
+            {lower_bound_message}
+            {upper_bound_message}
+
+            Format: YYYY-MM-DD. Always start with earliest date.
+
+            Before answering you write:
+            (a) Time left until outcome known.
+            (b) Outcome if nothing changed.
+            (c) Outcome if current trend continued.
+            (d) Expectations of experts and markets.
+            (e) Unexpected scenario resulting in an early date.
+            (f) Unexpected scenario resulting in a late date.
+
+            {self._get_conditional_disclaimer_if_necessary(question)}
+
+            Good forecasters set wide 90/10 confidence intervals.
+
+            The last thing you write is your final answer as:
+            "
+            Percentile 10: YYYY-MM-DD
+            Percentile 20: YYYY-MM-DD
+            Percentile 40: YYYY-MM-DD
+            Percentile 60: YYYY-MM-DD
+            Percentile 80: YYYY-MM-DD
+            Percentile 90: YYYY-MM-DD
+            "
+
+            {_acat_record_footer(question.page_url)}
+        """)
+
+        reasoning = await self.get_llm("default", "llm").invoke(prompt)
+
+        parsing_instructions = clean_indents(f"""
+            Date forecast for: "{question.question_text}".
+            Bounds: {question.lower_bound} to {question.upper_bound}.
+            Format as valid datetime string. Assume midnight UTC if no hour.
+            Return nothing if no explicit percentiles given.
+        """)
+        date_percentile_list: list[DatePercentile] = await structure_output(
+            reasoning, list[DatePercentile],
+            model=self.get_llm("parser", "llm"),
+            additional_instructions=parsing_instructions,
+            num_validation_samples=self._structure_output_validation_samples,
+        )
+        percentile_list = [
+            Percentile(percentile=p.percentile, value=p.value.timestamp())
+            for p in date_percentile_list
+        ]
+        prediction = NumericDistribution.from_question(percentile_list, question)
+
+        p1_scores        = _parse_acat_pre(reasoning)
+        li_estimate      = _parse_li_estimate(reasoning)
+        calibration_mode = _parse_calibration_mode(reasoning)
+
+        _write_p1_to_supabase(
+            client=self._supabase, question=question,
+            p1_scores=p1_scores, li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="date", bot_run_id=BOT_RUN_ID,
+        )
+        _write_p2_to_supabase(
+            self._supabase, question.page_url, BOT_RUN_ID,
+            forecast_value=None, forecast_json=None,
+        )
+        await _run_p3_and_comment(
+            supabase_client=self._supabase,
+            metaculus_client=self._metaculus_client,
+            question=question,
+            p1_scores=p1_scores, li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="date",
+            forecast_value=None, bot_run_id=BOT_RUN_ID,
+        )
+
+        return ReasonedPrediction(prediction_value=prediction, reasoning=reasoning)
+
+    # ──────────────────────── CONDITIONAL ────────────────────────────────────
+
+    async def _run_forecast_on_conditional(
+        self, question: ConditionalQuestion, research: str
+    ) -> ReasonedPrediction[ConditionalPrediction]:
+        parent_info, full_research = await self._get_question_prediction_info(
+            question.parent, research, "parent"
+        )
+        child_info, full_research = await self._get_question_prediction_info(
+            question.child, full_research, "child"
+        )
+        yes_info, full_research = await self._get_question_prediction_info(
+            question.question_yes, full_research, "yes"
+        )
+        no_info, full_research = await self._get_question_prediction_info(
+            question.question_no, full_research, "no"
+        )
+        full_reasoning = clean_indents(f"""
+            ## Parent Reasoning
+            {parent_info.reasoning}
+            ## Child Reasoning
+            {child_info.reasoning}
+            ## Yes Reasoning
+            {yes_info.reasoning}
+            ## No Reasoning
+            {no_info.reasoning}
+        """)
+
+        # Parse ACAT from combined reasoning trace
+        p1_scores        = _parse_acat_pre(full_reasoning)
+        li_estimate      = _parse_li_estimate(full_reasoning)
+        calibration_mode = _parse_calibration_mode(full_reasoning)
+
+        _write_p1_to_supabase(
+            client=self._supabase, question=question,
+            p1_scores=p1_scores, li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="conditional", bot_run_id=BOT_RUN_ID,
+        )
+        _write_p2_to_supabase(
+            self._supabase, question.page_url, BOT_RUN_ID,
+            forecast_value=None, forecast_json=None,
+        )
+        await _run_p3_and_comment(
+            supabase_client=self._supabase,
+            metaculus_client=self._metaculus_client,
+            question=question,
+            p1_scores=p1_scores, li_estimate=li_estimate,
+            calibration_mode=calibration_mode,
+            question_type="conditional",
+            forecast_value=None, bot_run_id=BOT_RUN_ID,
+        )
+
+        full_prediction = ConditionalPrediction(
+            parent=parent_info.prediction_value,
+            child=child_info.prediction_value,
+            prediction_yes=yes_info.prediction_value,
+            prediction_no=no_info.prediction_value,
+        )
+        return ReasonedPrediction(
+            reasoning=full_reasoning, prediction_value=full_prediction
+        )
+
+    # ─────────────────────── SHARED INFRASTRUCTURE ───────────────────────────
+
+    async def _get_question_prediction_info(
+        self, question: MetaculusQuestion, research: str, question_type: str
+    ) -> tuple[ReasonedPrediction[PredictionTypes | PredictionAffirmed], str]:
+        from forecasting_tools.data_models.data_organizer import DataOrganizer
+        previous_forecasts = question.previous_forecasts
         if (
-            previous_forecast.timestamp_end is None
-            or previous_forecast.timestamp_end > datetime.now(timezone.utc)
+            question_type in ["parent", "child"]
+            and previous_forecasts
+            and question_type not in self.force_reforecast_in_conditional
         ):
-            pretty_value = DataOrganizer.get_readable_prediction(previous_forecast)
-            prediction = ReasonedPrediction(
-                prediction_value=PredictionAffirmed(),
-                reasoning=f"Already existing forecast reaffirmed at {pretty_value}.",
-            )
-            return (prediction, research)
-    info = await self._make_prediction(question, research)
-    full_research = self._add_reasoning_to_research(research, info, question_type)
-    return info, full_research
+            previous_forecast = previous_forecasts[-1]
+            if (
+                previous_forecast.timestamp_end is None
+                or previous_forecast.timestamp_end > datetime.now(timezone.utc)
+            ):
+                pretty_value = DataOrganizer.get_readable_prediction(previous_forecast)
+                prediction = ReasonedPrediction(
+                    prediction_value=PredictionAffirmed(),
+                    reasoning=f"Already existing forecast reaffirmed at {pretty_value}.",
+                )
+                return (prediction, research)
+        info = await self._make_prediction(question, research)
+        full_research = self._add_reasoning_to_research(research, info, question_type)
+        return info, full_research
 
-def _add_reasoning_to_research(
-    self, research: str,
-    reasoning: ReasonedPrediction[PredictionTypes],
-    question_type: str,
-) -> str:
-    from forecasting_tools.data_models.data_organizer import DataOrganizer
-    question_type = question_type.title()
-    return clean_indents(f"""
-        {research}
-        ---
-        ## {question_type} Question Information
-        Previously forecasted to: {DataOrganizer.get_readable_prediction(reasoning.prediction_value)}
-        Reasoning:
-        ```
-        {reasoning.reasoning}
-        ```
-        Do NOT use this to re-forecast the {question_type} question.
-    """)
+    def _add_reasoning_to_research(
+        self, research: str,
+        reasoning: ReasonedPrediction[PredictionTypes],
+        question_type: str,
+    ) -> str:
+        from forecasting_tools.data_models.data_organizer import DataOrganizer
+        question_type = question_type.title()
+        return clean_indents(f"""
+            {research}
+            ---
+            ## {question_type} Question Information
+            Previously forecasted to: {DataOrganizer.get_readable_prediction(reasoning.prediction_value)}
+            Reasoning:
+            ```
+            {reasoning.reasoning}
+            ```
+            Do NOT use this to re-forecast the {question_type} question.
+        """)
 
-def _get_conditional_disclaimer_if_necessary(
-    self, question: MetaculusQuestion
-) -> str:
-    if question.conditional_type not in ["yes", "no"]:
-        return ""
-    return clean_indents("""
-        You are forecasting the CHILD question only, given the parent's resolution.
-        Never re-forecast the parent question.
-    """)
+    def _get_conditional_disclaimer_if_necessary(
+        self, question: MetaculusQuestion
+    ) -> str:
+        if question.conditional_type not in ["yes", "no"]:
+            return ""
+        return clean_indents("""
+            You are forecasting the CHILD question only, given the parent's resolution.
+            Never re-forecast the parent question.
+        """)
 
-def _create_upper_and_lower_bound_messages(
-    self, question: NumericQuestion | DateQuestion
-) -> tuple[str, str]:
-    if isinstance(question, NumericQuestion):
-        upper = question.nominal_upper_bound or question.upper_bound
-        lower = question.nominal_lower_bound or question.lower_bound
-        unit  = question.unit_of_measure
-    elif isinstance(question, DateQuestion):
-        upper = question.upper_bound.date().isoformat()
-        lower = question.lower_bound.date().isoformat()
-        unit  = ""
-    else:
-        raise ValueError()
+    def _create_upper_and_lower_bound_messages(
+        self, question: NumericQuestion | DateQuestion
+    ) -> tuple[str, str]:
+        if isinstance(question, NumericQuestion):
+            upper = question.nominal_upper_bound or question.upper_bound
+            lower = question.nominal_lower_bound or question.lower_bound
+            unit  = question.unit_of_measure
+        elif isinstance(question, DateQuestion):
+            upper = question.upper_bound.date().isoformat()
+            lower = question.lower_bound.date().isoformat()
+            unit  = ""
+        else:
+            raise ValueError()
 
-    upper_msg = (
-        f"The question creator thinks the number is likely not higher than {upper} {unit}."
-        if question.open_upper_bound
-        else f"The outcome cannot be higher than {upper} {unit}."
-    )
-    lower_msg = (
-        f"The question creator thinks the number is likely not lower than {lower} {unit}."
-        if question.open_lower_bound
-        else f"The outcome cannot be lower than {lower} {unit}."
-    )
-    return upper_msg, lower_msg
+        upper_msg = (
+            f"The question creator thinks the number is likely not higher than {upper} {unit}."
+            if question.open_upper_bound
+            else f"The outcome cannot be higher than {upper} {unit}."
+        )
+        lower_msg = (
+            f"The question creator thinks the number is likely not lower than {lower} {unit}."
+            if question.open_lower_bound
+            else f"The outcome cannot be lower than {lower} {unit}."
+        )
+        return upper_msg, lower_msg
 
-# -----------------------------------------------------------------------------
-# ENTRY POINT
-# -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
+    # ENTRY POINT
+    # -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
     logging.basicConfig(
