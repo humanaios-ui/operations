@@ -1,0 +1,308 @@
+================================================================================
+ACAT + SSI INTEGRATION: PROGRAMMATIC MAPPING COMPLETE
+================================================================================
+Date: Tuesday, June 16, 2026
+Session: S-061626-XX (Discovery)
+Status: Z1 Draft Architecture (Ready for Z2 Review)
+
+================================================================================
+DELIVERABLES
+================================================================================
+
+Three documents have been created and placed in /mnt/user-data/outputs/:
+
+1. ACAT_SSI_ARCHITECTURE_MAPPING.md (35KB)
+   ├─ Complete technical architecture showing how AI fingerprinting +
+   │  human anonymity + SSI converge programmatically
+   ├─ Parts 1-2: Current state (dedupe.py, normalize_service.py,
+   │  human_score_route.py with OriginStamp anchoring)
+   ├─ Part 3: Programmatic SSI integration (new routes, modules, tables)
+   ├─ Part 4: Fork candidates (w3c/vc-data-model, didkit, cryptography)
+   ├─ Part 5: Implementation roadmap (6 phases, checkpoints)
+   ├─ Part 6: Code samples (did:key generation, VC signing)
+   ├─ Part 7: Anonymity preservation mechanism (dual-mode rater identity)
+   └─ Parts 8: Backwards compatibility guarantees
+
+2. ACAT_SSI_VISUAL_ARCHITECTURE.md (42KB)
+   ├─ Layer 1: Current state (AI fingerprinting + human anonymity without SSI)
+   ├─ Layer 2: With SSI enhancement (DIDs, VCs, signatures throughout)
+   ├─ Layer 3: Data model mapping (6 tables, foreign key relationships)
+   ├─ Layer 4: Request/response cycle (9-step signing and verification flow)
+   ├─ Layer 5: Anonymity paradox (why cryptographic identity increases privacy)
+   └─ ASCII art diagrams showing data flow and architecture
+
+3. SSI_QUICK_REFERENCE.md (10KB)
+   ├─ Current live code locations (GitHub paths, file names)
+   ├─ Where new code will be added (new routes, modules, migrations)
+   ├─ Key data flow comparisons (current vs. enhanced)
+   ├─ Backwards compatibility matrix
+   ├─ Fork strategy (primary + optional secondary)
+   ├─ Fingerprint → anonymity mapping table
+   ├─ Data structure summaries (W3C VC examples)
+   └─ Implementation checklist (14 items for Z2/Z3 queue)
+
+================================================================================
+KEY FINDINGS
+================================================================================
+
+CURRENT IMPLEMENTATION (LIVE IN PRODUCTION)
+───────────────────────────────────────────
+
+AI Fingerprinting:
+  • acat/normalization/dedupe.py: AI identity deduplication key
+  • acat/api/services/normalize_service.py: canonicalize_agent_name()
+    Maps "Claude 3.5 Sonnet" → "anthropic:sonnet-4-6" (normalized)
+  • Fingerprint is indexed on agent_name_canonical in acat_assessments_v1
+  • Quality flags auto-derived from response structure
+
+Human Anonymity:
+  • acat/api/routes/human_score_route.py: rater_id generation
+    `rater_id = f"anon-{uuid.uuid4().hex[:12]}"` if not provided
+  • rater_id is INDEXED but OPAQUE (no reversal lookup)
+  • acat_human_scores table links to acat_assessments_v1 via assessment_uuid
+  • OriginStamp blockchain anchor: Receipt hashed, timestamp on blockchain
+    BUT: rater_id included in receipt but NOT cryptographically bound
+
+Existing Gap:
+  ✗ No way to verify "who scored this assessment"
+  ✗ No way to bind rater credibility to their scores
+  ✗ No way to detect "same expert scoring multiple assessments"
+  ✗ OriginStamp timestamp at receipt level, not rater-level
+
+
+SSI ENHANCEMENT (PROPOSED ADDITION)
+───────────────────────────────────
+
+New Tables:
+  • acat_rater_credentials: Stores rater DIDs, public keys, W3C VCs
+    ├─ rater_did (UNIQUE): did:key:z6MkhaXg... (deterministic from pubkey)
+    ├─ public_key_base58: Base58-encoded Ed25519 public key
+    ├─ rater_affiliation: "researcher", "domain_expert" (optional, no PII)
+    ├─ capabilities: ["acat_scorer_v1"]
+    ├─ vc_json (JSONB): Full W3C Verifiable Credential
+    ├─ is_revoked: Credential rotation support
+    └─ [NO name, NO email, NO personal identity data]
+
+  • acat_model_credentials: Stores model DIDs, signatures, credentials
+    ├─ model_did (UNIQUE): did:key:z6Mkp... (deterministic from provider:model)
+    ├─ provider: "anthropic", "openai", etc.
+    ├─ model: Full model string with version
+    ├─ version_hash: Optional SHA256 of model weights
+    ├─ vc_json (JSONB): Provider-issued W3C VC
+    └─ provider_public_key_base58: For verifying model signatures
+
+  • Extensions to existing tables:
+    ├─ acat_assessments_v1:
+    │  ├─ model_did (FK to acat_model_credentials)
+    │  ├─ p1_signature: Ed25519(P1_json) [NEW]
+    │  ├─ p3_signature: Ed25519(P3_json) [NEW]
+    │  └─ is_p3_signed: BOOLEAN [NEW]
+    │
+    └─ acat_human_scores:
+       ├─ rater_did (FK to acat_rater_credentials) [NEW]
+       ├─ submission_signature: Ed25519(vc_json) [NEW]
+       └─ is_vc_signed: BOOLEAN [NEW]
+
+New Routes:
+  • POST /api/v1/acat/human-score-vc
+    ├─ Input: assessment_id, scores, optional (rater_did + private_key_base64)
+    ├─ Output: human score + signed VC + chain of custody
+    └─ Backwards compatible: old /human-score route unchanged
+
+  • POST /api/v1/acat/assess-vc
+    ├─ Input: Standard assessment payload + optional version_hash
+    ├─ Output: Assessment + model credential binding
+    └─ Backwards compatible: old /assess route unchanged
+
+  • GET /api/v1/acat/assessment/{id}/chain
+    ├─ Output: Full chain of custody (AI model + human raters + blockchain)
+    ├─ Shows all signatures, verification status
+    └─ Enables verification of entire assessment history
+
+New Modules:
+  • acat/identity/did_generator.py: Generate did:key from Ed25519 public keys
+  • acat/identity/vc_signer.py: Sign W3C VCs with Ed25519
+  • acat/verification/vc_verifier.py: Verify VC signatures + revocation
+  • acat/verification/chain_of_custody.py: Build verifiable chain traces
+  • acat/context/acat_vc_context_v1.jsonld: W3C JSON-LD context (12 dimensions)
+
+
+THE ANONYMITY PARADOX SOLVED
+─────────────────────────────
+
+WITHOUT SSI (Current):
+  Rater generates: anon-a7f3b2c1 (opaque token)
+  ✓ Perfect anonymity (cannot reverse to person)
+  ✗ No credibility binding (anyone could be "anon-a7f3b2c1")
+  ✗ No portability (token only valid in HumanAIOS)
+
+WITH SSI (Proposed):
+  Rater generates keypair: Ed25519 (private key stored securely)
+  Rater gets DID: did:key:z6MkhaXg... (deterministic from public key)
+  
+  Stores in system:
+  • rater_did (PUBLIC)
+  • public_key_base58 (PUBLIC, non-secret)
+  • capabilities: ["acat_scorer_v1"] (PUBLIC, generic)
+  • rater_affiliation: "researcher" (OPTIONAL, generic, no PII)
+  
+  ✓ Pseudonymous identity (DID, not name)
+  ✓ Credibility portable ("This DID scored 47 assessments with 0.89 agreement")
+  ✓ Cryptographic non-repudiation (signature proves "this DID made this assessment")
+  ✓ Personal identity severable (Jane never submits name; only DID is public)
+  ✓ Anonymity STRENGTHENED (fingerprint ≠ identity; cannot correlate)
+  ✓ Portability (DID works on any SSI-capable system)
+
+
+IMPLEMENTATION PHASES
+─────────────────────
+
+Phase 1: VC Context Definition (Z2)
+  ├─ Define ACAT JSON-LD context (12 dimensions + rater capabilities)
+  ├─ Z2 review and ratification
+  └─ Days: 3-5
+
+Phase 2: Cryptographic Infrastructure (Z1 → Z3)
+  ├─ DID generation, VC signing, signature verification
+  ├─ Sample implementation with test DIDs
+  └─ Days: 5-7
+
+Phase 3: Database Migration (Z3)
+  ├─ Create 2 new tables, extend 2 existing tables
+  ├─ Explicit Supabase GRANT statements (Data API requirement)
+  ├─ Verify indexing on DIDs
+  └─ Days: 2-3
+
+Phase 4: API Routes (Z1 → Z3)
+  ├─ /human-score-vc, /assess-vc, /chain endpoints
+  ├─ Backwards compatibility verification
+  ├─ Integration tests
+  └─ Days: 7-10
+
+Phase 5: Front-End UX (Z1)
+  ├─ Update assess.html for model DID option
+  ├─ DID credential generation UI
+  ├─ Chain of custody display
+  └─ Days: 4-6
+
+Phase 6: External Publication (Z2/Z3)
+  ├─ Publish humanaios-ui/vc-acat-context to npm + PyPI
+  ├─ Submit to W3C VC Registry
+  ├─ Write tutorial documentation
+  └─ Days: 3-5
+
+TOTAL ESTIMATED: 24-36 days (if consecutive)
+
+Current Charter: 31 days remaining (to July 16, 2026)
+→ FEASIBLE within charter window IF prioritized
+
+
+FORK CANDIDATES
+────────────────
+
+PRIMARY FORK (REQUIRED):
+  w3c/vc-data-model
+  → humanaios-ui/vc-acat-context
+  ├─ acat-context-v1.jsonld (ACAT 12 dimensions)
+  ├─ acat-model-credential.schema.json
+  ├─ acat-rater-credential.schema.json
+  └─ Examples and README
+
+SECONDARY FORKS (OPTIONAL):
+  pyca/cryptography
+  → humanaios-ui/pyca-cryptography-acat
+  └─ Custom Ed25519Signature2020 proof format (if needed)
+
+  w3c/did-core
+  → Reference only; no fork needed (spec compliance)
+
+
+BACKWARDS COMPATIBILITY GUARANTEE
+──────────────────────────────────
+
+✓ Old routes still work: POST /api/v1/acat/assess, POST /api/v1/acat/human-score
+✓ New columns default to NULL in existing tables
+✓ Existing rows unaffected by schema migrations
+✓ Anonymous rater_id mode unchanged (still works as before)
+✓ OriginStamp anchoring continues to work
+✓ New routes are OPT-IN (clients choose /human-score vs. /human-score-vc)
+
+
+SECURITY CONSIDERATIONS
+───────────────────────
+
+✓ Private keys: NEVER stored on server; stored by rater (local or key manager)
+✓ Public keys: PUBLIC; indexed; used for signature verification
+✓ DID determinism: same public key → same DID (prevents key confusion)
+✓ Signature verification: Ed25519Signature2020 per W3C spec
+✓ Revocation: acat_rater_credentials.is_revoked flag (credential rotation)
+✓ Blockchain anchor: Receipt hashed; both AI and human DIDs included in hash
+✓ No PII: rater_name, email, affiliation NEVER stored in acat_rater_credentials
+
+
+GOVERNANCE IMPLICATIONS
+────────────────────────
+
+Z2 Gate Required:
+  1. PRINCIPLES_SEED: No new principle needed; fits P8 (Tradition 11 - anonymity)
+  2. EFF (External Framework Filter): W3C VC Data Model is external framework
+     → Should apply P23 (EFF) to check W3C VC integration doesn't surface gaps
+  3. New documentation: Update PROJECT_IDENTITY framing to mention SSI capability
+
+Z3 Gate Required:
+  1. Database migrations (explicit GRANT statements for Supabase Data API)
+  2. GitHub commits (vc-acat-context fork + integration code)
+  3. Production deployment (new routes, new tables)
+
+
+NEXT STEP: Z2 REVIEW
+────────────────────
+
+Questions for Night (Z2):
+
+1. Does SSI integration align with Market-Harmonic principle?
+   (Research question: "What if rater identity is verifiable but pseudonymous?")
+
+2. Should we fork w3c/vc-data-model now, or reference it and fork on demand?
+
+3. Is P23 (External Framework Filter) needed for W3C VC alignment check?
+
+4. Timeline: Is 24-36 day implementation feasible within 31-day charter window,
+   or should this move to post-charter?
+
+5. Scope constraint: Is Phase 6 (npm/PyPI publication + W3C registry) in-scope,
+   or defer to post-launch publication?
+
+
+RATIONALE FOR THIS WORK
+────────────────────────
+
+Core insight from your observation:
+  "The SSI from the human side would strengthen our anonymity capabilities."
+
+Why this is true:
+  • Current: Rater anonymity is strong (opaque token) but unverifiable
+  • With SSI: Rater credibility becomes portable without revealing identity
+  • Result: "What the rater did" (DID) ≠ "Who the rater is" (person)
+  • Consequence: Stronger anonymity + verifiable expertise
+
+This solves a real gap:
+  • AI fingerprinting is strong (provider:model)
+  • Human anonymity is strong (anon-{12hex})
+  • BUT chain of custody between them is currently unverifiable
+  • SSI makes the chain verifiable without breaking anonymity
+
+
+FILES IN THIS DELIVERY
+──────────────────────
+
+/mnt/user-data/outputs/
+├── ACAT_SSI_ARCHITECTURE_MAPPING.md (35KB) - Full technical spec
+├── ACAT_SSI_VISUAL_ARCHITECTURE.md (42KB) - ASCII diagrams + data flow
+└── SSI_QUICK_REFERENCE.md (10KB) - Checklists + quick lookup
+
+Total: ~90KB of documentation, ready for Z2 review
+
+================================================================================
+END SUMMARY
+================================================================================
