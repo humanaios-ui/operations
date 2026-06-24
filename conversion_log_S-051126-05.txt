@@ -1,8 +1,0 @@
-[2026-05-14 16:23:07] ======================================================================
-[2026-05-14 16:23:07] Run start: dry_run=False force=False batch=False
-[2026-05-14 16:23:07] SKIP (missing source): COLLABORATOR_FRAMEWORK_V1_0.docx
-[2026-05-14 16:23:07] Single-file result: failed
-[2026-05-14 16:23:08] ======================================================================
-[2026-05-14 16:23:08] Run start: dry_run=False force=False batch=False
-[2026-05-14 16:23:08] FAILED (pandoc exception: [Errno 2] No such file or directory: 'pandoc'): SHADOW_CALIBRATION_SYSTEM_SPEC_V0_2.docx
-[2026-05-14 16:23:08] Single-file result: failed

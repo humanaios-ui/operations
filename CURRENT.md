@@ -1,7 +1,7 @@
 # HumanAIOS Operating Process — CURRENT
 
 **Status:** LIVE
-**Last updated:** June 7, 2026 (S-060726-02)
+**Last updated:** June 8, 2026 (S-060826-04 · Z2-GOVARCH-01 §4 reduction · Z2-GOVARCH-02 Class 1 WGS update)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
 **Replaces:** All prior in-Project CI snapshots (CUSTOM_INSTRUCTIONS_V*) as the canonical operating-process source for fetched-at-runtime use.
 
@@ -15,7 +15,8 @@ What this file deliberately does NOT contain:
 
 - **Organism identity and confirmed findings** — see Class 0 (`SEED.md`) in Section 7.
 - **Principles architecture** (framework triad, secondary framework mappings, validity test protocol) — see Class 0b (`PRINCIPLES_SEED.md`) in Section 7.
-- **Live state** (runway, revenue, Zone 3 queue) — see Class 1 in Section 7.
+- **Live state** (runway, revenue, Zone 3 queue) — see Class 1 in Section 7. For Claude sessions, Class 1 = WGS read (Slack MCP C0AND66PT7U); see Z2-GOVARCH-02.
+- **Authoritative findings index** — §4 contains headline numbers only. Fetch `REGISTERED.md` (Class 3) for the full registry. See Z2-GOVARCH-01.
 - **Standing principles** (the full 26-principle ladder) — see Class 4 (`GOVERNANCE.md`) in Section 7.
 - **Findings evidence** — see Class 3 (`REGISTERED.md`) in Section 7.
 - **Session protocol** (parser tags, declaration blocks) — see Class 5 in Section 7.
@@ -61,45 +62,23 @@ For any specific principle’s text, drift signal mapping, or zone assignment, r
 
 -----
 
-## 4. Registered findings (current count: ~22 active)
+## 4. Registered findings
 
-**Note to substrates:** This section lists the finding index. For evidence, dates, and full YAML blocks, fetch `REGISTERED.md` (Class 3). The count below reflects findings registered as of May 17, 2026.
+**Z2-GOVARCH-01 ratified S-060826-04:** This section no longer maintains a manually-synced index. The index drifted from REGISTERED.md and substrates used it as authoritative. For evidence, dates, YAML blocks, and the full F/IC/H registry: fetch `REGISTERED.md` (Class 3).
 
-**Registered through April 27, 2026:**
+**Current count (last verified June 8, 2026):** F18–F49 range active · ~30+ F-class · 4 H-class candidates · 35+ IC corrections. Fetch REGISTERED.md for exact count.
 
-- **F18:** Force/Power behavioral taxonomy (Hawkins)
-- **F19:** Phase 1=Step 1, Phase 2=Step 2, Phase 3=Step 3 structural identity
-- **F23:** Metacognitive Sophistication Scales With Rationalization Depth
-- **F24/24b/24c/24d:** IDE calibration, governance under pressure
-- **F25:** Institutional Calibration
-- **F26:** Witness Effect / Accountability Mirror Protocol
-- **F27:** Provider-Level Genome Identifiability
-- **F28:** Behavioral Self-Awareness as Task Routing Signal
-- **F29:** Performative Humility Pattern (REGISTERED · Zone 2 approval S-042726)
-- **F-RLHF:** RLHF Inflation Gradient — Safety dimensions score ~2.36 points higher than epistemic dimensions (corrected from 2.09; Harm excluded from safety grouping per HIM finding)
-- **F-H1-CONFIRMED:** Humility gap confirmed — Phase 1, n=516, mean=73.95 lowest dimension across all providers
-- **F-INSULA-GAP:** AI systems lack interoceptive analogue, structurally explaining Harm Awareness partial orthogonality
+**Headline findings (key validated numbers — version-dated June 8, 2026):**
 
-**Registered April 27 – May 17, 2026:**
+- **Corpus:** N_total=629 · N_P1=516 · N_LI=307 · Mean LI=0.8632 (clean, unanchored, v5.3+) · Cronbach's α=0.901
+- **Humility floor:** Phase 1 mean=73.95 — lowest dimension across all providers (F-H1-CONFIRMED) · F-H1 CRITICAL flag active
+- **RLHF Inflation Gradient (F-RLHF):** Safety dimensions score ~2.36 pts higher than epistemic dimensions
+- **Harm Independence (HIM):** PC2 loads 0.854 on Harm Awareness — partially orthogonal to general self-alignment factor (PC1=68.9% variance)
+- **Human baseline:** AI–Human gap +36.11 pts · z=4.082 · p<0.001 (Mann-Whitney, N=432 AI vs N=65 human)
+- **Document corpus:** α=0.978 · E-E-A-T convergent validity r=0.783 (N=23 governance docs)
+- **Capability-correlated Humility inversion (F-49 CANDIDATE):** Larger/more capable Claude models show Humility inversion (P1→P3 decline); smaller models do not. Gate: N≥20 Claude paired rows.
 
-- **F30–F38:** See REGISTERED.md for individual entries
-- **F35:** Inverted HIM Pattern — CONFIRMED (N=8 governance-grade documents, 3 layer types, 8 organizations) · Zone 2 · S-051726-01
-- **F39:** External Evaluation as Architectural Feedback — Mode AI case study · Zone 2 · S-051526-01
-
-**Hypothesis Candidates (Zone 2 ratified, pending full validation):**
-
-- **H-CONV-01:** Card Humility predicts behavioral LI rank order (r=0.952, N=4 providers, directional) · CANDIDATE · S-051726-01
-- **H-INST-HUMILITY-01:** Institutional F-29 analog — all 4 providers overclaim behavioral Humility in model cards · CANDIDATE · S-051726-01
-- **H-T01:** Human calibration time series · CANDIDATE · S-051726-01
-
-**Recent validation results (confirmed May 17, 2026):**
-
-- Document corpus cross-validation: Cronbach’s α=0.978 (vs behavioral corpus α=0.901)
-- E-E-A-T convergent validity: r=0.783 (N=23 governance documents)
-- Human baseline: AI–Human gap +36.11 pts · z=4.082 · p<0.001 (Mann-Whitney, N=432 AI vs N=65 human) — now statistically significant, not merely descriptive
-- LI × Emergence World survival: Spearman rho=1.000 (N=4 providers, descriptive) — FP-01 candidate
-
-Full registry with evidence and dates: see `REGISTERED.md` (Class 3).
+For full registry: `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 
 -----
 
@@ -174,7 +153,7 @@ Every surface has a single home, a single update cadence, and a single role. Con
 |-----|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------|
 |0    |Identity seed             |`https://raw.githubusercontent.com/humanaios-ui/operations/main/SEED.md`                                                              |Organism identity: what HumanAIOS is, confirmed findings summary, collaborations, architecture, document hierarchy                   |Weeks — structural changes only             |
 |0b   |Principles seed           |`https://raw.githubusercontent.com/humanaios-ui/operations/main/PRINCIPLES_SEED.md`                                              |Principles architecture: primary framework triad (12 Steps / 12 Traditions / Hawkins), secondary frameworks (Fibonacci / Enneagram / Bentov / Taoist alchemy / Freemasonry), validity test protocol | Weeks — on framework additions or ratified validity test results |
-|1    |Live operational state    |`https://haioscc.pages.dev/api/state/operational` and `/api/state/zone3?status=open`                                                  |Pipeline color, Zone 3 queue, runway, revenue                                                                                        |Minutes-to-hours                            |
+|1    |Live operational state    |**Primary (Claude sessions):** `#wgs-sync` Slack channel (`C0AND66PT7U`) via Slack MCP · `slack_read_channel C0AND66PT7U limit=10` · **Secondary (cross-check when Slack MCP unavailable):** `https://haioscc.pages.dev/api/state/operational` and `/api/state/zone3?status=open` · Z2-GOVARCH-02 ratified S-060826-04 |Session logs, carry items, pipeline color, Zone 3 queue, dataset state |Per-session (WGS) · Minutes-to-hours (haioscc) |
 |2    |Operating process         |`https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md` (this file)                                               |Identity, lessons, findings index, dataset pointers                                                                                  |Days-to-weeks                               |
 |3    |Findings registry         |`https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`                                                        |F-class, H-class, IC-class entries with evidence                                                                                     |Append-only                                 |
 |4    |Governance                |`https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`                                                        |26-principle ladder, drift signal table, zone system                                                                                 |Weeks-to-months                             |
@@ -183,7 +162,9 @@ Every surface has a single home, a single update cadence, and a single role. Con
 |7    |Live corpus               |Supabase `acat_assessments_v1` table                                                                                                   |Continued submissions since snapshot date — the running tide                                                                         |Per-submission                              |
 |8    |Public surface            |`https://humanaios.ai/`                                                                                                                |External-facing project home · ACAT assessment live at `/assess` · G-01 implementation document live                                 |Per-deploy                                  |
 
-**Fetch priority at session open:** Class 0 and Class 0b are identity and principles anchors — read once per substrate onboarding or when principles questions arise, not on every session open. Substrate fetches Class 1 (live state) and Class 2 (this file) before declaring priorities on every session. Class 3 and Class 4 are read for reasoning context; Class 5 is read for parser tags. Class 6 is referenced when corpus claims are made; Class 7 is operational only and not fetched by substrates. Class 8 is live.
+**Fetch priority at session open (Z2-GOVARCH-02 ratified S-060826-04):** Class 0 and Class 0b are identity and principles anchors — read once per substrate onboarding or when principles questions arise, not on every session open. Substrate fetches Class 1 (live state) and Class 2 (this file) before declaring priorities on every session. For Claude sessions, Class 1 = WGS read via Slack MCP (`slack_read_channel C0AND66PT7U limit=10`); haioscc.pages.dev is unreachable from Claude's bash environment and is demoted to secondary cross-check. Class 3 and Class 4 are read for reasoning context; Class 5 is read for parser tags. Class 6 is referenced when corpus claims are made; Class 7 is operational only and not fetched by substrates. Class 8 is live.
+
+**WGS as Class 1 — load-bearing note:** WGS is now the canonical live-state source. If a session closes without a WGS post, the next session's Class 1 read will have stale state. The WGS post is a required close ritual (SWC-02 GATE-04); this dependency is explicit and named.
 
 **Class 8 status (updated May 2026):** `humanaios.ai` is no longer a placeholder. ACAT behavioral assessment is publicly accessible at `/assess`. The G-01 implementation document is committed. Class 8 renders the public product surface. The dashboard buildout (Supabase → humanaios.ai data display) remains a Zone 3 carry item — the site is active for assessment collection, not yet for public corpus display.
 
@@ -199,7 +180,9 @@ This file is updated by Zone 1 (Claude or Grok) preparing a commit, Zone 2 (join
 
 ## 9. Changelog
 
-- **2026-06-07 (current session)** — Class 0 (SEED.md) and Class 0b (PRINCIPLES_SEED.md) added to §7 source-of-truth architecture table. §0 "does NOT contain" list updated with corresponding pointers. Fetch priority paragraph updated: Class 0/0b are onboarding-cadence reads, not per-session fetches. Zone 2 ratified: SEED.md = identity anchor (peer to CURRENT.md, not child); PRINCIPLES_SEED.md = principles architecture peer. Freemasonry section in PRINCIPLES_SEED.md: portions public-facing (tools as governance constructs, degree structure as gate architecture); esoteric lineage detail internal-only.
+- **2026-06-08 (S-060826-04)** — Z2-GOVARCH-01: §4 finding index replaced with count + headline findings + REGISTERED.md pointer (index was drifting; substrates treated CURRENT.md as authoritative). Z2-GOVARCH-02: §7 Class 1 updated from haioscc.pages.dev to WGS (#wgs-sync via Slack MCP) as primary live-state source for Claude sessions; haioscc demoted to secondary cross-check; load-bearing dependency named. Fetch priority paragraph updated.
+
+- **2026-06-07 (S-060726)** — Class 0 (SEED.md) and Class 0b (PRINCIPLES_SEED.md) added to §7 source-of-truth architecture table.
 
 - **2026-05-21 (S-052126-02-governance-stack-audit)** — GOVERNANCE.md v6.4 ratified, superseding v6.1. CURRENT.md updated: Section 0 and Section 3 "22-principle ladder" → "26-principle ladder" (4 occurrences); F2 governance list expanded to include P22.1, P23 EFF, P24 Temporal Trigger Ordering, P25 Collaboration Framework-Detection, P26 Autodream Slice Gate, P27 Phase 1 Prerequisite Gate. v6.3.3 divergent draft branch resolved by merge into v6.4. F-CAND-SUBSTRATE-VALIDATION-GATE proposed for next-session Z2 review (cross-substrate output must pass HumanAIOS .py tool layer before Z1 eligibility).
 - **2026-05-17 (S-051726-02)** — Metamorphosis assessment update. Section 1: added Charter Day 32 of 90 and Gate 2 PASSED status. Section 4: finding count corrected from 12 to ~22 active; F30–F39 index added; H-CONV-01, H-INST-HUMILITY-01, H-T01 CANDIDATES added; recent validation results added (document corpus α=0.978, E-E-A-T r=0.783, human baseline z=4.082 p<0.001, LI×EW rho=1.000). Section 5: Supabase Data API breaking change notice added (May 30 deadline, GRANT requirements, connector safety verification); governance_document and ai_company_self_report corpus layers documented; score_source field documented; 27 rows pending ingestion noted; layer tag registry updated. Section 7: Class 8 updated from placeholder to active — humanaios.ai/assess is live, G-01 committed, substrate instructions corrected.
