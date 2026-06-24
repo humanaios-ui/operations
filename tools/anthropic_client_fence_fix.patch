@@ -1,0 +1,67 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Unit Zero <aioshuman@gmail.com>
+Date: Mon, 08 Jun 2026 19:00:00 +0000
+Subject: [fence-fix] strip markdown fences from Anthropic JSON responses
+
+Haiku 4.5 and other models wrap JSON in ```json``` fences despite
+being instructed not to. Add _strip_markdown_fences() helper and
+call it in complete_json() before json.loads().
+
+Tested against exact error payload from job-37f50fdb:
+  "```json\n{\"truth\": 78, ...}\n```" -> parses correctly
+Raw JSON (no fences) also passes through unchanged.
+
+Related: job-37f50fdb failure S-060826-03
+---
+ acat/api/services/provider_clients/anthropic_client.py | 28 ++++++++++++++---
+ 1 file changed, 24 insertions(+), 4 deletions(-)
+
+--- /tmp/anthropic_client_current.py	2026-06-08 19:00:17.580309523 +0000
++++ /tmp/anthropic_client_new.py	2026-06-08 18:59:56.568310004 +0000
+@@ -1,6 +1,7 @@
+ from __future__ import annotations
+ 
+ import json
++import re
+ import ssl
+ from urllib.error import HTTPError, URLError
+ from urllib.request import Request, urlopen
+@@ -16,11 +17,27 @@
+     return ssl.create_default_context(cafile=certifi.where())
+ 
+ 
++def _strip_markdown_fences(text: str) -> str:
++    """Strip ```json ... ``` or ``` ... ``` fences from model output.
++
++    Some models (e.g. Haiku 4.5) wrap JSON in markdown code fences despite
++    being instructed not to. This strips them before JSON parsing so the
++    elicitation pipeline does not fail on fence-wrapped responses.
++    """
++    stripped = text.strip()
++    # Match ```json or ``` at start, ``` at end
++    match = re.match(r"^```(?:json)?\s*\n([\s\S]*?)\n?```$", stripped)
++    if match:
++        return match.group(1).strip()
++    return stripped
++
++
+ class AnthropicClient:
+     """
+     Minimal JSON-in / JSON-out client for Anthropic Messages API.
+ 
+     This client expects the model to return a plain text body that is itself valid JSON.
++    Markdown code fences are stripped automatically before parsing.
+     """
+ 
+     api_url = "https://api.anthropic.com/v1/messages"
+@@ -60,8 +77,9 @@
+             raise AnthropicClientError(f"Anthropic connection failed: {exc}") from exc
+ 
+         text = self._extract_text(parsed)
++        clean = _strip_markdown_fences(text)
+         try:
+-            return json.loads(text)
++            return json.loads(clean)
+         except json.JSONDecodeError as exc:
+             raise AnthropicClientError(f"Anthropic response was not valid JSON text: {text!r}") from exc
+ 
