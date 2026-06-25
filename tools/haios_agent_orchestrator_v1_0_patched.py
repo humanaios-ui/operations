@@ -29,6 +29,7 @@ REGISTERED_MD       = "REGISTERED.md"
 CURRENT_MD          = "CURRENT.md"
 DRIFT_LOG           = "DRIFT_LOG.md"
 MOLT_LOG            = "MOLT_LOG.json"
+OUTCOME_STORE       = "outcome_store.json"   # Task outcomes from execution; feeds into MOLT (Gap A / P31)
 PRE_EXECUTION_GATE  = "PRE_EXECUTION_GATE.md"
 
 # ─── Blocker Flag Registry ────────────────────────────────────────────────────
@@ -357,6 +358,41 @@ def molt(approved_nodes: list[dict], task_outcomes: list[dict],
                 n["status"] = "pruned"
                 molt_summary["pruned"].append(nid)
 
+    # Apply task outcomes — outcome-driven status changes require Zone 2 ratification (P31 / Gap A)
+    for outcome in task_outcomes:
+        task_id  = outcome.get("task_id", "")
+        li_delta = outcome.get("li_delta", 0.0)
+        if not task_id:
+            continue
+        matched_nid = _match_outcome_to_node(task_id, node_store)
+        if not matched_nid:
+            continue
+        node        = node_store[matched_nid]
+        prev_status = node.get("status")
+        signals     = node.setdefault("acat_signals", {})
+        current_li  = float(signals.get("li_score") or 0.0)
+        new_li      = max(0.0, min(1.0, current_li + float(li_delta)))
+        signals["li_score"] = new_li
+        node["molt_cycle"]  = molt_cycle
+        # Outcome-driven promotion: pending → active
+        if new_li >= 0.75 and prev_status != "active":
+            node["status"] = "active"
+            if matched_nid not in molt_summary["promoted"]:
+                molt_summary["promoted"].append(matched_nid)
+            if node["type"] in ("finding", "self_assessment"):
+                molt_summary["registered_md_appends"].append(
+                    generate_registered_md_entry(node, ratification_required=True)
+                )
+        # Outcome-driven degradation: active → pending (watch-node status degradation)
+        elif new_li < 0.75 and prev_status == "active":
+            node["status"] = "pending"
+            if matched_nid not in molt_summary["pending"]:
+                molt_summary["pending"].append(matched_nid)
+            if node["type"] in ("finding", "self_assessment"):
+                molt_summary["registered_md_appends"].append(
+                    generate_registered_md_entry(node, ratification_required=True)
+                )
+
     return {"node_store": node_store, "molt_summary": molt_summary}
 
 
@@ -383,18 +419,69 @@ def merge_nodes(new_node: dict, existing_id: str, node_store: dict):
     existing["molt_cycle"] = new_node["molt_cycle"]
 
 
-def generate_registered_md_entry(node: dict) -> str:
-    """Generate a REGISTERED.md-style append draft for a promoted finding."""
+def generate_registered_md_entry(node: dict, ratification_required: bool = False) -> str:
+    """Generate a REGISTERED.md-style append draft for a promoted finding.
+
+    ratification_required=True for outcome-driven status changes (P31 / Gap A).
+    ratification_required=False for standard LI-based promotions.
+    """
     ts = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    rat_field = " ratification_required: true |" if ratification_required else " ratification_required: false |"
     return (
         f"| {node['id']} | {node['content']['title']} | "
         f"{node['session_id']} | {ts} | "
         f"LI={node.get('acat_signals',{}).get('li_score','N/A')} | "
-        f"Status: {node['status']} |"
+        f"Status: {node['status']} |{rat_field}"
     )
 
 
 # ─── Main Agent Loop ─────────────────────────────────────────────────────────
+
+def _match_outcome_to_node(task_id: str, node_store: dict) -> str | None:
+    """Map a task_id back to a node_id in node_store.
+
+    Tries a direct key match first, then suffix matching for the
+    TASK-{nid[-4:]} format produced by task_template().
+    Returns the first matching node_id, or None if not found.
+    """
+    if not task_id:
+        return None
+    if task_id in node_store:
+        return task_id
+    suffix = task_id.removeprefix("TASK-")
+    if not suffix:
+        return None
+    for nid in node_store:
+        if nid.endswith(suffix):
+            return nid
+    return None
+
+
+def _load_outcome_store() -> list[dict]:
+    """Load task outcomes from OUTCOME_STORE for MOLT feedback (Gap A / P31).
+
+    Returns [] with a non-fatal note if the store is absent or empty —
+    backwards-compatible with cycles where no outcomes have been recorded yet.
+    Schema: list of {task_id, outcome, li_delta, notes}.
+    """
+    if not os.path.exists(OUTCOME_STORE):
+        print(f"[MOLT] Outcome store absent ({OUTCOME_STORE}) — no task outcomes this cycle")
+        return []
+    try:
+        with open(OUTCOME_STORE) as f:
+            outcomes = json.load(f)
+    except (json.JSONDecodeError, OSError) as exc:
+        print(f"[MOLT] WARNING: Could not read outcome store ({exc}) — proceeding with no task outcomes")
+        return []
+    if not isinstance(outcomes, list):
+        print(f"[MOLT] Outcome store malformed (expected list) — no task outcomes this cycle")
+        return []
+    if not outcomes:
+        print(f"[MOLT] Outcome store is empty — no task outcomes this cycle")
+        return []
+    print(f"[MOLT] Loaded {len(outcomes)} task outcome(s) from {OUTCOME_STORE}")
+    return outcomes
+
 
 def run_molt_cycle(raw_sources: list[dict], molt_cycle: int = 1):
     """
@@ -452,8 +539,9 @@ def run_molt_cycle(raw_sources: list[dict], molt_cycle: int = 1):
     else:
         node_store = {}
 
-    # Phase 4 (assumes task_outcomes provided post-execution; pass empty for dry run)
-    molt_result = molt(assessment["approved"], [], node_store, molt_cycle)
+    # Phase 4 — load task outcomes from outcome store (P31 / Gap A)
+    outcomes    = _load_outcome_store()
+    molt_result = molt(assessment["approved"], outcomes, node_store, molt_cycle)
     print(f"Phase 4 MOLT: +{len(molt_result['molt_summary']['promoted'])} promoted, "
           f"{len(molt_result['molt_summary']['pruned'])} pruned, "
           f"{len(molt_result['molt_summary']['merged'])} merged")
