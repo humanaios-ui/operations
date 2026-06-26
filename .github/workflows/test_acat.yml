@@ -1,0 +1,44 @@
+name: ACAT Test Suite
+
+# First-ever CI wiring for the existing acat/tests/ suite (14 files). Until this
+# workflow, the suite ran only when someone remembered to run it locally — see the
+# Phase 1 CI-gap issue. This is the step that makes "22 tests passing" a CI-verified
+# claim rather than a local-only one.
+#
+# KNOWN-RED RISK (do not mask): on Python 3.14 locally, 3 of 36 tests fail in
+# acat/tests/test_assess_endpoint.py (happy_path / 422 / 502). The failures
+# correlate with an httpx/starlette TestClient version skew (StarletteDeprecationWarning
+# "Using httpx with starlette.testclient is deprecated"), not with secrets or business
+# logic — the persistence tests mock Supabase and pass. This workflow pins Python 3.12,
+# which is expected to resolve them. If the 3 still fail on 3.12, that is a real,
+# separate finding to fix — NOT something to silence with continue-on-error here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest httpx
+
+      - name: Run acat test suite
+        run: |
+          # python -m pytest puts the repo root on sys.path so `import acat...` resolves
+          # (there is no pytest config / conftest in the repo).
+          python -m pytest acat/tests/ -v

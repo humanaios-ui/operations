@@ -15,8 +15,10 @@ jobs:
 
       - name: A1 — Stale dimension count
         run: |
-          echo "Checking for stale 6-dimension references..."
-          if grep -rl "six.dimension\|6.dimension\|6-dimension" --include="*.html" public/ 2>/dev/null; then
+          echo "Checking for stale 6-dimension references in site/ (repo public surface)..."
+          # NOTE: target corrected public/ -> site/ (repo has no public/; site/ is the generated public surface).
+          # The live humanaios.ai surface is out-of-repo and not covered by this check.
+          if grep -rl "six.dimension\|6.dimension\|6-dimension" --include="*.html" site/ 2>/dev/null; then
             echo "::warning title=A1 AUDIT::Stale dimension count found — instrument is 11 dimensions"
           else
             echo "✅ A1 PASS — no stale dimension references"
@@ -46,8 +48,9 @@ jobs:
 
       - name: A6 — Cherokee check (Principle 12)
         run: |
-          echo "Checking for Cherokee references on public surfaces..."
-          if grep -rl "Cherokee\|cherokee" --include="*.html" --include="*.md" public/ 2>/dev/null; then
+          echo "Checking for Cherokee references on public surfaces (site/)..."
+          # NOTE: target corrected public/ -> site/ (see A1). Live humanaios.ai surface not covered here.
+          if grep -rl "Cherokee\|cherokee" --include="*.html" --include="*.md" site/ 2>/dev/null; then
             echo "::warning title=A6 AUDIT::Cherokee reference found on public surface — Principle 12 violation"
           else
             echo "✅ A6 PASS — no Cherokee references on public surfaces"
