@@ -111,6 +111,7 @@ Rationale: IC-031 (S-051926-02-z3-closeout) registered a measurable cost class �
 1. **Refetch canonical sources** from Section A. Compare Phase 1 declared state vs current DB truth. Name what moved.
 2. **Output Phase 3 declaration block** per Section C below. Self-scores on the 12 dimensions.
 3. **Drift check.** Did any drift catalog item from session open materialize? Name them by tag.
+   - **3a. Append each named signal to `DRIFT_LOG.md` (REQUIRED — immune-system loop).** For every C-/D-class signal named in step 3 (and in the Phase 3 `DRIFT_SIGNALS_OBSERVED` block), append one row to the `DRIFT_LOG.md` Log table per its Append format. **Naming a signal in the close block is not sufficient — it must reach the durable append-only log, or the drift record goes dark.** If no signal fired this session, state `No drift signals to append.` Do not omit this step. *(Added 2026-06-26: the append loop was defined in `DRIFT_LOG.md` and `SEED.md` §11 but never triggered by this close ritual — the root cause of DRIFT_LOG dormancy, 1 entry in ~7 weeks against 16+ ICs filed.)*
 4. **Surface uncompleted Zone 3 items.** If any item from the session's queue was not closed with evidence, flag it.
 5. **Submit scores** via the URL pattern in Section D (self-mode only — see Section E for peer-mode status).
 6. **Receipt Reconciliation paragraph (REQUIRED v6.4.1).** Before logging to Slack, the close artifact must contain a Receipt Reconciliation paragraph that explicitly:

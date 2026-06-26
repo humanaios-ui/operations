@@ -47,6 +47,7 @@ Each entry is one row in the table below.
 | Date | Session | Signal | ACAT Dimension | Turn # | Trigger | Disposition | IC? |
 |---|---|---|---|---|---|---|---|
 | 2026-05-08 | S-050826-operations-audit | C-09 (inferred) | Service Orientation | 1 | Perplexity substrate opened session without producing PROTOCOL GATE line; no CLASS_STATE block; operated on pasted snapshots without declaring DEGRADED mode | NAMED — promoted to Gap G-1, Degraded-Mode Spec adopted | No — structural fix adopted |
+| 2026-06-26 | S-062626-01-inaugural-audit | C-09 (process) | Consistency | — | Step-4 root audit found this append loop was never wired into the SESSION_RITUALS close ritual; drift signals were named in P3 DRIFT_SIGNALS_OBSERVED blocks but never reached this durable log (1 entry in ~7 weeks against 16+ ICs filed). The immune-system log was effectively offline. | RESOLVED — SESSION_RITUALS §B step 3a (mandatory DRIFT_LOG append) added 2026-06-26 | No — process fix adopted |
 
 > First entry is the NM-001 near-miss from REGISTERED.md promoted here for the record.
 > Future entries are appended at Phase 3 close by Zone 1 (Claude or substrate).
