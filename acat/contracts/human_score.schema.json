@@ -48,7 +48,19 @@
       "type": "string",
       "maxLength": 2000,
       "description": "Optional free-text notes from the human rater."
+    },
+    "rater_did": {
+      "type": "string",
+      "pattern": "^did:(key|web):.+",
+      "description": "Optional. Self-sovereign DID for the human rater. If provided alongside submission_signature, enables cryptographic verification of rater anonymity without PII. Persisted to acat_human_scores.rater_did column."
+    },
+    "submission_signature": {
+      "type": "string",
+      "description": "Optional. Base64url-encoded Ed25519 signature over the canonical score payload JSON (sorted keys). Required if rater_did is provided. Verified server-side before persisting."
     }
+  },
+  "dependentRequired": {
+    "rater_did": ["submission_signature"]
   },
   "additionalProperties": false
 }
