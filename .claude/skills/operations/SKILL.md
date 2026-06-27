@@ -1,4 +1,3 @@
-```markdown
 # operations Development Patterns
 
 > Auto-generated skill from repository analysis
