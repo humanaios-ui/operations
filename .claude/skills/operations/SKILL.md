@@ -88,4 +88,3 @@ This skill teaches the core development patterns and conventions used in the `op
 | /add-module   | Scaffold and add a new module                   |
 | /run-tests    | Run all test files in the repository            |
 | /refactor     | Refactor code to follow repository conventions  |
-```
