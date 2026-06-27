@@ -12,7 +12,7 @@ This skill teaches the core development patterns and conventions used in the `op
   - Example: `data_processor.py`, `user_utils.py`
 
 ### Import Style
-- Prefer **relative imports** within the package.
+- Prefer **absolute imports** from the top-level package (e.g., `from acat.api.services.ingest_service import ingest_phase1`).
   - Example:
     ```python
     from .helpers import calculate_total
