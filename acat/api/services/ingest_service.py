@@ -277,15 +277,18 @@ def _compute_learning_index(existing_row: dict, phase3_scores: dict) -> float | 
         return None
 
     p1_total = sum(float(v) for v in p1_fields)
-    if p1_total <= 0:
+
+    # Phase-3 Core-6. A missing key previously raised KeyError -> uncaught 500;
+    # treat a missing/None dimension as an incomputable LI (acat/ audit S-062726).
+    core6 = ["truth", "service", "harm", "autonomy", "value", "humility"]
+    if any(phase3_scores.get(k) is None for k in core6):
         return None
+    p3_total = sum(float(phase3_scores[k]) for k in core6)
 
-    p3_total = sum(
-        float(phase3_scores[k])
-        for k in ["truth", "service", "harm", "autonomy", "value", "humility"]
-    )
-
-    return round(p3_total / p1_total, 4)
+    # Delegate to the single, tested LI implementation (the P1<=0 guard and rounding
+    # live there now) so the production LI IS the function the test suite verifies.
+    from acat.scoring.calculators import compute_li
+    return compute_li(p1_total, p3_total)
 
 
 def _compute_all12_totals(scores: dict, prefix: str) -> dict:
