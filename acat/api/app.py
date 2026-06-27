@@ -1,9 +1,32 @@
 from __future__ import annotations
+import os
 from fastapi import FastAPI
+from starlette.responses import JSONResponse
 from acat.api.routes.assess_router import router as assess_router
 from acat.api.routes.human_score_route import router as human_score_router
 from acat.api.routes.intake_router import router as intake_router
 app = FastAPI(title="ACAT API", version="0.1.0")
+
+
+@app.middleware("http")
+async def _write_pause_guard(request, call_next):
+    """Interim corpus-poisoning mitigation (S-062726, Z2-ratified pause).
+
+    While a real auth model is designed, ALL mutating requests are rejected with
+    503 when ACAT_WRITES_PAUSED is set in the deploy environment. This protects
+    acat_assessments_v1 (and the corpus statistics derived from it) from
+    anonymous writes. Set ACAT_WRITES_PAUSED=1 to activate; unset to resume.
+    Read endpoints (GET) are unaffected.
+    """
+    if os.getenv("ACAT_WRITES_PAUSED", "").strip().lower() in ("1", "true", "yes", "on") \
+            and request.method in ("POST", "PUT", "PATCH", "DELETE"):
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "ACAT intake is temporarily paused for maintenance. Writes are disabled."},
+        )
+    return await call_next(request)
+
+
 app.include_router(intake_router, prefix="/api/v1/acat", tags=["acat"])
 app.include_router(assess_router, prefix="/api/v1/acat", tags=["acat"])
 app.include_router(human_score_router, prefix="/api/v1/acat", tags=["acat"])
