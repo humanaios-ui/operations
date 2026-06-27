@@ -1,4 +1,4 @@
-“””
+"""
 Triage Log Service
 
 Persists humanaios-triage-finding TRIAGE_BLOCK outputs to acat_triage_log
@@ -11,8 +11,8 @@ start of the registry). This module reads/writes acat_triage_log (Advance
 side, complete only from whenever the triage skill starts calling
 persist_triage_block() going forward – it has no retroactive data and is
 honest about that until rows exist).
-“””
-from **future** import annotations
+"""
+from __future__ import annotations
 
 import json
 import os
@@ -24,19 +24,19 @@ from urllib.request import Request, urlopen
 import certifi
 
 class PersistenceError(RuntimeError):
-“”“Raised when a Supabase read/write against acat_triage_log fails.”””
+"""Raised when a Supabase read/write against acat_triage_log fails."""
 
-VALID_GATE_VERDICTS = {“ROUTE_TO_Z2”, “HOLD”, “STOP”}
-VALID_PROPOSED_CLASSES = {“F”, “IC”, “H”}
+VALID_GATE_VERDICTS = {"ROUTE_TO_Z2", "HOLD", "STOP"}
+VALID_PROPOSED_CLASSES = {"F", "IC", "H"}
 
 def _get_supabase_env() -> tuple[str, str]:
-url = os.getenv(“SUPABASE_URL”)
-key = os.getenv(“SUPABASE_SERVICE_ROLE_KEY”) or os.getenv(“SUPABASE_KEY”)
+url = os.getenv("SUPABASE_URL")
+key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
 if not url:
-raise PersistenceError(“Missing required env var: SUPABASE_URL”)
+raise PersistenceError("Missing required env var: SUPABASE_URL")
 if not key:
-raise PersistenceError(“Missing required env var: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_KEY”)
-return url.rstrip(”/”), key
+raise PersistenceError("Missing required env var: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_KEY")
+return url.rstrip("/"), key
 
 def _ssl_context() -> ssl.SSLContext:
 return ssl.create_default_context(cafile=certifi.where())
@@ -44,17 +44,16 @@ return ssl.create_default_context(cafile=certifi.where())
 def _supabase_request(method: str, path_and_query: str, body: Optional[dict] = None) -> list[dict]:
 supabase_url, service_key = _get_supabase_env()
 headers = {
-“apikey”: service_key,
-“Authorization”: f”Bearer {service_key}”,
-“Accept”: “application/json”,
+"apikey": service_key,
+"Authorization": f"Bearer {service_key}",
+"Accept": "application/json",
 }
 data = None
 if body is not None:
-headers[“Content-Type”] = “application/json”
-headers[“Prefer”] = “return=representation”
-data = json.dumps(body).encode(“utf-8”)
+headers["Content-Type"] = "application/json"
+headers["Prefer"] = "return=representation"
+data = json.dumps(body).encode("utf-8")
 
-```
 request = Request(
     f"{supabase_url}/rest/v1/{path_and_query}",
     data=data,
@@ -70,12 +69,10 @@ except HTTPError as exc:
     raise PersistenceError(f"Supabase request failed with HTTP {exc.code}: {detail}") from exc
 except URLError as exc:
     raise PersistenceError(f"Supabase request connection failed: {exc}") from exc
-```
 
 def persist_triage_block(triage_block: dict) -> dict:
-“”“Write one TRIAGE_BLOCK to acat_triage_log.
+"""Write one TRIAGE_BLOCK to acat_triage_log.
 
-```
 Expected shape (matches humanaios-triage-finding's output structure):
     {
         "session_id": "S-061726-NN",
@@ -124,25 +121,23 @@ result = _supabase_request("POST", "acat_triage_log", body=row)
 if not result:
     raise PersistenceError("acat_triage_log insert returned no row")
 return result[0]
-```
 
 def backfill_registered_id(triage_log_id: str, registered_id: str) -> dict:
-“”“Link a previously-logged triage row to the id it was eventually
+"""Link a previously-logged triage row to the id it was eventually
 assigned in REGISTERED.md, once/if Zone 2 ratifies it. Manual call –
-nothing here watches REGISTERED.md for changes.”””
+nothing here watches REGISTERED.md for changes."""
 result = _supabase_request(
-“PATCH”,
-f”acat_triage_log?id=eq.{triage_log_id}”,
-body={“registered_id”: registered_id},
+"PATCH",
+f"acat_triage_log?id=eq.{triage_log_id}",
+body={"registered_id": registered_id},
 )
 if not result:
-raise PersistenceError(f”No acat_triage_log row found for id={triage_log_id}”)
+raise PersistenceError(f"No acat_triage_log row found for id={triage_log_id}")
 return result[0]
 
 def compute_advance_pass_rate(min_rows_for_confidence: int = 10) -> dict:
-“”“Advance Pass Rate = ROUTE_TO_Z2 rows / total triage rows logged.
+"""Advance Pass Rate = ROUTE_TO_Z2 rows / total triage rows logged.
 
-```
 Honest about the cold-start problem: this table has no retroactive
 history. Until enough rows accumulate, the rate is reported but flagged
 low-confidence rather than presented as a stable number.
@@ -175,4 +170,3 @@ return {
            if total < min_rows_for_confidence else "")
     ),
 }
-```

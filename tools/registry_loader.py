@@ -1,4 +1,4 @@
-“””
+"""
 ACAT Registry Loader
 
 Parses REGISTERED.md (the live, append-only findings registry) into
@@ -48,29 +48,29 @@ file was written):
 - YAML frontmatter is sometimes inside a ``` fence, sometimes bare.
 - Some entries (H-1, H-42, H-LE-02) are one-line pointers with no body –
   excluded as STUB_POINTER, not a parse failure.
-- IC-038 uses an older bullet-style format (”- **Status:** REGISTERED”)
+- IC-038 uses an older bullet-style format ("- **Status:** REGISTERED")
   instead of YAML frontmatter, despite being dated after the 2026-05-08
-  schema cutoff that the document’s own header section says requires it
+  schema cutoff that the document's own header section says requires it
   – flagged as SCHEMA_COMPLIANCE_GAP, not silently parsed around.
-- “### Entry header schema…” is the schema’s own documentation section
-  and contains a literal template entry (id: “F-XX”) – excluded.
+- "### Entry header schema..." is the schema's own documentation section
+  and contains a literal template entry (id: "F-XX") – excluded.
 - H-APEX-DEFICIT-01 appears twice, verbatim, at two different line
   numbers – flagged as DUPLICATE_ID rather than silently double-counted
   or silently overwritten. (This is a real, previously-unflagged
   duplication in the live document, surfaced by writing this parser, not
   invented for the example.)
-- Promotion criteria are not in the YAML; they’re inline bold labels in
-  the prose body (”**Promotion gate:**”, “**Falsification design:**”,
-  “**Next gate:**”) with no consistent position or bullet structure.
+- Promotion criteria are not in the YAML; they're inline bold labels in
+  the prose body ("**Promotion gate:**", "**Falsification design:**",
+  "**Next gate:**") with no consistent position or bullet structure.
 - Current-N for a given gate is NOT auto-extracted past a target. A naive
-  “first N=<number> in the prose” approach was tested and produces wrong
-  answers (F-48’s gate is N>=3 independent datasets, but the first bare
-  “N=” in its prose is the unrelated corpus size N=524 from a different
+  "first N=<number> in the prose" approach was tested and produces wrong
+  answers (F-48's gate is N>=3 independent datasets, but the first bare
+  "N=" in its prose is the unrelated corpus size N=524 from a different
   sentence). Current N is therefore reported as None unless present in
   MANUALLY_VERIFIED_CURRENT_N below – entries I have actually read and
   confirmed by hand, with a citation, not regex-guessed.
-  “””
-  from **future** import annotations
+  """
+from __future__ import annotations
 
 import re
 import ssl
@@ -82,50 +82,50 @@ from urllib.request import Request, urlopen
 import certifi
 
 REGISTERED_MD_RAW_URL = (
-“https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md”
+"https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md"
 )
 
-SCHEMA_EFFECTIVE_DATE = “2026-05-08”  # per REGISTERED.md’s own “Entry header schema” section
+SCHEMA_EFFECTIVE_DATE = "2026-05-08"  # per REGISTERED.md's own "Entry header schema" section
 
 VALID_STATUSES = {
-“CANDIDATE”, “REGISTERED”, “ACTIVE”, “SUPERSEDED”,
-“CONFIRMED”, “DISCONFIRMED”, “PENDING_ZONE2”,
+"CANDIDATE", "REGISTERED", "ACTIVE", "SUPERSEDED",
+"CONFIRMED", "DISCONFIRMED", "PENDING_ZONE2",
 }
-VALIDATED_STATUSES = {“REGISTERED”, “CONFIRMED”}
-PENDING_STATUSES = {“CANDIDATE”, “PENDING_ZONE2”}
-RESOLVED_NEGATIVE_STATUSES = {“DISCONFIRMED”}  # P-RP-01’s third gate state – a real outcome, not a gap
-RETIRED_STATUSES = {“SUPERSEDED”}
+VALIDATED_STATUSES = {"REGISTERED", "CONFIRMED"}
+PENDING_STATUSES = {"CANDIDATE", "PENDING_ZONE2"}
+RESOLVED_NEGATIVE_STATUSES = {"DISCONFIRMED"}  # P-RP-01's third gate state – a real outcome, not a gap
+RETIRED_STATUSES = {"SUPERSEDED"}
 
-FUNNEL_CLASSES = {“F”, “H”}  # IC is always-REGISTERED by definition; reported separately, not in the ratio
+FUNNEL_CLASSES = {"F", "H"}  # IC is always-REGISTERED by definition; reported separately, not in the ratio
 
 # Entries verified by direct reading against REGISTERED.md (not regex-guessed)
 
 # on the date noted. Re-verify whenever REGISTERED.md changes for these ids.
 
 MANUALLY_VERIFIED_CURRENT_N = {
-“F-49”: {“current_n”: 3, “verified_against_registered_md”: “2026-06-17”},
-“H-SELF-01”: {“current_n”: 1, “verified_against_registered_md”: “2026-06-17”},
+"F-49": {"current_n": 3, "verified_against_registered_md": "2026-06-17"},
+"H-SELF-01": {"current_n": 1, "verified_against_registered_md": "2026-06-17"},
 }
 
-_HEADING_RE = re.compile(r”^### (.+)$”, re.MULTILINE)
-*YAML_BLOCK_RE = re.compile(r”-{3}\s*\n(.*?\n)-{3}”, re.DOTALL)
-_LEGACY_STATUS_RE = re.compile(r”(?:-\s*)?**Status:**\s*([A-Za-z*]+)”)
-_LEGACY_REGISTERED_DATE_RE = re.compile(r”(?:-\s*)?**Registered:**\s*([0-9]{4}-[0-9]{2}-[0-9]{2})”)
-_HONEST_GAP_RE = re.compile(r”(honest gap)”, re.IGNORECASE)
-_GATE_TARGET_RE = re.compile(r”N\s*(?:\u2265|>=)\s*(\d+)”)
+_HEADING_RE = re.compile(r"^### (.+)$", re.MULTILINE)
+*YAML_BLOCK_RE = re.compile(r"-{3}\s*\n(.*?\n)-{3}", re.DOTALL)
+_LEGACY_STATUS_RE = re.compile(r"(?:-\s*)?**Status:**\s*([A-Za-z*]+)")
+_LEGACY_REGISTERED_DATE_RE = re.compile(r"(?:-\s*)?**Registered:**\s*([0-9]{4}-[0-9]{2}-[0-9]{2})")
+_HONEST_GAP_RE = re.compile(r"(honest gap)", re.IGNORECASE)
+_GATE_TARGET_RE = re.compile(r"N\s*(?:\u2265|>=)\s*(\d+)")
 _GATE_TEXT_RE = re.compile(
-r”**(Promotion gate|Falsification design|Next gate):**\s*(.+?)”
-r”(?=**[A-Z][a-zA-Z ()]*:?**|\n\n|\Z)”,
+r"**(Promotion gate|Falsification design|Next gate):**\s*(.+?)"
+r"(?=**[A-Z][a-zA-Z ()]*:?**|\n\n|\Z)",
 re.DOTALL,
 )
-_HEADING_ID_RE = re.compile(r”\b([A-Z]{1,2}(?:-[A-Z]+)?-[A-Z0-9]+(?:-\d+)?)\b”)
+_HEADING_ID_RE = re.compile(r"\b([A-Z]{1,2}(?:-[A-Z]+)?-[A-Z0-9]+(?:-\d+)?)\b")
 _META_HEADING_PREFIXES = (
-“Entry header schema”,
-“Document flow conventions”,
-“F-number registry quick index”,
-“Zone 2 —”,
-“Zone 2 -”,
-“P-IMPROVE class”,
+"Entry header schema",
+"Document flow conventions",
+"F-number registry quick index",
+"Zone 2 —",
+"Zone 2 -",
+"P-IMPROVE class",
 )
 
 @dataclass
@@ -134,7 +134,7 @@ id: str
 cls: Optional[str]
 status: Optional[str]
 date_registered: Optional[str]
-schema_format: str  # “yaml” | “legacy_bullet”
+schema_format: str  # "yaml" | "legacy_bullet"
 gate_target_n: Optional[int]
 gate_text: Optional[str]
 raw_heading: str
@@ -156,12 +156,12 @@ def _is_meta_heading(heading_text: str) -> bool:
 return any(heading_text.startswith(p) for p in _META_HEADING_PREFIXES)
 
 def _is_placeholder_id(id_value: str) -> bool:
-# Template ids from the schema’s own documentation section, e.g. “F-XX”, “IC-XXX”
-return “XX” in id_value
+# Template ids from the schema's own documentation section, e.g. "F-XX", "IC-XXX"
+return "XX" in id_value
 
 def _is_stub_pointer(body_after_heading: str) -> bool:
-“”“True if there’s essentially nothing here but the heading line itself
-(H-1, H-42, H-LE-02 style one-line cross-references).”””
+"""True if there's essentially nothing here but the heading line itself
+(H-1, H-42, H-LE-02 style one-line cross-references)."""
 stripped = body_after_heading.strip()
 return len(stripped) < 5
 
@@ -170,7 +170,6 @@ diagnostics = ParseDiagnostics()
 entries: list[RegistryEntry] = []
 seen_ids: dict[str, int] = {}
 
-```
 headings = [(m.start(), m.group(1)) for m in _HEADING_RE.finditer(markdown_text)]
 diagnostics.total_headings = len(headings)
 
@@ -279,13 +278,11 @@ for i, (pos, heading_text) in enumerate(headings):
     diagnostics.parsed_entries += 1
 
 return entries, diagnostics
-```
 
 def compute_validation_funnel(entries: list[RegistryEntry]) -> dict:
 funnel_entries = [e for e in entries if e.cls in FUNNEL_CLASSES]
-ic_entries = [e for e in entries if e.cls == “IC”]
+ic_entries = [e for e in entries if e.cls == "IC"]
 
-```
 validated = [e for e in funnel_entries if e.status in VALIDATED_STATUSES]
 pending = [e for e in funnel_entries if e.status in PENDING_STATUSES]
 disconfirmed = [e for e in funnel_entries if e.status in RESOLVED_NEGATIVE_STATUSES]
@@ -347,53 +344,50 @@ return {
         "pending candidate awaiting a promotion gate."
     ),
 }
-```
 
 def _ssl_context() -> ssl.SSLContext:
 return ssl.create_default_context(cafile=certifi.where())
 
-def fetch_registered_md_live(ref: str = “main”) -> str:
-“”“Live fetch from GitHub raw – never cached. Matches the project’s
+def fetch_registered_md_live(ref: str = "main") -> str:
+"""Live fetch from GitHub raw – never cached. Matches the project's
 standing instruction that REGISTERED.md is fetched live, not relied on
-from project knowledge or a prior session’s copy.”””
-url = REGISTERED_MD_RAW_URL.replace(”/main/”, f”/{ref}/”)
-request = Request(url, headers={“Accept”: “text/plain”}, method=“GET”)
+from project knowledge or a prior session's copy."""
+url = REGISTERED_MD_RAW_URL.replace("/main/", f"/{ref}/")
+request = Request(url, headers={"Accept": "text/plain"}, method="GET")
 try:
 with urlopen(request, timeout=15, context=_ssl_context()) as response:
-return response.read().decode(“utf-8”)
+return response.read().decode("utf-8")
 except HTTPError as exc:
-raise RuntimeError(f”REGISTERED.md fetch failed with HTTP {exc.code}”) from exc
+raise RuntimeError(f"REGISTERED.md fetch failed with HTTP {exc.code}") from exc
 except URLError as exc:
-raise RuntimeError(f”REGISTERED.md fetch connection failed: {exc}”) from exc
+raise RuntimeError(f"REGISTERED.md fetch connection failed: {exc}") from exc
 
 def load_and_compute(markdown_text: Optional[str] = None) -> dict:
-“”“Top-level entry point. Pass markdown_text for testing against a local
-copy; omit it to fetch REGISTERED.md live from GitHub.”””
+"""Top-level entry point. Pass markdown_text for testing against a local
+copy; omit it to fetch REGISTERED.md live from GitHub."""
 text = markdown_text if markdown_text is not None else fetch_registered_md_live()
 entries, diagnostics = parse_registered_md(text)
 funnel = compute_validation_funnel(entries)
 return {
-“funnel”: funnel,
-“diagnostics”: {
-“total_headings”: diagnostics.total_headings,
-“parsed_entries”: diagnostics.parsed_entries,
-“stub_pointers_excluded”: diagnostics.stub_pointers,
-“intentional_voids”: diagnostics.intentional_voids,
-“meta_sections_skipped”: diagnostics.meta_sections_skipped,
-“placeholder_entries_skipped”: diagnostics.placeholder_skipped,
-“schema_compliance_gaps”: diagnostics.schema_compliance_gaps,
-“parse_failures”: diagnostics.parse_failures,
-“duplicate_ids”: diagnostics.duplicate_ids,
+"funnel": funnel,
+"diagnostics": {
+"total_headings": diagnostics.total_headings,
+"parsed_entries": diagnostics.parsed_entries,
+"stub_pointers_excluded": diagnostics.stub_pointers,
+"intentional_voids": diagnostics.intentional_voids,
+"meta_sections_skipped": diagnostics.meta_sections_skipped,
+"placeholder_entries_skipped": diagnostics.placeholder_skipped,
+"schema_compliance_gaps": diagnostics.schema_compliance_gaps,
+"parse_failures": diagnostics.parse_failures,
+"duplicate_ids": diagnostics.duplicate_ids,
 },
 }
 
-if **name** == “**main**”:
+if __name__ == "__main__":
 import json
 import sys
 
-```
 path = sys.argv[1] if len(sys.argv) > 1 else None
 text = open(path, encoding="utf-8").read() if path else None
 result = load_and_compute(text)
 print(json.dumps(result, indent=2))
-```

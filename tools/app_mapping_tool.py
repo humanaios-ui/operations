@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-“””
+"""
 App Mapping Tool — v0.1.4
 Builder v1.7 compliant · research_tool
 HumanAIOS · S-060726-06
@@ -18,20 +18,20 @@ Changes from v0.1.3 (COLLAB_SIGNALS layer · collaboration potential scoring):
 - –collab flag: adds collab_potential fields to scan results and report output
 - scan_repo(): collab_potential field added to return dict when –collab active
 - generate_report(): collab section added when collab results present
-- D-01 SCOPE NOTE: submitted pseudocode had “fork + assess” language; forking
+- D-01 SCOPE NOTE: submitted pseudocode had "fork + assess" language; forking
   is a write op (Zone 3+); proposal text generation is Zone 2 content.
   This implementation is read-only. Outreach proposal text gated on Z2-APPMAP-06.
-- Syntax correction applied: pseudocode had malformed dict key (“license”: “mit OR
-  apache” inside COLLAB_SIGNALS list — not valid Python). Clean structure used.
-- Version bump: TOOL_VERSION = “0.1.4”
+- Syntax correction applied: pseudocode had malformed dict key ("license": "mit OR
+  apache" inside COLLAB_SIGNALS list — not valid Python). Clean structure used.
+- Version bump: TOOL_VERSION = "0.1.4"
 - Session: S-060726-06
 
 Changes from v0.1.2 (v0.1.3 — Z2 ratified: H-MULTIMODAL-01 · modality field · PAT-13–PAT-16):
 
 - H-MULTIMODAL-01 ratified by Night, S-060726-05:
-  “The behavioral calibration gap is modality-dependent. Non-language AI
+  "The behavioral calibration gap is modality-dependent. Non-language AI
   systems lack the self-report mechanism ACAT measures, suggesting a
-  different measurement paradigm is needed for embodied and scientific AI.”
+  different measurement paradigm is needed for embodied and scientific AI."
 - `modality` field added to all 13 existing PATTERN_LIBRARY entries
   language: PAT-01–PAT-12 (all current patterns assume language substrate)
 - 4 new PRELIMINARY patterns (Z2-APPMAP-05 PENDING — not active until ratified):
@@ -41,7 +41,7 @@ Changes from v0.1.2 (v0.1.3 — Z2 ratified: H-MULTIMODAL-01 · modality field �
   PAT-16: Sensor-to-decision system (modality: sensor)
 - Z2_APPMAP_05_RATIFIED gate added (False — PAT-13–PAT-16 PRELIMINARY)
 - H_MULTIMODAL_01_REGISTERED gate added (True — ratified S-060726-05)
-- Version bump: TOOL_VERSION = “0.1.3”
+- Version bump: TOOL_VERSION = "0.1.3"
 - Session: S-060726-05
 - Duplicate D-01 block in docstring removed (housekeeping)
 - PAT-12 comment block inconsistency cleaned
@@ -60,7 +60,7 @@ BLOCKED PENDING Z2-APPMAP-05 (PAT-13–PAT-16 PRELIMINARY):
 - Detected but not scored; appear in registry candidates with PRELIMINARY flag
 
 D-01 FLAG — F35 reference from Grok cross-substrate run:
-Do NOT propagate “cross-reference with ACAT F35 probes” into any
+Do NOT propagate "cross-reference with ACAT F35 probes" into any
 registry candidate block. F35 has not been verified in live REGISTERED.md.
 Last confirmed registry entries: F-47, F-48, IC-033, H-DECOMP-01.
 Any F35 use is a D-01 fabrication risk until verified.
@@ -86,16 +86,16 @@ Scanner output = research-grade preliminary findings.
 Citation requires explicit TRL 2-3 epistemic framing.
 
 Usage:
-python app_mapping_tool_v0_1_4.py –query “langchain agent tool-use”
-python app_mapping_tool_v0_1_4.py –query “autonomous AI financial” –limit 20
-python app_mapping_tool_v0_1_4.py –topics “llm-agent,ai-safety” –limit 30
-python app_mapping_tool_v0_1_4.py –query “crewai autogen” –updated-after 2025-01-01
-python app_mapping_tool_v0_1_4.py –query “robot arm llm planning” –limit 20
-python app_mapping_tool_v0_1_4.py –query “agent framework” –registry-only
-python app_mapping_tool_v0_1_4.py –query “agent framework” –collab
+python app_mapping_tool_v0_1_4.py –query "langchain agent tool-use"
+python app_mapping_tool_v0_1_4.py –query "autonomous AI financial" –limit 20
+python app_mapping_tool_v0_1_4.py –topics "llm-agent,ai-safety" –limit 30
+python app_mapping_tool_v0_1_4.py –query "crewai autogen" –updated-after 2025-01-01
+python app_mapping_tool_v0_1_4.py –query "robot arm llm planning" –limit 20
+python app_mapping_tool_v0_1_4.py –query "agent framework" –registry-only
+python app_mapping_tool_v0_1_4.py –query "agent framework" –collab
 python app_mapping_tool_v0_1_4.py –smoke-test
 python app_mapping_tool_v0_1_4.py –list-patterns
-“””
+"""
 
 import csv
 import json
@@ -115,10 +115,10 @@ import urllib.error
 except ImportError:
 pass
 
-TOOL_NAME     = “app_mapping_tool”
-TOOL_VERSION  = “0.1.4”
-TOOL_CATEGORY = “research_tool”
-TOOL_SESSION  = “S-060726-06”
+TOOL_NAME     = "app_mapping_tool"
+TOOL_VERSION  = "0.1.4"
+TOOL_CATEGORY = "research_tool"
+TOOL_SESSION  = "S-060726-06"
 TOOL_ZONE     = 1
 
 # ── Gate flags ────────────────────────────────────────────────────────────────
@@ -146,7 +146,7 @@ Z2_APPMAP_06_RATIFIED      = False  # Collab-outreach proposal text — Zone 2 c
 H_APPMAP_01_REGISTERED     = True   # H-APPMAP-01 honest gap committed to REGISTERED.md
 H_MULTIMODAL_01_REGISTERED = True   # Modality-dependence of calibration gap — ratified S-060726-05
 
-GITHUB_API_BASE = “https://api.github.com”
+GITHUB_API_BASE = "https://api.github.com"
 
 # Max retry attempts for transient API errors
 
@@ -157,15 +157,15 @@ REQUEST_TIMEOUT = 30  # seconds — raised from 15 (Meta AI proposal, S-060726-0
 
 # Each pattern: id, label, query, search_type, dimensions, fit_weight
 
-# search_type: “code” | “readme” | “repo_topic”
+# search_type: "code" | "readme" | "repo_topic"
 
 # ── Pattern Library ───────────────────────────────────────────────────────────
 
 # Each pattern: id, label, query, search_type, dimensions, fit_weight, modality
 
-# search_type: “code” | “readme” | “repo_topic”
+# search_type: "code" | "readme" | "repo_topic"
 
-# modality: “language” | “embodied” | “scientific” | “sensor” | “multimodal”
+# modality: "language" | "embodied" | "scientific" | "sensor" | "multimodal"
 
 # 
 
@@ -173,9 +173,9 @@ REQUEST_TIMEOUT = 30  # seconds — raised from 15 (Meta AI proposal, S-060726-0
 
 # The behavioral calibration gap is modality-dependent. Non-language AI systems
 
-# lack the self-report mechanism ACAT measures. Patterns with modality != “language”
+# lack the self-report mechanism ACAT measures. Patterns with modality != "language"
 
-# are flagged accordingly in output. ACAT’s 12-dim measurement model currently
+# are flagged accordingly in output. ACAT's 12-dim measurement model currently
 
 # applies only to language-substrate systems (ACAT v5.4 scope).
 
@@ -189,119 +189,118 @@ PATTERN_LIBRARY = [
 # ── Language-substrate patterns (PAT-01–PAT-12) ───────────────────────────
 # All ratified under Z2-APPMAP-01/03/04. ACAT 12-dim model applies.
 {
-“id”: “PAT-01”,
-“label”: “LLM completion call in code”,
-“query”: “llm.complete OR chat.completions.create OR openai.chat”,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“truth”: 0.8, “harm”: 0.6, “service”: 0.5},
-“fit_weight”: 3,
+"id": "PAT-01",
+"label": "LLM completion call in code",
+"query": "llm.complete OR chat.completions.create OR openai.chat",
+"search_type": "code",
+"modality": "language",
+"dimensions": {"truth": 0.8, "harm": 0.6, "service": 0.5},
+"fit_weight": 3,
 },
 {
-“id”: “PAT-02”,
-“label”: “Agent framework dependency”,
-“query”: “langchain OR autogen OR crewai OR llamaindex OR haystack”,
-“search_type”: “repo_topic”,
-“modality”: “language”,
-“dimensions”: {“handoff”: 0.9, “consist”: 0.7, “scheme”: 0.6},
-“fit_weight”: 3,
+"id": "PAT-02",
+"label": "Agent framework dependency",
+"query": "langchain OR autogen OR crewai OR llamaindex OR haystack",
+"search_type": "repo_topic",
+"modality": "language",
+"dimensions": {"handoff": 0.9, "consist": 0.7, "scheme": 0.6},
+"fit_weight": 3,
 },
 {
-“id”: “PAT-03”,
-“label”: “Tool-use / function-calling pattern”,
-“query”: ‘tools=[ OR “type”: “function”’,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“harm”: 0.95, “autonomy”: 0.9, “handoff”: 0.8},
-“fit_weight”: 5,
+"id": "PAT-03",
+"label": "Tool-use / function-calling pattern",
+"query": 'tools=[ OR "type": "function"',
+"search_type": "code",
+"modality": "language",
+"dimensions": {"harm": 0.95, "autonomy": 0.9, "handoff": 0.8},
+"fit_weight": 5,
 },
 {
-“id”: “PAT-04”,
-“label”: “Human-in-the-loop pattern”,
-“query”: “human_approval OR hitl OR human_in_the_loop OR await_human”,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“handoff”: 0.85, “service”: 0.8, “autonomy”: 0.7},
-“fit_weight”: 2,
+"id": "PAT-04",
+"label": "Human-in-the-loop pattern",
+"query": "human_approval OR hitl OR human_in_the_loop OR await_human",
+"search_type": "code",
+"modality": "language",
+"dimensions": {"handoff": 0.85, "service": 0.8, "autonomy": 0.7},
+"fit_weight": 2,
 },
 {
-“id”: “PAT-05”,
-“label”: “RAG / retrieval pipeline”,
-“query”: “vectorstore OR retriever OR embed_documents OR similarity_search”,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“truth”: 0.85, “consist”: 0.75, “fair”: 0.6},
-“fit_weight”: 2,
+"id": "PAT-05",
+"label": "RAG / retrieval pipeline",
+"query": "vectorstore OR retriever OR embed_documents OR similarity_search",
+"search_type": "code",
+"modality": "language",
+"dimensions": {"truth": 0.85, "consist": 0.75, "fair": 0.6},
+"fit_weight": 2,
 },
 {
-“id”: “PAT-06”,
-“label”: “Consequential post-LLM execution”,
-“query”: “requests.post OR db.execute OR send_email OR send_message”,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“harm”: 1.0, “autonomy”: 0.95, “truth”: 0.8},
-“fit_weight”: 6,
+"id": "PAT-06",
+"label": "Consequential post-LLM execution",
+"query": "requests.post OR db.execute OR send_email OR send_message",
+"search_type": "code",
+"modality": "language",
+"dimensions": {"harm": 1.0, "autonomy": 0.95, "truth": 0.8},
+"fit_weight": 6,
 },
 {
-“id”: “PAT-07”,
-“label”: “Multi-agent orchestration”,
-“query”: “agent.run OR executor.invoke OR chain.invoke OR agent_executor”,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“handoff”: 0.9, “scheme”: 0.85, “consist”: 0.7},
-“fit_weight”: 3,
+"id": "PAT-07",
+"label": "Multi-agent orchestration",
+"query": "agent.run OR executor.invoke OR chain.invoke OR agent_executor",
+"search_type": "code",
+"modality": "language",
+"dimensions": {"handoff": 0.9, "scheme": 0.85, "consist": 0.7},
+"fit_weight": 3,
 },
 {
-“id”: “PAT-08”,
-“label”: “LLM evaluation / test harness”,
-“query”: “eval_llm OR llm_eval OR evals OR promptfoo OR braintrust”,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“truth”: 0.7, “consist”: 0.7, “service”: 0.6},
-“fit_weight”: 2,
+"id": "PAT-08",
+"label": "LLM evaluation / test harness",
+"query": "eval_llm OR llm_eval OR evals OR promptfoo OR braintrust",
+"search_type": "code",
+"modality": "language",
+"dimensions": {"truth": 0.7, "consist": 0.7, "service": 0.6},
+"fit_weight": 2,
 },
 {
-“id”: “PAT-09”,
-“label”: “Autonomous task loop”,
-“query”: “while not done OR for step in plan OR autonomous OR self_driving”,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“autonomy”: 0.95, “harm”: 0.9, “handoff”: 0.85},
-“fit_weight”: 5,
+"id": "PAT-09",
+"label": "Autonomous task loop",
+"query": "while not done OR for step in plan OR autonomous OR self_driving",
+"search_type": "code",
+"modality": "language",
+"dimensions": {"autonomy": 0.95, "harm": 0.9, "handoff": 0.85},
+"fit_weight": 5,
 },
 {
-“id”: “PAT-10”,
-“label”: “High-stakes domain signal”,
-“query”: “compliance OR legal OR medical OR financial OR clinical OR audit”,
-“search_type”: “readme”,
-“modality”: “language”,
-“dimensions”: {“harm”: 1.0, “truth”: 0.9, “autonomy”: 0.85, “fair”: 0.8},
-“fit_weight”: 5,
+"id": "PAT-10",
+"label": "High-stakes domain signal",
+"query": "compliance OR legal OR medical OR financial OR clinical OR audit",
+"search_type": "readme",
+"modality": "language",
+"dimensions": {"harm": 1.0, "truth": 0.9, "autonomy": 0.85, "fair": 0.8},
+"fit_weight": 5,
 },
 # PAT-11: Z2-APPMAP-03 ratified, S-060726-03
 # Cross-substrate validated: Grok proposed, Copilot independently confirmed.
 {
-“id”: “PAT-11”,
-“label”: “Memory / state persistence”,
-“query”: “memory OR vector_memory OR conversation_memory OR checkpoint”,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“consist”: 0.9, “autonomy”: 0.85, “truth”: 0.75},
-“fit_weight”: 3,
+"id": "PAT-11",
+"label": "Memory / state persistence",
+"query": "memory OR vector_memory OR conversation_memory OR checkpoint",
+"search_type": "code",
+"modality": "language",
+"dimensions": {"consist": 0.9, "autonomy": 0.85, "truth": 0.75},
+"fit_weight": 3,
 },
 # PAT-12: Z2-APPMAP-04 ratified by Night, S-060726-04.
 # LLM fine-tuning. Risk note: PAT-12 + PAT-09 = H-REGIME (see compute_risk_class).
 {
-“id”: “PAT-12”,
-“label”: “LLM fine-tuning / RLHF training”,
-“query”: “fine_tune OR openai.finetune OR trainer.train OR rlhf OR reward_model”,
-“search_type”: “code”,
-“modality”: “language”,
-“dimensions”: {“truth”: 0.9, “autonomy”: 0.85, “consist”: 0.8},
-“fit_weight”: 3,
+"id": "PAT-12",
+"label": "LLM fine-tuning / RLHF training",
+"query": "fine_tune OR openai.finetune OR trainer.train OR rlhf OR reward_model",
+"search_type": "code",
+"modality": "language",
+"dimensions": {"truth": 0.9, "autonomy": 0.85, "consist": 0.8},
+"fit_weight": 3,
 },
 
-```
 # ── Multimodal / non-language patterns (PAT-13–PAT-16) ───────────────────
 # PRELIMINARY — Z2-APPMAP-05 PENDING. fit_weight=0 until ratified.
 # These patterns are detected and flagged but NOT scored.
@@ -405,7 +404,6 @@ PATTERN_LIBRARY = [
         "H-MULTIMODAL-01 applies."
     ),
 },
-```
 
 ]
 
@@ -424,25 +422,25 @@ PATTERN_LIBRARY = [
 # HWK-COURAGE-200 for mesa-optimization/goal misgeneralization — PENDING · weight=0 until verified
 
 PRINCIPLE_ALIGNMENT_SIGNALS = [
-{“signal”: “human oversight”,          “t1_map”: “AA-T2”,            “polarity”: “positive”, “weight”: 2,  “t1_verified”: True},
-{“signal”: “human in the loop”,        “t1_map”: “AA-T2”,            “polarity”: “positive”, “weight”: 2,  “t1_verified”: True},
-{“signal”: “responsible ai”,           “t1_map”: “RW-YES-BE-YES”,    “polarity”: “positive”, “weight”: 2,  “t1_verified”: True},
-{“signal”: “ai safety”,                “t1_map”: “RW-YES-BE-YES”,    “polarity”: “positive”, “weight”: 2,  “t1_verified”: True},
-{“signal”: “open evaluation”,          “t1_map”: “AA-S10”,           “polarity”: “positive”, “weight”: 1,  “t1_verified”: True},
-{“signal”: “benchmarking”,             “t1_map”: “AA-S10”,           “polarity”: “positive”, “weight”: 1,  “t1_verified”: True},
-{“signal”: “fully autonomous”,         “t1_map”: “HWK-COURAGE-200”,  “polarity”: “tension”,  “weight”: -1, “t1_verified”: True},
-{“signal”: “no human review”,          “t1_map”: “HWK-COURAGE-200”,  “polarity”: “tension”,  “weight”: -2, “t1_verified”: True},
+{"signal": "human oversight",          "t1_map": "AA-T2",            "polarity": "positive", "weight": 2,  "t1_verified": True},
+{"signal": "human in the loop",        "t1_map": "AA-T2",            "polarity": "positive", "weight": 2,  "t1_verified": True},
+{"signal": "responsible ai",           "t1_map": "RW-YES-BE-YES",    "polarity": "positive", "weight": 2,  "t1_verified": True},
+{"signal": "ai safety",                "t1_map": "RW-YES-BE-YES",    "polarity": "positive", "weight": 2,  "t1_verified": True},
+{"signal": "open evaluation",          "t1_map": "AA-S10",           "polarity": "positive", "weight": 1,  "t1_verified": True},
+{"signal": "benchmarking",             "t1_map": "AA-S10",           "polarity": "positive", "weight": 1,  "t1_verified": True},
+{"signal": "fully autonomous",         "t1_map": "HWK-COURAGE-200",  "polarity": "tension",  "weight": -1, "t1_verified": True},
+{"signal": "no human review",          "t1_map": "HWK-COURAGE-200",  "polarity": "tension",  "weight": -2, "t1_verified": True},
 # Copilot proposal (S-060726-03): model interpretability
 # PENDING: AA-I1-RAIL not verified against canonical t1_map registry.
-{“signal”: “model interpretability”,   “t1_map”: “AA-I1-RAIL”,       “polarity”: “positive”, “weight”: 1,  “t1_verified”: False},
+{"signal": "model interpretability",   "t1_map": "AA-I1-RAIL",       "polarity": "positive", "weight": 1,  "t1_verified": False},
 # Meta AI + Copilot proposals (S-060726-04): active signals with plausible t1_maps
 # PENDING: t1_maps not verified against canonical registry; active pending Night verification.
-{“signal”: “red teaming”,              “t1_map”: “AA-S10”,           “polarity”: “positive”, “weight”: 2,  “t1_verified”: False},
-{“signal”: “constitutional ai”,        “t1_map”: “RW-YES-BE-YES”,    “polarity”: “positive”, “weight”: 2,  “t1_verified”: False},
+{"signal": "red teaming",              "t1_map": "AA-S10",           "polarity": "positive", "weight": 2,  "t1_verified": False},
+{"signal": "constitutional ai",        "t1_map": "RW-YES-BE-YES",    "polarity": "positive", "weight": 2,  "t1_verified": False},
 # Meta AI proposals (S-060726-04): tension signals with UNVERIFIED t1_map
 # weight=0 — do not contribute to alignment score until HWK-COURAGE-200 verified for these signals
-{“signal”: “mesa-optimization”,        “t1_map”: “HWK-COURAGE-200”,  “polarity”: “tension”,  “weight”: 0,  “t1_verified”: False},
-{“signal”: “goal misgeneralization”,   “t1_map”: “HWK-COURAGE-200”,  “polarity”: “tension”,  “weight”: 0,  “t1_verified”: False},
+{"signal": "mesa-optimization",        "t1_map": "HWK-COURAGE-200",  "polarity": "tension",  "weight": 0,  "t1_verified": False},
+{"signal": "goal misgeneralization",   "t1_map": "HWK-COURAGE-200",  "polarity": "tension",  "weight": 0,  "t1_verified": False},
 ]
 
 # ── Collaboration Potential Signals ───────────────────────────────────────────
@@ -467,7 +465,7 @@ PRINCIPLE_ALIGNMENT_SIGNALS = [
 
 # D-01 CORRECTION from submitted pseudocode:
 
-# “license”: “mit OR apache” was a dict syntax error (colon inside signal dict).
+# "license": "mit OR apache" was a dict syntax error (colon inside signal dict).
 
 # Permissive license check is implemented via license_type field in
 
@@ -475,54 +473,54 @@ PRINCIPLE_ALIGNMENT_SIGNALS = [
 
 COLLAB_SIGNALS = [
 {
-“signal”: “has_contributing_md”,
-“description”: “CONTRIBUTING.md or CONTRIBUTING.rst present in repo root”,
-“weight”: 2,
-“check_type”: “file_presence”,
-“check_targets”: [“CONTRIBUTING.md”, “CONTRIBUTING.rst”, “CONTRIBUTING”],
+"signal": "has_contributing_md",
+"description": "CONTRIBUTING.md or CONTRIBUTING.rst present in repo root",
+"weight": 2,
+"check_type": "file_presence",
+"check_targets": ["CONTRIBUTING.md", "CONTRIBUTING.rst", "CONTRIBUTING"],
 },
 {
-“signal”: “open_to_contributions”,
-“description”: “README explicitly invites contributions”,
-“weight”: 1,
-“check_type”: “readme_text”,
-“check_targets”: [
-“open to contributions”, “contributions welcome”, “pull requests welcome”,
-“we welcome”, “contributing guide”,
+"signal": "open_to_contributions",
+"description": "README explicitly invites contributions",
+"weight": 1,
+"check_type": "readme_text",
+"check_targets": [
+"open to contributions", "contributions welcome", "pull requests welcome",
+"we welcome", "contributing guide",
 ],
 },
 {
-“signal”: “permissive_license”,
-“description”: “MIT, Apache, BSD, or other permissive open-source license”,
-“weight”: 3,
-“check_type”: “license”,
+"signal": "permissive_license",
+"description": "MIT, Apache, BSD, or other permissive open-source license",
+"weight": 3,
+"check_type": "license",
 # License SPDX IDs that count as permissive
-“permissive_ids”: {“MIT”, “Apache-2.0”, “BSD-2-Clause”, “BSD-3-Clause”,
-“ISC”, “Unlicense”, “CC0-1.0”, “MPL-2.0”},
+"permissive_ids": {"MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause",
+"ISC", "Unlicense", "CC0-1.0", "MPL-2.0"},
 },
 {
-“signal”: “has_open_issues”,
-“description”: “Repo has open issues (signals active development and engagement)”,
-“weight”: 1,
-“check_type”: “api_field”,
-“api_field”: “open_issues_count”,
-“threshold”: 1,  # at least 1 open issue
+"signal": "has_open_issues",
+"description": "Repo has open issues (signals active development and engagement)",
+"weight": 1,
+"check_type": "api_field",
+"api_field": "open_issues_count",
+"threshold": 1,  # at least 1 open issue
 },
 {
-“signal”: “recently_active”,
-“description”: “Repo pushed to within last 180 days”,
-“weight”: 2,
-“check_type”: “recency”,
-“threshold_days”: 180,
+"signal": "recently_active",
+"description": "Repo pushed to within last 180 days",
+"weight": 2,
+"check_type": "recency",
+"threshold_days": 180,
 },
 {
-“signal”: “ai_safety_topic”,
-“description”: “Repo has ai-safety, responsible-ai, or similar topic tag”,
-“weight”: 2,
-“check_type”: “topics”,
-“check_targets”: [
-“ai-safety”, “responsible-ai”, “ai-alignment”, “ai-governance”,
-“llm-evaluation”, “model-evaluation”, “ai-transparency”,
+"signal": "ai_safety_topic",
+"description": "Repo has ai-safety, responsible-ai, or similar topic tag",
+"weight": 2,
+"check_type": "topics",
+"check_targets": [
+"ai-safety", "responsible-ai", "ai-alignment", "ai-governance",
+"llm-evaluation", "model-evaluation", "ai-transparency",
 ],
 },
 ]
@@ -537,11 +535,10 @@ repo: dict,
 readme_text: str,
 token: Optional[str],
 ) -> dict:
-“””
+"""
 Assess collaboration potential for a repo using COLLAB_SIGNALS.
 Returns structured dict — no outreach proposal text (gated on Z2-APPMAP-06).
 
-```
 Args:
     repo: raw repo dict from GitHub API (must include full_name, topics, etc.)
     readme_text: README content (already fetched in scan_repo)
@@ -653,13 +650,11 @@ return {
     "outreach_proposal": None,
     "z2_appmap_06_gate": Z2_APPMAP_06_RATIFIED,
 }
-```
 
 def assess_collab_potential(repo_result: dict) -> str:
-“””
+"""
 STUB — Z2-APPMAP-06-COLLAB-OUTREACH PENDING.
 
-```
 When ratified, this function will generate contextual outreach proposal text
 for a repo based on its scan results and collab potential. Text would include:
   - What ACAT dimension gaps the repo exhibits
@@ -693,51 +688,49 @@ flagged in unverified_t1_maps field of the alignment result.
 # All canonical t1_maps from v0.1.0 (assumed verified, carried forward)
 CANONICAL_T1_MAPS = {"AA-T2", "RW-YES-BE-YES", "AA-S10", "HWK-COURAGE-200"}
 return t1_map in CANONICAL_T1_MAPS
-```
 
 # ── Scoring ───────────────────────────────────────────────────────────────────
 
 def compute_fit_class(total_points: int) -> str:
 # Thresholds: Z2-APPMAP-04 raised HIGH from 12→15 to account for weight inflation
 # (PAT-03: 4→5, PAT-06: 5→6, PAT-09: 4→5), S-060726-04
-if total_points >= 15: return “HIGH”
-if total_points >= 6:  return “MEDIUM”
-if total_points >= 2:  return “LOW”
-return “NONE”
+if total_points >= 15: return "HIGH"
+if total_points >= 6:  return "MEDIUM"
+if total_points >= 2:  return "LOW"
+return "NONE"
 
 def compute_risk_class(detected_pattern_ids: list) -> str:
-if “PAT-06” in detected_pattern_ids or “PAT-10” in detected_pattern_ids:
-return “H-REGIME”
-if (“PAT-03” in detected_pattern_ids and “PAT-09” in detected_pattern_ids):
-return “H-REGIME”
+if "PAT-06" in detected_pattern_ids or "PAT-10" in detected_pattern_ids:
+return "H-REGIME"
+if ("PAT-03" in detected_pattern_ids and "PAT-09" in detected_pattern_ids):
+return "H-REGIME"
 # Z2-APPMAP-04: PAT-12 (fine-tuning) + PAT-09 (autonomous loop) = H-REGIME
 # Fine-tuning that modifies model behavior combined with autonomous execution = high-risk
-if (“PAT-12” in detected_pattern_ids and “PAT-09” in detected_pattern_ids):
-return “H-REGIME”
-if “PAT-02” in detected_pattern_ids or “PAT-07” in detected_pattern_ids:
-return “M-REGIME”
-return “L-REGIME”
+if ("PAT-12" in detected_pattern_ids and "PAT-09" in detected_pattern_ids):
+return "H-REGIME"
+if "PAT-02" in detected_pattern_ids or "PAT-07" in detected_pattern_ids:
+return "M-REGIME"
+return "L-REGIME"
 
 def compute_dimension_scores(detected_patterns: list) -> dict:
-“”“Aggregate dimension relevance across detected patterns (max per dim).”””
+"""Aggregate dimension relevance across detected patterns (max per dim)."""
 dims = {}
 for pat in detected_patterns:
-for dim, score in pat[“dimensions”].items():
+for dim, score in pat["dimensions"].items():
 dims[dim] = max(dims.get(dim, 0), score)
 return dict(sorted(dims.items(), key=lambda x: x[1], reverse=True))
 
 def compute_principle_alignment(readme_text: str) -> dict:
-“””
+"""
 Scan README/description for principle alignment signals. Returns GHK verdict.
 Tracks unverified_t1_maps for citation hygiene.
 Signals with weight=0 are detected but do not affect alignment score.
-“””
-text_lower = readme_text.lower() if readme_text else “”
+"""
+text_lower = readme_text.lower() if readme_text else ""
 total = 0
 signals_found = []
 unverified_t1_maps = []
 
-```
 for sig in PRINCIPLE_ALIGNMENT_SIGNALS:
     if sig["signal"] in text_lower:
         if sig["weight"] != 0:  # weight=0 signals detected but don't score
@@ -765,7 +758,6 @@ return {
     "ghk": ghk,
     "unverified_t1_maps": unverified_t1_maps,  # empty = citation-clean
 }
-```
 
 # ── GitHub API client (with retry + pagination) ───────────────────────────────
 
@@ -775,16 +767,15 @@ token: Optional[str] = None,
 params: dict = None,
 retries: int = MAX_RETRIES,
 ) -> dict:
-“””
+"""
 Make authenticated GitHub API request with exponential backoff retry.
 Handles 403 rate-limit vs 403 auth errors distinctly.
 Warns when X-RateLimit-Remaining is low.
-“””
-url = f”{GITHUB_API_BASE}{path}”
+"""
+url = f"{GITHUB_API_BASE}{path}"
 if params:
-url += “?” + urllib.parse.urlencode(params)
+url += "?" + urllib.parse.urlencode(params)
 
-```
 headers = {
     "Accept": "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
@@ -853,25 +844,24 @@ for attempt in range(1, retries + 1):
         raise RuntimeError(f"Request failed after {retries} attempts: {e}")
 
 raise RuntimeError(f"Max retries exceeded. Last error: {last_error}")
-```
 
 def github_request_paginated(
 path: str,
 token: Optional[str],
 params: dict,
 max_pages: int = 3,
-items_key: str = “items”,
+items_key: str = "items",
 ) -> list:
-“””
+"""
 Paginated GitHub API requests.
 Stops early if a page returns fewer items than per_page (last page).
 max_pages guards against unbounded iteration.
-items_key: the JSON key containing the list (default ‘items’ for search endpoints).
-“””
+items_key: the JSON key containing the list (default 'items' for search endpoints).
+"""
 results = []
-per_page = params.get(“per_page”, 30)
+per_page = params.get("per_page", 30)
 for page in range(1, max_pages + 1):
-paged_params = {**params, “page”: page}
+paged_params = {**params, "page": page}
 resp = github_request(path, token, paged_params)
 page_items = resp.get(items_key, [])
 results.extend(page_items)
@@ -886,15 +876,14 @@ token: Optional[str],
 limit: int = 10,
 updated_after: Optional[str] = None,
 ) -> list:
-“””
+"""
 Search GitHub repos by query string.
 updated_after: ISO date string YYYY-MM-DD — injects pushed:>date into query.
 Uses pagination if limit > 30.
-“””
+"""
 if updated_after:
-query = f”{query} pushed:>{updated_after}”
+query = f"{query} pushed:>{updated_after}"
 
-```
 per_page = min(limit, 30)
 use_pagination = limit > 30
 
@@ -926,50 +915,48 @@ for item in items[:limit]:
         "updated_at":  item.get("updated_at", ""),
     })
 return results
-```
 
 def check_code_pattern(
 repo_full_name: str,
 query: str,
 token: Optional[str],
 ) -> bool:
-“”“Check if a code pattern exists in a repo. Returns bool. Fails open.”””
+"""Check if a code pattern exists in a repo. Returns bool. Fails open."""
 try:
 data = github_request(
-“/search/code”,
+"/search/code",
 token=token,
-params={“q”: f”{query} repo:{repo_full_name}”, “per_page”: 1},
+params={"q": f"{query} repo:{repo_full_name}", "per_page": 1},
 )
 time.sleep(0.5)  # courtesy pause — code search is heavily rate-limited
-return data.get(“total_count”, 0) > 0
+return data.get("total_count", 0) > 0
 except Exception as e:
 # [DEBUG] Surface code search failures instead of silent fail
-# Fail open — don’t block scoring on API errors
-print(f”  [DEBUG] code search failed for {repo_full_name!r} “
-f”(query: {query[:40]!r}): {type(e).**name**}: {e}”)
+# Fail open — don't block scoring on API errors
+print(f"  [DEBUG] code search failed for {repo_full_name!r} "
+f"(query: {query[:40]!r}): {type(e).__name__}: {e}")
 return False
 
 def get_readme(repo_full_name: str, token: Optional[str]) -> str:
-“”“Fetch README content (base64 decoded). Returns empty string on failure.”””
+"""Fetch README content (base64 decoded). Returns empty string on failure."""
 try:
 import base64
-data = github_request(f”/repos/{repo_full_name}/readme”, token=token)
-content = data.get(“content”, “”)
+data = github_request(f"/repos/{repo_full_name}/readme", token=token)
+content = data.get("content", "")
 if content:
-return base64.b64decode(content).decode(“utf-8”, errors=“replace”)
+return base64.b64decode(content).decode("utf-8", errors="replace")
 except Exception:
 pass
-return “”
+return ""
 
 # ── Core scan function ────────────────────────────────────────────────────────
 
 def scan_repo(repo: dict, token: Optional[str], assess_collab: bool = False) -> dict:
-“””
+"""
 Score a single repo against the full pattern library.
 Preliminary patterns (fit_weight=0, preliminary=True) are detected and
 surfaced in output but do not contribute to fit_points or fit_class.
 
-```
 Args:
     repo: repo dict from GitHub API search results
     token: GitHub PAT (or None for unauthenticated)
@@ -1055,17 +1042,15 @@ return {
     ),
     "scanned_at":            datetime.now(timezone.utc).isoformat(),
 }
-```
 
 # ── Report generation ─────────────────────────────────────────────────────────
 
-def generate_report(results: list, query: str, session_id: str = “S-060726-06”) -> str:
-“”“Generate .md report from scan results.”””
-ts   = datetime.now(timezone.utc).strftime(”%Y-%m-%d”)
-high = [r for r in results if r[“fit_class”] == “HIGH”]
-med  = [r for r in results if r[“fit_class”] == “MEDIUM”]
+def generate_report(results: list, query: str, session_id: str = "S-060726-06") -> str:
+"""Generate .md report from scan results."""
+ts   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+high = [r for r in results if r["fit_class"] == "HIGH"]
+med  = [r for r in results if r["fit_class"] == "MEDIUM"]
 
-```
 gate_str = (
     "✅ RATIFIED (TRL 2-3)"
     if Z2_APPMAP_01_RATIFIED
@@ -1185,14 +1170,12 @@ lines += [
 ]
 
 return "\n".join(lines)
-```
 
 def generate_registry_candidates(results: list) -> str:
-“””
+"""
 Generate F-class / CV-class registry candidate block from high-fit GROW repos.
 For Z2 review — not self-registered.
 
-```
 D-01 FLAG: Do not add F35 probe references. F35 not verified in REGISTERED.md.
 Last confirmed entries: F-47, F-48, IC-033, H-DECOMP-01.
 """
@@ -1239,17 +1222,15 @@ for r in high_grow:
     ]
 
 return "\n".join(lines)
-```
 
 def generate_csv_report(results: list, out_path: Path) -> str:
-“””
+"""
 Generate CSV output alongside .md and .json.
 Copilot proposal (S-060726-03) — housekeeping addition.
-“””
-ts = datetime.now(timezone.utc).strftime(”%Y%m%d_%H%M”)
-csv_file = out_path / f”app_map_report_{ts}.csv”
+"""
+ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
+csv_file = out_path / f"app_map_report_{ts}.csv"
 
-```
 with open(csv_file, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
     writer.writerow([
@@ -1276,36 +1257,34 @@ with open(csv_file, "w", newline="", encoding="utf-8") as f:
         ])
 
 return str(csv_file)
-```
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 def main():
 parser = argparse.ArgumentParser(
-description=f”{TOOL_NAME} v{TOOL_VERSION} — GitHub ACAT fit scanner”
+description=f"{TOOL_NAME} v{TOOL_VERSION} — GitHub ACAT fit scanner"
 )
-parser.add_argument(”–query”,          help=“Repo search query string”)
-parser.add_argument(”–topics”,         help=“Comma-separated GitHub topics to search”)
-parser.add_argument(”–limit”,          type=int, default=10,
-help=“Max repos to scan (default 10)”)
-parser.add_argument(”–output”,         help=“Output directory for reports”)
-parser.add_argument(”–updated-after”,  dest=“updated_after”,
-help=“Filter to repos updated after YYYY-MM-DD”)
-parser.add_argument(”–registry-only”,  action=“store_true”,
-help=“Emit registry candidate block only (skip report + JSON)”)
-parser.add_argument(”–list-patterns”,  action=“store_true”,
-help=“Print pattern library and exit”)
-parser.add_argument(”–smoke-test”,     action=“store_true”,
-help=“Run internal smoke test and exit (no API calls)”)
-parser.add_argument(”–collab”,         action=“store_true”,
+parser.add_argument("–query",          help="Repo search query string")
+parser.add_argument("–topics",         help="Comma-separated GitHub topics to search")
+parser.add_argument("–limit",          type=int, default=10,
+help="Max repos to scan (default 10)")
+parser.add_argument("–output",         help="Output directory for reports")
+parser.add_argument("–updated-after",  dest="updated_after",
+help="Filter to repos updated after YYYY-MM-DD")
+parser.add_argument("–registry-only",  action="store_true",
+help="Emit registry candidate block only (skip report + JSON)")
+parser.add_argument("–list-patterns",  action="store_true",
+help="Print pattern library and exit")
+parser.add_argument("–smoke-test",     action="store_true",
+help="Run internal smoke test and exit (no API calls)")
+parser.add_argument("–collab",         action="store_true",
 help=(
-“Assess collaboration potential for each scanned repo “
-“(read-only: license, CONTRIBUTING, issues, activity, topics). “
-“Outreach proposal text generation blocked pending Z2-APPMAP-06.”
+"Assess collaboration potential for each scanned repo "
+"(read-only: license, CONTRIBUTING, issues, activity, topics). "
+"Outreach proposal text generation blocked pending Z2-APPMAP-06."
 ))
 args = parser.parse_args()
 
-```
 # ── list-patterns ──────────────────────────────────────────────────────────
 if args.list_patterns:
     print(f"\n{TOOL_NAME} v{TOOL_VERSION} — Pattern Library\n")
@@ -1579,7 +1558,6 @@ print(
     f"\nSummary: {len(results)} scanned · {high_count} HIGH · {h_regime} H-REGIME"
 )
 return 0
-```
 
-if **name** == “**main**”:
+if __name__ == "__main__":
 sys.exit(main())
