@@ -1,0 +1,222 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://humanaios.ai/schemas/molt_state.schema.json",
+  "title": "HumanAIOS Molt State Schema",
+  "description": "Machine-readable organism state for HumanAIOS molt cycle tracking. Validates the biological coordination protocol state declared in MOLT_STATE.md.",
+  "status": "aspirational — not CI-enforced",
+  "type": "object",
+  "required": [
+    "molt_stage",
+    "current_layer",
+    "target_layer",
+    "molt_initiated",
+    "biological_systems",
+    "molt_inhibitors",
+    "gate_3_conditions"
+  ],
+  "properties": {
+    "molt_stage": {
+      "type": "string",
+      "enum": ["pre_molt", "mid_molt", "post_molt"],
+      "description": "Current molt stage. pre_molt = Layer 1 not yet active. mid_molt = Layer 1 active, Layer 2 in progress. post_molt = Layer 2+ stable."
+    },
+    "current_layer": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "The highest fully active layer (1, 2, or 3)."
+    },
+    "target_layer": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "The layer currently being hardened toward."
+    },
+    "molt_initiated": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date when the current molt stage was initiated."
+    },
+    "estimated_hardening": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Estimated ISO 8601 date when the current molt stage will complete. Null if unknown."
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Version of this schema document.",
+      "default": "1.0"
+    },
+    "biological_systems": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Health status of each biological system analogue.",
+      "items": {
+        "type": "object",
+        "required": ["name", "analogue", "status"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Biological system name (e.g., 'genome', 'nervous_system')."
+          },
+          "analogue": {
+            "type": "string",
+            "description": "HumanAIOS analogue — file, surface, or system name."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "FORMING", "DORMANT", "SHED"],
+            "description": "ACTIVE = fully operational. FORMING = in development. DORMANT = not yet started. SHED = superseded/retired."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional clarifying notes."
+          },
+          "validity_confidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "description": "Confidence in the strength of this biological analogy. high = clean mapping. medium = functional parallel but mechanism differs. low = loose or speculative mapping."
+          },
+          "validity_notes": {
+            "type": "string",
+            "description": "Explanation of the analogy's strength or limitations. Required when validity_confidence is medium or low."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "molt_inhibitors": {
+      "type": "array",
+      "description": "Current blockers preventing layer hardening or Gate 3 approach. Append-only in practice.",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "blocking"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Short identifier for the inhibitor (e.g., 'Z2-HOMEPAGE-01')."
+          },
+          "description": {
+            "type": "string",
+            "description": "Plain-language description of the blocker."
+          },
+          "blocking": {
+            "type": "string",
+            "description": "What this inhibitor is blocking."
+          },
+          "resolution_path": {
+            "type": "string",
+            "description": "How this inhibitor can be resolved."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "gate_3_conditions": {
+      "type": "object",
+      "description": "Gate 3 activation conditions for Layer 2 → Layer 3 transition. All three must be true simultaneously. Source: SEED.md §6.2.",
+      "required": ["arxiv_public", "dataset_b_live", "revenue_positive_month"],
+      "properties": {
+        "arxiv_public": {
+          "type": "boolean",
+          "description": "arXiv paper is publicly published."
+        },
+        "dataset_b_live": {
+          "type": "boolean",
+          "description": "Dataset B collection surface is live."
+        },
+        "revenue_positive_month": {
+          "type": "boolean",
+          "description": "At least one revenue-positive month has been recorded."
+        }
+      },
+      "additionalProperties": false
+    },
+    "molt_trigger_log": {
+      "type": "array",
+      "description": "Append-only log of events that triggered layer transitions or molt-stage changes.",
+      "items": {
+        "type": "object",
+        "required": ["date", "trigger", "layer_impact", "authority"],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "ISO 8601 date of the trigger."
+          },
+          "trigger": {
+            "type": "string",
+            "description": "Plain-language description of what triggered the transition."
+          },
+          "layer_impact": {
+            "type": "string",
+            "description": "Which layer was affected and how."
+          },
+          "authority": {
+            "type": "string",
+            "description": "Zone authority that ratified this transition."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "molt_stage": "mid_molt",
+      "current_layer": 1,
+      "target_layer": 2,
+      "molt_initiated": "2026-05-08",
+      "estimated_hardening": null,
+      "schema_version": "1.0",
+      "biological_systems": [
+        { "name": "genome", "analogue": "SEED.md", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "nervous_system", "analogue": "SESSION_RITUALS.md", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "immune_response", "analogue": "DRIFT_LOG.md / GOVERNANCE.md", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "metabolism", "analogue": "acat/ pipeline", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "chitin", "analogue": "operations repo / document management engine", "status": "FORMING", "validity_confidence": "high" },
+        { "name": "phenotype", "analogue": "humanaios.ai", "status": "FORMING", "validity_confidence": "high" },
+        { "name": "homeostasis", "analogue": "Zone system", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "cell_division", "analogue": "REGISTERED.md / Supabase corpus", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "apoptosis", "analogue": "P5 filter / ic_archive", "status": "ACTIVE", "validity_confidence": "medium", "validity_notes": "Biological apoptosis is programmed cell death; P5 is a quality filter that archives rather than destroys. Functional parallel holds; cellular mechanism differs." },
+        { "name": "circadian_rhythm", "analogue": "Charter cycle (Apr 17 – Jul 16, 2026)", "status": "ACTIVE", "validity_confidence": "low", "validity_notes": "A charter is a one-time bounded period, not a repeating cycle. Mapping tightens if future charter cycles are defined." },
+        { "name": "exoskeleton_old", "analogue": "Make.com / hardcoded HAIOSCC / scattered governance", "status": "SHED", "validity_confidence": "high" },
+        { "name": "molt_ecdysis", "analogue": "Layer 1 → 2 → 3 transitions", "status": "ACTIVE", "validity_confidence": "high" }
+      ],
+      "molt_inhibitors": [
+        {
+          "id": "Z2-HOMEPAGE-01-05",
+          "description": "Five open Night decisions on homepage deploy",
+          "blocking": "humanaios.ai dashboard (Phenotype forming)",
+          "resolution_path": "Zone 2 (Night) decision queue"
+        },
+        {
+          "id": "migration_009",
+          "description": "migration_009 not yet a committed file in repo",
+          "blocking": "Layer 2 Supabase schema completeness",
+          "resolution_path": "Zone 3 execution after migration_008 prerequisite"
+        },
+        {
+          "id": "arxiv-hold",
+          "description": "arXiv paper submission on hold during OR&D phase",
+          "blocking": "Gate 3 condition arxiv_public",
+          "resolution_path": "Gate 3 — post-charter decision"
+        }
+      ],
+      "gate_3_conditions": {
+        "arxiv_public": false,
+        "dataset_b_live": false,
+        "revenue_positive_month": false
+      },
+      "molt_trigger_log": [
+        {
+          "date": "2026-05-08",
+          "trigger": "SEED.md created and Zone 2 ratified. Operations repo established as single source of truth.",
+          "layer_impact": "Layer 1 → ACTIVE",
+          "authority": "Zone 2 (Night) · S-050726-04"
+        }
+      ]
+    }
+  ]
+}
