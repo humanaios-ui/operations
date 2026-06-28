@@ -1,6 +1,7 @@
-# MOLT_STATE.md — HumanAIOS Organism State Register
+# MOLT_STATE.md — HumanAIOS Current Molt State Register
 
 **Status:** LIVE — proposal (Zone 1 draft · pending Zone 2 ratification)
+**State as of:** Last Zone 3 commit — not real-time. Current declared state reflects the most recent Night-executed git commit to main.
 **Version:** 1.0
 **Created:** 2026-06-28 · Issue #25 · Biological Coordination Protocol
 **Authority:** Zone 2 ratification required before canonical
@@ -71,7 +72,7 @@ Append-only. Each entry records what triggered a layer transition or molt-stage 
 | `dataset_b_live` | **NOT MET** | Dataset B collection surface not yet built. Gate 3 deliverable. |
 | `revenue_positive_month` | **NOT MET** | No revenue-positive month yet. OR&D phase. |
 
-Gate 3 source: SEED.md §6.2 — "arXiv paper public + Dataset B collection surface live + at least one revenue-positive month."
+Gate 3 conditions are canonical in this file. SEED.md §6.2 points here.
 
 Layer 3 will not start until all three conditions are verified by Zone 2.
 

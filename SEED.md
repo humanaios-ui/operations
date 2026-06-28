@@ -156,9 +156,7 @@ These are findings that have passed Zone 2 ratification and have evidence basis 
 
 ### 6.2 The Molt Architecture (three layers, sequential)
 
-**Live molt-state register:** `MOLT_STATE.md` — canonical organism state, biological system health, molt trigger log, inhibitors, and Gate 3 conditions. This section is the architecture definition; `MOLT_STATE.md` is the live state pointer.
-
-**Current molt stage:** Mid-molt. Old infrastructure shell (Make.com, hardcoded HAIOSCC state, scattered governance) partially shed. New shell hardening. See `MOLT_STATE.md` for current declared stage.
+**Molt-state register:** `MOLT_STATE.md` — canonical organism state, biological system health, molt trigger log, inhibitors, and Gate 3 conditions. This section is the architecture definition; `MOLT_STATE.md` is the state register.
 
 **Layer 1 — Ground Truth Seed (active now):**
 This file (SEED.md) is Layer 1. The operations repo becomes the single source of truth for identity, findings, collaborations, and architecture. No document lives outside this repo except what is explicitly classified as local-only (OPERATOR_RUNBOOK.md, archive, personal files).
@@ -173,7 +171,7 @@ Schema foundation: Option B events table with bitemporal columns (valid_from, va
 
 **Layer 3 — Self-Governing Application (Gate 3):**
 Once Layer 2 is stable, the application begins using governance principles and framework to automate decisions. D-ADMISS, ACAT_ENTRY manifests, Gnosis regime assignments — all document-driven rather than manually tracked.
-Not started. Gate 3 activation condition: arXiv paper public + Dataset B collection surface live + at least one revenue-positive month.
+Not started. Gate 3 activation conditions: see `MOLT_STATE.md` §Next Molt Condition.
 
 ### 6.3 The Two-Site Architecture (public surface)
 

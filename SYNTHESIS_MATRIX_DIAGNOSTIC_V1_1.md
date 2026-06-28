@@ -1,5 +1,7 @@
 # SYNTHESIS_MATRIX_DIAGNOSTIC_V1_1.md — Decision Hygiene Matrix
 
+> ⚠️ **INTERNAL ONLY — Night and AI substrates.** This document must never appear in external materials, academic publications, grant applications, or public-facing surfaces. Hawkins Map content is classified internal-only per SEED.md §How to read this file and GOVERNANCE.md §THREE-FRAMEWORK SYNTHESIS.
+
 **Version:** 1.1
 **Status:** LIVE — proposal (Zone 1 draft · pending Zone 2 ratification)
 **Created:** 2026-06-28 · Issue #25 · Biological Coordination Protocol

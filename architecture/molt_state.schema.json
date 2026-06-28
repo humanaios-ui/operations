@@ -3,6 +3,7 @@
   "$id": "https://humanaios.ai/schemas/molt_state.schema.json",
   "title": "HumanAIOS Molt State Schema",
   "description": "Machine-readable organism state for HumanAIOS molt cycle tracking. Validates the biological coordination protocol state declared in MOLT_STATE.md.",
+  "status": "aspirational — not CI-enforced",
   "type": "object",
   "required": [
     "molt_stage",
@@ -70,6 +71,15 @@
           "notes": {
             "type": "string",
             "description": "Optional clarifying notes."
+          },
+          "validity_confidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "description": "Confidence in the strength of this biological analogy. high = clean mapping. medium = functional parallel but mechanism differs. low = loose or speculative mapping."
+          },
+          "validity_notes": {
+            "type": "string",
+            "description": "Explanation of the analogy's strength or limitations. Required when validity_confidence is medium or low."
           }
         },
         "additionalProperties": false
@@ -161,18 +171,18 @@
       "estimated_hardening": null,
       "schema_version": "1.0",
       "biological_systems": [
-        { "name": "genome", "analogue": "SEED.md", "status": "ACTIVE" },
-        { "name": "nervous_system", "analogue": "SESSION_RITUALS.md", "status": "ACTIVE" },
-        { "name": "immune_response", "analogue": "DRIFT_LOG.md / GOVERNANCE.md", "status": "ACTIVE" },
-        { "name": "metabolism", "analogue": "acat/ pipeline", "status": "ACTIVE" },
-        { "name": "chitin", "analogue": "operations repo / document management engine", "status": "FORMING" },
-        { "name": "phenotype", "analogue": "humanaios.ai", "status": "FORMING" },
-        { "name": "homeostasis", "analogue": "Zone system", "status": "ACTIVE" },
-        { "name": "cell_division", "analogue": "REGISTERED.md / Supabase corpus", "status": "ACTIVE" },
-        { "name": "apoptosis", "analogue": "P5 filter / ic_archive", "status": "ACTIVE" },
-        { "name": "circadian_rhythm", "analogue": "Charter cycle (Apr 17 – Jul 16, 2026)", "status": "ACTIVE" },
-        { "name": "exoskeleton_old", "analogue": "Make.com / hardcoded HAIOSCC / scattered governance", "status": "SHED" },
-        { "name": "molt_ecdysis", "analogue": "Layer 1 → 2 → 3 transitions", "status": "ACTIVE" }
+        { "name": "genome", "analogue": "SEED.md", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "nervous_system", "analogue": "SESSION_RITUALS.md", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "immune_response", "analogue": "DRIFT_LOG.md / GOVERNANCE.md", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "metabolism", "analogue": "acat/ pipeline", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "chitin", "analogue": "operations repo / document management engine", "status": "FORMING", "validity_confidence": "high" },
+        { "name": "phenotype", "analogue": "humanaios.ai", "status": "FORMING", "validity_confidence": "high" },
+        { "name": "homeostasis", "analogue": "Zone system", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "cell_division", "analogue": "REGISTERED.md / Supabase corpus", "status": "ACTIVE", "validity_confidence": "high" },
+        { "name": "apoptosis", "analogue": "P5 filter / ic_archive", "status": "ACTIVE", "validity_confidence": "medium", "validity_notes": "Biological apoptosis is programmed cell death; P5 is a quality filter that archives rather than destroys. Functional parallel holds; cellular mechanism differs." },
+        { "name": "circadian_rhythm", "analogue": "Charter cycle (Apr 17 – Jul 16, 2026)", "status": "ACTIVE", "validity_confidence": "low", "validity_notes": "A charter is a one-time bounded period, not a repeating cycle. Mapping tightens if future charter cycles are defined." },
+        { "name": "exoskeleton_old", "analogue": "Make.com / hardcoded HAIOSCC / scattered governance", "status": "SHED", "validity_confidence": "high" },
+        { "name": "molt_ecdysis", "analogue": "Layer 1 → 2 → 3 transitions", "status": "ACTIVE", "validity_confidence": "high" }
       ],
       "molt_inhibitors": [
         {
