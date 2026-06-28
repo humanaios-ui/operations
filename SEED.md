@@ -156,7 +156,9 @@ These are findings that have passed Zone 2 ratification and have evidence basis 
 
 ### 6.2 The Molt Architecture (three layers, sequential)
 
-**Current molt stage:** Mid-molt. Old infrastructure shell (Make.com, hardcoded HAIOSCC state, scattered governance) partially shed. New shell hardening.
+**Live molt-state register:** `MOLT_STATE.md` — canonical organism state, biological system health, molt trigger log, inhibitors, and Gate 3 conditions. This section is the architecture definition; `MOLT_STATE.md` is the live state pointer.
+
+**Current molt stage:** Mid-molt. Old infrastructure shell (Make.com, hardcoded HAIOSCC state, scattered governance) partially shed. New shell hardening. See `MOLT_STATE.md` for current declared stage.
 
 **Layer 1 — Ground Truth Seed (active now):**
 This file (SEED.md) is Layer 1. The operations repo becomes the single source of truth for identity, findings, collaborations, and architecture. No document lives outside this repo except what is explicitly classified as local-only (OPERATOR_RUNBOOK.md, archive, personal files).
