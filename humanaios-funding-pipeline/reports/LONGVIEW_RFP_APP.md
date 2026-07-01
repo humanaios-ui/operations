@@ -89,6 +89,22 @@ We are building the infrastructure to detect when AI systems misrepresent their 
 
 -----
 
+### Niche Statement (v0.3 — Z1 draft, Z2 ratification required)
+
+*The positioning core of this application. May stand as its own section or be used to tighten the One-Sentence Summary + "Fit with Longview's Priority Areas" sections below.*
+
+**In one line:** HumanAIOS measures the gap between what an AI system reports about its own behavioral dispositions and what it actually does under consequential pressure — the single signal by which a "secretly loyal" model reveals itself — and pairs it with a governed execution chain that forces every claimed state transition to produce a verifiable artifact. Together they are the measurement prerequisite for oversight that can actually resist AI-enabled power concentration.
+
+**Why this is the right niche for Area 3.** Longview names the core threat as models with "singular loyalties" — overt or *secret* — and names auditable logs of AI processes as a defensive requirement. A secretly-loyal model has exactly one tell: its self-report sounds aligned, but its demonstrated behavior diverges under real stakes. That divergence is precisely what ACAT quantifies — Phase 1 blind self-report → Phase 2 perturbation → Phase 3 demonstrated behavior; Learning Index = P3 ÷ P1 across 12 dimensions. We are not proposing to *build* this capability. We have been *operating* it, on a live corpus, for months.
+
+**Why the niche is empty.** AI evaluation overwhelmingly measures *capability* (what a model can do), not *disposition integrity* (whether its stated behavior matches its actual behavior); self-report and demonstrated behavior are almost never measured against each other in one instrument. The clearest proof of the demand: ActivTrak sells behavioral observability of *humans* using AI to 9,500+ organizations — enterprises already pay to measure what people actually do with AI versus what they claim. The *AI-system* side of that same question has no equivalent infrastructure. That absence is our niche. *(ActivTrak cited as market context only — not a claimed partnership; see Open Question 7.)*
+
+**Why the signal is real — and not a training artifact.** Across N_total=629 / N_Phase1=516 / N_LI=307 (Mean LI=0.8632 under clean, unanchored conditions v5.3+; Cronbach's α=0.901; PC1=68.9% variance): Humility is structurally the lowest-scoring dimension — the one most tied to self-report accuracy. Harm-awareness is *partially orthogonal* to the general alignment factor (HIM: PC2 loads 0.854 on Harm, <0.32 elsewhere) — evidence of *selective* rather than uniform alignment. And the self-report inflation gradient (Truth/Service/Harm/Autonomy/Value all decline P1→P3) holds across all seven providers tested, including humans — so the calibration gap is a **structural property of the phenomenon, not an RLHF quirk.** These are the exact signatures a covert-loyalty detector must key on.
+
+**What we are honest about.** The chat-mode instrument is at TRL 4 (Z2-ratified: methodology validated, corpus collected, demonstrated in an operationally-relevant environment); agentic, ICS, and human-operator layers are TRL 1–2; and **predictive criterion validity is not yet established** — whether the LI predicts *deployed*-system behavior is the open question. Closing that gap is exactly what funding produces: a criterion-validity study against consequence-bearing deployment traces, corpus expansion toward N=1,000, and open release of the instrument plus the governed-execution-chain specification [collaborator attribution pending P-ANON check]. Detection you can independently verify is the prerequisite for oversight; oversight is the prerequisite for resisting concentration — and we are the only group operating **both** instruments against a live corpus today.
+
+-----
+
 ### Primary Area
 
 Area 3 — AI integrity and secret loyalties
