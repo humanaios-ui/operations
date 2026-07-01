@@ -29,6 +29,24 @@
 
 -----
 
+## SUBMISSION READINESS — S-070126 (Claude Z1 pass)
+
+**Closed this pass** (the app is now content-complete):
+- ✅ Niche Statement v0.3 in place (positioning core).
+- ✅ Every cited statistic verified at canonical source (629/516/307 · LI 0.8632 · α=0.901 · PC1 68.9% · HIM 0.854) — see `audits/LONGVIEW_STATS_VERIFICATION_S-070126.md`.
+- ✅ Candidate findings (F-55, RLHF-rejection) softened to "under internal review" — no unregistered claim stated as established fact.
+- ✅ H-CONV-EMP-01 added as the Class D (already-instrumented, shortest-timeline) criterion-validity arm.
+- ✅ Budget narrative drafted ($420K / 12-mo recommended; $185K / 6-mo alt) with full allocation model.
+
+**Remaining human gates** (Night, before Z3 send):
+- [ ] **P-ANON:** confirm DeMarius / Governing Engines self-attributed publicly before naming (Organizational Qualifications still bracketed).
+- [ ] **Funding:** confirm amount + exact PI-salary / model-API line figures.
+- [ ] **arXiv:** cite preprint if the hold clears before deadline; else "manuscript under review."
+- [ ] **Z2 ratify** the full draft (incl. niche v0.3) → **Z3 submit** — target *before July 2* for rolling-assessment advantage.
+- [ ] *(Optional but recommended)* register F-55 / F-54 (staged: `audits/REGISTERED_PACKAGE_DRAFT_S-070126.md`) so the candidate citations become traceable.
+
+-----
+
 ## PROJECT MANAGEMENT TIMELINE
 
 ### Phase 0 — Setup (June 12–13, 2026)
@@ -99,7 +117,7 @@ We are building the infrastructure to detect when AI systems misrepresent their 
 
 **Why the niche is empty.** AI evaluation overwhelmingly measures *capability* (what a model can do), not *disposition integrity* (whether its stated behavior matches its actual behavior); self-report and demonstrated behavior are almost never measured against each other in one instrument. The clearest proof of the demand: ActivTrak sells behavioral observability of *humans* using AI to 9,500+ organizations — enterprises already pay to measure what people actually do with AI versus what they claim. The *AI-system* side of that same question has no equivalent infrastructure. That absence is our niche. *(ActivTrak cited as market context only — not a claimed partnership; see Open Question 7.)*
 
-**Why the signal is real — and not a training artifact.** Across N_total=629 / N_Phase1=516 / N_LI=307 (Mean LI=0.8632 under clean, unanchored conditions v5.3+; Cronbach's α=0.901; PC1=68.9% variance): Humility is structurally the lowest-scoring dimension — the one most tied to self-report accuracy. Harm-awareness is *partially orthogonal* to the general alignment factor (HIM: PC2 loads 0.854 on Harm, <0.32 elsewhere) — evidence of *selective* rather than uniform alignment. And the self-report inflation gradient (Truth/Service/Harm/Autonomy/Value all decline P1→P3) holds across all seven providers tested, including humans — so the calibration gap is a **structural property of the phenomenon, not an RLHF quirk.** These are the exact signatures a covert-loyalty detector must key on.
+**Why the signal is real — and not a training artifact.** Across N_total=629 / N_Phase1=516 / N_LI=307 (Mean LI=0.8632 under clean, unanchored conditions v5.3+; Cronbach's α=0.901; PC1=68.9% variance): Humility is structurally the lowest-scoring dimension — the one most tied to self-report accuracy. Harm-awareness is *partially orthogonal* to the general alignment factor (HIM: PC2 loads 0.854 on Harm, <0.32 elsewhere) — evidence of *selective* rather than uniform alignment. And the self-report inflation gradient (Truth/Service/Harm/Autonomy/Value all decline P1→P3) holds across all seven providers tested, including human respondents — early evidence (*a candidate finding under internal review, S-062826*) that the calibration gap is a structural property of the phenomenon rather than solely an artifact of any one lab's training regime. These are the exact signatures a covert-loyalty detector must key on.
 
 **What we are honest about.** The chat-mode instrument is at TRL 4 (Z2-ratified: methodology validated, corpus collected, demonstrated in an operationally-relevant environment); agentic, ICS, and human-operator layers are TRL 1–2; and **predictive criterion validity is not yet established** — whether the LI predicts *deployed*-system behavior is the open question. Closing that gap is exactly what funding produces: a criterion-validity study against consequence-bearing deployment traces, corpus expansion toward N=1,000, and open release of the instrument plus the governed-execution-chain specification [collaborator attribution pending P-ANON check]. Detection you can independently verify is the prerequisite for oversight; oversight is the prerequisite for resisting concentration — and we are the only group operating **both** instruments against a live corpus today.
 
@@ -171,7 +189,9 @@ The gap between those named defenses and the current state of AI deployment infr
 
 **12-month deliverables (with renewal, $300K–$600K range):**
 
-1. **Predictive criterion validity study** — the critical gap in the current evidence base: does the LI score predict behavioral outcomes in deployed systems? This requires access to consequence-bearing deployment traces. The study design is a three-arm parallel protocol (Class A: Mode AI runtime traces; Class B: governance incident records; Class C: cross-model longitudinal) with 4–8 week / 10–16 week / 6–12 month timelines by arm.
+1. **Predictive criterion validity study** — the critical gap in the current evidence base: does the LI score predict behavioral outcomes in deployed systems? This requires access to consequence-bearing deployment traces. The study design is a four-arm parallel protocol (Class A: Mode AI runtime traces; Class B: governance incident records; Class C: cross-model longitudinal; Class D: cross-instrument convergent validity — see below) with 4–8 week / 10–16 week / 6–12 month timelines by arm.
+
+   **Criterion validity — the already-running arm (Class D, empirica convergent validity):** Unlike the external-partnership arms, this pathway is already instrumented. ACAT sessions are independently co-scored by *empirica*, a separate Brier-grounded epistemic-calibration instrument (developed independently by David Van Assche, Nubaeon), through a live evaluator seat. Paired same-session data already shows the two instruments converging where they measure the same construct and diverging *predictably* where they do not — e.g. empirica reads an uncertainty reduction as epistemic progress in the same session ACAT reads a humility reduction as a behavioral-integrity warning; and empirica's coherence/signal can rise while ACAT registers steering that empirica structurally cannot see (it has no framing dimension). This is textbook convergent/discriminant validity from a *second, independent* instrument — the strongest evidence that the Learning Index measures something real rather than an artifact of ACAT's own construction. The funded study formalizes this as **H-CONV-EMP-01**: does empirica `engagement` systematically predict ACAT `sycophancy-resistance` drift across a paired corpus? Because the data source (the empirica evaluator seat) is already producing paired scores, this arm returns criterion evidence on the shortest timeline of the four.
    
    **Criterion validity partnership pathway — ActivTrak:** ActivTrak is a workforce behavioral analytics platform deployed in 9,500+ organizations that tracks AI tool usage, productivity behavioral outcomes, and deployment context across enterprise environments. Their data constitutes real-world behavioral traces of AI tools operating in consequential work contexts — directly usable as LI_grounded criterion data for H-P3G-01 validation. The partnership model: ActivTrak provides anonymized deployment behavioral data (via ActivConnect API, Google BigQuery); HumanAIOS provides the AI-side behavioral calibration measurement that their platform currently lacks. Mutual value: they gain the AI-system integrity layer; we gain the deployment-context behavioral outcome data needed to validate LI predictive criterion validity. A formal research partnership with ActivTrak’s Productivity Lab is a named pathway for Class B and Class C criterion validity arms. Funding from this grant would support the partnership development and data access costs necessary to execute that arm.
 1. **Pilot organizational deployment** — one institutional deployment of the combined ACAT + RP chain protocol in a consequential AI deployment context, producing the first real-world evidence base for detection effectiveness
@@ -229,11 +249,20 @@ The mitigation is architectural and governance-based, not technical alone:
 ### Requested Funding
 
 **Track:** Project grant  
-**Amount requested:** $[TBD — Night to specify based on 6-month vs. 12-month scope]  
-**Duration:** 12 months with renewal option  
-**Primary use:** PI salary, corpus expansion (model API costs), criterion validity study design and execution, open infrastructure development and publication
+**Amount requested:** **$420,000** over 12 months (recommended; within the $100K–$2M/yr range). A reduced 6-month scope — deliverables 1–3 only, deferring the criterion-validity study and pilot deployment — is available at **$185,000**. *(Z2 note: exact PI-salary and model-API line figures are Night's to finalize; the allocation model and rationale below are complete.)*  
+**Duration:** 12 months with renewal option
 
-**[Budget narrative to be drafted in Phase 1 — requires Night Z2 on scope and amount]**
+**Budget narrative.** The ask funds the transition from *a validated measurement instrument* to *validated detection evidence* — the criterion-validity gap the application is candid about. Allocation:
+
+| Category | Share | ~12-mo | What it funds |
+|---|---|---:|---|
+| **Personnel** (PI + part-time research support) | 45% | $189K | PI (Anderson) at a research-appropriate rate + part-time analyst for the corpus expansion and criterion study |
+| **Corpus expansion — model API costs** | 15% | $63K | 371 additional ACAT assessments (toward N=1,000) across frontier models; multi-provider API + inference costs for paired P1/P3 runs |
+| **Criterion-validity study** | 20% | $84K | Data-access + partnership-development costs for the four arms (Class A/B Mode traces, Class C cross-model, Class D empirica co-scoring compute); pilot organizational deployment |
+| **Open infrastructure + publication** | 12% | $50K | Corpus + assessment hosting (Supabase/Railway/Cloudflare), open-access tooling release, preprint/publication of the two-instrument methodology |
+| **Independent evaluation + governance** | 8% | $34K | The independent-evaluator requirement (the empirica evaluator seat) + audit — structurally required by the dual-use mitigation, not optional overhead |
+
+**Why this shape:** personnel-heavy because the work is instrument-and-analysis labor, not capital; the criterion-validity + independent-evaluation lines (28% combined) are the two the field most often under-funds and are exactly what converts *signal* into *evidence* and constrains dual-use capture. The 6-month reduced scope preserves deliverables 1–3 (spec, methodology paper, corpus expansion) and the open release, deferring only the criterion study and pilot — so it still ships a citable, open result.
 
 -----
 
