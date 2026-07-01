@@ -172,9 +172,9 @@ The gap between those named defenses and the current state of AI deployment infr
 - Systematic post-calibration drop (RLHF inflation gradient): Truth, Service, Harm, Autonomy, and Value dimensions all decline P1→P3, indicating systematic self-report inflation prior to perturbation
 - These patterns are consistent with — though not yet proof of — the behavioral signature of systems that have been trained to present well on self-report measures while behavioral dispositions shift under operationally realistic pressure
 
-**Reality Primacy chain protocol:** Jointly developed with a governance systems collaborator [see attribution note below]. The protocol operationalizes governed execution chain auditability: every claim at every system layer must produce an observable artifact before advancing to accepted state. Three gate outcomes: CONFIRMED (evidence sufficient), DISCONFIRMED (evidence contradicts claim), PENDING VALIDATION (insufficient evidence — claim preserved, transition blocked, not rejected). The protocol has been formalized and is under active development for operational deployment.
+**Reality Primacy chain protocol:** Jointly developed with DeMarius J. Lawson (Governing Engines LLC / Mode AI). The protocol operationalizes governed execution chain auditability: every claim at every system layer must produce an observable artifact before advancing to accepted state. Three gate outcomes: CONFIRMED (evidence sufficient), DISCONFIRMED (evidence contradicts claim), PENDING VALIDATION (insufficient evidence — claim preserved, transition blocked, not rejected). The protocol has been formalized and is under active development for operational deployment.
 
-**Attribution note [PENDING P-ANON CHECK]:** The Reality Primacy chain protocol was developed in collaboration with DeMarius J. Lawson (Governing Engines LLC / Mode AI), with 50/50 attribution on joint findings. This attribution is included pending confirmation that DeMarius has self-attributed publicly. If P-ANON check fails, replace with “a governance systems collaborator” until public self-attribution is confirmed.
+**Attribution note:** The Reality Primacy chain protocol was developed in collaboration with DeMarius J. Lawson (Governing Engines LLC / Mode AI), with 50/50 attribution on joint findings. (P-ANON cleared 2026-07-01 — public self-attribution confirmed.)
 
 -----
 
@@ -240,7 +240,7 @@ The mitigation is architectural and governance-based, not technical alone:
 
 **PI: Carly R. Anderson** — founder, principal investigator, and instrument developer. ORCID: 0009-0003-7540-4245. The ACAT instrument, corpus, and governance architecture are the direct output of active OR&D work. No academic affiliation; independent research organization.
 
-**Collaborating organization [PENDING P-ANON CHECK]:** Governing Engines LLC / Mode AI — governance systems architecture and Reality Primacy chain protocol co-development. 50/50 attribution on joint findings.
+**Collaborating organization:** Governing Engines LLC / Mode AI (DeMarius J. Lawson) — governance systems architecture and Reality Primacy chain protocol co-development. 50/50 attribution on joint findings. (P-ANON cleared 2026-07-01.)
 
 **Existing infrastructure:** Live behavioral corpus (Supabase), FastAPI assessment backend (Railway), assessment interface (Cloudflare), GitHub operations repository with full governance documentation. The infrastructure to expand the corpus and deploy the RP chain protocol is operational.
 
