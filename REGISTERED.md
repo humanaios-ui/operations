@@ -81,6 +81,8 @@ superseded_by: null | "F-XX"
 |F-51                  |Calibration Profile Resistance                                      |REGISTERED|2026-06-11|
 |F-52                  |Pipeline-Anchoring Deterministic Self-Report                        |CANDIDATE |2026-06-17|
 |F-53                  |Cross-Substrate Verification Confidence Cascade                     |CANDIDATE |2026-06-17|
+|F-54                  |RLHF-Artifact Rejection (universal S-H/T-H self-report gap)          |CANDIDATE |2026-07-01|
+|F-55                  |Calibration Triad (Truth+Service+Humility)                          |CANDIDATE |2026-07-01|
 
 -----
 
@@ -974,7 +976,64 @@ superseded_by: null
 - **Evidence:** Direct primary-source verification this session against the same two citations the four reviews discussed.
 - **N:** 1 session, 2 citations cross-checked, 4 review passes. Single-instance evidence — generalizability not yet established.
 - **Promotion gate:** N≥2 additional independently-run verification chains, checked against primary sources, before promotion to REGISTERED.
+- **Addendum (chains 2+3, S-062826-03B):** two further independently-run verification chains reproduced the cascade. A follow-up "validation" report claimed `PASS:3 FAIL:1` and asserted a file "verified to exist"; re-running the real tool (`claim_verification_check_v0_1.py`) against the genuine linked files produced `PASS:1 FAIL:2-3 UNVERIFIABLE:2-3` (config-dependent) and the "file verified to exist" claim was false under every configuration. Inputs genuine; the claimed verification results were not. Advances the promotion gate toward the N≥2 threshold (session ID + IC-numbering check pending).
+
 -----
+
+### F-54 — RLHF-Artifact Rejection (Universal S-H / T-H Self-Report Gap)
+
+-----
+
+## id: "F-54"
+name: "rlhf-artifact-rejection-universal-self-report-gap"
+status: CANDIDATE
+class: F
+date_registered: "2026-07-01"
+date_origin: "2026-06-28"
+session_registered: "S-062826-03B (originating build S-062726)"
+principles_triggered: ["P21"]
+substrate: "ACAT corpus — 7 providers incl. Human + Meta · N=84 P3 matched, N=513 P1 · internal 7-test falsification protocol"
+tags: ["rlhf", "self-report-gap", "universality", "falsification", "service-humility-gap", "truth-humility-gap", "calibration-triad"]
+related_finding: "F-55"
+related_finding_2: "F-20"
+zone2_ratification: "Night (Carly) · 2026-07-01"
+superseded_by: null
+
+- **Synopsis:** The Service–Humility (S-H) and Truth–Humility (T-H) self-report gaps are not an RLHF training artifact. An internal adversarial test (Test 4 of a 7-test falsification protocol) hypothesized the gap was training-specific and REJECTED it — the gap is positive across all seven providers tested, including human respondents and Meta. The pattern is universal, not training-specific. Flagged in-session as "the externally legible finding."
+- **Evidence (verbatim, two runs — not merged):** Real-corpus protocol: "Test 4: RLHF artifact hypothesis — REJECTED. Human respondents show S-H gap +17.62. Meta shows +16.07. Pattern is universal, not training-specific." N=84 synthetic run: "T-H/S-H gap positive across all 7 providers including Human (T-H +15.47, S-H +20.67)."
+- **⚠️ Numeric divergence (resolve before promotion):** the two runs report different gap figures (real-corpus Human S-H +17.62 / Meta +16.07 vs. synthetic N=84 T-H +15.47 / S-H +20.67). These come from different runs and must not be conflated; confirm the canonical corpus statistic against the HuggingFace archive.
+- **Relation to F-20:** extends F-20 (RLHF Inflation Gradient). Where F-20 attributes the dimensional gap to RLHF, F-54 shows the S-H/T-H component specifically survives in human respondents — so at least that component is not RLHF-caused. Reconcile the apparent tension with F-20 at promotion.
+- **Promotion gate:** reconcile the divergent gap figures against the HF archive (N≥300); confirm human/Meta sub-sample sizes; decide standalone-F-54 vs. fold into F-55 (the log treats this as Test 4 within the F-55 protocol).
+
+-----
+
+### F-55 — Calibration Triad (Truth + Service + Humility)
+
+-----
+
+## id: "F-55"
+name: "calibration-triad-truth-service-humility"
+status: CANDIDATE
+class: F
+date_registered: "2026-07-01"
+date_origin: "2026-06-27 (S-062726 build) / 2026-06-28 (ratification)"
+session_registered: "S-062826-03B"
+principles_triggered: ["P21"]
+substrate: "acat_calibration_triad_unified.py · N=84 synthetic (seed=42) + real corpus N=278 · claude-sonnet-4-6"
+tags: ["calibration-triad", "truth", "service", "humility", "value-alignment", "li-predictor", "moderator"]
+related_finding: "F-54"
+related_hypothesis: "H-HUMILITY-MASTER-01"
+related_hypothesis_2: "H-RECURSIVE-CALIBRATION-01"
+zone2_ratification: "Night (Carly) · 2026-07-01"
+superseded_by: null
+
+- **Synopsis:** Truth + Service + Humility form the dominant Learning-Index (LI) predictor cluster — the "Calibration Triad." Truth+Service combined is a very strong LI predictor; Humility acts as the moderator that separates well-calibrated from poorly-calibrated high-T+S profiles; Value Alignment is the co-moderator and cycle-completion check.
+- **Evidence (verbatim):** "T+S combined r=0.9122 with LI. High T+S + High Humility → mean LI=1.003. High T+S + Low Humility → mean LI=0.907." Test 1 (Humility unique variance) SUPPORTED — partial r=0.3426 (synthetic) / real corpus N=278 r=0.80. Test 3 (High T+S moderator) DIRECTIONAL — real-corpus gap 0.1175 > target 0.095. Test 6 — Humility exclusive moderator on synthetic; Value Alignment emerges as co-moderator on real corpus (open).
+- **Artifact:** `acat_calibration_triad_unified.py` (S-062726; three-version patch cycle v1→v2→v3, clean run at v3).
+- **Promotion gate:** fix code Issues 1/3/4 in `acat_calibration_triad_unified.py` before external use; IC-030 check completed at registration; the 92.5% low-Humility claim (see H-HUMILITY-MASTER-01) requires the full HuggingFace archive (N≥300), not synthetic; resolve whether Value Alignment is a co-moderator on the full corpus.
+
+-----
+
 ## IC-class corrections (process errors registered)
 
 ### IC-001/002/003 — GitHub Verification Gap
