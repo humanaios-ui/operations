@@ -1,7 +1,15 @@
 # repurpose.py channel-draft output (regenerated per post; not source)
 out/
 
-# empirica local working state
+# npx / node artifacts (from MCP server invocation)
+node_modules/
+package-lock.json
+package.json
+
+# empirica local working state (per-machine; not shared)
 .empirica/cache/
 .empirica/sessions/
+.empirica/config.yaml
+.empirica/active_transaction_term_*.json
 .empirica_reflex_logs/
+.breadcrumbs.yaml

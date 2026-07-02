@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=ksinisdzgtnqzsymhfya"
+    },
+    "rentahuman": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "rentahuman-mcp"
+      ],
+      "env": {}
+    }
+  }
+}
