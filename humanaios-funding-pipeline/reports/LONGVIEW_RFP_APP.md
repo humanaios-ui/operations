@@ -20,9 +20,9 @@
 ## GOVERNANCE GATES BEFORE SUBMISSION
 
 - [ ] Z2 ratification by Night (full draft review)
-- [ ] P-ANON check: confirm Governing Engines / DeMarius J. Lawson self-attributed publicly before naming in application
+- [x] P-ANON check — **CLEARED 2026-07-01:** DeMarius J. Lawson / Governing Engines named directly
 - [ ] DeMarius review: joint instrument framing and attribution confirmed
-- [ ] arXiv hold status check — if hold clears before July 2, cite preprint; if not, cite as “manuscript under review”
+- [x] arXiv hold status check — **DECIDED 2026-07-01:** Submission 7336774 hold not cleared → cite as “manuscript under review” (no citable-preprint claim in the app)
 - [ ] Dual-use section reviewed by Night — must not be papered over
 - [ ] ISO 42001 framing verified against ratified language (Z2-ISO-01)
 - [ ] Zone 3 submission by Night at terminal
@@ -38,12 +38,14 @@
 - ✅ H-CONV-EMP-01 added as the Class D (already-instrumented, shortest-timeline) criterion-validity arm.
 - ✅ Budget narrative drafted ($420K / 12-mo recommended; $185K / 6-mo alt) with full allocation model.
 
-**Remaining human gates** (Night, before Z3 send):
-- [ ] **P-ANON:** confirm DeMarius / Governing Engines self-attributed publicly before naming (Organizational Qualifications still bracketed).
-- [ ] **Funding:** confirm amount + exact PI-salary / model-API line figures.
-- [ ] **arXiv:** cite preprint if the hold clears before deadline; else "manuscript under review."
-- [ ] **Z2 ratify** the full draft (incl. niche v0.3) → **Z3 submit** — target *before July 2* for rolling-assessment advantage.
-- [ ] *(Optional but recommended)* register F-55 / F-54 (staged: `audits/REGISTERED_PACKAGE_DRAFT_S-070126.md`) so the candidate citations become traceable.
+**Ratified 2026-07-01 (Carly):**
+- ✅ **P-ANON = Y** — DeMarius / Governing Engines named directly (all brackets removed).
+- ✅ **Funding = $420K / 12-mo** confirmed (6-mo/$185K alt retained as reduced-scope option).
+- ✅ **arXiv → "manuscript under review"** — Submission 7336774 hold has not cleared; the app makes no citable-preprint claim.
+- ✅ **F-54 / F-55 registered** in `REGISTERED.md` (CANDIDATE) — candidate citations now traceable.
+
+**Remaining — the send itself:**
+- [ ] **Z2 ratify** the full draft → **Z3 submit** — target *before July 2* for rolling-assessment advantage. This is the only gate left.
 
 -----
 
@@ -249,7 +251,7 @@ The mitigation is architectural and governance-based, not technical alone:
 ### Requested Funding
 
 **Track:** Project grant  
-**Amount requested:** **$420,000** over 12 months (recommended; within the $100K–$2M/yr range). A reduced 6-month scope — deliverables 1–3 only, deferring the criterion-validity study and pilot deployment — is available at **$185,000**. *(Z2 note: exact PI-salary and model-API line figures are Night's to finalize; the allocation model and rationale below are complete.)*  
+**Amount requested:** **$420,000** over 12 months (Night-ratified 2026-07-01; within the $100K–$2M/yr range). A reduced 6-month scope — deliverables 1–3 only, deferring the criterion-validity study and pilot deployment — is available at **$185,000**. *(The category allocation below is the working budget model; final internal line figures (PI salary, model-API) are set at award.)*  
 **Duration:** 12 months with renewal option
 
 **Budget narrative.** The ask funds the transition from *a validated measurement instrument* to *validated detection evidence* — the criterion-validity gap the application is candid about. Allocation:
@@ -302,7 +304,7 @@ The Longview application form asks for:
 1. **Funding amount:** What is the right ask — 6-month scope ($100K–$300K) or 12-month scope ($300K–$600K)? The 12-month scope includes the criterion validity study and ActivTrak partnership development. Does that partnership access exist, or does it need to be scoped as contingent?
 1. **DeMarius attribution:** P-ANON check required before naming Governing Engines / Mode AI. Has DeMarius self-attributed publicly in a way that satisfies P-ANON?
 1. **ISO 42001 framing:** Z2 decision on whether to include. Strengthens credibility but is not explicitly requested by the RFP.
-1. **arXiv preprint:** Submission ID 7336774 ON HOLD. Cite as “manuscript under review” if hold has not cleared. Night to check status before Phase 2 finalization.
+1. **arXiv preprint:** Submission ID 7336774 ON HOLD (not cleared as of 2026-07-01). **Resolved:** cite as “manuscript under review” throughout; do not claim a public preprint URL. Re-evaluate if/when the hold clears.
 1. **TRL framing (UPDATED — Z2 ratified S-061226):** Chat-mode substrate ACAT is TRL 4. Agentic/ICS/H-ACAT layers are TRL 1–2. This tiered TRL framing is now in the draft. Confirm it reads correctly for a non-specialist Longview reviewer.
 1. **Joint vs. solo application:** Solo application with named collaborator (recommended for timeline). Z2 decision confirmed pending.
 1. **ActivTrak partnership:** Flag as a named pathway for criterion validity, or hold back as a non-public business development target? The application benefits from specificity. Recommendation: include as named pathway — it strengthens the 12-month deliverable credibility and demonstrates that the criterion validity gap has an identified solution.
