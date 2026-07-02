@@ -1,0 +1,733 @@
+# HumanAIOS — Controlled-Document Registry (Single Source of Truth)
+# Companion to REGISTERED.md (findings). This registers governance/process/
+# operational DOCUMENTS across the 5-repo ecosystem. See DOCUMENT_CONTROL_PLAN.md.
+#
+# Status: review = seeded from audit, pending owner verification;
+#         approved = owner-verified canonical; superseded/retired = obsolete (kept).
+# CI rule: exactly one `canonical: true` per doc_id across all repos.
+---
+version: 1
+generated: "2026-07-02"
+seed_source: "humanaios/_audit_S070126/RECONCILIATION_S070126.csv (commit dafde6c, 71 diverged pairs)"
+id_scheme: "HAIOS-<AREA>-<nnn> — provisional HAIOS-DOC-<nnn> until area assigned at verification"
+documents:
+  - doc_id: HAIOS-DOC-001
+    title: "dependabot.yml"
+    canonical_repo: "empirica-foundation"
+    canonical_path: ".github/dependabot.yml"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 1081, repo_bytes: 1252, inbox_only_lines: "30", repo_only_lines: "42", repo_git_date: "2026-05-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-002
+    title: "schema.sql"
+    canonical_repo: "humanaios"
+    canonical_path: "schema.sql"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 4891, repo_bytes: 12634, inbox_only_lines: "91", repo_only_lines: "340", repo_git_date: "2026-02-08"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-003
+    title: "copilot-instructions.md"
+    canonical_repo: "humanaios-internal"
+    canonical_path: ".github/copilot-instructions.md"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 5492, repo_bytes: 2841, inbox_only_lines: "74", repo_only_lines: "28", repo_git_date: "2026-06-01"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-004
+    title: "OPERATOR_RUNBOOK.md"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "OPERATOR_RUNBOOK.md"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 25462, repo_bytes: 26291, inbox_only_lines: "2", repo_only_lines: "8", repo_git_date: "2026-05-04"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-005
+    title: "WAMPUM-GADUGI-SIGNAL_S-032126-F.html"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "WAMPUM-GADUGI-SIGNAL_S-032126-F.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 73136, repo_bytes: 65516, inbox_only_lines: "229", repo_only_lines: "113", repo_git_date: "2026-03-21"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-006
+    title: "ACADEMIC_HOSTS_OUTREACH_S-051426-02.html"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "collaborators/ACADEMIC_HOSTS_OUTREACH_S-051426-02.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 44818, repo_bytes: 45321, inbox_only_lines: "1", repo_only_lines: "16", repo_git_date: "2026-06-10"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-007
+    title: "Berlin_Advisory.html"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "collaborators/Berlin_Advisory.html"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 47513, repo_bytes: 16603, inbox_only_lines: "733", repo_only_lines: "254", repo_git_date: "2026-06-24"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-008
+    title: "COLLABORATOR_REPORT_MASTER_TEMPLATE_S-051426-02.html"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "collaborators/COLLABORATOR_REPORT_MASTER_TEMPLATE_S-051426-02.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 39623, repo_bytes: 40126, inbox_only_lines: "1", repo_only_lines: "16", repo_git_date: "2026-06-10"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-009
+    title: "EMPIRICA_JOINT_REPORT_S-051426-02.html"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "collaborators/EMPIRICA_JOINT_REPORT_S-051426-02.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 39925, repo_bytes: 36861, inbox_only_lines: "647", repo_only_lines: "659", repo_git_date: "2026-06-10"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-010
+    title: "LEANDRO_DORMANT_RECORD_S-051426-02.html"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "collaborators/LEANDRO_DORMANT_RECORD_S-051426-02.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 44377, repo_bytes: 44880, inbox_only_lines: "1", repo_only_lines: "16", repo_git_date: "2026-06-10"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-011
+    title: "MODEAI_JOINT_REPORT_S-051626-02.html"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "collaborators/MODEAI_JOINT_REPORT_S-051626-02.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 62726, repo_bytes: 63229, inbox_only_lines: "1", repo_only_lines: "16", repo_git_date: "2026-06-10"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-012
+    title: "RAH_OPERATIONAL_RECORD_S-051426-02.html"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "collaborators/RAH_OPERATIONAL_RECORD_S-051426-02.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 45377, repo_bytes: 45880, inbox_only_lines: "1", repo_only_lines: "16", repo_git_date: "2026-06-10"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-013
+    title: "SYDAN_JOINT_REPORT_S-051426-02.html"
+    canonical_repo: "humanaios-internal"
+    canonical_path: "collaborators/SYDAN_JOINT_REPORT_S-051426-02.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 46580, repo_bytes: 47083, inbox_only_lines: "1", repo_only_lines: "16", repo_git_date: "2026-06-10"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-014
+    title: "acat-bot-test.yml"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: ".github/workflows/acat-bot-test.yml"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 1444, repo_bytes: 3020, inbox_only_lines: "24", repo_only_lines: "57", repo_git_date: "2026-03-14"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-015
+    title: "ACAT_PROMPT_V5_0.txt"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "ACAT_PROMPT_V5_0.txt"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 8495, repo_bytes: 8524, inbox_only_lines: "6", repo_only_lines: "8", repo_git_date: "2026-05-11"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-016
+    title: "ACAT_RESEARCH_PAPER_S-040926.docx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "ACAT_RESEARCH_PAPER_S-040926.docx"
+    canonical: true
+    status: review
+    kind: binary
+    drift: {inbox_bytes: 23557, repo_bytes: 21243, inbox_only_lines: "bin", repo_only_lines: "bin", repo_git_date: "2026-04-11"}
+    recommendation: "binary — manual compare"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-017
+    title: "METHODS.md"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "METHODS.md"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 8054, repo_bytes: 4864, inbox_only_lines: "61", repo_only_lines: "0", repo_git_date: "2026-02-17"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-018
+    title: "VALIDATION_PLAN.md"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "VALIDATION_PLAN.md"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 11676, repo_bytes: 9118, inbox_only_lines: "49", repo_only_lines: "1", repo_git_date: "2026-02-17"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-019
+    title: "ai-instructions.txt"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "ai-instructions.txt"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 5508, repo_bytes: 5462, inbox_only_lines: "8", repo_only_lines: "7", repo_git_date: "2026-04-03"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-020
+    title: "comparison-chamber.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "comparison-chamber.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 25402, repo_bytes: 25755, inbox_only_lines: "5", repo_only_lines: "9", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-021
+    title: "constellation-nav.js"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "constellation-nav.js"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 42421, repo_bytes: 42422, inbox_only_lines: "1", repo_only_lines: "1", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-022
+    title: "humanaios-single-page.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "humanaios-single-page.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 39982, repo_bytes: 39969, inbox_only_lines: "2", repo_only_lines: "2", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-023
+    title: "lumina-tide-pool.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "lumina-tide-pool.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 55687, repo_bytes: 56653, inbox_only_lines: "14", repo_only_lines: "23", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-024
+    title: "openai-activity.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "openai-activity.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 17183, repo_bytes: 17837, inbox_only_lines: "7", repo_only_lines: "22", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-025
+    title: "_redirects"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "public/_redirects"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 42, repo_bytes: 312, inbox_only_lines: "2", repo_only_lines: "9", repo_git_date: "2026-06-01"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-026
+    title: "lantern-room.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "public/lantern-room.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 44186, repo_bytes: 44472, inbox_only_lines: "6", repo_only_lines: "15", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-027
+    title: "lumina_tide_pool_v2.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "public/lumina_tide_pool_v2.html"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 55368, repo_bytes: 19881, inbox_only_lines: "1026", repo_only_lines: "409", repo_git_date: "2026-04-13"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-028
+    title: "methodology.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "public/methodology.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 39544, repo_bytes: 44295, inbox_only_lines: "1073", repo_only_lines: "717", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-029
+    title: "the-commons.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "public/the-commons.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 11327, repo_bytes: 11364, inbox_only_lines: "3", repo_only_lines: "4", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-030
+    title: "the-improvisation.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "public/the-improvisation.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 43590, repo_bytes: 44445, inbox_only_lines: "1", repo_only_lines: "12", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-031
+    title: "the-luminarium.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "public/the-luminarium.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 12923, repo_bytes: 12913, inbox_only_lines: "1", repo_only_lines: "1", repo_git_date: "2026-04-13"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-032
+    title: "witness-nav.js"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "public/witness-nav.js"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 21900, repo_bytes: 21909, inbox_only_lines: "2", repo_only_lines: "2", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-033
+    title: "sitemap.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "sitemap.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 13992, repo_bytes: 14890, inbox_only_lines: "4", repo_only_lines: "12", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-034
+    title: "App.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/App.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 9434, repo_bytes: 9567, inbox_only_lines: "2", repo_only_lines: "3", repo_git_date: "2026-06-01"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-035
+    title: "App.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/App.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 3424, repo_bytes: 9567, inbox_only_lines: "109", repo_only_lines: "238", repo_git_date: "2026-06-01"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-036
+    title: "App.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/App.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 4061, repo_bytes: 9567, inbox_only_lines: "75", repo_only_lines: "222", repo_git_date: "2026-06-01"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-037
+    title: "AcatTool.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/AcatTool.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 51245, repo_bytes: 51393, inbox_only_lines: "1", repo_only_lines: "2", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-038
+    title: "AcatTool.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/AcatTool.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 25598, repo_bytes: 51393, inbox_only_lines: "382", repo_only_lines: "604", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-039
+    title: "DimensionsGrid.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/DimensionsGrid.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 5447, repo_bytes: 5447, inbox_only_lines: "2", repo_only_lines: "2", repo_git_date: "2026-04-11"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-040
+    title: "Footer.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/Footer.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 1121, repo_bytes: 1393, inbox_only_lines: "1", repo_only_lines: "5", repo_git_date: "2026-04-11"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-041
+    title: "Hero.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/Hero.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 4092, repo_bytes: 4236, inbox_only_lines: "5", repo_only_lines: "8", repo_git_date: "2026-04-11"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-042
+    title: "LiveDataSection.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/LiveDataSection.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 3562, repo_bytes: 3746, inbox_only_lines: "16", repo_only_lines: "17", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-043
+    title: "SigilsSection.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/SigilsSection.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 5859, repo_bytes: 10941, inbox_only_lines: "95", repo_only_lines: "253", repo_git_date: "2026-04-11"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-044
+    title: "TideCanvas.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/TideCanvas.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 3740, repo_bytes: 3706, inbox_only_lines: "3", repo_only_lines: "3", repo_git_date: "2026-04-11"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-045
+    title: "TideRail.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/TideRail.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 1079, repo_bytes: 1154, inbox_only_lines: "3", repo_only_lines: "5", repo_git_date: "2026-04-11"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-046
+    title: "WitnessNav.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/WitnessNav.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 9153, repo_bytes: 9087, inbox_only_lines: "3", repo_only_lines: "3", repo_git_date: "2026-06-01"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-047
+    title: "WitnessNav.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/components/WitnessNav.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 8223, repo_bytes: 9087, inbox_only_lines: "141", repo_only_lines: "84", repo_git_date: "2026-06-01"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-048
+    title: "index.css"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/index.css"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 2179, repo_bytes: 2218, inbox_only_lines: "72", repo_only_lines: "60", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-049
+    title: "index.css"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/index.css"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 1239, repo_bytes: 2218, inbox_only_lines: "25", repo_only_lines: "54", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-050
+    title: "index.css"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/index.css"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 2156, repo_bytes: 2218, inbox_only_lines: "14", repo_only_lines: "17", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-051
+    title: "index.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/index.tsx"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 363, repo_bytes: 253, inbox_only_lines: "11", repo_only_lines: "9", repo_git_date: "2026-04-12"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-052
+    title: "index.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/index.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 165, repo_bytes: 253, inbox_only_lines: "3", repo_only_lines: "8", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-053
+    title: "index.tsx"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "src/index.tsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 164, repo_bytes: 253, inbox_only_lines: "3", repo_only_lines: "8", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-054
+    title: "structured-data.jsonld"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "structured-data.jsonld"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 5203, repo_bytes: 3041, inbox_only_lines: "102", repo_only_lines: "35", repo_git_date: "2026-04-04"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-055
+    title: "submit.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "submit.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 20375, repo_bytes: 20201, inbox_only_lines: "239", repo_only_lines: "252", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-056
+    title: "tailwind.config.js"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "tailwind.config.js"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 1052, repo_bytes: 1268, inbox_only_lines: "29", repo_only_lines: "31", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-057
+    title: "tailwind.config.js"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "tailwind.config.js"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 1239, repo_bytes: 1268, inbox_only_lines: "0", repo_only_lines: "1", repo_git_date: "2026-04-12"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-058
+    title: "the-source.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "the-source.html"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 83181, repo_bytes: 17210, inbox_only_lines: "416", repo_only_lines: "338", repo_git_date: "2026-06-25"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-059
+    title: "vite.config.ts"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "vite.config.ts"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 227, repo_bytes: 163, inbox_only_lines: "10", repo_only_lines: "4", repo_git_date: "2026-04-11"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-060
+    title: "witness-renderer.html"
+    canonical_repo: "lasting-light-ai"
+    canonical_path: "witness-renderer.html"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 17216, repo_bytes: 17400, inbox_only_lines: "2", repo_only_lines: "4", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-061
+    title: "CURRENT.md"
+    canonical_repo: "operations"
+    canonical_path: "CURRENT.md"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 11156, repo_bytes: 20952, inbox_only_lines: "73", repo_only_lines: "137", repo_git_date: "2026-06-24"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-062
+    title: "GOVERNANCE.md"
+    canonical_repo: "operations"
+    canonical_path: "GOVERNANCE.md"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 15988, repo_bytes: 28684, inbox_only_lines: "99", repo_only_lines: "159", repo_git_date: "2026-06-24"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-063
+    title: "REGISTERED.md"
+    canonical_repo: "operations"
+    canonical_path: "REGISTERED.md"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 17698, repo_bytes: 185383, inbox_only_lines: "91", repo_only_lines: "2348", repo_git_date: "2026-06-24"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-064
+    title: "SEED.md"
+    canonical_repo: "operations"
+    canonical_path: "SEED.md"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 22922, repo_bytes: 29655, inbox_only_lines: "148", repo_only_lines: "142", repo_git_date: "2026-06-07"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-065
+    title: "SESSION_RITUALS.md"
+    canonical_repo: "operations"
+    canonical_path: "SESSION_RITUALS.md"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 11571, repo_bytes: 26797, inbox_only_lines: "11", repo_only_lines: "163", repo_git_date: "2026-06-08"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-066
+    title: "SUBSTRATE_CAPABILITY_REGISTRY.md"
+    canonical_repo: "operations"
+    canonical_path: "SUBSTRATE_CAPABILITY_REGISTRY.md"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 29926, repo_bytes: 30468, inbox_only_lines: "0", repo_only_lines: "2", repo_git_date: "2026-05-11"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-067
+    title: "main.py"
+    canonical_repo: "operations"
+    canonical_path: "tools/Metaculus/main.py"
+    canonical: true
+    status: review
+    kind: text
+    needs_reconcile: true   # inbox copy notably larger/additive — verify before approve
+    drift: {inbox_bytes: 60097, repo_bytes: 49869, inbox_only_lines: "1009", repo_only_lines: "834", repo_git_date: "2026-06-24"}
+    recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-068
+    title: "haios_agent_orchestrator_v1_0_patched.py"
+    canonical_repo: "operations"
+    canonical_path: "tools/haios_agent_orchestrator_v1_0_patched.py"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 21738, repo_bytes: 25683, inbox_only_lines: "5", repo_only_lines: "93", repo_git_date: "2026-06-25"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-069
+    title: "haios_github_inspector.jsx"
+    canonical_repo: "operations"
+    canonical_path: "tools/haios_github_inspector.jsx"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 27578, repo_bytes: 25394, inbox_only_lines: "592", repo_only_lines: "601", repo_git_date: "2026-06-05"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-070
+    title: "registry_loader.py"
+    canonical_repo: "operations"
+    canonical_path: "tools/registry_loader.py"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 18190, repo_bytes: 16971, inbox_only_lines: "316", repo_only_lines: "312", repo_git_date: "2026-06-20"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-DOC-071
+    title: "triage_log_service.py"
+    canonical_repo: "operations"
+    canonical_path: "tools/triage_log_service.py"
+    canonical: true
+    status: review
+    kind: text
+    drift: {inbox_bytes: 7122, repo_bytes: 6767, inbox_only_lines: "140", repo_only_lines: "138", repo_git_date: "2026-06-20"}
+    recommendation: "repo canonical (verify) — minor/mixed drift"
+    review_due: "2026-08-01"
