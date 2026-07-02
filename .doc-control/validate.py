@@ -79,8 +79,9 @@ for f in (reg.get("known_accuracy_issues") or []):
     if f.get("blocks_approval"):
         _flagged[_norm(f.get("doc", ""))] = f.get("issue", "accuracy issue")
 for d in docs:
-    if d.get("status") == "approved" and _norm(d.get("title", "")) in _flagged:
-        err(f"{d.get('doc_id')}: cannot be approved — known accuracy issue: {_flagged[_norm(d['title'])]}")
+    norm_title = _norm(d.get("title", ""))
+    if d.get("status") == "approved" and norm_title in _flagged:
+        err(f"{d.get('doc_id')}: cannot be approved — known accuracy issue: {_flagged.get(norm_title, 'accuracy issue')}")
 
 # --- 5: frontmatter of controlled docs matches the registry ------------------
 SKIP_DIRS = (os.sep + ".doc-control" + os.sep, os.sep + "_templates" + os.sep)
