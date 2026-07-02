@@ -93,6 +93,17 @@ Zenodo = DOI + repository. **OSF Preprints** = a preprint-server UI (looks more 
 
 ---
 
+## 8 · Publish runbook (≈15 min, do this)
+
+1. **Log in at [zenodo.org](https://zenodo.org)** — use **"Log in with ORCID"** so the deposit auto-links your ORCID `0009-0003-7540-4245`.
+2. **New upload** → drag in the paper PDF (`arxiv.pdf`).
+3. **Reserve DOI** (recommended) — click *Reserve DOI* so you get the DOI string *before* publishing; you can then print it in the paper and I can drop it into the P0-1 citation pre-publish.
+4. **Fill metadata** from the sections above: Upload type = *Publication → Preprint* (§1) · Title (§1) · Author + ORCID + affiliation (§1) · Description = the abstract in §2 (verbatim) · Keywords (§3) · **License = CC-BY-4.0** (§5) · Related identifiers (§4) · Language `eng` · Communities (§1).
+5. **Save draft → Preview → Publish.** (Published records are permanent; the metadata is editable but the files/version are versioned.)
+6. **Send me the DOI.** I'll drop it into: the P0-1 citation (`<ZENODO_DOI>`), your ORCID *Works*, humanaios.ai, and the endorsement email (Email B in the arXiv plan). That closes the citation loop.
+
+---
+
 ## Status
 1. ✅ **Paper** — received; abstract finalized above (verbatim).
 2. ✅ **License** — CC-BY-4.0 confirmed + locked (§5).
