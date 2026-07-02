@@ -216,8 +216,9 @@ class LiverQiRegulator(CrossCuttingRegulator):
 
 
 # ---------------------------------------------------------------------------
-# 5. Connectivity layer — Jing-Luo meridian network. Unchanged; it already
-#    only calls regulate() on named targets, never touched the shared scalar.
+# 5. Connectivity layer — Jing-Luo meridian network. In v1.2, propagation emits
+#    a CHANNEL Signal and calls receive_signal() on named targets; regulate() is
+#    reserved for the tick loop to avoid double/triple invocation.
 # ---------------------------------------------------------------------------
 
 @dataclass
