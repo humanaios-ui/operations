@@ -83,7 +83,7 @@ From the S070126 docs/ content-accuracy audit (separate content-curation workstr
 
 ## Excluded from doc-control (37)
 
-Source code, config, and binaries surfaced by the audit but governed by normal code review — **not** controlled documents.
+Source code, config, and binaries surfaced by the audit but governed by normal code review / manual binary handling — **not** controlled documents.
 
 | repo | excluded | scope |
 |---|---|---|
