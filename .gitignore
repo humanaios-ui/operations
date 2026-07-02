@@ -1,0 +1,7 @@
+# repurpose.py channel-draft output (regenerated per post; not source)
+out/
+
+# empirica local working state
+.empirica/cache/
+.empirica/sessions/
+.empirica_reflex_logs/
