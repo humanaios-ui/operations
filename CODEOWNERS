@@ -1,0 +1,17 @@
+# HumanAIOS document-control ownership.
+# Enforce via branch protection → "Require review from Code Owners".
+# NOTE: these @humanaios-ui/* groups are GitHub TEAMS that must be created for
+# enforcement; until then GitHub treats unknown owners as no-op (safe default).
+
+# The control system itself — owned by the control maintainer (mesh-support)
+/document-registry.yaml     @humanaios-ui/doc-control
+/CONTROLLED_DOCUMENTS.md    @humanaios-ui/doc-control
+/.doc-control/              @humanaios-ui/doc-control
+/.github/workflows/document-control.yml   @humanaios-ui/doc-control
+
+# Area owners (align with HAIOS-<AREA>-* doc_id prefixes)
+/GOVERNANCE.md              @humanaios-ui/governance
+/REGISTERED.md              @humanaios-ui/research
+
+# Default: any other controlled markdown routes to the control maintainer
+*.md                        @humanaios-ui/doc-control
