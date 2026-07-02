@@ -1,7 +1,7 @@
 # HumanAIOS — Controlled Documents Index
 
 > Rendered from `document-registry.yaml` (SSOT). Do not hand-edit — edit the registry.
-> 2026-07-02 · **34 controlled documents** · 37 excluded (source/config/binary, governed elsewhere) · seeded from S070126 audit.
+> 2026-07-02 · **34 controlled documents** · 37 excluded · 5 content-accuracy holds · seeded from S070126 audit.
 
 **Status:** `review` = seeded, pending owner verification · `approved` = owner-verified (human gate) · `superseded`/`retired` = obsolete (retained).
 
@@ -69,9 +69,21 @@
 |---|---|---|---|---|---|
 | HAIOS-GOV-001 | GOVERNANCE.md | operations | `GOVERNANCE.md` | review | — |
 
+## ⚠️ Content-accuracy holds (5) — block approval
+
+From the S070126 docs/ content-accuracy audit (separate content-curation workstream — referenced, not re-audited). A doc matching one of these **cannot reach `approved`** until fixed (enforced by `validate.py`).
+
+| document | issue | severity |
+|---|---|---|
+| AI_SPONSORSHIP_MODEL_ANALYSIS | corpus figures ~25x off (LI 0.84 vs canon 0.8632; 203+ vs 629/307) | high |
+| COMPARABLE_FRAMEWORKS | corpus figures ~25x off (same LI/record mismatch) | high |
+| RESEARCH_OVERVIEW | lists Hawkins — barred externally per SEED = disclosure-discipline violation | high |
+| current_md_pub_queue | PUB-01 says N=524 vs canonical 516 (ties to arXiv gate) | medium |
+| MARKETPLACE_ROADMAP | claims TRL 4 vs canonical TRL 2 (overclaim) | high |
+
 ## Excluded from doc-control (37)
 
-Source code, config, and binaries surfaced by the audit but governed by normal code review / manual handling — **not** controlled documents.
+Source code, config, and binaries surfaced by the audit but governed by normal code review / manual binary handling — **not** controlled documents.
 
 | repo | excluded | scope |
 |---|---|---|
@@ -80,4 +92,3 @@ Source code, config, and binaries surfaced by the audit but governed by normal c
 | humanaios-internal | 1 | code |
 | lasting-light-ai | 29 | binary, code |
 | operations | 5 | code |
-

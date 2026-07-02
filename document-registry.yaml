@@ -364,7 +364,38 @@ documents:
     recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
     review_due: "2026-08-01"
 
-# Excluded from doc-control — governed by normal code review or manual binary handling.
+# Known content-accuracy issues from the S070126 docs/ audit — block approval for matching titles.
+# Known content-accuracy issues from the S070126 docs/ audit (69 files; separate
+# content-curation workstream — REFERENCED here, not re-audited). A doc whose title
+# matches one of these MUST NOT reach status=approved until the issue is resolved.
+# CI (validate.py) enforces this.
+known_accuracy_issues:
+  - doc: "AI_SPONSORSHIP_MODEL_ANALYSIS"
+    issue: "corpus figures ~25x off (LI 0.84 vs canon 0.8632; 203+ vs 629/307)"
+    severity: high
+    blocks_approval: true
+    source: "S070126 docs/ audit finding (humanaios project); confirm exact repo/path at owner verification"
+  - doc: "COMPARABLE_FRAMEWORKS"
+    issue: "corpus figures ~25x off (same LI/record mismatch)"
+    severity: high
+    blocks_approval: true
+    source: "S070126 docs/ audit finding (humanaios project); confirm exact repo/path at owner verification"
+  - doc: "RESEARCH_OVERVIEW"
+    issue: "lists Hawkins — barred externally per SEED = disclosure-discipline violation"
+    severity: high
+    blocks_approval: true
+    source: "S070126 docs/ audit finding (humanaios project); confirm exact repo/path at owner verification"
+  - doc: "current_md_pub_queue"
+    issue: "PUB-01 says N=524 vs canonical 516 (ties to arXiv gate)"
+    severity: medium
+    blocks_approval: true
+    source: "S070126 docs/ audit finding (humanaios project); confirm exact repo/path at owner verification"
+  - doc: "MARKETPLACE_ROADMAP"
+    issue: "claims TRL 4 vs canonical TRL 2 (overclaim)"
+    severity: high
+    blocks_approval: true
+    source: "S070126 docs/ audit finding (humanaios project); confirm exact repo/path at owner verification"
+
 excluded:
   - path: ".github/dependabot.yml"
     repo: "empirica-foundation"
