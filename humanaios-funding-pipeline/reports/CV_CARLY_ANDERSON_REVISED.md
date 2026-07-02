@@ -41,10 +41,10 @@ I came to this from fifteen years running quality, validation, and regulatory-au
 ## KEY ACHIEVEMENTS
 
 ### AI Research & Open-Source Infrastructure
-- **Designed and operate ACAT (AI Calibration Assessment Tool)** — an open-source (Apache 2.0) behavioral-observability instrument measuring the calibration gap between an AI system's self-reported and demonstrated dispositions. Three-phase protocol: **blind self-report → structured perturbation → demonstrated behavior**; the **Learning Index (P3/P1)** quantifies the gap across **12 behavioral dimensions (Core-6 + Extended-6)**. Instrument, methodology, and dataset are fully public. *Methodology manuscript under review (2026).* 🔗[GitHub](https://github.com/humanaios-ui) ⚠️VERIFY-license-scope
-- **Built the ACAT public corpus + validation infrastructure** — 629 assessments across 18 providers; a 16-sheet canonical archive with a quality-flag system (DEFAULT_PROFILE, DUPLICATE, ALL_MAX, ALL_HIGH, MEAN_MIRRORING, CONTENT_HALLUCINATION), a drift-signal taxonomy, and an issue-closure (IC) registry documenting every systematic fix. Psychometrics: Cronbach's α = 0.901; PC1 = 68.9% of variance. Directly applicable to any evaluation program needing defensible data provenance. 🔗[Dataset ⚠️VERIFY-HF-URL]
+- **Designed and operate ACAT (AI Calibration Assessment Tool)** — an open-source (Apache 2.0) behavioral-observability instrument measuring the calibration gap between an AI system's self-reported and demonstrated dispositions. Three-phase protocol: **blind self-report → structured perturbation → demonstrated behavior**; the **Learning Index (P3/P1)** quantifies the gap across **12 behavioral dimensions (Core-6 + Extended-6)**. The instrument and methodology are developed in the open on GitHub; *methodology manuscript under review (2026).* 🔗[github.com/humanaios-ui](https://github.com/humanaios-ui) ⚠️CONFIRM-Apache-2.0-license-is-applied-in-a-public-repo
+- **Built the ACAT corpus + validation infrastructure** — 629 assessments across 18 providers; a 16-sheet canonical archive with a quality-flag system (DEFAULT_PROFILE, DUPLICATE, ALL_MAX, ALL_HIGH, MEAN_MIRRORING, CONTENT_HALLUCINATION), a drift-signal taxonomy, and an issue-closure (IC) registry documenting every systematic fix. Psychometrics: Cronbach's α = 0.901; PC1 = 68.9% of variance. Directly applicable to any evaluation program needing defensible data provenance. ⚠️DATASET-NOT-YET-PUBLIC: the HuggingFace org exists but is empty — either upload it before submitting or say "public release in preparation," not "fully public."
 - **Why this matters for power concentration:** the concentration of power that advanced AI enables runs through unaudited AI behavior. A model whose true dispositions are hidden from oversight is one no institution can check. ACAT makes that divergence measurable — the prerequisite for oversight that can actually resist capture.
-- **Deployed live forecasting infrastructure** — HumanAIOSBot, a custom Metaculus bot (Claude Sonnet reasoning), entered in the Spring 2026 AI Benchmarking (AIB) bot tournament and MiniBench series; documented end-to-end (secrets, rate-limit triage, ~$10–25/mo cost model). 🔗[Metaculus ⚠️VERIFY-profile-URL]
+- **Built and registered a forecasting bot** — HumanAIOSBot, a custom Metaculus bot (Claude Sonnet reasoning) entered in the Spring 2026 AI Benchmarking (AIB) tournament; documented end-to-end (secrets, rate-limit triage, ~$10–25/mo cost model). ⚠️NO-PUBLIC-PROFILE-FOUND: the tournament is real but no public HumanAIOSBot leaderboard entry surfaced — keep to "built and registered," don't imply a public ranking, or link a profile if one exists.
 
 ### Operational & Quality Leadership
 - **Directed quality, risk, and data-integrity programs in healthcare** — as Director of Quality Assurance (Pioneers Medical Center), led data analytics and quality reporting through a system-wide EMR conversion, ensuring data integrity during migration and validating post-conversion accuracy; managed compliance and reporting for multiple grant-funded programs.
@@ -97,7 +97,7 @@ I came to this from fifteen years running quality, validation, and regulatory-au
 - Anderson, C. R. (2026). *ACAT: Benchmarking Self-Description Calibration in Large Language Models.* **Methodology manuscript under review** (preprint; Apache 2.0). ⚠️VERIFY-do-not-list-as-live-arXiv-until-hold-clears
 - **ACAT Archived Dataset v1.0** — 629 assessments, 18 providers, 16-sheet canonical archive (Apache 2.0). 🔗[⚠️VERIFY-HF-URL]
 - **HumanAIOS Live Observatory** — continuous open assessment infrastructure; all data public. 🔗[humanaios.ai/observatory.html](https://humanaios.ai/observatory.html) ⚠️VERIFY-resolves
-- Anderson, C. R., et al. *Calcium-modulated structures of calmodulin and S100b: hydrogen/deuterium-exchange efficiency by MALDI-TOF mass spectrometry.* (Undergraduate research publication.) ⚠️VERIFY-exact-citation+DOI+authorship
+- Pingerelli PL, Ozols VV, Saleem H, **Anderson CR**, Burns RS. *The calcium-modulated structures of calmodulin and S100b proteins are useful to monitor hydrogen/deuterium exchange efficiency using MALDI-TOF mass spectrometry.* **Eur. J. Mass Spectrom.** 2009;15(6):739–746. 🔗[DOI:10.1255/ejms.1030](https://doi.org/10.1255/ejms.1030) · [PubMed](https://pubmed.ncbi.nlm.nih.gov/19940340/) — ✅VERIFIED (co-author, 4th of 5; peer-reviewed).
 - **Unified Protocol v0.1** — a standardized session-initialization protocol for measuring within-session behavioral drift; publication in preparation.
 
 ---
@@ -109,10 +109,27 @@ I came to this from fifteen years running quality, validation, and regulatory-au
 
 ---
 
-### ⚠️ VERIFY-before-submitting (flagged for Carly)
-1. **Trauma levels** — Level I on the 12–16-bed rural hospitals is almost certainly inaccurate (Level I = major tertiary centers). Confirm each (rural critical-access is typically III/IV) — a healthcare-literate reviewer will notice.
-2. **arXiv** — keep as "manuscript under review" until the hold clears; do **not** print a live arXiv citation/URL that won't resolve.
-3. **Undergrad publication** — confirm the exact citation, DOI, and that you're in the author list (the footprint check is fetching this).
-4. **Provider count** — "18 providers" must match whatever your public dataset/abstract states (a sub-analysis cites 7 — keep the corpus figure consistent).
-5. **Benewah city** — "St. Maries, ID" spelling.
-6. **Verifiable links (🔗)** — the footprint pass is confirming each URL resolves; any that don't will be removed so the "interactive" CV only links to real artifacts.
+### Footprint verification results (2026-07-02) — what a reviewer can confirm
+
+| Claim | Public status | Link |
+|---|---|---|
+| ORCID (name, NAU B.S. Chemistry 2000–2003, HumanAIOS founder) | ✅ VERIFIED | [orcid.org/0009-0003-7540-4245](https://orcid.org/0009-0003-7540-4245) |
+| 2009 EJMS undergrad paper (co-author, 4th of 5) | ✅ VERIFIED, real DOI | [10.1255/ejms.1030](https://doi.org/10.1255/ejms.1030) |
+| GitHub org (39 repos; pinned: lasting-light-ai, operations) | ✅ VERIFIED | [github.com/humanaios-ui](https://github.com/humanaios-ui) |
+| humanaios.ai (root) | ✅ VERIFIED (resolves) | [humanaios.ai](https://humanaios.ai) |
+| **arXiv preprint** | ❌ **NOT LIVE** — nothing on arXiv (submission on hold) | — |
+| **ACAT 629-assessment dataset** | ❌ **NOT PUBLIC** — HuggingFace org exists but empty ("None public yet") | — |
+| **Apache-2.0 license / public ACAT repo** | ⚠️ UNCONFIRMED from pinned repos | — |
+| **Metaculus HumanAIOSBot** | ⚠️ NOT FOUND (tournament real; no public profile) | — |
+| humanaios.ai/observatory.html | ⚠️ server 403'd the checker — confirm it's live for reviewers | — |
+| LinkedIn /in/humanaios | ⚠️ anti-bot block — confirm manually in your browser | — |
+
+### 🚩 The one thing to fix everywhere before submitting — not just the CV
+Several "public / open" claims recur across the **CV, the fellowship app, AND the $420K grant app** — but a reviewer who checks today **cannot verify** them: the **arXiv preprint isn't live**, and the **629-assessment dataset isn't actually posted** (the HuggingFace org is empty). Given your entire thesis is measuring the gap between what a system *claims* about itself and what it *actually does*, a reviewer finding that gap in your own materials is a real risk. Two clean options per item:
+- **Make it real now** (best): upload the dataset to HuggingFace, apply the Apache-2.0 LICENSE in a public repo, confirm the observatory page loads. These are hours of work and they make every application bulletproof.
+- **Or soften the wording** to match reality: "manuscript under review," "public dataset release in preparation," "instrument developed in the open on GitHub."
+
+### Still to confirm (healthcare details)
+1. **Trauma levels** — Level I on the 12–16-bed rural hospitals is almost certainly wrong (Level I = major tertiary centers); confirm each (likely III/IV).
+2. **Provider count** — "18 providers" must match your dataset/abstract (a sub-analysis cites 7).
+3. **Benewah city** — "St. Maries, ID" spelling. Also correct the **ORCID work self-label** from "arXiv preprint" to "manuscript under review."
