@@ -9,6 +9,9 @@ on:
       - 'tests/research/**'
       - '.github/workflows/research-validation.yml'
 
+permissions:
+  contents: read
+
 jobs:
   research-validation:
     runs-on: ubuntu-latest
