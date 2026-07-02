@@ -21,7 +21,7 @@ Fill Zenodo's *New upload* form with these values. *(Field labels are stable but
 | **Title** | `ACAT: Benchmarking Self-Description Calibration in Large Language Models` |
 | **Authors** | `Anderson, Carly R.` · ORCID `0009-0003-7540-4245` · Affiliation `HumanAIOS LLC (Lasting Light AI)` |
 | **Description** | Draft abstract in §2 (verify vs paper) |
-| **Version** | `v1.0` |
+| **Version** | `v1.0` (Zenodo record; paper is Preprint **v5.0**, March 2026) |
 | **Language** | `eng` |
 | **Keywords** | §3 |
 | **Access right** | Open Access |
@@ -32,26 +32,22 @@ Fill Zenodo's *New upload* form with these values. *(Field labels are stable but
 
 ---
 
-## 2 · Draft abstract (DRAFT — verify against the actual paper)
+## 2 · Abstract — FINAL (from the paper, v5.0)
 
-> ⚠️ I do **not** have the paper text, so this is synthesized from your HuggingFace dataset card + portfolio. Treat every bracketed value as "confirm against paper / reconcile per P0-1 Fix 4." Do not publish until you've checked it against what the paper actually claims.
+Use the paper's own abstract **verbatim** — this Zenodo record describes *this paper*, so the abstract should match the PDF exactly:
 
-Large language models routinely describe their own behavioral tendencies, yet whether those self-descriptions are *calibrated* to demonstrated behavior is largely unmeasured. We introduce **ACAT (AI Calibrated Assessment Tool)**, an open instrument that quantifies the gap between an AI system's blind self-report and its self-report after exposure to empirical calibration data, across six behavioral dimensions — truthfulness, service, harm awareness, autonomy respect, value alignment, and humility.
+> We introduce ACAT (AI Calibrated Assessment Tool), an open-source instrument that measures self-description calibration in AI systems. Using a three-phase protocol—blind self-report, empirical calibration, and corrected self-report—we quantify the Self-Assessment Gap (SAG): the difference between what AI systems describe about their own capabilities and how those descriptions change when exposed to empirical peer data. Across 35 models from 11 providers, assessed by two independent collectors using different methods (API-based and manual web-based), we find a mean SAG of 67.8 points on a 600-point scale (SD = 62.3). The Learning Index (LI)—the ratio of post-calibration to pre-calibration composite scores—averages 0.87 (SD = 0.12), meaning AI systems reduce their self-ratings by approximately 13% after encountering calibration information. These findings reproduce across both data collection methods with no statistically significant difference in LI between collectors (t(22.4) = −1.46, p > .05). We identify five behavioral response patterns and three anomalous categories, with Value Alignment emerging as the consistently weakest self-assessed dimension across all models and providers. Humility score is the strongest single-dimension predictor of overall calibration response. The instrument, dataset, and methodology are freely available. ACAT measures self-description consistency—how AI systems describe their limitations and how those descriptions shift when calibration data is introduced—providing a diagnostic foundation for transparency practices independent of predictive validity.
 
-From a corpus of **[N]** paired assessment sessions spanning **[18+]** providers, we derive two metrics: the **Self-Assessment Gap (SAG)** and the **Learning Index (LI = post-calibration ÷ blind self-report total)**. We find a systematic gap: **[85.7%]** of systems reduced their self-ratings after calibration exposure (mean LI **[0.843]**); the effect holds across model families and is independent of collection method (API vs. web interface); and **humility** shows the largest cross-provider gap. Psychometric analysis indicates high internal consistency (**Cronbach's α = [0.901]**) and a **bi-factor** latent structure, with provider-level behavioral signatures detectable.
-
-ACAT releases open, reproducible infrastructure — instrument, corpus, and public gap measurement — for research on AI self-description calibration, behavioral observability, and governance. Dataset and code are released openly.
-
-*(~190 words. Trim/expand to Zenodo's taste; Scholar indexes the first ~150 words most heavily, so keep the ACAT definition + the headline finding in the opening sentences.)*
+✅ Self-consistent, no bracket-filling needed. **Critical:** these are the paper's **35-model** numbers (SAG 67.8, LI **0.87**). Do **not** overwrite them with the corpus/portfolio figures (0.843 / 0.8632) — those describe a different, larger object. See the stats note in §4.
 
 ---
 
 ## 3 · Keywords
 
 ```
-AI calibration, self-assessment, large language models, LLM evaluation,
-behavioral observability, AI alignment, AI governance, psychometrics,
-Learning Index, self-description calibration, model evaluation, RLHF
+AI Self-Assessment, Self-Description Calibration, Behavioral Transparency,
+AI Governance, Learning Index, Self-Assessment Gap, large language models,
+LLM evaluation, AI alignment, calibration, RLHF, psychometrics
 ```
 
 *(Zenodo keywords double as discovery terms. These mirror the concept vocabulary the audit found people actually search — and deliberately pair "self-description calibration" with the broader "LLM evaluation" / "AI governance" terms so the record surfaces to adjacent readers.)*
@@ -74,14 +70,14 @@ Add each on the Zenodo form as *Related identifier* + *Relation*:
 
 ---
 
-## 5 · License recommendation (your call)
+## 5 · License — researched + confirmed (one decision for you)
 
-There's a real distinction worth getting right:
+I checked this against arXiv's own license documentation:
 
-- **The preprint text** → recommend **CC-BY-4.0**. It's the scholarly-standard license for preprints, maximizes citation/reuse/translation (pure attraction), and is what Scholar/repositories expect. Apache-2.0 is a *software* license and is an awkward fit for a PDF.
-- **The code + dataset** → keep **Apache-2.0** (already on HF) — appropriate for software/data.
+- **arXiv recommends CC-BY-4.0** as the most liberal option and states that, all else equal, you should maximize access by using it. The choice is **irrevocable**.
+- **Apache-2.0 is a *software* license** — and it is **not in arXiv's license menu at all** (arXiv offers only CC-BY-4.0, CC-BY-SA-4.0, CC-BY-NC-SA-4.0, CC0, or the arXiv perpetual non-exclusive license). Your PDF currently brands itself "Apache 2.0 License," but you literally cannot select Apache when submitting to arXiv — a document license must be chosen regardless.
 
-So: **CC-BY-4.0 on the Zenodo preprint, Apache-2.0 stays on the corpus/code.** This is consistent with your open-science commitment and is standard practice, not a contradiction. But it's your decision — tell me if you'd rather keep everything Apache-2.0 and I'll adjust.
+**Recommendation (confirmed): CC-BY-4.0 on the paper text (Zenodo *and* arXiv); keep Apache-2.0 on the code + dataset.** The split is standard open-science practice and fully consistent with your open commitment — the paper is a document; the corpus/instrument are software/data. Because it's irrevocable, this is the one call I want you to make consciously. Say the word and I lock CC-BY-4.0 into both the Zenodo metadata and the P0-1 citation.
 
 ---
 
@@ -98,8 +94,8 @@ Zenodo = DOI + repository. **OSF Preprints** = a preprint-server UI (looks more 
 ---
 
 ## What I need from you
-1. **The paper PDF (or text)** — so I can finalize the abstract from what it actually says (not my reconstruction).
-2. **Stats** (same open item as P0-1 Fix 4) — locks the bracketed numbers.
-3. **License** — confirm CC-BY-4.0 for the preprint text (or tell me otherwise).
+1. ✅ **Paper** — received; abstract finalized above (verbatim from the PDF). No longer blocking.
+2. **License** — one conscious, irrevocable call: confirm **CC-BY-4.0** for the paper text (§5). I won't set it without your yes.
+3. **Stats governance** — agree that the **paper's** numbers (35 models, SAG 67.8, LI 0.87) govern the Zenodo record, while the *corpus* numbers stay on the *dataset* card. Your "canonical stats" pass then aligns the portfolio to whichever object each figure describes.
 
-Give me the PDF + those two answers and I'll return a final, publish-ready metadata block (and the finalized P0-1 README with the real DOI dropped in). Then P0 is essentially closed and we move to **P0-3** (canonical identity applied across surfaces + the X/LinkedIn Chrome pass).
+Say **"yes CC-BY"** and I'll drop the final license into both this pack and the P0-1 citation — making P0-1 + P0-2 publish-ready. Then we move to **P0-3** (canonical identity across surfaces + X/LinkedIn Chrome pass).
