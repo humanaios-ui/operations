@@ -26,16 +26,16 @@ from tests.research.event_trace import EventTracer, TraceEvent, diff, snapshot
 def _fresh_kidney() -> CompositeOrganComponent:
     return CompositeOrganComponent(
         "Kidney",
-        [RenalModule(), GonadalModule(), SkeletalMarrowModule()],
         Element.WATER,
+        [RenalModule(), GonadalModule(), SkeletalMarrowModule()],
     )
 
 
 def _fresh_spleen() -> CompositeOrganComponent:
     return CompositeOrganComponent(
         "Spleen",
-        [SpleenTransportModule(), SpleenHemostasisModule()],
         Element.EARTH,
+        [SpleenTransportModule(), SpleenHemostasisModule()],
     )
 
 

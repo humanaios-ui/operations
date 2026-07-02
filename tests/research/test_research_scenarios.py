@@ -25,16 +25,16 @@ from bio_framework_distributed_v1_2 import SanJiao, WuShen
 def _fresh_kidney() -> CompositeOrganComponent:
     return CompositeOrganComponent(
         "Kidney",
-        [RenalModule(), GonadalModule(), SkeletalMarrowModule()],
         Element.WATER,
+        [RenalModule(), GonadalModule(), SkeletalMarrowModule()],
     )
 
 
 def _fresh_spleen() -> CompositeOrganComponent:
     return CompositeOrganComponent(
         "Spleen",
-        [SpleenTransportModule(), SpleenHemostasisModule()],
         Element.EARTH,
+        [SpleenTransportModule(), SpleenHemostasisModule()],
     )
 
 
@@ -65,6 +65,11 @@ def test_S2_signal_semantics() -> None:
     resources_generative = ResourcePool()
     resources_control = ResourcePool()
     heart = Heart()
+
+    # Canonical B1 uses small nudges (±0.4·strength) clamped to [0,100]; start from
+    # a depleted baseline so directional movement is observable (a full pool clamps).
+    resources_generative.shen = 50.0
+    resources_control.shen = 50.0
 
     heart.receive_signal(resources_generative, Signal(SignalKind.GENERATIVE, "Wood", 2.0))
     heart.receive_signal(resources_control, Signal(SignalKind.CONTROL, "Water", 2.0))
@@ -110,6 +115,7 @@ def test_S4_resource_clamp_invariants() -> None:
 def test_S5_control_vs_generative_opposition() -> None:
     resources = ResourcePool()
     lung = Lung()
+    resources.jinye = 50.0  # depleted baseline: canonical nudges are small + clamped
     before = resources.jinye
     lung.receive_signal(resources, Signal(SignalKind.GENERATIVE, "Earth", 1.5))
     after_generative = resources.jinye
