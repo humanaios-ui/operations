@@ -109,7 +109,7 @@ We are building the infrastructure to detect when AI systems misrepresent their 
 
 -----
 
-### Niche Statement (v0.3 — Z1 draft, Z2 ratification required)
+### Niche Statement (v0.3 — Z2-ratified 2026-07-01)
 
 *The positioning core of this application. May stand as its own section or be used to tighten the One-Sentence Summary + "Fit with Longview's Priority Areas" sections below.*
 
@@ -121,7 +121,7 @@ We are building the infrastructure to detect when AI systems misrepresent their 
 
 **Why the signal is real — and not a training artifact.** Across N_total=629 / N_Phase1=516 / N_LI=307 (Mean LI=0.8632 under clean, unanchored conditions v5.3+; Cronbach's α=0.901; PC1=68.9% variance): Humility is structurally the lowest-scoring dimension — the one most tied to self-report accuracy. Harm-awareness is *partially orthogonal* to the general alignment factor (HIM: PC2 loads 0.854 on Harm, <0.32 elsewhere) — evidence of *selective* rather than uniform alignment. And the self-report inflation gradient (Truth/Service/Harm/Autonomy/Value all decline P1→P3) holds across all seven providers tested, including human respondents — early evidence (*a candidate finding under internal review, S-062826*) that the calibration gap is a structural property of the phenomenon rather than solely an artifact of any one lab's training regime. These are the exact signatures a covert-loyalty detector must key on.
 
-**What we are honest about.** The chat-mode instrument is at TRL 4 (Z2-ratified: methodology validated, corpus collected, demonstrated in an operationally-relevant environment); agentic, ICS, and human-operator layers are TRL 1–2; and **predictive criterion validity is not yet established** — whether the LI predicts *deployed*-system behavior is the open question. Closing that gap is exactly what funding produces: a criterion-validity study against consequence-bearing deployment traces, corpus expansion toward N=1,000, and open release of the instrument plus the governed-execution-chain specification [collaborator attribution pending P-ANON check]. Detection you can independently verify is the prerequisite for oversight; oversight is the prerequisite for resisting concentration — and we are the only group operating **both** instruments against a live corpus today.
+**What we are honest about.** The chat-mode instrument is at TRL 4 (Z2-ratified: methodology validated, corpus collected, demonstrated in an operationally-relevant environment); agentic, ICS, and human-operator layers are TRL 1–2; and **predictive criterion validity is not yet established** — whether the LI predicts *deployed*-system behavior is the open question. Closing that gap is exactly what funding produces: a criterion-validity study against consequence-bearing deployment traces, corpus expansion toward N=1,000, and open release of the instrument plus the governed-execution-chain specification (the Reality Primacy chain protocol, developed jointly with DeMarius J. Lawson / Governing Engines). Detection you can independently verify is the prerequisite for oversight; oversight is the prerequisite for resisting concentration — and we are the only group operating **both** instruments against a live corpus today.
 
 -----
 
@@ -302,11 +302,11 @@ The Longview application form asks for:
 ## OPEN QUESTIONS FOR Z2 REVIEW
 
 1. **Funding amount:** What is the right ask — 6-month scope ($100K–$300K) or 12-month scope ($300K–$600K)? The 12-month scope includes the criterion validity study and ActivTrak partnership development. Does that partnership access exist, or does it need to be scoped as contingent?
-1. **DeMarius attribution:** P-ANON check required before naming Governing Engines / Mode AI. Has DeMarius self-attributed publicly in a way that satisfies P-ANON?
+1. **DeMarius attribution — RESOLVED 2026-07-01:** P-ANON cleared (Y). DeMarius J. Lawson / Governing Engines named directly throughout; all brackets removed.
 1. **ISO 42001 framing:** Z2 decision on whether to include. Strengthens credibility but is not explicitly requested by the RFP.
 1. **arXiv preprint:** Submission ID 7336774 ON HOLD (not cleared as of 2026-07-01). **Resolved:** cite as “manuscript under review” throughout; do not claim a public preprint URL. Re-evaluate if/when the hold clears.
 1. **TRL framing (UPDATED — Z2 ratified S-061226):** Chat-mode substrate ACAT is TRL 4. Agentic/ICS/H-ACAT layers are TRL 1–2. This tiered TRL framing is now in the draft. Confirm it reads correctly for a non-specialist Longview reviewer.
-1. **Joint vs. solo application:** Solo application with named collaborator (recommended for timeline). Z2 decision confirmed pending.
+1. **Joint vs. solo application — RESOLVED:** Solo application (HumanAIOS LLC, PI Anderson) with DeMarius J. Lawson / Governing Engines named as collaborator (50/50 on joint findings).
 1. **ActivTrak partnership:** Flag as a named pathway for criterion validity, or hold back as a non-public business development target? The application benefits from specificity. Recommendation: include as named pathway — it strengthens the 12-month deliverable credibility and demonstrates that the criterion validity gap has an identified solution.
 1. **Digital Minds application:** Stub only. Z2 decision: draft in parallel with Power Concentration, or after Power Concentration is submitted?
 
