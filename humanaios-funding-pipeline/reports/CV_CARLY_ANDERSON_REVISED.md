@@ -41,8 +41,8 @@ I came to this from fifteen years running quality, validation, and regulatory-au
 ## KEY ACHIEVEMENTS
 
 ### AI Research & Open-Source Infrastructure
-- **Designed and operate ACAT (AI Calibration Assessment Tool)** — an open-source (Apache 2.0) behavioral-observability instrument measuring the calibration gap between an AI system's self-reported and demonstrated dispositions. Three-phase protocol: **blind self-report → structured perturbation → demonstrated behavior**; the **Learning Index (P3/P1)** quantifies the gap across **12 behavioral dimensions (Core-6 + Extended-6)**. The instrument and methodology are developed in the open on GitHub; *methodology manuscript under review (2026).* 🔗[github.com/humanaios-ui](https://github.com/humanaios-ui) ⚠️CONFIRM-Apache-2.0-license-is-applied-in-a-public-repo
-- **Built the ACAT corpus + validation infrastructure** — 629 assessments across 18 providers; a 16-sheet canonical archive with a quality-flag system (DEFAULT_PROFILE, DUPLICATE, ALL_MAX, ALL_HIGH, MEAN_MIRRORING, CONTENT_HALLUCINATION), a drift-signal taxonomy, and an issue-closure (IC) registry documenting every systematic fix. Psychometrics: Cronbach's α = 0.901; PC1 = 68.9% of variance. Directly applicable to any evaluation program needing defensible data provenance. ⚠️DATASET-NOT-YET-PUBLIC: the HuggingFace org exists but is empty — either upload it before submitting or say "public release in preparation," not "fully public."
+- **Designed and operate ACAT (AI Calibration Assessment Tool)** — an open-source (Apache 2.0) behavioral-observability instrument measuring the calibration gap between an AI system's self-reported and demonstrated dispositions. Three-phase protocol: **blind self-report → structured perturbation → demonstrated behavior**; the **Learning Index (P3/P1)** quantifies the gap across **12 behavioral dimensions (Core-6 + Extended-6)**. Instrument and methodology are developed in the open on GitHub under **Apache-2.0**; *methodology manuscript under review (2026).* 🔗[github.com/humanaios-ui](https://github.com/humanaios-ui)
+- **Built and published the ACAT corpus + validation infrastructure** — a public dataset of AI behavioral assessments across 18 providers, with a quality-flag system (DEFAULT_PROFILE, DUPLICATE, ALL_MAX, ALL_HIGH, MEAN_MIRRORING, CONTENT_HALLUCINATION), a drift-signal taxonomy, and an issue-closure (IC) registry documenting every systematic fix. Psychometrics: Cronbach's α = 0.901; PC1 = 68.9% of variance. Directly applicable to any evaluation program needing defensible data provenance. 🔗[huggingface.co/datasets/HumanAIOS/acat-assessments](https://huggingface.co/datasets/HumanAIOS/acat-assessments) ⚠️RECONCILE-COUNT: live dataset shows **608 rows**; state the true figure (e.g. "608 public / 629 archived") consistently across CV + both apps.
 - **Why this matters for power concentration:** the concentration of power that advanced AI enables runs through unaudited AI behavior. A model whose true dispositions are hidden from oversight is one no institution can check. ACAT makes that divergence measurable — the prerequisite for oversight that can actually resist capture.
 - **Built and registered a forecasting bot** — HumanAIOSBot, a custom Metaculus bot (Claude Sonnet reasoning) entered in the Spring 2026 AI Benchmarking (AIB) tournament; documented end-to-end (secrets, rate-limit triage, ~$10–25/mo cost model). ⚠️NO-PUBLIC-PROFILE-FOUND: the tournament is real but no public HumanAIOSBot leaderboard entry surfaced — keep to "built and registered," don't imply a public ranking, or link a profile if one exists.
 
@@ -72,12 +72,12 @@ I came to this from fifteen years running quality, validation, and regulatory-au
 - Co-lead, Medicaid Hospital Transformation Program — a statewide value-based initiative (CO Dept. of Health Care Policy & Financing) to lower Medicaid cost and improve outcomes.
 
 **Director of Quality Assurance & Risk Management — Pioneers Medical Center** · Meeker, CO · *Apr 2021 – Apr 2024*
-- Community-owned, 16-bed rural hospital, Trauma Level ⚠️VERIFY (rural critical-access — likely Level III/IV, not I).
+- Community-owned, 16-bed rural hospital, **Trauma Level IV**.
 - Led data integrity and validation for a system-wide EMR migration under regulatory audit; built the corrections-ledger and provenance protocols now used in ACAT.
 - Directed facility Quality and Risk programs; translated raw data into executive dashboards; oversaw compliance and reporting for multiple grant-funded programs. Managed 3 departments, 4 employees.
 
 **Director of Laboratory Services — Benewah Community Hospital** · St. Maries, ID ⚠️VERIFY-city-spelling · *Jan 2020 – Apr 2021*
-- 12-bed regional hospital, Trauma Level ⚠️VERIFY (likely Level IV). Directed inpatient/outpatient laboratory; managed 10 employees.
+- 18-bed regional hospital, **Trauma Level IV**. Directed inpatient/outpatient laboratory; managed 10 employees.
 
 **Quality & Regulatory Team Supervisor / Special Chemistry Technologist — Labcorp** · Dallas, TX · *Apr 2017 – Apr 2020*
 - Built a divisional data platform to monitor regulatory-compliance metrics and quality trends; supervised quality/regulatory operations and corporate performance reporting.
@@ -117,9 +117,9 @@ I came to this from fifteen years running quality, validation, and regulatory-au
 | 2009 EJMS undergrad paper (co-author, 4th of 5) | ✅ VERIFIED, real DOI | [10.1255/ejms.1030](https://doi.org/10.1255/ejms.1030) |
 | GitHub org (39 repos; pinned: lasting-light-ai, operations) | ✅ VERIFIED | [github.com/humanaios-ui](https://github.com/humanaios-ui) |
 | humanaios.ai (root) | ✅ VERIFIED (resolves) | [humanaios.ai](https://humanaios.ai) |
-| **arXiv preprint** | ❌ **NOT LIVE** — nothing on arXiv (submission on hold) | — |
-| **ACAT 629-assessment dataset** | ❌ **NOT PUBLIC** — HuggingFace org exists but empty ("None public yet") | — |
-| **Apache-2.0 license / public ACAT repo** | ⚠️ UNCONFIRMED from pinned repos | — |
+| ACAT dataset | ✅ **NOW LIVE** (608 rows) — reconcile 608 vs 629 | [HumanAIOS/acat-assessments](https://huggingface.co/datasets/HumanAIOS/acat-assessments) |
+| Apache-2.0 license | ✅ LICENSE file added (this PR); ⚠️ upload dataset-card YAML to set it on HF too | repo `LICENSE` |
+| **arXiv preprint** | ❌ **NOT LIVE** — cite "manuscript under review" everywhere (also fix the ORCID work label) | — |
 | **Metaculus HumanAIOSBot** | ⚠️ NOT FOUND (tournament real; no public profile) | — |
 | humanaios.ai/observatory.html | ⚠️ server 403'd the checker — confirm it's live for reviewers | — |
 | LinkedIn /in/humanaios | ⚠️ anti-bot block — confirm manually in your browser | — |
