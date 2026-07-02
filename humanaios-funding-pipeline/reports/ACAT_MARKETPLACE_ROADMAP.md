@@ -22,7 +22,7 @@ This document is a **Zone 1 draft**. No action from this document may be execute
 |P-ANON                   |Governance.md                |No collaborator names on any public surface until they self-attribute publicly                                 |
 |Tradition 11             |Governance.md                |Attraction not promotion. No CTAs, no cold outreach, URL-only direction                                        |
 |Market-Harmonic Principle|Ratified Apr 3, 2026         |Market identifies questions worth asking. Research design answers without bias. Enterprise value is downstream.|
-|Two-corpus rule          |IC-022                       |HF frozen (N=629) and Supabase live (N=95) are never summed without harmonization note                         |
+|Two-corpus rule          |IC-022                       |HF published (N=604, integrity-validated) and Supabase live (N=95) are never summed without harmonization note                         |
 
 **Research integrity is non-negotiable. All product and market claims must be grounded in the corpus or explicitly labeled as hypotheses.**
 
@@ -85,7 +85,7 @@ This is what the corpus evidence supports — no inflation beyond TRL:
 
 |Asset                                      |Evidence base                                      |TRL    |
 |-------------------------------------------|---------------------------------------------------|-------|
-|ACAT Score (chat-mode)                     |N=629 frozen + N=95 live · arXiv submission on hold|**4**  |
+|ACAT Score (chat-mode)                     |N=604 published + N=95 live · arXiv submission on hold|**4**  |
 |Self-report calibration gap measurement    |reliability + factor structure (recomputing on finalized corpus)            |**4**  |
 |Harm Independence Metric (HIM)             |harm-specific factor (recomputing on finalized corpus)                        |**4**  |
 |Humility floor finding (F-H1)              |P1 mean=73.95 · Critical active                    |**4**  |
