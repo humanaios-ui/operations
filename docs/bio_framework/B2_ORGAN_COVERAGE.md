@@ -40,7 +40,7 @@ burners — models coordination, not organ ownership. Reports flow status +
 | Six Fu (bowels) | paired-component (already solved) | ⏭ trivial — follow their Zang |
 | Endocrine / Musculoskeletal / Integumentary | DistributedFunction (same shape as Wu Shen) | ⏭ B2-continuation |
 
-**Tests:** `bio_framework_distributed_test_v1_2.py` 5/5. B1 signal tests still 5/5.
+**Tests:** Add `bio_framework_distributed_test_v1_2.py` (currently not in this repo) before reporting results here; same for the B1 signal tests.
 
 ## Next (B3)
 Register the whole organ mapping as a research build (Z2). Then B4: compare the
