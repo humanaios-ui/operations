@@ -1,5 +1,5 @@
 """
-bio_framework_core_v1_0.py
+bio_framework_core_v1_2.py
 
 Phase 4 translation of BIO_SYSTEMS_MAPPING_V1.md into a programming framework.
 v1.1: qi decomposed from a single global scalar into per-Element allocations.
