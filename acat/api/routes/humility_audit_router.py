@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional
 import datetime
+import math  # used by percentile calc (math.erf); was missing -> NameError on call
 
 router = APIRouter()
 
