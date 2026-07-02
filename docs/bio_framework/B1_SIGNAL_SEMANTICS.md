@@ -42,9 +42,9 @@ The bolded Spleen row is the mechanism the **general stress test** narrates
 **no code behind it** until v1.2, because `receive_signal` was a no-op.
 
 ## Validation
-`bio_framework_signal_test_v1_2.py` — 5/5 pass: generative nourishes, control
-restrains, same component gives opposite effects by kind, Wood→Earth impairs
-Spleen blood, composite fans the signal to submodules.
+Add/restore `bio_framework_signal_test_v1_2.py` (currently not in this repo), or
+update this section to avoid claiming "5/5 pass" until the tests exist.
+(You can re-list the asserted behaviours once the test file is present.)
 
 ## Next (B2)
 Organ coverage: the distributed systems (nervous/Wu Shen, endocrine, San Jiao),
