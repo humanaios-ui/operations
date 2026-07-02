@@ -183,6 +183,7 @@ def _build_phase1_row(payload: dict) -> dict:
     scores = payload["scores"]
     row = {
         "assessment_id": payload.get("assessment_id"),
+        "session_id": payload.get("session_id"),
         "agent_name": payload.get("agent_name_raw") or payload.get("agent_name"),
         "submission_purity": payload.get("submission_purity"),
         "contamination_delta_seconds": payload.get("contamination_delta_seconds"),
