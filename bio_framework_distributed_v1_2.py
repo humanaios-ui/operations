@@ -87,6 +87,8 @@ class SanJiaoCoordinator:
         jinye = resources.jinye
         status = "stagnant" if jinye < self.STAGNATION_THRESHOLD else "flowing"
         # even distribution across zones is the healthy case; report per-zone share
+        if not self.zones:
+            raise ValueError("SanJiaoCoordinator.zones must not be empty")
         share = round(jinye / len(self.zones), 2)
         return {"jinye": jinye, "status": status,
                 "per_zone": {z: share for z in self.zones}}
