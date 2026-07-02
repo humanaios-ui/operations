@@ -68,4 +68,4 @@ Per row: timestamp · agent/model name · provider · the 12 dimension scores ·
 - **Not:** a sentience or consciousness measure; a certification of any specific model. Predictive criterion validity (whether the LI predicts deployed behavior) is **not yet established** and is active research.
 
 ## Citation
-> Anderson, C. R. (2026). *ACAT: Benchmarking Self-Description Calibration in Large Language Models.* Manuscript under review. Dataset: HumanAIOS/acat-assessments, Apache-2.0.
+> Anderson, C. R. (2026). *ACAT: AI Calibration Assessment Corpus (v2)* [Data set]. Zenodo. https://doi.org/10.5281/zenodo.21135723 · Also on Hugging Face: HumanAIOS/acat-assessments (Apache-2.0). Methodology manuscript under review.

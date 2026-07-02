@@ -53,7 +53,7 @@ Setting power concentration aside, three under-prepared risks:
 
 **Mentors / collaborators.** David Van Assche (Nubaeon / empirica) — independent co-scoring instrument and convergent-validity partner; DeMarius J. Lawson (Governing Engines) — governed execution-chain co-developer. I will also seek engagement with the AI-evaluation and model-welfare research communities.
 
-**Expected tangible outputs.** (1) A criterion-validity study — first evidence on whether the calibration gap predicts deployed behavior; (2) an open-access, peer-reviewable methodology paper; (3) the ACAT instrument and execution-chain specification released as open infrastructure for oversight bodies and researchers; (4) a corpus expanded toward N=1,000 with a citable DOI.
+**Expected tangible outputs.** (1) A criterion-validity study — first evidence on whether the calibration gap predicts deployed behavior; (2) an open-access, peer-reviewable methodology paper; (3) the ACAT instrument and execution-chain specification released as open infrastructure for oversight bodies and researchers; (4) a corpus expanded toward N=1,000, archived with a citable DOI (10.5281/zenodo.21135723).
 
 ---
 

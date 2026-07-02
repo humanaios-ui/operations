@@ -69,7 +69,7 @@ Word/char limits are enforced by the form; every draft below is within limit.
 **Legal name of entity or individual applying** ✅ HumanAIOS LLC
 **Type of entity** ✅ Limited Liability Company (for-profit research organization; Florida — Doc #L26000155266; EIN 41-5367995)
 **Country of registration/residence** ✅ United States
-**Website or public profile** ✅ humanaios.ai · github.com/humanaios-ui · huggingface.co/datasets/HumanAIOS/acat-assessments
+**Website or public profile** ✅ humanaios.ai · github.com/humanaios-ui · huggingface.co/datasets/HumanAIOS/acat-assessments · Zenodo DOI 10.5281/zenodo.21135723
 
 **Core team list** ✅ *(honest about stage — solo-led with named collaborators)*
 > **Carly R. Anderson — Founder & Principal Investigator (100% time).** Instrument developer and PI on ACAT; 15 years of clinical-laboratory/hospital quality assurance and ISO/CAP/CLIA regulatory auditing; B.S. Chemistry (peer-reviewed publication, MALDI-TOF mass spectrometry); M.S. Information Technology in progress. Built and published the ACAT instrument + open, integrity-validated 604-assessment corpus solo.
@@ -102,7 +102,7 @@ Word/char limits are enforced by the form; every draft below is within limit.
 > Allocation (12-mo): Personnel ~45% (PI full-time + part-time research support); model-API / corpus-expansion compute ~15%; criterion-validity study + partnership data access ~20%; open infrastructure + publication ~12%; independent evaluation + governance ~8%. The criterion-validity and independent-evaluation lines (~28% combined) are the two the field most often under-funds and exactly what converts *signal* into *evidence* and constrains dual-use capture. Exact PI-salary and API line figures set at award. *(For new organizations, we would welcome Longview's offer of operational support in lieu of a portion of overhead.)*
 
 **(Optional) Track record** ✅
-> Public, integrity-validated ACAT corpus: **N=604 assessments, 23 providers, Mean Learning Index 0.8532, passes an open corpus-integrity validator** (fully reproducible from the published data; huggingface.co/datasets/HumanAIOS/acat-assessments, Apache-2.0). Peer-reviewed research background (Eur. J. Mass Spectrom., 2009). Methodology manuscript under review.
+> Public, integrity-validated ACAT corpus: **N=604 assessments, 23 providers, Mean Learning Index 0.8532, passes an open corpus-integrity validator** (fully reproducible from the published data; huggingface.co/datasets/HumanAIOS/acat-assessments, Apache-2.0; Zenodo DOI 10.5281/zenodo.21135723). Peer-reviewed research background (Eur. J. Mass Spectrom., 2009). Methodology manuscript under review.
 
 **Other funders (max 200 words)** ✅
 > I am **also applying to Longview's Career Funding (fellowship) track** for personal support to conduct the criterion-validity study. The two are complementary and sequenced, not duplicative: the fellowship funds *me* to produce the validation evidence; this grant funds the *organization/program* to deploy it at scale. I am disclosing each application in the other. Beyond Longview, I may apply to AI-safety funders whose scope fits this work — the Survival and Flourishing Fund, the Long-Term Future Fund, and Manifund regranting — for overlapping or complementary support; none is committed at this time. I will keep Longview informed of any material funding developments.
