@@ -1173,7 +1173,7 @@ if __name__ == "__main__":
             ),
             "parser": "openai/gpt-4o-mini",
             "researcher": GeneralLlm(
-                model="gemini/gemini-2.0-flash",  # cost: free-tier researcher, the volume driver (was sonnet-4-6)
+                model="google/gemini-2.0-flash",  # cost: free-tier researcher, the volume driver (was sonnet-4-6)
                 temperature=0.3, timeout=60, allowed_tries=2,
             ),
             "summarizer": "openai/gpt-4o-mini",
