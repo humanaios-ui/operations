@@ -364,7 +364,7 @@ documents:
     recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
     review_due: "2026-08-01"
 
-# Excluded from doc-control — governed by normal code review or manual binary handling.
+# Known content-accuracy issues from the S070126 docs/ audit — block approval for matching titles.
 # Known content-accuracy issues from the S070126 docs/ audit (69 files; separate
 # content-curation workstream — REFERENCED here, not re-audited). A doc whose title
 # matches one of these MUST NOT reach status=approved until the issue is resolved.
