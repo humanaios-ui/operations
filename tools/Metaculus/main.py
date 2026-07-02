@@ -1168,12 +1168,12 @@ if __name__ == "__main__":
         extra_metadata_in_explanation=True,
         llms={
             "default": GeneralLlm(
-                model="anthropic/claude-sonnet-4-6",
+                model="anthropic/claude-haiku-4-5",  # cost: cheap Claude for forecast reasoning (was sonnet-4-6)
                 temperature=0.3, timeout=60, allowed_tries=2,
             ),
             "parser": "openai/gpt-4o-mini",
             "researcher": GeneralLlm(
-                model="anthropic/claude-sonnet-4-6",
+                model="google/gemini-2.0-flash",  # cost: free-tier researcher, the volume driver (was sonnet-4-6)
                 temperature=0.3, timeout=60, allowed_tries=2,
             ),
             "summarizer": "openai/gpt-4o-mini",
