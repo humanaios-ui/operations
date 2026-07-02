@@ -17,7 +17,7 @@
 
 ## Motivation for working on extreme concentration of power (200 words) ✍️ *personalize the bracketed line*
 
-I founded HumanAIOS to answer a question that kept surfacing in my work with AI systems: when a model tells you how it will behave, can you trust that report? Building the ACAT instrument and running it across 629 assessments, I found the answer is measurably no — AI systems' self-reported dispositions diverge systematically from what they actually do under pressure, and the gap holds across every provider tested.
+I founded HumanAIOS to answer a question that kept surfacing in my work with AI systems: when a model tells you how it will behave, can you trust that report? Building the ACAT instrument and running it across a 604-assessment openly-published corpus, I found the answer is measurably no — AI systems' self-reported dispositions diverge systematically from what they actually do under pressure, and the gap holds across every provider tested.
 
 That finding is not abstract to me. The concentration of power advanced AI enables runs through exactly this gap: whoever controls a system whose true dispositions are hidden from oversight controls something no one else can audit. A "secretly loyal" model is invisible precisely because its self-report sounds aligned. I have spent the past year building the measurement infrastructure to make that invisibility detectable — because oversight that cannot verify what it is watching is not oversight at all.
 
@@ -26,7 +26,7 @@ I want to move this from a founder's side-effort into full-time, independently-v
 ---
 
 ## Additional relevant experience (optional) ✅ / ✍️
-Building and operating a live behavioral-assessment instrument and multi-provider corpus solo — instrument design, psychometric validation (Cronbach's α=0.901, factor analysis), a FastAPI/Supabase deployment, and governance architecture — is directly relevant preparation that a conventional CV may not foreground. ✍️ *Add any prior domain exposure, technical achievements, or community involvement.*
+Building and operating a live behavioral-assessment instrument and multi-provider corpus solo — instrument design, psychometric validation (reliability + factor analysis), a FastAPI/Supabase deployment, and governance architecture — is directly relevant preparation that a conventional CV may not foreground. ✍️ *Add any prior domain exposure, technical achievements, or community involvement.*
 
 ---
 
