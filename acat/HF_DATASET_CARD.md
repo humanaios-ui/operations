@@ -4,7 +4,7 @@ UPLOAD INSTRUCTIONS (this file becomes the README.md of the HF dataset):
 2. Go to https://huggingface.co/datasets/HumanAIOS/acat-assessments → "Edit dataset card".
 3. Paste as README.md and Commit. The YAML front-matter sets the license (apache-2.0)
    and metadata — this is what makes the dataset's license show up (currently: none).
-4. FINALIZED: N=593, integrity-validated (see canonical_stats.json). Numbers below are the canonical figures.
+4. FINALIZED: N=604, integrity-validated (see canonical_stats.json). Numbers below are the canonical figures.
 -->
 
 ---
@@ -49,14 +49,14 @@ demonstrated behavior diverges from its self-report.
 
 ## Corpus summary
 
-> Canonical figures (finalized 2026-07-02; reproducible via corpus_integrity_validator): N=593, Mean LI=0.8531, integrity verdict PASS.
+> Canonical figures (finalized 2026-07-02; reproducible via corpus_integrity_validator): N=604, Mean LI=0.8532, integrity verdict PASS.
 
 | Field | Value |
 |---|---|
-| Public rows (this release) | **593** (finalized, integrity-validated) |
-| Phase-1 / LI-scored | 515 Phase-1 · 272 LI-scored rows (42 unique pairs) |
+| Public rows (this release) | **604** (finalized, integrity-validated) |
+| Phase-1 / LI-scored | 524 Phase-1 · 274 LI-scored rows (44 unique pairs) |
 | Providers | 23 |
-| Mean Learning Index | **0.8531** |
+| Mean Learning Index | **0.8532** |
 | Cronbach's α | *recomputing on finalized corpus* |
 | PC1 (variance explained) | *recomputing on finalized corpus* |
 
