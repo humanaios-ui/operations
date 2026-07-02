@@ -25,7 +25,7 @@ Fill Zenodo's *New upload* form with these values. *(Field labels are stable but
 | **Language** | `eng` |
 | **Keywords** | §3 |
 | **Access right** | Open Access |
-| **License** | See §5 recommendation |
+| **License** | ✅ **CC-BY-4.0** (locked 2026-07-02) — see §5 |
 | **Related identifiers** | §4 |
 | **Communities** | Suggest: *Artificial Intelligence*, *OpenAIRE*; search "AI safety"/"alignment" communities to join |
 | **Funding** | None (self-funded) unless you want to credit anything |
@@ -70,14 +70,14 @@ Add each on the Zenodo form as *Related identifier* + *Relation*:
 
 ---
 
-## 5 · License — researched + confirmed (one decision for you)
+## 5 · License — ✅ LOCKED: CC-BY-4.0 (text) / Apache-2.0 (code+data)
 
 I checked this against arXiv's own license documentation:
 
 - **arXiv recommends CC-BY-4.0** as the most liberal option and states that, all else equal, you should maximize access by using it. The choice is **irrevocable**.
 - **Apache-2.0 is a *software* license** — and it is **not in arXiv's license menu at all** (arXiv offers only CC-BY-4.0, CC-BY-SA-4.0, CC-BY-NC-SA-4.0, CC0, or the arXiv perpetual non-exclusive license). Your PDF currently brands itself "Apache 2.0 License," but you literally cannot select Apache when submitting to arXiv — a document license must be chosen regardless.
 
-**Recommendation (confirmed): CC-BY-4.0 on the paper text (Zenodo *and* arXiv); keep Apache-2.0 on the code + dataset.** The split is standard open-science practice and fully consistent with your open commitment — the paper is a document; the corpus/instrument are software/data. Because it's irrevocable, this is the one call I want you to make consciously. Say the word and I lock CC-BY-4.0 into both the Zenodo metadata and the P0-1 citation.
+**LOCKED (Carly-approved 2026-07-02): CC-BY-4.0 on the paper text (Zenodo *and* arXiv); Apache-2.0 stays on the code + dataset.** Standard open-science practice — the paper is a document; the corpus/instrument are software/data. Concretely: set the Zenodo *License* field to **Creative Commons Attribution 4.0 International (CC-BY-4.0)**, and choose **CC BY 4.0** at arXiv's license step when the submission clears.
 
 ---
 
@@ -93,9 +93,9 @@ Zenodo = DOI + repository. **OSF Preprints** = a preprint-server UI (looks more 
 
 ---
 
-## What I need from you
-1. ✅ **Paper** — received; abstract finalized above (verbatim from the PDF). No longer blocking.
-2. **License** — one conscious, irrevocable call: confirm **CC-BY-4.0** for the paper text (§5). I won't set it without your yes.
-3. **Stats governance** — agree that the **paper's** numbers (35 models, SAG 67.8, LI 0.87) govern the Zenodo record, while the *corpus* numbers stay on the *dataset* card. Your "canonical stats" pass then aligns the portfolio to whichever object each figure describes.
+## Status
+1. ✅ **Paper** — received; abstract finalized above (verbatim).
+2. ✅ **License** — CC-BY-4.0 confirmed + locked (§5).
+3. **Stats governance** — the **paper's** numbers (35 models, SAG 67.8, LI 0.87) govern this Zenodo record; the *corpus* numbers stay on the *dataset* card. Your "canonical stats" pass aligns the portfolio to whichever object each figure describes.
 
-Say **"yes CC-BY"** and I'll drop the final license into both this pack and the P0-1 citation — making P0-1 + P0-2 publish-ready. Then we move to **P0-3** (canonical identity across surfaces + X/LinkedIn Chrome pass).
+**P0-2 is publish-ready.** Only remaining action on your side: create the Zenodo deposit, upload the PDF, and (optionally) *Reserve DOI* so we can drop the real DOI into the P0-1 citation before you publish. Then → **P0-3** (canonical identity across surfaces + X/LinkedIn Chrome pass).
