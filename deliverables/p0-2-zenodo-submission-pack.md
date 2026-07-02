@@ -16,7 +16,7 @@ Fill Zenodo's *New upload* form with these values. *(Field labels are stable but
 |---|---|
 | **Upload type** | Publication |
 | **Publication type** | Preprint |
-| **DOI** | *(leave blank — Zenodo mints one; or "Reserve DOI" to get it before publishing so you can print it in the PDF)* |
+| **DOI** | ✅ Reserved: **10.5281/zenodo.21135723** (record 21135723) |
 | **Publication date** | *(date you publish, or the paper's completion date)* |
 | **Title** | `ACAT: Benchmarking Self-Description Calibration in Large Language Models` |
 | **Authors** | `Anderson, Carly R.` · ORCID `0009-0003-7540-4245` · Affiliation `HumanAIOS LLC (Lasting Light AI)` |

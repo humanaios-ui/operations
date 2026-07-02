@@ -31,7 +31,8 @@ The BibTeX currently uses a **third** distinct title and a non-canonical author 
 +   author={Anderson, Carly R.},
     year={2026},
 -   note={arXiv preprint arXiv:submit/7336774},
-+   note={Preprint (arXiv moderation pending); DOI: <ZENODO_DOI once P0-2 lands>},
++   note={Preprint (arXiv moderation pending)},
++   doi={10.5281/zenodo.21135723},
     institution={HumanAIOS / Lasting Light AI},
 +   howpublished={\url{https://orcid.org/0009-0003-7540-4245}},
     url={https://humanaios.ai}
@@ -49,7 +50,7 @@ Inline text reads `arXiv preprint: arXiv:submit/7336774`. That `submit/…` id i
 ```diff
 - The ACAT instrument and research program are maintained by HumanAIOS / Lasting Light AI (Night, Founder; Cherokee Nation citizen). arXiv preprint: arXiv:submit/7336774.
 + The ACAT instrument and research program are maintained by HumanAIOS / Lasting Light AI
-+ (Carly R. Anderson, Founder). Preprint: DOI <ZENODO_DOI> (P0-2); arXiv id pending moderation.
++ (Carly R. Anderson, Founder). Preprint DOI: 10.5281/zenodo.21135723; arXiv id pending moderation.
 ```
 
 *(Swap in the Zenodo DOI from P0-2 — that becomes your resolvable, Scholar-indexed citation anchor while arXiv is stuck.)*

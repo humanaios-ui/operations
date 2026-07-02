@@ -99,7 +99,7 @@ I'm an independent researcher (HumanAIOS / Lasting Light AI) requesting an arXiv
 
 The paper is an empirical measurement study — *ACAT: Benchmarking Self-Description Calibration in Large Language Models* — reporting a Self-Assessment Gap across 35 models from 11 providers, with an open instrument and dataset. It is not a review or position paper.
 
-- Preprint (DOI): **[Zenodo DOI — from P0-2]**
+- Preprint (DOI): **10.5281/zenodo.21135723**
 - Open dataset: https://huggingface.co/datasets/HumanAIOS/acat-assessments
 - ORCID: 0009-0003-7540-4245 · https://humanaios.ai
 
