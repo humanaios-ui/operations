@@ -8,8 +8,8 @@ The **Downloads** copy of the core was *newer*, not a stale dup — it had alrea
 split `regulate()` (autonomous per-tick baseline, called once) from a new
 `receive_signal()` hook (fired by ChannelGraph/WuXing), fixing the double/triple
 -invocation bug. But `receive_signal` was a **no-op** — the actual B1 gap.
-Canonical = the Downloads version → `bio_framework_core_v1_1.py`; B1 builds
-`v1_2` on it. Inbox/Downloads drift for the identical stress tests was moot.
+Canonical = the reconciled version in this repo → `bio_framework_core_v1_2.py`.
+Inbox/Downloads drift for the identical stress tests was moot.
 
 ## The design
 A received signal now carries its **kind**, so a component responds to *why* it
