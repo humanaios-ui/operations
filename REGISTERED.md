@@ -1023,7 +1023,7 @@ substrate: "acat_calibration_triad_unified.py · N=84 synthetic (seed=42) + real
 tags: ["calibration-triad", "truth", "service", "humility", "value-alignment", "li-predictor", "moderator"]
 related_finding: "F-54"
 related_hypothesis: "H-HUMILITY-MASTER-01"
-related_hypothesis_2: "H-RECURSIVE-CALIBRATION-01"
+related_hypothesis_2: "H-TRIAD-CYCLE-01"
 zone2_ratification: "Night (Carly) · 2026-07-01"
 superseded_by: null
 
@@ -2287,6 +2287,53 @@ zone2_ratification: null
 superseded_by: null
 
 LADDER-inspired (Simonds & Yoshiyama, arXiv:2503.00735) and Weak-to-Strong Generalization (Burns et al., arXiv:2312.09390) informed protocol for recursive ACAT variant generation, explicitly gated on H-FORMAT-01's results as first empirical input — does not begin before H-FORMAT-01 closes. Four named failure modes (variant-generation semantic drift, recursive self-continuation without a gate per P26, weak-to-strong overconfidence propagation, human-rater exposure to unvalidated variants) are pre-specified as mandatory pre-checks before any pipeline run. Not yet eligible for Z2 ratification: the source document marks this "subject to P30 calibration pass before ratification" and that pass (acat_document_analyzer_v1.1, interactive mode, calibration_ref attached) has not run. Captured here as CANDIDATE so it's tracked rather than lost between sessions — promotion requires both Night's Z2 review and the P30 gate, neither satisfied yet.
+
+-----
+
+### H-HUMILITY-MASTER-01 — Humility as Strongest Single Calibration Predictor (Revised)
+
+id: "H-HUMILITY-MASTER-01"
+name: "humility-strongest-single-calibration-predictor"
+status: CANDIDATE
+class: H
+date_registered: "2026-07-02"
+date_origin: "2026-06-28 (S-062826-03B — revised framing ratified)"
+session_registered: "S-062826-03B / registry capture S-070226"
+principles_triggered: ["P21"]
+substrate: "ACAT real corpus + N=84 synthetic · acat_calibration_triad_unified.py"
+tags: ["humility", "single-predictor", "binary-discriminator", "legibility-index", "partial-correlation", "calibration-triad"]
+related_finding: "F-55"
+zone2_ratification: "Night (Carly) · 2026-07-01"
+superseded_by: null
+
+- **Synopsis (revised):** Humility is the strongest single binary predictor of calibration quality — 92.5% of low-Humility (≤65) sessions map to bad LI. It is not the exclusive gatekeeper (partial correlation 0.075 after controlling for the global inflation factor) but is the most reliable single discriminator. Revised from the original "validity coefficient for all 11 dimensions" framing.
+- **Evidence:** 92.5% low-H(≤65)→bad-LI holds on the real corpus (synthetic generator calibrated to 80.4%, labeled non-validated by design); partial r=0.075 after global-factor control; Test-1 unique-variance partial r=0.3426 (synthetic) / r=0.80 (real N=278).
+- **Status:** revised framing ratified this session (Night). Supports F-55 (Calibration Triad).
+- **Promotion gate:** the 92.5% figure requires confirmation on the full HuggingFace archive (N≥300), not synthetic.
+
+-----
+
+### H-TRIAD-CYCLE-01 — Calibration Cycle Gate Structure (Truth/Service gates · Humility stability · Value-Alignment closure)
+
+id: "H-TRIAD-CYCLE-01"
+name: "calibration-cycle-gate-structure"
+status: CANDIDATE
+class: H
+date_registered: "2026-07-02"
+date_origin: "2026-06-28 (S-062826-03B)"
+session_registered: "S-062826-03B / registry capture S-070226"
+originating_name: "H-RECURSIVE-CALIBRATION-01 — renamed 2026-07-02 to disambiguate from the distinct, pre-existing H-CAND-RECURSIVE-CALIB-01 (a variant-generation orchestration protocol). Original name retained here for citation continuity."
+principles_triggered: ["P21"]
+substrate: "acat_calibration_triad_unified.py recursive_cycle model · ACAT 12 dimensions"
+tags: ["calibration-triad", "cycle-gates", "truth", "service", "humility-stability", "value-alignment", "longitudinal"]
+related_finding: "F-55"
+zone2_ratification: "Night (Carly) · 2026-07-01"
+superseded_by: null
+
+- **Synopsis:** Models the calibration process as a recursive cycle — Truth and Service function as the entry/exit gates, Humility is the stability condition that holds the cycle, and Value Alignment closes each cycle. Structural companion to F-55 (Calibration Triad).
+- **Status:** ratified as CANDIDATE this session; the longitudinal test is designed (Z2 question 3 resolved) but not yet run; the `recursive_cycle` model carries an unvalidated-warning docstring.
+- **Promotion gate:** execute the designed longitudinal test; validate the cycle model against real corpus trajectories before promotion.
+- **Naming note:** NOT the same as H-CAND-RECURSIVE-CALIB-01 (a LADDER / weak-to-strong variant-generation *protocol*). This entry is a structural hypothesis about the 12-dimension calibration cycle.
 
 -----
 
