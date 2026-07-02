@@ -26,7 +26,7 @@ I want to move this from a founder's side-effort into full-time, independently-v
 ---
 
 ## Additional relevant experience (optional) ✅ / ✍️
-Building and operating a live behavioral-assessment instrument and multi-provider corpus solo — instrument design, psychometric validation (Cronbach's α=0.901, factor analysis), a FastAPI/Supabase deployment, and governance architecture — is directly relevant preparation that a conventional CV may not foreground. ✍️ *Add any prior domain exposure, technical achievements, or community involvement.*
+Building and operating a live behavioral-assessment instrument and multi-provider corpus solo — instrument design, psychometric validation (reliability + factor analysis), a FastAPI/Supabase deployment, and governance architecture — is directly relevant preparation that a conventional CV may not foreground. ✍️ *Add any prior domain exposure, technical achievements, or community involvement.*
 
 ---
 
