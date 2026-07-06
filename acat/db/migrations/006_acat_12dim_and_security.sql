@@ -53,6 +53,28 @@ CREATE TABLE IF NOT EXISTS public.acat_human_scores (
 --    purity enum the app writes. Replace with purity.py VALID_PURITY_VALUES.
 ALTER TABLE public.acat_assessments_v1
   DROP CONSTRAINT IF EXISTS acat_submission_purity_check;
+
+-- 3a. Reconcile LEGACY purity vocabulary before re-adding the constraint.
+--     Live probe (S-070626) found 6 rows on pre-canonical values that would violate
+--     the CHECK (this is the "constraint violated by some row" error):
+--       self_administered (1), spec_externally_reviewed (1), p1_only_formal (4).
+--     Idempotent: only rewrites rows whose value is not already canonical; re-running
+--     is a no-op once mapped. This is a DELIBERATE, minimal data reconciliation (the
+--     one place this file mutates existing values) — required for the purity fix.
+--     ⚠ Z2 DECISION (Night ratifies the mapping before Z3 apply):
+--       self_administered      -> agent_self_only   (a self-run assessment is self-only)
+--       spec_externally_reviewed -> external_only    (external review = external grounding)
+--       p1_only_formal         -> single_shot_legacy (formal Phase-1-only submission;
+--                                 alternative: agent_self_only — Night's call)
+--     None of these are `two_stage_verified`, so the POC's verified-gate is unaffected
+--     by the exact mapping.
+UPDATE public.acat_assessments_v1 SET submission_purity = 'agent_self_only'
+  WHERE submission_purity = 'self_administered';
+UPDATE public.acat_assessments_v1 SET submission_purity = 'external_only'
+  WHERE submission_purity = 'spec_externally_reviewed';
+UPDATE public.acat_assessments_v1 SET submission_purity = 'single_shot_legacy'
+  WHERE submission_purity = 'p1_only_formal';
+
 ALTER TABLE public.acat_assessments_v1
   ADD CONSTRAINT acat_submission_purity_check
   CHECK (submission_purity IS NULL OR submission_purity IN (
