@@ -1,0 +1,60 @@
+name: Research Validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'bio_framework_core_v1_2.py'
+      - 'bio_framework_distributed_v1_2.py'
+      - 'tests/research/**'
+      - '.github/workflows/research-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  research-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run research validation
+        # Core 10 scenarios + traced liver-stagnation, validated against canonical
+        # bio_framework v1.2. The trace uses canonical LiverQiRegulator.intercept as the
+        # collateral qi-leak middleware (the actual stagnation signature).
+        run: python tests/research/run_research_validation.py --with-trace --trace-ticks 20
+
+      - name: Validate latest report summary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import glob
+          import json
+          import pathlib
+
+          reports = sorted(glob.glob("artifacts/research_validation_*.json"))
+          if not reports:
+              raise SystemExit("No research validation report found")
+          latest = reports[-1]
+          summary = json.loads(pathlib.Path(latest).read_text(encoding="utf-8"))["summary"]
+          if summary.get("fail", 0) > 0 or summary.get("error", 0) > 0:
+              raise SystemExit(f"Research validation failed: {summary}")
+          print(f"Validated summary from {latest}: {summary}")
+          PY
+
+      - name: Upload research artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-validation-artifacts
+          path: |
+            artifacts/research_validation_*.json
+            artifacts/research_validation_*.csv
+            artifacts/traces/*.jsonl
+            artifacts/traces/*_summary.json
