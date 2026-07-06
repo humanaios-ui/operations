@@ -21,7 +21,7 @@ dropped this file — see L7.)*
   `self_referential`) from persisted DB/API columns. *(PR #47)*
 
 - **L4 · Conform to (or reconcile) declared contracts.** When output has a declared schema
-  (`contracts/*.schema.json`), check it conforms (keys + enum values) or document the divergence.
+  (`acat/contracts/*.schema.json`), check it conforms (keys + enum values) or document the divergence.
   *(PR #52: `score_session` vs `score_result.schema.json`)*
 
 - **L5 · A peer's auto-fix is itself a Phase-1 claim.** When a reviewer AI auto-applies a fix,
