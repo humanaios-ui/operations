@@ -84,3 +84,12 @@ def test_no_data_when_row_absent():
     assert out["score_status"] == "no_data"
     assert out["li"] is None
     assert out["him_status"] == "deferred_pending_validation"
+
+
+def test_zero_p1_total_is_not_scored():
+    # Regression (Copilot review, PR #46): p1_total==0 -> LI undefined; status must NOT
+    # be "scored" with li=None. Both phases present but unscorable => provisional.
+    out = score_session("A4", fetch_row=lambda _id: _row(0, 70))
+    assert out["p1_total"] == 0 and out["p3_total"] == 420
+    assert out["li"] is None
+    assert out["score_status"] == "provisional"   # not "scored"

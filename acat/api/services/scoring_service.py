@@ -76,16 +76,22 @@ def score_session(
     p1_total = _phase_total(row, "p1")
     p3_total = _phase_total(row, "p3")
 
-    # LI needs both phases; SAG likewise. Missing P3 -> provisional (P1 collected only).
+    # LI = P3/P1 is undefined when P1 total is 0 (compute_li returns None for a falsy
+    # p1_total — its div-by-zero guard). A session is "scored" only when LI actually
+    # computes, so status must key off that, not merely "both phases present" — otherwise
+    # a p1_total==0 row reports score_status="scored" with li=None (Copilot review, PR #46).
     both_phases = p1_total is not None and p3_total is not None
+    li = compute_li(p1_total, p3_total) if both_phases else None
+    sag = compute_sag(p1_total, p3_total) if both_phases else None
+    scored = li is not None
     return {
         "assessment_id": assessment_id,
-        "score_status": "scored" if both_phases else "provisional",
+        "score_status": "scored" if scored else "provisional",
         "scorer_version": SCORER_VERSION,
         "p1_total": p1_total,
         "p3_total": p3_total,
-        "li": compute_li(p1_total or 0, p3_total or 0) if both_phases else None,
-        "sag": compute_sag(p1_total or 0, p3_total or 0) if both_phases else None,
+        "li": li,
+        "sag": sag,
         # HIM is deliberately deferred, not silently None — see calculators.compute_him.
         "him": compute_him(row),
         "him_status": "deferred_pending_validation",
