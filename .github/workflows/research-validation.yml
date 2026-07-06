@@ -26,9 +26,6 @@ jobs:
           python-version: '3.11'
 
       - name: Run research validation
-        # Core 10 scenarios + traced liver-stagnation, validated against canonical
-        # bio_framework v1.2. The trace uses canonical LiverQiRegulator.intercept as the
-        # collateral qi-leak middleware (the actual stagnation signature).
         run: python tests/research/run_research_validation.py --with-trace --trace-ticks 20
 
       - name: Validate latest report summary

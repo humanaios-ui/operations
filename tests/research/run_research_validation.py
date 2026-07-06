@@ -15,7 +15,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tests.research.honesty import anchor_stamp
 from tests.research.trace_summary import summarize_trace, write_summary
 
 SCENARIO_MODULE = "tests.research.test_research_scenarios"
@@ -152,18 +151,6 @@ def main() -> None:
         "summary": _summary(results, started_at, ended_at),
         "results": results,
     }
-    # Honesty tagging: declare this report an EXTERNAL ANCHOR (Leg 2 of the triad),
-    # not a self-assessment. It carries no ACAT self-scores; any ACAT-on-the-tool
-    # self-score still needs this falsifiable anchor + Z2. See honesty.py / the protocol.
-    report["honesty"] = anchor_stamp(
-        "stress_test_harness",
-        evidence={
-            "scenarios": report["summary"]["total"],
-            "pass": report["summary"]["pass"],
-            "fail": report["summary"]["fail"],
-            "error": report["summary"]["error"],
-        },
-    )
     if trace is not None:
         report["trace"] = trace
 
