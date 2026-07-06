@@ -1,77 +1,62 @@
-# Engagement Brief — Partner-B (Peer Builder)
+# Engagement Brief — Partner-B (Commercialization Partner)
 
-**Archetype:** Peer builder · **Stage:** 1→2 · **Zone:** Z1 (reply drafted; awaits Night Z2 send)
-**Practice:** empirica-outreach · **Drafted:** 2026-07-06
-**P-ANON:** committed file uses `Partner-B`; real identity + project in local register only.
+**Archetype:** Commercialization partner (the mature end of the ladder — see OS §1) · **Zone:** active, multi-phase
+**Practice:** empirica-outreach · **Drafted:** 2026-07-06 (supersedes the 2026-07-06 "peer builder" draft)
+**P-ANON:** committed file uses `Partner-B` and generic descriptors only. Real identity, org, contact, term-sheet numbers, and financial context live **only** in the internal collaborator record (`humanaios-internal/collaborators/`) and the local register — never here.
 
----
-
-## 1. What they sent
-
-A runtime progress update: **Persistent Memory is now integrated into the runtime path.** Verified end-to-end:
-
-- create → confirm → write → retrieve → **inject back into runtime context** → the model answers *from confirmed memory as evidence*, not from unsupported inference.
-- Test case: save "I created the runtime," later ask "who created it" → after wiring retrieval into context, the system answered **from memory rather than inference**.
-- Runtime Observation now produces observation/trace records during execution.
-
-The update names the *next* problems as **orchestration + retrieval**, not storage:
-- knowledge classification misroutes some runtime/meta questions;
-- retrieval priority needs tightening: **active thread → Persistent Memory → Thread-Memory summaries**;
-- context-readiness reports **false** when one governed source (e.g. `SYSTEM_CONTEXT`) is treated as missing even though *another* governed source already satisfies the evidence need;
-- source-satisfaction logic must stop letting missing-but-substitutable sources falsely block readiness.
-
-Two layers remain: **Understanding Layer** (governed outputs → reusable semantic understanding, *without* becoming memory/reasoning/truth) and **Reality Primacy** (validate claims/evidence/state-transitions *before* they become accepted runtime truth).
+> **Correction notice.** The first version of this brief staged Partner-B as a "peer builder" at lifecycle Stage 1→2 and drafted a first-contact LinkedIn reply. **That was wrong** — it was written before reading the relationship record. The reply is obsolete. See §4.
 
 ---
 
-## 2. Convergence map — why this collaborator matters
+## 1. True state (source of truth: the internal record)
 
-Partner-B's architecture maps almost one-to-one onto Empirica/HumanAIOS concepts. This is the seam: two projects independently arrived at *governed retrieval + evidence-before-truth*.
+Partner-B is **not** an early inbound. It is HumanAIOS's most-advanced live collaboration: an **active, multi-phase commercialization partnership** for governed-reasoning runtime infrastructure, roughly one-third through a 90-day charter.
 
-| Partner-B concept | HumanAIOS / Empirica analog | Convergence |
-|---|---|---|
-| Persistent Memory (create→confirm→write→retrieve→inject) | Findings → Qdrant (SEARCH) → promoted memories; HOT/WARM/SEARCH/COLD tiers | Same: durable, confirmed facts injected back into working context |
-| Thread-Memory summaries | Compaction / breadcrumbs (COLD) | Same: compressed continuity distinct from active thread |
-| Retrieval priority: active → Persistent → Thread summaries | HOT → SEARCH → COLD retrieval order | **Near-identical ordering** |
-| Context-readiness / source-satisfaction | The **CHECK gate** ("do I know enough to proceed?") + multi-source external grounding | Same problem: readiness shouldn't fail when a *different* governed source already satisfies the need |
-| **Reality Primacy** | The **Sentinel** + noetic firewall + "assessment before action"; grounded evidence gating | **Deepest convergence** — don't let unsupported inference become accepted truth |
-| Understanding Layer | Eidetic promotion + calibration trajectory (reusable understanding, not raw memory) | Same boundary: understanding ≠ memory ≠ truth |
-| Test case: answer-from-memory vs. answer-from-inference | **This is exactly what ACAT measures** — the self-assessment gap between what a system *asserts* and what its behavior/evidence supports | The collaboration seam ↓ |
+Anonymized status (details deliberately omitted from this committed file):
+- **Phase 1 (runtime-governance prototype): complete** — exit criteria met, mutual acknowledgment pending a scheduled call.
+- **Phase 2 (spec formalization): pending an operating agreement** — two entry gates open; a term sheet is in negotiation with independent legal counsel on both sides.
+- **Later phases gated/locked**, one of them HumanAIOS-sole-owned, one requiring a standalone IP agreement.
+- **Working relationship:** file-exchange — the builder ships runtime build artifacts (session traces), HumanAIOS returns **ACAT joint-session assessments**. Multiple sessions assessed; **dual-rater** (Night + Claude) — the same pattern now applied to the Partner-V pilot.
+- A partnership call with a business advisor is scheduled.
 
-## 3. The collaboration seam (honest, non-pitch)
-
-Partner-B's own test case — *save a fact, later ask about it, check whether the system answers from evidence or from inference* — is the **ACAT thesis at the runtime layer.** ACAT measures the Self-Assessment Gap: does a system's self-report match its grounded behavior. Partner-B's "Reality Primacy" and ACAT's gap metric are **the same question at different altitudes.**
-
-That makes a genuine, symmetric offer possible (not a sell):
-- **For them:** ACAT-style probing could *measure* whether Persistent Memory actually narrows the evidence-vs-inference gap — turning "it answered from memory" from an anecdote into a number.
-- **For HumanAIOS:** a builder-side convergent signal — an *independent* runtime that implements evidence-before-truth is corroboration that the thesis generalizes beyond ACAT.
-
-This is a **peer-builder convergence**, parallel to the Partner-V *instrument* validity pilot but on the architecture side. Keep it at vocabulary/convergence for now; a shared probe is a Stage-2 container to draft only if they lean in.
-
-**Mutual IP guard:** as we ask them to keep partner data out of our containers, keep Empirica internals out of theirs — engage at the conceptual level, not implementation detail.
+**This brief does not manage the partnership.** Deal state, term-sheet scoring, phase gates, financial context, and the call agenda are owned by the internal collaborator record and the humanaios seat. Reproducing them here would (a) violate P-ANON and (b) duplicate a living document that is already the source of truth. **The outreach practice's stake is narrow and specific — §3.**
 
 ---
 
-## 4. Z1 reply draft (LinkedIn) — for Night to ratify + send (Z2/Z3)
+## 2. The convergence finding — corrected, and why it belongs to outreach
 
-> Committed with a `[first name]` placeholder per P-ANON. Personalized version delivered to Night in chat.
+There is a genuine, striking convergence between Partner-B's runtime and HumanAIOS/Empirica: both independently arrived at *governed retrieval + evidence-before-truth*. The internal record captures **three independent articulations** of it (the ACAT corpus structure; the builder's architecture docs; the builder's own unprompted framing).
+
+**The correction (logged as a mistake this session).** My first brief called this "near 1:1 convergence" and mapped the two architectures as essentially the same. That is the **clean-convergence inflation** risk — and the internal record had *already flagged it* under a drift code before I ever wrote the map. The builder himself states the boundary precisely and **does not collapse it**:
+
+> *"ACAT measures calibration under evidence pressure. [The runtime] governs continuity, authority, and admissibility before consequence formation."*
+
+Two systems pointed at the **same problem at different layers** — corroboration, not identity. That distinction is the whole value: an *independent* system converging on evidence-before-truth is evidence the thesis generalizes. Collapsing it into "we're the same" destroys exactly that value and reads as hype.
+
+**Disciplined statement of the finding:** *Three independent observers converged on the same principle while preserving the layer distinction between the two systems.* Full stop. No "1:1," no "identical."
 
 ---
 
-[First name] — this is a real milestone. The chain you verified (create → confirm → write → retrieve → inject → answer-from-memory-as-evidence) is the hard part, and the fact that the *next* problems you hit are orchestration and retrieval-priority rather than storage tells me the foundation held.
+## 3. What outreach actually does here (the narrow stake)
 
-Two things jumped out. First, your retrieval ordering — active thread, then Persistent Memory, then Thread-Memory summaries — is almost exactly the hot → durable → compressed order we landed on independently. Second, the context-readiness false-negative you described (readiness reporting missing when another governed source already satisfies the need) is a problem we spent a long time on: readiness shouldn't fail when a *substitutable* source is present. Happy to compare notes on how we handle source-satisfaction if it's useful.
+The outreach practice does **one** thing with this collaboration: hold the convergence finding as a **candidate publishable attraction artifact** — and gate it correctly.
 
-The part I keep coming back to is your test case — save "who created the runtime," then check whether it answers from memory or from inference. That evidence-vs-inference boundary is precisely what our assessment work measures as a gap. If Persistent Memory narrows it, that's measurable, not just observable. No agenda — just genuinely convergent, and worth a conversation when you're heads-up from the current sprint.
+- **The artifact:** a short, TRL-framed note — *"two independent systems, built separately, converged on governing reasoning by evidence before it becomes truth."* This is premium attraction copy for the research-collaborator and academic audiences (see OS §5 feedback loop). It is the exemplar of a **fully-grown branch** feeding a new seed.
+- **The gate (hard):** it may be published **only** after the internal Z2 promotion review clears the clean-convergence-inflation risk, **and** with the partner's explicit consent, **and** in a form that reveals nothing under the operating agreement / IP terms. Until then it stays a candidate, not a draft.
+- **Not outreach's job:** the deal, the term sheet, the phase gates, the call. Those are the internal/humanaios seat. If I drift into managing the partnership from here, that is itself a scope error — flag it.
 
 ---
 
-**Guardrail check:** no CTA-pressure ✓ · specific-acknowledgment (retrieval order + readiness bug) ✓ · honest convergence, no overclaim ✓ · no Empirica IP leaked ✓ · offer is symmetric, opt-in ✓.
+## 4. The obsolete reply draft (removed)
+
+The prior version drafted a LinkedIn "nice to meet you, your milestone is impressive" reply. **Delete it from the plan.** The relationship is many exchanges deep across email and file-exchange, with a partnership call scheduled — a first-contact reply would be embarrassingly behind and would signal HumanAIOS had lost the thread. Ongoing communication is handled in-thread by Night (with Claude assisting on ACAT assessments), tracked in the internal record. Nothing for outreach to draft here.
+
+---
 
 ## 5. Next actions
 | # | Action | Owner | Zone |
 |---|---|---|---|
-| 1 | Ratify + send the reply | Night | Z2/Z3 |
-| 2 | (Optional) fetch governing-engines.replit.app to ground the convergence map deeper | Me | Z1 (noetic) |
-| 3 | If they lean in: draft a Stage-2 shared-probe container (ACAT lens on Persistent Memory) | Me | Z1 |
-| 4 | Register Partner-B as contact + engagement | Night's go | — |
+| 1 | Keep partnership state in the internal record; do **not** mirror it into outreach deliverables | Night / humanaios seat | — |
+| 2 | When the internal Z2 review clears the convergence finding for promotion, hand outreach the go to draft the anonymized/consented attraction note | Night | Z2 |
+| 3 | Use Partner-B (anonymized) as the "commercialization partner" exemplar in the OS archetype ladder | Me | Z1 (done) |
+| 4 | Register updated (contact + org + engagement in local `workspace.db`) | — | done |

@@ -34,8 +34,10 @@
 ## 🌿 Live collaborations (the branches)
 | Partner | Archetype | Stage | Waiting on | Next |
 |---|---|---|---|---|
-| **Partner-B** (builder) | Peer builder | 1→2 | Night Z2 | Ratify + send the Z1 LinkedIn reply (`collab-partner-b-brief.md` §4) |
-| **Partner-V** (validator) | Instrument validator | 3 (half-ratified) | **Night Z2** | Work Z2 checklist + assign ACAT rater + approve stimulus set (`collab-partner-v-pilot.md` §3,§5) |
+| **Partner-B** | Commercialization partner *(grew from peer builder)* | Phase 1 done / Phase 2 pending op-agreement | internal seat + counsel | Managed in `humanaios-internal`; outreach holds only the gated convergence artifact (`collab-partner-b-brief.md` §3) |
+| **Partner-V** | Instrument validator | 3 (half-ratified) | **Night Z2** | Work Z2 checklist + approve stimulus set; ACAT = **dual-rater** (Night+Claude) (`collab-partner-v-pilot.md` §3,§5) |
+
+**Register populated** → Empirica `entity_registry` (contacts + orgs + engagements, local). **Publish-consent policy** → 5-gate standing policy (`collaboration-operating-system.md` §5.1).
 
 ## 🟡 Open decisions (only you)
 1. **Canonical stats** — LI 0.87 (paper) vs 0.843 (card) vs 0.8632 (portfolio); N 629/608. *Gates HF Fix 4, portfolio reconcile, Posts 2–6.* Decide, or authenticate Supabase and I'll verify.

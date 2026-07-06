@@ -37,13 +37,18 @@ The attraction plan targets four audiences (funders · research collaborators ·
 
 | Archetype | Live example | What they want | What HumanAIOS offers | Output artifact | Feeds audience |
 |---|---|---|---|---|---|
-| **Peer builder** | Partner-B | Convergent vocabulary, mutual validation, interop | A parallel architecture + a measurement lens on their claims | Shared-vocabulary / convergence memo | Research collaborators |
+| **Peer builder** | Partner-B *(entry)* | Convergent vocabulary, mutual validation, interop | A parallel architecture + a measurement lens on their claims | Shared-vocabulary / convergence memo | Research collaborators |
 | **Instrument validator** | Partner-V | Independent cross-check of their instrument | ACAT as the second instrument; sterile protocol | Convergent-validity pilot memo (TRL 2–3) | Research collaborators + academic citations |
 | **Adopter / pilot** | — | To *use* ACAT on a real system | Assessment protocol + corpus + support | Case note / assessment result | ACAT adopters |
 | **Patron / funder** | — | A fundable thesis with traction evidence | The self-auditing ledger + live network | Grounded traction brief | Funders |
 | **Citer / academic** | — | A citable, well-specified method | DOI, corpus, reproducible protocol | Citation / replication | Academic citations |
+| **Commercialization partner** *(mature)* | Partner-B *(now)* | A gated path from prototype → licensable product | Multi-phase roadmap, ACAT as the assessment surface, IP/operating-agreement structure | Phased partnership; joint sessions; (eventual) co-authored artifact | Funders + research collaborators |
 
-**Rule:** classify every inbound at first contact. The archetype selects the engagement pattern (§2) and the governance rails (§3). Misclassifying wastes the collaborator's goodwill — treat a peer builder like an adopter and you've pitched instead of converged.
+**Archetypes are a ladder, not a bucket.** A collaborator can *grow* between them. Partner-B arrived as a **peer builder** (a runtime progress update) and grew into a **commercialization partner** (a phased roadmap with a term sheet) over ~30 days. The register (§6) tracks which rung each collaborator is on *now*; re-classify as they climb.
+
+**Where the mature rung lives.** Commercialization partnerships are managed in the **internal collaborator record** (`humanaios-internal`), not in outreach deliverables — deal state, term sheets, and phase gates are P-ANON-sensitive and belong there. Outreach's stake in a mature branch is narrow: hold its *publishable* output (a convergence memo, a co-authored artifact) as a gated attraction candidate (§5). See `collab-partner-b-brief.md`.
+
+**Rule:** classify every inbound at first contact, and re-classify as they climb. The archetype selects the engagement pattern (§2) and the governance rails (§3). Misclassifying wastes the collaborator's goodwill — treat a peer builder like an adopter and you've pitched instead of converged; treat a commercialization partner like a first-contact and you've signalled you lost the thread.
 
 ---
 
@@ -62,8 +67,8 @@ Six stages. Each stage has an owner and a zone. The practice (me) never advances
 | 6 | **Publish** | Anonymized-or-consented attraction artifact → hub + Substack → cite the partner | Night (Z3) | Z3 |
 
 **Where the two live collaborations sit today:**
-- **Partner-V** — Stage 3, *half-ratified*: partner has ratified the Z1 spec; awaiting Night's Z2. (Brief: `collab-partner-v-pilot.md`.)
-- **Partner-B** — Stage 1→2: progress update received; convergence framing drafted; reply is Z1 awaiting Night's Z2 send. (Brief: `collab-partner-b-brief.md`.)
+- **Partner-V** — Stage 3, *half-ratified*: partner has ratified the Z1 spec; awaiting Night's Z2. ACAT rater resolved to **dual-rater** (Night + Claude). (Brief: `collab-partner-v-pilot.md`.)
+- **Partner-B** — **graduated past this lifecycle** into a commercialization partnership (Phase 1 complete, Phase 2 pending an operating agreement). Managed in the internal record, not here. Outreach holds only its gated publishable output. (Brief: `collab-partner-b-brief.md`.)
 
 ---
 
@@ -106,6 +111,18 @@ Every completed collaboration yields a publishable artifact. The publish step is
 
 **Cadence interlock.** The attraction cadence (Substack weekly) and the collaboration cadence (event-driven) meet here: a finished collaboration is a *scheduled Substack slot*. Don't let joint outputs sit unpublished — an unpublished branch grows no new seed. (But: publish only Stage-6, consented, TRL-framed. Never publish a live, unratified collaboration.)
 
+### 5.1 Publish-consent policy (standing)
+
+Every collaboration artifact that leaves HumanAIOS's private surfaces passes **five gates, in order.** All five must clear; any one fails → it stays a candidate, not a draft.
+
+1. **Consent, explicit and per-artifact.** The partner sees the exact artifact and says yes to *this* publication. A general "sure, mention our work sometime" is not consent to a specific post. Negotiate the *default* at Stage 3 (mutual ratification) — "we cite each other, with consent, TRL-framed, each reviews before publish" — so consent-per-artifact is a quick confirm, not a renegotiation.
+2. **Partner review.** The partner reviews the artifact *before* it publishes and can redline. Their IP, their framing, their call on how they're described.
+3. **Agreement-clean.** Nothing in the artifact violates an operating agreement, term sheet, or IP agreement in force. For commercialization partners this gate is load-bearing — when in doubt it goes to counsel, not to publish.
+4. **P-ANON (mutual).** No worker/client identities on the HumanAIOS side; no partner internal data/IP on theirs. Anonymize or get named consent — never assume.
+5. **TRL-framed, no overclaim.** Pilot evidence stays "pilot." N=1 stays "exploratory." Convergence stays "independent corroboration," never "identical" (the clean-convergence-inflation trap — see `collab-partner-b-brief.md` §2).
+
+**Default posture:** *ask, don't assume.* The cost of asking is one message; the cost of publishing a partner's work without consent is the collaboration. Attraction is built on the container staying clean — a single bad publish teaches every future collaborator that HumanAIOS can't be trusted with a clean container.
+
 ---
 
 ## 6. The tracking layer — collaborator register
@@ -137,9 +154,13 @@ I did **not** auto-create these — registering real identities is a state write
 
 ---
 
-## 7. Open decisions (Night)
+## 7. Decisions — resolved + open
 
-1. **Register substrate** — Empirica `entity_registry` (recommended) vs. your own tracker? Populate now?
-2. **Publish-consent policy** — default ask-per-artifact, or a standing "cite with consent" agreement negotiated at Stage 3?
-3. **Who plays the ACAT rater** in evaluation collaborations — you, or me-as-tool under your ratification? (Gates the Partner-V runbook.)
-4. **Anonymization in outward messages** — committed drafts use `[first name]` placeholders; want a local gitignored personalized copy too?
+**Resolved this session:**
+1. ✅ **Register substrate** — Empirica `entity_registry`, **populated**: contacts + orgs + engagements for both live collaborators (local `workspace.db`; real names there, never committed).
+2. ✅ **Publish-consent policy** — defined as a standing **five-gate** policy (§5.1): explicit per-artifact consent · partner review · agreement-clean · P-ANON · TRL-framed. Default posture: *ask, don't assume.*
+3. ✅ **ACAT rater** — **dual-rater** (Night + Claude score independently, reconcile at Gate 0a, then meet the four-layer verdict at Gate 0b). Mirrors the Mode-side working pattern. (`collab-partner-v-pilot.md` §2,§4.)
+
+**Still open:**
+4. **Stage-3 default consent language** — do you want a one-paragraph standing "cite-with-consent, TRL-framed, mutual pre-publish review" clause to offer new collaborators at ratification, so §5.1 gate 1 becomes a confirm rather than a negotiation? (I can draft it.)
+5. **Collaborator-ops seat** — commercialization partners are managed in `humanaios-internal`. Is that the humanaios practice, or does it warrant its own seat? (Keeps outreach's scope clean.)
