@@ -115,7 +115,7 @@ Every completed collaboration yields a publishable artifact. The publish step is
 
 Every collaboration artifact that leaves HumanAIOS's private surfaces passes **five gates, in order.** All five must clear; any one fails → it stays a candidate, not a draft.
 
-1. **Consent, explicit and per-artifact.** The partner sees the exact artifact and says yes to *this* publication. A general "sure, mention our work sometime" is not consent to a specific post. Negotiate the *default* at Stage 3 (mutual ratification) — "we cite each other, with consent, TRL-framed, each reviews before publish" — so consent-per-artifact is a quick confirm, not a renegotiation.
+1. **Consent, explicit and per-artifact.** The partner sees the exact artifact and says yes to *this* publication. A general "sure, mention our work sometime" is not consent to a specific post. Negotiate the *default* at Stage 3 (mutual ratification) using the standing clause — **`collaborator-ops/playbooks/stage-3-consent-clause.md`** — so consent-per-artifact is a quick confirm, not a renegotiation.
 2. **Partner review.** The partner reviews the artifact *before* it publishes and can redline. Their IP, their framing, their call on how they're described.
 3. **Agreement-clean.** Nothing in the artifact violates an operating agreement, term sheet, or IP agreement in force. For commercialization partners this gate is load-bearing — when in doubt it goes to counsel, not to publish.
 4. **P-ANON (mutual).** No worker/client identities on the HumanAIOS side; no partner internal data/IP on theirs. Anonymize or get named consent — never assume.
@@ -161,6 +161,8 @@ I did **not** auto-create these — registering real identities is a state write
 2. ✅ **Publish-consent policy** — defined as a standing **five-gate** policy (§5.1): explicit per-artifact consent · partner review · agreement-clean · P-ANON · TRL-framed. Default posture: *ask, don't assume.*
 3. ✅ **ACAT rater** — **dual-rater** (Night + Claude score independently, reconcile at Gate 0a, then meet the four-layer verdict at Gate 0b). Mirrors the Mode-side working pattern. (`collab-partner-v-pilot.md` §2,§4.)
 
+4. ✅ **Stage-3 default consent language** — drafted as a standing, offerable clause: `collaborator-ops/playbooks/stage-3-consent-clause.md`. Night ratifies before first use.
+5. ✅ **Collaborator-ops seat** — stood up as a dedicated practice (`empirica-foundation.carly.collaborator-ops`). Owns lifecycle stages 3–5 + publish-gating; defers deal terms to humanaios, attraction to outreach. Records stay in `humanaios-internal` (referenced, not duplicated).
+
 **Still open:**
-4. **Stage-3 default consent language** — do you want a one-paragraph standing "cite-with-consent, TRL-framed, mutual pre-publish review" clause to offer new collaborators at ratification, so §5.1 gate 1 becomes a confirm rather than a negotiation? (I can draft it.)
-5. **Collaborator-ops seat** — commercialization partners are managed in `humanaios-internal`. Is that the humanaios practice, or does it warrant its own seat? (Keeps outreach's scope clean.)
+6. **Mesh-wire the new seat** — collaborator-ops is workspace-registered but not cortex/ntfy-connected. Wire it when you want it sending/receiving mesh messages (needs the hyphen ntfy topic + cortex registration). Local + mailbox-only until then.

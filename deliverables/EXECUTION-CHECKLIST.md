@@ -37,7 +37,7 @@
 | **Partner-B** | Commercialization partner *(grew from peer builder)* | Phase 1 done / Phase 2 pending op-agreement | internal seat + counsel | Managed in `humanaios-internal`; outreach holds only the gated convergence artifact (`collab-partner-b-brief.md` §3) |
 | **Partner-V** | Instrument validator | 3 (half-ratified) | **Night Z2** | Work Z2 checklist + approve stimulus set; ACAT = **dual-rater** (Night+Claude) (`collab-partner-v-pilot.md` §3,§5) |
 
-**Register populated** → Empirica `entity_registry` (contacts + orgs + engagements, local). **Publish-consent policy** → 5-gate standing policy (`collaboration-operating-system.md` §5.1).
+**Register populated** → Empirica `entity_registry` (contacts + orgs + engagements, local). **Publish-consent policy** → 5-gate standing policy (`collaboration-operating-system.md` §5.1) + offerable **Stage-3 consent clause** (`collaborator-ops/playbooks/stage-3-consent-clause.md`). **New seat:** `collaborator-ops` practice stood up (`~/practices/collaborator-ops`) — owns the collaboration *manage* half; mesh-wiring deferred to you.
 
 ## 🟡 Open decisions (only you)
 1. **Canonical stats** — LI 0.87 (paper) vs 0.843 (card) vs 0.8632 (portfolio); N 629/608. *Gates HF Fix 4, portfolio reconcile, Posts 2–6.* Decide, or authenticate Supabase and I'll verify.
