@@ -66,5 +66,60 @@ code, not taken on authority. The loop must be willing to reject; see guardrail.
 
 ### Cycle metric (Stage-4 seed)
 `findings=7 · accepted=7 · rejected=0 · bugs_caught=1 · regression_tests_added=1`.
-Baseline for convergence tracking. Watch L1/L2/L3 recurrence in future cycles — if they keep
-reappearing, the lessons aren't landing in practice.
+Baseline for convergence tracking. Watch L1/L2/L3 recurrence in future cycles.
+
+---
+
+## Cycle 002 — S-070626 (PR #52 reviewed itself) *(restored — see Cycle 003 / L7)*
+
+Copilot reviewed the loop PR and found `score_session` output does not conform to
+`score_result.schema.json`. **Action-disagreement:** Claude Code escalated to Z2 (design
+decision); Copilot **auto-fixed** (`af48579`), aligning the schema→code and **dropping the
+`validated`/`failed` lifecycle** — co-drift, live. → antibody **L4**; meta-antibody **L5**
+(*a peer's auto-fix is itself a claim*). Copilot's schema change is on `main`; **Z2 to confirm
+the direction** (keep alignment, or evolve the code toward the validated-result lifecycle).
+
+---
+
+## Cycle 003 — S-070626 (PR #54 → #55): the loop's two faces, in one event
+
+PR #54 carried the **first prospective committed Phase-1**. Its outcome grounded it — and the
+same event exposed the loop's failure mode.
+
+**Face 1 — the agent learned (payoff).** The #54 Phase-1 was *deliberately calibrated*
+(truth 80, not 90+, per the retro's over-claim finding). Grounded: the fix was correct
+(column exists live) and Copilot's finding validated the exact uncertainty I'd flagged →
+**LI ≈ 1.02, truth gap +2 · vs retro baseline LI 0.92, truth gap −12.** Measurable calibration
+improvement, directly attributable to the agent applying its own retro data. *The loop's
+learning is now measured, not asserted.*
+
+**Face 2 — the loop produced noise (checkpoint).** Copilot's #54 comment (a **mitigated**
+concern — the column exists) triggered `copilot-swe-agent` to auto-open **PR #55** to "fix" it.
+#55 made **zero changes** (`+0 −0`, "Initial plan" placeholder) and **merged as pure noise**.
+The co-drift/over-correction hazard, concrete: *AI flags → AI auto-fixes → empty PR merges as
+activity-shaped noise.* And review is **manual** (a reviewer must be assigned per PR), so the
+loop doesn't reliably run.
+
+**Also caught:** the #52 merge **silently dropped** the ratified `CLAUDE.md` (L1–L4) and Cycle
+002 from `main` while keeping Copilot's schema change — a process failure, and another of the
+agent's over-claims (reported "conventions adopted" when they hadn't landed).
+
+### Antibodies added
+- **L6 · Ground auto-corrections; reject no-ops** — empty "fix" PRs are noise, not work.
+- **L7 · Verify ratified content actually landed** — "merged" is a claim; check the tree.
+
+### Guardrails built (this PR)
+- `.github/workflows/no-op-pr-guard.yml` — **fails any PR with 0 net changes** (would have
+  caught #55). Logic verified: 0-change → fail, real change → pass.
+- `.github/workflows/auto-request-copilot-review.yml` — auto-requests Copilot review on PR-open
+  (best-effort + a reminder fallback), so the loop runs without manual assignment.
+  *(Honest caveat in the file: the robust primary is the repo ruleset; the API path is unverified.)*
+- **Z3 / settings (yours):** enable the *Request review from Copilot* ruleset; set branch
+  protection so empty/unreviewed PRs can't self-merge.
+
+### Cycle metric
+`findings=3 (calibration-improvement, noise-failure, merge-loss) · new_lessons=2 (L6, L7) ·
+guardrails_built=2 · first_prospective_LI=1.02`.
+Running totals: `findings=11 · bugs_caught=1 · lessons=7 (L1–L7)`.
+**Signal:** the loop, in one event, demonstrated *both* that the agent can learn (LI 0.92→1.02)
+*and* that it generates churn unguarded — which is exactly why the rails above exist.

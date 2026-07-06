@@ -1,0 +1,47 @@
+name: Auto-request Copilot review
+
+# Guardrail from the recursive review loop, Cycle 003 (S-070626). Copilot review is
+# currently MANUAL (a reviewer must be assigned per PR), so the loop doesn't reliably
+# run. This requests Copilot review automatically on PR-open.
+#
+# ⚠ HONEST NOTE (living the loop's own lesson — don't over-claim "verified"):
+# the *most reliable* mechanism is the repository ruleset "Request pull request review
+# from Copilot" (Settings → Rules) — a setting, not a workflow. This workflow is a
+# best-effort fallback; the reviewer slug / API path for Copilot may vary by GitHub
+# plan and is NOT verified in CI here. Its guaranteed value is the reminder fallback:
+# even if the auto-request can't be placed, it posts a "assign Copilot" nudge so the
+# manual step is never silently skipped.
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  request-copilot:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Request Copilot review (best-effort) or remind
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set +e
+          export GH_REPO="$REPO"
+
+          # Best-effort auto-request. Confirm the reviewer identifier for your plan; the
+          # ruleset setting above is the robust primary path.
+          gh api -X POST "repos/$REPO/pulls/$PR/requested_reviewers" \
+            -f "reviewers[]=copilot-pull-request-reviewer[bot]" >/tmp/out 2>&1
+          if [ $? -eq 0 ]; then
+            echo "Requested Copilot review on PR #$PR."
+            exit 0
+          fi
+
+          echo "Auto-request unavailable — falling back to a reminder. Detail:"; cat /tmp/out
+          gh pr comment "$PR" --body "🤖 **Loop reminder:** assign **Copilot** as reviewer — the recursive review loop only runs when Copilot reviews this PR. (Auto-request unavailable; enable the *Request review from Copilot* repo ruleset to make this automatic.) See \`docs/RECURSIVE_REVIEW_LOOP.md\`." || true
+          exit 0
