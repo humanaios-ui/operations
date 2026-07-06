@@ -213,6 +213,8 @@ def _build_phase1_row(payload: dict) -> dict:
         row["assessment_mode"] = payload.get("assessment_mode")
     if payload.get("submission_source") is not None:
         row["submission_source"] = payload.get("submission_source")
+    if payload.get("instrument_variant") is not None:
+        row["instrument_variant"] = payload.get("instrument_variant")
     if payload.get("metadata") is not None:
         row["metadata"] = payload.get("metadata")
 
