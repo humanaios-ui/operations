@@ -80,8 +80,7 @@ time (a query filter) **and** flagging any Observatory row that lacks a linked h
 - κ is **computed and published** (Stage-1 layer) across the M subset. **The POC passes its
   honesty bar iff κ is measured and disclosed** — a low κ is a finding to report, not a
   failure to hide.
-- The published corpus carries the **honesty stamp** (`self_referential: false`, external
-  anchor) from the harness honesty layer — it earns the claim it makes.
+- The published corpus carries the **honesty stamp** (reported as `self_referential: false`, external anchor) from the harness honesty layer — it earns the claim it makes.
 
 ## 7 · Parallel: the turtle (honesty-gated)
 
