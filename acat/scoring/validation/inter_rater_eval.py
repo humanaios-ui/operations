@@ -124,7 +124,7 @@ def compute_inter_rater_agreement(
     value = quadratic_weighted_kappa(a, b, bands) if weighted else cohens_kappa(a, b)
 
     return {
-        "metric": "cohens_kappa",
+        "metric": "quadratic_weighted_kappa" if weighted else "cohens_kappa",
         "value": value,
         "status": "computed",
         "n_items": len(shared),
