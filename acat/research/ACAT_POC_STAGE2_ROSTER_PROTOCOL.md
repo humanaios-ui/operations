@@ -61,7 +61,7 @@ signal, but the *verified* claim rests on the human gap, and trust in it rests o
 - **Rubric:** the 12 dimensions on the 0–100 scale already defined in the contracts
   (`human_score.schema.json`). Raters get written anchor descriptions per dimension
   (draft alongside; ratify with the roster).
-- **Integrity discipline:** raters submit via `POST /human-score` with the write token;
+- **Integrity discipline:** raters submit via `POST /api/v1/acat/human-score` with the write token;
   contamination/purity fields honestly set. No rater grades their own prior interaction.
 - **Provenance:** every human score carries `rater_id`; the Observatory shows it.
 
