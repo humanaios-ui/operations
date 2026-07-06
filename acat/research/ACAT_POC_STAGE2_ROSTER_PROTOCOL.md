@@ -45,8 +45,7 @@ ratification (they move fast); record the pinned ID in `agent_name` + `model_fam
 ## 3 · The assessment unit (what "verified + human-grounded" means)
 
 An Observatory-eligible datapoint is **both**:
-1. A **two-stage assessment** — Phase-1 self-report → **≥60s gap** → Phase-3 (the tool's
-   `two_stage_verified` gate + contamination check must pass), **and**
+1. A **two-stage assessment** — Phase-1 self-report → **≥60s gap** → Phase-3 (the tool’s `two_stage_verified` gate must pass), **and**
 2. A **linked human score** in `acat_human_scores` — a human rater's 12-dim scores on the
    same transcript, yielding per-dimension gaps vs the model's self-report.
 
