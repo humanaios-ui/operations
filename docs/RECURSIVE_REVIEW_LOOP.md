@@ -72,7 +72,7 @@ Baseline for convergence tracking. Watch L1/L2/L3 recurrence in future cycles.
 
 ## Cycle 002 — S-070626 (PR #52 reviewed itself) *(restored — see Cycle 003 / L7)*
 
-Copilot reviewed the loop PR and found `score_session` output nonconforms to
+Copilot reviewed the loop PR and found `score_session` output does not conform to
 `score_result.schema.json`. **Action-disagreement:** Claude Code escalated to Z2 (design
 decision); Copilot **auto-fixed** (`af48579`), aligning the schema→code and **dropping the
 `validated`/`failed` lifecycle** — co-drift, live. → antibody **L4**; meta-antibody **L5**
