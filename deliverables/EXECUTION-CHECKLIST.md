@@ -13,6 +13,7 @@
 - **Post 1 (anchor)** and **Post 5 (mission bridge)** drafted.
 - **Distribution system built**: `scripts/repurpose.py` (one post → 4 channels, format-only), Notes bank, Recommendations tracker, scheduler comparison, automation playbook.
 - **RentAHuman**: leaked API key **rotated**; server-side **key-proxy spec**; Z1 **integration concept** (queued, gated).
+- **Collaboration Operating System** built (attraction seed → collaboration branches): `collaboration-operating-system.md` (lifecycle, archetypes, governance rails, feedback loop, register) + two live-collaborator briefs — **Partner-B** builder (`collab-partner-b-brief.md`, reply drafted) and **Partner-V** convergent-validity pilot (`collab-partner-v-pilot.md`, half-ratified).
 
 ---
 
@@ -30,11 +31,18 @@
 
 ---
 
+## 🌿 Live collaborations (the branches)
+| Partner | Archetype | Stage | Waiting on | Next |
+|---|---|---|---|---|
+| **Partner-B** (builder) | Peer builder | 1→2 | Night Z2 | Ratify + send the Z1 LinkedIn reply (`collab-partner-b-brief.md` §4) |
+| **Partner-V** (validator) | Instrument validator | 3 (half-ratified) | **Night Z2** | Work Z2 checklist + assign ACAT rater + approve stimulus set (`collab-partner-v-pilot.md` §3,§5) |
+
 ## 🟡 Open decisions (only you)
 1. **Canonical stats** — LI 0.87 (paper) vs 0.843 (card) vs 0.8632 (portfolio); N 629/608. *Gates HF Fix 4, portfolio reconcile, Posts 2–6.* Decide, or authenticate Supabase and I'll verify.
 2. **"Magnifica Humanitas"** — confirm it's a real citable encyclical, or it's illustrative (gates Post 6).
 3. **Canonical email** — `aioshuman@gmail.com` everywhere (+ fix the paper) or keep the paper's?
 4. **Substack publication name**; **GitHub account type** (user/org).
+5. **Collaboration register** — populate Empirica `entity_registry` (contacts + engagements) now? · **publish-consent** default? · **who plays the ACAT rater** in the Partner-V pilot? (see `collaboration-operating-system.md` §7)
 
 ---
 
@@ -48,7 +56,7 @@
 ---
 
 ## 📁 Deliverable index (`deliverables/`, branch `outreach/phase0-audit`)
-`phase0-discoverability-audit.md` · `p0-1-corpus-fix.md` · `p0-2-zenodo-submission-pack.md` · `zenodo-api-helpers.md` · `arxiv-hold-action-plan.md` · `p0-3-canonical-identity-map.md` · `p0-3-orcid-edits.md` · `p0-3-substack-edits.md` · `p0-3-github-edits.md` · `p0-3-hub-jsonld.md` · `substack-publication-plan.md` · `witness-stand-post-1.md` · `witness-stand-post-5.md` · `distribution-automation-playbook.md` · `notes-bank.md` · `recommendations-tracker.md` · `scheduler-comparison.md` · `rah-integration-concept.md` · `rah-key-proxy-spec.md` · `EXECUTION-CHECKLIST.md`
+`phase0-discoverability-audit.md` · `p0-1-corpus-fix.md` · `p0-2-zenodo-submission-pack.md` · `zenodo-api-helpers.md` · `arxiv-hold-action-plan.md` · `p0-3-canonical-identity-map.md` · `p0-3-orcid-edits.md` · `p0-3-substack-edits.md` · `p0-3-github-edits.md` · `p0-3-hub-jsonld.md` · `substack-publication-plan.md` · `witness-stand-post-1.md` · `witness-stand-post-5.md` · `distribution-automation-playbook.md` · `notes-bank.md` · `recommendations-tracker.md` · `scheduler-comparison.md` · `rah-integration-concept.md` · `rah-key-proxy-spec.md` · `collaboration-operating-system.md` · `collab-partner-b-brief.md` · `collab-partner-v-pilot.md` · `EXECUTION-CHECKLIST.md`
 Plus: `scripts/repurpose.py`, `.mcp.json` (supabase + rentahuman).
 
 ---
@@ -59,5 +67,7 @@ Plus: `scripts/repurpose.py`, `.mcp.json` (supabase + rentahuman).
 3. **Full `worker.js` + `wrangler.toml`** for the key proxy.
 4. **Apply the identity edits** (ORCID → HF → Substack → GitHub → hub JSON-LD).
 5. When ready: authenticate **Supabase** (stats) / connect **Chrome** (X+LinkedIn).
+6. **Ratify + send the Partner-B reply**; **work the Partner-V Z2 checklist** + approve the stimulus set (the two live branches).
+7. **Populate the collaborator register** (Empirica `entity_registry`) on your go.
 
 *State persisted: all work committed on `outreach/phase0-audit`; empirica goals/findings logged; umbrella goal `180abcc2` remains open.*
