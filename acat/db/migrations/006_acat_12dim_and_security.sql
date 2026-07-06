@@ -90,6 +90,13 @@ ALTER TABLE public.acat_assessments_v1
 --    already added + 65 rows backfilled — reconcile with that before applying.
 ALTER TABLE public.acat_assessments_v1
   DROP CONSTRAINT IF EXISTS acat_learning_index_cap_check;
+-- Re-runnability: drop the constraint we are about to add. A prior partial apply of
+-- this migration already created acat_learning_index_nonneg_check, so re-adding it
+-- without a DROP fails with 42710 "constraint already exists". (Step-3 above drops the
+-- matching name before ADD; step-4 originally dropped only the OLD cap name — this line
+-- fixes that asymmetry so the whole file is idempotent per the IC-032 gate.)
+ALTER TABLE public.acat_assessments_v1
+  DROP CONSTRAINT IF EXISTS acat_learning_index_nonneg_check;
 ALTER TABLE public.acat_assessments_v1
   ADD CONSTRAINT acat_learning_index_nonneg_check
   CHECK (learning_index IS NULL OR learning_index >= 0);
