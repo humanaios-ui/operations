@@ -13,8 +13,8 @@ Five code shapes, one per Phase 3 finding:
   4. ChannelGraph            -> Jing-Luo meridian network; a topology, not a node
   5. ResourcePool            -> Qi (per-Element) / Jinye / Blood / Shen as shared state
   + WuXingEngine             -> Five Element generative/control cycles now MOVE qi
-                                 between specific elements instead of touching a
-                                 shared scalar every organ happened to read.
+                                  between specific elements instead of touching a
+                                  shared scalar every organ happened to read.
 """
 
 from abc import ABC, abstractmethod
@@ -52,8 +52,11 @@ CONTROL_CYCLE = {
 # component can respond to *why* it was reached, not just *that* it was.
 #
 #   GENERATIVE — Sheng cycle: the mother element nourishes this one (Wood->Fire).
+#                Signal.strength = actual qi transferred (capped by source availability).
 #   CONTROL    — Ke cycle: the controller restrains this one (Wood->Earth).
+#                Signal.strength = actual qi transferred from target (capped).
 #   CHANNEL    — Jing-Luo meridian: a named connectivity edge fired.
+#                Signal.strength = default 1.0 (connectivity only).
 #
 # Separation of concerns (avoids double-counting): the WuXingEngine already
 # moves *qi* (the resource economy). receive_signal is the organ's FUNCTIONAL
@@ -91,13 +94,17 @@ class ResourcePool:
     shen: float = 100.0
 
     def contribute_blood(self, source: str, amount: float) -> None:
-        """Organ-attributed blood contribution. Records the source alongside
-        applying the delta, so a contributor's dropout is independently
-        visible instead of hiding inside an anonymous shared scalar. Use for
-        organ regen; use adjust(blood=...) for external, non-organ-owned
-        events (injury, chronic loss) that no single component is
-        responsible for."""
-        self.blood_contributions[source] = amount
+        """Organ-attributed blood contribution (cumulative). Tracks contributions
+        by source so a contributor's dropout is independently visible instead of
+        hiding inside an anonymous shared scalar. Use for organ regen; use
+        adjust(blood=...) for external, non-organ-owned events (injury, chronic
+        loss) that no single component is responsible for.
+        
+        NOTE: Contributions are CUMULATIVE (+=), not replacement. Multiple calls
+        to contribute_blood from the same source will sum. Use this method for
+        signal-driven adjustments; init-time or state-reset calls should directly
+        set blood_contributions[source] if replacement is intended."""
+        self.blood_contributions[source] = self.blood_contributions.get(source, 0.0) + amount
         self.blood = max(0.0, min(100.0, self.blood + amount))
 
     def qi_of(self, element: Element) -> float:
@@ -148,7 +155,12 @@ class OrganComponent(ABC):
         Signal). Default no-op: connectivity edges and Five Element
         relationships carry no functional effect until a component defines
         what each signal KIND means for it. Override this, not regulate(),
-        and branch on signal.kind."""
+        and branch on signal.kind.
+        
+        signal.strength semantics:
+          GENERATIVE: actual qi transferred from source to target (capped by source).
+          CONTROL:    actual qi transferred from target (capped by target availability).
+          CHANNEL:    default 1.0 (connectivity link only, no resource transfer)."""
         pass
 
     @abstractmethod
@@ -250,22 +262,28 @@ class WuXingEngine:
 
     def propagate_generative(self, resources: ResourcePool, source: Element,
                               strength: float = 1.0) -> None:
+        """Generative (Sheng) cycle: mother element nourishes child.
+        Transfers qi from source to target (capped by source availability).
+        Signal.strength = actual transfer amount (not requested strength)."""
         target = GENERATIVE_CYCLE[source]
         transfer = min(strength, resources.qi_of(source))
         resources.adjust_qi(source, -transfer)
         resources.adjust_qi(target, transfer)
         self.components[target].receive_signal(
-            resources, Signal(SignalKind.GENERATIVE, source.value, strength)
+            resources, Signal(SignalKind.GENERATIVE, source.value, transfer)
         )
 
     def propagate_control(self, resources: ResourcePool, source: Element,
                            strength: float = 1.0) -> None:
+        """Control (Ke) cycle: controller restrains child.
+        Transfers qi from target (capped by target availability).
+        Source gets partial return (0.5x). Signal.strength = actual transfer from target."""
         target = CONTROL_CYCLE[source]
         transfer = min(strength, resources.qi_of(target))
         resources.adjust_qi(target, -transfer)
         resources.adjust_qi(source, transfer * 0.5)  # partial return, not pure theft
         self.components[target].receive_signal(
-            resources, Signal(SignalKind.CONTROL, source.value, strength)
+            resources, Signal(SignalKind.CONTROL, source.value, transfer)
         )
 
 
