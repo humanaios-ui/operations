@@ -112,7 +112,7 @@ def compute_inter_rater_agreement(
     )
     if len(shared) < 2:
         return {
-            "metric": "cohens_kappa",
+            "metric": "quadratic_weighted_kappa" if weighted else "cohens_kappa",
             "value": None,
             "status": "insufficient_overlap",
             "n_items": len(shared),
