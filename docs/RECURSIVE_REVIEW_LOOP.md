@@ -23,7 +23,7 @@ authors PRs of its own). This loop stops that being ad-hoc and makes it a measur
 |---|---|
 | 1 · Capture | Pull Copilot reviews/comments/autofix commits per PR (`gh` today; GitHub MCP later). Log each as a finding, `source=copilot`. |
 | 2 · Ground | Classify (accept/reject/investigate) and **ground against tests/CI** — the external anchor. Reject with reasoning. A finding does not promote on Copilot's authority; it promotes on evidence. |
-| 3 · Distill | Turn accepted+grounded findings into durable lessons (below → a CLAUDE.md conventions block, Z2-ratified). Every absorbed bug gets a regression test. |
+| 3 · Distill | Turn accepted+grounded findings into durable lessons (captured below, Z2-ratified). Every absorbed bug gets a regression test. |
 | 4 · Measure | Track per-cycle: findings count, **accept-rate**, and recurrence of a finding *class*. Falling recurrence = the platform is learning. |
 | 5 · (later) | Bidirectional — Claude Code reviews Copilot-authored PRs; mutual calibration. |
 
@@ -51,7 +51,7 @@ code, not taken on authority. The loop must be willing to reject; see guardrail.
 | 6 | #47 doc | `two_stage_verified` gate is the P1→P3 *time-gap*, not a contamination check | **ACCEPT** — matches ingest | Gate description corrected |
 | 7 | #47 doc | `self_referential` is publish-time metadata, not a DB/API column | **ACCEPT** | Clarified as honesty-layer tag |
 
-### Lessons distilled (antibodies → propose for CLAUDE.md conventions, Z2)
+### Lessons distilled (antibodies, Z2-ratified)
 
 - **L1 · Guard-clause consistency.** When a status/branch depends on a downstream function
   that has a falsy/edge guard (e.g. `compute_li` returns `None` for `p1_total==0`), key the
