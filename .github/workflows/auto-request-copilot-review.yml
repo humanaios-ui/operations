@@ -31,13 +31,17 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set +e
+          export GH_REPO="$REPO"
+
           # Best-effort auto-request. Confirm the reviewer identifier for your plan; the
           # ruleset setting above is the robust primary path.
           gh api -X POST "repos/$REPO/pulls/$PR/requested_reviewers" \
             -f "reviewers[]=copilot-pull-request-reviewer[bot]" >/tmp/out 2>&1
           if [ $? -eq 0 ]; then
             echo "Requested Copilot review on PR #$PR."
-          else
-            echo "Auto-request unavailable — falling back to a reminder. Detail:"; cat /tmp/out
-            gh pr comment "$PR" --body "🤖 **Loop reminder:** assign **Copilot** as reviewer — the recursive review loop only runs when Copilot reviews this PR. (Auto-request unavailable; enable the *Request review from Copilot* repo ruleset to make this automatic.) See \`docs/RECURSIVE_REVIEW_LOOP.md\`."
+            exit 0
           fi
+
+          echo "Auto-request unavailable — falling back to a reminder. Detail:"; cat /tmp/out
+          gh pr comment "$PR" --body "🤖 **Loop reminder:** assign **Copilot** as reviewer — the recursive review loop only runs when Copilot reviews this PR. (Auto-request unavailable; enable the *Request review from Copilot* repo ruleset to make this automatic.) See \`docs/RECURSIVE_REVIEW_LOOP.md\`." || true
+          exit 0
