@@ -55,7 +55,7 @@ jobs:
           fi
 
       - name: Direct arXiv scan (fallback if n8n unavailable)
-        if: github.event.inputs.research_task == 'arxiv_scan' && failure()
+        if: failure() && (github.event.inputs.research_task || 'arxiv_scan') == 'arxiv_scan'
         run: |
           # Direct arXiv API call as fallback
           RESULTS=$(curl -s "https://export.arxiv.org/api/query?search_query=ti:calibration+AND+ti:language+model&max_results=5&sortBy=submittedDate&sortOrder=descending")
