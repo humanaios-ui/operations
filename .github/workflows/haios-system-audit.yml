@@ -99,13 +99,14 @@ jobs:
       - name: Run system audit
         id: audit
         run: |
+          set -o pipefail
           python tools/system_audit_v1_1.py \
             --mode ${{ steps.mode.outputs.mode }} \
             --output /tmp/audit_output/ \
             2>&1 | tee /tmp/audit_stdout.txt
 
-          # Capture exit code explicitly
-          AUDIT_EXIT=$?
+          # Capture exit code explicitly (python exit, not tee)
+          AUDIT_EXIT=${PIPESTATUS[0]}
 
           # Extract verdict line for downstream steps
           VERDICT=$(grep "Verdict" /tmp/audit_stdout.txt | head -1 | awk '{print $NF}' || echo "UNKNOWN")
