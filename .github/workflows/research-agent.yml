@@ -32,16 +32,13 @@ jobs:
       - name: Trigger n8n research orchestrator
         id: trigger
         run: |
+          TASK="${{ github.event.inputs.research_task || 'arxiv_scan' }}"
+          HYPOTHESIS="${{ github.event.inputs.hypothesis || 'all' }}"
           RESPONSE=$(curl -s -X POST "${{ secrets.N8N_WEBHOOK_RESEARCH }}" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"task\": \"${{ github.event.inputs.research_task }}\",
-              \"hypothesis\": \"${{ github.event.inputs.hypothesis || 'all' }}\",
-              \"run_id\": \"${{ github.run_id }}\",
-              \"date\": \"$(date +%Y-%m-%d)\"
-            }")
+            -d "{\"task\":\"${TASK}\",\"hypothesis\":\"${HYPOTHESIS}\",\"run_id\":\"${{ github.run_id }}\",\"date\":\"$(date +%Y-%m-%d)\"}")
           echo "response=$RESPONSE" >> $GITHUB_OUTPUT
-          echo "✅ Research task triggered: ${{ github.event.inputs.research_task }}"
+          echo "✅ Research task triggered: ${TASK}"
 
       - name: Wait for n8n processing
         run: sleep 90
