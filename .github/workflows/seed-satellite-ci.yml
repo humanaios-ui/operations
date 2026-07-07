@@ -121,7 +121,7 @@ jobs:
             else
               echo "  FAIL: Could not seed ${REPO} (HTTP ${PUSH_STATUS})"
               cat /tmp/push_result.json || true
-            fi
+              exit 1
           done
 
           echo "--------------------------------------"
