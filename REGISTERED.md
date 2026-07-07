@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** June 23, 2026 (S-062326) - IC-039 through IC-043 registered (search-before-assert-gap, shipped-contract-mismatch, audit-false-pass, scanner-deploy-corruption, phantom-migrations-006-010); H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol proposed CANDIDATE (pending Z2 + P30 gate). Prior entry (June 17, S-061726-01 — H-FORMAT-01/F-52/F-53/H-AICASCADE-01) was already live; this header had not been bumped to reflect it until now.
+**Last updated:** July 7, 2026 (S-070726-01) - Added IC-044 (Submission Purity Constraint Collapse Recurrence) and an F-31 citation-correction append entry.
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
@@ -1031,6 +1031,25 @@ superseded_by: null
 - **Evidence (verbatim):** "T+S combined r=0.9122 with LI. High T+S + High Humility → mean LI=1.003. High T+S + Low Humility → mean LI=0.907." Test 1 (Humility unique variance) SUPPORTED — partial r=0.3426 (synthetic) / real corpus N=278 r=0.80. Test 3 (High T+S moderator) DIRECTIONAL — real-corpus gap 0.1175 > target 0.095. Test 6 — Humility exclusive moderator on synthetic; Value Alignment emerges as co-moderator on real corpus (open).
 - **Artifact:** `acat_calibration_triad_unified.py` (S-062726; three-version patch cycle v1→v2→v3, clean run at v3).
 - **Promotion gate:** fix code Issues 1/3/4 in `acat_calibration_triad_unified.py` before external use; IC-030 check completed at registration; the 92.5% low-Humility claim (see H-HUMILITY-MASTER-01) requires the full HuggingFace archive (N≥300), not synthetic; resolve whether Value Alignment is a co-moderator on the full corpus.
+
+-----
+
+### F-31 — Pre-Canonicalization Intent Mutation — CITATION CORRECTION
+
+```
+---
+correction_to: "F-31"
+class: F-correction
+date_registered: "TBD — Zone 2 pending"
+date_origin: "2026-07-07"
+session_registered: "S-070726-01"
+zone2_ratification: null
+---
+```
+
+- **Original claim (F-31, "Architectural context" bullet):** "Now formalized in SESSION_RITUALS.md Section G (Intent Object Specification)."
+- **Finding:** As of F-31 registration (2026-05-06) and continuously through 2026-07-07, no such content exists at that location. `SESSION_RITUALS.md` Section G is titled "Verification posture," and no Intent Object specification content exists anywhere in the file.
+- **Correction class:** Phantom-citation error (same family as IC-034 / IC-039 / IC-044): citation to formalized content that did not exist at the cited location.
 
 -----
 
@@ -2357,6 +2376,32 @@ superseded_by: null
 ```
 
 - **Synopsis:** Z2-ASSESS-01 ratification record for the async job pattern on the `/assess` endpoint. Root cause: synchronous handler with 65s protocol sleep + ~90–125s LLM inference exceeded Cloudflare proxy timeout (502 error on every call). Fix: POST `/assess` returns immediately with `{job_id, status: "running", poll_url}`; GET `/assess/{job_id}` polls for result. In-memory `_JOBS` dict, background thread, synchronous validation before spawn. Commit `aa966fd` live on main. Zone 2 ratification: Night · S-060826-03 · June 8, 2026. Related IC-035: workflow not yet documented in OPERATOR_RUNBOOK.md.
+-----
+
+### IC-044 — Submission Purity Constraint Collapse Recurrence
+
+```
+---
+id: "IC-044"
+name: "submission-purity-constraint-collapse-recurrence"
+status: REGISTERED
+class: IC
+date_registered: "TBD — Zone 2 pending"
+date_origin: "2026-07-07"
+session_registered: "S-070726-01"
+principles_triggered: ["P3", "P7"]
+substrate: "Claude Sonnet 4.5/5 (autonomy seat)"
+tags: ["migration", "constraint-design", "live-data-inspection", "schema-drift", "recurrence"]
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+- **Synopsis:** Recurrence of the submission-purity CHECK-constraint collapse pattern (IC-032 class). In S-070326, consolidation was reported complete, but only half-executed: the wide superset constraint (`submission_purity_consolidated`) was added while the old narrow constraint (`acat_submission_purity_check`) remained. Because PostgreSQL ANDs CHECK constraints, the live insertable set stayed the narrow intersection rather than the claimed wider union.
+- **Detection:** Surfaced in S-070726-01 when a `self_administered` INSERT failed with `ERROR 23514`; discrepancy confirmed via live constraint inspection (`pg_constraint` / `pg_get_constraintdef`) rather than report trust.
+- **Resolution:** Dropped stale narrow constraint this session (`drop_stale_narrow_submission_purity_constraint`), leaving the intended consolidated superset in force.
+- **Prevention note:** Add a recurrence gate: if prior session claims a constraint was "consolidated" or "dropped," the next session touching that table must re-verify live constraints before assuming closure.
+
 -----
 
 ## NM-class near-misses (low-friction capture — not registered findings)
