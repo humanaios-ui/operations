@@ -1,0 +1,128 @@
+# ============================================================
+# Seed Satellite CI
+# File: .github/workflows/seed-satellite-ci.yml
+# Repo: humanaios-ui/operations
+#
+# PURPOSE:
+#   Addresses audit finding S-070726 P2 IC-035: humanaios, research,
+#   acat-inspect, ACAT-Dashboard, ACAT-Observatory, and
+#   findlocaltattooartists have zero .github/workflows/.
+#
+#   Pushes tools/satellite-haios-audit.yml from this repo into each
+#   satellite repo as .github/workflows/haios-audit.yml, satisfying
+#   the acceptance criterion: each repo runs >=1 validator/freshness
+#   check on push.
+#
+# SECRETS REQUIRED:
+#   HAIOS_ORG_PAT -- Classic PAT with "repo" scope on all 6 target repos
+#                    (Settings -> Secrets -> Actions -> New secret)
+#
+# USAGE:
+#   Trigger manually via Actions -> Seed Satellite CI -> Run workflow.
+#   Idempotent: re-running updates the workflow file in-place.
+#
+# ============================================================
+
+name: Seed Satellite CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: print what would be pushed but do not push'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    name: Seed CI into satellite repos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout operations repo
+        uses: actions/checkout@v4
+
+      - name: Seed each satellite repo
+        env:
+          HAIOS_ORG_PAT: ${{ secrets.HAIOS_ORG_PAT }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          set -euo pipefail
+
+          REPOS=(
+            "humanaios-ui/humanaios"
+            "humanaios-ui/research"
+            "humanaios-ui/acat-inspect"
+            "humanaios-ui/ACAT-Dashboard"
+            "humanaios-ui/ACAT-Observatory"
+            "humanaios-ui/findlocaltattooartists"
+          )
+
+          TEMPLATE="tools/satellite-haios-audit.yml"
+          WORKFLOW_PATH=".github/workflows/haios-audit.yml"
+          COMMIT_MSG="ci: seed HumanAIOS standing audit workflow (S-070726 IC-035)"
+
+          if [ ! -f "${TEMPLATE}" ]; then
+            echo "Error: template ${TEMPLATE} not found in checkout"
+            exit 1
+          fi
+
+          ENCODED=$(base64 -w 0 "${TEMPLATE}")
+          echo "Template: ${TEMPLATE} ($(wc -c < "${TEMPLATE}") bytes)"
+
+          for REPO in "${REPOS[@]}"; do
+            echo "--------------------------------------"
+            echo "Processing: ${REPO}"
+
+            if [ "${DRY_RUN}" = "true" ]; then
+              echo "  DRY RUN -- would push ${WORKFLOW_PATH} to ${REPO}"
+              continue
+            fi
+
+            # Check whether the file already exists (need its SHA to update it)
+            HTTP_STATUS=$(curl -s -o /tmp/existing.json -w "%{http_code}" \
+              -H "Authorization: Bearer ${HAIOS_ORG_PAT}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${REPO}/contents/${WORKFLOW_PATH}")
+
+            if [ "${HTTP_STATUS}" = "200" ]; then
+              EXISTING_SHA=$(python3 -c "import json; print(json.load(open('/tmp/existing.json')).get('sha',''))")
+              echo "  File exists (sha: ${EXISTING_SHA:0:8}). Updating."
+              printf '{"message":"%s","content":"%s","sha":"%s"}' \
+                "${COMMIT_MSG}" "${ENCODED}" "${EXISTING_SHA}" > /tmp/body.json
+            elif [ "${HTTP_STATUS}" = "404" ]; then
+              echo "  File not found. Creating."
+              printf '{"message":"%s","content":"%s"}' \
+                "${COMMIT_MSG}" "${ENCODED}" > /tmp/body.json
+            else
+              echo "  WARNING: Unexpected HTTP ${HTTP_STATUS} querying ${REPO} -- skipping"
+              cat /tmp/existing.json || true
+              continue
+            fi
+
+            PUSH_STATUS=$(curl -s -o /tmp/push_result.json -w "%{http_code}" \
+              -X PUT \
+              -H "Authorization: Bearer ${HAIOS_ORG_PAT}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "Content-Type: application/json" \
+              -d @/tmp/body.json \
+              "https://api.github.com/repos/${REPO}/contents/${WORKFLOW_PATH}")
+
+            if [ "${PUSH_STATUS}" = "200" ] || [ "${PUSH_STATUS}" = "201" ]; then
+              echo "  OK: Seeded ${REPO} (HTTP ${PUSH_STATUS})"
+            else
+              echo "  FAIL: Could not seed ${REPO} (HTTP ${PUSH_STATUS})"
+              cat /tmp/push_result.json || true
+            fi
+          done
+
+          echo "--------------------------------------"
+          echo "Seeding run complete."

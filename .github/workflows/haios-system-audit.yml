@@ -1,0 +1,201 @@
+# ============================================================
+# HAIOS System Audit — Scheduled Pre-Flight
+# File: .github/workflows/haios-system-audit.yml
+# Repo: humanaios-ui/operations
+#
+# PURPOSE:
+#   Runs system_audit_v1_1.py daily at 06:00 UTC before any
+#   likely session start. Verifies that the operator's mental
+#   model matches live system state before Zone 2 decisions.
+#
+# MKS MAPPING (MKS-01):
+#   The Subconscious Mind executes without the Conscious Mind
+#   having to ask. This job is the autonomous daily self-check —
+#   the system verifying its own grounding without human prompt.
+#   Without this cron, the check only runs when Night thinks to run it.
+#
+# CONTINUITY LAYER (C-1 — Grounding Fidelity):
+#   "Do I base governance decisions on the verified current state
+#   of the system I am governing?"
+#   This job answers that question every morning.
+#
+# OUTPUTS:
+#   - PASS  → posts green status to #acat-monitor, exits 0
+#   - WARN  → posts amber status to #acat-monitor, exits 0
+#   - FAIL  → posts red alert to #acat-monitor AND #wgs-sync, exits 1
+#
+# SECRETS REQUIRED (set in humanaios-ui/operations → Settings → Secrets):
+#   GITHUB_TOKEN_HAIOS   — PAT with repo read access
+#   SUPABASE_URL         — Supabase project URL
+#   SUPABASE_KEY         — Supabase anon/service key
+#   SLACK_BOT_TOKEN      — Slack bot token (workspace T0AHCDYQU92)
+#   HAIOS_EXPECTED_N     — Minimum expected corpus row count (e.g. 629)
+#   CF_ZONE_ID           — Cloudflare zone ID
+#   CF_API_TOKEN         — Cloudflare API token
+#
+# CADENCE:
+#   Daily 06:00 UTC — before typical session window
+#   Manual trigger always available for on-demand pre-ratification gate
+#
+# ============================================================
+
+name: HAIOS System Audit
+
+on:
+  schedule:
+    - cron: '0 6 * * *'       # Daily at 06:00 UTC
+  workflow_dispatch:           # Manual trigger — on-demand pre-ratification gate
+    inputs:
+      mode:
+        description: 'Audit mode'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - pre-ratification
+          - full
+
+permissions:
+  contents: read
+
+jobs:
+  system-audit:
+    name: Pre-Flight System State Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN_HAIOS }}
+      SUPABASE_URL:       ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY:       ${{ secrets.SUPABASE_KEY }}
+      SLACK_BOT_TOKEN:    ${{ secrets.SLACK_BOT_TOKEN }}
+      HAIOS_EXPECTED_N:   ${{ secrets.HAIOS_EXPECTED_N }}
+      CF_ZONE_ID:         ${{ secrets.CF_ZONE_ID }}
+      CF_API_TOKEN:       ${{ secrets.CF_API_TOKEN }}
+
+    steps:
+      - name: Checkout operations repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet requests
+
+      - name: Determine audit mode
+        id: mode
+        run: |
+          # Scheduled runs use full mode. Manual can override.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT
+          else
+            echo "mode=full" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run system audit
+        id: audit
+        run: |
+          python tools/system_audit_v1_1.py \
+            --mode ${{ steps.mode.outputs.mode }} \
+            --output /tmp/audit_output/ \
+            2>&1 | tee /tmp/audit_stdout.txt
+
+          # Capture exit code explicitly
+          AUDIT_EXIT=$?
+
+          # Extract verdict line for downstream steps
+          VERDICT=$(grep "Verdict" /tmp/audit_stdout.txt | head -1 | awk '{print $NF}' || echo "UNKNOWN")
+          GATE_MSG=$(grep "PRE-RATIFICATION GATE" /tmp/audit_stdout.txt | head -1 || echo "Gate message unavailable")
+
+          echo "verdict=${VERDICT}" >> $GITHUB_OUTPUT
+          echo "gate_msg=${GATE_MSG}" >> $GITHUB_OUTPUT
+          echo "exit_code=${AUDIT_EXIT}" >> $GITHUB_OUTPUT
+
+          # Exit 0 on PASS/WARN (non-blocking), 1 on FAIL only
+          # This prevents cron mail floods while still failing the job on real failures
+          exit $AUDIT_EXIT
+        continue-on-error: true     # Capture result before Slack notification
+
+      - name: Post PASS/WARN to #acat-monitor
+        if: steps.audit.outputs.verdict == 'PASS' || steps.audit.outputs.verdict == 'WARN'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          VERDICT="${{ steps.audit.outputs.verdict }}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          MODE="${{ steps.mode.outputs.mode }}"
+
+          if [ "$VERDICT" = "PASS" ]; then
+            ICON="✅"
+            COLOR="#36a64f"
+            SUMMARY="All checks passed. System state verified. Zone 2 ratification may proceed."
+          else
+            ICON="⚠️"
+            COLOR="#e6a817"
+            SUMMARY="One or more checks returned WARN. Review before ratification. See run log."
+          fi
+
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"channel\": \"C0APHCJ5WUE\",
+              \"text\": \"${ICON} System Audit ${VERDICT} — ${TIMESTAMP}\",
+              \"attachments\": [{
+                \"color\": \"${COLOR}\",
+                \"fields\": [
+                  {\"title\": \"Mode\", \"value\": \"${MODE}\", \"short\": true},
+                  {\"title\": \"Verdict\", \"value\": \"${VERDICT}\", \"short\": true},
+                  {\"title\": \"Gate\", \"value\": \"${SUMMARY}\", \"short\": false},
+                  {\"title\": \"Run Log\", \"value\": \"${RUN_URL}\", \"short\": false}
+                ]
+              }]
+            }" > /dev/null
+
+          echo "${ICON} Slack notification sent to #acat-monitor"
+
+      - name: Post FAIL alert to #acat-monitor AND #wgs-sync
+        if: steps.audit.outputs.exit_code == '1'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          GATE_MSG="${{ steps.audit.outputs.gate_msg }}"
+
+          PAYLOAD="{
+            \"text\": \"🚨 System Audit FAIL — ${TIMESTAMP}\",
+            \"attachments\": [{
+              \"color\": \"#cc0000\",
+              \"fields\": [
+                {\"title\": \"Gate Verdict\", \"value\": \"DO NOT PROCEED with Zone 2 ratification\", \"short\": false},
+                {\"title\": \"Detail\", \"value\": \"${GATE_MSG}\", \"short\": false},
+                {\"title\": \"Auth-Theater Risk\", \"value\": \"Mode B (temporal decoupling) — system state unverified\", \"short\": false},
+                {\"title\": \"Run Log\", \"value\": \"${RUN_URL}\", \"short\": false}
+              ]
+            }]
+          }"
+
+          # Post to #acat-monitor
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$(echo $PAYLOAD | jq --arg ch 'C0APHCJ5WUE' '. + {channel: $ch}')" > /dev/null
+
+          # Post to #wgs-sync (FAIL only — this is an operational signal)
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$(echo $PAYLOAD | jq --arg ch 'C0AND66PT7U' '. + {channel: $ch}')" > /dev/null
+
+          echo "🚨 FAIL alerts sent to #acat-monitor and #wgs-sync"
+
+      - name: Set final exit code
+        run: |
+          # Propagate audit exit code as job result
+          exit ${{ steps.audit.outputs.exit_code }}
