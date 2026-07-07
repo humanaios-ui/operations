@@ -37,6 +37,7 @@ dropped this file — see L7.)*
 - **L7 · Verify ratified content actually landed.** After a merge/rebase, confirm the files you
   intended are on `main` — churn can silently drop additions (this CLAUDE.md was dropped by the
   #52 merge). "Merged" is a claim; check the tree. *(Cycle 003)*
+
 - **L8 · P-ANON gate before naming a collaborator.** Before a funding/public-facing doc names a
   collaborator or org, confirm they have self-attributed publicly; keep unconfirmed parties
   anonymized (e.g. "Governance-systems collaborator [PENDING P-ANON CHECK]"). Names are a
