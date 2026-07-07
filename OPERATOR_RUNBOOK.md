@@ -1,7 +1,8 @@
 # HumanAIOS Operator Runbook
 
 **Version:** 0.8
-**Last updated:** July 7, 2026 (S-070726 · IC-026 class fix · §15 added — Reconcile drifted local clones)**Canonical home:** `humanaios-internal/OPERATOR_RUNBOOK.md`
+**Last updated:** July 7, 2026 (S-070726 · IC-026 class fix · §15 added — Reconcile drifted local clones)
+**Canonical home:** `humanaios-internal/OPERATOR_RUNBOOK.md`
 **Local mirror:** `~/Desktop/HAIOS-Main/humanaios-internal/OPERATOR_RUNBOOK.md`
 **Scope:** Operator-side recipes. What Night does. Copy-paste from this file.
 **What it is not:** Governance (see GOVERNANCE.md). Substrate protocol (see SESSION_RITUALS.md). Z3 commit discipline (see Z3_PROTOCOL.md). Findings (see REGISTERED.md).
