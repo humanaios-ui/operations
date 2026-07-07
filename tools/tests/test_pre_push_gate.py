@@ -6,6 +6,7 @@ Covers:
   1. check_branch  — allowed / wrong-branch logic
   2. check_not_behind — behind-remote detection using a real local git setup
   3. run()         — integration: stale push blocked, wrong branch blocked, happy path
+  4. hook mode     — remote from argv, permissive default, env var / git config overrides
 
 Run:
     pytest tools/tests/test_pre_push_gate.py -v
@@ -252,3 +253,67 @@ class TestSmokeTest:
 
     def test_smoke_test_passes(self):
         assert run_smoke_test() is True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# hook mode — remote from argv, permissive default, env/config overrides
+# ─────────────────────────────────────────────────────────────────────────────
+
+GATE_SCRIPT = Path(__file__).resolve().parents[1] / "pre_push_gate.py"
+
+
+def _run_gate_cli(
+    local: Path,
+    extra_args: list[str] | None = None,
+    env: dict | None = None,
+) -> tuple[int, str]:
+    """Run pre_push_gate.py as a subprocess; return (returncode, combined output)."""
+    cmd = [sys.executable, str(GATE_SCRIPT), "--repo", str(local)] + (extra_args or [])
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    return result.returncode, result.stdout + result.stderr
+
+
+class TestHookMode:
+    """Verify hook-mode behaviors: remote from argv, permissive default, overrides."""
+
+    def test_hook_mode_permissive_by_default(self, tmp_path):
+        """Feature-branch push is allowed in hook mode when no env var / git config set."""
+        import os as _os
+        local, remote = _make_repo_pair(tmp_path)
+        _git(["checkout", "-b", "feature-x"], cwd=str(local))
+        # Strip any PRE_PUSH_GATE_ALLOW_BRANCHES that might be set in the outer env.
+        env = {k: v for k, v in _os.environ.items() if k != "PRE_PUSH_GATE_ALLOW_BRANCHES"}
+        rc, out = _run_gate_cli(local, ["origin", str(remote)], env=env)
+        assert rc == 0, f"Feature-branch push should be allowed in hook mode:\n{out}"
+
+    def test_hook_mode_uses_remote_from_argv(self, tmp_path):
+        """Stale push is still blocked in hook mode using the remote passed on argv."""
+        local, remote = _make_repo_pair(tmp_path)
+        _advance_remote(remote, local)
+        # Simulate: git passes "origin <url>" as positional args.
+        rc, out = _run_gate_cli(local, ["origin", str(remote)])
+        assert rc == 1, f"Stale push should be BLOCKED in hook mode:\n{out}"
+        assert "BLOCKED" in out
+
+    def test_hook_mode_env_var_restricts_branches(self, tmp_path):
+        """PRE_PUSH_GATE_ALLOW_BRANCHES restricts allowed branches in hook mode."""
+        import os as _os
+        local, remote = _make_repo_pair(tmp_path)
+        _git(["checkout", "-b", "feature-env"], cwd=str(local))
+        env = {**_os.environ, "PRE_PUSH_GATE_ALLOW_BRANCHES": "main"}
+        rc, out = _run_gate_cli(local, ["origin", str(remote)], env=env)
+        assert rc == 1, f"Feature branch should be blocked by env var:\n{out}"
+        assert "BLOCKED" in out
+        assert "feature-env" in out
+
+    def test_hook_mode_git_config_restricts_branches(self, tmp_path):
+        """hooks.allowBranches git config restricts allowed branches in hook mode."""
+        import os as _os
+        local, remote = _make_repo_pair(tmp_path)
+        _git(["config", "hooks.allowBranches", "main"], cwd=str(local))
+        _git(["checkout", "-b", "feature-cfg"], cwd=str(local))
+        env = {k: v for k, v in _os.environ.items() if k != "PRE_PUSH_GATE_ALLOW_BRANCHES"}
+        rc, out = _run_gate_cli(local, ["origin", str(remote)], env=env)
+        assert rc == 1, f"Feature branch should be blocked by git config:\n{out}"
+        assert "BLOCKED" in out
+        assert "feature-cfg" in out

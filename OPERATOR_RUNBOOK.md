@@ -1520,7 +1520,7 @@ both conditions before the push reaches the remote.
 | Path | Role |
 |---|---|
 | `tools/pre_push_gate.py` | Core logic: `check_branch()`, `check_not_behind()`, `run()` |
-| `tools/tests/test_pre_push_gate.py` | Pytest suite — 14 tests including stale-push scenario |
+| `tools/tests/test_pre_push_gate.py` | Pytest suite — 18 tests including stale-push scenario |
 
 ### Install as a git pre-push hook (one-time, per clone)
 
@@ -1553,17 +1553,39 @@ python3 tools/pre_push_gate.py --smoke-test
 
 | Condition | Action |
 |---|---|
-| Current branch not in `--allow-branches` | Exit 1 — BLOCKED, message names the branch and the allowed list |
+| Current branch not in allowed list | Exit 1 — BLOCKED, message names the branch and the allowed list |
 | Local branch is N commits behind remote | Exit 1 — BLOCKED, message gives N and the `git pull --rebase` remedy |
 | No tracking branch configured | Allow (warning only — cannot determine lag) |
 | Remote unreachable (offline) | Allow (fetch failure is non-fatal; gate uses cached tracking info) |
 | All guards pass | Exit 0 — push proceeds |
 
+In hook mode, the remote name is read from the positional argument git provides
+(`<remote-name>`), not from the `--remote` flag.
+
 ### Allowed branches
 
-The default allowed list is `["main"]`. Override at call-time with
-`--allow-branches`. Pass an empty string (`--allow-branches ""`) to disable the
+**Standalone mode** (no positional args): default allowed list is `["main"]`. Override
+with `--allow-branches`. Pass an empty string (`--allow-branches ""`) to disable the
 branch guard entirely (behind-remote guard still runs).
+
+**Hook mode** (git invokes with `<remote-name> <remote-url>` positional args): the
+branch guard defaults to **permissive** (all branches allowed) so that feature-branch
+pushes work without configuration. To restrict branches in hook mode, set one of:
+
+```bash
+# Per-clone via git config (applies to this repository only)
+git config hooks.allowBranches main,release
+
+# Per-session via environment variable (comma-separated)
+export PRE_PUSH_GATE_ALLOW_BRANCHES=main,release
+
+# One-time override at call-time (flag wins over env var and git config)
+python3 tools/pre_push_gate.py origin <url> --allow-branches main,release
+```
+
+Resolution order in hook mode (first match wins): `--allow-branches` flag →
+`PRE_PUSH_GATE_ALLOW_BRANCHES` env var → `git config hooks.allowBranches` →
+`[]` (all branches allowed).
 
 ### Resolving a blocked push
 

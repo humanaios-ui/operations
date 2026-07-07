@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pre-Push Gate — v1.0
+Pre-Push Gate — v1.1
 Builder v1.7 compliant · security_gate_tool
 HumanAIOS · S-070726
 
@@ -21,6 +21,16 @@ USAGE — as a git pre-push hook (install once per clone):
   and piped lines of the form "<local-ref> <local-sha> <remote-ref> <remote-sha>"
   on stdin. The hook exits 0 to allow the push, non-zero to abort.
 
+  In hook mode (invoked by git with positional <remote-name>):
+    - The remote is read from the positional arg git provides, not from --remote.
+    - Allowed branches are resolved in this order:
+        1. --allow-branches flag (if passed explicitly)
+        2. PRE_PUSH_GATE_ALLOW_BRANCHES environment variable (comma-separated)
+        3. git config hooks.allowBranches (comma-separated)
+        4. [] — permissive default: every branch is allowed
+      This means feature-branch pushes work out of the box; restrict only when
+      you have intentionally configured the env var or git config.
+
 CHECKS:
     1. Wrong-branch guard: current branch must be in ALLOWED_BRANCHES.
     2. Behind-remote guard: local HEAD must not be behind the remote tracking
@@ -36,18 +46,20 @@ Audit: S-070726 · P0 · IC-026 class.
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 TOOL_NAME     = "pre_push_gate"
-TOOL_VERSION  = "1.0.0"
+TOOL_VERSION  = "1.1.0"
 TOOL_CATEGORY = "security_gate_tool"
 TOOL_SESSION  = "S-070726"
 
-# Branches that are permitted as a push source.
-# Override via --allow-branches or the ALLOWED_BRANCHES env-var.
+# Branches that are permitted as a push source in standalone mode.
+# In hook mode, override via PRE_PUSH_GATE_ALLOW_BRANCHES env var,
+# git config hooks.allowBranches, or --allow-branches flag.
 DEFAULT_ALLOWED_BRANCHES: list[str] = ["main"]
 
 
@@ -62,6 +74,12 @@ def _run(cmd: list[str], cwd: str | None = None) -> tuple[int, str, str]:
         cwd=cwd,
     )
     return result.returncode, result.stdout.strip(), result.stderr.strip()
+
+
+def _git_config_get(key: str, repo_path: str = ".") -> str | None:
+    """Read a git config value; returns None if the key is not set."""
+    rc, out, _ = _run(["git", "config", "--get", key], cwd=repo_path)
+    return out if rc == 0 and out else None
 
 
 def current_branch(repo_path: str = ".") -> tuple[str | None, str]:
@@ -226,7 +244,7 @@ def run_smoke_test() -> bool:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Pre-Push Gate v1.0 — behind-remote / wrong-branch guard (IC-026)"
+        description="Pre-Push Gate v1.1 — behind-remote / wrong-branch guard (IC-026)"
     )
     parser.add_argument(
         "--branch",
@@ -240,11 +258,13 @@ def main() -> None:
     )
     parser.add_argument(
         "--allow-branches",
-        default=",".join(DEFAULT_ALLOWED_BRANCHES),
+        default=None,  # None signals "not explicitly provided"
         help=(
             "Comma-separated list of allowed push-source branches "
-            f"(default: {','.join(DEFAULT_ALLOWED_BRANCHES)}). "
-            "Pass an empty string to disable the branch guard."
+            f"(standalone default: {','.join(DEFAULT_ALLOWED_BRANCHES)}). "
+            "Pass an empty string to disable the branch guard. "
+            "In hook mode, defaults to [] (all branches allowed) unless overridden "
+            "by PRE_PUSH_GATE_ALLOW_BRANCHES env var or git config hooks.allowBranches."
         ),
     )
     parser.add_argument(
@@ -252,12 +272,12 @@ def main() -> None:
         default=".",
         help="Path to git repository root (default: .)",
     )
-    parser.add_argument(
-        "--smoke-test",
+    parser.add_argument("--smoke-test",
         action="store_true",
         help="Run built-in smoke test and exit",
     )
-    # git pre-push hook passes these positional args; accept and ignore them.
+    # git pre-push hook passes <remote-name> <remote-url> as positional args.
+    # In hook mode these are used directly; in standalone mode they are absent.
     parser.add_argument("remote_name", nargs="?", help=argparse.SUPPRESS)
     parser.add_argument("remote_url", nargs="?", help=argparse.SUPPRESS)
 
@@ -268,14 +288,34 @@ def main() -> None:
         print("Smoke test: PASS" if ok else "Smoke test: FAIL")
         sys.exit(0 if ok else 1)
 
-    allowed = (
-        [b.strip() for b in args.allow_branches.split(",") if b.strip()]
-        if args.allow_branches
-        else []
-    )
-
     repo_path = str(Path(args.repo).resolve())
-    result = run(repo_path=repo_path, remote=args.remote, allowed_branches=allowed)
+
+    # Detect hook mode: git passes <remote-name> as the first positional arg.
+    hook_mode = args.remote_name is not None
+
+    # Remote resolution: hook mode reads from argv; standalone uses --remote flag.
+    effective_remote = args.remote_name if hook_mode else args.remote
+
+    # Allowed branches resolution.
+    if args.allow_branches is not None:
+        # Explicit --allow-branches flag always wins.
+        allowed = [b.strip() for b in args.allow_branches.split(",") if b.strip()]
+    elif hook_mode:
+        # Hook mode without an explicit flag: env var → git config → permissive ([]).
+        env_val = os.environ.get("PRE_PUSH_GATE_ALLOW_BRANCHES")
+        if env_val is not None:
+            allowed = [b.strip() for b in env_val.split(",") if b.strip()]
+        else:
+            gc_val = _git_config_get("hooks.allowBranches", repo_path=repo_path)
+            if gc_val is not None:
+                allowed = [b.strip() for b in gc_val.split(",") if b.strip()]
+            else:
+                allowed = []  # permissive default — all branches allowed in hook mode
+    else:
+        # Standalone mode without an explicit flag: use the declared default (main).
+        allowed = list(DEFAULT_ALLOWED_BRANCHES)
+
+    result = run(repo_path=repo_path, remote=effective_remote, allowed_branches=allowed)
 
     # Print result
     print(f"pre-push gate: {result['verdict']}")
