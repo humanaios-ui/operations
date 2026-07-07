@@ -1,0 +1,35 @@
+name: No-op PR guard
+
+# Guardrail from the recursive review loop, Cycle 003 (S-070626). PR #55 — an empty
+# "fix code as per review comment" PR from the Copilot SWE agent (0 files changed) —
+# merged as pure noise. This fails any PR that changes nothing, so activity-shaped
+# noise can't slip through. See docs/RECURSIVE_REVIEW_LOOP.md (L6).
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fail if the PR has no net changes
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          changed=$(git diff --name-only "$BASE" "$HEAD" | wc -l | tr -d ' ')
+          netlines=$(git diff --numstat "$BASE" "$HEAD" | awk '{a+=$1; d+=$2} END{print (a+d)+0}')
+          echo "changed files: $changed | net line changes: $netlines"
+          if [ "$changed" -eq 0 ]; then
+            echo "::error title=No-op PR::This PR changes 0 files. Empty 'fix' PRs are loop noise (see docs/RECURSIVE_REVIEW_LOOP.md L6). Close it, or add the real change it claims to make."
+            exit 1
+          fi
+          echo "OK — PR makes real changes."

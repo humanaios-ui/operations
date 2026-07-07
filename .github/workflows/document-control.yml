@@ -1,0 +1,50 @@
+name: document-control
+
+# Phase 2 gate. The registry + frontmatter integrity check (validate.py) is the
+# ERROR gate — it blocks on structural controlled-document violations. Prose
+# (markdownlint) and internal-link checks run ADVISORY (continue-on-error) per
+# DOCUMENT_CONTROL_PLAN.md §4 ("advisory checks ... as warnings"); promote them
+# to blocking in a later phase once the doc corpus is clean.
+
+on:
+  pull_request:
+    paths:
+      - "**/*.md"
+      - "document-registry.yaml"
+      - ".doc-control/**"
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "document-registry.yaml"
+      - ".doc-control/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install deps
+        run: pip install --quiet pyyaml
+      - name: Registry + frontmatter integrity (ERROR — blocks merge)
+        run: python3 .doc-control/validate.py
+      - name: Markdown lint (ADVISORY — warns, does not block)
+        continue-on-error: true
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: |
+            **/*.md
+            #node_modules
+      - name: Internal link check (ADVISORY — warns, does not block)
+        continue-on-error: true
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: "--offline --no-progress './**/*.md'"
+          fail: true

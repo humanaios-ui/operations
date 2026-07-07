@@ -14,7 +14,7 @@
 ## GOVERNANCE GATES BEFORE SUBMISSION
 
 - [ ] Z2 ratification by Night (full draft review)
-- [ ] P-ANON check: confirm Governing Engines / DeMarius J. Lawson self-attributed publicly before naming
+- [ ] P-ANON check: confirm collaborator self-attributed publicly before naming
 - [ ] arXiv hold status — cite preprint if the hold clears before July 10; else "manuscript under review"
 - [ ] **Overclaim review — the field's failure mode is both directions:** confirm no sentence implies HumanAIOS detects sentience/consciousness OR that it forecloses AI moral status. Agnosticism is the credibility anchor.
 - [ ] Disclosure discipline: interoceptive/architecture finding stays in neuroscience framing (no esoteric-framework labels externally)
@@ -117,7 +117,7 @@ Welfare measurement carries a two-sided risk that this project is designed aroun
 
 **Independent external validation.** ACAT's behavioral measurements are independently co-scored by *empirica*, a separately-developed Brier-grounded epistemic-calibration instrument (David Van Assche, Nubaeon), through a live evaluator seat. Paired data shows the two instruments converging and diverging predictably — independent evidence that the measurement approach captures something real. This independent-evaluator relationship is also the governance safeguard for the welfare-measurement work.
 
-**Collaborating organization [PENDING P-ANON CHECK]:** Governing Engines LLC / Mode AI — governance-systems architecture. 50/50 attribution on joint findings.
+**Collaborating organization [PENDING P-ANON CHECK]:** Governance-systems collaborator — governance-systems architecture. 50/50 attribution on joint findings.
 
 **Existing infrastructure:** live behavioral corpus (Supabase), FastAPI assessment backend (Railway), assessment interface (Cloudflare), GitHub operations repository with full governance documentation.
 
@@ -151,7 +151,7 @@ Welfare measurement carries a two-sided risk that this project is designed aroun
 
 **Remaining human gates (Night, before Z3 send — deadline July 10):**
 - [ ] **Submit Power Concentration first** (primary, July 2) — this is secondary.
-- [ ] **P-ANON** on DeMarius/Governing Engines.
+- [ ] **P-ANON** on collaborator attribution (names/orgs only after self-attribution).
 - [ ] **Overclaim review** — verify no sentence implies detection of sentience or foreclosure of moral status.
 - [ ] **arXiv** framing (cite vs "under review").
 - [ ] Confirm funding amount + PI-salary/API figures.

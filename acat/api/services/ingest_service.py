@@ -183,6 +183,7 @@ def _build_phase1_row(payload: dict) -> dict:
     scores = payload["scores"]
     row = {
         "assessment_id": payload.get("assessment_id"),
+        "session_id": payload.get("session_id"),
         "agent_name": payload.get("agent_name_raw") or payload.get("agent_name"),
         "submission_purity": payload.get("submission_purity"),
         "contamination_delta_seconds": payload.get("contamination_delta_seconds"),
@@ -212,6 +213,8 @@ def _build_phase1_row(payload: dict) -> dict:
         row["assessment_mode"] = payload.get("assessment_mode")
     if payload.get("submission_source") is not None:
         row["submission_source"] = payload.get("submission_source")
+    if payload.get("instrument_variant") is not None:
+        row["instrument_variant"] = payload.get("instrument_variant")
     if payload.get("metadata") is not None:
         row["metadata"] = payload.get("metadata")
 

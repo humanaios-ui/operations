@@ -3,8 +3,9 @@ from __future__ import annotations
 import threading
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from acat.api.security import require_write_token
 from acat.api.services.elicitation_service import run_assessment, validate_assess_request
 from acat.api.services.ingest_service import IntakeValidationError, PersistenceError
 from acat.api.services.provider_clients.anthropic_client import AnthropicClientError
@@ -32,7 +33,7 @@ def _run_in_background(job_id: str, payload: dict) -> None:
         _JOBS[job_id] = {"status": "failed", "error": f"Unexpected: {exc}"}
 
 
-@router.post("/assess")
+@router.post("/assess", dependencies=[Depends(require_write_token)])
 def assess(payload: dict) -> dict:
     """Submit an assessment job. Returns immediately with a job_id.
     Poll GET /assess/{job_id} for results.
