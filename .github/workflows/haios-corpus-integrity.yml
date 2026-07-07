@@ -160,14 +160,14 @@ jobs:
         run: |
           LAYER="${{ github.event.inputs.layer || 'acat' }}"
 
+          set -o pipefail
           python3 tools/circuit_validator_v1_0.py \
             --corpus /tmp/corpus_for_validation.csv \
             --layer "${LAYER}" \
             --output /tmp/circuit_output/ \
             2>&1 | tee /tmp/circuit_stdout.txt
 
-          CIRCUIT_EXIT=$?
-
+          CIRCUIT_EXIT=${PIPESTATUS[0]}
           # Parse summary statistics from output
           COMPLETE=$(grep -oP "complete=\K[0-9]+" /tmp/circuit_stdout.txt || echo "0")
           HALF=$(grep -oP "half_circuit=\K[0-9]+" /tmp/circuit_stdout.txt || echo "0")
