@@ -143,3 +143,22 @@ should now catch the empty ones; the human/Z2 anchor remains the guard against t
 The mend itself was applied by Claude Code (grounded), not auto-merged — L6 in practice.
 
 `findings=2 applied · 1 moot · running totals: findings=13 · lessons=7 (L1–L7)`.
+
+---
+
+## Cycle 005 — S-070626 (Copilot review of merged PRs #62 / #58 / #43)
+
+Three grounded findings on already-merged work — the loop reviewing what shipped.
+
+| PR | Finding | Disposition |
+|---|---|---|
+| **#62** | P-ANON: `LONGVIEW_DIGITAL_MINDS_APP.md` line 118 names a collaborator (David Van Assche / Nubaeon) while the "confirm self-attributed publicly" checkbox is unticked. Line 120's other collaborator is *already* correctly anonymized + `[PENDING P-ANON CHECK]`. | **new lesson L8**; the two checklist boxes are a Z2/Night confirm before the July-10 submission (can't be machine-closed — human consent knowledge). |
+| **#58** | The Cycle-002 *revert* left `RECURSIVE_REVIEW_LOOP.md` referencing `CLAUDE.md` as a dangling ref. | **reinforces L7** — a revert orphans references the same way a merge drops additions; "reverted" is also a claim, check the tree. |
+| **#43** | Metaculus substrate provenance hardcoded `claude-sonnet-4-6` after the runtime switched to Haiku/Gemini. | **calibration win** — Claude Code flagged this *itself* when making the fix; Copilot independently confirmed (an honest hedge, validated, not an over-claim). Fixed via single-source constant so it can't drift again. |
+
+### Antibody added
+- **L8 · P-ANON gate before naming a collaborator** — names are a claim about consent, not just a fact. Natural future HAIOSCC `verification_kind` for the P16 research-outputs monitor: a funding row naming an unconfirmed party self-flags.
+
+### Cycle metric
+`findings=3 (P-ANON, dangling-revert-ref, substrate-drift) · new_lessons=1 (L8) · calibration-confirmations=1 (#43 self-flagged, peer-confirmed)`.
+Running totals: `findings=16 · bugs_caught=1 · lessons=8 (L1–L8)`.
