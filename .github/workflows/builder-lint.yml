@@ -83,7 +83,7 @@ jobs:
       - name: Run full corpus scan (warns, does not block)
         run: |
           python3 tools/builder_compliance_scanner_v1.0.py --path tools/ \
-            --output /tmp/builder-report
+            --output /tmp/builder-report --min-pass-rate 0.90
           echo "Report written to /tmp/builder-report"
 
       - name: Upload corpus scan report
