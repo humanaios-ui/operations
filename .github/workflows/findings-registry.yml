@@ -1,0 +1,33 @@
+name: findings-registry
+
+# NON-BLOCKING gate (staged). 13 known residuals remain until Issue-09 lands;
+# promote to blocking (remove continue-on-error) once those are resolved.
+# Mirrors the document-control.yml pattern.
+# Acceptance: a PR reintroducing a real ID collision fails CI; a clean one passes.
+
+on:
+  pull_request:
+    paths:
+      - "REGISTERED.md"
+      - "tools/registered_findings_validator_v1_0.py"
+  push:
+    branches: [main]
+    paths:
+      - "REGISTERED.md"
+      - "tools/registered_findings_validator_v1_0.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Findings registry integrity (NON-BLOCKING — 13 known residuals pending Issue-09)
+        continue-on-error: true
+        run: python3 tools/registered_findings_validator_v1_0.py --input REGISTERED.md --strict
