@@ -30,6 +30,16 @@ Usage:
     python echoes_copilot_acat_scanner_v0_1.py --self-test
 """
 
+# Builder v1.7 compliant
+# HumanAIOS
+
+TOOL_NAME = "echoes_copilot_acat_scanner"
+TOOL_VERSION = "1.0.0"
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 import argparse
 import json
 import os

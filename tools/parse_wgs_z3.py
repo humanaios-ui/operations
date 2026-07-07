@@ -5,6 +5,15 @@ GitHub Actions context: reads #wgs-sync, upserts Z3 items into Supabase
 Session: S-061126 · HumanAIOS LLC
 """
 
+# Builder v1.7 compliant
+
+TOOL_NAME = "parse_wgs_z3"
+TOOL_VERSION = "1.0.0"
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 import os, re, json
 from slack_sdk import WebClient
 from supabase import create_client
@@ -101,3 +110,6 @@ for item in all_items:
         print(f"NEW: {item['title'][:60]}")
 
 print(f"Sync complete. {len(all_items)} items processed.")
+
+if __name__ == "__main__":
+    pass

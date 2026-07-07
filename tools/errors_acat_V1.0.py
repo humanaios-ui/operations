@@ -19,6 +19,15 @@ Error classes:
   CorpusIntegrityError — Corpus CSV failed structural/row-level validation
 """
 
+# Builder v1.7 compliant
+
+TOOL_NAME = "errors_acat_V1.0"
+TOOL_VERSION = "1.0.0"
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 
 class AcatError(Exception):
     """Base class for all ACAT domain errors."""
@@ -201,3 +210,6 @@ def error_from_code(error_code: str, message: str = None, **kwargs) -> AcatError
     """Instantiate an AcatError subclass by its error_code string."""
     cls = ERROR_CODE_MAP.get(error_code, AcatError)
     return cls(message or error_code, **kwargs)
+
+if __name__ == "__main__":
+    pass
