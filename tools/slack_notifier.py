@@ -25,7 +25,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ---------------------------------------------------------------------------
-# Builder v1.7 constants
+# Builder v1.7 compliant
 # ---------------------------------------------------------------------------
 TOOL_NAME = "slack_notifier"
 TOOL_VERSION = "1.1.0"
