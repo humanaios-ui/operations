@@ -11,11 +11,11 @@
 | Asset class | Count | Location | Role in audit |
 |---|---|---|---|
 | In-scope repositories | 12 | see charter §2 | audit subjects |
-| Tool scripts (top-level) | 93 | `operations/tools/*.py\|*.js\|*.jsx` | mix — 25 audit-instruments, see §2 |
+| Tool scripts (top-level) | 93 | `operations/tools/*.py`, `operations/tools/*.js`, `operations/tools/*.jsx` | mix — 25 audit-instruments, see §2 |
 | HAIOS skills (`SKILL.md`) | 78 dirs | `operations/tools/skills/` | mostly tool-companion wrappers + 7 named governance skills |
 | Empirica plugin skills | 17 | `~/.claude/plugins/local/empirica/skills/` | audit *method* (constitution, transaction, code-audit, services-auditor) |
 | Draft workflow YAMLs | 8 | `operations/tools/`, `operations/workflows/`, `operations/.doc-control/ci/` | Sustain candidates (mostly NOT wired to `.github/`) |
-| Live GitHub Actions | 5 total across mesh | only `lasting-light-ai` (2) + `empirica` fork (3, upstream) | **near-zero in authored repos — Sustain gap** |
+| Live GitHub Actions | 11 total across mesh | `operations` (5) + `humanaios-internal` (1) + `lasting-light-ai` (2) + `empirica` fork (3, upstream) | limited across mesh — many repos still have 0 (see §4) |
 
 ---
 
