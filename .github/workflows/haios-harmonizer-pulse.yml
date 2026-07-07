@@ -172,13 +172,13 @@ jobs:
       - name: Run harmonizer
         id: harmonize
         run: |
+          set -o pipefail
           python3 tools/haios_harmonizer_v1_0.py \
             --state /tmp/harmonizer_state.json \
             --output /tmp/harmonizer_output/ \
             2>&1 | tee /tmp/harmonizer_stdout.txt
 
-          HARM_EXIT=$?
-
+          HARM_EXIT=${PIPESTATUS[0]}
           # Extract key signals from stdout
           PRIMARY_SIGNAL=$(grep -oP "(HARD_BLOCK|ESCALATE|CONVERGE|ADVANCE|MAINTAIN|MOLT_READY)" \
             /tmp/harmonizer_stdout.txt | head -1 || echo "MAINTAIN")
