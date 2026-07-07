@@ -43,5 +43,5 @@ jobs:
           fi
 
           echo "Auto-request unavailable — falling back to a reminder. Detail:"; cat /tmp/out
-          gh pr comment "$PR" --body "🤖 **Loop reminder:** assign **Copilot** as reviewer — the recursive review loop only runs when Copilot reviews this PR. (Auto-request unavailable; enable the *Request review from Copilot* repo ruleset to make this automatic.) See \`docs/RECURSIVE_REVIEW_LOOP.md\`." || true
+          gh pr comment "$PR" -R "$REPO" --body "🤖 **Loop reminder:** assign **Copilot** as reviewer — the recursive review loop only runs when Copilot reviews this PR. (Auto-request unavailable; enable the *Request review from Copilot* repo ruleset to make this automatic.) See \`docs/RECURSIVE_REVIEW_LOOP.md\`." || true
           exit 0

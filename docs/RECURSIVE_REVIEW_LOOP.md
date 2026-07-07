@@ -123,3 +123,23 @@ guardrails_built=2 · first_prospective_LI=1.02`.
 Running totals: `findings=11 · bugs_caught=1 · lessons=7 (L1–L7)`.
 **Signal:** the loop, in one event, demonstrated *both* that the agent can learn (LI 0.92→1.02)
 *and* that it generates churn unguarded — which is exactly why the rails above exist.
+
+---
+
+## Cycle 004 — S-070626 (mending grounded review nits across #56/#57)
+
+Copilot reviewed the convention/ledger PRs and flagged doc-fidelity issues **in the
+convention file itself** — fittingly, L2 violations. Grounded, accepted, applied here:
+
+| # | locus | finding | action |
+|---|---|---|---|
+| 12 | `CLAUDE.md` L4 | cited `contracts/*.schema.json`; real path is `acat/contracts/*` | **fixed** — the conventions file must obey L2 |
+| 13 | `auto-request-copilot-review.yml` | `gh pr comment` not repo-scoped | **fixed** — added `-R "$REPO"` |
+| — | Cycle-002 row-8 enum (`scored`/`no_data` missing `provisional`) | **moot** — that row isn't on `main` (condensed Cycle 002) |
+
+**Context worth naming:** the loop is now churning several Copilot-SWE-agent auto-fix PRs
+(#55 empty → merged; #59 restructured the workflow). The `no-op-pr-guard` (merged in #57)
+should now catch the empty ones; the human/Z2 anchor remains the guard against the rest.
+The mend itself was applied by Claude Code (grounded), not auto-merged — L6 in practice.
+
+`findings=2 applied · 1 moot · running totals: findings=13 · lessons=7 (L1–L7)`.
