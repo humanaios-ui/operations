@@ -15,12 +15,21 @@ import jsonschema
 import yaml
 
 
+class FrontmatterParseError(Exception):
+    """Raised when YAML frontmatter is present but cannot be parsed."""
+
+
 def extract_frontmatter(md_path: Path) -> dict | None:
     text = md_path.read_text(encoding="utf-8")
     match = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
     if not match:
         return None
-    return yaml.safe_load(match.group(1))
+    try:
+        return yaml.safe_load(match.group(1))
+    except yaml.YAMLError as exc:
+        raise FrontmatterParseError(
+            f"YAML PARSE ERROR [{md_path.parent.name}]: {exc}"
+        ) from exc
 
 
 def validate_all(schema_path: Path, skills_dir: Path) -> list[str]:
@@ -29,7 +38,11 @@ def validate_all(schema_path: Path, skills_dir: Path) -> list[str]:
     errors = []
 
     for skill_file in sorted(skills_dir.rglob("SKILL.md")):
-        fm = extract_frontmatter(skill_file)
+        try:
+            fm = extract_frontmatter(skill_file)
+        except FrontmatterParseError as exc:
+            errors.append(str(exc))
+            continue
         if fm is None:
             errors.append(f"MISSING FRONTMATTER: {skill_file}")
             continue
@@ -45,7 +58,10 @@ def check_deprecated_successors(skills_dir: Path) -> list[str]:
     deprecated = []
 
     for skill_file in skills_dir.rglob("SKILL.md"):
-        fm = extract_frontmatter(skill_file)
+        try:
+            fm = extract_frontmatter(skill_file)
+        except FrontmatterParseError:
+            continue
         if fm:
             skill_names.add(fm.get("name", ""))
             if fm.get("status") == "DEPRECATED":
@@ -61,7 +77,10 @@ def check_deprecated_successors(skills_dir: Path) -> list[str]:
 def check_governance_zone(skills_dir: Path) -> list[str]:
     errors = []
     for skill_file in skills_dir.rglob("SKILL.md"):
-        fm = extract_frontmatter(skill_file)
+        try:
+            fm = extract_frontmatter(skill_file)
+        except FrontmatterParseError:
+            continue
         if fm and fm.get("architecture") == "governance":
             if not fm.get("zone"):
                 errors.append(f"MISSING ZONE [{skill_file.parent.name}]: governance skill must declare zone:")
@@ -71,7 +90,10 @@ def check_governance_zone(skills_dir: Path) -> list[str]:
 def check_meta_exempt(skills_dir: Path) -> list[str]:
     errors = []
     for skill_file in skills_dir.rglob("SKILL.md"):
-        fm = extract_frontmatter(skill_file)
+        try:
+            fm = extract_frontmatter(skill_file)
+        except FrontmatterParseError:
+            continue
         if fm and fm.get("architecture") == "meta-spec":
             if fm.get("exempt") != "meta":
                 errors.append(
@@ -84,7 +106,10 @@ def check_meta_exempt(skills_dir: Path) -> list[str]:
 def require_deprecated(skills_dir: Path, skill_name: str) -> list[str]:
     errors = []
     for skill_file in skills_dir.rglob("SKILL.md"):
-        fm = extract_frontmatter(skill_file)
+        try:
+            fm = extract_frontmatter(skill_file)
+        except FrontmatterParseError:
+            continue
         if fm and fm.get("name") == skill_name:
             if fm.get("status") != "DEPRECATED":
                 errors.append(
