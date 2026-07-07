@@ -23,7 +23,7 @@ The recon confirmed our 25 audit-instruments are **not general repo scanners** �
 - **Layer A — cross-repo structural** (`gh api` + `git`): applies to all 12 repos. Sync-drift, staleness, CI, standard-files, license, empty-scaffold.
 - **Layer B — governance dogfooding** (our own validators on their proper `operations` targets): the genuine "run our files through our own tools" step.
 
-**Caveat (logged unknown b3):** Layer B ran against the **local** `operations` clone, which is 103 commits behind canonical — so it measures *working-copy* state. A canonical pass should re-run against a fresh `origin/main` clone. The defect *classes* found are robust regardless.
+**Caveat — RESOLVED (§4b):** Layer B first ran against the local (103-behind) clone. It has since been re-run against a fresh `origin/main` clone; canonical is measurably *worse*, confirming the defects are source-of-truth. See §4b.
 
 ---
 
@@ -84,6 +84,28 @@ The org's own validators, run on the org's own canonical artifacts. This is the 
 
 ---
 
+## 4b · Canonical re-run — measurement gap CLOSED
+
+The T1 caveat (Layer B ran against the 103-behind local clone) is now closed: fresh-cloned `operations` `origin/main` (`c90c85c`, 2026-07-07 08:41) and re-ran **canonical tools on canonical artifacts**. Result: **canonical is not cleaner — the registry is measurably *worse*.** The defects are source-of-truth, not stale-clone artifacts.
+
+| Instrument | Working copy (local, 103-behind) | **Canonical (`c90c85c`)** | Delta |
+|---|---|---|---|
+| `registered_findings_validator` | FAIL — 17 hard (4 collisions), 24 warn | **FAIL — 21 hard (5 collisions), 23 warn** | **+4 hard on canonical** |
+| ↳ collisions | H-IPM, H-HUMILITY, H-ELICIT, H-OVG | **+ F-31** (5 total) | new F-31 collision |
+| ↳ hard classes | — | **collision ×5, date-format ×13, status-invalid ×2, missing-field ×1** | — |
+| ↳ entry counts | F38 H27 IC21 (86) | F38 H27 **IC22 (87)** | +1 IC |
+| `builder_compliance_scanner` | 50/92 (54%) | **50/94 (53%)** | ~same (+2 tools) |
+| `validate_skills` | CRASH — `humanaios-findings-scan/SKILL.md` | **CRASH — same file** | unchanged (canonical bug) |
+| `corpus_integrity_validator` | PASS (604, 0.8532, 82 warn) | **PASS — identical** | none |
+
+**Two conclusions that harden the baseline:**
+1. **The registry defects are canonical truth.** The ID collisions, 13 date-format errors, 2 invalid-status entries, and the broken `SKILL.md` all exist on `origin/main`. The external assessor's finding #8 is confirmed against the source of truth, not a working-copy artifact.
+2. **Drift and registry-integrity are *independent* problems.** The 103-commit local drift did not *cause* the registry failures (canonical has *more*, not fewer). Both are real; they need separate root-causes in T2. Canonical also carries defects the local copy hadn't yet accumulated (F-31 collision, status-invalid entries) — so *neither* direction of the drift is "the clean one."
+
+**Method note:** `document-control.yml` is live on canonical, yet canonical `REGISTERED.md` still fails integrity — so either that workflow doesn't gate registry ID/format/status, or it isn't enforced on the merge path. T2 should confirm which (it changes whether the Standardize fix is "add a gate" or "fix the existing gate").
+
+---
+
 ## 5 · Reconciliation vs the pre-existing `operations` baseline
 
 The audit extends, not replaces, the existing health substrate:
@@ -110,7 +132,7 @@ The prioritized defect ledger for Pareto + IC-lens root-cause:
 7. **[minor] Broken `SKILL.md`** — one file; also harden the validator.
 8. **[minor] Staleness** — 6 repos >30d (ACAT-Observatory ~4mo).
 
-**Measurement gaps to close:** `system_audit_v1_1` (needs credentials); a canonical Layer-B re-run against fresh `origin/main`; the 7 non-cloned repos measured via `gh` only (no deep file scan yet).
+**Measurement gaps:** ✅ canonical Layer-B re-run — DONE (§4b). Remaining: `system_audit_v1_1` (needs `GITHUB_TOKEN`/`SUPABASE_*` credentials); the 7 non-cloned repos measured via `gh` only (no deep file scan yet).
 
 ---
 
