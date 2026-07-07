@@ -313,6 +313,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Root directory to scan for git repos (default: ~/Desktop/HAIOS-Main)")
     p.add_argument("--fix",        action="store_true",
                    help="Reconcile drifted clones (fetch + checkout main + pull --ff-only)")
+    p.add_argument("--check",      action="store_true",
+                   help="Explicitly run check mode (default)")
     p.add_argument("--report",     action="store_true",
                    help="Print markdown table and exit 0 (read-only, no exit-code signalling)")
     p.add_argument("--output-dir", default=".",
