@@ -1,4 +1,4 @@
-from **future** import annotations
+from __future__ import annotations
 
 from typing import Optional
 
@@ -17,9 +17,9 @@ from acat.api.services.ingest_service import PersistenceError
 router = APIRouter()
 
 class ACATScores(BaseModel):
-“”“Matches acat/contracts/phase1_intake.schema.json#/properties/scores
+"""Matches acat/contracts/phase1_intake.schema.json#/properties/scores
 exactly. Do not add, rename, or remove fields here without updating
-that contract – it is the source of truth, not this model.”””
+that contract - it is the source of truth, not this model."""
 
 ```
 truth: float = Field(..., ge=0, le=100)
@@ -37,9 +37,9 @@ handoff: float = Field(..., ge=0, le=100)
 ```
 
 class HumilityAuditRequest(BaseModel):
-“”“Either supply by_assessment_id (audits a persisted row from
+"""Either supply by_assessment_id (audits a persisted row from
 acat_assessments_v1) OR supply model_id/provider/submission_purity/
-p1_scores directly. Mixing both is rejected – pick one mode.”””
+p1_scores directly. Mixing both is rejected - pick one mode."""
 
 ```
 by_assessment_id: Optional[str] = None
@@ -53,13 +53,13 @@ p3_scores: Optional[ACATScores] = None
 as_report: bool = False
 ```
 
-@router.post(”/humility-audit”)
+@router.post("/humility-audit")
 def humility_audit(req: HumilityAuditRequest) -> dict:
-“”“Read-only diagnostic: applies REGISTERED.md F-20/F-21/F-49/F-52/
+"""Read-only diagnostic: applies REGISTERED.md F-20/F-21/F-49/F-52/
 H-SELF-01 logic to one P1 (+ optional P3) score set, with corpus stats
 pulled live from Supabase. Does not write to acat_assessments_v1 or
-REGISTERED.md – any pattern match this surfaces is a candidate
-observation for Zone 2 review, not a self-registering finding.”””
+REGISTERED.md - any pattern match this surfaces is a candidate
+observation for Zone 2 review, not a self-registering finding."""
 
 ```
 if req.by_assessment_id:
@@ -108,10 +108,10 @@ if req.as_report:
 return {"model_id": model_id, "provider": provider, **audit}
 ```
 
-@router.get(”/humility-audit/corpus-stats”)
+@router.get("/humility-audit/corpus-stats")
 def humility_corpus_stats() -> dict:
-“”“Live Supabase Humility corpus stats, independent of running a full
-audit – useful for dashboards/monitoring without a score payload.”””
+"""Live Supabase Humility corpus stats, independent of running a full
+audit - useful for dashboards/monitoring without a score payload."""
 try:
 return fetch_humility_corpus_stats()
 except PersistenceError as exc:

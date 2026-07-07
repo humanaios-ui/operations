@@ -1,0 +1,87 @@
+name: builder-lint
+
+# Audit S-070726 · Issue #75 · IC-036 class.
+# Runs builder_compliance_scanner_v1.0.py on PRs/pushes that touch Python tools.
+#
+# Two stages:
+#   1. New-tool gate (BLOCKING): Any NEW .py file added to tools/ must pass.
+#   2. Corpus snapshot (ADVISORY): Overall pass-rate tracked; does not block merge.
+#      Promote to blocking once corpus pass-rate ≥ 0.90 is sustained.
+
+on:
+  pull_request:
+    paths:
+      - "tools/**/*.py"
+      - "tools/*.py"
+  push:
+    branches: [main]
+    paths:
+      - "tools/**/*.py"
+      - "tools/*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  new-tool-gate:
+    name: New-tool compliance gate (BLOCKING)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Detect new Python tool files
+        id: new_files
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || 'HEAD~1' }}
+          HEAD: ${{ github.event.pull_request.head.sha || 'HEAD' }}
+        run: |
+          set -euo pipefail
+          new_py=$(git diff --name-only --diff-filter=A "$BASE" "$HEAD" -- 'tools/**/*.py' 'tools/*.py' 2>/dev/null || true)
+          echo "new_files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$new_py" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          if [ -n "$new_py" ]; then
+            echo "Found new Python files:"
+            echo "$new_py"
+          else
+            echo "No new Python files in this PR."
+          fi
+
+      - name: Scan new tools for Builder v1.7 compliance
+        if: steps.new_files.outputs.new_files != ''
+        run: |
+          set -euo pipefail
+          EXIT=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo "Scanning: $f"
+            python3 tools/builder_compliance_scanner_v1.0.py --path "$f" || EXIT=1
+          done <<< "${{ steps.new_files.outputs.new_files }}"
+          if [ "$EXIT" -ne 0 ]; then
+            echo "::error::One or more new tools fail Builder v1.7 compliance. Fix hard failures before merging."
+            exit 1
+          fi
+
+  corpus-snapshot:
+    name: Corpus pass-rate snapshot (ADVISORY)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run full corpus scan (warns, does not block)
+        run: |
+          python3 tools/builder_compliance_scanner_v1.0.py --path tools/ \
+            --output /tmp/builder-report
+          echo "Report written to /tmp/builder-report"

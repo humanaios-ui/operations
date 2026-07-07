@@ -1,0 +1,41 @@
+name: findings-registry-gate
+
+# Audit S-070726 · Issue #74 · IC-035 class.
+# Runs the corrected registered_findings_validator_v1_0.py against REGISTERED.md
+# on every PR/push that touches the registry file.
+#
+# Stage: BLOCKING — hard-failure count reduced to 0 by issue #79 (this PR).
+# Legacy YYYY-MM dates grandfathered in validator v1.0 (S-070726 patch).
+# Any new ID collision or status violation will fail the gate.
+
+on:
+  pull_request:
+    paths:
+      - "REGISTERED.md"
+      - "tools/registered_findings_validator_v1_0.py"
+  push:
+    branches: [main]
+    paths:
+      - "REGISTERED.md"
+      - "tools/registered_findings_validator_v1_0.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-registry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Findings registry integrity (ERROR — blocks merge)
+        run: |
+          python3 tools/registered_findings_validator_v1_0.py \
+            --input REGISTERED.md \
+            --output /tmp/registry-report
+          echo "Report written to /tmp/registry-report"

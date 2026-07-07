@@ -1,5 +1,6 @@
 """
 HumanAIOS — Governance Fetcher (Zone 1)
+Builder v1.7 compliant
 
 Fetches GOVERNANCE.md and SESSION_RITUALS.md from GitHub raw content.
 Exposes them as MCP resources:

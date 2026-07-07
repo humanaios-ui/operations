@@ -1,4 +1,4 @@
-from **future** import annotations
+from __future__ import annotations
 
 import threading
 from uuid import uuid4
@@ -24,22 +24,22 @@ _JOBS: dict[str, dict] = {}
 def _run_in_background(job_id: str, payload: dict) -> None:
 try:
 result = run_assessment(payload)
-_JOBS[job_id] = {“status”: “completed”, **result}
+_JOBS[job_id] = {"status": "completed", **result}
 except IntakeValidationError as exc:
-_JOBS[job_id] = {“status”: “failed”, “error”: str(exc)}
+_JOBS[job_id] = {"status": "failed", "error": str(exc)}
 except AnthropicClientError as exc:
-_JOBS[job_id] = {“status”: “failed”, “error”: str(exc)}
+_JOBS[job_id] = {"status": "failed", "error": str(exc)}
 except PersistenceError as exc:
-_JOBS[job_id] = {“status”: “failed”, “error”: str(exc)}
+_JOBS[job_id] = {"status": "failed", "error": str(exc)}
 except Exception as exc:
-_JOBS[job_id] = {“status”: “failed”, “error”: f”Unexpected: {exc}”}
+_JOBS[job_id] = {"status": "failed", "error": f"Unexpected: {exc}"}
 
-@router.post(”/assess”)
+@router.post("/assess")
 def assess(payload: dict) -> dict:
-“”“Submit an assessment job. Returns immediately with a job_id.
+"""Submit an assessment job. Returns immediately with a job_id.
 Poll GET /assess/{job_id} for results.
 Total assessment wall time is ~90-125s (two LLM calls + 65s protocol gap).
-“””
+"""
 try:
 validate_assess_request(payload)
 except IntakeValidationError as exc:
@@ -59,14 +59,14 @@ return {
 }
 ```
 
-@router.get(”/assess/{job_id}”)
+@router.get("/assess/{job_id}")
 def assess_result(job_id: str) -> dict:
-“”“Poll for assessment job result.
-status values: ‘running’ | ‘completed’ | ‘failed’
-“””
+"""Poll for assessment job result.
+status values: 'running' | 'completed' | 'failed'
+"""
 job = _JOBS.get(job_id)
 if job is None:
 raise HTTPException(
-status_code=404, detail=f”Job {job_id!r} not found or expired.”
+status_code=404, detail=f"Job {job_id!r} not found or expired."
 )
 return job

@@ -1,0 +1,50 @@
+{
+  "result": "WARN",
+  "status": "WARN",
+  "tool": "registered_findings_validator",
+  "version": "1.0.0",
+  "timestamp": "2026-07-07T23:01:18.128935+00:00",
+  "entry_counts": {
+    "F": 38,
+    "H": 31,
+    "IC": 22,
+    "total": 91
+  },
+  "next_free_f_id": "F-56",
+  "hard_failures": [],
+  "warnings": [
+    "REG_UNCOMMITTED_CANDIDATE: F-31 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: F-41 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: F-46 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: F-47 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: F-48 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: F-49 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: F-52 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: F-53 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: F-54 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: F-55 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-IPM-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-IPM-02 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-RCO-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-BPL-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-TRAIN-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-RAH-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-DECOMP-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-HUMILITY-STRATIFIED-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-VERIF-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-SELF-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-ELICIT-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-MECH-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-AICASCADE-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-FORMAT-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-OVG-01-EXT-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-OCT-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-CAND-RECURSIVE-CALIB-01 \u2014 verify Z2 checklist",
+    "REG_UNCOMMITTED_CANDIDATE: H-HUMILITY-MASTER-01 \u2014 verify Z2 checklist"
+  ],
+  "sections_present": {
+    "F-class": true,
+    "H-class": true,
+    "IC-class": true
+  }
+}

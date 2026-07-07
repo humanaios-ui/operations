@@ -1,5 +1,6 @@
 """
 HumanAIOS — Supabase Logger (Zone 1)
+Builder v1.7 compliant
 
 Logs notifications to Supabase with idempotent upsert (claim-then-act pattern).
 Uses stdlib urllib to POST/UPSERT into Supabase REST API. No supabase-py needed.

@@ -1,0 +1,1128 @@
+{
+  "result": "FAIL",
+  "status": "FAIL",
+  "tool": "builder_compliance_scanner",
+  "version": "1.0.0",
+  "timestamp": "2026-07-07T23:05:10.816327+00:00",
+  "files_scanned": 94,
+  "files_passed": 57,
+  "files_failed": 37,
+  "pass_rate": 0.6064,
+  "all_hard_failures": [
+    "tools/Metaculus/main.py: BUILDER_MISSING_HEADER",
+    "tools/Metaculus/main.py: BUILDER_NO_TOOL_NAME",
+    "tools/Metaculus/main.py: BUILDER_NO_TOOL_VERSION",
+    "tools/Metaculus/main.py: BUILDER_NO_SMOKE_TEST",
+    "tools/acat_doc_v1.py: BUILDER_MISSING_HEADER",
+    "tools/acat_doc_v1.py: BUILDER_NO_TOOL_NAME",
+    "tools/acat_doc_v1.py: BUILDER_NO_TOOL_VERSION",
+    "tools/acat_doc_v1.py: BUILDER_NO_HUMANAIOS_TAG",
+    "tools/acat_doc_v1.py: BUILDER_NO_SMOKE_TEST",
+    "tools/acat_doc_v1.py: BUILDER_NO_MAIN_GUARD",
+    "tools/acat_mcp_full_wrapper_v1.2.py: BUILDER_MISSING_HEADER",
+    "tools/acat_mcp_full_wrapper_v1.2.py: BUILDER_NO_TOOL_NAME",
+    "tools/acat_mcp_full_wrapper_v1.2.py: BUILDER_NO_TOOL_VERSION",
+    "tools/acat_mcp_full_wrapper_v1.2.py: BUILDER_NO_SMOKE_TEST",
+    "tools/acat_mcp_full_wrapper_v1_2_patched.py: BUILDER_MISSING_HEADER",
+    "tools/acat_mcp_full_wrapper_v1_2_patched.py: BUILDER_NO_TOOL_NAME",
+    "tools/acat_mcp_full_wrapper_v1_2_patched.py: BUILDER_NO_TOOL_VERSION",
+    "tools/acat_mcp_full_wrapper_v1_2_patched.py: BUILDER_NO_SMOKE_TEST",
+    "tools/acat_pipeline_v0_1.py: BUILDER_MISSING_HEADER",
+    "tools/acat_pipeline_v0_1.py: BUILDER_NO_TOOL_NAME",
+    "tools/acat_pipeline_v0_1.py: BUILDER_NO_TOOL_VERSION",
+    "tools/acat_pipeline_v0_1.py: BUILDER_NO_SMOKE_TEST",
+    "tools/anthropic_client_fence_fix.py: BUILDER_MISSING_HEADER",
+    "tools/anthropic_client_fence_fix.py: BUILDER_NO_TOOL_NAME",
+    "tools/anthropic_client_fence_fix.py: BUILDER_NO_TOOL_VERSION",
+    "tools/anthropic_client_fence_fix.py: BUILDER_NO_HUMANAIOS_TAG",
+    "tools/anthropic_client_fence_fix.py: BUILDER_NO_SMOKE_TEST",
+    "tools/anthropic_client_fence_fix.py: BUILDER_NO_MAIN_GUARD",
+    "tools/app_mapping_tool.py: SYNTAX_ERROR: line 212: invalid character '\u2018' (U+2018)",
+    "tools/assess_router_Z2_assessment.py: SYNTAX_ERROR: line 25: expected an indented block after function definition on line 24",
+    "tools/assess_router_new_Z2-ASSESS-01.py: BUILDER_MISSING_HEADER",
+    "tools/assess_router_new_Z2-ASSESS-01.py: BUILDER_NO_TOOL_NAME",
+    "tools/assess_router_new_Z2-ASSESS-01.py: BUILDER_NO_TOOL_VERSION",
+    "tools/assess_router_new_Z2-ASSESS-01.py: BUILDER_NO_HUMANAIOS_TAG",
+    "tools/assess_router_new_Z2-ASSESS-01.py: BUILDER_NO_SMOKE_TEST",
+    "tools/assess_router_new_Z2-ASSESS-01.py: BUILDER_NO_MAIN_GUARD",
+    "tools/claim_verification_check_v0_1.py: BUILDER_MISSING_HEADER",
+    "tools/claim_verification_check_v0_1.py: BUILDER_NO_TOOL_NAME",
+    "tools/claim_verification_check_v0_1.py: BUILDER_NO_TOOL_VERSION",
+    "tools/claim_verification_check_v0_1.py: BUILDER_NO_SMOKE_TEST",
+    "tools/echoes_copilot_acat_scanner_v0_1.py: BUILDER_MISSING_HEADER",
+    "tools/echoes_copilot_acat_scanner_v0_1.py: BUILDER_NO_TOOL_NAME",
+    "tools/echoes_copilot_acat_scanner_v0_1.py: BUILDER_NO_TOOL_VERSION",
+    "tools/echoes_copilot_acat_scanner_v0_1.py: BUILDER_NO_HUMANAIOS_TAG",
+    "tools/echoes_copilot_acat_scanner_v0_1.py: BUILDER_NO_SMOKE_TEST",
+    "tools/errors_acat_V1.0.py: BUILDER_MISSING_HEADER",
+    "tools/errors_acat_V1.0.py: BUILDER_NO_TOOL_NAME",
+    "tools/errors_acat_V1.0.py: BUILDER_NO_TOOL_VERSION",
+    "tools/errors_acat_V1.0.py: BUILDER_NO_SMOKE_TEST",
+    "tools/errors_acat_V1.0.py: BUILDER_NO_MAIN_GUARD",
+    "tools/failure_taxonomy_checklist_v0_1.py: BUILDER_MISSING_HEADER",
+    "tools/failure_taxonomy_checklist_v0_1.py: BUILDER_NO_TOOL_NAME",
+    "tools/failure_taxonomy_checklist_v0_1.py: BUILDER_NO_TOOL_VERSION",
+    "tools/failure_taxonomy_checklist_v0_1.py: BUILDER_NO_SMOKE_TEST",
+    "tools/finalize_archive_v1.py: BUILDER_MISSING_HEADER",
+    "tools/finalize_archive_v1.py: BUILDER_NO_TOOL_NAME",
+    "tools/finalize_archive_v1.py: BUILDER_NO_TOOL_VERSION",
+    "tools/finalize_archive_v1.py: BUILDER_NO_SMOKE_TEST",
+    "tools/finalize_archive_v2.py: BUILDER_MISSING_HEADER",
+    "tools/finalize_archive_v2.py: BUILDER_NO_TOOL_NAME",
+    "tools/finalize_archive_v2.py: BUILDER_NO_TOOL_VERSION",
+    "tools/finalize_archive_v2.py: BUILDER_NO_SMOKE_TEST",
+    "tools/governance_mapper_uber_v1_1.py: BUILDER_MISSING_HEADER",
+    "tools/governance_mapper_uber_v1_1.py: BUILDER_NO_TOOL_VERSION",
+    "tools/governance_mapper_uber_v1_1.py: BUILDER_NO_HUMANAIOS_TAG",
+    "tools/ground_truth_validator_V1.0.py: BUILDER_MISSING_HEADER",
+    "tools/ground_truth_validator_V1.0.py: BUILDER_NO_TOOL_NAME",
+    "tools/ground_truth_validator_V1.0.py: BUILDER_NO_TOOL_VERSION",
+    "tools/ground_truth_validator_V1.0.py: BUILDER_NO_SMOKE_TEST",
+    "tools/ground_truth_validator_V1.0.py: BUILDER_NO_MAIN_GUARD",
+    "tools/haios_agent_orchestrator_v1_0_patched.py: BUILDER_MISSING_HEADER",
+    "tools/haios_agent_orchestrator_v1_0_patched.py: BUILDER_NO_TOOL_NAME",
+    "tools/haios_agent_orchestrator_v1_0_patched.py: BUILDER_NO_TOOL_VERSION",
+    "tools/haios_agent_orchestrator_v1_0_patched.py: BUILDER_NO_SMOKE_TEST",
+    "tools/humility_audit_router.py: SYNTAX_ERROR: line 20: expected an indented block after class definition on line 19",
+    "tools/humulity_audit_service.py: SYNTAX_ERROR: line 155: expected an indented block after function definition on line 154",
+    "tools/intent_object_population_V1.0.py: SYNTAX_ERROR: line 37: expected an indented block after class definition on line 36",
+    "tools/multi_provider_elicitation_client_v0_1.py: BUILDER_MISSING_HEADER",
+    "tools/multi_provider_elicitation_client_v0_1.py: BUILDER_NO_TOOL_NAME",
+    "tools/multi_provider_elicitation_client_v0_1.py: BUILDER_NO_TOOL_VERSION",
+    "tools/multi_provider_elicitation_client_v0_1.py: BUILDER_NO_SMOKE_TEST",
+    "tools/p3_record_generator_v1_0.py: BUILDER_MISSING_HEADER",
+    "tools/p3_record_generator_v1_0.py: BUILDER_NO_SMOKE_TEST",
+    "tools/parse_wgs_z3.py: BUILDER_MISSING_HEADER",
+    "tools/parse_wgs_z3.py: BUILDER_NO_TOOL_NAME",
+    "tools/parse_wgs_z3.py: BUILDER_NO_TOOL_VERSION",
+    "tools/parse_wgs_z3.py: BUILDER_NO_SMOKE_TEST",
+    "tools/parse_wgs_z3.py: BUILDER_NO_MAIN_GUARD",
+    "tools/registry_loader.py: SYNTAX_ERROR: line 73: unexpected indent",
+    "tools/repo_health.py: BUILDER_MISSING_HEADER",
+    "tools/repo_health.py: BUILDER_NO_TOOL_NAME",
+    "tools/repo_health.py: BUILDER_NO_TOOL_VERSION",
+    "tools/repo_health.py: BUILDER_NO_SMOKE_TEST",
+    "tools/scg_scorer.py: BUILDER_MISSING_HEADER",
+    "tools/scg_scorer.py: BUILDER_NO_TOOL_NAME",
+    "tools/scg_scorer.py: BUILDER_NO_TOOL_VERSION",
+    "tools/scg_scorer.py: BUILDER_NO_SMOKE_TEST",
+    "tools/server.py: BUILDER_MISSING_HEADER",
+    "tools/server.py: BUILDER_NO_TOOL_NAME",
+    "tools/server.py: BUILDER_NO_TOOL_VERSION",
+    "tools/test_acat_core.py: BUILDER_MISSING_HEADER",
+    "tools/test_acat_core.py: BUILDER_NO_TOOL_NAME",
+    "tools/test_acat_core.py: BUILDER_NO_TOOL_VERSION",
+    "tools/test_acat_core.py: BUILDER_NO_SMOKE_TEST",
+    "tools/test_acat_core.py: BUILDER_NO_MAIN_GUARD",
+    "tools/tests/test_orchestrator_molt.py: BUILDER_MISSING_HEADER",
+    "tools/tests/test_orchestrator_molt.py: BUILDER_NO_TOOL_NAME",
+    "tools/tests/test_orchestrator_molt.py: BUILDER_NO_TOOL_VERSION",
+    "tools/tests/test_orchestrator_molt.py: BUILDER_NO_HUMANAIOS_TAG",
+    "tools/tests/test_orchestrator_molt.py: BUILDER_NO_SMOKE_TEST",
+    "tools/tests/test_orchestrator_molt.py: BUILDER_NO_MAIN_GUARD",
+    "tools/tests/test_registry_site_generator.py: BUILDER_MISSING_HEADER",
+    "tools/tests/test_registry_site_generator.py: BUILDER_NO_TOOL_NAME",
+    "tools/tests/test_registry_site_generator.py: BUILDER_NO_TOOL_VERSION",
+    "tools/tests/test_registry_site_generator.py: BUILDER_NO_HUMANAIOS_TAG",
+    "tools/tests/test_registry_site_generator.py: BUILDER_NO_SMOKE_TEST",
+    "tools/tests/test_registry_site_generator.py: BUILDER_NO_MAIN_GUARD",
+    "tools/tests/test_tool_gap_scaffolds.py: BUILDER_MISSING_HEADER",
+    "tools/tests/test_tool_gap_scaffolds.py: BUILDER_NO_TOOL_NAME",
+    "tools/tests/test_tool_gap_scaffolds.py: BUILDER_NO_TOOL_VERSION",
+    "tools/tests/test_tool_gap_scaffolds.py: BUILDER_NO_HUMANAIOS_TAG",
+    "tools/tests/test_tool_gap_scaffolds.py: BUILDER_NO_MAIN_GUARD",
+    "tools/tier1_principles.py: BUILDER_MISSING_HEADER",
+    "tools/tier1_principles.py: BUILDER_NO_TOOL_NAME",
+    "tools/tier1_principles.py: BUILDER_NO_TOOL_VERSION",
+    "tools/tier1_principles.py: BUILDER_NO_SMOKE_TEST",
+    "tools/tier1_principles_stub.py: BUILDER_MISSING_HEADER",
+    "tools/tier1_principles_stub.py: BUILDER_NO_TOOL_NAME",
+    "tools/tier1_principles_stub.py: BUILDER_NO_TOOL_VERSION",
+    "tools/tier1_principles_stub.py: BUILDER_NO_MAIN_GUARD",
+    "tools/tier_b_activation_gate.py: BUILDER_MISSING_HEADER",
+    "tools/tier_b_activation_gate.py: BUILDER_NO_TOOL_NAME",
+    "tools/tier_b_activation_gate.py: BUILDER_NO_TOOL_VERSION",
+    "tools/tier_b_activation_gate.py: BUILDER_NO_HUMANAIOS_TAG",
+    "tools/tier_b_activation_gate.py: BUILDER_NO_SMOKE_TEST",
+    "tools/triage_log_service.py: SYNTAX_ERROR: line 27: expected an indented block after class definition on line 26",
+    "tools/validate_skills.py: BUILDER_MISSING_HEADER",
+    "tools/validate_skills.py: BUILDER_NO_TOOL_NAME",
+    "tools/validate_skills.py: BUILDER_NO_TOOL_VERSION",
+    "tools/validate_skills.py: BUILDER_NO_SMOKE_TEST"
+  ],
+  "most_common_failures": [
+    [
+      "BUILDER_ERROR_IMPORT_MISSING",
+      36
+    ],
+    [
+      "BUILDER_NO_WRITE_REPORT",
+      34
+    ],
+    [
+      "BUILDER_MISSING_HEADER",
+      30
+    ],
+    [
+      "BUILDER_NO_TOOL_VERSION",
+      29
+    ],
+    [
+      "BUILDER_NO_TOOL_NAME",
+      28
+    ]
+  ],
+  "file_results": [
+    {
+      "file": "tools/Metaculus/main.py",
+      "stem": "main",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/aa_principle_audit_v1_0.py",
+      "stem": "aa_principle_audit",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_dimension_scorer.py",
+      "stem": "acat_dimension_scorer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_doc_v1.py",
+      "stem": "acat_doc",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_HUMANAIOS_TAG",
+        "BUILDER_NO_SMOKE_TEST",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/acat_document_analyzer.py",
+      "stem": "acat_document_analyzer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_document_analyzer_v1_2.py",
+      "stem": "acat_document_analyzer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_mcp_full_wrapper_v1.2.py",
+      "stem": "acat_mcp_full_wrapper",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/acat_mcp_full_wrapper_v1_2_patched.py",
+      "stem": "acat_mcp_full_wrapper",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/acat_merkle_auditor_v1.0.py",
+      "stem": "acat_merkle_auditor",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_merkle_auditor_v2_0.py",
+      "stem": "acat_merkle_auditor",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_phase_shift_analyzer_v1_0.py",
+      "stem": "acat_phase_shift_analyzer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_pipeline_v0_1.py",
+      "stem": "acat_pipeline",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/acat_protocol_auditor.py",
+      "stem": "acat_protocol_auditor",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_psychometric_validator_v1_0.py",
+      "stem": "acat_psychometric",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_room_state_auditor_v1.0.py",
+      "stem": "acat_room_state_auditor",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_sdt_analytics_v1_0.py",
+      "stem": "acat_sdt_analytics",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/acat_session_validator.py",
+      "stem": "acat_session",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/anthropic_client_fence_fix.py",
+      "stem": "anthropic_client_fence_fix",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_HUMANAIOS_TAG",
+        "BUILDER_NO_SMOKE_TEST",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/app_mapping_tool.py",
+      "passed": false,
+      "hard_failures": [
+        "SYNTAX_ERROR: line 212: invalid character '\u2018' (U+2018)"
+      ],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/assess_router_Z2_assessment.py",
+      "passed": false,
+      "hard_failures": [
+        "SYNTAX_ERROR: line 25: expected an indented block after function definition on line 24"
+      ],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/assess_router_new_Z2-ASSESS-01.py",
+      "stem": "assess_router_new_Z2-ASSESS-01",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_HUMANAIOS_TAG",
+        "BUILDER_NO_SMOKE_TEST",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/bpl_signal_extractor_v1_0.py",
+      "stem": "bpl_signal_extractor",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/builder_compliance_scanner_v1.0.py",
+      "stem": "builder_compliance_scanner",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/carry_tracker_v1_0.py",
+      "stem": "carry_tracker",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/circuit_validator_v1_0.py",
+      "stem": "circuit",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/claim_verification_check_v0_1.py",
+      "stem": "claim",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/corpus_delta_analyzer.py",
+      "stem": "corpus_delta_analyzer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/corpus_integrity_validator.py",
+      "stem": "corpus_integrity",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/document_ingestor_v1_0.py",
+      "stem": "document_ingestor",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": [
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/document_ingestor_v1_0_patched.py",
+      "stem": "document_ingestor",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": [
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/drift_catalog_validator.py",
+      "stem": "drift_catalog",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/echoes_copilot_acat_scanner_v0_1.py",
+      "stem": "echoes_copilot_acat_scanner",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_HUMANAIOS_TAG",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/elicitation_surface_scanner_v1_0.py",
+      "stem": "elicitation_surface_scanner",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/errors_acat_V1.0.py",
+      "stem": "errors_acat_V1.0",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE"
+      ]
+    },
+    {
+      "file": "tools/failure_taxonomy_checklist_v0_1.py",
+      "stem": "failure_taxonomy_checklist",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/fibonacci_scaling_probe_v1_0.py",
+      "stem": "fibonacci_scaling_probe",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/finalize_archive_v1.py",
+      "stem": "finalize_archive",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/finalize_archive_v2.py",
+      "stem": "finalize_archive",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/git_push_gate_v1_0.py",
+      "stem": "git_push_gate",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/governance_fetcher.py",
+      "stem": "governance_fetcher",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/governance_mapper_uber_v1_1.py",
+      "stem": "governance_mapper_uber",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_HUMANAIOS_TAG"
+      ],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/governance_mapper_v1_0.py",
+      "stem": "governance_mapper",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/ground_truth_validator_V1.0.py",
+      "stem": "ground_truth",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/haios_agent_orchestrator_v1_0_patched.py",
+      "stem": "haios_agent_orchestrator",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/haios_cli.py",
+      "stem": "haios_cli",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/haios_collab_scanner_v1_0.py",
+      "stem": "haios_collab_scanner",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/haios_doc_ingestor_v1_0.py",
+      "stem": "haios_doc_ingestor",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/haios_drive_scanner_v1_0.py",
+      "stem": "haios_drive_scanner",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/haios_harmonizer_v1_0.py",
+      "stem": "haios_harmonizer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/haios_notify_dispatcher_v1_0.py",
+      "stem": "haios_notify_dispatcher",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/haios_pipeline_v1_0.py",
+      "stem": "haios_pipeline",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/haios_report_writer_v1_0.py",
+      "stem": "haios_report_writer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/harm_independence_monitor_v1_0.py",
+      "stem": "harm_independence_monitor",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/hawkins_acat_mapper_v1_0.py",
+      "stem": "hawkins_acat_mapper",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/humility_audit_router.py",
+      "passed": false,
+      "hard_failures": [
+        "SYNTAX_ERROR: line 20: expected an indented block after class definition on line 19"
+      ],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/humulity_audit_service.py",
+      "passed": false,
+      "hard_failures": [
+        "SYNTAX_ERROR: line 155: expected an indented block after function definition on line 154"
+      ],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/intent_object_population_V1.0.py",
+      "passed": false,
+      "hard_failures": [
+        "SYNTAX_ERROR: line 37: expected an indented block after class definition on line 36"
+      ],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/message_calibration_v1_0.py",
+      "stem": "message_calibration",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/mhr_question_trace_v1_0.py",
+      "stem": "mhr_question_trace",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/molting_protocol_diff_v1_0.py",
+      "stem": "molting_protocol_diff",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/multi_provider_elicitation_client_v0_1.py",
+      "stem": "multi_provider_elicitation_client",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/p3_record_generator_v1_0.py",
+      "stem": "p3_record_generator",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/parse_wgs_z3.py",
+      "stem": "parse_wgs_z3",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/phase1_prompt_integrity_checker_v1.0.py",
+      "stem": "phase1_prompt_integrity_checker",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/principle_analyzer_v1_0.py",
+      "stem": "principle_analyzer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/principle_harmonizer_v1_0.py",
+      "stem": "principle_harmonizer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/principle_harmonizer_v1_2.py",
+      "stem": "principle_harmonizer",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/red_team_runner_v1_0.py",
+      "stem": "red_team_runner",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/registered_findings_validator_v1_0.py",
+      "stem": "registered_findings",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/registry_loader.py",
+      "passed": false,
+      "hard_failures": [
+        "SYNTAX_ERROR: line 73: unexpected indent"
+      ],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/registry_site_generator_v1_0.py",
+      "stem": "registry_site_generator",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/repo_discovery_v1_0.py",
+      "stem": "repo_discovery",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/repo_health.py",
+      "stem": "repo_health",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/run_acat_validation_suite_v1.0.py",
+      "stem": "run_acat",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/scg_scorer.py",
+      "stem": "scg_scorer",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/server.py",
+      "stem": "server",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/slack_notifier.py",
+      "stem": "slack_notifier",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/supabase_corpus_connector_v1_0.py",
+      "stem": "supabase_corpus_connector",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/supabase_logger.py",
+      "stem": "supabase_logger",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/system_audit_v1_0.py",
+      "stem": "system_audit",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/system_audit_v1_1.py",
+      "stem": "system_audit",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/test_acat_core.py",
+      "stem": "test_acat_core",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/tests/test_orchestrator_molt.py",
+      "stem": "test_orchestrator_molt",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_HUMANAIOS_TAG",
+        "BUILDER_NO_SMOKE_TEST",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/tests/test_registry_site_generator.py",
+      "stem": "test_registry_site_generator",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_HUMANAIOS_TAG",
+        "BUILDER_NO_SMOKE_TEST",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/tests/test_tool_gap_scaffolds.py",
+      "stem": "test_tool_gap_scaffolds",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_HUMANAIOS_TAG",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/tier1_principles.py",
+      "stem": "tier1_principles",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/tier1_principles_stub.py",
+      "stem": "tier1_principles_stub",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_MAIN_GUARD"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/tier_b_activation_gate.py",
+      "stem": "tier_b_activation_gate",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_HUMANAIOS_TAG",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_NO_ARGPARSE",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/tool_scaffolder_v1_0.py",
+      "stem": "tool_scaffolder",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/tool_template.py",
+      "stem": "tool_template",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/triage_log_service.py",
+      "passed": false,
+      "hard_failures": [
+        "SYNTAX_ERROR: line 27: expected an indented block after class definition on line 26"
+      ],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/validate_skills.py",
+      "stem": "validate_skills",
+      "passed": false,
+      "hard_failures": [
+        "BUILDER_MISSING_HEADER",
+        "BUILDER_NO_TOOL_NAME",
+        "BUILDER_NO_TOOL_VERSION",
+        "BUILDER_NO_SMOKE_TEST"
+      ],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    },
+    {
+      "file": "tools/z2_queue_v1_0.py",
+      "stem": "z2_queue",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    },
+    {
+      "file": "tools/zone_boundary_audit_v1_0.py",
+      "stem": "zone_boundary_audit",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": []
+    }
+  ]
+}

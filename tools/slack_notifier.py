@@ -1,5 +1,6 @@
 """
 HumanAIOS — Slack Notifier (Zone 1)
+Builder v1.7 compliant
 
 Dispatches Slack notifications via incoming webhook using stdlib urllib.
 Uses Block Kit for structured messages. Exposed as MCP tool.

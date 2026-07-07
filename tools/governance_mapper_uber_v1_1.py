@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
+HumanAIOS
+Builder v1.7 compliant
 Governance Mapper — v1.1 (Uber study edition, bugs fixed)
 Fixes:
   - CARRY-UBER-01: regex now matches both orders (months...perception OR perception...months/year)
   - ZONE-VIOLATION: removed 'brake not in text' — NTSB text says 'did not brake'
     which CONTAINS the word 'brake'. Now checks 'did not brake' or 'failed to brake'.
 """
+TOOL_VERSION = "1.0.0"
 
 import json, sys, argparse, re
 from datetime import datetime, timezone

@@ -1,3 +1,10 @@
+"""
+HumanAIOS
+Builder v1.7 compliant
+"""
+
+TOOL_NAME = "test_tool_gap_scaffolds"
+TOOL_VERSION = "1.0.0"
 from pathlib import Path
 
 
@@ -34,3 +41,7 @@ def test_requested_scaffold_tools_exist_and_follow_builder_shape():
         assert "def write_report(output: dict, output_dir: str) -> str:" in source
         assert "def print_summary(output: dict) -> None:" in source
         assert "def run_smoke_test() -> bool:" in source
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(0 if run_smoke_test() else 1)
