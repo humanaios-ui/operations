@@ -37,7 +37,7 @@
 | **Partner-B** | Commercialization partner *(grew from peer builder)* | Phase 1 done / Phase 2 pending op-agreement | internal seat + counsel | Managed in `humanaios-internal`; outreach holds only the gated convergence artifact (`collab-partner-b-brief.md` §3) |
 | **Partner-V** | Instrument validator | 3 (half-ratified) | **Night Z2** | Work Z2 checklist + approve stimulus set; ACAT = **dual-rater** (Night+Claude) (`collab-partner-v-pilot.md` §3,§5) |
 
-**Metaculus bot** → management plan drafted (`metaculus-management-plan.md`): calibration-in-public as an outreach attraction asset; blocked on Gate-3 (LI placeholder) + Supabase baseline; cost-optimization research in progress.
+**Metaculus bot** → plan + cost research + **AIB entry runbook** (`metaculus-management-plan.md`, `-cost-optimization.md`, `-aib-entry-runbook.md`). Entry = free sponsor credits (OpenRouter form) + tournament-mode deploy (eng). Supabase auth **initiated** (awaiting Night's browser authorization) → then I baseline the track record. Still gated: Gate-3 (LI placeholder) before any ACAT-on-forecasting surfacing.
 
 **Register populated** → Empirica `entity_registry` (contacts + orgs + engagements, local). **Publish-consent policy** → 5-gate standing policy (`collaboration-operating-system.md` §5.1) + offerable **Stage-3 consent clause** (`collaborator-ops/playbooks/stage-3-consent-clause.md`). **New seat:** `collaborator-ops` practice stood up (`~/practices/collaborator-ops`) — owns the collaboration *manage* half; mesh-wiring deferred to you.
 
