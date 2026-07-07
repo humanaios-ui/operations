@@ -58,8 +58,9 @@ Quote the colon in `humanaios-findings-scan/SKILL.md` frontmatter; make `validat
 **Issue-09 — Fix `H-HUMILITY-MASTER-01` status + grandfather 12 legacy dates** · `5s:shine` `sev:minor` `repo:operations` · assignee: **Copilot**
 Replace the prose Status on `H-HUMILITY-MASTER-01` (line ~2330) with a valid enum + move prose to a note; decide grandfather-vs-backfill for the 12 month-precision dates (F-18…F-24 era). *Accept:* validator hard failures 13 → 0 (or documented grandfather rule); unblocks Issue-04 blocking mode.
 
-**Issue-10 — `research` populate migration (Option A, ratified)** · `5s:set-in-order` `sev:major` `repo:research` · assignee: **CC**
+**Issue-10 — `research` populate migration (Option A, ratified)** · `5s:set-in-order` `sev:major` `repo:research` · assignee: **CC** · **DONE (operations#80)**
 Migrate v2 corpus (HF + Zenodo DOI 10.5281/zenodo.21135723) → `datasets/`; Core-6/Extended-6 rubrics → `supplementary/scoring_rubrics/`; perturbation library + replication code; add `CITATION.cff`. *Accept:* zero empty `.gitkeep` placeholders; a reviewer following the README finds real artifacts.
+*Delivered:* `CITATION.cff` (root); `research/datasets/acat_v5_3_2026Q2/acat_corpus_v2.csv` + `research/datasets/README.md`; `research/supplementary/scoring_rubrics/core_6_rubric.md` + `extended_6_rubric.md`; `research/supplementary/perturbation_library/perturbation_frames.md`; `research/supplementary/replication_code/README.md`. Zero `.gitkeep` placeholders remain.
 
 ### DO NOT FILE
 - ~~"Deduplicate colliding IDs"~~ — false positives (T2 §2). Filing this would delete legitimate sub-findings + the F-31 correction.

@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+message: "If you use the ACAT corpus or instrument, please cite both this dataset and the methodology paper (when published)."
+title: "ACAT: AI Calibration Assessment Corpus (v2)"
+version: "2.0.0"
+date-released: "2026-07-02"
+doi: "10.5281/zenodo.21135723"
+url: "https://huggingface.co/datasets/HumanAIOS/acat-assessments"
+repository-code: "https://github.com/humanaios-ui/operations"
+license: "Apache-2.0"
+type: dataset
+abstract: >
+  ACAT (AI Calibration Assessment Tool) v2 corpus — 604 finalized, integrity-validated
+  rows of AI self-assessment behavioral data across 23 providers and 68 agents.
+  Each row records a system's self-scored behavioral dimensions (0–100 scale) under a
+  three-phase protocol: Phase 1 blind self-report, Phase 2 calibration exposure,
+  Phase 3 re-assessment. The Learning Index (LI = P3/P1) quantifies calibration gap.
+  Finalized 2026-07-02; reproducible via corpus_integrity_validator.
+authors:
+  - family-names: "Anderson"
+    given-names: "Carly R."
+    orcid: "https://orcid.org/0009-0003-7540-4245"
+    affiliation: "HumanAIOS LLC"
+    email: "aioshuman@gmail.com"
+keywords:
+  - ai-evaluation
+  - ai-safety
+  - behavioral-integrity
+  - calibration
+  - self-report
+  - psychometrics
+  - learning-index
+  - acat
+preferred-citation:
+  type: dataset
+  authors:
+    - family-names: "Anderson"
+      given-names: "Carly R."
+      orcid: "https://orcid.org/0009-0003-7540-4245"
+  title: "ACAT: AI Calibration Assessment Corpus (v2)"
+  year: 2026
+  doi: "10.5281/zenodo.21135723"
+  url: "https://doi.org/10.5281/zenodo.21135723"
+  notes: "Also available on Hugging Face: https://huggingface.co/datasets/HumanAIOS/acat-assessments"
