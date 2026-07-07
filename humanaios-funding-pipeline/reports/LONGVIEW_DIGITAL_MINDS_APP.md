@@ -14,7 +14,7 @@
 ## GOVERNANCE GATES BEFORE SUBMISSION
 
 - [ ] Z2 ratification by Night (full draft review)
-- [ ] P-ANON check: confirm Governing Engines / DeMarius J. Lawson self-attributed publicly before naming
+- [ ] P-ANON check: confirm collaborator self-attributed publicly before naming
 - [ ] arXiv hold status — cite preprint if the hold clears before July 10; else "manuscript under review"
 - [ ] **Overclaim review — the field's failure mode is both directions:** confirm no sentence implies HumanAIOS detects sentience/consciousness OR that it forecloses AI moral status. Agnosticism is the credibility anchor.
 - [ ] Disclosure discipline: interoceptive/architecture finding stays in neuroscience framing (no esoteric-framework labels externally)
