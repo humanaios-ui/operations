@@ -32,7 +32,7 @@ jobs:
       - name: A4 - Secrets scan
         run: |
           echo "Scanning for credential patterns..."
-          if grep -rl "rah_[a-zA-Z0-9]\|sk-ant\|ghp_\|cfut_" \
+          if grep -rl "rah_[a-zA-Z0-9]+\|sk-ant\|ghp_\|cfut_" \
             --include="*.html" --include="*.js" --include="*.json" \
             --include="*.yml" --include="*.md" \
             --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.github . 2>/dev/null; then
