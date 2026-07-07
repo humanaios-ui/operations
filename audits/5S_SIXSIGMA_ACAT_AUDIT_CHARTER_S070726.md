@@ -51,19 +51,27 @@ Operator ruling (S-070726): **all org-authored repos + `LastingLightAI/HAIOSCC`.
 | 3 | `humanaios-internal` | humanaios-ui | private | Internal collaborator reports, engagements | ✅ |
 | 4 | `lasting-light-ai` | humanaios-ui | public | Governance-awareness assessment platform | ✅ |
 | 5 | `empirica` | humanaios-ui | public **(fork)** | Empirica-foundation clone — mesh-critical; audit our overlay only, not upstream | ✅ (`empirica-foundation/`) |
-| 6 | `research` | humanaios-ui | public | ACAT papers/datasets — frozen-at-publication snapshots | — |
+| 6 | `research` | humanaios-ui | public | ACAT papers/datasets — **empty scaffold; populate-migration workstream** (see notes) | — |
 | 7 | `acat-inspect` | humanaios-ui | public | ACAT ported to UK AISI Inspect framework | — |
 | 8 | `ACAT-Dashboard` | humanaios-ui | private | Magic Patterns-synced dashboard | — |
 | 9 | `ACAT-Observatory` | humanaios-ui | private | Magic Patterns-synced observatory | — |
 | 10 | `docs` | humanaios-ui | public | Docs surface | — |
 | 11 | `findlocaltattooartists` | humanaios-ui | public | Astro/Decap site (revenue/portfolio surface) | — |
-| 12 | `HAIOSCC` | **LastingLightAI** | private | HAIOS Command Center (activation in progress — `_haioscc_activation_S070626/`) | — |
+| 12 | `HAIOSCC` | **LastingLightAI** | private | HAIOS Command Center (activation in progress — `_haioscc_activation_S070626/`) — **✅ audit authority confirmed** | — |
 
 **Scope notes / flags for Z2:**
 - **`empirica` (#5)** is a fork: apply 5S only to HumanAIOS-authored overlay files, never to upstream empirica code (that would generate false defects).
 - **#6–#12 are not locally cloned.** T1 (Measure) will need to clone or run validators against them via `gh`/CI. This is a sequencing dependency, not a blocker.
-- **`HAIOSCC` (#12)** is in a *different org* (`LastingLightAI`, not `humanaios-ui`) — confirm audit authority + access before dispatching issues there.
-- **Frozen repos** (`research` = "frozen-at-publication snapshots"): 5S "Sort/Shine" applies, but "Set-in-Order" changes may be forbidden by their frozen contract. Treat as **audit-observe, do-not-mutate** unless Night rules otherwise.
+- **`HAIOSCC` (#12)** is in a *different org* (`LastingLightAI`, not `humanaios-ui`). **✅ Audit authority confirmed by operator (S-070726)** — clear to audit + dispatch issues.
+- **`research` (#6) — reclassified from "observe-don't-mutate" to a POPULATE-MIGRATION workstream (operator ruling S-070726).** Direct inspection (`gh`, S-070726) found it is an **empty public scaffold**: 8 files = LICENSE + README + 6 empty `.gitkeep` placeholders; zero research artifacts; first paper never migrated; untouched since 2026-04-30. It has **defined purpose (public replication surface for reviewers/funders) but zero realized utility** — a public empty shell that is itself an overclaim/stale-surface risk (the PDF finding-#8 class). Per the operator principle *"everything must have defined utility and purpose,"* the constructive audit action is not file-cleanup (there are no files) but to **close the purpose→utility gap** by executing the first publication migration the repo was built to receive:
+  | Waiting dir | Migrate in | Source (already public) |
+  |---|---|---|
+  | `datasets/` | v2 corpus (604 rows) | HuggingFace + Zenodo DOI `10.5281/zenodo.21135723` |
+  | `supplementary/scoring_rubrics/` | Core-6 + Extended-6 rubrics | operations/acat |
+  | `supplementary/perturbation_library/` | perturbation frames | operations/acat |
+  | `supplementary/replication_code/` | corpus validators + finalizers | operations/tools |
+  | *(root)* | `CITATION.cff` | new |
+  This is **additive** — consistent with the repo's "frozen/append-at-publication" contract (not editing published work). **Z2 decision for Night:** *Option A* populate now (recommended — serves funding narrative + PDF Stage-4 external replication), or *Option B* flip the repo **private/archive** until publish-ready (removes the overclaim risk with zero content work). *Leave-as-is is rejected.*
 
 ---
 
