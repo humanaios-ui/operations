@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** July 7, 2026 (S-070726-01) - Added IC-0XX (Submission Purity Constraint Collapse Recurrence) and an F-31 citation-correction append entry.
+**Last updated:** July 7, 2026 (S-070726-01) - Added IC-044 (Submission Purity Constraint Collapse Recurrence) and an F-31 citation-correction append entry.
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
@@ -2378,11 +2378,11 @@ superseded_by: null
 - **Synopsis:** Z2-ASSESS-01 ratification record for the async job pattern on the `/assess` endpoint. Root cause: synchronous handler with 65s protocol sleep + ~90–125s LLM inference exceeded Cloudflare proxy timeout (502 error on every call). Fix: POST `/assess` returns immediately with `{job_id, status: "running", poll_url}`; GET `/assess/{job_id}` polls for result. In-memory `_JOBS` dict, background thread, synchronous validation before spawn. Commit `aa966fd` live on main. Zone 2 ratification: Night · S-060826-03 · June 8, 2026. Related IC-035: workflow not yet documented in OPERATOR_RUNBOOK.md.
 -----
 
-### IC-0XX — Submission Purity Constraint Collapse Recurrence
+### IC-044 — Submission Purity Constraint Collapse Recurrence
 
 ```
 ---
-id: "IC-0XX"
+id: "IC-044"
 name: "submission-purity-constraint-collapse-recurrence"
 status: REGISTERED
 class: IC
