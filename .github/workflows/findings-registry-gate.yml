@@ -39,3 +39,11 @@ jobs:
             --input REGISTERED.md \
             --output /tmp/registry-report
           echo "Report written to /tmp/registry-report"
+
+      - name: Upload registry validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: findings-registry-report
+          path: /tmp/registry-report
+          retention-days: 30
