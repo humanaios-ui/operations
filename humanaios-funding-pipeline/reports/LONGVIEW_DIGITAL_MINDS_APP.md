@@ -117,7 +117,7 @@ Welfare measurement carries a two-sided risk that this project is designed aroun
 
 **Independent external validation.** ACAT's behavioral measurements are independently co-scored by *empirica*, a separately-developed Brier-grounded epistemic-calibration instrument (David Van Assche, Nubaeon), through a live evaluator seat. Paired data shows the two instruments converging and diverging predictably — independent evidence that the measurement approach captures something real. This independent-evaluator relationship is also the governance safeguard for the welfare-measurement work.
 
-**Collaborating organization [PENDING P-ANON CHECK]:** Governing Engines LLC / Mode AI — governance-systems architecture. 50/50 attribution on joint findings.
+**Collaborating organization [PENDING P-ANON CHECK]:** Governance-systems collaborator — governance-systems architecture. 50/50 attribution on joint findings.
 
 **Existing infrastructure:** live behavioral corpus (Supabase), FastAPI assessment backend (Railway), assessment interface (Cloudflare), GitHub operations repository with full governance documentation.
 
