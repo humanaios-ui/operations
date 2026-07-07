@@ -135,10 +135,16 @@ def get_clone_status(repo: Path) -> dict:
         name in MAIN_BRANCH_REQUIRED and
         status["branch"] not in ("main", "master", "?")
     )
+    # behind == -1 means rev-list failed (e.g. no origin/main ref) — treat as unknown,
+    # not as "not behind", so drifted repos don't silently report green.
+    behind_unknown = status["behind"] == -1
     behind = status["behind"] > 0
     dirty  = status["dirty"] > 0
 
-    if on_wrong_branch and behind:
+    if behind_unknown and not on_wrong_branch:
+        status["severity"] = "unknown"
+        status["note"] = status["note"] or "could not determine behind count (origin/main missing?)"
+    elif on_wrong_branch and behind:
         status["severity"] = "critical"
         status["note"] = status["note"] or f"wrong branch ({status['branch']}) + {status['behind']} behind"
     elif on_wrong_branch:
@@ -242,9 +248,11 @@ def fix_clone(r: dict) -> tuple[bool, str]:
 
     if dirty > 0:
         return False, f"SKIP — {dirty} dirty files; resolve manually before reconciling"
+    if dirty < 0 or ahead < 0 or behind < 0:
+        return False, "SKIP — clone state unknown (rev-list failed); verify origin/main exists"
     if ahead > 0:
         return False, f"SKIP — {ahead} local commit(s) ahead of origin; manual rebase required"
-    if behind <= 0 and branch in ("main", "master"):
+    if behind == 0 and branch in ("main", "master"):
         return True, "already clean — nothing to do"
 
     # Checkout main if on wrong branch
@@ -311,10 +319,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--root",       default=str(DEFAULT_ROOT),
                    help="Root directory to scan for git repos (default: ~/Desktop/HAIOS-Main)")
+    p.add_argument("--check",      action="store_true",
+                   help="Check mode (default): exit 1 if any clone is behind origin/main or on wrong branch")
     p.add_argument("--fix",        action="store_true",
                    help="Reconcile drifted clones (fetch + checkout main + pull --ff-only)")
-    p.add_argument("--check",      action="store_true",
-                   help="Explicitly run check mode (default)")
     p.add_argument("--report",     action="store_true",
                    help="Print markdown table and exit 0 (read-only, no exit-code signalling)")
     p.add_argument("--output-dir", default=".",

@@ -1527,13 +1527,16 @@ done
 
 ```bash
 # 1. Check only — exits 1 if any clone is drifted
-python3 ~/Desktop/HAIOS-Main/operations-staging/tools/clone_sync_health_v1_0.py
+python3 ~/Desktop/HAIOS-Main/operations/tools/clone_sync_health_v1_0.py
 
-# 2. Check + auto-fix (skips dirty or ahead-of-remote clones — safe)
-python3 ~/Desktop/HAIOS-Main/operations-staging/tools/clone_sync_health_v1_0.py --fix
+# 2. Explicit check mode (same as default, useful in scripts)
+python3 ~/Desktop/HAIOS-Main/operations/tools/clone_sync_health_v1_0.py --check
 
-# 3. Read-only markdown report (always exits 0)
-python3 ~/Desktop/HAIOS-Main/operations-staging/tools/clone_sync_health_v1_0.py --report
+# 3. Check + auto-fix (skips dirty or ahead-of-remote clones — safe)
+python3 ~/Desktop/HAIOS-Main/operations/tools/clone_sync_health_v1_0.py --fix
+
+# 4. Read-only markdown report (always exits 0)
+python3 ~/Desktop/HAIOS-Main/operations/tools/clone_sync_health_v1_0.py --report
 ```
 
 The `--fix` flag runs `git fetch origin → git checkout main → git pull --ff-only` for each
