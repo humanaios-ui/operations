@@ -19,7 +19,7 @@ Changes from v2.2:
 - learning_index=1.0 placeholder UNCHANGED. Isolation guard is the
   li_is_placeholder column (Option A, applied 2026-06-05, default TRUE).
   B/C (submission_purity vs column removal) HELD IN ZONE 3 until N=50 resolved.
-- Model: claude-sonnet-4-6
+- Model: claude-haiku-4-5 (forecast) + gemini-2.0-flash (research) — see FORECAST_MODEL
 
 Pipeline per question:
 
@@ -86,6 +86,13 @@ from supabase import create_client, Client
 
 dotenv.load_dotenv()
 logger = logging.getLogger(__name__)
+
+# Forecast model + its provenance label. Single source of truth so the Supabase "substrate"
+# can't drift from the runtime model — it did: the label stayed hardcoded "claude-sonnet-4-6"
+# after the forecast llm moved to Haiku (#43). Substrate is the bare model name (no provider
+# prefix) to stay consistent with existing corpus substrate values.
+FORECAST_MODEL = "anthropic/claude-haiku-4-5"          # the "default" forecast-reasoning llm
+FORECAST_SUBSTRATE = FORECAST_MODEL.split("/", 1)[-1]  # -> "claude-haiku-4-5"
 
 # -----------------------------------------------------------------------------
 # SUPABASE CLIENT
@@ -370,7 +377,7 @@ def _write_p1_to_supabase(
             "question_url":          question.page_url,
             "metaculus_question_id": _resolve_post_id(question),
             "question_type":         question_type,
-            "substrate":             "claude-sonnet-4-6",
+            "substrate":             FORECAST_SUBSTRATE,
             "schema_version":        "acat-forecast-v1",
             "p1_li_estimate":        li_estimate,
             "p1_calibration_mode":   calibration_mode,
@@ -1169,7 +1176,7 @@ if __name__ == "__main__":
         extra_metadata_in_explanation=True,
         llms={
             "default": GeneralLlm(
-                model="anthropic/claude-haiku-4-5",  # cost: cheap Claude for forecast reasoning (was sonnet-4-6)
+                model=FORECAST_MODEL,  # cost: cheap Claude for forecast reasoning (was sonnet-4-6)
                 temperature=0.3, timeout=60, allowed_tries=2,
             ),
             "parser": "openai/gpt-4o-mini",
