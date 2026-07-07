@@ -108,7 +108,7 @@ MANUALLY_VERIFIED_CURRENT_N = {
 }
 
 _HEADING_RE = re.compile(r"^### (.+)$", re.MULTILINE)
-*YAML_BLOCK_RE = re.compile(r"-{3}\s*\n(.*?\n)-{3}", re.DOTALL)
+_YAML_BLOCK_RE = re.compile(r"-{3}\s*\n(.*?\n)-{3}", re.DOTALL)
 _LEGACY_STATUS_RE = re.compile(r"(?:-\s*)?**Status:**\s*([A-Za-z*]+)")
 _LEGACY_REGISTERED_DATE_RE = re.compile(r"(?:-\s*)?**Registered:**\s*([0-9]{4}-[0-9]{2}-[0-9]{2})")
 _HONEST_GAP_RE = re.compile(r"(honest gap)", re.IGNORECASE)
