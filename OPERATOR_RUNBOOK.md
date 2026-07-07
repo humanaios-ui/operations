@@ -1,7 +1,12 @@
 # HumanAIOS Operator Runbook
 
 **Version:** 0.8
+<<<<<<< HEAD
 **Last updated:** July 7, 2026 (S-070726 · §15 added: pre-push behind-remote / wrong-branch guard · IC-026 class)**Canonical home:** `humanaios-internal/OPERATOR_RUNBOOK.md`
+=======
+**Last updated:** July 7, 2026 (S-070726 · IC-026 class fix · §15 added — Reconcile drifted local clones)
+**Canonical home:** `humanaios-internal/OPERATOR_RUNBOOK.md`
+>>>>>>> origin/main
 **Local mirror:** `~/Desktop/HAIOS-Main/humanaios-internal/OPERATOR_RUNBOOK.md`
 **Scope:** Operator-side recipes. What Night does. Copy-paste from this file.
 **What it is not:** Governance (see GOVERNANCE.md). Substrate protocol (see SESSION_RITUALS.md). Z3 commit discipline (see Z3_PROTOCOL.md). Findings (see REGISTERED.md).
@@ -25,7 +30,11 @@
 12. [Recipe — Governance update workflow (full-file replacement)](#12-recipe--governance-update-workflow-full-file-replacement)
 13. [ACAT first live request runbook](#13-acat-first-live-request-runbook)
 14. [Recipe — Governance file maintenance (SWC-04)](#14-recipe--governance-file-maintenance-swc-04)
+<<<<<<< HEAD
 15. [Pre-push guard — behind-remote / wrong-branch](#15-pre-push-guard--behind-remote--wrong-branch)
+=======
+15. [Recipe — Reconcile drifted local clones (IC-026)](#15-recipe--reconcile-drifted-local-clones-ic-026)
+>>>>>>> origin/main
 ---
 
 ## 1. Repository structure
@@ -1504,6 +1513,7 @@ assessment_id=eq.acat-S-060126-02-smoke&select=*" \
 
 ---
 
+<<<<<<< HEAD
 ## 15. Pre-push guard — behind-remote / wrong-branch
 
 **Audit anchor:** S-070726 · P0 · IC-026 class.
@@ -1615,12 +1625,109 @@ pytest tools/tests/test_pre_push_gate.py -v
 The test `TestCheckNotBehind::test_behind_remote_is_blocked` is the core
 acceptance test: it builds a deliberate "stale" local clone, advances the
 remote by one commit, then asserts the gate returns `FAIL`.
+=======
+## 15. Recipe — Reconcile drifted local clones (IC-026)
+
+**When to use:** A clone is behind `origin/main`, on a stray branch (e.g. a Dependabot branch), or
+its `git status` shows commits you didn't intend to keep local. IC-026 class — do not push from
+a behind clone.
+
+**Quick audit (one-liner across all HAIOS-Main repos):**
+
+```bash
+for d in ~/Desktop/HAIOS-Main/*/; do
+  [ -d "$d/.git" ] || continue
+  cd "$d"
+  git fetch origin --quiet 2>/dev/null
+  behind=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo "?")
+  branch=$(git branch --show-current)
+  echo "$(basename $d) | $branch | behind: $behind"
+done
+```
+
+**Automated check + fix using the tool (recommended):**
+
+```bash
+# 1. Check only — exits 1 if any clone is drifted
+python3 ~/Desktop/HAIOS-Main/operations/tools/clone_sync_health_v1_0.py
+
+# 2. Explicit check mode (same as default, useful in scripts)
+python3 ~/Desktop/HAIOS-Main/operations/tools/clone_sync_health_v1_0.py --check
+
+# 3. Check + auto-fix (skips dirty or ahead-of-remote clones — safe)
+python3 ~/Desktop/HAIOS-Main/operations/tools/clone_sync_health_v1_0.py --fix
+
+# 4. Read-only markdown report (always exits 0)
+python3 ~/Desktop/HAIOS-Main/operations/tools/clone_sync_health_v1_0.py --report
+```
+
+The `--fix` flag runs `git fetch origin → git checkout main → git pull --ff-only` for each
+drifted clone. It **skips** dirty repos and repos with local-ahead commits — those always
+require manual review.
+
+**Manual reconcile for a specific repo** (copy-paste block):
+
+```bash
+# Replace <REPO> with the local clone folder name, e.g. humanaios or operations-staging
+cd ~/Desktop/HAIOS-Main/<REPO>
+
+# 1. Confirm current state
+git status -sb
+git branch --show-current
+git log --oneline -5
+
+# 2. Fetch remote
+git fetch origin
+
+# 3. Check behind count — should be 0 after reconcile
+git rev-list --count HEAD..origin/main
+
+# 4a. If on wrong branch (e.g. dependabot/...) AND no local commits to keep:
+git checkout main
+
+# 4b. Pull fast-forward (fails loudly if local commits would be overwritten)
+git pull --ff-only origin main
+
+# 5. Verify
+git rev-list --count HEAD..origin/main   # must be 0
+git branch --show-current                # must be main
+git status -sb                           # must be clean (or understood)
+```
+
+**If `pull --ff-only` fails (diverged history):**
+```bash
+# Option A — you have no local commits to keep (safe reset):
+git reset --hard origin/main
+
+# Option B — you have local commits that need to land on main:
+git rebase origin/main   # resolve any conflicts, then: git push
+```
+
+**Acceptance check (from T3_IMPROVE_S070726.md Issue-01):**
+```bash
+# Run on each repo that was drifted — must print 0
+git rev-list --count HEAD..origin/main
+
+# For humanaios — must print main
+git branch --show-current
+```
+
+**Why this matters (IC-026):** Pushing from a behind clone cannot fast-forward and either fails
+or creates a divergence. The T1 baseline (S-070726) found `operations-staging` 103 behind and
+`humanaios` on a Dependabot branch — exactly the IC-019/023-class drift pattern.
+`clone_sync_health_v1_0.py` provides the standing instrument for this check.
+>>>>>>> origin/main
 
 ---
 
 ## Changelog
 
+<<<<<<< HEAD
 - **2026-07-07 (S-070726) · v0.8** — Section 15 added: pre-push behind-remote / wrong-branch guard. Closes IC-026 class. Adds `tools/pre_push_gate.py` (standalone script + git hook), `tools/tests/test_pre_push_gate.py` (14 tests, stale-push acceptance test included), and this runbook section.
+=======
+- **2026-07-07 (S-070726) · v0.8** — Section 15 added: Recipe — Reconcile drifted local clones (IC-026). Documents the `clone_sync_health_v1_0.py` tool (Issue-01/02 from T3_IMPROVE_S070726.md) and the manual reconcile recipe. Addresses the T1 baseline finding: `operations-staging` 103 behind origin/main; `humanaios` on Dependabot branch. Version bump to 0.8.
+
+>>>>>>> origin/main
 - **2026-06-01 (S-060126-02) · v0.7** — Section 14 added: ACAT instrument extension — 12-dimension lock policy. Documents the instrument lock (LI frozen at Core 6 per Z2-IC-01), new `POST /api/v1/acat/human-score` endpoint, receipt object structure, gap semantics, `acat_human_scores` Supabase table (migration 005, explicit GRANTs per May 30 Data API change), and smoke test sequence for all four new-instrument endpoints.
 - **2026-05-29 (S-052926-04)** ACAT first live request runbook This runbook executes the first live W-1/W-2 paired-session write path for ACAT: submit a live Phase 1 payload - verify the row persisted in acat_assessments_v1 - submit the matching Phase 3 payload -verify the same row now contains P3 values and computed learning_index
 - **2026-05-19 (S-051926-02-z3-closeout) · v0.5** — Section 12 added: Governance update workflow (full-file replacement). Establishes the standing workflow for governance updates of this scale. Path A (GitHub web UI) and Path B (terminal via operations-staging) both documented with full recipes. Section 5 retained for surgical commits. Section 11 closing rituals updated to reference B.0 verification and Receipt Reconciliation (v6.4.1). Section 4 close prompts updated to reference SESSION_RITUALS v6.4.1 Section B.0/B.6. Repository structure section (1) updated with `audit_outputs/` and explicit identification of `operations-staging/` as canonical operations clone. Memory map (Section 2) updated with v6.4.1+ SESSION_RITUALS reference and append-only/harmonized notation on REGISTERED.md. P-ANON note added to Section 7 pre-flight (S-051826-04).
