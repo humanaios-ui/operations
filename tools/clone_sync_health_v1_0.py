@@ -261,8 +261,10 @@ def fix_clone(r: dict) -> tuple[bool, str]:
         if rc != 0:
             return False, f"checkout main FAILED: {err}"
 
+    target_branch = "master" if branch == "master" else "main"
+
     # Pull fast-forward
-    rc, out, err = _run(["git", "pull", "--ff-only", "origin", "main"], path, timeout=60)
+    rc, out, err = _run(["git", "pull", "--ff-only", "origin", target_branch], path, timeout=60)
     if rc != 0:
         return False, f"pull --ff-only FAILED: {err}"
 
