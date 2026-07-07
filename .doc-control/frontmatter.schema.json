@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://humanaios-ui/operations/.doc-control/frontmatter.schema.json",
+  "title": "HumanAIOS Controlled-Document Frontmatter",
+  "description": "YAML frontmatter block required on controlled documents. Extends the REGISTERED.md entry-header convention to governance/process/operational docs. See DOCUMENT_CONTROL_PLAN.md §3.1.",
+  "type": "object",
+  "required": ["doc_id", "title", "revision", "status", "owner", "canonical"],
+  "additionalProperties": true,
+  "properties": {
+    "doc_id": {
+      "type": "string",
+      "pattern": "^HAIOS-[A-Z]+-[0-9]{3}$",
+      "description": "Unique, stable, never reused. HAIOS-<AREA>-<nnn>."
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "revision": { "type": "integer", "minimum": 0, "description": "Bumps on each approved change." },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "review", "approved", "superseded", "retired"]
+    },
+    "owner": {
+      "type": "string",
+      "description": "CODEOWNERS group (e.g. @humanaios-ui/governance), not an individual."
+    },
+    "canonical": { "type": "boolean", "description": "Exactly one canonical:true per doc_id across all repos." },
+    "approved_by": { "type": "string" },
+    "approved_date": { "type": "string", "format": "date" },
+    "review_due": { "type": "string", "format": "date" },
+    "supersedes": { "type": "string", "pattern": "^HAIOS-[A-Z]+-[0-9]{3}$" },
+    "retention": { "type": "string", "enum": ["permanent", "7y", "3y", "superseded-only"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "approved" } } },
+      "then": { "required": ["approved_by", "approved_date"] }
+    }
+  ]
+}

@@ -24,7 +24,9 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 import certifi
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from acat.api.security import require_write_token
 from jsonschema import Draft202012Validator, FormatChecker
 from pathlib import Path
 
@@ -255,7 +257,11 @@ def _build_receipt(
     return receipt
 
 
-@router.post("/human-score", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/human-score",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_write_token)],
+)
 def post_human_score(payload: dict):
     """
     Submit human scores for an existing ACAT assessment.
