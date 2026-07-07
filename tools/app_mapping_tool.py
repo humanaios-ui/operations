@@ -946,7 +946,7 @@ except Exception as e:
 # [DEBUG] Surface code search failures instead of silent fail
 # Fail open — don't block scoring on API errors
 print(f"  [DEBUG] code search failed for {repo_full_name!r} "
-f"(query: {query[:40]!r}): {type(e).**name**}: {e}")
+      f"(query: {query[:40]!r}): {type(e).__name__}: {e}")
 return False
 
 def get_readme(repo_full_name: str, token: Optional[str]) -> str:
