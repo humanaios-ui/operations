@@ -45,12 +45,12 @@ jobs:
 
       - name: Check for findings branch
         run: |
+          TASK="${{ github.event.inputs.research_task || 'arxiv_scan' }}"
           git fetch origin
-          BRANCH="findings/$(date +%Y-%m-%d)-${{ github.event.inputs.research_task }}"
+          BRANCH="findings/$(date +%Y-%m-%d)-${TASK}"
           if git ls-remote --exit-code origin "$BRANCH" 2>/dev/null; then
             echo "✅ Findings branch created: $BRANCH"
-            echo "Review at: https://github.com/humanaios-ui/lasting-light-ai/compare/$BRANCH"
-          else
+            echo "Review at: https://github.com/${{ github.repository }}/compare/$BRANCH"
             echo "⚠️ No findings branch yet — check n8n execution logs"
           fi
 
