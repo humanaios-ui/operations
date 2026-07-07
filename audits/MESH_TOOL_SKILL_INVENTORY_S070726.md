@@ -192,16 +192,18 @@ The audit **method** layer — 17 skills. Directly relevant:
 | `operations/workflows/research_agent.yml` | Research agent | ❌ draft |
 | `operations/.doc-control/ci/document-control.yml` | Document-control CI | ❌ draft |
 
-**Live GitHub Actions across the mesh (cloned repos checked):**
-| Repo | `.github/workflows/` | Note |
-|---|---|---|
-| `humanaios` | *(none)* — only `.github/dependabot.yml` | **Sustain gap** |
-| `operations` | *(none)* | **Sustain gap** — despite being the SoT repo with the most draft workflows |
-| `humanaios-internal` | *(none)* | Sustain gap |
-| `lasting-light-ai` | `acat-bot-test.yml`, `acat_pipeline_trigger.yml` | only authored repo with live CI |
-| `empirica` (fork) | `ci.yml`, `dependency-scan.yml`, `release.yml` | **upstream empirica's** — not ours |
+**Live GitHub Actions — CORRECTED against REMOTE (`gh api`, T1 S-070726).** The earlier rows below read the *local clones*, which are badly stale (see T1 finding). Remote/canonical CI is materially different:
 
-**Finding (C4/Sustain, sev:major):** the org has authored a validator suite *and* draft workflows to run it, but has not wired them into GitHub Actions on the authored repos. The Control phase's first move is promoting these drafts into live `.github/workflows/` (Z3 act). This is the single highest-leverage Sustain fix — it converts one-shot audits into continuous ones.
+| Repo | **Remote** `.github/workflows/` | Local clone showed | Cause |
+|---|---|---|---|
+| `operations` | **5 live** (auto-request-copilot-review, document-control, no-op-pr-guard, pages, research-validation) | *(none)* | **local clone 103 commits behind** origin/main |
+| `humanaios` | 0 (only `dependabot.yml`) | 0 | genuine gap — real Sustain finding |
+| `humanaios-internal` | 1 | 0 | local 34 behind |
+| `lasting-light-ai` | 2 (acat-bot-test, acat_pipeline_trigger) | 2 | in sync |
+| `empirica` (fork) | 3 (upstream's) | 3 | not ours |
+| ACAT satellites, `docs`, `findlocaltattooartists`, `HAIOSCC`, `research` | **0** | — | real Sustain gap |
+
+> **Correction:** operations is NOT a CI gap — remote has 5 workflows, including `document-control.yml` (the Standardize CI I was about to propose already exists) and `research-validation.yml`. The earlier "operations has no CI" note was an artifact of the stale local clone. **The real Sustain finding is (a) `humanaios` + 5 satellites have zero CI, and (b) local working copies are drifted from canonical.** See `T1_DEFECT_BASELINE_S070726.md` for the measured picture that supersedes this section.
 
 ---
 
