@@ -2327,7 +2327,7 @@ superseded_by: null
 
 - **Synopsis (revised):** Humility is the strongest single binary predictor of calibration quality — 92.5% of low-Humility (≤65) sessions map to bad LI. It is not the exclusive gatekeeper (partial correlation 0.075 after controlling for the global inflation factor) but is the most reliable single discriminator. Revised from the original "validity coefficient for all 11 dimensions" framing.
 - **Evidence:** 92.5% low-H(≤65)→bad-LI holds on the real corpus (synthetic generator calibrated to 80.4%, labeled non-validated by design); partial r=0.075 after global-factor control; Test-1 unique-variance partial r=0.3426 (synthetic) / r=0.80 (real N=278).
-- **Status:** revised framing ratified this session (Night). Supports F-55 (Calibration Triad).
+- **Revision note:** revised framing ratified this session (Night). Supports F-55 (Calibration Triad).
 - **Promotion gate:** the 92.5% figure requires confirmation on the full HuggingFace archive (N≥300), not synthetic.
 
 -----
@@ -2386,7 +2386,7 @@ id: "IC-044"
 name: "submission-purity-constraint-collapse-recurrence"
 status: REGISTERED
 class: IC
-date_registered: "TBD — Zone 2 pending"
+date_registered: "2026-07-07"
 date_origin: "2026-07-07"
 session_registered: "S-070726-01"
 principles_triggered: ["P3", "P7"]
