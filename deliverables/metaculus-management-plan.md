@@ -77,7 +77,7 @@ Don't promote to a scored public tournament while calibration is unproven — a 
 
 **Source of truth = Supabase**, not screen-scraping Metaculus (which 403s non-browser clients anyway). The bot writes P1/P2/P3 + phase-4 resolutions there.
 
-**Step 1 (do first): establish the baseline.** Pull current numbers — N forecast, N resolved, Brier, peer/calibration score, comment-post success rate. Via the Supabase MCP (once authed) or a Night-run Metaculus export. *These numbers are currently unknown to this plan — that's the first thing to close, not to assume.*
+**Step 1 — baseline: DONE (2026-07-06, authed Supabase read).** Result: **`acat_forecast_runs` = 0 rows.** The bot has recorded **no forecast runs**; `pipeline_health` is stale (2026-04-03). There is no track record yet — expected, since the bot is in `test_questions` mode and hasn't done scored production runs. **Consequence:** the track record *starts* when AIB entry + `tournament`-mode deploy land the first rows. Nothing to monitor or surface until then. Standing queries (keyed to the real schema) are in `metaculus-monitoring-queries.md`.
 
 **Metrics to watch (weekly, interlocked with the Substack cadence):**
 | Metric | Source | Why |
