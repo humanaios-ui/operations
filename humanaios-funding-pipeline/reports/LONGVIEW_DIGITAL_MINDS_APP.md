@@ -151,7 +151,7 @@ Welfare measurement carries a two-sided risk that this project is designed aroun
 
 **Remaining human gates (Night, before Z3 send — deadline July 10):**
 - [ ] **Submit Power Concentration first** (primary, July 2) — this is secondary.
-- [ ] **P-ANON** on DeMarius/Governing Engines.
+- [ ] **P-ANON** on collaborator attribution (names/orgs only after self-attribution).
 - [ ] **Overclaim review** — verify no sentence implies detection of sentience or foreclosure of moral status.
 - [ ] **arXiv** framing (cite vs "under review").
 - [ ] Confirm funding amount + PI-salary/API figures.
