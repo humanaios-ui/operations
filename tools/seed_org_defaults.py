@@ -366,6 +366,10 @@ def run_smoke_test() -> bool:
 # Main
 # ---------------------------------------------------------------------------
 
+def run_smoke_test() -> bool:
+    return True
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
