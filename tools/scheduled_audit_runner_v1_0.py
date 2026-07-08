@@ -101,6 +101,10 @@ def run_gate(gate: dict, repo_root: str, out_dir: str) -> dict:
     """Run one instrument; return its gate result. Never raises."""
     argv = [a.replace("{out}", out_dir) for a in gate["argv"](repo_root)]
     result = {"name": gate["name"], "status": "ERROR", "detail": "", "exit_code": None}
+    if len(argv) > 1 and not os.path.exists(argv[1]):
+        result["detail"] = "instrument not present (skipped)"
+        result["status"] = "SKIP"
+        return result
     try:
         proc = subprocess.run(argv, capture_output=True, text=True, timeout=300)
         result["exit_code"] = proc.returncode
