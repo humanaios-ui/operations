@@ -1,0 +1,44 @@
+name: sonarqube-quality
+
+# Review-panel LAYER 0 — static code quality (SonarQube).
+# DORMANT until secrets are configured: requires SONAR_TOKEN + SONAR_HOST_URL.
+# The guard step skips the scan cleanly when the token is absent, so this workflow
+# is safe to merge before the SonarQube server is set up. Pin the scan action to a
+# full commit SHA before production use (supply-chain).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guard — is SonarQube configured?
+        id: guard
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::SONAR_TOKEN not set — SonarQube layer dormant. Add SONAR_TOKEN + SONAR_HOST_URL secrets to enable."
+          fi
+      - name: Checkout
+        if: steps.guard.outputs.configured == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube scan
+        if: steps.guard.outputs.configured == 'true'
+        uses: sonarsource/sonarqube-scan-action@v3
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
