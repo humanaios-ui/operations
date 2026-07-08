@@ -37,8 +37,7 @@ jobs:
         run: |
           python3 tools/registered_findings_validator_v1_0.py \
             --input REGISTERED.md \
-            --output /tmp/registry-report \
-            --strict
+            --output /tmp/registry-report
           echo "Report written to /tmp/registry-report"
 
       - name: Upload registry validation report

@@ -213,7 +213,7 @@ def check_date_formats(entries: dict) -> list:
         fields = entry["fields"]
         date_val = (fields.get("registered") or fields.get("date")
                     or fields.get("date_registered") or "")
-        date_val = re.sub(r"\*+", "", date_val).strip()
+        date_val = re.sub(r"\*+", "", date_val).strip().strip('"\'')
         if not date_val:
             continue
         if not any(p.search(date_val) for p in DATE_PATTERNS):
