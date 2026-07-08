@@ -1,0 +1,216 @@
+name: behavioral-compliance
+
+# Behavioral compliance gate — IC-045 generalization (issue #98).
+#
+# AST-level structural checks that complement the marker-presence (builder-lint)
+# gate. Unlike regex checks, these verify actual code structure; a builder-lint
+# "fix" that injects compliance markers cannot silently hollow-out a real endpoint.
+#
+# Root cause: IC-045 — marker injection placed a compliance block between
+# assess() docstring and body, leaving it docstring-only. It parsed, passed
+# builder-lint, and merged. This gate catches that class of defect.
+#
+# THREE checks run on every PR that touches tools/**/*.py:
+#
+#   1. corpus-gate     — overall pass-rate must remain >= 0.70; blocks merge if
+#                        it drops below the threshold.
+#                        NOTE: current baseline is ~72.3% (73/101 files) due to
+#                        26 pre-existing BEHAV_DUPLICATE_FUNC_DEF violations
+#                        (builder-lint stub-injection artifacts) and 2 files
+#                        with BEHAV_DEAD_CODE_AFTER_RETURN. These are grandfathered.
+#
+#   2. new-file-gate   — every Python file *added* in this PR must individually
+#                        pass (100% for new work); blocks a non-compliant new
+#                        tool from ever landing.
+#
+#   3. behavioral-tests — run tools/tests/test_behavioral_compliance_gate.py
+#                         to verify the gate itself is working.
+#
+# SMAG pilot capture: on merge to main, the gate outcome is recorded as a
+# smag_pilot row via tools/smag_pilot_capture_v1_0.py and uploaded as an
+# artifact (predicted values must be supplied by the PR author/agent).
+
+on:
+  pull_request:
+    paths:
+      - "tools/**/*.py"
+      - "tools/*.py"
+  push:
+    branches: [main]
+    paths:
+      - "tools/**/*.py"
+      - "tools/*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  behavioral-compliance:
+    name: Behavioral compliance (IC-045 gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # ── 1. Corpus pass-rate gate ──────────────────────────────────────────
+      - name: Corpus pass-rate gate (must be >= 0.70)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/behav_corpus
+          python3 tools/behavioral_compliance_gate_v1_0.py \
+            --path tools/ --output /tmp/behav_corpus/ --min-pass-rate 0.70 || GATE_EXIT=$?
+          python3 - <<'PYEOF'
+          import json, glob, sys
+          reports = sorted(glob.glob("/tmp/behav_corpus/behavioral_compliance_*.json"))
+          if not reports:
+              print("ERROR: no behavioral compliance report found")
+              sys.exit(1)
+          data = json.load(open(reports[-1]))
+          rate = data["pass_rate"]
+          total = data["files_scanned"]
+          passed = data["files_passed"]
+          print(f"Behavioral compliance: {passed}/{total} ({rate*100:.1f}%)")
+          threshold = 0.70
+          if rate < threshold:
+              print(f"::error::Behavioral compliance pass-rate {rate*100:.1f}% is below the required {threshold*100:.0f}% threshold.")
+              print("Top failures:")
+              for code, count in data.get("most_common_failures", []):
+                  print(f"  {code}: {count}")
+              sys.exit(1)
+          print(f"OK — pass-rate {rate*100:.1f}% meets the >= {threshold*100:.0f}% threshold.")
+          PYEOF
+
+      # ── 2. New-file gate (blocks non-compliant new tools) ─────────────────
+      - name: New-file gate (blocks non-compliant new additions)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Collect only ADDED Python files in tools/
+          added=$(git diff --name-only --diff-filter=A "$BASE" "$HEAD" \
+                  | grep '^tools/.*\.py$' || true)
+          if [ -z "$added" ]; then
+            echo "No new Python tool files added — skipping new-file gate."
+            exit 0
+          fi
+          echo "New tools to check:"
+          echo "$added"
+          echo ""
+          FAIL=0
+          while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            mkdir -p /tmp/behav_pr
+            python3 tools/behavioral_compliance_gate_v1_0.py \
+              --path "$f" --output /tmp/behav_pr/ 2>&1 || true
+            result=$(python3 -c "
+          import json, glob, sys
+          reports = sorted(glob.glob('/tmp/behav_pr/behavioral_compliance_*.json'))
+          if not reports:
+              print('UNKNOWN')
+              sys.exit(0)
+          d = json.load(open(reports[-1]))
+          passed = all(r['passed'] for r in d['file_results'])
+          print('PASS' if passed else 'FAIL')
+          for r in d['file_results']:
+              for ff in r['hard_failures']:
+                  print('  HARD:', ff)
+          ")
+            if echo "$result" | grep -q '^FAIL'; then
+              echo "::error file=$f::Behavioral compliance FAILED. Run: python3 tools/behavioral_compliance_gate_v1_0.py --path $f"
+              echo "$result"
+              FAIL=1
+            else
+              echo "OK $f"
+            fi
+            rm -f /tmp/behav_pr/behavioral_compliance_*.json
+          done <<< "$added"
+          if [ "$FAIL" -ne 0 ]; then
+            echo ""
+            echo "::error::One or more new tools failed behavioral compliance."
+            echo "Fix: ensure no docstring-only functions, no dead code after return,"
+            echo "     no duplicate function definitions."
+            echo "See: python3 tools/behavioral_compliance_gate_v1_0.py --smoke-test"
+            exit 1
+          fi
+          echo "All new tools pass behavioral compliance."
+
+      # ── 3. Gate self-tests ────────────────────────────────────────────────
+      - name: Run behavioral compliance gate tests
+        run: |
+          set -euo pipefail
+          python3 -m pytest tools/tests/test_behavioral_compliance_gate.py \
+            -v --tb=short
+
+      # ── 4. Gate smoke test ────────────────────────────────────────────────
+      - name: Gate smoke test
+        run: |
+          python3 tools/behavioral_compliance_gate_v1_0.py --smoke-test
+
+  smag-pilot-capture:
+    name: SMAG pilot capture (measured outcome)
+    runs-on: ubuntu-latest
+    # Only run on merge to main — captures the "measured" side of each SMAG row.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: behavioral-compliance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Capture SMAG pilot row (measured outcome)
+        env:
+          PR_NUMBER: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/behav_smag
+          # Run gate to get measured outcome
+          python3 tools/behavioral_compliance_gate_v1_0.py \
+            --path tools/ --output /tmp/behav_smag/ --min-pass-rate 0.0 || true
+          python3 - <<'PYEOF'
+          import json, glob, sys, os
+          from datetime import datetime, timezone
+
+          reports = sorted(glob.glob("/tmp/behav_smag/behavioral_compliance_*.json"))
+          if not reports:
+              print("No report found — skipping SMAG capture")
+              sys.exit(0)
+          data = json.load(open(reports[-1]))
+          rate = data["pass_rate"]
+          passed = data["files_passed"]
+          total = data["files_scanned"]
+          failures = len(data["all_hard_failures"])
+
+          # Build SMAG measured row
+          row = {
+              "pr": os.environ.get("GITHUB_SHA", "unknown")[:8],
+              "task": "behavioral-compliance gate corpus check",
+              "substrate": "CI/behavioral-compliance.yml",
+              "predicted": "(set by PR author — see issue acceptance criteria)",
+              "measured": f"pass_rate={rate:.3f} ({passed}/{total} files); hard_failures={failures}",
+              "gap": "(to be filled by reviewing agent after merge)",
+              "session": datetime.now(timezone.utc).strftime("S-%y%m%d"),
+              "timestamp": datetime.now(timezone.utc).isoformat(),
+          }
+          path = "/tmp/behav_smag/smag_pilot_row.json"
+          with open(path, "w") as f:
+              json.dump(row, f, indent=2)
+          print("SMAG row captured:")
+          print(json.dumps(row, indent=2))
+          PYEOF
+
+      - name: Upload SMAG pilot row as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smag-pilot-row-${{ github.sha }}
+          path: /tmp/behav_smag/smag_pilot_row.json
+          retention-days: 90
