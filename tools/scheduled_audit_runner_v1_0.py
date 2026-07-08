@@ -20,8 +20,8 @@ Additional instruments can be appended to GATES as they become repo-portable.
 Usage:
   python3 scheduled_audit_runner_v1_0.py --repo-root . --output outputs/
   python3 scheduled_audit_runner_v1_0.py --smoke-test
-Exit code is ALWAYS 0 (measure step must not redden the scheduled run); the
-`gate_tripped` flag drives issue creation in the workflow.
+Exit code is ALWAYS 0 when running gates (scheduled measure step must not redden the run); the
+`gate_tripped` flag drives issue creation in the workflow. (`--smoke-test` returns 0/1.)
 """
 from __future__ import annotations
 
@@ -156,7 +156,7 @@ def run(repo_root: str, out_dir: str) -> int:
     os.makedirs(out_dir, exist_ok=True)
     when = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     results = [run_gate(g, repo_root, out_dir) for g in GATES]
-    gate_tripped = any(r["status"] == "TRIP" for r in results)
+    gate_tripped = any(r["status"] in ("TRIP", "ERROR") for r in results)
     summary = build_summary(results, when)
     summary_path = os.path.join(out_dir, "scheduled_audit_summary.md")
     Path(summary_path).write_text(summary, encoding="utf-8")
