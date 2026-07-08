@@ -81,8 +81,8 @@ def assess_result(job_id: str) -> dict:
 def run_smoke_test() -> bool:
     """Minimal compliance smoke test.
 
-    Structural only (no network / no acat deps required at import time is NOT
-    guaranteed — this file imports fastapi + acat services at module load).
+    Structural only (no network). This file imports fastapi + acat services at module load,
+    so dependency-free imports are not guaranteed.
     """
     print("✓ Smoke test PASSED")
     return True
