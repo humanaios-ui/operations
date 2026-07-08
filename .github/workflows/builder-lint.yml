@@ -17,10 +17,12 @@ on:
   pull_request:
     paths:
       - "tools/**/*.py"
+      - "tools/*.py"
   push:
     branches: [main]
     paths:
       - "tools/**/*.py"
+      - "tools/*.py"
   workflow_dispatch:
 
 permissions:
@@ -28,6 +30,7 @@ permissions:
 
 jobs:
   compliance:
+    name: Builder v1.7 compliance
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
