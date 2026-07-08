@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install deps
-        run: pip install --quiet pyyaml
+        run: echo "No extra Python deps required for scheduled audit"
       - name: Run audit instruments + research-finding gates (measure)
         id: audit
         run: python3 tools/scheduled_audit_runner_v1_0.py --repo-root . --output outputs
