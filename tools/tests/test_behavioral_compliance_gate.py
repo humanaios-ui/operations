@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import sys
 import tempfile
+import unittest
 from pathlib import Path
 
 # Make tools/ importable when running directly.
@@ -47,7 +48,7 @@ def _write_temp(src: str) -> Path:
 # BEHAV_DOCSTRING_ONLY
 # ---------------------------------------------------------------------------
 
-class TestDocstringOnly:
+class TestDocstringOnly(unittest.TestCase):
     def test_docstring_only_function_is_flagged(self):
         src = "def hollow():\n    '''This function has no body.'''\n"
         r = gate.scan_file(_write_temp(src))
@@ -99,7 +100,7 @@ class TestDocstringOnly:
 # BEHAV_DEAD_CODE_AFTER_RETURN
 # ---------------------------------------------------------------------------
 
-class TestDeadCodeAfterReturn:
+class TestDeadCodeAfterReturn(unittest.TestCase):
     def test_statements_after_return_are_flagged(self):
         src = (
             "def bad():\n"
@@ -148,7 +149,7 @@ class TestDeadCodeAfterReturn:
 # BEHAV_DUPLICATE_FUNC_DEF
 # ---------------------------------------------------------------------------
 
-class TestDuplicateFuncDef:
+class TestDuplicateFuncDef(unittest.TestCase):
     def test_duplicate_module_level_function_is_flagged(self):
         src = (
             "def run_smoke_test():\n"
@@ -202,7 +203,7 @@ class TestDuplicateFuncDef:
 # Clean file
 # ---------------------------------------------------------------------------
 
-class TestCleanFile:
+class TestCleanFile(unittest.TestCase):
     def test_fully_compliant_file_passes(self):
         src = "\n".join([
             "# Builder v1.7 compliant",
@@ -231,7 +232,7 @@ class TestCleanFile:
 # Syntax error handling
 # ---------------------------------------------------------------------------
 
-class TestSyntaxError:
+class TestSyntaxError(unittest.TestCase):
     def test_syntax_error_is_reported_as_failure(self):
         src = "def broken(:\n    pass\n"
         r = gate.scan_file(_write_temp(src))
@@ -243,7 +244,7 @@ class TestSyntaxError:
 # Aggregate and write_report
 # ---------------------------------------------------------------------------
 
-class TestAggregate:
+class TestAggregate(unittest.TestCase):
     def test_all_passing_results_in_pass_aggregate(self):
         results = [
             {"file": "a.py", "passed": True, "hard_failures": []},
@@ -285,4 +286,4 @@ def run_smoke_test() -> bool:
 
 
 if __name__ == "__main__":
-    sys.exit(0 if run_smoke_test() else 1)
+    unittest.main()

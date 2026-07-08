@@ -146,8 +146,8 @@ jobs:
       - name: Run behavioral compliance gate tests
         run: |
           set -euo pipefail
-          python3 -m pytest tools/tests/test_behavioral_compliance_gate.py \
-            -v --tb=short
+          python3 -m unittest discover -s tools/tests \
+            -p 'test_behavioral_compliance_gate.py' -v
 
       # ── 4. Gate smoke test ────────────────────────────────────────────────
       - name: Gate smoke test
