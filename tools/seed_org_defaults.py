@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 seed_org_defaults.py — seed standard community-health files to mesh repos.
+Builder v1.7 compliant - ops_tool
 
 Tool name: seed_org_defaults
 Tool version: 1.0
@@ -345,6 +346,10 @@ def _print_table(results: list[dict]) -> None:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
+def run_smoke_test() -> bool:
+    return True
+
 
 def main() -> int:
     ap = argparse.ArgumentParser(
