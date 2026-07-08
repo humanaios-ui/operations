@@ -1,8 +1,12 @@
 name: findings-registry
 
-# NON-BLOCKING gate (staged). 13 known residuals remain until Issue-09 lands;
-# promote to blocking (remove continue-on-error) once those are resolved.
-# Mirrors the document-control.yml pattern.
+# BLOCKING gate. main is at 0 hard failures (audit A2, S-070726) so blocking is
+# safe. Runs the validator WITHOUT --strict on purpose: --strict escalates the
+# benign REG_UNCOMMITTED_CANDIDATE warnings (findings legitimately marked
+# CANDIDATE, awaiting Z2 ratification) into failures, which would block every PR
+# touching REGISTERED.md. Non-strict blocks on the real hard classes only
+# (ID collisions, date-format, invalid status, missing fields, append violations)
+# and tolerates candidate warnings. Mirrors the document-control.yml pattern.
 # Acceptance: a PR reintroducing a real ID collision fails CI; a clean one passes.
 
 on:
@@ -28,6 +32,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Findings registry integrity (NON-BLOCKING — 13 known residuals pending Issue-09)
-        continue-on-error: true
-        run: python3 tools/registered_findings_validator_v1_0.py --input REGISTERED.md --strict
+      - name: Findings registry integrity (BLOCKING — hard failures fail the build)
+        run: python3 tools/registered_findings_validator_v1_0.py --input REGISTERED.md
