@@ -92,7 +92,8 @@ def _latest_report(out_dir: str, pattern: str):
     if not matches:
         return None
     try:
-        return json.load(open(matches[-1], encoding="utf-8"))
+        with open(matches[-1], encoding="utf-8") as fh:
+            return json.load(fh)
     except (json.JSONDecodeError, OSError):
         return None
 
