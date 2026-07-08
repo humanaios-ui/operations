@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 """
 seed_org_defaults.py — seed standard community-health files to mesh repos.
-<<<<<<< HEAD
-Builder v1.7 compliant — seed_org_defaults_tool
-HumanAIOS — S-070726-seed-org-defaults
-=======
 Builder v1.7 compliant - org_defaults_seed_tool
 HumanAIOS - S-070826-compliance-hardening
->>>>>>> origin/main
 
 Tool name: seed_org_defaults
 Tool version: 1.0
@@ -487,15 +482,5 @@ def main() -> int:
     return 0
 
 
-def run_smoke_test() -> None:
-    """Minimal smoke test — verifies the module loads correctly."""
-    assert TOOL_NAME == "seed_org_defaults"
-    print(f"{TOOL_NAME} v{TOOL_VERSION} smoke test: PASS")
-
-
 if __name__ == "__main__":
-    import sys as _sys
-    if "--smoke-test" in _sys.argv:
-        run_smoke_test()
-        raise SystemExit(0)
     raise SystemExit(main())

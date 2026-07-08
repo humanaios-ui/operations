@@ -3,8 +3,6 @@ test_pre_push_gate.py
 Builder v1.7 compliant - pre_push_gate_tests
 HumanAIOS - S-070826-compliance-hardening
 Tests for tools/pre_push_gate.py (IC-026 guard — S-070726).
-Builder v1.7 compliant — test_pre_push_gate_tool
-HumanAIOS — S-070726-test-pre-push-gate
 
 Covers:
   1. check_branch  — allowed / wrong-branch logic
@@ -39,9 +37,6 @@ from pre_push_gate import (
     run,
     run_smoke_test as module_run_smoke_test,
 )
-
-TOOL_NAME = "test_pre_push_gate"
-TOOL_VERSION = "1.0.0"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -332,11 +327,6 @@ class TestHookMode:
         assert "feature-cfg" in out
 
 
-<<<<<<< HEAD
-if __name__ == "__main__":
-    import pytest
-    raise SystemExit(pytest.main([__file__, "-v"]))
-=======
 def run_smoke_test() -> bool:
     """Builder compliance smoke test."""
     try:
@@ -352,4 +342,3 @@ def run_smoke_test() -> bool:
 
 if __name__ == "__main__":
     raise SystemExit(0 if run_smoke_test() else 1)
->>>>>>> origin/main

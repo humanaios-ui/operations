@@ -3,8 +3,6 @@ test_clone_sync_health.py
 Builder v1.7 compliant - clone_sync_health_tests
 HumanAIOS - S-070826-compliance-hardening
 Integration tests for tools/clone_sync_health_v1_0.py.
-Builder v1.7 compliant — test_clone_sync_health_tool
-HumanAIOS — S-070726-test-clone-sync-health
 
 Covers:
   1. get_clone_status  — clean, behind, dirty, no-origin/main (unknown guard)
@@ -36,9 +34,6 @@ from clone_sync_health_v1_0 import (
     get_clone_status,
     run_smoke_test as module_run_smoke_test,
 )
-
-TOOL_NAME = "test_clone_sync_health"
-TOOL_VERSION = "1.0.0"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -257,11 +252,6 @@ class TestSmokeTest:
         assert run_smoke_test() is True
 
 
-<<<<<<< HEAD
-if __name__ == "__main__":
-    import pytest
-    raise SystemExit(pytest.main([__file__, "-v"]))
-=======
 def run_smoke_test() -> bool:
     """Builder compliance smoke test."""
     try:
@@ -276,4 +266,3 @@ def run_smoke_test() -> bool:
 
 if __name__ == "__main__":
     raise SystemExit(0 if run_smoke_test() else 1)
->>>>>>> origin/main
