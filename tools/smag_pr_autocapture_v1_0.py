@@ -16,7 +16,7 @@ the optional LLM-review tier to enrich later.
 
 Usage (in CI, GH_TOKEN in env):
   python3 smag_pr_autocapture_v1_0.py --pr 99 --repo humanaios-ui/operations \
-      --capture-tool tools/smag_pilot_capture_v1_0.py --ledger outputs/smag_pilot_ledger.jsonl
+      --capture-tool tools/smag_pilot_capture_v1_0.py --output outputs/
   python3 smag_pr_autocapture_v1_0.py --smoke-test
 """
 from __future__ import annotations
