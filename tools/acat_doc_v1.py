@@ -73,7 +73,6 @@ class ACATDocReport:
     dimension_summary: Optional[DimensionSummary] = None
     final_verdict: Optional[Verdict] = None
 
-<<<<<<< HEAD
 def run_smoke_test() -> bool:
     """Minimal compliance smoke test."""
     print("✓ Smoke test PASSED")
@@ -82,7 +81,3 @@ def run_smoke_test() -> bool:
 if __name__ == "__main__":
     import sys
     sys.exit(0 if run_smoke_test() else 1)
-=======
-if __name__ == "__main__":
-    pass
->>>>>>> origin/main

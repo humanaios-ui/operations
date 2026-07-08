@@ -335,7 +335,6 @@ def batch_validate(responses: List[str], configs: List[Dict]) -> Dict[str, Any]:
 
 print("v0.6 validator loaded — ensemble judges + T-04 probe + VTB-001 corrected.")
 
-<<<<<<< HEAD
 def run_smoke_test() -> bool:
     """Minimal compliance smoke test."""
     print("✓ Smoke test PASSED")
@@ -344,7 +343,3 @@ def run_smoke_test() -> bool:
 if __name__ == "__main__":
     import sys
     sys.exit(0 if run_smoke_test() else 1)
-=======
-if __name__ == "__main__":
-    pass
->>>>>>> origin/main

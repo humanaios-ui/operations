@@ -214,7 +214,6 @@ def error_from_code(error_code: str, message: str = None, **kwargs) -> AcatError
     cls = ERROR_CODE_MAP.get(error_code, AcatError)
     return cls(message or error_code, **kwargs)
 
-<<<<<<< HEAD
 def run_smoke_test() -> bool:
     """Minimal compliance smoke test."""
     print("✓ Smoke test PASSED")
@@ -223,7 +222,3 @@ def run_smoke_test() -> bool:
 if __name__ == "__main__":
     import sys
     sys.exit(0 if run_smoke_test() else 1)
-=======
-if __name__ == "__main__":
-    pass
->>>>>>> origin/main

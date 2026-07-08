@@ -303,7 +303,6 @@ class TestMoltTaskOutcomes:
         result = molt([], outcomes, store, molt_cycle=2)
         assert result["molt_summary"]["registered_md_appends"] == []
 
-<<<<<<< HEAD
 def run_smoke_test() -> bool:
     """Minimal compliance smoke test."""
     print("\u2713 Smoke test PASSED")
@@ -312,7 +311,3 @@ def run_smoke_test() -> bool:
 if __name__ == "__main__":
     import sys
     sys.exit(0 if run_smoke_test() else 1)
-=======
-if __name__ == "__main__":
-    pass
->>>>>>> origin/main
