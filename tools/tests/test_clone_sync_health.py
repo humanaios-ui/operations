@@ -1,5 +1,7 @@
 """
 test_clone_sync_health.py
+Builder v1.7 compliant - clone_sync_health_tests
+HumanAIOS - S-070826-compliance-hardening
 Integration tests for tools/clone_sync_health_v1_0.py.
 
 Covers:
@@ -18,13 +20,16 @@ from pathlib import Path
 
 import pytest
 
+TOOL_NAME = "test_clone_sync_health"
+TOOL_VERSION = "1.0.0"
+
 TOOLS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_DIR))
 
 from clone_sync_health_v1_0 import (
     fix_clone,
     get_clone_status,
-    run_smoke_test,
+    run_smoke_test as module_run_smoke_test,
 )
 
 
@@ -242,3 +247,19 @@ class TestSmokeTest:
 
     def test_smoke_test_passes(self):
         assert run_smoke_test() is True
+
+
+def run_smoke_test() -> bool:
+    """Builder compliance smoke test."""
+    try:
+        assert TOOL_NAME == "test_clone_sync_health"
+        assert TOOL_VERSION
+        assert callable(get_clone_status)
+        assert callable(fix_clone)
+        return bool(module_run_smoke_test())
+    except Exception:
+        return False
+
+
+if __name__ == "__main__":
+    raise SystemExit(0 if run_smoke_test() else 1)

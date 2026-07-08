@@ -1,5 +1,7 @@
 """
 test_pre_push_gate.py
+Builder v1.7 compliant - pre_push_gate_tests
+HumanAIOS - S-070826-compliance-hardening
 Tests for tools/pre_push_gate.py (IC-026 guard — S-070726).
 
 Covers:
@@ -20,6 +22,9 @@ from pathlib import Path
 
 import pytest
 
+TOOL_NAME = "test_pre_push_gate"
+TOOL_VERSION = "1.0.0"
+
 TOOLS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_DIR))
 
@@ -27,7 +32,7 @@ from pre_push_gate import (
     check_branch,
     check_not_behind,
     run,
-    run_smoke_test,
+    run_smoke_test as module_run_smoke_test,
 )
 
 
@@ -317,3 +322,20 @@ class TestHookMode:
         assert rc == 1, f"Feature branch should be blocked by git config:\n{out}"
         assert "BLOCKED" in out
         assert "feature-cfg" in out
+
+
+def run_smoke_test() -> bool:
+    """Builder compliance smoke test."""
+    try:
+        assert TOOL_NAME == "test_pre_push_gate"
+        assert TOOL_VERSION
+        assert callable(check_branch)
+        assert callable(check_not_behind)
+        assert callable(run)
+        return bool(module_run_smoke_test())
+    except Exception:
+        return False
+
+
+if __name__ == "__main__":
+    raise SystemExit(0 if run_smoke_test() else 1)
