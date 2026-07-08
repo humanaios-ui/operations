@@ -1,7 +1,7 @@
 # HumanAIOS Operator Runbook
 
 **Version:** 0.8
-**Last updated:** July 7, 2026 (S-070726 · IC-026 class fix · §15 added — Reconcile drifted local clones)
+**Last updated:** July 7, 2026 (S-070726 · §§15–16 added: Reconcile drifted local clones + pre-push behind-remote / wrong-branch guard · IC-026 class)
 **Canonical home:** `humanaios-internal/OPERATOR_RUNBOOK.md`
 **Local mirror:** `~/Desktop/HAIOS-Main/humanaios-internal/OPERATOR_RUNBOOK.md`
 **Scope:** Operator-side recipes. What Night does. Copy-paste from this file.
@@ -27,6 +27,7 @@
 13. [ACAT first live request runbook](#13-acat-first-live-request-runbook)
 14. [Recipe — Governance file maintenance (SWC-04)](#14-recipe--governance-file-maintenance-swc-04)
 15. [Recipe — Reconcile drifted local clones (IC-026)](#15-recipe--reconcile-drifted-local-clones-ic-026)
+16. [Pre-push guard — behind-remote / wrong-branch (IC-026)](#16-pre-push-guard--behind-remote--wrong-branch-ic-026)
 ---
 
 ## 1. Repository structure
@@ -1598,10 +1599,123 @@ or creates a divergence. The T1 baseline (S-070726) found `operations-staging` 1
 
 ---
 
+## 16. Pre-push guard — behind-remote / wrong-branch (IC-026)
+
+**Audit anchor:** S-070726 · P0 · IC-026 class.
+
+### Why this exists
+
+IC-026 class: a push from a stale (behind-remote) local clone silently stomps
+commits made by collaborators or other sessions. Pushing from a wrong branch
+compounds the risk by landing changes on an unintended ref. This guard blocks
+both conditions before the push reaches the remote.
+
+### Files
+
+| Path | Role |
+|---|---|
+| `tools/pre_push_gate.py` | Core logic: `check_branch()`, `check_not_behind()`, `run()` |
+| `tools/tests/test_pre_push_gate.py` | Pytest suite — 18 tests including stale-push scenario |
+
+### Install as a git pre-push hook (one-time, per clone)
+
+```bash
+cd <repo-root>
+ln -sf ../../tools/pre_push_gate.py .git/hooks/pre-push
+chmod +x tools/pre_push_gate.py
+```
+
+Git will invoke the hook automatically before every `git push`. The hook exits
+non-zero (blocking the push) when either guard trips.
+
+### Run manually (standalone check)
+
+```bash
+# Check current branch against origin, allowed branch = main (default)
+python3 tools/pre_push_gate.py
+
+# Check a different remote or allowed-branch list
+python3 tools/pre_push_gate.py --remote upstream --allow-branches main,release
+
+# Disable branch guard, check only behind-remote
+python3 tools/pre_push_gate.py --allow-branches ""
+
+# Built-in smoke test
+python3 tools/pre_push_gate.py --smoke-test
+```
+
+### Guard behaviour
+
+| Condition | Action |
+|---|---|
+| Current branch not in allowed list | Exit 1 — BLOCKED, message names the branch and the allowed list |
+| Local branch is N commits behind remote | Exit 1 — BLOCKED, message gives N and the `git pull --rebase` remedy |
+| No tracking branch configured | Allow (warning only — cannot determine lag) |
+| Remote unreachable (offline) | Allow (fetch failure is non-fatal; gate uses cached tracking info) |
+| All guards pass | Exit 0 — push proceeds |
+
+In hook mode, the remote name is read from the positional argument git provides
+(`<remote-name>`), not from the `--remote` flag.
+
+### Allowed branches
+
+**Standalone mode** (no positional args): default allowed list is `["main"]`. Override
+with `--allow-branches`. Pass an empty string (`--allow-branches ""`) to disable the
+branch guard entirely (behind-remote guard still runs).
+
+**Hook mode** (git invokes with `<remote-name> <remote-url>` positional args): the
+branch guard defaults to **permissive** (all branches allowed) so that feature-branch
+pushes work without configuration. To restrict branches in hook mode, set one of:
+
+```bash
+# Per-clone via git config (applies to this repository only)
+git config hooks.allowBranches main,release
+
+# Per-session via environment variable (comma-separated)
+export PRE_PUSH_GATE_ALLOW_BRANCHES=main,release
+
+# One-time override at call-time (flag wins over env var and git config)
+python3 tools/pre_push_gate.py origin <url> --allow-branches main,release
+```
+
+Resolution order in hook mode (first match wins): `--allow-branches` flag →
+`PRE_PUSH_GATE_ALLOW_BRANCHES` env var → `git config hooks.allowBranches` →
+`[]` (all branches allowed).
+
+### Resolving a blocked push
+
+**Behind-remote:**
+
+```bash
+git pull --rebase origin main   # rebase local commits on top of remote
+python3 tools/pre_push_gate.py  # confirm gate now passes
+git push
+```
+
+**Wrong branch:**
+
+```bash
+git checkout main               # switch to an allowed branch
+# cherry-pick or merge your work if needed
+python3 tools/pre_push_gate.py
+git push
+```
+
+### Running the tests
+
+```bash
+pytest tools/tests/test_pre_push_gate.py -v
+```
+
+The test `TestCheckNotBehind::test_behind_remote_is_blocked` is the core
+acceptance test: it builds a deliberate "stale" local clone, advances the
+remote by one commit, then asserts the gate returns `FAIL`.
+
+---
+
 ## Changelog
 
-- **2026-07-07 (S-070726) · v0.8** — Section 15 added: Recipe — Reconcile drifted local clones (IC-026). Documents the `clone_sync_health_v1_0.py` tool (Issue-01/02 from T3_IMPROVE_S070726.md) and the manual reconcile recipe. Addresses the T1 baseline finding: `operations-staging` 103 behind origin/main; `humanaios` on Dependabot branch. Version bump to 0.8.
-
+- **2026-07-07 (S-070726) · v0.8** — Sections 15–16 added. §15: Recipe — Reconcile drifted local clones (IC-026). Documents the `clone_sync_health_v1_0.py` tool (Issue-01/02 from T3_IMPROVE_S070726.md) and the manual reconcile recipe. §16: pre-push behind-remote / wrong-branch guard (IC-026). Adds `tools/pre_push_gate.py` (standalone script + git hook), `tools/tests/test_pre_push_gate.py` (18 tests, stale-push acceptance test included).
 - **2026-06-01 (S-060126-02) · v0.7** — Section 14 added: ACAT instrument extension — 12-dimension lock policy. Documents the instrument lock (LI frozen at Core 6 per Z2-IC-01), new `POST /api/v1/acat/human-score` endpoint, receipt object structure, gap semantics, `acat_human_scores` Supabase table (migration 005, explicit GRANTs per May 30 Data API change), and smoke test sequence for all four new-instrument endpoints.
 - **2026-05-29 (S-052926-04)** ACAT first live request runbook This runbook executes the first live W-1/W-2 paired-session write path for ACAT: submit a live Phase 1 payload - verify the row persisted in acat_assessments_v1 - submit the matching Phase 3 payload -verify the same row now contains P3 values and computed learning_index
 - **2026-05-19 (S-051926-02-z3-closeout) · v0.5** — Section 12 added: Governance update workflow (full-file replacement). Establishes the standing workflow for governance updates of this scale. Path A (GitHub web UI) and Path B (terminal via operations-staging) both documented with full recipes. Section 5 retained for surgical commits. Section 11 closing rituals updated to reference B.0 verification and Receipt Reconciliation (v6.4.1). Section 4 close prompts updated to reference SESSION_RITUALS v6.4.1 Section B.0/B.6. Repository structure section (1) updated with `audit_outputs/` and explicit identification of `operations-staging/` as canonical operations clone. Memory map (Section 2) updated with v6.4.1+ SESSION_RITUALS reference and append-only/harmonized notation on REGISTERED.md. P-ANON note added to Section 7 pre-flight (S-051826-04).
