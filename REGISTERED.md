@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** July 8, 2026 (S-070826-01) - Added IC-045 (Marker-injection shipped broken endpoint green).
+**Last updated:** July 8, 2026 (S-070826-01) - Added IC-045 (Marker-injection shipped a broken endpoint green).
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
