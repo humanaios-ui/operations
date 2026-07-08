@@ -1,0 +1,119 @@
+name: builder-lint
+
+# Builder v1.7 compliance gate — IC-036 (Audit S-070726).
+#
+# TWO checks run on every PR that touches tools/**/*.py:
+#
+#   1. corpus-gate  — overall pass-rate must remain ≥ 0.90; blocks merge if it
+#                     drops below the threshold.
+#
+#   2. new-file-gate — every Python file added or modified in tools/ during
+#                      this PR must individually pass compliance (100% for new
+#                      work); blocks a non-compliant tool from ever landing.
+#
+# Acceptance criterion: pass-rate ≥ 0.90 AND no new/modified file fails.
+
+on:
+  pull_request:
+    paths:
+      - "tools/**/*.py"
+  push:
+    branches: [main]
+    paths:
+      - "tools/**/*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Corpus pass-rate gate (must be ≥ 0.90)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/bc_corpus
+          # Run scanner; it exits 1 if any file fails, but we check pass_rate ourselves
+          python3 tools/builder_compliance_scanner_v1.0.py \
+            --path tools/ --output /tmp/bc_corpus/ || true
+          # Parse the JSON report and enforce ≥ 0.90 threshold
+          python3 - <<'PYEOF'
+          import json, glob, sys
+          reports = sorted(glob.glob("/tmp/bc_corpus/builder_compliance_*.json"))
+          if not reports:
+              print("ERROR: no compliance report found")
+              sys.exit(1)
+          data = json.load(open(reports[-1]))
+          rate = data["pass_rate"]
+          total = data["files_scanned"]
+          passed = data["files_passed"]
+          print(f"Compliance: {passed}/{total} ({rate*100:.1f}%)")
+          threshold = 0.90
+          if rate < threshold:
+              print(f"::error::Builder compliance pass-rate {rate*100:.1f}% is below the required {threshold*100:.0f}% threshold ({passed}/{total} files pass).")
+              print("Top failures:")
+              for code, count in data.get("most_common_failures", []):
+                  print(f"  {code}: {count}")
+              sys.exit(1)
+          print(f"OK — pass-rate {rate*100:.1f}% meets the ≥{threshold*100:.0f}% threshold.")
+          PYEOF
+
+      - name: New/changed-file gate (blocks non-compliant additions)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Collect added/modified Python files in tools/
+          changed=$(git diff --name-only --diff-filter=AM "$BASE" "$HEAD" \
+                    | grep '^tools/.*\.py$' || true)
+          if [ -z "$changed" ]; then
+            echo "No Python tool files added or modified — skipping per-file gate."
+            exit 0
+          fi
+          echo "Changed tools:"
+          echo "$changed"
+          echo ""
+          FAIL=0
+          while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            mkdir -p /tmp/bc_pr
+            # Run scanner on single file; output goes to temp dir
+            python3 tools/builder_compliance_scanner_v1.0.py \
+              --path "$f" --output /tmp/bc_pr/ 2>&1 || true
+            result=$(python3 -c "
+          import json, glob, sys
+          reports = sorted(glob.glob('/tmp/bc_pr/builder_compliance_*.json'))
+          if not reports:
+              print('UNKNOWN')
+              sys.exit(0)
+          d = json.load(open(reports[-1]))
+          fr = d['file_results']
+          passed = all(r['passed'] for r in fr)
+          print('PASS' if passed else 'FAIL')
+          ")
+            if [ "$result" != "PASS" ]; then
+              echo "::error file=$f::Builder v1.7 compliance FAILED. Run: python3 tools/builder_compliance_scanner_v1.0.py --path $f"
+              FAIL=1
+            else
+              echo "OK $f"
+            fi
+            rm -f /tmp/bc_pr/builder_compliance_*.json
+          done <<< "$changed"
+          if [ "$FAIL" -ne 0 ]; then
+            echo ""
+            echo "::error::One or more changed tools failed Builder v1.7 compliance."
+            echo "Fix the listed files, then re-push. See: tools/builder_compliance_scanner_v1.0.py --smoke-test"
+            exit 1
+          fi
+          echo "All changed tools pass Builder v1.7 compliance."

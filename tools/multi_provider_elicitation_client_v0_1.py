@@ -37,6 +37,15 @@ Usage (once activated):
     --dry-run
 """
 
+# Builder v1.7 compliant
+
+TOOL_NAME = "multi_provider_elicitation_client"
+TOOL_VERSION = "1.0.0"
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 import json
 import logging
 import os

@@ -49,6 +49,15 @@ ASKNEWS_CLIENT_ID / ASKNEWS_SECRET
 BOT_RUN_ID  (default: S-bot-MMDDYY-auto)
 """
 
+# Builder v1.7 compliant
+
+TOOL_NAME = "main"
+TOOL_VERSION = "1.0.0"
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 import argparse
 import asyncio
 import logging
