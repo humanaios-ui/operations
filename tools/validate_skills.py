@@ -36,8 +36,9 @@ def extract_frontmatter(md_path: Path) -> dict | None:
     try:
         return yaml.safe_load(match.group(1))
     except yaml.YAMLError as exc:
+        exc_msg = " ".join(str(exc).splitlines())
         raise FrontmatterParseError(
-            f"YAML PARSE ERROR [{md_path.parent.name}]: {exc}"
+            f"YAML PARSE ERROR [{md_path.parent.name}]: {exc_msg}"
         ) from exc
 
 
