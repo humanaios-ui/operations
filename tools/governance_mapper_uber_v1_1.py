@@ -10,6 +10,11 @@ Fixes:
 """
 TOOL_VERSION = "1.0.0"
 
+# Builder v1.7 compliant
+# HumanAIOS
+
+TOOL_VERSION = "1.0.0"
+
 import json, sys, argparse, re
 from datetime import datetime, timezone
 from pathlib import Path

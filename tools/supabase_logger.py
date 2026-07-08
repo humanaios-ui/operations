@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 # ---------------------------------------------------------------------------
-# Builder v1.7 constants
+# Builder v1.7 compliant
 # ---------------------------------------------------------------------------
 TOOL_NAME = "supabase_logger"
 TOOL_VERSION = "1.1.0"

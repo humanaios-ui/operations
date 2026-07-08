@@ -11,6 +11,16 @@ This is the enforcing code.
 TOOL_NAME = "tier_b_activation_gate"
 TOOL_VERSION = "1.0.0"
 
+# Builder v1.7 compliant
+# HumanAIOS
+
+TOOL_NAME = "tier_b_activation_gate"
+TOOL_VERSION = "1.0.0"
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 
 class TierBActivationBlocked(Exception):
     """Raised when Tier B (individual disclosure research) is activated

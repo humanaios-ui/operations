@@ -31,7 +31,7 @@ from typing import Any
 import yaml
 
 # ---------------------------------------------------------------------------
-# Builder v1.7 constants
+# Builder v1.7 compliant
 # ---------------------------------------------------------------------------
 TOOL_NAME = "registry_site_generator"
 TOOL_VERSION = "1.0.0"

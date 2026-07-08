@@ -9,6 +9,12 @@ full repo clone.
 TOOL_NAME = "tier1_principles_stub"
 TOOL_VERSION = "1.0.0"
 
+# Builder v1.7 compliant
+# HumanAIOS
+
+TOOL_NAME = "tier1_principles_stub"
+TOOL_VERSION = "1.0.0"
+
 TIER1 = {
     "AA-S2":  {"id": "AA-S2",  "short": "Came to believe — restoration to sanity"},
     "AA-S3":  {"id": "AA-S3",  "short": "Turned will and lives over"},

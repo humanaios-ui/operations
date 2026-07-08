@@ -1,0 +1,65 @@
+name: HAIOS Research Agent
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Weekly Monday 6am UTC
+  workflow_dispatch:
+    inputs:
+      research_task:
+        description: 'Research task to run'
+        required: true
+        default: 'arxiv_scan'
+        type: choice
+        options:
+          - arxiv_scan
+          - metaculus_check
+          - bars_batch
+          - hypothesis_audit
+      hypothesis:
+        description: 'Hypothesis ID (e.g. H51, H52, F-RLHF, or "all")'
+        required: false
+        default: 'all'
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trigger n8n research orchestrator
+        id: trigger
+        run: |
+          TASK="${{ github.event.inputs.research_task || 'arxiv_scan' }}"
+          HYPOTHESIS="${{ github.event.inputs.hypothesis || 'all' }}"
+          RESPONSE=$(curl -s -X POST "${{ secrets.N8N_WEBHOOK_RESEARCH }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"task\":\"${TASK}\",\"hypothesis\":\"${HYPOTHESIS}\",\"run_id\":\"${{ github.run_id }}\",\"date\":\"$(date +%Y-%m-%d)\"}")
+          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          echo "✅ Research task triggered: ${TASK}"
+
+      - name: Wait for n8n processing
+        run: sleep 90
+
+      - name: Check for findings branch
+        run: |
+          TASK="${{ github.event.inputs.research_task || 'arxiv_scan' }}"
+          git fetch origin
+          BRANCH="findings/$(date +%Y-%m-%d)-${TASK}"
+          if git ls-remote --exit-code origin "$BRANCH" 2>/dev/null; then
+            echo "✅ Findings branch created: $BRANCH"
+            echo "Review at: https://github.com/${{ github.repository }}/compare/$BRANCH"
+            echo "⚠️ No findings branch yet — check n8n execution logs"
+          fi
+
+      - name: Direct arXiv scan (fallback if n8n unavailable)
+        if: failure() && (github.event.inputs.research_task || 'arxiv_scan') == 'arxiv_scan'
+        run: |
+          # Direct arXiv API call as fallback
+          RESULTS=$(curl -s "https://export.arxiv.org/api/query?search_query=ti:calibration+AND+ti:language+model&max_results=5&sortBy=submittedDate&sortOrder=descending")
+          echo "$RESULTS" > /tmp/arxiv_results.xml
+          echo "✅ arXiv direct scan complete — $(wc -c < /tmp/arxiv_results.xml) bytes"
+          # Parse and log titles
+          grep -o '<title>[^<]*</title>' /tmp/arxiv_results.xml | head -10 | sed 's/<[^>]*>//g'

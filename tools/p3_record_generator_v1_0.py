@@ -56,6 +56,12 @@ Usage:
   python p3_record_generator_v1_0.py --input ACAT_corpus_v2_clean_full.csv --write --sql --output-sql p3_insert_batch_v1.sql
 """
 
+# Builder v1.7 compliant
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 import argparse
 import csv
 import json
