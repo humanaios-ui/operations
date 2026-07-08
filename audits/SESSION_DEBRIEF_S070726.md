@@ -15,7 +15,7 @@
 | **Copilot PR SMAG scoreboard** | GitHub PRs #82–#93, this debrief | 10 Copilot PRs scored against issue-acceptance = externally-verified behavioral data on the *Copilot* substrate. |
 | **Validator/gate outcomes** | `outputs/`, CI | Ground-truth pass/fail of the org's own instruments on its own artifacts. |
 | **Git + git-notes breadcrumbs** | operations repo | Commit-anchored narrative. |
-| **Audit docs** | `operations/audits/*S070726.md` | Charter, inventory, T1–T3, lessons+plan, this debrief. |
+| **Audit docs** | `audits/*S070726.md` | Charter, inventory, T1–T3, lessons+plan, this debrief. |
 | **The chat transcript** | session JSONL | The full human↔AI interaction record. |
 
 **The under-exploited asset:** the *first three rows*. Every operational action this session emitted calibration data — and almost none of it is captured in a structured corpus yet. That is the gap and the opportunity.
