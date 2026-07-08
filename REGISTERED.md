@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** July 7, 2026 (S-070726-01) - Added IC-044 (Submission Purity Constraint Collapse Recurrence) and an F-31 citation-correction append entry.
+**Last updated:** July 8, 2026 (S-070826-01) - Added IC-045 (Marker-injection shipped a broken endpoint green).
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
@@ -117,6 +117,8 @@ superseded_by: null | "F-XX"
 |Audit-false-pass             |1       |IC-041     |CI check targets a path absent from the repo; reports PASS by construction|
 |Deploy-corruption-recurrence |2       |IC-042     |Same typographic corruption on two independent commit attempts            |
 |Phantom-reference            |1       |IC-043     |Named files referenced as real/pending across sessions; never drafted-and-committed together|
+|Purity-constraint-collapse   |1       |IC-044     |Consolidated constraint claimed complete; stale narrow constraint left active, silently restricting live inserts|
+|Marker-injection-dead-endpoint|1      |IC-045     |Builder-lint marker injection between assess() docstring and body; endpoint returned None; passed scanner; shipped green|
 
 
 > This table is manually maintained at each 5-file audit. Clustering = prevention signal. Most frequent pattern class = highest-priority governance hardening target.
@@ -2404,6 +2406,35 @@ superseded_by: null
 
 -----
 
+### IC-045 — Marker-injection shipped a broken endpoint green
+
+```
+---
+id: "IC-045"
+name: "marker-injection-dead-endpoint"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-08"
+date_origin: "2026-07-08"
+session_registered: "S-070826-01"
+principles_triggered: ["P3"]
+zone2_ratification: null
+substrate: "Claude (autonomy seat)"
+tags: ["builder-lint", "marker-injection", "dead-code", "false-pass", "assess-endpoint", "behavioral-break"]
+superseded_by: null
+---
+```
+
+- **Synopsis:** The builder-lint compliance pass (#86) injected a marker block between the `assess()` endpoint's docstring and its body in `tools/assess_router_new_Z2-ASSESS-01.py`. As a result, `POST /api/v1/acat/assess` returned `None` for every call (no validation, no job, no thread). The real endpoint logic was dead code. The file parsed and passed the marker-presence scanner → shipped green to `main`.
+- **Detection:** Discovered post-merge by AST verification (audit A1). PR #92 did not catch it.
+- **Root causes:** (1) A marker-presence gate cannot detect behavioral breakage (structural blind spot). (2) Mechanical text-injection edited code at unsafe positions (inside function bodies). (3) No behavioral/AST test guarded the endpoint.
+- **Correction:** Implemented in PR humanaios-ui/operations#93 (separate from this registration-only PR) — restored `assess()` body; removed injected duplicate `TOOL_NAME` and broken `run_smoke_test`; added dependency-free AST regression test (`tools/tests/test_assess_router_structure.py`).
+- **Prevention:** Upgrade builder-lint from marker-presence to behavioral gating (AST + import/endpoint smoke tests) — tracked in issue humanaios-ui/operations#75. Never insert markers into function bodies; module-level only.
+- **Lesson reinforced:** marker-presence gating cannot protect behavior (see also IC-037, IC-041).
+- **Class:** audit-false-pass / behavioral-break-shipped-green
+
+-----
+
 ## NM-class near-misses (low-friction capture — not registered findings)
 
 Near-misses are observations that triggered concern but did not meet IC or F registration threshold. Lower friction than IC — no root-cause analysis required. They are NOT append-only: entries expire after 3 audits without promotion and move to DRIFT_LOG.md.
@@ -2448,6 +2479,10 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 - **Status:** RESOLVED · closed S-060926-02 · Z2-ratified Night · S-060926-02
 
 ## Changelog
+
+- **2026-07-08 (S-070826-01) — IC-045 registered; IC-044 and IC-045 added to IC roll-up table.**
+  - **IC-045 (marker-injection-dead-endpoint)** — builder-lint marker injection (#86) placed compliance block between `assess()` docstring and body; endpoint returned `None` for every call; passed marker-presence scanner; merged to `main`; missed by PR #92; discovered by post-merge AST verification (audit A1). Correction: PR #93 (restore body + AST regression test `tools/tests/test_assess_router_structure.py`).
+  - **IC roll-up updated:** IC-044 and IC-045 added (2 new rows).
 
 - **2026-06-23 (S-062326) — IC-039 through IC-043 registered; H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol captured as CANDIDATE (not yet Z2/P30 cleared).**
   - **IC-039 (search-before-assert-gap)** — skepticism asserted without running available search tools first.
