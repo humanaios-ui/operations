@@ -1,4 +1,9 @@
-"""Regression test for IC-045: the /assess endpoint must have a real body.
+"""
+test_assess_router_structure.py
+Builder v1.7 compliant - assess_router_structure_tests
+HumanAIOS - IC-045
+
+Regression test for IC-045: the /assess endpoint must have a real body.
 
 Dependency-free and import-free by design. The target module
 (assess_router_new_Z2-ASSESS-01.py) has a hyphen in its filename, so it is not
@@ -12,10 +17,15 @@ real validation/job-enqueue logic as dead code after a `return` inside an
 injected run_smoke_test(). It parsed and passed the marker-presence scanner —
 which is exactly why behavioral verification (this test) is required.
 """
-import ast
-import pathlib
+from __future__ import annotations
 
-TARGET = pathlib.Path(__file__).resolve().parents[1] / "assess_router_new_Z2-ASSESS-01.py"
+import ast
+from pathlib import Path
+
+TOOL_NAME = "test_assess_router_structure"
+TOOL_VERSION = "1.0.0"
+
+TARGET = Path(__file__).resolve().parents[1] / "assess_router_new_Z2-ASSESS-01.py"
 
 
 def _functions(tree):
