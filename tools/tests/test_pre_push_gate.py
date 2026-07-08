@@ -20,7 +20,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-import pytest
+try:
+    import pytest
+except ModuleNotFoundError:  # pragma: no cover - allows local smoke execution without pytest
+    pytest = None
 
 TOOL_NAME = "test_pre_push_gate"
 TOOL_VERSION = "1.0.0"
