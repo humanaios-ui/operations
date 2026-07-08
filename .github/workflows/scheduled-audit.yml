@@ -1,0 +1,57 @@
+name: scheduled-audit
+
+# MEASURE + ISSUE automated audit loop (S-070726).
+# Autonomy: this loop MEASURES on a schedule and OPENS an issue when a research-finding
+# gate trips. It does NOT dispatch work to a substrate and does NOT merge — a human
+# triages the issue and decides. Widen autonomy only once smag_pilot data earns it.
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"   # weekly, Monday 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install deps
+        run: pip install --quiet pyyaml
+      - name: Run audit instruments + research-finding gates (measure)
+        id: audit
+        run: python3 tools/scheduled_audit_runner_v1_0.py --repo-root . --output outputs
+      - name: Open/update issue if a gate tripped (no dispatch, no merge)
+        if: steps.audit.outputs.gate_tripped == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="🔁 Automated audit: research-finding gate tripped"
+          BODY_FILE="${{ steps.audit.outputs.summary_path }}"
+          # Append a footer noting this is measure+issue only.
+          {
+            echo ""
+            echo "---"
+            echo "_Opened by the \`scheduled-audit\` loop (measure+issue autonomy). This loop does not dispatch or merge — human triage required. Run: ${{ github.run_id }}._"
+          } >> "$BODY_FILE"
+          EXISTING=$(gh issue list --repo "${{ github.repository }}" --state open \
+            --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "${{ github.repository }}" --body-file "$BODY_FILE"
+            echo "commented on #$EXISTING"
+          else
+            gh issue create --repo "${{ github.repository }}" \
+              --title "$TITLE" --label "audit:auto" --body-file "$BODY_FILE"
+          fi
+      - name: Upload audit report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-audit-report
+          path: outputs/scheduled_audit_*.json
