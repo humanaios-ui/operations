@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 seed_org_defaults.py — seed standard community-health files to mesh repos.
-Builder v1.7 compliant - ops_tool
+Builder v1.7 compliant - org_defaults_seed_tool
+HumanAIOS - S-070826-compliance-hardening
 
 Tool name: seed_org_defaults
 Tool version: 1.0
@@ -344,6 +345,24 @@ def _print_table(results: list[dict]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Smoke test
+# ---------------------------------------------------------------------------
+
+def run_smoke_test() -> bool:
+    """Lightweight deterministic self-check for Builder compliance."""
+    try:
+        assert TOOL_NAME == "seed_org_defaults"
+        assert isinstance(TOOL_VERSION, str) and TOOL_VERSION
+        assert TEMPLATES_DIR.exists()
+        assert {"CODEOWNERS", "SECURITY.md", "CONTRIBUTING.md", "LICENSE"} == {
+            key for key, _ in STANDARD_FILES
+        }
+        return True
+    except AssertionError:
+        return False
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -379,7 +398,14 @@ def main() -> int:
         "--strict", action="store_true",
         help="Exit 1 if any standard files are missing (use in CI)",
     )
+    ap.add_argument(
+        "--smoke-test",
+        action="store_true",
+        help="Run a local non-destructive smoke test and exit.",
+    )
     args = ap.parse_args()
+    if args.smoke_test:
+        return 0 if run_smoke_test() else 1
 
     import os
     token: str | None = args.token or os.environ.get("GITHUB_TOKEN")
