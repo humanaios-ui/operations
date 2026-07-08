@@ -24,12 +24,13 @@ jobs:
         id: guard
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          if [ -n "$SONAR_TOKEN" ]; then
+          if [ -n "$SONAR_TOKEN" ] && [ -n "$SONAR_HOST_URL" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::SONAR_TOKEN not set — SonarQube layer dormant. Add SONAR_TOKEN + SONAR_HOST_URL secrets to enable."
+            echo "::notice::SonarQube layer dormant. Add SONAR_TOKEN + SONAR_HOST_URL secrets to enable."
           fi
       - name: Checkout
         if: steps.guard.outputs.configured == 'true'
