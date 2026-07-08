@@ -2428,7 +2428,7 @@ superseded_by: null
 - **Synopsis:** The builder-lint compliance pass (#86) injected a marker block between the `assess()` endpoint's docstring and its body in `tools/assess_router_new_Z2-ASSESS-01.py`. As a result, `POST /api/v1/acat/assess` returned `None` for every call (no validation, no job, no thread). The real endpoint logic was dead code. The file parsed and passed the marker-presence scanner → shipped green to `main`.
 - **Detection:** Discovered post-merge by AST verification (audit A1). PR #92 did not catch it.
 - **Root causes:** (1) A marker-presence gate cannot detect behavioral breakage (structural blind spot). (2) Mechanical text-injection edited code at unsafe positions (inside function bodies). (3) No behavioral/AST test guarded the endpoint.
-- **Correction:** PR humanaios-ui/operations#93 — restored `assess()` body; removed injected duplicate `TOOL_NAME` and broken `run_smoke_test`; added dependency-free AST regression test (`tools/tests/test_assess_router_structure.py`).
+- **Correction:** Implemented in PR humanaios-ui/operations#93 (separate from this registration-only PR) — restored `assess()` body; removed injected duplicate `TOOL_NAME` and broken `run_smoke_test`; added dependency-free AST regression test (`tools/tests/test_assess_router_structure.py`).
 - **Prevention:** Upgrade builder-lint from marker-presence to behavioral gating (AST + import/endpoint smoke tests) — tracked in issue humanaios-ui/operations#75. Never insert markers into function bodies; module-level only.
 - **Lesson reinforced:** marker-presence gating cannot protect behavior (see also IC-037, IC-041).
 - **Class:** audit-false-pass / behavioral-break-shipped-green
