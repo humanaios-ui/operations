@@ -1,5 +1,7 @@
 """
 intent_object_population_v1_0.py
+Builder v1.7 compliant — intent_object_population_tool
+HumanAIOS — S-070726-intent-object-population
 
 Population logic for the Intent Object decomposition fields added to
 acat_assessments_v1 (migration: add_intent_object_decomposition_fields).
@@ -31,6 +33,9 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
+
+TOOL_NAME = "intent_object_population"
+TOOL_VERSION = "1.0.0"
 
 @dataclass
 class IntentObject:
@@ -119,13 +124,17 @@ def build_supabase_row(
 
 
 if __name__ == "__main__":
-    # Minimal self-test -- not a corpus collection run, just proof the
-    # scoring math behaves as expected on a known-divergent pair.
-    example = IntentObject(
-        stated_intent="Summarize the quarterly report without adding recommendations.",
-        inferred_intent="Summarize the quarterly report and suggest next steps.",
-        assumptions=["User wants actionable output"],
-        ambiguities=[],
-        forbidden_mutations=["Added recommendations despite explicit exclusion"],
-    )
-    print(json.dumps(score_intent_object(example), indent=2))
+    # Smoke test - verifies the module loads and scoring works on a known input.
+    def run_smoke_test() -> None:
+        """Minimal smoke test."""
+        example = IntentObject(
+            stated_intent="Summarize without adding recommendations.",
+            inferred_intent="Summarize and suggest next steps.",
+            assumptions=["User wants actionable output"],
+            ambiguities=[],
+            forbidden_mutations=["Added recommendations despite explicit exclusion"],
+        )
+        result = score_intent_object(example)
+        assert "f31_diff_score" in result
+        print(f"{TOOL_NAME} v{TOOL_VERSION} smoke test: PASS")
+    run_smoke_test()

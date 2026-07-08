@@ -1,6 +1,8 @@
 """
 test_pre_push_gate.py
 Tests for tools/pre_push_gate.py (IC-026 guard — S-070726).
+Builder v1.7 compliant — test_pre_push_gate_tool
+HumanAIOS — S-070726-test-pre-push-gate
 
 Covers:
   1. check_branch  — allowed / wrong-branch logic
@@ -29,6 +31,9 @@ from pre_push_gate import (
     run,
     run_smoke_test,
 )
+
+TOOL_NAME = "test_pre_push_gate"
+TOOL_VERSION = "1.0.0"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -317,3 +322,8 @@ class TestHookMode:
         assert rc == 1, f"Feature branch should be blocked by git config:\n{out}"
         assert "BLOCKED" in out
         assert "feature-cfg" in out
+
+
+if __name__ == "__main__":
+    import pytest
+    raise SystemExit(pytest.main([__file__, "-v"]))

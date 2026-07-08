@@ -1,6 +1,8 @@
 """
 test_clone_sync_health.py
 Integration tests for tools/clone_sync_health_v1_0.py.
+Builder v1.7 compliant — test_clone_sync_health_tool
+HumanAIOS — S-070726-test-clone-sync-health
 
 Covers:
   1. get_clone_status  — clean, behind, dirty, no-origin/main (unknown guard)
@@ -26,6 +28,9 @@ from clone_sync_health_v1_0 import (
     get_clone_status,
     run_smoke_test,
 )
+
+TOOL_NAME = "test_clone_sync_health"
+TOOL_VERSION = "1.0.0"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -242,3 +247,8 @@ class TestSmokeTest:
 
     def test_smoke_test_passes(self):
         assert run_smoke_test() is True
+
+
+if __name__ == "__main__":
+    import pytest
+    raise SystemExit(pytest.main([__file__, "-v"]))

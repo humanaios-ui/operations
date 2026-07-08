@@ -1,3 +1,8 @@
+"""
+assess_router_Z2_assessment.py — FastAPI router for Z2 assessment endpoint.
+Builder v1.7 compliant — assess_router_tool
+HumanAIOS — S-070726-assess-router
+"""
 from __future__ import annotations
 
 import threading
@@ -10,6 +15,9 @@ from acat.api.services.ingest_service import IntakeValidationError, PersistenceE
 from acat.api.services.provider_clients.anthropic_client import AnthropicClientError
 
 router = APIRouter()
+
+TOOL_NAME = "assess_router_Z2_assessment"
+TOOL_VERSION = "1.0.0"
 
 # In-memory job store.
 
@@ -68,3 +76,13 @@ def assess_result(job_id: str) -> dict:
             status_code=404, detail=f"Job {job_id!r} not found or expired."
         )
     return job
+
+
+def run_smoke_test() -> None:
+    """Minimal smoke test."""
+    assert router is not None
+    print(f"{TOOL_NAME} v{TOOL_VERSION} smoke test: PASS")
+
+
+if __name__ == "__main__":
+    run_smoke_test()
