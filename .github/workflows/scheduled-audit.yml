@@ -54,4 +54,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: scheduled-audit-report
-          path: outputs/scheduled_audit_*.json
+          path: |
+            outputs/*.json
+            outputs/scheduled_audit_summary.md
