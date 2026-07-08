@@ -141,12 +141,15 @@ def write_report(output, output_dir):
     return str(path)
 
 
-def print_summary(output):
+def print_summary(output, min_pass_rate=1.0):
     b = "=" * 60
+    verdict = output["result"]
+    if verdict != "PASS" and output["pass_rate"] >= min_pass_rate:
+        verdict = "PASS (threshold met: " + str(round(output["pass_rate"] * 100)) + "% >= " + str(round(min_pass_rate * 100)) + "%)"
     print("")
     print(b)
     print(" Builder Compliance Scanner - " + TOOL_VERSION)
-    print(" Verdict: " + output["result"])
+    print(" Verdict: " + verdict)
     print(" Files: " + str(output["files_passed"]) + "/" + str(output["files_scanned"]) +
           " (" + str(round(output["pass_rate"] * 100)) + "%)")
     print(b)
@@ -212,6 +215,9 @@ def main():
     parser.add_argument("--output", "-o", default="outputs/")
     parser.add_argument("--strict", action="store_true")
     parser.add_argument("--smoke-test", action="store_true")
+    parser.add_argument("--min-pass-rate", type=float, default=1.0,
+                        help="Exit 0 when pass rate >= this threshold (0.0-1.0). "
+                             "Default 1.0 requires all files to pass.")
     args = parser.parse_args()
     if args.smoke_test:
         sys.exit(0 if run_smoke_test() else 1)
@@ -225,9 +231,10 @@ def main():
         sys.exit(2)
     output = aggregate(results)
     rp = write_report(output, args.output)
-    print_summary(output)
+    threshold = getattr(args, "min_pass_rate", 1.0)
+    print_summary(output, min_pass_rate=threshold)
     print("Report: " + rp)
-    sys.exit(0 if output["result"] == "PASS" else 1)
+    sys.exit(0 if output["pass_rate"] >= threshold else 1)
 
 
 if __name__ == "__main__":

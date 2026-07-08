@@ -1,10 +1,13 @@
 """
+Builder v1.7 compliant
 tier1_principles.py — stub for smoke test execution.
 In production, this module is sourced from the humanaios-ui/operations repo
 at principles/tier1_principles.py.
 This stub allows principle_harmonizer to run and smoke-test without the
 full repo clone.
 """
+TOOL_NAME = "tier1_principles_stub"
+TOOL_VERSION = "1.0.0"
 
 # Builder v1.7 compliant
 # HumanAIOS

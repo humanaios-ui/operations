@@ -23,6 +23,7 @@ dist/
 
 # Tool reports (machine-readable run metadata — not committed)
 reports/
+outputs/
 # ...except the funding pipeline's reports/, which holds human-authored
 # funding docs (Longview apps, roadmap, opportunities), not tool metadata.
 !humanaios-funding-pipeline/reports/
