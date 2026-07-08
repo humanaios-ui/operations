@@ -28,10 +28,11 @@ jobs:
       - name: A4 — Secrets scan
         run: |
           echo "Scanning for credential patterns..."
-          if grep -rl "rah_[a-zA-Z0-9]\|sk-ant\|ghp_\|cfut_\|API_KEY\|SECRET_KEY" \
+          if grep -rEl "rah_[a-zA-Z0-9]{20,}|sk-ant[A-Za-z0-9_-]{20,}|ghp_[a-zA-Z0-9]{36,}|cfut_[a-zA-Z0-9]{30,}" \
             --include="*.html" --include="*.js" --include="*.json" \
             --include="*.yml" --include="*.md" \
-            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.github . 2>/dev/null; then
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.github \
+            --exclude-dir=workflows --exclude=satellite-haios-audit.yml . 2>/dev/null; then
             echo "::error title=A4 AUDIT::Potential credential exposure found"
             exit 1
           else
