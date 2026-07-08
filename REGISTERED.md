@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** July 8, 2026 (S-070826-01) - Added IC-045 (Marker-injection shipped a broken endpoint green).
+**Last updated:** July 8, 2026 (S-070826-02) - Added IC-cand-maintained-headline-recurrence; IC-cand row added to IC roll-up table.
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
@@ -119,6 +119,7 @@ superseded_by: null | "F-XX"
 |Phantom-reference            |1       |IC-043     |Named files referenced as real/pending across sessions; never drafted-and-committed together|
 |Purity-constraint-collapse   |1       |IC-044     |Consolidated constraint claimed complete; stale narrow constraint left active, silently restricting live inserts|
 |Marker-injection-dead-endpoint|1      |IC-045     |Builder-lint marker injection between assess() docstring and body; endpoint returned None; passed scanner; shipped green|
+|Maintained-headline-recurrence|2      |IC-cand    |Numeric/identity values manually maintained in CURRENT.md instead of pointing to live source; second occurrence of same root pattern|
 
 
 > This table is manually maintained at each 5-file audit. Clustering = prevention signal. Most frequent pattern class = highest-priority governance hardening target.
@@ -2435,6 +2436,35 @@ superseded_by: null
 
 -----
 
+### IC-cand — Maintained-Headline Recurrence (CURRENT.md §1/§4/§5)
+
+```
+---
+id: "IC-cand-maintained-headline-recurrence"
+name: "maintained-headline-recurrence"
+cand_status: CANDIDATE
+class: IC
+cand_date_registered: pending-Z2-ratification
+cand_date_origin: "2026-07-08"
+session_registered: "S-070826-02"
+principles_triggered: ["P3", "P7"]
+zone2_ratification: null
+substrate: "Claude (Z1 draft)"
+tags: ["maintained-headline", "pii-drift", "countdown-carry", "supabase-staleness", "current-md", "pointer-pattern"]
+superseded_by: null
+---
+```
+
+- **Synopsis:** CURRENT.md §1, §4, and §5 each embedded numeric or identity values that require manual sync — founder name/entity/EIN/FL Doc# (§1), charter day-countdown (§1), corpus statistics and headline findings (§4), and live Supabase row counts (§5) — instead of pointing to the live source. This is the second occurrence of the root pattern class in this file: IC-038 (charter-countdown-carry-error) was the first, a narrower instance (WGS arithmetic only). The §4 instance partially overlaps with Z2-GOVARCH-01 (pointer sentence added S-060826-04), but the stats block *beneath* the pointer was never removed, undermining the fix. §1 founder PII and §5 Supabase count were not addressed at all.
+- **Detection:** Raised by Night in session; confirmed live against `raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md` (S-070826-02). IC-030 fetch gate satisfied — last live REGISTERED.md entry IC-045.
+- **Root cause:** Each of §1, §4, §5 carried forward a value (count, name, entity string, day-count, N=) that required a human to update it on a schedule. When updates were missed, stale values were presented to substrates as authoritative. The pattern is: *value embedded in this file* when the invariant should be *pointer to live source*.
+- **Correction:** PR #106 — §1 founder PII replaced with pointer to operator registry (internal); charter countdown replaced with pointer to Class 1 (WGS); §4 stats block removed, leaving only Z2-GOVARCH-01 pointer + REGISTERED.md URL; §5 live count line replaced with pointer to Class 1 (WGS).
+- **Cross-reference:** IC-038 (charter-countdown-carry-error, S-061126-04) — narrower instance, same root cause. Z2 disposition: merge as sibling class vs. treat IC-038 as first instance of this class — to be determined at Z2 ratification.
+- **Prevention (proposed, pending Z2):** Lint rule or CI check that flags lines in CURRENT.md matching patterns for numeric corpus counts, day-counts, or entity strings — forces pointer language or explicit staleness acknowledgment. Not implemented in this PR; noted here for tracking.
+- **Note:** IC number to be assigned at Zone 2 ratification. `date_registered`, `zone2_ratification`, and `status` fields to be updated at that time. Do not merge before Z2 review (per PR description Zone routing).
+
+-----
+
 ## NM-class near-misses (low-friction capture — not registered findings)
 
 Near-misses are observations that triggered concern but did not meet IC or F registration threshold. Lower friction than IC — no root-cause analysis required. They are NOT append-only: entries expire after 3 audits without promotion and move to DRIFT_LOG.md.
@@ -2479,6 +2509,10 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 - **Status:** RESOLVED · closed S-060926-02 · Z2-ratified Night · S-060926-02
 
 ## Changelog
+
+- **2026-07-08 (S-070826-02) — IC-cand-maintained-headline-recurrence registered CANDIDATE.**
+  - **IC-cand (maintained-headline-recurrence)** — CURRENT.md §1 (founder PII + charter countdown), §4 (corpus stats block), and §5 (live Supabase count) each embedded manually-maintained values instead of live-source pointers. Second instance of this root pattern class (IC-038 was the first, narrower instance). CURRENT.md corrected concurrently in PR #106. Zone 2 ratification pending; IC number to be assigned at ratification.
+  - **IC roll-up updated:** IC-cand row added for maintained-headline-recurrence.
 
 - **2026-07-08 (S-070826-01) — IC-045 registered; IC-044 and IC-045 added to IC roll-up table.**
   - **IC-045 (marker-injection-dead-endpoint)** — builder-lint marker injection (#86) placed compliance block between `assess()` docstring and body; endpoint returned `None` for every call; passed marker-presence scanner; merged to `main`; missed by PR #92; discovered by post-merge AST verification (audit A1). Correction: PR #93 (restore body + AST regression test `tools/tests/test_assess_router_structure.py`).
