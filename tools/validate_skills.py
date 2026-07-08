@@ -5,6 +5,15 @@ HumanAIOS skill frontmatter validator.
 Reads all SKILL.md files, extracts YAML frontmatter, validates against architecture.schema.json.
 """
 
+# Builder v1.7 compliant
+
+TOOL_NAME = "validate_skills"
+TOOL_VERSION = "1.0.0"
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 import argparse
 import json
 import re

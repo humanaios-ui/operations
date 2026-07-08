@@ -18,6 +18,11 @@ Launch:
 
 from __future__ import annotations
 
+
+# Builder v1.7 compliant
+
+TOOL_NAME = "server"
+TOOL_VERSION = "1.0.0"
 import argparse
 import sys
 

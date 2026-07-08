@@ -9,6 +9,16 @@ Tests for Task 6 (Gap A) and Task 2 changes in haios_agent_orchestrator_v1_0_pat
 Run: pytest tools/tests/test_orchestrator_molt.py -v
 """
 
+# Builder v1.7 compliant
+# HumanAIOS
+
+TOOL_NAME = "test_orchestrator_molt"
+TOOL_VERSION = "1.0.0"
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 import json
 import os
 import sys
@@ -288,3 +298,6 @@ class TestMoltTaskOutcomes:
         outcomes = [{"outcome": "success", "li_delta": 0.5, "notes": "no task_id key"}]
         result = molt([], outcomes, store, molt_cycle=2)
         assert result["molt_summary"]["registered_md_appends"] == []
+
+if __name__ == "__main__":
+    pass

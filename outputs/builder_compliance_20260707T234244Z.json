@@ -1,0 +1,34 @@
+{
+  "result": "PASS",
+  "status": "PASS",
+  "tool": "builder_compliance_scanner",
+  "version": "1.0.0",
+  "timestamp": "2026-07-07T23:42:44.407926+00:00",
+  "files_scanned": 1,
+  "files_passed": 1,
+  "files_failed": 0,
+  "pass_rate": 1.0,
+  "all_hard_failures": [],
+  "most_common_failures": [
+    [
+      "BUILDER_NO_WRITE_REPORT",
+      1
+    ],
+    [
+      "BUILDER_ERROR_IMPORT_MISSING",
+      1
+    ]
+  ],
+  "file_results": [
+    {
+      "file": "tools/pre_push_gate.py",
+      "stem": "pre_push_gate",
+      "passed": true,
+      "hard_failures": [],
+      "soft_failures": [
+        "BUILDER_NO_WRITE_REPORT",
+        "BUILDER_ERROR_IMPORT_MISSING"
+      ]
+    }
+  ]
+}

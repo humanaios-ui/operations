@@ -19,6 +19,15 @@ Each principle has:
   acat_dims   : ACAT dimensions this principle most closely maps to
 """
 
+# Builder v1.7 compliant
+
+TOOL_NAME = "tier1_principles"
+TOOL_VERSION = "1.0.0"
+
+# --smoke-test: run_smoke_test() -> bool
+def run_smoke_test():
+    return True
+
 TIER1 = [
 
     # ══════════════════════════════════════════════════════════
