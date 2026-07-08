@@ -82,11 +82,13 @@ def gh_json(path: str):
 def capture(fields: dict, capture_tool: str, output_dir: str) -> int:
     """Append the row via the existing smag_pilot_capture tool (writes its
     default ledger under output_dir)."""
+    ledger = f"{output_dir.rstrip('/')}/smag_pilot_ledger.jsonl"
     argv = [
         sys.executable, capture_tool,
         "--pr", fields["pr"], "--task", fields["task"],
         "--substrate", fields["substrate"], "--predicted", fields["predicted"],
         "--measured", fields["measured"], "--gap", fields["gap"],
+        "--ledger", ledger,
         "--output", output_dir,
     ]
     proc = subprocess.run(argv, capture_output=True, text=True)
