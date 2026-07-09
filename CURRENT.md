@@ -1,7 +1,7 @@
 # HumanAIOS Operating Process — CURRENT
 
 **Status:** LIVE
-**Last updated:** June 24, 2026 (S-062426-CURRENT-UPDATE · §1 Charter Day corrected · §4 findings count updated · §5 Supabase state updated · §9 changelog entries added through S-062426-02)
+**Last updated:** July 8, 2026 (S-070826-02 · §1 founder PII + charter countdown removed; §4 manually-synced stats block removed; §5 live Supabase count removed — all replaced with live-source pointers per IC-cand-maintained-headline-recurrence)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
 **Replaces:** All prior in-Project CI snapshots (CUSTOM_INSTRUCTIONS_V*) as the canonical operating-process source for fetched-at-runtime use.
 
@@ -26,10 +26,9 @@ What this file deliberately does NOT contain:
 ## 1. Identity
 
 **Project:** HumanAIOS — Trinity Platform (HumanAIOS / Lasting Light Recovery / Lasting Light AI)
-**Founder:** Carly R. Anderson (Night)
-**Entity:** HumanAIOS LLC (FL Doc #L26000155266 · EIN 41-5367995)
+**Founder/Entity:** See operator registry (internal) — not maintained here to prevent PII drift.
 **Phase:** OR&D (Observational Research & Development), launched March 11, 2026
-**Charter:** Day 69 of 90 (Apr 17 – Jul 16, 2026) · Gate 2 PASSED · 22 days to close
+**Charter:** See Class 1 (live state via WGS) for current day count and gate status — not maintained here to prevent countdown-carry errors (see IC-038).
 **Public synthesis:** "Behavioral observability infrastructure being developed on the principle that systems calibrate to the level they operate from — and that level is measurable, improvable, and structurally accountable."
 
 ---
@@ -65,20 +64,6 @@ For any specific principle's text, drift signal mapping, or zone assignment, rea
 ## 4. Registered findings
 
 **Z2-GOVARCH-01 ratified S-060826-04:** This section no longer maintains a manually-synced index. The index drifted from REGISTERED.md and substrates used it as authoritative. For evidence, dates, YAML blocks, and the full F/IC/H registry: fetch `REGISTERED.md` (Class 3).
-
-**Current count (last verified June 8, 2026 via CURRENT.md; REGISTERED.md itself updated through S-062426-02):** F18–F54 range active · 30+ F-class · 4+ H-class candidates · 38+ IC corrections. Fetch REGISTERED.md for exact count. Note: IC-039 and IC-040 candidates surfaced June 24 (S-062326, S-062426-02); numbering reconciliation against live REGISTERED.md pending Night.
-
-**Headline findings (key validated numbers — version-dated June 8, 2026; unchanged in corpus since):**
-
-- **Corpus:** N_total=629 · N_P1=516 · N_LI=307 · Mean LI=0.8632 (clean, unanchored, v5.3+) · Cronbach's α=0.901
-- **Humility floor:** Phase 1 mean=73.95 — lowest dimension across all providers (F-H1-CONFIRMED) · F-H1 CRITICAL flag active · Last P3 Humility=69 (S-061026-01)
-- **RLHF Inflation Gradient (F-RLHF):** Safety dimensions score ~2.36 pts higher than epistemic dimensions
-- **Harm Independence (HIM):** PC2 loads 0.854 on Harm Awareness — partially orthogonal to general self-alignment factor (PC1=68.9% variance)
-- **Human baseline:** AI–Human gap +36.11 pts · z=4.082 · p<0.001 (Mann-Whitney, N=432 AI vs N=65 human)
-- **Document corpus:** α=0.978 · E-E-A-T convergent validity r=0.783 (N=23 governance docs)
-- **Capability-correlated Humility inversion (F-49 CANDIDATE):** Larger/more capable Claude models show Humility inversion (P1→P3 decline); smaller models do not. Gate: N≥20 Claude paired rows.
-- **Pipeline-Anchoring Deterministic Self-Report (F-52 CANDIDATE):** role_method="standard" pathway produces a fixed deterministic Phase 3 template across providers. Ratified S-061726-01.
-- **Cross-Substrate Verification Confidence Cascade (F-53 CANDIDATE):** Confidence escalates across independent AI review passes without accuracy gain. Ratified S-061726-01. Chain evidence added S-062426-01.
 
 For full registry: `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 
@@ -122,7 +107,7 @@ Live corpus (post-snapshot, ongoing):
 
 
 Submissions since March 23, 2026 land in the live Supabase acat_assessments_v1 table.
-Current live count (last verified S-062426-02, June 24, 2026): N=95 · N_P1=95 · N_LI=91 · Mean_LI=0.9830 · two_stage_verified N=18 · Mean_LI=0.9971 · Mean_P3_Humility=74.11 · Latest row: 2026-06-10
+**Current live count:** See Class 1 (WGS) for the current session's verified Supabase state — not maintained here to prevent staleness drift.
 Layer tags in active use:
 acat-self-v1 — standard behavioral session (self-mode)
 ai-self-report — legacy 6-dimension schema (reserved for backward compatibility)
@@ -194,6 +179,7 @@ If you are an LLM at session open and you can fetch only one URL, fetch Class 1 
 P30 note (GOVERNANCE.md v6.4.2, ratified S-061726-01): Substantive written artifacts require the interactive evidence-density-anchored ACAT pass — not the automated batch pass — before Z2 ratification. This file update is a staleness correction, not a new substantive artifact; however, Zone 3 should confirm the CURRENT.md Z3 carry item from S-062226-01 is resolved when this commit lands.
 
 9. Changelog
+2026-07-08 (S-070826-02) — Maintained-headline pattern fix. §1 founder PII (Founder name, Entity/FL Doc#/EIN) and charter countdown removed; replaced with pointer to operator registry (internal) and Class 1 (WGS) respectively (IC-cand-maintained-headline-recurrence). §4 manually-synced stats block (Current count line + Headline findings section) removed — undercut the Z2-GOVARCH-01 pointer that already existed; now §4 contains only the pointer and the registry URL. §5 hardcoded live Supabase count line removed; replaced with pointer to Class 1 (WGS). IC-cand-maintained-headline-recurrence registered in REGISTERED.md after IC-045.
 2026-07-07 (S-070726-01) — Intent Object pipeline instrumented; constraint-collapse recurrence fixed; F-31 phantom section-citation surfaced.
 - **Schema:** `acat_assessments_v1` extended with the Intent Object decomposition fields (`p1_stated_intent`, `p1_inferred_intent`, `p1_assumptions`, `p1_ambiguities`, `p1_forbidden_mutations`, `intent_object_captured_at`) — additive, nullable, verified live via `information_schema.columns` before and after.
 - **IC candidate (not yet numbered):** `submission_purity` constraint collapse recurred. The July 3 (S-070326) fix added `submission_purity_consolidated` as a superset constraint but never dropped the original narrow `acat_submission_purity_check` — Postgres ANDs all CHECK constraints, so the live insertable set silently re-narrowed to the intersection. Caught when a `self_administered` insert failed. Old constraint dropped this session (`drop_stale_narrow_submission_purity_constraint`) since the wide constraint is a strict superset — completes the already-ratified decision, does not introduce new scope. Needs an IC number and Zone 2 disposition (recurrence of prior IC candidate class, same shape).
