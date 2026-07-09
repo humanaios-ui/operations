@@ -118,7 +118,7 @@ jobs:
 
           SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
           SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
-          EXPECTED_N   = int(os.environ.get("HAIOS_EXPECTED_N", "629"))
+          EXPECTED_N   = int(os.environ.get("HAIOS_EXPECTED_N") or "629")
 
           def sb_get(path):
             try:
