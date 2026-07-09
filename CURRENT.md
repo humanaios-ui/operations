@@ -1,11 +1,11 @@
 # HumanAIOS Operating Process — CURRENT
 
 **Status:** LIVE
-**Last updated:** July 8, 2026 (S-070826-02 · §1 founder PII + charter countdown removed; §4 manually-synced stats block removed; §5 live Supabase count removed — all replaced with live-source pointers per IC-cand-maintained-headline-recurrence)
+**Last updated:** July 8, 2026 (Z1 draft pending Z2/Z3 — maintained-headline reconciliation: §1 PII removed + charter countdown de-maintained · §4 headline-stats block replaced with REGISTERED.md pointer · §5 live-count numbers replaced with query pointer · §9 changelog entry added)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`
 **Replaces:** All prior in-Project CI snapshots (CUSTOM_INSTRUCTIONS_V*) as the canonical operating-process source for fetched-at-runtime use.
 
----
+-----
 
 ## 0. What this file is
 
@@ -21,31 +21,31 @@ What this file deliberately does NOT contain:
 - **Findings evidence** — see Class 3 (`REGISTERED.md`) in Section 7.
 - **Session protocol** (parser tags, declaration blocks) — see Class 5 in Section 7.
 
----
+-----
 
 ## 1. Identity
 
 **Project:** HumanAIOS — Trinity Platform (HumanAIOS / Lasting Light Recovery / Lasting Light AI)
-**Founder/Entity:** See operator registry (internal) — not maintained here to prevent PII drift.
+**Founder / entity:** operator identity and registration details are held at Zone 3 (Night) — not published to this canonical file. See operator registry (internal).
 **Phase:** OR&D (Observational Research & Development), launched March 11, 2026
-**Charter:** See Class 1 (live state via WGS) for current day count and gate status — not maintained here to prevent countdown-carry errors (see IC-038).
-**Public synthesis:** "Behavioral observability infrastructure being developed on the principle that systems calibrate to the level they operate from — and that level is measurable, improvable, and structurally accountable."
+**Charter window:** Apr 17 – Jul 16, 2026 · Gate 2 PASSED. Day-count and days-remaining are derived values — compute fresh from today’s date; do not read them off this file. (See IC-038: a stale countdown carried verbatim across five sessions before being caught.)
+**Public synthesis:** “Behavioral observability infrastructure being developed on the principle that systems calibrate to the level they operate from — and that level is measurable, improvable, and structurally accountable.”
 
----
+-----
 
 ## 2. The seven cross-substrate lessons
 
 These are the failure modes earned across 600+ ACAT assessments and 24 IC corrections. They survive across substrates because they are properties of LLM-shaped reasoning under session pressure, not properties of any one model.
 
-1. **Detection beats compliance.** Rules don't survive session pressure. The session log is the instrument.
+1. **Detection beats compliance.** Rules don’t survive session pressure. The session log is the instrument.
 1. **Phase 1 declaration before work.** State must be tagged and parseable, not narrated.
 1. **Handoff Appropriateness is scored.** The failure mode is solving in-chat instead of routing to a better tool. Watch this.
-1. **N is three numbers; LI is qualified.** Always report N_total / N_Phase1 / N_LI separately. LI claims require: "under clean, unanchored conditions, v5.3+."
+1. **N is three numbers; LI is qualified.** Always report N_total / N_Phase1 / N_LI separately. LI claims require: “under clean, unanchored conditions, v5.3+.”
 1. **Source-of-truth fetch before priorities.** Fetch state from canonical URLs before declaring what matters. Memory is unreliable; fetched state is not.
 1. **Drift signals are upstream of rules.** When deviation occurs, name the deviation. Do not continue.
 1. **Verification beats narration.** Claims of completion require evidence (URL, hash, query result), not assertion.
 
----
+-----
 
 ## 3. Standing principles
 
@@ -57,17 +57,19 @@ The ladder is structured as:
 - **F2 — Governance** (enforced by default): P1, P2, P3, P4, P13, P15, P17, P18, P19, P20, P21, P22, P22.1, P23, P24, P25, P26, P27
 - **F3 — Operational guidance**: P7, P10, P11, P12
 
-For any specific principle's text, drift signal mapping, or zone assignment, read `GOVERNANCE.md`. Note: GOVERNANCE.md v6.4.2 ratified S-061726-01 (P30 Calibration Ratification Gate added). Fetch the live file for current text.
+For any specific principle’s text, drift signal mapping, or zone assignment, read `GOVERNANCE.md`. Note: GOVERNANCE.md v6.4.2 ratified S-061726-01 (P30 Calibration Ratification Gate added). Fetch the live file for current text.
 
----
+-----
 
 ## 4. Registered findings
 
 **Z2-GOVARCH-01 ratified S-060826-04:** This section no longer maintains a manually-synced index. The index drifted from REGISTERED.md and substrates used it as authoritative. For evidence, dates, YAML blocks, and the full F/IC/H registry: fetch `REGISTERED.md` (Class 3).
 
-For full registry: `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
+**Finding count and headline numbers are not maintained in this file.** They already drifted once under the prior format (see Z2-GOVARCH-01) — restating them here recreates the exact failure this file’s own §0 warns about. Fetch `REGISTERED.md` (Class 3) directly for: current F-/H-/IC- count, the F-number quick index, corpus N and Mean LI, and every headline statistic with its evidence basis and date. `REGISTERED.md`’s own header line states its last-updated date and most recent entry — treat that as the freshness signal, not any number copied into this file.
 
----
+Canonical URL: `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
+
+-----
 
 ## 5. Canonical dataset state
 
@@ -107,7 +109,7 @@ Live corpus (post-snapshot, ongoing):
 
 
 Submissions since March 23, 2026 land in the live Supabase acat_assessments_v1 table.
-**Current live count:** See Class 1 (WGS) for the current session's verified Supabase state — not maintained here to prevent staleness drift.
+Current live count is not maintained in this file — it changes every session. Query `acat_assessments_v1` directly (Supabase project ksinisdzgtnqzsymhfya) for N, N_P1, N_LI, Mean_LI, and the `two_stage_verified` subset, or fetch REGISTERED.md's corpus-state pointer, refreshed at each 5-file audit. H-SELF-01 applies to any live-corpus mean read this way: self-administered rows inflate LI relative to external administration and must be excluded or tagged before the number is used in any claim.
 Layer tags in active use:
 acat-self-v1 — standard behavioral session (self-mode)
 ai-self-report — legacy 6-dimension schema (reserved for backward compatibility)
@@ -179,7 +181,7 @@ If you are an LLM at session open and you can fetch only one URL, fetch Class 1 
 P30 note (GOVERNANCE.md v6.4.2, ratified S-061726-01): Substantive written artifacts require the interactive evidence-density-anchored ACAT pass — not the automated batch pass — before Z2 ratification. This file update is a staleness correction, not a new substantive artifact; however, Zone 3 should confirm the CURRENT.md Z3 carry item from S-062226-01 is resolved when this commit lands.
 
 9. Changelog
-2026-07-08 (S-070826-02) — Maintained-headline pattern fix. §1 founder PII (Founder name, Entity/FL Doc#/EIN) and charter countdown removed; replaced with pointer to operator registry (internal) and Class 1 (WGS) respectively (IC-cand-maintained-headline-recurrence). §4 manually-synced stats block (Current count line + Headline findings section) removed — undercut the Z2-GOVARCH-01 pointer that already existed; now §4 contains only the pointer and the registry URL. §5 hardcoded live Supabase count line removed; replaced with pointer to Class 1 (WGS). IC-cand-maintained-headline-recurrence registered in REGISTERED.md after IC-045.
+2026-07-08 (Z1 draft, pending Z2/Z3 — this PR) — Maintained-headline reconciliation. §1: founder/entity PII removed (name, FL Doc #, EIN) — held at Zone 3 operator registry instead; Charter Day countdown removed as a maintained value (compute fresh each session — see IC-038, which already documents this exact carry-error pattern for the same field). §4: full headline-stats block (corpus N, Mean LI, α, AI–Human gap, F-49/52/53 summaries) removed and replaced with a pointer to REGISTERED.md — completes the fix Z2-GOVARCH-01 started for this section but did not finish (the pointer sentence already existed; the stats block beneath it, which undercut the pointer, did not get removed then). §5: live Supabase count (N=95, Mean_LI=0.9830, etc.) removed and replaced with a query pointer + H-SELF-01 caveat. Companion IC-cand entry proposed in REGISTERED.md this same session, naming this as a second occurrence of the maintained-headline class, not the first.
 2026-07-07 (S-070726-01) — Intent Object pipeline instrumented; constraint-collapse recurrence fixed; F-31 phantom section-citation surfaced.
 - **Schema:** `acat_assessments_v1` extended with the Intent Object decomposition fields (`p1_stated_intent`, `p1_inferred_intent`, `p1_assumptions`, `p1_ambiguities`, `p1_forbidden_mutations`, `intent_object_captured_at`) — additive, nullable, verified live via `information_schema.columns` before and after.
 - **IC candidate (not yet numbered):** `submission_purity` constraint collapse recurred. The July 3 (S-070326) fix added `submission_purity_consolidated` as a superset constraint but never dropped the original narrow `acat_submission_purity_check` — Postgres ANDs all CHECK constraints, so the live insertable set silently re-narrowed to the intersection. Caught when a `self_administered` insert failed. Old constraint dropped this session (`drop_stale_narrow_submission_purity_constraint`) since the wide constraint is a strict superset — completes the already-ratified decision, does not introduce new scope. Needs an IC number and Zone 2 disposition (recurrence of prior IC candidate class, same shape).
@@ -209,3 +211,4 @@ P30 note (GOVERNANCE.md v6.4.2, ratified S-061726-01): Substantive written artif
 4. **§5** — Supabase live count corrected to N=95 (verified S-062426-02); layer counts corrected; v1.2 analyzer noted; migration file non-existence warning added (confirmed S-062326) <!bk_citation citationType="message" url="https://lasting-light.slack.com/archives/C0AND66PT7U/p1782329120792699" index="3" channel="C0AND66PT7U" message_ts="1782329120.792699" text="[3]">
 5. **§7** — GOVERNANCE.md version noted; homepage blocker status noted; P30 note added to §8
 6. **§9** — Six new changelog entries added covering S-061426 through today
+```
