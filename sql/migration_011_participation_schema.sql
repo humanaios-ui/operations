@@ -1,4 +1,4 @@
--- migration_009_participation_schema.sql
+-- migration_011_participation_schema.sql
 -- HumanAIOS · S-061126-01 · 2026-06-11
 -- Ratified: Z2-CORPUS-01 (materials_encounter submission purity) ·
 --           Z2-CORPUS-02 (P_ENCOUNTER perturbation type)
@@ -115,4 +115,4 @@ COMMIT;
 --     WHERE conrelid = 'acat_assessments_v1'::regclass AND contype = 'c';
 --
 -- Expected: 3 new columns visible, 2 updated CHECK constraints present.
--- Register as migration_009 in supabase_migrations.schema_migrations.
+-- Register as migration_011 in supabase_migrations.schema_migrations.
