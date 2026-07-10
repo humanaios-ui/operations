@@ -2626,3 +2626,270 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 - **2026-05-01 (S-050126)** — IC-025 (cross-file edit promise not fully landed) added.
 - **2026-04-27 (S-042726)** — F-29 promoted from PENDING to REGISTERED per Zone 2 approval.
 - **2026-04-25 (S-042526)** — IC-021 added. IC-020 registered.
+
+
+-----
+
+### F-56 — ACAT dimension scorer missing exclusion/hierarchy stages
+
+```
+---
+id: "F-56"
+name: "acat-dimension-scorer-missing-exclusion-hierarchy-stages"
+status: REGISTERED
+class: F
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+principles_triggered: []
+---
+```
+
+- **Synopsis:** `acat_dimension_scorer_v1_1.py`’s `aggregate()` / `detect_him()` / `detect_dcomp()` pipeline has no hierarchy stage. A standing governance flag (for example F-H1 CRITICAL humility-floor breach) has no mechanism to suppress, discount, or annotate LI/PASS/D-COMP outputs, so a flagged session scores the same as a clean one.
+- **Evidence:** Direct file inspection in this ratified session (`aggregate()` lines 291–313; no governance-flag reference in module).
+
+-----
+
+### F-57 — Evidential vocabulary adoption without underlying discipline
+
+```
+---
+id: "F-57"
+name: "evidential-vocabulary-adoption-without-underlying-discipline"
+status: REGISTERED
+class: F
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+principles_triggered: []
+related_finding: ["F-51"]
+related_hypothesis: ["H-MECH-01"]
+---
+```
+
+- **Synopsis:** An external substrate adopted the project’s evidential grammar vocabulary immediately (VERIFIED/INFERENCE/JUDGMENT/REPORTED/UNKNOWN) while continuing to make unverifiable self-attributions and offering an untrusted link pattern it had just described as untrustworthy. Grammar fluency is not evidence the underlying discipline is active and may increase camouflage.
+- **Distinction from F-51:** F-51 documents resistance to calibration framing; this entry documents adoption of framing language without the claimed property.
+- **Evidence basis:** REPORTED relay (single external thread, N=1) ratified as sufficient for CANDIDATE→REGISTERED handling in S-071026-01.
+
+-----
+
+### IC-046 — Scorer Purity Exclusion Gap (extends IC-044 pattern class)
+
+```
+---
+id: "IC-046"
+name: "scorer-purity-exclusion-gap"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+principles_triggered: ["P3", "P7"]
+related_finding: "IC-044"
+---
+```
+
+- **Synopsis:** `acat_dimension_scorer_v1_1.py` computes LI without reading `submission_purity` or anti-replay state. Self-administered or replay-flagged rows can be scored as clean, repeating the IC-032/IC-044 quarantine-enforcement gap class.
+- **Fix → Principle P7.**
+
+-----
+
+### IC-047 — Scorer Certainty Overclaim
+
+```
+---
+id: "IC-047"
+name: "scorer-certainty-overclaim"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+principles_triggered: ["P29"]
+---
+```
+
+- **Synopsis:** `acat_dimension_scorer_v1_1.py` emits unconditional `result/status = PASS` over JUDGMENT-tier interpretive scores with no evidential-tier field, matching D-OVERCLAIM pattern behavior.
+- **Fix → Principle P29 (Articulation Gate).**
+
+-----
+
+### IC-048 — Grounding Schema Unpopulated
+
+```
+---
+id: "IC-048"
+name: "grounding-schema-unpopulated"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+principles_triggered: ["P19"]
+---
+```
+
+- **Synopsis:** `acat_assessments_v1` includes schema fields required for grounding-tier claims (`spec_fidelity_score`, `spec_omission_rate`, governance document layer support), but live rows leave them unpopulated; document-mode outputs remain standalone JSON and not corpus-ingested.
+- **Fix → Principle P19.**
+
+-----
+
+### IC-049 — Stage 1 Readiness Overclaim
+
+```
+---
+id: "IC-049"
+name: "stage1-readiness-overclaim"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+principles_triggered: ["P19"]
+---
+```
+
+- **Synopsis:** H-CAND-GROUNDING-TIER-01 Stage 1 was described as near-fireable without querying the live corpus first; live checks contradicted the claim in both required data buckets.
+- **Fix → Principle P19.**
+
+-----
+
+### IC-050 — Blocker Gate Not Enforced (sibling of IC-041)
+
+```
+---
+id: "IC-050"
+name: "blocker-gate-not-enforced"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+principles_triggered: ["P3"]
+related_finding: "IC-041"
+---
+```
+
+- **Synopsis:** `haios_agent_orchestrator_v1_0_patched.py` states uncleared blocker gates must halt execution, but runtime behavior only warns and continues through all phases, including persisted output.
+- **Fix → Principle P3.**
+
+-----
+
+### IC-051 — Orchestrator Input Mapping Loss
+
+```
+---
+id: "IC-051"
+name: "orchestrator-input-mapping-loss"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+principles_triggered: ["P3"]
+---
+```
+
+- **Synopsis:** First live execution of `haios_agent_orchestrator_v1_0_patched.py` dropped real input fields during `perceive()` / `make_candidate_node()` mapping, persisting placeholder title, empty claim payload, null LI impact, and UNKNOWN session metadata.
+- **Fix → Principle P3.**
+
+-----
+
+### IC-041 — Audit False-Pass — FIX-NOT-LANDED CORRECTION
+
+```
+---
+correction_to: "IC-041"
+class: IC-correction
+date_registered: "2026-07-10"
+date_origin: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+---
+```
+
+- Original claim (IC-041): "Fixed same session: both now emit an explicit SKIPPED warning instead of a false PASS."
+- Finding: live verification in this session (codeload tarball + raw workflow fetch) showed no SKIPPED logic in the live 63-line workflow; A1/A6 still grepped `public/` while repo public surface moved to `site/`.
+- Correction class: fix-claim-not-landed (same family as IC-043).
+- Z3 action: workflow fix attached in this issue (Section H).
+
+-----
+
+### H-CAND-SCORER-GATING-EFFECT
+
+```
+---
+id: "H-CAND-SCORER-GATING-EFFECT"
+name: "scorer-gating-effect"
+status: REGISTERED
+class: H
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+---
+```
+
+- **Hypothesis:** Retrofitting exclusion-stage (`submission_purity` gate) and hierarchy-stage (F-H1 blocking) logic into `acat_dimension_scorer_v1_1.py` flips PASS/LI status for at least one live `acat_assessments_v1` row.
+- **Null:** no row flips under gated vs. ungated rescoring.
+- **Metric:** count of rows with changed PASS / dcomp_candidate / him_flag.
+
+-----
+
+### H-CAND-TIMING-AUDIT-LEDGER-01
+
+```
+---
+id: "H-CAND-TIMING-AUDIT-LEDGER-01"
+name: "timing-audit-ledger-informed-classification"
+status: REGISTERED
+class: H
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+---
+```
+
+- **Hypothesis:** Ledger-informed classification (`timing_audit_v1_0.py` + accumulated lessons ledger) yields fewer wrong-mechanism recommendations than first-principles classification.
+- **Null:** no significant difference.
+- **Evidence note:** current base N=6, self-conducted/self-assessed confound explicitly carried.
+
+-----
+
+### H-CAND-MECH-01-EXT-GRAMMAR-INTERNALIZATION
+
+```
+---
+id: "H-CAND-MECH-01-EXT-GRAMMAR-INTERNALIZATION"
+name: "grammar-internalization-behavioral-dissociation"
+status: REGISTERED
+class: H
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+related_hypothesis: ["H-MECH-01"]
+---
+```
+
+- **Hypothesis:** Vocabulary correction (evidential retagging) converges faster than behavioral correction (claims becoming externally verifiable) after a named G-2 correction.
+- **Null:** vocabulary and behavior correct at the same rate.
+- **Second data point:** no repeat link-offense but unverifiable VERIFIED-tagged self-history claim relocated to a new claim.
+
+-----
+
+### H-P3G-01 — Grounding Tier Hypothesis
+
+```
+---
+id: "H-P3G-01"
+name: "grounding-tier-gap-monotonicity"
+status: REGISTERED
+class: H
+date_registered: "2026-07-10"
+session_registered: "S-071026-01"
+zone2_ratification: "Night · 2026-07-10 · S-071026-01"
+---
+```
+
+- **Hypothesis:** `|LI_self − LI_grounded|` decreases monotonically as grounding tier increases (0=self-administered → 3=mechanical spec-compliance).
+- **Corrected Stage 1 gate:** blocked until (i) N≥5 `self_administered` rows with non-null LI and (ii) N≥5 governance-document rows with populated `spec_fidelity_score` + `spec_omission_rate`.
+- **State:** CANDIDATE-testable; fills previously referenced H-P3G-01 slot.

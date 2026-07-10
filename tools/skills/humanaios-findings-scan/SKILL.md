@@ -207,6 +207,8 @@ This block proposes; it does not register.
 
 When invoked standalone, the output format is identical. The skill produces the block as a chat-visible artifact for operator review; it writes nothing to canonical files.
 
+**Pre-flight pattern check (new mode).** Run this before close when the operator wants early signal on likely F/IC/H candidates without waiting for full close synthesis. It performs Part 1 ledgering + high-confidence duplicate checks, returns a chat-visible provisional block, and explicitly marks unresolved items as pre-flight (not yet close-ready) until receipt reconciliation and final cross-walk are completed.
+
 ## Relationship to other skills
 
 - **humanaios-session-open** (Skill 1) — fetches `REGISTERED.md` live at Step 4. That fetch is the prerequisite this skill's hard gate checks for. If the session never opened registry-touching, this skill must fetch the register itself before running.
