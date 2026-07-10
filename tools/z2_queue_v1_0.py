@@ -381,7 +381,8 @@ def print_summary(status: dict[str, Any]) -> None:
 
 def run_smoke_test() -> bool:
     """Exercise local fallback and validation behavior without live credentials."""
-    local_path = tempfile.mktemp(suffix=".jsonl")
+    with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as handle:
+        local_path = handle.name
     old_url = os.environ.get("SUPABASE_URL")
     old_key = os.environ.get("SUPABASE_KEY")
 
