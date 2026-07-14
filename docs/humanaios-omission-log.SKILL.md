@@ -93,7 +93,7 @@ Every logged entry must carry this field, with no default value:
 
 No other values are valid. A missing or invented `detection_mechanism`
 value is a hard-reject condition (same enforcement pattern as
-`z2_queue_v1_1.py`’s `zone2_ratification` gate — the field is required at
+`tools/registry_issue_compiler_v1_0.py`’s `zone2_ratification` hard gate — the field is required at
 the write path, not documented as a convention above it).
 
 ## Section 4 — Trigger pattern set (for scanning a transcript)
