@@ -14,13 +14,16 @@
 # own IC-050 lesson: don't wire a new gate into enforcement before
 # confirming it actually enforces correctly.
 
-      - name: A7 — Registration schema and outcome-symmetry validation
-        run: |
-          echo "Checking changed REGISTERED.md entries against registration_validator_v1_0.py..."
-          if [ ! -f "tools/registration_validator_v1_0.py" ]; then
-            echo "::warning title=A7 AUDIT::SKIPPED — registration_validator_v1_0.py not found in repo"
-          elif ! git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | grep -q "REGISTERED.md"; then
-            echo "✅ A7 PASS — this PR does not touch REGISTERED.md, nothing to validate"
-          else
-            echo "::warning title=A7 AUDIT::REGISTERED.md changed in this PR — run tools/registration_validator_v1_0.py against new/changed entries before merge. See Section 2 of this workflow's companion doc for the manual invocation until full diff-parsing automation lands."
-          fi
+proposed_steps:
+  - name: A7 — Registration schema and outcome-symmetry validation
+    if: ${{ github.event_name == 'pull_request' }}
+    run: |
+      echo "Checking changed REGISTERED.md entries against registration_validator_v1_0.py..."
+      git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+      if [ ! -f "tools/registration_validator_v1_0.py" ]; then
+        echo "::warning title=A7 AUDIT::SKIPPED — registration_validator_v1_0.py not found in repo"
+      elif ! git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" | grep -q "^REGISTERED\.md$"; then
+        echo "✅ A7 PASS — this PR does not touch REGISTERED.md, nothing to validate"
+      else
+        echo "::warning title=A7 AUDIT::REGISTERED.md changed in this PR — run tools/registration_validator_v1_0.py against new/changed entries before merge. See Section 2 of this workflow's companion doc for the manual invocation until full diff-parsing automation lands."
+      fi
