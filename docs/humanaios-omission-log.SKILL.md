@@ -1,11 +1,11 @@
------
-
-## name: humanaios-omission-log
+---
+name: humanaios-omission-log
 status: Z1 DRAFT — not ratified, not canonical, not wired into any skill directory
 proposed: S-071126-01 (chat session, mobile)
 requires: Zone 2 ratification per P21 before merge into /mnt/skills/user/
 motivating_request: Night — “omission log… catch mistakes and fix it… omission tracking”
 external_grounding: see Section 0 — required reading before Z2 disposition
+---
 
 # Omission Log — Z1 Candidate Skill
 
