@@ -31,6 +31,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Builder v1.7 compliant
+# HumanAIOS
+TOOL_NAME = "smag_consolidate"
 TOOL_VERSION = "1.0.0"
 DEFAULT_REPO = "humanaios-ui/operations"
 DEFAULT_ISSUE = "103"
