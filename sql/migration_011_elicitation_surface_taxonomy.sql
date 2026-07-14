@@ -118,9 +118,9 @@ SELECT
                                                     -- session-design
                                                     -- variable with no
                                                     -- corpus column yet
-  p1_sampling_temperature   AS sampling_temperature, -- Axis 6 (new)
-  p1_sampling_top_p         AS sampling_top_p,        -- Axis 6 (new)
-  p1_prompt_wording_variant AS prompt_wording_variant -- Axis 7 (new)
+  p1_sampling_temperature   AS sampling_temperature,   -- Axis 7 (new)
+  p1_sampling_top_p         AS sampling_top_p,         -- Axis 7 (new)
+  p1_prompt_wording_variant AS prompt_wording_variant  -- Axis 8 (new)
 FROM acat_assessments_v1;
 
 -- Axes 2 and 5 are deliberately left as visible NULLs in the view
