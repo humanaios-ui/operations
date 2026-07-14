@@ -146,11 +146,9 @@ if __name__ == "__main__":
         print(f"  {name:32} -> {result.value}")
 
     print(f"\n  Tally: {[(t.value, c) for t, c in counts.items() if c > 0]}")
-    print(f"  Real result: 0 real artifacts are cleanly 'agent' — nothing this session")
-    print(f"  autonomously orchestrates AND lacks persistent state. The 'agent' category")
-    print(f"  from the reviewed manifest has no populated referent yet. verified_tacit_gate.py")
-    print(f"  and z3_set_protocol both orchestrate other modules but don't cleanly split")
-    print(f"  into the 3-way scheme either — 'service' vs 'agent' boundary is blurry, not clean.")
+    print(f"  Real result: see tally above (classification is computed from REAL_ARTIFACTS).")
+    print(f"  Note: 'agent' = orchestrates other modules without persistent state; 'service' = holds state across calls.")
+    print(f"  'ambiguous' indicates an artifact that both orchestrates and holds state and doesn't fit one bucket cleanly.")
 
     print("\n── Test 2: does the telemetry schema capture something useful, populated for real? ──\n")
     for e in REAL_EVENTS:
