@@ -31,6 +31,9 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+# Builder v1.7 compliant
+# HumanAIOS
+TOOL_NAME = "smag_gap_analysis"
 TOOL_VERSION = "1.0.0"
 DEFAULT_LEDGER = "audits/smag_pilot_ledger.jsonl"
 DEFAULT_OUT = "audits/smag_gap_report.md"
