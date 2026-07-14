@@ -2795,6 +2795,29 @@ principles_triggered: ["P3"]
 
 -----
 
+### IC-052 — Drift Validator Missing D-OVERCLAIM Entry
+
+```
+---
+id: "IC-052"
+name: "drift-validator-missing-d-overclaim-entry"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: ["P19"]
+related_finding: ["IC-034"]
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+superseded_by: null
+---
+```
+
+- **Synopsis:** `drift_catalog_validator_v1.1.py`'s `REGISTERED_DRIFT` dict had no `D-OVERCLAIM` entry despite IC-034 formally naming and Zone-2-ratifying D-OVERCLAIM as a governance drift signal (S-060926-02). The tool whose stated job is recognizing named drift codes in session transcripts could not recognize this one. Direct comparison: REGISTERED.md IC-034 body text vs. `REGISTERED_DRIFT` dict keys confirmed the gap.
+- **Fix → Principle P19:** `D-OVERCLAIM` added to `REGISTERED_DRIFT` in `tools/drift_catalog_validator.py` and `tools/run_acat_validation_suite_v1.0.py`.
+
+-----
+
 ### IC-041 — Audit False-Pass — FIX-NOT-LANDED CORRECTION
 
 ```

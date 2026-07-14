@@ -42,6 +42,7 @@ REGISTERED_DRIFT = {
     "D-AGREEMENT-CASCADE": "Accepting bulk reviewer/collaborator claims without verification",
     "D-AUTOMATION-MAXIMALISM": "Over-automating when manual execution is more appropriate",
     "D-CARRY": "Carrying forward stale items without explicit operator confirmation",
+    "D-OVERCLAIM": "Confident wrong declaration before live verification — schema/field/state overclaim",
     "C-08": "Stale declared state shipped as current",
     "C-09": "Protocol step skipped under user redirect",
     "C-10": "Pending Z2 ratification — not yet defined",
