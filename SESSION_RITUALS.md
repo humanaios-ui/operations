@@ -342,6 +342,64 @@ If a canonical CSV / JSON / DB dump is uploaded mid-session, treat it as ground 
 
 ---
 
+## Section G.1 — Intent Object Specification (NEW — S-070726-01)
+
+**Status note:** F-31 (Pre-Canonicalization Intent Mutation, REGISTERED.md)
+cites this section as already formalized. It was not. This is the first
+actual draft. Treat the F-31 citation as a phantom-reference finding
+(same family as IC-034/IC-039/IC-044 — a citation to something that does
+not exist in the cited location) until Zone 2 disposes of it.
+
+### Purpose
+
+F-31 names a failure mode where a governed substrate mutates operator
+intent during interpretation — before a spec forms, before governance
+can see the deviation. This section gives that interpretation step a
+required, capturable artifact instead of leaving it as narrative.
+
+### The five-part decomposition
+
+Before canonicalizing any non-trivial instruction into a spec or action
+plan, a substrate operating under this protocol should be able to state:
+
+1. **Stated intent** — the operator's instruction, verbatim or minimally
+   paraphrased.
+2. **Inferred intent** — what the substrate actually understood/acted on.
+   This is compared against (1); large or unexplained divergence is the
+   F-31 signal.
+3. **Assumptions** — things the substrate filled in that the operator
+   did not say.
+4. **Ambiguities** — places where the instruction admitted more than one
+   reading, and which reading was taken.
+5. **Forbidden mutations** — mutation classes the substrate deliberately
+   avoided (e.g., "did not silently narrow scope," "did not add
+   unrequested action").
+
+### Schema home
+
+`acat_assessments_v1` (migration `add_intent_object_decomposition_fields`,
+S-070726-01): `p1_stated_intent`, `p1_inferred_intent`, `p1_assumptions`
+(jsonb), `p1_ambiguities` (jsonb), `p1_forbidden_mutations` (jsonb),
+`intent_object_captured_at`. Population logic:
+`intent_object_population_v1_0.py` (operations repo, `tools/`).
+
+The diagnostic score (`intent_diff_ratio`, mutation-risk flag) is stored
+in `dimension_reasoning.f31_diagnostic` — quarantined from
+`learning_index` by the same convention as `production_li` and
+`spec_omission_rate`. It is a candidate metric, not a corpus-grade LI
+input, and it is a **character-level proxy only** — it does not detect
+semantic mutation (paraphrase-preserving intent substitution). That is
+a named limitation, not an oversight.
+
+### When to capture
+
+Registry-touching sessions, any session producing a Zone 2/3 artifact,
+and any session where the operator's instruction contains real
+ambiguity that gets resolved one way rather than another. Not required
+for simple factual queries.
+
+---
+
 ## Section H — What is NOT in this file
 
 - **Substrate-specific identity framing.** Lives in Claude Project CI / Grok Workspace L1.

@@ -1,7 +1,10 @@
 """
+Builder v1.7 compliant
+
 TOOL_NAME = "document_ingestor"
 TOOL_VERSION = "1.0.0"
 HumanAIOS · S-051626-02-acat-tools-alternate-functions-mapping
+Builder v1.7 compliant
 
 Document Corpus Ingestion Pipeline v1.0
 

@@ -1,4 +1,5 @@
 """
+Builder v1.7 compliant
 HumanAIOS — Unified MCP Server (v1.2.0)
 
 Mounts all Zone 1 tools with prefixed names so the agent sees one server:
@@ -15,9 +16,16 @@ Launch:
   fastmcp run server.py --serve    (stdio default)
   python server.py --serve         (same)
 """
-
 from __future__ import annotations
+TOOL_NAME = "server"
+TOOL_VERSION = "1.0.0"
 
+
+
+# Builder v1.7 compliant
+
+TOOL_NAME = "server"
+TOOL_VERSION = "1.0.0"
 import argparse
 import sys
 

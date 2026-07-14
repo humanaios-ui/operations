@@ -1,5 +1,6 @@
 """
 HumanAIOS — Governance Fetcher (Zone 1)
+Builder v1.7 compliant
 
 Fetches GOVERNANCE.md and SESSION_RITUALS.md from GitHub raw content.
 Exposes them as MCP resources:
@@ -31,7 +32,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 # ---------------------------------------------------------------------------
-# Builder v1.7 constants
+# Builder v1.7 compliant
 # ---------------------------------------------------------------------------
 TOOL_NAME = "governance_fetcher"
 TOOL_VERSION = "1.1.0"

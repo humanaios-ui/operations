@@ -1,10 +1,19 @@
 """
+Builder v1.7 compliant
 tier1_principles.py — stub for smoke test execution.
 In production, this module is sourced from the humanaios-ui/operations repo
 at principles/tier1_principles.py.
 This stub allows principle_harmonizer to run and smoke-test without the
 full repo clone.
 """
+TOOL_NAME = "tier1_principles_stub"
+TOOL_VERSION = "1.0.0"
+
+# Builder v1.7 compliant
+# HumanAIOS
+
+TOOL_NAME = "tier1_principles_stub"
+TOOL_VERSION = "1.0.0"
 
 TIER1 = {
     "AA-S2":  {"id": "AA-S2",  "short": "Came to believe — restoration to sanity"},
@@ -31,3 +40,6 @@ TIER1 = {
 def by_id(tier1_id: str) -> dict:
     """Return a Tier 1 principle dict by ID, or None if not found."""
     return TIER1.get(tier1_id)
+
+if __name__ == "__main__":
+    pass

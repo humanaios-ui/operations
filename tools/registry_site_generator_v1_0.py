@@ -1,5 +1,6 @@
 """
 HumanAIOS — Registry Site Generator v1.0 (Builder v1.7)
+Builder v1.7 compliant
 
 Reads REGISTERED.md, parses F-class / IC-class / H-class entries,
 and emits a static HTML research site under site/.
@@ -30,7 +31,7 @@ from typing import Any
 import yaml
 
 # ---------------------------------------------------------------------------
-# Builder v1.7 constants
+# Builder v1.7 compliant
 # ---------------------------------------------------------------------------
 TOOL_NAME = "registry_site_generator"
 TOOL_VERSION = "1.0.0"

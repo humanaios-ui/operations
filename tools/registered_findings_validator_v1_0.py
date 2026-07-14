@@ -47,13 +47,16 @@ VALID_STATUSES = {
     "ACTIVE", "PENDING", "PENDING_REGISTRATION", "ARCHIVED", "RETIRED",
     "SUPERSEDED", "NEEDS_REPLICATION", "CANDIDATE", "RATIFIED",
     "CONFIRMED", "REGISTERED", "COMPLETE", "OPEN",
+    # IC-class lifecycle statuses (corrections get resolved/closed)
+    "RESOLVED", "CLOSED",
 }
 
 DATE_PATTERNS = [
     re.compile(r"\d{4}-\d{2}-\d{2}"),
+    re.compile(r"\d{4}-\d{2}"),            # YYYY-MM  (legacy month-precision — grandfathered S-070726)
     re.compile(r"[A-Z][a-z]+\s+\d{1,2},?\s+\d{4}"),
     re.compile(r"\d{1,2}\s+[A-Z][a-z]+\s+\d{4}"),
-    re.compile(r"\(S-\d{6}"),
+    re.compile(r"\(S-\d{6}(?:-[^)]+)?\)"),
 ]
 
 FIELD_PATTERN = re.compile(
@@ -96,7 +99,10 @@ def parse_entries(text: str) -> dict:
 
     # Precise header patterns: heading marker + class prefix + numeric/alpha ID
     F_HDR  = re.compile(r"^#{1,4}\s+F-(\d+)\b",   re.IGNORECASE)
-    H_HDR  = re.compile(r"^#{1,4}\s+H-(\w+)\b",   re.IGNORECASE)
+    # H-family IDs carry hyphenated sub-numbering (H-IPM-01, H-OVG-CHAIN-01).
+    # Capture the FULL id — a bare \w+ truncates at the first hyphen and collapses
+    # distinct sub-findings into one family prefix, producing false collisions.
+    H_HDR  = re.compile(r"^#{1,4}\s+H-([A-Z0-9]+(?:-[A-Z0-9]+)*)\b", re.IGNORECASE)
     IC_HDR = re.compile(r"^#{1,4}\s+IC-(\d+)\b",  re.IGNORECASE)
     # Named F variants like F-HIM, F-RLHF
     FN_HDR = re.compile(r"^#{1,4}\s+F-([A-Z][A-Z0-9\-]+)\b")
@@ -108,6 +114,12 @@ def parse_entries(text: str) -> dict:
 
     def flush():
         if current_id is None:
+            return
+        # Append-only correction entries (carry `correction_to`) are NOT new
+        # registrations of the same ID — they are the registry's designed
+        # correction model. Do not count them as collisions or overwrite the
+        # canonical entry (which would drop the original's required fields).
+        if "correction_to" in current_fields:
             return
         occurrence[current_id] += 1
         entries[current_id] = {
@@ -202,9 +214,14 @@ def check_date_formats(entries: dict) -> list:
         date_val = (fields.get("registered") or fields.get("date")
                     or fields.get("date_registered") or "")
         date_val = re.sub(r"\*+", "", date_val).strip()
+        date_val = date_val.translate(str.maketrans({"“": '"', "”": '"', "‘": "'", "’": "'"}))
+        date_val = date_val.strip('"\'')
         if not date_val:
             continue
-        if not any(p.search(date_val) for p in DATE_PATTERNS):
+        candidates = [date_val]
+        if " · S-" in date_val:
+            candidates.append(date_val.split(" · S-", 1)[0].rstrip())
+        if not any(p.fullmatch(candidate) for candidate in candidates for p in DATE_PATTERNS):
             failures.append(
                 f"REG_DATE_FORMAT_INVALID: {entry_id} date='{date_val[:40]}'"
             )

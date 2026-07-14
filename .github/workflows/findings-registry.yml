@@ -1,0 +1,36 @@
+name: findings-registry
+
+# BLOCKING gate. main is at 0 hard failures (audit A2, S-070726) so blocking is
+# safe. Runs the validator WITHOUT --strict on purpose: --strict escalates the
+# benign REG_UNCOMMITTED_CANDIDATE warnings (findings legitimately marked
+# CANDIDATE, awaiting Z2 ratification) into failures, which would block every PR
+# touching REGISTERED.md. Non-strict blocks on the real hard classes only
+# (ID collisions, date-format, invalid status, missing fields, append violations)
+# and tolerates candidate warnings. Mirrors the document-control.yml pattern.
+# Acceptance: a PR reintroducing a real ID collision fails CI; a clean one passes.
+
+on:
+  pull_request:
+    paths:
+      - "REGISTERED.md"
+      - "tools/registered_findings_validator_v1_0.py"
+  push:
+    branches: [main]
+    paths:
+      - "REGISTERED.md"
+      - "tools/registered_findings_validator_v1_0.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Findings registry integrity (BLOCKING — hard failures fail the build)
+        run: python3 tools/registered_findings_validator_v1_0.py --input REGISTERED.md

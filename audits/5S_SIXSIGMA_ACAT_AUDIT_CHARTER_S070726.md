@@ -17,7 +17,11 @@ A single audit, read through three lenses that turn out to be the same audit:
 
 **The utility payoff:** because a validator either passes or fails, repo defects are ground truth that does *not* route through self-report. Dispatching audit fixes as GitHub issues to **Claude Code vs GitHub Copilot** and measuring *predicted* fix quality against *measured* outcome makes this audit the first externally-scored ACAT protocol run — satisfying the PDF's Stage-5 gate rather than merely preceding it.
 
+<<<<<<< HEAD
 **This session's deliverable:** this charter + the classified inventory. **No validators run this session** (per operator: plan + inventory only).
+=======
+**This session's deliverables:** this charter, the classified inventory, and the staged T1/T2/T3 audit docs. Validators were run during T1; no GitHub artifacts were created.
+>>>>>>> origin/main
 
 ---
 

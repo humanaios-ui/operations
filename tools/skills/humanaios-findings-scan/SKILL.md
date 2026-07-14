@@ -1,6 +1,16 @@
 ---
 name: humanaios-findings-scan
-description: Scan a session for registrable F- (findings), IC- (integrity corrections), and H- (hypotheses) candidates that should be routed to Zone 2 for ratification. Use whenever the operator says "scan for findings," "findings scan," "registry scan," "what should we register," "F/IC/H candidates," "did we miss anything registrable," or "check for under-registration." Also invoked by humanaios-session-close near the SILENT FAILURES step or at close to catch registrable items before carry-forward. This skill is the structural mitigation for under-registration (the inverse of IC-031 receipt overstatement): findings, incidents, and hypotheses that emerged in-session but never got captured into REGISTERED.md. It is registry-touching, so it HARD HALTS if live REGISTERED.md has not been fetched (IC-030). It produces a Registry Candidate Block for Zone 2 review; it never self-registers.
+description: >-
+  Scan a session for registrable F- (findings), IC- (integrity corrections), and H- (hypotheses)
+  candidates that should be routed to Zone 2 for ratification. Use whenever the operator says
+  "scan for findings," "findings scan," "registry scan," "what should we register," "F/IC/H
+  candidates," "did we miss anything registrable," or "check for under-registration." Also
+  invoked by humanaios-session-close near the SILENT FAILURES step or at close to catch
+  registrable items before carry-forward. This skill is the structural mitigation for
+  under-registration (the inverse of IC-031 receipt overstatement): findings, incidents, and
+  hypotheses that emerged in-session but never got captured into REGISTERED.md. It is
+  registry-touching, so it HARD HALTS if live REGISTERED.md has not been fetched (IC-030).
+  It produces a Registry Candidate Block for Zone 2 review; it never self-registers.
 
 architecture: acat
 refactor: S-061526 — added Phase 6 series synthesis trigger spec, F-54 disclaimer density check (humanaios-dual-architecture compliance)
@@ -196,6 +206,8 @@ This block proposes; it does not register.
 - The operator asks "what should we register from this session."
 
 When invoked standalone, the output format is identical. The skill produces the block as a chat-visible artifact for operator review; it writes nothing to canonical files.
+
+**Pre-flight pattern check (new mode).** Run this before close when the operator wants early signal on likely F/IC/H candidates without waiting for full close synthesis. It performs Part 1 ledgering + high-confidence duplicate checks, returns a chat-visible provisional block, and explicitly marks unresolved items as pre-flight (not yet close-ready) until receipt reconciliation and final cross-walk are completed.
 
 ## Relationship to other skills
 

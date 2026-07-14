@@ -1,5 +1,6 @@
 """
 HumanAIOS — Hybrid Tool Template (Builder v1.7 + FastMCP Dual-Mode)
+Builder v1.7 compliant
 
 Single Python module with two entrypoints:
   - CLI:  python tool_template.py --input fixture.json --report out.json
@@ -23,7 +24,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 # ---------------------------------------------------------------------------
-# Builder v1.7 constants
+# Builder v1.7 compliant
 # ---------------------------------------------------------------------------
 TOOL_NAME = "tool_template"
 TOOL_VERSION = "1.1.0"
