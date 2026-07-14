@@ -1,10 +1,14 @@
-# Ratified, pending append to REGISTERED.md
+# Ratified queue snapshot for REGISTERED.md append
 
-These **10 entries were Zone-2 ratified by the operator (Night, 2026-07-11, S-071126-01)**
-but never synced to the canonical REGISTERED.md — the sync spool hit
-`sync_error: SUPABASE_URL/SUPABASE_KEY not set`. They are ready for the operator to
-assign sequential numbers (per series) and append. **Claude does not self-number
-(G-4 / IC-030).** Drained verbatim from z2_queue_fallback.jsonl.
+> **STATUS 2026-07-14 (S-071426): APPENDED.** These 10 entries were appended to
+> `REGISTERED.md` during the S-071426 reconciliation. This file is retained as a
+> historical snapshot of the pre-append queue drained from `z2_queue_fallback.jsonl`;
+> do not append from it again.
+
+These **10 entries were Zone-2 ratified by the operator (Night, 2026-07-11,
+S-071126-01)** but initially never synced to the canonical `REGISTERED.md` because the
+sync spool hit `sync_error: SUPABASE_URL/SUPABASE_KEY not set`. **Claude does not
+self-number (G-4 / IC-030).**
 
 ## IC-CAND-DRIFT-VALIDATOR-MISSING-D-OVERCLAIM-KEY
 
