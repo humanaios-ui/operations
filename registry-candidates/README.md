@@ -1,8 +1,8 @@
 # registry-candidates — staged immune-log entries
 
 > **STATUS 2026-07-14 (S-071426): APPENDED.** All 14 entries (10 previously ratified +
-> 4 ratified this session by the operator) were appended to `REGISTERED.md` — F-58,
-> IC-044, IC-045, IC-053–IC-056, and 7 H-class. This directory is now an **audit trail** of what was
+> 4 ratified this session by the operator) were appended to `REGISTERED.md` — F-56,
+> IC-044–IC-049, and 7 H-class. This directory is now an **audit trail** of what was
 > staged + the reconciliation; it may be deleted once the PR merges. The notes below
 > describe the pre-append state.
 
