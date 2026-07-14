@@ -55,7 +55,7 @@ SELECT DISTINCT submission_purity, COUNT(*) FROM acat_assessments_v1
 ALTER TABLE acat_assessments_v1
   ADD COLUMN IF NOT EXISTS p1_sampling_temperature NUMERIC(3,2),
   ADD COLUMN IF NOT EXISTS p1_sampling_top_p NUMERIC(3,2),
-  ADD COLUMN IF NOT EXISTS p1_prompt_wording_variant TEXT
+  ADD COLUMN IF NOT EXISTS p1_prompt_wording_variant TEXT NOT NULL
     DEFAULT 'adhoc_untracked';
   -- NOT NULL default of 'adhoc_untracked' rather than nullable per
   -- the maintained-headline lesson (IC-cand-maintained-headline-
