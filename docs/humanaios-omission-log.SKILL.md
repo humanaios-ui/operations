@@ -107,10 +107,9 @@ on matching my own language at all.
 
 **Class 2 (weaker, advisory only) — stated-correction phrases.** Regex/
 keyword scan for explicit correction language: “I was wrong,” “actually,”
-“correction:,” “let me recheck,” “that’s not accurate.” Per the
-maintained-headline / heuristic-check lesson already in this project’s
-own `lessons_learned_ledger.json` (L2: heuristic pattern checks must be
-advisory, never hard-blocking), Class 2 matches are candidates for
+“correction:,” “let me recheck,” “that’s not accurate.” Per the Timing Audit L2
+lesson (heuristic pattern checks must be advisory, never hard-blocking), Class 2
+matches are candidates for
 review, not automatic log entries — a Class 2 match must still resolve
 to Section 2’s three in-scope categories before it’s written.
 
