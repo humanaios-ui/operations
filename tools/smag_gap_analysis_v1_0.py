@@ -96,6 +96,18 @@ def map_dimensions(rows: list[dict]) -> dict:
     return dict(sorted(tally.items(), key=lambda kv: -kv[1]))
 
 
+def gap_drivers(rows: list[dict]) -> dict:
+    """Which named checks drive the friction? Tally failing_checks across rows.
+    A single check failing on nearly every PR (e.g. a broken/advisory gate) means
+    the gap is one systemic issue, not many independent quality misses — read the
+    gap_rate accordingly."""
+    tally: dict = defaultdict(int)
+    for r in rows:
+        for name in r.get("failing_checks", []) or []:
+            tally[name] += 1
+    return dict(sorted(tally.items(), key=lambda kv: -kv[1]))
+
+
 def trend_by_date(rows: list[dict]) -> list:
     """Gap tallies bucketed by capture date (YYYY-MM-DD), chronological."""
     by_day: dict = defaultdict(lambda: dict.fromkeys(BUCKETS, 0))
@@ -140,6 +152,7 @@ def analyze(rows: list[dict]) -> dict:
         "by_substrate": {s: {**c, **rates(c)} for s, c in sorted(by_sub.items())},
         "trend": trend_by_date(rows),
         "acat_dimensions": map_dimensions(rows),
+        "gap_drivers": gap_drivers(rows),
     }
 
 
@@ -191,6 +204,24 @@ def render_md(a: dict) -> str:
         "",
         "_harm / autonomy / value are not mechanically attributable from merge+CI alone; "
         "they need the qualitative `gap` field (LLM-review tier), left unmapped rather than guessed._",
+        "",
+        "## Gap drivers (which checks fail)",
+        "",
+    ]
+    drivers = a.get("gap_drivers", {})
+    if drivers:
+        lines += ["| failing check | PRs |", "|---|---|"]
+        for name, n in drivers.items():
+            lines.append(f"| `{name}` | {n} |")
+        top = next(iter(drivers))
+        lines += ["",
+                  f"**Read the gap_rate through this:** if one check (`{top}`) fails on most "
+                  "friction PRs, the gap is one systemic issue (a broken/advisory gate merged "
+                  "over), not many independent quality misses. Fix or de-advisory that check "
+                  "before treating gap_rate as a calibration signal."]
+    else:
+        lines.append("_No named failing checks recorded — run smag_resolve to populate `failing_checks`._")
+    lines += [
         "",
         "## Feed-back cues (NOT yet wired — gathering trend first)",
         "",

@@ -37,6 +37,17 @@ jobs:
             --repo "${{ github.repository }}" --issue 103 \
             --ledger audits/smag_pilot_ledger.jsonl
 
+      - name: Resolve capture timing (record CI outcome after checks finish)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Rows captured at merge-close may hold in_progress checks; re-query each
+          # row's terminal state so `measured` reflects resolved pass/fail before we
+          # analyze. Pending rows self-heal on the next run.
+          python3 tools/smag_resolve_v1_0.py \
+            --repo "${{ github.repository }}" \
+            --ledger audits/smag_pilot_ledger.jsonl
+
       - name: Recompute the predicted-vs-measured gap report
         run: |
           python3 tools/smag_gap_analysis_v1_0.py \
