@@ -14,7 +14,7 @@ This is the operating process for HumanAIOS. It is fetched at session open by an
 What this file deliberately does NOT contain:
 
 - **Organism identity and confirmed findings** — see Class 0 (`SEED.md`) in Section 7.
-- **Principles architecture** (framework triad, secondary framework mappings, validity test protocol) — see Class 0b (`PRINCIPLES_SEED.md`) in Section 7.
+- **Principles architecture** (framework triad, secondary framework mappings, validity test protocol) — see Class 0b (`PRINCIPLES_SEED_V1_0.md`) in Section 7.
 - **Live state** (runway, revenue, Zone 3 queue) — see Class 1 in Section 7. For Claude sessions, Class 1 = WGS read (Slack MCP C0AND66PT7U); see Z2-GOVARCH-02.
 - **Authoritative findings index** — §4 contains headline numbers only. Fetch `REGISTERED.md` (Class 3) for the full registry. See Z2-GOVARCH-01.
 - **Standing principles** (the full 26-principle ladder) — see Class 4 (`GOVERNANCE.md`) in Section 7.
@@ -149,7 +149,7 @@ Organism identity: what HumanAIOS is, confirmed findings summary, collaborations
 Weeks — structural changes only
 0b
 Principles seed
-https://raw.githubusercontent.com/humanaios-ui/operations/main/PRINCIPLES_SEED.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/PRINCIPLES_SEED_V1_0.md
 Principles architecture: primary framework triad (12 Steps / 12 Traditions / Hawkins), secondary frameworks (Fibonacci / Enneagram / Bentov / Taoist alchemy / Freemasonry), validity test protocol
 Weeks — on framework additions or ratified validity test results
 1
