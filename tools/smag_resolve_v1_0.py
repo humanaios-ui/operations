@@ -101,14 +101,15 @@ def apply_resolution(row: dict, resolved: str, terminal: bool, now: str,
         return False
     # Idempotent, but refresh if the resolved value changed OR failing_checks (a later
     # schema field) is not yet recorded on an already-resolved row.
-    if row.get("measured") == resolved and row.get("resolved") and "failing_checks" in row:
+    desired_failing = failing_names if failing_names is not None else row.get("failing_checks", [])
+    if row.get("measured") == resolved and row.get("resolved") and row.get("failing_checks") == desired_failing:
         return False
     if "measured_capture" not in row:
         row["measured_capture"] = row.get("measured", "")
     row["measured"] = resolved
     row["resolved"] = True
     row["resolved_at"] = now
-    row["failing_checks"] = failing_names or []
+    row["failing_checks"] = desired_failing or []
     return True
 
 
