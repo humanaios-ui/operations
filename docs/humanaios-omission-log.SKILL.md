@@ -160,7 +160,7 @@ not silently drop it.
   cross-session-detected. This skill’s log is same-session, and every
   entry it produces is a *candidate* input to a future IC-cand if a
   pattern recurs across sessions — it does not replace triage.
-- **Feeds `humanaios-findings-scan`** the same way `timing_audit_v1_0.py`
+- **Feeds `humanaios-findings-scan`** the same way `tools/timing_audit_V1.0.md`
   feeds pattern classification: an omission log with a recurring
   `detection_mechanism: tool_verified` cluster around one tool or claim
   type is itself a triage-worthy signal, routed through the existing
