@@ -50,8 +50,7 @@ class VerificationRecord:
 
 def extract_references(path: Path) -> list:
     text = path.read_text(encoding="utf-8")
-    return sorted(set(URL_PATTERN.findall(text) if False else URL_PATTERN.findall(text)))
-    # (findall on a pattern with a non-capturing group returns full matches — fine as-is)
+    return sorted(set(URL_PATTERN.findall(text)))
 
 
 def fetch_status(url: str) -> int:
