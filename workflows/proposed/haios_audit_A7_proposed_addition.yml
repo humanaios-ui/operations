@@ -1,0 +1,29 @@
+# PROPOSED ADDITION to workflows/haios_audit.yml
+# Z1 DRAFT — not applied, ready for Zone 3 review against the real file
+#
+# Style matched directly against the live workflow fetched this session
+# (commit 2b98b90): named step, bash heredoc, ::warning annotations,
+# directory/file-existence guard before the real check runs — same
+# pattern as A1/A6's own "if [ ! -d ... ]" guard, applied here to
+# "does the changed file touch REGISTERED.md" instead of a public/ dir.
+#
+# This step is ADVISORY (::warning, non-blocking exit) in this first
+# draft, matching L2 discipline (heuristic/text-pattern checks should
+# not hard-block on day one) — promote to a hard job failure only after
+# a burn-in period confirms low false-positive rate, per this session's
+# own IC-050 lesson: don't wire a new gate into enforcement before
+# confirming it actually enforces correctly.
+
+proposed_steps:
+  - name: A7 — Registration schema and outcome-symmetry validation
+    if: ${{ github.event_name == 'pull_request' }}
+    run: |
+      echo "Checking changed REGISTERED.md entries against registration_validator_v1_0.py..."
+      git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+      if [ ! -f "tools/registration_validator_v1_0.py" ]; then
+        echo "::warning title=A7 AUDIT::SKIPPED — registration_validator_v1_0.py not found in repo"
+      elif ! git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" | grep -q "^REGISTERED\.md$"; then
+        echo "✅ A7 PASS — this PR does not touch REGISTERED.md, nothing to validate"
+      else
+        echo "::warning title=A7 AUDIT::REGISTERED.md changed in this PR — run tools/registration_validator_v1_0.py against new/changed entries before merge. See Section 2 of this workflow's companion doc for the manual invocation until full diff-parsing automation lands."
+      fi

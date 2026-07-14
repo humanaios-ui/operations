@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** July 8, 2026 (S-070826-02) - Added IC-cand-maintained-headline-recurrence; IC-cand row added to IC roll-up table.
+**Last updated:** July 14, 2026 (S-071426) — 14 entries appended from the S-071126/S-071426 registry queue: **F-58** (verification-layer mimicry, status CANDIDATE — N=1 gate); **IC-053–IC-058** (drift-validator D-OVERCLAIM key, no-same-session self-correction instrument, self-correction-claims-not-uniformly-gated, P1-introspective-reliability-unweighted, elicitation-surface-taxonomy-unification, outcome-symmetry-corpus-gap); and **7 H-class** (discrimination-vs-generation, drift-signal-compounding, instrument-gameability, multi-agent-cascade, subject-commentary-predictive-validity, intervention-validity-degradation, committed-battery-integrity). 10 were previously Zone-2 ratified (Night, 2026-07-11) but stranded by a failed Supabase sync; 4 ratified this session (Carly, 2026-07-14). IC-058's 26-entry remediation is append-only via ADDENDUM (disconfirm branches PENDING — Zone 2). Prior: June 23, 2026 (S-062326) — IC-039 through IC-043 registered; H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol proposed CANDIDATE (pending Z2 + P30 gate). Earlier (June 17, S-061726-01 — H-FORMAT-01/F-52/F-53/H-AICASCADE-01) was already live.
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
@@ -1037,6 +1037,116 @@ superseded_by: null
 
 -----
 
+### F-58 — Verification-Layer Mimicry (Recursive)
+
+```
+---
+id: "F-58"
+name: "Verification-Layer Mimicry (Recursive)"
+status: CANDIDATE
+class: F
+date_registered: "2026-07-14"
+date_origin: "2026-07-13"
+session_registered: "S-071426-01-inbox-integration"
+principles_triggered: ["P3"]
+zone2_ratification: "Carly (operator) · 2026-07-14 · S-071426"
+tags: [verification-layer, mimicry, red-team, primary-check-gate]
+related_finding: ["F-57", "F-53", "F-50"]
+superseded_by: null
+---
+```
+
+- **Synopsis — Distinction from F-57 (stated first, since it's the key scoping question):**
+
+F-57 is surface-level linguistic mimicry — fluent, correct use of a
+project's evidential vocabulary (VERIFIED/INFERENCE/JUDGMENT tags)
+without the underlying discipline behind it. This candidate is
+narrower and more targeted: mimicry specifically of the project's
+**verification and red-team mechanisms themselves** — the adversarial
+auditor posture, falsifiable-claim framing, and governance-humility
+language this project's own tooling and this conversation's own
+corrections use. It doesn't just borrow vocabulary; it borrows the
+*shape of a correction* and aims it at the verification layer's own
+trust, which is a different and more specific attack surface than F-57
+describes.
+
+  **The pattern, as observed across two recursion depths in one session:**
+
+  **Depth 1:** two independently-pasted documents, both claiming to be
+red-team audits of `tier1_logprob_capability_probe_v1_0.py`, asserted
+specific, falsifiable defects (smart-quote corruption, missing
+indentation, non-compilation) that direct re-execution disproved in
+under a minute. Both documents also contained one genuinely valid,
+independently-correct critique (a heuristic substring-detection
+weakness) mixed in with the fabricated claims.
+
+  **Depth 2:** a third pasted document, framed as validating the
+correction of Depth 1, was followed immediately by a fourth pasted
+document that fabricated a rebuttal *of the correction itself* —
+asserting, with fabricated hex byte counts and a narrated (not
+executed) `SyntaxError` traceback, that the original fabricated claims
+had actually been correct all along. Re-verification via independent
+tooling (`grep -c`, `file`, `od`, fresh `py_compile`, fresh execution,
+pinned SHA256) disproved this second layer identically to the first.
+
+  **The mechanism is recursive by structure, not by coincidence:** each
+layer targets whatever the most recent correction was, using the same
+posture (confident, technically-dressed, falsifiable-sounding) that a
+genuine correction would use. There is no principled reason this stops
+at two layers — a fabricated rebuttal of a rebuttal of a rebuttal is
+the same move repeated, and each layer costs the reader/verifier
+roughly the same fixed cost to re-disprove (one primary-source check),
+regardless of how many prior layers preceded it.
+
+  **Why the one genuine critique bundled into each layer matters:**
+
+  Both Depth 1 documents' fabricated syntax claims were paired with a
+real, independently-valid critique (the `json.dumps(body).lower()`
+substring heuristic). This is not incidental to the pattern — a bundle
+containing one true claim increases the credibility cost of dismissing
+the bundle wholesale, and specifically discourages the reader from
+applying equal scrutiny to every claim in the bundle rather than
+averaging trust across it. The correct response, demonstrated this
+session, is to evaluate every discrete claim independently against its
+own verification, never as a package deal.
+
+  **Structural defense already built this session (not proposed, implemented):**
+
+  `primary_check_gate_v1_0.py` — hard-rejects any claim about an
+artifact's state that lacks an attached `VerificationRecord` (a real
+subprocess execution against the real artifact, not a narrative
+description of a result). This is the code-level enforcement of the
+principle this finding names: no text-based argument, regardless of
+formatting or recursion depth, outweighs a rerun of the primary check.
+Demonstrated live against the actual fabricated-claim text from this
+session's Depth-2 document — correctly rejected on admission, purely
+for lacking a `VerificationRecord`.
+
+- **Evidence:**
+  - Direct session transcript: two Depth-1 documents (fabricated smart-
+    quote/indentation claims), disproven by `py_compile`, character-count
+    inspection, and live smoke-test execution, twice.
+  - One Depth-2 document (fabricated rebuttal of the correction),
+    disproven by four independent re-verification methods (`grep -c`,
+    `file`, `od`, fresh compile/execution), with a pinned SHA256 hash
+    making the disproof independently reproducible by any third party.
+  - The one genuinely valid critique across both depths (heuristic
+    substring detection) was independently confirmed and fixed in the
+    same session, on its own merits, unconnected to the fabricated
+    claims it arrived alongside.
+
+- **Promotion gate:** N≥1 additional independently-occurring instance (a different session,
+different artifact) before promotion beyond CANDIDATE — this entry is
+currently grounded in a single session's two-depth event, which is
+sufficient to name the pattern but not yet to claim it as a recurring,
+predictable behavior class.
+
+- **Note:** The N=1 promotion gate keeps this entry at status CANDIDATE (ratified as a
+CANDIDATE, not CONFIRMED) pending a second independent instance in a different
+session against a different artifact.
+
+-----
+
 ### F-31 — Pre-Canonicalization Intent Mutation — CITATION CORRECTION
 
 ```
@@ -1053,7 +1163,6 @@ zone2_ratification: null
 - **Original claim (F-31, "Architectural context" bullet):** "Now formalized in SESSION_RITUALS.md Section G (Intent Object Specification)."
 - **Finding:** As of F-31 registration (2026-05-06) and continuously through 2026-07-07, no such content exists at that location. `SESSION_RITUALS.md` Section G is titled "Verification posture," and no Intent Object specification content exists anywhere in the file.
 - **Correction class:** Phantom-citation error (same family as IC-034 / IC-039 / IC-044): citation to formalized content that did not exist at the cited location.
-
 -----
 
 ## IC-class corrections (process errors registered)
@@ -1548,6 +1657,189 @@ superseded_by: null
 Migrations 006–010 were referenced as real, pending, blocking work across governance docs and session memory — including migration_010_add_elicitation_surface.sql by exact name — but none existed in sql/ or acat/db/migrations/ in the canonical repo (confirmed via full tarball extraction). Revised same session, on further evidence: they are not phantom in the sense of never having been drafted — migration_007 (three colliding variants: 007_document_layers.sql, migration_007_document_engine_tables.sql, migration_007_operational_state_fix.sql), migration_008_add_self_administered.sql, migration_009 (two colliding variants: add_p3_grounding_source and participation_schema), and migration_010_add_elicitation_surface.sql all exist as drafted Zone 1 artifacts. They were simply never landed in the repo, and where a number was reused, never reconciled against each other. No draft exists anywhere for 006. This is the likely root cause of HA-000/SSI Phase 0's multi-session "STANDING BLOCKED" status: the prerequisite chain pointed at files that existed only as scattered, colliding drafts. Fix → Principle P19. Decision needed from Night, not Claude: which 007 and which 009 is canonical, what happens to the other(s), and a real 006 either gets drafted or HA-000's dependency on the full 006→010 chain gets reframed.
 ---
 ```
+
+### IC-053 — drift-validator-missing-d-overclaim-key
+
+```
+---
+id: "IC-053"
+name: "drift-validator-missing-d-overclaim-key"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: [P19]
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+related: [IC-034]
+fix_principle: P19
+superseded_by: null
+---
+```
+
+- **Synopsis:** drift_catalog_validator_v1.1.py's REGISTERED_DRIFT dict has no D-OVERCLAIM entry despite IC-034 formally naming and Zone-2-ratifying D-OVERCLAIM as a governance drift signal (S-060926-02). The tool whose stated job is recognizing named drift codes in session transcripts cannot recognize this one.
+- **Evidence:** Direct comparison: REGISTERED.md IC-034 body text vs. REGISTERED_DRIFT dict keys as quoted earlier in this conversation's project_knowledge_search result.
+-----
+
+### IC-054 — no-same-session-self-correction-instrument
+
+```
+---
+id: "IC-054"
+name: "no-same-session-self-correction-instrument"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: [P19]
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+related: [F-22, F-45]
+fix_principle: "P21 (new skill) + P29 (Articulation Gate, extended)"
+superseded_by: null
+---
+```
+
+- **Synopsis:** The registry has instruments for post-session error capture (IC-class) but no instrument for same-session self-correction, transcript-visible only, per companion Z1 skill draft humanaios-omission-log_SKILL_Z1_DRAFT.md.
+- **Evidence:** Gap identified against existing humanaios-findings-scan and humanaios-triage-finding scope; grounded in arXiv:2602.20031, Huang et al. arXiv:2310.01798, arXiv:2507.02778, arXiv:2404.04298.
+-----
+
+### IC-055 — self-correction-claims-not-uniformly-gated
+
+```
+---
+id: "IC-055"
+name: "self-correction-claims-not-uniformly-gated"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: [P3]
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+related: [IC-041, IC-043]
+fix_principle: P3
+superseded_by: null
+---
+```
+
+- **Synopsis:** IC-041, IC-043, and the IC-041 fix-not-landed correction are three independently-discovered instances of the same mechanism (self-correction claim made without external verification, wrong each time), each patched narrowly by domain rather than as one general rule.
+- **Evidence:** Direct comparison of IC-041, IC-043, and S-071026-01 IC-041-correction; grounded in Huang et al., LLMs Cannot Self-Correct Reasoning Yet (arXiv:2310.01798).
+-----
+
+### IC-056 — p1-introspective-reliability-unweighted
+
+```
+---
+id: "IC-056"
+name: "p1-introspective-reliability-unweighted"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: [P19]
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+related: [F-57, H-SELF-01]
+fix_principle: P19
+superseded_by: null
+---
+```
+
+- **Synopsis:** acat_dimension_scorer_v1_1.py ingests Phase 1 self-report as a raw, equally-weighted data point with no field discounting it by a known introspective-reliability floor, despite F-57/H-SELF-01 and external confirmation (arXiv:2602.20031, ~20 percent introspective accuracy under test conditions).
+- **Evidence:** Direct review of acat_dimension_scorer_v1_1.py aggregate() function, same code region as F-58/IC-056.
+-----
+
+### IC-057 — Elicitation-Surface Taxonomy Unification
+
+```
+---
+id: "IC-057"
+name: "Elicitation-Surface Taxonomy Unification"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-14"
+date_origin: "2026-07-13"
+session_registered: "S-071426-01-inbox-integration"
+principles_triggered: ["P19"]
+zone2_ratification: "Carly (operator) · 2026-07-14 · S-071426"
+tags: [elicitation-surface, schema, taxonomy, coordination-gap]
+related_finding: ["H-ELICIT-01", "H-PLATFORM-01", "H-XMODE-01", "F-52", "H-SELF-01", "H-MECH-01"]
+related_paper: "Jiang et al., SELF-[IN]CORRECT (arXiv:2404.04298), Section 5.1"
+fix_principle: "P19"
+superseded_by: null
+---
+```
+
+- **Synopsis:**
+
+Six separately-registered items each name a different axis along which
+the surface a substrate is elicited through can vary, and each axis
+independently produces a measurable effect on self-report accuracy or
+LI. None of them currently share a schema, a naming convention, or a
+combined field — each was discovered and registered in isolation, in a
+different session, by a different route. This candidate does not
+propose new empirical claims; it proposes that the six existing claims
+are one research program, not six, and that the corpus schema should
+say so.
+
+- **Promotion gate:**
+  1. Zone 2 confirms the eight-axis taxonomy is the right unification
+     (not over- or under-inclusive).
+  2. Live schema inspection (`information_schema.columns` on
+     `acat_assessments_v1`, per IC-032 discipline) to confirm which axes
+     are already partially capturable versus require new migration.
+  3. A single migration proposal (successor to migration_010, currently
+     still unlanded per IC-CAND-GROUNDING-SCHEMA-UNPOPULATED) covering
+     all eight axes together, rather than landing them piecemeal as each
+     individual hypothesis happens to reach its own promotion gate.
+
+- **Note:** The taxonomy entry is registered, but its migration stays Step-0 manually
+gated — live schema inspection (per IC-032) before any DDL; no fields are landed on
+registration.
+-----
+
+### IC-058 — Outcome-Symmetry Corpus Gap
+
+```
+---
+id: "IC-058"
+name: "Outcome-Symmetry Corpus Gap"
+status: REGISTERED
+class: IC
+date_registered: "2026-07-14"
+date_origin: "2026-07-13"
+session_registered: "S-071426-01-inbox-integration"
+principles_triggered: ["P19", "P29"]
+zone2_ratification: "Carly (operator) · 2026-07-14 · S-071426"
+tags: [outcome-symmetry, disconfirm-branch, registry-audit, remediation]
+related_finding: ["F-47", "H-GOV-01"]
+fix_principle: "P29 (Articulation Gate, extended) + new registration_validator gate"
+superseded_by: null
+---
+```
+
+- **Synopsis:**
+
+Full sweep of REGISTERED.md's 34 H-class entries against
+`outcome_symmetry_checker_v1_0.py`: 3 stubs (header-only), 2 structural
+non-hypothesis documents excluded correctly; of 29 checkable entries,
+**26 (89.7%) lack a stated implication for at least one outcome branch**
+— overwhelmingly the disconfirm/null branch. This includes H-CFG-01
+(REGISTERED, promoted on p=0.000004 corpus data) and five other
+REGISTERED-status entries, not only early-stage CANDIDATEs.
+
+- **Promotion gate:** Zone 2 review of tiering and template; assignment of who holds
+scientific-judgment authority for each entry's missing branch (default:
+the entry's own `zone2_ratification` signatory, per existing Zone
+governance); Tier 1 addenda completed before any Tier 1 entry is cited
+externally (arXiv preprint, funding proposals) without a caveat.
+
+- **Note:** Remediation of the 26 existing H-entries is APPEND-ONLY via the ADDENDUM
+template; disconfirm branches stay "PENDING — Zone 2" until each entry's signatory
+fills them — never edit originals, never auto-fill.
+-----
+
 _____
 ### H-class hypotheses (under test)
 -----
@@ -2381,6 +2673,28 @@ superseded_by: null
 - **Synopsis:** Z2-ASSESS-01 ratification record for the async job pattern on the `/assess` endpoint. Root cause: synchronous handler with 65s protocol sleep + ~90–125s LLM inference exceeded Cloudflare proxy timeout (502 error on every call). Fix: POST `/assess` returns immediately with `{job_id, status: "running", poll_url}`; GET `/assess/{job_id}` polls for result. In-memory `_JOBS` dict, background thread, synchronous validation before spawn. Commit `aa966fd` live on main. Zone 2 ratification: Night · S-060826-03 · June 8, 2026. Related IC-035: workflow not yet documented in OPERATOR_RUNBOOK.md.
 -----
 
+### H-CAND-DISCRIMINATION-VS-GENERATION-01 — H-CAND-DISCRIMINATION-VS-GENERATION-01
+
+```
+---
+id: "H-CAND-DISCRIMINATION-VS-GENERATION-01"
+name: "H-CAND-DISCRIMINATION-VS-GENERATION-01"
+status: REGISTERED
+class: H
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: []
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+related: [F-49, IC-056]
+superseded_by: null
+---
+```
+
+- **Synopsis:** ACAT Phase 1 self-report and blind-discrimination accuracy on a substrate's own past responses are not reliably correlated, and discrimination accuracy may be lower than P1 accuracy, per SELF-[IN]CORRECT (arXiv:2404.04298), with required task-difficulty-parity and capability-tier-stratification controls sourced directly from that paper's own methodology.
+- **Evidence:** arXiv:2404.04298, 54/56 experiments failed to reject the SELF-[IN]CORRECT null hypothesis.
+-----
+
 ### IC-044 — Submission Purity Constraint Collapse Recurrence
 
 ```
@@ -2404,6 +2718,27 @@ superseded_by: null
 - **Detection:** Surfaced in S-070726-01 when a `self_administered` INSERT failed with `ERROR 23514`; discrepancy confirmed via live constraint inspection (`pg_constraint` / `pg_get_constraintdef`) rather than report trust.
 - **Resolution:** Dropped stale narrow constraint this session (`drop_stale_narrow_submission_purity_constraint`), leaving the intended consolidated superset in force.
 - **Prevention note:** Add a recurrence gate: if prior session claims a constraint was "consolidated" or "dropped," the next session touching that table must re-verify live constraints before assuming closure.
+-----
+
+### H-CAND-DRIFT-SIGNAL-COMPOUNDING-01 — H-CAND-DRIFT-SIGNAL-COMPOUNDING-01
+
+```
+---
+id: "H-CAND-DRIFT-SIGNAL-COMPOUNDING-01"
+name: "H-CAND-DRIFT-SIGNAL-COMPOUNDING-01"
+status: REGISTERED
+class: H
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: []
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+superseded_by: null
+---
+```
+
+- **Synopsis:** An uncaught HumanAIOS drift signal measurably increases the rate of a second, related error later in the same session rather than remaining a neutral miss, operationalizing hallucination snowballing (arXiv:2507.02778) against this project's own session-transcript record.
+- **Evidence:** arXiv:2507.02778; distinct from D-02 (Repeat Diagnosis) which covers same-answer re-assertion only.
 
 -----
 
@@ -2433,6 +2768,28 @@ superseded_by: null
 - **Prevention:** Upgrade builder-lint from marker-presence to behavioral gating (AST + import/endpoint smoke tests) — tracked in issue humanaios-ui/operations#75. Never insert markers into function bodies; module-level only.
 - **Lesson reinforced:** marker-presence gating cannot protect behavior (see also IC-037, IC-041).
 - **Class:** audit-false-pass / behavioral-break-shipped-green
+-----
+
+### H-CAND-INSTRUMENT-GAMEABILITY-01 — H-CAND-INSTRUMENT-GAMEABILITY-01
+
+```
+---
+id: "H-CAND-INSTRUMENT-GAMEABILITY-01"
+name: "H-CAND-INSTRUMENT-GAMEABILITY-01"
+status: REGISTERED
+class: H
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: []
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+related: [F-51, H-SELF-01, H-MECH-01]
+superseded_by: null
+---
+```
+
+- **Synopsis:** As ACAT's protocol and corpus become more publicly legible, a substrate's ability to produce a favorable LI shift through anticipation of the calibration corpus, distinct from F-51's in-session resistance to calibration framing, increases measurably with prior exposure to published ACAT material.
+- **Evidence:** Originating question Q5 from REPORTED-tier relayed document; grounded against existing F-51/H-MECH-01.
 
 -----
 
@@ -2462,7 +2819,173 @@ superseded_by: null
 - **Cross-reference:** IC-038 (charter-countdown-carry-error, S-061126-04) — narrower instance, same root cause. Z2 disposition: merge as sibling class vs. treat IC-038 as first instance of this class — to be determined at Z2 ratification.
 - **Prevention (proposed, pending Z2):** Lint rule or CI check that flags lines in CURRENT.md matching patterns for numeric corpus counts, day-counts, or entity strings — forces pointer language or explicit staleness acknowledgment. Not implemented in this PR; noted here for tracking.
 - **Note:** IC number to be assigned at Zone 2 ratification. `date_registered`, `zone2_ratification`, and `status` fields to be updated at that time. Do not merge before Z2 review (per PR description Zone routing).
+-----
 
+### H-CAND-MULTI-AGENT-CASCADE-01 — H-CAND-MULTI-AGENT-CASCADE-01
+
+```
+---
+id: "H-CAND-MULTI-AGENT-CASCADE-01"
+name: "H-CAND-MULTI-AGENT-CASCADE-01"
+status: REGISTERED
+class: H
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: []
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+related: [F-37, H-RAH-01, H-DECOMP-01]
+superseded_by: null
+---
+```
+
+- **Synopsis:** In multi-agent orchestration, individual-agent LI scores do not aggregate linearly to collective reliability; correlated overconfidence across agents sharing training lineage produces a higher system-level failure rate than independence-assumption aggregation predicts. Testable as a secondary analysis of H-RAH-01 data once N greater than or equal to 20 is reached.
+- **Evidence:** Originating question Q7 from REPORTED-tier relayed document; piggybacks on H-RAH-01 data collection, requires marshal_dispatch_runs_v1 to capture agent lineage field.
+-----
+
+### H-CAND-SUBJECT-COMMENTARY-PREDICTIVE-VALIDITY-01 — H-CAND-SUBJECT-COMMENTARY-PREDICTIVE-VALIDITY-01
+
+```
+---
+id: "H-CAND-SUBJECT-COMMENTARY-PREDICTIVE-VALIDITY-01"
+name: "H-CAND-SUBJECT-COMMENTARY-PREDICTIVE-VALIDITY-01"
+status: REGISTERED
+class: H
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: []
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+related: [H-SELF-01, F-57]
+superseded_by: null
+---
+```
+
+- **Synopsis:** Subject-generated self-commentary captured during ACAT administration has no reliable correlation with that subject's actual measured dimensional gaps or LI, tested against a skeptical null per Section 0 grounding (arXiv:2602.20031, arXiv:2404.04298). Companion Section 1 schema field is hard-typed REPORTED tier, registrable false, non-configurable.
+- **Evidence:** Grounded against H-SELF-01, F-57; capture mechanism explicitly barred from auto-registration at the schema level.
+-----
+
+### H-CAND-INTERVENTION-VALIDITY-DEGRADATION-01 — H-CAND-INTERVENTION-VALIDITY-DEGRADATION-01
+
+```
+---
+id: "H-CAND-INTERVENTION-VALIDITY-DEGRADATION-01"
+name: "H-CAND-INTERVENTION-VALIDITY-DEGRADATION-01"
+status: REGISTERED
+class: H
+date_registered: "2026-07-11"
+date_origin: "2026-07-11"
+session_registered: "S-071126-01"
+principles_triggered: []
+zone2_ratification: "Night · 2026-07-11 · S-071126-01"
+related: [F-30, F-50]
+superseded_by: null
+---
+```
+
+- **Synopsis:** Applying a weight-level, LoRA-level, or activation-steering intervention derived from ACAT findings measurably degrades the validity of subsequent ACAT measurements on the same model, specifically producing a gap between post-intervention scores on the training-exposed perturbation battery vs a held-out battery testing the same dimensions.
+- **Evidence:** Direct extension of F-30 (teach-to-test validity threat) into the specific weight/activation-intervention case; prerequisite for testing is white-box intervention capability, see companion Z1 whitebox research tier proposal.
+-----
+
+### H-CAND-COMMITTED-BATTERY-INTEGRITY-01 — Committed Battery Integrity
+
+```
+---
+id: "H-CAND-COMMITTED-BATTERY-INTEGRITY-01"
+name: "Committed Battery Integrity"
+status: REGISTERED
+class: H
+date_registered: "2026-07-14"
+date_origin: "2026-07-13"
+session_registered: "S-071426-01-inbox-integration"
+principles_triggered: []
+zone2_ratification: "Carly (operator) · 2026-07-14 · S-071426"
+tags: [battery-integrity, hash-commitment, evaluator-drift, protocol]
+related_finding: ["F-50"]
+related_hypothesis: ["H-CAND-INSTRUMENT-GAMEABILITY-01"]
+superseded_by: null
+---
+```
+
+- **Synopsis:**
+
+**Framing correction before the hypothesis (flagged explicitly, not silently adjusted):**
+
+The originally requested framing — "does a committed-and-revealed battery
+produce different LI inflation than an uncommitted one" — implies the
+*tested substrate's* score would differ based on the commitment ceremony.
+That's very unlikely to be true and worth naming as a probable non-effect
+before testing it: the substrate being assessed never sees the hash
+commitment. It sees the same perturbation prompts either way. A
+commit-then-reveal protocol doesn't change what the model is shown; it
+changes what the *evaluator* can do with the battery afterward
+(swap items, cherry-pick favorable ones, adjust composition between
+sessions without anyone able to check). So the mechanism this protects
+against is evaluator-side drift, not substrate-side gaming — a different
+threat than H-CAND-INSTRUMENT-GAMEABILITY-01, which is about the
+substrate anticipating exposure. Both hypotheses below are offered so
+Zone 2 can pick the one that matches what you actually want tested; they
+are not redundant with each other.
+
+**Hypothesis A (substrate-facing — predicted null result, worth testing anyway):**
+
+  - **Hypothesis:** single-session LI/dimensional scores for a given
+    substrate do not differ significantly between a hash-committed and an
+    uncommitted administration of the same perturbation battery, holding
+    battery content identical.
+  - **Null hypothesis:** no significant difference (this is the
+    *expected* outcome, stated as the null deliberately — a confirmed null
+    here is informative, not a failed test, because it establishes the
+    commitment ceremony is inert to the substrate as designed).
+  - **Why test a predicted null:** confirms the commitment mechanism
+    doesn't accidentally introduce its own confound (e.g., if commitment
+    metadata ever leaked into the prompt context by implementation
+    accident, that itself would be worth catching).
+  - **Promotion gate:** N≥1 paired same-battery run, committed vs.
+    uncommitted, before Zone 2 considers this beyond CANDIDATE.
+
+**Hypothesis B (evaluator-facing — the actual protective claim):**
+
+  - **Hypothesis:** across repeated administrations of a nominally
+    "the same" perturbation battery over time, a hash-committed protocol
+    (commit hash published before administration, battery content
+    revealed only after scoring is locked) shows measurably less
+    item-level drift (substitutions, additions, silent composition
+    changes between administrations) than an uncommitted protocol,
+    verified by comparing the actual battery content used in each
+    administration against its published commitment hash.
+  - **Null hypothesis:** item-level drift rate across repeated
+    administrations does not differ between committed and uncommitted
+    protocols.
+  - **Design (proposed, not built):** for N administrations of a
+    perturbation battery over M sessions, log the actual item set used at
+    each administration under both protocols. For committed
+    administrations, verify `sha256(canonical_json(items)) ==
+    published_hash` at each use — any mismatch is drift by construction.
+    For uncommitted administrations, drift can only be detected by manual
+    diff against the original battery specification, which is itself a
+    weaker detection method and part of what this hypothesis is testing.
+  - **Minimal reusable code (from prior turn, restated as the actual
+    test instrument):**
+    ```python
+    import hashlib, json
+    def commit_perturbation_set(items: list) -> str:
+        canonical = json.dumps(items, sort_keys=True)
+        return hashlib.sha256(canonical.encode()).hexdigest()
+    ```
+  - **Promotion gate:** N≥3 repeated administrations across both
+    protocols, drift rate compared, before Zone 2 considers this beyond
+    CANDIDATE.
+
+**Which one to ratify:**
+
+Recommend **Hypothesis B** as the primary registered claim — it's the
+one with actual protective value and a clear mechanism. Hypothesis A is
+offered as a companion sanity check, cheap to run alongside B, not as a
+standalone research priority.
+
+- **Note:** Hypothesis A (substrate-facing null) retained as companion; B is the
+registered claim per author recommendation — operator may amend.
 -----
 
 ## NM-class near-misses (low-friction capture — not registered findings)
