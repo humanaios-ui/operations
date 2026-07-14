@@ -1,7 +1,13 @@
-# registry-candidates — staged immune-log entries pending operator append
+# registry-candidates — staged immune-log entries
 
-Landed from `docs/_inbox_` (S-071426). These are candidate `REGISTERED.md` entries
-prepared in registry-ready form. **They are NOT yet in the canonical `REGISTERED.md`.**
+> **STATUS 2026-07-14 (S-071426): APPENDED.** All 14 entries (10 previously ratified +
+> 4 ratified this session by the operator) were appended to `REGISTERED.md` — F-56,
+> IC-044–IC-049, and 7 H-class. This directory is now an **audit trail** of what was
+> staged + the reconciliation; it may be deleted once the PR merges. The notes below
+> describe the pre-append state.
+
+Landed from `docs/_inbox_` (S-071426). These were candidate `REGISTERED.md` entries
+prepared in registry-ready form, since appended to the canonical log.
 
 ## Why staged, not appended
 
@@ -66,3 +72,24 @@ stay `PENDING — Zone 2` until each entry's Z2 signatory fills them. Do not aut
 4. (Optional) delete this staging dir once appended, or leave as an audit trail.
 
 A consolidated GitHub issue tracks this request.
+
+## Sync gap — root cause + prevention
+
+**What happened:** the 10 Tier-1 entries were Zone-2 ratified on 2026-07-11 but a
+`z2_queue` sync to Supabase failed (`SUPABASE_URL/SUPABASE_KEY not set` in the local
+context) and spooled to `z2_queue_fallback.jsonl` — where they sat, invisible, for days.
+
+**Root cause:** the ratified entries were routed *only* through the secondary Supabase
+index, so a missing-credential failure stranded them with no path to the canonical log.
+
+**Prevention (the standing rule):** `REGISTERED.md` is the **single source of truth** for
+Zone-2-ratified entries. A ratified entry lands in `REGISTERED.md` **regardless of whether
+the Supabase sync succeeds** — the DB `z2_queue` is a secondary operational index, never the
+authoritative sink. A failed sync must surface loudly (not silently spool) and must not gate
+the canonical append.
+
+**Credentials note:** `SUPABASE_URL` / `SUPABASE_KEY` belong only in the API **runtime**
+(set via the secrets manager / Railway env — see OPERATOR_RUNBOOK §"env"), **never** in repo
+files, an AI context, or a local `.env` committed anywhere. This integration did **not** set,
+mint, or handle any credential; it resolved the strand by appending the ratified entries to
+`REGISTERED.md` directly (their SSOT), which needs no credential.
