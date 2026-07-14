@@ -34,7 +34,7 @@ without metabolism." CONSOLIDATE + ANALYZE close it.
 - **miss** — not merged (predicted deliver, didn't land).
 - **gap_rate = (friction + miss) / graded.** Success over rounds = gap_rate declining.
 
-First run (S-071426, 10 rows): clean_rate 0.778, gap_rate 0.222 — 2 merged PRs shipped
+First resolved run (S-071426, 10 rows): measurable_rate 0.9 (9 confirmed); clean_rate 0.333; gap_rate 0.667 — 6 merged PRs shipped
 with failing checks. That is the first measured signal the loop was built to surface.
 
 ## Run locally
