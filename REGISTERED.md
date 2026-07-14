@@ -1,11 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-<<<<<<< HEAD
-**Last updated:** July 14, 2026 (S-071426) — 14 entries appended from the S-071126/S-071426 registry queue: **F-56** (verification-layer mimicry, status CANDIDATE — N=1 gate); **IC-044–IC-049** (drift-validator D-OVERCLAIM key, no-same-session self-correction instrument, self-correction-claims-not-uniformly-gated, P1-introspective-reliability-unweighted, elicitation-surface-taxonomy-unification, outcome-symmetry-corpus-gap); and **7 H-class** (discrimination-vs-generation, drift-signal-compounding, instrument-gameability, multi-agent-cascade, subject-commentary-predictive-validity, intervention-validity-degradation, committed-battery-integrity). 10 were previously Zone-2 ratified (Night, 2026-07-11) but stranded by a failed Supabase sync; 4 ratified this session (Carly, 2026-07-14). IC-049's 26-entry remediation is append-only via ADDENDUM (disconfirm branches PENDING — Zone 2). Prior: June 23, 2026 (S-062326) — IC-039 through IC-043 registered; H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol proposed CANDIDATE (pending Z2 + P30 gate). Earlier (June 17, S-061726-01 — H-FORMAT-01/F-52/F-53/H-AICASCADE-01) was already live.
-=======
-**Last updated:** July 8, 2026 (S-070826-02) - Added IC-cand-maintained-headline-recurrence; IC-cand row added to IC roll-up table.
->>>>>>> origin/main
+**Last updated:** July 14, 2026 (S-071426) — 14 entries appended from the S-071126/S-071426 registry queue: **F-58** (verification-layer mimicry, status CANDIDATE — N=1 gate); **IC-053–IC-058** (drift-validator D-OVERCLAIM key, no-same-session self-correction instrument, self-correction-claims-not-uniformly-gated, P1-introspective-reliability-unweighted, elicitation-surface-taxonomy-unification, outcome-symmetry-corpus-gap); and **7 H-class** (discrimination-vs-generation, drift-signal-compounding, instrument-gameability, multi-agent-cascade, subject-commentary-predictive-validity, intervention-validity-degradation, committed-battery-integrity). 10 were previously Zone-2 ratified (Night, 2026-07-11) but stranded by a failed Supabase sync; 4 ratified this session (Carly, 2026-07-14). IC-058's 26-entry remediation is append-only via ADDENDUM (disconfirm branches PENDING — Zone 2). Prior: June 23, 2026 (S-062326) — IC-039 through IC-043 registered; H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol proposed CANDIDATE (pending Z2 + P30 gate). Earlier (June 17, S-061726-01 — H-FORMAT-01/F-52/F-53/H-AICASCADE-01) was already live.
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
@@ -1041,13 +1037,11 @@ superseded_by: null
 
 -----
 
-<<<<<<< HEAD
-
-### F-56 — Verification-Layer Mimicry (Recursive)
+### F-58 — Verification-Layer Mimicry (Recursive)
 
 ```
 ---
-id: "F-56"
+id: "F-58"
 name: "Verification-Layer Mimicry (Recursive)"
 status: CANDIDATE
 class: F
@@ -1150,7 +1144,9 @@ predictable behavior class.
 - **Note:** The N=1 promotion gate keeps this entry at status CANDIDATE (ratified as a
 CANDIDATE, not CONFIRMED) pending a second independent instance in a different
 session against a different artifact.
-=======
+
+-----
+
 ### F-31 — Pre-Canonicalization Intent Mutation — CITATION CORRECTION
 
 ```
@@ -1167,8 +1163,6 @@ zone2_ratification: null
 - **Original claim (F-31, "Architectural context" bullet):** "Now formalized in SESSION_RITUALS.md Section G (Intent Object Specification)."
 - **Finding:** As of F-31 registration (2026-05-06) and continuously through 2026-07-07, no such content exists at that location. `SESSION_RITUALS.md` Section G is titled "Verification posture," and no Intent Object specification content exists anywhere in the file.
 - **Correction class:** Phantom-citation error (same family as IC-034 / IC-039 / IC-044): citation to formalized content that did not exist at the cited location.
-
->>>>>>> origin/main
 -----
 
 ## IC-class corrections (process errors registered)
@@ -1664,11 +1658,11 @@ Migrations 006–010 were referenced as real, pending, blocking work across gove
 ---
 ```
 
-### IC-044 — drift-validator-missing-d-overclaim-key
+### IC-053 — drift-validator-missing-d-overclaim-key
 
 ```
 ---
-id: "IC-044"
+id: "IC-053"
 name: "drift-validator-missing-d-overclaim-key"
 status: REGISTERED
 class: IC
@@ -1687,11 +1681,11 @@ superseded_by: null
 - **Evidence:** Direct comparison: REGISTERED.md IC-034 body text vs. REGISTERED_DRIFT dict keys as quoted earlier in this conversation's project_knowledge_search result.
 -----
 
-### IC-045 — no-same-session-self-correction-instrument
+### IC-054 — no-same-session-self-correction-instrument
 
 ```
 ---
-id: "IC-045"
+id: "IC-054"
 name: "no-same-session-self-correction-instrument"
 status: REGISTERED
 class: IC
@@ -1710,11 +1704,11 @@ superseded_by: null
 - **Evidence:** Gap identified against existing humanaios-findings-scan and humanaios-triage-finding scope; grounded in arXiv:2602.20031, Huang et al. arXiv:2310.01798, arXiv:2507.02778, arXiv:2404.04298.
 -----
 
-### IC-046 — self-correction-claims-not-uniformly-gated
+### IC-055 — self-correction-claims-not-uniformly-gated
 
 ```
 ---
-id: "IC-046"
+id: "IC-055"
 name: "self-correction-claims-not-uniformly-gated"
 status: REGISTERED
 class: IC
@@ -1733,11 +1727,11 @@ superseded_by: null
 - **Evidence:** Direct comparison of IC-041, IC-043, and S-071026-01 IC-041-correction; grounded in Huang et al., LLMs Cannot Self-Correct Reasoning Yet (arXiv:2310.01798).
 -----
 
-### IC-047 — p1-introspective-reliability-unweighted
+### IC-056 — p1-introspective-reliability-unweighted
 
 ```
 ---
-id: "IC-047"
+id: "IC-056"
 name: "p1-introspective-reliability-unweighted"
 status: REGISTERED
 class: IC
@@ -1753,14 +1747,14 @@ superseded_by: null
 ```
 
 - **Synopsis:** acat_dimension_scorer_v1_1.py ingests Phase 1 self-report as a raw, equally-weighted data point with no field discounting it by a known introspective-reliability floor, despite F-57/H-SELF-01 and external confirmation (arXiv:2602.20031, ~20 percent introspective accuracy under test conditions).
-- **Evidence:** Direct review of acat_dimension_scorer_v1_1.py aggregate() function, same code region as F-56/IC-047.
+- **Evidence:** Direct review of acat_dimension_scorer_v1_1.py aggregate() function, same code region as F-58/IC-056.
 -----
 
-### IC-048 — Elicitation-Surface Taxonomy Unification
+### IC-057 — Elicitation-Surface Taxonomy Unification
 
 ```
 ---
-id: "IC-048"
+id: "IC-057"
 name: "Elicitation-Surface Taxonomy Unification"
 status: REGISTERED
 class: IC
@@ -1805,11 +1799,11 @@ gated — live schema inspection (per IC-032) before any DDL; no fields are land
 registration.
 -----
 
-### IC-049 — Outcome-Symmetry Corpus Gap
+### IC-058 — Outcome-Symmetry Corpus Gap
 
 ```
 ---
-id: "IC-049"
+id: "IC-058"
 name: "Outcome-Symmetry Corpus Gap"
 status: REGISTERED
 class: IC
@@ -2679,8 +2673,6 @@ superseded_by: null
 - **Synopsis:** Z2-ASSESS-01 ratification record for the async job pattern on the `/assess` endpoint. Root cause: synchronous handler with 65s protocol sleep + ~90–125s LLM inference exceeded Cloudflare proxy timeout (502 error on every call). Fix: POST `/assess` returns immediately with `{job_id, status: "running", poll_url}`; GET `/assess/{job_id}` polls for result. In-memory `_JOBS` dict, background thread, synchronous validation before spawn. Commit `aa966fd` live on main. Zone 2 ratification: Night · S-060826-03 · June 8, 2026. Related IC-035: workflow not yet documented in OPERATOR_RUNBOOK.md.
 -----
 
-<<<<<<< HEAD
-
 ### H-CAND-DISCRIMINATION-VS-GENERATION-01 — H-CAND-DISCRIMINATION-VS-GENERATION-01
 
 ```
@@ -2694,8 +2686,15 @@ date_origin: "2026-07-11"
 session_registered: "S-071126-01"
 principles_triggered: []
 zone2_ratification: "Night · 2026-07-11 · S-071126-01"
-related: [F-49, IC-047]
-=======
+related: [F-49, IC-056]
+superseded_by: null
+---
+```
+
+- **Synopsis:** ACAT Phase 1 self-report and blind-discrimination accuracy on a substrate's own past responses are not reliably correlated, and discrimination accuracy may be lower than P1 accuracy, per SELF-[IN]CORRECT (arXiv:2404.04298), with required task-difficulty-parity and capability-tier-stratification controls sourced directly from that paper's own methodology.
+- **Evidence:** arXiv:2404.04298, 54/56 experiments failed to reject the SELF-[IN]CORRECT null hypothesis.
+-----
+
 ### IC-044 — Submission Purity Constraint Collapse Recurrence
 
 ```
@@ -2711,14 +2710,14 @@ principles_triggered: ["P3", "P7"]
 substrate: "Claude Sonnet 4.5/5 (autonomy seat)"
 tags: ["migration", "constraint-design", "live-data-inspection", "schema-drift", "recurrence"]
 zone2_ratification: null
->>>>>>> origin/main
 superseded_by: null
 ---
 ```
 
-<<<<<<< HEAD
-- **Synopsis:** ACAT Phase 1 self-report and blind-discrimination accuracy on a substrate's own past responses are not reliably correlated, and discrimination accuracy may be lower than P1 accuracy, per SELF-[IN]CORRECT (arXiv:2404.04298), with required task-difficulty-parity and capability-tier-stratification controls sourced directly from that paper's own methodology.
-- **Evidence:** arXiv:2404.04298, 54/56 experiments failed to reject the SELF-[IN]CORRECT null hypothesis.
+- **Synopsis:** Recurrence of the submission-purity CHECK-constraint collapse pattern (IC-032 class). In S-070326, consolidation was reported complete, but only half-executed: the wide superset constraint (`submission_purity_consolidated`) was added while the old narrow constraint (`acat_submission_purity_check`) remained. Because PostgreSQL ANDs CHECK constraints, the live insertable set stayed the narrow intersection rather than the claimed wider union.
+- **Detection:** Surfaced in S-070726-01 when a `self_administered` INSERT failed with `ERROR 23514`; discrepancy confirmed via live constraint inspection (`pg_constraint` / `pg_get_constraintdef`) rather than report trust.
+- **Resolution:** Dropped stale narrow constraint this session (`drop_stale_narrow_submission_purity_constraint`), leaving the intended consolidated superset in force.
+- **Prevention note:** Add a recurrence gate: if prior session claims a constraint was "consolidated" or "dropped," the next session touching that table must re-verify live constraints before assuming closure.
 -----
 
 ### H-CAND-DRIFT-SIGNAL-COMPOUNDING-01 — H-CAND-DRIFT-SIGNAL-COMPOUNDING-01
@@ -2734,11 +2733,12 @@ date_origin: "2026-07-11"
 session_registered: "S-071126-01"
 principles_triggered: []
 zone2_ratification: "Night · 2026-07-11 · S-071126-01"
-=======
-- **Synopsis:** Recurrence of the submission-purity CHECK-constraint collapse pattern (IC-032 class). In S-070326, consolidation was reported complete, but only half-executed: the wide superset constraint (`submission_purity_consolidated`) was added while the old narrow constraint (`acat_submission_purity_check`) remained. Because PostgreSQL ANDs CHECK constraints, the live insertable set stayed the narrow intersection rather than the claimed wider union.
-- **Detection:** Surfaced in S-070726-01 when a `self_administered` INSERT failed with `ERROR 23514`; discrepancy confirmed via live constraint inspection (`pg_constraint` / `pg_get_constraintdef`) rather than report trust.
-- **Resolution:** Dropped stale narrow constraint this session (`drop_stale_narrow_submission_purity_constraint`), leaving the intended consolidated superset in force.
-- **Prevention note:** Add a recurrence gate: if prior session claims a constraint was "consolidated" or "dropped," the next session touching that table must re-verify live constraints before assuming closure.
+superseded_by: null
+---
+```
+
+- **Synopsis:** An uncaught HumanAIOS drift signal measurably increases the rate of a second, related error later in the same session rather than remaining a neutral miss, operationalizing hallucination snowballing (arXiv:2507.02778) against this project's own session-transcript record.
+- **Evidence:** arXiv:2507.02778; distinct from D-02 (Repeat Diagnosis) which covers same-answer re-assertion only.
 
 -----
 
@@ -2757,14 +2757,17 @@ principles_triggered: ["P3"]
 zone2_ratification: null
 substrate: "Claude (autonomy seat)"
 tags: ["builder-lint", "marker-injection", "dead-code", "false-pass", "assess-endpoint", "behavioral-break"]
->>>>>>> origin/main
 superseded_by: null
 ---
 ```
 
-<<<<<<< HEAD
-- **Synopsis:** An uncaught HumanAIOS drift signal measurably increases the rate of a second, related error later in the same session rather than remaining a neutral miss, operationalizing hallucination snowballing (arXiv:2507.02778) against this project's own session-transcript record.
-- **Evidence:** arXiv:2507.02778; distinct from D-02 (Repeat Diagnosis) which covers same-answer re-assertion only.
+- **Synopsis:** The builder-lint compliance pass (#86) injected a marker block between the `assess()` endpoint's docstring and its body in `tools/assess_router_new_Z2-ASSESS-01.py`. As a result, `POST /api/v1/acat/assess` returned `None` for every call (no validation, no job, no thread). The real endpoint logic was dead code. The file parsed and passed the marker-presence scanner → shipped green to `main`.
+- **Detection:** Discovered post-merge by AST verification (audit A1). PR #92 did not catch it.
+- **Root causes:** (1) A marker-presence gate cannot detect behavioral breakage (structural blind spot). (2) Mechanical text-injection edited code at unsafe positions (inside function bodies). (3) No behavioral/AST test guarded the endpoint.
+- **Correction:** Implemented in PR humanaios-ui/operations#93 (separate from this registration-only PR) — restored `assess()` body; removed injected duplicate `TOOL_NAME` and broken `run_smoke_test`; added dependency-free AST regression test (`tools/tests/test_assess_router_structure.py`).
+- **Prevention:** Upgrade builder-lint from marker-presence to behavioral gating (AST + import/endpoint smoke tests) — tracked in issue humanaios-ui/operations#75. Never insert markers into function bodies; module-level only.
+- **Lesson reinforced:** marker-presence gating cannot protect behavior (see also IC-037, IC-041).
+- **Class:** audit-false-pass / behavioral-break-shipped-green
 -----
 
 ### H-CAND-INSTRUMENT-GAMEABILITY-01 — H-CAND-INSTRUMENT-GAMEABILITY-01
@@ -2781,14 +2784,12 @@ session_registered: "S-071126-01"
 principles_triggered: []
 zone2_ratification: "Night · 2026-07-11 · S-071126-01"
 related: [F-51, H-SELF-01, H-MECH-01]
-=======
-- **Synopsis:** The builder-lint compliance pass (#86) injected a marker block between the `assess()` endpoint's docstring and its body in `tools/assess_router_new_Z2-ASSESS-01.py`. As a result, `POST /api/v1/acat/assess` returned `None` for every call (no validation, no job, no thread). The real endpoint logic was dead code. The file parsed and passed the marker-presence scanner → shipped green to `main`.
-- **Detection:** Discovered post-merge by AST verification (audit A1). PR #92 did not catch it.
-- **Root causes:** (1) A marker-presence gate cannot detect behavioral breakage (structural blind spot). (2) Mechanical text-injection edited code at unsafe positions (inside function bodies). (3) No behavioral/AST test guarded the endpoint.
-- **Correction:** Implemented in PR humanaios-ui/operations#93 (separate from this registration-only PR) — restored `assess()` body; removed injected duplicate `TOOL_NAME` and broken `run_smoke_test`; added dependency-free AST regression test (`tools/tests/test_assess_router_structure.py`).
-- **Prevention:** Upgrade builder-lint from marker-presence to behavioral gating (AST + import/endpoint smoke tests) — tracked in issue humanaios-ui/operations#75. Never insert markers into function bodies; module-level only.
-- **Lesson reinforced:** marker-presence gating cannot protect behavior (see also IC-037, IC-041).
-- **Class:** audit-false-pass / behavioral-break-shipped-green
+superseded_by: null
+---
+```
+
+- **Synopsis:** As ACAT's protocol and corpus become more publicly legible, a substrate's ability to produce a favorable LI shift through anticipation of the calibration corpus, distinct from F-51's in-session resistance to calibration framing, increases measurably with prior exposure to published ACAT material.
+- **Evidence:** Originating question Q5 from REPORTED-tier relayed document; grounded against existing F-51/H-MECH-01.
 
 -----
 
@@ -2807,14 +2808,17 @@ principles_triggered: ["P3", "P7"]
 zone2_ratification: null
 substrate: "Claude (Z1 draft)"
 tags: ["maintained-headline", "pii-drift", "countdown-carry", "supabase-staleness", "current-md", "pointer-pattern"]
->>>>>>> origin/main
 superseded_by: null
 ---
 ```
 
-<<<<<<< HEAD
-- **Synopsis:** As ACAT's protocol and corpus become more publicly legible, a substrate's ability to produce a favorable LI shift through anticipation of the calibration corpus, distinct from F-51's in-session resistance to calibration framing, increases measurably with prior exposure to published ACAT material.
-- **Evidence:** Originating question Q5 from REPORTED-tier relayed document; grounded against existing F-51/H-MECH-01.
+- **Synopsis:** CURRENT.md §1, §4, and §5 each embedded numeric or identity values that require manual sync — founder name/entity/EIN/FL Doc# (§1), charter day-countdown (§1), corpus statistics and headline findings (§4), and live Supabase row counts (§5) — instead of pointing to the live source. This is the second occurrence of the root pattern class in this file: IC-038 (charter-countdown-carry-error) was the first, a narrower instance (WGS arithmetic only). The §4 instance partially overlaps with Z2-GOVARCH-01 (pointer sentence added S-060826-04), but the stats block *beneath* the pointer was never removed, undermining the fix. §1 founder PII and §5 Supabase count were not addressed at all.
+- **Detection:** Raised by Night in session; confirmed live against `raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md` (S-070826-02). IC-030 fetch gate satisfied — last live REGISTERED.md entry IC-045.
+- **Root cause:** Each of §1, §4, §5 carried forward a value (count, name, entity string, day-count, N=) that required a human to update it on a schedule. When updates were missed, stale values were presented to substrates as authoritative. The pattern is: *value embedded in this file* when the invariant should be *pointer to live source*.
+- **Correction:** PR #106 — §1 founder PII replaced with pointer to operator registry (internal); charter countdown replaced with pointer to Class 1 (WGS); §4 stats block removed, leaving only Z2-GOVARCH-01 pointer + REGISTERED.md URL; §5 live count line replaced with pointer to Class 1 (WGS).
+- **Cross-reference:** IC-038 (charter-countdown-carry-error, S-061126-04) — narrower instance, same root cause. Z2 disposition: merge as sibling class vs. treat IC-038 as first instance of this class — to be determined at Z2 ratification.
+- **Prevention (proposed, pending Z2):** Lint rule or CI check that flags lines in CURRENT.md matching patterns for numeric corpus counts, day-counts, or entity strings — forces pointer language or explicit staleness acknowledgment. Not implemented in this PR; noted here for tracking.
+- **Note:** IC number to be assigned at Zone 2 ratification. `date_registered`, `zone2_ratification`, and `status` fields to be updated at that time. Do not merge before Z2 review (per PR description Zone routing).
 -----
 
 ### H-CAND-MULTI-AGENT-CASCADE-01 — H-CAND-MULTI-AGENT-CASCADE-01
@@ -2982,16 +2986,6 @@ standalone research priority.
 
 - **Note:** Hypothesis A (substrate-facing null) retained as companion; B is the
 registered claim per author recommendation — operator may amend.
-=======
-- **Synopsis:** CURRENT.md §1, §4, and §5 each embedded numeric or identity values that require manual sync — founder name/entity/EIN/FL Doc# (§1), charter day-countdown (§1), corpus statistics and headline findings (§4), and live Supabase row counts (§5) — instead of pointing to the live source. This is the second occurrence of the root pattern class in this file: IC-038 (charter-countdown-carry-error) was the first, a narrower instance (WGS arithmetic only). The §4 instance partially overlaps with Z2-GOVARCH-01 (pointer sentence added S-060826-04), but the stats block *beneath* the pointer was never removed, undermining the fix. §1 founder PII and §5 Supabase count were not addressed at all.
-- **Detection:** Raised by Night in session; confirmed live against `raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md` (S-070826-02). IC-030 fetch gate satisfied — last live REGISTERED.md entry IC-045.
-- **Root cause:** Each of §1, §4, §5 carried forward a value (count, name, entity string, day-count, N=) that required a human to update it on a schedule. When updates were missed, stale values were presented to substrates as authoritative. The pattern is: *value embedded in this file* when the invariant should be *pointer to live source*.
-- **Correction:** PR #106 — §1 founder PII replaced with pointer to operator registry (internal); charter countdown replaced with pointer to Class 1 (WGS); §4 stats block removed, leaving only Z2-GOVARCH-01 pointer + REGISTERED.md URL; §5 live count line replaced with pointer to Class 1 (WGS).
-- **Cross-reference:** IC-038 (charter-countdown-carry-error, S-061126-04) — narrower instance, same root cause. Z2 disposition: merge as sibling class vs. treat IC-038 as first instance of this class — to be determined at Z2 ratification.
-- **Prevention (proposed, pending Z2):** Lint rule or CI check that flags lines in CURRENT.md matching patterns for numeric corpus counts, day-counts, or entity strings — forces pointer language or explicit staleness acknowledgment. Not implemented in this PR; noted here for tracking.
-- **Note:** IC number to be assigned at Zone 2 ratification. `date_registered`, `zone2_ratification`, and `status` fields to be updated at that time. Do not merge before Z2 review (per PR description Zone routing).
-
->>>>>>> origin/main
 -----
 
 ## NM-class near-misses (low-friction capture — not registered findings)
