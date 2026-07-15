@@ -23,9 +23,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
         run: |
           set -euo pipefail
-          changed=$(git diff --name-only "$BASE" "$HEAD" | wc -l | tr -d ' ')
+          changed="${PR_CHANGED_FILES:-}"
+          if [ -z "$changed" ]; then
+            changed=$(git diff --name-only "$BASE" "$HEAD" | wc -l | tr -d ' ')
+          fi
           netlines=$(git diff --numstat "$BASE" "$HEAD" | awk '{a+=$1; d+=$2} END{print (a+d)+0}')
           echo "changed files: $changed | net line changes: $netlines"
           if [ "$changed" -eq 0 ]; then
