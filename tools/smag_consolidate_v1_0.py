@@ -39,7 +39,7 @@ DEFAULT_REPO = "humanaios-ui/operations"
 DEFAULT_ISSUE = "103"
 DEFAULT_LEDGER = "audits/smag_pilot_ledger.jsonl"
 
-_JSON_BLOCK = re.compile(r"```json\s*(\{.*?\})\s*```", re.DOTALL)
+_JSON_BLOCK = re.compile(r"```json\s*(.*?)\s*```", re.DOTALL)
 
 
 # --- pure helpers (testable, no I/O) -----------------------------------------
