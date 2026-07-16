@@ -13,9 +13,9 @@ Each #103 SMAG comment embeds an exact ```json {...}``` row block; we parse that
 (robust — no scraping of the human-readable header), dedup by PR number against the
 existing ledger, and append only new rows. Idempotent: safe to re-run.
 
-Read-only against GitHub (uses `gh` to read issue comments); the only write is the
-append to the local ledger file. No credentials handled — `gh`/GITHUB_TOKEN auth is
-the caller's.
+Read-only against GitHub (uses `gh` to read issue comments, paginated to avoid the
+default 100-comment cap); the only write is the append to the local ledger file. No
+credentials handled — `gh`/GITHUB_TOKEN auth is the caller's.
 
 Usage:
   python3 smag_consolidate_v1_0.py [--repo humanaios-ui/operations] [--issue 103]
@@ -100,12 +100,19 @@ def read_ledger(path: Path) -> list[str]:
     return path.read_text(encoding="utf-8").splitlines() if path.exists() else []
 
 
+def _normalize_comments(raw: list) -> list[dict]:
+    """Normalize REST comment payloads to the shape consolidate() expects."""
+    return [{"body": c.get("body", ""), "createdAt": c.get("created_at", "")} for c in raw]
+
+
 def fetch_comments(repo: str, issue: str) -> list:
     out = subprocess.run(
-        ["gh", "issue", "view", issue, "--repo", repo, "--json", "comments"],
+        ["gh", "api", "--paginate", "--slurp", f"repos/{repo}/issues/{issue}/comments"],
         capture_output=True, text=True, check=True,
     ).stdout
-    return json.loads(out).get("comments", [])
+    pages = json.loads(out) or []
+    raw = [item for page in pages for item in page]
+    return _normalize_comments(raw)
 
 
 def append_rows(path: Path, rows: list[dict]) -> None:
@@ -148,6 +155,9 @@ def smoke_test() -> int:
     new, skipped = consolidate([c1, c2, c_dup], existing)
     assert len(new) == 1 and new[0]["pr"] == "200", "one new row"
     assert skipped == 1, "within-batch dup skipped"
+    # REST payload normalization (created_at -> createdAt)
+    norm = _normalize_comments([{"body": "x", "created_at": "2026-07-16T00:00:00Z"}])
+    assert norm == [{"body": "x", "createdAt": "2026-07-16T00:00:00Z"}]
     # idempotency: re-run with PR 200 now in ledger → nothing new
     new2, _ = consolidate([c1], existing + [json.dumps({"pr": "200"})])
     assert new2 == [], "idempotent re-run"
