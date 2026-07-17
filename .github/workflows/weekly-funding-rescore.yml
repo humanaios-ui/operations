@@ -60,9 +60,9 @@ jobs:
           ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
           PYTHONPATH: ./src
         run: |
-          if [ -z "$SMTP_HOST" ]; then
-            echo "⚠️  Email not configured (SMTP_HOST secret missing). Skipping email alerts."
+          if [ -z "$SMTP_HOST" ] || [ "$SMTP_HOST" = "***" ]; then
+            echo "⚠️  Email not configured. Skipping email alerts."
             echo "To enable: add SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, ALERT_EMAIL to GitHub Secrets"
           else
-            python -m humanaios_operations.email_alerts digest
+            python -m humanaios_operations.email_alerts digest || echo "⚠️  Email send failed (check SMTP credentials)"
           fi
