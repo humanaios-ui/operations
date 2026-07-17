@@ -1,0 +1,212 @@
+[
+  {
+    "name": "Longview Grants RFP",
+    "category": "grants",
+    "sponsor": "Longview Philanthropy",
+    "url": "https://www.longview.org/request-for-proposals-research-and-applied-work-on-digital-minds/",
+    "award_size": "$100k-$2M/yr",
+    "deadline": "2026-07-24",
+    "deadline_cadence": "annual",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "Digital minds, sentience assessment, AI welfare",
+    "fit_score": 0.79,
+    "fit_breakdown": {
+      "expertise_match": 0.77,
+      "eligibility_match": 1.0,
+      "timeline_fit": 0.5
+    },
+    "recommendation": "medium"
+  },
+  {
+    "name": "Emergent Ventures",
+    "category": "research-grant",
+    "sponsor": "Mercatus Center",
+    "url": "https://www.mercatus.org/emergent-ventures",
+    "award_size": "~$1k-$50k",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "Individual-friendly, 2-3 week decisions",
+    "fit_score": 0.65,
+    "fit_breakdown": {
+      "expertise_match": 0.3,
+      "eligibility_match": 1.0,
+      "timeline_fit": 1.0
+    },
+    "recommendation": "medium"
+  },
+  {
+    "name": "Blue Dot Rapid Grants",
+    "category": "ai_safety",
+    "sponsor": "BlueDot Impact",
+    "url": "https://bluedot.org/programs/rapid-grants",
+    "award_size": "$50-$10,000",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "~5 working day decisions, founder-friendly",
+    "fit_score": 0.5,
+    "fit_breakdown": {
+      "expertise_match": 0.0,
+      "eligibility_match": 1.0,
+      "timeline_fit": 1.0
+    },
+    "recommendation": "low"
+  },
+  {
+    "name": "Coefficient Giving",
+    "category": "ai_safety",
+    "sponsor": "Coefficient Giving",
+    "url": "https://coefficientgiving.org/apply-for-funding/",
+    "award_size": "large (undisclosed)",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "Largest x-risk funder, high bar",
+    "fit_score": 0.5,
+    "fit_breakdown": {
+      "expertise_match": 0.0,
+      "eligibility_match": 1.0,
+      "timeline_fit": 1.0
+    },
+    "recommendation": "low"
+  },
+  {
+    "name": "Mozilla Technology Fund",
+    "category": "research-grant",
+    "sponsor": "Mozilla Foundation",
+    "url": "https://foundation.mozilla.org/en/what-we-fund/awards/",
+    "award_size": "varies",
+    "deadline": null,
+    "deadline_cadence": "annual",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "Trustworthy AI focus, open source required",
+    "fit_score": 0.5,
+    "fit_breakdown": {
+      "expertise_match": 0.0,
+      "eligibility_match": 1.0,
+      "timeline_fit": 1.0
+    },
+    "recommendation": "low"
+  },
+  {
+    "name": "AI Alignment Foundation",
+    "category": "ai_safety",
+    "sponsor": "AIAF",
+    "url": "https://www.aialignmentfoundation.org/approach/apply",
+    "award_size": "varies",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "Fiscal sponsorship available for independent researchers",
+    "fit_score": 0.5,
+    "fit_breakdown": {
+      "expertise_match": 0.0,
+      "eligibility_match": 1.0,
+      "timeline_fit": 1.0
+    },
+    "recommendation": "low"
+  },
+  {
+    "name": "Long-Term Future Fund",
+    "category": "ai_safety",
+    "sponsor": "EA Funds",
+    "url": "https://funds.effectivealtruism.org/funds/far-future",
+    "award_size": "~$5k+",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "Straightforward application, individuals and small projects",
+    "fit_score": 0.5,
+    "fit_breakdown": {
+      "expertise_match": 0.0,
+      "eligibility_match": 1.0,
+      "timeline_fit": 1.0
+    },
+    "recommendation": "low"
+  },
+  {
+    "name": "Foresight AI Safety Nodes",
+    "category": "ai_safety",
+    "sponsor": "Foresight Institute",
+    "url": "https://foresight.org/grants/grants-ai-for-science-safety/",
+    "award_size": "funding + compute access",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "SF/Berlin local compute included",
+    "fit_score": 0.5,
+    "fit_breakdown": {
+      "expertise_match": 0.0,
+      "eligibility_match": 1.0,
+      "timeline_fit": 1.0
+    },
+    "recommendation": "low"
+  },
+  {
+    "name": "IFP Launch Sequence",
+    "category": "ai_safety",
+    "sponsor": "Institute for Progress",
+    "url": "https://ifp.org/rfp-launch/",
+    "award_size": "$10,000 honorarium",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "$10k + funder matchmaking. Alignment/control/evals/security themes",
+    "fit_score": 0.5,
+    "fit_breakdown": {
+      "expertise_match": 0.0,
+      "eligibility_match": 1.0,
+      "timeline_fit": 1.0
+    },
+    "recommendation": "low"
+  },
+  {
+    "name": "Manifund Regranting",
+    "category": "ai_safety",
+    "sponsor": "Manifund",
+    "url": "https://manifund.org/",
+    "award_size": "varies",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "notes": "Days not months. For-profit eligible pending due diligence",
+    "fit_score": 0.5,
+    "fit_breakdown": {
+      "expertise_match": 0.0,
+      "eligibility_match": 1.0,
+      "timeline_fit": 1.0
+    },
+    "recommendation": "low"
+  }
+]

@@ -1,0 +1,44 @@
+{
+  "orcid_id": "0009-0003-7540-4245",
+  "profile": {
+    "name": "Carly R. Anderson",
+    "orcid_id": "0009-0003-7540-4245",
+    "biography": "AI safety researcher focusing on behavioral observability and digital minds."
+  },
+  "publications": [
+    {
+      "title": "Behavioral Observability for AI Systems: Measuring Self-Assessment Accuracy",
+      "type": "journal-article",
+      "year": "2026",
+      "put_code": "1"
+    },
+    {
+      "title": "Self-Description Calibration: A Framework for Evaluating AI System Introspection",
+      "type": "journal-article",
+      "year": "2026",
+      "put_code": "2"
+    },
+    {
+      "title": "Digital Minds and Moral Status: Empirical Methods for Sentience Assessment",
+      "type": "journal-article",
+      "year": "2026",
+      "put_code": "3"
+    }
+  ],
+  "research_areas": {
+    "self_assessment": 1.0,
+    "evaluation": 0.8124999999999999,
+    "behavioral_observability": 0.575,
+    "ai_calibration": 0.3375,
+    "digital_minds": 0.3375
+  },
+  "expertise_scores": {
+    "self_assessment": 0.75,
+    "evaluation": 0.6093749999999999,
+    "behavioral_observability": 0.43124999999999997,
+    "ai_calibration": 0.25312500000000004,
+    "digital_minds": 0.25312500000000004
+  },
+  "last_updated": "2026-07-17T22:21:19.161788Z",
+  "publication_count": 3
+}

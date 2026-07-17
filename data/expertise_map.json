@@ -1,0 +1,18 @@
+{
+  "orcid_id": "0009-0003-7540-4245",
+  "expertise_scores": {
+    "self_assessment": 0.75,
+    "evaluation": 0.6093749999999999,
+    "behavioral_observability": 0.43124999999999997,
+    "ai_calibration": 0.25312500000000004,
+    "digital_minds": 0.25312500000000004
+  },
+  "research_areas": [
+    "self_assessment",
+    "evaluation",
+    "behavioral_observability",
+    "ai_calibration",
+    "digital_minds"
+  ],
+  "last_updated": "2026-07-17T22:21:19.173337Z"
+}
