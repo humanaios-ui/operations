@@ -13,3 +13,34 @@ package.json
 .empirica/active_transaction_term_*.json
 .empirica_reflex_logs/
 .breadcrumbs.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.*
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Tool reports (machine-readable run metadata — not committed)
+reports/
+outputs/
+# ...except the funding pipeline's reports/, which holds human-authored
+# funding docs (Longview apps, roadmap, opportunities), not tool metadata.
+!humanaios-funding-pipeline/reports/
+!humanaios-funding-pipeline/reports/**

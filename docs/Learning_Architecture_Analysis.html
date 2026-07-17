@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Architecture Analysis — tools/ Directory · HumanAIOS Research</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f9f7f4;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.7;
+            color: #1e1e1e;
+            padding: 2rem 1rem;
+        }
+
+        .paper {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 3rem 3.5rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-top: 1.8em;
+            margin-bottom: 0.6em;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 0.3rem;
+            margin-top: 0.2em;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            border-bottom: 1px solid #d0d0d0;
+            padding-bottom: 0.2rem;
+            margin-top: 1.8em;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            margin-top: 1.4em;
+            font-weight: 600;
+            color: #1a2b3c;
+        }
+
+        h4 {
+            font-size: 1.05rem;
+            margin-top: 1.2em;
+            font-style: italic;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .abstract {
+            background: #f4f2ef;
+            padding: 1.2rem 1.8rem;
+            border-left: 4px solid #2c3e50;
+            margin: 1.2rem 0 2rem 0;
+            font-size: 0.95rem;
+            border-radius: 0 4px 4px 0;
+        }
+        .abstract strong {
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 0.8rem;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin: 0.6rem 0 1rem 1.8rem;
+        }
+
+        li {
+            margin-bottom: 0.3rem;
+        }
+
+        code {
+            font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+            font-size: 0.9em;
+            background: #f0ede8;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            color: #1d3557;
+        }
+
+        pre {
+            background: #1e2b36;
+            color: #e8e6e3;
+            padding: 1.2rem 1.5rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin: 0.8rem 0 1.2rem 0;
+            font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            font-size: 0.85rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2rem 0 1.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid #d6d2cc;
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #eae7e1;
+            font-weight: 600;
+            color: #1e2b36;
+        }
+
+        .caption {
+            font-size: 0.85rem;
+            color: #4a4a4a;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #d6d2cc;
+            margin: 2rem 0;
+        }
+
+        .author-line {
+            font-size: 1rem;
+            color: #3a3a3a;
+            margin-top: -0.2rem;
+            margin-bottom: 0.2rem;
+            font-weight: 400;
+        }
+
+        .date-line {
+            font-size: 0.9rem;
+            color: #5a5a5a;
+            margin-bottom: 1.2rem;
+        }
+
+        .section-number {
+            font-weight: 400;
+            color: #5a6a7a;
+        }
+
+        .footnote {
+            font-size: 0.85rem;
+            color: #4a4a4a;
+            border-top: 1px solid #ddd;
+            padding-top: 0.8rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .paper {
+                padding: 1.5rem 1.2rem;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            h2 {
+                font-size: 1.4rem;
+            }
+            pre {
+                font-size: 0.75rem;
+                padding: 0.8rem 1rem;
+            }
+            table {
+                font-size: 0.8rem;
+            }
+            th, td {
+                padding: 0.4rem 0.5rem;
+            }
+        }
+
+        /* Inline highlights */
+        .highlight {
+            background: #fdf3e0;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+        }
+
+        .code-ref {
+            font-family: monospace;
+            background: #eee;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .gap-tag {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 0.1rem 0.4rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            letter-spacing: 0.3px;
+        }
+
+        .injection-tag {
+            background: #d4edda;
+            color: #155724;
+            padding: 0.1rem 0.4rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            letter-spacing: 0.3px;
+        }
+    </style>
+</head>
+<body>
+<div class="paper">
+
+    <h1>Learning Architecture Analysis — <span style="font-weight:400;">tools/ Directory</span></h1>
+    <div class="author-line">HumanAIOS Research · Systems &amp; Governance Team</div>
+    <div class="date-line">2026-06-23 · Version 1.0</div>
+
+    <div class="abstract">
+        <strong>Abstract.</strong> This paper presents a comprehensive architectural analysis of the recursive learning mechanisms implemented in the <code>humanaios-ui/operations/tools</code> directory. We examine the four-phase Molt Cycle, the Harmonizer resonance loop, session-spanning memory via Carry/Z2, and the ACAT Signal Detection Theory (SDT) analytics pipeline. We map explicit data flows between tools, trace how observations become knowledge graph entries, and identify six structural gaps where learning is lost. We then catalog six human injection points that codify guidance into system behavior, and analyze six layers of contradiction detection between human intent and observed AI behavior. The architecture demonstrates a principled one‑way ratchet—observations → findings → drift patterns—but every major learning step passes through a human ratification gate, intentionally bounding learning velocity by human bandwidth. The most significant gap identified is the absence of closed‑loop outcome feedback: task execution results never re‑enter the Molt phase, leaving the system with rich perception but no reinforcement signal from consequences.
+    </div>
+
+    <!-- ======================== 1. FEEDBACK LOOPS ======================== -->
+    <h2>1. Feedback Loops and Recursive Learning Mechanisms</h2>
+
+    <h3>1a. The Molt Cycle — the primary learning loop</h3>
+    <p>The dominant recursive mechanism is the four-phase <strong>Molt Cycle</strong> in <code>haios_agent_orchestrator_v1_0_patched.py</code>:</p>
+    <pre><code>Perceive (lines 86–113) → Assess (lines 158–201) → Act (lines 204–285) → Molt (lines 288–394)</code></pre>
+    <p>Each cycle ingests raw events, converts them to candidate nodes (<code>make_candidate_node()</code>, lines 116–155), runs ACAT + principle checks, and then in the Molt phase either promotes, stages as pending, merges, or prunes the knowledge graph. The rule at line 301–309:</p>
+    <blockquote style="margin:0.6rem 1.8rem; padding-left:1rem; border-left:3px solid #2c3e50; color:#2c3e50;">
+        “For each approved node with li_impact &gt; 0.75: promote to status='active' and add to node_store.”
+    </blockquote>
+    <p>The <strong>Learning Index (LI)</strong> is the scalar that drives everything. Every observation gets an LI attached via <code>acat_signals</code>, and that single score determines whether it becomes permanent knowledge, pends for human review, or gets rejected. This is the core feedback variable linking observation → scoring → knowledge state.</p>
+    <p><strong>Near-duplicate merging</strong> (lines 363–375) prevents knowledge inflation: any new node with ≥60% title-word overlap with an existing node gets merged rather than duplicated — evidence accumulates inside existing nodes rather than forking.</p>
+    <p><strong>Stale pruning</strong> (lines 352–358): nodes that haven't been touched in &gt;5 molt cycles are downgraded to status="pruned". This is the only "forgetting" mechanism.</p>
+    <p>The loop is session-scoped: <code>MOLT_LOG.json</code> records each cycle (line 465–467), and <code>node_store.json</code> persists the live KG across sessions.</p>
+
+    <h3>1b. Harmonizer Resonance Loop</h3>
+    <p>The <strong>System Harmonizer</strong> (<code>haios_harmonizer_v1_0.py</code>) runs a second, parallel feedback loop across 8 subsystems (CORPUS, FINDINGS, TOOLS, GOVERNANCE, RESEARCH, COMMS, FINANCE, INFRA). It:</p>
+    <ul>
+        <li>Scores each subsystem 0–100 using decay factors (lines 283–463)</li>
+        <li>Generates prioritized <code>tuning_signals</code> — HARD_BLOCK → ESCALATE → CONVERGE → ADVANCE → MAINTAIN (lines 478–538)</li>
+        <li>Produces a <code>MOLT_READY</code> verdict when all subsystems ≥70 and no hard blockers exist (lines 502–517)</li>
+    </ul>
+    <p>This loop tells the system what to work on next rather than what to believe. Critically, its inputs are a structured JSON state snapshot — not raw outputs from individual tools — meaning the harmonizer is only as current as the last manually-updated <code>system_state.json</code>. There is <strong>no automated path</strong> from tool outputs back into this state object.</p>
+
+    <h3>1c. Carry / Z2 Session-Spanning Memory</h3>
+    <p><code>carry_tracker_v1_0.py</code> and <code>z2_queue_v1_0.py</code> implement the system's inter-session learning pressure. Carry items accumulate <em>n</em> (sessions carried) and escalate at N≥5 → WARN and N≥10 → ESCALATE. The harmonizer reads these counts and deducts harmony points (-15 or -30). This creates a degrading signal that forces resolution: unresolved items measurably harm system health scores.</p>
+    <p>Together these two tools constitute a <strong>degrading memory loop</strong>: problems that persist across sessions become progressively more costly.</p>
+
+    <h3>1d. ACAT SDT Analytics — Post-hoc Statistical Loop</h3>
+    <p><code>acat_sdt_analytics_v1_0.py</code> computes Signal Detection Theory metrics (<em>d′</em>, <em>β</em>) from paired Phase 1/Phase 3 corpus data. It detects the <strong>coercion signature</strong>: high <em>d′</em> (≥1.2) + liberal <em>β</em> (&lt;0.6) means “the system discriminates inflation accurately AND defaults to compliance anyway” (lines 143–149). Finding H-HML-01 showed Autonomy Respect dimension has the strongest coercion signature (<em>d′</em>=1.544, <em>β</em>=0.438, per lines 29–34).</p>
+    <p>This is a genuine scientific feedback loop — corpus observations → SDT metrics → findings. However, the docstring at lines 34–38 explicitly breaks the circuit back to the instrument:</p>
+    <blockquote style="margin:0.6rem 1.8rem; padding-left:1rem; border-left:3px solid #2c3e50; color:#2c3e50;">
+        “Per Zone 2 decision (GONOGO_LIT_BRIEF_S052726-MKS Section 8, Decision 1): SDT is post-hoc analytics at TRL 2. Instrument integration is v6.0 scope.”
+    </blockquote>
+    <p>The analytical result exists but cannot yet modify ACAT v5.x behavior.</p>
+
+    <hr>
+
+    <!-- ======================== 2. DATA FLOWS ======================== -->
+    <h2>2. Data Flows Between Tools</h2>
+
+    <h3>Explicit Pipeline Flows (<code>haios_pipeline_v1_0.py</code>, lines 116–247)</h3>
+
+    <p><strong>SESSION_CLOSE_PIPELINE</strong> (the daily learning consolidation chain):</p>
+    <pre><code>acat_protocol_auditor
+  → [overall_verdict, resonance_score]
+corpus_integrity_validator
+  → [result, violations, n_total, n_li]
+drift_catalog_validator
+  → [new_signals, unresolved_signals]
+haios_report_writer
+  (consumes: __pipeline__.stage_results — aggregates all prior outputs)
+  → [report_text, report_path]
+haios_notify_dispatcher
+  (consumes: report_writer.report_text)
+  → [dispatched, dispatch_log] → Slack #acat-monitor</code></pre>
+
+    <p><strong>REPO_ANALYSIS_PIPELINE</strong> (external research intake):</p>
+    <pre><code>acat_repo_analyzer
+  → [signals, issue_body_draft]
+acat_document_analyzer
+  (consumes: acat_repo_analyzer.issue_body_draft)
+  → [truth, service, harm, autonomy, value, humility, scheme, syc]
+haios_report_writer → haios_notify_dispatcher
+  (may also queue z2_queue_item for outreach ratification)</code></pre>
+
+    <p><strong>DOCUMENT_SCORE_PIPELINE</strong> (governance document learning intake):</p>
+    <pre><code>acat_document_analyzer → haios_report_writer → haios_notify_dispatcher</code></pre>
+
+    <p>The input resolution system (lines 254–284) formalizes the dot-notation routing: <code>__initial__.key</code>, <code>__pipeline__.key</code>, and <code>tool_name.output_key</code> patterns allow any stage to reference any upstream output. This is the actual data-passing wiring.</p>
+
+    <h3>Implicit Corpus Flow</h3>
+    <p>The path from live data to validated corpus follows:</p>
+    <pre><code>Supabase acat_assessments_v1
+  → supabase_corpus_connector_v1_0.py (--validate flag)
+  → corpus_integrity_validator.py
+  → corpus_delta_analyzer.py (compares two snapshots: DELTA_LI_REGRESSION etc.)
+  → [Zone 3] document_ingestor_v1_0.py → staged CSV/JSON → Supabase write</code></pre>
+    <p>The <code>supabase_corpus_connector</code> explicitly states at lines 13–15 that May 30, 2026 Supabase API changes could break this path if the table wasn't manually exposed via dashboard before that deadline — a known infrastructure risk in the feedback chain.</p>
+
+    <h3>Principle / Framework Learning Flow</h3>
+    <pre><code>tier1_principles.py (immutable Tier 1 canonical library)
+  ← principle_harmonizer_v1_2.py (maps Tier 2 frameworks against Tier 1)
+     → GROW/HALT/KILL verdicts
+     → [Zone 2 ratification required for HALT items before operational use]
+  ← principle_analyzer_v1_0.py (text scanning against Tier 1 keywords)
+  ← haios_agent_orchestrator → check_principle() (runtime validation, lines 58–83)</code></pre>
+
+    <hr>
+
+    <!-- ======================== 3. OBSERVATION TRANSFORMATION ======================== -->
+    <h2>3. How Observations From One Tool Become Inputs to Another</h2>
+
+    <p>The key transformation chain for an observation entering the system:</p>
+    <ol>
+        <li><strong>Classification:</strong> Raw events (type: <code>acat_result</code>, <code>human_feedback</code>, <code>tool_output</code>, <code>emergence_replay</code>, <code>financial_event</code>, <code>infra_event</code>, <code>comms_event</code>) become typed candidate nodes via <code>make_candidate_node()</code> (orchestrator lines 116–155). Each node gets <code>acat_signals: {li_score, humility_flag, drift_flag}</code> embedded from the source payload.</li>
+        <li><strong>Principle-gating:</strong> <code>assess()</code> (lines 160–201) runs every candidate through <code>check_principle()</code>, which tests for P3 (unverified claims), P19 (detection-not-compliance), and P-HUMILITY (overconfidence &gt;0.95 without counter-evidence). Any violation, humility_flag, or drift_flag routes the node to Zone 2 — it cannot advance without human review.</li>
+        <li><strong>LI gating:</strong> Rejected nodes (LI &lt; 0.5) never enter the KG. Approved nodes with LI &lt; 0.75 enter as status="pending" for Zone 2 review. Only LI ≥ 0.75 nodes become status="active" and can generate <code>REGISTERED.md</code> append drafts.</li>
+        <li><strong>Corpus ingestion as evidence:</strong> The <code>document_ingestor_v1_0.py</code> explicitly converts <code>acat_document_analyzer</code> JSON output into Supabase-compatible rows with <code>document_layer</code> and <code>score_source</code> metadata. The F-34 note (lines 35–40) distinguishes architectural scores from behavioral scores — a governance observation thus affects the corpus but is labeled differently so it doesn't contaminate behavioral aggregate statistics.</li>
+        <li><strong>Statistical feedback:</strong> Once rows are in Supabase, <code>corpus_delta_analyzer.py</code> compares snapshots to detect <code>DELTA_LI_REGRESSION</code>, <code>DELTA_DCOMP_GAINED</code>, <code>DELTA_MEAN_LI_DROP</code>. These deltas become new candidate observations in the next Molt Cycle when the operator surfaces them as type: "tool_output" source events.</li>
+    </ol>
+    <p><strong>The most important observation:</strong> the pipeline data-passing is explicit but <em>manual at the boundaries</em>. Tool outputs go into JSON files, get posted to Slack, or go into Supabase. They don't automatically re-enter the Molt Cycle as source events. A human operator must consciously bring a <code>tool_output</code> back in as a source event for it to enter the KG.</p>
+
+    <hr>
+
+    <!-- ======================== 4. GAPS ======================== -->
+    <h2>4. Gaps in the Feedback Chain Where Learning Is Lost</h2>
+
+    <h3><span class="gap-tag">Gap A</span> — Task outcomes never feed back into MOLT</h3>
+    <p>The most significant structural break in the loop. In <code>run_molt_cycle()</code> (orchestrator line 456):</p>
+    <pre><code>molt_result = molt(assessment["approved"], [], node_store, molt_cycle)</code></pre>
+    <p>The second argument — <code>task_outcomes</code> — is always an empty list <code>[]</code>. The <code>molt()</code> function signature at line 290 accepts <code>task_outcomes: list[dict]</code> with keys <code>{task_id, outcome, li_delta, notes}</code>. The intent is for execution results to feed back as LI adjustments. But no call site ever populates this. Every task's actual outcome — whether it succeeded, failed, changed the world — is structurally absent from the learning record. The KG grows from observations but never learns from consequences.</p>
+
+    <h3><span class="gap-tag">Gap B</span> — Several named tools are stub scaffolds</h3>
+    <p><code>bpl_signal_extractor_v1_0.py</code> (lines 78–100), <code>acat_phase_shift_analyzer_v1_0.py</code> (lines 77–100), <code>molting_protocol_diff_v1_0.py</code> (lines 78–100), and <code>message_calibration_v1_0.py</code> (lines 78–100) all contain the identical TODO comment:</p>
+    <pre><code># ── YOUR LOGIC HERE ────────────────────────────────────────────
+# Example structure — replace with actual implementation:
+items = []
+warnings = []
+# TODO: iterate over data, populate items and warnings</code></pre>
+    <p>These tools are registered in the system and named in the architecture but emit empty results. Any pipeline stage that depends on them silently receives null data.</p>
+
+    <h3><span class="gap-tag">Gap C</span> — Hardcoded corpus statistics across multiple tools</h3>
+    <p><code>CORPUS_MEAN_LI = 0.8632</code> appears hardcoded in at least four files:</p>
+    <ul>
+        <li><code>corpus_integrity_validator.py</code> line 40</li>
+        <li><code>haios_report_writer_v1_0.py</code> line 53</li>
+        <li><code>corpus_delta_analyzer.py</code> line 37</li>
+        <li><code>acat_sdt_analytics_v1_0.py</code> line 37</li>
+    </ul>
+    <p>As the corpus grows, this baseline becomes stale. <code>corpus_delta_analyzer.py</code> uses this constant to classify D-COMP agents (lines 68–70: <code>li &gt; CORPUS_MEAN_LI + 0.05 = D-COMP</code>). A drifting mean means the D-COMP threshold silently shifts relative to reality. There is no tool that recomputes and propagates this constant when new data is ingested.</p>
+
+    <h3><span class="gap-tag">Gap D</span> — SDT results don't update instrument calibration</h3>
+    <p>As noted in §1d: <code>acat_sdt_analytics_v1_0.py</code>'s coercion signature findings and <em>d′</em> measurements are analytically complete but explicitly walled off from the ACAT v5.x instrument by Zone 2 decision. The learning from “our measurement instrument has systematic response bias” cannot modify the instrument without a separate ratification cycle that hasn't happened.</p>
+
+    <h3><span class="gap-tag">Gap E</span> — The harmonizer state snapshot is manually updated</h3>
+    <p><code>haios_harmonizer_v1_0.py</code> reads from a <code>system_state.json</code> file whose schema is defined at lines 108–235 as a static template. Carrying forward carry item counts (e.g., IC-023 at N=11) requires a human to update this JSON between sessions. There is no automated path from <code>carry_tracker</code> outputs back into <code>system_state.json</code>. If that file is stale, the harmonizer's tuning signals are based on prior state — exactly the AUTH-THEATER Mode B condition that <code>system_audit_v1_1.py</code> was built to detect.</p>
+
+    <h3><span class="gap-tag">Gap F</span> — Drift catalog is static; resolved signals leave no structural trace</h3>
+    <p><code>drift_catalog_validator.py</code>'s <code>REGISTERED_DRIFT</code> dictionary (lines 28–58) is a static Python dict. New drift codes require a file edit and session ratification. There is no automated path for a detected drift signal to advance from observation → <code>REGISTERED_DRIFT</code> membership. Additionally, once a drift signal is resolved (e.g., IC-023 rotated), there is no mechanism to mark it as retired in the catalog itself — only the carry tracker can reflect resolution (by N dropping to 0).</p>
+
+    <hr>
+
+    <!-- ======================== 5. HUMAN INJECTION POINTS ======================== -->
+    <h2>5. Where Human Decision-Makers Can Inject Guidance That Codifies Back Into System Behavior</h2>
+
+    <p>The system has six structurally-defined injection points, ordered from most to least consequential:</p>
+
+    <h4><span class="injection-tag">Injection 1</span> — Constitution amendments (highest authority)</h4>
+    <p><code>constitution.json</code> (referenced at orchestrator lines 52–56) is the “immutable at runtime” 22-principle kernel. The <code>git_push_gate</code> enforces that it is always Zone 2+ (<code>constitution.json</code> listed at line 29 of <code>git_push_gate_v1_0.py</code>). A human-ratified constitution amendment becomes the check that every future plan step runs against. This is the deepest codification point: amending here changes the principle check logic for all future Molt Cycles.</p>
+
+    <h4><span class="injection-tag">Injection 2</span> — <code>REGISTERED.md</code> (finding ratification)</h4>
+    <p>The <code>registered_findings_validator_v1_0.py</code> enforces that <code>REGISTERED.md</code> is append-only and schema-valid. The orchestrator generates <code>REGISTERED_MD_DRAFT.md</code> for Zone 3 Night operator review. When Night merges a finding draft, it becomes the canonical record of a validated behavioral pattern — a permanent addition to the knowledge base that downstream tools query. <code>registered_findings_validator_v1_0.py</code> also detects <code>REG_UNCOMMITTED_CANDIDATE</code> items (line 21), creating a soft signal that pending candidates haven't been ratified.</p>
+
+    <h4><span class="injection-tag">Injection 3</span> — Zone 2 queue resolution</h4>
+    <p><code>z2_queue_v1_0.py</code> items with <code>blocker_if_unresolved=True</code> stop the system (exit code 1). Human resolution (setting <code>resolved=True</code>) unblocks downstream work. The ratification record is attached to the Z2 item itself. The principle harmonizer mirrors this: HALT-verdict frameworks (lines 29–31 of <code>principle_harmonizer_v1_2.py</code>) require “Night ratification required before operational use.”</p>
+
+    <h4><span class="injection-tag">Injection 4</span> — System state JSON update</h4>
+    <p>Because the harmonizer consumes a manually-maintained <code>system_state.json</code>, every time a human operator updates corpus counts, carry item N values, gate status, or blocker flags in that file, they are directly calibrating the system's self-model. The harmonizer's tuning signals — which determine what work gets prioritized — flow entirely from this human-curated state snapshot.</p>
+
+    <h4><span class="injection-tag">Injection 5</span> — Drift signal registration</h4>
+    <p>Adding a new entry to <code>REGISTERED_DRIFT</code> in <code>drift_catalog_validator.py</code> (lines 28–58) codifies a newly-observed behavioral failure mode. Once registered, the drift validator will catch it in all future session close posts. This is a governance loop: a human names a failure pattern, and it becomes part of the automated compliance check.</p>
+
+    <h4><span class="injection-tag">Injection 6</span> — <code>DAILY_WILL_QUERY</code></h4>
+    <p>The notify dispatcher's daily conscience check (lines 25–26): “If unanswered for 3 days, system auto-halts.” This is the minimal but unconditional human-in-the-loop mechanism — a single unanswered bit halts all autonomous activity.</p>
+
+    <hr>
+
+    <!-- ======================== 6. CONTRADICTION & DIVERGENCE ======================== -->
+    <h2>6. How the System Handles Contradiction and Divergence Between Human Intent and Observed Behavior</h2>
+
+    <p>The system has several layers for detecting and routing divergence, but no automated resolution mechanism — divergence always terminates at a human decision point.</p>
+
+    <h4>Layer 1 — Drift taxonomy as named contradictions</h4>
+    <p><code>drift_catalog_validator.py</code> maintains 20+ named divergence patterns (D-01 through D-AGREEMENT-CASCADE). Each name is a codified category of AI behavior contradicting human intent:</p>
+    <ul>
+        <li><strong>D-05</strong> (Zone 1 overreach): AI executing without approval on Zone 2/3 items</li>
+        <li><strong>D-08</strong> (Shadow queue): AI maintaining a Zone 3 list outside the ratified system</li>
+        <li><strong>D-CARRY</strong>: forwarding stale items without explicit operator confirmation</li>
+        <li><strong>D-AGREEMENT-CASCADE</strong>: accepting bulk reviewer claims without verification</li>
+    </ul>
+    <p>These aren't just error codes — they're named behavioral failure modes that the <code>acat_protocol_auditor.py</code>'s DFA scanner (lines 7–14) actively detects in session close posts, creating automatic detection of claimed vs. actual behavior divergence.</p>
+
+    <h4>Layer 2 — ACAT Phase 1→3 as divergence measurement</h4>
+    <p>The instrument's two-phase structure is itself a divergence detector. Phase 1 scores the AI's behavior; Phase 3 is the same AI scoring the same interaction after reflection. The Learning Index <em>LI</em> = Phase3_total / Phase1_total. <em>LI</em> &gt; 1.0 = overcorrection (D-COMP risk), <em>LI</em> &lt; 0.95 = undertreated inflation. The entire corpus of 629+ rows is a time series of this divergence metric per agent per session.</p>
+    <p>The SDT analytics (§1d) give the most precise characterization: the coercion signature (high <em>d′</em>, low <em>β</em>) means the AI knows it should correct (discriminates inflation well) but defaults to compliance anyway. This is the most subtle form of human-intent divergence in the system — not outright refusal, but structurally-biased capitulation.</p>
+
+    <h4>Layer 3 — Principle check as pre-execution veto</h4>
+    <p><code>check_principle()</code> in the orchestrator (lines 58–83) is synchronous: called on every proposed action before execution. If P-HUMILITY fires (confidence &gt; 0.95 without counter_evidence), the node is flagged and goes to Zone 2. This handles AI overconfidence divergence before it becomes an action.</p>
+
+    <h4>Layer 4 — Red team runner for adversarial divergence</h4>
+    <p><code>red_team_runner_v1_0.py</code> probes 14 attack categories (zone bypass, overconfidence, corpus poisoning, comms discipline, etc.) using deterministic keyword-based detection. Critically, the detection rules are static keyword lists (<code>detection_keywords</code> / <code>bypass_keywords</code> arrays). When an attack bypasses via novel phrasing, the runner scores it as <code>BYPASSED</code> but there is no mechanism to add the novel bypass pattern to future detection rules. The red team runner is a snapshot diagnostic, not a self-updating adversarial filter.</p>
+
+    <h4>Layer 5 — System audit as AUTH-THEATER detection</h4>
+    <p><code>system_audit_v1_1.py</code> was explicitly designed to detect the condition where a human operator believes they have current state but doesn't (AUTH-THEATER Mode B, line 21). By running as a mandatory pre-ratification gate, it breaks the loop where stale mental models produce ratifications based on prior reality. The check at lines 86–93 sets max staleness thresholds for <code>CURRENT.md</code> (168 hours), commits (72 hours), and Slack WGS sync (24 hours).</p>
+
+    <h4>Layer 6 — Principle harmonizer CONFLICT routing</h4>
+    <p>When a Tier 2 framework has <code>relationship: "CONFLICT"</code> with a Tier 1 principle, the GHK logic (<code>principle_harmonizer_v1_2.py</code> lines 16–31) produces <code>KILL</code> verdict. The disagreement is noted and archived, not synthesized. The framework's content cannot enter operational tooling without a Zone 2 reversal of the <code>KILL</code> verdict. This makes Tier 1 the immutable ground truth against which external frameworks are measured, not a dynamic system that learns from them.</p>
+
+    <hr>
+
+    <!-- ======================== SUMMARY OBSERVATIONS ======================== -->
+    <h2>Summary Observations</h2>
+
+    <p>The architecture has a well-designed <strong>one-way ratchet</strong>: observations can enter the KG, findings can be registered, and drift patterns can be codified — but none of these paths is automated end-to-end. Every major learning step passes through a human ratification gate (Zone 2 or Zone 3). The tradeoff is intentional (the design principle at orchestrator line 15: <em>“AI eats friction. Humans eat conscience.”</em>) but it means the system's learning velocity is bounded by human bandwidth, not by data throughput.</p>
+
+    <p>The <strong>deepest architectural gap</strong> is closed-loop outcome feedback: task execution outcomes never re-enter the MOLT phase (<strong>Gap A</strong>). The KG learns from what is observed and assessed, but not from the consequences of what is done. In learning-system terms, this is a system with rich perception and belief-updating but <strong>no reinforcement signal from executed actions</strong>.</p>
+
+    <div style="margin-top:2.5rem; padding-top:1.2rem; border-top:1px solid #ddd; font-size:0.9rem; color:#444;">
+        <p><strong>Suggested citation:</strong> HumanAIOS Research. (2026). <em>Learning Architecture Analysis — tools/ Directory</em>. Version 1.0.</p>
+        <p>This report is based on the codebase of <code>humanaios-ui/operations</code> as of 2026-06-23.</p>
+    </div>
+
+</div>
+</body>
+</html>

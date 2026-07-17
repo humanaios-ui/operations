@@ -1,0 +1,148 @@
+name: mesh-standard-files
+
+# Audit mesh repos for the four required community-health files:
+# CODEOWNERS, SECURITY.md, CONTRIBUTING.md, LICENSE.
+#
+# This workflow implements the monitoring half of Issue-07 (S-070726):
+# "Org-template CODEOWNERS + SECURITY.md + LICENSE (28 standard-file gaps)"
+# Acceptance: structural DPMO for these checks → 0; mesh FPY 42.9% → ≥ 85%.
+#
+# ZONE MODEL:
+#   check job    — Z1, read-only, uses GITHUB_TOKEN (public API scope is enough
+#                  for public repos; set MESH_READ_TOKEN for private repos)
+#   seed job     — Z3, writes to other repos; only runs on manual dispatch with
+#                  create_prs: true.  Requires MESH_SYNC_TOKEN secret with
+#                  `repo` write scope across the mesh.
+#
+# SECRETS:
+#   MESH_READ_TOKEN  — optional PAT with `read:org` + `repo` (public) for
+#                      private-repo visibility. Falls back to GITHUB_TOKEN.
+#   MESH_SYNC_TOKEN  — Z3 only: PAT with `repo` write scope on all mesh repos.
+#                      Only used when create_prs input is true.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'    # Weekly Monday 06:00 UTC — freshness audit
+  workflow_dispatch:
+    inputs:
+      repos:
+        description: 'Space-separated repo names to check (blank = all org repos)'
+        required: false
+        default: ''
+      create_prs:
+        description: 'Open PRs for repos missing standard files (Z3 — requires MESH_SYNC_TOKEN)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Audit mesh repos for standard files
+    runs-on: ubuntu-latest
+    outputs:
+      total_gaps: ${{ steps.audit.outputs.total_gaps }}
+      summary: ${{ steps.audit.outputs.summary }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Resolve repo list argument
+        id: repos
+        run: |
+          INPUT="${{ github.event.inputs.repos }}"
+          if [ -n "$INPUT" ]; then
+            # Convert space-separated list to --repos args
+            echo "args=--repos $INPUT" >> $GITHUB_OUTPUT
+          else
+            echo "args=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Audit standard files across mesh repos
+        id: audit
+        env:
+          GITHUB_TOKEN: ${{ secrets.MESH_READ_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/seed_org_defaults.py \
+            --org humanaios-ui \
+            ${{ steps.repos.outputs.args }} \
+            --json \
+            > /tmp/audit_result.json 2>&1 || true
+
+          # Surface totals as outputs
+          TOTAL_GAPS=$(python3 -c "import json,sys; d=json.load(open('/tmp/audit_result.json')); print(d.get('total_gaps',0))" 2>/dev/null || echo "unknown")
+          CHECKED=$(python3 -c "import json,sys; d=json.load(open('/tmp/audit_result.json')); print(d.get('checked',0))" 2>/dev/null || echo "0")
+          echo "total_gaps=${TOTAL_GAPS}" >> $GITHUB_OUTPUT
+          echo "summary=Checked ${CHECKED} repos · ${TOTAL_GAPS} standard-file gaps" >> $GITHUB_OUTPUT
+
+          # Print human-readable table
+          python3 tools/seed_org_defaults.py \
+            --org humanaios-ui \
+            ${{ steps.repos.outputs.args }} \
+            2>&1 || true
+
+      - name: Upload audit result
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesh-standard-files-audit
+          path: /tmp/audit_result.json
+          retention-days: 30
+
+      - name: Fail if gaps remain (scheduled run)
+        if: github.event_name == 'schedule' && steps.audit.outputs.total_gaps != '0'
+        run: |
+          echo "::warning::${{ steps.audit.outputs.summary }}"
+          echo "Standard-file gaps detected. Run this workflow manually with create_prs=true"
+          echo "(requires MESH_SYNC_TOKEN) to open PRs, or add files directly per repo."
+          # Advisory only on schedule — does not block CI
+          exit 0
+
+  seed:
+    name: Seed missing files via PRs (Z3)
+    runs-on: ubuntu-latest
+    needs: check
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.create_prs == 'true' &&
+      needs.check.outputs.total_gaps != '0'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Resolve repo list argument
+        id: repos
+        run: |
+          INPUT="${{ github.event.inputs.repos }}"
+          if [ -n "$INPUT" ]; then
+            echo "args=--repos $INPUT" >> $GITHUB_OUTPUT
+          else
+            echo "args=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PRs for repos missing standard files
+        env:
+          MESH_SYNC_TOKEN: ${{ secrets.MESH_SYNC_TOKEN }}
+        run: |
+          if [ -z "$MESH_SYNC_TOKEN" ]; then
+            echo "ERROR: MESH_SYNC_TOKEN secret not set. Cannot create cross-repo PRs."
+            echo "Set MESH_SYNC_TOKEN to a PAT with 'repo' write scope across all mesh repos."
+            exit 1
+          fi
+          python3 tools/seed_org_defaults.py \
+            --org humanaios-ui \
+            ${{ steps.repos.outputs.args }} \
+            --create-prs \
+            --token "$MESH_SYNC_TOKEN"

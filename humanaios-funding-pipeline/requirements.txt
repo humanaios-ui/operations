@@ -1,0 +1,8 @@
+# humanaios-funding-pipeline requirements
+# Pin minor versions for reproducibility; update with `pip install -U`
+
+pydantic>=2.6,<3
+requests>=2.31,<3
+beautifulsoup4>=4.12,<5
+pytest>=8.0,<9
+lxml>=5.0         # faster BS4 parser (optional but recommended)

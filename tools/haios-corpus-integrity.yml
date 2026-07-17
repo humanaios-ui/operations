@@ -1,0 +1,268 @@
+# ============================================================
+# HAIOS Corpus Integrity Check — Scheduled Circuit Validation
+# File: .github/workflows/haios-corpus-integrity.yml
+# Repo: humanaios-ui/operations
+#
+# PURPOSE:
+#   Runs circuit_validator_v1_0.py daily at 02:00 UTC against
+#   a fresh pull of recent Supabase rows. Detects HALF_CIRCUIT,
+#   POLARITY_REVERSED, and CONTAMINATED rows before they
+#   propagate into published analysis.
+#
+# MKS MAPPING (MKS-07 — Harmony with the Law):
+#   "The law executes whatever is placed in it without warning."
+#   Silent insert failures and circuit violations accumulate in
+#   the corpus invisibly. This job is the daily scan that makes
+#   invisible corruption visible — compliance with the schema
+#   law verified before the next session opens.
+#
+# PRIMARY RISK MITIGATED:
+#   IC-031 (Receipt Overstatement / Silent Failure Cost Class).
+#   Without scheduled validation, half-circuits and contaminated
+#   rows are only caught when Night manually runs the tool —
+#   which means they can persist for weeks.
+#
+# OUTPUTS:
+#   - All COMPLETE  → PASS to #acat-monitor
+#   - Any WARN state (POLARITY_REVERSED, CONTAMINATED) → WARN
+#   - Any FAIL state (HALF_CIRCUIT, INSUFFICIENT) → FAIL alert
+#   - FAIL also posts to #wgs-sync as a corpus integrity signal
+#
+# SECRETS REQUIRED:
+#   SUPABASE_URL      — Supabase project URL
+#   SUPABASE_KEY      — Supabase anon/service key
+#   SLACK_BOT_TOKEN   — Slack bot token (workspace T0AHCDYQU92)
+#   HAIOS_EXPECTED_N  — Minimum expected corpus row count
+#
+# CADENCE:
+#   Daily 02:00 UTC — low-activity window, before session start
+#
+# ============================================================
+
+name: HAIOS Corpus Integrity
+
+on:
+  schedule:
+    - cron: '0 2 * * *'       # Daily at 02:00 UTC
+  workflow_dispatch:           # Manual trigger for on-demand validation
+    inputs:
+      row_limit:
+        description: 'Number of most recent rows to validate (0 = all)'
+        required: false
+        default: '50'
+      layer:
+        description: 'Instrument layer'
+        required: false
+        default: 'acat'
+        type: choice
+        options:
+          - acat
+          - h_acat
+
+jobs:
+  corpus-integrity:
+    name: Circuit Validator — ACAT Corpus Integrity Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      SUPABASE_URL:     ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY:     ${{ secrets.SUPABASE_KEY }}
+      SLACK_BOT_TOKEN:  ${{ secrets.SLACK_BOT_TOKEN }}
+
+    steps:
+      - name: Checkout operations repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fetch recent corpus rows from Supabase
+        id: fetch
+        run: |
+          ROW_LIMIT="${{ github.event.inputs.row_limit || '50' }}"
+
+          # If ROW_LIMIT is 0, fetch all rows (use large limit)
+          if [ "$ROW_LIMIT" = "0" ]; then
+            LIMIT_PARAM="limit=10000"
+          else
+            LIMIT_PARAM="limit=${ROW_LIMIT}"
+          fi
+
+          # Fetch from acat_assessments_v1, ordered by newest first
+          HTTP_STATUS=$(curl -s -o /tmp/corpus_rows.json -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/acat_assessments_v1?select=*&order=created_at.desc&${LIMIT_PARAM}" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}")
+
+          echo "http_status=${HTTP_STATUS}" >> $GITHUB_OUTPUT
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "⚠️ Supabase fetch returned HTTP ${HTTP_STATUS}"
+            echo "fetch_ok=false" >> $GITHUB_OUTPUT
+          else
+            ROW_COUNT=$(python3 -c "import json,sys; d=json.load(open('/tmp/corpus_rows.json')); print(len(d) if isinstance(d,list) else 0)")
+            echo "row_count=${ROW_COUNT}" >> $GITHUB_OUTPUT
+            echo "fetch_ok=true" >> $GITHUB_OUTPUT
+            echo "✓ Fetched ${ROW_COUNT} rows from Supabase"
+          fi
+
+      - name: Abort on fetch failure
+        if: steps.fetch.outputs.fetch_ok == 'false'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"channel\": \"C0APHCJ5WUE\",
+              \"text\": \"⚠️ Corpus integrity check SKIPPED — Supabase fetch failed (HTTP ${{ steps.fetch.outputs.http_status }}) — ${TIMESTAMP}\",
+              \"attachments\": [{
+                \"color\": \"#e6a817\",
+                \"fields\": [
+                  {\"title\": \"Action\", \"value\": \"Verify SUPABASE_URL and SUPABASE_KEY secrets are current\"},
+                  {\"title\": \"Run Log\", \"value\": \"${RUN_URL}\"}
+                ]
+              }]
+            }" > /dev/null
+          exit 1
+
+      - name: Write corpus to CSV for circuit_validator
+        run: |
+          # Convert Supabase JSON array to CSV that circuit_validator expects
+          python3 << 'PYEOF'
+          import json, csv, sys
+          with open('/tmp/corpus_rows.json') as f:
+              rows = json.load(f)
+          if not rows:
+              print("No rows to validate")
+              sys.exit(0)
+          # Write CSV — all keys from first row as headers
+          fieldnames = list(rows[0].keys())
+          with open('/tmp/corpus_for_validation.csv', 'w', newline='') as f:
+              writer = csv.DictWriter(f, fieldnames=fieldnames)
+              writer.writeheader()
+              writer.writerows(rows)
+          print(f"✓ Wrote {len(rows)} rows to CSV for validation")
+          PYEOF
+
+      - name: Run circuit validator
+        id: validate
+        run: |
+          LAYER="${{ github.event.inputs.layer || 'acat' }}"
+
+          python3 tools/circuit_validator_v1_0.py \
+            --corpus /tmp/corpus_for_validation.csv \
+            --layer "${LAYER}" \
+            --output /tmp/circuit_output/ \
+            2>&1 | tee /tmp/circuit_stdout.txt
+
+          CIRCUIT_EXIT=$?
+
+          # Parse summary statistics from output
+          COMPLETE=$(grep -oP "complete=\K[0-9]+" /tmp/circuit_stdout.txt || echo "0")
+          HALF=$(grep -oP "half_circuit=\K[0-9]+" /tmp/circuit_stdout.txt || echo "0")
+          REVERSED=$(grep -oP "polarity_reversed=\K[0-9]+" /tmp/circuit_stdout.txt || echo "0")
+          CONTAMINATED=$(grep -oP "contaminated=\K[0-9]+" /tmp/circuit_stdout.txt || echo "0")
+          LI_MEAN=$(grep -oP "LI Mean\s+:\s+\K[0-9\.]+" /tmp/circuit_stdout.txt || echo "—")
+          VERDICT=$(grep "Verdict" /tmp/circuit_stdout.txt | head -1 | awk '{print $NF}' || echo "UNKNOWN")
+
+          echo "complete=${COMPLETE}"        >> $GITHUB_OUTPUT
+          echo "half_circuit=${HALF}"        >> $GITHUB_OUTPUT
+          echo "polarity_reversed=${REVERSED}" >> $GITHUB_OUTPUT
+          echo "contaminated=${CONTAMINATED}" >> $GITHUB_OUTPUT
+          echo "li_mean=${LI_MEAN}"          >> $GITHUB_OUTPUT
+          echo "verdict=${VERDICT}"          >> $GITHUB_OUTPUT
+          echo "exit_code=${CIRCUIT_EXIT}"   >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Post results to #acat-monitor
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          VERDICT="${{ steps.validate.outputs.verdict }}"
+          COMPLETE="${{ steps.validate.outputs.complete }}"
+          HALF="${{ steps.validate.outputs.half_circuit }}"
+          REVERSED="${{ steps.validate.outputs.polarity_reversed }}"
+          CONTAMINATED="${{ steps.validate.outputs.contaminated }}"
+          LI_MEAN="${{ steps.validate.outputs.li_mean }}"
+          TOTAL="${{ steps.fetch.outputs.row_count }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          # Determine icon and color
+          if [ "$VERDICT" = "PASS" ]; then
+            ICON="✅"; COLOR="#36a64f"
+            SUMMARY="All circuits complete. Corpus integrity verified."
+          elif [ "$VERDICT" = "WARN" ]; then
+            ICON="⚠️"; COLOR="#e6a817"
+            SUMMARY="Corpus has WARN-level circuit states. Review before next analysis."
+          else
+            ICON="🚨"; COLOR="#cc0000"
+            SUMMARY="FAIL-level circuit violations detected. Do not include affected rows in analysis."
+          fi
+
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"channel\": \"C0APHCJ5WUE\",
+              \"text\": \"${ICON} Corpus Circuit Check ${VERDICT} — ${TIMESTAMP}\",
+              \"attachments\": [{
+                \"color\": \"${COLOR}\",
+                \"fields\": [
+                  {\"title\": \"Rows Checked\", \"value\": \"${TOTAL}\", \"short\": true},
+                  {\"title\": \"Complete\",     \"value\": \"${COMPLETE}\", \"short\": true},
+                  {\"title\": \"Half-Circuit\", \"value\": \"${HALF}\", \"short\": true},
+                  {\"title\": \"Polarity↕\",    \"value\": \"${REVERSED}\", \"short\": true},
+                  {\"title\": \"Contaminated\", \"value\": \"${CONTAMINATED}\", \"short\": true},
+                  {\"title\": \"LI Mean\",      \"value\": \"${LI_MEAN}\", \"short\": true},
+                  {\"title\": \"Summary\",      \"value\": \"${SUMMARY}\", \"short\": false},
+                  {\"title\": \"Run Log\",      \"value\": \"${RUN_URL}\", \"short\": false}
+                ]
+              }]
+            }" > /dev/null
+
+          echo "${ICON} Slack notification sent"
+
+      - name: Post FAIL alert to #wgs-sync
+        if: steps.validate.outputs.exit_code == '1'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          HALF="${{ steps.validate.outputs.half_circuit }}"
+          REVERSED="${{ steps.validate.outputs.polarity_reversed }}"
+          TOTAL="${{ steps.fetch.outputs.row_count }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"channel\": \"C0AND66PT7U\",
+              \"text\": \"🚨 CORPUS INTEGRITY FAIL — ${TIMESTAMP}\",
+              \"attachments\": [{
+                \"color\": \"#cc0000\",
+                \"fields\": [
+                  {\"title\": \"Half-Circuit Rows\", \"value\": \"${HALF} of ${TOTAL} checked\", \"short\": true},
+                  {\"title\": \"Polarity-Reversed\", \"value\": \"${REVERSED}\", \"short\": true},
+                  {\"title\": \"Action Required\",
+                   \"value\": \"Run circuit_validator_v1_0.py locally, identify affected session IDs, exclude from analysis until corrected.\",
+                   \"short\": false},
+                  {\"title\": \"IC Reference\", \"value\": \"IC-031 — Silent Failure Cost Class\", \"short\": false},
+                  {\"title\": \"Run Log\", \"value\": \"${RUN_URL}\", \"short\": false}
+                ]
+              }]
+            }" > /dev/null
+
+          echo "🚨 Corpus FAIL alert posted to #wgs-sync"
+
+      - name: Set final exit code
+        run: exit ${{ steps.validate.outputs.exit_code }}

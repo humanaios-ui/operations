@@ -1,0 +1,24 @@
+# HumanAIOS document-control ownership.  Membership + area map: .doc-control/TEAM_OWNERS.md
+# Enforce via branch protection → "Require review from Code Owners".
+# NOTE: @humanaios-ui/* are GitHub TEAMS that must exist for enforcement; until then
+# GitHub treats unknown owners as no-op (safe default).
+
+# --- the control system itself (control maintainer) ---
+/document-registry.yaml                    @humanaios-ui/doc-control
+/CONTROLLED_DOCUMENTS.md                    @humanaios-ui/doc-control
+/.doc-control/                             @humanaios-ui/doc-control
+/.github/workflows/document-control.yml    @humanaios-ui/doc-control
+
+# --- governance area (HAIOS-GOV-*) ---
+/GOVERNANCE.md                             @humanaios-ui/governance
+/PRINCIPLES_SEED_V1_0.md                   @humanaios-ui/governance
+/SEED.md                                   @humanaios-ui/governance
+
+# --- research area (HAIOS-RES-*) — figures/claims gated by the content-accuracy audit ---
+/REGISTERED.md                             @humanaios-ui/research
+/ACAT_ASESSEMENT_SEED.md                   @humanaios-ui/research
+/SYNTHESIS_MATRIX_DIAGNOSTIC_V1_1.md       @humanaios-ui/research
+/VALIDITY_ANALYSIS-BENCHMARK_CROSSWALK.md  @humanaios-ui/research
+
+# --- default: any other controlled markdown → control maintainer ---
+*.md                                       @humanaios-ui/doc-control

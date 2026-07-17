@@ -1,0 +1,74 @@
+# smag-consolidate — the CONSOLIDATE + ANALYZE half of the recursive-learning loop.
+#
+# CAPTURE (smag-capture.yml) posts one predicted-vs-measured row per merged PR as a
+# comment on the SMAG pilot ledger issue (#103). This job periodically drains those
+# comment rows into the durable ledger (audits/smag_pilot_ledger.jsonl), recomputes
+# the predicted-vs-measured gap report, and opens a PR with the deltas — closing the
+# loop that previously captured but never consolidated.
+#
+# Read-only against GitHub except the ledger/report files it proposes via PR.
+# No credentials handled — uses the standard GITHUB_TOKEN.
+name: smag-consolidate
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"   # weekly, Mondays 06:17 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Consolidate #103 SMAG rows into the ledger
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/smag_consolidate_v1_0.py \
+            --repo "${{ github.repository }}" --issue 103 \
+            --ledger audits/smag_pilot_ledger.jsonl
+
+      - name: Resolve capture timing (record CI outcome after checks finish)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Rows captured at merge-close may hold in_progress checks; re-query each
+          # row's terminal state so `measured` reflects resolved pass/fail before we
+          # analyze. Pending rows self-heal on the next run.
+          python3 tools/smag_resolve_v1_0.py \
+            --repo "${{ github.repository }}" \
+            --ledger audits/smag_pilot_ledger.jsonl
+
+      - name: Recompute the predicted-vs-measured gap report
+        run: |
+          python3 tools/smag_gap_analysis_v1_0.py \
+            --ledger audits/smag_pilot_ledger.jsonl \
+            --out audits/smag_gap_report.md
+
+      - name: Open a PR if the ledger or report changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md; then
+            echo "No new SMAG rows — nothing to consolidate."
+            exit 0
+          fi
+          branch="smag-consolidate/$(date -u +%Y%m%d-%H%M%S)"
+          git config user.name  "smag-consolidate[bot]"
+          git config user.email "smag-consolidate@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md
+          git commit -m "chore(smag): consolidate #103 rows + refresh gap report"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "SMAG: consolidate ledger + refresh gap report" \
+            --body "Automated CONSOLIDATE+ANALYZE step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into the ledger and refreshes the gap report. Review the gap_rate trend before merging."

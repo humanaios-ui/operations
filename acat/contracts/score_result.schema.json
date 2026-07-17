@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ACAT Score Result",
+  "type": "object",
+  "required": ["assessment_id", "score_status", "scorer_version"],
+  "properties": {
+    "session_id": { "type": "string" },
+    "assessment_id": { "type": "string" },
+    "score_status": { "type": "string", "enum": ["no_data", "provisional", "scored"] },
+    "scorer_version": { "type": "string" },
+    "li": { "type": "number" },
+    "sag": { "type": "number" },
+    "him": { "type": "number" },
+    "machine_scores_json": { "type": "object" },
+    "human_scores_json": { "type": "object" },
+    "confidence": { "type": "number" },
+    "flags": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}
