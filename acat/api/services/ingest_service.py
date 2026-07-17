@@ -188,6 +188,9 @@ def _build_phase1_row(payload: dict) -> dict:
         "submission_purity": payload.get("submission_purity"),
         "contamination_delta_seconds": payload.get("contamination_delta_seconds"),
         "contamination_status": payload.get("contamination_status"),
+        # External timestamp validation (S-071726-01: timestamp fraud detection)
+        "received_at": payload.get("received_at"),
+        "external_timestamp_validation": payload.get("external_timestamp_validation"),
         # Core 6 dimensions
         "p1_truth":    scores.get("truth"),
         "p1_service":  scores.get("service"),
@@ -411,17 +414,21 @@ def _persist_phase3(payload: dict) -> dict:
 
 def ingest_phase1(payload: dict) -> dict:
     raw_payload = dict(payload)
+    received_at = _utcnow_iso()  # Capture server-side timestamp when API receives request
 
     working = dict(payload)
     working.setdefault("p1_timestamp", _utcnow_iso())
     working.setdefault("p1_committed_at", _utcnow_iso())
     working["assessment_id"] = _ensure_assessment_id(working)
+    working["received_at"] = received_at  # Add server timestamp to payload
 
     validate_phase1_payload(working)
 
+    # Contamination check with external timestamp validation
     contamination = contamination_summary(
         p1_timestamp=working.get("p1_timestamp"),
         first_user_message_timestamp=working.get("first_user_message_timestamp"),
+        received_at=received_at,  # Pass server timestamp for validation
     )
     working.update(contamination)
 

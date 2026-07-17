@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+⚠️ SUPERSEDED — Do NOT use this version
+════════════════════════════════════════
+See: governance_mapper_uber_v1_1.py (newer consolidated version)
+This file is kept for reference only.
+════════════════════════════════════════
+
 Governance Mapper — v1.0
 Builder v1.7 compliant · audit_tool
 HumanAIOS · S-052326-03 (run() implemented)

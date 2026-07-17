@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+⚠️ SUPERSEDED — Do NOT use this version
+════════════════════════════════════════
+See: principle_harmonizer_v1_2.py (newer version with full updates)
+This file is kept for reference only.
+════════════════════════════════════════
+
 Principle Harmonizer — v1.1
 Builder v1.7 compliant · audit_tool
 HumanAIOS · S-051926-03 (updated S-052026-01)

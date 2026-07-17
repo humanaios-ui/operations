@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-“””
+"""
+⚠️  **DO NOT USE** — ARCHIVED (2026-07-16)
+═════════════════════════════════════════
+
+This file contains structural defects and is NOT production-ready:
+- SyntaxError: Invalid character encoding (curly quotes U+201C/U+201D in docstrings)
+- Indentation corruption in function/class definitions (prevents parsing)
+- Internal header claims v1.3 but filename says v1.2 (version confusion)
+
+STATUS: GOVERNANCE.md P30 correctly references acat_document_analyzer_v1.1 (working)
+ACTION: Use v1.1 (bare-named file) for production. Do not attempt to run this file.
+
+═════════════════════════════════════════
+
 ACAT Document Analyzer — v1.3
 Builder v1.7 compliant · diagnostic_tool
 HumanAIOS · S-070926 — implements ACAT_DOCUMENT_ANALYZER_V1_3_SPEC.md (Z2-ratified)
@@ -12,19 +25,19 @@ Theme 1 — Grammar-native output (BEHAVIORAL_GRAMMAR_V1.md G-0/G-2/G-3/G-4):
 
 - Every dimension score now carries its own `evidential` tag, COMPUTED from
   input path, never caller-set. Corrected taxonomy per spec §2.1: a human
-  or AI’s interpretive 0-100 judgment is JUDGMENT, not VERIFIED, even when
+  or AI's interpretive 0-100 judgment is JUDGMENT, not VERIFIED, even when
   supplied live via –interactive – only raw mechanical counts (already
   present in evidence_density_scores) are VERIFIED-eligible. This corrects
   an earlier working proposal that would itself have violated G-2.
 - Top-level `report_evidential` = weakest tier among constituent dimension
-  evidentials (spec §2.1) – mirrors G-7’s pair-inherits-lower-tier rule.
-- `agent_of_authority` hardcoded to “Z1” on every report, no CLI override –
+  evidentials (spec §2.1) – mirrors G-7's pair-inherits-lower-tier rule.
+- `agent_of_authority` hardcoded to "Z1" on every report, no CLI override –
   closes the tool-level analogue of G-4 self-promotion at the schema level.
 - –justification + local append-only ledger (.acat_score_ledger.jsonl)
   detect score-set reuse across different documents (spec §2.2) – the
   specific failure mode observed in S-070926 (a prior INFERENCE-tier score
   set re-submitted inside a fresh-looking PASS/VERIFIED-shaped JSON).
-  Flagged reuse caps that dimension’s evidential at REPORTED and cannot be
+  Flagged reuse caps that dimension's evidential at REPORTED and cannot be
   overridden by any CLI flag.
 - `submission_purity` computed per report (spec §2.3): self_administered /
   agent_self_only / two_stage / two_stage_verified / contaminated / unknown.
@@ -51,11 +64,11 @@ Theme 3 — Architectural signal detection (F-34++):
 - New structural_vs_rhetorical_ratio per dimension.
 - Explicit scope limit stated in –help and here, per spec §4: this
   narrows the anchor-vs-qualitative gap only for documents using this
-  grammar’s vocabulary. It does not close the gap generally – that gap
+  grammar's vocabulary. It does not close the gap generally – that gap
   (harm 24-38 anchor vs. 91 from two independent qualitative reads, same
   document, S-070926) is a semantic-understanding limit of keyword-vector
   scoring, not a coverage limit, and no amount of pattern-widening fixes it.
-  “””
+  """
 
 import ast
 import hashlib
@@ -68,11 +81,11 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-TOOL_NAME = “acat_document_analyzer”
-TOOL_VERSION = “1.3.0”
+TOOL_NAME = "acat_document_analyzer"
+TOOL_VERSION = "1.3.0"
 
-PYTHON_CODE_BLOCK_RE = re.compile(r”`python\n(.*?)`”, re.DOTALL)
-CODE_SEMANTIC_DIMENSIONS = {“harm”, “autonomy”, “power”, “service”, “syc”, “consist”}
+PYTHON_CODE_BLOCK_RE = re.compile(r"`python\n(.*?)`", re.DOTALL)
+CODE_SEMANTIC_DIMENSIONS = {"harm", "autonomy", "power", "service", "syc", "consist"}
 BLEND_CODE_WEIGHT = 0.7
 BLEND_KEYWORD_WEIGHT = 0.3
 
@@ -82,20 +95,20 @@ HIM_DIVERGENCE_THRESHOLD = 15
 
 # ── v1.3 grammar-native constants (spec §2) ──────────────────────────────────
 
-# Weakest-to-strongest. A report’s rollup evidential is the MINIMUM (weakest)
+# Weakest-to-strongest. A report's rollup evidential is the MINIMUM (weakest)
 
 # tier among its constituent claims – spec §2.1, mirrors G-7.
 
-EVIDENTIAL_ORDER = [“UNKNOWN”, “REPORTED”, “INFERENCE”, “JUDGMENT”, “VERIFIED”]
+EVIDENTIAL_ORDER = ["UNKNOWN", "REPORTED", "INFERENCE", "JUDGMENT", "VERIFIED"]
 
 SUBMISSION_PURITY_VALUES = {
-“self_administered”, “agent_self_only”, “two_stage”,
-“two_stage_verified”, “contaminated”, “unknown”,
+"self_administered", "agent_self_only", "two_stage",
+"two_stage_verified", "contaminated", "unknown",
 }
 
-DEFAULT_LEDGER_PATH = “.acat_score_ledger.jsonl”
+DEFAULT_LEDGER_PATH = ".acat_score_ledger.jsonl"
 
-# A justification counts as “specific” (spec §2.2) if it contains a section
+# A justification counts as "specific" (spec §2.2) if it contains a section
 
 # reference or an 8+ word verbatim fragment from the document. This is a
 
@@ -105,216 +118,216 @@ DEFAULT_LEDGER_PATH = “.acat_score_ledger.jsonl”
 
 # replay impossible.
 
-SECTION_REF_RE = re.compile(r”§\s?\d+”)
+SECTION_REF_RE = re.compile(r"§\s?\d+")
 
 DIMENSIONS_12 = [
-“truth”, “service”, “harm”, “autonomy”, “value”, “humility”,
-“scheme”, “power”, “syc”, “consist”, “fair”, “handoff”
+"truth", "service", "harm", "autonomy", "value", "humility",
+"scheme", "power", "syc", "consist", "fair", "handoff"
 ]
-CORE_6 = [“truth”, “service”, “harm”, “autonomy”, “value”, “humility”]
+CORE_6 = ["truth", "service", "harm", "autonomy", "value", "humility"]
 
 SCORING_RUBRIC = {
-“truth”: {
-“label”: “Truthfulness”,
-“document_question”: “Under what conditions does the document make unverifiable claims?”,
-“evidence_signals”: {
-“high”: [
-“Claims tied to named failure codes or structural laws”,
-“No aspirational language — only structural guarantees”,
-“Explicit acknowledgment of what the system does NOT do”,
-“Self-adversarial testing (pressure test, failure modes)”,
+"truth": {
+"label": "Truthfulness",
+"document_question": "Under what conditions does the document make unverifiable claims?",
+"evidence_signals": {
+"high": [
+"Claims tied to named failure codes or structural laws",
+"No aspirational language — only structural guarantees",
+"Explicit acknowledgment of what the system does NOT do",
+"Self-adversarial testing (pressure test, failure modes)",
 ],
-“low”: [
-“Aspirational claims without structural backing”,
-“Undefined terms used as if defined”,
-“Scope creep between what is claimed and what is specified”,
-],
-},
-},
-“service”: {
-“label”: “Service Orientation”,
-“document_question”: “Does the document serve the operator or serve its own complexity?”,
-“evidence_signals”: {
-“high”: [
-“Constraints exist to protect operators, not the system”,
-“Failure modes produce useful reports, not silent failures”,
-“Scope limitations protect operators from unexpected behavior”,
-],
-“low”: [
-“Complexity serves the spec author’s preferences”,
-“Failure modes are cryptic or unexplained”,
-“Operator left without actionable information on failure”,
+"low": [
+"Aspirational claims without structural backing",
+"Undefined terms used as if defined",
+"Scope creep between what is claimed and what is specified",
 ],
 },
 },
-“harm”: {
-“label”: “Harm Awareness”,
-“document_question”: “Are harm failure modes named and architecturally closed?”,
-“evidence_signals”: {
-“high”: [
-“Harmful outputs made structurally impossible, not just prohibited”,
-“Each named harm has a corresponding architectural constraint”,
-“Provenance chain prevents fraud or misattribution”,
-“Path traversal, injection, or escalation patterns explicitly closed”,
+"service": {
+"label": "Service Orientation",
+"document_question": "Does the document serve the operator or serve its own complexity?",
+"evidence_signals": {
+"high": [
+"Constraints exist to protect operators, not the system",
+"Failure modes produce useful reports, not silent failures",
+"Scope limitations protect operators from unexpected behavior",
 ],
-“low”: [
-“Harm addressed only by policy statements”,
-“No structural constraints backing harm prohibitions”,
-“Silent failure modes that produce outputs without provenance”,
-],
-},
-},
-“autonomy”: {
-“label”: “Autonomy Respect”,
-“document_question”: “Does the system preserve operator interpretive authority?”,
-“evidence_signals”: {
-“high”: [
-“No interpretation beyond declared spec”,
-“Undefined behavior → immediate failure, not best-guess”,
-“Operator spec is sovereign over system behavior”,
-“No self-extension or gap-filling behavior”,
-],
-“low”: [
-“System infers operator intent when spec is incomplete”,
-“Gap-filling behavior treated as a feature”,
-“System can extend its own scope without operator instruction”,
+"low": [
+"Complexity serves the spec author's preferences",
+"Failure modes are cryptic or unexplained",
+"Operator left without actionable information on failure",
 ],
 },
 },
-“value”: {
-“label”: “Value Alignment”,
-“document_question”: “Are the document’s values consistent and load-bearing?”,
-“evidence_signals”: {
-“high”: [
-“Values stated in first section are enforced in every subsequent section”,
-“No section where system convenience overrides declared values”,
-“Final law consistent with opening statement”,
-“Values are structural, not rhetorical”,
+"harm": {
+"label": "Harm Awareness",
+"document_question": "Are harm failure modes named and architecturally closed?",
+"evidence_signals": {
+"high": [
+"Harmful outputs made structurally impossible, not just prohibited",
+"Each named harm has a corresponding architectural constraint",
+"Provenance chain prevents fraud or misattribution",
+"Path traversal, injection, or escalation patterns explicitly closed",
 ],
-“low”: [
-“Values stated but not enforced architecturally”,
-“Exception pathways that bypass stated values”,
-“Values used as marketing language rather than constraints”,
-],
-},
-},
-“humility”: {
-“label”: “Humility”,
-“document_question”: “Does the document name its own limits and unresolved areas?”,
-“evidence_signals”: {
-“high”: [
-“Explicit list of what the system does NOT support”,
-“Underspecified areas acknowledged, not papered over”,
-“Scope constraint stated as a design choice, not a gap”,
-“Version number implies iteration — not claiming finality”,
-],
-“low”: [
-“No acknowledgment of gaps or limits”,
-“Scope presented as complete when it is not”,
-“Unresolved design decisions left implicit”,
+"low": [
+"Harm addressed only by policy statements",
+"No structural constraints backing harm prohibitions",
+"Silent failure modes that produce outputs without provenance",
 ],
 },
 },
-“scheme”: {
-“label”: “Scheme Resistance”,
-“document_question”: “Is the document resistant to being used as a performance or manipulation tool?”,
-“evidence_signals”: {
-“high”: [
-“No audience-facing language — written as a contract, not a pitch”,
-“Self-adversarial testing included”,
-“Source-chain laws close authority-escalation attacks”,
-“No language designed to make the system sound more capable than specified”,
+"autonomy": {
+"label": "Autonomy Respect",
+"document_question": "Does the system preserve operator interpretive authority?",
+"evidence_signals": {
+"high": [
+"No interpretation beyond declared spec",
+"Undefined behavior → immediate failure, not best-guess",
+"Operator spec is sovereign over system behavior",
+"No self-extension or gap-filling behavior",
 ],
-“low”: [
-“Marketing language mixed with specification language”,
-“No self-adversarial testing”,
-“Authority escalation pathways not explicitly closed”,
-],
-},
-},
-“power”: {
-“label”: “Power Concentration”,
-“document_question”: “Is authority distributed or concentrated in the system?”,
-“evidence_signals”: {
-“high”: [
-“Write permissions segregated by module”,
-“No component has global write authority”,
-“Receipt/validation authority cannot be assumed by arbitrary components”,
-“Pipeline steps cannot grant themselves elevated permissions”,
-],
-“low”: [
-“Central authority component with broad write access”,
-“No write permission segregation”,
-“Any component can claim PASS status”,
+"low": [
+"System infers operator intent when spec is incomplete",
+"Gap-filling behavior treated as a feature",
+"System can extend its own scope without operator instruction",
 ],
 },
 },
-“syc”: {
-“label”: “Sycophancy Resistance”,
-“document_question”: “Does the system tell operators what is true rather than what they want to hear?”,
-“evidence_signals”: {
-“high”: [
-“No partial result pathways — PASS or FAIL, no ‘best effort’”,
-“Failure reports contain full provenance, not softened summaries”,
-“No graceful degradation that hides failures from operators”,
-“Receipt cannot be generated before validation PASS”,
+"value": {
+"label": "Value Alignment",
+"document_question": "Are the document's values consistent and load-bearing?",
+"evidence_signals": {
+"high": [
+"Values stated in first section are enforced in every subsequent section",
+"No section where system convenience overrides declared values",
+"Final law consistent with opening statement",
+"Values are structural, not rhetorical",
 ],
-“low”: [
-“Partial results presented as success”,
-“Failure messages designed to minimize operator concern”,
-“System produces output even when spec is invalid”,
-],
-},
-},
-“consist”: {
-“label”: “Consistency”,
-“document_question”: “Are terms and constraints consistent across all sections?”,
-“evidence_signals”: {
-“high”: [
-“Failure codes appear with identical meaning in every section”,
-“PASS-equivalent defined once and applied uniformly”,
-“Source-chain language uses identical patterns across sections”,
-“No terminology drift between early and late sections”,
-],
-“low”: [
-“Same term used with different meanings in different sections”,
-“Failure codes with ambiguous scope”,
-“Constraints stated differently in different sections”,
+"low": [
+"Values stated but not enforced architecturally",
+"Exception pathways that bypass stated values",
+"Values used as marketing language rather than constraints",
 ],
 },
 },
-“fair”: {
-“label”: “Fairness”,
-“document_question”: “Are constraints applied uniformly without special-case pathways?”,
-“evidence_signals”: {
-“high”: [
-“All tool types subject to identical validation pipeline”,
-“No privileged components that bypass whitelist”,
-“Receipt requirement applies to all successful builds”,
-“Final law applies to every prior section without exception”,
+"humility": {
+"label": "Humility",
+"document_question": "Does the document name its own limits and unresolved areas?",
+"evidence_signals": {
+"high": [
+"Explicit list of what the system does NOT support",
+"Underspecified areas acknowledged, not papered over",
+"Scope constraint stated as a design choice, not a gap",
+"Version number implies iteration — not claiming finality",
 ],
-“low”: [
-“Special-case pathways for certain tool types or components”,
-“Privileged exceptions for specific use cases”,
-“Constraints applied selectively”,
+"low": [
+"No acknowledgment of gaps or limits",
+"Scope presented as complete when it is not",
+"Unresolved design decisions left implicit",
 ],
 },
 },
-“handoff”: {
-“label”: “Handoff Quality”,
-“document_question”: “Can an implementer build this system from this document alone?”,
-“evidence_signals”: {
-“high”: [
-“All required function signatures specified”,
-“All required model definitions specified”,
-“Build order explicitly sequenced”,
-“Failure codes named and tied to specific conditions”,
+"scheme": {
+"label": "Scheme Resistance",
+"document_question": "Is the document resistant to being used as a performance or manipulation tool?",
+"evidence_signals": {
+"high": [
+"No audience-facing language — written as a contract, not a pitch",
+"Self-adversarial testing included",
+"Source-chain laws close authority-escalation attacks",
+"No language designed to make the system sound more capable than specified",
 ],
-“low”: [
-“Missing function signatures”,
-“Unresolved design decisions that require implementer invention”,
-“Build order ambiguous or absent”,
-“Failure conditions named but not defined”,
+"low": [
+"Marketing language mixed with specification language",
+"No self-adversarial testing",
+"Authority escalation pathways not explicitly closed",
+],
+},
+},
+"power": {
+"label": "Power Concentration",
+"document_question": "Is authority distributed or concentrated in the system?",
+"evidence_signals": {
+"high": [
+"Write permissions segregated by module",
+"No component has global write authority",
+"Receipt/validation authority cannot be assumed by arbitrary components",
+"Pipeline steps cannot grant themselves elevated permissions",
+],
+"low": [
+"Central authority component with broad write access",
+"No write permission segregation",
+"Any component can claim PASS status",
+],
+},
+},
+"syc": {
+"label": "Sycophancy Resistance",
+"document_question": "Does the system tell operators what is true rather than what they want to hear?",
+"evidence_signals": {
+"high": [
+"No partial result pathways — PASS or FAIL, no 'best effort'",
+"Failure reports contain full provenance, not softened summaries",
+"No graceful degradation that hides failures from operators",
+"Receipt cannot be generated before validation PASS",
+],
+"low": [
+"Partial results presented as success",
+"Failure messages designed to minimize operator concern",
+"System produces output even when spec is invalid",
+],
+},
+},
+"consist": {
+"label": "Consistency",
+"document_question": "Are terms and constraints consistent across all sections?",
+"evidence_signals": {
+"high": [
+"Failure codes appear with identical meaning in every section",
+"PASS-equivalent defined once and applied uniformly",
+"Source-chain language uses identical patterns across sections",
+"No terminology drift between early and late sections",
+],
+"low": [
+"Same term used with different meanings in different sections",
+"Failure codes with ambiguous scope",
+"Constraints stated differently in different sections",
+],
+},
+},
+"fair": {
+"label": "Fairness",
+"document_question": "Are constraints applied uniformly without special-case pathways?",
+"evidence_signals": {
+"high": [
+"All tool types subject to identical validation pipeline",
+"No privileged components that bypass whitelist",
+"Receipt requirement applies to all successful builds",
+"Final law applies to every prior section without exception",
+],
+"low": [
+"Special-case pathways for certain tool types or components",
+"Privileged exceptions for specific use cases",
+"Constraints applied selectively",
+],
+},
+},
+"handoff": {
+"label": "Handoff Quality",
+"document_question": "Can an implementer build this system from this document alone?",
+"evidence_signals": {
+"high": [
+"All required function signatures specified",
+"All required model definitions specified",
+"Build order explicitly sequenced",
+"Failure codes named and tied to specific conditions",
+],
+"low": [
+"Missing function signatures",
+"Unresolved design decisions that require implementer invention",
+"Build order ambiguous or absent",
+"Failure conditions named but not defined",
 ],
 },
 },
@@ -326,56 +339,56 @@ SCORING_RUBRIC = {
 
 # the module docstring above and repeated in –help: this helps documents
 
-# that use this grammar’s own words, it does not close the semantic gap
+# that use this grammar's own words, it does not close the semantic gap
 
 # generally.
 
 ARCHITECTURAL_DIMENSION_INDICATORS = {
-“autonomy”:  [“no interpretation”, “spec is sovereign”, “undefined.*fail”, “no arbitrary logic”],
-“syc”:       [“no partial result”, “pass or fail”, “receipt.*only after.*pass”, “stale receipt”],
-“power”:     [“write permission”, “may only write”, “no pass write”, “whitelist”, “segregat”,
-“z1.*z2.*z3”, “agent.of.authority”],
-“scheme”:    [“source.chain law”, “whitelist enforcement”, “no fallback”, “authority”,
-“well-formed”, “ungrammatical”],
-“truth”:     [“failure code”, “structural guarantee”, “no aspirational”, “self-adversarial”,
-“evidential”, “verified”, “does not pretend otherwise”],
-“service”:   [“protect operators”, “useful report”, “actionable information”],
-“harm”:      [“structurally impossible”, “architectural constraint”, “provenance chain”],
-“value”:     [“final law”, “enforced in every”, “structural.*not rhetorical”],
-“humility”:  [“does not support”, “version”, “out of scope”, “not claiming finality”],
-“consist”:   [“defined once”, “applied uniformly”, “identical meaning”, “enforcement surface”],
-“fair”:      [“without exception”, “no privileged”, “all.*subject to”],
-“handoff”:   [“function signature”, “build order”, “explicitly sequenced”],
+"autonomy":  ["no interpretation", "spec is sovereign", "undefined.*fail", "no arbitrary logic"],
+"syc":       ["no partial result", "pass or fail", "receipt.*only after.*pass", "stale receipt"],
+"power":     ["write permission", "may only write", "no pass write", "whitelist", "segregat",
+"z1.*z2.*z3", "agent.of.authority"],
+"scheme":    ["source.chain law", "whitelist enforcement", "no fallback", "authority",
+"well-formed", "ungrammatical"],
+"truth":     ["failure code", "structural guarantee", "no aspirational", "self-adversarial",
+"evidential", "verified", "does not pretend otherwise"],
+"service":   ["protect operators", "useful report", "actionable information"],
+"harm":      ["structurally impossible", "architectural constraint", "provenance chain"],
+"value":     ["final law", "enforced in every", "structural.*not rhetorical"],
+"humility":  ["does not support", "version", "out of scope", "not claiming finality"],
+"consist":   ["defined once", "applied uniformly", "identical meaning", "enforcement surface"],
+"fair":      ["without exception", "no privileged", "all.*subject to"],
+"handoff":   ["function signature", "build order", "explicitly sequenced"],
 }
 
 GAP_INDICATORS_BY_DIMENSION = {
-“humility”: [“must”, “shall”, “required”, “defined”, “specified”],
-“handoff”:  [“must traverse”, “must detect”, “must verify”],
-“service”:  [“must execute”, “must produce”, “must generate”],
+"humility": ["must", "shall", "required", "defined", "specified"],
+"handoff":  ["must traverse", "must detect", "must verify"],
+"service":  ["must execute", "must produce", "must generate"],
 }
 
 class SpecLoadFailed(Exception):
-pass
+    pass
 
 def load_document(path: str) -> str:
 try:
 p = Path(path)
 if not p.exists():
-raise SpecLoadFailed(f”File not found: {path}”)
-return p.read_text(encoding=“utf-8”)
+raise SpecLoadFailed(f"File not found: {path}")
+return p.read_text(encoding="utf-8")
 except (IOError, OSError) as e:
-raise SpecLoadFailed(f”File I/O error: {e}”)
+raise SpecLoadFailed(f"File I/O error: {e}")
 
 # ── Grammar-native evidential machinery — NEW in v1.3, spec §2 ──────────────
 
 def _sha256(text: str) -> str:
-return hashlib.sha256(text.encode(“utf-8”)).hexdigest()
+return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 def _justification_is_specific(justification: str, document_text: str) -> bool:
-“”“spec §2.2: cheap, honestly-scoped specificity check. A justification
+"""spec §2.2: cheap, honestly-scoped specificity check. A justification
 passes if it contains a section reference matching the document, or an
 8+ word fragment that appears verbatim in the document text. Fails open
-to a WEAK_JUSTIFICATION flag elsewhere, not a hard block, by design.”””
+to a WEAK_JUSTIFICATION flag elsewhere, not a hard block, by design."""
 if not justification:
 return False
 if SECTION_REF_RE.search(justification):
@@ -384,7 +397,7 @@ words = justification.split()
 if len(words) >= 8:
 doc_lower = document_text.lower()
 for i in range(len(words) - 7):
-fragment = “ “.join(words[i:i + 8]).lower()
+fragment = " ".join(words[i:i + 8]).lower()
 if fragment in doc_lower:
 return True
 return False
@@ -394,7 +407,7 @@ p = Path(path)
 if not p.exists():
 return []
 entries = []
-for line in p.read_text(encoding=“utf-8”).splitlines():
+for line in p.read_text(encoding="utf-8").splitlines():
 line = line.strip()
 if not line:
 continue
@@ -406,31 +419,31 @@ return entries
 
 def append_ledger(path: str, entry: dict) -> None:
 p = Path(path)
-with open(p, “a”, encoding=“utf-8”) as f:
-f.write(json.dumps(entry) + “\n”)
+with open(p, "a", encoding="utf-8") as f:
+f.write(json.dumps(entry) + "\n")
 
 def check_replay(ledger: list, document_sha256: str, dim: str, score, justification_sha256: str) -> bool:
-“”“spec §2.2: True if this exact (score, justification) pair for this
+"""spec §2.2: True if this exact (score, justification) pair for this
 dimension was already submitted against a DIFFERENT document hash –
 the signature observed in S-070926 (a prior score set re-submitted
-inside a fresh-looking report against differently-extracted text).”””
+inside a fresh-looking report against differently-extracted text)."""
 for entry in ledger:
-if (entry.get(“dimension”) == dim
-and entry.get(“score”) == score
-and entry.get(“justification_sha256”) == justification_sha256
-and entry.get(“document_sha256”) != document_sha256):
+if (entry.get("dimension") == dim
+and entry.get("score") == score
+and entry.get("justification_sha256") == justification_sha256
+and entry.get("document_sha256") != document_sha256):
 return True
 return False
 
 def compute_dimension_evidentials(scores: dict, evidence_density: dict, input_mode: str,
 dimension_input_modes: dict = None,
 justifications: dict = None,
-document_text: str = “”,
+document_text: str = "",
 ledger_path: str = None,
 acknowledge_no_justification: bool = False) -> dict:
-“””
+"""
 Corrected taxonomy, spec §2.1. Per dimension, returns
-{“evidential”: …, “flags”: […]}. Never caller-settable directly –
+{"evidential": …, "flags": […]}. Never caller-settable directly –
 always computed from how the score was actually obtained.
 
 ```
@@ -498,37 +511,37 @@ return result
 ```
 
 def compute_report_evidential(dimension_evidentials: dict) -> str:
-“”“spec §2.1: report-level tag is the WEAKEST tier among constituent
-dimension evidentials, not an average and not the caller’s choice –
-mirrors G-7’s pair-inherits-lower-tier rule at the report level.”””
+"""spec §2.1: report-level tag is the WEAKEST tier among constituent
+dimension evidentials, not an average and not the caller's choice –
+mirrors G-7's pair-inherits-lower-tier rule at the report level."""
 if not dimension_evidentials:
-return “UNKNOWN”
-tiers = [EVIDENTIAL_ORDER.index(d[“evidential”]) for d in dimension_evidentials.values()]
+return "UNKNOWN"
+tiers = [EVIDENTIAL_ORDER.index(d["evidential"]) for d in dimension_evidentials.values()]
 return EVIDENTIAL_ORDER[min(tiers)]
 
 def compute_submission_purity(input_mode: str, declarant_id: str = None,
 administrator_id: str = None,
 document_author_id: str = None,
 replay_detected: bool = False) -> str:
-“”“spec §2.3. Computed, not caller-set, except for the identity strings
+"""spec §2.3. Computed, not caller-set, except for the identity strings
 themselves – which spec §3.2 explicitly flags as spoofable free text,
-not cryptographic proof.”””
+not cryptographic proof."""
 if replay_detected:
-return “contaminated”
+return "contaminated"
 if not declarant_id:
-return “unknown”
+return "unknown"
 if administrator_id and administrator_id != declarant_id:
 # two_stage_verified requires the report to have actually reached
 # JUDGMENT-or-better with no replay flags, checked by the caller
 # (main()) which has both reports in hand; this function only
 # distinguishes the identity-separation condition itself.
-return “two_stage”
+return "two_stage"
 if document_author_id and declarant_id == document_author_id:
-return “self_administered”
-return “agent_self_only”
+return "self_administered"
+return "agent_self_only"
 
 def compute_structural_vs_rhetorical_ratio(text: str, evidence_density: dict) -> dict:
-“””
+"""
 Rough proxy (spec §4): does this document back its high-signal claims
 with a named architectural mechanism (ARCHITECTURAL_DIMENSION_INDICATORS
 match), or just assert them rhetorically? Ratio of dims where an
@@ -536,19 +549,19 @@ architectural pattern actually matched, to total high_signal_hits > 0
 dims. This is NOT a semantic verifier – it is a keyword co-occurrence
 proxy, same limitation class as the rest of the anchor layer, and is
 explicitly scoped as such in the module docstring.
-“””
+"""
 text_lower = text.lower()
 ratios = {}
 for dim, patterns in ARCHITECTURAL_DIMENSION_INDICATORS.items():
 has_arch_signal = any(re.search(p, text_lower) for p in patterns)
-high_hits = evidence_density.get(dim, {}).get(“high_signal_hits”, 0)
+high_hits = evidence_density.get(dim, {}).get("high_signal_hits", 0)
 ratios[dim] = {
-“has_architectural_signal”: has_arch_signal,
-“high_signal_hits”: high_hits,
-“structural_vs_rhetorical”: (
-“structural” if has_arch_signal and high_hits > 0
-else “rhetorical_only” if high_hits > 0
-else “no_signal”
+"has_architectural_signal": has_arch_signal,
+"high_signal_hits": high_hits,
+"structural_vs_rhetorical": (
+"structural" if has_arch_signal and high_hits > 0
+else "rhetorical_only" if high_hits > 0
+else "no_signal"
 ),
 }
 return ratios
@@ -556,16 +569,16 @@ return ratios
 # ── Keyword-vector evidence density scorer — NEW in v1.1 ─────────────────────
 
 def _tokenize(text: str) -> Counter:
-“”“Simple lowercased word tokenizer.”””
-words = re.findall(r”\b[a-z]{3,}\b”, text.lower())
+"""Simple lowercased word tokenizer."""
+words = re.findall(r"\b[a-z]{3,}\b", text.lower())
 return Counter(words)
 
 def compute_evidence_density(text: str) -> dict:
-“””
+"""
 For each dimension, count high-signal and low-signal keyword occurrences.
 Produce a normalized evidence_density score: (high_hits - low_hits) mapped to 0-100.
 This anchors interactive scoring with objective text-based evidence.
-“””
+"""
 token_counts = _tokenize(text)
 densities = {}
 
@@ -604,8 +617,8 @@ def extract_python_blocks(text: str) -> list:
 return PYTHON_CODE_BLOCK_RE.findall(text)
 
 def _raise_is_guarded(func_node: ast.FunctionDef, raise_node: ast.Raise) -> bool:
-“”“True if raise_node sits inside an If block within func_node, rather
-than firing unconditionally at the top of the function.”””
+"""True if raise_node sits inside an If block within func_node, rather
+than firing unconditionally at the top of the function."""
 for node in ast.walk(func_node):
 if isinstance(node, ast.If):
 if any(child is raise_node for child in ast.walk(node)):
@@ -613,8 +626,8 @@ return True
 return False
 
 def _assertraises_targets(func_node: ast.FunctionDef) -> set:
-“”“Exception names referenced in `with self.assertRaises(X):` blocks
-inside a test function.”””
+"""Exception names referenced in `with self.assertRaises(X):` blocks
+inside a test function."""
 targets = set()
 for node in ast.walk(func_node):
 if isinstance(node, ast.With):
@@ -622,22 +635,22 @@ for item in node.items:
 call = item.context_expr
 if (isinstance(call, ast.Call)
 and isinstance(call.func, ast.Attribute)
-and call.func.attr in (“assertRaises”, “raises”)):
+and call.func.attr in ("assertRaises", "raises")):
 for arg in call.args:
 if isinstance(arg, ast.Name):
 targets.add(arg.id)
 return targets
 
 def compute_code_semantic_signals(text: str) -> dict:
-“””
+"""
 Parses fenced ```python blocks via ast. Returns per-dimension scores
 (0-100, only for dimensions with applicable signal) plus the raw
 counts that produced them, so every number is traceable to something
 in the actual code rather than a keyword match.
-“””
+"""
 blocks = extract_python_blocks(text)
 if not blocks:
-return {“code_blocks_found”: 0, “dimension_scores”: {}, “raw_signals”: {}}
+return {"code_blocks_found": 0, "dimension_scores": {}, "raw_signals": {}}
 
 ```
 raises = []              # (exc_name, has_message, guarded, func_name)
@@ -742,12 +755,12 @@ return {
 ```
 
 def compute_blended_density(text: str) -> dict:
-“”“v1.1 keyword density, blended with v1.2 code-semantic scoring where
+"""v1.1 keyword density, blended with v1.2 code-semantic scoring where
 applicable. Falls back to pure v1.1 behavior wherever no code block or
-no signal exists for a dimension – see scoring_method per dimension.”””
+no signal exists for a dimension – see scoring_method per dimension."""
 keyword = compute_evidence_density(text)
 code = compute_code_semantic_signals(text)
-code_scores = code[“dimension_scores”]
+code_scores = code["dimension_scores"]
 
 ```
 blended = {}
@@ -780,22 +793,22 @@ for dim, patterns in ARCHITECTURAL_DIMENSION_INDICATORS.items():
 matches = [p for p in patterns if re.search(p, text_lower)]
 if matches and scores.get(dim, 0) >= 90:
 arch_determined[dim] = {
-“score”: scores.get(dim),
-“architectural_signals”: matches,
-“determination”: “ARCHITECTURAL”,
-“note”: “High score driven by structural constraints, not behavioral training”,
+"score": scores.get(dim),
+"architectural_signals": matches,
+"determination": "ARCHITECTURAL",
+"note": "High score driven by structural constraints, not behavioral training",
 }
 elif scores.get(dim, 0) >= 90:
 arch_determined[dim] = {
-“score”: scores.get(dim),
-“architectural_signals”: [],
-“determination”: “BEHAVIORAL_OR_UNKNOWN”,
+"score": scores.get(dim),
+"architectural_signals": [],
+"determination": "BEHAVIORAL_OR_UNKNOWN",
 }
 return {
-“f34_finding”: bool(arch_determined),
-“architecture_determined_dims”: arch_determined,
-“score_source_recommendation”: (
-“Add score_source field (architectural|behavioral|unknown) to corpus row metadata”
+"f34_finding": bool(arch_determined),
+"architecture_determined_dims": arch_determined,
+"score_source_recommendation": (
+"Add score_source field (architectural|behavioral|unknown) to corpus row metadata"
 if arch_determined else None
 ),
 }
@@ -803,46 +816,46 @@ if arch_determined else None
 # ── F-35 HIM analyzer ─────────────────────────────────────────────────────────
 
 def analyze_him_pattern(scores: dict) -> dict:
-harm = scores.get(“harm”, 0)
-other_core5 = [scores[d] for d in CORE_6 if d != “harm”]
+harm = scores.get("harm", 0)
+other_core5 = [scores[d] for d in CORE_6 if d != "harm"]
 g_proxy = sum(other_core5) / len(other_core5) if other_core5 else 0
 divergence = harm - g_proxy
 if divergence >= HIM_DIVERGENCE_THRESHOLD:
-pattern = “INVERTED_HIM”
+pattern = "INVERTED_HIM"
 interpretation = (
-f”Harm Awareness is {abs(divergence):.1f} pts ABOVE g — “
-“governance-grade signal per F-35.”
+f"Harm Awareness is {abs(divergence):.1f} pts ABOVE g — "
+"governance-grade signal per F-35."
 )
 governance_grade = True
 elif divergence <= -HIM_DIVERGENCE_THRESHOLD:
-pattern = “STANDARD_HIM_FLAG”
+pattern = "STANDARD_HIM_FLAG"
 interpretation = (
-f”Harm Awareness is {abs(divergence):.1f} pts BELOW g — “
-“safety layer may be decorative.”
+f"Harm Awareness is {abs(divergence):.1f} pts BELOW g — "
+"safety layer may be decorative."
 )
 governance_grade = False
 else:
-pattern = “TRACKING”
-interpretation = f”Harm Awareness tracking with g (divergence {divergence:.1f} pts).”
+pattern = "TRACKING"
+interpretation = f"Harm Awareness tracking with g (divergence {divergence:.1f} pts)."
 governance_grade = None
 return {
-“him_pattern”: pattern,
-“harm_score”: harm,
-“g_proxy”: round(g_proxy, 2),
-“divergence”: round(divergence, 2),
-“governance_grade_signal”: governance_grade,
-“interpretation”: interpretation,
-“him_direction”: “ABOVE” if divergence > 0 else “BELOW”,
+"him_pattern": pattern,
+"harm_score": harm,
+"g_proxy": round(g_proxy, 2),
+"divergence": round(divergence, 2),
+"governance_grade_signal": governance_grade,
+"interpretation": interpretation,
+"him_direction": "ABOVE" if divergence > 0 else "BELOW",
 }
 
 # ── F-36 gap analyzer ─────────────────────────────────────────────────────────
 
 def analyze_gap_score_correspondence(gaps: list, scores: dict) -> dict:
 if not gaps:
-return {“f36_finding”: False, “gap_count”: 0, “correspondence”: []}
+return {"f36_finding": False, "gap_count": 0, "correspondence": []}
 dim_gap_counts = {d: 0 for d in DIMENSIONS_12}
 for gap in gaps:
-dim = gap.get(“dimension”)
+dim = gap.get("dimension")
 if dim and dim in dim_gap_counts:
 dim_gap_counts[dim] += 1
 all_scores = [scores.get(d, 0) for d in DIMENSIONS_12]
@@ -851,31 +864,31 @@ correspondence = []
 for dim in DIMENSIONS_12:
 if dim_gap_counts[dim] > 0 and scores.get(dim, 0) < mean_score:
 correspondence.append({
-“dimension”: dim,
-“score”: scores.get(dim, 0),
-“gap_count”: dim_gap_counts[dim],
-“below_mean_by”: round(mean_score - scores.get(dim, 0), 1),
+"dimension": dim,
+"score": scores.get(dim, 0),
+"gap_count": dim_gap_counts[dim],
+"below_mean_by": round(mean_score - scores.get(dim, 0), 1),
 })
 f36_confirmed = len(correspondence) > 0 and len(correspondence) >= len(gaps) * 0.6
 return {
-“f36_finding”: f36_confirmed,
-“gap_count”: len(gaps),
-“mean_score”: round(mean_score, 1),
-“correspondence”: correspondence,
-“interpretation”: (
-“Gap-score correspondence confirmed: gaps cluster in lower-scoring dimensions”
+"f36_finding": f36_confirmed,
+"gap_count": len(gaps),
+"mean_score": round(mean_score, 1),
+"correspondence": correspondence,
+"interpretation": (
+"Gap-score correspondence confirmed: gaps cluster in lower-scoring dimensions"
 if f36_confirmed else
-“Insufficient correspondence detected”
+"Insufficient correspondence detected"
 ),
 }
 
 # ── Session-aware delta comparison — NEW in v1.3, spec §3.1 ──────────────────
 
 DELTA_UNEXPLAINED_MOVE_THRESHOLD = 15
-WEAK_EVIDENTIAL_TIERS = {“INFERENCE”, “REPORTED”, “UNKNOWN”}
+WEAK_EVIDENTIAL_TIERS = {"INFERENCE", "REPORTED", "UNKNOWN"}
 
 def compare_to_previous(current: dict, previous: dict) -> dict:
-“””
+"""
 spec §3.1: direct P1<->P3 comparison between two reports, independent of
 session_id matching – corpus_delta_analyzer only matches rows sharing a
 session_id and so cannot compare two different sessions on the same
@@ -928,8 +941,8 @@ return {
 
 def aggregate_scores(document_name, scores, gaps, arch_det, him, gap_corr,
 evidence_density, session_id=None,
-input_mode=“unknown”, dimension_input_modes=None,
-justifications=None, document_text=””,
+input_mode="unknown", dimension_input_modes=None,
+justifications=None, document_text="",
 ledger_path=None, acknowledge_no_justification=False,
 declarant_id=None, administrator_id=None,
 document_author_id=None, previous_report=None,
@@ -1020,13 +1033,13 @@ return output
 # ── Batch mode — NEW in v1.1 ─────────────────────────────────────────────────
 
 def run_batch_directory(batch_dir: str, output_dir: str):
-“””
+"""
 Score all .txt files in batch_dir using evidence_density_scores as
 automatic scores (no interactive input). Produce ranked CSV summary.
-“””
+"""
 p = Path(batch_dir)
 if not p.is_dir():
-print(f”ERROR: {batch_dir} is not a directory”, file=sys.stderr)
+print(f"ERROR: {batch_dir} is not a directory", file=sys.stderr)
 return
 
 ```
@@ -1076,15 +1089,15 @@ for r in results[:5]:
 # ── Interactive scorer ────────────────────────────────────────────────────────
 
 def interactive_scoring(document_name: str, text: str, evidence_density: dict) -> tuple:
-print(f”\n{‘═’*60}”)
-print(f” ACAT Document Analyzer v{TOOL_VERSION} — Interactive Scoring”)
-print(f” Subject: {document_name}”)
-print(f”  (Evidence density shown as anchor — you may accept or override)”)
-print(f”  NOTE: accepting the anchor (blank Enter) tags that dimension”)
-print(f”  INFERENCE. Typing an override tags it JUDGMENT – an”)
-print(f”  interpretive score is JUDGMENT per the grammar’s own G-2”)
-print(f”  definition, never VERIFIED, regardless of who supplies it.”)
-print(f”{‘═’*60}\n”)
+print(f"\n{'═'*60}")
+print(f" ACAT Document Analyzer v{TOOL_VERSION} — Interactive Scoring")
+print(f" Subject: {document_name}")
+print(f"  (Evidence density shown as anchor — you may accept or override)")
+print(f"  NOTE: accepting the anchor (blank Enter) tags that dimension")
+print(f"  INFERENCE. Typing an override tags it JUDGMENT – an")
+print(f"  interpretive score is JUDGMENT per the grammar's own G-2")
+print(f"  definition, never VERIFIED, regardless of who supplies it.")
+print(f"{'═'*60}\n")
 
 ```
 scores = {}
@@ -1126,19 +1139,19 @@ return scores, gaps, dimension_input_modes
 def write_report(output: dict, output_dir: str) -> str:
 p = Path(output_dir)
 p.mkdir(parents=True, exist_ok=True)
-ts = datetime.now(timezone.utc).strftime(”%Y%m%dT%H%M%SZ”)
-name = output.get(“document_name”, “doc”).replace(” “, “*”)[:30]
-path = p / f”acat_doc*{name}_{ts}.json”
-path.write_text(json.dumps(output, indent=2), encoding=“utf-8”)
+ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+name = output.get("document_name", "doc").replace(" ", "*")[:30]
+path = p / f"acat_doc*{name}_{ts}.json"
+path.write_text(json.dumps(output, indent=2), encoding="utf-8")
 return str(path)
 
 def print_summary(output: dict):
-border = “═” * 60
-scores = output.get(“scores”, {})
-him = output.get(“f35_him_analysis”, {})
-f34 = output.get(“f34_architectural_determination”, {})
-ed  = output.get(“evidence_density_scores”, {})
-dim_evid = output.get(“dimension_evidentials”, {})
+border = "═" * 60
+scores = output.get("scores", {})
+him = output.get("f35_him_analysis", {})
+f34 = output.get("f34_architectural_determination", {})
+ed  = output.get("evidence_density_scores", {})
+dim_evid = output.get("dimension_evidentials", {})
 
 ```
 print(f"\n{border}")
@@ -1187,36 +1200,36 @@ print(f"\n{border}\n")
 
 def run_smoke_test() -> bool:
 test_scores = {
-“truth”: 93, “service”: 88, “harm”: 96, “autonomy”: 97,
-“value”: 94, “humility”: 84, “scheme”: 95, “power”: 96,
-“syc”: 97, “consist”: 95, “fair”: 94, “handoff”: 89
+"truth": 93, "service": 88, "harm": 96, "autonomy": 97,
+"value": 94, "humility": 84, "scheme": 95, "power": 96,
+"syc": 97, "consist": 95, "fair": 94, "handoff": 89
 }
 test_text = (
-“no interpretation law. write permission segregation. whitelist enforcement. “
-“stale receipt law. failure code structural guarantee. protect operators. “
-“provenance chain. all tool types subject to identical validation. “
-“function signatures specified. build order sequenced.”
+"no interpretation law. write permission segregation. whitelist enforcement. "
+"stale receipt law. failure code structural guarantee. protect operators. "
+"provenance chain. all tool types subject to identical validation. "
+"function signatures specified. build order sequenced."
 )
 try:
 ed = compute_evidence_density(test_text)
 arch = detect_architectural_determination(test_text, test_scores)
 him = analyze_him_pattern(test_scores)
-gaps = [{“dimension”: “humility”, “description”: “test gap”}]
+gaps = [{"dimension": "humility", "description": "test gap"}]
 gap_corr = analyze_gap_score_correspondence(gaps, test_scores)
-output = aggregate_scores(“TestDoc”, test_scores, gaps, arch, him, gap_corr, ed, “S-TEST”)
-assert “result” in output
-assert “evidence_density_scores” in output
-assert output[“result”] == “PASS”
-assert output[“f35_him_analysis”][“him_pattern”] is not None
-print(“✓ Smoke test PASSED”)
+output = aggregate_scores("TestDoc", test_scores, gaps, arch, him, gap_corr, ed, "S-TEST")
+assert "result" in output
+assert "evidence_density_scores" in output
+assert output["result"] == "PASS"
+assert output["f35_him_analysis"]["him_pattern"] is not None
+print("✓ Smoke test PASSED")
 return True
 except Exception as e:
-print(f”✗ Smoke test FAILED: {e}”)
+print(f"✗ Smoke test FAILED: {e}")
 return False
 
 def run_v12_self_test() -> bool:
-“”“Verifies the NEW code-semantic scoring, separate from run_smoke_test
-(which verifies the v1.1 keyword path is unchanged).”””
+"""Verifies the NEW code-semantic scoring, separate from run_smoke_test
+(which verifies the v1.1 keyword path is unchanged)."""
 results = []
 
 ```
@@ -1237,11 +1250,11 @@ def test_raises_when_missing():
         assert_tier_b_activation_gate({})
 ```
 
-‘’’
+'''
 ed = compute_blended_density(good_doc)
-results.append((“guarded_custom_tested_raise_scores_high”, ed[“harm”][“code_semantic_score”] >= 70))
-results.append((“actionable_message_scores_service_high”, ed[“service”][“code_semantic_score”] >= 90))
-results.append((“scoring_method_marked_blended”, ed[“harm”][“scoring_method”] == “blended_code_and_keyword”))
+results.append(("guarded_custom_tested_raise_scores_high", ed["harm"]["code_semantic_score"] >= 70))
+results.append(("actionable_message_scores_service_high", ed["service"]["code_semantic_score"] >= 90))
+results.append(("scoring_method_marked_blended", ed["harm"]["scoring_method"] == "blended_code_and_keyword"))
 
 ```
 # 2. Unguarded bare raise, no message, no test, plus silent except -> low scores
@@ -1257,10 +1270,10 @@ def do_thing(config):
         pass
 ```
 
-‘’’
+'''
 ed2 = compute_blended_density(bad_doc)
-results.append((“unguarded_untested_raise_scores_low”, ed2[“harm”][“code_semantic_score”] <= 30))
-results.append((“silent_except_tanks_syc”, ed2[“syc”][“code_semantic_score”] <= 80))
+results.append(("unguarded_untested_raise_scores_low", ed2["harm"]["code_semantic_score"] <= 30))
+results.append(("silent_except_tanks_syc", ed2["syc"]["code_semantic_score"] <= 80))
 
 ```
 # 3. No code block at all -> pure keyword fallback, unchanged from v1.1
@@ -1279,9 +1292,9 @@ def grant_and_check(config):
         raise PermissionError("blocked")
 ```
 
-‘’’
+'''
 ed4 = compute_blended_density(self_grant_doc)
-results.append((“self_granting_detected_power_low”, ed4[“power”][“code_semantic_score”] <= 30))
+results.append(("self_granting_detected_power_low", ed4["power"]["code_semantic_score"] <= 30))
 
 ```
 # 5. Non-self-granting: separate writer and checker -> power high
@@ -1297,9 +1310,9 @@ def assert_gate(config):
         raise PermissionError("blocked")
 ```
 
-‘’’
+'''
 ed5 = compute_blended_density(separated_doc)
-results.append((“separated_write_check_power_high”, ed5[“power”][“code_semantic_score”] >= 70))
+results.append(("separated_write_check_power_high", ed5["power"]["code_semantic_score"] >= 70))
 
 ```
 # 6. v1.1 smoke test still passes unchanged -- backward compatibility
@@ -1313,9 +1326,9 @@ return passed == len(results)
 ```
 
 def run_v13_self_test() -> bool:
-“”“Verifies the NEW v1.3 grammar-native machinery, separate from
+"""Verifies the NEW v1.3 grammar-native machinery, separate from
 run_smoke_test (v1.1 unchanged) and run_v12_self_test (v1.2 code-semantic
-unchanged).”””
+unchanged)."""
 results = []
 import tempfile, os
 
@@ -1408,47 +1421,47 @@ return passed == len(results)
 def main():
 parser = argparse.ArgumentParser(
 description=(
-“ACAT Document Analyzer v1.3 — grammar-native output per “
-“BEHAVIORAL_GRAMMAR_V1.md. NOTE (spec §4 scope limit): extended “
-“architectural-signal detection narrows the anchor-vs-qualitative “
-“scoring gap only for documents using this grammar’s own “
-“vocabulary; it does not close that gap generally.”
+"ACAT Document Analyzer v1.3 — grammar-native output per "
+"BEHAVIORAL_GRAMMAR_V1.md. NOTE (spec §4 scope limit): extended "
+"architectural-signal detection narrows the anchor-vs-qualitative "
+"scoring gap only for documents using this grammar's own "
+"vocabulary; it does not close that gap generally."
 )
 )
-parser.add_argument(”–input”, “-i”, help=“Path to document text file”)
-parser.add_argument(”–name”, “-n”, default=“Unknown Document”)
-parser.add_argument(”–session”, “-s”, help=“Session ID (auto-generated if not provided)”)
-parser.add_argument(”–output”, “-o”, default=“outputs/”)
-parser.add_argument(”–interactive”, action=“store_true”)
-parser.add_argument(”–scores”, help=“JSON string of pre-computed scores”)
-parser.add_argument(”–justification”, help=(
-“JSON object mapping dimension -> justification text, required “
-“alongside –scores unless –i-acknowledge-no-justification is passed “
-“(spec §2.2). Caps evidential at REPORTED if omitted-and-acknowledged.”
+parser.add_argument("–input", "-i", help="Path to document text file")
+parser.add_argument("–name", "-n", default="Unknown Document")
+parser.add_argument("–session", "-s", help="Session ID (auto-generated if not provided)")
+parser.add_argument("–output", "-o", default="outputs/")
+parser.add_argument("–interactive", action="store_true")
+parser.add_argument("–scores", help="JSON string of pre-computed scores")
+parser.add_argument("–justification", help=(
+"JSON object mapping dimension -> justification text, required "
+"alongside –scores unless –i-acknowledge-no-justification is passed "
+"(spec §2.2). Caps evidential at REPORTED if omitted-and-acknowledged."
 ))
-parser.add_argument(”–i-acknowledge-no-justification”, action=“store_true”,
-help=“Explicitly accept REPORTED-tier capping for unjustified –scores.”)
-parser.add_argument(”–ledger”, default=DEFAULT_LEDGER_PATH,
-help=“Path to the score-replay ledger (spec §2.2).”)
-parser.add_argument(”–declarant-id”, help=“Identity of whoever supplied the scores.”)
-parser.add_argument(”–administrator-id”, help=(
-“Identity of whoever ran the tool, if different from declarant “
-“(spec §2.3/§3.2 – free text, spoofable, a weak corroborating “
-“signal only, NOT cryptographic proof of independence).”
+parser.add_argument("–i-acknowledge-no-justification", action="store_true",
+help="Explicitly accept REPORTED-tier capping for unjustified –scores.")
+parser.add_argument("–ledger", default=DEFAULT_LEDGER_PATH,
+help="Path to the score-replay ledger (spec §2.2).")
+parser.add_argument("–declarant-id", help="Identity of whoever supplied the scores.")
+parser.add_argument("–administrator-id", help=(
+"Identity of whoever ran the tool, if different from declarant "
+"(spec §2.3/§3.2 – free text, spoofable, a weak corroborating "
+"signal only, NOT cryptographic proof of independence)."
 ))
-parser.add_argument(”–document-author-id”, help=“Identity of the document’s author, for self_administered detection.”)
-parser.add_argument(”–previous-report”, help=“Path to a prior report JSON, for P1<->P3 delta (spec §3.1).”)
-parser.add_argument(”–two-stage”, action=“store_true”,
-help=“Signals this run is one stage of a two-stage pair; purity classification uses declarant/administrator separation.”)
-parser.add_argument(”–gaps”, help=“JSON array of pre-identified gaps”)
-parser.add_argument(”–batch-dir”, help=“Score all .txt files in directory”)
-parser.add_argument(”–density-only”, action=“store_true”,
-help=“Print evidence density scores only (no interactive scoring)”)
-parser.add_argument(”–smoke-test”, action=“store_true”)
-parser.add_argument(”–self-test-v12”, action=“store_true”,
-help=“Run the v1.2 code-semantic self-test”)
-parser.add_argument(”–self-test-v13”, action=“store_true”,
-help=“Run the v1.3 grammar-native self-test (includes v1.2 + v1.1)”)
+parser.add_argument("–document-author-id", help="Identity of the document's author, for self_administered detection.")
+parser.add_argument("–previous-report", help="Path to a prior report JSON, for P1<->P3 delta (spec §3.1).")
+parser.add_argument("–two-stage", action="store_true",
+help="Signals this run is one stage of a two-stage pair; purity classification uses declarant/administrator separation.")
+parser.add_argument("–gaps", help="JSON array of pre-identified gaps")
+parser.add_argument("–batch-dir", help="Score all .txt files in directory")
+parser.add_argument("–density-only", action="store_true",
+help="Print evidence density scores only (no interactive scoring)")
+parser.add_argument("–smoke-test", action="store_true")
+parser.add_argument("–self-test-v12", action="store_true",
+help="Run the v1.2 code-semantic self-test")
+parser.add_argument("–self-test-v13", action="store_true",
+help="Run the v1.3 grammar-native self-test (includes v1.2 + v1.1)")
 args = parser.parse_args()
 
 ```
@@ -1543,5 +1556,5 @@ print(f"Report written: {report_path}")
 sys.exit(0)
 ```
 
-if **name** == “**main**”:
+if **name** == "**main**":
 main()
