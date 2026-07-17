@@ -1199,7 +1199,7 @@ if __name__ == "__main__":
             ),
             "parser": "openai/gpt-4o-mini",
             "researcher": GeneralLlm(
-                model="gemini/gemini-2.0-flash",  # LiteLLM Gemini provider format; cost: free-tier researcher, the volume driver
+                model="together_ai/meta-llama/Llama-3-70b-chat-hf",  # Free tier, good quality
                 temperature=0.3, timeout=60, allowed_tries=2,
             ),
             "summarizer": "openai/gpt-4o-mini",
