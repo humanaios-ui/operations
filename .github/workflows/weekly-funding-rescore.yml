@@ -1,0 +1,68 @@
+name: Weekly Funding Rescore
+
+on:
+  schedule:
+    # Run every Monday at 09:30 UTC (after profile sync)
+    - cron: '30 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  rescore:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Rescore opportunities by research fit
+        env:
+          PYTHONPATH: ./src
+        run: |
+          python -m humanaios_operations.cli funding rank --markdown data/ranked_opportunities.md
+
+      - name: Generate dashboard
+        env:
+          PYTHONPATH: ./src
+        run: |
+          python -m humanaios_operations.dashboard generate
+
+      - name: Commit updated rankings and dashboard
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "HumanAIOS Bot"
+
+          if git diff --quiet data/ranked_opportunities.json data/ranked_opportunities.md reports/dashboard.html; then
+            echo "No changes to rankings, skipping commit"
+          else
+            git add data/ranked_opportunities.json data/ranked_opportunities.md reports/dashboard.html
+            git commit -m "chore: auto-rescore opportunities by research fit ($(date -u +'%Y-%m-%d'))"
+            git push
+          fi
+
+      - name: Send email alerts for new high-fit opportunities
+        if: success()
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+          PYTHONPATH: ./src
+        run: |
+          if [ -z "$SMTP_HOST" ]; then
+            echo "⚠️  Email not configured (SMTP_HOST secret missing). Skipping email alerts."
+            echo "To enable: add SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, ALERT_EMAIL to GitHub Secrets"
+          else
+            python -m humanaios_operations.email_alerts send_opportunity_digest
+          fi
