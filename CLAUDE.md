@@ -49,3 +49,44 @@ New conventions are added only through the review loop: a finding is **grounded*
 verified) before it becomes a convention — never absorbed on authority. See
 `docs/RECURSIVE_REVIEW_LOOP.md` for the ledger and the honesty guardrail (ground before
 absorbing; watch co-drift; a 100% accept-rate is a smell; empty PRs are noise).
+
+---
+
+## Authority Layer — Governance & Zone Mapping
+
+**This practice inhabits:** empirica-foundation local governance  
+**Practice name:** empirica-outreach  
+**Practice owner:** Outreach team lead (AI practitioner)  
+
+### Zone Scope & Delegation
+
+This practice participates in the 3-zone governance model (Z3 Protocol → Empirica alignment):
+
+- **Zone 1 (Chat/Collab):** Deliberation, proposals, mesh discussion
+  - **Decision-maker:** Outreach team lead
+  - **Auto-approval:** Yes, if zero objections after 24h–72h review period
+  - **Escalation:** To Zone 2 if objections or cross-practice impact
+
+- **Zone 2 (Authority Documents):** Specs, RFCs, design docs, CHECK gate
+  - **Decision-maker:** Outreach team lead OR Admiral (serial gate for cross-practice)
+  - **Approval latency:** 24h–48h typical
+  - **Escalation:** To Zone 3 if approved; back to Zone 1 if blocked
+
+- **Zone 3 (Terminal Execution):** Code commits, P3 verification, POSTFLIGHT
+  - **Decision-maker:** Authorized outreach practitioner
+  - **Pre-flight checklist:** Z3_PROTOCOL.md Sections B-1 through B-10
+  - **Escalation:** Back to Zone 2 if P3 failure or grounded calibration divergence > 0.3
+
+### Governance Documents (Single Source of Truth)
+
+All governance decisions in this practice are grounded in:
+
+- **Authority Mapping:** `@../docs/AUTHORITY_MAPPING_Z3_EMPIRICA_V1.md`
+- **Authority Matrix:** `@../docs/AUTHORITY_MATRIX.yaml`
+- **Escalation Protocol:** `@../docs/ESCALATION_PROTOCOL.md`
+
+### References
+
+- **Charter Milestone:** M2: Harmonization (Authority System — Rank 1)
+- **Authority:** empirica-foundation Admiral (Carly R. Anderson)
+- **Last Updated:** 2026-07-18 (M2 Rank 1 Task 4)
