@@ -1167,6 +1167,12 @@ if __name__ == "__main__":
     logging.getLogger("LiteLLM").setLevel(logging.WARNING)
     logging.getLogger("LiteLLM").propagate = False
 
+    # Silence verbose libraries
+    logging.getLogger("forecasting_tools").setLevel(logging.ERROR)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("supabase").setLevel(logging.WARNING)
+
     parser = argparse.ArgumentParser(description="HumanAIOS forecasting bot v2.3")
     parser.add_argument(
         "--mode", type=str,
