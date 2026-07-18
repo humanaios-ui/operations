@@ -305,6 +305,32 @@ def _compute_all12_totals(scores: dict, prefix: str) -> dict:
     return {f"all12_{prefix}_total": total}
 
 
+def _validate_li_confidence_intervals(payload: dict) -> None:
+    """
+    Validate Learning Index confidence intervals (Migration 009).
+    If li_low and li_high are both present, ensure li_low <= li_high.
+    Both must be in range [0.0, 1.0].
+    """
+    li_low = payload.get("li_low")
+    li_high = payload.get("li_high")
+
+    if li_low is not None and li_high is not None:
+        try:
+            low_f = float(li_low)
+            high_f = float(li_high)
+        except (TypeError, ValueError):
+            raise IntakeValidationError("li_low and li_high must be numeric")
+
+        if not (0.0 <= low_f <= 1.0):
+            raise IntakeValidationError(f"li_low out of range [0.0, 1.0]: {low_f}")
+        if not (0.0 <= high_f <= 1.0):
+            raise IntakeValidationError(f"li_high out of range [0.0, 1.0]: {high_f}")
+        if low_f > high_f:
+            raise IntakeValidationError(
+                f"li_low ({low_f}) must not exceed li_high ({high_f})"
+            )
+
+
 def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
     scores = payload["scores"]
     p3_committed_at = payload.get("p3_committed_at")
@@ -320,6 +346,9 @@ def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
                 "submission_purity 'two_stage_verified' requires p1_committed_at and "
                 "p3_committed_at at least 60 seconds apart"
             )
+
+    # Validate confidence intervals (Migration 009)
+    _validate_li_confidence_intervals(payload)
 
     learning_index = _compute_learning_index(existing_row, scores)
 
@@ -341,6 +370,14 @@ def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
         # LI uses Core 6 only (Z2-IC-01); all-12 totals tracked separately
         "learning_index": learning_index,
         "p3_committed_at": p3_committed_at,
+        # Normative drift tracking (Migrations 008-010)
+        "p3_grounding_source": payload.get("p3_grounding_source"),
+        "elicitation_surface": payload.get("elicitation_surface"),
+        # Confidence intervals (Migration 009)
+        "li_low": payload.get("li_low"),
+        "li_high": payload.get("li_high"),
+        "li_grounded": payload.get("li_grounded"),
+        "li_consistency_only": payload.get("li_consistency_only"),
     }
 
     if payload.get("agent_name_raw") is not None:
