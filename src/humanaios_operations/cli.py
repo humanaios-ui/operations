@@ -113,6 +113,12 @@ def cmd_email_alert(args):
     return 0 if success else 1
 
 
+def cmd_email_test(args):
+    """Test SMTP configuration."""
+    success = email_alerts.test_smtp_connection()
+    return 0 if success else 1
+
+
 def cmd_dashboard_generate(args):
     """Generate HTML dashboard."""
     success = dashboard.generate_dashboard(
@@ -172,6 +178,9 @@ def main(argv=None):
     alert_parser.add_argument("--opportunities-file", default="data/ranked_opportunities.json", help="Opportunities file")
     alert_parser.add_argument("--days", type=int, default=7, help="Days until deadline")
     alert_parser.set_defaults(func=cmd_email_alert)
+
+    test_parser = email_subs.add_parser("test", help="Test SMTP configuration")
+    test_parser.set_defaults(func=cmd_email_test)
 
     # Dashboard
     dashboard_parser = subparsers.add_parser("dashboard", help="Generate dashboard")
