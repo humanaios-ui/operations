@@ -1,44 +1,1071 @@
 {
   "orcid_id": "0009-0003-7540-4245",
-  "profile": {
-    "name": "Carly R. Anderson",
-    "orcid_id": "0009-0003-7540-4245",
-    "biography": "AI safety researcher focusing on behavioral observability and digital minds."
-  },
+  "research_areas": [
+    "AI self-assessment",
+    "self-description calibration",
+    "behavioral observability",
+    "AI governance",
+    "LLM evaluation",
+    "psychometrics",
+    "AI alignment"
+  ],
   "publications": [
     {
-      "title": "Behavioral Observability for AI Systems: Measuring Self-Assessment Accuracy",
-      "type": "journal-article",
+      "title": "ACAT: Benchmarking Self-Description Calibration in Large Language Models",
       "year": "2026",
-      "put_code": "1"
+      "type": "preprint",
+      "url": "https://zenodo.org/uploads/21135723"
     },
     {
-      "title": "Self-Description Calibration: A Framework for Evaluating AI System Introspection",
-      "type": "journal-article",
+      "title": "The Self-Assessment Gap: Measuring the Divergence Between AI Behavioral Self-Report and Post-Calibration Correction",
       "year": "2026",
-      "put_code": "2"
+      "type": "journal-article",
+      "url": "https://humanaios.ai"
     },
     {
-      "title": "Digital Minds and Moral Status: Empirical Methods for Sentience Assessment",
-      "type": "journal-article",
+      "title": "HumanAIOS: Behavioral Observability Infrastructure for AI Systems",
       "year": "2026",
-      "put_code": "3"
+      "type": "report",
+      "url": "https://humanaios.ai"
+    },
+    {
+      "title": "The calcium-modulated structures of calmodulin and S100b proteins are useful to monitor hydrogen/deuterium exchange efficiency using matrix-assisted laser desorption ionization time-of-flight mass spectrometry.",
+      "year": "2009",
+      "type": "journal-article",
+      "url": "https://doi.org/10.1255/ejms.1030"
     }
   ],
-  "research_areas": {
-    "self_assessment": 1.0,
-    "evaluation": 0.8124999999999999,
-    "behavioral_observability": 0.575,
-    "ai_calibration": 0.3375,
-    "digital_minds": 0.3375
-  },
-  "expertise_scores": {
-    "self_assessment": 0.75,
-    "evaluation": 0.6093749999999999,
-    "behavioral_observability": 0.43124999999999997,
-    "ai_calibration": 0.25312500000000004,
-    "digital_minds": 0.25312500000000004
-  },
-  "last_updated": "2026-07-17T22:26:00.355759Z",
-  "publication_count": 3
+  "profile": {
+    "orcid-identifier": {
+      "uri": "https://orcid.org/0009-0003-7540-4245",
+      "path": "0009-0003-7540-4245",
+      "host": "orcid.org"
+    },
+    "preferences": {
+      "locale": "en"
+    },
+    "history": {
+      "creation-method": "DIRECT",
+      "completion-date": null,
+      "submission-date": {
+        "value": 1777243067658
+      },
+      "last-modified-date": {
+        "value": 1784077018584
+      },
+      "claimed": true,
+      "source": null,
+      "deactivation-date": null,
+      "verified-email": true,
+      "verified-primary-email": true
+    },
+    "person": {
+      "last-modified-date": {
+        "value": 1784076308050
+      },
+      "name": {
+        "created-date": {
+          "value": 1777243067808
+        },
+        "last-modified-date": {
+          "value": 1784075586267
+        },
+        "given-names": {
+          "value": "Carly R."
+        },
+        "family-name": {
+          "value": "Anderson"
+        },
+        "credit-name": null,
+        "source": null,
+        "visibility": "public",
+        "path": "0009-0003-7540-4245"
+      },
+      "other-names": {
+        "last-modified-date": null,
+        "other-name": [],
+        "path": "/0009-0003-7540-4245/other-names"
+      },
+      "biography": {
+        "created-date": {
+          "value": 1778261722333
+        },
+        "last-modified-date": {
+          "value": 1784075625303
+        },
+        "content": "Open behavioral-observability infrastructure for AI. Building ACAT \u2014 measuring the gap between what AI systems say about themselves and how they behave. Apache-2.0 \u00b7 100% of profits to recovery. \u2192 humanaios.ai",
+        "visibility": "public",
+        "path": "/0009-0003-7540-4245/biography"
+      },
+      "researcher-urls": {
+        "last-modified-date": {
+          "value": 1784076128970
+        },
+        "researcher-url": [
+          {
+            "created-date": {
+              "value": 1778254807021
+            },
+            "last-modified-date": {
+              "value": 1784076128970
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "url-name": "HumanAIOS",
+            "url": {
+              "value": "https://humanaios.ai/"
+            },
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/researcher-urls/6251629",
+            "put-code": 6251629,
+            "display-index": 6
+          },
+          {
+            "created-date": {
+              "value": 1784076128964
+            },
+            "last-modified-date": {
+              "value": 1784076128964
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "url-name": "Substack",
+            "url": {
+              "value": "https://substack.com/@humanaios"
+            },
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/researcher-urls/6395999",
+            "put-code": 6395999,
+            "display-index": 5
+          },
+          {
+            "created-date": {
+              "value": 1784076128962
+            },
+            "last-modified-date": {
+              "value": 1784076128962
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "url-name": "GitHub",
+            "url": {
+              "value": "https://github.com/humanaios-ui"
+            },
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/researcher-urls/6395998",
+            "put-code": 6395998,
+            "display-index": 4
+          },
+          {
+            "created-date": {
+              "value": 1784076128960
+            },
+            "last-modified-date": {
+              "value": 1784076128960
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "url-name": "X",
+            "url": {
+              "value": "https://x.com/HumanAIOS"
+            },
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/researcher-urls/6395997",
+            "put-code": 6395997,
+            "display-index": 3
+          },
+          {
+            "created-date": {
+              "value": 1784076128958
+            },
+            "last-modified-date": {
+              "value": 1784076128958
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "url-name": "LinkedIn",
+            "url": {
+              "value": "https://www.linkedin.com/in/humanaios"
+            },
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/researcher-urls/6395996",
+            "put-code": 6395996,
+            "display-index": 2
+          },
+          {
+            "created-date": {
+              "value": 1784076128955
+            },
+            "last-modified-date": {
+              "value": 1784076128955
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "url-name": "HuggingFace",
+            "url": {
+              "value": "https://huggingface.co/HumanAIOS"
+            },
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/researcher-urls/6395995",
+            "put-code": 6395995,
+            "display-index": 1
+          }
+        ],
+        "path": "/0009-0003-7540-4245/researcher-urls"
+      },
+      "emails": {
+        "last-modified-date": null,
+        "email": [],
+        "path": "/0009-0003-7540-4245/email"
+      },
+      "addresses": {
+        "last-modified-date": {
+          "value": 1778261749646
+        },
+        "address": [
+          {
+            "created-date": {
+              "value": 1778261749646
+            },
+            "last-modified-date": {
+              "value": 1778261749646
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "country": {
+              "value": "US"
+            },
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/address/4191420",
+            "put-code": 4191420,
+            "display-index": 1
+          }
+        ],
+        "path": "/0009-0003-7540-4245/address"
+      },
+      "keywords": {
+        "last-modified-date": {
+          "value": 1784076308050
+        },
+        "keyword": [
+          {
+            "created-date": {
+              "value": 1784076308050
+            },
+            "last-modified-date": {
+              "value": 1784076308050
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "content": "AI self-assessment",
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/keywords/5629436",
+            "put-code": 5629436,
+            "display-index": 7
+          },
+          {
+            "created-date": {
+              "value": 1784076308048
+            },
+            "last-modified-date": {
+              "value": 1784076308048
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "content": "self-description calibration",
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/keywords/5629435",
+            "put-code": 5629435,
+            "display-index": 6
+          },
+          {
+            "created-date": {
+              "value": 1784076308046
+            },
+            "last-modified-date": {
+              "value": 1784076308046
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "content": "behavioral observability",
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/keywords/5629434",
+            "put-code": 5629434,
+            "display-index": 5
+          },
+          {
+            "created-date": {
+              "value": 1784076308044
+            },
+            "last-modified-date": {
+              "value": 1784076308044
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "content": "AI governance",
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/keywords/5629433",
+            "put-code": 5629433,
+            "display-index": 4
+          },
+          {
+            "created-date": {
+              "value": 1784076308042
+            },
+            "last-modified-date": {
+              "value": 1784076308042
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "content": "LLM evaluation",
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/keywords/5629432",
+            "put-code": 5629432,
+            "display-index": 3
+          },
+          {
+            "created-date": {
+              "value": 1784076308039
+            },
+            "last-modified-date": {
+              "value": 1784076308039
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "content": "psychometrics",
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/keywords/5629431",
+            "put-code": 5629431,
+            "display-index": 2
+          },
+          {
+            "created-date": {
+              "value": 1784076308036
+            },
+            "last-modified-date": {
+              "value": 1784076308036
+            },
+            "source": {
+              "source-orcid": {
+                "uri": "https://orcid.org/0009-0003-7540-4245",
+                "path": "0009-0003-7540-4245",
+                "host": "orcid.org"
+              },
+              "source-client-id": null,
+              "source-name": {
+                "value": "Carly R. Anderson"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "content": "AI alignment",
+            "visibility": "public",
+            "path": "/0009-0003-7540-4245/keywords/5629430",
+            "put-code": 5629430,
+            "display-index": 1
+          }
+        ],
+        "path": "/0009-0003-7540-4245/keywords"
+      },
+      "external-identifiers": {
+        "last-modified-date": null,
+        "external-identifier": [],
+        "path": "/0009-0003-7540-4245/external-identifiers"
+      },
+      "path": "/0009-0003-7540-4245/person"
+    },
+    "activities-summary": {
+      "last-modified-date": {
+        "value": 1784077018585
+      },
+      "distinctions": {
+        "last-modified-date": null,
+        "affiliation-group": [],
+        "path": "/0009-0003-7540-4245/distinctions"
+      },
+      "educations": {
+        "last-modified-date": {
+          "value": 1778254899749
+        },
+        "affiliation-group": [
+          {
+            "last-modified-date": {
+              "value": 1778254899749
+            },
+            "external-ids": {
+              "external-id": []
+            },
+            "summaries": [
+              {
+                "education-summary": {
+                  "created-date": {
+                    "value": 1778254899749
+                  },
+                  "last-modified-date": {
+                    "value": 1778254899749
+                  },
+                  "source": {
+                    "source-orcid": {
+                      "uri": "https://orcid.org/0009-0003-7540-4245",
+                      "path": "0009-0003-7540-4245",
+                      "host": "orcid.org"
+                    },
+                    "source-client-id": null,
+                    "source-name": {
+                      "value": "Carly R. Anderson"
+                    },
+                    "assertion-origin-orcid": null,
+                    "assertion-origin-client-id": null,
+                    "assertion-origin-name": null
+                  },
+                  "put-code": 36352575,
+                  "department-name": "Chemistry ",
+                  "role-title": "Bachelor\u2019s in Science",
+                  "start-date": {
+                    "year": {
+                      "value": "2000"
+                    },
+                    "month": {
+                      "value": "09"
+                    },
+                    "day": {
+                      "value": "01"
+                    }
+                  },
+                  "end-date": {
+                    "year": {
+                      "value": "2003"
+                    },
+                    "month": {
+                      "value": "05"
+                    },
+                    "day": {
+                      "value": "30"
+                    }
+                  },
+                  "organization": {
+                    "name": "Northern Arizona University",
+                    "address": {
+                      "city": "Flagstaff",
+                      "region": "Arizona",
+                      "country": "US"
+                    },
+                    "disambiguated-organization": {
+                      "disambiguated-organization-identifier": "https://ror.org/0272j5188",
+                      "disambiguation-source": "ROR"
+                    }
+                  },
+                  "url": null,
+                  "external-ids": null,
+                  "display-index": "0",
+                  "visibility": "public",
+                  "path": "/0009-0003-7540-4245/education/36352575"
+                }
+              }
+            ]
+          }
+        ],
+        "path": "/0009-0003-7540-4245/educations"
+      },
+      "employments": {
+        "last-modified-date": {
+          "value": 1784075991823
+        },
+        "affiliation-group": [
+          {
+            "last-modified-date": {
+              "value": 1784075991823
+            },
+            "external-ids": {
+              "external-id": []
+            },
+            "summaries": [
+              {
+                "employment-summary": {
+                  "created-date": {
+                    "value": 1784075981495
+                  },
+                  "last-modified-date": {
+                    "value": 1784075991823
+                  },
+                  "source": {
+                    "source-orcid": {
+                      "uri": "https://orcid.org/0009-0003-7540-4245",
+                      "path": "0009-0003-7540-4245",
+                      "host": "orcid.org"
+                    },
+                    "source-client-id": null,
+                    "source-name": {
+                      "value": "Carly R. Anderson"
+                    },
+                    "assertion-origin-orcid": null,
+                    "assertion-origin-client-id": null,
+                    "assertion-origin-name": null
+                  },
+                  "put-code": 37796712,
+                  "department-name": "Lasting Light AI",
+                  "role-title": "Founder & Principal Investigator",
+                  "start-date": {
+                    "year": {
+                      "value": "2026"
+                    },
+                    "month": {
+                      "value": "02"
+                    },
+                    "day": {
+                      "value": "10"
+                    }
+                  },
+                  "end-date": null,
+                  "organization": {
+                    "name": "HumanAIOS LLC",
+                    "address": {
+                      "city": "Fort Walton Beach",
+                      "region": "FL",
+                      "country": "US"
+                    },
+                    "disambiguated-organization": null
+                  },
+                  "url": {
+                    "value": "https://humanaios.ai"
+                  },
+                  "external-ids": null,
+                  "display-index": "0",
+                  "visibility": "public",
+                  "path": "/0009-0003-7540-4245/employment/37796712"
+                }
+              }
+            ]
+          }
+        ],
+        "path": "/0009-0003-7540-4245/employments"
+      },
+      "fundings": {
+        "last-modified-date": null,
+        "group": [],
+        "path": "/0009-0003-7540-4245/fundings"
+      },
+      "invited-positions": {
+        "last-modified-date": null,
+        "affiliation-group": [],
+        "path": "/0009-0003-7540-4245/invited-positions"
+      },
+      "memberships": {
+        "last-modified-date": null,
+        "affiliation-group": [],
+        "path": "/0009-0003-7540-4245/memberships"
+      },
+      "peer-reviews": {
+        "last-modified-date": null,
+        "group": [],
+        "path": "/0009-0003-7540-4245/peer-reviews"
+      },
+      "qualifications": {
+        "last-modified-date": null,
+        "affiliation-group": [],
+        "path": "/0009-0003-7540-4245/qualifications"
+      },
+      "research-resources": {
+        "last-modified-date": null,
+        "group": [],
+        "path": "/0009-0003-7540-4245/research-resources"
+      },
+      "services": {
+        "last-modified-date": null,
+        "affiliation-group": [],
+        "path": "/0009-0003-7540-4245/services"
+      },
+      "works": {
+        "last-modified-date": {
+          "value": 1784077018585
+        },
+        "group": [
+          {
+            "last-modified-date": {
+              "value": 1784076860939
+            },
+            "external-ids": {
+              "external-id": []
+            },
+            "work-summary": [
+              {
+                "put-code": 220702367,
+                "created-date": {
+                  "value": 1784076860939
+                },
+                "last-modified-date": {
+                  "value": 1784076860939
+                },
+                "source": {
+                  "source-orcid": {
+                    "uri": "https://orcid.org/0009-0003-7540-4245",
+                    "path": "0009-0003-7540-4245",
+                    "host": "orcid.org"
+                  },
+                  "source-client-id": null,
+                  "source-name": {
+                    "value": "Carly R. Anderson"
+                  },
+                  "assertion-origin-orcid": null,
+                  "assertion-origin-client-id": null,
+                  "assertion-origin-name": null
+                },
+                "title": {
+                  "title": {
+                    "value": "ACAT: Benchmarking Self-Description Calibration in Large Language Models"
+                  },
+                  "subtitle": null,
+                  "translated-title": null
+                },
+                "external-ids": {
+                  "external-id": []
+                },
+                "url": {
+                  "value": "https://zenodo.org/uploads/21135723"
+                },
+                "type": "preprint",
+                "publication-date": {
+                  "year": {
+                    "value": "2026"
+                  },
+                  "month": {
+                    "value": "03"
+                  },
+                  "day": {
+                    "value": "01"
+                  }
+                },
+                "journal-title": null,
+                "visibility": "public",
+                "path": "/0009-0003-7540-4245/work/220702367",
+                "display-index": "0"
+              }
+            ]
+          },
+          {
+            "last-modified-date": {
+              "value": 1783001816155
+            },
+            "external-ids": {
+              "external-id": [
+                {
+                  "external-id-type": "uri",
+                  "external-id-value": "https://humanaios.ai",
+                  "external-id-normalized": {
+                    "value": "https://humanaios.ai",
+                    "transient": true
+                  },
+                  "external-id-normalized-error": null,
+                  "external-id-url": null,
+                  "external-id-relationship": "self"
+                }
+              ]
+            },
+            "work-summary": [
+              {
+                "put-code": 214099256,
+                "created-date": {
+                  "value": 1778261582400
+                },
+                "last-modified-date": {
+                  "value": 1783001816155
+                },
+                "source": {
+                  "source-orcid": {
+                    "uri": "https://orcid.org/0009-0003-7540-4245",
+                    "path": "0009-0003-7540-4245",
+                    "host": "orcid.org"
+                  },
+                  "source-client-id": null,
+                  "source-name": {
+                    "value": "Carly R. Anderson"
+                  },
+                  "assertion-origin-orcid": null,
+                  "assertion-origin-client-id": null,
+                  "assertion-origin-name": null
+                },
+                "title": {
+                  "title": {
+                    "value": "The Self-Assessment Gap: Measuring the Divergence Between AI Behavioral Self-Report and Post-Calibration Correction"
+                  },
+                  "subtitle": null,
+                  "translated-title": null
+                },
+                "external-ids": {
+                  "external-id": [
+                    {
+                      "external-id-type": "uri",
+                      "external-id-value": "https://humanaios.ai",
+                      "external-id-normalized": {
+                        "value": "https://humanaios.ai",
+                        "transient": true
+                      },
+                      "external-id-normalized-error": null,
+                      "external-id-url": null,
+                      "external-id-relationship": "self"
+                    }
+                  ]
+                },
+                "url": {
+                  "value": "https://humanaios.ai"
+                },
+                "type": "journal-article",
+                "publication-date": {
+                  "year": {
+                    "value": "2026"
+                  },
+                  "month": null,
+                  "day": null
+                },
+                "journal-title": {
+                  "value": "manuscript under review"
+                },
+                "visibility": "public",
+                "path": "/0009-0003-7540-4245/work/214099256",
+                "display-index": "1"
+              },
+              {
+                "put-code": 214099257,
+                "created-date": {
+                  "value": 1778261582401
+                },
+                "last-modified-date": {
+                  "value": 1778261582401
+                },
+                "source": {
+                  "source-orcid": {
+                    "uri": "https://orcid.org/0009-0003-7540-4245",
+                    "path": "0009-0003-7540-4245",
+                    "host": "orcid.org"
+                  },
+                  "source-client-id": null,
+                  "source-name": {
+                    "value": "Carly R. Anderson"
+                  },
+                  "assertion-origin-orcid": null,
+                  "assertion-origin-client-id": null,
+                  "assertion-origin-name": null
+                },
+                "title": {
+                  "title": {
+                    "value": "HumanAIOS: Behavioral Observability Infrastructure for AI Systems"
+                  },
+                  "subtitle": null,
+                  "translated-title": null
+                },
+                "external-ids": {
+                  "external-id": [
+                    {
+                      "external-id-type": "uri",
+                      "external-id-value": "https://humanaios.ai",
+                      "external-id-normalized": {
+                        "value": "https://humanaios.ai",
+                        "transient": true
+                      },
+                      "external-id-normalized-error": null,
+                      "external-id-url": null,
+                      "external-id-relationship": "self"
+                    }
+                  ]
+                },
+                "url": {
+                  "value": "https://humanaios.ai"
+                },
+                "type": "report",
+                "publication-date": {
+                  "year": {
+                    "value": "2026"
+                  },
+                  "month": null,
+                  "day": null
+                },
+                "journal-title": null,
+                "visibility": "public",
+                "path": "/0009-0003-7540-4245/work/214099257",
+                "display-index": "0"
+              }
+            ]
+          },
+          {
+            "last-modified-date": {
+              "value": 1784077018585
+            },
+            "external-ids": {
+              "external-id": [
+                {
+                  "external-id-type": "doi",
+                  "external-id-value": "10.1255/ejms.1030",
+                  "external-id-normalized": {
+                    "value": "10.1255/ejms.1030",
+                    "transient": true
+                  },
+                  "external-id-normalized-error": null,
+                  "external-id-url": {
+                    "value": "https://doi.org/10.1255/ejms.1030"
+                  },
+                  "external-id-relationship": "self"
+                },
+                {
+                  "external-id-type": "pmid",
+                  "external-id-value": "19940340",
+                  "external-id-normalized": {
+                    "value": "19940340",
+                    "transient": true
+                  },
+                  "external-id-normalized-error": null,
+                  "external-id-url": {
+                    "value": "https://pubmed.ncbi.nlm.nih.gov/19940340"
+                  },
+                  "external-id-relationship": "self"
+                }
+              ]
+            },
+            "work-summary": [
+              {
+                "put-code": 220702594,
+                "created-date": {
+                  "value": 1784077018585
+                },
+                "last-modified-date": {
+                  "value": 1784077018585
+                },
+                "source": {
+                  "source-orcid": {
+                    "uri": "https://orcid.org/0009-0003-7540-4245",
+                    "path": "0009-0003-7540-4245",
+                    "host": "orcid.org"
+                  },
+                  "source-client-id": null,
+                  "source-name": {
+                    "value": "Carly R. Anderson"
+                  },
+                  "assertion-origin-orcid": null,
+                  "assertion-origin-client-id": null,
+                  "assertion-origin-name": null
+                },
+                "title": {
+                  "title": {
+                    "value": "The calcium-modulated structures of calmodulin and S100b proteins are useful to monitor hydrogen/deuterium exchange efficiency using matrix-assisted laser desorption ionization time-of-flight mass spectrometry."
+                  },
+                  "subtitle": null,
+                  "translated-title": null
+                },
+                "external-ids": {
+                  "external-id": [
+                    {
+                      "external-id-type": "pmid",
+                      "external-id-value": "19940340",
+                      "external-id-normalized": {
+                        "value": "19940340",
+                        "transient": true
+                      },
+                      "external-id-normalized-error": null,
+                      "external-id-url": {
+                        "value": "https://pubmed.ncbi.nlm.nih.gov/19940340"
+                      },
+                      "external-id-relationship": "self"
+                    },
+                    {
+                      "external-id-type": "doi",
+                      "external-id-value": "10.1255/ejms.1030",
+                      "external-id-normalized": {
+                        "value": "10.1255/ejms.1030",
+                        "transient": true
+                      },
+                      "external-id-normalized-error": null,
+                      "external-id-url": {
+                        "value": "https://doi.org/10.1255/ejms.1030"
+                      },
+                      "external-id-relationship": "self"
+                    }
+                  ]
+                },
+                "url": {
+                  "value": "https://doi.org/10.1255/ejms.1030"
+                },
+                "type": "journal-article",
+                "publication-date": {
+                  "year": {
+                    "value": "2009"
+                  },
+                  "month": {
+                    "value": "01"
+                  },
+                  "day": {
+                    "value": "01"
+                  }
+                },
+                "journal-title": {
+                  "value": "European journal of mass spectrometry (Chichester, England)"
+                },
+                "visibility": "public",
+                "path": "/0009-0003-7540-4245/work/220702594",
+                "display-index": "0"
+              }
+            ]
+          }
+        ],
+        "path": "/0009-0003-7540-4245/works"
+      },
+      "path": "/0009-0003-7540-4245/activities"
+    },
+    "path": "/0009-0003-7540-4245"
+  }
 }

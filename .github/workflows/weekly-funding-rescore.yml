@@ -35,7 +35,7 @@ jobs:
         env:
           PYTHONPATH: ./src
         run: |
-          python -m humanaios_operations.dashboard
+          python -m humanaios_operations.cli dashboard generate --output reports/dashboard.html
 
       - name: Commit updated rankings and dashboard
         run: |

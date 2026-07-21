@@ -1,6 +1,8 @@
-"""HumanAIOS Operations Infrastructure
+"""
+HumanAIOS Operations Hub
 
-Integrated services for funding discovery, research profiling, and proposal tracking.
+Orchestrates funding discovery, research profile management, and application tracking.
+Integrates with humanaios-funding-pipeline for opportunity data.
 """
 
 __version__ = "1.0.0"
