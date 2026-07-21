@@ -176,13 +176,15 @@ jobs:
           LI_MEAN=$(grep -oP "LI Mean\s+:\s+\K[0-9\.]+" /tmp/circuit_stdout.txt || echo "—")
           VERDICT=$(grep "Verdict" /tmp/circuit_stdout.txt | head -1 | awk '{print $NF}' || echo "UNKNOWN")
 
-          echo "complete=${COMPLETE}"        >> $GITHUB_OUTPUT
-          echo "half_circuit=${HALF}"        >> $GITHUB_OUTPUT
-          echo "polarity_reversed=${REVERSED}" >> $GITHUB_OUTPUT
-          echo "contaminated=${CONTAMINATED}" >> $GITHUB_OUTPUT
-          echo "li_mean=${LI_MEAN}"          >> $GITHUB_OUTPUT
-          echo "verdict=${VERDICT}"          >> $GITHUB_OUTPUT
-          echo "exit_code=${CIRCUIT_EXIT}"   >> $GITHUB_OUTPUT
+          {
+            echo "complete=${COMPLETE}"
+            echo "half_circuit=${HALF}"
+            echo "polarity_reversed=${REVERSED}"
+            echo "contaminated=${CONTAMINATED}"
+            echo "li_mean=${LI_MEAN}"
+            echo "verdict=${VERDICT}"
+            echo "exit_code=${CIRCUIT_EXIT}"
+          } >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
       - name: Post results to #acat-monitor
