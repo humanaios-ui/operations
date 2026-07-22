@@ -134,11 +134,11 @@ We will:
 - **ORCID:** 0009-0003-7540-4245 (Zenodo: 10.5281/zenodo.21135723)
 
 ### Junior Researcher — Research Staff (50% FTE)
-- **Status:** Pending confirmation (candidate: family member or external researcher TBD)
+- **Status:** Confirmed as family member (Carly's son) — pending CV + conflict-of-interest disclosure
 - **Role:** ACAT implementation, benchmark development, evaluation support
-- **Background:** [To be filled with CV and credentials]
+- **Background:** [Gather CV and any required conflict-of-interest disclosures before Longview submission]
 
-**NOTE:** Decision to recruit family member vs. external researcher pending finalization. If family member: gather CV + conflict-of-interest disclosure (if required by Longview).
+**NOTE:** Family member recruitment approved. Proceed with CV collection + conflict-of-interest check (if required by Longview).
 
 ### References
 1. **David** — Empirica Mesh Network; Digital minds research collaboration

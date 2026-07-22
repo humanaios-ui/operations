@@ -57,9 +57,9 @@ https://humanaios.ai/
      HumanAIOS dataset on HuggingFace, Metaculus forecasting operations
    - ORCID: 0009-0003-7540-4245
 
-2. [Junior Researcher / Family Member — Pending Confirmation] — Research Staff, 50% time commitment
+2. [Carly's Son / Family Member — TBD Name] — Research Staff, 50% time commitment
    - Role: ACAT implementation, benchmark development, evaluation support
-   - Background: Carly's son or external candidate [Confirm final selection + gather CV before submission]
+   - Background: [Family member recruited for research role — gather CV + any required conflict-of-interest disclosure before submission]
 
 3. Demarius J. Lawson — Advisor/Co-Investigator (governance research), as-needed
    - Background: Governance architecture, digital minds framework development

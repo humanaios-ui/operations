@@ -15,7 +15,11 @@ Record of key collaboration decisions, approvals, and disputes.
 | D-001 | 2026-07-22 | Longview budget level: mainline $200K/year | Carly | ✓ Confirmed | Carly, Longview |
 | D-002 | 2026-07-22 | Mode AI partnership formalization | Carly | Pending | Carly, Demarius, Mode AI |
 | D-003 | [TBD] | Demarius Labs co-I status for Longview Year 2 | Carly | Pending | Carly, Demarius, Longview |
-| D-004 | 2026-07-22 | David Van Assche (Empirica) team participation level | Carly & David | Pending mesh response | Carly, David, Longview |
+| D-004 | 2026-07-22 | David Van Assche (Empirica) team participation level | Carly & David | Pending (follow-up July 23) | Carly, David, Longview |
+| D-005 | 2026-07-22 | Junior researcher: family member (Carly's son) | Carly | ✓ Confirmed | Carly, Longview |
+| D-006 | 2026-07-22 | Longview applicant type: Organization (HumanAIOS LLC) | Carly | ✓ Confirmed | Carly, Longview |
+| D-007 | 2026-07-22 | Fiscal recipient: Direct to HumanAIOS LLC | Carly | ✓ Confirmed | Carly, Longview |
+| D-008 | 2026-07-22 | Grant source: Research (database search) | Carly | ✓ Confirmed | Carly, Longview |
 
 ---
 
