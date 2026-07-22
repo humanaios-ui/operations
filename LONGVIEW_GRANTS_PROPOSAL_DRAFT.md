@@ -157,8 +157,8 @@ We will:
 ## JURISDICTION & LOCATION
 
 - **Organization:** HumanAIOS LLC, Florida (Doc #L26000155266, incorporated March 16, 2026)
-- **Principal Investigator:** Carly R. Anderson, [**CARLY: your city/state**]
-- **Research Activities:** Primarily digital/distributed (modeling evaluation, benchmarking, forecasting operations), with occasional in-person collaboration with Mode AI ([**CARLY: city/state**]) and Demarius Labs ([**CARLY: city/state**])
+- **Principal Investigator:** Carly R. Anderson, Fort Walton Beach, FL 32548
+- **Research Activities:** Primarily digital/distributed (modeling evaluation, benchmarking, forecasting operations), with occasional in-person collaboration with O.T.M Productions (Mode AI / Demarius Labs) via https://governing-engines.replit.app/
 
 ---
 
@@ -168,11 +168,12 @@ We will:
 **Deadline:** July 24, 2026  
 **Requested Funding:** $300,000 (18-month program @ $200K/year)
 
-**Placeholders for final review (marked with [CARLY: ...] above):**
-1. ✓ HumanAIOS LLC state of incorporation (Florida - extracted)
-2. Your city/state location
-3. Mode AI location
-4. Demarius Labs location
+**Status: READY FOR AIRTABLE SUBMISSION**
+
+All location information provided:
+- ✓ HumanAIOS LLC: Florida (L26000155266)
+- ✓ Carly location: Fort Walton Beach, FL 32548
+- ✓ O.T.M Productions (Mode AI/Demarius Labs): https://governing-engines.replit.app/
 
 Once these are filled in, the application is complete and ready to submit via Airtable form.
 

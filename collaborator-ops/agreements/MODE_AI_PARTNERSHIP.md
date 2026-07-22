@@ -1,7 +1,8 @@
-# Mode AI Partnership Agreement (Active)
+# O.T.M Productions Partnership Agreement (Active)
 
-**Parties:** HumanAIOS LLC ↔ Mode AI  
-**Key Contact:** Demarius J. Lawson  
+**Parties:** HumanAIOS LLC ↔ O.T.M Productions (Mode AI = Demarius Labs)  
+**Key Contact:** Demarius J. Lawson (truuzee@gmail.com)  
+**Organization URL:** https://governing-engines.replit.app/  
 **Status:** Active  
 **Since:** 2026-05  
 **Type:** Research Collaboration & Evaluation Partnership

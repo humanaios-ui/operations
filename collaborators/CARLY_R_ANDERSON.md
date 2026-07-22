@@ -10,6 +10,7 @@
 
 ## Contact
 
+- **Location:** Fort Walton Beach, FL 32548
 - **Email:** aioshuman@gmail.com (primary)
 - **Phone:** (448) 243-3992
 - **ORCID:** 0009-0003-7540-4245

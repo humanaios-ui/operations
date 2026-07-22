@@ -1,15 +1,16 @@
-# Demarius Labs — ACAT Evaluation & Governance Collaboration
+# O.T.M Productions — ACAT Evaluation & Governance Collaboration
 
-**Party:** Demarius Labs (founded by/associated with Demarius J. Lawson)  
-**Primary Contact:** Demarius J. Lawson  
+**Party:** O.T.M Productions (unified entity: Mode AI = Demarius Labs)  
+**Primary Contact:** Demarius J. Lawson (truuzee@gmail.com)  
+**Organization URL:** https://governing-engines.replit.app/  
 **Status:** Active  
 **Since:** 2026-05
 
 ---
 
-## What is Demarius Labs?
+## What is O.T.M Productions?
 
-[CARLY TO FILL: Is this a separate legal entity, a research group within Mode AI, or Demarius's independent practice?]
+O.T.M Productions is the legal entity covering Mode AI, Demarius Labs, and Governing Engines research work. Demarius J. Lawson is the operator/founder.
 
 ---
 
