@@ -13,8 +13,8 @@ occur in conversational text — chat threads, blog posts, Substack
 exchanges, external AI engagement — so running the spec rubric against
 conversational text produces mostly 50.0 "no signal" defaults rather
 than real evidence density. This module is a companion rubric with the
-same 12-dimension shape, scored the same way (high_hits - low_hits,
-normalized 0-100), but keyed to language patterns that actually appear
+same 12-dimension shape, scored the same way as acat_document_analyzer’s evidence-density scorer
+(high_hits / (high_hits + low_hits), normalized 0-100), but keyed to language patterns that actually appear
 in first-person conversational and narrative text.
 
 ## SCOPE / WHAT THIS DOES NOT DO
