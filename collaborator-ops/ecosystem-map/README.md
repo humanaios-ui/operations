@@ -13,19 +13,19 @@ Visual and structural representation of HumanAIOS collaboration network: who kno
                              |
                     (Funds: Grants for Applied Work)
                              |
-                    HumanAIOS LLC (Carly)
+              HumanAIOS LLC (Carly, Fort Walton Beach, FL)
                         /    |    \
                    ACAT   Metaculus  Governance
                     |        |         |
-            Demarius Labs  [TBD]   Demarius Labs
-              (eval +               (advisor)
-               feedback)            
-                    |
-                Mode AI
-         (Compute + Partnership)
+            O.T.M Productions       O.T.M Productions
+          (Demarius Lawson)        (Demarius Lawson)
+          - ACAT evaluation        - Governance advisor
+          - Arch feedback          - Policy research
+          - Mode AI, Demarius Labs
+          - Governing Engines
                     |
                 Empirica Mesh
-              (David - support)
+             (David - support)
 ```
 
 ---
@@ -39,15 +39,18 @@ Visual and structural representation of HumanAIOS collaboration network: who kno
   - Funding: Longview (applied), Lasting Light AI (fiscal)
 
 ### Tier 2: Research Partners
-- **Demarius J. Lawson** (Demarius Labs / Mode AI)
+- **Demarius J. Lawson** (O.T.M Productions)
+  - Organization: O.T.M Productions (unified: Mode AI + Demarius Labs + Governing Engines)
+  - Email: truuzee@gmail.com
   - ACAT evaluation + robustness assessment
   - Governance framework advisor
   - Potential Year 2 co-I (if Longview funds)
-  - Knows: Carly, Mode AI (Governing Engines public attribution)
+  - Website: https://governing-engines.replit.app/
 
-- **Mode AI** (Organization)
+- **O.T.M Productions** (Organization)
+  - Operates as: Mode AI, Demarius Labs, Governing Engines
   - Compute resources + model access (in-kind)
-  - Demarius is primary contact
+  - Demarius J. Lawson is primary contact
   - Governance research collaboration (proposed)
 
 ### Tier 3: Funder & Support
