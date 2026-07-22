@@ -28,7 +28,8 @@ on:
           - P2
           - P3
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   trigger-claude:

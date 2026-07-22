@@ -192,10 +192,12 @@ jobs:
             echo "ℹ️ Signal overridden to: $FORCE"
           fi
 
-          echo "primary_signal=${PRIMARY_SIGNAL}" >> $GITHUB_OUTPUT
-          echo "harmony_score=${HARMONY_SCORE}"   >> $GITHUB_OUTPUT
-          echo "molt_ready=${MOLT_READY}"          >> $GITHUB_OUTPUT
-          echo "exit_code=${HARM_EXIT}"            >> $GITHUB_OUTPUT
+          {
+            echo "primary_signal=${PRIMARY_SIGNAL}"
+            echo "harmony_score=${HARMONY_SCORE}"
+            echo "molt_ready=${MOLT_READY}"
+            echo "exit_code=${HARM_EXIT}"
+          } >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
       - name: Route notification — MAINTAIN or ADVANCE (low noise, #acat-monitor only)

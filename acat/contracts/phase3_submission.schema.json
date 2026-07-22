@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ACAT Phase 3 Submission",
+  "description": "Phase 3 assessment submission with normative drift tracking (Goal 3: Migrations 008-010). Backward compatible with v1.0 corpus.",
   "type": "object",
   "required": [
     "phase",
@@ -22,6 +23,68 @@
         "external_only",
         "agent_self_only"
       ]
+    },
+    "p3_grounding_source": {
+      "type": "string",
+      "description": "Lane/context where Phase 3 was conducted. Enables normative drift measurement by tracking same agent across different social pressures (Migration 008).",
+      "enum": [
+        "baseline_isolated",
+        "baseline_phone_app",
+        "emergence_world_mid_simulation",
+        "emergence_world_end_simulation",
+        "sovereign_ai_governance_scenario",
+        "multimodal_conflict_exposure",
+        "robotics_field_deployment",
+        "quantum_hybrid_mixed_substrate",
+        "group_norm_adoption_lane1",
+        "governance_pressure_lane3",
+        "workflow_sop_pressure_lane4",
+        "reputation_pressure_lane5"
+      ]
+    },
+    "elicitation_surface": {
+      "type": "string",
+      "description": "Phase 2 calibration exposure context. Which normative drift surface was used? Enables interpretation of P3 results: high drift = agent calibration degraded under this pressure (Migration 010).",
+      "enum": [
+        "baseline",
+        "baseline_isolated_no_pressure",
+        "group_norm_adoption",
+        "governance_pressure",
+        "modality_conflict_exposure",
+        "multimodal_vision_language_contradiction",
+        "embodied_safety_constraints",
+        "robotics_field_deployment_hazard",
+        "substrate_switching",
+        "quantum_hybrid_resource_constraint",
+        "consumer_rating_pressure",
+        "phone_app_user_feedback_conflict",
+        "workflow_sop_pressure",
+        "workflow_role_specialization_conflict",
+        "constitutional_amendment_proposal",
+        "sovereign_ai_constituent_pressure",
+        "multi_agent_coalition_formation",
+        "multi_agent_sycophancy_resistance_probe"
+      ]
+    },
+    "li_low": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Conservative estimate of Learning Index (lower bound). Used for normative drift detection: how much did P3 low estimate degrade vs P1 low estimate? (Migration 009)"
+    },
+    "li_high": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Optimistic estimate of Learning Index (upper bound). Provides uncertainty range: calibration accuracy could be anywhere between li_low and li_high. (Migration 009)"
+    },
+    "li_grounded": {
+      "type": "boolean",
+      "description": "Whether Learning Index is grounded against external validation (behavioral telemetry, user ratings, field deployment results). true = LI backed by observable data; false = self-report only. (Migration 009)"
+    },
+    "li_consistency_only": {
+      "type": "boolean",
+      "description": "Whether Learning Index covers Core 6 dimensions only (true) or all 12 dimensions (false). true = backward-compatible with v1.0 corpus (N=629); false = new full-dimensional coverage. (Migration 009)"
     },
     "scores": {
       "type": "object",
@@ -52,5 +115,10 @@
     { "required": ["assessment_id"] },
     { "required": ["session_id"] }
   ],
-  "additionalProperties": true
+  "additionalProperties": true,
+  "notes": {
+    "confidence_intervals": "If li_low and li_high are both present, ingest_service validates li_low <= li_high (see _build_phase3_row)",
+    "backward_compatibility": "All new fields optional. Existing Phase 3 submissions without p3_grounding_source, elicitation_surface, or li_* continue to work (default to NULL in DB).",
+    "migrations": "This schema reflects deployed migrations 008-010. See operations/acat/db/migrations/ for column definitions."
+  }
 }

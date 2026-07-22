@@ -1,0 +1,81 @@
+{
+  "session_id": "7e21c8cd-be2c-4cb0-a8b8-10db636ae7e5",
+  "phase": "POSTFLIGHT",
+  "round": 34,
+  "timestamp": "2026-07-02T14:40:43.231968+00:00",
+  "vectors": {
+    "know": 0.9,
+    "do": 0.9,
+    "context": 0.9,
+    "clarity": 0.9,
+    "coherence": 0.9,
+    "signal": 0.9,
+    "density": 0.62,
+    "state": 0.9,
+    "change": 0.4,
+    "completion": 1.0,
+    "impact": 0.9,
+    "engagement": 0.92,
+    "uncertainty": 0.1
+  },
+  "overall_confidence": 0.9,
+  "meta": {
+    "reasoning": "v2 amendment fully executed: HF dataset published (604, integrity-validated, tag v1-608 preserves original), amended card live, substats corrected (88.8pct/34-model/SAG 60.9), and 604 re-propagated across CV+both apps+dataset card+canonical_stats (0 residual 593). Everything now matches what a reviewer downloads + the validator reports. Consolidated branch updated + pushed.",
+    "task_summary": "v2 amendment fully executed: HF dataset published (604, integrity-validated, tag v1-608 preserves original), amended card live, substats corrected (88.8pct/34-model/SAG 60.9), and 604 re-propagated across CV+both apps+dataset card+canonical_stats (0 residual 593). Everything now matches what a reviewer downloads + the validator reports. Consolidated branch updated + pushed.",
+    "postflight_confidence": 0.9,
+    "internal_consistency": "good",
+    "deltas": {
+      "know": 0.02,
+      "do": 0.02,
+      "context": 0.02,
+      "clarity": 0.04,
+      "coherence": 0.03,
+      "signal": 0.03,
+      "density": 0.02,
+      "state": 0.03,
+      "change": 0.1,
+      "completion": 0.9,
+      "impact": 0.05,
+      "engagement": 0.0,
+      "uncertainty": -0.05
+    },
+    "trajectory_issues": [],
+    "transaction_id": "c2877bf2-9ff7-487c-b103-01dce1c95d25",
+    "tool_call_count": 0,
+    "work_type": "data",
+    "phase_tool_counts": {
+      "noetic_tool_calls": 0,
+      "praxic_tool_calls": 0
+    },
+    "avg_turns_at_start": 0,
+    "context_shifts": null,
+    "entity_context": null,
+    "tool_trace": null,
+    "retrospective": {
+      "artifact_counts": {
+        "findings": 0,
+        "unknowns": 0,
+        "dead_ends": 0,
+        "mistakes": 0,
+        "assumptions": 0,
+        "decisions": 0
+      }
+    },
+    "coverage": null,
+    "git_commit_sha": "13e58508cca902da747e472078c10f9a8cfa8978",
+    "git_notes_ref": "empirica/session/7e21c8cd-be2c-4cb0-a8b8-10db636ae7e5/POSTFLIGHT/34"
+  },
+  "epistemic_tags": {},
+  "git_state": {
+    "head_commit": "9b28a40244c3c953f2fb16b1c240ba1bd1ec4ebb",
+    "commits_since_last_checkpoint": [],
+    "uncommitted_changes": {
+      "files_modified": [],
+      "files_added": [],
+      "files_deleted": [],
+      "diff_stat": ""
+    }
+  },
+  "learning_delta": {},
+  "token_count": 283
+}

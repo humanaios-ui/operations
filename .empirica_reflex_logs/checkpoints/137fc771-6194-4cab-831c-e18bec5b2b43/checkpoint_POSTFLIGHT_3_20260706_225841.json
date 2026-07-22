@@ -1,0 +1,102 @@
+{
+  "session_id": "137fc771-6194-4cab-831c-e18bec5b2b43",
+  "phase": "POSTFLIGHT",
+  "round": 3,
+  "timestamp": "2026-07-06T22:58:38.079288+00:00",
+  "vectors": {
+    "know": 0.8,
+    "do": 0.85,
+    "context": 0.85,
+    "clarity": 0.85,
+    "coherence": 0.85,
+    "completion": 1.0,
+    "impact": 0.8,
+    "uncertainty": 0.3,
+    "engagement": 0.9
+  },
+  "overall_confidence": 0.833,
+  "meta": {
+    "reasoning": "Plan fuses recursive-review-loop + ACAT + turtle; grounded in real session PR data (#46 over-claim, #47 well-calibrated); honesty guardrails central (commit-before-outcome, external-only, co-drift). Z1 draft; retro-POC executable next.",
+    "task_summary": "Plan fuses recursive-review-loop + ACAT + turtle; grounded in real session PR data (#46 over-claim, #47 well-calibrated); honesty guardrails central (commit-before-outcome, external-only, co-drift). Z1 draft; retro-POC executable next.",
+    "postflight_confidence": 0.7,
+    "internal_consistency": "moderate",
+    "deltas": {
+      "know": 0.05,
+      "do": 0.0,
+      "context": 0.0,
+      "clarity": 0.05,
+      "uncertainty": 0.0,
+      "engagement": 0.0
+    },
+    "trajectory_issues": [],
+    "transaction_id": "76067876-6032-417d-954d-1729ad040abe",
+    "tool_call_count": 0,
+    "work_type": "research",
+    "phase_tool_counts": {
+      "noetic_tool_calls": 0,
+      "praxic_tool_calls": 0
+    },
+    "avg_turns_at_start": 0,
+    "context_shifts": null,
+    "entity_context": null,
+    "tool_trace": null,
+    "retrospective": {
+      "artifact_counts": {
+        "findings": 0,
+        "unknowns": 0,
+        "dead_ends": 0,
+        "mistakes": 0,
+        "assumptions": 0,
+        "decisions": 0
+      },
+      "commit_warning": "Uncommitted changes detected. Grounded calibration for change/state/do will be based on committed work only \u2014 uncommitted edits are invisible."
+    },
+    "coverage": null,
+    "git_commit_sha": "f94619a9faa511c980dd77899f6aa166559e41d6",
+    "git_notes_ref": "empirica/session/137fc771-6194-4cab-831c-e18bec5b2b43/POSTFLIGHT/3"
+  },
+  "epistemic_tags": {},
+  "git_state": {
+    "head_commit": "a35cedda4ac3d139ed8ee8c386c9507aa4565eb6",
+    "commits_since_last_checkpoint": [],
+    "uncommitted_changes": {
+      "files_modified": [],
+      "files_added": [],
+      "files_deleted": [],
+      "diff_stat": ""
+    }
+  },
+  "learning_delta": {
+    "know": {
+      "prev": 0.75,
+      "curr": 0.8,
+      "delta": 0.05
+    },
+    "do": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "context": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "clarity": {
+      "prev": 0.8,
+      "curr": 0.85,
+      "delta": 0.05
+    },
+    "uncertainty": {
+      "prev": 0.3,
+      "curr": 0.3,
+      "delta": 0.0
+    },
+    "engagement": {
+      "prev": 0.9,
+      "curr": 0.9,
+      "delta": 0.0
+    }
+  },
+  "token_count": 287
+}

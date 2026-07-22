@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+⚠️ SUPERSEDED — Do NOT use this version
+════════════════════════════════════════
+See: finalize_archive_v2.py (newer version with enhanced features)
+This file is kept for reference only.
+════════════════════════════════════════
+
 Builder v1.7 compliant
 finalize_archive_v1 — ACAT archive finalizer (S-070226)
 HumanAIOS · Option-A reconciliation (archive is canonical)
