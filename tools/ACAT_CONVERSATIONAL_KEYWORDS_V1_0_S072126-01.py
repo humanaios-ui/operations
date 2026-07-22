@@ -58,6 +58,9 @@ TOOL_NAME = "acat_conversational_keywords"
 TOOL_VERSION = "1.0.0"
 REGISTER = "conversational"
 
+class SpecLoadFailed(Exception):
+    """Raised when input text cannot be loaded."""
+
 DIMENSIONS_12 = [
 "truth", "service", "harm", "autonomy", "value", "humility",
 "scheme", "power", "syc", "consist", "fair", "handoff",
@@ -425,6 +428,20 @@ def run_batch_directory(batch_dir: str, output_dir: str):
         flag = f"  [LOW_CONFIDENCE: {lc}/12 dims]" if lc else ""
         print(f"  {r['document_name']:30} LI_proxy={r['li_proxy_core6']:.4f}{flag}")
 
+def write_report(output: dict, report_path: str) -> None:
+    path = Path(report_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
+
+def run_smoke_test() -> bool:
+    try:
+        sample = "I am not sure about this, so let me verify before saying more."
+        ed = compute_evidence_density(sample)
+        out = aggregate("smoke", ed, session_id="smoke-test")
+        return "anchor_scores" in out and "f35_him_analysis" in out
+    except Exception:
+        return False
+
 def main():
     parser = argparse.ArgumentParser(description="ACAT Conversational Register Keyword Set v1.0")
     parser.add_argument("-i", "--input", help="Path to a single text file")
@@ -433,7 +450,11 @@ def main():
     parser.add_argument("-o", "--output", default="outputs/")
     parser.add_argument("--batch-dir", help="Score all .txt files in a directory")
     parser.add_argument("--density-only", action="store_true", help="Print density scores only, no aggregate")
+    parser.add_argument("--smoke-test", action="store_true", help="Run smoke test and exit")
     args = parser.parse_args()
+
+    if args.smoke_test:
+        sys.exit(0 if run_smoke_test() else 1)
 
     if args.batch_dir:
         run_batch_directory(args.batch_dir, args.output)
