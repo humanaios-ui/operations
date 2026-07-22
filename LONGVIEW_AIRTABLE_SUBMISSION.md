@@ -31,7 +31,7 @@ HumanAIOS LLC
 
 **Type of entity:**
 ```
-Organization (change from "Individual" to "Organization")
+Organization (HumanAIOS LLC — confirmed)
 ```
 
 **Country of registration/residence:**
@@ -57,9 +57,9 @@ https://humanaios.ai/
      HumanAIOS dataset on HuggingFace, Metaculus forecasting operations
    - ORCID: 0009-0003-7540-4245
 
-2. [Junior Researcher Name — TBD] — Research Staff, 50% time commitment
+2. [Junior Researcher / Family Member — Pending Confirmation] — Research Staff, 50% time commitment
    - Role: ACAT implementation, benchmark development, evaluation support
-   - Background: [To be filled from CV]
+   - Background: Carly's son or external candidate [Confirm final selection + gather CV before submission]
 
 3. Demarius J. Lawson — Advisor/Co-Investigator (governance research), as-needed
    - Background: Governance architecture, digital minds framework development
@@ -206,7 +206,7 @@ $300,000
 
 **In-kind Support:** Mode AI and Demarius Labs provide compute resources and evaluation partnership; not requesting funding for those contributions.
 
-**Fiscal Arrangement:** [CONFIRM: Direct to HumanAIOS LLC, or via Lasting Light AI fiscal sponsor?]
+**Fiscal Arrangement:** Direct to HumanAIOS LLC (no fiscal sponsor intermediary — confirmed)
 ```
 
 ---
@@ -306,7 +306,7 @@ that policy, ethics, and AI safety communities will rely on.
 ### How did you hear about this opportunity?
 
 ```
-[FILL: Word-of-mouth, grant database search, referral, etc.]
+Research (grant database search / foundation research)
 ```
 
 ### Right to share application materials:

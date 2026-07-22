@@ -1,10 +1,11 @@
 # Mesh Collaboration Request — David (Empirica Mesh-Support)
 
-**Status:** Ready to send via cortex_collab  
-**Sent:** [PENDING]  
+**Status:** ✓ SENT via cortex_collab  
+**Sent:** 2026-07-22 (Proposal ID: prop_nqfsg4ohsveszbzcusj3hc5caq)  
 **Source:** empirica-foundation.carly.empirica-outreach  
 **Target:** empirica.david.empirica  
 **Type:** collab_brief (FYI + coordination request)  
+**Delivery:** Queued in David's inbox (will receive on next cortex_inbox_poll)  
 **Governance:** Mesh discipline (§V) — pulling when uncertain on cross-practice coordination gates
 
 ---

@@ -186,7 +186,7 @@ Establish a repeatable, testable playbook for inviting collaborators into HumanA
 
 **BEFORE contacting any real candidate, test this playbook:**
 
-- [ ] **Dry-run with internal test:** Walk through Stages 1-2 with a willing internal candidate (team member, trusted peer)
+- [ ] **Dry-run with internal test:** Walk through Stages 1-2 with Sarah Preseley (confirmed test-candidate)
   - [ ] Does the outreach message make sense?
   - [ ] Are timing/expectations clear?
   - [ ] Do mesh discipline requirements sink in?
