@@ -10,8 +10,9 @@
 ## Contact
 
 - **Website:** https://www.longview.org
-- **RFP Contact:** [CARLY TO FILL: specific contact email/name]
 - **Application Email:** grants@longview.org
+- **RFP (Grants for Applied Work):** https://www.longview.org/request-for-proposals-grants-for-applied-work/ (or check for "Grants for Applied Work" on their RFP page)
+- **Application Platform:** Airtable form (link TBD - check RFP page)
 
 ---
 

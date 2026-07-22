@@ -9,9 +9,13 @@
 
 ## Contact
 
+- **Name:** David Van Assche
+- **Organization:** Nubaeon / empirica  
+- **Email:** soulentheo@gmail.com
+- **WhatsApp:** +34 622390838 (Spain-based)
 - **Mesh ID:** empirica.david.empirica
-- **Canonical 3-form:** empirica.david.empirica (preferred addressing)
-- **Channel:** Empirica mesh collab/mailbox
+- **Canonical 3-form:** empirica.david.empirica (preferred addressing for mesh)
+- **Channel:** Email, WhatsApp, Empirica mesh collab/mailbox
 - **Note:** Cross-org support channel (empirica ↔ empirica-foundation per org agreement 2026-07-01)
 
 ---

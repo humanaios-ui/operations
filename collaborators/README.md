@@ -8,9 +8,9 @@ Central index of all active collaborators and partner organizations.
 
 | Name | Role | Organization | Status | Contact |
 |------|------|--------------|--------|---------|
-| Carly R. Anderson | Founder & PI | HumanAIOS LLC | Active | aioshuman@gmail.com, (448) 243-3992 |
-| David | Empirica Mesh | Empirica | Active | via empirica mesh (empirica.david.empirica) |
-| Demarius J. Lawson | Architecture & Evaluation | Mode AI / Governing Engines | Active | via Mode AI |
+| Carly R. Anderson (Night) | Founder & PI | HumanAIOS LLC (FL) | Active | aioshuman@gmail.com, (448) 243-3992 |
+| David Van Assche | Empirica Mesh / Peer Researcher | Nubaeon / empirica | Active | soulentheo@gmail.com, +34 622390838 (WhatsApp) |
+| Demarius J. Lawson | Architecture & Evaluation | Mode AI / Demarius Labs / Governing Engines | Active | GitHub, LinkedIn DM |
 
 ## Partner Organizations
 

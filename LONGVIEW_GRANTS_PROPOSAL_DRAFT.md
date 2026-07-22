@@ -156,9 +156,9 @@ We will:
 
 ## JURISDICTION & LOCATION
 
-- **Organization:** HumanAIOS LLC, [**CARLY: state of incorporation**]
-- **Principal Investigator:** Carly R. Anderson, Based in [**CARLY: your city/state**]
-- **Research Activities:** Primarily digital/distributed (modeling evaluation, benchmarking, forecasting operations), with occasional in-person collaboration with Mode AI ([**CARLY: location**]) and Demarius Labs ([**CARLY: location**])
+- **Organization:** HumanAIOS LLC, Florida (Doc #L26000155266, incorporated March 16, 2026)
+- **Principal Investigator:** Carly R. Anderson, [**CARLY: your city/state**]
+- **Research Activities:** Primarily digital/distributed (modeling evaluation, benchmarking, forecasting operations), with occasional in-person collaboration with Mode AI ([**CARLY: city/state**]) and Demarius Labs ([**CARLY: city/state**])
 
 ---
 
@@ -169,7 +169,7 @@ We will:
 **Requested Funding:** $300,000 (18-month program @ $200K/year)
 
 **Placeholders for final review (marked with [CARLY: ...] above):**
-1. HumanAIOS LLC state of incorporation
+1. ✓ HumanAIOS LLC state of incorporation (Florida - extracted)
 2. Your city/state location
 3. Mode AI location
 4. Demarius Labs location

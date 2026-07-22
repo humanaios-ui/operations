@@ -3,16 +3,16 @@
 **Role:** Architecture Researcher & Evaluation Lead  
 **Organizations:** Mode AI, Demarius Labs, Governing Engines  
 **Status:** Active  
-**Since:** 2026-05
+**Since:** 2026-05 (convergent independent discovery of F-INTENT-PARSE-MUTATION; co-authorship terms under discussion)
 
 ---
 
 ## Contact
 
-- **Primary:** Mode AI (Demarius Labs contact)
-- **Email:** [CARLY TO FILL: direct email if you have it]
-- **LinkedIn:** [via professional networks]
-- **Mesh ID (if Empirica):** [if applicable]
+- **Primary:** Mode AI / Demarius Labs
+- **Platform:** GitHub (active), LinkedIn (active as of June 2026 with 3+ messages/day)
+- **Communication:** GitHub threads (REGISTERED.md), LinkedIn DMs
+- **Note:** No direct email listed in canonical sources; reach via Mode AI or GitHub mentions
 
 ---
 

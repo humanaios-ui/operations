@@ -42,11 +42,11 @@
 
 ## Reporting Requirements
 
-**[CARLY TO FILL: Confirm with Longview]**
-- Reporting frequency: Quarterly? Semi-annual?
-- Report format: Narrative + financial statement?
-- Metrics tracked: Publications, data released, team metrics?
-- Compliance checklist: Indirect cost rates, audit requirements?
+**[TO CONFIRM with Longview: grants@longview.org]**
+- Reporting frequency: [Check RFP document]
+- Report format: [Narrative + financial? Milestones only?]
+- Metrics tracked: [Publications, data released, team metrics?]
+- Compliance checklist: [Indirect cost rates, audit requirements?]
 
 ---
 

@@ -1,9 +1,10 @@
 # Carly R. Anderson — Collaborator Profile
 
 **Role:** Founder & Principal Investigator, HumanAIOS LLC  
-**Organization:** HumanAIOS LLC (FL LLC #L26000155266 · EIN 41-5367995)  
+**Organization:** HumanAIOS LLC (Florida LLC #L26000155266 · EIN 41-5367995, incorporated March 16, 2026)  
+**Operational Name:** Night  
 **Status:** Active  
-**Since:** 2024 (HumanAIOS founding)
+**Since:** March 2026 (HumanAIOS founding)
 
 ---
 
