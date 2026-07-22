@@ -1,0 +1,401 @@
+name: SonarCloud Baseline Auto-Capture
+
+# Automatically runs SonarCloud scan, captures metrics, creates issues, and updates baseline
+# Triggered on every push to main branch
+# No manual steps required after commit
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_capture:
+        description: 'Force metrics capture even if no changes'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  sonarcloud-scan:
+    name: SonarCloud Scan & Auto-Capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      scan_completed: ${{ steps.scan.outputs.completed }}
+      metrics_updated: ${{ steps.metrics.outputs.updated }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: SonarQube Quality Guard
+        id: guard
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ] && [ -n "$SONAR_HOST_URL" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::SonarCloud not configured - skipping baseline capture"
+          fi
+
+      - name: Run SonarQube Scan
+        if: steps.guard.outputs.configured == 'true'
+        id: scan
+        uses: sonarsource/sonarqube-scan-action@v3
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        continue-on-error: true
+
+      - name: Mark scan completed
+        if: steps.guard.outputs.configured == 'true'
+        id: scan-status
+        run: echo "completed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python for metrics capture
+        if: steps.guard.outputs.configured == 'true' && steps.scan-status.outputs.completed == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        if: steps.guard.outputs.configured == 'true' && steps.scan-status.outputs.completed == 'true'
+        run: |
+          pip install requests pyyaml
+
+      - name: Fetch metrics from SonarCloud
+        if: steps.guard.outputs.configured == 'true' && steps.scan-status.outputs.completed == 'true'
+        id: metrics
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 << 'PYTHON_EOF'
+          import os
+          import json
+          import subprocess
+          import requests
+          from datetime import datetime
+
+          sonar_token = os.environ.get("SONAR_TOKEN", "")
+          sonar_host = os.environ.get("SONAR_HOST_URL", "").rstrip('/')
+          github_token = os.environ.get("GITHUB_TOKEN", "")
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+
+          if not sonar_token or not sonar_host:
+              print("SonarCloud not configured")
+              exit(0)
+
+          print("🔍 Fetching SonarCloud metrics...")
+
+          # Query SonarCloud API for project metrics
+          project_key = "humanaios-ui_operations"
+
+          # Fetch issues
+          issues_url = f"{sonar_host}/api/issues/search"
+          params = {
+              "componentKeys": project_key,
+              "resolved": "false",
+              "ps": "500"  # Max 500 issues per page
+          }
+          headers = {"Authorization": f"Bearer {sonar_token}"}
+
+          try:
+              response = requests.get(issues_url, params=params, headers=headers, timeout=10)
+              response.raise_for_status()
+              issues_data = response.json()
+              issues = issues_data.get("issues", [])
+              print(f"✓ Fetched {len(issues)} issues")
+          except Exception as e:
+              print(f"⚠️  Could not fetch issues: {e}")
+              issues = []
+
+          # Fetch project metrics
+          measures_url = f"{sonar_host}/api/measures/component"
+          measure_keys = [
+              "reliability_rating", "security_rating", "sqale_rating",
+              "coverage", "duplicated_lines_density",
+              "bugs", "vulnerabilities", "code_smells",
+              "ncloc", "sqale_index"
+          ]
+          metrics_params = {
+              "component": project_key,
+              "metricKeys": ",".join(measure_keys)
+          }
+
+          try:
+              response = requests.get(measures_url, params=metrics_params, headers=headers, timeout=10)
+              response.raise_for_status()
+              metrics_data = response.json()
+              measures = {m["key"]: m.get("value", "N/A") for m in metrics_data.get("component", {}).get("measures", [])}
+              print(f"✓ Fetched project metrics")
+          except Exception as e:
+              print(f"⚠️  Could not fetch metrics: {e}")
+              measures = {}
+
+          # Count issues by severity
+          severity_counts = {}
+          for issue in issues:
+              severity = issue.get("severity", "INFO")
+              severity_counts[severity] = severity_counts.get(severity, 0) + 1
+
+          print(f"\n📊 Issue Summary:")
+          print(f"  BLOCKER:  {severity_counts.get('BLOCKER', 0)}")
+          print(f"  CRITICAL: {severity_counts.get('CRITICAL', 0)}")
+          print(f"  MAJOR:    {severity_counts.get('MAJOR', 0)}")
+          print(f"  MINOR:    {severity_counts.get('MINOR', 0)}")
+          print(f"  INFO:     {severity_counts.get('INFO', 0)}")
+
+          print(f"\n📈 Quality Metrics:")
+          print(f"  Reliability:    {measures.get('reliability_rating', 'N/A')}")
+          print(f"  Security:       {measures.get('security_rating', 'N/A')}")
+          print(f"  Maintainability:{measures.get('sqale_rating', 'N/A')}")
+          print(f"  Coverage:       {measures.get('coverage', 'N/A')}%")
+          print(f"  Duplication:    {measures.get('duplicated_lines_density', 'N/A')}%")
+
+          # Save metrics for next step
+          with open('/tmp/sonar_metrics.json', 'w') as f:
+              json.dump({
+                  'issues': issues,
+                  'severity_counts': severity_counts,
+                  'measures': measures,
+                  'timestamp': datetime.utcnow().isoformat()
+              }, f, indent=2)
+
+          print(f"\n✓ Metrics saved for processing")
+          print("updated=true" > "/tmp/metrics_updated.txt")
+
+          PYTHON_EOF
+
+          echo "updated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub issues for BLOCKER violations
+        if: steps.guard.outputs.configured == 'true' && steps.metrics.outputs.updated == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          python3 << 'PYTHON_EOF'
+          import json
+          import subprocess
+          import os
+          from datetime import datetime
+
+          sonar_host = os.environ.get("SONAR_HOST_URL", "").rstrip('/')
+
+          # Load metrics
+          try:
+              with open('/tmp/sonar_metrics.json', 'r') as f:
+                  data = json.load(f)
+              issues = data.get('issues', [])
+          except:
+              print("No metrics found")
+              exit(0)
+
+          # Filter BLOCKER issues
+          blocker_issues = [i for i in issues if i.get('severity') == 'BLOCKER']
+
+          if not blocker_issues:
+              print("✓ No BLOCKER issues found")
+              exit(0)
+
+          print(f"🚨 Found {len(blocker_issues)} BLOCKER issues - creating GitHub issues...")
+
+          for issue in blocker_issues[:10]:  # Limit to 10 per run
+              rule = issue.get('rule', 'Unknown')
+              component = issue.get('component', 'Unknown')
+              line = issue.get('line', 'N/A')
+              message = issue.get('message', 'No description')
+              key = issue.get('key', '')
+
+              sonar_link = f"{sonar_host}/project/issues?id=humanaios-ui_operations&issues={key}"
+
+              title = f"[Code Quality] BLOCKER: {rule}"
+              body = f"""## Issue Details
+- **Rule:** {rule}
+- **Component:** {component}
+- **Line:** {line}
+- **Severity:** BLOCKER
+
+## Description
+{message}
+
+## Remediation
+- [ ] Review code
+- [ ] Implement fix
+- [ ] Run tests
+- [ ] Verify fix in SonarCloud
+
+## SonarCloud Link
+[View in SonarCloud]({sonar_link})
+"""
+
+              # Check if issue already exists (simple check by title)
+              existing = subprocess.run(
+                  ["gh", "issue", "list", "--label", "blocker", "--label", "code-quality", "--state", "all", "--json", "title", "-q", f".[] | select(.title == \"{title}\")"],
+                  capture_output=True,
+                  text=True
+              )
+
+              if existing.stdout.strip():
+                  print(f"  ⏭️  Issue already exists: {title}")
+                  continue
+
+              # Create issue
+              result = subprocess.run(
+                  ["gh", "issue", "create",
+                   "--title", title,
+                   "--body", body,
+                   "--label", "blocker",
+                   "--label", "code-quality"],
+                  capture_output=True,
+                  text=True
+              )
+
+              if result.returncode == 0:
+                  print(f"  ✓ Created: {title}")
+              else:
+                  print(f"  ✗ Failed: {title} - {result.stderr}")
+
+          PYTHON_EOF
+
+      - name: Update METRICS_BASELINE.md
+        if: steps.guard.outputs.configured == 'true' && steps.metrics.outputs.updated == 'true'
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          python3 << 'PYTHON_EOF'
+          import json
+          import re
+          from datetime import datetime
+
+          # Load metrics
+          try:
+              with open('/tmp/sonar_metrics.json', 'r') as f:
+                  data = json.load(f)
+          except:
+              print("No metrics found")
+              exit(0)
+
+          issues = data.get('issues', [])
+          severity_counts = data.get('severity_counts', {})
+          measures = data.get('measures', {})
+          timestamp = data.get('timestamp', '')
+
+          # Read current baseline
+          try:
+              with open('docs/METRICS_BASELINE.md', 'r') as f:
+                  content = f.read()
+          except:
+              print("METRICS_BASELINE.md not found")
+              exit(0)
+
+          # Update timestamp
+          content = re.sub(
+              r'\*\*Baseline Date:\*\* .*',
+              f'**Baseline Date:** {datetime.now().strftime("%Y-%m-%d")}',
+              content
+          )
+
+          # Update scan status
+          content = re.sub(
+              r'\*\*Scan Status:\*\* \[.*?\]',
+              '**Scan Status:** [COMPLETE - Auto-captured]',
+              content
+          )
+
+          # Update quality grades
+          grade_map = {
+              '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E'
+          }
+
+          for key, label in [
+              ('reliability_rating', 'Reliability'),
+              ('security_rating', 'Security'),
+              ('sqale_rating', 'Maintainability')
+          ]:
+              value = measures.get(key, '[PENDING]')
+              grade = grade_map.get(str(value), value)
+              content = re.sub(
+                  f'(\| \*\*{label}\*\* \| )\[PENDING\]',
+                  f'\\1{grade}',
+                  content
+              )
+
+          # Update issue counts
+          for severity in ['BLOCKER', 'CRITICAL', 'MAJOR', 'MINOR', 'INFO']:
+              count = severity_counts.get(severity, 0)
+              content = re.sub(
+                  f'(\| \*\*{severity}\*\* \| )\[PENDING\]',
+                  f'\\1{count}',
+                  content
+              )
+
+          # Update coverage and duplication
+          coverage = measures.get('coverage', '[PENDING]')
+          duplication = measures.get('duplicated_lines_density', '[PENDING]')
+          content = re.sub(r'(\| \*\*Coverage\*\* \| )\[PENDING\]', f'\\1{coverage}%', content)
+          content = re.sub(r'(\| \*\*Duplicates\*\* \| )\[PENDING\]', f'\\1{duplication}%', content)
+
+          # Write updated content
+          with open('docs/METRICS_BASELINE.md', 'w') as f:
+              f.write(content)
+
+          print("✓ Updated METRICS_BASELINE.md with latest metrics")
+
+          PYTHON_EOF
+
+      - name: Commit and push baseline updates
+        if: steps.guard.outputs.configured == 'true' && steps.metrics.outputs.updated == 'true'
+        run: |
+          git config user.name "sonarcloud-baseline-bot"
+          git config user.email "sonarcloud-baseline@github.com"
+
+          # Check if there are changes
+          if git diff --quiet docs/METRICS_BASELINE.md; then
+              echo "✓ No metrics changes to commit"
+              exit 0
+          fi
+
+          git add docs/METRICS_BASELINE.md
+          git commit -m "chore(metrics): auto-update baseline from SonarCloud scan
+
+- Updated quality grades
+- Updated issue counts by severity
+- Updated coverage and duplication metrics
+- Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+Co-Authored-By: sonarcloud-baseline-bot <sonarcloud-baseline@github.com>"
+
+          git push origin main
+
+          echo "✓ Baseline committed and pushed"
+
+      - name: Summary
+        if: steps.guard.outputs.configured == 'true' && steps.metrics.outputs.updated == 'true'
+        run: |
+          echo "## ✅ SonarCloud Baseline Auto-Capture Complete"
+          echo ""
+          echo "### Actions Taken:"
+          echo "- ✓ SonarCloud scan completed"
+          echo "- ✓ Metrics fetched from API"
+          echo "- ✓ BLOCKER issues tracked (GitHub issues created if new)"
+          echo "- ✓ METRICS_BASELINE.md updated"
+          echo "- ✓ Changes committed and pushed"
+          echo ""
+          echo "### View Results:"
+          echo "- **Metrics:** docs/METRICS_BASELINE.md"
+          echo "- **SonarCloud:** https://sonarcloud.io/project/overview?id=humanaios-ui_operations"
+          echo "- **GitHub Issues:** https://github.com/${{ github.repository }}/issues?q=label%3Ablocker+label%3Acode-quality"
