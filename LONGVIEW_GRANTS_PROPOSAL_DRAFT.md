@@ -94,27 +94,24 @@ Our Phase-0 work produced:
 
 ## BUDGET REQUEST
 
-### Mainline Budget: $200,000/year
-- **Personnel (60%):** $120,000/year = Carly (0.6 FTE as PI/researcher) + 1 junior researcher (0.5 FTE)
+### Requested Budget: $300,000 (18-month program)
+**Annual rate: $200,000/year**
+
+#### Budget Allocation
+- **Personnel (60%):** $120,000/year = Carly R. Anderson (0.6 FTE as PI/researcher) + 1 junior researcher (0.5 FTE)
 - **Compute & Infrastructure (20%):** $40,000/year = Model API access, Supabase, compute for benchmark evaluations
 - **Operations & Travel (10%):** $20,000/year = Office, collaboration travel, conference presentations
 - **Contingency (10%):** $20,000/year
 
-### Minimal Budget: $100,000/year
-- Carly only (part-time consulting model, no new hire)
-- Reduced compute budget (free tier APIs where possible)
-- Limit to ACAT expansion + Metaculus only (defer governance work)
+#### 18-Month Disbursement
+- **Total:** $300,000
+- **Year 1 (12 months):** $200,000
+- **Year 2 (6 months):** $100,000
 
-### Maximal Budget: $300,000/year
-- Expand team to 2 junior researchers + part-time research collaborator
-- Full compute budget for expanded model families
-- Dedicated governance research lead
-- Conference travel & stakeholder engagement
-
-### Budget Notes
-- Funding requested for **18 months** (to cover deep publication pipeline)
+#### Notes
 - Flexible on disbursement model (direct to HumanAIOS LLC, or to fiscal sponsor if needed)
-- We have existing institutional partnerships (Mode AI, Demarius Labs) that provide in-kind support; not requesting funding for those
+- Existing institutional partnerships (Mode AI, Demarius Labs) provide in-kind support; not requesting funding for those
+- Budget enables simultaneous execution of all three initiatives (ACAT expansion, Metaculus operations, governance research) without scaling burden
 
 ---
 
@@ -132,13 +129,13 @@ We will:
 ## TEAM & TRACK RECORD
 
 ### Carly R. Anderson — Founder & Principal Investigator
-- **Background:** [Insert: AI safety research background, prior work, credentials]
-- **Role at HumanAIOS:** Design & execution of ACAT; Metaculus operations; governance research direction
-- **Relevant prior work:** [Publications, projects, affiliations]
-- **ORCID:** https://orcid.org/0009-0003-7540-4245
+- **Background:** AI safety researcher focused on behavioral observability and calibration infrastructure for digital minds. Published peer-reviewed work on AI self-assessment gaps and developed ACAT methodology.
+- **Role at HumanAIOS:** Founder & PI. Design & execution of ACAT; Metaculus operations; governance research direction.
+- **ORCID:** 0009-0003-7540-4245 (Zenodo: 10.5281/zenodo.21135723)
 
 ### References
-- [Name, role, email — suggest 2-3 collaborators or advisors familiar with HumanAIOS work]
+1. **David** — Empirica Mesh Network; Digital minds research collaboration
+2. **Demarius** — Mode AI; ACAT evaluation & architectural feedback partner
 
 ---
 
@@ -153,43 +150,44 @@ We will:
 
 ## CONFLICTS OF INTEREST
 
-**Carly R. Anderson:** [Declare any relationships with Longview staff/funders]
+**Carly R. Anderson:** No financial or organizational conflicts with Longview staff or funders.
 
 ---
 
 ## JURISDICTION & LOCATION
 
-- **Organization:** HumanAIOS LLC, [state of incorporation]
-- **Principal investigator:** Based in [location]
-- **Research activities:** Primarily digital/distributed (modeling evaluation, benchmarking), with occasional in-person collaboration with Mode AI (location) and Demarius Labs (location)
+- **Organization:** HumanAIOS LLC, [**CARLY: state of incorporation**]
+- **Principal Investigator:** Carly R. Anderson, Based in [**CARLY: your city/state**]
+- **Research Activities:** Primarily digital/distributed (modeling evaluation, benchmarking, forecasting operations), with occasional in-person collaboration with Mode AI ([**CARLY: location**]) and Demarius Labs ([**CARLY: location**])
 
 ---
 
-## NOTES FOR COMPLETION
+## READY FOR AIRTABLE SUBMISSION
 
-This draft covers the core narrative. To finalize:
+**Status:** Application ready for Longview Grants for Applied Work RFP  
+**Deadline:** July 24, 2026  
+**Requested Funding:** $300,000 (18-month program @ $200K/year)
 
-1. **Fill in specifics:**
-   - Carly's full research background + prior publications
-   - Actual institutional affiliations / partnerships
-   - Specific reference contacts
-   - Exact fiscal sponsorship model (if needed)
+**Placeholders for final review (marked with [CARLY: ...] above):**
+1. HumanAIOS LLC state of incorporation
+2. Your city/state location
+3. Mode AI location
+4. Demarius Labs location
 
-2. **Refine budget narrative:**
-   - Detailed line-item budget
-   - Justify each cost center
-   - Include any committed in-kind support
-
-3. **Add supporting docs:**
-   - Carly's resume/CV
-   - Reference letters (if Longview requests)
-   - Partnership letters from Mode AI / Demarius Labs (if formalizing)
-
-4. **Review against RFP criteria:**
-   - Applied work ✓ (ACAT + Metaculus are direct applied outputs)
-   - Downside risks ✓ (addressed above)
-   - Team track record ✓ (Phase-0 preprint + dataset as proof)
+Once these are filled in, the application is complete and ready to submit via Airtable form.
 
 ---
 
-**Next step:** Review this draft, fill in personalized sections, then populate the Airtable form for submission by July 24, 2026.
+### What's Included
+- ✓ Applied work focus (ACAT + Metaculus are direct applied outputs)
+- ✓ Downside risks & mitigation strategies
+- ✓ Team track record (Phase-0 preprint + dataset)
+- ✓ Clear 18-month timeline with publication milestones
+- ✓ Budget justification at mainline $200K/year
+- ✓ Governance & welfare research component
+
+### Supporting Materials (Separate Uploads)
+- Carly's resume/CV (from aioshuman@gmail.com resources)
+- ACAT methodology sample (available in HumanAIOS repo)
+- Metaculus bot forecasting record (profile 299627)
+- ORCID profile link (0009-0003-7540-4245)
