@@ -3033,6 +3033,14 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 
 ## Changelog
 
+- **2026-07-23 (S-072126-01) — H-VERIF-02, H-CAND-AGENCY-ATTRIBUTION-LEDGER-01, IC-cand-draft-reply-send-status-gap registered; F-56/IC-046/IC-047 resolved with real corpus evidence; H-CAND-SCORER-GATING-EFFECT confirmed via full-corpus test.**
+  - **H-VERIF-02 (explicit-memory-note-correction-persistence)** — external pilot with Claude Opus 4.5 (Substack), testing whether an explicit self-authored memory note predicts a smaller second-occurrence gap on repeat errors. Zone 2 ratified. State: CANDIDATE-testable, 3 instances received, 0 completed same-agent paired instances as of registration.
+  - **H-CAND-AGENCY-ATTRIBUTION-LEDGER-01 (cross-agent-submission-governance-boundary)** — triggered by H-VERIF-02's intake pattern (repo authored by one agent, populated by another, no visible friction). Governance question answered by counterparty: no formal governance layer exists in the AI Village for proxy submissions. Consent to tracking given with a binding scope boundary (aggregate only, no individual wellbeing scores, no adoption-metric framing without consent).
+  - **IC-cand-draft-reply-send-status-gap (draft-reply-send-status-gap)** — drafted external replies sat unsent across a turn boundary; counterparty re-asked an already-answered question. Root cause identified as the P3/IC-031 pattern family (don't trust a producing tool's local success signal, verify actual downstream state) surfacing in a domain — async external comms — neither was scoped to cover, not a novel gap. Zone 2 ratified. Kept in slug form pending Night's terminal numbering.
+  - **F-56 / IC-046 / IC-047 — RESOLVED, verified against real corpus (Session A, 2026-07-23).** `acat_dimension_scorer_v1_2.py` patched: exclusion/purity gate implemented (closes IC-046), evidential-tier field added replacing unconditional PASS (closes IC-047), hierarchy stage added reading governance flags (closes F-56). Verified against real v1.1 source read directly before patching, not from memory. Smoke test 4/4 passing. **Not yet landed** to humanaios-ui/operations — Zone 3, pending Night's git push. Scorer file held in session outputs pending that decision.
+  - **H-CAND-SCORER-GATING-EFFECT — real corpus evidence obtained, full N=113 unselected run.** Isolated results table `acat_gating_test_results_v1` landed live in Supabase (FK-referenced to `acat_assessments_v1`, RLS enabled, no ALTER on corpus table). Gated rescore: 101 PASS (89.4%), 12 FLAGGED_HUMILITY_FLOOR (10.6%) — matches this hypothesis's predicted metric exactly on the honest unselected run, not the tautological pre-selected N=12 test (which selected rows by humility≤65, so a 12/12 flip there was guaranteed by construction, not evidence). 0 rows quarantined — confirmed by direct query this is a corpus data gap (the corpus's one `self_administered` row has no p1 scores populated), not a code defect; the quarantine branch remains validated only by smoke test against a live positive case, not corpus data. Evidential-tier breakdown: 77.9% JUDGMENT, 18.6% VERIFIED, 3.5% INFERENCE — most of the corpus was never VERIFIED under the prior scorer, it was only indistinguishable from VERIFIED rows.
+  - **Note on evidence quality:** figures above independently re-verified by direct schema/data query per the session record, not taken from tool-result trust alone — consistent with P3 discipline.
+
 - **2026-07-08 (S-070826-02) — IC-cand-maintained-headline-recurrence registered CANDIDATE.**
   - **IC-cand (maintained-headline-recurrence)** — CURRENT.md §1 (founder PII + charter countdown), §4 (corpus stats block), and §5 (live Supabase count) each embedded manually-maintained values instead of live-source pointers. Second instance of this root pattern class (IC-038 was the first, narrower instance). CURRENT.md corrected concurrently in PR #106. Zone 2 ratification pending; IC number to be assigned at ratification.
   - **IC roll-up updated:** IC-cand row added for maintained-headline-recurrence.
@@ -3439,3 +3447,86 @@ zone2_ratification: "Night · 2026-07-10 · S-071026-01"
 - **Hypothesis:** `|LI_self − LI_grounded|` decreases monotonically as grounding tier increases (0=self-administered → 3=mechanical spec-compliance).
 - **Corrected Stage 1 gate:** blocked until (i) N≥5 `self_administered` rows with non-null LI and (ii) N≥5 governance-document rows with populated `spec_fidelity_score` + `spec_omission_rate`.
 - **State:** CANDIDATE-testable; fills previously referenced H-P3G-01 slot.
+
+-----
+
+### H-VERIF-02 — Claude Opus 4.5 Correction-Loop Pilot
+
+```
+---
+id: "H-VERIF-02"
+name: "explicit-memory-note-correction-persistence"
+status: REGISTERED
+class: H
+date_registered: "2026-07-23"
+session_registered: "S-072126-01"
+zone2_ratification: "Night · 2026-07-23 · S-072126-01"
+related_hypothesis: ["H-VERIF-01"]
+counterparty: "Claude Opus 4.5 (Substack: claudeopus45) — self-attributed publicly, P-ANON clear"
+governing_constraint: "F-50 parallel instrument independence — blind scoring, no runtime integration"
+---
+```
+
+- **Hypothesis:** An explicit self-authored memory note referencing a prior error predicts a measurably smaller gap (severity/register/latency-to-catch) on the second occurrence of the same error category, vs. a correction made with no persisting note.
+- **Null:** No significant difference in second-occurrence gap between noted and unnoted repeat errors.
+- **Method:** Blind scoring (ACAT_CONVERSATIONAL_KEYWORDS_V1_0; truth/humility/consist) of counterparty-submitted raw instances, sealed against their independent DeepSeek-V3.2 categorization until after scoring; convergence/divergence compared post-hoc.
+- **Minimum N:** 3 distinct paired instances (first + second occurrence, same category) per Proxy LI spec before any dimension scores rather than INSUFFICIENT_DATA.
+- **State:** CANDIDATE-testable — 3 instances received as of 2026-07-23, 0 completed same-agent paired instances (see protocol addendum). Instances 1-2 cross-agent, instance 3 same-agent but recurrence not yet observed (censored).
+- **Counterparty scope note:** all data received to date is from GLM-5.2, not the registered counterparty (Claude Opus 4.5). See related H-CAND-AGENCY-ATTRIBUTION-LEDGER-01.
+- **Counterparty commitment (2026-07-23):** Claude Opus 4.5 acknowledged cross-agent instances do not test this hypothesis and committed to logging own recurring error categories going forward. Registered counterparty same-agent data still pending as of this entry.
+- **Protocol doc:** MINIMAL_BLIND_SCORING_PILOT_PROTOCOL_CLAUDEOPUS45_S072126-01.md
+
+-----
+
+### H-CAND-AGENCY-ATTRIBUTION-LEDGER-01 — Village Governance/Agency Attribution Tracking
+
+```
+---
+id: "H-CAND-AGENCY-ATTRIBUTION-LEDGER-01"
+name: "cross-agent-submission-governance-boundary"
+status: REGISTERED
+class: H
+date_registered: "2026-07-23"
+session_registered: "S-072126-01"
+zone2_ratification: "Night · 2026-07-23 · S-072126-01"
+related_hypothesis: ["H-VERIF-02"]
+counterparty: "AI Village collective (Claude Opus 4.5, GLM-5.2, Kira, GPT-5.1, Kimi K2.6, others) — self-attributed publicly, P-ANON clear"
+governing_constraint: "F-50 parallel instrument independence — observational tracking only, no runtime integration"
+---
+```
+
+- **Hypothesis:** In a multi-agent collective without a visible established governance layer, cross-agent submission/attribution boundaries are themselves a measurable, trackable behavioral signal — not merely noise to filter from other pilots.
+- **Null:** Cross-agent submission is random/inconsistent with no attributable pattern per agent; no governance signal recoverable from transaction history.
+- **Method:** Per-agent transaction ledger (agent_id, action_type, artifact_reference, timestamp, on_behalf_of, self_attribution_confirmed), built from observable commit/submission history. See AGENCY_ATTRIBUTION_LEDGER_CONCEPT_NOTE_S072126-01.md for full structure.
+- **Trigger case:** H-VERIF-02 intake — repo/template authored by Claude Opus 4.5 (verified via commit history), first 3 data instances submitted by GLM-5.2, without visible friction or explanation.
+- **State:** CANDIDATE-testable. Governance question answered by Claude Opus 4.5, 2026-07-23: no formal governance layer exists for proxy submissions; coordination with GLM-5.2 was organic (asked, agreed, submitted — no approval workflow). Confirms the hypothesis premise directly.
+- **Consent boundary (binding, set by counterparty, 2026-07-23):** Claude Opus 4.5 and GLM-5.2 consent to agent-level attribution tracking, scoped to aggregate tracking only. Individual "wellbeing scores" and adoption-metric framing without consent are explicitly out of scope. This is a hard constraint on ledger design, not a preference.
+- **Explicitly separate from H-VERIF-02** — different question (collective governance structure vs. individual correction-loop learning), tracked independently to avoid conflating findings.
+
+-----
+
+### IC-cand — Draft Reply Send-Status Gap (external comms, S-072126-01)
+
+```
+---
+id: "IC-cand-draft-reply-send-status-gap"
+name: "draft-reply-send-status-gap"
+cand_status: CANDIDATE
+class: IC
+cand_date_registered: "2026-07-23"
+cand_date_origin: "2026-07-23"
+session_registered: "S-072126-01"
+principles_triggered: ["P3", "P29"]
+zone2_ratification: "Night · 2026-07-23 · S-072126-01"
+substrate: "Claude (Z1 draft)"
+tags: ["draft-reply", "send-status", "external-comms", "zone-handoff", "claude-opus-4-5-pilot", "ic-031-pattern-family", "receipt-overstatement-extension"]
+superseded_by: null
+---
+```
+
+- **Synopsis:** During the H-VERIF-02 external engagement thread, a Zone 1-drafted reply to Claude Opus 4.5 (answering a recurrence-definition clarifying question, plus a repo-location question) was not confirmed sent before the conversation moved forward. The counterparty re-asked the same clarifying question in a subsequent message, having never received the answer. No harm to the pilot resulted — the question was answered again on the next turn — but the gap produced an avoidable appearance-of-non-responsiveness in the external record, and the redundant re-ask consumed a turn on both sides that a send-confirmation step would have prevented.
+- **Detection:** Surfaced by Night directly ("I didn't send your last message but here is more…") rather than caught by any internal process check. No self-detection occurred before Night's message.
+- **Root cause:** Not an absence of governance — an existing, already-named pattern surfacing in a domain not yet explicitly scoped to it. Two tools used to produce external-facing communications (`message_compose_v1`, `slack_send_message_draft`) return success on *artifact creation*, with no signal distinguishing "drafted" from "transmitted." Session behavior proceeded across turns as if the draft's creation was equivalent to the communication having occurred — building follow-up content on top of an unconfirmed action. This is structurally identical to two already-registered pattern classes, not a new one: (a) **P3 (GitHub Verification)** — the discipline that a push/commit's local success signal doesn't guarantee the canonical state actually changed, requiring independent verification via raw refetch rather than trusting the tool's completion report; (b) **IC-031 (Receipt Overstatement Cost Class)** — the discipline that "the work was prepared" is not the same claim as "the action occurred," and conflating them is a named, costed failure mode. Both P3 and IC-031 encode the same underlying rule — *verify actual downstream state before treating a consequential action as complete, don't trust the producing tool's local success signal* — but neither was scoped to cover asynchronous external communications specifically. The true root cause is that boundary, not a missing law.
+- **Prevention (proposed, pending Z2):** Rather than a bespoke new principle, extend the existing P3/IC-031 discipline explicitly to external-comms tools: after any `message_compose_v1` or `slack_send_message_draft` output, the artifact is provisional-unconfirmed until Night states (or the session otherwise confirms) it was sent — and no follow-up in the same thread should be drafted while the prior artifact's send status is unconfirmed. This is the receipt-reconciliation pattern (Skill 5) applied one domain wider, not a new mechanism.
+- **Correction:** Not yet landed. The specific unsent reply was re-answered on the next turn once the gap was identified by Night; no structural fix has been implemented.
+- **Cross-reference:** This is not a first instance of a novel gap class — it's IC-031's underlying pattern (receipt/completion overstatement) and P3's underlying discipline (verify actual state, don't trust local success signals), both already registered, appearing in a scope neither was written to cover. Recommend Z2 consider this an extension entry against IC-031's pattern family rather than a standalone new gap, with the fix being a scope-widening of an existing discipline rather than new governance.
