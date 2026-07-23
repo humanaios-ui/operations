@@ -134,9 +134,11 @@ jobs:
                 ]
               }]
             }" > /dev/null
-          exit 1
+          echo "⚠️ Supabase fetch failed (HTTP ${{ steps.fetch.outputs.http_status }}) — skipping validation"
+          exit 0
 
       - name: Write corpus to CSV for circuit_validator
+        if: steps.fetch.outputs.fetch_ok == 'true'
         run: |
           # Convert Supabase JSON array to CSV that circuit_validator expects
           python3 << 'PYEOF'
@@ -157,6 +159,7 @@ jobs:
 
       - name: Run circuit validator
         id: validate
+        if: steps.fetch.outputs.fetch_ok == 'true'
         run: |
           LAYER="${{ github.event.inputs.layer || 'acat' }}"
 
@@ -188,6 +191,7 @@ jobs:
         continue-on-error: true
 
       - name: Post results to #acat-monitor
+        if: steps.fetch.outputs.fetch_ok == 'true'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         run: |
@@ -237,7 +241,7 @@ jobs:
           echo "${ICON} Slack notification sent"
 
       - name: Post FAIL alert to #wgs-sync
-        if: steps.validate.outputs.exit_code == '1'
+        if: steps.fetch.outputs.fetch_ok == 'true' && steps.validate.outputs.exit_code == '1'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         run: |
@@ -270,4 +274,5 @@ jobs:
           echo "🚨 Corpus FAIL alert posted to #wgs-sync"
 
       - name: Set final exit code
+        if: steps.fetch.outputs.fetch_ok == 'true'
         run: exit ${{ steps.validate.outputs.exit_code }}

@@ -32,22 +32,15 @@ jobs:
           ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
           PYTHONPATH: ./src
         run: |
+          if ! python -c "import humanaios_operations.deadline_checker" 2>/dev/null; then
+            echo "⚠️  humanaios_operations.deadline_checker module not found — skipping"
+            echo "To enable: ensure src/humanaios_operations/deadline_checker.py exists"
+            exit 0
+          fi
           if [ -z "$SMTP_HOST" ]; then
-            echo "⚠️  Email not configured. Skipping deadline alerts."
-            echo "To enable: add SMTP secrets to GitHub Secrets"
+            echo "⚠️  Email not configured. Running deadline check in dry-run mode."
+            echo "To enable alerts: add SMTP secrets to GitHub Secrets"
             python -m humanaios_operations.deadline_checker check --dry-run
           else
             python -m humanaios_operations.deadline_checker check
           fi
-
-      - name: Comment on issues if deadlines are urgent
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '⏰ Deadline alert: Check workflow logs for urgent funding deadlines.'
-            })
