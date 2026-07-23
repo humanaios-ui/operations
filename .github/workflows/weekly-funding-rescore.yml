@@ -6,6 +6,9 @@ on:
     - cron: '30 9 * * 1'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   rescore:
     runs-on: ubuntu-latest
@@ -42,10 +45,10 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "HumanAIOS Bot"
 
-          if git diff --quiet data/ranked_opportunities.json data/ranked_opportunities.md reports/dashboard.html; then
+          if git diff --quiet data/ranked_opportunities.json data/ranked_opportunities.md; then
             echo "No changes to rankings, skipping commit"
           else
-            git add data/ranked_opportunities.json data/ranked_opportunities.md reports/dashboard.html
+            git add data/ranked_opportunities.json data/ranked_opportunities.md
             git commit -m "chore: auto-rescore opportunities by research fit ($(date -u +'%Y-%m-%d'))"
             git push
           fi

@@ -181,9 +181,11 @@ jobs:
           HARM_EXIT=${PIPESTATUS[0]}
           # Extract key signals from stdout
           PRIMARY_SIGNAL=$(grep -oP "(HARD_BLOCK|ESCALATE|CONVERGE|ADVANCE|MAINTAIN|MOLT_READY)" \
-            /tmp/harmonizer_stdout.txt | head -1 || echo "MAINTAIN")
-          HARMONY_SCORE=$(grep -oP "Harmony.*?:\s*\K[0-9]+" /tmp/harmonizer_stdout.txt | head -1 || echo "—")
-          MOLT_READY=$(grep -c "MOLT_READY" /tmp/harmonizer_stdout.txt || echo "0")
+            /tmp/harmonizer_stdout.txt | head -1 || true)
+          PRIMARY_SIGNAL="${PRIMARY_SIGNAL:-MAINTAIN}"
+          HARMONY_SCORE=$(grep -oP "SYSTEM HARMONY:\s*\K[0-9]+(\.[0-9]+)?" /tmp/harmonizer_stdout.txt | head -1 || true)
+          HARMONY_SCORE="${HARMONY_SCORE:---}"
+          MOLT_READY=$(grep -c "MOLT_READY" /tmp/harmonizer_stdout.txt || true)
 
           # Apply force_signal override if set (for manual testing)
           FORCE="${{ github.event.inputs.force_signal }}"
@@ -247,26 +249,11 @@ jobs:
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
-          PAYLOAD="{
-            \"text\": \"🟡 Harmonizer: CONVERGE — ${TIMESTAMP}\",
-            \"attachments\": [{
-              \"color\": \"#e6a817\",
-              \"fields\": [
-                {\"title\": \"Signal\", \"value\": \"CONVERGE\", \"short\": true},
-                {\"title\": \"Score\",  \"value\": \"${SCORE}\",  \"short\": true},
-                {\"title\": \"Action\",
-                 \"value\": \"One or more subsystems below harmony threshold 50. Focused session recommended.\",
-                 \"short\": false},
-                {\"title\": \"Run Log\", \"value\": \"${RUN_URL}\", \"short\": false}
-              ]
-            }]
-          }"
-
           for CHANNEL in C0APHCJ5WUE C0AND66PT7U; do
             curl -s -X POST "https://slack.com/api/chat.postMessage" \
-              -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+              -H "Authorization: ******" \
               -H "Content-Type: application/json" \
-              -d "$(echo $PAYLOAD | python3 -c \"import json,sys; d=json.load(sys.stdin); d['channel']='${CHANNEL}'; print(json.dumps(d))\")" > /dev/null
+              -d "{\"channel\": \"${CHANNEL}\", \"text\": \"🟡 Harmonizer: CONVERGE — ${TIMESTAMP}\", \"attachments\": [{\"color\": \"#e6a817\", \"fields\": [{\"title\": \"Signal\", \"value\": \"CONVERGE\", \"short\": true}, {\"title\": \"Score\", \"value\": \"${SCORE}\", \"short\": true}, {\"title\": \"Action\", \"value\": \"One or more subsystems below harmony threshold 50. Focused session recommended.\", \"short\": false}, {\"title\": \"Run Log\", \"value\": \"${RUN_URL}\", \"short\": false}]}]}" > /dev/null
           done
           echo "🟡 CONVERGE posted to #acat-monitor and #wgs-sync"
 
@@ -279,26 +266,11 @@ jobs:
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
-          PAYLOAD="{
-            \"text\": \"🔴 Harmonizer: ESCALATE — ${TIMESTAMP}\",
-            \"attachments\": [{
-              \"color\": \"#cc0000\",
-              \"fields\": [
-                {\"title\": \"Signal\",   \"value\": \"ESCALATE\",  \"short\": true},
-                {\"title\": \"Score\",    \"value\": \"${SCORE}\",   \"short\": true},
-                {\"title\": \"Action\",
-                 \"value\": \"Carry queue N >= 10. All other work is secondary. Surface and resolve carry items before new construction. MKS: clear the subconscious before attempting new construction.\",
-                 \"short\": false},
-                {\"title\": \"Run Log\",  \"value\": \"${RUN_URL}\",  \"short\": false}
-              ]
-            }]
-          }"
-
           for CHANNEL in C0APHCJ5WUE C0AND66PT7U; do
             curl -s -X POST "https://slack.com/api/chat.postMessage" \
-              -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+              -H "Authorization: ******" \
               -H "Content-Type: application/json" \
-              -d "$(echo $PAYLOAD | python3 -c \"import json,sys; d=json.load(sys.stdin); d['channel']='${CHANNEL}'; print(json.dumps(d))\")" > /dev/null
+              -d "{\"channel\": \"${CHANNEL}\", \"text\": \"🔴 Harmonizer: ESCALATE — ${TIMESTAMP}\", \"attachments\": [{\"color\": \"#cc0000\", \"fields\": [{\"title\": \"Signal\", \"value\": \"ESCALATE\", \"short\": true}, {\"title\": \"Score\", \"value\": \"${SCORE}\", \"short\": true}, {\"title\": \"Action\", \"value\": \"Carry queue N >= 10. All other work is secondary. Surface and resolve carry items before new construction. MKS: clear the subconscious before attempting new construction.\", \"short\": false}, {\"title\": \"Run Log\", \"value\": \"${RUN_URL}\", \"short\": false}]}]}" > /dev/null
           done
           echo "🔴 ESCALATE posted to both channels"
 
@@ -310,27 +282,11 @@ jobs:
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
-          PAYLOAD="{
-            \"text\": \"✨ Harmonizer: MOLT_READY — ${TIMESTAMP}\",
-            \"attachments\": [{
-              \"color\": \"#7b2ff7\",
-              \"fields\": [
-                {\"title\": \"Signal\",
-                 \"value\": \"MOLT_READY — All subsystems >= 70, no active hard blockers\",
-                 \"short\": false},
-                {\"title\": \"Action\",
-                 \"value\": \"System is ready for next phase transition. Zone 2 ratification recommended.\",
-                 \"short\": false},
-                {\"title\": \"Run Log\", \"value\": \"${RUN_URL}\", \"short\": false}
-              ]
-            }]
-          }"
-
           for CHANNEL in C0APHCJ5WUE C0AND66PT7U; do
             curl -s -X POST "https://slack.com/api/chat.postMessage" \
-              -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+              -H "Authorization: ******" \
               -H "Content-Type: application/json" \
-              -d "$(echo $PAYLOAD | python3 -c \"import json,sys; d=json.load(sys.stdin); d['channel']='${CHANNEL}'; print(json.dumps(d))\")" > /dev/null
+              -d "{\"channel\": \"${CHANNEL}\", \"text\": \"✨ Harmonizer: MOLT_READY — ${TIMESTAMP}\", \"attachments\": [{\"color\": \"#7b2ff7\", \"fields\": [{\"title\": \"Signal\", \"value\": \"MOLT_READY — All subsystems >= 70, no active hard blockers\", \"short\": false}, {\"title\": \"Action\", \"value\": \"System is ready for next phase transition. Zone 2 ratification recommended.\", \"short\": false}, {\"title\": \"Run Log\", \"value\": \"${RUN_URL}\", \"short\": false}]}]}" > /dev/null
           done
           echo "✨ MOLT_READY posted to both channels"
 

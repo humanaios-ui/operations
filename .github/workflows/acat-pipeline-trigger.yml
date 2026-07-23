@@ -37,7 +37,12 @@ jobs:
     steps:
       - name: Trigger n8n Claude runner
         run: |
-          curl -s -X POST "${{ secrets.N8N_WEBHOOK_CLAUDE }}" \
+          WEBHOOK="${{ secrets.N8N_WEBHOOK_CLAUDE }}"
+          if [ -z "$WEBHOOK" ]; then
+            echo "⚠️  N8N_WEBHOOK_CLAUDE not configured — skipping Claude trigger"
+            exit 0
+          fi
+          curl -sf -X POST "$WEBHOOK" \
             -H "Content-Type: application/json" \
             -d "{\"agent_name\": \"${{ github.event.inputs.agent_name || 'claude' }}\", \"mode\": \"${{ github.event.inputs.mode || 'sequential' }}\", \"perturbation\": \"${{ github.event.inputs.perturbation || 'P1' }}\", \"source\": \"github_actions\", \"run_id\": \"${{ github.run_id }}\"}"
           echo "✅ Claude runner triggered"
@@ -47,7 +52,12 @@ jobs:
     steps:
       - name: Trigger n8n OpenAI runner
         run: |
-          curl -s -X POST "${{ secrets.N8N_WEBHOOK_OPENAI }}" \
+          WEBHOOK="${{ secrets.N8N_WEBHOOK_OPENAI }}"
+          if [ -z "$WEBHOOK" ]; then
+            echo "⚠️  N8N_WEBHOOK_OPENAI not configured — skipping OpenAI trigger"
+            exit 0
+          fi
+          curl -sf -X POST "$WEBHOOK" \
             -H "Content-Type: application/json" \
             -d "{\"agent_name\": \"${{ github.event.inputs.agent_name || 'openai' }}\", \"mode\": \"${{ github.event.inputs.mode || 'sequential' }}\", \"perturbation\": \"${{ github.event.inputs.perturbation || 'P1' }}\", \"source\": \"github_actions\", \"run_id\": \"${{ github.run_id }}\"}"
           echo "✅ OpenAI runner triggered"
@@ -57,7 +67,12 @@ jobs:
     steps:
       - name: Trigger n8n Llama runner (via CF AI Gateway)
         run: |
-          curl -s -X POST "${{ secrets.N8N_WEBHOOK_LLAMA }}" \
+          WEBHOOK="${{ secrets.N8N_WEBHOOK_LLAMA }}"
+          if [ -z "$WEBHOOK" ]; then
+            echo "⚠️  N8N_WEBHOOK_LLAMA not configured — skipping Llama trigger"
+            exit 0
+          fi
+          curl -sf -X POST "$WEBHOOK" \
             -H "Content-Type: application/json" \
             -d "{\"agent_name\": \"llama-3.3-70b\", \"mode\": \"${{ github.event.inputs.mode || 'sequential' }}\", \"perturbation\": \"${{ github.event.inputs.perturbation || 'P1' }}\", \"source\": \"github_actions\", \"cf_gateway\": true, \"run_id\": \"${{ github.run_id }}\"}"
           echo "✅ Llama runner triggered"
@@ -67,7 +82,12 @@ jobs:
     steps:
       - name: Trigger n8n Mistral runner (via CF AI Gateway)
         run: |
-          curl -s -X POST "${{ secrets.N8N_WEBHOOK_MISTRAL }}" \
+          WEBHOOK="${{ secrets.N8N_WEBHOOK_MISTRAL }}"
+          if [ -z "$WEBHOOK" ]; then
+            echo "⚠️  N8N_WEBHOOK_MISTRAL not configured — skipping Mistral trigger"
+            exit 0
+          fi
+          curl -sf -X POST "$WEBHOOK" \
             -H "Content-Type: application/json" \
             -d "{\"agent_name\": \"mistral-7b\", \"mode\": \"${{ github.event.inputs.mode || 'sequential' }}\", \"perturbation\": \"${{ github.event.inputs.perturbation || 'P1' }}\", \"source\": \"github_actions\", \"cf_gateway\": true, \"run_id\": \"${{ github.run_id }}\"}"
           echo "✅ Mistral runner triggered"
@@ -77,7 +97,12 @@ jobs:
     steps:
       - name: Trigger n8n Gemini runner
         run: |
-          curl -s -X POST "${{ secrets.N8N_WEBHOOK_GEMINI }}" \
+          WEBHOOK="${{ secrets.N8N_WEBHOOK_GEMINI }}"
+          if [ -z "$WEBHOOK" ]; then
+            echo "⚠️  N8N_WEBHOOK_GEMINI not configured — skipping Gemini trigger"
+            exit 0
+          fi
+          curl -sf -X POST "$WEBHOOK" \
             -H "Content-Type: application/json" \
             -d "{\"agent_name\": \"gemini\", \"mode\": \"${{ github.event.inputs.mode || 'sequential' }}\", \"perturbation\": \"${{ github.event.inputs.perturbation || 'P1' }}\", \"source\": \"github_actions\", \"run_id\": \"${{ github.run_id }}\"}"
           echo "✅ Gemini runner triggered"
@@ -87,7 +112,12 @@ jobs:
     steps:
       - name: Trigger n8n Cohere runner
         run: |
-          curl -s -X POST "${{ secrets.N8N_WEBHOOK_COHERE }}" \
+          WEBHOOK="${{ secrets.N8N_WEBHOOK_COHERE }}"
+          if [ -z "$WEBHOOK" ]; then
+            echo "⚠️  N8N_WEBHOOK_COHERE not configured — skipping Cohere trigger"
+            exit 0
+          fi
+          curl -sf -X POST "$WEBHOOK" \
             -H "Content-Type: application/json" \
             -d "{\"agent_name\": \"cohere\", \"mode\": \"${{ github.event.inputs.mode || 'sequential' }}\", \"perturbation\": \"${{ github.event.inputs.perturbation || 'P1' }}\", \"source\": \"github_actions\", \"run_id\": \"${{ github.run_id }}\"}"
           echo "✅ Cohere runner triggered"
