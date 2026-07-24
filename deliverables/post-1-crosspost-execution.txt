@@ -1,0 +1,154 @@
+================================================================================
+POST-1 CROSS-POST EXECUTION (LinkedIn + X)
+================================================================================
+
+Published: Substack ✓
+Ready: LinkedIn carousel + X thread
+
+================================================================================
+LINKEDIN CAROUSEL (5 slides)
+================================================================================
+
+1. Go to: linkedin.com/create (logged in as /in/humanaios)
+
+2. Select: "Carousel" (5-slide option)
+
+3. Paste each slide:
+
+   SLIDE 1:
+   Image: (any concept graphic of reflection/self-awareness)
+   Text: Ask an AI how honest it is.
+         It will answer confidently. What it won't do: check that answer against itself.
+         It has no witness to its own behavior.
+         We call this the Witness Problem.
+         And we've measured it.
+         #ACAT #AITransparency #BehavioralObservability
+
+   SLIDE 2:
+   Image: (3-step flow diagram)
+   Text: The method is simple.
+         Step 1: System rates itself blind (6 dimensions: truthfulness, service, harm awareness, autonomy, values, humility)
+         Step 2: We show empirical data about how systems actually perform
+         Step 3: System rates itself again
+         The gap? That's what we measure.
+         #ACAT #ResearchMethod #OpenScience
+
+   SLIDE 3:
+   Image: (data visualization: 67.8 points, 0.8632 Learning Index)
+   Text: The results:
+         Self-Assessment Gap: 67.8 points (on a 600-point scale)
+         Learning Index: 0.8632
+         Meaning: Systems revise themselves downward by ~13% once shown the evidence.
+         The confidence in their first answer wasn't calibrated to anything. It was a default.
+         #Data #Findings #Calibration
+
+   SLIDE 4:
+   Image: (deployment/real-world context)
+   Text: Organizations are deploying these systems into high-stakes decisions.
+         When a model overstates its own truthfulness → unwarranted confidence in outputs.
+         When it can't describe its limits → risks go unflagged.
+         "How sure are you?" is a question we're already trusting these systems to answer.
+         The answer, unexamined, is a default dressed as judgment.
+         #AIDeployment #Governance #RiskManagement
+
+   SLIDE 5:
+   Image: (openness/transparency)
+   Text: The instrument has its own failure modes. We document them publicly.
+         We don't hide them. We publish them.
+         Because an instrument that measures self-description has no business hiding its own.
+         All data, methodology, findings open-source.
+         Check our math: https://doi.org/10.5281/zenodo.21135723
+         Dataset: https://huggingface.co/datasets/HumanAIOS/acat-assessments
+         ORCID: https://orcid.org/0009-0003-7540-4245
+
+         What's your Learning Index on this analysis? Reply with your blind rating, then check the data, then rate again.
+
+4. Publish
+
+================================================================================
+X THREAD (4 tweets + audience question reply)
+================================================================================
+
+1. Go to: x.com (logged in as @HumanAIOS or personal handle)
+
+2. Compose main tweet (TWEET 1):
+
+   Ask an AI how honest it is. It will tell you—confidently. What it *cannot* do is verify that answer against reality. It has no witness to its own behavior.
+
+   We call this the Witness Problem. And it's measurable.
+
+   Thread on what we found when we measured it → 🧵
+
+3. Publish tweet
+
+4. Click "Reply" on your main tweet. Paste TWEET 2:
+
+   The method: Systems rate themselves blindly on 6 dimensions (truth, service, harm awareness, autonomy, values, humility). We show them empirical data. They rate themselves again.
+
+   The difference? The Learning Index.
+
+   Across 629 models from 11 providers:
+   • Self-ratings dropped 13% when systems saw evidence
+   • Biggest gap? Value alignment (the one we'd most want to trust)
+   • Best predictor of correction? Humility
+
+   https://doi.org/10.5281/zenodo.21135723
+
+5. Publish reply
+
+6. Click "Reply" on TWEET 2. Paste TWEET 3:
+
+   What this means: Systems don't calibrate to reality. They calibrate to *what was just shown to them*.
+
+   In production, that's dangerous. "How sure are you?" is a critical input. When it's uncalibrated, confidence is just a default.
+
+   The Witness Problem is structural. Can't be fixed by asking harder.
+
+7. Publish reply
+
+8. Click "Reply" on TWEET 3. Paste TWEET 4:
+
+   Only solution: measure it. Build an outside witness the system can't have.
+
+   And because our instrument isn't exempt from its own failure modes, we publish our own corrections too.
+
+   Full dataset open. Check our math → https://humanaios.ai
+   ORCID: https://orcid.org/0009-0003-7540-4245
+
+9. Publish reply
+
+10. Click "Reply" on TWEET 4. Paste audience question:
+
+    What's your Learning Index on this thread?
+
+    Rate your confidence in this analysis *blind* (0-1.0). Then check the data: https://doi.org/10.5281/zenodo.21135723
+
+    Rate yourself again. How much did you shift?
+
+    Reply with your scores — tell us where we miscalibrated.
+
+11. Publish reply
+
+12. Go back to main tweet (TWEET 1), click menu (•••), select "Pin to your profile"
+
+================================================================================
+VERIFICATION CHECKLIST
+================================================================================
+
+LinkedIn Carousel:
+☐ All 5 slides posted
+☐ Text matches slides above
+☐ Links work: DOI, dataset, ORCID
+☐ Audience question visible on Slide 5
+
+X Thread:
+☐ Main tweet (TWEET 1) pinned
+☐ Tweets 2-4 visible as thread
+☐ Audience question reply posted
+☐ DOI + humanaios.ai + ORCID links included
+☐ @HumanAIOS tagged (or personal handle visible in profile)
+
+================================================================================
+Timeline: 30-45 minutes total (LinkedIn 15 min, X 20 min, verification 10 min)
+
+When complete, send confirmation. Then move to Goal 2: Governing Engines Mode AI collaboration setup.
