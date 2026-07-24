@@ -21,7 +21,7 @@
 | **LinkedIn** | `/in/humanaios` | ✅ |
 | **Paper text license** | CC-BY-4.0 | ✅ |
 | **Code + data license** | Apache-2.0 | ✅ |
-| **Contact email** | **`aioshuman@gmail.com`** (portfolio standard + arXiv account) — *decision needed:* the paper uses `carly.r.anderson@gmail.com` | ⚠️ confirm |
+| **Contact email** | **`aioshuman@gmail.com`** (portfolio standard + arXiv account) — *decision:* canonical (2026-07-24) | ✅ |
 
 **The golden rule:** name is `Carly R. Anderson`, and **every surface links to the ORCID**. Those two moves do most of the disambiguation work.
 
@@ -37,11 +37,11 @@ Legend: 🟢 I can draft exact text now · 🟡 needs your login to apply · �
 | 2 | **HuggingFace** | Apply P0-1 card redline; retire empty `HumanAIOS2026`; creator name | `HumanAIOS2026` refs → `HumanAIOS`; name → canonical | 🟢🟡 |
 | 3 | **humanaios.ai** (hub) | Name; add JSON-LD (`Person` w/ `sameAs`→ORCID/LinkedIn/X, `Organization`, `Dataset`, `SoftwareApplication`); verify HF link → `HumanAIOS/acat-assessments`; link out to all nodes | ensure name canonical; add structured data | 🟢🟡 (deploy) |
 | 4 | **GitHub** `humanaios-ui` | Add **link to humanaios.ai**; add name "Carly R. Anderson"; note relationship to `HumanAIOS` (HF) | bio has no hub link, no name → add both | 🟢🟡 |
-| 5 | **Substack** `@humanaios` | Display name; **add website link → hub**; align bio | "Carly R Anderson" → "Carly R. Anderson"; add hub link | 🟢🟡 |
+| 5 | **Substack** `@humanaios` | Display name; **add website link → hub**; align bio | "Carly R Anderson" → "Carly R. Anderson"; add hub link | ✅ **READY** (2026-07-24: profile setup + Post 1 publication checklist drafted) |
 | 6 | **arXiv account + paper** | Account **name** → canonical; paper corresponding email (per §A decision); pick CC-BY-4.0 at license step | "Carly Anderson" → "Carly R. Anderson" | 🟡 |
 | 7 | **Zenodo** (new) | Author = Carly R. Anderson + ORCID; canonical title; CC-BY-4.0 | (from P0-2 pack) | 🟢🟡 |
-| 8 | **X** `@HumanAIOS` | Verify bio + link, then align name/link to canonical | unknown → verify | 🔵 |
-| 9 | **LinkedIn** `/in/humanaios` | Verify headline/name/link, then align; confirm it's the canonical entity | unknown → verify | 🔵 |
+| 8 | **X** `@HumanAIOS` | Verify bio + link, then align name/link to canonical | unknown → verify | 🔵 **CONTENT READY** (post-1-x-thread-ready.md drafted; awaiting Chrome pass) |
+| 9 | **LinkedIn** `/in/humanaios` | Verify headline/name/link, then align; confirm it's the canonical entity | unknown → verify | 🔵 **CONTENT READY** (post-1-linkedin-ready.md drafted; awaiting Chrome pass) |
 | 10 | **GitHub Pages** `lasting-light-ai` | Name + fix indexation (P1-4); link hub | client-rendered → needs SSR/static + hub link | 🟡 (dev) |
 | 11 | **`rentahuman.ai/humans/8JC…`** | Inventory: keep / fold in / drop; if kept, align name + link | stray, un-inventoried | ⚠️ decide |
 | 12 | **Portfolio** (`PORTFOLIO_NIGHT_V1_0.md`) | Fix Substack handle (`@carlyranderson`→`@humanaios`); HF org ref; reconcile stats per canonical-stats pass | stale refs → canonical | 🟢🟡 |
