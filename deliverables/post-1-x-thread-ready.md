@@ -34,9 +34,25 @@ And because our instrument isn't exempt from its own failure modes, we publish o
 Full dataset open. Check our math → humanaios.ai
 ORCID: 0009-0003-7540-4245
 
+**[REPLY THREAD — Post audience question]**
+What's your Learning Index on this thread?
+
+Rate your confidence in this analysis *blind* (0-1.0). Then check the data: 10.5281/zenodo.21135723
+
+Rate yourself again. How much did you shift?
+
+Reply with your scores — tell us where we miscalibrated.
+
 ---
 
-**Notes for posting:**
-- Add link to DOI (10.5281/zenodo.21135723) in first reply/comment
-- Cross-reference the full Substack post in thread reply
-- Add @HumanAIOS handle if posting from personal account
+**Posting Instructions:**
+1. Compose Tweet 1 as main tweet
+2. Reply with Tweet 2 (threaded)
+3. Reply to Tweet 2 with Tweet 3 (threaded)
+4. Reply to Tweet 3 with Tweet 4 (threaded)
+5. Reply to Tweet 4 with audience calibration question (threaded)
+6. Pin the main tweet (Thread 1)
+7. Add link to DOI in first reply / in bio
+8. Tag @HumanAIOS (or use personal @handle if preferred)
+
+**Expected engagement:** Data + transparent methodology + audience question typically drives high engagement on AI-safety audience (retweets, quote-threads, citations)
