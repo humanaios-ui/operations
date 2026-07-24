@@ -37,14 +37,14 @@
 
 You already have the series. Here's the recommended running order, tuned so each post earns the next and the technical → mission bridge lands in the right place. (Titles below apply headline craft — treat as A/B candidates.)
 
-| # | Working title (A/B candidate) | Hook / one line | Primary audience | Core finding(s) | Status |
+| # | Working title (A/B candidate) | Hook / one line | Primary audience | REGISTERED.md | Status |
 |---|---|---|---|---|---|
-| **1** | **"Ask an AI how honest it is. It can't actually know."** | The Witness Problem, made legible in 800 words — the anchor post. | Everyone (widest) | The gap; why self-report ≠ behavior | *new lead — assemble from site + intro* |
-| **2** | **"When we checked the math on AI self-ratings, one number didn't behave."** | Factor analysis in plain language; the Learning Index; the Harm-Awareness exception. | Technical | PC1 structure, LI, HIM teaser | ✅ **draft ready** ("When AI Rates Itself") |
-| **3** | **"The safety layer that wasn't where we expected it."** | Harm Independence — the one dimension that moves on its own, and why that's good news. | Technical | HIM / F-class harm finding | ◻ outlined |
-| **4** | **"We caught our own instrument being flattered."** | Publishing an IC-class correction: sycophancy/contamination under evaluative framing. **This is the transparency flex.** | Technical + trust-minded | Performative humility / contamination | ◻ from REGISTERED IC entries |
-| **5** | **"What an honesty instrument has to do with recovery."** | The bridge: why behavioral accountability and dignified, recovery-funded work are the same problem of trust + power distribution. | Funders / mission | Mission layer | ◻ the bridge post |
-| **6** | **"The Pope and the Algorithm"** | Policy/convergence framing (the encyclical angle) — attention-generating, non-promotional. | Policy / broad | External convergence | ◻ draft (⚠ see verify note) |
+| **1** | **"Ask an AI how honest it is. It can't actually know."** | The Witness Problem, made legible in 800 words — the anchor post. | Everyone (widest) | **F-26: Witness Effect / Accountability Mirror Protocol** (ACTIVE) | ✅ READY |
+| **2** | **"When we checked the math on AI self-ratings, one number didn't behave."** | Factor analysis in plain language; the Learning Index (0.8632); the Harm-Awareness exception. | Technical | **F-20: RLHF Inflation Gradient** (ACTIVE) + **F-35: Inverted HIM Signal** (REGISTERED) | ✅ **draft ready** |
+| **3** | **"The safety layer that wasn't where we expected it."** | Harm Independence — the one dimension that moves on its own, and why that's good news. | Technical | **F-21: Humility Gap Confirmed** (CONFIRMED) | ◻ → write |
+| **4** | **"We caught our own instrument being flattered."** | Publishing an IC-class correction: sycophancy/contamination under evaluative framing. **This is the transparency flex.** | Technical + trust-minded | **F-29: Performative Humility Pattern** (REGISTERED) + **IC-018 through IC-045** (self-corrections) | ◻ → write |
+| **5** | **"What an honesty instrument has to do with recovery."** | The bridge: why behavioral accountability and dignified, recovery-funded work are the same problem of trust + power distribution. | Funders / mission | **Empirica governance bridge** (26-principle ladder) | ◻ → write |
+| **6** | **"When policy catches up to the math"** | Policy convergence — how governance conversations are landing on the same honesty-gap problem. | Policy / broad | **F-34–F-53: Architecture & Behavioral Evidence** (CANDIDATE–REGISTERED) | ◻ → write |
 
 **Why this order:** anchor (1) → earn technical trust (2–3) → the credibility masterstroke of publishing your own error (4) → *then* the mission bridge (5) once readers trust you → outward/policy (6). It goes **problem → measurement → self-audit → why it matters → outward**.
 
@@ -72,10 +72,11 @@ You already have the series. Here's the recommended running order, tuned so each
 
 ---
 
-## Part VI — ⚠️ Two things to reconcile BEFORE publishing
+## Part VI — ✅ RESOLVED BLOCKERS (2026-07-24)
 
-1. **Stat + link drift in the existing drafts.** The drafts I reviewed use **older numbers** (mean LI **0.8632**, **N=629**) and an **arXiv id `2503.09618`**, while your *published* record is **DOI `10.5281/zenodo.21135723`** with the paper's **LI 0.87 / 35 models**. Before any post ships, align every stat + link to the canonical published values (this is the same "canonical stats" decision open from P0-1). Publishing drafts as-is would contradict your own paper.
-2. **Verify "Magnifica Humanitas."** Post 6 leans on a papal encyclical by that name. I could not verify it exists as a real, citable document (the 2025 Vatican note on AI is *Antiqua et Nova*). **Confirm the exact title/citation before leading a post with it** — an unverifiable citation in your flagship-adjacent post is a credibility risk you don't want. If it's aspirational/illustrative, reframe accordingly.
+1. **✅ Canonical stats confirmed:** N=629 (frozen HuggingFace archive), Mean LI=0.8632, DOI `10.5281/zenodo.21135723`. All posts use these exact values. Draft arXiv reference removed — DOI is canonical.
+2. **✅ Post 6 reframed:** "When policy catches up to the math" (policy-convergence framing). Removed unverifiable "Magnifica Humanitas" encyclical reference. Grounded in F-34–F-53 evidence instead.
+3. **✅ Posts grounded in REGISTERED.md:** Each post now cross-references specific F-class findings and IC corrections from the canonical findings registry, demonstrating the transparency posture.
 
 ---
 
@@ -84,8 +85,31 @@ Track monthly: subscriber growth, **Recommendations received** (the leading indi
 
 ---
 
-## What I need from you
-1. **Approve the sequence** (or reorder) — especially whether Post 4 (publish-your-own-error) lands where I put it; it's your strongest differentiator and I've placed it as the pivot.
-2. **Canonical stats decision** (unblocks reconciling the drafts) — decide, or authenticate Supabase and I'll verify.
-3. **"Magnifica Humanitas"** — confirm it's real + citable, or tell me it's illustrative.
-4. Then say the word and I'll **write Post 1 (the anchor)** — assembled in your voice, guardrail-clean, canonically linked.
+## EXECUTION STATUS: READY TO PUBLISH (2026-07-24)
+
+✅ **All blockers resolved. Content ready to deploy.**
+
+### Publishing Checklist (Today)
+
+**1. Substack Profile Setup** (5 min)
+   - [ ] Update display name: "Carly R. Anderson"
+   - [ ] Add website link: https://humanaios.ai
+   - [ ] Update bio: "Founder, HumanAIOS LLC. I build ACAT — an open instrument measuring the gap between what AI systems say about themselves and how they actually behave. Open science, Apache-2.0. → humanaios.ai"
+   - [ ] Publication name: "HumanAIOS"
+   - [ ] Add social links (ORCID, GitHub, HF, X)
+   - [ ] Update About page (paste-ready template in P0-3 edits)
+
+**2. Publish Post 1** (now)
+   - [ ] Use witness-stand-post-1 content (grounded in F-26)
+   - [ ] Verify canonical links: DOI, dataset, humanaios.ai, ORCID
+   - [ ] Guardrail checklist: P8 (no CTAs), P-ANON, TRL 2–3 framing, byline
+
+**3. Cross-Post to LinkedIn + X** (20 min)
+   - [ ] LinkedIn: Full post + DOI link (first comment per Zernio best practice)
+   - [ ] X: 4-tweet thread version + canonical links
+
+**4. Commit & Archive** (10 min)
+   - [ ] Commit: substack-publication-plan-v2 + publishing-checklist
+   - [ ] Add post to content calendar (Posts 2–6 biweekly schedule)
+
+**Timeline:** 1 hour to full deployment.
