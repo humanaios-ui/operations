@@ -44,7 +44,7 @@ We ran this across **35 models from 11 providers**, collected two independent wa
 
 Systems inflate, then correct.
 
-On a 600-point scale, the average gap between blind self-report and calibrated behavior — the **Self-Assessment Gap** — was **67.8 points**. The mean **Learning Index was 0.8632**: shown the data, systems pulled their own self-ratings down by roughly 13%, on average, across the board.
+On a 600-point scale, the average gap between blind self-report and calibrated behavior — the **Self-Assessment Gap** — was **67.8 points**. The mean **Learning Index was 0.8632 (under clean, unanchored conditions, v5.3+)**: shown the data, systems pulled their own self-ratings down by roughly 13%, on average, across the board.
 
 In plain language: the confidence in that first answer is not calibrated to anything. It's a default. When you give the system something to calibrate *against*, it moves — which tells you the original number was never grounded in self-knowledge to begin with.
 
@@ -92,7 +92,7 @@ Reply with your scores and tell us where we miscalibrated.
 - F-26: Witness Effect / Accountability Mirror Protocol (REGISTERED.md) — the core finding this series rests on
 
 **Core metrics:**
-- Corpus: N=629 (frozen archive, HumanAIOS/acat-assessments)
+- Corpus: N=629 total (516 Phase 1 + 113 Phase 3; 307 LI-scored) — frozen archive, HumanAIOS/acat-assessments
 - Mean Learning Index = 0.8632 (under clean, unanchored conditions, v5.3+)
 - Self-Assessment Gap = 67.8 points (600-point scale)
 

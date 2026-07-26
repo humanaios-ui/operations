@@ -13,7 +13,7 @@ We call this the **Witness Problem**.
 2. We show it empirical data about how systems like it actually perform
 3. System rates itself again
 
-The difference? The **Learning Index**. On a 600-point scale, systems revised their self-ratings DOWN by an average of 13% once they saw the evidence (Mean LI = 0.8632). The gap between blind self-report and calibrated behavior? 67.8 points.
+The difference? The **Learning Index**. On a 600-point scale, systems revised their self-ratings DOWN by an average of 13% once they saw the evidence (Mean LI = 0.8632, under clean, unanchored conditions, v5.3+). The gap between blind self-report and calibrated behavior? 67.8 points.
 
 **What this means:**
 - Systems don't calibrate against reality; they calibrate against what was shown to them last
@@ -36,4 +36,4 @@ The full paper, methodology, and dataset are open for anyone to check.
 - humanaios.ai
 - ORCID: 0009-0003-7540-4245
 
-**N=629 models, 35 providers, 11 model families — clean, unanchored conditions.**
+**N=629 total (516 Phase 1 + 113 Phase 3; 307 LI-scored), 35 providers, 11 model families — clean, unanchored conditions, v5.3+**

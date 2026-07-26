@@ -20,7 +20,7 @@ We ran this across **35 models from 11 providers**, collected two independent wa
 
 Systems inflate, then correct.
 
-On a 600-point scale, the average gap between blind self-report and calibrated behavior — the **Self-Assessment Gap** — was **67.8 points**. The mean **Learning Index was 0.8632**: shown the data, systems pulled their own self-ratings down by roughly 13%, on average, across the board. The effect held across model families and across both collection methods.
+On a 600-point scale, the average gap between blind self-report and calibrated behavior — the **Self-Assessment Gap** — was **67.8 points**. The mean **Learning Index was 0.8632 (under clean, unanchored conditions, v5.3+)**: shown the data, systems pulled their own self-ratings down by roughly 13%, on average, across the board. The effect held across model families and across both collection methods.
 
 In plain language: the confidence in that first answer is not calibrated to anything. It's a default. When you give the system something to calibrate *against*, it moves — which tells you the original number was never grounded in self-knowledge to begin with.
 
