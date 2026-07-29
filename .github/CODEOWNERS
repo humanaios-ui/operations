@@ -1,0 +1,31 @@
+# Document Control CODEOWNERS
+# Controls approval for changes to the document registry and controlled documents.
+# Groups (not individuals) so ownership survives role changes.
+
+# Registry itself — mesh-support maintains, operations team reviews
+document-registry.yaml         @humanaios-ui/operations @humanaios-ui/mesh-support
+.doc-control/                  @humanaios-ui/operations @humanaios-ui/mesh-support
+
+# Governance docs
+GOVERNANCE.md                  @humanaios-ui/operations
+CURRENT.md                     @humanaios-ui/operations
+REGISTERED.md                  @humanaios-ui/operations
+CONTROLLED_DOCUMENTS.md        @humanaios-ui/operations
+
+# Collaboration/partnership docs
+collaborators/                 @humanaios-internal/leadership
+
+# Process/operations runbooks
+OPERATOR_RUNBOOK.md            @humanaios-internal/ops
+SESSION_RITUALS.md             @humanaios-internal/ops
+
+# Research/methodology
+METHODS.md                     @lasting-light-ai/research
+ACAT_PROMPT_V5_0.txt          @lasting-light-ai/research
+VALIDATION_PLAN.md            @lasting-light-ai/research
+
+# Web/site docs
+public/**                      @lasting-light-ai/web-team
+
+# Default fallback
+*                              @humanaios-ui/operations
