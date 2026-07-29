@@ -1,4 +1,4 @@
-# Post 2: The Infrastructure Behind the Measurement
+# Post 2: How We Know Our Own Measurement Isn't Drifting
 
 **Substack Draft — Post-2 in "The Witness Stand" series**
 
@@ -12,7 +12,7 @@ But here's the question nobody asks until they've read past the abstract: **How 
 
 If ACAT is supposed to catch calibration problems in AI systems, what's catching calibration problems in ACAT itself?
 
-This is where most research teams go quiet. They mention a methodology section and assume the reader trusts them. HumanAIOS took a different path: we built the measurement infrastructure not just for AI systems, but for ourselves.
+This is where most research teams go quiet. They mention a methodology section and assume the reader trusts them. HumanAIOS took a different path: we adopted a governance infrastructure designed specifically to make research drift visible.
 
 That infrastructure is called **empirica**, and understanding how it works is essential to understanding why ACAT's findings matter.
 
@@ -75,8 +75,8 @@ Empirica's mesh layer is a publish-subscribe system where:
 - Decisions stay legible because they're logged where everyone can see them
 
 For HumanAIOS, this means:
-- If we change ACAT methodology, everyone working on ACAT validation knows immediately
-- If a collaborator finds something unexpected, they log it, and it's visible to everyone else doing similar work
+- If we change ACAT methodology, we log it and it's visible to collaborators
+- If we find something unexpected, we log it, and it's visible to everyone doing similar work
 - Disagreements aren't hidden in Slack threads — they're explicit, logged, and resolved in writing
 
 ---
@@ -103,25 +103,43 @@ The delta tells you something real: **our calibration improved.** We were less b
 
 ---
 
-## The Synergy: Why ACAT is Trustworthy
+## The Collaboration: Orthogonal Expertise
 
-Here's where the two pieces come together.
+Here's what makes this model work: **HumanAIOS and empirica are separate projects with complementary purposes.**
 
-ACAT measures calibration in AI systems. Empirica measures calibration in the research team. Together, they create something rare: **a research artifact that is grounded in measurement at every layer.**
+Empirica (led by David) is the governance and coordination infrastructure. It's a general framework for ensuring research stays honest — useful for any team measuring anything. The cycle, the artifact logging, the mesh coordination: these are universal tools.
 
-You can trust ACAT's findings not because Carly is careful (she is) or because the dataset is large (it is), but because **the entire research operation is instrumented to catch drift.** If HumanAIOS was bullshitting itself about confidence, the POSTFLIGHT would catch it. If a decision was made carelessly, the artifact log would show it. If methodology drifted, the mesh coordination would surface it.
+HumanAIOS is the specific research. We built ACAT to measure what AI systems claim versus how they behave. The methodology, the dataset, the 629-model validation: that's the research output.
+
+The collaboration is this: **HumanAIOS adopts empirica's discipline to ensure ACAT research is trustworthy.** We don't try to hide the hard part (how do we know we're not drifting?). We instrument it instead. We use the same framework David built for any research team that wants structural accountability.
+
+This matters because it means you can independently verify two things:
+
+1. **The empirica framework itself** — the PREFLIGHT/CHECK/POSTFLIGHT discipline, the artifact logging structure, the mesh coordination. That's at https://getempirica.com. It's not about ACAT. You can audit it, adopt it for your own research, test whether it catches drift.
+
+2. **The HumanAIOS implementation** — did we actually follow the discipline? Are our artifacts logged? Are our confidence estimates calibrated? That's in our project: https://humanaios.ai. You can read our POSTFLIGHT reports, check our assumption logs, verify whether our estimates matched reality.
+
+Separating these two pieces is load-bearing: it means you can trust the discipline without trusting us, and you can audit our research without auditing the framework itself.
+
+---
+
+## What This Means for ACAT's Findings
+
+You can trust ACAT's findings not because Carly is careful (she is) or because the dataset is large (it is), but because **the entire research operation is instrumented to catch drift.** 
+
+If HumanAIOS was bullshitting itself about confidence, the POSTFLIGHT would catch it. If a decision was made carelessly, the artifact log would show it. If methodology drifted, the mesh coordination would surface it.
 
 This is a different standard than "we have peer review" or "the code is on GitHub." It's **structural accountability.** The system itself makes hidden failures expensive.
 
 ---
 
-## What's Next: Post 1 readers
+## What's Next: Post 1 Readers
 
 If you read Post 1, you saw the empirical claims — the 67.8-point gap, the Learning Index mean, the dimensions where systems most overrate themselves.
 
 Post 2 is asking you to trust something different: the **infrastructure** that produced those claims. The PREFLIGHT/CHECK/POSTFLIGHT loop. The artifact logging. The mesh coordination. The calibration measurement.
 
-That infrastructure is available at **https://getempirica.com**. It's not tied to ACAT or HumanAIOS — it's a general framework for running trustworthy research.
+That infrastructure is available at **https://getempirica.com**. It's not proprietary to ACAT or HumanAIOS — it's a general framework for running trustworthy research.
 
 If you're doing research that matters and want that same accountability structure, the pieces are open.
 
@@ -129,11 +147,11 @@ If you're doing research that matters and want that same accountability structur
 
 **Links:**
 - **HumanAIOS:** https://humanaios.ai
-- **Empirica (coordination framework):** https://getempirica.com
+- **Empirica (governance framework):** https://getempirica.com
 - **Post 1 ("The Witness Problem"):** [previous post]
 
 **Reading Time:** ~8 min
 
 ---
 
-*Carly R. Anderson is the founder of HumanAIOS. She built ACAT to measure AI calibration and empirica to ensure the research measuring ACAT stays honest.*
+*Carly R. Anderson is the founder of HumanAIOS. David (empirica creator) built the governance framework that ensures HumanAIOS research stays honest.*
