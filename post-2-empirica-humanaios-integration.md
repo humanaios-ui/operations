@@ -107,11 +107,11 @@ The delta tells you something real: **our calibration improved.** We were less b
 
 Here's what makes this model work: **HumanAIOS and empirica are separate projects with complementary purposes.**
 
-Empirica (led by David) is the governance and coordination infrastructure. It's a general framework for ensuring research stays honest — useful for any team measuring anything. The cycle, the artifact logging, the mesh coordination: these are universal tools.
+Empirica (built by David Van Assche) is the governance and coordination infrastructure. It's a general framework for ensuring research stays honest — useful for any team measuring anything. The cycle, the artifact logging, the mesh coordination: these are universal tools grounded in Brier-score epistemic measurement.
 
 HumanAIOS is the specific research. We built ACAT to measure what AI systems claim versus how they behave. The methodology, the dataset, the 629-model validation: that's the research output.
 
-The collaboration is this: **HumanAIOS adopts empirica's discipline to ensure ACAT research is trustworthy.** We don't try to hide the hard part (how do we know we're not drifting?). We instrument it instead. We use the same framework David built for any research team that wants structural accountability.
+The collaboration is this: **HumanAIOS adopts empirica's discipline to ensure ACAT research is trustworthy.** We don't try to hide the hard part (how do we know we're not drifting?). We instrument it instead. We use the framework David Van Assche built for any research team that wants structural accountability.
 
 This matters because it means you can independently verify two things:
 
@@ -154,4 +154,4 @@ If you're doing research that matters and want that same accountability structur
 
 ---
 
-*Carly R. Anderson is the founder of HumanAIOS. David (empirica creator) built the governance framework that ensures HumanAIOS research stays honest.*
+*Carly R. Anderson is the founder of HumanAIOS. David Van Assche built empirica, the governance framework that ensures HumanAIOS research stays honest. Both projects operate independently with complementary purposes.*
