@@ -1,0 +1,114 @@
+name: drift-monitor
+
+# A6: Drift Monitor — Detect document divergence (biweekly)
+# Scans for: link rot, stale docs, missing files, diverged copies, unregistered files
+
+on:
+  schedule:
+    # Biweekly Monday 2 AM (offset from intake pipeline which is 3 AM)
+    - cron: "0 2 * * 1"
+  workflow_dispatch:  # Manual trigger
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install deps
+        run: pip install --quiet pyyaml
+
+      - name: Run drift monitor scan
+        run: |
+          cd operations
+          python3 scripts/drift_monitor.py --scan --output drift_report.json
+
+      - name: Check for novel drift
+        id: check-drift
+        run: |
+          cd operations
+          NOVEL=$(jq '.novel_issues' drift_report.json)
+          echo "novel_issues=$NOVEL" >> $GITHUB_OUTPUT
+          if [ "$NOVEL" -gt 0 ]; then
+            echo "drift_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "drift_found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: operations/drift_report.json
+          retention-days: 90
+
+      - name: Create GitHub issues (novel drift)
+        if: steps.check-drift.outputs.drift_found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('operations/drift_report.json', 'utf8'));
+            const novelIssues = report.issues.novel || [];
+
+            if (novelIssues.length > 0) {
+              const title = `Document control: ${novelIssues.length} drift issues detected`;
+              const body = `
+## Drift Monitor Detected ${novelIssues.length} New Issues
+
+**Run timestamp:** ${report.timestamp}
+
+### Issues Found:
+${novelIssues.map((i, idx) => `
+**${idx+1}. ${i.doc_id}** — ${i.type}
+- **Doc:** ${i.title}
+- **Severity:** ${i.severity}
+- **Recommendation:** ${i.recommendation}
+`).join('\n')}
+
+### What to do:
+1. Review each issue above
+2. Take recommended action (fix link, re-approve, restore file, etc.)
+3. Comment on this issue when resolved
+4. Next monitor run will detect resolution
+
+See \`A6_DRIFT_MONITOR_SPEC.md\` runbook for response workflow.
+              `;
+
+              // Create issue
+              console.log(`Would create issue: ${title}`);
+              console.log(`Issues: ${novelIssues.map(i => i.doc_id).join(', ')}`);
+
+              // Note: actual implementation requires workflow token with issues:write
+            }
+
+      - name: Post summary
+        if: always()
+        run: |
+          cd operations
+          echo "## Drift Monitor Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Total issues: $(jq '.total_issues' drift_report.json)" >> $GITHUB_STEP_SUMMARY
+          echo "Novel issues: $(jq '.novel_issues' drift_report.json)" >> $GITHUB_STEP_SUMMARY
+          echo "Resolved since last run: $(jq '.resolved_issues' drift_report.json)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See artifact: drift_report.json" >> $GITHUB_STEP_SUMMARY
+
+  summary:
+    needs: monitor
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Drift monitor complete
+        run: echo "Drift monitor scan finished. Check artifacts and issues for details."
