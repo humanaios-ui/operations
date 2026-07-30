@@ -3,7 +3,8 @@
 **Decision:** GOV-2026-07-30-GOVERNANCE-UNIFICATION  
 **Phase:** Phase 1, Task 1.2  
 **Deadline:** 2026-08-03 (48h from start of Phase 1)  
-**Status:** Awaiting responses from 10 practices  
+**Status:** Admiral confirmed. Awaiting responses from 10 practices.  
+**Admiral:** Carly Anderson (Night, he/him) — aioshuman@gmail.com — ✅ CONFIRMED 2026-07-30
 
 ---
 
@@ -22,7 +23,7 @@
 | 9 | humanaios-internal | {pending} | {pending} | {pending} | ⏳ Awaiting | — |
 | 10 | opportunity-aggregator | {pending} | {pending} | {pending} | ⏳ Awaiting | — |
 
-**Summary:** 0/10 confirmed | 10/10 pending
+**Summary:** 1/10 confirmed (Admiral) | 9/10 pending (practice leads)
 
 ---
 
