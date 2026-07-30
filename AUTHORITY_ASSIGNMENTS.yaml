@@ -101,13 +101,17 @@ z2_authorities:
 
 ## Meta
 
-admiral_veto_authority: Carly R. Anderson (carly.r.anderson@gmail.com)
+admiral_veto_authority: Carly Anderson (Night, male human)
+admiral_email: aioshuman@gmail.com
+admiral_confirmed: true
+admiral_confirmation_date: 2026-07-30
+admiral_scope: All 10 foundation practices (veto authority over all governance decisions)
 mesh_support_coordinator: empirica-mesh-support
 confirmation_deadline: 2026-08-03
-collection_status: pending
+collection_status: admiral_confirmed_pending_practice_responses
 total_practices: 10
-confirmed_count: 0
-pending_count: 10
+confirmed_count: 1
+pending_count: 9
 
 ---
 
