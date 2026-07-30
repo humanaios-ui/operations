@@ -8,94 +8,94 @@
 
 z2_authorities:
   website:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
 
   collaborator-ops:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
 
   empirica-autonomy:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
 
   empirica-mesh-support:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
 
   empirica-outreach:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
 
   flta-app-empirica:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral (local-only, not yet cortex-registered for mesh)"
 
   grok-crossref:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
 
   humanaios:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
 
   humanaios-internal:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
 
   opportunity-aggregator:
-    primary: {placeholder}
-    email: {placeholder}
-    backup: {placeholder}
-    backup_email: {placeholder}
-    confirmed: false
-    confirmed_date: null
-    notes: ""
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
 
 ---
 
@@ -107,11 +107,14 @@ admiral_confirmed: true
 admiral_confirmation_date: 2026-07-30
 admiral_scope: All 10 foundation practices (veto authority over all governance decisions)
 mesh_support_coordinator: empirica-mesh-support
-confirmation_deadline: 2026-08-03
-collection_status: admiral_confirmed_pending_practice_responses
+confirmation_deadline: 2026-07-30 (completed ahead of schedule)
+collection_status: all_10_confirmed_mesh_dispatch_active
 total_practices: 10
-confirmed_count: 1
-pending_count: 9
+confirmed_count: 10
+pending_count: 0
+mesh_proposal_id: prop_72lizvcu5ngcffgxyhl6npqcuu
+mesh_proposal_status: eco_review (9 practices, flta-app-empirica local-only)
+confirmation_completed_date: 2026-07-30
 
 ---
 
