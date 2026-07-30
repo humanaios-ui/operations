@@ -3530,3 +3530,26 @@ superseded_by: null
 - **Prevention (proposed, pending Z2):** Rather than a bespoke new principle, extend the existing P3/IC-031 discipline explicitly to external-comms tools: after any `message_compose_v1` or `slack_send_message_draft` output, the artifact is provisional-unconfirmed until Night states (or the session otherwise confirms) it was sent — and no follow-up in the same thread should be drafted while the prior artifact's send status is unconfirmed. This is the receipt-reconciliation pattern (Skill 5) applied one domain wider, not a new mechanism.
 - **Correction:** Not yet landed. The specific unsent reply was re-answered on the next turn once the gap was identified by Night; no structural fix has been implemented.
 - **Cross-reference:** This is not a first instance of a novel gap class — it's IC-031's underlying pattern (receipt/completion overstatement) and P3's underlying discipline (verify actual state, don't trust local success signals), both already registered, appearing in a scope neither was written to cover. Recommend Z2 consider this an extension entry against IC-031's pattern family rather than a standalone new gap, with the fix being a scope-widening of an existing discipline rather than new governance.
+### H-CAND-INSTITUTIONAL-PARADIGM-01 — Institutional Mitigation Becomes the Dominant Deployment Paradigm
+
+```yaml
+id: "H-CAND-INSTITUTIONAL-PARADIGM-01"
+name: "institutional-mitigation-paradigm-dominance"
+status: CANDIDATE
+class: H
+date_origin: "2026-07-30"
+session_registered: "S-073026-NN"   # Z2 assigns session descriptor
+principles_triggered: ["P21"]
+substrate: "Claude Fable 5 (claude.ai mobile)"
+tags: ["paradigm-adoption", "institutional-mitigation", "convergent-validity", "external-practitioner", "governance"]
+related_finding: "F-42"
+superseded_by: null
+```
+
+- **Synopsis:** Independent practitioners with no exposure to HumanAIOS governance are converging on institutional mitigation (audit, org chart, constitution, appeals — external verification structures around untrusted agents) as the working answer to agent unreliability. Hypothesis: this convergence predicts institutional mitigation becomes the dominant deployment paradigm over "make the model trustworthy" (model-level alignment as sole deployment gate).
+- **Null:** Model-level trustworthiness remains the primary deployment gate in practitioner/enterprise guidance; institutional scaffolding stays a secondary/minority framing.
+- **Falsification:** In a pre-registered sample of N≥30 practitioner or enterprise agent-deployment frameworks published in the 12 months following registration, fewer than 50% center external verification structures as the primary control.
+- **Primary metric:** Proportion of sampled deployment guidance coding as institutional-verification-primary vs. model-trust-primary, per a fixed rubric.
+- **Promotion gate:** (a) sampling frame + coding rubric ratified by Z2, (b) ≥1 baseline coding pass executed, (c) ≥3 independent convergence instances documented (current verified count: 1 — Jones 2026-07).
+- **Evidence anchor:** natesnewsletter.substack.com/p/trust-ai-agents, fetched live 2026-07-30 (four institutions: audit, org chart, constitution, appeals). FLAG: PROVISIONAL context — Deloitte 2026 governance-gap statistic cited via secondary source (Forbes), not independently verified.
+- **Zone 2 Authority:** Night · 2026-07-30 · verbal approval in-session; formal ratification via PR review per new GitHub ratification process.
