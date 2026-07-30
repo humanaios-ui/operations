@@ -1,4 +1,4 @@
-requests
+requests>=2.33.0
 orcid  # Official wrapper: pip install orcid
-python-dotenv
+python-dotenv>=1.2.2
 bibtexparser
