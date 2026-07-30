@@ -821,7 +821,7 @@ def run_smoke_test() -> bool:
         print(f"[smoke] FAIL parse_dependency_file(package.json): {deps}", file=sys.stderr)
         passed = False
 
-    req_txt = "requests==2.31.0\nfastapi>=0.110.0\n# comment\n-r base.txt\n"
+    req_txt = "requests==2.34.2\nfastapi>=0.110.0\n# comment\n-r base.txt\n"
     deps2 = parse_dependency_file("requirements.txt", req_txt)
     if "requests" not in deps2 or "fastapi" not in deps2:
         print(f"[smoke] FAIL parse_dependency_file(requirements.txt): {deps2}", file=sys.stderr)

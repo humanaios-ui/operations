@@ -12,7 +12,7 @@ setup(
     python_requires=">=3.10",
     install_requires=[
         "pydantic>=2.6,<3",
-        "requests>=2.31,<3",
+        "requests>=2.34.2,<3",
         "beautifulsoup4>=4.12,<5",
         "lxml>=5.0",
     ],
