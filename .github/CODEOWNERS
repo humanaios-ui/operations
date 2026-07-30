@@ -1,31 +1,30 @@
-# Document Control CODEOWNERS
-# Controls approval for changes to the document registry and controlled documents.
-# Groups (not individuals) so ownership survives role changes.
+# Governance CODEOWNERS — Z2 Authority Review Required
 
-# Registry itself — mesh-support maintains, operations team reviews
-document-registry.yaml         @humanaios-ui/operations @humanaios-ui/mesh-support
-.doc-control/                  @humanaios-ui/operations @humanaios-ui/mesh-support
+# All governance files require Z2 Authority review + Admiral approval
+GOVERNANCE_RATIFICATIONS_REGISTRY.yaml @carly-r-anderson @sab-backup
+AUTHORITY_ASSIGNMENTS.yaml @carly-r-anderson @sab-backup
+CONTROLLED_DOCUMENTS.md @carly-r-anderson @sab-backup
+GOVERNANCE_PR_TEMPLATE.md @carly-r-anderson @sab-backup
+GOVERNANCE_PR_WORKFLOW_SPEC.md @carly-r-anderson @sab-backup
+GOVERNANCE_CHANGE_PROCEDURES.md @carly-r-anderson @sab-backup
+GOVERNANCE_UNIFICATION_PROPOSAL.md @carly-r-anderson @sab-backup
+GOVERNANCE_EXECUTION_PLAN.md @carly-r-anderson @sab-backup
+GOVERNANCE_CIRCULATION_LOG.md @carly-r-anderson @sab-backup
+AUTHORITY_COLLECTION_FORM.md @carly-r-anderson @sab-backup
 
-# Governance docs
-GOVERNANCE.md                  @humanaios-ui/operations
-CURRENT.md                     @humanaios-ui/operations
-REGISTERED.md                  @humanaios-ui/operations
-CONTROLLED_DOCUMENTS.md        @humanaios-ui/operations
+# Operational governance docs
+MOLT_STATE.md @carly-r-anderson @sab-backup
+SYSTEM_HEALTH.md @carly-r-anderson @sab-backup
+RECURSIVE_IMPROVEMENT_SEED.md @carly-r-anderson @sab-backup
+SESSION_RITUALS.md @carly-r-anderson @sab-backup
 
-# Collaboration/partnership docs
-collaborators/                 @humanaios-internal/leadership
+# Workflows require Admiral review (security-sensitive)
+.github/workflows/mesh-sync-batch.yml @carly-r-anderson
+.github/workflows/divergence-detect.yml @carly-r-anderson
 
-# Process/operations runbooks
-OPERATOR_RUNBOOK.md            @humanaios-internal/ops
-SESSION_RITUALS.md             @humanaios-internal/ops
+# Phase 1-3 documentation
+PHASE_1_COLLECTION_STATUS.md @carly-r-anderson
+ADMIRAL_AUTHORITY_CONFIRMATION.md @carly-r-anderson
 
-# Research/methodology
-METHODS.md                     @lasting-light-ai/research
-ACAT_PROMPT_V5_0.txt          @lasting-light-ai/research
-VALIDATION_PLAN.md            @lasting-light-ai/research
-
-# Web/site docs
-public/**                      @lasting-light-ai/web-team
-
-# Default fallback
-*                              @humanaios-ui/operations
+# Default for all other files in operations repo
+* @carly-r-anderson @sab-backup

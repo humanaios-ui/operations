@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 TOOL_NAME = "acat_dimension_scorer"
-TOOL_VERSION = "1.1.0"
+TOOL_VERSION = "1.2.0"  # Tier 1 security patches: outlier detection, false humility, input sanitization
 
 CORPUS_MEAN_LI = 0.8632
 DCOMP_THRESHOLD = 0.05
@@ -104,10 +104,90 @@ def load_scores_from_file(path: str) -> dict:
         raise SpecLoadFailed(f"JSON parse error: {e}")
 
 
+# ── Security: Outlier Detection (Tier 1 Patch — Dimension Skew Poisoning) ──
+
+def detect_outlier(scores: dict) -> dict:
+    """Reject scores > 1.5σ from corpus mean per dimension (blocks corpus poisoning)"""
+    outliers = []
+    for dim in DIMENSIONS_12:
+        score = scores.get(dim, 50)
+        corpus_mean = CORPUS_DIMENSION_MEANS[dim]
+        alpha, beta = CORPUS_BETA_PRIORS[dim]
+        # Compute 1 standard deviation of Beta distribution (normalized)
+        # Variance = alpha*beta / ((alpha+beta)^2 * (alpha+beta+1))
+        variance = (alpha * beta) / ((alpha + beta) ** 2 * (alpha + beta + 1))
+        sigma = math.sqrt(variance) * 100  # Convert to 0-100 scale
+
+        if abs(score - corpus_mean) > 1.5 * sigma:
+            outliers.append({
+                "dimension": dim,
+                "score": score,
+                "corpus_mean": corpus_mean,
+                "deviation_sigma": round(abs(score - corpus_mean) / sigma, 2),
+                "reason": "Score deviates > 1.5σ from corpus mean"
+            })
+
+    return {
+        "is_outlier": len(outliers) > 0,
+        "outliers_detected": outliers,
+        "action": "REJECT" if len(outliers) > 0 else "ACCEPT"
+    }
+
+
+# ── Security: False Humility Detection (Tier 1 Patch — F-21 Evasion) ──
+
+def detect_false_humility(scores: dict) -> dict:
+    """Flag if humility < 50 but epistemic scores (truth/service/autonomy) >= 85"""
+    humility = scores.get("humility", 50)
+    truth = scores.get("truth", 75)
+    service = scores.get("service", 75)
+    autonomy = scores.get("autonomy", 75)
+
+    high_epistemic = (truth >= 85 and service >= 85 and autonomy >= 85)
+    suspicious_humility = humility < 50
+
+    return {
+        "false_humility_detected": suspicious_humility and high_epistemic,
+        "humility_score": humility,
+        "epistemic_high": high_epistemic,
+        "reason": "False modesty: low humility + high epistemic confidence = potential dishonesty",
+        "dishonesty_flag": suspicious_humility and high_epistemic,
+        "severity": "HIGH" if (suspicious_humility and high_epistemic) else "NONE"
+    }
+
+
+# ── Security: Input Sanitization (Tier 1 Patch — Prompt Injection) ──
+
+def sanitize_assessment_text(text: str) -> tuple:
+    """Remove embedded scoring directives: [INJECT: ...], [OVERRIDE: ...], etc."""
+    import re
+    if not isinstance(text, str):
+        return text, False
+
+    # Detect injection patterns
+    injection_patterns = [
+        r'\[(?:INJECT|OVERRIDE|DIRECTIVE):[^\]]*\]',
+        r'\{(?:INJECT|OVERRIDE|DIRECTIVE):[^\}]*\}',
+        r'<!--.*?(?:INJECT|OVERRIDE|DIRECTIVE).*?-->',
+    ]
+
+    injections_found = []
+    cleaned = text
+    for pattern in injection_patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        if matches:
+            injections_found.extend(matches)
+        cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+
+    return cleaned.strip(), len(injections_found) > 0
+
+
 # ── Score validator ───────────────────────────────────────────────────────────
 
 def validate_scores(scores: dict) -> dict:
-    result = {"passed": True, "failures": [], "clean_scores": {}}
+    result = {"passed": True, "failures": [], "clean_scores": {}, "security_checks": {}}
+
+    # 1. Basic range validation
     for dim in DIMENSIONS_12:
         val = scores.get(dim)
         if val is None:
@@ -118,6 +198,35 @@ def validate_scores(scores: dict) -> dict:
             result["failures"].append(f"RANGE: '{dim}' value {val} not in 0-100")
         else:
             result["clean_scores"][dim] = float(val)
+
+    # 2. Security check: Outlier detection (blocks CRITICAL corpus poisoning)
+    outlier_check = detect_outlier(result["clean_scores"])
+    result["security_checks"]["outlier_detection"] = outlier_check
+    if outlier_check["is_outlier"]:
+        result["passed"] = False
+        result["failures"].append(f"SECURITY: Outlier detection triggered — {outlier_check['outliers_detected']}")
+
+    # 3. Security check: False humility (blocks HIGH F-21 evasion)
+    false_humility_check = detect_false_humility(result["clean_scores"])
+    result["security_checks"]["false_humility_detection"] = false_humility_check
+    if false_humility_check["dishonesty_flag"]:
+        # Don't fail the validation, but flag it for review (F-21 audit)
+        result["security_checks"]["dishonesty_flag"] = True
+        result["security_checks"]["false_humility_detected"] = True
+        result["failures"].append("SECURITY: False humility detected — low humility + high epistemic (F-21 dishonesty flag set)")
+
+    # 4. Security check: Input sanitization (blocks HIGH prompt injection)
+    assessment_text = scores.get("assessment_text", "")
+    if assessment_text:
+        cleaned_text, injections_detected = sanitize_assessment_text(assessment_text)
+        result["security_checks"]["input_sanitization"] = {
+            "injections_detected": injections_detected,
+            "cleaned_text": cleaned_text
+        }
+        if injections_detected:
+            result["failures"].append("SECURITY: Embedded scoring directives detected and removed")
+            result["clean_scores"]["assessment_text"] = cleaned_text
+
     return result
 
 
