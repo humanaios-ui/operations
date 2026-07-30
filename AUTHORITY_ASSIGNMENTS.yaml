@@ -1,0 +1,131 @@
+# Z2 Authority Assignments — Governance Unification
+
+**Decision:** GOV-2026-07-30-GOVERNANCE-UNIFICATION
+**Status:** Collecting designations (deadline 2026-08-03)
+**Last Updated:** 2026-07-30
+
+---
+
+z2_authorities:
+  website:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+  collaborator-ops:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+  empirica-autonomy:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+  empirica-mesh-support:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+  empirica-outreach:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+  flta-app-empirica:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+  grok-crossref:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+  humanaios:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+  humanaios-internal:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+  opportunity-aggregator:
+    primary: {placeholder}
+    email: {placeholder}
+    backup: {placeholder}
+    backup_email: {placeholder}
+    confirmed: false
+    confirmed_date: null
+    notes: ""
+
+---
+
+## Meta
+
+admiral_veto_authority: Carly R. Anderson (carly.r.anderson@gmail.com)
+mesh_support_coordinator: empirica-mesh-support
+confirmation_deadline: 2026-08-03
+collection_status: pending
+total_practices: 10
+confirmed_count: 0
+pending_count: 10
+
+---
+
+## Collection Process
+
+1. Each practice designates Z2 authority (primary + optional backup)
+2. Reply to AUTHORITY_COLLECTION_FORM.md by 2026-08-03
+3. Operations repo updates AUTHORITY_ASSIGNMENTS.yaml with all responses
+4. Admiral confirms all assignments
+5. Phase 2 begins with Z2 authorities identified + trained
+
+---
+
+## Authority Responsibilities
+
+Once confirmed, Z2 authorities commit to:
+- Review governance PRs within SLA (24h-72h depending on type)
+- Answer 5 gate questions before merge approval
+- Represent practice in cross-practice governance decisions
+- Monitor divergence-detect reports (daily consistency checks)
+- Merge mesh-sync-batch PRs within 24h of receipt
