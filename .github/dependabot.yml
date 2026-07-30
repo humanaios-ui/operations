@@ -9,6 +9,33 @@ updates:
       - dependencies
       - security
 
+  - package-ecosystem: pip
+    directory: /orcid-publications-manager
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - security
+
+  - package-ecosystem: pip
+    directory: /tools/Metaculus
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - security
+
+  - package-ecosystem: pip
+    directory: /humanaios-funding-pipeline
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - security
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
