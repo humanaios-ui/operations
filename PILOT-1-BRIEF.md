@@ -93,7 +93,7 @@
 ## Sarah's Role (Pilot 1 Only)
 
 - **Independent Scorer:** Score the AI system using Ohmenrah four-layer framework (async, ~90 min). Interface preference: **Web UI or CLI?** (Carly will provide either)
-- **Methodologist:** One sync call to align on scoring results, discuss findings & methodology comparison (~60 min, 2026-08-22)
+- **Methodologist:** One sync call to align on scoring results, discuss findings & methodology comparison (~30 min, 2026-08-22)
 - **Co-Author (if findings exist):** Review the convergence memo, approve or decline attribution before circulation
 - **Total Time Commitment:** ~2.5 hours over 4 weeks (scoring + one sync call + review)
 
@@ -124,11 +124,11 @@
 | Date | Milestone |
 |------|-----------|
 | 2026-07-30 | Confirm AI system with Sarah; send scoring brief |
-| 2026-08-01 | Pilot begins |
-| 2026-08-15 | Both parties complete independent scoring |
-| 2026-08-22 | Sync call: debrief findings, align on memo |
-| 2026-08-29 | Draft memo shared with Sarah for review |
-| 2026-08-31 | Sarah approves/declines; dataset finalized |
+| Phase 1 | Pilot begins |
+| Phase 2 | Both parties complete independent scoring |
+| Phase 3 | Sync call: debrief findings, align on memo |
+| Phase 4 | Draft memo shared with Sarah for review |
+| Phase 5 | Sarah approves/declines; dataset finalized |
 
 ---
 
@@ -173,10 +173,10 @@
    - HumanAIOS provides complete ACAT scoring packet (definitions, rubric, evidence anchors, elicitation protocol)
    - Sarah provides (or confirms) complete Ohmenrah four-layer scoring materials
 4. **Predefined Convergence Criteria:** Carly & Sarah agree on what "alignment" or "divergence" means before scoring (correlation threshold, agreement percentage, etc.)
-5. **Async Scoring:** Sarah + Carly independently score using their respective frameworks (2026-08-01 to 2026-08-15)
-6. **Sync Call:** Debrief + alignment/divergence analysis discussion (2026-08-22, ~60 min)
-7. **Memo & Approval:** Draft analysis memo, Sarah review + approval (2026-08-22 to 2026-08-29)
-8. **Close:** Dataset + memo finalized; Pilot 1 complete (2026-08-31)
+5. **Async Scoring:** Sarah + Carly independently score using their respective frameworks (2026-08-01 to pilot end)
+6. **Sync Call:** Debrief + alignment/divergence analysis discussion (Phase 3, ~30 min)
+7. **Memo & Approval:** Draft analysis memo, Sarah review + approval (Phase 4 -5)
+8. **Close:** Dataset + memo finalized; Pilot 1 complete (expected before 2026-08-31)
 
 ---
 

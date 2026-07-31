@@ -1,0 +1,13 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://openrouter.ai/api/v1",
+    "ANTHROPIC_AUTH_TOKEN": "sk-or-v1-REPLACE_WITH_YOUR_API_KEY",
+    "ANTHROPIC_MODEL": "deepseek/deepseek-r1"
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ],
+  "disabledMcpjsonServers": [
+    "rentahuman"
+  ]
+}
