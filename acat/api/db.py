@@ -27,7 +27,7 @@ class _MockConnectionPool:
 
     class MockConnection:
         def cursor(self):
-            return _MockCursor()
+            return _MockConnectionPool._MockCursor()
 
         def commit(self):
             pass
