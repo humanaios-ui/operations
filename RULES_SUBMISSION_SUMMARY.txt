@@ -1,0 +1,157 @@
+═══════════════════════════════════════════════════════════════════════════════
+AREA CLASSIFICATION RULES COLLECTION — SUBMISSION SUMMARY
+═══════════════════════════════════════════════════════════════════════════════
+
+DEADLINE: July 31, 2026 EOD (2 days)
+
+COLLECTION DOCUMENTS (In operations repo):
+  ✅ AREA_RULES_COLLECTION.md          — Main collection document + examples
+  ✅ AREA_RULES_SUBMISSION_TEMPLATE.yaml — YAML template to fill and submit
+  ✅ RULES_COLLECTION_STATUS.md        — Real-time tracker + validation plan
+
+HOW TO SUBMIT:
+  1. Find your practice's notification (NOTIFICATION_*.md)
+  2. Copy AREA_RULES_SUBMISSION_TEMPLATE.yaml
+  3. Fill in patterns for your area
+  4. Submit as comment OR reply to notification
+  5. Deadline: July 31 EOD
+
+═══════════════════════════════════════════════════════════════════════════════
+PRACTICE STATUS (As of 2026-07-29)
+═══════════════════════════════════════════════════════════════════════════════
+
+LASTING-LIGHT-AI (Research)
+  Rollout:        Aug 12 (Monday)
+  Docs:           16 (METHODS, VALIDATION, ACAT*, methodology.html)
+  Status:         📋 AWAITING SUBMISSION
+  Contact:        @lasting-light-ai/research
+  Expected area:  RES (Research)
+  Expected patterns:
+    - Extension: .md, .html, .txt
+    - Name: *METHODS*, *VALIDATION*, *ACAT*, *PROMPT*
+    - Path: public/, research/
+
+HUMANAIOS-INTERNAL (Ops & Leadership)
+  Rollout:        Aug 13 (Tuesday)
+  Docs:           9 (OPERATOR_RUNBOOK, collaboration reports, partnerships)
+  Status:         📋 AWAITING SUBMISSION
+  Contact:        @humanaios-internal/ops
+  Expected area:  COLLAB (Collaboration) or OPS (Operations)
+  Expected patterns:
+    - Path: collaborators/
+    - Name: *REPORT*, *RUNBOOK*, *AGREEMENT*
+    - Header: collaborator, partnership
+
+EMPIRICA-FOUNDATION (Governance)
+  Rollout:        Aug 14 (Wednesday)
+  Docs:           4 (cross-org artifacts, evaluation data)
+  Status:         🟡 SCOPE CLARIFICATION PENDING (Aug 10)
+  Contact:        @empirica-foundation/gov
+  Note:           Some docs may be empirica-scoped; rules deferred until scope clarified
+
+HUMANAIOS (Core)
+  Rollout:        Aug 15 (Thursday)
+  Docs:           5 (README, CONTRIBUTING, API docs)
+  Status:         📋 AWAITING SUBMISSION
+  Contact:        @humanaios/core
+  Expected area:  OPS (Operations)
+  Expected patterns:
+    - Name: README*, CONTRIBUTING*, *.md
+    - EXCLUDE: *.sql, *.py, *.js, src/**  (source code, not docs)
+
+═══════════════════════════════════════════════════════════════════════════════
+TIMELINE
+═══════════════════════════════════════════════════════════════════════════════
+
+July 29 (Tue) — Collection process activated
+  ✅ Notifications sent to all practices
+  ✅ Collection documents in operations repo
+  ✅ Templates and examples available
+
+July 30 (Wed) — 24-hour reminder
+  ⏳ Practices should start filling templates
+
+July 31 (Thu) EOD — SUBMISSION DEADLINE
+  ⏳ All rules must be submitted by end of day
+
+Aug 1 (Fri) — Validation begins
+  • Check YAML syntax
+  • Test for pattern conflicts
+  • Validate against historical data
+
+Aug 2-4 (Sat-Mon) — Testing on historical data
+  • Run intake pipeline on old _inbox_files*/ data
+  • Verify classification accuracy
+  • Publish final area_rules.yaml
+
+Aug 5 (Tue) — A4 ACTIVATION
+  🟢 Intake pipeline goes live with rules
+  🟢 Weekly automation begins (Mon 3 AM)
+
+═══════════════════════════════════════════════════════════════════════════════
+SUBMISSION CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+For each practice (check off as submissions arrive):
+
+  [ ] lasting-light-ai (RES)
+      Submitted: —
+      By: —
+      Status: AWAITING
+
+  [ ] humanaios-internal (COLLAB/OPS)
+      Submitted: —
+      By: —
+      Status: AWAITING
+
+  [ ] empirica-foundation (pending scope)
+      Submitted: —
+      By: —
+      Status: PENDING CLARIFICATION
+
+  [ ] humanaios (OPS)
+      Submitted: —
+      By: —
+      Status: AWAITING
+
+═══════════════════════════════════════════════════════════════════════════════
+IF SUBMISSION MISSING
+═══════════════════════════════════════════════════════════════════════════════
+
+Fallback for missing area: escalate_to_ops
+
+Every new inbox file routed to @humanaios-ui/operations for manual triage.
+  ✅ Safe (nothing lost)
+  ❌ Less efficient (ops does manual classification)
+
+Recommendation: Submit by July 31 to activate automation for your area.
+
+═══════════════════════════════════════════════════════════════════════════════
+NEXT STEPS FOR CARLY / MESH-SUPPORT
+═══════════════════════════════════════════════════════════════════════════════
+
+IMMEDIATE:
+  1. Distribute collection documents to all practices
+  2. Remind deadline (July 31 EOD)
+  3. Monitor submissions (should appear as comments in operations repo)
+
+Aug 1-4 (VALIDATION):
+  1. Parse all submissions (check YAML syntax)
+  2. Test rules on historical _inbox_files*/ data
+  3. Resolve conflicts (if any file matches multiple areas)
+  4. Publish final .doc-control/area_rules.yaml
+
+Aug 5 (DEPLOYMENT):
+  1. Activate A4 intake pipeline workflow
+  2. First run (Monday 3 AM): should classify all historical inbox files
+  3. Monitor for misclassifications
+  4. Be ready to adjust rules (quick fix if needed)
+
+═══════════════════════════════════════════════════════════════════════════════
+QUESTIONS?
+═══════════════════════════════════════════════════════════════════════════════
+
+File issue: Tag "document-control/question" on humanaios-ui/operations
+Or comment: AREA_RULES_COLLECTION.md (this document)
+
+═══════════════════════════════════════════════════════════════════════════════

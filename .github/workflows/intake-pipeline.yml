@@ -1,0 +1,120 @@
+name: intake-pipeline
+
+# A4: Intake Pipeline — Process inbox files through 4-gate workflow
+# Runs weekly to: classify → dedup → reconcile → register new documents
+
+on:
+  schedule:
+    # Weekly Monday 3 AM (offset from document-control which is 2 AM)
+    - cron: "0 3 * * 1"
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches: [main]
+    paths:
+      - "_inbox_files*/**"
+      - ".doc-control/intake_state.json"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for divergence detection
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install deps
+        run: pip install --quiet pyyaml
+
+      - name: Run intake pipeline scan (Gate 1-3)
+        run: |
+          cd operations
+          python3 scripts/intake_pipeline.py --scan --output intake_report.json
+
+      - name: Check diverged pairs
+        id: check-divergence
+        run: |
+          cd operations
+          if grep -q '"diverged_pairs": \[\]' intake_report.json; then
+            echo "divergence_found=false" >> $GITHUB_OUTPUT
+          else
+            echo "divergence_found=true" >> $GITHUB_OUTPUT
+            echo "⚠️  Diverged pairs detected — see report"
+          fi
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intake-report
+          path: operations/intake_report.json
+          retention-days: 90
+
+      - name: Comment PR (if divergence)
+        if: steps.check-divergence.outputs.divergence_found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('operations/intake_report.json', 'utf8'));
+            const diverged = report.diverged_pairs || [];
+            const message = `
+            ## Intake Pipeline: Diverged Pairs Detected
+
+            Found **${diverged.length}** diverged document pairs (inbox vs repository).
+
+            | File | Canonical Repo | Action |
+            |------|---|---|
+            ${diverged.map(d => `| \`${d.filename}\` | ${d.canonical_repo} | Reconcile |`).join('\n')}
+
+            See \`intake_report.json\` for details.
+
+            **Next step:** Review each pair, decide keep repo/merge inbox, create PR to resolve.
+            `;
+
+            // Only comment on main branch scans (not PRs)
+            if (github.ref === 'refs/heads/main') {
+              console.log("Divergence detected on main; would create issue (not yet implemented)");
+            }
+
+      - name: Create GitHub issue (new documents)
+        if: steps.check-divergence.outputs.divergence_found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('operations/intake_report.json', 'utf8'));
+            const newDocs = report.new_documents || [];
+
+            if (newDocs.length > 0) {
+              const body = `
+              ## Intake Pipeline: ${newDocs.length} New Documents
+
+              Scan found **${newDocs.length}** new unregistered documents in inbox.
+
+              ${newDocs.map((d, i) => `${i+1}. \`${d.filename}\` (${d.size} bytes) — classify & assign doc_id`).join('\n')}
+
+              **Action:** Each needs: doc_id assignment, frontmatter, registry entry.
+              See \`A4_INTAKE_PIPELINE_SPEC.md\` Gate 4 for workflow.
+              `;
+
+              // Create issue (requires write permission, limited to main branch)
+              console.log("Would create issue for new documents (gate 4)");
+            }
+
+  notify:
+    needs: scan
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Report status
+        run: |
+          echo "Intake pipeline scan completed"
+          echo "Check artifacts/intake_report.json for details"

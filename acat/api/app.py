@@ -3,10 +3,14 @@ from fastapi import FastAPI
 from acat.api.routes.assess_router import router as assess_router
 from acat.api.routes.human_score_route import router as human_score_router
 from acat.api.routes.intake_router import router as intake_router
+from acat.api.routes.guidance_router import router as guidance_router
+from acat.api.routes.findings_router import router as findings_router
 app = FastAPI(title="ACAT API", version="0.1.0")
 app.include_router(intake_router, prefix="/api/v1/acat", tags=["acat"])
 app.include_router(assess_router, prefix="/api/v1/acat", tags=["acat"])
 app.include_router(human_score_router, prefix="/api/v1/acat", tags=["acat"])
+app.include_router(guidance_router, prefix="/api/v1/guidance", tags=["guidance"])
+app.include_router(findings_router, prefix="/api/v1/empirica", tags=["empirica"])
 @app.get("/")
 def root() -> dict:
  return {

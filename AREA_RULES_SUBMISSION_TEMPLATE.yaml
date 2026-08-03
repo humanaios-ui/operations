@@ -1,0 +1,51 @@
+---
+# Area Classification Rules Template
+# Fill this out and submit by July 31, 2026
+#
+# Each practice should submit ONE section for each area they own.
+# Example: Research might submit "RES", Operations might submit "OPS"
+#
+# For multiple areas, create separate sections.
+
+areas:
+
+  # EXAMPLE: Research Area (lasting-light-ai)
+  # DELETE THIS SECTION BEFORE SUBMITTING; it's just an example
+  - area_name: "Research"
+    area_code: "RES"
+    ownership_group: "@lasting-light-ai/research"
+
+    patterns:
+      by_extension: [".md", ".html", ".txt"]
+      by_path: ["public/", "research/"]
+      by_name: ["*METHODS*", "*VALIDATION*", "*ACAT*", "*PROMPT*"]
+      by_header: ["ACAT", "methodology", "research paper"]
+
+    exclude: ["*.pdf", "src/**", "*test*.md"]
+    fallback_action: "escalate_to_ops"
+    notes: "Research docs from ACAT + methodology. Review cycle: 90 days."
+
+  # ============================================================================
+  # YOUR AREA STARTS HERE — Replace "YOUR_AREA" with your practice/area
+  # ============================================================================
+  - area_name: "YOUR_AREA"
+    area_code: "YOUR"  # GOV, PROC, COLLAB, RES, OPS, ENG, WEB, DOC, or custom
+    ownership_group: "@your-org/your-team"
+
+    patterns:
+      by_extension: []           # e.g., [".md", ".html"]
+      by_path: []                # e.g., ["docs/", "collaborators/"]
+      by_name: []                # e.g., ["*RUNBOOK*", "*AGREEMENT*"]
+      by_header: []              # e.g., ["collaborator", "partnership"]
+
+    exclude: []                  # e.g., ["*.pdf", "src/**"]
+    fallback_action: "escalate_to_ops"  # or "quarantine"
+    notes: "Add any special notes about your area here."
+
+  # ============================================================================
+  # OPTIONAL: Additional area (if your practice owns multiple areas)
+  # ============================================================================
+  # - area_name: "Operations"
+  #   area_code: "OPS"
+  #   ownership_group: "@your-org/ops-team"
+  #   ...

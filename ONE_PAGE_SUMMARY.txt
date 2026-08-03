@@ -1,0 +1,118 @@
+═══════════════════════════════════════════════════════════════════════════════
+HUMANAIS DOCUMENT CONTROL — QUICK REFERENCE (One Page)
+═══════════════════════════════════════════════════════════════════════════════
+
+WHAT'S LIVE NOW (A1-A3): ✅
+  • Registry: 34 controlled documents registered from S070126 audit
+  • CI Gate: Frontmatter validation on operations repo (blocks non-conforming PRs)
+  • Governance: CODEOWNERS, maintainer assignment, external-link policy
+
+WHAT'S NEXT: Area classification rules collection (A4 intake pipeline seed)
+
+═══════════════════════════════════════════════════════════════════════════════
+YOUR ACTION (Due TOMORROW — July 31)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Copy template: AREA_RULES_SUBMISSION_TEMPLATE.yaml
+2. Fill patterns: extension, path, name, header (takes 5 min)
+3. Submit by EOD July 31: comment on AREA_RULES_COLLECTION.md
+
+Example:
+  area_name: "Research"
+  patterns:
+    by_extension: [".md", ".html"]
+    by_name: ["*METHODS*", "*VALIDATION*"]
+
+═══════════════════════════════════════════════════════════════════════════════
+TIMELINE & ROLLOUTS
+═══════════════════════════════════════════════════════════════════════════════
+
+July 31: Submit rules (deadline)
+Aug 1-4: Validation & testing
+Aug 5: A4 intake pipeline activates
+
+Then:
+  Aug 12 (Mon)  → lasting-light-ai CI rollout
+  Aug 13 (Tue)  → humanaios-internal CI rollout
+  Aug 14 (Wed)  → empirica-foundation CI rollout
+  Aug 15 (Thu)  → humanaios CI rollout
+  Aug 19+       → Drift monitor (biweekly link-rot detection)
+
+═══════════════════════════════════════════════════════════════════════════════
+YOUR PRACTICE'S ROLLOUT DATE & RULES DEADLINE
+═══════════════════════════════════════════════════════════════════════════════
+
+lasting-light-ai
+  Rules due: July 31 (Research docs: METHODS, VALIDATION, ACAT*)
+  Rollout: Aug 12
+
+humanaios-internal
+  Rules due: July 31 (Collab docs: reports, partnerships, runbooks)
+  Rollout: Aug 13
+
+empirica-foundation
+  Scope clarification: Aug 10 (may not need rules)
+  Rollout: Aug 14
+
+humanaios
+  Rules due: July 31 (Core docs: README, CONTRIBUTING; exclude .sql/.py/.js)
+  Rollout: Aug 15
+
+═══════════════════════════════════════════════════════════════════════════════
+FILES TO READ
+═══════════════════════════════════════════════════════════════════════════════
+
+Quick reads (5 min):
+  ✓ RULES_SUBMISSION_SUMMARY.txt (this page)
+  ✓ AREA_RULES_SUBMISSION_TEMPLATE.yaml (template to fill)
+
+Full details (if needed):
+  ✓ AREA_RULES_COLLECTION.md (complete guide + FAQ)
+  ✓ Your practice's NOTIFICATION_*.md (practice-specific info)
+
+═══════════════════════════════════════════════════════════════════════════════
+WHAT HAPPENS NEXT (No Action Needed From You After July 31)
+═══════════════════════════════════════════════════════════════════════════════
+
+Aug 1-4:
+  mesh-support validates your rules + tests on historical data
+
+Aug 5+:
+  A4 intake pipeline goes live (weekly automation)
+  Your area's rules classify new inbox files automatically
+
+Your rollout day (Aug 12-15):
+  CI gate deployed to your repo
+  You review + approve docs in registry (30 min, one-time)
+  That's it — control system active for your repo
+
+═══════════════════════════════════════════════════════════════════════════════
+IF YOU DON'T SUBMIT BY JULY 31
+═══════════════════════════════════════════════════════════════════════════════
+
+Fallback: every new inbox file → ops team for manual triage
+  ✅ Safe (nothing lost)
+  ❌ Less efficient (manual work)
+
+We recommend: 10 min to fill template now, saves weeks of manual triage later.
+
+═══════════════════════════════════════════════════════════════════════════════
+HOW TO SUBMIT
+═══════════════════════════════════════════════════════════════════════════════
+
+Option 1 (easiest): Comment on AREA_RULES_COLLECTION.md (operations repo)
+Option 2: Reply to your practice's NOTIFICATION_*.md email
+Option 3: Comment on this page (ONE_PAGE_SUMMARY.txt)
+
+All the same — pick whatever's easiest for you.
+
+Deadline: July 31 EOD
+
+═══════════════════════════════════════════════════════════════════════════════
+QUESTIONS?
+═══════════════════════════════════════════════════════════════════════════════
+
+File issue: tag "document-control/question" on humanaios-ui/operations repo
+Or comment: on any of the documents above
+
+═══════════════════════════════════════════════════════════════════════════════

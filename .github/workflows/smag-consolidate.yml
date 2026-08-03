@@ -54,6 +54,28 @@ jobs:
             --ledger audits/smag_pilot_ledger.jsonl \
             --out audits/smag_gap_report.md
 
+      - name: Wire SMAG rows to empirica CLI with LLM analysis + predictions
+        run: |
+          # Generate ACAT-classified gaps + remediation suggestions + next-cycle predictions
+          # This increases learning_density by linking gaps → remediations → predictions
+          # Includes T3.2 (gap classification) + T3.3 (prediction model)
+          python3 tools/smag_gap_analyzer.py \
+            --ledger audits/smag_pilot_ledger.jsonl \
+            --output empirica | empirica log-artifacts -
+        continue-on-error: true
+        # Continue even if empirica CLI isn't available in this environment
+        # (CI may not have empirica tooling; trajectory generation is best-effort)
+
+      - name: Generate SMAG predictions report
+        run: |
+          # Extract and format predictions for review
+          python3 tools/smag_gap_analyzer.py \
+            --ledger audits/smag_pilot_ledger.jsonl \
+            --output json > audits/smag_predictions.json
+          echo "Gap rate: $(jq -r '.summary.metrics.gap_rate | . * 100 | floor' audits/smag_predictions.json)%"
+          echo "Focus areas: $(jq -r '.summary.focus_areas[]' audits/smag_predictions.json | sed 's/^/  - /')"
+        continue-on-error: true
+
       - name: Open a PR if the ledger or report changed
         env:
           GH_TOKEN: ${{ github.token }}
