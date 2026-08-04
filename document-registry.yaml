@@ -11,7 +11,7 @@ generated: "2026-07-02"
 seed_source: "humanaios/_audit_S070126 reconciliation (71 diverged pairs)"
 id_scheme: "HAIOS-<AREA>-<nnn>"
 areas: {GOV: governance, PROC: process/runbooks, OPS: operations/state, RES: research, COLLAB: collaborator-reports, ENG: engagement/external, WEB: site-pages, DOC: uncategorized}
-counts: {documents: 34, excluded: 37, needs_reconcile: 5}
+counts: {documents: 42, excluded: 37, needs_reconcile: 5}
 documents:
   - doc_id: HAIOS-COLLAB-001
     title: "WAMPUM-GADUGI-SIGNAL_S-032126-F.html"
@@ -363,6 +363,80 @@ documents:
     drift: {inbox_bytes: 83181, repo_bytes: 17210, inbox_only_lines: "416", repo_only_lines: "338", repo_git_date: "2026-06-25"}
     recommendation: "INBOX-AHEAD? review — inbox notably larger/additive"
     review_due: "2026-08-01"
+  - doc_id: HAIOS-GOV-002
+    title: "External Link Lifecycle Policy"
+    area: GOV
+    canonical_repo: "operations"
+    canonical_path: "EXTERNAL_LINK_POLICY.md"
+    canonical: true
+    status: approved
+    approved_by: "carly"
+    approved_date: "2026-07-29"
+    review_due: "2026-12-31"
+  - doc_id: HAIOS-OPS-005
+    title: "Document Control Activation Brief (A1-A3 Complete)"
+    area: OPS
+    canonical_repo: "operations"
+    canonical_path: "DOCUMENT_CONTROL_ACTIVATION_BRIEF.md"
+    canonical: true
+    status: approved
+    approved_by: "carly"
+    approved_date: "2026-07-29"
+    review_due: "2026-08-01"
+  - doc_id: HAIOS-OPS-006
+    title: "A5 Multi-Repo Rollout Plan"
+    area: OPS
+    canonical_repo: "operations"
+    canonical_path: "A5_MULTIrepo_ROLLOUT_PLAN.md"
+    canonical: true
+    status: approved
+    approved_by: "carly"
+    approved_date: "2026-07-29"
+    review_due: "2026-08-15"
+  - doc_id: HAIOS-OPS-007
+    title: "A6 Drift Monitor Specification"
+    area: OPS
+    canonical_repo: "operations"
+    canonical_path: "A6_DRIFT_MONITOR_SPEC.md"
+    canonical: true
+    status: approved
+    approved_by: "carly"
+    approved_date: "2026-07-29"
+    review_due: "2026-08-15"
+  - doc_id: HAIOS-OPS-008
+    title: "Document Control Execution Status (A1-A7)"
+    area: OPS
+    canonical_repo: "operations"
+    canonical_path: "EXECUTION_STATUS.md"
+    canonical: true
+    status: approved
+    approved_by: "carly"
+    approved_date: "2026-07-29"
+    review_due: "2026-08-15"
+  - doc_id: HAIOS-OPS-009
+    title: "Area Classification Rules Collection (A4 Input)"
+    area: OPS
+    canonical_repo: "operations"
+    canonical_path: "AREA_RULES_COLLECTION.md"
+    canonical: true
+    status: draft
+  - doc_id: HAIOS-OPS-010
+    title: "Area Rules Collection Status Tracker"
+    area: OPS
+    canonical_repo: "operations"
+    canonical_path: "RULES_COLLECTION_STATUS.md"
+    canonical: true
+    status: draft
+  - doc_id: HAIOS-PROC-005
+    title: "A4 Intake Pipeline Specification"
+    area: PROC
+    canonical_repo: "operations"
+    canonical_path: "A4_INTAKE_PIPELINE_SPEC.md"
+    canonical: true
+    status: approved
+    approved_by: "carly"
+    approved_date: "2026-07-29"
+    review_due: "2026-08-15"
 
 # Known content-accuracy issues from the S070126 docs/ audit — block approval for matching titles.
 # Known content-accuracy issues from the S070126 docs/ audit (69 files; separate
@@ -395,7 +469,6 @@ known_accuracy_issues:
     severity: high
     blocks_approval: true
     source: "S070126 docs/ audit finding (humanaios project); confirm exact repo/path at owner verification"
-
 excluded:
   - path: ".github/dependabot.yml"
     repo: "empirica-foundation"
