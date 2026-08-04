@@ -1,0 +1,18 @@
+# HumanAIOS tools-layer requirements
+# Path: tools/requirements.txt (NOT repo root — root requirements.txt serves the
+# FastAPI ACAT service on Railway and must not be touched; tools/Metaculus has its
+# own file for the forecasting bot service)
+# Scope: the fastmcp-based MCP tools (governance_fetcher, slack_notifier,
+# supabase_logger, acat_mcp_full_wrapper_*, repo_discovery, registry_site_generator,
+# haios_collab_scanner, tool_template, server) and acat/mcp/server.py
+# Verified via real install + import smoke test on 2026-08-02 (all six packages
+# import cleanly at the versions below on Python 3.12; floors set to the verified
+# versions' minor lines, ceilings at next major per house convention)
+
+fastmcp>=3.4.5,<4.0.0
+mcp>=1.29.0,<2.0.0          # fastmcp's protocol layer; declared explicitly since
+                            # two tools import `mcp` directly
+supabase>=2.31.0,<3.0.0     # matches the floor already pinned in tools/Metaculus
+anthropic>=0.120.2,<1.0.0
+slack_sdk>=3.43.0,<4.0.0
+numpy>=2.4.4,<3.0.0
