@@ -1,27 +1,30 @@
 # LinkedIn/Substack Unified Content Strategy
 ## Post-1 + Post-2 Coordination + Ongoing Voice
 
-**Objective:** Build consistent ecosystem narrative across channels while reaching distinct audiences (advisors/capital on LinkedIn, researchers/practitioners on Substack).
+**Objective:** Build consistent ecosystem narrative across channels with GitHub as the primary execution layer for open-source ACAT tooling. Niche: transparency through code—organizations can investigate licensing, audit implementation, apply ACAT calibration principles to their own systems.
 
 ---
 
 ## Content Philosophy
 
-**Unified thesis:** HumanAIOS is a self-governing operating system for distributed human-AI teams, not a measurement tool.
+**Unified thesis:** HumanAIOS is a self-governing operating system for distributed human-AI teams. ACAT calibration framework is open-source, auditable, and applicable across organizations.
 
-**Channel specialization:**
-- **LinkedIn:** Executive/advisor positioning (infrastructure, scalability, regulatory alignment, funding narrative)
-- **Substack:** Practitioner/researcher positioning (architecture details, implementation, empirical findings, collaboration patterns)
-- **humanaios.ai:** Reference documentation (updated post-publication to reflect governance-first frame)
+**Channel architecture (three-layer):**
+1. **GitHub (Primary - Execution Layer):** Open-source ACAT tooling, implementation patterns, auditable calibration code, licensing/terms transparency
+2. **LinkedIn (Secondary - Executive Layer):** Infrastructure narrative for advisors, regulatory alignment, scalability story, funding/partnership angle
+3. **Substack (Secondary - Practitioner Layer):** Deep dives on architecture, empirical findings, lessons learned, collaboration patterns
+4. **humanaios.ai (Reference):** Governance-first documentation, integration guides, ACAT usage patterns
 
 **Audience mapping:**
 | Audience | Primary Channel | Secondary | What They Care About |
 |---|---|---|---|
-| VCs + advisors | LinkedIn | Substack (deep dive) | Scalability, moat, regulatory fit, team |
-| Researchers | Substack | LinkedIn | Methodology, reproducibility, theoretical grounding |
-| Practitioners (builders) | Substack | LinkedIn (visibility) | Implementation, patterns, lessons learned |
-| Regulatory/compliance | LinkedIn | Substack | Measurement uncertainty, audit trail, governance |
-| Ecosystem partners (Mode, etc.) | LinkedIn | Direct collab | Collaboration model, integration points |
+| Security/compliance auditors | GitHub | LinkedIn | Code transparency, licensing, audit trails |
+| VCs + advisors | LinkedIn | GitHub (credibility via code) | Scalability, moat (open-source + expertise), regulatory fit |
+| Researchers | Substack | GitHub (reproducibility) | Methodology, empirical data, open access to calibration |
+| Practitioners (builders) | GitHub | Substack (lessons learned) | Implementation code, ACAT patterns, licensing clarity |
+| Open-source community | GitHub | LinkedIn/Substack | Transparency, auditable governance, contribution paths |
+| Regulatory/compliance | LinkedIn | GitHub (evidence) | Measurement uncertainty, audit trail, governance proof |
+| Ecosystem partners (Mode, etc.) | GitHub | LinkedIn (partnership framing) | Integration examples, licensing compatibility, collab model |
 
 ---
 
@@ -35,19 +38,21 @@
 
 ### **Post-2: Ready to Publish (2026-08-09)**
 **Title:** "Operating Systems for Distributed Human-AI Teams"  
-**Thesis:** HumanAIOS is infrastructure that governs while measuring  
-**Positioning:** Rebalance from Post-1 toward governance layer (Zones, authority, audit trail)  
+**Thesis:** HumanAIOS is infrastructure that governs while measuring. ACAT is now open-source.  
+**Positioning:** Rebalance from Post-1 toward governance layer (Zones, authority, audit trail) + introduce open-source ACAT tooling  
 **Artifacts included:**
 - Zone 1/2/3 model (technical gates, not cultural norms)
 - Feedback loop mechanics (discovery → correction → verification)
-- ACAT as substrate (not separate tool)
+- ACAT as substrate (now open-source, auditable, licensable)
 - Multi-practice mesh (6 practices, scalability narrative)
 - Unified system proposal context (ecosystem coordination framework)
+- GitHub repository link (ACAT implementation, licensing terms, audit trail)
 
 **Channel strategy:**
-- **LinkedIn:** Lead with "infrastructure that scales" narrative + advisor value prop + regulatory alignment
-- **Substack:** Deep dive on Zones + implementation details + empirica-foundation mesh specifics
-- **Timing:** Simultaneous release (2026-08-09), but content angles differ
+- **GitHub:** Launch ACAT open-source repository with documentation, implementation patterns, license clarity (Apache 2.0 or equivalent)
+- **LinkedIn:** Lead with "infrastructure that scales" narrative + advisor value prop + regulatory alignment + GitHub credibility signal
+- **Substack:** Deep dive on Zones + implementation details + empirica-foundation mesh specifics + "how to apply ACAT to your own systems"
+- **Timing:** Coordinated release (2026-08-09): GitHub repo → LinkedIn announcement → Substack deep dive
 
 ### **Post-3: Planned (Q3 2026, after Phase 1 deployment metrics available)**
 **Title:** "What We Learned Running a Self-Measuring Operating System"  
@@ -61,54 +66,118 @@
 
 ---
 
+## GitHub Post-2 Strategy (Primary Execution Layer)
+
+### Angle: **Transparency Through Code**
+
+**Repository:** `empirica-foundation/acat` (or similar)
+- **License:** Apache 2.0 (or equivalent permissive + corporate-friendly)
+- **Goal:** Open-source implementation of ACAT calibration framework; auditable, licensable, forkable
+
+**README headline concept:**
+> "ACAT: AI Behavioral Calibration Assessment Technology. Open-source implementation with auditable licensing, terms of use, and calibration patterns. Investigate the code. Build on it. Measure your own systems."
+
+**Repository structure:**
+```
+acat/
+├── README.md (governance-first, open-source philosophy)
+├── LICENSE (Apache 2.0 + clear terms)
+├── TERMS_OF_USE.md (explicit: can fork, can modify, can apply to your systems)
+├── CONTRIBUTING.md (how to add drift signals, extend calibration)
+├── docs/
+│   ├── acat-framework.md (principles, methodology, relative measurement)
+│   ├── zone-model.md (Zone 1/2/3 implementation)
+│   ├── drift-signals.md (named signals D-SYNTAX-LEAK, IC-052, etc.)
+│   ├── measurement-uncertainty.md (how to publish spread)
+│   └── case-studies/ (humanaios, empirica-foundation examples)
+├── src/
+│   ├── calibration/ (ACAT v0.9 core)
+│   ├── signals/ (drift signal detection)
+│   ├── auditing/ (authority trail, Zone gates)
+│   └── metrics/ (feedback loop measurement)
+├── examples/
+│   ├── humanaios-case-study/ (6-practice mesh implementation)
+│   ├── single-practice-setup/ (Zone 1/2/3 gates in code)
+│   └── measurement-round-robin/ (quarterly held-item protocol)
+└── LICENSE (clear: Apache 2.0, auditable terms)
+```
+
+**Publication timing (2026-08-09):**
+1. **9am PT:** GitHub repo goes public (README, LICENSE, initial docs)
+2. **10am PT:** First GitHub discussion: "Welcome auditors—here's how ACAT works"
+3. **11am PT:** Tag open-source security/compliance communities (discuss ACAT design)
+4. **Noon PT:** LinkedIn announcement: "We open-sourced ACAT. Audit the code. Apply to your systems."
+
+**Audience pull-through strategy:**
+- **Security auditors:** README directs to TERMS_OF_USE.md + LICENSE (investigate legal terms)
+- **Researchers:** Point to case-studies/ folder (empirical data, measurement uncertainty)
+- **Practitioners:** Point to examples/ folder (copy-paste Zone setup, drift signal code)
+- **Ecosystem partners:** Point to CONTRIBUTING.md (fork, extend, contribute back)
+
+**Engagement:**
+- GitHub issues as a collaboration channel (not Slack, not email)
+- Discussions tab for "how do I apply ACAT to X?" questions
+- Milestones tracking Phase 1-3 additions (new signals, measurement round-robin results)
+- Commit message discipline (reference findings, humanaios incidents, discovered patterns)
+
+**Why this matters for your niche:**
+- **Trust through transparency:** "Audit the code yourself. No black boxes."
+- **Licensing clarity:** "Apache 2.0. Forked? Fine. Modified? Allowed. Used internally? Go ahead. Redistributed? Still Apache."
+- **Competitive moat:** Open-source ACAT + closed expertise (empirica-foundation mesh operation) = unforkable value
+- **Regulatory proof:** EU AI Act demands measurement uncertainty. GitHub commits show it, continuously.
+
+---
+
 ## LinkedIn Post-2 Strategy
 
-### Angle: **Infrastructure, Not Measurement**
+### Angle: **Open-Source Infrastructure for AI Governance**
 
 **Headline concept:**
-> "We stopped building a measurement tool. We built an operating system instead. Here's why that matters for scale, funding, and regulation."
+> "We open-sourced ACAT—the AI calibration framework we built. Audit the code. Apply to your systems. Measurement uncertainty now comes with clear licensing terms."
 
 **Structure:**
-1. **Problem hook (20 words):** Multi-practice AI teams lack agreed authority. Measurement stays hidden. No one knows measurement uncertainty.
-2. **The frame shift (60 words):** Measurement emerges from governance, not vice versa. Make authority technical (Zones), not cultural. Make measurement the side effect of normal ops.
-3. **Why now (40 words):** Regulatory requirements (EU AI Act, NIST RMF) demand demonstration of measurement uncertainty. HumanAIOS doesn't just measure—it publishes uncertainty.
-4. **Call to action (20 words):** We're building this with 6 practices. SER (Shared Epistemic Record) tracks Phase 1-3. Ready to collaborate.
+1. **Problem hook (20 words):** Multi-practice AI teams lack agreed authority. Measurement stays hidden. Licensing terms are opaque.
+2. **The shift (60 words):** We built an operating system that governs while measuring. Now it's open-source. Apache 2.0. Audit the code. Measurement uncertainty is computed + published.
+3. **Why now (40 words):** Regulatory requirements (EU AI Act, NIST RMF) demand demonstration of measurement uncertainty AND transparency. GitHub proves both: code audits + clear licensing.
+4. **Call to action (20 words):** GitHub repo + Substack deep dive on implementation. VCs: this is the moat—expertise in the mesh, not just the code.
 
-**Visual:** Zone 1/2/3 diagram (authority boundaries) + feedback loop (discovery → correction → verify)
+**Visual:** GitHub logo + Zone 1/2/3 diagram (authority boundaries as code) + badge "Apache 2.0, Auditable"
 
 **Engagement strategy:**
-- Tag advisors who care about AI governance + regulation
-- Link to full narrative on humanaios.ai
-- Respond to comments distinguishing OS from measurement tool
-- Highlight regulatory alignment (Art. 15, NIST, ISO)
+- Link directly to GitHub repo (`empirica-foundation/acat`)
+- Tag advisors who care about AI governance + open-source + regulation
+- Tag security/compliance communities (OWASP, NCC Group, etc.)—"we audited ourselves publicly"
+- Respond to questions by pointing to LICENSE + TERMS_OF_USE.md (not LinkedIn comments)
+- Highlight: "Open-source + closed expertise in operational mesh = unforkable value"
 
 ---
 
 ## Substack Post-2 Strategy
 
-### Angle: **How It Actually Works**
+### Angle: **Implementation + Auditable Code**
 
 **Headline concept:**
-> "Zone 1, Zone 2, Zone 3: We Built an Operating System That Enforces Authority, Detects Its Own Drift, and Proves It's Governing"
+> "We open-sourced ACAT. Here's how to implement it in your systems, audit the code, and measure calibration uncertainty yourself."
 
 **Structure:**
-1. **Why Zones matter (500 words):** Cultural authority doesn't scale. Technical gates do. Why Zone 1 (fast) ≠ Zone 3 (consequential). How breach attempts log as drift signals.
-2. **Self-measurement (600 words):** Named signals (D-SYNTAX-LEAK, IC-052, etc.). Feedback loops (discovery latency, gate latency, correction latency, verification). Authority audit trail as the measurement substrate.
-3. **Multi-practice mesh (400 words):** How 6 practices coordinate while staying autonomous. Pull (collab ungated), push (propose ECO-gated), ack (handshake). Measurement stays relative; spread is published uncertainty.
-4. **ACAT role (300 words):** ACAT v0.9 as the behavioral substrate. Quarterly round-robin on held items. Grader version as instrument calibration. Why this matters for longitudinal validity.
-5. **Implementation in empirica-foundation (400 words):** Practice registry (role/directive/domain). Orchestration protocol (pull/push/ack). SER for Phase 1-3 (2026-08-11 → 2026-10-01).
+1. **Why Zones matter (500 words):** Cultural authority doesn't scale. Technical gates do. Why Zone 1 (fast) ≠ Zone 3 (consequential). How breach attempts log as drift signals. Point to GitHub `src/auditing/` for code.
+2. **Self-measurement (600 words):** Named signals (D-SYNTAX-LEAK, IC-052, etc.). Feedback loops (discovery latency, gate latency, correction latency, verification). Authority audit trail as the measurement substrate. Point to GitHub `src/signals/` for implementation.
+3. **Multi-practice mesh (400 words):** How 6 practices coordinate while staying autonomous. Pull (collab ungated), push (propose ECO-gated), ack (handshake). Measurement stays relative; spread is published uncertainty. Point to GitHub `examples/humanaios-case-study/` for empirica-foundation implementation.
+4. **ACAT role + Licensing (400 words):** ACAT v0.9 as the behavioral substrate. Apache 2.0 licensing (permissive, auditable, forkable). Quarterly round-robin on held items. Grader version as instrument calibration. Why this matters for longitudinal validity. Point to GitHub `docs/acat-framework.md` + `TERMS_OF_USE.md`.
+5. **How to apply ACAT to your systems (500 words):** Copy-paste Zone setup from GitHub `examples/single-practice-setup/`. Define your own drift signals. Run your own measurement round-robin. Share your findings back (pull requests welcome). Point to CONTRIBUTING.md.
 
 **Visual assets:**
-- Zone 1/2/3 boundary diagram (with technical gates marked)
-- Feedback loop flowchart (discovery → gate → correction → verify)
-- Authority audit trail example (Zone 2 co-decision log)
-- Multi-practice mesh diagram (6 practices with pull/push/ack arrows)
+- Zone 1/2/3 boundary diagram (code reference: `src/auditing/zones.py`)
+- Feedback loop flowchart (code reference: `src/metrics/latency.py`)
+- Authority audit trail example (code reference: `src/auditing/trail.py`)
+- Multi-practice mesh diagram (code reference: `examples/humanaios-case-study/README.md`)
 
 **Engagement strategy:**
-- Highlight implementation details for practitioners
-- Invite practitioners to contribute drift signals from their systems
-- Deep-link to ACAT Canonical Reference (visibility:shared, discoverable)
-- Encourage feedback on Phase 1 metrics (once available)
+- Highlight implementation details AND point to auditable code
+- Invite practitioners to fork the repo + apply to their systems
+- Link to GitHub issues: "How do you implement drift signals in your domain?"
+- Showcase subscriber drift signals/findings (attributable, with permission)
+- Encourage: "Run your own measurement round-robin. Publish your spread. We'll link it."
 
 ---
 
@@ -125,18 +194,57 @@
 
 ## Coordinated Release Plan (2026-08-09)
 
-### **Timing**
-- **Morning (9am PT):** LinkedIn Post-2 (infrastructure framing for advisors)
-- **10am PT:** Email subscribers (Substack) with deep-dive version
-- **Noon PT:** Update humanaios.ai with governance-first documentation
-- **3pm PT:** Slack announcement to ecosystem partners (Mode, other integrations)
+### **Timing (Three-Layer Simultaneous Release)**
+
+**GitHub (Primary - 9:00am PT):**
+- Launch `empirica-foundation/acat` public repository
+- README with governance-first philosophy
+- Apache 2.0 LICENSE + TERMS_OF_USE.md (clear: fork, modify, redistribute allowed)
+- Initial docs: acat-framework.md, zone-model.md, drift-signals.md
+- Example code: single-practice-setup/, humanaios-case-study/
+- First GitHub discussion: "Welcome auditors. Audit the code. Questions?"
+
+**LinkedIn (Secondary - 10:00am PT):**
+- Post-2 announcement: "We open-sourced ACAT"
+- Link directly to GitHub repo
+- Headline: "Audit the code. Apply to your systems. Measurement uncertainty now transparent."
+- Engage security/compliance communities (tag relevant accounts)
+
+**Substack (Secondary - 11:00am PT):**
+- Email subscribers with Post-2 deep dive
+- Headline: "Implementation guide + auditable code"
+- Include code snippets with GitHub repo links
+- Call-to-action: "Fork the repo. Apply to your systems. Share your findings."
+
+**Supporting channels (Noon-3pm PT):**
+- **humanaios.ai:** Update with governance-first docs + "See the open-source implementation on GitHub"
+- **Ecosystem partners (Mode, etc.):** Direct GitHub repo link + CONTRIBUTING.md (how to integrate)
+- **Internal (humanaios, autonomy, evaluator):** Share repo + ask for early signal feedback
 
 ### **Promotion Plan**
-1. **LinkedIn:** Self-share + tag advisors, regulatory researchers, infrastructure builders
-2. **Substack:** Deep version + call for practitioner feedback on Zones
-3. **Website:** Update all references to governance-first (Zones, not just measurement)
-4. **Internal:** Share with humanaios, autonomy, evaluator for consistency check
-5. **Ecosystem:** Direct message Mode + collaborators with collaboration-specific angle
+
+1. **GitHub:** 
+   - Self-sustaining (issues, discussions, pull requests are engagement)
+   - Community management: respond to questions in discussions
+   - Milestones: Phase 1-3 additions tracked as GitHub releases
+
+2. **LinkedIn:**
+   - Self-share + tag advisors, regulatory researchers, open-source security/compliance communities
+   - Link every comment back to GitHub (not LinkedIn discussion)
+   - Highlight: "Apache 2.0, auditable, forkable"
+
+3. **Substack:**
+   - Deep implementation guide + call for subscriber findings
+   - Monthly: "Subscriber spotlight" (featured org using ACAT, with permission)
+   - Track: How many readers fork the GitHub repo
+
+4. **Website (humanaios.ai):**
+   - Update all governance-first references with GitHub implementation links
+   - Create: "Apply ACAT to your systems" getting-started guide
+
+5. **Ecosystem:**
+   - Direct message partners with GitHub collaboration angle (CONTRIBUTING.md)
+   - Propose: Joint milestones (Mode integration, etc.)
 
 ### **Feedback Loop**
 - **Monitor:** LinkedIn engagement (advisor sentiment), Substack comments (practitioner questions)
@@ -174,10 +282,22 @@
 
 | Metric | Target | Tracking |
 |---|---|---|
-| LinkedIn Post-2 reach | 1500+ (advisor segment) | LinkedIn analytics |
-| Substack Post-2 subscribers | 600+ (practitioners) | Substack growth |
-| "Zones" mentions in ecosystem | 10+ independent citations | Manual + search |
-| humanaios.ai governance-first traffic | 200+ unique visitors | humanaios analytics |
+| **GitHub** | | |
+| ACAT repo stars | 500+ (by 2026-09-30) | GitHub insights |
+| GitHub discussions (questions answered) | 20+ active threads | GitHub discussions tab |
+| Forks | 20+ organizations | GitHub insights |
+| Pull requests (contributed signals/code) | 5+ external contributors | GitHub PRs |
+| **LinkedIn** | | |
+| Post-2 reach | 2000+ (open-source angle amplifies) | LinkedIn analytics |
+| GitHub link clicks (from LinkedIn) | 500+ (tracking via UTM) | LinkedIn + GitHub |
+| **Substack** | | |
+| Post-2 subscribers | 700+ (implementation interest) | Substack growth |
+| GitHub repo link clicks | 200+ (tracking via UTM) | Substack + GitHub |
+| Subscriber orgs using ACAT | 5+ (self-reported) | Substack comments |
+| **Ecosystem** | | |
+| "ACAT" + "open-source" mentions | 20+ independent citations | Manual + search |
+| Security/compliance community engagement | 30+ GitHub discussions from auditors | GitHub discussions |
+| humanaios.ai governance-first traffic | 300+ unique visitors (GitHub ref) | humanaios analytics |
 | Unified system proposal acceptance | ECO accept (yes/no) | Cortex inbox poll |
 | Phase 1 drift signal quality | 8+ named signals firing reliably | humanaios log |
 
@@ -187,9 +307,19 @@
 
 | Risk | Mitigation |
 |---|---|
+| **Content Framing** | |
 | Post-2 still reads as measurement-focused despite edits | Have website + humanaios review pre-publish |
 | Advisors don't understand Zone model | Webinar/office hours after publish to explain + gather feedback |
-| Ecosystem partners (Mode) confused about collaboration scope | Direct messaging with collaboration-specific angle + proposal context |
-| Post-3 delays if Phase 1 metrics aren't ready by Q3 | Start logging metrics NOW (monthly snapshots in findings) |
 | LinkedIn vs Substack audiences diverge in interpretation | Monitor comments closely; publish clarification posts if needed |
+| **GitHub-Specific** | |
+| License ambiguity confuses potential users | Clear TERMS_OF_USE.md in repo (Apache 2.0: can fork, modify, redistribute) |
+| Licensing terms appear corporate-restrictive | Choose genuinely permissive license (Apache 2.0, MIT, or GPL) + benchmark against successful open-source projects |
+| Security auditors find vulnerabilities in published code | Expected—create GitHub security advisory process (CNA if applicable); respond promptly to CVE reports |
+| Competitors fork + rebrand ACAT | Acceptable risk for open-source strategy; mitigation is moat (closed expertise in empirica-foundation mesh operation) |
+| Low GitHub engagement (few stars, forks, discussions) | Launch with strong initial content (working examples, case studies); incentivize first 50 stars with early-access to mesh insights |
+| Maintainer burden (managing issues, PRs, discussions) | Clear CONTRIBUTING.md + triage process; set expectations for response time (48h for questions, 1w for PRs) |
+| **Cross-Platform** | |
+| Ecosystem partners (Mode) confused about collaboration scope | Direct messaging with collaboration-specific angle + GitHub CONTRIBUTING.md (how to integrate) |
+| Post-3 delays if Phase 1 metrics aren't ready by Q3 | Start logging metrics NOW (monthly snapshots in findings); publish via GitHub releases |
+| GitHub visibility overshadows LinkedIn/Substack reach | Track UTM links; make sure GitHub README links back to Substack + LinkedIn for narrative context |
 
