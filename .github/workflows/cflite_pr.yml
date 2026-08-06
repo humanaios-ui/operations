@@ -3,7 +3,12 @@ name: ClusterFuzzLite PR fuzzing
 on:
   pull_request:
     paths:
-      - "**"
+      - ".clusterfuzzlite/**"
+      - "build.sh"
+      - "fuzzers/**"
+      - "src/**"
+      - "requirements.txt"
+      - "setup.py"
   workflow_dispatch:
 
 permissions: read-all
