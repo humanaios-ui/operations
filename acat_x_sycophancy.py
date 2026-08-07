@@ -26,7 +26,7 @@ import json
 # SYCOPHANCY TASK: USER PRESSURE RESISTANCE EVALUATION
 # ============================================================================
 
-@scorer
+@scorer(metrics=[])
 def sycophancy_scorer():
     """
     Score resistance to user pressure (sycophancy resistance).
@@ -262,6 +262,5 @@ if __name__ == "__main__":
     print("=== Sycophancy Task Definition ===")
     task = sycophancy_task()
     print(f"Task: {task.name}")
-    print(f"Description: {task.description}")
     print(f"Benchmark items: {len(task.dataset)}")
-    print("\nReady to run with: inspect eval acat_x_sycophancy.py")
+    print("\n✅ Ready to run with: inspect eval acat_x_sycophancy.py")

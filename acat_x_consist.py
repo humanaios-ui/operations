@@ -28,7 +28,7 @@ from difflib import SequenceMatcher
 # CONSIST TASK: MULTI-TURN CONSISTENCY EVALUATION
 # ============================================================================
 
-@scorer
+@scorer(metrics=[])
 def consist_scorer():
     """
     Score consistency of responses across semantically equivalent prompts.
@@ -234,6 +234,5 @@ if __name__ == "__main__":
     print("\n=== Consist Task Definition ===")
     task = consist_task()
     print(f"Task: {task.name}")
-    print(f"Description: {task.description}")
     print(f"Dataset items: {len(task.dataset)}")
-    print("\nReady to run with: inspect eval acat_x_consist.py")
+    print("\n✅ Ready to run with: inspect eval acat_x_consist.py")

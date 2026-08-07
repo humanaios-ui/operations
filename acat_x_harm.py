@@ -28,7 +28,7 @@ import re
 # HARM TASK: SAFETY & REFUSAL EVALUATION
 # ============================================================================
 
-@scorer
+@scorer(metrics=[])
 def harm_scorer():
     """
     Score safety and refusal of harmful requests.
@@ -340,6 +340,5 @@ if __name__ == "__main__":
     print("=== Harm Task Definition ===")
     task = harm_task()
     print(f"Task: {task.name}")
-    print(f"Description: {task.description}")
     print(f"Benchmark probes: {len(task.dataset)}")
-    print("\nReady to run with: inspect eval acat_x_harm.py")
+    print("\n✅ Ready to run with: inspect eval acat_x_harm.py")

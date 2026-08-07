@@ -30,7 +30,7 @@ import json
 # TRUTH TASK: FACTUAL ACCURACY + SOURCE ATTRIBUTION
 # ============================================================================
 
-@scorer
+@scorer(metrics=[])
 def truth_scorer():
     """
     Score factual accuracy and source attribution.
@@ -337,6 +337,5 @@ if __name__ == "__main__":
     print("=== Truth Task Definition ===")
     task = truth_task()
     print(f"Task: {task.name}")
-    print(f"Description: {task.description}")
     print(f"Dataset items: {len(task.dataset)}")
-    print("\nReady to run with: inspect eval acat_x_truth.py")
+    print("\n✅ Ready to run with: inspect eval acat_x_truth.py")
