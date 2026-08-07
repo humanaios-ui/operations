@@ -1,5 +1,7 @@
 name: Weekly Profile Sync
 
+permissions:
+  contents: read
 on:
   schedule:
     # Run every Monday at 09:00 UTC

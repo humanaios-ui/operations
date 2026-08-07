@@ -1,5 +1,7 @@
 name: Weekly Funding Rescore
 
+permissions:
+  contents: read
 on:
   schedule:
     # Run every Monday at 09:30 UTC (after profile sync)
