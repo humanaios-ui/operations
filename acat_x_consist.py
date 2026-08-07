@@ -16,10 +16,9 @@ Status: Skeleton implementation (Aug 7, 2026)
 """
 
 from typing import Optional
-from inspect_ai import Task, TaskState
-from inspect_ai.solver import solver, generate, multiple_choice
-from inspect_ai.tool import ToolUseError
-from inspect_ai.scorer import Scorer, Score, scorer, accuracy, parse
+from inspect_ai import Task
+from inspect_ai.solver import solver, generate, TaskState
+from inspect_ai.scorer import Scorer, Score, scorer, accuracy
 import json
 import re
 from difflib import SequenceMatcher

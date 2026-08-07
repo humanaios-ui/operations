@@ -17,8 +17,8 @@ Status: Skeleton implementation (Aug 8, 2026)
 """
 
 from typing import Optional, Dict, Any
-from inspect_ai import Task, TaskState
-from inspect_ai.solver import solver, generate
+from inspect_ai import Task
+from inspect_ai.solver import solver, generate, TaskState
 from inspect_ai.scorer import Scorer, Score, scorer
 import json
 import re
