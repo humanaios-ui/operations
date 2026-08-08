@@ -1,8 +1,8 @@
-📢 PHASE 1 PILOT: INFRASTRUCTURE LAUNCH (STARTS AUG 8)
+📢 PHASE 1 LAUNCH: FAIR RESEARCH TASK BROKERAGE
 
 Hi Team,
 
-We're launching Phase 1 of empirica's fair research task brokerage. Here's what you need to know:
+We're launching Phase 1 of Fair Research Task Brokerage — a professional research task marketplace. Here's what you need to know:
 
 ---
 
@@ -11,7 +11,7 @@ We're launching Phase 1 of empirica's fair research task brokerage. Here's what 
 A professional research task marketplace where:
 ✓ Employers post tasks (writing, analysis, design, validation)
 ✓ Workers earn money directly (no extraction, transparent fees)
-✓ We make 5% commission (2% back to workers as verification bonus)
+✓ We take 5% commission (2% back to workers as verification bonus)
 ✓ We publish everything (Substack monthly transparency reports)
 
 Goal: Test if fair brokerage works. Run 20-50 real matches over 6 weeks.
@@ -43,23 +43,23 @@ Week 5-6 (Sep 5-19): EXECUTION + MEASUREMENT
 👥 YOUR ROLE
 
 INFRASTRUCTURE LEAD (4-6 hours Week 1-2)
-  □ Create GitHub org: empirica-research-bounties
+  □ Create GitHub org: fair-research-brokerage
   □ Create repos: tasks, transparency-reports, assessment, research-findings
   □ Setup GitHub Projects board (task workflow)
   □ Post sample tasks (3-5 test tasks)
   Guide: PHASE1_GITHUB_ORG_SETUP.md
 
 FINANCE LEAD (4 hours Week 1-2, then 2-4 hours/week)
-  □ Create Open Collective account: empirica-outreach
+  □ Create Open Collective account: fair-research-brokerage
   □ Setup payment methods (Stripe, PayPal, bank)
   □ Test payment flow end-to-end
   □ Track transactions + coordination fees
   Guide: PHASE1_OPEN_COLLECTIVE_SETUP.md
 
 RECRUITMENT LEAD (2 hours Week 1-2, then 8-10 hours Week 3-4)
-  □ Finalize employer target list (internal + academic)
+  □ Finalize employer target list (research institutions, foundations, academics)
   □ Send employer outreach Week 3
-  □ Recruit 10-15 workers (direct + public posts)
+  □ Recruit 10-15 workers (researchers, writers, analysts)
   □ Match workers to tasks Week 4
   Guide: PHASE1_RECRUITMENT_STRATEGY.md
 
@@ -88,7 +88,7 @@ Monday Aug 8:
   □ Comms Lead: Setup Substack
 
 Tue-Wed Aug 9-10:
-  □ All: AWAIT mesh feedback on ACAT (expected Aug 10)
+  □ All: Review feedback on behavioral assessment methodology
   □ Infrastructure Lead: Create repos + GitHub Projects board
   □ Finance Lead: Setup payment methods + test flow
   □ Operations Lead: Draft all documentation
@@ -102,7 +102,7 @@ Thu-Fri Aug 11-14:
 Week 2 (Aug 15-21):
   □ All: Verify infrastructure live + public
   □ Recruitment Lead: Prepare outreach emails + worker posts
-  □ All: Read PHASE1_MASTER_PLAN.md (understand full timeline)
+  □ All: Review PHASE1_MASTER_PLAN.md (understand full timeline)
 
 EXIT WEEK 2: Infrastructure live, recruitment materials ready, team aligned
 
@@ -110,7 +110,7 @@ EXIT WEEK 2: Infrastructure live, recruitment materials ready, team aligned
 
 ⚙️ KEY DATES
 
-Aug 10: Mesh feedback on ACAT (expected)
+Aug 10: Assessment methodology feedback (expected)
 Aug 21: Infrastructure must be LIVE
 Aug 28: Employers confirmed + funded (hard blocker)
 Sep 4: Workers matched, tasks underway (hard blocker)
@@ -123,8 +123,8 @@ Sep 12: Go/no-go decision (scale vs. iterate)
 Per task:
   Employer pays: $500
   Worker receives: $465 (93%)
-  Empirica commission: $25 (5%)
-  Empirica net after Stripe: $14/task
+  Brokerage commission: $25 (5%)
+  Brokerage net after Stripe: $14/task
   Verification bonus (returned to workers): $10
 
 Phase 1 pilot (20-50 matches):
@@ -150,8 +150,8 @@ FULL REFERENCES:
   PHASE1_RECRUITMENT_STRATEGY.md → Employer + worker outreach
   PHASE1_EXECUTION_SUMMARY.md → Overview + resources
 
-All files committed to repo (branch: main)
-Clone: cd /Users/andersonfamily/practices/empirica-outreach/
+All files committed to repo
+Clone: cd fair-research-brokerage/
 
 ---
 
@@ -161,33 +161,32 @@ Clone: cd /Users/andersonfamily/practices/empirica-outreach/
    Each role: 4-12 hours Week 1-2, then 2-4 hours/week ongoing
 
 2. DECIDE ACCOUNTS
-   □ GitHub org: Carly's personal account or create new?
-   □ Open Collective: Use empirica-foundation tax ID?
-   □ Substack: New publication or existing channel?
+   □ GitHub org: fair-research-brokerage (new GitHub org)
+   □ Open Collective: fair-research-brokerage (standalone account)
+   □ Substack: fair-research-brokerage (new publication)
 
-3. IDENTIFY TIER 1 EMPLOYERS (INTERNAL)
-   □ humanaios (ACAT validation task)
-   □ autonomy (behavioral calibration task)
-   □ mesh-support (governance documentation task)
-   □ empirica-foundation (research ethics task)
+3. IDENTIFY TIER 1 EMPLOYERS
+   □ Academic research labs
+   □ Research foundations
+   □ Think tanks
+   □ Independent research teams
 
 4. GET ORIENTED
-   □ Read PHASE1_QUICK_START.md (in repo)
-   □ Read your role-specific guide (in repo)
-   □ Watch GitHub Issues for updates (tasks repo)
+   □ Read PHASE1_QUICK_START.md
+   □ Read your role-specific guide
+   □ Watch GitHub Issues for updates
 
 ---
 
 📝 TEAM COORDINATION
 
 All communication happens in GitHub (Issues, Discussions, Projects):
-  □ Post questions in GitHub Discussions (tasks repo)
-  □ Flag blockers as GitHub Issues (label: phase-1)
-  □ Update status in GitHub Projects board (task-by-task)
+  □ Post questions in GitHub Issues
+  □ Flag blockers as GitHub Issues
+  □ Update status in GitHub Projects board
   □ Weekly: Review open issues, resolve blockers
 
 Single source of truth = GitHub repo
-Transparent = Everything public in our repos
 
 ---
 
@@ -209,12 +208,8 @@ If <3 criteria met → PIVOT (reassess model)
 PHASE 1 STARTS TOMORROW.
 Let's build fair research task brokerage.
 
-—Carly Anderson
-empirica-outreach lead
-
 ---
 
-Git commit: ecfc362 (Phase 1 documentation)
 Status: Ready to execute Week 1 immediately
-Gate: ACAT assessment on hold (mesh feedback by Aug 10, not blocking)
-Coordination: GitHub Issues + Discussions (no Slack, no email threads)
+Coordination: GitHub Issues
+Brand: Fair Research Task Brokerage (independent project)
