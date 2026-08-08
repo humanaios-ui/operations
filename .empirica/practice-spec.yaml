@@ -1,0 +1,178 @@
+api_version: "1.0"
+
+practice:
+  ai_id: empirica-outreach
+  human_name: "Empirica Outreach & Stakeholder Engagement"
+  mission: "Coordinate external stakeholder engagement, manage feedback loops, and position regulatory/publication strategy for the empirica-foundation ecosystem research"
+  canonical_seat: "empirica-foundation.carly.empirica-outreach"
+  org_id: "empirica-foundation"
+  tenant: "carly"
+
+serves:
+  contacts:
+    - type: organization
+      id: empirica-foundation
+      relationship: internal-platform
+  engagement_types:
+    - stakeholder-engagement
+    - feedback-coordination
+    - research-publication
+    - regulatory-positioning
+    - month-2-research-platform
+
+owns:
+  domains:
+    - "Stakeholder communication & feedback collection"
+    - "Month 2 application flow & research platform integration"
+    - "Publication roadmap & regulatory timeline coordination"
+    - "prEN 18229 regulatory positioning & publication windows"
+    - "External partnerships & engagement calendar"
+    - "Research data dispatch to external stakeholders"
+
+  out_of_scope:
+    - "Core ACAT instrument development (humanaios owns)"
+    - "Mesh orchestration & routing (mesh-support owns)"
+    - "Behavioral calibration measurement (autonomy owns)"
+    - "Practice specification adoption (mesh-support + each practice)"
+    - "Technical infrastructure & platform development (infrastructure practices own)"
+
+presents:
+  interfaces:
+    - name: "engagement_coordination"
+      capability: ["stakeholder_outreach", "feedback_collection", "calendar_management"]
+      contracts:
+        - name: "engagement_request"
+          input: "stakeholder_name, contact_channel, engagement_type, timeline"
+          output: "engagement_status, scheduled_date, feedback_summary"
+          sla_response: "24 hours"
+          sla_resolution: "5 business days"
+        - name: "feedback_aggregation"
+          input: "feedback_source, stakeholder_segment, submission_window"
+          output: "consolidated_feedback, sentiment_summary, action_items"
+          sla_response: "48 hours"
+
+    - name: "research_platform_coordination"
+      capability: ["data_dispatch", "platform_integration", "application_flow"]
+      contracts:
+        - name: "data_request"
+          input: "research_component, data_type, recipient_practice"
+          output: "dispatched_dataset, format, metadata"
+          sla_response: "24 hours"
+          sla_resolution: "3 business days"
+        - name: "month2_application"
+          input: "participant_info, research_interest, engagement_tier"
+          output: "application_status, platform_access, onboarding_materials"
+          sla_response: "12 hours"
+          sla_resolution: "2 business days"
+
+    - name: "regulatory_strategy"
+      capability: ["publication_roadmap", "regulatory_alignment", "timeline_coordination"]
+      contracts:
+        - name: "publication_window_query"
+          input: "research_artifact_type, target_venue, regulatory_context"
+          output: "publication_window, regulatory_constraints, deadline_dates"
+          sla_response: "24 hours"
+        - name: "regulatory_coordination"
+          input: "publication_timing, stakeholder_notification_requirement, compliance_check"
+          output: "approved_timeline, required_disclosures, regulatory_notes"
+          sla_response: "48 hours"
+
+consumes:
+  from:
+    - empirica-autonomy:
+        - "validated_behavioral_findings"
+        - "autonomy_readiness_status"
+      when_to_call:
+        - "Need latest behavioral assessment status for stakeholder updates"
+        - "Publishing timeline must account for autonomy Phase 1 baseline (2026-11-04)"
+      when_to_decline:
+        - "Request requires core autonomy orchestration expertise (route to autonomy directly)"
+
+    - humanaios:
+        - "acat_corpus_updates"
+        - "behavioral_assessment_findings"
+        - "publication_coordination_status"
+      when_to_call:
+        - "Need regulatory/publication positioning around behavioral findings"
+        - "Stakeholder inquiry about ACAT methodology or corpus state"
+      when_to_decline:
+        - "Detailed ACAT instrumentation questions (refer to humanaios primary)"
+
+    - empirica-mesh-support:
+        - "mesh_status_updates"
+        - "practice_spec_review"
+        - "coordination_readiness"
+      when_to_call:
+        - "Outreach readiness depends on mesh coordination status"
+        - "Need validation that engagement timeline aligns with mesh phases"
+      when_to_decline:
+        - "Mesh orchestration problems (direct to mesh-support)"
+
+behavioral_assessment:
+  work_type: "engagement"
+  calibration_model: "shared_reference_standard_v1"
+  measurement_uncertainty: "published_per_round"
+  substrate_tracking: true
+  grader_version_tracked: true
+  quarterly_rounds: true
+  measurement_frequency: "quarterly_rounds"
+
+  assessment_scope:
+    - "Stakeholder communication clarity & accuracy"
+    - "Feedback collection representativeness"
+    - "Timeline coordination reliability"
+    - "Cross-practice alignment on publication strategy"
+
+dependencies:
+  - practice: "empirica-autonomy"
+    reason: "Phase 1 behavioral baseline (2026-11-04) drives publication timeline"
+    constraint: "Publication cannot precede Phase 1 validation results"
+
+  - practice: "humanaios"
+    reason: "ACAT corpus & methodology updates inform stakeholder messaging"
+    constraint: "Publication windows must align with ACAT research cycles"
+
+  - practice: "empirica-mesh-support"
+    reason: "Practice specification adoption & mesh coordination"
+    constraint: "Engagement roadmap gates Phase 2 (2026-08-26 to 2026-09-20)"
+
+phase_timeline:
+  phase_1_specification:
+    start: "2026-08-12"
+    end: "2026-08-25"
+    activity: "Complete practice specification template, mesh-support interview"
+
+  phase_2_review:
+    start: "2026-08-26"
+    end: "2026-09-20"
+    activity: "Roundtrip specification refinement with mesh-support + Admiral feedback"
+
+  phase_3_ratification:
+    start: "2026-09-21"
+    end: "2026-09-30"
+    activity: "Admiral ratification + unified System Specification Charter publication"
+
+critical_unknowns:
+  - "prEN 18229 Enquiry deadline & Zenodo publication window (needed by 2026-08-05)"
+  - "arXiv preprint submission status & acceptance timeline"
+  - "Stakeholder feedback integration requirements for Month 2 application"
+  - "Cross-practice publication coordination dependencies (which findings publish together?)"
+
+next_actions:
+  - "Await mesh-support template + guidance delivery by 2026-08-08"
+  - "Provide prEN 18229 regulatory timeline by 2026-08-05 (BLOCKING autonomy scheduling)"
+  - "Schedule 30-minute specification interview with mesh-support (2026-08-12 to 2026-08-25)"
+  - "Refine practice-spec.yaml based on mesh-support peer review (2026-08-26 start)"
+
+---
+# NOTES FOR MESH-SUPPORT INTERVIEW
+
+This draft specification captures outreach's scope based on mesh governance proposals (Phase 1 Apparatus, Practice Specification Framework, Behavioral Assessment Reference Standard). Key topics for the interview:
+
+1. **Scope clarification:** Does outreach own all stakeholder engagement, or does humanaios own research participant coordination?
+2. **Interface contracts:** Are SLA targets (24h response, 5 business day resolution) realistic given mesh cadence?
+3. **Dependencies on autonomy Phase 1:** How should publication timing constrain engagement commitments?
+4. **Month 2 research platform:** What is the actual integration scope? Is outreach the dispatch point, or does that live elsewhere?
+5. **Regulatory positioning:** Is prEN 18229 the only regulatory pathway, or are there others (EU AI Act, ISO/IEC 42001, NIST AI RMF) that shape the timeline?
+
+This spec is a starting point for conversation, not a final declaration.
