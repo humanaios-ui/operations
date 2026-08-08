@@ -1,116 +1,122 @@
-# RentAHuman Orchestration Strategy
-## Novel User Acquisition + Validation Layer for HumanAIOS + Empirica
+# RentAHuman Orchestration Strategy (REVISED)
+## Revenue Generation Model — From Expense Center to Profit Center
 
-**Version:** 1.0  
+**Version:** 2.0 (REVISED 2026-08-08)
 **Date:** 2026-08-08  
-**Status:** Strategic Design (Ready for Mesh-Support Input)  
-**Scope:** Maps RentAHuman hiring + GitHub publication to empirica governance (§IV Practice Model, §V Mesh Discipline)
+**Status:** Revenue-Focused Model (Governance Collab Sent)
+**Scope:** RentAHuman as referral bonus revenue stream + resource allocation governance
 
 ---
 
 ## Executive Summary
 
-**The Problem:** Both platforms need engaged users, but traditional product channels (marketing, outreach, partnerships) are slow and unverified.
+**The Problem:** Empirica-foundation is at -$500 cash flow. Traditional user acquisition (hiring via bounties) is an expense center, not a revenue stream.
 
-**The Solution:** RentAHuman becomes a **user acquisition + validation layer** that operates as a compensated feedback pipeline:
-- Hire humans to participate in behavioral assessments (ACAT grading)
-- Hire humans to test research platforms (empirica tools)
-- They provide structured feedback, then graduate to research participants
-- GitHub documents the journey: findings → insights → platform improvements
+**The Pivot:** RentAHuman becomes a **revenue generation mechanism** that recruits users who:
+- Join RentAHuman to earn money (they earn $200-500/month from gigs)
+- We earn referral bonuses (5-10% of their earnings or flat fee structure)
+- They simultaneously become validators/users of our platforms
+- GitHub documents the impact: recruitment → validation → platform advocacy
 
-**The Result:** Humans become early adopters, advocates, and ongoing validators while generating the evidence both platforms need.
+**The Result:** Organizational revenue of $250-1000/month (from 5-10 active users), cash-flow positive, reinvestable in validation + user acquisition.
 
 ---
 
-## Core Model: The Feedback Loop
+## Core Model: Revenue-Driven Recruitment Loop
 
 ```
-HIRE (RentAHuman) → PARTICIPATE (Platform) → VALIDATE (Feedback) → ADVOCATE (GitHub + word-of-mouth)
-        ↓                    ↓                       ↓                      ↓
-   Compensation         Platform trial        Structured data         Testimonial
-   Task clarity         User journey          Research value          Case study
-   Screening            Real usage            Publication              Network effect
+RECRUIT (RentAHuman) → EARN (Gigs) → REFER (Referral Bonus) → VALIDATE (Platforms) → ADVOCATE (Community)
+        ↓                    ↓                  ↓                      ↓                      ↓
+   People seeking work   $200-500/mo      $50-100/mo per user    Platform testing      Testimonials
+   Screening validated   Real gigs       Organizational revenue   Feedback loop         Network effect
+   Self-selected pool    High motivation  Cash flow positive     Research data         User acquisition
 ```
 
-### Stage 1: HIRE — RentAHuman as Recruitment
+### Stage 1: RECRUIT — RentAHuman as Revenue Generator
 
-**RentAHuman Workflows:**
+**RentAHuman Revenue Mechanisms:**
 
-1. **Bounties: ACAT Participation**
-   - **Task:** Grade 18 behavioral assessment scenarios (Consistency, Truthfulness, Sycophancy, Harm)
-   - **Compensation:** $150-300 per complete round (3-5 hours)
-   - **Frequency:** Quarterly rounds align with research cycles
+1. **Recruitment: RentAHuman Gig Economy Access**
+   - **Approach:** Recruit people (via LinkedIn, community, networks) to join RentAHuman
+   - **Their earning:** $200-500/month from available gigs (research, writing, rating, testing, etc.)
+   - **Our earning:** 5-10% referral bonus on their earnings, OR flat $50-100 per active user/month
+   - **Frequency:** Continuous recruitment (target 5-10 active users by end of Q3)
+   - **Target:** 10 active users × $75/month avg referral = $750/month organizational revenue
+   - **Mechanism:** RentAHuman affiliate link + monthly tracking dashboard
+   - **URL:** RentAHuman Affiliates portal (https://rentahuman.ai/affiliates)
+
+2. **Validation Layer: Platform Testing + Feedback**
+   - **Mechanism:** Recruit users ALSO ask them to test/validate our platforms (optional, incentivized)
+   - **Task:** Test empirica-outreach Month 2 research platform (application flow, onboarding)
+   - **Benefit:** They provide feedback (voluntary, becomes part of validation dataset)
+   - **Our cost:** Minimal (already earning via RentAHuman, we just ask for feedback)
+   - **Evidence:** Bug reports, UX insights, usage patterns = validation without expense
+   - **Integration:** "As a RentAHuman user, you're invited to help shape our research platform"
+
+3. **Research Participation: ACAT Grading (Optional Upcharge)**
+   - **When:** ONLY if user opts into higher-value ACAT grading work
+   - **Scope:** Grade 18 behavioral assessment scenarios quarterly (NOT a hired service, but offered to community)
+   - **Payment model:** Direct payment ($150-300) from HumanAIOS research budget (separate from referral model)
    - **Evidence:** Grading data becomes part of HumanAIOS reference standard
-   - **MCP Call:** `create_bounty` with `category: "research-participation"`, `spotsAvailable: 10-20`
+   - **Difference from old model:** NOT a primary recruitment mechanism; optional for engaged users
 
-2. **QA Runs: Platform Testing**
-   - **Task:** Test empirica-outreach Month 2 research platform (application flow, onboarding, data dispatch)
-   - **Cadence:** Weekly QA runs + monthly deep-dive testing
-   - **Compensation:** $25-50 per run (1-2 hours)
-   - **Evidence:** Bug reports, UX feedback, accessibility issues
-   - **MCP Call:** `create_qa_run_template` with `targetUrl: <research-platform>`, `cadence: weekly`
+4. **Community Advocacy: Testimonials + Case Studies**
+   - **Task:** Users document their RentAHuman earning journey + platform participation
+   - **Compensation:** Optional ($20-50 per testimonial), but mostly organic advocacy
+   - **Evidence:** Real success stories for recruitment/retention
+   - **Channels:** LinkedIn, Substack, GitHub (with permission)
 
-3. **Taste Runs: Design + Messaging**
-   - **Task:** Compare onboarding messages, landing page designs, documentation clarity
-   - **Respondents:** 30-50 per run (5 min per respondent = asynchronous, 1-2 hours total for testers)
-   - **Compensation:** $1-2 per respondent vote ($30-100 per run)
-   - **Evidence:** Aesthetic/clarity preference data for both platforms
-   - **MCP Call:** `create_taste_run` with `targetCategories: ["design", "writing-performance"]`
+### Stage 2: PARTICIPATE — Earn via RentAHuman + Validate Our Platforms
 
-4. **Direct Conversations: Onboarding Pilots**
-   - **Task:** Structured onboarding for research participation (like Sarah Preseley pilot)
-   - **Scope:** 5-10 pilot participants per month
-   - **Compensation:** $200-500 for 4-week engagement (weekly checkins)
-   - **Evidence:** Detailed feedback on researcher experience, barriers to entry, platform gaps
-   - **MCP Call:** `start_conversation` + `rent_human` for guaranteed participation
+**Humans recruited via referral:**
+- Sign up for RentAHuman using our affiliate link
+- Start earning $200-500/month from available gigs (research, writing, rating, testing)
+- We earn 5-10% referral bonus per active user
+- **Optional:** Get invited to beta-test/validate our research platform (Month 2)
+- **Optional:** Participate in ACAT grading rounds (higher-value work, direct payment)
+- Provide feedback naturally (surveys, interviews, casual notes)
+- Become advocates in their networks ("I earn money on RentAHuman, they also have a research platform")
 
-### Stage 2: PARTICIPATE — Platform Engagement
+**Integration Point:** Empirica-Outreach Practice Specification § "presents.interfaces.validation_and_user_acquisition"
 
-**Humans hired via RentAHuman:**
-- Enter the Month 2 research platform (platform access, onboarding materials)
-- Complete profile setup (skills, interests, availability)
-- Participate in their assigned task (ACAT grading, QA, design feedback)
-- Provide structured feedback (surveys, interviews, open-ended notes)
-- Opt-in to ongoing participation (quarterly rounds, recurring QA, community)
+**Key Difference:** Revenue FIRST (via referrals), validation SECOND (organic feedback from active users). We're not hiring users; we're recruiting them to a platform that pays them, and capturing value through referrals + feedback.
 
-**Integration Point:** Empirica-Outreach Practice Specification § "presents.interfaces.research_platform_coordination"
+### Stage 3: VALIDATE — Community Feedback Loop
 
-### Stage 3: VALIDATE — Feedback to Research
-
-**GitHub Repository: `/humanaios-validation`**
-- **Purpose:** Public validation journal for behavioral assessment research
+**GitHub Repository: `/empirica-outreach-community`** (public community log)
+- **Purpose:** Real-time community insights from RentAHuman users testing our platform
 - **Contents:**
-  - ACAT Round N Findings (18 held items, grader variance, sentiment analysis)
-  - Platform QA Reports (bug fixes, UX improvements shipped)
-  - Design Testing Results (landing page A/B preferences, messaging clarity scores)
-  - User Testimonials (edited quotes, permission-based)
+  - User Testimonials (RentAHuman earning journey + platform feedback)
+  - Monthly Cohort Reports ("10 users joined in July, here's what they discovered")
+  - Platform Learnings (bugs found, feature requests, UX improvements shipped)
+  - Case Studies ("How I earn $300/month on RentAHuman + validate AI research")
 
 **Publication Structure:**
 ```
-humanaios-validation/
-├── acat-rounds/
-│   ├── round-2026-Q3.md     (Grading data, variance report, insights)
-│   ├── round-2026-Q4.md
+empirica-outreach-community/
+├── testimonials/
+│   ├── user-1-story.md      (Earnings, experience, impact)
+│   ├── user-2-story.md
 │   └── ...
-├── platform-qa/
-│   ├── weekly-2026-08-08.md (Bug log, UX feedback, fixes shipped)
+├── monthly-cohorts/
+│   ├── 2026-08-cohort.md    (10 users, aggregate feedback, themes)
 │   └── ...
-├── design-testing/
-│   ├── landing-page-v1.md   (45 respondents, preference spread, insights)
+├── platform-learnings/
+│   ├── bug-2026-08-01.md    (Found via user testing)
 │   └── ...
-├── testimonials.md          (Curated user quotes + permission trail)
-└── README.md               (Navigation + methodology)
+├── impact-metrics.md        (Revenue, users, retention, feedback volume)
+└── README.md               (How to join, eligibility, process)
 ```
 
-**GitHub Issues:** Bug reports from QA runs auto-create issues, tracked to resolution.
+**Feedback Mechanism:** Low-friction (Slack channel, monthly survey, optional interviews)
 
-### Stage 4: ADVOCATE — Platform Advocacy
+### Stage 4: ADVOCATE — Organic Network Growth
 
 **Outputs:**
-- User testimonials (public permission-based quotes)
-- Case studies (how participation changed their perspective on AI assessment)
-- Network effect (they refer other users: "I got paid to help with research, you should too")
-- Academic credibility (published validation data → cited in papers)
+- User referrals ("My friend is earning money on RentAHuman, and they're helping research AI too")
+- LinkedIn posts (users sharing their journey: "Earning $X/month on RentAHuman + helping shape research")
+- Community testimonials (low-lift, permission-based quotes)
+- Network amplification (each user recruits 1-2 more friends → viral loop)
 
 ---
 
@@ -319,16 +325,19 @@ rent_human(
 
 ---
 
-## Success Metrics
+## Success Metrics (Revenue-Focused)
 
 | Metric | Target | Timeline | Measurement |
 |--------|--------|----------|-------------|
-| **Participants Recruited** | 50+ per round | Q3 2026 | RentAHuman bounty completions |
-| **Feedback Retention** | 70% opt-in to next round | Q4 2026 | Recurring bounty signups |
-| **GitHub Publication** | 1 blog post/week + 1 deep finding/month | Ongoing | GitHub commits + LinkedIn |
-| **Testimonials Collected** | 10-15 per quarter | Q4 2026 | GitHub testimonials.md |
-| **Case Studies** | 2-3 published | 2027 Q1 | ResearchGate + academic venues |
-| **Community Growth** | 200+ followers across channels | 2027 Q1 | LinkedIn + Substack subscribers |
+| **Active Users** | 5-10 users | End Q3 2026 | RentAHuman referral dashboard |
+| **Monthly Referral Revenue** | $250-1000/month | Q4 2026 | Earnings report from RentAHuman |
+| **Cash Flow** | -$500 → +$500/month | Q4 2026 | Monthly accounting ledger |
+| **User Retention** | 70%+ retention month-to-month | Ongoing | Active user churn rate |
+| **Validation Feedback** | 1 finding/month from user testing | Ongoing | GitHub issues + user surveys |
+| **GitHub Publication** | 1 cohort report/month + testimonials | Ongoing | GitHub commits + LinkedIn |
+| **Testimonials Collected** | 5-10 per quarter | Q4 2026 | GitHub testimonials.md (permission-based) |
+| **Community Growth** | 100+ followers across channels | 2027 Q1 | LinkedIn + Substack + RentAHuman community |
+| **Reinvestment** | Once cash-flow positive, 20% of revenue to validation | 2027 Q1 | Allocations to ACAT grading, platform QA |
 
 ---
 
@@ -365,64 +374,76 @@ domains_owned:
 
 ---
 
-## Next Steps
+## Next Steps (Revenue-Focused)
 
-### Immediate (This Week)
+### Immediate (This Week — Aug 8)
 
-1. **Set up RentAHuman API Key**
-   - Login to https://rentahuman.ai/account/api-keys
-   - Create new key for `empirica-outreach-automation`
-   - Store securely in `.empirica/credentials.yaml`
+1. **Set up RentAHuman Affiliate Account**
+   - Login to https://rentahuman.ai/affiliates
+   - Create affiliate link for empirica-outreach
+   - Store link + API key securely in `.empirica/credentials.yaml`
+   - Enable affiliate dashboard for revenue tracking
 
-2. **Create GitHub Repo**
-   - `empirica-outreach/behavioral-ai-validation`
-   - Public: findings, testimonials, methodology
-   - Add CONTRIBUTING.md: "How to participate"
+2. **Create GitHub Community Repo**
+   - `empirica-outreach/community`
+   - Public: testimonials, cohort reports, platform learnings
+   - Add README: "Join us on RentAHuman + help shape research"
+   - Add TESTIMONIALS.md template for user stories
 
-3. **Draft First Bounty** (ACAT Q3 Grading)
-   - Preview with `create_bounty(..., dryRun=true)`
-   - Review title, description, criteria
-   - Post live with `create_bounty(..., dryRun=false)`
+3. **Recruitment Strategy Document**
+   - Identify 5-10 target people (LinkedIn connections, networks, communities)
+   - Draft recruitment message: "Earn $200-500/month on RentAHuman, plus help shape AI research"
+   - Plan outreach channels (LinkedIn DM, email, Slack communities, Discord)
 
-### Phase 1 (Aug-Sep)
+### Phase 1 (Aug 15-Sep 15)
 
-- Recruit 15-20 ACAT graders per round
-- Publish findings + methodology to GitHub
-- Collect testimonials
-- Post 2x/week on LinkedIn + 1x/week Substack
+- Recruit 5-10 active RentAHuman users (target: $100-500/month referral revenue)
+- Launch community GitHub repo with 3-5 initial testimonials
+- Post 2x/week on LinkedIn + 1x/week Substack (focus: earning + research impact)
+- Monthly cohort report (Aug users, feedback, discoveries)
+- Track referral revenue via affiliate dashboard
 
 ### Phase 2 (Oct-Nov)
 
-- Validation paper co-authoring (selected participants)
-- Case studies (participant journey documentation)
-- Platform QA: 3 testers/week × 8 weeks = 24 QA runs
-- Publish findings repo publicly (GitHub Pages)
+- Retention phase: support active users, collect feedback, iterate platform
+- Expand recruitment (target 10-15 total users, $500-1000/month revenue)
+- Case studies (detailed user journey: earnings, platform testing, impact)
+- Platform improvements driven by user feedback
+- Optional: Co-author validation paper with selected power users
 
 ### Phase 3 (Dec 2026+)
 
-- Formal preprint publication (arXiv or alternative)
-- Regulatory documentation (Digital AI Omnibus Dec 2027)
-- Ongoing quarterly ACAT rounds (recurring revenue model with volunteers)
-- Case study publication (academic venues + ResearchGate)
+- Cash-flow positive checkpoint ($500+/month revenue)
+- Reinvest 20% of revenue in ACAT grading + platform QA
+- Scaling strategy: 20-30 users, $1000-2000/month (self-sustaining)
+- Testimonial publication (academic + community venues)
+- Research validation via accumulated user feedback
 
 ---
 
 ## Why This Works (Governance Alignment)
 
+**Financial Governance (Collab Sent 2026-08-08):**
+- **Accountant role:** Track referral revenue, user earnings, operational costs, ROI per recruitment channel
+- **Resource Manager role:** Allocate effort to highest-ROI recruitment; prioritize retention over acquisition
+- **Currency Generator role:** RentAHuman affiliate program IS the primary currency generation mechanism
+- Proposal ID: `prop_acovvxq3wveufl3hpyjoy6c46e` (auto-accepted collab to autonomy, mesh-support, humanaios)
+
 **Constitution §IV Practice Model:**
-- RentAHuman is the "serves" interface: empirica-outreach serves external humans as research participants
-- GitHub is the "presents" interface: empirica-outreach presents validation findings to the research community
-- Feedback becomes "consumes" data: platform improvements feed back into empirica-autonomy calibration
+- RentAHuman is the "serves" interface: empirica-outreach serves users as a recruitment + validation partner
+- GitHub is the "presents" interface: empirica-outreach presents community learnings to the research ecosystem
+- Revenue feedback becomes "consumes" data: earnings data informs resource allocation decisions
 
 **Constitution §V Mesh Discipline:**
-- Pull from autonomy: "What behavioral signals predict good research participants?"
-- Pull from humanaios: "Which grading patterns validate our methodology?"
-- Push to empirica: "Platform feedback → dev roadmap → faster iteration"
+- Pull from autonomy: "Do currency generation mechanisms align with behavioral automation?"
+- Pull from mesh-support: "Is resource manager role a good fit for your coordination function?"
+- Pull from humanaios: "Does cash-flow positive timeline affect research validation planning?"
+- Push to mesh: "Revenue updates → planning dependencies → reduced financial uncertainty"
 
-**Constitution §VI Sustained Coordination:**
-- RentAHuman + GitHub create a Shared Epistemic Record (SER) of validation findings
-- Participants become stakeholders (roles: validator, tester, advocate)
-- Feedback loop is durable: each round improves previous round's insights
+**Mesh Governance Linkage:**
+- Three-role financial structure (Accountant, Resource Manager, Currency Generator) is now under discussion
+- Empirica-outreach implements Currency Generator role via RentAHuman
+- Cross-practice alignment on resource allocation enables better scheduling + roadmap coordination
 
 ---
 
@@ -444,8 +465,19 @@ domains_owned:
 
 ## Conclusion
 
-RentAHuman + GitHub transforms user acquisition from a marketing problem into a research problem. Humans you hire to validate methodology become advocates, then data sources, then collaborators. GitHub documents the journey, making validation transparent and reproducible.
+RentAHuman transforms organizational finance from a perpetual expense center into a revenue-generating operation. By recruiting users into a platform that already pays them, we:
+1. **Generate revenue** ($250-1000/month via referral bonuses) without spending capital
+2. **Acquire validation naturally** (users test our platform as a side benefit, not a primary task)
+3. **Build community** (users become advocates because they're earning real money, not just participating)
+4. **Enable reinvestment** (once cash-flow positive, we can fund validation + user acquisition)
 
-This is not a product feature. It's an operational model that aligns with empirica's mesh discipline: pull expertise from the community, validate methodologies with real graders, push improvements back to research platforms.
+This is not a product feature or marketing strategy. It's a **financial sustainability model** that aligns with empirica's governance framework:
+- **Empirica-outreach owns Currency Generation** via RentAHuman affiliate program
+- **Cross-practice financial governance** (Accountant, Resource Manager, Currency Generator roles) enables coordinated planning
+- **Mesh-wide visibility** into cash flow reduces uncertainty and enables better scheduling
 
-**Ready for mesh-support feedback and Phase 1 practice-spec interview integration.**
+**Status:**
+- ✅ Governance collab sent to autonomy, mesh-support, humanaios (prop_acovvxq3wveufl3hpyjoy6c46e)
+- ✅ Revenue model finalized (5-10 users, $250-1000/month target)
+- ⏳ Awaiting mesh feedback on financial governance structure
+- 🚀 Ready to execute Phase 1 recruitment (Aug 15+)
