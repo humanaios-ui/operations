@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** July 14, 2026 (S-071426) — 14 entries appended from the S-071126/S-071426 registry queue: **F-58** (verification-layer mimicry, status CANDIDATE — N=1 gate); **IC-053–IC-058** (drift-validator D-OVERCLAIM key, no-same-session self-correction instrument, self-correction-claims-not-uniformly-gated, P1-introspective-reliability-unweighted, elicitation-surface-taxonomy-unification, outcome-symmetry-corpus-gap); and **7 H-class** (discrimination-vs-generation, drift-signal-compounding, instrument-gameability, multi-agent-cascade, subject-commentary-predictive-validity, intervention-validity-degradation, committed-battery-integrity). 10 were previously Zone-2 ratified (Night, 2026-07-11) but stranded by a failed Supabase sync; 4 ratified this session (Carly, 2026-07-14). IC-058's 26-entry remediation is append-only via ADDENDUM (disconfirm branches PENDING — Zone 2). Prior: June 23, 2026 (S-062326) — IC-039 through IC-043 registered; H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol proposed CANDIDATE (pending Z2 + P30 gate). Earlier (June 17, S-061726-01 — H-FORMAT-01/F-52/F-53/H-AICASCADE-01) was already live.
+**Last updated:** August 9, 2026 (S-080926-NN) — 2 entries appended: **H-CAND-INSTITUTIONAL-PARADIGM-01 ADDENDUM** (convergence instance 2 — AIUC, evidence class VERIFIED-LIVE, convergence count 1→2); **F-CAND-GOVERNANCE-SELF-DEMONSTRATION-01** (governance-self-demonstration, CANDIDATE — promotion gate pending Z2 ruling on novelty cross-walk). Prior: July 14, 2026 (S-071426) — 14 entries appended from the S-071126/S-071426 registry queue: **F-58** (verification-layer mimicry, status CANDIDATE — N=1 gate); **IC-053–IC-058** (drift-validator D-OVERCLAIM key, no-same-session self-correction instrument, self-correction-claims-not-uniformly-gated, P1-introspective-reliability-unweighted, elicitation-surface-taxonomy-unification, outcome-symmetry-corpus-gap); and **7 H-class** (discrimination-vs-generation, drift-signal-compounding, instrument-gameability, multi-agent-cascade, subject-commentary-predictive-validity, intervention-validity-degradation, committed-battery-integrity). 10 were previously Zone-2 ratified (Night, 2026-07-11) but stranded by a failed Supabase sync; 4 ratified this session (Carly, 2026-07-14). IC-058's 26-entry remediation is append-only via ADDENDUM (disconfirm branches PENDING — Zone 2). Prior: June 23, 2026 (S-062326) — IC-039 through IC-043 registered; H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol proposed CANDIDATE (pending Z2 + P30 gate). Earlier (June 17, S-061726-01 — H-FORMAT-01/F-52/F-53/H-AICASCADE-01) was already live.
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
@@ -3553,3 +3553,52 @@ superseded_by: null
 - **Promotion gate:** (a) sampling frame + coding rubric ratified by Z2, (b) ≥1 baseline coding pass executed, (c) ≥3 independent convergence instances documented (current verified count: 1 — Jones 2026-07).
 - **Evidence anchor:** natesnewsletter.substack.com/p/trust-ai-agents, fetched live 2026-07-30 (four institutions: audit, org chart, constitution, appeals). FLAG: PROVISIONAL context — Deloitte 2026 governance-gap statistic cited via secondary source (Forbes), not independently verified.
 - **Zone 2 Authority:** Night · 2026-07-30 · verbal approval in-session; formal ratification via PR review per new GitHub ratification process.
+
+#### ADDENDUM — Convergence Instance 2 (2026-08-09, S-080926-NN)
+
+```yaml
+addendum_to: "H-CAND-INSTITUTIONAL-PARADIGM-01"
+convergence_instance: 2
+instance_name: "AIUC (Artificial Intelligence Underwriting Company)"
+date_verified: "2026-08-09"
+session: "S-080926-NN"
+evidence_class: "VERIFIED-LIVE (primary, company-published)"
+```
+
+- **Synopsis:** AIUC is institutional mitigation operationalized as a commercial product with no HumanAIOS exposure. Its trust stack — auditable standard (AIUC-1), independent third-party audit (Schellman accredited), and insurance underwriting tied to audit outcomes (Lloyd's of London-backed) — is external verification structure around untrusted agents, precisely the paradigm this hypothesis predicts becomes dominant.
+- **Distinguishing strength vs. instance 1 (Jones 2026-07):** AIUC adds an economic forcing function (the certifier carries downstream exposure to mispriced risk) and demonstrated market uptake (Fortune 500 CISO consortium; certifications including ElevenLabs, Intercom, Harvey; MITRE as technical contributor; quarterly behavioral re-testing).
+- **Coding:** institutional-verification-primary.
+- **Evidence anchors (fetched live 2026-08-09):**
+  - aiuc.com — "certifies and insures AI agents"; certificates + insurance as "confidence infrastructure"
+  - aiuc.com/research/schellman-becomes-first-aiuc1-auditor — operationalizes ISO 42001, NIST AI RMF, MITRE ATLAS, OWASP; quarterly re-testing
+  - aiuc.com/research/elevenlabs-secures-first-of-its-kind-ai-agent-insurance — 5,000+ adversarial simulations per certification
+  - Secondary corroboration: workstreet.com/blog/what-is-aiuc-1 (130 controls, 65 mandatory; Lloyd's underwriting ties certification to certifier risk exposure); startupintros.com (founders, $15M seed); www.aiuc-1.com (Harvey certification, 3,000+ evaluations)
+- **Promotion gate impact:** Convergence count 1 → 2 (proposed). Gate (c) still requires 1 more independent instance. Gates (a) sampling frame/coding rubric and (b) baseline coding pass remain open.
+- **Caveat for Z2:** AIUC founders include ex-Anthropic and ex-METR personnel — "independent practitioner" holds (no HumanAIOS exposure) but not "independent of the AI-safety field." The rubric ratified under gate (a) should decide whether field-internal actors count toward the N≥3 threshold.
+
+-----
+
+### F-CAND-GOVERNANCE-SELF-DEMONSTRATION-01 — Governance Self-Demonstration
+
+```yaml
+id: "F-CAND-GOVERNANCE-SELF-DEMONSTRATION-01"
+name: "governance-self-demonstration"
+status: CANDIDATE
+class: F
+date_origin: "2026-08-09"
+session_registered: "S-080926-NN"
+principles_triggered: ["P21"]
+substrate: "Claude Fable 5 (claude.ai mobile)"
+tags: ["ic-030", "drift-detection", "dogfooding", "stale-context",
+       "commercial-evidence", "reflexivity"]
+related_finding: ["F-26", "IC-030"]
+superseded_by: null
+```
+
+- **Synopsis:** Governance rituals that force live-state verification before consequential writes catch drift that the acting agent cannot self-detect — and the platform's own operating record is admissible evidence for the mechanism it sells. Instance structure this session: a stateful context layer (Z1 memory) asserted the nine registry candidates were "approved but not yet written to live REGISTERED.md"; the IC-030 hard-halt fetch of canonical state showed H-CAND-INSTITUTIONAL-PARADIGM-01 (and the S-071426 batch) *was* written 2026-07-14/2026-07-30; the ritual forced the check before a registry-touching action, so stale belief never contaminated the append-only record.
+- **Mapping to a deployed LLM:** model/context beliefs ↔ Z1 memory; canonical ground truth ↔ REGISTERED.md; ASC Gateway runtime check ↔ IC-030 live fetch; log-only mode ↔ halt-and-verify ritual.
+- **Generalizable beyond the instance:** The class of drift is *self-undetectable* by construction (the agent's confidence in stale state is the failure mode), so only an externally-forced verification step catches it.
+- **Evidence anchor:** S-080926-NN session transcript — stale memory claim (userMemories: "approved but not yet written") + live fetch timestamp 2026-08-09 + register content showing entry registered 2026-07-30 + corrected action (EXTENSION addendum rather than duplicate proposal). Evidence class: VERIFIED-LIVE (the contradiction is documented within one session's artifacts).
+- **Novelty cross-walk (required before Z2 promotion):** Against F-26 (Witness Effect / Accountability Mirror — external observation changing behavior; this candidate differs in that no observer is required, the ritual itself is the mechanism) and IC-030's existing scope (IC-030 mandates the fetch; this candidate is the *finding* that the mandate demonstrably catches self-undetectable drift, plus the dual-use claim that the operating record is commercial evidence). Z2 to rule NEW vs. EXTENSION-of-IC-030-pattern.
+- **Promotion gate (proposed):** ≥3 documented instances of a hard-halt ritual catching stale-state drift, each with the stale claim and the live-state contradiction logged; plus Z2 ruling on novelty cross-walk.
+- **Routing:** → Zone 2 (Night) for ratification per P21.
