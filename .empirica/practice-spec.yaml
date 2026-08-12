@@ -158,7 +158,14 @@ regulatory_context:
       relevance: "Cross-practice alignment reference for regulatory positioning"
 
   integrated_approach: "Layered compliance architecture: ISO 42001 (org-level AIMS) + prEN standards (system QMS) + NIST RMF (risk methodology) satisfies all three regulatory contexts simultaneously."
-  outreach_role: "Position empirica-foundation research as reference exemplar for trustworthiness under multi-framework compliance; publication roadmap must align with prEN Enquiry window + Phase 1 baseline results (2026-11-04)."
+  outreach_role: "Position empirica-foundation research as reference exemplar for trustworthiness under multi-framework compliance; publication roadmap aligns with prEN post-enquiry phase (formal vote pending, publication timing TBD) + Phase 1 baseline results (2026-11-04) + EU AI Act enforcement dates (Dec 2 2027 / Aug 2 2028)."
+
+  publication_gates:
+    - "prEN 18229-1 formal vote (post-enquiry, timing mid-to-late 2026)"
+    - "prEN 18229-1 publication in EU Official Journal (post-formal vote, likely Q4 2026 or Q1 2027)"
+    - "arXiv self_assessment_gap_v5 acceptance (TBD, external)"
+    - "autonomy Phase 1 baseline completion (2026-11-04)"
+    - "Publication coordination across autonomy + humanaios + outreach (gated by above milestones)"
 
 dependencies:
   - practice: "empirica-autonomy"
@@ -207,16 +214,19 @@ phase_timeline:
       - "All practices aligned on cross-practice publication coordination (autonomy + humanaios + outreach)"
 
 critical_unknowns:
-  - "prEN 18229-1 Enquiry comment deadline (INVESTIGATING: Standard at DIS stage June 2026, Q4 2026 availability target. Typical enquiry windows 6-12 weeks = likely Aug-Sept 2026 close. Exact deadline not published in CEN-CENELEC tracker — requires Carly's direct access to CEN portal or notification email.)"
   - "arXiv preprint 'self_assessment_gap_v5' acceptance status (currently on manual review hold — impacts publication roadmap)"
   - "Zenodo embargo workflow (supports embargo for Phase 1 baseline coordination; internal configuration needed for autonomy + publication alignment)"
   - "Stakeholder feedback integration requirements for Month 2 application (scope TBD with humanaios)"
   - "Cross-practice publication coordination dependencies (which findings publish together? autonomy Phase 1 baseline gates publication per dependencies section)"
 
-next_actions:
-  - "**TODAY (2026-08-11) — RESEARCH COMPLETE:** prEN 18229-1 research done (DIS stage June 2026, Q4 target, ~Aug-Sept 2026 Enquiry close). Regulatory context section added (EU AI Act + ISO 42001 + NIST RMF alignment). Success criteria defined for all 3 phases. practice-spec.yaml ready for final commit."
+regulatory_deadlines:
+  - "prEN 18229-1 National Enquiry (CLOSED): UK BSI Jul 21 2026, Germany DIN Aug 5 2026, CEN public hearings concluded Aug 2026"
+  - "prEN 18229-1 Next Stage: Formal weighted vote by CEN members → publication in EU Official Journal (timing pending formal vote)"
+  - "EU AI Act Enforcement (Article 12, Digital Omnibus rules): Dec 2 2027 (standalone Annex III systems), Aug 2 2028 (Annex I embedded systems)"
+  - "Interim Compliance Preparation: Map logging/transparency requirements against ISO/IEC 24970 while tracking CEN-CENELEC JTC 21 updates"
 
-  - "**TODAY (2026-08-11) — URGENT:** Contact Carly (carly.r.anderson@gmail.com) with research findings + exact CEN Enquiry deadline request. Provide: prEN DIS timeline, Q4 target, estimated Aug-Sept window, impact on publication roadmap. If Carly unavailable, note as blocker for mesh-support escalation."
+next_actions:
+  - "**TODAY (2026-08-11) — RESEARCH COMPLETE + VALIDATED:** prEN 18229-1 Enquiry CLOSED (UK BSI Jul 21, Germany DIN Aug 5, CEN hearings Aug 2026). Next stage: formal weighted vote by CEN members → publication in EU Official Journal (timing pending vote). Enforcement dates locked: Dec 2 2027 (Annex III), Aug 2 2028 (Annex I). Publication roadmap now grounded in exact regulatory timeline."
 
   - "**TOMORROW AM (2026-08-12):**
     1. Final consistency review of practice-spec.yaml (SLAs, dependencies, regulatory context aligned)
