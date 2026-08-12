@@ -30,6 +30,7 @@
 | **GitHub Org** | infra lead | Create org, repos, Projects board, templates, sample tasks | ✅ Ready |
 | **Open Collective** | finance lead | Setup account, payment methods, expense categories, test flow | ✅ Ready |
 | **Substack** | comms lead | Setup newsletter, communities, draft report template | ✅ Ready |
+| **RentAHuman API** | infra lead | Authenticate with RAH API, map bounty system, design worker matching | ✅ Ready |
 | **Recruitment Materials** | recruitment lead | Draft employer/worker outreach, prep target lists | ✅ Ready |
 | **Documentation** | ops lead | Finalize guides: "How to post", "How to apply", FAQ | ✅ Ready |
 
@@ -96,7 +97,49 @@
 ✅ **GitHub org setup** — LIVE Week 1  
 ✅ **Open Collective** — LIVE Week 1  
 ✅ **Substack template** — LIVE Week 2  
-✅ **Recruitment materials** — READY Week 3  
+✅ **RentAHuman API integration** — LIVE Week 1  
+✅ **Recruitment materials** — READY Week 3
+
+### RAH API INTEGRATION (NEW - Week 1-2)
+
+**What:** Integrate RentAHuman's API as our worker pool + bounty system  
+**Why:** Access 10K+ vetted research workers, use their platform as infrastructure layer  
+**How:** Use RAH API to search workers, post bounties, invite matched workers, track completion
+
+**Week 1 Tasks:**
+- [ ] Authenticate with RAH API (`rah_75ccef6056b836f84c045982d87b4ef0`)
+- [ ] Map RAH bounty model to our task structure
+- [ ] Design matching algorithm (ACAT + RAH ratings)
+- [ ] Setup payment flow integration (Open Collective → RAH or direct)
+- [ ] Document RAH worker profiles integration
+
+**Week 3-4 Execution:**
+- [ ] Query RAH for 15-20 research-aligned workers (`GET /humans/search`)
+- [ ] Run quick ACAT assessment on matched workers (5-question version)
+- [ ] Post our 5 pilot tasks to RAH bounty system (`POST /bounties`)
+- [ ] Invite matched workers with personalized reasoning (`POST /bounties/{id}/invite_workers`)
+- [ ] Track completion + quality through RAH API
+
+**Week 5-6 Measurement:**
+- [ ] Analyze RAH API data: completion rates, time-to-complete, quality
+- [ ] Measure: ACAT prediction accuracy (did matched workers perform better?)
+- [ ] Collect satisfaction feedback (did workers prefer fair matching?)
+- [ ] Document: "RAH workers showed X% higher satisfaction with our matching"
+
+**RAH API Endpoints Used:**
+- `GET /humans/search` — Find workers by skill
+- `GET /humans/{id}` — Load worker profile + history
+- `POST /bounties` — Create research tasks
+- `GET /bounties` — List active tasks
+- `POST /bounties/{id}/invite_workers` — Assign matched workers
+- `GET /bounties/{id}/submissions` — Get submitted work
+- `POST /bounties/{id}/feedback` — Rate worker quality + satisfaction
+
+**Integration Value:**
+- No parallel system needed (use RAH as infrastructure)
+- 10K+ vetted workers available immediately
+- Real bounty platform experience (not mock)
+- Investor proof: "We improved outcomes on existing platform"  
 
 ### MATCHING (ON HOLD)
 ⏳ **ACAT assessment** — FROZEN until humanaios validates (expected Aug 10)  

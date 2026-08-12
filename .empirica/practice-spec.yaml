@@ -169,18 +169,18 @@ phase_timeline:
     activity: "Admiral ratification + unified System Specification Charter publication"
 
 critical_unknowns:
-  - "prEN 18229 Enquiry deadline (CONFIDENTIAL via CEN — contact Carly at carly.r.anderson@gmail.com for exact date)"
+  - "prEN 18229-1 Enquiry comment deadline (INVESTIGATING: Standard at DIS stage June 2026, Q4 2026 availability target. Typical enquiry windows 6-12 weeks = likely Aug-Sept 2026 close. Exact deadline not published in CEN-CENELEC tracker — requires Carly's direct access to CEN portal or notification email.)"
   - "Zenodo publication timing recommendations (no embargo, but coordinate with arXiv + Phase 1 baseline)"
   - "arXiv preprint 'self_assessment_gap_v5' acceptance status (currently on manual review hold)"
   - "Stakeholder feedback integration requirements for Month 2 application"
   - "Cross-practice publication coordination dependencies (which findings publish together?)"
 
 next_actions:
-  - "**URGENT (by 2026-08-05):** Contact Carly (carly.r.anderson@gmail.com) to obtain prEN 18229 Enquiry deadline and publication roadmap"
-  - "Provide regulatory timeline to autonomy immediately after Carly clarifies (BLOCKING autonomy scheduling)"
-  - "Await mesh-support template + guidance delivery by 2026-08-08"
-  - "Schedule 30-minute specification interview with mesh-support (2026-08-12 to 2026-08-25)"
-  - "Refine practice-spec.yaml based on mesh-support peer review (2026-08-26 start)"
+  - "**URGENT (by EOD 2026-08-11):** Contact Carly (carly.r.anderson@gmail.com) with research findings: prEN 18229-1 at DIS stage (June 2026), estimated Aug-Sept 2026 comment close. Confirm exact deadline + obtain CEN notification date if available. Escalate to mesh-support if unavailable."
+  - "**TODAY (2026-08-11):** Complete practice-spec.yaml final review + commit for mesh-support delivery"
+  - "**TOMORROW AM (2026-08-12):** Schedule 30-minute specification interview with mesh-support (window: 2026-08-12 to 2026-08-25). Send interview prep materials + questions."
+  - "**BY 2026-08-25:** Provide regulatory timeline (including prEN 18229 Enquiry window) to autonomy immediately after mesh-support confirms. BLOCKING autonomy Phase 1 baseline scheduling."
+  - "**2026-08-26+ start:** Refine practice-spec.yaml based on mesh-support peer review + Admiral feedback"
 
 ---
 # NOTES FOR MESH-SUPPORT INTERVIEW
