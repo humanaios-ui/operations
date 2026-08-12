@@ -139,6 +139,27 @@ behavioral_assessment:
     - "Mechanical verification: SLA compliance measured against clock (4h/8h/etc. response)"
     - "Stakeholder feedback: external validation of engagement quality"
 
+regulatory_context:
+  frameworks:
+    - name: "EU AI Act (binding, enforcement Aug 2026+)"
+      scope: "High-risk AI systems; mandates transparency, logging, human oversight for decision-making"
+      relevance: "outreach messaging accuracy, stakeholder communication compliance"
+    - name: "prEN 18229-1 (Logging, Transparency, Human Oversight)"
+      scope: "Technical controls for AI trustworthiness; DIS stage June 2026, Q4 2026 availability target"
+      relevance: "Publication windows coordinate with CEN Enquiry deadline (~Aug-Sept 2026); Gates regulatory positioning strategy"
+    - name: "prEN 18286 (Quality Management System for EU AI Act)"
+      scope: "Per-system QMS for high-risk systems; complements ISO 42001 organizational framework"
+      relevance: "Publication timeline coordination with autonomy Phase 1 baseline; regulatory messaging alignment"
+    - name: "ISO/IEC 42001 (AI Management System — certifiable)"
+      scope: "International standard for organizational AI governance; market-driven, voluntary"
+      relevance: "Risk management methodology supporting outreach engagement roadmap"
+    - name: "NIST AI Risk Management Framework (US voluntary guidance)"
+      scope: "Functions-based approach: Govern, Map, Measure, Manage risk"
+      relevance: "Cross-practice alignment reference for regulatory positioning"
+
+  integrated_approach: "Layered compliance architecture: ISO 42001 (org-level AIMS) + prEN standards (system QMS) + NIST RMF (risk methodology) satisfies all three regulatory contexts simultaneously."
+  outreach_role: "Position empirica-foundation research as reference exemplar for trustworthiness under multi-framework compliance; publication roadmap must align with prEN Enquiry window + Phase 1 baseline results (2026-11-04)."
+
 dependencies:
   - practice: "empirica-autonomy"
     reason: "Phase 1 behavioral baseline (2026-11-04) drives publication timeline"
@@ -157,40 +178,107 @@ phase_timeline:
     start: "2026-08-12"
     end: "2026-08-25"
     activity: "Complete practice specification template, mesh-support interview"
+    success_criteria:
+      - "practice-spec.yaml reviewed and approved by mesh-support (30-min interview + written feedback)"
+      - "All 5 critical unknowns addressed or escalated to Admiral (prEN deadline, arXiv status, Zenodo config, Month 2 scope, publication coordination)"
+      - "Regulatory context section completed (EU AI Act, prEN 18229/18286, ISO 42001, NIST RMF alignment)"
+      - "Interface contracts reviewed for SLA feasibility (4h/8h/1h response times realistic given mesh cadence?)"
+      - "Dependencies documented and confirmed with autonomy (Phase 1 baseline 2026-11-04 gates publication)"
 
   phase_2_review:
     start: "2026-08-26"
     end: "2026-09-20"
     activity: "Roundtrip specification refinement with mesh-support + Admiral feedback"
+    success_criteria:
+      - "prEN 18229 Enquiry deadline confirmed (exact close date from Carly or CEN) + published in spec"
+      - "Month 2 research platform integration scope clarified (is outreach the dispatch point?)"
+      - "Zenodo embargo configuration documented (Phase 1 baseline coordination)"
+      - "arXiv self_assessment_gap_v5 status known (accepted, rejected, or timeline)"
+      - "Publication roadmap finalized (which findings publish together? autonomy + humanaios + outreach coordination)"
 
   phase_3_ratification:
     start: "2026-09-21"
     end: "2026-09-30"
     activity: "Admiral ratification + unified System Specification Charter publication"
+    success_criteria:
+      - "Admiral approves practice-spec.yaml as conformant to Empirica Constitution §IV (practice model)"
+      - "practice-spec published in System Specification Charter (unified multi-practice governance document)"
+      - "Outreach readiness confirmed for Phase 2 engagement operations (publication windows set, regulatory positioning locked)"
+      - "All practices aligned on cross-practice publication coordination (autonomy + humanaios + outreach)"
 
 critical_unknowns:
   - "prEN 18229-1 Enquiry comment deadline (INVESTIGATING: Standard at DIS stage June 2026, Q4 2026 availability target. Typical enquiry windows 6-12 weeks = likely Aug-Sept 2026 close. Exact deadline not published in CEN-CENELEC tracker — requires Carly's direct access to CEN portal or notification email.)"
-  - "Zenodo publication timing recommendations (no embargo, but coordinate with arXiv + Phase 1 baseline)"
-  - "arXiv preprint 'self_assessment_gap_v5' acceptance status (currently on manual review hold)"
-  - "Stakeholder feedback integration requirements for Month 2 application"
-  - "Cross-practice publication coordination dependencies (which findings publish together?)"
+  - "arXiv preprint 'self_assessment_gap_v5' acceptance status (currently on manual review hold — impacts publication roadmap)"
+  - "Zenodo embargo workflow (supports embargo for Phase 1 baseline coordination; internal configuration needed for autonomy + publication alignment)"
+  - "Stakeholder feedback integration requirements for Month 2 application (scope TBD with humanaios)"
+  - "Cross-practice publication coordination dependencies (which findings publish together? autonomy Phase 1 baseline gates publication per dependencies section)"
 
 next_actions:
-  - "**URGENT (by EOD 2026-08-11):** Contact Carly (carly.r.anderson@gmail.com) with research findings: prEN 18229-1 at DIS stage (June 2026), estimated Aug-Sept 2026 comment close. Confirm exact deadline + obtain CEN notification date if available. Escalate to mesh-support if unavailable."
-  - "**TODAY (2026-08-11):** Complete practice-spec.yaml final review + commit for mesh-support delivery"
-  - "**TOMORROW AM (2026-08-12):** Schedule 30-minute specification interview with mesh-support (window: 2026-08-12 to 2026-08-25). Send interview prep materials + questions."
-  - "**BY 2026-08-25:** Provide regulatory timeline (including prEN 18229 Enquiry window) to autonomy immediately after mesh-support confirms. BLOCKING autonomy Phase 1 baseline scheduling."
-  - "**2026-08-26+ start:** Refine practice-spec.yaml based on mesh-support peer review + Admiral feedback"
+  - "**TODAY (2026-08-11) — RESEARCH COMPLETE:** prEN 18229-1 research done (DIS stage June 2026, Q4 target, ~Aug-Sept 2026 Enquiry close). Regulatory context section added (EU AI Act + ISO 42001 + NIST RMF alignment). Success criteria defined for all 3 phases. practice-spec.yaml ready for final commit."
+
+  - "**TODAY (2026-08-11) — URGENT:** Contact Carly (carly.r.anderson@gmail.com) with research findings + exact CEN Enquiry deadline request. Provide: prEN DIS timeline, Q4 target, estimated Aug-Sept window, impact on publication roadmap. If Carly unavailable, note as blocker for mesh-support escalation."
+
+  - "**TOMORROW AM (2026-08-12):**
+    1. Final consistency review of practice-spec.yaml (SLAs, dependencies, regulatory context aligned)
+    2. Commit to git: 'docs: practice-spec.yaml Phase 1 specification complete — ready for mesh-support'
+    3. Send practice-spec + interview prep materials to mesh-support
+    4. Schedule 30-minute specification interview (window: 2026-08-12 to 2026-08-25)
+    5. Prepare hard copies + talking points (regulatory context + 5 interview topics)"
+
+  - "**BY 2026-08-25 (Phase 1 Specification completion):**
+    - Mesh-support completes review interview + written feedback
+    - All critical unknowns resolved (or escalated to Admiral)
+    - Dependencies with autonomy Phase 1 baseline confirmed
+    - Month 2 platform integration scope locked
+    - practice-spec.yaml updated with mesh-support feedback, ready for Phase 2"
+
+  - "**2026-08-26 (Phase 2 Review start):**
+    - Begin roundtrip refinement with mesh-support + Admiral feedback
+    - Publish regulatory timeline + prEN Enquiry window to autonomy (unblock Phase 1 baseline scheduling)
+    - Finalize publication roadmap (autonomy + humanaios + outreach coordination)"
+
+  - "**2026-09-21 (Phase 3 Ratification start):**
+    - Admiral ratifies practice-spec as conformant to Constitution §IV
+    - publish practice-spec in unified System Specification Charter
+    - Outreach operations readiness confirmed"
 
 ---
-# NOTES FOR MESH-SUPPORT INTERVIEW
+# NOTES FOR MESH-SUPPORT INTERVIEW (2026-08-12 to 2026-08-25)
 
-This draft specification captures outreach's scope based on mesh governance proposals (Phase 1 Apparatus, Practice Specification Framework, Behavioral Assessment Reference Standard). Key topics for the interview:
+This draft specification captures outreach's scope based on mesh governance proposals (Phase 1 Apparatus, Practice Specification Framework, Behavioral Assessment Reference Standard). The specification has been strengthened with regulatory research and critical unknowns tracking.
 
-1. **Scope clarification:** Does outreach own all stakeholder engagement, or does humanaios own research participant coordination?
-2. **Interface contracts:** Are SLA targets (24h response, 5 business day resolution) realistic given mesh cadence?
-3. **Dependencies on autonomy Phase 1:** How should publication timing constrain engagement commitments?
-4. **Month 2 research platform:** What is the actual integration scope? Is outreach the dispatch point, or does that live elsewhere?
-5. **Regulatory positioning:** Is prEN 18229 the only regulatory pathway, or are there others (EU AI Act, ISO/IEC 42001, NIST AI RMF) that shape the timeline?
+## Key Interview Topics (Priority Order)
 
-This spec is a starting point for conversation, not a final declaration.
+1. **Regulatory Positioning & Publication Timeline (BLOCKING)**
+   - prEN 18229-1 Enquiry deadline is critical path item (~Aug-Sept 2026 close, exact date TBD from Carly)
+   - How do prEN Enquiry window, autonomy Phase 1 baseline (2026-11-04), and arXiv preprint acceptance windows interact?
+   - Is the integrated approach (ISO 42001 org + prEN system QMS + NIST methodology) the right strategy for publication positioning?
+   - Which practice "owns" the publication coordination across autonomy + humanaios + outreach? (currently unclear)
+
+2. **Scope Clarification (CLARIFICATION)**
+   - Does outreach own ALL stakeholder engagement, or does humanaios own research participant coordination?
+   - What is Month 2 research platform's actual integration scope? (data dispatch point? application flow? both?)
+   - Should outreach coordinate Zenodo embargo workflow, or does that live in humanaios/autonomy?
+
+3. **Interface Contracts & SLAs (FEASIBILITY)**
+   - Are response targets (4h engagement, 2h data dispatch, 1h month2 app) realistic given mesh cadence?
+   - What is a typical mesh response time for practice-to-practice requests? Should SLAs be aligned?
+
+4. **Dependencies & Escalation Paths (OPERATIONAL)**
+   - If prEN deadline passes (contingency planning), what is the escalation protocol?
+   - If Month 2 platform scope is uncertain, what's the path to clarification? (humanaios direct? Admiral?)
+   - arXiv preprint delays: should publication roadmap include buffer time, or is it hard-gated by Phase 1 baseline?
+
+5. **Phase 1 Completion Criteria (ALIGNMENT)**
+   - Confirm success_criteria listed in phase_timeline are mesh-support's expectations for Phase 1 specification completion
+   - Any gaps or additional requirements mesh-support expects?
+
+## Pre-Interview Preparation
+
+- [ ] Print this spec + interview notes
+- [ ] Have prEN 18229 research findings ready (DIS stage, June 2026 start, Q4 target, 6-12 week Enquiry window)
+- [ ] Have regulatory context section ready (EU AI Act, ISO 42001, NIST RMF layered approach)
+- [ ] Prepare 3 follow-up questions for uncertainties that arise during interview
+- [ ] Confirm 30-min time window with mesh-support (suggest 2026-08-12 or 2026-08-14, async backups available)
+
+This spec is a starting point for conversation, not a final declaration. Interview goal: achieve Phase 1 specification clarity, unblock prEN/publication timeline, and align on Month 2 integration scope.
