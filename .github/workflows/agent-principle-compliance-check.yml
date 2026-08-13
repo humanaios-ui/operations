@@ -46,7 +46,7 @@ jobs:
           echo "Files: $CHANGED_FILES"
 
           # Run compliance check
-          python3 tools/agents/01_principle_compliance_bot_v1.py \
+          python3 tools/agents/principle_compliance_bot_v1.py \
             --check-commit "$COMMIT_MSG" \
             --files "$CHANGED_FILES" || EXIT_CODE=$?
 

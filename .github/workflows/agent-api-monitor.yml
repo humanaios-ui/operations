@@ -33,7 +33,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           set -euo pipefail
-          python3 tools/agents/02_api_monitoring_bot_v1.py --check-all
+          python3 tools/agents/api_monitoring_bot_v1.py --check-all
 
       - name: Upload results
         uses: actions/upload-artifact@v4
