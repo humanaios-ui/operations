@@ -9,15 +9,18 @@ assessments.
 
 **Please report privately — do not open a public issue for a security matter.**
 
-1. **Preferred:** use GitHub's private vulnerability reporting on this repo —
-   **Security → Advisories → “Report a vulnerability.”** This opens a private
-   channel with the maintainers.
-2. If that is unavailable, contact the maintainer through their GitHub profile
-   (`@humanaios-ui`) and request a private channel before sharing details.
+1. **Preferred:** use GitHub's private vulnerability reporting on this repo:
+   <https://github.com/humanaios-ui/operations/security/advisories/new>. This
+   opens a private channel with the maintainers.
+2. If that is unavailable, email <info@humanaios.ai> with `[operations-security]`
+   in the subject line. If you prefer GitHub-only contact, you can also reach the
+   maintainer profile at <https://github.com/humanaios-ui> and request a private
+   channel before sharing details.
 
 Please include: what you found, where (repo + path/URL), how to reproduce, and the
-impact you see. We aim to acknowledge within **72 hours** and to agree a
-remediation and coordinated-disclosure timeline with you from there.
+impact you see. We aim to acknowledge within **72 hours**, provide an initial
+triage update within **7 days**, and agree a remediation and coordinated
+disclosure timeline with you from there.
 
 ## Scope
 

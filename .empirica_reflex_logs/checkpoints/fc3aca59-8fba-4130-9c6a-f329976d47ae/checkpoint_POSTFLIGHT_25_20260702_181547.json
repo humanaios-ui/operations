@@ -1,0 +1,149 @@
+{
+  "session_id": "fc3aca59-8fba-4130-9c6a-f329976d47ae",
+  "phase": "POSTFLIGHT",
+  "round": 25,
+  "timestamp": "2026-07-02T18:15:41.898987+00:00",
+  "vectors": {
+    "know": 0.85,
+    "uncertainty": 0.16,
+    "context": 0.85,
+    "clarity": 0.88,
+    "coherence": 0.88,
+    "signal": 0.85,
+    "density": 0.8,
+    "state": 0.85,
+    "change": 0.6,
+    "completion": 1.0,
+    "impact": 0.65,
+    "do": 0.9,
+    "engagement": 0.9
+  },
+  "overall_confidence": 0.867,
+  "meta": {
+    "reasoning": "Both done + verified: bumped Next to 14.2.35 (patched) and re-ran build (passes); then discovered lasting-light-ai ALREADY uses Supabase via raw fetch, so I integrated the Observatory in that existing convention (no redundant @supabase dep) rather than force the Next kit \u2014 more constructive. vite build passes (real verification, not assumed). Branch, not pushed (Z3). The standalone Next app is now redundant; flagged. change=0.6. completion=1.0.",
+    "task_summary": "Both done + verified: bumped Next to 14.2.35 (patched) and re-ran build (passes); then discovered lasting-light-ai ALREADY uses Supabase via raw fetch, so I integrated the Observatory in that existing convention (no redundant @supabase dep) rather than force the Next kit \u2014 more constructive. vite build passes (real verification, not assumed). Branch, not pushed (Z3). The standalone Next app is now redundant; flagged. change=0.6. completion=1.0.",
+    "postflight_confidence": 0.84,
+    "internal_consistency": "good",
+    "deltas": {
+      "know": 0.15,
+      "uncertainty": -0.14,
+      "context": 0.03,
+      "clarity": 0.18,
+      "coherence": 0.1,
+      "signal": 0.07,
+      "density": 0.1,
+      "state": 0.1,
+      "change": 0.55,
+      "completion": 1.0,
+      "impact": 0.0,
+      "do": 0.05,
+      "engagement": 0.0
+    },
+    "trajectory_issues": [],
+    "transaction_id": "f27e8f40-1436-43b0-9245-e585e676e16d",
+    "tool_call_count": 0,
+    "work_type": "code",
+    "phase_tool_counts": {
+      "noetic_tool_calls": 0,
+      "praxic_tool_calls": 0
+    },
+    "avg_turns_at_start": 0,
+    "context_shifts": null,
+    "entity_context": null,
+    "tool_trace": null,
+    "retrospective": {
+      "artifact_counts": {
+        "findings": 1,
+        "unknowns": 0,
+        "dead_ends": 0,
+        "mistakes": 0,
+        "assumptions": 0,
+        "decisions": 0
+      },
+      "breadth_note": "Only findings artifacts logged. Missing: unknowns, dead_ends, mistakes, assumptions, decisions. Unlogged artifact types are ungrounded prediction domains \u2014 were there assumptions, decisions, dead-ends, or mistakes worth capturing?",
+      "commit_warning": "Uncommitted changes detected. Grounded calibration for change/state/do will be based on committed work only \u2014 uncommitted edits are invisible."
+    },
+    "coverage": null,
+    "git_commit_sha": "92b3fdac9eff39a7c7c143da7c923b5f26090f39",
+    "git_notes_ref": "empirica/session/fc3aca59-8fba-4130-9c6a-f329976d47ae/POSTFLIGHT/25"
+  },
+  "epistemic_tags": {},
+  "git_state": {
+    "head_commit": "a35cedda4ac3d139ed8ee8c386c9507aa4565eb6",
+    "commits_since_last_checkpoint": [],
+    "uncommitted_changes": {
+      "files_modified": [],
+      "files_added": [],
+      "files_deleted": [],
+      "diff_stat": ""
+    }
+  },
+  "learning_delta": {
+    "know": {
+      "prev": 0.7,
+      "curr": 0.85,
+      "delta": 0.15
+    },
+    "uncertainty": {
+      "prev": 0.3,
+      "curr": 0.16,
+      "delta": -0.14
+    },
+    "context": {
+      "prev": 0.82,
+      "curr": 0.85,
+      "delta": 0.03
+    },
+    "clarity": {
+      "prev": 0.7,
+      "curr": 0.88,
+      "delta": 0.18
+    },
+    "coherence": {
+      "prev": 0.78,
+      "curr": 0.88,
+      "delta": 0.1
+    },
+    "signal": {
+      "prev": 0.78,
+      "curr": 0.85,
+      "delta": 0.07
+    },
+    "density": {
+      "prev": 0.7,
+      "curr": 0.8,
+      "delta": 0.1
+    },
+    "state": {
+      "prev": 0.75,
+      "curr": 0.85,
+      "delta": 0.1
+    },
+    "change": {
+      "prev": 0.05,
+      "curr": 0.6,
+      "delta": 0.55
+    },
+    "completion": {
+      "prev": 0.0,
+      "curr": 1.0,
+      "delta": 1.0
+    },
+    "impact": {
+      "prev": 0.65,
+      "curr": 0.65,
+      "delta": 0.0
+    },
+    "do": {
+      "prev": 0.85,
+      "curr": 0.9,
+      "delta": 0.05
+    },
+    "engagement": {
+      "prev": 0.9,
+      "curr": 0.9,
+      "delta": 0.0
+    }
+  },
+  "token_count": 512
+}

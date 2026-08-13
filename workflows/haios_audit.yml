@@ -57,6 +57,35 @@ jobs:
             echo "✅ A6 PASS — no Cherokee references on public surfaces"
           fi
 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: A7 — Primary check gate (blocking)
+        run: |
+          echo "Deploying primary_check_gate_v1_0.py..."
+
+          # Verify gate file exists
+          if [ ! -f "operations/autonomy/gates/primary_check_gate_v1_0.py" ]; then
+            echo "::error title=A7 AUDIT::primary_check_gate_v1_0.py not found at operations/autonomy/gates/"
+            exit 1
+          fi
+
+          echo "Running smoke test..."
+          python3 operations/autonomy/gates/primary_check_gate_v1_0.py --smoke-test
+          SMOKE_TEST_EXIT=$?
+
+          if [ $SMOKE_TEST_EXIT -ne 0 ]; then
+            echo "::error title=A7 AUDIT::Primary check gate smoke test FAILED"
+            exit 1
+          fi
+
+          echo "✅ A7 PASS — Primary check gate deployed and verified"
+          echo "  • Gate enforces: all audit claims must have VerificationRecords"
+          echo "  • Pattern: ClaimNotAdmissible raised on unverified claims"
+          echo "  • Arbitration: rerun_and_arbitrate() on claim disagreement"
+
       - name: Audit summary
         run: |
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

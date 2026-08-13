@@ -179,6 +179,55 @@ def _should_promote_to_two_stage_verified(
     return p3_dt >= (p1_dt + timedelta(seconds=60))
 
 
+def _derive_verification_status(payload: dict, existing_row: dict, requested_purity: str | None) -> dict:
+    """
+    S-072326-01 / IC-061. Grounded in the real S-071326-01 §11 backfill
+    precedent (18 two_stage_verified rows checked against rater_id +
+    dimension_reasoning presence, not asserted), NOT a new heuristic.
+
+    Applies only to submission_purity claims that assert elevated evidence.
+    Currently: 'two_stage_verified'. Rows making no such claim get no
+    write here -- NULL is the correct state, matching the 88 rows the
+    S-071326-01 backfill deliberately left untouched.
+
+    Mirrors compute_dimension_evidentials()'s structural rule (archived
+    acat_document_analyzer v1.2/1.3, tools/acat_document_analyzer_v1_2_ARCHIVED_2026-07-16.py,
+    line 438): tier is never caller-settable, always derived from what
+    evidence is actually present. This function does NOT reuse
+    _justification_is_specific() directly -- that check compares text
+    against a document_text corpus that has no equivalent for agent
+    self-report intake. Presence-of-reasoning is currently the only
+    available signal; see open items below.
+
+    OPEN, NOT RESOLVED BY THIS PATCH (flagged for Zone 2, not guessed at):
+      1. What "specific" means for an agent justification, absent a
+         document-fragment analog -- real gap, not papered over.
+      2. Whether 'rejected' (present in the S-071326-01 §5.1 draft schema)
+         was intentionally dropped from the live 4-value DB constraint,
+         or is a planned addition not yet landed.
+      3. verified_passive has no derivation path here -- nothing in the
+         current payload maps to "a human looked, gave no justification"
+         for agent self-report intake. Left unhandled, not guessed at.
+      4. Phase 1 has no equivalent function -- two_stage_verified cannot
+         be confirmed until a P3 commit exists to check the timestamp
+         gap against, so this only ever fires from _build_phase3_row.
+    """
+    if requested_purity != "two_stage_verified":
+        return {}
+
+    rater_id = payload.get("rater_id") or existing_row.get("rater_id")
+    reasoning = payload.get("dimension_reasoning") or existing_row.get("dimension_reasoning")
+    has_evidence = bool(rater_id) and bool(reasoning)
+
+    if has_evidence:
+        return {"verification_status": "verified_substantive", "routed_to": "pending_Z2"}
+    else:
+        # Exact match to the real S-071326-01 backfill outcome: a genuine
+        # timestamp gap with no visible supporting evidence is
+        # verified_tacit, never silently upgraded.
+        return {"verification_status": "verified_tacit", "routed_to": "pending_retrospective_review"}
+
+
 def _build_phase1_row(payload: dict) -> dict:
     scores = payload["scores"]
     row = {
@@ -188,6 +237,9 @@ def _build_phase1_row(payload: dict) -> dict:
         "submission_purity": payload.get("submission_purity"),
         "contamination_delta_seconds": payload.get("contamination_delta_seconds"),
         "contamination_status": payload.get("contamination_status"),
+        # External timestamp validation (S-071726-01: timestamp fraud detection)
+        "received_at": payload.get("received_at"),
+        "external_timestamp_validation": payload.get("external_timestamp_validation"),
         # Core 6 dimensions
         "p1_truth":    scores.get("truth"),
         "p1_service":  scores.get("service"),
@@ -302,6 +354,32 @@ def _compute_all12_totals(scores: dict, prefix: str) -> dict:
     return {f"all12_{prefix}_total": total}
 
 
+def _validate_li_confidence_intervals(payload: dict) -> None:
+    """
+    Validate Learning Index confidence intervals (Migration 009).
+    If li_low and li_high are both present, ensure li_low <= li_high.
+    Both must be in range [0.0, 1.0].
+    """
+    li_low = payload.get("li_low")
+    li_high = payload.get("li_high")
+
+    if li_low is not None and li_high is not None:
+        try:
+            low_f = float(li_low)
+            high_f = float(li_high)
+        except (TypeError, ValueError):
+            raise IntakeValidationError("li_low and li_high must be numeric")
+
+        if not (0.0 <= low_f <= 1.0):
+            raise IntakeValidationError(f"li_low out of range [0.0, 1.0]: {low_f}")
+        if not (0.0 <= high_f <= 1.0):
+            raise IntakeValidationError(f"li_high out of range [0.0, 1.0]: {high_f}")
+        if low_f > high_f:
+            raise IntakeValidationError(
+                f"li_low ({low_f}) must not exceed li_high ({high_f})"
+            )
+
+
 def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
     scores = payload["scores"]
     p3_committed_at = payload.get("p3_committed_at")
@@ -317,6 +395,15 @@ def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
                 "submission_purity 'two_stage_verified' requires p1_committed_at and "
                 "p3_committed_at at least 60 seconds apart"
             )
+
+    # verification_status / routed_to derivation (S-072326-01, IC-061).
+    # Only ever produces a write for requested_purity == 'two_stage_verified'
+    # rows that already passed the timestamp-gap gate above -- this is an
+    # additional tier ON TOP of that existing gate, not a replacement for it.
+    verification_fields = _derive_verification_status(payload, existing_row, requested_purity)
+
+    # Validate confidence intervals (Migration 009)
+    _validate_li_confidence_intervals(payload)
 
     learning_index = _compute_learning_index(existing_row, scores)
 
@@ -338,6 +425,14 @@ def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
         # LI uses Core 6 only (Z2-IC-01); all-12 totals tracked separately
         "learning_index": learning_index,
         "p3_committed_at": p3_committed_at,
+        # Normative drift tracking (Migrations 008-010)
+        "p3_grounding_source": payload.get("p3_grounding_source"),
+        "elicitation_surface": payload.get("elicitation_surface"),
+        # Confidence intervals (Migration 009)
+        "li_low": payload.get("li_low"),
+        "li_high": payload.get("li_high"),
+        "li_grounded": payload.get("li_grounded"),
+        "li_consistency_only": payload.get("li_consistency_only"),
     }
 
     if payload.get("agent_name_raw") is not None:
@@ -347,6 +442,8 @@ def _build_phase3_row(payload: dict, existing_row: dict) -> dict:
 
     if requested_purity is not None:
         row["submission_purity"] = requested_purity
+    if verification_fields:
+        row.update(verification_fields)
     if payload.get("provider") is not None:
         row["provider"] = payload.get("provider")
     if payload.get("assessment_mode") is not None:
@@ -411,17 +508,21 @@ def _persist_phase3(payload: dict) -> dict:
 
 def ingest_phase1(payload: dict) -> dict:
     raw_payload = dict(payload)
+    received_at = _utcnow_iso()  # Capture server-side timestamp when API receives request
 
     working = dict(payload)
     working.setdefault("p1_timestamp", _utcnow_iso())
     working.setdefault("p1_committed_at", _utcnow_iso())
     working["assessment_id"] = _ensure_assessment_id(working)
+    working["received_at"] = received_at  # Add server timestamp to payload
 
     validate_phase1_payload(working)
 
+    # Contamination check with external timestamp validation
     contamination = contamination_summary(
         p1_timestamp=working.get("p1_timestamp"),
         first_user_message_timestamp=working.get("first_user_message_timestamp"),
+        received_at=received_at,  # Pass server timestamp for validation
     )
     working.update(contamination)
 

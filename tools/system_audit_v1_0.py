@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+⚠️ SUPERSEDED — Do NOT use this version
+════════════════════════════════════════
+See: system_audit_v1_1.py (newer version with enhancements)
+This file is kept for reference only.
+════════════════════════════════════════
+
 System Audit — v1.0
 Builder v1.7 compliant · orchestrator_tool
 HumanAIOS · S-052326-03 (run() implemented)

@@ -62,10 +62,10 @@ jobs:
           INPUT="${{ github.event.inputs.repos }}"
           if [ -n "$INPUT" ]; then
             # Convert space-separated list to --repos args
-            echo "args=--repos $INPUT" >> $GITHUB_OUTPUT
+            echo "args=--repos $INPUT"
           else
-            echo "args=" >> $GITHUB_OUTPUT
-          fi
+            echo "args="
+          fi >> "$GITHUB_OUTPUT"
 
       - name: Audit standard files across mesh repos
         id: audit
@@ -81,8 +81,10 @@ jobs:
           # Surface totals as outputs
           TOTAL_GAPS=$(python3 -c "import json,sys; d=json.load(open('/tmp/audit_result.json')); print(d.get('total_gaps',0))" 2>/dev/null || echo "unknown")
           CHECKED=$(python3 -c "import json,sys; d=json.load(open('/tmp/audit_result.json')); print(d.get('checked',0))" 2>/dev/null || echo "0")
-          echo "total_gaps=${TOTAL_GAPS}" >> $GITHUB_OUTPUT
-          echo "summary=Checked ${CHECKED} repos · ${TOTAL_GAPS} standard-file gaps" >> $GITHUB_OUTPUT
+          {
+            echo "total_gaps=${TOTAL_GAPS}"
+            echo "summary=Checked ${CHECKED} repos · ${TOTAL_GAPS} standard-file gaps"
+          } >> "$GITHUB_OUTPUT"
 
           # Print human-readable table
           python3 tools/seed_org_defaults.py \

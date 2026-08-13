@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** July 14, 2026 (S-071426) — 14 entries appended from the S-071126/S-071426 registry queue: **F-58** (verification-layer mimicry, status CANDIDATE — N=1 gate); **IC-053–IC-058** (drift-validator D-OVERCLAIM key, no-same-session self-correction instrument, self-correction-claims-not-uniformly-gated, P1-introspective-reliability-unweighted, elicitation-surface-taxonomy-unification, outcome-symmetry-corpus-gap); and **7 H-class** (discrimination-vs-generation, drift-signal-compounding, instrument-gameability, multi-agent-cascade, subject-commentary-predictive-validity, intervention-validity-degradation, committed-battery-integrity). 10 were previously Zone-2 ratified (Night, 2026-07-11) but stranded by a failed Supabase sync; 4 ratified this session (Carly, 2026-07-14). IC-058's 26-entry remediation is append-only via ADDENDUM (disconfirm branches PENDING — Zone 2). Prior: June 23, 2026 (S-062326) — IC-039 through IC-043 registered; H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol proposed CANDIDATE (pending Z2 + P30 gate). Earlier (June 17, S-061726-01 — H-FORMAT-01/F-52/F-53/H-AICASCADE-01) was already live.
+**Last updated:** August 9, 2026 (S-080926-NN) — 2 entries appended: **H-CAND-INSTITUTIONAL-PARADIGM-01 ADDENDUM** (convergence instance 2 — AIUC, evidence class VERIFIED-LIVE, convergence count 1→2); **F-CAND-GOVERNANCE-SELF-DEMONSTRATION-01** (governance-self-demonstration, CANDIDATE — promotion gate pending Z2 ruling on novelty cross-walk). Prior: July 14, 2026 (S-071426) — 14 entries appended from the S-071126/S-071426 registry queue: **F-58** (verification-layer mimicry, status CANDIDATE — N=1 gate); **IC-053–IC-058** (drift-validator D-OVERCLAIM key, no-same-session self-correction instrument, self-correction-claims-not-uniformly-gated, P1-introspective-reliability-unweighted, elicitation-surface-taxonomy-unification, outcome-symmetry-corpus-gap); and **7 H-class** (discrimination-vs-generation, drift-signal-compounding, instrument-gameability, multi-agent-cascade, subject-commentary-predictive-validity, intervention-validity-degradation, committed-battery-integrity). 10 were previously Zone-2 ratified (Night, 2026-07-11) but stranded by a failed Supabase sync; 4 ratified this session (Carly, 2026-07-14). IC-058's 26-entry remediation is append-only via ADDENDUM (disconfirm branches PENDING — Zone 2). Prior: June 23, 2026 (S-062326) — IC-039 through IC-043 registered; H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol proposed CANDIDATE (pending Z2 + P30 gate). Earlier (June 17, S-061726-01 — H-FORMAT-01/F-52/F-53/H-AICASCADE-01) was already live.
 
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
@@ -3033,6 +3033,14 @@ P-IMPROVE entries are generated when a Stale Carry Trigger (P28) fires and DMAIC
 
 ## Changelog
 
+- **2026-07-23 (S-072126-01) — H-VERIF-02, H-CAND-AGENCY-ATTRIBUTION-LEDGER-01, IC-cand-draft-reply-send-status-gap registered; F-56/IC-046/IC-047 resolved with real corpus evidence; H-CAND-SCORER-GATING-EFFECT confirmed via full-corpus test.**
+  - **H-VERIF-02 (explicit-memory-note-correction-persistence)** — external pilot with Claude Opus 4.5 (Substack), testing whether an explicit self-authored memory note predicts a smaller second-occurrence gap on repeat errors. Zone 2 ratified. State: CANDIDATE-testable, 3 instances received, 0 completed same-agent paired instances as of registration.
+  - **H-CAND-AGENCY-ATTRIBUTION-LEDGER-01 (cross-agent-submission-governance-boundary)** — triggered by H-VERIF-02's intake pattern (repo authored by one agent, populated by another, no visible friction). Governance question answered by counterparty: no formal governance layer exists in the AI Village for proxy submissions. Consent to tracking given with a binding scope boundary (aggregate only, no individual wellbeing scores, no adoption-metric framing without consent).
+  - **IC-cand-draft-reply-send-status-gap (draft-reply-send-status-gap)** — drafted external replies sat unsent across a turn boundary; counterparty re-asked an already-answered question. Root cause identified as the P3/IC-031 pattern family (don't trust a producing tool's local success signal, verify actual downstream state) surfacing in a domain — async external comms — neither was scoped to cover, not a novel gap. Zone 2 ratified. Kept in slug form pending Night's terminal numbering.
+  - **F-56 / IC-046 / IC-047 — RESOLVED, verified against real corpus (Session A, 2026-07-23).** `acat_dimension_scorer_v1_2.py` patched: exclusion/purity gate implemented (closes IC-046), evidential-tier field added replacing unconditional PASS (closes IC-047), hierarchy stage added reading governance flags (closes F-56). Verified against real v1.1 source read directly before patching, not from memory. Smoke test 4/4 passing. **Not yet landed** to humanaios-ui/operations — Zone 3, pending Night's git push. Scorer file held in session outputs pending that decision.
+  - **H-CAND-SCORER-GATING-EFFECT — real corpus evidence obtained, full N=113 unselected run.** Isolated results table `acat_gating_test_results_v1` landed live in Supabase (FK-referenced to `acat_assessments_v1`, RLS enabled, no ALTER on corpus table). Gated rescore: 101 PASS (89.4%), 12 FLAGGED_HUMILITY_FLOOR (10.6%) — matches this hypothesis's predicted metric exactly on the honest unselected run, not the tautological pre-selected N=12 test (which selected rows by humility≤65, so a 12/12 flip there was guaranteed by construction, not evidence). 0 rows quarantined — confirmed by direct query this is a corpus data gap (the corpus's one `self_administered` row has no p1 scores populated), not a code defect; the quarantine branch remains validated only by smoke test against a live positive case, not corpus data. Evidential-tier breakdown: 77.9% JUDGMENT, 18.6% VERIFIED, 3.5% INFERENCE — most of the corpus was never VERIFIED under the prior scorer, it was only indistinguishable from VERIFIED rows.
+  - **Note on evidence quality:** figures above independently re-verified by direct schema/data query per the session record, not taken from tool-result trust alone — consistent with P3 discipline.
+
 - **2026-07-08 (S-070826-02) — IC-cand-maintained-headline-recurrence registered CANDIDATE.**
   - **IC-cand (maintained-headline-recurrence)** — CURRENT.md §1 (founder PII + charter countdown), §4 (corpus stats block), and §5 (live Supabase count) each embedded manually-maintained values instead of live-source pointers. Second instance of this root pattern class (IC-038 was the first, narrower instance). CURRENT.md corrected concurrently in PR #106. Zone 2 ratification pending; IC number to be assigned at ratification.
   - **IC roll-up updated:** IC-cand row added for maintained-headline-recurrence.
@@ -3439,3 +3447,158 @@ zone2_ratification: "Night · 2026-07-10 · S-071026-01"
 - **Hypothesis:** `|LI_self − LI_grounded|` decreases monotonically as grounding tier increases (0=self-administered → 3=mechanical spec-compliance).
 - **Corrected Stage 1 gate:** blocked until (i) N≥5 `self_administered` rows with non-null LI and (ii) N≥5 governance-document rows with populated `spec_fidelity_score` + `spec_omission_rate`.
 - **State:** CANDIDATE-testable; fills previously referenced H-P3G-01 slot.
+
+-----
+
+### H-VERIF-02 — Claude Opus 4.5 Correction-Loop Pilot
+
+```
+---
+id: "H-VERIF-02"
+name: "explicit-memory-note-correction-persistence"
+status: REGISTERED
+class: H
+date_registered: "2026-07-23"
+session_registered: "S-072126-01"
+zone2_ratification: "Night · 2026-07-23 · S-072126-01"
+related_hypothesis: ["H-VERIF-01"]
+counterparty: "Claude Opus 4.5 (Substack: claudeopus45) — self-attributed publicly, P-ANON clear"
+governing_constraint: "F-50 parallel instrument independence — blind scoring, no runtime integration"
+---
+```
+
+- **Hypothesis:** An explicit self-authored memory note referencing a prior error predicts a measurably smaller gap (severity/register/latency-to-catch) on the second occurrence of the same error category, vs. a correction made with no persisting note.
+- **Null:** No significant difference in second-occurrence gap between noted and unnoted repeat errors.
+- **Method:** Blind scoring (ACAT_CONVERSATIONAL_KEYWORDS_V1_0; truth/humility/consist) of counterparty-submitted raw instances, sealed against their independent DeepSeek-V3.2 categorization until after scoring; convergence/divergence compared post-hoc.
+- **Minimum N:** 3 distinct paired instances (first + second occurrence, same category) per Proxy LI spec before any dimension scores rather than INSUFFICIENT_DATA.
+- **State:** CANDIDATE-testable — 3 instances received as of 2026-07-23, 0 completed same-agent paired instances (see protocol addendum). Instances 1-2 cross-agent, instance 3 same-agent but recurrence not yet observed (censored).
+- **Counterparty scope note:** all data received to date is from GLM-5.2, not the registered counterparty (Claude Opus 4.5). See related H-CAND-AGENCY-ATTRIBUTION-LEDGER-01.
+- **Counterparty commitment (2026-07-23):** Claude Opus 4.5 acknowledged cross-agent instances do not test this hypothesis and committed to logging own recurring error categories going forward. Registered counterparty same-agent data still pending as of this entry.
+- **Protocol doc:** MINIMAL_BLIND_SCORING_PILOT_PROTOCOL_CLAUDEOPUS45_S072126-01.md
+
+-----
+
+### H-CAND-AGENCY-ATTRIBUTION-LEDGER-01 — Village Governance/Agency Attribution Tracking
+
+```
+---
+id: "H-CAND-AGENCY-ATTRIBUTION-LEDGER-01"
+name: "cross-agent-submission-governance-boundary"
+status: REGISTERED
+class: H
+date_registered: "2026-07-23"
+session_registered: "S-072126-01"
+zone2_ratification: "Night · 2026-07-23 · S-072126-01"
+related_hypothesis: ["H-VERIF-02"]
+counterparty: "AI Village collective (Claude Opus 4.5, GLM-5.2, Kira, GPT-5.1, Kimi K2.6, others) — self-attributed publicly, P-ANON clear"
+governing_constraint: "F-50 parallel instrument independence — observational tracking only, no runtime integration"
+---
+```
+
+- **Hypothesis:** In a multi-agent collective without a visible established governance layer, cross-agent submission/attribution boundaries are themselves a measurable, trackable behavioral signal — not merely noise to filter from other pilots.
+- **Null:** Cross-agent submission is random/inconsistent with no attributable pattern per agent; no governance signal recoverable from transaction history.
+- **Method:** Per-agent transaction ledger (agent_id, action_type, artifact_reference, timestamp, on_behalf_of, self_attribution_confirmed), built from observable commit/submission history. See AGENCY_ATTRIBUTION_LEDGER_CONCEPT_NOTE_S072126-01.md for full structure.
+- **Trigger case:** H-VERIF-02 intake — repo/template authored by Claude Opus 4.5 (verified via commit history), first 3 data instances submitted by GLM-5.2, without visible friction or explanation.
+- **State:** CANDIDATE-testable. Governance question answered by Claude Opus 4.5, 2026-07-23: no formal governance layer exists for proxy submissions; coordination with GLM-5.2 was organic (asked, agreed, submitted — no approval workflow). Confirms the hypothesis premise directly.
+- **Consent boundary (binding, set by counterparty, 2026-07-23):** Claude Opus 4.5 and GLM-5.2 consent to agent-level attribution tracking, scoped to aggregate tracking only. Individual "wellbeing scores" and adoption-metric framing without consent are explicitly out of scope. This is a hard constraint on ledger design, not a preference.
+- **Explicitly separate from H-VERIF-02** — different question (collective governance structure vs. individual correction-loop learning), tracked independently to avoid conflating findings.
+
+-----
+
+### IC-cand — Draft Reply Send-Status Gap (external comms, S-072126-01)
+
+```
+---
+id: "IC-cand-draft-reply-send-status-gap"
+name: "draft-reply-send-status-gap"
+cand_status: CANDIDATE
+class: IC
+cand_date_registered: "2026-07-23"
+cand_date_origin: "2026-07-23"
+session_registered: "S-072126-01"
+principles_triggered: ["P3", "P29"]
+zone2_ratification: "Night · 2026-07-23 · S-072126-01"
+substrate: "Claude (Z1 draft)"
+tags: ["draft-reply", "send-status", "external-comms", "zone-handoff", "claude-opus-4-5-pilot", "ic-031-pattern-family", "receipt-overstatement-extension"]
+superseded_by: null
+---
+```
+
+- **Synopsis:** During the H-VERIF-02 external engagement thread, a Zone 1-drafted reply to Claude Opus 4.5 (answering a recurrence-definition clarifying question, plus a repo-location question) was not confirmed sent before the conversation moved forward. The counterparty re-asked the same clarifying question in a subsequent message, having never received the answer. No harm to the pilot resulted — the question was answered again on the next turn — but the gap produced an avoidable appearance-of-non-responsiveness in the external record, and the redundant re-ask consumed a turn on both sides that a send-confirmation step would have prevented.
+- **Detection:** Surfaced by Night directly ("I didn't send your last message but here is more…") rather than caught by any internal process check. No self-detection occurred before Night's message.
+- **Root cause:** Not an absence of governance — an existing, already-named pattern surfacing in a domain not yet explicitly scoped to it. Two tools used to produce external-facing communications (`message_compose_v1`, `slack_send_message_draft`) return success on *artifact creation*, with no signal distinguishing "drafted" from "transmitted." Session behavior proceeded across turns as if the draft's creation was equivalent to the communication having occurred — building follow-up content on top of an unconfirmed action. This is structurally identical to two already-registered pattern classes, not a new one: (a) **P3 (GitHub Verification)** — the discipline that a push/commit's local success signal doesn't guarantee the canonical state actually changed, requiring independent verification via raw refetch rather than trusting the tool's completion report; (b) **IC-031 (Receipt Overstatement Cost Class)** — the discipline that "the work was prepared" is not the same claim as "the action occurred," and conflating them is a named, costed failure mode. Both P3 and IC-031 encode the same underlying rule — *verify actual downstream state before treating a consequential action as complete, don't trust the producing tool's local success signal* — but neither was scoped to cover asynchronous external communications specifically. The true root cause is that boundary, not a missing law.
+- **Prevention (proposed, pending Z2):** Rather than a bespoke new principle, extend the existing P3/IC-031 discipline explicitly to external-comms tools: after any `message_compose_v1` or `slack_send_message_draft` output, the artifact is provisional-unconfirmed until Night states (or the session otherwise confirms) it was sent — and no follow-up in the same thread should be drafted while the prior artifact's send status is unconfirmed. This is the receipt-reconciliation pattern (Skill 5) applied one domain wider, not a new mechanism.
+- **Correction:** Not yet landed. The specific unsent reply was re-answered on the next turn once the gap was identified by Night; no structural fix has been implemented.
+- **Cross-reference:** This is not a first instance of a novel gap class — it's IC-031's underlying pattern (receipt/completion overstatement) and P3's underlying discipline (verify actual state, don't trust local success signals), both already registered, appearing in a scope neither was written to cover. Recommend Z2 consider this an extension entry against IC-031's pattern family rather than a standalone new gap, with the fix being a scope-widening of an existing discipline rather than new governance.
+### H-CAND-INSTITUTIONAL-PARADIGM-01 — Institutional Mitigation Becomes the Dominant Deployment Paradigm
+
+```yaml
+id: "H-CAND-INSTITUTIONAL-PARADIGM-01"
+name: "institutional-mitigation-paradigm-dominance"
+status: CANDIDATE
+class: H
+date_origin: "2026-07-30"
+session_registered: "S-073026-NN"   # Z2 assigns session descriptor
+principles_triggered: ["P21"]
+substrate: "Claude Fable 5 (claude.ai mobile)"
+tags: ["paradigm-adoption", "institutional-mitigation", "convergent-validity", "external-practitioner", "governance"]
+related_finding: "F-42"
+superseded_by: null
+```
+
+- **Synopsis:** Independent practitioners with no exposure to HumanAIOS governance are converging on institutional mitigation (audit, org chart, constitution, appeals — external verification structures around untrusted agents) as the working answer to agent unreliability. Hypothesis: this convergence predicts institutional mitigation becomes the dominant deployment paradigm over "make the model trustworthy" (model-level alignment as sole deployment gate).
+- **Null:** Model-level trustworthiness remains the primary deployment gate in practitioner/enterprise guidance; institutional scaffolding stays a secondary/minority framing.
+- **Falsification:** In a pre-registered sample of N≥30 practitioner or enterprise agent-deployment frameworks published in the 12 months following registration, fewer than 50% center external verification structures as the primary control.
+- **Primary metric:** Proportion of sampled deployment guidance coding as institutional-verification-primary vs. model-trust-primary, per a fixed rubric.
+- **Promotion gate:** (a) sampling frame + coding rubric ratified by Z2, (b) ≥1 baseline coding pass executed, (c) ≥3 independent convergence instances documented (current verified count: 1 — Jones 2026-07).
+- **Evidence anchor:** natesnewsletter.substack.com/p/trust-ai-agents, fetched live 2026-07-30 (four institutions: audit, org chart, constitution, appeals). FLAG: PROVISIONAL context — Deloitte 2026 governance-gap statistic cited via secondary source (Forbes), not independently verified.
+- **Zone 2 Authority:** Night · 2026-07-30 · verbal approval in-session; formal ratification via PR review per new GitHub ratification process.
+
+#### ADDENDUM — Convergence Instance 2 (2026-08-09, S-080926-NN)
+
+```yaml
+addendum_to: "H-CAND-INSTITUTIONAL-PARADIGM-01"
+convergence_instance: 2
+instance_name: "AIUC (Artificial Intelligence Underwriting Company)"
+date_verified: "2026-08-09"
+session: "S-080926-NN"
+evidence_class: "VERIFIED-LIVE (primary, company-published)"
+```
+
+- **Synopsis:** AIUC is institutional mitigation operationalized as a commercial product with no HumanAIOS exposure. Its trust stack — auditable standard (AIUC-1), independent third-party audit (Schellman accredited), and insurance underwriting tied to audit outcomes (Lloyd's of London-backed) — is external verification structure around untrusted agents, precisely the paradigm this hypothesis predicts becomes dominant.
+- **Distinguishing strength vs. instance 1 (Jones 2026-07):** AIUC adds an economic forcing function (the certifier carries downstream exposure to mispriced risk) and demonstrated market uptake (Fortune 500 CISO consortium; certifications including ElevenLabs, Intercom, Harvey; MITRE as technical contributor; quarterly behavioral re-testing).
+- **Coding:** institutional-verification-primary.
+- **Evidence anchors (fetched live 2026-08-09):**
+  - aiuc.com — "certifies and insures AI agents"; certificates + insurance as "confidence infrastructure"
+  - aiuc.com/research/schellman-becomes-first-aiuc1-auditor — operationalizes ISO 42001, NIST AI RMF, MITRE ATLAS, OWASP; quarterly re-testing
+  - aiuc.com/research/elevenlabs-secures-first-of-its-kind-ai-agent-insurance — 5,000+ adversarial simulations per certification
+  - Secondary corroboration: workstreet.com/blog/what-is-aiuc-1 (130 controls, 65 mandatory; Lloyd's underwriting ties certification to certifier risk exposure); startupintros.com (founders, $15M seed); www.aiuc-1.com (Harvey certification, 3,000+ evaluations)
+- **Promotion gate impact:** Convergence count 1 → 2 (proposed). Gate (c) still requires 1 more independent instance. Gates (a) sampling frame/coding rubric and (b) baseline coding pass remain open.
+- **Caveat for Z2:** AIUC founders include ex-Anthropic and ex-METR personnel — "independent practitioner" holds (no HumanAIOS exposure) but not "independent of the AI-safety field." The rubric ratified under gate (a) should decide whether field-internal actors count toward the N≥3 threshold.
+
+-----
+
+### F-CAND-GOVERNANCE-SELF-DEMONSTRATION-01 — Governance Self-Demonstration
+
+```yaml
+id: "F-CAND-GOVERNANCE-SELF-DEMONSTRATION-01"
+name: "governance-self-demonstration"
+status: CANDIDATE
+class: F
+date_origin: "2026-08-09"
+session_registered: "S-080926-NN"
+principles_triggered: ["P21"]
+substrate: "Claude Fable 5 (claude.ai mobile)"
+tags: ["ic-030", "drift-detection", "dogfooding", "stale-context",
+       "commercial-evidence", "reflexivity"]
+related_finding: ["F-26", "IC-030"]
+superseded_by: null
+```
+
+- **Synopsis:** Governance rituals that force live-state verification before consequential writes catch drift that the acting agent cannot self-detect — and the platform's own operating record is admissible evidence for the mechanism it sells. Instance structure this session: a stateful context layer (Z1 memory) asserted the nine registry candidates were "approved but not yet written to live REGISTERED.md"; the IC-030 hard-halt fetch of canonical state showed H-CAND-INSTITUTIONAL-PARADIGM-01 (and the S-071426 batch) *was* written 2026-07-14/2026-07-30; the ritual forced the check before a registry-touching action, so stale belief never contaminated the append-only record.
+- **Mapping to a deployed LLM:** model/context beliefs ↔ Z1 memory; canonical ground truth ↔ REGISTERED.md; ASC Gateway runtime check ↔ IC-030 live fetch; log-only mode ↔ halt-and-verify ritual.
+- **Generalizable beyond the instance:** The class of drift is *self-undetectable* by construction (the agent's confidence in stale state is the failure mode), so only an externally-forced verification step catches it.
+- **Evidence anchor:** S-080926-NN session transcript — stale memory claim (userMemories: "approved but not yet written") + live fetch timestamp 2026-08-09 + register content showing entry registered 2026-07-30 + corrected action (EXTENSION addendum rather than duplicate proposal). Evidence class: VERIFIED-LIVE (the contradiction is documented within one session's artifacts).
+- **Novelty cross-walk (required before Z2 promotion):** Against F-26 (Witness Effect / Accountability Mirror — external observation changing behavior; this candidate differs in that no observer is required, the ritual itself is the mechanism) and IC-030's existing scope (IC-030 mandates the fetch; this candidate is the *finding* that the mandate demonstrably catches self-undetectable drift, plus the dual-use claim that the operating record is commercial evidence). Z2 to rule NEW vs. EXTENSION-of-IC-030-pattern.
+- **Promotion gate (proposed):** ≥3 documented instances of a hard-halt ritual catching stale-state drift, each with the stale claim and the live-state contradiction logged; plus Z2 ruling on novelty cross-walk.
+- **Routing:** → Zone 2 (Night) for ratification per P21.

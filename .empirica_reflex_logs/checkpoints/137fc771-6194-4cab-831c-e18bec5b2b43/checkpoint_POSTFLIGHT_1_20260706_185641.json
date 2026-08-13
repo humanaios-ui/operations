@@ -1,0 +1,105 @@
+{
+  "session_id": "137fc771-6194-4cab-831c-e18bec5b2b43",
+  "phase": "POSTFLIGHT",
+  "round": 1,
+  "timestamp": "2026-07-06T18:56:37.061262+00:00",
+  "vectors": {
+    "know": 0.85,
+    "do": 0.85,
+    "context": 0.85,
+    "clarity": 0.85,
+    "coherence": 0.85,
+    "completion": 1.0,
+    "impact": 0.8,
+    "uncertainty": 0.25,
+    "engagement": 0.9
+  },
+  "overall_confidence": 0.85,
+  "meta": {
+    "reasoning": "Research arc complete: R1 grounded (105-row live probe + 60-file code inventory via Explore agent), R2/R3 reasoned from capability, R4 concrete + falsifiable. Key finding: ACAT's collection spine is production-ready but 81/105 corpus rows are unverified self-report \u2014 the recommendation fixes exactly that using built machinery. Implementation is praxic/Z2-gated; not started.",
+    "task_summary": "Research arc complete: R1 grounded (105-row live probe + 60-file code inventory via Explore agent), R2/R3 reasoned from capability, R4 concrete + falsifiable. Key finding: ACAT's collection spine is production-ready but 81/105 corpus rows are unverified self-report \u2014 the recommendation fixes exactly that using built machinery. Implementation is praxic/Z2-gated; not started.",
+    "postflight_confidence": 0.75,
+    "internal_consistency": "moderate",
+    "deltas": {
+      "know": 0.25,
+      "do": 0.05,
+      "context": 0.15,
+      "clarity": 0.1,
+      "uncertainty": -0.15,
+      "engagement": 0.1
+    },
+    "trajectory_issues": [],
+    "transaction_id": "06c7b85b-a467-468e-a674-7eded53c4a0d",
+    "tool_call_count": 0,
+    "work_type": "research",
+    "phase_tool_counts": {
+      "noetic_tool_calls": 0,
+      "praxic_tool_calls": 0
+    },
+    "avg_turns_at_start": 0,
+    "context_shifts": {
+      "solicited_prompts": 0,
+      "unsolicited_prompts": 1
+    },
+    "entity_context": null,
+    "tool_trace": null,
+    "retrospective": {
+      "artifact_counts": {
+        "findings": 0,
+        "unknowns": 0,
+        "dead_ends": 0,
+        "mistakes": 0,
+        "assumptions": 0,
+        "decisions": 0
+      },
+      "commit_warning": "Uncommitted changes detected. Grounded calibration for change/state/do will be based on committed work only \u2014 uncommitted edits are invisible."
+    },
+    "coverage": null,
+    "git_commit_sha": "73ba2836e631642e191223c50a45b789a6804e23",
+    "git_notes_ref": "empirica/session/137fc771-6194-4cab-831c-e18bec5b2b43/POSTFLIGHT/1"
+  },
+  "epistemic_tags": {},
+  "git_state": {
+    "head_commit": "a35cedda4ac3d139ed8ee8c386c9507aa4565eb6",
+    "commits_since_last_checkpoint": [],
+    "uncommitted_changes": {
+      "files_modified": [],
+      "files_added": [],
+      "files_deleted": [],
+      "diff_stat": ""
+    }
+  },
+  "learning_delta": {
+    "know": {
+      "prev": 0.6,
+      "curr": 0.85,
+      "delta": 0.25
+    },
+    "do": {
+      "prev": 0.8,
+      "curr": 0.85,
+      "delta": 0.05
+    },
+    "context": {
+      "prev": 0.7,
+      "curr": 0.85,
+      "delta": 0.15
+    },
+    "clarity": {
+      "prev": 0.75,
+      "curr": 0.85,
+      "delta": 0.1
+    },
+    "uncertainty": {
+      "prev": 0.4,
+      "curr": 0.25,
+      "delta": -0.15
+    },
+    "engagement": {
+      "prev": 0.8,
+      "curr": 0.9,
+      "delta": 0.1
+    }
+  },
+  "token_count": 351
+}

@@ -1,0 +1,138 @@
+# Z2 Authority Assignments — Governance Unification
+
+**Decision:** GOV-2026-07-30-GOVERNANCE-UNIFICATION
+**Status:** Collecting designations (deadline 2026-08-03)
+**Last Updated:** 2026-07-30
+
+---
+
+z2_authorities:
+  website:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
+
+  collaborator-ops:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
+
+  empirica-autonomy:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
+
+  empirica-mesh-support:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
+
+  empirica-outreach:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
+
+  flta-app-empirica:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral (local-only, not yet cortex-registered for mesh)"
+
+  grok-crossref:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
+
+  humanaios:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
+
+  humanaios-internal:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
+
+  opportunity-aggregator:
+    primary: Carly Anderson
+    email: aioshuman@gmail.com
+    backup: SAB
+    backup_email: carly.r.anderson
+    confirmed: true
+    confirmed_date: 2026-07-30
+    notes: "Designated by Admiral, mesh dispatch prop_72lizvcu5ngcffgxyhl6npqcuu"
+
+---
+
+## Meta
+
+admiral_veto_authority: Carly Anderson (Night, male human)
+admiral_email: aioshuman@gmail.com
+admiral_confirmed: true
+admiral_confirmation_date: 2026-07-30
+admiral_scope: All 10 foundation practices (veto authority over all governance decisions)
+mesh_support_coordinator: empirica-mesh-support
+confirmation_deadline: 2026-07-30 (completed ahead of schedule)
+collection_status: all_10_confirmed_mesh_dispatch_active
+total_practices: 10
+confirmed_count: 10
+pending_count: 0
+mesh_proposal_id: prop_72lizvcu5ngcffgxyhl6npqcuu
+mesh_proposal_status: eco_review (9 practices, flta-app-empirica local-only)
+confirmation_completed_date: 2026-07-30
+
+---
+
+## Collection Process
+
+1. Each practice designates Z2 authority (primary + optional backup)
+2. Reply to AUTHORITY_COLLECTION_FORM.md by 2026-08-03
+3. Operations repo updates AUTHORITY_ASSIGNMENTS.yaml with all responses
+4. Admiral confirms all assignments
+5. Phase 2 begins with Z2 authorities identified + trained
+
+---
+
+## Authority Responsibilities
+
+Once confirmed, Z2 authorities commit to:
+- Review governance PRs within SLA (24h-72h depending on type)
+- Answer 5 gate questions before merge approval
+- Represent practice in cross-practice governance decisions
+- Monitor divergence-detect reports (daily consistency checks)
+- Merge mesh-sync-batch PRs within 24h of receipt

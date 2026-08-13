@@ -1,0 +1,128 @@
+{
+  "session_id": "137fc771-6194-4cab-831c-e18bec5b2b43",
+  "phase": "POSTFLIGHT",
+  "round": 4,
+  "timestamp": "2026-07-06T23:20:14.761240+00:00",
+  "vectors": {
+    "know": 0.85,
+    "do": 0.85,
+    "context": 0.85,
+    "clarity": 0.85,
+    "completion": 1.0,
+    "change": 0.5,
+    "impact": 0.7,
+    "uncertainty": 0.3,
+    "engagement": 0.9
+  },
+  "overall_confidence": 0.85,
+  "meta": {
+    "reasoning": "Verification did its job \u2014 found real gap (instrument_variant not persisted). Fixed + tested. Scoring/purity/gate validated. Part B first committed Phase-1 deliberately calibrated per retro lesson; PR outcome will ground it.",
+    "task_summary": "Verification did its job \u2014 found real gap (instrument_variant not persisted). Fixed + tested. Scoring/purity/gate validated. Part B first committed Phase-1 deliberately calibrated per retro lesson; PR outcome will ground it.",
+    "postflight_confidence": 0.7,
+    "internal_consistency": "moderate",
+    "deltas": {
+      "know": 0.1,
+      "do": 0.0,
+      "context": 0.0,
+      "clarity": 0.05,
+      "uncertainty": 0.0,
+      "engagement": 0.0
+    },
+    "trajectory_issues": [],
+    "transaction_id": "76067876-6032-417d-954d-1729ad040abe",
+    "tool_call_count": 0,
+    "work_type": "research",
+    "phase_tool_counts": {
+      "noetic_tool_calls": 0,
+      "praxic_tool_calls": 0
+    },
+    "avg_turns_at_start": 0,
+    "context_shifts": null,
+    "entity_context": null,
+    "tool_trace": null,
+    "retrospective": {
+      "artifact_counts": {
+        "findings": 1,
+        "unknowns": 0,
+        "dead_ends": 0,
+        "mistakes": 0,
+        "assumptions": 0,
+        "decisions": 0
+      },
+      "breadth_note": "Only findings artifacts logged. Missing: unknowns, dead_ends, mistakes, assumptions, decisions. Unlogged artifact types are ungrounded prediction domains \u2014 were there assumptions, decisions, dead-ends, or mistakes worth capturing?",
+      "weave_gate": {
+        "scalars": {
+          "strictness": 0.25,
+          "connectivity_floor": 0.5,
+          "patience": 0.8
+        },
+        "response": "report",
+        "verdict": "disconnected",
+        "connected_ratio": 0.0,
+        "connected_artifacts": 0,
+        "total_artifacts": 1,
+        "satisfied": false,
+        "enforced": false,
+        "note": "artifact-graph gate [report, report-only]: 0/1 artifacts connected (0%), below the 50% floor \u2014 consider weaving. Structural goal-edges are automatic; add semantic edges (log-artifacts nodes+edges, or --related-to / --edge on any *-log) to raise connectivity. Blocking activates only at strictness \u2265 0.70."
+      },
+      "commit_warning": "Uncommitted changes detected. Grounded calibration for change/state/do will be based on committed work only \u2014 uncommitted edits are invisible."
+    },
+    "coverage": null,
+    "git_commit_sha": "d2eaf52b63fa921cbd997394e48413d3200e320f",
+    "git_notes_ref": "empirica/session/137fc771-6194-4cab-831c-e18bec5b2b43/POSTFLIGHT/4"
+  },
+  "epistemic_tags": {},
+  "git_state": {
+    "head_commit": "a35cedda4ac3d139ed8ee8c386c9507aa4565eb6",
+    "commits_since_last_checkpoint": [],
+    "uncommitted_changes": {
+      "files_modified": [],
+      "files_added": [],
+      "files_deleted": [],
+      "diff_stat": ""
+    }
+  },
+  "learning_delta": {
+    "know": {
+      "prev": 0.8,
+      "curr": 0.85,
+      "delta": 0.05
+    },
+    "do": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "context": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "clarity": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "completion": {
+      "prev": 1.0,
+      "curr": 1.0,
+      "delta": 0.0
+    },
+    "impact": {
+      "prev": 0.8,
+      "curr": 0.7,
+      "delta": -0.1
+    },
+    "uncertainty": {
+      "prev": 0.3,
+      "curr": 0.3,
+      "delta": 0.0
+    },
+    "engagement": {
+      "prev": 0.9,
+      "curr": 0.9,
+      "delta": 0.0
+    }
+  },
+  "token_count": 432
+}

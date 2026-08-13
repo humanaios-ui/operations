@@ -1,0 +1,151 @@
+{
+  "session_id": "fc3aca59-8fba-4130-9c6a-f329976d47ae",
+  "phase": "POSTFLIGHT",
+  "round": 21,
+  "timestamp": "2026-07-02T15:00:08.833739+00:00",
+  "vectors": {
+    "know": 0.85,
+    "uncertainty": 0.2,
+    "context": 0.85,
+    "clarity": 0.85,
+    "coherence": 0.85,
+    "signal": 0.85,
+    "density": 0.8,
+    "state": 0.85,
+    "change": 0.3,
+    "completion": 1.0,
+    "impact": 0.62,
+    "do": 0.85,
+    "engagement": 0.88
+  },
+  "overall_confidence": 0.85,
+  "meta": {
+    "reasoning": "Pass A analysis done + honest. Caught my own over-collapse (generic names) by inspecting families before trusting the count, refined to marker-aware, and re-ran. The valuable output is the RECALIBRATION: version-collapse is a ~5% cut, not the hundreds the scope hypothesized \u2014 the net-new corpus is genuinely ~1070 distinct docs, so the reduction is a judgment task (Pass D), not mechanical. Analysis-only, no moves (as asked). completion=1.0 for Pass A; the net-new review goal stays open for B-D.",
+    "task_summary": "Pass A analysis done + honest. Caught my own over-collapse (generic names) by inspecting families before trusting the count, refined to marker-aware, and re-ran. The valuable output is the RECALIBRATION: version-collapse is a ~5% cut, not the hundreds the scope hypothesized \u2014 the net-new corpus is genuinely ~1070 distinct docs, so the reduction is a judgment task (Pass D), not mechanical. Analysis-only, no moves (as asked). completion=1.0 for Pass A; the net-new review goal stays open for B-D.",
+    "postflight_confidence": 0.8,
+    "internal_consistency": "good",
+    "deltas": {
+      "know": 0.05,
+      "uncertainty": -0.02,
+      "context": 0.0,
+      "clarity": 0.07,
+      "coherence": 0.03,
+      "signal": 0.05,
+      "density": 0.02,
+      "state": 0.05,
+      "change": 0.3,
+      "completion": 1.0,
+      "impact": -0.06,
+      "do": 0.0,
+      "engagement": -0.02
+    },
+    "trajectory_issues": [],
+    "transaction_id": "ee22b44a-a413-492b-b569-f3f21aeea85b",
+    "tool_call_count": 0,
+    "work_type": "data",
+    "phase_tool_counts": {
+      "noetic_tool_calls": 0,
+      "praxic_tool_calls": 0
+    },
+    "avg_turns_at_start": 0,
+    "context_shifts": null,
+    "entity_context": null,
+    "tool_trace": null,
+    "retrospective": {
+      "artifact_counts": {
+        "findings": 1,
+        "unknowns": 0,
+        "dead_ends": 0,
+        "mistakes": 1,
+        "assumptions": 0,
+        "decisions": 0
+      },
+      "edges_with_artifacts": 1,
+      "artifacts_with_sources": 0,
+      "sources_discipline_note": "2 artifacts logged with 0 source_refs. Where did the evidence come from? Use --source <id> on any *-log command, or `empirica source-add` to register the source first. Sourced artifacts get full provenance trail in audit + compliance.",
+      "commit_warning": "Uncommitted changes detected. Grounded calibration for change/state/do will be based on committed work only \u2014 uncommitted edits are invisible."
+    },
+    "coverage": null,
+    "git_commit_sha": "54e6b301413d461a8f60c2beddf98b402049afed",
+    "git_notes_ref": "empirica/session/fc3aca59-8fba-4130-9c6a-f329976d47ae/POSTFLIGHT/21"
+  },
+  "epistemic_tags": {},
+  "git_state": {
+    "head_commit": "ed021884b38ac20e584a7b9545c22f41c7d23625",
+    "commits_since_last_checkpoint": [],
+    "uncommitted_changes": {
+      "files_modified": [],
+      "files_added": [],
+      "files_deleted": [],
+      "diff_stat": ""
+    }
+  },
+  "learning_delta": {
+    "know": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "uncertainty": {
+      "prev": 0.2,
+      "curr": 0.2,
+      "delta": 0.0
+    },
+    "context": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "clarity": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "coherence": {
+      "prev": 0.88,
+      "curr": 0.85,
+      "delta": -0.03
+    },
+    "signal": {
+      "prev": 0.82,
+      "curr": 0.85,
+      "delta": 0.03
+    },
+    "density": {
+      "prev": 0.8,
+      "curr": 0.8,
+      "delta": 0.0
+    },
+    "state": {
+      "prev": 0.82,
+      "curr": 0.85,
+      "delta": 0.03
+    },
+    "change": {
+      "prev": 0.4,
+      "curr": 0.3,
+      "delta": -0.1
+    },
+    "completion": {
+      "prev": 1.0,
+      "curr": 1.0,
+      "delta": 0.0
+    },
+    "impact": {
+      "prev": 0.72,
+      "curr": 0.62,
+      "delta": -0.1
+    },
+    "do": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "engagement": {
+      "prev": 0.9,
+      "curr": 0.88,
+      "delta": -0.02
+    }
+  },
+  "token_count": 564
+}

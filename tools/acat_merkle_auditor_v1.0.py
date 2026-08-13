@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+⚠️ SUPERSEDED — Do NOT use this version
+════════════════════════════════════════
+See: acat_merkle_auditor_v2_0.py (newer version with full verification)
+This file is kept for reference only.
+════════════════════════════════════════
+
 ACAT Merkle Auditor — v1.0
 Builder v1.7 compliant · audit_tool
 HumanAIOS · S-051626-01-acat-tools-alternate-functions-mapping

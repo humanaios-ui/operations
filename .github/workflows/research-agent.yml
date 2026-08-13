@@ -37,7 +37,7 @@ jobs:
           RESPONSE=$(curl -s -X POST "${{ secrets.N8N_WEBHOOK_RESEARCH }}" \
             -H "Content-Type: application/json" \
             -d "{\"task\":\"${TASK}\",\"hypothesis\":\"${HYPOTHESIS}\",\"run_id\":\"${{ github.run_id }}\",\"date\":\"$(date +%Y-%m-%d)\"}")
-          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          echo "response=$RESPONSE" >> "$GITHUB_OUTPUT"
           echo "✅ Research task triggered: ${TASK}"
 
       - name: Wait for n8n processing

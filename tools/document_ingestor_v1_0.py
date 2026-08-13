@@ -1,4 +1,10 @@
 """
+⚠️ SUPERSEDED — Do NOT use this version
+════════════════════════════════════════
+See: document_ingestor_v1_0_patched.py (newer version with Z2-TRUST layers)
+This file is kept for reference only.
+════════════════════════════════════════
+
 Builder v1.7 compliant
 
 TOOL_NAME = "document_ingestor"

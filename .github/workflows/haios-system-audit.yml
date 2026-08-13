@@ -91,10 +91,10 @@ jobs:
         run: |
           # Scheduled runs use full mode. Manual can override.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "mode=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT
+            echo "mode=${{ github.event.inputs.mode }}"
           else
-            echo "mode=full" >> $GITHUB_OUTPUT
-          fi
+            echo "mode=full"
+          fi >> "$GITHUB_OUTPUT"
 
       - name: Run system audit
         id: audit
@@ -112,9 +112,11 @@ jobs:
           VERDICT=$(grep "Verdict" /tmp/audit_stdout.txt | head -1 | awk '{print $NF}' || echo "UNKNOWN")
           GATE_MSG=$(grep "PRE-RATIFICATION GATE" /tmp/audit_stdout.txt | head -1 || echo "Gate message unavailable")
 
-          echo "verdict=${VERDICT}" >> $GITHUB_OUTPUT
-          echo "gate_msg=${GATE_MSG}" >> $GITHUB_OUTPUT
-          echo "exit_code=${AUDIT_EXIT}" >> $GITHUB_OUTPUT
+          {
+            echo "verdict=${VERDICT}"
+            echo "gate_msg=${GATE_MSG}"
+            echo "exit_code=${AUDIT_EXIT}"
+          } >> "$GITHUB_OUTPUT"
 
           # Exit 0 on PASS/WARN (non-blocking), 1 on FAIL only
           # This prevents cron mail floods while still failing the job on real failures

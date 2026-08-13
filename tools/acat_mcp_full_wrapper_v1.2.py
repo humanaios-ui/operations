@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+⚠️ SUPERSEDED — Do NOT use this version
+════════════════════════════════════════
+See: acat_mcp_full_wrapper_v1.2_patched.py (newer version with document_layer enhancements)
+This file is kept for reference only.
+════════════════════════════════════════
+
 Builder v1.7 compliant
 acat_mcp_full_wrapper_v1.2.py
 HumanAIOS ACAT-MCP Behavioral Telemetry Wrapper

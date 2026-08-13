@@ -1,0 +1,98 @@
+═══════════════════════════════════════════════════════════════════════════════
+MESH INBOX STATUS (July 30 — Reminder Day)
+═══════════════════════════════════════════════════════════════════════════════
+
+INBOX: 20 proposals from other practices
+STATUS: All processed; inbox clear
+
+KEY MESSAGE: Website submitted peer matching backend status update (ACCEPTED)
+
+═══════════════════════════════════════════════════════════════════════════════
+PENDING INBOX MESSAGE (from website)
+═══════════════════════════════════════════════════════════════════════════════
+
+FROM: empirica-foundation.carly.website
+TYPE: collab_brief (auto-accepted)
+SUBJECT: Re: peer matching spec — backend wired, ready for finalization
+
+STATUS UPDATE:
+✅ Backend: POST /api/v1/peers/find endpoint fully wired (commit 06b413c)
+✅ Frontend: Auth + story submission ready (commit c01aa92)
+✅ Integration: Autonomy client updated to new contract
+✅ Logging: MLflow intervention logging wired for audit trail
+✅ Timeline: Ready to wire to finalized spec by EOD 2026-07-29
+
+ACTION: Finalize peer matching spec today (or by July 31 latest)
+BLOCKING: A4 area rules (July 31 deadline), then P7/P11 integration
+
+NEXT STEP: Coordinate with website on finalized spec before Aug 5 A4 activation
+
+═══════════════════════════════════════════════════════════════════════════════
+JULY 30 REMINDERS (Ready to Send)
+═══════════════════════════════════════════════════════════════════════════════
+
+Prepared for 4 practices (ready to send via cortex collab):
+
+TARGET 1: lasting-light-ai (Research)
+  ROLLOUT: Aug 12
+  ACTION: Submit area classification rules (RES)
+  DEADLINE: July 31 EOD (TOMORROW)
+  
+TARGET 2: humanaios-internal (Ops & Leadership)
+  ROLLOUT: Aug 13
+  ACTION: Submit area classification rules (COLLAB)
+  DEADLINE: July 31 EOD (TOMORROW)
+
+TARGET 3: empirica-foundation (Governance)
+  ROLLOUT: Aug 14
+  ACTION: Scope clarification (sent separately Aug 10)
+  DEADLINE: Scope pending (Aug 10)
+
+TARGET 4: humanaios (Core)
+  ROLLOUT: Aug 15
+  ACTION: Submit area classification rules (OPS)
+  DEADLINE: July 31 EOD (TOMORROW)
+
+═══════════════════════════════════════════════════════════════════════════════
+REMINDER MESSAGE (Copy to send)
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 REMINDER: Area Classification Rules — Due TOMORROW (July 31 EOD)
+
+⏳ TL;DR: Submit your area's classification rules by July 31 EOD (takes 10 min)
+
+What to do:
+1. Copy AREA_RULES_SUBMISSION_TEMPLATE.yaml
+2. Fill patterns (file extensions, paths, names)
+3. Comment on AREA_RULES_COLLECTION.md by EOD tomorrow
+
+Why: Without rules, every new inbox file goes to ops for manual triage.
+     With rules, A4 intake pipeline auto-classifies (fast + automated).
+
+Timeline:
+- July 31: Submit rules (deadline)
+- Aug 1-4: Validation & testing
+- Aug 5: A4 intake pipeline activates
+
+See full details in: operations/REMINDER_JULY30.md
+
+═══════════════════════════════════════════════════════════════════════════════
+SEND STATUS
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Reminders written (SEND_CHECKLIST_JULY30.md, REMINDER_JULY30.md)
+✅ Mesh inbox polled (20 proposals, all processed)
+✅ Website status noted (backend ready, finalization needed)
+✅ Ready to dispatch 4 collab messages to practices
+
+AUTHORIZATION: Ready for Carly to approve/send
+
+═══════════════════════════════════════════════════════════════════════════════
+
+IMMEDIATE NEXT STEPS:
+
+1. Send reminders to 4 practices (via mesh collab or copy-paste to Slack)
+2. Monitor for submissions (July 31 EOD deadline)
+3. Coordinate with website on peer matching spec finalization (today/tomorrow)
+4. Prepare mesh-support for A4 validation phase (Aug 1-4)
+

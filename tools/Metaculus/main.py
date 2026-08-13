@@ -1167,6 +1167,12 @@ if __name__ == "__main__":
     logging.getLogger("LiteLLM").setLevel(logging.WARNING)
     logging.getLogger("LiteLLM").propagate = False
 
+    # Silence verbose libraries
+    logging.getLogger("forecasting_tools").setLevel(logging.ERROR)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("supabase").setLevel(logging.WARNING)
+
     parser = argparse.ArgumentParser(description="HumanAIOS forecasting bot v2.3")
     parser.add_argument(
         "--mode", type=str,
@@ -1199,7 +1205,7 @@ if __name__ == "__main__":
             ),
             "parser": "openai/gpt-4o-mini",
             "researcher": GeneralLlm(
-                model="gemini/gemini-2.0-flash",  # LiteLLM Gemini provider format; cost: free-tier researcher, the volume driver
+                model="together_ai/mistralai/Mistral-7B-Instruct-v0.2",  # Free serverless
                 temperature=0.3, timeout=60, allowed_tries=2,
             ),
             "summarizer": "openai/gpt-4o-mini",
