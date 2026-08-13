@@ -9,10 +9,10 @@
 # import cleanly at the versions below on Python 3.12; floors set to the verified
 # versions' minor lines, ceilings at next major per house convention)
 
-fastmcp>=3.4.5,<4.0.0
+fastmcp>=3.4.6,<4.0.0
 mcp>=2.0.0,<3.0.0          # fastmcp's protocol layer; declared explicitly since
                             # two tools import `mcp` directly
 supabase>=2.31.0,<3.0.0     # matches the floor already pinned in tools/Metaculus
-anthropic>=0.120.2,<1.0.0
+anthropic>=0.121.0,<1.0.0
 slack_sdk>=3.43.0,<4.0.0
 numpy>=2.4.4,<3.0.0
