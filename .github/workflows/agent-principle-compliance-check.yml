@@ -1,0 +1,53 @@
+name: agent-principle-compliance-check
+
+# Run on every commit to tools/ (principle compliance is pervasive)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/**"
+      - ".github/workflows/agent-principle-compliance-check.yml"
+  pull_request:
+    paths:
+      - "tools/**"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  compliance-check:
+    name: Check principles (P19)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          pip install requests supabase
+
+      - name: Run Principle Compliance Bot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Get commit message and changed files
+          COMMIT_MSG=$(git log --format=%B -n 1)
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD || echo "")
+
+          echo "Commit: $COMMIT_MSG"
+          echo "Files: $CHANGED_FILES"
+
+          # Run compliance check
+          python3 tools/agents/01_principle_compliance_bot_v1.py \
+            --check-commit "$COMMIT_MSG" \
+            --files "$CHANGED_FILES" || EXIT_CODE=$?
+
+          exit ${EXIT_CODE:-0}

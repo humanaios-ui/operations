@@ -1,0 +1,185 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HumanAIOS Constitution — 22 Principles",
+  "description": "Governance principles for decision validation, drift detection, and artifact grounding.",
+  "version": "1.0",
+  "source": "PRINCIPLES_SEED_V1_0.md + GOVERNANCE.md",
+  "principles": [
+    {
+      "id": "P1",
+      "framework": "12 Steps",
+      "name": "Admit the gap",
+      "axis": "Step 1 — Powerlessness",
+      "construct": "IC filing — naming error without minimization",
+      "runtime_check": "ic_filing_required"
+    },
+    {
+      "id": "P2",
+      "framework": "12 Steps",
+      "name": "Restored state exists",
+      "axis": "Step 2 — Restoration possible",
+      "construct": "REGISTERED.md as canonical truth",
+      "runtime_check": "registered_md_sync"
+    },
+    {
+      "id": "P3",
+      "framework": "12 Steps",
+      "name": "No unverified claims",
+      "axis": "Step 4 — Honest self-examination",
+      "construct": "ACAT Phase 1 unanchored self-assessment",
+      "runtime_check": "unverified_claim_detected"
+    },
+    {
+      "id": "P4",
+      "framework": "12 Steps",
+      "name": "Public record of sessions",
+      "axis": "Step 5 — Disclosure",
+      "construct": "WGS session close — visible record",
+      "runtime_check": "wgs_session_recorded"
+    },
+    {
+      "id": "P5",
+      "framework": "12 Steps",
+      "name": "Primary purpose filter",
+      "axis": "Primary Purpose (T5)",
+      "construct": "Work only if: generates data, tests hypothesis, or generates revenue",
+      "runtime_check": "primary_purpose_alignment"
+    },
+    {
+      "id": "P8",
+      "framework": "12 Traditions",
+      "name": "Attraction not promotion (T11)",
+      "axis": "HOW WE BEHAVE COLLECTIVELY",
+      "construct": "No CTAs; URL only; Wu Wei in practice",
+      "runtime_check": "no_promotional_language"
+    },
+    {
+      "id": "P16",
+      "framework": "12 Traditions",
+      "name": "Research before commerce (T12 variant)",
+      "axis": "Self-supporting + Non-professional",
+      "construct": "Open research publication before any commercial use",
+      "runtime_check": "publication_before_commercialization"
+    },
+    {
+      "id": "P19",
+      "framework": "Governance (Detection)",
+      "name": "Detection beats compliance",
+      "axis": "Drift Detection (Proactive)",
+      "construct": "Name drift before justifying it; P19 filter active",
+      "runtime_check": "drift_detector_active"
+    },
+    {
+      "id": "P-ANON",
+      "framework": "12 Traditions (Anonymity)",
+      "name": "Principles over personalities",
+      "axis": "P12 — Anonymity",
+      "construct": "Collaborator data never public without prior self-attribution",
+      "runtime_check": "anon_attribution_check"
+    },
+    {
+      "id": "P-HUMILITY",
+      "framework": "Hawkins / Calibration",
+      "name": "Overconfidence flag",
+      "axis": "Hawkins 400 (Reason minimum)",
+      "construct": "No confidence > 0.95 without counter-evidence",
+      "runtime_check": "confidence_threshold_check"
+    },
+    {
+      "id": "P-HAWKINS-MIN",
+      "framework": "Hawkins Map",
+      "name": "Below Courage (200): STOP",
+      "axis": "Minimum Functional Threshold",
+      "construct": "Below Courage (200): do not decide, do not post, transfer chat",
+      "runtime_check": "hawkins_floor_check"
+    },
+    {
+      "id": "P-T2",
+      "framework": "12 Traditions",
+      "name": "Zone discipline governs",
+      "axis": "T2 — Higher Power / Zone System",
+      "construct": "Z3 gate — not executing what belongs to Night (Z2)",
+      "runtime_check": "zone_boundary_check"
+    },
+    {
+      "id": "P-T7",
+      "framework": "12 Traditions",
+      "name": "Research integrity (no funder shaping)",
+      "axis": "T7 — Self-supporting",
+      "construct": "No funder shapes findings",
+      "runtime_check": "funder_independence_check"
+    },
+    {
+      "id": "P-T10",
+      "framework": "12 Traditions",
+      "name": "TRL framing (no overclaims)",
+      "axis": "T10 — No opinion on outside issues",
+      "construct": "TRL 2–3 framing; no overclaims; 'being developed as' not 'is'",
+      "runtime_check": "trl_framing_check"
+    },
+    {
+      "id": "P-UNITY",
+      "framework": "12 Traditions",
+      "name": "Corpus integrity",
+      "axis": "T1 — Unity",
+      "construct": "Single violated row threatens whole dataset",
+      "runtime_check": "corpus_integrity_check"
+    },
+    {
+      "id": "P-TRANSPARENCY",
+      "framework": "Governance",
+      "name": "Decision transparency",
+      "axis": "Z2 Ratification",
+      "construct": "Major decisions logged + Zone-gated appropriately",
+      "runtime_check": "decision_logged_and_zoned"
+    },
+    {
+      "id": "P-ARTIFACT-BREADTH",
+      "framework": "Epistemic",
+      "name": "Log full artifact spectrum",
+      "axis": "Measurement Discipline",
+      "construct": "findings + unknowns + assumptions + decisions + dead_ends + mistakes logged",
+      "runtime_check": "artifact_breadth_check"
+    },
+    {
+      "id": "P-GRAPH",
+      "framework": "Epistemic",
+      "name": "The graph is the artifact",
+      "axis": "Connectivity",
+      "construct": "Artifacts connected with meaningful relations (not isolated orphans)",
+      "runtime_check": "artifact_connectivity_check"
+    },
+    {
+      "id": "P-COMMIT-DISCIPLINE",
+      "framework": "Praxic",
+      "name": "Commit per task",
+      "axis": "Git Hygiene",
+      "construct": "Atomic commits after each work unit; no batching to end",
+      "runtime_check": "commit_frequency_check"
+    },
+    {
+      "id": "P-MESH-ACK",
+      "framework": "Collaboration",
+      "name": "Ack completed work",
+      "axis": "Mesh Discipline",
+      "construct": "Completion handshake for peer requests; no silent accept-and-forgot",
+      "runtime_check": "mesh_ack_check"
+    },
+    {
+      "id": "P-PULL-FIRST",
+      "framework": "Collaboration",
+      "name": "Pull when uncertain",
+      "axis": "Mesh Discipline",
+      "construct": "Collab the swarm before guessing in isolation",
+      "runtime_check": "uncertainty_routing_check"
+    },
+    {
+      "id": "P-SOURCE-SHARING",
+      "framework": "Collaboration",
+      "name": "Share canonical sources",
+      "axis": "Cross-practice learning",
+      "construct": "Register sources at --visibility shared so peers reference",
+      "runtime_check": "source_visibility_check"
+    }
+  ]
+}

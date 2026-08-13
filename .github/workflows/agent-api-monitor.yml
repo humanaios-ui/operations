@@ -1,0 +1,44 @@
+name: agent-api-monitor
+
+# Run daily at 09:00 UTC
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  monitor-apis:
+    name: Check API health (daily)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          pip install requests anthropic supabase
+
+      - name: Run API Monitoring Bot
+        env:
+          METACULUS_TOKEN: ${{ secrets.METACULUS_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          python3 tools/agents/02_api_monitoring_bot_v1.py --check-all
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-monitor-results-${{ github.run_id }}
+          path: /tmp/api-monitor-*
+          retention-days: 30
