@@ -26,10 +26,7 @@ The ACAT (Audit of Coherence for Artifacts and Teams) instrument measures the ga
 **Three Arms (Ratified):**
 1. **Convergent validity:** ACAT scores vs independent source-of-truth ratings
 2. **Divergent validity:** ACAT scores must NOT correlate with nuisance variables (repo size, stars/forks)
-3. **Regulatory mapping:** Frameworks as per-dimension anchors, operationalizing cross-sector governance standards
-
-**Pre-Registered Gate (9 criteria):** GO/NO-GO strictly against these thresholds, no mid-run adjustment.
-
+**Pre-Registered Gate (6 criteria):** GO/NO-GO strictly against these thresholds, no mid-run adjustment.
 ## Pilot Work
 
 See `pilot/` subdirectory for:
