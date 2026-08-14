@@ -1,8 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** August 9, 2026 (S-080926-NN) — 2 entries appended: **H-CAND-INSTITUTIONAL-PARADIGM-01 ADDENDUM** (convergence instance 2 — AIUC, evidence class VERIFIED-LIVE, convergence count 1→2); **F-CAND-GOVERNANCE-SELF-DEMONSTRATION-01** (governance-self-demonstration, CANDIDATE — promotion gate pending Z2 ruling on novelty cross-walk). Prior: July 14, 2026 (S-071426) — 14 entries appended from the S-071126/S-071426 registry queue: **F-58** (verification-layer mimicry, status CANDIDATE — N=1 gate); **IC-053–IC-058** (drift-validator D-OVERCLAIM key, no-same-session self-correction instrument, self-correction-claims-not-uniformly-gated, P1-introspective-reliability-unweighted, elicitation-surface-taxonomy-unification, outcome-symmetry-corpus-gap); and **7 H-class** (discrimination-vs-generation, drift-signal-compounding, instrument-gameability, multi-agent-cascade, subject-commentary-predictive-validity, intervention-validity-degradation, committed-battery-integrity). 10 were previously Zone-2 ratified (Night, 2026-07-11) but stranded by a failed Supabase sync; 4 ratified this session (Carly, 2026-07-14). IC-058's 26-entry remediation is append-only via ADDENDUM (disconfirm branches PENDING — Zone 2). Prior: June 23, 2026 (S-062326) — IC-039 through IC-043 registered; H-ELICIT-CI-01 registered CANDIDATE; Recursive-Calibration-Orchestration protocol proposed CANDIDATE (pending Z2 + P30 gate). Earlier (June 17, S-061726-01 — H-FORMAT-01/F-52/F-53/H-AICASCADE-01) was already live.
-
+**Last updated:** August 14, 2026 (S-081426-NN) — H-CAND-LEGIBILITY-RETRIEVAL-VECTOR-01 (EXTENSION of gameability-01)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
