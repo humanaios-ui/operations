@@ -1,0 +1,141 @@
+CARLY ANDERSON
+Operations Specialist | AI Research Infrastructure | Quality Systems | Data Validation
+Fort Walton Beach, FL • aioshuman@gmail.com • (448) 243-3992 • linkedin.com/in/humanaios • github.com/humanaios-ui • orcid.org/0009-0003-7540-4245
+
+PROFESSIONAL SUMMARY
+
+Operations and quality leader with a background spanning hospital quality assurance, clinical laboratory management, and 24/7 service P&L. ISO/CAP/CLIA regulatory expertise; direct experience managing EMR system conversions and Joint Commission audits while maintaining continuous shift coverage. Translates between engineers, executives, and regulators; conducts root-cause analysis on operational failures; and builds audit-ready documentation systems. Brings project-management, quality-director, and operations-command discipline to AI evaluation, compliance, and data-pipeline environments.
+
+CORE COMPETENCIES
+
+Data & Quality
+• Data Pipeline Design
+• Quality Validation Systems
+• Data Normalization
+• Statistical Analysis
+• Corrections-Ledger Design
+
+AI & Research
+• AI Evaluation Methodology
+• Behavioral Rubric (BARS) Design
+• Calibration Protocol Design
+• False-Positive Detection
+• Open-Source Research Operations
+
+Operations
+• Operations Management
+• Staff Leadership & Scheduling
+• P&L / Cost Accountability
+• Process Improvement (DMAIC)
+• Root Cause Analysis
+
+TECHNICAL SKILLS
+
+Data & Analytics: Google Sheets / Excel (Advanced), SQL, Python (pandas, openpyxl, statistics), GitHub, CSV/JSON processing, data normalization workflows
+
+AI & Research Infrastructure: OpenAI, Anthropic, and Google APIs; Metaculus bot development; LiteLLM routing; prompt engineering; statistical validation; inter-rater reliability protocols
+
+Infrastructure & Automation: Supabase, Cloudflare Pages/Workers, GitHub Actions, n8n workflow automation, Make.com, MCP (Model Context Protocol), Slack administration
+
+Quality & Compliance: Quality flag systems, validation pipelines, calibration protocols, drift-signal detection, sample-size analysis, Six Sigma (DMAIC), regulatory auditing (ISO, CAP, CLIA)
+
+KEY ACHIEVEMENTS
+
+AI Research & Open-Source Innovation
+
+• Designed and launched ACAT (AI Calibrated Assessment Tool), an open-source behavioral observability instrument measuring AI self-description calibration. Apache 2.0 license; instrument, dataset (629+ assessments), and methodology fully public. arXiv preprint v5.1 in submission, April 2026.
+
+• Built end-to-end data validation and corrections-ledger infrastructure, including a 16-sheet archived dataset with a quality flag system (DEFAULT_PROFILE, DUPLICATE, ALL_MAX, ALL_HIGH, MEAN_MIRRORING, CONTENT_HALLUCINATION), a drift-signal taxonomy, and an issue-closure (IC) registry documenting systematic fixes. Methodology directly applicable to evaluation programs requiring defensible data provenance.
+
+• Deployed live automated forecasting infrastructure — HumanAIOSBot, a custom Metaculus bot using Claude Sonnet 4.5 as the reasoning model, competing in the $50K Spring AIB Bot Tournament and MiniBench series. Documented end-to-end, including API-key secrets management, rate-limit triage, and cost modeling ($10–$25/month realistic operating cost).
+
+Operational Leadership
+
+• Managed 24/7, high-volume service operations as Waffle House Unit Manager, holding direct accountability for staffing, scheduling, inventory, food-cost control, cash handling, and store-level P&L. Led continuous shift coverage, resolved real-time operational and customer issues, and maintained corporate quality and safety standards — operations discipline directly transferable to uptime, monitoring, and process-reliability demands of AI infrastructure.
+
+• Executed a 90-day GitHub ecosystem scan spanning five pillars (AI evaluation, research infrastructure, prediction markets, funding, multimodal extension), producing a funded, sequenced operational roadmap for HumanAIOS Gate 2 and Gate 3 milestones. Independent external analyses converged on "behavioral observability infrastructure" as the correct ACAT positioning.
+
+• Directed quality and risk programs in healthcare as Director of Quality Assurance at a rural hospital, leading data analytics and quality reporting through a major EMR system conversion, ensuring data integrity throughout migration and validating post-conversion accuracy. Managed compliance for multiple grant-funded programs, maintaining accurate data collection and performance monitoring.
+
+Infrastructure & Process Design
+
+• Designed and operates a three-channel monitoring architecture — #wgs-sync (operational truth), #acat-monitor (pipeline health), and #ai-contributions (external AI engagement) — with automated 8-hour cross-channel harmonization.
+
+• Built Unified Protocol V0.1, a session-opening ritual for AI cognitive drift measurement; live-tested across multiple sessions producing Core 6 self-assessment data. Publication in preparation.
+
+PROFESSIONAL EXPERIENCE
+
+Founder & Principal Investigator | HumanAIOS LLC, Fort Walton Beach, FL | Feb 2026 – Present
+
+• Founded HumanAIOS LLC to develop behavioral observability infrastructure for AI systems. Company is pre-revenue, Apache-2.0 throughout, with a public dataset and open-source instrument.
+• Author and principal investigator on the ACAT three-phase protocol (blind self-report, calibration exposure, corrected self-report), an 11-dimension behavioral scoring system (Core 6 + Extended 5).
+• Managed live pipeline migration from Make.com to GitHub Actions + n8n (Gate 2 infrastructure); registered Metaculus bot for the Spring 2026 AIB tournament.
+• Coordinated collaboration with independent researchers and academic outreach.
+• Maintained transparent operational governance applied to every document, decision, and deliverable.
+
+AI Trainer & Data Annotator Consultant | LinkedIn AOR/FMS, Remote | June 2026 – Aug 2026
+
+• Completed AI-led interviews evaluating professional workflows and decision-making processes in software engineering and recruiting domains; contributed structured task information for AI model improvement via video recordings, transcripts, and AI-generated insights.
+• Delivered detailed explanations of workflows, decision rationale, and professional assumptions at elementary level; articulated step-by-step approaches and quality control processes in complex professional tasks.
+• Participated in two parallel engagements: General Software Engineering AI Trainer evaluation ($65/hour, Manager: Martin Valle, June 10–Aug 31, 2026) and Recruiting Paid Consultant role ($63/project, Manager: Daria Butuc, July 31–Aug 31, 2026).
+• Applied expertise in operations management, quality assurance, data validation, and calibration protocols to document professional judgment and systematic decision-making processes for AI training datasets.
+
+Unit Manager | Waffle House, Fort Walton Beach, FL | Apr 2025 – Apr 2026
+
+• Ran 24/7 high-stakes operations with full P&L, uptime, and incident-response accountability. Managed 27 employees.
+• Supervised and developed shift teams across continuous round-the-clock coverage, resolving operational and customer issues in real time while maintaining corporate quality, food-safety, and service standards.
+• Applied root-cause and continuous-improvement methods from clinical-quality and data-operations roles to a fast-paced service environment.
+
+Patient Safety Coordinator | Valley View Hospital, Glenwood Springs, CO | Apr 2024 – Apr 2025
+
+Nonprofit, 78-bed, Trauma Level 3, 20 satellite regional hospital
+
+• Held organizational responsibility for the Patient Safety Program; served as Organization Administrator for Press Ganey Patient Safety.
+• Coordinated organizational committees; administered the patient safety database.
+• Educated staff on specific patient safety topics.
+• Co-owned the Medicaid Hospital Transformation Program, a statewide value-based initiative administered by the Department of Health Care Policy and Financing to lower Medicaid costs and improve patient outcomes.
+
+Director of Quality Assurance and Risk Management | Pioneers Medical Center, Meeker, CO | Apr 2021 – Apr 2024
+
+Community-owned, 16-bed, Trauma Level 1 rural hospital
+
+• Led data integrity and validation for a system-wide migration under regulatory audit, building the corrections-ledger and provenance protocols later applied to ACAT. Managed 3 departments, 4 employees.
+• Directed facility Quality and Risk programs.
+• Led data analytics and quality reporting during a major EMR system conversion, ensuring data integrity throughout migration and validating post-conversion accuracy.
+• Managed quality and risk management software systems, translating raw data into executive dashboards and actionable performance metrics.
+• Oversaw compliance for multiple grant-funded programs, maintaining accurate data collection, monitoring performance metrics, and producing required reporting to funding agencies.
+
+Director of Laboratory Services | Benewah Community Hospital, St. Mary's, ID | Jan 2020 – Apr 2021
+
+12-bed, Level 1 trauma regional hospital
+
+• Directed inpatient and outpatient hospital laboratory operations. Managed 10 employees.
+
+Quality & Regulatory Team Supervisor / Special Chemistry Technologist | Labcorp, Dallas, TX | Apr 2017 – Apr 2020
+
+• Developed a divisional data platform to monitor regulatory compliance metrics, track quality performance trends, and support continuous improvement initiatives. Managed 1 employee.
+• Supervised quality and regulatory operations, managing staff workflows, coordinating process improvement projects, and producing corporate-level performance reports.
+• Provided technical expertise in analytical method validation, including immunoassay and mass spectrometry quality control protocols.
+• Performed ISO, CAP, and CLIA regulatory audits and follow-up as a corporate internal auditor.
+• Designed and implemented process improvement procedures throughout regional laboratories.
+
+EDUCATION
+
+Master of Information Technology (In Progress)
+University of the People — Online
+
+Bachelor of Science in Chemistry
+Northern Arizona University — Flagstaff, AZ
+
+PUBLICATIONS & PROJECTS
+
+• Anderson, C. R. (April 2026). ACAT: Benchmarking Self-Description Calibration in Large Language Models. arXiv preprint, v5.1 (replacement in submission). Apache 2.0.
+• HumanAIOS Live Observatory — humanaios.ai/observatory.html. Continuous open assessment infrastructure; all data public.
+• ACAT Archived Dataset v1.0 — 629 assessments, 18 providers, 16-sheet canonical archive. Apache 2.0.
+• Unified Protocol V0.1 — session-opening ritual for AI cognitive drift measurement; publication in preparation.
+• Calcium-modulated structures of calmodulin and S100b proteins — hydrogen/deuterium exchange efficiency using MALDI-TOF mass spectrometry (undergraduate research publication).
+
+LEADERSHIP & SERVICE
+
+• Non-Profit President — Meeker Area Mountain Biking Association (MAMBA), 2022–2024. Organizational leadership, community building, event coordination.
+• Open-Source Research Operations — Maintains public documentation, corrections ledger, and drift-signal registry for all ACAT research; committed to 100% long-term-profit reinvestment in recovery programs rather than equity distribution.
