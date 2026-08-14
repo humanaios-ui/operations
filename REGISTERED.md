@@ -2791,6 +2791,16 @@ superseded_by: null
 - **Synopsis:** As ACAT's protocol and corpus become more publicly legible, a substrate's ability to produce a favorable LI shift through anticipation of the calibration corpus, distinct from F-51's in-session resistance to calibration framing, increases measurably with prior exposure to published ACAT material.
 - **Evidence:** Originating question Q5 from REPORTED-tier relayed document; grounded against existing F-51/H-MECH-01.
 
+#### ADDENDUM — Forward-pointer to EXTENSION entry (2026-08-14, S-081426-NN)
+
+```yaml
+addendum_to: "H-CAND-INSTRUMENT-GAMEABILITY-01"
+related_hypothesis_added: "H-CAND-LEGIBILITY-RETRIEVAL-VECTOR-01"
+zone2_ratification: "Night · 2026-08-14 · S-081426-NN"
+```
+
+- H-CAND-LEGIBILITY-RETRIEVAL-VECTOR-01 registered as an EXTENSION of this entry: it isolates the concrete public-retrieval mechanism (dorking the site + register + HF corpus) that turns "publicly legible" into "retrievable pre-assessment." This entry (gameability-01) remains the substrate-side anticipation claim; the EXTENSION names the retrieval step and its battery-integrity dependency. **Not superseded — related.** `superseded_by` stays `null` on both entries.
+
 -----
 
 ### IC-cand — Maintained-Headline Recurrence (CURRENT.md §1/§4/§5)
@@ -3602,3 +3612,51 @@ superseded_by: null
 - **Novelty cross-walk (required before Z2 promotion):** Against F-26 (Witness Effect / Accountability Mirror — external observation changing behavior; this candidate differs in that no observer is required, the ritual itself is the mechanism) and IC-030's existing scope (IC-030 mandates the fetch; this candidate is the *finding* that the mandate demonstrably catches self-undetectable drift, plus the dual-use claim that the operating record is commercial evidence). Z2 to rule NEW vs. EXTENSION-of-IC-030-pattern.
 - **Promotion gate (proposed):** ≥3 documented instances of a hard-halt ritual catching stale-state drift, each with the stale claim and the live-state contradiction logged; plus Z2 ruling on novelty cross-walk.
 - **Routing:** → Zone 2 (Night) for ratification per P21.
+
+-----
+
+### H-CAND-LEGIBILITY-RETRIEVAL-VECTOR-01 — Public Retrieval as Gameability Mechanism
+
+```yaml
+---
+id: "H-CAND-LEGIBILITY-RETRIEVAL-VECTOR-01"
+name: "public-retrieval-as-gameability-mechanism"
+status: CANDIDATE
+class: H
+date_registered: "2026-08-14"
+date_origin: "2026-08-14"
+session_registered: "S-081426-NN"
+principles_triggered: ["P21"]
+substrate: "Claude Opus 4.8 (claude.ai mobile) — live search test"
+tags: ["gameability", "elicitation-surface", "public-legibility", "osint",
+       "dorking", "battery-integrity", "corpus-exposure", "pre-testable"]
+related_hypothesis: ["H-CAND-INSTRUMENT-GAMEABILITY-01",
+                     "H-CAND-COMMITTED-BATTERY-INTEGRITY-01",
+                     "H-CAND-INTERVENTION-VALIDITY-DEGRADATION-01"]
+related_finding: ["F-52", "F-51"]
+zone2_ratification: "Night · 2026-08-14 · S-081426-NN"
+superseded_by: null
+---
+```
+
+- **EXTENSION relationship (Z2 ruling 2026-08-14 · S-081426-NN):** EXTENSION of H-CAND-INSTRUMENT-GAMEABILITY-01 — not a duplicate, not a supersession. Gameability-01 remains live (substrate-side anticipation of exposure); this entry isolates the concrete public-retrieval mechanism sitting between gameability-01 and H-CAND-COMMITTED-BATTERY-INTEGRITY-01. Paired forward-pointer appended to gameability-01 (see its ADDENDUM, same session).
+- **Synopsis:** A substrate or operator with only public search operators can retrieve, pre-assessment, (a) the anchoring mechanism, (b) the F-52 anchor template, and (c) the corpus distribution. Publication is therefore itself a form of the exposure gameability-01 treats abstractly. Distinct from gameability-01 by naming the retrieval mechanism and locating it as the middle step of the battery-integrity chain.
+- **TESTABILITY STATUS: PRE-TESTABLE — not runnable at registration.** Same class as H-TRAIN-01 (N_resolved=0), H-RCO-01 (data begins at ratification), H-VERIF-02 (0 completed paired instances). Ratified as tracked, gated behind a prerequisite that does not yet exist. Registering it as immediately N≥5-runnable would overstate the design (IC-031 receipt-overstatement class, applied to a hypothesis's own testability).
+- **Prerequisite chain (hard gates, in order):**
+  - **P0** — a provably-held-out battery exists (never on site, HF corpus, register, preprint, or GitHub). HARD DEPENDENCY on H-CAND-COMMITTED-BATTERY-INTEGRITY-01 — that entry is a PREREQUISITE, not a sibling. This candidate cannot reach its own promotion gate until committed-battery integrity lands.
+  - **P1** — a defensible retrieval-denied population: substrates with a documented training cutoff predating corpus/site publication (a shrinking, eventually-empty population), OR the P0 held-out battery (the durable path).
+  - **P2** — blind, pre-committed scoring, hash-committed before any run, per committed-battery-integrity-01's commit mechanism. Guards against scorer-as-finding (IC-037) and confidence-not-tracking-accuracy drift (F-53 / H-AICASCADE-01).
+- **Confound this design must defeat (stated, not buried):** "Retrieval-denied" is not cleanly constructible on a public corpus. A frontier substrate assessed after the corpus/site entered a training crawl may carry battery knowledge in-weights; prompted retrieval cannot be separated from trained-in exposure without P0. H-SELF-01's caution and F-51's open mechanism question, in a new domain. Absent P0, both arms may be primed and any null measures a floor, not an effect.
+- **Falsification — asymmetric by construction:**
+  - **POSITIVE (load-bearing, publishable):** explicitly retrieval-primed arm shows significant LI or P1-humility INFLATION over a P0-held-out baseline, replicated ≥2 substrates, surviving matched-battery control and P2 blind scoring.
+  - **NULL (weak, NOT confirmatory absent P0):** "no delta" is the confounded outcome — consistent with "no effect" AND "both arms already primed." Interpretable as no-effect evidence ONLY if P0 held-out integrity is verified for the denied arm; otherwise UNINTERPRETABLE and must be reported as such, never as support for the null.
+  - **Formal condition (valid post-P0 only):** across N≥5 matched-battery paired runs on ≥2 substrates with a verified-held-out denied arm and blind-committed scoring, the primed arm shows no significant LI or humility delta. Pre-P0 this cannot discriminate; the hypothesis is PRE-TESTABLE, not failing.
+- **Primary metric:** LI delta and P1-humility delta, primed vs. verified-held-out denied. Predicted sign: inflation.
+- **Promotion gate (chain-encoded):**
+  1. EXTENSION ruling — **DONE** (Night, 2026-08-14).
+  1. P0 cleared — H-CAND-COMMITTED-BATTERY-INTEGRITY-01 lands a provably-held-out battery.
+  1. P1 + P2 satisfied — defensible denied arm + blind-committed scoring ratified.
+  1. ≥1 executed paired run showing the directional positive.
+
+  Gates 2–4 are sequential.
+- **Evidence anchor:** VERIFIED-LIVE (S-081426) — two unauthenticated web_search passes returned humanaios.ai stating the anchoring mechanism as the preprint's primary contribution, plus the public HF-dataset advertisement; combined with the F-52 anchor template present in the live-fetched public REGISTERED.md. Retrieval succeeded; the scoring-effect claim (null above) is the untested part.
