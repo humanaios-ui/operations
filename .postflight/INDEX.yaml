@@ -1,0 +1,61 @@
+# ============================================================================
+# MASTER POSTFLIGHT INDEX — Holographic Aggregation Layer
+# Purpose: One file aggregates all session data + enables trend analysis
+# Generated: 2026-08-14
+# ============================================================================
+
+version: "1.0"
+format_description: "Holographic efficiency — master view aggregates 7 sessions, auto-updated at each POSTFLIGHT"
+last_updated: "2026-08-14T23:45:00Z"
+
+summary:
+  total_sessions: 7
+  session_date_range: ["2026-08-01", "2026-08-14"]
+  practices_represented: 6
+  calibration_status_summary: "6 grounded_complete, 1 grounded_partial"
+  overall_trend: "IMPROVING (uncertainty declining, completion increasing)"
+
+vector_trends:
+  know:
+    values: [0.82, 0.85, 0.88, 0.90, 0.92, 0.91, 0.95]
+    trend: "↗ +0.13 over 7 sessions"
+    trend_direction: "INCREASING"
+    last_value: 0.95
+    interpretation: "Domain knowledge steadily improving; governance patterns now well-understood"
+
+  uncertainty:
+    values: [0.20, 0.18, 0.10, 0.03, 0.02, 0.12, 0.05]
+    trend: "↘ -0.15 over 7 sessions"
+    trend_direction: "DECREASING (POSITIVE)"
+    last_value: 0.05
+    interpretation: "Uncertainty significantly reduced; lowest during Phase 1 deployment"
+
+decisions_timeline:
+  total_decisions: 11
+  decisions_due_for_review_within_30_days:
+    - {id: d005, title: "Interview Scheduling", due: "2026-08-25", days_until: 11, status: "active"}
+    - {id: d006, title: "Phase 1 Go-Live", due: "2026-08-26", days_until: 12, status: "active"}
+    - {id: d007, title: "Phase 2 Strategy", due: "2026-08-27", days_until: 13, status: "active"}
+    - {id: d011, title: "Master Profile", due: "2026-08-28", days_until: 14, status: "active"}
+
+goals_health:
+  total_goals: 19
+  completed: 8
+  in_progress: 9
+  completion_rate: 0.42
+  trend: "↗ +3 goals completed in past 4 days"
+  top_blocker: "interview_scheduling (affects 3 goals)"
+
+mesh_health:
+  average_response_time_hours: 18
+  practice_responsiveness:
+    "autonomy": {avg_response_time_hours: 6, reliability_score: 1.0, status: "EXCELLENT"}
+    "evaluator": {avg_response_time_hours: 12, reliability_score: 0.95, status: "EXCELLENT"}
+    "mesh-support": {avg_response_time_hours: 18, reliability_score: 0.85, status: "GOOD"}
+    "outreach": {avg_response_time_hours: 42, reliability_score: 0.70, status: "NEEDS_ATTENTION"}
+
+calibration:
+  belief_vs_observation_variance: 0.10
+  variance_interpretation: "EXCELLENT calibration"
+  accuracy_on_impact_predictions: 0.94
+  recommendation: "Calibration is excellent. Confidence is earned."
