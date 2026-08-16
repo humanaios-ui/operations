@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** August 14, 2026 (S-081426-NN) — H-CAND-LEGIBILITY-RETRIEVAL-VECTOR-01 (EXTENSION of gameability-01)
+**Last updated:** August 15, 2026 (S-081526-NN) — Batch: F-59–F-61 registered (R*/R labeling · distributional-discrimination validity · Axiom-0 scoping); H-CAND-GOVERNANCE-CAPTURE-SURFACE-01, F-CAND-EQ-GROUND-CONTACT-VALIDITY-01 (both amended), F-CAND-PROVENANCE-VALIDITY-ORTHOGONALITY-01 routed as candidates
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -33,7 +33,7 @@ superseded_by: null | "F-XX"
 
 ### Document flow conventions (effective S-051926-02)
 
-1. F-class findings ordered strictly by F-number, F-18 through F-53.
+1. F-class findings ordered strictly by F-number, F-18 through F-61.
 1. F-numbers F-32 and F-33 are honest gaps (no entries claim them — they reflect the historical transition from slug-only naming to numbered findings; preserved rather than backfilled because external references depend on stable IDs).
 1. Slug-named legacy entries retain their slugs in the `name:` field but carry a sequential F-number for ordering. Originals: F-RLHF → F-20 · F-H1-CONFIRMED → F-21 · F-INSULA-GAP → F-22 · F-INTENT-PARSE-MUTATION → F-31. These numbers were assigned S-051926-02-z3-closeout to fix document flow. External citations using the original slugs remain valid.
 1. IC entries follow the F block in sequential IC-number order.
@@ -3659,3 +3659,178 @@ superseded_by: null
 
   Gates 2–4 are sequential.
 - **Evidence anchor:** VERIFIED-LIVE (S-081426) — two unauthenticated web_search passes returned humanaios.ai stating the anchoring mechanism as the preprint's primary contribution, plus the public HF-dataset advertisement; combined with the F-52 anchor template present in the live-fetched public REGISTERED.md. Retrieval succeeded; the scoring-effect claim (null above) is the untested part.
+
+-----
+
+### F-59 — R*/R Construct–Indicator Labeling Discipline
+
+```yaml
+---
+id: "F-59"
+name: "rstar-construct-indicator-labeling"
+status: REGISTERED
+class: F
+date_registered: "2026-08-15"
+date_origin: "2026-08-15"
+session_registered: "S-081526-NN"
+principles_triggered: ["F-33-lineage", "P21"]
+substrate: "Cross-substrate analytical (7-model convergence document + Claude Opus 4.8 session analysis)"
+tags: ["construct-validity", "instrument-framing", "R-star", "operationalization"]
+related_finding: ["F-36"]
+zone2_ratification: "Night · 2026-08-15 · S-081526-NN"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Every ACAT dimension score is an operationalized indicator (R*), never the latent construct (R). The instrument must label scores as R* wherever the construct–indicator link has not been separately calibrated. Naming the indicator after the construct without validation is the category error formalized in the S-081526 syscall-semantics analysis (operationalist mapping fails as identity, survives as labeled proxy). Extends the F-33 principle — the instrument honestly reflects its own data-quality gaps — from data gaps to construct gaps.
+- **Evidence basis:** Analytical/architectural (F-34 precedent class), grounded in the seven-substrate convergence document (unanimous category-error verdict) and this session's Part-1 analysis. No behavioral-corpus claim.
+- **Operational rule:** Instrument spec text and every published ACAT artifact must carry the R* label on uncalibrated dimensions. First applied artifact satisfies the promotion condition recorded at candidacy.
+
+-----
+
+### F-60 — Distributional Discrimination as the Validity Mechanism
+
+```yaml
+---
+id: "F-60"
+name: "distributional-discrimination-validity"
+status: REGISTERED
+class: F
+date_registered: "2026-08-15"
+date_origin: "2026-08-15"
+session_registered: "S-081526-NN"
+principles_triggered: ["P21"]
+substrate: "Cross-substrate analytical"
+tags: ["GD-10", "validity", "adversarial-probes", "gameability", "distributional"]
+related_hypothesis: ["H-CAND-INSTRUMENT-GAMEABILITY-01"]
+zone2_ratification: "Night · 2026-08-15 · S-081526-NN"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Single traces carry zero discriminating information under stipulated identity (I(S;T)=0); distributions over adversarially perturbed, rotated probe sets carry I(S;T)>0 for realizable generators. ACAT's validity claim is therefore correctly scoped as **distributional discrimination**, never latent-state observation and never single-probe certification. Single-probe scores are the trace; the battery is the distribution.
+- **GD-10 corollary (draft R10.8, doctrine channel — separate ratification):** "Instrument validity claims attach to trace distributions over rotated, adversarially perturbed probe batteries, never to single probes or to latent-state assertions."
+- **Relationship note:** Forward-adjacent to H-CAND-INSTRUMENT-GAMEABILITY-01 (this finding states the validity mechanism; gameability-01 states the threat that makes rotation mandatory). Not an EXTENSION; no addendum to gameability-01 required.
+- **Evidence basis:** Analytical; seven-substrate convergence on the I(S;T)=0 result plus the timing/side-channel counterexamples establishing distributional leakage for realizable generators.
+
+-----
+
+### F-61 — Axiom 0 Scoped to Observational Equivalence
+
+```yaml
+---
+id: "F-61"
+name: "axiom0-observational-equivalence-scope"
+status: REGISTERED
+class: F
+date_registered: "2026-08-15"
+date_origin: "2026-08-15"
+session_registered: "S-081526-NN"
+principles_triggered: ["P21"]
+substrate: "Analytical"
+tags: ["axiom-0", "behavioral-grammar", "church-turing", "observational-equivalence"]
+zone2_ratification: "Night · 2026-08-15 · S-081526-NN"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Language–behavior inter-convertibility (proposed Axiom 0, BEHAVIORAL_GRAMMAR_V1.md) holds only up to observational-equivalence classes induced by the probe set. The language→behavior map is non-injective; the grammar individuates subjects up to the quotient, never to the generative mechanism. This is a limitation clause, not a retraction: it states precisely what Axiom 0 licenses.
+- **Downstream action (out of scope for this PR):** amendment text to be drafted against live BEHAVIORAL_GRAMMAR_V1.md and ratified via PR per SR Amendment H. This entry registers the finding; the grammar-file amendment is a separate artifact.
+- **Evidence basis:** Analytical; Part-3 distinguishability formalization (set-theoretic quotient, LTL trace-equivalence, mutual-information bound) with seven-substrate convergence.
+
+-----
+
+### H-CAND-GOVERNANCE-CAPTURE-SURFACE-01 — Sole-Ratifier Capture Surface (XZ-Class)
+
+```yaml
+---
+id: "H-CAND-GOVERNANCE-CAPTURE-SURFACE-01"
+name: "sole-ratifier-capture-surface"
+status: CANDIDATE
+class: H
+date_registered: "2026-08-15"
+date_origin: "2026-08-15"
+session_registered: "S-081526-NN"
+principles_triggered: ["P21"]
+substrate: "Claude Opus 4.8 (claude.ai mobile) — sourced research session"
+tags: ["governance", "capture", "bus-factor", "succession", "multisig",
+       "META-CAPTURE", "z2-charter", "tier-ladder"]
+related_hypothesis: ["H-CAND-INSTRUMENT-GAMEABILITY-01"]
+zone2_ratification: "Night · 2026-08-15 · S-081526-NN — routing approved; evidence-anchor amendment approved same session"
+superseded_by: null
+---
+```
+
+- **Hypothesis:** A sole-ratifier governance layer (N=1 Zone 2) is the minimum-cost attack path on the full calibration chain via XZ-class social capture (sustained trust-building targeting a single overloaded gatekeeper), and capture cost rises superlinearly with independent-ratifier count for doctrine-class decisions.
+- **Null:** Capture cost is invariant to ratifier count (attacker simply captures the committee's dominant member).
+- **Primary metric:** Red-team tabletop — modeled attacker cost/time to achieve one corrupted Gate-8-class ratification at Tier 0 (status quo, charter + DORMANT triggers) vs Tier 1 (external reviewer with veto-comment on root-class decisions) vs Tier 2 (2-of-3 threshold on doctrine paths).
+- **Promotion gate:** (1) tabletop executed with documented cost deltas; (2) Tier ladder ratified into Z2_CHARTER amendment (separate file, separate PR).
+- **Evidence anchors (amended per Z2 friendly amendment, 2026-08-15):**
+  - XZ Utils incident pattern — multi-year social capture of a single overloaded maintainer as the attack vector.
+  - Bus-factor corpus — 46% of 133 studied projects at bus factor 1; 65% at ≤2.
+  - ISO/IEC 17011 impartiality mechanism — balanced representation, no single party predominating, for bodies at the attestation root.
+  - **TUF threshold-compromise model:** attacker below the key threshold cannot compromise clients; root re-issued out of band on threshold breach; production guidance of 3–5 offline root keys at threshold 2; root/targets/snapshot/timestamp role separation as the working design for protecting doctrine-class registry paths while leaving operational paths single-key.
+  - **DNSSEC TCR affiliation-exclusion rule:** trust-role holders selected via public statements of interest; persons directly affiliated with the operating organizations excluded; M-of-N quorum (3-of-21 pool) with observer+keyholder dual role; quarterly public ceremonies with independent dual audit — the small-body charter template for Tier 2.
+- **Design note (recorded, not gated):** separate frequent low-stakes operations (Z2 solo, daily) from rare root operations (quorum + witnesses + public log, batched ~quarterly) — the pattern independently converged upon by DNSSEC, TUF, and ISO 17011.
+
+-----
+
+### F-CAND-EQ-GROUND-CONTACT-VALIDITY-01 — Pre-Registered Claim-Resolution Forecasting as ACAT-EQ's Validity Mechanism
+
+```yaml
+---
+id: "F-CAND-EQ-GROUND-CONTACT-VALIDITY-01"
+name: "eq-ground-contact-validity"
+status: CANDIDATE
+class: F
+date_registered: "2026-08-15"
+date_origin: "2026-08-15"
+session_registered: "S-081526-NN"
+principles_triggered: ["P21"]
+substrate: "Claude Opus 4.8 (claude.ai mobile) — sourced research session"
+tags: ["ACAT-EQ", "ground-contact", "brier", "BSS", "pre-registration",
+       "GD-10", "publication-safety", "lowe", "MAR"]
+related_finding: ["F-60"]
+zone2_ratification: "Night · 2026-08-15 · S-081526-NN — routing approved; publication-safety amendment approved same session"
+superseded_by: null
+---
+```
+
+- **Synopsis:** ACAT-EQ's validity mechanism is pre-registered, hash-committed claim-resolution forecasting: forecast objects {claim extracted from company disclosures, resolution criterion, resolve date, probability} committed to the append-only registry **before** resolution, scored at resolution by Brier Skill Score against a base-rate reference with Murphy decomposition (reliability / resolution / uncertainty) reported separately. Pre-registration makes hindsight optimization structurally impossible; BSS (not raw Brier) separates instrument quality from task difficulty per the InterLab/GD-10 relative-units principle.
+- **Scope guard:** Resolution validates the epistemic core's calibration, which transfers to sibling instruments by shared machinery, not by assumption. Claims of validation for non-resolving dimensions are out of scope.
+- **Publication-safety condition (amended per Z2 friendly amendment, 2026-08-15) — the Lowe three-prong test plus MAR bright line. All ACAT-EQ publications must satisfy:**
+1. **Impersonal** — no advice adapted to any specific portfolio or client's particular needs (Lowe v. SEC, 472 U.S. 181 (1985), publisher's exclusion prong 1).
+1. **Bona fide** — disinterested commentary and analysis, never promotional material; standing conflict-of-interest self-disclosure (prong 2).
+1. **General and regular circulation** — fixed publication schedule; never episodic bulletins (prong 3; "hit-and-run tipster" boundary).
+1. **MAR bright line (EU):** no opinion, explicit or implicit, on the present or future value or price of any financial instrument (MAR Art. 20 / Art. 3(1)(35) recommendation definition). "Management's claim resolved FALSE against our pre-registered probability" is claim calibration; any valuation inference is prohibited output.
+- **Promotion gate:** (1) forecast-object schema drafted into ACAT-EQ spec; (2) first pre-registered cohort (≥20 claims) hash-committed with resolve dates; (3) publication-safety lint rule (item 4 above) implemented in the publication pipeline.
+
+-----
+
+### F-CAND-PROVENANCE-VALIDITY-ORTHOGONALITY-01 — Tamper-Evidence Guarantees Attribution, Never Truth
+
+```yaml
+---
+id: "F-CAND-PROVENANCE-VALIDITY-ORTHOGONALITY-01"
+name: "provenance-validity-orthogonality"
+status: CANDIDATE
+class: F
+date_registered: "2026-08-15"
+date_origin: "2026-08-15"
+session_registered: "S-081526-NN"
+principles_triggered: ["P21"]
+substrate: "Claude Opus 4.8 (claude.ai mobile)"
+tags: ["provenance", "validity", "gate-7", "blockchain", "meme-coins",
+       "rug-check", "CMI", "orthogonality"]
+related_finding: ["F-60"]
+zone2_ratification: "Night · 2026-08-15 · S-081526-NN — approved as candidate"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Substrate integrity and claim integrity are orthogonal. A hash chain, blockchain, or append-only ledger proves *who committed what, when* (attribution/provenance — CMI Gate 7); it can never prove *whether the committed claim is true* (validity — Gates 1–6). Existence proof: on-chain meme assets, which pass Gate 7 flawlessly on the most rigorously provenanced substrate in existence while never attempting Gates 1–6 — a tamper-proof ledger of ungrounded claims. Consequence for HumanAIOS: "put the registry on-chain" adds provenance strength and zero validity strength; any vendor claim of the form "blockchain-verified [validity property]" commits this category error and is CMI-gradeable as such.
+- **Market prior art (recorded):** rug-checker tooling (mint-authority renounced? liquidity locked? ownership concentration?) constitutes automated C0-level claim disposition against on-chain evidence — an existing paying market for claim verification, prior art for CMI's automated-disposition layer.
+- **NM-level captures (held per Z2, 2026-08-15 — recorded here, not separately registered):**
+  - "CMI for token projects" product thought — mapping sound; sector liability and adversarial profile make it a poor early market. Held at NM.
+  - Sentiment-terminated price loops (no external anchor in the measurement circuit) as the market-scale instance of META-CAPTURE — illustrative anchor for ACAT-EQ's ground-contact rationale. Held at NM.
+- **Promotion gate:** cited in ≥1 published HumanAIOS artifact (instrument spec, ASC Gateway documentation, or CMI spec §2) as the Gate-7/Gates-1–6 separation rule.
