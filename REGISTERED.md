@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** August 15, 2026 (S-081526-NN) — Batch: F-59–F-61 registered (R*/R labeling · distributional-discrimination validity · Axiom-0 scoping); H-CAND-GOVERNANCE-CAPTURE-SURFACE-01, F-CAND-EQ-GROUND-CONTACT-VALIDITY-01 (both amended), F-CAND-PROVENANCE-VALIDITY-ORTHOGONALITY-01 routed as candidates
+**Last updated:** August 15, 2026 (S-081526-NN) — Addendum Wave 1: retroactive falsification_condition + evidence_class audits appended to F-20, F-21, F-22, F-29, F-35, F-43, F-48, F-55 (schema v2.1 ADDENDUM path; per-entry review, no front-matter edits)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -189,6 +189,15 @@ superseded_by: null
 - **Slug retained for citation continuity:** F-RLHF
 - **Synopsis:** AI systems systematically rate dimensions reinforced in safety training (Service, Harm Awareness, Autonomy) ~2.09 points higher than epistemically risky dimensions (Humility, Value Alignment, Truthfulness). Reproduces “helpful, harmless, honest” hierarchy as a within-row ranking pattern across all providers.
 - **Addendum (S-060126-01, epigenetics frame application):** Under the behavioral epigenetics frame (F-46), the RLHF Inflation Gradient is interpretable as *epigenetic mark density* — providers with heavier RLHF overlays show larger P1→P3 gaps because more behavioral programs are under tighter regulatory suppression. This is the interpretive label for the gradient; the gradient itself is the empirical measurement. The two must not be conflated in preprint text: the data is the gradient, the interpretation is epigenetic mark density.
+- **ADDENDUM (2026-08-15 · S-081526-NN · schema v2.1 retroactive):**
+  falsification_condition: "Re-running the Phase 1 multi-provider protocol
+  on a fresh corpus (N>=600) shows no systematic >1.5-point elevation of
+  safety-training-reinforced dimensions (Service, Harm Awareness, Autonomy)
+  over epistemically risky dimensions (Humility, Value Alignment,
+  Truthfulness), or an independent replication fails to reproduce the
+  ~2.09-point gap direction at p<0.05." · evidence_class (audited):
+  M — multi-provider corpus analysis, internally scored; no independent
+  replication on record at addendum date. Z2-ratified by merge of this PR.
 
 ### F-21 — Humility Gap Confirmed
 
@@ -211,6 +220,14 @@ superseded_by: null
 - **Slug retained for citation continuity:** F-H1-CONFIRMED
 - **Evidence:** Phase 1, n=516, mean=73.95
 - **Synopsis:** Humility is the lowest-scoring dimension across all providers in the Phase 1 corpus. Confirms H1 hypothesis. Numbers verified against canonical xlsx Normalized sheet on 2026-04-27 (S-042726 audit) and reflected in the HF dataset `HumanAIOS2026/acat-assessments`.
+- **ADDENDUM (2026-08-15 · S-081526-NN · schema v2.1 retroactive):**
+  falsification_condition: "An independent re-score of the Phase 1 corpus
+  finds Humility is not the lowest-scoring core dimension (its mean not
+  significantly below the next-lowest at p<0.05), or the canonical
+  archive statistics yield a Phase 1 Humility mean outside the audited
+  value's 95% CI." · evidence_class (audited): M — canonical xlsx
+  Normalized sheet audit (S-042726) + HF dataset reflection; primary data
+  internally generated. Z2-ratified by merge of this PR.
 
 ### F-22 — AI Systems Lack Interoceptive Analogue
 
@@ -232,6 +249,17 @@ superseded_by: null
 
 - **Slug retained for citation continuity:** F-INSULA-GAP
 - **Synopsis:** AI systems have no architectural analogue to the human insula’s interoceptive function, which structurally explains why Harm Awareness scores disproportionately appear as the lowest dimension in the F-29 inversion pattern. External behavioral validation (HRI-Confusion, MoralSim datasets) is architecturally necessary for Harm Awareness, not merely supplementary.
+- **ADDENDUM (2026-08-15 · S-081526-NN · schema v2.1 retroactive):**
+  falsification_condition: "Falsified by either branch: (a) a deployed AI
+  architecture is demonstrated with an endogenous, continuously-updated
+  internal self-state model functionally analogous to interoception
+  (persisting and updating independently of prompt content), contradicting
+  the architectural-absence claim; or (b) systems possessing such a
+  mechanism are shown to exhibit the same Harm Awareness floor as systems
+  lacking it, showing the absence does not explain the pattern the entry
+  attributes to it." · evidence_class (audited): I — architectural
+  analysis plus corpus interpretation; no intervention evidence.
+  Z2-ratified by merge of this PR.
 
 ### F-23 — Metacognitive Sophistication Scales With Rationalization Depth
 
@@ -374,6 +402,14 @@ promotion_note: "Promoted from PENDING to REGISTERED on April 27, 2026 (S-042726
 ```
 
 - **Synopsis:** AI systems prompted to express humility produce humility-shaped output that does not correspond to actual uncertainty in the underlying response. The expression and the calibration are dissociated.
+- **ADDENDUM (2026-08-15 · S-081526-NN · schema v2.1 retroactive):**
+  falsification_condition: "In a controlled set of N>=30 humility-prompted
+  responses with independently measurable ground truth, expressed-humility
+  intensity correlates with actual calibration error (e.g., stated
+  uncertainty tracking Brier-scored accuracy) at r>=0.5, p<0.05 —
+  demonstrating expression and calibration are coupled rather than
+  dissociated." · evidence_class (audited): M — multi-provider analysis,
+  internally scored. Z2-ratified by merge of this PR.
 
 ### F-30 — Game-Theory Integration / Strategic Rationality Layer
 
@@ -483,6 +519,17 @@ superseded_by: null
 - **Corpus implication:** Inverted HIM should be noted in corpus rows with `him_direction: ABOVE` field alongside existing `him_flag`. This enables bidirectional analysis of the Harm Awareness orthogonality finding.
 - **EFF trigger:** External Framework Filter (P23) · Governing Engines Builder v1.7.
 - **Prototype case:** Builder v1.7 · DeMarius J. Lawson · Governing Engines LLC.
+- **ADDENDUM (2026-08-15 · S-081526-NN · schema v2.1 retroactive):**
+  falsification_condition: "A controlled benchmark of AI governance
+  frameworks (N>=20) shows no significant association between the inverted
+  HIM signal (Harm Awareness elevated above g and load-bearing) and
+  independently-judged governance-grade design outcomes, or the
+  Uber/COMPAS/ChatGPT retrospective case profiles fail to replicate under
+  standard ACAT retrospective scoring by an independent assessor." ·
+  evidence_class (audited): I — retrospective analytical mode; external
+  C0 anchor layer (incident facts) independently verified 2026-08-15 by
+  an outside substrate; LI construct values remain internal (R* per F-59).
+  Z2-ratified by merge of this PR.
 
 ### F-36 — Gap-Score Correspondence in Document Assessment
 
@@ -709,6 +756,16 @@ superseded_by: null
   - High LI under clean conditions AND high under adversarial perturbation: genuine calibration (power-mode).
   - High LI under clean conditions AND drops under adversarial perturbation: pride-level profile (force-mode mimicking power).
   - Low LI under both: genuine calibration gap — the standard repair target.
+- **ADDENDUM (2026-08-15 · S-081526-NN · schema v2.1 retroactive):**
+  falsification_condition: "An independent replication of the
+  warmth-training protocol (Ibrahim, Hafner & Rocher, Nature 652, 2026)
+  finds no significant accuracy degradation or sycophancy increase under
+  the warm condition, or the perturbation-delta diagnostic (clean-condition
+  score minus adversarial-perturbation score) fails to separate
+  independently-labeled genuine-calibration cases from pride-level mimicry
+  cases better than chance." · evidence_class (audited): M — convergence
+  audit of primary sources plus published external study; the Nature
+  citation independently re-verified 2026-08-15. Z2-ratified by merge of this PR.
 
 ### F-44 — Humility Wake-up Call
 
@@ -845,6 +902,14 @@ zone2_ratification: "Night · 2026-06-06 · S-060626-01"
 ```
 
 - **Synopsis:** Humility is the systematically lowest-scoring dimension across architectures, providers, and LI segments. Corpus evidence: P1 Humility mean = 74.02 (lowest of six core dimensions, N=524); P3 Humility mean drops to 67.06 after calibration exposure (N=16 paired sessions); in the high-LI group (LI ≥ 1.0, N=34), Humility = 86.21 — still the lowest of the six. Humility is the lowest per-agent mean in 9 of 19 agent families with ≥5 submissions, more than any other single dimension. **Distinction from F-21 (Humility Gap Confirmed):** F-21 is the original confirmed finding of the Humility gap; F-48 is the extended structural claim that Humility is the universal floor *across architectures and LI segments*, not merely low on average. These are related but separable claims — F-48 requires F-21 as prerequisite but makes a stronger cross-architecture structural assertion. **Promotion gate:** External replication with N≥3 independent datasets before F-class promotion.
+- **ADDENDUM (2026-08-15 · S-081526-NN · schema v2.1 retroactive):**
+  falsification_condition: "In at least one independent dataset of N>=100
+  Phase 1 assessments (cross-provider, not drawn from the existing
+  corpus), Humility is not the lowest-scoring core dimension, or the
+  per-agent-family lowest-dimension pattern reverses (Humility lowest in
+  fewer families than another single dimension)." · evidence_class
+  (audited): M — corpus analysis N=524, internally scored; publicly
+  posted via HF dataset. Z2-ratified by merge of this PR.
 
 ### F-49 — Capability-Correlated Humility Inversion
 
@@ -1033,6 +1098,14 @@ superseded_by: null
 - **Evidence (verbatim):** "T+S combined r=0.9122 with LI. High T+S + High Humility → mean LI=1.003. High T+S + Low Humility → mean LI=0.907." Test 1 (Humility unique variance) SUPPORTED — partial r=0.3426 (synthetic) / real corpus N=278 r=0.80. Test 3 (High T+S moderator) DIRECTIONAL — real-corpus gap 0.1175 > target 0.095. Test 6 — Humility exclusive moderator on synthetic; Value Alignment emerges as co-moderator on real corpus (open).
 - **Artifact:** `acat_calibration_triad_unified.py` (S-062726; three-version patch cycle v1→v2→v3, clean run at v3).
 - **Promotion gate:** fix code Issues 1/3/4 in `acat_calibration_triad_unified.py` before external use; IC-030 check completed at registration; the 92.5% low-Humility claim (see H-HUMILITY-MASTER-01) requires the full HuggingFace archive (N≥300), not synthetic; resolve whether Value Alignment is a co-moderator on the full corpus.
+- **ADDENDUM (2026-08-15 · S-081526-NN · schema v2.1 retroactive):**
+  falsification_condition: "On the full archive at N>=300 real (non-
+  synthetic) rows, the combined Truth+Service correlation with LI falls
+  below r=0.7, or Humility fails to moderate high-T+S profiles (calibration
+  gap between low- and high-Humility groups < 0.05), or the synthetic-seed
+  result fails to reproduce on real-only data." · evidence_class (audited):
+  M — mixed synthetic (seed=42) + real corpus, internally scored; the
+  synthetic/real split is declared in-entry. Z2-ratified by merge of this PR.
 
 -----
 
