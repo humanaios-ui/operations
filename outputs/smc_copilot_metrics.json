@@ -1,0 +1,46 @@
+{
+  "version": "smc_copilot_v0.1",
+  "repo_root": "/home/workdir/ops-repo",
+  "populations": {
+    "tools_py": {"glob": "tools/*.py", "count": 110},
+    "docs": {"glob": "docs/**", "count": 103},
+    "workflows": {"glob": ".github/workflows/*", "count": 35},
+    "agents_skills": {"glob": ".agents/skills/**", "count": 2},
+    "root_md": {"glob": "root *.md", "count": 146}
+  },
+  "per_population_metrics": {
+    "tools_py": {"unit_count": 110, "isolation_rate": 0.1818, "spine_attachment": 0.2182, "dangling_rate": 0.7818, "sha256_users": 12, "chain_users": 1},
+    "docs": {"unit_count": 103, "isolation_rate": 0.3301, "spine_attachment": 0.3495, "dangling_rate": 0.5437, "sha256_users": 7, "chain_users": 0},
+    "workflows": {"unit_count": 35, "isolation_rate": 0.2857, "spine_attachment": 0.0571, "dangling_rate": 0.5429, "sha256_users": 0, "chain_users": 0},
+    "agents_skills": {"unit_count": 2, "isolation_rate": 1.0, "spine_attachment": 0.0, "dangling_rate": 0.5, "sha256_users": 0, "chain_users": 0},
+    "root_md": {"unit_count": 146, "isolation_rate": 0.1301, "spine_attachment": 0.2329, "dangling_rate": 0.5205, "sha256_users": 2, "chain_users": 0}
+  },
+  "shared_store_count": 384,
+  "total_store_refs": 1167,
+  "top_shared_stores": [
+    {"store": "REGISTERED.md", "unit_count": 76},
+    {"store": "GOVERNANCE.md", "unit_count": 46},
+    {"store": "CURRENT.md", "unit_count": 40},
+    {"store": "SESSION_RITUALS.md", "unit_count": 37},
+    {"store": "{TOOL_NAME}_{ts}.json", "unit_count": 22},
+    {"store": "OPERATOR_RUNBOOK.md", "unit_count": 21},
+    {"store": "README.md", "unit_count": 21},
+    {"store": "SEED.md", "unit_count": 16},
+    {"store": "nonexistent/path/that/cannot/exist.json", "unit_count": 13},
+    {"store": "SKILL.md", "unit_count": 11}
+  ],
+  "top_dangling_targets": [
+    {"store": "{TOOL_NAME}_{ts}.json", "unit_count": 22},
+    {"store": "nonexistent/path/that/cannot/exist.json", "unit_count": 13},
+    {"store": "assess.html", "unit_count": 11},
+    {"store": "ACAT_SESSION_PROMPT.md", "unit_count": 10},
+    {"store": "acat_corpus_session.py", "unit_count": 10},
+    {"store": "acat_observability_bridge.py", "unit_count": 10},
+    {"store": "acat_rec2_session_init.py", "unit_count": 10},
+    {"store": "acat_rec3_preflight_reminder.py", "unit_count": 10},
+    {"store": "acat_rec4_postflight_verifier.py", "unit_count": 10},
+    {"store": "tools/acat_corpus_session.py", "unit_count": 9}
+  ],
+  "shared_tier_distribution": {"L2": 340, "L3": 23, "L0": 21},
+  "spine_documents": ["CURRENT.md", "GOVERNANCE.md", "REGISTERED.md", "SESSION_RITUALS.md"]
+}
