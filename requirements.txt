@@ -3,5 +3,5 @@ uvicorn[standard]>=0.52.4
 jsonschema>=4.26.0
 PyYAML>=6.0.3
 pydantic>=2.4.0
-python-dotenv>=1.2.2
+python-dotenv>=1.2.3
 certifi>=2026.7.22
