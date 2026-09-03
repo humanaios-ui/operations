@@ -10,7 +10,7 @@
 # versions' minor lines, ceilings at next major per house convention)
 
 fastmcp>=3.4.7,<4.0.0
-mcp>=2.0.0,<3.0.0          # fastmcp's protocol layer; declared explicitly since
+mcp>=2.1.1,<3.0.0          # fastmcp's protocol layer; declared explicitly since
                             # two tools import `mcp` directly
 supabase>=2.31.0,<3.0.0     # matches the floor already pinned in tools/Metaculus
 anthropic>=1.0.0,<2.0.0
