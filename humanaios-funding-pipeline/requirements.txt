@@ -1,7 +1,7 @@
 # humanaios-funding-pipeline requirements
 # Pin minor versions for reproducibility; update with `pip install -U`
 
-pydantic>=2.13.4,<3
+pydantic>=2.13.5,<3
 requests>=2.34.2,<3
 beautifulsoup4>=4.15.0,<5
 pytest>=9.1.1,<10
