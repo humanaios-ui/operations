@@ -1,0 +1,536 @@
+{
+  "metadata": {
+    "version": "0.2",
+    "generated": "2026-09-06T00:00:00Z",
+    "registered_md_sha": "40391062966c6d6f9e29819a56ba1b87a035146e9d962a331d33de0aa8069029",
+    "registered_md_lines": 3909,
+    "ratifications": {
+      "OI-G1": "molt-tiers-anticascade-K3-N10-20260906",
+      "OI-G2": "pq-formula-impact-unblocks-20260906",
+      "OI-G3": "zone-integer-extend-zone3-20260906"
+    },
+    "molt_id": null,
+    "note": "All nodes are processes (code that runs). No document nodes. Z1 proposes; Z2 ratifies by hash; Z3 lands; CI enforces."
+  },
+  "nodes": [
+    {
+      "id": "Q",
+      "label": "Priority Queue",
+      "file": "z2_queue v1_1",
+      "zone": 2,
+      "tier": null,
+      "reads": ["queue_items.json", "ledgers", "callouts", "CONST weights"],
+      "writes": ["PRIORITY_QUEUE.md", "hash"],
+      "wakes_on": "start of cycle; any item edit",
+      "operator": "Z2 ratifies hash and impact pins",
+      "enforcement": "only READY top-score rows may start"
+    },
+    {
+      "id": "FS",
+      "label": "Findings Scan",
+      "file": "findings_scan_skill",
+      "zone": 1,
+      "tier": 0,
+      "reads": ["event chains", "transcript", "molt ledger"],
+      "writes": ["Registry Candidate Block"],
+      "wakes_on": "end of session; before close; on REVERT",
+      "operator": "Z2",
+      "enforcement": "falsifier_lint: no H without disproof line"
+    },
+    {
+      "id": "OM",
+      "label": "Operator Model",
+      "file": "operator_model_v0_2.py",
+      "zone": 1,
+      "tier": 0,
+      "reads": ["operator_events.jsonl"],
+      "writes": ["read-back", "JSON", "candidate block"],
+      "wakes_on": "negotiation session; stale sweep",
+      "operator": "Z2 confirm/correct/reject/contest",
+      "enforcement": "only Z2 events change status; prior retained"
+    },
+    {
+      "id": "PRS",
+      "label": "PRS Runner",
+      "file": "prs_run.py",
+      "zone": 1,
+      "tier": 0,
+      "reads": ["prereg/PR-*.md", "live REGISTERED.md", "adapter", "CONST rubrics"],
+      "writes": ["prs_events.jsonl", "VERDICT"],
+      "wakes_on": "a prereg hash is ratified",
+      "operator": "Z2 ratifies hash before; code emits verdict after",
+      "enforcement": "refuses without hash match; no overrides"
+    },
+    {
+      "id": "AG",
+      "label": "Agent Runtime",
+      "file": "agent_core.py",
+      "zone": 1,
+      "tier": 0,
+      "reads": ["prereg params", "adapter state", "CONST caps"],
+      "writes": ["CYCLE events", "metrics"],
+      "wakes_on": "PRS run or direct paper run",
+      "operator": "caps in gate; beyond cap = Z2_REQUIRED",
+      "enforcement": "never auto-approves; halts on drawdown"
+    },
+    {
+      "id": "ADV",
+      "label": "Adversarial Eval",
+      "file": "adv_eval_v1.py",
+      "zone": 1,
+      "tier": 0,
+      "reads": ["gates under test"],
+      "writes": ["ATTACK/VERDICT events", "catch rates"],
+      "wakes_on": "after any gate change or Tier-1/2 molt on a gate; quarterly",
+      "operator": "Z2 chooses attacks",
+      "enforcement": "NO_GATE reported, never counted as caught"
+    },
+    {
+      "id": "TC",
+      "label": "Behavior Dials",
+      "file": "tune_check.py",
+      "zone": 1,
+      "tier": 0,
+      "reads": ["behavior_spec.json (CONST)"],
+      "writes": ["score event", "DRIFT callout"],
+      "wakes_on": "every Z1 reply",
+      "operator": "Z2 moves dials (logged); molt may propose",
+      "enforcement": "gate in pipeline"
+    },
+    {
+      "id": "MOLT",
+      "label": "Molt Cycle",
+      "file": "molt_cycle.py",
+      "zone": 3,
+      "tier": 1,
+      "reads": ["NF", "EV", "Q gaps", "ST", "live REGISTERED.md"],
+      "writes": ["MOLT_CANDIDATE", "molt_events.jsonl", "CONST writes (ratified) / reverts (mechanical)"],
+      "wakes_on": "session open; after VERDICT batch; window close",
+      "operator": "Z2 ratifies Tier 1/2; code measures and reverts",
+      "enforcement": "anti-cascade rules 1–5; freeze after 2 reverts; loop-level falsifier"
+    },
+    {
+      "id": "CONST",
+      "label": "Constants",
+      "file": "behavior_spec.json, integrity_modes.json, rubrics, weights, caps",
+      "zone": 3,
+      "tier": 1,
+      "reads": null,
+      "writes": "versioned values with molt_id",
+      "wakes_on": "written only by Molt (ratified) or revert",
+      "operator": "Z2 via molt hash",
+      "enforcement": "CI rejects a constant change with no molt_id"
+    },
+    {
+      "id": "EV",
+      "label": "Event chains",
+      "file": "*.jsonl",
+      "zone": 1,
+      "tier": 0,
+      "reads": null,
+      "writes": "append-only, hash-chained",
+      "wakes_on": "events written by runners",
+      "operator": "code",
+      "enforcement": "append-only constraint"
+    },
+    {
+      "id": "NF",
+      "label": "Calibration ledger",
+      "file": "NF_LEDGER, Brier per predictor and per constant",
+      "zone": 1,
+      "tier": 0,
+      "reads": null,
+      "writes": "append-only, resolution of predictions",
+      "wakes_on": "prediction windows close",
+      "operator": "code",
+      "enforcement": "append-only constraint"
+    },
+    {
+      "id": "REG",
+      "label": "REGISTERED.md",
+      "file": "REGISTERED.md",
+      "zone": 2,
+      "tier": null,
+      "reads": ["F-entries", "H-entries", "IC-entries", "ratifications"],
+      "writes": "public record (append-only)",
+      "wakes_on": "Z2 ratification",
+      "operator": "Z2",
+      "enforcement": "CI merge gate; every merge regenerates Merkle root"
+    },
+    {
+      "id": "ML",
+      "label": "Molt ledger",
+      "file": "molt_events.jsonl",
+      "zone": 1,
+      "tier": 0,
+      "reads": null,
+      "writes": "hash-chained molt events",
+      "wakes_on": "MOLT/MEASURE/KEEP/REVERT events",
+      "operator": "code",
+      "enforcement": "append-only, chains into EV"
+    },
+    {
+      "id": "Z2",
+      "label": "Z2 ratification",
+      "file": "Z2 decision point",
+      "zone": 2,
+      "tier": null,
+      "reads": ["candidate blocks", "preregistrations", "proposed molts"],
+      "writes": "RATIFY event (hash)",
+      "wakes_on": "receives Z1 proposal",
+      "operator": "Z2 (Night)",
+      "enforcement": "hash, not prose"
+    },
+    {
+      "id": "CIG",
+      "label": "CI gate",
+      "file": "z2_ratification_gate.yml",
+      "zone": 3,
+      "tier": null,
+      "reads": ["CODEOWNERS", "lints", "proofs", "molt_id presence"],
+      "writes": "merge / block",
+      "wakes_on": "every PR to registry/governance/tools/constants",
+      "operator": "Z2 via CODEOWNERS",
+      "enforcement": "code, not memory"
+    },
+    {
+      "id": "MK",
+      "label": "Merkle root",
+      "file": "registry_merkle_v1.py",
+      "zone": 3,
+      "tier": 0,
+      "reads": ["REGISTERED.md", "ledgers", "prior root"],
+      "writes": "REGISTERED.root + proofs",
+      "wakes_on": "every merge touching REGISTERED.md or ledgers",
+      "operator": "none — mechanical",
+      "enforcement": "consistency FAIL blocks merge"
+    },
+    {
+      "id": "OTS",
+      "label": "Anchor",
+      "file": "anchor_root.sh (OpenTimestamps → Bitcoin)",
+      "zone": 3,
+      "tier": 0,
+      "reads": ["REGISTERED.root"],
+      "writes": ".ots proof",
+      "wakes_on": "after root regenerates on main",
+      "operator": "none — mechanical",
+      "enforcement": "seals only what already passed"
+    },
+    {
+      "id": "RC",
+      "label": "Receipt Reconciliation",
+      "file": "receipt_reconciliation_skill (B.6)",
+      "zone": 1,
+      "tier": 0,
+      "reads": ["claims in transcript vs tree"],
+      "writes": ["walk-back", "RECEIPT-GAP"],
+      "wakes_on": "session close (B.6)",
+      "operator": "Z2",
+      "enforcement": "IC-031 mitigation (claim overstatement)"
+    },
+    {
+      "id": "ST",
+      "label": "Stale sweep",
+      "file": "stale_sweep (decay → reopen as GAP)",
+      "zone": 1,
+      "tier": 0,
+      "reads": ["last_read + half-life (CONST)"],
+      "writes": ["STALE gaps", "STALE constants"],
+      "wakes_on": "nightly / on read",
+      "operator": "Z2 re-reads or retires",
+      "enforcement": "decay math, not opinion"
+    }
+  ],
+  "edges": [
+    {
+      "source": "Q",
+      "target": "PRS",
+      "type": "work_order",
+      "label": "work order"
+    },
+    {
+      "source": "Q",
+      "target": "AG",
+      "type": "work_order",
+      "label": "work order"
+    },
+    {
+      "source": "Q",
+      "target": "OM",
+      "type": "work_order",
+      "label": "work order"
+    },
+    {
+      "source": "Q",
+      "target": "ADV",
+      "type": "work_order",
+      "label": "work order"
+    },
+    {
+      "source": "PRS",
+      "target": "EV",
+      "type": "event",
+      "label": "CYCLE / VERDICT events"
+    },
+    {
+      "source": "AG",
+      "target": "EV",
+      "type": "event",
+      "label": "CYCLE / VERDICT events"
+    },
+    {
+      "source": "ADV",
+      "target": "EV",
+      "type": "event",
+      "label": "ATTACK / VERDICT events"
+    },
+    {
+      "source": "TC",
+      "target": "EV",
+      "type": "event",
+      "label": "score events"
+    },
+    {
+      "source": "PRS",
+      "target": "NF",
+      "type": "resolution",
+      "label": "p_expected resolved"
+    },
+    {
+      "source": "OM",
+      "target": "NF",
+      "type": "resolution",
+      "label": "D10 predictions resolved"
+    },
+    {
+      "source": "EV",
+      "target": "FS",
+      "type": "read",
+      "label": "events"
+    },
+    {
+      "source": "FS",
+      "target": "Z2",
+      "type": "candidate",
+      "label": "candidate block"
+    },
+    {
+      "source": "OM",
+      "target": "Z2",
+      "type": "candidate",
+      "label": "candidate block"
+    },
+    {
+      "source": "PRS",
+      "target": "Z2",
+      "type": "candidate",
+      "label": "prereg sha"
+    },
+    {
+      "source": "Z2",
+      "target": "CIG",
+      "type": "ratification",
+      "label": "RATIFY event"
+    },
+    {
+      "source": "CIG",
+      "target": "REG",
+      "type": "merge",
+      "label": "merge"
+    },
+    {
+      "source": "REG",
+      "target": "MK",
+      "type": "trigger",
+      "label": "every merge"
+    },
+    {
+      "source": "MK",
+      "target": "OTS",
+      "type": "trigger",
+      "label": "root"
+    },
+    {
+      "source": "MK",
+      "target": "CIG",
+      "type": "gate",
+      "label": "consistency FAIL blocks merge"
+    },
+    {
+      "source": "REG",
+      "target": "PRS",
+      "type": "read",
+      "label": "IC-030 live read"
+    },
+    {
+      "source": "REG",
+      "target": "FS",
+      "type": "read",
+      "label": "IC-030 live read"
+    },
+    {
+      "source": "REG",
+      "target": "Q",
+      "type": "read",
+      "label": "IC-030 live read"
+    },
+    {
+      "source": "RC",
+      "target": "Q",
+      "type": "callout",
+      "label": "RECEIPT-GAP callouts"
+    },
+    {
+      "source": "ST",
+      "target": "OM",
+      "type": "callout",
+      "label": "STALE gaps"
+    },
+    {
+      "source": "ST",
+      "target": "Q",
+      "type": "callout",
+      "label": "STALE gaps"
+    },
+    {
+      "source": "NF",
+      "target": "Q",
+      "type": "signal",
+      "label": "Brier trend"
+    },
+    {
+      "source": "TC",
+      "target": "Q",
+      "type": "callout",
+      "label": "DRIFT"
+    },
+    {
+      "source": "NF",
+      "target": "MOLT",
+      "type": "read",
+      "label": "Brier per predictor / constant"
+    },
+    {
+      "source": "EV",
+      "target": "MOLT",
+      "type": "read",
+      "label": "verdict, catch, drift rates"
+    },
+    {
+      "source": "Q",
+      "target": "MOLT",
+      "type": "read",
+      "label": "pin vs re-score gaps"
+    },
+    {
+      "source": "REG",
+      "target": "MOLT",
+      "type": "read",
+      "label": "IC-030 live read"
+    },
+    {
+      "source": "ST",
+      "target": "MOLT",
+      "type": "read",
+      "label": "STALE constants"
+    },
+    {
+      "source": "MOLT",
+      "target": "Z2",
+      "type": "candidate",
+      "label": "MOLT_CANDIDATE: change · prediction · falsifier · revert rule"
+    },
+    {
+      "source": "Z2",
+      "target": "MOLT",
+      "type": "ratification",
+      "label": "RATIFY hash"
+    },
+    {
+      "source": "MOLT",
+      "target": "CONST",
+      "type": "apply",
+      "label": "apply (ratified) / revert (mechanical)"
+    },
+    {
+      "source": "MOLT",
+      "target": "ML",
+      "type": "event",
+      "label": "MOLT / MEASURE / KEEP / REVERT events"
+    },
+    {
+      "source": "ML",
+      "target": "EV",
+      "type": "chain",
+      "label": "chained"
+    },
+    {
+      "source": "MOLT",
+      "target": "NF",
+      "type": "resolution",
+      "label": "molt prediction resolved"
+    },
+    {
+      "source": "MOLT",
+      "target": "FS",
+      "type": "callout",
+      "label": "REVERT → F/IC candidate"
+    },
+    {
+      "source": "MOLT",
+      "target": "ADV",
+      "type": "trigger",
+      "label": "gate changed → re-run"
+    },
+    {
+      "source": "CONST",
+      "target": "TC",
+      "type": "read",
+      "label": "dials"
+    },
+    {
+      "source": "CONST",
+      "target": "Q",
+      "type": "read",
+      "label": "weights"
+    },
+    {
+      "source": "CONST",
+      "target": "PRS",
+      "type": "read",
+      "label": "rubrics"
+    },
+    {
+      "source": "CONST",
+      "target": "AG",
+      "type": "read",
+      "label": "caps"
+    }
+  ],
+  "validation": {
+    "dangling_nodes": [],
+    "dangling_edges": [],
+    "cycles": [
+      "MOLT → CONST → Q → MOLT (learning loop; tier-gated)",
+      "EV → FS → Z2 → CIG → REG → EV (record chain; append-only)"
+    ],
+    "state_mutators": [
+      {
+        "node": "MOLT",
+        "zone": 3,
+        "requires": "Z2 ratification hash"
+      },
+      {
+        "node": "CONST",
+        "zone": 3,
+        "requires": "molt_id in git diff"
+      },
+      {
+        "node": "REG",
+        "zone": 2,
+        "requires": "Z2 via CODEOWNERS"
+      }
+    ]
+  }
+}
