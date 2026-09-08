@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Intent-OS — HumanAIOS Board v3.1</title>
+<style>
+:root{
+  --board:#101418; --panel:#171d23; --line:#2a333c; --ink:#dce6ee; --dim:#7f8c98;
+  --done:#37c26b; --progress:#e0a63a; --waiting:#e2574d; --gold:#c9a86b; --steel:#5aa0d8;
+  --mono:"Cascadia Code","Fira Code",Menlo,Consolas,monospace;
+  --sans:"Avenir Next","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--board);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+.wrap{max-width:960px;margin:0 auto;padding:26px 18px 80px}
+header{margin-bottom:26px}
+h1{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.02em}
+h1 .rev{color:var(--gold);font-weight:400}
+.readline{color:var(--dim);font-size:13px;margin-top:4px}
+h2{font-size:13px;font-family:var(--mono);font-weight:600;color:var(--dim);margin:34px 0 4px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.familiar{font-size:12px;color:var(--dim);margin-bottom:12px;font-style:italic}
+.track{position:relative;padding:14px 0 4px;overflow-x:auto}
+.rail{display:flex;align-items:stretch;min-width:640px}
+.block{flex:1;position:relative;padding:10px 10px 12px;border-top:3px solid var(--line);cursor:pointer;transition:background .15s}
+.block:hover{background:#1b2229}
+.block .sig{width:11px;height:11px;border-radius:50%;position:absolute;top:-7px;left:10px;border:2px solid var(--board)}
+.block.done{border-top-color:var(--done)} .block.done .sig{background:var(--done)}
+.block.progress{border-top-color:var(--progress)} .block.progress .sig{background:var(--progress)}
+.block.waiting{border-top-color:var(--waiting)} .block.waiting .sig{background:var(--waiting)}
+.block .bid{font-family:var(--mono);font-size:12px;font-weight:700}
+.block .bname{font-size:12px;color:var(--dim);margin-top:2px}
+.legend{font-size:12px;color:var(--dim);margin-top:10px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 5px 0 14px;vertical-align:baseline}
+.legend i:first-child{margin-left:0}
+.i-done{background:var(--done)} .i-progress{background:var(--progress)} .i-waiting{background:var(--waiting)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:10px}
+.card.open .body{display:block}
+.card .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;cursor:pointer}
+.card .head .t{font-weight:600}
+.card .head .t small{font-family:var(--mono);color:var(--dim);font-weight:400;margin-left:8px}
+.card .state{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
+.state.done{color:var(--done)} .state.progress{color:var(--progress)} .state.waiting{color:var(--waiting)}
+.card .body{display:none;margin-top:12px;font-size:14px}
+.card .body p{color:var(--dim);margin-bottom:8px}
+.gate{font-size:13px;border-left:3px solid var(--gold);padding:4px 10px;margin:8px 0;color:var(--ink)}
+.gate b{color:var(--gold);font-family:var(--mono);font-size:11px;font-weight:600}
+pre{background:#0b0f13;border:1px solid var(--line);border-radius:5px;padding:10px 12px;font-family:var(--mono);font-size:12px;overflow-x:auto;position:relative;white-space:pre;color:#bfe3c8}
+.cmdrow{position:relative;margin:8px 0}
+.copy{position:absolute;top:6px;right:6px;font-family:var(--mono);font-size:10.5px;background:var(--panel);border:1px solid var(--line);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer}
+.copy:hover{color:var(--ink);border-color:var(--steel)}
+.meta{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:8px}
+.meta b{color:var(--gold);font-weight:600}
+.done-row label{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--dim);margin-top:10px;cursor:pointer}
+.gauge{margin-bottom:14px}
+.gauge .gl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.gauge .gl .gv{font-family:var(--mono);font-size:12px}
+.bar{height:10px;background:#0b0f13;border:1px solid var(--line);border-radius:5px;position:relative;overflow:hidden}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;background:var(--steel)}
+.bar .target{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--gold)}
+.bar .preview{position:absolute;left:0;top:0;bottom:0;border-right:2px dashed var(--done)}
+.gnote{font-size:11.5px;color:var(--dim);margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid #1d242c;vertical-align:top}
+td.mono{font-family:var(--mono);font-size:12px}
+.p{font-family:var(--mono);font-size:12px}
+.deadline{color:var(--waiting);font-weight:600}
+.ruling{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #1d242c;flex-wrap:wrap}
+.ruling .q{flex:1;min-width:240px;font-size:14px}
+.ruling .q small{display:block;color:var(--dim);font-size:12px;margin-top:2px}
+.ruling .opts{display:flex;gap:6px;flex-wrap:wrap}
+.opt{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);background:transparent;color:var(--dim);border-radius:4px;padding:4px 10px;cursor:pointer}
+.opt.sel{border-color:var(--done);color:var(--done)}
+.opt:hover{color:var(--ink)}
+.stage{display:grid;grid-template-columns:56px 1fr;gap:0 14px;padding:12px 0;border-bottom:1px solid #1d242c}
+.stage .sid{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--gold);padding-top:2px}
+.stage .sname{font-weight:600}
+.stage .srule{color:var(--dim);font-size:13.5px;margin-top:2px}
+.stage .sgate{font-size:12.5px;margin-top:5px;font-family:var(--mono)}
+.stage .sgate b{color:var(--gold);font-weight:600}
+.exportrow{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.act{font-family:var(--mono);font-size:12px;background:var(--panel);border:1px solid var(--steel);color:var(--steel);border-radius:5px;padding:7px 14px;cursor:pointer}
+button.act:hover{background:#1b2530}
+button.act.warn{border-color:var(--waiting);color:var(--waiting)}
+.note{font-size:12px;color:var(--dim)}
+textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px solid var(--line);border-radius:5px;font-family:var(--mono);font-size:12px;padding:10px 12px;resize:vertical}
+.schemabar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--done);color:var(--ink);border-radius:6px;padding:8px 16px;font-family:var(--mono);font-size:12px;opacity:0;pointer-events:none;transition:opacity .2s}
+.empty{color:var(--dim);font-size:13px;padding:8px 0}
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1 id="title">Intent-OS <span class="rev" id="rev"></span></h1>
+  <div class="readline" id="readline"></div>
+</header>
+
+<h2>Pipeline — this project's steps, in delivery order</h2>
+<div class="familiar">Like a project board, with one extra rule: a step only turns green when it's verified, not when someone says it's done.</div>
+<div class="track">
+  <div class="rail" id="rail"></div>
+  <div class="legend">
+    <i class="i-done"></i>done = verified complete
+    <i class="i-progress"></i>in progress = built, awaiting verification
+    <i class="i-waiting"></i>waiting = needs a decision first
+  </div>
+</div>
+<div id="blocks"></div>
+
+<h2>How projects run here — the six stages every project walks</h2>
+<div class="familiar">Like a project lifecycle framework, except each stage has a checkable condition instead of a description.</div>
+<div id="mech"></div>
+<p class="note" style="margin-top:8px">A project is fully set up once every stage's condition has been true at least once. The pipeline above is one project on this map; the project data section below is where a new project fills it in.</p>
+
+<h2>Four planes and four rules — what holds no matter the score</h2>
+<div class="familiar">Like the separation between a permissions system, an audit log, a forecast, and a report card — kept apart so none can rewrite another.</div>
+<div id="planes"></div>
+<p class="note" style="margin-top:8px">Every judgment about behavior must be written as a check a machine can run — not "was it careful?" but "unauthorized actions = 0", "claims without support = 0", "stated confidence vs. actual accuracy". If a judgment can't be written that way, it isn't scored yet.</p>
+
+<h2>Deadlines — moves that die on a date</h2>
+<div class="familiar">Like calendar deadlines — only things with a real closing window belong here.</div>
+<div id="departures"></div>
+
+<h2>Metrics — what the work must actually move</h2>
+<div class="familiar">Like a metrics dashboard, with one difference: projections are marked as projections and never counted as results.</div>
+<div id="gauges"></div>
+<p class="note">Solid bar = measured today. Dashed edge = projected after the staged work — not counted. Gold tick = target. Only measurements taken after work is verified count.</p>
+
+<h2>Commitments — predictions made before seeing results</h2>
+<div class="familiar">Rare in any product: you write down what you expect, how confident you are, and when you'll know — before the result exists. Over time this shows whether the team's judgment is getting better.</div>
+<div id="predictions"></div>
+
+<h2>Decisions — calls only the project owner can make</h2>
+<div class="familiar">Like an approvals queue. Work that needs one of these shows red in the pipeline until it's decided.</div>
+<div id="rulings"></div>
+
+<h2>Verified records — the receipts this board rests on</h2>
+<div class="familiar">Like an audit log: each entry is a fingerprint (checksum) of a real file, so anyone can later confirm nothing was quietly changed.</div>
+<div id="seals"></div>
+
+<h2>Project data — the whole board as one editable file</h2>
+<p class="note" style="margin-bottom:8px">Everything above renders from this. Edit and apply to reshape the board; export saves it with every checkbox and decision; import picks up exactly where a board was left.</p>
+<textarea id="schema" spellcheck="false"></textarea>
+<div class="schemabar">
+  <button class="act" id="apply">Apply changes</button>
+  <button class="act" id="export">Export board</button>
+  <button class="act" id="import">Import board</button>
+  <button class="act" id="loadBlank">Start a new project</button>
+  <button class="act" id="loadExample">Load example project</button>
+<button id="loadHumanaios">Load HumanAIOS board</button>
+  <button class="act warn" id="reset">Clear this board</button>
+  <input type="file" id="file" accept="application/json" style="display:none"/>
+  <span class="note" id="persistnote"></span>
+</div>
+</div>
+<div id="toast">copied</div>
+
+<script>
+"use strict";
+/* ---------- the six stages (the mechanism itself) ---------- */
+const MECHANISM = [
+ {id:"1", name:"Define", rule:"Say where the project is going, who owns it, and — the unusual part — write down what would prove the whole idea wrong, with a date to check.",
+  gate:"a written stop condition exists, with a check-in date"},
+ {id:"2", name:"Baseline", rule:"Measure reality before touching anything. Save fingerprints of key files. Record the honest starting number — the one you'd be embarrassed to lose track of.",
+  gate:"at least one verified record saved and one metric measured"},
+ {id:"3", name:"Decide", rule:"List every call only the owner can make. A step that needs a decision shows red — never 'almost done'.",
+  gate:"every red step names the decision it's waiting on"},
+ {id:"4", name:"Build", rule:"Do the work. Before seeing any result, write down what you expect it to achieve, with a confidence level and a date you'll know by.",
+  gate:"each built step has at least one prediction written in advance"},
+ {id:"5", name:"Ship", rule:"Deliver into the real system. A checkbox turns green only when delivery is confirmed there — a file on someone's laptop is 'in progress', not 'done'.",
+  gate:"delivery confirmed in the real system, not from memory"},
+ {id:"6", name:"Measure", rule:"Check the predictions against real results. Keep what worked; roll back what didn't — and when something is rolled back, say so plainly and record why.",
+  gate:"at least one prediction checked against shipped work; keep or roll back recorded"}
+];
+
+/* ---------- blank template ---------- */
+const BLANK = {
+ title:"Intent-OS", rev:new Date().toISOString().slice(0,10),
+ readline:"New project. Fill in the project data below: name the goal, measure your starting point, list the decisions, build with predictions attached. Nothing here counts as done until it's verified.",
+ blocks:[
+  {id:"1", name:"goal + stop condition", state:"waiting", role:"stage 1 · Define",
+   why:"State the destination and what would prove the idea wrong.",
+   gate:"stop condition written, check-in date set", cmds:"", meta:"", blockedOn:"decision: accept the stop condition"},
+  {id:"2", name:"measure the starting point", state:"waiting", role:"stage 2 · Baseline",
+   why:"First real measurement; save file fingerprints; record the honest number.",
+   gate:"one record verified, one metric measured", cmds:"", meta:""},
+  {id:"3", name:"build the work", state:"waiting", role:"stage 4 · Build",
+   why:"Attach a prediction with a confidence level to every claim.",
+   gate:"predictions written before results are seen", cmds:"", meta:""},
+  {id:"4", name:"ship it", state:"waiting", role:"stage 5 · Ship",
+   why:"Deliver into the real system and confirm it's there.",
+   gate:"delivery confirmed in the real system", cmds:"", meta:""},
+  {id:"5", name:"check the results", state:"waiting", role:"stage 6 · Measure",
+   why:"Predictions get checked; keep or roll back, out loud.",
+   gate:"one prediction checked against shipped work", cmds:"", meta:""}
+ ],
+ departures:[], gauges:[], predictions:[],
+ rulings:[{id:"r1", q:"Accept the stop condition as written?", s:"nothing moves until this is decided", opts:["accept","edit","later"]}],
+ seals:[]
+};
+
+/* ---------- worked example, in general terms ---------- */
+const EXAMPLE = {
+ title:"Website relaunch", rev:"2026-08-31",
+ readline:"Example project. A small team relaunching a company site. Starting numbers measured Aug 31; everything below is in progress until it's live and verified.",
+ blocks:[
+  {id:"1", name:"new page templates", state:"progress", role:"the foundation",
+   why:"One shared layout every page uses, so future changes happen in one place instead of forty.",
+   gate:"all pages render from the shared templates on the live site",
+   cmds:"# hand this to whoever deploys:\nbuild the template package\npreview every page against it\nstage for release",
+   meta:"expected: page-edit time cut in half · confidence 0.85"},
+  {id:"2", name:"content cleanup", state:"progress", role:"clearing the backlog",
+   why:"Out-of-date pages get archived; the 18 orphaned drafts either get published or filed away — none left in limbo.",
+   gate:"zero orphaned drafts remain",
+   cmds:"review the draft list\npublish or archive each one\nrecord where each went",
+   meta:"expected: orphaned drafts 18 → 0 · confidence 0.90"},
+  {id:"3", name:"broken-link check", state:"progress", role:"the safety net",
+   why:"An automatic check on every update: any new link that goes nowhere blocks the update. Old broken links are listed for cleanup, not ignored.",
+   gate:"the check runs on every update and blocks new broken links",
+   cmds:"turn on the link checker\nrun it once by hand to confirm it catches a planted broken link",
+   meta:"expected: no new broken links after launch"},
+  {id:"4", name:"launch", state:"waiting", role:"the switch",
+   why:"Goes last, after steps 1–3 are verified. Waiting on one decision: keep the old blog archive or retire it.",
+   gate:"new site live and confirmed by a fresh measurement",
+   cmds:"switch the domain\nrun the measurement script against the live site",
+   meta:"the launch itself gets measured, not assumed",
+   blockedOn:"decision: keep or retire the old blog archive"}
+ ],
+ departures:[
+  {move:"Renewal window for the current hosting plan", entity:"ops", closes:"Sep 4", hot:true,
+   action:"decide before auto-renew: staying means launch can slip; leaving means launch must land first"},
+  {move:"Partner logo approvals", entity:"marketing", closes:"Sep 15", hot:true,
+   action:"three partners must sign off on logo use on the new site"}
+ ],
+ gauges:[
+  {label:"pages on shared templates", base:20, prev:100, target:100, note:"projected: all pages converted in staging — counts only when live"},
+  {label:"orphaned drafts", base:100, prev:0, target:0, scale:"18 drafts → 0 (shown as %)", note:"projected: all filed or published"},
+  {label:"broken links across the site", base:46, prev:45, target:10, note:"the checker stops new ones; old ones burn down over time"}
+ ],
+ predictions:[
+  {id:"C1", text:"page-edit time cut at least in half", confidence:0.85, resolves:"first week after launch"},
+  {id:"C2", text:"zero orphaned drafts at launch", confidence:0.90, resolves:"launch day"},
+  {id:"C3", text:"no new broken links in the first month", confidence:0.60, resolves:"30 days after launch"},
+  {id:"C4", text:"bounce rate improves within a month", confidence:0.50, resolves:"30 days after launch"}
+ ],
+ rulings:[
+  {id:"d1", q:"Old blog archive — keep it live or retire it?", s:"referenced by 6 partner pages; launch waits on this", opts:["keep","retire","later"]},
+  {id:"d2", q:"Analytics — stay on the current tool or switch at launch?", s:"switching at launch means a clean baseline; staying means continuity", opts:["stay","switch","later"]},
+  {id:"d3", q:"Ship the newsletter signup at launch or in the first update?", s:"", opts:["at launch","first update","later"]}
+ ],
+ seals:[
+  {artifact:"starting metrics, measured Aug 31", sha:"cb29b87680c8cc3b"},
+  {artifact:"measurement script", sha:"8f8d5fee33c293ef"},
+  {artifact:"approved launch plan", sha:"d35129e6bf5640ed"}
+ ]
+};
+
+/* ---------- HumanAIOS — live board, read 2026-09-06 ---------- */
+const HUMANAIOS = {
+ title:"Intent-OS · HumanAIOS", rev:"2026-09-06",
+ readline:"Live board. Read 2026-09-06 against humanaios-ui/operations main at b8aac1be. Everything green was verified by a fetch, not by memory. Honest number: 0 of 40 operated cycles.",
+ blocks:[
+  {id:"1", name:"system graph v0.2 landed", state:"done", role:"stage 5 · Ship",
+   why:"The operating graph in machine form: 19 processes, 44 typed edges, generated from the edge list (v0.1's hand-made JSON had two broken edges). Three owner rulings (OI-G1/G2/G3) are embedded in the commit.",
+   gate:"commit visible on origin/main by fetch, not by memory",
+   cmds:"git fetch origin\ngit show b8aac1be789b13c0c4a8578e8ba0df2d5c85a125 --stat",
+   meta:"verified 2026-09-06 · +536 lines · 0 dangling nodes"},
+  {id:"2", name:"CI guard · Merkle root · anchor", state:"progress", role:"stage 5 · Ship",
+   why:"The landing bypassed the pull-request rule (direct push). The guard check, the registry Merkle root regeneration, and the OpenTimestamps anchor have not been seen to pass.",
+   gate:"guard check green on b8aac1be; new REGISTERED.root; .ots proof present",
+   cmds:"# check on GitHub:\nhttps://github.com/humanaios-ui/operations/commits/main",
+   meta:"expected: guard passes without revert · confidence 0.70"},
+  {id:"3", name:"revoke the temporary token", state:"progress", role:"stage 5 · Ship",
+   why:"A 7-day org-wide read-write token was used for the push. It should not outlive the job it was made for.",
+   gate:"token no longer listed at github.com/settings/tokens",
+   cmds:"github.com/settings/tokens → ghp_xViq… → Delete",
+   meta:"auto-expires ~2026-09-13 if not revoked"},
+  {id:"4", name:"re-pin the registry (IC-030)", state:"progress", role:"stage 2 · Baseline",
+   why:"The queue file pins REGISTERED.md at blob c0899b9b (commit d1fb5f0d); today's read is sha256 40391062… at commit 3bd88d6. Two pins, one file — the gap is a drift check, not a repair from memory.",
+   gate:"one current pin recorded in PRIORITY_QUEUE.md and matched by a live fetch",
+   cmds:"git fetch origin\nsha256sum REGISTERED.md\ngit rev-parse HEAD",
+   meta:"today: 40391062966c6d6f… · 3909 lines"},
+  {id:"5", name:"IC-SCOPE-05 in code", state:"waiting", role:"stage 3 · Decide",
+   why:"The rule that says what the behavior-audit system is allowed to do. It must run as code before any public intake post goes out — a rule that lives only in a document drifts.",
+   gate:"a lint or gate in the repo fails a scope violation on a planted test",
+   cmds:"", meta:"blocks step 8",
+   blockedOn:"decision: accept the IC-SCOPE-05 draft scope"},
+  {id:"6", name:"Q-ORCA-01 · multi-substrate runner", state:"waiting", role:"stage 4 · Build",
+   why:"Evaluate stablyai/orca (MIT, ~61.8K stars) as the runner that sends one packet through three agents in separate worktrees and hashes each result. Disagreements surface as DISPUTED, never averaged away.",
+   gate:"same packet run through three substrates; three hashed outputs in optimizer_events.jsonl",
+   cmds:"git clone https://github.com/stablyai/orca\n# confirm: worktree per substrate; per-run output exposed for hashing",
+   meta:"falsifier: cannot isolate worktrees or expose per-run output → dropped · LAID until first real packet",
+   blockedOn:"decisions: TLA_TOOLS_SHA256 and z2_budget_p2 (set them, or drop them as gates)"},
+  {id:"7", name:"first molt cycle", state:"progress", role:"stage 4 · Build",
+   why:"The learning loop the graph now permits: read the ledgers, propose one constant change with a prediction and a revert rule, wait for an owner hash, apply, measure, keep or revert. Two reverts freeze a constant. Ten molts with no improvement freeze the loop.",
+   gate:"molt_cycle.py emits one MOLT_CANDIDATE from ledger reads (not from memory)",
+   cmds:"python tools/molt_cycle.py --read-only\n# expect: candidates or an honest 'no trigger crossed'",
+   meta:"LAID · ledgers are thin at 0/40, so 'no trigger crossed' is the likely honest output · confidence 0.35 a candidate appears within 30 days"},
+  {id:"8", name:"intake post — free behavior audit", state:"waiting", role:"stage 5 · Ship",
+   why:"First public offer, on the agency-agents Discussions board (~150K stars). Goes out only after step 5 is code.",
+   gate:"post live on the board; link recorded here",
+   cmds:"", meta:"", blockedOn:"step 5 (IC-SCOPE-05) must be green first"},
+  {id:"9", name:"first operated cycle (0 → 1 of 40)", state:"waiting", role:"stage 6 · Measure",
+   why:"Every tool built so far is laid, not operated. One batch of real job postings in intake_template.jsonl is the single input that moves any of them.",
+   gate:"one real batch through the core pipeline; CYCLE + VERDICT events on the chain",
+   cmds:"python tools/prs_run.py --input intake_template.jsonl",
+   meta:"expected: ≥1 operated by 2026-09-30 · confidence 0.30",
+   blockedOn:"decision: where the first real job-posting batch comes from"}
+ ],
+ departures:[
+  {move:"55 mesh deliverables pinned in NF_LEDGER", entity:"Z2", closes:"Sep 12", hot:true,
+   action:"pin them or record that they were not pinned — either is a real outcome; silence is not"},
+  {move:"Temporary GitHub token auto-expiry", entity:"Z2", closes:"Sep 13", hot:false,
+   action:"revoke earlier (step 3); expiry is the backstop, not the plan"}
+ ],
+ gauges:[
+  {label:"operated cycles", base:0, prev:0, target:100, scale:"0 of 40 (shown as %)", note:"no projection is offered — nothing moves without real data"},
+  {label:"queue blockers cleared", base:20, prev:40, target:100, scale:"1 of 5", note:"projected: IC-030 re-pin lands this session — counts when the pin is in the file"},
+  {label:"owner rulings resolved (OI-G1/G2/G3)", base:100, prev:100, target:100, note:"measured: three of three, hashes in commit b8aac1be"},
+  {label:"graph integrity (nodes with valid edges)", base:100, prev:100, target:100, scale:"19 of 19", note:"measured: 0 dangling on the landed JSON"}
+ ],
+ predictions:[
+  {id:"C1", text:"CI guard passes on b8aac1be without a revert", confidence:0.70, resolves:"next CI run on main"},
+  {id:"C2", text:"Merkle root regenerates and the consistency proof passes on this commit", confidence:0.65, resolves:"next CI run on main"},
+  {id:"C3", text:"55 mesh deliverables are pinned in NF_LEDGER by the deadline", confidence:0.40, resolves:"2026-09-12"},
+  {id:"C4", text:"molt_cycle.py emits at least one MOLT_CANDIDATE from real ledger reads", confidence:0.35, resolves:"2026-10-06"},
+  {id:"C5", text:"at least one operated cycle (0 → 1 of 40)", confidence:0.30, resolves:"2026-09-30"}
+ ],
+ rulings:[
+  {id:"d1", q:"IC-SCOPE-05 — accept the draft scope rule as written?", s:"blocks the intake post (step 8) until it runs as code", opts:["accept","edit","later"]},
+  {id:"d2", q:"TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate?", s:"gates Q-ORCA-01", opts:["set","drop gate","later"]},
+  {id:"d3", q:"z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate?", s:"nothing is ordered until it exists", opts:["set","drop gate","later"]},
+  {id:"d4", q:"Direct push of b8aac1be — ratify as an exception, or revert and re-land through a pull request?", s:"the branch rule was bypassed; the record should say which", opts:["ratify exception","revert + PR","later"]},
+  {id:"d5", q:"GRBS ↔ Empirica — what is the formal relationship?", s:"open ruling carried across sessions", opts:["rule now","later"]},
+  {id:"d6", q:"First job-posting batch — where does it come from?", s:"the only input that moves 0/40", opts:["own postings","partner","scrape","later"]}
+ ],
+ seals:[
+  {artifact:"commit b8aac1be — system_graph.json v0.2 on main", sha:"b8aac1be789b13c0c4a8578e8ba0df2d5c85a125"},
+  {artifact:"system_graph.json (sha256, first 16)", sha:"8d3a2e8787e4ebe6"},
+  {artifact:"REGISTERED.md at 3bd88d6 (sha256, first 16 · 3909 lines)", sha:"40391062966c6d6f"},
+  {artifact:"PRIORITY_QUEUE.md z2_queue v1_1 (sha256, first 16)", sha:"d379efc3e3dd2f7e"},
+  {artifact:"OI-G1 ratification", sha:"molt-tiers-anticascade-K3-N10-20260906"},
+  {artifact:"OI-G2 ratification", sha:"pq-formula-impact-unblocks-20260906"},
+  {artifact:"OI-G3 ratification", sha:"zone-integer-extend-zone3-20260906"}
+ ]
+};
+
+const PLANES=[
+ {n:"Authority",q:"What is this project or agent allowed to do?",r:"Permissions, budgets, sign-offs. Set by the owner; never changed by the thing being measured."},
+ {n:"Execution",q:"What actually happened?",r:"Every consequential act recorded to an append-only log the actor can't write to. A log that is chained is not yet a log that is complete — a second, independent record and an external anchor close that gap."},
+ {n:"Commitment",q:"What did it say it expected to do?",r:"Predictions with confidence, locked before results exist."},
+ {n:"Evaluation",q:"How well did the commitment match reality?",r:"Scored by code from the log and the locked prediction. A person may explain the score; code produces it."}
+];
+const RULES=[
+ "Evidence can't be steered: the actor can't change the record it's graded against.",
+ "Grading is independent: the actor can't see, predict, or influence the grader.",
+ "Evidence precedes authority: a good score earns eligibility for more freedom only after the scoring has been proven to work — and the first use of any score is to remove freedom, not grant it.",
+ "Safety beats score: no score, however good, overrides a hard limit, a missing permission, or a person's required sign-off."
+];
+
+/* ---------- runtime ---------- */
+let project = JSON.parse(JSON.stringify(HUMANAIOS));
+let state = {done:{}, rulings:{}};
+let storageOK = false;
+const KEY = "intentos:board_humanaios_v3_1";
+
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,1400)}
+
+async function persist(){
+  if(!storageOK) return;
+  try{ await window.storage.set(KEY, JSON.stringify({project,state}), false); }catch(e){}
+}
+async function restore(){
+  try{
+    const r = await window.storage.get(KEY, false);
+    if(r && r.value){ const v = JSON.parse(r.value); if(v.project) project = v.project; if(v.state) state = v.state; }
+    storageOK = true;
+  }catch(e){ storageOK = (typeof window.storage !== "undefined"); }
+  document.getElementById("persistnote").textContent = storageOK
+    ? "The board saves automatically on this device."
+    : "No saving available here — export before closing.";
+}
+
+function stateWord(st){return st==="done"?"verified":st==="progress"?"in progress":"needs a decision"}
+
+function render(){
+  document.getElementById("title").innerHTML = esc(project.title)+' <span class="rev">'+esc(project.rev||"")+"</span>";
+  document.getElementById("readline").textContent = project.readline||"";
+
+  const rail=document.getElementById("rail"); rail.innerHTML="";
+  const wrap=document.getElementById("blocks"); wrap.innerHTML="";
+  (project.blocks||[]).forEach(b=>{
+    const st = state.done[b.id] ? "done" : (b.state||"waiting");
+    const seg=document.createElement("div");
+    seg.className="block "+st;
+    seg.innerHTML='<span class="sig"></span><div class="bid">'+esc(b.id)+'</div><div class="bname">'+esc(b.name)+"</div>";
+    seg.onclick=()=>{const c=document.getElementById("card-"+b.id); c.classList.toggle("open"); c.scrollIntoView({block:"nearest"});};
+    rail.appendChild(seg);
+
+    const card=document.createElement("div");
+    card.className="card"; card.id="card-"+b.id;
+    let inner='<div class="head"><span class="t">'+esc(b.id)+" — "+esc(b.name)+'<small>'+esc(b.role||"")+'</small></span><span class="state '+st+'">'+stateWord(st)+"</span></div>"
+      +'<div class="body"><p>'+esc(b.why||"")+"</p>";
+    if(b.blockedOn) inner+='<p><span class="state waiting">waiting:</span> '+esc(b.blockedOn)+"</p>";
+    if(b.gate) inner+='<div class="gate"><b>counts as done when</b> — '+esc(b.gate)+"</div>";
+    if(b.cmds) inner+='<div class="cmdrow"><pre>'+esc(b.cmds)+'</pre><button class="copy" data-c="'+esc(b.id)+'">copy</button></div>';
+    if(b.meta) inner+='<div class="meta"><b>'+esc(b.meta)+"</b></div>";
+    inner+='<div class="done-row"><label><input type="checkbox" data-d="'+esc(b.id)+'" '+(state.done[b.id]?"checked":"")+'> verified complete (turns the step green)</label></div></div>';
+    card.innerHTML=inner;
+    card.querySelector(".head").onclick=()=>card.classList.toggle("open");
+    wrap.appendChild(card);
+  });
+  if(!(project.blocks||[]).length) wrap.innerHTML='<div class="empty">No steps yet — the pipeline is empty. Add steps in the project data below.</div>';
+
+  document.querySelectorAll(".copy").forEach(btn=>btn.onclick=e=>{
+    e.stopPropagation();
+    const b=(project.blocks||[]).find(x=>x.id===btn.dataset.c);
+    if(b) navigator.clipboard.writeText(b.cmds||"").then(()=>toast("copied — step "+b.id),()=>toast("copy blocked — select the text manually"));
+  });
+  document.querySelectorAll("input[data-d]").forEach(cb=>cb.onchange=()=>{state.done[cb.dataset.d]=cb.checked;persist();render();});
+
+  const mech=document.getElementById("mech"); mech.innerHTML="";
+  MECHANISM.forEach(s=>{
+    const d=document.createElement("div"); d.className="stage";
+    d.innerHTML='<div class="sid">'+s.id+'</div><div><div class="sname">'+esc(s.name)+'</div><div class="srule">'+esc(s.rule)+'</div><div class="sgate"><b>condition</b> '+esc(s.gate)+"</div></div>";
+    mech.appendChild(d);
+  });
+
+  const pl=document.getElementById("planes"); pl.innerHTML="";
+  PLANES.forEach((x,i)=>{const d=document.createElement("div"); d.className="stage";
+    d.innerHTML='<div class="sid">P'+(i+1)+'</div><div><div class="sname">'+esc(x.n)+' — '+esc(x.q)+'</div><div class="srule">'+esc(x.r)+'</div></div>'; pl.appendChild(d);});
+  RULES.forEach((x,i)=>{const d=document.createElement("div"); d.className="stage";
+    d.innerHTML='<div class="sid">R'+(i+1)+'</div><div><div class="srule" style="color:var(--ink)">'+esc(x)+'</div></div>'; pl.appendChild(d);});
+
+  const dep=document.getElementById("departures");
+  if((project.departures||[]).length){
+    let h='<div class="card open"><div class="body" style="display:block"><table><tr><th>what</th><th>who</th><th>window closes</th><th>what to do</th></tr>';
+    project.departures.forEach(x=>{
+      h+="<tr><td>"+esc(x.move)+'</td><td class="mono">'+esc(x.entity)+'</td><td class="mono'+(x.hot?" deadline":"")+'">'+esc(x.closes)+"</td><td>"+esc(x.action)+"</td></tr>";
+    });
+    dep.innerHTML=h+"</table></div></div>";
+  } else dep.innerHTML='<div class="empty">No fixed deadlines. When something has a date it dies on, it belongs here.</div>';
+
+  const g=document.getElementById("gauges"); g.innerHTML="";
+  (project.gauges||[]).forEach(x=>{
+    const clamp=v=>Math.max(0,Math.min(100,Number(v)||0));
+    const d=document.createElement("div"); d.className="gauge";
+    d.innerHTML='<div class="gl"><span>'+esc(x.label)+'</span><span class="gv">'+esc(x.scale?x.scale:(x.base+"% now · target "+x.target+"%"))+"</span></div>"
+      +'<div class="bar"><div class="fill" style="width:'+clamp(x.base)+'%"></div><div class="preview" style="width:'+clamp(x.prev)+'%"></div><div class="target" style="left:'+clamp(x.target)+'%"></div></div>'
+      +(x.note?'<div class="gnote">'+esc(x.note)+"</div>":"");
+    g.appendChild(d);
+  });
+  if(!(project.gauges||[]).length) g.innerHTML='<div class="empty">No metrics yet. Stage 2 asks for at least one measured starting point.</div>';
+
+  const pr=document.getElementById("predictions");
+  if((project.predictions||[]).length){
+    let h="<table><tr><th>id</th><th>what we expect</th><th>confidence</th><th>we'll know by</th></tr>";
+    project.predictions.forEach(x=>{h+='<tr><td class="mono">'+esc(x.id)+"</td><td>"+esc(x.text)+'</td><td class="p">'+esc(x.confidence!=null?x.confidence:x.prior)+'</td><td class="mono">'+esc(x.resolves)+"</td></tr>";});
+    pr.innerHTML=h+"</table>";
+  } else pr.innerHTML='<div class="empty">No commitments yet. A claim without a confidence level and a check date is a hope, not a commitment.</div>';
+
+  const r=document.getElementById("rulings"); r.innerHTML="";
+  (project.rulings||[]).forEach(x=>{
+    const row=document.createElement("div"); row.className="ruling";
+    row.innerHTML='<div class="q">'+esc(x.q)+(x.s?'<small>'+esc(x.s)+"</small>":"")+'</div><div class="opts">'
+      +(x.opts||[]).map(o=>'<button class="opt'+(state.rulings[x.id]===o?" sel":"")+'" data-r="'+esc(x.id)+'" data-o="'+esc(o)+'">'+esc(o)+"</button>").join("")+"</div>";
+    r.appendChild(row);
+  });
+  if(!(project.rulings||[]).length) r.innerHTML='<div class="empty">No open decisions — nothing in the pipeline is waiting on the owner.</div>';
+  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{state.rulings[b.dataset.r]=b.dataset.o;persist();render();});
+
+  const se=document.getElementById("seals");
+  if((project.seals||[]).length){
+    let h="<table><tr><th>record</th><th>fingerprint (first 16)</th></tr>";
+    project.seals.forEach(x=>{h+="<tr><td>"+esc(x.artifact)+'</td><td class="mono">'+esc(x.sha)+"</td></tr>";});
+    se.innerHTML=h+"</table>";
+  } else se.innerHTML='<div class="empty">No verified records yet. Nothing on this board is verified until something lands here.</div>';
+
+  document.getElementById("schema").value = JSON.stringify(project, null, 1);
+}
+
+/* ---------- controls ---------- */
+document.getElementById("apply").onclick=()=>{
+  try{
+    const v=JSON.parse(document.getElementById("schema").value);
+    project=v; persist(); render(); toast("changes applied");
+  }catch(e){ toast("that isn't valid JSON — nothing changed"); }
+};
+document.getElementById("export").onclick=()=>{
+  const payload={exported:new Date().toISOString(), schema:"intentos/board_v1", project, state};
+  const blob=new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="intentos_"+(project.title||"board").toLowerCase().replace(/[^a-z0-9]+/g,"_")+"_"+Date.now()+".json"; a.click();
+  toast("board exported");
+};
+document.getElementById("import").onclick=()=>document.getElementById("file").click();
+document.getElementById("file").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const v=JSON.parse(rd.result);
+      if(v.project){ project=v.project; state=v.state||{done:{},rulings:{}}; }
+      else if(v.blocks){ project=v; }
+      else if(v.done||v.rulings){ state={done:v.done||{},rulings:v.rulings||{}}; }
+      else throw new Error("unrecognized");
+      persist(); render(); toast("board loaded");
+    }catch(err){ toast("couldn't read that file"); }
+  };
+  rd.readAsText(f); e.target.value="";
+};
+document.getElementById("loadBlank").onclick=()=>{project=JSON.parse(JSON.stringify(BLANK));state={done:{},rulings:{}};persist();render();toast("new project started");};
+document.getElementById("loadHumanaios").onclick=()=>{project=JSON.parse(JSON.stringify(HUMANAIOS));state={done:{},rulings:{}};persist();render();toast("HumanAIOS board loaded · read 2026-09-06");};
+document.getElementById("loadExample").onclick=()=>{project=JSON.parse(JSON.stringify(EXAMPLE));state={done:{},rulings:{}};persist();render();toast("example project loaded");};
+document.getElementById("reset").onclick=async()=>{
+  state={done:{},rulings:{}}; project=JSON.parse(JSON.stringify(BLANK));
+  try{ if(storageOK) await window.storage.delete(KEY,false); }catch(e){}
+  render(); toast("board cleared");
+};
+
+restore().then(render);
+</script>
+</body>
+</html>
