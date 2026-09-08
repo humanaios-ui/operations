@@ -182,7 +182,7 @@ const MECHANISM = [
 /* ---------- blank template ---------- */
 const BLANK = {
  title:"Intent-OS", rev:new Date().toISOString().slice(0,10),
- owner:{name:"", tagline:""},   // onboarding: your name and your project tagline — the tagline becomes the board title
+ owner:{tagline:"", project:""},   // intake: anonymous tagline (becomes the board title) and project name (header line)
  read:{board:"New", date:new Date().toISOString().slice(0,10), against:""},
  readline:"New project. Fill in the project data below: name the goal, measure your starting point, list the decisions, build with predictions attached. Nothing here counts as done until it's verified.",
  blocks:[
@@ -210,7 +210,7 @@ const BLANK = {
 /* ---------- worked example, in general terms ---------- */
 const EXAMPLE = {
  title:"Intent-OS", rev:"2026-08-31",
- owner:{name:"example", tagline:"Website relaunch"},
+ owner:{tagline:"example", project:"Website relaunch"},
  read:{board:"Example", date:"2026-08-31", against:"staging site, measured Aug 31"},
  readline:"Example project. A small team relaunching a company site. Starting numbers measured Aug 31; everything below is in progress until it's live and verified.",
  blocks:[
@@ -268,7 +268,7 @@ const EXAMPLE = {
 /* ---------- HumanAIOS — live board, read 2026-09-06 ---------- */
 const HUMANAIOS = {
  title:"Intent-OS", rev:"2026-09-08",
- owner:{name:"Night", tagline:"HumanAIOS"},
+ owner:{tagline:"Night", project:"HumanAIOS"},   // both collected at intake: anonymous tagline → title; project → header
  read:{board:"Live", date:"2026-09-08", against:"humanaios-ui/operations main at f13f958b"},
  readline:"Everything green was verified by a fetch, not by memory. Honest number: 3 of 40 operated cycles — all three from door 1 (blind external review), none yet from the intake pipeline.",
  blocks:[
@@ -411,11 +411,13 @@ async function restore(){
 function stateWord(st){return st==="done"?"verified":st==="progress"?"in progress":"needs a decision"}
 
 function render(){
-  // title = "Intent-OS · " + the owner's tagline, a variable collected at onboarding
-  const tag = (project.owner&&project.owner.tagline) || project.tagline || "";
+  // title = "Intent-OS · " + the user's anonymous tagline (intake variable); project name is its own intake variable
+  const ow = project.owner || {};
+  const tag = ow.tagline || "";
   document.getElementById("title").textContent = "Intent-OS" + (tag ? " · " + tag : "");
   const rd = project.read || {};
   document.getElementById("header2").innerHTML =
+    '<div><b>Project:</b> '+esc(ow.project||project.project||"—")+'</div>'+
     '<div><b>Board:</b> '+esc(rd.board||"—")+'</div>'+
     '<div><b>Read:</b> '+esc(rd.date||project.rev||"—")+'</div>'+
     '<div><b>Against:</b> '+esc(rd.against||"—")+'</div>';
