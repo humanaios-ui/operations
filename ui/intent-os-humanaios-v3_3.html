@@ -19,6 +19,8 @@ h1{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.02em}
 h1 .rev{color:var(--gold);font-weight:400}
 .readline{color:var(--dim);font-size:13px;margin-top:6px}
 .header2{font-size:13px;margin-top:6px;line-height:1.5}
+.rstat{font-size:12px;color:var(--dim);margin-top:4px;white-space:pre-wrap}
+.opt.relay{border-style:dashed}
 .header2 b{color:var(--gold);font-weight:500;display:inline-block;min-width:64px}
 h2{font-size:13px;font-family:var(--mono);font-weight:600;color:var(--dim);margin:34px 0 4px;border-bottom:1px solid var(--line);padding-bottom:6px}
 .familiar{font-size:12px;color:var(--dim);margin-bottom:12px;font-style:italic}
@@ -183,6 +185,7 @@ const MECHANISM = [
 const BLANK = {
  title:"Intent-OS", rev:new Date().toISOString().slice(0,10),
  owner:{tagline:"", project:""},   // intake: anonymous tagline (becomes the board title) and project name (header line)
+ relay:{url:"", secretHint:"ngrok URL of decision_relay.py; secret is never stored in this file"},
  read:{board:"New", date:new Date().toISOString().slice(0,10), against:""},
  readline:"New project. Fill in the project data below: name the goal, measure your starting point, list the decisions, build with predictions attached. Nothing here counts as done until it's verified.",
  blocks:[
@@ -269,6 +272,7 @@ const EXAMPLE = {
 const HUMANAIOS = {
  title:"Intent-OS", rev:"2026-09-08",
  owner:{tagline:"Night", project:"HumanAIOS"},   // both collected at intake: anonymous tagline → title; project → header
+ relay:{url:"", secretHint:"RELAY_SECRET set at intake; entered once per session, kept in memory only"},
  read:{board:"Live", date:"2026-09-08", against:"humanaios-ui/operations main at f13f958b"},
  readline:"Everything green was verified by a fetch, not by memory. Honest number: 3 of 40 operated cycles — all three from door 1 (blind external review), none yet from the intake pipeline.",
  blocks:[
@@ -390,6 +394,40 @@ let state = {done:{}, rulings:{}};
 let storageOK = false;
 const KEY = "intentos:board_humanaios_v3_1";
 
+/* ---------- decision relay (ngrok → decision_relay.py → GitHub PR) ---------- */
+let RELAY_SECRET="";  // entered once per session; never persisted
+async function hmacHex(secret,body){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const sig=await crypto.subtle.sign("HMAC",k,new TextEncoder().encode(body));return [...new Uint8Array(sig)].map(b=>b.toString(16).padStart(2,"0")).join("");}
+async function relayPost(path,obj){
+  const url=(project.relay||{}).url; if(!url){alert("No relay URL. Set relay.url in project data (your ngrok endpoint).");return null;}
+  if(!RELAY_SECRET) RELAY_SECRET=prompt("Relay secret (set at intake; kept in memory only):")||"";
+  obj.epoch=Date.now()/1000; obj.nonce=crypto.randomUUID(); obj.ts=new Date().toISOString().slice(0,19)+"Z";
+  obj.tagline=(project.owner||{}).tagline||""; obj.project=(project.owner||{}).project||"";
+  const body=JSON.stringify(obj); const sig=await hmacHex(RELAY_SECRET,body);
+  const r=await fetch(url.replace(/\/$/,"")+path,{method:"POST",headers:{"Content-Type":"application/json","X-Sig":sig},body});
+  return r.json();
+}
+function ruling(id){return (project.rulings||[]).find(x=>x.id===id);}
+function setStat(id,txt){const e=document.getElementById("rstat-"+id); if(e) e.textContent=txt;}
+async function relaySend(id){
+  const x=ruling(id); const choice=state.rulings[id]; if(!choice){alert("Pick an option first.");return;}
+  state.relay=state.relay||{}; const cur=state.relay[id];
+  if(cur&&cur.status==="PENDING"){  // second tap = echo the hash back. A tap is not a ratification; the hash is.
+    const h=prompt("Ratify "+id+" by echoing its hash:\n"+cur.hash+"\n\nPaste it here (or leave blank to cancel):","");
+    if(!h) return;
+    const res=await relayPost("/ratify",{id,hash:h.trim(),expected_hash:cur.hash,number:cur.number});
+    if(res&&res.status==="RATIFIED"){state.relay[id]={...cur,status:"RATIFIED"};} setStat(id,res?res.status+(res.why?" · "+res.why:""):"no response"); persist(); render(); return;
+  }
+  setStat(id,"sending…");
+  const res=await relayPost("/decide",{id,q:x.q,choice,note:""});
+  if(res&&res.hash){state.relay[id]={status:res.status,pr:res.pr,number:res.number,hash:res.hash};persist();render();}
+  else setStat(id,res?(res.status+" · "+(res.why||"")):"no response");
+}
+async function relayAsk(id){
+  const x=ruling(id); setStat(id,"asking Z1…");
+  const res=await relayPost("/assist",{id,q:x.q,opts:x.opts,s:x.s});
+  setStat(id,res?("Z1: "+res.text+(res.drift&&res.drift.length?"  [DRIFT stripped: "+res.drift.join(", ")+"]":"")):"no response");
+}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,1400)}
 
@@ -499,11 +537,15 @@ function render(){
   (project.rulings||[]).forEach(x=>{
     const row=document.createElement("div"); row.className="ruling";
     row.innerHTML='<div class="q">'+esc(x.q)+(x.s?'<small>'+esc(x.s)+"</small>":"")+'</div><div class="opts">'
-      +(x.opts||[]).map(o=>'<button class="opt'+(state.rulings[x.id]===o?" sel":"")+'" data-r="'+esc(x.id)+'" data-o="'+esc(o)+'">'+esc(o)+"</button>").join("")+"</div>";
+      +(x.opts||[]).map(o=>'<button class="opt'+(state.rulings[x.id]===o?" sel":"")+'" data-r="'+esc(x.id)+'" data-o="'+esc(o)+'">'+esc(o)+"</button>").join("")
+      +'<button class="opt relay" data-send="'+esc(x.id)+'">→ PR</button><button class="opt relay" data-ask="'+esc(x.id)+'">ask Z1</button></div>'
+      +'<div class="rstat" id="rstat-'+esc(x.id)+'">'+esc((state.relay||{})[x.id]?(state.relay[x.id].status+" · "+(state.relay[x.id].pr||"")+" · hash "+(state.relay[x.id].hash||"").slice(0,16)):"")+'</div>';
     r.appendChild(row);
   });
   if(!(project.rulings||[]).length) r.innerHTML='<div class="empty">No open decisions — nothing in the pipeline is waiting on the owner.</div>';
-  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{state.rulings[b.dataset.r]=b.dataset.o;persist();render();});
+  document.querySelectorAll(".opt:not(.relay)").forEach(b=>b.onclick=()=>{state.rulings[b.dataset.r]=b.dataset.o;persist();render();});
+  document.querySelectorAll("[data-send]").forEach(b=>b.onclick=()=>relaySend(b.dataset.send));
+  document.querySelectorAll("[data-ask]").forEach(b=>b.onclick=()=>relayAsk(b.dataset.ask));
 
   const se=document.getElementById("seals");
   if((project.seals||[]).length){

@@ -1,0 +1,11 @@
+# ngrok Traffic Policy for the decision relay: one owner, basic-auth in front, everything else denied.
+# ngrok http 8787 --traffic-policy-file tools/relay_policy.yml --url <your-cloud-endpoint>
+on_http_request:
+  - actions:
+      - type: basic-auth
+        config:
+          realm: intent-os
+          credentials:
+            - "night:${RELAY_BASIC_PASS}"   # set at intake; rotate with the HMAC secret
+  - expressions: ["req.method != 'POST' && req.method != 'OPTIONS' && req.method != 'GET'"]
+    actions: [{type: deny, config: {status_code: 405}}]
