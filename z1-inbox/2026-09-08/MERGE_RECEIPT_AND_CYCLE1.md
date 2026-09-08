@@ -10,8 +10,8 @@ REGISTERED.md sha 40391062966c6d6f… (3909 lines) — unchanged. Nothing regist
 Operated count after merges: **0/40**. Merging code is LAID.
 
 ## B. Findings from the verify
-- **F-CAND-INTAKE-01** `intake_template.jsonl` is absent from the repo and unreferenced by any file. The "job-posting batch" path has no input schema in the record. Prior sessions carried the filename from memory. Falsifier: `git log --all -- '*intake_template*'` returns a commit.
-- **IC-CAND-RI-STACK** `c08f86c` (research-intake v0.1, direct push 2026-09-07) sits under these merges with RT-07 (contract id in public history) and RT-10 (commit message asserts a ratification the yml marks PENDING) open per `research-intake_redteam_090826.md`. Not caused here; noted because the chain now builds on it.
+- **F-CAND-INTAKE-01** `intake_template.jsonl` is absent from the repo, although it is referenced by the Intent-OS board and the `python tools/prs_run.py --input intake_template.jsonl` command. The "job-posting batch" path has no input schema in the record. Prior sessions carried the filename from memory. Falsifier: `git log --all -- '*intake_template*'` returns a commit.
+- **IC-CAND-RI-STACK** `c08f86c` (research-intake v0.1, direct push 2026-09-07) sits under these merges with RT-07 (contract id in public history) and RT-10 (commit message asserts a ratification the yml marks PENDING) open. Not caused here; noted because the chain now builds on it.
 
 ## C. What an operated cycle IS (proposed definition; needs a hash)
 One cycle = all five, in order, with receipts:
@@ -34,8 +34,8 @@ Z1 read: door 1 is cycle 1. It operates the component both reads say is load-bea
 ## E. Door 1 procedure (Z2 does step 1 and 2; code does the rest)
 1. Z2 pastes `system_graph.json` (or either candidate block) to a second substrate with the instruction: "Review this. Do not be told the author's conclusion. List objections and options." No conclusion, no prediction shared (JESTER-01).
 2. Z2 pastes the review back here verbatim.
-3. Z1 writes the row: author_substrate=claude, critic_substrate=<name>, critic_saw_conclusion=false, author_points (from the artifact), critic_points (from the review), planted=0, agreement, critic_text.
-4. `python tools/jester_invariants.py reviews.jsonl --artifacts artifacts.jsonl` → verdict by code.
+3. Z1 writes the row: `review_id`, `artifact_id`, `author_substrate=claude`, `critic_substrate=<name>`, `critic_saw_conclusion=false`, `author_points` (from the artifact), `critic_points` (from the review), `catches`, `planted=0`, `agreement`, `critic_text`, and `ts` (ISO timestamp).
+4. `python3 tools/jester_invariants.py reviews.jsonl --artifacts artifacts.jsonl` → verdict by code.
 5. Events appended; P-J4 resolved into NF with Brier; count becomes **1/40**.
 Pre-registered prediction already on record in the jester block: P-J4 novelty ratio ≥ 0.30 at 0.50.
 
