@@ -17,7 +17,11 @@ body{background:var(--board);color:var(--ink);font-family:var(--sans);line-heigh
 header{margin-bottom:26px}
 h1{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.02em}
 h1 .rev{color:var(--gold);font-weight:400}
-.readline{color:var(--dim);font-size:13px;margin-top:4px}
+.readline{color:var(--dim);font-size:13px;margin-top:6px}
+.header2{font-size:13px;margin-top:6px;line-height:1.5}
+.rstat{font-size:12px;color:var(--dim);margin-top:4px;white-space:pre-wrap}
+.opt.relay{border-style:dashed}
+.header2 b{color:var(--gold);font-weight:500;display:inline-block;min-width:64px}
 h2{font-size:13px;font-family:var(--mono);font-weight:600;color:var(--dim);margin:34px 0 4px;border-bottom:1px solid var(--line);padding-bottom:6px}
 .familiar{font-size:12px;color:var(--dim);margin-bottom:12px;font-style:italic}
 .track{position:relative;padding:14px 0 4px;overflow-x:auto}
@@ -94,7 +98,8 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 <body>
 <div class="wrap">
 <header>
-  <h1 id="title">Intent-OS <span class="rev" id="rev"></span></h1>
+  <h1 id="title">Intent-OS</h1>
+  <div class="header2" id="header2"></div>
   <div class="readline" id="readline"></div>
 </header>
 
@@ -110,6 +115,15 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 </div>
 <div id="blocks"></div>
 
+<h2>Metrics — what the work must actually move</h2>
+<div class="familiar">Like a metrics dashboard, with one difference: projections are marked as projections and never counted as results.</div>
+<div id="gauges"></div>
+<p class="note">Solid bar = measured today. Dashed edge = projected after the staged work — not counted. Gold tick = target. Only measurements taken after work is verified count.</p>
+
+<h2>Decisions — calls only the project owner can make</h2>
+<div class="familiar">Like an approvals queue. Work that needs one of these shows red in the pipeline until it's decided.</div>
+<div id="rulings"></div>
+
 <h2>How projects run here — the six stages every project walks</h2>
 <div class="familiar">Like a project lifecycle framework, except each stage has a checkable condition instead of a description.</div>
 <div id="mech"></div>
@@ -124,18 +138,9 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 <div class="familiar">Like calendar deadlines — only things with a real closing window belong here.</div>
 <div id="departures"></div>
 
-<h2>Metrics — what the work must actually move</h2>
-<div class="familiar">Like a metrics dashboard, with one difference: projections are marked as projections and never counted as results.</div>
-<div id="gauges"></div>
-<p class="note">Solid bar = measured today. Dashed edge = projected after the staged work — not counted. Gold tick = target. Only measurements taken after work is verified count.</p>
-
 <h2>Commitments — predictions made before seeing results</h2>
 <div class="familiar">Rare in any product: you write down what you expect, how confident you are, and when you'll know — before the result exists. Over time this shows whether the team's judgment is getting better.</div>
 <div id="predictions"></div>
-
-<h2>Decisions — calls only the project owner can make</h2>
-<div class="familiar">Like an approvals queue. Work that needs one of these shows red in the pipeline until it's decided.</div>
-<div id="rulings"></div>
 
 <h2>Verified records — the receipts this board rests on</h2>
 <div class="familiar">Like an audit log: each entry is a fingerprint (checksum) of a real file, so anyone can later confirm nothing was quietly changed.</div>
@@ -179,6 +184,9 @@ const MECHANISM = [
 /* ---------- blank template ---------- */
 const BLANK = {
  title:"Intent-OS", rev:new Date().toISOString().slice(0,10),
+ owner:{tagline:"", project:""},   // intake: anonymous tagline (becomes the board title) and project name (header line)
+ relay:{url:"", secretHint:"ngrok URL of decision_relay.py; secret is never stored in this file"},
+ read:{board:"New", date:new Date().toISOString().slice(0,10), against:""},
  readline:"New project. Fill in the project data below: name the goal, measure your starting point, list the decisions, build with predictions attached. Nothing here counts as done until it's verified.",
  blocks:[
   {id:"1", name:"goal + stop condition", state:"waiting", role:"stage 1 · Define",
@@ -204,7 +212,9 @@ const BLANK = {
 
 /* ---------- worked example, in general terms ---------- */
 const EXAMPLE = {
- title:"Website relaunch", rev:"2026-08-31",
+ title:"Intent-OS", rev:"2026-08-31",
+ owner:{tagline:"example", project:"Website relaunch"},
+ read:{board:"Example", date:"2026-08-31", against:"staging site, measured Aug 31"},
  readline:"Example project. A small team relaunching a company site. Starting numbers measured Aug 31; everything below is in progress until it's live and verified.",
  blocks:[
   {id:"1", name:"new page templates", state:"progress", role:"the foundation",
@@ -260,8 +270,11 @@ const EXAMPLE = {
 
 /* ---------- HumanAIOS — live board, read 2026-09-06 ---------- */
 const HUMANAIOS = {
- title:"Intent-OS · HumanAIOS", rev:"2026-09-06",
- readline:"Live board. Read 2026-09-06 against humanaios-ui/operations main at b8aac1be. Everything green was verified by a fetch, not by memory. Honest number: 0 of 40 operated cycles.",
+ title:"Intent-OS", rev:"2026-09-08",
+ owner:{tagline:"Night", project:"HumanAIOS"},   // both collected at intake: anonymous tagline → title; project → header
+ relay:{url:"", secretHint:"RELAY_SECRET set at intake; entered once per session, kept in memory only"},
+ read:{board:"Live", date:"2026-09-08", against:"humanaios-ui/operations main at f13f958b"},
+ readline:"Everything green was verified by a fetch, not by memory. Honest number: 3 of 40 operated cycles — all three from door 1 (blind external review), none yet from the intake pipeline.",
  blocks:[
   {id:"1", name:"system graph v0.2 landed", state:"done", role:"stage 5 · Ship",
    why:"The operating graph in machine form: 19 processes, 44 typed edges, generated from the edge list (v0.1's hand-made JSON had two broken edges). Three owner rulings (OI-G1/G2/G3) are embedded in the commit.",
@@ -272,7 +285,7 @@ const HUMANAIOS = {
    why:"The landing bypassed the pull-request rule (direct push). The guard check, the registry Merkle root regeneration, and the OpenTimestamps anchor have not been seen to pass.",
    gate:"guard check green on b8aac1be; new REGISTERED.root; .ots proof present",
    cmds:"# check on GitHub:\nhttps://github.com/humanaios-ui/operations/commits/main",
-   meta:"expected: guard passes without revert · confidence 0.70"},
+   meta:"PRs #217 #218 #219 merged through the gate (guard ran); cycle merges and two receipts were direct pushes (bypass) · Merkle root + .ots still unseen"},
   {id:"3", name:"revoke the temporary token", state:"progress", role:"stage 5 · Ship",
    why:"A 7-day org-wide read-write token was used for the push. It should not outlive the job it was made for.",
    gate:"token no longer listed at github.com/settings/tokens",
@@ -283,11 +296,12 @@ const HUMANAIOS = {
    gate:"one current pin recorded in PRIORITY_QUEUE.md and matched by a live fetch",
    cmds:"git fetch origin\nsha256sum REGISTERED.md\ngit rev-parse HEAD",
    meta:"today: 40391062966c6d6f… · 3909 lines"},
-  {id:"5", name:"IC-SCOPE-05 in code", state:"waiting", role:"stage 3 · Decide",
+  {id:"5", name:"IC-SCOPE-05 in code", state:"progress", role:"stage 3 · Decide",
    why:"The rule that says what the behavior-audit system is allowed to do. It must run as code before any public intake post goes out — a rule that lives only in a document drifts.",
    gate:"a lint or gate in the repo fails a scope violation on a planted test",
-   cmds:"", meta:"blocks step 8",
-   blockedOn:"decision: accept the IC-SCOPE-05 draft scope"},
+   cmds:"python tools/ic_scope_check.py --self-test\n# 3 planted violations refused",
+   meta:"gate on main (#217, sha ea183c88…) · d1 accepted · ruling ic-scope-05-enforce-20260908 · still missing: intake_template.jsonl schema (F-CAND-INTAKE-01) and a pinned R-001 criteria file",
+   blockedOn:"intake schema does not exist in the repo yet"},
   {id:"6", name:"Q-ORCA-01 · multi-substrate runner", state:"waiting", role:"stage 4 · Build",
    why:"Evaluate stablyai/orca (MIT, ~61.8K stars) as the runner that sends one packet through three agents in separate worktrees and hashes each result. Disagreements surface as DISPUTED, never averaged away.",
    gate:"same packet run through three substrates; three hashed outputs in optimizer_events.jsonl",
@@ -298,44 +312,51 @@ const HUMANAIOS = {
    why:"The learning loop the graph now permits: read the ledgers, propose one constant change with a prediction and a revert rule, wait for an owner hash, apply, measure, keep or revert. Two reverts freeze a constant. Ten molts with no improvement freeze the loop.",
    gate:"molt_cycle.py emits one MOLT_CANDIDATE from ledger reads (not from memory)",
    cmds:"python tools/molt_cycle.py --read-only\n# expect: candidates or an honest 'no trigger crossed'",
-   meta:"LAID · ledgers are thin at 0/40, so 'no trigger crossed' is the likely honest output · confidence 0.35 a candidate appears within 30 days"},
+   meta:"OPERATED read-only on main (#217): verdict NO TRIGGER CROSSED — honest at 0 NF rows · NF_LEDGER (PR #220) is the input that changes this · confidence 0.35 a candidate appears by 2026-10-06"},
   {id:"8", name:"intake post — free behavior audit", state:"waiting", role:"stage 5 · Ship",
    why:"First public offer, on the agency-agents Discussions board (~150K stars). Goes out only after step 5 is code.",
    gate:"post live on the board; link recorded here",
    cmds:"", meta:"", blockedOn:"step 5 (IC-SCOPE-05) must be green first"},
-  {id:"9", name:"first operated cycle (0 → 1 of 40)", state:"waiting", role:"stage 6 · Measure",
-   why:"Every tool built so far is laid, not operated. One batch of real job postings in intake_template.jsonl is the single input that moves any of them.",
-   gate:"one real batch through the core pipeline; CYCLE + VERDICT events on the chain",
+  {id:"9", name:"first operated cycles — door 1 (0 → 3 of 40)", state:"done", role:"stage 6 · Measure",
+   why:"Three blind reviews of the graph by non-Claude substrates (independent, adversarial, falsification). Each is a real input Z1 did not write, scored against a pre-registered prediction (P-J4: novelty ≥ 0.30 at 0.50), verdict by jester_invariants J-04.",
+   gate:"receipt on main with novelty ratio, prediction id, and Brier",
+   cmds:"ls z1-inbox/2026-09-08/CYCLE_*",
+   meta:"novelty 100% · 100% · 75.6% · P-J4 TRUE · Brier 0.25 · cycle 3 verdict: DO NOT RATIFY v0.2 as adversarially closed; 7 structural changes approved for v0.3"},
+  {id:"10", name:"first intake-pipeline cycle (door 3)", state:"waiting", role:"stage 6 · Measure",
+   why:"The count that matters for GRBS: real job postings through the core pipeline. No cycle from this door yet.",
+   gate:"one real batch through prs_run; CYCLE + VERDICT events on the chain",
    cmds:"python tools/prs_run.py --input intake_template.jsonl",
-   meta:"expected: ≥1 operated by 2026-09-30 · confidence 0.30",
-   blockedOn:"decision: where the first real job-posting batch comes from"}
+   meta:"expected: ≥1 intake cycle by 2026-10-15 · confidence 0.30",
+   blockedOn:"d6 (batch source) and F-CAND-INTAKE-01 (no schema in repo)"}
  ],
  departures:[
-  {move:"55 mesh deliverables pinned in NF_LEDGER", entity:"Z2", closes:"Sep 12", hot:true,
-   action:"pin them or record that they were not pinned — either is a real outcome; silence is not"},
+  {move:"NF_LEDGER PR #220 — Z2 owes ratification hash, 15 priors, 21 dates/strikes, 2 tree-read sources", entity:"Z2", closes:"Sep 12", hot:true,
+   action:"58 tokens pinned by Z1 (LAID). Without the 15 Z2 priors, LT-2 has no input on Oct 4"},
   {move:"Temporary GitHub token auto-expiry", entity:"Z2", closes:"Sep 13", hot:false,
    action:"revoke earlier (step 3); expiry is the backstop, not the plan"}
  ],
  gauges:[
-  {label:"operated cycles", base:0, prev:0, target:100, scale:"0 of 40 (shown as %)", note:"no projection is offered — nothing moves without real data"},
-  {label:"queue blockers cleared", base:20, prev:40, target:100, scale:"1 of 5", note:"projected: IC-030 re-pin lands this session — counts when the pin is in the file"},
+  {label:"operated cycles", base:0, prev:7.5, target:100, scale:"3 of 40 (shown as %)", note:"measured: 3 door-1 cycles on main · 0 intake-pipeline cycles · no projection offered"},
+  {label:"queue blockers cleared", base:20, prev:60, target:100, scale:"3 of 5", note:"projected: IC-030 re-pin lands this session — counts when the pin is in the file"},
   {label:"owner rulings resolved (OI-G1/G2/G3)", base:100, prev:100, target:100, note:"measured: three of three, hashes in commit b8aac1be"},
   {label:"graph integrity (nodes with valid edges)", base:100, prev:100, target:100, scale:"19 of 19", note:"measured: 0 dangling on the landed JSON"}
  ],
  predictions:[
   {id:"C1", text:"CI guard passes on b8aac1be without a revert", confidence:0.70, resolves:"next CI run on main"},
   {id:"C2", text:"Merkle root regenerates and the consistency proof passes on this commit", confidence:0.65, resolves:"next CI run on main"},
-  {id:"C3", text:"55 mesh deliverables are pinned in NF_LEDGER by the deadline", confidence:0.40, resolves:"2026-09-12"},
+  {id:"C3", text:"55 mesh deliverables are pinned in NF_LEDGER by the deadline", confidence:0.40, resolves:"2026-09-12 · partial: 58 Z1 pins laid in PR #220; Z2 priors still 0 of 15"},
   {id:"C4", text:"molt_cycle.py emits at least one MOLT_CANDIDATE from real ledger reads", confidence:0.35, resolves:"2026-10-06"},
-  {id:"C5", text:"at least one operated cycle (0 → 1 of 40)", confidence:0.30, resolves:"2026-09-30"}
+  {id:"C5", text:"at least one operated cycle (0 → 1 of 40)", confidence:0.30, resolves:"RESOLVED TRUE 2026-09-08 · 3 cycles · Brier (0.30−1)² = 0.49 — underconfident"},
+  {id:"C6", text:"first intake-pipeline cycle (door 3) by 2026-10-15", confidence:0.30, resolves:"2026-10-15"},
+  {id:"C7", text:"Z2 enters all 15 NF priors by Sep 12", confidence:0.50, resolves:"2026-09-12"}
  ],
  rulings:[
-  {id:"d1", q:"IC-SCOPE-05 — accept the draft scope rule as written?", s:"blocks the intake post (step 8) until it runs as code", opts:["accept","edit","later"]},
+  {id:"d1", q:"IC-SCOPE-05 — accept the draft scope rule as written?", s:"RULED: accepted · ic-scope-05-accepted-20260906 · enforce ruling ic-scope-05-enforce-20260908", opts:["accepted"]},
   {id:"d2", q:"TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate?", s:"gates Q-ORCA-01", opts:["set","drop gate","later"]},
   {id:"d3", q:"z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate?", s:"nothing is ordered until it exists", opts:["set","drop gate","later"]},
-  {id:"d4", q:"Direct push of b8aac1be — ratify as an exception, or revert and re-land through a pull request?", s:"the branch rule was bypassed; the record should say which", opts:["ratify exception","revert + PR","later"]},
+  {id:"d4", q:"Direct push of b8aac1be — ratify as an exception, or revert and re-land through a pull request?", s:"RULED: exception · direct-push-exception-testing-20260906 · note: cycle merges 453cd8b and receipts 183efe6/efcfcb5 were also direct pushes — same exception or new IC?", opts:["ratified"]},
   {id:"d5", q:"GRBS ↔ Empirica — what is the formal relationship?", s:"open ruling carried across sessions", opts:["rule now","later"]},
-  {id:"d6", q:"First job-posting batch — where does it come from?", s:"the only input that moves 0/40", opts:["own postings","partner","scrape","later"]}
+  {id:"d6", q:"First job-posting batch — where does it come from?", s:"the only input that moves the intake count (0 of 40 from that door)", opts:["own postings","partner","scrape","later"]}
  ],
  seals:[
   {artifact:"commit b8aac1be — system_graph.json v0.2 on main", sha:"b8aac1be789b13c0c4a8578e8ba0df2d5c85a125"},
@@ -343,6 +364,12 @@ const HUMANAIOS = {
   {artifact:"REGISTERED.md at 3bd88d6 (sha256, first 16 · 3909 lines)", sha:"40391062966c6d6f"},
   {artifact:"PRIORITY_QUEUE.md z2_queue v1_1 (sha256, first 16)", sha:"d379efc3e3dd2f7e"},
   {artifact:"OI-G1 ratification", sha:"molt-tiers-anticascade-K3-N10-20260906"},
+  {artifact:"cycle 1 receipt (independent)", sha:"7847cdb96ff2876f"},
+  {artifact:"cycle 2 receipt (adversarial)", sha:"3c9ea3491105a712"},
+  {artifact:"cycle 3 falsification report", sha:"beb737253d491d0c"},
+  {artifact:"Z2 rulings 2026-09-08 (cycle 3 approved · H-CAND batch · IC-SCOPE-05 enforce)", sha:"3366a9462dda7ab0"},
+  {artifact:"ic_scope_check.py on main", sha:"ea183c88a1ad5b27"},
+  {artifact:"NF_LEDGER.jsonl (PR #220, 165 events)", sha:"b68a6fb8de43fef1"},
   {artifact:"OI-G2 ratification", sha:"pq-formula-impact-unblocks-20260906"},
   {artifact:"OI-G3 ratification", sha:"zone-integer-extend-zone3-20260906"}
  ]
@@ -367,6 +394,40 @@ let state = {done:{}, rulings:{}};
 let storageOK = false;
 const KEY = "intentos:board_humanaios_v3_1";
 
+/* ---------- decision relay (ngrok → decision_relay.py → GitHub PR) ---------- */
+let RELAY_SECRET="";  // entered once per session; never persisted
+async function hmacHex(secret,body){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const sig=await crypto.subtle.sign("HMAC",k,new TextEncoder().encode(body));return [...new Uint8Array(sig)].map(b=>b.toString(16).padStart(2,"0")).join("");}
+async function relayPost(path,obj){
+  const url=(project.relay||{}).url; if(!url){alert("No relay URL. Set relay.url in project data (your ngrok endpoint).");return null;}
+  if(!RELAY_SECRET) RELAY_SECRET=prompt("Relay secret (set at intake; kept in memory only):")||"";
+  obj.epoch=Date.now()/1000; obj.nonce=crypto.randomUUID(); obj.ts=new Date().toISOString().slice(0,19)+"Z";
+  obj.tagline=(project.owner||{}).tagline||""; obj.project=(project.owner||{}).project||"";
+  const body=JSON.stringify(obj); const sig=await hmacHex(RELAY_SECRET,body);
+  const r=await fetch(url.replace(/\/$/,"")+path,{method:"POST",headers:{"Content-Type":"application/json","X-Sig":sig},body});
+  return r.json();
+}
+function ruling(id){return (project.rulings||[]).find(x=>x.id===id);}
+function setStat(id,txt){const e=document.getElementById("rstat-"+id); if(e) e.textContent=txt;}
+async function relaySend(id){
+  const x=ruling(id); const choice=state.rulings[id]; if(!choice){alert("Pick an option first.");return;}
+  state.relay=state.relay||{}; const cur=state.relay[id];
+  if(cur&&cur.status==="PENDING"){  // second tap = echo the hash back. A tap is not a ratification; the hash is.
+    const h=prompt("Ratify "+id+" by echoing its hash:\n"+cur.hash+"\n\nPaste it here (or leave blank to cancel):","");
+    if(!h) return;
+    const res=await relayPost("/ratify",{id,hash:h.trim(),expected_hash:cur.hash,number:cur.number});
+    if(res&&res.status==="RATIFIED"){state.relay[id]={...cur,status:"RATIFIED"};} setStat(id,res?res.status+(res.why?" · "+res.why:""):"no response"); persist(); render(); return;
+  }
+  setStat(id,"sending…");
+  const res=await relayPost("/decide",{id,q:x.q,choice,note:""});
+  if(res&&res.hash){state.relay[id]={status:res.status,pr:res.pr,number:res.number,hash:res.hash};persist();render();}
+  else setStat(id,res?(res.status+" · "+(res.why||"")):"no response");
+}
+async function relayAsk(id){
+  const x=ruling(id); setStat(id,"asking Z1…");
+  const res=await relayPost("/assist",{id,q:x.q,opts:x.opts,s:x.s});
+  setStat(id,res?("Z1: "+res.text+(res.drift&&res.drift.length?"  [DRIFT stripped: "+res.drift.join(", ")+"]":"")):"no response");
+}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,1400)}
 
@@ -388,7 +449,16 @@ async function restore(){
 function stateWord(st){return st==="done"?"verified":st==="progress"?"in progress":"needs a decision"}
 
 function render(){
-  document.getElementById("title").innerHTML = esc(project.title)+' <span class="rev">'+esc(project.rev||"")+"</span>";
+  // title = "Intent-OS · " + the user's anonymous tagline (intake variable); project name is its own intake variable
+  const ow = project.owner || {};
+  const tag = ow.tagline || "";
+  document.getElementById("title").textContent = "Intent-OS" + (tag ? " · " + tag : "");
+  const rd = project.read || {};
+  document.getElementById("header2").innerHTML =
+    '<div><b>Project:</b> '+esc(ow.project||project.project||"—")+'</div>'+
+    '<div><b>Board:</b> '+esc(rd.board||"—")+'</div>'+
+    '<div><b>Read:</b> '+esc(rd.date||project.rev||"—")+'</div>'+
+    '<div><b>Against:</b> '+esc(rd.against||"—")+'</div>';
   document.getElementById("readline").textContent = project.readline||"";
 
   const rail=document.getElementById("rail"); rail.innerHTML="";
@@ -467,11 +537,15 @@ function render(){
   (project.rulings||[]).forEach(x=>{
     const row=document.createElement("div"); row.className="ruling";
     row.innerHTML='<div class="q">'+esc(x.q)+(x.s?'<small>'+esc(x.s)+"</small>":"")+'</div><div class="opts">'
-      +(x.opts||[]).map(o=>'<button class="opt'+(state.rulings[x.id]===o?" sel":"")+'" data-r="'+esc(x.id)+'" data-o="'+esc(o)+'">'+esc(o)+"</button>").join("")+"</div>";
+      +(x.opts||[]).map(o=>'<button class="opt'+(state.rulings[x.id]===o?" sel":"")+'" data-r="'+esc(x.id)+'" data-o="'+esc(o)+'">'+esc(o)+"</button>").join("")
+      +'<button class="opt relay" data-send="'+esc(x.id)+'">→ PR</button><button class="opt relay" data-ask="'+esc(x.id)+'">ask Z1</button></div>'
+      +'<div class="rstat" id="rstat-'+esc(x.id)+'">'+esc((state.relay||{})[x.id]?(state.relay[x.id].status+" · "+(state.relay[x.id].pr||"")+" · hash "+(state.relay[x.id].hash||"").slice(0,16)):"")+'</div>';
     r.appendChild(row);
   });
   if(!(project.rulings||[]).length) r.innerHTML='<div class="empty">No open decisions — nothing in the pipeline is waiting on the owner.</div>';
-  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{state.rulings[b.dataset.r]=b.dataset.o;persist();render();});
+  document.querySelectorAll(".opt:not(.relay)").forEach(b=>b.onclick=()=>{state.rulings[b.dataset.r]=b.dataset.o;persist();render();});
+  document.querySelectorAll("[data-send]").forEach(b=>b.onclick=()=>relaySend(b.dataset.send));
+  document.querySelectorAll("[data-ask]").forEach(b=>b.onclick=()=>relayAsk(b.dataset.ask));
 
   const se=document.getElementById("seals");
   if((project.seals||[]).length){
@@ -494,7 +568,7 @@ document.getElementById("export").onclick=()=>{
   const payload={exported:new Date().toISOString(), schema:"intentos/board_v1", project, state};
   const blob=new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="intentos_"+(project.title||"board").toLowerCase().replace(/[^a-z0-9]+/g,"_")+"_"+Date.now()+".json"; a.click();
+  a.download="intentos_"+((project.owner&&project.owner.tagline)||project.title||"board").toLowerCase().replace(/[^a-z0-9]+/g,"_")+"_"+Date.now()+".json"; a.click();
   toast("board exported");
 };
 document.getElementById("import").onclick=()=>document.getElementById("file").click();
