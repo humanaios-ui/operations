@@ -448,6 +448,28 @@ async function restore(){
 
 function stateWord(st){return st==="done"?"verified":st==="progress"?"in progress":"needs a decision"}
 
+/* ---------- onboarding flow ---------- */
+let onboarding=true; let currentStep=null;
+function startOnboarding(){
+  document.getElementById("main").style.display="none"; 
+  document.getElementById("onboarding").style.display="block"; 
+  currentStep=document.querySelector(".onbstep[data-s='0']"); 
+  if(currentStep) currentStep.classList.add("on");
+}
+function onbNext(){
+  if(!currentStep) return; 
+  const s=parseInt(currentStep.dataset.s); 
+  currentStep.classList.remove("on"); 
+  const next=document.querySelector(`.onbstep[data-s="${s+1}"]`); 
+  if(next){currentStep=next; currentStep.classList.add("on");} 
+  else {onboarding=false; document.getElementById("onboarding").style.display="none"; document.getElementById("main").style.display="block";}
+}
+function onbPrev(){
+  if(!currentStep) return; 
+  const s=parseInt(currentStep.dataset.s); 
+  if(s>0){currentStep.classList.remove("on"); const prev=document.querySelector(`.onbstep[data-s="${s-1}"]`); if(prev){currentStep=prev; currentStep.classList.add("on");}}
+}
+
 function render(){
   // title = "Intent-OS · " + the user's anonymous tagline (intake variable); project name is its own intake variable
   const ow = project.owner || {};
