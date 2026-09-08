@@ -1,0 +1,173 @@
+# research-intake.yml
+# HumanAIOS Research Intake Protocol v0.1
+# Specimen: Night (Carly Anderson, HumanAIOS LLC)
+# Effective: 2026-09-06
+# Tier: 2 (Requires ADV run before landing)
+
+---
+schema_version: "0.1"
+protocol_name: "research-intake"
+intake_type: "behavioral-specimen"
+specimen_id: "night-micro1-intake-cycle-1"
+specimen_name: "Carly Anderson (Night)"
+specimen_role: "Individual Expert, Micro1 LLC contractor"
+specimen_contract: "m88dj94"
+
+# Research Question Framework
+research_questions:
+  RQ1:
+    title: "Does behavioral assessment predict expert task performance?"
+    hypothesis: "Patterns in expert engagement (task acceptance, revision cycles, velocity) predict future task success rates."
+    measurement: "Brier score on molt predictions; REVERT rate on allocation recommendations"
+    falsifier: "After 10 expert work cycles, Brier > 0.4 or REVERT rate > 30% on consecutive molts"
+    measurement_window: "30 days rolling (cycles 1-5)"
+
+  RQ2:
+    title: "Can resource allocation be reproduced from behavioral data?"
+    hypothesis: "CredPolicy regulator (calibration → priority → envelope) predicts which expert tasks Night prioritizes without human discretion."
+    measurement: "Task prioritization agreement: CredPolicy recommendation vs actual choice, per cycle"
+    falsifier: "Agreement < 60% on 3+ consecutive cycles"
+    measurement_window: "30 days rolling (cycles 2-5)"
+
+  RQ3:
+    title: "Does intake evaluation itself improve performance (molt mechanism)?"
+    hypothesis: "Being audited (research-intake.yml applied to work) increases subsequent task quality (F-41 audit-as-learning)."
+    measurement: "Quality score delta pre/post audit cycle; task rejection rate trend"
+    falsifier: "No improvement in 2 consecutive cycles or rejection rate increases"
+    measurement_window: "14 days per cycle"
+
+# Intake Record Schema
+intake_record:
+  metadata:
+    intake_id: string  # UUID; format: intake-{specimen_id}-{cycle}-{timestamp}
+    cycle_number: integer  # 1-based cycle count
+    specimen_id: string  # night-micro1-intake-cycle-1
+    timestamp: datetime  # ISO8601
+    evaluator: string  # Z1 (Claude) or Z2 (Night)
+    evaluation_status: enum [PENDING, PRELIMINARY, VERIFIED, PUBLISHED, REVERTED]
+
+  specimen_input:
+    work_period_start: datetime
+    work_period_end: datetime
+    platform: string  # "micro1"
+    contract_ref: string  # m88dj94
+    tasks_assigned: integer
+    tasks_completed: integer
+    tasks_revised: integer
+    task_categories: list[string]  # ["data-pipeline-annotation", "output-comparison", "response-writing", "guideline-compliance"]
+
+  behavioral_observations:
+    engagement:
+      task_acceptance_rate: float  # 0-1
+      revision_cycles_per_task: float  # mean
+      response_time_minutes: float  # mean time to task completion
+      quality_score: float  # 0-100 (from Micro1 feedback or N/A if pending)
+
+    consistency:
+      guideline_adherence: float  # 0-1 based on task feedback
+      annotation_variance: float  # 0-1 (consistency of repeated evaluations)
+      error_rate: float  # 0-1 (false positives / false negatives in annotation)
+
+    learning_signal:
+      revision_acceptance_rate: float  # 0-1 (how often Night accepts feedback and revises)
+      improvement_trajectory: string  # "IMPROVING", "STABLE", "DECLINING", "NO_DATA"
+      confidence_trend: string  # increasing, stable, decreasing (inferred from task selection patterns)
+
+  predictions:
+    molt_predictions:
+      - prediction_id: string  # molt-{intake_id}-{prediction_num}
+        variable: string  # E.g., "task_quality_score", "task_acceptance_rate", "revision_cycles"
+        prediction_value: float
+        confidence: float  # 0-1
+        measurement_window: string  # "7 days", "14 days", "30 days"
+        predicted_at: datetime
+        resolved_at: datetime  # When prediction is measured
+        actual_value: float  # After measurement_window closes
+        brier_score: float  # Accuracy of prediction (0 = perfect, 1 = worst)
+        revert_rule: string  # If actual diverges from prediction by >X, trigger REVERT and F/IC candidate
+
+  credential_policy_output:
+    resource_allocation_recommendation:
+      priority_score: float  # Computed by CredPolicy from behavioral signals
+      recommended_next_tasks: list[string]  # E.g., ["high-complexity-annotation", "output-evaluation"]
+      envelope_constraint: string  # E.g., "max 20 hours/week", "prioritize pipeline-A"
+      rationale: string  # Why CredPolicy made this recommendation from behavioral data
+
+    allocation_vs_actual:
+      predicted_choice: string  # What CredPolicy said Night would choose
+      actual_choice: string  # What Night actually chose
+      agreement: boolean
+      agreement_rate_cycle: float  # % of recommendations Night followed this cycle
+
+  evaluation_output:
+    f_class_findings: list[dict]
+      - finding_id: string  # E.g., "F-35", "F-41" (audit-as-molt)
+        title: string
+        description: string
+        severity: enum [INFO, NOTICE, CAUTION, CONCERN]
+        evidence: string  # Specific behavioral signals supporting finding
+
+    ic_principle_check: list[dict]
+      - principle_id: string  # E.g., "P1" (Reciprocity), "P11" (Escalation atomicity)
+        status: enum [SATISFIED, UNRESOLVED, VIOLATED, NO_DATA]
+        detail: string
+
+    molt_candidate_generated: boolean
+    molt_candidate_id: string  # If generated; null otherwise
+    molt_candidate_detail: string  # Proposed change, falsifier, measurement window
+
+  receipt_and_hash:
+    claim_summary: string  # What was claimed about Night's performance
+    verification_sources: list[string]  # ["micro1-platform-api", "night-self-report", "claude-z1-observation"]
+    receipt_hash: string  # SHA256 of this intake record + verification proof
+    receipt_status: enum [CLAIM, CLAIM_WITH_LINK, VERIFIED, VOID]  # Per IC-031 evidence tiers
+    chain_link_prior: string  # Hash of prior intake record (for hash chain)
+
+# Cycle Cadence
+cycle_schedule:
+  cycle_frequency: "weekly"  # Every 7 days starting 2026-09-13 (end of first work week)
+  cycle_duration_days: 7
+  evaluation_lag_hours: 24  # Z1 evaluation happens within 24h of cycle close
+  z2_ratification_lag_hours: 48  # Z2 (Night) ratification review within 48h
+  molt_window_days: 30  # Molt predictions measured over 30 days (cycles 1-5 overlap)
+  publication_gate: "molt predictions must resolve before intake record published"
+
+# Landing Integration
+landing_order_position: 2  # After REGISTERED.md, before TLA spec
+tier: 2  # Requires ADV run (Adversarial Eval on prediction quality)
+dependencies:
+  - research-intake design doc (must exist)
+  - MOLT_LEDGER schema (must be ratified)
+  - NF_LEDGER schema (must exist; Brier scoring engine)
+  - PRS_RUNNER ready for molt prediction verdicts
+
+# Initial Blockers for Cycle 1
+blockers:
+  - Micro1 expert work scope (TBD) — blocks accurate task categorization
+  - MOLT_LEDGER implementation (blocks molt_candidate generation)
+  - NF_LEDGER Brier scoring engine (blocks prediction validation)
+  - Z2 ratification of measurement windows and falsifiers (blocks cycling)
+
+# Notes
+notes: |
+  research-intake.yml is the operational protocol for validating HumanAIOS governance on Night as the initial research specimen.
+
+  The intake generates three parallel data streams:
+  1. Behavioral specimen data (Night's work patterns at Micro1) → NF_LEDGER for Brier calibration
+  2. Molt predictions with measured resolutions → molt_events.jsonl for cycle learning
+  3. Receipts (claim vs verification) → Receipt Reconciliation (§B.6) for IC-031 audit
+
+  Success criteria: RQ1/RQ2/RQ3 falsifiers do NOT trigger after cycle 5. If any falsifier triggers, system enters remediation (revert molts, expand corpus, or pause cycling).
+
+  This is a true test of the recursive learning model: the system audits itself, learns from the audit, and measures whether the learning improves predictions.
+
+---
+# AUDIT TRAIL (maintained per cycle)
+audit_trail: []
+
+# Z2 RATIFICATION (pending)
+z2_ratification:
+  ratified_by: null
+  ratified_at: null
+  ratification_hash: null
+  status: "PENDING"
