@@ -146,6 +146,14 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 <div class="familiar">Like an audit log: each entry is a fingerprint (checksum) of a real file, so anyone can later confirm nothing was quietly changed.</div>
 <div id="seals"></div>
 
+<h2>Feedback ledger — tri-source (user · machine · system)</h2>
+<div class="familiar">Three sources, one append-only ledger. Machine reports its own faults; system reports invariant checks; user reports felt issues.</div>
+<div id="feedback" style="font-size:12px;max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--bg)"></div>
+
+<h2>Active work (WIP ≤ 3)</h2>
+<div class="familiar">More than three in flight means none get landed. Pull from backlog only if slot is empty.</div>
+<div id="wipslots" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:16px"></div>
+
 <h2>Project data — the whole board as one editable file</h2>
 <p class="note" style="margin-bottom:8px">Everything above renders from this. Edit and apply to reshape the board; export saves it with every checkbox and decision; import picks up exactly where a board was left.</p>
 <textarea id="schema" spellcheck="false"></textarea>
@@ -271,7 +279,9 @@ const EXAMPLE = {
 /* ---------- HumanAIOS — live board, read 2026-09-06 ---------- */
 const HUMANAIOS = {
  title:"Intent-OS", rev:"2026-09-08",
- owner:{tagline:"Night", project:"HumanAIOS"},   // both collected at intake: anonymous tagline → title; project → header
+ owner:{tagline:"Night", project:"HumanAIOS"},   // both collected at intake
+ wip:{active:[],backlog:[],max:3},   // WIP ≤ 3; active cap enforced
+ harness:{mode:"human",pools:{human:8,machine:12,context:5}},   // resource caps per mode: anonymous tagline → title; project → header
  relay:{url:"", secretHint:"RELAY_SECRET set at intake; entered once per session, kept in memory only"},
  read:{board:"Live", date:"2026-09-08", against:"humanaios-ui/operations main at f13f958b"},
  readline:"Everything green was verified by a fetch, not by memory. Honest number: 3 of 40 operated cycles — all three from door 1 (blind external review), none yet from the intake pipeline.",
@@ -546,6 +556,19 @@ function render(){
   document.querySelectorAll(".opt:not(.relay)").forEach(b=>b.onclick=()=>{state.rulings[b.dataset.r]=b.dataset.o;persist();render();});
   document.querySelectorAll("[data-send]").forEach(b=>b.onclick=()=>relaySend(b.dataset.send));
   document.querySelectorAll("[data-ask]").forEach(b=>b.onclick=()=>relayAsk(b.dataset.ask));
+  // feedback ledger rendering
+  function renderFeedback(){const fb=document.getElementById("feedback");if(!fb) return;
+    const items=(project.feedback||[]).slice(0,20).reverse();
+    if(!items.length){fb.innerHTML='<div style="font-size:11px;color:var(--dim)">no feedback yet</div>';return;}
+    let h='<div style="font-size:10px;font-family:var(--mono)">';items.forEach(x=>{const col=x.severity==="high"?"#f85149":x.severity==="med"?"#d29922":"#3fb950";
+    h+='<div style="border-bottom:1px solid var(--border);padding:4px 0"><span style="color:'+col+'">●</span> '+esc(x.source)+': '+esc(x.text)+'</div>';});
+    fb.innerHTML=h+'</div>';}
+  function renderWIP(){const w=document.getElementById("wipslots");if(!w) return;w.innerHTML='';
+    const active=(project.wip||{}).active||[];const max=(project.wip||{}).max||3;
+    for(let i=0;i<max;i++){const d=document.createElement("div");d.style="border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--elev);min-height:60px";
+    if(active[i]) d.innerHTML='<div style="font-weight:500;font-size:12px">'+esc(active[i].title)+'</div><div style="font-size:10px;color:var(--dim)">'+esc(active[i].meta||"")+'</div>';
+    else d.innerHTML='<div style="color:var(--dim);font-size:11px;text-align:center">empty</div>';w.appendChild(d);}}
+  renderFeedback(); renderWIP();
 
   const se=document.getElementById("seals");
   if((project.seals||[]).length){
