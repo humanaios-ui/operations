@@ -17,7 +17,9 @@ body{background:var(--board);color:var(--ink);font-family:var(--sans);line-heigh
 header{margin-bottom:26px}
 h1{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.02em}
 h1 .rev{color:var(--gold);font-weight:400}
-.readline{color:var(--dim);font-size:13px;margin-top:4px}
+.readline{color:var(--dim);font-size:13px;margin-top:6px}
+.header2{font-size:13px;margin-top:6px;line-height:1.5}
+.header2 b{color:var(--gold);font-weight:500;display:inline-block;min-width:64px}
 h2{font-size:13px;font-family:var(--mono);font-weight:600;color:var(--dim);margin:34px 0 4px;border-bottom:1px solid var(--line);padding-bottom:6px}
 .familiar{font-size:12px;color:var(--dim);margin-bottom:12px;font-style:italic}
 .track{position:relative;padding:14px 0 4px;overflow-x:auto}
@@ -94,7 +96,8 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 <body>
 <div class="wrap">
 <header>
-  <h1 id="title">Intent-OS <span class="rev" id="rev"></span></h1>
+  <h1 id="title">Intent-OS</h1>
+  <div class="header2" id="header2"></div>
   <div class="readline" id="readline"></div>
 </header>
 
@@ -110,6 +113,15 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 </div>
 <div id="blocks"></div>
 
+<h2>Metrics — what the work must actually move</h2>
+<div class="familiar">Like a metrics dashboard, with one difference: projections are marked as projections and never counted as results.</div>
+<div id="gauges"></div>
+<p class="note">Solid bar = measured today. Dashed edge = projected after the staged work — not counted. Gold tick = target. Only measurements taken after work is verified count.</p>
+
+<h2>Decisions — calls only the project owner can make</h2>
+<div class="familiar">Like an approvals queue. Work that needs one of these shows red in the pipeline until it's decided.</div>
+<div id="rulings"></div>
+
 <h2>How projects run here — the six stages every project walks</h2>
 <div class="familiar">Like a project lifecycle framework, except each stage has a checkable condition instead of a description.</div>
 <div id="mech"></div>
@@ -124,18 +136,9 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 <div class="familiar">Like calendar deadlines — only things with a real closing window belong here.</div>
 <div id="departures"></div>
 
-<h2>Metrics — what the work must actually move</h2>
-<div class="familiar">Like a metrics dashboard, with one difference: projections are marked as projections and never counted as results.</div>
-<div id="gauges"></div>
-<p class="note">Solid bar = measured today. Dashed edge = projected after the staged work — not counted. Gold tick = target. Only measurements taken after work is verified count.</p>
-
 <h2>Commitments — predictions made before seeing results</h2>
 <div class="familiar">Rare in any product: you write down what you expect, how confident you are, and when you'll know — before the result exists. Over time this shows whether the team's judgment is getting better.</div>
 <div id="predictions"></div>
-
-<h2>Decisions — calls only the project owner can make</h2>
-<div class="familiar">Like an approvals queue. Work that needs one of these shows red in the pipeline until it's decided.</div>
-<div id="rulings"></div>
 
 <h2>Verified records — the receipts this board rests on</h2>
 <div class="familiar">Like an audit log: each entry is a fingerprint (checksum) of a real file, so anyone can later confirm nothing was quietly changed.</div>
@@ -179,6 +182,8 @@ const MECHANISM = [
 /* ---------- blank template ---------- */
 const BLANK = {
  title:"Intent-OS", rev:new Date().toISOString().slice(0,10),
+ owner:{name:"", tagline:""},   // onboarding: your name and your project tagline — the tagline becomes the board title
+ read:{board:"New", date:new Date().toISOString().slice(0,10), against:""},
  readline:"New project. Fill in the project data below: name the goal, measure your starting point, list the decisions, build with predictions attached. Nothing here counts as done until it's verified.",
  blocks:[
   {id:"1", name:"goal + stop condition", state:"waiting", role:"stage 1 · Define",
@@ -204,7 +209,9 @@ const BLANK = {
 
 /* ---------- worked example, in general terms ---------- */
 const EXAMPLE = {
- title:"Website relaunch", rev:"2026-08-31",
+ title:"Intent-OS", rev:"2026-08-31",
+ owner:{name:"example", tagline:"Website relaunch"},
+ read:{board:"Example", date:"2026-08-31", against:"staging site, measured Aug 31"},
  readline:"Example project. A small team relaunching a company site. Starting numbers measured Aug 31; everything below is in progress until it's live and verified.",
  blocks:[
   {id:"1", name:"new page templates", state:"progress", role:"the foundation",
@@ -260,8 +267,10 @@ const EXAMPLE = {
 
 /* ---------- HumanAIOS — live board, read 2026-09-06 ---------- */
 const HUMANAIOS = {
- title:"Intent-OS · HumanAIOS", rev:"2026-09-08",
- readline:"Live board. Read 2026-09-08 against humanaios-ui/operations main at f13f958b. Everything green was verified by a fetch, not by memory. Honest number: 3 of 40 operated cycles — all three from door 1 (blind external review), none yet from the intake pipeline.",
+ title:"Intent-OS", rev:"2026-09-08",
+ owner:{name:"Night", tagline:"HumanAIOS"},
+ read:{board:"Live", date:"2026-09-08", against:"humanaios-ui/operations main at f13f958b"},
+ readline:"Everything green was verified by a fetch, not by memory. Honest number: 3 of 40 operated cycles — all three from door 1 (blind external review), none yet from the intake pipeline.",
  blocks:[
   {id:"1", name:"system graph v0.2 landed", state:"done", role:"stage 5 · Ship",
    why:"The operating graph in machine form: 19 processes, 44 typed edges, generated from the edge list (v0.1's hand-made JSON had two broken edges). Three owner rulings (OI-G1/G2/G3) are embedded in the commit.",
@@ -402,7 +411,14 @@ async function restore(){
 function stateWord(st){return st==="done"?"verified":st==="progress"?"in progress":"needs a decision"}
 
 function render(){
-  document.getElementById("title").innerHTML = esc(project.title)+' <span class="rev">'+esc(project.rev||"")+"</span>";
+  // title = "Intent-OS · " + the owner's tagline, a variable collected at onboarding
+  const tag = (project.owner&&project.owner.tagline) || project.tagline || "";
+  document.getElementById("title").textContent = "Intent-OS" + (tag ? " · " + tag : "");
+  const rd = project.read || {};
+  document.getElementById("header2").innerHTML =
+    '<div><b>Board:</b> '+esc(rd.board||"—")+'</div>'+
+    '<div><b>Read:</b> '+esc(rd.date||project.rev||"—")+'</div>'+
+    '<div><b>Against:</b> '+esc(rd.against||"—")+'</div>';
   document.getElementById("readline").textContent = project.readline||"";
 
   const rail=document.getElementById("rail"); rail.innerHTML="";
@@ -508,7 +524,7 @@ document.getElementById("export").onclick=()=>{
   const payload={exported:new Date().toISOString(), schema:"intentos/board_v1", project, state};
   const blob=new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="intentos_"+(project.title||"board").toLowerCase().replace(/[^a-z0-9]+/g,"_")+"_"+Date.now()+".json"; a.click();
+  a.download="intentos_"+((project.owner&&project.owner.tagline)||project.title||"board").toLowerCase().replace(/[^a-z0-9]+/g,"_")+"_"+Date.now()+".json"; a.click();
   toast("board exported");
 };
 document.getElementById("import").onclick=()=>document.getElementById("file").click();
