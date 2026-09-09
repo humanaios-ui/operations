@@ -23,13 +23,18 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import subprocess
 import sys
 
+from smag_predict_lint import (
+    VOID_GAP,
+    VOID_PREDICTION,
+    extract_smag_probability,
+    normalize_prediction,
+)
+
 TOOL_NAME = "smag_pr_autocapture"
 TOOL_VERSION = "1.0.0"
-_SMAG_P = re.compile(r"(?im)^\s*smag_p\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*$")
 
 
 def derive_substrate(login: str) -> str:
@@ -52,19 +57,12 @@ def summarize_checks(check_runs: list) -> str:
         counts[concl] = counts.get(concl, 0) + 1
     return ", ".join(f"{k}:{v}" for k, v in sorted(counts.items()))
 
-
-def extract_smag_probability(text: str) -> str | None:
-    """Extract a pinned `smag_p:` probability line from PR body text."""
-    m = _SMAG_P.search(text or "")
-    return m.group(1) if m else None
-
-
 def build_fields(pr: dict, checks: list) -> dict:
     """Build the SMAG row fields from PR metadata. Pure function (testable)."""
     login = (pr.get("user") or {}).get("login", "")
     merged = bool(pr.get("merged") or pr.get("merged_at"))
-    prob = extract_smag_probability((pr.get("body") or ""))
-    predicted = f"smag_p:{prob}" if prob is not None else "VOID: missing smag_p"
+    probability = extract_smag_probability(pr.get("body") or "")
+    predicted = normalize_prediction(probability)
     measured = f"merged={merged}; checks: {summarize_checks(checks)}"
     return {
         "pr": str(pr.get("number", "")),
@@ -72,7 +70,7 @@ def build_fields(pr: dict, checks: list) -> dict:
         "substrate": derive_substrate(login),
         "predicted": predicted,
         "measured": measured,
-        "gap": "" if prob is not None else "VOID: missing pinned probability",
+        "gap": "" if probability is not None else VOID_GAP,
     }
 
 
@@ -157,13 +155,14 @@ def run_smoke_test() -> bool:
     )
     ok = ok and extract_smag_probability("x\nsmag_p:0.2\ny") == "0.2"
     ok = ok and extract_smag_probability("no probability") is None
-    ok = ok and f["substrate"] == "Copilot" and f["predicted"] == "smag_p:0.42"
+    ok = ok and f["substrate"] == "Copilot"
+    ok = ok and f["predicted"] == "smag_p:0.42"
     ok = ok and "merged=True" in f["measured"] and "success:2" in f["measured"]
     g = build_fields(
         {"number": 8, "title": "t2", "body": "no smag line", "user": {"login": "Copilot"}, "merged": True},
         [{"conclusion": "success"}],
     )
-    ok = ok and g["predicted"].startswith("VOID:") and g["gap"].startswith("VOID:")
+    ok = ok and g["predicted"] == VOID_PREDICTION and g["gap"] == VOID_GAP
     c = format_comment(f)
     ok = ok and "SMAG row" in c and "predicted:" in c and "```json" in c
     print("✓ Smoke test PASSED" if ok else "✗ Smoke test FAILED")
