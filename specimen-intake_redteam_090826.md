@@ -42,7 +42,7 @@ Severity per SeverityLevel in the schema. "Repro" = the probe that demonstrated 
 
 ## C. Mitigation set (Z1 built; Z2 rules)
 
-**C.1 Re-land via PR, not another direct push.** Branch `specimen-intake-v0_2`; files: the five in Appendix A. This puts `guard` and `document-control` on the change and gives the record a PR number instead of a bypass line. Nothing in v0.2 is publish-ready until ADV has run on `resolve_cycle` and the revert rules; the yml keeps `status: PENDING` until Z2 supplies a hash.
+**C.1 Re-land via PR, not another direct push.** Branch `specimen-intake-v0_2`; files: the five in Appendix A. This puts `guard` and `document-control` on the change and gives the record a PR number instead of a bypass line. Controlled-document registration/frontmatter for newly added protocol docs remains pending and is not claimed complete in this mitigation set. Nothing in v0.2 is publish-ready until ADV has run on `resolve_cycle` and the revert rules; the yml keeps `status: PENDING` until Z2 supplies a hash.
 
 **C.2 Branch protection.** GitHub reported "Bypassed rule violations" — the ruleset allows the admin to bypass. Options for Z2: (a) turn off admin bypass on `main` so CI enforcement is real ("code, not memory"); (b) keep bypass and register every bypass as an IC event. (a) matches the graph; (b) is honest about the current state. Z2's call.
 

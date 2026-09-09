@@ -122,7 +122,7 @@ Classes:
 - `CredPolicyOutput`: Resource allocation recommendation
 - `BehavioralObservations`: Behavioral signals from work
 - `IntakeRecord`: Complete cycle evaluation record
-- `ResearchIntakeEvaluator`: Main engine for cycle processing
+- `SpecimenIntakeEvaluator`: Main engine for cycle processing
 
 Methods:
 - `create_intake_record()`: Initialize new cycle
