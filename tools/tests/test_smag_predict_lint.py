@@ -8,6 +8,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+TOOL_NAME = "test_smag_predict_lint"
+TOOL_VERSION = "1.0.0"
 TOOLS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_DIR))
 
@@ -51,3 +53,16 @@ def test_autocapture_build_fields_uses_probability_and_void_marker():
     )
     assert void["predicted"] == lint.VOID_PREDICTION
     assert void["gap"] == lint.VOID_GAP
+
+
+def run_smoke_test() -> bool:
+    try:
+        assert TOOL_NAME == "test_smag_predict_lint"
+        assert TOOL_VERSION
+        return True
+    except Exception:
+        return False
+
+
+if __name__ == "__main__":
+    sys.exit(0 if run_smoke_test() else 1)
