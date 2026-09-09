@@ -10,9 +10,6 @@ import importlib.util
 import tempfile
 from pathlib import Path
 
-TOOL_NAME = "test_builder_compliance_scanner"
-TOOL_VERSION = "1.0.0"
-
 TOOLS_DIR = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
     "builder_compliance_scanner_v1_0",
@@ -66,6 +63,8 @@ def test_this_module_passes_explicit_file_scan():
     assert len(results) == 1
     assert Path(results[0]["file"]).name == Path(__file__).name
     assert results[0]["passed"], results[0]["hard_failures"]
+    assert results[0]["skipped"] is True
+    assert results[0]["skip_reason"] == "test module"
 
 
 def test_single_file_scan_skips_test_modules():
