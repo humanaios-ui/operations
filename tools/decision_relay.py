@@ -23,6 +23,14 @@ REPO=os.environ.get("GITHUB_REPO","humanaios-ui/operations"); DRY=os.environ.get
 SEEN=set(); IMPERATIVE=re.compile(r"\b(you must|you should|you need to|revoke|delete|do not|don't|immediately|stop)\b",re.I)
 
 def sha(b): return hashlib.sha256(b).hexdigest()
+def content_ref(content, user_key=None):
+    """fingerprint of user content that leaves the relay INSTEAD of the content.
+    HMAC keyed with a user-held key (USER_KEY env, set at intake, never transmitted); bare sha would be guessable.
+    canonical = whitespace-collapsed UTF-8. Verify a later voluntary disclosure by recomputing and comparing."""
+    key=(user_key or os.environ.get("USER_KEY","")).encode()
+    if not key: raise ValueError("REFUSED: USER_KEY not set; a keyless fingerprint is dictionary-guessable")
+    canon=" ".join(str(content).split()).encode()
+    return hmac.new(key,canon,hashlib.sha256).hexdigest()
 def gh(method,path,data=None):
     req=urllib.request.Request(f"https://api.github.com{path}",method=method,data=json.dumps(data).encode() if data else None,
         headers={"Authorization":f"token {TOKEN}","Accept":"application/vnd.github+json","Content-Type":"application/json"})
@@ -103,6 +111,10 @@ def selftest():
     body=json.dumps({"epoch":time.time(),"nonce":"n1"}).encode(); good=hmac.new(b"s3",body,hashlib.sha256).hexdigest()
     ok&=hmac.compare_digest(good,hmac.new(b"s3",body,hashlib.sha256).hexdigest()); ok&=not hmac.compare_digest("00",good); print("hmac good/bad → OK/REFUSED")
     x=assist({"q":"?","opts":[]}); ok&=x["by"]=="Z1"; text="You must revoke the key immediately."; dr=IMPERATIVE.findall(text); ok&=len(dr)==3; print("imperative strip →",dr)
+    r1=content_ref("Re: budget  approval\n","k"); r2=content_ref("Re: budget approval","k"); r3=content_ref("Re: budget approval","k2")
+    ok&=(r1==r2 and r1!=r3); print("content_ref canonical-equal / key-distinct →",r1==r2,r1!=r3)
+    try: content_ref("x",""); ok=False
+    except ValueError: print("keyless ref → REFUSED")
     print("SELF-TEST","PASS" if ok else "FAIL"); return 0 if ok else 2
 
 if __name__=="__main__":
