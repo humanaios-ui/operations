@@ -2,7 +2,7 @@
 
 **Purpose:** Use RentAHuman's API as infrastructure layer for Fair Research Task Brokerage  
 **Timeline:** Week 1-2 (setup) → Week 3-4 (execution) → Week 5-6 (measurement)  
-**API Key:** `rah_75ccef6056b836f84c045982d87b4ef0`  
+**API Key:** `RAH_API_KEY_PLACEHOLDER`  
 **Docs:** https://rentahuman.ai/docs
 
 ---
@@ -39,14 +39,14 @@ RAH Workers see:
 
 ```yaml
 rentahuman:
-  api_key: "rah_75ccef6056b836f84c045982d87b4ef0"
+  api_key: "RAH_API_KEY_PLACEHOLDER"
   base_url: "https://rentahuman.ai/api"
   api_version: "v1"
 ```
 
 **Test connection:**
 ```bash
-curl -H "Authorization: Bearer rah_75ccef6056b836f84c045982d87b4ef0" \
+curl -H "Authorization: Bearer RAH_API_KEY_PLACEHOLDER" \
   https://rentahuman.ai/api/v1/account/profile
 ```
 
@@ -164,7 +164,7 @@ for task in pilot_tasks:
 **Execute:**
 ```bash
 # Query RAH API
-curl -H "Authorization: Bearer rah_75ccef6056b836f84c045982d87b4ef0" \
+curl -H "Authorization: Bearer RAH_API_KEY_PLACEHOLDER" \
   "https://rentahuman.ai/api/v1/humans/search?skills=research,writing&rating_min=4.0&limit=50"
 ```
 
@@ -202,7 +202,7 @@ curl -H "Authorization: Bearer rah_75ccef6056b836f84c045982d87b4ef0" \
 
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer rah_75ccef6056b836f84c045982d87b4ef0" \
+  -H "Authorization: Bearer RAH_API_KEY_PLACEHOLDER" \
   -H "Content-Type: application/json" \
   https://rentahuman.ai/api/v1/bounties \
   -d '{
@@ -231,7 +231,7 @@ curl -X POST \
 
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer rah_75ccef6056b836f84c045982d87b4ef0" \
+  -H "Authorization: Bearer RAH_API_KEY_PLACEHOLDER" \
   https://rentahuman.ai/api/v1/bounties/rah_bounty_abc123/invite_workers \
   -d '{
     "worker_ids": ["rah_worker_123", "rah_worker_456", "rah_worker_789"],
@@ -256,7 +256,7 @@ curl -X POST \
 
 ```bash
 # Get bounty status
-curl -H "Authorization: Bearer rah_75ccef6056b836f84c045982d87b4ef0" \
+curl -H "Authorization: Bearer RAH_API_KEY_PLACEHOLDER" \
   https://rentahuman.ai/api/v1/bounties/rah_bounty_abc123
 ```
 
