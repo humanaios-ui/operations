@@ -62,6 +62,31 @@ def _stem(path):
     return path.stem.split("_v")[0]
 
 
+def _has_builder_header(text):
+    return bool(CHECKS["BUILDER_MISSING_HEADER"][0].search(text))
+
+
+def _is_directory_scan_target(path):
+    parts = path.parts
+    name = path.name
+    lowered_parts = [part.lower() for part in parts]
+    if "__pycache__" in parts:
+        return False
+    if name == "__init__.py":
+        return False
+    if name.startswith("test_") or "tests" in lowered_parts:
+        return False
+    if "_shared" in parts or any(part.startswith("_") for part in parts if part not in {"..", "."}):
+        return False
+    if any("archived" in part for part in lowered_parts):
+        return False
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (IOError, OSError):
+        return True
+    return _has_builder_header(text)
+
+
 def scan_file(path):
     try:
         text = path.read_text(encoding="utf-8")
@@ -92,13 +117,11 @@ def scan_directory(scan_path, strict=False):
     if p.is_file():
         targets = [p]
     elif p.is_dir():
-        targets = sorted(p.rglob("*.py"))
+        targets = [target for target in sorted(p.rglob("*.py")) if _is_directory_scan_target(target)]
     else:
         raise SpecLoadFailed("Path not found: " + str(scan_path))
     results = []
     for target in targets:
-        if "__pycache__" in str(target):
-            continue
         r = scan_file(target)
         if strict and r["soft_failures"]:
             r["hard_failures"].extend(r["soft_failures"])
