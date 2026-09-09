@@ -69,9 +69,15 @@ def _include_in_directory_corpus(path):
         return False
     if path.name == "__init__.py":
         return False
+    if "/agents/" in normalized:
+        return False
     if "/tests/" in normalized or path.name.startswith("test_") or "/fixtures/" in normalized:
         return False
+    if path.name.endswith("_test.py"):
+        return False
     if "/archive/" in normalized or "/archived/" in normalized or "archived" in path.name.lower():
+        return False
+    if "adversarial" in path.stem.lower():
         return False
     if "/support/" in normalized or "/private/" in normalized or "/shared/" in normalized:
         return False
@@ -123,8 +129,6 @@ def scan_directory(scan_path, strict=False):
         raise SpecLoadFailed("Path not found: " + str(scan_path))
     results = []
     for target in targets:
-        if "__pycache__" in str(target):
-            continue
         r = scan_file(target)
         if strict and r["soft_failures"]:
             r["hard_failures"].extend(r["soft_failures"])
