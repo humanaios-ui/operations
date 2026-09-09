@@ -189,6 +189,11 @@ class CredPolicyOutput:
         )
         return self.agreement
 
+    def record_disclosure(self, disclosed_at: Optional[datetime] = None) -> datetime:
+        when = disclosed_at or utcnow()
+        self.disclosed_at = when
+        return when
+
 
 @dataclass
 class BehavioralObservations:
@@ -399,6 +404,15 @@ class SpecimenIntakeEvaluator:
                     else "max 25 hours/week" if completion > 0.80
                     else "reduce to 15 hours/week, focus on completion rate")
 
+        if obs.guideline_adherence > 0.9:
+            predicted_choice = "output-evaluation"
+        elif obs.improvement_trajectory == ImprovementTrajectory.IMPROVING:
+            predicted_choice = "feedback-incorporation"
+        elif obs.task_acceptance_rate > 0.8:
+            predicted_choice = "high-complexity-annotation"
+        else:
+            predicted_choice = "general-annotation"
+
         out = CredPolicyOutput(
             priority_score=priority, recommended_next_tasks=tasks, envelope_constraint=envelope,
             rationale=(f"Engagement {obs.task_acceptance_rate:.1%}, Quality {obs.quality_score if obs.quality_score is not None else 'pending'}, "
@@ -461,6 +475,13 @@ class SpecimenIntakeEvaluator:
         if (record.ratification_signature is None or record.ratified_by is None or
                 record.ratified_at is None or record.evaluation_status != EvaluationStatus.VERIFIED):
             return False
+        if any(c.cycle_number == record.cycle_number for c in self.cycles):
+            return False
+        if record.ratified_by is None or record.ratified_at is None:
+            return False
+        expected = self.ratification_hash_for(record.receipt_hash, record.ratified_by, record.ratified_at)
+        if record.ratification_hash != expected:
+            return False
         if record.compute_hash() != record.receipt_hash:
             return False
         if not self._verify_ratification_signature(
@@ -483,6 +504,11 @@ class SpecimenIntakeEvaluator:
         return record.credential_policy_output.record_disclosure(disclosed_at)
 
     # -- measurement ----------------------------------------------------------
+
+    def record_disclosure(self, record: IntakeRecord, disclosed_at: Optional[datetime] = None) -> datetime:
+        if record.credential_policy_output is None:
+            raise RuntimeError("CredPolicy output must be generated before disclosure is recorded")
+        return record.credential_policy_output.record_disclosure(disclosed_at)
 
     def resolve_cycle(self, record: IntakeRecord, actual_quality: Optional[float],
                       actual_acceptance: float, actual_trajectory: ImprovementTrajectory,
