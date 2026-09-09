@@ -53,7 +53,7 @@ specimen-intake.yml is the operational protocol for validating HumanAIOS's gover
 | **Predictor Variables** | Task acceptance rate, revision cycles per task, response time, guideline adherence |
 | **Outcome Variable** | Quality score (from the platform feedback) |
 | **Measurement** | Brier score on molt predictions — squared error on the **normalised [0,1]** scale (quality/100, rates as-is); binary variables use the confidence-weighted probability |
-| **Success Criterion** | Brier ≤ 0.4 after 10 predictions |
+| **Success Criterion** | Brier ≤ 0.4 after 10 resolved forecasts |
 | **Falsifier** | Brier > 0.4 after 10 resolved forecasts OR REVERT rate > 30% |
 | **Window** | 30 days rolling (cycles 1-5 overlap) |
 
@@ -198,7 +198,7 @@ Cycle 5 Receipt: (final, chained to Molt ledger)
 
 | Phase | Day | Owner | Task |
 |---|---|---|---|
-| **Data Collection** | Mon-Sun | the platform Platform | Night completes expert tasks; platform logs completion, quality scores, feedback |
+| **Data Collection** | Mon-Sun | the platform | Night completes expert tasks; platform logs completion, quality scores, feedback |
 | **Intake Evaluation** | Sun-Mon+24h | Z1 (Claude) | Parse the platform data; generate behavioral observations; run molt predictions; compute CredPolicy recommendation |
 | **Preliminary Review** | Mon+24h | Z1 | Produce intake record with PRELIMINARY status; share findings summary |
 | **Z2 Ratification** | Mon+24h to Wed+24h | Z2 (Night) | Review findings; confirm behavioral observations; ratify receipt hash |
@@ -246,7 +246,7 @@ If **any** falsifier triggers:
 
 ### Example Remediation Paths
 
-**If RQ1 falsifier triggers (Brier > 0.4 after 10 predictions):**
+**If RQ1 falsifier triggers (Brier > 0.4 after 10 resolved forecasts):**
 - Hypothesis: Behavioral signals insufficient for quality prediction
 - Action: Add external signals (the platform reviewer feedback, task difficulty ratings)
 - Outcome: Rebuild molt model with expanded feature set for C6+
@@ -267,7 +267,7 @@ If **any** falsifier triggers:
 
 ### Phase 2 Green Light (Success)
 All of the following must hold:
-- ✓ RQ1 falsifier does NOT trigger (Brier ≤ 0.4 after cycle 5)
+- ✓ RQ1 falsifier does NOT trigger (Brier ≤ 0.4 after at least 10 resolved forecasts)
 - ✓ RQ2 falsifier does NOT trigger (CredPolicy agreement ≥ 60%)
 - ✓ RQ3 falsifier does NOT trigger (quality improves in C2-3)
 - ✓ All 5 molt predictions resolve with measured outcomes
