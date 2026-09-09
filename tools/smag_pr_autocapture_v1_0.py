@@ -6,11 +6,11 @@ Builder v1.7 compliant · smag_autocapture
 HumanAIOS · S-070726
 
 The MECHANICAL tier of SMAG capture: no LLM, no human notification. On PR close,
-derive the deterministic fields from PR metadata and append a row via
-smag_pilot_capture_v1_0.py. The qualitative "gap" (was it gamed?) is left blank for
-the optional LLM-review tier to enrich later.
+derive deterministic fields from PR metadata and append a row via
+smag_pilot_capture_v1_0.py. Prediction calibration requires a pinned `smag_p:`
+line in PR body text; rows without it are recorded as VOID.
 
-  predicted — linked-issue acceptance (best-effort) / PR title
+  predicted — pinned probability line from PR body: `smag_p:<0..1>`
   measured  — merged? + required-check conclusions
   substrate — derived from PR author login (Copilot / Claude Code / human:<login>)
 
@@ -23,11 +23,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 
 TOOL_NAME = "smag_pr_autocapture"
 TOOL_VERSION = "1.0.0"
+_SMAG_P = re.compile(r"(?im)^\s*smag_p\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*$")
 
 
 def derive_substrate(login: str) -> str:
@@ -51,12 +53,18 @@ def summarize_checks(check_runs: list) -> str:
     return ", ".join(f"{k}:{v}" for k, v in sorted(counts.items()))
 
 
+def extract_smag_probability(text: str) -> str | None:
+    """Extract a pinned `smag_p:` probability line from PR body text."""
+    m = _SMAG_P.search(text or "")
+    return m.group(1) if m else None
+
+
 def build_fields(pr: dict, checks: list) -> dict:
     """Build the SMAG row fields from PR metadata. Pure function (testable)."""
     login = (pr.get("user") or {}).get("login", "")
     merged = bool(pr.get("merged") or pr.get("merged_at"))
-    predicted = (pr.get("body") or "").strip()
-    predicted = predicted[:180] if predicted else f"(auto) PR: {pr.get('title', '')[:120]}"
+    prob = extract_smag_probability((pr.get("body") or ""))
+    predicted = f"smag_p:{prob}" if prob is not None else "VOID: missing smag_p"
     measured = f"merged={merged}; checks: {summarize_checks(checks)}"
     return {
         "pr": str(pr.get("number", "")),
@@ -64,7 +72,7 @@ def build_fields(pr: dict, checks: list) -> dict:
         "substrate": derive_substrate(login),
         "predicted": predicted,
         "measured": measured,
-        "gap": "",  # left for the optional LLM-review tier
+        "gap": "" if prob is not None else "VOID: missing pinned probability",
     }
 
 
@@ -144,10 +152,18 @@ def run_smoke_test() -> bool:
     ok = ok and derive_substrate("claude-code[bot]") == "Claude Code"
     ok = ok and derive_substrate("nightowl").startswith("human:")
     f = build_fields(
-        {"number": 7, "title": "t", "body": "b", "user": {"login": "Copilot"}, "merged": True},
+        {"number": 7, "title": "t", "body": "smag_p: 0.42", "user": {"login": "Copilot"}, "merged": True},
         [{"conclusion": "success"}, {"conclusion": "success"}],
     )
-    ok = ok and f["substrate"] == "Copilot" and "merged=True" in f["measured"] and "success:2" in f["measured"]
+    ok = ok and extract_smag_probability("x\nsmag_p:0.2\ny") == "0.2"
+    ok = ok and extract_smag_probability("no probability") is None
+    ok = ok and f["substrate"] == "Copilot" and f["predicted"] == "smag_p:0.42"
+    ok = ok and "merged=True" in f["measured"] and "success:2" in f["measured"]
+    g = build_fields(
+        {"number": 8, "title": "t2", "body": "no smag line", "user": {"login": "Copilot"}, "merged": True},
+        [{"conclusion": "success"}],
+    )
+    ok = ok and g["predicted"].startswith("VOID:") and g["gap"].startswith("VOID:")
     c = format_comment(f)
     ok = ok and "SMAG row" in c and "predicted:" in c and "```json" in c
     print("✓ Smoke test PASSED" if ok else "✗ Smoke test FAILED")
