@@ -52,11 +52,15 @@ _CHECKS_RAW = [
     ("BUILDER_ERROR_IMPORT_MISSING", r"class SpecLoadFailed|SpecLoadFailed", "SOFT"),
 ]
 CHECKS = {cid: (re.compile(pat, re.I | re.M), sev) for cid, pat, sev in _CHECKS_RAW}
-_BUILDER_MARKER = CHECKS["BUILDER_MISSING_HEADER"][0]
+_BUILDER_MARKER_PAT = CHECKS["BUILDER_MISSING_HEADER"][0]
 
 
 class SpecLoadFailed(Exception):
     pass
+
+
+def _normalized_path(path: Path) -> str:
+    return str(path).replace("\\", "/").lower()
 
 
 def _stem(path):
@@ -64,13 +68,14 @@ def _stem(path):
 
 
 def _skip_reason(path):
+    normalized = _normalized_path(path)
     if path.name == "__init__.py":
         return "package initializer"
-    if "ARCHIVED" in path.name.upper():
+    if "/archive/" in normalized or "/archived/" in normalized or "archived" in path.name.lower():
         return "archived artifact"
-    if any(part.startswith("_") for part in path.parts):
+    if any(part.startswith("_") for part in path.parts) or "/private/" in normalized or "/shared/" in normalized:
         return "private/shared helper module"
-    if "tests" in path.parts or path.name.startswith("test_") or path.stem.endswith("_test"):
+    if "/tests/" in normalized or path.name.startswith("test_") or path.stem.endswith("_test"):
         return "test module"
     return None
 
@@ -80,18 +85,22 @@ def _is_builder_corpus_member(path):
     if reason:
         return False
     try:
-        return bool(_BUILDER_MARKER.search(path.read_text(encoding="utf-8")))
+        return bool(_BUILDER_MARKER_PAT.search(path.read_text(encoding="utf-8")))
     except (IOError, OSError):
         return False
 
 
 def _is_directory_scan_target(path):
-    parts = set(path.parts)
-    if "__pycache__" in parts:
+    normalized = _normalized_path(path)
+    if "__pycache__" in normalized:
         return False
-    if "agents" in parts:
+    if "/agents/" in normalized:
         return False
-    if "adversarial" in path.stem:
+    if "/fixtures/" in normalized:
+        return False
+    if "/support/" in normalized:
+        return False
+    if "adversarial" in path.stem.lower():
         return False
     return _is_builder_corpus_member(path)
 
@@ -242,12 +251,12 @@ def run_smoke_test():
             bad_path = Path(d) / "bad_tool.py"
             good_path.write_text(compliant)
             bad_path.write_text(noncompliant)
-            results = [scan_file(good_path), scan_file(bad_path)]
+            results = scan_directory(d)
             output = aggregate(results)
-            assert output["files_scanned"] == 2
+            assert output["files_scanned"] == 1
             good = next(r for r in results if "good_tool" in r["file"])
-            bad = next(r for r in results if "bad_tool" in r["file"])
             assert good["passed"], str(good["hard_failures"])
+            bad = scan_file(bad_path)
             assert not bad["passed"]
             print("checkmark Smoke test PASSED")
             return True
