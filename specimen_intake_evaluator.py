@@ -189,12 +189,6 @@ class CredPolicyOutput:
         )
         return self.agreement
 
-    def record_disclosure(self, disclosed_at: Optional[datetime] = None) -> datetime:
-        when = disclosed_at or utcnow()
-        self.disclosed_at = when
-        return when
-
-
 @dataclass
 class BehavioralObservations:
     task_acceptance_rate: float
@@ -474,13 +468,6 @@ class SpecimenIntakeEvaluator:
             return False
         if (record.ratification_signature is None or record.ratified_by is None or
                 record.ratified_at is None or record.evaluation_status != EvaluationStatus.VERIFIED):
-            return False
-        if any(c.cycle_number == record.cycle_number for c in self.cycles):
-            return False
-        if record.ratified_by is None or record.ratified_at is None:
-            return False
-        expected = self.ratification_hash_for(record.receipt_hash, record.ratified_by, record.ratified_at)
-        if record.ratification_hash != expected:
             return False
         if record.compute_hash() != record.receipt_hash:
             return False

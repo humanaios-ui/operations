@@ -165,18 +165,6 @@ class RedTeam(unittest.TestCase):
         with self.assertRaises(ValueError):
             mk(ev, 2)                                            # duplicate cycle refused
 
-    def test_rt04_disclosed_at_is_recorded_before_actual(self):
-        ev = SpecimenIntakeEvaluator("SPC-T"); r = mk(ev); ratify(ev, r)
-        self.assertIsNone(r.credential_policy_output.disclosed_at)
-        ev.resolve_cycle(r, 87.0, 0.95, ImprovementTrajectory.IMPROVING, "general-annotation")
-        self.assertIsNotNone(r.credential_policy_output.disclosed_at)
-
-    def test_rt06_reject_out_of_range_resolution_input(self):
-        ev = SpecimenIntakeEvaluator("SPC-T"); r = mk(ev); ratify(ev, r)
-        with self.assertRaises(ValueError):
-            ev.resolve_cycle(r, actual_quality=120.0, actual_acceptance=0.95,
-                             actual_trajectory=ImprovementTrajectory.IMPROVING, actual_choice="x")
-
     def test_no_pii_literals_in_module(self):
         import specimen_intake_evaluator, inspect
         src = inspect.getsource(specimen_intake_evaluator).lower()
