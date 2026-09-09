@@ -290,7 +290,7 @@ const HUMANAIOS = {
   {id:"3", name:"revoke temporary tokens", state:"progress", role:"stage 5 · Ship",
    why:"A 7-day org-wide read-write token was used for the 09-06 push and every push since; the c08f86c push used a token of unknown scope. Navigator read: key remains active · path-to-close is one settings page · exposure while open is org-wide write.",
    gate:"no temporary token listed at github.com/settings/tokens; one scoped PAT (repo write) exists for Z3 landings",
-   cmds:"github.com/settings/tokens → ghp_xViq… → Delete\n# then issue one scoped PAT for Z3",
+   cmds:"github.com/settings/tokens → temporary write token → Delete\n# then issue one scoped PAT for Z3",
    meta:"09-06 token auto-expires ~2026-09-13 if not revoked · second token: no known expiry"},
   {id:"4", name:"re-pin the registry (IC-030)", state:"progress", role:"stage 2 · Baseline",
    why:"PRIORITY_QUEUE.md still pins blob c0899b9b; 09-06 read was sha256 40391062… (3909 lines); after the H-CAND append at 5df54b7 the file is 3914 lines, sha256 42c345bb…. The gap is a drift check, not a repair from memory.",
