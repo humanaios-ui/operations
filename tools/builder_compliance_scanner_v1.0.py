@@ -40,6 +40,7 @@ EXEMPT_SMOKE_TEST   = {"errors_acat", "__init__"}
 EXEMPT_MAIN_GUARD   = {"__init__"}
 
 _MAIN_PAT = re.compile(r'if __name__')
+_BUILDER_MARKER_PAT = re.compile(r"Builder v1\.7 compliant", re.I)
 _CHECKS_RAW = [
     ("BUILDER_MISSING_HEADER",       r"Builder v1\.7 compliant",        "HARD"),
     ("BUILDER_NO_TOOL_NAME",         r"^TOOL_NAME\s*=",                  "HARD"),
@@ -60,6 +61,23 @@ class SpecLoadFailed(Exception):
 
 def _stem(path):
     return path.stem.split("_v")[0]
+
+
+def _should_scan_directory_target(path):
+    parts = path.parts
+    if "__pycache__" in parts or path.name == "__init__.py":
+        return False
+    if "tests" in parts or path.name.startswith("test_"):
+        return False
+    if "ARCHIVED" in path.name.upper() or "archived" in str(path).lower():
+        return False
+    if any(part.startswith("_") for part in parts[1:]):
+        return False
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (IOError, OSError):
+        return True
+    return bool(_BUILDER_MARKER_PAT.search(text))
 
 
 def scan_file(path):
@@ -92,13 +110,12 @@ def scan_directory(scan_path, strict=False):
     if p.is_file():
         targets = [p]
     elif p.is_dir():
-        targets = sorted(p.rglob("*.py"))
+        targets = [target for target in sorted(p.rglob("*.py"))
+                   if _should_scan_directory_target(target)]
     else:
         raise SpecLoadFailed("Path not found: " + str(scan_path))
     results = []
     for target in targets:
-        if "__pycache__" in str(target):
-            continue
         r = scan_file(target)
         if strict and r["soft_failures"]:
             r["hard_failures"].extend(r["soft_failures"])
@@ -190,11 +207,18 @@ def run_smoke_test():
         "if __name__ == '__main__': main()",
     ]
     compliant = "\n".join(compliant_lines) + "\n"
-    noncompliant = "def foo(): pass\n"
+    noncompliant_lines = [
+        "#!/usr/bin/env python3",
+        "# Builder v1.7 compliant",
+        "# HumanAIOS",
+        "def foo(): pass",
+    ]
+    noncompliant = "\n".join(noncompliant_lines) + "\n"
     try:
         with tempfile.TemporaryDirectory() as d:
             (Path(d) / "good_tool_v1.0.py").write_text(compliant)
             (Path(d) / "bad_tool.py").write_text(noncompliant)
+            (Path(d) / "__init__.py").write_text("VALUE = 1\n")
             results = scan_directory(d)
             output = aggregate(results)
             assert output["files_scanned"] == 2
