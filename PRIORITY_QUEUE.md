@@ -61,7 +61,7 @@ Priority Queue for HumanAIOS v0.2 Intake Cycle. **Z1 proposes, Z2 ratifies by ha
 Per `z1-inbox/2026-09-06/registry_block_and_manifest_090626_v2.md` §Landing order (extended):
 1. CODEOWNERS ×9 + 12 teams
 2. Registry candidate block
-3. research-intake.yml (Tier 2, ADV)
+3. specimen-intake.yml (Tier 2, ADV)
 4. TLA spec as dataset row 1
 5. Design docs
 6. **← Queue patch (this file)**

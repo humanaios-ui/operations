@@ -1,3 +1,12 @@
+---
+doc_id: HAIOS-RES-007
+title: "Specimen Intake Design & Implementation"
+revision: 1
+status: draft
+owner: "@humanaios-ui/operations"
+canonical: true
+---
+
 # Specimen Intake Design & Implementation
 ## HumanAIOS Phase 2 · Night as Research Specimen
 
@@ -11,7 +20,7 @@
 ## Section 1: Research Project Overview
 
 ### Purpose
-Research-intake.yml is the operational protocol for validating HumanAIOS's governance model on a live research specimen (Night). The project tests three research questions about behavioral assessment, resource allocation reproducibility, and learning-via-audit:
+specimen-intake.yml is the operational protocol for validating HumanAIOS's governance model on a live research specimen (Night). The project tests three research questions about behavioral assessment, resource allocation reproducibility, and learning-via-audit:
 
 - **RQ1:** Does behavioral assessment predict expert task performance?
 - **RQ2:** Can resource allocation be reproduced from behavioral data (CredPolicy regulator)?
@@ -45,7 +54,7 @@ Research-intake.yml is the operational protocol for validating HumanAIOS's gover
 | **Outcome Variable** | Quality score (from the platform feedback) |
 | **Measurement** | Brier score on molt predictions — squared error on the **normalised [0,1]** scale (quality/100, rates as-is); binary variables use the confidence-weighted probability |
 | **Success Criterion** | Brier ≤ 0.4 after 10 predictions |
-| **Falsifier** | Brier > 0.4 after 10 cycles OR REVERT rate > 30% |
+| **Falsifier** | Brier > 0.4 after 10 resolved forecasts OR REVERT rate > 30% |
 | **Window** | 30 days rolling (cycles 1-5 overlap) |
 
 #### RQ2: CredPolicy Reproducibility
@@ -55,7 +64,7 @@ Research-intake.yml is the operational protocol for validating HumanAIOS's gover
 |---|---|
 | **Input Signal** | Behavioral observations (all engagement + consistency metrics) |
 | **Regulator Output** | Recommended task category (e.g., "high-complexity-annotation") + resource envelope |
-| **Measurement** | % agreement between CredPolicy `predicted_choice` (committed in the receipt hash before disclosure) and the specimen's actual task choice; `disclosed_at` recorded because the specimen sees the recommendation |
+| **Measurement** | % agreement between CredPolicy `predicted_choice` (committed in the receipt hash before disclosure) and the specimen's actual task choice; `disclosed_at` and `actual_choice_at` are recorded so raw and pre-disclosure agreement can be reported separately |
 | **Success Criterion** | Agreement ≥ 60% on 3 consecutive cycles |
 | **Falsifier** | Agreement < 60% on 3+ consecutive cycles |
 | **Window** | 30 days rolling (cycles 2-5) |
@@ -66,7 +75,7 @@ Research-intake.yml is the operational protocol for validating HumanAIOS's gover
 | Component | Details |
 |---|---|
 | **Intervention** | Intake evaluation published at end of each cycle; findings shared with Night |
-| **Measurement** | Quality score delta pre/post audit cycle; task rejection rate trend |
+| **Measurement** | Quality score delta pre/post audit cycle; derived task rejection rate trend (`1 - task_acceptance_rate`) |
 | **Success Criterion** | Measurable improvement in cycles 2-3 |
 | **Falsifier** | No improvement in 2 consecutive cycles OR rejection rate increases |
 | **Window** | 14 days per cycle (immediate feedback signal) |
@@ -87,7 +96,7 @@ Cycle 5 (Oct 11-17):  Final cycle; 30-day rolling window complete; KEEP/REVERT d
 ### Data Flow
 
 ```
-the platform Platform (Night's Expert Work)
+the platform (Night's Expert Work)
     ↓ (weekly export)
 Specimen Intake Evaluator (specimen_intake_evaluator.py)
     ├→ Parse behavioral observations
@@ -122,17 +131,16 @@ Classes:
 - `CredPolicyOutput`: Resource allocation recommendation
 - `BehavioralObservations`: Behavioral signals from work
 - `IntakeRecord`: Complete cycle evaluation record
-- `ResearchIntakeEvaluator`: Main engine for cycle processing
+- `SpecimenIntakeEvaluator`: Main engine for cycle processing
 
 Methods:
 - `create_intake_record()`: Initialize new cycle
 - `generate_molt_predictions()`: Compute RQ1/2/3 predictions
 - `generate_credpolicy_recommendation()`: RQ2 output
-- `compute_receipt()`: receipt hash over the *commitment* (inputs, forecasts, CredPolicy, prior link); `resolution_hash()` separately
+- `compute_receipt()`: receipt hash over the *commitment* (inputs, forecasts, CredPolicy, prior link); `compute_resolution_hash()` is stored as `resolution_hash` during measurement
 - `ratify()`: verifies a Z2 hash that binds to the receipt; `publish_record()` refuses without it
 - `resolve_cycle()`: mechanical measurement — Brier, revert rules, REVERT events, F/IC candidates
-- `record_to_nf_ledger()`: Write Brier scores to calibration ledger
-- `record_to_molt_events()`: Write molt events for recursive learning
+- `publish_record()` / `resolve_cycle()`: update NF_LEDGER and Molt Events via the engine's private `_nf_write()` / `_molt_event()` helpers
 - `falsifier_check()`: Verify RQ1/2/3 still hold
 - `publish_record()`: Finalize and store intake after ratification
 
@@ -143,7 +151,7 @@ Status: **PROTOTYPE** (ready for Cycle 1 testing)
 **NF_LEDGER entries** (per prediction):
 ```json
 {
-  "molt_id": "molt-intake-night-micro1-cycle-1-...-rq1-quality",
+  "molt_id": "molt-intake-SPC-01-c1-...-rq1-quality",
   "cycle": 1,
   "variable": "task_quality_score",
   "prediction_value": 0.848,
@@ -160,13 +168,13 @@ Status: **PROTOTYPE** (ready for Cycle 1 testing)
 **Molt Events** (per cycle):
 ```json
 {
-  "event_type": "INTAKE_COMPLETE",
+  "event_type": "INTAKE_PUBLISHED",
   "cycle": 1,
-  "intake_id": "intake-night-micro1-intake-cycle-1-...",
+  "intake_id": "intake-SPC-01-c1-...",
   "receipt_hash": "7f4e2a...",
   "molt_predictions_count": 3,
   "credpolicy_agreement": null,
-  "ratification_hash": "…",
+  "ratification_signature": "…",
   "prev_event_hash": "…",
   "event_hash": "…",
   "specimen_id": "SPC-01"
