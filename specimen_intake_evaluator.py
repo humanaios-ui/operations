@@ -516,6 +516,8 @@ class SpecimenIntakeEvaluator:
             _, rev = p.resolve(raw[p.variable])
             if rev:
                 reverted_ids.append(p.prediction_id)
+        if record.credential_policy_output.disclosed_at is None:
+            record.credential_policy_output.record_disclosure()
         record.credential_policy_output.record_actual(actual_choice, actual_choice_recorded_at)
         record.resolution_hash = record.compute_resolution_hash()
         self._nf_write(record, update=True)

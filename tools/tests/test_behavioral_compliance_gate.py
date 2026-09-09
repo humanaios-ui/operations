@@ -46,6 +46,13 @@ def _write_temp(src: str) -> Path:
     return Path(f.name)
 
 
+def load_tests(loader: unittest.TestLoader, tests: unittest.TestSuite,
+               pattern: str | None) -> unittest.TestSuite:
+    """Include specimen-intake regression tests in the discovered unittest suite."""
+    tests.addTests(loader.loadTestsFromModule(specimen_intake_tests))
+    return tests
+
+
 # ---------------------------------------------------------------------------
 # BEHAV_DOCSTRING_ONLY
 # ---------------------------------------------------------------------------

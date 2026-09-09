@@ -108,6 +108,13 @@ class RedTeam(unittest.TestCase):
         self.assertEqual(r.credential_policy_output.actual_choice_at, choice_at)
         self.assertTrue(res["credpolicy_agreement_pre_disclosure"])
 
+    def test_rt04_resolve_cycle_records_disclosure_when_missing(self):
+        ev, signer = mk_evaluator(); r = mk(ev); ratify(ev, signer, r)
+        self.assertIsNone(r.credential_policy_output.disclosed_at)
+        ev.resolve_cycle(r, 87.0, 0.95, ImprovementTrajectory.IMPROVING, actual_choice="a")
+        self.assertIsNotNone(r.credential_policy_output.disclosed_at)
+        self.assertIsNotNone(r.credential_policy_output.actual_choice_at)
+
     def test_rt04_predicted_choice_is_not_the_recommendation(self):
         ev, _ = mk_evaluator(); r = mk(ev)
         cp = r.credential_policy_output
