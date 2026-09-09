@@ -91,7 +91,6 @@ def load_rows(path: Path) -> list[dict]:
             continue
     return rows
 
-
 def find_void_rows(rows: list[dict]) -> list[dict]:
     """Return ledger rows whose `predicted` field is not a pinned probability."""
     return [row for row in rows if extract_smag_probability(str(row.get("predicted", ""))) is None]

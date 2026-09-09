@@ -57,7 +57,6 @@ def summarize_checks(check_runs: list) -> str:
         counts[concl] = counts.get(concl, 0) + 1
     return ", ".join(f"{k}:{v}" for k, v in sorted(counts.items()))
 
-
 def build_fields(pr: dict, checks: list) -> dict:
     """Build the SMAG row fields from PR metadata. Pure function (testable)."""
     login = (pr.get("user") or {}).get("login", "")
