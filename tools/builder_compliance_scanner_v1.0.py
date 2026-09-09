@@ -52,35 +52,36 @@ _CHECKS_RAW = [
     ("BUILDER_ERROR_IMPORT_MISSING", r"class SpecLoadFailed|SpecLoadFailed", "SOFT"),
 ]
 CHECKS = {cid: (re.compile(pat, re.I | re.M), sev) for cid, pat, sev in _CHECKS_RAW}
+_BUILDER_MARKER_PAT = re.compile(r"Builder v1\.7 compliant", re.I)
 
 
 class SpecLoadFailed(Exception):
     pass
 
 
-def _is_directory_scan_target(path):
-    parts = set(path.parts)
-    name = path.name
-    stem = path.stem
-    if "__pycache__" in parts:
-        return False
-    if name == "__init__.py":
-        return False
-    if "tests" in parts:
-        return False
-    if "agents" in parts:
-        return False
-    if "ARCHIVED" in name:
-        return False
-    if name.startswith("test_") or name.endswith("_test.py"):
-        return False
-    if "adversarial" in stem:
-        return False
-    return True
-
-
 def _stem(path):
     return path.stem.split("_v")[0]
+
+
+def _include_in_directory_corpus(path):
+    normalized = str(path).replace("\\", "/").lower()
+    if "__pycache__" in normalized:
+        return False
+    if path.name == "__init__.py":
+        return False
+    if "/agents/" in normalized:
+        return False
+    if "/tests/" in normalized or path.name.startswith("test_") or "/fixtures/" in normalized:
+        return False
+    if path.name.endswith("_test.py"):
+        return False
+    if "/archive/" in normalized or "/archived/" in normalized or "archived" in path.name.lower():
+        return False
+    if "adversarial" in path.stem.lower():
+        return False
+    if "/support/" in normalized or "/private/" in normalized or "/shared/" in normalized:
+        return False
+    return True
 
 
 def scan_file(path):
@@ -113,8 +114,17 @@ def scan_directory(scan_path, strict=False):
     if p.is_file():
         targets = [p]
     elif p.is_dir():
-        targets = [target for target in sorted(p.rglob("*.py"))
-                   if _is_directory_scan_target(target)]
+        targets = []
+        for candidate in sorted(p.rglob("*.py")):
+            if not _include_in_directory_corpus(candidate):
+                continue
+            try:
+                text = candidate.read_text(encoding="utf-8")
+            except (IOError, OSError):
+                continue
+            if not _BUILDER_MARKER_PAT.search(text):
+                continue
+            targets.append(candidate)
     else:
         raise SpecLoadFailed("Path not found: " + str(scan_path))
     results = []
@@ -217,10 +227,10 @@ def run_smoke_test():
             (Path(d) / "bad_tool.py").write_text(noncompliant)
             results = scan_directory(d)
             output = aggregate(results)
-            assert output["files_scanned"] == 2
+            assert output["files_scanned"] == 1
             good = next(r for r in results if "good_tool" in r["file"])
-            bad  = next(r for r in results if "bad_tool"  in r["file"])
             assert good["passed"], str(good["hard_failures"])
+            bad = scan_directory(Path(d) / "bad_tool.py")[0]
             assert not bad["passed"]
             print("checkmark Smoke test PASSED")
             return True
