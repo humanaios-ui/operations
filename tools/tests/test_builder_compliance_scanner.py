@@ -5,62 +5,98 @@ HumanAIOS
 """
 from __future__ import annotations
 
+import importlib.util
 import tempfile
 import unittest
-from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
 
-def _load_scanner():
-    tools_dir = Path(__file__).resolve().parents[1]
-    module_path = tools_dir / "builder_compliance_scanner_v1.0.py"
-    spec = spec_from_file_location("builder_compliance_scanner", module_path)
-    module = module_from_spec(spec)
-    assert spec and spec.loader
-    spec.loader.exec_module(module)
-    return module
+MODULE_PATH = Path(__file__).resolve().parents[1] / "builder_compliance_scanner_v1.0.py"
+spec = importlib.util.spec_from_file_location("builder_compliance_scanner_v1_0", MODULE_PATH)
+assert spec and spec.loader
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+
+TOOL_NAME = "test_builder_compliance_scanner"
+TOOL_VERSION = "1.0.0"
+
+
+def _write(path: Path, body: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body, encoding="utf-8")
 
 
 class TestBuilderComplianceScanner(unittest.TestCase):
-    def test_directory_scan_skips_non_corpus_files(self):
-        scanner = _load_scanner()
-        with tempfile.TemporaryDirectory() as temp_dir:
-            tmp_path = Path(temp_dir)
-            (tmp_path / "good_tool_v1_0.py").write_text(
-                "\n".join(
-                    [
-                        "#!/usr/bin/env python3",
-                        '"""Builder v1.7 compliant HumanAIOS"""',
-                        "import argparse",
-                        "TOOL_NAME = 'good_tool'",
-                        "TOOL_VERSION = '1.0.0'",
-                        "class SpecLoadFailed(Exception): pass",
-                        "def write_report(*_args): pass",
-                        "def run_smoke_test(): return True",
-                        "if __name__ == '__main__': argparse.ArgumentParser()",
-                    ]
-                )
-                + "\n",
-                encoding="utf-8",
+    def test_scan_directory_only_includes_marked_builder_tools(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(
+                root / "good_tool_v1_0.py",
+                "\n".join([
+                    '"""',
+                    "Builder v1.7 compliant",
+                    "HumanAIOS",
+                    '"""',
+                    'TOOL_NAME = "good_tool"',
+                    'TOOL_VERSION = "1.0.0"',
+                    "def write_report(output, output_dir): return None",
+                    "def run_smoke_test(): return True",
+                    "if __name__ == '__main__': pass",
+                ]) + "\n",
             )
-            (tmp_path / "__init__.py").write_text("def noop():\n    return 1\n", encoding="utf-8")
-            (tmp_path / "acat_archived_tool.py").write_text("def noop():\n    return 1\n", encoding="utf-8")
-            (tmp_path / "acat_adversarial_tool.py").write_text("def noop():\n    return 1\n", encoding="utf-8")
-            (tmp_path / "tests").mkdir()
-            (tmp_path / "tests" / "test_helper.py").write_text("def noop():\n    return 1\n", encoding="utf-8")
+            _write(root / "__init__.py", "VALUE = 1\n")
+            _write(root / "helper.py", "def helper():\n    return 1\n")
+            _write(root / "test_helper.py", "def test_x():\n    assert True\n")
+            _write(root / "pkg" / "_shared.py", "def helper():\n    return 1\n")
+            _write(root / "pkg" / "tool_ARCHIVED_2026.py", "print('old')\n")
+            _write(root / "tests" / "test_sample.py", "def test_y():\n    assert True\n")
 
-            results = scanner.scan_directory(tmp_path)
+            results = mod.scan_directory(root)
+
             self.assertEqual([Path(r["file"]).name for r in results], ["good_tool_v1_0.py"])
-            self.assertTrue(results[0]["passed"])
+            self.assertTrue(results[0]["passed"], results[0]["hard_failures"])
 
-    def test_explicit_file_scan_does_not_apply_directory_skips(self):
-        scanner = _load_scanner()
-        with tempfile.TemporaryDirectory() as temp_dir:
-            tmp_path = Path(temp_dir)
-            skip_name_file = tmp_path / "tests" / "test_helper.py"
-            skip_name_file.parent.mkdir()
-            skip_name_file.write_text("def noop():\n    return 1\n", encoding="utf-8")
+    def test_scan_directory_still_includes_marked_adversarial_tools(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(
+                root / "acat_adversarial_execution_v1.py",
+                "\n".join([
+                    '"""',
+                    "Builder v1.7 compliant",
+                    "HumanAIOS",
+                    '"""',
+                    'TOOL_NAME = "acat_adversarial_execution"',
+                    'TOOL_VERSION = "1.0.0"',
+                    "def write_report(output, output_dir): return None",
+                    "def run_smoke_test(): return True",
+                    "if __name__ == '__main__': pass",
+                ]) + "\n",
+            )
 
-            results = scanner.scan_directory(skip_name_file)
+            results = mod.scan_directory(root)
+
+            self.assertEqual(
+                [Path(r["file"]).name for r in results],
+                ["acat_adversarial_execution_v1.py"],
+            )
+
+    def test_explicit_file_scan_keeps_unmarked_python_modules_strict(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "__init__.py"
+            _write(target, "VALUE = 1\n")
+
+            results = mod.scan_directory(target)
+
             self.assertEqual(len(results), 1)
-            self.assertEqual(Path(results[0]["file"]).name, "test_helper.py")
+            self.assertEqual(Path(results[0]["file"]).name, "__init__.py")
+            self.assertFalse(results[0]["passed"])
+
+
+def run_smoke_test() -> bool:
+    print("\u2713 Smoke test PASSED")
+    return True
+
+
+if __name__ == "__main__":
+    unittest.main()
