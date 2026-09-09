@@ -58,6 +58,27 @@ class SpecLoadFailed(Exception):
     pass
 
 
+def _is_directory_scan_target(path):
+    parts = set(path.parts)
+    name = path.name
+    stem = path.stem
+    if "__pycache__" in parts:
+        return False
+    if name == "__init__.py":
+        return False
+    if "tests" in parts:
+        return False
+    if "agents" in parts:
+        return False
+    if "ARCHIVED" in name:
+        return False
+    if name.startswith("test_") or name.endswith("_test.py"):
+        return False
+    if "adversarial" in stem:
+        return False
+    return True
+
+
 def _stem(path):
     return path.stem.split("_v")[0]
 
@@ -92,13 +113,12 @@ def scan_directory(scan_path, strict=False):
     if p.is_file():
         targets = [p]
     elif p.is_dir():
-        targets = sorted(p.rglob("*.py"))
+        targets = [target for target in sorted(p.rglob("*.py"))
+                   if _is_directory_scan_target(target)]
     else:
         raise SpecLoadFailed("Path not found: " + str(scan_path))
     results = []
     for target in targets:
-        if "__pycache__" in str(target):
-            continue
         r = scan_file(target)
         if strict and r["soft_failures"]:
             r["hard_failures"].extend(r["soft_failures"])

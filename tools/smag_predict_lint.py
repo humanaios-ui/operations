@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 smag_predict_lint.py
-Builder v1.7 compliant
-HumanAIOS
+Builder v1.7 compliant - smag_predict_lint
+HumanAIOS - S-090926-smag-predict-lint
 
 Refuse a PR body that carries no pinned `smag_p:` probability and audit ledger
 rows for prediction-calibration VOIDs.
@@ -90,6 +90,7 @@ def load_rows(path: Path) -> list[dict]:
         except json.JSONDecodeError:
             continue
     return rows
+
 
 def find_void_rows(rows: list[dict]) -> list[dict]:
     """Return ledger rows whose `predicted` field is not a pinned probability."""
