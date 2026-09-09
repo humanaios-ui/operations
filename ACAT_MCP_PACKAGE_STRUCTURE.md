@@ -703,7 +703,7 @@ ACAT_API_URL=http://localhost:8000
 ACAT_API_KEY=your_api_key_here
 
 # RentAHuman API (for orchestration context)
-RAH_API_KEY=rah_75ccef6056b836f84c045982d87b4ef0
+RAH_API_KEY=RAH_API_KEY_PLACEHOLDER
 RAH_API_URL=https://rentahuman.ai/api/v1
 
 # Database
