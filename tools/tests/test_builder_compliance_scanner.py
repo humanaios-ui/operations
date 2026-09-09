@@ -8,6 +8,9 @@ import importlib.util
 import unittest
 from pathlib import Path
 
+TOOL_NAME = "test_builder_compliance_scanner"
+TOOL_VERSION = "1.0.0"
+
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "builder_compliance_scanner_v1.0.py"
 spec = importlib.util.spec_from_file_location("builder_compliance_scanner_v1_0", MODULE_PATH)
