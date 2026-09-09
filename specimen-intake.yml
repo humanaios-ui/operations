@@ -1,11 +1,12 @@
-# research-intake.yml
-# HumanAIOS Research Intake Protocol v0.2  (post red-team 2026-09-08; v0.1 did not parse — RT-11)
+# specimen-intake.yml
+# HumanAIOS Specimen Intake Protocol v0.2  (post red-team 2026-09-08; v0.1 did not parse — RT-11)
 # Specimen: pseudonymous. Legal name and platform contract id are held in a private
 # specimen register outside this public repository (RT-07). Keyed by specimen_id.
 # Tier: 2 (ADV run required before OPERATED)
 
 schema_version: "0.2"
-protocol_name: "research-intake"
+protocol_name: "specimen-intake"
+formerly: "research-intake (renamed 2026-09-09 to avoid collision with tools/intake_schema_v0_2.py, PR #237; Z2 ruling)"
 intake_type: "behavioral-specimen"
 specimen_id: "SPC-01"
 specimen_role: "individual expert contractor, external annotation/evaluation platform"
@@ -49,7 +50,7 @@ limitations:
 
 # ---------------------------------------------------------------------------
 # Intake record schema (field: type — documentation; enforced by the dataclasses
-# in research_intake_evaluator.py, which is the executable form)
+# in specimen_intake_evaluator.py, which is the executable form)
 # ---------------------------------------------------------------------------
 intake_record_schema:
   metadata:
@@ -138,7 +139,7 @@ landing:
   landing_order_position: 2
   landed_commit: "c08f86c (v0.1, direct push to main — bypassed PR rule and required check; see IC candidate in red-team report)"
   dependencies:
-    - "ADV run on research_intake_evaluator.py forecast + revert logic"
+    - "ADV run on specimen_intake_evaluator.py forecast + revert logic"
     - "MOLT_LEDGER schema ratified"
     - "NF_LEDGER Brier engine (v0.2 in-module implementation is the candidate)"
   blockers:
@@ -152,9 +153,11 @@ landing:
     - "expert work scope — task_categories are free-form and captured per cycle"
 
 audit_trail:
+  - date: "2026-09-09"
+    event: "renamed research-intake -> specimen-intake (Z2 ruling; collision with #237 intake_schema_v0_2)"
   - date: "2026-09-08"
     event: "red-team of v0.1; 11 findings; v0.2 issued with regression tests"
-    ref: "research-intake_redteam_090826.md"
+    ref: "specimen-intake_redteam_090826.md"
 
 z2_ratification:
   ratified_by: null

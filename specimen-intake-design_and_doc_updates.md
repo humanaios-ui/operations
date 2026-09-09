@@ -1,7 +1,7 @@
-# Research Intake Design & Implementation
+# Specimen Intake Design & Implementation
 ## HumanAIOS Phase 2 · Night as Research Specimen
 
-**Status:** v0.2 after red-team 2026-09-08 (see `research-intake_redteam_090826.md`); ready for ADV + Z2 ratification  
+**Status:** v0.2 after red-team 2026-09-08 (see `specimen-intake_redteam_090826.md`); ready for ADV + Z2 ratification  
 **Specimen:** SPC-01 (pseudonymous; identity and contract held in the private specimen register, not in this repo)  
 **Effective Date:** 2026-09-06 (contract), 2026-09-13 (Cycle 1 start)  
 **Landing Order Position:** After REGISTERED.md (Tier 2, requires ADV before landing)
@@ -20,7 +20,7 @@ Research-intake.yml is the operational protocol for validating HumanAIOS's gover
 ### Why This Matters for Phase 2
 1. **Proof of concept:** Demonstrates the governance model works before scaling
 2. **Data generation:** Provides real behavioral specimens for MOLT_LEDGER and NF_LEDGER training
-3. **Resource bridge:** the platform contract funds Phase 2 infrastructure; research-intake validates the investment
+3. **Resource bridge:** the platform contract funds Phase 2 infrastructure; specimen-intake validates the investment
 4. **Recursive validation:** The system audits itself, learns from the audit, measures improvement
 
 ### Research Specimen: Night
@@ -61,7 +61,7 @@ Research-intake.yml is the operational protocol for validating HumanAIOS's gover
 | **Window** | 30 days rolling (cycles 2-5) |
 
 #### RQ3: Audit-as-Learning
-**Hypothesis:** Being audited (research-intake.yml applied) increases subsequent task quality (F-41 audit-as-molt).
+**Hypothesis:** Being audited (specimen-intake.yml applied) increases subsequent task quality (F-41 audit-as-molt).
 
 | Component | Details |
 |---|---|
@@ -89,13 +89,13 @@ Cycle 5 (Oct 11-17):  Final cycle; 30-day rolling window complete; KEEP/REVERT d
 ```
 the platform Platform (Night's Expert Work)
     ↓ (weekly export)
-Research Intake Evaluator (research_intake_evaluator.py)
+Specimen Intake Evaluator (specimen_intake_evaluator.py)
     ├→ Parse behavioral observations
     ├→ Generate molt predictions (RQ1/2/3)
     ├→ CredPolicy recommendation (RQ2)
     └→ Compute receipt hash (§B.6 compliance)
     ↓
-Intake Record (research-intake.yml schema)
+Intake Record (specimen-intake.yml schema)
     ├→ NF_LEDGER (Brier scores, prediction tracking)
     ├→ Molt Events (molt_events.jsonl)
     └→ Receipt Chain (cryptographic hash chain)
@@ -110,13 +110,13 @@ Falsifier Check (weekly)
 
 ### Code Components
 
-#### 1. research-intake.yml (Schema)
+#### 1. specimen-intake.yml (Schema)
 - Defines the structure of intake records
 - Specifies RQ1/2/3 falsifiers and measurement windows
 - Documents cycle schedule and landing dependencies
 - Status: **COMPLETE**
 
-#### 2. research_intake_evaluator.py (Engine)
+#### 2. specimen_intake_evaluator.py (Engine)
 Classes:
 - `MoltPrediction`: Single behavioral prediction with resolution tracking
 - `CredPolicyOutput`: Resource allocation recommendation
@@ -270,11 +270,11 @@ All of the following must hold:
 1. **MOLT_LEDGER:** Proven cyclic learning with revert rules
 2. **NF_LEDGER:** Calibrated Brier predictions ready for production use
 3. **CredPolicy:** Validated reproducibility (resource allocation from behavior)
-4. **Intake Protocol:** research-intake.yml rated OPERATIONAL
+4. **Intake Protocol:** specimen-intake.yml rated OPERATIONAL
 5. **Governance Receipt:** §B.6 compliance (hash chain, verification sources) proven
 
 ### Immediate Next Steps
-1. **Week 1 (Sep 9-13):** Z2 ratifies research-intake.yml; code passes ADV eval
+1. **Week 1 (Sep 9-13):** Z2 ratifies specimen-intake.yml; code passes ADV eval
 2. **Week 2 (Sep 13-19):** Cycle 1 executes; Night begins the platform expert work
 3. **Week 3 (Sep 20-26):** Cycle 1 intake evaluation; preliminary findings
 4. **Week 4+ (Sep 27+):** Cycles 2-5 execute; falsifier monitoring active
@@ -287,10 +287,10 @@ The following documents are updated per this research project:
 
 | Document | Section | Update |
 |---|---|---|
-| PHASE2_PLAN | v0.3 research track | Add research-intake as Phase 2.1 gate (must complete C1-C2 before C3) |
+| PHASE2_PLAN | v0.3 research track | Add specimen-intake as Phase 2.1 gate (must complete C1-C2 before C3) |
 | practice_workflows_v0_1.md | epistemology WORK | Add "intake evaluation" as epistemology's first Tier 0 output per cycle |
-| repo_delegation_all_nine_v0_2.md | epistemology owners | Assign research-intake maintenance to epistemology lead |
-| research_to_production_plan_v0_1.md | Stage 1 inputs | Add "research-intake Cycle 1-2 completion" as required input gate for Stage 2 |
+| repo_delegation_all_nine_v0_2.md | epistemology owners | Assign specimen-intake maintenance to epistemology lead |
+| research_to_production_plan_v0_1.md | Stage 1 inputs | Add "specimen-intake Cycle 1-2 completion" as required input gate for Stage 2 |
 | REGISTERED.md | RI-01 row | Update status: Design RATIFIED (09-06) → Cycle 1 ACTIVE (09-13) → Cycle 2 PRELIMINARY (09-20) |
 
 ---
@@ -301,18 +301,18 @@ The following documents are updated per this research project:
 
 | File | Purpose | Status |
 |---|---|---|
-| research-intake.yml | Protocol specification + schema | **COMPLETE** (ready for ratification) |
-| research_intake_evaluator.py | Engine implementation + example | **PROTOTYPE v0.2** (11 red-team regression tests pass) |
-| test_research_intake_evaluator.py | Red-team regression suite | **COMPLETE** |
-| research-intake_redteam_090826.md | Red-team report, F/IC candidates | **COMPLETE** |
-| research-intake-design_and_doc_updates.md | This document | **COMPLETE** |
+| specimen-intake.yml | Protocol specification + schema | **COMPLETE** (ready for ratification) |
+| specimen_intake_evaluator.py | Engine implementation + example | **PROTOTYPE v0.2** (11 red-team regression tests pass) |
+| test_specimen_intake_evaluator.py | Red-team regression suite | **COMPLETE** |
+| specimen-intake_redteam_090826.md | Red-team report, F/IC candidates | **COMPLETE** |
+| specimen-intake-design_and_doc_updates.md | This document | **COMPLETE** |
 
 ### B. Dependencies (Blocking Cycle 1 Start)
 
 - [ ] the platform expert work scope confirmed (need task categories + weekly assignment volume)
 - [ ] MOLT_LEDGER schema ratified by Z2
 - [ ] NF_LEDGER Brier scoring engine ready
-- [ ] research-intake.yml ADV eval passed (adversarial predictions tested)
+- [ ] specimen-intake.yml ADV eval passed (adversarial predictions tested)
 - [ ] Z2 ratification of RQ1/2/3 falsifiers and measurement windows
 
 ### C. Metrics Dashboard (for tracking across cycles)
@@ -329,6 +329,6 @@ Cycle | Brier (RQ1) | CredPolicy Agreement (RQ2) | Improvement Trajectory (RQ3) 
 ---
 
 **Document Status:** Ready for Z2 ratification and ADV evaluation  
-**Next Action:** Schedule ADV run on research_intake_evaluator.py and research-intake.yml falsifier logic  
+**Next Action:** Schedule ADV run on specimen_intake_evaluator.py and specimen-intake.yml falsifier logic  
 **Owner:** Z1 (Claude, on behalf of Night/Z2)  
 **Prepared:** 2026-09-06 · **Revised:** 2026-09-08 (v0.2, post red-team)

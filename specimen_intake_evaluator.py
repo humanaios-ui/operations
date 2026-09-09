@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-research_intake_evaluator.py  —  v0.2 (post red-team, 2026-09-08)
-HumanAIOS Research Intake Protocol Implementation
+specimen_intake_evaluator.py  —  v0.2 (post red-team, 2026-09-08)
+HumanAIOS Specimen Intake Protocol Implementation
 Specimen: pseudonymous specimen_id only (no legal name / contract id in tree — RT-07)
 Status: Prototype for Cycle 1; Tier 2, ADV required before OPERATED.
 
-Changes from v0.1 (each maps to a red-team finding RT-xx in research-intake_redteam_090826.md):
+Changes from v0.1 (each maps to a red-team finding RT-xx in specimen-intake_redteam_090826.md):
   RT-01  Brier score is now computed on a bounded [0,1] error, and only on
          probabilistic/normalised forecasts. Raw-scale squared error (which gave
          33.6 for a 5.8-point quality miss) is gone; the RQ1 threshold 0.4 is now
@@ -274,7 +274,7 @@ class RatificationError(RuntimeError):
 
 
 class ResearchIntakeEvaluator:
-    """Evaluates research-intake cycles. Z1 proposes; Z2 ratifies by hash; code measures."""
+    """Evaluates specimen-intake cycles. Z1 proposes; Z2 ratifies by hash; code measures."""
 
     # Prior toward which forecasts are shrunk (RT-05). Constants — molt-governed.
     PRIOR_QUALITY = 0.75

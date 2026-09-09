@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Red-team regression tests for research_intake_evaluator v0.2.
-Each test is the probe that broke v0.1 (see research-intake_redteam_090826.md)."""
+"""Red-team regression tests for specimen_intake_evaluator v0.2.
+Each test is the probe that broke v0.1 (see specimen-intake_redteam_090826.md)."""
 import copy
 import unittest
 from datetime import datetime, timezone
 
-from research_intake_evaluator import (
+from specimen_intake_evaluator import (
     BehavioralObservations, EvaluationStatus, ImprovementTrajectory, RatificationError,
     ReceiptStatus, ResearchIntakeEvaluator, SpecimenInput, MoltPrediction, RevertRule, utcnow,
 )
@@ -117,8 +117,8 @@ class RedTeam(unittest.TestCase):
             mk(ev, 2)                                            # duplicate cycle refused
 
     def test_no_pii_literals_in_module(self):
-        import research_intake_evaluator, inspect
-        src = inspect.getsource(research_intake_evaluator).lower()
+        import specimen_intake_evaluator, inspect
+        src = inspect.getsource(specimen_intake_evaluator).lower()
         for needle in ("carly", "anderson", "m88dj94"):
             self.assertNotIn(needle, src)
 

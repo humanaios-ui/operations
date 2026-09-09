@@ -1,10 +1,12 @@
-# Red-Team Audit — research-intake landing (commit c08f86c)
+# Red-Team Audit — specimen-intake landing (commit c08f86c)
 
-**Date:** 2026-09-08 · **Auditor:** Z1 · **Scope:** `research-intake.yml`, `research_intake_evaluator.py`, `research-intake-design_and_doc_updates.md` as landed on `main` at `c08f86c`, plus the landing itself.
-**Method:** every finding below was reproduced by executing the landed code or the git/CI state, not by reading. Reproductions are in `test_research_intake_evaluator.py` (v0.1 fails all RT-marked tests; v0.2 passes 11/11).
+**Date:** 2026-09-08 · **Auditor:** Z1 · **Scope:** `specimen-intake.yml`, `specimen_intake_evaluator.py`, `specimen-intake-design_and_doc_updates.md` as landed on `main` at `c08f86c`, plus the landing itself.
+**Method:** every finding below was reproduced by executing the landed code or the git/CI state, not by reading. Reproductions are in `test_specimen_intake_evaluator.py` (v0.1 fails all RT-marked tests; v0.2 passes 11/11).
 **Position → destination → probability:** landed but not gate-clean → PR-re-landed v0.2 with ADV run → 0.8 within this week if B1 clears.
 
 ---
+
+**Rename (2026-09-09, Z2 ruling):** `research-intake` → `specimen-intake` in all file names and identifiers, to resolve the AMBIGUITY with `tools/intake_schema_v0_2.py` (PR #237, intent intake). Research questions RQ1–3 unchanged.
 
 ## A. Verified status
 
@@ -16,7 +18,7 @@
 | `guard` job | `.github/workflows/no-op-pr-guard.yml` — PR-only, so it never ran on this commit |
 | `z2_ratification_gate.yml` | **not present on main** (v0.2 graph names it as CIG; CIG as specified does not exist yet) |
 | `document-control` validator | passes locally on the landed tree (42 registered docs, no violations) — new docs are unregistered, validator only checks registered ones |
-| `research-intake.yml` v0.1 | **does not parse** (`yaml.safe_load` error line 104) |
+| `specimen-intake.yml` v0.1 | **does not parse** (`yaml.safe_load` error line 104) |
 | Commit message | states "Z2 Ratification: Night, 2026-09-06" while the landed yml states `z2_ratification.status: PENDING`, hash null |
 
 ## B. Findings
@@ -35,12 +37,12 @@ Severity per SeverityLevel in the schema. "Repro" = the probe that demonstrated 
 | **RT-08** | NOTICE | `receipt_status` hardcoded `CLAIM_WITH_LINK` with no link — receipt overstatement in code (IC-031 class). | source line 323 | Tier earned from `verification_sources`; default `CLAIM` |
 | **RT-09** | INFO | `datetime.utcnow()` (deprecated, naive); `specimen_id` carries `cycle-1` for all cycles; `average_brier_score` returns `None` against a `float` annotation; duplicate cycle numbers accepted. | — | tz-aware `utcnow()`; specimen id decoupled; `Optional` typing; duplicate cycle refused |
 | **RT-10** | CONCERN (governance) | **Landing bypassed the gate.** Direct push to `main` overrode "changes via PR" and the required `guard` check. No CI ran on the landing. The commit message asserts Z2 ratification in prose while the file says PENDING — the record contradicts itself. Z1 drafted that message; that is Z1's error. | push output; yml line `status: "PENDING"` | Re-land v0.2 through a PR (C.1); IC candidate below; branch-protection change proposed (C.2) |
-| **RT-11** | CAUTION | `research-intake.yml` v0.1 is not valid YAML. Any consumer (`falsifier_lint`, a future CI gate) fails on read. | `yaml.safe_load` → error line 104 | v0.2 rewritten as a single parseable document; schema expressed as `field: "type"` strings |
+| **RT-11** | CAUTION | `specimen-intake.yml` v0.1 is not valid YAML. Any consumer (`falsifier_lint`, a future CI gate) fails on read. | `yaml.safe_load` → error line 104 | v0.2 rewritten as a single parseable document; schema expressed as `field: "type"` strings |
 | **RT-12** | NOTICE | New files not in `document-registry.yaml`; §A MANIFEST verification has no entry for them. | validator passes only because unregistered docs are skipped | Register in the re-landing PR (C.1) |
 
 ## C. Mitigation set (Z1 built; Z2 rules)
 
-**C.1 Re-land via PR, not another direct push.** Branch `research-intake-v0_2`; files: the five in Appendix A. This puts `guard` and `document-control` on the change and gives the record a PR number instead of a bypass line. Nothing in v0.2 is publish-ready until ADV has run on `resolve_cycle` and the revert rules; the yml keeps `status: PENDING` until Z2 supplies a hash.
+**C.1 Re-land via PR, not another direct push.** Branch `specimen-intake-v0_2`; files: the five in Appendix A. This puts `guard` and `document-control` on the change and gives the record a PR number instead of a bypass line. Nothing in v0.2 is publish-ready until ADV has run on `resolve_cycle` and the revert rules; the yml keeps `status: PENDING` until Z2 supplies a hash.
 
 **C.2 Branch protection.** GitHub reported "Bypassed rule violations" — the ruleset allows the admin to bypass. Options for Z2: (a) turn off admin bypass on `main` so CI enforcement is real ("code, not memory"); (b) keep bypass and register every bypass as an IC event. (a) matches the graph; (b) is honest about the current state. Z2's call.
 
@@ -50,7 +52,7 @@ Severity per SeverityLevel in the schema. "Repro" = the probe that demonstrated 
 
 ```
 IC-RI-01  Gate bypass on landing
-  claim: research-intake v0.1 landed to main by direct push, bypassing PR rule and required check "guard"; commit message asserted a ratification the artifact did not carry.
+  claim: specimen-intake v0.1 landed to main by direct push, bypassing PR rule and required check "guard"; commit message asserted a ratification the artifact did not carry.
   class: process / receipt overstatement (IC-031 adjacent)
   falsifier: the GitHub push log for c08f86c shows no "Bypassed rule violations" line.
   status: OPEN → closes when C.1 merges and C.2 is ruled.
@@ -80,8 +82,8 @@ NOT DONE and not claimed: any Cycle 1 data; Z2 ratification of anything in v0.2.
 
 | file | change |
 |---|---|
-| `research_intake_evaluator.py` | v0.2 (full rewrite; header lists RT mapping) |
-| `test_research_intake_evaluator.py` | new — red-team regression suite |
-| `research-intake.yml` | v0.2 (parses; pseudonymous; limitations L1–L3; blockers B1–B3) |
-| `research-intake-design_and_doc_updates.md` | pseudonymised; Brier examples corrected; v0.2 references |
-| `research-intake_redteam_090826.md` | this report |
+| `specimen_intake_evaluator.py` | v0.2 (full rewrite; header lists RT mapping) |
+| `test_specimen_intake_evaluator.py` | new — red-team regression suite |
+| `specimen-intake.yml` | v0.2 (parses; pseudonymous; limitations L1–L3; blockers B1–B3) |
+| `specimen-intake-design_and_doc_updates.md` | pseudonymised; Brier examples corrected; v0.2 references |
+| `specimen-intake_redteam_090826.md` | this report |
