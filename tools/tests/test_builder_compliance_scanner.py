@@ -1,96 +1,94 @@
 """
-HumanAIOS
-Builder v1.7 compliant
+test_builder_compliance_scanner.py
+Builder v1.7 compliant - builder_compliance_scanner_tests
+HumanAIOS - S-090926-builder-compliance-fix
+Focused tests for directory-scan target selection in builder_compliance_scanner_v1.0.py.
 """
 from __future__ import annotations
 
 import importlib.util
-import unittest
+import tempfile
 from pathlib import Path
 
 TOOL_NAME = "test_builder_compliance_scanner"
 TOOL_VERSION = "1.0.0"
 
-
-MODULE_PATH = Path(__file__).resolve().parents[1] / "builder_compliance_scanner_v1.0.py"
-spec = importlib.util.spec_from_file_location("builder_compliance_scanner_v1_0", MODULE_PATH)
-assert spec and spec.loader
-mod = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(mod)
-
-
-def _builder_tool(name: str = "good_tool") -> str:
-    return "\n".join([
-        "#!/usr/bin/env python3",
-        '"""',
-        "Builder v1.7 compliant",
-        "HumanAIOS",
-        '"""',
-        "import argparse",
-        "",
-        f'TOOL_NAME = "{name}"',
-        'TOOL_VERSION = "1.0.0"',
-        "",
-        "class SpecLoadFailed(Exception):",
-        "    pass",
-        "",
-        "def write_report(output, output_dir):",
-        "    return output_dir",
-        "",
-        "def run_smoke_test():",
-        "    return True",
-        "",
-        "def main():",
-        "    argparse.ArgumentParser()",
-        "",
-        'if __name__ == "__main__":',
-        "    main()",
-        "",
-    ])
+TOOLS_DIR = Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location(
+    "builder_compliance_scanner_v1_0",
+    TOOLS_DIR / "builder_compliance_scanner_v1.0.py",
+)
+scanner = importlib.util.module_from_spec(SPEC)
+assert SPEC and SPEC.loader
+SPEC.loader.exec_module(scanner)
 
 
-class TestBuilderComplianceScanner(unittest.TestCase):
-    def test_scan_directory_filters_non_corpus_files(self):
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_path = Path(tmp_dir)
-            (tmp_path / "good_tool_v1_0.py").write_text(_builder_tool(), encoding="utf-8")
-            (tmp_path / "test_sample.py").write_text(_builder_tool("test_sample"), encoding="utf-8")
-            archived = tmp_path / "archived"
-            archived.mkdir()
-            (archived / "archived_tool_v1_0.py").write_text(_builder_tool("archived_tool"), encoding="utf-8")
-            shared = tmp_path / "_shared"
-            shared.mkdir()
-            (shared / "helper.py").write_text(_builder_tool("helper"), encoding="utf-8")
-            (tmp_path / "__init__.py").write_text(_builder_tool("__init__"), encoding="utf-8")
-            (tmp_path / "plain_helper.py").write_text("def helper():\n    return True\n", encoding="utf-8")
-
-            results = mod.scan_directory(tmp_path)
-
-        self.assertEqual([Path(result["file"]).name for result in results], ["good_tool_v1_0.py"])
-        self.assertTrue(results[0]["passed"])
-
-    def test_scan_directory_keeps_explicit_file_scans_unchanged(self):
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            path = Path(tmp_dir) / "test_sample.py"
-            path.write_text("def helper():\n    return True\n", encoding="utf-8")
-
-            results = mod.scan_directory(path)
-
-        self.assertEqual(len(results), 1)
-        self.assertEqual(Path(results[0]["file"]).name, "test_sample.py")
-        self.assertFalse(results[0]["passed"])
-
-    def test_this_module_passes_explicit_file_scan(self):
-        results = mod.scan_directory(Path(__file__))
-
-        self.assertEqual(len(results), 1)
-        self.assertEqual(Path(results[0]["file"]).name, Path(__file__).name)
-        self.assertTrue(results[0]["passed"], results[0]["hard_failures"])
+def _write(path: Path, body: str) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body, encoding="utf-8")
+    return path
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_directory_scan_only_counts_builder_corpus_files():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        compliant = """#!/usr/bin/env python3
+# Builder v1.7 compliant
+# HumanAIOS
+TOOL_NAME = "kept_tool"
+TOOL_VERSION = "1.0.0"
+class SpecLoadFailed(Exception): pass
+def write_report(o, d): pass
+def run_smoke_test(): return True
+if __name__ == "__main__": run_smoke_test()
+"""
+        helper = "def helper():\n    return True\n"
+        _write(root / "kept_tool_v1_0.py", compliant)
+        _write(root / "legacy_helper.py", helper)
+        _write(root / "tests" / "test_tool.py", helper)
+        _write(root / "__init__.py", helper)
+        _write(root / "agents" / "api_monitoring_bot_v1.py", helper)
+        _write(root / "acat_adversarial_suite_v1.py", compliant)
+        _write(root / "legacy_ARCHIVED_2026-07-16.py", "def broken(\n")
+
+        results = scanner.scan_directory(root)
+        output = scanner.aggregate(results)
+
+        assert [Path(result["file"]).name for result in results] == ["kept_tool_v1_0.py"]
+        assert output["files_scanned"] == 1
+        assert output["files_passed"] == 1
+        assert output["pass_rate"] == 1.0
+
+
+def test_this_module_passes_explicit_file_scan():
+    results = scanner.scan_directory(Path(__file__))
+
+    assert len(results) == 1
+    assert Path(results[0]["file"]).name == Path(__file__).name
+    assert results[0]["passed"], results[0]["hard_failures"]
+
+
+def test_single_file_scan_skips_test_modules():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _write(Path(tmp) / "tests" / "test_sample.py", "def test_thing():\n    assert True\n")
+        result = scanner.scan_file(path)
+
+        assert result["passed"] is True
+        assert result["skipped"] is True
+        assert result["skip_reason"] == "test module"
+
+
+def test_single_file_scan_still_fails_non_compliant_tool_files():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _write(Path(tmp) / "new_tool.py", "def helper():\n    return 1\n")
+        result = scanner.scan_file(path)
+
+        assert result["passed"] is False
+        assert "BUILDER_MISSING_HEADER" in result["hard_failures"]
+
+
+def test_smag_predict_lint_passes_builder_checks():
+    results = scanner.scan_directory(TOOLS_DIR / "smag_predict_lint.py")
+
+    assert len(results) == 1
+    assert results[0]["passed"], results[0]["hard_failures"]
