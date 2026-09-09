@@ -33,6 +33,8 @@ without metabolism." CONSOLIDATE + ANALYZE close it.
   reward-hacking smell; candidate for a hard behavioural gate).
 - **miss** — not merged (predicted deliver, didn't land).
 - **gap_rate = (friction + miss) / graded.** Success over rounds = gap_rate declining.
+- **prediction-calibration guard:** `predicted` must carry a pinned `smag_p:` line.
+  Rows without it are **VOID** for prediction-calibration claims.
 
 First resolved run (S-071426, 10 rows): measurable_rate 0.9 (9 confirmed); clean_rate 0.333; gap_rate 0.667 — 6 merged PRs shipped
 with failing checks. That is the first measured signal the loop was built to surface.

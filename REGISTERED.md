@@ -3907,3 +3907,8 @@ superseded_by: null
   - "CMI for token projects" product thought — mapping sound; sector liability and adversarial profile make it a poor early market. Held at NM.
   - Sentiment-terminated price loops (no external anchor in the measurement circuit) as the market-scale instance of META-CAPTURE — illustrative anchor for ACAT-EQ's ground-contact rationale. Held at NM.
 - **Promotion gate:** cited in ≥1 published HumanAIOS artifact (instrument spec, ASC Gateway documentation, or CMI spec §2) as the Gate-7/Gates-1–6 separation rule.
+H-CAND-SPELL-01 | Spell as staged procedure with failure attribution | Malinowski 1935, Tambiah 1968, Frazer 1890, Mooney 1891 | 2026-09-08 | ready | CLAIM+LINK | falsifier: tradition lacking exact-repetition OR failure-attribution | aca4ee8c319e62b50cdee79507b30d53
+
+H-CAND-CASCADE-01 | Feedback + procedure + blame without external check = runaway (witch-hunts ~45K executed; stopped by external legal check) | Levack, Behringer, Midelfort, Doten-Snitker 2024, Soman, Henningsen | 2026-09-08 | ready | CLAIM+LINK | falsifier: large cascade stopped internally | aca4ee8c319e62b50cdee79507b30d53
+
+H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, koshare) | Radin 1956, Hyde 1998, Tedlock | 2026-09-08 | primaries unread | CLAIM | falsifier: clown license NOT from ritual authority in >= 2 cases | aca4ee8c319e62b50cdee79507b30d53
