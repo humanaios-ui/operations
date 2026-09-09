@@ -63,25 +63,35 @@ def _normalized_path(path: Path) -> str:
     return str(path).replace("\\", "/").lower()
 
 
+def _scan_relative_path(path: Path, scan_root: Path | None = None) -> Path:
+    if scan_root is None:
+        return path
+    try:
+        return path.relative_to(scan_root)
+    except ValueError:
+        return path
+
+
 def _stem(path):
     return path.stem.split("_v")[0]
 
 
-def _skip_reason(path):
-    normalized = _normalized_path(path)
-    if path.name == "__init__.py":
+def _skip_reason(path, scan_root=None):
+    check_path = _scan_relative_path(path, scan_root)
+    normalized = _normalized_path(check_path)
+    if check_path.name == "__init__.py":
         return "package initializer"
-    if "/archive/" in normalized or "/archived/" in normalized or "archived" in path.name.lower():
+    if "/archive/" in normalized or "/archived/" in normalized or "archived" in check_path.name.lower():
         return "archived artifact"
-    if any(part.startswith("_") for part in path.parts) or "/private/" in normalized or "/shared/" in normalized:
+    if any(part.startswith("_") for part in check_path.parts) or "/private/" in normalized or "/shared/" in normalized:
         return "private/shared helper module"
-    if "/tests/" in normalized or path.name.startswith("test_") or path.stem.endswith("_test"):
+    if "/tests/" in normalized or check_path.name.startswith("test_") or check_path.stem.endswith("_test"):
         return "test module"
     return None
 
 
-def _is_builder_corpus_member(path):
-    reason = _skip_reason(path)
+def _is_builder_corpus_member(path, scan_root=None):
+    reason = _skip_reason(path, scan_root)
     if reason:
         return False
     try:
@@ -90,8 +100,8 @@ def _is_builder_corpus_member(path):
         return False
 
 
-def _is_directory_scan_target(path):
-    normalized = _normalized_path(path)
+def _is_directory_scan_target(path, scan_root=None):
+    normalized = _normalized_path(_scan_relative_path(path, scan_root))
     if "__pycache__" in normalized:
         return False
     if "/agents/" in normalized:
@@ -102,11 +112,11 @@ def _is_directory_scan_target(path):
         return False
     if "adversarial" in path.stem.lower():
         return False
-    return _is_builder_corpus_member(path)
+    return _is_builder_corpus_member(path, scan_root)
 
 
-def scan_file(path):
-    reason = _skip_reason(path)
+def scan_file(path, scan_root=None):
+    reason = _skip_reason(path, scan_root)
     if reason:
         return {
             "file": str(path),
@@ -147,14 +157,18 @@ def scan_file(path):
 def scan_directory(scan_path, strict=False):
     p = Path(scan_path)
     if p.is_file():
-        targets = [p]
+        targets = [(p, None)]
     elif p.is_dir():
-        targets = [target for target in sorted(p.rglob("*.py")) if _is_directory_scan_target(target)]
+        targets = [
+            (target, p)
+            for target in sorted(p.rglob("*.py"))
+            if _is_directory_scan_target(target, p)
+        ]
     else:
         raise SpecLoadFailed("Path not found: " + str(scan_path))
     results = []
-    for target in targets:
-        r = scan_file(target)
+    for target, scan_root in targets:
+        r = scan_file(target, scan_root)
         if strict and r["soft_failures"]:
             r["hard_failures"].extend(r["soft_failures"])
             r["soft_failures"] = []

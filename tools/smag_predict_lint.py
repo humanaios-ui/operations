@@ -54,6 +54,11 @@ def extract_smag_probability(text: str) -> str | None:
     return match.group(1) if match else None
 
 
+def is_pinned_prediction(value: str) -> bool:
+    """Return whether a ledger `predicted` field is a single pinned probability."""
+    return SMAG_P.fullmatch((value or "").strip()) is not None
+
+
 def normalize_prediction(probability: str | None) -> str:
     """Normalize a pinned probability to the ledger `predicted` form."""
     return f"smag_p:{probability}" if probability is not None else VOID_PREDICTION
@@ -93,7 +98,7 @@ def load_rows(path: Path) -> list[dict]:
 
 def find_void_rows(rows: list[dict]) -> list[dict]:
     """Return ledger rows whose `predicted` field is not a pinned probability."""
-    return [row for row in rows if extract_smag_probability(str(row.get("predicted", ""))) is None]
+    return [row for row in rows if not is_pinned_prediction(str(row.get("predicted", "")))]
 
 
 def write_report(output: dict, output_dir: str) -> str:
@@ -121,9 +126,10 @@ def run_smoke_test() -> bool:
             {"pr": "1", "predicted": "smag_p:0.40"},
             {"pr": "2", "predicted": VOID_PREDICTION},
             {"pr": "3", "predicted": "dependabot changelog"},
+            {"pr": "4", "predicted": "Outcome: landed\nsmag_p:0.40"},
         ]
         voids = find_void_rows(rows)
-        assert [row["pr"] for row in voids] == ["2", "3"]
+        assert [row["pr"] for row in voids] == ["2", "3", "4"]
         print("✓ Smoke test PASSED")
         return True
     except Exception as exc:
