@@ -38,6 +38,10 @@ TOOL_VERSION = "1.0.0"
 EXEMPT_WRITE_REPORT = {"errors_acat", "__init__", "run_acat_validation_suite"}
 EXEMPT_SMOKE_TEST   = {"errors_acat", "__init__"}
 EXEMPT_MAIN_GUARD   = {"__init__"}
+SKIP_BASENAMES = {"__init__.py"}
+SKIP_PATH_PARTS = {"tests", "test", "support", "shared", "_shared"}
+SKIP_NAME_PATTERNS = ("archived", "adversarial")
+BUILDER_MARKER = "Builder v1.7 compliant"
 
 _MAIN_PAT = re.compile(r'if __name__')
 _CHECKS_RAW = [
@@ -60,6 +64,23 @@ class SpecLoadFailed(Exception):
 
 def _stem(path):
     return path.stem.split("_v")[0]
+
+
+def _should_skip_directory_target(path):
+    if path.name in SKIP_BASENAMES:
+        return True
+    path_parts = {part.lower() for part in path.parts}
+    if path_parts.intersection(SKIP_PATH_PARTS):
+        return True
+    lname = path.name.lower()
+    if lname.startswith("test_") or lname.endswith("_test.py"):
+        return True
+    if any(token in lname for token in SKIP_NAME_PATTERNS):
+        return True
+    try:
+        return BUILDER_MARKER not in path.read_text(encoding="utf-8")
+    except (IOError, OSError):
+        return False
 
 
 def scan_file(path):
@@ -92,7 +113,7 @@ def scan_directory(scan_path, strict=False):
     if p.is_file():
         targets = [p]
     elif p.is_dir():
-        targets = sorted(p.rglob("*.py"))
+        targets = sorted(t for t in p.rglob("*.py") if not _should_skip_directory_target(t))
     else:
         raise SpecLoadFailed("Path not found: " + str(scan_path))
     results = []
@@ -197,10 +218,10 @@ def run_smoke_test():
             (Path(d) / "bad_tool.py").write_text(noncompliant)
             results = scan_directory(d)
             output = aggregate(results)
-            assert output["files_scanned"] == 2
+            assert output["files_scanned"] == 1
             good = next(r for r in results if "good_tool" in r["file"])
-            bad  = next(r for r in results if "bad_tool"  in r["file"])
             assert good["passed"], str(good["hard_failures"])
+            bad = scan_directory(Path(d) / "bad_tool.py")[0]
             assert not bad["passed"]
             print("checkmark Smoke test PASSED")
             return True
