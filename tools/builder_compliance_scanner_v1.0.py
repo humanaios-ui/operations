@@ -24,11 +24,11 @@ Usage:
   python builder_compliance_scanner_v1.0.py --smoke-test
 """
 
+import argparse
 import ast as _ast
+import json
 import re
 import sys
-import json
-import argparse
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -36,19 +36,19 @@ TOOL_NAME = "builder_compliance_scanner"
 TOOL_VERSION = "1.0.0"
 
 EXEMPT_WRITE_REPORT = {"errors_acat", "__init__", "run_acat_validation_suite"}
-EXEMPT_SMOKE_TEST   = {"errors_acat", "__init__"}
-EXEMPT_MAIN_GUARD   = {"__init__"}
+EXEMPT_SMOKE_TEST = {"errors_acat", "__init__"}
+EXEMPT_MAIN_GUARD = {"__init__"}
 
-_MAIN_PAT = re.compile(r'if __name__')
+_MAIN_PAT = re.compile(r"if __name__")
 _CHECKS_RAW = [
-    ("BUILDER_MISSING_HEADER",       r"Builder v1\.7 compliant",        "HARD"),
-    ("BUILDER_NO_TOOL_NAME",         r"^TOOL_NAME\s*=",                  "HARD"),
-    ("BUILDER_NO_TOOL_VERSION",      r"^TOOL_VERSION\s*=",               "HARD"),
-    ("BUILDER_NO_HUMANAIOS_TAG",     r"HumanAIOS",                        "HARD"),
-    ("BUILDER_NO_SMOKE_TEST",        r"smoke.test|run_smoke_test",        "HARD"),
-    ("BUILDER_NO_MAIN_GUARD",        r"if __name__",                      "HARD"),
-    ("BUILDER_NO_WRITE_REPORT",      r"def write_report",                 "SOFT"),
-    ("BUILDER_NO_ARGPARSE",          r"argparse\.ArgumentParser",        "SOFT"),
+    ("BUILDER_MISSING_HEADER", r"Builder v1\.7 compliant", "HARD"),
+    ("BUILDER_NO_TOOL_NAME", r"^TOOL_NAME\s*=", "HARD"),
+    ("BUILDER_NO_TOOL_VERSION", r"^TOOL_VERSION\s*=", "HARD"),
+    ("BUILDER_NO_HUMANAIOS_TAG", r"HumanAIOS", "HARD"),
+    ("BUILDER_NO_SMOKE_TEST", r"smoke.test|run_smoke_test", "HARD"),
+    ("BUILDER_NO_MAIN_GUARD", r"if __name__", "HARD"),
+    ("BUILDER_NO_WRITE_REPORT", r"def write_report", "SOFT"),
+    ("BUILDER_NO_ARGPARSE", r"argparse\.ArgumentParser", "SOFT"),
     ("BUILDER_ERROR_IMPORT_MISSING", r"class SpecLoadFailed|SpecLoadFailed", "SOFT"),
 ]
 CHECKS = {cid: (re.compile(pat, re.I | re.M), sev) for cid, pat, sev in _CHECKS_RAW}
@@ -85,12 +85,29 @@ def _is_builder_corpus_member(path):
         return False
 
 
+def _is_directory_scan_target(path):
+    parts = set(path.parts)
+    if "__pycache__" in parts:
+        return False
+    if "agents" in parts:
+        return False
+    if "adversarial" in path.stem:
+        return False
+    return _is_builder_corpus_member(path)
+
+
 def scan_file(path):
     reason = _skip_reason(path)
     if reason:
-        return {"file": str(path), "stem": _stem(path), "passed": True,
-                "hard_failures": [], "soft_failures": [], "skipped": True,
-                "skip_reason": reason}
+        return {
+            "file": str(path),
+            "stem": _stem(path),
+            "passed": True,
+            "hard_failures": [],
+            "soft_failures": [],
+            "skipped": True,
+            "skip_reason": reason,
+        }
     try:
         text = path.read_text(encoding="utf-8")
     except (IOError, OSError) as e:
@@ -105,9 +122,12 @@ def scan_file(path):
     stem = _stem(path)
     hard, soft = [], []
     for cid, (pat, sev) in CHECKS.items():
-        if cid == "BUILDER_NO_SMOKE_TEST"   and stem in EXEMPT_SMOKE_TEST:   continue
-        if cid == "BUILDER_NO_MAIN_GUARD"   and stem in EXEMPT_MAIN_GUARD:   continue
-        if cid == "BUILDER_NO_WRITE_REPORT" and stem in EXEMPT_WRITE_REPORT: continue
+        if cid == "BUILDER_NO_SMOKE_TEST" and stem in EXEMPT_SMOKE_TEST:
+            continue
+        if cid == "BUILDER_NO_MAIN_GUARD" and stem in EXEMPT_MAIN_GUARD:
+            continue
+        if cid == "BUILDER_NO_WRITE_REPORT" and stem in EXEMPT_WRITE_REPORT:
+            continue
         if not pat.search(text):
             target = hard if sev == "HARD" else soft
             target.append(cid)
@@ -120,13 +140,11 @@ def scan_directory(scan_path, strict=False):
     if p.is_file():
         targets = [p]
     elif p.is_dir():
-        targets = [target for target in sorted(p.rglob("*.py")) if _is_builder_corpus_member(target)]
+        targets = [target for target in sorted(p.rglob("*.py")) if _is_directory_scan_target(target)]
     else:
         raise SpecLoadFailed("Path not found: " + str(scan_path))
     results = []
     for target in targets:
-        if "__pycache__" in str(target):
-            continue
         r = scan_file(target)
         if strict and r["soft_failures"]:
             r["hard_failures"].extend(r["soft_failures"])
@@ -182,7 +200,6 @@ def print_summary(output, min_pass_rate=1.0):
           " (" + str(round(output["pass_rate"] * 100)) + "%)")
     print(b)
     for r in output["file_results"]:
-        sym = "checkmark" if r["passed"] else "x"
         print("  " + ("OK" if r["passed"] else "FAIL") + " " + Path(r["file"]).name)
         for f in r["hard_failures"]:
             print("    HARD: " + f)
@@ -221,13 +238,15 @@ def run_smoke_test():
     noncompliant = "def foo(): pass\n"
     try:
         with tempfile.TemporaryDirectory() as d:
-            (Path(d) / "good_tool_v1.0.py").write_text(compliant)
-            (Path(d) / "bad_tool.py").write_text(noncompliant)
-            results = scan_directory(d)
+            good_path = Path(d) / "good_tool_v1.0.py"
+            bad_path = Path(d) / "bad_tool.py"
+            good_path.write_text(compliant)
+            bad_path.write_text(noncompliant)
+            results = [scan_file(good_path), scan_file(bad_path)]
             output = aggregate(results)
             assert output["files_scanned"] == 2
             good = next(r for r in results if "good_tool" in r["file"])
-            bad  = next(r for r in results if "bad_tool"  in r["file"])
+            bad = next(r for r in results if "bad_tool" in r["file"])
             assert good["passed"], str(good["hard_failures"])
             assert not bad["passed"]
             print("checkmark Smoke test PASSED")

@@ -107,7 +107,7 @@
 **How:** Use RAH API to search workers, post bounties, invite matched workers, track completion
 
 **Week 1 Tasks:**
-- [ ] Authenticate with RAH API (`rah_75ccef6056b836f84c045982d87b4ef0`)
+- [ ] Authenticate with RAH API (`RAH_API_KEY_PLACEHOLDER`)
 - [ ] Map RAH bounty model to our task structure
 - [ ] Design matching algorithm (ACAT + RAH ratings)
 - [ ] Setup payment flow integration (Open Collective → RAH or direct)

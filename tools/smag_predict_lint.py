@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 smag_predict_lint.py
-Builder v1.7 compliant
-HumanAIOS
+Builder v1.7 compliant - smag_predict_lint
+HumanAIOS - S-090926-smag-predict-lint
 
 Refuse a PR body that carries no pinned `smag_p:` probability and audit ledger
 rows for prediction-calibration VOIDs.

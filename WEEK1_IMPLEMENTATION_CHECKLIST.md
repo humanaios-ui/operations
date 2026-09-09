@@ -62,7 +62,7 @@
 ### RentAHuman API Auth
 - [ ] Verify RAH API key works
   ```bash
-  curl -H "Authorization: Bearer rah_75ccef6056b836f84c045982d87b4ef0" \
+  curl -H "Authorization: Bearer RAH_API_KEY_PLACEHOLDER" \
     https://rentahuman.ai/api/v1/account/profile
   ```
 - [ ] Document API endpoints we'll use (search_humans, create_bounty, invite_workers, get_submissions)
