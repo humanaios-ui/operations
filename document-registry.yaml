@@ -427,6 +427,13 @@ documents:
     canonical_path: "RULES_COLLECTION_STATUS.md"
     canonical: true
     status: draft
+  - doc_id: HAIOS-OPS-011
+    title: "Document lifecycle — Filing · Processing · Consumption · Production"
+    area: OPS
+    canonical_repo: "operations"
+    canonical_path: "docs/DOC_LIFECYCLE.md"
+    canonical: true
+    status: draft
   - doc_id: HAIOS-PROC-005
     title: "A4 Intake Pipeline Specification"
     area: PROC
