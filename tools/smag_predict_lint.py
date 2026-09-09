@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Lint SMAG ledger predictions for pinned `smag_p:` probabilities."""
+"""
+Lint SMAG ledger predictions for pinned `smag_p:` probabilities.
+Builder v1.7 compliant - smag_predict_lint
+HumanAIOS - S-090926-smag-predict-lint
+"""
 from __future__ import annotations
 
 import argparse
@@ -7,6 +11,9 @@ import json
 import re
 import sys
 from pathlib import Path
+
+TOOL_NAME = "smag_predict_lint"
+TOOL_VERSION = "1.0.0"
 
 SMAG_P = re.compile(r"(?im)^\s*smag_p\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*$")
 DEFAULT_LEDGER = "audits/smag_pilot_ledger.jsonl"
