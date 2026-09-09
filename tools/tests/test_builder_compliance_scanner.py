@@ -60,6 +60,14 @@ if __name__ == "__main__": run_smoke_test()
         assert output["pass_rate"] == 1.0
 
 
+def test_this_module_passes_explicit_file_scan():
+    results = scanner.scan_directory(Path(__file__))
+
+    assert len(results) == 1
+    assert Path(results[0]["file"]).name == Path(__file__).name
+    assert results[0]["passed"], results[0]["hard_failures"]
+
+
 def test_single_file_scan_skips_test_modules():
     with tempfile.TemporaryDirectory() as tmp:
         path = _write(Path(tmp) / "tests" / "test_sample.py", "def test_thing():\n    assert True\n")
