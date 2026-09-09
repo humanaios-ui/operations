@@ -8,6 +8,9 @@ import importlib.util
 import unittest
 from pathlib import Path
 
+TOOL_NAME = "test_builder_compliance_scanner"
+TOOL_VERSION = "1.0.0"
+
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "builder_compliance_scanner_v1.0.py"
 spec = importlib.util.spec_from_file_location("builder_compliance_scanner_v1_0", MODULE_PATH)
@@ -80,6 +83,13 @@ class TestBuilderComplianceScanner(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(Path(results[0]["file"]).name, "test_sample.py")
         self.assertFalse(results[0]["passed"])
+
+    def test_this_module_passes_explicit_file_scan(self):
+        results = mod.scan_directory(Path(__file__))
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(Path(results[0]["file"]).name, Path(__file__).name)
+        self.assertTrue(results[0]["passed"], results[0]["hard_failures"])
 
 
 if __name__ == "__main__":
