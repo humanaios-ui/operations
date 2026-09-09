@@ -1,5 +1,5 @@
 ---
-doc_id: HAIOS-OPS-DOCLIFE
+doc_id: HAIOS-OPS-011
 title: Document lifecycle — Filing · Processing · Consumption · Production
 revision: 0
 status: draft
