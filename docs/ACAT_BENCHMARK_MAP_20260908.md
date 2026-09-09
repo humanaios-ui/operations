@@ -1,5 +1,4 @@
 ---
-doc_id: HAIOS-ACAT-BMAP
 title: ACAT dimensions ↔ market-standard benchmarks — navigator mapping
 revision: 0
 status: draft
