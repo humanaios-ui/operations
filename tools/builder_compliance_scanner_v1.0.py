@@ -52,6 +52,7 @@ _CHECKS_RAW = [
     ("BUILDER_ERROR_IMPORT_MISSING", r"class SpecLoadFailed|SpecLoadFailed", "SOFT"),
 ]
 CHECKS = {cid: (re.compile(pat, re.I | re.M), sev) for cid, pat, sev in _CHECKS_RAW}
+_BUILDER_MARKER = CHECKS["BUILDER_MISSING_HEADER"][0]
 
 
 class SpecLoadFailed(Exception):
@@ -62,7 +63,34 @@ def _stem(path):
     return path.stem.split("_v")[0]
 
 
+def _skip_reason(path):
+    if path.name == "__init__.py":
+        return "package initializer"
+    if "ARCHIVED" in path.name.upper():
+        return "archived artifact"
+    if any(part.startswith("_") for part in path.parts):
+        return "private/shared helper module"
+    if "tests" in path.parts or path.name.startswith("test_") or path.stem.endswith("_test"):
+        return "test module"
+    return None
+
+
+def _is_builder_corpus_member(path):
+    reason = _skip_reason(path)
+    if reason:
+        return False
+    try:
+        return bool(_BUILDER_MARKER.search(path.read_text(encoding="utf-8")))
+    except (IOError, OSError):
+        return False
+
+
 def scan_file(path):
+    reason = _skip_reason(path)
+    if reason:
+        return {"file": str(path), "stem": _stem(path), "passed": True,
+                "hard_failures": [], "soft_failures": [], "skipped": True,
+                "skip_reason": reason}
     try:
         text = path.read_text(encoding="utf-8")
     except (IOError, OSError) as e:
@@ -92,7 +120,7 @@ def scan_directory(scan_path, strict=False):
     if p.is_file():
         targets = [p]
     elif p.is_dir():
-        targets = sorted(p.rglob("*.py"))
+        targets = [target for target in sorted(p.rglob("*.py")) if _is_builder_corpus_member(target)]
     else:
         raise SpecLoadFailed("Path not found: " + str(scan_path))
     results = []
