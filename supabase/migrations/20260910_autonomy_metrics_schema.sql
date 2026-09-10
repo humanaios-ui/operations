@@ -32,13 +32,7 @@ CREATE TABLE IF NOT EXISTS autonomy.events (
 
   -- Audit & governance
   created_by TEXT,  -- AI identity or system user
-  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-
-  INDEX idx_events_timestamp ON autonomy.events(timestamp DESC),
-  INDEX idx_events_practice ON autonomy.events(practice_id),
-  INDEX idx_events_type ON autonomy.events(event_type),
-  INDEX idx_events_dimension ON autonomy.events(dimension),
-  INDEX idx_events_parent ON autonomy.events(parent_event_id)
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ────────────────────────────────────────────────────────────────
@@ -78,12 +72,7 @@ CREATE TABLE IF NOT EXISTS autonomy.decisions (
   related_escalations BIGINT[] DEFAULT ARRAY[]::BIGINT[],  -- Related escalation IDs
 
   created_by TEXT,
-  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-
-  INDEX idx_decisions_timestamp ON autonomy.decisions(timestamp DESC),
-  INDEX idx_decisions_status ON autonomy.decisions(status),
-  INDEX idx_decisions_practice ON autonomy.decisions(practice_id),
-  INDEX idx_decisions_executed ON autonomy.decisions(executed)
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ────────────────────────────────────────────────────────────────
@@ -123,13 +112,7 @@ CREATE TABLE IF NOT EXISTS autonomy.escalations (
   sla_met BOOLEAN,
 
   created_by TEXT,
-  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-
-  INDEX idx_escalations_timestamp ON autonomy.escalations(timestamp DESC),
-  INDEX idx_escalations_status ON autonomy.escalations(status),
-  INDEX idx_escalations_severity ON autonomy.escalations(severity),
-  INDEX idx_escalations_practice ON autonomy.escalations(practice_id),
-  INDEX idx_escalations_sla ON autonomy.escalations(sla_met)
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ────────────────────────────────────────────────────────────────
@@ -175,10 +158,7 @@ CREATE TABLE IF NOT EXISTS autonomy.metrics (
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
-  UNIQUE(metric_date, metric_hour, practice_id, dimension),
-  INDEX idx_metrics_date ON autonomy.metrics(metric_date DESC),
-  INDEX idx_metrics_practice ON autonomy.metrics(practice_id),
-  INDEX idx_metrics_dimension ON autonomy.metrics(dimension)
+  UNIQUE(metric_date, metric_hour, practice_id, dimension)
 );
 
 -- ────────────────────────────────────────────────────────────────
@@ -198,11 +178,44 @@ CREATE TABLE IF NOT EXISTS autonomy.decision_audit (
   new_status TEXT,
 
   note TEXT,  -- Why the change
-  metadata JSONB DEFAULT '{}'::jsonb,
-
-  INDEX idx_audit_decision ON autonomy.decision_audit(decision_id),
-  INDEX idx_audit_timestamp ON autonomy.decision_audit(timestamp DESC)
+  metadata JSONB DEFAULT '{}'::jsonb
 );
+
+-- ────────────────────────────────────────────────────────────────
+-- Indexes (for performance)
+-- ────────────────────────────────────────────────────────────────
+
+-- autonomy.events indexes
+CREATE INDEX IF NOT EXISTS idx_events_timestamp ON autonomy.events(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_events_practice ON autonomy.events(practice_id);
+CREATE INDEX IF NOT EXISTS idx_events_type ON autonomy.events(event_type);
+CREATE INDEX IF NOT EXISTS idx_events_dimension ON autonomy.events(dimension);
+CREATE INDEX IF NOT EXISTS idx_events_parent ON autonomy.events(parent_event_id);
+CREATE INDEX IF NOT EXISTS idx_events_event_id ON autonomy.events(event_id);
+
+-- autonomy.decisions indexes
+CREATE INDEX IF NOT EXISTS idx_decisions_timestamp ON autonomy.decisions(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_decisions_status ON autonomy.decisions(status);
+CREATE INDEX IF NOT EXISTS idx_decisions_practice ON autonomy.decisions(practice_id);
+CREATE INDEX IF NOT EXISTS idx_decisions_executed ON autonomy.decisions(executed);
+CREATE INDEX IF NOT EXISTS idx_decisions_decision_id ON autonomy.decisions(decision_id);
+
+-- autonomy.escalations indexes
+CREATE INDEX IF NOT EXISTS idx_escalations_timestamp ON autonomy.escalations(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_escalations_status ON autonomy.escalations(status);
+CREATE INDEX IF NOT EXISTS idx_escalations_severity ON autonomy.escalations(severity);
+CREATE INDEX IF NOT EXISTS idx_escalations_practice ON autonomy.escalations(practice_id);
+CREATE INDEX IF NOT EXISTS idx_escalations_sla ON autonomy.escalations(sla_met);
+CREATE INDEX IF NOT EXISTS idx_escalations_escalation_id ON autonomy.escalations(escalation_id);
+
+-- autonomy.metrics indexes
+CREATE INDEX IF NOT EXISTS idx_metrics_date ON autonomy.metrics(metric_date DESC);
+CREATE INDEX IF NOT EXISTS idx_metrics_practice ON autonomy.metrics(practice_id);
+CREATE INDEX IF NOT EXISTS idx_metrics_dimension ON autonomy.metrics(dimension);
+
+-- autonomy.decision_audit indexes
+CREATE INDEX IF NOT EXISTS idx_audit_decision ON autonomy.decision_audit(decision_id);
+CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON autonomy.decision_audit(timestamp DESC);
 
 -- ────────────────────────────────────────────────────────────────
 -- Permissions (RLS enabled for safety)
@@ -231,11 +244,6 @@ CREATE POLICY read_own_practice_escalations ON autonomy.escalations
 CREATE POLICY insert_events ON autonomy.events
   FOR INSERT
   WITH CHECK (auth.uid()::text IS NOT NULL);
-
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_events_event_id ON autonomy.events(event_id);
-CREATE INDEX IF NOT EXISTS idx_decisions_decision_id ON autonomy.decisions(decision_id);
-CREATE INDEX IF NOT EXISTS idx_escalations_escalation_id ON autonomy.escalations(escalation_id);
 
 -- ────────────────────────────────────────────────────────────────
 -- Views for common queries
