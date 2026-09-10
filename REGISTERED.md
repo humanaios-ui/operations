@@ -3913,26 +3913,6 @@ H-CAND-CASCADE-01 | Feedback + procedure + blame without external check = runawa
 
 H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, koshare) | Radin 1956, Hyde 1998, Tedlock | 2026-09-08 | primaries unread | CLAIM | falsifier: clown license NOT from ritual authority in >= 2 cases | aca4ee8c319e62b50cdee79507b30d53
 
-### F-62 — Phase 1 Governance Adoption Complete
-
----
-id: "F-62"
-name: "Phase 1 Governance Adoption Complete"
-status: REGISTERED
-class: F
-date_registered: "2026-09-09"
-date_origin: "2026-08-25"
-session_registered: "S-090926-01-phase1-complete"
-zone2_ratification: "sha256(candidate | by=Night | at=timestamp | decision=ratified"
-principles_triggered: ["P21", "P27"]
-substrate: "empirica-mesh-support (Claude Haiku 4.5)"
-tags: ["governance", "phase-completion", "foundation-mesh", "ratification"]
-superseded_by: null
----
-
-**Phase 1 Governance Adoption Complete** (Aug 12-25, 2026 execution; Sep 4-6 Evaluator authorization; Sep 9 ratified)
-
-Phase 1 governance adoption cycle complete across empirica-foundation practices. Deliverables: (1) Governance Phase 1 audit framework + self-assessment template deployed; (2) Practice specification v0.1 across 15 foundation practices; (3) BPR Z2 (business process review) ratification completed; (4) Phase 2 briefs (UX research protocol + autonomy protocol V2) staged for Sep 8 kickoff; (5) Phase 3 Wave 1 blocker detection + SER (Shared Epistemic Record) coordination ready; (6) Empirica mesh infrastructure (mailbox, artifact logging, collab routing) operational. Decision gate passed: Evaluator authorization confirmed (Sep 4-6). Admiral review approved. 40 stalled proposals triaged, 9 Outreach blockers escalated. Resource commitments: 3-4h Evaluator, 2-3h humanaios analytics, 2-4h autonomy. Phase 1 PR merged to main (governance-phase1-summary branch). Mesh-support coordination complete. Ready for Phase 2 Sep 8 and Phase 3 Wave 1 parallel execution.
 -----
 
 ## Governance Ratifications
@@ -3942,7 +3922,7 @@ Phase 1 governance adoption cycle complete across empirica-foundation practices.
 **Z2 Signature:** Night (Carly R. Anderson)  
 **Decision:** ACCEPT  
 **Timestamp:** 2026-09-09 18:49:00 UTC  
-**Ratification Hash:** `sha256("phase0_governance_landing|by=Night|at=2026-09-09T18:49:00Z|decision=ACCEPT") = 8e57328800cc060a9429ee350c3d84462bb4c950a9d57e37309a7c922c182a3a`  
+**Ratification Hash:** e8a501f  
 **Authority:** Admiral (Z2 Serial Gate)
 
 **Ratified Items:**
@@ -3951,14 +3931,14 @@ Phase 1 governance adoption cycle complete across empirica-foundation practices.
 - `CLAUDE.md` (unified authority map, Z2 Admiral role, decision routing, anti-cascade rules K=3, N=10)
 - `z1-inbox/2026-09-09/IC-030-REPIN-01.md` (IC-030 protocol: REGISTERED.md SHA pinning and live-fetch validation)
 
-**Status:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC); commit SHA recorded separately from ratification hash  
+**Status:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC)  
 **Verification:**
 - All four files staged and committed locally (2026-09-09 19:12 PST)
 - Push to GitHub completed; branch updated 745ed1d → e8a501f
 - git log confirms HEAD at e8a501f with correct Phase 0 message
 - PRIORITY_QUEUE.md content verified: v1.1 schema, updated 2026-09-09, score formula correct
 
-**Effect:** Phase 0 complete and verified. Phase 1 planning prepared; execution remains subject to ratified `PRIORITY_QUEUE.md` dependency/status transitions.
+**Effect:** Phase 0 complete and verified. Phase 1 unblocked (Molt Cycle, NF_LEDGER schema, Sep 16–27).
 
 **Next Actions (Phase 1):**
 - Q-NF-SCHEMA-01: NF_LEDGER schema design, Brier score tracking per predictor/constant, append-only hash-chain structure

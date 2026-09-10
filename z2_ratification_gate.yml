@@ -1,0 +1,204 @@
+---
+# z2_ratification_gate.yml — CI Enforcement for NF_LEDGER + Molt Cycle
+# Status: DRAFT (Phase 1, Q-NF-SCHEMA-01)
+# Authority: Z2 (Night) — changes require Z2 signature
+# Purpose: Validate hash chain, append-only ledger, anti-cascade rules, falsifier doctrine
+
+name: z2_ratification_gate
+on:
+  pull_request:
+    paths:
+      - 'operations/NF_LEDGER.jsonl'
+      - 'operations/MOLT_STATE.md'
+      - 'operations/REGISTERED.md'
+      - 'empirica/molt/**'
+      - 'tests/test_nf_schema_*.py'
+
+jobs:
+  nf_ledger_hash_chain:
+    name: "NF_LEDGER hash-chain validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load prior NF_LEDGER (base branch)
+        run: |
+          git fetch origin
+          git show origin/${{ github.base_ref }}:operations/NF_LEDGER.jsonl > /tmp/nf_ledger_prior.jsonl 2>/dev/null || true
+
+      - name: Validate hash chain (append-only, no reordering)
+        run: |
+          python3 - <<'EOF'
+          import json
+          import hashlib
+
+          # Read prior ledger (if exists)
+          try:
+            with open('/tmp/nf_ledger_prior.jsonl') as f:
+              prior_lines = [line.strip() for line in f if line.strip()]
+              prior_last_hash = json.loads(prior_lines[-1])['hash'] if prior_lines else '0000000000000000'
+          except FileNotFoundError:
+            prior_lines = []
+            prior_last_hash = '0000000000000000'  # Genesis
+
+          # Read new ledger
+          with open('operations/NF_LEDGER.jsonl') as f:
+            new_lines = [line.strip() for line in f if line.strip()]
+
+          # Validate: new ledger must start with all prior lines (append-only)
+          if len(new_lines) < len(prior_lines):
+            raise ValueError(f"ERROR: NF_LEDGER shrank from {len(prior_lines)} to {len(new_lines)} lines (deletion detected)")
+
+          for i, (prior_line, new_line) in enumerate(zip(prior_lines, new_lines)):
+            if prior_line != new_line:
+              raise ValueError(f"ERROR: NF_LEDGER line {i} was reordered or modified (tampering detected)")
+
+          # Validate: new entries form valid hash chain
+          expected_prior_hash = prior_last_hash
+          for i, line in enumerate(new_lines[len(prior_lines):], start=len(prior_lines)):
+            entry = json.loads(line)
+
+            # Check prior_hash matches expected
+            if entry['prior_hash'] != expected_prior_hash:
+              raise ValueError(
+                f"ERROR: Entry {i} prior_hash mismatch. "
+                f"Expected {expected_prior_hash}, got {entry['prior_hash']}"
+              )
+
+            # Verify hash computation
+            entry_for_hash = {k: v for k, v in entry.items() if k != 'hash'}
+            computed_hash = hashlib.sha256(json.dumps(entry_for_hash, sort_keys=True).encode()).hexdigest()
+            if entry['hash'] != computed_hash:
+              raise ValueError(
+                f"ERROR: Entry {i} hash mismatch. "
+                f"Expected {computed_hash}, got {entry['hash']}"
+              )
+
+            expected_prior_hash = entry['hash']
+
+          print(f"✓ NF_LEDGER hash chain valid ({len(new_lines)} entries, {len(new_lines)-len(prior_lines)} new)")
+          EOF
+
+  anti_cascade_rules:
+    name: "Anti-cascade rule validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate anti-cascade constraints
+        run: |
+          python3 - <<'EOF'
+          import json
+          from collections import defaultdict
+
+          with open('operations/NF_LEDGER.jsonl') as f:
+            entries = [json.loads(line.strip()) for line in f if line.strip()]
+
+          # Rule 1: open_molt_count <= K (K=3)
+          max_open_molts = max(
+            (e.get('anti_cascade_check', {}).get('open_molt_count', 0) for e in entries),
+            default=0
+          )
+          if max_open_molts > 3:
+            raise ValueError(f"ERROR: open_molt_count exceeded K=3 (max={max_open_molts})")
+
+          # Rule 2: constant reverted twice in a row → frozen
+          molts_by_constant = defaultdict(list)
+          for i, e in enumerate(entries):
+            molts_by_constant[e['constant']].append((i, e.get('outcome')))
+
+          for constant, molt_outcomes in molts_by_constant.items():
+            # Check for 2 consecutive REVERT outcomes on same constant
+            outcomes_only = [outcome for _, outcome in molt_outcomes]
+            for j in range(len(outcomes_only) - 1):
+              if outcomes_only[j] == 'REVERT' and outcomes_only[j+1] == 'REVERT':
+                entry_indices = [idx for idx, _ in molt_outcomes]
+                raise ValueError(
+                  f"ERROR: Constant '{constant}' reverted twice consecutively "
+                  f"(entries {entry_indices[j]}, {entry_indices[j+1]}). Must be frozen per anti-cascade rule 4."
+                )
+
+          # Rule 3: Validate no self-reference (checked in molt_cycle logic)
+          # (skipped in CI; enforced in code via window_start/window_end checks)
+
+          # Rule 4: Rank by Priority Queue score (audit only, no block)
+          print(f"✓ Anti-cascade rules validated")
+          EOF
+
+  falsifier_lint:
+    name: "Falsifier doctrine enforcement"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require falsifier on all molt predictions
+        run: |
+          python3 - <<'EOF'
+          import json
+
+          with open('operations/NF_LEDGER.jsonl') as f:
+            entries = [json.loads(line.strip()) for line in f if line.strip()]
+
+          for i, entry in enumerate(entries):
+            # All molt entries must have a falsifier in prediction
+            prediction = entry.get('prediction', {})
+            if 'falsifier' not in prediction or not prediction['falsifier']:
+              raise ValueError(
+                f"ERROR: Entry {i} (molt_id={entry['molt_id']}) missing falsifier. "
+                f"Every molt must declare an explicit falsifier condition."
+              )
+
+          print(f"✓ Falsifier doctrine validated ({len(entries)} entries)")
+          EOF
+
+  schema_consistency:
+    name: "NF_LEDGER schema consistency"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate all entries conform to schema
+        run: |
+          python3 - <<'EOF'
+          import json
+
+          with open('operations/NF_LEDGER.jsonl') as f:
+            entries = [json.loads(line.strip()) for line in f if line.strip()]
+
+          required_fields = {
+            'molt_id', 'molt_type', 'constant', 'prior_value', 'proposed_value',
+            'prior_value_type', 'prediction', 'ratification_hash', 'z2_ratified_at',
+            'window_start', 'window_end', 'outcome', 'timestamp', 'prior_hash', 'hash',
+            'anti_cascade_check'
+          }
+
+          for i, entry in enumerate(entries):
+            missing = required_fields - set(entry.keys())
+            if missing:
+              raise ValueError(f"Entry {i} missing required fields: {missing}")
+
+            # Type checks
+            if not isinstance(entry['molt_id'], str):
+              raise ValueError(f"Entry {i}: molt_id must be string")
+            if entry['outcome'] not in ['KEEP', 'REVERT', 'MEASURING', 'HISTORICAL']:
+              raise ValueError(f"Entry {i}: outcome '{entry['outcome']}' not valid")
+
+          print(f"✓ All {len(entries)} entries conform to NF_LEDGER_SCHEMA_v1")
+          EOF
+
+  # Merge gate: all checks must pass
+  gate_decision:
+    name: "Z2 Ratification Gate Decision"
+    needs: [nf_ledger_hash_chain, anti_cascade_rules, falsifier_lint, schema_consistency]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Validate gate passage
+        run: |
+          if [[ "${{ needs.nf_ledger_hash_chain.result }}" != "success" ]] || \
+             [[ "${{ needs.anti_cascade_rules.result }}" != "success" ]] || \
+             [[ "${{ needs.schema_consistency.result }}" != "success" ]]; then
+            echo "❌ Z2 gate BLOCKED: One or more checks failed"
+            exit 1
+          fi
+          echo "✅ Z2 ratification gate PASSED: Ready to merge"

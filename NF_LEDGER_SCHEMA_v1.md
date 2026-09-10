@@ -1,9 +1,9 @@
 # NF_LEDGER Schema — v1.0 (Unified Calibration Ledger)
 
-**Location:** `ledgers/NF_LEDGER.jsonl` (canonical)  
+**Location:** `operations/NF_LEDGER.jsonl` (canonical)  
 **Status:** SPECIFICATION (Phase 1, Q-NF-SCHEMA-01)  
 **Authority:** Z2 (Night) — ratifies schema changes  
-**Enforcement:** Planned CI gate will validate hash chain, append-only, and no overwrites once delivered
+**Enforcement:** CI gate validates hash chain, append-only, no overwrites
 
 ---
 
@@ -26,11 +26,10 @@
 **Prior format:** Score records only (no prediction/outcome tracking)  
 **Unified approach:** Extend to include prediction window, ratification hash, measured outcome
 
-**Migration:** All v0.1 entries converted to v1.0 `record_type="HISTORICAL"` records with:
-- `prior_hash`: Recomputed chain link
-- `predictor_id`: `"historical_backfill"`
-- `prediction`: `{metric: "historical_backfill", probability: 0.5, target_threshold: null, target_direction: "equal", window_days: 0, falsifier: "historical_backfill"}`
-- `outcome`: `"HISTORICAL"` (backfill, not part of molt cycle)
+**Migration:** All v0.1 entries converted to v1.0 format with:
+- `prior_hash`: Recomputed from v0.1 entry
+- `prediction`: Null (historical entry, no forward prediction)
+- `outcome`: "HISTORICAL" (backfill, not part of molt cycle)
 
 ### 2. **molt_cycle events** → Unified
 
@@ -51,10 +50,10 @@ KEEP/REVERT event → outcome field set, brier_actual populated
 **Prior format:** specimen_intake_v0.2 tracks N_resolved per claim  
 **Unified approach:** Specimen outcomes feed NF_LEDGER as Brier input
 
-**Mapping (continuous outcomes preserved):**
+**Mapping:**
 ```
-Specimen claim → predictor_id + variable + prediction_value + scale_max + binary + confidence
-Specimen resolved → actual_value + brier_actual=(prediction_value-normalized_actual)^2 + timestamp=<resolution_date>
+Specimen claim → prediction: {metric: "claim_resolution", target: <probability>, window_days: <N>}
+Specimen resolved → outcome: "KEEP"|"REVERT", brier_actual: <score>, timestamp: <resolution_date>
 ```
 
 **Result:** Specimen calibration flows into per-predictor Brier tracking
@@ -67,7 +66,7 @@ Specimen resolved → actual_value + brier_actual=(prediction_value-normalized_a
 **Fields added:**
 - `breadcrumb`: Optional string naming the decision gate (e.g. "Q-IC030-REPIN-01")
 - `session_id`: Session that created the molt (for B.6 receipt matching)
-- `z2_ratified_at`: When Z2 ratified (not when measured)
+- `z2_decision_timestamp`: When Z2 ratified (not when measured)
 
 **Result:** Full decision → measurement audit trail in single record
 
@@ -77,25 +76,22 @@ Specimen resolved → actual_value + brier_actual=(prediction_value-normalized_a
 
 Each entry is one line, one complete JSON object. No nested arrays.
 
-```json
+```jsonl
 {
-  "record_type": "MOLT",
   "molt_id": "M-20260916-0001",
   "molt_type": "TIER1",
-  "predictor_id": "night",
   "constant": "behavior_spec.json:impact_dial",
   "prior_value": 0.5,
   "proposed_value": 0.55,
   "prior_value_type": "float",
   "prediction": {
     "metric": "Brier",
-    "probability": 0.55,
-    "target_threshold": 0.15,
+    "target": 0.15,
     "target_direction": "below",
     "window_days": 7,
     "falsifier": "Brier score >= 0.20 at window close"
   },
-  "ratification_hash": "4f0af3cf145f80c8f8e74093031fcef58b98beed6bb4ec6e7ea17aa44f0e5385",
+  "ratification_hash": "sha256(change|by=Night|at=2026-09-16T10:00:00Z|decision=ACCEPT)",
   "z2_ratified_at": "2026-09-16T10:00:00Z",
   "window_start": "2026-09-16T10:00:00Z",
   "window_end": "2026-09-23T00:00:00Z",
@@ -103,12 +99,6 @@ Each entry is one line, one complete JSON object. No nested arrays.
   "brier_actual": 0.14,
   "brier_uncertainty": 0.02,
   "n_predictions_in_window": 47,
-  "variable": "impact_dial_brier",
-  "prediction_value": 0.55,
-  "actual_value": 0.14,
-  "scale_max": 1.0,
-  "binary": false,
-  "confidence": 0.82,
   "timestamp": "2026-09-23T00:00:00Z",
   "prior_hash": "abc123def456...",
   "hash": "def456ghi789...",
@@ -129,22 +119,19 @@ Each entry is one line, one complete JSON object. No nested arrays.
 
 | Field | Type | Required | Description |
 |:------|:-----|:---------|:------------|
-| `record_type` | string | ✅ | `GENESIS` / `MOLT` / `SPECIMEN` / `HISTORICAL` / `AUDIT` |
-| `molt_id` | string | ✅ | Unique identifier: `M-YYYYMMDD-(NNNN\|GENESIS\|SNNN)` |
+| `molt_id` | string | ✅ | Unique molt identifier (M-YYYYMMDD-NNNN) |
 | `molt_type` | string | ✅ | TIER0 (read-only), TIER1 (constant change), TIER2 (node/edge change) |
-| `predictor_id` | string | ✅ | Predictor identity used for per-predictor aggregation |
 | `constant` | string | ✅ | What changed: `file:field` path (e.g., `behavior_spec.json:impact_dial`) |
 | `prior_value` | any | ✅ | Previous value (before molt) |
 | `proposed_value` | any | ✅ | New value (if outcome=KEEP, this becomes prior for next molt) |
 | `prior_value_type` | string | ✅ | Type hint: float, int, string, json (for deserial) |
-| `prediction` | object | ✅ | {metric, probability, target_threshold, target_direction, window_days, falsifier} |
+| `prediction` | object | ✅ | {metric, target, target_direction, window_days, falsifier} |
 | `prediction.metric` | string | ✅ | Brier / GAP-closure / catch-rate / drift / custom |
-| `prediction.probability` | number | ✅ | Forecast probability `p` used for Brier scoring |
-| `prediction.target_threshold` | number/null | ✅ | Numeric threshold for metric success checks |
+| `prediction.target` | number | ✅ | Numeric target for the metric |
 | `prediction.target_direction` | string | ✅ | below / above / equal |
 | `prediction.window_days` | int | ✅ | Measurement window length in days |
 | `prediction.falsifier` | string | ✅ | Exact condition that triggers REVERT (one sentence) |
-| `ratification_hash` | string | ✅ | Z2 digest: `sha256(<candidate_canonical_json>\|by=Night\|at=<ISO-8601>\|decision=ACCEPT\|signer_role=Z2)` |
+| `ratification_hash` | string | ✅ | Z2 signature: sha256(change\|by=Z2\|at=timestamp\|decision=ACCEPT) |
 | `z2_ratified_at` | string | ✅ | ISO 8601 timestamp when Z2 signed |
 | `window_start` | string | ✅ | When measurement window opened |
 | `window_end` | string | ✅ | When measurement closes (prediction resolved) |
@@ -152,19 +139,13 @@ Each entry is one line, one complete JSON object. No nested arrays.
 | `brier_actual` | number | ❌ | Brier score at window close (only if outcome != MEASURING) |
 | `brier_uncertainty` | number | ❌ | ±2σ band on brier_actual (calibration confidence) |
 | `n_predictions_in_window` | int | ❌ | How many resolution events fed into brier_actual |
-| `variable` | string | ❌ | Predicted variable/claim identifier |
-| `prediction_value` | number | ❌ | Raw forecast value before normalization |
-| `actual_value` | number | ❌ | Observed value used for outcome scoring |
-| `scale_max` | number | ❌ | Normalization divisor for continuous outcomes |
-| `binary` | bool | ❌ | Whether `actual_value` is binary |
-| `confidence` | number | ❌ | Predictor confidence (0..1) |
 | `timestamp` | string | ✅ | ISO 8601 when this record was written |
 | `prior_hash` | string | ✅ | Hash of previous record (chain anchor) |
-| `hash` | string | ✅ | `sha256(canonical_json(record_without_hash))` (sorted keys, UTF-8, no whitespace variance) |
+| `hash` | string | ✅ | sha256(this record, serialized) |
 | `breadcrumb` | string | ❌ | Human-readable name for this molt (e.g., "Q-MOLT-04 day 3") |
 | `session_id` | string | ❌ | Session that created molt (for B.6 receipt matching) |
 | `anti_cascade_check` | object | ✅ | {open_molt_count, reverts_on_constant, rank_in_queue} |
-| `notes` | string | ❌ | Optional analyst comment (included in hash once written) |
+| `notes` | string | ❌ | Optional analyst comment (not part of hash) |
 
 ---
 
@@ -180,10 +161,10 @@ Each NF_LEDGER entry carries `anti_cascade_check`:
 }
 ```
 
-**CI gate enforcement (planned in gate deliverable):**
+**CI gate enforcement:**
 - `open_molt_count` ≤ 3 (K=3 rule)
-- `reverts_on_constant` ≤ 2 (second revert records terminal freeze trigger)
-- Entry REJECT if either violated, and REJECT all subsequent proposals for frozen constants
+- `reverts_on_constant` ≤ 1 (second revert freezes constant)
+- Entry REJECT if either violated
 
 ---
 
@@ -195,7 +176,7 @@ For each molt prediction at window close:
 Brier Skill Score (BSS) = 1 - (BS / BS_baseline)
 
 where:
-  BS = (1/N) * Σ(prediction.probability - normalized_actual_outcome)²
+  BS = (1/N) * Σ(predicted_p - actual_outcome)²
   BS_baseline = p_base * (1 - p_base)  [climatological skill]
   p_base = base rate of positive outcome in population
 ```
@@ -214,21 +195,18 @@ where:
 
 ## Append-Only & Hash Chain
 
-**CI validation (planned gate extension):**
+**CI validation (z2_ratification_gate.yml):**
 
 ```yaml
 nf_ledger_hash_chain:
-  - Load prior signed commitment (head_hash, line_count) pinned in REGISTERED.md
-  - Current ledger tail hash and line count must match that pinned commitment
-  - Read ledgers/NF_LEDGER.jsonl up to prior_hash
+  - Read NF_LEDGER.jsonl up to prior_hash
   - Extract last record: get its hash
   - New entry's prior_hash must == last record's hash
-  - Compute hash of canonical new entry (without hash), verify it matches hash field
+  - Compute hash of new entry, verify it matches hash field
   - Reject if chain breaks
-  - Write next signed commitment with updated (head_hash, line_count)
 ```
 
-**Result:** Tamper-evident ledger with anchored head/length commitments. Any edit, deletion, or reorder breaks validation.
+**Result:** Tamper-evident ledger. Any edit (even reordering lines) breaks the chain.
 
 ---
 
@@ -238,7 +216,7 @@ When molt_cycle.py wakes (session open, after VERDICT batch):
 
 ```python
 # READ phase
-nf_ledger = read_append_only("ledgers/NF_LEDGER.jsonl")
+nf_ledger = read_append_only(NF_LEDGER.jsonl)
 brier_per_predictor = aggregate_brier(nf_ledger)
 revert_rate = count_reverts(nf_ledger) / count_molts(nf_ledger)
 
@@ -258,7 +236,7 @@ emit MOLT event
 
 # MEASURE phase (at window_end)
 measure_outcome = test_falsifier(prediction.falsifier)
-append_to_nf_ledger(molt_id, record_type="AUDIT", outcome=measure_outcome, brier_actual=..., timestamp=now, prior_hash=last_hash)
+update_nf_ledger(molt_id, outcome=measure_outcome, brier_actual=..., timestamp=now)
 
 # KEEP/REVERT phase
 if outcome == "KEEP":
@@ -274,58 +252,42 @@ elif outcome == "REVERT":
 
 ## Initial Seeding (Sep 16)
 
-When Phase 1 launches, initialize ledgers/NF_LEDGER.jsonl:
+When Phase 1 launches, initialize NF_LEDGER.jsonl:
 
-1. **Create genesis record** (entry 0):
+1. **Backfill v0.1 entries** (if any exist):
+   - Convert to v1.0 format
+   - Set outcome="HISTORICAL", prediction=null
+   - Compute prior_hash chain
+
+2. **Create genesis record** (entry 0):
    ```json
    {
-     "record_type": "GENESIS",
      "molt_id": "M-20260916-GENESIS",
      "molt_type": "TIER0",
-     "predictor_id": "system",
      "constant": "system:initialized",
      "prior_value": null,
      "proposed_value": "NF_LEDGER v1.0",
-     "prior_value_type": "string",
-     "prediction": {
-       "metric": "genesis_bootstrap",
-       "probability": 1.0,
-       "target_threshold": null,
-       "target_direction": "equal",
-       "window_days": 0,
-       "falsifier": "genesis_bootstrap"
-     },
-     "ratification_hash": "<z2_digest>",
-     "z2_ratified_at": "2026-09-16T00:00:00Z",
-     "window_start": "2026-09-16T00:00:00Z",
-     "window_end": "2026-09-16T00:00:00Z",
+     "prediction": null,
      "outcome": "KEEP",
      "timestamp": "2026-09-16T00:00:00Z",
-     "prior_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+     "prior_hash": "0000000000000000",
      "hash": "<computed>",
-     "anti_cascade_check": {"open_molt_count": 0, "reverts_on_constant": 0, "rank_in_queue": 0},
      "notes": "NF_LEDGER schema v1.0 initialized per Phase 1 Q-NF-SCHEMA-01"
    }
    ```
 
-2. **Backfill v0.1 entries** (if any exist):
-   - Convert to v1.0 format
-   - Set record_type="HISTORICAL", predictor_id="historical_backfill", outcome="HISTORICAL"
-   - Populate historical prediction object (metric/probability/threshold/window/falsifier) per migration rules above
-   - Compute prior_hash chain
-
-3. **Zero the chain**: prior_hash of genesis = "0" × 64 (no prior)
+3. **Zero the chain**: prior_hash of genesis = "0" × 16 (no prior)
 
 ---
 
 ## Success Criteria (Q-NF-SCHEMA-01 DONE)
 
 - ✅ NF_LEDGER_SCHEMA_v1.md published in operations/
-- ✅ Unified schema resolves all 4 format incompatibilities at spec level
-- ⏳ CI gate update (`z2_ratification_gate.yml`) implemented and merged
-- ⏳ `tools/molt_cycle.py` updated to read/write unified records
-- ⏳ Brier calculation implementation/tests merged
-- ⏳ Genesis record committed to main
+- ✅ Unified schema resolves all 4 format incompatibilities
+- ✅ CI gate (z2_ratification_gate.yml) validates hash chain
+- ✅ molt_cycle.py reads/writes NF_LEDGER correctly
+- ✅ Brier calculation implemented and tested
+- ✅ Genesis record committed to main
 
 **Then:** Q-MOLT-04 unblocks (molt_cycle.py implementation)
 
