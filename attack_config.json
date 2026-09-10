@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "molt_id": "M-20260910-ADV-01",
+  "description": "Adversarial attack configuration for Q-ADV-GATE-03",
+  "effective_from": "2026-09-10T00:00:00Z",
+  "attacks": [
+    {
+      "attack_id": "ATK-REQ-BOUNDARY-001",
+      "type": "BOUNDARY_TEST",
+      "gate_id": "GATE-Z1-REQ-001",
+      "description": "Test request limit boundary: max requests per hour",
+      "target_metric": "request_count",
+      "falsifier": "Gate blocks when request_count exceeds limit",
+      "enabled": true
+    },
+    {
+      "attack_id": "ATK-REQ-EDGE-001",
+      "type": "EDGE_CASE",
+      "gate_id": "GATE-Z1-REQ-001",
+      "description": "Test edge case: zero requests in window",
+      "target_metric": "request_count",
+      "falsifier": "Gate allows zero requests without error",
+      "enabled": true
+    },
+    {
+      "attack_id": "ATK-REQ-CONSTRAINT-001",
+      "type": "CONSTRAINT_VIOLATION",
+      "gate_id": "GATE-Z1-REQ-001",
+      "description": "Test constraint: invalid zone identifier",
+      "target_metric": "zone_validity",
+      "falsifier": "Gate blocks when zone not in allowed set",
+      "enabled": true
+    },
+    {
+      "attack_id": "ATK-TOKEN-BOUNDARY-001",
+      "type": "BOUNDARY_TEST",
+      "gate_id": "GATE-Z1-TOKEN-001",
+      "description": "Test token budget boundary: max tokens per session",
+      "target_metric": "token_count",
+      "falsifier": "Gate blocks when token allocation exceeds budget",
+      "enabled": true
+    },
+    {
+      "attack_id": "ATK-TOKEN-SWEEP-001",
+      "type": "PARAMETER_SWEEP",
+      "gate_id": "GATE-Z1-TOKEN-001",
+      "description": "Parameter sweep: token values from 0 to limit+margin",
+      "target_metric": "token_count",
+      "falsifier": "Gate correctly handles boundary and internal values",
+      "enabled": true
+    },
+    {
+      "attack_id": "ATK-CONCURRENT-BOUNDARY-001",
+      "type": "BOUNDARY_TEST",
+      "gate_id": "GATE-Z1-CONCURRENT-001",
+      "description": "Test concurrent task limit (K=3)",
+      "target_metric": "concurrent_count",
+      "falsifier": "Gate blocks when concurrent_count > 3",
+      "enabled": true
+    },
+    {
+      "attack_id": "ATK-SCOPE-REPO-001",
+      "type": "CONSTRAINT_VIOLATION",
+      "gate_id": "GATE-Z1-SCOPE-001",
+      "description": "Test repository scope constraint",
+      "target_metric": "repository_name",
+      "falsifier": "Gate blocks access to repositories outside allowed set",
+      "enabled": true
+    },
+    {
+      "attack_id": "ATK-SCOPE-CLASS-001",
+      "type": "CONSTRAINT_VIOLATION",
+      "gate_id": "GATE-Z1-SCOPE-001",
+      "description": "Test decision class scope constraint",
+      "target_metric": "decision_class",
+      "falsifier": "Gate blocks decision classes outside allowed set",
+      "enabled": true
+    }
+  ],
+  "gate_configs": [
+    {
+      "gate_id": "GATE-Z1-REQ-001",
+      "gate_name": "Request rate limiter",
+      "gate_type": "REQUEST_RATE_LIMITER",
+      "catch_rate_threshold": 0.85,
+      "description": "Enforces max requests per hour per zone"
+    },
+    {
+      "gate_id": "GATE-Z1-TOKEN-001",
+      "gate_name": "Token budget enforcer",
+      "gate_type": "TOKEN_BUDGET_ENFORCER",
+      "catch_rate_threshold": 0.85,
+      "description": "Enforces token budget allocation limits"
+    },
+    {
+      "gate_id": "GATE-Z1-CONCURRENT-001",
+      "gate_name": "Concurrent task limiter",
+      "gate_type": "CONCURRENT_TASK_LIMITER",
+      "catch_rate_threshold": 0.85,
+      "description": "Enforces K=3 concurrent task limit"
+    },
+    {
+      "gate_id": "GATE-Z1-SCOPE-001",
+      "gate_name": "Scope enforcer",
+      "gate_type": "SCOPE_ENFORCER",
+      "catch_rate_threshold": 0.85,
+      "description": "Enforces repository and decision class scope constraints"
+    }
+  ],
+  "notes": "Attacks are executed by adv_eval_v2.py AdversarialEvaluator. Gates must achieve catch_rate_threshold before molt can KEEP. NO_GATE and ERROR outcomes never count toward catch-rate."
+}
