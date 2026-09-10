@@ -3,8 +3,8 @@
 **Z1 Proposer:** Claude (AI agent)  
 **Date Submitted:** 2026-09-10  
 **Phase:** 1 (Sep 16–27)  
-**Priority Queue Score:** 8 (pending authoritative queue transition)  
-**Status:** DRAFT — calibration_ref pending before Z2 ratification request
+**Priority Queue Score:** 8 (unblocks Q-MOLT-04 which is score=9)  
+**Status:** AWAITING Z2 RATIFICATION
 
 ---
 
@@ -13,7 +13,7 @@
 **Title:** Unify NF_LEDGER schema and resolve 4 format incompatibilities  
 **Owner:** Z1 (design) + Z3 (implementation)  
 **Due:** 2026-09-18 (research complete); 2026-09-23 (deployed to main)  
-**Blocking:** Q-MOLT-04 and authoritative queue/routing transitions
+**Blocking:** Q-MOLT-04 (Molt Cycle implementation cannot proceed without unified schema)
 
 ---
 
@@ -34,15 +34,15 @@ Four incompatible calibration ledger formats exist across the codebase:
 
 **NF_LEDGER.jsonl** — Single authoritative hash-chained calibration ledger.
 
-**Location:** `ledgers/NF_LEDGER.jsonl`  
+**Location:** `operations/NF_LEDGER.jsonl`  
 **Format:** JSONL (one record per line), hash-chained, append-only  
 **Scope:** Every molt, specimen outcome, and calibration signal
 
 **Key changes:**
 - Molt events ARE NF_LEDGER entries (not separate file)
 - Specimen outcomes feed Brier calculation in the same ledger
-- Breadcrumbs embedded as optional fields (session_id, breadcrumb, z2_ratified_at)
-- Hash chain prevents tampering; planned CI gate enforces append-only
+- Breadcrumbs embedded as optional fields (session_id, breadcrumb, z2_decision_timestamp)
+- Hash chain prevents tampering; CI gate enforces append-only
 
 **Schema:** See attached `NF_LEDGER_SCHEMA_v1.md`
 
@@ -63,7 +63,7 @@ Four incompatible calibration ledger formats exist across the codebase:
  outcome: "KEEP", brier_actual: 0.14, prior_hash: "...", hash: "..."}
 ```
 
-**Migration:** Backfill v0.1 as `record_type="HISTORICAL"` with preserved predictor identity and historical prediction object, then recompute hash chain after genesis.
+**Migration:** Backfill v0.1 as outcome="HISTORICAL", prediction=null, recompute hash chain. Deployed with genesis record at Phase 1 launch.
 
 ### 2. molt_cycle events → Unified
 
@@ -71,7 +71,7 @@ Four incompatible calibration ledger formats exist across the codebase:
 
 **New:** Single NF_LEDGER entry lifecycle:
 - APPLY phase: Write with outcome="MEASURING"
-- MEASURE phase: Append chained resolution record with outcome="KEEP"|"REVERT", brier_actual
+- MEASURE phase: Update with outcome="KEEP"|"REVERT", brier_actual
 - KEEP/REVERT: Emit as events downstream, but source of truth is NF_LEDGER
 
 **Result:** One authoritative record. Events are projections.
@@ -81,18 +81,15 @@ Four incompatible calibration ledger formats exist across the codebase:
 **Prior:** Separate specimen_intake_v0.2 JSON tracking claim → resolution → N_resolved
 
 **New:** Specimen outcomes as NF_LEDGER entries with:
-- `predictor_id` and `variable` preserved for aggregation identity
-- `prediction_value`, `actual_value`, `scale_max`, `binary`, `confidence` preserved
-- `prediction.probability` = predictor's assigned probability
-- `brier_actual` = (`prediction_value` - normalized `actual_value`)²
-- `outcome` (`KEEP`/`REVERT`) tracked as a separate falsifier result, not as `actual_value`
+- `prediction.metric` = "claim_resolution"
+- `prediction.target` = predictor's assigned probability
+- `outcome` = actual resolution (KEEP=correct, REVERT=wrong)
+- `brier_actual` = (target - actual)²
 
 **Example:**
 ```json
-{molt_id: "M-20260917-S001", constant: "specimen:claim-RQ1-042",
- predictor_id: "specimen-evaluator", variable: "claim-RQ1-042",
- prediction: {metric: "claim_resolution", probability: 0.73},
- prediction_value: 0.73, actual_value: 1.0, scale_max: 1.0, binary: true, confidence: 0.73,
+{molt_id: "M-20260917-S001", constant: "specimen:claim-RQ1-042", 
+ prediction: {metric: "claim_resolution", target: 0.73}, 
  outcome: "KEEP", brier_actual: 0.073}
 ```
 
@@ -105,6 +102,7 @@ Four incompatible calibration ledger formats exist across the codebase:
 **New:** Optional fields in every NF_LEDGER entry:
 - `breadcrumb`: Human name (e.g., "Q-MOLT-04 window close")
 - `session_id`: Session that created molt
+- `z2_decision_timestamp`: When Z2 ratified
 - `z2_ratified_at`: Explicit timestamp
 
 **Result:** Complete decision → measurement audit trail in one record. B.6 receipt reconciliation can walk entry.session_id back to transcript.
@@ -121,7 +119,7 @@ Four incompatible calibration ledger formats exist across the codebase:
    - Molt Cycle integration pseudocode
    - Genesis record seeding
 
-2. **CI gate enhancement** (planned `z2_ratification_gate.yml`)
+2. **CI gate enhancement** (z2_ratification_gate.yml)
    - Validate NF_LEDGER hash chain on every merge
    - Enforce append-only (no deletions, no reordering)
    - Reject if anti-cascade rules violated (K=3, revert freeze)
@@ -132,7 +130,7 @@ Four incompatible calibration ledger formats exist across the codebase:
    - Check anti-cascade freeze rules
 
 4. **Genesis record** (0-line)
-   - Initialize ledgers/NF_LEDGER.jsonl with system:initialized entry
+   - Initialize NF_LEDGER.jsonl with system:initialized entry
    - Commit to main at Phase 1 launch (Sep 16)
 
 ---
@@ -166,7 +164,7 @@ Q-MOLT-04 (Molt Cycle) is blocked on this schema because it needs:
 - Brier calculation implementation
 - Anti-cascade rule checks
 
-Once this schema is ratified, calibration_ref is attached, and queue blockers are formally cleared, Q-MOLT-04 can proceed with implementation confidence that the storage format won't change mid-sprint.
+Once this schema is ratified and genesis record merged to main, Q-MOLT-04 can proceed with implementation confidence that the storage format won't change mid-sprint.
 
 ---
 
@@ -185,4 +183,4 @@ Once this schema is ratified, calibration_ref is attached, and queue blockers ar
 
 This candidate unifies HumanAIOS's scattered calibration tracking into a single authoritative, tamper-evident ledger. It resolves 4 format incompatibilities and enables the Molt Cycle (Phase 1's core learning function) to measure its own predictions.
 
-**Ratification requested after calibration_ref attachment.** Upon Z2 signature and queue status transition, Z1 deploys genesis record to main.
+**Ratification requested.** Upon Z2 signature, Z1 deploys genesis record to main, and Q-MOLT-04 unblocks.

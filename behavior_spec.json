@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "molt_id": "M-20260910-CAPS-01",
+  "description": "Agent behavioral caps for Q-AGENT-CAPS-02",
+  "effective_from": "2026-09-10T00:00:00Z",
+  "caps": {
+    "max_requests_per_hour": {
+      "type": "REQUEST",
+      "description": "Maximum API requests per hour per zone",
+      "limit": 100,
+      "window_minutes": 60,
+      "zones": ["Z1", "Z2", "Z3"],
+      "enabled": true
+    },
+    "token_budget_per_session": {
+      "type": "TOKEN_BUDGET",
+      "description": "Total token budget per session",
+      "limit": 100000,
+      "window_minutes": null,
+      "zones": ["Z1"],
+      "enabled": true
+    },
+    "max_reply_tokens": {
+      "type": "REPLY_COST",
+      "description": "Maximum tokens per reply generation",
+      "limit": 4000,
+      "window_minutes": null,
+      "zones": ["Z1"],
+      "enabled": true
+    },
+    "max_concurrent_tasks": {
+      "type": "CONCURRENT",
+      "description": "Maximum concurrent tasks per agent",
+      "limit": 3,
+      "window_minutes": null,
+      "zones": ["Z1"],
+      "enabled": true
+    },
+    "scope_repositories": {
+      "type": "SCOPE",
+      "description": "Allowed repositories for Z1 agents",
+      "scope_repos": [
+        "humanaios-ui",
+        "humanaios-internal",
+        "empirica-foundation-evaluator",
+        "empirica-autonomy"
+      ],
+      "zones": ["Z1"],
+      "enabled": true
+    },
+    "scope_decision_classes": {
+      "type": "SCOPE",
+      "description": "Allowed decision classes for Z1 agents",
+      "scope_decision_classes": ["IC", "F", "H", "MOLT"],
+      "zones": ["Z1"],
+      "enabled": true
+    }
+  },
+  "integration_points": {
+    "prs_run.py": "Check cap before experiment execution (TOKEN_ALLOCATION)",
+    "agent_core.py": "Check cap before agent task (REQUEST, CONCURRENT_TASK)",
+    "adv_eval.py": "Check cap before adversarial attack (REQUEST, REPLY_GENERATION)",
+    "molt_cycle.py": "Check cap before molt candidate proposal"
+  },
+  "notes": "Caps are enforced via agent_caps_runtime.py CapEnforcer class. Violations block operation and emit GAP callouts to Priority Queue."
+}
