@@ -1,4 +1,4 @@
-# Community Constitution for Responsible AI and Technology Development
+# Seed Constitution for Responsible AI Development
 
 **Version:** 0.1 Seed Draft  
 **Status:** Open research draft for discussion — not ratified, not binding  

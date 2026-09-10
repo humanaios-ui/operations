@@ -29,7 +29,7 @@ surfaces:
     enabled: true
     publication: "humanaios"
     subdomain: "humanaios.substack.com"
-    post_template: "seeds/substack-launch-post.md"
+    post_template: "seeds/substack-launch-post-template.md"
     settings:
       cross_promote_twitter: true
       twitter_handle: "@HumanAIOS"

@@ -75,13 +75,14 @@ class SeedOrchestrator:
         self.version = self.config["versioning"]["current"]
         self.repo_root = REPO_ROOT
 
-    def publish(self, version: str, all_surfaces: bool = True) -> Dict:
+    def publish(self, version: str, all_surfaces: bool = True, require_z2_approval: bool = True) -> Dict:
         """
         Publish a version to all enabled surfaces.
 
         Args:
             version: Version string (e.g., "0.1")
             all_surfaces: If True, publish to all enabled surfaces
+            require_z2_approval: If True, verify Z2 ratification before publishing
 
         Returns:
             Dict with publication results
@@ -92,7 +93,18 @@ class SeedOrchestrator:
             "timestamp": datetime.utcnow().isoformat(),
             "surfaces": {},
             "errors": [],
+            "z2_verified": False,
         }
+
+        # Check Z2 ratification requirement
+        if require_z2_approval and self.config.get("z_integration", {}).get("z2_ratification", {}).get("required"):
+            if not self._verify_z2_ratification(version):
+                error = f"Z2 ratification required but not found for v{version}. Cannot publish without Z2 approval."
+                logger.error(error)
+                results["errors"].append(error)
+                results["status"] = "blocked_no_z2_approval"
+                return results
+            results["z2_verified"] = True
 
         # Read the seed source
         seed_path = self._get_seed_path(version)
@@ -307,6 +319,25 @@ class SeedOrchestrator:
 
         return aggregated
 
+    def _verify_z2_ratification(self, version: str) -> bool:
+        """Verify that Z2 has ratified this version."""
+        # Check REGISTERED.md for Z2 hash signature
+        if not REGISTERED_FILE.exists():
+            logger.warning(f"REGISTERED.md not found, cannot verify Z2 ratification")
+            return False
+
+        with open(REGISTERED_FILE) as f:
+            content = f.read()
+
+        # Look for version-specific Z2 hash entry
+        z2_pattern = f"v{version}.*z2_hash.*|Z2.*{version}.*ACCEPT"
+        if not any(z2_pattern in line for line in content.split("\n")):
+            logger.warning(f"No Z2 ratification found in REGISTERED.md for v{version}")
+            return False
+
+        logger.info(f"✓ Z2 ratification verified for v{version}")
+        return True
+
     def emit_z1_candidate(
         self,
         contributions: List[Contribution],
@@ -324,6 +355,14 @@ class SeedOrchestrator:
         Returns:
             Dict with candidate path and content
         """
+        # Validate inputs
+        if not contributions:
+            raise ValueError("Cannot emit candidate without contributions")
+        if not rationale or not rationale.strip():
+            raise ValueError("Rationale is required")
+        if not falsifier or not falsifier.strip():
+            raise ValueError("Falsifier is required (how would we know this failed?)")
+
         logger.info("Emitting Z1 candidate for next version")
 
         candidate_date = datetime.utcnow().strftime("%Y-%m-%d")
@@ -367,28 +406,39 @@ class SeedOrchestrator:
         """
         logger.info("Checking Z2 ratification deadlines")
 
-        # Read REGISTERED.md to find pending candidates
+        # Read REGISTERED.md to find pending candidates (look for structured entries)
         if not REGISTERED_FILE.exists():
             return {"status": "no_registered_file", "pending": []}
 
-        with open(REGISTERED_FILE) as f:
-            registered_content = f.read()
-
+        # Check z1-inbox for candidates with PENDING_Z2_RATIFICATION status
         pending = []
-        lines = registered_content.split("\n")
-
-        for line in lines:
-            if "PENDING_Z2" in line or "submitted" in line.lower():
-                pending.append(line.strip())
+        if Z1_INBOX.exists():
+            for candidate_file in Z1_INBOX.glob("**/*.md"):
+                try:
+                    with open(candidate_file) as f:
+                        content = f.read()
+                        # Look for structured status marker
+                        if "PENDING_Z2_RATIFICATION" in content:
+                            pending.append({
+                                "file": str(candidate_file),
+                                "status": "pending",
+                                "submitted_at": candidate_file.stat().st_mtime
+                            })
+                        elif "Z2_DECISION_OVERDUE" in content:
+                            pending.append({
+                                "file": str(candidate_file),
+                                "status": "overdue",
+                                "submitted_at": candidate_file.stat().st_mtime
+                            })
+                except IOError as e:
+                    logger.warning(f"Could not read candidate {candidate_file}: {e}")
 
         result = {
             "status": "checked",
             "pending_count": len(pending),
             "pending": pending,
             "action_required": len(pending) > 0,
-            "escalation_needed": any(
-                "overdue" in p.lower() for p in pending
-            ),
+            "escalation_needed": any(p.get("status") == "overdue" for p in pending),
         }
 
         if result["escalation_needed"]:
@@ -728,8 +778,8 @@ by Night. Timeline and detailed changelog will be announced on Substack.
                     contrib = json.load(f)
                     contrib["platform"] = "writable_wall"
                     contributions.append(contrib)
-            except (json.JSONDecodeError, IOError):
-                pass
+            except (json.JSONDecodeError, IOError) as e:
+                logger.warning(f"Skipped malformed contribution file {contrib_file}: {str(e)}")
 
         return contributions
 
@@ -746,8 +796,8 @@ by Night. Timeline and detailed changelog will be announced on Substack.
                     item = json.load(f)
                     item["platform"] = "form"
                     feedback.append(item)
-            except (json.JSONDecodeError, IOError):
-                pass
+            except (json.JSONDecodeError, IOError) as e:
+                logger.warning(f"Skipped malformed form response file {feedback_file}: {str(e)}")
 
         return feedback
 

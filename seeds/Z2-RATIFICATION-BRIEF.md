@@ -268,7 +268,7 @@ VERSION RELEASE (v0.2)
 - Weekly digest published (Sept 16, Sept 23)
 - Z1 creates amendment candidate
 
-### Sept 24 (end of 48h window)
+### Sept 24–26 (48h Z2 ratification window)
 - Z2 ratifies or contests amendments
 - v0.2 released if approved
 - Cycle repeats

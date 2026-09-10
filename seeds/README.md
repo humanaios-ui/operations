@@ -190,7 +190,7 @@ surfaces:
   substack:
     enabled: true
     publication: "humanaios"
-    post_template: "seeds/substack-launch-post.md"
+    post_template: "seeds/substack-launch-post-template.md"
     
   website:
     enabled: true
@@ -551,7 +551,7 @@ This feeds back into next version.
 ### Moderation Policy
 
 **Writable Wall & Form:**
-- Auto-reject: spam, off-topic, ATAT/violence, impersonation
+- Auto-reject: spam, off-topic, abusive language, impersonation
 - Manual review: vague language, low evidence
 - Accept: specific amendments with rationale
 
@@ -595,8 +595,10 @@ python seed-publication/orchestrator.py check-z2-deadline
 Regenerate all surfaces:
 
 ```bash
-python seed-publication/orchestrator.py publish 0.1 --force-all
+python seed-publication/orchestrator.py publish 0.1
 ```
+
+This republishes v0.1 to all configured surfaces. Ensure Z2 ratification is in place before running.
 
 ---
 
