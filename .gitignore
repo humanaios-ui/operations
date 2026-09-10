@@ -10,6 +10,7 @@ package.json
 .empirica/cache/
 .empirica/sessions/
 .empirica/config.yaml
+.empirica/credentials.yaml
 .empirica/active_transaction_term_*.json
 .empirica_reflex_logs/
 .breadcrumbs.yaml
