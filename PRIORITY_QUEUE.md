@@ -75,7 +75,7 @@ Priority Queue for HumanAIOS v0.2 Intake Cycle. **Z1 proposes, Z2 ratifies by ha
 
 **Acceptance Criteria:**
 1. One schema doc `ledgers/NF_EVENT_SCHEMA.md` (PIN / RESOLVE / DATE / STRIKE, hash-chained) — the v0.1 ledger already on main is the incumbent; no rewrite of its 165 events
-2. `molt_cycle.py` reads via the same `project()` used by `nf_ledger_v0_1.py` (pin ↔ resolve join), not a same-line heuristic
+2. `molt_cycle.py` reads via the same `project()` used by `nf_ledger_v0_1.py` (PIN ↔ RESOLVE join), normalizing RESOLVE `YES`/`NO` to Brier targets `1.0`/`0.0`, not a same-line heuristic
 3. `specimen_intake_evaluator._nf_write` emits PIN rows at issue and RESOLVE rows at `resolve_cycle`, appended through `nf_ledger_v0_1.append` so the chain covers them
 4. Test: a resolved specimen-intake forecast shows up in `nf_ledger score` and in `molt_cycle` `nf_resolved`
 
