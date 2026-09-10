@@ -35,16 +35,14 @@ jobs:
 
       - name: Run intake pipeline scan (Gate 1-3)
         run: |
-          cd operations
-          python3 scripts/intake_pipeline.py --scan --output intake_report.json
+         python3 scripts/intake_pipeline.py --scan --output intake_report.json
 
       - name: Check diverged pairs
         id: check-divergence
         run: |
-          cd operations
-          if grep -q '"diverged_pairs": \[\]' intake_report.json; then
-            echo "divergence_found=false" >> $GITHUB_OUTPUT
-          else
+         if grep -q '"diverged_pairs": \[\]' intake_report.json; then
+           echo "divergence_found=false" >> $GITHUB_OUTPUT
+         else
             echo "divergence_found=true" >> $GITHUB_OUTPUT
             echo "⚠️  Diverged pairs detected — see report"
           fi
@@ -54,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: intake-report
-          path: operations/intake_report.json
+          path: intake_report.json
           retention-days: 90
 
       - name: Comment PR (if divergence)
@@ -63,7 +61,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = JSON.parse(fs.readFileSync('operations/intake_report.json', 'utf8'));
+             const report = JSON.parse(fs.readFileSync('intake_report.json', 'utf8'));
             const diverged = report.diverged_pairs || [];
             const message = `
             ## Intake Pipeline: Diverged Pairs Detected
@@ -90,7 +88,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = JSON.parse(fs.readFileSync('operations/intake_report.json', 'utf8'));
+             const report = JSON.parse(fs.readFileSync('intake_report.json', 'utf8'));
             const newDocs = report.new_documents || [];
 
             if (newDocs.length > 0) {

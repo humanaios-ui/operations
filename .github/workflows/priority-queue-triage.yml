@@ -1,0 +1,114 @@
+name: priority-queue-triage
+
+on:
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Analyze blocked queue and due dates
+        id: triage
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from datetime import date
+          from pathlib import Path
+
+          queue = Path("PRIORITY_QUEUE.md").read_text(encoding="utf-8")
+          lines = queue.splitlines()
+          in_blocked = False
+          overdue = []
+          total_rows = 0
+          current_year = date.today().year
+
+          for line in lines:
+              if line.strip().startswith("## Blocked / In Review"):
+                  in_blocked = True
+                  continue
+              if in_blocked and line.strip().startswith("## "):
+                  break
+              if not in_blocked:
+                  continue
+              if not line.strip().startswith("|"):
+                  continue
+              if any(h in line for h in ("| blocker | owner |", "|---|")):
+                  continue
+              cells = [c.strip() for c in line.strip().strip("|").split("|")]
+              if len(cells) < 4:
+                  continue
+              total_rows += 1
+              due = cells[3].lower()
+              m = re.search(r"(?:before\s*)?(\d{2})-(\d{2})", due)
+              if not m:
+                  continue
+              mm, dd = int(m.group(1)), int(m.group(2))
+              due_date = date(current_year, mm, dd)
+              if due_date < date.today():
+                  overdue.append({"blocker": cells[0], "owner": cells[1], "due": cells[3], "due_iso": str(due_date)})
+
+          summary = {
+              "blocked_rows": total_rows,
+              "overdue_rows": len(overdue),
+              "overdue": overdue,
+          }
+          Path("outputs").mkdir(exist_ok=True)
+          Path("outputs/priority_queue_triage.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+          print(f"blocked_rows={total_rows}")
+          print(f"overdue_rows={len(overdue)}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"blocked_rows={total_rows}\n")
+              fh.write(f"overdue_rows={len(overdue)}\n")
+          PY
+
+      - name: Upload triage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: priority-queue-triage
+          path: outputs/priority_queue_triage.json
+          retention-days: 30
+
+      - name: Open/update triage issue if overdue rows exist
+        if: steps.triage.outputs.overdue_rows != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TITLE="Priority Queue triage: overdue blocked rows"
+          BODY_FILE=/tmp/triage_body.md
+          python3 - <<'PY' > "$BODY_FILE"
+          import json
+          from pathlib import Path
+          data = json.loads(Path("outputs/priority_queue_triage.json").read_text())
+          print("## Priority Queue Triage Alert")
+          print("")
+          print(f"- Blocked rows: **{data['blocked_rows']}**")
+          print(f"- Overdue rows: **{data['overdue_rows']}**")
+          print("")
+          print("| blocker | owner | due |")
+          print("|---|---|---|")
+          for row in data["overdue"]:
+              print(f"| {row['blocker']} | {row['owner']} | {row['due']} |")
+          print("")
+          print("Source: `PRIORITY_QUEUE.md` blocked section.")
+          PY
+          EXISTING=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file "$BODY_FILE"
+          else
+            gh issue create --title "$TITLE" --label "triage" --body-file "$BODY_FILE"
+          fi

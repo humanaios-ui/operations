@@ -157,18 +157,16 @@
 **CODEOWNERS rules:**
 
 ```yaml
-# Global governance-adjacent changes
-/REGISTERED.md operations-team
-/PRIORITY_QUEUE.md operations-team
-/ZONE_REGISTRY.md operations-team
-/CLAUDE.md operations-team
-/MOLT_STATE.md operations-team
-/NF_LEDGER.jsonl operations-team
-/system_graph.* operations-team
-
-# Per-repo zone-specific
-/src/** @zone-executor
-/docs/GOVERNANCE.md @z2-ratifier
+# HumanAIOS document-control ownership (actual CODEOWNERS map)
+/document-registry.yaml                    @humanaios-ui/doc-control
+/CONTROLLED_DOCUMENTS.md                    @humanaios-ui/doc-control
+/.doc-control/                             @humanaios-ui/doc-control
+/.github/workflows/document-control.yml    @humanaios-ui/doc-control
+/GOVERNANCE.md                             @humanaios-ui/governance
+/PRINCIPLES_SEED_V1_0.md                   @humanaios-ui/governance
+/SEED.md                                   @humanaios-ui/governance
+/REGISTERED.md                             @humanaios-ui/research
+*.md                                       @humanaios-ui/doc-control
 ```
 
 **Lint gates:**
@@ -188,4 +186,3 @@
 2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | ZONE_REGISTRY.md ratified | Phase 0 READY
 2026-09-09 — Z1 created ZONE_REGISTRY.md from blueprint Q-Z-ASSIGNMENT-03 spec
 ```
-

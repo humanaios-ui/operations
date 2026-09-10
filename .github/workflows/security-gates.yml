@@ -1,0 +1,43 @@
+name: security-gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  secrets:
+    name: Secret scanning (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  python-dependencies:
+    name: Python dependency vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: python3 -m pip install --quiet pip-audit
+
+      - name: Audit all requirements files
+        run: |
+          set -euo pipefail
+          while IFS= read -r req; do
+            echo "Auditing ${req}"
+            python3 -m pip_audit -r "${req}"
+          done < <(find . -name "requirements*.txt" | sort)
