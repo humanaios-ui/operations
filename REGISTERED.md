@@ -3931,7 +3931,7 @@ H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, ko
 - `CLAUDE.md` (unified authority map, Z2 Admiral role, decision routing, anti-cascade rules K=3, N=10)
 - `z1-inbox/2026-09-09/IC-030-REPIN-01.md` (IC-030 protocol: REGISTERED.md SHA pinning and live-fetch validation)
 
-**Status:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC)  
+**Landing:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC)  
 **Verification:**
 - All four files staged and committed locally (2026-09-10 03:12 UTC)
 - Push to GitHub completed; branch updated 745ed1d → e8a501f
