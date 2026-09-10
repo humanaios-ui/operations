@@ -38,6 +38,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
@@ -84,8 +87,8 @@ class RevertRule:
             return (predicted - actual) > self.threshold
         if self.kind == "abs_above":
             return (actual - predicted) > self.threshold
-        if self.kind == "equals":         # binary outcome; trip when actual == threshold
-            return actual == self.threshold
+        if self.kind == "equals":         # binary outcome; only a forecasted positive can revert to the bad threshold
+            return predicted > self.threshold and actual == self.threshold
         raise ValueError(f"unknown revert rule kind {self.kind}")
 
 
@@ -134,7 +137,9 @@ class MoltPrediction:
         forecast; for continuous variables, squared *normalised* error, bounded [0,1]."""
         if self.resolved_at is not None:
             raise RuntimeError(f"{self.prediction_id} already resolved")
-        actual = max(0.0, min(1.0, actual_raw / self.scale_max))
+        if not 0.0 <= actual_raw <= self.scale_max:
+            raise ValueError(f"{self.prediction_id}: actual value {actual_raw} outside [0,{self.scale_max}]")
+        actual = actual_raw / self.scale_max
         self.resolved_at = utcnow()
         self.actual_value = actual
         if self.binary:
@@ -156,22 +161,33 @@ class CredPolicyOutput:
     registered_at: datetime
     disclosed_at: Optional[datetime] = None   # when the specimen saw the recommendation
     actual_choice: Optional[str] = None
+    actual_choice_at: Optional[datetime] = None
     agreement: Optional[bool] = None
+    agreement_pre_disclosure: Optional[bool] = None
 
     def commitment(self) -> Dict:
         d = asdict(self)
-        for k in ("disclosed_at", "actual_choice", "agreement"):
+        for k in ("disclosed_at", "actual_choice", "actual_choice_at", "agreement", "agreement_pre_disclosure"):
             d.pop(k)
         d["registered_at"] = self.registered_at.isoformat()
         return d
 
-    def record_actual(self, actual_choice: str) -> bool:
+    def record_disclosure(self, disclosed_at: Optional[datetime] = None) -> datetime:
+        self.disclosed_at = disclosed_at or utcnow()
+        return self.disclosed_at
+
+    def record_actual(self, actual_choice: str, actual_choice_at: Optional[datetime] = None) -> bool:
         if not actual_choice:
             raise ValueError("actual_choice must be non-empty")
         self.actual_choice = actual_choice
+        self.actual_choice_at = actual_choice_at or utcnow()
         self.agreement = (self.predicted_choice == actual_choice)
+        self.agreement_pre_disclosure = (
+            self.agreement
+            if self.disclosed_at is not None and self.actual_choice_at <= self.disclosed_at
+            else None
+        )
         return self.agreement
-
 
 @dataclass
 class BehavioralObservations:
@@ -225,8 +241,9 @@ class IntakeRecord:
     molt_predictions: List[MoltPrediction] = field(default_factory=list)
     credential_policy_output: Optional[CredPolicyOutput] = None
     receipt_hash: Optional[str] = None
+    resolution_hash: Optional[str] = None
     receipt_status: ReceiptStatus = ReceiptStatus.CLAIM
-    ratification_hash: Optional[str] = None
+    ratification_signature: Optional[str] = None
     ratified_by: Optional[str] = None
     ratified_at: Optional[datetime] = None
 
@@ -249,7 +266,7 @@ class IntakeRecord:
         }
         return hashlib.sha256(json.dumps(commit, sort_keys=True, default=str).encode()).hexdigest()
 
-    def resolution_hash(self) -> str:
+    def compute_resolution_hash(self) -> str:
         """Separate hash over resolutions; chained to receipt_hash."""
         res = {
             "receipt_hash": self.receipt_hash,
@@ -273,37 +290,41 @@ class RatificationError(RuntimeError):
     pass
 
 
-class ResearchIntakeEvaluator:
-    """Evaluates specimen-intake cycles. Z1 proposes; Z2 ratifies by hash; code measures."""
+class SpecimenIntakeEvaluator:
+    """Evaluates specimen-intake cycles. Z1 proposes; Z2 ratifies by signature; code measures."""
 
     # Prior toward which forecasts are shrunk (RT-05). Constants — molt-governed.
     PRIOR_QUALITY = 0.75
     PRIOR_ACCEPTANCE = 0.85
     SHRINK = 0.3
 
-    def __init__(self, specimen_id: str):
+    def __init__(self, specimen_id: str, ratifier_public_key: Optional[Ed25519PublicKey] = None):
         self.specimen_id = specimen_id
+        self.ratifier_public_key = ratifier_public_key
         self.cycles: List[IntakeRecord] = []
         self.nf_ledger: List[Dict] = []
         self.molt_events: List[Dict] = []
         self.fic_candidates: List[Dict] = []
+        self._records_by_cycle: Dict[int, IntakeRecord] = {}
 
     # -- intake ---------------------------------------------------------------
 
     def create_intake_record(self, cycle_number: int, specimen_input: SpecimenInput,
                              behavioral_observations: BehavioralObservations,
                              evaluator: str = "Z1") -> IntakeRecord:
-        if any(c.cycle_number == cycle_number for c in self.cycles):
-            raise ValueError(f"cycle {cycle_number} already published")
+        if cycle_number in self._records_by_cycle:
+            raise ValueError(f"cycle {cycle_number} already reserved")
         prior = self.cycles[-1].receipt_hash if self.cycles else None
         now = utcnow()
-        return IntakeRecord(
+        record = IntakeRecord(
             intake_id=f"intake-{self.specimen_id}-c{cycle_number}-{now.strftime('%Y%m%dT%H%M%SZ')}",
             cycle_number=cycle_number, specimen_id=self.specimen_id, timestamp=now,
             evaluator=evaluator, evaluation_status=EvaluationStatus.PENDING,
             specimen_input=specimen_input, behavioral_observations=behavioral_observations,
             chain_link_prior=prior,
         )
+        self._records_by_cycle[cycle_number] = record
+        return record
 
     # -- forecasts ------------------------------------------------------------
 
@@ -320,6 +341,10 @@ class ResearchIntakeEvaluator:
     def _forecast_acceptance(self, obs: BehavioralObservations) -> float:
         raw = obs.task_acceptance_rate
         return max(0.0, min(1.0, (1 - self.SHRINK) * raw + self.SHRINK * self.PRIOR_ACCEPTANCE))
+
+    @staticmethod
+    def _predict_next_choice(specimen_input: SpecimenInput) -> str:
+        return specimen_input.task_categories[0] if specimen_input.task_categories else "general-annotation"
 
     def generate_molt_predictions(self, record: IntakeRecord) -> List[MoltPrediction]:
         obs = record.behavioral_observations
@@ -340,7 +365,7 @@ class ResearchIntakeEvaluator:
             MoltPrediction(
                 prediction_id=f"molt-{record.intake_id}-rq3-improvement", variable="improvement_trajectory",
                 prediction_value=1.0 if obs.improvement_trajectory == ImprovementTrajectory.IMPROVING else 0.0,
-                confidence=0.6, measurement_window_days=30, predicted_at=now, binary=True,
+                confidence=0.6, measurement_window_days=14, predicted_at=now, binary=True,
                 revert_rule=RevertRule("equals", 0.0),           # trajectory did not improve
             ),
         ]
@@ -373,11 +398,20 @@ class ResearchIntakeEvaluator:
                     else "max 25 hours/week" if completion > 0.80
                     else "reduce to 15 hours/week, focus on completion rate")
 
+        if obs.guideline_adherence > 0.9:
+            predicted_choice = "output-evaluation"
+        elif obs.improvement_trajectory == ImprovementTrajectory.IMPROVING:
+            predicted_choice = "feedback-incorporation"
+        elif obs.task_acceptance_rate > 0.8:
+            predicted_choice = "high-complexity-annotation"
+        else:
+            predicted_choice = "general-annotation"
+
         out = CredPolicyOutput(
             priority_score=priority, recommended_next_tasks=tasks, envelope_constraint=envelope,
             rationale=(f"Engagement {obs.task_acceptance_rate:.1%}, Quality {obs.quality_score if obs.quality_score is not None else 'pending'}, "
                        f"Consistency {1 - obs.annotation_variance:.1%}, Trajectory {obs.improvement_trajectory.value}"),
-            predicted_choice=tasks[0], registered_at=utcnow(),
+            predicted_choice=self._predict_next_choice(si), registered_at=utcnow(),
         )
         record.credential_policy_output = out
         return out
@@ -395,27 +429,54 @@ class ResearchIntakeEvaluator:
         return record.receipt_hash, record.receipt_status
 
     @staticmethod
-    def ratification_hash_for(receipt_hash: str, ratified_by: str, ratified_at: datetime) -> str:
-        """What Z2 signs: binds identity + time to the receipt. Z2 produces this value
-        out-of-band and supplies it; code only checks it."""
-        return hashlib.sha256(f"{receipt_hash}|{ratified_by}|{ratified_at.isoformat()}".encode()).hexdigest()
+    def ratification_payload(receipt_hash: str, ratified_by: str, ratified_at: datetime) -> bytes:
+        return f"{receipt_hash}|{ratified_by}|{ratified_at.isoformat()}".encode()
 
-    def ratify(self, record: IntakeRecord, ratified_by: str, ratified_at: datetime, ratification_hash: str) -> None:
+    def _verify_ratification_signature(self, receipt_hash: str, ratified_by: str,
+                                       ratified_at: datetime, ratification_signature: str) -> bool:
+        if self.ratifier_public_key is None:
+            return False
+        try:
+            signature_bytes = bytes.fromhex(ratification_signature)
+        except ValueError:
+            return False
+        try:
+            self.ratifier_public_key.verify(
+                signature_bytes,
+                self.ratification_payload(receipt_hash, ratified_by, ratified_at),
+            )
+        except InvalidSignature:
+            return False
+        return True
+
+    def ratify(self, record: IntakeRecord, ratified_by: str, ratified_at: datetime, ratification_signature: str) -> None:
         if record.receipt_hash is None:
             raise RatificationError("no receipt to ratify")
         if record.compute_hash() != record.receipt_hash:
             raise RatificationError("record mutated since receipt was issued")
-        expected = self.ratification_hash_for(record.receipt_hash, ratified_by, ratified_at)
-        if ratification_hash != expected:
-            raise RatificationError("ratification hash does not bind to this receipt")
-        record.ratification_hash, record.ratified_by, record.ratified_at = ratification_hash, ratified_by, ratified_at
+        if not self._verify_ratification_signature(record.receipt_hash, ratified_by, ratified_at, ratification_signature):
+            raise RatificationError("ratification signature does not verify against this receipt")
+        record.ratification_signature, record.ratified_by, record.ratified_at = ratification_signature, ratified_by, ratified_at
         record.evaluation_status = EvaluationStatus.VERIFIED
 
     def publish_record(self, record: IntakeRecord) -> bool:
-        """RT-03: publishing requires a ratification hash, not a status flag."""
-        if record.ratification_hash is None or record.evaluation_status != EvaluationStatus.VERIFIED:
+        """RT-03: publishing requires a verifiable ratification signature, not a status flag."""
+        existing = self._records_by_cycle.get(record.cycle_number)
+        if existing is not None and existing is not record:
+            return False
+        if any(c.cycle_number == record.cycle_number for c in self.cycles):
+            return False
+        if (record.ratification_signature is None or record.ratified_by is None or
+                record.ratified_at is None or record.evaluation_status != EvaluationStatus.VERIFIED):
             return False
         if record.compute_hash() != record.receipt_hash:
+            return False
+        if not self._verify_ratification_signature(
+            record.receipt_hash,
+            record.ratified_by,
+            record.ratified_at,
+            record.ratification_signature,
+        ):
             return False
         record.evaluation_status = EvaluationStatus.PUBLISHED
         self.cycles.append(record)
@@ -423,11 +484,22 @@ class ResearchIntakeEvaluator:
         self._molt_event("INTAKE_PUBLISHED", record)
         return True
 
+    def record_recommendation_disclosure(self, record: IntakeRecord,
+                                         disclosed_at: Optional[datetime] = None) -> datetime:
+        if record.credential_policy_output is None:
+            raise RuntimeError("disclosure requires a CredPolicy recommendation")
+        return record.credential_policy_output.record_disclosure(disclosed_at)
+
     # -- measurement ----------------------------------------------------------
+
+    def record_disclosure(self, record: IntakeRecord, disclosed_at: Optional[datetime] = None) -> datetime:
+        if record.credential_policy_output is None:
+            raise RuntimeError("CredPolicy output must be generated before disclosure is recorded")
+        return record.credential_policy_output.record_disclosure(disclosed_at)
 
     def resolve_cycle(self, record: IntakeRecord, actual_quality: Optional[float],
                       actual_acceptance: float, actual_trajectory: ImprovementTrajectory,
-                      actual_choice: str) -> Dict:
+                      actual_choice: str, actual_choice_recorded_at: Optional[datetime] = None) -> Dict:
         """Called at window close with observed values. Mechanical: emits MEASURE,
         REVERT events and F/IC candidates without discretion (RT-06)."""
         if record.evaluation_status != EvaluationStatus.PUBLISHED:
@@ -444,9 +516,12 @@ class ResearchIntakeEvaluator:
             _, rev = p.resolve(raw[p.variable])
             if rev:
                 reverted_ids.append(p.prediction_id)
-        record.credential_policy_output.record_actual(actual_choice)
+        if record.credential_policy_output.disclosed_at is None:
+            record.credential_policy_output.record_disclosure()
+        record.credential_policy_output.record_actual(actual_choice, actual_choice_recorded_at)
+        record.resolution_hash = record.compute_resolution_hash()
         self._nf_write(record, update=True)
-        self._molt_event("MEASURE", record, resolution_hash=record.resolution_hash())
+        self._molt_event("MEASURE", record, resolution_hash=record.resolution_hash)
         for pid in reverted_ids:
             record.evaluation_status = EvaluationStatus.REVERTED
             self._molt_event("REVERT", record, prediction_id=pid)
@@ -457,7 +532,8 @@ class ResearchIntakeEvaluator:
             })
         return {"brier": [p.brier_score for p in record.molt_predictions],
                 "reverted": reverted_ids,
-                "credpolicy_agreement": record.credential_policy_output.agreement}
+                "credpolicy_agreement": record.credential_policy_output.agreement,
+                "credpolicy_agreement_pre_disclosure": record.credential_policy_output.agreement_pre_disclosure}
 
     # -- ledgers -----------------------------------------------------------------
 
@@ -479,8 +555,10 @@ class ResearchIntakeEvaluator:
         ev = {
             "event_type": event_type, "cycle": record.cycle_number, "intake_id": record.intake_id,
             "timestamp": utcnow().isoformat(), "receipt_hash": record.receipt_hash,
-            "chain_link_prior": record.chain_link_prior, "ratification_hash": record.ratification_hash,
+            "chain_link_prior": record.chain_link_prior, "ratification_signature": record.ratification_signature,
             "credpolicy_agreement": record.credential_policy_output.agreement if record.credential_policy_output else None,
+            "credpolicy_agreement_pre_disclosure": (record.credential_policy_output.agreement_pre_disclosure
+                                                     if record.credential_policy_output else None),
             "specimen_id": record.specimen_id, "prev_event_hash": prev, **extra,
         }
         ev["event_hash"] = hashlib.sha256(json.dumps(ev, sort_keys=True, default=str).encode()).hexdigest()
@@ -514,16 +592,22 @@ class ResearchIntakeEvaluator:
             last3 = [e["credpolicy_agreement"] for e in measured[-3:]]
             if all(a is not None for a in last3) and sum(last3) / 3 < 0.6:
                 out.append("RQ2_FALSIFIER: CredPolicy agreement < 60% on 3 consecutive cycles")
-        # RQ3: no quality improvement in 2 consecutive cycles
+        # RQ3: no quality improvement in 2 consecutive cycles or rejection rate rises
         q = {}
+        rejection = {}
         for c in self.cycles:
             if c.behavioral_observations.quality_score is not None:
                 q[c.cycle_number] = c.behavioral_observations.quality_score
+            rejection[c.cycle_number] = 1.0 - c.behavioral_observations.task_acceptance_rate
         ks = sorted(q)
         if len(ks) >= 3:
             d1, d2 = q[ks[-2]] - q[ks[-3]], q[ks[-1]] - q[ks[-2]]
             if d1 <= 0 and d2 <= 0:
                 out.append("RQ3_FALSIFIER: no quality improvement in 2 consecutive cycles")
+        if len(rejection) >= 2:
+            rks = sorted(rejection)
+            if rejection[rks[-1]] > rejection[rks[-2]]:
+                out.append("RQ3_FALSIFIER: rejection rate increased cycle-over-cycle")
         return out
 
 
@@ -531,8 +615,9 @@ class ResearchIntakeEvaluator:
 # EXAMPLE (synthetic; no legal name or contract id — RT-07)
 # ============================================================================
 
-def example_cycle_1() -> ResearchIntakeEvaluator:
-    ev = ResearchIntakeEvaluator(specimen_id="SPC-01")
+def example_cycle_1() -> SpecimenIntakeEvaluator:
+    signer = Ed25519PrivateKey.generate()
+    ev = SpecimenIntakeEvaluator(specimen_id="SPC-01", ratifier_public_key=signer.public_key())
     si = SpecimenInput(datetime(2026, 9, 13, tzinfo=timezone.utc), datetime(2026, 9, 19, tzinfo=timezone.utc),
                        platform="micro1", tasks_assigned=25, tasks_completed=24, tasks_revised=3,
                        task_categories=["data-pipeline-annotation", "output-comparison", "response-writing"])
@@ -543,9 +628,10 @@ def example_cycle_1() -> ResearchIntakeEvaluator:
     ev.generate_credpolicy_recommendation(rec)
     receipt, status = ev.compute_receipt(rec)
 
-    # Z2 ratifies OUT OF BAND by producing this hash over the receipt. Simulated here.
+    # Z2 ratifies OUT OF BAND by signing the payload. Simulated here with an ephemeral key.
     t = utcnow()
-    ev.ratify(rec, "Z2", t, ResearchIntakeEvaluator.ratification_hash_for(receipt, "Z2", t))
+    sig = signer.sign(ev.ratification_payload(receipt, "Z2", t)).hex()
+    ev.ratify(rec, "Z2", t, sig)
     assert ev.publish_record(rec)
 
     print("=== CYCLE 1 (synthetic) ===")

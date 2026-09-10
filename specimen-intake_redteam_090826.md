@@ -1,7 +1,16 @@
+---
+doc_id: HAIOS-RES-008
+title: "Red-Team Audit — specimen-intake landing (commit c08f86c)"
+revision: 1
+status: draft
+owner: "@humanaios-ui/operations"
+canonical: true
+---
+
 # Red-Team Audit — specimen-intake landing (commit c08f86c)
 
 **Date:** 2026-09-08 · **Auditor:** Z1 · **Scope:** `specimen-intake.yml`, `specimen_intake_evaluator.py`, `specimen-intake-design_and_doc_updates.md` as landed on `main` at `c08f86c`, plus the landing itself.
-**Method:** every finding below was reproduced by executing the landed code or the git/CI state, not by reading. Reproductions are in `test_specimen_intake_evaluator.py` (v0.1 fails all RT-marked tests; v0.2 passes 11/11).
+**Method:** every finding below was reproduced by executing the landed code or the git/CI state, not by reading. Reproductions are in `test_specimen_intake_evaluator.py` (v0.1 fails the RT-marked regression suite; the current v0.2 branch passes it).
 **Position → destination → probability:** landed but not gate-clean → PR-re-landed v0.2 with ADV run → 0.8 within this week if B1 clears.
 
 ---
@@ -29,8 +38,8 @@ Severity per SeverityLevel in the schema. "Repro" = the probe that demonstrated 
 |---|---|---|---|---|
 | **RT-01** | CONCERN | Brier computed as raw squared error. A 5.8-point quality miss scores **33.6** against a falsifier threshold of 0.4; the design doc's own worked example (1.69, 4.0) already falsifies RQ1. Mixed scales (0–100 and 0–1) averaged together. `confidence` never used. | `resolve(86.2)` on forecast 92 → 33.64 | Forecasts on [0,1]; `scale_max` maps raw→normalised; binary vars use confidence-weighted probability; Brier bounded [0,1] |
 | **RT-02** | CONCERN | Receipt hash excludes `chain_link_prior` and CredPolicy output → **prior link can be rewritten without changing the receipt** (not a chain). Hash includes mutable resolution fields → receipt **changes after a prediction resolves**, so it cannot be re-verified. | tamper `chain_link_prior` → hash unchanged; resolve one prediction → hash changes | Hash over the *commitment* only (incl. prior link + CredPolicy); separate `resolution_hash()` keyed to receipt; molt events carry `prev_event_hash` |
-| **RT-03** | CONCERN | `publish_record` accepts a status flag. `example_cycle_1` sets `VERIFIED` inline — **self-ratification with no hash**. Violates "acceptance is a hash". | `status=VERIFIED; publish_record()` → True | `ratify()` verifies `sha256(receipt\|by\|at)` supplied by Z2 and refuses if the record mutated; `publish_record` refuses without it |
-| **RT-04** | CONCERN | `evaluate_agreement()` never called; `credpolicy_agreement` always `None`; RQ2 falsifier guarded by `all(a is not None)` → **RQ2 can never be falsified**. Also `predicted_choice = recommended_tasks[0]`: the regulator predicts its own recommendation, which the specimen then sees (RQ3 intervention) — demand-characteristic confound. | 4 cycles, no agreement data → `falsifier_check` = [] | `record_actual()` required in `resolve_cycle`; `registered_at`/`disclosed_at` recorded; confound stated in yml `known_confound` |
+| **RT-03** | CONCERN | `publish_record` accepts a status flag. `example_cycle_1` sets `VERIFIED` inline — **self-ratification with no hash**. Violates "acceptance is a hash". | `status=VERIFIED; publish_record()` → True | `ratify()` now verifies a Z2 Ed25519 signature over `receipt_hash\|ratified_by\|ratified_at` and refuses if the record mutated; `publish_record` re-verifies before append |
+| **RT-04** | CONCERN | `evaluate_agreement()` never called; `credpolicy_agreement` always `None`; RQ2 falsifier guarded by `all(a is not None)` → **RQ2 can never be falsified**. Also `predicted_choice = recommended_tasks[0]`: the regulator predicts its own recommendation, which the specimen then sees (RQ3 intervention) — demand-characteristic confound. | 4 cycles, no agreement data → `falsifier_check` = [] | `record_actual()` and a separate disclosure timestamp are now required in measurement; `actual_choice_at` is recorded; `predicted_choice` is no longer copied from the recommendation; confound stated in yml `known_confound` |
 | **RT-05** | CAUTION | Acceptance forecast `rate × 1.05` → **1.01 for the example, 1.05 at ceiling** (invalid rate). Quality forecast = input + 5. RQ3 forecast is a binary re-encoding of the input. Forecasts are the observation relabeled; anti-cascade rule 2 (no self-reference) is violated in spirit. | example prints `task_acceptance_rate: 1.01` | Shrinkage toward priors (`SHRINK=0.3`, constants → molt-governed); `MoltPrediction.__post_init__` rejects values outside [0,1] |
 | **RT-06** | CAUTION | `revert_rule` is prose; nothing evaluates it. RQ1's REVERT-rate clause and the RQ3 falsifier are not implemented. "Revert is mechanical" is not true of this code. | grep: no caller of `revert_rule` | `RevertRule` dataclass evaluated in `resolve()`; `resolve_cycle` emits `REVERT` events and F/IC candidates; RQ1 revert-rate and RQ3 implemented |
 | **RT-07** | CONCERN | Legal name + platform contract id committed in three files to a **public** repository. The contractor agreement's confidentiality terms were not checked before landing; platform quality feedback and task counts may be covered. | `grep m88dj94` → 3 files; unauthenticated clone succeeds | Pseudonymous `SPC-01`; identity/contract moved to a private register (B2); only [0,1] aggregates enter the tree; **B1: Z2 confirms against contract before Cycle 1**. History still contains the literals — see C.3 |
@@ -42,7 +51,7 @@ Severity per SeverityLevel in the schema. "Repro" = the probe that demonstrated 
 
 ## C. Mitigation set (Z1 built; Z2 rules)
 
-**C.1 Re-land via PR, not another direct push.** Branch `specimen-intake-v0_2`; files: the five in Appendix A. This puts `guard` and `document-control` on the change and gives the record a PR number instead of a bypass line. Nothing in v0.2 is publish-ready until ADV has run on `resolve_cycle` and the revert rules; the yml keeps `status: PENDING` until Z2 supplies a hash.
+**C.1 Re-land via PR, not another direct push.** Branch `specimen-intake-v0_2`; files: the six in Appendix A, including controlled-document frontmatter and `document-registry.yaml` entries for the two Markdown records. This puts `guard` and `document-control` on the change and gives the record a PR number instead of a bypass line. Nothing in v0.2 is publish-ready until ADV has run on `resolve_cycle` and the revert rules; the yml keeps `status: PENDING` until Z2 supplies a signature.
 
 **C.2 Branch protection.** GitHub reported "Bypassed rule violations" — the ruleset allows the admin to bypass. Options for Z2: (a) turn off admin bypass on `main` so CI enforcement is real ("code, not memory"); (b) keep bypass and register every bypass as an IC event. (a) matches the graph; (b) is honest about the current state. Z2's call.
 
@@ -74,7 +83,7 @@ GAP-RI-01  Specimen == ratifier
 
 ## D. What is OPERATED vs LAID after this audit
 
-OPERATED (executed here, receipts in this report): v0.2 evaluator; 11-test regression suite; YAML parse; clone-level verification of `main`, workflows, visibility.
+OPERATED (executed here, receipts in this report): v0.2 evaluator; regression suite; YAML parse; clone-level verification of `main`, workflows, visibility.
 LAID: v0.2 files on the device, not yet on `main`; ADV run on v0.2; branch-protection change; private specimen register; document-registry entries.
 NOT DONE and not claimed: any Cycle 1 data; Z2 ratification of anything in v0.2.
 
@@ -87,3 +96,4 @@ NOT DONE and not claimed: any Cycle 1 data; Z2 ratification of anything in v0.2.
 | `specimen-intake.yml` | v0.2 (parses; pseudonymous; limitations L1–L3; blockers B1–B3) |
 | `specimen-intake-design_and_doc_updates.md` | pseudonymised; Brier examples corrected; v0.2 references |
 | `specimen-intake_redteam_090826.md` | this report |
+| `document-registry.yaml` | register the two controlled specimen-intake Markdown documents |
