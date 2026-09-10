@@ -10,7 +10,7 @@ name: copilot-base-guard
 # target branch only — so this lives in code. Required-check name: "base-guard".
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, edited, synchronize]
 
 permissions:
