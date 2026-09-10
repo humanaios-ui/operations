@@ -23,8 +23,10 @@ from pathlib import Path
 
 # Make tools/ importable when running directly.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import behavioral_compliance_gate_v1_0 as gate  # noqa: E402
+import test_specimen_intake_evaluator as specimen_intake_tests  # noqa: E402
 
 TOOL_NAME = "test_behavioral_compliance_gate"
 TOOL_VERSION = "1.0.0"
@@ -42,6 +44,13 @@ def _write_temp(src: str) -> Path:
     f.write(src)
     f.flush()
     return Path(f.name)
+
+
+def load_tests(loader: unittest.TestLoader, tests: unittest.TestSuite,
+               pattern: str | None) -> unittest.TestSuite:
+    """Include specimen-intake regression tests in the discovered unittest suite."""
+    tests.addTests(loader.loadTestsFromModule(specimen_intake_tests))
+    return tests
 
 
 # ---------------------------------------------------------------------------
@@ -283,6 +292,12 @@ class TestAggregate(unittest.TestCase):
 def run_smoke_test() -> bool:
     """Minimal compliance smoke test."""
     return gate.run_smoke_test()
+
+
+def load_tests(loader, tests, pattern):
+    """Include the specimen-intake regression suite in this CI-discovered module."""
+    tests.addTests(loader.loadTestsFromModule(specimen_intake_tests))
+    return tests
 
 
 if __name__ == "__main__":
