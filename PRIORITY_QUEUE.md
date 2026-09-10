@@ -1,4 +1,4 @@
-# PRIORITY_QUEUE.md
+# PRIORITY_QUEUE.md — v1_1 Work Order Registry
 
 Priority Queue for HumanAIOS v0.2 Intake Cycle. **Z1 proposes, Z2 ratifies by hash, only READY top-score rows may begin.**
 
@@ -14,39 +14,13 @@ Priority Queue for HumanAIOS v0.2 Intake Cycle. **Z1 proposes, Z2 ratifies by ha
 
 ---
 
-## Queue Items
+## Scoring Formula
 
-### Q-ORCA-01 ◆ READY
+```
+Score = Impact + Σ (Impact of items this unblocks)
+```
 
-**Title:** Evaluate stablyai/orca as the multi-substrate audit runner
-
-| field | value |
-|---|---|
-| **status** | READY |
-| **score** | 8 |
-| **impact** | 3 |
-| **unblock_impact_sum** | 5 |
-| **session_type** | desktop |
-| **tool_zone** | 1 (execute) |
-
-**Unblocks:**
-- OPT second-substrate audit step
-- DELUSION-GUARD independence check
-
-**Provenance:**
-- repo: https://github.com/stablyai/orca
-- stars (live read 2026-09-04): 61,815
-- license: MIT
-- tier: VERIFIED-LIVE (metadata only; code not yet read)
-
-**Acceptance Criteria:**
-1. Same packet run through Claude Code + Codex + one third agent, each in its own worktree
-2. Each run's output hashed and appended to optimizer_events.jsonl
-3. Disagreements between substrates surface as DISPUTED callouts, not averaged away
-
-**Falsifier:** If orca cannot isolate worktrees per substrate or cannot expose per-run outputs for hashing, it does not serve the audit step and is dropped.
-
-**Status After First Run:** LAID until first real packet runs through it; 0/40 unchanged.
+**Rationale:** Prioritizes both direct impact and blocker-removal. v0.1's `impact × ready ÷ blockers` divided by zero on unblocked items and let cheap work outrank critical blockers.
 
 ---
 
@@ -172,7 +146,7 @@ Priority Queue for HumanAIOS v0.2 Intake Cycle. **Z1 proposes, Z2 ratifies by ha
 
 ---
 
-## Landing Order
+## How to Read This Queue
 
 Per `z1-inbox/2026-09-06/registry_block_and_manifest_090626_v2.md` §Landing order (extended):
 1. CODEOWNERS ×9 + 12 teams
@@ -186,15 +160,44 @@ Per `z1-inbox/2026-09-06/registry_block_and_manifest_090626_v2.md` §Landing ord
 
 ---
 
-## Blockers to Queue Advancement
+## Ratification Authority
 
-1. **GitHub PAT** — unblocks all work
-2. **IC-030 live read** — drift vs REGISTERED.md pinned state
-3. **IC-SCOPE-05 in code** — before intake post
-4. **TLA_TOOLS_SHA256** — Z2 repository variable
-5. **z2_budget_p2** — Phase 2 envelope constant (nothing ordered until it exists)
+**Z2 (Night) approval required for:**
+- Impact score changes (±1 or greater)
+- Status transitions (BLOCKED ↔ READY)
+- Scope changes to blockers or unblocks
+- New rows added to the queue
+
+**Z1 (Claude) may:**
+- Mark READY items as IN-PROGRESS → DONE
+- Move due dates within same phase (Sep 9-15 is Phase 0)
+- Add notes without changing score/status
 
 ---
 
-**Generated from z2_queue v1_1 patch:** 2026-09-06 (UTC)  
-**Registry pin:** REGISTERED.md blob `c0899b9b4f8825d154274b176bb880f233c45995` at commit d1fb5f0d2dd9
+## Phase Alignment
+
+**Phase 0 (Sep 9–15): Governance bootstrap**
+- Q-IC030-REPIN-01, Q-GOVERNANCE-02, Q-Z-ASSIGNMENT-03, (P0-4 authority map)
+- Unblocks all downstream work
+
+**Phase 1 (Sep 16–27): Molt + NF_LEDGER + CI gates**
+- Q-MOLT-04, Q-NF-SCHEMA-01, (CI gate implementation)
+- Unlocks Cycle 1 automation
+
+**Phase 2 (Oct 1–15): Repo standardization**
+- Q-SI-C1, Q-SI-C1-B2, Q-SI-C1-B3, (README/CLAUDE.md/docs across 31 repos)
+- All repos to unified structure
+
+**Phase 3 (Oct 15+): Governance activation**
+- Molt cycle live, NF_LEDGER tracking, falsifiers operative
+- Ad-hoc blockers resolve via priority queue
+
+---
+
+## Appended Events
+
+```
+2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | PRIORITY_QUEUE.md v1_1 ratified | Phase 0 READY
+2026-09-09 — Z1 created PRIORITY_QUEUE.md baseline from blueprint Q-GOVERNANCE-02 spec
+```
