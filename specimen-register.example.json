@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "specimen-register-schema-v1",
+  "title": "HumanAIOS Specimen Register (Private, Off-Tree)",
+  "description": "Maps specimen_id to identity and contract information. Kept private per confidentiality constraints (L3).",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "example": "1.0"
+    },
+    "register_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date for this register",
+      "example": "2026-09-10"
+    },
+    "specimens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["specimen_id", "legal_name", "contact_email", "contract_id", "platform", "role", "start_date"],
+        "properties": {
+          "specimen_id": {
+            "type": "string",
+            "pattern": "^SPC-[0-9]{2,}$",
+            "description": "Pseudonymous specimen identifier (public)",
+            "example": "SPC-01"
+          },
+          "legal_name": {
+            "type": "string",
+            "description": "Full legal name (private, not in public repo)",
+            "example": "[REDACTED]"
+          },
+          "contact_email": {
+            "type": "string",
+            "format": "email",
+            "description": "Contact email for the specimen (private)",
+            "example": "[REDACTED]"
+          },
+          "contract_id": {
+            "type": "string",
+            "description": "Platform contract or project code (private)",
+            "example": "[REDACTED]"
+          },
+          "platform": {
+            "type": "string",
+            "enum": ["external-contractor", "internal-staff", "partner-org"],
+            "description": "Specimen's role platform",
+            "example": "external-contractor"
+          },
+          "role": {
+            "type": "string",
+            "description": "Job role or function",
+            "example": "expert-evaluator"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Study enrollment date",
+            "example": "2026-09-01"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Study exit date (if applicable)",
+            "example": null
+          },
+          "confidentiality_tier": {
+            "type": "integer",
+            "enum": [1, 2, 3],
+            "description": "1=name only, 2=contact+contract, 3=full PII (Z2 sets per specimen agreement)",
+            "example": 2
+          },
+          "notes": {
+            "type": "string",
+            "description": "Internal annotations (e.g., special accommodations, escalations)",
+            "example": "[Internal use only]"
+          }
+        }
+      }
+    }
+  }
+}
