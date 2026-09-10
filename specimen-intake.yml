@@ -29,12 +29,12 @@ research_questions:
     measurement: "Agreement between CredPolicy predicted_choice (registered before disclosure) and actual_choice, per cycle."
     falsifier: "Agreement < 60% on 3+ consecutive measured cycles."
     measurement_window: "30 days rolling (cycles 2-5)"
-    known_confound: "Specimen sees the recommendation (RQ3 intervention). disclosed_at is recorded; agreement is reported both raw and for cycles where actual_choice preceded disclosure."
+    known_confound: "Specimen sees the recommendation (RQ3 intervention). disclosed_at and actual_choice_at are recorded; agreement is reported both raw and for cycles where actual_choice_at preceded disclosure."
   RQ3:
     title: "Does intake evaluation itself improve performance (audit-as-molt, F-41)?"
     hypothesis: "Being audited raises subsequent quality."
-    measurement: "Quality score delta cycle-over-cycle; rejection rate trend."
-    falsifier: "No quality improvement across 2 consecutive cycles, or rejection rate rises."
+    measurement: "Quality score delta cycle-over-cycle; derived rejection rate trend (= 1 - task_acceptance_rate)."
+    falsifier: "No quality improvement across 2 consecutive cycles, or derived rejection rate rises cycle-over-cycle."
     measurement_window: "14 days per cycle"
 
 # ---------------------------------------------------------------------------
@@ -107,14 +107,16 @@ intake_record_schema:
     registered_at: "datetime  (forecast is committed here, inside the receipt hash)"
     disclosed_at: "datetime | null  (when the specimen saw it)"
     actual_choice: "string | null"
+    actual_choice_at: "datetime | null  (when the specimen made the choice)"
     agreement: "bool | null"
+    agreement_pre_disclosure: "bool | null  (reported only when actual_choice_at <= disclosed_at)"
   receipt_and_hash:
     receipt_hash: "sha256 over the COMMITMENT: metadata, inputs, observations, forecast commitments, CredPolicy commitment, chain_link_prior"
-    resolution_hash: "sha256 over resolutions, keyed to receipt_hash (separate so the receipt is stable)"
+    resolution_hash: "sha256 over resolutions, keyed to receipt_hash and stored after measurement (separate so the receipt is stable)"
     receipt_status: "CLAIM | CLAIM_WITH_LINK | VERIFIED | VOID  — earned from verification_sources, never asserted"
     chain_link_prior: "receipt_hash of the previous published cycle (inside the hash — RT-02)"
   ratification:
-    ratification_hash: "sha256(receipt_hash | ratified_by | ratified_at)  — produced by Z2 out of band; code verifies only"
+    ratification_signature: "hex-encoded Ed25519 signature over receipt_hash | ratified_by | ratified_at, produced by Z2 out of band and verified by code"
     ratified_by: "string"
     ratified_at: "datetime"
 
@@ -128,7 +130,7 @@ cycle_schedule:
   evaluation_lag_hours: 24
   z2_ratification_lag_hours: 48
   molt_window_days: 30
-  publication_gate: "a record publishes only with a ratification hash that binds to its receipt hash"
+  publication_gate: "a record publishes only with a verifiable ratification signature that binds to its receipt hash"
   measurement_gate: "resolutions are mechanical (resolve_cycle); a tripped revert_rule emits REVERT + F/IC candidate without a ruling"
 
 # ---------------------------------------------------------------------------
@@ -162,5 +164,5 @@ audit_trail:
 z2_ratification:
   ratified_by: null
   ratified_at: null
-  ratification_hash: null
+  ratification_signature: null
   status: "PENDING"

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """smag_gap_analyzer — LLM-enriched ACAT Core-6 gap classification and prediction.
+Builder v1.7 compliant - smag_gap_analyzer
+HumanAIOS - S-090926-smag-gap-analyzer
 
 Extends the mechanical gap analysis with LLM-based classification of service/harm/autonomy/value
 dimensions. Generates remediation suggestions and predicts next-cycle risk patterns.
@@ -25,11 +27,15 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from smag_predict_lint import is_pinned_prediction
+
+TOOL_NAME = "smag_gap_analyzer"
+TOOL_VERSION = "1.0.0"
+
 try:
     import anthropic
 except ImportError:
-    print("Error: anthropic library required. Install with: pip install anthropic", file=sys.stderr)
-    sys.exit(1)
+    anthropic = None
 
 # Classification patterns (from smag_gap_analysis_v1_0.py)
 MERGED_RE = re.compile(r"merged\s*=\s*(True|False)", re.IGNORECASE)
@@ -80,7 +86,12 @@ def load_ledger(ledger_path: str) -> list[dict[str, Any]]:
     return rows
 
 
-def classify_gap_with_llm(client: anthropic.Anthropic, row: dict[str, Any], outcome: str) -> dict[str, Any]:
+def prediction_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return only rows whose `predicted` field is a single pinned probability."""
+    return [row for row in rows if is_pinned_prediction(str(row.get("predicted", "")))]
+
+
+def classify_gap_with_llm(client: Any, row: dict[str, Any], outcome: str) -> dict[str, Any]:
     """Use Claude to classify gap by ACAT Core-6 dimensions (LLM tier)."""
     prompt = f"""You are an ACAT quality assessor. Analyze this PR gap and classify by ACAT Core-6 dimensions.
 
@@ -286,6 +297,21 @@ def create_prediction_artifacts(predictions: dict) -> dict:
     return {"nodes": nodes, "edges": edges}
 
 
+def run_smoke_test() -> bool:
+    """Exercise VOID filtering and calibration-only prediction metrics."""
+    rows = [
+        {"pr": "1", "predicted": "smag_p:0.2", "measured": "merged=True; checks: success:1"},
+        {"pr": "2", "predicted": "VOID: missing smag_p", "measured": "merged=True; checks: failure:1"},
+    ]
+    filtered = prediction_rows(rows)
+    predictions = generate_predictions(defaultdict(list), filtered)
+    ok = [row["pr"] for row in filtered] == ["1"]
+    ok = ok and predictions["metrics"]["total_rows"] == 1
+    ok = ok and predictions["metrics"]["gap_rate"] == 0.0
+    print("✓ Smoke test PASSED" if ok else "✗ Smoke test FAILED")
+    return ok
+
+
 def main():
     parser = argparse.ArgumentParser(description="LLM-enriched SMAG gap analyzer with predictions")
     parser.add_argument("--ledger", default="audits/smag_pilot_ledger.jsonl", help="SMAG ledger path")
@@ -293,18 +319,30 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Don't call LLM")
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
     parser.add_argument("--predictions-only", action="store_true", help="Only generate predictions (skip gaps)")
+    parser.add_argument("--smoke-test", action="store_true")
 
     args = parser.parse_args()
+
+    if args.smoke_test:
+        return 0 if run_smoke_test() else 1
 
     # Load ledger
     ledger_path = Path(args.ledger)
     if not ledger_path.exists():
         print(f"Error: ledger not found: {ledger_path}", file=sys.stderr)
         return 1
+    if anthropic is None and not args.dry_run:
+        print("Error: anthropic library required. Install with: pip install anthropic", file=sys.stderr)
+        return 1
 
     rows = load_ledger(str(ledger_path))
+    calibration_rows = prediction_rows(rows)
     if args.verbose:
-        print(f"Loaded {len(rows)} SMAG rows", file=sys.stderr)
+        print(
+            f"Loaded {len(rows)} SMAG rows ({len(calibration_rows)} calibration, "
+            f"{len(rows) - len(calibration_rows)} VOID excluded)",
+            file=sys.stderr,
+        )
 
     # Initialize LLM client
     client = anthropic.Anthropic() if not args.dry_run else None
@@ -315,7 +353,7 @@ def main():
     gap_by_dimension = defaultdict(list)
 
     if not args.predictions_only:
-        for i, row in enumerate(rows, 1):
+        for i, row in enumerate(calibration_rows, 1):
             outcome = classify_outcome(row.get("measured", ""))
 
             # LLM classification
@@ -346,7 +384,7 @@ def main():
                 print(f"Classified PR {row['pr']}: {outcome}", file=sys.stderr)
 
     # Generate predictions (T3.3)
-    predictions = generate_predictions(gap_by_dimension, rows)
+    predictions = generate_predictions(gap_by_dimension, calibration_rows)
     pred_artifacts = create_prediction_artifacts(predictions)
     all_nodes.extend(pred_artifacts["nodes"])
     all_edges.extend(pred_artifacts["edges"])
@@ -362,7 +400,9 @@ def main():
             "artifacts": {"nodes": all_nodes, "edges": all_edges},
             "predictions": predictions,
             "summary": {
-                "total_gaps": len(rows),
+                "total_rows": len(rows),
+                "total_gaps": len(calibration_rows),
+                "void_rows": len(rows) - len(calibration_rows),
                 "predictions": len(pred_artifacts["nodes"]),
                 "metrics": predictions["metrics"],
                 "focus_areas": predictions["focus_areas"],
