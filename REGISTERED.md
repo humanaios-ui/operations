@@ -3912,3 +3912,37 @@ H-CAND-SPELL-01 | Spell as staged procedure with failure attribution | Malinowsk
 H-CAND-CASCADE-01 | Feedback + procedure + blame without external check = runaway (witch-hunts ~45K executed; stopped by external legal check) | Levack, Behringer, Midelfort, Doten-Snitker 2024, Soman, Henningsen | 2026-09-08 | ready | CLAIM+LINK | falsifier: large cascade stopped internally | aca4ee8c319e62b50cdee79507b30d53
 
 H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, koshare) | Radin 1956, Hyde 1998, Tedlock | 2026-09-08 | primaries unread | CLAIM | falsifier: clown license NOT from ritual authority in >= 2 cases | aca4ee8c319e62b50cdee79507b30d53
+
+-----
+
+## Governance Ratifications
+
+### 2026-09-09 — Phase 0 Governance Landing
+
+**Z2 Signature:** Night (Carly R. Anderson)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-09 18:49:00 UTC  
+**Ratification Hash:** e8a501f  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Ratified Items:**
+- `PRIORITY_QUEUE.md` v1.1 (score formula: `impact + Σ impact(unblocks)`, aligned with PRIORITIZATION_PROTOCOL_V0_1)
+- `ZONE_REGISTRY.md` (complete zone assignments for all 31 repos, Tier 1–5 structure)
+- `CLAUDE.md` (unified authority map, Z2 Admiral role, decision routing, anti-cascade rules K=3, N=10)
+- `z1-inbox/2026-09-09/IC-030-REPIN-01.md` (IC-030 protocol: REGISTERED.md SHA pinning and live-fetch validation)
+
+**Status:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC)  
+**Verification:**
+- All four files staged and committed locally (2026-09-09 19:12 PST)
+- Push to GitHub completed; branch updated 745ed1d → e8a501f
+- git log confirms HEAD at e8a501f with correct Phase 0 message
+- PRIORITY_QUEUE.md content verified: v1.1 schema, updated 2026-09-09, score formula correct
+
+**Effect:** Phase 0 complete and verified. Phase 1 unblocked (Molt Cycle, NF_LEDGER schema, Sep 16–27).
+
+**Next Actions (Phase 1):**
+- Q-NF-SCHEMA-01: NF_LEDGER schema design, Brier score tracking per predictor/constant, append-only hash-chain structure
+- Q-MOLT-04: Molt Cycle implementation (read → propose → predict → ratify → apply → measure → keep/revert)
+- Q-SI-C1: System integration checkpoint 1, Phase 1 gate verification
+
+**Callouts:** None — no blockers, no gaps, no ambiguities. Phase 0 execution clean.
