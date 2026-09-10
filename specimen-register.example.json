@@ -1,0 +1,37 @@
+{
+  "register_version": "0.1",
+  "register_location": "PRIVATE — external to public repo (see README)",
+  "record_format": {
+    "specimen_id": "pseudonymous identifier (no legal name or contract id)",
+    "specimen_id_type": "one of: hash | uuid | sequential_code",
+    "identity": {
+      "legal_name": "EXTERNAL — stored in private register only",
+      "contact": "EXTERNAL — stored in private register only"
+    },
+    "contract": {
+      "contract_id": "EXTERNAL — stored in private register only",
+      "institution": "EXTERNAL — stored in private register only",
+      "terms_accepted_date": "EXTERNAL"
+    },
+    "cycle_number": "which intake cycle (e.g. 1)",
+    "intake_date": "ISO 8601 datetime",
+    "status": "one of: PENDING | ACTIVE | COMPLETED | WITHDRAWN"
+  },
+  "example_rows": [
+    {
+      "specimen_id": "spec_abc123xyz",
+      "specimen_id_type": "hash",
+      "contract_id": "EXTERNAL",
+      "cycle_number": 1,
+      "intake_date": "2026-09-01T10:00:00Z",
+      "status": "ACTIVE"
+    }
+  ],
+  "security_notes": [
+    "Register lives OUTSIDE the public repo — this file is schema+location reference only",
+    "No real legal names, contact info, or contract IDs appear in tree (RT-07 compliance)",
+    "specimen_id is the ONLY identifier that appears in public-repo ledgers",
+    "Private register is the sole source of truth for identity↔specimen_id mappings",
+    "Access control: restricted to authorized intake staff and Evaluator"
+  ]
+}

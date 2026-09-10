@@ -1,0 +1,55 @@
+{
+  "version": "0.1",
+  "created_at": "2026-09-10T10:00:00Z",
+  "specimen_intake": {
+    "PRIOR_QUALITY": {
+      "value": 0.75,
+      "unit": "quality_score_normalized",
+      "description": "Prior belief about specimen performance quality (baseline before measurement)",
+      "trigger": {
+        "metric": "quality_score",
+        "below": 0.4
+      },
+      "proposed_next": null,
+      "prediction": "Z2 to state trigger reversal window",
+      "falsifier": "Quality does not recover to 0.75+ within proposed window",
+      "window": "14d",
+      "molt_id": null,
+      "ratification_hash": null
+    },
+    "PRIOR_ACCEPTANCE": {
+      "value": 0.85,
+      "unit": "task_acceptance_rate",
+      "description": "Prior belief about task acceptance rate (prior to observation)",
+      "trigger": {
+        "metric": "acceptance_rate",
+        "below": 0.50
+      },
+      "proposed_next": null,
+      "prediction": "Z2 to state trigger reversal window",
+      "falsifier": "Acceptance rate does not recover to 0.85+ within proposed window",
+      "window": "7d",
+      "molt_id": null,
+      "ratification_hash": null
+    },
+    "SHRINK": {
+      "value": 0.3,
+      "unit": "shrinkage_parameter",
+      "description": "Shrinkage weight for acceptance rate forecast; blends prior 0.85 with observed rate: forecast = SHRINK * observed + (1 - SHRINK) * prior",
+      "trigger": null,
+      "proposed_next": null,
+      "prediction": null,
+      "falsifier": null,
+      "window": null,
+      "molt_id": null,
+      "ratification_hash": null
+    }
+  },
+  "implementation_notes": [
+    "Zone 1: Built by Claude (Z1) per specimen-intake.yml research questions",
+    "Zone 2: Ratification hash recorded here once Z2 approves (REQUIRED before molt_cycle PROPOSE phase)",
+    "Constants are immutable once ratified; revisions require a MOLT with Z2 signature",
+    "trigger.metric values: quality_score | acceptance_rate | brier | revert_rate",
+    "molt_id: null until Z2 ratifies; prevents MOLT from being built from this window's observations"
+  ]
+}
