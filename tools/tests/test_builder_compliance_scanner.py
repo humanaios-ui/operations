@@ -87,6 +87,27 @@ def test_single_file_scan_still_fails_non_compliant_tool_files():
         assert "BUILDER_MISSING_HEADER" in result["hard_failures"]
 
 
+def test_directory_scan_ignores_checkout_ancestor_names():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp) / "_checkout" / "live_tools"
+        compliant = """#!/usr/bin/env python3
+# Builder v1.7 compliant
+# HumanAIOS
+TOOL_NAME = "kept_tool"
+TOOL_VERSION = "1.0.0"
+class SpecLoadFailed(Exception): pass
+def write_report(o, d): pass
+def run_smoke_test(): return True
+if __name__ == "__main__": run_smoke_test()
+"""
+        _write(root / "kept_tool_v1_0.py", compliant)
+
+        results = scanner.scan_directory(root)
+
+        assert [Path(result["file"]).name for result in results] == ["kept_tool_v1_0.py"]
+        assert results[0]["passed"], results[0]["hard_failures"]
+
+
 def test_smag_predict_lint_passes_builder_checks():
     results = scanner.scan_directory(TOOLS_DIR / "smag_predict_lint.py")
 
