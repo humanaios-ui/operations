@@ -218,15 +218,17 @@ where:
 
 ```yaml
 nf_ledger_hash_chain:
+  - Load prior signed commitment (head_hash, line_count) pinned in REGISTERED.md
+  - Current ledger tail hash and line count must match that pinned commitment
   - Read ledgers/NF_LEDGER.jsonl up to prior_hash
   - Extract last record: get its hash
   - New entry's prior_hash must == last record's hash
   - Compute hash of canonical new entry (without hash), verify it matches hash field
   - Reject if chain breaks
-  - Verify signed commitment file pins expected (head_hash, line_count)
+  - Write next signed commitment with updated (head_hash, line_count)
 ```
 
-**Result:** Tamper-evident ledger with anchored head/length commitment. Any edit, deletion, or reorder breaks validation.
+**Result:** Tamper-evident ledger with anchored head/length commitments. Any edit, deletion, or reorder breaks validation.
 
 ---
 
