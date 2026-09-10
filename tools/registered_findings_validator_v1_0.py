@@ -170,7 +170,7 @@ def parse_entries(text: str) -> dict:
             if fm:
                 key = fm.group(1).strip().lower().replace(" ", "_").strip("*")
                 val = fm.group(2).strip()
-                if key and len(key) < 40:
+                if key and len(key) < 40 and key not in current_fields:
                     current_fields[key] = val
 
     flush()
@@ -333,7 +333,7 @@ def run_smoke_test() -> bool:
 ## F-class findings
 
 ### F-1 — Test Finding Alpha
-- **Registered:** 2026-01-01 (S-010126-01)
+- **Registered:** 2026-01-01
 - **Status:** ACTIVE
 - **Synopsis:** First test finding.
 
@@ -358,13 +358,46 @@ def run_smoke_test() -> bool:
 - **Status:** ACTIVE
 """
     collision = good + "\n### F-2 — Duplicate Entry\n- **Registered:** 2026-04-01\n- **Status:** ACTIVE\n"
+    front_matter = """# HumanAIOS REGISTERED.md
 
-    good_path = collision_path = None
+## F-class findings
+
+### F-62 — Phase 1 Governance Adoption Complete
+
+---
+id: "F-62"
+name: "Phase 1 Governance Adoption Complete"
+status: REGISTERED
+class: F
+date_registered: "2026-09-09"
+date_origin: "2026-08-25"
+session_registered: "S-090926-01-phase1-complete"
+superseded_by: null
+---
+
+**Status:** LANDED on main at commit e8a501f
+
+## H-class hypotheses
+
+### H-1 — Test Hypothesis
+- **Registered:** 2026-01-15
+- **Status:** ACTIVE
+
+## IC-class corrections
+
+### IC-001 — Test Correction
+- **Registered:** 2026-01-10
+- **Status:** ACTIVE
+"""
+
+    good_path = collision_path = front_matter_path = None
     try:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as f:
             f.write(good); good_path = f.name
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as f:
             f.write(collision); collision_path = f.name
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as f:
+            f.write(front_matter); front_matter_path = f.name
 
         # Good → PASS
         text = load_registered(good_path)
@@ -382,13 +415,22 @@ def run_smoke_test() -> bool:
         col2 = check_id_collisions(occ2)
         assert len(col2) > 0, "Should catch F-2 collision"
 
+        # Front-matter status should not be overwritten by later prose labels
+        text3 = load_registered(front_matter_path)
+        entries3, _ = parse_entries(text3)
+        assert entries3["F-62"]["fields"]["status"] == "REGISTERED", (
+            f"Expected front-matter status to win, got {entries3['F-62']['fields']['status']}"
+        )
+        sf3, _ = check_statuses(entries3)
+        assert not sf3, f"Expected no status failures: {sf3}"
+
         print("✓ Smoke test PASSED")
         return True
     except Exception as e:
         print(f"✗ Smoke test FAILED: {e}")
         return False
     finally:
-        for p in [good_path, collision_path]:
+        for p in [good_path, collision_path, front_matter_path]:
             if p:
                 try: os.unlink(p)
                 except: pass
