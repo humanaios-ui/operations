@@ -3,8 +3,8 @@
 **Ratifier:** Night (Z2 Serial Gate Authority)  
 **Molt ID:** PHASE-3-DEPLOYMENT-v1.0  
 **Decision:** ACCEPT ALL  
-**Signature:** `40fe90d500a7fac08d52e69dd449a2393ec50ed907cfbc234ac1edceb590fd49`  
-**Signed At:** 2026-09-10T03:47:48Z  
+**Signature:** `8d4097a7155ee03efdee3b5cfacbbf8d8ca56bd6b7d7a0d3625bc6b843143428`  
+**Signed At:** 2026-09-10T19:16:56Z  
 **Status:** ✅ APPROVED FOR CI GATE ACTIVATION
 
 ---
@@ -60,7 +60,7 @@ Gate 1: falsifier_lint
 
 Gate 2: z2_hash_verify
   └─ Status: ✅ READY
-  └─ Signature: 40fe90d500a7fac08d52e69dd449a2393ec50ed907cfbc234ac1edceb590fd49
+  └─ Signature: 8d4097a7155ee03efdee3b5cfacbbf8d8ca56bd6b7d7a0d3625bc6b843143428
   └─ Requirement: Signature matches ratify event
   └─ Action: Proceed to Gate 3 if valid; block if signature mismatch
 
@@ -137,8 +137,8 @@ VERDICT_EVENT {
   status: "DEPLOYED",
   components: 12,
   lines_of_code: 3724,
-  z2_signature: "40fe90d500a7fac08d52e69dd449a2393ec50ed907cfbc234ac1edceb590fd49",
-  timestamp: "2026-09-10T03:47:48Z"
+  z2_signature: "8d4097a7155ee03efdee3b5cfacbbf8d8ca56bd6b7d7a0d3625bc6b843143428",
+  timestamp: "2026-09-10T19:16:56Z"
 }
 ```
 
@@ -180,8 +180,8 @@ This Z2 ratification is recorded in the molt event ledger (`molt_events.jsonl`):
     "priority_queue_formula": "ACCEPT",
     "constants_first_class": "ACCEPT"
   },
-  "signature": "40fe90d500a7fac08d52e69dd449a2393ec50ed907cfbc234ac1edceb590fd49",
-  "timestamp": "2026-09-10T03:47:48.957373+00:00",
+  "signature": "8d4097a7155ee03efdee3b5cfacbbf8d8ca56bd6b7d7a0d3625bc6b843143428",
+  "timestamp": "2026-09-10T19:16:56Z",
   "status": "APPROVED_FOR_CI_GATE"
 }
 ```
