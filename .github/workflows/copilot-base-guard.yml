@@ -38,7 +38,7 @@ jobs:
           fi
           echo "::warning::copilot head '$HEAD' targets '$BASE', not '$DEFAULT'. Retargeting."
           if gh api -X PATCH "repos/$REPO/pulls/$PR" -f base="$DEFAULT" >/dev/null; then
-            gh pr comment "$PR" --repo "$REPO" --body "copilot-base-guard: base changed from \`$BASE\` to \`$DEFAULT\`. Bot heads may only target the default branch (anti-cascade; see PR #250 chain). Checks will re-run against \`$DEFAULT\`."
+            gh pr comment "$PR" --repo "$REPO" --body "copilot-base-guard: base changed from \`$BASE\` to \`$DEFAULT\`. Bot heads may only target the default branch (anti-cascade; see PR #250 chain). Checks will re-run against \`$DEFAULT\`." || echo "::warning::Retargeted, but could not post the explanatory comment."
             echo "Retargeted to $DEFAULT."
             exit 0
           fi
