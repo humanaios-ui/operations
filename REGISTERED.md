@@ -3924,7 +3924,7 @@ date_registered: "2026-09-09"
 date_origin: "2026-08-25"
 session_registered: "S-090926-01-phase1-complete"
 zone2_ratification: "sha256(candidate | by=Night | at=timestamp | decision=ratified"
-principles_triggered: ["P-governance", "P-mesh-coordination", "P-foundation-establishment"]
+principles_triggered: ["P21", "P27"]
 substrate: "empirica-mesh-support (Claude Haiku 4.5)"
 tags: ["governance", "phase-completion", "foundation-mesh", "ratification"]
 superseded_by: null
