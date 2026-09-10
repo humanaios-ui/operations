@@ -71,7 +71,7 @@ Priority Queue for HumanAIOS v0.2 Intake Cycle. **Z1 proposes, Z2 ratifies by ha
 - `nf_ledger_v0_1.py` writes forecast as `PIN{p}` and outcome as a separate `RESOLVE{outcome}` row
 - `molt_cycle.py` counts a row resolved only if `p` and `outcome` are on the same line → reads 0 resolved from a ledger with 165 events, and will read 0 after every token is resolved
 - `specimen_intake_evaluator._nf_write` emits a third shape (`prediction_value`, `brier_score`)
-- `.breadcrumbs.yaml` (Empirica, untracked-but-committed) holds a fourth calibration store with live Brier 0.10–0.17, n=50
+- `.breadcrumbs.yaml` (Empirica, tracked despite `.gitignore`) holds a fourth calibration store with live Brier 0.10–0.17, n=50
 
 **Acceptance Criteria:**
 1. One schema doc `ledgers/NF_EVENT_SCHEMA.md` (PIN / RESOLVE / DATE / STRIKE, hash-chained) — the v0.1 ledger already on main is the incumbent; no rewrite of its 165 events
