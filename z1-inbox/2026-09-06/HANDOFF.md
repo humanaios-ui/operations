@@ -46,7 +46,7 @@
 
 **Files listed vs. present:**
 - **Listed in manifest:** 23 files (CLAUDE.md, HumanAIOS_Final_v7_1_tlc_patched.cfg, .tla, IC-REWARD-01, PHASE2 plans, etc.)
-- **Currently in z1-inbox/2026-09-06/:** Only MANIFEST.md itself
+- **Currently in z1-inbox/2026-09-06/:** MANIFEST.md and this HANDOFF.md; the 23 manifest-listed payload files are absent
 - **Dropped files status:** PENDING — no inbox files dropped yet
 
 **Hash verification:** Cannot verify file hashes until files are dropped to the inbox.
