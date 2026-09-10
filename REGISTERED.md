@@ -3922,7 +3922,7 @@ H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, ko
 **Z2 Signature:** Night (Carly R. Anderson)  
 **Decision:** ACCEPT  
 **Timestamp:** 2026-09-09 18:49:00 UTC  
-**Ratification Hash:** e8a501f  
+**Ratification Hash:** `sha256("phase0_governance_landing|by=Night|at=2026-09-09T18:49:00Z|decision=ACCEPT") = 8e57328800cc060a9429ee350c3d84462bb4c950a9d57e37309a7c922c182a3a`  
 **Authority:** Admiral (Z2 Serial Gate)
 
 **Ratified Items:**
@@ -3931,14 +3931,14 @@ H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, ko
 - `CLAUDE.md` (unified authority map, Z2 Admiral role, decision routing, anti-cascade rules K=3, N=10)
 - `z1-inbox/2026-09-09/IC-030-REPIN-01.md` (IC-030 protocol: REGISTERED.md SHA pinning and live-fetch validation)
 
-**Status:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC)  
+**Status:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC); commit SHA recorded separately from ratification hash  
 **Verification:**
 - All four files staged and committed locally (2026-09-09 19:12 PST)
 - Push to GitHub completed; branch updated 745ed1d → e8a501f
 - git log confirms HEAD at e8a501f with correct Phase 0 message
 - PRIORITY_QUEUE.md content verified: v1.1 schema, updated 2026-09-09, score formula correct
 
-**Effect:** Phase 0 complete and verified. Phase 1 unblocked (Molt Cycle, NF_LEDGER schema, Sep 16–27).
+**Effect:** Phase 0 complete and verified. Phase 1 planning prepared; execution remains subject to ratified `PRIORITY_QUEUE.md` dependency/status transitions.
 
 **Next Actions (Phase 1):**
 - Q-NF-SCHEMA-01: NF_LEDGER schema design, Brier score tracking per predictor/constant, append-only hash-chain structure
