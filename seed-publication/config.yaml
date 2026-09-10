@@ -1,0 +1,174 @@
+# Seed Publication Architecture Configuration
+# Master configuration for multi-surface Seed Constitution publication workflow
+
+project:
+  name: "Seed Constitution for Responsible AI Development"
+  current_version: "0.1"
+  status: "working_draft"
+  label: "Working Draft – Not Ratified"
+  z2_ratifier: "Night (Carly R. Anderson)"
+  z2_email: "carly.r.anderson@gmail.com"
+
+surfaces:
+  github:
+    enabled: true
+    repo: "humanaios-ui/operations"
+    branch_base: "main"
+    paths:
+      seed_source: "seeds/seed-constitution-v{version}.md"
+      contribution_template: "seeds/CONTRIBUTION_TEMPLATE.md"
+      issue_template: ".github/ISSUE_TEMPLATE/seed-amendment.md"
+      discussions: "seeds/discussions"
+    settings:
+      allow_issues: true
+      allow_discussions: true
+      allow_pull_requests: true
+      require_z2_hash: true
+
+  substack:
+    enabled: true
+    publication: "humanaios"
+    subdomain: "humanaios.substack.com"
+    post_template: "seeds/substack-launch-post.md"
+    settings:
+      cross_promote_twitter: true
+      twitter_handle: "@HumanAIOS"
+      enable_comments: true
+      enable_restacks: true
+      pin_series: "Living Documents"
+
+  website:
+    enabled: true
+    domain: "humanaios.ai"
+    paths:
+      seed_page: "/seeds/constitution"
+      writable_wall: "/contribute"
+      announcement: "/news"
+    settings:
+      versioning: true
+      show_working_draft_banner: true
+      link_to_github: true
+      link_to_substack: true
+
+  writable_wall:
+    enabled: true
+    form_type: "structured_contribution"
+    submission_path: "seeds/contributions/{date}/{id}.json"
+    settings:
+      require_attribution: true
+      allow_anonymous_teams: true
+      moderation_queue: true
+
+  form:
+    enabled: true
+    type: "typeform_or_custom"
+    feedback_collection:
+      name: "Seed Constitution - Quick Feedback"
+      fields:
+        - "proposed_change"
+        - "rationale"
+        - "evidence_or_measurement"
+        - "attribution"
+        - "preferred_contact"
+    responses_path: "seeds/feedback/{date}/{response_id}.json"
+
+  observatory:
+    enabled: true
+    content_type: "research_framing"
+    connection: "Moltbook high-friction analysis"
+    acat_dimensions: true
+
+contribution_workflow:
+  # How contributions flow through the system
+  paths:
+    - name: "Substack Comments"
+      input: "substack"
+      aggregation: "weekly_summary"
+      output: "seeds/summaries/substack-comments-w{week}.md"
+
+    - name: "Writable Wall Submissions"
+      input: "writable_wall"
+      aggregation: "daily_digest"
+      moderation: "automated_relevance_check"
+      output: "seeds/contributions/digest-{date}.md"
+
+    - name: "GitHub Issues/Discussions"
+      input: "github"
+      aggregation: "continuous"
+      moderation: "template_validation"
+      output: "REGISTERED.md"
+
+    - name: "Simple Form"
+      input: "form"
+      aggregation: "daily"
+      output: "seeds/feedback/digest-{date}.md"
+
+versioning:
+  # Version management across surfaces
+  current: "0.1"
+  next_planned: "0.2"
+  release_cycle: "two_weeks"
+  changelog_file: "seeds/CHANGELOG.md"
+  sync_schedule:
+    github: "on_commit"
+    website: "on_version_release"
+    substack: "manual_post_per_version"
+
+  # Version archive
+  archive:
+    location: "seeds/archive"
+    keep_versions: 10
+    include_all_contributions: true
+
+z_integration:
+  # Integration with HumanAIOS Z1/Z2/Z3 governance
+  z1_proposer: "Claude (AI agent)"
+  z1_output: "seeds/z1-inbox/{date}/seed-amendment-{id}.md"
+
+  z2_ratification:
+    required: true
+    gate_file: ".github/workflows/z2_ratification_gate.yml"
+    hash_verification: true
+    deadline: "48_hours"
+    escalation: "Admiral (Carly)"
+
+  z3_executor:
+    sync_action: "publish_ratified_version"
+    platforms: ["github", "website", "substack"]
+    receipt_location: "NF_LEDGER.jsonl"
+
+notifications:
+  z2_notifications:
+    new_candidate: true
+    candidate_deadline_24h: true
+    contribution_summary: "weekly"
+
+  community_notifications:
+    new_version_published: true
+    contribution_accepted: true
+    amendment_adopted: true
+
+templates:
+  # Template locations and configurations
+  substack_launch: "seeds/templates/substack-launch-post.md"
+  contribution_github: "seeds/templates/contribution-github.md"
+  contribution_writable_wall: "seeds/templates/contribution-writable-wall.md"
+  contribution_form: "seeds/templates/contribution-form.json"
+  amendment_template: "seeds/templates/amendment-template.md"
+  version_announcement: "seeds/templates/version-announcement.md"
+
+analytics:
+  # Track engagement across surfaces
+  track_contributions: true
+  track_platform_diversity: true
+  track_z1_acceptance_rate: true
+  report_frequency: "weekly"
+  report_location: "seeds/reports/engagement-{week}.md"
+
+compliance:
+  # Governance and compliance checks
+  require_falsifier: true
+  require_measurement: false
+  require_attribution: true
+  moderate_for_civility: true
+  check_against_traditions: true
