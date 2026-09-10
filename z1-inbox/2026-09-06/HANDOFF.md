@@ -11,7 +11,7 @@
 
 ✓ **Git fetch & SHA pinned**  
 ✓ **REGISTERED.md read** (278KB; index structure verified)  
-✓ **z1-inbox MANIFEST.md read & verified** (MANIFEST.md present, 23 files listed)  
+• **z1-inbox MANIFEST.md read** (MANIFEST.md present, 23 files listed; per-file SHA-256 verification pending because the payload files are absent)
 ✓ **PRIORITY_QUEUE.md read** (1 READY item, 5 blockers identified)
 
 ---
