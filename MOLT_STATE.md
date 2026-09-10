@@ -1,105 +1,305 @@
-# MOLT_STATE.md — HumanAIOS Current Molt State Register
+---
+# MOLT_STATE.md — Molt Lifecycle State Machine
 
-**Status:** LIVE — proposal (Zone 1 draft · pending Zone 2 ratification)
-**State as of:** Last Zone 3 commit — not real-time. Current declared state reflects the most recent Night-executed git commit to main.
-**Version:** 1.0
-**Created:** 2026-06-28 · Issue #25 · Biological Coordination Protocol
-**Authority:** Zone 2 ratification required before canonical
-**Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/MOLT_STATE.md`
-**Update model:** Zone 1 proposes → Zone 2 ratifies → Zone 3 commits
-**Machine-readable schema:** `architecture/molt_state.schema.json`
-
-> **Zone boundary note:** This file is a Zone 1 proposal. All state declarations require Zone 2 (Night) ratification before they are treated as canonical. Zone 3 execution (git commit to main) follows Zone 2 sign-off.
+**Location:** `operations/MOLT_STATE.md` (canonical)  
+**Status:** SPECIFICATION (Phase 1, Q-NF-SCHEMA-01)  
+**Authority:** Z2 (Night) — ratifies molt state transitions  
+**Enforcement:** CI gate validates state consistency, anti-cascade rules
 
 ---
 
-## Current Molt Stage
+## Overview
 
-**Stage:** `mid_molt`
-**Plain-language:** Mid-molt — chitin hardening.
+**MOLT_STATE** is the authoritative record of all molt lifecycles in HumanAIOS. Each molt moves through predictable states: proposal → ratification → application → measurement → keep/revert.
 
-The old exoskeleton (Make.com, hardcoded HAIOSCC state, scattered governance) has been shed. The new shell (operations repo as document management engine, SEED.md as genome, SESSION_RITUALS.md as nervous system) is hardening but not yet fully rigid. Layer 1 is active. Layer 2 is partially built. Layer 3 has not started.
-
-| Layer | Name | Status | Description |
-|-------|------|--------|-------------|
-| Layer 1 | Ground Truth Seed | **ACTIVE** | SEED.md is the organism identity anchor. Operations repo is single source of truth. |
-| Layer 2 | Document Management Engine | **MID-MOLT** | Post-Gate 2 — document engine partially built. Migrations 006–010 not yet committed files. Building Freeze applies until Gate 3. |
-| Layer 3 | Self-Governing Application | **NOT STARTED** | Gate 3 activation condition not met. |
+**Relationship to NF_LEDGER:**
+- Each molt entry in NF_LEDGER carries a `molt_id` and `outcome`
+- MOLT_STATE tracks the **journey** (from PROPOSED to MEASURING to KEEP/REVERT)
+- NF_LEDGER is the **permanent record** (append-only, hash-chained)
 
 ---
 
-## Biological System Health
+## State Machine
 
-One row per biological system analogue. Status options: `ACTIVE` / `FORMING` / `DORMANT` / `SHED`.
-
-| Biological System | HumanAIOS Analogue | File / Surface | Status | Notes |
-|-------------------|--------------------|----------------|--------|-------|
-| Molt / Ecdysis | Layer transitions (Layer 1 → 2 → 3) | This file (`MOLT_STATE.md`) | ACTIVE | Mid-molt. Transition 1→2 in progress. |
-| Exoskeleton (old) | Make.com, hardcoded HAIOSCC state, scattered governance | — | SHED | Old shell shed. Operational surfaces migrated to operations repo. |
-| Chitin / New shell | `operations` repo as canonical document management engine | humanaios-ui/operations | FORMING | Hardening. Migrations 006–010 pending commitment. |
-| Genome | `SEED.md` — identity, confirmed findings, architecture | `SEED.md` | ACTIVE | v1.2 live. Zone 2 ratified. SHA `e967176f`. |
-| Nervous System | `SESSION_RITUALS.md` — session open/close protocol, parser tags | `SESSION_RITUALS.md` | ACTIVE | v6.4.1 live. Substrate-agnostic. |
-| Immune Response | Drift detection catalog | `DRIFT_LOG.md`, `GOVERNANCE.md` | ACTIVE | 32 principles live. Drift signal table in GOVERNANCE.md §DRIFT SIGNALS. |
-| Metabolism | ACAT assessment pipeline — continuous ingestion and scoring | `acat/` | ACTIVE | N=95 as of 2026-06-24. Tier 1 and Tier 2 arms active. |
-| Phenotype | `humanaios.ai` public surface | humanaios.ai | FORMING | /assess live. Dashboard buildout pending Z2-HOMEPAGE-01→05. |
-| Circadian Rhythm | Charter cycle — 90-day OR&D window | Charter | ACTIVE | Day 69 of 90 (Apr 17 – Jul 16, 2026). 22 days to close. |
-| Homeostasis | Zone system (Zone 1 / Zone 2 / Zone 3) | `GOVERNANCE.md` | ACTIVE | Zone boundaries maintained. v6.4.3 current. |
-| Cell Division | Each ACAT session adds a row — corpus grows | `REGISTERED.md`, Supabase | ACTIVE | 95 rows. Append-only per P21. |
-| Apoptosis | P5 filter — work archived, not deleted | `GOVERNANCE.md` §P5 | ACTIVE | OR&D filter applied. Non-passing work archived to ic_archive/. |
-
----
-
-## Molt Trigger Log
-
-Append-only. Each entry records what triggered a layer transition or molt-stage change.
-
-| Date | Trigger | Layer Impact | Authority |
-|------|---------|--------------|-----------|
-| 2026-05-08 | SEED.md created and Zone 2 ratified. Operations repo established as single source of truth. | Layer 1 → ACTIVE | Zone 2 (Night) · S-050726-04 |
-| 2026-05-08 | Gate 2 conditions assessed. Molt stage declared Mid-molt. HAIOSCC_OPERATIONAL_BUILD_PLAN_V1_0 produced. | Layer 2 → MID-MOLT initiated | Zone 2 (Night) · S-050726-04 |
-
-> **Protocol:** Future trigger entries are appended here when Zone 2 ratifies a layer status change. Zone 1 may propose entries; only Zone 2 may ratify them as canonical.
+```
+┌──────────────┐
+│   PROPOSED   │  ← Z1 proposes molt_candidate to Priority Queue
+└──────┬───────┘
+       │ (Z2 decision)
+       ├─→ REJECTED    (end state: Z2 rejects, no molt created)
+       │
+       ├─→ ACCEPTED    (Z2 approves, assigns molt_id, ratification hash)
+       │   └─→ RATIFIED ← entry created in NF_LEDGER with outcome="MEASURING"
+       │       │ (code applies constant change)
+       │       └─→ APPLIED (constant updated, molt_id tracked)
+       │           │ (window_end timestamp reached)
+       │           └─→ MEASURED (falsifier tested, brier_actual computed)
+       │               │ (outcome resolved)
+       │               ├─→ KEPT      (prediction held, outcome="KEEP" written)
+       │               │              end state: constant change permanent
+       │               │
+       │               └─→ REVERTED  (falsifier tripped, outcome="REVERT" written)
+       │                             constant reverted to prior_value
+       │                             F/IC candidate filed
+       │                             end state: constant rolled back
+       │
+       └─→ CONTESTED (Z2 decision contested by Z1; re-read requested)
+           └─→ ACCEPTED or REJECTED (new Z2 decision with contest_response)
+```
 
 ---
 
-## Next Molt Condition (Layer 2 → Layer 3)
+## State Definitions
 
-**Gate 3** — all three conditions must be met simultaneously:
-
-| Condition | Status | Notes |
-|-----------|--------|-------|
-| `arxiv_public` | **NOT MET** | arXiv submission on hold. OR&D phase; Building Freeze applies. |
-| `dataset_b_live` | **NOT MET** | Dataset B collection surface not yet built. Gate 3 deliverable. |
-| `revenue_positive_month` | **NOT MET** | No revenue-positive month yet. OR&D phase. |
-
-Gate 3 conditions are canonical in this file. SEED.md §6.2 points here.
-
-Layer 3 will not start until all three conditions are verified by Zone 2.
-
----
-
-## Molt Inhibitors
-
-Current blockers preventing Layer 2 hardening or Gate 3 approach:
-
-| Inhibitor ID | Description | Blocking | Resolution Path |
-|--------------|-------------|----------|-----------------|
-| Z2-HOMEPAGE-01→05 | Five open Night decisions on homepage deploy | Phenotype (humanaios.ai dashboard) | Zone 2 (Night) decision queue |
-| migration_009 | migration_009 not yet a committed file in repo (confirmed absent S-062326) | Layer 2 Supabase schema completeness | Zone 3 execution after migration_008 prerequisite |
-| migration_010 | migration_010_add_elicitation_surface.sql not yet committed | Layer 2 schema extension | Zone 3 execution, follows migration_009 |
-| arXiv-hold | arXiv paper submission on hold during OR&D phase | Gate 3 condition `arxiv_public` | Gate 3 — post-charter decision |
-| dataset_b | Dataset B collection surface not built | Gate 3 condition `dataset_b_live` | Gate 3 deliverable — design phase |
-| Building Freeze | No new builds until Gate 3. Design work only. | Layer 2 visualization (meta2d.js candidate) | Lift at Gate 3 |
+| State | Owner | What It Means | Next States |
+|:------|:------|:-------------|:-----------|
+| **PROPOSED** | Z1 | Molt candidate in Priority Queue, awaiting Z2 decision | ACCEPTED, REJECTED, CONTESTED |
+| **REJECTED** | Z2 | Z2 declined the molt; no entry created | (terminal) |
+| **ACCEPTED** | Z2 | Z2 approved; molt_id assigned, ratification hash computed | RATIFIED |
+| **RATIFIED** | Z2 | Z2 signature on molt complete; code can apply | APPLIED |
+| **APPLIED** | Code | Constant changed to proposed_value; molt_id tracked on constant | MEASURED |
+| **MEASURED** | Code | Falsifier tested at window_end; brier_actual computed | KEPT, REVERTED |
+| **KEPT** | Code | Prediction held; constant change permanent | (terminal) |
+| **REVERTED** | Code | Falsifier tripped; constant rolled back to prior_value | (terminal, but may trigger new molt) |
+| **CONTESTED** | Z1 | Z1 contests Z2 decision; re-read requested within 48h | ACCEPTED, REJECTED (with contest_response) |
 
 ---
 
-## Design Notes
+## NF_LEDGER Entry Fields Mapped to State
 
-- The "Apoptosis / P5 filter" analogy is the weakest mapping: biological apoptosis is programmed cell death, while P5 is a work-quality filter that archives rather than destroys. The functional parallel holds (non-viable work is cleanly removed from the active pool), but the cellular mechanism differs. Flagged as a Zone 2 candidate for refinement if the analogy causes confusion in practice.
-- "Circadian Rhythm / Charter cycle" is a loose analogy: a charter is a one-time bounded period, not a repeating cycle. The 90-day OR&D window behaves more like a developmental stage than a repeating rhythm. If future charter cycles are defined, this mapping will tighten. Noted for Zone 2 review.
+Each MOLT_STATE entry corresponds to an NF_LEDGER row. Progression is encoded in the `outcome` field:
+
+```json
+{
+  "molt_id": "M-20260916-0001",
+  "constant": "behavior_spec.json:impact_dial",
+  "prior_value": 0.5,
+  "proposed_value": 0.55,
+  "prediction": {
+    "metric": "Brier",
+    "target": 0.15,
+    "window_days": 7,
+    "falsifier": "Brier score >= 0.20 at window close"
+  },
+  "z2_ratified_at": "2026-09-16T10:00:00Z",
+  "ratification_hash": "sha256(...)",
+  "window_start": "2026-09-16T10:00:00Z",
+  "window_end": "2026-09-23T00:00:00Z",
+  "outcome": "MEASURING",           ← State marker
+  "brier_actual": null,            ← Set at MEASURED
+  "timestamp": "2026-09-16T10:00:00Z",
+  "prior_hash": "abc123...",
+  "hash": "def456..."
+}
+```
+
+**State indicators in NF_LEDGER:**
+- `outcome="MEASURING"` ← APPLIED state (waiting for window_end)
+- `outcome="KEEP"` + `brier_actual` ← KEPT state
+- `outcome="REVERT"` + `prior_value` restoration ← REVERTED state
+- `outcome="HISTORICAL"` ← Backfilled from v0.1, not part of molt cycle
 
 ---
 
-## Changelog
+## Examples: Molt Sequences
 
-- 2026-06-28 · v1.0 · Issue #25 · Zone 1 draft created. Pending Zone 2 ratification.
+### Example 1: Simple KEEP
+
+```
+1. Z1 proposes molt to increase impact_dial (0.5 → 0.55)
+   State: PROPOSED
+   
+2. Z2 approves in REGISTERED.md with ratification hash
+   State: ACCEPTED → RATIFIED
+   NF_LEDGER entry created: molt_id=M-0001, outcome=MEASURING
+   
+3. Code applies: impact_dial = 0.55, tracked as molt M-0001
+   State: APPLIED
+   
+4. Seven days later, falsifier tested:
+   - Prediction: Brier < 0.20
+   - Actual: Brier = 0.14
+   - Result: PASS (prediction held)
+   State: MEASURED → KEPT
+   NF_LEDGER updated: outcome=KEEP, brier_actual=0.14
+   
+5. End state: constant change permanent, next molt can propose further changes
+```
+
+### Example 2: REVERT + Anti-Cascade Freeze
+
+```
+1. Z1 proposes molt A: constant X (0.5 → 0.55)
+   State: PROPOSED
+   Z2 approves
+   State: RATIFIED, NF_LEDGER: M-A, outcome=MEASURING
+   
+2. Seven days later: falsifier fails
+   Prediction: Brier < 0.20, Actual: Brier = 0.25
+   State: MEASURED → REVERTED
+   NF_LEDGER: M-A, outcome=REVERT
+   F/IC candidate filed
+   Constant X reverted to 0.5
+   
+3. Z1 proposes molt B: constant X (0.5 → 0.60)  [different target]
+   State: PROPOSED
+   Z2 approves
+   State: RATIFIED, NF_LEDGER: M-B, outcome=MEASURING
+   
+4. Seven days later: falsifier fails again
+   Prediction: Brier < 0.18, Actual: Brier = 0.22
+   State: MEASURED → REVERTED
+   NF_LEDGER: M-B, outcome=REVERT
+   
+5. Anti-cascade freeze triggered:
+   - Constant X reverted twice in a row (M-A REVERT, M-B REVERT)
+   - Per anti-cascade rule 4: constant X now FROZEN
+   - No new molts can propose changes to X until Z2 Tier-2 ruling
+   - Z2 either: (a) reopens with new context, or (b) retires the constant
+```
+
+### Example 3: Contested Decision
+
+```
+1. Z1 proposes molt C
+   State: PROPOSED
+   
+2. Z2 rejects (REJECTED state)
+   
+3. Z1 contests within 48h: "IC-disputed, Z2 decision contested"
+   State: CONTESTED
+   
+4. Z2 re-reads + context; issues new ratification with contest_response
+   New decision: ACCEPT (overrides prior rejection)
+   State: ACCEPTED → RATIFIED
+   NF_LEDGER entry created with new molt_id
+   
+5. Molt proceeds from RATIFIED onward
+```
+
+---
+
+## Anti-Cascade State Tracking
+
+Each NF_LEDGER entry includes `anti_cascade_check`:
+
+```json
+{
+  "anti_cascade_check": {
+    "open_molt_count": 1,
+    "reverts_on_constant": 1,
+    "rank_in_queue": 4,
+    "frozen_constant": false
+  }
+}
+```
+
+**State changes triggered by anti-cascade:**
+- `reverts_on_constant` increments on REVERT
+- `reverts_on_constant == 2` → `frozen_constant = true`
+- `frozen_constant = true` → blocks new PROPOSED molts on that constant
+- `open_molt_count` at apply time; error if > K (K=3)
+
+---
+
+## State Diagram (Formal)
+
+```
+START
+  │
+  ├─ PROPOSED ──(Z2 rejects)──→ REJECTED (terminal)
+  │
+  ├─ PROPOSED ──(Z2 accepts)──→ ACCEPTED
+  │                                 │
+  │                          (generate molt_id + hash)
+  │                                 │
+  │                             ↓
+  │                          RATIFIED
+  │                                 │
+  │                          (code applies change)
+  │                                 │
+  │                             ↓
+  │                          APPLIED ────→ MEASURED ─┐
+  │                                      (test falsifier)
+  │                                                   │
+  │                        ┌─────────────────────────┴────────────────────┐
+  │                        │                                              │
+  │                    ↓ (PASS)                                  ↓ (FAIL)
+  │                   KEPT                                     REVERTED
+  │                 (terminal)                            (→ freeze check)
+  │                                                       (terminal)
+  │
+  └─ PROPOSED ──(Z1 contests, <48h)──→ CONTESTED
+                                           │
+                                   (Z2 re-reads)
+                                           │
+                                    ┌──────┴──────┐
+                                    │             │
+                               ↓ (ACCEPT)    ↓ (REJECT)
+                             ACCEPTED       REJECTED
+                            (→ RATIFIED)    (terminal)
+                            
+END
+```
+
+---
+
+## Transitions and Preconditions
+
+| Transition | Precondition | Postcondition |
+|:-----------|:-------------|:--------------|
+| PROPOSED → ACCEPTED | Z2 reads candidate + falsifier | molt_id assigned, ratification_hash computed |
+| PROPOSED → REJECTED | Z2 reads + decides no | (no NF_LEDGER entry) |
+| ACCEPTED → RATIFIED | Code invoked at session open | NF_LEDGER entry created, outcome=MEASURING |
+| RATIFIED → APPLIED | Code executes constant assignment | constant updated with molt_id tracking |
+| APPLIED → MEASURED | window_end reached, falsifier tested | outcome updated (KEEP or REVERT), brier_actual set |
+| MEASURED → KEPT | Falsifier passed | Constant change permanent; next molt can propose |
+| MEASURED → REVERTED | Falsifier failed | Constant reverted; F/IC candidate filed; freeze check |
+| PROPOSED → CONTESTED | Z1 contest request, <48h of Z2 decision | MOLT_STATE marked contested; Z2 re-reads |
+| CONTESTED → ACCEPTED | Z2 re-reads, approves with context | New ratification hash; → RATIFIED |
+| CONTESTED → REJECTED | Z2 re-reads, declines | Rejected state, with contest_response in NF_LEDGER |
+
+---
+
+## Enforcement in CI
+
+**z2_ratification_gate.yml** checks:
+1. No REVERT → PROPOSED transition on same constant within 48h (anti-cascade rule 4)
+2. No concurrent molts > K=3 (open_molt_count in anti_cascade_check)
+3. All state transitions have required NF_LEDGER entries
+4. Timestamps are monotonically increasing (window_start < window_end < timestamp)
+
+---
+
+## Relationship to PRIORITY_QUEUE.md
+
+Molt candidates enter the queue at PROPOSED state, ranked by:
+```
+Score = impact + Σ(impact of items this unblocks)
+```
+
+**Molt ranking precedence:**
+- Anti-cascade rule 5: Molt candidates ranked by Priority Queue score; no bypassing
+- High-score molts prioritized over low-score proposals
+- Molts on frozen constants blocked regardless of score
+
+---
+
+## Success Criteria (Phase 1 Close)
+
+- ✅ MOLT_STATE.md published in operations/
+- ✅ All molt transitions logged in NF_LEDGER with consistent outcome values
+- ✅ Anti-cascade state tracking working (open_molt_count, reverts_on_constant, frozen check)
+- ✅ Freeze rule verified: 2 consecutive reverts on same constant blocks new proposals
+- ✅ Z2 can ratify molts; code applies + measures; outcomes recorded
+- ✅ Falsifier doctrine enforced across all molts (no molt without falsifier)
+
+---
+
+## Open Questions for Z2
+
+1. Should contested decisions create a new molt_id, or reuse the prior one with new hash?
+2. How long is a constant frozen after 2 reverts? Indefinite until Z2 Tier-2 ruling, or auto-unfreeze after N months?
+3. Should MOLT_STATE.md be part of a separate molt_events.jsonl, or projections from NF_LEDGER entries only?
+
+(See Q-NF-SCHEMA-01 for additional context.)
