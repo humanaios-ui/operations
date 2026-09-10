@@ -1,6 +1,6 @@
 # NF_LEDGER Schema — v1.0 (Unified Calibration Ledger)
 
-**Location:** `operations/NF_LEDGER.jsonl` (canonical)  
+**Location:** `ledgers/NF_LEDGER.jsonl` (canonical)  
 **Status:** SPECIFICATION (Phase 1, Q-NF-SCHEMA-01)  
 **Authority:** Z2 (Night) — ratifies schema changes  
 **Enforcement:** CI gate validates hash chain, append-only, no overwrites
@@ -199,7 +199,7 @@ where:
 
 ```yaml
 nf_ledger_hash_chain:
-  - Read NF_LEDGER.jsonl up to prior_hash
+  - Read ledgers/NF_LEDGER.jsonl up to prior_hash
   - Extract last record: get its hash
   - New entry's prior_hash must == last record's hash
   - Compute hash of new entry, verify it matches hash field
@@ -216,7 +216,7 @@ When molt_cycle.py wakes (session open, after VERDICT batch):
 
 ```python
 # READ phase
-nf_ledger = read_append_only(NF_LEDGER.jsonl)
+nf_ledger = read_append_only("ledgers/NF_LEDGER.jsonl")
 brier_per_predictor = aggregate_brier(nf_ledger)
 revert_rate = count_reverts(nf_ledger) / count_molts(nf_ledger)
 
@@ -252,7 +252,7 @@ elif outcome == "REVERT":
 
 ## Initial Seeding (Sep 16)
 
-When Phase 1 launches, initialize NF_LEDGER.jsonl:
+When Phase 1 launches, initialize ledgers/NF_LEDGER.jsonl:
 
 1. **Backfill v0.1 entries** (if any exist):
    - Convert to v1.0 format
