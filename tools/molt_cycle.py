@@ -52,8 +52,42 @@ def main():
     ev=[r for p in glob.glob(a.events) if p not in (a.nf,a.molt_ledger) for r in read_jsonl(p)]
 
     # --- READ: signals per constant, from ledgers only ---
-    resolved=[r for r in nf if r.get("outcome") in (0,1,True,False) and "p" in r]
-    brier=(st.mean((float(r["p"])-float(bool(r["outcome"])))**2 for r in resolved) if resolved else None)
+    # Join PIN and RESOLVE events: for each token_id, find latest RESOLVE with scoreable PIN
+    pins={}; resolves={}; dates={}
+    for row in nf:
+        t=row.get("type")
+        if t=="PIN": pins[row.get("pin_id")]=row
+        elif t=="RESOLVE": resolves.setdefault(row.get("token_id"),[]).append(row)
+        elif t=="DATE": dates[row.get("token_id")]=row
+        elif t=="STRIKE":
+            # Apply correction: retract the prior resolve
+            tid=row.get("token_id")
+            if tid in resolves and resolves[tid]:
+                resolves[tid][-1]["_struck"]=True
+
+    resolved=[]
+    for pin_id,pin in pins.items():
+        tid=pin.get("token_id")
+        if tid not in dates: continue  # No DATE event → VOID
+        if not pin.get("scoreable"): continue  # Not scoreable
+        if tid not in resolves or not resolves[tid]: continue  # No RESOLVE
+        res_list=resolves[tid]
+        res=res_list[-1]  # Latest RESOLVE
+        if res.get("_struck"): continue  # Struck out by STRIKE
+        # Found a resolved, scoreable forecast
+        outcome_str=res.get("outcome","")
+        if outcome_str not in ("YES","NO"): continue
+        outcome_float=1.0 if outcome_str=="YES" else 0.0
+        resolved.append({
+            "pin_id": pin_id,
+            "token_id": tid,
+            "predictor": pin.get("predictor"),
+            "p": pin.get("p"),
+            "outcome": outcome_str,
+            "outcome_float": outcome_float
+        })
+
+    brier=(st.mean((float(r["p"])-r["outcome_float"])**2 for r in resolved) if resolved else None)
     open_molts=[m for m in molts if m.get("event")=="MOLT" and not any(
         x.get("molt_id")==m.get("molt_id") and x.get("event") in ("KEEP","REVERT") for x in molts)]
     reverts={}

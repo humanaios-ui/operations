@@ -462,17 +462,61 @@ class ResearchIntakeEvaluator:
     # -- ledgers -----------------------------------------------------------------
 
     def _nf_write(self, record: IntakeRecord, update: bool = False) -> None:
-        if update:
-            self.nf_ledger = [e for e in self.nf_ledger if e["intake_id"] != record.intake_id]
+        """Emit PIN events at issue, RESOLVE events at resolution (NF_EVENT_SCHEMA compliant)."""
+        # PIN events: issued at prediction time
+        prev_hash = "0" * 64
+        if self.nf_ledger:
+            prev_hash = self.nf_ledger[-1].get("hash", "0" * 64)
+
+        seq = len([e for e in self.nf_ledger if e.get("type") in ("PIN", "RESOLVE")]) + 1
+
         for p in record.molt_predictions:
-            self.nf_ledger.append({
-                "molt_id": p.prediction_id, "intake_id": record.intake_id, "cycle": record.cycle_number,
-                "variable": p.variable, "prediction_value": p.prediction_value, "confidence": p.confidence,
-                "predicted_at": p.predicted_at.isoformat(),
-                "resolved_at": p.resolved_at.isoformat() if p.resolved_at else None,
-                "actual_value": p.actual_value, "brier_score": p.brier_score, "reverted": p.reverted,
+            # PIN event: forecast issuance
+            pin_event = {
+                "seq": seq,
+                "type": "PIN",
+                "at": p.predicted_at.isoformat(),
+                "by": "specimen_intake",
+                "pin_id": f"{p.prediction_id}:intake",
+                "token_id": p.prediction_id,
+                "target": p.prediction_id,
+                "predictor": "specimen_intake",
+                "p": float(p.prediction_value) if p.prediction_value is not None else None,
+                "scoreable": p.resolved_at is not None,  # becomes scoreable once resolved
                 "specimen_id": record.specimen_id,
-            })
+                "variable": p.variable,
+                "intake_id": record.intake_id,
+                "cycle": record.cycle_number,
+            }
+            pin_event["hash"] = hashlib.sha256(
+                json.dumps(pin_event, sort_keys=True, default=str).encode()
+            ).hexdigest()
+            pin_event["prev_hash"] = prev_hash
+            prev_hash = pin_event["hash"]
+            seq += 1
+            self.nf_ledger.append(pin_event)
+
+            # RESOLVE event: if resolved, emit outcome
+            if p.resolved_at is not None and p.actual_value is not None:
+                outcome = "YES" if bool(p.actual_value) else "NO"
+                resolve_event = {
+                    "seq": seq,
+                    "type": "RESOLVE",
+                    "at": p.resolved_at.isoformat(),
+                    "by": "specimen_intake",
+                    "token_id": p.prediction_id,
+                    "outcome": outcome,
+                    "source": f"specimen-intake-evaluator:{record.intake_id}",
+                    "brier_score": p.brier_score,
+                    "reverted": p.reverted,
+                }
+                resolve_event["hash"] = hashlib.sha256(
+                    json.dumps(resolve_event, sort_keys=True, default=str).encode()
+                ).hexdigest()
+                resolve_event["prev_hash"] = prev_hash
+                prev_hash = resolve_event["hash"]
+                seq += 1
+                self.nf_ledger.append(resolve_event)
 
     def _molt_event(self, event_type: str, record: IntakeRecord, **extra) -> None:
         prev = self.molt_events[-1]["event_hash"] if self.molt_events else None
@@ -490,12 +534,14 @@ class ResearchIntakeEvaluator:
 
     def average_brier(self, variable: Optional[str] = None) -> Optional[float]:
         s = [e["brier_score"] for e in self.nf_ledger
-             if e["brier_score"] is not None and (variable is None or e["variable"] == variable)]
+             if e.get("type") == "RESOLVE" and e.get("brier_score") is not None
+             and (variable is None or e.get("variable") == variable)]
         return sum(s) / len(s) if s else None
 
     def revert_rate(self) -> Optional[float]:
-        resolved = [e for e in self.nf_ledger if e["brier_score"] is not None]
-        return (sum(1 for e in resolved if e["reverted"]) / len(resolved)) if resolved else None
+        resolved = [e for e in self.nf_ledger
+                    if e.get("type") == "RESOLVE" and e.get("brier_score") is not None]
+        return (sum(1 for e in resolved if e.get("reverted")) / len(resolved)) if resolved else None
 
     def falsifier_check(self) -> List[str]:
         out = []
