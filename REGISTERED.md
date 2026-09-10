@@ -3913,6 +3913,8 @@ H-CAND-CASCADE-01 | Feedback + procedure + blame without external check = runawa
 
 H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, koshare) | Radin 1956, Hyde 1998, Tedlock | 2026-09-08 | primaries unread | CLAIM | falsifier: clown license NOT from ritual authority in >= 2 cases | aca4ee8c319e62b50cdee79507b30d53
 
+### F-62 — Phase 1 Governance Adoption Complete
+
 ---
 id: "F-62"
 name: "Phase 1 Governance Adoption Complete"
