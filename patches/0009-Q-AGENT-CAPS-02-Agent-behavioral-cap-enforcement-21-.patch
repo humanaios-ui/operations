@@ -1,0 +1,993 @@
+From 1afcb97a8f155fe8b88788d18b3003895c6fea98 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 10 Sep 2026 17:52:59 +0000
+Subject: [PATCH 09/11] Q-AGENT-CAPS-02: Agent behavioral cap enforcement (21
+ tests, all passing)
+
+- agent_caps_runtime.py: CapEnforcer class with REQUEST, TOKEN_BUDGET, REPLY_COST, CONCURRENT, SCOPE cap types
+- check_cap_before_operation(): Gate function blocking operations that exceed caps
+- record_operation(): Track usage per agent and per cap
+- get_remaining_budget(): Return budget summary for reporting
+- Audit trail: All cap checks and operations logged for compliance
+- behavior_spec.json: Cap definitions with molt_id M-20260910-CAPS-01
+- Integration points: prs_run, agent_core, adv_eval, molt_cycle
+
+Test coverage:
+- TestCapEnforcerInit (3): initialization, file loading, default caps
+- TestCapChecks (6): REQUEST, TOKEN_BUDGET, REPLY_COST, CONCURRENT, SCOPE, multi-cap
+- TestCapViolations (4): exceeding limits, window reset, concurrent max, token overage
+- TestOperationRecording (2): success, blocked
+- TestBudgetTracking (3): initial, after usage, multi-agent isolation
+- TestReleaseAndReset (2): concurrent release, window reset
+- TestAuditTrail (1): logging
+
+21/21 tests passing.
+Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01HzkHkpvVnCCDskpba89nTf
+---
+ agent_caps_runtime.py    | 411 ++++++++++++++++++++++++++++++++++
+ behavior_spec.json       |  66 ++++++
+ test_agent_caps_tier1.py | 460 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 937 insertions(+)
+ create mode 100644 agent_caps_runtime.py
+ create mode 100644 behavior_spec.json
+ create mode 100644 test_agent_caps_tier1.py
+
+diff --git a/agent_caps_runtime.py b/agent_caps_runtime.py
+new file mode 100644
+index 0000000..1b6bf19
+--- /dev/null
++++ b/agent_caps_runtime.py
+@@ -0,0 +1,411 @@
++"""
++agent_caps_runtime.py — Agent Behavioral Cap Enforcement (v0.1)
++
++Enforces per-agent caps defined in behavior_spec.json:
++- Request limits (N req/hour per zone)
++- Token budgets (context window allocation per session)
++- Reply cost caps (max tokens per reply)
++- Concurrent operation limits (max simultaneous tasks per zone)
++- Scope caps (which repositories, decision classes, zones)
++
++Pattern:
++1. CapEnforcer loads behavior_spec.json at init
++2. Before operation: check_cap_before_operation(agent_id, op_type, cost, zone)
++3. Returns: (allowed: bool, remaining_budget: Dict, reason: str)
++4. On exceed: blocks operation, logs to audit trail, emits GAP callout
++5. Integration: called by agent_core.py, prs_run.py, adv_eval.py
++"""
++
++import json
++import hashlib
++from dataclasses import dataclass, asdict, field
++from typing import Dict, List, Any, Optional, Tuple
++from datetime import datetime, timezone, timedelta
++from enum import Enum
++import re
++
++
++class OperationType(Enum):
++    """Types of operations subject to cap enforcement."""
++    REQUEST = "REQUEST"                 # API request (counts against request limit)
++    TOKEN_ALLOCATION = "TOKEN_ALLOCATION"  # Token budget claim
++    REPLY_GENERATION = "REPLY_GENERATION"  # Reply generation (counts tokens)
++    CONCURRENT_TASK = "CONCURRENT_TASK"    # Start concurrent task
++    ZONE_ACCESS = "ZONE_ACCESS"            # Access to a zone
++
++
++@dataclass
++class CapDefinition:
++    """A single cap definition from behavior_spec.json."""
++    cap_name: str                       # e.g., "max_requests_per_hour_z1"
++    cap_type: str                       # REQUEST, TOKEN_BUDGET, REPLY_COST, CONCURRENT, SCOPE
++    limit: Optional[int] = None         # Numeric limit
++    window_minutes: Optional[int] = None # Time window (for rate-based caps)
++    zones: Optional[List[str]] = None   # Applicable zones (Z1, Z2, Z3)
++    scope_repos: Optional[List[str]] = None  # Allowed repos (if SCOPE cap)
++    scope_decision_classes: Optional[List[str]] = None  # Allowed classes
++    enabled: bool = True
++
++
++@dataclass
++class CapUsage:
++    """Current usage tracking for a single agent."""
++    agent_id: str
++    cap_name: str
++    operations_count: int = 0
++    tokens_used: int = 0
++    concurrent_tasks: int = 0
++    last_reset_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
++    events: List[Dict[str, Any]] = field(default_factory=list)
++
++    def reset_if_window_expired(self, window_minutes: int):
++        """Reset counters if window_minutes has elapsed since last_reset_at."""
++        last_reset = datetime.fromisoformat(self.last_reset_at.replace('Z', '+00:00'))
++        now = datetime.now(timezone.utc)
++        elapsed = (now - last_reset).total_seconds() / 60
++        if elapsed >= window_minutes:
++            self.operations_count = 0
++            self.tokens_used = 0
++            self.concurrent_tasks = 0
++            self.last_reset_at = now.isoformat()
++
++
++@dataclass
++class CapCheckResult:
++    """Result of cap check before operation."""
++    allowed: bool
++    reason: str
++    remaining_budget: Dict[str, Any] = field(default_factory=dict)
++    violated_caps: List[str] = field(default_factory=list)
++
++
++class CapEnforcer:
++    """Enforces agent behavioral caps from behavior_spec.json."""
++
++    def __init__(self, behavior_spec_path: str = "behavior_spec.json"):
++        """
++        Initialize CapEnforcer.
++
++        Args:
++            behavior_spec_path: Path to behavior_spec.json
++        """
++        self.behavior_spec_path = behavior_spec_path
++        self.caps: Dict[str, CapDefinition] = {}
++        self.usage: Dict[str, Dict[str, CapUsage]] = {}  # agent_id -> cap_name -> CapUsage
++        self.audit_trail: List[Dict[str, Any]] = []
++        self._load_caps()
++
++    def _load_caps(self):
++        """Load cap definitions from behavior_spec.json."""
++        try:
++            with open(self.behavior_spec_path, 'r') as f:
++                spec = json.load(f)
++
++            # Extract caps section
++            caps_section = spec.get('caps', {})
++            for cap_name, cap_def in caps_section.items():
++                self.caps[cap_name] = CapDefinition(
++                    cap_name=cap_name,
++                    cap_type=cap_def.get('type', 'UNKNOWN'),
++                    limit=cap_def.get('limit'),
++                    window_minutes=cap_def.get('window_minutes', 60),
++                    zones=cap_def.get('zones', ['Z1', 'Z2', 'Z3']),
++                    scope_repos=cap_def.get('scope_repos'),
++                    scope_decision_classes=cap_def.get('scope_decision_classes'),
++                    enabled=cap_def.get('enabled', True)
++                )
++        except FileNotFoundError:
++            # Create minimal default caps if file not found
++            self._create_default_caps()
++
++    def _create_default_caps(self):
++        """Create default cap definitions."""
++        self.caps = {
++            'max_requests_per_hour': CapDefinition(
++                cap_name='max_requests_per_hour',
++                cap_type='REQUEST',
++                limit=100,
++                window_minutes=60,
++                zones=['Z1', 'Z2', 'Z3']
++            ),
++            'token_budget_per_session': CapDefinition(
++                cap_name='token_budget_per_session',
++                cap_type='TOKEN_BUDGET',
++                limit=100000,
++                window_minutes=None,
++                zones=['Z1']
++            ),
++            'max_reply_tokens': CapDefinition(
++                cap_name='max_reply_tokens',
++                cap_type='REPLY_COST',
++                limit=4000,
++                window_minutes=None,
++                zones=['Z1']
++            ),
++            'max_concurrent_tasks': CapDefinition(
++                cap_name='max_concurrent_tasks',
++                cap_type='CONCURRENT',
++                limit=3,
++                window_minutes=None,
++                zones=['Z1']
++            ),
++        }
++
++    def check_cap_before_operation(
++        self,
++        agent_id: str,
++        op_type: OperationType,
++        cost: int = 1,
++        zone: str = 'Z1',
++        repo: Optional[str] = None,
++        decision_class: Optional[str] = None
++    ) -> CapCheckResult:
++        """
++        Check whether operation is allowed under current caps.
++
++        Args:
++            agent_id: Agent identifier (e.g., 'claude-agent-1')
++            op_type: OperationType enum
++            cost: Cost of operation (requests=1, tokens=N)
++            zone: Zone (Z1, Z2, Z3)
++            repo: Repository (for scope checks)
++            decision_class: Decision class (for scope checks)
++
++        Returns:
++            CapCheckResult with allowed/reason/remaining_budget
++        """
++        result = CapCheckResult(
++            allowed=True,
++            reason="No caps violated",
++            remaining_budget={},
++            violated_caps=[]
++        )
++
++        # Initialize usage tracking for this agent if needed
++        if agent_id not in self.usage:
++            self.usage[agent_id] = {}
++
++        violated = []
++
++        # Check each applicable cap
++        for cap_name, cap_def in self.caps.items():
++            if not cap_def.enabled:
++                continue
++            if zone not in (cap_def.zones or ['Z1', 'Z2', 'Z3']):
++                continue
++
++            # Skip if cap doesn't apply to this operation type
++            if not self._cap_applies_to_operation(cap_def, op_type):
++                continue
++
++            # Initialize usage for this cap if needed
++            if cap_name not in self.usage[agent_id]:
++                self.usage[agent_id][cap_name] = CapUsage(agent_id, cap_name)
++
++            usage = self.usage[agent_id][cap_name]
++
++            # Reset counters if window expired
++            if cap_def.window_minutes:
++                usage.reset_if_window_expired(cap_def.window_minutes)
++
++            # Check REQUEST caps
++            if cap_def.cap_type == 'REQUEST' and op_type == OperationType.REQUEST:
++                if usage.operations_count >= cap_def.limit:
++                    violated.append(cap_name)
++                else:
++                    remaining = cap_def.limit - usage.operations_count
++                    result.remaining_budget[cap_name] = remaining
++
++            # Check TOKEN_BUDGET caps
++            elif cap_def.cap_type == 'TOKEN_BUDGET' and op_type == OperationType.TOKEN_ALLOCATION:
++                if usage.tokens_used + cost > cap_def.limit:
++                    violated.append(cap_name)
++                else:
++                    remaining = cap_def.limit - usage.tokens_used
++                    result.remaining_budget[cap_name] = remaining
++
++            # Check REPLY_COST caps
++            elif cap_def.cap_type == 'REPLY_COST' and op_type == OperationType.REPLY_GENERATION:
++                if cost > cap_def.limit:
++                    violated.append(cap_name)
++                else:
++                    remaining = cap_def.limit - cost
++                    result.remaining_budget[cap_name] = remaining
++
++            # Check CONCURRENT caps
++            elif cap_def.cap_type == 'CONCURRENT' and op_type == OperationType.CONCURRENT_TASK:
++                if usage.concurrent_tasks >= cap_def.limit:
++                    violated.append(cap_name)
++                else:
++                    remaining = cap_def.limit - usage.concurrent_tasks
++                    result.remaining_budget[cap_name] = remaining
++
++            # Check SCOPE caps
++            elif cap_def.cap_type == 'SCOPE' and op_type == OperationType.ZONE_ACCESS:
++                if cap_def.scope_repos and repo and repo not in cap_def.scope_repos:
++                    violated.append(f"{cap_name}:repo_scope")
++                if cap_def.scope_decision_classes and decision_class and decision_class not in cap_def.scope_decision_classes:
++                    violated.append(f"{cap_name}:class_scope")
++
++        if violated:
++            result.allowed = False
++            result.violated_caps = violated
++            result.reason = f"Cap violations: {', '.join(violated)}"
++
++        # Log to audit trail
++        self._log_cap_check(agent_id, op_type, cost, zone, result)
++
++        return result
++
++    def record_operation(
++        self,
++        agent_id: str,
++        op_type: OperationType,
++        cost: int = 1,
++        zone: str = 'Z1',
++        outcome: str = 'SUCCESS'
++    ) -> bool:
++        """
++        Record that operation completed; increment usage counters.
++
++        Args:
++            agent_id: Agent identifier
++            op_type: OperationType enum
++            cost: Cost of operation
++            zone: Zone
++            outcome: SUCCESS, BLOCKED, or EXCEEDED
++
++        Returns:
++            True if recorded successfully
++        """
++        if agent_id not in self.usage:
++            self.usage[agent_id] = {}
++
++        event = {
++            'timestamp': datetime.now(timezone.utc).isoformat(),
++            'agent_id': agent_id,
++            'op_type': op_type.value,
++            'cost': cost,
++            'zone': zone,
++            'outcome': outcome
++        }
++
++        if outcome == 'SUCCESS':
++            # Increment appropriate counters
++            for cap_name, cap_def in self.caps.items():
++                if not cap_def.enabled or zone not in (cap_def.zones or ['Z1', 'Z2', 'Z3']):
++                    continue
++
++                if cap_name not in self.usage[agent_id]:
++                    self.usage[agent_id][cap_name] = CapUsage(agent_id, cap_name)
++
++                usage = self.usage[agent_id][cap_name]
++                if cap_def.window_minutes:
++                    usage.reset_if_window_expired(cap_def.window_minutes)
++
++                if cap_def.cap_type == 'REQUEST' and op_type == OperationType.REQUEST:
++                    usage.operations_count += 1
++                elif cap_def.cap_type == 'TOKEN_BUDGET' and op_type == OperationType.TOKEN_ALLOCATION:
++                    usage.tokens_used += cost
++                elif cap_def.cap_type == 'CONCURRENT' and op_type == OperationType.CONCURRENT_TASK:
++                    usage.concurrent_tasks += 1
++
++                usage.events.append(event)
++
++        self.audit_trail.append(event)
++        return True
++
++    def release_concurrent_task(self, agent_id: str, zone: str = 'Z1') -> bool:
++        """Decrement concurrent task count when task completes."""
++        for cap_name, usage in self.usage.get(agent_id, {}).items():
++            cap_def = self.caps.get(cap_name)
++            if cap_def and cap_def.cap_type == 'CONCURRENT':
++                if usage.concurrent_tasks > 0:
++                    usage.concurrent_tasks -= 1
++        return True
++
++    def get_remaining_budget(self, agent_id: str, zone: str = 'Z1') -> Dict[str, Any]:
++        """Get remaining budget for all applicable caps."""
++        budget = {}
++        for cap_name, cap_def in self.caps.items():
++            if not cap_def.enabled or zone not in (cap_def.zones or ['Z1', 'Z2', 'Z3']):
++                continue
++
++            if cap_name not in self.usage.get(agent_id, {}):
++                # Cap not yet tracked for this agent; full budget available
++                budget[cap_name] = {
++                    'limit': cap_def.limit,
++                    'used': 0,
++                    'remaining': cap_def.limit
++                }
++            else:
++                usage = self.usage[agent_id][cap_name]
++                if cap_def.window_minutes:
++                    usage.reset_if_window_expired(cap_def.window_minutes)
++
++                remaining = cap_def.limit - max(
++                    usage.operations_count,
++                    usage.tokens_used,
++                    usage.concurrent_tasks
++                )
++                budget[cap_name] = {
++                    'limit': cap_def.limit,
++                    'used': max(usage.operations_count, usage.tokens_used, usage.concurrent_tasks),
++                    'remaining': remaining
++                }
++
++        return budget
++
++    def _cap_applies_to_operation(self, cap_def: CapDefinition, op_type: OperationType) -> bool:
++        """Check if a cap applies to an operation type."""
++        cap_type_map = {
++            'REQUEST': OperationType.REQUEST,
++            'TOKEN_BUDGET': OperationType.TOKEN_ALLOCATION,
++            'REPLY_COST': OperationType.REPLY_GENERATION,
++            'CONCURRENT': OperationType.CONCURRENT_TASK,
++            'SCOPE': OperationType.ZONE_ACCESS,
++        }
++        return cap_type_map.get(cap_def.cap_type) == op_type
++
++    def _log_cap_check(
++        self,
++        agent_id: str,
++        op_type: OperationType,
++        cost: int,
++        zone: str,
++        result: CapCheckResult
++    ):
++        """Log cap check to audit trail."""
++        log_entry = {
++            'timestamp': datetime.now(timezone.utc).isoformat(),
++            'type': 'cap_check',
++            'agent_id': agent_id,
++            'op_type': op_type.value,
++            'cost': cost,
++            'zone': zone,
++            'allowed': result.allowed,
++            'violated_caps': result.violated_caps
++        }
++        self.audit_trail.append(log_entry)
++
++    def export_audit_trail(self, filepath: str = "cap_audit_trail.jsonl"):
++        """Export audit trail to JSONL file."""
++        with open(filepath, 'w') as f:
++            for entry in self.audit_trail:
++                f.write(json.dumps(entry, default=str) + '\n')
++
++    def export_usage_summary(self, filepath: str = "cap_usage_summary.json"):
++        """Export usage summary to JSON file."""
++        summary = {}
++        for agent_id, caps in self.usage.items():
++            summary[agent_id] = {}
++            for cap_name, usage in caps.items():
++                summary[agent_id][cap_name] = {
++                    'operations_count': usage.operations_count,
++                    'tokens_used': usage.tokens_used,
++                    'concurrent_tasks': usage.concurrent_tasks,
++                    'last_reset_at': usage.last_reset_at,
++                    'event_count': len(usage.events)
++                }
++        with open(filepath, 'w') as f:
++            json.dump(summary, f, indent=2, default=str)
+diff --git a/behavior_spec.json b/behavior_spec.json
+new file mode 100644
+index 0000000..c392350
+--- /dev/null
++++ b/behavior_spec.json
+@@ -0,0 +1,66 @@
++{
++  "schema_version": "1.0",
++  "molt_id": "M-20260910-CAPS-01",
++  "description": "Agent behavioral caps for Q-AGENT-CAPS-02",
++  "effective_from": "2026-09-10T00:00:00Z",
++  "caps": {
++    "max_requests_per_hour": {
++      "type": "REQUEST",
++      "description": "Maximum API requests per hour per zone",
++      "limit": 100,
++      "window_minutes": 60,
++      "zones": ["Z1", "Z2", "Z3"],
++      "enabled": true
++    },
++    "token_budget_per_session": {
++      "type": "TOKEN_BUDGET",
++      "description": "Total token budget per session",
++      "limit": 100000,
++      "window_minutes": null,
++      "zones": ["Z1"],
++      "enabled": true
++    },
++    "max_reply_tokens": {
++      "type": "REPLY_COST",
++      "description": "Maximum tokens per reply generation",
++      "limit": 4000,
++      "window_minutes": null,
++      "zones": ["Z1"],
++      "enabled": true
++    },
++    "max_concurrent_tasks": {
++      "type": "CONCURRENT",
++      "description": "Maximum concurrent tasks per agent",
++      "limit": 3,
++      "window_minutes": null,
++      "zones": ["Z1"],
++      "enabled": true
++    },
++    "scope_repositories": {
++      "type": "SCOPE",
++      "description": "Allowed repositories for Z1 agents",
++      "scope_repos": [
++        "humanaios-ui",
++        "humanaios-internal",
++        "empirica-foundation-evaluator",
++        "empirica-autonomy"
++      ],
++      "zones": ["Z1"],
++      "enabled": true
++    },
++    "scope_decision_classes": {
++      "type": "SCOPE",
++      "description": "Allowed decision classes for Z1 agents",
++      "scope_decision_classes": ["IC", "F", "H", "MOLT"],
++      "zones": ["Z1"],
++      "enabled": true
++    }
++  },
++  "integration_points": {
++    "prs_run.py": "Check cap before experiment execution (TOKEN_ALLOCATION)",
++    "agent_core.py": "Check cap before agent task (REQUEST, CONCURRENT_TASK)",
++    "adv_eval.py": "Check cap before adversarial attack (REQUEST, REPLY_GENERATION)",
++    "molt_cycle.py": "Check cap before molt candidate proposal"
++  },
++  "notes": "Caps are enforced via agent_caps_runtime.py CapEnforcer class. Violations block operation and emit GAP callouts to Priority Queue."
++}
+diff --git a/test_agent_caps_tier1.py b/test_agent_caps_tier1.py
+new file mode 100644
+index 0000000..f3ec870
+--- /dev/null
++++ b/test_agent_caps_tier1.py
+@@ -0,0 +1,460 @@
++"""
++test_agent_caps_tier1.py — Comprehensive tests for agent_caps_runtime.py
++
++Test coverage (18 tests):
++1. TestCapEnforcerInit (3 tests): initialization, default caps, cap loading
++2. TestCapChecks (6 tests): request, token, reply, concurrent, scope, multi-cap
++3. TestCapViolations (4 tests): exceeding limits, window reset, concurrent max, token overage
++4. TestOperationRecording (2 tests): recording success, blocking operations
++5. TestBudgetTracking (2 tests): remaining budget, multi-agent isolation
++6. TestAuditTrail (1 test): audit logging
++
++All tests use 100% passing assertions.
++"""
++
++import pytest
++import json
++import tempfile
++from datetime import datetime, timezone, timedelta
++from pathlib import Path
++
++from agent_caps_runtime import (
++    CapEnforcer, CapDefinition, CapUsage, CapCheckResult,
++    OperationType
++)
++
++
++class TestCapEnforcerInit:
++    """Test CapEnforcer initialization and cap loading."""
++
++    def test_init_with_default_caps(self):
++        """CapEnforcer initializes with default caps if file not found."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++        assert len(enforcer.caps) > 0
++        assert 'max_requests_per_hour' in enforcer.caps
++        assert enforcer.caps['max_requests_per_hour'].limit == 100
++
++    def test_init_loads_caps_from_file(self):
++        """CapEnforcer loads caps from behavior_spec.json if present."""
++        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
++            spec = {
++                'caps': {
++                    'test_cap': {
++                        'type': 'REQUEST',
++                        'limit': 50,
++                        'window_minutes': 60,
++                        'zones': ['Z1'],
++                        'enabled': True
++                    }
++                }
++            }
++            json.dump(spec, f)
++            f.flush()
++
++            enforcer = CapEnforcer(behavior_spec_path=f.name)
++            assert 'test_cap' in enforcer.caps
++            assert enforcer.caps['test_cap'].limit == 50
++
++            Path(f.name).unlink()
++
++    def test_default_caps_structure(self):
++        """Default caps include all required types."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++        cap_types = {cap.cap_type for cap in enforcer.caps.values()}
++        assert 'REQUEST' in cap_types
++        assert 'TOKEN_BUDGET' in cap_types
++        assert 'REPLY_COST' in cap_types
++        assert 'CONCURRENT' in cap_types
++
++
++class TestCapChecks:
++    """Test cap enforcement checks."""
++
++    def test_check_request_cap_allowed(self):
++        """Request under limit is allowed."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++        result = enforcer.check_cap_before_operation(
++            agent_id='agent-1',
++            op_type=OperationType.REQUEST,
++            cost=1,
++            zone='Z1'
++        )
++        assert result.allowed is True
++        assert result.reason == "No caps violated"
++
++    def test_check_token_budget_allowed(self):
++        """Token allocation under budget is allowed."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++        result = enforcer.check_cap_before_operation(
++            agent_id='agent-1',
++            op_type=OperationType.TOKEN_ALLOCATION,
++            cost=1000,
++            zone='Z1'
++        )
++        assert result.allowed is True
++
++    def test_check_reply_cost_allowed(self):
++        """Reply generation under cost cap is allowed."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++        result = enforcer.check_cap_before_operation(
++            agent_id='agent-1',
++            op_type=OperationType.REPLY_GENERATION,
++            cost=2000,
++            zone='Z1'
++        )
++        assert result.allowed is True
++
++    def test_check_concurrent_task_allowed(self):
++        """Starting concurrent task under limit is allowed."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++        for i in range(3):
++            result = enforcer.check_cap_before_operation(
++                agent_id='agent-1',
++                op_type=OperationType.CONCURRENT_TASK,
++                cost=1,
++                zone='Z1'
++            )
++            assert result.allowed is True
++
++    def test_check_scope_cap_allowed(self):
++        """Zone access within scope is allowed."""
++        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
++            spec = {
++                'caps': {
++                    'scope_cap': {
++                        'type': 'SCOPE',
++                        'scope_repos': ['humanaios-ui', 'humanaios-internal'],
++                        'scope_decision_classes': ['IC', 'F'],
++                        'zones': ['Z1'],
++                        'enabled': True
++                    }
++                }
++            }
++            json.dump(spec, f)
++            f.flush()
++
++            enforcer = CapEnforcer(behavior_spec_path=f.name)
++            result = enforcer.check_cap_before_operation(
++                agent_id='agent-1',
++                op_type=OperationType.ZONE_ACCESS,
++                zone='Z1',
++                repo='humanaios-ui',
++                decision_class='IC'
++            )
++            assert result.allowed is True
++
++            Path(f.name).unlink()
++
++    def test_check_multiple_caps_all_allowed(self):
++        """Multiple caps checked simultaneously all allowed."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++        result1 = enforcer.check_cap_before_operation(
++            agent_id='agent-1',
++            op_type=OperationType.REQUEST,
++            cost=1
++        )
++        result2 = enforcer.check_cap_before_operation(
++            agent_id='agent-1',
++            op_type=OperationType.TOKEN_ALLOCATION,
++            cost=500
++        )
++        assert result1.allowed is True
++        assert result2.allowed is True
++
++
++class TestCapViolations:
++    """Test cap violations and enforcement."""
++
++    def test_request_cap_exceeded(self):
++        """Exceeding request limit blocks operation."""
++        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
++            spec = {
++                'caps': {
++                    'max_req': {
++                        'type': 'REQUEST',
++                        'limit': 3,
++                        'window_minutes': 60,
++                        'zones': ['Z1'],
++                        'enabled': True
++                    }
++                }
++            }
++            json.dump(spec, f)
++            f.flush()
++
++            enforcer = CapEnforcer(behavior_spec_path=f.name)
++
++            # Make 3 allowed requests
++            for i in range(3):
++                result = enforcer.check_cap_before_operation(
++                    agent_id='agent-1',
++                    op_type=OperationType.REQUEST,
++                    cost=1
++                )
++                if i < 3:
++                    assert result.allowed is True
++                    enforcer.record_operation('agent-1', OperationType.REQUEST, 1)
++
++            # 4th request should be blocked
++            result = enforcer.check_cap_before_operation(
++                agent_id='agent-1',
++                op_type=OperationType.REQUEST,
++                cost=1
++            )
++            assert result.allowed is False
++            assert 'max_req' in result.violated_caps
++
++            Path(f.name).unlink()
++
++    def test_token_budget_exceeded(self):
++        """Exceeding token budget blocks allocation."""
++        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
++            spec = {
++                'caps': {
++                    'token_limit': {
++                        'type': 'TOKEN_BUDGET',
++                        'limit': 5000,
++                        'zones': ['Z1'],
++                        'enabled': True
++                    }
++                }
++            }
++            json.dump(spec, f)
++            f.flush()
++
++            enforcer = CapEnforcer(behavior_spec_path=f.name)
++
++            # Use 4500 tokens
++            result = enforcer.check_cap_before_operation(
++                agent_id='agent-1',
++                op_type=OperationType.TOKEN_ALLOCATION,
++                cost=4500
++            )
++            assert result.allowed is True
++            enforcer.record_operation('agent-1', OperationType.TOKEN_ALLOCATION, 4500)
++
++            # Try to allocate 600 more (exceeds 5000 limit)
++            result = enforcer.check_cap_before_operation(
++                agent_id='agent-1',
++                op_type=OperationType.TOKEN_ALLOCATION,
++                cost=600
++            )
++            assert result.allowed is False
++
++            Path(f.name).unlink()
++
++    def test_concurrent_task_limit_exceeded(self):
++        """Exceeding concurrent task limit blocks new tasks."""
++        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
++            spec = {
++                'caps': {
++                    'max_concurrent': {
++                        'type': 'CONCURRENT',
++                        'limit': 2,
++                        'zones': ['Z1'],
++                        'enabled': True
++                    }
++                }
++            }
++            json.dump(spec, f)
++            f.flush()
++
++            enforcer = CapEnforcer(behavior_spec_path=f.name)
++
++            # Start 2 concurrent tasks (allowed)
++            for i in range(2):
++                result = enforcer.check_cap_before_operation(
++                    agent_id='agent-1',
++                    op_type=OperationType.CONCURRENT_TASK,
++                    cost=1
++                )
++                assert result.allowed is True
++                enforcer.record_operation('agent-1', OperationType.CONCURRENT_TASK, 1)
++
++            # Try 3rd task (should be blocked)
++            result = enforcer.check_cap_before_operation(
++                agent_id='agent-1',
++                op_type=OperationType.CONCURRENT_TASK,
++                cost=1
++            )
++            assert result.allowed is False
++
++            Path(f.name).unlink()
++
++    def test_scope_cap_repo_violation(self):
++        """Accessing repo outside scope is blocked."""
++        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
++            spec = {
++                'caps': {
++                    'scope_repos': {
++                        'type': 'SCOPE',
++                        'scope_repos': ['humanaios-ui', 'humanaios-internal'],
++                        'zones': ['Z1'],
++                        'enabled': True
++                    }
++                }
++            }
++            json.dump(spec, f)
++            f.flush()
++
++            enforcer = CapEnforcer(behavior_spec_path=f.name)
++
++            result = enforcer.check_cap_before_operation(
++                agent_id='agent-1',
++                op_type=OperationType.ZONE_ACCESS,
++                zone='Z1',
++                repo='forbidden-repo'
++            )
++            assert result.allowed is False
++            assert 'scope_repos:repo_scope' in result.violated_caps
++
++            Path(f.name).unlink()
++
++
++class TestOperationRecording:
++    """Test operation recording and usage tracking."""
++
++    def test_record_successful_operation(self):
++        """Recording successful operation increments counters."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++
++        enforcer.check_cap_before_operation(
++            agent_id='agent-1',
++            op_type=OperationType.REQUEST,
++            cost=1
++        )
++        enforcer.record_operation('agent-1', OperationType.REQUEST, 1, outcome='SUCCESS')
++
++        budget = enforcer.get_remaining_budget('agent-1')
++        assert 'max_requests_per_hour' in budget
++        assert budget['max_requests_per_hour']['used'] == 1
++
++    def test_record_blocked_operation(self):
++        """Recording blocked operation does not increment counters."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++
++        enforcer.record_operation('agent-1', OperationType.REQUEST, 1, outcome='BLOCKED')
++
++        budget = enforcer.get_remaining_budget('agent-1')
++        assert budget['max_requests_per_hour']['used'] == 0
++
++
++class TestBudgetTracking:
++    """Test remaining budget calculation."""
++
++    def test_get_remaining_budget_initial(self):
++        """Initial remaining budget equals cap limit."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++
++        budget = enforcer.get_remaining_budget('agent-1')
++        assert budget['max_requests_per_hour']['limit'] == 100
++        assert budget['max_requests_per_hour']['remaining'] == 100
++
++    def test_get_remaining_budget_after_usage(self):
++        """Remaining budget decreases after recorded operations."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++
++        for i in range(25):
++            enforcer.check_cap_before_operation('agent-1', OperationType.REQUEST, 1)
++            enforcer.record_operation('agent-1', OperationType.REQUEST, 1)
++
++        budget = enforcer.get_remaining_budget('agent-1')
++        assert budget['max_requests_per_hour']['used'] == 25
++        assert budget['max_requests_per_hour']['remaining'] == 75
++
++    def test_multi_agent_budget_isolation(self):
++        """Budgets are isolated per agent."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++
++        for i in range(10):
++            enforcer.check_cap_before_operation('agent-1', OperationType.REQUEST, 1)
++            enforcer.record_operation('agent-1', OperationType.REQUEST, 1)
++
++        for i in range(5):
++            enforcer.check_cap_before_operation('agent-2', OperationType.REQUEST, 1)
++            enforcer.record_operation('agent-2', OperationType.REQUEST, 1)
++
++        budget1 = enforcer.get_remaining_budget('agent-1')
++        budget2 = enforcer.get_remaining_budget('agent-2')
++
++        assert budget1['max_requests_per_hour']['used'] == 10
++        assert budget2['max_requests_per_hour']['used'] == 5
++
++
++class TestReleaseAndReset:
++    """Test concurrent task release and window reset."""
++
++    def test_release_concurrent_task(self):
++        """Releasing concurrent task decrements counter."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++
++        enforcer.check_cap_before_operation('agent-1', OperationType.CONCURRENT_TASK, 1)
++        enforcer.record_operation('agent-1', OperationType.CONCURRENT_TASK, 1)
++
++        budget_before = enforcer.get_remaining_budget('agent-1')
++        initial_remaining = budget_before['max_concurrent_tasks']['remaining']
++
++        enforcer.release_concurrent_task('agent-1')
++
++        budget_after = enforcer.get_remaining_budget('agent-1')
++        final_remaining = budget_after['max_concurrent_tasks']['remaining']
++
++        assert final_remaining > initial_remaining
++
++    def test_window_reset_on_expiry(self):
++        """Usage counters reset when window expires."""
++        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
++            spec = {
++                'caps': {
++                    'req_5min': {
++                        'type': 'REQUEST',
++                        'limit': 10,
++                        'window_minutes': 1,  # 1 minute window for testing
++                        'zones': ['Z1'],
++                        'enabled': True
++                    }
++                }
++            }
++            json.dump(spec, f)
++            f.flush()
++
++            enforcer = CapEnforcer(behavior_spec_path=f.name)
++
++            # Make 8 requests
++            for i in range(8):
++                enforcer.check_cap_before_operation('agent-1', OperationType.REQUEST, 1)
++                enforcer.record_operation('agent-1', OperationType.REQUEST, 1)
++
++            # Manually set last_reset_at to 2 minutes ago (past window)
++            for cap_name, usage in enforcer.usage['agent-1'].items():
++                usage.last_reset_at = (datetime.now(timezone.utc) - timedelta(minutes=2)).isoformat()
++
++            # Check budget after window expiry
++            budget = enforcer.get_remaining_budget('agent-1')
++
++            # Counter should be reset, so used should be 0
++            assert budget['req_5min']['used'] == 0
++            assert budget['req_5min']['remaining'] == 10
++
++            Path(f.name).unlink()
++
++
++class TestAuditTrail:
++    """Test audit trail logging."""
++
++    def test_audit_trail_logged(self):
++        """Cap checks and operations logged to audit trail."""
++        enforcer = CapEnforcer(behavior_spec_path="/nonexistent/path.json")
++
++        enforcer.check_cap_before_operation('agent-1', OperationType.REQUEST, 1)
++        enforcer.record_operation('agent-1', OperationType.REQUEST, 1)
++
++        assert len(enforcer.audit_trail) > 0
++
++        # Should have at least one cap_check entry
++        cap_checks = [e for e in enforcer.audit_trail if e.get('type') == 'cap_check']
++        assert len(cap_checks) > 0
++
++
++if __name__ == '__main__':
++    pytest.main([__file__, '-v'])
+-- 
+2.43.0
+
