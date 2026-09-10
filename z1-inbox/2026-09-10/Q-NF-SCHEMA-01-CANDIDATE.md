@@ -85,6 +85,7 @@ Four incompatible calibration ledger formats exist across the codebase:
 - `prediction_value`, `actual_value`, `scale_max`, `binary`, `confidence` preserved
 - `prediction.probability` = predictor's assigned probability
 - `brier_actual` = (`prediction_value` - normalized `actual_value`)²
+- `outcome` (`KEEP`/`REVERT`) tracked as a separate falsifier result, not as `actual_value`
 
 **Example:**
 ```json
