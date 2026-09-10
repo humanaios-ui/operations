@@ -1,0 +1,33 @@
+{
+  "patch_version": "z2_queue v1_1",
+  "issued": "2026-09-05",
+  "zone": "Z1",
+  "status": "CANDIDATE — Z2 prose approval 2026-09-05; ratification hash pending",
+  "items": [
+    {
+      "id": "Q-ORCA-01",
+      "title": "Evaluate stablyai/orca as the multi-substrate audit runner",
+      "ready": true,
+      "session_type": "desktop",
+      "impact": 3,
+      "unblocks": ["OPT second-substrate audit step", "DELUSION-GUARD independence check"],
+      "unblock_impact_sum": 5,
+      "score": 8,
+      "provenance": {
+        "repo": "https://github.com/stablyai/orca",
+        "stars_live_read": 61815,
+        "read_date": "2026-09-04",
+        "license": "MIT",
+        "tier": "VERIFIED-LIVE (metadata only; code not yet read)"
+      },
+      "acceptance": [
+        "Same packet run through Claude Code + Codex + one third agent, each in its own worktree",
+        "Each run's output hashed and appended to optimizer_events.jsonl",
+        "Disagreements between substrates surface as DISPUTED callouts, not averaged away"
+      ],
+      "falsifier": "If orca cannot isolate worktrees per substrate or cannot expose per-run outputs for hashing, it does not serve the audit step and is dropped.",
+      "status_after": "LAID until first real packet runs through it; 0/40 unchanged",
+      "tool_zone": 1
+    }
+  ]
+}

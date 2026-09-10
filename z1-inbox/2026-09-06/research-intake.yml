@@ -1,0 +1,135 @@
+name: research-intake
+# Research data collection: every external research artifact (spec, doc, code) entering the org
+# is provenance-stamped, run against its own claims, and appended to a hash-chained dataset.
+# It never writes REGISTERED.md. It produces a Registry Candidate row. Owner: epistemology + QA.
+# Trigger paths are the only entry point; nothing lands in research/datasets/ by hand.
+
+on:
+  pull_request:
+    paths: ['research/intake/**']
+  workflow_dispatch:
+    inputs:
+      artifact_path: { description: 'path under research/intake/', required: true }
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+env:
+  TLA_TOOLS_URL: https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar
+  TLA_TOOLS_SHA256: ${{ vars.TLA_TOOLS_SHA256 }}   # pinned by Z2; workflow fails if unset
+  TLC_TIMEOUT: 600
+
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    outputs:
+      artifacts: ${{ steps.find.outputs.artifacts }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        name: Locate artifacts with a provenance manifest
+        run: |
+          set -euo pipefail
+          # Every artifact must sit beside <name>.provenance.json (schema in research/intake/SCHEMA.md)
+          files=$(git diff --name-only origin/${{ github.base_ref || 'main' }}...HEAD -- research/intake/ | grep -vE '\.provenance\.json$' || true)
+          [ -n "${{ inputs.artifact_path }}" ] && files="${{ inputs.artifact_path }}"
+          for f in $files; do
+            [ -f "$f.provenance.json" ] || { echo "::error::$f has no provenance manifest — refused"; exit 1; }
+            python3 tools/provenance_lint.py "$f.provenance.json"   # validates: chain[], each hop {provider, model, date, prompt_hash, output_hash}, origin_prompt, requester
+          done
+          echo "artifacts=$(echo $files | tr ' ' ',')" >> "$GITHUB_OUTPUT"
+
+  verify:
+    needs: provenance
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        artifact: ${{ fromJson(format('["{0}"]', join(fromJson(format('["{0}"]', needs.provenance.outputs.artifacts)), '","'))) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/setup-java@v4
+        if: endsWith(matrix.artifact, '.tla')
+        with: { distribution: temurin, java-version: '21' }
+
+      - name: Claim census (adjectives vs receipts)
+        id: census
+        run: |
+          # Counts status claims ("complete","verified","final","atomic","locked","operational","enforced")
+          # against receipts (sha256 hashes, URLs that resolve, run logs). Writes census.json.
+          python3 tools/claim_census.py "${{ matrix.artifact }}" --out census.json
+          echo "claims=$(jq .claims census.json)" >> "$GITHUB_OUTPUT"
+          echo "receipts=$(jq .receipts census.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Lints (falsifier, claim, citation)
+        run: |
+          python3 tools/falsifier_lint.py "${{ matrix.artifact }}" --json > falsifier.json || true
+          python3 tools/claim_lint_v1_0.py "${{ matrix.artifact }}" --json > claims.json || true
+          python3 tools/citation_verify.py "${{ matrix.artifact }}" --json > citations.json || true
+          # "|| true" is deliberate: a lint failure is DATA here, not a build failure. The run itself must not fail
+          # on the artifact being bad — that is the thing we are collecting.
+
+      - name: TLC model check (TLA+ artifacts)
+        if: endsWith(matrix.artifact, '.tla')
+        run: |
+          set -euo pipefail
+          [ -n "$TLA_TOOLS_SHA256" ] || { echo "::error::TLA_TOOLS_SHA256 not pinned by Z2"; exit 1; }
+          curl -sfL -o tla2tools.jar "$TLA_TOOLS_URL"
+          echo "$TLA_TOOLS_SHA256  tla2tools.jar" | sha256sum -c -
+          cfg="${{ matrix.artifact }}"; cfg="${cfg%.tla}.cfg"
+          [ -f "$cfg" ] || { echo '{"tlc":"NO_CFG"}' > tlc.json; exit 0; }
+          set +e
+          timeout $TLC_TIMEOUT java -XX:+UseParallelGC -Xmx3g -cp tla2tools.jar tlc2.TLC -nowarning -workers auto -deadlock "${{ matrix.artifact }}" > tlc.log 2>&1
+          rc=$?
+          set -e
+          python3 tools/tlc_result_parse.py tlc.log --rc $rc --out tlc.json
+          # tlc.json: {parse: ok|error, assume: ok|false, run: completed|timeout|error, invariant: holds|violated, violated_at_depth, states, first_violation_action}
+
+      - name: Execute (code artifacts)
+        if: endsWith(matrix.artifact, '.py')
+        run: |
+          python3 -m py_compile "${{ matrix.artifact }}" && echo '{"compile":"ok"}' > exec.json || echo '{"compile":"error"}' > exec.json
+          [ -d tests ] && python3 -m pytest -q --tb=line -k "$(basename ${{ matrix.artifact }} .py)" > pytest.log 2>&1 || true
+
+      - name: Assemble dataset row
+        run: |
+          python3 tools/research_row.py \
+            --artifact "${{ matrix.artifact }}" \
+            --provenance "${{ matrix.artifact }}.provenance.json" \
+            --census census.json --falsifier falsifier.json --claims claims.json --citations citations.json \
+            --tlc tlc.json --exec exec.json \
+            --out row.json
+          # row.json fields: artifact_sha, provenance_chain[], hops, claimed_fixes, receipts, lint results,
+          # run_result, defects[], claim_to_receipt_ratio, tier (CLAIM|CLAIM+LINK|VERIFIED), run_date, prev_row_hash, row_hash
+      - uses: actions/upload-artifact@v4
+        with: { name: row-${{ strategy.job-index }}, path: row.json }
+
+  append:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: rows }
+      - name: Append to hash-chained dataset (append-only; CHECK valve)
+        run: |
+          set -euo pipefail
+          python3 tools/dataset_append.py rows/*/row.json --dataset research/datasets/research_intake.jsonl
+          # Refuses if the file's last row_hash != prev_row_hash of the new row (someone edited history).
+          git diff --stat research/datasets/research_intake.jsonl
+      - name: Registry candidate (never a registry write)
+        run: |
+          python3 tools/registry_issue_compiler.py --from rows/*/row.json --class F,IC --label research-intake --out candidate.md
+          gh issue create --title "Registry candidate: research-intake $(date -u +%F)" --body-file candidate.md --label registry-candidate
+        env: { GH_TOKEN: ${{ github.token }} }
+      - name: Commit dataset row via PR (Z3 lands; Z2 reviews)
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: research-intake/${{ github.run_id }}
+          title: 'research-intake: dataset append'
+          body: 'Append-only row(s). Do not edit; if wrong, append a correction row.'
+          labels: research-intake, append-only
