@@ -3933,7 +3933,7 @@ H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, ko
 
 **Status:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC)  
 **Verification:**
-- All four files staged and committed locally (2026-09-09 19:12 PST)
+- All four files staged and committed locally (2026-09-10 03:12 UTC)
 - Push to GitHub completed; branch updated 745ed1d → e8a501f
 - git log confirms HEAD at e8a501f with correct Phase 0 message
 - PRIORITY_QUEUE.md content verified: v1.1 schema, updated 2026-09-09, score formula correct
