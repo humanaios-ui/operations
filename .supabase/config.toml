@@ -11,9 +11,9 @@ major_version = 15
 seed = "seed.sql"
 
 [project]
-# Set your project ID and URL from your Supabase dashboard
-project_id = "YOUR_PROJECT_ID"  # Replace with your project ID from supabase.co dashboard
-api_url = "https://YOUR_PROJECT_ID.supabase.co"
+# Configured from ~/.empirica/credentials.yaml
+project_id = "ksinisdzgtnqzsymhfya"
+api_url = "https://ksinisdzgtnqzsymhfya.supabase.co"
 
 [functions]
 import_map = "./functions/import_map.json"
