@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "molt_id": "M-20260910-STALE-01",
+  "description": "Constants registry for stale sweep with decay-based staleness detection",
+  "effective_from": "2026-09-10T00:00:00Z",
+  "constants": [
+    {
+      "constant_id": "CONST-AGENT-CAPS-001",
+      "constant_name": "Agent request rate limit (Z1)",
+      "constant_type": "BEHAVIORAL_CAP",
+      "half_life_days": 30,
+      "last_read_at": "2026-08-20T14:32:00Z",
+      "status": "ACTIVE",
+      "molt_id": "M-20260910-CAPS-01",
+      "created_at": "2026-09-01T00:00:00Z"
+    },
+    {
+      "constant_id": "CONST-TOKEN-BUDGET-001",
+      "constant_name": "Token budget per session (Z1)",
+      "constant_type": "BEHAVIORAL_CAP",
+      "half_life_days": 14,
+      "last_read_at": "2026-08-15T09:15:00Z",
+      "status": "ACTIVE",
+      "molt_id": "M-20260910-CAPS-01",
+      "created_at": "2026-09-01T00:00:00Z"
+    },
+    {
+      "constant_id": "CONST-RUBRIC-WEIGHT-001",
+      "constant_name": "PRS verdict weight in Priority Queue",
+      "constant_type": "PRIORITY_WEIGHT",
+      "half_life_days": 60,
+      "last_read_at": "2026-07-15T11:22:00Z",
+      "status": "ACTIVE",
+      "molt_id": "M-20260910-PRIORITY-01",
+      "created_at": "2026-09-01T00:00:00Z"
+    },
+    {
+      "constant_id": "CONST-ADV-THRESHOLD-001",
+      "constant_name": "Adversarial eval catch-rate threshold",
+      "constant_type": "GATE_THRESHOLD",
+      "half_life_days": 45,
+      "last_read_at": "2026-08-25T16:45:00Z",
+      "status": "ACTIVE",
+      "molt_id": "M-20260910-ADV-01",
+      "created_at": "2026-09-01T00:00:00Z"
+    },
+    {
+      "constant_id": "CONST-CONCURRENT-LIMIT-001",
+      "constant_name": "Max concurrent tasks per agent",
+      "constant_type": "BEHAVIORAL_CAP",
+      "half_life_days": 21,
+      "last_read_at": "2026-08-10T08:30:00Z",
+      "status": "ACTIVE",
+      "molt_id": "M-20260910-CAPS-01",
+      "created_at": "2026-09-01T00:00:00Z"
+    }
+  ],
+  "notes": "Constants are read by StaleSweep at initialization. Staleness = (now - last_read_at) / half_life_days. Staleness >= 1.0 triggers STALE gap callout. Each constant carries molt_id for audit trail."
+}
