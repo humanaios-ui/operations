@@ -26,7 +26,7 @@ Branch: `claude/seed-publication-architecture-v8tl8n`
 → **Configure:** [config.yaml](../seed-publication/config.yaml)
 
 ### For Governance Process
-→ **Log location:** [z1-inbox/REGISTERED.md](../z1-inbox/REGISTERED.md)  
+→ **Log location:** [REGISTERED.md](../REGISTERED.md)  
 → **CODEOWNERS:** [CODEOWNERS](../CODEOWNERS)  
 → **Authority:** [CLAUDE.md](../CLAUDE.md)
 
@@ -333,7 +333,7 @@ python seed-publication/orchestrator.py publish 0.1
 
 **Reference (as needed):**
 7. `CLAUDE.md` — Governance authority (existing)
-8. `z1-inbox/REGISTERED.md` — Decision log (existing)
+8. `REGISTERED.md` — Decision log (existing)
 9. `.github/ISSUE_TEMPLATE/seed-amendment.md` — GitHub workflow
 
 ---
@@ -357,8 +357,8 @@ Questions about how to contribute?
 ### For Z1/Z3 Operators
 
 Questions about running automation?
-- **Documentation:** [seed-publication/README.md](../seed-publication/README.md)
-- **Troubleshooting:** [seed-publication/README.md](../seed-publication/README.md#troubleshooting) (Troubleshooting section)
+- **Documentation:** [seeds/README.md](../seeds/README.md)
+- **Troubleshooting:** [seeds/README.md](../seeds/README.md#troubleshooting) (Troubleshooting section)
 - **Logs:** All events logged in REGISTERED.md
 
 ---

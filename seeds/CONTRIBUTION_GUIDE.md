@@ -192,7 +192,7 @@ This Seed Constitution follows HumanAIOS governance practices:
 - **Z2 (Ratifier):** Night (Carly R. Anderson) ratifies or contests decisions
 - **Z3 (Executor):** Teams implement accepted changes and measure outcomes
 
-All decisions are logged in [REGISTERED.md](https://github.com/humanaios-ui/operations/blob/main/z1-inbox/REGISTERED.md) with timestamps and audit trail.
+All decisions are logged in [REGISTERED.md](https://github.com/humanaios-ui/operations/blob/main/REGISTERED.md) with timestamps and audit trail.
 
 ---
 

@@ -40,7 +40,7 @@ All changes require Z2 approval before publishing to community; all community fe
 - ✓ GitHub issue template (Z2 approves once; template enforces submission quality)
 - ✓ Website static page (Z2 approves layout once; content syncs from source)
 - ✓ Form configuration (Z2 approves fields once; responses auto-collected)
-- ✓ Observable note (Z2 approves framing once; appears in Observatory)
+- ✓ Observatory note (Z2 approves framing once; appears in Observatory)
 
 All these are **one-time approvals** per version. After v0.1 launch, they don't require re-approval unless the platform or process changes.
 
@@ -358,7 +358,7 @@ Before you decide:
 - **Orchestrator Code:** `seed-publication/orchestrator.py`
 - **Configuration:** `seed-publication/config.yaml`
 - **HumanAIOS Governance:** `CLAUDE.md`
-- **Decision Log:** `z1-inbox/REGISTERED.md`
+- **Decision Log:** `REGISTERED.md`
 
 ---
 

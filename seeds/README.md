@@ -415,12 +415,10 @@ jobs:
           fi
       - name: Verify Falsifier
         run: |
-          if ! grep -q "falsifier:" z1-inbox/**/*.md; then
-            echo "❌ Missing falsifier"
+          if ! grep -q "## Falsifier" z1-inbox/**/*.md; then
+            echo "❌ Missing falsifier section"
             exit 1
           fi
-      - name: Validate Against ACAT
-        run: python seed-publication/orchestrator.py validate-acat
 ```
 
 ---
@@ -622,7 +620,7 @@ This republishes v0.1 to all configured surfaces. Ensure Z2 ratification is in p
 - **Orchestrator Script:** [seed-publication/orchestrator.py](../seed-publication/orchestrator.py)
 - **Configuration:** [seed-publication/config.yaml](../seed-publication/config.yaml)
 - **HumanAIOS Governance:** [CLAUDE.md](../CLAUDE.md)
-- **REGISTERED.md:** [z1-inbox/REGISTERED.md](../z1-inbox/REGISTERED.md)
+- **REGISTERED.md:** [REGISTERED.md](../REGISTERED.md)
 
 ---
 

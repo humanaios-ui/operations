@@ -68,7 +68,7 @@ Over the next two weeks, we'll:
 4. **Propose amendments** — the HumanAIOS proposer (Claude) will create candidate blocks for ratification
 5. **Ratification** — our governance authority (Night / Carly R. Anderson) will decide which amendments to accept
 
-**Your contribution becomes part of the record.** Every change is logged in [REGISTERED.md](https://github.com/humanaios-ui/operations/blob/main/z1-inbox/REGISTERED.md) with its rationale, source, and decision trail.
+**Your contribution becomes part of the record.** Every change is logged in [REGISTERED.md](https://github.com/humanaios-ui/operations/blob/main/REGISTERED.md) with its rationale, source, and decision trail.
 
 ---
 
@@ -119,11 +119,11 @@ If you see a place where the Seed overreaches, or where we're claiming accountab
 
 ## The Full Text
 
-Below is the complete Seed Constitution v0.1. Read it here, or visit [humanaios.ai/seeds/constitution](https://humanaios.ai/seeds/constitution) for the versioned, linked edition.
+Below is the complete Seed Constitution v0.1. Read it on [GitHub](https://github.com/humanaios-ui/operations/blob/main/seeds/seed-constitution-v0.1.md), or visit [humanaios.ai/seeds/constitution](https://humanaios.ai/seeds/constitution) for the versioned, linked edition.
 
 ---
 
-[FULL SEED TEXT INSERTED HERE]
+*[The full Seed Constitution text is included in publication. For now, visit the GitHub link above to read the complete v0.1 draft.]*
 
 ---
 
