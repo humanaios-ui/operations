@@ -1,0 +1,20 @@
+# Supabase Configuration
+# Update project_id and api_url with your actual Supabase project details
+
+[auth]
+enabled = true
+log_level = "info"
+
+[db]
+port = 54321
+major_version = 15
+seed = "seed.sql"
+
+[project]
+# Set your project ID and URL from your Supabase dashboard
+project_id = "YOUR_PROJECT_ID"  # Replace with your project ID from supabase.co dashboard
+api_url = "https://YOUR_PROJECT_ID.supabase.co"
+
+[functions]
+import_map = "./functions/import_map.json"
+verify_jwt = false
