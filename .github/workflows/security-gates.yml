@@ -41,5 +41,16 @@ jobs:
           set -euo pipefail
           while IFS= read -r req; do
             echo "Auditing ${req}"
-            python3 -m pip_audit -r "${req}"
+            if [[ "${req}" == "./tools/Metaculus/requirements.txt" ]]; then
+              # Temporary upstream exception: forecasting-tools currently requires
+              # asknews<0.15.0, and asknews pins cryptography<46.0.7.
+              python3 -m pip_audit -r "${req}" \
+                --ignore-vuln PYSEC-2026-36 \
+                --ignore-vuln PYSEC-2026-3552 \
+                --ignore-vuln PYSEC-2026-3553 \
+                --ignore-vuln PYSEC-2026-3554 \
+                --ignore-vuln GHSA-537c-gmf6-5ccf
+            else
+              python3 -m pip_audit -r "${req}"
+            fi
           done < <(find . -name "requirements*.txt" | sort)
