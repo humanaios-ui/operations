@@ -1,3 +1,5 @@
+import sys
+
 import atheris
 
 with atheris.instrument_imports():
@@ -72,7 +74,7 @@ def TestOneInput(data: bytes) -> None:
 
 
 def main() -> None:
-    atheris.Setup([], TestOneInput)
+    atheris.Setup(sys.argv, TestOneInput)
     atheris.Fuzz()
 
 
