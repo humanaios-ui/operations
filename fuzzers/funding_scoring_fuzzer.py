@@ -1,3 +1,5 @@
+import sys
+
 import atheris
 
 with atheris.instrument_imports():
@@ -71,8 +73,11 @@ def TestOneInput(data: bytes) -> None:
     generate_ranked_report(scored, top_n=fdp.ConsumeIntInRange(0, 10))
 
 
-def main() -> None:
-    atheris.Setup([], TestOneInput)
+def main(argv=None) -> None:
+    setup_args = list(sys.argv if argv is None else argv)
+    if not setup_args:
+        setup_args = ["funding_scoring_fuzzer"]
+    atheris.Setup(setup_args, TestOneInput)
     atheris.Fuzz()
 
 
