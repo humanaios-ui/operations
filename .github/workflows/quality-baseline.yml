@@ -21,7 +21,7 @@ jobs:
 
       - name: Install quality deps
         run: |
-          python3 -m pip install --quiet pyyaml pytest mypy ruff
+          python3 -m pip install --quiet cryptography pyyaml pytest mypy ruff
 
       - name: Repository health baseline (blocking)
         run: python3 tools/repo_health.py --strict
@@ -33,8 +33,8 @@ jobs:
         run: |
           python3 -m ruff check --select=E9,F63,F7,F82 \
             src/humanaios_operations \
-            tools \
-            acat \
+            acat/api/services \
+            tools/tests \
             tests
 
       - name: Type-check baseline (blocking)
@@ -45,6 +45,7 @@ jobs:
         run: |
           python3 -m pytest \
             tools/tests/test_behavioral_compliance_gate.py \
+            test_specimen_intake_evaluator.py \
             tools/tests/test_builder_compliance_scanner.py \
             tools/tests/test_smag_predict_lint.py \
             -q

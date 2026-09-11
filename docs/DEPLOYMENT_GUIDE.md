@@ -12,7 +12,7 @@ Complete guide for deploying HumanAIOS Operations Phase 2 to GitHub Actions.
 ### Workflows
 - ✅ Multiple workflows defined in `.github/workflows/` (quality, governance, audits, scheduling, pages, security)
 - ✅ Funding/profile/deadline workflows use `humanaios_operations.cli`
-- ✅ Python runtime is pinned per-workflow (3.x or 3.11 depending on job)
+- ✅ Python runtime is selected per workflow (`3.x` or `3.11` depending on job)
 
 ### Secrets Configuration
 - ✅ GitHub Secrets configured (optional for testing)

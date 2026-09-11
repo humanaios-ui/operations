@@ -16,9 +16,18 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
+from typing import TypedDict
 
 
-def get_smtp_config() -> dict[str, str]:
+class SMTPConfig(TypedDict):
+    host: str
+    port: int
+    user: str
+    password: str
+    to_email: str
+
+
+def get_smtp_config() -> SMTPConfig:
     """Get SMTP configuration from environment variables."""
     return {
         "host": os.environ.get("SMTP_HOST", ""),
@@ -86,7 +95,7 @@ def send_email(subject: str, body_html: str, to_email: str | None = None, use_se
         return _send_via_smtp(subject, body_html, to_email, config)
 
 
-def _send_via_smtp(subject: str, body_html: str, to_email: str, config: dict) -> bool:
+def _send_via_smtp(subject: str, body_html: str, to_email: str, config: SMTPConfig) -> bool:
     """Send email via SMTP (Gmail, custom servers)."""
     if not all([config["host"], config["user"], config["password"]]):
         print("⚠️  SMTP not configured. Required: SMTP_HOST, SMTP_USER, SMTP_PASS")

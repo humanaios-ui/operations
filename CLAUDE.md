@@ -179,7 +179,7 @@
 
 **CODEOWNERS:**
 ```yaml
-# HumanAIOS document-control ownership (actual CODEOWNERS map)
+# Example root CODEOWNERS excerpt only (non-active when `.github/CODEOWNERS` is present)
 /document-registry.yaml                    @humanaios-ui/doc-control
 /CONTROLLED_DOCUMENTS.md                    @humanaios-ui/doc-control
 /.doc-control/                             @humanaios-ui/doc-control

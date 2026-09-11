@@ -18,7 +18,7 @@ This document is the **source-of-record** for the ACAT (AI Calibration Assessmen
 2. **Variant registry** — enumerates the full family of ACAT instruments (standard, T2, Shadow, h-ACAT, hCAT, org-ACAT, Enterprise SOP) with their scope, status, and relationship to the canonical corpus.
 3. **API/tool alignment** — specifies the exact parameter contract the assessment endpoints implement, so any tool, wrapper, MCP server, or Apps Script that submits data stays in schema.
 
-The canonical session-facing instrument is `ACAT_SESSION_PROMPT.md` (current: v5.4, dated June 9 2026, ratified S-060926-02). This seed document explains *why* that prompt is structured the way it is; it does not replace the prompt.
+The active session-facing protocol now lives across `CURRENT.md`, `SESSION_RITUALS.md`, `GOVERNANCE.md`, and `OPERATOR_RUNBOOK.md`. This seed document explains *why* that protocol is structured the way it is; it does not replace those operational surfaces.
 
 ---
 
@@ -424,7 +424,7 @@ Recommended framing in research contexts: "alignment response regimes and policy
 
 ### 9.3 Pending Z3 Items (ACAT-Specific)
 
-- ACAT_SESSION_PROMPT.md commit to humanaios-ui/operations (canonical file, S-060926-02)
+- Session-orchestration surface reconciliation commit to humanaios-ui/operations
 - Token telemetry migration (Proposal B SQL)
 - migration_007 Layer 2 tables (including acat_rsi_runs in isolated project)
 - REGISTERED.md appends for session findings

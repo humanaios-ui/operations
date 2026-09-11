@@ -18,7 +18,7 @@ This repository is the canonical source for governance state, execution protocol
 - **[CURRENT.md](./CURRENT.md)** — Operating process. Identity, lessons, hard-stop principles, dataset state. Fetched by every LLM at session open.
 - **[REGISTERED.md](./REGISTERED.md)** — Findings registry (F-class), hypotheses (H-class), corrections (IC-class). Append-only.
 - **[SESSION_RITUALS.md](./SESSION_RITUALS.md)** — Substrate-agnostic open/close protocols, parser tags, halt conditions.
-- **ACAT session prompt** — governed via active session protocol surfaces (`CURRENT.md`, `SESSION_RITUALS.md`, and governance/runbook documents).
+- **Session orchestration surfaces** — governed via the active session protocol documents (`CURRENT.md`, `SESSION_RITUALS.md`, `GOVERNANCE.md`, and `OPERATOR_RUNBOOK.md`); no standalone `ACAT_SESSION_PROMPT.md` is checked in.
 
 
 ## Canonical documents and authority

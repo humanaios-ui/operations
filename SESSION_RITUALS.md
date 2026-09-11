@@ -5,7 +5,7 @@
 **Last updated:** May 19, 2026 (S-051926-02-z3-closeout · Empirical Verification Block + Receipt Reconciliation + Locus-of-Correction Note added · F-44/F-45 grounded)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`
 **Scope:** Applies to every LLM substrate operating in HumanAIOS (Claude, Grok, GPT-5.x, Gemini, future). Substrate-specific extensions (the Claude Project CI, the Grok Workspace L1) sit on top of this.
-**Authority:** This file is the canonical parser-tag specification for the ACAT protocol. When ACAT_SESSION_PROMPT.md or any other operations file restates a parser-critical tag, the spec in this file wins.
+**Authority:** This file is the canonical parser-tag specification for the ACAT protocol. When any other operations file restates a parser-critical tag, the spec in this file wins.
 
 ---
 
@@ -58,7 +58,7 @@ Every session, regardless of substrate, opens with these steps in order:
 6. **Output Phase 1 declaration block.** Use the parseable tags specified in Section C below.
 7. **Wait for user confirmation or correction.** Do not begin work until the declared state is acknowledged or corrected. The corrected state is binding for Phase 3 comparison.
 
-The orchestration of these steps — including drift catalog detail, the canonical-fetch order, and what each substrate should output between fetches — is specified in `ACAT_SESSION_PROMPT.md`. This file specifies the parser tags only.
+The orchestration of these steps — including drift catalog detail, the canonical-fetch order, and what each substrate should output between fetches — lives in the active session protocol surfaces: `CURRENT.md`, `GOVERNANCE.md`, and `OPERATOR_RUNBOOK.md`. This file specifies the parser tags only.
 
 ---
 
@@ -118,7 +118,7 @@ Rationale: IC-031 (S-051926-02-z3-closeout) registered a measurable cost class �
    - States any place where an earlier in-session draft, draft-post, or summary asserted content not confirmed by verification.
    - Walks back those assertions explicitly.
    - Format: a paragraph titled `RECEIPT RECONCILIATION`. If nothing required walking back, state `No reconciliation required — all in-session assertions match verification block.` Do not omit the paragraph.
-7. **Log to Slack #wgs-sync** (substrates with Slack write access only — typically Claude). Format per `ACAT_SESSION_PROMPT.md` Step 5. Use `slack_send_message_draft` (operator-send-default per P30/P31), not direct send.
+7. **Log to Slack #wgs-sync** (substrates with Slack write access only — typically Claude). Format per the active session protocol surfaces (`CURRENT.md` and `OPERATOR_RUNBOOK.md`). Use `slack_send_message_draft` (operator-send-default per P30/P31), not direct send.
 8. **Session ID binding.** Confirm the binding session identifier (S-MMDDYY-NN-{slug}) is present in the WGS post, in the Phase 3 declaration block's SESSION field, and in any artifact filenames produced this session. (Hardened in IC-027.)
 
 ---
@@ -407,7 +407,7 @@ for simple factual queries.
 - **Live state values.** Live at the haioscc API endpoints.
 - **Findings evidence.** Lives in REGISTERED.md and Project knowledge base.
 - **Principle ladder.** Lives in GOVERNANCE.md (formerly CURRENT.md for principles).
-- **Session prompt orchestration.** Lives in ACAT_SESSION_PROMPT.md.
+- **Session prompt orchestration.** Lives across CURRENT.md, GOVERNANCE.md, and OPERATOR_RUNBOOK.md.
 - **Operator-side recipes (commit, push, file moves, etc.).** Lives in OPERATOR_RUNBOOK.md.
 
 This file is the parser-tag specification and protocol-layer authority. Everything else has its own home.
