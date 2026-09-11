@@ -1,0 +1,65 @@
+name: Framework Mapping Compliance Audit
+
+# Per-repo audit trigger for 31 HumanAIOS repositories
+# Deploy to each repo at: .github/workflows/framework-audit.yml
+# Purpose: Verify CLAUDE.md references FRAMEWORK_MAPPING.md and report compliance to operations
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  framework-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check FRAMEWORK_MAPPING.md reference
+        id: audit
+        run: |
+          echo "Auditing FRAMEWORK_MAPPING.md reference in CLAUDE.md..."
+          REPO_NAME="${{ github.repository }}"
+
+          # Check if CLAUDE.md exists
+          if [ ! -f "CLAUDE.md" ]; then
+            echo "status=missing-claude-md" >> $GITHUB_OUTPUT
+            echo "::warning title=FRAMEWORK AUDIT::CLAUDE.md not found in repo"
+            exit 0
+          fi
+
+          # Check if CLAUDE.md references FRAMEWORK_MAPPING.md
+          if grep -q "FRAMEWORK_MAPPING.md" CLAUDE.md; then
+            echo "status=compliant" >> $GITHUB_OUTPUT
+            echo "✅ FRAMEWORK AUDIT PASS — FRAMEWORK_MAPPING.md referenced"
+          else
+            echo "status=non-compliant" >> $GITHUB_OUTPUT
+            echo "::warning title=FRAMEWORK AUDIT::FRAMEWORK_MAPPING.md not referenced in CLAUDE.md"
+            echo "Phase 2 deadline: Each per-repo CLAUDE.md must include:"
+            echo "**Framework Reference:** See [FRAMEWORK_MAPPING.md](https://github.com/humanaios-ui/operations/blob/main/FRAMEWORK_MAPPING.md)"
+          fi
+
+      - name: Report compliance to operations (stub)
+        if: always()
+        run: |
+          echo "Compliance Report:"
+          echo "Repo: ${{ github.repository }}"
+          echo "Status: ${{ steps.audit.outputs.status }}"
+          echo "Date: $(date -u)"
+          echo "Commit: ${{ github.sha }}"
+          echo ""
+          echo "Note: In Phase 1, results are logged. Phase 2 will enforce blocking merge without compliance."
+
+      - name: Audit summary
+        if: always()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Framework Compliance Audit Complete"
+          echo "Repo: ${{ github.repository }}"
+          echo "Status: ${{ steps.audit.outputs.status }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
