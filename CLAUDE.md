@@ -260,8 +260,8 @@ When these occur, emit callout immediately:
 ## Appended Events
 
 ```
-2026-09-10 22:17 UTC — Z2 (Night) merged PR #264 | FRAMEWORK_MAPPING.md ratified | Q-FRAMEWORK-MAPPING-01 ACCEPTED
-2026-09-10 22:13 UTC — Z1 proposed FRAMEWORK_MAPPING.md (5 AI engineering concepts → Z-roles, governance files, CI/CD)
+2026-09-10 22:13 UTC — Z1 proposed Q-FRAMEWORK-MAPPING-01 (FRAMEWORK_MAPPING.md: 5 AI engineering concepts → Z-roles)
+2026-09-10 22:17 UTC — PR #264 merged (FRAMEWORK_MAPPING.md content); awaiting Z2 RATIFY signature for Q-FRAMEWORK-MAPPING-01
 2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | CLAUDE.md ratified | Phase 0 READY
 2026-09-09 — Z1 created CLAUDE.md from blueprint authority map spec
 ```
@@ -280,5 +280,5 @@ When these occur, emit callout immediately:
 
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
 
-**Framework Reference:** See **FRAMEWORK_MAPPING.md** for unified mental model mapping 5 Modern AI Engineering Concepts (Graph, Loop, Context, Harness, Prompt Engineering) to HumanAIOS Z-roles, governance files, and CI/CD gates. All proposers, ratifiers, and executors should reference this mapping when designing or evaluating work across the 31-repo ecosystem.
+**Framework Reference:** See [`FRAMEWORK_MAPPING.md`](./FRAMEWORK_MAPPING.md) for unified mental model mapping 5 Modern AI Engineering Concepts (Graph, Loop, Context, Harness, Prompt Engineering) to HumanAIOS Z-roles, governance files, and CI/CD gates. All proposers, ratifiers, and executors should reference this mapping when designing or evaluating work across the 31-repo ecosystem.
 
