@@ -74,7 +74,7 @@ Over the next two weeks, we'll:
 
 ## Context: Why Now?
 
-The Seed Constitution emerges from three years of HumanAIOS work:
+The Seed Constitution emerges from HumanAIOS behavioral observability work and related research:
 
 - **Behavioral Observability**: How do we measure whether systems actually do what they claim? ([Moltbook](https://humanaios.ai/research))
 - **Agent Discourse**: How should AI systems participate in governance and decision-making while respecting human residual authority? ([ACAT Assessment](https://humanaios.ai/acat))
@@ -140,6 +140,6 @@ We'll be back next Monday with a digest of early feedback and patterns. Until th
 
 ---
 
-*The Seed Constitution was developed by the HumanAIOS research program, drawing on 3+ years of work on behavioral observability, agent discourse, and governance. All governance decisions are logged transparently in [REGISTERED.md](https://github.com/humanaios-ui/operations). Read more at [humanaios.ai](https://humanaios.ai).*
+*The Seed Constitution was developed by the HumanAIOS research program, drawing on the HumanAIOS behavioral observability work, the ACAT corpus, and related governance experiments. All governance decisions are logged transparently in [REGISTERED.md](https://github.com/humanaios-ui/operations). Read more at [humanaios.ai](https://humanaios.ai).*
 
 *Generated with [Claude Code](https://claude.ai/code)*
