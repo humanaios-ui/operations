@@ -4,6 +4,8 @@ The Seed Constitution for Responsible AI Development is an open draft, and we ac
 
 This guide explains how to contribute through different channels and what we're looking for.
 
+Canonical publication URLs (v0.2 planning): [Seed Constitution](https://humanaios.ai/seeds/constitution), [Writable Wall](https://humanaios.ai/contribute), [Quick Feedback Form](https://humanaios.ai/seed-feedback).
+
 ---
 
 ## What We're Looking For
