@@ -76,4 +76,4 @@ This constitution and any successor versions remain open to revision through tra
 
 ---
 
-*This document is part of the HumanAIOS research program. For methodology and measurement context, see [humanaios.ai](https://humanaios.ai).*
+*This document is part of the HumanAIOS research program. For methodology and measurement context, see the canonical Seed page at [humanaios.ai/seeds/constitution](https://humanaios.ai/seeds/constitution).*
