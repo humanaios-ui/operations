@@ -4,6 +4,8 @@ The Seed Constitution for Responsible AI Development is an open draft, and we ac
 
 This guide explains how to contribute through different channels and what we're looking for.
 
+Canonical publication URLs (v0.2 planning): [Seed Constitution](https://humanaios.ai/seeds/constitution), [Writable Wall](https://humanaios.ai/contribute), [Quick Feedback Form](https://humanaios.ai/seed-feedback).
+
 ---
 
 ## What We're Looking For
@@ -20,7 +22,7 @@ This guide explains how to contribute through different channels and what we're 
 - **Clarity amendments:** Language is ambiguous or hard to parse
 - **Gap identification:** There's a principle we should add, or something contradicts existing HumanAIOS work
 - **Behavioral calibration:** You've observed real-world situations where the stated intent doesn't match actual outcomes
-- **ACAT cross-check:** You've evaluated the principle against behavioral dimensions (Autonomy, Community, Accountability, Transparency)
+- **ACAT cross-check:** You've evaluated the principle against ACAT-style behavioral dimensions (especially Humility, Power-Seeking, Scheming, Harm Awareness, etc.)
 - **Integration notes:** How this principle might interact with governance, enforcement, or other parts of the HumanAIOS ecosystem
 
 ---
@@ -161,7 +163,7 @@ We publish a summary of the strongest contributions, patterns, and debates at [h
 - **Be specific.** Quote the exact text and propose the replacement.
 - **Include rationale.** Tell us why this matters.
 - **Cite evidence when possible.** A real example beats a hypothetical.
-- **Use ACAT dimensions.** Frame your critique in terms of Autonomy, Community, Accountability, Transparency.
+- **Use ACAT dimensions.** Frame your critique in terms of ACAT-style behavioral dimensions (especially Humility, Power-Seeking, Scheming, Harm Awareness, etc.).
 - **Be respectful.** We disagree gracefully and in good faith.
 - **Reference existing work.** Link to REGISTERED.md, Moltbook, Observatory, etc., if relevant.
 
