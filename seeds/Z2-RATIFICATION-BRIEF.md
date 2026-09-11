@@ -205,7 +205,7 @@ VERSION RELEASE (v0.2)
 **If overdue:**
 - 48-72h: Warning posted to REGISTERED.md
 - 72-96h: Auto-escalate to Admiral (you) with flag
-- 96h+: Auto-reject unless explicit Z2 approval
+- 96h+: Flag for Night's attention; no automatic rejection without explicit instruction
 
 **Your preference:**
 - [ ] CONFIRM 48-hour window
