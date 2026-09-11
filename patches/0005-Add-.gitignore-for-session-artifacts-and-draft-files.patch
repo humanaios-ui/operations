@@ -1,0 +1,57 @@
+From ce0a2e823596c568a2e9e9a479946b91d7688b5c Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 10 Sep 2026 17:18:22 +0000
+Subject: [PATCH 05/11] Add .gitignore for session artifacts and draft files
+
+Excludes:
+- Session state (.cache, .claude, .config, .npm, .ssh)
+- Draft and scratch files (*_DRAFT.md, molt_cycle_SKELETON.py, etc.)
+- Test and operations directories
+- Temporary scripts
+
+Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01HzkHkpvVnCCDskpba89nTf
+---
+ .gitignore | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/.gitignore b/.gitignore
+index 1d04846..a592783 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -44,3 +44,32 @@ outputs/
+ # funding docs (Longview apps, roadmap, opportunities), not tool metadata.
+ !humanaios-funding-pipeline/reports/
+ !humanaios-funding-pipeline/reports/**
++
++# Session artifacts
++.cache/
++.claude/
++.config/
++.npm-global/
++.npm/
++.ssh/
++.wget-hsts
++.gitconfig
++
++# Draft files
++*_DRAFT.md
++BRIER_CALCULATION_GUIDE*.md
++MOLT_STATE_DRAFT.md
++MORNING_BRIEFING_AND_PR_SETUP.md
++PHASE_1_*.md
++Q-NF-SCHEMA-01-CANDIDATE.md
++phase0_*.md
++research-intake_redteam_*.md
++
++# Scratch scripts and directories
++cycles/
++operations/
++git_landing_script.sh
++mesh_cycle.py
++molt_cycle_SKELETON.py
++tests/
++z2_ratification_gate_DRAFT.yml
+-- 
+2.43.0
+
