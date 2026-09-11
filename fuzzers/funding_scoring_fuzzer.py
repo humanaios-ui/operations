@@ -60,7 +60,7 @@ def _consume_opportunity(fdp: atheris.FuzzedDataProvider) -> dict:
     return {
         "name": _consume_text(fdp),
         "notes": _consume_text(fdp, 256),
-        "category": fdp.PickValueInList(_CATEGORIES),
+        "category": fdp.PickValueInList(list(_CATEGORIES)),
         "native_eligible": fdp.ConsumeBool(),
         "deadline": _consume_deadline(fdp),
     }

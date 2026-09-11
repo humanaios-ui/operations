@@ -66,6 +66,30 @@ class FundingScoringFuzzerTests(unittest.TestCase):
 
         self.assertEqual(fake_atheris.setup_args[0], ["fuzzer-bin", "-runs=4"])
 
+    def test_consume_opportunity_uses_list_for_pick_value(self) -> None:
+        class _RecordingFdp:
+            def __init__(self) -> None:
+                self.picked_values_type = None
+
+            def ConsumeUnicodeNoSurrogates(self, _max_length: int) -> str:
+                return "x"
+
+            def PickValueInList(self, values):
+                self.picked_values_type = type(values)
+                return values[0]
+
+            def ConsumeBool(self) -> bool:
+                return False
+
+        fake_atheris = _FakeAtheris()
+        module = _load_fuzzer_module(fake_atheris)
+        fdp = _RecordingFdp()
+
+        opportunity = module._consume_opportunity(fdp)
+
+        self.assertIs(fdp.picked_values_type, list)
+        self.assertEqual(opportunity["category"], "grants")
+
 
 if __name__ == "__main__":
     unittest.main()
