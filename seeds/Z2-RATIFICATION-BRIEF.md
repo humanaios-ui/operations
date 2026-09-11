@@ -139,7 +139,7 @@ VERSION RELEASE (v0.2)
 - **EDIT:** Propose specific language changes
 - **REJECT:** Return for rewrite
 
-**Decision needed by:** Today
+**Decision requested within:** 48 hours of review start
 
 ---
 
@@ -157,7 +157,7 @@ VERSION RELEASE (v0.2)
 - **EDIT:** Add/remove fields, change instructions
 - **REJECT:** Return for redesign
 
-**Decision needed by:** Today
+**Decision requested within:** 48 hours of review start
 
 ---
 
@@ -176,7 +176,7 @@ VERSION RELEASE (v0.2)
 - **EDIT:** Adjust fields, moderation rules
 - **REJECT:** Return with guidance
 
-**Decision needed by:** Today
+**Decision requested within:** 48 hours of review start
 
 ---
 
@@ -194,7 +194,7 @@ VERSION RELEASE (v0.2)
 - [ ] EDIT (propose changes)
 - [ ] REJECT (return for rewrite)
 
-**Decision needed by:** Today
+**Decision requested within:** 48 hours of review start
 
 ---
 
@@ -211,7 +211,7 @@ VERSION RELEASE (v0.2)
 - [ ] CONFIRM 48-hour window
 - [ ] ADJUST to ___ hours
 
-**Decision needed by:** Today
+**Decision requested within:** 48 hours of review start
 
 ---
 
@@ -227,7 +227,7 @@ VERSION RELEASE (v0.2)
 - [ ] CONFIRM this schedule
 - [ ] ADJUST (propose timeline)
 
-**Decision needed by:** Today
+**Decision requested within:** 48 hours of review start
 
 ---
 
