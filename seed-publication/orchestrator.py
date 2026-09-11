@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import hashlib
 import argparse
+import re
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Optional
 import logging
@@ -101,8 +102,20 @@ class SeedOrchestrator:
         if require_z2_approval is None:
             require_z2_approval = self.config.get("z_integration", {}).get("z2_ratification", {}).get("required", True)
 
-        # Check Z2 ratification requirement (fail-closed: enforce unless explicitly disabled)
-        if require_z2_approval:
+        # Check Z2 ratification requirement
+        github_requires_z2_hash = (
+            self.config.get("surfaces", {})
+            .get("github", {})
+            .get("settings", {})
+            .get("require_z2_hash", False)
+        )
+        z2_required = github_requires_z2_hash or (
+            require_z2_approval
+            and self.config.get("z_integration", {})
+            .get("z2_ratification", {})
+            .get("required")
+        )
+        if z2_required:
             if not self._verify_z2_ratification(version):
                 error = f"Z2 ratification required but not found for v{version}. Cannot publish without Z2 approval."
                 logger.error(error)
@@ -407,7 +420,6 @@ class SeedOrchestrator:
 
     def _verify_z2_ratification(self, version: str) -> bool:
         """Verify that Z2 has ratified this version."""
-        # Check REGISTERED.md for Z2 hash signature
         if not REGISTERED_FILE.exists():
             logger.warning(f"REGISTERED.md not found, cannot verify Z2 ratification")
             return False
@@ -415,14 +427,86 @@ class SeedOrchestrator:
         with open(REGISTERED_FILE) as f:
             content = f.read()
 
-        # Look for version-specific Z2 hash entry
-        z2_pattern = f"v{version}.*z2_hash.*|Z2.*{version}.*ACCEPT"
-        if not any(z2_pattern in line for line in content.split("\n")):
+        ratification = self._extract_z2_ratification_record(content, version)
+        if not ratification:
             logger.warning(f"No Z2 ratification found in REGISTERED.md for v{version}")
+            return False
+
+        z2_hash = ratification["z2_hash"]
+        if not re.fullmatch(r"[0-9a-f]{64}", z2_hash):
+            logger.warning(f"Invalid Z2 hash format for v{version}")
+            return False
+
+        signer = ratification["by"].strip()
+        configured_ratifier = self.config.get("project", {}).get("z2_ratifier", "").strip()
+        if signer not in {"Night", configured_ratifier} and not signer.startswith("Night"):
+            logger.warning(f"Unexpected Z2 signer for v{version}: {signer}")
+            return False
+
+        try:
+            datetime.fromisoformat(ratification["at"].replace("Z", "+00:00"))
+        except ValueError:
+            logger.warning(f"Invalid Z2 timestamp for v{version}: {ratification['at']}")
+            return False
+
+        if ratification["decision"].strip().upper() != "ACCEPT":
+            logger.warning(
+                f"Z2 ratification for v{version} is not accepted: {ratification['decision']}"
+            )
+            return False
+
+        hashable = (
+            f"{ratification['candidate']}|by={ratification['by']}|at={ratification['at']}"
+            f"|decision={ratification['decision']}"
+        )
+        expected_hash = hashlib.sha256(hashable.encode()).hexdigest()
+        if expected_hash != z2_hash:
+            logger.warning(f"Z2 ratification hash mismatch for v{version}")
             return False
 
         logger.info(f"✓ Z2 ratification verified for v{version}")
         return True
+
+    def _extract_z2_ratification_record(
+        self, registered_content: str, version: str
+    ) -> Optional[Dict[str, str]]:
+        """Extract a structured Z2 ratification record for a seed version."""
+        field_pattern = re.compile(
+            r"^\s*(?:[-*]\s*)?(?:\*\*)?"
+            r"(version|candidate|by|at|decision|z2_hash)"
+            r"(?:\*\*)?\s*:\s*(.+?)\s*$",
+            re.IGNORECASE,
+        )
+        version_markers = {f"v{version}", version}
+        current_record: Dict[str, str] = {}
+
+        for line in registered_content.splitlines():
+            match = field_pattern.match(line)
+            if match:
+                key = match.group(1).lower()
+                value = match.group(2).strip().strip("`")
+                current_record[key] = value
+                continue
+
+            if current_record:
+                if version_markers.intersection(
+                    {current_record.get("version", ""), current_record.get("candidate", "")}
+                ) and all(
+                    current_record.get(field)
+                    for field in ("candidate", "by", "at", "decision", "z2_hash")
+                ):
+                    return current_record
+                current_record = {}
+
+        if current_record and version_markers.intersection(
+            {current_record.get("version", ""), current_record.get("candidate", "")}
+        ) and all(
+            current_record.get(field)
+            for field in ("candidate", "by", "at", "decision", "z2_hash")
+        ):
+            return current_record
+
+        return None
 
     def emit_z1_candidate(
         self,
