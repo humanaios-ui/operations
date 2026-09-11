@@ -1,0 +1,111 @@
+name: Z2 Ratification Gate
+
+on:
+  pull_request:
+    paths:
+      - 'seeds/seed-constitution-*.md'
+      - 'z1-inbox/**/*.md'
+      - 'REGISTERED.md'
+  push:
+    branches:
+      - main
+    paths:
+      - 'seeds/seed-constitution-*.md'
+      - 'z1-inbox/**/*.md'
+      - 'REGISTERED.md'
+
+permissions:
+  contents: read
+
+jobs:
+  z2-gate:
+    runs-on: ubuntu-latest
+    name: Verify Z2 Ratification Requirements
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for Z2 Approval
+        run: |
+          # For seed publications, verify Z2 ratification in REGISTERED.md
+          if git diff HEAD~1 HEAD --name-only | grep -q "seed-constitution-"; then
+            echo "🔍 Seed Constitution version changed - checking for Z2 approval..."
+            VERSION=$(git diff HEAD~1 HEAD --name-only | grep "seed-constitution-" | sed 's/.*seed-constitution-v\(.*\)\.md/\1/' | head -1)
+            echo "  Version: $VERSION"
+
+            # Check REGISTERED.md for Z2 ratification hash
+            if ! grep -q "v$VERSION.*RATIFIED\|v$VERSION.*ACCEPT" REGISTERED.md; then
+              echo "❌ Z2 ratification not found in REGISTERED.md for v$VERSION"
+              echo "   All Seed Constitution changes require Z2 (Night) approval before publication"
+              exit 1
+            fi
+            echo "✓ Z2 ratification verified"
+          fi
+
+      - name: Verify Falsifier in Z1 Candidates
+        run: |
+          # Check z1-inbox for candidate blocks with required falsifier
+          if find z1-inbox -name "*.md" -type f | grep -q .; then
+            echo "🔍 Checking Z1 candidates for falsifier discipline..."
+            for candidate in z1-inbox/**/*.md; do
+              if [ -f "$candidate" ]; then
+                if ! grep -q "## Falsifier\|falsifier:" "$candidate"; then
+                  echo "❌ Missing falsifier in $candidate"
+                  echo "   Falsifier is required (how would we know this failed?)"
+                  exit 1
+                fi
+              fi
+            done
+            echo "✓ All candidates have falsifiers"
+          fi
+
+      - name: Validate Amendment Template
+        run: |
+          # If there are seed amendments, validate structure
+          if [ -f ".github/ISSUE_TEMPLATE/seed-amendment.md" ]; then
+            echo "✓ Seed amendment template exists"
+            if ! grep -q "related principle\|proposed change\|rationale" ".github/ISSUE_TEMPLATE/seed-amendment.md"; then
+              echo "⚠ Warning: amendment template may be missing key fields"
+            fi
+          fi
+
+      - name: Check Contribution Guidance
+        run: |
+          # Verify contribution paths are documented
+          if [ ! -f "seeds/CONTRIBUTION_GUIDE.md" ]; then
+            echo "❌ CONTRIBUTION_GUIDE.md not found"
+            exit 1
+          fi
+          echo "✓ Contribution guide present"
+
+  config-lint:
+    runs-on: ubuntu-latest
+    name: Validate Configuration
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Config YAML
+        run: |
+          if ! python3 -c "import yaml; yaml.safe_load(open('seed-publication/config.yaml'))" 2>/dev/null; then
+            echo "❌ seed-publication/config.yaml is invalid YAML"
+            exit 1
+          fi
+          echo "✓ Configuration YAML is valid"
+
+      - name: Verify Surface Configuration
+        run: |
+          # Basic check that required surfaces are configured
+          if ! grep -q "github:" seed-publication/config.yaml; then
+            echo "❌ GitHub surface not configured"
+            exit 1
+          fi
+          if ! grep -q "substack:" seed-publication/config.yaml; then
+            echo "❌ Substack surface not configured"
+            exit 1
+          fi
+          echo "✓ Required surfaces configured"
+
+name: Z2 Ratification Gate on seed constitution changes
