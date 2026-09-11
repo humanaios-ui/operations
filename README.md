@@ -18,7 +18,7 @@ This repository is the canonical source for governance state, execution protocol
 - **[CURRENT.md](./CURRENT.md)** — Operating process. Identity, lessons, hard-stop principles, dataset state. Fetched by every LLM at session open.
 - **[REGISTERED.md](./REGISTERED.md)** — Findings registry (F-class), hypotheses (H-class), corrections (IC-class). Append-only.
 - **[SESSION_RITUALS.md](./SESSION_RITUALS.md)** — Substrate-agnostic open/close protocols, parser tags, halt conditions.
-- **[ACAT_SESSION_PROMPT.md](./ACAT_SESSION_PROMPT.md)** — Unified Phase 1 + Phase 3 session protocol. The complete prompt every substrate runs at session open and close.
+- **Session orchestration surfaces** — governed via the active session protocol documents (`CURRENT.md`, `SESSION_RITUALS.md`, `GOVERNANCE.md`, and `OPERATOR_RUNBOOK.md`); no standalone `ACAT_SESSION_PROMPT.md` is checked in.
 
 
 ## Canonical documents and authority
@@ -31,7 +31,7 @@ This repository is the canonical source for governance state, execution protocol
 | `REGISTERED.md` | Append-only findings, hypotheses, and incident registry |
 | `OPERATOR_RUNBOOK.md` | Public operator procedures and execution recipes |
 
-Additional protocol surfaces: `Z3_PROTOCOL.md`, `SUBSTRATE_CAPABILITY_REGISTRY.md`, `ACAT_SESSION_PROMPT.md`.
+Additional protocol surfaces: `Z3_PROTOCOL.md`, `SUBSTRATE_CAPABILITY_REGISTRY.md`.
 
 ## Zone system (plain language)
 

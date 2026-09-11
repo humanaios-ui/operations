@@ -21,6 +21,9 @@ required_status_checks:
     - "PR Template Validation"
     - "Z2 Gate Questions Validation"
     - "Decision ID Linkage Check"
+    - "quality"
+    - "Secret scanning (gitleaks)"
+    - "Python dependency vulnerability scan"
 
 required_reviews:
   dismiss_stale_reviews: true

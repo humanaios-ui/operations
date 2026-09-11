@@ -179,19 +179,16 @@
 
 **CODEOWNERS:**
 ```yaml
-# Governance-adjacent (Z2 seal required)
-/REGISTERED.md operations-team
-/PRIORITY_QUEUE.md operations-team
-/ZONE_REGISTRY.md operations-team
-/CLAUDE.md operations-team
-/MOLT_STATE.md operations-team
-/NF_LEDGER.jsonl operations-team
-/system_graph.* operations-team
-
-# Zone-specific (Z3 executor + Z2 approval)
-/src/** @zone-executor
-/docs/GOVERNANCE.md @z2-ratifier
-/tests/** @zone-executor
+# Example root CODEOWNERS excerpt only (non-active when `.github/CODEOWNERS` is present)
+/document-registry.yaml                    @humanaios-ui/doc-control
+/CONTROLLED_DOCUMENTS.md                    @humanaios-ui/doc-control
+/.doc-control/                             @humanaios-ui/doc-control
+/.github/workflows/document-control.yml    @humanaios-ui/doc-control
+/GOVERNANCE.md                             @humanaios-ui/governance
+/PRINCIPLES_SEED_V1_0.md                   @humanaios-ui/governance
+/SEED.md                                   @humanaios-ui/governance
+/REGISTERED.md                             @humanaios-ui/research
+*.md                                       @humanaios-ui/doc-control
 ```
 
 ---
@@ -279,6 +276,4 @@ When these occur, emit callout immediately:
 **For CI/CD:** Use CODEOWNERS rules. Run falsifier_lint, z2_hash_verify, registry_consistency, molt_anti_cascade gates.
 
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
-
 **Framework Reference:** See [`FRAMEWORK_MAPPING.md`](./FRAMEWORK_MAPPING.md) for unified mental model mapping 5 Modern AI Engineering Concepts (Graph, Loop, Context, Harness, Prompt Engineering) to HumanAIOS Z-roles, governance files, and CI/CD gates. All proposers, ratifiers, and executors should reference this mapping when designing or evaluating work across the 31-repo ecosystem.
-

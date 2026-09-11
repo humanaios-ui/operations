@@ -10,13 +10,9 @@ Complete guide for deploying HumanAIOS Operations Phase 2 to GitHub Actions.
 - ✅ No uncommitted changes
 
 ### Workflows
-- ✅ 3 workflows defined in `.github/workflows/`
-  - `weekly-profile-sync.yml` — Monday 09:00 UTC
-  - `weekly-funding-rescore.yml` — Monday 09:30 UTC
-  - `daily-deadline-alerts.yml` — Daily 08:00 UTC
-- ✅ All workflows use `humanaios_operations.cli`
-- ✅ PYTHONPATH configured correctly
-- ✅ Python 3.11 specified
+- ✅ Multiple workflows defined in `.github/workflows/` (quality, governance, audits, scheduling, pages, security)
+- ✅ Funding/profile/deadline workflows use `humanaios_operations.cli`
+- ✅ Python runtime is selected per workflow (`3.x` or `3.11` depending on job)
 
 ### Secrets Configuration
 - ✅ GitHub Secrets configured (optional for testing)
@@ -44,14 +40,14 @@ Complete guide for deploying HumanAIOS Operations Phase 2 to GitHub Actions.
 2. **Go to GitHub Actions:**
    - Navigate to: `humanaios-ui/operations`
    - Click **Actions** tab
-   - Verify 3 workflows appear in the list
+   - Verify expected operations workflows appear in the list
 
 3. **Enable Actions (if not already enabled):**
    - Click **Settings** → **Actions** → **General**
    - Ensure "Allow all actions and reusable workflows" is selected
 
 4. **Verify workflow files:**
-   - All 3 workflows should show status: Ready (green checkmark)
+   - Target workflows should show status: Ready (green checkmark)
 
 ### Phase 2: Test Run (Before Full Deployment)
 

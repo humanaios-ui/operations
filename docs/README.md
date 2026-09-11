@@ -9,7 +9,7 @@ This repo is the canonical home for class-2 (operating process) and class-3 (fin
 - **[CURRENT.md](./CURRENT.md)** — Operating process. Identity, lessons, hard-stop principles, dataset state. Fetched by every LLM at session open.
 - **[REGISTERED.md](./REGISTERED.md)** — Findings registry (F-class), hypotheses (H-class), corrections (IC-class). Append-only.
 - **[SESSION_RITUALS.md](./SESSION_RITUALS.md)** — Substrate-agnostic open/close protocols, parser tags, halt conditions.
-- **[ACAT_SESSION_PROMPT.md](./ACAT_SESSION_PROMPT.md)** — Unified Phase 1 + Phase 3 session protocol. The complete prompt every substrate runs at session open and close.
+- **Session protocol surfaces** — `CURRENT.md`, `SESSION_RITUALS.md`, `GOVERNANCE.md`, and `OPERATOR_RUNBOOK.md` together define the active session protocol; no standalone `ACAT_SESSION_PROMPT.md` is checked in.
 
 ## Discovery and onboarding docs
 
@@ -35,7 +35,8 @@ The live ACAT instrument now collects all 12 dimensions in Phase 1, Phase 3, and
 https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md
 https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md
 https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md
-https://raw.githubusercontent.com/humanaios-ui/operations/main/ACAT_SESSION_PROMPT.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md
+https://raw.githubusercontent.com/humanaios-ui/operations/main/OPERATOR_RUNBOOK.md
 ```
 
 ## Update model

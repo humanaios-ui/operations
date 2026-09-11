@@ -30,13 +30,11 @@ jobs:
 
       - name: Run drift monitor scan
         run: |
-          cd operations
           python3 scripts/drift_monitor.py --scan --output drift_report.json
 
       - name: Check for novel drift
         id: check-drift
         run: |
-          cd operations
           NOVEL=$(jq '.novel_issues' drift_report.json)
           echo "novel_issues=$NOVEL" >> $GITHUB_OUTPUT
           if [ "$NOVEL" -gt 0 ]; then
@@ -50,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: drift-report
-          path: operations/drift_report.json
+          path: drift_report.json
           retention-days: 90
 
       - name: Create GitHub issues (novel drift)
@@ -59,7 +57,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = JSON.parse(fs.readFileSync('operations/drift_report.json', 'utf8'));
+            const report = JSON.parse(fs.readFileSync('drift_report.json', 'utf8'));
             const novelIssues = report.issues.novel || [];
 
             if (novelIssues.length > 0) {
@@ -96,7 +94,6 @@ See \`A6_DRIFT_MONITOR_SPEC.md\` runbook for response workflow.
       - name: Post summary
         if: always()
         run: |
-          cd operations
           echo "## Drift Monitor Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Total issues: $(jq '.total_issues' drift_report.json)" >> $GITHUB_STEP_SUMMARY

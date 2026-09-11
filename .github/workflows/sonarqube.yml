@@ -1,14 +1,14 @@
 name: sonarqube-quality
 
 # Review-panel LAYER 0 — static code quality (SonarQube).
+# PR quality scan layer only: main-branch baseline capture is owned by
+# sonarcloud-baseline-auto.yml to avoid duplicate scans.
 # DORMANT until secrets are configured: requires SONAR_TOKEN + SONAR_HOST_URL.
 # The guard step skips the scan cleanly when the token is absent, so this workflow
 # is safe to merge before the SonarQube server is set up. Pin the scan action to a
 # full commit SHA before production use (supply-chain).
 
 on:
-  push:
-    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:

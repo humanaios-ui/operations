@@ -3,13 +3,13 @@
 **Baseline Date:** 2026-07-21  
 **Repository:** humanaios-ui/operations  
 **SonarCloud Organization:** humanaios-ui  
-**Scan Status:** [PENDING - awaiting initial scan]
+**Scan Status:** [PENDING - awaiting successful Sonar baseline capture workflow run]
 
 ---
 
 ## Executive Summary
 
-This document captures the baseline code quality metrics for humanaios-ui/operations as the foundation for tracking improvement over time. Metrics are collected quarterly to monitor trends and calibrate quality gates.
+This document captures the baseline code quality metrics for humanaios-ui/operations as the foundation for tracking improvement over time. Metrics are collected quarterly to monitor trends and calibrate quality gates. Until the baseline capture workflow completes with valid Sonar credentials, placeholder values remain expected.
 
 ---
 
