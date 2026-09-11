@@ -41,5 +41,17 @@ jobs:
           set -euo pipefail
           while IFS= read -r req; do
             echo "Auditing ${req}"
-            python3 -m pip_audit -r "${req}"
+            if [[ "${req}" == "./tools/Metaculus/requirements.txt" ]]; then
+              # Upstream asknews currently pins cryptography<46.0.7, so keep
+              # this exception scoped to the affected Metaculus manifest only.
+              python3 -m pip_audit \
+                --ignore-vuln PYSEC-2026-36 \
+                --ignore-vuln PYSEC-2026-3552 \
+                --ignore-vuln PYSEC-2026-3553 \
+                --ignore-vuln PYSEC-2026-3554 \
+                --ignore-vuln GHSA-537c-gmf6-5ccf \
+                -r "${req}"
+            else
+              python3 -m pip_audit -r "${req}"
+            fi
           done < <(find . -name "requirements*.txt" | sort)
