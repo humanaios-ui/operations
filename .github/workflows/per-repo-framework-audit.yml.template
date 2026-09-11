@@ -31,8 +31,8 @@ jobs:
           # Check if CLAUDE.md exists
           if [ ! -f "CLAUDE.md" ]; then
             echo "status=missing-claude-md" >> $GITHUB_OUTPUT
-            echo "::warning title=FRAMEWORK AUDIT::CLAUDE.md not found in repo"
-            exit 0
+            echo "::error title=FRAMEWORK AUDIT::CLAUDE.md not found in repo"
+            exit 1
           fi
 
           # Check if CLAUDE.md has Framework Reference section with FRAMEWORK_MAPPING.md link
@@ -61,8 +61,7 @@ jobs:
           echo "Commit: ${{ github.sha }}"
           echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           echo ""
-          echo "Phase 1 (Advisory): Results logged in CI; compliance data collected for Phase 3 snapshot."
-          echo "Phase 2 (Blocking): Non-compliant status blocks merge; Z2 override required."
+          echo "Configure this workflow as a required status check to block merges when non-compliant."
           echo ""
           echo "Dispatching compliance result to operations repo..."
 
