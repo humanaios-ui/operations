@@ -73,6 +73,7 @@ jobs:
           fi
 
       - name: A9 — Framework compliance aggregation (per-repo audit structure)
+        if: always()
         run: |
           echo "Preparing framework compliance reporting structure..."
           mkdir -p audit/framework-compliance
