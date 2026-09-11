@@ -24,6 +24,10 @@ def root() -> dict:
  "human_score_url": "/api/v1/acat/human-score",
  "version": "0.1.0",
  }
+@app.get("/health")
+def root_health() -> dict:
+ return {"status": "ok", "version": "0.1.0"}
+
 @app.get("/api/v1/acat/health")
 def health() -> dict:
  return {
