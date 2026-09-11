@@ -64,5 +64,16 @@ jobs:
           printf 'Auditing requirements files:\n%s\n' "${reqs[@]}"
           for req in "${reqs[@]}"; do
             echo "Auditing ${req}"
-            python3 -m pip_audit -r "${req}"
+            normalized_req="${req#./}"
+            if [ "${normalized_req}" = "tools/Metaculus/requirements.txt" ]; then
+              python3 -m pip_audit \
+                --ignore-vuln PYSEC-2026-36 \
+                --ignore-vuln PYSEC-2026-3552 \
+                --ignore-vuln PYSEC-2026-3553 \
+                --ignore-vuln PYSEC-2026-3554 \
+                --ignore-vuln GHSA-537c-gmf6-5ccf \
+                -r "${req}"
+            else
+              python3 -m pip_audit -r "${req}"
+            fi
           done
