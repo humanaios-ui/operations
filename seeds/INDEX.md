@@ -42,9 +42,9 @@ Branch: `claude/seed-publication-architecture-v8tl8n`
 | `CONTRIBUTION_GUIDE.md` | How community can contribute (5 paths) | ✓ Ready |
 | `CHANGELOG.md` | Version history & decision log template | ✓ Ready |
 | `substack-launch-post-template.md` | Launch announcement (ready to publish) | ✓ Ready |
-| `observatory-framing-v0.1.md` | Research context (ACAT connection) | ✓ Ready |
-| `site-page-v0.1.html` | Website page (ready to deploy) | ✓ Ready |
-| `writable-wall-form.json` | Form configuration | ✓ Ready |
+| `observatory-framing-v0.1.md` | Research context (ACAT connection) | ⚡ Staged |
+| `site-page-v0.1.html` | Website page (ready to deploy) | ⚡ Staged |
+| `writable-wall-form.json` | Form configuration | ⚡ Staged |
 
 ### Documentation & Reference
 
@@ -365,7 +365,7 @@ Questions about running automation?
 
 ## Next Steps Summary
 
-1. **Z2 reads brief** → Decides (ACCEPT / EDIT / REJECT) within 24h
+1. **Z2 reads brief** → Decides (ACCEPT / EDIT / REJECT) within 48h
 2. **Z1 stages commit** → If approved
 3. **Z3 merges & publishes** → Activates all 5 contribution channels
 4. **Community responds** → Feedback collected for 2 weeks

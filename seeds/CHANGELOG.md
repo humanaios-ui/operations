@@ -6,8 +6,8 @@ Comprehensive record of all versions, amendments, and their sources.
 
 ## Version 0.1 (Current)
 
-**Published:** 10 September 2026  
-**Status:** Working Draft – Open for Community Feedback  
+**Created:** 10 September 2026  
+**Status:** Awaiting Z2 Ratification  
 **Ratified by:** [Pending Z2 approval]
 
 ### Summary
