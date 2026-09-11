@@ -123,7 +123,7 @@ versioning:
 z_integration:
   # Integration with HumanAIOS Z1/Z2/Z3 governance
   z1_proposer: "Claude (AI agent)"
-  z1_output: "seeds/z1-inbox/{date}/seed-amendment-{id}.md"
+  z1_output: "z1-inbox/{date}/seed-amendment-{id}.md"
 
   z2_ratification:
     required: true

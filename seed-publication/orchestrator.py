@@ -75,14 +75,15 @@ class SeedOrchestrator:
         self.version = self.config["versioning"]["current"]
         self.repo_root = REPO_ROOT
 
-    def publish(self, version: str, all_surfaces: bool = True, require_z2_approval: bool = True) -> Dict:
+    def publish(self, version: str, all_surfaces: bool = True, require_z2_approval: bool = None) -> Dict:
         """
         Publish a version to all enabled surfaces.
 
         Args:
             version: Version string (e.g., "0.1")
             all_surfaces: If True, publish to all enabled surfaces
-            require_z2_approval: If True, verify Z2 ratification before publishing
+            require_z2_approval: If True, verify Z2 ratification before publishing.
+                                If None, read from config z_integration.z2_ratification.required
 
         Returns:
             Dict with publication results
@@ -96,8 +97,12 @@ class SeedOrchestrator:
             "z2_verified": False,
         }
 
-        # Check Z2 ratification requirement
-        if require_z2_approval and self.config.get("z_integration", {}).get("z2_ratification", {}).get("required"):
+        # If require_z2_approval not specified, read from config
+        if require_z2_approval is None:
+            require_z2_approval = self.config.get("z_integration", {}).get("z2_ratification", {}).get("required", True)
+
+        # Check Z2 ratification requirement (fail-closed: enforce unless explicitly disabled)
+        if require_z2_approval:
             if not self._verify_z2_ratification(version):
                 error = f"Z2 ratification required but not found for v{version}. Cannot publish without Z2 approval."
                 logger.error(error)
@@ -122,6 +127,11 @@ class SeedOrchestrator:
         for surface_name, surface_config in surfaces_config.items():
             if not surface_config.get("enabled", True):
                 logger.info(f"Skipping disabled surface: {surface_name}")
+                continue
+
+            # If all_surfaces is False, skip this surface
+            if not all_surfaces:
+                logger.info(f"Skipping {surface_name} (all_surfaces=False)")
                 continue
 
             try:
@@ -151,6 +161,8 @@ class SeedOrchestrator:
             result = self._publish_website(version, content, config)
         elif surface == "writable_wall":
             result = self._publish_writable_wall(version, content, config)
+        elif surface == "form":
+            result = self._publish_form(version, config)
         elif surface == "observatory":
             result = self._publish_observatory(version, content, config)
 
@@ -189,6 +201,7 @@ class SeedOrchestrator:
                 ["git", "commit", "-m", commit_msg],
                 cwd=self.repo_root,
                 capture_output=True,
+                check=True,
             )
             result["details"]["commit"] = "staged"
         except subprocess.CalledProcessError as e:
@@ -261,6 +274,33 @@ class SeedOrchestrator:
         result["details"]["endpoint"] = config.get("submission_path")
         result["details"]["instructions"] = (
             "Deploy form to writable_wall endpoint and link from Seed page"
+        )
+
+        return result
+
+    def _publish_form(self, version: str, config: Dict) -> Dict:
+        """Generate simple feedback form configuration"""
+        result = {"surface": "form", "status": "completed", "details": {}}
+
+        form_config_path = SEEDS_DIR / "seed-feedback-form.json"
+        form_config_path.parent.mkdir(parents=True, exist_ok=True)
+
+        form_config = {
+            "form_name": "Seed Constitution – Quick Feedback",
+            "form_version": version,
+            "type": config.get("type", "typeform_or_custom"),
+            "description": "Quick feedback on the Seed Constitution v" + version,
+            "fields": config.get("feedback_collection", {}).get("fields", []),
+            "responses_path": config.get("responses_path", "seeds/feedback/{date}/{response_id}.json"),
+        }
+
+        with open(form_config_path, "w") as f:
+            json.dump(form_config, f, indent=2)
+
+        result["details"]["config_path"] = str(form_config_path)
+        result["details"]["responses_path"] = form_config.get("responses_path")
+        result["details"]["instructions"] = (
+            "Configure form endpoint (Typeform or custom) and link from Seed page"
         )
 
         return result
@@ -929,15 +969,24 @@ by Night. Timeline and detailed changelog will be announced on Substack.
 
     def _build_z1_candidate(
         self,
-        contributions: List[Contribution],
+        contributions: List,
         rationale: str,
         falsifier: str,
     ) -> str:
         """Build Z1 candidate block"""
         timestamp = datetime.utcnow().isoformat()
-        contrib_list = "\n".join(
-            [f"  - {c.author}: {c.proposed_change}" for c in contributions]
-        )
+        contrib_list = []
+        for c in contributions:
+            # Handle both Contribution objects and plain dicts
+            if isinstance(c, dict):
+                author = c.get("author", c.get("attribution", "Anonymous"))
+                change = c.get("proposed_change", "")
+            else:
+                author = c.author
+                change = c.proposed_change
+            contrib_list.append(f"  - {author}: {change}")
+
+        contrib_text = "\n".join(contrib_list)
 
         candidate = f"""# Seed Constitution v{self.version} Amendment Candidate
 
@@ -951,7 +1000,7 @@ by Night. Timeline and detailed changelog will be announced on Substack.
 
 ## Proposed Changes
 
-{contrib_list}
+{contrib_text}
 
 ## Falsifier (How We'd Know This Failed)
 
