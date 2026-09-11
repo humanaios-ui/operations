@@ -64,10 +64,38 @@ jobs:
           echo "Phase 1 (Advisory): Results logged in CI; compliance data collected for Phase 3 snapshot."
           echo "Phase 2 (Blocking): Non-compliant status blocks merge; Z2 override required."
           echo ""
-          echo "To integrate with operations repo:"
-          echo "1. Per-repo results: Dispatch repository_dispatch event to operations repo with compliance status"
-          echo "2. Aggregate: Operations A9 gate collects all per-repo results into audit/framework-compliance/"
-          echo "3. Phase 3: Compliance snapshot fed to molt candidate for Z2 ratification"
+          echo "Dispatching compliance result to operations repo..."
+
+      - name: Dispatch compliance event to operations
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+            const status = '${{ steps.audit.outputs.status }}';
+            const sha = context.sha;
+            const timestamp = new Date().toISOString();
+
+            try {
+              await github.rest.repos.createDispatchEvent({
+                owner: 'humanaios-ui',
+                repo: 'operations',
+                event_type: 'framework-audit-result',
+                client_payload: {
+                  source_repo: `${owner}/${repo}`,
+                  compliance_status: status,
+                  commit_sha: sha,
+                  audit_timestamp: timestamp,
+                  phase: 1
+                }
+              });
+              console.log(`✅ Dispatched compliance result to operations repo: ${status}`);
+            } catch (error) {
+              console.log(`⚠️  Unable to dispatch to operations repo (may require PAT token): ${error.message}`);
+              console.log('Compliance result logged in CI for manual aggregation.');
+            }
 
       - name: Audit summary
         if: always()

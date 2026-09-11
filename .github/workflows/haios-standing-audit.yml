@@ -58,14 +58,17 @@ jobs:
           fi
 
       - name: A8 — Framework Mapping reference (operations repo)
+        id: a8_check
         run: |
           echo "Verifying FRAMEWORK_MAPPING.md reference in operations/CLAUDE.md..."
           # Check for Framework Reference section (not historical Appended Events)
           if grep -q "^## Framework Reference" CLAUDE.md 2>/dev/null && \
              grep -A 2 "^## Framework Reference" CLAUDE.md | grep -q "FRAMEWORK_MAPPING.md"; then
             echo "✅ A8 PASS — FRAMEWORK_MAPPING.md properly referenced in Framework Reference section"
+            echo "a8_passed=true" >> $GITHUB_OUTPUT
           else
             echo "::error title=A8 AUDIT::FRAMEWORK_MAPPING.md reference missing in Framework Reference section of CLAUDE.md"
+            echo "a8_passed=false" >> $GITHUB_OUTPUT
             exit 1
           fi
 
@@ -74,6 +77,7 @@ jobs:
           echo "Preparing framework compliance reporting structure..."
           mkdir -p audit/framework-compliance
           AUDIT_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          A8_PASSED="${{ steps.a8_check.outputs.a8_passed }}"
           # Create manifest with actual A8 check result
           cat > audit/framework-compliance/compliance-manifest.json << EOF
           {
@@ -83,9 +87,9 @@ jobs:
             "deadline": "2026-09-17T22:27:07Z",
             "compliance_status": {
               "operations": {
-                "framework_reference_present": true,
+                "framework_reference_present": $A8_PASSED,
                 "framework_file_accessible": true,
-                "a8_check_passed": true,
+                "a8_check_passed": $A8_PASSED,
                 "per_repo_audit_trigger_deployed": false,
                 "per_repo_results_aggregated": false
               }
@@ -94,6 +98,19 @@ jobs:
           }
           EOF
           echo "✅ A9 PASS — compliance manifest created with audit results"
+
+      - name: Persist audit manifest to repository
+        if: always()
+        run: |
+          git config --local user.email "ci@humanaios.local"
+          git config --local user.name "HumanAIOS CI"
+          git add audit/framework-compliance/compliance-manifest.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "audit: Framework compliance manifest snapshot"
+            git push origin ${{ github.ref_name }}
+          fi
 
       - name: Audit summary
         run: |
