@@ -56,10 +56,9 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        continue-on-error: true
 
       - name: Mark scan completed
-        if: steps.guard.outputs.configured == 'true'
+        if: steps.guard.outputs.configured == 'true' && steps.scan.conclusion == 'success'
         id: scan-status
         run: echo "completed=true" >> "$GITHUB_OUTPUT"
 

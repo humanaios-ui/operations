@@ -1,0 +1,56 @@
+name: security-gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  secrets:
+    name: Secret scanning (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  python-dependencies:
+    name: Python dependency vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: python3 -m pip install --quiet pip-audit
+
+      - name: Audit all requirements files
+        run: |
+          set -euo pipefail
+          while IFS= read -r req; do
+            echo "Auditing ${req}"
+            if [[ "${req}" == "./tools/Metaculus/requirements.txt" ]]; then
+              # Temporary upstream exception: forecasting-tools currently requires
+              # asknews<0.15.0, and asknews pins cryptography<46.0.7.
+              python3 -m pip_audit -r "${req}" \
+                --ignore-vuln PYSEC-2026-36 \
+                --ignore-vuln PYSEC-2026-3552 \
+                --ignore-vuln PYSEC-2026-3553 \
+                --ignore-vuln PYSEC-2026-3554 \
+                --ignore-vuln GHSA-537c-gmf6-5ccf
+            else
+              python3 -m pip_audit -r "${req}"
+            fi
+          done < <(find . -name "requirements*.txt" | sort)
