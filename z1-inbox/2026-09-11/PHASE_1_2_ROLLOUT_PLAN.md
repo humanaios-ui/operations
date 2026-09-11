@@ -43,13 +43,18 @@ Implementation roadmap for operationalizing FRAMEWORK_MAPPING.md across 31 Human
    - Collect per-repo audit results into `audit/framework-compliance/`
 
 ### Falsifier (Phase 1):
-**Trip condition:** A8/A9 gate disabled OR warning-only (not blocking) on any main push after 2026-09-17T22:27Z
-- **Revert action:** File IC candidate for gate enforcement failure; pause Phase 2 rollout
-- **Z2 override:** Only Z2 can provide explicit override signature to continue without enforcement
+**Trip condition:** A8/A9 gate DISABLED or entirely REMOVED after 2026-09-17T22:27Z (audit gates must remain active, at minimum warning-only)
+- Note: Phase 1 gates emit warnings only (observational). Phase 2 upgrades to blocking enforcement.
+- **Revert action:** If gate is disabled/removed: File IC candidate for gate enforcement failure; pause Phase 2 rollout
+- **Z2 override:** Only Z2 can provide explicit override signature to disable gates early or skip Phase 2
 
 ---
 
-## Phase 2: Per-Repo CLAUDE.md Updates (2-week rollout, ~2026-09-18 to 2026-10-02)
+## Phase 2: Per-Repo CLAUDE.md Updates + Enforcement Upgrade (2-week rollout, ~2026-09-18 to 2026-10-02)
+
+**Enforcement upgrade:** Phase 2 workflow (per-repo-framework-audit.yml) transitions from warning-only to blocking merge enforcement
+- Required checks: Per-repo framework audit blocks merge if CLAUDE.md lacks Framework Reference section
+- Z2 override: Only Z2 can approve per-repo exception via REGISTERED.md entry
 
 **Target:** All 31 repos must reference FRAMEWORK_MAPPING.md in their CLAUDE.md files
 
@@ -119,12 +124,14 @@ Measurement: Automated per-repo audit sweep on window close date
 
 ## Z2 Decision Gate
 
+**PREREQUISITE:** This candidate and related governance candidates (FRAMEWORK_MAPPING_FOLLOWUP, FRAMEWORK_MAPPING_INTEGRATION) must be registered in REGISTERED.md before Z2 can ratify. Submit candidates to Z2 via REGISTERED.md entry + 48h decision window.
+
 **Awaiting Z2 ratification:**
 - [ ] ACCEPT — Deploy A8/A9 gates + per-repo triggers as specified; proceed Phase 1 → Phase 2 → Phase 3
 - [ ] EDIT — Propose changes (reply in thread)
 - [ ] REJECT — Reason (reply in thread)
 
-**Deadline:** 48h from proposal timestamp
+**Deadline:** 48h from REGISTERED.md submission (Z2 decision window)
 
 ---
 

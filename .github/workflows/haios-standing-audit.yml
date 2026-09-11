@@ -60,37 +60,40 @@ jobs:
       - name: A8 — Framework Mapping reference (operations repo)
         run: |
           echo "Verifying FRAMEWORK_MAPPING.md reference in operations/CLAUDE.md..."
-          if grep -q "FRAMEWORK_MAPPING.md" CLAUDE.md 2>/dev/null; then
-            echo "✅ A8 PASS — FRAMEWORK_MAPPING.md properly referenced"
+          # Check for Framework Reference section (not historical Appended Events)
+          if grep -q "^## Framework Reference" CLAUDE.md 2>/dev/null && \
+             grep -A 2 "^## Framework Reference" CLAUDE.md | grep -q "FRAMEWORK_MAPPING.md"; then
+            echo "✅ A8 PASS — FRAMEWORK_MAPPING.md properly referenced in Framework Reference section"
           else
-            echo "::warning title=A8 AUDIT::FRAMEWORK_MAPPING.md not referenced in CLAUDE.md — governance baseline incomplete"
+            echo "::error title=A8 AUDIT::FRAMEWORK_MAPPING.md reference missing in Framework Reference section of CLAUDE.md"
+            exit 1
           fi
 
       - name: A9 — Framework compliance aggregation (per-repo audit structure)
         run: |
           echo "Preparing framework compliance reporting structure..."
           mkdir -p audit/framework-compliance
-          if [ ! -f "audit/framework-compliance/compliance-manifest.json" ]; then
-            cat > audit/framework-compliance/compliance-manifest.json << 'EOF'
+          AUDIT_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          # Create manifest with actual A8 check result
+          cat > audit/framework-compliance/compliance-manifest.json << EOF
           {
             "schema_version": "1.0",
-            "audit_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "audit_date": "$AUDIT_DATE",
             "phase": "1",
             "deadline": "2026-09-17T22:27:07Z",
             "compliance_status": {
               "operations": {
                 "framework_reference_present": true,
                 "framework_file_accessible": true,
-                "per_repo_audit_trigger_deployed": false
+                "a8_check_passed": true,
+                "per_repo_audit_trigger_deployed": false,
+                "per_repo_results_aggregated": false
               }
             },
-            "notes": "Phase 1: operations repo baseline established. Per-repo audit triggers pending deployment to 31 repos by deadline."
+            "notes": "Phase 1: operations repo A8 check enforcing. Per-repo audit triggers pending deployment by 2026-09-17T22:27Z."
           }
           EOF
-            echo "✅ A9 PASS — compliance manifest initialized"
-          else
-            echo "✅ A9 PASS — compliance manifest exists"
-          fi
+          echo "✅ A9 PASS — compliance manifest created with audit results"
 
       - name: Audit summary
         run: |
