@@ -42,6 +42,8 @@ Not generic praise. Specific amendments. Critiques grounded in evidence. New pri
 
 You can contribute in any of these ways:
 
+Canonical links: [Seed Constitution](https://humanaios.ai/seeds/constitution), [Writable Wall](https://humanaios.ai/contribute), [Quick Feedback Form](https://humanaios.ai/seed-feedback).
+
 ### 1. **Comment below** (right here on Substack)
 Best for: Quick reactions, questions, high-level thoughts. We read every substantive comment and will surface the best ones in a follow-up post next week.
 
