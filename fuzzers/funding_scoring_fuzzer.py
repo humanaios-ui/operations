@@ -60,7 +60,7 @@ def _consume_opportunity(fdp: atheris.FuzzedDataProvider) -> dict:
     return {
         "name": _consume_text(fdp),
         "notes": _consume_text(fdp, 256),
-        "category": fdp.PickValueInList(_CATEGORIES),
+        "category": fdp.PickValueInList(list(_CATEGORIES)),
         "native_eligible": fdp.ConsumeBool(),
         "deadline": _consume_deadline(fdp),
     }
@@ -73,8 +73,11 @@ def TestOneInput(data: bytes) -> None:
     generate_ranked_report(scored, top_n=fdp.ConsumeIntInRange(0, 10))
 
 
-def main() -> None:
-    atheris.Setup(sys.argv, TestOneInput)
+def main(argv=None) -> None:
+    setup_args = list(sys.argv if argv is None else argv)
+    if not setup_args:
+        setup_args = ["funding_scoring_fuzzer"]
+    atheris.Setup(setup_args, TestOneInput)
     atheris.Fuzz()
 
 

@@ -13,7 +13,7 @@ FUZZER_PATH = REPO_ROOT / "fuzzers" / "funding_scoring_fuzzer.py"
 
 
 class FundingScoringFuzzerTests(unittest.TestCase):
-    def test_main_passes_sys_argv_to_atheris_setup(self) -> None:
+    def _load_module(self):
         setup_calls = []
         fuzz_calls = []
 
@@ -35,12 +35,48 @@ class FundingScoringFuzzerTests(unittest.TestCase):
             finally:
                 sys.path.pop(0)
 
+        return module, setup_calls, fuzz_calls
+
+    def test_main_passes_sys_argv_to_atheris_setup(self) -> None:
+        module, setup_calls, fuzz_calls = self._load_module()
+
         argv = ["funding_scoring_fuzzer", "--", "-runs=1"]
         with mock.patch.object(sys, "argv", argv):
             module.main()
 
         self.assertEqual([(argv, module.TestOneInput)], setup_calls)
         self.assertEqual([True], fuzz_calls)
+
+    def test_main_falls_back_to_default_name_for_empty_argv(self) -> None:
+        module, setup_calls, fuzz_calls = self._load_module()
+
+        with mock.patch.object(sys, "argv", []):
+            module.main()
+
+        self.assertEqual([(["funding_scoring_fuzzer"], module.TestOneInput)], setup_calls)
+        self.assertEqual([True], fuzz_calls)
+
+    def test_consume_opportunity_passes_list_to_pick_value_in_list(self) -> None:
+        module, _, _ = self._load_module()
+
+        class FakeFdp:
+            def ConsumeUnicodeNoSurrogates(self, max_length):
+                return "text"
+
+            def PickValueInList(self, values):
+                self.values = values
+                return values[0]
+
+            def ConsumeBool(self):
+                return False
+
+        fdp = FakeFdp()
+
+        opportunity = module._consume_opportunity(fdp)
+
+        self.assertIsInstance(fdp.values, list)
+        self.assertEqual(list(module._CATEGORIES), fdp.values)
+        self.assertEqual(module._CATEGORIES[0], opportunity["category"])
 
 
 if __name__ == "__main__":
