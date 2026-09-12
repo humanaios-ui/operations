@@ -48,4 +48,5 @@ jobs:
             test_specimen_intake_evaluator.py \
             tools/tests/test_builder_compliance_scanner.py \
             tools/tests/test_smag_predict_lint.py \
+            tools/tests/test_nf_ledger_cli.py \
             -q
