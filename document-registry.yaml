@@ -11,8 +11,17 @@ generated: "2026-07-02"
 seed_source: "humanaios/_audit_S070126 reconciliation (71 diverged pairs)"
 id_scheme: "HAIOS-<AREA>-<nnn>"
 areas: {GOV: governance, PROC: process/runbooks, OPS: operations/state, RES: research, COLLAB: collaborator-reports, ENG: engagement/external, WEB: site-pages, DOC: uncategorized}
-counts: {documents: 45, excluded: 37, needs_reconcile: 5}
+counts: {documents: 46, excluded: 37, needs_reconcile: 5}
 documents:
+  - doc_id: HAIOS-RES-009
+    title: "The Instrument Turned Inward: Reflexive Behavioral Calibration for Human-AI Research Systems"
+    area: RES
+    canonical_repo: "operations"
+    canonical_path: "docs/REFLEXIVE_CALIBRATION_PAPER_V1_0.md"
+    canonical: true
+    status: draft
+    recommendation: "Z1 draft, S-091226-01. Status stays `draft` until Z2 ratifies; approval is the owner's act."
+    review_due: "2026-10-12"
   - doc_id: HAIOS-COLLAB-001
     title: "WAMPUM-GADUGI-SIGNAL_S-032126-F.html"
     area: COLLAB
