@@ -9,9 +9,9 @@
 
 ## Why this file exists
 
-Eight candidate entries are staged here. Five are numeric inconsistencies that surfaced while every figure in the manuscript was traced back to a committed source. Three more (IC-CAND-06, F-CAND-01, IC-CAND-07) came out of an independent recomputation of the instrument's principal findings from the committed corpus file, which the tracing pass made necessary. None was resolved editorially. Resolving a disputed figure by picking the one that reads best is the error class the registry exists to prevent, and the authority to rule on these is Z2's, not the drafting session's.
+Nine candidate entries are staged here. Five are numeric inconsistencies that surfaced while every figure in the manuscript was traced back to a committed source. Three more (IC-CAND-06, F-CAND-01, IC-CAND-07) came out of an independent recomputation of the instrument's principal findings from the committed corpus file, which the tracing pass made necessary. The ninth (IC-CAND-08, the most serious of them) came out of an automated review challenging one of this paper's own sentences about CI enforcement — the challenge was right, and the sentence was understating how large the gap is. None was resolved editorially. Resolving a disputed figure by picking the one that reads best is the error class the registry exists to prevent, and the authority to rule on these is Z2's, not the drafting session's.
 
-Four of the first five are already known to the program in some form. That they persisted anyway is the relevant signal: each one survived because no mechanical gate tests cross-document numeric agreement, only within-document falsifier presence. A candidate remedy is proposed at the end.
+Four of the first five are already known to the program in some form. That they persisted anyway is the relevant signal. The missing control is numeric-consistency validation — both *across* related surfaces, which covers four of them, and *within* a single document, which covers IC-CAND-05, a table and its own prose disagreeing on the same page. Existing gates test neither; they test structural properties like falsifier presence and registry membership. A candidate remedy is proposed at the end.
 
 ---
 
@@ -26,13 +26,13 @@ Four of the first five are already known to the program in some form. That they 
 | `SEED.md` §3.1, `docs/ACAT_PAPER_V6_0_DRAFT.md` §2.1 | `LI = Σ(P3, Core 6) / Σ(P1, Core 6)` |
 | `docs/RESEARCH_OVERVIEW.md` L19 | `LI = 1 − \|P1 − P3\| / P1` |
 
-**Why it matters.** These are different functions, not different notations for one function. The ratio form is directional: it distinguishes a system that revised its self-report downward from one that revised upward. The absolute-difference form is symmetric and cannot. The two agree only on the branch where P3 < P1. Every corpus figure the program publishes — 0.8632 included — was produced under the ratio form, so `RESEARCH_OVERVIEW.md` currently describes a metric the corpus was not scored with.
+**Why it matters.** These are different functions, not different notations for one function. The ratio form is directional: it distinguishes a system that revised its self-report downward from one that revised upward. The absolute-difference form is symmetric and cannot. The two agree whenever P3 ≤ P1 (assuming P1 > 0) and diverge on every upward revision. Every corpus figure the program publishes — 0.8632 included — was produced under the ratio form, so `RESEARCH_OVERVIEW.md` currently describes a metric the corpus was not scored with.
 
 `docs/RESEARCH_OVERVIEW.md` is a public-facing 10-minute-read orientation document, which raises the exposure.
 
 **Proposed disposition.** Correct `docs/RESEARCH_OVERVIEW.md` in place per P2 (modify the original, no errata file). Ratio form is canonical on the strength of the frozen dataset and the instrument specification.
 
-**Falsification condition.** Falsified if the frozen corpus can be reproduced from the archive using the absolute-difference form, which would make `RESEARCH_OVERVIEW.md` correct and the instrument specification wrong.
+**Falsification condition.** Numerical equivalence on the current corpus cannot settle this, and an earlier draft of this candidate wrongly proposed it as the test: because most archive rows have P3 ≤ P1, both expressions return the same value there, so agreement proves nothing about which definition is canonical. Two things can settle it. Either Z2 names the canonical definition as a specification decision, which is the direct route; or a subset of rows with P3 > P1 is scored under both forms and compared against the archive's stored `learning_index`, which discriminates empirically. This candidate is falsified if that upward-revision subset matches the absolute-difference form.
 
 ---
 
@@ -144,11 +144,13 @@ Recomputation against `acat/data/acat_corpus_v2.csv` (S-091226-01) indicates thi
 
 The direction is robust (t > 3.7 on both subsets) and the registered 2.09 sits inside the 95% confidence interval, so this is not a contradiction of F-20.
 
-But F-20's registered falsification condition (addendum S-081526-NN) specifies falsification on "no systematic >1.5-point elevation." The point estimate is 1.43 on both subsets — below that threshold — while the interval spans it. A falsification condition that a finding's own near-neighbour source data fails on the point estimate and passes on the interval does not discriminate. It will read as tripped or not tripped depending on which statistic a future replicator reports, which is the opposite of what a falsifier is for.
+**This run is not an eligible falsification test.** F-20's registered falsification condition (addendum S-081526-NN) scopes itself to a *fresh* corpus of N ≥ 600, or an independent replication. `acat/data/acat_corpus_v2.csv` is neither: it is a 604-row near-neighbour extract of the same corpus lineage the finding was derived from, carrying 524 Phase 1 rows. Its point estimate therefore cannot show the falsifier tripped, and an earlier draft of this candidate overstated that. Treat everything here as a diagnostic pending the eligible run.
 
-**Proposed disposition.** This is filed as a defect in the falsification condition, not as evidence against the gradient. Z2 is asked to restate F-20's falsifier in terms that specify the statistic, the subset, and the inference rule — for example, a confidence interval excluding a named null rather than a bare point threshold — and to re-run the gradient against the published archive before amending the 2.09 figure itself.
+What the diagnostic flags, for that eligible run rather than for now: the falsifier's 1.5-point threshold sits between the observed point estimate (1.43) and the upper bound of its interval (2.11). If an eligible replication lands in the same region, the condition will read as tripped or not tripped depending on whether the replicator reports a point estimate or an interval. That ambiguity is worth removing before the run, not litigating after it.
 
-**Falsification condition (for this candidate).** Falsified if recomputation against the published 629-row archive yields a point estimate above 1.5, showing the shortfall is an artifact of the 604-row extract rather than a property of the corpus.
+**Proposed disposition.** Two asks, in order. First, restate F-20's falsifier so it names the statistic, the subset, and the inference rule — a confidence interval excluding a stated null, rather than a bare point threshold. Second, run the gradient against the published 629-row archive, which is an eligible test, and only then consider whether the 2.09 figure needs amending. Nothing here supports amending it now.
+
+**Falsification condition (for this candidate).** This candidate claims only that the falsifier's wording is ambiguous near the observed region. It is falsified if recomputation against the published 629-row archive yields an interval that clearly excludes or clearly includes the 1.5 threshold, since either outcome would make the point-estimate-versus-interval distinction moot in practice.
 
 ---
 
@@ -168,14 +170,46 @@ Recomputation from `acat/data/acat_corpus_v2.csv`: the `human-assessment` layer 
 
 ---
 
+## IC-CAND-08 — Documented CI enforcement does not run
+
+**Class:** IC · **Severity:** HIGH · **Principles implicated:** P3 (GitHub Verification), P19 (Drift Detection), P16
+
+**Found by:** checking this paper's own §4.5 sentence against the workflow files, after a reviewer challenged it. The sentence was wrong, and so are five governance documents.
+
+**The conflict.** `CLAUDE.md` §"CI/CD Gates", `MOLT_STATE.md` L266, `NF_LEDGER_SCHEMA_v1.md` L198 and L287, and `FRAMEWORK_MAPPING.md` L34 all describe `z2_ratification_gate.yml` as enforcing ledger hash-chain validation, the five anti-cascade rules, falsifier presence, and Merkle-root consistency.
+
+| Artifact | State |
+|---|---|
+| `./z2_ratification_gate.yml` (repo root) | Contains exactly those jobs. Sits outside `.github/workflows/`, so GitHub never runs it. Marked `Status: DRAFT`. Watches `operations/NF_LEDGER.jsonl`; this repo's ledger is at `ledgers/NF_LEDGER.jsonl`, so it would not fire on the right paths even if wired. |
+| `.github/workflows/z2_ratification_gate.yml` | Runs. Scoped to `seeds/seed-constitution-*.md`, `z1-inbox/**/*.md`, `REGISTERED.md`. Checks a seed ratification record and candidate falsifier presence. Does not touch the ledger, molts, or anti-cascade. |
+| `falsifier_lint.yml` | Named in `CLAUDE.md`. Does not exist. |
+| Molt anti-cascade gate | Named in `CLAUDE.md`. Does not exist. |
+
+**Why it matters.** This is the load-bearing claim of the whole architecture. `CLAUDE.md` states that Z3 "cannot execute without Z2 hash (CI enforces)" and that anti-cascade rules 1–5 are enforced mechanically. Neither is currently true. The molt state machine and the anti-cascade rules are specified, and the ledger is written in the hash-chained format the specification calls for, but nothing verifies either; they are conventions held by the people following them.
+
+The severity is not that the convention is being violated — there is no evidence it is. It is that five documents assert mechanical enforcement as a fact, and any reader, human or agent, who relies on that assertion is relying on something that does not exist. That is the self-report gap the instrument measures, appearing in the enforcement layer.
+
+**Proposed disposition.** Z2 chooses one of two consistent states, not a middle one:
+
+1. **Wire it.** Move the root file into `.github/workflows/`, correct its paths to this repository's layout, drop the DRAFT marker, and let it run. The five documents then become accurate without edits. This is the stronger option and the one the architecture assumes.
+2. **Correct the documents.** Amend all five to describe what actually runs, and mark the hash-chain and anti-cascade rules as specified-but-unenforced conventions.
+
+Either way, `falsifier_lint.yml` and the anti-cascade gate are removed from `CLAUDE.md`'s gate list or built.
+
+**Falsification condition.** Falsified if `./z2_ratification_gate.yml` is shown to execute in CI under some mechanism this audit missed — a reusable-workflow call, an organization-level workflow, or a self-hosted runner configuration — in which case the documents are correct and only the file's location is unusual.
+
+---
+
 ## Cross-cutting observation
 
-Four of the five tracing-pass conflicts are cross-document conflicts, and all four survived in a repository that runs 40 continuous-integration workflows including a falsifier lint, a registry-consistency check, and a document-control gate.
+Four of the five tracing-pass conflicts are cross-document conflicts, and all four survived in a repository that runs 39 active workflows (a 40th file is a `.template`), among them a document-control gate and a findings-registry gate that both block on merge.
 
-The gap is specific rather than general. The existing gates test *within-document* properties — does this entry carry a falsifier, does this document have a registry record, does this file have an owner. None tests *cross-document numeric agreement*. A figure can be correct at its source, copied to four other surfaces, and drift on three of them without any gate firing, because no gate knows the five surfaces are meant to agree.
+The gap is specific rather than general. The existing gates test *structural* properties — does this entry carry a falsifier, does this document have a registry record, does this file have an owner. None tests *numeric agreement*, either across surfaces or within one. A figure can be correct at its source, copied to four other surfaces, and drift on three of them without any gate firing, because no gate knows the five surfaces are meant to agree. IC-CAND-05 shows the same blind spot inside a single file, where a table and the prose describing it disagree.
 
 This is the same shape as IC-038 and the maintained-headline class that recurred in July 2026. The remedy adopted there was structural: delete the maintained copy, leave a pointer to the source. That remedy was applied to two fields in `CURRENT.md` and not generalized.
 
-**Candidate remedy (Q-CAND, requires Z2):** a headline-figure manifest naming each canonical statistic, its single source of truth, and every surface permitted to restate it, plus a CI gate that fails when a restatement diverges from its source. This converts a class of error currently caught by manual tracing — which is how these five were found, and only because a manuscript forced the trace — into a mechanical check.
+**A tenth instance, found while fixing the ninth.** Registering this paper in `document-registry.yaml` left the file's own `counts: {documents: 45, ...}` header stale at 45 against 46 actual entries. The blocking validator passed anyway: it checks identifier uniqueness, canonical resolution, and status enums, but not whether the registry's self-declared count matches the list beneath it. The count was corrected in the same change. It is recorded here because it is the smallest possible example of the class and it was introduced, not inherited — a self-describing number went stale the moment something was added, with no gate to notice.
+
+**Candidate remedy (Q-CAND, requires Z2):** a headline-figure manifest naming each canonical statistic, its single source of truth, and every surface permitted to restate it, plus a CI gate that fails when a restatement diverges from its source. The `document-registry.yaml` count is the trivial case and could be the first check written. This converts a class of error currently caught by manual tracing — which is how all of these were found, and only because a manuscript forced the trace — into a mechanical check.
 
 This proposal is filed as a candidate only. It touches CI enforcement and is Z2's to rule on.

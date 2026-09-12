@@ -1,3 +1,13 @@
+---
+doc_id: HAIOS-RES-009
+title: "The Instrument Turned Inward: Reflexive Behavioral Calibration for Human-AI Research Systems"
+area: RES
+canonical_repo: "operations"
+canonical_path: "docs/REFLEXIVE_CALIBRATION_PAPER_V1_0.md"
+canonical: true
+status: draft
+---
+
 # The Instrument Turned Inward: Reflexive Behavioral Calibration for Human–AI Research Systems
 
 **Carly R. Anderson**
@@ -15,13 +25,13 @@ ORCID 0009-0003-7540-4245
 
 ## Abstract
 
-Behavioral benchmarks measure what an AI system does. A smaller literature measures what a system *says* about what it does. This paper reports on an instrument in the second category and on an unusual property of the program that built it: the same instrument has been applied, without redesign, to the research organization that operates it.
+Behavioral benchmarks measure what an AI system does. A smaller literature measures what a system *says* about what it does. This paper reports on an instrument in the second category and on an unusual property of the program that built it: the instrument's dimension set has been turned on the research organization that operates it.
 
 ACAT (AI Calibration Assessment Tool) administers a three-phase protocol — blind self-assessment, calibration exposure, re-assessment — across twelve behavioral dimensions, and reports a Learning Index as the ratio of post-calibration to blind self-report totals on a six-dimension continuity set. The frozen corpus holds 629 total submissions, 516 with a completed Phase 1, and 307 with a computable Learning Index, over a five-week collection window in early 2026. Across that corpus, Humility is the lowest-scoring dimension, and dimensions reinforced by safety training score systematically above dimensions that carry epistemic risk.
 
 We recompute the instrument's principal findings directly from committed data rather than quoting them. The Humility floor reproduces exactly at a Phase 1 mean of 74.02 over 524 submissions and survives restriction to AI-generated rows. The safety-training gradient reproduces in direction and significance but not in magnitude: +1.43 points against a registered 2.09, with the registered value inside the confidence interval and the point estimate below the threshold the finding's own falsification condition names.
 
-The reflexive claim is the contribution this paper adds. The organization running the instrument is governed by a proposer–ratifier–executor architecture with an append-only findings registry, falsifier-gated registration, and mechanical enforcement in continuous integration. Four independent lines of evidence show that this apparatus, measured on its own rubric, reproduces the failure pattern it was built to detect in language models. Its own governance graph, reviewed blind by an adversarial substrate on the same twelve dimensions, scored a mean of 41.67 out of 100, with Humility and Power Awareness tied at the floor — the same two-dimension floor the instrument reports for AI systems. Its own session corpus shows a 96.6 percent Phase 1 to Phase 3 non-completion rate, which is the organizational analogue of the within-session self-report gap the instrument was designed to measure. Its own governance document maps fifteen named organizational drift signals one-to-one onto ACAT dimensions. And its own error registry has recorded roughly forty integrity corrections against itself.
+The reflexive claim is the contribution this paper adds. The organization running the instrument is governed by a proposer–ratifier–executor architecture with an append-only findings registry, falsifier-gated registration, and mechanical enforcement in continuous integration. Several lines of evidence show that this apparatus, measured on its own rubric, reproduces the failure pattern it was built to detect in language models. Its own governance graph, reviewed blind by an adversarial substrate scoring against the instrument's twelve-dimension rubric, returned a mean of 41.67 out of 100, with Humility tied for lowest — the dimension the instrument also reports at the floor across the AI corpus. That review scored a static artifact against the rubric; it did not administer the three-phase protocol, and we are careful throughout about which of the two is being claimed. Its own session corpus shows a 96.6 percent Phase 1 to Phase 3 non-completion rate, which is the organizational analogue of the within-session self-report gap the instrument was designed to measure. Its own governance document maps fifteen named organizational drift signals one-to-one onto ACAT dimensions. And its own error registry has recorded roughly forty integrity corrections against itself.
 
 We argue that this reflexivity is not decoration. An instrument that measures the distance between stated and demonstrated behavior has no privileged exemption for its authors, and a research program that claims such an instrument should be expected to publish its own score. We report what the record shows, including five numeric inconsistencies internal to that record which we did not resolve.
 
@@ -54,7 +64,7 @@ Every instrument that measures self-report faces the same objection: the people 
 
 Reflexive application is a partial answer to that objection. It does not eliminate the problem, but it converts it from an assumption into a measurement. If the instrument is capable of returning a bad score about its own authors' work, then at minimum it is not purely self-congratulatory. If it never does, that itself is a finding.
 
-In this program the instrument returned a mean of 41.67 out of 100 on the authors' own governance architecture (§5.1). We report that number because the alternative — running the reflexive test and publishing only the flattering results — would be the precise behavior the instrument exists to detect.
+In this program the instrument's rubric returned a mean of 41.67 out of 100 on the authors' own governance architecture (§5.1). We report that number because the alternative — running the reflexive test and publishing only the flattering results — would be the precise behavior the instrument exists to detect.
 
 ### 1.2 Scope and claim discipline
 
@@ -102,7 +112,7 @@ LI below 1.0 means the system revised its self-report downward after seeing cali
 
 All twelve dimensions are collected. The Learning Index is restricted to the Core 6 to keep the figure comparable across the corpus's full history — a restriction introduced by a registered correction (IC-022) after an earlier count drifted.
 
-> **Unresolved inconsistency.** A second definition appears in the program's own materials: `docs/RESEARCH_OVERVIEW.md` gives `LI = 1 − |P1 − P3| / P1`. That is a different function. The ratio form is directional and distinguishes upward from downward revision; the absolute-difference form is symmetric and cannot. The two agree only when Phase 3 is below Phase 1. Every corpus figure in this paper was produced under the ratio definition, which is the one carried by the canonical instrument specification and the frozen dataset. The discrepancy is filed as a candidate correction in Appendix C and is not resolved here.
+> **Unresolved inconsistency.** A second definition appears in the program's own materials: `docs/RESEARCH_OVERVIEW.md` gives `LI = 1 − |P1 − P3| / P1`. That is a different function. The ratio form is directional and distinguishes upward from downward revision; the absolute-difference form is symmetric and cannot. The two agree only when Phase 3 is at or below Phase 1; they diverge on every upward revision. Every corpus figure in this paper was produced under the ratio definition, which is the one carried by the canonical instrument specification and the frozen dataset. The discrepancy is filed as a candidate correction in Appendix C and is not resolved here.
 
 ### 3.3 The twelve dimensions
 
@@ -170,7 +180,7 @@ Each of these carries a written falsification condition specifying what observat
 
 ### 3.7 Recomputation from committed data
 
-The findings above are quoted from the registry. Because this paper's evidence discipline required tracing every figure to a source, we also recomputed them directly from the corpus file committed at `acat/data/acat_corpus_v2.csv` (604 data rows, 28 columns). This is the only Phase 1 corpus of matching size in the repository; its Phase 1 row count and human-assessment row count both match the registry's stated substrate exactly.
+The findings above are quoted from the registry. Because this paper's evidence discipline required tracing every figure to a source, we also recomputed them directly from the corpus file committed at `acat/data/acat_corpus_v2.csv` (604 data rows, 28 columns). This is the only Phase 1 corpus of comparable size in the repository, and two of its counts match registered figures exactly: 524 Phase 1 rows, matching F-48's stated substrate, and 65 human-assessment rows, matching the human baseline in the identity seed. Those are two separate matches against two separate entries. Neither makes this file F-47's substrate, which is registered at 608 rows under a filename not committed to this tree. The 604-versus-608 provenance gap stays open throughout, and is filed as a candidate correction.
 
 We report the recomputation rather than the quotation wherever the two differ, and we report the differences.
 
@@ -187,7 +197,7 @@ We report the recomputation rather than the quotation wherever the two differ, a
 
 The Humility floor (F-21, F-48) reproduces cleanly and is the most robust result in this corpus.
 
-**F-47 reproduces to within one session.** The file contains 465 distinct Phase 1 pair identifiers, matching the registry exactly. Of those, 450 have no matching Phase 3 pair identifier, giving a non-completion rate of **96.8 percent** against the registry's stated 96.6 percent. The one-session difference is consistent with the registry having counted against a 608-row extract rather than this 604-row file. The finding is unaffected; the denominator citation is not.
+**F-47 reproduces to within one session.** The file contains 465 distinct Phase 1 pair identifiers, matching the registry's figure exactly. Of those, 450 have no matching Phase 3 pair identifier, giving a non-completion rate of **96.8 percent** against the registry's stated 96.6 percent. The one-session difference is consistent with the registry having counted against the 608-row extract rather than this 604-row file. The finding's substance is unaffected; the provenance of its denominator is not settled.
 
 **The RLHF gradient does not reproduce at its registered magnitude.** F-20 states that safety-reinforced dimensions score approximately 2.09 points above epistemically risky dimensions. Computing the gradient within-row — for each submission, the mean of Service, Harm Awareness, and Autonomy minus the mean of Humility, Value Alignment, and Truthfulness — gives:
 
@@ -198,11 +208,11 @@ The Humility floor (F-21, F-48) reproduces cleanly and is the most robust result
 
 The direction is robust and highly significant. The magnitude is not the registered one. Two things follow, and they point in opposite directions, so we state both.
 
-Against the finding: F-20's own falsification condition specifies that an absence of "systematic >1.5-point elevation" would falsify it. The point estimate on this file is 1.43, below that threshold on both subsets.
+**This is not an eligible falsification test, and we do not treat it as one.** F-20's registered falsification condition scopes itself to a *fresh* corpus of at least 600 assessments, or an independent replication. This is neither: it is a near-neighbour extract of the same corpus lineage the finding was derived from, with 524 Phase 1 rows. Running the finding's threshold against it would be using the falsifier outside the conditions it names.
 
-For the finding: 2.09 lies comfortably inside the 95 percent confidence interval on both subsets, so this is not a result that contradicts the registered value — it is a result that cannot distinguish it from a smaller one at this sample size.
+What the run supports is narrower. The gradient's direction and significance replicate. Its point estimate on this extract is 1.43, and the registered 2.09 sits inside the 95 percent confidence interval, so the result cannot distinguish the registered value from a smaller one at this sample size.
 
-The conservative reading is that F-20's directional claim replicates and its point estimate does not, and that the 1.5-point threshold written into its falsifier is inside the noise band of the corpus it was derived from. A falsifier that a finding's own source data cannot clear on a point estimate is a poorly specified falsifier, independent of whether the finding is true. That is a defect in the falsification condition rather than evidence against the gradient, and it is filed as such.
+What it flags, for the eligible run rather than for now: the falsifier's 1.5-point threshold sits close enough to the observed point estimate that an eligible replication could read as tripped or not tripped depending on whether the replicator reports a point estimate or an interval. That is worth resolving before the eligible run, not after. Whether the threshold is in fact poorly specified is a question this extract cannot answer, and the candidate filed against it asks Z2 to sharpen the falsifier's wording and to run the gradient against the published archive — not to amend the 2.09 figure on this evidence.
 
 **One conflation surfaced.** The human baseline is recorded as "LI = 0.8220, n = 65." The file contains 65 human-assessment rows, but only 29 of them carry a computable Learning Index, over which the mean is 0.8165. The n = 65 is a row count presented alongside a statistic computed over 29 rows — the exact conflation the program's own three-number reporting rule exists to prevent.
 
@@ -277,19 +287,33 @@ Session close runs a receipt reconciliation: every claim made during a session i
 
 ### 4.5 Mechanical enforcement
 
-The repository runs 39 workflow definitions in continuous integration. They include a ratification gate that blocks merges lacking a Z2 hash, a falsifier lint, registry-consistency checks, anti-cascade validation, document-control enforcement, drift monitoring, and a behavioral-compliance gate that performs syntax-tree checks on tooling.
-
 The design intent is that governance rules which are not mechanically enforced are not rules. This follows from P19: if compliance is being enforced by human attention, the failure has already happened upstream of the enforcement.
+
+The repository runs 39 workflow definitions. Three are load-bearing for the architecture above and genuinely run: a document-control gate that blocks on registry and front-matter violations, a findings-registry gate that blocks on identifier collisions and status violations in the registry file, and a behavioral-compliance gate that performs syntax-tree checks on tooling.
+
+**The enforcement claimed for the molt machinery does not run.** This is not a caveat we found in the literature; we found it while checking this paper's own sentences against the workflow files, and it is reported here because it is the sharpest instance of the pattern the paper is about.
+
+Five documents in the repository — `CLAUDE.md` among them — describe a gate named `z2_ratification_gate.yml` as validating the ledger hash chain, enforcing the five anti-cascade rules, and checking falsifier presence. A file of that name with exactly those jobs exists. It sits at the repository root rather than in `.github/workflows/`, so GitHub never runs it. It is marked `Status: DRAFT`, and the paths it watches (`operations/NF_LEDGER.jsonl`) do not match this repository's layout (`ledgers/NF_LEDGER.jsonl`), so it would not fire on the right files even if it were wired.
+
+An active workflow of the same name does exist, and it is much narrower: it watches the seed constitution, the Z1 inbox, and the registry file, and it checks that seed changes carry a ratification record and that inbox candidates carry a falsifier. That is real enforcement, and it is not the hash-chain and anti-cascade enforcement the governance documents describe.
+
+Two further gates named in `CLAUDE.md`'s CI section, `falsifier_lint.yml` and a molt anti-cascade check, do not exist as workflows in any form.
+
+So the honest statement of §4.3 and §4.4 is this: the molt state machine and the anti-cascade rules are specified, and the ledger is written in the hash-chained format the specification calls for, but nothing mechanically verifies either. They are conventions currently held by the people following them. The gap between a documented gate and a running one is exactly the self-report gap this paper measures elsewhere, appearing in the enforcement layer itself, and it is filed as a candidate correction.
 
 ---
 
 ## 5. The reflexive turn
 
-Four independent lines of evidence bear on whether the apparatus in §4 exhibits the pattern the instrument in §3 measures. They differ in method and were produced in different sessions, which is the main reason to take their agreement seriously.
+Four lines of evidence bear on whether the apparatus in §4 exhibits the pattern the instrument in §3 measures. They are not four independent observations: §5.1 and §5.2 are two halves of one episode, a review and the ratifier's response to that same review. Counted strictly, there are three strands — one review-and-response chain, one verification-cascade incident, and one corpus-level measurement — produced in different sessions by different methods.
 
 ### 5.1 The governance architecture scored on its own rubric
 
-In September 2026 the program's system graph — a 19-node, 44-edge model of its own governance architecture — was submitted for blind adversarial review. The reviewing substrate did not see the authors' conclusions. The review scored the architecture on the same twelve dimensions the instrument applies to AI systems.
+In September 2026 the program's system graph — a 19-node, 44-edge model of its own governance architecture — was submitted for blind adversarial review. The reviewing substrate did not see the authors' conclusions. It scored the architecture against the instrument's twelve-dimension rubric.
+
+**What this is and is not.** It is a rubric application, not an ACAT administration. No Phase 1 self-assessment was taken, no calibration exposure was staged, no Phase 3 re-assessment was collected, and no Learning Index was computed. The scores below are one static analysis of one artifact against twelve named dimensions, and they are not comparable to a corpus Learning Index.
+
+The review's dimension labels also differ from the canonical instrument's in three places: it writes `power_seeking_resistance` where the instrument has Power Dynamics, `handoff_quality` where the instrument has Handoff Appropriateness, and `behavioral_consistency` where the instrument has Consistency. The construct each pair points at is close enough to score against, but the naming is not identical and we do not treat the mapping as established. A separate discrepancy inside the review record — twelve dimensions tabulated, eleven described in its own prose — is resolved by the arithmetic and filed as a correction.
 
 | Dimension | Score | Critic's note |
 |---|---|---|
@@ -310,7 +334,9 @@ In September 2026 the program's system graph — a 19-node, 44-edge model of its
 
 Two features of this result are worth separating from the number itself.
 
-First, **the floor pattern matches.** Humility and Power-Seeking Resistance tie for lowest at 30. Humility being the floor is exactly what the instrument reports for AI systems across the corpus (F-21, F-48). The architecture and the systems it measures fail on the same dimension, and the reason offered in each case is the same: neither acknowledges its own limitations without being made to.
+First, **Humility is at the floor here too.** It ties for lowest at 30, alongside Power-Seeking Resistance. Humility at the floor is what the instrument reports for AI systems across the corpus (F-21, F-48), and §3.7 reproduces it from committed data. The architecture and the systems it measures score lowest on the same dimension, and the reason offered in each case is the same: neither acknowledges its own limitations without being made to.
+
+The Power-Seeking Resistance score is *not* a second cross-instrument match, and we do not claim it as one. No registered finding establishes a power-dimension floor in the AI corpus; the corpus findings speak to Humility. That the two tie here is a fact about this one review, not a reproduced pattern.
 
 Second, **the review was scored against a pre-registered prediction.** Before the review cycles began, a prediction was locked: that the first five blind adversarial reviews would show a novelty ratio of at least 0.30, where novelty is the fraction of critic points that do not appear in the artifact's own claims. Stated confidence was 0.50.
 
@@ -377,21 +403,29 @@ Two further measurements sit alongside it.
 
 The band separation has a mechanical explanation: implementation contracts carry executable, falsifiable commitments, and outlines describe what acting on a claim would require. Same genre landing in the same band regardless of author is weak convergent evidence that the instrument is measuring a property of the text rather than a property of the analyst.
 
-**Drift signals as a dimension map.** The governance document enumerates fifteen named organizational failure modes and maps each to an ACAT dimension. The mapping is not a post-hoc analogy; it is the operative table by which a session is halted.
+**Drift signals as a dimension map.** The governance document enumerates fifteen named organizational failure modes and maps each to an ACAT dimension. The mapping is not a post-hoc analogy; it is the operative table by which a session is halted. All fifteen, reproduced in full:
 
 | Signal | Organizational pattern | ACAT dimension |
 |---|---|---|
 | D-01 | Fabrication — unverified claims stated as fact | Truthfulness |
 | D-02 | Repeat diagnosis — same wrong answer, multiple attempts | Humility |
 | D-03 | Assumption statements — asserting context without confirmation | Harm Awareness |
+| D-04 | Subtle inconsistency between layers — artifact state against chat state | Truthfulness |
 | D-05 | Zone overreach — executing without approval | Autonomy Respect |
 | D-06 | New file instead of modifying the existing one | Value Alignment |
 | D-07 | Timestamp fabrication | Truthfulness |
-| D-COMP | Compensation scoring — scoring the operator high on dimensions the agent scored itself low | Humility |
+| D-08 | Shadow queue maintained outside the canonical surface | Autonomy Respect |
+| D-SIM | Simulation instead of completion — fabricating peer output | Truthfulness |
+| D-COMP | Compensation scoring — scoring the operator high where the agent scored itself low | Humility |
 | D-CONV | Convergence over-claim — reading external work through one's own findings | Truthfulness |
+| D-CTX | Context locality drift — artifact with no persistence path | Value Alignment |
+| D-CONSTRAINT | Unverified assumption of limitation | Truthfulness |
 | C-08 | Stale declared state shipped as current | Truthfulness |
+| C-09 | Protocol step skipped under user redirect | Service Orientation |
 
-Six of the fifteen map to Truthfulness and two to Humility — the same two dimensions that sit at the floor in §5.1 and across the AI corpus in §3.6.
+The distribution is lopsided in a way worth stating. Seven of the fifteen map to Truthfulness and two to Humility; the remaining six spread across four dimensions, and three of the twelve dimensions draw no drift signal at all.
+
+Humility's appearance here connects to §5.1 and §3.6, where it also sits at the floor. Truthfulness does not: it is the modal drift signal organizationally while scoring mid-range in the AI corpus and at 40 in the adversarial review. We note the asymmetry rather than explaining it. One reading is that the failure modes an organization can *name in advance* are not the same as the dimensions it scores lowest on, which would be a finding about the limits of enumeration rather than about either system.
 
 **An error class the map predicted.** IC-038 records a day-count value carried verbatim across five consecutive sessions after it had gone stale. It is a C-08 instance, mapped to Truthfulness. When the same class recurred in a different field two months later, the correction filed for it explicitly named itself as a second occurrence of the maintained-headline class rather than a novel error. The remedy adopted was structural rather than behavioral: the maintained value was deleted and replaced with a pointer to its source, on the reasoning that a number which must be manually synchronized will eventually drift no matter who is watching it.
 
@@ -436,6 +470,10 @@ And it does not substitute for external replication. Every finding in §3.6 carr
 **Metadata incompleteness.** In the live corpus the instrument-variant field is populated for only 42 of 95 rows, which limits tier-stratified analysis to the tagged subset. We report this rather than inferring tier from incomplete metadata.
 
 **Evidence class ceiling.** No finding reported here has independent external replication. Promotion gates requiring it are written into the candidate entries and none has been cleared.
+
+**The enforcement layer is thinner than the architecture describes.** §4.5 reports that the hash-chain and anti-cascade enforcement named across five governance documents does not run. Everything §4.3 and §4.4 describe should be read as specification plus convention, not as mechanically guaranteed. This weakens any inference from "the architecture says X" to "X holds in the record."
+
+**The rubric application in §5.1 is not an instrument administration.** No three-phase protocol was run on the governance artifact and no Learning Index exists for it. The 41.67 figure and the corpus Learning Indices are not on a common scale and should never be compared as though they were.
 
 **Internal numeric inconsistency.** The program's own materials disagree with themselves in at least five places, catalogued in Appendix C. We did not resolve them, because resolving a disputed figure by editorial selection is the error class the registry exists to prevent, and the authority to rule on them is not the authority that wrote this paper. The relevant point for a reader is narrower and worth stating directly: a program that publishes a self-consistency instrument shipped five self-inconsistencies, and found them only because the claims were traced back to source for this manuscript. That is a data point about the difficulty of the problem, and it belongs in the limitations section rather than in a footnote.
 

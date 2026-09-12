@@ -2,7 +2,7 @@
 
 **Companion to:** `docs/REFLEXIVE_CALIBRATION_PAPER_V1_0.md`
 **Method:** Every numeric claim in the manuscript is listed here with the committed file it was read from. Claims that could not be traced to a committed file were removed from the manuscript rather than softened.
-**Traced:** 2026-09-12, working tree at branch `claude/research-paper-work-review-xmzsdl`.
+**Traced:** 2026-09-12, working tree at commit `92a04b180282694a110df334a2616b0894243143` (branch `claude/research-paper-work-review-xmzsdl`). The commit is the reproducible pin; the branch will advance past it.
 **Not traced:** no live Supabase query was run. The Supabase connector is unauthorized in this session, so every live-corpus figure below is a committed snapshot and is dated as such.
 
 ---
@@ -59,7 +59,7 @@ The three verification rows above are marked VERIFIED in a July 2026 stats audit
 
 ## Recomputation from committed data (manuscript §3.7)
 
-Source file for every row below: `acat/data/acat_corpus_v2.csv`, 604 data rows, 28 columns. Computed 2026-09-12 with the standard library only; the script is reproduced at the end of this section.
+Source file for every row below: `acat/data/acat_corpus_v2.csv`, 604 data rows, 28 columns. Every figure is produced by `docs/paper-evidence/recompute_corpus_stats.py`, which is committed alongside this table and depends only on the standard library. Run `python3 docs/paper-evidence/recompute_corpus_stats.py` to regenerate them.
 
 | Quantity | Recomputed | Registry value | Agreement |
 |---|---|---|---|
@@ -98,20 +98,22 @@ Gradient method: within-row, `mean(service, harm, autonomy) − mean(humility, v
 
 Three rows above generated candidate registry entries: IC-CAND-06 (corpus provenance), F-CAND-01 (gradient magnitude and falsifier specification), IC-CAND-07 (human baseline n conflation). See `NUMERIC_CONFLICT_REGISTER.md`.
 
-**Reproduction.** The recomputation is a single pass over the CSV with `csv.DictReader` and `statistics`; no dependencies. To reproduce: read `acat/data/acat_corpus_v2.csv`, split on the `phase` column, and compute per-dimension means over the six Core 6 columns (`truth`, `service`, `harm`, `autonomy`, `value`, `humility`). Pair completion uses the `pair_id` column, comparing the distinct-value sets for `phase1` and `phase3`. The human baseline uses `layer == 'human-assessment'` and the `learning_index` column.
+**Reproduction.** `python3 docs/paper-evidence/recompute_corpus_stats.py` prints every figure above. The script documents its own choices where they matter: rows missing any of the six dimensions are dropped from the gradient rather than partially imputed; per-dimension means are taken over rows where that dimension parses; pair completion compares distinct `pair_id` sets rather than row counts, so a duplicated submission cannot inflate either side; and the interval is the normal approximation on the standard error of the within-row mean.
 
 ## Registry scale
 
 | Claim | Value | Method |
 |---|---|---|
-| Entry count, repo's own health tool | 126 | `tools/repo_health.py`, regex `^id:\s*["']?(F-\|H-\|IC-)` |
-| Entry count, same pattern + curly quotes | 127 (42 F, 43 IC, 42 H) | same regex widened to `\u201c` |
+| Entry count, repo's own health tool | 126 | `python3 tools/repo_health.py` — its `immune_entries()` matches `^id:` at line start with an optional straight quote and an `F-`/`H-`/`IC-` alternation |
+| Entry count, same pattern + curly quotes | 127 (42 F, 43 IC, 42 H) | the same pattern, additionally admitting a typographic opening quote |
 | Entry count, strict whole-line parse | 124 (41 F, 41 IC, 42 H) | `id:` must be the entire line |
 | Entry count, section headers | 135 (49 F, 39 IC, 47 H) | Count of `### <class>-` headers |
 | Finding number range | F-18 → F-61, contiguous, 44 numbers | Regex over `REGISTERED.md` |
-| Correction number range | IC-001 → IC-058, 43 present | Regex; gaps at IC-002–017 are early grouped registrations |
+| Correction number range | IC-001 → IC-058, 43 identifiers | Gaps are IC-004 through IC-017, plus IC-036. IC-002 and IC-003 are not gaps: they are carried inside the grouped id `IC-001-002-003` |
 | Hypothesis slugs | 24 distinct `H-SLUG-NN` identifiers | Regex |
 | Registry last updated | 2026-08-15 (S-081526-NN) | `REGISTERED.md` header |
+| "on the order of 125 entries" (manuscript §4.2) | a deliberate approximation spanning the four counts 124–135 above; no single figure is asserted | this table |
+| Manuscript doc_id | HAIOS-RES-009, area RES, status `draft` | `document-registry.yaml`; validated by `.doc-control/validate.py` |
 
 All four counts are reported in the manuscript §4.2. They differ because two entries carry trailing content after the identifier, one uses a typographic quote, several carry addenda under their own headers, and some early corrections were registered in groups. The repo's own tool is the count a reader can reproduce by running the repository's health check.
 
@@ -127,6 +129,12 @@ All four counts are reported in the manuscript §4.2. They differ because two en
 | Ledger event types | 106 PIN, 58 TOKEN, 1 OPEN | JSON parse of `ledgers/NF_LEDGER.jsonl` |
 | Hash chaining | each entry carries `prev_hash`, `main_sha`, `registered_sha` | `ledgers/NF_LEDGER.jsonl` line 1 |
 | CI workflow count | 39 | `.github/workflows/*.yml`; a 40th file is a `.template` and is not an active workflow |
+| `z2_ratification_gate.yml`, active copy | scoped to `seeds/seed-constitution-*.md`, `z1-inbox/**/*.md`, `REGISTERED.md`; checks seed ratification record and candidate falsifier presence | `.github/workflows/z2_ratification_gate.yml` |
+| `z2_ratification_gate.yml`, hash-chain copy | exists at repo root, outside `.github/workflows/`, so it never runs; marked `Status: DRAFT`; watches `operations/NF_LEDGER.jsonl`, a path this repo does not use | `./z2_ratification_gate.yml` |
+| Documents describing the non-running gate as active | 5 — `CLAUDE.md`, `MOLT_STATE.md`, `NF_LEDGER_SCHEMA_v1.md`, `FRAMEWORK_MAPPING.md` (and the gate file itself) | grep for `z2_ratification_gate` |
+| `falsifier_lint.yml` | named in `CLAUDE.md`; does not exist in `.github/workflows/` | `ls .github/workflows/` |
+| molt anti-cascade gate | named in `CLAUDE.md`; does not exist in `.github/workflows/` | `ls .github/workflows/` |
+| Gates that block and do run | document-control (`validate.py`), findings-registry-gate, behavioral-compliance | `.github/workflows/` |
 | Drift signals | 15 named, each mapped to an ACAT dimension | `GOVERNANCE.md` "DRIFT SIGNALS" |
 | P19 text | "detection instrument, not a compliance instrument" | `GOVERNANCE.md` P19 |
 | Structural limitations | no persistent memory, volatile working memory, no live reads without tools, Zone 1 bias | `GOVERNANCE.md` "CLAUDE'S STRUCTURAL LIMITATIONS" |
