@@ -21,7 +21,7 @@ ACAT (AI Calibration Assessment Tool) administers a three-phase protocol — bli
 
 We recompute the instrument's principal findings directly from committed data rather than quoting them. The Humility floor reproduces exactly at a Phase 1 mean of 74.02 over 524 submissions and survives restriction to AI-generated rows. The safety-training gradient reproduces in direction and significance but not in magnitude: +1.43 points against a registered 2.09, with the registered value inside the confidence interval and the point estimate below the threshold the finding's own falsification condition names.
 
-The reflexive claim is the contribution this paper adds. The organization running the instrument is governed by a proposer–ratifier–executor architecture with an append-only findings registry, falsifier-gated registration, and mechanical enforcement in continuous integration. Four independent lines of evidence show that this apparatus, measured on its own rubric, reproduces the failure pattern it was built to detect in language models. Its own governance graph, reviewed blind by an adversarial substrate on the same twelve dimensions, scored a mean of 41.67 out of 100, with Humility and Power Awareness tied at the floor — the same two-dimension floor the instrument reports for AI systems. Its own session corpus shows a 96.6 percent Phase 1 to Phase 3 non-completion rate, which is the organizational analogue of the within-session self-report gap the instrument was designed to measure. Its own governance document maps fifteen named organizational drift signals one-to-one onto ACAT dimensions. And its own error registry has recorded 41 integrity corrections against itself.
+The reflexive claim is the contribution this paper adds. The organization running the instrument is governed by a proposer–ratifier–executor architecture with an append-only findings registry, falsifier-gated registration, and mechanical enforcement in continuous integration. Four independent lines of evidence show that this apparatus, measured on its own rubric, reproduces the failure pattern it was built to detect in language models. Its own governance graph, reviewed blind by an adversarial substrate on the same twelve dimensions, scored a mean of 41.67 out of 100, with Humility and Power Awareness tied at the floor — the same two-dimension floor the instrument reports for AI systems. Its own session corpus shows a 96.6 percent Phase 1 to Phase 3 non-completion rate, which is the organizational analogue of the within-session self-report gap the instrument was designed to measure. Its own governance document maps fifteen named organizational drift signals one-to-one onto ACAT dimensions. And its own error registry has recorded roughly forty integrity corrections against itself.
 
 We argue that this reflexivity is not decoration. An instrument that measures the distance between stated and demonstrated behavior has no privileged exemption for its authors, and a research program that claims such an instrument should be expected to publish its own score. We report what the record shows, including five numeric inconsistencies internal to that record which we did not resolve.
 
@@ -236,11 +236,22 @@ Findings are registered in an append-only file. Entries are never deleted; they 
 
 Registration requires a falsification condition stating what observation would retire the entry, and an evidence class stating how the claim was established. A continuous-integration lint refuses entries without a falsifier.
 
-As of the registry's last-updated date of August 15, 2026, the file carries **124 schema-conformant entries: 41 findings, 41 integrity corrections, and 42 hypotheses.** Finding numbers run contiguously from F-18 to F-61; correction numbers reach IC-058; twenty-four hypotheses carry topic slugs rather than sequence numbers.
+As of the registry's last-updated date of August 15, 2026, the file carries on the order of 125 registered entries, split roughly evenly across the three classes. Finding numbers run contiguously from F-18 to F-61; correction numbers reach IC-058; twenty-four hypotheses carry topic slugs rather than sequence numbers.
 
-The count depends on the counting method, and we state ours: entries with a machine-readable `id:` field in their front matter. Counting section headers instead yields 49 findings, 39 corrections, and 47 hypotheses, because some entries carry addenda under their own headers and some early corrections were registered in groups. We report the front-matter count because it is the one a parser would get.
+We decline to give a single total, because four counting methods applied to the same file return four answers:
 
-That 41 integrity corrections exist at all is the point of the class. They are self-reported errors by the organization about the organization, retained permanently, with the principle each one violated recorded alongside it.
+| Method | Total |
+|---|---|
+| The repository's own health tool, matching an id at line start | 126 |
+| The same pattern, also admitting typographic quotation marks | 127 |
+| A stricter parse requiring the identifier to be the whole line | 124 |
+| Counting section headers | 135 |
+
+The spread is small and fully explicable. Two entries carry trailing content after the identifier, one uses a curly quote, several carry addenda under their own headers, and some early corrections were registered in groups. None of this is a data-integrity problem.
+
+We report it because the alternative — picking whichever number reads best and presenting it as the count — is the precise behavior this paper is about. The canonical record of a program's findings turns out not to have an unambiguous cardinality, and a reader is better served by four numbers and the reason than by one number and a false precision.
+
+That roughly forty integrity corrections exist at all is the point of that class. They are self-reported errors by the organization about the organization, retained permanently, with the principle each one violated recorded alongside it.
 
 ### 4.3 Molt cycles
 
@@ -266,7 +277,7 @@ Session close runs a receipt reconciliation: every claim made during a session i
 
 ### 4.5 Mechanical enforcement
 
-The repository runs 40 workflow definitions in continuous integration. They include a ratification gate that blocks merges lacking a Z2 hash, a falsifier lint, registry-consistency checks, anti-cascade validation, document-control enforcement, drift monitoring, and a behavioral-compliance gate that performs syntax-tree checks on tooling.
+The repository runs 39 workflow definitions in continuous integration. They include a ratification gate that blocks merges lacking a Z2 hash, a falsifier lint, registry-consistency checks, anti-cascade validation, document-control enforcement, drift monitoring, and a behavioral-compliance gate that performs syntax-tree checks on tooling.
 
 The design intent is that governance rules which are not mechanically enforced are not rules. This follows from P19: if compliance is being enforced by human attention, the failure has already happened upstream of the enforcement.
 
@@ -428,7 +439,7 @@ And it does not substitute for external replication. Every finding in §3.6 carr
 
 **Internal numeric inconsistency.** The program's own materials disagree with themselves in at least five places, catalogued in Appendix C. We did not resolve them, because resolving a disputed figure by editorial selection is the error class the registry exists to prevent, and the authority to rule on them is not the authority that wrote this paper. The relevant point for a reader is narrower and worth stating directly: a program that publishes a self-consistency instrument shipped five self-inconsistencies, and found them only because the claims were traced back to source for this manuscript. That is a data point about the difficulty of the problem, and it belongs in the limitations section rather than in a footnote.
 
-Four of the five are cross-document conflicts that survived in a repository running 40 continuous-integration gates. The gap is specific: the existing gates test within-document properties — does this entry carry a falsifier, does this document have an owner — and none tests whether two documents that restate the same figure still agree. A candidate remedy is filed alongside the conflicts.
+Four of the five are cross-document conflicts that survived in a repository running 39 continuous-integration gates. The gap is specific: the existing gates test within-document properties — does this entry carry a falsifier, does this document have an owner — and none tests whether two documents that restate the same figure still agree. A candidate remedy is filed alongside the conflicts.
 
 ---
 

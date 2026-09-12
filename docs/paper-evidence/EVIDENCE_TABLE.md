@@ -104,14 +104,16 @@ Three rows above generated candidate registry entries: IC-CAND-06 (corpus proven
 
 | Claim | Value | Method |
 |---|---|---|
-| Schema-conformant entries | 124 total: 41 F, 41 IC, 42 H | Count of unique `id:` fields in YAML front matter, `REGISTERED.md` |
-| Alternative count | 49 F, 39 IC, 47 H | Count of `### <class>-` section headers |
+| Entry count, repo's own health tool | 126 | `tools/repo_health.py`, regex `^id:\s*["']?(F-\|H-\|IC-)` |
+| Entry count, same pattern + curly quotes | 127 (42 F, 43 IC, 42 H) | same regex widened to `\u201c` |
+| Entry count, strict whole-line parse | 124 (41 F, 41 IC, 42 H) | `id:` must be the entire line |
+| Entry count, section headers | 135 (49 F, 39 IC, 47 H) | Count of `### <class>-` headers |
 | Finding number range | F-18 → F-61, contiguous, 44 numbers | Regex over `REGISTERED.md` |
 | Correction number range | IC-001 → IC-058, 43 present | Regex; gaps at IC-002–017 are early grouped registrations |
 | Hypothesis slugs | 24 distinct `H-SLUG-NN` identifiers | Regex |
 | Registry last updated | 2026-08-15 (S-081526-NN) | `REGISTERED.md` header |
 
-Both counts are reported in the manuscript. They differ because some entries carry addenda under their own headers and some early corrections were registered in groups.
+All four counts are reported in the manuscript §4.2. They differ because two entries carry trailing content after the identifier, one uses a typographic quote, several carry addenda under their own headers, and some early corrections were registered in groups. The repo's own tool is the count a reader can reproduce by running the repository's health check.
 
 ## Governance apparatus
 
@@ -124,7 +126,7 @@ Both counts are reported in the manuscript. They differ because some entries car
 | Ledger entries | 165 | `wc -l ledgers/NF_LEDGER.jsonl` |
 | Ledger event types | 106 PIN, 58 TOKEN, 1 OPEN | JSON parse of `ledgers/NF_LEDGER.jsonl` |
 | Hash chaining | each entry carries `prev_hash`, `main_sha`, `registered_sha` | `ledgers/NF_LEDGER.jsonl` line 1 |
-| CI workflow count | 40 | `ls .github/workflows/` |
+| CI workflow count | 39 | `.github/workflows/*.yml`; a 40th file is a `.template` and is not an active workflow |
 | Drift signals | 15 named, each mapped to an ACAT dimension | `GOVERNANCE.md` "DRIFT SIGNALS" |
 | P19 text | "detection instrument, not a compliance instrument" | `GOVERNANCE.md` P19 |
 | Structural limitations | no persistent memory, volatile working memory, no live reads without tools, Zone 1 bias | `GOVERNANCE.md` "CLAUDE'S STRUCTURAL LIMITATIONS" |
