@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "quality": {"conclusion": "success", "p": 0.92},
+    "guard": {"conclusion": "success", "p": 0.9},
+    "sonar": {"conclusion": "success", "p": 0.85},
+    "Behavioral compliance (IC-045 gate)": {"conclusion": "success", "p": 0.9},
+    "Python dependency vulnerability scan": {"conclusion": "success", "p": 0.85},
+    "Secret scanning (gitleaks)": {"conclusion": "success", "p": 0.9},
+    "Check principles (P19)": {"conclusion": "success", "p": 0.85},
+    "base-guard": {"conclusion": "skipped", "p": 0.95}
+  },
+  "note": "First live exercise of the ci-predict pin/resolve/consolidate loop (Stage 2 of the execution-grounded calibration plan). Predictions declared before push, ahead of any check conclusion. base-guard is predicted skipped because this branch does not start with copilot/. semgrep, request-copilot, copilot-pull-request-reviewer and SMAG pilot capture are deliberately left undeclared: their outcome depends on draft status and bot assignment, and this first declaration is kept to checks with a clear expectation rather than declaring beyond what was actually asked."
+}

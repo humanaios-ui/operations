@@ -1,0 +1,39 @@
+# ci-predict-pin — the PIN half of execution-grounded calibration (Stage 2).
+#
+# When a PR carries ci_predictions/pr.json, this posts a marked comment recording
+# the declared per-check predictions before any of those checks' conclusions can
+# be known — the anchor is the git commit that introduced the file, which this
+# fires immediately after. See tools/ci_predict_pin_v1_0.py for the full design.
+#
+# Read-only against GitHub except the one comment it posts. Standard GITHUB_TOKEN.
+name: ci-predict-pin
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "ci_predictions/pr.json"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need history for `git log` on the declaration file
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Post the CI prediction pin comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/ci_predict_pin_v1_0.py pin \
+            --repo "${{ github.repository }}" \
+            --pr "${{ github.event.pull_request.number }}" \
+            --file ci_predictions/pr.json

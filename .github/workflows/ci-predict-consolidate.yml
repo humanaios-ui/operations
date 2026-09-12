@@ -1,0 +1,62 @@
+# ci-predict-consolidate — the CONSOLIDATE half of execution-grounded calibration
+# (Stage 2). Drains the pin and resolve comments this PR accumulated into the
+# durable, hash-chained ledger via tools/nf_ledger_v0_1.py (unchanged), and opens
+# a follow-up PR with the diff — the same capture-then-consolidate split already
+# proven by smag-capture.yml / smag-consolidate.yml, so a single unsynchronized
+# writer never races the ledger's hash chain.
+#
+# Fires on PR close so nearly all predicted checks are already terminal by the
+# time this runs; any left unresolved simply contribute nothing this round and
+# are picked up the next time this PR (or a future one) is consolidated.
+name: ci-predict-consolidate
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "PR number to consolidate"
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Consolidate pin/resolve comments into the ledger
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR="${{ github.event.inputs.pr }}"
+          if [ -z "$PR" ]; then PR="${{ github.event.pull_request.number }}"; fi
+          python3 tools/ci_predict_consolidate_v1_0.py consolidate \
+            --repo "${{ github.repository }}" --pr "$PR" \
+            --ledger ledgers/CI_PREDICT_LEDGER.jsonl
+
+      - name: Open a PR if the ledger changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- ledgers/CI_PREDICT_LEDGER.jsonl; then
+            echo "No new resolved predictions — nothing to consolidate."
+            exit 0
+          fi
+          branch="ci-predict-consolidate/$(date -u +%Y%m%d-%H%M%S)"
+          git config user.name  "ci-predict-consolidate[bot]"
+          git config user.email "ci-predict-consolidate@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add ledgers/CI_PREDICT_LEDGER.jsonl
+          git commit -m "chore(ci-predict): consolidate resolved CI predictions"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "ci-predict: consolidate resolved CI predictions" \
+            --body "Automated CONSOLIDATE step of the execution-grounded calibration loop (Stage 2). Appends newly-resolved PIN/RESOLVE events via tools/nf_ledger_v0_1.py's own hash-chain functions, unchanged. Verified by the same tool before this PR was opened; re-verify with \`python3 tools/nf_ledger_v0_1.py verify ledgers/CI_PREDICT_LEDGER.jsonl\` before merging."
