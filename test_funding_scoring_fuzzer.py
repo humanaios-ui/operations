@@ -48,6 +48,18 @@ def _load_fuzzer_module(fake_atheris: _FakeAtheris):
 
 
 class FundingScoringFuzzerTests(unittest.TestCase):
+    def test_main_passes_sys_argv_to_atheris_setup(self) -> None:
+        fake_atheris = _FakeAtheris()
+        module = _load_fuzzer_module(fake_atheris)
+
+        argv = ["funding_scoring_fuzzer", "--", "-runs=1"]
+        with patch.object(sys, "argv", argv):
+            module.main()
+
+        self.assertEqual(fake_atheris.setup_args[0], argv)
+        self.assertIs(fake_atheris.setup_args[1], module.TestOneInput)
+        self.assertTrue(fake_atheris.fuzz_called)
+
     def test_main_passes_non_empty_argv_to_atheris_setup(self) -> None:
         fake_atheris = _FakeAtheris()
         module = _load_fuzzer_module(fake_atheris)
