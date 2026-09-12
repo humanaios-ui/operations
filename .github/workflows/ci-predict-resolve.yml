@@ -1,0 +1,73 @@
+# ci-predict-resolve — the RESOLVE half of execution-grounded calibration (Stage 2).
+#
+# Fires once per check suite completion on a PR. Reads the pin comment
+# ci-predict-pin.yml posted, compares each predicted check's actual conclusion,
+# and posts a resolve comment with the check-run's own URL as the source. Only
+# checks that have actually gone terminal are resolved; the rest wait for a
+# later suite completion (idempotent — see tools/ci_predict_resolve_v1_0.py).
+#
+# check_suite only lists associated pull_requests for same-repo branches, not
+# forks; a fork PR's predictions resolve only once merged or via workflow_dispatch.
+#
+# Read-only against GitHub except the one comment it posts. Standard GITHUB_TOKEN.
+name: ci-predict-resolve
+
+on:
+  check_suite:
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "PR number to resolve (for fork PRs check_suite cannot see)"
+        required: true
+
+permissions:
+  contents: read
+  checks: read
+  pull-requests: write
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.check_suite.pull_requests[0] != null
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Resolve predicted CI outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DISPATCH_PR: ${{ github.event.inputs.pr }}
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import subprocess
+
+          dispatch_pr = os.environ.get("DISPATCH_PR", "")
+          if dispatch_pr:
+              # No check_suite event to read a specific commit from; the tool
+              # falls back to the PR's current head.
+              targets = [(dispatch_pr, "")]
+          else:
+              with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as handle:
+                  event = json.load(handle)
+              suite = event.get("check_suite") or {}
+              # Resolve against the exact commit this suite completed for, not
+              # whatever the PR's head happens to be by the time this runs —
+              # those can differ if the PR was pushed to again in between.
+              sha = suite.get("head_sha", "")
+              targets = [(str(pr["number"]), sha) for pr in suite.get("pull_requests") or []]
+
+          for pr_number, sha in targets:
+              cmd = ["python3", "tools/ci_predict_resolve_v1_0.py", "resolve",
+                     "--repo", os.environ["REPO"], "--pr", pr_number]
+              if sha:
+                  cmd += ["--sha", sha]
+              subprocess.run(cmd, check=False)
+          PYEOF
