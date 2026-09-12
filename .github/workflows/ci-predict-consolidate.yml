@@ -56,7 +56,22 @@ jobs:
         with:
           python-version: "3.x"
 
+      # Same bootstrap case as ci-predict-pin.yml: the PR introducing this
+      # tool fires this job on its own close event before the tool exists on
+      # main (this job never runs code from the PR branch itself). Detected
+      # cleanly here rather than surfacing as a file-not-found failure.
+      - name: Check the tool exists on this trusted ref yet
+        id: tool
+        run: |
+          if [ -f tools/ci_predict_consolidate_v1_0.py ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::tools/ci_predict_consolidate_v1_0.py is not on main yet — expected for the PR introducing it. It will run for real once this one merges."
+          fi
+
       - name: Consolidate pin comments into the ledger
+        if: steps.tool.outputs.present == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}

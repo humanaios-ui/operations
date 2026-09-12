@@ -38,7 +38,25 @@ jobs:
         with:
           python-version: "3.x"
 
+      # The PR that first introduces this tool cannot dogfood it: `ref: main`
+      # above means that PR's own branch content is never executed (the whole
+      # point of that fix), but until it merges, main does not have the
+      # script either. Detect that cleanly here rather than let it surface as
+      # an opaque "No such file or directory" failure. A checkout already
+      # gives local access to check this with no extra API call, and every
+      # PR after the one that lands the tool finds it present here.
+      - name: Check the tool exists on this trusted ref yet
+        id: tool
+        run: |
+          if [ -f tools/ci_predict_pin_v1_0.py ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::tools/ci_predict_pin_v1_0.py is not on main yet — this is expected for the PR introducing it, since this job intentionally never runs code from the PR branch itself. It will run for real starting with the next PR once this one merges."
+          fi
+
       - name: Post the CI prediction pin comment
+        if: steps.tool.outputs.present == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
