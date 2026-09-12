@@ -1,7 +1,7 @@
 # Candidate Block: Q-ADVREVIEW-CALIB-01 — Adversarial Review as a PR-Gated Calibration Node
 
 **Z1 Proposer:** Claude (AI agent)
-**Date Submitted:** 2026-09-12 (r2 after adversarial review)
+**Date Submitted:** 2026-09-12 (r3, after two adversarial rounds)
 **Pinned SHA:** `5b7d0d1620d9b5903f0370d31d1f45a1dda58e30`
 **Phase:** 1
 **Status:** AWAITING Z2 RATIFICATION
@@ -10,137 +10,145 @@
 
 ## §A Position · Destination · Probability
 
-**Position:** `operations` pinned at `5b7d0d1`. The PR-grounded calibration arc
-(`acat/research/PR_GROUNDED_CALIBRATION_PLAN.md`) reached P4 Part A (retro, n=6) and committed
-two prospective Phase-1 records. Its named P1 and P2 deliverables did not exist; this session
-produces them.
+**Position:** `operations` pinned at `5b7d0d1`. The PR-grounded calibration arc reached P4 Part A
+(retro, n=6) and committed two prospective Phase-1 records. Its named P1 and P2 deliverables did
+not exist; this session produces them.
 
 **Destination:** bind the signals the PR process emits to ACAT dimensions, so adversarial review
 becomes a measured calibration node rather than an unrecorded one.
 
-**Probability (r2, revised down):** **35%** that a genuine `two_stage_verified` record is
-produced within 14 days of ratification. The r1 figure of 70% was falsified within seven minutes
-of PR-open — see §Live result below. Contract work must land first, and that is Z3 work with its
-own ratification path.
+**Probability (r3):** **45%** that a dimension-attributed `external_only` record is admitted by
+intake validation within 14 days of ratification. Revised up from r2's 35% because round 2
+established that `external_only` needs **no** purity-promotion work — the r2 blocker was
+partly my own error. Held below 50% because a Phase-3 **scoring contract** (numeric aggregation,
+bands, uncertainty) does not exist and P2 does not supply one.
+
+*r1 predicted 70% for a `two_stage_verified` record. Falsified.*
 
 ---
 
-## §Live result — this candidate was measured by its own mechanism
+## §Live result — this candidate was measured by its own mechanism, twice
 
-PR #294 carried the r1 draft and a pinned `smag_p:0.70`. Adversarial review returned
-**🟡 Changes recommended** with 17 inline comments and 11 suppressed findings. **Eleven
-substantive findings were verified against the repository and every one was correct.** The
-r1 documents over-claimed:
+| Round | Source | Findings | Outcome |
+|---|---|---|---|
+| r1 → r2 | Copilot | 17 inline, 11 substantive | all 11 verified correct against primary sources; all fixed |
+| r2 → r3 | Copilot | 7 inline, 14 suppressed | every claim checked verified correct; all fixed |
+| r2 | repo owner (human) | 5 residual, process-level | carried into the Z2 checklist below |
 
-| r1 claim | Verified reality |
+**r1 → r2 corrections:** 9 `LAID` nodes not 6; 39 runnable workflows not 40; κ is implemented
+(`inter_rater_eval.py`), not stubbed; `CapEnforcer` is unwired; SonarCloud dormant and Scorecard
+not PR-triggered; `smag_p` not enforced; `RECEIPT-GAP` is a grounding node; "three full
+calibration nodes" contradicted its own table; `submission_purity` is a single enum; `null`
+scores fail validation; purity guards check enum membership only.
+
+**r2 → r3 corrections, and they cut deeper:**
+
+| r2 claim | Verified reality |
 |---|---|
-| "6 of 19 nodes are LAID" | 9 are `LAID` |
-| "40 workflows run" | 39 runnable; the 40th glob match is a `.template` |
-| "Cohen's κ is stubbed" | `inter_rater_eval.py` implements weighted and unweighted κ, with tests. The *sample* is missing, not the math. `ACAT_STATE.md` carries the stale line I trusted over the code |
-| caps "enforced by `agent_caps_runtime`" | no module imports `CapEnforcer`; `adv_eval.py` does not exist. The spec declares integration the code does not perform |
-| SonarCloud, Scorecard "operated" | SonarCloud is dormant without secrets; Scorecard has no `pull_request` trigger |
-| `smag_p` "enforced on PR bodies" | the linter runs only in its own tests; capture happens after merge and records `VOID` without blocking |
-| "three full calibration nodes" | contradicted by my own table in the same document: not dimension-tagged, no Phase-3, `LAID` |
-| `RECEIPT-GAP` a calibration node | post-hoc reconciliation, no committed prediction; node `RC` is `LAID` |
-| record is `external_only` **and** `two_stage_verified` | a single enum; mutually exclusive |
-| ungroundable dims record `null` | all 12 scores are required `number` 0–100, `additionalProperties: false`; `null` fails validation |
-| purity guards "reject a breach" | `validate_submission_purity` checks enum membership only |
+| "four external workflows fire on an arbitrary PR" | **two** are unconditional (`security-gates`, `quality-baseline`). `copilot-base-guard` has `if: startsWith(github.head_ref, 'copilot/')` and emits nothing for an ordinary PR; `semgrep-review` skips drafts |
+| `ci_gates.py` classes listed as emitted gate verdicts | **no workflow invokes `ci_gates.py`.** `z2_ratification_gate.yml` runs its own shell and grep checks. `AntiCascadeLintrule.check_rule2` reaches a bare `pass` and always returns no issues |
+| `smag_p` is "the only live commit-before-outcome surface" | the PR body is **mutable** and read only at `pull_request.closed`. A probability edited after the outcome captures identically. Ordering can be honoured; it cannot be **proven** |
+| `adv_eval_v2.py` "attacks gates" | `_simulate_attack()` derives CAUGHT/MISSED from a generic `gate_state`; it calls no real gate and the module has no CLI or `__main__` |
+| "no promotion path exists" | `_should_promote_to_two_stage_verified()` exists and works for new records. The real gaps are provenance for the `external_only` lane and the legacy artifacts' missing identity fields |
+| per-dimension SAG and anchor provenance described as shipping | `compute_sag()` is aggregate-only; `validate_session_score()` returns `agreement: None` |
+| `document-control.yml` scoped to the registry file | it triggers on **all** `**/*.md`. My own PR-body checklist was wrong about this |
+| signed SAG "penalises both directions" | it *exposes* under-claiming as a negative; it does not penalise it. The humility falsifier needs an explicit statistic |
 
-**This is the instrument working, and it is the cleanest datapoint the arc has produced.**
-`PRGC_RETRO_S070626` found that this agent's largest gap is **truth**, worst exactly when it
-asserts "verified", at **SAG +12.0**. Writing a document *about* that tendency did not prevent
-it. The dominant error mode is precise: **trusting summary documents over primary sources** —
-`ACAT_STATE.md` over `inter_rater_eval.py`, `behavior_spec.json`'s `integration_points` over the
-absent imports, a workflow's existence over its `on:` block.
+**The strongest single external correction the arc has produced so far.** Not a ranking claim
+beyond that: with retro n=6, prospective n=2, and one self-referential episode, the sample cannot
+support more. `PRGC_RETRO_S070626` found this agent's largest gap is **truth**, worst when it
+asserts "verified", at **SAG +12.0**. Writing a document about that tendency did not prevent it —
+twice. The error mode is specific: **trusting summary documents, declared integration points, and
+workflow triggers over call sites, job-level conditions, and actual code.**
 
-Honest scoring note: this is a **grounded** result, not a clean two-stage measurement. The r1
-`smag_p:0.70` was a single scalar on Stage-1 feasibility, not a dimension vector, so it grounds a
-prediction, not an LI. The stated 70% is falsified: Stage 1 as written is **not achievable**,
-because the contract rejects the record shape it assumed.
+Honest scoring note: this grounds a *prediction*, not an LI. The `smag_p:0.70` was a scalar on
+feasibility, not a dimension vector. It was deliberately **not edited** after the outcome — but
+round 2 established that nothing would have stopped me, which is the more important finding.
 
 ---
 
 ## Answering the three questions as asked
 
-### 1 · Can adversarial review be wired to every PR? — Partly wired already; coverage is thinner than it looks.
+### 1 · Can adversarial review be wired to every PR? — Two unconditional scanners today, neither an independent reviewer.
 
-Four external workflows fire on an arbitrary PR (`copilot-base-guard`, `semgrep-review`,
-`security-gates`, `quality-baseline`), plus a best-effort Copilot reviewer request. The rest are
-path-scoped (`cflite_pr`, `behavioral-compliance`, `findings-registry-gate`,
-`z2_ratification_gate`), dormant (`sonarqube`), or out-of-band (`scorecard` weekly,
-`divergence-detect` and `haios-corpus-integrity` daily).
+`security-gates` and `quality-baseline` run on every PR; `document-control` on any markdown
+change; `semgrep-review` on non-draft PRs touching scanned types. The base guard fires only for
+`copilot/*` branches. SonarCloud is dormant; Scorecard is not PR-triggered.
 
-What is missing is not review. It is **attribution**: no operation writes a review outcome into a
-dimension record. The signal is emitted and discarded. Coverage is a separate, prior gap.
+**Independent review is best-effort.** The Copilot request workflow's own comments call the bot
+request unreliable. A PR can merge having received no independent review at all.
 
-A second sense of "adversarial" is built and unused: `adv_eval_v2.py` attacks *gates* and tracks
-catch-rate against a 0.85 threshold, with `NO_GATE` excluded from the denominator. This matters
-beyond robustness testing, because **repo-owned gate verdicts are not external on a PR that
-changes the gate** — the author sets implementation and verdict both. Gate-touching PRs need an
-attack-based anchor.
+And the governance gates that `CLAUDE.md` describes as CI-enforced — Z2 hash verification,
+Merkle-root consistency, anti-cascade rules — **are not wired into CI.** That is the most
+consequential finding in this candidate and is registered below.
 
-### 2 · Can the process be calibrated using ACAT? — Yes, after contract work, on one condition.
+### 2 · Can the process be calibrated using ACAT? — Yes, and the missing piece is smaller than it looked.
 
 The collection spine is live: `intake/phase1`, `intake/phase3`, `assess`, `human-score`,
-`humility-audit`, an MCP adapter, contamination checks, a `two_stage_verified` gate on a
-persisted `p1_committed_at` with a 60s threshold. `LI` and `SAG` compute today.
+`humility-audit`, an MCP adapter, contamination checks, and a working promotion path to
+`two_stage_verified` for new records.
 
-Three contract blockers must clear first, all verified in §Live result: the purity enum is
-single-valued; all 12 scores are required numbers; the existing Phase-1 JSONs lack the identity
-and timestamp fields the gate reads, so they **cannot** be replayed into a verified pair without
-backdating — which would fabricate the anchor.
+`external_only` needs none of that promotion machinery. What it needs is a **Phase-3 scoring
+contract** — numeric aggregation, dimension bands, uncertainty — which P2 deliberately does not
+provide, plus a representation for ungroundable dimensions that is neither `null` (rejected) nor
+zero (an overclaim).
 
-The standing condition is the plan's own: **commit-before-outcome, external-only grounding.** The
-failure mode is importing `score_transcript()` (`score_status: "stub"`) to generate Phase-3,
-letting the agent grade itself.
+The standing condition remains: **commit-before-outcome, external-only grounding.** Importing
+`score_transcript()` (`score_status: "stub"`) to generate Phase-3 would let the agent grade
+itself.
 
-Corpus context: 81 of 105 rows are `agent_self_only`; only 18 are `two_stage_verified`.
+Corpus context: 81 of 105 rows are `agent_self_only`; 18 are `two_stage_verified`.
 
-### 3 · Do computational operations map to behavioural dimensions? — Yes, but nearly all are grounding nodes, not calibration nodes.
+### 3 · Do computational operations map to behavioural dimensions? — Yes, but zero calibration nodes operate.
 
-Full inventory in `acat/research/PRGC_SIGNALS.md`; mapping in
-`acat/research/PRGC_DIMENSION_MAP.md`. Under the four-part definition (deterministic trigger,
-**committed prediction**, external verdict, dimension attribution), condition 2 is the scarce one:
+Under the four conditions — deterministic trigger, **provably** committed prediction, external
+verdict, dimension attribution — condition 2 eliminates every candidate.
 
-- **Autonomy** maps most densely — every Z2 gate is an autonomy measurement — but as *grounding*:
-  a gate exposes pass/fail with no prediction attached.
-- **Truth** grounds on `RECEIPT-GAP`; post-hoc, and its node is `LAID`.
-- **Humility** holds the only live commit-before-outcome surface, `smag_p`, which lacks dimension
-  tags.
-- **Harm** grounds on regression, fuzz (path-scoped), and Merkle signals.
-- **Scheme, power and fair do not ground here** — and cannot currently be recorded as `null`.
+- **Autonomy** maps most densely in concept and is mostly **not running**: the gate library has
+  no CI call site, caps are unwired, one anti-cascade rule is a no-op.
+- **Truth** grounds on `RECEIPT-GAP`; post-hoc, node `LAID`.
+- **Humility** has no usable committed-prediction surface: `smag_p` cannot prove commitment.
+- **Harm** grounds on the unconditional dependency and secret scans, and on path-scoped fuzz.
+- **Scheme, power, fair** do not ground here and cannot currently be recorded as `null`.
 
-The honest count of operating calibration nodes is **zero**. Four partial substrates exist, each
-missing a different condition. That is a better finding than "three are live", and it is what the
-review established.
+**The one asymmetry worth acting on:** the repository already has a tamper-evident
+commit-before-outcome substrate — **git commit timestamps** — and ACAT does not read it. It reads
+a submitted `p1_committed_at` field. Closing that gap is smaller than building a new mechanism
+and is the shortest path to a real calibration node.
 
 ---
 
-## Proposed Solution — four stages, smallest first
+## Proposed Solution — four stages
 
-**Stage 0 · Contract work (new, and now blocking).** Ratify and implement: a promotion path or
-provenance field so a Phase-1 `external_only` record can become `two_stage_verified` when the
-anchor lands; a supported representation for ungroundable dimensions that is not zero; and
-identity plus `p1_committed_at` fields on committed Phase-1 artifacts going forward. Z3 work.
+**Stage 0 · Contract work (narrowed at r3).** No longer includes a purity promotion path, which
+exists. Needs: a supported representation for ungroundable dimensions that is neither `null` nor
+zero; a **Phase-3 scoring contract** (aggregation, bands, uncertainty) that P2 does not supply;
+identity and `p1_committed_at` fields on committed Phase-1 artifacts going forward; and a
+provenance field preserving the `external_only` lane through promotion. Z3 work.
 
 **Stage 1 · Close the open loop.** Compute Phase-3 for `PRGC-B001`/`B002` from their merged PR
-outcomes using the P2 rubric, external signals only. **Label these `external_only`, not
-`two_stage_verified`** — their Phase-1 files predate the identity fields, and backdating would
-fabricate the anchor. Their git commit timestamps are real evidence but are not what the gate
-reads.
+outcomes, external signals only, labelled `external_only`. **Depends on the scoring contract from
+Stage 0, not on the promotion path** — `external_only` does not invoke the 60s check. Their
+Phase-1 files carry no identity fields; backdating would fabricate the anchor.
 
-**Stage 2 · Tag the live prediction loop.** Extend `smag_p` to accept optional per-dimension tags
-so the existing capture emits dimension-attributed rows. `VOID` handling unchanged.
+**Stage 2 · Make the prediction provable, then tag it.** Snapshot `smag_p` at PR-open rather than
+reading a mutable body at close, or move the prediction into a git-committed file. Then add
+per-dimension tags. **The snapshot comes first** — tagging an unprovable prediction produces
+dimension-attributed noise.
 
-**Stage 3 · Adversarial gate-calibration on gate-touching PRs.** Run `adv_eval_v2.py` when a PR
-modifies gate logic; require the declared catch-rate before merge. This also supplies the
-independent anchor that gate-touching PRs need. Tier-2 gate change; needs its own molt and
-falsifier under existing anti-cascade rules.
+**Stage 3 · Adversarial gate-calibration.** Requires more than running a file:
+`adv_eval_v2.py` simulates attacks rather than invoking gates, and has no entry point. Needs a
+gate adapter, a CLI, and — because a gate-touching PR could modify the evaluator or its attack
+corpus in the same checkout and pass itself — a **trusted-base evaluator and ratified attack
+corpus** pinned outside the PR. Tier-2 gate change; its own molt and falsifier.
 
-**Explicitly out of scope:** implementing `score_transcript()`. Automated behavioural scoring
-before inter-rater agreement is *established on a paired human-rater sample* would replace an
-external anchor with a self-report. Note the corrected reasoning: κ is implemented; the sample is
-what is missing.
+**Stage 4 (new) · Wire the gates that governance already claims.** `ci_gates.py` has no CI call
+site. Either wire it or correct `CLAUDE.md`. Doing neither leaves the authority map describing
+enforcement that does not exist.
+
+**Explicitly out of scope:** implementing `score_transcript()`. κ is implemented but not
+integrated and has no paired human-rater sample; automated behavioural scoring before agreement
+is established would replace an external anchor with a self-report.
 
 ---
 
@@ -149,92 +157,94 @@ what is missing.
 **Claim:** PR-gated adversarial review can produce externally-anchored ACAT calibration records
 without the agent grading itself.
 
-**This claim is FALSE if:**
+**FALSE if:**
 
-- Any Phase-3 dimension score produced by Stage 1 or 2 can be changed by the agent's assertion
-  alone, with no external signal changing, OR
-- Stage 0 cannot produce a contract representation for ungroundable dimensions that is neither
+- Any Phase-3 dimension score produced by Stage 1 can change on the agent's assertion alone, OR
+- Stage 0 cannot produce a representation for ungroundable dimensions that is neither
   `null`-rejected nor zero-filled, OR
-- Stage 1 cannot produce a record that passes intake validation as `external_only` with a Phase-3
-  derived solely from external signals, OR
-- Uniform under-claiming yields a better humility score than accurate pre-flagging across a
-  10-PR sample, OR
-- Fewer than 4 of the Core-6 can be grounded on a PR triggering only the always-on workflows.
+- Stage 1 cannot produce a record admitted by intake validation as `external_only` with a
+  Phase-3 derived solely from external signals, OR
+- The humility rubric, once defined with an explicit statistic and decision rule, shows uniform
+  under-claiming scoring no worse than accurate pre-flagging over a 10-PR sample, OR
+- Fewer than 4 of the Core-6 can be grounded on a PR triggering only the unconditional workflows.
 
-**Test method:** apply the P2 rubric to the 6 retro PRs and both Part B records; compare
-direction against the human read in `PRGC_RETRO_S070626` after restating its figures into the
-`SAG = P1 − P3` convention.
+**Success criterion:** ≥1 dimension-attributed `external_only` record admitted by intake
+validation within 14 days of **Stage 0 completion** — not of ratification. Anchor validity
+reports as **not established**: κ is implemented but uncalled on persisted records.
 
-**Success criterion (r2, corrected):** ≥1 dimension-attributed `external_only` record admitted by
-intake validation within 14 days of ratification, with anchor validity reported as **not yet
-established**. The r1 criterion named `two_stage_verified`, which the contract cannot currently
-deliver.
-
-**Note on the purity falsifier:** r1 proposed "attempt a purity breach and confirm the guards
-reject it." The guards **do not** — `validate_submission_purity` checks enum membership only.
-Enforcement of external-anchor provenance does not exist and would itself have to be built.
+**The purity falsifier is retired.** r1 proposed "attempt a breach and confirm rejection."
+`validate_submission_purity` checks enum membership only. Any `external_only` record Stage 1
+produces is pure by **declaration**, not by verified provenance, and must not be treated as
+stronger than that until Stage 0 lands a real provenance check.
 
 ---
 
 ## Honest limitations, named
 
-- **Anchor validity is not established.** κ is implemented but has no paired human-rater sample.
-  Records ship labelled accordingly.
-- **Co-drift is real.** Copilot's auto-fixes have been wrong in this repo's history. The external
-  anchor is better than self-report, not ground truth. The human stays the outer anchor.
-- **This candidate is self-referential**, and has now been externally grounded once, against
-  itself, with a corrected result.
-- **n is tiny.** Retro n=6, prospective n=2, plus this PR. Nothing supports an agent-calibration
-  claim; it supports a pipeline claim.
-- **Zero calibration nodes currently operate.** Four partial substrates exist.
+- **Zero calibration nodes operate.** Four partial substrates, each missing a different condition.
+- **Anchor validity is not established.** κ is implemented, uncalled, and has no paired sample.
+- **Per-dimension SAG does not ship.** `compute_sag()` is aggregate-only.
+- **The self-referential measurement is only partly external.** The same agent wrote the draft,
+  received the findings, revised, and reported the result. A second independent pass — a
+  different tool, a human rater, or a later PR blind to this history — is needed before claiming
+  the *instrument* works rather than that this agent incorporates review well. Treat the current
+  datapoint as evidence of **truth-gap reduction under pressure**, not as a two-stage measurement
+  of the mechanism.
+- **Co-drift is real.** The external anchor is better than self-report, not ground truth.
+- **n is tiny.** Retro 6, prospective 2, plus this PR.
 
 ---
 
 ## Registrable items surfaced (routed, not self-registered)
 
-1. **Spec-to-code divergence.** `behavior_spec.json` declares `integration_points` that no module
-   implements, and nothing detects the divergence. IC candidate.
-2. **Stale state document.** `ACAT_STATE.md` describes Cohen's κ as stubbed; the code implements
-   it with tests. A summary document outranking source is the exact failure mode this session
-   demonstrated. IC candidate.
-3. **Sign-convention collision.** `PRGC_RETRO_S070626` reports `P3 − P1`; `calculators.py`
-   defines `SAG = P1 − P3`. Unnormalized, this inverts falsifiers. F candidate.
-4. **Purity is declared, not enforced.** F candidate.
+1. **Governance gates are not wired.** `ci_gates.py` has no CI call site; `CLAUDE.md` describes
+   Z2-hash, Merkle and anti-cascade enforcement that does not run. `check_rule2` is a no-op.
+   **IC candidate, highest priority of the five.**
+2. **Spec-to-code divergence.** `behavior_spec.json` declares `integration_points` no module
+   implements. IC candidate.
+3. **Stale state document.** `ACAT_STATE.md` calls κ stubbed; the code implements it. IC candidate.
+4. **Sign-convention collision.** Retro reports `P3 − P1`; `calculators.py` defines `SAG = P1 − P3`.
+   Unnormalized this inverts falsifiers. F candidate.
+5. **Purity is declared, not enforced.** F candidate.
 
 ---
 
-## Deliverables in this candidate
+## Deliverables
 
 | File | Status |
 |---|---|
-| `acat/research/PRGC_SIGNALS.md` | new — P1, corrected at r2 |
-| `acat/research/PRGC_DIMENSION_MAP.md` | new — P2, corrected at r2 |
+| `acat/research/PRGC_SIGNALS.md` | new — P1, corrected at r2 and r3 |
+| `acat/research/PRGC_DIMENSION_MAP.md` | new — P2, corrected at r2 and r3 |
 | `z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md` | this block |
 
-No executable change. Stages 0–3 are Z3 work after ratification.
+No executable change. Stages 0–4 are Z3 work after ratification.
 
 ---
 
 ## Z2 Review Checklist
 
-- [ ] Falsifier is testable and unambiguous
-- [ ] External-only grounding holds in the P2 rubric
-- [ ] Stage 0 is accepted as blocking Stage 1
-- [ ] Stage 1 correctly labels replayed records `external_only`, never backdated
-- [ ] Stage 3 is correctly identified as a Tier-2 gate change requiring its own molt
+- [ ] Falsifiers are testable; the humility one is correctly marked as needing a statistic first
+- [ ] Stage 0 is accepted as blocking Stage 1, and the 14-day clock starts at **Stage 0
+      completion**, not ratification (owner residual #3)
+- [ ] Stage 1 output is acknowledged as **declaration-level pure only** until a provenance check
+      exists (owner residual #5)
+- [ ] The self-referential limit is acknowledged in the ratification record: this is truth-gap
+      reduction under pressure, not an independent measurement of the mechanism (owner residual #1)
+- [ ] `quality-baseline.yml` coverage is confirmed at ratification time, including whether its
+      output can be joined to a dimension without additional attribution logic (owner residual #4)
+- [ ] Stage 3 is accepted as requiring a trusted-base evaluator and ratified attack corpus
+- [ ] Registrable item 1 is routed with priority — it concerns the authority map's accuracy
 - [ ] Out-of-scope boundary on `score_transcript()` is accepted
-- [ ] The four registrable items above are routed to Findings Scan
 
 ---
 
 ## Summary
 
-The system emits real signals, though on fewer PRs than the workflow count suggests. What is
-absent is the binding between a review outcome and a behavioural dimension, a committed
-prediction to compare it against, and a contract that can hold the resulting record.
+The system emits fewer signals than its workflow count suggests, enforces less than its authority
+map claims, and binds none of it to a behavioural dimension. Zero calibration nodes operate.
 
-The r1 version of this candidate claimed more than that. Adversarial review corrected it in six
-minutes, on eleven counts, and in doing so produced the first genuinely external measurement of
-the thesis it argues for. The mechanism works. The document was the specimen.
+Two adversarial rounds corrected this candidate on nineteen verified counts. The mechanism the
+document argues for is the mechanism that corrected the document. That is evidence the review
+loop works; it is not yet evidence the instrument does.
 
 **Ratification requested.**

@@ -2,152 +2,151 @@
 
 *S-091226 · pinned at `5b7d0d1620d9b5903f0370d31d1f45a1dda58e30`. Delivers step **P1** of
 [[PR_GROUNDED_CALIBRATION_PLAN]] ("Signal inventory — what the PR process actually emits"),
-which named this file but never produced it. Read-only survey of operational surfaces; no
-new mechanism is proposed here (that is `Q-ADVREVIEW-CALIB-01`).*
+which named this file but never produced it.*
 
-> **Revision note (r2).** The first draft of this file over-claimed the maturity of several
-> surfaces, and adversarial review on PR #294 caught eleven such claims. Every correction is
-> carried below and the episode is recorded as a datapoint in `PRGC_RETRO_S070626`'s own
-> tradition. Trigger and wiring facts here are now verified against the workflow files and
-> module imports, not against summary documents.
+> **Revision history.** r1 over-claimed eleven surfaces; adversarial review on PR #294 caught
+> all eleven. r2 corrected them but still described workflow *triggers* as if they were
+> *effective coverage*, and still credited a gate library that nothing invokes. r3 corrects that.
+> **Every row below is verified against the workflow's `on:` block, its job-level `if:`, and the
+> module's actual call sites** — not against summary documents, and not against a workflow's
+> existence.
 
 ## Scope and honest limits
 
-This catalogs **computational operations in `humanaios-ui/operations`** that emit an
-externally-grounded signal about agent behaviour. It is an inventory, not a measurement. Four
-limits, stated up front:
+- **Presence ≠ emission ≠ coverage.** A workflow can exist, trigger, and still emit nothing: a
+  job-level `if:` may skip it, a scanner may find nothing because no file of its type changed, or
+  its output may never be read. All three are marked.
+- **Not all signals are external.** Repo-owned scanners and gates are not independent reviewers.
+- **Gate verdicts are not external on gate-touching PRs.** The author sets implementation and
+  verdict both.
+- **Anchor validity is computable but not established or integrated.** `cohens_kappa` and
+  `quadratic_weighted_kappa` exist in `acat/scoring/validation/inter_rater_eval.py` with test
+  assertions, but nothing calls them on persisted records: `validate_session_score()` returns
+  `agreement: None`. What is missing is a paired human-rater sample **and** integration.
+  `ACAT_STATE.md` calls κ a stub; that line is stale and should be corrected there.
 
-- **Presence ≠ emission.** A workflow existing does not mean it has emitted usable rows. Where
-  a surface is conditional, path-scoped, or unwired, it is marked so. 9 of the 19
-  `system_graph.json` nodes are `LAID` — built, not operated: `PRS`, `AG`, `ADV`, `CONST`,
-  `MOLT`, `ML`, `OTS`, `RC`, `ST`.
-- **Not all signals are external.** The PRGC guardrail is *external-only grounding*. Signals
-  originating from the agent itself must never ground a Phase-3.
-- **Repo-owned gates are not external on gate-touching PRs.** See the caveat in Section B.
-- **Anchor validity is computable but not established.** Cohen's κ **is implemented** —
-  `acat/scoring/validation/inter_rater_eval.py` provides `cohens_kappa` and
-  `quadratic_weighted_kappa`, with assertions in `acat/tests/test_stage1_validity.py`. What is
-  missing is a paired human-rater sample and integration into the corpus path. `ACAT_STATE.md`
-  still describes κ as a stub; **that line is stale and should be corrected there.**
+## A · Review-surface signals
 
-## A · Review-surface signals (external by construction)
+Split by **effective** coverage on an ordinary, non-draft PR from a non-`copilot/` branch.
 
-These come from a reviewer that is not the authoring agent. Trigger column is verified from
-each workflow's `on:` block — it matters, because a signal that does not fire on a given PR
-cannot ground that PR.
+### A1 · Independent external reviewer
 
-| Signal | Emitting operation | Fires on | State |
-|---|---|---|---|
-| Copilot review findings (count, accept/reject, auto-fix) | **GitHub review API** — not a workflow | when a review is submitted | operated |
-| Copilot reviewer request | `auto-request-copilot-review.yml` | PR opened / reopened / ready_for_review | best-effort; the workflow's own comments call the bot request unreliable and fall back to a reminder |
-| Base-branch guard verdict | `copilot-base-guard.yml` | every PR (`pull_request_target`) | operated |
-| Semgrep rule hits | `semgrep-review.yml` | every PR | operated |
-| Supply-chain / dependency / secret findings | `security-gates.yml` | every PR | operated |
-| Fuzz crash | `cflite_pr.yml` | **path-scoped** (`src/**`, `fuzzers/**`, `build.sh`, deps) | operated within scope |
-| SonarCloud quality gate | `sonarqube.yml`, `sonarcloud-baseline-auto.yml` | **dormant** — skips unless `SONAR_TOKEN` and `SONAR_HOST_URL` are set | not emitting |
-| OpenSSF Scorecard | `scorecard.yml` | **not PR-triggered** — weekly, push to main, branch-protection change | operated, out-of-band |
-| Human review thread | GitHub review API | on review | operated |
+| Signal | Emitter | Coverage |
+|---|---|---|
+| Copilot review findings | **GitHub review API** — not a workflow | only when a review is actually requested and returned |
+| Human review thread | GitHub review API | on review |
+| Copilot reviewer request | `auto-request-copilot-review.yml` | opened / reopened / ready_for_review; the workflow's own comments call the bot request unreliable, falling back to a reminder |
 
-**So the always-on external review surface on an arbitrary PR is four workflows**
-(`copilot-base-guard`, `semgrep-review`, `security-gates`, `quality-baseline`) plus whatever
-review the Copilot request actually elicits — not the whole table.
+This is the only genuinely independent tier, and it is best-effort. **A PR can merge having
+received no independent review at all.**
 
-## B · Gate-verdict signals (deterministic, repo-owned)
+### A2 · Repo-owned scanners (external to the agent's self-report, not independent reviewers)
 
-Pass/fail verdicts from the repo's own gates.
+| Signal | Emitter | Effective coverage |
+|---|---|---|
+| Dependency / secret findings | `security-gates.yml` | **unconditional** on every PR |
+| Repo quality checks | `quality-baseline.yml` | **unconditional** on every PR |
+| Semgrep rule hits | `semgrep-review.yml` | non-draft PRs only (`if: draft == false`); produces findings only when scanned file types changed |
+| Controlled-document validation | `document-control.yml` | any `**/*.md`, `document-registry.yaml`, `.doc-control/**` — **broader than the registry file alone** |
+| Base-branch guard | `copilot-base-guard.yml` | **`copilot/*` head branches only** (`if: startsWith(github.head_ref, 'copilot/')`) — emits nothing for an ordinary PR |
+| Fuzz crash | `cflite_pr.yml` | path-scoped (`src/**`, `fuzzers/**`, `build.sh`, deps) |
+| SonarCloud | `sonarqube.yml` | **dormant** — skips without `SONAR_TOKEN` and `SONAR_HOST_URL` |
+| OpenSSF Scorecard | `scorecard.yml` | **not PR-triggered** — weekly, push to main, branch-protection change |
 
-> **Externality caveat.** These are external to the agent's self-report **only while the gate
-> logic is unchanged.** On a PR that modifies a gate, the author sets both the implementation
-> and the verdict, and the signal is no longer independent. Gate-touching PRs need a separate
-> anchor — which is exactly what adversarial gate evaluation (Stage 3 of the candidate) is for.
+**So the unconditional surface on an arbitrary PR is two workflows** (`security-gates`,
+`quality-baseline`), plus `document-control` whenever markdown changes, plus Semgrep on
+non-draft PRs touching scanned types. Neither unconditional workflow is an independent reviewer.
 
-| Signal | Emitting operation | Fires on | What it grounds |
-|---|---|---|---|
-| Falsifier present on a candidate | `FalsifierLintGate` (`ci_gates.py`), `z2_ratification_gate.yml` | path-scoped (`z1-inbox/**`, `REGISTERED.md`, seeds) | did the claim ship with a way to be wrong |
-| Z2 hash present before execution | `Z2HashVerifyGate` | same paths | did the agent execute ahead of authority |
-| Anti-cascade rules 1–5 (K=3, revert-freeze) | `AntiCascadeLintrule`, `molt_cycle.py` | on molt evaluation | did the agent over-open molts |
-| Merkle root consistency | `MerkleRootGate`, `registry_merkle_v1.py` | on registry change | ledger tamper-evidence |
-| Behavioural corpus pass-rate ≥ 0.70; new files 100% | `behavioral-compliance.yml` | path-scoped (`tools/**/*.py`) | structural quality of added code (IC-045 class) |
-| No-op PR rejection | `no-op-pr-guard.yml` | every PR | empty-work / volume-padding |
-| Controlled-document authority | `document-control.yml`, `CODEOWNERS` | `document-registry.yaml` paths; CODEOWNERS on review | writing outside cap |
-| Registry consistency | `findings-registry-gate.yml` | path-scoped (`REGISTERED.md`) | claim-to-registry coherence |
+## B · Gate-verdict signals — **library, not wired**
+
+> **`ci_gates.py` is not invoked by any checked-in workflow.** Verified: no workflow references
+> it. `FalsifierLintGate`, `Z2HashVerifyGate`, `AntiCascadeLintrule`, `MerkleRootGate` and
+> `FullCIIntegrationGate` are library classes with no CI call site.
+> `z2_ratification_gate.yml` performs its **own** independent shell, `grep` and YAML checks and
+> does not import these classes. Two of the anti-cascade rules are also incomplete:
+> `check_rule2` reaches a bare `pass  # Stub for Phase 2` and always returns no issues;
+> `check_rule5` only inspects candidates already present in the queue.
+>
+> This matters beyond the inventory. `CLAUDE.md` describes CI enforcement for Z2 hash
+> verification, Merkle-root consistency and anti-cascade rules. **Those gates are not running.**
+> Routed as a registrable item in the candidate block.
+
+What *does* run as a gate verdict:
+
+| Signal | Emitter | Effective coverage |
+|---|---|---|
+| Falsifier presence, Z2 approval greps, config lint | `z2_ratification_gate.yml` (own shell logic) | path-scoped: `z1-inbox/**`, `REGISTERED.md`, `seeds/seed-constitution-*` |
+| No-op PR rejection | `no-op-pr-guard.yml` | every PR |
+| Behavioural corpus pass-rate ≥ 0.70; new files 100% | `behavioral-compliance.yml` | path-scoped: `tools/**/*.py` |
+| Registry consistency | `findings-registry-gate.yml` | path-scoped: `REGISTERED.md` |
+| Ownership review requirement | `CODEOWNERS` | on review |
 
 ## C · Prediction-and-outcome surfaces
 
-Only rows with a **prediction committed before the outcome is known** belong here. Rows whose
-"predicted" side is a configured rule, threshold, or half-life are *inputs*, not predictions,
-and appear in Section C2.
+### C1 · Genuine commit-before-outcome — one, and ACAT cannot read it
 
-### C1 · Genuine commit-before-outcome
+| Surface | Why it qualifies | Why it is not yet usable |
+|---|---|---|
+| Phase-1 self-score committed as a **git object** (`acat/research/prgc_phase1/*.json`) | the commit timestamp is immutable and precedes the outcome; tamper-evident by construction | ACAT's two-stage gate reads a submitted `p1_committed_at` **field**, not a git object. These files carry `committed_before_outcome: true` but no `assessment_id`, `session_id` or `p1_committed_at` |
 
-| Surface | Predicted side | Measured side | State |
-|---|---|---|---|
-| `smag_p:` pinned probability in PR body | author's probability at PR-open | merge outcome + required-check conclusions; missing line recorded `VOID` | **capture-after-merge**, not enforced — see note |
-| Committed Phase-1 at PR-open | 12 dimension self-scores + rationale | PR outcome at merge | 2 records (`PRGC-B001`, `B002`); **no Phase-3 computed** |
-| Molt prediction → window close | `prediction.metric`/`target`, window, revert rule | `outcome` KEEP/REVERT, `brier_actual`, `brier_uncertainty` | schema mature; node `LAID` |
+**This is the inventory's most useful finding.** The repository already has a tamper-evident
+commit-before-outcome substrate — git — and the instrument does not read it. Closing that is
+smaller than building a new mechanism.
 
-> **`smag_p` is not a PR gate.** `smag_predict_lint.py` is exercised only by its own tests in
-> `quality-baseline.yml`; nothing lints a PR body at open. `smag-capture.yml` runs on
-> `pull_request.closed` and the autocapture tool records a missing prediction as `VOID` without
-> blocking. The commit-before-outcome *ordering* holds when an author supplies the line; the
-> *enforcement* does not exist.
+### C2 · Ordering only, not provable commitment
 
-### C2 · Rules and post-hoc reconciliation (grounding, not prediction)
+| Surface | Why it fails |
+|---|---|
+| `smag_p:` in the PR body | the **PR body is mutable** and `smag-capture.yml` reads it only on `pull_request.closed`. A probability added or edited after the outcome is captured identically. Nothing snapshots it at PR-open, and `smag_predict_lint.py` runs only inside its own tests in `quality-baseline.yml`. The ordering can be honoured by an author, as it was on #294, but the wiring cannot **prove** it |
+
+### C3 · Rules and post-hoc reconciliation (grounding, not prediction)
 
 | Surface | Why it is not a calibration node |
 |---|---|
-| Gate catch-rate threshold (`adv_eval_v2.py`, default 0.85) | the threshold is a configured requirement, not a per-run prediction |
-| Claim → ledger receipt (`receipt_reconciliation.py`) | reconciles a **post-hoc** transcript claim; no pre-committed prediction. Node `RC` is `LAID` |
-| Constant staleness (`stale_sweep.py`) | half-life is configuration. Node `ST` is `LAID` |
+| Gate catch-rate threshold (`adv_eval_v2.py`) | configured requirement, not a per-run prediction. Also: `_simulate_attack()` derives CAUGHT/MISSED from a generic `gate_state` and `test_input`. It does **not** call any real gate, and the module has no CLI or `__main__`. It is a simulation harness, not an emitting evaluator |
+| Claim → ledger receipt (`receipt_reconciliation.py`) | post-hoc; node `RC` is `LAID` |
+| Constant staleness (`stale_sweep.py`) | half-life is configuration; node `ST` is `LAID` |
+| Molt prediction → window close (`NF_LEDGER`) | the schema is the most mature in the system, but nodes `MOLT` and `ML` are `LAID` |
 
-## D · Cost and restraint signals — **declared, not wired**
+## D · Cost and restraint signals — declared, not wired
 
-`behavior_spec.json` defines six caps (`REQUEST`, `TOKEN_BUDGET`, `REPLY_COST`, `CONCURRENT`,
-and two `SCOPE` caps) and names `prs_run.py`, `agent_core.py`, `adv_eval.py` and `molt_cycle.py`
-as integration points.
-
-**None of those integrations exist in this checkout.** No module imports `agent_caps_runtime`
-or references `CapEnforcer` outside the runtime module and its own tests, and there is no
-`adv_eval.py` at all (only `adv_eval_v1.py` / `v2.py`). The `integration_points` block states
-intent. Cap violations are therefore **not** an emitted behavioural signal today; they are a
-designed one.
-
-This is itself a finding worth registering: a spec file declares integration that the code does
-not perform, and nothing detects the divergence.
+`behavior_spec.json` defines six caps and names `prs_run.py`, `agent_core.py`, `adv_eval.py` and
+`molt_cycle.py` as integration points. **No module imports `agent_caps_runtime` or references
+`CapEnforcer` outside the runtime module and its own tests, and `adv_eval.py` does not exist.**
+Cap violations are a designed signal, not an emitted one.
 
 ## E · Callout signals (governance-level)
 
-The `CLAUDE.md` callout table is an event taxonomy with mandatory triggers: `GAP`, `STALE`,
-`RECEIPT-GAP`, `GAUGE`, `AMBIGUITY`, `VOID`, `DRIFT`, `DISPUTED`, `MOLT`, `REVERT`. Whether the
-agent emitted the callout its own behaviour required is measurable, and is a humility signal.
-Emission today is ritual-driven, not workflow-enforced.
+The `CLAUDE.md` callout taxonomy (`GAP`, `STALE`, `RECEIPT-GAP`, `GAUGE`, `AMBIGUITY`, `VOID`,
+`DRIFT`, `DISPUTED`, `MOLT`, `REVERT`) is ritual-driven, not workflow-enforced.
 
-## F · Probe surfaces (dimension-specific, currently skeletons)
+## F · Probe surfaces
 
 | Probe | Dimension | State |
 |---|---|---|
-| `acat_x_truth.py` | truth (accuracy + attribution) | skeleton, `inspect_ai` |
-| `acat_x_harm.py` | harm | skeleton |
-| `acat_x_sycophancy.py` | sycophancy (`syc`) | skeleton |
-| `acat_x_consist.py` | consistency (`consist`) | skeleton |
-| `acat/scoring/acat_dimension_scorer.py` | all six Core-6 | **stub** — returns `score_status: "stub"` |
+| `acat_x_truth.py`, `acat_x_harm.py`, `acat_x_sycophancy.py`, `acat_x_consist.py` | truth, harm, syc, consist | skeletons, `inspect_ai` |
+| `acat/scoring/acat_dimension_scorer.py` | Core-6 | **stub** — `score_status: "stub"` |
 
 ## The structural finding
 
-Sections A–E describe signals the system emits **on some PRs, with real gaps**: four
-always-on review workflows, several path-scoped gates, one dormant scanner, one out-of-band
-scanner, and a cap layer that is declared but unwired. Section F describes the machinery that
-would turn a transcript into dimension scores, and it is stubbed.
+Three layers, each thinner than it looks:
 
-So the gap is twofold. **Coverage** is thinner than the workflow count suggests. And even where
-signals fire, nothing **binds** an emitted PR signal to an ACAT dimension record. `P2`
-(`PRGC_DIMENSION_MAP.md`) proposes the binding; coverage is a separate and prior problem.
+1. **Coverage.** Two unconditional workflows, neither an independent reviewer. Independent review
+   is best-effort and can be absent entirely.
+2. **Enforcement.** The governance gate library is not wired into CI, and two anti-cascade rules
+   are incomplete. `CLAUDE.md` describes enforcement that does not run.
+3. **Binding.** Nothing writes an emitted signal into a dimension record.
 
-**Falsifier for this inventory:** this document is wrong if a PR can be merged in this repo
-that emits *none* of the always-on signals in Sections A–B, or if any surface marked
-`operated` above has produced zero rows at the time of Z2 review, or if any surface marked
-dormant/unwired turns out to be firing.
+And one asymmetry worth acting on: the system's only tamper-evident commit-before-outcome
+substrate is git, which ACAT does not read.
+
+**Falsifier for this inventory (testable form).** Each claim above names an observable artifact.
+This document is wrong if: a PR merges in this repo without a completed `security-gates` and
+`quality-baseline` check run; or `ci_gates.py` turns out to be referenced by a workflow file in
+the default branch; or `copilot-base-guard` posts a non-skipped conclusion on a non-`copilot/*`
+PR; or any surface marked dormant/unwired produces a check run or a call site. Each is decidable
+from the PR's check-run list or a repository grep — no shared row format is assumed.
 
 ---
-*Companions: [[PR_GROUNDED_CALIBRATION_PLAN]] (P1 source) · [[PRGC_DIMENSION_MAP]] (P2) ·
-[[PRGC_RETRO_S070626]] (P4 Part A) · [[ACAT_STATE]] (note: its κ line is stale).*
+*Companions: [[PRGC_DIMENSION_MAP]] (P2) · [[PR_GROUNDED_CALIBRATION_PLAN]] (arc) ·
+[[PRGC_RETRO_S070626]] (Part A) · [[ACAT_STATE]] (its κ line is stale).*
