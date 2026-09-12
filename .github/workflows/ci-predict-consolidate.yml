@@ -1,52 +1,113 @@
-# ci-predict-consolidate — the CONSOLIDATE half of execution-grounded calibration
-# (Stage 2). Drains the pin and resolve comments this PR accumulated into the
-# durable, hash-chained ledger via tools/nf_ledger_v0_1.py (unchanged), and opens
-# a follow-up PR with the diff — the same capture-then-consolidate split already
-# proven by smag-capture.yml / smag-consolidate.yml, so a single unsynchronized
-# writer never races the ledger's hash chain.
+# ci-predict-consolidate — the CONSOLIDATE half of execution-grounded
+# calibration (Stage 2). Drains the pin comments this repo's recently-active
+# PRs accumulated into the durable, hash-chained ledger via
+# tools/nf_ledger_v0_1.py (unchanged), independently re-checking each
+# predicted commit's actual check-run conclusions rather than trusting any
+# resolve comment, and opens a follow-up PR with the diff — the same
+# capture-then-consolidate split already proven by
+# smag-capture.yml / smag-consolidate.yml, so a single unsynchronized writer
+# never races the ledger's hash chain.
 #
-# Fires on PR close so nearly all predicted checks are already terminal by the
-# time this runs; any left unresolved simply contribute nothing this round and
-# are picked up the next time this PR (or a future one) is consolidated.
+# Fires immediately on PR close for fast feedback, and hourly to catch what
+# a one-shot close trigger misses: a check that finishes resolving only after
+# its PR is already closed (smag-consolidate.yml carries the same "capture
+# without a later consolidate pass" risk, mitigated the same way — a
+# periodic sweep, here over recently-updated PRs, re-checks every run).
+#
+# concurrency ensures overlapping runs queue instead of racing the ledger's
+# tail hash; the job itself is a single, ordered writer per invocation, and
+# combining an event trigger with a schedule is safe precisely because of
+# that serialization.
 name: ci-predict-consolidate
+
+concurrency:
+  group: ci-predict-consolidate
+  cancel-in-progress: false
 
 on:
   pull_request:
     types: [closed]
+  schedule:
+    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
       pr:
-        description: "PR number to consolidate"
-        required: true
+        description: "Single PR number to consolidate (optional; default sweeps recent PRs)"
+        required: false
 
 permissions:
   contents: write
+  checks: read
   pull-requests: write
 
 jobs:
   consolidate:
     runs-on: ubuntu-latest
     steps:
+      # Trusted script only, from main — this job holds contents: write and
+      # pull-requests: write. See ci_predict_consolidate_v1_0.py: it never
+      # trusts a resolve comment's embedded outcome either, re-deriving it
+      # from a fresh check-runs fetch, so the only PR-authored input reaching
+      # it at all is the pin's declared prediction, read via the API.
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      - name: Consolidate pin/resolve comments into the ledger
+      - name: Consolidate pin comments into the ledger
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DISPATCH_PR: ${{ github.event.inputs.pr }}
+          CLOSED_PR: ${{ github.event.pull_request.number }}
         run: |
-          PR="${{ github.event.inputs.pr }}"
-          if [ -z "$PR" ]; then PR="${{ github.event.pull_request.number }}"; fi
-          python3 tools/ci_predict_consolidate_v1_0.py consolidate \
-            --repo "${{ github.repository }}" --pr "$PR" \
-            --ledger ledgers/CI_PREDICT_LEDGER.jsonl
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import subprocess
+
+          repo = os.environ["REPO"]
+          dispatch_pr = os.environ.get("DISPATCH_PR", "")
+          closed_pr = os.environ.get("CLOSED_PR", "")
+          if dispatch_pr:
+              pr_numbers = [dispatch_pr]
+          elif closed_pr:
+              # The PR that just closed, direct — no need to wait for it to
+              # surface in the sweep below.
+              pr_numbers = [closed_pr]
+          else:
+              # Recently-updated PRs, open or closed: late resolutions on an
+              # open PR and last-chance ones on a just-closed PR both matter.
+              proc = subprocess.run(
+                  ["gh", "pr", "list", "--repo", repo, "--state", "all",
+                   "--limit", "50", "--json", "number",
+                   "--search", "sort:updated-desc"],
+                  capture_output=True, text=True, check=False,
+              )
+              try:
+                  pr_numbers = [str(p["number"]) for p in json.loads(proc.stdout or "[]")]
+              except json.JSONDecodeError:
+                  pr_numbers = []
+
+          for pr in pr_numbers:
+              subprocess.run(
+                  ["python3", "tools/ci_predict_consolidate_v1_0.py", "consolidate",
+                   "--repo", repo, "--pr", pr,
+                   "--ledger", "ledgers/CI_PREDICT_LEDGER.jsonl"],
+                  check=False,
+              )
+          PYEOF
 
       - name: Open a PR if the ledger changed
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet -- ledgers/CI_PREDICT_LEDGER.jsonl; then
+          # git diff --quiet would miss the ledger's very first creation: an
+          # untracked new file shows no diff until it is staged. git status
+          # --porcelain reports untracked files too.
+          if [ -z "$(git status --porcelain -- ledgers/CI_PREDICT_LEDGER.jsonl)" ]; then
             echo "No new resolved predictions — nothing to consolidate."
             exit 0
           fi
@@ -59,4 +120,4 @@ jobs:
           git push origin "$branch"
           gh pr create --base main --head "$branch" \
             --title "ci-predict: consolidate resolved CI predictions" \
-            --body "Automated CONSOLIDATE step of the execution-grounded calibration loop (Stage 2). Appends newly-resolved PIN/RESOLVE events via tools/nf_ledger_v0_1.py's own hash-chain functions, unchanged. Verified by the same tool before this PR was opened; re-verify with \`python3 tools/nf_ledger_v0_1.py verify ledgers/CI_PREDICT_LEDGER.jsonl\` before merging."
+            --body "Automated CONSOLIDATE step of the execution-grounded calibration loop (Stage 2). Appends newly-resolved PIN/RESOLVE events via tools/nf_ledger_v0_1.py's own hash-chain functions, unchanged; resolutions are independently re-derived from a fresh check-runs fetch, never taken from a comment. Verified by the same tool before this PR was opened; re-verify with \`python3 tools/nf_ledger_v0_1.py verify ledgers/CI_PREDICT_LEDGER.jsonl\` before merging."

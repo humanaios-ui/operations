@@ -29,6 +29,17 @@ defers hashing/appending to ci_predict_consolidate_v1_0.py, which runs at PR clo
 against a single checkout of main — exactly the CAPTURE/CONSOLIDATE split SMAG
 already validated in this repo.
 
+WHY THIS NEVER CHECKS OUT THE PR BRANCH
+------------------------------------------
+The live workflow holds `pull-requests: write` to post the pin comment. If it
+also checked out and ran code from the PR branch, a same-repo PR could modify
+this very script (or anything it imports) to use that write-capable token for
+anything. So `run()` never touches PR-branch content as code: the declaration
+file's bytes are fetched read-only through the contents API
+(fetch_declaration_via_api) and only ever passed to parse_declaration, which
+does nothing but validate JSON structure. The script executing is always the
+copy checked out from main.
+
 DECLARATION FILE
 -----------------
 `ci_predictions/pr.json`, committed by the PR author before push:
@@ -53,6 +64,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import re
 import subprocess
@@ -82,29 +94,46 @@ class DeclarationError(ValueError):
     """Raised when a predictions file is malformed. Never silently dropped."""
 
 
-def load_declaration(path: Path) -> dict:
-    """Read and shallow-validate a predictions file. Raises, does not warn-and-skip."""
-    if not path.exists():
-        raise DeclarationError(f"no declaration at {path}")
+def parse_declaration(content: str, label: str) -> dict:
+    """Validate predictions JSON already in hand. Raises, never warns-and-skips.
+
+    `label` is only for error messages (a path, or "PR #123 @ ci_predictions/pr.json").
+    This is the shared validation core for both the local-file and the
+    API-fetched entry points below.
+    """
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(content)
     except json.JSONDecodeError as exc:
-        raise DeclarationError(f"{path}: invalid JSON — {exc}") from exc
+        raise DeclarationError(f"{label}: invalid JSON — {exc}") from exc
+    if not isinstance(data, dict):
+        raise DeclarationError(f"{label}: top level must be a JSON object")
     checks = data.get("checks")
     if not isinstance(checks, dict) or not checks:
-        raise DeclarationError(f"{path}: 'checks' must be a non-empty object")
+        raise DeclarationError(f"{label}: 'checks' must be a non-empty object")
     for name, spec in checks.items():
         if not isinstance(spec, dict):
-            raise DeclarationError(f"{path}: check {name!r} is not an object")
+            raise DeclarationError(f"{label}: check {name!r} is not an object")
         conclusion = spec.get("conclusion")
         if conclusion not in VALID_CONCLUSIONS:
             raise DeclarationError(
-                f"{path}: check {name!r} has invalid conclusion {conclusion!r}"
+                f"{label}: check {name!r} has invalid conclusion {conclusion!r}"
             )
         p = spec.get("p")
         if not isinstance(p, (int, float)) or not (0.0 <= p <= 1.0):
-            raise DeclarationError(f"{path}: check {name!r} has p={p!r}, must be in [0,1]")
+            raise DeclarationError(f"{label}: check {name!r} has p={p!r}, must be in [0,1]")
     return data
+
+
+def load_declaration(path: Path) -> dict:
+    """Read and validate a predictions file from a local checkout.
+
+    For hand-testing against a real checkout, or from within a repository the
+    caller already trusts. The live pin workflow does not use this: see
+    fetch_declaration_via_api, which never checks out PR-branch content.
+    """
+    if not path.exists():
+        raise DeclarationError(f"no declaration at {path}")
+    return parse_declaration(path.read_text(encoding="utf-8"), str(path))
 
 
 def build_payload(pr_number: str, head_sha: str, predictor: str, declaration: dict,
@@ -155,11 +184,13 @@ def gh_json(path: str):
 
 
 def git_commit_date(path: Path) -> str:
-    """The ISO 8601 commit date of the last commit touching `path`.
+    """The ISO 8601 commit date of the last commit touching `path`, from a
+    local checkout.
 
-    This is the real anchor: it exists and is fixed before any check that runs
-    afterward can have concluded. Empty string, never a guess, on any failure
-    (detached checkout, shallow clone missing history, file untracked yet).
+    For hand-testing against a real checkout. The live pin workflow never
+    checks out PR-branch content — see commit_date_via_api — so this is not
+    on that path. Empty string, never a guess, on any failure (detached
+    checkout, shallow clone missing history, file untracked yet).
     """
     proc = subprocess.run(
         ["git", "log", "-1", "--format=%cI", "--", str(path)],
@@ -168,6 +199,51 @@ def git_commit_date(path: Path) -> str:
     if proc.returncode != 0:
         return ""
     return proc.stdout.strip()
+
+
+def fetch_declaration_via_api(repo: str, ref: str, path: str = DEFAULT_FILE):
+    """The declaration file's content at `ref`, read via the contents API.
+
+    This is how the live workflow gets the PR author's declaration WITHOUT
+    checking out the PR branch: `actions/checkout` in the pin workflow stays
+    on the trusted base ref (this script never runs untrusted code with a
+    write-capable token), and only this one file's bytes, fetched and
+    strictly validated by parse_declaration, cross into the job at all.
+    Returns None if the file does not exist at that ref (not an error: a PR
+    with no declaration is simply not predicting anything).
+    """
+    proc = subprocess.run(
+        ["gh", "api", f"repos/{repo}/contents/{path}", "-f", f"ref={ref}"],
+        capture_output=True, text=True, timeout=30,
+    )
+    if proc.returncode != 0:
+        return None
+    try:
+        payload = json.loads(proc.stdout)
+        return base64.b64decode(payload["content"]).decode("utf-8")
+    except (json.JSONDecodeError, KeyError, ValueError):
+        return None
+
+
+def commit_date_via_api(repo: str, sha: str) -> str:
+    """The head commit's own commit date via the API, ISO 8601.
+
+    Less precise than git_commit_date's "the commit that last touched this
+    exact file" — this is the head commit's date, which for a PR whose last
+    push included the declaration is the same thing, and is the honest
+    tradeoff for never checking out the PR branch. Empty string on failure.
+    """
+    proc = subprocess.run(
+        ["gh", "api", f"repos/{repo}/commits/{sha}"],
+        capture_output=True, text=True, timeout=30,
+    )
+    if proc.returncode != 0:
+        return ""
+    try:
+        commit = json.loads(proc.stdout)
+        return ((commit.get("commit") or {}).get("committer") or {}).get("date", "")
+    except json.JSONDecodeError:
+        return ""
 
 
 def post_comment(repo: str, pr_number: str, body: str) -> int:
@@ -183,15 +259,26 @@ def post_comment(repo: str, pr_number: str, body: str) -> int:
     return proc.returncode
 
 
-def run(repo: str, pr_number: str, declaration_path: Path) -> int:
-    declaration = load_declaration(declaration_path)
+def run(repo: str, pr_number: str, declaration_file: str = DEFAULT_FILE) -> int:
+    """Fetch the declaration and PR metadata entirely via the API — no
+    checkout of PR-branch content, so this never executes anything the PR
+    author wrote. `declaration_file` is a repo-relative path resolved at the
+    PR's head ref through the contents API, not a local filesystem path.
+    """
     pr = gh_json(f"repos/{repo}/pulls/{pr_number}")
     if pr is None:
         print(f"::warning::could not fetch PR {pr_number}; skipping pin", file=sys.stderr)
         return 0  # a missing pin is a VOID later, never a workflow failure
     head_sha = (pr.get("head") or {}).get("sha", "")
+
+    content = fetch_declaration_via_api(repo, head_sha, declaration_file)
+    if content is None:
+        print(f"no {declaration_file} at {head_sha[:12]}; nothing to pin")
+        return 0
+    declaration = parse_declaration(content, f"PR #{pr_number} @ {declaration_file}")
+
     predictor = derive_substrate((pr.get("user") or {}).get("login", ""))
-    committed_at = git_commit_date(declaration_path)
+    committed_at = commit_date_via_api(repo, head_sha)
     payload = build_payload(pr_number, head_sha, predictor, declaration, committed_at)
     comment = render_pin_comment(payload)
     print(comment)
@@ -244,6 +331,56 @@ def run_smoke_test() -> bool:
     finally:
         bad_path2.unlink(missing_ok=True)
 
+    # A non-object top level (array/scalar) is refused, not an AttributeError.
+    try:
+        parse_declaration("[1, 2, 3]", "test")
+        ok = False
+    except DeclarationError:
+        pass
+    try:
+        parse_declaration("42", "test")
+        ok = False
+    except DeclarationError:
+        pass
+
+    # fetch_declaration_via_api / commit_date_via_api never touch a local
+    # checkout; verified here against a faked subprocess, no network.
+    class FakeContentsResponse:
+        returncode = 0
+        stdout = json.dumps({"content": base64.b64encode(
+            b'{"checks": {"quality": {"conclusion": "success", "p": 0.9}}}'
+        ).decode()})
+
+    class FakeCommitResponse:
+        returncode = 0
+        stdout = json.dumps({"commit": {"committer": {"date": "2026-09-12T10:00:00Z"}}})
+
+    class FakeFailure:
+        returncode = 1
+        stdout = ""
+
+    orig_run = subprocess.run
+    subprocess.run = lambda *a, **k: FakeContentsResponse()
+    try:
+        content = fetch_declaration_via_api("owner/repo", "deadbeef")
+        ok = ok and content is not None
+        ok = ok and parse_declaration(content, "x")["checks"]["quality"]["p"] == 0.9
+    finally:
+        subprocess.run = orig_run
+
+    subprocess.run = lambda *a, **k: FakeCommitResponse()
+    try:
+        ok = ok and commit_date_via_api("owner/repo", "deadbeef") == "2026-09-12T10:00:00Z"
+    finally:
+        subprocess.run = orig_run
+
+    subprocess.run = lambda *a, **k: FakeFailure()
+    try:
+        ok = ok and fetch_declaration_via_api("owner/repo", "deadbeef") is None
+        ok = ok and commit_date_via_api("owner/repo", "deadbeef") == ""
+    finally:
+        subprocess.run = orig_run
+
     print("✓ Smoke test PASSED" if ok else "✗ Smoke test FAILED")
     return ok
 
@@ -265,7 +402,7 @@ def main() -> int:
         parser.print_help()
         return 2
     try:
-        return run(args.repo, args.pr, Path(args.file))
+        return run(args.repo, args.pr, args.file)
     except DeclarationError as exc:
         print(str(exc), file=sys.stderr)
         return 2

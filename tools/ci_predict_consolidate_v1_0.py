@@ -4,30 +4,53 @@ ci_predict_consolidate_v1_0.py
 Builder v1.7 compliant
 HumanAIOS — Stage 2 of the execution-grounded calibration plan
 
-CONSOLIDATE half of PIN → RESOLVE → CONSOLIDATE. Drains the pin and resolve
-comments ci_predict_pin_v1_0.py and ci_predict_resolve_v1_0.py posted on one PR,
-and appends them as TOKEN + PIN + RESOLVE events to a durable, hash-chained ledger
-— using tools/nf_ledger_v0_1.py's own event functions (`append`, `check_p`,
-`read`, `verify`), unchanged. This tool adds no new hashing or chaining logic of
-its own; it only decides which events to build and hands them to that engine.
+CONSOLIDATE half of PIN → RESOLVE → CONSOLIDATE. Reads the pin comment(s)
+ci_predict_pin_v1_0.py posted on one PR, independently re-fetches each
+predicted commit's actual check-run conclusions, and appends the result as
+TOKEN + PIN + RESOLVE events to a durable, hash-chained ledger — using
+tools/nf_ledger_v0_1.py's own event functions (`append`, `check_p`, `read`,
+`verify`), unchanged. This tool adds no new hashing or chaining logic of its
+own; it only decides which events to build and hands them to that engine.
+
+WHY THIS RE-DERIVES RESOLUTIONS INSTEAD OF READING A RESOLVE COMMENT
+-----------------------------------------------------------------------
+An earlier version trusted ci_predict_resolve_v1_0.py's posted comment for
+the scored outcome. That comment is just another PR comment: anyone who can
+comment on the PR could post a forged one, in the right shape, and have a
+fabricated YES/NO scored into the ledger. This version never reads a resolve
+comment at all — it calls ci_predict_resolve_v1_0.compute_resolutions()
+itself, against a fresh check-runs fetch, using only the trusted PIN as the
+predicted side. The forgeable surface is reduced to "what was predicted,"
+which cannot be independently re-derived from anywhere else, and which the
+PIN's own git-commit anchor already grounds.
 
 WHY A SEPARATE LEDGER FILE
 ---------------------------
-ledgers/NF_LEDGER.jsonl is explicitly scoped to "Phase 2 mesh pins" and carries
-its own pending Z2 governance debt (dates and priors owed, a ratification hash
-owed). Writing CI-check predictions into that file would be scope creep on a
-live, ratification-pending artifact — the same failure mode as settling a
-pending Z2 decision by side effect, one level removed. This writes to
-ledgers/CI_PREDICT_LEDGER.jsonl instead: same engine, same event shapes,
-different subject, no collision with anyone else's open governance item.
+ledgers/NF_LEDGER.jsonl is explicitly scoped to "Phase 2 mesh pins" and
+carries its own pending Z2 governance debt (dates and priors owed, a
+ratification hash owed). Writing CI-check predictions into that file would
+be scope creep on a live, ratification-pending artifact — the same failure
+mode as settling a pending Z2 decision by side effect, one level removed.
+This writes to ledgers/CI_PREDICT_LEDGER.jsonl instead: same engine, same
+event shapes, different subject, no collision with anyone else's open
+governance item.
+
+WHY A MISSING ANCHOR REFUSES THE CHECK, NOT JUST THE DATE
+-------------------------------------------------------------
+A TOKEN with `date_source: PRACTICE` is immediately scoreable in
+nf_ledger_v0_1's model. If the git-commit anchor could not be determined
+(git_commit_date failed), marking it PRACTICE anyway would let an unanchored
+prediction into the ledger as if it were provably-before-the-outcome — the
+exact property this whole stage exists to establish. Such a check is
+skipped entirely rather than recorded with a fabricated anchor.
 
 WHY check_p IS CALLED HERE, NOT ONLY IN THE DECLARATION
 ---------------------------------------------------------
 ci_predict_pin_v1_0.load_declaration already rejects a probability outside
 [0,1] before a pin comment is ever posted. This step calls
 nf_ledger_v0_1.check_p again at the point the PIN event is actually built, so
-the ledger's own tested guarantee — a bad p cannot enter it, from any caller —
-holds regardless of what posted the comment.
+the ledger's own tested guarantee — a bad p cannot enter it, from any caller
+— holds regardless of what posted the comment.
 
 EVENT ORDER MATTERS
 ---------------------
@@ -37,9 +60,11 @@ that order, per check, matching cmd_build's own ordering.
 
 IDEMPOTENCY
 ------------
-Before appending, this tool reads the existing ledger and skips any check whose
-token_id is already present — a PR can be consolidated more than once (e.g. a
-follow-up resolve after this ran once) without double-appending.
+Before appending, this tool reads the existing ledger and skips any check
+whose token_id is already present — a PR can be consolidated more than once
+without double-appending. The existing chain is verified before any new
+event is built from it, so a corrupt checked-in ledger is refused up front
+rather than mutated and only found broken afterward.
 
 Usage:
   python3 tools/ci_predict_consolidate_v1_0.py consolidate \\
@@ -48,54 +73,46 @@ Usage:
 """
 from __future__ import annotations
 
-import argparse
-import json
+import hashlib
 import re
-import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import nf_ledger_v0_1 as engine  # noqa: E402  (the ledger's own hashing/appending)
+import ci_predict_resolve_v1_0 as resolver  # noqa: E402  (trust filter + resolution logic)
 
 TOOL_NAME = "ci_predict_consolidate"
 TOOL_VERSION = "1.0.0"
 DEFAULT_LEDGER = "ledgers/CI_PREDICT_LEDGER.jsonl"
 
-PIN_MARKER = "<!-- ci-predict:pin -->"
-RESOLVE_MARKER = "<!-- ci-predict:resolve -->"
-_JSON_BLOCK = re.compile(r"```json\s*(.*?)\s*```", re.DOTALL)
+
+class LedgerCorrupt(RuntimeError):
+    """Raised when the existing ledger fails verification. Never appended to."""
 
 
-def extract_payload(comment_body: str, marker: str) -> Optional[dict]:
-    """Same discrimination as the resolve tool: marker first, then the fence."""
-    if marker not in (comment_body or ""):
-        return None
-    match = _JSON_BLOCK.search(comment_body)
-    if not match:
-        return None
-    try:
-        return json.loads(match.group(1))
-    except json.JSONDecodeError:
-        return None
+def collect_trusted_pins(comments: List[dict]) -> Dict[str, dict]:
+    """The latest trusted pin per distinct head_sha seen in these comments.
 
-
-def collect_pin_and_resolve(comments: List[dict]) -> tuple:
-    """Latest pin payload per head_sha, and merged resolutions per head_sha."""
-    pins: Dict[str, dict] = {}
-    resolves: Dict[str, dict] = {}
+    Several pushes to the same PR each get their own pin; each is kept, keyed
+    by its own head_sha, so a check resolved late against an older push is
+    still attributable to the prediction actually made for that commit.
+    """
+    per_sha: Dict[str, list] = {}
     for comment in comments:
-        body = comment.get("body", "")
-        pin = extract_payload(body, PIN_MARKER)
-        if pin and pin.get("head_sha"):
-            pins[pin["head_sha"]] = pin  # last write wins: latest push's pin
-        resolve = extract_payload(body, RESOLVE_MARKER)
-        if resolve and resolve.get("head_sha"):
-            resolves.setdefault(resolve["head_sha"], {}).update(
-                resolve.get("resolutions", {})
+        if not resolver.is_trusted(comment):
+            continue
+        payload = resolver.extract_payload(comment.get("body", ""), resolver.PIN_MARKER)
+        if payload and payload.get("head_sha"):
+            per_sha.setdefault(payload["head_sha"], []).append(
+                (comment.get("created_at", ""), payload)
             )
-    return pins, resolves
+    latest: Dict[str, dict] = {}
+    for head_sha, candidates in per_sha.items():
+        candidates.sort(key=lambda pair: pair[0])
+        latest[head_sha] = candidates[-1][1]
+    return latest
 
 
 def commit_date_only(committed_at: str) -> str:
@@ -109,25 +126,39 @@ def commit_date_only(committed_at: str) -> str:
 
 
 def token_id_for(head_sha: str, check_name: str) -> str:
-    """Deterministic id, short enough to read, unique per (commit, check)."""
-    slug = re.sub(r"[^a-z0-9]+", "-", check_name.lower()).strip("-")
-    return f"CI-{head_sha[:12]}-{slug}"
+    """Deterministic id, unique per (commit, check).
+
+    A readable slug alone is not injective: "a b" and "a-b" both slug to
+    "a-b", and a punctuation-only name slugs to empty. An 8-hex digest of the
+    exact original name is appended so two distinct names can never collide,
+    while the slug keeps the id readable at a glance.
+    """
+    slug = re.sub(r"[^a-z0-9]+", "-", check_name.lower()).strip("-") or "check"
+    digest = hashlib.sha256(check_name.encode("utf-8")).hexdigest()[:8]
+    return f"CI-{head_sha[:12]}-{slug}-{digest}"
 
 
 def build_events(pin: dict, resolutions: dict, existing_ids: set,
                  pushed_at_date: str, start_seq: int = 1) -> List[dict]:
-    """Pure: TOKEN+PIN+RESOLVE triples for checks that are resolved and new.
+    """Pure: TOKEN+PIN+RESOLVE triples for checks that are resolved, new, and
+    carry a real commit anchor.
 
-    A check present in the pin but with no resolution yet contributes nothing —
-    it is neither scored nor recorded as pending; the next consolidate run picks
-    it up once ci_predict_resolve_v1_0 has posted its outcome.
+    A check present in the pin but with no resolution yet contributes
+    nothing — it is neither scored nor recorded as pending; the next
+    consolidate run picks it up once a fresh check-runs fetch shows it
+    terminal. A check whose anchor could not be determined (empty
+    `pushed_at_date`) is skipped outright: see the module docstring on why an
+    unanchored prediction must never enter the ledger as PRACTICE-dated.
 
     `seq` is assigned here, starting at `start_seq`, because
     nf_ledger_v0_1.verify() requires every event to carry a strictly
     incrementing sequence number and nf_ledger_v0_1.append() does not assign
-    one itself — only its own cmd_build closure does, which this tool does not
-    call (that closure is spec-file-shaped for the mesh use case).
+    one itself — only its own cmd_build closure does, which this tool does
+    not call (that closure is spec-file-shaped for the mesh use case).
     """
+    if not pushed_at_date:
+        return []
+
     head_sha = pin["head_sha"]
     predictor = pin.get("predictor", "unknown")
     events: List[dict] = []
@@ -168,56 +199,54 @@ def build_events(pin: dict, resolutions: dict, existing_ids: set,
 
 
 def load_ledger_state(ledger_path: Path) -> tuple:
-    """Existing TOKEN ids (for dedup) and the next free seq. Empty/1 if absent."""
+    """Existing TOKEN ids (for dedup) and the next free seq. Empty/1 if absent.
+
+    Raises LedgerCorrupt if the checked-in ledger fails verification — this
+    tool must never build new events on top of a chain it cannot trust, and
+    must never be the one to silently paper over that by appending anyway.
+    """
     if not ledger_path.exists():
         return set(), 1
     rows = engine.read(str(ledger_path))
+    err = engine.verify(rows)
+    if err:
+        raise LedgerCorrupt(f"{ledger_path}: {err}")
     ids = {row["token_id"] for row in rows if row.get("type") == "TOKEN"}
     next_seq = (rows[-1]["seq"] + 1) if rows else 1
     return ids, next_seq
 
 
-def gh_json_paginated(path: str) -> List[dict]:
-    """Fetch a paginated GitHub list endpoint via gh --paginate."""
-    proc = subprocess.run(["gh", "api", "--paginate", path],
-                          capture_output=True, text=True, timeout=60)
-    if proc.returncode != 0:
-        return []
-    items: List[dict] = []
-    for line in proc.stdout.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            page = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        items.extend(page if isinstance(page, list) else [])
-    return items
-
-
 def run(repo: str, pr_number: str, ledger_path: Path) -> int:
-    comments = gh_json_paginated(f"repos/{repo}/issues/{pr_number}/comments")
-    pins, resolves = collect_pin_and_resolve(comments)
+    comments = resolver.gh_json_paginated(f"repos/{repo}/issues/{pr_number}/comments")
+    pins = collect_trusted_pins(comments)
     if not pins:
-        print(f"no pin comments on PR {pr_number}; nothing to consolidate")
+        print(f"no trusted pin comments on PR {pr_number}; nothing to consolidate")
         return 0
 
-    existing_ids, next_seq = load_ledger_state(ledger_path)
+    try:
+        existing_ids, next_seq = load_ledger_state(ledger_path)
+    except LedgerCorrupt as exc:
+        print(f"FAIL: refusing to append — {exc}", file=sys.stderr)
+        return 1
 
     all_events: List[dict] = []
     for head_sha, pin in pins.items():
+        check_runs = resolver.gh_json_paginated(
+            f"repos/{repo}/commits/{head_sha}/check-runs", key="check_runs"
+        )
+        resolutions = resolver.compute_resolutions(pin, check_runs)
         built = build_events(
-            pin, resolves.get(head_sha, {}), existing_ids,
+            pin, resolutions, existing_ids,
             pushed_at_date=commit_date_only(pin.get("committed_at", "")),
             start_seq=next_seq,
         )
         all_events.extend(built)
         next_seq += len(built)
+        existing_ids.update(e["token_id"] for e in built if e["type"] == "TOKEN")
 
     if not all_events:
         print("nothing new to append (all resolved checks already recorded, "
-              "or none resolved yet)")
+              "none resolved yet, or no anchor available)")
         return 0
 
     prev = engine.last_hash(str(ledger_path))
@@ -237,7 +266,7 @@ def run_smoke_test() -> bool:
 
     pin = {
         "schema": "ci_predict_pin_v1", "pr": "42", "head_sha": "a" * 40,
-        "predictor": "Claude Code",
+        "predictor": "Claude Code", "committed_at": "2026-09-12T10:00:00Z",
         "checks": {
             "quality": {"conclusion": "success", "p": 0.9},
             "guard": {"conclusion": "success", "p": 0.8},
@@ -254,9 +283,18 @@ def run_smoke_test() -> bool:
     ok = ok and len(events) == 6  # 2 checks x (TOKEN, PIN, RESOLVE)
     ok = ok and [e["type"] for e in events[:3]] == ["TOKEN", "PIN", "RESOLVE"]
 
+    # An empty anchor refuses the check entirely, never falls back to PRACTICE.
+    ok = ok and build_events(pin, resolutions, set(), pushed_at_date="") == []
+
     ok = ok and commit_date_only("2026-09-12T10:00:00-07:00") == "2026-09-12"
     ok = ok and commit_date_only("") == ""
     ok = ok and commit_date_only("not-a-date") == ""
+
+    # token_id_for is injective across names that would collide after slugging.
+    a = token_id_for("a" * 40, "a b")
+    b = token_id_for("a" * 40, "a-b")
+    ok = ok and a != b
+    ok = ok and token_id_for("a" * 40, "!!!") != token_id_for("a" * 40, "???")
 
     with tempfile.TemporaryDirectory() as workdir:
         ledger = Path(workdir) / "smoke.jsonl"
@@ -295,11 +333,35 @@ def run_smoke_test() -> bool:
         except SystemExit:
             pass
 
+        # A corrupted checked-in ledger refuses to accept new events at all.
+        corrupt_ledger = Path(workdir) / "corrupt.jsonl"
+        engine.append(str(corrupt_ledger), events, "0" * 64)
+        corrupt_rows = engine.read(str(corrupt_ledger))
+        corrupt_rows[0]["hash"] = "0" * 64
+        with open(corrupt_ledger, "w", encoding="utf-8") as handle:
+            import json as _json
+            for row in corrupt_rows:
+                handle.write(_json.dumps(row) + "\n")
+        try:
+            load_ledger_state(corrupt_ledger)
+            ok = False
+        except LedgerCorrupt:
+            pass
+
+    # An untrusted commenter's pin is never collected, even for a real head_sha.
+    forged_body = "not a real pin, just text with the marker below\n" + \
+        resolver.PIN_MARKER + '\n```json\n{"head_sha": "' + ("a" * 40) + '"}\n```'
+    trusted_pins = collect_trusted_pins(
+        [{"body": forged_body, "user": {"login": "some-collaborator"}, "created_at": "x"}]
+    )
+    ok = ok and trusted_pins == {}
+
     print("✓ Smoke test PASSED" if ok else "✗ Smoke test FAILED")
     return ok
 
 
 def main() -> int:
+    import argparse
     parser = argparse.ArgumentParser(description=f"{TOOL_NAME} v{TOOL_VERSION}")
     parser.add_argument("--smoke-test", action="store_true")
     sub = parser.add_subparsers(dest="command")

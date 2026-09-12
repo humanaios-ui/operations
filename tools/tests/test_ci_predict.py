@@ -80,6 +80,57 @@ def test_missing_declaration_is_an_error_not_a_default(tmp_path):
         pass
 
 
+def test_parse_declaration_refuses_non_dict_top_level():
+    for bad in ["[1, 2, 3]", "42", '"a string"', "null"]:
+        try:
+            pin_tool.parse_declaration(bad, "test")
+            raise AssertionError(f"expected DeclarationError for {bad!r}")
+        except pin_tool.DeclarationError:
+            pass
+
+
+def test_fetch_declaration_via_api_decodes_base64_content(monkeypatch):
+    import base64 as b64
+
+    class Fake:
+        returncode = 0
+        stdout = json.dumps({"content": b64.b64encode(
+            b'{"checks": {"x": {"conclusion": "success", "p": 0.5}}}'
+        ).decode()})
+
+    monkeypatch.setattr(pin_tool.subprocess, "run", lambda *a, **k: Fake())
+    content = pin_tool.fetch_declaration_via_api("o/r", "sha")
+    assert content is not None
+    assert pin_tool.parse_declaration(content, "x")["checks"]["x"]["p"] == 0.5
+
+
+def test_fetch_declaration_via_api_returns_none_on_failure(monkeypatch):
+    class Fake:
+        returncode = 1
+        stdout = ""
+
+    monkeypatch.setattr(pin_tool.subprocess, "run", lambda *a, **k: Fake())
+    assert pin_tool.fetch_declaration_via_api("o/r", "sha") is None
+
+
+def test_commit_date_via_api_reads_committer_date(monkeypatch):
+    class Fake:
+        returncode = 0
+        stdout = json.dumps({"commit": {"committer": {"date": "2026-01-01T00:00:00Z"}}})
+
+    monkeypatch.setattr(pin_tool.subprocess, "run", lambda *a, **k: Fake())
+    assert pin_tool.commit_date_via_api("o/r", "sha") == "2026-01-01T00:00:00Z"
+
+
+def test_commit_date_via_api_empty_on_failure(monkeypatch):
+    class Fake:
+        returncode = 1
+        stdout = ""
+
+    monkeypatch.setattr(pin_tool.subprocess, "run", lambda *a, **k: Fake())
+    assert pin_tool.commit_date_via_api("o/r", "sha") == ""
+
+
 def test_git_commit_date_empty_outside_a_repo(tmp_path):
     """No guessed anchor when git cannot answer."""
     outside = tmp_path / "not_tracked.json"
@@ -123,19 +174,78 @@ def test_already_resolved_check_is_skipped():
     assert resolutions == {}
 
 
+BOT = {"login": resolve_tool.TRUSTED_LOGIN}
+
+
 def test_stale_pin_never_selected_over_current_head():
     old_payload = pin_tool.build_payload("1", "b" * 40, "human:x",
                                          {"checks": {"q": {"conclusion": "success", "p": 0.5}}})
     new_payload = pin_tool.build_payload("1", "a" * 40, "human:x",
                                          {"checks": {"q": {"conclusion": "success", "p": 0.9}}})
     comments = [
-        {"body": pin_tool.render_pin_comment(old_payload), "created_at": "2026-01-01"},
-        {"body": pin_tool.render_pin_comment(new_payload), "created_at": "2026-01-02"},
+        {"body": pin_tool.render_pin_comment(old_payload), "created_at": "2026-01-01", "user": BOT},
+        {"body": pin_tool.render_pin_comment(new_payload), "created_at": "2026-01-02", "user": BOT},
     ]
     selected = resolve_tool.find_latest_pin(comments, "a" * 40)
     assert selected is not None
     assert selected["checks"]["q"]["p"] == 0.9
     assert resolve_tool.find_latest_pin(comments, "c" * 40) is None
+
+
+def test_untrusted_commenter_cannot_forge_a_pin():
+    payload = pin_tool.build_payload("1", "a" * 40, "human:x",
+                                     {"checks": {"q": {"conclusion": "success", "p": 0.99}}})
+    forged = [{"body": pin_tool.render_pin_comment(payload), "created_at": "2026-01-01",
+               "user": {"login": "some-collaborator"}}]
+    assert resolve_tool.find_latest_pin(forged, "a" * 40) is None
+
+
+def test_untrusted_commenter_cannot_suppress_a_resolution():
+    """An attacker cannot pre-empt a real check with a forged 'already resolved'."""
+    resolve_comment = resolve_tool.render_resolve_comment(
+        "1", "a" * 40, {"q": {"predicted_conclusion": "success",
+                              "actual_conclusion": "success", "outcome": "YES", "source": "u"}})
+    forged = [{"body": resolve_comment, "user": {"login": "some-collaborator"}}]
+    assert resolve_tool.already_resolved_checks(forged, "a" * 40) == set()
+    trusted = [{"body": resolve_comment, "user": BOT}]
+    assert resolve_tool.already_resolved_checks(trusted, "a" * 40) == {"q"}
+
+
+def test_duplicate_check_runs_prefer_highest_id():
+    """A rerun's newer completed run wins over a stale completed duplicate,
+    regardless of which order the API happens to return them in."""
+    pin = {"head_sha": "a" * 40, "checks": {"x": {"conclusion": "success", "p": 0.7}}}
+    runs = [
+        {"name": "x", "status": "completed", "conclusion": "failure", "html_url": "old", "id": 1},
+        {"name": "x", "status": "completed", "conclusion": "success", "html_url": "new", "id": 2},
+    ]
+    resolutions = resolve_tool.compute_resolutions(pin, runs)
+    assert resolutions["x"]["outcome"] == "YES"
+    assert resolutions["x"]["source"] == "new"
+
+    # Order reversed: the higher id still wins, not "last one in the list".
+    resolutions_reversed = resolve_tool.compute_resolutions(pin, list(reversed(runs)))
+    assert resolutions_reversed["x"]["source"] == "new"
+
+
+def test_gh_json_paginated_flattens_wrapped_pages():
+    """Simulates gh api --paginate --slurp output shape without a network call."""
+    import ci_predict_resolve_v1_0 as rt
+
+    class FakeCompleted:
+        returncode = 0
+        stdout = json.dumps([
+            {"check_runs": [{"name": "a"}]},
+            {"check_runs": [{"name": "b"}]},
+        ])
+
+    orig = rt.subprocess.run
+    rt.subprocess.run = lambda *a, **k: FakeCompleted()
+    try:
+        items = rt.gh_json_paginated("fake/path", key="check_runs")
+    finally:
+        rt.subprocess.run = orig
+    assert [i["name"] for i in items] == ["a", "b"]
 
 
 def test_extract_payload_ignores_wrong_marker():
@@ -172,6 +282,66 @@ def test_build_events_skips_existing_tokens():
     events = consolidate_tool.build_events(pin, resolutions, existing_ids={token_id},
                                            pushed_at_date="2026-09-12")
     assert events == []
+
+
+def test_build_events_refuses_empty_anchor():
+    """An unanchored prediction never enters the ledger, not even as PRACTICE."""
+    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
+           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    resolutions = {"x": {"outcome": "YES", "source": "u"}}
+    events = consolidate_tool.build_events(pin, resolutions, existing_ids=set(),
+                                           pushed_at_date="")
+    assert events == []
+
+
+def test_token_id_for_is_injective_across_slug_collisions():
+    """Names that slug to the same string must not produce the same token id."""
+    a = consolidate_tool.token_id_for("a" * 40, "a b")
+    b = consolidate_tool.token_id_for("a" * 40, "a-b")
+    assert a != b
+    punct1 = consolidate_tool.token_id_for("a" * 40, "!!!")
+    punct2 = consolidate_tool.token_id_for("a" * 40, "???")
+    assert punct1 != punct2
+
+
+def test_collect_trusted_pins_ignores_untrusted_commenters():
+    forged_body = (
+        f"{resolve_tool.PIN_MARKER}\n"
+        '```json\n{"head_sha": "' + "a" * 40 + '", "checks": {}}\n```'
+    )
+    comments = [{"body": forged_body, "user": {"login": "some-collaborator"},
+                "created_at": "2026-01-01"}]
+    assert consolidate_tool.collect_trusted_pins(comments) == {}
+
+
+def test_collect_trusted_pins_keeps_latest_per_head_sha():
+    old = pin_tool.render_pin_comment(pin_tool.build_payload(
+        "1", "a" * 40, "Claude Code", {"checks": {"x": {"conclusion": "success", "p": 0.5}}}))
+    new = pin_tool.render_pin_comment(pin_tool.build_payload(
+        "1", "a" * 40, "Claude Code", {"checks": {"x": {"conclusion": "success", "p": 0.9}}}))
+    bot = {"login": resolve_tool.TRUSTED_LOGIN}
+    comments = [{"body": old, "user": bot, "created_at": "2026-01-01"},
+                {"body": new, "user": bot, "created_at": "2026-01-02"}]
+    pins = consolidate_tool.collect_trusted_pins(comments)
+    assert pins["a" * 40]["checks"]["x"]["p"] == 0.9
+
+
+def test_load_ledger_state_refuses_a_corrupt_ledger(tmp_path):
+    ledger = tmp_path / "corrupt.jsonl"
+    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
+           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    events = consolidate_tool.build_events(
+        pin, {"x": {"outcome": "YES", "source": "u"}}, set(), "2026-09-12"
+    )
+    engine.append(str(ledger), events, "0" * 64)
+    rows = engine.read(str(ledger))
+    rows[0]["hash"] = "0" * 64  # tamper
+    ledger.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+    try:
+        consolidate_tool.load_ledger_state(ledger)
+        raise AssertionError("expected LedgerCorrupt")
+    except consolidate_tool.LedgerCorrupt:
+        pass
 
 
 def test_build_events_refuses_bad_probability():

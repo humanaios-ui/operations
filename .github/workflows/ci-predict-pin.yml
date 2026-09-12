@@ -1,9 +1,15 @@
 # ci-predict-pin — the PIN half of execution-grounded calibration (Stage 2).
 #
-# When a PR carries ci_predictions/pr.json, this posts a marked comment recording
-# the declared per-check predictions before any of those checks' conclusions can
-# be known — the anchor is the git commit that introduced the file, which this
-# fires immediately after. See tools/ci_predict_pin_v1_0.py for the full design.
+# On every push to a PR, posts a marked comment recording that push's declared
+# per-check predictions (ci_predictions/pr.json at that exact commit), before
+# any of those checks' conclusions can be known. The anchor is the commit
+# itself, fetched via the API. See tools/ci_predict_pin_v1_0.py for the full
+# design, including why this never checks out PR-branch content as code.
+#
+# No `paths:` filter: a synchronize push that leaves the declaration file
+# untouched still needs a pin for its own head SHA (an unchanged declaration
+# still applies to the new commit), so every push is checked; the script's
+# own "no declaration at this ref" case is a clean no-op, not a failure.
 #
 # Read-only against GitHub except the one comment it posts. Standard GITHUB_TOKEN.
 name: ci-predict-pin
@@ -11,8 +17,6 @@ name: ci-predict-pin
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - "ci_predictions/pr.json"
 
 permissions:
   contents: read
@@ -22,9 +26,14 @@ jobs:
   pin:
     runs-on: ubuntu-latest
     steps:
+      # Trusted script only: checked out from main, never the PR head. The
+      # PR's declaration file is read read-only through the contents API
+      # inside ci_predict_pin_v1_0.py, never executed as code — see that
+      # file's "WHY THIS NEVER CHECKS OUT THE PR BRANCH" for why this matters
+      # given this job holds pull-requests: write.
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # need history for `git log` on the declaration file
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"

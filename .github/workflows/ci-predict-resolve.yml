@@ -23,6 +23,7 @@ on:
 
 permissions:
   contents: read
+  checks: read
   pull-requests: write
 
 jobs:
@@ -50,19 +51,23 @@ jobs:
 
           dispatch_pr = os.environ.get("DISPATCH_PR", "")
           if dispatch_pr:
-              pr_numbers = [dispatch_pr]
+              # No check_suite event to read a specific commit from; the tool
+              # falls back to the PR's current head.
+              targets = [(dispatch_pr, "")]
           else:
               with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as handle:
                   event = json.load(handle)
-              pr_numbers = [
-                  str(pr["number"])
-                  for pr in (event.get("check_suite") or {}).get("pull_requests") or []
-              ]
+              suite = event.get("check_suite") or {}
+              # Resolve against the exact commit this suite completed for, not
+              # whatever the PR's head happens to be by the time this runs —
+              # those can differ if the PR was pushed to again in between.
+              sha = suite.get("head_sha", "")
+              targets = [(str(pr["number"]), sha) for pr in suite.get("pull_requests") or []]
 
-          for pr in pr_numbers:
-              subprocess.run(
-                  ["python3", "tools/ci_predict_resolve_v1_0.py", "resolve",
-                   "--repo", os.environ["REPO"], "--pr", pr],
-                  check=False,
-              )
+          for pr_number, sha in targets:
+              cmd = ["python3", "tools/ci_predict_resolve_v1_0.py", "resolve",
+                     "--repo", os.environ["REPO"], "--pr", pr_number]
+              if sha:
+                  cmd += ["--sha", sha]
+              subprocess.run(cmd, check=False)
           PYEOF

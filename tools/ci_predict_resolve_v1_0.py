@@ -46,12 +46,35 @@ PIN_MARKER = "<!-- ci-predict:pin -->"
 RESOLVE_MARKER = "<!-- ci-predict:resolve -->"
 _JSON_BLOCK = re.compile(r"```json\s*(.*?)\s*```", re.DOTALL)
 
+# Comments posted with the default GITHUB_TOKEN via `gh pr comment` are authored
+# by this identity. Anyone with comment access on the PR who is not this bot
+# cannot manufacture a pin or resolve payload the tools below will read.
+#
+# TRUST_NOTE (the residual gap, stated plainly): every workflow in this repo
+# using the default GITHUB_TOKEN posts as the same login, so this filters out
+# ordinary commenters, not a second workflow file that also authenticates as
+# github-actions[bot]. Closing that residual would need a signed payload or a
+# dedicated bot account; it is not attempted here because reaching it requires
+# repo write access, which is a far larger compromise than this ledger.
+# ci_predict_consolidate_v1_0.py additionally never trusts a resolve comment's
+# embedded outcome — it re-derives resolutions from a fresh check-runs fetch,
+# so this filter's remaining job is authenticating the PIN payload only: what
+# was predicted, which cannot be independently re-derived from anywhere else.
+TRUSTED_LOGIN = "github-actions[bot]"
+
+
+def is_trusted(comment: dict) -> bool:
+    """True only for comments authored by this workflow's own bot identity."""
+    return ((comment.get("user") or {}).get("login") or "") == TRUSTED_LOGIN
+
 
 def extract_payload(comment_body: str, marker: str) -> Optional[dict]:
     """Pull the embedded JSON block from a marked comment. None if absent/malformed.
 
     Unmarked JSON fences (e.g. a SMAG row on the same PR) are ignored: the marker
-    is checked first, so this never cross-parses another tool's comment.
+    is checked first, so this never cross-parses another tool's comment. Callers
+    must additionally check `is_trusted()` on the comment — this function parses
+    structure, not provenance.
     """
     if marker not in (comment_body or ""):
         return None
@@ -65,13 +88,16 @@ def extract_payload(comment_body: str, marker: str) -> Optional[dict]:
 
 
 def find_latest_pin(comments: List[dict], head_sha: str) -> Optional[dict]:
-    """The most recent pin comment for this exact head SHA, or None.
+    """The most recent, trusted pin comment for this exact head SHA, or None.
 
     Keyed on head_sha, not just presence, so a stale pin from a prior push on the
-    same PR can never resolve against a different commit's checks.
+    same PR can never resolve against a different commit's checks. An untrusted
+    commenter cannot manufacture a pin: only TRUSTED_LOGIN's comments are read.
     """
     candidates = []
     for comment in comments:
+        if not is_trusted(comment):
+            continue
         payload = extract_payload(comment.get("body", ""), PIN_MARKER)
         if payload and payload.get("head_sha") == head_sha:
             candidates.append((comment.get("created_at", ""), payload))
@@ -82,9 +108,15 @@ def find_latest_pin(comments: List[dict], head_sha: str) -> Optional[dict]:
 
 
 def already_resolved_checks(comments: List[dict], head_sha: str) -> set:
-    """Check names already resolved for this SHA, so a rerun does not duplicate."""
+    """Check names already resolved for this SHA, so a rerun does not duplicate.
+
+    Trusted-only for the same reason as find_latest_pin: an untrusted forged
+    resolve comment must not be able to suppress a real resolution.
+    """
     resolved = set()
     for comment in comments:
+        if not is_trusted(comment):
+            continue
         payload = extract_payload(comment.get("body", ""), RESOLVE_MARKER)
         if payload and payload.get("head_sha") == head_sha:
             resolved.update(payload.get("resolutions", {}).keys())
@@ -99,12 +131,20 @@ def compute_resolutions(pin_payload: dict, check_runs: List[dict],
     resolved. A check with no matching check-run yet, or still running, is
     omitted — not recorded as a miss. Silence here means "ask again later," never
     "predicted correctly."
+
+    Among duplicate check-runs sharing a name (a rerun), the one with the
+    highest `id` wins — check-run ids are monotonically increasing, so this is
+    the most recent run, never a stale completed run masking a fresher one.
+    Only genuinely completed runs are considered at all.
     """
     already_done = already_done or set()
     by_name: Dict[str, dict] = {}
     for run in check_runs:
         name = run.get("name")
-        if name and (name not in by_name or run.get("status") == "completed"):
+        if not name or run.get("status") != "completed":
+            continue
+        existing = by_name.get(name)
+        if existing is None or run.get("id", 0) > existing.get("id", 0):
             by_name[name] = run
 
     resolutions: Dict[str, dict] = {}
@@ -112,7 +152,7 @@ def compute_resolutions(pin_payload: dict, check_runs: List[dict],
         if check_name in already_done:
             continue
         run = by_name.get(check_name)
-        if run is None or run.get("status") != "completed":
+        if run is None:
             continue
         actual = run.get("conclusion")
         resolutions[check_name] = {
@@ -156,22 +196,32 @@ def gh_json(path: str):
         return None
 
 
-def gh_json_paginated(path: str, key: str) -> List[dict]:
-    """Fetch a paginated GitHub list endpoint via gh --paginate."""
-    proc = subprocess.run(["gh", "api", "--paginate", path],
+def gh_json_paginated(path: str, key: Optional[str] = None) -> List[dict]:
+    """Fetch every page of a paginated GitHub list endpoint via gh.
+
+    `--slurp` makes gh emit one JSON array of pages instead of one bare object
+    per line; without it, a page spanning multiple lines (any wrapped object
+    response, and even a plain array pretty-printed across lines) is silently
+    truncated to whatever the naive line-split happens to parse. Mirrors
+    smag_consolidate_v1_0.fetch_comments's proven pattern.
+
+    `key` names the array field inside each page's object (e.g. "check_runs");
+    omit it for an endpoint whose page IS the array (e.g. issue comments).
+    """
+    proc = subprocess.run(["gh", "api", "--paginate", "--slurp", path],
                           capture_output=True, text=True, timeout=60)
     if proc.returncode != 0:
         return []
+    try:
+        pages = json.loads(proc.stdout) or []
+    except json.JSONDecodeError:
+        return []
     items: List[dict] = []
-    for line in proc.stdout.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            page = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        items.extend(page.get(key, []) if isinstance(page, dict) else page)
+    for page in pages:
+        if key is not None and isinstance(page, dict):
+            items.extend(page.get(key, []))
+        elif isinstance(page, list):
+            items.extend(page)
     return items
 
 
@@ -185,16 +235,26 @@ def post_comment(repo: str, pr_number: str, body: str) -> int:
     return proc.returncode
 
 
-def run(repo: str, pr_number: str) -> int:
-    pr = gh_json(f"repos/{repo}/pulls/{pr_number}")
-    if pr is None:
-        print(f"::warning::could not fetch PR {pr_number}; skipping resolve",
-              file=sys.stderr)
-        return 0
-    head_sha = (pr.get("head") or {}).get("sha", "")
-    comments = gh_json_paginated(f"repos/{repo}/issues/{pr_number}/comments", "")
-    if not comments:
-        comments = gh_json(f"repos/{repo}/issues/{pr_number}/comments") or []
+def run(repo: str, pr_number: str, sha: str = "") -> int:
+    """Resolve predictions for `sha` (a specific commit), falling back to the
+    PR's current head only when no specific commit is given.
+
+    A `check_suite` event names the exact commit whose checks just completed
+    (`check_suite.head_sha`); using that instead of re-fetching "the PR's
+    current head" matters whenever the PR has been pushed to again since —
+    otherwise this would resolve the wrong commit's predictions against the
+    new head's check-runs, silently mismatching every check.
+    """
+    if sha:
+        head_sha = sha
+    else:
+        pr = gh_json(f"repos/{repo}/pulls/{pr_number}")
+        if pr is None:
+            print(f"::warning::could not fetch PR {pr_number}; skipping resolve",
+                  file=sys.stderr)
+            return 0
+        head_sha = (pr.get("head") or {}).get("sha", "")
+    comments = gh_json_paginated(f"repos/{repo}/issues/{pr_number}/comments")
 
     pin_payload = find_latest_pin(comments, head_sha)
     if pin_payload is None:
@@ -202,8 +262,9 @@ def run(repo: str, pr_number: str) -> int:
         return 0
 
     already_done = already_resolved_checks(comments, head_sha)
-    checks_resp = gh_json(f"repos/{repo}/commits/{head_sha}/check-runs")
-    check_runs = (checks_resp or {}).get("check_runs", []) if checks_resp else []
+    check_runs = gh_json_paginated(
+        f"repos/{repo}/commits/{head_sha}/check-runs", key="check_runs"
+    )
     resolutions = compute_resolutions(pin_payload, check_runs, already_done)
 
     if not resolutions:
@@ -259,17 +320,34 @@ def run_smoke_test() -> bool:
     # Two pushes to the same PR: an earlier pin for a since-superseded commit must
     # never be selected once a pin for the current head SHA exists.
     from ci_predict_pin_v1_0 import build_payload, render_pin_comment
+    bot = {"login": TRUSTED_LOGIN}
     stale_pin = render_pin_comment(build_payload("42", "b" * 40, "Claude Code", {
         "checks": {"quality": {"conclusion": "success", "p": 0.5}}}))
     current_pin = render_pin_comment(build_payload("42", "a" * 40, "Claude Code", {
         "checks": {"quality": {"conclusion": "success", "p": 0.9}}}))
     latest = find_latest_pin(
-        [{"body": stale_pin, "created_at": "2026-01-01"},
-         {"body": current_pin, "created_at": "2026-01-02"}],
+        [{"body": stale_pin, "created_at": "2026-01-01", "user": bot},
+         {"body": current_pin, "created_at": "2026-01-02", "user": bot}],
         "a" * 40,
     )
     ok = ok and latest is not None and latest["head_sha"] == "a" * 40
     ok = ok and latest["checks"]["quality"]["p"] == 0.9  # the current push's stated p, not the stale one's
+
+    # An untrusted commenter's identical-looking pin is never selected, even
+    # for the exact current head SHA and even with the latest timestamp.
+    forged = find_latest_pin(
+        [{"body": current_pin, "created_at": "2026-01-02", "user": {"login": "some-user"}}],
+        "a" * 40,
+    )
+    ok = ok and forged is None
+
+    # The same trust boundary applies to already_resolved_checks.
+    resolve_comment = render_resolve_comment("42", "a" * 40, resolutions)
+    trusted_seen = already_resolved_checks(
+        [{"body": resolve_comment, "user": bot}], "a" * 40)
+    untrusted_seen = already_resolved_checks(
+        [{"body": resolve_comment, "user": {"login": "some-user"}}], "a" * 40)
+    ok = ok and "quality" in trusted_seen and untrusted_seen == set()
 
     print("✓ Smoke test PASSED" if ok else "✗ Smoke test FAILED")
     return ok
@@ -283,6 +361,8 @@ def main() -> int:
     resolve = sub.add_parser("resolve")
     resolve.add_argument("--repo", required=True)
     resolve.add_argument("--pr", required=True)
+    resolve.add_argument("--sha", default="",
+                         help="resolve this exact commit, not the PR's current head")
 
     args = parser.parse_args()
     if args.smoke_test:
@@ -290,7 +370,7 @@ def main() -> int:
     if args.command != "resolve":
         parser.print_help()
         return 2
-    return run(args.repo, args.pr)
+    return run(args.repo, args.pr, args.sha)
 
 
 if __name__ == "__main__":
