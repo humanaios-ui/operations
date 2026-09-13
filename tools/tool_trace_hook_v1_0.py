@@ -206,6 +206,11 @@ def _tail_state(ledger_path: Path):
         stored_hash = row["hash"]
     except (ValueError, KeyError, TypeError) as exc:
         return None, None, f"existing ledger tail malformed ({exc}) — not extending it"
+    if not isinstance(seq, int) or isinstance(seq, bool):
+        return None, None, (
+            f"existing ledger tail malformed (seq is {type(seq).__name__}, not int)"
+            " — not extending it"
+        )
     body = {k: v for k, v in row.items() if k != "hash"}
     if engine.sha(engine.canon(body)) != stored_hash:
         return None, None, "existing ledger tail corrupted (hash mismatch) — not extending it"

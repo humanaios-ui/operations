@@ -199,6 +199,24 @@ def test_main_dispatches_session_start(monkeypatch, tmp_path):
     assert ledger.stat().st_size == 0
 
 
+def test_non_integer_tail_seq_is_reported_without_raising(tmp_path):
+    """A correctly-hashed tail row with a non-int "seq" (a hand-forged
+    ledger, since the hook itself always writes an int) must be refused,
+    not crash append_tool_call() with seq + 1 on a str/float/bool
+    (Copilot review finding on PR #302)."""
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.ledger_filename("s1")
+    ledger.parent.mkdir(parents=True)
+    row = {"seq": "1", "type": "TOOL_CALL", "tool_name": "Read", "prev_hash": "0" * 64}
+    row["hash"] = engine.sha(engine.canon(row))
+    with open(ledger, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
+
+    reason = hook.append_tool_call(ledger, "s1", "Bash", {}, "2026-09-13T00:00:00+00:00")
+    assert reason is not None
+    assert "not extending" in reason
+    assert len(engine.read(str(ledger))) == 1
+
+
 def test_non_dict_tool_input_does_not_crash(tmp_path):
     reason = hook.run_hook(
         {"hook_event_name": "PostToolUse", "session_id": "s1",
