@@ -72,10 +72,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import contextlib
+import fcntl
 import hashlib
 import re
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -89,6 +92,27 @@ DEFAULT_LEDGER = "ledgers/LIFECYCLE_PREDICT_LEDGER.jsonl"
 
 class LedgerCorrupt(RuntimeError):
     """Raised when the existing ledger fails verification. Never appended to."""
+
+
+@contextlib.contextmanager
+def _locked(ledger_path: Path):
+    """Serializes the read-build-append critical section against a concurrent
+    pin/resolve on the same ledger file. Without this, two invocations can
+    each read the same next_seq/last_hash and append events that collide,
+    corrupting the hash chain (only caught after the fact by verify())."""
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = ledger_path.with_name(ledger_path.name + ".lock")
+    with open(lock_path, "w", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+
+
+def _minutes_between(start_iso: str, end_iso: str) -> float:
+    """Elapsed minutes between two engine.now()-style ISO 8601 timestamps."""
+    return (datetime.fromisoformat(end_iso) - datetime.fromisoformat(start_iso)).total_seconds() / 60.0
 
 
 def slugify(text: str) -> str:
@@ -179,7 +203,19 @@ def build_resolve_events(ledger_path: Path, episode_id: str, observed: Dict[str,
     A predicted field with no corresponding observed value is left alone —
     not scored, not marked missing — so a partial observation never fabricates
     an outcome for a field nobody actually checked.
+
+    The claim is time-bound ("will be X within N minutes"): an observation
+    taken after the pin's window has elapsed cannot confirm the claim, even
+    if the value now matches, so it scores NO rather than YES. This is the
+    same reasoning ci_predict applies to a stale head_sha — an outcome
+    observed outside the window the prediction was actually about is not
+    evidence the prediction held.
     """
+    if not source.strip():
+        raise ValueError("--source must not be blank — it is the outcome's provenance")
+    if not ledger_path.exists():
+        raise ValueError(f"no ledger at {ledger_path} — nothing to resolve against")
+
     rows = engine.read(str(ledger_path))
     already_resolved = {r["token_id"] for r in rows if r.get("type") == "RESOLVE"}
     pins_for_episode = [
@@ -198,11 +234,14 @@ def build_resolve_events(ledger_path: Path, episode_id: str, observed: Dict[str,
         if field not in observed:
             continue
         actual = observed[field]
-        outcome = "YES" if actual == pin["predicted_value"] else "NO"
+        elapsed_minutes = _minutes_between(pin["at"], resolved_at)
+        within_window = elapsed_minutes <= pin["window_minutes"]
+        outcome = "YES" if (actual == pin["predicted_value"] and within_window) else "NO"
         events.append({
             "seq": seq, "type": "RESOLVE", "at": resolved_at,
             "by": "lifecycle-predict",
             "token_id": token_id, "outcome": outcome, "source": source,
+            "elapsed_minutes": round(elapsed_minutes, 3), "within_window": within_window,
         })
         seq += 1
     return events
@@ -210,31 +249,43 @@ def build_resolve_events(ledger_path: Path, episode_id: str, observed: Dict[str,
 
 def cmd_pin(args: argparse.Namespace) -> int:
     ledger_path = Path(args.ledger)
-    try:
-        existing_ids, next_seq = load_ledger_state(ledger_path)
-    except LedgerCorrupt as exc:
-        print(f"FAIL: refusing to pin — {exc}", file=sys.stderr)
-        return 1
+
+    if args.window_minutes <= 0:
+        print(f"FAIL: --window-minutes must be positive, got {args.window_minutes}",
+              file=sys.stderr)
+        return 2
 
     expected: Dict[str, dict] = {}
-    for spec in args.expect:
-        field, rest = spec.split("=", 1)
-        value, p = rest.rsplit(":", 1)
-        expected[field] = {"value": value, "p": float(p)}
+    try:
+        for spec in args.expect:
+            field, rest = spec.split("=", 1)
+            value, p = rest.rsplit(":", 1)
+            expected[field] = {"value": value, "p": float(p)}
+    except ValueError:
+        print(f"FAIL: --expect must be FIELD=VALUE:P, got {spec!r}", file=sys.stderr)
+        return 2
     if not expected:
         print("FAIL: at least one --expect is required", file=sys.stderr)
         return 2
 
-    episode_id = new_episode_id(args.action, args.target)
-    events = build_pin_events(
-        episode_id, args.action, args.target, args.predictor, expected,
-        args.window_minutes, engine.now(), next_seq,
-    )
-    engine.append(str(ledger_path), events, engine.last_hash(str(ledger_path)))
-    err = engine.verify(engine.read(str(ledger_path)))
-    if err:
-        print(f"FAIL post-pin verify: {err}", file=sys.stderr)
-        return 1
+    with _locked(ledger_path):
+        try:
+            _, next_seq = load_ledger_state(ledger_path)
+        except LedgerCorrupt as exc:
+            print(f"FAIL: refusing to pin — {exc}", file=sys.stderr)
+            return 1
+
+        episode_id = new_episode_id(args.action, args.target)
+        events = build_pin_events(
+            episode_id, args.action, args.target, args.predictor, expected,
+            args.window_minutes, engine.now(), next_seq,
+        )
+        engine.append(str(ledger_path), events, engine.last_hash(str(ledger_path)))
+        err = engine.verify(engine.read(str(ledger_path)))
+        if err:
+            print(f"FAIL post-pin verify: {err}", file=sys.stderr)
+            return 1
+
     print(f"episode {episode_id}")
     for field, spec in expected.items():
         print(f"  {field} -> {spec['value']!r} (p={spec['p']})")
@@ -243,34 +294,41 @@ def cmd_pin(args: argparse.Namespace) -> int:
 
 def cmd_resolve(args: argparse.Namespace) -> int:
     ledger_path = Path(args.ledger)
-    try:
-        _, next_seq = load_ledger_state(ledger_path)
-    except LedgerCorrupt as exc:
-        print(f"FAIL: refusing to resolve — {exc}", file=sys.stderr)
-        return 1
 
     observed = {}
-    for spec in args.observe:
-        field, value = spec.split("=", 1)
-        observed[field] = value
-
     try:
-        events = build_resolve_events(
-            ledger_path, args.episode, observed, args.source, engine.now(), next_seq
-        )
-    except ValueError as exc:
-        print(f"FAIL: {exc}", file=sys.stderr)
+        for spec in args.observe:
+            field, value = spec.split("=", 1)
+            observed[field] = value
+    except ValueError:
+        print(f"FAIL: --observe must be FIELD=VALUE, got {spec!r}", file=sys.stderr)
         return 2
 
-    if not events:
-        print("nothing to resolve (already resolved, or no matching observed field)")
-        return 0
+    with _locked(ledger_path):
+        try:
+            _, next_seq = load_ledger_state(ledger_path)
+        except LedgerCorrupt as exc:
+            print(f"FAIL: refusing to resolve — {exc}", file=sys.stderr)
+            return 1
 
-    engine.append(str(ledger_path), events, engine.last_hash(str(ledger_path)))
-    err = engine.verify(engine.read(str(ledger_path)))
-    if err:
-        print(f"FAIL post-resolve verify: {err}", file=sys.stderr)
-        return 1
+        try:
+            events = build_resolve_events(
+                ledger_path, args.episode, observed, args.source, engine.now(), next_seq
+            )
+        except ValueError as exc:
+            print(f"FAIL: {exc}", file=sys.stderr)
+            return 2
+
+        if not events:
+            print("nothing to resolve (already resolved, or no matching observed field)")
+            return 0
+
+        engine.append(str(ledger_path), events, engine.last_hash(str(ledger_path)))
+        err = engine.verify(engine.read(str(ledger_path)))
+        if err:
+            print(f"FAIL post-resolve verify: {err}", file=sys.stderr)
+            return 1
+
     for event in events:
         print(f"  {event['token_id']} -> {event['outcome']}")
     return 0
@@ -345,6 +403,42 @@ def run_smoke_test() -> bool:
         try:
             build_resolve_events(ledger, "LC-does-not-exist", {"x": "y"}, "s",
                                  "2026-09-13T00:06:00+00:00", seq2)
+            ok = False
+        except ValueError:
+            pass
+
+        # A value that arrives correct but after the pin's own window has
+        # elapsed does not confirm a time-bound claim — it must score NO,
+        # not YES, even though the observed value matches exactly.
+        deadline_episode = new_episode_id("restart_service", "svc-late")
+        deadline_pin = build_pin_events(
+            deadline_episode, "restart_service", "svc-late", "Claude Code",
+            {"http_health": {"value": "200", "p": 0.9}},
+            window_minutes=5, pinned_at="2026-09-13T00:00:00+00:00", start_seq=1,
+        )
+        deadline_ledger = Path(workdir) / "deadline.jsonl"
+        engine.append(str(deadline_ledger), deadline_pin, "0" * 64)
+        late = build_resolve_events(
+            deadline_ledger, deadline_episode, {"http_health": "200"}, "manual check",
+            "2026-09-13T00:11:00+00:00", 3,  # 11 minutes later, window was 5
+        )
+        ok = ok and len(late) == 1 and late[0]["outcome"] == "NO"
+        ok = ok and late[0]["within_window"] is False
+
+        # A blank source is refused — it is the outcome's provenance.
+        try:
+            build_resolve_events(ledger, episode_id, {"http_health": "200"}, "   ",
+                                 "2026-09-13T00:06:00+00:00", seq2)
+            ok = False
+        except ValueError:
+            pass
+
+        # Resolving against a ledger that does not exist is refused, not an
+        # uncaught FileNotFoundError.
+        try:
+            build_resolve_events(Path(workdir) / "never-created.jsonl", "LC-x",
+                                 {"x": "y"}, "manual check",
+                                 "2026-09-13T00:06:00+00:00", 1)
             ok = False
         except ValueError:
             pass

@@ -205,10 +205,137 @@ def test_corrupted_ledger_refuses_further_writes(tmp_path):
         pass
 
 
-def test_missing_ledger_starts_fresh():
-    ids, next_seq = lc.load_ledger_state(Path("/tmp/does-not-exist-lc-ledger.jsonl"))
+def test_missing_ledger_starts_fresh(tmp_path):
+    ids, next_seq = lc.load_ledger_state(tmp_path / "does-not-exist-lc-ledger.jsonl")
     assert ids == set()
     assert next_seq == 1
+
+
+def test_late_observation_scores_no_even_if_value_matches(tmp_path):
+    """A value that arrives correct but after the window elapsed cannot
+    confirm a time-bound claim: 'within N minutes' failed on time, however
+    the value later reads."""
+    ledger = tmp_path / "ledger.jsonl"
+    episode_id = lc.new_episode_id("restart_service", "svc-x")
+    pin_events = lc.build_pin_events(
+        episode_id, "restart_service", "svc-x", "Claude Code",
+        {"http_health": {"value": "200", "p": 0.9}},
+        window_minutes=5, pinned_at="2026-09-13T00:00:00+00:00", start_seq=1,
+    )
+    engine.append(str(ledger), pin_events, "0" * 64)
+
+    late = lc.build_resolve_events(
+        ledger, episode_id, {"http_health": "200"}, "manual check",
+        "2026-09-13T00:11:00+00:00", 3,
+    )
+    assert len(late) == 1
+    assert late[0]["outcome"] == "NO"
+    assert late[0]["within_window"] is False
+
+
+def test_blank_source_refused(tmp_path):
+    ledger = tmp_path / "ledger.jsonl"
+    episode_id = lc.new_episode_id("restart_service", "svc-x")
+    pin_events = lc.build_pin_events(
+        episode_id, "restart_service", "svc-x", "Claude Code",
+        {"http_health": {"value": "200", "p": 0.9}},
+        window_minutes=5, pinned_at="2026-09-13T00:00:00+00:00", start_seq=1,
+    )
+    engine.append(str(ledger), pin_events, "0" * 64)
+    try:
+        lc.build_resolve_events(ledger, episode_id, {"http_health": "200"}, "   ",
+                                "2026-09-13T00:03:00+00:00", 3)
+        raise AssertionError("expected ValueError")
+    except ValueError:
+        pass
+
+
+def test_resolve_against_missing_ledger_refused(tmp_path):
+    try:
+        lc.build_resolve_events(tmp_path / "never-created.jsonl", "LC-x", {"x": "y"},
+                                "manual check", "2026-09-13T00:03:00+00:00", 1)
+        raise AssertionError("expected ValueError")
+    except ValueError:
+        pass
+
+
+def test_cli_negative_window_refused(tmp_path):
+    ledger = tmp_path / "cli.jsonl"
+    parser = lc.build_parser()
+    args = parser.parse_args([
+        "pin", "--ledger", str(ledger),
+        "--action", "restart_service", "--target", "svc-x",
+        "--predictor", "Claude Code", "--window-minutes", "-5",
+        "--expect", "http_health=200:0.85",
+    ])
+    assert lc.cmd_pin(args) == 2
+
+
+def test_cli_malformed_expect_refused(tmp_path, capsys):
+    ledger = tmp_path / "cli.jsonl"
+    parser = lc.build_parser()
+    args = parser.parse_args([
+        "pin", "--ledger", str(ledger),
+        "--action", "restart_service", "--target", "svc-x",
+        "--predictor", "Claude Code", "--window-minutes", "5",
+        "--expect", "not-a-valid-spec",
+    ])
+    assert lc.cmd_pin(args) == 2
+    assert "FAIL" in capsys.readouterr().err
+
+
+def test_cli_malformed_observe_refused(tmp_path, capsys):
+    ledger = tmp_path / "cli.jsonl"
+    parser = lc.build_parser()
+    args = parser.parse_args([
+        "resolve", "--ledger", str(ledger), "--episode", "LC-x",
+        "--source", "manual check", "--observe", "not-a-valid-spec",
+    ])
+    assert lc.cmd_resolve(args) == 2
+    assert "FAIL" in capsys.readouterr().err
+
+
+def test_cli_resolve_against_missing_ledger_is_controlled(tmp_path, capsys):
+    parser = lc.build_parser()
+    args = parser.parse_args([
+        "resolve", "--ledger", str(tmp_path / "never-created.jsonl"),
+        "--episode", "LC-x", "--source", "manual check", "--observe", "x=y",
+    ])
+    assert lc.cmd_resolve(args) == 2
+    assert "FAIL" in capsys.readouterr().err
+
+
+def test_concurrent_pins_serialize_without_corrupting_chain(tmp_path):
+    """Two pins fired at the same ledger from separate threads must not
+    interleave their read-build-append critical sections: the lock in
+    _locked() is what prevents seq/prev_hash collisions here."""
+    import threading
+
+    ledger = tmp_path / "concurrent.jsonl"
+    parser = lc.build_parser()
+    results = []
+
+    def do_pin(target):
+        args = parser.parse_args([
+            "pin", "--ledger", str(ledger),
+            "--action", "restart_service", "--target", target,
+            "--predictor", "Claude Code", "--window-minutes", "5",
+            "--expect", "http_health=200:0.9",
+        ])
+        results.append(lc.cmd_pin(args))
+
+    threads = [threading.Thread(target=do_pin, args=(f"svc-{i}",)) for i in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert results == [0, 0]
+    rows = engine.read(str(ledger))
+    assert engine.verify(rows) is None
+    assert len(rows) == 4  # 2 pins x (TOKEN, PIN)
+    seqs = [r["seq"] for r in rows]
+    assert seqs == [1, 2, 3, 4]
 
 
 def test_cli_pin_then_resolve_round_trip(tmp_path, capsys):
