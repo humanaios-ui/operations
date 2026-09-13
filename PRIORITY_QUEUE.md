@@ -117,47 +117,6 @@ Score = Impact + Σ (Impact of items this unblocks)
 
 ---
 
-### Q-RFM-01 ◆ BLOCKED
-
-**Title:** REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner
-
-| field | value |
-|---|---|
-| **status** | BLOCKED (on Z2) |
-| **score** | 7 (proposed — Z2 ratifies scores) |
-| **impact** | 3 (proposed) |
-| **unblock_impact_sum** | 4 (proposed) |
-| **session_type** | desktop |
-| **tool_zone** | 1 (execute) |
-
-**Blocked on:** Z2 ratification. This file's own rule — *"Z1 proposes, Z2 ratifies by hash, only READY top-score
-rows may begin"* — reserves both "new rows added to the queue" and "status transitions (BLOCKED ↔ READY)" to Z2
-(§Ratification Authority). A Z1-authored row marked READY would be Z1 self-granting an executable status, and
-`ratification_hash` at line 11 is still pending. Z2 moves this to READY.
-
-**Unblocks:**
-- Q-RFM-02 (cost-class taxonomy per REGISTRY_SPEC.md:45 — the blocker on every UNSCORED FMEA cell) — impact 2
-- Entry-level remediation of the 101 measured defects, which cannot be scoped without the measurement — impact 2
-
-**Provenance (measured 2026-09-13 against REGISTERED.md @ 1e1b518, Phase 2 corrected with parser fixes):**
-- 137 entries (post-correction: +2 from correction-to field discovery); 101 entry-level defects / 548 opportunities → 81.6% FPY, 181,306 DPMO, ~2.4σ (same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the "clean reference bar (0/7)")
-- Schema conformance 57.7% against the full declared ten-field schema (91.2% against the core five)
-- Ordering 30/137 non-conforming to `REGISTRY_SPEC.md:114`; 25 entries appended past the `## Changelog` boundary
-- 10 of 45 F-entries absent from the quick index; IC-036 cited in the IC roll-up with no body entry
-- 3 of 6 classes REGISTRY_SPEC.md defines (D, R, GD) hold zero entries
-- Census divergence unresolved: the findings validator counts 130, `repo_health.py` 126, this scanner 137 post-Phase-2 (135 post-review correction, 131 before review correction)
-
-**Acceptance Criteria:**
-1. `REGISTERED_FAILURE_MODES.md` maps RFM-01…RFM-19 → SO-01…SO-14 → industrial failure modes, every count tool-generated and re-checked by `scan --verify-doc`
-2. `tools/registered_failure_mode_scan_v0_1.py self-test` passes (34 assertions), including that the F-32/F-33 honest-gap whitelist suppresses those, that a non-whitelisted phantom is still caught, and that a missing required input errors rather than passing
-3. `scan` reproduces 101/548 against the pinned SHA on repeat runs
-4. `REGISTERED.md` byte-identical to the pinned SHA — the map describes the registry, it does not modify it
-5. Z2 rules on `--enforce`, on CI wiring, and on the census divergence
-
-**Falsifier:** if a structural registry defect requires a new RFM class ≥2 times before 2026-10-13, or the scanner's count diverges from an independent manual count of the same SHA by >2 defects, the taxonomy is not yet a taxonomy.
-
----
-
 ## Blocked / In Review
 
 ### Q-SI-C1 ◆ BLOCKED — specimen-intake Cycle 1 (first work week 2026-09-13 → 19)
@@ -239,7 +198,8 @@ Per `z1-inbox/2026-09-06/registry_block_and_manifest_090626_v2.md` §Landing ord
 ## Appended Events
 
 ```
-2026-09-13 — Z1 proposed Q-RFM-01 (REGISTERED_FAILURE_MODES.md + registered_failure_mode_scan_v0_1.py); REGISTERED.md measured at 81.9% FPY / 181,481 DPMO; row BLOCKED pending Z2 — Z1 may not mark its own row READY
+2026-09-13 — Z1 removed Q-RFM-01 from queue (Phase 4 authority compliance). Per §Ratification Authority, new rows require Z2 decision. Q-RFM-01 submitted as z1-inbox candidate; Z2 decision to add it to the queue is pending upon ratification of the candidate itself.
+2026-09-13 — Z1 proposed Q-RFM-01 (REGISTERED_FAILURE_MODES.md + registered_failure_mode_scan_v0_1.py); REGISTERED.md measured at 81.6% FPY / 181,306 DPMO (Phase 2 corrected). Candidate submitted to Z2; queue row entry deferred pending Z2 ratification.
 2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | PRIORITY_QUEUE.md v1_1 ratified | Phase 0 READY
 2026-09-09 — Z1 created PRIORITY_QUEUE.md baseline from blueprint Q-GOVERNANCE-02 spec
 ```

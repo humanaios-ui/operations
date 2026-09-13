@@ -30,7 +30,7 @@ This document does that, in three columns:
 
 1. The registry scores **81.6% first-pass yield / 181,306 DPMO / ~2.4σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
 2. Of 19 failure modes, **before this scan 17 had no detector at all**. The dominant failure mode of the registry is not any single defect — it is the absence of instrumentation.
-3. **Four instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports **130** entries; `tools/repo_health.py` reports **126** immune entries; this scanner reported **131** before review, **135** after first correction, and **137** after Phase 2 parser fix (correction-to discovery + F-24 variant regex + ordering violation counting). No instrument in the repo can currently state how many entries `REGISTERED.md` contains. Routed to Z2 as a measurement-system finding — and see *The scanner is subject to the failure mode it measures*, where this scanner's own earlier counts are examples of the four wrong answers.
+3. **Four instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports **130** entries; `tools/repo_health.py` reports **126** immune entries; this scanner reported **131** before review, **135** after first correction, and **137** after Phase 2 parser fix (correction-to discovery + F-24 variant regex + ordering violation counting). No single instrument can be cited as authoritative. Routed to Z2 as a measurement-system finding — its resolution is a Z2 decision about which census should govern RFM-06 scoring and downstream action items.
 4. The value recorded as **Ratification Hash** at `REGISTERED.md:3925` is `e8a501f` — a 7-character git commit SHA, where `CLAUDE.md` Decision Routing step 6 and `NF_LEDGER_SCHEMA_v1.md` both specify `sha256(candidate | by=Night | at=timestamp | decision=ACCEPT)`. A commit SHA proves *when code landed*, not *what was approved*.
 
 ---
@@ -123,7 +123,7 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 
 | ID | Failure mode | Evidence | Occurrence | Detection today |
 |:---|:---|:---|:---|:---|
-| **RFM-18** | **Cost-class undefined** — `REGISTRY_SPEC.md:45` requires IC entries be *"cost-classified by impact"*; only IC-031 carries one; an undefined `TIER 1` scale is used once at IC-038. Without it the registry cannot prioritise its own failures | IC-031, IC-038 | 1 of 43 IC entries cost-classed | 10 |
+| **RFM-18** | **Cost-class undefined** — `REGISTRY_SPEC.md:45` requires IC entries be *"cost-classified by impact"*; only IC-031 carries a ratified cost class (lines 1501, 2029). Without universal classification the registry cannot prioritise its own failures | IC-031 | 1 of 43 IC entries cost-classed | 10 |
 | **RFM-19** | **Silent-tier undefined** — `tools/skills/humanaios-wgs-sweep/SKILL.md:175` references *"three-tier silent failures"* in `SESSION_RITUALS.md` §B.5; the tiers are not defined there | §B.5 | n/a | 10 |
 
 ---
