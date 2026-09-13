@@ -26,7 +26,7 @@ generated: "2026-09-13"
 decision_window_days: 2
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
-counts: {candidates: 15, records: 14}
+counts: {candidates: 16, records: 14}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
@@ -141,6 +141,13 @@ candidates:
     submitted: "2026-09-13"
     status: awaiting_z2
     note: "Answers Q-TOOLCONTROL-01 checklist item 6. Decision A (backlog) and Decision B (owners) are the owner's acts; no date was moved."
+
+  - q_id: Q-RBE-01
+    title: "Resource-based operations v0.1 — units, ledger, census, priced queue"
+    path: "z1-inbox/2026-09-13/Q-RBE-01.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Asks for four acts: a hash on RESOURCE_UNITS.yaml, a RAT-min capacity declaration, two constant molts, and disposition of F-RBE-01/02/03. Every artifact is inert until then; the queue keeps the incumbent formula."
 
 records:
   - path: "z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md"

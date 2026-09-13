@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "generated_at": "2026-09-10T03:23:52.999609",
+  "generated_at": "2026-09-13T15:12:28.926529",
   "nodes": {
     "Q": {
       "id": "Q",
@@ -210,6 +210,39 @@
       "implementation": "stale_sweep.py",
       "tests": 0,
       "phase": "M1-M15 (Phase 3 deployment)"
+    },
+    "RU": {
+      "id": "RU",
+      "name": "Resource Units",
+      "type": "ledger",
+      "status": "LAID",
+      "zone": "Z2",
+      "description": "Canonical unit registry: dimension, kind, sign, conservation, instrument, substitutes, falsifier per unit. No numeraire; cross-dimension conversion only via a measured PRICE event",
+      "implementation": "RESOURCE_UNITS.yaml",
+      "tests": 0,
+      "phase": "Q-RBE-01 (candidate)"
+    },
+    "RL": {
+      "id": "RL",
+      "name": "Resource Ledger",
+      "type": "ledger",
+      "status": "LAID",
+      "zone": "code",
+      "description": "Append-only, hash-chained CLAIM / SPEND / YIELD / CAP / PRICE / WASTE / CLOSE events; yield density per constraint unit",
+      "implementation": "resource_ledger_v0_1.py, ledgers/RESOURCE_LEDGER.jsonl",
+      "tests": 0,
+      "phase": "Q-RBE-01 (candidate)"
+    },
+    "RCEN": {
+      "id": "RCEN",
+      "name": "Resource Census",
+      "type": "process",
+      "status": "OPERATED",
+      "zone": "Z1",
+      "description": "Mechanical count of open obligations, stocks and liabilities against the binding constraint; writes outputs/resource_census.json",
+      "implementation": "resource_census_v0_1.py",
+      "tests": 0,
+      "phase": "Q-RBE-01 (candidate)"
     }
   },
   "edges": [
@@ -520,6 +553,69 @@
       "edge_type": "data_flow",
       "label": "root",
       "description": ""
+    },
+    {
+      "source": "RU",
+      "target": "RL",
+      "edge_type": "data_flow",
+      "label": "registered units; unknown unit refused",
+      "description": ""
+    },
+    {
+      "source": "RU",
+      "target": "RCEN",
+      "edge_type": "data_flow",
+      "label": "demand priors, constraint designation",
+      "description": ""
+    },
+    {
+      "source": "RCEN",
+      "target": "RL",
+      "edge_type": "data_flow",
+      "label": "obligation counts priced in the constraint unit",
+      "description": ""
+    },
+    {
+      "source": "RCEN",
+      "target": "Q",
+      "edge_type": "callout",
+      "label": "constraint backlog / oversubscription",
+      "description": ""
+    },
+    {
+      "source": "RL",
+      "target": "Q",
+      "edge_type": "data_flow",
+      "label": "cost vectors, measured prices, yield density",
+      "description": ""
+    },
+    {
+      "source": "Q",
+      "target": "RL",
+      "edge_type": "data_flow",
+      "label": "CLAIM per work order",
+      "description": ""
+    },
+    {
+      "source": "Z2",
+      "target": "RL",
+      "edge_type": "data_flow",
+      "label": "RAT-min SPEND; capacity declaration (hashed)",
+      "description": ""
+    },
+    {
+      "source": "RL",
+      "target": "MOLT",
+      "edge_type": "data_flow",
+      "label": "density trend vs constraint constants",
+      "description": ""
+    },
+    {
+      "source": "RCEN",
+      "target": "FS",
+      "edge_type": "callout",
+      "label": "F-RBE candidates",
+      "description": ""
     }
   ],
   "validation_status": {
@@ -530,9 +626,9 @@
     "warnings": []
   },
   "zone_distribution": {
-    "Z2": 3,
-    "Z1": 2,
-    "code": 13,
+    "Z2": 4,
+    "Z1": 3,
+    "code": 14,
     "CI": 1
   }
 }
