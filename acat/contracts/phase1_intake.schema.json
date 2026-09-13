@@ -64,7 +64,7 @@
           "description": "Ordered, hash-chain-verified record of tool invocations during the session, produced by tools/tool_trace_reader_v1_0.py from tools/tool_trace_hook_v1_0.py's PostToolUse hook ledger — not authored by the model itself. Null means no trace was captured (no hooks wired, a pre-Stage-5 submission, or a non-Claude-Code substrate); absence must never be silently treated as a clean or compliant record. An empty array means the trace was captured and the session called zero tools.",
           "items": {
             "type": "object",
-            "required": ["seq", "at", "tool_name"],
+            "required": ["seq", "at", "tool_name", "input_digest", "input_keys"],
             "properties": {
               "seq": { "type": "integer" },
               "at": { "type": "string", "format": "date-time" },
