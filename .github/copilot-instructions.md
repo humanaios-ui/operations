@@ -111,8 +111,14 @@ tool" section separately requires of every tool —
   satisfying the actual contract; don't rely on the scanner to catch that gap.
 
 `python3 tools/builder_compliance_scanner_v1.0.py --path <your file>` verifies
-only its own six hard checks — the docstring phrase, `TOOL_NAME`/`TOOL_VERSION`,
-the `HumanAIOS` tag, a smoke test, and the main guard. It does **not** check
+only its own six hard checks, and all six are the same kind of check as the
+smoke-test one above: a regex over the whole source text, not a semantic
+check of real structure. A comment or string literal containing the marker
+text (or `if __name__`) would satisfy the docstring phrase, `TOOL_NAME`/
+`TOOL_VERSION`, the `HumanAIOS` tag, the smoke-test check, or the main-guard
+check without the file actually having a working guard, docstring, or
+smoke test — write the real thing; don't rely on the scanner to catch a file
+that only mentions it. It does **not** check
 `TOOL_CATEGORY`/`TOOL_SESSION`/`TOOL_ZONE` or `--help`/`--input` — a scanner
 pass isn't full compliance with `tools/README.md`'s broader contract, so check
 those by hand. The manifest gate (below) enforces the resulting `category`/
@@ -126,15 +132,16 @@ all — `tools-manifest.yaml`'s own `REQUIRED` fields don't include it, so a
 tool missing it passes every automated gate here while violating the README
 contract; hand-check it too.
 
-A tool that touches `tools/**/*.py` also needs
+A **new** tool file under `tools/**/*.py` also needs
 `python3 tools/behavioral_compliance_gate_v1_0.py --path <your file>` to pass
-(`behavioral-compliance.yml`'s own gate) — an AST-level structural check,
-separate from and in addition to the marker-presence scanner above. Its 100%
-new-file requirement applies only to files your PR *adds*; a *modified*
-existing tool isn't individually gated, only counted into the whole `tools/`
-corpus's ≥70% pass-rate floor (`builder-lint.yml`'s equivalent new-file gate,
-by contrast, covers added *and* modified files — the two workflows don't scope
-identically).
+(`behavioral-compliance.yml`'s own 100%-required new-file gate) — an
+AST-level structural check, separate from and in addition to the
+marker-presence scanner above. That 100% requirement applies only to files
+your PR *adds*; a *modified* existing tool isn't individually gated, only
+counted into the whole `tools/` corpus's ≥70% pass-rate floor
+(`builder-lint.yml`'s equivalent new-file gate, by contrast, covers added
+*and* modified files — the two workflows don't scope identically). Run the
+gate on a modified file anyway; a corpus-wide regression still blocks merge.
 
 Then register the file — a tool on disk that isn't in the manifest fails CI
 (`tool-manifest.yml`, check name **"Tool manifest integrity"**):
@@ -152,7 +159,9 @@ python3 .tool-control/validate.py   # the merge gate itself, run it yourself fir
 other: each one is curated only when its *own* constant (`TOOL_CATEGORY` or
 `TOOL_ZONE` respectively) is absent, or not validly declared (an
 unrecognizable string like a leftover template placeholder, or a `TOOL_ZONE`
-that isn't a literal `1`/`2`/`3`), from the tool file — declaring one validly
+outside `1`/`2`/`3` — note `TOOL_ZONE = True` is a Python `int` equal to `1`
+and is *not* caught by this check, silently becoming zone 1; write a real
+int, never a bool), from the tool file — declaring one validly
 doesn't touch the other, and an invalid one is silently discarded rather than
 producing a mismatch. Declare a real, valid value for whichever constant
 applies in code rather than hand-editing that field in the manifest (a
