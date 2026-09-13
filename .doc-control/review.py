@@ -19,9 +19,9 @@ missing lifecycle instead:
   --record   a review HAPPENED: stamps last_reviewed/reviewed_by and DERIVES
              the next review_due from the interval. This is the only supported
              way a review_due moves forward.
-  --queue    what is due, how late, and under whose name.
-  --propose  a staggered schedule for the seeded backlog, printed for Z2 to
-             accept or edit. Prints; never writes.
+  --queue    what is stale, by how much, and under whose name.
+  --pull     the backlog as an ORDERED QUEUE with no dates — work the head when
+             there is capacity. Prints; never writes.
   --check    CI mode: every document carrying last_reviewed has the review_due
              its interval implies (exit 1 otherwise).
 
@@ -31,7 +31,7 @@ per document with `review_interval_days`.
 Usage:
   python3 .doc-control/review.py --queue
   python3 .doc-control/review.py --record HAIOS-GOV-001 --by Night
-  python3 .doc-control/review.py --propose --start 2026-09-22 --per-week 5
+  python3 .doc-control/review.py --pull --limit 10
   python3 .doc-control/review.py --check
   python3 .doc-control/review.py --smoke-test
 
@@ -214,44 +214,77 @@ def cmd_queue(reg: dict, today: datetime.date) -> int:
     return 0
 
 
-def propose(reg: dict, start: datetime.date, per_week: int) -> list[dict]:
-    """A staggered schedule for the backlog. Returned, not written — Z2's call."""
-    t = triage(reg, start)
-    out = []
-    # One WEEKDAY per document, so no two share a date and none lands on a
-    # weekend. The previous version advanced by calendar days, which with the
-    # default of six per week put slots on Saturday and Sunday while the comment
-    # claimed working weeks.
-    # Only five weekdays exist to place into. Silently clamping 6 to 5 while
-    # cmd_propose printed "6/week" reported a cadence the schedule could not meet.
-    cap = max(per_week, 1)
-    day = start
-    per_isoweek: dict[tuple, int] = {}
+def pull_order(reg: dict, today: datetime.date) -> list[dict]:
+    """The backlog as an ORDERED QUEUE, with no dates attached.
+
+    An earlier version of this emitted a staggered schedule — one document per
+    weekday until the backlog "cleared" on a computed end date. That end date was
+    invented. Nothing outside this system required the 39th document to be read
+    by any particular day, so the schedule manufactured 39 deadlines and then
+    reported progress against them, which is a way of generating failure that
+    has nothing to do with the work.
+
+    A date is only real here when something outside the system sets it. Those get
+    a `regulatory_deadline` and must name their `regulatory_basis`; everything
+    else is ordered by how stale it is and pulled when there is capacity to pull
+    it. The queue has a head, not an end.
+    """
+    t = triage(reg, today)
+    policy = policy_of(reg)
+    by_id = {d.get("doc_id"): d for d in reg.get("documents") or []}
+
+    rows = []
     for r in t["overdue"]:
-        while day.weekday() >= 5 or per_isoweek.get(day.isocalendar()[:2], 0) >= cap:
-            day += datetime.timedelta(days=1)
-        out.append({**r, "proposed_review_due": day.isoformat()})
-        per_isoweek[day.isocalendar()[:2]] = per_isoweek.get(day.isocalendar()[:2], 0) + 1
-        day += datetime.timedelta(days=1)
-    return out
+        doc = by_id.get(r["doc_id"], {})
+        interval = interval_for(doc, policy) or 1
+        deadline = as_date(doc.get("regulatory_deadline"))
+        rows.append({
+            **r,
+            "regulatory_deadline": deadline.isoformat() if deadline else None,
+            "regulatory_basis": doc.get("regulatory_basis"),
+            # How far past its own staleness threshold, as a multiple of that
+            # threshold. Scale-free, so a 30-day draft and a 180-day approved
+            # document compare honestly instead of by raw days late.
+            "staleness": round(r["days_overdue"] / interval, 2),
+        })
+
+    # Externally-imposed dates first, nearest first. Then most stale.
+    rows.sort(key=lambda r: (
+        r["regulatory_deadline"] is None,
+        r["regulatory_deadline"] or "",
+        -r["staleness"],
+        str(r["doc_id"]),
+    ))
+    return rows
 
 
-def cmd_propose(reg: dict, start: datetime.date, per_week: int) -> int:
-    rows = propose(reg, start, per_week)
+def cmd_pull(reg: dict, today: datetime.date, limit: int) -> int:
+    """Show the next N documents to review. No dates, no end date."""
+    rows = pull_order(reg, today)
     if not rows:
-        print("Nothing overdue — no schedule to propose.")
+        print("Nothing stale — the queue is empty.")
         return 0
-    print(f"Proposed staggered schedule — {len(rows)} documents, {per_week}/week "
-          f"from {start.isoformat()}")
-    print("Z1 proposes; Z2 accepts, edits or rejects. This command writes nothing.\n")
-    print("| proposed review_due | doc_id | status | area | canonical path |")
-    print("|---|---|---|---|---|")
-    for r in rows:
-        print(f"| {r['proposed_review_due']} | {r['doc_id']} | {r['status']} | "
-              f"{r['area']} | `{r['repo']}/{r['path']}` |")
-    last = rows[-1]["proposed_review_due"]
-    print(f"\nBacklog clears {last} instead of all at once. Each document then moves onto "
-          f"its status interval, so the herd does not re-form.")
+    regulated = [r for r in rows if r["regulatory_deadline"]]
+    print(f"Review queue — {len(rows)} document(s) past their staleness threshold, "
+          f"ordered by pull priority (as of {today.isoformat()}).")
+    print("No schedule and no end date: work the head of the queue when there is "
+          "capacity, and the queue drains at whatever rate capacity allows.")
+    if regulated:
+        print(f"\n{len(regulated)} carry an externally-imposed deadline and sort first.")
+    else:
+        print("\nNo document carries a regulatory_deadline, so no date here is real.")
+    print(f"\nNext {min(limit, len(rows))}:\n")
+    print("| # | doc_id | staleness | owner | status | canonical path | deadline |")
+    print("|---|---|---|---|---|---|---|")
+    for i, r in enumerate(rows[:limit], 1):
+        print(f"| {i} | {r['doc_id']} | {r['staleness']}× | {r['owner'] or '—'} | "
+              f"{r['status']} | `{r['repo']}/{r['path']}` | "
+              f"{r['regulatory_deadline'] or '—'} |")
+    if len(rows) > limit:
+        print(f"\n…and {len(rows) - limit} behind them. Raise --limit to see more; "
+              f"the order does not change.")
+    print("\nClear the head with:\n"
+          "  python3 .doc-control/review.py --record <DOC_ID> --by <owner>")
     return 0
 
 
@@ -308,6 +341,20 @@ def cmd_check(reg: dict, today: datetime.date | None = None) -> int:
             errors.append(f"{did}: status '{d.get('status')}' is off the review cadence "
                           f"and must not carry review_interval_days")
             continue
+        # A date is only real when something outside this system imposes it.
+        # Requiring the basis is what stops `regulatory_deadline` becoming a
+        # place to launder invented urgency back into the registry.
+        rd_raw = d.get("regulatory_deadline")
+        if rd_raw:
+            if as_date(rd_raw) is None:
+                errors.append(f"{did}: regulatory_deadline '{rd_raw}' is not an ISO date")
+            if not d.get("regulatory_basis"):
+                errors.append(
+                    f"{did}: regulatory_deadline without regulatory_basis — name the "
+                    f"statute, contract or commitment that imposes it. A deadline with "
+                    f"no external source is not a deadline.")
+        elif d.get("regulatory_basis"):
+            errors.append(f"{did}: regulatory_basis without regulatory_deadline")
         if d.get("last_reviewed") and not d.get("reviewed_by"):
             errors.append(f"{did}: last_reviewed without reviewed_by — a review is somebody's act")
         seen = as_date(last_raw)
@@ -538,27 +585,40 @@ def run_smoke_test() -> int:
     except yaml.YAMLError as exc:
         assert "duplicate key" in str(exc), exc
 
-    # The proposal places one document per weekday, capped per week.
-    days = [datetime.date.fromisoformat(r["proposed_review_due"])
-            for r in propose(reg, datetime.date(2026, 9, 25), per_week=2)]  # a Friday
-    assert all(d.weekday() < 5 for d in days), days
-    assert len(set(days)) == len(days), days
-    assert days == [datetime.date(2026, 9, 25), datetime.date(2026, 9, 28)], days
+    # The queue is ORDERED and carries no invented dates.
+    rows = pull_order(reg, today)
+    assert rows, rows
+    assert all("proposed_review_due" not in r for r in rows), \
+        "the pull queue must not assign dates"
+    assert all(r["regulatory_deadline"] is None for r in rows), rows
+    # Staleness is scale-free: 43 days past a 90-day threshold is 0.48x.
+    assert rows[0]["staleness"] == round(43 / 90, 2), rows[0]
 
-    # A document with no history yields no derived date — it cannot be invented.
-    assert next_due(reg["documents"][0], reg["review_policy"]) is None
+    # An externally-imposed deadline sorts ahead of a staler document without one.
+    regulated = {**reg,
+                 "review_baseline": {"HAIOS-A-001": "2026-01-01",
+                                     "HAIOS-A-002": "2026-08-01"},
+                 "documents": [
+        {"doc_id": "HAIOS-A-001", "status": "review", "review_due": "2026-01-01"},
+        {"doc_id": "HAIOS-A-002", "status": "review", "review_due": "2026-08-01",
+         "regulatory_deadline": "2026-10-01", "regulatory_basis": "EU AI Act Art. 12"}]}
+    order = [r["doc_id"] for r in pull_order(regulated, today)]
+    assert order[0] == "HAIOS-A-002", order  # deadline beats raw staleness
 
-    # The proposal staggers instead of stacking, and writes nothing.
-    # 2026-09-22 is a Tuesday; at one per week the next slot is the following
-    # Monday, the first weekday of the next ISO week.
-    rows = propose(reg, datetime.date(2026, 9, 22), per_week=1)
-    assert [r["proposed_review_due"] for r in rows] == ["2026-09-22", "2026-09-28"], rows
+    # A deadline with no external source is refused — that is the whole point.
+    assert quiet_check({**reg, "documents": [
+        {"doc_id": "HAIOS-I-001", "status": "review",
+         "regulatory_deadline": "2026-10-01"}]}) == 1
+    assert quiet_check({**reg, "documents": [
+        {"doc_id": "HAIOS-J-001", "status": "review",
+         "regulatory_basis": "a feeling"}]}) == 1
 
     print("smoke-test OK — triages the seeded backlog, derives the next due date from "
           "recorded history, refuses hand-edited, anonymous, future and boolean-interval "
           "dates, refuses an unfrozen or ghost baseline entry and a duplicate "
           "review_baseline key, keeps retired documents off the cadence even with an "
-          "override, and staggers proposals onto weekdays without writing.")
+          "override, orders the backlog as a dateless pull queue with externally-imposed "
+          "deadlines first, and refuses a deadline that names no external source.")
     return 0
 
 
@@ -566,13 +626,13 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Document review scheduler")
     ap.add_argument("--queue", action="store_true", help="show the review backlog")
     ap.add_argument("--check", action="store_true", help="CI: derived review_due must match")
-    ap.add_argument("--propose", action="store_true", help="print a staggered schedule")
+    ap.add_argument("--pull", action="store_true",
+                    help="show the next documents to review, ordered — no dates")
     ap.add_argument("--record", metavar="DOC_ID", help="record that a review happened")
     ap.add_argument("--by", metavar="NAME", help="who reviewed it (required with --record)")
     ap.add_argument("--on", metavar="YYYY-MM-DD", help="review date (default: today)")
-    ap.add_argument("--start", metavar="YYYY-MM-DD", help="--propose: first slot")
-    ap.add_argument("--per-week", type=int, default=5,
-                    help="--propose: documents per week (1-5; slots are weekdays)")
+    ap.add_argument("--limit", type=int, default=10,
+                    help="--pull: how many queue entries to show (default 10)")
     ap.add_argument("--smoke-test", action="store_true", help="self-test and exit")
     args = ap.parse_args()
 
@@ -583,15 +643,8 @@ def main() -> int:
     if args.on and as_date(args.on) is None:
         print(f"::error::--on '{args.on}' is not an ISO date")
         return 1
-    if args.start and as_date(args.start) is None:
-        print(f"::error::--start '{args.start}' is not an ISO date")
-        return 1
-    if not 1 <= args.per_week <= 5:
-        # Rejected rather than clamped: the previous version accepted 6, placed
-        # five, and printed "6/week" — a schedule that disagreed with its own
-        # header. Refuse the request instead of quietly changing it.
-        print(f"::error::--per-week must be between 1 and 5 (slots are weekdays); "
-              f"got {args.per_week}")
+    if args.limit < 1:
+        print(f"::error::--limit must be at least 1; got {args.limit}")
         return 1
 
     reg = load()
@@ -602,8 +655,8 @@ def main() -> int:
         return cmd_record(reg, args.record, args.by, as_date(args.on) or today)
     if args.check:
         return cmd_check(reg)
-    if args.propose:
-        return cmd_propose(reg, as_date(args.start) or today, args.per_week)
+    if args.pull:
+        return cmd_pull(reg, today, args.limit)
     return cmd_queue(reg, today)
 
 

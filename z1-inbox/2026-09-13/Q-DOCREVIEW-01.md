@@ -79,7 +79,7 @@ cannot: the only supported way `review_due` moves forward is a recorded review.
 |---|---|
 | `--record <DOC_ID> --by <owner>` | A review **happened**. Stamps `last_reviewed` + `reviewed_by`, derives the next `review_due` from the interval. The only supported way a date moves forward. |
 | `--queue` | What is due, how late, under whose name, grouped by the date they were stamped with. |
-| `--propose --start --per-week` | A staggered schedule for the backlog — one document per **weekday**, capped per week — printed for Z2. **Writes nothing.** |
+| `--pull --limit N` | The backlog as an **ordered queue with no dates** — staleness ratio, externally-imposed deadlines first. **Writes nothing.** |
 | `--check` | CI: a `review_due` that contradicts its own `last_reviewed + interval` is a merge error. |
 
 ### Schema: `review_due` becomes DERIVED — and frozen where there is no history
@@ -139,7 +139,8 @@ clears, opens nothing when there is nothing to say, and **decides nothing**.
 | `review_interval_days: "ninety"` | `::error::must be a positive integer` |
 | A document with no history | yields **no** derived date — it cannot be invented |
 | `retired` document | excluded from the cadence, not reported overdue |
-| `--propose` | staggers onto weekdays only, no two sharing a date, and writes nothing |
+| `--pull` | orders by staleness with no dates attached, and writes nothing |
+| A `regulatory_deadline` with no `regulatory_basis` | `::error::name the statute, contract or commitment that imposes it` |
 | A seeded date moved with no recorded review | `::error::was moved from its frozen baseline … without a recorded review` |
 | `--record --on` a future date | `::error::--record asserts a review that has already happened` |
 | `review_policy: {review: 0}` or an interval on `retired` | `::error::interval must be a positive integer` · `is off the review cadence` |
@@ -165,32 +166,49 @@ Two things here are the owner's, and only two:
 
 ### Decision A — the backlog
 
+**Corrected after Z2 feedback.** The first version of this block proposed a staggered schedule —
+one document per weekday until the backlog "cleared" on **2026-11-13**. Z2's response: *a backlog
+end date should not exist unless there is an outside regulatory deadline; the system should be
+resource based.*
+
+That is right, and it invalidates option A1 as written. Nothing outside this system required the
+39th document to be read by any particular day. The schedule would have **manufactured 39
+deadlines and then measured the operator against them** — generating failure that has nothing to
+do with the work, from dates this repository invented about itself. It is the same error as the
+2026-07-02 seeding pass, committed deliberately instead of accidentally.
+
+`--propose` is removed. `--pull` replaces it: the backlog as an **ordered queue with no dates**.
+
 | option | effect |
 |---|---|
-| **A1. Accept the staggered schedule below** | 39 documents get distinct dates across 7 weeks; each then moves onto its status interval. The herd does not re-form. |
-| **A2. Review-then-record, no re-dating** | The 39 stay overdue and visible; each clears only when `--record` runs. Most honest, slowest to green. |
-| **A3. Retire or supersede some** | Several of the 35 are dated collaborator HTML reports from March–May 2026. If they are historical records rather than live documents, `retired` takes them off the cadence truthfully. |
+| **A1. Pull queue (revised)** | No schedule, no end date. Work the head when there is capacity; the queue drains at whatever rate capacity allows. Order is by **staleness ratio** — days past a document's own threshold divided by that threshold — so a 30-day draft and a 180-day approved document compare honestly rather than by raw days late. |
+| **A2. Retire or supersede first** | Several of the 39 are dated collaborator HTML reports from March–May 2026. If they are historical records rather than live documents, `retired` takes them off the cadence truthfully and shortens the queue without anyone reading anything. |
+| **A3. Accept the backlog as-is** | Leave it visible and unordered. |
 
-**Z1's reading:** A3 first, then A1 for what remains. Nine `HAIOS-COLLAB-*` entries are
-point-in-time reports (`..._S-051426-02.html`); re-dating a frozen record for review is ceremony.
-But which of them are live is not Z1's call.
+**Z1's reading:** **A2 then A1.** Retiring the nine point-in-time `HAIOS-COLLAB-*` reports is the
+only move that removes work rather than rescheduling it; ordering handles the rest.
 
-Proposed schedule under A1 (`--propose --start 2026-09-22 --per-week 5`, one per weekday):
+### The one place a real date belongs
 
-| | |
-|---|---|
-| First slot | 2026-09-22 (`HAIOS-COLLAB-001`) |
-| Last slot | **2026-11-13** (`HAIOS-PROC-005`) |
-| Span | 8 weeks, weekdays only, no two documents sharing a date |
+`regulatory_deadline` is added to the schema for dates imposed from **outside** — a statute, a
+contract, a commitment made to someone else. It sorts ahead of everything in the pull queue, and
+`--check` **refuses a `regulatory_deadline` that does not name its `regulatory_basis`**. That
+guard is the point: without it the field becomes a place to launder invented urgency back into
+the registry under a legitimate-sounding name.
 
-Full table: `python3 .doc-control/review.py --propose --start 2026-09-22 --per-week 5`.
+**No document carries one today**, and `--pull` says so in its own output: *"No document carries
+a regulatory_deadline, so no date here is real."* The repository describes itself as covering
+`eu-ai-act-compliance`, so genuine dates may arrive; the slot exists so they can be recorded as
+what they are, and distinguished from everything the system merely wishes were urgent.
 
-A second review round caught that the earlier `--per-week 6` figure was unmeetable: only five
-weekdays exist, so the scheduler silently placed five while its header printed six. It now
-refuses a value above five rather than quietly changing the request — which moves the
-backlog's end date from the **2026-11-05** first quoted here to **2026-11-13**. The original
-figure is left visible rather than overwritten, because a corrected number with no trace of
-the correction is how a registry starts describing the past.
+### What this leaves unresolved — for Z2
+
+`review_due` and the word **"overdue"** are still deadline language for what is really staleness.
+`.doc-control/validate.py` rule 7 has emitted `::warning::review overdue since …` since before
+this work, 39 times per run. Under the resource-based reading those are **not** 39 late items;
+they are 39 documents whose staleness is known. Renaming the field and the warning is a schema
+change across 41 entries and a pre-existing tool, so it is **routed, not taken**. **Checklist
+item 8.**
 
 ### Decision B — owners
 
@@ -284,8 +302,9 @@ here makes reading 39 documents faster.
 
 ## Z2 Review Checklist
 
-- [ ] **Decision A — the backlog.** A1 staggered schedule / A2 review-then-record / A3 retire
-      first. Z1 recommends **A3 then A1**.
+- [ ] **Decision A — the backlog.** A1 pull queue / A2 retire first / A3 accept as-is.
+      Z1 recommends **A2 then A1**. The staggered-schedule option is withdrawn: it invented an
+      end date, which is the error this correction names.
 - [ ] **Decision A3 specifically:** are the nine `HAIOS-COLLAB-*` point-in-time reports live
       documents or historical records? If records, `retired` is the truthful disposition.
 - [ ] **Decision B — owners.** 0 of 46 assigned. A cadence with no assignee produces a queue
@@ -294,7 +313,11 @@ here makes reading 39 documents faster.
 - [ ] Overdue stays **advisory** while derivation-mismatch becomes **blocking** — confirm that
       split is the intended one.
 - [ ] `governance-triage.yml` cadence (Mondays 07:00 UTC) and the issue-per-queue shape.
-- [ ] The 5 documents with **no** `review_due` — give them one, or declare them off-cadence.
+- [ ] **Item 8:** `review_due` and "overdue" are deadline words for what is staleness.
+      Renaming them touches 41 entries and a pre-existing tool — routed, not taken.
+- [ ] The 5 documents with **no** `review_due` — leave them, or declare them off-cadence.
+      Under a resource-based reading a missing date is not a defect: it simply means no
+      staleness reference exists yet, which `--record` supplies on first review.
       They are outside `review_baseline:` for the same reason: there is no seeded date to freeze.
 - [ ] `review_baseline:` is accepted as the frozen record of the seeded dates, and changing an
       entry is understood to be a ratified re-dating rather than an edit.
