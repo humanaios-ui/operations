@@ -50,12 +50,14 @@ import subprocess
 import sys
 import tempfile
 
+import yaml
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import scan  # noqa: E402
 import validate as V  # noqa: E402
 
 TOOL_NAME = "tool_control_selftest"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 TOOL_CATEGORY = "validation_tool"
 TOOL_ZONE = 1
 
@@ -128,6 +130,13 @@ REAL = ".tool-control/scan.py"
 REAL_VERSION = scan.extract(os.path.join(ROOT, REAL)).get("declared_version")
 LEGACY = sorted(V.UNRATIFIED_ZONE_CLAIMS)[0]
 
+# The one ratified Zone 2 claim, read out of the manifest rather than retyped:
+# the ratification-reference fixtures have to bite on the real ruling, or they
+# prove nothing about the real entry.
+RATIFIED = next(t for t in yaml.safe_load(open(os.path.join(ROOT, "tools-manifest.yaml"),
+                                              encoding="utf-8"))["tools"]
+                if t.get("ratified_by"))
+
 
 def tool(**over) -> dict:
     """A valid manifest entry; each fixture breaks exactly one thing."""
@@ -176,6 +185,30 @@ def run_tool_cases() -> None:
           "cannot grant itself")
     check("unratified zone 2", lambda: V_({"tools": [tool(zone=2)]}), "requires 'ratified_by'")
     check("impossible zone", lambda: V_({"tools": [tool(zone=5)]}), "invalid (must be 1, 2 or 3)")
+
+    # Rule 7's second half. The point of these five is that `ratified_by` used to be satisfied
+    # by any string Z1 felt like typing — the first fixture below is exactly the
+    # bypass review caught, and it must now fail.
+    check("ratification with no ruling",
+          lambda: V_({"tools": [tool(zone=2, ratified_by="z2-approved-whenever")]}),
+          "'ratification_ruling' is missing")
+    check("ruling that does not exist",
+          lambda: V_({"tools": [tool(zone=2, ratified_by="h",
+                                     ratification_ruling="z1-inbox/no-such-ruling.md")]}),
+          "does not exist")
+    check("ruling outside z1-inbox",
+          lambda: V_({"tools": [tool(zone=2, ratified_by="h",
+                                     ratification_ruling="README.md")]}),
+          "is outside")
+    check("ruling missing the hash",
+          lambda: V_({"tools": [tool(zone=2, ratified_by="a-hash-nobody-signed",
+                                     path=RATIFIED["path"], version=RATIFIED["version"],
+                                     ratification_ruling=RATIFIED["ratification_ruling"])]}),
+          "does not contain the hash")
+    check("ruling about a different tool",
+          lambda: V_({"tools": [tool(zone=2, ratified_by=RATIFIED["ratified_by"],
+                                     ratification_ruling=RATIFIED["ratification_ruling"])]}),
+          "does not name")
     check("unclassified", lambda: V_({"tools": [tool(category="unclassified")]}),
           "category is 'unclassified'")
     check("non-string category", lambda: V_({"tools": [tool(category=0)]}),
@@ -191,6 +224,13 @@ def run_tool_cases() -> None:
                                version=scan.extract(os.path.join(ROOT, LEGACY)).get("declared_version"))]})
     if V.errors:
         _failures.append(f"grandfathered Zone 2 path should pass, got {V.errors}")
+
+    # …and so must the one Zone 2 claim that really was ratified. Rule 8 would
+    # otherwise be satisfiable only by rejecting everything.
+    V.errors, V.warnings = [], []
+    V.validate({"tools": [dict(RATIFIED, tool_id="HAIOS-TOOL-001")]})
+    if V.errors:
+        _failures.append(f"ratified Zone 2 entry should pass, got {V.errors}")
 
 
 def run_coverage_case() -> None:
@@ -370,8 +410,8 @@ def report(verbose: bool = False) -> int:
         return 1
 
     print(f"selftest OK — all {len(conditions)} blocking conditions in validate.py demonstrated "
-          f"to fire, plus {len(DOC_CASES)} document-control conditions, and the grandfathered "
-          f"Zone 2 path still passes.")
+          f"to fire, plus {len(DOC_CASES)} document-control conditions, and both the "
+          f"grandfathered and the ratified Zone 2 entries still pass.")
     return 0
 
 
