@@ -21,7 +21,7 @@ jobs:
 
       - name: Install quality deps
         run: |
-          python3 -m pip install --quiet cryptography pyyaml pytest mypy ruff
+          python3 -m pip install --quiet cryptography pyyaml pytest mypy ruff jsonschema
 
       - name: Repository health baseline (blocking)
         run: python3 tools/repo_health.py --strict
@@ -52,4 +52,7 @@ jobs:
             tools/tests/test_ci_predict.py \
             tools/tests/test_lifecycle_predict.py \
             tools/tests/test_dimension_attribution.py \
+            tools/tests/test_tool_trace_hook.py \
+            tools/tests/test_tool_trace_reader.py \
+            acat/tests/test_tool_trace_schema.py \
             -q
