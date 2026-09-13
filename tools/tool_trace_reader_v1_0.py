@@ -66,22 +66,29 @@ def load_tool_trace(trace_dir: Path, session_id: str) -> Optional[List[dict]]:
         rows = engine.read(str(ledger_path))
     except (ValueError, OSError) as exc:
         raise TraceCorrupt(f"{ledger_path}: unreadable — {exc}") from exc
-    err = engine.verify(rows)
+    try:
+        err = engine.verify(rows)
+    except Exception as exc:  # noqa: BLE001 - verification failures must normalize to TraceCorrupt
+        raise TraceCorrupt(f"{ledger_path}: verification failed — {exc}") from exc
     if err:
         raise TraceCorrupt(f"{ledger_path}: {err}")
     trace = []
     for row in rows:
+        if not isinstance(row, dict):
+            raise TraceCorrupt(f"{ledger_path}: row is not an object")
         if row.get("type") != "TOOL_CALL":
-            continue
-        if "seq" not in row or "tool_name" not in row:
+            raise TraceCorrupt(f"{ledger_path}: unexpected row type {row.get('type')!r}")
+        required = ("seq", "at", "tool_name", "input_digest", "input_keys")
+        missing = [field for field in required if field not in row]
+        if missing:
             raise TraceCorrupt(
-                f"{ledger_path}: TOOL_CALL row missing required field (seq/tool_name)"
+                f"{ledger_path}: TOOL_CALL row missing required field(s): {', '.join(missing)}"
             )
         trace.append({
-            "seq": row["seq"], "at": row.get("at", ""),
+            "seq": row["seq"], "at": row["at"],
             "tool_name": row["tool_name"],
-            "input_digest": row.get("input_digest", ""),
-            "input_keys": row.get("input_keys", []),
+            "input_digest": row["input_digest"],
+            "input_keys": row["input_keys"],
         })
     return trace
 
@@ -178,6 +185,32 @@ def run_smoke_test() -> bool:
             pass
         except KeyError:
             ok = False
+
+        # A non-TOOL_CALL but otherwise hash-valid row is refused rather than
+        # silently dropped into an empty/partial trace.
+        unrelated_dir = project_dir / "unrelated"
+        unrelated_ledger = unrelated_dir / hook.ledger_filename("odd")
+        unrelated_ledger.parent.mkdir(parents=True, exist_ok=True)
+        other_row = {"seq": 1, "type": "OPEN", "at": "x", "by": "Z1", "prev_hash": "0" * 64}
+        other_row["hash"] = engine.sha(engine.canon(other_row))
+        with open(unrelated_ledger, "w", encoding="utf-8") as handle:
+            handle.write(json.dumps(other_row) + "\n")
+        try:
+            load_tool_trace(unrelated_dir, "odd")
+            ok = False
+        except TraceCorrupt:
+            pass
+
+        # Verification exceptions are normalized to TraceCorrupt.
+        original_verify = engine.verify
+        try:
+            engine.verify = lambda _rows: (_ for _ in ()).throw(KeyError("seq"))  # type: ignore[assignment]
+            load_tool_trace(trace_dir, "empty-session")
+            ok = False
+        except TraceCorrupt:
+            pass
+        finally:
+            engine.verify = original_verify
 
         # CLI round trip.
         parser = build_parser()

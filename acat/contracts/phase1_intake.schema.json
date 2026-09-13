@@ -67,7 +67,11 @@
             "required": ["seq", "at", "tool_name", "input_digest", "input_keys"],
             "properties": {
               "seq": { "type": "integer" },
-              "at": { "type": "string", "format": "date-time" },
+              "at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
+              },
               "tool_name": { "type": "string" },
               "input_digest": { "type": "string" },
               "input_keys": { "type": "array", "items": { "type": "string" } }

@@ -88,6 +88,14 @@ class TestToolTraceSchema:
         errors = self._validate(schema_file, payload)
         assert errors == [], [e.message for e in errors]
 
+    def test_invalid_tool_call_datetime_is_invalid(self, schema_file, base_payload):
+        entry = dict(VALID_TOOL_CALL)
+        entry["at"] = "not-a-date-time"
+        payload = base_payload()
+        payload["meta"] = {"tool_trace": [entry]}
+        errors = self._validate(schema_file, payload)
+        assert errors, "expected a validation error for an invalid tool_trace.at date-time"
+
     def test_missing_input_digest_is_invalid(self, schema_file, base_payload):
         """input_digest is always emitted by the reader; a row missing it
         should fail validation, not silently pass (this is the same field

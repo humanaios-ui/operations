@@ -101,6 +101,36 @@ def test_malformed_tool_call_row_raises_traceable_not_keyerror(tmp_path):
         pass
 
 
+def test_unrelated_hash_valid_row_is_refused_not_silently_dropped(tmp_path):
+    trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
+    trace_dir.mkdir(parents=True)
+    ledger = trace_dir / hook.ledger_filename("odd")
+    row = {"seq": 1, "type": "OPEN", "at": "x", "by": "Z1", "prev_hash": "0" * 64}
+    row["hash"] = engine.sha(engine.canon(row))
+    with open(ledger, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
+
+    try:
+        reader.load_tool_trace(trace_dir, "odd")
+        raise AssertionError("expected TraceCorrupt")
+    except reader.TraceCorrupt:
+        pass
+
+
+def test_verify_exception_is_wrapped_as_trace_corrupt(tmp_path, monkeypatch):
+    trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
+    trace_dir.mkdir(parents=True)
+    ledger = trace_dir / hook.ledger_filename("wrapped")
+    ledger.touch()
+    monkeypatch.setattr(reader.engine, "verify", lambda rows: (_ for _ in ()).throw(KeyError("seq")))
+
+    try:
+        reader.load_tool_trace(trace_dir, "wrapped")
+        raise AssertionError("expected TraceCorrupt")
+    except reader.TraceCorrupt:
+        pass
+
+
 def test_cli_report_missing_session_prints_note(tmp_path, capsys):
     trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
     parser = reader.build_parser()
