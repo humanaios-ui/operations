@@ -138,11 +138,13 @@ def new_episode_id(action: str, target: str) -> str:
 def token_id_for(episode_id: str, field: str) -> str:
     """Deterministic id, unique per (episode, field).
 
-    Digest suffix guards against two field names slugging to the same
-    string, the same collision class fixed in ci_predict_consolidate's
-    token_id_for.
+    A 64-bit digest suffix guards against two field names slugging to the
+    same string, the same collision class fixed in ci_predict_consolidate's
+    token_id_for. build_pin_events additionally rejects any duplicate
+    token id generated within one batch outright, rather than relying on
+    digest length alone to make that collision merely unlikely.
     """
-    digest = hashlib.sha256(field.encode("utf-8")).hexdigest()[:8]
+    digest = hashlib.sha256(field.encode("utf-8")).hexdigest()[:16]
     return f"{episode_id}:{slugify(field)}-{digest}"
 
 
@@ -186,13 +188,26 @@ def build_pin_events(episode_id: str, action: str, target: str, predictor: str,
     Mirrors ci_predict_consolidate.build_events's TOKEN-before-PIN ordering,
     required by nf_ledger_v0_1.project(). `p` is validated by engine.check_p,
     the same refusal every other caller of this engine goes through.
+    window_minutes is validated here too, not only in cmd_pin, so a caller
+    using this function directly cannot bypass the CLI's guard and write a
+    claim like "within -5 minutes" that could never resolve as YES.
     """
+    if window_minutes <= 0:
+        raise ValueError(f"window_minutes must be positive, got {window_minutes}")
+
     events: List[dict] = []
     seq = start_seq
+    seen_token_ids: set = set()
     for field, spec in expected.items():
         if spec.get("p") is None:
             raise ValueError(f"missing probability for field {field!r} — p is required in [0,1]")
         token_id = token_id_for(episode_id, field)
+        if token_id in seen_token_ids:
+            raise ValueError(
+                f"token id collision within this pin batch for field {field!r} "
+                f"({token_id!r}) — refusing to silently overwrite another field's prediction"
+            )
+        seen_token_ids.add(token_id)
         events.append({
             "seq": seq, "type": "TOKEN", "at": pinned_at, "by": "lifecycle-predict",
             "token_id": token_id, "practice": "lifecycle-predict",
@@ -485,6 +500,17 @@ def run_smoke_test() -> bool:
         )
         ok = ok and len(late) == 1 and late[0]["outcome"] == "NO"
         ok = ok and late[0]["within_window"] is False
+
+        # The builder itself refuses a non-positive window, not only cmd_pin
+        # — a direct caller cannot bypass the CLI's guard.
+        try:
+            build_pin_events(
+                new_episode_id("a", "b"), "a", "b", "Claude Code",
+                {"x": {"value": "1", "p": 0.5}}, -5, "2026-09-13T00:00:00+00:00", 1,
+            )
+            ok = False
+        except ValueError:
+            pass
 
         # A blank source is refused — it is the outcome's provenance.
         try:

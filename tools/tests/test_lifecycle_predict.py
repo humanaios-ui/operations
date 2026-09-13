@@ -549,3 +549,34 @@ def test_pin_refuses_token_id_collision_with_existing_ledger(tmp_path, monkeypat
     assert engine.verify(rows) is None
     token_ids = [r["token_id"] for r in rows if r.get("type") == "TOKEN"]
     assert len(token_ids) == len(set(token_ids))  # no duplicate token ever landed
+
+
+def test_builder_refuses_non_positive_window():
+    """window_minutes is validated in build_pin_events itself, not only in
+    cmd_pin, so a direct caller of the builder cannot bypass the CLI's
+    guard and write a claim like 'within -5 minutes'."""
+    try:
+        lc.build_pin_events(
+            lc.new_episode_id("a", "b"), "a", "b", "Claude Code",
+            {"x": {"value": "1", "p": 0.5}}, -5, "2026-09-13T00:00:00+00:00", 1,
+        )
+        raise AssertionError("expected ValueError")
+    except ValueError:
+        pass
+
+
+def test_builder_refuses_intra_batch_token_id_collision(monkeypatch):
+    """Two distinct field names whose generated token id happens to collide
+    within one pin batch must be refused outright, not have one silently
+    overwrite the other's TOKEN/PIN events via a collapsed set."""
+    monkeypatch.setattr(lc, "token_id_for", lambda episode_id, field: f"{episode_id}:same")
+
+    try:
+        lc.build_pin_events(
+            "LC-fixed", "a", "b", "Claude Code",
+            {"field_one": {"value": "1", "p": 0.5}, "field_two": {"value": "2", "p": 0.5}},
+            5, "2026-09-13T00:00:00+00:00", 1,
+        )
+        raise AssertionError("expected ValueError")
+    except ValueError:
+        pass
