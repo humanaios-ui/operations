@@ -578,3 +578,75 @@ def test_pin_referencing_nonexistent_token_refused_not_treated_as_unresolved(tmp
         raise AssertionError("expected LedgerLoadError")
     except da.LedgerLoadError:
         pass
+
+
+def test_null_probability_pin_referencing_nonexistent_token_still_refused(tmp_path):
+    """The referential-integrity check must not be bypassed just because
+    the pin is unscoreable (p: null) — a broken reference is ledger
+    corruption regardless of whether the pin was ever meant to be
+    scored."""
+    ledger = tmp_path / "l.jsonl"
+    pin_only = {
+        "seq": 1, "type": "PIN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+        "pin_id": "ghost:P", "target": "ghost-token", "predictor": "P",
+        "claim": "x", "p": None, "scoreable": False,
+    }
+    engine.append(str(ledger), [pin_only], "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_duplicate_resolve_for_same_token_refused(tmp_path):
+    """engine.project() applies RESOLVE events in order and overwrites the
+    prior outcome — a second RESOLVE for an already-resolved token would
+    otherwise silently score the last event instead of being treated as
+    the corrupt, already-resolved ledger it is (nf_ledger_v0_1.cmd_resolve
+    itself refuses to write a second RESOLVE for the same token)."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    second_resolve = dict(events[2])
+    second_resolve["seq"] = 4
+    second_resolve["outcome"] = "NO"
+    engine.append(str(ledger), events + [second_resolve], "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_token_with_null_token_id_refused(tmp_path):
+    """A non-string/blank token_id must be refused before it is ever used
+    as a set/dict key — an unhashable value there would otherwise raise
+    TypeError past this loader's LedgerLoadError contract."""
+    ledger = tmp_path / "l.jsonl"
+    row = {
+        "seq": 1, "type": "TOKEN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+        "token_id": None, "practice": "test", "title": "t", "date": "2026-09-13",
+        "date_source": "PRACTICE", "owner_add": False, "state": "DATED",
+    }
+    engine.append(str(ledger), [row], "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_pin_with_blank_pin_id_refused(tmp_path):
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    events[1]["pin_id"] = "   "
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass

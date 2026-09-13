@@ -176,15 +176,20 @@ def _validate_raw_rows(rows: List[dict], ledger_path: Path) -> None:
     Raising here reports the whole ledger as a load error instead."""
     seen_token_ids: set = set()
     seen_pin_ids: set = set()
+    seen_resolved_token_ids: set = set()
     for row in rows:
         row_type = row.get("type")
         if row_type == "TOKEN":
             token_id = row.get("token_id")
+            if not isinstance(token_id, str) or not token_id.strip():
+                raise LedgerLoadError(f"{ledger_path}: TOKEN has no valid token_id={token_id!r}")
             if token_id in seen_token_ids:
                 raise LedgerLoadError(f"{ledger_path}: duplicate TOKEN token_id={token_id!r}")
             seen_token_ids.add(token_id)
         elif row_type == "PIN":
             pin_id = row.get("pin_id")
+            if not isinstance(pin_id, str) or not pin_id.strip():
+                raise LedgerLoadError(f"{ledger_path}: PIN has no valid pin_id={pin_id!r}")
             if pin_id in seen_pin_ids:
                 raise LedgerLoadError(f"{ledger_path}: duplicate PIN pin_id={pin_id!r}")
             seen_pin_ids.add(pin_id)
@@ -211,6 +216,15 @@ def _validate_raw_rows(rows: List[dict], ledger_path: Path) -> None:
                     f"{ledger_path}: PIN {row.get('pin_id', '?')!r} has no valid 'at' timestamp"
                 )
         elif row_type == "RESOLVE":
+            token_id = row.get("token_id")
+            if token_id in seen_resolved_token_ids:
+                raise LedgerLoadError(
+                    f"{ledger_path}: duplicate RESOLVE for token_id={token_id!r} — "
+                    f"engine.project() applies RESOLVEs in order and would silently keep "
+                    f"only the last one, exactly what nf_ledger_v0_1.cmd_resolve itself "
+                    f"refuses to write"
+                )
+            seen_resolved_token_ids.add(token_id)
             outcome = row.get("outcome")
             if outcome not in ("YES", "NO"):
                 raise LedgerLoadError(
@@ -259,8 +273,6 @@ def load_resolved_pins(ledger_path: Path) -> List[dict]:
         tokens, pins = engine.project(rows)
         resolved: List[dict] = []
         for pin in pins.values():
-            if pin.get("p") is None:
-                continue
             referenced_ids = pin.get("tokens") or [pin.get("target")]
             missing_ids = [tid for tid in referenced_ids if tid not in tokens]
             if missing_ids:
@@ -268,6 +280,8 @@ def load_resolved_pins(ledger_path: Path) -> List[dict]:
                     f"{ledger_path}: PIN {pin.get('pin_id', '?')!r} references "
                     f"nonexistent token(s) {missing_ids} — not the same as unresolved"
                 )
+            if pin.get("p") is None:
+                continue
             outcome = engine.pin_outcome(pin, tokens)
             if outcome in (None, "VOID"):
                 continue
