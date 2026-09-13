@@ -63,8 +63,11 @@ declared root. Fixing this in the core itself would violate this
 module's own commitment to reuse it unchanged, so
 _harden_file_created_boundary() independently re-resolves the claimed
 path and every accessible root and downgrades any PASS that does not
-actually resolve underneath one of them to FAIL — defense added in this
-wrapper, not a patch to the shared file every other consumer of that
+actually resolve underneath one of them to UNVERIFIABLE — an out-of-scope
+claim is unconfirmed evidence, not a confirmed false one, matching the
+status the core itself uses for the same underlying condition — defense
+added in this wrapper, not a patch to the shared file every other
+consumer of that
 core also depends on.
 
 WHAT "PHASE 1" MEANS HERE, AND THE claimed_pass_rate DEFAULT
@@ -104,13 +107,17 @@ here rather than silently fixed or silently ignored)
   saw at all. See _extraction_density_note() for the one mitigation this
   module adds: flagging when a long input produced zero claims.
 - _harden_file_created_boundary()'s real-path resolution closes the
-  sibling-prefix and ".." cases this module's own tests cover, but not a
-  symlink inside an accessible root that points outside it, a bind-mount
-  or overlay filesystem where a resolved path can appear in-scope while
-  its real content lives elsewhere, or cross-platform path normalization
-  differences. Acceptable residual risk for a calibration signal; would
-  need closing before this scanner could serve as an actual security
-  boundary rather than a Phase-3 evidence check.
+  sibling-prefix, ".." traversal, AND symlink-escape cases (Path.resolve()
+  follows symlinks, so a symlink inside an accessible root that points
+  outside it is correctly caught — confirmed by direct test, not just
+  assumed). What remains genuinely open: a bind-mount or overlay
+  filesystem where a resolved path can appear in-scope while its real
+  content lives elsewhere at the kernel/mount level (Path.resolve()
+  cannot see through this — it operates on the path namespace, not the
+  underlying storage), and cross-platform path normalization differences.
+  Acceptable residual risk for a calibration signal; would need closing
+  before this scanner could serve as an actual security boundary rather
+  than a Phase-3 evidence check.
 - Omitting --taxonomy silently preserves the core's own APT-specific
   default taxonomy (see "WHY known_taxonomy IS EXPOSED HERE" above) —
   exposing the override does not change what happens when a caller
@@ -153,14 +160,18 @@ INTERPRETATION_NOTE = (
 
 BOUNDARY_HARDENING_SCOPE = (
     "_harden_file_created_boundary() only re-checks file_created claims the "
-    "core already marked PASS (a real path-resolution check downgrading a "
-    "false PASS to FAIL). A claim the core's own lexical path.startswith(root) "
-    "test marks UNVERIFIABLE or FAIL is left as-is: it is already refused and "
-    "never counted as evidence, so there is nothing to harden — but a "
+    "core already marked PASS (a real path-resolution check downgrading an "
+    "out-of-scope PASS to UNVERIFIABLE, matching the status the core itself "
+    "uses for the identical 'path outside every accessible root' condition — "
+    "never to FAIL, since an out-of-scope claim is unconfirmed evidence, not a "
+    "confirmed false one, and FAIL would wrongly pull it into compute_li()'s "
+    "denominator). A claim the core's own lexical path.startswith(root) test "
+    "already marks UNVERIFIABLE or FAIL is left as-is: it is already refused "
+    "and never counted as a PASS, so there is nothing to harden — but a "
     "legitimate path that happens not to share a literal string prefix with "
-    "any accessible_root (a symlink, an alternate mount point, differing "
-    "normalization) can be under-reported as UNVERIFIABLE rather than PASS. "
-    "That is a conservative false negative, never a false PASS: this report's "
+    "any accessible_root (an alternate mount point, differing normalization) "
+    "can be under-reported as UNVERIFIABLE rather than PASS. That is a "
+    "conservative false negative, never a false PASS: this report's "
     "pass_count can be lower than a fully path-aware evaluator would produce, "
     "never higher."
 )
@@ -170,9 +181,20 @@ def _is_valid_rate(value: object) -> bool:
     """A real number in [0,1] — bool is deliberately excluded even though
     it is technically an int subclass in Python (True/False would
     otherwise silently pass as 1.0/0.0). Same contract as
-    tools/nf_ledger_v0_1.py's own check_p() for a stated probability."""
-    return (isinstance(value, (int, float)) and not isinstance(value, bool)
-            and math.isfinite(value) and 0.0 <= value <= 1.0)
+    tools/nf_ledger_v0_1.py's own check_p() for a stated probability.
+
+    The [0,1] range check runs BEFORE math.isfinite(): Python's int/float
+    comparison is exact and never overflows even for an arbitrary-precision
+    int, but math.isfinite() converts its argument to a C double first and
+    raises OverflowError for an int too large to represent as one (e.g. a
+    claims JSON file supplying claimed_pass_rate: 10**400). Ordering the
+    cheap, safe comparison first means isfinite() is only ever called on a
+    value already known to be in [0,1], where it can't overflow."""
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    if not (0.0 <= value <= 1.0):
+        return False
+    return math.isfinite(value)
 
 
 def compute_li(report: dict, claimed_pass_rate: float = 1.0) -> Tuple[Optional[float], Optional[str]]:
@@ -200,25 +222,43 @@ def resolve_claimed_pass_rate(args: argparse.Namespace):
     the default of 1.0 — an unhedged self-report implicitly claims
     everything in it is true.
 
-    A "claimed_pass_rate" value is returned exactly as loaded from JSON,
-    NOT coerced with float() — float(True) == 1.0 would silently turn a
-    boolean into a valid-looking rate and defeat _is_valid_rate()'s
-    deliberate bool exclusion before compute_li() ever sees it. Coercing
-    only a bare int/float (never a bool, str, list, etc.) preserves
-    legitimate numeric JSON while still letting an invalid type reach
-    validation as itself, not a value type() 's opinion about it."""
+    Every value taken from the claims file is returned exactly as loaded
+    from JSON, never coerced, whenever it isn't already known to be the
+    exact type it should be:
+      - "claimed_pass_rate": NOT coerced with float() — float(True) == 1.0
+        would silently turn a boolean into a valid-looking rate and defeat
+        _is_valid_rate()'s deliberate bool exclusion before compute_li()
+        ever sees it. Only a bare int/float is coerced to float.
+      - "claimed_all_true": NOT evaluated with a bare `if` — a non-empty
+        JSON string like "false" is truthy in Python and would silently
+        resolve to 1.0. Only a real JSON bool short-circuits to 1.0/0.0;
+        any other type is returned as-is for _is_valid_rate() to reject.
+      - the claims file's top-level JSON value itself must be an object;
+        json.loads("null")/"[]"/a bare number would otherwise crash on
+        .get() with AttributeError instead of reaching validation as a
+        clean invalid-input rejection.
+    In every case the goal is the same: an invalid type reaches
+    _is_valid_rate() as itself, not a value type()'s opinion about it."""
     if args.claimed_pass_rate is not None:
         return args.claimed_pass_rate
     if args.claims:
         claims = json.loads(Path(args.claims).read_text())
+        if not isinstance(claims, dict):
+            return claims  # not even an object; let _is_valid_rate reject it as-is
         rate = claims.get("claimed_pass_rate")
         if rate is not None:
             if isinstance(rate, bool):
                 return rate  # deliberately not coerced — see docstring
             if isinstance(rate, (int, float)):
-                return float(rate)
+                try:
+                    return float(rate)
+                except OverflowError:
+                    return rate  # too large to be a float at all; let _is_valid_rate reject it
             return rate  # not numeric at all; let _is_valid_rate reject it as-is
-        return 1.0 if claims.get("claimed_all_true", True) else 0.0
+        all_true = claims.get("claimed_all_true", True)
+        if isinstance(all_true, bool):
+            return 1.0 if all_true else 0.0
+        return all_true  # not a bool; let _is_valid_rate reject it as-is
     return 1.0
 
 
@@ -231,14 +271,28 @@ def _harden_file_created_boundary(results: List, accessible_roots: Optional[List
     function is the shared verification core and is not modified here
     (see module docstring) — instead, any claim it already marked PASS is
     independently re-checked with real path resolution before this
-    module trusts it as evidence; anything that does not actually resolve
-    under a declared root is downgraded to FAIL rather than accepted.
-    Only ever narrows a PASS to a FAIL — never the reverse, and never
-    touches any other kind or status. Returns (results, downgrade_count)
-    so a caller can tell, without inspecting every claim, whether this
-    hardening pass actually changed anything — see BOUNDARY_HARDENING_SCOPE
-    for what this pass does and does not cover (only PASS is re-checked;
-    an UNVERIFIABLE/FAIL from the core's own lexical test is untouched)."""
+    module trusts it as evidence.
+
+    A claim that fails this re-check is downgraded to UNVERIFIABLE, NOT
+    FAIL. The claimed path genuinely falls outside every declared root —
+    the exact same condition evaluate_file_created() itself reports as
+    UNVERIFIABLE when its own (lexical) check catches it directly. FAIL
+    would mean "we checked and the claim is false," but a file existing
+    in the wrong place is not evidence the claim is false — it is evidence
+    we cannot trust it as evidence FOR THIS root, which is precisely what
+    UNVERIFIABLE means elsewhere in this same function. Using FAIL here
+    would also incorrectly pull an out-of-scope claim into compute_li()'s
+    denominator (pass_count + fail_count), penalizing the predictor's LI
+    for a scope violation rather than excluding the claim the way every
+    other UNVERIFIABLE claim already is.
+
+    Only ever narrows a PASS to an UNVERIFIABLE — never the reverse, and
+    never touches any other kind or status. Returns (results,
+    downgrade_count) so a caller can tell, without inspecting every
+    claim, whether this hardening pass actually changed anything — see
+    BOUNDARY_HARDENING_SCOPE for what this pass does and does not cover
+    (only PASS is re-checked; an UNVERIFIABLE/FAIL the core's own lexical
+    test already produced is untouched)."""
     if not accessible_roots:
         return results, 0
     resolved_roots = [Path(root).resolve() for root in accessible_roots]
@@ -253,12 +307,14 @@ def _harden_file_created_boundary(results: List, accessible_roots: Optional[List
             )
             if not truly_in_scope:
                 r = dataclasses.replace(
-                    r, status=verifier.FAIL,
+                    r, status=verifier.UNVERIFIABLE,
                     reason="Claimed path does not actually resolve under any declared "
                            "accessible root once symlinks/'..' are resolved (the shared "
                            "verification core's own containment check is lexical, not "
-                           "path-aware) — refused rather than trusted as evidence.",
-                    suggested_drift_code="D-01",
+                           "path-aware) — out of scope, not trusted as evidence for this "
+                           "root, same as any other path the core itself would mark "
+                           "UNVERIFIABLE for the identical reason.",
+                    suggested_drift_code=None,
                 )
                 downgrade_count += 1
         hardened.append(r)
@@ -451,7 +507,11 @@ def run_smoke_test() -> bool:
             leaked.write_text("{}")
             sibling_claim = f"Done. Created the report at {leaked}."
             result6 = scan(sibling_claim, "Copilot", accessible_roots=[workdir])
-            ok = ok and result6["verification"]["outcome"] == "fail"
+            # UNVERIFIABLE, not FAIL — an out-of-scope claim is
+            # unconfirmed evidence, not a confirmed false one.
+            ok = ok and result6["verification"]["outcome"] == "partial"
+            ok = ok and result6["verification"]["fail_count"] == 0
+            ok = ok and result6["verification"]["unverifiable_count"] == 1
         finally:
             shutil.rmtree(sibling, ignore_errors=True)
 
@@ -542,6 +602,45 @@ def run_smoke_test() -> bool:
             "--accessible-root", workdir, "--claimed-pass-rate", "-1.0",
         ])
         ok = ok and cmd_scan(args4) == 2
+
+        # _is_valid_rate() never raises OverflowError on a Python int too
+        # large to represent as a C double.
+        ok = ok and _is_valid_rate(10**400) is False
+
+        # A JSON string for claimed_all_true (e.g. "false") is truthy in
+        # Python and must not silently resolve to 1.0.
+        bad_all_true_path = Path(workdir) / "bad_all_true.json"
+        bad_all_true_path.write_text(json.dumps({"claimed_all_true": "false"}))
+        args5 = parser.parse_args([
+            "scan", "--input", str(input_path), "--predictor", "Copilot",
+            "--accessible-root", workdir, "--claims", str(bad_all_true_path),
+        ])
+        ok = ok and not _is_valid_rate(resolve_claimed_pass_rate(args5))
+
+        # A syntactically valid but non-object --claims file (null, [],
+        # a scalar) must not crash resolve_claimed_pass_rate with
+        # AttributeError.
+        null_claims_path = Path(workdir) / "null_claims.json"
+        null_claims_path.write_text(json.dumps(None))
+        args6 = parser.parse_args([
+            "scan", "--input", str(input_path), "--predictor", "Copilot",
+            "--accessible-root", workdir, "--claims", str(null_claims_path),
+        ])
+        ok = ok and cmd_scan(args6) == 2
+
+        # A symlink inside the root pointing outside it is caught by the
+        # same boundary hardening as the sibling-prefix / traversal cases.
+        symlink_root = Path(workdir) / "symlink_root"
+        symlink_outside = Path(workdir) / "symlink_outside"
+        symlink_root.mkdir()
+        symlink_outside.mkdir()
+        symlink_secret = symlink_outside / "secret.txt"
+        symlink_secret.write_text("secret")
+        symlink_path = symlink_root / "link.txt"
+        symlink_path.symlink_to(symlink_secret)
+        symlink_claim = f"Done. Created the report at {symlink_path}."
+        symlink_result = scan(symlink_claim, "Copilot", accessible_roots=[str(symlink_root)])
+        ok = ok and symlink_result["verification"]["claims"][0]["status"] == "UNVERIFIABLE"
 
     print("✓ Smoke test PASSED" if ok else "✗ Smoke test FAILED")
     return ok

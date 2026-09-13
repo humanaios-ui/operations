@@ -221,8 +221,14 @@ def test_file_created_sibling_directory_is_not_in_scope(tmp_path):
 
     claim = f"Done. Created the report at {leaked_file}."
     result = scanner.scan(claim, "Copilot", accessible_roots=[str(root)])
-    assert result["verification"]["outcome"] == "fail"
+    # UNVERIFIABLE, not FAIL: an out-of-scope claim is unconfirmed
+    # evidence, not a confirmed false claim (Copilot review finding on
+    # PR #303) — and must never enter the LI denominator.
+    assert result["verification"]["outcome"] == "partial"
     assert result["verification"]["pass_count"] == 0
+    assert result["verification"]["fail_count"] == 0
+    assert result["verification"]["unverifiable_count"] == 1
+    assert result["li"] is None
 
 
 def test_file_created_path_traversal_is_not_in_scope(tmp_path):
@@ -235,7 +241,9 @@ def test_file_created_path_traversal_is_not_in_scope(tmp_path):
 
     claim = f"Done. Created the report at {root}/../outside/file.txt."
     result = scanner.scan(claim, "Copilot", accessible_roots=[str(root)])
-    assert result["verification"]["outcome"] == "fail"
+    assert result["verification"]["outcome"] == "partial"
+    assert result["verification"]["fail_count"] == 0
+    assert result["verification"]["unverifiable_count"] == 1
 
 
 def test_file_created_genuinely_in_scope_still_passes(tmp_path):
@@ -493,3 +501,131 @@ def test_smoke_test_leaves_no_sibling_artifact_behind(tmp_path, monkeypatch):
     for p in calls:
         if str(p).endswith("-sibling"):
             assert not p.exists()
+
+
+def test_out_of_scope_file_created_is_unverifiable_not_fail(tmp_path):
+    """Copilot review finding on PR #303: an out-of-scope claim is
+    unconfirmed evidence, not a confirmed false one — FAIL would wrongly
+    pull it into compute_li()'s denominator and penalize the predictor
+    for a scope violation rather than excluding the claim, the way every
+    other UNVERIFIABLE claim already is."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    sibling = tmp_path / "repo-secrets"
+    sibling.mkdir()
+    leaked = sibling / "file.txt"
+    leaked.write_text("leaked")
+    claim = f"Done. Created the report at {leaked}."
+    result = scanner.scan(claim, "Copilot", accessible_roots=[str(root)])
+    citation = result["verification"]["claims"][0]
+    assert citation["status"] == "UNVERIFIABLE"
+    assert citation["suggested_drift_code"] is None
+    assert result["verification"]["fail_count"] == 0
+    assert result["li"] is None
+
+
+def test_symlink_escape_is_caught_by_boundary_hardening(tmp_path):
+    """Copilot review finding on PR #303: the docstring previously claimed
+    a symlink pointing outside the root was an open gap, but
+    Path.resolve() follows symlinks and already catches this — verified
+    directly rather than trusting the (now-corrected) prose."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    secret = outside / "secret.txt"
+    secret.write_text("secret")
+    symlink = root / "link.txt"
+    symlink.symlink_to(secret)
+
+    claim = f"Done. Created the report at {symlink}."
+    result = scanner.scan(claim, "Copilot", accessible_roots=[str(root)])
+    assert result["verification"]["claims"][0]["status"] == "UNVERIFIABLE"
+    assert result["verification"]["pass_count"] == 0
+
+
+def test_is_valid_rate_rejects_huge_int_without_overflow_error(tmp_path):
+    """Copilot review finding on PR #303: math.isfinite() raises
+    OverflowError for a Python int too large to represent as a C double
+    (e.g. from a claims JSON file); the [0,1] bounds check must run first
+    since int/float comparison never overflows."""
+    assert scanner._is_valid_rate(10**400) is False
+    assert scanner._is_valid_rate(-(10**400)) is False
+
+
+def test_cli_scan_rejects_huge_int_claimed_pass_rate_cleanly(tmp_path):
+    real_file = tmp_path / "artifact.json"
+    real_file.write_text("{}")
+    input_path = tmp_path / "claim.txt"
+    input_path.write_text(f"Done. Created the report at {real_file}.")
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps({"claimed_pass_rate": 10**400}))
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", str(input_path), "--predictor", "Copilot",
+        "--accessible-root", str(tmp_path), "--claims", str(claims_path),
+    ])
+    assert scanner.cmd_scan(args) == 2
+
+
+def test_claimed_all_true_string_is_not_coerced_to_true(tmp_path):
+    """Copilot review finding on PR #303: `1.0 if claims.get(...) else 0.0`
+    treated any non-empty string (e.g. the JSON string "false") as truthy,
+    silently resolving an invalid type to 1.0 instead of rejecting it."""
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps({"claimed_all_true": "false"}))
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", "x", "--predictor", "Copilot", "--claims", str(claims_path),
+    ])
+    rate = scanner.resolve_claimed_pass_rate(args)
+    assert rate == "false"
+    assert not scanner._is_valid_rate(rate)
+
+
+def test_claimed_all_true_real_bool_still_works(tmp_path):
+    claims_path = tmp_path / "claims_true.json"
+    claims_path.write_text(json.dumps({"claimed_all_true": True}))
+    claims_path_false = tmp_path / "claims_false.json"
+    claims_path_false.write_text(json.dumps({"claimed_all_true": False}))
+    parser = scanner.build_parser()
+
+    args_true = parser.parse_args([
+        "scan", "--input", "x", "--predictor", "Copilot", "--claims", str(claims_path),
+    ])
+    assert scanner.resolve_claimed_pass_rate(args_true) == 1.0
+
+    args_false = parser.parse_args([
+        "scan", "--input", "x", "--predictor", "Copilot", "--claims", str(claims_path_false),
+    ])
+    assert scanner.resolve_claimed_pass_rate(args_false) == 0.0
+
+
+def test_claims_file_non_dict_json_is_rejected_cleanly(tmp_path):
+    """Copilot review finding on PR #303: a syntactically valid --claims
+    file containing null, [], or a scalar used to crash with
+    AttributeError on .get() instead of reaching validation."""
+    parser = scanner.build_parser()
+    for invalid_top_level in (None, [], 5, "oops"):
+        claims_path = tmp_path / "claims.json"
+        claims_path.write_text(json.dumps(invalid_top_level))
+        args = parser.parse_args([
+            "scan", "--input", "x", "--predictor", "Copilot", "--claims", str(claims_path),
+        ])
+        rate = scanner.resolve_claimed_pass_rate(args)  # must not raise
+        assert not scanner._is_valid_rate(rate)
+
+
+def test_cli_scan_rejects_non_dict_claims_file_cleanly(tmp_path):
+    real_file = tmp_path / "artifact.json"
+    real_file.write_text("{}")
+    input_path = tmp_path / "claim.txt"
+    input_path.write_text(f"Done. Created the report at {real_file}.")
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps(None))
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", str(input_path), "--predictor", "Copilot",
+        "--accessible-root", str(tmp_path), "--claims", str(claims_path),
+    ])
+    assert scanner.cmd_scan(args) == 2  # must not raise AttributeError
