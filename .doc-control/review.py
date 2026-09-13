@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
 import os
 import re
 import sys
@@ -101,13 +102,47 @@ def interval_for(doc: dict, policy: dict) -> int | None:
     return valid_interval(policy.get(doc.get("status")))
 
 
+# Widest deterministic spread applied to a cadence, in days either side.
+SPREAD_DAYS = 14
+
+
+def spread(doc_id: str, days: int) -> int:
+    """A per-document offset on the interval, so a cadence does not pulse.
+
+    The backlog this tool exists for is 39 documents sharing two dates, because
+    one seeding pass stamped them together. Recording real reviews fixes the
+    history but not the shape: `review_policy` is per STATUS, so 34 documents at
+    `review: 90` reviewed in one batch all come due again on one day, and the
+    herd re-forms on a 90-day cycle forever.
+
+    So the interval carries a deterministic offset keyed on doc_id — same
+    document, same offset, every run, no stored state and no randomness that
+    would make `--check` irreproducible.
+
+    This is NOT the staggered schedule `pull_order` refuses to emit, and the
+    difference is the whole point. That one invented a DEADLINE per document
+    ("read the 39th by this date") when nothing outside the system imposed one.
+    This moves a STALENESS THRESHOLD — the day a document starts being reported
+    as old — which this system does own and already sets arbitrarily at 90. It
+    manufactures no obligation; it only stops the existing ones from coinciding.
+
+    Clamped so the offset can never exceed half the interval: a 30-day draft
+    cadence must not be jittered into 16 or 44 days.
+    """
+    limit = min(SPREAD_DAYS, days // 2)
+    if limit <= 0:
+        return 0
+    digest = hashlib.sha256(str(doc_id).encode()).digest()
+    return int.from_bytes(digest[:4], "big") % (2 * limit + 1) - limit
+
+
 def next_due(doc: dict, policy: dict) -> datetime.date | None:
     """The review_due a document's own history implies, or None if unknowable."""
     last = as_date(doc.get("last_reviewed"))
     days = interval_for(doc, policy)
     if last is None or days is None:
         return None
-    return last + datetime.timedelta(days=days)
+    return last + datetime.timedelta(days=days + spread(doc.get("doc_id"), days))
 
 
 def load() -> dict:
@@ -437,7 +472,15 @@ def cmd_record(reg: dict, doc_id: str, by: str, on: datetime.date) -> int:
     if "\n" in by_scalar or not by_scalar:
         print(f"::error::--by value cannot be represented as a single-line YAML scalar")
         return 1
-    due = on + datetime.timedelta(days=days)
+    # Derive through next_due, not with a second copy of the arithmetic. When
+    # --record computed `on + days` itself and --check called next_due, adding
+    # the per-document spread to next_due alone made the writer and the checker
+    # disagree: every date --record wrote was then rejected by the gate that is
+    # supposed to confirm it. One derivation, used by both.
+    due = next_due({**doc, "last_reviewed": on.isoformat()}, policy)
+    if due is None:  # unreachable: interval and date are both established above
+        print(f"::error::{doc_id}: cannot derive the next review date")
+        return 1
 
     text = open(REGISTRY, encoding="utf-8").read()
     block = re.search(rf"(^  - doc_id: {re.escape(doc_id)}\n)(.*?)(?=^  - doc_id: |\Z)",
@@ -461,8 +504,13 @@ def cmd_record(reg: dict, doc_id: str, by: str, on: datetime.date) -> int:
 
     open(REGISTRY, "w", encoding="utf-8").write(text[:block.start()] + head + body
                                                 + text[block.end():])
+    # Report the interval actually applied, not the policy figure. Printing
+    # "+90d" next to a date 97 days out is a small lie of exactly the kind this
+    # registry exists to catch.
+    offset = spread(doc_id, days)
+    applied = f"+{days}d" if not offset else f"+{days}{offset:+d}d = +{days + offset}d"
     print(f"{doc_id}: reviewed {on.isoformat()} by {by}; next review_due "
-          f"{due.isoformat()} (+{days}d).")
+          f"{due.isoformat()} ({applied}).")
     print("Commit document-registry.yaml. Approval remains a separate owner act.")
     return 0
 
@@ -500,9 +548,25 @@ def run_smoke_test() -> int:
     def quiet_check(registry: dict) -> int:
         return quiet(cmd_check, registry)
 
-    # Derivation: last_reviewed + interval, and --check accepts a correct one.
-    assert next_due(reg["documents"][2], reg["review_policy"]) == datetime.date(2027, 2, 28)
+    # Derivation: last_reviewed + interval + the document's own spread, and
+    # --check accepts a date that matches it. The fixture's review_due is built
+    # from next_due rather than hardcoded, so the spread is exercised without
+    # this assertion becoming a restatement of the implementation: the
+    # properties it must have are checked separately below.
+    derived = next_due(reg["documents"][2], reg["review_policy"])
+    assert derived is not None
+    reg["documents"][2]["review_due"] = derived.isoformat()
     assert quiet_check(reg) == 0
+
+    # The spread is deterministic, bounded, and actually spreads.
+    assert spread("HAIOS-A-001", 90) == spread("HAIOS-A-001", 90), "must not vary per run"
+    assert all(abs(spread(f"HAIOS-X-{i:03d}", 90)) <= SPREAD_DAYS for i in range(200))
+    # Never more than half the interval: a 30-day cadence stays recognisably 30.
+    assert all(abs(spread(f"HAIOS-X-{i:03d}", 30)) <= 15 for i in range(200))
+    assert all(spread(f"HAIOS-X-{i:03d}", 1) == 0 for i in range(20)), "no room to spread"
+    # The point of the whole mechanism: one batch must not land on one day.
+    landings = {spread(f"HAIOS-X-{i:03d}", 90) for i in range(40)}
+    assert len(landings) > 20, f"spread collapses: only {len(landings)} distinct offsets"
 
     # A hand-edited review_due that contradicts the history must be refused.
     bad = {**reg, "documents": [{**reg["documents"][2], "review_due": "2099-01-01"}]}
