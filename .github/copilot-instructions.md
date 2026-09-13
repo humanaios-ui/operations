@@ -60,13 +60,22 @@ the files from the corrupted paste.
 - **Any file an issue marks `[FROZEN]` or gives a SHA256 for** must land byte-exact.
   Hash it after placement (`sha256sum <file>`) and compare; if it doesn't match,
   stop and comment rather than trying to fix it forward.
-- **`document-registry.yaml`** and **`tools-manifest.yaml`** are generated/curated
-  registries, not free text — see §5 and §6 below instead of hand-editing them.
+- **`CONTROLLED_DOCUMENTS.md`** and **`TOOLS_MANIFEST.md`** are pure rendered
+  output — never hand-edit either one. `document-registry.yaml` and
+  `tools-manifest.yaml` are their sources and are meant to be edited directly
+  for the fields that aren't mechanically derived — see §5 and §6.
 
 ## 5. Adding or changing a tool in `tools/`, `scripts/`, or `bin/`
 
-Tools follow the Builder v1.7 standard (`TOOLS_TEMPLATE.md`). A new tool file needs,
-at minimum:
+The checklist below is enforced for **Python** tools by
+`builder_compliance_scanner_v1.0.py` and CI's `builder-lint.yml` (which only
+runs on `tools/**/*.py`). `.tool-control/scan.py` also registers `.js`, `.sh`,
+and extensionless tools, but the marker checklist itself is Python-specific —
+for another language, match the intent (a name, a version, a stated purpose, a
+smoke test) in that language's own idiom; the manifest step below still
+applies regardless of language.
+
+A new Python tool file needs, at minimum:
 
 - A module docstring containing the literal phrase `Builder v1.7 compliant` and the
   word `HumanAIOS`.
@@ -80,22 +89,33 @@ Then register the file — a tool on disk that isn't in the manifest fails CI
 (`tool-manifest.yml`, check name **"Tool manifest integrity"**):
 
 ```bash
-python3 .tool-control/scan.py       # registers new/changed tool files
+python3 .tool-control/scan.py       # refreshes DERIVED fields from the tree, adds new files
 python3 .tool-control/render.py     # regenerates TOOLS_MANIFEST.md to match
 python3 .tool-control/validate.py   # the merge gate itself, run it yourself first
 ```
 
-Never hand-edit `tools-manifest.yaml` or `TOOLS_MANIFEST.md` — both are generated
-from the working tree; edit the tool file and rerun `scan.py` instead. A tool
-declaring `TOOL_ZONE = 2` or `3` needs Z2 ratification named in the issue — it
-cannot self-declare a waiver (see `.tool-control/README.md`).
+`scan.py` only overwrites **DERIVED** fields (`version`, `interface`, `lang`,
+`smoke_test`, `builder_markers`, `session`) — it preserves **CURATED** ones
+(`owner`, `purpose`, `category`, `status`, `zone`, `notes`, ...). After running
+it for a new tool, hand-edit `tools-manifest.yaml` to fill in at least `owner`,
+`purpose`, and a real `category` for your entry (an unclassified, ownerless
+`draft` entry passes CI today as advisory debt, but isn't the target). What you
+must never hand-edit is **`TOOLS_MANIFEST.md`** itself — change
+`tools-manifest.yaml` and rerun `render.py` instead. A tool declaring
+`TOOL_ZONE = 2` or `3` needs Z2 ratification named in the issue — it cannot
+self-declare a waiver (see `.tool-control/README.md`).
 
 ## 6. Adding or changing a controlled document
 
 Most `.md` files in this repo are free-form. A **controlled** document is one whose
 frontmatter declares a `doc_id` (format `HAIOS-<AREA>-<nnn>`) — those must be
 registered in `document-registry.yaml` first, or `.doc-control/validate.py` fails
-the PR with "orphan doc_id". If you're not adding a governance/research-of-record
+the PR with "orphan doc_id". Unlike the tool manifest, `document-registry.yaml`
+has no scan step: it's a curated YAML list you hand-edit directly, adding your
+`doc_id` entry with its `title`/`area`/`canonical_path`/`status`. After
+registering, run `python3 .doc-control/render.py` to regenerate
+`CONTROLLED_DOCUMENTS.md` from it — like `TOOLS_MANIFEST.md`, that rendered
+index is never hand-edited. If you're not adding a governance/research-of-record
 document, you almost certainly don't need frontmatter at all — most tool READMEs,
 specs, and this file itself carry none.
 
@@ -107,6 +127,7 @@ PR is running the same commands locally first:
 ```bash
 python3 tools/repo_health.py --strict                 # repo vitality gate
 python3 .doc-control/validate.py                       # document-control gate
+python3 .doc-control/render.py --check                 # CONTROLLED_DOCUMENTS.md in sync
 python3 .tool-control/scan.py --check                  # manifest matches the tree
 python3 .tool-control/validate.py                      # tool-control structural gate
 python3 .tool-control/render.py --check                # TOOLS_MANIFEST.md in sync
