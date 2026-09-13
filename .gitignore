@@ -40,6 +40,9 @@ dist/
 # Tool reports (machine-readable run metadata — not committed)
 reports/
 outputs/
+
+# Ledger writer locks (per-machine mutex file, not ledger data)
+ledgers/*.lock
 # ...except the funding pipeline's reports/, which holds human-authored
 # funding docs (Longview apps, roadmap, opportunities), not tool metadata.
 !humanaios-funding-pipeline/reports/
