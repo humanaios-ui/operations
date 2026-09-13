@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**149 registered tools** · 2 MCP servers · 0 excluded · 119 carrying Builder v1.7 markers
+**153 registered tools** · 2 MCP servers · 0 excluded · 122 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 149 |
-| — status `draft` | 148 |
-| — status `archived` | 1 |
-| Builder v1.7 markers present | 119 |
+| Registered tools | 153 |
+| — status `draft` | 151 |
+| — status `archived` | 2 |
+| Builder v1.7 markers present | 122 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -124,7 +124,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-109 | repo_health | `tools/repo_health.py` | 1.0.0 | 1 | draft | — | repo_health.py — a basic, offline, deterministic self-diagnostic for a HumanAIOS repo. |
 | HAIOS-TOOL-138 | tool_trace_reader | `tools/tool_trace_reader_v1_0.py` | 1.0.0 | 1 | draft | — | tool_trace_reader_v1_0.py |
 | HAIOS-TOOL-142 | z2_queue | `tools/z2_queue_v1_0.py` | 1.1.0 | 1 | draft | — | Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first, flags ≥3 sessions unresolved. |
-| HAIOS-TOOL-156 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
+| HAIOS-TOOL-158 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
 
 ## Governance — `governance_tool` (9)
 
@@ -136,9 +136,9 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.1.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
 | HAIOS-TOOL-154 | z1_inbox_renderer | `.z1-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render Z1_INBOX_INDEX.md from z1-inbox/INDEX.yaml. |
 | HAIOS-TOOL-155 | z1_inbox_validator | `.z1-control/validate.py` | 1.0.0 | 1 | draft | no-builder-markers | z1-inbox/ is where Z1 stages proposals for Z2. Until now nothing said which of |
-| HAIOS-TOOL-157 | resource_ledger | `tools/resource_ledger_v0_1.py` | 0.1.0 | 1 | draft | — | resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims, |
-| HAIOS-TOOL-158 | molt_cycle_tier0_v0_1 | `tools/molt_cycle_tier0_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies. |
-| HAIOS-TOOL-159 | smag_feedback | `tools/smag_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop. |
+| HAIOS-TOOL-157 | molt_cycle_tier0_v0_1 | `tools/molt_cycle_tier0_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies. |
+| HAIOS-TOOL-159 | resource_ledger | `tools/resource_ledger_v0_1.py` | 0.1.0 | 1 | draft | — | resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims, |
+| HAIOS-TOOL-160 | smag_feedback | `tools/smag_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop. |
 
 ## Infrastructure — `infrastructure_tool` (20)
 
