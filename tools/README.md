@@ -1,5 +1,11 @@
 # HumanAIOS Operations — Tools Directory
 
+> **The registry of record is [`tools-manifest.yaml`](../tools-manifest.yaml)**, rendered to
+> [`TOOLS_MANIFEST.md`](../TOOLS_MANIFEST.md) and gated by CI (`.tool-control/`).
+> It covers every tool in the repo; this page is a curated **narrative guide** to the
+> most-used ones, grouped by workflow, and is not exhaustive. When the two disagree,
+> the manifest is right. See [`.tool-control/README.md`](../.tool-control/README.md).
+
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/tools/README.md`
 **Last updated:** 2026-06-09 · S-060926
 **Builder standard:** v1.7 (all tools)
