@@ -117,34 +117,40 @@ Score = Impact + Σ (Impact of items this unblocks)
 
 ---
 
-### Q-RFM-01 ◆ READY
+### Q-RFM-01 ◆ BLOCKED
 
 **Title:** REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner
 
 | field | value |
 |---|---|
-| **status** | READY |
-| **score** | 7 |
-| **impact** | 3 |
-| **unblock_impact_sum** | 4 |
+| **status** | BLOCKED (on Z2) |
+| **score** | 7 (proposed — Z2 ratifies scores) |
+| **impact** | 3 (proposed) |
+| **unblock_impact_sum** | 4 (proposed) |
 | **session_type** | desktop |
 | **tool_zone** | 1 (execute) |
+
+**Blocked on:** Z2 ratification. This file's own rule — *"Z1 proposes, Z2 ratifies by hash, only READY top-score
+rows may begin"* — reserves both "new rows added to the queue" and "status transitions (BLOCKED ↔ READY)" to Z2
+(§Ratification Authority). A Z1-authored row marked READY would be Z1 self-granting an executable status, and
+`ratification_hash` at line 11 is still pending. Z2 moves this to READY.
 
 **Unblocks:**
 - Q-RFM-02 (cost-class taxonomy per REGISTRY_SPEC.md:45 — the blocker on every UNSCORED FMEA cell) — impact 2
 - Entry-level remediation of the 44 measured defects, which cannot be scoped without the measurement — impact 2
 
 **Provenance (measured 2026-09-13 against REGISTERED.md @ 1e1b518):**
-- 131 entries; 44 entry-level defects / 524 opportunities → 91.6% FPY, 83,969 DPMO, ~2.9σ (same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the "clean reference bar (0/7)")
-- Ordering 29/131 non-conforming to `REGISTRY_SPEC.md:114`; 25 entries appended past the `## Changelog` terminal section
+- 135 entries; 98 entry-level defects / 540 opportunities → 81.9% FPY, 181,481 DPMO, ~2.4σ (same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the "clean reference bar (0/7)")
+- Schema conformance 57.0% against the full declared ten-field schema (91.1% against the core five)
+- Ordering 29/135 non-conforming to `REGISTRY_SPEC.md:114`; 25 entries appended past the `## Changelog` boundary
 - 10 of 45 F-entries absent from the quick index; IC-036 cited in the IC roll-up with no body entry
 - 3 of 6 classes REGISTRY_SPEC.md defines (D, R, GD) hold zero entries
-- Census divergence unresolved: `registered_findings_validator_v1_0.py` counts 130 entries (F=47/H=47/IC=36), this scanner counts 131 (F=45/IC=43/H=42/other=1)
+- Census divergence unresolved: the findings validator counts 130, `repo_health.py` 126, this scanner 135 (131 before review corrected its entry discovery)
 
 **Acceptance Criteria:**
-1. `REGISTERED_FAILURE_MODES.md` maps RFM-01…RFM-19 → SO-01…SO-14 → industrial failure modes, every count tool-generated
-2. `tools/registered_failure_mode_scan_v0_1.py self-test` passes, including the assertions that the F-32/F-33 honest-gap whitelist suppresses those and that a non-whitelisted phantom is still caught
-3. `scan` reproduces 44/524 against the pinned SHA on repeat runs
+1. `REGISTERED_FAILURE_MODES.md` maps RFM-01…RFM-19 → SO-01…SO-14 → industrial failure modes, every count tool-generated and re-checked by `scan --verify-doc`
+2. `tools/registered_failure_mode_scan_v0_1.py self-test` passes (34 assertions), including that the F-32/F-33 honest-gap whitelist suppresses those, that a non-whitelisted phantom is still caught, and that a missing required input errors rather than passing
+3. `scan` reproduces 98/540 against the pinned SHA on repeat runs
 4. `REGISTERED.md` byte-identical to the pinned SHA — the map describes the registry, it does not modify it
 5. Z2 rules on `--enforce`, on CI wiring, and on the census divergence
 
@@ -233,7 +239,7 @@ Per `z1-inbox/2026-09-06/registry_block_and_manifest_090626_v2.md` §Landing ord
 ## Appended Events
 
 ```
-2026-09-13 — Z1 proposed Q-RFM-01 (REGISTERED_FAILURE_MODES.md + registered_failure_mode_scan_v0_1.py); REGISTERED.md measured at 91.6% FPY / 83,969 DPMO; awaiting Z2 ratification
+2026-09-13 — Z1 proposed Q-RFM-01 (REGISTERED_FAILURE_MODES.md + registered_failure_mode_scan_v0_1.py); REGISTERED.md measured at 81.9% FPY / 181,481 DPMO; row BLOCKED pending Z2 — Z1 may not mark its own row READY
 2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | PRIORITY_QUEUE.md v1_1 ratified | Phase 0 READY
 2026-09-09 — Z1 created PRIORITY_QUEUE.md baseline from blueprint Q-GOVERNANCE-02 spec
 ```

@@ -11,7 +11,7 @@ Detects the machine-detectable subset of the registry failure-mode taxonomy
 first-pass yield / DPMO / sigma baseline using the same methodology as
 audits/T1_DEFECT_BASELINE_S070726.md.
 
-Ten checks, mapped to the taxonomy:
+Eleven checks, mapped to the taxonomy:
 
   RFM-06  required_fields        entry missing a field the schema declares
   RFM-07  frontmatter_fence_form `id:` rendered as a markdown heading rather
@@ -33,6 +33,15 @@ Ten checks, mapped to the taxonomy:
                                   entries -- a declared channel nothing has
                                   ever flowed through
   RFM-17  header_staleness       `Last updated` older than the newest entry
+
+Entry discovery covers three forms, because an id-only scan silently drops the
+malformed entries this tool exists to measure: fenced front matter keyed on
+`id:`, correction entries keyed on `correction_to:` (`class: F-correction`),
+and legacy `### <ID> — Title` headings carrying bold-prose fields or nothing
+at all (REGISTERED.md:2302 H-ELICIT-01, and the H-1 / H-42 / H-LE-02 one-line
+entries). Legacy entries count as front-matter loss under RFM-07 and enter the
+population, so the denominator reflects the registry rather than the subset
+that happens to be parseable.
 
 Each check is split into a collect() step (real file I/O) and an evaluate()
 step (a pure function over already-parsed data). That split is what makes
@@ -65,7 +74,7 @@ Usage:
     # validate the scanner against synthetic fixtures before trusting it
     python3 tools/registered_failure_mode_scan_v0_1.py self-test
 
-Advisory by default. `--enforce` is opt-in because the registry carries 44
+Advisory by default. `--enforce` is opt-in because the registry carries 98
 pre-existing entry-level defects at the time of writing; shipping this
 blocking would fail CI on contact, which is how a gate gets disabled rather
 than obeyed. That default is itself the IC-050 pattern (a gate that only
@@ -109,8 +118,17 @@ PASS, FAIL, SKIP, ERROR = "PASS", "FAIL", "SKIP", "ERROR"
 # gaps -- see REGISTERED.md quick index. Not defects.
 WHITELIST_INDEX_ONLY = {"F-32", "F-33"}
 
-# Fields the entry-header schema at REGISTERED.md:16-32 declares.
-REQUIRED_FIELDS = ["name", "status", "class", "date_registered", "session_registered"]
+# Every field the entry-header schema at REGISTERED.md:16-32 declares. The
+# schema says entries "must open with" this block, so the whole list is the
+# contract -- checking a convenient subset would let the measurement flatter
+# the registry. CORE_FIELDS is reported alongside as the actionable subset,
+# not as the standard.
+REQUIRED_FIELDS = [
+    "name", "status", "class", "date_registered", "date_origin",
+    "session_registered", "principles_triggered", "substrate", "tags",
+    "superseded_by",
+]
+CORE_FIELDS = ["name", "status", "class", "date_registered", "session_registered"]
 
 # Classes REGISTRY_SPEC.md defines. D/R/GD are ratified but unpopulated.
 SPEC_CLASSES = ["F", "IC", "H", "D", "R", "GD"]
@@ -131,7 +149,21 @@ CURLY = "“”‘’"
 _ID_RE = re.compile(
     r'^\s*(?:#+\s*)?id\s*:\s*["“”\']?([A-Za-z0-9\-\_]+)["“”\']?\s*$'
 )
-_FM_FIELD_RE = re.compile(r'^\s*(?:#+\s*)?(id|name|status|class)\s*:')
+# Quote hygiene must cover every declared field, not a convenient four:
+# a curly quote in `date_registered` breaks parsing exactly as one in `id` does.
+_FM_FIELD_RE = re.compile(
+    r'^\s*(?:#+\s*)?(id|' + "|".join(REQUIRED_FIELDS) + r')\s*:'
+)
+# Correction entries (`class: F-correction` / `IC-correction`) are properly
+# fenced but key on `correction_to:` rather than `id:`. An alternate declared
+# key is not a missing one, so they must not count as front-matter loss.
+_CORRECTION_KEY_RE = re.compile(r'^\s*correction_to\s*:')
+
+# A heading-style entry header, e.g. "### H-ELICIT-01 — Elicitation Surface...".
+# The id must carry a hyphen so the F quick-index table header does not match.
+_HEADING_ENTRY_RE = re.compile(
+    r'^#{3}\s+((?:F|IC|H|NM|D|R|GD|Z2)-[A-Za-z0-9_\-]+)\s*[\u2014\u2013-]'
+)
 _SECTION_RE = re.compile(
     r'^#{2,3}\s.*(F-class|IC-class|H-class|NM-class|P-IMPROVE|Changelog|Governance Ratifications)'
 )
@@ -164,6 +196,13 @@ class Entry:
     id_line_raw: str
     block: str
     section: str
+    # True when the entry was found only by its `###` heading because it
+    # carries no machine-readable front matter at all. Such an entry is
+    # invisible to any fence-based parser -- including this one, until it
+    # looked for them -- which is the same failure RFM-07 names. Counting it
+    # in the population is the point: an instrument that silently drops the
+    # malformed entries it exists to measure under-reports by construction.
+    legacy: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -176,8 +215,15 @@ def collect_registry(path: Path) -> Dict[str, Any]:
     return parse_registry(text)
 
 
-def collect_priority_queue(path: Path) -> str:
-    return path.read_text(encoding="utf-8") if path.exists() else ""
+def collect_priority_queue(path: Path) -> Optional[str]:
+    """Return the file's text, or None when it is absent.
+
+    None and "" must stay distinguishable: an absent input is an ERROR the
+    gate has to fail on, not a check that quietly passes. Collapsing both to
+    "" is how a gate reports success without having run -- the IC-041
+    audit-false-pass genus this scanner exists to detect.
+    """
+    return path.read_text(encoding="utf-8") if path.exists() else None
 
 
 def parse_registry(text: str) -> Dict[str, Any]:
@@ -210,6 +256,38 @@ def parse_registry(text: str) -> Dict[str, Any]:
         end = starts[n + 1][1] - 1 if n + 1 < len(starts) else len(lines)
         block = "\n".join(lines[ln - 1:min(ln + 25, end)])
         entries.append(Entry(eid, ln, lines[ln - 1], block, section_of(ln)))
+
+    # Legacy entries: a `### <ID> — Title` heading with no `id:` line anywhere
+    # before the next heading. These carry bold-prose fields (`**Class:** H`)
+    # instead of front matter, so an id-based scan never sees them.
+    id_line_nums = {ln for _, ln in starts}
+    id_line_nums |= {i for i, l in enumerate(lines, 1)
+                     if _CORRECTION_KEY_RE.match(l)}
+    # A malformed `## id: "F-52"` line is itself a heading. Treating it as a
+    # boundary would stop the lookahead before the id it contains and flag the
+    # entry as legacy on top of the fence-form defect it already has -- double
+    # counting the same defect. Exclude id-bearing headings from the boundary.
+    heading_lines = [i for i, l in enumerate(lines, 1)
+                     if re.match(r'^#{2,3}\s', l) and not _ID_RE.match(l)]
+    for i, l in enumerate(lines, 1):
+        m = _HEADING_ENTRY_RE.match(l)
+        if not m:
+            continue
+        # Look ahead only as far as the next heading. A fixed line window would
+        # see the *following* entry's `id:` and wrongly clear this one -- which
+        # is how the first version of this check missed its own fixture.
+        nxt = next((h for h in heading_lines if h > i), len(lines) + 1)
+        if any(i < j <= nxt for j in id_line_nums):
+            continue
+        # The documented honest gaps are headings by design, with no entry
+        # behind them deliberately. Counting them as malformed entries is the
+        # IC-037-genus false positive this scanner is supposed to avoid.
+        if m.group(1) in WHITELIST_INDEX_ONLY:
+            continue
+        end = min(nxt - 1, len(lines))
+        entries.append(Entry(m.group(1), i, l, "\n".join(lines[i - 1:end]),
+                             section_of(i), legacy=True))
+    entries.sort(key=lambda e: e.line)
 
     # F quick index rows (the table above the first class section)
     index_end = sections[0][0] if sections else len(lines)
@@ -244,7 +322,8 @@ def parse_registry(text: str) -> Dict[str, Any]:
 
 def evaluate_frontmatter_fence_form(entries: List[Entry]) -> CheckResult:
     """RFM-07: `id:` rendered as a heading escapes fence-based parsers."""
-    bad = [(e.entry_id, e.line) for e in entries if e.id_line_raw.lstrip().startswith("#")]
+    bad = [(e.entry_id, e.line) for e in entries
+           if e.legacy or e.id_line_raw.lstrip().startswith("#")]
     return CheckResult(
         check_id="frontmatter_fence_form",
         rfm="RFM-07",
@@ -313,7 +392,9 @@ def _expected_section(entry_id: str) -> Optional[str]:
 CLASS_SECTIONS = ("F-class", "IC-class", "H-class")
 
 
-def evaluate_ordering_conformance(entries: List[Entry]) -> CheckResult:
+def evaluate_ordering_conformance(
+        entries: List[Entry],
+        sections: Optional[List[Tuple[int, str]]] = None) -> CheckResult:
     """RFM-09: REGISTRY_SPEC.md:114 declares F -> IC -> H -> *then other classes*.
 
     An entry whose prefix is F/IC/H must sit in its own class block. An entry
@@ -332,6 +413,22 @@ def evaluate_ordering_conformance(entries: List[Entry]) -> CheckResult:
             continue
         if exp not in e.section:
             bad.append((e.entry_id, e.line, e.section))
+
+    # Per-entry placement is only half the rule. The class blocks themselves
+    # must appear in F -> IC -> H order; a registry whose H block preceded its
+    # F block would put every entry "in its own section" and still violate
+    # REGISTRY_SPEC.md:114.
+    order_violation = None
+    if sections:
+        seen = [c for c in (next((c for c in CLASS_SECTIONS if c in label), None)
+                            for _, label in sections) if c]
+        first = []
+        for c in seen:
+            if c not in first:
+                first.append(c)
+        expected = [c for c in CLASS_SECTIONS if c in first]
+        if first != expected:
+            order_violation = f"class blocks appear as {first}, expected {expected}"
     return CheckResult(
         check_id="ordering_conformance",
         rfm="RFM-09",
@@ -340,14 +437,32 @@ def evaluate_ordering_conformance(entries: List[Entry]) -> CheckResult:
         severity="warning",
         defects=len(bad),
         opportunities=len(entries),
-        evidence=[f"{eid} (L{ln}) sits under {sec[:50]}" for eid, ln, sec in bad],
+        evidence=([f"{eid} (L{ln}) sits under {sec[:50]}" for eid, ln, sec in bad]
+                  + ([order_violation] if order_violation else [])),
         reason="entry outside the class block REGISTRY_SPEC.md:114 declares" if bad else None,
     )
 
 
-def evaluate_post_terminal_append(entries: List[Entry]) -> CheckResult:
-    """RFM-10: entries appended after the Changelog form a shadow zone."""
-    bad = [(e.entry_id, e.line) for e in entries if "Changelog" in e.section]
+def evaluate_post_terminal_append(
+        entries: List[Entry],
+        sections: Optional[List[Tuple[int, str]]] = None) -> CheckResult:
+    """RFM-10: entries appended after the Changelog form a shadow zone.
+
+    Compares line positions against the Changelog boundary rather than the
+    current section label. Matching on the label alone would miss an entry
+    appended under a *later* terminal section (REGISTERED.md ends with
+    `## Governance Ratifications`), which is after the Changelog and so
+    equally in the shadow zone.
+    """
+    changelog_line = None
+    for ln, label in (sections or []):
+        if "Changelog" in label:
+            changelog_line = ln
+            break
+    if changelog_line is None:
+        bad = [(e.entry_id, e.line) for e in entries if "Changelog" in e.section]
+    else:
+        bad = [(e.entry_id, e.line) for e in entries if e.line > changelog_line]
     return CheckResult(
         check_id="post_terminal_append",
         rfm="RFM-10",
@@ -463,9 +578,11 @@ def evaluate_ratification_hash_form(text: str) -> CheckResult:
     chars. A 7-8 char git SHA proves when code landed, not what was approved.
     """
     bad = []
-    for m in re.finditer(r'\*\*Ratification Hash:\*\*\s*([0-9a-fA-F]+)', text):
+    # Capture the whole token, not just its hex prefix, so a non-hex or
+    # over-long value is judged rather than silently passing.
+    for m in re.finditer(r'\*\*Ratification Hash:\*\*\s*(\S+)', text):
         h = m.group(1)
-        if len(h) < 64:
+        if not re.fullmatch(r'[0-9a-fA-F]{64}', h):
             bad.append(h)
     return CheckResult(
         check_id="ratification_hash_form",
@@ -475,20 +592,23 @@ def evaluate_ratification_hash_form(text: str) -> CheckResult:
         severity="critical",
         defects=len(bad),
         opportunities=None,
-        evidence=[f"'{h}' is {len(h)} hex chars; a decision signature is 64" for h in bad],
+        evidence=[f"'{h}' is {len(h)} chars; a decision signature is exactly 64 hex"
+                  for h in bad],
         reason="git commit SHA recorded where sha256(candidate|by|at|decision) is specified"
         if bad else None,
     )
 
 
-def evaluate_cross_artifact_ratification(pq_text: str, registry_text: str) -> CheckResult:
+def evaluate_cross_artifact_ratification(
+        pq_text: Optional[str], registry_text: str) -> CheckResult:
     """RFM-14: an artifact's ratification state contradicts itself or the registry."""
     ev = []
-    if not pq_text:
+    if pq_text is None:
         return CheckResult(
             check_id="cross_artifact_ratification", rfm="RFM-14",
-            title="Cross-artifact ratification desync", status=SKIP,
-            severity="warning", reason="PRIORITY_QUEUE.md not readable",
+            title="Cross-artifact ratification desync", status=ERROR,
+            severity="critical",
+            reason="PRIORITY_QUEUE.md absent — required input, check could not run",
         )
     pending = bool(re.search(r'ratification_hash.*\|\s*—?\s*\(?pending', pq_text, re.I))
     self_ratified = bool(re.search(r'PRIORITY_QUEUE\.md\s*v?1[._]1\s+ratified', pq_text, re.I))
@@ -552,11 +672,11 @@ def run_scan(registry_path: Path, pq_path: Path) -> Dict[str, Any]:
     entries = parsed["entries"]
 
     results = [
-        evaluate_ordering_conformance(entries),
+        evaluate_ordering_conformance(entries, parsed["sections"]),
         evaluate_required_fields(entries),
         evaluate_frontmatter_fence_form(entries),
         evaluate_quote_hygiene(entries),
-        evaluate_post_terminal_append(entries),
+        evaluate_post_terminal_append(entries, parsed["sections"]),
         evaluate_index_desync(entries, parsed["index_f"]),
         evaluate_rollup_orphan(entries, parsed["rollup_ic"]),
         evaluate_class_starvation(entries),
@@ -573,6 +693,30 @@ def run_scan(registry_path: Path, pq_path: Path) -> Dict[str, Any]:
         "baseline": compute_baseline(results, len(entries)),
         "citation": SPEC_CITATION,
     }
+
+
+def verify_doc(report: Dict[str, Any], doc_path: Path) -> Tuple[bool, List[str]]:
+    """Check that the published map's headline numbers match this scan.
+
+    RFM-11 is "a hand-maintained table stops tracking the body". A document
+    asserting that failure mode while carrying hand-copied counts would be an
+    instance of it. This makes the claim falsifiable: if the registry changes
+    and the map is not regenerated, `--verify-doc` fails.
+    """
+    if not doc_path.exists():
+        return False, [f"{doc_path} not found"]
+    text = doc_path.read_text(encoding="utf-8")
+    b = report["baseline"]
+    expect = {
+        "entry count": str(report["entries_parsed"]),
+        "defect count": str(b["defects"]),
+        "opportunity count": str(b["opportunities"]),
+        "first-pass yield": f"{b['fpy']*100:.1f}%",
+        "DPMO": f"{b['dpmo']:,.0f}",
+    }
+    problems = [f"{label} {val!r} not found in {doc_path.name}"
+                for label, val in expect.items() if val not in text]
+    return (not problems), problems
 
 
 def render_report(report: Dict[str, Any]) -> str:
@@ -629,7 +773,12 @@ name: "alpha"
 status: REGISTERED
 class: F
 date_registered: "2026-08-15"
+date_origin: "2026-08-01"
 session_registered: "S-081526-01"
+principles_triggered: ["P-1"]
+substrate: "test"
+tags: ["test"]
+superseded_by: null
 ---
 ```
 
@@ -642,7 +791,12 @@ name: "beta"
 status: REGISTERED
 class: IC
 date_registered: "2026-08-15"
+date_origin: "2026-08-01"
 session_registered: "S-081526-01"
+principles_triggered: ["P-1"]
+substrate: "test"
+tags: ["test"]
+superseded_by: null
 ---
 ```
 '''
@@ -665,7 +819,12 @@ name: "alpha"
 status: REGISTERED
 class: F
 date_registered: "2026-08-15"
+date_origin: "2026-08-01"
 session_registered: "S-081526-01"
+principles_triggered: ["P-1"]
+substrate: "test"
+tags: ["test"]
+superseded_by: null
 ---
 ```
 
@@ -676,6 +835,12 @@ class: F
 date_registered: "2026-09-01"
 session_registered: "S-090126-01"
 
+### H-LEGACY-01 — bold-prose entry with no front matter at all
+
+**Class:** H (Hypothesis)
+**Status:** CANDIDATE
+**Registered:** June 14, 2026
+
 ## IC-class corrections (process errors registered)
 
 ```
@@ -685,7 +850,12 @@ name: "beta"
 status: REGISTERED
 class: IC
 date_registered: "2026-08-15"
+date_origin: "2026-08-01"
 session_registered: "S-081526-01"
+principles_triggered: ["P-1"]
+substrate: "test"
+tags: ["test"]
+superseded_by: null
 ---
 ```
 
@@ -739,8 +909,10 @@ def run_self_test(verbose: bool = True) -> bool:
 
     # --- known-bad must be caught, with the exact expected count ---
     r = evaluate_frontmatter_fence_form(bad["entries"])
-    check("known-bad caught: frontmatter_fence_form", r.defects == 1,
-          f"expected 1, got {r.defects}")
+    # Two distinct fence failures: F-02's `id:` rendered as a heading, and
+    # H-LEGACY-01 carrying no front matter at all.
+    check("known-bad caught: frontmatter_fence_form", r.defects == 2,
+          f"expected 2, got {r.defects}: {r.evidence}")
     r = evaluate_quote_hygiene(bad["entries"])
     check("known-bad caught: quote_hygiene", r.defects == 1, f"expected 1, got {r.defects}")
     r = evaluate_required_fields(bad["entries"])
@@ -790,6 +962,69 @@ def run_self_test(verbose: bool = True) -> bool:
         'date_registered: "2026-09-01"')
     check("known-good clean: header current", r.defects == 0, f"got {r.defects}")
 
+    # --- class starvation (previously untested: a regression here would have
+    #     left the documented 3/6 result green) ---
+    r = evaluate_class_starvation([Entry("F-01", 1, "", "", "F-class"),
+                                   Entry("IC-001", 2, "", "", "IC-class"),
+                                   Entry("H-01", 3, "", "", "H-class")])
+    check("known-bad caught: class starvation (D/R/GD empty)", r.defects == 3,
+          f"expected 3, got {r.defects}: {r.evidence}")
+    full = [Entry(f"{c}-01", i, "", "", "") for i, c in enumerate(SPEC_CLASSES)]
+    r = evaluate_class_starvation(full)
+    check("known-good clean: every class populated", r.defects == 0,
+          f"got {r.defects}: {r.evidence}")
+
+    # --- legacy entries must be discovered, not silently dropped ---
+    legacy_fix = _fix(_BAD_FIXTURE)
+    legacy = [e for e in legacy_fix["entries"] if e.legacy]
+    check("legacy heading-style entry discovered", any(
+        e.entry_id == "H-LEGACY-01" for e in legacy),
+        f"legacy entries found: {[e.entry_id for e in legacy]}")
+    check("index table header is not mistaken for an entry",
+          not any(e.entry_id == "F" for e in legacy_fix["entries"]),
+          "bare 'F' from the quick-index header was parsed as an entry")
+    r = evaluate_frontmatter_fence_form(legacy_fix["entries"])
+    check("legacy entry counts as fence loss", any(
+        "H-LEGACY-01" in e for e in r.evidence), f"got {r.evidence}")
+
+    # --- section order, not just per-entry placement ---
+    ordered = [(10, "## F-class findings"), (20, "## IC-class corrections"),
+               (30, "### H-class hypotheses")]
+    r = evaluate_ordering_conformance([], ordered)
+    check("known-good clean: class blocks in F->IC->H order", r.defects == 0
+          and not r.evidence, f"got {r.evidence}")
+    swapped = [(10, "### H-class hypotheses"), (20, "## F-class findings"),
+               (30, "## IC-class corrections")]
+    r = evaluate_ordering_conformance([], swapped)
+    check("known-bad caught: class blocks out of order",
+          any("expected" in e for e in r.evidence), f"got {r.evidence}")
+
+    # --- terminal boundary by position, not by label ---
+    secs = [(10, "## F-class findings"), (50, "## Changelog"),
+            (90, "## Governance Ratifications")]
+    r = evaluate_post_terminal_append(
+        [Entry("F-01", 20, "", "", "F-class"),
+         Entry("IC-9", 60, "", "", "Changelog"),
+         Entry("H-9", 95, "", "", "Governance Ratifications")], secs)
+    check("known-bad caught: entry past a LATER terminal section", r.defects == 2,
+          f"expected 2 (L60 and L95), got {r.defects}: {r.evidence}")
+
+    # --- quote hygiene beyond the first four fields ---
+    r = evaluate_quote_hygiene([Entry(
+        "F-9", 1, "", 'id: "F-9"\ndate_registered: \u201c2026-01-01\u201d', "F-class")])
+    check("known-bad caught: curly quotes in a non-core field", r.defects == 1,
+          f"got {r.defects}")
+
+    # --- hash must be exactly 64 hex ---
+    for bad_hash, label in ((("a" * 65), "65 hex"), ("not-a-hash", "non-hex")):
+        r = evaluate_ratification_hash_form(f"**Ratification Hash:** {bad_hash}")
+        check(f"known-bad caught: {label} rejected", r.defects == 1, f"got {r.defects}")
+
+    # --- absent required input must ERROR, never pass quietly ---
+    r = evaluate_cross_artifact_ratification(None, "")
+    check("absent PRIORITY_QUEUE.md errors rather than skipping", r.status == ERROR,
+          f"got {r.status}")
+
     # --- baseline arithmetic ---
     fake = [
         CheckResult("ordering_conformance", "RFM-09", "", FAIL, "warning", 29, 131),
@@ -829,6 +1064,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     sp.add_argument("--priority-queue", default="PRIORITY_QUEUE.md")
     sp.add_argument("--json", action="store_true", help="emit JSON")
     sp.add_argument("--out", help="write report to a file")
+    sp.add_argument("--verify-doc", metavar="PATH",
+                    help="assert the published map's headline numbers match "
+                         "this scan; exits non-zero when the doc has gone stale")
     sp.add_argument("--enforce", action="store_true",
                     help="exit non-zero when defects are present (opt-in; "
                          "advisory by default pending Z2 ruling)")
@@ -858,9 +1096,24 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(f"report written to {args.out}")
         else:
             print(text)
+        if args.verify_doc:
+            ok, problems = verify_doc(report, Path(args.verify_doc))
+            print(f"\nverify-doc: {'PASS' if ok else 'FAIL'} — {args.verify_doc}")
+            for pr in problems:
+                print(f"  - {pr}")
+            if not ok:
+                return 1
+
         if args.enforce:
             total = sum(r["defects"] for r in report["results"])
-            return 1 if total else 0
+            # Fail closed: a check that could not run is not a check that
+            # passed. Summing defects alone lets an absent input exit 0.
+            unrun = [r["check_id"] for r in report["results"]
+                     if r["status"] in (ERROR, SKIP)]
+            if unrun:
+                print(f"\nENFORCE: {len(unrun)} check(s) did not run: "
+                      f"{', '.join(unrun)}", file=sys.stderr)
+            return 1 if (total or unrun) else 0
         return 0
 
     p.print_help()

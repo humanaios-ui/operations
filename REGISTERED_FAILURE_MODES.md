@@ -1,12 +1,14 @@
 # REGISTERED.md Failure-Mode Map
 ## Registry Failure Modes → Standing Orders → Industrial Failure Modes
 
-**Source:** `REGISTERED.md` @ `1e1b5189f6ae657c3b1a666eb5b52194327e0b63` (3,948 lines, 131 entries)
+**Source:** `REGISTERED.md` @ `1e1b5189f6ae657c3b1a666eb5b52194327e0b63` (3,948 lines, 135 entries)
 **Mapping Date:** 2026-09-13
 **Authority:** Z2 (Night) ratification pending
 **Status:** Z1 candidate for REGISTERED.md
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED_FAILURE_MODES.md`
-**Instrument:** `tools/registered_failure_mode_scan_v0_1.py` (all counts in this document are tool-generated)
+**Instrument:** `tools/registered_failure_mode_scan_v0_1.py`. Every count below is produced by that tool and
+verified against it by `scan --verify-doc REGISTERED_FAILURE_MODES.md`, which fails if this document drifts
+from the registry. A map asserting RFM-11 while carrying hand-copied counts would be an instance of it.
 
 ---
 
@@ -26,9 +28,9 @@ This document does that, in three columns:
 
 **Headline findings:**
 
-1. The registry scores **91.6% first-pass yield / 83,969 DPMO / ~2.9σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
+1. The registry scores **81.9% first-pass yield / 181,481 DPMO / ~2.4σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
 2. Of 19 failure modes, **before this scan 17 had no detector at all**. The dominant failure mode of the registry is not any single defect — it is the absence of instrumentation.
-3. **Three instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports **130** entries (F=47, H=47, IC=36); `tools/repo_health.py` reports **126** immune entries; this scanner reports **131** (F=45, IC=43, H=42, other=1). Cause unresolved. No instrument in the repo can currently state how many entries `REGISTERED.md` contains. Routed to Z2 as a measurement-system finding.
+3. **Four instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports **130** entries; `tools/repo_health.py` reports **126** immune entries; this scanner reported **131** before review and **135** after. No instrument in the repo can currently state how many entries `REGISTERED.md` contains. Routed to Z2 as a measurement-system finding — and see *The scanner is subject to the failure mode it measures*, where this scanner's own 131 is one of the four wrong answers.
 4. The value recorded as **Ratification Hash** at `REGISTERED.md:3925` is `e8a501f` — a 7-character git commit SHA, where `CLAUDE.md` Decision Routing step 6 and `NF_LEDGER_SCHEMA_v1.md` both specify `sha256(candidate | by=Night | at=timestamp | decision=ACCEPT)`. A commit SHA proves *when code landed*, not *what was approved*.
 
 ---
@@ -37,16 +39,24 @@ This document does that, in three columns:
 
 Reproduce with `python3 tools/registered_failure_mode_scan_v0_1.py scan`.
 
-**Entry-level conformance** (131 entries × 4 checks = 524 opportunities):
+**Entry-level conformance** (135 entries × 4 checks = 540 opportunities):
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|
-| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 29/131 | 77.9% |
-| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 8/131 | 93.9% |
-| Front-matter fence form | RFM-07 | 4/131 | 96.9% |
-| Quote hygiene | RFM-08 | 3/131 | 97.7% |
+| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 29/135 | 78.5% |
+| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 58/135 | 57.0% |
+| Front-matter fence form | RFM-07 | 8/135 | 94.1% |
+| Quote hygiene | RFM-08 | 3/135 | 97.8% |
 
-**44 defects / 524 opportunities → 91.6% first-pass yield → 83,969 DPMO → ~2.9σ**
+**98 defects / 540 opportunities → 81.9% first-pass yield → 181,481 DPMO → ~2.4σ**
+
+`RFM-06` scores the **full** schema at `REGISTERED.md:16-32`, all ten declared fields. The registry says entries
+*"must open with"* that block, so the whole list is the contract; scoring a convenient subset would let the
+measurement flatter the registry. For triage the core five (`name`, `status`, `class`, `date_registered`,
+`session_registered`) are at **12/135 — 91.1% conforming**. The gap between 91.1% and 57.0% is `substrate` (45
+absent), `tags` (38), `superseded_by` (33) and `date_origin` (29): fields declared but never adopted. Whether that
+is schema erosion or an over-declared schema is Z2's call, not the scanner's — it reports both numbers and picks
+the declared one as the headline.
 
 Same methodology and 1.5-shift convention as `audits/T1_DEFECT_BASELINE_S070726.md` (mesh baseline: 42.9% FPY, ~571,000 DPMO, ~1.3σ).
 
@@ -55,7 +65,7 @@ Same methodology and 1.5-shift convention as `audits/T1_DEFECT_BASELINE_S070726.
 | Check | RFM | Result |
 |:---|:---|:---|
 | F quick-index desync | RFM-11 | 10 of 45 F-entries absent from index (77.8% coverage) |
-| Post-terminal append | RFM-10 | 25 entries after `## Changelog` |
+| Post-terminal append | RFM-10 | 25 entries after the `## Changelog` boundary (by line position, so a later terminal section cannot hide one) |
 | Orphan roll-up row | RFM-12 | 1 — IC-036 cited at `REGISTERED.md:118`, no body entry |
 | Ratified-class starvation | RFM-16 | 3 of 6 — D, R, GD defined, zero entries |
 | Header staleness | RFM-17 | declared 2026-08-15; newest content 2026-09-09 |
@@ -84,9 +94,9 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 |:---|:---|:---|:---|:---|
 | **RFM-04** | **Under-registration** — a registrable item surfaces in-session and is never registered | `tools/skills/humanaios-findings-scan/SKILL.md:29` | UNMEASURED | 5 — skill exists, manually invoked |
 | **RFM-05** | **Over-registration / receipt overstatement** — asserting registry state that does not exist | IC-031 | UNMEASURED | 5 — §B.6, `receipt_reconciliation.py` |
-| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **8 / 131** | 10 — see note below |
-| **RFM-07** | **Front-matter fence loss** — `id:` becomes a markdown heading; the entry is invisible to fence-based parsers | F-52…F-55 | **4 / 131** | 10 → 5 with this scanner |
-| **RFM-08** | **Quote contamination** — curly quotes break straight-quote string parsing | F-52, F-53, H-AICASCADE-01 | **3 / 131** | 10 → 5 with this scanner |
+| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **58 / 135** full schema · 12 / 135 core | 10 — see note below |
+| **RFM-07** | **Front-matter fence loss** — the entry carries no machine-readable front matter, so a fence-based parser cannot see it. Two forms: `id:` rendered as a markdown heading (F-52…F-55), and legacy `### ID — Title` entries with bold-prose fields or none at all (H-ELICIT-01 at `:2302`, plus H-1 / H-42 / H-LE-02) | F-52…F-55; H-1, H-42, H-LE-02, H-ELICIT-01 | **8 / 135** | 10 → 5 with this scanner |
+| **RFM-08** | **Quote contamination** — curly quotes break straight-quote string parsing. Checked across every declared field, not just `id`/`name`/`status`/`class` | F-52, F-53, H-AICASCADE-01 | **3 / 135** | 10 → 5 with this scanner |
 
 > **Note on RFM-06 detection.** `.github/workflows/findings-registry.yml` runs `tools/registered_findings_validator_v1_0.py` as a blocking gate and its documented hard classes include *missing fields*. Run against the live registry it returns **Verdict: WARN, exit 0** with `✓ F-class ✓ H-class ✓ IC-class`, and does not surface the 8 entries missing required fields. A check that is nominally blocking and empirically silent is the IC-041 *audit-false-pass* genus. Scored 10, not 1, because detection is scored on observed behaviour rather than declared intent. **Routed to Z2 as an IC-candidate; not self-registered.**
 
@@ -94,8 +104,8 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 
 | ID | Failure mode | Evidence | Occurrence | Detection today |
 |:---|:---|:---|:---|:---|
-| **RFM-09** | **Append-ordering decay** — entry outside the class block `REGISTRY_SPEC.md:114` declares | Z2-ASSESS-01, IC-044/045 in the H block; 25 more past the Changelog | **29 / 131** | 10 → 5 |
-| **RFM-10** | **Post-terminal append** — entries land after `## Changelog`, forming a shadow zone the declared structure does not describe | L3246–3917 | **25** | 10 → 5 |
+| **RFM-09** | **Append-ordering decay** — entry outside the class block `REGISTRY_SPEC.md:114` declares, *and* the class blocks themselves out of F→IC→H order | Z2-ASSESS-01, IC-044/045 in the H block; 25 more past the Changelog | **29 / 135** | 10 → 5 |
+| **RFM-10** | **Post-terminal append** — entries land after the `## Changelog` boundary, forming a shadow zone the declared structure does not describe | L3246–3917 | **25** | 10 → 5 |
 | **RFM-11** | **Index desync** — the hand-maintained quick index stops tracking the body | F-24, F-56…F-61, 3× `F-CAND-*` | **10 / 45 F** | 10 → 5 |
 | **RFM-12** | **Orphan roll-up row** — the IC Pareto cites an ID with no entry; the row still reports healthy | IC-036 @ `REGISTERED.md:118` | **1** | 10 → 5 |
 | **RFM-13** | **Semantic duplicate numbering** — two IDs for one defect. Invisible to any validator that detects only *literal* ID collisions | IC-052 / IC-053, both "drift validator missing D-OVERCLAIM" | **1 known** | 10 — no detector possible without semantic comparison |
@@ -137,9 +147,23 @@ Not a re-listing of the IC Pareto (`REGISTERED.md:88-125`) or the D-signal catal
 
 This document ships an instrument. It is in the same genus, and it demonstrated so during construction: the scanner's first version scored ordering conformance at 28/131 by silently skipping non-F/IC/H entries, where `REGISTRY_SPEC.md:114` declares *"F-class, then IC-class, then H-class, **then other classes**"* — making `Z2-ASSESS-01`'s position inside the H block a violation, not an exemption. The reconciliation step caught it; the corrected count is 29.
 
+A second instance arrived from review. The first published version of this scanner reported **131 entries and
+91.6% yield**; the figures above are **135 and 81.9%**. Three distinct instrument defects, all reviewer-caught:
+it discovered entries only by `id:` lines and so silently dropped the four legacy-format entries — the very
+schema failures it exists to measure; it scored a five-field subset of a ten-field declared schema; and under
+`--enforce` a missing input produced `SKIP`, which summed to zero defects and **exited 0** — a gate reporting
+success without having run, the IC-041 genus in the tool built to detect it.
+
+The correction was not monotonic either. Widening entry discovery first produced **143** entries by
+double-counting F-52…F-55 (their malformed `## id:` line is itself a heading, so the lookahead stopped short of
+the id it contained) and by counting the F-32/F-33 honest gaps as malformed entries. Both are the T2 pattern
+exactly: an instrument wrong in the direction of finding more work. 143 → 137 → 135 across three narrowing
+passes, each removing a false-positive class.
+
 Two controls, neither sufficient alone:
 
 - `--smoke-test` / `self-test` exercises every evaluator against synthetic known-good and known-bad fixtures, including an explicit assertion that the F-32/F-33 whitelist suppresses the honest-gap false positive **and** that a non-whitelisted phantom is still caught.
+- `scan --verify-doc REGISTERED_FAILURE_MODES.md` asserts this document's headline numbers against a live scan, so the map cannot silently go stale as the registry changes.
 - The census divergence in Executive Summary finding 3 is **unresolved and left visible**. Three instruments disagree; this document does not assert which is right. Its own counts are conditional on its parser being correct — which is precisely the assumption IC-037 punishes.
 
 ---
@@ -229,7 +253,7 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 
 - **Occurrence** — from the measured scan only. Every unmeasured mode reads `UNMEASURED`, never a guessed integer.
 - **Detection** — scored `1` / `5` / `10` on *observed* behaviour, not declared intent. This is the one axis groundable today, and the one that drives Column 2.
-- **Severity** — only where a cost class exists. `RFM-18` means that is IC-031 alone. Everything else is `UNSCORED`.
+- **Severity** — only where a cost class exists **and a ratified mapping turns it into a 1–10 score**. IC-031 supplies a dollar range but no such mapping exists, so even it is `UNSCORED`. An earlier draft of this table scored RFM-05 an `8` from that range — reviewer-caught, and exactly the false precision this rule exists to prevent. The rule bound its author before it bound anyone else.
 - **RPN** — computed **only** where all three axes are grounded. Today that is **zero rows**.
 
 | RFM | Severity | Occurrence | Detection | RPN |
@@ -238,11 +262,11 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 | RFM-02 | UNSCORED | UNMEASURED | 10 | — |
 | RFM-03 | UNSCORED | UNMEASURED | 10 | — |
 | RFM-04 | UNSCORED | UNMEASURED | 5 | — |
-| RFM-05 | **8** (IC-031: $150–730) | UNMEASURED | 5 | — |
-| RFM-06 | UNSCORED | 8 / 131 | 10 | — |
-| RFM-07 | UNSCORED | 4 / 131 | 5 | — |
-| RFM-08 | UNSCORED | 3 / 131 | 5 | — |
-| RFM-09 | UNSCORED | 29 / 131 | 5 | — |
+| RFM-05 | UNSCORED — IC-031 gives $150–730, but no ratified mapping turns a dollar range into a 1–10 severity | UNMEASURED | 5 | — |
+| RFM-06 | UNSCORED | 58 / 135 | 10 | — |
+| RFM-07 | UNSCORED | 8 / 135 | 5 | — |
+| RFM-08 | UNSCORED | 3 / 135 | 5 | — |
+| RFM-09 | UNSCORED | 29 / 135 | 5 | — |
 | RFM-10 | UNSCORED | 25 | 5 | — |
 | RFM-11 | UNSCORED | 10 / 45 | 5 | — |
 | RFM-12 | UNSCORED | 1 | 5 | — |
@@ -254,7 +278,7 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 | RFM-18 | UNSCORED | 1 of 43 IC cost-classed | 10 | — |
 | RFM-19 | UNSCORED | n/a | 10 | — |
 
-**A table of `UNSCORED` cells is the finding.** The registry cannot presently prioritise its own failure modes, because the cost-class taxonomy `REGISTRY_SPEC.md:45` already requires does not exist (RFM-18). Filling this column with plausible numbers would manufacture exactly the false precision IC-034 (D-OVERCLAIM) names. The empty column is the argument for `Q-RFM-02`.
+**A table of `UNSCORED` cells is the finding.** Every RPN cell is empty, including RFM-05's. The registry cannot presently prioritise its own failure modes, because the cost-class taxonomy `REGISTRY_SPEC.md:45` already requires does not exist (RFM-18). Filling this column with plausible numbers would manufacture exactly the false precision IC-034 (D-OVERCLAIM) names. The empty column is the argument for `Q-RFM-02`.
 
 ---
 
@@ -365,7 +389,8 @@ A fifth is noted but held pending the census resolution: the registry validator 
 
 ```
 2026-09-13 — Z1 proposed Q-RFM-01 (REGISTERED_FAILURE_MODES.md + registered_failure_mode_scan_v0_1.py); awaiting Z2 RATIFY signature
-2026-09-13 — Z1 measured REGISTERED.md @ 1e1b518: 44 defects / 524 opportunities, 91.6% FPY, 83,969 DPMO, ~2.9 sigma
+2026-09-13 — Z1 re-measured after review corrected the scanner's entry discovery: 135 entries, 98 defects / 540 opportunities, 81.9% FPY, 181,481 DPMO, ~2.4 sigma. Supersedes the line below; the earlier figures are kept, not deleted, per the registry's own append-only rule.
+2026-09-13 — Z1 measured REGISTERED.md @ 1e1b518: 44 defects / 524 opportunities, 91.6% FPY, 83,969 DPMO, ~2.9 sigma [SUPERSEDED — scanner under-counted: 4 legacy entries invisible, schema scored on 5 of 10 declared fields]
 ```
 
 ---

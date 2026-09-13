@@ -40,12 +40,12 @@ Entry-level, 131 entries × 4 checks:
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|
-| Ordering | RFM-09 | 29/131 | 77.9% |
-| Required fields | RFM-06 | 8/131 | 93.9% |
-| Fence form | RFM-07 | 4/131 | 96.9% |
-| Quote hygiene | RFM-08 | 3/131 | 97.7% |
+| Ordering | RFM-09 | 29/135 | 78.5% |
+| Required fields (full declared schema) | RFM-06 | 58/135 | 57.0% |
+| Fence form | RFM-07 | 8/135 | 94.1% |
+| Quote hygiene | RFM-08 | 3/135 | 97.8% |
 
-**44 defects / 524 opportunities → 91.6% FPY → 83,969 DPMO → ~2.9σ**, same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the *"clean reference bar (0/7)."* At entry level it is not clean.
+**98 defects / 540 opportunities → 81.9% FPY → 181,481 DPMO → ~2.4σ**, same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the *"clean reference bar (0/7)."* At entry level it is not clean.
 
 File-level: 10/45 F-entries absent from the quick index · 25 entries past the `## Changelog` · 1 orphan roll-up row (IC-036) · 3 of 6 ratified classes empty · 2 cross-artifact ratification contradictions.
 
@@ -53,9 +53,14 @@ File-level: 10/45 F-entries absent from the quick index · 25 entries past the `
 
 ## Gates verified to actually fail
 
-Each evaluator was run against a synthetic known-bad fixture and asserted to detect it — 22 assertions, `self-test` passes. This is the gauge R&R step, and it is not decorative: **the scanner's first version was wrong.** It scored ordering at 28/131 by silently skipping non-F/IC/H entries, where `REGISTRY_SPEC.md:114` declares *"F-class, then IC-class, then H-class, then other classes"* — making `Z2-ASSESS-01` inside the H block a violation, not an exemption. Reconciliation against an independent count caught it; corrected to 29.
+Each evaluator is run against a synthetic known-bad fixture and asserted to detect it — **34 assertions**, `self-test` passes. This is the gauge R&R step, and it is not decorative: **the scanner has been wrong three times, and every correction made the registry look worse.**
 
-Two assertions specifically guard against false positives: the F-32/F-33 honest-gap whitelist must suppress them, **and** a non-whitelisted phantom must still be caught. `audits/T2_ANALYZE_S070726.md` records a regex bug that manufactured five false defects (IC-037 + IC-034); an instrument that only over-reports is not safer than one that under-reports.
+1. *Pre-review.* It scored ordering 28/131 by skipping non-F/IC/H entries, where `REGISTRY_SPEC.md:114` declares *"…then other classes"* — making `Z2-ASSESS-01` inside the H block a violation, not an exemption. Reconciliation against an independent count caught it.
+2. *Review round.* Three further defects: entry discovery keyed only on `id:` lines, silently dropping the four legacy-format entries — the very schema failures the tool exists to measure; a five-field subset scored against a ten-field declared schema; and under `--enforce`, a missing input returned `SKIP`, summed to zero defects, and **exited 0** — a gate reporting success without having run, which is the IC-041 genus inside the tool built to detect it.
+3. *Over-correction.* The fix for (2) first produced 143 entries by double-counting F-52…F-55 (their malformed `## id:` line is itself a heading, so the lookahead stopped short of the id it contained) and by counting the F-32/F-33 honest gaps as malformed entries. The T2 regex pattern exactly: wrong in the direction of finding more work. 143 → 137 → 135 across three narrowing passes.
+
+Headline moved 131 entries / 91.6% FPY → 135 / 81.9%. Four assertions now guard against false positives specifically, and `scan --verify-doc` asserts the published map against a live scan — demonstrated to fail when a single number goes stale. `audits/T2_ANALYZE_S070726.md` records a regex bug that manufactured five false defects (IC-037 + IC-034); an instrument that only over-reports is not safer than one that under-reports.
+
 
 ---
 
@@ -81,11 +86,12 @@ Z1 proposes; Z2 numbers and appends, per G-4 / IC-030.
 **FALSE if any of:**
 - A structural defect (READ/WRITE/STRUCTURE/RECONCILE axes) is found in `REGISTERED.md` that requires a **new** RFM class, ≥2 times within the window
 - The scanner's entry-level defect count diverges from an independent manual count of the same file at the same SHA by >2 defects
+- `scan --verify-doc REGISTERED_FAILURE_MODES.md` fails on an unchanged registry, i.e. the published map drifted from the tool
 - Any known-bad fixture in `self-test` stops being detected after a change to the scanner
 - The scanner flags F-32 or F-33 as index defects (the documented honest gaps), i.e. the whitelist regresses
 - Two runs of `scan` against the same SHA produce different counts
 
-**Success criterion:** Through **2026-10-13**, running `scan` at each session open reproduces `44/524` on the unchanged file, every new defect classifies into RFM-01…RFM-19, and `self-test` passes on every invocation.
+**Success criterion:** Through **2026-10-13**, running `scan` at each session open reproduces `98/540` on the unchanged file, every new defect classifies into RFM-01…RFM-19, and `self-test` passes on every invocation.
 
 **Note on falsifiability scope:** the GOVERN-axis modes (RFM-18, RFM-19) are *not* falsifiable by this scanner — they assert the absence of a definition, which the scanner cannot measure. They are excluded from the claim above and stand or fall on Z2's reading.
 
@@ -93,10 +99,10 @@ Z1 proposes; Z2 numbers and appends, per G-4 / IC-030.
 
 ## Honest limitations, named
 
-1. **The census is unresolved.** `registered_findings_validator_v1_0.py` reports 130 entries (F=47, H=47, IC=36); `repo_health.py` reports 126 immune entries; this scanner reports 131 (F=45, IC=43, H=42, other=1). Three instruments disagree about how many entries the registry contains and what class they are. **This document does not assert which is right.** Its own numbers are therefore conditional on its parser being the correct one, which is exactly the assumption IC-037 punishes. Resolving this should precede citing either census as authoritative.
+1. **The census is unresolved, and this scanner was one of the wrong answers.** The findings validator reports 130 entries (F=47, H=47, IC=36); `repo_health.py` reports 126 immune entries; this scanner reported 131 before review and 135 after. Four instruments, four numbers. **This document does not assert which is right.** Its own numbers are therefore conditional on its parser being the correct one, which is exactly the assumption IC-037 punishes. Resolving this should precede citing either census as authoritative.
 2. **Occurrence data exists for 11 of 19 modes.** The rest read `UNMEASURED` and are not scored. They are not thereby rare — they are unobserved.
-3. **Severity is unscored for 18 of 19 modes,** because `REGISTRY_SPEC.md:45` requires IC entries be cost-classified and only IC-031 is. No RPN is computed anywhere. The FMEA table is mostly empty by design; filling it would manufacture the false precision IC-034 names.
-4. **The scanner is advisory.** Shipping `--enforce` on would fail CI on 44 pre-existing defects; shipping it off indefinitely reproduces IC-050, the repo's own evidence that a warn-only gate is a defeated gate. This is named rather than resolved, because the resolution is Z2's.
+3. **Severity is unscored for all 19 modes** (an earlier draft scored RFM-05 an `8` from IC-031's $150–730 range; no ratified mapping turns dollars into a 1–10 severity, so that was false precision by this document's own rule, and reviewer-caught), because `REGISTRY_SPEC.md:45` requires IC entries be cost-classified and only IC-031 is. No RPN is computed anywhere. The FMEA table is mostly empty by design; filling it would manufacture the false precision IC-034 names.
+4. **The scanner is advisory.** Shipping `--enforce` on would fail CI on 98 pre-existing defects; shipping it off indefinitely reproduces IC-050, the repo's own evidence that a warn-only gate is a defeated gate. This is named rather than resolved, because the resolution is Z2's.
 5. **Not wired into CI,** deliberately. `findings-registry.yml` already runs a blocking registry validator; a second gate on the same paths could return contradictory verdicts before Z2 has ruled — particularly given limitation 1.
 6. **One file, one SHA.** The taxonomy has been tested against `REGISTERED.md` at `1e1b518` and nothing else. Generality to the other 30 repos is asserted, not demonstrated.
 7. **`REGISTERED.md` was not modified.** This work describes the registry; it does not touch it. No entry was added, renumbered or corrected.
@@ -117,9 +123,10 @@ Z1 proposes; Z2 numbers and appends, per G-4 / IC-030.
 ## Z2 Review Checklist
 
 - [ ] Is the RFM taxonomy the right vocabulary, and is 19 the right granularity?
-- [ ] Should `--enforce` be turned on, and if so before or after remediating the 44 defects?
+- [ ] Should `--enforce` be turned on, and if so before or after remediating the 98 defects?
 - [ ] Should the scanner be wired into CI, given `findings-registry.yml` already runs a blocking validator?
-- [ ] Which instrument's census is authoritative — 126, 130 or 131?
+- [ ] Which instrument's census is authoritative — 126, 130 or 135?
+- [ ] Is `RFM-06` right to score the **full** ten-field schema (57.0%) rather than the core five (91.1%)? The gap is `substrate` / `tags` / `superseded_by` / `date_origin` — declared but never adopted. Schema erosion, or an over-declared schema that should be trimmed?
 - [ ] Accept / edit / reject IC-CAND-A through IC-CAND-D; assign numbers if accepted
 - [ ] Commission `Q-RFM-02` (cost-class taxonomy)? It is the blocker on every `UNSCORED` FMEA cell
 - [ ] Is naval command vocabulary in Column 2 acceptable, or should the map stay in existing terms?

@@ -42,7 +42,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (61)
+## Open questions for Z2 (62)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -99,14 +99,15 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Schema extends without breaking existing records (review migration path)
 - [ ] Molt Cycle integration is viable (review pseudocode in schema)
 
-### Q-RFM-01 (7)
+### Q-RFM-01 (8)
 
 `z1-inbox/2026-09-13/Q-RFM-01.md`
 
 - [ ] Is the RFM taxonomy the right vocabulary, and is 19 the right granularity?
-- [ ] Should `--enforce` be turned on, and if so before or after remediating the 44 defects?
+- [ ] Should `--enforce` be turned on, and if so before or after remediating the 98 defects?
 - [ ] Should the scanner be wired into CI, given `findings-registry.yml` already runs a blocking validator?
-- [ ] Which instrument's census is authoritative — 126, 130 or 131?
+- [ ] Which instrument's census is authoritative — 126, 130 or 135?
+- [ ] Is `RFM-06` right to score the **full** ten-field schema (57.0%) rather than the core five (91.1%)? The gap is `substrate` / `tags` / `superseded_by` / `date_origin` — declared but never adopted. Schema erosion, or an over-declared schema that should be trimmed?
 - [ ] Accept / edit / reject IC-CAND-A through IC-CAND-D; assign numbers if accepted
 - [ ] Commission `Q-RFM-02` (cost-class taxonomy)? It is the blocker on every `UNSCORED` FMEA cell
 - [ ] Is naval command vocabulary in Column 2 acceptable, or should the map stay in existing terms?
