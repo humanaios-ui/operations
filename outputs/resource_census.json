@@ -1,6 +1,6 @@
 {
   "version": "resource_census_v0.1.0",
-  "generated_at": "2026-09-13T15:17:43+00:00",
+  "generated_at": "2026-09-13T15:34:41+00:00",
   "units_registry": {
     "path": "RESOURCE_UNITS.yaml",
     "version": "0.1",
@@ -11,15 +11,24 @@
     "unit": "RAT-min",
     "capacity_per_week": null,
     "capacity_basis": "UNMEASURED",
+    "capacity_source": null,
     "utilization": null,
     "weeks_to_clear": null,
-    "note": "No Z2 capacity declaration. Utilization and clearance time are undefined; the sensitivity table below is the only statement this census can make about them."
+    "note": "No Z2 capacity declaration in the ledger. Utilization and clearance time are undefined; the sensitivity table below is the only statement this census can make about them."
+  },
+  "ledger": {
+    "path": "ledgers/RESOURCE_LEDGER.jsonl",
+    "events": 3,
+    "chain": "OK",
+    "spend_rows": 0,
+    "closed_orders": 0
   },
   "obligations": {
     "open_items": 130,
     "debt_rat_min": 1575,
     "debt_basis": "PRIOR",
     "unpriced_classes": [],
+    "unmeasured_classes": [],
     "by_class": {
       "registry_candidate": {
         "count": 35,
@@ -107,8 +116,9 @@
     },
     "RAT-art": {
       "count": 94,
-      "basis": "MEASURED",
-      "source": "REGISTERED.md (REGISTERED/ACTIVE/CONFIRMED) + constants.json (molt_id non-null)"
+      "basis": "PROXY",
+      "source": "REGISTERED.md (REGISTERED/ACTIVE/CONFIRMED) + constants.json (molt_id non-null)",
+      "note": "status and molt_id stand in for a ratification hash; GOVERNANCE_RATIFICATIONS_REGISTRY.yaml is the hash-bearing record and is not yet populated. Promote to MEASURED when it is."
     }
   },
   "liabilities": {
@@ -131,11 +141,21 @@
     }
   },
   "input_units": {
+    "RAT-min": {
+      "capacity": null,
+      "capacity_unit": "per week",
+      "capacity_basis": "UNMEASURED",
+      "demand": 1575,
+      "demand_basis": "PRIOR",
+      "utilization": null,
+      "source": "no CAP event in ledgers/RESOURCE_LEDGER.jsonl"
+    },
     "Z1-ktok": {
       "capacity": 100,
       "capacity_unit": "per session",
       "capacity_basis": "DECLARED",
       "demand": null,
+      "demand_basis": "UNMEASURED",
       "utilization": null,
       "source": "behavior_spec.json caps.token_budget_per_session"
     },
@@ -143,6 +163,7 @@
       "capacity": null,
       "capacity_basis": "UNMEASURED",
       "demand": null,
+      "demand_basis": "UNMEASURED",
       "utilization": null,
       "source": "ZONE_REGISTRY.md \u2014 most executor seats TBD"
     },
@@ -150,6 +171,7 @@
       "capacity": null,
       "capacity_basis": "UNMEASURED",
       "demand": null,
+      "demand_basis": "UNMEASURED",
       "utilization": null,
       "source": "GitHub Actions billing (not read into tree)"
     },
@@ -157,6 +179,7 @@
       "capacity": null,
       "capacity_basis": "UNMEASURED",
       "demand": null,
+      "demand_basis": "UNMEASURED",
       "utilization": null,
       "source": "Class 1 live state (WGS) \u2014 deliberately not restated in-tree"
     },
@@ -164,13 +187,22 @@
       "capacity": null,
       "capacity_basis": "UNMEASURED",
       "demand": null,
+      "demand_basis": "UNMEASURED",
       "utilization": null,
       "source": "specimen-intake cycles; private register off-tree"
     }
   },
+  "constraint_designation": {
+    "unit": "RAT-min",
+    "basis": "ASSUMED",
+    "units_with_comparable_utilization": 0,
+    "note": "The designation moves only when another input unit shows higher utilization for two consecutive censuses. That comparison needs a declared capacity AND a measured demand on both sides; no other input unit has both, so the designation is an assumption this census cannot yet test."
+  },
   "yield_density": {
     "value": null,
     "basis": "UNMEASURED",
-    "note": "Yield per constraint-minute needs at least one SPEND row in ledgers/RESOURCE_LEDGER.jsonl. None exist at census time: nothing has been measured in RAT-min yet, only imputed from priors."
+    "by_order": {},
+    "source": "ledgers/RESOURCE_LEDGER.jsonl",
+    "note": "No closed order carries a RAT-min SPEND row (ledger chain: OK, 3 events). Nothing has been measured in the constraint unit yet, only imputed from priors."
   }
 }

@@ -33,9 +33,16 @@ sys.path.insert(0, str(ROOT))
 from priority_queue_engine import (  # noqa: E402
     MODE_IMPACT,
     MODE_RESOURCE,
+    POLICY_ALLOWED,
+    POLICY_REFUSED,
+    POLICY_WARNED,
     PriorityQueueEngine,
     QueueItem,
 )
+
+# Resource mode is unreachable without naming the molt that authorised it.
+# Tests that exercise the mode name a test molt; they are not a way around the gate.
+TEST_MOLT = "M-TEST-RBE-01"
 
 
 def _load(name: str, relpath: str):
@@ -133,6 +140,70 @@ class TestCensus:
         assert c["yield_density"]["value"] is None
         assert c["yield_density"]["basis"] == "UNMEASURED"
 
+    def test_yield_density_is_measured_once_the_ledger_holds_a_closed_order(self, units, tmp_path):
+        led = str(tmp_path / "ledgers" / "RESOURCE_LEDGER.jsonl")
+        Path(led).parent.mkdir(parents=True, exist_ok=True)
+        assert run_ledger(["init", led]) == 0
+        run_ledger(["claim", led, "Q-1", "--budget", "RAT-min=10"])
+        run_ledger(["spend", led, "Q-1", "RAT-min", "8", "--by", "Z2", "--source", "s"])
+        run_ledger(["yield", led, "Q-1", "EVID-row", "4", "--by", "Z3", "--source", "s"])
+        run_ledger(["close", led, "Q-1", "--by", "Z1", "--source", "s"])
+        c = census.run_census(tmp_path, units, capacity=None, today=date(2026, 6, 1))
+        assert c["yield_density"]["basis"] == "MEASURED"
+        assert c["yield_density"]["value"] == 0.5
+        assert c["ledger"]["chain"] == "OK"
+
+    def test_capacity_comes_from_the_ledger_and_an_override_says_so(self, units, tmp_path):
+        led = str(tmp_path / "ledgers" / "RESOURCE_LEDGER.jsonl")
+        Path(led).parent.mkdir(parents=True, exist_ok=True)
+        assert run_ledger(["init", led]) == 0
+        assert run_ledger(["cap", led, "RAT-min", "120", "--by", "Z2", "--hash", "c" * 64,
+                           "--source", "Z2 declaration"]) == 0
+        c = census.run_census(tmp_path, units, capacity=None, today=date(2026, 6, 1))
+        assert c["constraint"]["capacity_basis"] == "DECLARED"
+        assert c["constraint"]["capacity_per_week"] == 120
+        assert c["constraint"]["utilization"] is not None
+
+        over = census.run_census(tmp_path, units, capacity=1.0, today=date(2026, 6, 1))
+        assert over["constraint"]["capacity_basis"] == "OVERRIDE"
+
+    def test_a_broken_ledger_chain_reports_nothing_rather_than_zero(self, units, tmp_path):
+        led = tmp_path / "ledgers" / "RESOURCE_LEDGER.jsonl"
+        led.parent.mkdir(parents=True, exist_ok=True)
+        assert run_ledger(["init", str(led)]) == 0
+        assert run_ledger(["cap", str(led), "Z1-ktok", "50", "--source", "s"]) == 0
+        lines = led.read_text(encoding="utf-8").splitlines()
+        obj = json.loads(lines[-1]); obj["qty"] = 5
+        lines[-1] = json.dumps(obj, sort_keys=True)
+        led.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        c = census.run_census(tmp_path, units, capacity=None, today=date(2026, 6, 1))
+        assert c["ledger"]["chain"] == "BROKEN"
+        assert c["constraint"]["capacity_basis"] == "UNMEASURED"
+
+    def test_an_unreadable_document_registry_is_unmeasured_not_zero(self, units, tmp_path):
+        (tmp_path / "document-registry.yaml").write_text("documents: [{a: 1\n", encoding="utf-8")
+        c = census.run_census(tmp_path, units, capacity=None, today=date(2026, 6, 1))
+        row = c["obligations"]["by_class"]["doc_owner_approval"]
+        assert row["count"] is None and row["basis"] == "UNMEASURED"
+        assert "doc_owner_approval" in c["obligations"]["unmeasured_classes"]
+
+    def test_constraint_designation_reports_whether_it_was_compared(self, units, tmp_path):
+        c = census.run_census(tmp_path, units, capacity=None, today=date(2026, 6, 1))
+        assert c["constraint_designation"]["basis"] == "ASSUMED"
+        assert c["constraint_designation"]["units_with_comparable_utilization"] == 0
+        assert units["constraint"]["unit"] in c["input_units"]
+
+    def test_rat_art_is_reported_as_a_proxy(self, units):
+        c = census.run_census(ROOT, units, capacity=None, today=date.today())
+        assert c["stocks"]["RAT-art"]["basis"] == "PROXY"
+
+    def test_units_command_honours_its_registry_argument(self, tmp_path, capsys):
+        alt = tmp_path / "u.yaml"
+        alt.write_text(UNITS_PATH.read_text(encoding="utf-8").replace(
+            "symbol: RAT-min", "symbol: XX-min", 1), encoding="utf-8")
+        census.cmd_units(alt)
+        assert "XX-min" in capsys.readouterr().out
+
     def test_every_class_carries_a_named_source(self, units, tmp_path):
         c = census.run_census(tmp_path, units, capacity=None, today=date(2026, 6, 1))
         for name, row in c["obligations"]["by_class"].items():
@@ -203,6 +274,25 @@ class TestLedgerRefusals:
         assert run_ledger(["claim", led, "Q-1", "--budget", "RAT-min=10"]) == 0
         assert run_ledger(["spend", led, "Q-1", "RAT-min", "0", "--by", "Z2", "--source", "s"]) != 0
 
+    def test_nan_and_infinity_are_refused(self, led):
+        assert run_ledger(["claim", led, "Q-1", "--budget", "RAT-min=10"]) == 0
+        for bad in ("nan", "inf", "-inf"):
+            assert run_ledger(["spend", led, "Q-1", "RAT-min", bad, "--by", "Z2",
+                               "--source", "s"]) != 0, bad
+        assert run_ledger(["claim", led, "Q-NAN", "--budget", "RAT-min=nan"]) != 0
+
+    def test_a_zero_constraint_budget_is_a_price_not_a_blank(self, led):
+        # Band A: the row declares that it draws nothing on the bottleneck.
+        assert run_ledger(["claim", led, "Q-FREE", "--budget", "RAT-min=0,Z1-ktok=5"]) == 0
+        ev = json.loads(Path(led).read_text(encoding="utf-8").splitlines()[-1])
+        assert ev["budget"]["RAT-min"] == 0.0
+
+    def test_claim_persists_its_source(self, led):
+        assert run_ledger(["claim", led, "Q-1", "--budget", "RAT-min=10",
+                           "--source", "z1-inbox/x.md"]) == 0
+        ev = json.loads(Path(led).read_text(encoding="utf-8").splitlines()[-1])
+        assert ev["source"] == "z1-inbox/x.md"
+
     def test_spending_an_output_unit_is_refused(self, led):
         assert run_ledger(["claim", led, "Q-1", "--budget", "RAT-min=10"]) == 0
         assert run_ledger(["spend", led, "Q-1", "EVID-row", "1", "--by", "Z3", "--source", "s"]) != 0
@@ -217,7 +307,10 @@ class TestLedgerRefusals:
 
     def test_constraint_capacity_needs_a_z2_hash(self, led):
         assert run_ledger(["cap", led, "RAT-min", "120", "--by", "Z1", "--source", "guess"]) != 0
+        # A label is not a signature: CLAUDE.md defines the Z2 hash as a sha256.
         assert run_ledger(["cap", led, "RAT-min", "120", "--by", "Z2", "--hash", "abc",
+                           "--source", "decl"]) != 0
+        assert run_ledger(["cap", led, "RAT-min", "120", "--by", "Z2", "--hash", "b" * 64,
                            "--source", "decl"]) == 0
 
     def test_non_constraint_capacity_does_not_need_a_hash(self, led):
@@ -227,6 +320,12 @@ class TestLedgerRefusals:
     def test_price_below_min_n_is_refused(self, led):
         assert run_ledger(["price", led, "Z3-hr", "Z1-ktok", "25", "--n", "3", "--window", "w",
                            "--constraint", "RAT-min", "--source", "s"]) != 0
+
+    def test_same_dimension_price_is_refused(self, led):
+        # PRICE is the cross-dimension escape hatch; EVID-row and CAL-pt are
+        # both evidence, so a rate between them is not what the rule permits.
+        assert run_ledger(["price", led, "EVID-row", "CAL-pt", "2", "--n", "12",
+                           "--window", "w", "--constraint", "RAT-min", "--source", "s"]) != 0
 
     def test_price_without_window_or_constraint_is_refused(self, led):
         assert run_ledger(["price", led, "Z3-hr", "Z1-ktok", "25", "--n", "12",
@@ -258,14 +357,33 @@ class TestLedgerRefusals:
         Path(led).write_text("\n".join(lines) + "\n", encoding="utf-8")
         assert run_ledger(["verify", led]) != 0
 
-    def test_yield_density_is_yield_over_constraint_spend(self, led):
+    def test_yield_density_counts_one_dimension_only(self, led):
+        # Evidence and assurance do not add. Density divides by the constraint
+        # unit, so its numerator must stay inside one dimension.
         run_ledger(["claim", led, "Q-1", "--budget", "RAT-min=10"])
         run_ledger(["spend", led, "Q-1", "RAT-min", "8", "--by", "Z2", "--source", "s"])
         run_ledger(["yield", led, "Q-1", "EVID-row", "4", "--by", "Z3", "--source", "s"])
+        run_ledger(["yield", led, "Q-1", "RAT-art", "40", "--by", "Z2", "--source", "s"])
         run_ledger(["close", led, "Q-1", "--by", "Z1", "--source", "s"])
+        state = ledger.project(ledger.read(led))
+        units_reg = ledger.Units(UNITS_PATH)
+        assert ledger.density(state["orders"]["Q-1"], "RAT-min", units_reg) == 0.5
+        assert ledger.density_by_unit(state["orders"]["Q-1"], "RAT-min") == {
+            "EVID-row": 0.5, "RAT-art": 5.0}
+
+    def test_registry_drift_is_visible_and_repinnable(self, led, tmp_path):
+        # Hash-linking the events does not protect the unit definitions behind
+        # them; drift must be reported, and recorded in the chain when accepted.
+        alt = tmp_path / "units.yaml"
+        alt.write_text(UNITS_PATH.read_text(encoding="utf-8") + "\n# a change\n", encoding="utf-8")
         evs = ledger.read(led)
-        state = ledger.project(evs)
-        assert ledger.density(state["orders"]["Q-1"], "RAT-min") == 0.5
+        pin = ledger.registry_pin_status(evs, ledger.Units(alt))
+        assert pin["drift"] is True
+        assert run_ledger(["verify", led, "--units", str(alt), "--strict-pin"]) != 0
+        assert run_ledger(["repin", led, "--units", str(alt), "--source", "sha:abc",
+                           "--reason", "Z2 ratified"]) == 0
+        assert run_ledger(["verify", led, "--units", str(alt), "--strict-pin"]) == 0
+        assert run_ledger(["repin", led, "--units", str(alt), "--source", "s"]) != 0  # nothing to do
 
     def test_live_ledger_chain_is_intact(self):
         live = ROOT / "ledgers" / "RESOURCE_LEDGER.jsonl"
@@ -275,8 +393,9 @@ class TestLedgerRefusals:
 
 
 # ---------------------------------------------------------------- queue
-def _queue(mode):
-    q = PriorityQueueEngine(mode=mode)
+def _queue(mode, policy=POLICY_REFUSED):
+    q = (PriorityQueueEngine(mode=mode, mode_molt_id=TEST_MOLT, unpriced_policy=policy)
+         if mode == MODE_RESOURCE else PriorityQueueEngine(mode=mode))
     q.add_item(QueueItem(molt_id="FREE-HI", status="READY", impact=9, cost={"RAT-min": 0}))
     q.add_item(QueueItem(molt_id="CHEAP", status="READY", impact=5, cost={"RAT-min": 10}))
     q.add_item(QueueItem(molt_id="DEAR", status="READY", impact=6, cost={"RAT-min": 60}))
@@ -312,7 +431,7 @@ class TestQueueReshape:
         assert not blank.is_priced() and blank.band() == "UNPRICED"
 
     def test_band_a_outranks_band_b_even_at_lower_impact(self):
-        q = PriorityQueueEngine(mode=MODE_RESOURCE)
+        q = PriorityQueueEngine(mode=MODE_RESOURCE, mode_molt_id=TEST_MOLT)
         q.add_item(QueueItem(molt_id="FREE-LO", status="READY", impact=1, cost={"RAT-min": 0}))
         q.add_item(QueueItem(molt_id="PAID-HI", status="READY", impact=99, cost={"RAT-min": 1}))
         assert q.get_next_ready()["molt_id"] == "FREE-LO"
@@ -338,6 +457,35 @@ class TestQueueReshape:
         with pytest.raises(ValueError):
             PriorityQueueEngine(mode="vibes")
 
+    def test_resource_mode_cannot_be_constructed_without_a_molt_id(self):
+        # The gate changes which rows may start, so it is not reachable by a
+        # caller who simply asks for it.
+        with pytest.raises(ValueError, match="mode_molt_id"):
+            PriorityQueueEngine(mode=MODE_RESOURCE)
+
+    def test_unknown_unpriced_policy_is_rejected(self):
+        with pytest.raises(ValueError):
+            PriorityQueueEngine(mode=MODE_IMPACT, unpriced_policy="maybe")
+
+    def test_unpriced_policy_governs_the_gate(self):
+        refused = _queue(MODE_RESOURCE, POLICY_REFUSED).apply_ready_gate()
+        assert [d["molt_id"] for d in refused["blocked"]] == ["UNPRICED"]
+
+        warned = _queue(MODE_RESOURCE, POLICY_WARNED).apply_ready_gate()
+        assert warned["ready_items"] == 4
+        row = next(d for d in warned["ready"] if d["molt_id"] == "UNPRICED")
+        assert "UNPRICED" in row["reason"] and row["can_start"]
+
+        allowed = _queue(MODE_RESOURCE, POLICY_ALLOWED).apply_ready_gate()
+        assert allowed["ready_items"] == 4
+        assert all("UNPRICED" not in d["reason"] for d in allowed["ready"])
+
+    def test_negative_and_non_finite_costs_are_rejected(self):
+        for bad in (-1, float("nan"), float("inf"), "10"):
+            item = QueueItem(molt_id="BAD", status="READY", impact=1, cost={"RAT-min": bad})
+            with pytest.raises(ValueError):
+                item.constraint_cost()
+
 
 class TestModeIsGoverned:
     def test_resource_mode_is_dormant_while_the_constant_is_unratified(self):
@@ -356,10 +504,34 @@ class TestModeIsGoverned:
         path = tmp_path / "constants.json"
         path.write_text(json.dumps({"constants": [
             {"name": "QUEUE_SCORING_MODE", "current_value": "resource", "molt_id": "M-TEST-01"},
-            {"name": "CONSTRAINT_UNIT", "current_value": "RAT-min", "molt_id": "M-TEST-02"},
+            {"name": "CONSTRAINT_UNIT", "current_value": "Z3-hr", "molt_id": "M-TEST-02"},
+            {"name": "UNPRICED_ROW_POLICY", "current_value": "REFUSED_TO_START",
+             "molt_id": "M-TEST-03"},
         ]}), encoding="utf-8")
         q = PriorityQueueEngine.from_constants(str(path))
         assert q.mode == MODE_RESOURCE and q.mode_molt_id == "M-TEST-01"
+        assert q.constraint_unit == "Z3-hr"
+        assert q.unpriced_policy == POLICY_REFUSED
+
+    def test_an_unratified_constraint_unit_does_not_take_effect(self, tmp_path):
+        # A Z1 edit to CONSTRAINT_UNIT must not silently move the binding unit
+        # once the mode is ratified: each constant carries its own dormancy.
+        path = tmp_path / "constants.json"
+        path.write_text(json.dumps({"constants": [
+            {"name": "QUEUE_SCORING_MODE", "current_value": "resource", "molt_id": "M-TEST-01"},
+            {"name": "CONSTRAINT_UNIT", "current_value": "Z1-ktok", "molt_id": None},
+        ]}), encoding="utf-8")
+        q = PriorityQueueEngine.from_constants(str(path))
+        assert q.constraint_unit == "RAT-min"
+
+    def test_an_unratified_policy_falls_back_to_its_prior(self, tmp_path):
+        path = tmp_path / "constants.json"
+        path.write_text(json.dumps({"constants": [
+            {"name": "QUEUE_SCORING_MODE", "current_value": "resource", "molt_id": "M-TEST-01"},
+            {"name": "UNPRICED_ROW_POLICY", "current_value": "REFUSED_TO_START",
+             "prior_value": "ALLOWED", "molt_id": None},
+        ]}), encoding="utf-8")
+        assert PriorityQueueEngine.from_constants(str(path)).unpriced_policy == POLICY_ALLOWED
 
     def test_resource_value_without_a_molt_id_does_not_activate(self, tmp_path):
         path = tmp_path / "constants.json"

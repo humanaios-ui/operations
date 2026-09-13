@@ -59,16 +59,21 @@ python3 tools/resource_ledger_v0_1.py verify ledgers/RESOURCE_LEDGER.jsonl
 Until a capacity exists for a unit, every utilization figure involving it is `null` — not zero, not "fine".
 
 ```bash
-# the constraint unit is a Z2 act and needs a hash
+# the constraint unit is a Z2 act and needs a real sha256, not a label
 python3 tools/resource_ledger_v0_1.py cap ledgers/RESOURCE_LEDGER.jsonl RAT-min 120 \
-  --by Z2 --hash <ratification hash> --period week --source "<where the number comes from>"
+  --by Z2 --hash <64-hex ratification hash> --period week --source "<where the number comes from>"
 ```
+
+The census reads this CAP event from the verified ledger. `census --capacity <n>` does **not**
+declare anything — it is a what-if and is reported as `capacity_basis: OVERRIDE`.
 
 ---
 
 ## Measure an exchange rate
 
-There is no default conversion between dimensions. The only legal rate is a measured margin:
+There is no default conversion between dimensions, and there is nothing to convert *within* one —
+a rate between two units of the same dimension is refused. The only legal rate is a cross-dimension
+measured margin:
 
 ```bash
 python3 tools/resource_ledger_v0_1.py price ledgers/RESOURCE_LEDGER.jsonl Z3-hr Z1-ktok 25 \
@@ -76,7 +81,14 @@ python3 tools/resource_ledger_v0_1.py price ledgers/RESOURCE_LEDGER.jsonl Z3-hr 
   --by Z1 --source "<the observations behind the rate>"
 ```
 
-Refused without `n ≥ 8`, without a window, without a named constraint, or without a source. The rate expires with its window; re-measure or it lapses. This is the one place the regime allows apples and oranges to trade, and it is deliberately expensive to use.
+Refused without `n ≥ 8`, without a window, without a named constraint, without a source, or between
+two units of the same dimension. The threshold comes from `SHADOW_PRICE_MIN_N` once that constant is
+ratified, and from `RESOURCE_UNITS.yaml` until then — `status` prints which.
+
+The rate expires with its window, but **nothing here evaluates that window**: it is free text (a
+sprint label, a date range, a cycle id), so `report` lists prices as `prices_recorded`, not "in
+force". Reading the window is the reader's job. This is the one place the regime allows apples and
+oranges to trade, and it is deliberately expensive to use.
 
 ---
 
@@ -84,7 +96,7 @@ Refused without `n ≥ 8`, without a window, without a named constraint, or with
 
 ```bash
 python3 tools/resource_census_v0_1.py census                  # table + outputs/resource_census.json
-python3 tools/resource_census_v0_1.py census --capacity 120   # adds utilization and clearance time
+python3 tools/resource_census_v0_1.py census --capacity 120   # what-if only; reported as OVERRIDE
 python3 tools/resource_census_v0_1.py census --json --no-write
 ```
 
@@ -95,6 +107,10 @@ Reading the output:
 | `basis: MEASURED` | counted mechanically from a named file |
 | `basis: PRIOR` | a Z1 estimate with no measurement behind it — never cite it as a finding |
 | `basis: UNMEASURED` | no instrument has run; the value is `null` |
+| `basis: PROXY` | something observable standing in for the defined quantity — say so when citing it |
+| `capacity_basis: OVERRIDE` | a `--capacity` argument, not a Z2 declaration |
+| `constraint_designation.basis: ASSUMED` | no other input unit has both a capacity and a demand, so the designation has not been tested against anything |
+| `ledger.chain: BROKEN` | the resource ledger failed `verify`; every ledger-derived figure is withheld, not zeroed |
 | `utilization: null` | no capacity declared. Not "low utilization". Undefined. |
 | `debt_rat_min` | the backlog expressed in constraint-minutes; `basis: PRIOR` until spends land |
 | `clearance_sensitivity_weeks` | a what-if table, not a forecast |
@@ -117,8 +133,42 @@ The tools refuse rather than guess. Each refusal is exercised by `--smoke-test` 
 | `spend` of an output unit / `yield` of an input unit | dimensions have direction |
 | `waste` of a positive-sign unit | liabilities only |
 | `price` with `n < 8`, or missing window / constraint / source | that is an assertion, not a measurement |
+| `price` between two units of the same dimension | there is nothing to exchange inside one dimension |
+| a `cap` hash that is not a sha256 | a Z2 signature is a hash, not a label |
+| a quantity of NaN or infinity | it serializes as a non-standard JSON token and poisons every sum |
 | second `close`, or any event after close | orders close once |
 | any edited prior line | append-only; `verify` breaks the chain |
+
+A budget may carry `RAT-min=0` — that is Band A, a row declaring it draws nothing on the
+bottleneck. An actual SPEND of zero is still refused: nothing happened, so there is nothing to record.
+
+---
+
+## When the registry changes
+
+The ledger's genesis event pins a sha256 of `RESOURCE_UNITS.yaml`. Hash-linking the events does not
+protect that: edit the registry and every historical event is silently reinterpreted under new
+definitions while `verify` still passes. So `verify` compares them and says so:
+
+```bash
+python3 tools/resource_ledger_v0_1.py verify ledgers/RESOURCE_LEDGER.jsonl              # reports drift
+python3 tools/resource_ledger_v0_1.py verify ledgers/RESOURCE_LEDGER.jsonl --strict-pin # exits 1 on drift
+
+# after the registry legitimately changes (Z2 ratifies it, a unit is added):
+python3 tools/resource_ledger_v0_1.py repin ledgers/RESOURCE_LEDGER.jsonl \
+  --source "<the change>" --reason "<why>"
+```
+
+Drift is not an error — the registry is *expected* to change when Z2 signs it. What is not allowed
+is the change happening behind the chain rather than in it.
+
+---
+
+## A note on yield density
+
+`density = evidence yield / constraint spend`. The numerator stays inside **one dimension**: adding
+`EVID-row` to `RAT-art` would assert exactly the commensurability this registry denies. Per-unit
+figures are reported separately as `yield_density_by_unit`, and they do not add up to anything.
 
 ---
 

@@ -9,7 +9,8 @@ until Z2 ratifies it.
                                at the binding constraint, in two bands:
                                  Band A  cost(constraint) == 0  → rank by score
                                  Band B  cost(constraint)  > 0  → rank by density
-                                 unpriced rows are not schedulable at all
+                                 unpriced rows: per UNPRICED_ROW_POLICY —
+                                 REFUSED_TO_START, WARNED, or ALLOWED
 
 Band A before Band B is constraint discipline, not preference: work that does
 not touch the bottleneck never competes with work that does. See
@@ -29,9 +30,12 @@ Pattern:
 Impacts are constant-like (in behavior_spec.json weights) and are updated
 via molt. No auto-prioritization; Z2 approves score changes via hash.
 
-The mode switch is itself governed: `PriorityQueueEngine.from_constants()`
-reads constants.json and selects resource mode ONLY when QUEUE_SCORING_MODE
-carries a non-null molt_id. Code does not flip its own gate.
+Every switch here is governed: `PriorityQueueEngine.from_constants()` reads
+constants.json and honours QUEUE_SCORING_MODE, CONSTRAINT_UNIT and
+UNPRICED_ROW_POLICY only when each carries a non-null molt_id. An unratified
+constant is a proposal, so it changes nothing. Code does not flip its own gate —
+resource mode cannot even be constructed without naming the molt that authorised
+it.
 """
 
 import json
@@ -48,6 +52,13 @@ MODE_RESOURCE = "resource"
 # RESOURCE_UNITS.yaml → constraint.unit; kept as a plain string so this module
 # has no yaml dependency.
 DEFAULT_CONSTRAINT_UNIT = "RAT-min"
+
+# What the READY gate does with a row that declares no constraint cost. Governed
+# by the UNPRICED_ROW_POLICY constant; the engine never picks this for itself.
+POLICY_ALLOWED = "ALLOWED"
+POLICY_WARNED = "WARNED"
+POLICY_REFUSED = "REFUSED_TO_START"
+UNPRICED_POLICIES = (POLICY_ALLOWED, POLICY_WARNED, POLICY_REFUSED)
 
 
 class QueueItemStatus(Enum):
@@ -106,10 +117,25 @@ class QueueItem:
         return constraint_unit in self.cost
 
     def constraint_cost(self, constraint_unit: str = DEFAULT_CONSTRAINT_UNIT) -> Optional[float]:
-        """Draw on the binding constraint, or None if the row is unpriced."""
+        """Draw on the binding constraint, or None if the row is unpriced.
+
+        A cost must be a real, finite, non-negative number. A negative cost would
+        land in Band B with negative density and shrink the measured demand on
+        the constraint — a row claiming to hand minutes back. NaN and infinity
+        would poison every comparison that orders the queue.
+        """
         if not self.is_priced(constraint_unit):
             return None
-        return float(self.cost[constraint_unit])
+        raw = self.cost[constraint_unit]
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            raise ValueError(f"{self.molt_id}: cost[{constraint_unit}] = {raw!r} is not a number")
+        value = float(raw)
+        if value != value or value in (float("inf"), float("-inf")):
+            raise ValueError(f"{self.molt_id}: cost[{constraint_unit}] = {raw!r} is not finite")
+        if value < 0:
+            raise ValueError(f"{self.molt_id}: cost[{constraint_unit}] = {raw!r} is negative; "
+                             "no work order frees the constraint by being scheduled")
+        return value
 
     def band(self, constraint_unit: str = DEFAULT_CONSTRAINT_UNIT) -> str:
         """A (no constraint draw) · B (draws on the constraint) · UNPRICED."""
@@ -158,16 +184,28 @@ class PriorityQueueEngine:
 
     def __init__(self, mode: str = MODE_IMPACT,
                  constraint_unit: str = DEFAULT_CONSTRAINT_UNIT,
-                 mode_molt_id: Optional[str] = None):
+                 mode_molt_id: Optional[str] = None,
+                 unpriced_policy: str = POLICY_REFUSED):
         self.items = {}              # molt_id → QueueItem
         self.score_events = []
         self.ready_decisions = []
         self.z2_score_pins = {}      # molt_id → pinned score (Z2 authorized)
         if mode not in (MODE_IMPACT, MODE_RESOURCE):
             raise ValueError(f"unknown scoring mode {mode!r}")
+        if mode == MODE_RESOURCE and not mode_molt_id:
+            # The gate is the point: resource mode changes which rows may start,
+            # so it is reachable only with the ratification that authorised it.
+            # from_constants() supplies the molt_id it read; a direct caller must
+            # name one too (tests pass a test molt id).
+            raise ValueError("resource mode requires mode_molt_id — the ratified molt that "
+                             "authorised it. Build the engine with from_constants(), or pass the "
+                             "molt_id explicitly.")
+        if unpriced_policy not in UNPRICED_POLICIES:
+            raise ValueError(f"unknown unpriced-row policy {unpriced_policy!r}")
         self.mode = mode
         self.constraint_unit = constraint_unit
         self.mode_molt_id = mode_molt_id   # the ratification that authorised the mode
+        self.unpriced_policy = unpriced_policy
 
     # ------------------------------------------------------------------ mode
     @classmethod
@@ -181,20 +219,41 @@ class PriorityQueueEngine:
         node rule), so the engine stays on the incumbent formula — the code does
         not flip its own gate.
         """
-        mode, molt_id, unit = MODE_IMPACT, None, DEFAULT_CONSTRAINT_UNIT
+        mode, molt_id = MODE_IMPACT, None
+        unit, policy = DEFAULT_CONSTRAINT_UNIT, POLICY_REFUSED
         try:
             with open(constants_path, encoding='utf-8') as f:
                 consts = json.load(f).get('constants', [])
         except (OSError, json.JSONDecodeError):
             consts = []
         by_name = {c.get('name'): c for c in consts}
-        row = by_name.get('QUEUE_SCORING_MODE')
-        if row and row.get('molt_id') and row.get('current_value') == MODE_RESOURCE:
+
+        def ratified(name):
+            """A constant takes effect only with a molt_id. Without one it is a
+            proposal, and reading its current_value would let a Z1 edit change
+            behaviour — the exact thing the constants node rule forbids."""
+            row = by_name.get(name)
+            return row if (row and row.get('molt_id')) else None
+
+        row = ratified('QUEUE_SCORING_MODE')
+        if row and row.get('current_value') == MODE_RESOURCE:
             mode, molt_id = MODE_RESOURCE, row['molt_id']
-        unit_row = by_name.get('CONSTRAINT_UNIT')
+
+        unit_row = ratified('CONSTRAINT_UNIT')
         if unit_row and unit_row.get('current_value'):
             unit = unit_row['current_value']
-        return cls(mode=mode, constraint_unit=unit, mode_molt_id=molt_id, **kwargs)
+
+        policy_row = ratified('UNPRICED_ROW_POLICY')
+        if policy_row and policy_row.get('current_value') in UNPRICED_POLICIES:
+            policy = policy_row['current_value']
+        elif 'UNPRICED_ROW_POLICY' in by_name:
+            # Unratified: fall back to the constant's own prior — the incumbent
+            # state, where no row carries a cost at all.
+            prior = by_name['UNPRICED_ROW_POLICY'].get('prior_value')
+            policy = prior if prior in UNPRICED_POLICIES else POLICY_ALLOWED
+
+        return cls(mode=mode, constraint_unit=unit, mode_molt_id=molt_id,
+                   unpriced_policy=policy, **kwargs)
 
     # ------------------------------------------------------------- ordering
     def _sort_key(self, item: 'QueueItem'):
@@ -225,8 +284,19 @@ class PriorityQueueEngine:
         """
         if not item.can_start():
             return 'BLOCKED'
-        if self.mode == MODE_RESOURCE and not item.is_priced(self.constraint_unit):
+        if (self.mode == MODE_RESOURCE
+                and self.unpriced_policy == POLICY_REFUSED
+                and not item.is_priced(self.constraint_unit)):
             return f'UNPRICED — no {self.constraint_unit} cost declared'
+        return None
+
+    def _gate_warning(self, item: 'QueueItem') -> Optional[str]:
+        """A row the gate lets start but wants noticed. Under WARNED, an unpriced
+        row still runs — the policy is the ratified one, not the engine's taste."""
+        if (self.mode == MODE_RESOURCE
+                and self.unpriced_policy == POLICY_WARNED
+                and not item.is_priced(self.constraint_unit)):
+            return f'UNPRICED — no {self.constraint_unit} cost declared (policy: WARNED)'
         return None
 
     def add_item(self, item: QueueItem) -> Dict[str, Any]:
@@ -387,10 +457,11 @@ class PriorityQueueEngine:
                 continue
 
             reason = self._gate_reason(item)
+            warning = self._gate_warning(item) if reason is None else None
             decision = ReadyGateDecision(
                 molt_id=molt_id,
                 can_start=reason is None,
-                reason=reason or 'READY',
+                reason=reason or (f'READY — {warning}' if warning else 'READY'),
                 current_score=item.score,
                 rank_in_queue=rank,
                 blockers=item.blocked_by,
@@ -406,6 +477,7 @@ class PriorityQueueEngine:
         return {
             'mode': self.mode,
             'constraint_unit': self.constraint_unit if self.mode == MODE_RESOURCE else None,
+            'unpriced_policy': self.unpriced_policy if self.mode == MODE_RESOURCE else None,
             'ready_items': len(ready_items),
             'blocked_items': len(blocked_items),
             'ready': ready_items,
@@ -493,6 +565,7 @@ class PriorityQueueEngine:
             report.update({
                 'constraint_unit': self.constraint_unit,
                 'mode_molt_id': self.mode_molt_id,
+                'unpriced_policy': self.unpriced_policy,
                 'unpriced_count': len(self.items) - len(priced),
                 'constraint_demand': sum(i.constraint_cost(self.constraint_unit) or 0 for i in priced),
                 'constraint_demand_note': 'excludes unpriced rows; they are refused, not costed at zero',

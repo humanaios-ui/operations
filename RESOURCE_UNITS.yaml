@@ -395,7 +395,10 @@ demand_priors:
 # independently of the implementation.
 identities:
   conservation: "for each depletable unit u and period t: open(u,t) + inflow(u,t) - spend(u,t) = close(u,t)"
-  yield_density: "density(order) = Σ yield(order, evidence units) / spend(order, constraint unit)"
+  yield_density: >-
+    density(order) = Σ yield(order, units in the `evidence` dimension) / spend(order, constraint unit).
+    ONE dimension in the numerator: adding EVID-row to RAT-art would assert the commensurability
+    this registry denies. Per-unit figures are reported separately (`yield_density_by_unit`).
   utilization: "utilization(u,t) = demand(u,t) / capacity(u,t); undefined (null) when capacity is UNMEASURED"
   backlog_debt: "debt(t) = Σ over obligation classes of count_c(t) × price_c  [RAT-min]"
   clearance_time: "weeks_to_clear = debt(t) / capacity(RAT-min); undefined while capacity is UNMEASURED"

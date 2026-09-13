@@ -9,7 +9,7 @@ organization currently owe, and what stock of output does it hold against that?
 
   census                 count obligations, stocks and waste; write outputs/resource_census.json
   units                  print the registered unit map (symbol, dimension, kind, instrument)
-  --capacity <n>         RAT-min per week, if Z2 has declared one; utilization is null without it
+  --capacity <n>         what-if override; the real capacity is the ledger CAP event (a Z2 act)
 
 What it does NOT do: it does not invent a capacity, it does not convert between
 dimensions, and it does not claim a measured price where only a prior exists.
@@ -78,7 +78,35 @@ def read_jsonl(path: Path) -> list[dict]:
     return out
 
 
-def obs(count: int, basis: str, source: str, note: str | None = None) -> dict:
+def load_ledger(root: Path) -> dict:
+    """Project the resource ledger, or an empty state if there is none.
+
+    The census is the demand side; the ledger is the supply-and-consumption side.
+    Reading it here is what makes a declared capacity, a measured density, and
+    the 90-day SPEND falsifier observable from the census artifact.
+    """
+    empty = {"orders": {}, "spent": {}, "yielded": {}, "waste": {}, "capacity": {},
+             "prices": [], "genesis": None, "events": 0, "chain": "ABSENT"}
+    path = root / "ledgers" / "RESOURCE_LEDGER.jsonl"
+    events = read_jsonl(path)
+    if not events:
+        return empty
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        import resource_ledger_v0_1 as rl
+    except ImportError:
+        return dict(empty, chain="UNREADABLE")
+    if rl.verify(events) is not None:
+        # A broken chain is not a zero balance. Report nothing rather than
+        # numbers from a ledger that failed its own integrity check.
+        return dict(empty, events=len(events), chain="BROKEN")
+    state = rl.project(events)
+    state["events"] = len(events)
+    state["chain"] = "OK"
+    return state
+
+
+def obs(count: int | None, basis: str, source: str, note: str | None = None) -> dict:
     rec = {"count": count, "basis": basis, "source": source}
     if note:
         rec["note"] = note
@@ -231,8 +259,11 @@ def count_docs(root: Path) -> dict:
         import yaml
 
         data = yaml.safe_load(read_text(root / src) or "{}") or {}
-    except Exception:
-        return {"awaiting_approval": obs(0, "MEASURED", src, "registry unreadable")}
+    except Exception as exc:
+        # Unreadable is not empty. Reporting 0 MEASURED here would price this
+        # obligation class at zero debt and quietly shrink the backlog.
+        return {"awaiting_approval": obs(None, "UNMEASURED", src, f"registry unreadable: {exc}"),
+                "total": obs(None, "UNMEASURED", src)}
     docs = data.get("documents", []) or []
     awaiting = sum(1 for d in docs if str(d.get("status", "")).lower() in ("draft", "review"))
     return {
@@ -268,6 +299,7 @@ def count_waste(root: Path) -> dict:
 def run_census(root: Path, units: dict, capacity: float | None, today: date) -> dict:
     priors = (units.get("demand_priors") or {}).get("classes", {})
     constraint_unit = (units.get("constraint") or {}).get("unit", "RAT-min")
+    ledger = load_ledger(root)
 
     reg = count_registry_candidates(root)
     nf = count_nf(root, today)
@@ -291,10 +323,14 @@ def run_census(root: Path, units: dict, capacity: float | None, today: date) -> 
     obligations = {}
     debt = 0
     missing_price = []
+    unmeasured_classes = []
     for cls, rec in demand_counts.items():
         prior = priors.get(cls, {})
         price = prior.get("rat_min")
-        if price is None:
+        if rec["count"] is None:
+            unmeasured_classes.append(cls)
+            load = None
+        elif price is None:
             missing_price.append(cls)
             load = None
         else:
@@ -307,17 +343,96 @@ def run_census(root: Path, units: dict, capacity: float | None, today: date) -> 
             "load_rat_min": load,
         }
 
-    open_obligations = sum(r["count"] for r in demand_counts.values())
+    open_obligations = sum(r["count"] for r in demand_counts.values() if r["count"] is not None)
 
     clearance = {}
     for cap in SENSITIVITY_RAT_MIN_PER_WEEK:
         clearance[str(cap)] = round(debt / cap, 2)
 
+    # Capacity comes from a CAP event in the verified ledger — a Z2 act carrying
+    # a ratification hash. --capacity is a what-if override and is labelled as
+    # one; it never masquerades as a declaration.
+    cap_event = ledger["capacity"].get(constraint_unit)
+    if capacity:
+        capacity_value, capacity_basis = capacity, "OVERRIDE"
+        capacity_source = "--capacity argument (not a Z2 declaration)"
+    elif cap_event:
+        capacity_value, capacity_basis = cap_event["qty"], "DECLARED"
+        capacity_source = (f"ledgers/RESOURCE_LEDGER.jsonl CAP by {cap_event.get('by')}"
+                           f" hash {str(cap_event.get('hash'))[:16]}…")
+    else:
+        capacity_value, capacity_basis, capacity_source = None, "UNMEASURED", None
+
     utilization = None
     weeks_to_clear = None
-    if capacity:
-        utilization = round(debt / capacity, 3)
-        weeks_to_clear = round(debt / capacity, 2)
+    if capacity_value:
+        utilization = round(debt / capacity_value, 3)
+        weeks_to_clear = round(debt / capacity_value, 2)
+
+    # Input-unit table. The constraint unit is included with its own demand and
+    # utilization — without that row the constraint falsifier ("another unit at
+    # higher utilization") has nothing to compare against.
+    input_units = {
+        constraint_unit: {
+            "capacity": capacity_value, "capacity_unit": "per week",
+            "capacity_basis": capacity_basis,
+            "demand": debt, "demand_basis": "PRIOR", "utilization": utilization,
+            "source": capacity_source or "no CAP event in ledgers/RESOURCE_LEDGER.jsonl",
+        },
+        "Z1-ktok": {
+            "capacity": 100, "capacity_unit": "per session", "capacity_basis": "DECLARED",
+            "demand": ledger["spent"].get("Z1-ktok"),
+            "demand_basis": "MEASURED" if ledger["spent"].get("Z1-ktok") else "UNMEASURED",
+            "utilization": None,
+            "source": "behavior_spec.json caps.token_budget_per_session",
+        },
+        "Z3-hr": {"capacity": None, "capacity_basis": "UNMEASURED",
+                  "demand": ledger["spent"].get("Z3-hr"), "demand_basis": "UNMEASURED",
+                  "utilization": None, "source": "ZONE_REGISTRY.md — most executor seats TBD"},
+        "CI-min": {"capacity": None, "capacity_basis": "UNMEASURED",
+                   "demand": ledger["spent"].get("CI-min"), "demand_basis": "UNMEASURED",
+                   "utilization": None, "source": "GitHub Actions billing (not read into tree)"},
+        "RUN-day": {"capacity": None, "capacity_basis": "UNMEASURED",
+                    "demand": None, "demand_basis": "UNMEASURED", "utilization": None,
+                    "source": "Class 1 live state (WGS) — deliberately not restated in-tree"},
+        "SPEC-hr": {"capacity": None, "capacity_basis": "UNMEASURED",
+                    "demand": ledger["spent"].get("SPEC-hr"), "demand_basis": "UNMEASURED",
+                    "utilization": None, "source": "specimen-intake cycles; private register off-tree"},
+    }
+    for sym, row in input_units.items():
+        if sym != constraint_unit and row["capacity"] and row["demand"]:
+            row["utilization"] = round(row["demand"] / row["capacity"], 3)
+    comparable = sum(1 for sym, row in input_units.items()
+                     if sym != constraint_unit and row["utilization"] is not None)
+
+    # Yield density, from the ledger rather than hard-coded. Undefined until a
+    # closed order has both a constraint SPEND and an evidence YIELD.
+    closed = {k: o for k, o in ledger["orders"].items() if o["closed"]}
+    densities = {}
+    for oid, o in closed.items():
+        spend = o["spent"].get(constraint_unit)
+        if not spend:
+            continue
+        evidence_yield = sum(q for sym, q in o["yielded"].items() if sym in ("EVID-row", "CAL-pt"))
+        densities[oid] = round(evidence_yield / spend, 4)
+    if densities:
+        density_block = {
+            "value": round(sum(densities.values()) / len(densities), 4),
+            "basis": "MEASURED",
+            "unit": f"evidence units per {constraint_unit}",
+            "by_order": densities,
+            "source": "ledgers/RESOURCE_LEDGER.jsonl (closed orders)",
+        }
+    else:
+        density_block = {
+            "value": None,
+            "basis": "UNMEASURED",
+            "by_order": {},
+            "source": "ledgers/RESOURCE_LEDGER.jsonl",
+            "note": (f"No closed order carries a {constraint_unit} SPEND row "
+                     f"(ledger chain: {ledger['chain']}, {ledger['events']} events). Nothing has "
+                     "been measured in the constraint unit yet, only imputed from priors."),
+        }
 
     return {
         "version": f"{TOOL_NAME}_v{TOOL_VERSION}",
@@ -330,19 +445,29 @@ def run_census(root: Path, units: dict, capacity: float | None, today: date) -> 
         },
         "constraint": {
             "unit": constraint_unit,
-            "capacity_per_week": capacity,
-            "capacity_basis": "DECLARED" if capacity else "UNMEASURED",
+            "capacity_per_week": capacity_value,
+            "capacity_basis": capacity_basis,
+            "capacity_source": capacity_source,
             "utilization": utilization,
             "weeks_to_clear": weeks_to_clear,
-            "note": None if capacity else
-            "No Z2 capacity declaration. Utilization and clearance time are undefined; the "
-            "sensitivity table below is the only statement this census can make about them.",
+            "note": None if capacity_value else
+            "No Z2 capacity declaration in the ledger. Utilization and clearance time are "
+            "undefined; the sensitivity table below is the only statement this census can "
+            "make about them.",
+        },
+        "ledger": {
+            "path": "ledgers/RESOURCE_LEDGER.jsonl",
+            "events": ledger["events"],
+            "chain": ledger["chain"],
+            "spend_rows": sum(1 for _ in ledger["spent"]),
+            "closed_orders": sum(1 for o in ledger["orders"].values() if o["closed"]),
         },
         "obligations": {
             "open_items": open_obligations,
             "debt_rat_min": debt,
             "debt_basis": "PRIOR",
             "unpriced_classes": missing_price,
+            "unmeasured_classes": unmeasured_classes,
             "by_class": obligations,
         },
         "clearance_sensitivity_weeks": clearance,
@@ -351,8 +476,15 @@ def run_census(root: Path, units: dict, capacity: float | None, today: date) -> 
             "CAL-pt": nf["calibration_points"],
             "RAT-art": {
                 "count": reg["ratified"]["count"] + const["ratified"]["count"],
-                "basis": "MEASURED",
+                # PROXY, not MEASURED: RAT-art is defined as an artifact carrying
+                # a Z2 hash, but REGISTERED.md's entry schema has no hash field —
+                # a REGISTERED status is the closest observable. The count is a
+                # lower-bound stand-in until hash-bearing records exist.
+                "basis": "PROXY",
                 "source": "REGISTERED.md (REGISTERED/ACTIVE/CONFIRMED) + constants.json (molt_id non-null)",
+                "note": ("status and molt_id stand in for a ratification hash; "
+                         "GOVERNANCE_RATIFICATIONS_REGISTRY.yaml is the hash-bearing record and is "
+                         "not yet populated. Promote to MEASURED when it is."),
             },
         },
         "liabilities": {
@@ -360,28 +492,19 @@ def run_census(root: Path, units: dict, capacity: float | None, today: date) -> 
             "GAP-row": waste["gap_rows"],
             "STALE-day": waste["stale_days"],
         },
-        "input_units": {
-            "Z1-ktok": {
-                "capacity": 100, "capacity_unit": "per session", "capacity_basis": "DECLARED",
-                "demand": None, "utilization": None,
-                "source": "behavior_spec.json caps.token_budget_per_session",
-            },
-            "Z3-hr": {"capacity": None, "capacity_basis": "UNMEASURED", "demand": None, "utilization": None,
-                      "source": "ZONE_REGISTRY.md — most executor seats TBD"},
-            "CI-min": {"capacity": None, "capacity_basis": "UNMEASURED", "demand": None, "utilization": None,
-                       "source": "GitHub Actions billing (not read into tree)"},
-            "RUN-day": {"capacity": None, "capacity_basis": "UNMEASURED", "demand": None, "utilization": None,
-                        "source": "Class 1 live state (WGS) — deliberately not restated in-tree"},
-            "SPEC-hr": {"capacity": None, "capacity_basis": "UNMEASURED", "demand": None, "utilization": None,
-                        "source": "specimen-intake cycles; private register off-tree"},
+        "input_units": input_units,
+        "constraint_designation": {
+            "unit": constraint_unit,
+            "basis": "ASSUMED" if comparable == 0 else "COMPARED",
+            "units_with_comparable_utilization": comparable,
+            "note": ("The designation moves only when another input unit shows higher utilization "
+                     "for two consecutive censuses. That comparison needs a declared capacity AND a "
+                     "measured demand on both sides; "
+                     + ("no other input unit has both, so the designation is an assumption this "
+                        "census cannot yet test." if comparable == 0 else
+                        "the comparable units are listed under input_units.")),
         },
-        "yield_density": {
-            "value": None,
-            "basis": "UNMEASURED",
-            "note": ("Yield per constraint-minute needs at least one SPEND row in "
-                     "ledgers/RESOURCE_LEDGER.jsonl. None exist at census time: nothing has been "
-                     "measured in RAT-min yet, only imputed from priors."),
-        },
+        "yield_density": density_block,
     }
 
 
@@ -392,15 +515,18 @@ def print_report(c: dict) -> None:
           f"[{c['units_registry']['status']}]")
     print()
     print(f"CONSTRAINT: {c['constraint']['unit']}  capacity="
-          f"{c['constraint']['capacity_per_week'] or 'UNMEASURED'}  "
-          f"utilization={c['constraint']['utilization'] if c['constraint']['utilization'] is not None else 'undefined'}")
+          f"{c['constraint']['capacity_per_week'] or 'UNMEASURED'} [{c['constraint']['capacity_basis']}]  "
+          f"utilization={c['constraint']['utilization'] if c['constraint']['utilization'] is not None else 'undefined'}"
+          f"  ·  designation {c['constraint_designation']['basis']}")
+    print(f"ledger: {c['ledger']['events']} events, chain {c['ledger']['chain']}")
     print()
     print("OPEN OBLIGATIONS (liability in the constraint unit)")
     print(f"  {'class':<26}{'n':>5}{'RAT-min ea':>12}{'load':>8}")
     for cls, rec in c["obligations"]["by_class"].items():
         price = rec["price_rat_min"]
         load = rec["load_rat_min"]
-        print(f"  {cls:<26}{rec['count']:>5}{(price if price is not None else '—'):>12}"
+        n = rec["count"] if rec["count"] is not None else "?"
+        print(f"  {cls:<26}{n:>5}{(price if price is not None else '—'):>12}"
               f"{(load if load is not None else '—'):>8}")
     print(f"  {'TOTAL':<26}{c['obligations']['open_items']:>5}{'':>12}"
           f"{c['obligations']['debt_rat_min']:>8}   (basis: PRIOR)")
@@ -417,11 +543,14 @@ def print_report(c: dict) -> None:
         n = rec["count"]
         print(f"  {sym:<12}{(n if n is not None else 'undefined'):>6}   [{rec['basis']}]")
     print()
-    print(f"yield density: {c['yield_density']['basis']} — {c['yield_density']['note']}")
+    yd = c["yield_density"]
+    print(f"yield density: {yd['basis']}"
+          + (f" — {yd['value']} {yd.get('unit', '')}" if yd["value"] is not None
+             else f" — {yd.get('note', '')}"))
 
 
-def cmd_units(root: Path) -> int:
-    units = load_units(UNITS_PATH)
+def cmd_units(units_path: Path) -> int:
+    units = load_units(units_path)
     print(f"{'symbol':<12}{'dimension':<16}{'kind':<8}{'sign':<10}{'status':<12}instrument")
     for u in units.get("units", []):
         inst = (u.get("instrument") or {}).get("primary") or "—"
@@ -504,7 +633,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.smoke_test:
         return run_smoke_test()
     if a.command == "units":
-        return cmd_units(Path(a.root))
+        return cmd_units(Path(a.units))
 
     units = load_units(Path(a.units))
     census = run_census(Path(a.root), units, a.capacity, date.today())
