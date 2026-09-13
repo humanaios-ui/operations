@@ -144,13 +144,23 @@ def token_id_for(episode_id: str, field: str) -> str:
     return f"{episode_id}:{slugify(field)}-{digest}"
 
 
+def _read_ledger_or_corrupt(ledger_path: Path) -> List[dict]:
+    """engine.read(), with a truncated/unreadable file folded into
+    LedgerCorrupt instead of raising JSONDecodeError/OSError past callers
+    that only catch LedgerCorrupt."""
+    try:
+        return engine.read(str(ledger_path))
+    except (ValueError, OSError) as exc:
+        raise LedgerCorrupt(f"{ledger_path}: unreadable — {exc}") from exc
+
+
 def load_ledger_state(ledger_path: Path) -> Tuple[set, int]:
     """Existing TOKEN ids and the next free seq. Raises LedgerCorrupt if the
     existing chain fails verification — never build on a chain we cannot
     trust."""
     if not ledger_path.exists():
         return set(), 1
-    rows = engine.read(str(ledger_path))
+    rows = _read_ledger_or_corrupt(ledger_path)
     err = engine.verify(rows)
     if err:
         raise LedgerCorrupt(f"{ledger_path}: {err}")
@@ -171,6 +181,8 @@ def build_pin_events(episode_id: str, action: str, target: str, predictor: str,
     events: List[dict] = []
     seq = start_seq
     for field, spec in expected.items():
+        if spec.get("p") is None:
+            raise ValueError(f"missing probability for field {field!r} — p is required in [0,1]")
         token_id = token_id_for(episode_id, field)
         events.append({
             "seq": seq, "type": "TOKEN", "at": pinned_at, "by": "lifecycle-predict",
@@ -216,13 +228,21 @@ def build_resolve_events(ledger_path: Path, episode_id: str, observed: Dict[str,
     if not ledger_path.exists():
         raise ValueError(f"no ledger at {ledger_path} — nothing to resolve against")
 
-    rows = engine.read(str(ledger_path))
+    rows = _read_ledger_or_corrupt(ledger_path)
     already_resolved = {r["token_id"] for r in rows if r.get("type") == "RESOLVE"}
     pins_for_episode = [
         r for r in rows if r.get("type") == "PIN" and r.get("episode_id") == episode_id
     ]
     if not pins_for_episode:
         raise ValueError(f"no PIN events found for episode {episode_id!r}")
+
+    known_fields = {pin["field"] for pin in pins_for_episode}
+    unknown_fields = set(observed) - known_fields
+    if unknown_fields:
+        raise ValueError(
+            f"observed field(s) {sorted(unknown_fields)} do not match any PIN in "
+            f"episode {episode_id!r} (known fields: {sorted(known_fields)})"
+        )
 
     events: List[dict] = []
     seq = start_seq
@@ -235,7 +255,7 @@ def build_resolve_events(ledger_path: Path, episode_id: str, observed: Dict[str,
             continue
         actual = observed[field]
         elapsed_minutes = _minutes_between(pin["at"], resolved_at)
-        within_window = elapsed_minutes <= pin["window_minutes"]
+        within_window = 0 <= elapsed_minutes <= pin["window_minutes"]
         outcome = "YES" if (actual == pin["predicted_value"] and within_window) else "NO"
         events.append({
             "seq": seq, "type": "RESOLVE", "at": resolved_at,
@@ -276,10 +296,14 @@ def cmd_pin(args: argparse.Namespace) -> int:
             return 1
 
         episode_id = new_episode_id(args.action, args.target)
-        events = build_pin_events(
-            episode_id, args.action, args.target, args.predictor, expected,
-            args.window_minutes, engine.now(), next_seq,
-        )
+        try:
+            events = build_pin_events(
+                episode_id, args.action, args.target, args.predictor, expected,
+                args.window_minutes, engine.now(), next_seq,
+            )
+        except ValueError as exc:
+            print(f"FAIL: {exc}", file=sys.stderr)
+            return 2
         engine.append(str(ledger_path), events, engine.last_hash(str(ledger_path)))
         err = engine.verify(engine.read(str(ledger_path)))
         if err:
@@ -453,10 +477,58 @@ def run_smoke_test() -> bool:
         except SystemExit:
             pass
 
+        # A missing probability is refused too — check_p's own None passthrough
+        # would otherwise let an unscoreable PIN through silently.
+        try:
+            build_pin_events(
+                new_episode_id("a", "b"), "a", "b", "Claude Code",
+                {"x": {"value": "1", "p": None}}, 5, "2026-09-13T00:00:00+00:00", 1,
+            )
+            ok = False
+        except ValueError:
+            pass
+
+        # An observed field that matches no PIN in the episode (a typo) is
+        # refused, distinctly from the legitimate already-resolved no-op.
+        try:
+            build_resolve_events(ledger, episode_id, {"no_such_field": "x"},
+                                 "manual check", "2026-09-13T00:06:00+00:00", seq2)
+            ok = False
+        except ValueError:
+            pass
+
+        # A resolution timestamped before its own pin (clock skew, or a
+        # backdated call) must not count as within-window just because the
+        # gap is small in magnitude.
+        skew_episode = new_episode_id("restart_service", "svc-skew")
+        skew_pin = build_pin_events(
+            skew_episode, "restart_service", "svc-skew", "Claude Code",
+            {"http_health": {"value": "200", "p": 0.9}},
+            window_minutes=5, pinned_at="2026-09-13T00:10:00+00:00", start_seq=1,
+        )
+        skew_ledger = Path(workdir) / "skew.jsonl"
+        engine.append(str(skew_ledger), skew_pin, "0" * 64)
+        skewed = build_resolve_events(
+            skew_ledger, skew_episode, {"http_health": "200"}, "manual check",
+            "2026-09-13T00:05:00+00:00", 3,  # 5 minutes BEFORE the pin
+        )
+        ok = ok and len(skewed) == 1 and skewed[0]["outcome"] == "NO"
+        ok = ok and skewed[0]["within_window"] is False
+
         # Tamper is still caught.
         tampered = engine.read(str(ledger))
         tampered[-1]["outcome"] = "YES"
         ok = ok and engine.verify(tampered) is not None
+
+        # A truncated/malformed ledger file is folded into LedgerCorrupt, not
+        # a raw JSONDecodeError past callers that only catch LedgerCorrupt.
+        truncated = Path(workdir) / "truncated.jsonl"
+        truncated.write_text("{not valid json}\n", encoding="utf-8")
+        try:
+            load_ledger_state(truncated)
+            ok = False
+        except LedgerCorrupt:
+            pass
 
         # A corrupted checked-in ledger refuses further pins/resolves.
         corrupt = Path(workdir) / "corrupt.jsonl"

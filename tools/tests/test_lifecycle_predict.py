@@ -373,3 +373,96 @@ def test_cli_pin_requires_at_least_one_expect(tmp_path):
         "--predictor", "Claude Code", "--window-minutes", "5",
     ])
     assert lc.cmd_pin(args) == 2
+
+
+def test_missing_probability_refused():
+    try:
+        lc.build_pin_events(
+            lc.new_episode_id("a", "b"), "a", "b", "Claude Code",
+            {"x": {"value": "1", "p": None}}, 5, "2026-09-13T00:00:00+00:00", 1,
+        )
+        raise AssertionError("expected ValueError")
+    except ValueError:
+        pass
+
+
+def test_unknown_observed_field_refused_distinctly_from_already_resolved(tmp_path):
+    """A typo'd field name is a real error, not the same silent no-op as
+    re-observing an already-resolved field."""
+    ledger = tmp_path / "ledger.jsonl"
+    episode_id = lc.new_episode_id("restart_service", "svc-x")
+    pin_events = lc.build_pin_events(
+        episode_id, "restart_service", "svc-x", "Claude Code",
+        {"http_health": {"value": "200", "p": 0.9}},
+        window_minutes=5, pinned_at="2026-09-13T00:00:00+00:00", start_seq=1,
+    )
+    engine.append(str(ledger), pin_events, "0" * 64)
+
+    try:
+        lc.build_resolve_events(ledger, episode_id, {"no_such_field": "x"},
+                                "manual check", "2026-09-13T00:03:00+00:00", 3)
+        raise AssertionError("expected ValueError")
+    except ValueError:
+        pass
+
+    # Meanwhile a real already-resolved field stays a legitimate no-op.
+    resolved = lc.build_resolve_events(ledger, episode_id, {"http_health": "200"},
+                                       "manual check", "2026-09-13T00:03:00+00:00", 3)
+    engine.append(str(ledger), resolved, engine.last_hash(str(ledger)))
+    again = lc.build_resolve_events(ledger, episode_id, {"http_health": "200"},
+                                    "manual check", "2026-09-13T00:04:00+00:00", 4)
+    assert again == []
+
+
+def test_cli_unknown_observed_field_is_controlled(tmp_path, capsys):
+    ledger = tmp_path / "cli.jsonl"
+    parser = lc.build_parser()
+    pin_args = parser.parse_args([
+        "pin", "--ledger", str(ledger),
+        "--action", "restart_service", "--target", "svc-x",
+        "--predictor", "Claude Code", "--window-minutes", "5",
+        "--expect", "http_health=200:0.9",
+    ])
+    lc.cmd_pin(pin_args)
+    episode_id = capsys.readouterr().out.splitlines()[0].split("episode ", 1)[1]
+
+    resolve_args = parser.parse_args([
+        "resolve", "--ledger", str(ledger), "--episode", episode_id,
+        "--source", "manual check", "--observe", "typo_field=x",
+    ])
+    assert lc.cmd_resolve(resolve_args) == 2
+    assert "FAIL" in capsys.readouterr().err
+
+
+def test_resolution_before_pin_is_not_within_window(tmp_path):
+    """Clock skew or a backdated resolve must not be treated as fast just
+    because the gap is small in magnitude."""
+    ledger = tmp_path / "ledger.jsonl"
+    episode_id = lc.new_episode_id("restart_service", "svc-x")
+    pin_events = lc.build_pin_events(
+        episode_id, "restart_service", "svc-x", "Claude Code",
+        {"http_health": {"value": "200", "p": 0.9}},
+        window_minutes=5, pinned_at="2026-09-13T00:10:00+00:00", start_seq=1,
+    )
+    engine.append(str(ledger), pin_events, "0" * 64)
+
+    skewed = lc.build_resolve_events(
+        ledger, episode_id, {"http_health": "200"}, "manual check",
+        "2026-09-13T00:05:00+00:00", 3,
+    )
+    assert len(skewed) == 1
+    assert skewed[0]["outcome"] == "NO"
+    assert skewed[0]["within_window"] is False
+
+
+def test_malformed_ledger_raises_ledger_corrupt_not_json_error(tmp_path):
+    """A truncated/unparseable ledger must surface as the documented
+    LedgerCorrupt refusal, not a raw JSONDecodeError past callers that only
+    catch LedgerCorrupt."""
+    ledger = tmp_path / "truncated.jsonl"
+    ledger.write_text("{not valid json}\n", encoding="utf-8")
+    try:
+        lc.load_ledger_state(ledger)
+        raise AssertionError("expected LedgerCorrupt")
+    except lc.LedgerCorrupt:
+        pass
