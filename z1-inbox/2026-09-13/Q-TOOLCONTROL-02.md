@@ -53,10 +53,10 @@ Every assignment was made from the tool's module docstring, not its filename. Re
 
 | | | | |
 |---|---|---|---|
-| audit_tool 19 | infrastructure_tool 18 | validation_tool 15 | calibration_tool 14 |
-| diagnostic_tool 13 | research_tool 10 | connector_tool 10 | security_gate_tool 10 |
-| orchestrator_tool 6 | dependency 5 | pipeline_tool 4 | reporting_tool 4 |
-| monitoring_tool 3 | governance_tool 3 | analytics_tool 1 | template_tool 1 |
+| audit_tool 19 | infrastructure_tool 17 | calibration_tool 16 | validation_tool 14 |
+| diagnostic_tool 13 | connector_tool 11 | security_gate_tool 10 | research_tool 9 |
+| orchestrator_tool 6 | reporting_tool 5 | dependency 5 | pipeline_tool 4 |
+| monitoring_tool 3 | governance_tool 2 | template_tool 2 | analytics_tool 1 |
 
 Six tools declared labels outside any convention (`governance`, `site`, `discovery`,
 `dispatch` ×2, `template`). Their `TOOL_CATEGORY` constants were normalized in source, so the
@@ -123,6 +123,39 @@ tool's own bug and out of this pass's scope.
 
 ---
 
+## §Review round — Copilot, 12 findings, all correct
+
+Two were my own **subject-over-role** errors, i.e. exactly the mistake this vocabulary's
+organizing rule exists to prevent, made while applying that rule:
+
+| Tool | I assigned | What it does | Now |
+|---|---|---|---|
+| `governance_fetcher.py` | `governance_tool` | Fetches `GOVERNANCE.md` from GitHub raw, exposes MCP resources, local fallback. Operates no registry. | `connector_tool` |
+| `agents/rentahuman_validation_bot_v1.py` | `validation_tool` | Recruits validators, tracks feedback, generates cohort reports and testimonials. Validates nothing. | `reporting_tool` |
+
+I categorized both on a word in their name — "governance", "validation" — which is the failure
+the rule names in its first sentence. `tool_scaffolder_v1_0.py` was a third: it is the literal
+example in `template_tool`'s definition yet sat in `infrastructure_tool`, inherited from the old
+`tools/README.md` table.
+
+The most consequential finding was structural: **`extract()` discarded any declared category not
+already in `CATEGORIES`**, so `build()` fell back to the curated value. A tool could set
+`TOOL_CATEGORY = "made_up_thing"` and both `scan --check` and the new blocking rule would pass —
+the rule was enforceable only against the manifest, not against the source of truth that outranks
+it. Declarations are now preserved whenever they are identifier-shaped (template placeholders like
+`{tool_type}` are still discarded, naming no category at all), so the validator gets to reject
+them. Verified by declaring a junk category in a real tool and watching the gate fail.
+
+The rest: the scaffolder's docstring still advertised the removed `scaffolder_tool` and the old
+seven-type list; its `except Exception` would have silently restored the stale list on any
+failure, recreating the very drift the indirection removes; `validate.py` let falsy-but-present
+categories (`0`, `False`, `[]`) through; `tool-manifest.yml`'s header comment still described
+categories as advisory at 93-of-143; the README misexplained the builder-lint rate change as
+denominator-only when both terms rose; and its claim that all six one-off labels were normalized
+in source was false — `meta_validator_tool` is docstring prose, not a declared constant.
+
+---
+
 ## Falsifier
 
 **Claim:** a closed vocabulary plus a blocking rule keeps every tool categorized, without the
@@ -133,8 +166,8 @@ vocabulary degrading into a synonym list.
 - A tool can be merged to `main` with `category: unclassified` or a category outside `CATEGORIES`, OR
 - `CATEGORIES` grows past **20 entries** within 60 days, OR any added term is a synonym of an
   existing one rather than a distinct role, OR
-- `infrastructure_tool` + `diagnostic_tool` combined exceed **35 of 136 (26%)**, up from today's
-  31 of 136 (23%) — the two catch-all categories, whose growth is the tell that classification
+- `infrastructure_tool` + `diagnostic_tool` combined exceed **35 of 137 (26%)**, up from today's
+  30 of 137 (22%) — the two catch-all categories, whose growth is the tell that classification
   has become a formality, OR
 - The `unclassified` rule is reverted to advisory to unblock a PR.
 
@@ -154,9 +187,10 @@ vocabulary degrading into a synonym list.
   little beyond not fitting elsewhere. These are the entries most worth a second opinion.
 - **19 tools still carry no Builder markers**, and the registry now records that honestly rather
   than fixing it cosmetically.
-- **Nothing changed status or gained an owner.** All 136 remain `status: draft` with no `owner`.
-  Both are the owner's acts under the rule this system already enforces, and 136 of them is a
-  real queue that this pass does not touch.
+- **Nothing changed status or gained an owner.** Of 137 tools, 136 are `status: draft` and one
+  (`HAIOS-TOOL-012`, an archived analyzer) is `archived`; none has an `owner`. Both fields are the
+  owner's acts under the rule this system already enforces, and 136 of them is a real queue that
+  this pass does not touch.
 - **The `pending_ratification` Zone 2 item is unchanged** — still `HAIOS-TOOL-088`, still awaiting
   the Z2 decision requested in Q-TOOLCONTROL-01.
 

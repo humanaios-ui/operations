@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 tool_scaffolder_v1_0.py
-Builder v1.7 compliant · scaffolder_tool
+Builder v1.7 compliant · template_tool
 HumanAIOS · S-051726-02-molt-grow-kill
 
 WHAT THIS DOES
@@ -25,13 +25,12 @@ USAGE
 
 TOOL TYPES (--type)
 -------------------
-  diagnostic_tool      Read-only analysis, produces a report
-  validation_tool      Validates data/schema against a spec, PASS/WARN/FAIL
-  audit_tool           Cross-checks multiple sources for consistency
-  connector_tool       Reads/writes to external service (Supabase, GitHub, Slack)
-  security_gate_tool   Pre-execution gate that blocks on failure
-  orchestrator_tool    Calls other tools in sequence, aggregates results
-  scaffolder_tool      Generates new tools or artifacts (this file's type)
+The vocabulary is owned by CATEGORIES in .tool-control/scan.py and is what the
+tool-manifest gate validates against; it is not duplicated here. Run this tool
+interactively, or `python3 -c "import sys; sys.path.insert(0, '.tool-control');
+from scan import CATEGORIES; print(*sorted(CATEGORIES), sep=chr(10))"`, to list
+the current set. `scaffolder_tool` is NOT one of them — this file's own type is
+`template_tool`.
 
 GENERATED FILE STRUCTURE
 -------------------------
@@ -77,7 +76,11 @@ def _load_tool_types():
         sys.path.insert(0, control)
         from scan import CATEGORIES  # type: ignore
         return [c for c in sorted(CATEGORIES) if c != "unclassified"]
-    except Exception:
+    except ImportError:
+        # Only the genuinely-absent-module case falls back. Any other failure
+        # (a syntax error in scan.py, an incompatible shape) must surface: a
+        # silent fallback would re-offer a stale list and recreate exactly the
+        # two-vocabulary drift this indirection exists to remove.
         return ["audit_tool", "validation_tool", "diagnostic_tool", "security_gate_tool",
                 "governance_tool", "calibration_tool", "orchestrator_tool", "pipeline_tool",
                 "connector_tool", "infrastructure_tool", "analytics_tool", "research_tool",

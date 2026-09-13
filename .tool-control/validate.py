@@ -200,7 +200,11 @@ def validate(manifest: dict) -> None:
         if category == "unclassified":
             err(f"{tid}: category is 'unclassified' ({path}) — assign one of "
                 f"{sorted(c for c in scan.CATEGORIES if c != 'unclassified')}")
-        elif category and category not in scan.CATEGORIES:
+        elif not isinstance(category, str):
+            # Falsy-but-present values (0, False, []) slip past the required-field
+            # check, which only rejects None and "", and would reach the renderer.
+            err(f"{tid}: category must be a string, got {category!r} ({path})")
+        elif category not in scan.CATEGORIES:
             err(f"{tid}: category '{category}' is not in the controlled vocabulary "
                 f"({path}) — use an existing category, or extend CATEGORIES in "
                 f".tool-control/scan.py as a reviewed change")

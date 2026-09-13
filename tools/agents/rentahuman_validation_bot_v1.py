@@ -2,7 +2,7 @@
 """
 Agent 2.2: RentAHuman Validation Bot
 ====================================
-Builder v1.7 compliant · validation_tool
+Builder v1.7 compliant · reporting_tool
 HumanAIOS
 
 Purpose: Recruit validators via RentAHuman, track feedback, generate cohort reports
@@ -30,7 +30,7 @@ from typing import List, Dict, Optional
 
 TOOL_NAME = "rentahuman_validation_bot_v1"
 TOOL_VERSION = "1.0.0"
-TOOL_CATEGORY = "validation_tool"
+TOOL_CATEGORY = "reporting_tool"
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _shared.github_client import GitHubClient

@@ -389,7 +389,7 @@ tools:
   name: rentahuman_validation_bot_v1
   path: tools/agents/rentahuman_validation_bot_v1.py
   version: 1.0.0
-  category: validation_tool
+  category: reporting_tool
   zone: 1
   status: draft
   interface: cli
@@ -794,7 +794,7 @@ tools:
   name: governance_fetcher
   path: tools/governance_fetcher.py
   version: 1.1.0
-  category: governance_tool
+  category: connector_tool
   zone: 1
   status: draft
   interface: cli
@@ -1625,7 +1625,7 @@ tools:
   name: tool_scaffolder
   path: tools/tool_scaffolder_v1_0.py
   version: 1.0.0
-  category: infrastructure_tool
+  category: template_tool
   zone: 1
   status: draft
   interface: cli

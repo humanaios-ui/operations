@@ -47,11 +47,13 @@ They answer different questions, though, and the difference matters.
 **already contains** the string "Builder v1.7 compliant". Its pass rate is
 therefore computed over self-declared members: a tool that omits the header
 entirely is not counted as failing, it is not counted at all. That is why
-99.1% (111/112) coexisted with 24 registered tools carrying no markers, and why
-adding a header line to five agents *raised* the denominator to 117 rather than
-the numerator. This field covers the whole registry instead, so it is the one
-that can see an omission. Neither number is wrong; only one of them can notice
-a file that never opted in.
+99.1% (111/112) coexisted with 24 registered tools carrying no markers. Adding a
+header line to five agents moved it to 116/117: both numerator and denominator
+rose by five, because those files were admitted to the corpus by opting in and
+then passed. The rate barely moved; what changed is that five previously
+invisible files became visible at all. This field covers the whole registry
+instead, so it is the one that can see an omission. Neither number is wrong;
+only one of them can notice a file that never opted in.
 
 **CURATED** — set by a human, preserved across scans. This is where judgment
 lives.
@@ -93,10 +95,14 @@ every tool invented its own label and 86 of 136 had none at all.
 | `template_tool` | A scaffold or template for producing new tools. |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. |
 
-Six historical one-off labels (`governance`, `discovery`, `dispatch`, `site`,
-`template`, `meta_validator_tool`) were normalized in their source files and are
-also mapped by `CATEGORY_ALIASES`, so an un-normalized file still lands on a
-real category instead of failing the gate for a name nobody chose deliberately.
+Five one-off `TOOL_CATEGORY` constants (`governance`, `discovery`, `dispatch`
+×2, `site`, `template`) were normalized in their source files. A sixth label,
+`meta_validator_tool`, appears only in the Builder header *prose* of
+`tools/builder_compliance_scanner_v1.0.py` — it is a descriptor, not a declared
+constant, so there was nothing to normalize and that tool is categorized
+`validation_tool`. All six are mapped by `CATEGORY_ALIASES` anyway, so an
+un-normalized file lands on a real category instead of failing the gate for a
+name nobody chose deliberately.
 
 ## Status lifecycle
 

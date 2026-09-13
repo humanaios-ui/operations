@@ -207,11 +207,18 @@ def extract(path: str) -> dict[str, Any]:
         m = rx.search(src)
         if m:
             consts[key] = _literal(m.group(1))
+    # A declared category is kept whenever it LOOKS like one, even if it is not
+    # in the vocabulary — the validator must get the chance to reject it.
+    # Dropping unknown values here instead would silently fall back to the
+    # curated category, so a file could declare `made_up_thing` and still pass
+    # both `scan --check` and the new blocking rule.
+    # Only non-identifier values are discarded: template files carry literal
+    # placeholders such as `{tool_type}`, which name no category at all.
     cat = consts.get("TOOL_CATEGORY")
     if isinstance(cat, str):
         cat = CATEGORY_ALIASES.get(cat, cat)
         consts["TOOL_CATEGORY"] = cat
-    if not (isinstance(cat, str) and _CATEGORY_RE.match(cat) and cat in CATEGORIES):
+    if not (isinstance(cat, str) and _CATEGORY_RE.match(cat)):
         consts.pop("TOOL_CATEGORY", None)
     if not isinstance(consts.get("TOOL_ZONE"), int) or consts.get("TOOL_ZONE") not in (1, 2, 3):
         consts.pop("TOOL_ZONE", None)
@@ -519,6 +526,15 @@ def run_smoke_test() -> int:
         r = extract(p)
         assert "declared_category" not in r, r
         assert "declared_zone" not in r, r
+
+        # An unknown but identifier-shaped category is PRESERVED so the
+        # validator can reject it. Dropping it here would fall back to the
+        # curated value and let a file declare anything while the gate passes.
+        open(p, "w").write('TOOL_NAME = "t"\nTOOL_CATEGORY = "made_up_thing"\n')
+        assert extract(p)["declared_category"] == "made_up_thing", extract(p)
+        # Aliases still normalize to the vocabulary.
+        open(p, "w").write('TOOL_NAME = "t"\nTOOL_CATEGORY = "dispatch"\n')
+        assert extract(p)["declared_category"] == "connector_tool", extract(p)
 
         # Regression: docstring extraction must not depend on the interpreter
         # version. A backslash inside an f-string expression is a SyntaxError
