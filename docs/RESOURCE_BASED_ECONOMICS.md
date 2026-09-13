@@ -49,7 +49,7 @@ The standard objection is a century old and it is correct. Neurath argued after 
 
 Both objections bind on a *whole economy*. Neither binds here, and the reasons are structural, not rhetorical:
 
-1. **The plan is small.** An economy allocates over ~10⁶ distinguishable goods. This organization allocates over **9 registered units and 8 obligation classes**. Enumerating the feasible plans is not a combinatorial catastrophe; it is a table that fits on a screen.
+1. **The plan is small.** An economy allocates over ~10⁶ distinguishable goods. This organization allocates over **12 registered units and 8 obligation classes**. Enumerating the feasible plans is not a combinatorial catastrophe; it is a table that fits on a screen.
 2. **The knowledge is already local.** Hayek's dispersed knowledge is dispersed *across* firms. Inside one, the planner, the resource holder, and the person doing the work are the same small set of agents, already sharing a repository.
 3. **Firms already do this.** Coase's point in *The Nature of the Firm* (1937) is that inside the boundary, allocation happens by direction, not by price — that is *what the boundary is for*. Every organization is already a non-price allocation island. RBE does not introduce planning into a market; it makes the planning that is already happening legible, by keeping the books in the units the work actually consumes instead of translating everything into a currency that nobody inside the boundary trades in.
 4. **The price mechanism is retained where it is informative.** The regime does not abolish exchange rates; it demotes them from assumptions to measurements. This is the same move as Kantorovich's shadow prices, or the dual values of a constrained allocation: a price is what one more unit of the binding constraint is worth *at this margin*, measured, with an expiry.
@@ -164,8 +164,8 @@ Band A before Band B is not a preference, it is the constraint discipline: work 
 | Surface | Today | Under RBE-OPS |
 |---|---|---|
 | `PRIORITY_QUEUE.md` scoring | `impact + Σ impact(unblocks)` | same numerator, divided by `rat_min`; two-band ordering |
-| Work-order fields | impact, status, blockers | **+ `cost:` vector** (`rat_min`, `z1_ktok`, `z3_hr`, `ci_min`) |
-| READY gate | no blockers + READY status | **+ priced in the constraint unit** |
+| Work-order fields | impact, status, blockers | **+ `cost:` vector** keyed by registry symbol (`RAT-min`, `Z1-ktok`, `Z3-hr`, `CI-min`) |
+| READY gate | no blockers + READY status | **+ priced in the constraint unit**, per the ratified `UNPRICED_ROW_POLICY` (refuse / warn / allow) |
 | `priority_queue_engine.py` | one formula | `mode="impact"` (incumbent) \| `mode="resource"`, switched only by a ratified `molt_id` |
 | Constants | 3 (specimen-intake priors) | **+ 4** resource constants, `molt_id: null` until Z2 signs |
 | `system_graph.json` | 19 nodes, 44 edges | **+ RU** (unit registry), **+ RL** (resource ledger), **+ RCEN** (census) — 22 nodes, 53 edges |

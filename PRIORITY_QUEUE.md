@@ -141,7 +141,7 @@ Score = Impact + Σ (Impact of items this unblocks)
 
 **Acceptance Criteria:**
 1. `RESOURCE_UNITS.yaml` carries a Z2 `ratification_hash` (or Z2's edits)
-2. Z2 declares a RAT-min capacity: `resource_ledger_v0_1.py cap RESOURCE_LEDGER.jsonl RAT-min <n> --by Z2 --hash <h>` — without it every utilization figure in the regime stays undefined
+2. Z2 declares a RAT-min capacity: `python3 tools/resource_ledger_v0_1.py cap ledgers/RESOURCE_LEDGER.jsonl RAT-min <n> --by Z2 --hash <sha256> --period week --source "<basis>"` — without it every utilization figure in the regime stays undefined
 3. `QUEUE_SCORING_MODE` and `UNPRICED_ROW_POLICY` carry molt_ids, or are rejected
 4. Test: `PriorityQueueEngine.from_constants()` returns `mode="resource"` only after (3); `test_resource_economics.py` passes
 

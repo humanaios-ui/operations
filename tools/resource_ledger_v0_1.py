@@ -6,7 +6,8 @@ Builder v1.7 compliant
 HumanAIOS — RBE-OPS v0.1 (Q-RBE-01), the consumption side of the books
 
   init     <ledger>                                      genesis OPEN event, pins the units-registry sha256
-  verify   <ledger>                                      recompute every hash + prev link; exit 1 on any break
+  verify   <ledger> [--strict-pin]                       recompute every hash + prev link; report registry drift
+  repin    <ledger> --source --reason                    record that RESOURCE_UNITS.yaml changed, in the chain
   cap      <ledger> <UNIT> <qty> --by --source [--hash]  declare a capacity for one unit
   claim    <ledger> <order> --budget U=Q[,U=Q] --by      a work order reserves a budget
   spend    <ledger> <order> <UNIT> <qty> --by --source   actual consumption
@@ -31,8 +32,12 @@ Rules encoded (not prose) — each is a refusal the tests exercise:
 from __future__ import annotations
 
 import argparse
+import contextlib
+import fcntl
 import hashlib
 import json
+import math
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -47,6 +52,33 @@ UNITS_PATH = ROOT / "RESOURCE_UNITS.yaml"
 ZERO = "0" * 64
 
 OUTPUT_DIMENSIONS = ("evidence", "assurance")
+# Yield density divides by the constraint unit, so its numerator must be ONE
+# dimension — summing evidence and assurance would assert exactly the
+# commensurability this registry denies. The identity in RESOURCE_UNITS.yaml
+# names evidence.
+DENSITY_DIMENSION = "evidence"
+
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$", re.I)
+
+
+@contextlib.contextmanager
+def ledger_lock(path: str):
+    """Serialize read-build-append on one ledger.
+
+    Every mutation reads the head, computes the next seq, then appends. Two
+    concurrent writers would otherwise build on the same prev_hash and produce a
+    forked chain that `verify` then reports as corrupt. An advisory flock on a
+    sidecar file (not the ledger itself — appending must not race the lock's own
+    open) makes the section atomic between cooperating processes.
+    """
+    lock_path = Path(path).with_suffix(Path(path).suffix + ".lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(lock_path, "a+") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
 
 
 # ---------------------------------------------------------------- primitives
@@ -120,14 +152,53 @@ class Units:
         return u
 
     @property
-    def min_n(self) -> int:
-        return int(self.policy.get("shadow_price_min_n", 8))
+    def min_n(self) -> tuple[int, str]:
+        """The shadow-price threshold, and where it came from.
+
+        A RATIFIED `SHADOW_PRICE_MIN_N` in constants.json wins over the YAML
+        default — otherwise a Z2 molt on that constant would change nothing and
+        the constant would be a control surface wired to nothing. An unratified
+        constant (molt_id null) is a proposal and does not take effect, the same
+        dormancy rule the queue engine applies to QUEUE_SCORING_MODE.
+        """
+        default = int(self.policy.get("shadow_price_min_n", 8))
+        try:
+            consts = json.loads((ROOT / "constants.json").read_text(encoding="utf-8"))["constants"]
+        except (OSError, json.JSONDecodeError, KeyError):
+            return default, "RESOURCE_UNITS.yaml policy"
+        for c in consts:
+            if c.get("name") == "SHADOW_PRICE_MIN_N" and c.get("molt_id"):
+                try:
+                    return int(c["current_value"]), f"constants.json (ratified, molt {c['molt_id']})"
+                except (TypeError, ValueError):
+                    break
+        return default, "RESOURCE_UNITS.yaml policy (SHADOW_PRICE_MIN_N not ratified)"
 
 
-def check_qty(q) -> float:
-    if not isinstance(q, (int, float)) or q <= 0:
-        refuse(f"quantity {q!r} must be a positive number")
+def check_qty(q, allow_zero: bool = False) -> float:
+    """A quantity must be a real, finite number.
+
+    NaN and infinity pass a naive `q <= 0` test and then serialize into JSONL as
+    non-standard `NaN` / `Infinity` tokens, so they are rejected explicitly.
+    `allow_zero` is for BUDGETS only: a work order that draws nothing on the
+    constraint declares `RAT-min=0` and lands in Band A. An actual SPEND of zero
+    is still refused — nothing happened, so there is nothing to record.
+    """
+    if isinstance(q, bool) or not isinstance(q, (int, float)):
+        refuse(f"quantity {q!r} must be a number")
+    if not math.isfinite(q):
+        refuse(f"quantity {q!r} is not finite")
+    if q < 0 or (q == 0 and not allow_zero):
+        refuse(f"quantity {q!r} must be {'non-negative' if allow_zero else 'a positive number'}")
     return float(q)
+
+
+def check_hash(h: str, what: str) -> str:
+    """A ratification hash is a sha256. `CLAUDE.md` defines the Z2 signature as
+    sha256(candidate | by | at | decision); a placeholder string is not one."""
+    if not _SHA256_RE.match(h or ""):
+        refuse(f"{what} {h!r} is not a sha256 (64 hex characters); a Z2 signature is a hash, not a label")
+    return h
 
 
 def require_source(source: str | None, what: str) -> str:
@@ -224,12 +295,63 @@ def cmd_init(a) -> int:
     return 0
 
 
+def registry_pin_status(evs: list[dict], units: "Units") -> dict:
+    """Compare the registry the chain was opened against with the one on disk.
+
+    The genesis event pins a sha256 of RESOURCE_UNITS.yaml. Hash-linking the
+    events does not protect that: edit the registry and every historical event
+    is silently reinterpreted under new unit definitions while `verify` still
+    passes. Drift is not an error — the registry is expected to change when Z2
+    ratifies it — but it must be VISIBLE, and the change must be recorded in the
+    chain by a REPIN event rather than happening behind it.
+    """
+    pins = [e for e in evs if e.get("type") in ("OPEN", "REPIN")]
+    pinned = pins[-1].get("units_registry_sha256") if pins else None
+    return {
+        "pinned_sha256": pinned,
+        "current_sha256": units.sha256,
+        "drift": bool(pinned) and pinned != units.sha256,
+        "pinned_by_event": pins[-1].get("type") if pins else None,
+    }
+
+
 def cmd_verify(a) -> int:
     evs = read(a.ledger)
     err = verify(evs)
     if err:
         sys.exit("FAIL " + err)
     print(f"OK chain intact, {len(evs)} events; head {evs[-1]['hash'] if evs else ZERO}")
+    pin = registry_pin_status(evs, Units(Path(a.units)))
+    if pin["drift"]:
+        print(f"REGISTRY DRIFT: chain pinned {str(pin['pinned_sha256'])[:16]}…, "
+              f"{Path(a.units).name} is now {pin['current_sha256'][:16]}…\n"
+              "  Events before this point were recorded under different unit definitions.\n"
+              "  Record the change with `repin` (append-only) so the chain says when it happened.")
+        if a.strict_pin:
+            return 1
+    elif pin["pinned_sha256"]:
+        print(f"registry pin OK ({pin['pinned_by_event']}) {pin['current_sha256'][:16]}…")
+    return 0
+
+
+def cmd_repin(a) -> int:
+    """Record that the units registry changed, in the chain, with a reason."""
+    units = Units(Path(a.units))
+    source = require_source(a.source, "REPIN")
+    with ledger_lock(a.ledger):
+        evs, head = load_chain(a.ledger)
+        pin = registry_pin_status(evs, units)
+        if not pin["drift"]:
+            refuse(f"{units.path.name} still matches the pinned sha256; there is nothing to repin")
+        ev = {"seq": next_seq(evs), "type": "REPIN", "at": now(), "by": a.by,
+              "units_registry": units.path.name,
+              "units_registry_sha256": units.sha256,
+              "previous_sha256": pin["pinned_sha256"],
+              "units_registry_status": units.raw.get("status"),
+              "units_ratification_hash": units.raw.get("ratification_hash"),
+              "source": source, "reason": a.reason or ""}
+        head = append(a.ledger, [ev], head)
+    print(f"REPIN {pin['pinned_sha256'][:16]}… → {units.sha256[:16]}…; head {head}")
     return 0
 
 
@@ -238,14 +360,20 @@ def cmd_cap(a) -> int:
     u = units.get(a.unit)
     qty = check_qty(a.qty)
     source = require_source(a.source, "CAP")
-    if a.unit == units.constraint and (a.by != "Z2" or not a.hash):
-        refuse("declaring the capacity of the constraint unit is a Z2 act; needs --by Z2 --hash <ratification hash>")
-    evs, head = load_chain(a.ledger)
-    ev = {"seq": next_seq(evs), "type": "CAP", "at": now(), "by": a.by, "unit": a.unit,
-          "qty": qty, "period": a.period or u.get("period"), "source": source}
-    if a.hash:
-        ev["z2_hash"] = a.hash
-    head = append(a.ledger, [ev], head)
+    if a.unit == units.constraint:
+        if a.by != "Z2" or not a.hash:
+            refuse("declaring the capacity of the constraint unit is a Z2 act; "
+                   "needs --by Z2 --hash <ratification hash>")
+        check_hash(a.hash, "ratification hash")
+    elif a.hash:
+        check_hash(a.hash, "ratification hash")
+    with ledger_lock(a.ledger):
+        evs, head = load_chain(a.ledger)
+        ev = {"seq": next_seq(evs), "type": "CAP", "at": now(), "by": a.by, "unit": a.unit,
+              "qty": qty, "period": a.period or u.get("period"), "source": source}
+        if a.hash:
+            ev["z2_hash"] = a.hash
+        head = append(a.ledger, [ev], head)
     print(f"CAP {a.unit} = {qty} per {ev['period']}; head {head}")
     return 0
 
@@ -262,9 +390,12 @@ def parse_budget(spec: str, units: Units) -> dict:
         sym = sym.strip()
         units.get(sym)
         try:
-            budget[sym] = check_qty(float(raw))
+            value = float(raw)
         except ValueError:
             refuse(f"budget quantity {raw!r} is not a number")
+        # allow_zero: an explicit 0 on the constraint unit is how a row declares
+        # Band A — no draw on the bottleneck. That is a price, not a blank.
+        budget[sym] = check_qty(value, allow_zero=True)
     if not budget:
         refuse("an empty budget is not a claim")
     return budget
@@ -273,16 +404,19 @@ def parse_budget(spec: str, units: Units) -> dict:
 def cmd_claim(a) -> int:
     units = Units(Path(a.units))
     budget = parse_budget(a.budget, units)
-    evs, head = load_chain(a.ledger)
-    state = project(evs)
-    if a.order_id in state["orders"]:
-        refuse(f"order {a.order_id!r} already claimed; amend with a new order id")
-    if units.constraint not in budget:
-        refuse(f"every work order must price itself in the constraint unit ({units.constraint}); "
-               "an unpriced row cannot be scheduled")
-    ev = {"seq": next_seq(evs), "type": "CLAIM", "at": now(), "by": a.by,
-          "order_id": a.order_id, "budget": budget, "title": a.title or ""}
-    head = append(a.ledger, [ev], head)
+    with ledger_lock(a.ledger):
+        evs, head = load_chain(a.ledger)
+        state = project(evs)
+        if a.order_id in state["orders"]:
+            refuse(f"order {a.order_id!r} already claimed; amend with a new order id")
+        if units.constraint not in budget:
+            refuse(f"every work order must price itself in the constraint unit ({units.constraint}); "
+                   "an unpriced row cannot be scheduled. Declare 0 if it draws none.")
+        ev = {"seq": next_seq(evs), "type": "CLAIM", "at": now(), "by": a.by,
+              "order_id": a.order_id, "budget": budget, "title": a.title or "",
+              # A budget is a forecast, but where it came from is still evidence.
+              "source": a.source}
+        head = append(a.ledger, [ev], head)
     print(f"CLAIM {a.order_id} {budget}; head {head}")
     return 0
 
@@ -296,13 +430,14 @@ def cmd_spend(a) -> int:
         refuse(f"{a.unit} is an output unit; produce it with `yield`, do not spend it")
     if u.get("sign") == "negative":
         refuse(f"{a.unit} is a liability unit; accrue it with `waste`")
-    evs, head = load_chain(a.ledger)
-    state = project(evs)
-    get_order(state, a.order_id, "spend")
-    ev = {"seq": next_seq(evs), "type": "SPEND", "at": now(), "by": a.by,
-          "order_id": a.order_id, "unit": a.unit, "qty": qty, "source": source,
-          "obligation_class": a.obligation_class}
-    head = append(a.ledger, [ev], head)
+    with ledger_lock(a.ledger):
+        evs, head = load_chain(a.ledger)
+        state = project(evs)
+        get_order(state, a.order_id, "spend")
+        ev = {"seq": next_seq(evs), "type": "SPEND", "at": now(), "by": a.by,
+              "order_id": a.order_id, "unit": a.unit, "qty": qty, "source": source,
+              "obligation_class": a.obligation_class}
+        head = append(a.ledger, [ev], head)
     print(f"SPEND {a.order_id} {qty} {a.unit}; head {head}")
     return 0
 
@@ -314,12 +449,13 @@ def cmd_yield(a) -> int:
     source = require_source(a.source, "YIELD")
     if u["dimension"] not in OUTPUT_DIMENSIONS or u.get("sign") != "positive":
         refuse(f"{a.unit} is not an output unit (dimension must be one of {OUTPUT_DIMENSIONS})")
-    evs, head = load_chain(a.ledger)
-    state = project(evs)
-    get_order(state, a.order_id, "yield")
-    ev = {"seq": next_seq(evs), "type": "YIELD", "at": now(), "by": a.by,
-          "order_id": a.order_id, "unit": a.unit, "qty": qty, "source": source}
-    head = append(a.ledger, [ev], head)
+    with ledger_lock(a.ledger):
+        evs, head = load_chain(a.ledger)
+        state = project(evs)
+        get_order(state, a.order_id, "yield")
+        ev = {"seq": next_seq(evs), "type": "YIELD", "at": now(), "by": a.by,
+              "order_id": a.order_id, "unit": a.unit, "qty": qty, "source": source}
+        head = append(a.ledger, [ev], head)
     print(f"YIELD {a.order_id} {qty} {a.unit}; head {head}")
     return 0
 
@@ -331,10 +467,11 @@ def cmd_waste(a) -> int:
     source = require_source(a.source, "WASTE")
     if u.get("sign") != "negative":
         refuse(f"{a.unit} is not a liability unit; `waste` records negative-sign units only")
-    evs, head = load_chain(a.ledger)
-    ev = {"seq": next_seq(evs), "type": "WASTE", "at": now(), "by": a.by,
-          "unit": a.unit, "qty": qty, "source": source, "order_id": a.order_id}
-    head = append(a.ledger, [ev], head)
+    with ledger_lock(a.ledger):
+        evs, head = load_chain(a.ledger)
+        ev = {"seq": next_seq(evs), "type": "WASTE", "at": now(), "by": a.by,
+              "unit": a.unit, "qty": qty, "source": source, "order_id": a.order_id}
+        head = append(a.ledger, [ev], head)
     print(f"WASTE {qty} {a.unit}; head {head}")
     return 0
 
@@ -345,48 +482,77 @@ def cmd_price(a) -> int:
     src_u, dst_u = units.get(a.from_unit), units.get(a.to_unit)
     rate = check_qty(a.rate)
     source = require_source(a.source, "PRICE")
-    if a.n is None or a.n < units.min_n:
-        refuse(f"a price needs n >= {units.min_n} paired observations (got {a.n}); "
-               "below that it is an assertion, not a measurement")
+    min_n, min_n_source = units.min_n
+    if src_u["dimension"] == dst_u["dimension"]:
+        refuse(f"{a.from_unit} and {a.to_unit} are both in the {src_u['dimension']} dimension; "
+               "a PRICE event is the escape hatch for CROSS-dimension exchange, and units inside "
+               "one dimension already share a scale")
+    if a.n is None or a.n < min_n:
+        refuse(f"a price needs n >= {min_n} paired observations (got {a.n}, threshold from "
+               f"{min_n_source}); below that it is an assertion, not a measurement")
     if not a.window:
         refuse("a price needs --window; a rate that never expires is a currency, not a measurement")
     if not a.constraint:
         refuse("a price needs --constraint; a marginal rate is only defined at a named constraint")
     units.get(a.constraint)
-    evs, head = load_chain(a.ledger)
-    ev = {"seq": next_seq(evs), "type": "PRICE", "at": now(), "by": a.by,
-          "from_unit": a.from_unit, "to_unit": a.to_unit, "rate": rate,
-          "from_dimension": src_u["dimension"], "to_dimension": dst_u["dimension"],
-          "n": int(a.n), "window": a.window, "constraint": a.constraint, "source": source,
-          "note": "valid only inside `window`, only at `constraint`, and only for the margin measured"}
-    head = append(a.ledger, [ev], head)
+    with ledger_lock(a.ledger):
+        evs, head = load_chain(a.ledger)
+        ev = {"seq": next_seq(evs), "type": "PRICE", "at": now(), "by": a.by,
+              "from_unit": a.from_unit, "to_unit": a.to_unit, "rate": rate,
+              "from_dimension": src_u["dimension"], "to_dimension": dst_u["dimension"],
+              "n": int(a.n), "window": a.window, "constraint": a.constraint, "source": source,
+              "min_n": min_n, "min_n_source": min_n_source,
+              "note": "valid only inside `window`, only at `constraint`, and only for the margin measured"}
+        head = append(a.ledger, [ev], head)
     print(f"PRICE 1 {a.from_unit} = {rate} {a.to_unit} at {a.constraint} over {a.window} (n={a.n}); head {head}")
     return 0
 
 
 def cmd_close(a) -> int:
     source = require_source(a.source, "CLOSE")
-    evs, head = load_chain(a.ledger)
-    state = project(evs)
-    o = state["orders"].get(a.order_id)
-    if o is None:
-        refuse(f"unknown order {a.order_id!r}")
-    if o["closed"]:
-        refuse(f"order {a.order_id!r} is already closed")
-    ev = {"seq": next_seq(evs), "type": "CLOSE", "at": now(), "by": a.by,
-          "order_id": a.order_id, "source": source,
-          "spent": o["spent"], "yielded": o["yielded"]}
-    head = append(a.ledger, [ev], head)
+    with ledger_lock(a.ledger):
+        evs, head = load_chain(a.ledger)
+        state = project(evs)
+        o = state["orders"].get(a.order_id)
+        if o is None:
+            refuse(f"unknown order {a.order_id!r}")
+        if o["closed"]:
+            refuse(f"order {a.order_id!r} is already closed")
+        ev = {"seq": next_seq(evs), "type": "CLOSE", "at": now(), "by": a.by,
+              "order_id": a.order_id, "source": source,
+              "spent": o["spent"], "yielded": o["yielded"]}
+        head = append(a.ledger, [ev], head)
     print(f"CLOSE {a.order_id} spent={o['spent']} yielded={o['yielded']}; head {head}")
     return 0
 
 
-def density(order: dict, constraint_unit: str) -> float | None:
+def density(order: dict, constraint_unit: str, units: "Units | None" = None) -> float | None:
+    """Evidence yield per constraint unit.
+
+    The numerator is ONE dimension. Summing every yielded unit would add
+    EVID-row to RAT-art as if they shared a scale, which is the commensurability
+    the registry denies — and it is not the identity RESOURCE_UNITS.yaml states
+    (`Σ yield(order, evidence units) / spend(order, constraint unit)`). Without a
+    registry to classify by, only the units known to be in the density dimension
+    are counted. Per-unit figures come from density_by_unit().
+    """
     spend = order["spent"].get(constraint_unit)
     if not spend:
         return None
-    total_yield = sum(order["yielded"].values())
-    return round(total_yield / spend, 4)
+    if units is not None:
+        numerator = sum(q for sym, q in order["yielded"].items()
+                        if units.by_symbol.get(sym, {}).get("dimension") == DENSITY_DIMENSION)
+    else:
+        numerator = sum(q for sym, q in order["yielded"].items() if sym in ("EVID-row", "CAL-pt"))
+    return round(numerator / spend, 4)
+
+
+def density_by_unit(order: dict, constraint_unit: str) -> dict:
+    """Every output unit's yield per constraint unit, kept separate."""
+    spend = order["spent"].get(constraint_unit)
+    if not spend:
+        return {}
+    return {sym: round(q / spend, 4) for sym, q in order["yielded"].items()}
 
 
 def cmd_status(a) -> int:
@@ -395,9 +561,11 @@ def cmd_status(a) -> int:
     state = project(evs)
     print(f"RESOURCE_LEDGER — {len(evs)} events, head {evs[-1]['hash'][:16] if evs else '—'}…")
     g = state["genesis"] or {}
-    print(f"units registry {g.get('units_registry')} sha {str(g.get('units_registry_sha256'))[:16]}… "
-          f"[{g.get('units_registry_status')}]")
-    print(f"constraint unit: {units.constraint}")
+    pin = registry_pin_status(evs, units)
+    print(f"units registry {g.get('units_registry')} sha {str(pin['pinned_sha256'])[:16]}… "
+          f"[{g.get('units_registry_status')}]"
+          f"{'  ⚠ DRIFT — on disk ' + pin['current_sha256'][:16] + '…' if pin['drift'] else ''}")
+    print(f"constraint unit: {units.constraint}  ·  shadow-price min n: {units.min_n[0]} ({units.min_n[1]})")
     print("\nCAPACITIES")
     if not state["capacity"]:
         print("  (none declared — every utilization figure is undefined)")
@@ -412,10 +580,11 @@ def cmd_status(a) -> int:
             print(f"  {label:<7}{sym:<12}{qty:>10}{util}")
     print("\nORDERS")
     for oid, o in state["orders"].items():
-        d = density(o, units.constraint)
+        d = density(o, units.constraint, units)
         print(f"  {oid:<24}{'CLOSED' if o['closed'] else 'OPEN':<8}"
               f"budget={o['budget']} spent={o['spent']} yield={o['yielded']} "
-              f"density={d if d is not None else 'undefined'}")
+              f"density={d if d is not None else 'undefined'} "
+              f"({DENSITY_DIMENSION} per {units.constraint})")
     return 0
 
 
@@ -428,12 +597,22 @@ def cmd_report(a) -> int:
         "ledger_events": len(evs),
         "constraint_unit": units.constraint,
         "closed_orders": len(closed),
-        "yield_density": {k: density(v, units.constraint) for k, v in closed.items()},
-        "prices_in_force": [
+        "density_dimension": DENSITY_DIMENSION,
+        "yield_density": {k: density(v, units.constraint, units) for k, v in closed.items()},
+        "yield_density_by_unit": {k: density_by_unit(v, units.constraint) for k, v in closed.items()},
+        # Deliberately NOT "prices_in_force": `window` is free text (a sprint
+        # label, a date range, a cycle id), so no machine here can tell whether a
+        # window has closed. Calling these "in force" would assert an expiry
+        # check that does not exist. The reader evaluates the window.
+        "prices_recorded": [
             {"from": p["from_unit"], "to": p["to_unit"], "rate": p["rate"], "n": p["n"],
-             "window": p["window"], "constraint": p["constraint"], "source": p["source"]}
+             "window": p["window"], "constraint": p["constraint"], "source": p["source"],
+             "at": p.get("at")}
             for p in state["prices"]
         ],
+        "prices_note": ("a rate is valid only inside its window, only at its constraint, and only "
+                        "for the margin measured; windows are not machine-evaluated"),
+        "units_registry_pin": registry_pin_status(evs, units),
         "capacities": state["capacity"],
         "spent": state["spent"],
         "yielded": state["yielded"],
@@ -468,9 +647,13 @@ def run_smoke_test() -> int:
         run(["claim", led, "Q-Y", "--budget", "Z1-ktok=40", "--by", "Z1"], expect_fail=True)   # unpriced
         run(["claim", led, "Q-Z", "--budget", "NOPE-unit=1", "--by", "Z1"], expect_fail=True)  # unknown unit
         run(["claim", led, "Q-T", "--budget", "TRUST-pt=1", "--by", "Z1"], expect_fail=True)   # CANDIDATE unit
+        run(["claim", led, "Q-FREE", "--budget", "RAT-min=0,Z1-ktok=5", "--by", "Z1"])         # Band A
         run(["spend", led, "Q-X", "RAT-min", "12", "--by", "Z2"], expect_fail=True)            # no source
         run(["spend", led, "Q-X", "RAT-min", "12", "--by", "Z2", "--source", "sha:abc"])
         run(["spend", led, "Q-X", "RAT-min", "-1", "--by", "Z2", "--source", "s"], expect_fail=True)
+        run(["spend", led, "Q-X", "RAT-min", "nan", "--by", "Z2", "--source", "s"], expect_fail=True)
+        run(["spend", led, "Q-X", "RAT-min", "inf", "--by", "Z2", "--source", "s"], expect_fail=True)
+        run(["spend", led, "Q-X", "RAT-min", "0", "--by", "Z2", "--source", "s"], expect_fail=True)
         run(["spend", led, "Q-X", "EVID-row", "1", "--by", "Z3", "--source", "s"], expect_fail=True)
         run(["spend", led, "Q-NOPE", "RAT-min", "1", "--by", "Z2", "--source", "s"], expect_fail=True)
         run(["yield", led, "Q-X", "EVID-row", "2", "--by", "Z3", "--source", "sha:def"])
@@ -478,11 +661,15 @@ def run_smoke_test() -> int:
         run(["waste", led, "GAP-row", "1", "--by", "Z1", "--source", "recon-run"])
         run(["waste", led, "RAT-min", "1", "--by", "Z1", "--source", "s"], expect_fail=True)
         run(["cap", led, "RAT-min", "120", "--by", "Z1", "--source", "guess"], expect_fail=True)  # not Z2
-        run(["cap", led, "RAT-min", "120", "--by", "Z2", "--source", "decl", "--hash", "deadbeef"])
+        run(["cap", led, "RAT-min", "120", "--by", "Z2", "--source", "decl",
+             "--hash", "deadbeef"], expect_fail=True)                                   # not a sha256
+        run(["cap", led, "RAT-min", "120", "--by", "Z2", "--source", "decl", "--hash", "a" * 64])
         run(["price", led, "RAT-min", "Z3-hr", "0.5", "--n", "3", "--window", "w",
              "--constraint", "RAT-min", "--source", "s", "--by", "Z1"], expect_fail=True)        # n too low
         run(["price", led, "RAT-min", "Z3-hr", "0.5", "--n", "10", "--constraint", "RAT-min",
              "--source", "s", "--by", "Z1"], expect_fail=True)                                   # no window
+        run(["price", led, "EVID-row", "CAL-pt", "1", "--n", "10", "--window", "w",
+             "--constraint", "RAT-min", "--source", "s", "--by", "Z1"], expect_fail=True)  # same dimension
         run(["price", led, "RAT-min", "Z3-hr", "0.5", "--n", "10", "--window", "2026-W37",
              "--constraint", "RAT-min", "--source", "sha:ghi", "--by", "Z1"])
         run(["close", led, "Q-X", "--by", "Z1", "--source", "sha:jkl"])
@@ -492,7 +679,9 @@ def run_smoke_test() -> int:
 
         rep = json.loads(run(["report", led]).stdout)
         assert rep["yield_density"]["Q-X"] == round(2 / 12, 4), rep
-        assert len(rep["prices_in_force"]) == 1, rep
+        assert rep["yield_density_by_unit"]["Q-X"] == {"EVID-row": round(2 / 12, 4)}, rep
+        assert len(rep["prices_recorded"]) == 1, rep
+        assert rep["units_registry_pin"]["drift"] is False, rep
         run(["status", led])
 
         # tamper detection
@@ -523,7 +712,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = common(sub.add_parser("init")); p.set_defaults(fn=cmd_init)
     p = sub.add_parser("verify"); p.add_argument("ledger"); p.add_argument("--units", default=str(UNITS_PATH))
+    p.add_argument("--strict-pin", dest="strict_pin", action="store_true",
+                   help="exit 1 when the units registry has drifted from the chain's pin")
     p.set_defaults(fn=cmd_verify)
+
+    p = common(sub.add_parser("repin"))
+    p.add_argument("--reason", default="")
+    p.set_defaults(fn=cmd_repin)
 
     p = common(sub.add_parser("cap"))
     p.add_argument("unit"); p.add_argument("qty", type=float)
