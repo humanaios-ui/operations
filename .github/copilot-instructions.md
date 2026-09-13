@@ -112,8 +112,8 @@ the raw source — a comment merely *mentioning* `run_smoke_test` or
 the 9 check `TOOL_CATEGORY`/`TOOL_SESSION`/`TOOL_ZONE`/`--help`/`--input` —
 verify those by hand. The manifest gate (below) separately covers
 `category`/`zone`, but `TOOL_SESSION` has no gate anywhere in this repo —
-`tools-manifest.yaml`'s `REQUIRED` fields don't include it, so a tool missing
-it passes every automated check while violating the README contract.
+`.tool-control/validate.py`'s `REQUIRED` tuple doesn't include it, so a tool
+missing it passes every automated check while violating the README contract.
 
 **A new tool file** also needs `python3 tools/behavioral_compliance_gate_v1_0.py
 --path <file>` to pass — an AST-level check, separate from the scanner above.
@@ -214,8 +214,9 @@ python3 -m mypy src/humanaios_operations --ignore-missing-imports
 
 Then run the blocking pytest suite exactly as `quality-baseline.yml`'s
 "Pytest baseline suites" step defines it — copy its 12-file list verbatim.
-The repo has 50+ `test_*.py` files with no pytest discovery config at all
-(no `pytest.ini`/`conftest.py`), so a bare `pytest -q` runs a much larger,
+The repo has 51 test files (47 `test_*.py` plus 4 `*_test.py`) with no
+pytest discovery config at all (no `pytest.ini`/`conftest.py`), so a bare
+`pytest -q` runs a much larger,
 uncurated set instead — spurious failures outside what actually gates the
 PR, not a substitute for the specific list CI runs.
 
