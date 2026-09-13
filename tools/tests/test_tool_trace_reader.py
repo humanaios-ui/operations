@@ -35,7 +35,7 @@ def test_never_captured_session_reads_as_none(tmp_path):
 def test_captured_but_empty_session_reads_as_empty_list(tmp_path):
     trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
     trace_dir.mkdir(parents=True)
-    (trace_dir / f"{hook.slugify('empty')}.jsonl").touch()
+    (trace_dir / hook.session_trace_filename("empty")).touch()
     assert reader.load_tool_trace(trace_dir, "empty") == []
 
 
@@ -67,7 +67,7 @@ def test_tampered_trace_refused_not_partially_returned(tmp_path):
          "tool_name": "Read", "tool_input": {}},
         tmp_path,
     )
-    ledger = trace_dir / "real.jsonl"
+    ledger = trace_dir / hook.session_trace_filename("real")
     rows = engine.read(str(ledger))
     rows[0]["tool_name"] = "Forged"
     with open(ledger, "w", encoding="utf-8") as handle:
@@ -118,7 +118,7 @@ def test_cli_report_on_corrupted_trace_exits_nonzero(tmp_path, capsys):
          "tool_name": "Read", "tool_input": {}},
         tmp_path,
     )
-    ledger = trace_dir / "real.jsonl"
+    ledger = trace_dir / hook.session_trace_filename("real")
     rows = engine.read(str(ledger))
     rows[0]["tool_name"] = "Forged"
     with open(ledger, "w", encoding="utf-8") as handle:

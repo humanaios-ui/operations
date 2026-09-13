@@ -106,6 +106,13 @@ def slugify(text: str) -> str:
     return re.sub(r"[^A-Za-z0-9_-]+", "-", text).strip("-") or "unknown-session"
 
 
+def session_trace_filename(session_id: str) -> str:
+    """Readable slug plus a digest of the original session_id, so distinct
+    raw session ids cannot collide onto the same ledger filename."""
+    digest = hashlib.sha256(session_id.encode("utf-8")).hexdigest()
+    return f"{slugify(session_id)}-{digest}.jsonl"
+
+
 @contextlib.contextmanager
 def _locked(ledger_path: Path):
     """Serializes the read-build-append critical section against a
@@ -173,7 +180,7 @@ def run_hook(payload: dict, project_dir: Path) -> Optional[str]:
     if not isinstance(tool_input, dict):
         tool_input = {}
 
-    ledger_path = project_dir / DEFAULT_TRACE_DIR / f"{slugify(session_id)}.jsonl"
+    ledger_path = project_dir / DEFAULT_TRACE_DIR / session_trace_filename(session_id)
     return append_tool_call(ledger_path, session_id, tool_name, tool_input, engine.now())
 
 
@@ -199,7 +206,7 @@ def run_smoke_test() -> bool:
         )
         ok = ok and reason2 is None
 
-        ledger_path = project_dir / DEFAULT_TRACE_DIR / "sess-1.jsonl"
+        ledger_path = project_dir / DEFAULT_TRACE_DIR / session_trace_filename("sess-1")
         rows = engine.read(str(ledger_path))
         ok = ok and len(rows) == 2
         ok = ok and engine.verify(rows) is None
@@ -225,7 +232,7 @@ def run_smoke_test() -> bool:
             project_dir,
         )
         ok = ok and reason4 is None
-        ok = ok and (project_dir / DEFAULT_TRACE_DIR / "unknown-session.jsonl").exists()
+        ok = ok and (project_dir / DEFAULT_TRACE_DIR / session_trace_filename("unknown-session")).exists()
 
         # A corrupted existing ledger is reported, never silently extended.
         corrupt_rows = engine.read(str(ledger_path))
@@ -250,8 +257,12 @@ def run_smoke_test() -> bool:
              "tool_name": "X", "tool_input": {}},
             project_dir,
         )
-        ok = ok and (project_dir / DEFAULT_TRACE_DIR / "etc-passwd.jsonl").exists()
-        ok = ok and not (project_dir.parent.parent / "etc" / "passwd.jsonl").exists()
+        ok = ok and (
+            project_dir / DEFAULT_TRACE_DIR / session_trace_filename("../../etc/passwd")
+        ).exists()
+        ok = ok and not (
+            project_dir.parent.parent / "etc" / session_trace_filename("passwd")
+        ).exists()
 
     print("✓ Smoke test PASSED" if ok else "✗ Smoke test FAILED")
     return ok

@@ -59,7 +59,7 @@ def load_tool_trace(trace_dir: Path, session_id: str) -> Optional[List[dict]]:
     input_digest, input_keys} — never the raw tool input itself, since the
     ledger never stored it. Raises TraceCorrupt if the chain doesn't
     verify; never returns a partial list for a broken chain."""
-    ledger_path = trace_dir / f"{hook.slugify(session_id)}.jsonl"
+    ledger_path = trace_dir / hook.session_trace_filename(session_id)
     if not ledger_path.exists():
         return None
     try:
@@ -120,7 +120,7 @@ def run_smoke_test() -> bool:
         # A session with zero tool calls but an explicit (empty) ledger
         # is distinguishable from "never ran" — build one directly since
         # the hook itself only ever appends on an actual call.
-        empty_ledger = trace_dir / f"{hook.slugify('empty-session')}.jsonl"
+        empty_ledger = trace_dir / hook.session_trace_filename("empty-session")
         empty_ledger.parent.mkdir(parents=True, exist_ok=True)
         empty_ledger.touch()
         ok = ok and load_tool_trace(trace_dir, "empty-session") == []
@@ -142,7 +142,7 @@ def run_smoke_test() -> bool:
         ok = ok and "/x" not in json.dumps(trace)  # raw value never stored, only the key name
 
         # A tampered ledger is refused outright, not partially returned.
-        real_ledger = trace_dir / f"{hook.slugify('real')}.jsonl"
+        real_ledger = trace_dir / hook.session_trace_filename("real")
         rows = engine.read(str(real_ledger))
         rows[0]["tool_name"] = "Forged"
         with open(real_ledger, "w", encoding="utf-8") as handle:

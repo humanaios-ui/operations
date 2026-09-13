@@ -33,7 +33,7 @@ def test_run_hook_appends_hash_chained_event(tmp_path):
         tmp_path,
     )
     assert reason is None
-    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / "s1.jsonl"
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.session_trace_filename("s1")
     rows = engine.read(str(ledger))
     assert len(rows) == 1
     assert engine.verify(rows) is None
@@ -47,7 +47,7 @@ def test_raw_tool_input_value_never_stored(tmp_path):
          "tool_name": "Write", "tool_input": {"file_path": "/x", "content": "SECRET-VALUE"}},
         tmp_path,
     )
-    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / "s1.jsonl"
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.session_trace_filename("s1")
     raw = ledger.read_text()
     assert "SECRET-VALUE" not in raw
     assert "/x" not in raw
@@ -66,7 +66,7 @@ def test_second_call_chains_onto_first(tmp_path):
          "tool_name": "Bash", "tool_input": {}},
         tmp_path,
     )
-    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / "s1.jsonl"
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.session_trace_filename("s1")
     rows = engine.read(str(ledger))
     assert len(rows) == 2
     assert rows[1]["prev_hash"] == rows[0]["hash"]
@@ -79,7 +79,7 @@ def test_corrupted_ledger_is_not_extended(tmp_path):
          "tool_name": "Read", "tool_input": {}},
         tmp_path,
     )
-    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / "s1.jsonl"
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.session_trace_filename("s1")
     rows = engine.read(str(ledger))
     rows[0]["tool_name"] = "Tampered"
     with open(ledger, "w", encoding="utf-8") as handle:
@@ -103,7 +103,7 @@ def test_missing_session_id_falls_back_to_safe_placeholder(tmp_path):
         tmp_path,
     )
     assert reason is None
-    assert (tmp_path / hook.DEFAULT_TRACE_DIR / "unknown-session.jsonl").exists()
+    assert (tmp_path / hook.DEFAULT_TRACE_DIR / hook.session_trace_filename("unknown-session")).exists()
 
 
 def test_path_traversal_session_id_is_contained(tmp_path):
@@ -112,8 +112,30 @@ def test_path_traversal_session_id_is_contained(tmp_path):
          "tool_name": "Read", "tool_input": {}},
         tmp_path,
     )
-    assert (tmp_path / hook.DEFAULT_TRACE_DIR / "etc-passwd.jsonl").exists()
-    assert not (tmp_path.parent / "etc" / "passwd.jsonl").exists()
+    assert (
+        tmp_path / hook.DEFAULT_TRACE_DIR / hook.session_trace_filename("../../etc/passwd")
+    ).exists()
+    assert not (
+        tmp_path.parent / "etc" / hook.session_trace_filename("passwd")
+    ).exists()
+
+
+def test_same_slug_different_session_ids_use_distinct_ledgers(tmp_path):
+    hook.run_hook(
+        {"hook_event_name": "PostToolUse", "session_id": "a/b",
+         "tool_name": "Read", "tool_input": {}},
+        tmp_path,
+    )
+    hook.run_hook(
+        {"hook_event_name": "PostToolUse", "session_id": "a-b",
+         "tool_name": "Bash", "tool_input": {}},
+        tmp_path,
+    )
+    first = tmp_path / hook.DEFAULT_TRACE_DIR / hook.session_trace_filename("a/b")
+    second = tmp_path / hook.DEFAULT_TRACE_DIR / hook.session_trace_filename("a-b")
+    assert first != second
+    assert first.exists()
+    assert second.exists()
 
 
 def test_non_dict_tool_input_does_not_crash(tmp_path):
@@ -153,7 +175,7 @@ def test_main_processes_real_posttooluse_stdin(monkeypatch, tmp_path):
     )
     monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(tmp_path))
     assert hook.main([]) == 0
-    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / "s1.jsonl"
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.session_trace_filename("s1")
     assert ledger.exists()
     rows = engine.read(str(ledger))
     assert rows[0]["tool_name"] == "Read"
