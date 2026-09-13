@@ -60,6 +60,22 @@ TEST_MOLT = "M-TEST-RBE-01"
 # exemption cannot outlive its cause.
 UNVERIFIED_ARTIFACT_RATIFICATIONS = frozenset({"RESOURCE_UNITS.yaml"})
 
+# What the content of an exempt artifact currently signs to.
+#
+# Asserting only "recomputed != recorded" was satisfied by ANY wrong value, so
+# while the exemption stood the artifact had no content pinning at all: a unit,
+# a prior or a policy could change, or the hash be swapped for a different
+# 64-hex string, and the suite stayed green. That is the same hole as the Z2
+# hash itself — a field that verifies against nothing — reproduced inside the
+# mechanism built to expose it.
+#
+# So the exemption pins the RECOMPUTED digest instead. Z2's signature still
+# doesn't verify (that is the open item), but the content is frozen: change it
+# and this fails, naming the new digest to re-pin if the change was intended.
+EXPECTED_UNVERIFIED_DIGEST = {
+    "RESOURCE_UNITS.yaml": "be5358fa06864ce3461fc46932fa89ef07d199ecbc0f32e405a074803210d737",
+}
+
 
 def _load(name: str, relpath: str):
     spec = importlib.util.spec_from_file_location(name, ROOT / relpath)
@@ -118,8 +134,15 @@ class TestUnitRegistry:
             assert recomputed != units["ratification_hash"], (
                 "RESOURCE_UNITS.yaml now verifies — remove it from "
                 "UNVERIFIED_ARTIFACT_RATIFICATIONS so the exemption cannot outlive its cause")
-            pytest.skip("hash predates ratify.py --artifact; see "
-                        "UNVERIFIED_ARTIFACT_RATIFICATIONS")
+            # The exemption excuses Z2's signature, NOT the content. Pin what the
+            # content signs to, so an edit under an unverifiable hash still fails.
+            assert recomputed == EXPECTED_UNVERIFIED_DIGEST["RESOURCE_UNITS.yaml"], (
+                f"RESOURCE_UNITS.yaml content changed while its ratification is "
+                f"unverifiable. If the change is intended, re-pin "
+                f"EXPECTED_UNVERIFIED_DIGEST to {recomputed!r} in the same commit — "
+                f"and note that Z2's hash still pins nothing, so this is the only "
+                f"thing standing between the registry and a silent edit.")
+            return
         assert recomputed == units["ratification_hash"], (
             "ratification_hash does not match the content it claims to ratify")
 

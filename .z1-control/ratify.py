@@ -69,7 +69,7 @@ except ImportError:  # pragma: no cover - CI installs it
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from validate import (  # noqa: E402
-    INBOX, INDEX, KNOWN_RATIFIERS, ROOT, TERMINAL, load_index,
+    INBOX, INDEX, KNOWN_RATIFIERS, ROOT, TERMINAL, StrictLoader, load_index,
 )
 
 TOOL_NAME = "z1_ratify"
@@ -112,6 +112,49 @@ def artifact_payload(doc: dict) -> bytes:
 def artifact_signature(doc: dict, by: str, at: str, decision: str) -> str:
     """The same construction as a candidate block's, over an artifact's content."""
     return signature(artifact_payload(doc), by, at, decision)
+
+
+def artifact_path(path: str) -> tuple[str, str]:
+    """Resolve an artifact path inside the repo. Returns (abspath, problem).
+
+    `--artifact` takes a path from the command line and `--apply` REWRITES the
+    file at it, so `os.path.join(ROOT, path)` is not enough: an absolute path
+    discards ROOT entirely and `../` walks out of it, which would let this
+    command rewrite any file on the machine that happens to carry these five
+    keys. realpath, because open() follows symlinks and a lexical check does not.
+
+    Same rule `.z1-control/validate.py` applies to index paths and
+    `.doc-control/validate.py` applies to canonical_path.
+    """
+    if not path or os.path.isabs(path) or "\\" in path:
+        return "", "must be a relative path inside the repository"
+    real = os.path.realpath(os.path.join(ROOT, path))
+    root = os.path.realpath(ROOT)
+    if real != root and not real.startswith(root + os.sep):
+        return real, "resolves outside the repository"
+    if os.path.isdir(real):
+        return real, "is a directory, not a file"
+    if not os.path.isfile(real):
+        return real, "does not exist"
+    return real, ""
+
+
+def load_artifact(full: str) -> tuple[dict | None, str]:
+    """Parse an artifact strictly. Returns (doc, problem).
+
+    StrictLoader, not `yaml.safe_load`: safe_load silently keeps the LAST of a
+    duplicate mapping key, so a second `units:` could change what the file means
+    while `artifact_payload` — reading the same collapsed dict — produced an
+    unchanged digest. A signature that a source edit can slip past is not
+    content-pinning, which is the one property this whole mechanism claims.
+    """
+    try:
+        doc = yaml.load(open(full, encoding="utf-8"), Loader=StrictLoader)
+    except yaml.YAMLError as exc:
+        return None, f"does not parse: {str(exc).splitlines()[-1].strip()}"
+    if not isinstance(doc, dict):
+        return None, "is not a mapping"
+    return doc, ""
 
 
 def find(index: dict, q_id: str) -> dict | None:
@@ -180,17 +223,24 @@ def cmd_artifact(path: str, decision: str, by: str, apply: bool) -> int:
     if by not in KNOWN_RATIFIERS:
         print(f"::error::'{by}' is not a ratifier. Allowed: {sorted(KNOWN_RATIFIERS)}")
         return 1
-    full = os.path.join(ROOT, path)
-    if not os.path.isfile(full):
-        print(f"::error::{path} does not exist")
+    # An artifact has two states, CANDIDATE and RATIFIED. EDIT and REJECT are
+    # candidate-block outcomes and were reaching this path unchanged, writing
+    # `status: EDIT` — a state no reader of RESOURCE_UNITS.yaml defines, which
+    # would still produce a digest that verifies. A verifiable signature over a
+    # meaningless state is worse than no signature.
+    if decision != "ACCEPT":
+        print(f"::error::--artifact only takes --decision ACCEPT. An artifact is "
+              f"CANDIDATE or RATIFIED; '{decision}' is a candidate-block outcome. "
+              f"To decline, leave the artifact as it stands and record the decision "
+              f"on its candidate block.")
         return 1
-    try:
-        doc = yaml.safe_load(open(full, encoding="utf-8"))
-    except yaml.YAMLError as exc:
-        print(f"::error::{path} does not parse: {str(exc).splitlines()[-1].strip()}")
+    full, problem = artifact_path(path)
+    if problem:
+        print(f"::error::{path} {problem}")
         return 1
-    if not isinstance(doc, dict):
-        print(f"::error::{path} is not a mapping")
+    doc, problem = load_artifact(full)
+    if problem:
+        print(f"::error::{path} {problem}")
         return 1
 
     at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -208,11 +258,9 @@ def cmd_artifact(path: str, decision: str, by: str, apply: bool) -> int:
         return 0
 
     text = open(full, encoding="utf-8").read()
-    fields = {"status": DECISIONS[decision].upper() if decision == "ACCEPT" else decision,
-              "ratification_hash": f'"{digest}"', "ratified_by": f'"{by}"',
-              "ratified_at": f'"{at}"', "ratification_decision": f'"{decision}"'}
-    if decision == "ACCEPT":
-        fields["status"] = "RATIFIED"
+    fields = {"status": "RATIFIED", "ratification_hash": f'"{digest}"',
+              "ratified_by": f'"{by}"', "ratified_at": f'"{at}"',
+              "ratification_decision": f'"{decision}"'}
     missing = [k for k in fields if not re.search(rf"(?m)^{k}:", text)]
     if missing:
         print(f"::error::{path} has no {', '.join(missing)} field(s) to update")
@@ -227,11 +275,14 @@ def cmd_artifact(path: str, decision: str, by: str, apply: bool) -> int:
 
 def cmd_verify_artifact(path: str) -> int:
     """Recompute a ratified artifact's signature from its current content."""
-    full = os.path.join(ROOT, path)
-    if not os.path.isfile(full):
-        print(f"::error::{path} does not exist")
+    full, problem = artifact_path(path)
+    if problem:
+        print(f"::error::{path} {problem}")
         return 1
-    doc = yaml.safe_load(open(full, encoding="utf-8"))
+    doc, problem = load_artifact(full)
+    if problem:
+        print(f"::error::{path} {problem}")
+        return 1
     recorded = str(doc.get("ratification_hash") or "")
     if not recorded:
         print(f"  ?  {path}: no ratification_hash — not ratified")
@@ -240,6 +291,27 @@ def cmd_verify_artifact(path: str) -> int:
         print(f"  ~  {path}: ratification_hash is not a sha256 ({recorded}) — "
               f"content not pinned")
         return 1
+
+    # The ratification fields are excluded from the payload of necessity, so the
+    # digest cannot speak for them and this has to check them separately.
+    # `status` is the one that matters: flipping a signed artifact from RATIFIED
+    # back to CANDIDATE leaves the digest untouched, and reporting "ok" for a
+    # registry that now declares itself inert would be exactly backwards.
+    state_problems = []
+    if doc.get("status") != "RATIFIED":
+        state_problems.append(f"status is {doc.get('status')!r}, not RATIFIED")
+    if doc.get("ratification_decision") != "ACCEPT":
+        state_problems.append(
+            f"ratification_decision is {doc.get('ratification_decision')!r}, not ACCEPT")
+    for field in ("ratified_by", "ratified_at"):
+        if not doc.get(field):
+            state_problems.append(f"{field} is empty")
+    if state_problems:
+        print(f"  !! {path}: carries a ratification hash but is not in a ratified state")
+        for p in state_problems:
+            print(f"       {p}")
+        return 1
+
     recomputed = artifact_signature(doc, str(doc.get("ratified_by")),
                                     str(doc.get("ratified_at")),
                                     str(doc.get("ratification_decision")))
@@ -337,6 +409,185 @@ def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> i
     return 0
 
 
+def _artifact_cli_cases() -> None:
+    """Drive --artifact and --verify-artifact end to end, against a real file.
+
+    The signature helpers were covered; the COMMANDS were not. Everything that
+    can actually go wrong in daily use lives in the commands — the field
+    rewrite, the missing-field check, containment, the return codes — and a
+    regression in any of them would have passed a helper-only smoke test.
+    That is the "26 blocking conditions, 10 exercised" failure this repo has
+    already paid for once.
+
+    Writes only inside a temporary directory that is removed on the way out.
+    """
+    import contextlib
+    import io
+    import shutil
+    import tempfile
+
+    global ROOT
+    original_root = ROOT
+    sandbox = tempfile.mkdtemp(prefix="ratify-selftest-")
+    # ROOT is a SUBdirectory of the sandbox, so `../` has somewhere real to
+    # point. With ROOT as the sandbox itself, `../outside.yaml` named a file
+    # that did not exist and was rejected for that — which let the containment
+    # rules be deleted with the suite still green.
+    tmp = os.path.join(sandbox, "repo")
+    os.makedirs(tmp)
+
+    def captured(fn, *a) -> tuple[int, str]:
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = fn(*a)
+        return rc, buf.getvalue()
+
+    def quiet(fn, *a) -> int:
+        return captured(fn, *a)[0]
+
+    try:
+        ROOT = tmp
+        body = ('version: "0.1"\n'
+                'status: CANDIDATE\n'
+                'ratification_hash: null\n'
+                'ratified_by: null\n'
+                'ratified_at: null\n'
+                'ratification_decision: null\n'
+                'units:\n'
+                '  - symbol: RAT-min\n')
+        art = os.path.join(tmp, "A.yaml")
+        open(art, "w").write(body)
+
+        # An unratified artifact does not verify, and says so rather than crashing.
+        assert quiet(cmd_verify_artifact, "A.yaml") == 1
+
+        # Dry run writes nothing.
+        assert quiet(cmd_artifact, "A.yaml", "ACCEPT", "Night", False) == 0
+        assert open(art).read() == body, "dry run must not write"
+
+        # Apply, then verify: the round trip is the whole contract.
+        assert quiet(cmd_artifact, "A.yaml", "ACCEPT", "Night", True) == 0
+        after = yaml.safe_load(open(art))
+        assert after["status"] == "RATIFIED", after["status"]
+        assert re.fullmatch(r"[0-9a-f]{64}", after["ratification_hash"])
+        assert after["ratified_by"] == "Night"
+        assert quiet(cmd_verify_artifact, "A.yaml") == 0, "freshly signed artifact must verify"
+
+        # Content is pinned: edit a unit and the signature breaks.
+        edited = open(art).read().replace("RAT-min", "TAMPERED")
+        open(art, "w").write(edited)
+        assert quiet(cmd_verify_artifact, "A.yaml") == 1, "a unit edit must break the signature"
+        open(art, "w").write(edited.replace("TAMPERED", "RAT-min"))
+        assert quiet(cmd_verify_artifact, "A.yaml") == 0
+
+        # Status is checked separately, because the digest cannot cover it:
+        # flipping RATIFIED -> CANDIDATE leaves the digest valid.
+        #
+        # Read into a variable FIRST. `open(p,"w").write(open(p).read())` truncates
+        # the file before the inner read is evaluated, so it writes an empty file —
+        # which this test did, making three later assertions pass because the
+        # artifact was unparseable rather than because the rule fired. Caught by
+        # mutating the rules away and finding the suite still green.
+        reverted = open(art, encoding="utf-8").read().replace(
+            "status: RATIFIED", "status: CANDIDATE")
+        assert "status: CANDIDATE" in reverted, "fixture did not actually revert the status"
+        open(art, "w", encoding="utf-8").write(reverted)
+        assert quiet(cmd_verify_artifact, "A.yaml") == 1, \
+            "an artifact reverted to CANDIDATE must not verify"
+        # Put it back so later cases run against a well-formed, ratified artifact.
+        open(art, "w", encoding="utf-8").write(
+            reverted.replace("status: CANDIDATE", "status: RATIFIED"))
+        assert quiet(cmd_verify_artifact, "A.yaml") == 0
+
+        # Duplicate keys are refused rather than silently collapsed.
+        open(os.path.join(tmp, "D.yaml"), "w").write(body + 'units:\n  - symbol: SHADOW\n')
+        assert quiet(cmd_verify_artifact, "D.yaml") == 1
+        assert quiet(cmd_artifact, "D.yaml", "ACCEPT", "Night", False) == 1
+
+        # A ratification whose DECISION is not ACCEPT must be refused even when
+        # its digest verifies. --artifact can no longer produce one, but a
+        # hand-written file can, and the decision is part of the signed payload
+        # so a mismatch would not catch it — only the state check does.
+        rejected = {"version": "0.1", "status": "RATIFIED", "ratified_by": "Night",
+                    "ratified_at": "2026-09-13T00:00:00Z",
+                    "ratification_decision": "REJECT", "units": [{"symbol": "RAT-min"}]}
+        rejected["ratification_hash"] = artifact_signature(
+            rejected, "Night", "2026-09-13T00:00:00Z", "REJECT")
+        open(os.path.join(tmp, "R.yaml"), "w").write(yaml.safe_dump(rejected))
+        assert quiet(cmd_verify_artifact, "R.yaml") == 1, \
+            "a REJECT decision must not verify as a ratification"
+
+        # Same shape for an unsigned signer: a digest can be computed over an
+        # absent name (str(None) == "None"), so only the state check refuses it.
+        anon = {"version": "0.1", "status": "RATIFIED", "ratified_by": None,
+                "ratified_at": None, "ratification_decision": "ACCEPT",
+                "units": [{"symbol": "RAT-min"}]}
+        anon["ratification_hash"] = artifact_signature(anon, "None", "None", "ACCEPT")
+        open(os.path.join(tmp, "N.yaml"), "w").write(yaml.safe_dump(anon))
+        assert quiet(cmd_verify_artifact, "N.yaml") == 1, \
+            "a ratification with nobody's name on it must not verify"
+
+        # Containment. The target EXISTS and is well-formed, so the only thing
+        # that can refuse it is the containment rule — and --apply would
+        # otherwise rewrite a file outside the repository.
+        outside = os.path.join(sandbox, "outside.yaml")
+        open(outside, "w").write(body)
+        before = open(outside).read()
+        for bad in ("../outside.yaml", outside, "nope.yaml", ""):
+            assert quiet(cmd_artifact, bad, "ACCEPT", "Night", True) == 1, bad
+            assert quiet(cmd_verify_artifact, bad) == 1, bad
+        assert open(outside).read() == before, "a refused path must not be rewritten"
+        # Each containment rule is asserted on its own REASON, not just on the
+        # refusal: realpath alone refuses an absolute path too, so checking only
+        # the return code let either rule be deleted with the suite still green.
+        assert artifact_path(outside)[1] == "must be a relative path inside the repository"
+        assert artifact_path("../outside.yaml")[1] == "resolves outside the repository"
+        # A file with none of the five fields cannot be signed into shape.
+        open(os.path.join(tmp, "E.yaml"), "w").write("version: 1\n")
+        assert quiet(cmd_artifact, "E.yaml", "ACCEPT", "Night", True) == 1
+
+        # A directory is not an artifact.
+        os.makedirs(os.path.join(tmp, "adir"), exist_ok=True)
+        assert artifact_path("adir")[1] == "is a directory, not a file"
+        assert quiet(cmd_verify_artifact, "adir") == 1
+
+        # Valid YAML that is not a mapping: `doc.get` would raise rather than
+        # report, which is a crash where a diagnosis belongs.
+        open(os.path.join(tmp, "L.yaml"), "w").write("- one\n- two\n")
+        assert load_artifact(os.path.join(tmp, "L.yaml"))[1] == "is not a mapping"
+        assert quiet(cmd_verify_artifact, "L.yaml") == 1
+        assert quiet(cmd_artifact, "L.yaml", "ACCEPT", "Night", True) == 1
+
+        # A slug where a digest belongs is reported as unpinned, not verified.
+        #
+        # Asserted on the DIAGNOSIS, not just the refusal. A slug can never equal
+        # a recomputed sha256, so the mismatch path refuses it either way and the
+        # return code alone let this rule be deleted with the suite still green.
+        # The distinction it preserves is real: "content not pinned" tells a
+        # reader the artifact was never signed, where "SIGNATURE MISMATCH" would
+        # claim it was signed and then edited.
+        slugged = dict(anon, ratified_by="Night", ratified_at="2026-09-13T00:00:00Z",
+                       ratification_hash="z1-ratify-zone2-approved-20260913")
+        open(os.path.join(tmp, "S.yaml"), "w").write(yaml.safe_dump(slugged))
+        rc, out = captured(cmd_verify_artifact, "S.yaml")
+        assert rc == 1, "a non-sha256 ratification_hash must not verify"
+        assert "content not pinned" in out, out
+
+        # Likewise for no hash at all: "not ratified", not "mismatch".
+        unsigned = dict(anon, ratified_by="Night", ratification_hash=None)
+        open(os.path.join(tmp, "U.yaml"), "w").write(yaml.safe_dump(unsigned))
+        rc, out = captured(cmd_verify_artifact, "U.yaml")
+        assert rc == 1 and "not ratified" in out, out
+
+        # Non-ACCEPT decisions and unknown ratifiers are refused before any write.
+        for decision in ("EDIT", "REJECT"):
+            assert quiet(cmd_artifact, "A.yaml", decision, "Night", True) == 1, decision
+        assert quiet(cmd_artifact, "A.yaml", "ACCEPT", "Claude", True) == 1
+    finally:
+        ROOT = original_root
+        shutil.rmtree(sandbox, ignore_errors=True)
+
+
 def run_smoke_test() -> int:
     a = signature(b"candidate text", "Night", "2026-09-13", "ACCEPT")
     assert re.fullmatch(r"[0-9a-f]{64}", a), a
@@ -366,7 +617,11 @@ def run_smoke_test() -> int:
     # Key order in the file must not matter; content must.
     assert artifact_signature(dict(reversed(list(doc.items()))), "Night",
                               "2026-09-13", "ACCEPT") == b, "not canonical"
-    print("smoke-test OK — signature is deterministic and pins candidate content, decision, "
+
+    _artifact_cli_cases()
+    print("smoke-test OK — artifact signing and verification driven end to end (apply, verify, "
+          "tamper, revert-to-CANDIDATE, duplicate keys, containment, non-ACCEPT, slug, "
+          "anonymous signer); signature is deterministic and pins candidate content, decision, "
           "signer and date; decision map matches the validator's terminal statuses.")
     return 0
 
