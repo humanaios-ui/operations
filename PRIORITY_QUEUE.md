@@ -137,20 +137,20 @@ rows may begin"* — reserves both "new rows added to the queue" and "status tra
 
 **Unblocks:**
 - Q-RFM-02 (cost-class taxonomy per REGISTRY_SPEC.md:45 — the blocker on every UNSCORED FMEA cell) — impact 2
-- Entry-level remediation of the 98 measured defects, which cannot be scoped without the measurement — impact 2
+- Entry-level remediation of the 101 measured defects, which cannot be scoped without the measurement — impact 2
 
-**Provenance (measured 2026-09-13 against REGISTERED.md @ 1e1b518):**
-- 135 entries; 98 entry-level defects / 540 opportunities → 81.9% FPY, 181,481 DPMO, ~2.4σ (same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the "clean reference bar (0/7)")
-- Schema conformance 57.0% against the full declared ten-field schema (91.1% against the core five)
-- Ordering 29/135 non-conforming to `REGISTRY_SPEC.md:114`; 25 entries appended past the `## Changelog` boundary
+**Provenance (measured 2026-09-13 against REGISTERED.md @ 1e1b518, Phase 2 corrected with parser fixes):**
+- 137 entries (post-correction: +2 from correction-to field discovery); 101 entry-level defects / 548 opportunities → 81.6% FPY, 181,306 DPMO, ~2.4σ (same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the "clean reference bar (0/7)")
+- Schema conformance 57.7% against the full declared ten-field schema (91.2% against the core five)
+- Ordering 30/137 non-conforming to `REGISTRY_SPEC.md:114`; 25 entries appended past the `## Changelog` boundary
 - 10 of 45 F-entries absent from the quick index; IC-036 cited in the IC roll-up with no body entry
 - 3 of 6 classes REGISTRY_SPEC.md defines (D, R, GD) hold zero entries
-- Census divergence unresolved: the findings validator counts 130, `repo_health.py` 126, this scanner 135 (131 before review corrected its entry discovery)
+- Census divergence unresolved: the findings validator counts 130, `repo_health.py` 126, this scanner 137 post-Phase-2 (135 post-review correction, 131 before review correction)
 
 **Acceptance Criteria:**
 1. `REGISTERED_FAILURE_MODES.md` maps RFM-01…RFM-19 → SO-01…SO-14 → industrial failure modes, every count tool-generated and re-checked by `scan --verify-doc`
 2. `tools/registered_failure_mode_scan_v0_1.py self-test` passes (34 assertions), including that the F-32/F-33 honest-gap whitelist suppresses those, that a non-whitelisted phantom is still caught, and that a missing required input errors rather than passing
-3. `scan` reproduces 98/540 against the pinned SHA on repeat runs
+3. `scan` reproduces 101/548 against the pinned SHA on repeat runs
 4. `REGISTERED.md` byte-identical to the pinned SHA — the map describes the registry, it does not modify it
 5. Z2 rules on `--enforce`, on CI wiring, and on the census divergence
 

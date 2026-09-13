@@ -128,6 +128,11 @@ REQUIRED_FIELDS = [
     "session_registered", "principles_triggered", "substrate", "tags",
     "superseded_by",
 ]
+# Note: REGISTRY_SPEC.md:55-72 also declares `evidence_trail` and `ratification_receipt`,
+# but they are not present in the live REGISTERED.md. This scanner checks only the fields
+# that are actually adopted in practice. The gap is documented as observable by Z2 as a
+# schema-erosion issue (fields declared but not in use) — a measurement-system decision
+# point, not a scanner deficiency. See RFM-06 note in REGISTERED_FAILURE_MODES.md.
 CORE_FIELDS = ["name", "status", "class", "date_registered", "session_registered"]
 
 # Classes REGISTRY_SPEC.md defines. D/R/GD are ratified but unpopulated.
@@ -250,6 +255,13 @@ def parse_registry(text: str) -> Dict[str, Any]:
         m = _ID_RE.match(l)
         if m:
             starts.append((m.group(1), i))
+        # Correction entries keyed on `correction_to:` not `id:`
+        m = _CORRECTION_KEY_RE.match(l)
+        if m:
+            # Extract ID from the value: `correction_to: "F-31"`
+            val_match = re.search(r'["""\']?([A-Za-z0-9\-\_]+)["""\']?', l)
+            if val_match:
+                starts.append((val_match.group(1), i))
 
     entries: List[Entry] = []
     for n, (eid, ln) in enumerate(starts):
@@ -290,10 +302,12 @@ def parse_registry(text: str) -> Dict[str, Any]:
     entries.sort(key=lambda e: e.line)
 
     # F quick index rows (the table above the first class section)
+    # Handles variants like "F-24 / 24b / 24c / 24d" which appear in the same cell
     index_end = sections[0][0] if sections else len(lines)
     index_f = set()
     for l in lines[:index_end]:
-        m = re.match(r'^\s*\|\s*\**(F-[0-9A-Za-z\-]+)\**\s*\|', l)
+        # Match table row: | ... F-ID ... | (may have variants after /)
+        m = re.match(r'^\s*\|\s*\**(F-[0-9A-Za-z\-]+)(?:\s*[/|]|(?=\*?\s*\|))', l)
         if m:
             index_f.add(m.group(1))
 
@@ -397,11 +411,15 @@ def evaluate_ordering_conformance(
         sections: Optional[List[Tuple[int, str]]] = None) -> CheckResult:
     """RFM-09: REGISTRY_SPEC.md:114 declares F -> IC -> H -> *then other classes*.
 
-    An entry whose prefix is F/IC/H must sit in its own class block. An entry
-    of any other class (a ratification record, for instance) must sit *after*
-    the three class blocks -- so finding one inside F-class, IC-class or
-    H-class is equally a violation of the declared ordering, not an exemption
-    from it.
+    Checks two aspects:
+    1. Per-entry placement: F/IC/H entries must sit in their own class block.
+       Other classes must sit *after* the three class blocks.
+    2. Section-order: The F-class, IC-class, and H-class blocks must appear
+       in F -> IC -> H order. Within-block ordering (F numbers strictly
+       increasing, IC entries sequential) is out of scope.
+
+    Note: REGISTRY_SPEC.md:36-40 specifies additional within-block ordering
+    requirements not covered by this check.
     """
     bad = []
     for e in entries:
@@ -419,6 +437,7 @@ def evaluate_ordering_conformance(
     # F block would put every entry "in its own section" and still violate
     # REGISTRY_SPEC.md:114.
     order_violation = None
+    order_violation_defects = 0
     if sections:
         seen = [c for c in (next((c for c in CLASS_SECTIONS if c in label), None)
                             for _, label in sections) if c]
@@ -429,17 +448,19 @@ def evaluate_ordering_conformance(
         expected = [c for c in CLASS_SECTIONS if c in first]
         if first != expected:
             order_violation = f"class blocks appear as {first}, expected {expected}"
+            order_violation_defects = 1  # Section-order violations count as 1 defect
     return CheckResult(
         check_id="ordering_conformance",
         rfm="RFM-09",
         title="Append-ordering decay",
-        status=FAIL if bad else PASS,
+        status=FAIL if (bad or order_violation) else PASS,
         severity="warning",
-        defects=len(bad),
+        defects=len(bad) + order_violation_defects,
         opportunities=len(entries),
         evidence=([f"{eid} (L{ln}) sits under {sec[:50]}" for eid, ln, sec in bad]
                   + ([order_violation] if order_violation else [])),
-        reason="entry outside the class block REGISTRY_SPEC.md:114 declares" if bad else None,
+        reason=("entry/section outside the order REGISTRY_SPEC.md:114 declares"
+                if (bad or order_violation) else None),
     )
 
 
@@ -702,10 +723,21 @@ def verify_doc(report: Dict[str, Any], doc_path: Path) -> Tuple[bool, List[str]]
     asserting that failure mode while carrying hand-copied counts would be an
     instance of it. This makes the claim falsifiable: if the registry changes
     and the map is not regenerated, `--verify-doc` fails.
+
+    Anchors assertions to the "Measured Baseline" section to prevent stale values
+    in appendices or outdated examples from passing verification.
     """
     if not doc_path.exists():
         return False, [f"{doc_path} not found"]
     text = doc_path.read_text(encoding="utf-8")
+
+    # Extract only the "Measured Baseline" section to prevent stale values
+    # in appendices or examples from passing verification
+    baseline_match = re.search(r'## Measured Baseline\s*\n(.*?)(?:\n## |\Z)', text, re.DOTALL)
+    if not baseline_match:
+        return False, ["'Measured Baseline' section not found in document"]
+    baseline_text = baseline_match.group(1)
+
     b = report["baseline"]
     expect = {
         "entry count": str(report["entries_parsed"]),
@@ -714,8 +746,8 @@ def verify_doc(report: Dict[str, Any], doc_path: Path) -> Tuple[bool, List[str]]
         "first-pass yield": f"{b['fpy']*100:.1f}%",
         "DPMO": f"{b['dpmo']:,.0f}",
     }
-    problems = [f"{label} {val!r} not found in {doc_path.name}"
-                for label, val in expect.items() if val not in text]
+    problems = [f"{label} {val!r} not found in Measured Baseline section"
+                for label, val in expect.items() if val not in baseline_text]
     return (not problems), problems
 
 
@@ -1104,16 +1136,24 @@ def main(argv: Optional[List[str]] = None) -> int:
             if not ok:
                 return 1
 
+        # Always check for missing inputs (errors/skips); don't gate on --enforce.
+        # A missing input means the tool did not fully run; exit nonzero to signal
+        # that the result is incomplete, not just warnings.
+        total = sum(r["defects"] for r in report["results"])
+        unrun = [r["check_id"] for r in report["results"]
+                 if r["status"] in (ERROR, SKIP)]
+        if unrun:
+            print(f"\nWARNING: {len(unrun)} check(s) did not run: "
+                  f"{', '.join(unrun)}", file=sys.stderr)
+            if not args.json:
+                return 1
+
         if args.enforce:
-            total = sum(r["defects"] for r in report["results"])
-            # Fail closed: a check that could not run is not a check that
-            # passed. Summing defects alone lets an absent input exit 0.
-            unrun = [r["check_id"] for r in report["results"]
-                     if r["status"] in (ERROR, SKIP)]
-            if unrun:
-                print(f"\nENFORCE: {len(unrun)} check(s) did not run: "
-                      f"{', '.join(unrun)}", file=sys.stderr)
-            return 1 if (total or unrun) else 0
+            if total or unrun:
+                print(f"\nENFORCE: failing on {total} defects" +
+                      (f" and {len(unrun)} unrun checks" if unrun else ""),
+                      file=sys.stderr)
+                return 1
         return 0
 
     p.print_help()

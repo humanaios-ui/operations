@@ -112,7 +112,7 @@ candidates:
     path: "z1-inbox/2026-09-13/Q-RFM-01.md"
     submitted: "2026-09-13"
     status: awaiting_z2
-    note: "Eight-item Z2 checklist. Blocking decisions: whether to turn on --enforce, and which of three disagreeing instruments states the registry census (126 / 130 / 135)."
+    note: "Eight-item Z2 checklist. Blocking decisions: whether to turn on --enforce, and which of four disagreeing instruments states the registry census (126 / 130 / 135 / 137). Phase 2 parser corrections applied: +2 entries (correction-to discovery), +3 defects (ordering violation counting + quote hygiene); 137 entries, 101/548 defects, 81.6% FPY."
 
   - q_id: Q-TOOLCONTROL-01
     title: "Tool manifest & document-control registry"
