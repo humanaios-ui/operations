@@ -27,6 +27,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   parse:
@@ -80,4 +81,94 @@ jobs:
           if bad:
               print(f"{len(bad)} defective. Advisory for now; see workflow-lint.yml "
                     f"for the promotion condition.")
+          PY
+
+      - name: Has each gate ever actually fired? (ADVISORY)
+        # Parsing proves a workflow CAN run. It does not prove the gate can
+        # reject anything. A control that has succeeded 191 times and never
+        # once failed is not demonstrably a control — it may be incapable of
+        # failing, and nothing in the repository would say so.
+        #
+        # This reads run history and sorts every workflow into:
+        #   DEAD        every sampled run finished with zero jobs — invalid YAML
+        #   NEVER RAN   no runs at all; the trigger has never matched
+        #   NEVER GREEN runs, always fails — broken, not enforcing
+        #   NEVER FAILED runs, never rejected — unproven; may be decoration
+        #   FIRES BOTH  has both passed and failed — demonstrably capable
+        #
+        # Advisory, and staying advisory: "never failed" is a suspicion, not a
+        # defect. A workflow whose job is to publish a page SHOULD never fail.
+        # The output is a prompt to check, not a verdict.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess, collections
+
+          REPO = os.environ.get("GITHUB_REPOSITORY", "humanaios-ui/operations")
+          TOKEN = os.environ.get("GH_TOKEN", "")
+
+          def api(path):
+              cmd = ["curl", "-sS", "-H", "Accept: application/vnd.github+json"]
+              if TOKEN:
+                  cmd += ["-H", f"Authorization: Bearer {TOKEN}"]
+              cmd.append(f"https://api.github.com/repos/{REPO}/{path}")
+              try:
+                  return json.loads(subprocess.run(cmd, capture_output=True,
+                                                   text=True, timeout=30).stdout)
+              except Exception:
+                  return {}
+
+          workflows = [w for w in api("actions/workflows?per_page=100").get("workflows", [])
+                       if w.get("path", "").startswith(".github/workflows/")]
+          if not workflows:
+              print("::warning::could not read workflow list — skipping the firing audit")
+              raise SystemExit(0)
+
+          rows = []
+          for w in workflows:
+              data = api(f"actions/workflows/{w['id']}/runs?per_page=100")
+              runs = data.get("workflow_runs", [])
+              counts = collections.Counter(r.get("conclusion") for r in runs)
+              # created == updated means the run finished without starting a job:
+              # the signature of a workflow GitHub refused to parse.
+              zero = sum(1 for r in runs if r.get("created_at") == r.get("updated_at"))
+              ok, bad = counts.get("success", 0), counts.get("failure", 0)
+              if not runs:
+                  verdict = "NEVER RAN"
+              elif zero == len(runs):
+                  verdict = "DEAD"
+              elif ok == 0 and bad:
+                  verdict = "NEVER GREEN"
+              elif bad == 0 and ok:
+                  verdict = "NEVER FAILED"
+              else:
+                  verdict = "FIRES BOTH"
+              rows.append((verdict, w["path"].split("/")[-1],
+                           data.get("total_count", 0), ok, bad, zero))
+
+          rank = {"DEAD": 0, "NEVER RAN": 1, "NEVER GREEN": 2,
+                  "NEVER FAILED": 3, "FIRES BOTH": 4}
+          rows.sort(key=lambda r: (rank[r[0]], -r[2]))
+
+          print(f"{'verdict':<13}{'workflow':<42}{'runs':>6}{'ok':>5}{'fail':>6}{'0job':>6}")
+          print("-" * 78)
+          for verdict, name, total, ok, bad, zero in rows:
+              print(f"{verdict:<13}{name:<42}{total:>6}{ok:>5}{bad:>6}{zero:>6}")
+
+          tally = collections.Counter(r[0] for r in rows)
+          unproven = sum(tally[k] for k in ("DEAD", "NEVER RAN", "NEVER GREEN", "NEVER FAILED"))
+          for verdict, name, total, ok, bad, zero in rows:
+              if verdict == "DEAD":
+                  print(f"::warning file=.github/workflows/{name}::{total} runs, every "
+                        f"sampled one with zero jobs — this gate has never executed a step")
+              elif verdict == "NEVER GREEN":
+                  print(f"::warning file=.github/workflows/{name}::{total} runs, never "
+                        f"green — it is failing, not enforcing")
+          print(f"\nfiring audit: {tally['FIRES BOTH']}/{len(rows)} workflows have both "
+                f"passed and failed. {unproven} have not demonstrated they can reject "
+                f"anything ({tally['DEAD']} dead, {tally['NEVER RAN']} never ran, "
+                f"{tally['NEVER GREEN']} never green, {tally['NEVER FAILED']} never failed).")
+          print("Advisory. 'Never failed' is a prompt to check whether the gate CAN fail, "
+                "not a claim that it cannot.")
           PY

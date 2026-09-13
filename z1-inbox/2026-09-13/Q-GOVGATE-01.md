@@ -246,11 +246,45 @@ since 2026-09-10. Nothing had counted the days since.
    **IC candidate** — and an open question about how many other CI assurances in CLAUDE.md are
    unwired. Repairs deliberately **not** made here.
 
-3. **A dead workflow is indistinguishable from a failing one in the Actions UI.** Zero-job
+3. **48% of this repo's gates have never demonstrated they can reject anything.** The operator
+   named the pattern on PR #308 as *control theater* — treating the existence of a control as
+   evidence it changes behaviour — and asked for firing evidence rather than documentation. So it
+   was measured across all 44 workflows, reading run history rather than reading the files:
+
+   | verdict | count | meaning | worst case |
+   |---|---|---|---|
+   | **DEAD** | **4** | every sampled run finished with zero jobs | `sonarcloud-baseline-auto` — **549 runs**, none executed a step |
+   | **NEVER RAN** | **3** | no runs at all; the trigger has never matched | `priority-queue-triage` — 0 runs |
+   | **NEVER GREEN** | **4** | runs, always fails — failing, not enforcing | `divergence-detect` — 41 runs, 41 failures |
+   | **NEVER FAILED** | **10** | never rejected anything; unproven | `scorecard` — 191 runs, 0 failures |
+   | **FIRES BOTH** | **23** | demonstrably capable of rejecting | — |
+
+   **1,896 zero-job runs** across the four dead workflows. This confirms item 2 by a second,
+   independent method: those four were first found by parsing YAML, and run history agrees without
+   reference to the parser. `priority-queue-triage.yml` has **never run** — and it is the workflow
+   whose shape `governance-triage.yml` in this PR was modelled on.
+
+   **NEVER FAILED is the subtle category and the one worth arguing about.** It is a suspicion, not
+   a defect: a workflow that publishes a page *should* never fail. But a gate that has succeeded
+   191 times and never once rejected anything is not demonstrably a gate, and nothing in this
+   repository previously distinguished the two. **F candidate.**
+
+   Made repeatable rather than left as a one-off, because by the operator's own standard a control
+   sampled once is not verified: `workflow-lint.yml` now runs this audit on every PR touching
+   `.github/workflows/`. Advisory — it prints the table and warns only on DEAD and NEVER GREEN,
+   where the reading is unambiguous.
+
+   **It indicts this PR too.** `workflow-lint.yml` itself is currently NEVER FAILED (3 runs, 3
+   green), and — the sharper point — Z1 wrote these controls, wrote their tests, and is the only
+   party attesting that they fire. That is the operator's item 4 (*separate author from verifier*)
+   unmet, and with item 5 below showing no path has a valid code owner, there is presently **no
+   independent verifier in this repository at all**. Named rather than worked around.
+
+4. **A dead workflow is indistinguishable from a failing one in the Actions UI.** Zero-job
    `failure` runs read as a gate that ran. This is the detection gap that let #1 and #2 persist
    for 584 combined runs. Mitigated here by `workflow-lint.yml` (advisory). **F candidate.**
 
-4. **Every CODEOWNERS rule in this repository is inert — including the one added to fix
+5. **Every CODEOWNERS rule in this repository is inert — including the one added to fix
    exactly this.** Q-TOOLCONTROL-01 item 3 found the root `CODEOWNERS` shadowed by
    `.github/CODEOWNERS` and mitigated it by repeating the control-surface rules in the honoured
    file "with owners that exist". **Those owners do not exist.** Verified:
@@ -284,7 +318,7 @@ since 2026-09-10. Nothing had counted the days since.
    admin account authoring the PRs, code-owner review cannot be a real second pair of eyes
    whatever the file says — which is a governance question, not a configuration one.
 
-5. **`.z1-control/` is not in `.tool-control/scan.py`'s `SCAN_ROOTS`** (`tools`, `scripts`,
+6. **`.z1-control/` is not in `.tool-control/scan.py`'s `SCAN_ROOTS`** (`tools`, `scripts`,
    `bin`), so its two scripts are unregistered tools. PR #307 adds `.tool-control` and
    `.doc-control` to `SCAN_ROOTS` but not `.z1-control`. **Flagged as a follow-up, not fixed
    here**, to avoid a conflict in a generated manifest three open PRs are already touching.
