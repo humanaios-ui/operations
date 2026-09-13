@@ -51,3 +51,6 @@ ledgers/*.lock
 # funding docs (Longview apps, roadmap, opportunities), not tool metadata.
 !humanaios-funding-pipeline/reports/
 !humanaios-funding-pipeline/reports/**
+
+# Advisory lock sidecars written by resource_ledger_v0_1.py
+*.jsonl.lock
