@@ -34,17 +34,21 @@
 
 ## Candidate Actions
 
-**Add to ZONE_REGISTRY.md:**
+**Add to ZONE_REGISTRY.md (7-column schema matching existing table):**
 
 ```markdown
-| **acat-x** | empirica-autonomy | Z1 | evaluation, assessment suite |
-| **acat-dashboard** | acat-inspect | Z1 | dashboard, visualization |
-| **acat-observatory** | acat-inspect | Z1 | private, observational data |
-| **docs** | website | Z1 | documentation, MDX |
-| **empirica-practice-mesh** | empirica-mesh-support | Z1 | governance, entity sync |
-| **research** | empirica-foundation-evaluator | Z1 | papers, datasets (frozen) |
-| **findlocaltattooartists** | website | Z1 | portfolio, CMS |
+| Repo | Primary | Secondary | Z1 Proposer Cap | Z2 Ratifier | Z3 Executor | Escalation |
+|:-----|:--------|:----------|:---|:---|:---|:---|
+| **acat-x** | Z1 proposal source | Z3 evaluation | ACAT designs | Night | ACAT team (TBD) | Night |
+| **acat-dashboard** | Z3 dashboard | Z1 proposal | Dashboard features | Night | ACAT team (TBD) | Night |
+| **acat-observatory** | Z3 observational data | Z1 analysis | Observatory schema | Night | ACAT team (TBD) | Night (private repo) |
+| **docs** | Z3 docs deployment | Z1 content | Documentation content | Night | Web team (TBD) | Night |
+| **empirica-practice-mesh** | Z2 coordination | Z1 proposal | Mesh queries, governance | Night | Empirica PM (TBD) | Night |
+| **research** | Z0 archive (frozen papers) | Z1 analysis | None (read-only papers) | Night | None (read-only) | Admiral |
+| **findlocaltattooartists** | Z3 portfolio | Z1 content | Portfolio content | Night | Web team (TBD) | Night |
 ```
+
+**Note:** `acat-observatory` is marked PRIVATE in GitHub. CI gate must handle credentials for private repo verification (see Q-REGISTRY-AUDIT-03, Task 2, credentials strategy).
 
 ---
 

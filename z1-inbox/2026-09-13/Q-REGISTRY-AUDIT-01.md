@@ -13,13 +13,19 @@
 
 The section heading claims **31 HumanAIOS repositories**  
 Actual GitHub humanaios-ui org: **12 repos**  
-Registry table lists: **18 repos**  
+Registry table lists: **18 repos** (concrete entries; 1 `[Other archived repos]` placeholder)  
 **Mismatch: 13 repos claimed but not found on GitHub**
+
+**Universe Accounting:**
+- Registry contains 18 named repos: 5 exist on GitHub + 13 don't exist = 18 total
+- GitHub has 12 repos: 5 registered + 7 unregistered = 12 total
+- Combined unique names: 5 (overlap) + 13 (registry-only) + 7 (GitHub-only) = 25 entities
+- Header claims 31 repos → **6 repos unaccounted** (31 - 25 = 6)
 
 **RECEIPT-GAP Callout:**
 - Claim: "31 repos" (in section heading `## Repository Zone Assignments`)
-- Tree (GitHub reality): 12 repos
-- Gap: 19 repos unaccounted
+- Accounted tree: 25 unique names (18 registry + 7 GitHub unregistered, 5 overlap)
+- Unaccounted: 6 repos missing from universe
 
 ---
 
@@ -42,6 +48,31 @@ Registry table lists: **18 repos**
 | website | Not found | Planned/Never created |
 
 **Summary:** All 13 repos are **planned but never created**. None are archived in humanaios-ui org; none exist under those names in other orgs.
+
+---
+
+## Universe Closure: Accounting for the Missing 6 Repos
+
+**Finding:** The header claims 31 repos, but only 25 unique names are identified across registry and GitHub (18 + 7, with 5 overlap). This leaves **6 repos unaccounted for**.
+
+**Possible sources for the missing 6:**
+
+| Source | Count | Evidence |
+|--------|-------|----------|
+| Repos in other HumanAIOS orgs (not humanaios-ui) | 0–6 | Not in scope of this audit; Q-REGISTRY-AUDIT scope is humanaios-ui only |
+| Repos archived (not counted by GitHub MCP searches) | 0–2 | `[Other archived repos]` placeholder in ZONE_REGISTRY Tier 5 is not enumerated |
+| Repos deleted or renamed on GitHub | 0–3 | Cannot verify with GitHub API; out of audit scope |
+| Discrepancy in the 31-repo header claim | 6+ | **Recommendation:** Treat the "31 repos" as aspirational roadmap, not a claim of currently-existing repos |
+
+**Decision Point for Z2:**
+
+The 6 unaccounted repos can be resolved in three ways:
+
+1. **Enumerate them explicitly** (if they exist in other orgs or as archives): Update ZONE_REGISTRY to list all 31 by name, with status (planned/archived/other-org)
+2. **Retire the 31-repo claim** (if it is aspirational): Change header to "12 active repos (31 planned)" + create separate PLANNED_REPOS.md or ROADMAP_REPOS.md (Option B or C)
+3. **Accept the 25-repo universe** (if other 6 are truly gone): Change header to "12 active + 13 planned (25 total identified)" and track separately
+
+**This candidate recommends Option 2/3: The header's "31 repos" is aspirational/outdated. All 31 should be explicitly listed in a separate PLANNED_REPOS.md or ROADMAP_REPOS.md with current status (planned, archived, renamed, other-org, retired).**
 
 ---
 

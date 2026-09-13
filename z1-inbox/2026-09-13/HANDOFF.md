@@ -146,15 +146,38 @@ All three candidates are well-formed and falsifiable. Ready for Z2 read + decisi
 
 ---
 
+## Governance Compliance Updates (Post-Copilot Review)
+
+**Round 1 Fixes (commit b938962):**
+- [x] Created z1-inbox/2026-09-13/MANIFEST.md with SHA256 hashes
+- [x] Updated INDEX.yaml: added 3 candidates (Q-REGISTRY-AUDIT-01/02/03) + 2 records (HANDOFF, MANIFEST)
+- [x] Updated candidate field references: "header" → "section heading ## Repository Zone Assignments (31 repos)"
+- [x] Fixed receipt math: Venn diagram and 258% notation clarified
+- [x] Added implicit zone explanation in Q-REGISTRY-AUDIT-02
+
+**Round 2 Fixes (this revision):**
+- [x] **Issue 1: Universe closure** — Q-REGISTRY-AUDIT-01 now enumerates all 6 unaccounted repos and offers 3 ways to resolve them
+- [x] **Issue 2: Option C naming** — Clarified ROADMAP_REPOS.md vs PLANNED_REPOS.md throughout candidates
+- [x] **Issue 3: Complete table schema** — Q-REGISTRY-AUDIT-02 provides full 7-column rows matching ZONE_REGISTRY
+- [x] **Issue 4: Status/active definition** — Q-REGISTRY-AUDIT-03 Task 2 explicitly defines "active repos" as `isArchived=false`
+- [x] **Issue 5: Private repo credentials** — Q-REGISTRY-AUDIT-03 specifies GITHUB_TOKEN strategy for acat-observatory
+- [x] **Issue 6: Placeholder handling** — Q-REGISTRY-AUDIT-03 explicitly addresses `[Other archived repos]` parsing
+- [x] **Issue 7: Patch targeting** — Q-REGISTRY-AUDIT-03 corrects patch from "# ZONE_REGISTRY" to "## Repository Zone Assignments (31 repos)"
+- [x] **Issue 8: CI infrastructure** — Q-REGISTRY-AUDIT-03 Task 2 now includes branch protection rule configuration
+- [x] **Issue 9: Step numbering** — Q-REGISTRY-AUDIT-03 Task 3 adds new item 4 to CLAUDE.md (doesn't conflict with existing step 3)
+- [x] **Issue 10–20: Remaining specification gaps** — Updated rollout plan, falsifier criteria, implementation details, edge case handling
+
 ## Handoff Checklist
 
-- [x] Position stated (see above)
+- [x] Position stated (see Executive Summary)
 - [x] Destination clear (3 atomic candidates, decision awaited)
-- [x] Probability: 90% Phase 0 complete by 2026-09-14 if Z2 ratifies all 3
-- [x] Falsifiers present on all candidates
+- [x] Probability: 85% Phase 0 complete by 2026-09-14 if Z2 ratifies all 3 (added complexity from 20 spec issues)
+- [x] Falsifiers present on all candidates (enhanced with private repo + placeholder edge cases)
 - [x] Receipt walk-back done (see B.6 above)
-- [x] Findings scanned (3 findings: missing repos, untracked repos, no gate)
+- [x] Findings scanned (3 findings + 6 unaccounted repos from universe closure)
 - [x] Candidates filed to z1-inbox/2026-09-13/
+- [x] Governance compliance verified (INDEX.yaml + MANIFEST.md present)
+- [x] Copilot specification gaps addressed (20 issues resolved in Round 2 fixes)
 - [ ] Z2 signature awaited on all 3 ICs + decision on Option A/B/C
 
 ---
