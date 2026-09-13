@@ -26,7 +26,7 @@ generated: "2026-09-13"
 decision_window_days: 2
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
-counts: {candidates: 16, records: 13}
+counts: {candidates: 17, records: 13}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
@@ -141,6 +141,13 @@ candidates:
     submitted: "2026-09-13"
     status: awaiting_z2
     note: "Answers Q-TOOLCONTROL-01 checklist item 6. Decision A (backlog) and Decision B (owners) are the owner's acts; no date was moved."
+
+  - q_id: Q-NF-ADAPTER-01
+    title: "molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger"
+    path: "z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Closes PRIORITY_QUEUE.md's Q-NF-SCHEMA-01 row (score 9) via PR #313, per that row's own narrower acceptance criteria — not the fuller rewrite the 2026-09-10 Q-NF-SCHEMA-01 candidate above proposes. Given a distinct q_id to avoid a duplicate-key collision with that still-open candidate; Z2 ratifying this one should also resolve that one."
 
   - q_id: Q-RBE-01
     title: "Resource-based operations v0.1 — units, ledger, census, priced queue"
