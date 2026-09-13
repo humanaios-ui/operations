@@ -60,6 +60,55 @@ metric to eventually compare against ACAT self-report scores per
 H-PLATFORM-01 / H-XMODE-01, which currently have "no data for" that
 comparison — not a replacement for either.
 
+KNOWN LIMITATIONS AND HOW NOT TO OVER-READ THE NUMBERS
+------------------------------------------------------------
+An adversarial review of this PR raised these; they are documented here
+rather than silently left for a downstream reader to discover:
+
+  - Truth here is this tool's own signed residual (mean(p) - mean(outcome)
+    over a batch of forecast/outcome pairs), not literally ACAT's SAG
+    (a self-report score delta across phases). They are analogous in
+    direction and spirit — both positive-means-overclaim — but are not
+    the same quantity and must not be reported as interchangeable ACAT
+    Truth scores. `cmd_report`'s output carries this same caveat.
+  - Humility is not a standalone virtue score: a predictor that never
+    states high confidence on anything looks artificially "humble" by
+    this metric even if it is just as miscalibrated as an overconfident
+    one, in the opposite direction. Always read it beside Truth for the
+    same predictor, never alone.
+  - Multi-token pins (nf_ledger_v0_1's own P2-style pins, which link
+    several TOKENs under one PIN) inherit engine.pin_outcome()'s
+    all-or-nothing semantics: one NO token makes the whole pin score 0.0,
+    even if most of its linked tokens were YES. This tool does no
+    per-token attribution of its own.
+  - Batch identity depends on each writing tool's own discipline: this
+    tool assumes every PIN in one declaring act shares either an
+    `episode_id` or an `at` value distinct from any other declaring act
+    by the same predictor in the same ledger. That holds for every
+    PIN-writing tool in this codebase today (each stamps a whole batch
+    from one captured timestamp), but a future writer that reuses a
+    stale `at` or spans a multi-second loop without episode_id would
+    silently split or merge what a human would call one act. This is a
+    property of the ecosystem's writers, not something this reader can
+    detect from the ledger alone.
+  - Equal-weighted rollup across a predictor's batches means one huge
+    batch and one tiny batch count the same in the aggregate — a single
+    large failure can be diluted by several small clean batches just as
+    easily as the reverse. `resolved_pins` and `batches` are always
+    reported alongside every aggregate for this reason; read the
+    aggregate next to its `n`, not in isolation.
+  - `cmd_report` exits 1 if *any* given ledger fails to load, even when
+    others succeed — a fail-loud default for CI, not "nonzero only if
+    all failed." The report still prints/returns every ledger that did
+    load successfully (see the `--json` `load_errors` list).
+  - The real ledgers this tool can read today carry no resolved PIN/
+    RESOLVE pairs yet (`ledgers/NF_LEDGER.jsonl` has zero RESOLVE events;
+    the CI/lifecycle ledgers don't exist on disk). This tool reports that
+    honestly as "no resolved pins" rather than fabricating a score — it
+    does not, by itself, produce the empirical data H-PLATFORM-01 /
+    H-XMODE-01 are waiting on until Stages 1-3 are exercised with real
+    RESOLVEs.
+
 Usage:
   python3 tools/dimension_attribution_v1_0.py report \\
       --ledger ledgers/NF_LEDGER.jsonl \\
@@ -222,6 +271,15 @@ def aggregate_by_predictor(resolved_pins: List[dict]) -> Dict[str, dict]:
     return aggregates
 
 
+INTERPRETATION_NOTE = (
+    "Truth is this tool's own signed residual (mean(p) - mean(outcome)), not "
+    "literally ACAT's self-report SAG — comparable in direction, not the same "
+    "quantity. Humility is not a standalone virtue score: read it beside Truth "
+    "for the same predictor, never alone. See the module docstring's KNOWN "
+    "LIMITATIONS section for the full list."
+)
+
+
 def cmd_report(args: argparse.Namespace) -> int:
     all_resolved: List[dict] = []
     load_errors: List[str] = []
@@ -240,16 +298,21 @@ def cmd_report(args: argparse.Namespace) -> int:
     aggregates = aggregate_by_predictor(all_resolved)
 
     if args.json:
-        print(json.dumps({"predictors": aggregates, "load_errors": load_errors}, indent=2))
+        print(json.dumps(
+            {"note": INTERPRETATION_NOTE, "predictors": aggregates, "load_errors": load_errors},
+            indent=2,
+        ))
     else:
+        print(f"note: {INTERPRETATION_NOTE}\n")
         if not aggregates:
             print("no resolved, scoreable pins found across the given ledger(s)")
         for predictor, agg in sorted(aggregates.items()):
             print(f"{predictor}")
             print(f"  batches={agg['batches']}  resolved_pins={agg['resolved_pins']}")
-            print(f"  truth (mean over-claim, +=over-confident):    {agg['truth']['value']:+.3f}")
+            print(f"  truth (mean over-claim, +=over-confident, n={agg['resolved_pins']}): "
+                 f"{agg['truth']['value']:+.3f}")
             if agg["humility"]["status"] == "scored":
-                print(f"  humility (mean p on missed, lower=better):    "
+                print(f"  humility (mean p on missed, lower=better, read beside truth above): "
                      f"{agg['humility']['value']:.3f}  "
                      f"(from {agg['humility']['batches_scored']} batch(es) with a miss)")
             else:

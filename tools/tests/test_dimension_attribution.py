@@ -158,6 +158,40 @@ def test_batches_grouped_by_predictor_and_at_within_one_ledger(tmp_path):
     assert len(batches[other_day_key]) == 1
 
 
+def test_negative_control_two_independent_pins_sharing_at_do_collide(tmp_path):
+    """Documents the known, tested residual limitation: without episode_id,
+    two genuinely independent declaring acts by the same predictor that
+    happen to share an `at` value (e.g. ci_predict_consolidate's date-only
+    granularity) are indistinguishable to this tool and are merged into
+    one batch — a real batching-contract boundary, not an assumption left
+    unverified."""
+    ledger = tmp_path / "l.jsonl"
+    same_at = "2026-09-13"  # date-only, as commit_date_only() produces
+    events = _token_pin_resolve(1, "P", same_at, 0.9, "YES", "push-1-check")
+    events += _token_pin_resolve(4, "P", same_at, 0.2, "NO", "push-2-check")
+    engine.append(str(ledger), events, "0" * 64)
+
+    resolved = da.load_resolved_pins(ledger)
+    batches = da.group_batches(resolved)
+    assert len(batches) == 1  # two independent pushes collapsed into one batch
+    assert len(list(batches.values())[0]) == 2
+
+
+def test_negative_control_one_logical_act_split_across_timestamps_does_split(tmp_path):
+    """The mirror case: if a future writer stamped one logical declaring
+    act with two different `at` values and no episode_id, this tool has no
+    way to recover that they were one act — it reports two batches. This
+    documents that boundary rather than leaving it unverified."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "a")
+    events += _token_pin_resolve(4, "P", "2026-09-13T00:00:01+00:00", 0.9, "YES", "b")
+    engine.append(str(ledger), events, "0" * 64)
+
+    resolved = da.load_resolved_pins(ledger)
+    batches = da.group_batches(resolved)
+    assert len(batches) == 2  # split, even though a human might call this one act
+
+
 def test_batches_never_merge_across_ledgers(tmp_path):
     """The same predictor and the same `at` in two different ledger files
     must never be treated as one declaring act — each ledger is its own
