@@ -100,11 +100,13 @@ python3 .tool-control/validate.py   # the merge gate itself, run it yourself fir
 ```
 
 `scan.py` preserves **CURATED** fields (`owner`, `purpose`, `status`, `notes`,
-...) unconditionally, but `category`/`zone` are curated *only* when the tool
-file declares neither `TOOL_CATEGORY` nor `TOOL_ZONE` — if it declares either,
-that constant is treated as DERIVED and overwrites the manifest on every scan,
-so declare it in code rather than hand-editing the manifest entry (a mismatch
-between the two is a merge-blocking error). What you must never hand-edit is
+...) unconditionally. `category` and `zone` are handled independently of each
+other: each one is curated only when its *own* constant (`TOOL_CATEGORY` or
+`TOOL_ZONE` respectively) is absent from the tool file — declaring one doesn't
+touch the other. Declare whichever constant applies in code rather than
+hand-editing that field in the manifest (a mismatch between the two is a
+merge-blocking error); a field whose constant you didn't declare is still
+yours to curate. What you must never hand-edit is
 **`TOOLS_MANIFEST.md`** itself — change `tools-manifest.yaml` and rerun
 `render.py` instead.
 
@@ -138,8 +140,12 @@ PR is running the same commands locally first:
 
 ```bash
 python3 tools/repo_health.py --strict                 # repo vitality gate
+python3 .doc-control/render.py --smoke-test            # renderer self-test (document-control.yml runs this first)
 python3 .doc-control/validate.py                       # document-control gate
 python3 .doc-control/render.py --check                 # CONTROLLED_DOCUMENTS.md in sync
+python3 .tool-control/scan.py --smoke-test             # control-script self-tests (tool-manifest.yml runs these first)
+python3 .tool-control/validate.py --smoke-test
+python3 .tool-control/render.py --smoke-test
 python3 .tool-control/scan.py --check                  # manifest matches the tree
 python3 .tool-control/validate.py                      # tool-control structural gate
 python3 .tool-control/render.py --check                # TOOLS_MANIFEST.md in sync
