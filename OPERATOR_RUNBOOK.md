@@ -70,7 +70,7 @@ Where things live. When you don't know where to put something or look for someth
 | **Z3_PROTOCOL.md** (`humanaios-ui/operations`) | Z3 commit/execution discipline | Stable | Operator-terminal authority |
 | **REGISTERED.md** (`humanaios-ui/operations`) | F-class findings, IC-class corrections, H-class hypotheses | Append-only; harmonized as of S-051926-02 | Findings authority |
 | **OPERATOR_RUNBOOK.md** (`humanaios-internal` + mirror in `operations`) | Operator-side recipes — this file | As needed | Operator's durable workbench |
-| **ACAT_SESSION_PROMPT.md** (`humanaios-ui/operations`) | Phase 1 + Phase 3 unified session prompt orchestration | Stable | Session-prompt authority |
+| **CURRENT.md + SESSION_RITUALS.md + GOVERNANCE.md + OPERATOR_RUNBOOK.md** (`humanaios-ui/operations`) | Active Phase 1 + Phase 3 session orchestration surfaces | Stable | Session orchestration authority |
 | **HuggingFace archive** (`HumanAIOS2026/acat-assessments`) | Frozen corpus N=629 (516 P1 + 113 P3), Feb 15–Mar 23, 2026 | Append-on-snapshot | Dataset ground truth |
 | **Supabase `acat_assessments_v1`** | Live corpus, post-snapshot submissions | Per-submission | Live corpus |
 | **Claude memory (this Project)** | Compact biographical facts, framing rules, state-change tags | Edited by Night via "remember"/"forget" | Volatile context — not authoritative |
@@ -740,7 +740,7 @@ NEXT SESSION FOCUS
 
 ## 12. Recipe — Governance update workflow (full-file replacement)
 
-**When to use:** Claude or another substrate produces a complete updated governance file (REGISTERED.md, SESSION_RITUALS.md, GOVERNANCE.md, OPERATOR_RUNBOOK.md mirror, ACAT_SESSION_PROMPT.md, Z3_PROTOCOL.md, etc.) that needs to replace the current canonical version in `humanaios-ui/operations`.
+**When to use:** Claude or another substrate produces a complete updated governance file (REGISTERED.md, SESSION_RITUALS.md, GOVERNANCE.md, OPERATOR_RUNBOOK.md mirror, CURRENT.md, Z3_PROTOCOL.md, etc.) that needs to replace the current canonical version in `humanaios-ui/operations`.
 
 **Established at S-051926-02-z3-closeout** as the standing workflow for governance updates of this scale. Use this recipe for full-file replacements. Use Recipe 5 for surgical commits (single-section edits, small additions).
 

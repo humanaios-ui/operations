@@ -1,0 +1,218 @@
+name: Z2 Ratification Gate
+
+# This workflow was invalid YAML from its first commit (2026-09-10, #267): a
+# second top-level `name:` key at the end of the file. GitHub rejected it on
+# every trigger, so all 122 runs through 2026-09-13 completed in zero seconds
+# with zero jobs and conclusion=failure. Not one step ever executed. The
+# duplicate key is removed here, which is what makes the rest of this file
+# start being true.
+#
+# Un-breaking a gate that has never run means it starts blocking on a corpus
+# nobody has had to satisfy, so the falsifier rule is scoped the way
+# Q-TOOLCONTROL-02 scoped the tool-category rule: it applies to CANDIDATE
+# BLOCKS — files that ask Z2 for a decision — and not to handoffs, receipts,
+# manifests, templates or cycle reports, which predict nothing. The old loop
+# demanded a falsifier of every *.md in z1-inbox/ and would have failed on 11
+# of the 24 files present. Which file is which is declared in
+# z1-inbox/INDEX.yaml and enforced by .z1-control/validate.py.
+
+# Path filters must cover every file a job here checks, or the check protects
+# nothing on a PR that touches only that file. Z1_INBOX_INDEX.md is the
+# generated file `render.py --check` guards; seed-publication/** is what the
+# config-lint job validates. Both were absent.
+#
+# (Written out twice rather than shared via a YAML anchor: GitHub Actions does
+# not support anchors/aliases, and an unparseable workflow is the exact defect
+# this file is being repaired for.)
+on:
+  pull_request:
+    paths:
+      - 'seeds/seed-constitution-*.md'
+      - 'seeds/CONTRIBUTION_GUIDE.md'
+      - '.github/ISSUE_TEMPLATE/seed-amendment.md'
+      - 'seed-publication/**'
+      - 'z1-inbox/**'
+      - 'Z1_INBOX_INDEX.md'
+      - 'REGISTERED.md'
+      - '.z1-control/**'
+      - '.github/workflows/z2_ratification_gate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'seeds/seed-constitution-*.md'
+      - 'seeds/CONTRIBUTION_GUIDE.md'
+      - '.github/ISSUE_TEMPLATE/seed-amendment.md'
+      - 'seed-publication/**'
+      - 'z1-inbox/**'
+      - 'Z1_INBOX_INDEX.md'
+      - 'REGISTERED.md'
+      - '.z1-control/**'
+      - '.github/workflows/z2_ratification_gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  z2-gate:
+    runs-on: ubuntu-latest
+    name: Verify Z2 Ratification Requirements
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # The seed-constitution step diffs a commit RANGE. actions/checkout
+          # defaults to depth 1, where even HEAD~1 does not exist, so that diff
+          # silently produced nothing and the check never fired. Full history,
+          # because a push can carry many commits and the range must cover all
+          # of them.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install deps
+        run: pip install --quiet pyyaml
+
+      - name: Validator self-test
+        run: python3 .z1-control/validate.py --smoke-test
+
+      - name: Renderer self-test
+        run: python3 .z1-control/render.py --smoke-test
+
+      - name: Ratification tool self-test
+        # A self-test no workflow runs is decoration — the pattern this whole
+        # gate exists to catch. ratify.py records Z2 signatures, so its own
+        # test belongs in the gate that enforces them.
+        run: python3 .z1-control/ratify.py --smoke-test
+
+      - name: Recorded Z2 signatures still match their candidates
+        # A sha256 signature pins the candidate's bytes. If a ratified block is
+        # edited afterwards the signature no longer describes what was signed,
+        # and this is the only thing that would notice. Advisory for now: the
+        # three rulings on record pre-date ratify.py and carry slugs, so the
+        # count of pinned signatures is zero and a blocking rule would assert
+        # nothing. It ratchets when the first real signature lands.
+        continue-on-error: true
+        run: python3 .z1-control/ratify.py --verify
+
+      - name: Z1 inbox index integrity (ERROR — blocks merge)
+        # Coverage, falsifier discipline on candidates, derived decision
+        # windows, and the no-self-grant rule on Z2 signatures.
+        run: python3 .z1-control/validate.py
+
+      - name: Z1_INBOX_INDEX.md is in sync (ERROR — blocks merge)
+        run: python3 .z1-control/render.py --check
+
+      - name: Seed Constitution changes carry a Z2 ratification
+        env:
+          # A push can contain many commits. Diffing only HEAD~1..HEAD lets a
+          # seed-constitution change in an earlier commit of the same push slip
+          # by whenever the final commit touches something else. Use the event's
+          # own range: the base for a PR, the before-SHA for a push.
+          BASE_SHA: ${{ github.event_name == 'pull_request'
+                        && github.event.pull_request.base.sha
+                        || github.event.before }}
+        run: |
+          set -euo pipefail
+          RANGE=""
+          if [ -n "${BASE_SHA:-}" ] \
+             && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ] \
+             && git rev-parse --verify -q "$BASE_SHA^{commit}" >/dev/null; then
+            RANGE="$BASE_SHA...HEAD"
+          elif git rev-parse --verify -q HEAD~1 >/dev/null; then
+            # Branch creation, a force-push past the old tip, or a manual run.
+            RANGE="HEAD~1 HEAD"
+          else
+            echo "ℹ No comparable base commit — skipping the seed-constitution diff."
+            exit 0
+          fi
+          echo "  Range: $RANGE"
+          # shellcheck disable=SC2086
+          CHANGED=$(git diff $RANGE --name-only | grep "seed-constitution-" || true)
+          if [ -z "$CHANGED" ]; then
+            echo "✓ No Seed Constitution change in this commit."
+            exit 0
+          fi
+          echo "🔍 Seed Constitution changed — checking for Z2 approval..."
+          # EVERY changed version, not just the first. `head -1` let a PR that
+          # touched an approved version and an unapproved one pass on the
+          # strength of whichever path sorted first, while the step claimed to
+          # validate all Seed Constitution changes.
+          MISSING=0
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            VERSION=$(echo "$path" | sed 's/.*seed-constitution-v\(.*\)\.md/\1/')
+            if grep -q "v$VERSION.*RATIFIED\|v$VERSION.*ACCEPT" REGISTERED.md; then
+              echo "  ✓ v$VERSION ratified ($path)"
+            else
+              echo "  ❌ v$VERSION has no ratification in REGISTERED.md ($path)"
+              MISSING=$((MISSING + 1))
+            fi
+          done <<< "$CHANGED"
+          if [ "$MISSING" -gt 0 ]; then
+            echo "❌ $MISSING Seed Constitution version(s) lack Z2 ratification"
+            echo "   All Seed Constitution changes require Z2 (Night) approval before publication"
+            exit 1
+          fi
+          echo "✓ Z2 ratification verified for every changed version"
+
+      - name: Validate Amendment Template
+        run: |
+          set -euo pipefail
+          if [ -f ".github/ISSUE_TEMPLATE/seed-amendment.md" ]; then
+            echo "✓ Seed amendment template exists"
+            if ! grep -q "related principle\|proposed change\|rationale" ".github/ISSUE_TEMPLATE/seed-amendment.md"; then
+              echo "::warning::amendment template may be missing key fields"
+            fi
+          fi
+
+      - name: Check Contribution Guidance
+        run: |
+          set -euo pipefail
+          if [ ! -f "seeds/CONTRIBUTION_GUIDE.md" ]; then
+            echo "❌ seeds/CONTRIBUTION_GUIDE.md not found"
+            exit 1
+          fi
+          echo "✓ Contribution guide present"
+
+  config-lint:
+    runs-on: ubuntu-latest
+    name: Validate Configuration
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # This job imports yaml too; the install in z2-gate does not carry over.
+      # It only ever passed by relying on whatever the runner image preinstalls.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install deps
+        run: pip install --quiet pyyaml
+
+      - name: Check Config YAML
+        run: |
+          set -euo pipefail
+          if ! python3 -c "import yaml; yaml.safe_load(open('seed-publication/config.yaml'))"; then
+            echo "❌ seed-publication/config.yaml is invalid YAML"
+            exit 1
+          fi
+          echo "✓ Configuration YAML is valid"
+
+      - name: Verify Surface Configuration
+        run: |
+          set -euo pipefail
+          if ! grep -q "github:" seed-publication/config.yaml; then
+            echo "❌ GitHub surface not configured"
+            exit 1
+          fi
+          if ! grep -q "substack:" seed-publication/config.yaml; then
+            echo "❌ Substack surface not configured"
+            exit 1
+          fi
+          echo "✓ Required surfaces configured"

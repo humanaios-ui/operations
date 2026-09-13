@@ -8,6 +8,7 @@ for fuzzer in $(find "$SRC/fuzzers" -name '*_fuzzer.py'); do
   pyinstaller --distpath "$OUT" --onefile --name "${fuzzer_basename}.pkg" "$fuzzer"
   cat > "$OUT/$fuzzer_basename" <<EOF
 #!/bin/sh
+# LLVMFuzzerTestOneInput for fuzzer detection.
 this_dir=\$(dirname "\$0")
 "\$this_dir/${fuzzer_basename}.pkg" "\$@"
 EOF

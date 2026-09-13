@@ -1,0 +1,21 @@
+From abb7d84a169e485c01c10fd5905a9508e6a04983 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 10 Sep 2026 17:18:39 +0000
+Subject: [PATCH 07/11] Update .gitignore to exclude NF schema draft file
+
+---
+ .gitignore | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/.gitignore b/.gitignore
+index a592783..007402e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -73,3 +73,4 @@ mesh_cycle.py
+ molt_cycle_SKELETON.py
+ tests/
+ z2_ratification_gate_DRAFT.yml
++test_nf_schema_falsifier_DRAFT.py
+-- 
+2.43.0
+

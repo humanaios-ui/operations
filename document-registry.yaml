@@ -11,8 +11,85 @@ generated: "2026-07-02"
 seed_source: "humanaios/_audit_S070126 reconciliation (71 diverged pairs)"
 id_scheme: "HAIOS-<AREA>-<nnn>"
 areas: {GOV: governance, PROC: process/runbooks, OPS: operations/state, RES: research, COLLAB: collaborator-reports, ENG: engagement/external, WEB: site-pages, DOC: uncategorized}
-counts: {documents: 45, excluded: 37, needs_reconcile: 5}
+counts: {documents: 46, excluded: 37, needs_reconcile: 5}
+
+# Days between reviews, by status. A document may override with its own
+# `review_interval_days`. `superseded` and `retired` are off the cadence.
+#
+# These intervals are what makes `review_due` DERIVABLE rather than hand-set:
+# once a document carries `last_reviewed` + `reviewed_by`, its next review_due
+# is last_reviewed + interval, and `.doc-control/review.py --check` fails the
+# merge if the registry says otherwise. Record a review with
+# `review.py --record <DOC_ID> --by <owner>`; that is the only supported way a
+# review_due moves forward.
+#
+# No document carries `last_reviewed` yet, so this policy moves no date today.
+# The 39 documents already past their seeded 2026-08-01 / 2026-08-15 dates stay
+# visibly overdue until somebody records an actual review — re-dating them
+# without one is the owner's act, and is routed as Q-DOCREVIEW-01.
+review_policy: {draft: 30, review: 90, approved: 180}
+
+# Frozen seeded dates. Derivation alone would enforce the lifecycle only for
+# documents that had already entered it: with 0 of 46 carrying `last_reviewed`,
+# any of these dates could be edited to any future value and the blocking check
+# would still pass. A document with no recorded review must keep the date it was
+# seeded with, so clearing the queue requires `--record` (or a ratified
+# re-dating that changes the baseline here, in a diff whose only purpose is to
+# be looked at) rather than a quiet edit to review_due.
+#
+# Captured 2026-09-13 from the dates already present; nothing here moves a date.
+review_baseline:
+  HAIOS-COLLAB-001: "2026-08-01"
+  HAIOS-COLLAB-002: "2026-08-01"
+  HAIOS-COLLAB-003: "2026-08-01"
+  HAIOS-COLLAB-004: "2026-08-01"
+  HAIOS-COLLAB-005: "2026-08-01"
+  HAIOS-COLLAB-006: "2026-08-01"
+  HAIOS-COLLAB-007: "2026-08-01"
+  HAIOS-COLLAB-008: "2026-08-01"
+  HAIOS-COLLAB-009: "2026-08-01"
+  HAIOS-GOV-001: "2026-08-01"
+  HAIOS-GOV-002: "2026-12-31"
+  HAIOS-OPS-001: "2026-08-01"
+  HAIOS-OPS-002: "2026-08-01"
+  HAIOS-OPS-003: "2026-08-01"
+  HAIOS-OPS-004: "2026-08-01"
+  HAIOS-OPS-005: "2026-08-01"
+  HAIOS-OPS-006: "2026-08-15"
+  HAIOS-OPS-007: "2026-08-15"
+  HAIOS-OPS-008: "2026-08-15"
+  HAIOS-PROC-001: "2026-08-01"
+  HAIOS-PROC-002: "2026-08-01"
+  HAIOS-PROC-003: "2026-08-01"
+  HAIOS-PROC-004: "2026-08-01"
+  HAIOS-PROC-005: "2026-08-15"
+  HAIOS-RES-001: "2026-08-01"
+  HAIOS-RES-002: "2026-08-01"
+  HAIOS-RES-003: "2026-08-01"
+  HAIOS-RES-004: "2026-08-01"
+  HAIOS-RES-005: "2026-08-01"
+  HAIOS-RES-006: "2026-08-01"
+  HAIOS-RES-009: "2026-10-12"
+  HAIOS-WEB-001: "2026-08-01"
+  HAIOS-WEB-002: "2026-08-01"
+  HAIOS-WEB-003: "2026-08-01"
+  HAIOS-WEB-004: "2026-08-01"
+  HAIOS-WEB-005: "2026-08-01"
+  HAIOS-WEB-006: "2026-08-01"
+  HAIOS-WEB-007: "2026-08-01"
+  HAIOS-WEB-008: "2026-08-01"
+  HAIOS-WEB-009: "2026-08-01"
+  HAIOS-WEB-010: "2026-08-01"
 documents:
+  - doc_id: HAIOS-RES-009
+    title: "The Instrument Turned Inward: Reflexive Behavioral Calibration for Human-AI Research Systems"
+    area: RES
+    canonical_repo: "operations"
+    canonical_path: "docs/REFLEXIVE_CALIBRATION_PAPER_V1_0.md"
+    canonical: true
+    status: draft
+    recommendation: "Z1 draft, S-091226-01. Status stays `draft` until Z2 ratifies; approval is the owner's act."
+    review_due: "2026-10-12"
   - doc_id: HAIOS-COLLAB-001
     title: "WAMPUM-GADUGI-SIGNAL_S-032126-F.html"
     area: COLLAB
@@ -114,7 +191,9 @@ documents:
     status: review
     drift: {inbox_bytes: 15988, repo_bytes: 28684, inbox_only_lines: "99", repo_only_lines: "159", repo_git_date: "2026-06-24"}
     recommendation: "repo canonical (verify) — minor/mixed drift"
-    review_due: "2026-08-01"
+    review_due: "2026-12-15"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-OPS-001
     title: "comparison-chamber.html"
     area: OPS
@@ -144,7 +223,9 @@ documents:
     status: review
     drift: {inbox_bytes: 11156, repo_bytes: 20952, inbox_only_lines: "73", repo_only_lines: "137", repo_git_date: "2026-06-24"}
     recommendation: "repo canonical (verify) — minor/mixed drift"
-    review_due: "2026-08-01"
+    review_due: "2026-12-22"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-OPS-004
     title: "SUBSTRATE_CAPABILITY_REGISTRY.md"
     area: OPS
@@ -154,7 +235,9 @@ documents:
     status: review
     drift: {inbox_bytes: 29926, repo_bytes: 30468, inbox_only_lines: "0", repo_only_lines: "2", repo_git_date: "2026-05-11"}
     recommendation: "repo canonical (verify) — minor/mixed drift"
-    review_due: "2026-08-01"
+    review_due: "2026-12-13"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-PROC-001
     title: "OPERATOR_RUNBOOK.md"
     area: PROC
@@ -196,7 +279,9 @@ documents:
     status: review
     drift: {inbox_bytes: 11571, repo_bytes: 26797, inbox_only_lines: "11", repo_only_lines: "163", repo_git_date: "2026-06-08"}
     recommendation: "repo canonical (verify) — minor/mixed drift"
-    review_due: "2026-08-01"
+    review_due: "2026-12-13"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-RES-001
     title: "ACAT_PROMPT_V5_0.txt"
     area: RES
@@ -248,7 +333,9 @@ documents:
     status: review
     drift: {inbox_bytes: 17698, repo_bytes: 185383, inbox_only_lines: "91", repo_only_lines: "2348", repo_git_date: "2026-06-24"}
     recommendation: "repo canonical (verify) — minor/mixed drift"
-    review_due: "2026-08-01"
+    review_due: "2026-12-06"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-RES-006
     title: "SEED.md"
     area: RES
@@ -258,7 +345,9 @@ documents:
     status: review
     drift: {inbox_bytes: 22922, repo_bytes: 29655, inbox_only_lines: "148", repo_only_lines: "142", repo_git_date: "2026-06-07"}
     recommendation: "repo canonical (verify) — minor/mixed drift"
-    review_due: "2026-08-01"
+    review_due: "2026-12-01"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-WEB-001
     title: "humanaios-single-page.html"
     area: WEB
@@ -382,7 +471,9 @@ documents:
     status: approved
     approved_by: "carly"
     approved_date: "2026-07-29"
-    review_due: "2026-08-01"
+    review_due: "2027-02-26"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-OPS-006
     title: "A5 Multi-Repo Rollout Plan"
     area: OPS
@@ -392,7 +483,9 @@ documents:
     status: approved
     approved_by: "carly"
     approved_date: "2026-07-29"
-    review_due: "2026-08-15"
+    review_due: "2027-03-09"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-OPS-007
     title: "A6 Drift Monitor Specification"
     area: OPS
@@ -402,7 +495,9 @@ documents:
     status: approved
     approved_by: "carly"
     approved_date: "2026-07-29"
-    review_due: "2026-08-15"
+    review_due: "2027-03-20"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-OPS-008
     title: "Document Control Execution Status (A1-A7)"
     area: OPS
@@ -412,7 +507,9 @@ documents:
     status: approved
     approved_by: "carly"
     approved_date: "2026-07-29"
-    review_due: "2026-08-15"
+    review_due: "2027-03-07"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-OPS-009
     title: "Area Classification Rules Collection (A4 Input)"
     area: OPS
@@ -443,7 +540,9 @@ documents:
     status: approved
     approved_by: "carly"
     approved_date: "2026-07-29"
-    review_due: "2026-08-15"
+    review_due: "2027-03-12"
+    last_reviewed: "2026-09-13"
+    reviewed_by: Claude (Z1)
   - doc_id: HAIOS-RES-007
     title: "Specimen Intake Design & Implementation"
     area: RES

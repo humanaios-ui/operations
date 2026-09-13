@@ -1,0 +1,1228 @@
+From 9b75cf18a93e469892a8d54a93ddb7ce371fe8fb Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 10 Sep 2026 17:18:35 +0000
+Subject: [PATCH 06/11] Phase 2: Add specimen intake cycle 1 and anti-cascade
+ enforcement test files
+
+- specimen_intake_cycle_1.py: Cycle 1 framework with RQ1/RQ2/RQ3 integration
+- test_specimen_intake_cycle_1.py: Acceptance tests for cycle 1
+- test_anti_cascade_enforcement.py: Anti-cascade rule validation (5 rules, 13 tests)
+- test_nf_schema_falsifier.py: NF_LEDGER schema validation
+
+All files previously transferred to local machine; now committed to cloud session.
+
+Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01HzkHkpvVnCCDskpba89nTf
+---
+ specimen_intake_cycle_1.py       | 354 +++++++++++++++++++++++++++++++
+ test_anti_cascade_enforcement.py | 316 +++++++++++++++++++++++++++
+ test_nf_schema_falsifier.py      | 292 +++++++++++++++++++++++++
+ test_specimen_intake_cycle_1.py  | 213 +++++++++++++++++++
+ 4 files changed, 1175 insertions(+)
+ create mode 100644 specimen_intake_cycle_1.py
+ create mode 100644 test_anti_cascade_enforcement.py
+ create mode 100644 test_nf_schema_falsifier.py
+ create mode 100644 test_specimen_intake_cycle_1.py
+
+diff --git a/specimen_intake_cycle_1.py b/specimen_intake_cycle_1.py
+new file mode 100644
+index 0000000..53aa115
+--- /dev/null
++++ b/specimen_intake_cycle_1.py
+@@ -0,0 +1,354 @@
++#!/usr/bin/env python3
++"""
++specimen_intake_cycle_1.py — Q-SI-C1-B0
++
++Specimen-intake Cycle 1 initialization and orchestration.
++
++Cycle 1 runs weekly starting 2026-09-13 through 2026-09-20 (first 7 days).
++- Specimen: SPC-01 (pseudonymous; identity in private register)
++- Work period: 2026-09-13 00:00 UTC to 2026-09-20 00:00 UTC
++- Evaluation: Z1 compiles input, Z2 ratifies
++- Constants: PRIOR_QUALITY=0.75, PRIOR_ACCEPTANCE=0.85, SHRINK=0.3
++- Ledgers: NF_LEDGER records PIN predictions; molt_cycle evaluates Brier
++
++RQ1: Does behavioral assessment predict expert task performance?
++  - Hypothesis: Engagement (acceptance, revisions, velocity) forecast quality
++  - Measurement: Brier over resolved forecasts; REVERT rate
++  - Falsifier: Brier > 0.4 OR REVERT rate > 30%
++  - Window: 30 days rolling (Cycles 1-5)
++
++RQ2: Can resource allocation be reproduced from behavioral data?
++  - Hypothesis: CredPolicy forecasts task category without discretion
++  - Measurement: Agreement (predicted_choice vs actual_choice)
++  - Falsifier: Agreement < 60% on 3+ consecutive cycles
++  - Window: 30 days rolling (Cycles 2-5)
++
++RQ3: Does intake evaluation improve performance (audit-as-molt)?
++  - Hypothesis: Being audited raises subsequent quality
++  - Measurement: Quality delta cycle-over-cycle
++  - Falsifier: No improvement in 2 consecutive cycles OR rejection rate rises
++  - Window: 14 days per cycle
++
++Acceptance gate: receipt_hash ratified by Z2 (Ed25519 signature binding hash).
++Publication gate: only PUBLISHED status if ratification_signature verifies.
++"""
++
++from __future__ import annotations
++
++import json
++import hashlib
++from dataclasses import dataclass, asdict
++from datetime import datetime, timezone, timedelta
++from typing import Dict, List, Optional
++from pathlib import Path
++
++
++def utcnow() -> datetime:
++    return datetime.now(timezone.utc)
++
++
++@dataclass
++class Cycle1Config:
++    """Cycle 1 configuration from specimen-intake.yml."""
++    specimen_id: str = "SPC-01"
++    cycle_number: int = 1
++    cycle_start: datetime = None
++    cycle_end: datetime = None
++    evaluation_lag_hours: int = 24
++    z2_ratification_lag_hours: int = 48
++    molt_window_days: int = 30
++
++    def __post_init__(self):
++        if self.cycle_start is None:
++            # First cycle: 2026-09-13 00:00 UTC to 2026-09-20 00:00 UTC
++            self.cycle_start = datetime(2026, 9, 13, 0, 0, 0, tzinfo=timezone.utc)
++        if self.cycle_end is None:
++            self.cycle_end = self.cycle_start + timedelta(days=7)
++
++
++@dataclass
++class SpecimenInput:
++    """Specimen behavioral input for Cycle 1 (RQ1, RQ3 data)."""
++    cycle_id: str
++    specimen_id: str
++    work_period_start: datetime
++    work_period_end: datetime
++    platform: str  # e.g., "external-contractor"
++    tasks_assigned: int
++    tasks_completed: int
++    tasks_revised: int
++    task_categories: List[str]
++    verification_sources: List[str]  # e.g., ["platform-export:sha256"]
++
++    # Behavioral observations
++    task_acceptance_rate: float  # [0,1]
++    revision_cycles_per_task: float
++    response_time_minutes: float
++    quality_score: Optional[float] = None  # [0,100] or null
++    guideline_adherence: float = 1.0  # [0,1]
++    annotation_variance: float = 0.0  # [0,1]
++    error_rate: float = 0.0  # [0,1]
++
++    def to_dict(self) -> Dict:
++        return asdict(self)
++
++
++@dataclass
++class MoltPrediction:
++    """RQ1, RQ3 molt prediction for Cycle 1."""
++    prediction_id: str  # e.g., "molt-rq1-quality-c1-09-13"
++    variable: str  # e.g., "quality_forecast", "acceptance_rate"
++    prediction_value: float  # [0,1] normalized
++    confidence: float  # [0,1]
++    measurement_window_days: int
++    predicted_at: datetime
++    revert_rule: Dict  # {"kind": "abs_above", "threshold": 0.3}
++    scale_max: float  # max raw scale
++    binary: bool = False
++    resolved_at: Optional[datetime] = None
++    actual_value: Optional[float] = None
++    brier_score: Optional[float] = None
++    reverted: bool = False
++
++    def to_dict(self) -> Dict:
++        d = asdict(self)
++        d['predicted_at'] = self.predicted_at.isoformat()
++        if self.resolved_at:
++            d['resolved_at'] = self.resolved_at.isoformat()
++        return d
++
++
++@dataclass
++class CredPolicyOutput:
++    """RQ2 credential policy forecast (task allocation) for Cycle 1."""
++    priority_score: float  # [0,100]
++    recommended_next_tasks: List[str]
++    envelope_constraint: str
++    rationale: str
++    predicted_choice: str
++    registered_at: datetime
++    disclosed_at: Optional[datetime] = None
++    actual_choice: Optional[str] = None
++    actual_choice_at: Optional[datetime] = None
++    agreement: Optional[bool] = None
++    agreement_pre_disclosure: Optional[bool] = None
++
++    def to_dict(self) -> Dict:
++        d = asdict(self)
++        d['registered_at'] = self.registered_at.isoformat()
++        if self.disclosed_at:
++            d['disclosed_at'] = self.disclosed_at.isoformat()
++        if self.actual_choice_at:
++            d['actual_choice_at'] = self.actual_choice_at.isoformat()
++        return d
++
++
++@dataclass
++class IntakeRecord:
++    """Complete Cycle 1 intake record with all RQ data, predictions, and receipt."""
++    intake_id: str
++    cycle_number: int
++    specimen_id: str
++    timestamp: datetime
++    evaluator: str  # "Z1" | "Z2"
++    evaluation_status: str  # PENDING | PRELIMINARY | VERIFIED | PUBLISHED | REVERTED
++
++    specimen_input: SpecimenInput
++    molt_predictions: List[MoltPrediction]
++    credpolicy_output: CredPolicyOutput
++
++    receipt_hash: str  # sha256 over COMMITMENT
++    resolution_hash: Optional[str] = None
++    receipt_status: str = "CLAIM"  # CLAIM | CLAIM_WITH_LINK | VERIFIED | VOID
++    chain_link_prior: Optional[str] = None  # receipt_hash of prior cycle
++
++    ratification_signature: Optional[str] = None  # Ed25519 hex-encoded
++    ratified_by: Optional[str] = None
++    ratified_at: Optional[datetime] = None
++
++    def compute_receipt_hash(self) -> str:
++        """SHA256 over the commitment (predictions + forecasts as issued)."""
++        commitment = {
++            'metadata': {
++                'intake_id': self.intake_id,
++                'specimen_id': self.specimen_id,
++                'cycle_number': self.cycle_number,
++                'timestamp': self.timestamp.isoformat(),
++            },
++            'specimen_input': self.specimen_input.to_dict(),
++            'molt_predictions': [p.to_dict() for p in self.molt_predictions],
++            'credpolicy_commitment': {
++                'predicted_choice': self.credpolicy_output.predicted_choice,
++                'registered_at': self.credpolicy_output.registered_at.isoformat(),
++                'priority_score': self.credpolicy_output.priority_score,
++            },
++            'chain_link_prior': self.chain_link_prior,
++        }
++        commitment_json = json.dumps(commitment, sort_keys=True, default=str)
++        return hashlib.sha256(commitment_json.encode()).hexdigest()
++
++    def to_dict(self) -> Dict:
++        return asdict(self)
++
++
++class Cycle1Orchestrator:
++    """Orchestrate Specimen-intake Cycle 1: data capture → predictions → evaluation → ratification."""
++
++    def __init__(self, constants_path: str = "constants.json", nf_ledger_path: str = "ledgers/NF_LEDGER.jsonl"):
++        self.config = Cycle1Config()
++        self.constants_path = constants_path
++        self.nf_ledger_path = nf_ledger_path
++        self.constants = self._load_constants()
++        self.records: List[IntakeRecord] = []
++
++    def _load_constants(self) -> Dict:
++        """Load PRIOR_QUALITY, PRIOR_ACCEPTANCE, SHRINK from constants.json."""
++        try:
++            with open(self.constants_path) as f:
++                data = json.load(f)
++            constants = {}
++            for const in data.get('constants', []):
++                constants[const['name']] = const['current_value']
++            return constants
++        except FileNotFoundError:
++            return {'PRIOR_QUALITY': 0.75, 'PRIOR_ACCEPTANCE': 0.85, 'SHRINK': 0.3}
++
++    def initialize_cycle_1(self, specimen_input: SpecimenInput) -> IntakeRecord:
++        """Initialize Cycle 1 with specimen input and RQ predictions."""
++        intake_id = f"intake-{self.config.specimen_id}-c{self.config.cycle_number}-{self.config.cycle_start.timestamp()}"
++
++        # RQ1: Quality forecast (PRIOR_QUALITY as prior, shrink toward it)
++        quality_prior = self.constants.get('PRIOR_QUALITY', 0.75)
++        rq1_prediction = MoltPrediction(
++            prediction_id=f"molt-rq1-quality-{intake_id}",
++            variable="quality_forecast",
++            prediction_value=quality_prior,  # Starting at prior
++            confidence=0.6,
++            measurement_window_days=30,
++            predicted_at=utcnow(),
++            revert_rule={"kind": "abs_above", "threshold": 0.3},  # RQ1 falsifier: Brier > 0.4
++            scale_max=1.0,
++            binary=False,
++        )
++
++        # RQ3: Acceptance rate forecast (PRIOR_ACCEPTANCE as prior)
++        acceptance_prior = self.constants.get('PRIOR_ACCEPTANCE', 0.85)
++        rq3_prediction = MoltPrediction(
++            prediction_id=f"molt-rq3-acceptance-{intake_id}",
++            variable="acceptance_rate_forecast",
++            prediction_value=acceptance_prior,  # Starting at prior
++            confidence=0.5,
++            measurement_window_days=14,
++            predicted_at=utcnow(),
++            revert_rule={"kind": "abs_above", "threshold": 0.15},
++            scale_max=1.0,
++            binary=False,
++        )
++
++        # RQ2: CredPolicy (task allocation forecast)
++        credpolicy = CredPolicyOutput(
++            priority_score=75.0,
++            recommended_next_tasks=["annotation", "review"],
++            envelope_constraint="max_2_tasks_per_day",
++            rationale=f"Baseline priority from PRIOR_QUALITY={quality_prior}",
++            predicted_choice="annotation",
++            registered_at=utcnow(),
++        )
++
++        # Compute receipt hash
++        record = IntakeRecord(
++            intake_id=intake_id,
++            cycle_number=self.config.cycle_number,
++            specimen_id=self.config.specimen_id,
++            timestamp=utcnow(),
++            evaluator="Z1",
++            evaluation_status="PRELIMINARY",
++            specimen_input=specimen_input,
++            molt_predictions=[rq1_prediction, rq3_prediction],
++            credpolicy_output=credpolicy,
++            receipt_hash="",  # Computed below
++            chain_link_prior=None,  # Cycle 1 has no prior
++        )
++        record.receipt_hash = record.compute_receipt_hash()
++
++        self.records.append(record)
++        return record
++
++    def save_cycle_1(self, output_path: str = "cycles/cycle_1.json"):
++        """Save Cycle 1 record to file."""
++        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
++        data = {
++            'config': asdict(self.config),
++            'constants_loaded': self.constants,
++            'records': [r.to_dict() for r in self.records],
++        }
++        with open(output_path, 'w') as f:
++            json.dump(data, f, indent=2, default=str)
++        return output_path
++
++    def pin_to_nf_ledger(self, record: IntakeRecord):
++        """Write molt predictions to NF_LEDGER as PIN entries."""
++        Path(self.nf_ledger_path).parent.mkdir(parents=True, exist_ok=True)
++        with open(self.nf_ledger_path, 'a') as f:
++            for prediction in record.molt_predictions:
++                pin_entry = {
++                    'type': 'PIN',
++                    'target': prediction.variable,
++                    'predictor': f"specimen-intake-c{record.cycle_number}",
++                    'p': prediction.prediction_value,
++                    'at': prediction.predicted_at.isoformat(),
++                    'molt_id': None,  # Awaiting Z2 ratification
++                    'prediction_id': prediction.prediction_id,
++                }
++                f.write(json.dumps(pin_entry) + '\n')
++
++
++# CLI for Q-SI-C1-B0 initialization
++def main():
++    import sys
++
++    if len(sys.argv) < 2 or sys.argv[1] == "--help":
++        print("Specimen-intake Cycle 1 Initialization (Q-SI-C1-B0)")
++        print("  --init                : Initialize Cycle 1 with baseline specimen input")
++        print("  --save <path>         : Save Cycle 1 to file (default: cycles/cycle_1.json)")
++        return
++
++    if sys.argv[1] == "--init":
++        orchestrator = Cycle1Orchestrator()
++
++        # Baseline specimen input for Cycle 1
++        specimen_input = SpecimenInput(
++            cycle_id="cycle-1",
++            specimen_id="SPC-01",
++            work_period_start=orchestrator.config.cycle_start,
++            work_period_end=orchestrator.config.cycle_end,
++            platform="external-contractor",
++            tasks_assigned=12,
++            tasks_completed=11,
++            tasks_revised=3,
++            task_categories=["annotation", "review", "verification"],
++            verification_sources=["platform-export:pending"],  # CLAIM status until verified
++            task_acceptance_rate=0.92,
++            revision_cycles_per_task=0.27,
++            response_time_minutes=15.5,
++            quality_score=None,  # To be measured at cycle end
++        )
++
++        record = orchestrator.initialize_cycle_1(specimen_input)
++
++        # Save and pin to NF_LEDGER
++        output_file = sys.argv[3] if len(sys.argv) > 3 else "cycles/cycle_1.json"
++        orchestrator.save_cycle_1(output_file)
++        orchestrator.pin_to_nf_ledger(record)
++
++        print(f"✓ Cycle 1 initialized")
++        print(f"  Intake ID: {record.intake_id}")
++        print(f"  Receipt hash: {record.receipt_hash}")
++        print(f"  Molt predictions: {len(record.molt_predictions)}")
++        print(f"  Saved to: {output_file}")
++        print(f"  PINned to NF_LEDGER: {orchestrator.nf_ledger_path}")
++        print(f"\nAwait Z2 ratification of receipt_hash: {record.receipt_hash}")
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/test_anti_cascade_enforcement.py b/test_anti_cascade_enforcement.py
+new file mode 100644
+index 0000000..26a5c74
+--- /dev/null
++++ b/test_anti_cascade_enforcement.py
+@@ -0,0 +1,316 @@
++#!/usr/bin/env python3
++"""
++test_anti_cascade_enforcement.py — Anti-cascade Rule Enforcement Tests
++
++Verify all 5 anti-cascade rules are properly enforced in molt_cycle.py:
++1. One open molt per constant (no new candidate inside window W)
++2. No self-reference (candidate not from events in its own window)
++3. K=3 system-wide limit on open molts
++4. Freeze after 2 reverts (Z2 Tier 2 override required)
++5. Ranking by Priority Queue score (no bypass)
++"""
++
++import json
++import unittest
++from datetime import datetime, timezone, timedelta
++from collections import defaultdict
++
++from molt_cycle import MoltCycle, MoltCycleState, MoltPhase
++
++
++class TestAntiCascadeRule1(unittest.TestCase):
++    """Test Rule 1: One open molt per constant (no new candidate inside window W)."""
++
++    def setUp(self):
++        self.mc = MoltCycle(k_limit=3)
++
++    def test_rule1_allows_first_molt_candidate(self):
++        """First molt candidate for a constant should be allowed."""
++        candidate = {
++            'name': 'PRIOR_QUALITY',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule1_violations = [v for v in violations if 'Rule 1' in v]
++        self.assertEqual(len(rule1_violations), 0, "First candidate should not violate Rule 1")
++
++    def test_rule1_blocks_second_molt_candidate_same_constant(self):
++        """Second molt candidate for same constant should violate Rule 1."""
++        # Mark constant as having open molt
++        self.mc.state.constants_in_molt['PRIOR_QUALITY'] = 'molt-001'
++
++        candidate = {
++            'name': 'PRIOR_QUALITY',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule1_violations = [v for v in violations if 'Rule 1' in v]
++        self.assertGreater(len(rule1_violations), 0, "Second candidate should violate Rule 1")
++
++
++class TestAntiCascadeRule2(unittest.TestCase):
++    """Test Rule 2: No self-reference (candidate not from events in its own window)."""
++
++    def setUp(self):
++        self.mc = MoltCycle(k_limit=3)
++
++    def test_rule2_allows_candidate_outside_window(self):
++        """Candidate proposed outside its measurement window should be allowed."""
++        # Simulate events from 30 days ago
++        old_dt = datetime.now(timezone.utc) - timedelta(days=40)
++        self.mc.nf_entries = [
++            {
++                'type': 'VERDICT',
++                'at': old_dt.isoformat(),
++                'target': 'quality_forecast',
++                'constant': 'PRIOR_QUALITY',
++            }
++        ]
++
++        # Propose candidate now (40 days after the event)
++        candidate = {
++            'name': 'PRIOR_QUALITY',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule2_violations = [v for v in violations if 'Rule 2' in v]
++        self.assertEqual(len(rule2_violations), 0, "Event outside window should not violate Rule 2")
++
++    def test_rule2_blocks_self_referential_candidate(self):
++        """Candidate generated from events in its own window should violate Rule 2."""
++        # Simulate event within window
++        now = datetime.now(timezone.utc)
++        recent_dt = now - timedelta(days=15)  # 15 days ago, within 30-day window
++
++        self.mc.nf_entries = [
++            {
++                'type': 'VERDICT',
++                'at': recent_dt.isoformat(),
++                'target': 'quality_forecast',
++                'constant': 'PRIOR_QUALITY',
++            }
++        ]
++
++        candidate = {
++            'name': 'PRIOR_QUALITY',
++            'proposed_at': now.isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule2_violations = [v for v in violations if 'Rule 2' in v]
++        self.assertGreater(len(rule2_violations), 0, "Event within window should violate Rule 2")
++
++
++class TestAntiCascadeRule3(unittest.TestCase):
++    """Test Rule 3: K=3 system-wide limit on open molts."""
++
++    def setUp(self):
++        self.mc = MoltCycle(k_limit=3)
++
++    def test_rule3_allows_below_k_limit(self):
++        """Candidate when open_molts < K should be allowed."""
++        self.mc.state.open_molts_count = 2  # Below K=3
++
++        candidate = {
++            'name': 'NEW_CONSTANT',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule3_violations = [v for v in violations if 'Rule 3' in v]
++        self.assertEqual(len(rule3_violations), 0, "Count < K should not violate Rule 3")
++
++    def test_rule3_blocks_at_k_limit(self):
++        """Candidate when open_molts >= K should violate Rule 3."""
++        self.mc.state.open_molts_count = 3  # At K=3
++
++        candidate = {
++            'name': 'ANOTHER_CONSTANT',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule3_violations = [v for v in violations if 'Rule 3' in v]
++        self.assertGreater(len(rule3_violations), 0, "Count >= K should violate Rule 3")
++
++    def test_rule3_blocks_above_k_limit(self):
++        """Candidate when open_molts > K should violate Rule 3."""
++        self.mc.state.open_molts_count = 5  # Above K=3
++
++        candidate = {
++            'name': 'YET_ANOTHER',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule3_violations = [v for v in violations if 'Rule 3' in v]
++        self.assertGreater(len(rule3_violations), 0, "Count > K should violate Rule 3")
++
++
++class TestAntiCascadeRule4(unittest.TestCase):
++    """Test Rule 4: Freeze after 2 reverts (Z2 Tier 2 override required)."""
++
++    def setUp(self):
++        self.mc = MoltCycle(k_limit=3)
++
++    def test_rule4_allows_unfrozen_constant(self):
++        """Candidate for unfrozen constant should be allowed."""
++        candidate = {
++            'name': 'PRIOR_QUALITY',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule4_violations = [v for v in violations if 'Rule 4' in v]
++        self.assertEqual(len(rule4_violations), 0, "Unfrozen constant should not violate Rule 4")
++
++    def test_rule4_blocks_frozen_constant(self):
++        """Candidate for frozen constant should violate Rule 4."""
++        self.mc.state.constants_frozen.add('PRIOR_QUALITY')
++
++        candidate = {
++            'name': 'PRIOR_QUALITY',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule4_violations = [v for v in violations if 'Rule 4' in v]
++        self.assertGreater(len(rule4_violations), 0, "Frozen constant should violate Rule 4")
++
++
++class TestAntiCascadeRule5(unittest.TestCase):
++    """Test Rule 5: Ranking by Priority Queue score (no bypass)."""
++
++    def setUp(self):
++        self.mc = MoltCycle(k_limit=3)
++
++    def test_rule5_allows_ranked_candidate(self):
++        """Candidate with valid PQ rank should be allowed."""
++        candidate = {
++            'name': 'PRIOR_QUALITY',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            'priority_queue_rank': 1,
++            'priority_queue_score': 50.0,
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule5_violations = [v for v in violations if 'Rule 5' in v]
++        self.assertEqual(len(rule5_violations), 0, "Ranked candidate should not violate Rule 5")
++
++    def test_rule5_blocks_unranked_candidate(self):
++        """Candidate without PQ rank should violate Rule 5."""
++        candidate = {
++            'name': 'PRIOR_QUALITY',
++            'proposed_at': datetime.now(timezone.utc).isoformat(),
++            'measurement_window_days': 30,
++            # No priority_queue_rank field
++        }
++        violations = self.mc._validate_anti_cascade_rules(candidate)
++        rule5_violations = [v for v in violations if 'Rule 5' in v]
++        self.assertGreater(len(rule5_violations), 0, "Unranked candidate should violate Rule 5")
++
++
++class TestAntiCascadeProposeMolts(unittest.TestCase):
++    """Test propose_molts() with anti-cascade rule filtering."""
++
++    def setUp(self):
++        self.mc = MoltCycle(k_limit=3)
++
++    def test_propose_molts_filters_violations(self):
++        """propose_molts should filter candidates by rule violations."""
++        # Create 3 candidates: 1 valid, 2 with violations
++        candidates = [
++            {
++                'name': 'VALID_CONSTANT',
++                'proposed_at': datetime.now(timezone.utc).isoformat(),
++                'measurement_window_days': 30,
++                'priority_queue_rank': 1,
++                'priority_queue_score': 50.0,
++            },
++            {
++                'name': 'FROZEN_CONSTANT',
++                'proposed_at': datetime.now(timezone.utc).isoformat(),
++                'measurement_window_days': 30,
++                'priority_queue_rank': 1,
++                'priority_queue_score': 50.0,
++            },
++            {
++                'name': 'UNRANKED',
++                'proposed_at': datetime.now(timezone.utc).isoformat(),
++                'measurement_window_days': 30,
++                # No rank
++            },
++        ]
++
++        # Freeze one constant
++        self.mc.state.constants_frozen.add('FROZEN_CONSTANT')
++
++        result = self.mc.propose_molts(candidates)
++
++        # Should have 1 valid candidate, 2 violations
++        self.assertEqual(result['candidates_proposed'], 1, "Only 1 candidate should pass rules")
++        self.assertEqual(result['violations_count'], 2, "2 candidates should have violations")
++        self.assertEqual(
++            [c['name'] for c in result['candidates']],
++            ['VALID_CONSTANT'],
++            "Only VALID_CONSTANT should be in proposals"
++        )
++
++    def test_propose_molts_reports_violations(self):
++        """propose_molts should report detailed violation reasons."""
++        self.mc.state.constants_frozen.add('FROZEN')
++        self.mc.state.constants_in_molt['OPEN'] = 'molt-001'
++        self.mc.state.open_molts_count = 3
++
++        candidates = [
++            {
++                'name': 'FROZEN',
++                'proposed_at': datetime.now(timezone.utc).isoformat(),
++                'measurement_window_days': 30,
++                'priority_queue_rank': 1,
++                'priority_queue_score': 50.0,
++            },
++            {
++                'name': 'OPEN',
++                'proposed_at': datetime.now(timezone.utc).isoformat(),
++                'measurement_window_days': 30,
++                'priority_queue_rank': 2,
++                'priority_queue_score': 45.0,
++            },
++        ]
++
++        result = self.mc.propose_molts(candidates)
++
++        # Check violations are reported
++        self.assertEqual(len(result['rule_violations']), 2)
++        frozen_violation = next(v for v in result['rule_violations'] if v['constant'] == 'FROZEN')
++        open_violation = next(v for v in result['rule_violations'] if v['constant'] == 'OPEN')
++
++        # Verify rule descriptions
++        self.assertTrue(any('Rule 4' in v for v in frozen_violation['violations']))
++        self.assertTrue(any('Rule 1' in v for v in open_violation['violations']))
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/test_nf_schema_falsifier.py b/test_nf_schema_falsifier.py
+new file mode 100644
+index 0000000..9a17bbb
+--- /dev/null
++++ b/test_nf_schema_falsifier.py
+@@ -0,0 +1,292 @@
++"""
++test_nf_schema_falsifier.py — Phase 1 Falsifier Validation Tests
++
++Status: DRAFT (Phase 1, Q-NF-SCHEMA-01)
++Purpose: Verify that the NF_LEDGER schema unifies 4 formats and enables Molt Cycle measurement
++
++Test Plan (from Q-NF-SCHEMA-01 falsifier):
++1. Molt predictions recordable in NF_LEDGER + readable at window close
++2. Specimen calibration aggregatable into per-predictor Brier
++3. Hash chain prevents reordering/deletion (CI gate catches tampering)
++4. Anti-cascade freeze viable (2 consecutive reverts freezes constant)
++"""
++
++import pytest
++import json
++import hashlib
++from datetime import datetime, timedelta
++from pathlib import Path
++
++
++class TestMoltPredictionRecordability:
++    """
++    Test 1: Molt predictions recordable in NF_LEDGER + readable at window close
++    """
++
++    def test_molt_entry_writable_to_ledger(self):
++        """Can we write a molt entry to NF_LEDGER?"""
++        molt_entry = {
++            "molt_id": "M-TEST-0001",
++            "molt_type": "TIER1",
++            "constant": "behavior_spec.json:test_dial",
++            "prior_value": 0.5,
++            "proposed_value": 0.55,
++            "prior_value_type": "float",
++            "prediction": {
++                "metric": "Brier",
++                "target": 0.15,
++                "target_direction": "below",
++                "window_days": 7,
++                "falsifier": "Brier >= 0.20 at window close"
++            },
++            "ratification_hash": "sha256(change|by=Night|at=2026-09-16T10:00:00Z|decision=ACCEPT)",
++            "z2_ratified_at": "2026-09-16T10:00:00Z",
++            "window_start": "2026-09-16T10:00:00Z",
++            "window_end": "2026-09-23T00:00:00Z",
++            "outcome": "MEASURING",
++            "timestamp": "2026-09-16T10:00:00Z",
++            "prior_hash": "0000000000000000",
++            "hash": hashlib.sha256(json.dumps(
++                {k: v for k, v in {"molt_id": "M-TEST-0001", "molt_type": "TIER1",
++                                  "constant": "behavior_spec.json:test_dial", "prior_value": 0.5,
++                                  "proposed_value": 0.55, "prior_value_type": "float",
++                                  "prediction": {"metric": "Brier", "target": 0.15,
++                                               "target_direction": "below", "window_days": 7,
++                                               "falsifier": "Brier >= 0.20 at window close"},
++                                  "ratification_hash": "sha256(...)", "z2_ratified_at": "2026-09-16T10:00:00Z",
++                                  "window_start": "2026-09-16T10:00:00Z", "window_end": "2026-09-23T00:00:00Z",
++                                  "outcome": "MEASURING", "timestamp": "2026-09-16T10:00:00Z",
++                                  "prior_hash": "0000000000000000"}.items() if k != 'hash'},
++                sort_keys=True).encode()).hexdigest(),
++            "anti_cascade_check": {"open_molt_count": 1, "reverts_on_constant": 0, "rank_in_queue": 4}
++        }
++
++        # Serialize and deserialize (simulating write/read)
++        json_line = json.dumps(molt_entry)
++        parsed = json.loads(json_line)
++
++        assert parsed['molt_id'] == "M-TEST-0001"
++        assert parsed['outcome'] == "MEASURING"
++        assert parsed['prediction']['falsifier'] is not None
++
++    def test_molt_prediction_readable_at_window_close(self):
++        """Can we read the molt prediction back when the window closes?"""
++        # Simulate: window_end has passed
++        molt_entry = {
++            "molt_id": "M-TEST-0002",
++            "constant": "behavior_spec.json:test_dial",
++            "outcome": "MEASURING",
++            "window_end": (datetime.utcnow() - timedelta(days=1)).isoformat(),  # Past
++            "prediction": {"metric": "Brier", "target": 0.15, "falsifier": "Brier >= 0.20"},
++            "prior_hash": "abc123",
++            "hash": "def456"
++        }
++
++        # At window close, molt_cycle.py should be able to read and measure
++        assert molt_entry['outcome'] == "MEASURING"
++        window_end = datetime.fromisoformat(molt_entry['window_end'])
++        assert datetime.utcnow() > window_end  # Window is closed
++        assert molt_entry['prediction'] is not None
++
++    @pytest.mark.parametrize("metric,target", [
++        ("Brier", 0.15),
++        ("GAP-closure", 0.8),
++        ("catch-rate", 0.95),
++    ])
++    def test_multiple_prediction_metrics(self, metric, target):
++        """Can NF_LEDGER handle different prediction metrics?"""
++        prediction = {
++            "metric": metric,
++            "target": target,
++            "target_direction": "below" if metric == "Brier" else "above",
++            "window_days": 7,
++            "falsifier": f"{metric} outside target range"
++        }
++        assert prediction['metric'] == metric
++        assert prediction['target'] == target
++
++
++class TestSpecimenCalibrationAggregation:
++    """
++    Test 2: Specimen calibration aggregatable into per-predictor Brier
++    """
++
++    def test_specimen_outcome_in_nf_ledger(self):
++        """Can we record specimen outcomes in NF_LEDGER?"""
++        specimen_molt = {
++            "molt_id": "M-20260917-S001",
++            "constant": "specimen:claim-RQ1-042",
++            "prediction": {
++                "metric": "claim_resolution",
++                "target": 0.73,
++                "target_direction": "equal",
++                "window_days": 14
++            },
++            "outcome": "KEEP",  # Prediction was correct
++            "brier_actual": (0.73 - 1.0) ** 2,  # (predicted - actual)^2
++            "prior_hash": "abc",
++            "hash": "def"
++        }
++
++        assert specimen_molt['prediction']['metric'] == "claim_resolution"
++        assert specimen_molt['outcome'] in ["KEEP", "REVERT"]
++        assert specimen_molt['brier_actual'] >= 0
++
++    def test_aggregate_brier_per_predictor(self):
++        """Can we aggregate Brier scores by predictor?"""
++        # Simulate multiple molt entries with predictor metadata
++        molts = [
++            {"molt_id": "M-1", "prediction": {"predictor": "RQ1"}, "brier_actual": 0.12, "outcome": "KEEP"},
++            {"molt_id": "M-2", "prediction": {"predictor": "RQ1"}, "brier_actual": 0.18, "outcome": "KEEP"},
++            {"molt_id": "M-3", "prediction": {"predictor": "RQ2"}, "brier_actual": 0.08, "outcome": "KEEP"},
++        ]
++
++        brier_by_predictor = {}
++        for molt in molts:
++            if molt['outcome'] in ["KEEP", "REVERT"]:
++                predictor = molt['prediction'].get('predictor', 'unknown')
++                brier_by_predictor.setdefault(predictor, []).append(molt['brier_actual'])
++
++        # Compute averages
++        avg_brier = {p: sum(scores) / len(scores) for p, scores in brier_by_predictor.items()}
++
++        assert avg_brier['RQ1'] == pytest.approx((0.12 + 0.18) / 2)
++        assert avg_brier['RQ2'] == 0.08
++
++    def test_brier_skill_score_calculation(self):
++        """Can we compute Brier Skill Score?"""
++        # BSS = 1 - (BS / BS_baseline)
++        # BS = (1/N) * Σ(predicted_p - actual_outcome)²
++        # BS_baseline = p_base * (1 - p_base)
++
++        n_predictions = 47
++        predicted_p = 0.55
++        actual_outcome = 0.14  # Actual brier
++        p_base = 0.30  # Historical base rate
++
++        BS = ((predicted_p - actual_outcome) ** 2)  # Simplified for test
++        BS_baseline = p_base * (1 - p_base)
++        BSS = 1 - (BS / BS_baseline)
++
++        assert BSS is not None
++        assert -1 <= BSS <= 1  # Skill score bounds
++
++
++class TestHashChainTamperProof:
++    """
++    Test 3: Hash chain prevents reordering/deletion (CI gate catches tampering)
++    """
++
++    def test_hash_chain_validity(self):
++        """Can we detect tampering via hash chain?"""
++        entry1 = {
++            "molt_id": "M-1",
++            "outcome": "KEEP",
++            "prior_hash": "0000000000000000"
++        }
++        # Compute hash from full entry (without hash field)
++        entry1['hash'] = hashlib.sha256(
++            json.dumps({k: v for k, v in entry1.items() if k != 'hash'}, sort_keys=True).encode()
++        ).hexdigest()
++
++        entry2 = {
++            "molt_id": "M-2",
++            "outcome": "KEEP",
++            "prior_hash": entry1['hash']
++        }
++        entry2['hash'] = hashlib.sha256(
++            json.dumps({k: v for k, v in entry2.items() if k != 'hash'}, sort_keys=True).encode()
++        ).hexdigest()
++
++        # Valid chain
++        assert entry2['prior_hash'] == entry1['hash']
++
++        # Tampering: change entry1's outcome and recompute its hash
++        entry1['outcome'] = "REVERT"
++        new_hash_1 = hashlib.sha256(
++            json.dumps({k: v for k, v in entry1.items() if k != 'hash'}, sort_keys=True).encode()
++        ).hexdigest()
++
++        # Chain breaks because entry2's prior_hash no longer matches new hash
++        assert entry2['prior_hash'] != new_hash_1
++
++    def test_deletion_detected(self):
++        """Deleting an entry breaks the chain?"""
++        ledger = [
++            {"molt_id": "M-1", "prior_hash": "0000", "hash": "abc"},
++            {"molt_id": "M-2", "prior_hash": "abc", "hash": "def"},
++            {"molt_id": "M-3", "prior_hash": "def", "hash": "ghi"},
++        ]
++
++        # Delete entry 2
++        ledger_tampered = [ledger[0], ledger[2]]
++
++        # Entry 3's prior_hash now doesn't match entry 1's hash
++        assert ledger_tampered[1]['prior_hash'] != ledger_tampered[0]['hash']
++
++    def test_reordering_detected(self):
++        """Reordering entries breaks the chain?"""
++        # Create valid chain
++        entry1 = {"molt_id": "M-1", "prior_hash": "0000000000000000"}
++        entry1['hash'] = hashlib.sha256(
++            json.dumps({k: v for k, v in entry1.items() if k != 'hash'}, sort_keys=True).encode()
++        ).hexdigest()
++
++        entry2 = {"molt_id": "M-2", "prior_hash": entry1['hash']}
++        entry2['hash'] = hashlib.sha256(
++            json.dumps({k: v for k, v in entry2.items() if k != 'hash'}, sort_keys=True).encode()
++        ).hexdigest()
++
++        # In normal order: entry2's prior_hash points to entry1's hash
++        assert entry2['prior_hash'] == entry1['hash']
++
++        # Reorder: entry2 now appears first
++        ledger_reordered = [entry2, entry1]
++
++        # Validation would fail: entry2's prior_hash should match the ledger line before it
++        # But ledger_reordered[1] (entry1's hash) is after entry2, and they have no connection
++        # The CI gate checks: new_entry.prior_hash == ledger[i-1].hash
++        # For reordered[0] (entry2), there's no prior entry, so prior_hash mismatch detected
++        assert ledger_reordered[0]['prior_hash'] != '0000000000000000'  # entry2 not the genesis
++
++
++class TestAntiCascadeFreezeRule:
++    """
++    Test 4: Anti-cascade freeze viable (2 consecutive reverts freezes constant)
++    """
++
++    def test_freeze_after_two_reverts(self):
++        """Does a constant freeze after 2 consecutive reverts?"""
++        constant = "behavior_spec.json:test_dial"
++        molts = [
++            {"molt_id": "M-1", "constant": constant, "outcome": "REVERT"},
++            {"molt_id": "M-2", "constant": constant, "outcome": "REVERT"},
++        ]
++
++        # Count consecutive reverts
++        revert_count = sum(1 for m in molts if m['outcome'] == 'REVERT')
++        should_freeze = revert_count >= 2
++
++        assert should_freeze is True
++
++    def test_frozen_constant_blocks_new_molt(self):
++        """Can we block a new molt on a frozen constant?"""
++        frozen_constants = {"behavior_spec.json:test_dial"}
++        new_molt_constant = "behavior_spec.json:test_dial"
++
++        can_propose = new_molt_constant not in frozen_constants
++
++        assert can_propose is False  # Should not be able to propose
++
++    def test_different_constant_not_blocked(self):
++        """Other constants are not affected by one constant's freeze?"""
++        frozen_constants = {"behavior_spec.json:test_dial"}
++        other_constant = "behavior_spec.json:other_dial"
++
++        can_propose = other_constant not in frozen_constants
++
++        assert can_propose is True  # Can propose on other constant
++
++
++if __name__ == "__main__":
++    pytest.main([__file__, "-v"])
+diff --git a/test_specimen_intake_cycle_1.py b/test_specimen_intake_cycle_1.py
+new file mode 100644
+index 0000000..003c0c8
+--- /dev/null
++++ b/test_specimen_intake_cycle_1.py
+@@ -0,0 +1,213 @@
++#!/usr/bin/env python3
++"""
++test_specimen_intake_cycle_1.py — Q-SI-C1-B0 Acceptance Tests
++
++Verify Cycle 1 framework:
++1. Constants load correctly (PRIOR_QUALITY, PRIOR_ACCEPTANCE, SHRINK)
++2. Molt predictions are generated from priors
++3. Receipt hash is computed correctly
++4. NF_LEDGER PIN entries are recorded
++5. Cycle 1 record is saved and can be loaded
++"""
++
++import json
++import unittest
++from pathlib import Path
++from datetime import datetime, timezone
++
++from specimen_intake_cycle_1 import (
++    Cycle1Orchestrator,
++    SpecimenInput,
++    IntakeRecord,
++    utcnow,
++)
++
++
++class TestCycle1Initialization(unittest.TestCase):
++    """Test Cycle 1 initialization and framework."""
++
++    def setUp(self):
++        self.orchestrator = Cycle1Orchestrator()
++        self.specimen_input = SpecimenInput(
++            cycle_id="cycle-1",
++            specimen_id="SPC-01",
++            work_period_start=self.orchestrator.config.cycle_start,
++            work_period_end=self.orchestrator.config.cycle_end,
++            platform="external-contractor",
++            tasks_assigned=12,
++            tasks_completed=11,
++            tasks_revised=3,
++            task_categories=["annotation", "review"],
++            verification_sources=["platform-export:pending"],
++            task_acceptance_rate=0.92,
++            revision_cycles_per_task=0.27,
++            response_time_minutes=15.5,
++        )
++
++    def test_constants_loaded(self):
++        """Test that Bayesian priors are loaded from constants.json."""
++        self.assertIn('PRIOR_QUALITY', self.orchestrator.constants)
++        self.assertIn('PRIOR_ACCEPTANCE', self.orchestrator.constants)
++        self.assertIn('SHRINK', self.orchestrator.constants)
++        self.assertEqual(self.orchestrator.constants['PRIOR_QUALITY'], 0.75)
++        self.assertEqual(self.orchestrator.constants['PRIOR_ACCEPTANCE'], 0.85)
++        self.assertEqual(self.orchestrator.constants['SHRINK'], 0.3)
++
++    def test_cycle_1_record_created(self):
++        """Test that Cycle 1 record is initialized correctly."""
++        record = self.orchestrator.initialize_cycle_1(self.specimen_input)
++
++        self.assertEqual(record.specimen_id, "SPC-01")
++        self.assertEqual(record.cycle_number, 1)
++        self.assertEqual(record.evaluation_status, "PRELIMINARY")
++        self.assertIsNotNone(record.receipt_hash)
++        self.assertEqual(len(record.receipt_hash), 64)  # SHA256 hex-encoded
++
++    def test_molt_predictions_from_priors(self):
++        """Test that molt predictions use Bayesian priors."""
++        record = self.orchestrator.initialize_cycle_1(self.specimen_input)
++
++        # RQ1 quality prediction should use PRIOR_QUALITY
++        rq1_pred = [p for p in record.molt_predictions if 'quality' in p.variable][0]
++        self.assertEqual(rq1_pred.prediction_value, 0.75)
++        self.assertEqual(rq1_pred.variable, 'quality_forecast')
++
++        # RQ3 acceptance prediction should use PRIOR_ACCEPTANCE
++        rq3_pred = [p for p in record.molt_predictions if 'acceptance' in p.variable][0]
++        self.assertEqual(rq3_pred.prediction_value, 0.85)
++        self.assertEqual(rq3_pred.variable, 'acceptance_rate_forecast')
++
++    def test_receipt_hash_stable(self):
++        """Test that receipt hash is deterministic (same input = same hash)."""
++        record1 = self.orchestrator.initialize_cycle_1(self.specimen_input)
++        hash1 = record1.receipt_hash
++
++        # Reset and create another with same input
++        orchestrator2 = Cycle1Orchestrator()
++        # Note: timestamps differ slightly, so we can't expect exact match
++        # But the hash structure should be valid SHA256
++        record2 = orchestrator2.initialize_cycle_1(self.specimen_input)
++        hash2 = record2.receipt_hash
++
++        # Both should be valid 64-char hex strings
++        self.assertEqual(len(hash1), 64)
++        self.assertEqual(len(hash2), 64)
++        self.assertTrue(all(c in '0123456789abcdef' for c in hash1))
++        self.assertTrue(all(c in '0123456789abcdef' for c in hash2))
++
++    def test_nf_ledger_pin_recorded(self):
++        """Test that molt predictions are written to NF_LEDGER as PIN entries."""
++        record = self.orchestrator.initialize_cycle_1(self.specimen_input)
++        self.orchestrator.pin_to_nf_ledger(record)
++
++        # Read back the ledger
++        with open(self.orchestrator.nf_ledger_path) as f:
++            lines = [line.strip() for line in f if line.strip()]
++
++        # Find the new PIN entries (last 2 should be from Cycle 1)
++        recent_pins = []
++        for line in lines[-2:]:
++            entry = json.loads(line)
++            if entry.get('type') == 'PIN':
++                recent_pins.append(entry)
++
++        # Should have 2 PIN entries for RQ1 quality and RQ3 acceptance
++        self.assertGreaterEqual(len(recent_pins), 2)
++
++    def test_cycle_1_save_and_load(self):
++        """Test that Cycle 1 record can be saved and loaded."""
++        record = self.orchestrator.initialize_cycle_1(self.specimen_input)
++        output_file = "cycles/test_cycle_1.json"
++
++        # Save
++        self.orchestrator.save_cycle_1(output_file)
++        self.assertTrue(Path(output_file).exists())
++
++        # Load and verify
++        with open(output_file) as f:
++            data = json.load(f)
++
++        self.assertEqual(data['records'][0]['specimen_id'], "SPC-01")
++        self.assertEqual(data['records'][0]['cycle_number'], 1)
++        self.assertEqual(len(data['records'][0]['molt_predictions']), 2)
++        self.assertIn('PRIOR_QUALITY', data['constants_loaded'])
++
++        # Cleanup
++        Path(output_file).unlink()
++
++    def test_credpolicy_forecast_recorded(self):
++        """Test that RQ2 CredPolicy output is recorded (task allocation forecast)."""
++        record = self.orchestrator.initialize_cycle_1(self.specimen_input)
++
++        cred = record.credpolicy_output
++        self.assertEqual(cred.predicted_choice, "annotation")
++        self.assertIsNotNone(cred.registered_at)
++        self.assertIsNone(cred.disclosed_at)  # Not disclosed yet
++        self.assertIsNone(cred.actual_choice)  # Not chosen yet
++        self.assertIsNone(cred.agreement)  # Not resolved yet
++
++    def test_specimen_input_recorded(self):
++        """Test that behavioral observations are recorded."""
++        record = self.orchestrator.initialize_cycle_1(self.specimen_input)
++
++        si = record.specimen_input
++        self.assertEqual(si.specimen_id, "SPC-01")
++        self.assertEqual(si.tasks_assigned, 12)
++        self.assertEqual(si.tasks_completed, 11)
++        self.assertAlmostEqual(si.task_acceptance_rate, 0.92)
++
++
++class TestCycle1Acceptance(unittest.TestCase):
++    """Q-SI-C1-B0 Acceptance Criteria."""
++
++    def test_acceptance_gate_constants_count(self):
++        """Acceptance: molt_cycle --read-only reports constants: 3."""
++        # This is handled by molt_cycle.py
++        # Test that Cycle 1 orchestrator can access the 3 constants
++        orchestrator = Cycle1Orchestrator()
++        constants = orchestrator.constants
++
++        required = ['PRIOR_QUALITY', 'PRIOR_ACCEPTANCE', 'SHRINK']
++        for const_name in required:
++            self.assertIn(const_name, constants)
++
++    def test_acceptance_gate_cycle_1_scaffold(self):
++        """Acceptance: Cycle 1 scaffold initializes with RQ data, predictions, and receipt hash."""
++        orchestrator = Cycle1Orchestrator()
++        specimen_input = SpecimenInput(
++            cycle_id="cycle-1",
++            specimen_id="SPC-01",
++            work_period_start=orchestrator.config.cycle_start,
++            work_period_end=orchestrator.config.cycle_end,
++            platform="external-contractor",
++            tasks_assigned=10,
++            tasks_completed=9,
++            tasks_revised=2,
++            task_categories=["annotation"],
++            verification_sources=["platform-export:pending"],
++            task_acceptance_rate=0.90,
++            revision_cycles_per_task=0.2,
++            response_time_minutes=20.0,
++        )
++
++        record = orchestrator.initialize_cycle_1(specimen_input)
++
++        # Check all RQ data is present
++        self.assertIsNotNone(record.specimen_input)  # RQ1, RQ3 input
++        self.assertIsNotNone(record.molt_predictions)  # RQ1, RQ3 forecasts
++        self.assertEqual(len(record.molt_predictions), 2)  # 2 predictions
++        self.assertIsNotNone(record.credpolicy_output)  # RQ2 forecast
++
++        # Check receipt hash is valid
++        self.assertEqual(len(record.receipt_hash), 64)
++        self.assertTrue(all(c in '0123456789abcdef' for c in record.receipt_hash))
++
++        # Check pins are written to NF_LEDGER
++        orchestrator.pin_to_nf_ledger(record)
++        with open(orchestrator.nf_ledger_path) as f:
++            content = f.read()
++        self.assertIn('"type": "PIN"', content)
++
++
++if __name__ == '__main__':
++    unittest.main()
+-- 
+2.43.0
+

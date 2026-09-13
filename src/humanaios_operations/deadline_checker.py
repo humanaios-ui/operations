@@ -5,6 +5,7 @@ Deadline Checker — Check for upcoming funding deadlines and opportunities.
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 
 def parse_deadline(deadline_str: str | None) -> datetime | None:
@@ -31,7 +32,7 @@ def check_deadlines(opportunities_file: str = "data/ranked_opportunities.json", 
         opportunities = json.load(f)
 
     now = datetime.now()
-    results = {
+    results: dict[str, list[dict[str, Any]]] = {
         "urgent": [],  # < 7 days
         "soon": [],    # 7-30 days
         "upcoming": [], # 30+ days

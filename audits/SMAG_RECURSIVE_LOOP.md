@@ -15,10 +15,30 @@ and it feeds back into gates and lessons. This is the "ACAT-on-PR-surface" plan 
 | **CAPTURE** | `smag-capture.yml` → `tools/smag_pr_autocapture` posts one row/merged-PR as a comment on issue **#103** | live |
 | **CONSOLIDATE** | `tools/smag_consolidate_v1_0.py` drains #103's row-comments → `audits/smag_pilot_ledger.jsonl` (dedup by PR, idempotent) | **added S-071426** |
 | **ANALYZE** | `tools/smag_gap_analysis_v1_0.py` → `audits/smag_gap_report.md` (clean / friction / miss, gap_rate by substrate) | **added S-071426** |
-| **FEED BACK** | gap cues → `lessons_learned_ledger.json` + promote hard patterns to `behavioral-compliance.yml` / a REGISTERED finding | manual (v1) |
+| **FEED BACK** | `tools/smag_feedback_v1_0.py` — gap cues → `data/lessons_learned_ledger.json` (idempotent upsert); promoting a hard pattern to `behavioral-compliance.yml` / a REGISTERED finding stays a Z2 act, printed as a proposal, not auto-applied | **added S-091326** |
 
-`smag-consolidate.yml` runs CONSOLIDATE+ANALYZE weekly and opens a PR with the deltas,
-so the loop stays closed without a person remembering to run it.
+`smag-consolidate.yml` runs CONSOLIDATE+ANALYZE+FEED BACK weekly and opens a PR with
+the deltas, so the loop stays closed without a person remembering to run it.
+
+### FEED BACK's honest current state (S-091326)
+
+Dispatching `smag-consolidate.yml` for real after it sat un-run since 2026-09-07 drained
+44 rows (61 → 105) and surfaced a bigger problem than "FEED BACK is manual": **only 2 of
+105 rows carry a pinned `smag_p:` prediction.** IC-SMAG-01's mitigation (a `predicted`
+field without `smag_p:` is VOID, not scored) is working exactly as designed — but nothing
+in the PR-authoring path ever prompted anyone to add one, so calibration data nearly
+stopped accumulating the moment the mitigation shipped. Fixed at the source:
+`.github/PULL_REQUEST_TEMPLATE.md` now prompts for `smag_p:`. Until enough new PRs pin
+one, `smag_feedback_v1_0.py` correctly reports `INSUFFICIENT_DATA` rather than computing
+a gap-driver claim from too few rows — that report is itself now recorded as
+`SMAG-FEEDBACK-CALIBRATION-STARVED` in `data/lessons_learned_ledger.json`.
+
+The pre-mitigation gap-driver finding (`pr-fuzzing (address)` on 10/18 friction PRs) is
+already registered as `H-SMAG-01` / `MOLT-SMAG-01` in
+`registry-candidates/blocks/IC-CAND-SMAG-PREDICTION-MISLABEL-S090926.md` — that block
+predates the VOID mitigation and cannot be refreshed from current (now-VOID) data; it
+still awaits a Priority Queue entry and a Z2 ratification hash, not a fresh copy of the
+same finding.
 
 ## Why this existed as a gap
 
@@ -44,5 +64,7 @@ with failing checks. That is the first measured signal the loop was built to sur
 ```bash
 python3 tools/smag_consolidate_v1_0.py --issue 103        # drain #103 → ledger
 python3 tools/smag_gap_analysis_v1_0.py                    # ledger → gap report
-# both support --smoke-test
+python3 tools/smag_feedback_v1_0.py                         # gap report → lessons ledger cues
+python3 tools/smag_feedback_v1_0.py --dry-run               # report only, no write
+# all three support --smoke-test
 ```

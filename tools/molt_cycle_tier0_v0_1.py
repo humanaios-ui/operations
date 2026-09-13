@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-"""molt_cycle.py — READ + PROPOSE phases only (Tier 0). Never applies.
+"""molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies.
+
+RENAMED from tools/molt_cycle.py (Q-NF-ADAPTER-01 IC candidate, PR #313): this
+file shared its name with the unrelated, canonical `/molt_cycle.py` at the repo
+root — every doc naming "molt_cycle.py" as the Molt Cycle implementation
+(NF_LEDGER_SCHEMA_v1.md, Z3_DEPLOYMENT_CHECKLIST.md, system_graph_generator.py)
+means the root one, and Q-MOLT-04 (PRIORITY_QUEUE.md) is the tracked item for
+building that implementation's anti-cascade rules out. This file predates that
+and was never wired into it; the shared filename was a live import hazard —
+`sys.path.insert(0, "tools")` anywhere then `import molt_cycle` would silently
+resolve to THIS file instead of root's. Renamed rather than deleted: it has its
+own working anti-cascade logic (K-limit, freeze-after-2-reverts, no-self-reference
+windows, a loop-level Brier/revert-rate falsifier) that Q-MOLT-04 may want to
+draw on — that consolidation decision is Q-MOLT-04's, not this rename's, to make.
 
 Reads ledgers, never memory. For each constant whose signal crossed its
 trigger, emits one MOLT_CANDIDATE to stdout and appends it to molt_events.jsonl
@@ -14,6 +27,8 @@ predictions nor REVERT rate has fallen, the loop is noise and must freeze.
 """
 import sys, json, hashlib, os, glob, statistics as st, argparse
 from datetime import datetime, timezone
+
+TOOL_CATEGORY = "governance_tool"  # operates molt/registry machinery; matches its prior classification
 
 def sha256(s): return hashlib.sha256(s.encode()).hexdigest()
 def now(): return datetime.now(timezone.utc).isoformat()
