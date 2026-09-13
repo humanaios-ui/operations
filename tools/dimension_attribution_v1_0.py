@@ -142,26 +142,70 @@ class LedgerLoadError(RuntimeError):
     """Raised when a ledger fails verification or cannot be read."""
 
 
+def _validate_raw_rows(rows: List[dict], ledger_path: Path) -> None:
+    """Value-level checks engine.verify() does not perform — it only
+    validates the hash/sequence chain, not payload values. A hash-valid
+    PIN can still carry a non-numeric or out-of-range "p", or be missing
+    "predictor"; a hash-valid RESOLVE can carry an outcome that is neither
+    "YES" nor "NO" (pin_outcome() silently treats anything but "YES" as a
+    miss, so this cannot be caught after the fact — it must be checked on
+    the raw row before project()/pin_outcome() ever see it). Any of these
+    would otherwise either crash score_batch() with a bad type, corrupt
+    attribution under a fabricated "unknown" predictor, or silently
+    misscore a RESOLVE whose outcome was never actually "NO". Raising here
+    reports the whole ledger as a load error instead."""
+    for row in rows:
+        row_type = row.get("type")
+        if row_type == "PIN":
+            p = row.get("p")
+            if p is not None and not (isinstance(p, (int, float)) and 0.0 <= p <= 1.0):
+                raise LedgerLoadError(
+                    f"{ledger_path}: PIN {row.get('pin_id', '?')!r} has invalid p={p!r} "
+                    f"(must be null or a number in [0,1])"
+                )
+            predictor = row.get("predictor")
+            if not isinstance(predictor, str) or not predictor:
+                raise LedgerLoadError(
+                    f"{ledger_path}: PIN {row.get('pin_id', '?')!r} has no valid predictor"
+                )
+        elif row_type == "RESOLVE":
+            outcome = row.get("outcome")
+            if outcome not in ("YES", "NO"):
+                raise LedgerLoadError(
+                    f"{ledger_path}: RESOLVE for {row.get('token_id', '?')!r} has invalid "
+                    f"outcome={outcome!r} (must be 'YES' or 'NO')"
+                )
+
+
 def load_resolved_pins(ledger_path: Path) -> List[dict]:
     """Every scoreable, resolved (p, outcome) pair in one ledger, via the
     shared engine's own project()/pin_outcome() — the same filter
     nf_ledger_v0_1.cmd_score applies: p must be stated, and the outcome
     must be a real YES/NO, never None (unresolved) or VOID.
 
-    engine.verify() only checks the hash/sequence chain, not event schema:
-    a correctly-hashed row missing a field project()/pin_outcome() reads
-    (a TOKEN without "state", a PIN without "target") would otherwise
-    raise KeyError/AttributeError past this function's own LedgerLoadError
+    engine.verify() only checks the hash/sequence chain, not event schema
+    or payload values: a correctly-hashed row missing a field project()/
+    pin_outcome() reads (a TOKEN without "state", a PIN without "target"),
+    or one that reads but carries a garbage value (see _validate_raw_rows),
+    would otherwise raise past this function's own LedgerLoadError
     contract and abort cmd_report entirely instead of recording one load
-    error and continuing with the other ledgers given to it.
+    error and continuing with the other ledgers given to it. engine.verify
+    itself is not exempt: it can raise KeyError for a row missing "hash"
+    rather than returning an error string, so that call is wrapped too.
     """
     try:
         rows = engine.read(str(ledger_path))
     except (ValueError, OSError) as exc:
         raise LedgerLoadError(f"{ledger_path}: unreadable — {exc}") from exc
-    err = engine.verify(rows)
+
+    try:
+        err = engine.verify(rows)
+    except (KeyError, AttributeError, TypeError) as exc:
+        raise LedgerLoadError(f"{ledger_path}: malformed row during verify — {exc}") from exc
     if err:
         raise LedgerLoadError(f"{ledger_path}: {err}")
+
+    _validate_raw_rows(rows, ledger_path)
 
     try:
         tokens, pins = engine.project(rows)
@@ -173,7 +217,7 @@ def load_resolved_pins(ledger_path: Path) -> List[dict]:
             if outcome in (None, "VOID"):
                 continue
             resolved.append({
-                "predictor": pin.get("predictor", "unknown"),
+                "predictor": pin["predictor"],
                 "at": pin.get("at", ""),
                 "episode_id": pin.get("episode_id"),
                 "p": pin["p"],

@@ -332,3 +332,72 @@ def test_cli_malformed_ledger_among_several_does_not_crash_the_report(tmp_path, 
     out = json.loads(capsys.readouterr().out)
     assert "P" in out["predictors"]
     assert len(out["load_errors"]) == 1
+
+
+def test_row_missing_hash_raises_ledger_load_error_not_crash(tmp_path):
+    """engine.verify() itself can raise KeyError (indexing e["hash"]) for a
+    row that never had one, rather than returning an error string — that
+    call must be wrapped too, not just project()/pin_outcome()."""
+    ledger = tmp_path / "l.jsonl"
+    row_missing_hash = {
+        "seq": 1, "type": "TOKEN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+        "token_id": "t1", "practice": "test", "title": "t", "date": "2026-09-13",
+        "date_source": "PRACTICE", "owner_add": False, "state": "DATED",
+        "prev_hash": "0" * 64,
+    }
+    ledger.write_text(json.dumps(row_missing_hash) + "\n", encoding="utf-8")
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_pin_with_out_of_range_probability_refused(tmp_path):
+    """A hash-valid PIN with p outside [0,1] (or non-numeric) must be
+    refused as LedgerLoadError, not silently summed into a bogus Truth
+    value or crash score_batch() with a TypeError."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    events[1]["p"] = 5.0  # out of range
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_pin_missing_predictor_refused(tmp_path):
+    """A PIN missing 'predictor' must be refused, not silently attributed
+    to a fabricated 'unknown' bucket that corrupts the per-predictor
+    rollup."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    del events[1]["predictor"]
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_resolve_with_invalid_outcome_refused(tmp_path):
+    """pin_outcome() silently treats any outcome other than exactly 'YES'
+    as a miss (outs.append(tk['resolved'] == 'YES')) — a RESOLVE with
+    outcome='MAYBE' would otherwise be misscored as a hard NO instead of
+    being caught as the malformed row it is."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    events[2]["outcome"] = "MAYBE"
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
