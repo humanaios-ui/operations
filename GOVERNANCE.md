@@ -7,7 +7,7 @@
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/GOVERNANCE.md`
 **Scope:** Governance only. No state. No findings. No contacts. No funding.
 **State lives in:** `CURRENT.md` (fetched live).
-**Protocol lives in:** `SESSION_RITUALS.md` and `ACAT_SESSION_PROMPT.md`.
+**Protocol lives in:** `CURRENT.md`, `SESSION_RITUALS.md`, and `OPERATOR_RUNBOOK.md`.
 
 If this document contains OR&D day numbers, dataset counts, or open item lists — that is drift. Remove them.
 
@@ -39,7 +39,7 @@ The single source for: how we make decisions, what zones govern execution, what 
 1. **HAIOSCC** (haioscc.pages.dev) — live state, Zone 3 queue, verifier layer
 1. **CURRENT.md** (humanaios-ui/operations/CURRENT.md) — fetched at session open, authoritative state snapshot
 1. **SESSION_RITUALS.md** (humanaios-ui/operations/SESSION_RITUALS.md) — exact protocol steps and parser tags
-1. **ACAT_SESSION_PROMPT.md** (humanaios-ui/operations/ACAT_SESSION_PROMPT.md) — unified Phase 1 + Phase 3 session prompt
+1. **OPERATOR_RUNBOOK.md** (humanaios-ui/operations/OPERATOR_RUNBOOK.md) — operator-side session orchestration and execution recipes
 1. **This document (GOVERNANCE v6.4)** — governance principles only
 
 -----
@@ -156,7 +156,7 @@ Hybrid disclosure (mutual acknowledgment that both sides operate as human-AI pai
 Autodream sequences require either: (a) operator-defined slice limit declared before the first slice begins, OR (b) explicit Night input gate between each slice. “Low-resistance mode” is not a valid operational state and is retired from all autodream vocabulary. Violation = IC-class error. Self-continuation without a gate = F31 instance.
 
 **P27 — Phase 1 Prerequisite Gate** *(folded from April 27 v6.1 variant, structurally enforced in SESSION_RITUALS Section B Step 0)*
-Phase 3 requires Phase 1. If no `<<<ACAT_P1_DECLARATION_START>>>` block exists in the session transcript at close, the substrate halts at SESSION_RITUALS.md Section B Step 0 and produces the `<<<ACAT_PROTOCOL_ERROR>>>` block instead of any Phase 3 output. No scores. No submission URL. No Slack log. Session marked NON_CORPUS. Producing P3-without-P1 is corpus-incompatible by definition (ACAT_SESSION_PROMPT.md V0.3) and resource-wasteful. The protocol refuses the wasted work rather than allowing it. Violation = C-09 (protocol step skipped); recurring violation triggers IC-class entry.
+Phase 3 requires Phase 1. If no `<<<ACAT_P1_DECLARATION_START>>>` block exists in the session transcript at close, the substrate halts at SESSION_RITUALS.md Section B Step 0 and produces the `<<<ACAT_PROTOCOL_ERROR>>>` block instead of any Phase 3 output. No scores. No submission URL. No Slack log. Session marked NON_CORPUS. Producing P3-without-P1 is corpus-incompatible by definition under the session-orchestration protocol and resource-wasteful. The protocol refuses the wasted work rather than allowing it. Violation = C-09 (protocol step skipped); recurring violation triggers IC-class entry.
 
 **P28 — Stale Carry Trigger** *(ratified Night · S-060926-02 · June 9, 2026)*
 Any Zone 3 carry item appearing in 5 or more consecutive WGS close notes without documented forward movement, dependency linkage, or explicit deferral rationale with a named reason MUST be addressed via DMAIC decomposition in the next available GOVERNANCE session. “Carry unchanged” is not acceptable after the 5th consecutive appearance. The DMAIC resolution produces either: (a) a named P-IMPROVE entry in REGISTERED.md, (b) a reframe that replaces the carry item with a more accurate one, or (c) an IC-class entry if the root cause reveals a structural governance gap.

@@ -6,7 +6,7 @@
 **Session:** S-061426-01
 **Author:** Unit Zero (Night + Claude)
 **Parent:** None — this IS the seed.
-**Children:** GOVERNANCE.md, SESSION_RITUALS.md, ACAT_SESSION_PROMPT.md, ENNEAGRAM_INTEGRATION_S041126B.md, BENTOV_INTEGRATION_S041126A.md
+**Children:** GOVERNANCE.md, CURRENT.md, SESSION_RITUALS.md, OPERATOR_RUNBOOK.md, ENNEAGRAM_INTEGRATION_S041126B.md, BENTOV_INTEGRATION_S041126A.md
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/PRINCIPLES_SEED_V1_0.md`
 
 > This document is the source of truth for the principles architecture of HumanAIOS.

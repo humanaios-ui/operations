@@ -2,6 +2,8 @@
 """
 Agent 1.2: API Monitoring Bot
 ==============================
+Builder v1.7 compliant · monitoring_tool
+HumanAIOS
 
 Purpose: Daily health checks for critical APIs
 Triggers: Daily at 09:00 UTC
@@ -30,6 +32,7 @@ from typing import Dict, List, Tuple
 
 TOOL_NAME = "api_monitoring_bot_v1"
 TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "monitoring_tool"
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _shared.supabase_client import write_to_pipeline_health

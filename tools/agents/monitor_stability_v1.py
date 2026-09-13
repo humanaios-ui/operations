@@ -2,6 +2,8 @@
 """
 Monitoring Dashboard: Phase 1/2 Stability
 ==========================================
+Builder v1.7 compliant · monitoring_tool
+HumanAIOS
 
 Monitors:
   - GitHub Actions workflow execution status
@@ -21,6 +23,7 @@ from typing import Dict, List, Tuple
 
 TOOL_NAME = "monitor_stability_v1"
 TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "monitoring_tool"
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _shared.supabase_client import get_supabase_client

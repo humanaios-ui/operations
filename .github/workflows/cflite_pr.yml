@@ -31,8 +31,8 @@ jobs:
         with:
           language: python
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          keep-unaffected-fuzz-targets: true
           sanitizer: ${{ matrix.sanitizer }}
-          mode: pr
 
       - name: Run fuzzers (${{ matrix.sanitizer }})
         id: run
@@ -40,6 +40,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fuzz-seconds: 300
-          mode: pr
+          mode: code-change
           sanitizer: ${{ matrix.sanitizer }}
           output-sarif: true

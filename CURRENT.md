@@ -130,7 +130,7 @@ Two-corpus rule: Live Supabase N and HuggingFace N are never summed without an e
 
 6. Phase 1 declaration blockEvery LLM operating in HumanAIOS produces a Phase 1 declaration block at session open and a Phase 3 submission block at session close. Tag boundaries are parser-critical.
 
-The full canonical specifications live in SESSION_RITUALS.md Section C (parser-tag authority) and ACAT_SESSION_PROMPT.md (orchestration). This file does not restate the tags to avoid drift between surfaces. Substrates fetch the parser specs from those files directly.
+The full canonical specifications live in SESSION_RITUALS.md Section C (parser-tag authority) plus the active orchestration surfaces CURRENT.md, GOVERNANCE.md, and OPERATOR_RUNBOOK.md. This file does not restate the tags to avoid drift between surfaces. Substrates fetch the parser specs from those files directly.
 
 The 12-dimension scoring schema as of April 24, 2026:
 
