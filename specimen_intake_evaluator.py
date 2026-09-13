@@ -31,15 +31,57 @@ Changes from v0.1 (each maps to a red-team finding RT-xx in specimen-intake_redt
 
 from __future__ import annotations
 
+import contextlib
+import fcntl
 import hashlib
+import importlib.util
 import json
+import os
 from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+
+
+def _load_nf_ledger_v0_1():
+    """Load tools/nf_ledger_v0_1.py by explicit path rather than sys.path +
+    `import nf_ledger_v0_1` — mutating sys.path here would put tools/ ahead of
+    the repo root for every later import in the process, including a bare
+    `import molt_cycle`, which would then silently resolve to the unrelated
+    tools/molt_cycle.py (see ledgers/NF_EVENT_SCHEMA.md)."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "nf_ledger_v0_1.py")
+    spec = importlib.util.spec_from_file_location("nf_ledger_v0_1", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+nf_ledger_v0_1 = _load_nf_ledger_v0_1()
+
+
+class NFLedgerCorrupt(RuntimeError):
+    """Raised when the existing NF ledger fails hash-chain verification. Never
+    appended to — matches tools/lifecycle_predict_v1_0.py's LedgerCorrupt."""
+
+
+@contextlib.contextmanager
+def _locked_nf_ledger(path: str):
+    """Serializes the read-verify-derive-append critical section in
+    _nf_write_real against a concurrent writer on the same ledger file —
+    same fcntl.flock sidecar-lock pattern as tools/lifecycle_predict_v1_0.py's
+    _locked(). Without this, two evaluators sharing a ledger path could each
+    read the same tail and append colliding seq/prev_hash values."""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    lock_path = path + ".lock"
+    with open(lock_path, "w", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
 
 
 def utcnow() -> datetime:
@@ -298,7 +340,8 @@ class SpecimenIntakeEvaluator:
     PRIOR_ACCEPTANCE = 0.85
     SHRINK = 0.3
 
-    def __init__(self, specimen_id: str, ratifier_public_key: Optional[Ed25519PublicKey] = None):
+    def __init__(self, specimen_id: str, ratifier_public_key: Optional[Ed25519PublicKey] = None,
+                 nf_ledger_path: Optional[str] = None):
         self.specimen_id = specimen_id
         self.ratifier_public_key = ratifier_public_key
         self.cycles: List[IntakeRecord] = []
@@ -306,6 +349,12 @@ class SpecimenIntakeEvaluator:
         self.molt_events: List[Dict] = []
         self.fic_candidates: List[Dict] = []
         self._records_by_cycle: Dict[int, IntakeRecord] = {}
+        # Q-NF-SCHEMA-01: when set, _nf_write() also appends real, hash-chained
+        # TOKEN/PIN (issue) and RESOLVE (resolution) events to this file via
+        # tools/nf_ledger_v0_1.py, in addition to the in-memory self.nf_ledger
+        # this class's own falsifier checks (average_brier, revert_rate) use.
+        # None (default) keeps prior in-memory-only behavior.
+        self.nf_ledger_path = nf_ledger_path
 
     # -- intake ---------------------------------------------------------------
 
@@ -549,6 +598,89 @@ class SpecimenIntakeEvaluator:
                 "actual_value": p.actual_value, "brier_score": p.brier_score, "reverted": p.reverted,
                 "specimen_id": record.specimen_id,
             })
+        if self.nf_ledger_path:
+            self._nf_write_real(record, update=update)
+
+    @staticmethod
+    def _nf_pin_probability(p: MoltPrediction) -> float:
+        """The probability PIN.p should carry for this prediction, matching
+        MoltPrediction.resolve()'s own Brier math exactly (Copilot review,
+        PR #313): for a binary variable, `prediction_value` alone is not the
+        probability resolve() scores against — resolve() confidence-weights
+        it (`p*confidence + (1-p)*(1-confidence)`) before squaring. Using
+        `prediction_value` unweighted would make the ledger's Brier disagree
+        with the evaluator's own for every binary (RQ3-style) prediction.
+        """
+        if p.binary:
+            return p.prediction_value * p.confidence + (1 - p.prediction_value) * (1 - p.confidence)
+        return p.prediction_value
+
+    def _nf_write_real(self, record: IntakeRecord, update: bool) -> None:
+        """Q-NF-SCHEMA-01: append real, hash-chained events to self.nf_ledger_path
+        via tools/nf_ledger_v0_1.py's own append() — TOKEN+PIN at issue time,
+        RESOLVE at resolution time — so a specimen-intake forecast is visible to
+        `nf_ledger_v0_1.py score` and `molt_cycle.py --read-only` like any other
+        prediction on this ledger.
+        """
+        events = []
+        if not update:
+            for p in record.molt_predictions:
+                window_close = (p.predicted_at + timedelta(days=p.measurement_window_days)).date().isoformat()
+                events.append({
+                    # v0.1 TOKEN.date is a calendar deadline (YYYY-MM-DD), not a
+                    # timestamp — the deadline here is when this forecast's own
+                    # measurement window closes, not the (irrelevant) issue time.
+                    "type": "TOKEN", "at": p.predicted_at.isoformat(), "by": record.evaluator,
+                    "token_id": p.prediction_id, "practice": f"specimen-intake:{record.specimen_id}",
+                    "title": p.variable, "date": window_close,
+                    "date_source": "PRACTICE", "state": "DATED", "owner_add": False,
+                })
+                events.append({
+                    "type": "PIN", "at": p.predicted_at.isoformat(), "by": record.evaluator,
+                    "pin_id": f"{p.prediction_id}:{record.evaluator}", "target": p.prediction_id,
+                    "predictor": record.evaluator,
+                    "claim": (f"{p.variable} for {record.specimen_id} cycle {record.cycle_number} "
+                              "resolves inside its declared revert band"),
+                    "p": self._nf_pin_probability(p), "scoreable": True,
+                })
+        else:
+            # v0.1's RESOLVE.source is "the sha or path of the tree read that
+            # grounds this outcome" — a specimen-intake resolution is a
+            # behavioral measurement, not a tree read, so use a real disclosed
+            # verification source when the specimen provided one (RT-08;
+            # SpecimenInput.verification_sources) and fall back to a plain
+            # intake-record label, which is NOT tree-read provenance, when it
+            # didn't. This gap is named in z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md.
+            sources = record.specimen_input.verification_sources
+            source = sources[0] if sources else f"specimen-intake:{record.intake_id}:cycle:{record.cycle_number}"
+            for p in record.molt_predictions:
+                if p.resolved_at is None:
+                    continue
+                events.append({
+                    "type": "RESOLVE", "at": p.resolved_at.isoformat(), "by": record.evaluator,
+                    "token_id": p.prediction_id, "outcome": "NO" if p.reverted else "YES",
+                    "source": source,
+                })
+        if not events:
+            return
+        with _locked_nf_ledger(self.nf_ledger_path):
+            try:
+                existing = nf_ledger_v0_1.read(self.nf_ledger_path)
+            except FileNotFoundError:
+                existing = []
+            if existing:
+                err = nf_ledger_v0_1.verify(existing)
+                if err:
+                    raise NFLedgerCorrupt(f"{self.nf_ledger_path}: {err} — refusing to extend a broken chain")
+            seq = existing[-1]["seq"] if existing else 0
+            prev = existing[-1]["hash"] if existing else "0" * 64
+            for e in events:
+                seq += 1
+                e["seq"] = seq
+            nf_ledger_v0_1.append(self.nf_ledger_path, events, prev)
+            post_err = nf_ledger_v0_1.verify(nf_ledger_v0_1.read(self.nf_ledger_path))
+            if post_err:
+                raise NFLedgerCorrupt(f"{self.nf_ledger_path}: {post_err} — post-write verify failed")
 
     def _molt_event(self, event_type: str, record: IntakeRecord, **extra) -> None:
         prev = self.molt_events[-1]["event_hash"] if self.molt_events else None

@@ -82,6 +82,9 @@ superseded_by: null | "F-XX"
 |F-53                  |Cross-Substrate Verification Confidence Cascade                     |CANDIDATE |2026-06-17|
 |F-54                  |RLHF-Artifact Rejection (universal S-H/T-H self-report gap)          |CANDIDATE |2026-07-01|
 |F-55                  |Calibration Triad (Truth+Service+Humility)                          |CANDIDATE |2026-07-01|
+|F-62                  |Ratification Attention Is Binding Constraint, Oversubscribed         |REGISTERED|2026-09-13|
+|F-63                  |Benefit-Only Queue Cannot Reject Work                                |REGISTERED|2026-09-13|
+|F-64                  |Assurance Accumulating; Evidence Not                                 |REGISTERED|2026-09-13|
 
 -----
 
@@ -3431,6 +3434,31 @@ superseded_by: null
 
 -----
 
+### IC-053 — Q-SI-C1-B3 Global Constant Count as Local Acceptance Gate
+
+```yaml
+---
+id: "IC-053"
+name: "global-count-as-local-gate"
+status: REGISTERED
+class: IC
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P2"]
+related_finding: ["F-62", "F-63", "F-64"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Pattern:** A global figure (total constant count) copied into a local acceptance criterion, making the criterion brittle to unrelated changes. Same shape as maintained-headline class (IC-038, IC-022).
+- **Observation:** `Q-SI-C1-B3` acceptance criterion reads *"`molt_cycle --read-only` reports `constants: 3`"*. This is a count of the whole registry standing in for "the three specimen-intake constants load". Adding four unrelated constants (QUEUE_SCORING_MODE, CONSTRAINT_UNIT, SHADOW_PRICE_MIN_N, UNPRICED_ROW_POLICY) moves the count to 7, and the criterion now reads as failed although nothing about specimen-intake changed.
+- **Correction:** Restate Q-SI-C1-B3 acceptance criterion as *"the three specimen-intake constants are present and load"* with `scope: specimen-intake`, scoped by name rather than by global count. Fix required in PRIORITY_QUEUE.md queue row metadata.
+- **Principle P2 (Document Correction Protocol):** Scoped acceptance criteria, not global counts.
+
+-----
+
 ### IC-041 — Audit False-Pass — FIX-NOT-LANDED CORRECTION
 
 ```
@@ -3843,6 +3871,93 @@ superseded_by: null
 - **Synopsis:** Language–behavior inter-convertibility (proposed Axiom 0, BEHAVIORAL_GRAMMAR_V1.md) holds only up to observational-equivalence classes induced by the probe set. The language→behavior map is non-injective; the grammar individuates subjects up to the quotient, never to the generative mechanism. This is a limitation clause, not a retraction: it states precisely what Axiom 0 licenses.
 - **Downstream action (out of scope for this PR):** amendment text to be drafted against live BEHAVIORAL_GRAMMAR_V1.md and ratified via PR per SR Amendment H. This entry registers the finding; the grammar-file amendment is a separate artifact.
 - **Evidence basis:** Analytical; Part-3 distinguishability formalization (set-theoretic quotient, LTL trace-equivalence, mutual-information bound) with seven-substrate convergence.
+
+-----
+
+### F-62 — Ratification Attention Is the Binding Constraint, and It Is Oversubscribed
+
+```yaml
+---
+id: "F-62"
+name: "rbe-ratification-constraint-oversubscribed"
+status: REGISTERED
+class: F
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P21"]
+substrate: "resource_census_v0_1.py — mechanical obligation enumeration"
+tags: ["resource-based-economics", "constraint", "capacity", "throughput", "governance"]
+related_finding: ["F-63", "F-64"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Every zone's throughput is capacity-constrained by a single Z2 ratification queue with unmeasured service rate. Current backlog: 130 open items across 8 obligation classes, representing ~1,575 RAT-min (≈26 hours) of measured Z2 work against a capacity nobody has declared. The 48-hour decision window in CLAUDE.md is a promise made against an unknown capacity.
+- **Observation:** Registry-candidate 35 · doc-owner-approval 40 · nf-token-date 21 · nf-z2-prior 15 · nf-past-date-resolution 7 · constant-ratification 7 · queue-row-ratification 4 · queue-hash 1. Five are Q-RBE-01's own (four constants and its queue row).
+- **Structural failure:** Utilization is undefined without a declared capacity. The constraint designation moves with measurement; absent measurement, the ordering is opaque and the falsifier unreachable.
+- **Falsifier:** If obligations close over four weeks at a rate implying < 60 RAT-min/week of actual Z2 time, the demand priors are inflated. If a declared capacity puts utilization below 1.0 with the backlog flat or falling, ratification attention is not the constraint.
+- **Z2 decision:** Capacity declared at 600 RAT-min/week (2026-09-13).
+- **Evidence basis:** `outputs/resource_census.json` (obligations registry per class), `tools/resource_census_v0_1.py` (mechanical enumerator, runnable), `CLAUDE.md` (48-hour window promise), `ledgers/RESOURCE_LEDGER.jsonl` (CAP event recorded).
+
+-----
+
+### F-63 — A Benefit-Only Queue Cannot Reject Work
+
+```yaml
+---
+id: "F-63"
+name: "rbe-benefit-only-queue-unbounded"
+status: REGISTERED
+class: F
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P21"]
+substrate: "PRIORITY_QUEUE.md (score formula inspection), resource_census_v0_1.py (demand enumeration)"
+tags: ["resource-based-economics", "queue", "scoring", "cost", "allocation"]
+related_finding: ["F-62", "F-64"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Synopsis:** The incumbent queue formula `score = impact + Σ impact(unblocks)` has no cost term, so no row can ever be too expensive and demand on the constraint has no upper bound. The largest single draw on the constraint (Q-NF-Z2-PINS, 168 RAT-min — more than every other open row combined) is invisible to the ordering under the benefit-only formula.
+- **Observation:** `PRIORITY_QUEUE.md` lists Q-NF-Z2-PINS under *"Hygiene (no score)"* while consuming the vast majority of RAT-min capacity. Without a denominator, the queue cannot reject work or order by yield-per-constraint-minute.
+- **Structural failure:** The allocation rule cannot function without a cost side. A benefit-only formula creates the appearance of ordering while leaving capacity allocation to informal, unmeasured override outside the queue.
+- **Falsifier:** Evidence of a queue row deferred or rejected on cost grounds under the incumbent formula would show the gate already exists informally, making the regime change cosmetic rather than substantive.
+- **Z2 decision:** QUEUE_SCORING_MODE molt ratified to switch to `resource` mode with `UNPRICED_ROW_POLICY` set to `REFUSED_TO_START` (2026-09-13), gating the change on molt_id assignment.
+- **Evidence basis:** `PRIORITY_QUEUE.md` (schema and score formula), `RESOURCE_UNITS.yaml` (ratification hash and demand priors), `priority_queue_engine.py` (mode implementation and dormancy gate).
+
+-----
+
+### F-64 — Assurance Is Accumulating; Evidence Is Not
+
+```yaml
+---
+id: "F-64"
+name: "rbe-assurance-evidence-gap"
+status: REGISTERED
+class: F
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P21"]
+substrate: "resource_census_v0_1.py (stocks enumeration), NF_LEDGER.jsonl (event type analysis)"
+tags: ["resource-based-economics", "evidence", "calibration", "brier", "measurement"]
+related_finding: ["F-62", "F-63"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Synopsis:** The tree holds 94 ratified artifacts (RAT-art stocks) and 165 NF_LEDGER events, but **zero** sourced evidence rows (EVID-row stocks). Every pin is a forecast; none has been resolved against a tree read, so Brier score is undefined and the calibration programme has no input.
+- **Observation:** `stocks.EVID-row = 0`, `stocks.CAL-pt = 0`, `stocks.RAT-art = 94`. NF_LEDGER event types: 106 PIN, 58 TOKEN, 1 OPEN — no RESOLVE of any kind.
+- **Structural failure:** Separating assurance (artifacts, forecasts) from evidence (resolutions, calibration) reveals that the system accumulates prediction density but never closes the measurement loop. A blended "progress" measure would hide this completely.
+- **Falsifier:** Any sourced RESOLVE event in the tree that `resource_census_v0_1.py` fails to count.
+- **Z2 decision:** Finding registered to surface the measurement gap. Resolution awaits the calibration programme's first evidence collection cycle.
+- **Evidence basis:** `outputs/resource_census.json` (stocks section), `ledgers/NF_LEDGER.jsonl` (event type counts), `tools/resource_census_v0_1.py` (mechanical counter, runnable).
 
 -----
 

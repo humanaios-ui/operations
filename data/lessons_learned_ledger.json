@@ -72,6 +72,14 @@
       "constraint": "new_schema_fields_must_not_depend_on_session_memory",
       "rule": "When a new corpus field can be auto-populated from data already present at execution time (an API call parameter, a template render), the ingestion tool must capture it structurally -- never rely on a human or a Claude session remembering to fill it in manually. Where auto-capture is genuinely impossible (ad-hoc, hand-edited sessions), the field must default to an explicit, queryable sentinel value (e.g. 'adhoc_untracked'), never a bare NULL -- per IC-cand-maintained-headline-recurrence, a NULL and a known-unavailable value are indistinguishable until someone goes looking, and by then adoption has already silently failed.",
       "scope_limit": "Applies to any new corpus field proposed alongside a migration; does not apply to fields that are inherently judgment calls requiring a human decision at write time."
+    },
+    {
+      "id": "SMAG-FEEDBACK-CALIBRATION-STARVED",
+      "discovered_in": "smag_feedback_v1_0, automated FEED BACK run",
+      "constraint": "gap_driver_claims_require_a_calibration_floor",
+      "rule": "Only 2 of the SMAG ledger's rows carry a pinned `smag_p:` prediction (below the 10-row floor); 103 are VOID. A 'dominant failing check' claim computed over so few pinned rows would be noise dressed as calibration signal \u2014 do not promote a gap-driver finding to a hard gate or a REGISTERED claim until calibration_rows clears the floor.",
+      "scope_limit": "Resolves once PR authors actually pin `smag_p:` (see .github/PULL_REQUEST_TEMPLATE.md) at a rate that clears the floor within a rolling window; re-run this tool to check.",
+      "smag_generated": true
     }
   ]
 }

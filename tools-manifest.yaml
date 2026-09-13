@@ -14,7 +14,7 @@
 #   matching the document-control rule in document-registry.yaml.
 ---
 version: 1
-generated_by: tool_manifest_scanner v1.0.0
+generated_by: tool_manifest_scanner v1.1.0
 id_scheme: HAIOS-TOOL-<nnn> (tools) · HAIOS-MCP-<nnn> (MCP servers)
 scan_roots:
 - tools
@@ -1116,12 +1116,17 @@ tools:
   version: unversioned
   category: governance_tool
   zone: 1
-  status: draft
+  status: archived
   interface: cli
   lang: python
   smoke_test: false
   builder_markers: false
   purpose: molt_cycle.py — READ + PROPOSE phases only (Tier 0). Never applies.
+  missing_from_tree: true
+  notes: Renamed to tools/molt_cycle_tier0_v0_1.py (HAIOS-TOOL-158) to remove a naming collision with
+    the canonical root /molt_cycle.py — see Q-NF-ADAPTER-01 IC candidate and that file's own docstring.
+    A path change is a new tool per this manifest's own rule; this entry is retired explicitly rather
+    than left dangling.
 - tool_id: HAIOS-TOOL-091
   name: molting_protocol_diff
   path: tools/molting_protocol_diff_v1_0.py
@@ -1787,7 +1792,7 @@ tools:
 - tool_id: HAIOS-TOOL-148
   name: tool_manifest_scanner
   path: .tool-control/scan.py
-  version: 1.0.0
+  version: 1.1.0
   category: infrastructure_tool
   zone: 1
   status: draft
@@ -1799,7 +1804,7 @@ tools:
 - tool_id: HAIOS-TOOL-149
   name: tool_control_selftest
   path: .tool-control/selftest.py
-  version: 1.0.0
+  version: 1.1.0
   category: validation_tool
   zone: 1
   status: draft
@@ -1811,7 +1816,7 @@ tools:
 - tool_id: HAIOS-TOOL-150
   name: tool_manifest_validator
   path: .tool-control/validate.py
-  version: 1.0.0
+  version: 1.1.0
   category: validation_tool
   zone: 1
   status: draft
@@ -1847,7 +1852,7 @@ tools:
 - tool_id: HAIOS-TOOL-153
   name: z1_ratify
   path: .z1-control/ratify.py
-  version: 1.0.0
+  version: 1.1.0
   category: governance_tool
   zone: 2
   status: draft
@@ -1856,11 +1861,10 @@ tools:
   smoke_test: true
   builder_markers: false
   purpose: Record a Z2 decision on a candidate block. Run by Z2, not by Z1.
-  notes: 'Declares TOOL_ZONE = 2 deliberately — it records a Z2 decision and is run by the ratifier, so
-    the claim is almost certainly correct. But correct is not ratified and Z1 cannot sign for Z2. Arrived
-    with PR #308; surfaced when SCAN_ROOTS was widened to cover .z1-control. Resolve by recording a `ratified_by`,
-    or by correcting the declaration if Zone 1 is intended.'
-  pending_ratification: true
+  notes: Zone 2 ratified by Night 2026-09-13 — z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md. Records
+    a Z2 decision and is run by the ratifier.
+  ratified_by: z1-ratify-zone2-approved-20260913
+  ratification_ruling: z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md
 - tool_id: HAIOS-TOOL-154
   name: z1_inbox_renderer
   path: .z1-control/render.py

@@ -42,7 +42,7 @@ except ImportError:  # pragma: no cover - CI installs it
     sys.exit(2)
 
 TOOL_NAME = "tool_manifest_scanner"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 TOOL_CATEGORY = "infrastructure_tool"
 TOOL_ZONE = 1  # 1=execute, 2=ratify, 3=night
 
@@ -117,6 +117,7 @@ CURATED_FIELDS = (
     "approved_by",
     "approved_date",
     "ratified_by",
+    "ratification_ruling",
     "pending_ratification",
 )
 

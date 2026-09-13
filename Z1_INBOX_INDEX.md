@@ -20,6 +20,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-13 | **Q-PHASE1-2-ROLLOUT-01** | Framework Mapping Phase 1–3 rollout plan | `z1-inbox/2026-09-11/PHASE_1_2_ROLLOUT_PLAN.md` |
 | 2026-09-14 | **Q-ADVREVIEW-CALIB-01** | Adversarial review as a PR-gated calibration node | `z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md` |
 | 2026-09-15 | **Q-DOCREVIEW-01** | The 39 overdue document reviews — lifecycle, not re-dating | `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md` |
+| 2026-09-15 | **Q-DOCREVIEW-02** | Findings from the first real document review pass (11 reviewed, 28 unreachable) | `z1-inbox/2026-09-13/Q-DOCREVIEW-02.md` |
 | 2026-09-15 | **Q-GOVGATE-01** | The Z2 gate never ran; z1-inbox conversion mechanism | `z1-inbox/2026-09-13/Q-GOVGATE-01.md` |
 | 2026-09-15 | **Q-RFM-01** | REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner | `z1-inbox/2026-09-13/Q-RFM-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-01** | Tool manifest & document-control registry | `z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md` |
@@ -88,6 +89,16 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] `ratifiers: [Night]` is the correct and complete list — it is now pinned in `KNOWN_RATIFIERS` in `.z1-control/validate.py`, so changing it is a code review.
 - [ ] **Item 7 (rank first): no path in this repo has a valid code owner.** Verified, not suspected — `@carly-r-anderson` and `@sab-backup` are not GitHub logins, and the repo has one collaborator. The #306 mitigation for this exact problem is itself inert. Every no-self-grant rule in the system — including this PR's — is advisory in practice until a Zone 3 fix lands. Decide: real logins as collaborators, or `@humanaios-ui` in the file.
 
+### Q-NF-ADAPTER-01 (5)
+
+`z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md`
+
+- [ ] **This block is accepted as `Q-NF-SCHEMA-01`'s closure instead of the 2026-09-10 `Q-NF-SCHEMA-01` candidate's fuller rewrite** — the two propose different implementations of the same queue row; ratifying this one should also resolve (accept/reject/defer) the older one rather than leaving both open
+- [ ] `ledgers/NF_EVENT_SCHEMA.md` is accepted as the operative spec for this row's scope (incumbent format, no rewrite of the 165 events on main)
+- [ ] The specimen-intake `reverted → NO/YES` mapping is accepted as adequate for now, pending a real predictor-Brier field if that gap matters later
+- [ ] The `tools/molt_cycle.py` duplicate is routed (delete, rename, or merge) — not decided here
+- [ ] `tools/nf_ledger_cli_v1_0.py` / `prs_run.py` reconciliation remains open, unaffected by this row closing
+
 ### Q-NF-SCHEMA-01 (6)
 
 `z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md`
@@ -148,7 +159,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (13)
+## Records (15)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -167,6 +178,8 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-09/IC-030-REPIN-01.md` | Q-IC030-REPIN-01 work order (Z1 self-assigned; no Z2 decision requested) |
 | `z1-inbox/2026-09-10/HANDOFF.md` | Handoff — 2026-09-10 |
 | `z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md` | Q-IC030-REPIN-01 result — repin + manifest reconciliation (COMPLETE, 3/3) |
+| `z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md` | Z2 ruling — RESOURCE_UNITS.yaml header ratified; hash remains unsigned by Z2 |
+| `z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md` | Z2 ruling — .z1-control/ratify.py Zone 2 ratified (Night, 2026-09-13) |
 
 ---
 
