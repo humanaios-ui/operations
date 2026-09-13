@@ -142,23 +142,35 @@ class LedgerLoadError(RuntimeError):
     """Raised when a ledger fails verification or cannot be read."""
 
 
+def _is_valid_probability(p: object) -> bool:
+    """A real number in [0,1] — bool is deliberately excluded even though
+    it is technically an int subclass in Python (True/False would
+    otherwise silently pass as 1.0/0.0, a JSON boolean that is not a
+    numeric probability under this ledger's contract)."""
+    return isinstance(p, (int, float)) and not isinstance(p, bool) and 0.0 <= p <= 1.0
+
+
 def _validate_raw_rows(rows: List[dict], ledger_path: Path) -> None:
     """Value-level checks engine.verify() does not perform — it only
     validates the hash/sequence chain, not payload values. A hash-valid
-    PIN can still carry a non-numeric or out-of-range "p", or be missing
-    "predictor"; a hash-valid RESOLVE can carry an outcome that is neither
-    "YES" nor "NO" (pin_outcome() silently treats anything but "YES" as a
-    miss, so this cannot be caught after the fact — it must be checked on
-    the raw row before project()/pin_outcome() ever see it). Any of these
-    would otherwise either crash score_batch() with a bad type, corrupt
-    attribution under a fabricated "unknown" predictor, or silently
-    misscore a RESOLVE whose outcome was never actually "NO". Raising here
+    PIN can still carry a non-numeric or out-of-range "p" (including a
+    JSON boolean), be missing "predictor" or "at" (the fallback batch
+    identity when no episode_id is present — see _batch_key()); a
+    hash-valid RESOLVE can carry an outcome that is neither "YES" nor
+    "NO" (pin_outcome() silently treats anything but "YES" as a miss, so
+    this cannot be caught after the fact — it must be checked on the raw
+    row before project()/pin_outcome() ever see it), or a blank "source",
+    which every writer in this codebase (and nf_ledger_v0_1.cmd_resolve
+    itself) refuses to write. Any of these would otherwise either crash
+    score_batch() with a bad type, corrupt attribution under a fabricated
+    "unknown" predictor or a shared empty-string batch key, or silently
+    accept an unprovenanced resolution as ground truth. Raising here
     reports the whole ledger as a load error instead."""
     for row in rows:
         row_type = row.get("type")
         if row_type == "PIN":
             p = row.get("p")
-            if p is not None and not (isinstance(p, (int, float)) and 0.0 <= p <= 1.0):
+            if p is not None and not _is_valid_probability(p):
                 raise LedgerLoadError(
                     f"{ledger_path}: PIN {row.get('pin_id', '?')!r} has invalid p={p!r} "
                     f"(must be null or a number in [0,1])"
@@ -168,12 +180,23 @@ def _validate_raw_rows(rows: List[dict], ledger_path: Path) -> None:
                 raise LedgerLoadError(
                     f"{ledger_path}: PIN {row.get('pin_id', '?')!r} has no valid predictor"
                 )
+            at = row.get("at")
+            if not isinstance(at, str) or not at:
+                raise LedgerLoadError(
+                    f"{ledger_path}: PIN {row.get('pin_id', '?')!r} has no valid 'at' timestamp"
+                )
         elif row_type == "RESOLVE":
             outcome = row.get("outcome")
             if outcome not in ("YES", "NO"):
                 raise LedgerLoadError(
                     f"{ledger_path}: RESOLVE for {row.get('token_id', '?')!r} has invalid "
                     f"outcome={outcome!r} (must be 'YES' or 'NO')"
+                )
+            source = row.get("source")
+            if not isinstance(source, str) or not source.strip():
+                raise LedgerLoadError(
+                    f"{ledger_path}: RESOLVE for {row.get('token_id', '?')!r} has no valid "
+                    f"'source' provenance"
                 )
 
 
@@ -353,8 +376,8 @@ def cmd_report(args: argparse.Namespace) -> int:
         for predictor, agg in sorted(aggregates.items()):
             print(f"{predictor}")
             print(f"  batches={agg['batches']}  resolved_pins={agg['resolved_pins']}")
-            print(f"  truth (mean over-claim, +=over-confident, n={agg['resolved_pins']}): "
-                 f"{agg['truth']['value']:+.3f}")
+            print(f"  truth (equal-weighted mean over-claim across {agg['batches']} batch(es), "
+                 f"+=over-confident): {agg['truth']['value']:+.3f}")
             if agg["humility"]["status"] == "scored":
                 print(f"  humility (mean p on missed, lower=better, read beside truth above): "
                      f"{agg['humility']['value']:.3f}  "

@@ -401,3 +401,73 @@ def test_resolve_with_invalid_outcome_refused(tmp_path):
         raise AssertionError("expected LedgerLoadError")
     except da.LedgerLoadError:
         pass
+
+
+def test_resolve_with_blank_source_refused(tmp_path):
+    """Every writer in this codebase (and nf_ledger_v0_1.cmd_resolve
+    itself) refuses a blank --source; a hash-valid RESOLVE that somehow
+    carries one anyway must not be accepted here as ground truth."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    events[2]["source"] = "   "
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_pin_missing_at_refused(tmp_path):
+    """'at' is the fallback batch identity when no episode_id is present
+    (see _batch_key()). A PIN missing it would otherwise be normalized to
+    at='' and silently merged with every other missing-'at' PIN across
+    unrelated declaring acts."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    del events[1]["at"]
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_pin_with_boolean_probability_refused(tmp_path):
+    """JSON true/false decode as Python bool, which is a subclass of int
+    — p=True would otherwise silently pass as a valid probability of 1.0
+    without this exclusion."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    events[1]["p"] = True
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_aggregate_truth_label_names_batches_not_pins(tmp_path, capsys):
+    """The aggregate Truth value is an equal-weighted mean over batches,
+    not a pin-weighted mean over resolved_pins — the human-readable label
+    must say so, not print a pin count next to a batch-weighted number."""
+    ledger = tmp_path / "l.jsonl"
+    events = []
+    seq = 1
+    for i in range(5):
+        events += _token_pin_resolve(seq, "P", "2026-09-13T00:00:00+00:00", 0.9, "NO", f"a-{i}")
+        seq += 3
+    events += _token_pin_resolve(seq, "P", "2026-09-14T00:00:00+00:00", 0.1, "YES", "b")
+    engine.append(str(ledger), events, "0" * 64)
+
+    parser = da.build_parser()
+    args = parser.parse_args(["report", "--ledger", str(ledger)])
+    da.cmd_report(args)
+    out = capsys.readouterr().out
+    assert "batch(es)" in out
+    assert "n=6" not in out
