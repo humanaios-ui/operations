@@ -27,10 +27,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 137
+  tools: 139
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 118
+  builder_markers_present: 120
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -1745,6 +1745,30 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: copilot_acat_scanner_v1_0.py
+- tool_id: HAIOS-TOOL-145
+  name: resource_census
+  path: tools/resource_census_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: resource_census_v0_1.py — measure the resource state of the operations tree.
+- tool_id: HAIOS-TOOL-146
+  name: resource_ledger
+  path: tools/resource_ledger_v0_1.py
+  version: 0.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims,
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

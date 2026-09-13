@@ -1,0 +1,176 @@
+{
+  "version": "resource_census_v0.1.0",
+  "generated_at": "2026-09-13T15:17:43+00:00",
+  "units_registry": {
+    "path": "RESOURCE_UNITS.yaml",
+    "version": "0.1",
+    "status": "CANDIDATE",
+    "ratification_hash": null
+  },
+  "constraint": {
+    "unit": "RAT-min",
+    "capacity_per_week": null,
+    "capacity_basis": "UNMEASURED",
+    "utilization": null,
+    "weeks_to_clear": null,
+    "note": "No Z2 capacity declaration. Utilization and clearance time are undefined; the sensitivity table below is the only statement this census can make about them."
+  },
+  "obligations": {
+    "open_items": 130,
+    "debt_rat_min": 1575,
+    "debt_basis": "PRIOR",
+    "unpriced_classes": [],
+    "by_class": {
+      "registry_candidate": {
+        "count": 35,
+        "basis": "MEASURED",
+        "source": "REGISTERED.md front-matter status fields",
+        "price_rat_min": 12,
+        "price_basis": "PRIOR",
+        "load_rat_min": 420
+      },
+      "nf_token_date": {
+        "count": 21,
+        "basis": "MEASURED",
+        "source": "ledgers/NF_LEDGER.jsonl (tokens in PENDING_Z2_DATE)",
+        "price_rat_min": 3,
+        "price_basis": "PRIOR",
+        "load_rat_min": 63
+      },
+      "nf_z2_prior": {
+        "count": 15,
+        "basis": "MEASURED",
+        "source": "ledgers/NF_LEDGER.jsonl (PIN predictor=Z2, p=null)",
+        "price_rat_min": 5,
+        "price_basis": "PRIOR",
+        "load_rat_min": 75
+      },
+      "nf_past_date_resolution": {
+        "count": 7,
+        "basis": "MEASURED",
+        "source": "ledgers/NF_LEDGER.jsonl (DATED, date < 2026-09-13, unresolved)",
+        "price_rat_min": 10,
+        "price_basis": "PRIOR",
+        "load_rat_min": 70
+      },
+      "constant_ratification": {
+        "count": 7,
+        "basis": "MEASURED",
+        "source": "constants.json (molt_id == null)",
+        "price_rat_min": 15,
+        "price_basis": "PRIOR",
+        "load_rat_min": 105
+      },
+      "queue_row_ratification": {
+        "count": 4,
+        "basis": "MEASURED",
+        "source": "PRIORITY_QUEUE.md (row heading marked BLOCKED)",
+        "price_rat_min": 8,
+        "price_basis": "PRIOR",
+        "load_rat_min": 32
+      },
+      "queue_hash": {
+        "count": 1,
+        "basis": "MEASURED",
+        "source": "PRIORITY_QUEUE.md (queue metadata ratification_hash)",
+        "price_rat_min": 10,
+        "price_basis": "PRIOR",
+        "load_rat_min": 10
+      },
+      "doc_owner_approval": {
+        "count": 40,
+        "basis": "MEASURED",
+        "source": "document-registry.yaml (status draft|review)",
+        "price_rat_min": 20,
+        "price_basis": "PRIOR",
+        "load_rat_min": 800
+      }
+    }
+  },
+  "clearance_sensitivity_weeks": {
+    "30": 52.5,
+    "60": 26.25,
+    "120": 13.12,
+    "240": 6.56,
+    "480": 3.28
+  },
+  "stocks": {
+    "EVID-row": {
+      "count": 0,
+      "basis": "MEASURED",
+      "source": "ledgers/NF_LEDGER.jsonl (RESOLVE events carrying a source)"
+    },
+    "CAL-pt": {
+      "count": 0,
+      "basis": "MEASURED",
+      "source": "ledgers/NF_LEDGER.jsonl (pins resolvable to 1.0/0.0)"
+    },
+    "RAT-art": {
+      "count": 94,
+      "basis": "MEASURED",
+      "source": "REGISTERED.md (REGISTERED/ACTIVE/CONFIRMED) + constants.json (molt_id non-null)"
+    }
+  },
+  "liabilities": {
+    "OBL-open": {
+      "count": 130,
+      "basis": "MEASURED",
+      "source": "sum of obligation classes"
+    },
+    "GAP-row": {
+      "count": 1,
+      "basis": "MEASURED",
+      "source": "PRIORITY_QUEUE.md (RECEIPT-GAP mentions)",
+      "note": "textual mention count, not a reconciliation run"
+    },
+    "STALE-day": {
+      "count": null,
+      "basis": "UNMEASURED",
+      "source": "constants.json (ratified_at)",
+      "note": "7 of 7 constants have no ratified_at timestamp; decay from a ratification that never happened is undefined, not zero"
+    }
+  },
+  "input_units": {
+    "Z1-ktok": {
+      "capacity": 100,
+      "capacity_unit": "per session",
+      "capacity_basis": "DECLARED",
+      "demand": null,
+      "utilization": null,
+      "source": "behavior_spec.json caps.token_budget_per_session"
+    },
+    "Z3-hr": {
+      "capacity": null,
+      "capacity_basis": "UNMEASURED",
+      "demand": null,
+      "utilization": null,
+      "source": "ZONE_REGISTRY.md \u2014 most executor seats TBD"
+    },
+    "CI-min": {
+      "capacity": null,
+      "capacity_basis": "UNMEASURED",
+      "demand": null,
+      "utilization": null,
+      "source": "GitHub Actions billing (not read into tree)"
+    },
+    "RUN-day": {
+      "capacity": null,
+      "capacity_basis": "UNMEASURED",
+      "demand": null,
+      "utilization": null,
+      "source": "Class 1 live state (WGS) \u2014 deliberately not restated in-tree"
+    },
+    "SPEC-hr": {
+      "capacity": null,
+      "capacity_basis": "UNMEASURED",
+      "demand": null,
+      "utilization": null,
+      "source": "specimen-intake cycles; private register off-tree"
+    }
+  },
+  "yield_density": {
+    "value": null,
+    "basis": "UNMEASURED",
+    "note": "Yield per constraint-minute needs at least one SPEND row in ledgers/RESOURCE_LEDGER.jsonl. None exist at census time: nothing has been measured in RAT-min yet, only imputed from priors."
+  }
+}

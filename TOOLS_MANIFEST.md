@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**137 registered tools** · 2 MCP servers · 0 excluded · 118 carrying Builder v1.7 markers
+**139 registered tools** · 2 MCP servers · 0 excluded · 120 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 137 |
-| — status `draft` | 136 |
+| Registered tools | 139 |
+| — status `draft` | 138 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 118 |
+| Builder v1.7 markers present | 120 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -105,7 +105,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-132 | tier1_principles | `tools/tier1_principles.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — HumanAIOS Tier 1 Principle Library |
 | HAIOS-TOOL-133 | tier1_principles_stub | `tools/tier1_principles_stub.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — stub for smoke test execution. |
 
-## Diagnostics — `diagnostic_tool` (13)
+## Diagnostics — `diagnostic_tool` (14)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -122,13 +122,15 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-109 | repo_health | `tools/repo_health.py` | 1.0.0 | 1 | draft | — | repo_health.py — a basic, offline, deterministic self-diagnostic for a HumanAIOS repo. |
 | HAIOS-TOOL-138 | tool_trace_reader | `tools/tool_trace_reader_v1_0.py` | 1.0.0 | 1 | draft | — | tool_trace_reader_v1_0.py |
 | HAIOS-TOOL-142 | z2_queue | `tools/z2_queue_v1_0.py` | 1.1.0 | 1 | draft | — | Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first, flags ≥3 sessions unresolved. |
+| HAIOS-TOOL-145 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
 
-## Governance — `governance_tool` (2)
+## Governance — `governance_tool` (3)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
 | HAIOS-TOOL-090 | molt_cycle | `tools/molt_cycle.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | molt_cycle.py — READ + PROPOSE phases only (Tier 0). Never applies. |
+| HAIOS-TOOL-146 | resource_ledger | `tools/resource_ledger_v0_1.py` | 0.1.0 | 1 | draft | — | resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims, |
 
 ## Infrastructure — `infrastructure_tool` (17)
 
@@ -269,8 +271,8 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 11 |
 | `dependency` | Imported by other tools; not invoked directly. | 5 |
-| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 13 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 2 |
+| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 14 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 3 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 17 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 3 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 6 |

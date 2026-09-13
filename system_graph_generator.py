@@ -487,6 +487,49 @@ class SystemGraphGenerator:
             phase='M1-M15 (Phase 3 deployment)',
         ))
 
+        # RESOURCE SUBGRAPH (Q-RBE-01) — CANDIDATE until Z2 ratifies
+        # RESOURCE_UNITS.yaml. The economics side of the books: NF scores
+        # predictions, RL scores consumption.
+        self.add_node(Node(
+            id='RU',
+            name='Resource Units',
+            type=NodeType.LEDGER.value,
+            status=NodeStatus.LAID.value,
+            zone='Z2',
+            description=('Canonical unit registry: dimension, kind, sign, conservation, instrument, '
+                         'substitutes, falsifier per unit. No numeraire; cross-dimension conversion '
+                         'only via a measured PRICE event'),
+            implementation='RESOURCE_UNITS.yaml',
+            tests=0,
+            phase='Q-RBE-01 (candidate)',
+        ))
+
+        self.add_node(Node(
+            id='RL',
+            name='Resource Ledger',
+            type=NodeType.LEDGER.value,
+            status=NodeStatus.LAID.value,
+            zone='code',
+            description=('Append-only, hash-chained CLAIM / SPEND / YIELD / CAP / PRICE / WASTE / CLOSE '
+                         'events; yield density per constraint unit'),
+            implementation='resource_ledger_v0_1.py, ledgers/RESOURCE_LEDGER.jsonl',
+            tests=0,
+            phase='Q-RBE-01 (candidate)',
+        ))
+
+        self.add_node(Node(
+            id='RCEN',
+            name='Resource Census',
+            type=NodeType.PROCESS.value,
+            status=NodeStatus.OPERATED.value,
+            zone='Z1',
+            description=('Mechanical count of open obligations, stocks and liabilities against the '
+                         'binding constraint; writes outputs/resource_census.json'),
+            implementation='resource_census_v0_1.py',
+            tests=0,
+            phase='Q-RBE-01 (candidate)',
+        ))
+
         # EDGES: Data and Control Flow
         edges = [
             # Intake → Runs
@@ -574,6 +617,17 @@ class SystemGraphGenerator:
 
             # Merkle → Anchor
             ('MK', 'OTS', EdgeType.DATA_FLOW.value, 'root', ''),
+
+            # Resource subgraph (Q-RBE-01)
+            ('RU', 'RL', EdgeType.DATA_FLOW.value, 'registered units; unknown unit refused', ''),
+            ('RU', 'RCEN', EdgeType.DATA_FLOW.value, 'demand priors, constraint designation', ''),
+            ('RCEN', 'RL', EdgeType.DATA_FLOW.value, 'obligation counts priced in the constraint unit', ''),
+            ('RCEN', 'Q', EdgeType.CALLOUT.value, 'constraint backlog / oversubscription', ''),
+            ('RL', 'Q', EdgeType.DATA_FLOW.value, 'cost vectors, measured prices, yield density', ''),
+            ('Q', 'RL', EdgeType.DATA_FLOW.value, 'CLAIM per work order', ''),
+            ('Z2', 'RL', EdgeType.DATA_FLOW.value, 'RAT-min SPEND; capacity declaration (hashed)', ''),
+            ('RL', 'MOLT', EdgeType.DATA_FLOW.value, 'density trend vs constraint constants', ''),
+            ('RCEN', 'FS', EdgeType.CALLOUT.value, 'F-RBE candidates', ''),
         ]
 
         for source, target, edge_type, label, desc in edges:

@@ -117,6 +117,40 @@ Score = Impact + Σ (Impact of items this unblocks)
 
 ---
 
+### Q-RBE-01 ◆ PROPOSED (awaiting Z2)
+
+**Title:** Resource-based operations v0.1 — unit registry, resource ledger, census, and a priced READY gate
+
+| field | value |
+|---|---|
+| **status** | PROPOSED — Z1 built; every artifact is inert until Z2 signs |
+| **score** | 7 |
+| **impact** | 3 |
+| **unblock_impact_sum** | 4 |
+| **cost** | `RAT-min=20 · Z1-ktok=80 · Z3-hr=0` (budget is a PRIOR; claimed in `ledgers/RESOURCE_LEDGER.jsonl`) |
+| **band** | B (draws on the constraint) |
+| **density** | 0.35 score per RAT-min |
+| **session_type** | web |
+| **tool_zone** | 1 build · 2 ratify |
+
+**Unblocks:**
+- A priced queue: no row can be scheduled without declaring its draw on the constraint — impact 2
+- Q-NF-Z2-PINS decomposition (168 RAT-min in one unschedulable lump → four priced sub-orders) — impact 2
+
+**Provenance (operated 2026-09-13, `main@1e1b518`):** `resource_census_v0_1.py` counts **130** open items requiring a Z2 act, ≈**1575 RAT-min** against an undeclared capacity; `EVID-row = 0` and `CAL-pt = 0` against 94 ratified artifacts and 165 NF_LEDGER events.
+
+**Acceptance Criteria:**
+1. `RESOURCE_UNITS.yaml` carries a Z2 `ratification_hash` (or Z2's edits)
+2. Z2 declares a RAT-min capacity: `resource_ledger_v0_1.py cap RESOURCE_LEDGER.jsonl RAT-min <n> --by Z2 --hash <h>` — without it every utilization figure in the regime stays undefined
+3. `QUEUE_SCORING_MODE` and `UNPRICED_ROW_POLICY` carry molt_ids, or are rejected
+4. Test: `PriorityQueueEngine.from_constants()` returns `mode="resource"` only after (3); `test_resource_economics.py` passes
+
+**Falsifier:** if 90 days after ratification `ledgers/RESOURCE_LEDGER.jsonl` holds no SPEND row and no capacity declaration, the regime is inert and should be retired from the tree rather than left as decoration. Row-level falsifier for the scoring change: if rows refused as UNPRICED outnumber rows scheduled in the first window, the gate blocks work instead of ordering it and the molt reverts.
+
+**Reads:** `docs/RESOURCE_BASED_ECONOMICS.md` · `z1-inbox/2026-09-13/Q-RBE-01.md` (candidate block, incl. F-RBE-01/02/03)
+
+---
+
 ## Blocked / In Review
 
 ### Q-SI-C1 ◆ BLOCKED — specimen-intake Cycle 1 (first work week 2026-09-13 → 19)
