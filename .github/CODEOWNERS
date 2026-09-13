@@ -1,45 +1,72 @@
 # Governance CODEOWNERS — Z2 Authority Review Required
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# SELF-REVIEW PLACEHOLDER — this file does not currently provide independent
+# review, and says so rather than implying otherwise.
+#
+# @humanaios-ui is the repository owner and the author of nearly every pull
+# request here. Naming it as the code owner makes these rules VALID (GitHub
+# ignores an owner without write access, and the previous owners —
+# @carly-r-anderson and @sab-backup — are not GitHub accounts and were not
+# collaborators, so every rule in this file was inert). It does not make them
+# EFFECTIVE: a required review that the PR author satisfies is a record, not a
+# second pair of eyes.
+#
+# This is deliberate and temporary. The placeholder stands until a community
+# reviewer completes a review and is added as a collaborator, at which point
+# their handle joins the lines below and this notice comes out.
+#
+# Verified 2026-09-13 (Q-GOVGATE-01, registrable item 5):
+#   - `carly-r-anderson in:login` -> 0 results; `sab-backup in:login` -> 0
+#   - instrument validated: `humanaios-ui in:login` -> 1 result
+#   - repository collaborators: exactly one, humanaios-ui (admin)
+#
+# The root /CODEOWNERS is shadowed by this file and has never been in force.
+# Its @humanaios-ui/<team> owners require an organization; this is a personal
+# account, so those teams cannot exist.
+#
+# CODEOWNERS alone enforces nothing: branch protection must also have
+# "Require review from Code Owners" enabled.
+# ─────────────────────────────────────────────────────────────────────────────
 
 # All governance files require Z2 Authority review + Admiral approval
-GOVERNANCE_RATIFICATIONS_REGISTRY.yaml @carly-r-anderson @sab-backup
-AUTHORITY_ASSIGNMENTS.yaml @carly-r-anderson @sab-backup
-CONTROLLED_DOCUMENTS.md @carly-r-anderson @sab-backup
-GOVERNANCE_PR_TEMPLATE.md @carly-r-anderson @sab-backup
-GOVERNANCE_PR_WORKFLOW_SPEC.md @carly-r-anderson @sab-backup
-GOVERNANCE_CHANGE_PROCEDURES.md @carly-r-anderson @sab-backup
-GOVERNANCE_UNIFICATION_PROPOSAL.md @carly-r-anderson @sab-backup
-GOVERNANCE_EXECUTION_PLAN.md @carly-r-anderson @sab-backup
-GOVERNANCE_CIRCULATION_LOG.md @carly-r-anderson @sab-backup
-AUTHORITY_COLLECTION_FORM.md @carly-r-anderson @sab-backup
+GOVERNANCE_RATIFICATIONS_REGISTRY.yaml @humanaios-ui
+AUTHORITY_ASSIGNMENTS.yaml @humanaios-ui
+CONTROLLED_DOCUMENTS.md @humanaios-ui
+GOVERNANCE_PR_TEMPLATE.md @humanaios-ui
+GOVERNANCE_PR_WORKFLOW_SPEC.md @humanaios-ui
+GOVERNANCE_CHANGE_PROCEDURES.md @humanaios-ui
+GOVERNANCE_UNIFICATION_PROPOSAL.md @humanaios-ui
+GOVERNANCE_EXECUTION_PLAN.md @humanaios-ui
+GOVERNANCE_CIRCULATION_LOG.md @humanaios-ui
+AUTHORITY_COLLECTION_FORM.md @humanaios-ui
 
 # Operational governance docs
-MOLT_STATE.md @carly-r-anderson @sab-backup
-SYSTEM_HEALTH.md @carly-r-anderson @sab-backup
-RECURSIVE_IMPROVEMENT_SEED.md @carly-r-anderson @sab-backup
-SESSION_RITUALS.md @carly-r-anderson @sab-backup
+MOLT_STATE.md @humanaios-ui
+SYSTEM_HEALTH.md @humanaios-ui
+RECURSIVE_IMPROVEMENT_SEED.md @humanaios-ui
+SESSION_RITUALS.md @humanaios-ui
 
 # Control systems — document registry and tool manifest.
-# NOTE: GitHub honours THIS file over the root CODEOWNERS, so the control-surface
-# rules are repeated here with owners that exist. The root CODEOWNERS assigns the
-# same paths to @humanaios-ui/doc-control; that takes effect only if this file is
-# removed or those teams are created.
-document-registry.yaml @carly-r-anderson @sab-backup
-CONTROLLED_DOCUMENTS.md @carly-r-anderson @sab-backup
-.doc-control/ @carly-r-anderson @sab-backup
-tools-manifest.yaml @carly-r-anderson @sab-backup
-TOOLS_MANIFEST.md @carly-r-anderson @sab-backup
-.tool-control/ @carly-r-anderson @sab-backup
-.mcp.json @carly-r-anderson @sab-backup
+# The root CODEOWNERS assigns these same paths to @humanaios-ui/doc-control,
+# which is shadowed by this file and would need an organization to exist.
+document-registry.yaml @humanaios-ui
+CONTROLLED_DOCUMENTS.md @humanaios-ui
+.doc-control/ @humanaios-ui
+tools-manifest.yaml @humanaios-ui
+TOOLS_MANIFEST.md @humanaios-ui
+.tool-control/ @humanaios-ui
+.mcp.json @humanaios-ui
 
 # Workflows require Admiral review (security-sensitive)
-.github/workflows/mesh-sync-batch.yml @carly-r-anderson
-.github/workflows/divergence-detect.yml @carly-r-anderson
-.github/workflows/document-control.yml @carly-r-anderson @sab-backup
-.github/workflows/tool-manifest.yml @carly-r-anderson @sab-backup
+.github/workflows/mesh-sync-batch.yml @humanaios-ui
+.github/workflows/divergence-detect.yml @humanaios-ui
+.github/workflows/document-control.yml @humanaios-ui
+.github/workflows/tool-manifest.yml @humanaios-ui
 
 # Phase 1-3 documentation
-PHASE_1_COLLECTION_STATUS.md @carly-r-anderson
-ADMIRAL_AUTHORITY_CONFIRMATION.md @carly-r-anderson
+PHASE_1_COLLECTION_STATUS.md @humanaios-ui
+ADMIRAL_AUTHORITY_CONFIRMATION.md @humanaios-ui
 
 # Default for all other files in operations repo
-* @carly-r-anderson @sab-backup
+* @humanaios-ui
