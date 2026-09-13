@@ -170,13 +170,22 @@ than silently downgrade a declaration Z1 has no authority to change, or invent a
 ratification, it carries `pending_ratification: true`: it stays visible as an
 open Z2 item in `TOOLS_MANIFEST.md` and in every CI run.
 
-`pending_ratification` is a **grandfather clause, not a self-service waiver**.
-The manifest field alone does nothing: the path must also appear in
-`LEGACY_ZONE_EXCEPTIONS` in `validate.py`, which is code covered by CODEOWNERS.
-A new Zone 2/3 tool that sets the flag is rejected with "a tool cannot grant
-itself the Z2 waiver" — otherwise the exemption would be exactly the self-grant
-this gate exists to prevent. And it never carries a tool to `approved`, even on
-a grandfathered path.
+`pending_ratification` **records an open Z2 claim; it is not a self-service
+waiver.** The manifest field alone does nothing: the path must also appear in
+`UNRATIFIED_ZONE_CLAIMS` in `validate.py`, which is code covered by CODEOWNERS.
+A Zone 2/3 tool that sets the flag without being listed there is rejected with
+"a tool cannot grant itself the Z2 waiver" — otherwise the exemption would be
+exactly the self-grant this gate exists to prevent. And it never carries a tool
+to `approved`.
+
+Two paths are listed. `tools/message_calibration_v1_0.py` predates this system.
+`.z1-control/ratify.py` arrived with PR #308 and declares `TOOL_ZONE = 2`
+deliberately — it records a Z2 decision and is run by the ratifier, so the claim
+is almost certainly *correct*. Correct is not ratified, and Z1 cannot sign for
+Z2. It surfaced only when `SCAN_ROOTS` widened to cover `.z1-control`: the
+coverage rule finding an unratified authority claim is the rule doing its job.
+The constant is deliberately not named "legacy" — one of its entries merged the
+same day it was added.
 
 ## MCP servers
 

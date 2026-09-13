@@ -113,7 +113,7 @@ def check(name: str, fn, expect: str) -> None:
 # --------------------------------------------------------------------------
 REAL = ".tool-control/scan.py"
 REAL_VERSION = scan.extract(os.path.join(ROOT, REAL)).get("declared_version")
-LEGACY = sorted(V.LEGACY_ZONE_EXCEPTIONS)[0]
+LEGACY = sorted(V.UNRATIFIED_ZONE_CLAIMS)[0]
 
 
 def tool(**over) -> dict:
