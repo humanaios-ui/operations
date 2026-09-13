@@ -471,3 +471,110 @@ def test_aggregate_truth_label_names_batches_not_pins(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "batch(es)" in out
     assert "n=6" not in out
+
+
+def test_pin_missing_p_key_entirely_refused(tmp_path):
+    """A missing 'p' key is distinct from an explicit p: null (the
+    legitimate unscoreable case, as seen in NF_LEDGER's own P2-*:Z2
+    rows) — a PIN that never had the field at all is malformed, not
+    just unscoreable, and must be refused rather than silently treated
+    the same as null."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    del events[1]["p"]
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_pin_with_explicit_null_p_still_legitimately_skipped(tmp_path):
+    """The p: null case itself must remain a legitimate, silent skip — only
+    a missing key is an error."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    events[1]["p"] = None
+    events[1]["scoreable"] = False
+    engine.append(str(ledger), events, "0" * 64)
+
+    resolved = da.load_resolved_pins(ledger)
+    assert resolved == []
+
+
+def test_pin_with_whitespace_only_predictor_refused(tmp_path):
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    events[1]["predictor"] = "   "
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_pin_with_whitespace_only_at_refused(tmp_path):
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    events[1]["at"] = "   "
+    engine.append(str(ledger), events, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_duplicate_token_id_refused(tmp_path):
+    """engine.project() keys TOKENs by token_id, so a hash-valid duplicate
+    would otherwise be silently last-write-wins, dropping an earlier
+    prediction without a trace."""
+    ledger = tmp_path / "l.jsonl"
+    first = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    second = _token_pin_resolve(4, "P", "2026-09-13T01:00:00+00:00", 0.1, "NO", "t1")  # same token_id
+    engine.append(str(ledger), first + second, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_duplicate_pin_id_refused(tmp_path):
+    ledger = tmp_path / "l.jsonl"
+    first = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    second = _token_pin_resolve(4, "P", "2026-09-13T01:00:00+00:00", 0.1, "NO", "t2")
+    second[1]["pin_id"] = first[1]["pin_id"]  # force a pin_id collision
+    engine.append(str(ledger), first + second, "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_pin_referencing_nonexistent_token_refused_not_treated_as_unresolved(tmp_path):
+    """pin_outcome() returns None both for a genuinely unresolved pin and
+    for a pin whose target token was never created — those are not the
+    same thing, and the latter must be a load error, not silently skipped
+    as 'not yet resolved'."""
+    ledger = tmp_path / "l.jsonl"
+    pin_only = {
+        "seq": 1, "type": "PIN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+        "pin_id": "ghost:P", "target": "ghost-token", "predictor": "P",
+        "claim": "x", "p": 0.5, "scoreable": True,
+    }
+    engine.append(str(ledger), [pin_only], "0" * 64)
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass

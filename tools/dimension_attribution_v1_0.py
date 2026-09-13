@@ -153,22 +153,47 @@ def _is_valid_probability(p: object) -> bool:
 def _validate_raw_rows(rows: List[dict], ledger_path: Path) -> None:
     """Value-level checks engine.verify() does not perform — it only
     validates the hash/sequence chain, not payload values. A hash-valid
-    PIN can still carry a non-numeric or out-of-range "p" (including a
-    JSON boolean), be missing "predictor" or "at" (the fallback batch
-    identity when no episode_id is present — see _batch_key()); a
-    hash-valid RESOLVE can carry an outcome that is neither "YES" nor
-    "NO" (pin_outcome() silently treats anything but "YES" as a miss, so
-    this cannot be caught after the fact — it must be checked on the raw
-    row before project()/pin_outcome() ever see it), or a blank "source",
-    which every writer in this codebase (and nf_ledger_v0_1.cmd_resolve
-    itself) refuses to write. Any of these would otherwise either crash
-    score_batch() with a bad type, corrupt attribution under a fabricated
-    "unknown" predictor or a shared empty-string batch key, or silently
-    accept an unprovenanced resolution as ground truth. Raising here
-    reports the whole ledger as a load error instead."""
+    PIN can still be missing the "p" key entirely (distinct from an
+    explicit p: null, which is the legitimate "not yet scoreable" case —
+    see NF_LEDGER's own P2-*:Z2 rows), carry a non-numeric or
+    out-of-range "p" (including a JSON boolean), or carry a whitespace-
+    only "predictor"/"at" that passes a bare truthiness check but is not
+    a usable value (the latter is the fallback batch identity when no
+    episode_id is present — see _batch_key()). A hash-valid RESOLVE can
+    carry an outcome that is neither "YES" nor "NO" (pin_outcome()
+    silently treats anything but "YES" as a miss, so this cannot be
+    caught after the fact — it must be checked on the raw row before
+    project()/pin_outcome() ever see it), or a blank "source", which
+    every writer in this codebase (and nf_ledger_v0_1.cmd_resolve itself)
+    refuses to write. A duplicate token_id or pin_id anywhere in the
+    ledger is also checked here: engine.project() keys TOKENs and PINs by
+    those IDs, so a hash-valid duplicate (an append-only writer rerunning
+    a build, say) would otherwise be silently last-write-wins, dropping
+    an earlier prediction from this report without a trace. Any of these
+    would otherwise either crash score_batch() with a bad type, corrupt
+    attribution under a fabricated bucket or batch key, silently accept
+    an unprovenanced resolution as ground truth, or drop a real row.
+    Raising here reports the whole ledger as a load error instead."""
+    seen_token_ids: set = set()
+    seen_pin_ids: set = set()
     for row in rows:
         row_type = row.get("type")
-        if row_type == "PIN":
+        if row_type == "TOKEN":
+            token_id = row.get("token_id")
+            if token_id in seen_token_ids:
+                raise LedgerLoadError(f"{ledger_path}: duplicate TOKEN token_id={token_id!r}")
+            seen_token_ids.add(token_id)
+        elif row_type == "PIN":
+            pin_id = row.get("pin_id")
+            if pin_id in seen_pin_ids:
+                raise LedgerLoadError(f"{ledger_path}: duplicate PIN pin_id={pin_id!r}")
+            seen_pin_ids.add(pin_id)
+
+            if "p" not in row:
+                raise LedgerLoadError(
+                    f"{ledger_path}: PIN {row.get('pin_id', '?')!r} has no 'p' field at all "
+                    f"(an intentionally unscoreable pin still carries p: null)"
+                )
             p = row.get("p")
             if p is not None and not _is_valid_probability(p):
                 raise LedgerLoadError(
@@ -176,12 +201,12 @@ def _validate_raw_rows(rows: List[dict], ledger_path: Path) -> None:
                     f"(must be null or a number in [0,1])"
                 )
             predictor = row.get("predictor")
-            if not isinstance(predictor, str) or not predictor:
+            if not isinstance(predictor, str) or not predictor.strip():
                 raise LedgerLoadError(
                     f"{ledger_path}: PIN {row.get('pin_id', '?')!r} has no valid predictor"
                 )
             at = row.get("at")
-            if not isinstance(at, str) or not at:
+            if not isinstance(at, str) or not at.strip():
                 raise LedgerLoadError(
                     f"{ledger_path}: PIN {row.get('pin_id', '?')!r} has no valid 'at' timestamp"
                 )
@@ -236,6 +261,13 @@ def load_resolved_pins(ledger_path: Path) -> List[dict]:
         for pin in pins.values():
             if pin.get("p") is None:
                 continue
+            referenced_ids = pin.get("tokens") or [pin.get("target")]
+            missing_ids = [tid for tid in referenced_ids if tid not in tokens]
+            if missing_ids:
+                raise LedgerLoadError(
+                    f"{ledger_path}: PIN {pin.get('pin_id', '?')!r} references "
+                    f"nonexistent token(s) {missing_ids} — not the same as unresolved"
+                )
             outcome = engine.pin_outcome(pin, tokens)
             if outcome in (None, "VOID"):
                 continue
