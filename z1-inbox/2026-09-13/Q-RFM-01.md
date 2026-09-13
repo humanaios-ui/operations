@@ -11,7 +11,7 @@
 
 ## §A Position · Destination · Probability
 
-**Position:** `REGISTERED.md` at HEAD — 3,981 lines, 138 entries (post-main-merge; Phase 2 correction: 137, pre-review: 131), append-only, `Status: LIVE`. `grep -rIn "FMEA"` returns zero repo-wide. The registry catalogues failure modes of substrates and sessions; it has never been turned on itself.
+**Position:** `REGISTERED.md` at HEAD — 4,093 lines, 142 entries (post-second-main-merge; Phase 2 correction: 137, pre-review: 131), append-only, `Status: LIVE`. `grep -rIn "FMEA"` returns zero repo-wide. The registry catalogues failure modes of substrates and sessions; it has never been turned on itself.
 
 **Destination:** A ratified failure-mode vocabulary for the registry (`RFM-01` … `RFM-19`), the standing orders derived from it, their mapping to industrial reliability terms, and an executable scanner that measures the registry against the taxonomy.
 
@@ -36,16 +36,16 @@ The registry asks every session to predict its own failure modes, and has never 
 
 ## §Live result — this candidate was measured by its own mechanism
 
-Entry-level, 138 entries × 4 checks (post-main-merge; Phase 2 corrected: correction-to discovery, F-24 variant regex, ordering violation counting):
+Entry-level, 142 entries × 4 checks (post-second-main-merge; Phase 2 corrected: correction-to discovery, F-24 variant regex, ordering violation counting):
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|
-| Ordering | RFM-09 | 31/138 | 77.5% |
-| Required fields (full declared schema) | RFM-06 | 60/138 | 56.5% |
-| Fence form | RFM-07 | 8/138 | 94.2% |
-| Quote hygiene | RFM-08 | 3/138 | 97.8% |
+| Ordering | RFM-09 | 35/142 | 75.4% |
+| Required fields (full declared schema) | RFM-06 | 61/142 | 57.0% |
+| Fence form | RFM-07 | 8/142 | 94.4% |
+| Quote hygiene | RFM-08 | 3/142 | 97.9% |
 
-**102 defects / 552 opportunities → 81.5% FPY → 184,783 DPMO → ~2.4σ**, same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the *"clean reference bar (0/7)."* At entry level it is not clean.
+**107 defects / 568 opportunities → 81.2% FPY → 188,380 DPMO → ~2.4σ**, same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the *"clean reference bar (0/7)."* At entry level it is not clean.
 
 File-level: 10/45 F-entries absent from the quick index · 25 entries past the `## Changelog` · 1 orphan roll-up row (IC-036) · 3 of 6 ratified classes empty · 2 cross-artifact ratification contradictions.
 
@@ -91,7 +91,7 @@ Z1 proposes; Z2 numbers and appends, per G-4 / IC-030.
 - The scanner flags F-32 or F-33 as index defects (the documented honest gaps), i.e. the whitelist regresses
 - Two runs of `scan` against the same SHA produce different counts
 
-**Success criterion:** Through **2026-10-13**, running `scan` at each session open reproduces `98/540` on the unchanged file, every new defect classifies into RFM-01…RFM-19, and `self-test` passes on every invocation.
+**Success criterion:** Through **2026-10-13**, running `scan` at each session open reproduces `107/568` on the unchanged file, every new defect classifies into RFM-01…RFM-19, and `self-test` passes on every invocation.
 
 **Note on falsifiability scope:** the GOVERN-axis modes (RFM-18, RFM-19) are *not* falsifiable by this scanner — they assert the absence of a definition, which the scanner cannot measure. They are excluded from the claim above and stand or fall on Z2's reading.
 
@@ -123,7 +123,7 @@ Z1 proposes; Z2 numbers and appends, per G-4 / IC-030.
 ## Z2 Review Checklist
 
 - [ ] Is the RFM taxonomy the right vocabulary, and is 19 the right granularity?
-- [ ] Should `--enforce` be turned on, and if so before or after remediating the 101 defects?
+- [ ] Should `--enforce` be turned on, and if so before or after remediating the 107 defects?
 - [ ] Should the scanner be wired into CI, given `findings-registry.yml` already runs a blocking validator?
 - [ ] Which instrument's census is authoritative — 126, 130 or 135?
 - [ ] Is `RFM-06` right to score the **full** ten-field schema (57.0%) rather than the core five (91.1%)? The gap is `substrate` / `tags` / `superseded_by` / `date_origin` — declared but never adopted. Schema erosion, or an over-declared schema that should be trimmed?
