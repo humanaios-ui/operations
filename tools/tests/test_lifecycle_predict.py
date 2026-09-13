@@ -466,3 +466,37 @@ def test_malformed_ledger_raises_ledger_corrupt_not_json_error(tmp_path):
         raise AssertionError("expected LedgerCorrupt")
     except lc.LedgerCorrupt:
         pass
+
+
+def test_unresolved_pin_is_scoreable_by_shared_engine():
+    """pin_outcome() indexes tk["state"] before any RESOLVE event exists, so
+    a PRACTICE-dated TOKEN must carry state="DATED" from the start — the
+    same as the shared engine's own builder — or every unresolved pin
+    crashes with KeyError the moment anything projects the ledger."""
+    episode_id = lc.new_episode_id("restart_service", "svc-x")
+    pin_events = lc.build_pin_events(
+        episode_id, "restart_service", "svc-x", "Claude Code",
+        {"http_health": {"value": "200", "p": 0.9}},
+        window_minutes=5, pinned_at="2026-09-13T00:00:00+00:00", start_seq=1,
+    )
+    tokens, pins = engine.project(pin_events)
+    for pin in pins.values():
+        assert engine.pin_outcome(pin, tokens) is None  # unresolved, not a crash
+
+
+def test_malformed_row_missing_field_raises_ledger_corrupt(tmp_path):
+    """A syntactically valid JSON row that is nonetheless missing a field
+    verify() or this module reads (here: 'hash') must fold into
+    LedgerCorrupt too, not a raw KeyError."""
+    import json
+
+    ledger = tmp_path / "missing_field.jsonl"
+    ledger.write_text(
+        json.dumps({"seq": 1, "type": "TOKEN", "token_id": "x", "prev_hash": "0" * 64}) + "\n",
+        encoding="utf-8",
+    )
+    try:
+        lc.load_ledger_state(ledger)
+        raise AssertionError("expected LedgerCorrupt")
+    except lc.LedgerCorrupt:
+        pass

@@ -156,16 +156,23 @@ def _read_ledger_or_corrupt(ledger_path: Path) -> List[dict]:
 
 def load_ledger_state(ledger_path: Path) -> Tuple[set, int]:
     """Existing TOKEN ids and the next free seq. Raises LedgerCorrupt if the
-    existing chain fails verification — never build on a chain we cannot
-    trust."""
+    existing chain fails verification, or if any row is a well-formed JSON
+    value that is nonetheless not a usable event (not an object, or missing
+    a field verify()/this function reads) — never build on a chain we
+    cannot trust or even fully parse as ledger rows."""
     if not ledger_path.exists():
         return set(), 1
     rows = _read_ledger_or_corrupt(ledger_path)
-    err = engine.verify(rows)
-    if err:
-        raise LedgerCorrupt(f"{ledger_path}: {err}")
-    ids = {row["token_id"] for row in rows if row.get("type") == "TOKEN"}
-    next_seq = (rows[-1]["seq"] + 1) if rows else 1
+    try:
+        err = engine.verify(rows)
+        if err:
+            raise LedgerCorrupt(f"{ledger_path}: {err}")
+        ids = {row["token_id"] for row in rows if row.get("type") == "TOKEN"}
+        next_seq = (rows[-1]["seq"] + 1) if rows else 1
+    except LedgerCorrupt:
+        raise
+    except (KeyError, AttributeError, TypeError) as exc:
+        raise LedgerCorrupt(f"{ledger_path}: malformed row — {exc}") from exc
     return ids, next_seq
 
 
@@ -189,6 +196,7 @@ def build_pin_events(episode_id: str, action: str, target: str, predictor: str,
             "token_id": token_id, "practice": "lifecycle-predict",
             "title": f"{action} on {target}: {field}",
             "date": pinned_at[:10], "date_source": "PRACTICE", "owner_add": False,
+            "state": "DATED",
         })
         seq += 1
         events.append({
@@ -228,15 +236,24 @@ def build_resolve_events(ledger_path: Path, episode_id: str, observed: Dict[str,
     if not ledger_path.exists():
         raise ValueError(f"no ledger at {ledger_path} — nothing to resolve against")
 
-    rows = _read_ledger_or_corrupt(ledger_path)
-    already_resolved = {r["token_id"] for r in rows if r.get("type") == "RESOLVE"}
-    pins_for_episode = [
-        r for r in rows if r.get("type") == "PIN" and r.get("episode_id") == episode_id
-    ]
+    try:
+        rows = _read_ledger_or_corrupt(ledger_path)
+        already_resolved = {r["token_id"] for r in rows if r.get("type") == "RESOLVE"}
+        pins_for_episode = [
+            r for r in rows if r.get("type") == "PIN" and r.get("episode_id") == episode_id
+        ]
+    except LedgerCorrupt:
+        raise
+    except (KeyError, AttributeError, TypeError) as exc:
+        raise LedgerCorrupt(f"{ledger_path}: malformed row — {exc}") from exc
+
     if not pins_for_episode:
         raise ValueError(f"no PIN events found for episode {episode_id!r}")
 
-    known_fields = {pin["field"] for pin in pins_for_episode}
+    try:
+        known_fields = {pin["field"] for pin in pins_for_episode}
+    except (KeyError, AttributeError, TypeError) as exc:
+        raise LedgerCorrupt(f"{ledger_path}: malformed PIN row — {exc}") from exc
     unknown_fields = set(observed) - known_fields
     if unknown_fields:
         raise ValueError(
@@ -246,24 +263,27 @@ def build_resolve_events(ledger_path: Path, episode_id: str, observed: Dict[str,
 
     events: List[dict] = []
     seq = start_seq
-    for pin in pins_for_episode:
-        field = pin["field"]
-        token_id = pin["target"]
-        if token_id in already_resolved:
-            continue
-        if field not in observed:
-            continue
-        actual = observed[field]
-        elapsed_minutes = _minutes_between(pin["at"], resolved_at)
-        within_window = 0 <= elapsed_minutes <= pin["window_minutes"]
-        outcome = "YES" if (actual == pin["predicted_value"] and within_window) else "NO"
-        events.append({
-            "seq": seq, "type": "RESOLVE", "at": resolved_at,
-            "by": "lifecycle-predict",
-            "token_id": token_id, "outcome": outcome, "source": source,
-            "elapsed_minutes": round(elapsed_minutes, 3), "within_window": within_window,
-        })
-        seq += 1
+    try:
+        for pin in pins_for_episode:
+            field = pin["field"]
+            token_id = pin["target"]
+            if token_id in already_resolved:
+                continue
+            if field not in observed:
+                continue
+            actual = observed[field]
+            elapsed_minutes = _minutes_between(pin["at"], resolved_at)
+            within_window = 0 <= elapsed_minutes <= pin["window_minutes"]
+            outcome = "YES" if (actual == pin["predicted_value"] and within_window) else "NO"
+            events.append({
+                "seq": seq, "type": "RESOLVE", "at": resolved_at,
+                "by": "lifecycle-predict",
+                "token_id": token_id, "outcome": outcome, "source": source,
+                "elapsed_minutes": round(elapsed_minutes, 3), "within_window": within_window,
+            })
+            seq += 1
+    except (KeyError, AttributeError, TypeError) as exc:
+        raise LedgerCorrupt(f"{ledger_path}: malformed PIN row — {exc}") from exc
     return events
 
 
@@ -339,6 +359,9 @@ def cmd_resolve(args: argparse.Namespace) -> int:
             events = build_resolve_events(
                 ledger_path, args.episode, observed, args.source, engine.now(), next_seq
             )
+        except LedgerCorrupt as exc:
+            print(f"FAIL: refusing to resolve — {exc}", file=sys.stderr)
+            return 1
         except ValueError as exc:
             print(f"FAIL: {exc}", file=sys.stderr)
             return 2
@@ -477,6 +500,14 @@ def run_smoke_test() -> bool:
         except SystemExit:
             pass
 
+        # An unresolved pin must still be scoreable by the shared engine's own
+        # projection/outcome path — pin_outcome() indexes tk["state"] before
+        # any RESOLVE event exists, so a PRACTICE-dated TOKEN must carry
+        # state="DATED" from the start, the same as the engine's own builder.
+        unresolved_tokens, unresolved_pins = engine.project(pin_events)
+        for unresolved_pin in unresolved_pins.values():
+            ok = ok and engine.pin_outcome(unresolved_pin, unresolved_tokens) is None
+
         # A missing probability is refused too — check_p's own None passthrough
         # would otherwise let an unscoreable PIN through silently.
         try:
@@ -526,6 +557,21 @@ def run_smoke_test() -> bool:
         truncated.write_text("{not valid json}\n", encoding="utf-8")
         try:
             load_ledger_state(truncated)
+            ok = False
+        except LedgerCorrupt:
+            pass
+
+        # A syntactically valid JSON row that is nonetheless missing a field
+        # verify()/this module reads (here: "hash") must also fold into
+        # LedgerCorrupt, not a raw KeyError.
+        import json as _json2
+        missing_field = Path(workdir) / "missing_field.jsonl"
+        missing_field.write_text(
+            _json2.dumps({"seq": 1, "type": "TOKEN", "token_id": "x", "prev_hash": "0" * 64}) + "\n",
+            encoding="utf-8",
+        )
+        try:
+            load_ledger_state(missing_field)
             ok = False
         except LedgerCorrupt:
             pass
