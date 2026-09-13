@@ -1,0 +1,393 @@
+#!/usr/bin/env python3
+"""Document review scheduler — record a review, derive the next one, triage the backlog.
+
+The 39 overdue reviews are not 39 independent lapses. 35 of them share one
+`review_due` (2026-08-01) and 4 share another (2026-08-15), because the
+2026-07-02 seeding pass stamped the whole corpus with a single date. No
+document has an `owner`, a `last_reviewed`, or an interval. So:
+
+  - nothing can record that a review actually happened;
+  - nothing can schedule the next one;
+  - nobody is assigned; and
+  - the whole corpus tips overdue on the same day, every time.
+
+Bumping the 39 dates would clear the warnings and change none of that — and
+setting a review date is the owner's act, the same no-self-grant rule
+`document-registry.yaml` already states for approval. This tool supplies the
+missing lifecycle instead:
+
+  --record   a review HAPPENED: stamps last_reviewed/reviewed_by and DERIVES
+             the next review_due from the interval. This is the only supported
+             way a review_due moves forward.
+  --queue    what is due, how late, and under whose name.
+  --propose  a staggered schedule for the seeded backlog, printed for Z2 to
+             accept or edit. Prints; never writes.
+  --check    CI mode: every document carrying last_reviewed has the review_due
+             its interval implies (exit 1 otherwise).
+
+Intervals come from `review_policy:` in the registry, by status, overridable
+per document with `review_interval_days`.
+
+Usage:
+  python3 .doc-control/review.py --queue
+  python3 .doc-control/review.py --record HAIOS-GOV-001 --by Night
+  python3 .doc-control/review.py --propose --start 2026-09-22 --per-week 6
+  python3 .doc-control/review.py --check
+  python3 .doc-control/review.py --smoke-test
+
+Deps: PyYAML. No network. Writes document-registry.yaml only under --record.
+"""
+from __future__ import annotations
+
+import argparse
+import datetime
+import os
+import re
+import sys
+
+try:
+    import yaml
+except ImportError:  # pragma: no cover - CI installs it
+    print("::error::PyYAML not installed (pip install pyyaml)")
+    sys.exit(2)
+
+TOOL_NAME = "doc_review_scheduler"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "governance_tool"
+TOOL_ZONE = 1
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REGISTRY = os.path.join(ROOT, "document-registry.yaml")
+
+# Used only when the registry declares no review_policy of its own.
+DEFAULT_POLICY = {"draft": 30, "review": 90, "approved": 180}
+# A document that is obsolete on purpose is not on a review cadence.
+NO_REVIEW = {"superseded", "retired"}
+
+
+def as_date(value: object) -> datetime.date | None:
+    if isinstance(value, datetime.date):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.date.fromisoformat(value.strip())
+        except ValueError:
+            return None
+    return None
+
+
+def interval_for(doc: dict, policy: dict) -> int | None:
+    """Days between reviews: the per-document override, else the status default."""
+    own = doc.get("review_interval_days")
+    if isinstance(own, int) and own > 0:
+        return own
+    status = doc.get("status")
+    if status in NO_REVIEW:
+        return None
+    value = policy.get(status)
+    return value if isinstance(value, int) and value > 0 else None
+
+
+def next_due(doc: dict, policy: dict) -> datetime.date | None:
+    """The review_due a document's own history implies, or None if unknowable."""
+    last = as_date(doc.get("last_reviewed"))
+    days = interval_for(doc, policy)
+    if last is None or days is None:
+        return None
+    return last + datetime.timedelta(days=days)
+
+
+def load() -> dict:
+    if not os.path.exists(REGISTRY):
+        print(f"::error::missing {os.path.relpath(REGISTRY, ROOT)}")
+        sys.exit(1)
+    return yaml.safe_load(open(REGISTRY, encoding="utf-8")) or {}
+
+
+def policy_of(reg: dict) -> dict:
+    declared = reg.get("review_policy")
+    return declared if isinstance(declared, dict) and declared else dict(DEFAULT_POLICY)
+
+
+def triage(reg: dict, today: datetime.date) -> dict:
+    """Classify every document against today. Pure."""
+    policy = policy_of(reg)
+    rows = []
+    for d in reg.get("documents") or []:
+        status = d.get("status")
+        if status in NO_REVIEW:
+            continue
+        due = as_date(d.get("review_due"))
+        last = as_date(d.get("last_reviewed"))
+        rows.append({
+            "doc_id": d.get("doc_id"),
+            "title": d.get("title"),
+            "area": d.get("area"),
+            "repo": d.get("canonical_repo"),
+            "path": d.get("canonical_path"),
+            "status": status,
+            "owner": d.get("owner"),
+            "review_due": due.isoformat() if due else None,
+            "last_reviewed": last.isoformat() if last else None,
+            "interval_days": interval_for(d, policy),
+            "days_overdue": (today - due).days if due and due < today else 0,
+            # The distinguishing fact about the backlog: never reviewed, so no
+            # interval can place the next one.
+            "never_reviewed": last is None,
+        })
+    overdue = [r for r in rows if r["days_overdue"] > 0]
+    return {
+        "generated": today.isoformat(),
+        "policy": policy,
+        "total": len(rows),
+        "overdue": sorted(overdue, key=lambda r: (-r["days_overdue"], str(r["doc_id"]))),
+        "unowned": [r for r in rows if not r["owner"]],
+        "never_reviewed": [r for r in rows if r["never_reviewed"]],
+        "rows": rows,
+    }
+
+
+def cmd_queue(reg: dict, today: datetime.date) -> int:
+    t = triage(reg, today)
+    print(f"Document review queue — {t['generated']}")
+    print(f"  policy: {', '.join(f'{k}={v}d' for k, v in sorted(t['policy'].items()))}")
+    print(f"  {t['total']} documents on a cadence · {len(t['overdue'])} overdue · "
+          f"{len(t['unowned'])} unowned · {len(t['never_reviewed'])} never reviewed")
+    if not t["overdue"]:
+        print("\nNothing overdue.")
+        return 0
+    buckets: dict[str, list] = {}
+    for r in t["overdue"]:
+        buckets.setdefault(str(r["review_due"]), []).append(r)
+    print("\nOverdue, grouped by the date they were stamped with:")
+    for due in sorted(buckets):
+        rows = buckets[due]
+        print(f"\n  due {due} — {len(rows)} document(s), {rows[0]['days_overdue']}d late")
+        for r in rows:
+            owner = r["owner"] or "UNOWNED"
+            print(f"    {r['doc_id']:<16} {owner:<10} {r['status']:<9} "
+                  f"{r['repo']}/{r['path']}")
+    print("\nA shared due date is a seeding artifact, not 39 independent lapses. "
+          "Clear one with:\n  python3 .doc-control/review.py --record <DOC_ID> --by <owner>")
+    return 0
+
+
+def propose(reg: dict, start: datetime.date, per_week: int) -> list[dict]:
+    """A staggered schedule for the backlog. Returned, not written — Z2's call."""
+    t = triage(reg, start)
+    backlog = t["overdue"]
+    out = []
+    for i, r in enumerate(backlog):
+        # Spread across working weeks so the corpus never again tips on one day.
+        week, slot = divmod(i, max(per_week, 1))
+        out.append({**r, "proposed_review_due":
+                    (start + datetime.timedelta(weeks=week, days=slot)).isoformat()})
+    return out
+
+
+def cmd_propose(reg: dict, start: datetime.date, per_week: int) -> int:
+    rows = propose(reg, start, per_week)
+    if not rows:
+        print("Nothing overdue — no schedule to propose.")
+        return 0
+    print(f"Proposed staggered schedule — {len(rows)} documents, {per_week}/week "
+          f"from {start.isoformat()}")
+    print("Z1 proposes; Z2 accepts, edits or rejects. This command writes nothing.\n")
+    print("| proposed review_due | doc_id | status | area | canonical path |")
+    print("|---|---|---|---|---|")
+    for r in rows:
+        print(f"| {r['proposed_review_due']} | {r['doc_id']} | {r['status']} | "
+              f"{r['area']} | `{r['repo']}/{r['path']}` |")
+    last = rows[-1]["proposed_review_due"]
+    print(f"\nBacklog clears {last} instead of all at once. Each document then moves onto "
+          f"its status interval, so the herd does not re-form.")
+    return 0
+
+
+def cmd_check(reg: dict) -> int:
+    """Every document with a review history has the review_due its interval implies."""
+    policy = policy_of(reg)
+    errors = []
+    for d in reg.get("documents") or []:
+        did = d.get("doc_id", "<missing>")
+        last_raw = d.get("last_reviewed")
+        if last_raw and as_date(last_raw) is None:
+            errors.append(f"{did}: last_reviewed '{last_raw}' is not an ISO date")
+            continue
+        own = d.get("review_interval_days")
+        if own is not None and (not isinstance(own, int) or own <= 0):
+            errors.append(f"{did}: review_interval_days must be a positive integer, got {own!r}")
+            continue
+        if d.get("last_reviewed") and not d.get("reviewed_by"):
+            errors.append(f"{did}: last_reviewed without reviewed_by — a review is somebody's act")
+        expected = next_due(d, policy)
+        if expected is None:
+            continue
+        actual = as_date(d.get("review_due"))
+        if actual != expected:
+            errors.append(
+                f"{did}: review_due is derived from last_reviewed "
+                f"({d.get('last_reviewed')}) + {interval_for(d, policy)}d = "
+                f"{expected.isoformat()}; registry says {d.get('review_due')!r}. "
+                f"Run `--record` rather than editing the date.")
+    for e in errors:
+        print(f"::error::{e}")
+    if errors:
+        print(f"\n{len(errors)} review-schedule violation(s).")
+        return 1
+    print("review schedule: OK — every recorded review derives its own next due date.")
+    return 0
+
+
+def cmd_record(reg: dict, doc_id: str, by: str, on: datetime.date) -> int:
+    """Stamp a review and derive the next due date, editing the registry in place.
+
+    Rewrites only the three affected lines via a targeted text edit: the registry
+    carries comments and inline-flow blocks that a yaml.dump round-trip destroys.
+    """
+    docs = reg.get("documents") or []
+    doc = next((d for d in docs if d.get("doc_id") == doc_id), None)
+    if doc is None:
+        print(f"::error::{doc_id} is not in the registry")
+        return 1
+    if doc.get("status") in NO_REVIEW:
+        print(f"::error::{doc_id} is {doc.get('status')} — not on a review cadence")
+        return 1
+    policy = policy_of(reg)
+    days = interval_for(doc, policy)
+    if days is None:
+        print(f"::error::{doc_id}: no interval for status '{doc.get('status')}' — "
+              f"add review_interval_days or a review_policy entry")
+        return 1
+    last_seen = as_date(doc.get("last_reviewed"))
+    if last_seen and on < last_seen:
+        print(f"::error::{doc_id}: review date {on.isoformat()} precedes the recorded "
+              f"last_reviewed {last_seen.isoformat()}")
+        return 1
+    due = on + datetime.timedelta(days=days)
+
+    text = open(REGISTRY, encoding="utf-8").read()
+    block = re.search(rf"(^  - doc_id: {re.escape(doc_id)}\n)(.*?)(?=^  - doc_id: |\Z)",
+                      text, re.MULTILINE | re.DOTALL)
+    if not block:
+        print(f"::error::{doc_id}: could not locate its block in {REGISTRY}")
+        return 1
+    head, body = block.group(1), block.group(2)
+
+    def upsert(src: str, key: str, value: str) -> str:
+        line = f'    {key}: "{value}"\n'
+        pattern = rf"^    {re.escape(key)}:.*\n"
+        if re.search(pattern, src, re.MULTILINE):
+            return re.sub(pattern, line, src, count=1, flags=re.MULTILINE)
+        return src + line
+
+    body = upsert(body, "review_due", due.isoformat())
+    body = upsert(body, "last_reviewed", on.isoformat())
+    body = upsert(body, "reviewed_by", by)
+
+    open(REGISTRY, "w", encoding="utf-8").write(text[:block.start()] + head + body
+                                                + text[block.end():])
+    print(f"{doc_id}: reviewed {on.isoformat()} by {by}; next review_due "
+          f"{due.isoformat()} (+{days}d).")
+    print("Commit document-registry.yaml. Approval remains a separate owner act.")
+    return 0
+
+
+def run_smoke_test() -> int:
+    today = datetime.date(2026, 9, 13)
+    reg = {
+        "review_policy": {"draft": 30, "review": 90, "approved": 180},
+        "documents": [
+            # The seeded backlog shape: a shared due date and no history.
+            {"doc_id": "HAIOS-A-001", "status": "review", "review_due": "2026-08-01"},
+            {"doc_id": "HAIOS-A-002", "status": "review", "review_due": "2026-08-01"},
+            # A document with a real history, correctly derived.
+            {"doc_id": "HAIOS-B-001", "status": "approved", "last_reviewed": "2026-09-01",
+             "reviewed_by": "Night", "review_due": "2027-02-28", "owner": "Night"},
+            # Retired: off the cadence entirely.
+            {"doc_id": "HAIOS-C-001", "status": "retired", "review_due": "2020-01-01"},
+        ],
+    }
+    t = triage(reg, today)
+    assert t["total"] == 3, t["total"]                      # retired excluded
+    assert len(t["overdue"]) == 2, t["overdue"]
+    assert t["overdue"][0]["days_overdue"] == 43, t["overdue"][0]
+    assert len(t["never_reviewed"]) == 2, t["never_reviewed"]
+    assert len(t["unowned"]) == 2, t["unowned"]
+
+    def quiet_check(registry: dict) -> int:
+        """cmd_check reports through stdout; swallow it so a passing test looks passing."""
+        import contextlib, io
+        with contextlib.redirect_stdout(io.StringIO()):
+            return cmd_check(registry)
+
+    # Derivation: last_reviewed + interval, and --check accepts a correct one.
+    assert next_due(reg["documents"][2], reg["review_policy"]) == datetime.date(2027, 2, 28)
+    assert quiet_check(reg) == 0
+
+    # A hand-edited review_due that contradicts the history must be refused.
+    bad = {**reg, "documents": [{**reg["documents"][2], "review_due": "2099-01-01"}]}
+    assert quiet_check(bad) == 1
+
+    # last_reviewed with nobody's name on it must be refused.
+    anon = {**reg, "documents": [{"doc_id": "HAIOS-D-001", "status": "review",
+                                  "last_reviewed": "2026-09-01", "review_due": "2026-11-30"}]}
+    assert quiet_check(anon) == 1
+
+    # A non-integer interval must be refused, not silently treated as absent.
+    junk = {**reg, "documents": [{"doc_id": "HAIOS-E-001", "status": "review",
+                                  "review_interval_days": "ninety"}]}
+    assert quiet_check(junk) == 1
+
+    # A document with no history yields no derived date — it cannot be invented.
+    assert next_due(reg["documents"][0], reg["review_policy"]) is None
+
+    # The proposal staggers instead of stacking, and writes nothing.
+    rows = propose(reg, datetime.date(2026, 9, 22), per_week=1)
+    assert [r["proposed_review_due"] for r in rows] == ["2026-09-22", "2026-09-29"], rows
+
+    print("smoke-test OK — triages the seeded backlog, derives the next due date from "
+          "recorded history, refuses hand-edited and anonymous dates, excludes retired "
+          "documents, and staggers proposals without writing.")
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Document review scheduler")
+    ap.add_argument("--queue", action="store_true", help="show the review backlog")
+    ap.add_argument("--check", action="store_true", help="CI: derived review_due must match")
+    ap.add_argument("--propose", action="store_true", help="print a staggered schedule")
+    ap.add_argument("--record", metavar="DOC_ID", help="record that a review happened")
+    ap.add_argument("--by", metavar="NAME", help="who reviewed it (required with --record)")
+    ap.add_argument("--on", metavar="YYYY-MM-DD", help="review date (default: today)")
+    ap.add_argument("--start", metavar="YYYY-MM-DD", help="--propose: first slot")
+    ap.add_argument("--per-week", type=int, default=6, help="--propose: documents per week")
+    ap.add_argument("--smoke-test", action="store_true", help="self-test and exit")
+    args = ap.parse_args()
+
+    if args.smoke_test:
+        return run_smoke_test()
+
+    today = datetime.date.today()
+    if args.on and as_date(args.on) is None:
+        print(f"::error::--on '{args.on}' is not an ISO date")
+        return 1
+    if args.start and as_date(args.start) is None:
+        print(f"::error::--start '{args.start}' is not an ISO date")
+        return 1
+
+    reg = load()
+    if args.record:
+        if not args.by:
+            print("::error::--record requires --by (a review is somebody's act)")
+            return 1
+        return cmd_record(reg, args.record, args.by, as_date(args.on) or today)
+    if args.check:
+        return cmd_check(reg)
+    if args.propose:
+        return cmd_propose(reg, as_date(args.start) or today, args.per_week)
+    return cmd_queue(reg, today)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

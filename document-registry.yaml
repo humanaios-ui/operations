@@ -12,6 +12,22 @@ seed_source: "humanaios/_audit_S070126 reconciliation (71 diverged pairs)"
 id_scheme: "HAIOS-<AREA>-<nnn>"
 areas: {GOV: governance, PROC: process/runbooks, OPS: operations/state, RES: research, COLLAB: collaborator-reports, ENG: engagement/external, WEB: site-pages, DOC: uncategorized}
 counts: {documents: 46, excluded: 37, needs_reconcile: 5}
+
+# Days between reviews, by status. A document may override with its own
+# `review_interval_days`. `superseded` and `retired` are off the cadence.
+#
+# These intervals are what makes `review_due` DERIVABLE rather than hand-set:
+# once a document carries `last_reviewed` + `reviewed_by`, its next review_due
+# is last_reviewed + interval, and `.doc-control/review.py --check` fails the
+# merge if the registry says otherwise. Record a review with
+# `review.py --record <DOC_ID> --by <owner>`; that is the only supported way a
+# review_due moves forward.
+#
+# No document carries `last_reviewed` yet, so this policy moves no date today.
+# The 39 documents already past their seeded 2026-08-01 / 2026-08-15 dates stay
+# visibly overdue until somebody records an actual review — re-dating them
+# without one is the owner's act, and is routed as Q-DOCREVIEW-01.
+review_policy: {draft: 30, review: 90, approved: 180}
 documents:
   - doc_id: HAIOS-RES-009
     title: "The Instrument Turned Inward: Reflexive Behavioral Calibration for Human-AI Research Systems"

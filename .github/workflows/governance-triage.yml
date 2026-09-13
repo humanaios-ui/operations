@@ -1,0 +1,174 @@
+name: governance-triage
+
+# Two queues went unwatched because nothing looked at them on a clock:
+#
+#   - Z2's decision queue. Candidate blocks sat in z1-inbox/ past the 48h
+#     window in CLAUDE.md with nothing counting the days. Five were already
+#     past it when this was written.
+#   - The document review queue. 39 documents went overdue on a single seeded
+#     date, surfacing only as ::warning:: lines inside a CI log nobody opens
+#     unless a PR is already red.
+#
+# This runs on a schedule and keeps ONE issue per queue up to date, the same
+# shape priority-queue-triage.yml already uses. It opens nothing when a queue
+# is clear, and it decides nothing: re-dating a document and ratifying a
+# candidate are both the owner's acts.
+
+on:
+  schedule:
+    # 07:00 UTC on Mondays — start of the week, before the day fills up.
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install --quiet pyyaml
+
+      - name: Build the Z2 decision queue
+        id: z2
+        run: |
+          set -euo pipefail
+          python3 .z1-control/validate.py --report > /tmp/z2.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          d = json.load(open("/tmp/z2.json"))
+          lines = [
+              f"**{d['awaiting_z2']} candidate(s) awaiting Z2**, "
+              f"{len(d['overdue'])} past the {d['decision_window_days']}-day window "
+              f"(as of {d['generated']}).",
+              "",
+          ]
+          if d["overdue"]:
+              lines += ["### Past the window — CLAUDE.md routes these to Admiral re-read", "",
+                        "| late by | candidate | asks | block |", "|---|---|---|---|"]
+              lines += [f"| {r['overdue_days']}d | **{r['q_id']}** | {r['title']} | "
+                        f"`{r['path']}` |" for r in d["overdue"]]
+              lines.append("")
+          within = [r for r in d["open"] if not r["overdue_days"]]
+          if within:
+              lines += ["### Still inside the window", "",
+                        "| due | candidate | asks |", "|---|---|---|"]
+              lines += [f"| {r['decision_due']} | **{r['q_id']}** | {r['title']} |"
+                        for r in within]
+              lines.append("")
+          if d.get("falsifier_waivers"):
+              lines += ["### Falsifier waivers open for Z2", ""]
+              lines += [f"- **{w['q_id']}** — {w['reason']}" for w in d["falsifier_waivers"]]
+              lines.append("")
+          lines.append("Full index: `Z1_INBOX_INDEX.md` (rendered from `z1-inbox/INDEX.yaml`).")
+          print("count=" + str(len(d["overdue"])))
+          print("body<<EOF")
+          print("\n".join(lines))
+          print("EOF")
+          PY
+
+      - name: Build the document review queue
+        id: docs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import datetime, sys
+          sys.path.insert(0, ".doc-control")
+          import yaml
+          from review import triage
+          reg = yaml.safe_load(open("document-registry.yaml", encoding="utf-8")) or {}
+          t = triage(reg, datetime.date.today())
+          lines = [
+              f"**{len(t['overdue'])} of {t['total']} controlled documents are overdue** "
+              f"for review (as of {t['generated']}). "
+              f"{len(t['unowned'])} have no owner; {len(t['never_reviewed'])} have no "
+              f"recorded review at all.",
+              "",
+              "A shared `review_due` is a seeding artifact, not that many independent "
+              "lapses. Clear one with:",
+              "",
+              "```",
+              "python3 .doc-control/review.py --record <DOC_ID> --by <owner>",
+              "```",
+              "",
+              "That stamps `last_reviewed`/`reviewed_by` and derives the next "
+              "`review_due` from the status interval. Re-dating without a review is the "
+              "owner's act.",
+              "",
+          ]
+          buckets = {}
+          for r in t["overdue"]:
+              buckets.setdefault(str(r["review_due"]), []).append(r)
+          for due in sorted(buckets):
+              rows = buckets[due]
+              lines += [f"<details><summary><b>due {due}</b> — {len(rows)} document(s), "
+                        f"{rows[0]['days_overdue']}d late</summary>", "",
+                        "| doc_id | status | owner | canonical path |", "|---|---|---|---|"]
+              lines += [f"| {r['doc_id']} | {r['status']} | {r['owner'] or '—'} | "
+                        f"`{r['repo']}/{r['path']}` |" for r in rows]
+              lines += ["", "</details>", ""]
+          print("count=" + str(len(t["overdue"])))
+          print("body<<EOF")
+          print("\n".join(lines))
+          print("EOF")
+          PY
+
+      - name: Open or update the triage issues
+        uses: actions/github-script@v7
+        env:
+          Z2_COUNT: ${{ steps.z2.outputs.count }}
+          Z2_BODY: ${{ steps.z2.outputs.body }}
+          DOCS_COUNT: ${{ steps.docs.outputs.count }}
+          DOCS_BODY: ${{ steps.docs.outputs.body }}
+        with:
+          script: |
+            const footer =
+              "\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_";
+
+            async function upsert(title, label, count, body) {
+              const { data: found } = await github.rest.issues.listForRepo({
+                owner: context.repo.owner, repo: context.repo.repo,
+                state: "open", labels: label, per_page: 10,
+              });
+              const existing = found[0];
+              if (Number(count) === 0) {
+                if (existing) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner, repo: context.repo.repo,
+                    issue_number: existing.number,
+                    body: "Queue is clear as of this run — closing." + footer,
+                  });
+                  await github.rest.issues.update({
+                    owner: context.repo.owner, repo: context.repo.repo,
+                    issue_number: existing.number, state: "closed",
+                  });
+                }
+                core.info(`${label}: nothing overdue`);
+                return;
+              }
+              if (existing) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: existing.number, title, body: body + footer,
+                });
+                core.info(`${label}: updated #${existing.number}`);
+              } else {
+                const { data: made } = await github.rest.issues.create({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  title, body: body + footer, labels: [label],
+                });
+                core.info(`${label}: opened #${made.number}`);
+              }
+            }
+
+            await upsert(
+              `Z2 decision queue: ${process.env.Z2_COUNT} candidate(s) past the window`,
+              "z2-queue", process.env.Z2_COUNT, process.env.Z2_BODY);
+            await upsert(
+              `Document review queue: ${process.env.DOCS_COUNT} overdue`,
+              "doc-review-queue", process.env.DOCS_COUNT, process.env.DOCS_BODY);

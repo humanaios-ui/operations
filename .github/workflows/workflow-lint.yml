@@ -1,0 +1,83 @@
+name: workflow-lint
+
+# A workflow whose YAML GitHub cannot parse does not error loudly — it produces
+# a run that completes in zero seconds with zero jobs and conclusion=failure,
+# which reads in the Actions list exactly like a gate that ran and failed.
+# z2_ratification_gate.yml was in that state for all 122 of its runs, from its
+# first commit onward, because of a duplicate top-level `name:` key. Nothing
+# noticed, because the governance docs described what the gate enforced rather
+# than checking that it ran.
+#
+# ADVISORY on purpose. Four workflows are defective on main right now
+# (drift-monitor, sonarcloud-baseline-auto, weekly-funding-rescore,
+# weekly-profile-sync). Shipping this as a blocking gate would fail every PR
+# on defects it did not introduce — the same reason Q-TOOLCONTROL-02 promoted
+# its category rule only after the count reached zero. Promote this to
+# blocking once these four are repaired.
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    name: Workflows parse as GitHub reads them (ADVISORY)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install --quiet pyyaml
+
+      - name: Every workflow parses, with no duplicate keys
+        run: |
+          python3 - <<'PY'
+          import glob, sys, yaml
+
+          class Strict(yaml.SafeLoader):
+              """GitHub rejects duplicate mapping keys; PyYAML silently keeps the last."""
+
+          def no_dup(loader, node, deep=False):
+              out = {}
+              for k, v in node.value:
+                  key = loader.construct_object(k, deep=deep)
+                  if key in out:
+                      raise ValueError(f"duplicate key {key!r}")
+                  out[key] = loader.construct_object(v, deep=deep)
+              return out
+
+          Strict.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, no_dup)
+
+          files = sorted(glob.glob(".github/workflows/*.yml")
+                         + glob.glob(".github/workflows/*.yaml"))
+          bad = []
+          for path in files:
+              try:
+                  doc = yaml.load(open(path, encoding="utf-8"), Strict)
+              except Exception as exc:
+                  bad.append((path, str(exc).split("\n")[0].strip()))
+                  continue
+              if not isinstance(doc, dict):
+                  bad.append((path, "top level is not a mapping"))
+              # PyYAML resolves a bare `on:` key to the boolean True.
+              elif True not in doc and "on" not in doc:
+                  bad.append((path, "no `on:` trigger — the workflow can never fire"))
+
+          for path, why in bad:
+              print(f"::warning file={path}::{why} — GitHub will create zero-job "
+                    f"runs that look like failures but never execute a step")
+          print(f"\nworkflow-lint: {len(files) - len(bad)}/{len(files)} parse cleanly.")
+          if bad:
+              print(f"{len(bad)} defective. Advisory for now; see workflow-lint.yml "
+                    f"for the promotion condition.")
+          PY
