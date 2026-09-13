@@ -74,17 +74,16 @@ PLACEHOLDER_VALUES = {"", "-", "none", "n/a", "tbd", "unset", "unknown",
 # prevent. Adding a path here is a reviewed change to the gate itself, and it
 # never carries a tool to `approved`.
 #
-#   tools/message_calibration_v1_0.py — predates this control system.
-#   .z1-control/ratify.py             — arrived with PR #308 and declares
-#     TOOL_ZONE = 2 deliberately: it records a Z2 decision and is run by the
-#     ratifier. The claim is almost certainly correct, but "correct" is not
-#     "ratified", and Z1 cannot sign for Z2. Surfaced by widening SCAN_ROOTS to
-#     cover .z1-control — the coverage rule doing its job.
+#   tools/message_calibration_v1_0.py — predates this control system; still open.
 #
-# Deliberately NOT named "legacy": one of these merged today.
+# `.z1-control/ratify.py` was here until 2026-09-13, when Night ratified its
+# Zone 2 declaration (z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md). It
+# now carries a real `ratified_by` and needs no exemption — which is the whole
+# point of the list: entries leave it by being decided, not by being forgotten.
+#
+# Deliberately NOT named "legacy": the second entry arrived the day it was added.
 UNRATIFIED_ZONE_CLAIMS = frozenset({
     "tools/message_calibration_v1_0.py",
-    ".z1-control/ratify.py",
 })
 
 errors: list[str] = []

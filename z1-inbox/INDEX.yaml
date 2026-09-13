@@ -26,7 +26,7 @@ generated: "2026-09-13"
 decision_window_days: 2
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
-counts: {candidates: 15, records: 13}
+counts: {candidates: 15, records: 14}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
@@ -143,6 +143,8 @@ candidates:
     note: "Answers Q-TOOLCONTROL-01 checklist item 6. Decision A (backlog) and Decision B (owners) are the owner's acts; no date was moved."
 
 records:
+  - path: "z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md"
+    title: "Z2 ruling — .z1-control/ratify.py Zone 2 ratified (Night, 2026-09-13)"
   - path: "z1-inbox/2026-09-06/HANDOFF.md"
     title: "Handoff — 2026-09-06 drop"
   - path: "z1-inbox/2026-09-06/MANIFEST.md"
