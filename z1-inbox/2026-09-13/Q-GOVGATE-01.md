@@ -250,7 +250,41 @@ since 2026-09-10. Nothing had counted the days since.
    `failure` runs read as a gate that ran. This is the detection gap that let #1 and #2 persist
    for 584 combined runs. Mitigated here by `workflow-lint.yml` (advisory). **F candidate.**
 
-4. **`.z1-control/` is not in `.tool-control/scan.py`'s `SCAN_ROOTS`** (`tools`, `scripts`,
+4. **Every CODEOWNERS rule in this repository is inert — including the one added to fix
+   exactly this.** Q-TOOLCONTROL-01 item 3 found the root `CODEOWNERS` shadowed by
+   `.github/CODEOWNERS` and mitigated it by repeating the control-surface rules in the honoured
+   file "with owners that exist". **Those owners do not exist.** Verified:
+
+   | check | result |
+   |---|---|
+   | `CODEOWNERS` and `.github/CODEOWNERS` both present | yes — GitHub honours `.github/`, ignores root entirely |
+   | Root file's owners (`@humanaios-ui/doc-control`, `/governance`, `/research`) | teams never created; `.doc-control/TEAM_OWNERS.md` still says *"Teams (create in the org, then add members)"* and *"Only `@carly` is confirmed"* |
+   | `@carly-r-anderson` exists as a GitHub login | **no** — `in:login` search returns 0 |
+   | `@sab-backup` exists as a GitHub login | **no** — 0 |
+   | search instrument validated | `humanaios-ui in:login` → 1 result, so the nulls are real |
+   | repository collaborators | **exactly one: `humanaios-ui` (admin)** |
+
+   GitHub ignores a code owner without write access, so the collaborator list settles it
+   independently of whether those accounts exist anywhere: **no path in this repository has a
+   valid code owner — including the `*` catch-all on line 45, and including
+   `document-registry.yaml`, `.doc-control/`, `.tool-control/` and `tools-manifest.yaml`, the
+   four the #306 mitigation was written to protect.** Commits land as
+   `Carly R. Anderson <aioshuman@gmail.com>` under the `humanaios-ui` account; `carly-r-anderson`
+   appears to be a login that was never registered.
+
+   **This is the fourth instance of the pattern, and the first where the mitigation for an
+   instance was itself an instance.** A control was written, documented as enforcing, and never
+   checked. **IC candidate**, and the one that should be ranked first: it is the control every
+   other no-self-grant rule in this system — `.tool-control`'s Z2 waiver refusal, `.doc-control`'s
+   no-self-approval, and this PR's `KNOWN_RATIFIERS` — silently depends on.
+
+   Fixing it is **Zone 3** (repository administration, not a pull request) and is deliberately
+   not attempted here: either add the intended reviewers as collaborators under their real
+   logins, or rewrite `.github/CODEOWNERS` to name `@humanaios-ui`. Note that with a single
+   admin account authoring the PRs, code-owner review cannot be a real second pair of eyes
+   whatever the file says — which is a governance question, not a configuration one.
+
+5. **`.z1-control/` is not in `.tool-control/scan.py`'s `SCAN_ROOTS`** (`tools`, `scripts`,
    `bin`), so its two scripts are unregistered tools. PR #307 adds `.tool-control` and
    `.doc-control` to `SCAN_ROOTS` but not `.z1-control`. **Flagged as a follow-up, not fixed
    here**, to avoid a conflict in a generated manifest three open PRs are already touching.
@@ -282,10 +316,8 @@ since 2026-09-10. Nothing had counted the days since.
   ruling file and cite it in the same PR. The checks added since raise the cost — the ruling must
   be an indexed record and must literally contain the `z2_hash` claimed for it — but a determined
   proposer with write access can still manufacture all three. **The real control is CODEOWNERS
-  plus branch protection on `z1-inbox/` and `.z1-control/`, not this file.** Item 3 of
-  Q-TOOLCONTROL-01 found that the root `CODEOWNERS` doc-control rules have never been in force
-  because `.github/CODEOWNERS` shadows them — so that control's current state is itself an open
-  question, and this one inherits it. **Checklist item 7.**
+  plus branch protection**, and that control was checked rather than assumed. It does not hold.
+  See item 5 below. **Checklist item 7.**
 
 ---
 
@@ -326,9 +358,11 @@ that was not already ruled on by Night on 2026-09-08.
 - [ ] The coverage rule is accepted as merge-blocking from day one.
 - [ ] `ratifiers: [Night]` is the correct and complete list — it is now pinned in
       `KNOWN_RATIFIERS` in `.z1-control/validate.py`, so changing it is a code review.
-- [ ] **Item 7:** the no-self-grant rule rests on CODEOWNERS and branch protection over
-      `z1-inbox/` and `.z1-control/`, which Q-TOOLCONTROL-01 item 3 suggests may not be in force.
-      Confirm, or the validator's authorization checks are advisory in practice.
+- [ ] **Item 7 (rank first): no path in this repo has a valid code owner.** Verified, not
+      suspected — `@carly-r-anderson` and `@sab-backup` are not GitHub logins, and the repo has
+      one collaborator. The #306 mitigation for this exact problem is itself inert. Every
+      no-self-grant rule in the system — including this PR's — is advisory in practice until a
+      Zone 3 fix lands. Decide: real logins as collaborators, or `@humanaios-ui` in the file.
 
 ---
 
