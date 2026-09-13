@@ -54,5 +54,6 @@ jobs:
             tools/tests/test_dimension_attribution.py \
             tools/tests/test_tool_trace_hook.py \
             tools/tests/test_tool_trace_reader.py \
+            tools/tests/test_copilot_acat_scanner.py \
             acat/tests/test_tool_trace_schema.py \
             -q

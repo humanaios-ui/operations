@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**136 registered tools** · 2 MCP servers · 0 excluded · 117 carrying Builder v1.7 markers
+**137 registered tools** · 2 MCP servers · 0 excluded · 118 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 136 |
-| — status `draft` | 135 |
+| Registered tools | 137 |
+| — status `draft` | 136 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 117 |
+| Builder v1.7 markers present | 118 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -58,7 +58,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-115 | skill_compression_scanner_v1_0 | `tools/skill_compression_scanner_v1_0.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | — |
 | HAIOS-TOOL-143 | zone_boundary_audit | `tools/zone_boundary_audit_v1_0.py` | 1.0.0 | 1 | draft | — | Detects Zone 1/2/3 boundary violations in workflow artifacts and operator logs. |
 
-## Calibration — `calibration_tool` (14)
+## Calibration — `calibration_tool` (16)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -66,6 +66,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-044 | ci_predict_pin | `tools/ci_predict_pin_v1_0.py` | 1.0.0 | 1 | draft | — | ci_predict_pin_v1_0.py |
 | HAIOS-TOOL-045 | ci_predict_resolve | `tools/ci_predict_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | ci_predict_resolve_v1_0.py |
 | HAIOS-TOOL-052 | dimension_attribution | `tools/dimension_attribution_v1_0.py` | 1.0.0 | 1 | draft | — | dimension_attribution_v1_0.py |
+| HAIOS-TOOL-057 | echoes_copilot_acat_scanner | `tools/echoes_copilot_acat_scanner_v0_1.py` | 1.0.0 | 1 | draft | — | echoes_copilot_acat_scanner_v0_1.py |
 | HAIOS-TOOL-087 | lifecycle_predict | `tools/lifecycle_predict_v1_0.py` | 1.0.0 | 1 | draft | — | lifecycle_predict_v1_0.py |
 | HAIOS-TOOL-093 | nf_ledger_cli | `tools/nf_ledger_cli_v1_0.py` | 1.0.0 | 1 | draft | — | nf_ledger_cli_v1_0.py |
 | HAIOS-TOOL-094 | nf_ledger_v0_1 | `tools/nf_ledger_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | nf_ledger_v0_1.py — NF_LEDGER (calibration ledger, Brier) for the Phase 2 mesh pins. |
@@ -76,6 +77,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-120 | smag_pilot_capture | `tools/smag_pilot_capture_v1_0.py` | 1.0.0 | 1 | draft | — | smag_pilot_capture_v1_0.py |
 | HAIOS-TOOL-121 | smag_pr_autocapture | `tools/smag_pr_autocapture_v1_0.py` | 1.0.0 | 1 | draft | — | smag_pr_autocapture_v1_0 — auto-capture a SMAG pilot row from a merged PR |
 | HAIOS-TOOL-123 | smag_resolve | `tools/smag_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | smag_resolve — fix SMAG capture timing by recording CI outcome AFTER checks resolve. |
+| HAIOS-TOOL-144 | copilot_acat_scanner | `tools/copilot_acat_scanner_v1_0.py` | 1.0.0 | 1 | draft | — | copilot_acat_scanner_v1_0.py |
 
 ## Connectors — `connector_tool` (10)
 
@@ -188,7 +190,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-078 | haios_report_writer | `tools/haios_report_writer_v1_0.py` | 1.0.0 | 1 | draft | — | HAIOS Report Writer — v1.0 |
 | HAIOS-TOOL-107 | registry_site_generator | `tools/registry_site_generator_v1_0.py` | 1.0.0 | 1 | draft | — | Reads REGISTERED.md, parses F-class / IC-class / H-class entries, |
 
-## Research — `research_tool` (10)
+## Research — `research_tool` (9)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -197,7 +199,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-008 | acat_adversarial_suite | `tools/acat_adversarial_suite_v1.py` | 1.0.0 | 1 | draft | no-builder-markers, no-smoke-test | ACAT Adversarial Test Suite v1.0 — Priority 6 EU AI Act Compliance |
 | HAIOS-TOOL-013 | acat_full_adversarial_suite_execution | `tools/acat_full_adversarial_suite_execution.py` | 1.0.0 | 1 | draft | no-builder-markers, no-smoke-test | Full 27-Test Adversarial Suite Execution Against Patched ACAT Scorer |
 | HAIOS-TOOL-035 | app_mapping_tool | `tools/app_mapping_tool.py` | 0.1.4 | 1 | draft | — | App Mapping Tool — v0.1.4 |
-| HAIOS-TOOL-057 | echoes_copilot_acat_scanner | `tools/echoes_copilot_acat_scanner_v0_1.py` | 1.0.0 | 1 | draft | — | echoes_copilot_acat_scanner_v0_1.py |
 | HAIOS-TOOL-058 | elicitation_surface_scanner | `tools/elicitation_surface_scanner_v1_0.py` | 1.0.0 | 1 | draft | — | Elicitation Surface Scanner — v1.0 |
 | HAIOS-TOOL-095 | p3_record_generator | `tools/p3_record_generator_v1_0.py` | 1.0.0 | 1 | draft | — | p3_record_generator_v1_0.py |
 | HAIOS-TOOL-103 | red_team_runner | `tools/red_team_runner_v1_0.py` | 1.0.0 | 1 | draft | — | Red Team Runner — v1.0 |
@@ -265,7 +266,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 1 |
 | `audit_tool` | Audits artifacts or state against rules and reports findings. | 19 |
-| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 14 |
+| `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 10 |
 | `dependency` | Imported by other tools; not invoked directly. | 5 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 13 |
@@ -275,7 +276,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 6 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 4 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 4 |
-| `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
+| `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 9 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 10 |
 | `template_tool` | A scaffold or template for producing new tools. | 1 |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. | 15 |
