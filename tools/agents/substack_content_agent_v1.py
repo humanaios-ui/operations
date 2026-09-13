@@ -2,6 +2,8 @@
 """
 Agent 2.1: Substack Content Agent
 ==================================
+Builder v1.7 compliant · reporting_tool
+HumanAIOS
 
 Purpose: Auto-generate weekly research posts from ACAT findings
 Triggers: Weekly (or after N=10 new resolutions)
@@ -27,6 +29,7 @@ from typing import List, Dict, Optional
 
 TOOL_NAME = "substack_content_agent_v1"
 TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "reporting_tool"
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _shared.supabase_client import get_supabase_client

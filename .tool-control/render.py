@@ -18,6 +18,9 @@ import argparse
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from scan import CATEGORIES  # noqa: E402  (one definition of the vocabulary)
+
 try:
     import yaml
 except ImportError:  # pragma: no cover - CI installs it
@@ -36,8 +39,8 @@ OUTPUT = os.path.join(ROOT, "TOOLS_MANIFEST.md")
 CATEGORY_TITLES = {
     "connector_tool": "Connectors",
     "security_gate_tool": "Security gates",
-    "governance": "Governance",
     "governance_tool": "Governance",
+    "calibration_tool": "Calibration",
     "audit_tool": "Audit",
     "validation_tool": "Validation",
     "diagnostic_tool": "Diagnostics",
@@ -47,11 +50,10 @@ CATEGORY_TITLES = {
     "analytics_tool": "Analytics",
     "research_tool": "Research",
     "pipeline_tool": "Pipelines",
-    "discovery": "Discovery",
-    "dispatch": "Dispatch",
-    "site": "Site",
-    "template": "Templates",
-    "unclassified": "Unclassified — needs an owner's categorization",
+    "reporting_tool": "Reporting",
+    "dependency": "Dependencies (imported, not invoked)",
+    "template_tool": "Templates",
+    "unclassified": "Unclassified — blocks the gate",
 }
 
 
@@ -200,6 +202,20 @@ def render(manifest: dict) -> str:
         "`_skip_reason` in `tools/builder_compliance_scanner_v1.0.py`: `test_*`/`*_test` modules, "
         "`__init__.py`, and `_`-prefixed private/shared helper directories. Archived tools stay "
         "registered at `status: archived`.")
+    add("")
+    add("## Category vocabulary")
+    add("")
+    add("A category says what a tool **does to the system**, not what subject it concerns — "
+        "\"ACAT\" is a subject, `audit_tool` is a role. The set is closed: an entry outside it, "
+        "or left `unclassified`, fails the gate. Extending it is a reviewed change to "
+        "`CATEGORIES` in `.tool-control/scan.py`.")
+    add("")
+    add("| category | meaning | count |")
+    add("|---|---|---|")
+    for name, meaning in sorted(CATEGORIES.items()):
+        if name == "unclassified":
+            continue
+        add(f"| `{name}` | {_esc(meaning)} | {len(groups.get(name, []))} |")
     add("")
     add("**Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, "
         "`TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including "

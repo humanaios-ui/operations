@@ -32,7 +32,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 TOOL_NAME = "supabase_logger"
 TOOL_VERSION = "1.1.0"
-TOOL_CATEGORY = "dispatch"
+TOOL_CATEGORY = "connector_tool"
 TOOL_SESSION = "S-052326-03"
 
 # ---------------------------------------------------------------------------
