@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**17 candidates** — ⏳ awaiting Z2 14 · ✅ ratified 3 · **13 records**
+**18 candidates** — ⏳ awaiting Z2 15 · ✅ ratified 3 · **15 records**
 
-## Awaiting Z2 (14)
+## Awaiting Z2 (15)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -20,6 +20,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-13 | **Q-PHASE1-2-ROLLOUT-01** | Framework Mapping Phase 1–3 rollout plan | `z1-inbox/2026-09-11/PHASE_1_2_ROLLOUT_PLAN.md` |
 | 2026-09-14 | **Q-ADVREVIEW-CALIB-01** | Adversarial review as a PR-gated calibration node | `z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md` |
 | 2026-09-15 | **Q-DOCREVIEW-01** | The 39 overdue document reviews — lifecycle, not re-dating | `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md` |
+| 2026-09-15 | **Q-DOCREVIEW-02** | Findings from the first real document review pass (11 reviewed, 28 unreachable) | `z1-inbox/2026-09-13/Q-DOCREVIEW-02.md` |
 | 2026-09-15 | **Q-GOVGATE-01** | The Z2 gate never ran; z1-inbox conversion mechanism | `z1-inbox/2026-09-13/Q-GOVGATE-01.md` |
 | 2026-09-15 | **Q-NF-ADAPTER-01** | molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger | `z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md` |
 | 2026-09-15 | **Q-RBE-01** | Resource-based operations v0.1 — units, ledger, census, priced queue | `z1-inbox/2026-09-13/Q-RBE-01.md` |
@@ -146,7 +147,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (13)
+## Records (15)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -165,6 +166,8 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-09/IC-030-REPIN-01.md` | Q-IC030-REPIN-01 work order (Z1 self-assigned; no Z2 decision requested) |
 | `z1-inbox/2026-09-10/HANDOFF.md` | Handoff — 2026-09-10 |
 | `z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md` | Q-IC030-REPIN-01 result — repin + manifest reconciliation (COMPLETE, 3/3) |
+| `z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md` | Z2 ruling — RESOURCE_UNITS.yaml header ratified; hash remains unsigned by Z2 |
+| `z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md` | Z2 ruling — .z1-control/ratify.py Zone 2 ratified (Night, 2026-09-13) |
 
 ---
 
