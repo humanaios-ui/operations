@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import os
+import re
 import sys
 
 try:
@@ -63,7 +64,45 @@ def _date(value: object) -> datetime.date | None:
     return None
 
 
-def render(index: dict) -> str:
+CHECKLIST_HEADING = re.compile(r"^#{1,6}\s*Z2 Review Checklist\s*$", re.MULTILINE)
+CHECKLIST_ITEM = re.compile(r"^- \[( |x|X)\]\s+(.*)$")
+
+
+def open_questions(path: str, read) -> list[str]:
+    """The unticked `- [ ]` lines under a candidate's '## Z2 Review Checklist'.
+
+    The questions Z2 has to answer were only ever readable by opening each
+    candidate block and scrolling to the bottom. Lifting them into the generated
+    index is the difference between a queue you can act on and a queue you have
+    to go looking for.
+    """
+    try:
+        text = read(path)
+    except Exception:
+        return []
+    m = CHECKLIST_HEADING.search(text)
+    if not m:
+        return []
+    out: list[str] = []
+    collecting = False
+    for line in text[m.end():].split("\n"):
+        if line.startswith("#"):
+            break  # next section
+        item = CHECKLIST_ITEM.match(line)
+        if item:
+            collecting = item.group(1) == " "
+            if collecting:
+                out.append(item.group(2).strip())
+        elif collecting and line.strip() and line[:1].isspace():
+            # A wrapped continuation line. Without this the item is cut off at
+            # the first newline, which truncated questions mid-sentence.
+            out[-1] += " " + line.strip()
+        elif not line.strip():
+            collecting = False
+    return out
+
+
+def render(index: dict, read=None) -> str:
     candidates = index.get("candidates") or []
     records = index.get("records") or []
     window = index.get("decision_window_days") or 0
@@ -165,6 +204,27 @@ def render(index: dict) -> str:
             add(f"| **{_esc(c.get('q_id'))}** | {_esc(c.get('falsifier_waiver'))} |")
         add("")
 
+    # --- the questions themselves -------------------------------------------
+    if read is not None:
+        asked = [(c, open_questions(str(c.get("path")), read)) for c in waiting]
+        asked = [(c, qs) for c, qs in asked if qs]
+        if asked:
+            total = sum(len(qs) for _, qs in asked)
+            add(f"## Open questions for Z2 ({total})")
+            add("")
+            add("Every unticked item from the `## Z2 Review Checklist` of each candidate still "
+                "awaiting a decision. Answer them in the block itself — ticking a box here does "
+                "nothing, because this file is generated.")
+            add("")
+            for c, qs in sorted(asked, key=lambda x: str(x[0].get("q_id"))):
+                add(f"### {_esc(c.get('q_id'))} ({len(qs)})")
+                add("")
+                add(f"`{_esc(c.get('path'))}`")
+                add("")
+                for q in qs:
+                    add(f"- [ ] {q}")
+                add("")
+
     # --- records ------------------------------------------------------------
     if records:
         add(f"## Records ({len(records)})")
@@ -226,6 +286,18 @@ def run_smoke_test() -> int:
     }
     out = render(sample)
     assert "3 candidates" in out, out
+    assert "Open questions" not in out, "no reader supplied — must not invent questions"
+
+    fs = {"z1-inbox/x/a.md": "# c\n## Z2 Review Checklist\n- [ ] decide the thing\n"
+                             "      which wraps onto a second line\n"
+                             "- [x] already done\n      and its wrap\n"
+                             "\n## Summary\n- [ ] not a question\n"}
+    out2 = render(sample, read=lambda p: fs[p])
+    assert "Open questions for Z2 (1)" in out2, out2
+    assert "decide the thing which wraps onto a second line" in out2, out2
+    assert "and its wrap" not in out2, "a ticked item's continuation must not leak"
+    assert "already done" not in out2, "ticked items must not be listed"
+    assert "not a question" not in out2, "items past the next heading must not be listed"
     assert "Awaiting Z2 (2)" in out, out
     assert "Decided (1)" in out, out
     assert "Falsifier waivers (1)" in out, out
@@ -236,7 +308,7 @@ def run_smoke_test() -> int:
     # date-independence: rendering must not depend on today
     assert "overdue" not in out.lower(), "renderer leaked a moving value into a --check'd file"
     print("smoke-test OK — renders queue, decisions, waivers and records; derives due dates; "
-          "escapes cells; stays date-independent.")
+          "escapes cells; lifts unticked Z2 checklist items; stays date-independent.")
     return 0
 
 
@@ -258,8 +330,11 @@ def main() -> int:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from validate import load_index  # noqa: E402
 
+    def read_repo_file(rel: str) -> str:
+        return open(os.path.join(ROOT, rel), encoding="utf-8").read()
+
     try:
-        out = render(load_index(INDEX))
+        out = render(load_index(INDEX), read=read_repo_file)
     except yaml.YAMLError as exc:
         print(f"::error::z1-inbox/INDEX.yaml does not parse: "
               f"{str(exc).splitlines()[-1].strip()}")
