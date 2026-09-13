@@ -71,8 +71,11 @@ don't reconstruct files from a corrupted paste.
   the edit named, then verify the rest is unchanged — a bare hash isn't
   license to reject an edit the issue asks for.
 - **`CONTROLLED_DOCUMENTS.md`/`TOOLS_MANIFEST.md`** are pure rendered
-  output — never hand-edit. `document-registry.yaml`/`tools-manifest.yaml`
-  are their hand-edited sources (§5, §6).
+  output — never hand-edit. `document-registry.yaml` (§6) is the fully
+  hand-edited source behind the first. `tools-manifest.yaml` (§5) behind the
+  second is different in kind: `scan.py` writes it directly from the tree,
+  preserving only its own CURATED fields across each re-scan — not a plain
+  hand-edited file the same way `document-registry.yaml` is.
 
 ## 5. Adding or changing a tool (`tools/`, `scripts/`, `bin/`)
 
@@ -91,7 +94,9 @@ A new Python tool needs:
 - `if __name__ == "__main__":` guard and a **working** `--smoke-test` flag.
 
 **The scanner is text-matching, not structural — don't over-trust a pass.**
-`--path <file>` checks 6 hard markers (docstring phrase, `TOOL_NAME`/
+It does `ast.parse()` the file first and hard-fails `SYNTAX_ERROR` on invalid
+Python before checking anything else, but past that gate the 9 markers below
+are plain regexes, not structure. `--path <file>` checks 6 hard markers (docstring phrase, `TOOL_NAME`/
 `TOOL_VERSION`, `HumanAIOS`, smoke-test text, main guard) plus 3 soft ones
 (non-blocking unless `--strict`, which CI doesn't use). All 9 are regexes over
 the raw source — a comment merely *mentioning* `run_smoke_test` or
@@ -153,15 +158,19 @@ setting the flag on a new entry is rejected as a self-granted waiver.
 
 **"Controlled" is decided by `document-registry.yaml`, not by frontmatter** —
 check the registry, not the file. Some registered docs (`OPERATOR_RUNBOOK.md`,
-`CURRENT.md`) carry no frontmatter at all. The check scans every `*.md` file,
-new or already-tracked: any file that *declares* a `doc_id` gets it checked
-against the registry, and an unmatched one is an "orphan doc_id" failure —
-it says nothing about a file with no frontmatter at all.
+`CURRENT.md`) carry no frontmatter at all. The check scans every `*.md` file
+outside `.doc-control/`, `.tool-control/`, and `_templates/` (its own
+control-system internals, excluded deliberately), new or already-tracked:
+any file that *declares* a `doc_id` gets it checked against the registry, and
+an unmatched one is an "orphan doc_id" failure — it says nothing about a file
+with no frontmatter at all.
 
 Editing an already-registered document needs no registration step. Adding a
 genuinely new controlled document means hand-editing `document-registry.yaml`
 directly (no scan step): add your entry with `doc_id`, `title`,
-`canonical_repo`, `canonical_path`, `status` at minimum, **and** increment the
+`canonical_repo`, `canonical_path`, `status`, and `canonical: true` at
+minimum — exactly one `canonical: true` per `doc_id` is the registry's own
+contract — **and** increment the
 registry's own top-level `counts:` mapping to match reality — `render.py`
 doesn't touch it, and `validate.py` blocks merge if it's stale. Then run
 `python3 .doc-control/render.py` to regenerate `CONTROLLED_DOCUMENTS.md`
