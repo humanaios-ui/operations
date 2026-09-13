@@ -37,8 +37,9 @@ at opening a mergeable, green PR.
 A `copilot/*` PR must target `main`. A PR that targets another `copilot/*` branch is
 a fix stacked on a fix — this exact pattern produced a five-deep, zero-diff merge
 chain (PR #250) that had to be untangled by hand. `copilot-base-guard.yml` will
-retarget a misdirected PR to `main` automatically and comment, but treat that as a
-safety net you should never need — open against `main` yourself.
+retarget a misdirected PR to `main` automatically (its explanatory comment is
+best-effort and can silently fail to post), but treat retargeting as a safety net
+you should never need — open against `main` yourself.
 
 ## 3. Any file payload goes on a pushed branch — never in an issue or PR body
 
@@ -67,20 +68,22 @@ the files from the corrupted paste.
 
 ## 5. Adding or changing a tool in `tools/`, `scripts/`, or `bin/`
 
-The checklist below is enforced for **Python** tools by
-`builder_compliance_scanner_v1.0.py` and CI's `builder-lint.yml` (which only
-runs on `tools/**/*.py`). `.tool-control/scan.py` also registers `.js`, `.sh`,
-and extensionless tools, but the marker checklist itself is Python-specific —
-for another language, match the intent (a name, a version, a stated purpose, a
-smoke test) in that language's own idiom; the manifest step below still
-applies regardless of language.
+The Builder v1.7 marker checklist below is Python-specific, and CI enforces it
+(`builder_compliance_scanner_v1.0.py` via `builder-lint.yml`) only for
+`tools/**/*.py` — not `scripts/`/`bin/`, and not other languages. Run the
+scanner manually for a Python tool outside `tools/`; for another language,
+match the same intent (a name, a version, a stated purpose, a smoke test) in
+that language's own idiom. `.tool-control/scan.py` registers `.js`, `.sh`, and
+extensionless tools too, but only into the manifest — not this checklist.
 
-A new Python tool file needs, at minimum:
+A new Python tool file needs, at minimum (per `tools/README.md`'s own "Adding a
+new tool" section):
 
 - A module docstring containing the literal phrase `Builder v1.7 compliant` and the
   word `HumanAIOS`.
-- `TOOL_NAME = "..."` and `TOOL_VERSION = "..."` constants.
-- An `if __name__ == "__main__":` guard.
+- `TOOL_NAME`, `TOOL_VERSION`, `TOOL_CATEGORY`, `TOOL_SESSION`, and `TOOL_ZONE`
+  constants.
+- An `if __name__ == "__main__":` guard, with `--help` and `--input` support.
 - A smoke test reachable via `--smoke-test` (or a `run_smoke_test()` function).
 
 Verify with `python3 tools/builder_compliance_scanner_v1.0.py --path <your file>`.
@@ -90,20 +93,27 @@ Then register the file — a tool on disk that isn't in the manifest fails CI
 
 ```bash
 python3 .tool-control/scan.py       # refreshes DERIVED fields from the tree, adds new files
+# now hand-edit tools-manifest.yaml: fill in owner, purpose, and — only if your
+# tool file does NOT already declare TOOL_CATEGORY/TOOL_ZONE — category/zone
 python3 .tool-control/render.py     # regenerates TOOLS_MANIFEST.md to match
 python3 .tool-control/validate.py   # the merge gate itself, run it yourself first
 ```
 
-`scan.py` only overwrites **DERIVED** fields (`version`, `interface`, `lang`,
-`smoke_test`, `builder_markers`, `session`) — it preserves **CURATED** ones
-(`owner`, `purpose`, `category`, `status`, `zone`, `notes`, ...). After running
-it for a new tool, hand-edit `tools-manifest.yaml` to fill in at least `owner`,
-`purpose`, and a real `category` for your entry (an unclassified, ownerless
-`draft` entry passes CI today as advisory debt, but isn't the target). What you
-must never hand-edit is **`TOOLS_MANIFEST.md`** itself — change
-`tools-manifest.yaml` and rerun `render.py` instead. A tool declaring
-`TOOL_ZONE = 2` or `3` needs Z2 ratification named in the issue — it cannot
-self-declare a waiver (see `.tool-control/README.md`).
+`scan.py` preserves **CURATED** fields (`owner`, `purpose`, `status`, `notes`,
+...) unconditionally, but `category`/`zone` are curated *only* when the tool
+file declares neither `TOOL_CATEGORY` nor `TOOL_ZONE` — if it declares either,
+that constant is treated as DERIVED and overwrites the manifest on every scan,
+so declare it in code rather than hand-editing the manifest entry (a mismatch
+between the two is a merge-blocking error). What you must never hand-edit is
+**`TOOLS_MANIFEST.md`** itself — change `tools-manifest.yaml` and rerun
+`render.py` instead.
+
+A tool at `zone: 2` or `3` needs its manifest entry's own `ratified_by` field
+naming a Z2 hash or ratification document — `.tool-control/validate.py` blocks
+merge on any zone-2/3 entry with no `ratified_by` (one pre-existing legacy
+exception aside). Naming the ratification in the issue or PR description is
+not enough on its own; it has to land in the manifest. A tool cannot
+self-declare its own waiver (see `.tool-control/README.md`).
 
 ## 6. Adding or changing a controlled document
 
@@ -112,8 +122,10 @@ frontmatter declares a `doc_id` (format `HAIOS-<AREA>-<nnn>`) — those must be
 registered in `document-registry.yaml` first, or `.doc-control/validate.py` fails
 the PR with "orphan doc_id". Unlike the tool manifest, `document-registry.yaml`
 has no scan step: it's a curated YAML list you hand-edit directly, adding your
-`doc_id` entry with its `title`/`area`/`canonical_path`/`status`. After
-registering, run `python3 .doc-control/render.py` to regenerate
+`doc_id` entry with its required fields — `title`, `canonical_repo`,
+`canonical_path`, and `status` at minimum (`.doc-control/validate.py` blocks
+merge on any missing). After registering, run `python3 .doc-control/render.py`
+to regenerate
 `CONTROLLED_DOCUMENTS.md` from it — like `TOOLS_MANIFEST.md`, that rendered
 index is never hand-edited. If you're not adding a governance/research-of-record
 document, you almost certainly don't need frontmatter at all — most tool READMEs,
@@ -133,8 +145,14 @@ python3 .tool-control/validate.py                      # tool-control structural
 python3 .tool-control/render.py --check                # TOOLS_MANIFEST.md in sync
 python3 -m ruff check --select=E9,F63,F7,F82 \
   src/humanaios_operations acat/api/services tools/tests tests
-python3 -m pytest -q                                   # see quality-baseline.yml for the exact blocking list
+python3 -m mypy src/humanaios_operations --ignore-missing-imports
 ```
+
+Then run the blocking pytest suite exactly as `quality-baseline.yml`'s "Pytest
+baseline suites" step defines it — copy that step's file list verbatim rather
+than running a bare `pytest -q`: blanket discovery both picks up tests CI
+doesn't gate on and can pass locally while missing a suite CI does gate on, if
+your environment lacks that suite's fixtures.
 
 If a check fails because a generated file (manifest, rendered index) is stale, the
 fix is almost always re-running the tool that generates it — see §5/§6 — not
