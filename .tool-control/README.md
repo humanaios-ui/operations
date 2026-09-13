@@ -12,7 +12,7 @@ rendered index that cannot drift from it.
 | `validate.py` | The merge gate. Structural rules only. |
 | `render.py` | `tools-manifest.yaml` → `TOOLS_MANIFEST.md`. |
 | `selftest.py` | Proves every blocking rule can fail. Fails if any rule has no proof. |
-| `.github/workflows/tool-manifest.yml` | Runs all four on every PR touching tools. |
+| `.github/workflows/tool-manifest.yml` | Runs all four on every PR touching a scan root, the manifest, `.mcp.json`, or itself. |
 
 ## Why this exists
 

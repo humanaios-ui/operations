@@ -62,8 +62,8 @@ All four defects share one shape: **a rule the documentation asserted and the co
 enforce.** That is not a new failure mode here. It is item 3 of Q-TOOLCONTROL-01 — `CLAUDE.md`
 describes CI-enforced Z2-hash, Merkle and anti-cascade gates that are not wired — and item 2 —
 `CONTROLLED_DOCUMENTS.md` instructing readers not to hand-edit it because it was "rendered from"
-a registry by a renderer that did not exist. The same pattern appeared three times in three
-different places, twice before I arrived and twice under my own hand.
+a registry by a renderer that did not exist. Counting precisely: **two pre-existing instances
+plus the four defects above — six in total**, in five different places.
 
 There is a fourth instance worth naming plainly: the repository's own research note is
 `docs/REFLEXIVE_CALIBRATION_PAPER_V1_0.md` — *"The Instrument Turned Inward"* (HAIOS-RES-009).
@@ -132,6 +132,39 @@ gate as verified on self-test alone.
 
 ---
 
+## §Review round — Copilot, 7 findings, all correct
+
+**The coverage enforcement itself had a bypass.** `blocking_conditions()` found `err()` sites with
+a regex matching only `err("` and `err(f"`. A rule written `err('...')`, `err(message)`, or across
+multiple lines was invisible to it — so the mechanism built to guarantee every rule has a
+demonstration would not have demanded one. Verified by smuggling two such rules in: the regex saw
+26 and passed; AST-based discovery sees 28 and fails. **That is the same defect class this block
+is about, occurring inside the fix for it — the third consecutive round in which that has
+happened.**
+
+**The fixtures tested functions, not the command CI runs.** Every case called `validate_coverage()`
+directly while CI invokes `validate.py`. Unwiring the coverage check from `main()` left all unit
+fixtures green. An end-to-end subprocess case now builds a throwaway repo with an unregistered
+tool and runs the actual command; with the call removed it reports *"validate.py exited 0 with an
+unregistered tool on disk — the coverage check is not wired into main()"*.
+
+**Widening the scan scope without widening the trigger.** Adding `.doc-control` to `SCAN_ROOTS`
+made its files registered tools, but the workflow's `paths:` filters still listed only
+`.tool-control/**`. A PR touching just `.doc-control/validate.py` would have skipped the manifest
+and selftest gates entirely, and `document-control.yml` does not run them. This is the identical
+hole fixed in #304 (workflows omitting themselves from their own filters), reopened by extending
+coverage in one place and not the other.
+
+**`interface: module` was a false promise.** `.doc-control/validate.py` executes at import and
+calls `sys.exit()`; the scanner labelled it `module` because it is a `.py` file. Classification
+now turns on import-safety — a `.py` without a `__main__` guard is a `script`. Two registered
+files were mislabelled; both now read `script`.
+
+Plus two documentation corrections: the workflow header still said "All three are ERROR gates"
+after a fourth was added, and this block's own arithmetic said "three times ... twice and twice".
+
+---
+
 ## Falsifier
 
 **Claim:** requiring every blocking rule to carry an executable demonstration keeps the gates
@@ -178,11 +211,11 @@ any new blocking rule arriving with its demonstration in the same commit.
 
 | File | Change |
 |---|---|
-| `.tool-control/selftest.py` | New — 26 tool + 7 doc fixtures, coverage enforced |
-| `.tool-control/scan.py` | `.tool-control` + `.doc-control` added to `SCAN_ROOTS` |
+| `.tool-control/selftest.py` | New — 26 tool + 7 doc fixtures + an end-to-end CLI case; AST-based coverage |
+| `.tool-control/scan.py` | `.tool-control` + `.doc-control` in `SCAN_ROOTS`; `interface` now turns on import-safety |
 | `.doc-control/validate.py` | `TOOL_NAME`/`TOOL_VERSION`/`TOOL_CATEGORY`/`TOOL_ZONE` declared |
 | `.tool-control/README.md` | "Who gates the gate", the measurement, the rejected lint |
-| `.github/workflows/tool-manifest.yml` | `selftest.py` as a blocking step |
+| `.github/workflows/tool-manifest.yml` | `selftest.py` as a blocking step; `.doc-control/**` added to both triggers |
 | `tools-manifest.yaml`, `TOOLS_MANIFEST.md` | Regenerated — 143 tools, 0 unclassified |
 | `z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md` | This block |
 

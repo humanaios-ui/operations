@@ -42,6 +42,7 @@ Deps: PyYAML. No network. Writes only into a temporary directory.
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
 import re
@@ -62,19 +63,25 @@ ROOT = scan.ROOT
 VALIDATE_SRC = os.path.join(ROOT, ".tool-control", "validate.py")
 DOC_VALIDATE = os.path.join(ROOT, ".doc-control", "validate.py")
 
-# Lines in validate.py that raise a blocking error. `def err(` is excluded.
-_ERR_RE = re.compile(r'(?<!def )\berr\(f?"')
 
 FIRED: set[int] = set()
 _failures: list[str] = []
 
 
 def blocking_conditions() -> dict[int, str]:
-    """Every err() call site in validate.py, by line number."""
-    out = {}
-    for i, line in enumerate(open(VALIDATE_SRC, encoding="utf-8").read().splitlines(), 1):
-        if _ERR_RE.search(line):
-            out[i] = line.strip()
+    """Every err() call site in validate.py, by line number.
+
+    Found with the AST, not a regex. A literal-only pattern (`err("` / `err(f"`)
+    misses `err(\'...\')`, `err(message)`, and multi-line calls — and a blocking
+    rule it misses is one the coverage requirement never demands a fixture for.
+    That would be a bypass in the very mechanism built to prevent bypasses.
+    """
+    src = open(VALIDATE_SRC, encoding="utf-8").read()
+    lines = src.splitlines()
+    out: dict[int, str] = {}
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "err":
+            out[node.lineno] = lines[node.lineno - 1].strip()
     return out
 
 
@@ -183,6 +190,47 @@ def run_coverage_case() -> None:
               "unregistered tool")
     finally:
         scan.discover = original
+
+
+def run_cli_dispatch_case() -> None:
+    """The same rule, end to end, the way CI actually invokes it.
+
+    Every other fixture calls a validate_* function directly. CI runs
+    `python3 .tool-control/validate.py`, and if main() ever stopped wiring the
+    coverage check into that path, those fixtures would keep passing while
+    unregistered tools merged. This exercises the command, not the function.
+    """
+    import yaml
+    with tempfile.TemporaryDirectory() as td:
+        os.makedirs(os.path.join(td, ".tool-control"))
+        os.makedirs(os.path.join(td, "tools"))
+        for mod in ("scan.py", "validate.py"):
+            src = open(os.path.join(ROOT, ".tool-control", mod), encoding="utf-8").read()
+            open(os.path.join(td, ".tool-control", mod), "w", encoding="utf-8").write(src)
+
+        stub = '"""{doc}"""\nTOOL_NAME = "{name}"\nTOOL_VERSION = "1.0.0"\n'
+        open(os.path.join(td, "tools", "registered.py"), "w", encoding="utf-8").write(
+            stub.format(doc="A registered tool.", name="registered"))
+        # Present on disk, absent from the manifest — exactly the drift that
+        # produced the 6-of-136 gap the whole system exists to prevent.
+        open(os.path.join(td, "tools", "unregistered.py"), "w", encoding="utf-8").write(
+            stub.format(doc="Nobody registered me.", name="ghost"))
+
+        manifest = {"version": 1, "tools": [{
+            "tool_id": "HAIOS-TOOL-001", "name": "registered", "path": "tools/registered.py",
+            "version": "1.0.0", "category": "validation_tool", "zone": 1, "status": "draft",
+        }], "mcp_servers": [], "excluded": []}
+        with open(os.path.join(td, "tools-manifest.yaml"), "w", encoding="utf-8") as fh:
+            yaml.safe_dump(manifest, fh)
+
+        proc = subprocess.run([sys.executable, os.path.join(td, ".tool-control", "validate.py")],
+                              capture_output=True, text=True)
+        out = proc.stdout + proc.stderr
+        if proc.returncode == 0:
+            _failures.append("CLI dispatch: validate.py exited 0 with an unregistered tool on disk "
+                             "— the coverage check is not wired into main()")
+        elif "unregistered tool 'tools/unregistered.py'" not in out:
+            _failures.append(f"CLI dispatch: expected the unregistered-tool error, got {out.strip()[:200]}")
 
 
 def run_mcp_cases() -> None:
@@ -330,6 +378,7 @@ def main() -> int:
     _install_tracker()
     run_tool_cases()
     run_coverage_case()
+    run_cli_dispatch_case()
     run_mcp_cases()
     run_doc_cases()
     return report(verbose=args.list)

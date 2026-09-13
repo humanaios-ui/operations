@@ -238,7 +238,14 @@ def extract(path: str) -> dict[str, Any]:
         "declared_category": consts.get("TOOL_CATEGORY"),
         "declared_zone": consts.get("TOOL_ZONE"),
         "session": consts.get("TOOL_SESSION"),
-        "interface": "cli" if (has_argparse and has_main) else ("module" if path.endswith(".py") else "script"),
+        # What a consumer can safely do with it. The distinction that matters is
+        # import-safety: a .py with no `__main__` guard runs its work (and may
+        # sys.exit) the moment it is imported, so calling it a `module` tells
+        # consumers an importable interface exists when importing it terminates
+        # the process. `.doc-control/validate.py` is exactly that shape.
+        "interface": ("cli" if (has_argparse and has_main)
+                      else "module" if (path.endswith(".py") and has_main)
+                      else "script"),
         "smoke_test": bool(_SMOKE_RE.search(src)),
         "builder_markers": bool(
             _BUILDER_RE.search(src)
@@ -532,6 +539,13 @@ def run_smoke_test() -> int:
         r = extract(p)
         assert "declared_category" not in r, r
         assert "declared_zone" not in r, r
+        # No `__main__` guard: it executes on import, so it is a script, not an
+        # importable module.
+        assert r["interface"] == "script", r
+        open(p, "w").write('import argparse\nif __name__ == "__main__":\n    pass\n')
+        assert extract(p)["interface"] == "cli", extract(p)
+        open(p, "w").write('if __name__ == "__main__":\n    pass\n')
+        assert extract(p)["interface"] == "module", extract(p)
 
         # An unknown but identifier-shaped category is PRESERVED so the
         # validator can reject it. Dropping it here would fall back to the

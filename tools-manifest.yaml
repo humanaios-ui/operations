@@ -196,7 +196,7 @@ tools:
   category: diagnostic_tool
   zone: 1
   status: archived
-  interface: module
+  interface: script
   lang: python
   smoke_test: true
   builder_markers: false
@@ -1766,7 +1766,7 @@ tools:
   category: validation_tool
   zone: 1
   status: draft
-  interface: module
+  interface: script
   lang: python
   smoke_test: false
   builder_markers: false

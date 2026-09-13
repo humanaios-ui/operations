@@ -6,8 +6,9 @@ name: tool-manifest
 #   scan --check      — the manifest matches what is actually on disk
 #   validate          — structural rules (ids, coverage, approval, zone, MCP)
 #   render --check    — TOOLS_MANIFEST.md matches the manifest
+#   selftest          — every blocking rule is demonstrated to actually fail
 #
-# All three are ERROR gates: they block on drift and on structural violations.
+# All four are ERROR gates: they block on drift and on structural violations.
 #
 # Category rules are BLOCKING: every tool must carry a category from the
 # controlled vocabulary (CATEGORIES in .tool-control/scan.py), and
@@ -29,6 +30,10 @@ on:
       - "tools-manifest.yaml"
       - "TOOLS_MANIFEST.md"
       - ".tool-control/**"
+      # .doc-control is a scan root too — a PR touching only it would otherwise
+      # skip this gate entirely, and document-control.yml does not run these
+      # manifest checks.
+      - ".doc-control/**"
       - ".mcp.json"
       # The gate must run on a PR that changes only the gate itself.
       - ".github/workflows/tool-manifest.yml"
@@ -41,6 +46,7 @@ on:
       - "tools-manifest.yaml"
       - "TOOLS_MANIFEST.md"
       - ".tool-control/**"
+      - ".doc-control/**"
       - ".mcp.json"
       - ".github/workflows/tool-manifest.yml"
   workflow_dispatch:
