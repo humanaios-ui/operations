@@ -13,8 +13,10 @@ ERRORS (block merge):
      this is the rule whose absence let TOOLS_MANIFEST.md drift to 6 of 143).
   5. status in the allowed enum; `approved` requires approved_by + approved_date.
   6. Manifest version matches the file's own TOOL_VERSION (no stale manifest).
-  7. Zone 2/3 tools carry a ratification reference — Z2/Z3 authority is granted
-     by Night, never self-declared (CLAUDE.md, "Cannot execute without Z2 hash").
+  7. Zone 2/3 tools carry a ratification reference, AND that reference resolves
+     to a committed ruling naming both the hash and the tool — Z2/Z3 authority is
+     granted by Night, never self-declared (CLAUDE.md, "Cannot execute without Z2
+     hash"). Presence alone is not a signature: Z1 writes the manifest.
   8. Every server in .mcp.json is registered; an `approved` MCP server must have
      a real scope + data_classification, not the placeholder.
   9. Every category is drawn from the controlled vocabulary, and none is
@@ -47,7 +49,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import scan  # noqa: E402  (shared discovery rules — one definition, not two)
 
 TOOL_NAME = "tool_manifest_validator"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 TOOL_CATEGORY = "validation_tool"
 TOOL_ZONE = 1
 
@@ -81,10 +83,14 @@ PLACEHOLDER_VALUES = {"", "-", "none", "n/a", "tbd", "unset", "unknown",
 # now carries a real `ratified_by` and needs no exemption — which is the whole
 # point of the list: entries leave it by being decided, not by being forgotten.
 #
-# Deliberately NOT named "legacy": the second entry arrived the day it was added.
+# Deliberately NOT named "legacy": an entry arrived here the day it was added.
 UNRATIFIED_ZONE_CLAIMS = frozenset({
     "tools/message_calibration_v1_0.py",
 })
+
+# Where a ratification ruling has to live to count. Rulings are committed
+# markdown under z1-inbox/, which `*.md` in CODEOWNERS puts behind review.
+RULING_ROOT = "z1-inbox/"
 
 errors: list[str] = []
 warnings: list[str] = []
@@ -129,6 +135,54 @@ def _parse_date(value) -> date | None:
         return date.fromisoformat(str(value))
     except (TypeError, ValueError):
         return None
+
+
+def verify_ratification(tid: str, path: str, hash_value: str, ruling) -> None:
+    """Rule 7, second half: `ratified_by` has to be checkable, not merely present.
+
+    The first half refuses a self-declared Zone 2/3 tool that carries no `ratified_by`.
+    But Z1 writes the manifest, so a field satisfied by *any* non-empty string
+    re-creates the same self-grant one line later: type a slug, pass the gate.
+    Presence is not a signature.
+
+    This is not cryptography — the repo has no key for Z2. It is the weaker but
+    real property that the claim resolves: the hash must name a committed ruling
+    under `z1-inbox/`, and that ruling must contain both the hash and the tool's
+    path. A reviewer can then read the decision the field asserts, and inventing
+    a `ratified_by` now costs a CODEOWNER-reviewed document that says the thing.
+
+    (`.z1-control/ratify.py` signs candidate blocks with a real sha256. Tool-zone
+    rulings have no equivalent yet — see Q-TOOLCONTROL-03. When they do, this is
+    where the recomputation belongs.)
+
+    Added after review found that the first half, alone, could be satisfied by
+    any string Z1 typed — the same self-grant one field over.
+    """
+    if not ruling:
+        err(f"{tid}: 'ratified_by' is set but 'ratification_ruling' is missing — a "
+            f"ratification hash must point at the document that records the decision, "
+            f"or it is a value Z1 typed for itself")
+        return
+
+    ruling = str(ruling)
+    full, problem = repo_file(ruling)
+    if problem or not os.path.isfile(full):
+        err(f"{tid}: ratification_ruling '{ruling}' {problem or 'does not exist'} — the "
+            f"ratification cannot be read, so it does not count")
+        return
+    if not ruling.startswith(RULING_ROOT):
+        err(f"{tid}: ratification_ruling '{ruling}' is outside '{RULING_ROOT}' — rulings "
+            f"live where Z2 records them, not anywhere a file can be written")
+        return
+
+    with open(full, encoding="utf-8", errors="replace") as fh:
+        text = fh.read()
+    if hash_value not in text:
+        err(f"{tid}: ratification_ruling '{ruling}' does not contain the hash "
+            f"'{hash_value}' — the manifest and the ruling disagree")
+    if path not in text:
+        err(f"{tid}: ratification_ruling '{ruling}' does not name '{path}' — a ruling "
+            f"about some other tool does not ratify this one")
 
 
 def validate(manifest: dict) -> None:
@@ -201,6 +255,9 @@ def validate(manifest: dict) -> None:
             else:
                 err(f"{tid}: zone={zone} requires 'ratified_by' (Z2 hash / ratification doc) "
                     f"— Zone 2/3 authority is not self-declared")
+        elif isinstance(zone, int) and zone > 1:
+            # …and if it IS set, it has to resolve — see verify_ratification.
+            verify_ratification(tid, path, str(t["ratified_by"]), t.get("ratification_ruling"))
         if zone not in (1, 2, 3):
             err(f"{tid}: zone '{zone}' invalid (must be 1, 2 or 3)")
 

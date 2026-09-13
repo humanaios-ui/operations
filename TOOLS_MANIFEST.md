@@ -158,7 +158,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-141 | wgs_draft_compressor_v1_0 | `tools/wgs_draft_compressor_v1_0.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | — |
 | HAIOS-TOOL-145 | doc_registry_renderer | `.doc-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render CONTROLLED_DOCUMENTS.md from document-registry.yaml. |
 | HAIOS-TOOL-147 | tool_manifest_renderer | `.tool-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render TOOLS_MANIFEST.md from tools-manifest.yaml. |
-| HAIOS-TOOL-148 | tool_manifest_scanner | `.tool-control/scan.py` | 1.0.0 | 1 | draft | no-builder-markers | Walks the registered tool roots, extracts each tool's declared metadata, and |
+| HAIOS-TOOL-148 | tool_manifest_scanner | `.tool-control/scan.py` | 1.1.0 | 1 | draft | no-builder-markers | Walks the registered tool roots, extracts each tool's declared metadata, and |
 
 ## Monitoring — `monitoring_tool` (3)
 
@@ -253,8 +253,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-104 | registered_findings_validator | `tools/registered_findings_validator_v1_0.py` | 1.0.0 | 1 | draft | — | Registered Findings Validator — v1.0 |
 | HAIOS-TOOL-140 | validate_skills | `tools/validate_skills.py` | 1.0.0 | 1 | draft | — | validate_skills.py |
 | HAIOS-TOOL-146 | doc_control_validator | `.doc-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers, no-smoke-test | Enforces the mechanical controlled-document rules from DOCUMENT_CONTROL_PLAN.md: |
-| HAIOS-TOOL-149 | tool_control_selftest | `.tool-control/selftest.py` | 1.0.0 | 1 | draft | no-builder-markers | Adversarial self-test for the tool-control gate: prove every rule can FAIL. |
-| HAIOS-TOOL-150 | tool_manifest_validator | `.tool-control/validate.py` | 1.0.0 | 1 | draft | no-builder-markers | The merge gate for `tools-manifest.yaml`, built to the same contract as |
+| HAIOS-TOOL-149 | tool_control_selftest | `.tool-control/selftest.py` | 1.1.0 | 1 | draft | no-builder-markers | Adversarial self-test for the tool-control gate: prove every rule can FAIL. |
+| HAIOS-TOOL-150 | tool_manifest_validator | `.tool-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers | The merge gate for `tools-manifest.yaml`, built to the same contract as |
 
 ## MCP servers (2)
 
