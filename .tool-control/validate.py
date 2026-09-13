@@ -67,12 +67,25 @@ PLACEHOLDER = re.compile(r"set before approval", re.I)
 PLACEHOLDER_VALUES = {"", "-", "none", "n/a", "tbd", "unset", "unknown",
                       "unscoped", "unclassified"}
 
-# Zone 2/3 tools that predate this control system and are grandfathered as open
-# Z2 items. This lives in CODEOWNER-protected CODE, not in the manifest: if the
+# Zone 2/3 claims that are RECORDED as open Z2 items rather than enforced as
+# ratified. This lives in CODEOWNER-protected CODE, not in the manifest: if the
 # exemption were a manifest field alone, any new Zone 2/3 tool could grant
 # itself the warning path, which is the exact self-grant this gate exists to
-# prevent. Adding a path here is a reviewed change to the gate itself.
-LEGACY_ZONE_EXCEPTIONS = frozenset({"tools/message_calibration_v1_0.py"})
+# prevent. Adding a path here is a reviewed change to the gate itself, and it
+# never carries a tool to `approved`.
+#
+#   tools/message_calibration_v1_0.py — predates this control system.
+#   .z1-control/ratify.py             — arrived with PR #308 and declares
+#     TOOL_ZONE = 2 deliberately: it records a Z2 decision and is run by the
+#     ratifier. The claim is almost certainly correct, but "correct" is not
+#     "ratified", and Z1 cannot sign for Z2. Surfaced by widening SCAN_ROOTS to
+#     cover .z1-control — the coverage rule doing its job.
+#
+# Deliberately NOT named "legacy": one of these merged today.
+UNRATIFIED_ZONE_CLAIMS = frozenset({
+    "tools/message_calibration_v1_0.py",
+    ".z1-control/ratify.py",
+})
 
 errors: list[str] = []
 warnings: list[str] = []
@@ -179,12 +192,12 @@ def validate(manifest: dict) -> None:
         #    but it can never reach `approved` on that basis.
         zone = t.get("zone")
         if isinstance(zone, int) and zone > 1 and not t.get("ratified_by"):
-            grandfathered = path in LEGACY_ZONE_EXCEPTIONS
-            if t.get("pending_ratification") and grandfathered and status != "approved":
+            recorded_open = path in UNRATIFIED_ZONE_CLAIMS
+            if t.get("pending_ratification") and recorded_open and status != "approved":
                 warn(f"{tid}: zone={zone} self-declared, awaiting Z2 ratification ({path})")
-            elif t.get("pending_ratification") and not grandfathered:
+            elif t.get("pending_ratification") and not recorded_open:
                 err(f"{tid}: zone={zone} sets 'pending_ratification' but '{path}' is not a "
-                    f"grandfathered exception — a tool cannot grant itself the Z2 waiver; "
+                    f"recorded open Z2 claim — a tool cannot grant itself the Z2 waiver; "
                     f"record a 'ratified_by' or declare zone 1")
             else:
                 err(f"{tid}: zone={zone} requires 'ratified_by' (Z2 hash / ratification doc) "
@@ -300,8 +313,8 @@ def run_smoke_test() -> int:
     assert "requires approved_by" in joined, joined
     assert "requires 'ratified_by'" in joined, joined
 
-    # pending_ratification is a grandfather clause, not a self-service waiver.
-    legacy = sorted(LEGACY_ZONE_EXCEPTIONS)[0]
+    # pending_ratification records an open Z2 claim; it is not a self-service waiver.
+    legacy = sorted(UNRATIFIED_ZONE_CLAIMS)[0]
     # Read the real declared version so rule 6 (manifest vs file) is satisfied
     # and the assertions below isolate the rule each one is actually testing.
     legacy_version = scan.extract(os.path.join(ROOT, legacy)).get("declared_version")
