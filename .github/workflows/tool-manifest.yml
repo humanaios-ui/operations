@@ -1,0 +1,69 @@
+name: tool-manifest
+
+# Phase 1 gate for the tool manifest, built to the same contract as
+# document-control.yml.
+#
+#   scan --check      — the manifest matches what is actually on disk
+#   validate          — structural rules (ids, coverage, approval, zone, MCP)
+#   render --check    — TOOLS_MANIFEST.md matches the manifest
+#
+# All three are ERROR gates: they block on drift and on structural violations.
+# The advisory findings (unclassified category, Builder v1.7 non-compliance,
+# missing owner) are printed as warnings by validate.py and are NOT blocking
+# yet — 93 of 143 tools are uncategorized at adoption. Promote with `--strict`
+# once that backlog is worked down, the same way document-control.yml plans to
+# promote its advisory checks.
+
+on:
+  pull_request:
+    paths:
+      - "tools/**"
+      - "scripts/**"
+      - "bin/**"
+      - "tools-manifest.yaml"
+      - "TOOLS_MANIFEST.md"
+      - ".tool-control/**"
+      - ".mcp.json"
+  push:
+    branches: [main]
+    paths:
+      - "tools/**"
+      - "scripts/**"
+      - "bin/**"
+      - "tools-manifest.yaml"
+      - "TOOLS_MANIFEST.md"
+      - ".tool-control/**"
+      - ".mcp.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Tool manifest integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install deps
+        run: pip install --quiet pyyaml
+
+      - name: Self-test the control scripts
+        run: |
+          python3 .tool-control/scan.py --smoke-test
+          python3 .tool-control/validate.py --smoke-test
+          python3 .tool-control/render.py --smoke-test
+
+      - name: Manifest matches the working tree (ERROR — blocks merge)
+        run: python3 .tool-control/scan.py --check
+
+      - name: Structural rules (ERROR — blocks merge)
+        run: python3 .tool-control/validate.py
+
+      - name: TOOLS_MANIFEST.md is in sync (ERROR — blocks merge)
+        run: python3 .tool-control/render.py --check

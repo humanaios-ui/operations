@@ -9,6 +9,13 @@
 /.doc-control/                             @humanaios-ui/doc-control
 /.github/workflows/document-control.yml    @humanaios-ui/doc-control
 
+# --- tool control (same contract, executable surface) ---
+/tools-manifest.yaml                       @humanaios-ui/doc-control
+/TOOLS_MANIFEST.md                         @humanaios-ui/doc-control
+/.tool-control/                            @humanaios-ui/doc-control
+/.github/workflows/tool-manifest.yml       @humanaios-ui/doc-control
+/.mcp.json                                 @humanaios-ui/doc-control
+
 # --- governance area (HAIOS-GOV-*) ---
 /GOVERNANCE.md                             @humanaios-ui/governance
 /PRINCIPLES_SEED_V1_0.md                   @humanaios-ui/governance

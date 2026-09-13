@@ -18,9 +18,24 @@ SYSTEM_HEALTH.md @carly-r-anderson @sab-backup
 RECURSIVE_IMPROVEMENT_SEED.md @carly-r-anderson @sab-backup
 SESSION_RITUALS.md @carly-r-anderson @sab-backup
 
+# Control systems — document registry and tool manifest.
+# NOTE: GitHub honours THIS file over the root CODEOWNERS, so the control-surface
+# rules are repeated here with owners that exist. The root CODEOWNERS assigns the
+# same paths to @humanaios-ui/doc-control; that takes effect only if this file is
+# removed or those teams are created.
+document-registry.yaml @carly-r-anderson @sab-backup
+CONTROLLED_DOCUMENTS.md @carly-r-anderson @sab-backup
+.doc-control/ @carly-r-anderson @sab-backup
+tools-manifest.yaml @carly-r-anderson @sab-backup
+TOOLS_MANIFEST.md @carly-r-anderson @sab-backup
+.tool-control/ @carly-r-anderson @sab-backup
+.mcp.json @carly-r-anderson @sab-backup
+
 # Workflows require Admiral review (security-sensitive)
 .github/workflows/mesh-sync-batch.yml @carly-r-anderson
 .github/workflows/divergence-detect.yml @carly-r-anderson
+.github/workflows/document-control.yml @carly-r-anderson @sab-backup
+.github/workflows/tool-manifest.yml @carly-r-anderson @sab-backup
 
 # Phase 1-3 documentation
 PHASE_1_COLLECTION_STATUS.md @carly-r-anderson
