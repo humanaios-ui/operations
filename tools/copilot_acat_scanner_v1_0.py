@@ -38,6 +38,35 @@ report into a Phase3/Phase1 Learning Index, exactly as
 echoes_copilot_acat_scanner_v0_1.py's compute_li() did, but keyed to a
 named predictor instead of one hard-coded "privacy_check" claim shape.
 
+WHY known_taxonomy IS EXPOSED HERE, NOT LEFT AT THE CORE'S DEFAULT
+------------------------------------------------------------------------
+claim_verification_check_v0_1.py's evaluate_citation() defaults to its
+own KNOWN_TAXONOMY — five failure-mode terms specific to the Synthetic
+APTs transcript that tool was originally built against. Leaving that
+default in place here would mean every CITATION claim, in every repo,
+gets scored against APT terminology that has nothing to do with most
+repos' own citations — a valid term for THIS repo would be reported FAIL
+for "not part of the documented taxonomy," which is not a generalization,
+it is a silent narrowing. scan()/--taxonomy therefore pass a caller's own
+taxonomy straight through to the unchanged core; omitting it preserves
+the core's original default rather than replacing it with something
+falsely repo-agnostic.
+
+WHY FILE_CREATED RESULTS ARE RE-CHECKED HERE, NOT LEFT AT THE CORE'S OWN VERDICT
+---------------------------------------------------------------------------------------
+claim_verification_check_v0_1.py's evaluate_file_created() tests
+containment with a lexical path.startswith(root) comparison. A sibling
+directory sharing a root's own string as a prefix ("/tmp/repo-secrets"
+against root "/tmp/repo"), or an unresolved ".." traversal, satisfies
+that comparison despite the claimed path falling genuinely outside the
+declared root. Fixing this in the core itself would violate this
+module's own commitment to reuse it unchanged, so
+_harden_file_created_boundary() independently re-resolves the claimed
+path and every accessible root and downgrades any PASS that does not
+actually resolve underneath one of them to FAIL — defense added in this
+wrapper, not a patch to the shared file every other consumer of that
+core also depends on.
+
 WHAT "PHASE 1" MEANS HERE, AND THE claimed_pass_rate DEFAULT
 ------------------------------------------------------------------
 The claim text handed to --input IS Phase 1: whatever the predictor wrote
@@ -68,10 +97,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
+import math
 import sys
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import claim_verification_check_v0_1 as verifier  # noqa: E402  (unchanged verification core)
@@ -87,12 +118,24 @@ INTERPRETATION_NOTE = (
 )
 
 
+def _is_valid_rate(value: object) -> bool:
+    """A real number in [0,1] — bool is deliberately excluded even though
+    it is technically an int subclass in Python (True/False would
+    otherwise silently pass as 1.0/0.0). Same contract as
+    tools/nf_ledger_v0_1.py's own check_p() for a stated probability."""
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and math.isfinite(value) and 0.0 <= value <= 1.0)
+
+
 def compute_li(report: dict, claimed_pass_rate: float = 1.0) -> Tuple[Optional[float], Optional[str]]:
     """report is claim_verification_check_v0_1.build_report()'s own output,
-    unmodified. LI is undefined (None, with a reason) when there is
-    nothing determinate to score, or when the claimed rate is 0 (nothing
-    to divide by that would produce a meaningful ratio rather than an
-    artifact of the denominator)."""
+    unmodified. LI is undefined (None, with a reason) when claimed_pass_rate
+    is not a real rate at all (negative, >1, NaN/inf, or a bool), when
+    there is nothing determinate to score, or when the claimed rate is 0
+    (nothing to divide by that would produce a meaningful ratio rather
+    than an artifact of the denominator)."""
+    if not _is_valid_rate(claimed_pass_rate):
+        return None, f"claimed_pass_rate must be a real number in [0,1], got {claimed_pass_rate!r}"
     relevant = report["pass_count"] + report["fail_count"]
     if relevant == 0:
         return None, "no determinate (PASS/FAIL) claims to score"
@@ -119,16 +162,63 @@ def resolve_claimed_pass_rate(args: argparse.Namespace) -> float:
     return 1.0
 
 
+def _harden_file_created_boundary(results: List, accessible_roots: Optional[List[str]]) -> List:
+    """claim_verification_check_v0_1.evaluate_file_created() checks
+    containment with a lexical str.startswith(root) test (see its own
+    source), which a same-prefix sibling directory ("/tmp/repo-secrets"
+    against root "/tmp/repo") or a "../" traversal can pass despite the
+    claimed path actually falling outside the declared root. That
+    function is the shared verification core and is not modified here
+    (see module docstring) — instead, any claim it already marked PASS is
+    independently re-checked with real path resolution before this
+    module trusts it as evidence; anything that does not actually resolve
+    under a declared root is downgraded to FAIL rather than accepted.
+    Only ever narrows a PASS to a FAIL — never the reverse, and never
+    touches any other kind or status."""
+    if not accessible_roots:
+        return results
+    resolved_roots = [Path(root).resolve() for root in accessible_roots]
+    hardened = []
+    for r in results:
+        if r.kind == "file_created" and r.status == verifier.PASS:
+            claimed_path = Path(r.evidence.get("path", "")).resolve()
+            truly_in_scope = any(
+                claimed_path == root or root in claimed_path.parents
+                for root in resolved_roots
+            )
+            if not truly_in_scope:
+                r = dataclasses.replace(
+                    r, status=verifier.FAIL,
+                    reason="Claimed path does not actually resolve under any declared "
+                           "accessible root once symlinks/'..' are resolved (the shared "
+                           "verification core's own containment check is lexical, not "
+                           "path-aware) — refused rather than trusted as evidence.",
+                    suggested_drift_code="D-01",
+                )
+        hardened.append(r)
+    return hardened
+
+
 def scan(claim_text: str, predictor: str, accessible_roots=None, ground_truth=None,
-         source_text=None, claimed_pass_rate: float = 1.0) -> dict:
+         source_text=None, claimed_pass_rate: float = 1.0,
+         known_taxonomy: Optional[Dict[str, List[str]]] = None) -> dict:
     """The whole pipeline: extract+verify via the unchanged core, then
-    attach a predictor-tagged LI. Returns a dict combining
-    claim_verification_check's own report with "predictor", "li", and
-    "li_note" — never mutates or reinterprets that report's own fields."""
+    harden the core's own path-containment gap (see
+    _harden_file_created_boundary) and attach a predictor-tagged LI.
+    known_taxonomy is passed straight through to the core's own
+    evaluate_citation() — omitting it would silently restrict every
+    CITATION claim, in any repo, to the core's built-in APT taxonomy,
+    which is specific to that module's own origin, not a general-purpose
+    default. Returns a dict combining claim_verification_check's own
+    report with "predictor", "li", and "li_note" — never mutates or
+    reinterprets that report's own fields beyond the boundary hardening
+    above."""
     results = verifier.run_claim_verification(
         claim_text, accessible_roots=accessible_roots,
         ground_truth=ground_truth, source_text=source_text,
+        known_taxonomy=known_taxonomy,
     )
+    results = _harden_file_created_boundary(results, accessible_roots)
     report = verifier.build_report(results)
     li, li_note = compute_li(report, claimed_pass_rate)
     return {
@@ -144,7 +234,7 @@ def scan(claim_text: str, predictor: str, accessible_roots=None, ground_truth=No
 
 
 def format_report(result: dict) -> str:
-    lines = [f"COPILOT-ACAT SCAN — predictor={result['predictor']}", "=" * 48]
+    lines = [f"ACAT CLAIM SCAN — predictor={result['predictor']}", "=" * 48]
     v = result["verification"]
     lines.append(f"outcome={v['outcome']}  claims={v['claim_count']}  "
                  f"PASS:{v['pass_count']} FAIL:{v['fail_count']} "
@@ -170,10 +260,11 @@ def cmd_scan(args: argparse.Namespace) -> int:
     claim_text = Path(args.input).read_text(errors="ignore")
     ground_truth = json.loads(Path(args.ground_truth).read_text()) if args.ground_truth else None
     source_text = Path(args.source_text_file).read_text(errors="ignore") if args.source_text_file else None
+    known_taxonomy = json.loads(Path(args.taxonomy).read_text()) if args.taxonomy else None
     claimed_pass_rate = resolve_claimed_pass_rate(args)
 
     result = scan(claim_text, args.predictor, args.accessible_root or None,
-                  ground_truth, source_text, claimed_pass_rate)
+                  ground_truth, source_text, claimed_pass_rate, known_taxonomy)
 
     if args.out:
         Path(args.out).write_text(json.dumps(result, indent=2))
@@ -227,6 +318,39 @@ def run_smoke_test() -> bool:
         # No claims found at all in the text.
         result5 = scan("Nothing checkable here.", "Copilot")
         ok = ok and result5["verification"]["claim_count"] == 0
+
+        # An out-of-range/non-finite/boolean claimed_pass_rate is refused
+        # rather than producing a nonsensical or non-finite LI.
+        for bad_rate in (-1.0, 5.0, float("nan"), True):
+            li, note = compute_li({"pass_count": 1, "fail_count": 0, "unverifiable_count": 0},
+                                  claimed_pass_rate=bad_rate)
+            ok = ok and li is None and "must be a real number in [0,1]" in note
+
+        # A sibling directory sharing the root's own string prefix is not
+        # actually in scope, even though the shared core's own lexical
+        # check would accept it.
+        sibling = Path(workdir).parent / (Path(workdir).name + "-sibling")
+        sibling.mkdir(exist_ok=True)
+        leaked = sibling / "leaked.json"
+        leaked.write_text("{}")
+        sibling_claim = f"Done. Created the report at {leaked}."
+        result6 = scan(sibling_claim, "Copilot", accessible_roots=[workdir])
+        ok = ok and result6["verification"]["outcome"] == "fail"
+
+        # known_taxonomy is passed straight through to the core rather
+        # than silently defaulting to its own APT-specific taxonomy.
+        custom_taxonomy = {"CUSTOM_TERM": ["custom keyword"]}
+        taxonomy_claim = "Documented in Appendix B.6: CUSTOM_TERM is the relevant failure mode."
+        taxonomy_source = "This mentions a custom keyword."
+        result7 = scan(taxonomy_claim, "Copilot", source_text=taxonomy_source,
+                       known_taxonomy=custom_taxonomy)
+        citation7 = next(c for c in result7["verification"]["claims"] if c["kind"] == "citation")
+        ok = ok and citation7["status"] == "PASS"
+
+        # The text report label is predictor-neutral, unlike the raw
+        # verification claim text, which may legitimately mention Copilot.
+        claude_result = scan("Nothing checkable here.", "Claude")
+        ok = ok and "COPILOT" not in format_report(claude_result).upper()
         ok = ok and result5["li"] is None
 
         # CLI round trip, including a --claims file overriding the default rate.
@@ -269,6 +393,10 @@ def build_parser() -> argparse.ArgumentParser:
     scan_p.add_argument("--accessible-root", action="append", default=[])
     scan_p.add_argument("--ground-truth", default=None)
     scan_p.add_argument("--source-text-file", default=None)
+    scan_p.add_argument("--taxonomy", default=None,
+                        help="JSON file mapping CITATION terms to keyword lists; passed straight "
+                             "through to the verification core in place of its own built-in "
+                             "APT-specific taxonomy, so CITATION claims can be scored for any repo")
     scan_p.add_argument("--claimed-pass-rate", type=float, default=None,
                         help="Phase 1 confidence; defaults to 1.0 if neither this nor --claims is given")
     scan_p.add_argument("--claims", default=None,

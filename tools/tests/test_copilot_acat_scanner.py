@@ -162,6 +162,142 @@ def test_cli_scan_writes_json_report_file(tmp_path):
     assert written["verification"]["outcome"] == "pass"
 
 
+def test_claimed_pass_rate_negative_is_invalid(tmp_path):
+    """Copilot review finding on PR #303: negative/out-of-range/non-finite/
+    boolean claimed_pass_rate values must be rejected, not produce a
+    nonsensical or non-finite LI."""
+    report = {"pass_count": 3, "fail_count": 1, "unverifiable_count": 0}
+    li, note = scanner.compute_li(report, claimed_pass_rate=-1.0)
+    assert li is None
+    assert "must be a real number in [0,1]" in note
+
+
+def test_claimed_pass_rate_above_one_is_invalid():
+    report = {"pass_count": 3, "fail_count": 1, "unverifiable_count": 0}
+    li, note = scanner.compute_li(report, claimed_pass_rate=5.0)
+    assert li is None
+    assert "must be a real number in [0,1]" in note
+
+
+def test_claimed_pass_rate_nan_is_invalid():
+    report = {"pass_count": 3, "fail_count": 1, "unverifiable_count": 0}
+    li, note = scanner.compute_li(report, claimed_pass_rate=float("nan"))
+    assert li is None
+    assert "must be a real number in [0,1]" in note
+
+
+def test_claimed_pass_rate_bool_is_invalid():
+    """bool is technically an int subclass in Python; True/False must not
+    silently pass as 1.0/0.0 (same exclusion as nf_ledger_v0_1's check_p())."""
+    report = {"pass_count": 3, "fail_count": 1, "unverifiable_count": 0}
+    li, note = scanner.compute_li(report, claimed_pass_rate=True)
+    assert li is None
+    assert "must be a real number in [0,1]" in note
+
+
+def test_claimed_pass_rate_valid_boundaries_are_accepted():
+    report = {"pass_count": 3, "fail_count": 1, "unverifiable_count": 0}
+    li0, note0 = scanner.compute_li(report, claimed_pass_rate=0.0)
+    assert li0 is None and note0 == "claimed rate is 0, LI undefined"
+    li1, note1 = scanner.compute_li(report, claimed_pass_rate=1.0)
+    assert li1 is not None and note1 is None
+
+
+def test_file_created_sibling_directory_is_not_in_scope(tmp_path):
+    """Copilot review finding on PR #303: the shared verification core's
+    path.startswith(root) containment check accepts a sibling directory
+    sharing a prefix with the declared root. This module must catch that
+    without modifying the shared core."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    sibling = tmp_path / "repo-secrets"
+    sibling.mkdir()
+    leaked_file = sibling / "file.txt"
+    leaked_file.write_text("leaked")
+
+    # Confirm the core's own naive check really would have accepted this,
+    # so this test is exercising a real gap, not a strawman.
+    assert str(leaked_file).startswith(str(root))
+
+    claim = f"Done. Created the report at {leaked_file}."
+    result = scanner.scan(claim, "Copilot", accessible_roots=[str(root)])
+    assert result["verification"]["outcome"] == "fail"
+    assert result["verification"]["pass_count"] == 0
+
+
+def test_file_created_path_traversal_is_not_in_scope(tmp_path):
+    root = tmp_path / "repo"
+    root.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    leaked_file = outside / "file.txt"
+    leaked_file.write_text("leaked")
+
+    claim = f"Done. Created the report at {root}/../outside/file.txt."
+    result = scanner.scan(claim, "Copilot", accessible_roots=[str(root)])
+    assert result["verification"]["outcome"] == "fail"
+
+
+def test_file_created_genuinely_in_scope_still_passes(tmp_path):
+    """The boundary hardening must not create false negatives for a
+    legitimately nested path."""
+    root = tmp_path / "repo"
+    nested = root / "outputs"
+    nested.mkdir(parents=True)
+    real_file = nested / "artifact.json"
+    real_file.write_text("{}")
+
+    claim = f"Done. Created the report at {real_file}."
+    result = scanner.scan(claim, "Copilot", accessible_roots=[str(root)])
+    assert result["verification"]["outcome"] == "pass"
+    assert result["verification"]["pass_count"] == 1
+
+
+def test_known_taxonomy_is_passed_through_to_the_core(tmp_path):
+    """Copilot review finding on PR #303: omitting known_taxonomy silently
+    restricts every CITATION claim, in any repo, to the core's built-in
+    APT-specific taxonomy."""
+    custom_taxonomy = {"CUSTOM_TERM": ["custom keyword"]}
+    claim = "Documented in Appendix B.6: CUSTOM_TERM is the relevant failure mode."
+    source = "The report references a custom keyword somewhere in its body."
+
+    without_taxonomy = scanner.scan(claim, "Copilot", source_text=source)
+    citation = next(c for c in without_taxonomy["verification"]["claims"] if c["kind"] == "citation")
+    assert citation["status"] == "FAIL"  # not part of the core's own default taxonomy
+
+    with_taxonomy = scanner.scan(claim, "Copilot", source_text=source,
+                                 known_taxonomy=custom_taxonomy)
+    citation2 = next(c for c in with_taxonomy["verification"]["claims"] if c["kind"] == "citation")
+    assert citation2["status"] == "PASS"
+
+
+def test_cli_taxonomy_flag(tmp_path):
+    custom_taxonomy = {"CUSTOM_TERM": ["custom keyword"]}
+    taxonomy_path = tmp_path / "taxonomy.json"
+    taxonomy_path.write_text(json.dumps(custom_taxonomy))
+    source_path = tmp_path / "source.txt"
+    source_path.write_text("The report references a custom keyword somewhere in its body.")
+    input_path = tmp_path / "claim.txt"
+    input_path.write_text("Documented in Appendix B.6: CUSTOM_TERM is the relevant failure mode.")
+
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", str(input_path), "--predictor", "Copilot",
+        "--source-text-file", str(source_path), "--taxonomy", str(taxonomy_path), "--json",
+    ])
+    assert scanner.cmd_scan(args) == 0
+
+
+def test_report_label_is_predictor_neutral():
+    """Copilot review finding on PR #303: the text report was labeled
+    'COPILOT-ACAT SCAN' even for predictor='Claude', misidentifying
+    reports for non-Copilot predictors."""
+    result = scanner.scan("Nothing checkable here.", "Claude")
+    text = scanner.format_report(result)
+    assert "COPILOT" not in text.upper()
+    assert "predictor=Claude" in text
+
+
 def test_verification_core_is_the_real_unmodified_module():
     """Sanity check that this module actually delegates to
     claim_verification_check_v0_1's own functions rather than a
