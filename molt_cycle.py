@@ -17,20 +17,24 @@ Anti-cascade rules enforced:
 The molt ledger is append-only and chains into event stream (EV).
 
 NF_LEDGER integration (Q-NF-SCHEMA-01):
-- Reads PIN/RESOLVE pairs from NF_LEDGER.jsonl
-- Joins PIN (prediction) with RESOLVE (outcome) on target field
-- Calculates Brier scores per predictor and per constant
+- Reads NF_LEDGER.jsonl via tools/nf_ledger_v0_1.py's own project()/pin_outcome(),
+  the same functions that tool's `score` command uses — not a re-implemented join.
+  (An earlier hand-rolled join here keyed RESOLVE events by a `target` field that
+  RESOLVE events never carry — only `token_id` — so it always read 0 resolved.)
+- A pin is resolved when pin_outcome() returns 1.0 or 0.0 (not None/"VOID")
+- Calculates Brier scores per predictor from resolved pins
 - Drives molt proposals based on Brier drift signals
 """
 
 import json
-import hashlib
+import os
 import sys
-from dataclasses import dataclass, asdict
-from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from typing import List, Dict, Any
 from enum import Enum
-from collections import defaultdict
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools"))
+import nf_ledger_v0_1  # noqa: E402
 
 
 class MoltPhase(Enum):
@@ -70,8 +74,8 @@ class MoltCycle:
             next_phase="",
         )
         self.nf_entries = []
-        self.pins_by_target = defaultdict(list)
-        self.resolves_by_target = defaultdict(list)
+        self.tokens: Dict[str, Any] = {}
+        self.pins: Dict[str, Any] = {}
         self.constants = []
 
     def read_constants(self) -> Dict[str, Any]:
@@ -91,62 +95,49 @@ class MoltCycle:
         }
 
     def read_nf_ledger(self) -> Dict[str, Any]:
-        """READ phase: Load and parse NF_LEDGER.jsonl, extract PIN/RESOLVE pairs."""
+        """READ phase: load NF_LEDGER.jsonl and project it via tools/nf_ledger_v0_1.py
+        — the same project() the tool's own `status`/`score` commands use — instead
+        of re-deriving PIN/RESOLVE state from a hand-rolled field join."""
         try:
-            with open(self.nf_ledger_path) as f:
-                lines = [line.strip() for line in f if line.strip()]
-            self.nf_entries = [json.loads(line) for line in lines]
+            self.nf_entries = nf_ledger_v0_1.read(self.nf_ledger_path)
         except FileNotFoundError:
             self.nf_entries = []
+            self.tokens, self.pins = {}, {}
             return {'status': 'LEDGER_NOT_FOUND', 'path': self.nf_ledger_path}
 
-        # Index PIN and RESOLVE entries by target
-        for entry in self.nf_entries:
-            entry_type = entry.get('type')
-            target = entry.get('target')
-
-            if entry_type == 'PIN' and target:
-                self.pins_by_target[target].append(entry)
-            elif entry_type == 'RESOLVE' and target:
-                self.resolves_by_target[target].append(entry)
+        self.tokens, self.pins = nf_ledger_v0_1.project(self.nf_entries)
 
         return {
             'status': 'READ_COMPLETE',
             'ledger_entries': len(self.nf_entries),
-            'pin_targets': len(self.pins_by_target),
-            'resolved_targets': len(self.resolves_by_target),
+            'pin_targets': len({p.get('target') for p in self.pins.values() if p.get('target')}),
         }
 
     def count_resolved(self) -> int:
-        """Count how many predictions have been resolved (PIN matched with RESOLVE)."""
-        resolved_count = 0
-        for target, pins in self.pins_by_target.items():
-            resolves = self.resolves_by_target.get(target, [])
-            if resolves:
-                resolved_count += len(resolves)
-        return resolved_count
+        """Count pins with a known outcome (pin_outcome() == 1.0 or 0.0).
+
+        Uses nf_ledger_v0_1.pin_outcome(), which returns None for still-unresolved
+        pins and "VOID" for pins with a PENDING_Z2_DATE token — neither counts here.
+        """
+        return sum(1 for pin in self.pins.values()
+                   if nf_ledger_v0_1.pin_outcome(pin, self.tokens) in (1.0, 0.0))
 
     def join_pin_resolve_pairs(self) -> List[Dict[str, Any]]:
-        """Join PIN entries with their corresponding RESOLVE entries."""
+        """Resolved, scoreable (p is set) pins as (prediction, outcome) pairs."""
         pairs = []
-        for target, pins in self.pins_by_target.items():
-            resolves = self.resolves_by_target.get(target, [])
-            for pin in pins:
-                for resolve in resolves:
-                    # Join on target and date ordering: resolve must come after pin
-                    pin_date = pin.get('at')
-                    resolve_date = resolve.get('at')
-                    if resolve_date >= pin_date:
-                        pairs.append({
-                            'target': target,
-                            'predictor': pin.get('predictor'),
-                            'pin_p': pin.get('p'),
-                            'pin_date': pin_date,
-                            'resolve_date': resolve_date,
-                            'resolve_outcome': resolve.get('outcome'),  # YES/NO/STRIKE
-                            'pin_entry': pin,
-                            'resolve_entry': resolve,
-                        })
+        for pin in self.pins.values():
+            if pin.get('p') is None:
+                continue
+            outcome = nf_ledger_v0_1.pin_outcome(pin, self.tokens)
+            if outcome not in (1.0, 0.0):
+                continue
+            pairs.append({
+                'target': pin.get('target'),
+                'predictor': pin.get('predictor'),
+                'pin_p': pin.get('p'),
+                'resolve_outcome': 'YES' if outcome == 1.0 else 'NO',
+                'pin_entry': pin,
+            })
         return pairs
 
     def calculate_brier_scores(self, pairs: List[Dict]) -> Dict[str, Any]:

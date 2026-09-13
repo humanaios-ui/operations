@@ -33,6 +33,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import sys
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from enum import Enum
@@ -40,6 +42,9 @@ from typing import Dict, List, Optional, Tuple
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools"))
+import nf_ledger_v0_1  # noqa: E402
 
 
 def utcnow() -> datetime:
@@ -298,7 +303,8 @@ class SpecimenIntakeEvaluator:
     PRIOR_ACCEPTANCE = 0.85
     SHRINK = 0.3
 
-    def __init__(self, specimen_id: str, ratifier_public_key: Optional[Ed25519PublicKey] = None):
+    def __init__(self, specimen_id: str, ratifier_public_key: Optional[Ed25519PublicKey] = None,
+                 nf_ledger_path: Optional[str] = None):
         self.specimen_id = specimen_id
         self.ratifier_public_key = ratifier_public_key
         self.cycles: List[IntakeRecord] = []
@@ -306,6 +312,12 @@ class SpecimenIntakeEvaluator:
         self.molt_events: List[Dict] = []
         self.fic_candidates: List[Dict] = []
         self._records_by_cycle: Dict[int, IntakeRecord] = {}
+        # Q-NF-SCHEMA-01: when set, _nf_write() also appends real, hash-chained
+        # TOKEN/PIN (issue) and RESOLVE (resolution) events to this file via
+        # tools/nf_ledger_v0_1.py, in addition to the in-memory self.nf_ledger
+        # this class's own falsifier checks (average_brier, revert_rate) use.
+        # None (default) keeps prior in-memory-only behavior.
+        self.nf_ledger_path = nf_ledger_path
 
     # -- intake ---------------------------------------------------------------
 
@@ -549,6 +561,55 @@ class SpecimenIntakeEvaluator:
                 "actual_value": p.actual_value, "brier_score": p.brier_score, "reverted": p.reverted,
                 "specimen_id": record.specimen_id,
             })
+        if self.nf_ledger_path:
+            self._nf_write_real(record, update=update)
+
+    def _nf_write_real(self, record: IntakeRecord, update: bool) -> None:
+        """Q-NF-SCHEMA-01: append real, hash-chained events to self.nf_ledger_path
+        via tools/nf_ledger_v0_1.py's own append()/last_hash() — TOKEN+PIN at issue
+        time, RESOLVE at resolution time — so a specimen-intake forecast is visible
+        to `nf_ledger_v0_1.py score` and `molt_cycle.py --read-only` like any other
+        prediction on this ledger. MoltPrediction.prediction_value is already
+        normalised to [0,1] (see MoltPrediction docstring), so it maps directly onto
+        PIN's `p` field without rescaling.
+        """
+        events = []
+        if not update:
+            for p in record.molt_predictions:
+                events.append({
+                    "type": "TOKEN", "at": p.predicted_at.isoformat(), "by": record.evaluator,
+                    "token_id": p.prediction_id, "practice": f"specimen-intake:{record.specimen_id}",
+                    "title": p.variable, "date": p.predicted_at.isoformat(),
+                    "date_source": "PRACTICE", "state": "DATED", "owner_add": False,
+                })
+                events.append({
+                    "type": "PIN", "at": p.predicted_at.isoformat(), "by": record.evaluator,
+                    "pin_id": f"{p.prediction_id}:{record.evaluator}", "target": p.prediction_id,
+                    "predictor": record.evaluator,
+                    "claim": (f"{p.variable} for {record.specimen_id} cycle {record.cycle_number} "
+                              "resolves inside its declared revert band"),
+                    "p": p.prediction_value, "scoreable": True,
+                })
+        else:
+            for p in record.molt_predictions:
+                if p.resolved_at is None:
+                    continue
+                events.append({
+                    "type": "RESOLVE", "at": p.resolved_at.isoformat(), "by": record.evaluator,
+                    "token_id": p.prediction_id, "outcome": "NO" if p.reverted else "YES",
+                    "source": f"specimen-intake:{record.intake_id}:cycle:{record.cycle_number}",
+                })
+        if events:
+            try:
+                existing = nf_ledger_v0_1.read(self.nf_ledger_path)
+            except FileNotFoundError:
+                existing = []
+            seq = existing[-1]["seq"] if existing else 0
+            prev = existing[-1]["hash"] if existing else "0" * 64
+            for e in events:
+                seq += 1
+                e["seq"] = seq
+            nf_ledger_v0_1.append(self.nf_ledger_path, events, prev)
 
     def _molt_event(self, event_type: str, record: IntakeRecord, **extra) -> None:
         prev = self.molt_events[-1]["event_hash"] if self.molt_events else None
