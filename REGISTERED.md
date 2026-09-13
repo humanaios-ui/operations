@@ -3630,7 +3630,7 @@ principles_triggered: ["P19"]
 substrate: "Claude (Z1 draft)"
 tags: ["copilot-instructions", "drift-detection", "doc-control", "tool-control", "ci-gate-gap", "stage-7"]
 superseded_by: null
-zone2_ratification: null
+zone2_ratification: "Night · 2026-09-13 · S-091326-01-copilot-instructions-drift · sha256:f583c5184c51cac1ffa2493b607d89b4246f73e80aac18c1d925b5f3b2267006"
 ---
 ```
 
@@ -3641,6 +3641,7 @@ zone2_ratification: null
 - **Prevention (proposed, pending Z2):** A lightweight mechanical check, not full semantic verification — parallel in spirit to the existing `--check` gates, not a new category of gate. Candidate shape: a CI step (or `pre-push`/`repo_health.py` addition) that extracts the literal, verifiable tokens the instructions file cites as fact — command strings, `--min-pass-rate` thresholds, workflow file names, gate step counts — and fails if they no longer appear verbatim in the referenced workflow/script files. This catches the class of drift that already occurred once (a threshold or behavior changing out from under the prose) without attempting to judge prose accuracy generally. Exact mechanism (standalone script under `.github/` vs. a `tools/` addition vs. folding into `repo_health.py`) is a design choice for Z2/whoever executes, not asserted here.
 - **Correction:** Not yet landed. No drift has yet reached `main` uncaught — this entry documents the open gap, surfaced before an incident, not a correction after one.
 - **Cross-reference:** Same underlying pattern as `.tool-control/README.md`'s own "Why this exists" section and `.doc-control/render.py`'s own docstring origin story — a third instance of "a registry/description nothing verifies degrades into a historical document," not a novel gap class. Relates to **P19 (Drift Detection Protocol)** — "the governance document is a detection instrument, not a compliance instrument" applies directly to an instructions file whose only enforcement today is a human happening to re-check it. Recommend Z2 consider this an extension of the same institutional pattern already twice-registered in this repo (`.doc-control/`, `.tool-control/`) rather than a standalone new class.
+- **Ratification:** Night · 2026-09-13T17:00:38Z · decision=ACCEPT, per her instruction on this PR's thread to record an actual signature rather than merge with `zone2_ratification: null`. The `zone2_ratification` field above records `sha256(candidate | by=Night | at=2026-09-13T17:00:38Z | decision=ACCEPT)` computed over this entry's heading-through-Cross-reference text exactly as it stood at commit `68462d7a090f4c7be3144069a5595af8613209ae` (before this Ratification line and the hash itself were added) — reproducible via `sed -n '3618,3643p' REGISTERED.md` against that commit, concatenated with `|by=Night|at=2026-09-13T17:00:38Z|decision=ACCEPT` and SHA-256'd. `status` stays `CANDIDATE` and the `IC-cand-*` slug is unchanged, matching the `IC-cand-draft-reply-send-status-gap` precedent's own pattern of a ratified-but-not-yet-terminally-numbered candidate — Night's final sequential IC number is still pending.
 
 -----
 
