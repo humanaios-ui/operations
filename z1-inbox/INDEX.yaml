@@ -24,7 +24,7 @@ version: 1
 generated: "2026-09-13"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 17, records: 14}
+counts: {candidates: 18, records: 15}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
 
@@ -142,6 +142,12 @@ candidates:
     status: awaiting_z2
     note: "Answers Q-TOOLCONTROL-01 checklist item 6. Decision A (backlog) and Decision B (owners) are the owner's acts; no date was moved."
 
+  - q_id: Q-DOCREVIEW-02
+    title: "Findings from the first real document review pass (11 reviewed, 28 unreachable)"
+    path: "z1-inbox/2026-09-13/Q-DOCREVIEW-02.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Executes Q-DOCREVIEW-01. Five findings, led by DOCUMENT_CONTROL_PLAN.md being absent while .doc-control/validate.py, the registry and four external practice notifications all cite it as authoritative. Also needs a Z2 routing decision for the 28 overdue documents in humanaios-internal and lasting-light-ai, which this session cannot open."
   - q_id: Q-NF-ADAPTER-01
     title: "molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger"
     path: "z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md"
@@ -157,6 +163,8 @@ candidates:
     note: "Asks for four acts: a hash on RESOURCE_UNITS.yaml, a RAT-min capacity declaration, two constant molts, and disposition of F-RBE-01/02/03. Every artifact is inert until then; the queue keeps the incumbent formula."
 
 records:
+  - path: "z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md"
+    title: "Z2 ruling — .z1-control/ratify.py Zone 2 ratified (Night, 2026-09-13)"
   - path: "z1-inbox/2026-09-06/HANDOFF.md"
     title: "Handoff — 2026-09-06 drop"
   - path: "z1-inbox/2026-09-06/MANIFEST.md"
