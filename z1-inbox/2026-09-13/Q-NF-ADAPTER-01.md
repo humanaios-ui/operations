@@ -158,6 +158,34 @@ both tools agree.
   `ledgers/NF_LEDGER_README.md`'s "Owed by Z2" list, not this row's to do); this
   change is proven against synthetic and specimen-intake-generated ledgers, not
   against a resolution landing on the real mesh-pins ledger.
+- `RESOLVE.source` for a specimen-intake resolution is real tree-read-style
+  provenance only when the specimen disclosed a `verification_source`; without
+  one it falls back to a synthetic `specimen-intake:<id>:cycle:<n>` label,
+  which is not a tree read. Caught by Copilot review (round 1); the fallback is
+  named, not silently passed off as compliant with `nf_ledger_v0_1.py`'s own
+  "resolution is by tree read" rule.
+
+**Copilot review, round 1 (7 findings, all verified and fixed):** neither
+`molt_cycle.py` nor `specimen_intake_evaluator.py` mutate `sys.path` anymore —
+both load `tools/nf_ledger_v0_1.py` by explicit file path
+(`importlib.util.spec_from_file_location`), closing the exact `tools/molt_cycle.py`
+collision this block itself flagged as a hazard, rather than merely working around
+it in tests. `_nf_write_real` now verifies the existing chain before appending and
+re-verifies after (refusing via `NFLedgerCorrupt` rather than extending a broken
+chain), and serializes the whole read→derive→append section with the same
+`fcntl.flock` sidecar-lock pattern `tools/lifecycle_predict_v1_0.py` uses. PIN's
+`p` for a binary prediction (RQ3) now uses the confidence-weighted probability
+`MoltPrediction.resolve()` itself scores against, not the raw (0.0/1.0)
+`prediction_value` — the two disagreed on every binary prediction before this fix.
+TOKEN's `date` is now the measurement window's close date (date-only), not a
+full issue-time timestamp. `ledgers/NF_EVENT_SCHEMA.md`'s `VOID` row is corrected
+(an empty `tokens` list falls back to `[target]`, it does not itself cause VOID —
+every relevant token being `STRUCK` does). Both new test files are now wired into
+`quality-baseline.yml`'s blocking suite list, and three tests were added
+targeting the fixes above directly (binary-PIN calibration, corrupt-chain refusal,
+verification-source pass-through), plus the falsifier test now asserts exact
+equality with `nf_ledger_v0_1.py`'s own canonical Brier computation rather than
+merely "a number came back."
 
 ---
 

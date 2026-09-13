@@ -46,6 +46,8 @@ jobs:
           python3 -m pytest \
             tools/tests/test_behavioral_compliance_gate.py \
             test_specimen_intake_evaluator.py \
+            test_specimen_intake_nf_ledger.py \
+            tools/tests/test_molt_cycle_nf_read.py \
             tools/tests/test_builder_compliance_scanner.py \
             tools/tests/test_smag_predict_lint.py \
             tools/tests/test_nf_ledger_cli.py \

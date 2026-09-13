@@ -143,7 +143,7 @@ not just the resolved case:
 | `1.0` | every relevant token resolved `YES` |
 | `0.0` | at least one relevant token resolved `NO` |
 | `None` | still unresolved — some relevant token has no `RESOLVE` yet |
-| `"VOID"` | a relevant token is still `PENDING_Z2_DATE`, or the pin's `tokens` list is empty |
+| `"VOID"` | a relevant token is still `PENDING_Z2_DATE`, or every relevant token was `STRUCK` (a pin's `tokens` list, if empty, falls back to `[target]` — it does **not** by itself make the pin `VOID`) |
 
 A resolved pin (outcome `1.0` or `0.0`) with a non-null `p` is scoreable: its
 squared error `(p - outcome)**2` contributes to that predictor's Brier score

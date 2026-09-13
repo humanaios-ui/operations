@@ -26,6 +26,7 @@ NF_LEDGER integration (Q-NF-SCHEMA-01):
 - Drives molt proposals based on Brier drift signals
 """
 
+import importlib.util
 import json
 import os
 import sys
@@ -33,8 +34,21 @@ from dataclasses import dataclass
 from typing import List, Dict, Any
 from enum import Enum
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools"))
-import nf_ledger_v0_1  # noqa: E402
+
+def _load_nf_ledger_v0_1():
+    """Load tools/nf_ledger_v0_1.py by explicit path rather than sys.path +
+    `import nf_ledger_v0_1` — mutating sys.path here would put tools/ ahead of
+    the repo root for every later import in the process, including a bare
+    `import molt_cycle`, which would then silently resolve to the unrelated
+    tools/molt_cycle.py (see ledgers/NF_EVENT_SCHEMA.md)."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "nf_ledger_v0_1.py")
+    spec = importlib.util.spec_from_file_location("nf_ledger_v0_1", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+nf_ledger_v0_1 = _load_nf_ledger_v0_1()
 
 
 class MoltPhase(Enum):
