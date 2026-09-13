@@ -160,6 +160,12 @@ calls `sys.exit()`; the scanner labelled it `module` because it is a `.py` file.
 now turns on import-safety — a `.py` without a `__main__` guard is a `script`. Two registered
 files were mislabelled; both now read `script`.
 
+**Coverage was incidental, not attributed.** A later round noted that recording "this `err()` line
+ran" is weaker than it looks: fixtures overlap, so a new rule firing inside an unrelated fixture
+would be marked covered with nobody having demonstrated it. Coverage now credits a condition only
+when some fixture's own assertion matched that condition's message. Verified by injecting a rule
+that fires in nearly every fixture — it is still reported undemonstrated.
+
 Plus two documentation corrections: the workflow header still said "All three are ERROR gates"
 after a fourth was added, and this block's own arithmetic said "three times ... twice and twice".
 
@@ -220,6 +226,26 @@ any new blocking rule arriving with its demonstration in the same commit.
 | `z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md` | This block |
 
 No tool's behaviour changed. No status, owner or approval was set.
+
+---
+
+## Addendum — surfaced by the #308 merge
+
+`.z1-control/` (PR #308) is now a scan root, on the same principle as the other two: the
+instruments belong inside the registry they enforce. Widening that scope immediately surfaced
+**`.z1-control/ratify.py` declaring `TOOL_ZONE = 2`** with no ratification. The claim is almost
+certainly correct — it records a Z2 decision and is run by the ratifier — but correct is not
+ratified, and Z1 cannot sign for Z2. It is recorded as an open Z2 item beside
+`message_calibration_v1_0.py`, and `LEGACY_ZONE_EXCEPTIONS` was renamed `UNRATIFIED_ZONE_CLAIMS`
+because one of its two entries merged the same day it was added.
+
+The two gates also caught each other on that merge, which is the clearest evidence so far that
+they work: **their** `.z1-control/validate.py` caught this very block missing from `INDEX.yaml`,
+and **this** branch's coverage rule caught their `.doc-control/review.py` missing from the tool
+manifest. Neither was found by its own author.
+
+**Z2 decision needed:** ratify `.z1-control/ratify.py`'s Zone 2, or direct that the declaration be
+corrected to Zone 1.
 
 ---
 

@@ -51,6 +51,12 @@ been driven red by hand during development and the demonstration thrown away.
 2. **Coverage is enforced, not reported.** A blocking condition with no fixture
    fails the suite. Adding an `err()` without a demonstration is itself a
    violation.
+3. **Coverage is attributed, not incidental.** A condition counts only when some
+   fixture's own assertion matched *that condition's message*. Fixtures overlap
+   — the duplicate-id case also omits `version` — so merely recording "this line
+   ran" would let a new rule that happens to fire inside an unrelated fixture be
+   marked covered with nobody having demonstrated it. Verified by injecting a
+   rule that fires in nearly every fixture: it is still reported undemonstrated.
 
 Rule 2 is what makes it a ratchet rather than a snapshot. It catches both
 directions: a new rule with no proof, and an existing rule silently weakened

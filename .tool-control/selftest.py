@@ -64,7 +64,13 @@ VALIDATE_SRC = os.path.join(ROOT, ".tool-control", "validate.py")
 DOC_VALIDATE = os.path.join(ROOT, ".doc-control", "validate.py")
 
 
-FIRED: set[int] = set()
+# A condition counts as covered only when some fixture's own assertion MATCHED
+# the message that condition produced. Recording "this line ran at some point"
+# would be weaker than it looks: fixtures overlap (the duplicate-id fixture also
+# omits `version`), so a newly added rule that happens to fire inside an
+# unrelated fixture would be marked covered with nobody having demonstrated it.
+ATTRIBUTED: set[int] = set()
+_fired_here: list[tuple[int, str]] = []
 _failures: list[str] = []
 
 
@@ -86,26 +92,33 @@ def blocking_conditions() -> dict[int, str]:
 
 
 def _install_tracker() -> None:
-    """Record which err() site fired, so coverage is measured not asserted."""
+    """Pair each err() site with the message it produced, so coverage can be
+    attributed to the fixture that actually asserted it."""
     original = V.err
 
     def tracking(msg: str) -> None:
-        FIRED.add(sys._getframe(1).f_lineno)
+        _fired_here.append((sys._getframe(1).f_lineno, msg))
         original(msg)
 
     V.err = tracking
 
 
 def check(name: str, fn, expect: str) -> None:
-    """Run one fixture and require it to produce an error containing `expect`."""
+    """Run one fixture and require it to produce an error containing `expect`.
+
+    Only the condition whose own message matched is credited as covered.
+    """
     V.errors, V.warnings = [], []
+    _fired_here.clear()
     try:
         fn()
     except Exception as exc:  # a gate that crashes is a gate that does not gate
         _failures.append(f"{name}: fixture raised {type(exc).__name__}: {exc}")
         return
-    if not any(expect in e for e in V.errors):
+    matched = {lineno for lineno, msg in _fired_here if expect in msg}
+    if not matched:
         _failures.append(f"{name}: expected an error containing {expect!r}, got {V.errors}")
+    ATTRIBUTED.update(matched)
 
 
 # --------------------------------------------------------------------------
@@ -334,11 +347,11 @@ def run_doc_cases() -> None:
 # --------------------------------------------------------------------------
 def report(verbose: bool = False) -> int:
     conditions = blocking_conditions()
-    uncovered = sorted(set(conditions) - FIRED)
+    uncovered = sorted(set(conditions) - ATTRIBUTED)
 
     if verbose:
         for ln, text in sorted(conditions.items()):
-            mark = "OK  " if ln in FIRED else "MISS"
+            mark = "OK  " if ln in ATTRIBUTED else "MISS"
             print(f"  {mark} L{ln}: {text[:86]}")
         print()
 
@@ -346,7 +359,7 @@ def report(verbose: bool = False) -> int:
         print(f"::error::selftest: {f}")
 
     if uncovered:
-        print("::error::blocking conditions with no fixture proving they fire — "
+        print("::error::blocking conditions with no fixture ASSERTING them — "
               "a rule whose failure path is never executed is a claim, not a control:")
         for ln in uncovered:
             print(f"::error::  {os.path.relpath(VALIDATE_SRC, ROOT)}:{ln}  {conditions[ln][:80]}")
