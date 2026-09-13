@@ -30,11 +30,11 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 150
+  tools: 152
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 120
-  missing_from_tree: 0
+  missing_from_tree: 1
   unclassified: 0
 categories:
 - analytics_tool
@@ -1116,12 +1116,17 @@ tools:
   version: unversioned
   category: governance_tool
   zone: 1
-  status: draft
+  status: archived
   interface: cli
   lang: python
   smoke_test: false
   builder_markers: false
   purpose: molt_cycle.py — READ + PROPOSE phases only (Tier 0). Never applies.
+  missing_from_tree: true
+  notes: Renamed to tools/molt_cycle_tier0_v0_1.py (HAIOS-TOOL-158) to remove a naming collision with
+    the canonical root /molt_cycle.py — see Q-NF-ADAPTER-01 IC candidate and that file's own docstring.
+    A path change is a new tool per this manifest's own rule; this entry is retired explicitly rather
+    than left dangling.
 - tool_id: HAIOS-TOOL-091
   name: molting_protocol_diff
   path: tools/molting_protocol_diff_v1_0.py
@@ -1909,6 +1914,30 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims,
+- tool_id: HAIOS-TOOL-158
+  name: molt_cycle_tier0_v0_1
+  path: tools/molt_cycle_tier0_v0_1.py
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies.
+- tool_id: HAIOS-TOOL-159
+  name: smag_feedback
+  path: tools/smag_feedback_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
