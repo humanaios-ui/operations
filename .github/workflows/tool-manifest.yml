@@ -8,11 +8,17 @@ name: tool-manifest
 #   render --check    — TOOLS_MANIFEST.md matches the manifest
 #
 # All three are ERROR gates: they block on drift and on structural violations.
-# The advisory findings (unclassified category, Builder v1.7 non-compliance,
-# missing owner) are printed as warnings by validate.py and are NOT blocking
-# yet — 93 of 143 tools are uncategorized at adoption. Promote with `--strict`
-# once that backlog is worked down, the same way document-control.yml plans to
-# promote its advisory checks.
+#
+# Category rules are BLOCKING: every tool must carry a category from the
+# controlled vocabulary (CATEGORIES in .tool-control/scan.py), and
+# `unclassified` fails. That was promoted from advisory only once the backlog
+# reached zero — the gate ratchets rather than shipping a rule the corpus
+# already violates.
+#
+# Still advisory, printed as warnings by validate.py: missing Builder v1.7
+# markers (19 tools), missing owner/purpose on a non-draft tool, and a
+# `review_due` in the past. Each is promoted the same way — with `--strict`, or
+# by moving the rule, once its count reaches zero.
 
 on:
   pull_request:

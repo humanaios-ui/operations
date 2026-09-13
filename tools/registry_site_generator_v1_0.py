@@ -35,7 +35,7 @@ import yaml
 # ---------------------------------------------------------------------------
 TOOL_NAME = "registry_site_generator"
 TOOL_VERSION = "1.0.0"
-TOOL_CATEGORY = "site"
+TOOL_CATEGORY = "reporting_tool"
 TOOL_SESSION = "zone1"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent

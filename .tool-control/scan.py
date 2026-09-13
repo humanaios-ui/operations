@@ -61,6 +61,42 @@ SCAN_EXTS = {".py", ".js", ".sh"}
 ID_PREFIX = "HAIOS-TOOL-"
 MCP_ID_PREFIX = "HAIOS-MCP-"
 
+# The controlled category vocabulary. A category is what a tool DOES to the
+# system, not what subject it concerns — "ACAT" is a subject, `audit_tool` is a
+# role. Extending this set is a reviewed change to the gate, which is the point:
+# before it existed, every tool invented its own label and 86 of 136 had none.
+CATEGORIES: dict[str, str] = {
+    "audit_tool": "Audits artifacts or state against rules and reports findings.",
+    "validation_tool": "Validates the structure or content of an input; pass/fail.",
+    "diagnostic_tool": "Measures and surfaces signals without gating anything.",
+    "security_gate_tool": "Blocks an action (push, send, activation) on policy.",
+    "governance_tool": "Operates the governance machinery: registries, molts, routing.",
+    "calibration_tool": "Pins, resolves or scores predictions against outcomes.",
+    "orchestrator_tool": "Runs other tools or agents in sequence.",
+    "pipeline_tool": "Multi-stage processing of a corpus or record set.",
+    "connector_tool": "Talks to an external service (Supabase, Slack, GitHub, LLM APIs).",
+    "infrastructure_tool": "Internal plumbing: servers, routers, hooks, ingestion, scaffolding.",
+    "analytics_tool": "Statistical or psychometric computation over collected data.",
+    "research_tool": "A research instrument: adversarial suites, elicitation, experiments.",
+    "monitoring_tool": "Watches a surface over time and raises alerts.",
+    "reporting_tool": "Produces human-facing output: reports, sites, drafts.",
+    "dependency": "Imported by other tools; not invoked directly.",
+    "template_tool": "A scaffold or template for producing new tools.",
+    "unclassified": "Not yet categorized — a backlog entry, not a category.",
+}
+
+# Historical one-off labels declared in tool sources, mapped to the vocabulary.
+# Kept so a file that has not been renormalized still lands somewhere real
+# rather than failing the gate for a name nobody chose deliberately.
+CATEGORY_ALIASES = {
+    "governance": "governance_tool",
+    "discovery": "diagnostic_tool",
+    "dispatch": "connector_tool",
+    "site": "reporting_tool",
+    "template": "template_tool",
+    "meta_validator_tool": "validation_tool",
+}
+
 # Curated fields survive a rescan; everything else is re-derived from the file.
 CURATED_FIELDS = (
     "status",
@@ -171,7 +207,17 @@ def extract(path: str) -> dict[str, Any]:
         m = rx.search(src)
         if m:
             consts[key] = _literal(m.group(1))
+    # A declared category is kept whenever it LOOKS like one, even if it is not
+    # in the vocabulary — the validator must get the chance to reject it.
+    # Dropping unknown values here instead would silently fall back to the
+    # curated category, so a file could declare `made_up_thing` and still pass
+    # both `scan --check` and the new blocking rule.
+    # Only non-identifier values are discarded: template files carry literal
+    # placeholders such as `{tool_type}`, which name no category at all.
     cat = consts.get("TOOL_CATEGORY")
+    if isinstance(cat, str):
+        cat = CATEGORY_ALIASES.get(cat, cat)
+        consts["TOOL_CATEGORY"] = cat
     if not (isinstance(cat, str) and _CATEGORY_RE.match(cat)):
         consts.pop("TOOL_CATEGORY", None)
     if not isinstance(consts.get("TOOL_ZONE"), int) or consts.get("TOOL_ZONE") not in (1, 2, 3):
@@ -480,6 +526,15 @@ def run_smoke_test() -> int:
         r = extract(p)
         assert "declared_category" not in r, r
         assert "declared_zone" not in r, r
+
+        # An unknown but identifier-shaped category is PRESERVED so the
+        # validator can reject it. Dropping it here would fall back to the
+        # curated value and let a file declare anything while the gate passes.
+        open(p, "w").write('TOOL_NAME = "t"\nTOOL_CATEGORY = "made_up_thing"\n')
+        assert extract(p)["declared_category"] == "made_up_thing", extract(p)
+        # Aliases still normalize to the vocabulary.
+        open(p, "w").write('TOOL_NAME = "t"\nTOOL_CATEGORY = "dispatch"\n')
+        assert extract(p)["declared_category"] == "connector_tool", extract(p)
 
         # Regression: docstring extraction must not depend on the interpreter
         # version. A backslash inside an f-string expression is a SyntaxError
