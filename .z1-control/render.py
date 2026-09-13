@@ -196,9 +196,14 @@ def render(index: dict) -> str:
     add("")
     add("**Converting an inbox item to a Z2 decision:** add it to `z1-inbox/INDEX.yaml` under "
         "`candidates:` with `status: awaiting_z2` and a falsifier in the block itself, run "
-        "`python3 .z1-control/render.py`, and commit both. Z2 records the decision by setting "
-        "`status`, `ratified_by`, `ratified_at` and a `z2_ruling` that resolves to the ruling "
-        "file — the validator refuses a signature from anyone outside `ratifiers:`.")
+        "`python3 .z1-control/render.py`, and commit both. An undecided candidate carries no "
+        "signature fields at all.")
+    add("")
+    add("Z2 records the decision by setting `status`, `ratified_by`, `ratified_at`, a "
+        "`z2_ruling` that resolves to a file **indexed under `records:`**, and a `z2_hash` "
+        "that **appears in that ruling**. All five are required: the validator refuses a "
+        "signature from anyone outside `ratifiers:`, and refuses a hash the cited ruling does "
+        "not carry.")
     add("")
     return "\n".join(lines)
 

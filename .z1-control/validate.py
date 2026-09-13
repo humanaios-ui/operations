@@ -152,7 +152,17 @@ def validate(index: dict, tree: list[str], today: datetime.date,
         if os.path.isabs(path) or "\\" in path:
             return False
         norm = os.path.normpath(path).replace(os.sep, "/")
-        return norm == path and (norm == "z1-inbox" or norm.startswith("z1-inbox/"))
+        if norm != path or not (norm == "z1-inbox" or norm.startswith("z1-inbox/")):
+            return False
+        if files is not None:
+            return True  # virtual tree: no links to resolve
+        # Lexical containment is not enough. os.path.isfile and open() both
+        # follow symlinks, so `z1-inbox/leak.md -> /etc/passwd` passes the string
+        # test and still makes CI read the target while "checking a falsifier".
+        # Resolve and require the real path to stay under the inbox.
+        real = os.path.realpath(os.path.join(ROOT, norm))
+        inbox = os.path.realpath(INBOX)
+        return real == inbox or real.startswith(inbox + os.sep)
 
     def exists(path: str) -> bool:
         if not contained(path):
@@ -261,7 +271,7 @@ def validate(index: dict, tree: list[str], today: datetime.date,
                         f"cited ruling does not carry the signature claimed for it")
         elif status in OPEN:
             for field, value in (("ratified_by", signer), ("ratified_at", signed_at),
-                                 ("z2_ruling", ruling)):
+                                 ("z2_ruling", ruling), ("z2_hash", c.get("z2_hash"))):
                 if value:
                     err(f"{qid}: status '{status}' must not carry {field} — "
                         f"an undecided candidate carries no signature")
@@ -457,9 +467,12 @@ def run_smoke_test() -> int:
         errs, _, _ = check({**ok, "path": escape})
         assert any("not a normalized relative path" in e for e in errs), (escape, errs)
 
-    # An undecided candidate must not carry a signature.
+    # An undecided candidate must not carry a signature — including a bare hash,
+    # which the renderer does not show and which reads as one.
     errs, _, _ = check({**ok, "ratified_by": "Night"})
     assert any("must not carry ratified_by" in e for e in errs), errs
+    errs, _, _ = check({**ok, "z2_hash": "looks-official-20260908"})
+    assert any("must not carry z2_hash" in e for e in errs), errs
 
     # A hand-extended window must be refused.
     errs, _, _ = check({**ok, "decision_due": "2026-09-30"})
@@ -551,7 +564,17 @@ def main() -> int:
     errors, warnings, report = validate(index, scan_tree(), datetime.date.today())
 
     if args.report:
+        # Fails CLOSED. governance-triage.yml runs exactly this mode under
+        # `set -euo pipefail`; returning 0 with unreported violations let a
+        # scheduled job build a triage issue from an index the gate rejects,
+        # and close or update it as though the queue were clean.
         print(json.dumps(report, indent=2))
+        if errors:
+            for e in errors:
+                print(f"::error::{e}", file=sys.stderr)
+            print(f"::error::refusing to report a queue from an index with "
+                  f"{len(errors)} violation(s)", file=sys.stderr)
+            return 1
         return 0
 
     for w in warnings:

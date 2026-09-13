@@ -31,7 +31,7 @@ per document with `review_interval_days`.
 Usage:
   python3 .doc-control/review.py --queue
   python3 .doc-control/review.py --record HAIOS-GOV-001 --by Night
-  python3 .doc-control/review.py --propose --start 2026-09-22 --per-week 6
+  python3 .doc-control/review.py --propose --start 2026-09-22 --per-week 5
   python3 .doc-control/review.py --check
   python3 .doc-control/review.py --smoke-test
 
@@ -55,6 +55,9 @@ TOOL_NAME = "doc_review_scheduler"
 TOOL_VERSION = "1.0.0"
 TOOL_CATEGORY = "governance_tool"
 TOOL_ZONE = 1
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import strict_yaml  # noqa: E402  (same directory; keeps one strict loader, not three)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REGISTRY = os.path.join(ROOT, "document-registry.yaml")
@@ -88,10 +91,13 @@ def interval_for(doc: dict, policy: dict) -> int | None:
     policy would let `review_interval_days: "ninety"` silently stamp a 90-day
     date, which is the wrong interval presented as the right one.
     """
-    if "review_interval_days" in doc and doc.get("review_interval_days") is not None:
-        return valid_interval(doc.get("review_interval_days"))
+    # Status wins first: a `retired` document carrying review_interval_days: 30
+    # would otherwise be treated as on-cadence, contradicting the rule that
+    # superseded/retired documents are off it entirely.
     if doc.get("status") in NO_REVIEW:
         return None
+    if "review_interval_days" in doc and doc.get("review_interval_days") is not None:
+        return valid_interval(doc.get("review_interval_days"))
     return valid_interval(policy.get(doc.get("status")))
 
 
@@ -105,10 +111,21 @@ def next_due(doc: dict, policy: dict) -> datetime.date | None:
 
 
 def load() -> dict:
+    """Parse the registry strictly.
+
+    safe_load keeps the last of a duplicate key, so appending a second
+    `review_baseline: {}` would make every freeze check read an empty mapping
+    and pass — disabling the gate with one line and no error.
+    """
     if not os.path.exists(REGISTRY):
         print(f"::error::missing {os.path.relpath(REGISTRY, ROOT)}")
         sys.exit(1)
-    return yaml.safe_load(open(REGISTRY, encoding="utf-8")) or {}
+    try:
+        return strict_yaml.load_registry(REGISTRY)
+    except yaml.YAMLError as exc:
+        print(f"::error::document-registry.yaml does not parse: "
+              f"{str(exc).splitlines()[-1].strip()}")
+        sys.exit(1)
 
 
 def policy_of(reg: dict) -> dict:
@@ -205,7 +222,9 @@ def propose(reg: dict, start: datetime.date, per_week: int) -> list[dict]:
     # weekend. The previous version advanced by calendar days, which with the
     # default of six per week put slots on Saturday and Sunday while the comment
     # claimed working weeks.
-    cap = min(max(per_week, 1), 5)  # only five weekdays exist to place into
+    # Only five weekdays exist to place into. Silently clamping 6 to 5 while
+    # cmd_propose printed "6/week" reported a cadence the schedule could not meet.
+    cap = max(per_week, 1)
     day = start
     per_isoweek: dict[tuple, int] = {}
     for r in t["overdue"]:
@@ -236,7 +255,7 @@ def cmd_propose(reg: dict, start: datetime.date, per_week: int) -> int:
     return 0
 
 
-def cmd_check(reg: dict) -> int:
+def cmd_check(reg: dict, today: datetime.date | None = None) -> int:
     """review_due is derived where history exists, and frozen where it does not.
 
     Derivation alone left a hole: no document carries `last_reviewed` yet, so
@@ -246,12 +265,32 @@ def cmd_check(reg: dict) -> int:
     the seeded dates, so a no-history document must keep the date it was seeded
     with until a review is actually recorded.
     """
+    today = today or datetime.date.today()
     policy = policy_of(reg)
     errors = list(policy_errors(reg))
     baseline = reg.get("review_baseline")
     if baseline is not None and not isinstance(baseline, dict):
         errors.append("review_baseline must be a mapping of doc_id -> seeded ISO date")
         baseline = None
+
+    # The freeze has to be total to be a freeze. Applying it only where an entry
+    # happens to exist meant a PR could DELETE one baseline line and move that
+    # document's date in the same commit, and the check would pass by omission —
+    # the same shape as the bypass the baseline was added to close.
+    if baseline is not None:
+        known = {d.get("doc_id") for d in reg.get("documents") or []}
+        for stray in sorted(k for k in baseline if k not in known):
+            errors.append(f"review_baseline.{stray}: no such doc_id in the registry")
+        for d in reg.get("documents") or []:
+            did, st = d.get("doc_id"), d.get("status")
+            if st in NO_REVIEW or d.get("last_reviewed") or not d.get("review_due"):
+                continue
+            if did not in baseline:
+                errors.append(
+                    f"{did}: has a review_due but no recorded review and no "
+                    f"review_baseline entry — every un-reviewed date must be frozen, "
+                    f"or removing a baseline line would silently unfreeze it")
+
     for d in reg.get("documents") or []:
         did = d.get("doc_id", "<missing>")
         last_raw = d.get("last_reviewed")
@@ -259,11 +298,26 @@ def cmd_check(reg: dict) -> int:
             errors.append(f"{did}: last_reviewed '{last_raw}' is not an ISO date")
             continue
         own = d.get("review_interval_days")
-        if own is not None and (not isinstance(own, int) or own <= 0):
+        if own is not None and valid_interval(own) is None:
+            # valid_interval, not isinstance(own, int): YAML `true` IS an int in
+            # Python, so a bare isinstance check let review_interval_days: true
+            # through to expected=None and a silent pass.
             errors.append(f"{did}: review_interval_days must be a positive integer, got {own!r}")
+            continue
+        if d.get("status") in NO_REVIEW and own is not None:
+            errors.append(f"{did}: status '{d.get('status')}' is off the review cadence "
+                          f"and must not carry review_interval_days")
             continue
         if d.get("last_reviewed") and not d.get("reviewed_by"):
             errors.append(f"{did}: last_reviewed without reviewed_by — a review is somebody's act")
+        seen = as_date(last_raw)
+        if seen and seen > today:
+            # --record refuses a future date, but a direct registry edit does not
+            # go through --record. Without this, "reviewed tomorrow" derives a
+            # future review_due and clears an overdue item with no review.
+            errors.append(f"{did}: last_reviewed {seen.isoformat()} is in the future — "
+                          f"a review cannot have happened yet")
+            continue
         actual = as_date(d.get("review_due"))
         expected = next_due(d, policy)
         if expected is not None:
@@ -275,6 +329,7 @@ def cmd_check(reg: dict) -> int:
                     f"Run `--record` rather than editing the date.")
             continue
         # No recorded history: the seeded date is frozen until a review happens.
+        # Missing coverage is reported above, so this only compares what exists.
         if baseline and did in baseline:
             frozen = as_date(baseline[did])
             if frozen is None:
@@ -446,6 +501,43 @@ def run_smoke_test() -> int:
     assert "\n" not in scalar, scalar
     assert yaml.safe_load(f"reviewed_by: {scalar}")["reviewed_by"] == injected
 
+    # A retired document must not be dragged back on-cadence by an override.
+    assert interval_for({"status": "retired", "review_interval_days": 30},
+                        reg["review_policy"]) is None
+    assert quiet_check({**reg, "documents": [{"doc_id": "HAIOS-F-001", "status": "retired",
+                                              "review_interval_days": 30}]}) == 1
+
+    # YAML `true` is an int in Python; --check must not let it through.
+    assert quiet_check({**reg, "documents": [
+        {"doc_id": "HAIOS-G-001", "status": "review", "review_interval_days": True,
+         "last_reviewed": "2026-09-01", "reviewed_by": "Night",
+         "review_due": "2026-11-30"}]}) == 1
+
+    # A review cannot have happened tomorrow, however the date got there.
+    tomorrow = (datetime.date(2026, 9, 13) + datetime.timedelta(days=1)).isoformat()
+    assert quiet_check({**reg, "documents": [
+        {"doc_id": "HAIOS-H-001", "status": "review", "last_reviewed": tomorrow,
+         "reviewed_by": "Night", "review_due": "2026-12-13"}]},
+        ) == 1
+
+    # Deleting a baseline entry must not silently unfreeze that document.
+    assert quiet_check({**reg, "review_baseline": {},
+                        "documents": [{"doc_id": "HAIOS-A-001", "status": "review",
+                                       "review_due": "2027-08-01"}]}) == 1
+    # ...and a baseline naming a document that does not exist is an error.
+    assert quiet_check({**reg, "review_baseline": {"HAIOS-GHOST-01": "2026-08-01"},
+                        "documents": []}) == 1
+
+    # A duplicate key must not be able to empty the freeze.
+    dup = ("review_policy: {review: 90}\n"
+           "review_baseline:\n  HAIOS-A-001: \"2026-08-01\"\n"
+           "review_baseline: {}\n")
+    try:
+        strict_yaml.loads(dup)
+        raise AssertionError("strict loader accepted a duplicate review_baseline")
+    except yaml.YAMLError as exc:
+        assert "duplicate key" in str(exc), exc
+
     # The proposal places one document per weekday, capped per week.
     days = [datetime.date.fromisoformat(r["proposed_review_due"])
             for r in propose(reg, datetime.date(2026, 9, 25), per_week=2)]  # a Friday
@@ -463,8 +555,10 @@ def run_smoke_test() -> int:
     assert [r["proposed_review_due"] for r in rows] == ["2026-09-22", "2026-09-28"], rows
 
     print("smoke-test OK — triages the seeded backlog, derives the next due date from "
-          "recorded history, refuses hand-edited and anonymous dates, excludes retired "
-          "documents, and staggers proposals without writing.")
+          "recorded history, refuses hand-edited, anonymous, future and boolean-interval "
+          "dates, refuses an unfrozen or ghost baseline entry and a duplicate "
+          "review_baseline key, keeps retired documents off the cadence even with an "
+          "override, and staggers proposals onto weekdays without writing.")
     return 0
 
 
@@ -477,7 +571,8 @@ def main() -> int:
     ap.add_argument("--by", metavar="NAME", help="who reviewed it (required with --record)")
     ap.add_argument("--on", metavar="YYYY-MM-DD", help="review date (default: today)")
     ap.add_argument("--start", metavar="YYYY-MM-DD", help="--propose: first slot")
-    ap.add_argument("--per-week", type=int, default=6, help="--propose: documents per week")
+    ap.add_argument("--per-week", type=int, default=5,
+                    help="--propose: documents per week (1-5; slots are weekdays)")
     ap.add_argument("--smoke-test", action="store_true", help="self-test and exit")
     args = ap.parse_args()
 
@@ -490,6 +585,13 @@ def main() -> int:
         return 1
     if args.start and as_date(args.start) is None:
         print(f"::error::--start '{args.start}' is not an ISO date")
+        return 1
+    if not 1 <= args.per_week <= 5:
+        # Rejected rather than clamped: the previous version accepted 6, placed
+        # five, and printed "6/week" — a schedule that disagreed with its own
+        # header. Refuse the request instead of quietly changing it.
+        print(f"::error::--per-week must be between 1 and 5 (slots are weekdays); "
+              f"got {args.per_week}")
         return 1
 
     reg = load()

@@ -175,15 +175,22 @@ Two things here are the owner's, and only two:
 point-in-time reports (`..._S-051426-02.html`); re-dating a frozen record for review is ceremony.
 But which of them are live is not Z1's call.
 
-Proposed schedule under A1 (`--propose --start 2026-09-22 --per-week 6`, 6/week):
+Proposed schedule under A1 (`--propose --start 2026-09-22 --per-week 5`, one per weekday):
 
 | | |
 |---|---|
 | First slot | 2026-09-22 (`HAIOS-COLLAB-001`) |
-| Last slot | **2026-11-05** (`HAIOS-PROC-005`) |
-| Span | 7 weeks, no two documents sharing a date |
+| Last slot | **2026-11-13** (`HAIOS-PROC-005`) |
+| Span | 8 weeks, weekdays only, no two documents sharing a date |
 
-Full table: `python3 .doc-control/review.py --propose --start 2026-09-22 --per-week 6`.
+Full table: `python3 .doc-control/review.py --propose --start 2026-09-22 --per-week 5`.
+
+A second review round caught that the earlier `--per-week 6` figure was unmeetable: only five
+weekdays exist, so the scheduler silently placed five while its header printed six. It now
+refuses a value above five rather than quietly changing the request — which moves the
+backlog's end date from the **2026-11-05** first quoted here to **2026-11-13**. The original
+figure is left visible rather than overwritten, because a corrected number with no trace of
+the correction is how a registry starts describing the past.
 
 ### Decision B — owners
 

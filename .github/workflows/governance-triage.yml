@@ -45,6 +45,10 @@ jobs:
         id: z2
         run: |
           set -euo pipefail
+          # Blocking validation FIRST. --report now fails closed too, but running
+          # the gate explicitly makes the failure legible: a triage issue built
+          # from an index with violations would present a queue the gate rejects.
+          python3 .z1-control/validate.py
           python3 .z1-control/validate.py --report > /tmp/z2.json
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json
@@ -91,9 +95,11 @@ jobs:
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import datetime, sys
           sys.path.insert(0, ".doc-control")
-          import yaml
+          import strict_yaml
           from review import triage
-          reg = yaml.safe_load(open("document-registry.yaml", encoding="utf-8")) or {}
+          # Strict, like every other registry consumer: a duplicate key must not
+          # be able to quietly empty review_baseline and change what this reports.
+          reg = strict_yaml.load_registry("document-registry.yaml")
           t = triage(reg, datetime.date.today())
           lines = [
               f"**{len(t['overdue'])} of {t['total']} controlled documents are overdue** "

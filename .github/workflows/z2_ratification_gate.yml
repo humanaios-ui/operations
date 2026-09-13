@@ -28,6 +28,8 @@ on:
   pull_request:
     paths:
       - 'seeds/seed-constitution-*.md'
+      - 'seeds/CONTRIBUTION_GUIDE.md'
+      - '.github/ISSUE_TEMPLATE/seed-amendment.md'
       - 'seed-publication/**'
       - 'z1-inbox/**'
       - 'Z1_INBOX_INDEX.md'
@@ -39,6 +41,8 @@ on:
       - main
     paths:
       - 'seeds/seed-constitution-*.md'
+      - 'seeds/CONTRIBUTION_GUIDE.md'
+      - '.github/ISSUE_TEMPLATE/seed-amendment.md'
       - 'seed-publication/**'
       - 'z1-inbox/**'
       - 'Z1_INBOX_INDEX.md'
@@ -118,14 +122,27 @@ jobs:
             exit 0
           fi
           echo "🔍 Seed Constitution changed — checking for Z2 approval..."
-          VERSION=$(echo "$CHANGED" | sed 's/.*seed-constitution-v\(.*\)\.md/\1/' | head -1)
-          echo "  Version: $VERSION"
-          if ! grep -q "v$VERSION.*RATIFIED\|v$VERSION.*ACCEPT" REGISTERED.md; then
-            echo "❌ Z2 ratification not found in REGISTERED.md for v$VERSION"
+          # EVERY changed version, not just the first. `head -1` let a PR that
+          # touched an approved version and an unapproved one pass on the
+          # strength of whichever path sorted first, while the step claimed to
+          # validate all Seed Constitution changes.
+          MISSING=0
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            VERSION=$(echo "$path" | sed 's/.*seed-constitution-v\(.*\)\.md/\1/')
+            if grep -q "v$VERSION.*RATIFIED\|v$VERSION.*ACCEPT" REGISTERED.md; then
+              echo "  ✓ v$VERSION ratified ($path)"
+            else
+              echo "  ❌ v$VERSION has no ratification in REGISTERED.md ($path)"
+              MISSING=$((MISSING + 1))
+            fi
+          done <<< "$CHANGED"
+          if [ "$MISSING" -gt 0 ]; then
+            echo "❌ $MISSING Seed Constitution version(s) lack Z2 ratification"
             echo "   All Seed Constitution changes require Z2 (Night) approval before publication"
             exit 1
           fi
-          echo "✓ Z2 ratification verified"
+          echo "✓ Z2 ratification verified for every changed version"
 
       - name: Validate Amendment Template
         run: |

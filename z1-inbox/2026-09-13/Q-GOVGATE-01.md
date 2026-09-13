@@ -412,7 +412,7 @@ to enforce now applies to candidate blocks rather than to receipts and handoffs 
 because the rule as written would have failed on 11 of the 24 files already present.
 
 z1-inbox now has the same SSOT → validate → render → CI shape as the other two control surfaces.
-Eight candidates are awaiting Z2; five are past the 48h window; one asserts its own falsifier
+Eleven candidates are awaiting Z2; five are past the 48h window; one asserts its own falsifier
 exemption. None of that was visible before, and none of it is Z1's to settle.
 
 **Ratification requested.**
