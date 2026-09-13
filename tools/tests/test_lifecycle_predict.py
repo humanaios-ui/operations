@@ -500,3 +500,52 @@ def test_malformed_row_missing_field_raises_ledger_corrupt(tmp_path):
         raise AssertionError("expected LedgerCorrupt")
     except lc.LedgerCorrupt:
         pass
+
+
+def test_cli_resolve_requires_at_least_one_observe(tmp_path, capsys):
+    """A resolve call with no --observe must not look like a successful,
+    silent no-op — the operator forgot the flag, not resolved nothing on
+    purpose."""
+    ledger = tmp_path / "cli.jsonl"
+    parser = lc.build_parser()
+    pin_args = parser.parse_args([
+        "pin", "--ledger", str(ledger),
+        "--action", "restart_service", "--target", "svc-x",
+        "--predictor", "Claude Code", "--window-minutes", "5",
+        "--expect", "http_health=200:0.9",
+    ])
+    lc.cmd_pin(pin_args)
+    episode_id = capsys.readouterr().out.splitlines()[0].split("episode ", 1)[1]
+
+    resolve_args = parser.parse_args([
+        "resolve", "--ledger", str(ledger), "--episode", episode_id,
+        "--source", "manual check",
+    ])
+    assert lc.cmd_resolve(resolve_args) == 2
+    assert "FAIL" in capsys.readouterr().err
+
+
+def test_pin_refuses_token_id_collision_with_existing_ledger(tmp_path, monkeypatch):
+    """cmd_pin must check newly generated token ids against the ledger's
+    existing ones rather than discarding load_ledger_state's id set — a
+    forced episode-id collision must be refused, not silently overwrite an
+    existing prediction."""
+    ledger = tmp_path / "ledger.jsonl"
+    parser = lc.build_parser()
+
+    fixed_episode = "LC-fixed-for-collision-test"
+    monkeypatch.setattr(lc, "new_episode_id", lambda action, target: fixed_episode)
+
+    args = parser.parse_args([
+        "pin", "--ledger", str(ledger),
+        "--action", "restart_service", "--target", "svc-x",
+        "--predictor", "Claude Code", "--window-minutes", "5",
+        "--expect", "http_health=200:0.9",
+    ])
+    assert lc.cmd_pin(args) == 0  # first pin with this episode id succeeds
+
+    assert lc.cmd_pin(args) == 1  # same fixed episode id again must be refused
+    rows = engine.read(str(ledger))
+    assert engine.verify(rows) is None
+    token_ids = [r["token_id"] for r in rows if r.get("type") == "TOKEN"]
+    assert len(token_ids) == len(set(token_ids))  # no duplicate token ever landed

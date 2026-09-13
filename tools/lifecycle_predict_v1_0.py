@@ -122,14 +122,16 @@ def slugify(text: str) -> str:
 
 def new_episode_id(action: str, target: str) -> str:
     """A fresh identifier for one pin episode. Includes a time-based
-    component and a short random-ish suffix (from the current monotonic
-    clock) so two pins in the same second for the same action/target still
-    get distinct episode ids; collision would only merge two unrelated
-    predictions' tokens, which token_id_for's digest suffix (below) also
-    guards against independently.
+    component and a collision-resistant suffix (64 bits, from the current
+    monotonic clock) so two pins in the same second for the same
+    action/target get distinct episode ids — and therefore distinct token
+    ids, since token_id_for derives from episode_id. cmd_pin additionally
+    checks the generated token ids against the ledger's existing ones while
+    holding the lock, so even the residual chance of a collision here is
+    caught rather than silently overwriting an unrelated prediction.
     """
     stamp = time.strftime("%Y%m%dT%H%M%S", time.gmtime())
-    suffix = hashlib.sha256(f"{time.monotonic_ns()}".encode()).hexdigest()[:6]
+    suffix = hashlib.sha256(f"{time.monotonic_ns()}".encode()).hexdigest()[:16]
     return f"LC-{stamp}-{slugify(action)}-{slugify(target)}-{suffix}"
 
 
@@ -310,7 +312,7 @@ def cmd_pin(args: argparse.Namespace) -> int:
 
     with _locked(ledger_path):
         try:
-            _, next_seq = load_ledger_state(ledger_path)
+            existing_ids, next_seq = load_ledger_state(ledger_path)
         except LedgerCorrupt as exc:
             print(f"FAIL: refusing to pin — {exc}", file=sys.stderr)
             return 1
@@ -324,6 +326,14 @@ def cmd_pin(args: argparse.Namespace) -> int:
         except ValueError as exc:
             print(f"FAIL: {exc}", file=sys.stderr)
             return 2
+
+        new_token_ids = {e["token_id"] for e in events if e["type"] == "TOKEN"}
+        colliding = new_token_ids & existing_ids
+        if colliding:
+            print(f"FAIL: token id collision {sorted(colliding)} — refusing to overwrite "
+                  f"an existing prediction", file=sys.stderr)
+            return 1
+
         engine.append(str(ledger_path), events, engine.last_hash(str(ledger_path)))
         err = engine.verify(engine.read(str(ledger_path)))
         if err:
@@ -338,6 +348,10 @@ def cmd_pin(args: argparse.Namespace) -> int:
 
 def cmd_resolve(args: argparse.Namespace) -> int:
     ledger_path = Path(args.ledger)
+
+    if not args.observe:
+        print("FAIL: at least one --observe is required", file=sys.stderr)
+        return 2
 
     observed = {}
     try:
