@@ -95,17 +95,22 @@ design.
 
 §8's CGBG boundary and §11's `EVIDENCE_CANDIDATE_PENDING_RETRIEVAL` — a third state distinct from
 both "missing" and "verified" — are exactly the kind of typed-unknown discipline the Pilot Offer
-lacked, and directly close that document's biggest gap by refusing to let a market price silently
-become a CGBG valuation unit. This document is a genuine improvement in rigor over letting a
-baseline get set informally.
+lacked, and directly close one specific instantiation of that gap: using an observed market price
+to launder a weak or unfloored reciprocal exchange into something that looks priced. They do not
+close the Pilot Offer's separate settlement-floor and delivery-sequencing gaps (see
+`Q-CGBG-PILOT-01` findings 2–3) — the Pilot can still accept an inadequate resource and deliver
+first regardless of what this document does. This document is a genuine improvement in rigor over
+letting a baseline get set informally, on the specific question it addresses.
 
 ---
 
 ## Verdict — how it lands
 
 Sound instinct, mostly self-consistent, and a real improvement over an informal baseline — the
-refusal to convert $X/project into a CGBG unit directly closes the "no settlement floor" risk
-flagged in the Pilot Offer review. But it isn't yet ready to anchor real comparison work: the
+refusal to convert $X/project into a CGBG unit closes one specific path to the "no settlement
+floor" risk flagged in the Pilot Offer review (using a market price to justify weak reciprocity),
+though the Pilot's underlying settlement-floor and sequencing gaps remain open on their own terms.
+It isn't yet ready to anchor real comparison work, either way: the
 filename/description mismatch already visible in the inputs should be surfaced now rather than
 left to a later inspection step, the two out-of-vocabulary matrix states should be fixed or
 folded into §2's enumeration, and the "$X/project = observed market price" conclusion should be
@@ -117,7 +122,8 @@ a §9 comparison.
 
 ## Falsifier
 
-**Prediction (window: 30 days from ratification, closes 2026-10-13):**
+**Prediction (window: 30 days from submission — 2026-09-13 — closes 2026-10-13 regardless of when
+ratification lands):**
 
 1. When the evidence candidate is actually inspected, the §7 identity-match test is run and its
    result (pass or fail) is recorded before any field is upgraded from UNKNOWN — including in the

@@ -78,10 +78,10 @@ before execution" governs the *output*, not whether the *request* itself can be 
 
 ### 6. No acceptance-latency commitment or escalation path
 
-This repo's own internal governance (`CLAUDE.md`) runs Z1→Z2 decisions on a published 24–48h
-window with an explicit contest path. This offer, aimed at an external counterparty, has no
-equivalent: no published time-to-accept/reject, and no escalation if a submitted task spec sits
-unanswered.
+This repo's own internal governance (`CLAUDE.md`) runs Z1→Z2 decisions on a published window —
+48h for routine decisions, 24h or less for urgent ones — with an explicit contest path. This
+offer, aimed at an external counterparty, has no equivalent: no published time-to-accept/reject,
+and no escalation if a submitted task spec sits unanswered.
 
 ### 7. Evidence and verification are conditional, not guaranteed
 
@@ -130,16 +130,24 @@ outside a trusted first test; 4–10 should be fixed but are lower severity and 
 
 ## Falsifier
 
-**Prediction (window: 30 days from ratification, closes 2026-10-13):**
+Finding 1 (the expiration clause names a deadline the document never states) is a drafting
+defect, confirmed by reading the document — it is not something a future exchange can falsify
+either way. What follows predicts the *practical consequence* of findings 1–3 if the offer is
+used as published, which is what the falsifier below actually tests.
+
+**Prediction (window: 30 days from submission — 2026-09-13 — closes 2026-10-13 regardless of when
+ratification lands):**
 
 1. If the offer is revised to add a stated deadline, a settlement floor, and a
    delivery-sequencing clause before its first real circulation, the first completed exchange (if
    one occurs in-window) closes with both sides receiving what they expected — no unilateral
    non-reciprocation and no dispute over whether the offer had already expired.
-2. If the offer is circulated unpatched, at least one of finding 1 (expiration meaninglessness) or
-   findings 2–3 (uncompensated delivery) becomes a live issue in that exchange.
+2. If the offer is circulated unpatched, at least one of finding 1's practical consequence
+   (a dispute over whether the offer had already expired) or findings 2–3's (uncompensated
+   delivery) becomes a live issue in that exchange.
 
-**Falsifier — either of these refutes the assessment:**
+**Falsifier — either of these refutes the risk *prediction* (not finding 1 itself, which stands
+regardless of outcome):**
 
 - The offer is circulated unpatched, a real exchange completes, and no dispute or asymmetry
   traceable to findings 1–3 occurs. *(The gaps were real on paper but didn't matter in practice —
