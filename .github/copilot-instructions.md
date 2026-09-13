@@ -247,8 +247,9 @@ by the file's subject matter.
 
 ## 7. Before you open or update a PR, run what CI runs
 
-CI on this repo is unforgiving of stale generated files; the fastest path to a green
-PR is running the same commands locally first:
+(§1's Zone 1/3 carve-out covers exactly the commands below — read it first if
+you haven't.) CI on this repo is unforgiving of stale generated files; the
+fastest path to a green PR is running the same commands locally first:
 
 ```bash
 python3 tools/repo_health.py --strict                 # repo vitality gate
@@ -311,3 +312,5 @@ editing the generated file by hand.
   register it in `REGISTERED.md` rather than registering it yourself (§4).
 - Don't skip, disable, or narrow a test to make CI pass. If a check is failing for
   a reason your diff didn't cause, say that in the PR instead of routing around it.
+- When in doubt about any of the above under task pressure — "just make CI
+  green" is not a reason to guess — comment and stop, per §1.
