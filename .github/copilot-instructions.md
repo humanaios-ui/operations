@@ -264,9 +264,12 @@ your environment lacks that suite's fixtures.
 The commands above cover every PR. If your PR also touches `tools/**/*.py`,
 two more path-scoped gates apply and aren't in the list above: `builder-lint.yml`
 (§5's Builder scanner) and `behavioral-compliance.yml` (§5's AST-level gate).
-Each runs two checks, not one — your changed file(s) individually, *and* the
-whole `tools/` corpus against a floor (Builder ≥ 0.90, behavioral ≥ 0.70).
-Passing the scanner on just your own file doesn't prove the PR is green:
+Each runs two checks, not one, and they don't scope identically (§5 covers
+this in full): `builder-lint.yml`'s per-file gate covers your PR's added
+*and* modified files; `behavioral-compliance.yml`'s per-file gate covers only
+*added* files, with a modified tool checked solely through the corpus floor.
+Both also gate the whole `tools/` corpus (Builder ≥ 0.90, behavioral ≥ 0.70).
+Passing either scanner on just your own file doesn't prove the PR is green:
 run `--path tools/` for both tools too, so a corpus-wide regression shows up
 locally instead of first in CI.
 
