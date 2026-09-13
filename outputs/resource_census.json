@@ -1,6 +1,6 @@
 {
   "version": "resource_census_v0.1.0",
-  "generated_at": "2026-09-13T15:34:41+00:00",
+  "generated_at": "2026-09-13T17:04:34+00:00",
   "units_registry": {
     "path": "RESOURCE_UNITS.yaml",
     "version": "0.1",
