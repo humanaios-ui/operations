@@ -54,6 +54,12 @@ jobs:
             --ledger audits/smag_pilot_ledger.jsonl \
             --out audits/smag_gap_report.md
 
+      - name: FEED BACK — gap cues into the lessons ledger
+        run: |
+          python3 tools/smag_feedback_v1_0.py \
+            --ledger audits/smag_pilot_ledger.jsonl \
+            --lessons data/lessons_learned_ledger.json
+
       - name: Wire SMAG rows to empirica CLI with LLM analysis + predictions
         run: |
           # Generate ACAT-classified gaps + remediation suggestions + next-cycle predictions
@@ -80,7 +86,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet -- audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md; then
+          if git diff --quiet -- audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md data/lessons_learned_ledger.json; then
             echo "No new SMAG rows — nothing to consolidate."
             exit 0
           fi
@@ -88,9 +94,9 @@ jobs:
           git config user.name  "smag-consolidate[bot]"
           git config user.email "smag-consolidate@users.noreply.github.com"
           git checkout -b "$branch"
-          git add audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md
-          git commit -m "chore(smag): consolidate #103 rows + refresh gap report"
+          git add audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md data/lessons_learned_ledger.json
+          git commit -m "chore(smag): consolidate #103 rows + refresh gap report + FEED BACK cues"
           git push origin "$branch"
           gh pr create --base main --head "$branch" \
             --title "SMAG: consolidate ledger + refresh gap report" \
-            --body "Automated CONSOLIDATE+ANALYZE step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into the ledger and refreshes the gap report. Review the gap_rate trend before merging."
+            --body "Automated CONSOLIDATE+ANALYZE+FEED BACK step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into the ledger, refreshes the gap report, and upserts any gap-driver or insufficient-calibration-data cue into data/lessons_learned_ledger.json (tools/smag_feedback_v1_0.py). Promoting a cue to a blocking gate or a REGISTERED finding is a separate, human act — this only records the cue. Review the gap_rate trend before merging."

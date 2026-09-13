@@ -124,22 +124,15 @@ Earliest due first. Anything dated before today is overdue — `.doc-control/val
 | 2026-08-01 | HAIOS-COLLAB-007 | `collaborators/MODEAI_JOINT_REPORT_S-051626-02.html` | review |
 | 2026-08-01 | HAIOS-COLLAB-008 | `collaborators/RAH_OPERATIONAL_RECORD_S-051426-02.html` | review |
 | 2026-08-01 | HAIOS-COLLAB-009 | `collaborators/SYDAN_JOINT_REPORT_S-051426-02.html` | review |
-| 2026-08-01 | HAIOS-GOV-001 | `GOVERNANCE.md` | review |
 | 2026-08-01 | HAIOS-OPS-001 | `comparison-chamber.html` | review |
 | 2026-08-01 | HAIOS-OPS-002 | `witness-renderer.html` | review |
-| 2026-08-01 | HAIOS-OPS-003 | `CURRENT.md` | review |
-| 2026-08-01 | HAIOS-OPS-004 | `SUBSTRATE_CAPABILITY_REGISTRY.md` | review |
-| 2026-08-01 | HAIOS-OPS-005 | `DOCUMENT_CONTROL_ACTIVATION_BRIEF.md` | approved |
 | 2026-08-01 | HAIOS-PROC-001 | `OPERATOR_RUNBOOK.md` | review |
 | 2026-08-01 | HAIOS-PROC-002 | `VALIDATION_PLAN.md` | review |
 | 2026-08-01 | HAIOS-PROC-003 | `ai-instructions.txt` | review |
-| 2026-08-01 | HAIOS-PROC-004 | `SESSION_RITUALS.md` | review |
 | 2026-08-01 | HAIOS-RES-001 | `ACAT_PROMPT_V5_0.txt` | review |
 | 2026-08-01 | HAIOS-RES-002 | `METHODS.md` | review |
 | 2026-08-01 | HAIOS-RES-003 | `openai-activity.html` | review |
 | 2026-08-01 | HAIOS-RES-004 | `public/methodology.html` | review |
-| 2026-08-01 | HAIOS-RES-005 | `REGISTERED.md` | review |
-| 2026-08-01 | HAIOS-RES-006 | `SEED.md` | review |
 | 2026-08-01 | HAIOS-WEB-001 | `humanaios-single-page.html` | review |
 | 2026-08-01 | HAIOS-WEB-002 | `lumina-tide-pool.html` | review |
 | 2026-08-01 | HAIOS-WEB-003 | `public/lantern-room.html` | review |
@@ -150,12 +143,19 @@ Earliest due first. Anything dated before today is overdue — `.doc-control/val
 | 2026-08-01 | HAIOS-WEB-008 | `sitemap.html` | review |
 | 2026-08-01 | HAIOS-WEB-009 | `submit.html` | review |
 | 2026-08-01 | HAIOS-WEB-010 | `the-source.html` | review |
-| 2026-08-15 | HAIOS-OPS-006 | `A5_MULTIrepo_ROLLOUT_PLAN.md` | approved |
-| 2026-08-15 | HAIOS-OPS-007 | `A6_DRIFT_MONITOR_SPEC.md` | approved |
-| 2026-08-15 | HAIOS-OPS-008 | `EXECUTION_STATUS.md` | approved |
-| 2026-08-15 | HAIOS-PROC-005 | `A4_INTAKE_PIPELINE_SPEC.md` | approved |
 | 2026-10-12 | HAIOS-RES-009 | `docs/REFLEXIVE_CALIBRATION_PAPER_V1_0.md` | draft |
+| 2026-12-01 | HAIOS-RES-006 | `SEED.md` | review |
+| 2026-12-06 | HAIOS-RES-005 | `REGISTERED.md` | review |
+| 2026-12-13 | HAIOS-OPS-004 | `SUBSTRATE_CAPABILITY_REGISTRY.md` | review |
+| 2026-12-13 | HAIOS-PROC-004 | `SESSION_RITUALS.md` | review |
+| 2026-12-15 | HAIOS-GOV-001 | `GOVERNANCE.md` | review |
+| 2026-12-22 | HAIOS-OPS-003 | `CURRENT.md` | review |
 | 2026-12-31 | HAIOS-GOV-002 | `EXTERNAL_LINK_POLICY.md` | approved |
+| 2027-02-26 | HAIOS-OPS-005 | `DOCUMENT_CONTROL_ACTIVATION_BRIEF.md` | approved |
+| 2027-03-07 | HAIOS-OPS-008 | `EXECUTION_STATUS.md` | approved |
+| 2027-03-09 | HAIOS-OPS-006 | `A5_MULTIrepo_ROLLOUT_PLAN.md` | approved |
+| 2027-03-12 | HAIOS-PROC-005 | `A4_INTAKE_PIPELINE_SPEC.md` | approved |
+| 2027-03-20 | HAIOS-OPS-007 | `A6_DRIFT_MONITOR_SPEC.md` | approved |
 
 ## ⚠️ Content-accuracy holds (5) — block approval
 

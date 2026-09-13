@@ -1,6 +1,6 @@
 # Resource-Based Economics for Organizational Operations (RBE-OPS v0.1)
 
-**Status:** Z1 CANDIDATE — awaiting Z2 ratification hash. Nothing here is in force.
+**Status:** partially ratified. `RESOURCE_UNITS.yaml` was ratified by Night on 2026-09-13; everything else here remains a Z1 proposal and is **not** in force. See §11 for what that does and does not authorise.
 **Proposal row:** Q-RBE-01 (`z1-inbox/2026-09-13/Q-RBE-01.md`)
 **Companion artifacts:** [`RESOURCE_UNITS.yaml`](../RESOURCE_UNITS.yaml) (canonical unit registry) · [`docs/RESOURCE_UNITS.md`](RESOURCE_UNITS.md) (operator reference: recipes, refusals, how to read a census) · `tools/resource_census_v0_1.py` · `tools/resource_ledger_v0_1.py` · `ledgers/RESOURCE_LEDGER.jsonl`
 **Pinned at:** `main@1e1b5189f6ae657c3b1a666eb5b52194327e0b63`, REGISTERED.md sha256 `b35e80365f3dad1c28997340…`, PRIORITY_QUEUE.md sha256 `c28723d1ce8d28f24fab99c2…` (IC-030 live read, 2026-09-13)
@@ -267,11 +267,11 @@ Stated up front, with the detection for each. A regime that cannot name its own 
 
 ## 11. Authority status
 
-Every item is a Z1 proposal. Per `CLAUDE.md` → Decision Routing, none is in force without a Z2 hash.
+Per `CLAUDE.md` → Decision Routing, nothing is in force without a Z2 hash. One artifact now has one; the rest do not.
 
 | Artifact | State |
 |---|---|
-| `RESOURCE_UNITS.yaml` | `status: CANDIDATE`, `ratification_hash: null` |
+| `RESOURCE_UNITS.yaml` | **`status: RATIFIED`** by Night, 2026-09-13. Its `ratification_hash` predates artifact signing and verifies against nothing — `ratify.py --verify-artifact` reports the mismatch, and re-signing it is an open Z2 item (`z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md`). Unit-level `CANDIDATE` statuses inside the registry are unaffected: `TRUST-pt` and `OP-hr` remain candidates because they still have no instrument. |
 | `constants.json` resource constants | `molt_id: null` — inert by the constants node rule |
 | `priority_queue_engine.py` resource mode | present, **off**; activates only on a non-null ratified `molt_id` |
 | `ledgers/RESOURCE_LEDGER.jsonl` | genesis + one CLAIM (this work order, budget declared as a PRIOR) |
