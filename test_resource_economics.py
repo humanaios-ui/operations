@@ -590,17 +590,66 @@ class TestQueueReshape:
 
 
 class TestModeIsGoverned:
-    def test_resource_mode_is_dormant_while_the_constant_is_unratified(self):
-        q = PriorityQueueEngine.from_constants(str(ROOT / "constants.json"))
+    def test_an_unratified_constant_is_still_dormant(self):
+        """The guarantee the live-constant test used to carry, kept after ratification.
+
+        QUEUE_SCORING_MODE was ratified on 2026-09-13, so the live file can no
+        longer demonstrate dormancy. Flipping the old assertion to the new value
+        would have dropped the property entirely, so it moves to a fixture: the
+        SAME constant, unratified, must still leave behaviour unchanged.
+        """
+        path = ROOT / "constants.json"
+        consts = json.loads(path.read_text(encoding="utf-8"))["constants"]
+        dormant = [{**c, "molt_id": None} if c["name"] == "QUEUE_SCORING_MODE" else c
+                   for c in consts]
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            json.dump({"constants": dormant}, fh)
+            tmp = fh.name
+        q = PriorityQueueEngine.from_constants(tmp)
         assert q.mode == MODE_IMPACT, "an unratified constant must not change behaviour"
         assert q.mode_molt_id is None
 
-    def test_the_live_constant_is_present_and_unratified(self):
+    def test_the_live_constant_is_ratified_and_its_molt_is_on_the_ledger(self):
+        """Ratified, and the molt_id RESOLVES — not merely non-null.
+
+        `assert molt_id is not None` would pass for any string Z1 typed, which is
+        the same defect as a `ratification_hash` that verifies against nothing.
+        The molt id is cross-checked against the MOLT_RATIFY event in the
+        hash-chained ledger, which names the constant and the value it authorised.
+        """
         consts = json.loads((ROOT / "constants.json").read_text(encoding="utf-8"))["constants"]
         row = next(c for c in consts if c["name"] == "QUEUE_SCORING_MODE")
-        assert row["molt_id"] is None
-        assert row["current_value"] == "impact"
+        assert row["current_value"] == "resource"
+        assert row["molt_id"], "a ratified constant must name its molt"
+        # Anti-cascade (CLAUDE.md) requires these to survive ratification: a molt
+        # with no falsifier and no revert rule cannot be measured or reverted.
         assert row.get("falsifier") and row.get("revert_rule")
+        assert row.get("prior_value") == "impact", "the revert target must be recorded"
+
+        events = [json.loads(line) for line in
+                  (ROOT / "ledgers/RESOURCE_LEDGER.jsonl").read_text(encoding="utf-8").splitlines()
+                  if line.strip()]
+        ratifications = [e for e in events if e.get("type") == "MOLT_RATIFY"
+                         and e.get("molt_id") == row["molt_id"]]
+        assert ratifications, (
+            f"constants.json claims molt_id {row['molt_id']!r}, but no MOLT_RATIFY "
+            f"event on the ledger carries it — the constant is ratified by a value "
+            f"that resolves to nothing")
+        named = [c for e in ratifications for c in e.get("constants_ratified") or []
+                 if c.get("name") == "QUEUE_SCORING_MODE"]
+        assert named, "the molt on the ledger does not name QUEUE_SCORING_MODE"
+        assert named[0].get("new_value") == row["current_value"], (
+            f"the ledger ratified {named[0].get('new_value')!r} but constants.json "
+            f"carries {row['current_value']!r}")
+
+    def test_the_live_ratified_constant_activates_resource_mode(self):
+        q = PriorityQueueEngine.from_constants(str(ROOT / "constants.json"))
+        consts = json.loads((ROOT / "constants.json").read_text(encoding="utf-8"))["constants"]
+        row = next(c for c in consts if c["name"] == "QUEUE_SCORING_MODE")
+        assert q.mode == MODE_RESOURCE
+        assert q.mode_molt_id == row["molt_id"], \
+            "the engine must run under the molt the constants file records"
 
     def test_a_ratified_constant_activates_resource_mode(self, tmp_path):
         path = tmp_path / "constants.json"

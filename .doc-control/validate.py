@@ -116,7 +116,12 @@ for d in docs:
             if due < date.today() and st not in GONE_OK:
                 warn(f"{did}: review overdue since {due.isoformat()} (status={st})")
 
-for did, n in canonical_count.items():
+for did in by_id:
+    # Iterate every known doc_id, not just canonical_count's keys — a doc_id
+    # with zero `canonical: true` entries never adds itself to that dict, so
+    # checking only its keys silently accepts n=0 (rule 3's docstring says
+    # "exactly one," not "at most one").
+    n = canonical_count.get(did, 0)
     if n != 1:
         err(f"{did}: {n} canonical:true entries (must be exactly 1)")
 
