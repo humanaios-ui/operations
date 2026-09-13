@@ -93,7 +93,7 @@ Z1 proposes; Z2 numbers and appends, per G-4 / IC-030.
 
 ## Honest limitations, named
 
-1. **The census is unresolved.** `registered_findings_validator_v1_0.py` reports 130 entries (F=47, H=47, IC=36); this scanner reports 131 (F=45, IC=43, H=42, other=1). Two instruments disagree about how many entries the registry contains and what class they are. **This document does not assert which is right.** Its own numbers are therefore conditional on its parser being the correct one, which is exactly the assumption IC-037 punishes. Resolving this should precede citing either census as authoritative.
+1. **The census is unresolved.** `registered_findings_validator_v1_0.py` reports 130 entries (F=47, H=47, IC=36); `repo_health.py` reports 126 immune entries; this scanner reports 131 (F=45, IC=43, H=42, other=1). Three instruments disagree about how many entries the registry contains and what class they are. **This document does not assert which is right.** Its own numbers are therefore conditional on its parser being the correct one, which is exactly the assumption IC-037 punishes. Resolving this should precede citing either census as authoritative.
 2. **Occurrence data exists for 11 of 19 modes.** The rest read `UNMEASURED` and are not scored. They are not thereby rare — they are unobserved.
 3. **Severity is unscored for 18 of 19 modes,** because `REGISTRY_SPEC.md:45` requires IC entries be cost-classified and only IC-031 is. No RPN is computed anywhere. The FMEA table is mostly empty by design; filling it would manufacture the false precision IC-034 names.
 4. **The scanner is advisory.** Shipping `--enforce` on would fail CI on 44 pre-existing defects; shipping it off indefinitely reproduces IC-050, the repo's own evidence that a warn-only gate is a defeated gate. This is named rather than resolved, because the resolution is Z2's.
@@ -119,7 +119,7 @@ Z1 proposes; Z2 numbers and appends, per G-4 / IC-030.
 - [ ] Is the RFM taxonomy the right vocabulary, and is 19 the right granularity?
 - [ ] Should `--enforce` be turned on, and if so before or after remediating the 44 defects?
 - [ ] Should the scanner be wired into CI, given `findings-registry.yml` already runs a blocking validator?
-- [ ] Which instrument's census is authoritative — 130 or 131?
+- [ ] Which instrument's census is authoritative — 126, 130 or 131?
 - [ ] Accept / edit / reject IC-CAND-A through IC-CAND-D; assign numbers if accepted
 - [ ] Commission `Q-RFM-02` (cost-class taxonomy)? It is the blocker on every `UNSCORED` FMEA cell
 - [ ] Is naval command vocabulary in Column 2 acceptable, or should the map stay in existing terms?

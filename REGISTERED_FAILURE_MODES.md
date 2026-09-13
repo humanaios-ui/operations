@@ -28,7 +28,7 @@ This document does that, in three columns:
 
 1. The registry scores **91.6% first-pass yield / 83,969 DPMO / ~2.9σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
 2. Of 19 failure modes, **before this scan 17 had no detector at all**. The dominant failure mode of the registry is not any single defect — it is the absence of instrumentation.
-3. **Two instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports 130 entries (F=47, H=47, IC=36); this scanner reports 131 (F=45, IC=43, H=42, other=1). Cause unresolved. Routed to Z2 as a measurement-system finding.
+3. **Three instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports **130** entries (F=47, H=47, IC=36); `tools/repo_health.py` reports **126** immune entries; this scanner reports **131** (F=45, IC=43, H=42, other=1). Cause unresolved. No instrument in the repo can currently state how many entries `REGISTERED.md` contains. Routed to Z2 as a measurement-system finding.
 4. The value recorded as **Ratification Hash** at `REGISTERED.md:3925` is `e8a501f` — a 7-character git commit SHA, where `CLAUDE.md` Decision Routing step 6 and `NF_LEDGER_SCHEMA_v1.md` both specify `sha256(candidate | by=Night | at=timestamp | decision=ACCEPT)`. A commit SHA proves *when code landed*, not *what was approved*.
 
 ---
@@ -140,7 +140,7 @@ This document ships an instrument. It is in the same genus, and it demonstrated 
 Two controls, neither sufficient alone:
 
 - `--smoke-test` / `self-test` exercises every evaluator against synthetic known-good and known-bad fixtures, including an explicit assertion that the F-32/F-33 whitelist suppresses the honest-gap false positive **and** that a non-whitelisted phantom is still caught.
-- The census divergence in Executive Summary finding 3 is **unresolved and left visible**. Two instruments disagree; this document does not assert which is right.
+- The census divergence in Executive Summary finding 3 is **unresolved and left visible**. Three instruments disagree; this document does not assert which is right. Its own counts are conditional on its parser being correct — which is precisely the assumption IC-037 punishes.
 
 ---
 
@@ -311,7 +311,7 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 - [ ] **Ratify the RFM taxonomy** (19 modes) as the registry's failure-mode vocabulary
 - [ ] **Rule on `--enforce`** for `tools/registered_failure_mode_scan_v0_1.py`. Advisory today; leaving it advisory indefinitely reproduces IC-050. Recommended: remediate the 44 entry-level defects, then turn enforcement on in the same ratification
 - [ ] **Rule on wiring into CI.** Deliberately not wired — `findings-registry.yml` already runs a blocking registry validator, and two registry gates on the same paths could return contradictory verdicts before Z2 has ruled
-- [ ] **Resolve the census divergence** — 130 vs 131 entries, and the F/IC/H split, between the two validators. Until resolved, neither instrument's census should be cited as authoritative
+- [ ] **Resolve the census divergence** — 126 vs 130 vs 131 entries, and the F/IC/H split, across the three instruments. Until resolved, no instrument's census should be cited as authoritative
 - [ ] **Number and append the four IC-candidates** below (Z1 proposes; Z2 numbers and appends, per G-4 / IC-030)
 - [ ] **Commission `Q-RFM-02`** — the cost-class taxonomy `REGISTRY_SPEC.md:45` requires, which is the blocker on every `UNSCORED` cell in the FMEA
 
