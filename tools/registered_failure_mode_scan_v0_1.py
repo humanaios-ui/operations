@@ -78,6 +78,9 @@ from __future__ import annotations
 
 TOOL_NAME = "registered_failure_mode_scan"
 TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "audit_tool"
+TOOL_SESSION = "S-091326-01"
+TOOL_ZONE = 1
 
 
 # Builder v1.7 compliant

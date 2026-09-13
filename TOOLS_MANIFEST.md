@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**137 registered tools** · 2 MCP servers · 0 excluded · 118 carrying Builder v1.7 markers
+**138 registered tools** · 2 MCP servers · 0 excluded · 119 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 137 |
-| — status `draft` | 136 |
+| Registered tools | 138 |
+| — status `draft` | 137 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 118 |
+| Builder v1.7 markers present | 119 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -34,7 +34,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-023 | acat_sdt_analytics | `tools/acat_sdt_analytics_v1_0.py` | 1.0.0 | 1 | draft | — | ACAT SDT Analytics — v1.0 |
 
-## Audit — `audit_tool` (19)
+## Audit — `audit_tool` (20)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -57,6 +57,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-102 | principle_harmonizer | `tools/principle_harmonizer_v1_2.py` | 1.2.0 | 1 | draft | — | Principle Harmonizer — v1.2 |
 | HAIOS-TOOL-115 | skill_compression_scanner_v1_0 | `tools/skill_compression_scanner_v1_0.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | — |
 | HAIOS-TOOL-143 | zone_boundary_audit | `tools/zone_boundary_audit_v1_0.py` | 1.0.0 | 1 | draft | — | Detects Zone 1/2/3 boundary violations in workflow artifacts and operator logs. |
+| HAIOS-TOOL-145 | registered_failure_mode_scan | `tools/registered_failure_mode_scan_v0_1.py` | 0.1.0 | 1 | draft | — | Audits REGISTERED.md against the RFM failure-mode taxonomy; reports entry-level first-pass yield / DPMO. Advisory unless --enforce. |
 
 ## Calibration — `calibration_tool` (16)
 
@@ -265,7 +266,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | category | meaning | count |
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 1 |
-| `audit_tool` | Audits artifacts or state against rules and reports findings. | 19 |
+| `audit_tool` | Audits artifacts or state against rules and reports findings. | 20 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 11 |
 | `dependency` | Imported by other tools; not invoked directly. | 5 |

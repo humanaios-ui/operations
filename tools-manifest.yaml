@@ -27,10 +27,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 137
+  tools: 138
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 118
+  builder_markers_present: 119
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -1745,6 +1745,19 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: copilot_acat_scanner_v1_0.py
+- tool_id: HAIOS-TOOL-145
+  name: registered_failure_mode_scan
+  path: tools/registered_failure_mode_scan_v0_1.py
+  version: 0.1.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Audits REGISTERED.md against the RFM failure-mode taxonomy; reports entry-level first-pass yield / DPMO. Advisory unless --enforce.
+  session: S-091326-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
