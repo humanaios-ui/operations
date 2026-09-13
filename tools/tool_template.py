@@ -28,7 +28,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 TOOL_NAME = "tool_template"
 TOOL_VERSION = "1.1.0"
-TOOL_CATEGORY = "template"
+TOOL_CATEGORY = "template_tool"
 TOOL_SESSION = "zone1"
 
 

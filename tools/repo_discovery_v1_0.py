@@ -46,7 +46,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 TOOL_NAME     = "repo_discovery"
 TOOL_VERSION  = "1.0.0"
-TOOL_CATEGORY = "discovery"
+TOOL_CATEGORY = "diagnostic_tool"
 TOOL_SESSION  = "S-053126-repo-discovery"
 TOOL_ZONE     = 1
 

@@ -37,11 +37,23 @@ overwrites them.
 `builder_markers` is a **presence heuristic**, not a compliance verdict: it checks
 that a file carries the Builder v1.7 header, `TOOL_NAME`, `TOOL_VERSION`, a main
 guard and a smoke test, across every registered file including `.js`/`.sh` and
-`scripts/`/`bin/`. The authoritative compliance check remains
-`tools/builder_compliance_scanner_v1.0.py`, gated by `builder-lint.yml` over its
-own (narrower) corpus. The two numbers differ legitimately — 24 of 136 here vs
-1 of 112 there — because the corpora differ. Do not treat this field as a second
-standard; where they disagree, the scanner wins.
+`scripts/`/`bin/`. On the quality of an individual tool,
+`tools/builder_compliance_scanner_v1.0.py` (gated by `builder-lint.yml`) is
+authoritative and this field is not — where they disagree about a file, the
+scanner wins.
+
+They answer different questions, though, and the difference matters.
+`_is_builder_corpus_member` admits a file to the scanner's corpus only if it
+**already contains** the string "Builder v1.7 compliant". Its pass rate is
+therefore computed over self-declared members: a tool that omits the header
+entirely is not counted as failing, it is not counted at all. That is why
+99.1% (111/112) coexisted with 24 registered tools carrying no markers. Adding a
+header line to five agents moved it to 116/117: both numerator and denominator
+rose by five, because those files were admitted to the corpus by opting in and
+then passed. The rate barely moved; what changed is that five previously
+invisible files became visible at all. This field covers the whole registry
+instead, so it is the one that can see an omission. Neither number is wrong;
+only one of them can notice a file that never opted in.
 
 **CURATED** — set by a human, preserved across scans. This is where judgment
 lives.
@@ -54,6 +66,43 @@ lives.
 tool's own `TOOL_CATEGORY` / `TOOL_ZONE` constant always wins, and a mismatch
 between the file and the manifest is a merge-blocking error. Fix the file or
 rerun the scan; do not "fix" the manifest by hand.
+
+## Category vocabulary
+
+A category says what a tool **does to the system**, not what subject it
+concerns: "ACAT" is a subject, `audit_tool` is a role. The set is **closed** —
+`validate.py` rejects a category outside it, and rejects `unclassified`
+outright. Extending it means editing `CATEGORIES` in `scan.py`, which is a
+reviewed change to the gate. That is deliberate: before the vocabulary existed
+every tool invented its own label and 86 of 136 had none at all.
+
+| category | meaning |
+|---|---|
+| `analytics_tool` | Statistical or psychometric computation over collected data. |
+| `audit_tool` | Audits artifacts or state against rules and reports findings. |
+| `calibration_tool` | Pins, resolves or scores predictions against outcomes. |
+| `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). |
+| `dependency` | Imported by other tools; not invoked directly. |
+| `diagnostic_tool` | Measures and surfaces signals without gating anything. |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. |
+| `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. |
+| `monitoring_tool` | Watches a surface over time and raises alerts. |
+| `orchestrator_tool` | Runs other tools or agents in sequence. |
+| `pipeline_tool` | Multi-stage processing of a corpus or record set. |
+| `reporting_tool` | Produces human-facing output: reports, sites, drafts. |
+| `research_tool` | A research instrument: adversarial suites, elicitation, experiments. |
+| `security_gate_tool` | Blocks an action (push, send, activation) on policy. |
+| `template_tool` | A scaffold or template for producing new tools. |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. |
+
+Five one-off `TOOL_CATEGORY` constants (`governance`, `discovery`, `dispatch`
+×2, `site`, `template`) were normalized in their source files. A sixth label,
+`meta_validator_tool`, appears only in the Builder header *prose* of
+`tools/builder_compliance_scanner_v1.0.py` — it is a descriptor, not a declared
+constant, so there was nothing to normalize and that tool is categorized
+`validation_tool`. All six are mapped by `CATEGORY_ALIASES` anyway, so an
+un-normalized file lands on a real category instead of failing the gate for a
+name nobody chose deliberately.
 
 ## Status lifecycle
 
@@ -119,9 +168,10 @@ python3 .tool-control/validate.py --smoke-test
 python3 .tool-control/render.py --smoke-test
 ```
 
-Adding a tool: write it to the Builder v1.7 standard (`TOOLS_TEMPLATE.md`), run
-`scan.py`, then fill in its curated fields — at minimum `owner`, `purpose` and a
-real `category`. Run `render.py` and commit the manifest, the index and the tool
+Adding a tool: write it to the Builder v1.7 standard (`TOOLS_TEMPLATE.md`),
+declaring a `TOOL_CATEGORY` from the vocabulary below, then run `scan.py`. A
+tool with no category is registered as `unclassified`, which **fails the gate** —
+that is how the backlog stays at zero. Run `render.py` and commit the manifest, the index and the tool
 together.
 
 ## Scope
@@ -159,16 +209,19 @@ retired.)
 
 ## Phasing
 
-Adopted errors-only, matching how `document-control.yml` was introduced. These
-are **warnings** today and become blocking under `--strict` once the backlog is
-worked down:
+Adopted errors-only, matching how `document-control.yml` was introduced, then
+tightened as each backlog was cleared. **A finding is promoted to blocking only
+once its count reaches zero** — that way the gate ratchets instead of shipping
+a rule the corpus already violates.
 
-| finding | count at adoption |
-|---|---|
-| category `unclassified` | 86 of 136 |
-| missing Builder v1.7 markers | 24 of 136 |
-| non-draft tool without owner / purpose | — |
-| `review_due` in the past | — |
+| finding | at adoption | now | status |
+|---|---|---|---|
+| category `unclassified` | 86 of 136 | **0** | **blocking** |
+| category outside the vocabulary | 6 of 136 | **0** | **blocking** |
+| missing Builder v1.7 markers | 24 of 136 | 19 | warning |
+| non-draft tool without owner / purpose | — | — | warning |
+| `review_due` in the past | — | — | warning |
 
 The gate blocks structural violations from day one; it does not demand the
-existing corpus be clean before it can protect against getting worse.
+existing corpus be clean before it can protect against getting worse. But once
+a backlog *is* cleared, the corresponding rule is promoted so it cannot refill.
