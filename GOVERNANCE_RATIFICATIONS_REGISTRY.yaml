@@ -1,0 +1,20 @@
+# GOVERNANCE_RATIFICATIONS_REGISTRY.yaml
+# Canonical decision registry for cross-practice governance ratifications.
+# Append-only: new decisions are added; existing entries are not rewritten.
+#
+# Schema per entry in decisions[]:
+#   decision_id: GOV-YYYY-MM-DD-{NAME}
+#   date: YYYY-MM-DD
+#   title: short title
+#   scope: practice-local | cross-practice
+#   status: proposed | ratified | superseded
+#   summary: one-paragraph description
+#   references: [optional list of PRs/docs]
+#
+# Last updated: 2026-09-13
+# Status: skeleton — zero decisions registered yet; divergence-detect can load this file.
+
+version: 1
+last_updated: "2026-09-13"
+status: active
+decisions: []
