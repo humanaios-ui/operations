@@ -26,6 +26,11 @@ try:
 except ImportError:
     print("::error::PyYAML not installed (pip install pyyaml)"); sys.exit(2)
 
+TOOL_NAME = "doc_control_validator"
+TOOL_VERSION = "1.1.0"
+TOOL_CATEGORY = "validation_tool"
+TOOL_ZONE = 1
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REGISTRY = os.path.join(ROOT, "document-registry.yaml")
 ID_RE = re.compile(r"^HAIOS-[A-Z]+-\d{3}$")
