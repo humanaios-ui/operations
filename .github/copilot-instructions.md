@@ -81,8 +81,11 @@ don't reconstruct files from a corrupted paste.
 
 The Builder v1.7 checklist below is Python-specific and CI-enforced
 (`builder_compliance_scanner_v1.0.py` via `builder-lint.yml`) only for
-`tools/**/*.py`. For `scripts/`/`bin/`, run the scanner manually; for another
-language, match the same intent in its own idiom. `.tool-control/scan.py`
+`tools/**/*.py`. The scanner itself is Python-only (`ast.parse()`s the
+target, directory mode only enumerates `*.py`) — for a Python file under
+`scripts/`/`bin/`, run it manually; for another language, match the same
+intent in its own idiom rather than feeding it to this scanner.
+`.tool-control/scan.py`
 registers `.js`/`.sh`/executable-extensionless files into the manifest too
 (non-executable extensionless files are skipped), but the checklist below
 doesn't apply to them.
@@ -94,9 +97,14 @@ A new Python tool needs:
 - `if __name__ == "__main__":` guard and a **working** `--smoke-test` flag.
 
 **The scanner is text-matching, not structural — don't over-trust a pass.**
-It does `ast.parse()` the file first and hard-fails `SYNTAX_ERROR` on invalid
-Python before checking anything else, but past that gate the 9 markers below
-are plain regexes, not structure. `--path <file>` checks 6 hard markers (docstring phrase, `TOOL_NAME`/
+Tests, `__init__.py`, archived files, and private/shared helpers (`tools/
+builder_compliance_scanner_v1.0.py`'s own skip list) return a trivial pass
+with none of this run at all — not even the syntax check — and that applies
+to `--path <file>` too, which `builder-lint.yml` uses per changed file: a
+skip-listed path passes regardless of its actual content. For everything
+else, it does `ast.parse()` the file first and hard-fails `SYNTAX_ERROR` on
+invalid Python before checking anything else, but past that gate the 9
+markers below are plain regexes, not structure. `--path <file>` checks 6 hard markers (docstring phrase, `TOOL_NAME`/
 `TOOL_VERSION`, `HumanAIOS`, smoke-test text, main guard) plus 3 soft ones
 (non-blocking unless `--strict`, which CI doesn't use). All 9 are regexes over
 the raw source — a comment merely *mentioning* `run_smoke_test` or
@@ -120,8 +128,9 @@ local run is a real PASS, not a swallowed crash.
 
 ```bash
 python3 .tool-control/scan.py       # refreshes DERIVED fields, adds new files
-# hand-edit tools-manifest.yaml now: owner, purpose, and (only if the tool
-# file doesn't declare TOOL_CATEGORY/TOOL_ZONE) category/zone
+# hand-edit tools-manifest.yaml now: owner, purpose, and — independently
+# per field — category/zone, but only for whichever of TOOL_CATEGORY/
+# TOOL_ZONE the file doesn't declare
 python3 .tool-control/render.py     # regenerates TOOLS_MANIFEST.md
 python3 .tool-control/validate.py   # the merge gate — run it yourself first
 ```
@@ -134,9 +143,11 @@ differently: `TOOL_CATEGORY` falls back to the curated value only when it
 isn't even identifier-shaped (a template's literal `{tool_type}`
 placeholder) — an unrecognizable-but-identifier-shaped string (e.g.
 `made_up_thing`) is kept as declared and then rejected by `validate.py` as
-a real error, it does *not* fall back. Declare valid constants in code
-rather than hand-editing the manifest field (a declared-vs-curated mismatch
-is merge-blocking). Never hand-edit `TOOLS_MANIFEST.md` itself.
+a real error, it does *not* fall back. When the file already declares the
+constant, fix the constant rather than hand-editing the manifest field — a
+declared-vs-curated mismatch is merge-blocking. When it doesn't, hand-editing
+the manifest's `category`/`zone` directly (above) is the supported curated
+path, not a workaround. Never hand-edit `TOOLS_MANIFEST.md` itself.
 
 `category` must land on one of 16 closed vocabulary terms
 (`.tool-control/README.md`) — `unclassified` or anything outside it is now
@@ -158,12 +169,14 @@ setting the flag on a new entry is rejected as a self-granted waiver.
 
 **"Controlled" is decided by `document-registry.yaml`, not by frontmatter** —
 check the registry, not the file. Some registered docs (`OPERATOR_RUNBOOK.md`,
-`CURRENT.md`) carry no frontmatter at all. The check scans every `*.md` file
-outside `.doc-control/`, `.tool-control/`, and `_templates/` (its own
-control-system internals, excluded deliberately), new or already-tracked:
-any file that *declares* a `doc_id` gets it checked against the registry, and
-an unmatched one is an "orphan doc_id" failure — it says nothing about a file
-with no frontmatter at all.
+`CURRENT.md`) carry no frontmatter at all. The check globs `*.md`, which
+Python skips inside any dot-directory by default — so it never reaches
+`.github/`, `.doc-control/`, `.tool-control/`, etc. regardless of content —
+plus `_templates/` via an explicit exclusion (its own control-system
+internals, since that one isn't dot-prefixed). Everywhere else, new or
+already-tracked: any file that *declares* a `doc_id` gets it checked against
+the registry, and an unmatched one is an "orphan doc_id" failure — it says
+nothing about a file with no frontmatter at all.
 
 Editing an already-registered document needs no registration step. Adding a
 genuinely new controlled document means hand-editing `document-registry.yaml`
@@ -200,8 +213,11 @@ python3 -m mypy src/humanaios_operations --ignore-missing-imports
 ```
 
 Then run the blocking pytest suite exactly as `quality-baseline.yml`'s
-"Pytest baseline suites" step defines it — copy its file list verbatim, don't
-run a bare `pytest -q` (which both over- and under-covers what CI gates on).
+"Pytest baseline suites" step defines it — copy its 12-file list verbatim.
+The repo has 50+ `test_*.py` files with no pytest discovery config at all
+(no `pytest.ini`/`conftest.py`), so a bare `pytest -q` runs a much larger,
+uncurated set instead — spurious failures outside what actually gates the
+PR, not a substitute for the specific list CI runs.
 
 **If your PR also touches `tools/**/*.py`**, two more gates apply:
 `builder-lint.yml` (§5's scanner: a corpus gate + a per-file added/modified
