@@ -54,7 +54,13 @@ TOOLS_README = os.path.join(ROOT, "tools", "README.md")
 # Roots scanned for tools. `tools/tests` (tests, not tools) and `tools/skills`
 # (skills — governed by SKILL_REGISTRY.md, a separate registry) are excluded by
 # EXCLUDE_DIRS below rather than by omission, so the exclusion is auditable.
-SCAN_ROOTS = ["tools", "scripts", "bin"]
+#
+# `.tool-control` and `.doc-control` are IN scope. They were originally left out
+# as "control-system internals", which made the only code gating the whole repo
+# the one part of it gated by nothing but CODEOWNERS. The instruments are tools;
+# they carry versions, categories and smoke tests like any other, and the
+# coverage rule should notice if one goes missing.
+SCAN_ROOTS = ["tools", "scripts", "bin", ".tool-control", ".doc-control"]
 EXCLUDE_DIRS = {"__pycache__", "tests", "skills", "node_modules", ".git"}
 SCAN_EXTS = {".py", ".js", ".sh"}
 

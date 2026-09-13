@@ -11,7 +11,8 @@ rendered index that cannot drift from it.
 | `scan.py` | Refreshes the manifest's mechanical fields from the working tree. |
 | `validate.py` | The merge gate. Structural rules only. |
 | `render.py` | `tools-manifest.yaml` → `TOOLS_MANIFEST.md`. |
-| `.github/workflows/tool-manifest.yml` | Runs all three on every PR touching tools. |
+| `selftest.py` | Proves every blocking rule can fail. Fails if any rule has no proof. |
+| `.github/workflows/tool-manifest.yml` | Runs all four on every PR touching tools. |
 
 ## Why this exists
 
@@ -26,6 +27,45 @@ load-bearing rule here is **coverage**: every tool file on disk is either
 registered or explicitly listed under `excluded:`, and CI blocks otherwise.
 Drift becomes a failing check on the PR that causes it instead of a discovery
 made months later.
+
+## Who gates the gate
+
+The gates check the corpus. For two PRs, nothing checked the gates — and it
+showed. Four defects on #304 and #306 were found by reviewers and by none of the
+gates' own checks, and all four were the same shape: **a rule the documentation
+asserted and the code did not enforce.** The waiver that was self-grantable
+while the README said new claims block. The deletion that erased an audit record
+while the README said retirement is explicit. The category declaration silently
+discarded while the rule said it wins. The vocabulary's own "role, not subject"
+rule, broken twice by its author in the commit that introduced it.
+
+When that was measured, `validate.py` had **26 blocking conditions and its smoke
+test exercised 10**. The other 16 — including `unregistered tool`, the coverage
+rule the whole system rests on — had never been demonstrated to fire. Each had
+been driven red by hand during development and the demonstration thrown away.
+
+`selftest.py` is the correction, and it enforces two things:
+
+1. **Every blocking condition has a fixture that triggers it.** All 26, plus
+   seven document-control conditions driven end to end as a subprocess.
+2. **Coverage is enforced, not reported.** A blocking condition with no fixture
+   fails the suite. Adding an `err()` without a demonstration is itself a
+   violation.
+
+Rule 2 is what makes it a ratchet rather than a snapshot. It catches both
+directions: a new rule with no proof, and an existing rule silently weakened
+(the fixture stops producing its error). It also asserts the grandfathered Zone
+2 path still *passes* — a rule that only ever rejects is as broken as one that
+never does.
+
+**What this does not cover.** Whether a category is *correct* is a judgment, not
+a mechanical property. A filename-echo heuristic was measured against the corpus
+before being built: 14 of 137 tools have their category's stem in their
+filename, and on inspection all 14 are right (`acat_merkle_auditor` really is an
+`audit_tool`). It would have produced 14 false positives and no true ones, so it
+was not built — a check that cries wolf trains people to ignore gates. Semantic
+correctness is what independent review is for, and independent review is what
+actually caught it.
 
 ## Two classes of field
 
@@ -166,6 +206,10 @@ python3 .tool-control/validate.py --strict
 python3 .tool-control/scan.py --smoke-test
 python3 .tool-control/validate.py --smoke-test
 python3 .tool-control/render.py --smoke-test
+
+# Prove every blocking rule can still fail; --list shows per-rule coverage
+python3 .tool-control/selftest.py
+python3 .tool-control/selftest.py --list
 ```
 
 Adding a tool: write it to the Builder v1.7 standard (`TOOLS_TEMPLATE.md`),
@@ -176,8 +220,14 @@ together.
 
 ## Scope
 
-Scanned: `tools/`, `scripts/`, `bin/` — `.py`, `.js`, `.sh`, and extensionless
+Scanned: `tools/`, `scripts/`, `bin/`, **and the control system itself**
+(`.tool-control/`, `.doc-control/`) — `.py`, `.js`, `.sh`, and extensionless
 executables.
+
+The control directories were originally excluded as "internals", which left the
+only code gating the whole repo as the one part of it gated by nothing but
+CODEOWNERS. They are tools: they carry versions, categories and smoke tests like
+any other, and the coverage rule should notice if one goes missing.
 
 Not scanned, deliberately:
 

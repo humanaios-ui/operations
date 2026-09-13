@@ -20,6 +20,8 @@ scan_roots:
 - tools
 - scripts
 - bin
+- .tool-control
+- .doc-control
 excluded_dirs:
 - .git
 - __pycache__
@@ -27,7 +29,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 137
+  tools: 143
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 118
@@ -1745,6 +1747,78 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: copilot_acat_scanner_v1_0.py
+- tool_id: HAIOS-TOOL-145
+  name: doc_registry_renderer
+  path: .doc-control/render.py
+  version: 1.0.0
+  category: infrastructure_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: Render CONTROLLED_DOCUMENTS.md from document-registry.yaml.
+- tool_id: HAIOS-TOOL-146
+  name: doc_control_validator
+  path: .doc-control/validate.py
+  version: 1.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: 'Enforces the mechanical controlled-document rules from DOCUMENT_CONTROL_PLAN.md:'
+- tool_id: HAIOS-TOOL-147
+  name: tool_manifest_renderer
+  path: .tool-control/render.py
+  version: 1.0.0
+  category: infrastructure_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: Render TOOLS_MANIFEST.md from tools-manifest.yaml.
+- tool_id: HAIOS-TOOL-148
+  name: tool_manifest_scanner
+  path: .tool-control/scan.py
+  version: 1.0.0
+  category: infrastructure_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: Walks the registered tool roots, extracts each tool's declared metadata, and
+- tool_id: HAIOS-TOOL-149
+  name: tool_control_selftest
+  path: .tool-control/selftest.py
+  version: 1.0.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: 'Adversarial self-test for the tool-control gate: prove every rule can FAIL.'
+- tool_id: HAIOS-TOOL-150
+  name: tool_manifest_validator
+  path: .tool-control/validate.py
+  version: 1.0.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: The merge gate for `tools-manifest.yaml`, built to the same contract as
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

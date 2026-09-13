@@ -67,6 +67,15 @@ jobs:
           python3 .tool-control/scan.py --smoke-test
           python3 .tool-control/validate.py --smoke-test
           python3 .tool-control/render.py --smoke-test
+          python3 .tool-control/selftest.py --smoke-test
+
+      # Proves every blocking rule can actually FAIL, and fails if any rule has
+      # no fixture demonstrating it. Four defects on PRs #304/#306 were rules
+      # the docs asserted and the code did not enforce; at the time, 10 of 26
+      # blocking conditions had ever been executed. A gate whose failure path
+      # never runs is a claim, not a control.
+      - name: Adversarial self-test — every rule must be able to fail (ERROR)
+        run: python3 .tool-control/selftest.py
 
       - name: Manifest matches the working tree (ERROR — blocks merge)
         run: python3 .tool-control/scan.py --check
