@@ -580,3 +580,95 @@ def test_builder_refuses_intra_batch_token_id_collision(monkeypatch):
         raise AssertionError("expected ValueError")
     except ValueError:
         pass
+
+
+def test_cli_repeated_expect_field_refused(tmp_path, capsys):
+    """Two --expect flags for the same field are ambiguous (which one was
+    meant?), not an update — the CLI must refuse rather than silently keep
+    only the last one."""
+    ledger = tmp_path / "cli.jsonl"
+    parser = lc.build_parser()
+    args = parser.parse_args([
+        "pin", "--ledger", str(ledger),
+        "--action", "restart_service", "--target", "svc-x",
+        "--predictor", "Claude Code", "--window-minutes", "5",
+        "--expect", "status=UP:0.9", "--expect", "status=DOWN:0.1",
+    ])
+    assert lc.cmd_pin(args) == 2
+    assert "FAIL" in capsys.readouterr().err
+    assert not ledger.exists()  # nothing was ever appended
+
+
+def test_cli_repeated_observe_field_refused(tmp_path, capsys):
+    """Two --observe flags for the same field hide which value was actually
+    seen — refuse rather than silently keeping the last one."""
+    ledger = tmp_path / "cli.jsonl"
+    parser = lc.build_parser()
+    pin_args = parser.parse_args([
+        "pin", "--ledger", str(ledger),
+        "--action", "restart_service", "--target", "svc-x",
+        "--predictor", "Claude Code", "--window-minutes", "5",
+        "--expect", "status=UP:0.9",
+    ])
+    lc.cmd_pin(pin_args)
+    episode_id = capsys.readouterr().out.splitlines()[0].split("episode ", 1)[1]
+
+    resolve_args = parser.parse_args([
+        "resolve", "--ledger", str(ledger), "--episode", episode_id,
+        "--source", "manual check", "--observe", "status=UP", "--observe", "status=DOWN",
+    ])
+    assert lc.cmd_resolve(resolve_args) == 2
+    assert "FAIL" in capsys.readouterr().err
+    rows = engine.read(str(ledger))
+    assert not any(r.get("type") == "RESOLVE" for r in rows)  # nothing was appended
+
+
+def test_read_ledger_refuses_token_missing_state(tmp_path):
+    """engine.verify() only checks the hash chain, not event schema, so a
+    correctly-hashed TOKEN missing 'state' must still be refused here —
+    otherwise it passes silently and only crashes later in
+    engine.project()/pin_outcome(). Uses engine.append() itself so the row
+    is genuinely hash-valid, exercising the schema check specifically
+    rather than accidentally tripping a hash mismatch instead."""
+    ledger = tmp_path / "ledger.jsonl"
+    row_missing_state = {
+        "seq": 1, "type": "TOKEN", "at": "2026-09-13T00:00:00+00:00",
+        "by": "lifecycle-predict", "token_id": "x", "practice": "lifecycle-predict",
+        "title": "t", "date": "2026-09-13", "date_source": "PRACTICE", "owner_add": False,
+    }
+    engine.append(str(ledger), [row_missing_state], "0" * 64)
+    assert engine.verify(engine.read(str(ledger))) is None  # hash-valid on its own terms
+
+    try:
+        lc.load_ledger_state(ledger)
+        raise AssertionError("expected LedgerCorrupt")
+    except lc.LedgerCorrupt:
+        pass
+
+
+def test_read_ledger_refuses_resolve_missing_outcome(tmp_path):
+    """A correctly-hashed RESOLVE missing 'outcome' must be refused at the
+    read gatekeeper, matching the TOKEN/PIN schema checks."""
+    import json
+
+    episode_id = lc.new_episode_id("restart_service", "svc-x")
+    pin_events = lc.build_pin_events(
+        episode_id, "restart_service", "svc-x", "Claude Code",
+        {"http_health": {"value": "200", "p": 0.9}},
+        window_minutes=5, pinned_at="2026-09-13T00:00:00+00:00", start_seq=1,
+    )
+    ledger = tmp_path / "ledger.jsonl"
+    engine.append(str(ledger), pin_events, "0" * 64)
+
+    token_id = pin_events[0]["token_id"]
+    bad_resolve = {
+        "seq": 3, "type": "RESOLVE", "at": "2026-09-13T00:03:00+00:00",
+        "by": "lifecycle-predict", "token_id": token_id, "source": "manual check",
+    }
+    engine.append(str(ledger), [bad_resolve], engine.last_hash(str(ledger)))
+
+    try:
+        lc.load_ledger_state(ledger)
+        raise AssertionError("expected LedgerCorrupt")
+    except lc.LedgerCorrupt:
+        pass

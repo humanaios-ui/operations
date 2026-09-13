@@ -44,9 +44,14 @@ moment it is written, and `resolve` skips any token that already carries a
 RESOLVE event (see build_resolve_events below), so a prediction cannot be
 quietly rewritten after the fact once it is in the ledger. This is
 weaker than ci_predict's model against a malicious operator, and stronger
-than nothing: an operator who wanted to cheat would have to edit the ledger
-file directly, which verify() catches (this is exactly the property
-Stage 1/2 tested against tampering).
+than nothing: an in-place edit to an existing row breaks the hash chain
+from that point forward, which verify() catches (this is exactly the
+property Stage 1/2 tested against tampering). It is not protection against
+an operator who controls the whole file and replaces it outright — that
+attacker can recompute a fresh, internally-consistent chain from scratch,
+since verify() has no anchor external to the file itself (unlike, say, a
+DATE event's Z2 hash in the parent NF_LEDGER schema). Detecting wholesale
+replacement would need an external anchor this tool does not have.
 
 EXPECTED / OBSERVED SHAPE
 ----------------------------
@@ -148,14 +153,42 @@ def token_id_for(episode_id: str, field: str) -> str:
     return f"{episode_id}:{slugify(field)}-{digest}"
 
 
+_REQUIRED_EVENT_FIELDS = {
+    "TOKEN": ("token_id", "state"),
+    "PIN": ("target", "field", "episode_id", "predicted_value", "window_minutes"),
+    "RESOLVE": ("token_id", "outcome"),
+}
+
+
 def _read_ledger_or_corrupt(ledger_path: Path) -> List[dict]:
-    """engine.read(), with a truncated/unreadable file folded into
-    LedgerCorrupt instead of raising JSONDecodeError/OSError past callers
-    that only catch LedgerCorrupt."""
+    """engine.read(), with a truncated/unreadable file, or any row that is
+    not a well-formed lifecycle event for its own type, folded into
+    LedgerCorrupt instead of raising JSONDecodeError/KeyError/AttributeError
+    past callers that only catch LedgerCorrupt.
+
+    engine.verify() alone only checks the hash/sequence chain, not event
+    schema — a semantically malformed but correctly hashed row (a RESOLVE
+    missing "outcome", a TOKEN missing "state") would otherwise pass it
+    silently and only surface later as a crash, whether in this module or
+    in the shared engine's own project()/pin_outcome(). This is the single
+    place every caller reads through, so validating here closes that gap
+    for all of them at once.
+    """
     try:
-        return engine.read(str(ledger_path))
+        rows = engine.read(str(ledger_path))
     except (ValueError, OSError) as exc:
         raise LedgerCorrupt(f"{ledger_path}: unreadable — {exc}") from exc
+    for row in rows:
+        if not isinstance(row, dict):
+            raise LedgerCorrupt(f"{ledger_path}: row is not an object: {row!r}")
+        required = _REQUIRED_EVENT_FIELDS.get(row.get("type"))
+        if required:
+            missing = [field for field in required if field not in row]
+            if missing:
+                raise LedgerCorrupt(
+                    f"{ledger_path}: {row.get('type')} row missing field(s) {missing}"
+                )
+    return rows
 
 
 def load_ledger_state(ledger_path: Path) -> Tuple[set, int]:
@@ -317,6 +350,10 @@ def cmd_pin(args: argparse.Namespace) -> int:
         for spec in args.expect:
             field, rest = spec.split("=", 1)
             value, p = rest.rsplit(":", 1)
+            if field in expected:
+                print(f"FAIL: --expect given twice for field {field!r} — "
+                      f"a repeated field is ambiguous, not an update", file=sys.stderr)
+                return 2
             expected[field] = {"value": value, "p": float(p)}
     except ValueError:
         print(f"FAIL: --expect must be FIELD=VALUE:P, got {spec!r}", file=sys.stderr)
@@ -372,6 +409,10 @@ def cmd_resolve(args: argparse.Namespace) -> int:
     try:
         for spec in args.observe:
             field, value = spec.split("=", 1)
+            if field in observed:
+                print(f"FAIL: --observe given twice for field {field!r} — "
+                      f"a repeated field hides which value was actually seen", file=sys.stderr)
+                return 2
             observed[field] = value
     except ValueError:
         print(f"FAIL: --observe must be FIELD=VALUE, got {spec!r}", file=sys.stderr)
