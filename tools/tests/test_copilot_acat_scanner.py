@@ -399,3 +399,97 @@ def test_strict_li_flag_does_not_override_a_real_fail(tmp_path):
         "--accessible-root", str(tmp_path), "--strict-li",
     ])
     assert scanner.cmd_scan(args) == 1
+
+
+def test_claims_file_bool_true_is_not_coerced_to_one(tmp_path):
+    """Copilot review finding on PR #303: resolve_claimed_pass_rate() used
+    to coerce every --claims value with float(), so {"claimed_pass_rate":
+    true} silently became 1.0 and bypassed _is_valid_rate()'s bool
+    exclusion. The raw value must reach validation unmodified."""
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps({"claimed_pass_rate": True}))
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", "x", "--predictor", "Copilot", "--claims", str(claims_path),
+    ])
+    rate = scanner.resolve_claimed_pass_rate(args)
+    assert rate is True
+    assert not scanner._is_valid_rate(rate)
+
+
+def test_claims_file_bool_false_is_not_coerced_to_zero(tmp_path):
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps({"claimed_pass_rate": False}))
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", "x", "--predictor", "Copilot", "--claims", str(claims_path),
+    ])
+    rate = scanner.resolve_claimed_pass_rate(args)
+    assert rate is False
+    assert not scanner._is_valid_rate(rate)
+
+
+def test_claims_file_numeric_string_still_coerces(tmp_path):
+    """A legitimate numeric JSON value must still work after the bool fix
+    — only bool (and non-numeric types) skip float() coercion."""
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps({"claimed_pass_rate": 1}))  # JSON int, not float
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", "x", "--predictor", "Copilot", "--claims", str(claims_path),
+    ])
+    rate = scanner.resolve_claimed_pass_rate(args)
+    assert rate == 1.0
+    assert isinstance(rate, float)
+    assert scanner._is_valid_rate(rate)
+
+
+def test_cli_scan_rejects_invalid_claimed_pass_rate_before_scanning(tmp_path):
+    """Copilot review finding on PR #303: an invalid claimed_pass_rate
+    used to still exit 0 (li=None was reported but never gated), letting
+    a CI caller treat invalid calibration input as a green result."""
+    real_file = tmp_path / "artifact.json"
+    real_file.write_text("{}")
+    input_path = tmp_path / "claim.txt"
+    input_path.write_text(f"Done. Created the report at {real_file}.")
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", str(input_path), "--predictor", "Copilot",
+        "--accessible-root", str(tmp_path), "--claimed-pass-rate", "-1.0",
+    ])
+    assert scanner.cmd_scan(args) == 2
+
+
+def test_cli_scan_rejects_bool_claimed_pass_rate_from_claims_file(tmp_path):
+    real_file = tmp_path / "artifact.json"
+    real_file.write_text("{}")
+    input_path = tmp_path / "claim.txt"
+    input_path.write_text(f"Done. Created the report at {real_file}.")
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps({"claimed_pass_rate": True}))
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", str(input_path), "--predictor", "Copilot",
+        "--accessible-root", str(tmp_path), "--claims", str(claims_path),
+    ])
+    assert scanner.cmd_scan(args) == 2
+
+
+def test_smoke_test_leaves_no_sibling_artifact_behind(tmp_path, monkeypatch):
+    """Copilot review finding on PR #303: the smoke test's sibling-prefix
+    fixture lived outside the managed TemporaryDirectory and was never
+    cleaned up, leaking a directory into /tmp on every run."""
+    import shutil
+    real_rmtree = shutil.rmtree
+    calls = []
+
+    def spy_rmtree(path, *args, **kwargs):
+        calls.append(Path(path))
+        return real_rmtree(path, *args, **kwargs)
+
+    monkeypatch.setattr(shutil, "rmtree", spy_rmtree)
+    assert scanner.run_smoke_test()
+    assert any(str(p).endswith("-sibling") for p in calls)
+    for p in calls:
+        if str(p).endswith("-sibling"):
+            assert not p.exists()

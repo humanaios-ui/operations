@@ -193,19 +193,31 @@ def compute_li(report: dict, claimed_pass_rate: float = 1.0) -> Tuple[Optional[f
     return phase3_pass_rate / claimed_pass_rate, None
 
 
-def resolve_claimed_pass_rate(args: argparse.Namespace) -> float:
+def resolve_claimed_pass_rate(args: argparse.Namespace):
     """--claimed-pass-rate wins if given explicitly; otherwise a --claims
     file's "claimed_pass_rate" (a stated aggregate confidence) or
     "claimed_all_true" (a bare true/false stand-in for 1.0/0.0); otherwise
     the default of 1.0 — an unhedged self-report implicitly claims
-    everything in it is true."""
+    everything in it is true.
+
+    A "claimed_pass_rate" value is returned exactly as loaded from JSON,
+    NOT coerced with float() — float(True) == 1.0 would silently turn a
+    boolean into a valid-looking rate and defeat _is_valid_rate()'s
+    deliberate bool exclusion before compute_li() ever sees it. Coercing
+    only a bare int/float (never a bool, str, list, etc.) preserves
+    legitimate numeric JSON while still letting an invalid type reach
+    validation as itself, not a value type() 's opinion about it."""
     if args.claimed_pass_rate is not None:
         return args.claimed_pass_rate
     if args.claims:
         claims = json.loads(Path(args.claims).read_text())
         rate = claims.get("claimed_pass_rate")
         if rate is not None:
-            return float(rate)
+            if isinstance(rate, bool):
+                return rate  # deliberately not coerced — see docstring
+            if isinstance(rate, (int, float)):
+                return float(rate)
+            return rate  # not numeric at all; let _is_valid_rate reject it as-is
         return 1.0 if claims.get("claimed_all_true", True) else 0.0
     return 1.0
 
@@ -350,6 +362,12 @@ def cmd_scan(args: argparse.Namespace) -> int:
     known_taxonomy = json.loads(Path(args.taxonomy).read_text()) if args.taxonomy else None
     claimed_pass_rate = resolve_claimed_pass_rate(args)
 
+    if not _is_valid_rate(claimed_pass_rate):
+        print(f"{TOOL_NAME}: FAIL: claimed_pass_rate must be a real number in [0,1], "
+             f"got {claimed_pass_rate!r} — not running a scan against invalid calibration input",
+             file=sys.stderr)
+        return 2
+
     result = scan(claim_text, args.predictor, args.accessible_root or None,
                   ground_truth, source_text, claimed_pass_rate, known_taxonomy)
 
@@ -371,6 +389,7 @@ def run_smoke_test() -> bool:
     """Exercises the full pipeline against real ground truth in a temp
     directory — no mocking of claim_verification_check, since it is
     reused unchanged."""
+    import shutil
     import tempfile
     ok = True
 
@@ -421,13 +440,20 @@ def run_smoke_test() -> bool:
         # A sibling directory sharing the root's own string prefix is not
         # actually in scope, even though the shared core's own lexical
         # check would accept it.
+        # This must be a real sibling of workdir (not nested inside it) to
+        # reproduce the lexical prefix bypass, which puts it outside
+        # workdir's own TemporaryDirectory cleanup — removed explicitly in
+        # a finally block so repeated runs don't leave it behind in /tmp.
         sibling = Path(workdir).parent / (Path(workdir).name + "-sibling")
-        sibling.mkdir(exist_ok=True)
-        leaked = sibling / "leaked.json"
-        leaked.write_text("{}")
-        sibling_claim = f"Done. Created the report at {leaked}."
-        result6 = scan(sibling_claim, "Copilot", accessible_roots=[workdir])
-        ok = ok and result6["verification"]["outcome"] == "fail"
+        try:
+            sibling.mkdir(exist_ok=True)
+            leaked = sibling / "leaked.json"
+            leaked.write_text("{}")
+            sibling_claim = f"Done. Created the report at {leaked}."
+            result6 = scan(sibling_claim, "Copilot", accessible_roots=[workdir])
+            ok = ok and result6["verification"]["outcome"] == "fail"
+        finally:
+            shutil.rmtree(sibling, ignore_errors=True)
 
         # known_taxonomy is passed straight through to the core rather
         # than silently defaulting to its own APT-specific taxonomy.
@@ -498,6 +524,25 @@ def run_smoke_test() -> bool:
         ])
         ok = ok and cmd_scan(args2) == 1
 
+        # A boolean claimed_pass_rate from a --claims file is not silently
+        # coerced to 1.0/0.0, and reaches the CLI's own invalid-rate gate.
+        bool_claims_path = Path(workdir) / "bool_claims.json"
+        bool_claims_path.write_text(json.dumps({"claimed_pass_rate": True}))
+        args3 = parser.parse_args([
+            "scan", "--input", str(input_path), "--predictor", "Copilot",
+            "--accessible-root", workdir, "--claims", str(bool_claims_path),
+        ])
+        ok = ok and resolve_claimed_pass_rate(args3) is True
+        ok = ok and cmd_scan(args3) == 2
+
+        # An invalid claimed_pass_rate is refused before a scan is even
+        # attempted, not silently reported as an undefined-but-green LI.
+        args4 = parser.parse_args([
+            "scan", "--input", str(input_path), "--predictor", "Copilot",
+            "--accessible-root", workdir, "--claimed-pass-rate", "-1.0",
+        ])
+        ok = ok and cmd_scan(args4) == 2
+
     print("✓ Smoke test PASSED" if ok else "✗ Smoke test FAILED")
     return ok
 
@@ -525,12 +570,16 @@ def build_parser() -> argparse.ArgumentParser:
     scan_p.add_argument("--out", default=None)
     scan_p.add_argument("--json", action="store_true")
     scan_p.add_argument("--strict-li", action="store_true",
-                        help="Exit 3 (instead of 0) when LI is undefined (no determinate PASS/FAIL "
-                             "claims — e.g. everything UNVERIFIABLE, or no claims extracted at all). "
-                             "Without this flag, exit codes are: 1 = a claim verified FAIL, "
-                             "0 = otherwise, INCLUDING an undefined LI — a green exit does not by "
-                             "itself mean LI was computed. Use this flag if wiring this scanner into "
-                             "a gate that must not silently pass on an undefined calibration result.")
+                        help="Exit 3 (instead of 0) when LI is undefined because the scan itself had "
+                             "nothing determinate to score (no determinate PASS/FAIL claims — e.g. "
+                             "everything UNVERIFIABLE, or no claims extracted at all). Exit code "
+                             "summary: 2 = invalid CLI input (e.g. claimed_pass_rate outside [0,1]) — "
+                             "no scan is even attempted; 1 = a claim verified FAIL; 3 = (only with "
+                             "--strict-li) the scan ran but LI came out undefined; 0 = otherwise, "
+                             "which without --strict-li INCLUDES an undefined LI from a valid scan — a "
+                             "green exit does not by itself mean LI was computed. Use --strict-li if "
+                             "wiring this scanner into a gate that must not silently pass on an "
+                             "undefined calibration result.")
 
     return parser
 
