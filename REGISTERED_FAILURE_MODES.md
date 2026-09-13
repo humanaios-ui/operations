@@ -1,7 +1,7 @@
 # REGISTERED.md Failure-Mode Map
 ## Registry Failure Modes → Standing Orders → Industrial Failure Modes
 
-**Source:** `REGISTERED.md` @ `1e1b5189f6ae657c3b1a666eb5b52194327e0b63` (3,948 lines, 137 entries post-review correction)
+**Source:** `REGISTERED.md` @ head (3,981 lines, 138 entries post-main-merge)
 **Mapping Date:** 2026-09-13
 **Authority:** Z2 (Night) ratification pending
 **Status:** Z1 candidate for REGISTERED.md
@@ -28,7 +28,7 @@ This document does that, in three columns:
 
 **Headline findings:**
 
-1. The registry scores **81.6% first-pass yield / 184,307 DPMO / ~2.4σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
+1. The registry scores **81.5% first-pass yield / 184,783 DPMO / ~2.4σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
 2. Of 19 failure modes, **before this scan 17 had no detector at all**. The dominant failure mode of the registry is not any single defect — it is the absence of instrumentation.
 3. **Four instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports **130** entries; `tools/repo_health.py` reports **126** immune entries; this scanner reported **131** before review, **135** after first correction, and **137** after Phase 2 parser fix (correction-to discovery + F-24 variant regex + ordering violation counting). No single instrument can be cited as authoritative. Routed to Z2 as a measurement-system finding — its resolution is a Z2 decision about which census should govern RFM-06 scoring and downstream action items.
 4. The value recorded as **Ratification Hash** at `REGISTERED.md:3925` is `e8a501f` — a 7-character git commit SHA, where `CLAUDE.md` Decision Routing step 6 and `NF_LEDGER_SCHEMA_v1.md` both specify `sha256(candidate | by=Night | at=timestamp | decision=ACCEPT)`. A commit SHA proves *when code landed*, not *what was approved*.
@@ -39,16 +39,16 @@ This document does that, in three columns:
 
 Reproduce with `python3 tools/registered_failure_mode_scan_v0_1.py scan`.
 
-**Entry-level conformance** (137 entries × 4 checks = 548 opportunities):
+**Entry-level conformance** (138 entries × 4 checks = 552 opportunities):
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|
-| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 30/137 | 78.1% |
-| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 60/137 | 56.2% |
-| Front-matter fence form | RFM-07 | 8/137 | 94.2% |
-| Quote hygiene | RFM-08 | 3/137 | 97.8% |
+| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 31/138 | 77.5% |
+| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 60/138 | 56.5% |
+| Front-matter fence form | RFM-07 | 8/138 | 94.2% |
+| Quote hygiene | RFM-08 | 3/138 | 97.8% |
 
-**101 defects / 548 opportunities → 81.6% first-pass yield → 184,307 DPMO → ~2.4σ**
+**102 defects / 552 opportunities → 81.5% first-pass yield → 184,783 DPMO → ~2.4σ**
 
 `RFM-06` scores the **full** schema at `REGISTERED.md:16-32`, all ten declared fields. The registry says entries
 *"must open with"* that block, so the whole list is the contract; scoring a convenient subset would let the
@@ -388,6 +388,7 @@ A fifth is noted but held pending the census resolution: the registry validator 
 ## Appended Events
 
 ```
+2026-09-13 18:07 UTC — Z1 post-main-merge baseline: IC-cand-copilot-instructions-drift added to REGISTERED.md, 138 entries, 102 defects / 552 opportunities, 81.5% FPY, 184,783 DPMO, ~2.4 sigma. Updated across all deliverables; verify-doc passes.
 2026-09-13 — Z1 Phase 2 parser correction: correction-to field discovery + F-24 variant regex + ordering violation counting: 137 entries, 101 defects / 548 opportunities, 81.6% FPY, 184,307 DPMO, ~2.4 sigma. Supersedes preceding; stream preserved append-only.
 2026-09-13 — Z1 re-measured after review corrected the scanner's entry discovery: 135 entries, 98 defects / 540 opportunities, 81.9% FPY, 181,481 DPMO, ~2.4 sigma [SUPERSEDED by Phase 2 parser fixes]
 2026-09-13 — Z1 measured REGISTERED.md @ 1e1b518: 44 defects / 524 opportunities, 91.6% FPY, 83,969 DPMO, ~2.9 sigma [SUPERSEDED — scanner under-counted: 4 legacy entries invisible, schema scored on 5 of 10 declared fields]

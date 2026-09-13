@@ -199,7 +199,7 @@ Per `z1-inbox/2026-09-06/registry_block_and_manifest_090626_v2.md` §Landing ord
 
 ```
 2026-09-13 — Z1 removed Q-RFM-01 from queue (Phase 4 authority compliance). Per §Ratification Authority, new rows require Z2 decision. Q-RFM-01 submitted as z1-inbox candidate; Z2 decision to add it to the queue is pending upon ratification of the candidate itself.
-2026-09-13 — Z1 proposed Q-RFM-01 (REGISTERED_FAILURE_MODES.md + registered_failure_mode_scan_v0_1.py); REGISTERED.md measured at 81.6% FPY / 184,307 DPMO (Phase 2 corrected). Candidate submitted to Z2; queue row entry deferred pending Z2 ratification.
+2026-09-13 — Z1 proposed Q-RFM-01 (REGISTERED_FAILURE_MODES.md + registered_failure_mode_scan_v0_1.py); REGISTERED.md measured at 81.5% FPY / 184,783 DPMO (post-main-merge: 138 entries, 102 defects). Candidate submitted to Z2; queue row entry deferred pending Z2 ratification.
 2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | PRIORITY_QUEUE.md v1_1 ratified | Phase 0 READY
 2026-09-09 — Z1 created PRIORITY_QUEUE.md baseline from blueprint Q-GOVERNANCE-02 spec
 ```

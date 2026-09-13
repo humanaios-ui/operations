@@ -11,7 +11,7 @@
 
 ## §A Position · Destination · Probability
 
-**Position:** `REGISTERED.md` pinned at `1e1b518` — 3,948 lines, 137 entries (post-Phase-2-correction; pre-review baseline: 131), append-only, `Status: LIVE`. `grep -rIn "FMEA"` returns zero repo-wide. The registry catalogues failure modes of substrates and sessions; it has never been turned on itself.
+**Position:** `REGISTERED.md` at HEAD — 3,981 lines, 138 entries (post-main-merge; Phase 2 correction: 137, pre-review: 131), append-only, `Status: LIVE`. `grep -rIn "FMEA"` returns zero repo-wide. The registry catalogues failure modes of substrates and sessions; it has never been turned on itself.
 
 **Destination:** A ratified failure-mode vocabulary for the registry (`RFM-01` … `RFM-19`), the standing orders derived from it, their mapping to industrial reliability terms, and an executable scanner that measures the registry against the taxonomy.
 
@@ -36,16 +36,16 @@ The registry asks every session to predict its own failure modes, and has never 
 
 ## §Live result — this candidate was measured by its own mechanism
 
-Entry-level, 137 entries × 4 checks (Phase 2 corrected: correction-to discovery, F-24 variant regex, ordering violation counting):
+Entry-level, 138 entries × 4 checks (post-main-merge; Phase 2 corrected: correction-to discovery, F-24 variant regex, ordering violation counting):
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|
-| Ordering | RFM-09 | 30/137 | 78.1% |
-| Required fields (full declared schema) | RFM-06 | 58/137 | 57.7% |
-| Fence form | RFM-07 | 8/137 | 94.2% |
-| Quote hygiene | RFM-08 | 5/137 | 96.4% |
+| Ordering | RFM-09 | 31/138 | 77.5% |
+| Required fields (full declared schema) | RFM-06 | 60/138 | 56.5% |
+| Fence form | RFM-07 | 8/138 | 94.2% |
+| Quote hygiene | RFM-08 | 3/138 | 97.8% |
 
-**101 defects / 548 opportunities → 81.6% FPY → 184,307 DPMO → ~2.4σ**, same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the *"clean reference bar (0/7)."* At entry level it is not clean.
+**102 defects / 552 opportunities → 81.5% FPY → 184,783 DPMO → ~2.4σ**, same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the *"clean reference bar (0/7)."* At entry level it is not clean.
 
 File-level: 10/45 F-entries absent from the quick index · 25 entries past the `## Changelog` · 1 orphan roll-up row (IC-036) · 3 of 6 ratified classes empty · 2 cross-artifact ratification contradictions.
 
