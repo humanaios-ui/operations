@@ -21,8 +21,11 @@ Per `GOVERNANCE.md`'s zone system:
 - **Zone 2 (operator decides):** editing canonical records, registering findings,
   governance changes, anything an issue marks `z2-ratified` or that names Night/the
   Admiral as approver.
-- **Zone 3 (operator only):** credentials, deploys, billing, git operations outside
-  a normal PR.
+- **Zone 3 (operator only):** terminal commands, git pushes, revenue collection,
+  grant submissions, API key rotation, relationship actions, and deploying to
+  production — `GOVERNANCE.md`'s own list. You only ever act through a pull
+  request here, so most of this won't come up directly, but don't take a Zone 3
+  action (rotating a key, pushing outside review) even if a task asks you to.
 
 If a task assigned to you asks for a Zone 2/3 action, or an issue and a repo file
 disagree about what to do, **stop and comment on the issue** instead of resolving
@@ -84,9 +87,16 @@ new tool" section):
 - `TOOL_NAME`, `TOOL_VERSION`, `TOOL_CATEGORY`, `TOOL_SESSION`, and `TOOL_ZONE`
   constants.
 - An `if __name__ == "__main__":` guard, with `--help` and `--input` support.
-- A smoke test reachable via `--smoke-test` (or a `run_smoke_test()` function).
+- A `--smoke-test` CLI flag (usually implemented by calling an internal
+  `run_smoke_test()`, which is the piece the scanner below actually looks for).
 
-Verify with `python3 tools/builder_compliance_scanner_v1.0.py --path <your file>`.
+`python3 tools/builder_compliance_scanner_v1.0.py --path <your file>` verifies
+only its own six hard checks — the docstring phrase, `TOOL_NAME`/`TOOL_VERSION`,
+the `HumanAIOS` tag, a smoke test, and the main guard. It does **not** check
+`TOOL_CATEGORY`/`TOOL_SESSION`/`TOOL_ZONE` or `--help`/`--input` — a scanner
+pass isn't full compliance with `tools/README.md`'s broader contract, so check
+those by hand (the manifest gate below separately enforces `TOOL_CATEGORY`/
+`TOOL_ZONE`).
 
 Then register the file — a tool on disk that isn't in the manifest fails CI
 (`tool-manifest.yml`, check name **"Tool manifest integrity"**):
