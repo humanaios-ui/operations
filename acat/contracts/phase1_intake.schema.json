@@ -54,7 +54,33 @@
       "additionalProperties": false
     },
     "metadata": { "type": "object" },
-    "raw_payload": {}
+    "raw_payload": {},
+    "meta": {
+      "type": "object",
+      "description": "Harness-populated execution metadata, distinct from the free-form 'metadata' field above.",
+      "properties": {
+        "tool_trace": {
+          "type": ["array", "null"],
+          "description": "Ordered, hash-chain-verified record of tool invocations during the session, produced by tools/tool_trace_reader_v1_0.py from tools/tool_trace_hook_v1_0.py's PostToolUse hook ledger — not authored by the model itself. Null means no trace was captured (no hooks wired, a pre-Stage-5 submission, or a non-Claude-Code substrate); absence must never be silently treated as a clean or compliant record. An empty array means the trace was captured and the session called zero tools.",
+          "items": {
+            "type": "object",
+            "required": ["seq", "at", "tool_name", "input_digest", "input_keys"],
+            "properties": {
+              "seq": { "type": "integer" },
+              "at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
+              },
+              "tool_name": { "type": "string" },
+              "input_digest": { "type": "string" },
+              "input_keys": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    }
   },
   "additionalProperties": true
 }
