@@ -122,14 +122,14 @@ Z1 proposes; Z2 numbers and appends, per G-4 / IC-030.
 
 ## Z2 Review Checklist
 
-- [ ] Is the RFM taxonomy the right vocabulary, and is 19 the right granularity?
-- [ ] Should `--enforce` be turned on, and if so before or after remediating the 107 defects?
-- [ ] Should the scanner be wired into CI, given `findings-registry.yml` already runs a blocking validator?
-- [ ] Which instrument's census is authoritative — 126, 130 or 135?
-- [ ] Is `RFM-06` right to score the **full** ten-field schema (57.0%) rather than the core five (91.1%)? The gap is `substrate` / `tags` / `superseded_by` / `date_origin` — declared but never adopted. Schema erosion, or an over-declared schema that should be trimmed?
-- [ ] Accept / edit / reject IC-CAND-A through IC-CAND-D; assign numbers if accepted
-- [ ] Commission `Q-RFM-02` (cost-class taxonomy)? It is the blocker on every `UNSCORED` FMEA cell
-- [ ] Is naval command vocabulary in Column 2 acceptable, or should the map stay in existing terms?
+- [Accept 19 modes] Is the RFM taxonomy the right vocabulary, and is 19 the right granularity?
+- [turn on now] Should `--enforce` be turned on, and if so before or after remediating the 107 defects?
+- [Yes, after census resolve] Should the scanner be wired into CI, given `findings-registry.yml` already runs a blocking validator?
+- [SPOT-CHECK] Which instrument's census is authoritative — 126, 130 or 135?
+- [ENFORCE FULL + FUTURE SWEEP] Is `RFM-06` right to score the **full** ten-field schema (57.0%) rather than the core five (91.1%)? The gap is `substrate` / `tags` / `superseded_by` / `date_origin` — declared but never adopted. Schema erosion, or an over-declared schema that should be trimmed?
+- [ACCEPT ALL FOUR] Accept / edit / reject IC-CAND-A through IC-CAND-D; assign numbers if accepted
+- [PHASE 1] Commission `Q-RFM-02` (cost-class taxonomy)? It is the blocker on every `UNSCORED` FMEA cell
+- [ACCEPT + GLOSSARY] Is naval command vocabulary in Column 2 acceptable, or should the map stay in existing terms?
 
 ---
 
