@@ -32,11 +32,17 @@ If a task assigned to you asks for a Zone 2/3 action, or an issue and a repo fil
 disagree about what to do, **stop and comment on the issue** instead of resolving
 the conflict yourself. Guessing is the failure mode this rule exists to prevent.
 
-§7's local validation commands are terminal commands too, which can look like a
-contradiction of the Zone 3 line above. It isn't: they read files and report
-results without mutating the working tree, committing, or pushing — running them
-is treated as Zone 1 for the purpose of a local preflight. A command that writes,
-commits, or pushes is a different matter and stays Zone 3.
+§7's validation commands and §5's registration commands (`scan.py`, `render.py`)
+are terminal commands too, and the latter do write tracked files
+(`tools-manifest.yaml`, `TOOLS_MANIFEST.md`) — which can look like a
+contradiction of the Zone 3 line above. It isn't: Zone 3's "terminal commands"
+means arbitrary or administrative command execution outside the repo's own
+tooling, not the file operations, data writes, and code that `GOVERNANCE.md`'s
+own Zone 1 explicitly names. Running this repo's validation and
+registration scripts, and editing tracked files as part of a normal commit, is
+Zone 1 — that's the whole mechanism a PR is. What stays Zone 3 regardless is
+anything on the list above: a git push outside review, rotating a key, and so
+on, whether or not it happens to run through a terminal.
 
 You never merge your own PRs, and never push directly to `main` or force-push,
 delete, or rewrite history on any branch. Every PR here requires human review
@@ -85,15 +91,17 @@ The Builder v1.7 marker checklist below is Python-specific, and CI enforces it
 scanner manually for a Python tool outside `tools/`; for another language,
 match the same intent (a name, a version, a stated purpose, a smoke test) in
 that language's own idiom. `.tool-control/scan.py` registers `.js`, `.sh`, and
-extensionless tools too, but only into the manifest — not this checklist.
+executable extensionless tools too (a non-executable extensionless file is
+skipped), but only into the manifest — not this checklist.
 
-A new Python tool file needs, at minimum (per `tools/README.md`'s own "Adding a
-new tool" section):
+A new Python tool file needs, at minimum: two markers the Builder scanner
+itself checks for (below) plus what `tools/README.md`'s own "Adding a new
+tool" section separately requires of every tool —
 
 - A module docstring containing the literal phrase `Builder v1.7 compliant` and the
-  word `HumanAIOS`.
+  word `HumanAIOS` (the scanner's own markers, not in `tools/README.md`).
 - `TOOL_NAME`, `TOOL_VERSION`, `TOOL_CATEGORY`, `TOOL_SESSION`, and `TOOL_ZONE`
-  constants.
+  constants (`tools/README.md`).
 - An `if __name__ == "__main__":` guard, with `--help` and `--input` support.
 - A `--smoke-test` CLI flag, usually implemented by calling an internal
   `run_smoke_test()`. The flag itself must be present and callable — the
@@ -121,9 +129,12 @@ contract; hand-check it too.
 A tool that touches `tools/**/*.py` also needs
 `python3 tools/behavioral_compliance_gate_v1_0.py --path <your file>` to pass
 (`behavioral-compliance.yml`'s own gate) — an AST-level structural check,
-separate from and in addition to the marker-presence scanner above. It blocks
-a *new* tool file at 100% and holds the whole `tools/` corpus to a ≥70%
-pass-rate floor.
+separate from and in addition to the marker-presence scanner above. Its 100%
+new-file requirement applies only to files your PR *adds*; a *modified*
+existing tool isn't individually gated, only counted into the whole `tools/`
+corpus's ≥70% pass-rate floor (`builder-lint.yml`'s equivalent new-file gate,
+by contrast, covers added *and* modified files — the two workflows don't scope
+identically).
 
 Then register the file — a tool on disk that isn't in the manifest fails CI
 (`tool-manifest.yml`, check name **"Tool manifest integrity"**):
@@ -139,20 +150,29 @@ python3 .tool-control/validate.py   # the merge gate itself, run it yourself fir
 `scan.py` preserves **CURATED** fields (`owner`, `purpose`, `status`, `notes`,
 ...) unconditionally. `category` and `zone` are handled independently of each
 other: each one is curated only when its *own* constant (`TOOL_CATEGORY` or
-`TOOL_ZONE` respectively) is absent from the tool file — declaring one doesn't
-touch the other. Declare whichever constant applies in code rather than
-hand-editing that field in the manifest (a mismatch between the two is a
-merge-blocking error); a field whose constant you didn't declare is still
-yours to curate. What you must never hand-edit is
-**`TOOLS_MANIFEST.md`** itself — change `tools-manifest.yaml` and rerun
-`render.py` instead.
+`TOOL_ZONE` respectively) is absent, or not validly declared (an
+unrecognizable string like a leftover template placeholder, or a `TOOL_ZONE`
+that isn't a literal `1`/`2`/`3`), from the tool file — declaring one validly
+doesn't touch the other, and an invalid one is silently discarded rather than
+producing a mismatch. Declare a real, valid value for whichever constant
+applies in code rather than hand-editing that field in the manifest (a
+mismatch between two *valid* values is a merge-blocking error); a field whose
+constant you didn't declare is still yours to curate. What you must never
+hand-edit is **`TOOLS_MANIFEST.md`** itself — change `tools-manifest.yaml` and
+rerun `render.py` instead.
 
-`TOOL_CATEGORY` must be one of the 16 terms in `.tool-control/README.md`'s
-category vocabulary table (`audit_tool`, `calibration_tool`, `validation_tool`,
-...) — the vocabulary is closed, and both `unclassified` (an omitted category)
-and any string outside it are now **merge-blocking** errors, not advisory ones.
-Extending the vocabulary itself means editing `CATEGORIES` in `scan.py` as its
-own reviewed change, not inventing a new string on a tool PR.
+The **manifest's** `category` field must land on one of the 16 terms in
+`.tool-control/README.md`'s category vocabulary table (`audit_tool`,
+`calibration_tool`, `validation_tool`, ...) — both `unclassified` (an omitted
+or invalid category) and any string outside it are now **merge-blocking**
+errors, not advisory ones. Your `TOOL_CATEGORY` constant doesn't have to
+already be one of those 16 literally: a handful of legacy labels
+(`governance`, `discovery`, `dispatch`, `site`, `template`,
+`meta_validator_tool`) are normalized to a real category by
+`CATEGORY_ALIASES` before validation runs — but don't rely on that mapping for
+a new tool; declare a real vocabulary term directly. Extending the vocabulary
+itself means editing `CATEGORIES` in `scan.py` as its own reviewed change, not
+inventing a new string on a tool PR.
 
 A tool at `zone: 2` or `3` needs its manifest entry's own `ratified_by` field
 naming a Z2 hash or ratification document — `.tool-control/validate.py` blocks
