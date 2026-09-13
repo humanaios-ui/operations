@@ -158,13 +158,19 @@ jobs:
 
           tally = collections.Counter(r[0] for r in rows)
           unproven = sum(tally[k] for k in ("DEAD", "NEVER RAN", "NEVER GREEN", "NEVER FAILED"))
+          # The annotation body must name the workflow itself. GitHub does not
+          # render the `file=` parameter into the raw log, so the first version
+          # of this printed "551 runs, every sampled one with zero jobs" with no
+          # indication of WHICH gate — a warning nobody can act on. Caught by
+          # reading this step's own first CI run rather than trusting its exit code.
           for verdict, name, total, ok, bad, zero in rows:
               if verdict == "DEAD":
-                  print(f"::warning file=.github/workflows/{name}::{total} runs, every "
-                        f"sampled one with zero jobs — this gate has never executed a step")
+                  print(f"::warning file=.github/workflows/{name}::{name}: {total} runs, "
+                        f"every sampled one with zero jobs — this gate has never executed "
+                        f"a step")
               elif verdict == "NEVER GREEN":
-                  print(f"::warning file=.github/workflows/{name}::{total} runs, never "
-                        f"green — it is failing, not enforcing")
+                  print(f"::warning file=.github/workflows/{name}::{name}: {total} runs, "
+                        f"never green — it is failing, not enforcing")
           print(f"\nfiring audit: {tally['FIRES BOTH']}/{len(rows)} workflows have both "
                 f"passed and failed. {unproven} have not demonstrated they can reject "
                 f"anything ({tally['DEAD']} dead, {tally['NEVER RAN']} never ran, "
