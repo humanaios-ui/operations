@@ -5,6 +5,17 @@
 **Authority:** Z2 (Night) — ratifies schema changes  
 **Enforcement:** CI gate validates hash chain, append-only, no overwrites
 
+> **Note (2026-09-13):** `PRIORITY_QUEUE.md`'s `Q-NF-SCHEMA-01` row (provenance
+> 2026-09-09, fresh clone of main) narrowed this to a smaller, immediately
+> Z1-executable scope: unify `molt_cycle.py` and `specimen_intake_evaluator.py` onto
+> the event format `tools/nf_ledger_v0_1.py` already writes, with **no rewrite** of
+> the 165 events already on `ledgers/NF_LEDGER.jsonl`. That narrower scope is
+> documented and implemented in `ledgers/NF_EVENT_SCHEMA.md`. The single-record
+> shape, genesis record, and full migration described below remain this document's
+> forward design and are unaffected — this note only flags that they are not what
+> `Q-NF-SCHEMA-01`'s current acceptance criteria require, per that document's own
+> "Migration Path (Not in scope for Q-NF-SCHEMA-01)" section.
+
 ---
 
 ## Overview
