@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**15 candidates** — ⏳ awaiting Z2 12 · ✅ ratified 3 · **13 records**
+**16 candidates** — ⏳ awaiting Z2 13 · ✅ ratified 3 · **13 records**
 
-## Awaiting Z2 (12)
+## Awaiting Z2 (13)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -21,6 +21,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-14 | **Q-ADVREVIEW-CALIB-01** | Adversarial review as a PR-gated calibration node | `z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md` |
 | 2026-09-15 | **Q-DOCREVIEW-01** | The 39 overdue document reviews — lifecycle, not re-dating | `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md` |
 | 2026-09-15 | **Q-GOVGATE-01** | The Z2 gate never ran; z1-inbox conversion mechanism | `z1-inbox/2026-09-13/Q-GOVGATE-01.md` |
+| 2026-09-15 | **Q-NF-ADAPTER-01** | molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger | `z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-01** | Tool manifest & document-control registry | `z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-02** | Tool category vocabulary & backlog clearance | `z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-03** | Turning the gate on itself — every blocking rule must be able to fail | `z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md` |
@@ -41,7 +42,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (54)
+## Open questions for Z2 (59)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -86,6 +87,16 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] The coverage rule is accepted as merge-blocking from day one.
 - [ ] `ratifiers: [Night]` is the correct and complete list — it is now pinned in `KNOWN_RATIFIERS` in `.z1-control/validate.py`, so changing it is a code review.
 - [ ] **Item 7 (rank first): no path in this repo has a valid code owner.** Verified, not suspected — `@carly-r-anderson` and `@sab-backup` are not GitHub logins, and the repo has one collaborator. The #306 mitigation for this exact problem is itself inert. Every no-self-grant rule in the system — including this PR's — is advisory in practice until a Zone 3 fix lands. Decide: real logins as collaborators, or `@humanaios-ui` in the file.
+
+### Q-NF-ADAPTER-01 (5)
+
+`z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md`
+
+- [ ] **This block is accepted as `Q-NF-SCHEMA-01`'s closure instead of the 2026-09-10 `Q-NF-SCHEMA-01` candidate's fuller rewrite** — the two propose different implementations of the same queue row; ratifying this one should also resolve (accept/reject/defer) the older one rather than leaving both open
+- [ ] `ledgers/NF_EVENT_SCHEMA.md` is accepted as the operative spec for this row's scope (incumbent format, no rewrite of the 165 events on main)
+- [ ] The specimen-intake `reverted → NO/YES` mapping is accepted as adequate for now, pending a real predictor-Brier field if that gap matters later
+- [ ] The `tools/molt_cycle.py` duplicate is routed (delete, rename, or merge) — not decided here
+- [ ] `tools/nf_ledger_cli_v1_0.py` / `prs_run.py` reconciliation remains open, unaffected by this row closing
 
 ### Q-NF-SCHEMA-01 (6)
 
