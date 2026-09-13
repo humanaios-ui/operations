@@ -27,11 +27,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 143
+  tools: 136
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 113
-  unclassified: 93
+  builder_markers_present: 112
+  missing_from_tree: 0
+  unclassified: 86
 categories:
 - analytics_tool
 - audit_tool
@@ -349,54 +350,6 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Validates session record Phase 1/3 structure, D-COMP declarations, and Merkle chain integrity.
-- tool_id: HAIOS-TOOL-025
-  name: __init__
-  path: tools/agents/__init__.py
-  version: unversioned
-  category: unclassified
-  zone: 1
-  status: draft
-  interface: module
-  lang: python
-  smoke_test: false
-  builder_markers: false
-  purpose: Autonomous Agents for empirica-outreach
-- tool_id: HAIOS-TOOL-026
-  name: constitution_checker
-  path: tools/agents/_shared/constitution_checker.py
-  version: 1.0.0
-  category: unclassified
-  zone: 1
-  status: draft
-  interface: module
-  lang: python
-  smoke_test: true
-  builder_markers: false
-  purpose: 'Constitution Checker — P19: Detection beats compliance'
-- tool_id: HAIOS-TOOL-027
-  name: github_client
-  path: tools/agents/_shared/github_client.py
-  version: 1.0.0
-  category: unclassified
-  zone: 1
-  status: draft
-  interface: module
-  lang: python
-  smoke_test: true
-  builder_markers: false
-  purpose: GitHub API client utility for agents.
-- tool_id: HAIOS-TOOL-028
-  name: supabase_client
-  path: tools/agents/_shared/supabase_client.py
-  version: 1.0.0
-  category: unclassified
-  zone: 1
-  status: draft
-  interface: module
-  lang: python
-  smoke_test: true
-  builder_markers: false
-  purpose: Supabase client connection utility for agents.
 - tool_id: HAIOS-TOOL-029
   name: api_monitoring_bot_v1
   path: tools/agents/api_monitoring_bot_v1.py
@@ -1228,18 +1181,6 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: p3_record_generator_v1_0.py
-- tool_id: HAIOS-TOOL-096
-  name: p7_phase1_behavioral_mapping_test
-  path: tools/p7_phase1_behavioral_mapping_test.py
-  version: unversioned
-  category: unclassified
-  zone: 1
-  status: draft
-  interface: module
-  lang: python
-  smoke_test: false
-  builder_markers: false
-  purpose: 'Priority 7 Phase 1: F-21 Risk Band → Divergence Penalty Mapping'
 - tool_id: HAIOS-TOOL-097
   name: parse_wgs_z3
   path: tools/parse_wgs_z3.py
@@ -1645,30 +1586,6 @@ tools:
   builder_markers: true
   purpose: System Audit — v1.1
   session: S-052726-MKS
-- tool_id: HAIOS-TOOL-130
-  name: test_acat_core
-  path: tools/test_acat_core.py
-  version: 1.0.0
-  category: unclassified
-  zone: 1
-  status: draft
-  interface: module
-  lang: python
-  smoke_test: true
-  builder_markers: true
-  purpose: test_acat_core.py
-- tool_id: HAIOS-TOOL-131
-  name: test_tier1_patches
-  path: tools/test_tier1_patches.py
-  version: unversioned
-  category: unclassified
-  zone: 1
-  status: draft
-  interface: module
-  lang: python
-  smoke_test: false
-  builder_markers: false
-  purpose: Test Tier 1 Security Patches — Verify fixes for 3 confirmed vulnerabilities
 - tool_id: HAIOS-TOOL-132
   name: tier1_principles
   path: tools/tier1_principles.py

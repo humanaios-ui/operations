@@ -12,12 +12,15 @@ on:
       - "**/*.md"
       - "document-registry.yaml"
       - ".doc-control/**"
+      # The gate must run on a PR that changes only the gate itself.
+      - ".github/workflows/document-control.yml"
   push:
     branches: [main]
     paths:
       - "**/*.md"
       - "document-registry.yaml"
       - ".doc-control/**"
+      - ".github/workflows/document-control.yml"
   workflow_dispatch:
 
 permissions:

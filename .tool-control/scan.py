@@ -201,8 +201,33 @@ def extract(path: str) -> dict[str, Any]:
     return {k: v for k, v in rec.items() if v not in (None, "", False) or k in ("smoke_test", "builder_markers")}
 
 
+def is_not_a_tool(rel: str) -> str:
+    """Why this path is not a tool, or "" if it is one.
+
+    Deliberately mirrors `_skip_reason` in tools/builder_compliance_scanner_v1.0.py
+    so the repo has ONE definition of "this file is a tool" rather than two that
+    disagree. Without this, the manifest counted test modules, package
+    initializers and private helpers as tools and overstated its own coverage.
+
+    Archived tools are NOT skipped: they are real tools that were retired, and
+    they stay registered at `status: archived`.
+    """
+    parts = rel.split("/")
+    name = parts[-1]
+    stem = os.path.splitext(name)[0]
+    if name == "__init__.py":
+        return "package initializer"
+    if stem.startswith("test_") or stem.endswith("_test"):
+        return "test module"
+    # A leading underscore on any directory below the scan root marks a private
+    # or shared helper (e.g. tools/agents/_shared/), imported rather than run.
+    if any(p.startswith("_") for p in parts[1:-1]):
+        return "private/shared helper module"
+    return ""
+
+
 def discover() -> list[str]:
-    """Every scannable tool file under SCAN_ROOTS, sorted for stable output."""
+    """Every tool file under SCAN_ROOTS, sorted for stable output."""
     found: list[str] = []
     for root_name in SCAN_ROOTS:
         base = os.path.join(ROOT, root_name)
@@ -214,6 +239,9 @@ def discover() -> list[str]:
             dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS]
             for fn in filenames:
                 full = os.path.join(dirpath, fn)
+                rel = os.path.relpath(full, ROOT).replace(os.sep, "/")
+                if is_not_a_tool(rel):
+                    continue
                 ext = os.path.splitext(fn)[1]
                 if ext in SCAN_EXTS:
                     found.append(full)
@@ -319,6 +347,25 @@ def build(prev: dict) -> dict:
             entry["session"] = derived["session"]
         tools.append(entry)
 
+    # A tool that vanished from the tree keeps its entry, flagged. Dropping it
+    # silently would discard its tool_id and audit record, and would let a
+    # deletion pass review unnoticed — the README says retirement is an explicit
+    # act. The preserved entry fails validate.py rule 3 until someone sets
+    # `status: archived` or removes it deliberately. Paths that are no longer
+    # tools BY RULE (a file renamed to test_*.py) are dropped rather than
+    # flagged: they left the registry's scope, they were not retired.
+    seen = {t["path"] for t in tools}
+    for rel, old in sorted(prev_tools.items()):
+        if rel in seen or rel in excluded or not rel:
+            continue
+        if is_not_a_tool(rel):
+            continue
+        entry = dict(old)
+        entry["missing_from_tree"] = True
+        tools.append(entry)
+
+    tools.sort(key=lambda t: _id_num(t.get("tool_id", "")))
+
     manifest = {
         "version": 1,
         "generated_by": f"{TOOL_NAME} v{TOOL_VERSION}",
@@ -335,7 +382,8 @@ def build(prev: dict) -> dict:
         "tools": len(tools),
         "mcp_servers": len(manifest["mcp_servers"]),
         "excluded": len(manifest["excluded"]),
-        "builder_markers_present": sum(1 for t in tools if t["builder_markers"]),
+        "builder_markers_present": sum(1 for t in tools if t.get("builder_markers")),
+        "missing_from_tree": sum(1 for t in tools if t.get("missing_from_tree")),
         "unclassified": sum(1 for t in tools if t["category"] == "unclassified"),
     }
     return manifest

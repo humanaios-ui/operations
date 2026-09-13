@@ -196,7 +196,10 @@ def render(manifest: dict) -> str:
     add("")
     add("**Scan roots:** " + ", ".join(f"`{r}`" for r in manifest.get("scan_roots", [])) +
         " · **excluded dirs:** " + ", ".join(f"`{d}`" for d in manifest.get("excluded_dirs", [])) +
-        " (`tools/skills/` is governed by `SKILL_REGISTRY.md`; `tools/tests/` are tests, not tools).")
+        " (`tools/skills/` is governed by `SKILL_REGISTRY.md`). Also not tools, mirroring "
+        "`_skip_reason` in `tools/builder_compliance_scanner_v1.0.py`: `test_*`/`*_test` modules, "
+        "`__init__.py`, and `_`-prefixed private/shared helper directories. Archived tools stay "
+        "registered at `status: archived`.")
     add("")
     add("**Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, "
         "`TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including "

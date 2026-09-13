@@ -82,10 +82,23 @@ for d in docs:
         canonical_count[did] = canonical_count.get(did, 0) + 1
 
     # --- 6: a document canonical to THIS repo must resolve on disk ----------
+    # The registry is hand-edited YAML, so a path in it is untrusted input to
+    # this gate: without containment an absolute or `../` path (say
+    # `/etc/passwd`) resolves to a real file and satisfies the rule while naming
+    # nothing in this checkout, and a directory would pass as a document too.
     path = d.get("canonical_path")
     if path and d.get("canonical_repo") == THIS_REPO and st not in GONE_OK:
-        if not os.path.exists(os.path.join(ROOT, path)):
-            err(f"{did}: canonical_path '{path}' does not exist in {THIS_REPO} (status={st})")
+        if os.path.isabs(path) or "\\" in path:
+            err(f"{did}: canonical_path '{path}' must be a relative path inside the repo")
+        else:
+            full = os.path.realpath(os.path.join(ROOT, path))
+            root = os.path.realpath(ROOT)
+            if full != root and not full.startswith(root + os.sep):
+                err(f"{did}: canonical_path '{path}' resolves outside the repository")
+            elif os.path.isdir(full):
+                err(f"{did}: canonical_path '{path}' is a directory, not a document")
+            elif not os.path.isfile(full):
+                err(f"{did}: canonical_path '{path}' does not exist in {THIS_REPO} (status={st})")
 
     # --- 7: review_due must be a real date; overdue is advisory ------------
     raw_due = d.get("review_due")
@@ -103,15 +116,23 @@ for did, n in canonical_count.items():
         err(f"{did}: {n} canonical:true entries (must be exactly 1)")
 
 # --- 8: the registry's own counts block must match reality ------------------
-declared_counts = reg.get("counts") or {}
 actual_counts = {
     "documents": len(docs),
     "excluded": len(reg.get("excluded") or []),
     "needs_reconcile": sum(1 for d in docs if d.get("needs_reconcile")),
 }
-for key, actual in actual_counts.items():
-    if key in declared_counts and declared_counts[key] != actual:
-        err(f"counts.{key} says {declared_counts[key]} but the registry holds {actual}")
+declared_counts = reg.get("counts")
+# Require the block: comparing only the keys that happen to be present would
+# let the whole check be bypassed by deleting `counts:` or a single key.
+if not isinstance(declared_counts, dict):
+    err("registry is missing a `counts:` mapping "
+        f"(expected keys: {sorted(actual_counts)})")
+else:
+    for key, actual in actual_counts.items():
+        if key not in declared_counts:
+            err(f"counts.{key} is missing (registry holds {actual})")
+        elif declared_counts[key] != actual:
+            err(f"counts.{key} says {declared_counts[key]} but the registry holds {actual}")
 
 # --- 4b: known content-accuracy issues block approval -----------------------
 def _norm(s: str) -> str:

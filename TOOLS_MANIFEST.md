@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**143 registered tools** · 2 MCP servers · 0 excluded · 113 carrying Builder v1.7 markers
+**136 registered tools** · 2 MCP servers · 0 excluded · 112 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,11 +13,11 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 143 |
-| — status `draft` | 142 |
+| Registered tools | 136 |
+| — status `draft` | 135 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 113 |
-| Uncategorized | 93 |
+| Builder v1.7 markers present | 112 |
+| Uncategorized | 86 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -158,7 +158,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-056 | drift_catalog_validator | `tools/drift_catalog_validator.py` | 1.1.0 | 1 | draft | — | Validates drift codes in close posts; cross-session frequency tracking for D-04 pattern clusters. |
 | HAIOS-TOOL-084 | intake_schema_v0_2 | `tools/intake_schema_v0_2.py` | 1.0.0 | 1 | draft | — | Intake Schema v0.2 |
 
-## Unclassified — needs an owner's categorization — `unclassified` (93)
+## Unclassified — needs an owner's categorization — `unclassified` (86)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -177,10 +177,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-017 | acat_merkle_auditor | `tools/acat_merkle_auditor_v2_0.py` | 2.0.0 | 1 | draft | — | ACAT Merkle Auditor — v2.0 |
 | HAIOS-TOOL-019 | acat_pipeline | `tools/acat_pipeline_v0_1.py` | 1.0.0 | 1 | draft | — | acat_pipeline_v0_1.py |
 | HAIOS-TOOL-022 | acat_room_state_auditor | `tools/acat_room_state_auditor_v1.0.py` | 1.0.0 | 1 | draft | — | ACAT Room State Auditor — v1.0 |
-| HAIOS-TOOL-025 | __init__ | `tools/agents/__init__.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Autonomous Agents for empirica-outreach |
-| HAIOS-TOOL-026 | constitution_checker | `tools/agents/_shared/constitution_checker.py` | 1.0.0 | 1 | draft | no-builder-markers | Constitution Checker — P19: Detection beats compliance |
-| HAIOS-TOOL-027 | github_client | `tools/agents/_shared/github_client.py` | 1.0.0 | 1 | draft | no-builder-markers | GitHub API client utility for agents. |
-| HAIOS-TOOL-028 | supabase_client | `tools/agents/_shared/supabase_client.py` | 1.0.0 | 1 | draft | no-builder-markers | Supabase client connection utility for agents. |
 | HAIOS-TOOL-029 | api_monitoring_bot_v1 | `tools/agents/api_monitoring_bot_v1.py` | 1.0.0 | 1 | draft | no-builder-markers | Agent 1.2: API Monitoring Bot |
 | HAIOS-TOOL-030 | monitor_stability_v1 | `tools/agents/monitor_stability_v1.py` | 1.0.0 | 1 | draft | no-builder-markers | Monitoring Dashboard: Phase 1/2 Stability |
 | HAIOS-TOOL-031 | principle_compliance_bot_v1 | `tools/agents/principle_compliance_bot_v1.py` | 1.0.0 | 1 | draft | no-builder-markers | Agent 1.1: Principle Compliance Bot |
@@ -222,7 +218,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-093 | nf_ledger_cli | `tools/nf_ledger_cli_v1_0.py` | 1.0.0 | 1 | draft | — | nf_ledger_cli_v1_0.py |
 | HAIOS-TOOL-094 | nf_ledger_v0_1 | `tools/nf_ledger_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | nf_ledger_v0_1.py — NF_LEDGER (calibration ledger, Brier) for the Phase 2 mesh pins. |
 | HAIOS-TOOL-095 | p3_record_generator | `tools/p3_record_generator_v1_0.py` | 1.0.0 | 1 | draft | — | p3_record_generator_v1_0.py |
-| HAIOS-TOOL-096 | p7_phase1_behavioral_mapping_test | `tools/p7_phase1_behavioral_mapping_test.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Priority 7 Phase 1: F-21 Risk Band → Divergence Penalty Mapping |
 | HAIOS-TOOL-097 | parse_wgs_z3 | `tools/parse_wgs_z3.py` | 1.0.0 | 1 | draft | — | parse_wgs_z3.py |
 | HAIOS-TOOL-098 | phase1_prompt_integrity_checker | `tools/phase1_prompt_integrity_checker_v1.0.py` | 1.0.0 | 1 | draft | — | Phase 1 Prompt Integrity Checker - v1.0 |
 | HAIOS-TOOL-103 | red_team_runner | `tools/red_team_runner_v1_0.py` | 1.0.0 | 1 | draft | — | Red Team Runner — v1.0 |
@@ -245,8 +240,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-124 | smag_to_empirica_connector | `tools/smag_to_empirica_connector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | smag_to_empirica_connector — wire SMAG rows to empirica CLI for trajectory generation. |
 | HAIOS-TOOL-125 | smc_census_copilot_v0_1 | `tools/smc_census_copilot_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Shared-Memory Census (SMC) v0.1. |
 | HAIOS-TOOL-126 | supabase_corpus_connector | `tools/supabase_corpus_connector_v1_0.py` | 1.0.0 | 1 | draft | — | Supabase Corpus Connector — v1.0 |
-| HAIOS-TOOL-130 | test_acat_core | `tools/test_acat_core.py` | 1.0.0 | 1 | draft | — | test_acat_core.py |
-| HAIOS-TOOL-131 | test_tier1_patches | `tools/test_tier1_patches.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Test Tier 1 Security Patches — Verify fixes for 3 confirmed vulnerabilities |
 | HAIOS-TOOL-132 | tier1_principles | `tools/tier1_principles.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — HumanAIOS Tier 1 Principle Library |
 | HAIOS-TOOL-133 | tier1_principles_stub | `tools/tier1_principles_stub.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — stub for smoke test execution. |
 | HAIOS-TOOL-134 | tier_b_activation_gate | `tools/tier_b_activation_gate.py` | 1.0.0 | 1 | draft | — | tier_b_activation_gate.py |
@@ -267,7 +260,7 @@ External tool surfaces the agent may call. Registered here because an MCP server
 
 ---
 
-**Scan roots:** `tools`, `scripts`, `bin` · **excluded dirs:** `.git`, `__pycache__`, `node_modules`, `skills`, `tests` (`tools/skills/` is governed by `SKILL_REGISTRY.md`; `tools/tests/` are tests, not tools).
+**Scan roots:** `tools`, `scripts`, `bin` · **excluded dirs:** `.git`, `__pycache__`, `node_modules`, `skills`, `tests` (`tools/skills/` is governed by `SKILL_REGISTRY.md`). Also not tools, mirroring `_skip_reason` in `tools/builder_compliance_scanner_v1.0.py`: `test_*`/`*_test` modules, `__init__.py`, and `_`-prefixed private/shared helper directories. Archived tools stay registered at `status: archived`.
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 

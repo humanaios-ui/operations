@@ -24,6 +24,8 @@ on:
       - "TOOLS_MANIFEST.md"
       - ".tool-control/**"
       - ".mcp.json"
+      # The gate must run on a PR that changes only the gate itself.
+      - ".github/workflows/tool-manifest.yml"
   push:
     branches: [main]
     paths:
@@ -34,6 +36,7 @@ on:
       - "TOOLS_MANIFEST.md"
       - ".tool-control/**"
       - ".mcp.json"
+      - ".github/workflows/tool-manifest.yml"
   workflow_dispatch:
 
 permissions:

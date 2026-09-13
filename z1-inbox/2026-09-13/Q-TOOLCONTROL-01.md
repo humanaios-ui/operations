@@ -29,7 +29,7 @@ usually gets disabled instead of obeyed.
 
 ## The finding that motivated the work
 
-`TOOLS_MANIFEST.md` was written 2026-07-14 and describes **6 tools**. The repo contains **143**
+`TOOLS_MANIFEST.md` was written 2026-07-14 and describes **6 tools**. The repo contains **136** tools
 across `tools/`, `scripts/` and `bin/`. That is a **96% coverage gap**, and it went unnoticed for
 two months because nothing compared the document to the disk.
 
@@ -51,7 +51,7 @@ the committed file disagree.
 
 | file | role |
 |---|---|
-| `tools-manifest.yaml` | SSOT. 143 tools + 2 MCP servers. `HAIOS-TOOL-<nnn>` / `HAIOS-MCP-<nnn>`. |
+| `tools-manifest.yaml` | SSOT. 136 tools + 2 MCP servers. `HAIOS-TOOL-<nnn>` / `HAIOS-MCP-<nnn>`. |
 | `.tool-control/scan.py` | Refreshes mechanical fields from the working tree. |
 | `.tool-control/validate.py` | The merge gate — 8 structural rules. |
 | `.tool-control/render.py` | `tools-manifest.yaml` → `TOOLS_MANIFEST.md`. |
@@ -68,7 +68,7 @@ becoming a second, divergent description of the same tools.
 `document-registry.yaml` already states for documents.
 
 **The load-bearing rule is coverage** (rule 4): every tool file on disk is registered or
-explicitly listed under `excluded:`. This is precisely the rule whose absence produced the 6-of-143
+explicitly listed under `excluded:`. This is precisely the rule whose absence produced the 6-of-136
 gap.
 
 ### Doc control — holes closed
@@ -90,14 +90,20 @@ A gate that cannot fail is decoration. Each was driven red and restored:
 | Manifest version edited away from the file's `TOOL_VERSION` | caught by both `validate.py` and `scan.py --check` |
 | `TOOLS_MANIFEST.md` hand-edited | `render.py --check` exit 1 |
 | `document-registry.yaml` counts falsified (46 → 34) | `::error::counts.documents says 34 but the registry holds 46` |
+| `counts:` block deleted outright | `::error::registry is missing a `counts:` mapping` |
+| `canonical_path: /etc/passwd` | `::error::must be a relative path inside the repo` |
+| `canonical_path` pointing at a directory | `::error::is a directory, not a document` |
+| New Zone 2 tool setting `pending_ratification` | `::error::a tool cannot grant itself the Z2 waiver` |
+| Registered tool deleted from the tree | entry preserved with its `tool_id`, flagged, and the gate fails until it is retired explicitly |
 
-All five self-tests pass. Both gates are green on the branch head.
+All four self-tests pass (`scan`, `validate`, `render` in `.tool-control/`, plus `.doc-control/render`).
+Both gates are green on the branch head, under PyYAML 6.0.1 and 6.0.3.
 
 ---
 
 ## Registrable items surfaced (routed, not self-registered)
 
-1. **`TOOLS_MANIFEST.md` described 6 of 143 tools.** A 96% coverage gap in a governance
+1. **`TOOLS_MANIFEST.md` described 6 of 136 tools.** A 96% coverage gap in a governance
    artifact, undetected for two months. **IC candidate** — same class as IC-031 (overstatement),
    but on a registry rather than a receipt.
 
@@ -130,8 +136,33 @@ All five self-tests pass. Both gates are green on the branch head.
    including 5 at `status: approved`. Previously invisible because nothing read the field. This is
    the **STALE** callout condition in `CLAUDE.md`. Advisory in CI; the reviews are the owner's act.
 
-7. **93 of 143 tools are uncategorized and 30 carry no Builder v1.7 markers.** Advisory at
+7. **86 of 136 tools are uncategorized and 24 carry no Builder v1.7 markers.** Advisory at
    adoption, not blocking. See the honest-limitations note below before reading the second number.
+
+---
+
+## §Live result — this candidate was measured by its own mechanism
+
+| Round | Source | Findings | Outcome |
+|---|---|---|---|
+| r1 → r2 | own CI (the new gate) | 1 | The first thing the tool-manifest gate caught was a defect in the scanner behind it: docstring extraction via `ast.parse` made the manifest depend on the interpreter version (PEP 701 f-strings parse on 3.12+, not 3.11), so CI and a developer machine produced different manifests from one commit. Fixed by extracting textually. |
+| r2 → r3 | Copilot | 7 posted + 3 suppressed | All 10 verified correct and fixed. |
+
+**r2 → r3 corrections, two of which contradicted this document's own claims:**
+
+| Finding | Verified reality |
+|---|---|
+| `pending_ratification` is user-controlled | Any new Zone 2/3 tool could set it and take the warning branch. The README claimed new claims block; the code did not enforce that. **The exemption was itself a self-grant.** Now gated on `LEGACY_ZONE_EXCEPTIONS` in CODEOWNER-protected code. |
+| scan drops deleted/renamed entries | A deleted tool silently lost its `tool_id` and audit record, though the README said retirement is an explicit act. Entries are now preserved and flagged, failing the gate until retired deliberately. |
+| discovery counts non-tools | `__init__.py`, `test_*` modules and `_shared/` helpers were registered as tools, overstating coverage. Now mirrors `_skip_reason` in `builder_compliance_scanner_v1.0.py`: **143 → 136**. |
+| path fields are unvalidated | `canonical_path: /etc/passwd` (and a directory) satisfied both existence gates. Both validators now require a repo-contained regular file. |
+| `counts:` check is bypassable | Deleting the block skipped the drift check entirely. The mapping and its three keys are now required. |
+| MCP approval lacks attribution | A server could reach `approved` with no `approved_by`/`approved_date`, and with `scope: unscoped` once the "set before approval" suffix was deleted. Both now rejected. |
+| workflows omit themselves from path filters | A PR changing only a gate would not run that gate. Both now self-test. |
+
+Two of these — the self-grantable waiver and the silent deletion — were places where
+this document asserted a protection the code did not implement. That is the same failure
+class the whole change exists to fix, reproduced inside the fix.
 
 ---
 
@@ -161,16 +192,16 @@ from drifting out of correspondence with the repo.
 - **`builder_markers` is not a compliance verdict.** It is a presence heuristic (header,
   `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test). The authoritative check remains
   `tools/builder_compliance_scanner_v1.0.py` via `builder-lint.yml`, which reports **111 of 112
-  (99.1%)** over a deliberately narrower corpus that excludes tests, archived and private modules
-  and never sees `scripts/`, `bin/`, `.js` or `.sh`. My 30-of-143 and its 1-of-112 are **not in
+  (99.1%)** over a corpus that excludes tests, archived and private modules and never sees
+  `scripts/`, `bin/`, `.js` or `.sh`. My 24-of-136 and its 1-of-112 are **not in
   conflict** — different corpora, different definitions. The field was renamed from `builder_v17`
   specifically so the repo does not end up with two competing numbers both called "Builder v1.7
   compliant". Where they disagree, the scanner is right.
-- **The 93 uncategorized tools are a backlog this change surfaces, not one it fixes.** Categories
+- **The 86 uncategorized tools are a backlog this change surfaces, not one it fixes.** Categories
   are a judgment call; auto-assigning them would have manufactured metadata. They are registered
   honestly as `unclassified` and left as visible work.
 - **Every tool entered at `status: draft`.** Nothing was marked approved, reviewed, or owned.
-  Assigning owners and approving are the owner's acts, and 143 of them is a real queue.
+  Assigning owners and approving are the owner's acts, and 136 of them is a real queue.
 - **Purposes are inherited, not verified.** 43 came from the `tools/README.md` tables and the rest
   from module docstrings. Neither source was checked against what the code does.
 - **Coverage is path-based.** The gate proves every file is registered; it does not prove an entry
@@ -186,7 +217,7 @@ from drifting out of correspondence with the repo.
 
 | File | Status |
 |---|---|
-| `tools-manifest.yaml` | new — SSOT, 143 tools + 2 MCP servers |
+| `tools-manifest.yaml` | new — SSOT, 136 tools + 2 MCP servers |
 | `TOOLS_MANIFEST.md` | **replaced** — now generated; the 2026-07-14 SORT-phase narrative is superseded (retained in git history) |
 | `.tool-control/{scan,validate,render}.py`, `README.md` | new |
 | `.github/workflows/tool-manifest.yml` | new |
@@ -214,7 +245,7 @@ No tool behaviour changed. No document content changed. No status was moved to `
 - [ ] Item 6: 39 overdue document reviews — set new `review_due` dates or accept the backlog
 - [ ] The coverage rule is accepted as merge-blocking from day one (the 30-day falsifier tests
       exactly whether that friction holds)
-- [ ] The `--strict` promotion path is accepted as the mechanism for the 93 uncategorized tools,
+- [ ] The `--strict` promotion path is accepted as the mechanism for the 86 uncategorized tools,
       with no date committed yet
 - [ ] Replacing the 2026-07-14 `TOOLS_MANIFEST.md` narrative with a generated index is accepted
 - [ ] `builder_markers` is accepted as explicitly subordinate to `builder_compliance_scanner_v1.0.py`
@@ -223,12 +254,12 @@ No tool behaviour changed. No document content changed. No status was moved to `
 
 ## Summary
 
-One registry described 6 of 143 tools. The other instructed readers not to hand-edit it while
+One registry described 6 of 136 tools. The other instructed readers not to hand-edit it while
 being hand-edited, and was 12 documents behind. Neither had a mechanism that could notice.
 
 Both now generate from a registry and fail the PR that breaks the correspondence. The gates were
 driven red four ways and restored. What the change does **not** do is clean the corpus it exposes:
-93 uncategorized tools, 143 unowned entries, 39 overdue reviews and two unscoped MCP servers are
+86 uncategorized tools, 136 unowned entries, 39 overdue reviews and two unscoped MCP servers are
 registered honestly and left visible, because categorizing, owning and approving are not Z1's to
 do.
 

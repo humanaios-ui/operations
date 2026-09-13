@@ -58,7 +58,20 @@ TOOL_ID_RE = re.compile(r"^HAIOS-TOOL-\d{3,}$")
 MCP_ID_RE = re.compile(r"^HAIOS-MCP-\d{3,}$")
 STATUSES = {"draft", "review", "approved", "deprecated", "archived"}
 REQUIRED = ("tool_id", "name", "path", "version", "category", "zone", "status")
+
+# A value that only looks filled in. Both the explanatory phrase AND the bare
+# placeholder tokens must be rejected, or an approval can be obtained by
+# deleting the suffix and leaving "unscoped" / "UNCLASSIFIED" behind.
 PLACEHOLDER = re.compile(r"set before approval", re.I)
+PLACEHOLDER_VALUES = {"", "-", "none", "n/a", "tbd", "unset", "unknown",
+                      "unscoped", "unclassified"}
+
+# Zone 2/3 tools that predate this control system and are grandfathered as open
+# Z2 items. This lives in CODEOWNER-protected CODE, not in the manifest: if the
+# exemption were a manifest field alone, any new Zone 2/3 tool could grant
+# itself the warning path, which is the exact self-grant this gate exists to
+# prevent. Adding a path here is a reviewed change to the gate itself.
+LEGACY_ZONE_EXCEPTIONS = frozenset({"tools/message_calibration_v1_0.py"})
 
 errors: list[str] = []
 warnings: list[str] = []
@@ -70,6 +83,32 @@ def err(msg: str) -> None:
 
 def warn(msg: str) -> None:
     warnings.append(msg)
+
+
+def repo_file(path: str) -> tuple[str, str]:
+    """Resolve a registry path inside the repo. Returns (abspath, problem).
+
+    A registry is hand-edited YAML, so a path in it is untrusted input to this
+    gate. Without containment an entry like `/etc/passwd` or `../../something`
+    resolves to a real file and satisfies the existence rule while naming
+    nothing in this checkout; a directory would pass too. Both would let the
+    structural gate bless an entry that is not a tool here.
+    """
+    if not path or os.path.isabs(path) or "\\" in path:
+        return "", "must be a relative path inside the repository"
+    full = os.path.realpath(os.path.join(ROOT, path))
+    root = os.path.realpath(ROOT)
+    if full != root and not full.startswith(root + os.sep):
+        return full, "resolves outside the repository"
+    if os.path.isdir(full):
+        return full, "is a directory, not a file"
+    return full, ""
+
+
+def _placeholder(value) -> bool:
+    """True if a field is blank, a placeholder token, or still says 'set before…'."""
+    text = str(value or "").strip()
+    return (not text) or text.lower() in PLACEHOLDER_VALUES or bool(PLACEHOLDER.search(text))
 
 
 def _parse_date(value) -> date | None:
@@ -105,14 +144,20 @@ def validate(manifest: dict) -> None:
             err(f"{tid}: duplicate path '{path}'")
         seen_paths.add(path)
 
-        full = os.path.join(ROOT, path)
-        exists = os.path.exists(full)
+        full, problem = repo_file(path)
         status = t.get("status")
+        if problem:
+            err(f"{tid}: path '{path}' {problem}")
+            exists = False
+        else:
+            exists = os.path.isfile(full)
 
         # 3. dead entries. An archived tool may legitimately have been deleted;
         #    anything else must still be on disk.
-        if not exists and status != "archived":
-            err(f"{tid}: registered path '{path}' does not exist (status={status})")
+        if not exists and not problem and status != "archived":
+            hint = " (flagged missing_from_tree — retire it explicitly by setting " \
+                   "status: archived, or remove the entry)" if t.get("missing_from_tree") else ""
+            err(f"{tid}: registered path '{path}' does not exist (status={status}){hint}")
 
         # 5. status enum + approval gate
         if status and status not in STATUSES:
@@ -133,8 +178,13 @@ def validate(manifest: dict) -> None:
         #    but it can never reach `approved` on that basis.
         zone = t.get("zone")
         if isinstance(zone, int) and zone > 1 and not t.get("ratified_by"):
-            if t.get("pending_ratification") and status != "approved":
+            grandfathered = path in LEGACY_ZONE_EXCEPTIONS
+            if t.get("pending_ratification") and grandfathered and status != "approved":
                 warn(f"{tid}: zone={zone} self-declared, awaiting Z2 ratification ({path})")
+            elif t.get("pending_ratification") and not grandfathered:
+                err(f"{tid}: zone={zone} sets 'pending_ratification' but '{path}' is not a "
+                    f"grandfathered exception — a tool cannot grant itself the Z2 waiver; "
+                    f"record a 'ratified_by' or declare zone 1")
             else:
                 err(f"{tid}: zone={zone} requires 'ratified_by' (Z2 hash / ratification doc) "
                     f"— Zone 2/3 authority is not self-declared")
@@ -190,22 +240,34 @@ def validate_mcp(manifest: dict) -> None:
         if s.get("status") not in STATUSES:
             err(f"{sid}: invalid status '{s.get('status')}'")
         if s.get("status") == "approved":
+            # Same approval contract as tools and documents — an approval must
+            # be attributable, or it is indistinguishable from a self-grant.
+            if not (s.get("approved_by") and s.get("approved_date")):
+                err(f"{sid}: status=approved requires approved_by + approved_date")
             for field in ("scope", "data_classification"):
-                value = str(s.get(field) or "")
-                if not value or PLACEHOLDER.search(value):
+                if _placeholder(s.get(field)):
                     err(f"{sid}: status=approved requires a real '{field}' "
-                        f"(still the placeholder)")
+                        f"(got {s.get(field)!r})")
 
-    if os.path.exists(MCP_CONFIG):
-        try:
-            configured = set((json.load(open(MCP_CONFIG, encoding="utf-8")).get("mcpServers") or {}))
-        except json.JSONDecodeError as exc:
-            err(f".mcp.json does not parse: {exc}")
-            return
-        registered = {s.get("server") for s in servers}
-        for name in sorted(configured - registered):
-            err(f"MCP server '{name}' is in .mcp.json but not in tools-manifest.yaml "
-                f"— run .tool-control/scan.py")
+
+def validate_mcp_config(manifest: dict) -> None:
+    """Every server in .mcp.json is registered.
+
+    Separate from validate_mcp() for the same reason validate_coverage() is
+    separate: it reads the real working tree, and the per-entry rules must stay
+    testable against synthetic manifests.
+    """
+    if not os.path.exists(MCP_CONFIG):
+        return
+    try:
+        configured = set((json.load(open(MCP_CONFIG, encoding="utf-8")).get("mcpServers") or {}))
+    except json.JSONDecodeError as exc:
+        err(f".mcp.json does not parse: {exc}")
+        return
+    registered = {s.get("server") for s in (manifest.get("mcp_servers") or [])}
+    for name in sorted(configured - registered):
+        err(f"MCP server '{name}' is in .mcp.json but not in tools-manifest.yaml "
+            f"— run .tool-control/scan.py")
 
 
 def run_smoke_test() -> int:
@@ -222,25 +284,52 @@ def run_smoke_test() -> int:
     assert "requires approved_by" in joined, joined
     assert "requires 'ratified_by'" in joined, joined
 
-    # pending_ratification downgrades to a warning, but never for `approved`.
-    base = {"tool_id": "HAIOS-TOOL-001", "name": "x", "path": ".tool-control/scan.py",
-            "version": scan.TOOL_VERSION, "category": "audit_tool", "zone": 2}
+    # pending_ratification is a grandfather clause, not a self-service waiver.
+    legacy = sorted(LEGACY_ZONE_EXCEPTIONS)[0]
+    # Read the real declared version so rule 6 (manifest vs file) is satisfied
+    # and the assertions below isolate the rule each one is actually testing.
+    legacy_version = scan.extract(os.path.join(ROOT, legacy)).get("declared_version")
+    base = {"tool_id": "HAIOS-TOOL-001", "name": "x", "path": legacy,
+            "version": legacy_version, "category": "audit_tool", "zone": 2}
     errors, warnings = [], []
     validate({"tools": [dict(base, status="draft", pending_ratification=True)]})
     assert not errors, errors
     assert any("awaiting Z2 ratification" in w for w in warnings), warnings
+    # …and it never survives to `approved`, even on the grandfathered path.
     errors, warnings = [], []
     validate({"tools": [dict(base, status="approved", pending_ratification=True,
                              approved_by="x", approved_date="2026-01-01")]})
     assert any("requires 'ratified_by'" in e for e in errors), errors
-
+    # A NEW Zone 2 tool cannot set the flag to buy itself the warning path.
     errors, warnings = [], []
-    validate_mcp({"mcp_servers": [{
-        "server_id": "HAIOS-MCP-001", "server": "s", "transport": "http",
-        "endpoint": "https://example.invalid", "status": "approved",
-        "scope": "unscoped — set before approval", "data_classification": "x",
-    }]})
-    assert any("still the placeholder" in e for e in errors), errors
+    validate({"tools": [dict(base, path="tools/brand_new_zone2.py", status="draft",
+                             pending_ratification=True)]})
+    assert any("cannot grant itself" in e for e in errors), errors
+
+    # A path outside the repo, or a directory, is never a valid tool entry.
+    for bad, expect in (("/etc/passwd", "relative path"),
+                        ("../outside.py", "outside the repository"),
+                        ("tools", "is a directory")):
+        errors, warnings = [], []
+        validate({"tools": [dict(base, path=bad, zone=1, status="draft")]})
+        assert any(expect in e for e in errors), (bad, errors)
+
+    # An approved MCP server needs attribution AND real scope/classification —
+    # stripping the "set before approval" suffix must not buy an approval.
+    mcp = {"server_id": "HAIOS-MCP-001", "server": "s", "transport": "http",
+           "endpoint": "https://example.invalid", "status": "approved"}
+    errors, warnings = [], []
+    validate_mcp({"mcp_servers": [dict(mcp, scope="unscoped — set before approval",
+                                       data_classification="UNCLASSIFIED")]})
+    joined = " | ".join(errors)
+    assert "requires a real 'scope'" in joined, joined
+    assert "requires a real 'data_classification'" in joined, joined
+    assert "requires approved_by" in joined, joined
+    errors, warnings = [], []
+    validate_mcp({"mcp_servers": [dict(mcp, scope="read-only corpus tables",
+                                       data_classification="internal",
+                                       approved_by="carly", approved_date="2026-09-13")]})
+    assert not errors, errors
 
     errors, warnings = [], []
     print("smoke-test OK — id, existence, approval, zone and MCP rules all fire.")
@@ -264,6 +353,7 @@ def main() -> int:
     validate(manifest)
     validate_coverage(manifest)
     validate_mcp(manifest)
+    validate_mcp_config(manifest)
 
     if args.strict:
         errors.extend(warnings)

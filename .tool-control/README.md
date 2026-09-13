@@ -16,7 +16,7 @@ rendered index that cannot drift from it.
 ## Why this exists
 
 `TOOLS_MANIFEST.md` was written by hand on 2026-07-14 describing 6 tools. By
-adoption the repo held **143**. Nothing checked, so nothing caught it. The same
+adoption the repo held **136**. Nothing checked, so nothing caught it. The same
 failure had started in doc-control: `CONTROLLED_DOCUMENTS.md` carried the header
 "Do not hand-edit — edit the registry" while being maintained entirely by hand,
 and had frozen at its seeded 34 entries against a registry of 46.
@@ -39,7 +39,7 @@ that a file carries the Builder v1.7 header, `TOOL_NAME`, `TOOL_VERSION`, a main
 guard and a smoke test, across every registered file including `.js`/`.sh` and
 `scripts/`/`bin/`. The authoritative compliance check remains
 `tools/builder_compliance_scanner_v1.0.py`, gated by `builder-lint.yml` over its
-own (narrower) corpus. The two numbers differ legitimately — 30 of 143 here vs
+own (narrower) corpus. The two numbers differ legitimately — 24 of 136 here vs
 1 of 112 there — because the corpora differ. Do not treat this field as a second
 standard; where they disagree, the scanner wins.
 
@@ -79,9 +79,15 @@ One pre-existing tool (`HAIOS-TOOL-088`, `tools/message_calibration_v1_0.py`)
 self-declares `TOOL_ZONE = 2` with no ratification anywhere in the repo. Rather
 than silently downgrade a declaration Z1 has no authority to change, or invent a
 ratification, it carries `pending_ratification: true`: it stays visible as an
-open Z2 item in `TOOLS_MANIFEST.md` and in every CI run, while the gate blocks
-any *new* unratified Zone 2/3 claim. `pending_ratification` can never carry a
-tool to `approved`.
+open Z2 item in `TOOLS_MANIFEST.md` and in every CI run.
+
+`pending_ratification` is a **grandfather clause, not a self-service waiver**.
+The manifest field alone does nothing: the path must also appear in
+`LEGACY_ZONE_EXCEPTIONS` in `validate.py`, which is code covered by CODEOWNERS.
+A new Zone 2/3 tool that sets the flag is rejected with "a tool cannot grant
+itself the Z2 waiver" — otherwise the exemption would be exactly the self-grant
+this gate exists to prevent. And it never carries a tool to `approved`, even on
+a grandfathered path.
 
 ## MCP servers
 
@@ -126,11 +132,30 @@ executables.
 Not scanned, deliberately:
 
 - `tools/skills/` — skills, governed by `SKILL_REGISTRY.md`.
-- `tools/tests/` — tests, not tools.
+- `tools/tests/`, and any `test_*` / `*_test` module — tests, not tools.
+- `__init__.py` — package initializers.
+- Any directory starting with `_` (e.g. `tools/agents/_shared/`) — private or
+  shared helpers, imported rather than run.
 - `__pycache__/`, `node_modules/`, `.git/`.
+
+These classes mirror `_skip_reason` in
+`tools/builder_compliance_scanner_v1.0.py`, so the repo keeps **one** definition
+of "this file is a tool" instead of two that disagree. Archived tools are *not*
+skipped — they are real tools that were retired, and stay registered at
+`status: archived`.
 
 To drop a file from control without deleting it, add it to `excluded:` in the
 manifest with a reason — the same escape hatch `document-registry.yaml` uses.
+
+## Retiring a tool
+
+Deleting a tool does not delete its entry. The next scan keeps the entry,
+preserves its `tool_id`, and flags it `missing_from_tree: true`; `validate.py`
+then fails until someone either sets `status: archived` or removes the entry
+deliberately. Retirement is a decision with an audit trail, not a side effect of
+`rm`. (A file that stops being a tool *by rule* — renamed to `test_*.py`, say —
+is dropped rather than flagged: it left the registry's scope, it was not
+retired.)
 
 ## Phasing
 
@@ -140,8 +165,8 @@ worked down:
 
 | finding | count at adoption |
 |---|---|
-| category `unclassified` | 93 of 143 |
-| missing Builder v1.7 markers | 30 of 143 |
+| category `unclassified` | 86 of 136 |
+| missing Builder v1.7 markers | 24 of 136 |
 | non-draft tool without owner / purpose | — |
 | `review_due` in the past | — |
 
