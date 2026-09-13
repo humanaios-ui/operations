@@ -4,6 +4,13 @@
 
 <!-- One or two sentences: what this changes and the reason. -->
 
+<!-- SMAG calibration pin (recursive-learning loop, audits/SMAG_RECURSIVE_LOOP.md):
+     your own probability that this PR merges clean (no failing checks) — a
+     standalone line, exactly this shape, anywhere in this body:
+       smag_p: 0.NN
+     Omitted or reworded lines are captured as VOID, not scored — they cost you
+     nothing, but they also teach the loop nothing about your calibration. -->
+
 ## Zone
 
 <!-- See GOVERNANCE.md. Delete the lines that don't apply. -->
