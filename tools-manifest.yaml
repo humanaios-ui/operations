@@ -27,12 +27,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 136
+  tools: 137
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 112
+  builder_markers_present: 113
   missing_from_tree: 0
-  unclassified: 86
+  unclassified: 87
 categories:
 - analytics_tool
 - audit_tool
@@ -1734,6 +1734,18 @@ tools:
   builder_markers: true
   purpose: Detects Zone 1/2/3 boundary violations in workflow artifacts and operator logs.
   session: S-060126-01
+- tool_id: HAIOS-TOOL-144
+  name: copilot_acat_scanner
+  path: tools/copilot_acat_scanner_v1_0.py
+  version: 1.0.0
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: copilot_acat_scanner_v1_0.py
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

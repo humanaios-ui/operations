@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**136 registered tools** · 2 MCP servers · 0 excluded · 112 carrying Builder v1.7 markers
+**137 registered tools** · 2 MCP servers · 0 excluded · 113 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,11 +13,11 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 136 |
-| — status `draft` | 135 |
+| Registered tools | 137 |
+| — status `draft` | 136 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 112 |
-| Uncategorized | 86 |
+| Builder v1.7 markers present | 113 |
+| Uncategorized | 87 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -158,7 +158,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-056 | drift_catalog_validator | `tools/drift_catalog_validator.py` | 1.1.0 | 1 | draft | — | Validates drift codes in close posts; cross-session frequency tracking for D-04 pattern clusters. |
 | HAIOS-TOOL-084 | intake_schema_v0_2 | `tools/intake_schema_v0_2.py` | 1.0.0 | 1 | draft | — | Intake Schema v0.2 |
 
-## Unclassified — needs an owner's categorization — `unclassified` (86)
+## Unclassified — needs an owner's categorization — `unclassified` (87)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -248,6 +248,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-139 | triage_log_service | `tools/triage_log_service.py` | 1.0.0 | 1 | draft | — | Triage Log Service |
 | HAIOS-TOOL-140 | validate_skills | `tools/validate_skills.py` | 1.0.0 | 1 | draft | — | validate_skills.py |
 | HAIOS-TOOL-141 | wgs_draft_compressor_v1_0 | `tools/wgs_draft_compressor_v1_0.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | — |
+| HAIOS-TOOL-144 | copilot_acat_scanner | `tools/copilot_acat_scanner_v1_0.py` | 1.0.0 | 1 | draft | — | copilot_acat_scanner_v1_0.py |
 
 ## MCP servers (2)
 
