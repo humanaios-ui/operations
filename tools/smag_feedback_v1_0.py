@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop.
+Builder v1.7 compliant
+HumanAIOS
 
 audits/SMAG_RECURSIVE_LOOP.md names FEED BACK as the one stage left manual:
 "gap cues -> lessons_learned_ledger.json + promote hard patterns to
