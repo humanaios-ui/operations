@@ -1847,7 +1847,7 @@ tools:
 - tool_id: HAIOS-TOOL-153
   name: z1_ratify
   path: .z1-control/ratify.py
-  version: 1.0.0
+  version: 1.1.0
   category: governance_tool
   zone: 2
   status: draft

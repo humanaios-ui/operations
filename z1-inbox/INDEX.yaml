@@ -26,7 +26,7 @@ generated: "2026-09-13"
 decision_window_days: 2
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
-counts: {candidates: 16, records: 13}
+counts: {candidates: 16, records: 14}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
@@ -180,4 +180,6 @@ records:
 
 # Files in z1-inbox/ that are neither candidates nor records. Kept explicit so
 # the coverage rule cannot be satisfied by silence.
+  - path: "z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md"
+    title: "Z2 ruling — RESOURCE_UNITS.yaml header ratified; hash remains unsigned by Z2"
 excluded: []

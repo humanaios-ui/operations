@@ -24,11 +24,28 @@ the candidate's actual bytes at the moment you decided.
 The hash pins CONTENT. Edit a ratified candidate afterwards and re-running
 `--verify` will show the mismatch, which is the property a slug never had.
 
+TWO THINGS GET RATIFIED, AND THEY HASH DIFFERENTLY
+--------------------------------------------------
+A **candidate block** is prose, so its signature is over the file's raw bytes.
+
+A **ratified artifact** — `RESOURCE_UNITS.yaml` is the first — is a registry that
+goes on being edited around its content: comments reflowed, a stale header
+corrected. Hashing its bytes would make every such edit read as tampering, so
+`--artifact` signs the parsed document with the ratification fields removed and
+serialised canonically. Change a unit, a policy or a prior and the signature
+breaks; fix a comment and it does not.
+
+That exclusion is not a loophole, it is forced: a hash covering
+`ratification_hash` could never verify, because writing the digest into the file
+would change the content the digest was taken over.
+
 Usage:
   python3 .z1-control/ratify.py --list
   python3 .z1-control/ratify.py Q-GOVGATE-01 --decision ACCEPT --by Night
   python3 .z1-control/ratify.py Q-GOVGATE-01 --decision ACCEPT --by Night --apply
   python3 .z1-control/ratify.py --verify
+  python3 .z1-control/ratify.py --artifact RESOURCE_UNITS.yaml --decision ACCEPT --by Night
+  python3 .z1-control/ratify.py --verify-artifact RESOURCE_UNITS.yaml
 
 Without --apply it prints what it would do and writes nothing.
 
@@ -39,6 +56,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import hashlib
+import json
 import os
 import re
 import sys
@@ -55,7 +73,7 @@ from validate import (  # noqa: E402
 )
 
 TOOL_NAME = "z1_ratify"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 TOOL_CATEGORY = "governance_tool"
 TOOL_ZONE = 2  # records a Z2 act; run by the ratifier
 
@@ -66,6 +84,34 @@ def signature(candidate_bytes: bytes, by: str, at: str, decision: str) -> str:
     """sha256(candidate | by=… | at=… | decision=…), per CLAUDE.md."""
     payload = candidate_bytes + f"|by={by}|at={at}|decision={decision}".encode()
     return hashlib.sha256(payload).hexdigest()
+
+
+# Fields an artifact gains BY being ratified. They are excluded from the payload
+# because a hash that covered them could never verify: writing the digest into
+# the file would change the bytes the digest was taken over.
+RATIFICATION_FIELDS = ("status", "ratification_hash", "ratified_by", "ratified_at",
+                       "ratification_decision")
+
+
+def artifact_payload(doc: dict) -> bytes:
+    """The canonical bytes of what is being ratified, as opposed to the file.
+
+    A candidate block is prose, so its signature is over raw bytes. A ratified
+    artifact is a YAML registry that keeps being edited around its content —
+    comments reflowed, a header corrected — and hashing raw bytes would make
+    every such edit read as tampering. So the payload is the parsed document
+    with the ratification fields removed, serialised canonically.
+
+    The property this keeps is the one that matters: change a unit, a policy or
+    a prior, and the signature breaks. Fix a typo in a comment, and it does not.
+    """
+    body = {k: v for k, v in doc.items() if k not in RATIFICATION_FIELDS}
+    return json.dumps(body, sort_keys=True, separators=(",", ":"), default=str).encode()
+
+
+def artifact_signature(doc: dict, by: str, at: str, decision: str) -> str:
+    """The same construction as a candidate block's, over an artifact's content."""
+    return signature(artifact_payload(doc), by, at, decision)
 
 
 def find(index: dict, q_id: str) -> dict | None:
@@ -122,6 +168,88 @@ def cmd_verify(index: dict) -> int:
         return 1
     print("\nAll pinned signatures verify.")
     return 0
+
+
+def cmd_artifact(path: str, decision: str, by: str, apply: bool) -> int:
+    """Sign a ratified ARTIFACT (a registry), as distinct from a candidate block.
+
+    Same rule as candidate ratification and for the same reason: Z1 must not be
+    able to produce this. The digest is mechanical, but running the command is
+    the Z2 act and the commit carries the provenance.
+    """
+    if by not in KNOWN_RATIFIERS:
+        print(f"::error::'{by}' is not a ratifier. Allowed: {sorted(KNOWN_RATIFIERS)}")
+        return 1
+    full = os.path.join(ROOT, path)
+    if not os.path.isfile(full):
+        print(f"::error::{path} does not exist")
+        return 1
+    try:
+        doc = yaml.safe_load(open(full, encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        print(f"::error::{path} does not parse: {str(exc).splitlines()[-1].strip()}")
+        return 1
+    if not isinstance(doc, dict):
+        print(f"::error::{path} is not a mapping")
+        return 1
+
+    at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    digest = artifact_signature(doc, by, at, decision)
+    print(f"{path}")
+    print(f"  decision   {decision}")
+    print(f"  by         {by}")
+    print(f"  at         {at}")
+    print(f"  hash       {digest}")
+    recorded = doc.get("ratification_hash")
+    if recorded and recorded != digest:
+        print(f"  recorded   {recorded}  <-- does NOT match this content")
+    if not apply:
+        print("\nDry run. Re-run with --apply to write these four fields into the file.")
+        return 0
+
+    text = open(full, encoding="utf-8").read()
+    fields = {"status": DECISIONS[decision].upper() if decision == "ACCEPT" else decision,
+              "ratification_hash": f'"{digest}"', "ratified_by": f'"{by}"',
+              "ratified_at": f'"{at}"', "ratification_decision": f'"{decision}"'}
+    if decision == "ACCEPT":
+        fields["status"] = "RATIFIED"
+    missing = [k for k in fields if not re.search(rf"(?m)^{k}:", text)]
+    if missing:
+        print(f"::error::{path} has no {', '.join(missing)} field(s) to update")
+        return 1
+    for key, value in fields.items():
+        text = re.sub(rf"(?m)^{key}:.*$", f"{key}: {value}", text, count=1)
+    open(full, "w", encoding="utf-8").write(text)
+    print(f"\nWrote {path}. The commit author is the signature's provenance.")
+    print("Verify with: python3 .z1-control/ratify.py --verify-artifact " + path)
+    return 0
+
+
+def cmd_verify_artifact(path: str) -> int:
+    """Recompute a ratified artifact's signature from its current content."""
+    full = os.path.join(ROOT, path)
+    if not os.path.isfile(full):
+        print(f"::error::{path} does not exist")
+        return 1
+    doc = yaml.safe_load(open(full, encoding="utf-8"))
+    recorded = str(doc.get("ratification_hash") or "")
+    if not recorded:
+        print(f"  ?  {path}: no ratification_hash — not ratified")
+        return 1
+    if not re.fullmatch(r"[0-9a-f]{64}", recorded):
+        print(f"  ~  {path}: ratification_hash is not a sha256 ({recorded}) — "
+              f"content not pinned")
+        return 1
+    recomputed = artifact_signature(doc, str(doc.get("ratified_by")),
+                                    str(doc.get("ratified_at")),
+                                    str(doc.get("ratification_decision")))
+    if recomputed == recorded:
+        print(f"  ok {path}: signature matches the content as it stands")
+        return 0
+    print(f"  !! {path}: SIGNATURE MISMATCH")
+    print(f"       recorded   {recorded}")
+    print(f"       recomputed {recomputed}")
+    return 1
 
 
 def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> int:
@@ -219,6 +347,25 @@ def run_smoke_test() -> int:
     assert a == signature(b"candidate text", "Night", "2026-09-13", "ACCEPT"), "not deterministic"
     assert set(DECISIONS.values()) == TERMINAL, "decision map and validator TERMINAL diverged"
     assert "Claude" not in KNOWN_RATIFIERS
+
+    # Artifact signatures: same construction, over parsed content instead of bytes.
+    doc = {"version": "0.1", "units": [{"symbol": "RAT-min"}], "status": "RATIFIED",
+           "ratification_hash": "x" * 64, "ratified_by": "Night",
+           "ratified_at": "2026-09-13T00:00:00Z", "ratification_decision": "ACCEPT"}
+    b = artifact_signature(doc, "Night", "2026-09-13", "ACCEPT")
+    assert re.fullmatch(r"[0-9a-f]{64}", b), b
+    # The ratification fields are excluded, or writing the digest into the file
+    # would change the content the digest was taken over and nothing could verify.
+    for field in RATIFICATION_FIELDS:
+        moved = {**doc, field: "something else"}
+        assert artifact_signature(moved, "Night", "2026-09-13", "ACCEPT") == b, \
+            f"{field} must not affect the signature"
+    # What IS covered: the content being ratified.
+    tampered = {**doc, "units": [{"symbol": "TAMPERED"}]}
+    assert artifact_signature(tampered, "Night", "2026-09-13", "ACCEPT") != b
+    # Key order in the file must not matter; content must.
+    assert artifact_signature(dict(reversed(list(doc.items()))), "Night",
+                              "2026-09-13", "ACCEPT") == b, "not canonical"
     print("smoke-test OK — signature is deterministic and pins candidate content, decision, "
           "signer and date; decision map matches the validator's terminal statuses.")
     return 0
@@ -232,11 +379,22 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true", help="write; otherwise dry-run")
     ap.add_argument("--list", action="store_true", help="what is awaiting a decision")
     ap.add_argument("--verify", action="store_true", help="re-check recorded signatures")
+    ap.add_argument("--artifact", metavar="PATH",
+                    help="sign a ratified registry (e.g. RESOURCE_UNITS.yaml)")
+    ap.add_argument("--verify-artifact", metavar="PATH",
+                    help="recompute a ratified registry's signature")
     ap.add_argument("--smoke-test", action="store_true")
     args = ap.parse_args()
 
     if args.smoke_test:
         return run_smoke_test()
+    if args.verify_artifact:
+        return cmd_verify_artifact(args.verify_artifact)
+    if args.artifact:
+        if not (args.decision and args.by):
+            print("::error::--artifact needs --decision and --by")
+            return 1
+        return cmd_artifact(args.artifact, args.decision, args.by, args.apply)
     try:
         index = load_index(INDEX)
     except yaml.YAMLError as exc:
