@@ -12,15 +12,22 @@ read()/verify()/project()/pin_outcome() functions, unchanged. Nothing here
 is specific to any one ledger's subject matter; a resolved (p, outcome)
 pair grouped by predictor is all this tool consumes.
 
-WHY (predictor, at) IS THE BATCH KEY
------------------------------------------
+HOW A BATCH IS IDENTIFIED, AND WHY IT IS ALWAYS LEDGER-SCOPED
+------------------------------------------------------------------
 Every PIN-writing tool in this codebase (ci_predict_pin, lifecycle_predict,
 nf_ledger_v0_1's own cmd_build) stamps every PIN made in one declaring act
 with the same `at` timestamp: one push's checks, one restart episode's
-fields, one day's practice pins. `(predictor, at)` therefore recovers "one
-declared set" without needing a tool-specific grouping field (episode_id
-exists only on lifecycle_predict's rows; ci_predict has no equivalent) —
-staying as substrate-agnostic as the engine itself.
+fields, one day's practice pins. A batch key is always scoped to its
+source ledger first — two different `--ledger` files can never merge into
+one batch just because a predictor name and `at` happen to coincide. Within
+one ledger, `episode_id` (present on lifecycle_predict's rows) is used
+when available, since it identifies a declaring act exactly. Only when
+neither is available does this fall back to `(predictor, at)`, which is
+only as precise as the writing tool's own timestamp: ci_predict_consolidate
+currently stamps `at` with a bare date, so two separate pushes by the same
+predictor on the same day are indistinguishable to this tool and are
+reported as one batch — a known, tested limitation of that tool's current
+timestamp granularity (see _batch_key()), not a silent one.
 
 WHAT EACH DIMENSION MEANS HERE, AND WHY AUTONOMY IS LEFT UNSCORED
 ----------------------------------------------------------------------
@@ -90,7 +97,15 @@ def load_resolved_pins(ledger_path: Path) -> List[dict]:
     """Every scoreable, resolved (p, outcome) pair in one ledger, via the
     shared engine's own project()/pin_outcome() — the same filter
     nf_ledger_v0_1.cmd_score applies: p must be stated, and the outcome
-    must be a real YES/NO, never None (unresolved) or VOID."""
+    must be a real YES/NO, never None (unresolved) or VOID.
+
+    engine.verify() only checks the hash/sequence chain, not event schema:
+    a correctly-hashed row missing a field project()/pin_outcome() reads
+    (a TOKEN without "state", a PIN without "target") would otherwise
+    raise KeyError/AttributeError past this function's own LedgerLoadError
+    contract and abort cmd_report entirely instead of recording one load
+    error and continuing with the other ledgers given to it.
+    """
     try:
         rows = engine.read(str(ledger_path))
     except (ValueError, OSError) as exc:
@@ -99,32 +114,55 @@ def load_resolved_pins(ledger_path: Path) -> List[dict]:
     if err:
         raise LedgerLoadError(f"{ledger_path}: {err}")
 
-    tokens, pins = engine.project(rows)
-    resolved: List[dict] = []
-    for pin in pins.values():
-        if pin.get("p") is None:
-            continue
-        outcome = engine.pin_outcome(pin, tokens)
-        if outcome in (None, "VOID"):
-            continue
-        resolved.append({
-            "predictor": pin.get("predictor", "unknown"),
-            "at": pin.get("at", ""),
-            "p": pin["p"],
-            "outcome": float(outcome),
-            "pin_id": pin.get("pin_id", ""),
-            "ledger": str(ledger_path),
-        })
+    try:
+        tokens, pins = engine.project(rows)
+        resolved: List[dict] = []
+        for pin in pins.values():
+            if pin.get("p") is None:
+                continue
+            outcome = engine.pin_outcome(pin, tokens)
+            if outcome in (None, "VOID"):
+                continue
+            resolved.append({
+                "predictor": pin.get("predictor", "unknown"),
+                "at": pin.get("at", ""),
+                "episode_id": pin.get("episode_id"),
+                "p": pin["p"],
+                "outcome": float(outcome),
+                "pin_id": pin.get("pin_id", ""),
+                "ledger": str(ledger_path),
+            })
+    except (KeyError, AttributeError, TypeError) as exc:
+        raise LedgerLoadError(f"{ledger_path}: malformed event — {exc}") from exc
     return resolved
 
 
-def group_batches(resolved_pins: List[dict]) -> Dict[Tuple[str, str], List[dict]]:
-    """One batch per (predictor, at) — one declaring act, per
-    WHY (predictor, at) IS THE BATCH KEY above."""
-    batches: Dict[Tuple[str, str], List[dict]] = {}
+def _batch_key(rp: dict) -> Tuple[str, str, str]:
+    """(ledger, predictor, declaring-act) — always scoped to the source
+    ledger, so two ledgers can never merge into one batch just because a
+    predictor name and timestamp happen to coincide.
+
+    When the row carries an `episode_id` (lifecycle_predict's rows do),
+    that is the declaring-act key: exact, by construction, one per pin
+    call. Otherwise this falls back to `at`, which is only as precise as
+    the writing tool's own timestamp — ci_predict_consolidate currently
+    stamps `at` with a bare date (see commit_date_only()), so two separate
+    pushes by the same predictor on the same day are indistinguishable to
+    this tool and are (correctly, if coarsely) reported as one batch.
+    Fixing that needs a stable batch identifier in ci_predict's own event
+    schema, which is outside this tool's scope; test_batches_are_scoped_
+    per_ledger_and_predictor documents this as the known, tested boundary
+    rather than a silent one.
+    """
+    declaring_act = f"episode:{rp['episode_id']}" if rp.get("episode_id") else f"at:{rp['at']}"
+    return (rp["ledger"], rp["predictor"], declaring_act)
+
+
+def group_batches(resolved_pins: List[dict]) -> Dict[Tuple[str, str, str], List[dict]]:
+    """One batch per _batch_key() — one declaring act, ledger-scoped."""
+    batches: Dict[Tuple[str, str, str], List[dict]] = {}
     for rp in resolved_pins:
-        key = (rp["predictor"], rp["at"])
-        batches.setdefault(key, []).append(rp)
+        batches.setdefault(_batch_key(rp), []).append(rp)
     return batches
 
 
@@ -159,7 +197,7 @@ def aggregate_by_predictor(resolved_pins: List[dict]) -> Dict[str, dict]:
     out several small ones — each declared set counts once."""
     batches = group_batches(resolved_pins)
     by_predictor: Dict[str, List[dict]] = {}
-    for (predictor, _at), pins_in_batch in batches.items():
+    for (_ledger, predictor, _declaring_act), pins_in_batch in batches.items():
         by_predictor.setdefault(predictor, []).append(score_batch(pins_in_batch))
 
     aggregates: Dict[str, dict] = {}

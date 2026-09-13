@@ -41,7 +41,7 @@ def test_smoke_test_passes():
     assert da.run_smoke_test()
 
 
-def test_load_resolved_pins_skips_unresolved_and_null_p(tmp_path):
+def test_load_resolved_pins_skips_unresolved(tmp_path):
     ledger = tmp_path / "l.jsonl"
     events = []
     seq = 1
@@ -56,6 +56,29 @@ def test_load_resolved_pins_skips_unresolved_and_null_p(tmp_path):
         {"seq": seq + 1, "type": "PIN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
          "pin_id": "t2:P", "target": "t2", "predictor": "P", "claim": "x",
          "p": 0.5, "scoreable": True},
+    ]
+    engine.append(str(ledger), events, "0" * 64)
+
+    resolved = da.load_resolved_pins(ledger)
+    assert len(resolved) == 1
+    assert resolved[0]["pin_id"] == "t1:P"
+
+
+def test_load_resolved_pins_skips_null_probability(tmp_path):
+    """A resolved pin with p=None (e.g. an owed Z2 prior in NF_LEDGER-style
+    data) must be excluded even though it fully resolved — there is no
+    stated confidence to score against the outcome."""
+    ledger = tmp_path / "l.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.8, "YES", "t1")
+    events += [
+        {"seq": 4, "type": "TOKEN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+         "token_id": "t2", "practice": "test", "title": "t", "date": "2026-09-13",
+         "date_source": "PRACTICE", "owner_add": False, "state": "DATED"},
+        {"seq": 5, "type": "PIN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+         "pin_id": "t2:P", "target": "t2", "predictor": "P", "claim": "x",
+         "p": None, "scoreable": False},
+        {"seq": 6, "type": "RESOLVE", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+         "token_id": "t2", "outcome": "YES", "source": "test"},
     ]
     engine.append(str(ledger), events, "0" * 64)
 
@@ -115,7 +138,7 @@ def test_autonomy_always_unscored(tmp_path):
     assert aggregates["P"]["autonomy"]["status"] == "unscored"
 
 
-def test_batches_grouped_by_predictor_and_at(tmp_path):
+def test_batches_grouped_by_predictor_and_at_within_one_ledger(tmp_path):
     ledger = tmp_path / "l.jsonl"
     events = []
     seq = 1
@@ -129,8 +152,46 @@ def test_batches_grouped_by_predictor_and_at(tmp_path):
     resolved = da.load_resolved_pins(ledger)
     batches = da.group_batches(resolved)
     assert len(batches) == 2
-    assert len(batches[("P", "2026-09-13T00:00:00+00:00")]) == 2
-    assert len(batches[("P", "2026-09-14T00:00:00+00:00")]) == 1
+    same_day_key = (str(ledger), "P", "at:2026-09-13T00:00:00+00:00")
+    other_day_key = (str(ledger), "P", "at:2026-09-14T00:00:00+00:00")
+    assert len(batches[same_day_key]) == 2
+    assert len(batches[other_day_key]) == 1
+
+
+def test_batches_never_merge_across_ledgers(tmp_path):
+    """The same predictor and the same `at` in two different ledger files
+    must never be treated as one declaring act — each ledger is its own
+    scope."""
+    ledger_a = tmp_path / "a.jsonl"
+    ledger_b = tmp_path / "b.jsonl"
+    same_at = "2026-09-13T00:00:00+00:00"
+    engine.append(str(ledger_a),
+                  _token_pin_resolve(1, "P", same_at, 0.9, "YES", "x"), "0" * 64)
+    engine.append(str(ledger_b),
+                  _token_pin_resolve(1, "P", same_at, 0.1, "NO", "x"), "0" * 64)
+
+    resolved = da.load_resolved_pins(ledger_a) + da.load_resolved_pins(ledger_b)
+    batches = da.group_batches(resolved)
+    assert len(batches) == 2  # not merged into one, despite identical predictor+at
+
+
+def test_episode_id_gives_exact_grouping_when_present(tmp_path):
+    """A row carrying episode_id (as lifecycle_predict's do) is grouped by
+    that exact identifier, not by the coarser (predictor, at) fallback —
+    two different episodes at the identical timestamp stay separate."""
+    ledger = tmp_path / "l.jsonl"
+    same_at = "2026-09-13T00:00:00+00:00"
+    events = _token_pin_resolve(1, "P", same_at, 0.9, "YES", "x")
+    events[1]["episode_id"] = "LC-episode-1"
+    events += _token_pin_resolve(4, "P", same_at, 0.1, "NO", "y")
+    events[4]["episode_id"] = "LC-episode-2"
+    engine.append(str(ledger), events, "0" * 64)
+
+    resolved = da.load_resolved_pins(ledger)
+    batches = da.group_batches(resolved)
+    assert len(batches) == 2
+    assert (str(ledger), "P", "episode:LC-episode-1") in batches
+    assert (str(ledger), "P", "episode:LC-episode-2") in batches
 
 
 def test_load_ledger_refuses_corrupt_chain(tmp_path):
@@ -184,6 +245,54 @@ def test_cli_corrupt_ledger_exits_nonzero_but_still_reports_good_data(tmp_path, 
     parser = da.build_parser()
     args = parser.parse_args([
         "report", "--ledger", str(good), "--ledger", str(bad), "--json",
+    ])
+    assert da.cmd_report(args) == 1
+    out = json.loads(capsys.readouterr().out)
+    assert "P" in out["predictors"]
+    assert len(out["load_errors"]) == 1
+
+
+def test_malformed_token_missing_state_raises_ledger_load_error_not_crash(tmp_path):
+    """engine.verify() only checks the hash chain, not event schema: a
+    correctly-hashed TOKEN missing 'state' must be reported as
+    LedgerLoadError from load_resolved_pins, not escape as a raw KeyError
+    out of project()/pin_outcome() and crash the whole report."""
+    ledger = tmp_path / "l.jsonl"
+    row_missing_state = {
+        "seq": 1, "type": "TOKEN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+        "token_id": "t1", "practice": "test", "title": "t", "date": "2026-09-13",
+        "date_source": "PRACTICE", "owner_add": False,
+    }
+    pin_row = {
+        "seq": 2, "type": "PIN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+        "pin_id": "t1:P", "target": "t1", "predictor": "P", "claim": "x",
+        "p": 0.5, "scoreable": True,
+    }
+    engine.append(str(ledger), [row_missing_state, pin_row], "0" * 64)
+    assert engine.verify(engine.read(str(ledger))) is None  # hash-valid on its own terms
+
+    try:
+        da.load_resolved_pins(ledger)
+        raise AssertionError("expected LedgerLoadError")
+    except da.LedgerLoadError:
+        pass
+
+
+def test_cli_malformed_ledger_among_several_does_not_crash_the_report(tmp_path, capsys):
+    good = tmp_path / "good.jsonl"
+    events = _token_pin_resolve(1, "P", "2026-09-13T00:00:00+00:00", 0.9, "YES", "t1")
+    engine.append(str(good), events, "0" * 64)
+
+    malformed = tmp_path / "malformed.jsonl"
+    row_missing_target = {
+        "seq": 1, "type": "PIN", "at": "2026-09-13T00:00:00+00:00", "by": "test",
+        "pin_id": "x:P", "predictor": "P", "claim": "x", "p": 0.5, "scoreable": True,
+    }
+    engine.append(str(malformed), [row_missing_target], "0" * 64)
+
+    parser = da.build_parser()
+    args = parser.parse_args([
+        "report", "--ledger", str(good), "--ledger", str(malformed), "--json",
     ])
     assert da.cmd_report(args) == 1
     out = json.loads(capsys.readouterr().out)
