@@ -42,6 +42,10 @@ STATUS_LABEL = {
     "withdrawn": "↩️ withdrawn",
     "superseded": "⤴️ superseded",
 }
+# Statuses that represent a Z2 decision. Kept in step with validate.TERMINAL.
+TERMINAL = {"ratified", "edit_requested", "rejected"}
+# Closed without a Z2 decision — no signature to show.
+CLOSED_UNDECIDED = {"withdrawn", "superseded"}
 
 
 def _esc(text: object) -> str:
@@ -111,7 +115,10 @@ def render(index: dict) -> str:
         add("")
 
     # --- decided ------------------------------------------------------------
-    decided = [c for c in candidates if c.get("status") not in (None, "awaiting_z2")]
+    # TERMINAL only. `withdrawn` and `superseded` are in the validator's OPEN
+    # set and carry no signature, so rendering them here would show a decision
+    # with blank signer and ruling — a lifecycle state misstated as a ruling.
+    decided = [c for c in candidates if c.get("status") in TERMINAL]
     if decided:
         add(f"## Decided ({len(decided)})")
         add("")
@@ -125,6 +132,22 @@ def render(index: dict) -> str:
             add(f"| {STATUS_LABEL.get(str(c.get('status')), _esc(c.get('status')))} | "
                 f"**{_esc(c.get('q_id'))}** | {_esc(c.get('ratified_by')) or '—'} | "
                 f"{_esc(c.get('ratified_at')) or '—'} | {cite} |")
+        add("")
+
+    # --- closed without a decision ------------------------------------------
+    closed = [c for c in candidates if c.get("status") in CLOSED_UNDECIDED]
+    if closed:
+        add(f"## Closed without a Z2 decision ({len(closed)})")
+        add("")
+        add("Withdrawn or superseded by the proposer. No Z2 ruling was issued, so these carry "
+            "no signature — they are not decisions.")
+        add("")
+        add("| state | candidate | what it asked | block |")
+        add("|---|---|---|---|")
+        for c in sorted(closed, key=lambda x: str(x.get("q_id"))):
+            add(f"| {STATUS_LABEL.get(str(c.get('status')), _esc(c.get('status')))} | "
+                f"**{_esc(c.get('q_id'))}** | {_esc(c.get('title'))} | "
+                f"`{_esc(c.get('path'))}` |")
         add("")
 
     # --- waivers ------------------------------------------------------------
@@ -152,6 +175,21 @@ def render(index: dict) -> str:
         add("|---|---|")
         for r in sorted(records, key=lambda x: str(x.get("path"))):
             add(f"| `{_esc(r.get('path'))}` | {_esc(r.get('title'))} |")
+        add("")
+
+    # --- excluded -----------------------------------------------------------
+    # The validator accepts an `excluded:` path as satisfying coverage, so the
+    # human-facing index must show it. Otherwise "explicitly excluded" becomes a
+    # way to make a file disappear from the index while passing the gate.
+    excluded = index.get("excluded") or []
+    if excluded:
+        add(f"## Excluded from the conversion record ({len(excluded)})")
+        add("")
+        add("Neither a candidate nor a record. Listed because an exclusion the index accepts "
+            "must still be visible — silence is what the coverage rule exists to prevent.")
+        add("")
+        for path in sorted(str(p) for p in excluded):
+            add(f"- `{_esc(path)}`")
         add("")
 
     add("---")
@@ -210,7 +248,17 @@ def main() -> int:
         print(f"::error::missing {os.path.relpath(INDEX, ROOT)}")
         return 1
 
-    out = render(yaml.safe_load(open(INDEX, encoding="utf-8")) or {})
+    # Same strict parse as the validator: a duplicate key must not silently
+    # change what the rendered index claims.
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from validate import load_index  # noqa: E402
+
+    try:
+        out = render(load_index(INDEX))
+    except yaml.YAMLError as exc:
+        print(f"::error::z1-inbox/INDEX.yaml does not parse: "
+              f"{str(exc).splitlines()[-1].strip()}")
+        return 1
 
     if args.check:
         current = open(OUTPUT, encoding="utf-8").read() if os.path.exists(OUTPUT) else ""

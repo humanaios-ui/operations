@@ -76,16 +76,23 @@ def as_date(value: object) -> datetime.date | None:
     return None
 
 
+def valid_interval(value: object) -> int | None:
+    """A usable interval, or None. `True` is an int in Python; it is not an interval."""
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else None
+
+
 def interval_for(doc: dict, policy: dict) -> int | None:
-    """Days between reviews: the per-document override, else the status default."""
-    own = doc.get("review_interval_days")
-    if isinstance(own, int) and own > 0:
-        return own
-    status = doc.get("status")
-    if status in NO_REVIEW:
+    """Days between reviews: the per-document override, else the status default.
+
+    Fails CLOSED on a present-but-invalid override. Falling back to the status
+    policy would let `review_interval_days: "ninety"` silently stamp a 90-day
+    date, which is the wrong interval presented as the right one.
+    """
+    if "review_interval_days" in doc and doc.get("review_interval_days") is not None:
+        return valid_interval(doc.get("review_interval_days"))
+    if doc.get("status") in NO_REVIEW:
         return None
-    value = policy.get(status)
-    return value if isinstance(value, int) and value > 0 else None
+    return valid_interval(policy.get(doc.get("status")))
 
 
 def next_due(doc: dict, policy: dict) -> datetime.date | None:
@@ -107,6 +114,24 @@ def load() -> dict:
 def policy_of(reg: dict) -> dict:
     declared = reg.get("review_policy")
     return declared if isinstance(declared, dict) and declared else dict(DEFAULT_POLICY)
+
+
+def policy_errors(reg: dict) -> list[str]:
+    """A declared policy must be usable. A broken one is a lifecycle that cannot run."""
+    declared = reg.get("review_policy")
+    if declared is None:
+        return []
+    if not isinstance(declared, dict) or not declared:
+        return ["review_policy must be a non-empty mapping of status -> days"]
+    out = []
+    for status, days in sorted(declared.items(), key=lambda kv: str(kv[0])):
+        if status in NO_REVIEW:
+            out.append(f"review_policy.{status}: '{status}' is off the review cadence "
+                       f"and must not carry an interval")
+        elif valid_interval(days) is None:
+            out.append(f"review_policy.{status}: interval must be a positive integer, "
+                       f"got {days!r} — --record would fail with no interval")
+    return out
 
 
 def triage(reg: dict, today: datetime.date) -> dict:
@@ -175,13 +200,20 @@ def cmd_queue(reg: dict, today: datetime.date) -> int:
 def propose(reg: dict, start: datetime.date, per_week: int) -> list[dict]:
     """A staggered schedule for the backlog. Returned, not written — Z2's call."""
     t = triage(reg, start)
-    backlog = t["overdue"]
     out = []
-    for i, r in enumerate(backlog):
-        # Spread across working weeks so the corpus never again tips on one day.
-        week, slot = divmod(i, max(per_week, 1))
-        out.append({**r, "proposed_review_due":
-                    (start + datetime.timedelta(weeks=week, days=slot)).isoformat()})
+    # One WEEKDAY per document, so no two share a date and none lands on a
+    # weekend. The previous version advanced by calendar days, which with the
+    # default of six per week put slots on Saturday and Sunday while the comment
+    # claimed working weeks.
+    cap = min(max(per_week, 1), 5)  # only five weekdays exist to place into
+    day = start
+    per_isoweek: dict[tuple, int] = {}
+    for r in t["overdue"]:
+        while day.weekday() >= 5 or per_isoweek.get(day.isocalendar()[:2], 0) >= cap:
+            day += datetime.timedelta(days=1)
+        out.append({**r, "proposed_review_due": day.isoformat()})
+        per_isoweek[day.isocalendar()[:2]] = per_isoweek.get(day.isocalendar()[:2], 0) + 1
+        day += datetime.timedelta(days=1)
     return out
 
 
@@ -205,9 +237,21 @@ def cmd_propose(reg: dict, start: datetime.date, per_week: int) -> int:
 
 
 def cmd_check(reg: dict) -> int:
-    """Every document with a review history has the review_due its interval implies."""
+    """review_due is derived where history exists, and frozen where it does not.
+
+    Derivation alone left a hole: no document carries `last_reviewed` yet, so
+    every one of the 39 seeded dates could be hand-edited to any future value
+    and this check still returned 0 — the lifecycle would have been enforced
+    only for documents that had already entered it. `review_baseline:` freezes
+    the seeded dates, so a no-history document must keep the date it was seeded
+    with until a review is actually recorded.
+    """
     policy = policy_of(reg)
-    errors = []
+    errors = list(policy_errors(reg))
+    baseline = reg.get("review_baseline")
+    if baseline is not None and not isinstance(baseline, dict):
+        errors.append("review_baseline must be a mapping of doc_id -> seeded ISO date")
+        baseline = None
     for d in reg.get("documents") or []:
         did = d.get("doc_id", "<missing>")
         last_raw = d.get("last_reviewed")
@@ -220,16 +264,28 @@ def cmd_check(reg: dict) -> int:
             continue
         if d.get("last_reviewed") and not d.get("reviewed_by"):
             errors.append(f"{did}: last_reviewed without reviewed_by — a review is somebody's act")
-        expected = next_due(d, policy)
-        if expected is None:
-            continue
         actual = as_date(d.get("review_due"))
-        if actual != expected:
-            errors.append(
-                f"{did}: review_due is derived from last_reviewed "
-                f"({d.get('last_reviewed')}) + {interval_for(d, policy)}d = "
-                f"{expected.isoformat()}; registry says {d.get('review_due')!r}. "
-                f"Run `--record` rather than editing the date.")
+        expected = next_due(d, policy)
+        if expected is not None:
+            if actual != expected:
+                errors.append(
+                    f"{did}: review_due is derived from last_reviewed "
+                    f"({d.get('last_reviewed')}) + {interval_for(d, policy)}d = "
+                    f"{expected.isoformat()}; registry says {d.get('review_due')!r}. "
+                    f"Run `--record` rather than editing the date.")
+            continue
+        # No recorded history: the seeded date is frozen until a review happens.
+        if baseline and did in baseline:
+            frozen = as_date(baseline[did])
+            if frozen is None:
+                errors.append(f"review_baseline.{did}: "
+                              f"{baseline[did]!r} is not an ISO date")
+            elif actual != frozen:
+                errors.append(
+                    f"{did}: review_due {d.get('review_due')!r} was moved from its frozen "
+                    f"baseline {frozen.isoformat()} without a recorded review. Run "
+                    f"`--record --by <owner>`, or change the baseline as a ratified "
+                    f"re-dating — not the date alone.")
     for e in errors:
         print(f"::error::{e}")
     if errors:
@@ -264,6 +320,21 @@ def cmd_record(reg: dict, doc_id: str, by: str, on: datetime.date) -> int:
         print(f"::error::{doc_id}: review date {on.isoformat()} precedes the recorded "
               f"last_reviewed {last_seen.isoformat()}")
         return 1
+    # This command asserts a review HAPPENED. A future date would let the queue
+    # be cleared by recording a review nobody has done yet.
+    if on > datetime.date.today():
+        print(f"::error::{doc_id}: review date {on.isoformat()} is in the future — "
+              f"--record asserts a review that has already happened")
+        return 1
+    # `--by` is written into the registry. Serialize it as YAML rather than
+    # interpolating it into a quoted scalar, where a quote or newline could
+    # terminate the string and inject further fields into the document.
+    by_scalar = yaml.safe_dump(by, default_flow_style=True, width=10**6).strip()
+    if by_scalar.endswith("..."):
+        by_scalar = by_scalar[:-3].strip()
+    if "\n" in by_scalar or not by_scalar:
+        print(f"::error::--by value cannot be represented as a single-line YAML scalar")
+        return 1
     due = on + datetime.timedelta(days=days)
 
     text = open(REGISTRY, encoding="utf-8").read()
@@ -274,16 +345,17 @@ def cmd_record(reg: dict, doc_id: str, by: str, on: datetime.date) -> int:
         return 1
     head, body = block.group(1), block.group(2)
 
-    def upsert(src: str, key: str, value: str) -> str:
-        line = f'    {key}: "{value}"\n'
+    def upsert(src: str, key: str, scalar: str) -> str:
+        """Replace or append `key`, where `scalar` is already YAML-serialized."""
+        line = f"    {key}: {scalar}\n"
         pattern = rf"^    {re.escape(key)}:.*\n"
         if re.search(pattern, src, re.MULTILINE):
-            return re.sub(pattern, line, src, count=1, flags=re.MULTILINE)
+            return re.sub(pattern, lambda _: line, src, count=1, flags=re.MULTILINE)
         return src + line
 
-    body = upsert(body, "review_due", due.isoformat())
-    body = upsert(body, "last_reviewed", on.isoformat())
-    body = upsert(body, "reviewed_by", by)
+    body = upsert(body, "review_due", f'"{due.isoformat()}"')
+    body = upsert(body, "last_reviewed", f'"{on.isoformat()}"')
+    body = upsert(body, "reviewed_by", by_scalar)
 
     open(REGISTRY, "w", encoding="utf-8").write(text[:block.start()] + head + body
                                                 + text[block.end():])
@@ -315,11 +387,16 @@ def run_smoke_test() -> int:
     assert len(t["never_reviewed"]) == 2, t["never_reviewed"]
     assert len(t["unowned"]) == 2, t["unowned"]
 
-    def quiet_check(registry: dict) -> int:
-        """cmd_check reports through stdout; swallow it so a passing test looks passing."""
-        import contextlib, io
+    import contextlib
+    import io
+
+    def quiet(fn, *args) -> int:
+        """These commands report through stdout; swallow it so a pass looks like one."""
         with contextlib.redirect_stdout(io.StringIO()):
-            return cmd_check(registry)
+            return fn(*args)
+
+    def quiet_check(registry: dict) -> int:
+        return quiet(cmd_check, registry)
 
     # Derivation: last_reviewed + interval, and --check accepts a correct one.
     assert next_due(reg["documents"][2], reg["review_policy"]) == datetime.date(2027, 2, 28)
@@ -338,13 +415,52 @@ def run_smoke_test() -> int:
     junk = {**reg, "documents": [{"doc_id": "HAIOS-E-001", "status": "review",
                                   "review_interval_days": "ninety"}]}
     assert quiet_check(junk) == 1
+    # ...and must fail closed rather than borrowing the status default.
+    assert interval_for({"status": "review", "review_interval_days": "ninety"},
+                        reg["review_policy"]) is None
+    assert interval_for({"status": "review", "review_interval_days": True},
+                        reg["review_policy"]) is None
+
+    # A broken policy is a lifecycle that cannot run; --check must say so even
+    # when no document has history yet.
+    assert quiet_check({**reg, "review_policy": {"review": 0}}) == 1
+    assert quiet_check({**reg, "review_policy": {"retired": 30}}) == 1
+
+    # A seeded date moved without a recorded review must be refused.
+    seeded = {**reg, "review_baseline": {"HAIOS-A-001": "2026-08-01"},
+              "documents": [{"doc_id": "HAIOS-A-001", "status": "review",
+                             "review_due": "2027-08-01"}]}
+    assert quiet_check(seeded) == 1
+    kept = {**seeded, "documents": [{"doc_id": "HAIOS-A-001", "status": "review",
+                                     "review_due": "2026-08-01"}]}
+    assert quiet_check(kept) == 0
+
+    # --record asserts a review that already happened.
+    future = datetime.date.today() + datetime.timedelta(days=1)
+    assert quiet(cmd_record, reg, "HAIOS-A-001", "Night", future) == 1
+
+    # A reviewer name must be serialized, not interpolated: this would otherwise
+    # close the quoted scalar and inject a field.
+    injected = 'Night"\n    status: approved\n    x: "'
+    scalar = yaml.safe_dump(injected, default_flow_style=True, width=10**6).strip()
+    assert "\n" not in scalar, scalar
+    assert yaml.safe_load(f"reviewed_by: {scalar}")["reviewed_by"] == injected
+
+    # The proposal places one document per weekday, capped per week.
+    days = [datetime.date.fromisoformat(r["proposed_review_due"])
+            for r in propose(reg, datetime.date(2026, 9, 25), per_week=2)]  # a Friday
+    assert all(d.weekday() < 5 for d in days), days
+    assert len(set(days)) == len(days), days
+    assert days == [datetime.date(2026, 9, 25), datetime.date(2026, 9, 28)], days
 
     # A document with no history yields no derived date — it cannot be invented.
     assert next_due(reg["documents"][0], reg["review_policy"]) is None
 
     # The proposal staggers instead of stacking, and writes nothing.
+    # 2026-09-22 is a Tuesday; at one per week the next slot is the following
+    # Monday, the first weekday of the next ISO week.
     rows = propose(reg, datetime.date(2026, 9, 22), per_week=1)
-    assert [r["proposed_review_due"] for r in rows] == ["2026-09-22", "2026-09-29"], rows
+    assert [r["proposed_review_due"] for r in rows] == ["2026-09-22", "2026-09-28"], rows
 
     print("smoke-test OK — triages the seeded backlog, derives the next due date from "
           "recorded history, refuses hand-edited and anonymous dates, excludes retired "

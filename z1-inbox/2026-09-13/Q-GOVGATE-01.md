@@ -81,7 +81,13 @@ further defects fixed while it was open:
 
 - `actions/checkout` defaults to depth 1, so the seed-constitution step's `git diff HEAD~1 HEAD`
   had no parent to diff against. It silently produced nothing and the check never fired — a
-  second dead check inside the dead gate. Now `fetch-depth: 2`, with an explicit guard.
+  second dead check inside the dead gate. Now `fetch-depth: 0` and a diff over the event's own
+  range (PR base, or the push's before-SHA): `HEAD~1..HEAD` would still have missed a
+  seed-constitution change in any earlier commit of a multi-commit push.
+- The `config-lint` job imports `yaml` but never installed PyYAML — it only ever passed by
+  relying on what the runner image happens to preinstall. And neither path filter covered
+  `seed-publication/**` (what that job checks) or `Z1_INBOX_INDEX.md` (what `render.py --check`
+  guards), so both checks were blind to PRs touching only the file they exist to protect.
 - The falsifier loop demanded `## Falsifier` of **every** `*.md` under `z1-inbox/`. Eleven of the
   24 files present have none, because they are handoffs, receipts, manifests, templates and cycle
   reports — documents that predict nothing. Un-breaking the gate as written would have failed
@@ -96,8 +102,8 @@ declared, not guessed.
 
 | file | role |
 |---|---|
-| `z1-inbox/INDEX.yaml` | SSOT. 11 candidates + 13 records. |
-| `.z1-control/validate.py` | The merge gate — 9 structural rules, 1 advisory. |
+| `z1-inbox/INDEX.yaml` | SSOT. 14 candidates + 13 records. |
+| `.z1-control/validate.py` | The merge gate — 12 structural rules, 2 advisory. |
 | `.z1-control/render.py` | `INDEX.yaml` → `Z1_INBOX_INDEX.md`. |
 | `Z1_INBOX_INDEX.md` | Generated. "What does Z2 owe a decision on." |
 
@@ -116,9 +122,26 @@ CLAUDE.md is arithmetic rather than prose. A hand-set value that disagrees is a 
 window cannot be extended by editing the record of it.
 
 **No self-grant.** A terminal status (`ratified` / `edit_requested` / `rejected`) requires
-`ratified_by` drawn from a declared `ratifiers:` list, a `ratified_at` not preceding submission,
-and a `z2_ruling` that resolves to a real file. Z1 is deliberately absent from `ratifiers:`. This
-mirrors `.tool-control/validate.py`'s existing refusal of a self-granted Z2 tool waiver.
+`ratified_by`, a `ratified_at` not preceding submission, a `z2_ruling` that resolves to a file
+*indexed as a record*, and a `z2_hash` that actually appears in that ruling. This mirrors
+`.tool-control/validate.py`'s existing refusal of a self-granted Z2 tool waiver.
+
+The allowed signer set lives in `KNOWN_RATIFIERS` **in the validator**, not in the index — an
+adversarial review round caught that reading `ratifiers:` only from `INDEX.yaml` made the rule
+self-defeating, since a proposer could add themselves to the list in the same PR that signs a
+candidate. The index's list must now be a subset of the code's, so widening it means editing
+`.z1-control/`, a separate CODEOWNERS surface.
+
+**Index paths are contained.** An entry must be a normalized relative path inside `z1-inbox/`.
+Without that, `os.path.join(ROOT, "/etc/passwd")` discards `ROOT` and `../` walks out of it, so
+an index entry could make CI read an arbitrary file while "checking a candidate's falsifier" —
+and a path outside the inbox could stand in for one inside it, defeating coverage.
+`.doc-control/validate.py` already applies the same rule to `canonical_path`.
+
+**The SSOT is parsed strictly.** `yaml.safe_load` silently keeps the last of a duplicate key —
+precisely the defect that left the Z2 gate dead for 122 runs. Both the validator and the renderer
+use a duplicate-key-rejecting loader, so a second `ratifiers:` or `counts:` key is an error rather
+than a silent substitution.
 
 ### `workflow-lint.yml` — ADVISORY
 
@@ -131,7 +154,7 @@ promotion condition is written into the file: blocking once those four are repai
 ## Gates verified to actually fail
 
 A gate that cannot fail is decoration — which is the entire subject of this block, so the
-self-test drives **14 rules red** against a virtual tree (`--smoke-test`):
+self-test drives **20 rules red** against a virtual tree (`--smoke-test`):
 
 | test | result |
 |---|---|
@@ -144,6 +167,11 @@ self-test drives **14 rules red** against a virtual tree (`--smoke-test`):
 | File on disk, absent from `INDEX.yaml` | `::error::absent from INDEX.yaml` |
 | `counts:` falsified to 0 | `::error::counts.candidates says 0 but the index holds 1` |
 | Malformed `q_id` | `::error::does not match Q-<AREA>-<nn>` |
+| Z1 adds itself to `ratifiers:` and then signs | `::error::not in KNOWN_RATIFIERS` **and** `cannot grant itself` |
+| `z2_ruling` not indexed under `records:` | `::error::a decision record must itself be covered by the index` |
+| `z2_hash` missing, or absent from the cited ruling | `::error::requires z2_hash` · `does not carry the signature claimed for it` |
+| Index path `/etc/passwd`, `../secrets.md`, `z1-inbox/../../etc/passwd` | `::error::not a normalized relative path inside z1-inbox/` |
+| `INDEX.yaml` with a duplicate `ratifiers:` key | `::error::duplicate key` (and `safe_load` is asserted to take the last, so the test cannot rot) |
 | Candidate with no falsifier and no waiver | `::error::has no falsifier` |
 | Waiver on a candidate that has a falsifier | `::error::drop the waiver` |
 | Decision field on a record | `::error::must not carry 'status'` |
@@ -158,11 +186,18 @@ That last row matters: a rule set that only ever rejects is as broken as one tha
 
 | | |
 |---|---|
-| Candidates awaiting Z2 | **8** |
+| Candidates awaiting Z2 | **11** |
 | **Past the 48h window** | **5** |
 | Longest wait | **Q-ACAT-BENCHMARK-01**, **Q-DOC-LIFECYCLE-01** — 3 days |
 | Already decided (Z2 rulings 2026-09-08) | 3 |
 | Falsifier waivers open | 1 |
+
+**The coverage rule fired for real within minutes.** The first CI run of the repaired gate
+failed on `z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md` — a candidate block that landed on `main` via
+PR #306 while this branch was open, and which nothing had indexed. That is the evidence this
+block's falsifier asked for (clause 3), and the same way #304's coverage rule caught an
+unregistered tool roughly half an hour after landing. It is now indexed as a candidate awaiting
+Z2, which is why the count above is 11 rather than the 8 first measured.
 
 `Q-FRAMEWORK-MAPPING-01` has no falsifier. Its own header declares it *"Type H (Hypothesis
 mapping, no falsifier required — reference architecture)"* — the candidate asserts its own
@@ -242,6 +277,15 @@ since 2026-09-10. Nothing had counted the days since.
 - **Coverage is enforced; correctness is not.** Nothing checks that a candidate's falsifier is a
   *good* falsifier, only that one is present — the same limit Q-TOOLCONTROL-02 named for
   categories assigned from docstrings.
+- **CI cannot authenticate Z2, and this validator does not pretend to.** A review round put the
+  point sharply: a resolvable `z2_ruling` is evidence, not authorization, because Z1 could add a
+  ruling file and cite it in the same PR. The checks added since raise the cost — the ruling must
+  be an indexed record and must literally contain the `z2_hash` claimed for it — but a determined
+  proposer with write access can still manufacture all three. **The real control is CODEOWNERS
+  plus branch protection on `z1-inbox/` and `.z1-control/`, not this file.** Item 3 of
+  Q-TOOLCONTROL-01 found that the root `CODEOWNERS` doc-control rules have never been in force
+  because `.github/CODEOWNERS` shadows them — so that control's current state is itself an open
+  question, and this one inherits it. **Checklist item 7.**
 
 ---
 
@@ -280,7 +324,11 @@ that was not already ruled on by Night on 2026-09-08.
       `seeds/INDEX.md` line 175 says **72h** for escalation — an **AMBIGUITY** callout, unresolved
       here, and the reason the window is a declared field rather than a constant in code.
 - [ ] The coverage rule is accepted as merge-blocking from day one.
-- [ ] `ratifiers: [Night]` is the correct and complete list.
+- [ ] `ratifiers: [Night]` is the correct and complete list — it is now pinned in
+      `KNOWN_RATIFIERS` in `.z1-control/validate.py`, so changing it is a code review.
+- [ ] **Item 7:** the no-self-grant rule rests on CODEOWNERS and branch protection over
+      `z1-inbox/` and `.z1-control/`, which Q-TOOLCONTROL-01 item 3 suggests may not be in force.
+      Confirm, or the validator's authorization checks are advisory in practice.
 
 ---
 

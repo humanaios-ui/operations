@@ -79,10 +79,10 @@ cannot: the only supported way `review_due` moves forward is a recorded review.
 |---|---|
 | `--record <DOC_ID> --by <owner>` | A review **happened**. Stamps `last_reviewed` + `reviewed_by`, derives the next `review_due` from the interval. The only supported way a date moves forward. |
 | `--queue` | What is due, how late, under whose name, grouped by the date they were stamped with. |
-| `--propose --start --per-week` | A staggered schedule for the backlog, printed for Z2. **Writes nothing.** |
+| `--propose --start --per-week` | A staggered schedule for the backlog — one document per **weekday**, capped per week — printed for Z2. **Writes nothing.** |
 | `--check` | CI: a `review_due` that contradicts its own `last_reviewed + interval` is a merge error. |
 
-### Schema: `review_due` becomes DERIVED
+### Schema: `review_due` becomes DERIVED — and frozen where there is no history
 
 `review_policy: {draft: 30, review: 90, approved: 180}` in the registry, overridable per document
 with `review_interval_days`. `superseded` and `retired` are off the cadence entirely.
@@ -94,6 +94,18 @@ drifted furthest from anything that could verify it.
 
 **This moves no date today.** No document carries `last_reviewed`, so the policy has nothing to
 derive from and the 39 stay visibly overdue until somebody records an actual review.
+
+That is also the hole an adversarial review round found in the first version: derivation enforces
+the lifecycle **only for documents that have already entered it**. With 0 of 46 carrying
+`last_reviewed`, any of the 39 seeded dates could have been hand-edited to any future value and
+the blocking check would still have returned 0 — the exact bypass this block exists to prevent.
+
+`review_baseline:` closes it. The seeded dates are frozen in the registry, and a document with no
+recorded review must keep the date it was seeded with. Clearing the queue now requires `--record`,
+or a ratified re-dating that changes a baseline line whose only purpose is to be looked at.
+Driven red against the real registry: moving `HAIOS-GOV-001` to 2027-08-01 produces
+`::error::review_due '2027-08-01' was moved from its frozen baseline 2026-08-01 without a
+recorded review`.
 
 ### Wired into CI
 
@@ -127,7 +139,11 @@ clears, opens nothing when there is nothing to say, and **decides nothing**.
 | `review_interval_days: "ninety"` | `::error::must be a positive integer` |
 | A document with no history | yields **no** derived date — it cannot be invented |
 | `retired` document | excluded from the cadence, not reported overdue |
-| `--propose` | staggers, and writes nothing |
+| `--propose` | staggers onto weekdays only, no two sharing a date, and writes nothing |
+| A seeded date moved with no recorded review | `::error::was moved from its frozen baseline … without a recorded review` |
+| `--record --on` a future date | `::error::--record asserts a review that has already happened` |
+| `review_policy: {review: 0}` or an interval on `retired` | `::error::interval must be a positive integer` · `is off the review cadence` |
+| `--by` containing a quote and a newline | serialized as a YAML scalar and round-trips intact, rather than closing the string and injecting fields |
 
 End-to-end, against the real registry (then reverted — the review did not happen):
 
@@ -235,6 +251,10 @@ here makes reading 39 documents faster.
 - **`--record` edits by targeted regex, not a YAML round-trip.** That preserves comments and
   inline flow blocks, but a future hand-edit that reformats an entry's indentation would defeat
   the block match. It fails loudly (`could not locate its block`) rather than writing wrongly.
+- **`review_baseline:` is a convention, not a cryptographic freeze.** It makes an unexplained
+  re-dating a visible diff on a line that exists only to be immutable; it does not stop someone
+  with write access from editing both. Like the Z1-inbox signature checks, the real control is
+  CODEOWNERS and branch protection.
 - **The 5 documents with no `review_due` at all are not addressed.** They are not overdue because
   they have no date, which is a third state this block does not resolve.
 - **Not applied:** no date was changed, no owner assigned, no document retired.
@@ -246,7 +266,7 @@ here makes reading 39 documents faster.
 | file | change |
 |---|---|
 | `.doc-control/review.py` | new — the scheduler |
-| `document-registry.yaml` | `review_policy:` block added (16 lines). **No document entry changed.** |
+| `document-registry.yaml` | `review_policy:` + `review_baseline:` blocks added. **No document entry changed.** |
 | `.github/workflows/document-control.yml` | review self-test + `--check` added as blocking steps |
 | `.github/workflows/governance-triage.yml` | new — weekly triage for both queues |
 | `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md` | this block |
@@ -268,6 +288,9 @@ here makes reading 39 documents faster.
       split is the intended one.
 - [ ] `governance-triage.yml` cadence (Mondays 07:00 UTC) and the issue-per-queue shape.
 - [ ] The 5 documents with **no** `review_due` — give them one, or declare them off-cadence.
+      They are outside `review_baseline:` for the same reason: there is no seeded date to freeze.
+- [ ] `review_baseline:` is accepted as the frozen record of the seeded dates, and changing an
+      entry is understood to be a ratified re-dating rather than an edit.
 
 ---
 

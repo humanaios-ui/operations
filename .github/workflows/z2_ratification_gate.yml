@@ -16,11 +16,21 @@ name: Z2 Ratification Gate
 # of the 24 files present. Which file is which is declared in
 # z1-inbox/INDEX.yaml and enforced by .z1-control/validate.py.
 
+# Path filters must cover every file a job here checks, or the check protects
+# nothing on a PR that touches only that file. Z1_INBOX_INDEX.md is the
+# generated file `render.py --check` guards; seed-publication/** is what the
+# config-lint job validates. Both were absent.
+#
+# (Written out twice rather than shared via a YAML anchor: GitHub Actions does
+# not support anchors/aliases, and an unparseable workflow is the exact defect
+# this file is being repaired for.)
 on:
   pull_request:
     paths:
       - 'seeds/seed-constitution-*.md'
+      - 'seed-publication/**'
       - 'z1-inbox/**'
+      - 'Z1_INBOX_INDEX.md'
       - 'REGISTERED.md'
       - '.z1-control/**'
       - '.github/workflows/z2_ratification_gate.yml'
@@ -29,7 +39,9 @@ on:
       - main
     paths:
       - 'seeds/seed-constitution-*.md'
+      - 'seed-publication/**'
       - 'z1-inbox/**'
+      - 'Z1_INBOX_INDEX.md'
       - 'REGISTERED.md'
       - '.z1-control/**'
       - '.github/workflows/z2_ratification_gate.yml'
@@ -47,10 +59,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # The seed-constitution step diffs against the previous commit.
-          # actions/checkout defaults to depth 1, where HEAD~1 does not exist,
-          # so that diff silently produced nothing and the check never fired.
-          fetch-depth: 2
+          # The seed-constitution step diffs a commit RANGE. actions/checkout
+          # defaults to depth 1, where even HEAD~1 does not exist, so that diff
+          # silently produced nothing and the check never fired. Full history,
+          # because a push can carry many commits and the range must cover all
+          # of them.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -74,13 +88,31 @@ jobs:
         run: python3 .z1-control/render.py --check
 
       - name: Seed Constitution changes carry a Z2 ratification
+        env:
+          # A push can contain many commits. Diffing only HEAD~1..HEAD lets a
+          # seed-constitution change in an earlier commit of the same push slip
+          # by whenever the final commit touches something else. Use the event's
+          # own range: the base for a PR, the before-SHA for a push.
+          BASE_SHA: ${{ github.event_name == 'pull_request'
+                        && github.event.pull_request.base.sha
+                        || github.event.before }}
         run: |
           set -euo pipefail
-          if ! git rev-parse --verify -q HEAD~1 >/dev/null; then
-            echo "ℹ No parent commit available — skipping the seed-constitution diff."
+          RANGE=""
+          if [ -n "${BASE_SHA:-}" ] \
+             && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ] \
+             && git rev-parse --verify -q "$BASE_SHA^{commit}" >/dev/null; then
+            RANGE="$BASE_SHA...HEAD"
+          elif git rev-parse --verify -q HEAD~1 >/dev/null; then
+            # Branch creation, a force-push past the old tip, or a manual run.
+            RANGE="HEAD~1 HEAD"
+          else
+            echo "ℹ No comparable base commit — skipping the seed-constitution diff."
             exit 0
           fi
-          CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "seed-constitution-" || true)
+          echo "  Range: $RANGE"
+          # shellcheck disable=SC2086
+          CHANGED=$(git diff $RANGE --name-only | grep "seed-constitution-" || true)
           if [ -z "$CHANGED" ]; then
             echo "✓ No Seed Constitution change in this commit."
             exit 0
@@ -121,6 +153,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # This job imports yaml too; the install in z2-gate does not carry over.
+      # It only ever passed by relying on whatever the runner image preinstalls.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install deps
+        run: pip install --quiet pyyaml
 
       - name: Check Config YAML
         run: |

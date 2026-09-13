@@ -62,6 +62,38 @@ except ImportError:  # pragma: no cover - CI installs it
     print("::error::PyYAML not installed (pip install pyyaml)")
     sys.exit(2)
 
+class StrictLoader(yaml.SafeLoader):
+    """SafeLoader that refuses duplicate mapping keys.
+
+    `yaml.safe_load` silently keeps the last of a repeated key. That is exactly
+    the defect that left z2_ratification_gate.yml dead for 122 runs, so the SSOT
+    protecting against it must not be parsed the loose way: a second
+    `ratifiers:` or `counts:` key would otherwise replace the intended value
+    with no error. Shared with .z1-control/render.py.
+    """
+
+
+def _no_duplicates(loader: yaml.Loader, node: yaml.MappingNode, deep: bool = False) -> dict:
+    out: dict = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if key in out:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping", node.start_mark,
+                f"duplicate key {key!r}", key_node.start_mark)
+        out[key] = loader.construct_object(value_node, deep=deep)
+    return out
+
+
+StrictLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _no_duplicates)
+
+
+def load_index(path: str) -> dict:
+    """Parse an index the way a strict reader would. Raises on a duplicate key."""
+    with open(path, encoding="utf-8") as fh:
+        return yaml.load(fh, StrictLoader) or {}
+
+
 TOOL_NAME = "z1_inbox_validator"
 TOOL_VERSION = "1.0.0"
 TOOL_CATEGORY = "governance_tool"
@@ -72,6 +104,13 @@ INBOX = os.path.join(ROOT, "z1-inbox")
 INDEX = os.path.join(INBOX, "INDEX.yaml")
 
 QID_RE = re.compile(r"^Q-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{2}$")
+# The ratifier set lives HERE, in code, not in the index the proposer edits.
+# Reading it only from z1-inbox/INDEX.yaml would make the no-self-grant rule
+# self-defeating: a proposer could add themselves to `ratifiers:` in the same PR
+# that signs a candidate. INDEX.yaml's list must be a subset of this one, so
+# widening it requires editing .z1-control/ — a separate CODEOWNERS surface.
+# CLAUDE.md names Night as the sole Z2 serial gate.
+KNOWN_RATIFIERS = frozenset({"Night"})
 # A decision Z2 has made. Each requires a signature and a ruling to point at.
 TERMINAL = {"ratified", "edit_requested", "rejected"}
 # A decision Z2 has not made. None of these may carry a signature.
@@ -100,8 +139,25 @@ def validate(index: dict, tree: list[str], today: datetime.date,
     smoke test so it can drive every rule red without touching the real tree.
     When None, paths are resolved and read from disk.
     """
+    def contained(path: str) -> bool:
+        """A path the index may name at all: normalized, relative, inside z1-inbox/.
+
+        Without this, `os.path.join(ROOT, "/etc/passwd")` discards ROOT and `../`
+        walks out of it, so an index entry could make CI stat or read an arbitrary
+        file while "checking a candidate's falsifier". It also closes the coverage
+        rule: an entry pointing outside z1-inbox/ cannot stand in for a file
+        inside it. `.doc-control/validate.py` already applies the same containment
+        rule to canonical_path.
+        """
+        if os.path.isabs(path) or "\\" in path:
+            return False
+        norm = os.path.normpath(path).replace(os.sep, "/")
+        return norm == path and (norm == "z1-inbox" or norm.startswith("z1-inbox/"))
+
     def exists(path: str) -> bool:
-        return path in files if files is not None else os.path.exists(os.path.join(ROOT, path))
+        if not contained(path):
+            return False
+        return path in files if files is not None else os.path.isfile(os.path.join(ROOT, path))
 
     def read(path: str) -> str:
         if files is not None:
@@ -128,6 +184,14 @@ def validate(index: dict, tree: list[str], today: datetime.date,
         err("INDEX.yaml: ratifiers must be a non-empty list — with none declared, "
             "no signature can be checked against anything")
         ratifiers = []
+    else:
+        for name in ratifiers:
+            if name not in KNOWN_RATIFIERS:
+                err(f"INDEX.yaml: ratifier '{name}' is not in KNOWN_RATIFIERS "
+                    f"{sorted(KNOWN_RATIFIERS)}. The index cannot widen its own "
+                    f"signing authority — change .z1-control/validate.py, which is a "
+                    f"separate review surface.")
+        ratifiers = [r for r in ratifiers if r in KNOWN_RATIFIERS]
 
     candidates = index.get("candidates") or []
     records = index.get("records") or []
@@ -173,10 +237,28 @@ def validate(index: dict, tree: list[str], today: datetime.date,
             elif submitted and at < submitted:
                 err(f"{qid}: ratified_at {at.isoformat()} precedes submitted "
                     f"{submitted.isoformat()}")
+            # A resolvable path is evidence, not authorization: CI cannot
+            # authenticate Z2, and Z1 could add a ruling file in the same PR that
+            # cites it. These raise the cost of a fabricated ruling — the ruling
+            # must be an indexed record, and the hash must be present and appear
+            # in it — but the real control is CODEOWNERS plus branch protection
+            # on z1-inbox/, not this validator. Stated plainly rather than
+            # implied: see Q-GOVGATE-01's limits.
             if not ruling:
                 err(f"{qid}: status '{status}' requires z2_ruling pointing at the decision record")
             elif not exists(str(ruling)):
                 err(f"{qid}: z2_ruling '{ruling}' does not resolve to a file")
+            else:
+                if str(ruling) not in {str(r.get("path")) for r in records}:
+                    err(f"{qid}: z2_ruling '{ruling}' is not indexed under records: — a "
+                        f"decision record must itself be covered by the index")
+                z2_hash = c.get("z2_hash")
+                if not z2_hash:
+                    err(f"{qid}: status '{status}' requires z2_hash naming the signature "
+                        f"Z2 issued for this decision")
+                elif str(z2_hash) not in read(str(ruling)):
+                    err(f"{qid}: z2_hash '{z2_hash}' does not appear in {ruling} — the "
+                        f"cited ruling does not carry the signature claimed for it")
         elif status in OPEN:
             for field, value in (("ratified_by", signer), ("ratified_at", signed_at),
                                  ("z2_ruling", ruling)):
@@ -232,7 +314,10 @@ def validate(index: dict, tree: list[str], today: datetime.date,
             if p in indexed:
                 err(f"{p}: claimed by two index entries ({indexed[p]} and {kind})")
             indexed[p] = kind
-            if not exists(p):
+            if not contained(p):
+                err(f"{p}: indexed as a {kind} but is not a normalized relative path "
+                    f"inside z1-inbox/ — an entry outside the inbox cannot satisfy coverage")
+            elif not exists(p):
                 err(f"{p}: indexed as a {kind} but does not resolve on disk")
 
     excluded_set = {str(x) for x in excluded}
@@ -243,7 +328,10 @@ def validate(index: dict, tree: list[str], today: datetime.date,
             f"candidates:, records:, or excluded:")
 
     for p in sorted(excluded_set):
-        if not exists(p):
+        if not contained(p):
+            err(f"{p}: listed under excluded: but is not a normalized relative path "
+                f"inside z1-inbox/")
+        elif not exists(p):
             err(f"{p}: listed under excluded: but does not resolve on disk")
 
     # --- 9: the header cannot lie -------------------------------------------
@@ -307,13 +395,17 @@ def run_smoke_test() -> int:
     GOOD, BARE, RULING = "z1-inbox/x/good.md", "z1-inbox/x/bare.md", "z1-inbox/x/ruling.md"
     fs = {GOOD: "## Falsifier\nthe count does not reach zero in 30d\n",
           BARE: "# a candidate that predicts nothing\n",
-          RULING: "# Z2 ruling\nhash: abc\n"}
+          RULING: "# Z2 ruling\nHash: `real-hash-20260908`\n"}
+    RECORDS = [{"path": RULING, "title": "ruling"}]
     base = {"decision_window_days": 2, "ratifiers": ["Night"],
-            "counts": {"candidates": 1, "records": 0}, "records": [], "excluded": []}
+            "counts": {"candidates": 1, "records": 1}, "records": RECORDS, "excluded": []}
 
     def check(candidate: dict, tree: list[str] | None = None, **over):
         idx = {**base, **over, "candidates": [candidate]}
         return validate(idx, tree or [], today, files=fs)
+
+    signed = {"status": "ratified", "ratified_by": "Night", "ratified_at": "2026-09-12",
+              "z2_ruling": RULING, "z2_hash": "real-hash-20260908"}
 
     ok = {"q_id": "Q-GOOD-01", "title": "t", "path": GOOD,
           "submitted": "2026-09-12", "status": "awaiting_z2"}
@@ -322,25 +414,48 @@ def run_smoke_test() -> int:
     errs, warns, _ = check(ok)
     assert not errs and not warns, (errs, warns)
 
+    # A correctly signed ratification passes.
+    errs, warns, _ = check({**ok, **signed})
+    assert not errs and not warns, (errs, warns)
+
     # A signature Z1 wrote for itself must be refused.
-    errs, _, _ = check({**ok, "status": "ratified", "ratified_by": "Claude",
-                        "ratified_at": "2026-09-12", "z2_ruling": RULING})
+    errs, _, _ = check({**ok, **signed, "ratified_by": "Claude"})
+    assert any("cannot grant itself" in e for e in errs), errs
+
+    # ...and it must not be possible to authorize oneself by editing the index.
+    errs, _, _ = check({**ok, **signed, "ratified_by": "Claude"},
+                       ratifiers=["Night", "Claude"])
+    assert any("not in KNOWN_RATIFIERS" in e for e in errs), errs
     assert any("cannot grant itself" in e for e in errs), errs
 
     # A ratification with no ruling to point at must be refused.
-    errs, _, _ = check({**ok, "status": "ratified", "ratified_by": "Night",
-                        "ratified_at": "2026-09-12"})
+    errs, _, _ = check({**ok, **signed, "z2_ruling": None})
     assert any("requires z2_ruling" in e for e in errs), errs
 
     # ...and one pointing at a file that does not exist.
-    errs, _, _ = check({**ok, "status": "ratified", "ratified_by": "Night",
-                        "ratified_at": "2026-09-12", "z2_ruling": "z1-inbox/x/ghost.md"})
+    errs, _, _ = check({**ok, **signed, "z2_ruling": "z1-inbox/x/ghost.md"})
     assert any("does not resolve to a file" in e for e in errs), errs
 
+    # ...and one whose ruling is not itself covered by the index.
+    errs, _, _ = check({**ok, **signed, "z2_ruling": BARE}, records=[],
+                       counts={"candidates": 1, "records": 0})
+    assert any("not indexed under records" in e for e in errs), errs
+
+    # A ratification must name a hash, and the ruling must carry it.
+    errs, _, _ = check({**ok, **signed, "z2_hash": None})
+    assert any("requires z2_hash" in e for e in errs), errs
+    errs, _, _ = check({**ok, **signed, "z2_hash": "invented-hash"})
+    assert any("does not appear in" in e for e in errs), errs
+
     # A signature back-dated before submission must be refused.
-    errs, _, _ = check({**ok, "status": "ratified", "ratified_by": "Night",
-                        "ratified_at": "2026-09-01", "z2_ruling": RULING})
+    errs, _, _ = check({**ok, **signed, "ratified_at": "2026-09-01"})
     assert any("precedes submitted" in e for e in errs), errs
+
+    # An index path must stay inside z1-inbox/: absolute discards ROOT, and
+    # `../` walks out of it.
+    for escape in ("/etc/passwd", "z1-inbox/../../etc/passwd", "../secrets.md"):
+        errs, _, _ = check({**ok, "path": escape})
+        assert any("not a normalized relative path" in e for e in errs), (escape, errs)
 
     # An undecided candidate must not carry a signature.
     errs, _, _ = check({**ok, "ratified_by": "Night"})
@@ -388,10 +503,29 @@ def run_smoke_test() -> int:
                            "records": [{"path": GOOD, "status": "ratified"}]}, [], today, files=fs)
     assert any("must not carry 'status'" in e for e in errs), errs
 
-    print("smoke-test OK — 14 rules driven red: self-grant, unsourced/back-dated/ghost "
-          "ratification, signed-while-open, stretched window, uncovered file, false count, "
-          "malformed q_id, missing falsifier, waiver misuse, decision fields on records; "
-          "waived and overdue warn only.")
+    # The SSOT must not be parsed the loose way: yaml.safe_load keeps the last
+    # of a duplicate key, which is the defect that left the Z2 gate dead.
+    import tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False,
+                                     encoding="utf-8") as fh:
+        fh.write("ratifiers: [Night]\nratifiers: [Claude]\n")
+        dup_path = fh.name
+    try:
+        assert yaml.safe_load(open(dup_path, encoding="utf-8"))["ratifiers"] == ["Claude"], \
+            "safe_load no longer silently takes the last duplicate; revisit this test"
+        try:
+            load_index(dup_path)
+            raise AssertionError("load_index accepted a duplicate key")
+        except yaml.YAMLError as exc:
+            assert "duplicate key" in str(exc), exc
+    finally:
+        os.unlink(dup_path)
+
+    print("smoke-test OK — 20 rules driven red: self-grant (including via a widened "
+          "ratifiers list), unsourced/unindexed/ghost/back-dated/unhashed ratification, "
+          "signed-while-open, stretched window, path escape, uncovered file, false count, "
+          "malformed q_id, missing falsifier, waiver misuse, decision fields on records, "
+          "duplicate SSOT keys; waived and overdue warn only.")
     return 0
 
 
@@ -408,7 +542,12 @@ def main() -> int:
         print(f"::error::missing {os.path.relpath(INDEX, ROOT)}")
         return 1
 
-    index = yaml.safe_load(open(INDEX, encoding="utf-8")) or {}
+    try:
+        index = load_index(INDEX)
+    except yaml.YAMLError as exc:
+        print(f"::error::z1-inbox/INDEX.yaml does not parse: "
+              f"{str(exc).splitlines()[-1].strip()}")
+        return 1
     errors, warnings, report = validate(index, scan_tree(), datetime.date.today())
 
     if args.report:
