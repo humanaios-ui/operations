@@ -1,0 +1,404 @@
+# RESOURCE_UNITS.yaml — canonical unit registry for HumanAIOS resource-based operations
+#
+# Status: CANDIDATE. Z1 proposes; Z2 ratifies (CLAUDE.md → Decision Routing).
+# Nothing in this file takes effect until `ratification_hash` is non-null.
+#
+# Reading order: docs/RESOURCE_BASED_ECONOMICS.md defines the regime; this file
+# is the machine-readable unit map it refers to. tools/resource_census_v0_1.py
+# and tools/resource_ledger_v0_1.py both read this file and refuse any unit that
+# is not registered here.
+#
+# The one rule that makes this a resource system rather than a currency:
+# units in different dimensions DO NOT convert. There is no numeraire. The only
+# legal exchange rate is a PRICE event measured at a named constraint, over a
+# named window, with n >= shadow_price_min_n observations and a source. Anything
+# else is refused by the ledger.
+---
+version: "0.1"
+schema_version: "1.0"
+status: CANDIDATE
+ratification_hash: null
+ratified_at: null
+proposed_by: "Z1 (Claude)"
+proposed_at: "2026-09-13"
+proposal_row: "Q-RBE-01"
+
+policy:
+  conversion: none_by_default
+  conversion_requires:
+    - "a PRICE event in ledgers/RESOURCE_LEDGER.jsonl"
+    - "n >= shadow_price_min_n paired observations"
+    - "a named window (the rate expires with it)"
+    - "a named constraint (the rate is a margin AT that constraint, not a global value)"
+    - "a source (sha, path, or ledger head)"
+  shadow_price_min_n: 8
+  unpriced_work_order: REFUSED_TO_START   # takes effect only on ratification; see Q-RBE-01
+  unit_without_instrument: CANDIDATE      # a unit nobody can measure is not registered
+
+# The binding constraint. Everything else is scheduled around it.
+# Designation is a measurement, not a preference — resource_census_v0_1.py
+# recomputes utilization per unit each cycle and the designation moves if the
+# measurement moves.
+constraint:
+  unit: RAT-min
+  designation_basis: "outputs/resource_census.json — open obligations priced against declared capacity"
+  review_cadence_days: 14
+  falsifier: >-
+    If two consecutive censuses show another registered input unit at higher
+    utilization than RAT-min, the constraint designation is wrong and moves to
+    that unit. If RAT-min capacity is declared and utilization falls below 1.0
+    for two consecutive censuses with the obligation backlog flat or falling,
+    Z2 attention is not the binding constraint and this designation is retired.
+
+# Non-commensurable axes. Two units in different dimensions are never added,
+# subtracted, or traded off arithmetically without a PRICE event.
+dimensions:
+  attention:
+    definition: "Irreplaceable human decision capacity. Cannot be bought, batched, or parallelized without changing what it produces."
+    commensurable_with: []
+  compute:
+    definition: "Machine inference and CI capacity. Purchasable, parallelizable, metered by the vendor."
+    commensurable_with: []
+  labor:
+    definition: "Executor working time that lands ratified changes."
+    commensurable_with: []
+  capital:
+    definition: "Money and the operating time it buys."
+    commensurable_with: []
+  participation:
+    definition: "Time given by external humans (specimens, practice leads, collaborators)."
+    commensurable_with: []
+  evidence:
+    definition: "Verified observations the organization has produced and can cite. The output good."
+    commensurable_with: []
+  assurance:
+    definition: "Ratified state: decisions, constants, and artifacts carrying a Z2 hash."
+    commensurable_with: []
+
+units:
+
+  # ---------------------------------------------------------------- inputs
+  - symbol: RAT-min
+    name: "Z2 ratification-minute"
+    status: REGISTERED
+    dimension: attention
+    kind: flow
+    sign: positive
+    conservation: renewable
+    period: week
+    owner_zone: Z2
+    definition: >-
+      One minute of Admiral (Z2) attention spent reading a candidate and emitting
+      a signed decision — ACCEPT, EDIT, or REJECT. Not general operator time:
+      only the ratification act, because that is what every downstream zone waits on.
+    instrument:
+      primary: "ledgers/RESOURCE_LEDGER.jsonl — SPEND rows, unit RAT-min, source = the RATIFY hash"
+      secondary: "REGISTERED.md RATIFY event timestamps (interval between successive signatures)"
+      census: "tools/resource_census_v0_1.py (demand side: open obligations × declared priors)"
+    measurement_procedure: >-
+      Z2 records elapsed minutes with each signature, or the census imputes demand
+      from open obligations using demand_priors below. Imputed values are marked
+      PRIOR and are replaced the first time a real SPEND row lands.
+    capacity:
+      value: null
+      unit: "RAT-min per week"
+      status: UNMEASURED
+      source: null
+      note: "Z2 declares this via `resource_ledger_v0_1.py cap RAT-min <n> --by Z2 --hash <h>`. Until then every utilization figure is undefined, and the census reports demand only."
+    substitutes: []          # delegation would be a substitute; no delegate is assigned (ZONE_REGISTRY: Z3 executors TBD)
+    falsifier: >-
+      If the backlog of open obligations falls while no RAT-min is spent, then
+      obligations are closing by some path other than Z2 attention and this unit
+      does not measure what it claims to.
+
+  - symbol: Z1-ktok
+    name: "Z1 proposer thousand-tokens"
+    status: REGISTERED
+    dimension: compute
+    kind: flow
+    sign: positive
+    conservation: renewable
+    period: session
+    owner_zone: Z1
+    definition: "One thousand model tokens spent by a Z1 proposer producing candidate blocks, analyses, or tools."
+    instrument:
+      primary: "behavior_spec.json → caps.token_budget_per_session (100000 tokens = 100 Z1-ktok per session)"
+      secondary: "agent_caps_runtime.py CapEnforcer counters"
+    measurement_procedure: "Cap enforcer counts tokens per session; ledger SPEND rows record the draw per work order."
+    capacity:
+      value: 100
+      unit: "Z1-ktok per session"
+      status: DECLARED
+      source: "behavior_spec.json molt_id M-20260910-CAPS-01"
+    substitutes: []
+    falsifier: "If sessions routinely complete work orders without the cap binding, Z1-ktok is abundant and does not belong in the allocation problem."
+
+  - symbol: Z3-hr
+    name: "Executor hour"
+    status: REGISTERED
+    dimension: labor
+    kind: flow
+    sign: positive
+    conservation: renewable
+    period: week
+    owner_zone: Z3
+    definition: "One hour of executor time landing a ratified change: merge, deploy, run an experiment, emit a VERDICT."
+    instrument:
+      primary: "ledgers/RESOURCE_LEDGER.jsonl — SPEND rows, unit Z3-hr, source = merged sha or VERDICT event"
+    measurement_procedure: "Executor records hours against the work order at close."
+    capacity:
+      value: null
+      unit: "Z3-hr per week"
+      status: UNMEASURED
+      source: null
+      note: "ZONE_REGISTRY.md lists most Z3 executor seats as TBD. Capacity is unknown because the seats are unfilled, not because the measurement is hard."
+    substitutes:
+      - unit: Z1-ktok
+        rate: null
+        status: UNMEASURED
+        note: "Agent execution can substitute for executor hours on some order classes. The rate is a PRICE event, not an assumption."
+    falsifier: "If work orders close with no Z3-hr recorded and no agent SPEND either, execution is happening off-ledger and this unit is not measuring it."
+
+  - symbol: CI-min
+    name: "CI runner minute"
+    status: REGISTERED
+    dimension: compute
+    kind: flow
+    sign: positive
+    conservation: depletable
+    period: month
+    owner_zone: CI
+    definition: "One minute of hosted CI runner time consumed by the gate stack on a PR or push."
+    instrument:
+      primary: "GitHub Actions billing / workflow run durations across .github/workflows/*"
+    measurement_procedure: "Sum of run durations attributed to the work order's PRs."
+    capacity:
+      value: null
+      unit: "CI-min per month"
+      status: UNMEASURED
+      source: null
+      note: "Externally capped by the plan; the cap is knowable but has not been read into the registry."
+    substitutes: []
+    falsifier: "If the gate stack never approaches the plan cap, CI-min is not scarce and drops out of the allocation problem."
+
+  - symbol: RUN-day
+    name: "Runway-day"
+    status: REGISTERED
+    dimension: capital
+    kind: stock
+    sign: positive
+    conservation: depletable
+    period: null
+    owner_zone: Z2
+    definition: >-
+      One day of continued operation funded at the current burn. Capital is held
+      as DURATION, not as currency, because the operational question is never
+      'how many dollars' but 'how many more days of deciding'.
+    instrument:
+      primary: "Class 1 live state (WGS #wgs-sync runway post) — see CURRENT.md §7"
+    measurement_procedure: "cash_on_hand / daily_burn, read from the live-state post, not restated in this file (CURRENT.md §5 drift rule)."
+    capacity:
+      value: null
+      status: UNMEASURED
+      source: "Class 1 live state — not read into this registry; do not restate a runway number in-tree"
+    substitutes: []
+    falsifier: "If operations continue unchanged through a RUN-day balance of zero, the burn model is wrong and the unit is mis-specified."
+
+  - symbol: SPEC-hr
+    name: "Specimen-hour"
+    status: REGISTERED
+    dimension: participation
+    kind: flow
+    sign: positive
+    conservation: depletable
+    period: cycle
+    owner_zone: Z3
+    definition: "One hour of external human participant time inside a specimen-intake cycle."
+    instrument:
+      primary: "specimen-intake.yml cycle records; private specimen register (off-tree, per Q-SI-C1-B2)"
+    measurement_procedure: "Hours contracted per cycle; recorded in the private register, aggregated to the ledger as counts only."
+    capacity:
+      value: null
+      unit: "SPEC-hr per cycle"
+      status: UNMEASURED
+      source: null
+    substitutes: []
+    privacy: "Aggregate only. No identity, contract id, or rate enters the tree (Q-SI-C1-B2 falsifier)."
+    falsifier: "If cycle outputs are unchanged across a 2x change in SPEC-hr, participant time is not the input the cycle is actually consuming."
+
+  # ---------------------------------------------------------------- outputs
+  - symbol: EVID-row
+    name: "Evidence row"
+    status: REGISTERED
+    dimension: evidence
+    kind: stock
+    sign: positive
+    conservation: non_depleting
+    period: null
+    owner_zone: Z3
+    definition: >-
+      One resolved observation carrying a source: a RESOLVE event with a tree-read
+      sha, a scored assessment row, a VERDICT with its evidence. The organization's
+      product. Non-depleting: spending it does not consume it.
+    instrument:
+      primary: "ledgers/NF_LEDGER.jsonl — RESOLVE events with a non-null source"
+      secondary: "acat_assessments_v1 rows (Supabase, Class 7)"
+    measurement_procedure: "Count of RESOLVE events with source; counted once, never decremented."
+    capacity: {value: null, status: NOT_APPLICABLE, source: null}
+    substitutes: []
+    falsifier: "If an EVID-row count rises while no new sourced resolution lands, the counter is counting claims rather than evidence — the IC-031 failure mode in unit form."
+
+  - symbol: CAL-pt
+    name: "Calibration point"
+    status: REGISTERED
+    dimension: evidence
+    kind: stock
+    sign: positive
+    conservation: non_depleting
+    period: null
+    owner_zone: Z1
+    definition: "One resolved forecast that is scoreable into a Brier score — a pin whose target resolved and whose date was signed."
+    instrument:
+      primary: "tools/nf_ledger_v0_1.py score — scoreable resolved pins"
+    measurement_procedure: "Pins where pin_outcome() returns 1.0 or 0.0 (not None, not VOID)."
+    capacity: {value: null, status: NOT_APPLICABLE, source: null}
+    substitutes: []
+    falsifier: "If Brier is reported while this count is zero, the score is undefined and the unit has been bypassed."
+
+  - symbol: RAT-art
+    name: "Ratified artifact"
+    status: REGISTERED
+    dimension: assurance
+    kind: stock
+    sign: positive
+    conservation: degradable
+    period: null
+    owner_zone: Z2
+    definition: "One artifact carrying a Z2 ratification hash: a registered finding, a ratified constant, a signed queue, a landed molt."
+    instrument:
+      primary: "REGISTERED.md entries with status REGISTERED/ACTIVE/CONFIRMED"
+      secondary: "constants.json entries with non-null molt_id; GOVERNANCE_RATIFICATIONS_REGISTRY.yaml"
+    measurement_procedure: "Count of hash-carrying entries. Degradable: see STALE-day."
+    capacity: {value: null, status: NOT_APPLICABLE, source: null}
+    substitutes: []
+    falsifier: "If an artifact counted here has no recoverable hash, the count is of intentions, not ratifications."
+
+  # ------------------------------------------------------- liabilities / waste
+  - symbol: OBL-open
+    name: "Open obligation"
+    status: REGISTERED
+    dimension: attention
+    kind: stock
+    sign: negative
+    conservation: depletable
+    period: null
+    owner_zone: Z2
+    definition: >-
+      One item that cannot progress until a specific Z2 act occurs. Priced in
+      RAT-min via demand_priors. This is the balance-sheet liability of the
+      attention dimension: the backlog is debt denominated in the constraint unit.
+    instrument:
+      primary: "tools/resource_census_v0_1.py → outputs/resource_census.json (obligations by class)"
+    measurement_procedure: "Mechanical count per class from REGISTERED.md, NF_LEDGER.jsonl, constants.json, PRIORITY_QUEUE.md, document-registry.yaml."
+    capacity: {value: null, status: NOT_APPLICABLE, source: null}
+    substitutes: []
+    falsifier: "If an item counted as an obligation closes without any Z2 act, it was never an obligation and the class definition is wrong."
+
+  - symbol: GAP-row
+    name: "Receipt gap"
+    status: REGISTERED
+    dimension: evidence
+    kind: stock
+    sign: negative
+    conservation: depletable
+    period: null
+    owner_zone: Z1
+    definition: "One claim made in a transcript or document that no ledger entry supports — the IC-031 cost class, carried as a liability against the evidence stock."
+    instrument:
+      primary: "receipt_reconciliation.py output; RECEIPT-GAP callouts routed to PRIORITY_QUEUE.md"
+    measurement_procedure: "Count of open RECEIPT-GAP rows."
+    capacity: {value: null, status: NOT_APPLICABLE, source: null}
+    substitutes: []
+    falsifier: "If reconciliation runs clean while documented claims still lack ledger entries, the walk is not covering the claim surface."
+
+  - symbol: STALE-day
+    name: "Stale constant-day"
+    status: REGISTERED
+    dimension: assurance
+    kind: flow
+    sign: negative
+    conservation: degradable
+    period: day
+    owner_zone: Z1
+    definition: >-
+      One day a ratified constant has gone unre-read past its half-life. Assurance
+      decays: a hash signed long enough ago no longer certifies present state.
+    instrument:
+      primary: "stale_sweep.py; constants.json measurement_window_days per constant"
+    measurement_procedure: "Σ over constants of max(0, days_since_ratified − half_life_days)."
+    capacity: {value: null, status: NOT_APPLICABLE, source: null}
+    substitutes: []
+    falsifier: "If a constant past half-life is re-read and found unchanged on every sweep, the half-life is mis-set and the decay is imaginary."
+
+  # ------------------------------------------------------------- candidates
+  # Registered only when an instrument exists. Listed so the gap is visible
+  # rather than silently absent — an unmeasured resource is still a resource.
+  - symbol: TRUST-pt
+    name: "External credibility point"
+    status: CANDIDATE
+    dimension: assurance
+    kind: stock
+    sign: positive
+    conservation: degradable
+    owner_zone: Z2
+    definition: "Standing with external parties (collaborators, reviewers, funders) that makes future asks cheaper."
+    instrument: {primary: null}
+    blocker: "No instrument. Promote to REGISTERED only when a mechanical measurement exists that is not a self-report."
+    falsifier: "Any proposed instrument that a Z1 session can move on its own is measuring self-assessment, not standing."
+
+  - symbol: OP-hr
+    name: "Operator hour (non-ratification)"
+    status: CANDIDATE
+    dimension: attention
+    kind: flow
+    sign: positive
+    conservation: renewable
+    owner_zone: Z2
+    definition: "Admiral time spent on anything other than ratification — strategy, outreach, recovery of context."
+    instrument: {primary: null}
+    blocker: "Not separately logged today. Registering it without an instrument would let RAT-min demand hide inside it."
+    falsifier: "If ratification minutes cannot be separated from operator hours in practice, RAT-min should be retired in favour of this coarser unit."
+
+# Imputed prices for obligation classes, in RAT-min per item. These are PRIORS —
+# Z1 estimates with no measurement behind them. They exist so the constraint can
+# be loaded at all before the first real SPEND row lands, and every census output
+# that uses them is tagged `basis: PRIOR`.
+demand_priors:
+  confidence: low
+  proposed_by: "Z1 (Claude), 2026-09-13"
+  falsifier: >-
+    Each prior is replaced by the measured median RAT-min from SPEND rows of that
+    class once n >= 5. If a measured median differs from its prior by more than
+    2x, the census re-runs and the affected priority ordering is re-derived.
+  classes:
+    registry_candidate:      {rat_min: 12, basis: "read a candidate block with evidence and falsifier, then sign ACCEPT/EDIT/REJECT"}
+    nf_token_date:           {rat_min: 3,  basis: "set or strike one date on a Z1-proposed token"}
+    nf_z2_prior:             {rat_min: 5,  basis: "enter one probability as an independent forecast"}
+    nf_past_date_resolution: {rat_min: 10, basis: "resolve a token by tree read, with source sha"}
+    constant_ratification:   {rat_min: 15, basis: "read trigger, window, falsifier, revert rule; assign molt_id"}
+    queue_row_ratification:  {rat_min: 8,  basis: "confirm impact score and status transition for one row"}
+    queue_hash:              {rat_min: 10, basis: "sign the queue file as a whole"}
+    doc_owner_approval:      {rat_min: 20, basis: "read a controlled document end to end before approving"}
+    molt_candidate:          {rat_min: 20, basis: "read prediction, window, falsifier; check anti-cascade rules 1-5"}
+
+# Accounting identities the ledger enforces. Stated here so they are auditable
+# independently of the implementation.
+identities:
+  conservation: "for each depletable unit u and period t: open(u,t) + inflow(u,t) - spend(u,t) = close(u,t)"
+  yield_density: >-
+    density(order) = Σ yield(order, units in the `evidence` dimension) / spend(order, constraint unit).
+    ONE dimension in the numerator: adding EVID-row to RAT-art would assert the commensurability
+    this registry denies. Per-unit figures are reported separately (`yield_density_by_unit`).
+  utilization: "utilization(u,t) = demand(u,t) / capacity(u,t); undefined (null) when capacity is UNMEASURED"
+  backlog_debt: "debt(t) = Σ over obligation classes of count_c(t) × price_c  [RAT-min]"
+  clearance_time: "weeks_to_clear = debt(t) / capacity(RAT-min); undefined while capacity is UNMEASURED"
