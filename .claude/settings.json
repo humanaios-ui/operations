@@ -3,5 +3,18 @@
     "type": "command",
     "command": "python3 ~/.claude/plugins/local/empirica/scripts/statusline_empirica.py",
     "refresh_ms": 5000
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/tools/tool_trace_hook_v1_0.py\""
+          }
+        ]
+      }
+    ]
   }
 }
