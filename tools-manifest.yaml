@@ -198,6 +198,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: false
+  purpose: ⚠️  **DO NOT USE** — ARCHIVED (2026-07-16)
 - tool_id: HAIOS-TOOL-013
   name: acat_full_adversarial_suite_execution
   path: tools/acat_full_adversarial_suite_execution.py
@@ -334,6 +335,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
+  purpose: ACAT SDT Analytics — v1.0
   session: S-052726-MKS
 - tool_id: HAIOS-TOOL-024
   name: acat_session_validator

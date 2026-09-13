@@ -32,7 +32,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
-| HAIOS-TOOL-023 | acat_sdt_analytics | `tools/acat_sdt_analytics_v1_0.py` | 1.0.0 | 1 | draft | — | — |
+| HAIOS-TOOL-023 | acat_sdt_analytics | `tools/acat_sdt_analytics_v1_0.py` | 1.0.0 | 1 | draft | — | ACAT SDT Analytics — v1.0 |
 
 ## Audit — `audit_tool` (12)
 
@@ -169,7 +169,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-005 | main | `tools/Metaculus/main.py` | 1.0.0 | 1 | draft | — | Session: S-060526-NN-forecast-bot-comment-fix |
 | HAIOS-TOOL-007 | acat_adversarial_execution | `tools/acat_adversarial_execution_v1.py` | 1.0.0 | 1 | draft | no-builder-markers, no-smoke-test | ACAT Adversarial Test Execution v1.0 — Execute against Live Scorer |
 | HAIOS-TOOL-008 | acat_adversarial_suite | `tools/acat_adversarial_suite_v1.py` | 1.0.0 | 1 | draft | no-builder-markers, no-smoke-test | ACAT Adversarial Test Suite v1.0 — Priority 6 EU AI Act Compliance |
-| HAIOS-TOOL-012 | acat_document_analyzer | `tools/acat_document_analyzer_v1_2_ARCHIVED_2026-07-16.py` | 1.3.0 | 1 | archived | no-builder-markers | — |
+| HAIOS-TOOL-012 | acat_document_analyzer | `tools/acat_document_analyzer_v1_2_ARCHIVED_2026-07-16.py` | 1.3.0 | 1 | archived | no-builder-markers | ⚠️  **DO NOT USE** — ARCHIVED (2026-07-16) |
 | HAIOS-TOOL-013 | acat_full_adversarial_suite_execution | `tools/acat_full_adversarial_suite_execution.py` | 1.0.0 | 1 | draft | no-builder-markers, no-smoke-test | Full 27-Test Adversarial Suite Execution Against Patched ACAT Scorer |
 | HAIOS-TOOL-014 | acat_mcp_full_wrapper | `tools/acat_mcp_full_wrapper_v1.2.py` | 1.0.0 | 1 | draft | — | ⚠️ SUPERSEDED — Do NOT use this version |
 | HAIOS-TOOL-015 | acat_mcp_full_wrapper_v1_2_patched | `tools/acat_mcp_full_wrapper_v1_2_patched.py` | 1.0.0 | 1 | draft | — | acat_mcp_full_wrapper_v1.2.py |

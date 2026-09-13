@@ -89,6 +89,11 @@ _CONST_RE = {
 # (tool_scaffolder) carry placeholders such as `{tool_type}`; those fall back to
 # the curated value rather than polluting the category vocabulary.
 _CATEGORY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+# Module docstring: skip the shebang, encoding line, comments and blank lines,
+# then take the first triple-quoted string. `(?s)` so the body may span lines.
+_DOCSTRING_RE = re.compile(
+    r"(?s)\A(?:\s*(?:#[^\n]*)?\n)*\s*[rRuUbB]{0,2}(?P<q>\"{3}|'{3})(?P<body>.*?)(?P=q)"
+)
 _SMOKE_RE = re.compile(r"smoke[-_ ]?test", re.I)
 _BUILDER_RE = re.compile(r"Builder v1\.7 compliant", re.I)
 _README_ROW_RE = re.compile(
@@ -107,14 +112,26 @@ def _literal(raw: str) -> Any:
         return raw.strip().strip("\"'")
 
 
+def _module_docstring(src: str) -> str:
+    """The module docstring, found textually rather than by parsing.
+
+    Deliberately NOT `ast.parse` + `ast.get_docstring`. The tool corpus is
+    heterogeneous and some files parse differently across interpreter versions:
+    `tools/acat_sdt_analytics_v1_0.py` puts a backslash inside an f-string
+    expression, which is a SyntaxError before Python 3.12 and legal from 3.12
+    (PEP 701). Extracting via the parser therefore made the manifest depend on
+    which interpreter ran the scan — CI (3.14) produced a different manifest
+    than a 3.11 developer machine, and `--check` reported a phantom "stale".
+    A regex sees the same bytes on every version.
+    """
+    m = _DOCSTRING_RE.match(src)
+    return m.group("body") if m else ""
+
+
 def _docstring_summary(src: str, path: str) -> str:
     """First meaningful line of the module docstring (or the shebang comment)."""
     if path.endswith(".py"):
-        try:
-            mod = ast.parse(src)
-            doc = ast.get_docstring(mod) or ""
-        except SyntaxError:
-            doc = ""
+        doc = _module_docstring(src)
         for line in doc.splitlines():
             line = line.strip()
             if line and not _BUILDER_RE.search(line) and not line.startswith("HumanAIOS"):
@@ -362,6 +379,25 @@ def write(manifest: dict) -> str:
     return HEADER + "---\n" + body
 
 
+def _first_difference(old: dict, new: dict) -> str:
+    """Describe the first place two manifests disagree, for an actionable error."""
+    old_tools = {t.get("path"): t for t in (old.get("tools") or [])}
+    new_tools = {t.get("path"): t for t in (new.get("tools") or [])}
+    for path in sorted(set(new_tools) - set(old_tools)):
+        return f"'{path}' is on disk but not in the manifest"
+    for path in sorted(set(old_tools) - set(new_tools)):
+        return f"'{path}' is in the manifest but no longer on disk"
+    for path in sorted(new_tools):
+        before, after = old_tools[path], new_tools[path]
+        for key in sorted(set(before) | set(after)):
+            if before.get(key) != after.get(key):
+                return f"{path}: {key} {before.get(key)!r} -> {after.get(key)!r}"
+    for key in ("counts", "categories", "mcp_servers", "excluded", "scan_roots", "excluded_dirs"):
+        if old.get(key) != new.get(key):
+            return f"top-level '{key}' differs: {old.get(key)!r} -> {new.get(key)!r}"
+    return "metadata header differs"
+
+
 def load_prev() -> dict:
     if os.path.exists(MANIFEST):
         return yaml.safe_load(open(MANIFEST, encoding="utf-8")) or {}
@@ -396,6 +432,27 @@ def run_smoke_test() -> int:
         r = extract(p)
         assert "declared_category" not in r, r
         assert "declared_zone" not in r, r
+
+        # Regression: docstring extraction must not depend on the interpreter
+        # version. A backslash inside an f-string expression is a SyntaxError
+        # before 3.12 and legal from 3.12 (PEP 701); parsing-based extraction
+        # made CI and local machines disagree. See _module_docstring.
+        open(p, "w").write(
+            '#!/usr/bin/env python3\n'
+            '# -*- coding: utf-8 -*-\n'
+            '"""Version-independent summary.\n\nmore text\n"""\n'
+            'x = f"{chr(92)}"\n'
+            'def broken(:\n'
+        )
+        r = extract(p)
+        assert r["summary"] == "Version-independent summary.", r
+        import ast as _ast
+        try:
+            _ast.parse(open(p).read())
+            parses = True
+        except SyntaxError:
+            parses = False
+        assert not parses, "probe should be unparseable, proving extraction is parser-free"
     assert _default_status("tools/x_ARCHIVED_2026-07-16.py") == "archived"
     assert _default_status("tools/x.py") == "draft"
     found = discover()
@@ -419,9 +476,14 @@ def main() -> int:
     out = write(manifest)
 
     if args.check:
-        current = open(MANIFEST, encoding="utf-8").read() if os.path.exists(MANIFEST) else ""
-        if current != out:
+        # Compare the DATA, not the bytes: the SSOT is the structure, and a
+        # PyYAML or formatting difference between a developer machine and CI is
+        # not staleness. `_first_difference` names what actually changed so a
+        # failure is actionable instead of just "stale".
+        current = load_prev()
+        if current != manifest:
             print("::error::tools-manifest.yaml is stale — run `python3 .tool-control/scan.py` and commit.")
+            print(f"::error::first difference: {_first_difference(current, manifest)}")
             return 1
         print(f"tool-manifest: up to date — {manifest['counts']['tools']} tools, "
               f"{manifest['counts']['mcp_servers']} MCP servers.")
