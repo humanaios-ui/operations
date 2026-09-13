@@ -16,25 +16,51 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Install PyYAML
+        run: python3 -m pip install --quiet pyyaml
 
       - name: Build consistency matrix
         id: matrix
         run: |
           python3 << 'PYTHON_EOF'
           import json
+          import os
           import yaml
           from datetime import datetime
 
-          # Load the governance registry
-          with open('GOVERNANCE_RATIFICATIONS_REGISTRY.yaml', 'r') as f:
-              registry = yaml.safe_load(f)
+          divergences = []
 
-          # Load authority assignments
-          with open('AUTHORITY_ASSIGNMENTS.yaml', 'r') as f:
-              authorities = yaml.safe_load(f)
+          def add_divergence(entry):
+              if entry not in divergences:
+                  divergences.append(entry)
+
+          def load_yaml_file(path, missing_default):
+              if not os.path.exists(path):
+                  add_divergence({
+                      "type": "MISSING",
+                      "severity": "HIGH",
+                      "file": path,
+                      "description": f"Required governance file missing: {path}",
+                  })
+                  return missing_default
+              try:
+                  with open(path, 'r') as f:
+                      return yaml.safe_load(f) or missing_default
+              except Exception as exc:
+                  add_divergence({
+                      "type": "INVALID",
+                      "severity": "HIGH",
+                      "file": path,
+                      "description": f"Failed to load {path}: {exc}",
+                  })
+                  return missing_default
+
+          registry = load_yaml_file('GOVERNANCE_RATIFICATIONS_REGISTRY.yaml', {})
+          authorities = load_yaml_file('AUTHORITY_ASSIGNMENTS.yaml', {})
 
           # Build consistency matrix
           matrix = {
@@ -58,11 +84,10 @@ jobs:
                       "status": "healthy",
                   }
               },
-              "divergences": [],
+              "divergences": divergences,
           }
 
           # Check for missing governance files
-          import os
           required_files = [
               'GOVERNANCE_RATIFICATIONS_REGISTRY.yaml',
               'AUTHORITY_ASSIGNMENTS.yaml',
@@ -73,7 +98,7 @@ jobs:
 
           for fname in required_files:
               if not os.path.exists(fname):
-                  matrix["divergences"].append({
+                  add_divergence({
                       "type": "MISSING",
                       "severity": "HIGH",
                       "file": fname,
@@ -99,6 +124,8 @@ jobs:
         run: |
           python3 << 'PYTHON_EOF'
           import json
+          import os
+          import sys
 
           with open('consistency-matrix.json', 'r') as f:
               matrix = json.load(f)
@@ -120,8 +147,12 @@ jobs:
               for div in medium_severity:
                   print(f"  - {div.get('type')}: {div.get('description')}")
 
-          echo "high_severity_count=$(echo $high_severity | wc -l)" >> $GITHUB_OUTPUT
-          echo "medium_severity_count=$(echo $medium_severity | wc -l)" >> $GITHUB_OUTPUT
+          with open(os.environ["GITHUB_OUTPUT"], "a") as gh:
+              gh.write(f"high_severity_count={len(high_severity)}\n")
+              gh.write(f"medium_severity_count={len(medium_severity)}\n")
+
+          if high_severity:
+              sys.exit(1)
           PYTHON_EOF
 
       - name: Upload consistency matrix

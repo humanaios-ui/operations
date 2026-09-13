@@ -82,6 +82,9 @@ superseded_by: null | "F-XX"
 |F-53                  |Cross-Substrate Verification Confidence Cascade                     |CANDIDATE |2026-06-17|
 |F-54                  |RLHF-Artifact Rejection (universal S-H/T-H self-report gap)          |CANDIDATE |2026-07-01|
 |F-55                  |Calibration Triad (Truth+Service+Humility)                          |CANDIDATE |2026-07-01|
+|F-62                  |Ratification Attention Is Binding Constraint, Oversubscribed         |REGISTERED|2026-09-13|
+|F-63                  |Benefit-Only Queue Cannot Reject Work                                |REGISTERED|2026-09-13|
+|F-64                  |Assurance Accumulating; Evidence Not                                 |REGISTERED|2026-09-13|
 
 -----
 
@@ -3431,6 +3434,31 @@ superseded_by: null
 
 -----
 
+### IC-053 — Q-SI-C1-B3 Global Constant Count as Local Acceptance Gate
+
+```yaml
+---
+id: "IC-053"
+name: "global-count-as-local-gate"
+status: REGISTERED
+class: IC
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P2"]
+related_finding: ["F-62", "F-63", "F-64"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Pattern:** A global figure (total constant count) copied into a local acceptance criterion, making the criterion brittle to unrelated changes. Same shape as maintained-headline class (IC-038, IC-022).
+- **Observation:** `Q-SI-C1-B3` acceptance criterion reads *"`molt_cycle --read-only` reports `constants: 3`"*. This is a count of the whole registry standing in for "the three specimen-intake constants load". Adding four unrelated constants (QUEUE_SCORING_MODE, CONSTRAINT_UNIT, SHADOW_PRICE_MIN_N, UNPRICED_ROW_POLICY) moves the count to 7, and the criterion now reads as failed although nothing about specimen-intake changed.
+- **Correction:** Restate Q-SI-C1-B3 acceptance criterion as *"the three specimen-intake constants are present and load"* with `scope: specimen-intake`, scoped by name rather than by global count. Fix required in PRIORITY_QUEUE.md queue row metadata.
+- **Principle P2 (Document Correction Protocol):** Scoped acceptance criteria, not global counts.
+
+-----
+
 ### IC-041 — Audit False-Pass — FIX-NOT-LANDED CORRECTION
 
 ```
@@ -3612,6 +3640,39 @@ superseded_by: null
 - **Prevention (proposed, pending Z2):** Rather than a bespoke new principle, extend the existing P3/IC-031 discipline explicitly to external-comms tools: after any `message_compose_v1` or `slack_send_message_draft` output, the artifact is provisional-unconfirmed until Night states (or the session otherwise confirms) it was sent — and no follow-up in the same thread should be drafted while the prior artifact's send status is unconfirmed. This is the receipt-reconciliation pattern (Skill 5) applied one domain wider, not a new mechanism.
 - **Correction:** Not yet landed. The specific unsent reply was re-answered on the next turn once the gap was identified by Night; no structural fix has been implemented.
 - **Cross-reference:** This is not a first instance of a novel gap class — it's IC-031's underlying pattern (receipt/completion overstatement) and P3's underlying discipline (verify actual state, don't trust local success signals), both already registered, appearing in a scope neither was written to cover. Recommend Z2 consider this an extension entry against IC-031's pattern family rather than a standalone new gap, with the fix being a scope-widening of an existing discipline rather than new governance.
+
+-----
+
+### IC-cand — Copilot-Instructions Workflow Drift Gap (operations, S-091326-01)
+
+```
+---
+id: "IC-cand-copilot-instructions-drift"
+name: "copilot-instructions-workflow-drift-gap"
+status: CANDIDATE
+class: IC
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-01-copilot-instructions-drift"
+principles_triggered: ["P19"]
+substrate: "Claude (Z1 draft)"
+tags: ["copilot-instructions", "drift-detection", "doc-control", "tool-control", "ci-gate-gap", "stage-7"]
+superseded_by: null
+zone2_ratification: "Night · 2026-09-13 · S-091326-01-copilot-instructions-drift · sha256:f583c5184c51cac1ffa2493b607d89b4246f73e80aac18c1d925b5f3b2267006"
+---
+```
+
+- **Synopsis:** `.github/copilot-instructions.md` (proposed in open PR #305, Stage 7 of the calibration plan — not yet merged as of this candidate) is prose describing machine-checkable state — CI gate thresholds, workflow step lists, scanner/validator behavior in `.tool-control/` and `.doc-control/`. Nothing in this repo checks that prose against the actual workflows and scripts it describes. If a referenced workflow file, script default, or threshold changes, the instructions file can silently go stale with no failing check to surface it — the same failure mode `document-registry.yaml` and `tools-manifest.yaml` were each built to close for their own domains, left open here.
+- **Detection:** Self-identified by the Z1 drafting session, in the course of directly answering an operator question about mapping the just-used adversarial-review process to 5S/Six Sigma methods (2026-09-13) — not caught by CI, by review, or by any existing gate. The near-miss is concrete, not hypothetical: PR #306, merged into `main` during the same window PR #305 was drafting §5 of the instructions file, changed `.tool-control/scan.py`'s category vocabulary and added `CATEGORY_ALIASES` — the exact subsystem §5 documents. The two files only stayed consistent because each round of PR #305 review was manually re-verified against current source; nothing would have caught a divergence if that manual step had been skipped.
+- **Root cause:** `.doc-control/render.py`'s own module docstring and `.tool-control/README.md`'s "Why this exists" section both already carry this exact lesson for their respective domains — a hand-maintained artifact describing a growing system, unchecked, silently frozen while reality moved on (`TOOLS_MANIFEST.md` written by hand for 6 tools, undetected drift to 136, per `.tool-control/README.md`; `CONTROLLED_DOCUMENTS.md` frozen at 34 entries against a registry of 46, per `.doc-control/render.py`'s docstring) — and both `document-registry.yaml`/`CONTROLLED_DOCUMENTS.md` and `tools-manifest.yaml`/`TOOLS_MANIFEST.md` now ship a CI `--check` gate (`.doc-control/render.py --check`, `.tool-control/scan.py --check` / `render.py --check`) closing exactly that loop. `.github/copilot-instructions.md` is the same shape of artifact — hand-maintained prose asserting facts about a system that keeps changing — proposed without the equivalent gate. This is an omission, not a considered exception: the pattern was already named and fixed twice in this repo, and wasn't reapplied to the third artifact of the same kind.
+- **Falsifier:** This candidate is false if this repo already has a mechanism, as of the pinned SHA, that fails CI when `.github/copilot-instructions.md`'s cited commands, thresholds, or workflow/script filenames diverge from their actual current content — i.e., falsified by finding such a check on inspection of `.github/workflows/` and `tools/`/`.tool-control/`/`.doc-control/`. None was found as of `1e1b5189f6ae657c3b1a666eb5b52194327e0b63` (2026-09-13).
+- **Prevention (proposed, pending Z2):** A lightweight mechanical check, not full semantic verification — parallel in spirit to the existing `--check` gates, not a new category of gate. Candidate shape: a CI step (or `pre-push`/`repo_health.py` addition) that extracts the literal, verifiable tokens the instructions file cites as fact — command strings, `--min-pass-rate` thresholds, workflow file names, gate step counts — and fails if they no longer appear verbatim in the referenced workflow/script files. This catches the class of drift that already occurred once (a threshold or behavior changing out from under the prose) without attempting to judge prose accuracy generally. Exact mechanism (standalone script under `.github/` vs. a `tools/` addition vs. folding into `repo_health.py`) is a design choice for Z2/whoever executes, not asserted here.
+- **Correction:** Not yet landed. No drift has yet reached `main` uncaught — this entry documents the open gap, surfaced before an incident, not a correction after one.
+- **Cross-reference:** Same underlying pattern as `.tool-control/README.md`'s own "Why this exists" section and `.doc-control/render.py`'s own docstring origin story — a third instance of "a registry/description nothing verifies degrades into a historical document," not a novel gap class. Relates to **P19 (Drift Detection Protocol)** — "the governance document is a detection instrument, not a compliance instrument" applies directly to an instructions file whose only enforcement today is a human happening to re-check it. Recommend Z2 consider this an extension of the same institutional pattern already twice-registered in this repo (`.doc-control/`, `.tool-control/`) rather than a standalone new class.
+- **Ratification:** Night · 2026-09-13T17:00:38Z · decision=ACCEPT, per her instruction on this PR's thread to record an actual signature rather than merge with `zone2_ratification: null`. The `zone2_ratification` field above records `sha256(candidate | by=Night | at=2026-09-13T17:00:38Z | decision=ACCEPT)` computed over this entry's heading-through-Cross-reference text exactly as it stood at commit `68462d7a090f4c7be3144069a5595af8613209ae` (before this Ratification line and the hash itself were added) — reproducible via `sed -n '3618,3643p' REGISTERED.md` against that commit, concatenated with `|by=Night|at=2026-09-13T17:00:38Z|decision=ACCEPT` and SHA-256'd. `status` stays `CANDIDATE` and the `IC-cand-*` slug is unchanged, matching the `IC-cand-draft-reply-send-status-gap` precedent's own pattern of a ratified-but-not-yet-terminally-numbered candidate — Night's final sequential IC number is still pending.
+
+-----
+
 ### H-CAND-INSTITUTIONAL-PARADIGM-01 — Institutional Mitigation Becomes the Dominant Deployment Paradigm
 
 ```yaml
@@ -3813,6 +3874,93 @@ superseded_by: null
 
 -----
 
+### F-62 — Ratification Attention Is the Binding Constraint, and It Is Oversubscribed
+
+```yaml
+---
+id: "F-62"
+name: "rbe-ratification-constraint-oversubscribed"
+status: REGISTERED
+class: F
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P21"]
+substrate: "resource_census_v0_1.py — mechanical obligation enumeration"
+tags: ["resource-based-economics", "constraint", "capacity", "throughput", "governance"]
+related_finding: ["F-63", "F-64"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Every zone's throughput is capacity-constrained by a single Z2 ratification queue with unmeasured service rate. Current backlog: 130 open items across 8 obligation classes, representing ~1,575 RAT-min (≈26 hours) of measured Z2 work against a capacity nobody has declared. The 48-hour decision window in CLAUDE.md is a promise made against an unknown capacity.
+- **Observation:** Registry-candidate 35 · doc-owner-approval 40 · nf-token-date 21 · nf-z2-prior 15 · nf-past-date-resolution 7 · constant-ratification 7 · queue-row-ratification 4 · queue-hash 1. Five are Q-RBE-01's own (four constants and its queue row).
+- **Structural failure:** Utilization is undefined without a declared capacity. The constraint designation moves with measurement; absent measurement, the ordering is opaque and the falsifier unreachable.
+- **Falsifier:** If obligations close over four weeks at a rate implying < 60 RAT-min/week of actual Z2 time, the demand priors are inflated. If a declared capacity puts utilization below 1.0 with the backlog flat or falling, ratification attention is not the constraint.
+- **Z2 decision:** Capacity declared at 600 RAT-min/week (2026-09-13).
+- **Evidence basis:** `outputs/resource_census.json` (obligations registry per class), `tools/resource_census_v0_1.py` (mechanical enumerator, runnable), `CLAUDE.md` (48-hour window promise), `ledgers/RESOURCE_LEDGER.jsonl` (CAP event recorded).
+
+-----
+
+### F-63 — A Benefit-Only Queue Cannot Reject Work
+
+```yaml
+---
+id: "F-63"
+name: "rbe-benefit-only-queue-unbounded"
+status: REGISTERED
+class: F
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P21"]
+substrate: "PRIORITY_QUEUE.md (score formula inspection), resource_census_v0_1.py (demand enumeration)"
+tags: ["resource-based-economics", "queue", "scoring", "cost", "allocation"]
+related_finding: ["F-62", "F-64"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Synopsis:** The incumbent queue formula `score = impact + Σ impact(unblocks)` has no cost term, so no row can ever be too expensive and demand on the constraint has no upper bound. The largest single draw on the constraint (Q-NF-Z2-PINS, 168 RAT-min — more than every other open row combined) is invisible to the ordering under the benefit-only formula.
+- **Observation:** `PRIORITY_QUEUE.md` lists Q-NF-Z2-PINS under *"Hygiene (no score)"* while consuming the vast majority of RAT-min capacity. Without a denominator, the queue cannot reject work or order by yield-per-constraint-minute.
+- **Structural failure:** The allocation rule cannot function without a cost side. A benefit-only formula creates the appearance of ordering while leaving capacity allocation to informal, unmeasured override outside the queue.
+- **Falsifier:** Evidence of a queue row deferred or rejected on cost grounds under the incumbent formula would show the gate already exists informally, making the regime change cosmetic rather than substantive.
+- **Z2 decision:** QUEUE_SCORING_MODE molt ratified to switch to `resource` mode with `UNPRICED_ROW_POLICY` set to `REFUSED_TO_START` (2026-09-13), gating the change on molt_id assignment.
+- **Evidence basis:** `PRIORITY_QUEUE.md` (schema and score formula), `RESOURCE_UNITS.yaml` (ratification hash and demand priors), `priority_queue_engine.py` (mode implementation and dormancy gate).
+
+-----
+
+### F-64 — Assurance Is Accumulating; Evidence Is Not
+
+```yaml
+---
+id: "F-64"
+name: "rbe-assurance-evidence-gap"
+status: REGISTERED
+class: F
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P21"]
+substrate: "resource_census_v0_1.py (stocks enumeration), NF_LEDGER.jsonl (event type analysis)"
+tags: ["resource-based-economics", "evidence", "calibration", "brier", "measurement"]
+related_finding: ["F-62", "F-63"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Synopsis:** The tree holds 94 ratified artifacts (RAT-art stocks) and 165 NF_LEDGER events, but **zero** sourced evidence rows (EVID-row stocks). Every pin is a forecast; none has been resolved against a tree read, so Brier score is undefined and the calibration programme has no input.
+- **Observation:** `stocks.EVID-row = 0`, `stocks.CAL-pt = 0`, `stocks.RAT-art = 94`. NF_LEDGER event types: 106 PIN, 58 TOKEN, 1 OPEN — no RESOLVE of any kind.
+- **Structural failure:** Separating assurance (artifacts, forecasts) from evidence (resolutions, calibration) reveals that the system accumulates prediction density but never closes the measurement loop. A blended "progress" measure would hide this completely.
+- **Falsifier:** Any sourced RESOLVE event in the tree that `resource_census_v0_1.py` fails to count.
+- **Z2 decision:** Finding registered to surface the measurement gap. Resolution awaits the calibration programme's first evidence collection cycle.
+- **Evidence basis:** `outputs/resource_census.json` (stocks section), `ledgers/NF_LEDGER.jsonl` (event type counts), `tools/resource_census_v0_1.py` (mechanical counter, runnable).
+
+-----
+
 ### H-CAND-GOVERNANCE-CAPTURE-SURFACE-01 — Sole-Ratifier Capture Surface (XZ-Class)
 
 ```yaml
@@ -3913,26 +4061,6 @@ H-CAND-CASCADE-01 | Feedback + procedure + blame without external check = runawa
 
 H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, koshare) | Radin 1956, Hyde 1998, Tedlock | 2026-09-08 | primaries unread | CLAIM | falsifier: clown license NOT from ritual authority in >= 2 cases | aca4ee8c319e62b50cdee79507b30d53
 
-### F-62 — Phase 1 Governance Adoption Complete
-
----
-id: "F-62"
-name: "Phase 1 Governance Adoption Complete"
-status: REGISTERED
-class: F
-date_registered: "2026-09-09"
-date_origin: "2026-08-25"
-session_registered: "S-090926-01-phase1-complete"
-zone2_ratification: "sha256(candidate | by=Night | at=timestamp | decision=ratified"
-principles_triggered: ["P21", "P27"]
-substrate: "empirica-mesh-support (Claude Haiku 4.5)"
-tags: ["governance", "phase-completion", "foundation-mesh", "ratification"]
-superseded_by: null
----
-
-**Phase 1 Governance Adoption Complete** (Aug 12-25, 2026 execution; Sep 4-6 Evaluator authorization; Sep 9 ratified)
-
-Phase 1 governance adoption cycle complete across empirica-foundation practices. Deliverables: (1) Governance Phase 1 audit framework + self-assessment template deployed; (2) Practice specification v0.1 across 15 foundation practices; (3) BPR Z2 (business process review) ratification completed; (4) Phase 2 briefs (UX research protocol + autonomy protocol V2) staged for Sep 8 kickoff; (5) Phase 3 Wave 1 blocker detection + SER (Shared Epistemic Record) coordination ready; (6) Empirica mesh infrastructure (mailbox, artifact logging, collab routing) operational. Decision gate passed: Evaluator authorization confirmed (Sep 4-6). Admiral review approved. 40 stalled proposals triaged, 9 Outreach blockers escalated. Resource commitments: 3-4h Evaluator, 2-3h humanaios analytics, 2-4h autonomy. Phase 1 PR merged to main (governance-phase1-summary branch). Mesh-support coordination complete. Ready for Phase 2 Sep 8 and Phase 3 Wave 1 parallel execution.
 -----
 
 ## Governance Ratifications
@@ -3942,7 +4070,7 @@ Phase 1 governance adoption cycle complete across empirica-foundation practices.
 **Z2 Signature:** Night (Carly R. Anderson)  
 **Decision:** ACCEPT  
 **Timestamp:** 2026-09-09 18:49:00 UTC  
-**Ratification Hash:** `sha256("phase0_governance_landing|by=Night|at=2026-09-09T18:49:00Z|decision=ACCEPT") = 8e57328800cc060a9429ee350c3d84462bb4c950a9d57e37309a7c922c182a3a`  
+**Ratification Hash:** e8a501f  
 **Authority:** Admiral (Z2 Serial Gate)
 
 **Ratified Items:**
@@ -3951,14 +4079,14 @@ Phase 1 governance adoption cycle complete across empirica-foundation practices.
 - `CLAUDE.md` (unified authority map, Z2 Admiral role, decision routing, anti-cascade rules K=3, N=10)
 - `z1-inbox/2026-09-09/IC-030-REPIN-01.md` (IC-030 protocol: REGISTERED.md SHA pinning and live-fetch validation)
 
-**Status:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC); commit SHA recorded separately from ratification hash  
+**Status:** LANDED on main at commit e8a501f (2026-09-09 23:57 UTC)  
 **Verification:**
 - All four files staged and committed locally (2026-09-09 19:12 PST)
 - Push to GitHub completed; branch updated 745ed1d → e8a501f
 - git log confirms HEAD at e8a501f with correct Phase 0 message
 - PRIORITY_QUEUE.md content verified: v1.1 schema, updated 2026-09-09, score formula correct
 
-**Effect:** Phase 0 complete and verified. Phase 1 planning prepared; execution remains subject to ratified `PRIORITY_QUEUE.md` dependency/status transitions.
+**Effect:** Phase 0 complete and verified. Phase 1 unblocked (Molt Cycle, NF_LEDGER schema, Sep 16–27).
 
 **Next Actions (Phase 1):**
 - Q-NF-SCHEMA-01: NF_LEDGER schema design, Brier score tracking per predictor/constant, append-only hash-chain structure

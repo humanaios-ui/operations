@@ -1,0 +1,93 @@
+name: tool-manifest
+
+# Phase 1 gate for the tool manifest, built to the same contract as
+# document-control.yml.
+#
+#   scan --check      — the manifest matches what is actually on disk
+#   validate          — structural rules (ids, coverage, approval, zone, MCP)
+#   render --check    — TOOLS_MANIFEST.md matches the manifest
+#   selftest          — every blocking rule is demonstrated to actually fail
+#
+# All four are ERROR gates: they block on drift and on structural violations.
+#
+# Category rules are BLOCKING: every tool must carry a category from the
+# controlled vocabulary (CATEGORIES in .tool-control/scan.py), and
+# `unclassified` fails. That was promoted from advisory only once the backlog
+# reached zero — the gate ratchets rather than shipping a rule the corpus
+# already violates.
+#
+# Still advisory, printed as warnings by validate.py: missing Builder v1.7
+# markers (19 tools), missing owner/purpose on a non-draft tool, and a
+# `review_due` in the past. Each is promoted the same way — with `--strict`, or
+# by moving the rule, once its count reaches zero.
+
+on:
+  pull_request:
+    paths:
+      - "tools/**"
+      - "scripts/**"
+      - "bin/**"
+      - "tools-manifest.yaml"
+      - "TOOLS_MANIFEST.md"
+      - ".tool-control/**"
+      # .doc-control is a scan root too — a PR touching only it would otherwise
+      # skip this gate entirely, and document-control.yml does not run these
+      # manifest checks.
+      - ".doc-control/**"
+      - ".mcp.json"
+      # The gate must run on a PR that changes only the gate itself.
+      - ".github/workflows/tool-manifest.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/**"
+      - "scripts/**"
+      - "bin/**"
+      - "tools-manifest.yaml"
+      - "TOOLS_MANIFEST.md"
+      - ".tool-control/**"
+      - ".doc-control/**"
+      - ".mcp.json"
+      - ".github/workflows/tool-manifest.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Tool manifest integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install deps
+        run: pip install --quiet pyyaml
+
+      - name: Self-test the control scripts
+        run: |
+          python3 .tool-control/scan.py --smoke-test
+          python3 .tool-control/validate.py --smoke-test
+          python3 .tool-control/render.py --smoke-test
+          python3 .tool-control/selftest.py --smoke-test
+
+      # Proves every blocking rule can actually FAIL, and fails if any rule has
+      # no fixture demonstrating it. Four defects on PRs #304/#306 were rules
+      # the docs asserted and the code did not enforce; at the time, 10 of 26
+      # blocking conditions had ever been executed. A gate whose failure path
+      # never runs is a claim, not a control.
+      - name: Adversarial self-test — every rule must be able to fail (ERROR)
+        run: python3 .tool-control/selftest.py
+
+      - name: Manifest matches the working tree (ERROR — blocks merge)
+        run: python3 .tool-control/scan.py --check
+
+      - name: Structural rules (ERROR — blocks merge)
+        run: python3 .tool-control/validate.py
+
+      - name: TOOLS_MANIFEST.md is in sync (ERROR — blocks merge)
+        run: python3 .tool-control/render.py --check

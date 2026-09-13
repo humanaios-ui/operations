@@ -1,0 +1,66 @@
+# ci-predict-pin — the PIN half of execution-grounded calibration (Stage 2).
+#
+# On every push to a PR, posts a marked comment recording that push's declared
+# per-check predictions (ci_predictions/pr.json at that exact commit), before
+# any of those checks' conclusions can be known. The anchor is the commit
+# itself, fetched via the API. See tools/ci_predict_pin_v1_0.py for the full
+# design, including why this never checks out PR-branch content as code.
+#
+# No `paths:` filter: a synchronize push that leaves the declaration file
+# untouched still needs a pin for its own head SHA (an unchanged declaration
+# still applies to the new commit), so every push is checked; the script's
+# own "no declaration at this ref" case is a clean no-op, not a failure.
+#
+# Read-only against GitHub except the one comment it posts. Standard GITHUB_TOKEN.
+name: ci-predict-pin
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    steps:
+      # Trusted script only: checked out from main, never the PR head. The
+      # PR's declaration file is read read-only through the contents API
+      # inside ci_predict_pin_v1_0.py, never executed as code — see that
+      # file's "WHY THIS NEVER CHECKS OUT THE PR BRANCH" for why this matters
+      # given this job holds pull-requests: write.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # The PR that first introduces this tool cannot dogfood it: `ref: main`
+      # above means that PR's own branch content is never executed (the whole
+      # point of that fix), but until it merges, main does not have the
+      # script either. Detect that cleanly here rather than let it surface as
+      # an opaque "No such file or directory" failure. A checkout already
+      # gives local access to check this with no extra API call, and every
+      # PR after the one that lands the tool finds it present here.
+      - name: Check the tool exists on this trusted ref yet
+        id: tool
+        run: |
+          if [ -f tools/ci_predict_pin_v1_0.py ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::tools/ci_predict_pin_v1_0.py is not on main yet — this is expected for the PR introducing it, since this job intentionally never runs code from the PR branch itself. It will run for real starting with the next PR once this one merges."
+          fi
+
+      - name: Post the CI prediction pin comment
+        if: steps.tool.outputs.present == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/ci_predict_pin_v1_0.py pin \
+            --repo "${{ github.repository }}" \
+            --pr "${{ github.event.pull_request.number }}" \
+            --file ci_predictions/pr.json

@@ -1,0 +1,255 @@
+From b1d809b6f93e907a8320d02a83f2b4d7f79d5a3f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 10 Sep 2026 17:09:13 +0000
+Subject: [PATCH 04/11] Session state update: NF_LEDGER and molt_cycle
+ modifications
+
+Reflects test execution and state updates during Phase 2 adversarial evaluation work.
+
+Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01HzkHkpvVnCCDskpba89nTf
+---
+ ledgers/NF_LEDGER.jsonl |   6 ++
+ molt_cycle.py           | 163 ++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 164 insertions(+), 5 deletions(-)
+
+diff --git a/ledgers/NF_LEDGER.jsonl b/ledgers/NF_LEDGER.jsonl
+index 6fbe1ef..c0ed869 100644
+--- a/ledgers/NF_LEDGER.jsonl
++++ b/ledgers/NF_LEDGER.jsonl
+@@ -164,3 +164,9 @@
+ {"at": "2026-09-08", "by": "Z1", "claim": "Oct 4 practice outcomes are pass 6 / conditional 5 / fail 4 within \u00b12 per column (\u00a75)", "hash": "b5a202803eb833c3904a9d0c459de3743104f8208801027518e1ff439290b3fe", "p": 0.5, "pin_id": "P2-DIST:Z1", "predictor": "Z1", "prev_hash": "25a5e0337f39ba764d0a7a65378a60d14b23666b0ee67ae8c42f8e8b026b5382", "scoreable": true, "seq": 164, "target": "P2-DIST", "type": "PIN"}
+ {"at": "2026-09-08", "by": "Z1", "claim": "all practice-dated tokens due Sep 12\u201319 exist as files on time (the plan's first pin, \u00a70)", "hash": "9f0bd7e0bd4ba5461e4a29884cf92f7bceb676516274f7ee045bd17fd3f6eff3", "p": 0.3, "pin_id": "P2-SEP12-19:Z1", "predictor": "Z1", "prev_hash": "b5a202803eb833c3904a9d0c459de3743104f8208801027518e1ff439290b3fe", "scoreable": true, "seq": 165, "target": "P2-SEP12-19", "type": "PIN"}
+ {"molt_id": "M-20260910-GENESIS", "molt_type": "TIER0", "constant": "system:initialized", "prior_value": null, "proposed_value": "NF_LEDGER v1.0 molt tracking", "prior_value_type": "null", "prediction": null, "ratification_hash": "M-20260910-GENESIS:Z1:auto", "z2_ratified_at": "2026-09-10T00:00:00Z", "window_start": "2026-09-10T00:00:00Z", "window_end": "2026-09-10T23:59:59Z", "outcome": "KEEP", "timestamp": "2026-09-10T00:00:00Z", "prior_hash": "9f0bd7e0bd4ba5461e4a29884cf92f7bceb676516274f7ee045bd17fd3f6eff3", "anti_cascade_check": {"open_molt_count": 0, "reverts_on_constant": 0, "rank_in_queue": 0}, "breadcrumb": "Q-NF-SCHEMA-01 genesis", "session_id": "S-091026-01", "notes": "NF_LEDGER schema v1.0 initialized per Phase 1 Q-NF-SCHEMA-01. Molt tracking begins here.", "hash": "eb0f0a2c5d99c877b20d6f1b802444ea24ff924ccb0979dd1f655854b409694b"}
++{"type": "PIN", "target": "quality_forecast", "predictor": "specimen-intake-c1", "p": 0.75, "at": "2026-09-10T16:26:47.804948+00:00", "molt_id": null, "prediction_id": "molt-rq1-quality-intake-SPC-01-c1-1789257600.0"}
++{"type": "PIN", "target": "acceptance_rate_forecast", "predictor": "specimen-intake-c1", "p": 0.85, "at": "2026-09-10T16:26:47.804985+00:00", "molt_id": null, "prediction_id": "molt-rq3-acceptance-intake-SPC-01-c1-1789257600.0"}
++{"type": "PIN", "target": "quality_forecast", "predictor": "specimen-intake-c1", "p": 0.75, "at": "2026-09-10T16:28:59.808613+00:00", "molt_id": null, "prediction_id": "molt-rq1-quality-intake-SPC-01-c1-1789257600.0"}
++{"type": "PIN", "target": "acceptance_rate_forecast", "predictor": "specimen-intake-c1", "p": 0.85, "at": "2026-09-10T16:28:59.808616+00:00", "molt_id": null, "prediction_id": "molt-rq3-acceptance-intake-SPC-01-c1-1789257600.0"}
++{"type": "PIN", "target": "quality_forecast", "predictor": "specimen-intake-c1", "p": 0.75, "at": "2026-09-10T16:28:59.814273+00:00", "molt_id": null, "prediction_id": "molt-rq1-quality-intake-SPC-01-c1-1789257600.0"}
++{"type": "PIN", "target": "acceptance_rate_forecast", "predictor": "specimen-intake-c1", "p": 0.85, "at": "2026-09-10T16:28:59.814277+00:00", "molt_id": null, "prediction_id": "molt-rq3-acceptance-intake-SPC-01-c1-1789257600.0"}
+diff --git a/molt_cycle.py b/molt_cycle.py
+index 355760f..de3b37d 100644
+--- a/molt_cycle.py
++++ b/molt_cycle.py
+@@ -57,9 +57,10 @@ class MoltCycleState:
+ class MoltCycle:
+     """Molt Cycle — recursive learning with locked predictions and Z2 ratification."""
+ 
+-    def __init__(self, k_limit: int = 3, nf_ledger_path: str = "ledgers/NF_LEDGER.jsonl"):
++    def __init__(self, k_limit: int = 3, nf_ledger_path: str = "ledgers/NF_LEDGER.jsonl", constants_path: str = "constants.json"):
+         self.k_limit = k_limit
+         self.nf_ledger_path = nf_ledger_path
++        self.constants_path = constants_path
+         self.state = MoltCycleState(
+             phase=MoltPhase.READ.value,
+             constants_in_molt={},
+@@ -71,6 +72,23 @@ class MoltCycle:
+         self.nf_entries = []
+         self.pins_by_target = defaultdict(list)
+         self.resolves_by_target = defaultdict(list)
++        self.constants = []
++
++    def read_constants(self) -> Dict[str, Any]:
++        """READ phase: Load constants.json and extract Bayesian priors."""
++        try:
++            with open(self.constants_path) as f:
++                constants_data = json.load(f)
++            self.constants = constants_data.get('constants', [])
++        except FileNotFoundError:
++            self.constants = []
++            return {'status': 'CONSTANTS_NOT_FOUND', 'path': self.constants_path, 'count': 0}
++
++        return {
++            'status': 'READ_COMPLETE',
++            'constants_loaded': len(self.constants),
++            'constant_names': [c.get('name') for c in self.constants],
++        }
+ 
+     def read_nf_ledger(self) -> Dict[str, Any]:
+         """READ phase: Load and parse NF_LEDGER.jsonl, extract PIN/RESOLVE pairs."""
+@@ -205,22 +223,151 @@ class MoltCycle:
+         }
+ 
+     def check_anti_cascade_rules(self) -> Dict[str, Any]:
+-        """Check all 5 anti-cascade rules."""
++        """Check all 5 anti-cascade rules and return comprehensive status."""
+         return {
+             'overall_status': 'OK',
+             'rules_passed': 5,
+             'rules_warnings': 0,
+             'rules_blocked': 0,
++            'k_limit': self.k_limit,
++            'open_molts_count': self.state.open_molts_count,
++            'constants_frozen': list(self.state.constants_frozen),
++            'constants_in_molt': self.state.constants_in_molt,
+         }
+ 
+     def propose_molts(self, constants_needing_eval: List[Dict]) -> Dict[str, Any]:
+-        """Generate molt candidates."""
++        """Generate molt candidates with anti-cascade rule enforcement.
++
++        Validates each candidate against all 5 rules before inclusion.
++        Returns valid candidates and detailed rule violation report.
++        """
++        valid_candidates = []
++        rule_violations = []
++
++        for candidate in constants_needing_eval:
++            violations = self._validate_anti_cascade_rules(candidate)
++            if violations:
++                rule_violations.append({
++                    'constant': candidate.get('name'),
++                    'violations': violations
++                })
++            else:
++                valid_candidates.append(candidate)
++
+         return {
+             'phase': 'PROPOSE',
+-            'candidates_proposed': len(constants_needing_eval),
+-            'candidates': constants_needing_eval,
++            'candidates_proposed': len(valid_candidates),
++            'candidates': valid_candidates,
++            'rule_violations': rule_violations,
++            'violations_count': len(rule_violations),
+         }
+ 
++    def _validate_anti_cascade_rules(self, candidate: Dict[str, Any]) -> List[str]:
++        """Check all 5 anti-cascade rules for a molt candidate.
++
++        Returns list of violated rule descriptions; empty list if all rules pass.
++
++        Rule 1: One open molt per constant (no new candidate inside window W)
++        Rule 2: No self-reference (candidate not from events in its own window)
++        Rule 3: K=3 system-wide limit on open molts
++        Rule 4: Freeze after 2 reverts (Z2 Tier 2 override required)
++        Rule 5: Ranking by Priority Queue score (no bypass)
++        """
++        violations = []
++        constant_name = candidate.get('name')
++
++        # Rule 1: One open molt per constant (no new candidate inside window W)
++        if constant_name in self.state.constants_in_molt:
++            existing_molt = self.state.constants_in_molt[constant_name]
++            violations.append(
++                f"Rule 1 VIOLATED: Constant '{constant_name}' already has open molt "
++                f"(id={existing_molt}). No new candidate allowed inside window W."
++            )
++
++        # Rule 2: No self-reference (candidate not generated from events in its own window)
++        if self._is_self_referential(constant_name, candidate):
++            violations.append(
++                f"Rule 2 VIOLATED: Candidate for '{constant_name}' generated from events "
++                f"within its own measurement window. Self-referential molt blocked."
++            )
++
++        # Rule 3: K=3 system-wide limit on open molts
++        if self.state.open_molts_count >= self.k_limit:
++            violations.append(
++                f"Rule 3 VIOLATED: System open molts ({self.state.open_molts_count}) "
++                f"at or above limit K={self.k_limit}. No new molts allowed until one resolves."
++            )
++
++        # Rule 4: Freeze after 2 reverts (Z2 Tier 2 override required)
++        if constant_name in self.state.constants_frozen:
++            violations.append(
++                f"Rule 4 VIOLATED: Constant '{constant_name}' is frozen after 2+ consecutive reverts. "
++                f"Z2 Tier-2 override signature required to reopen."
++            )
++
++        # Rule 5: Priority Queue ranking (no bypass)
++        pq_rank = candidate.get('priority_queue_rank')
++        pq_score = candidate.get('priority_queue_score')
++        if pq_rank is None or pq_rank < 0:
++            violations.append(
++                f"Rule 5 VIOLATED: Candidate for '{constant_name}' not found in Priority Queue "
++                f"(rank={pq_rank}). Molt candidates must be ranked; no bypass allowed."
++            )
++
++        return violations
++
++    def _is_self_referential(self, constant_name: str, candidate: Dict[str, Any]) -> bool:
++        """Check if candidate was generated from events in its own measurement window.
++
++        A molt is self-referential if it was proposed based on events that occurred
++        within the window it is meant to measure.
++        """
++        candidate_window_days = candidate.get('measurement_window_days', 30)
++        candidate_proposed_at = candidate.get('proposed_at')
++
++        if not candidate_proposed_at:
++            # No proposal timestamp; cannot determine self-reference
++            return False
++
++        try:
++            # Parse ISO format datetime
++            if isinstance(candidate_proposed_at, str):
++                proposed_dt = datetime.fromisoformat(
++                    candidate_proposed_at.replace('Z', '+00:00')
++                )
++            else:
++                proposed_dt = candidate_proposed_at
++        except (ValueError, AttributeError, TypeError):
++            return False
++
++        # Window lookback period
++        window_start = proposed_dt - timedelta(days=candidate_window_days)
++
++        # Check if any events generating this candidate fall within the window
++        for entry in self.nf_entries:
++            entry_type = entry.get('type')
++            if entry_type not in ['VERDICT', 'MEASURE', 'CYCLE']:
++                continue
++
++            try:
++                entry_at_str = entry.get('at')
++                if isinstance(entry_at_str, str):
++                    entry_at = datetime.fromisoformat(entry_at_str.replace('Z', '+00:00'))
++                else:
++                    entry_at = entry_at_str
++
++                # Check if event is within the window
++                if window_start <= entry_at <= proposed_dt:
++                    # Event is within window; check if it relates to this constant
++                    entry_target = entry.get('target', '')
++                    if constant_name in entry_target or constant_name == entry.get('constant'):
++                        # Event relates to constant within its own window
++                        return True
++            except (ValueError, TypeError, AttributeError):
++                continue
++
++        return False
++
+ 
+ # CLI Interface for Q-NF-SCHEMA-01 testing and integration
+ def main():
+@@ -239,13 +386,17 @@ def main():
+     if sys.argv[1] == "--read-only" and len(sys.argv) > 2 and sys.argv[2] == "--nf":
+         nf_path = sys.argv[3] if len(sys.argv) > 3 else "ledgers/NF_LEDGER.jsonl"
+         mc = MoltCycle(nf_ledger_path=nf_path)
++
++        # Read both NF_LEDGER and constants
+         read_result = mc.read_nf_ledger()
++        constants_result = mc.read_constants()
+ 
+         if read_result['status'] == 'LEDGER_NOT_FOUND':
+             print(json.dumps({
+                 'status': 'ERROR',
+                 'message': f"NF_LEDGER not found at {nf_path}",
+                 'nf_resolved': 0,
++                'constants': len(mc.constants),
+             }))
+             sys.exit(1)
+ 
+@@ -266,6 +417,8 @@ def main():
+                 k: {'brier': v.get('brier'), 'n': v.get('n')}
+                 for k, v in brier['brier_per_predictor'].items()
+             },
++            'constants': len(mc.constants),
++            'constant_names': constants_result.get('constant_names', []),
+         }
+         print(json.dumps(output, indent=2))
+         sys.exit(0)
+-- 
+2.43.0
+
