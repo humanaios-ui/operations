@@ -2,6 +2,8 @@
 """
 Agent 1.1: Principle Compliance Bot
 ====================================
+Builder v1.7 compliant · audit_tool
+HumanAIOS
 
 Purpose: Validate decisions/artifacts against 22-principle constitution.
 Triggers: On commit + decision-log entry
@@ -26,6 +28,7 @@ from typing import List
 # Builder v1.7 compliance
 TOOL_NAME = "principle_compliance_bot_v1"
 TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "audit_tool"
 
 # Add tools/agents to path so we can import _shared
 sys.path.insert(0, str(Path(__file__).parent))
