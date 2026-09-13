@@ -3621,10 +3621,10 @@ superseded_by: null
 ---
 id: "IC-cand-copilot-instructions-drift"
 name: "copilot-instructions-workflow-drift-gap"
-cand_status: CANDIDATE
+status: CANDIDATE
 class: IC
-cand_date_registered: "2026-09-13"
-cand_date_origin: "2026-09-13"
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
 session_registered: "S-091326-01-copilot-instructions-drift"
 principles_triggered: ["P19"]
 substrate: "Claude (Z1 draft)"
