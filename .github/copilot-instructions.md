@@ -36,11 +36,13 @@ the conflict yourself. Guessing is the failure mode this rule exists to prevent.
 (`scan.py`, `render.py`) are terminal commands too, which can look like a
 contradiction of the Zone 3 line above. It isn't, for two separate reasons:
 a read-only command that only reports (every validation command, `sha256sum`)
-never leaves Zone 1 regardless of what it inspects; and `scan.py`/`render.py`
-do write files, but only the specific generated outputs this section and §6
-name (`tools-manifest.yaml`, `TOOLS_MANIFEST.md`, `document-registry.yaml`,
-`CONTROLLED_DOCUMENTS.md`) plus the file your task actually asked you to
-create or edit — that's the ordinary mechanism of writing a PR, which
+never leaves Zone 1 regardless of what it inspects; and the only *writes*
+this involves are `scan.py`/`render.py` regenerating the specific generated
+files §5/§6 name (`tools-manifest.yaml`, `TOOLS_MANIFEST.md`,
+`CONTROLLED_DOCUMENTS.md`), hand-editing `document-registry.yaml` as its own
+curated source exactly as §6 describes (never generated, always hand-edited),
+and the file your task actually asked you to create or edit — that's the
+ordinary mechanism of writing a PR, which
 `GOVERNANCE.md`'s Zone 1 already covers ("file operations, data writes,
 code"). This carve-out is narrow: it does not extend to `REGISTERED.md` or
 any other file §4/§6 name as Zone 2, and it does not make "editing a tracked
@@ -79,9 +81,16 @@ the files from the corrupted paste.
 - **`REGISTERED.md`** is append-only. Never edit or delete an existing entry, only
   add new ones at the section end an issue specifies. Follow the entry schema
   already at the top of the file.
-- **Any file an issue marks `[FROZEN]` or gives a SHA256 for** must land byte-exact.
-  Hash it after placement (`sha256sum <file>`) and compare; if it doesn't match,
-  stop and comment rather than trying to fix it forward.
+- **Any file an issue marks `[FROZEN]`** must land byte-exact, no exceptions.
+  Hash it after placement (`sha256sum <file>`) and compare; if it doesn't
+  match, stop and comment rather than trying to fix it forward.
+- **A file an issue gives a SHA256 for, without `[FROZEN]`,** is verified the
+  same way — but check the issue for an explicitly authorized edit first
+  (issue #197's own manifest table gave `GRBS-REGISTERED.md` a SHA256 with no
+  `[FROZEN]` tag, alongside a task explicitly permitting one specific line
+  edit to it). Apply only the edit the issue names, then hash-verify the rest
+  of the file is otherwise unchanged — don't read a bare SHA256 as license to
+  reject every edit an unfrozen file's task explicitly asks for.
 - **`CONTROLLED_DOCUMENTS.md`** and **`TOOLS_MANIFEST.md`** are pure rendered
   output — never hand-edit either one. `document-registry.yaml` and
   `tools-manifest.yaml` are their sources and are meant to be edited directly
@@ -255,7 +264,11 @@ your environment lacks that suite's fixtures.
 The commands above cover every PR. If your PR also touches `tools/**/*.py`,
 two more path-scoped gates apply and aren't in the list above: `builder-lint.yml`
 (§5's Builder scanner) and `behavioral-compliance.yml` (§5's AST-level gate).
-Run both scanners on your changed files before pushing.
+Each runs two checks, not one — your changed file(s) individually, *and* the
+whole `tools/` corpus against a floor (Builder ≥ 0.90, behavioral ≥ 0.70).
+Passing the scanner on just your own file doesn't prove the PR is green:
+run `--path tools/` for both tools too, so a corpus-wide regression shows up
+locally instead of first in CI.
 
 If a check fails because a generated file (manifest, rendered index) is stale, the
 fix is almost always re-running the tool that generates it — see §5/§6 — not
