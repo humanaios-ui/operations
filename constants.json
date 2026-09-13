@@ -83,6 +83,114 @@
         "metric": "validation_train_error_gap"
       },
       "notes": "Controls Bayesian shrinkage: posterior = λ * prior + (1-λ) * observed, where λ = SHRINK. Low values (0.0-0.4) trust data more; high (0.7-1.0) trust prior. Hypothesis: 0.3 balances rapid learning (specimen new) with prior knowledge (expert pool)."
+    },
+    {
+      "name": "QUEUE_SCORING_MODE",
+      "description": "Which formula orders the Priority Queue. 'impact' is the incumbent (score = impact + Σ impact(unblocks)); 'resource' divides that numerator by the row's draw on the binding constraint and bands rows that do not touch the constraint ahead of those that do.",
+      "scope": "priority-queue",
+      "current_value": "impact",
+      "prior_value": "impact",
+      "prior_version": "PRIORITY_QUEUE.md v1_1 genesis",
+      "value_type": "string",
+      "valid_values": ["impact", "resource"],
+      "molt_id": null,
+      "molt_history": [],
+      "ratified_at": null,
+      "trigger": {
+        "metric": "constraint_backlog_rat_min",
+        "condition": "Open obligations on the constraint unit exceed 4 weeks of declared capacity",
+        "measurement_window_days": 14,
+        "threshold": 4
+      },
+      "falsifier": "After the molt window closes: the open-obligation count (outputs/resource_census.json → obligations.open_items) has not fallen, OR the number of rows refused as UNPRICED exceeds the number scheduled — meaning the gate blocks work rather than ordering it.",
+      "measurement_window_days": 28,
+      "revert_rule": {
+        "kind": "abs_above",
+        "threshold": 0,
+        "metric": "delta_open_obligations"
+      },
+      "notes": "Q-RBE-01. priority_queue_engine.PriorityQueueEngine.from_constants() reads this and activates resource mode ONLY when current_value == 'resource' AND molt_id is non-null. With molt_id null the engine stays on the incumbent formula, so this row is inert until Z2 signs. See docs/RESOURCE_BASED_ECONOMICS.md §7."
+    },
+    {
+      "name": "CONSTRAINT_UNIT",
+      "description": "The unit the queue treats as binding. Every work order must price itself in this unit under resource mode.",
+      "scope": "priority-queue",
+      "current_value": "RAT-min",
+      "prior_value": "RAT-min",
+      "prior_version": "RESOURCE_UNITS.yaml v0.1 genesis",
+      "value_type": "string",
+      "valid_values": ["RAT-min", "Z1-ktok", "Z3-hr", "CI-min", "RUN-day", "SPEC-hr"],
+      "molt_id": null,
+      "molt_history": [],
+      "ratified_at": null,
+      "trigger": {
+        "metric": "utilization_by_unit",
+        "condition": "Another registered input unit shows higher utilization than the designated constraint for 2 consecutive censuses",
+        "measurement_window_days": 28,
+        "threshold": 1.0
+      },
+      "falsifier": "Two consecutive runs of resource_census_v0_1.py showing a different unit at higher utilization: the designation is wrong and moves to that unit. If utilization of RAT-min falls below 1.0 with backlog flat or falling, Z2 attention is not the constraint and the designation is retired.",
+      "measurement_window_days": 28,
+      "revert_rule": {
+        "kind": "abs_above",
+        "threshold": 1.0,
+        "metric": "competing_unit_utilization"
+      },
+      "notes": "Designation is a measurement, not a preference. Mirrored in RESOURCE_UNITS.yaml → constraint.unit; the YAML is canonical for the unit's definition, this constant is what the queue engine reads."
+    },
+    {
+      "name": "SHADOW_PRICE_MIN_N",
+      "description": "Minimum paired observations before a cross-dimension exchange rate may be recorded as a PRICE event.",
+      "scope": "resource-ledger",
+      "current_value": 8,
+      "prior_value": 8,
+      "prior_version": "RESOURCE_UNITS.yaml v0.1 genesis",
+      "value_type": "int",
+      "valid_range": [2, 100],
+      "molt_id": null,
+      "molt_history": [],
+      "ratified_at": null,
+      "trigger": {
+        "metric": "price_event_count",
+        "condition": "Zero PRICE events recorded for 90 days while substitution decisions are being made informally",
+        "measurement_window_days": 90,
+        "threshold": 0
+      },
+      "falsifier": "A PRICE event recorded at n = 8 whose rate moves by more than 2x when re-measured at n = 16: the threshold is too low and the rate was noise.",
+      "measurement_window_days": 90,
+      "revert_rule": {
+        "kind": "abs_above",
+        "threshold": 2.0,
+        "metric": "rate_ratio_on_remeasure"
+      },
+      "notes": "Enforced in resource_ledger_v0_1.py cmd_price(); a price below this n is refused. Set deliberately low enough to be reachable: an unusable threshold produces no measurements and leaves every trade-off implicit."
+    },
+    {
+      "name": "UNPRICED_ROW_POLICY",
+      "description": "What the READY gate does with a work order that declares no cost in the constraint unit.",
+      "scope": "priority-queue",
+      "current_value": "ALLOWED",
+      "prior_value": "ALLOWED",
+      "prior_version": "PRIORITY_QUEUE.md v1_1 genesis (no cost field exists today)",
+      "value_type": "string",
+      "valid_values": ["ALLOWED", "WARNED", "REFUSED_TO_START"],
+      "molt_id": null,
+      "molt_history": [],
+      "ratified_at": null,
+      "trigger": {
+        "metric": "unpriced_row_share",
+        "condition": "More than half of open rows carry no cost vector after resource mode is ratified",
+        "measurement_window_days": 28,
+        "threshold": 0.5
+      },
+      "falsifier": "If rows are priced but the prices are never revised against measured SPEND rows, the gate is producing compliance numbers rather than costs, and REFUSED_TO_START should drop back to WARNED.",
+      "measurement_window_days": 28,
+      "revert_rule": {
+        "kind": "abs_above",
+        "threshold": 0.5,
+        "metric": "unpriced_row_share"
+      },
+      "notes": "Q-RBE-01 proposes moving this to REFUSED_TO_START together with QUEUE_SCORING_MODE. Held at ALLOWED until then so the incumbent gate is unchanged."
     }
   ],
   "metadata": {
