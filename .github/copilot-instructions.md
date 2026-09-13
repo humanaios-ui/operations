@@ -122,15 +122,16 @@ python3 .tool-control/validate.py   # the merge gate — run it yourself first
 ```
 
 `scan.py` preserves CURATED fields (`owner`, `purpose`, `status`, `notes`)
-unconditionally. `category`/`zone` are curated only when their own constant
-is absent *or invalid* — an unrecognizable `TOOL_CATEGORY` string that still
-looks like an identifier (e.g. `made_up_thing`) is kept and then rejected by
-`validate.py` as a real error; only a non-identifier placeholder (`{tool_type}`)
-is silently discarded. `TOOL_ZONE` must be a literal Python `int` in `1`/`2`/`3`
-— note `TOOL_ZONE = True` slips through uncaught as zone 1 (bool is an int
-subclass); write a real int. Declare valid constants in code rather than
-hand-editing the manifest field (a declared-vs-curated mismatch is
-merge-blocking). Never hand-edit `TOOLS_MANIFEST.md` itself.
+unconditionally. `zone` is curated only when `TOOL_ZONE` is absent or not a
+literal `1`/`2`/`3` int — note `TOOL_ZONE = True` slips through uncaught as
+zone 1 (bool is an int subclass); write a real int. `category` curates
+differently: `TOOL_CATEGORY` falls back to the curated value only when it
+isn't even identifier-shaped (a template's literal `{tool_type}`
+placeholder) — an unrecognizable-but-identifier-shaped string (e.g.
+`made_up_thing`) is kept as declared and then rejected by `validate.py` as
+a real error, it does *not* fall back. Declare valid constants in code
+rather than hand-editing the manifest field (a declared-vs-curated mismatch
+is merge-blocking). Never hand-edit `TOOLS_MANIFEST.md` itself.
 
 `category` must land on one of 16 closed vocabulary terms
 (`.tool-control/README.md`) — `unclassified` or anything outside it is now
@@ -142,15 +143,20 @@ relying on that. Extending the vocabulary is its own reviewed change to
 
 A `zone: 2`/`3` tool needs its manifest entry's own `ratified_by` field
 naming a Z2 hash/document — naming it in the issue alone doesn't satisfy the
-gate, and a tool can't self-declare its own waiver.
+gate, and a tool can't self-declare its own waiver. One pre-existing entry
+(`tools/message_calibration_v1_0.py`) is grandfathered instead, via
+`pending_ratification: true` plus a `LEGACY_ZONE_EXCEPTIONS` path match in
+`validate.py` — a closed, one-time list a new tool cannot add itself to;
+setting the flag on a new entry is rejected as a self-granted waiver.
 
 ## 6. Adding or changing a controlled document
 
 **"Controlled" is decided by `document-registry.yaml`, not by frontmatter** —
 check the registry, not the file. Some registered docs (`OPERATOR_RUNBOOK.md`,
-`CURRENT.md`) carry no frontmatter at all. A `doc_id` frontmatter block only
-catches a *new* file that should have been registered but wasn't ("orphan
-doc_id" failure) — it says nothing about an existing file with none.
+`CURRENT.md`) carry no frontmatter at all. The check scans every `*.md` file,
+new or already-tracked: any file that *declares* a `doc_id` gets it checked
+against the registry, and an unmatched one is an "orphan doc_id" failure —
+it says nothing about a file with no frontmatter at all.
 
 Editing an already-registered document needs no registration step. Adding a
 genuinely new controlled document means hand-editing `document-registry.yaml`
