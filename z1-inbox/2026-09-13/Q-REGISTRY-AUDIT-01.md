@@ -9,13 +9,15 @@
 
 ## Problem Statement
 
-ZONE_REGISTRY.md header claims "unified authority map for all **31 HumanAIOS repositories**"  
+**Field:** ZONE_REGISTRY.md section heading `## Repository Zone Assignments (31 repos)` (not the document title, which is `# ZONE_REGISTRY.md — Canonical Z1/Z2/Z3 Authority Map`)
+
+The section heading claims **31 HumanAIOS repositories**  
 Actual GitHub humanaios-ui org: **12 repos**  
 Registry table lists: **18 repos**  
 **Mismatch: 13 repos claimed but not found on GitHub**
 
 **RECEIPT-GAP Callout:**
-- Claim: "31 repos"
+- Claim: "31 repos" (in section heading `## Repository Zone Assignments`)
 - Tree (GitHub reality): 12 repos
 - Gap: 19 repos unaccounted
 

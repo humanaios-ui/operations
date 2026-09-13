@@ -102,14 +102,32 @@
 
 ## Receipt Reconciliation (B.6 Walkback)
 
-| Claim | Tree (ZONE_REGISTRY.md) | Status |
-|-------|------------------------|--------|
-| "31 repos" (header) | 18 listed | ❌ MISMATCH: +13 missing |
-| "18 repos" (count) | 12 actual GitHub | ❌ MISMATCH: +6 untracked |
-| 5 repos in registry exist | acat-inspect, humanaios, humanaios-internal, lasting-light-ai, operations | ✅ TRUE |
-| 7 repos on GitHub exist | acat-x, acat-dashboard, etc. | ✅ TRUE but NOT registered |
+**Venn diagram breakdown:**
+```
+ZONE_REGISTRY claims:  18 repos
+├─ Overlap (exist on GitHub + registered): 5 repos ✅
+├─ Missing from GitHub (claimed but don't exist): 13 repos ❌
+└─ Unregistered (exist on GitHub but missing from ZONE_REGISTRY): 7 repos ❌
 
-**RECEIPT-GAP:** Claim ("31 repos") ÷ Tree (12 GitHub repos) = 258% overstatement
+GitHub reality: 12 repos
+├─ Registered (overlap): 5 repos ✅
+└─ Unregistered: 7 repos ❌
+
+Header claim: 31 repos
+├─ Registry lists: 18 repos
+│  ├─ Real: 5 repos (match GitHub)
+│  └─ Phantom: 13 repos (missing from GitHub)
+└─ Planned/untracked: 13+ repos (Q-REGISTRY-AUDIT-01 lists these 13)
+```
+
+**Key mismatches:**
+| Claim | Reality | Gap |
+|-------|---------|-----|
+| "31 repos" (header) | 12 repos (GitHub actual) | **19 repos** unaccounted |
+| "18 repos" (registry) | 5 repos (verified) + 13 phantom | 13 repos don't exist |
+| 12 repos (GitHub) | 5 registered + 7 untracked | 7 repos not in registry |
+
+**RECEIPT-GAP:** Claim ("31 repos") ÷ Tree (12 GitHub repos) = 258% overstatement. The 31 repos is aspirational (planned); registry lists 18 (5 real + 13 phantom); GitHub has 12 (5 registered + 7 untracked).
 
 ---
 

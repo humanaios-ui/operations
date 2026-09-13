@@ -54,8 +54,9 @@ This action **creates zone entries for:**
 - empirica-autonomy (was planned, now has child: acat-x)
 - empirica-mesh-support (was planned, now has child: empirica-practice-mesh)
 - empirica-foundation-evaluator (was planned, now has child: research)
+- **website** (was planned [from Q-REGISTRY-AUDIT-01 missing list], now has children: docs, findlocaltattooartists)
 
-**Note:** These "parent" zones remain unregistered (no top-level repos), only child repos are registered.
+**Note:** These "parent" zones remain unregistered (no top-level repos), only child repos are registered. **All four parent zones are currently planned but not yet created as standalone repositories.** The zone assignment establishes the governance structure; the parent repos may be created later per roadmap.
 
 ---
 

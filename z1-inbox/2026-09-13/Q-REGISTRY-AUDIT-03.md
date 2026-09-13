@@ -64,10 +64,11 @@ registry_consistency:
   rules:
     - name: "header_vs_table_match"
       assert: |
-        ZONE_REGISTRY.md header count ==
-        count(active repos in table)
+        Extract count from ZONE_REGISTRY.md section heading:
+          `## Repository Zone Assignments (N repos)`
+        Then verify: N == count(active repos in table)
       failure: |
-        "Header claims N repos but table lists M"
+        "Section heading claims N repos but table lists M"
         
     - name: "all_table_repos_exist_on_github"
       assert: |
