@@ -31,7 +31,14 @@ If a task assigned to you asks for a Zone 2/3 action, or an issue and a repo fil
 disagree about what to do, **stop and comment on the issue** instead of resolving
 the conflict yourself. Guessing is the failure mode this rule exists to prevent.
 
-You never merge your own PRs. Every PR here requires human review
+§7's local validation commands are terminal commands too, which can look like a
+contradiction of the Zone 3 line above. It isn't: they read files and report
+results without mutating the working tree, committing, or pushing — running them
+is treated as Zone 1 for the purpose of a local preflight. A command that writes,
+commits, or pushes is a different matter and stays Zone 3.
+
+You never merge your own PRs, and never push directly to `main` or force-push,
+delete, or rewrite history on any branch. Every PR here requires human review
 (`.github/CODEOWNERS` names a reviewer for every path, `*` included) — your job ends
 at opening a mergeable, green PR.
 
@@ -89,14 +96,25 @@ new tool" section):
 - An `if __name__ == "__main__":` guard, with `--help` and `--input` support.
 - A `--smoke-test` CLI flag (usually implemented by calling an internal
   `run_smoke_test()`, which is the piece the scanner below actually looks for).
+  The flag itself must be present and callable — a `run_smoke_test()` function
+  with nothing wiring it to `--smoke-test` is not sufficient.
 
 `python3 tools/builder_compliance_scanner_v1.0.py --path <your file>` verifies
 only its own six hard checks — the docstring phrase, `TOOL_NAME`/`TOOL_VERSION`,
 the `HumanAIOS` tag, a smoke test, and the main guard. It does **not** check
 `TOOL_CATEGORY`/`TOOL_SESSION`/`TOOL_ZONE` or `--help`/`--input` — a scanner
 pass isn't full compliance with `tools/README.md`'s broader contract, so check
-those by hand (the manifest gate below separately enforces `TOOL_CATEGORY`/
-`TOOL_ZONE`).
+those by hand. The manifest gate (below) separately enforces `TOOL_CATEGORY`/
+`TOOL_ZONE`, but not `TOOL_SESSION` — `tools-manifest.yaml`'s own `REQUIRED`
+fields don't include it, so a tool missing `TOOL_SESSION` can still pass every
+automated gate here while violating the README contract; hand-check it too.
+
+A tool that touches `tools/**/*.py` also needs
+`python3 tools/behavioral_compliance_gate_v1_0.py --path <your file>` to pass
+(`behavioral-compliance.yml`'s own gate) — an AST-level structural check,
+separate from and in addition to the marker-presence scanner above. It blocks
+a *new* tool file at 100% and holds the whole `tools/` corpus to a ≥70%
+pass-rate floor.
 
 Then register the file — a tool on disk that isn't in the manifest fails CI
 (`tool-manifest.yml`, check name **"Tool manifest integrity"**):
@@ -176,6 +194,11 @@ baseline suites" step defines it — copy that step's file list verbatim rather
 than running a bare `pytest -q`: blanket discovery both picks up tests CI
 doesn't gate on and can pass locally while missing a suite CI does gate on, if
 your environment lacks that suite's fixtures.
+
+The commands above cover every PR. If your PR also touches `tools/**/*.py`,
+two more path-scoped gates apply and aren't in the list above: `builder-lint.yml`
+(§5's Builder scanner) and `behavioral-compliance.yml` (§5's AST-level gate).
+Run both scanners on your changed files before pushing.
 
 If a check fails because a generated file (manifest, rendered index) is stale, the
 fix is almost always re-running the tool that generates it — see §5/§6 — not
