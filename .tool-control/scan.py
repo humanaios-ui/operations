@@ -61,6 +61,42 @@ SCAN_EXTS = {".py", ".js", ".sh"}
 ID_PREFIX = "HAIOS-TOOL-"
 MCP_ID_PREFIX = "HAIOS-MCP-"
 
+# The controlled category vocabulary. A category is what a tool DOES to the
+# system, not what subject it concerns — "ACAT" is a subject, `audit_tool` is a
+# role. Extending this set is a reviewed change to the gate, which is the point:
+# before it existed, every tool invented its own label and 86 of 136 had none.
+CATEGORIES: dict[str, str] = {
+    "audit_tool": "Audits artifacts or state against rules and reports findings.",
+    "validation_tool": "Validates the structure or content of an input; pass/fail.",
+    "diagnostic_tool": "Measures and surfaces signals without gating anything.",
+    "security_gate_tool": "Blocks an action (push, send, activation) on policy.",
+    "governance_tool": "Operates the governance machinery: registries, molts, routing.",
+    "calibration_tool": "Pins, resolves or scores predictions against outcomes.",
+    "orchestrator_tool": "Runs other tools or agents in sequence.",
+    "pipeline_tool": "Multi-stage processing of a corpus or record set.",
+    "connector_tool": "Talks to an external service (Supabase, Slack, GitHub, LLM APIs).",
+    "infrastructure_tool": "Internal plumbing: servers, routers, hooks, ingestion, scaffolding.",
+    "analytics_tool": "Statistical or psychometric computation over collected data.",
+    "research_tool": "A research instrument: adversarial suites, elicitation, experiments.",
+    "monitoring_tool": "Watches a surface over time and raises alerts.",
+    "reporting_tool": "Produces human-facing output: reports, sites, drafts.",
+    "dependency": "Imported by other tools; not invoked directly.",
+    "template_tool": "A scaffold or template for producing new tools.",
+    "unclassified": "Not yet categorized — a backlog entry, not a category.",
+}
+
+# Historical one-off labels declared in tool sources, mapped to the vocabulary.
+# Kept so a file that has not been renormalized still lands somewhere real
+# rather than failing the gate for a name nobody chose deliberately.
+CATEGORY_ALIASES = {
+    "governance": "governance_tool",
+    "discovery": "diagnostic_tool",
+    "dispatch": "connector_tool",
+    "site": "reporting_tool",
+    "template": "template_tool",
+    "meta_validator_tool": "validation_tool",
+}
+
 # Curated fields survive a rescan; everything else is re-derived from the file.
 CURATED_FIELDS = (
     "status",
@@ -172,7 +208,10 @@ def extract(path: str) -> dict[str, Any]:
         if m:
             consts[key] = _literal(m.group(1))
     cat = consts.get("TOOL_CATEGORY")
-    if not (isinstance(cat, str) and _CATEGORY_RE.match(cat)):
+    if isinstance(cat, str):
+        cat = CATEGORY_ALIASES.get(cat, cat)
+        consts["TOOL_CATEGORY"] = cat
+    if not (isinstance(cat, str) and _CATEGORY_RE.match(cat) and cat in CATEGORIES):
         consts.pop("TOOL_CATEGORY", None)
     if not isinstance(consts.get("TOOL_ZONE"), int) or consts.get("TOOL_ZONE") not in (1, 2, 3):
         consts.pop("TOOL_ZONE", None)

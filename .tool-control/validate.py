@@ -17,9 +17,10 @@ ERRORS (block merge):
      by Night, never self-declared (CLAUDE.md, "Cannot execute without Z2 hash").
   8. Every server in .mcp.json is registered; an `approved` MCP server must have
      a real scope + data_classification, not the placeholder.
+  9. Every category is drawn from the controlled vocabulary, and none is
+     `unclassified` — the backlog was worked to zero, so the gate ratchets.
 
 WARNINGS (advisory now, `--strict` to block; promote in a later phase):
-  - category `unclassified`
   - missing Builder v1.7 markers
   - missing owner / purpose on a non-draft tool
   - review_due in the past
@@ -191,9 +192,20 @@ def validate(manifest: dict) -> None:
         if zone not in (1, 2, 3):
             err(f"{tid}: zone '{zone}' invalid (must be 1, 2 or 3)")
 
+        # 9. category is drawn from the controlled vocabulary. Blocking, not
+        #    advisory: the backlog was worked to zero, so the only way an
+        #    `unclassified` entry appears now is a tool added without one.
+        #    A gate that ratchets is the point — it cannot silently refill.
+        category = t.get("category")
+        if category == "unclassified":
+            err(f"{tid}: category is 'unclassified' ({path}) — assign one of "
+                f"{sorted(c for c in scan.CATEGORIES if c != 'unclassified')}")
+        elif category and category not in scan.CATEGORIES:
+            err(f"{tid}: category '{category}' is not in the controlled vocabulary "
+                f"({path}) — use an existing category, or extend CATEGORIES in "
+                f".tool-control/scan.py as a reviewed change")
+
         # --- advisory ---
-        if t.get("category") == "unclassified":
-            warn(f"{tid}: category is 'unclassified' ({path})")
         if not t.get("builder_markers"):
             warn(f"{tid}: missing Builder v1.7 markers ({path})")
         if status not in ("draft", "archived"):
@@ -305,6 +317,14 @@ def run_smoke_test() -> int:
     validate({"tools": [dict(base, path="tools/brand_new_zone2.py", status="draft",
                              pending_ratification=True)]})
     assert any("cannot grant itself" in e for e in errors), errors
+
+    # Categories are a closed vocabulary, and the backlog stays at zero.
+    for cat, expect in (("unclassified", "category is 'unclassified'"),
+                        ("made_up_thing", "not in the controlled vocabulary")):
+        errors, warnings = [], []
+        validate({"tools": [dict(base, path=legacy, zone=1, status="draft",
+                                 category=cat)]})
+        assert any(expect in e for e in errors), (cat, errors)
 
     # A path outside the repo, or a directory, is never a valid tool entry.
     for bad, expect in (("/etc/passwd", "relative path"),

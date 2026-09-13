@@ -55,6 +55,7 @@ Pass --zone 3 for tools that only propose actions (Night executes).
 """
 
 import json
+import os
 import sys
 import argparse
 import textwrap
@@ -64,15 +65,29 @@ from pathlib import Path
 TOOL_NAME    = "tool_scaffolder"
 TOOL_VERSION = "1.0.0"
 
-TOOL_TYPES = [
-    "diagnostic_tool",
-    "validation_tool",
-    "audit_tool",
-    "connector_tool",
-    "security_gate_tool",
-    "orchestrator_tool",
-    "scaffolder_tool",
-]
+# The category vocabulary is owned by .tool-control/scan.py (CATEGORIES), which
+# is what the tool-manifest gate validates against. Read it from there rather
+# than keeping a second list here: a scaffolder that offers a category the gate
+# rejects generates tools that cannot land. The literal fallback is only for
+# running this file outside a checkout.
+def _load_tool_types():
+    control = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                           ".tool-control")
+    try:
+        sys.path.insert(0, control)
+        from scan import CATEGORIES  # type: ignore
+        return [c for c in sorted(CATEGORIES) if c != "unclassified"]
+    except Exception:
+        return ["audit_tool", "validation_tool", "diagnostic_tool", "security_gate_tool",
+                "governance_tool", "calibration_tool", "orchestrator_tool", "pipeline_tool",
+                "connector_tool", "infrastructure_tool", "analytics_tool", "research_tool",
+                "monitoring_tool", "reporting_tool", "dependency", "template_tool"]
+    finally:
+        if sys.path and sys.path[0] == control:
+            sys.path.pop(0)
+
+
+TOOL_TYPES = _load_tool_types()
 
 # ── Template ──────────────────────────────────────────────────────────────────
 
