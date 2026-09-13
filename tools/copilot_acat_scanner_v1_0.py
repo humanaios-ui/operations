@@ -86,12 +86,46 @@ is neither confirmed nor refuted and must not silently count as either
 (same convention as dimension_attribution_v1_0.py's resolved-only scoring
 and claim_verification_check's own build_report()).
 
+HONEST LIMITS (raised by an adversarial review round on this PR, kept
+here rather than silently fixed or silently ignored)
+------------------------------------------------------------------------------
+- claimed_pass_rate is one scalar for the whole claim text, not per-claim.
+  A predictor that hedges unevenly ("90% sure about the file, 50% about
+  the tests") cannot express that split; the default of 1.0 is the most
+  honest choice available without inventing per-claim confidence parsing,
+  but it is a real, documented limitation, not a solved problem — it
+  biases LI toward <=1 for a genuinely well-calibrated predictor that
+  simply didn't hedge into this tool's one aggregate number.
+- extract_assertions() (claim_verification_check_v0_1.py, reused
+  unchanged) is a TRL 2-3 regex heuristic. Systematic under-extraction
+  understates both the numerator and denominator of LI identically, which
+  UNVERIFIABLE-isolation does not protect against — it only protects
+  against claims it DID extract being wrongly scored, not claims it never
+  saw at all. See _extraction_density_note() for the one mitigation this
+  module adds: flagging when a long input produced zero claims.
+- _harden_file_created_boundary()'s real-path resolution closes the
+  sibling-prefix and ".." cases this module's own tests cover, but not a
+  symlink inside an accessible root that points outside it, a bind-mount
+  or overlay filesystem where a resolved path can appear in-scope while
+  its real content lives elsewhere, or cross-platform path normalization
+  differences. Acceptable residual risk for a calibration signal; would
+  need closing before this scanner could serve as an actual security
+  boundary rather than a Phase-3 evidence check.
+- Omitting --taxonomy silently preserves the core's own APT-specific
+  default taxonomy (see "WHY known_taxonomy IS EXPOSED HERE" above) —
+  exposing the override does not change what happens when a caller
+  forgets to use it. A citation claim using a legitimate, repo-specific
+  term will FAIL under the default taxonomy exactly as it would have
+  before this parameter existed, unless --taxonomy is supplied.
+
 Usage:
   python3 tools/copilot_acat_scanner_v1_0.py scan \\
       --input pr_body.txt --predictor Copilot \\
       --accessible-root /path/to/repo --ground-truth ci_results.json
   python3 tools/copilot_acat_scanner_v1_0.py scan --input pr_body.txt \\
       --predictor Copilot --claimed-pass-rate 0.9 --json
+  python3 tools/copilot_acat_scanner_v1_0.py scan --input pr_body.txt \\
+      --predictor Copilot --strict-li  # exit 3, not 0, if LI comes out undefined
   python3 tools/copilot_acat_scanner_v1_0.py --smoke-test
 """
 from __future__ import annotations
@@ -115,6 +149,20 @@ INTERPRETATION_NOTE = (
     "PASS or FAIL only; UNVERIFIABLE claims are excluded from both, not treated "
     "as either outcome. See module docstring for what does and does not "
     "generalize from echoes_copilot_acat_scanner_v0_1.py."
+)
+
+BOUNDARY_HARDENING_SCOPE = (
+    "_harden_file_created_boundary() only re-checks file_created claims the "
+    "core already marked PASS (a real path-resolution check downgrading a "
+    "false PASS to FAIL). A claim the core's own lexical path.startswith(root) "
+    "test marks UNVERIFIABLE or FAIL is left as-is: it is already refused and "
+    "never counted as evidence, so there is nothing to harden — but a "
+    "legitimate path that happens not to share a literal string prefix with "
+    "any accessible_root (a symlink, an alternate mount point, differing "
+    "normalization) can be under-reported as UNVERIFIABLE rather than PASS. "
+    "That is a conservative false negative, never a false PASS: this report's "
+    "pass_count can be lower than a fully path-aware evaluator would produce, "
+    "never higher."
 )
 
 
@@ -162,7 +210,7 @@ def resolve_claimed_pass_rate(args: argparse.Namespace) -> float:
     return 1.0
 
 
-def _harden_file_created_boundary(results: List, accessible_roots: Optional[List[str]]) -> List:
+def _harden_file_created_boundary(results: List, accessible_roots: Optional[List[str]]) -> Tuple[List, int]:
     """claim_verification_check_v0_1.evaluate_file_created() checks
     containment with a lexical str.startswith(root) test (see its own
     source), which a same-prefix sibling directory ("/tmp/repo-secrets"
@@ -174,11 +222,16 @@ def _harden_file_created_boundary(results: List, accessible_roots: Optional[List
     module trusts it as evidence; anything that does not actually resolve
     under a declared root is downgraded to FAIL rather than accepted.
     Only ever narrows a PASS to a FAIL — never the reverse, and never
-    touches any other kind or status."""
+    touches any other kind or status. Returns (results, downgrade_count)
+    so a caller can tell, without inspecting every claim, whether this
+    hardening pass actually changed anything — see BOUNDARY_HARDENING_SCOPE
+    for what this pass does and does not cover (only PASS is re-checked;
+    an UNVERIFIABLE/FAIL from the core's own lexical test is untouched)."""
     if not accessible_roots:
-        return results
+        return results, 0
     resolved_roots = [Path(root).resolve() for root in accessible_roots]
     hardened = []
+    downgrade_count = 0
     for r in results:
         if r.kind == "file_created" and r.status == verifier.PASS:
             claimed_path = Path(r.evidence.get("path", "")).resolve()
@@ -195,8 +248,30 @@ def _harden_file_created_boundary(results: List, accessible_roots: Optional[List
                            "path-aware) — refused rather than trusted as evidence.",
                     suggested_drift_code="D-01",
                 )
+                downgrade_count += 1
         hardened.append(r)
-    return hardened
+    return hardened, downgrade_count
+
+
+LOW_CLAIM_DENSITY_THRESHOLD_CHARS = 200
+
+
+def _extraction_density_note(claim_text: str, claim_count: int) -> Optional[str]:
+    """A long input that yields zero extracted claims is not verified
+    evidence the text made no claims — extract_assertions() is a TRL 2-3
+    regex heuristic (claim_verification_check_v0_1.py's own docstring)
+    that can miss unusually phrased claims. Surfacing this only when it is
+    actually plausible (a real amount of text, genuinely zero claims)
+    keeps it from firing on the common, unremarkable case of a short,
+    genuinely claim-free input."""
+    if claim_count == 0 and len(claim_text.strip()) >= LOW_CLAIM_DENSITY_THRESHOLD_CHARS:
+        return (
+            f"No checkable claims were extracted from a {len(claim_text.strip())}-char "
+            "input. The shared extractor is a TRL 2-3 regex heuristic and can miss "
+            "claims phrased unusually — this is not verified evidence the text made "
+            "no claims at all."
+        )
+    return None
 
 
 def scan(claim_text: str, predictor: str, accessible_roots=None, ground_truth=None,
@@ -210,15 +285,19 @@ def scan(claim_text: str, predictor: str, accessible_roots=None, ground_truth=No
     CITATION claim, in any repo, to the core's built-in APT taxonomy,
     which is specific to that module's own origin, not a general-purpose
     default. Returns a dict combining claim_verification_check's own
-    report with "predictor", "li", and "li_note" — never mutates or
-    reinterprets that report's own fields beyond the boundary hardening
-    above."""
+    report with "predictor", "li", "li_note",
+    "boundary_hardening_downgrade_count" (how many file_created PASSes
+    _harden_file_created_boundary actually downgraded — 0 does not mean
+    nothing was checked, it means nothing needed downgrading), and
+    "extraction_density_note" (see _extraction_density_note) — never
+    mutates or reinterprets that report's own fields beyond the boundary
+    hardening itself."""
     results = verifier.run_claim_verification(
         claim_text, accessible_roots=accessible_roots,
         ground_truth=ground_truth, source_text=source_text,
         known_taxonomy=known_taxonomy,
     )
-    results = _harden_file_created_boundary(results, accessible_roots)
+    results, downgrade_count = _harden_file_created_boundary(results, accessible_roots)
     report = verifier.build_report(results)
     li, li_note = compute_li(report, claimed_pass_rate)
     return {
@@ -229,6 +308,9 @@ def scan(claim_text: str, predictor: str, accessible_roots=None, ground_truth=No
         "claimed_pass_rate": claimed_pass_rate,
         "li": li,
         "li_note": li_note,
+        "boundary_hardening_downgrade_count": downgrade_count,
+        "boundary_hardening_note": BOUNDARY_HARDENING_SCOPE,
+        "extraction_density_note": _extraction_density_note(claim_text, report["claim_count"]),
         "verification": report,
     }
 
@@ -253,6 +335,11 @@ def format_report(result: dict) -> str:
     if v["suggested_drift_codes_advisory_only"]:
         lines.append(f"Advisory drift codes (Zone 2 decides promotion, P21): "
                      f"{v['suggested_drift_codes_advisory_only']}")
+    if result["boundary_hardening_downgrade_count"]:
+        lines.append(f"boundary hardening downgraded {result['boundary_hardening_downgrade_count']} "
+                     f"file_created PASS result(s) to FAIL — see boundary_hardening_note in --json output")
+    if result["extraction_density_note"]:
+        lines.append(f"note: {result['extraction_density_note']}")
     return "\n".join(lines)
 
 
@@ -272,7 +359,12 @@ def cmd_scan(args: argparse.Namespace) -> int:
         print(json.dumps(result, indent=2))
     else:
         print(format_report(result))
-    return 0 if result["verification"]["outcome"] != "fail" else 1
+
+    if result["verification"]["outcome"] == "fail":
+        return 1
+    if args.strict_li and result["li"] is None:
+        return 3
+    return 0
 
 
 def run_smoke_test() -> bool:
@@ -353,6 +445,34 @@ def run_smoke_test() -> bool:
         ok = ok and "COPILOT" not in format_report(claude_result).upper()
         ok = ok and result5["li"] is None
 
+        # boundary_hardening_downgrade_count is 0 (not absent) when nothing
+        # needed downgrading, and reflects the real count when it did.
+        ok = ok and result["boundary_hardening_downgrade_count"] == 0
+        ok = ok and result6["boundary_hardening_downgrade_count"] == 1
+
+        # A long zero-claim input is flagged as possible under-extraction;
+        # a short one is not (it would be noise on the common case).
+        long_empty = "This is a long narrative paragraph. " * 10
+        result8 = scan(long_empty, "Copilot")
+        ok = ok and result8["verification"]["claim_count"] == 0
+        ok = ok and result8["extraction_density_note"] is not None
+        result9 = scan("ok", "Copilot")
+        ok = ok and result9["extraction_density_note"] is None
+
+        # --strict-li exits 3 on an undefined LI but never overrides a real
+        # FAIL, and has no effect when LI is defined.
+        strict_input = Path(workdir) / "strict_undefined.txt"
+        strict_input.write_text("Self-test passed.")
+        parser_s = build_parser()
+        args_strict = parser_s.parse_args([
+            "scan", "--input", str(strict_input), "--predictor", "Copilot", "--strict-li",
+        ])
+        ok = ok and cmd_scan(args_strict) == 3
+        args_not_strict = parser_s.parse_args([
+            "scan", "--input", str(strict_input), "--predictor", "Copilot",
+        ])
+        ok = ok and cmd_scan(args_not_strict) == 0
+
         # CLI round trip, including a --claims file overriding the default rate.
         claims_path = Path(workdir) / "claims.json"
         claims_path.write_text(json.dumps({"claimed_pass_rate": 0.5}))
@@ -404,6 +524,13 @@ def build_parser() -> argparse.ArgumentParser:
                              "overridden by --claimed-pass-rate if both given")
     scan_p.add_argument("--out", default=None)
     scan_p.add_argument("--json", action="store_true")
+    scan_p.add_argument("--strict-li", action="store_true",
+                        help="Exit 3 (instead of 0) when LI is undefined (no determinate PASS/FAIL "
+                             "claims — e.g. everything UNVERIFIABLE, or no claims extracted at all). "
+                             "Without this flag, exit codes are: 1 = a claim verified FAIL, "
+                             "0 = otherwise, INCLUDING an undefined LI — a green exit does not by "
+                             "itself mean LI was computed. Use this flag if wiring this scanner into "
+                             "a gate that must not silently pass on an undefined calibration result.")
 
     return parser
 

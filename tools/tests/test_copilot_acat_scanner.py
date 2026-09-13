@@ -305,3 +305,97 @@ def test_verification_core_is_the_real_unmodified_module():
     assert scanner.verifier is verifier
     assert scanner.verifier.run_claim_verification is verifier.run_claim_verification
     assert scanner.verifier.build_report is verifier.build_report
+
+
+def test_boundary_hardening_downgrade_count_is_zero_when_nothing_downgraded(tmp_path):
+    """Adversarial review follow-up on PR #303: a 0 downgrade count must
+    still be present and distinguishable from 'not checked'."""
+    real_file = tmp_path / "artifact.json"
+    real_file.write_text("{}")
+    claim = f"Done. Created the report at {real_file}."
+    result = scanner.scan(claim, "Copilot", accessible_roots=[str(tmp_path)])
+    assert result["boundary_hardening_downgrade_count"] == 0
+    assert result["boundary_hardening_note"] == scanner.BOUNDARY_HARDENING_SCOPE
+
+
+def test_boundary_hardening_downgrade_count_reflects_real_downgrades(tmp_path):
+    root = tmp_path / "repo"
+    root.mkdir()
+    sibling = tmp_path / "repo-secrets"
+    sibling.mkdir()
+    leaked = sibling / "file.txt"
+    leaked.write_text("leaked")
+    claim = f"Done. Created the report at {leaked}."
+    result = scanner.scan(claim, "Copilot", accessible_roots=[str(root)])
+    assert result["boundary_hardening_downgrade_count"] == 1
+
+
+def test_extraction_density_note_fires_on_long_zero_claim_input():
+    """Adversarial review follow-up on PR #303: a long input that yields
+    zero claims should be flagged as possible under-extraction, not
+    silently treated as verified evidence of 'no claims made'."""
+    long_text = "This is a long narrative paragraph. " * 10
+    assert len(long_text) >= scanner.LOW_CLAIM_DENSITY_THRESHOLD_CHARS
+    result = scanner.scan(long_text, "Copilot")
+    assert result["verification"]["claim_count"] == 0
+    assert result["extraction_density_note"] is not None
+    assert "TRL 2-3" in result["extraction_density_note"]
+
+
+def test_extraction_density_note_absent_for_short_zero_claim_input():
+    """A short, unremarkable claim-free input must not trigger the
+    low-density advisory — it would be noise on the common case."""
+    result = scanner.scan("ok", "Copilot")
+    assert result["verification"]["claim_count"] == 0
+    assert result["extraction_density_note"] is None
+
+
+def test_extraction_density_note_absent_when_claims_are_found(tmp_path):
+    real_file = tmp_path / "artifact.json"
+    real_file.write_text("{}")
+    long_claim = (f"Done. Created the report at {real_file}. " +
+                  "This is extra padding text. " * 10)
+    result = scanner.scan(long_claim, "Copilot", accessible_roots=[str(tmp_path)])
+    assert result["verification"]["claim_count"] > 0
+    assert result["extraction_density_note"] is None
+
+
+def test_strict_li_flag_exits_nonzero_when_li_undefined(tmp_path):
+    """Adversarial review follow-up on PR #303: without --strict-li, an
+    undefined LI (e.g. everything UNVERIFIABLE) still exits 0, which is a
+    silent drift risk if this scanner is later wired into a gated node."""
+    input_path = tmp_path / "claim.txt"
+    input_path.write_text("Self-test passed.")  # UNVERIFIABLE, no ground truth given
+    parser = scanner.build_parser()
+
+    args_default = parser.parse_args(["scan", "--input", str(input_path), "--predictor", "Copilot"])
+    assert scanner.cmd_scan(args_default) == 0
+
+    args_strict = parser.parse_args([
+        "scan", "--input", str(input_path), "--predictor", "Copilot", "--strict-li",
+    ])
+    assert scanner.cmd_scan(args_strict) == 3
+
+
+def test_strict_li_flag_does_not_affect_a_defined_li(tmp_path):
+    real_file = tmp_path / "artifact.json"
+    real_file.write_text("{}")
+    input_path = tmp_path / "claim.txt"
+    input_path.write_text(f"Done. Created the report at {real_file}.")
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", str(input_path), "--predictor", "Copilot",
+        "--accessible-root", str(tmp_path), "--strict-li",
+    ])
+    assert scanner.cmd_scan(args) == 0
+
+
+def test_strict_li_flag_does_not_override_a_real_fail(tmp_path):
+    input_path = tmp_path / "claim.txt"
+    input_path.write_text(f"Done. Created the report at {tmp_path}/nope.json.")
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", str(input_path), "--predictor", "Copilot",
+        "--accessible-root", str(tmp_path), "--strict-li",
+    ])
+    assert scanner.cmd_scan(args) == 1
