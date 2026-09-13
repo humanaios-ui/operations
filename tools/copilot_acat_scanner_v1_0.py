@@ -9,9 +9,18 @@ Learning Index pattern from one Unity/C# repo's bespoke privacy checks to
 any repo and any AI build agent's self-report text — issue comments, PR
 descriptions, commit messages — by routing verification through
 tools/claim_verification_check_v0_1.py's own PASS/FAIL/UNVERIFIABLE
-methodology, UNCHANGED, as the sole verification core. Nothing here
-re-implements or forks claim extraction or evaluation; this module only
-adds a predictor-tagged LI computation on top of that tool's own report.
+methodology, UNCHANGED, as the sole verification core: claim EXTRACTION
+and EVALUATION are never reimplemented or forked — every PASS/FAIL/
+UNVERIFIABLE status in a report traces back to that module's own
+run_claim_verification()/build_report(), called as-is. On top of that,
+this module adds three things: a predictor-tagged LI computation; a
+narrow, additive path-boundary hardening pass that re-checks (never
+re-evaluates from scratch) a file_created claim the core already marked
+PASS, closing a specific gap in that one status without touching how the
+core reaches it (see _harden_file_created_boundary()); and CLI/report
+plumbing (--taxonomy, --strict-li, extraction-density and boundary-
+hardening advisories) that surfaces the core's own results more legibly
+rather than changing what they are.
 
 WHAT WAS ECHOES-SPECIFIC, AND WHY IT DOES NOT GENERALIZE
 ------------------------------------------------------------
@@ -237,6 +246,13 @@ def resolve_claimed_pass_rate(args: argparse.Namespace):
         json.loads("null")/"[]"/a bare number would otherwise crash on
         .get() with AttributeError instead of reaching validation as a
         clean invalid-input rejection.
+      - a PRESENT "claimed_pass_rate" key whose value is JSON null is
+        distinguished from an ABSENT key via "in claims", not
+        claims.get(...) is not None (which cannot tell the two apart).
+        An absent key legitimately falls through to claimed_all_true/the
+        1.0 default; an explicit null was written on purpose and must
+        reach validation as None (cleanly rejected), not silently fall
+        through to the same default as if nothing had been written at all.
     In every case the goal is the same: an invalid type reaches
     _is_valid_rate() as itself, not a value type()'s opinion about it."""
     if args.claimed_pass_rate is not None:
@@ -245,8 +261,8 @@ def resolve_claimed_pass_rate(args: argparse.Namespace):
         claims = json.loads(Path(args.claims).read_text())
         if not isinstance(claims, dict):
             return claims  # not even an object; let _is_valid_rate reject it as-is
-        rate = claims.get("claimed_pass_rate")
-        if rate is not None:
+        if "claimed_pass_rate" in claims:
+            rate = claims["claimed_pass_rate"]
             if isinstance(rate, bool):
                 return rate  # deliberately not coerced — see docstring
             if isinstance(rate, (int, float)):
@@ -254,7 +270,7 @@ def resolve_claimed_pass_rate(args: argparse.Namespace):
                     return float(rate)
                 except OverflowError:
                     return rate  # too large to be a float at all; let _is_valid_rate reject it
-            return rate  # not numeric at all; let _is_valid_rate reject it as-is
+            return rate  # not numeric at all (None included); let _is_valid_rate reject it
         all_true = claims.get("claimed_all_true", True)
         if isinstance(all_true, bool):
             return 1.0 if all_true else 0.0
@@ -405,7 +421,8 @@ def format_report(result: dict) -> str:
                      f"{v['suggested_drift_codes_advisory_only']}")
     if result["boundary_hardening_downgrade_count"]:
         lines.append(f"boundary hardening downgraded {result['boundary_hardening_downgrade_count']} "
-                     f"file_created PASS result(s) to FAIL — see boundary_hardening_note in --json output")
+                     f"file_created PASS result(s) to UNVERIFIABLE — see boundary_hardening_note "
+                     f"in --json output")
     if result["extraction_density_note"]:
         lines.append(f"note: {result['extraction_density_note']}")
     return "\n".join(lines)
@@ -627,6 +644,17 @@ def run_smoke_test() -> bool:
             "--accessible-root", workdir, "--claims", str(null_claims_path),
         ])
         ok = ok and cmd_scan(args6) == 2
+
+        # An explicit claimed_pass_rate: null is distinguished from the
+        # key being absent — the former is rejected, not defaulted.
+        explicit_null_path = Path(workdir) / "explicit_null.json"
+        explicit_null_path.write_text(json.dumps({"claimed_pass_rate": None}))
+        args7 = parser.parse_args([
+            "scan", "--input", str(input_path), "--predictor", "Copilot",
+            "--accessible-root", workdir, "--claims", str(explicit_null_path),
+        ])
+        ok = ok and resolve_claimed_pass_rate(args7) is None
+        ok = ok and cmd_scan(args7) == 2
 
         # A symlink inside the root pointing outside it is caught by the
         # same boundary hardening as the sibling-prefix / traversal cases.

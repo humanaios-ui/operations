@@ -437,9 +437,12 @@ def test_claims_file_bool_false_is_not_coerced_to_zero(tmp_path):
     assert not scanner._is_valid_rate(rate)
 
 
-def test_claims_file_numeric_string_still_coerces(tmp_path):
-    """A legitimate numeric JSON value must still work after the bool fix
-    — only bool (and non-numeric types) skip float() coercion."""
+def test_claims_file_int_still_coerces_to_float(tmp_path):
+    """Copilot review finding on PR #303: this test's name previously said
+    'numeric_string' but the fixture writes a JSON int, not a string —
+    renamed so it doesn't imply string-coercion coverage it never had. A
+    legitimate numeric JSON value must still work after the bool fix —
+    only bool (and non-numeric types) skip float() coercion."""
     claims_path = tmp_path / "claims.json"
     claims_path.write_text(json.dumps({"claimed_pass_rate": 1}))  # JSON int, not float
     parser = scanner.build_parser()
@@ -629,3 +632,64 @@ def test_cli_scan_rejects_non_dict_claims_file_cleanly(tmp_path):
         "--accessible-root", str(tmp_path), "--claims", str(claims_path),
     ])
     assert scanner.cmd_scan(args) == 2  # must not raise AttributeError
+
+
+def test_explicit_null_claimed_pass_rate_is_rejected_not_defaulted(tmp_path):
+    """Copilot review finding on PR #303: {"claimed_pass_rate": null} was
+    indistinguishable from the key being absent (claims.get(...) returns
+    None for both), so it silently fell through to the 1.0 default
+    instead of being rejected as deliberately-but-invalidly specified."""
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps({"claimed_pass_rate": None}))
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", "x", "--predictor", "Copilot", "--claims", str(claims_path),
+    ])
+    rate = scanner.resolve_claimed_pass_rate(args)
+    assert rate is None
+    assert not scanner._is_valid_rate(rate)
+
+
+def test_absent_claimed_pass_rate_key_still_falls_through_to_default(tmp_path):
+    """The fix for explicit null must not break the legitimate case of the
+    key being absent entirely."""
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps({}))
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", "x", "--predictor", "Copilot", "--claims", str(claims_path),
+    ])
+    assert scanner.resolve_claimed_pass_rate(args) == 1.0
+
+
+def test_cli_scan_rejects_explicit_null_claimed_pass_rate(tmp_path):
+    real_file = tmp_path / "artifact.json"
+    real_file.write_text("{}")
+    input_path = tmp_path / "claim.txt"
+    input_path.write_text(f"Done. Created the report at {real_file}.")
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps({"claimed_pass_rate": None}))
+    parser = scanner.build_parser()
+    args = parser.parse_args([
+        "scan", "--input", str(input_path), "--predictor", "Copilot",
+        "--accessible-root", str(tmp_path), "--claims", str(claims_path),
+    ])
+    assert scanner.cmd_scan(args) == 2
+
+
+def test_format_report_labels_boundary_downgrade_as_unverifiable(tmp_path):
+    """Copilot review finding on PR #303: format_report()'s boundary-
+    hardening summary line still said 'to FAIL' after the status itself
+    was changed to UNVERIFIABLE, contradicting the JSON status/counts
+    shown in the very same report."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    sibling = tmp_path / "repo-secrets"
+    sibling.mkdir()
+    leaked = sibling / "file.txt"
+    leaked.write_text("leaked")
+    claim = f"Done. Created the report at {leaked}."
+    result = scanner.scan(claim, "Copilot", accessible_roots=[str(root)])
+    text = scanner.format_report(result)
+    assert "to UNVERIFIABLE" in text
+    assert "to FAIL" not in text
