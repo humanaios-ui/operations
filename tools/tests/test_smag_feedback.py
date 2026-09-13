@@ -74,6 +74,19 @@ def test_driver_below_threshold_is_not_a_cue():
     assert r["status"] == "NO_DRIVERS"
 
 
+def test_slug_collision_does_not_collapse_distinct_drivers():
+    # slugify() is lossy: "foo/bar" and "foo-bar" both slug to "foo-bar". The
+    # lesson id is the upsert key, so a naive slug-only id would let the second
+    # driver silently overwrite the first's lesson.
+    lesson_a = fb.lesson_for_cue({"check": "foo/bar", "n": 3, "gap_rate": 0.5}, 10)
+    lesson_b = fb.lesson_for_cue({"check": "foo-bar", "n": 3, "gap_rate": 0.5}, 10)
+    assert lesson_a["id"] != lesson_b["id"]
+    assert lesson_a["id"].startswith("SMAG-FEEDBACK-DRIVER-FOO-BAR-")
+    # same check name -> same id every run, so upsert still stays idempotent.
+    again = fb.lesson_for_cue({"check": "foo/bar", "n": 5, "gap_rate": 0.6}, 12)
+    assert lesson_a["id"] == again["id"]
+
+
 def test_upsert_is_idempotent_by_id(tmp_path):
     path = tmp_path / "lessons.json"
     lesson = fb.lesson_for_insufficient_data(

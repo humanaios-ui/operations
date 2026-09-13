@@ -86,7 +86,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet -- audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md; then
+          if git diff --quiet -- audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md data/lessons_learned_ledger.json; then
             echo "No new SMAG rows — nothing to consolidate."
             exit 0
           fi

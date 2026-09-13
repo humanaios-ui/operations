@@ -39,6 +39,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -95,7 +96,7 @@ def lesson_for_insufficient_data(result: dict) -> dict:
             f"Only {result['calibration_rows']} of the SMAG ledger's rows carry a pinned "
             f"`smag_p:` prediction (below the {result['min_required']}-row floor); "
             f"{result['void_rows']} are VOID. A 'dominant failing check' claim computed "
-            "over this few pinned rows would be noise dressed as calibration signal — "
+            "over so few pinned rows would be noise dressed as calibration signal — "
             "do not promote a gap-driver finding to a hard gate or a REGISTERED claim "
             "until calibration_rows clears the floor."
         ),
@@ -109,9 +110,15 @@ def lesson_for_insufficient_data(result: dict) -> dict:
 
 
 def lesson_for_cue(cue: dict, calibration_rows: int) -> dict:
+    # slugify() is lossy (e.g. "foo/bar" and "foo-bar" both slug to "foo-bar");
+    # the id is the upsert key, so two distinct checks colliding on it would
+    # silently overwrite one lesson with the other's. A short fingerprint of
+    # the untouched check name keeps distinct checks distinct while staying
+    # stable (same check name -> same id) across weekly re-runs.
     slug = slugify(cue["check"])
+    fingerprint = hashlib.sha1(cue["check"].encode("utf-8")).hexdigest()[:8]
     return {
-        "id": f"SMAG-FEEDBACK-DRIVER-{slug.upper()}",
+        "id": f"SMAG-FEEDBACK-DRIVER-{slug.upper()}-{fingerprint}",
         "discovered_in": f"smag_feedback_v1_0, automated FEED BACK run ({calibration_rows} calibration rows)",
         "constraint": "recurring_failing_check_on_pinned_prs",
         "rule": (
