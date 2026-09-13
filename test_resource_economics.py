@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -44,6 +45,21 @@ from priority_queue_engine import (  # noqa: E402
 # Tests that exercise the mode name a test molt; they are not a way around the gate.
 TEST_MOLT = "M-TEST-RBE-01"
 
+# Artifacts whose ratification_hash was minted before `ratify.py --artifact`
+# existed, and therefore verifies against nothing.
+#
+# This list lives in CODE, reviewed like any other change, for the same reason
+# `UNRATIFIED_ZONE_CLAIMS` does in .tool-control/validate.py: an exemption that
+# an artifact could grant itself by setting a field is not an exemption, it is a
+# bypass. A registry ratified from here on must carry a verifiable signature.
+#
+# RESOURCE_UNITS.yaml leaves this list the moment Z2 runs:
+#     python3 .z1-control/ratify.py --artifact RESOURCE_UNITS.yaml \
+#         --decision ACCEPT --by Night --apply
+# and the test above FAILS if it is still listed once it verifies, so the
+# exemption cannot outlive its cause.
+UNVERIFIED_ARTIFACT_RATIFICATIONS = frozenset({"RESOURCE_UNITS.yaml"})
+
 
 def _load(name: str, relpath: str):
     spec = importlib.util.spec_from_file_location(name, ROOT / relpath)
@@ -63,9 +79,62 @@ def units() -> dict:
 
 # ---------------------------------------------------------------- registry
 class TestUnitRegistry:
-    def test_registry_parses_and_declares_itself_candidate(self, units):
-        assert units["status"] == "CANDIDATE"
-        assert units["ratification_hash"] is None, "a Z1 proposal must not carry a hash"
+    def test_registry_is_ratified_and_says_who_and_when(self, units):
+        assert units["status"] == "RATIFIED"
+        assert units["ratification_decision"] == "ACCEPT"
+        assert units["ratified_by"], "a ratification is somebody's act"
+        assert units["ratified_at"]
+        assert units["ratification_hash"], "a ratified registry must carry a hash"
+
+    def test_ratification_hash_is_a_sha256_and_not_a_slug(self, units):
+        """The weakest property the hash must have, and the one it had lost.
+
+        The three rulings of 2026-09-08 carry hand-written slugs, and
+        `ratify.py --verify` reports them as "content not pinned" rather than
+        pretending otherwise. A slug in this field would leave the registry
+        ratified by a value that pins nothing.
+        """
+        assert re.fullmatch(r"[0-9a-f]{64}", str(units["ratification_hash"])), \
+            "ratification_hash must be a sha256, not a slug"
+
+    def test_ratification_hash_verifies_against_the_content(self, units):
+        """The strong property: recompute the signature and compare.
+
+        This is what `assert ratification_hash is not None` could never do. The
+        digest covers the registry's content with the ratification fields
+        excluded, so editing a unit, a policy or a prior breaks it while fixing
+        a comment does not.
+
+        UNVERIFIED_ARTIFACT_RATIFICATIONS below is an explicit, reviewed record
+        of hashes minted before `ratify.py` could sign an artifact — not a way
+        for a new one to skip this. A registry that is not on that list must
+        verify, and nothing in this file can add itself to it.
+        """
+        ratify = _load("z1_ratify", ".z1-control/ratify.py")
+        recomputed = ratify.artifact_signature(
+            units, str(units["ratified_by"]), str(units["ratified_at"]),
+            str(units["ratification_decision"]))
+        if "RESOURCE_UNITS.yaml" in UNVERIFIED_ARTIFACT_RATIFICATIONS:
+            assert recomputed != units["ratification_hash"], (
+                "RESOURCE_UNITS.yaml now verifies — remove it from "
+                "UNVERIFIED_ARTIFACT_RATIFICATIONS so the exemption cannot outlive its cause")
+            pytest.skip("hash predates ratify.py --artifact; see "
+                        "UNVERIFIED_ARTIFACT_RATIFICATIONS")
+        assert recomputed == units["ratification_hash"], (
+            "ratification_hash does not match the content it claims to ratify")
+
+    def test_header_comment_agrees_with_the_status_field(self):
+        """The defect that produced this test: lines 3-4 said CANDIDATE, and
+        nothing said they were wrong, for as long as nobody happened to read
+        them next to the field they describe."""
+        head = UNITS_PATH.read_text(encoding="utf-8").split("---", 1)[0]
+        status = yaml.safe_load(UNITS_PATH.read_text(encoding="utf-8"))["status"]
+        assert status in head, (
+            f"the header comment does not mention status {status!r}; it describes "
+            f"a state the file is not in")
+        other = "CANDIDATE" if status != "CANDIDATE" else "RATIFIED"
+        assert f"Status: {other}" not in head, \
+            f"the header still announces 'Status: {other}' while status is {status!r}"
 
     def test_every_registered_unit_has_an_instrument(self, units):
         for u in units["units"]:
@@ -251,11 +320,21 @@ class TestLedgerRefusals:
     def test_smoke_test_passes(self):
         assert ledger.run_smoke_test() == 0
 
-    def test_genesis_pins_the_units_registry_hash(self, led):
+    def test_genesis_pins_the_units_registry_hash(self, led, units):
+        """Genesis records BOTH hashes, and they answer different questions.
+
+        `units_registry_sha256` is the ledger's own digest of the file it read —
+        it detects the registry changing under an open ledger. `units_ratification_hash`
+        is Z2's signature copied from the registry — it records which ratified
+        version this ledger was opened against. Before Z2 accepted the registry
+        the second was null; asserting it stays null would now assert the
+        registry is unratified.
+        """
         first = json.loads(Path(led).read_text(encoding="utf-8").splitlines()[0])
         assert first["type"] == "OPEN"
         assert len(first["units_registry_sha256"]) == 64
-        assert first["units_ratification_hash"] is None
+        assert first["units_ratification_hash"] == units["ratification_hash"], \
+            "genesis must pin the ratification the registry actually carries"
 
     def test_unknown_unit_is_refused(self, led):
         assert run_ledger(["claim", led, "Q-1", "--budget", "NOPE=1"]) != 0
