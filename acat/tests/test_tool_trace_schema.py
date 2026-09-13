@@ -129,3 +129,26 @@ class TestToolTraceSchema:
         payload["meta"] = {"tool_trace": {"seq": 1}}
         errors = self._validate(schema_file, payload)
         assert errors, "expected a validation error for tool_trace as an object"
+
+    def test_valid_outcome_values_are_valid(self, schema_file, base_payload):
+        for outcome in ("success", "error"):
+            entry = dict(VALID_TOOL_CALL, outcome=outcome)
+            payload = base_payload()
+            payload["meta"] = {"tool_trace": [entry]}
+            errors = self._validate(schema_file, payload)
+            assert errors == [], [e.message for e in errors]
+
+    def test_missing_outcome_is_valid(self, schema_file, base_payload):
+        """outcome is optional for backward compatibility with traces
+        captured before the field existed."""
+        payload = base_payload()
+        payload["meta"] = {"tool_trace": [dict(VALID_TOOL_CALL)]}
+        errors = self._validate(schema_file, payload)
+        assert errors == [], [e.message for e in errors]
+
+    def test_invalid_outcome_value_is_invalid(self, schema_file, base_payload):
+        entry = dict(VALID_TOOL_CALL, outcome="maybe")
+        payload = base_payload()
+        payload["meta"] = {"tool_trace": [entry]}
+        errors = self._validate(schema_file, payload)
+        assert errors, "expected a validation error for an invalid outcome value"

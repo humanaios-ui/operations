@@ -131,6 +131,92 @@ def test_verify_exception_is_wrapped_as_trace_corrupt(tmp_path, monkeypatch):
         pass
 
 
+def test_row_with_wrong_session_id_is_refused(tmp_path):
+    """A hash-valid row is not proof it belongs in THIS session's file — a
+    row whose own session_id doesn't match the one requested must be
+    refused, not returned as this session's trace (Copilot review finding
+    on PR #302)."""
+    trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
+    trace_dir.mkdir(parents=True)
+    ledger = trace_dir / hook.ledger_filename("victim")
+    row = hook.build_event(1, "attacker", "Read", {}, "2026-09-13T00:00:00+00:00")
+    row["prev_hash"] = "0" * 64
+    row["hash"] = engine.sha(engine.canon(row))
+    with open(ledger, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
+
+    try:
+        reader.load_tool_trace(trace_dir, "victim")
+        raise AssertionError("expected TraceCorrupt")
+    except reader.TraceCorrupt:
+        pass
+
+
+def test_row_with_string_seq_is_refused(tmp_path):
+    trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
+    trace_dir.mkdir(parents=True)
+    ledger = trace_dir / hook.ledger_filename("s1")
+    row = hook.build_event(1, "s1", "Read", {}, "2026-09-13T00:00:00+00:00")
+    row["seq"] = "1"
+    row["prev_hash"] = "0" * 64
+    row["hash"] = engine.sha(engine.canon(row))
+    with open(ledger, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
+
+    try:
+        reader.load_tool_trace(trace_dir, "s1")
+        raise AssertionError("expected TraceCorrupt")
+    except reader.TraceCorrupt:
+        pass
+
+
+def test_row_with_non_list_input_keys_is_refused(tmp_path):
+    trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
+    trace_dir.mkdir(parents=True)
+    ledger = trace_dir / hook.ledger_filename("s1")
+    row = hook.build_event(1, "s1", "Read", {}, "2026-09-13T00:00:00+00:00")
+    row["input_keys"] = "file_path"
+    row["prev_hash"] = "0" * 64
+    row["hash"] = engine.sha(engine.canon(row))
+    with open(ledger, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
+
+    try:
+        reader.load_tool_trace(trace_dir, "s1")
+        raise AssertionError("expected TraceCorrupt")
+    except reader.TraceCorrupt:
+        pass
+
+
+def test_post_tool_use_failure_outcome_surfaces_as_error(tmp_path):
+    trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
+    hook.run_hook(
+        {"hook_event_name": "PostToolUseFailure", "session_id": "flaky",
+         "tool_name": "Bash", "tool_input": {"command": "false"}},
+        tmp_path,
+    )
+    trace = reader.load_tool_trace(trace_dir, "flaky")
+    assert trace[0]["outcome"] == "error"
+
+
+def test_row_without_outcome_defaults_to_success(tmp_path):
+    """Backward compatibility: a ledger row captured before the outcome
+    field existed must not be refused, and must read as success rather
+    than an unset/unknown state."""
+    trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
+    trace_dir.mkdir(parents=True)
+    ledger = trace_dir / hook.ledger_filename("legacy")
+    row = hook.build_event(1, "legacy", "Read", {}, "2026-09-13T00:00:00+00:00")
+    del row["outcome"]
+    row["prev_hash"] = "0" * 64
+    row["hash"] = engine.sha(engine.canon(row))
+    with open(ledger, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
+
+    trace = reader.load_tool_trace(trace_dir, "legacy")
+    assert trace[0]["outcome"] == "success"
+
+
 def test_cli_report_missing_session_prints_note(tmp_path, capsys):
     trace_dir = tmp_path / hook.DEFAULT_TRACE_DIR
     parser = reader.build_parser()

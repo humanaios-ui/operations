@@ -63,9 +63,25 @@ tool payload can be arbitrarily large or sensitive; a digest is enough to
 later confirm two independently-held records agree without ever
 committing that payload to the trace ledger itself.
 
+WHY PostToolUseFailure IS ALSO WIRED, NOT JUST PostToolUse
+------------------------------------------------------------------
+PostToolUse fires only after a tool call succeeds; a failed call (e.g. a
+Bash command that errors) fires PostToolUseFailure instead. Registering
+only PostToolUse would silently drop every failed call from a trace whose
+whole premise is "what tools this session actually invoked" — success or
+not, the call still happened. Each recorded event therefore carries an
+"outcome" field ("success" or "error") so a reader can tell the two apart
+rather than treating every entry as if it had succeeded.
+
 Wiring (.claude/settings.json):
   "hooks": {
     "PostToolUse": [
+      {"matcher": "*", "hooks": [
+        {"type": "command",
+         "command": "python3 \"$CLAUDE_PROJECT_DIR/tools/tool_trace_hook_v1_0.py\""}
+      ]}
+    ],
+    "PostToolUseFailure": [
       {"matcher": "*", "hooks": [
         {"type": "command",
          "command": "python3 \"$CLAUDE_PROJECT_DIR/tools/tool_trace_hook_v1_0.py\""}
@@ -123,9 +139,11 @@ def ledger_filename(session_id: str) -> str:
     """This session's ledger filename. slugify() alone is not injective,
     so two distinct session_ids that sanitize to the same slug (e.g. "a/b"
     and "a-b") would otherwise collide onto one file and silently merge
-    two sessions' traces. Every filename therefore carries an 8-hex digest
-    of the ORIGINAL (pre-sanitize) session_id as a disambiguator."""
-    digest = hashlib.sha256(session_id.encode("utf-8")).hexdigest()[:8]
+    two sessions' traces. Every filename therefore carries the FULL
+    64-hex-char SHA256 digest of the ORIGINAL (pre-sanitize) session_id as
+    a disambiguator — a truncated digest would just narrow the same
+    collision risk it exists to remove, not eliminate it."""
+    digest = hashlib.sha256(session_id.encode("utf-8")).hexdigest()
     return f"{slugify(session_id)}-{digest}.jsonl"
 
 
@@ -145,15 +163,25 @@ def _locked(ledger_path: Path):
             fcntl.flock(lock_file, fcntl.LOCK_UN)
 
 
-def build_event(seq: int, session_id: str, tool_name: str, tool_input: dict, at: str) -> dict:
+def build_event(seq: int, session_id: str, tool_name: str, tool_input: dict, at: str,
+                outcome: str = "success") -> dict:
     """Pure: one TOOL_CALL event. Never carries the raw tool_input/output —
-    see module docstring."""
-    canonical = json.dumps(tool_input, sort_keys=True, default=str)
-    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    see module docstring. The digest uses engine.canon() — the same
+    canonicalizer the hash chain itself uses — rather than an ad hoc
+    json.dumps, so an auditor recomputing it with the shared primitive
+    gets the same digest this hook stored. tool_input is always a plain
+    dict of JSON-parsed values by the time it reaches here (run_hook
+    normalizes anything else to {}), so it is always canon()-safe.
+
+    outcome is "success" (from PostToolUse) or "error" (from
+    PostToolUseFailure) — without it, a failed call and a successful one
+    would be indistinguishable in the trace, silently overstating what
+    every recorded call actually did."""
+    digest = hashlib.sha256(engine.canon(tool_input)).hexdigest()
     keys = sorted(tool_input.keys()) if isinstance(tool_input, dict) else []
     return {
         "seq": seq, "type": "TOOL_CALL", "at": at, "by": "posttooluse-hook",
-        "session_id": session_id, "tool_name": tool_name,
+        "session_id": session_id, "tool_name": tool_name, "outcome": outcome,
         "input_digest": digest, "input_keys": keys,
     }
 
@@ -218,7 +246,7 @@ def _tail_state(ledger_path: Path):
 
 
 def append_tool_call(ledger_path: Path, session_id: str, tool_name: str,
-                     tool_input: dict, at: str) -> Optional[str]:
+                     tool_input: dict, at: str, outcome: str = "success") -> Optional[str]:
     """Appends one TOOL_CALL event under a file lock. Returns None on
     success, or a short reason string if the append was skipped (an
     existing corrupted or malformed chain — never extended, only
@@ -230,7 +258,7 @@ def append_tool_call(ledger_path: Path, session_id: str, tool_name: str,
         next_seq, prev_hash, reason = _tail_state(ledger_path)
         if reason:
             return reason
-        event = build_event(next_seq, session_id, tool_name, tool_input, at)
+        event = build_event(next_seq, session_id, tool_name, tool_input, at, outcome)
         engine.append(str(ledger_path), [event], prev_hash)
     return None
 
@@ -245,9 +273,10 @@ def run_hook(payload: dict, project_dir: Path) -> Optional[str]:
     tool_input = payload.get("tool_input")
     if not isinstance(tool_input, dict):
         tool_input = {}
+    outcome = "error" if payload.get("hook_event_name") == "PostToolUseFailure" else "success"
 
     ledger_path = project_dir / DEFAULT_TRACE_DIR / ledger_filename(session_id)
-    return append_tool_call(ledger_path, session_id, tool_name, tool_input, engine.now())
+    return append_tool_call(ledger_path, session_id, tool_name, tool_input, engine.now(), outcome)
 
 
 def touch_session_ledger(payload: dict, project_dir: Path) -> None:
@@ -416,7 +445,7 @@ def main(argv=None) -> int:
     if not isinstance(payload, dict):
         return 0
     event_name = payload.get("hook_event_name")
-    if event_name not in (None, "PostToolUse", "SessionStart"):
+    if event_name not in (None, "PostToolUse", "PostToolUseFailure", "SessionStart"):
         return 0
 
     project_dir_raw = os.environ.get("CLAUDE_PROJECT_DIR") or payload.get("cwd")

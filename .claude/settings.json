@@ -16,6 +16,17 @@
         ]
       }
     ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/tools/tool_trace_hook_v1_0.py\""
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [

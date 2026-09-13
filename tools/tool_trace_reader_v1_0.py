@@ -56,9 +56,12 @@ class TraceCorrupt(RuntimeError):
 def load_tool_trace(trace_dir: Path, session_id: str) -> Optional[List[dict]]:
     """None if no trace was ever captured for this session; otherwise the
     ordered list of TOOL_CALL records, each {seq, at, tool_name,
-    input_digest, input_keys} — never the raw tool input itself, since the
-    ledger never stored it. Raises TraceCorrupt if the chain doesn't
-    verify; never returns a partial list for a broken chain."""
+    input_digest, input_keys, outcome} — never the raw tool input itself,
+    since the ledger never stored it. Raises TraceCorrupt if the chain
+    doesn't verify, if a row belongs to a different session_id than
+    requested (a hash-valid row is not proof it belongs in THIS file), or
+    if a projected field has the wrong type; never returns a partial list
+    for a broken or contaminated chain."""
     ledger_path = trace_dir / hook.ledger_filename(session_id)
     if not ledger_path.exists():
         return None
@@ -78,17 +81,42 @@ def load_tool_trace(trace_dir: Path, session_id: str) -> Optional[List[dict]]:
             raise TraceCorrupt(f"{ledger_path}: row is not an object")
         if row.get("type") != "TOOL_CALL":
             raise TraceCorrupt(f"{ledger_path}: unexpected row type {row.get('type')!r}")
-        required = ("seq", "at", "tool_name", "input_digest", "input_keys")
+        required = ("seq", "at", "tool_name", "input_digest", "input_keys", "session_id")
         missing = [field for field in required if field not in row]
         if missing:
             raise TraceCorrupt(
                 f"{ledger_path}: TOOL_CALL row missing required field(s): {', '.join(missing)}"
             )
+        if row["session_id"] != session_id:
+            raise TraceCorrupt(
+                f"{ledger_path}: row session_id {row['session_id']!r} does not match "
+                f"requested {session_id!r}"
+            )
+        if not isinstance(row["seq"], int) or isinstance(row["seq"], bool):
+            raise TraceCorrupt(f"{ledger_path}: seq is {type(row['seq']).__name__}, not int")
+        if not isinstance(row["at"], str):
+            raise TraceCorrupt(f"{ledger_path}: at is {type(row['at']).__name__}, not str")
+        if not isinstance(row["tool_name"], str):
+            raise TraceCorrupt(
+                f"{ledger_path}: tool_name is {type(row['tool_name']).__name__}, not str"
+            )
+        if not isinstance(row["input_digest"], str):
+            raise TraceCorrupt(
+                f"{ledger_path}: input_digest is {type(row['input_digest']).__name__}, not str"
+            )
+        if not isinstance(row["input_keys"], list) or not all(
+            isinstance(k, str) for k in row["input_keys"]
+        ):
+            raise TraceCorrupt(f"{ledger_path}: input_keys is not a list of str")
+        outcome = row.get("outcome", "success")
+        if not isinstance(outcome, str):
+            raise TraceCorrupt(f"{ledger_path}: outcome is {type(outcome).__name__}, not str")
         trace.append({
             "seq": row["seq"], "at": row["at"],
             "tool_name": row["tool_name"],
             "input_digest": row["input_digest"],
             "input_keys": row["input_keys"],
+            "outcome": outcome,
         })
     return trace
 
@@ -113,7 +141,7 @@ def cmd_report(args: argparse.Namespace) -> int:
             print(f"{args.session_id}: {len(trace)} tool call(s)")
             for entry in trace:
                 print(f"  [{entry['seq']}] {entry['at']}  {entry['tool_name']}"
-                     f"  keys={entry['input_keys']}")
+                     f"  outcome={entry['outcome']}  keys={entry['input_keys']}")
     return 0
 
 
@@ -200,6 +228,32 @@ def run_smoke_test() -> bool:
             ok = False
         except TraceCorrupt:
             pass
+
+        # A hash-valid row copied from a different session's file is
+        # refused, not returned as this session's trace (session_id
+        # mismatch), and a PostToolUseFailure entry's outcome is surfaced.
+        contaminated_dir = project_dir / "contaminated"
+        contaminated_ledger = contaminated_dir / hook.ledger_filename("victim")
+        contaminated_ledger.parent.mkdir(parents=True, exist_ok=True)
+        foreign_row = hook.build_event(1, "attacker", "Read", {}, "2026-09-13T00:00:00+00:00")
+        foreign_row["prev_hash"] = "0" * 64
+        foreign_row["hash"] = engine.sha(engine.canon(foreign_row))
+        with open(contaminated_ledger, "w", encoding="utf-8") as handle:
+            handle.write(json.dumps(foreign_row) + "\n")
+        try:
+            load_tool_trace(contaminated_dir, "victim")
+            ok = False
+        except TraceCorrupt:
+            pass
+
+        failure_dir = project_dir / "failure"
+        hook.run_hook(
+            {"hook_event_name": "PostToolUseFailure", "session_id": "flaky",
+             "tool_name": "Bash", "tool_input": {"command": "false"}},
+            failure_dir,
+        )
+        failure_trace = load_tool_trace(failure_dir / hook.DEFAULT_TRACE_DIR, "flaky")
+        ok = ok and failure_trace is not None and failure_trace[0]["outcome"] == "error"
 
         # Verification exceptions are normalized to TraceCorrupt.
         original_verify = engine.verify

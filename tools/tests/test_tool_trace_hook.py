@@ -199,6 +199,75 @@ def test_main_dispatches_session_start(monkeypatch, tmp_path):
     assert ledger.stat().st_size == 0
 
 
+def test_post_tool_use_failure_is_captured_as_error_outcome(tmp_path):
+    """PostToolUse fires only on success; a failed call fires
+    PostToolUseFailure instead. Without registering it too, a failed tool
+    invocation would be silently absent from a trace whose whole premise
+    is "what tools this session actually invoked" (Copilot review finding
+    on PR #302, confirmed against the official Claude Code hooks docs)."""
+    reason = hook.run_hook(
+        {"hook_event_name": "PostToolUseFailure", "session_id": "s1",
+         "tool_name": "Bash", "tool_input": {"command": "false"}},
+        tmp_path,
+    )
+    assert reason is None
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.ledger_filename("s1")
+    rows = engine.read(str(ledger))
+    assert rows[0]["outcome"] == "error"
+
+
+def test_post_tool_use_defaults_to_success_outcome(tmp_path):
+    hook.run_hook(
+        {"hook_event_name": "PostToolUse", "session_id": "s1",
+         "tool_name": "Read", "tool_input": {}},
+        tmp_path,
+    )
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.ledger_filename("s1")
+    rows = engine.read(str(ledger))
+    assert rows[0]["outcome"] == "success"
+
+
+def test_main_dispatches_post_tool_use_failure(monkeypatch, tmp_path):
+    import io
+    monkeypatch.setattr(
+        sys, "stdin",
+        io.StringIO(json.dumps({"hook_event_name": "PostToolUseFailure", "session_id": "s1",
+                                "tool_name": "Bash", "tool_input": {"command": "false"}})),
+    )
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(tmp_path))
+    assert hook.main([]) == 0
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.ledger_filename("s1")
+    assert ledger.exists()
+    rows = engine.read(str(ledger))
+    assert rows[0]["outcome"] == "error"
+
+
+def test_input_digest_matches_shared_canonicalizer(tmp_path):
+    """The digest must be computed via engine.canon() — the same
+    canonicalizer the hash chain itself uses — not a separately-encoded
+    json.dumps, so an auditor recomputing it with the shared primitive
+    gets the same value (Copilot review finding on PR #302)."""
+    import hashlib
+    tool_input = {"file_path": "/etc/hosts", "recursive": True}
+    hook.run_hook(
+        {"hook_event_name": "PostToolUse", "session_id": "s1",
+         "tool_name": "Read", "tool_input": tool_input},
+        tmp_path,
+    )
+    ledger = tmp_path / hook.DEFAULT_TRACE_DIR / hook.ledger_filename("s1")
+    rows = engine.read(str(ledger))
+    expected = hashlib.sha256(engine.canon(tool_input)).hexdigest()
+    assert rows[0]["input_digest"] == expected
+
+
+def test_ledger_filename_uses_full_digest_not_truncated(tmp_path):
+    """An 8-hex-char (32-bit) truncated digest still collides at scale
+    (~50% at ~77k session IDs); the filename must carry the full 64-hex
+    SHA256 digest (Copilot review finding on PR #302)."""
+    digest_part = hook.ledger_filename("some-session").rsplit("-", 1)[-1].removesuffix(".jsonl")
+    assert len(digest_part) == 64
+
+
 def test_non_integer_tail_seq_is_reported_without_raising(tmp_path):
     """A correctly-hashed tail row with a non-int "seq" (a hand-forged
     ledger, since the hook itself always writes an int) must be refused,

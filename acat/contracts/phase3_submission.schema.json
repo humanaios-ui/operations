@@ -129,7 +129,12 @@
               },
               "tool_name": { "type": "string" },
               "input_digest": { "type": "string" },
-              "input_keys": { "type": "array", "items": { "type": "string" } }
+              "input_keys": { "type": "array", "items": { "type": "string" } },
+              "outcome": {
+                "type": "string",
+                "enum": ["success", "error"],
+                "description": "success (PostToolUse) or error (PostToolUseFailure). Optional for backward compatibility with traces captured before this field existed; absence must not be read as success."
+              }
             }
           }
         }
