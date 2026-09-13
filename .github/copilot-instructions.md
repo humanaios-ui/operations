@@ -110,6 +110,13 @@ yours to curate. What you must never hand-edit is
 **`TOOLS_MANIFEST.md`** itself — change `tools-manifest.yaml` and rerun
 `render.py` instead.
 
+`TOOL_CATEGORY` must be one of the 16 terms in `.tool-control/README.md`'s
+category vocabulary table (`audit_tool`, `calibration_tool`, `validation_tool`,
+...) — the vocabulary is closed, and both `unclassified` (an omitted category)
+and any string outside it are now **merge-blocking** errors, not advisory ones.
+Extending the vocabulary itself means editing `CATEGORIES` in `scan.py` as its
+own reviewed change, not inventing a new string on a tool PR.
+
 A tool at `zone: 2` or `3` needs its manifest entry's own `ratified_by` field
 naming a Z2 hash or ratification document — `.tool-control/validate.py` blocks
 merge on any zone-2/3 entry with no `ratified_by` (one pre-existing legacy
