@@ -1,11 +1,28 @@
-# Candidate Block: Q-NF-SCHEMA-01 — molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger
+# Candidate Block: Q-NF-ADAPTER-01 — molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger
 
 **Z1 Proposer:** Claude (AI agent)
 **Date Submitted:** 2026-09-13
-**Pinned SHA:** `1e1b518` (main, after PR #306)
+**Pinned SHA:** `2a7db73` (main, after PR #305/#307/#308)
 **Branch:** `claude/recursive-learning-self-improvement-lc8mjt`
 **Queue row:** `Q-NF-SCHEMA-01` (`PRIORITY_QUEUE.md`, score 9, top of READY)
 **Status:** AWAITING Z2 RATIFICATION
+
+**Relationship to `Q-NF-SCHEMA-01` (the inbox candidate, `z1-inbox/2026-09-10/
+Q-NF-SCHEMA-01-CANDIDATE.md`, filed 2026-09-10, still awaiting Z2):** that block
+proposes the full v1.0 rewrite `NF_LEDGER_SCHEMA_v1.md` specifies — a single
+flat record per molt, a genesis record, migration of the incumbent ledger. This
+block instead implements `PRIORITY_QUEUE.md`'s own, narrower, more recent
+(provenance 2026-09-09, fresh clone of main) acceptance criteria for the same
+queue row, which are explicit that the incumbent v0.1 ledger is **not**
+rewritten. The two are not in conflict — this block's four deliverables are a
+strict subset of the 2026-09-10 block's "Technical Deliverables" #2 and #3 (CI
+gate enhancement and a `molt_cycle.py` skeleton) — but they propose different
+implementations of the same row, and only one should be ratified as *the*
+closure of `Q-NF-SCHEMA-01`. Given a new, distinct q_id here rather than
+reusing `Q-NF-SCHEMA-01` to avoid a duplicate-key collision in
+`z1-inbox/INDEX.yaml` (`.z1-control/validate.py` rejects duplicate `q_id`s).
+**Z2 should treat this as choosing between the two proposals for the same row,
+not as two independent asks.**
 
 ---
 
@@ -154,7 +171,7 @@ both tools agree.
 | `NF_LEDGER_SCHEMA_v1.md` | Cross-reference note only |
 | `test_specimen_intake_nf_ledger.py` (new) | This row's falsifier, run for real, end to end |
 | `tools/tests/test_molt_cycle_nf_read.py` (new) | Direct tests of `molt_cycle.py`'s rewritten reader against synthetic ledgers, all four `pin_outcome()` outcome classes |
-| `z1-inbox/2026-09-13/Q-NF-SCHEMA-01.md` | This block |
+| `z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md` | This block |
 
 No existing ledger file changed; `ledgers/NF_LEDGER.jsonl` hash chain verified
 identical before and after (`nf_ledger_v0_1.py verify` — head unchanged). All 21
@@ -166,6 +183,11 @@ specimen-intake tests plus 10 new tests pass; `tools/repo_health.py --strict`
 
 ## Z2 Review Checklist
 
+- [ ] **This block is accepted as `Q-NF-SCHEMA-01`'s closure instead of the
+      2026-09-10 `Q-NF-SCHEMA-01` candidate's fuller rewrite** — the two propose
+      different implementations of the same queue row; ratifying this one
+      should also resolve (accept/reject/defer) the older one rather than
+      leaving both open
 - [ ] `ledgers/NF_EVENT_SCHEMA.md` is accepted as the operative spec for this row's
       scope (incumbent format, no rewrite of the 165 events on main)
 - [ ] The specimen-intake `reverted → NO/YES` mapping is accepted as adequate for
