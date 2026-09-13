@@ -45,7 +45,7 @@ Entry-level, 137 entries × 4 checks (Phase 2 corrected: correction-to discovery
 | Fence form | RFM-07 | 8/137 | 94.2% |
 | Quote hygiene | RFM-08 | 5/137 | 96.4% |
 
-**101 defects / 548 opportunities → 81.6% FPY → 181,306 DPMO → ~2.4σ**, same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the *"clean reference bar (0/7)."* At entry level it is not clean.
+**101 defects / 548 opportunities → 81.6% FPY → 184,307 DPMO → ~2.4σ**, same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the *"clean reference bar (0/7)."* At entry level it is not clean.
 
 File-level: 10/45 F-entries absent from the quick index · 25 entries past the `## Changelog` · 1 orphan roll-up row (IC-036) · 3 of 6 ratified classes empty · 2 cross-artifact ratification contradictions.
 
