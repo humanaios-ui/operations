@@ -157,6 +157,13 @@ counted into the whole `tools/` corpus's ≥70% pass-rate floor
 (`builder-lint.yml`'s equivalent new-file gate, by contrast, covers added
 *and* modified files — the two workflows don't scope identically). Run the
 gate on a modified file anyway; a corpus-wide regression still blocks merge.
+The new-file gate itself has a real gap worth knowing about, not relying on:
+its CI step only fails on a result explicitly starting with `FAIL` — if the
+scanner crashes and produces no report at all, the workflow's own parsing
+treats that as `UNKNOWN` and passes it through as if it were fine. Don't read
+"the new-file gate passed" as strong a guarantee as "the file is compliant";
+confirm your own local run actually produced a real PASS, not a swallowed
+crash.
 
 Then register the file — a tool on disk that isn't in the manifest fails CI
 (`tool-manifest.yml`, check name **"Tool manifest integrity"**):
@@ -227,7 +234,11 @@ document, `document-registry.yaml` has no scan step of its own: it's a
 curated YAML list you hand-edit directly, adding your `doc_id` entry with its
 required fields — `doc_id`, `title`, `canonical_repo`, `canonical_path`, and
 `status` at minimum (`.doc-control/validate.py` blocks merge on any missing).
-After registering, run `python3 .doc-control/render.py` to regenerate
+You must also increment the registry's own top-level `counts:` mapping
+(`documents`, `excluded`, `needs_reconcile`) to match reality by hand —
+`render.py` doesn't touch it, and `validate.py` blocks merge if it's stale or
+missing, the same class of check as the tool manifest's own counters. After
+registering, run `python3 .doc-control/render.py` to regenerate
 `CONTROLLED_DOCUMENTS.md` from it — like `TOOLS_MANIFEST.md`, that rendered
 index is never hand-edited. Most new `.md` files you'll write (tool READMEs,
 specs, this file itself) are genuinely free-form and need neither
@@ -263,15 +274,28 @@ your environment lacks that suite's fixtures.
 
 The commands above cover every PR. If your PR also touches `tools/**/*.py`,
 two more path-scoped gates apply and aren't in the list above: `builder-lint.yml`
-(§5's Builder scanner) and `behavioral-compliance.yml` (§5's AST-level gate).
-Each runs two checks, not one, and they don't scope identically (§5 covers
-this in full): `builder-lint.yml`'s per-file gate covers your PR's added
-*and* modified files; `behavioral-compliance.yml`'s per-file gate covers only
-*added* files, with a modified tool checked solely through the corpus floor.
-Both also gate the whole `tools/` corpus (Builder ≥ 0.90, behavioral ≥ 0.70).
-Passing either scanner on just your own file doesn't prove the PR is green:
-run `--path tools/` for both tools too, so a corpus-wide regression shows up
-locally instead of first in CI.
+(§5's Builder scanner, 2 CI steps: a corpus gate and a per-file gate) and
+`behavioral-compliance.yml` (§5's AST-level gate, 4 CI steps: the same two
+gates plus its own pytest and smoke-test self-tests). They don't scope
+identically (§5 covers this in full): `builder-lint.yml`'s per-file gate
+covers your PR's added *and* modified files; `behavioral-compliance.yml`'s
+per-file gate covers only *added* files, with a modified tool checked solely
+through the corpus floor.
+
+Both also gate the whole `tools/` corpus, but reproduce that locally with the
+CI thresholds, not the CLI defaults (both scripts default `--min-pass-rate`
+to `1.0`, which the current corpus does not meet):
+
+```bash
+python3 tools/builder_compliance_scanner_v1.0.py --path tools/ --min-pass-rate 0.90
+python3 tools/behavioral_compliance_gate_v1_0.py --path tools/ --min-pass-rate 0.70
+```
+
+The Builder corpus run has a blind spot worth knowing: it only scans files
+that already contain the `Builder v1.7 compliant` marker
+(`_is_builder_corpus_member()`), so an unmarked or non-compliant *new* tool
+never shows up in this corpus run at all — the per-file added/modified gate
+above is what actually catches that for your PR, not this command.
 
 If a check fails because a generated file (manifest, rendered index) is stale, the
 fix is almost always re-running the tool that generates it — see §5/§6 — not
