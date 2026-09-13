@@ -26,7 +26,7 @@ generated: "2026-09-13"
 decision_window_days: 2
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
-counts: {candidates: 14, records: 13}
+counts: {candidates: 15, records: 13}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
@@ -120,6 +120,13 @@ candidates:
     submitted: "2026-09-13"
     status: awaiting_z2
     note: "Landed on main via PR #306 while this branch was open. The coverage rule caught it unindexed in CI — the first real firing of that rule."
+
+  - q_id: Q-TOOLCONTROL-03
+    title: "Turning the gate on itself — every blocking rule must be able to fail"
+    path: "z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Answers the operator's question after #306: 10 of 26 blocking conditions had ever been executed. This block was itself caught unindexed by .z1-control/validate.py on its first run against it."
 
   - q_id: Q-GOVGATE-01
     title: "The Z2 gate never ran; z1-inbox conversion mechanism"
