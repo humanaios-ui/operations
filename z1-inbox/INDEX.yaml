@@ -24,10 +24,9 @@ version: 1
 generated: "2026-09-13"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 18, records: 15}
+counts: {candidates: 19, records: 15}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
-counts: {candidates: 16, records: 13}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
