@@ -1,0 +1,183 @@
+# HumanAIOS — Z1 Inbox Index (Single Source of Truth)
+#
+# What this is: the conversion record for z1-inbox/. Every file dropped in the
+# inbox is either a CANDIDATE (it asks Z2 for a decision) or a RECORD (it
+# reports, receipts, or hands off — no decision requested). This file says
+# which, and for candidates it carries the decision state.
+#
+# Why it is a sidecar and not frontmatter: z1-inbox/2026-09-06/MANIFEST.md sets
+# the inbox convention as "append-only; a correction is a new dated folder,
+# never an edit." Writing frontmatter into 24 existing dated drops would be an
+# edit to each. The metadata lives here instead, the same shape
+# document-registry.yaml and tools-manifest.yaml already use, and
+# `.z1-control/validate.py` enforces that this file and the tree agree.
+#
+# `decision_due` is DERIVED (submitted + the 48h Z2 window from CLAUDE.md) and
+# is recomputed by the validator — do not hand-set it to buy time.
+#
+# `status: ratified | edit_requested | rejected` is Z2's act. The validator
+# refuses any of them without `ratified_by`, `ratified_at`, and a `z2_ruling`
+# that resolves to a real file — Z1 cannot sign for Z2, the same no-self-grant
+# rule .tool-control/validate.py already enforces for the Z2 tool waiver.
+---
+version: 1
+generated: "2026-09-13"
+# The Z2 decision window from CLAUDE.md ("48h for routine decisions").
+decision_window_days: 2
+# Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
+ratifiers: [Night]
+counts: {candidates: 16, records: 13}
+
+candidates:
+  - q_id: Q-JESTER-CHECK-01
+    title: "Jester → External Check · registry candidate block"
+    path: "z1-inbox/2026-09-07/JESTER_EXTERNAL_CHECK_BLOCK.md"
+    submitted: "2026-09-07"
+    status: ratified
+    ratified_by: Night
+    ratified_at: "2026-09-08"
+    z2_ruling: "z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"
+    z2_hash: "h-cand-batch-ratified-20260908"
+    note: "Ruling 2 — ratified as records; H-CAND-JESTER-01 enters REGISTERED.md pending per-block hash pinning."
+
+  - q_id: Q-WITCH-CASCADE-01
+    title: "Witch · Spell · Cascade — registry candidate block"
+    path: "z1-inbox/2026-09-07/WITCH_SPELL_CASCADE_BLOCK.md"
+    submitted: "2026-09-07"
+    status: ratified
+    ratified_by: Night
+    ratified_at: "2026-09-08"
+    z2_ruling: "z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"
+    z2_hash: "h-cand-batch-ratified-20260908"
+    note: "Ruling 2 — covers H-CAND-DIVINER-01, -SPELL-01, -CASCADE-01, -FUSION-01."
+
+  - q_id: Q-CYCLE3-FALSIFY-01
+    title: "Cycle 3 falsification findings (17 findings, 4 severity tiers, 6 attack chains)"
+    path: "z1-inbox/2026-09-08/CYCLE_3_FALSIFICATION_REPORT.md"
+    submitted: "2026-09-08"
+    status: ratified
+    ratified_by: Night
+    ratified_at: "2026-09-08"
+    z2_ruling: "z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"
+    z2_hash: "cycle-3-falsification-approved-20260908"
+    note: "Ruling 1 — findings accepted as factual; seven structural changes registered as v0.3 blockers (F-CAND-STRUCT-01..07)."
+
+  - q_id: Q-ACAT-BENCHMARK-01
+    title: "ACAT ↔ market-benchmark map (H-BM-01..03)"
+    path: "z1-inbox/2026-09-08/ACAT_BENCHMARK_CANDIDATE_BLOCK.md"
+    submitted: "2026-09-08"
+    status: awaiting_z2
+
+  - q_id: Q-DOC-LIFECYCLE-01
+    title: "docs/ lifecycle — disposition for 108 files"
+    path: "z1-inbox/2026-09-08/DOC_LIFECYCLE_CANDIDATE_BLOCK.md"
+    submitted: "2026-09-08"
+    status: awaiting_z2
+
+  - q_id: Q-FRAMEWORK-MAPPING-01
+    title: "Framework Mapping — 5 AI engineering concepts → Z-roles"
+    path: "z1-inbox/2026-09-10/FRAMEWORK_MAPPING_CANDIDATE.md"
+    submitted: "2026-09-10"
+    status: awaiting_z2
+    falsifier_waiver: "the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it."
+    note: "CLAUDE.md appended events, 2026-09-10 22:17 UTC: PR #264 merged the content; the RATIFY signature is still outstanding."
+
+  - q_id: Q-FRAMEWORK-MAPPING-INTEGRATION-01
+    title: "Framework Mapping governance integration across 31 repos"
+    path: "z1-inbox/2026-09-10/FRAMEWORK_MAPPING_FOLLOWUP.md"
+    submitted: "2026-09-10"
+    status: awaiting_z2
+
+  - q_id: Q-NF-SCHEMA-01
+    title: "Unify NF_LEDGER schema"
+    path: "z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md"
+    submitted: "2026-09-10"
+    status: awaiting_z2
+    note: "Priority Queue score 8; unblocks Q-MOLT-04 (score 9)."
+
+  - q_id: Q-PHASE1-2-ROLLOUT-01
+    title: "Framework Mapping Phase 1–3 rollout plan"
+    path: "z1-inbox/2026-09-11/PHASE_1_2_ROLLOUT_PLAN.md"
+    submitted: "2026-09-11"
+    status: awaiting_z2
+
+  - q_id: Q-ADVREVIEW-CALIB-01
+    title: "Adversarial review as a PR-gated calibration node"
+    path: "z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md"
+    submitted: "2026-09-12"
+    status: awaiting_z2
+
+  - q_id: Q-RFM-01
+    title: "REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner"
+    path: "z1-inbox/2026-09-13/Q-RFM-01.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Seven-item Z2 checklist. Blocking decisions: whether to turn on --enforce, and which of three disagreeing instruments states the registry census (126 / 130 / 131)."
+
+  - q_id: Q-TOOLCONTROL-01
+    title: "Tool manifest & document-control registry"
+    path: "z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Eight-item Z2 checklist; item 6 is the 39 overdue document reviews."
+
+  - q_id: Q-TOOLCONTROL-02
+    title: "Tool category vocabulary & backlog clearance"
+    path: "z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Landed on main via PR #306 while this branch was open. The coverage rule caught it unindexed in CI — the first real firing of that rule."
+
+  - q_id: Q-TOOLCONTROL-03
+    title: "Turning the gate on itself — every blocking rule must be able to fail"
+    path: "z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Answers the operator's question after #306: 10 of 26 blocking conditions had ever been executed. This block was itself caught unindexed by .z1-control/validate.py on its first run against it."
+
+  - q_id: Q-GOVGATE-01
+    title: "The Z2 gate never ran; z1-inbox conversion mechanism"
+    path: "z1-inbox/2026-09-13/Q-GOVGATE-01.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "z2_ratification_gate.yml was invalid YAML from its first commit — 122 runs, 0 jobs. Four further workflows are in the same state."
+
+  - q_id: Q-DOCREVIEW-01
+    title: "The 39 overdue document reviews — lifecycle, not re-dating"
+    path: "z1-inbox/2026-09-13/Q-DOCREVIEW-01.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Answers Q-TOOLCONTROL-01 checklist item 6. Decision A (backlog) and Decision B (owners) are the owner's acts; no date was moved."
+
+records:
+  - path: "z1-inbox/2026-09-06/HANDOFF.md"
+    title: "Handoff — 2026-09-06 drop"
+  - path: "z1-inbox/2026-09-06/MANIFEST.md"
+    title: "Manifest — 2026-09-06 drop (sets the inbox append-only convention)"
+  - path: "z1-inbox/2026-09-08/CYCLE_1_EXTERNAL_REVIEW.md"
+    title: "Cycle 1 external review"
+  - path: "z1-inbox/2026-09-08/CYCLE_2_ADVERSARIAL_REPORT.md"
+    title: "Cycle 2 adversarial report"
+  - path: "z1-inbox/2026-09-08/CYCLE_3_METADATA.md"
+    title: "Cycle 3 metadata"
+  - path: "z1-inbox/2026-09-08/MERGE_RECEIPT_AND_CYCLE1.md"
+    title: "Merge receipt 2026-09-08 (#217, #218 verified from origin/main)"
+  - path: "z1-inbox/2026-09-08/P_J4_BRIER_EXPLAINED.md"
+    title: "P_J4 Brier score explainer"
+  - path: "z1-inbox/2026-09-08/REGISTRY_ENTRY_TEMPLATE.md"
+    title: "Template — registry entry for H-CAND blocks"
+  - path: "z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"
+    title: "Z2 rulings 2026-09-08 (three decisions, hashed)"
+    note: "Z2 output, not a Z1 proposal. Cited as z2_ruling by Q-JESTER-CHECK-01, Q-WITCH-CASCADE-01, Q-CYCLE3-FALSIFY-01."
+  - path: "z1-inbox/2026-09-09/HANDOFF.md"
+    title: "Handoff — 2026-09-09"
+  - path: "z1-inbox/2026-09-09/IC-030-REPIN-01.md"
+    title: "Q-IC030-REPIN-01 work order (Z1 self-assigned; no Z2 decision requested)"
+  - path: "z1-inbox/2026-09-10/HANDOFF.md"
+    title: "Handoff — 2026-09-10"
+  - path: "z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md"
+    title: "Q-IC030-REPIN-01 result — repin + manifest reconciliation (COMPLETE, 3/3)"
+
+# Files in z1-inbox/ that are neither candidates nor records. Kept explicit so
+# the coverage rule cannot be satisfied by silence.
+excluded: []
