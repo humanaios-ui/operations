@@ -285,7 +285,7 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 ## Integration Diagram
 
 ```
-                    REGISTERED.md  (131 entries, append-only, LIVE)
+                    REGISTERED.md  (135 entries, append-only, LIVE)
                              │
         ┌────────────────────┼────────────────────┐
         │                    │                    │
@@ -333,9 +333,9 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 ## Action Items for Z2 Ratification
 
 - [ ] **Ratify the RFM taxonomy** (19 modes) as the registry's failure-mode vocabulary
-- [ ] **Rule on `--enforce`** for `tools/registered_failure_mode_scan_v0_1.py`. Advisory today; leaving it advisory indefinitely reproduces IC-050. Recommended: remediate the 44 entry-level defects, then turn enforcement on in the same ratification
+- [ ] **Rule on `--enforce`** for `tools/registered_failure_mode_scan_v0_1.py`. Advisory today; leaving it advisory indefinitely reproduces IC-050. Recommended: remediate the 98 entry-level defects, then turn enforcement on in the same ratification
 - [ ] **Rule on wiring into CI.** Deliberately not wired — `findings-registry.yml` already runs a blocking registry validator, and two registry gates on the same paths could return contradictory verdicts before Z2 has ruled
-- [ ] **Resolve the census divergence** — 126 vs 130 vs 131 entries, and the F/IC/H split, across the three instruments. Until resolved, no instrument's census should be cited as authoritative
+- [ ] **Resolve the census divergence** — 126 vs 130 vs 135 entries, and the F/IC/H split, across the three instruments. Until resolved, no instrument's census should be cited as authoritative
 - [ ] **Number and append the four IC-candidates** below (Z1 proposes; Z2 numbers and appends, per G-4 / IC-030)
 - [ ] **Commission `Q-RFM-02`** — the cost-class taxonomy `REGISTRY_SPEC.md:45` requires, which is the blocker on every `UNSCORED` cell in the FMEA
 

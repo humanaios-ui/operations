@@ -11,7 +11,7 @@
 
 ## §A Position · Destination · Probability
 
-**Position:** `REGISTERED.md` pinned at `1e1b518` — 3,948 lines, 131 entries, append-only, `Status: LIVE`. `grep -rIn "FMEA"` returns zero repo-wide. The registry catalogues failure modes of substrates and sessions; it has never been turned on itself.
+**Position:** `REGISTERED.md` pinned at `1e1b518` — 3,948 lines, 135 entries (pre-review baseline: 131), append-only, `Status: LIVE`. `grep -rIn "FMEA"` returns zero repo-wide. The registry catalogues failure modes of substrates and sessions; it has never been turned on itself.
 
 **Destination:** A ratified failure-mode vocabulary for the registry (`RFM-01` … `RFM-19`), the standing orders derived from it, their mapping to industrial reliability terms, and an executable scanner that measures the registry against the taxonomy.
 
@@ -36,7 +36,7 @@ The registry asks every session to predict its own failure modes, and has never 
 
 ## §Live result — this candidate was measured by its own mechanism
 
-Entry-level, 131 entries × 4 checks:
+Entry-level, 135 entries × 4 checks:
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|

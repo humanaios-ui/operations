@@ -137,7 +137,7 @@ rows may begin"* — reserves both "new rows added to the queue" and "status tra
 
 **Unblocks:**
 - Q-RFM-02 (cost-class taxonomy per REGISTRY_SPEC.md:45 — the blocker on every UNSCORED FMEA cell) — impact 2
-- Entry-level remediation of the 44 measured defects, which cannot be scoped without the measurement — impact 2
+- Entry-level remediation of the 98 measured defects, which cannot be scoped without the measurement — impact 2
 
 **Provenance (measured 2026-09-13 against REGISTERED.md @ 1e1b518):**
 - 135 entries; 98 entry-level defects / 540 opportunities → 81.9% FPY, 181,481 DPMO, ~2.4σ (same methodology as `audits/T1_DEFECT_BASELINE_S070726.md`, which designated `operations` the "clean reference bar (0/7)")
