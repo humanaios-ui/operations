@@ -32,17 +32,21 @@ If a task assigned to you asks for a Zone 2/3 action, or an issue and a repo fil
 disagree about what to do, **stop and comment on the issue** instead of resolving
 the conflict yourself. Guessing is the failure mode this rule exists to prevent.
 
-§7's validation commands and §5's registration commands (`scan.py`, `render.py`)
-are terminal commands too, and the latter do write tracked files
-(`tools-manifest.yaml`, `TOOLS_MANIFEST.md`) — which can look like a
-contradiction of the Zone 3 line above. It isn't: Zone 3's "terminal commands"
-means arbitrary or administrative command execution outside the repo's own
-tooling, not the file operations, data writes, and code that `GOVERNANCE.md`'s
-own Zone 1 explicitly names. Running this repo's validation and
-registration scripts, and editing tracked files as part of a normal commit, is
-Zone 1 — that's the whole mechanism a PR is. What stays Zone 3 regardless is
-anything on the list above: a git push outside review, rotating a key, and so
-on, whether or not it happens to run through a terminal.
+§7's validation commands, `sha256sum` in §4, and §5's registration commands
+(`scan.py`, `render.py`) are terminal commands too, which can look like a
+contradiction of the Zone 3 line above. It isn't, for two separate reasons:
+a read-only command that only reports (every validation command, `sha256sum`)
+never leaves Zone 1 regardless of what it inspects; and `scan.py`/`render.py`
+do write files, but only the specific generated outputs this section and §6
+name (`tools-manifest.yaml`, `TOOLS_MANIFEST.md`, `document-registry.yaml`,
+`CONTROLLED_DOCUMENTS.md`) plus the file your task actually asked you to
+create or edit — that's the ordinary mechanism of writing a PR, which
+`GOVERNANCE.md`'s Zone 1 already covers ("file operations, data writes,
+code"). This carve-out is narrow: it does not extend to `REGISTERED.md` or
+any other file §4/§6 name as Zone 2, and it does not make "editing a tracked
+file" a general Zone 1 license. What stays Zone 3 regardless is anything on
+the list above — a git push outside review, rotating a key, and so on —
+whether or not it happens to run through a terminal.
 
 You never merge your own PRs, and never push directly to `main` or force-push,
 delete, or rewrite history on any branch. Every PR here requires human review
@@ -110,15 +114,17 @@ tool" section separately requires of every tool —
   docstring mentioning either string would satisfy the scanner without
   satisfying the actual contract; don't rely on the scanner to catch that gap.
 
-`python3 tools/builder_compliance_scanner_v1.0.py --path <your file>` verifies
-only its own six hard checks, and all six are the same kind of check as the
-smoke-test one above: a regex over the whole source text, not a semantic
-check of real structure. A comment or string literal containing the marker
-text (or `if __name__`) would satisfy the docstring phrase, `TOOL_NAME`/
-`TOOL_VERSION`, the `HumanAIOS` tag, the smoke-test check, or the main-guard
-check without the file actually having a working guard, docstring, or
-smoke test — write the real thing; don't rely on the scanner to catch a file
-that only mentions it. It does **not** check
+`python3 tools/builder_compliance_scanner_v1.0.py --path <your file>` gates on
+six **hard** checks (a failure blocks by default) plus three **soft** ones
+(`write_report`, `argparse.ArgumentParser`, `SpecLoadFailed` — reported but
+non-blocking unless the scanner is run with `--strict`, which `builder-lint.yml`
+does not use). All nine are the same kind of check: a regex over the whole
+source text, not a semantic check of real structure. A comment or string
+literal containing the marker text (or `if __name__`) would satisfy the
+docstring phrase, `TOOL_NAME`/`TOOL_VERSION`, the `HumanAIOS` tag, the
+smoke-test check, or the main-guard check without the file actually having a
+working guard, docstring, or smoke test — write the real thing; don't rely on
+the scanner to catch a file that only mentions it. None of the nine check
 `TOOL_CATEGORY`/`TOOL_SESSION`/`TOOL_ZONE` or `--help`/`--input` — a scanner
 pass isn't full compliance with `tools/README.md`'s broader contract, so check
 those by hand. The manifest gate (below) enforces the resulting `category`/
@@ -156,16 +162,19 @@ python3 .tool-control/validate.py   # the merge gate itself, run it yourself fir
 
 `scan.py` preserves **CURATED** fields (`owner`, `purpose`, `status`, `notes`,
 ...) unconditionally. `category` and `zone` are handled independently of each
-other: each one is curated only when its *own* constant (`TOOL_CATEGORY` or
-`TOOL_ZONE` respectively) is absent, or not validly declared (an
-unrecognizable string like a leftover template placeholder, or a `TOOL_ZONE`
-outside `1`/`2`/`3` — note `TOOL_ZONE = True` is a Python `int` equal to `1`
-and is *not* caught by this check, silently becoming zone 1; write a real
-int, never a bool), from the tool file — declaring one validly
-doesn't touch the other, and an invalid one is silently discarded rather than
-producing a mismatch. Declare a real, valid value for whichever constant
-applies in code rather than hand-editing that field in the manifest (a
-mismatch between two *valid* values is a merge-blocking error); a field whose
+other, and each is curated only when its own constant is absent from the tool
+file — declaring one validly doesn't touch the other. "Validly" means
+different things for the two: a `TOOL_CATEGORY` that merely *looks* like an
+identifier (e.g. `made_up_thing`) is kept and passed straight through to
+`validate.py`, which then rejects it as a real, visible merge-blocking error
+(the vocabulary check below) — only a non-identifier placeholder (a leftover
+template string like `{tool_type}`) is silently discarded before that point.
+`TOOL_ZONE` is stricter: anything that isn't already a Python `int` in
+`1`/`2`/`3` is discarded outright (note `TOOL_ZONE = True` is an `int` equal
+to `1` and slips through as zone 1 uncaught; write a real int, never a bool).
+Declare a real, valid value for whichever constant applies in code rather
+than hand-editing that field in the manifest (a mismatch between two *valid*
+declared-vs-curated values is a merge-blocking error); a field whose
 constant you didn't declare is still yours to curate. What you must never
 hand-edit is **`TOOLS_MANIFEST.md`** itself — change `tools-manifest.yaml` and
 rerun `render.py` instead.
@@ -192,19 +201,29 @@ self-declare its own waiver (see `.tool-control/README.md`).
 
 ## 6. Adding or changing a controlled document
 
-Most `.md` files in this repo are free-form. A **controlled** document is one whose
-frontmatter declares a `doc_id` (format `HAIOS-<AREA>-<nnn>`) — those must be
-registered in `document-registry.yaml` first, or `.doc-control/validate.py` fails
-the PR with "orphan doc_id". Unlike the tool manifest, `document-registry.yaml`
-has no scan step: it's a curated YAML list you hand-edit directly, adding your
-`doc_id` entry with its required fields — `doc_id`, `title`, `canonical_repo`,
-`canonical_path`, and `status` at minimum (`.doc-control/validate.py` blocks
-merge on any missing). After registering, run `python3 .doc-control/render.py`
-to regenerate
+Whether a document is "controlled" is decided by `document-registry.yaml`
+itself, not by whether the file happens to carry `doc_id` frontmatter — check
+the registry, not the file, before assuming something is free-form. Some
+real controlled entries (`OPERATOR_RUNBOOK.md`, `CURRENT.md`) have no
+frontmatter at all; the registry lists them by path regardless. Frontmatter
+declaring a `doc_id` (format `HAIOS-<AREA>-<nnn>`) is only how
+`.doc-control/validate.py` catches a *new* file that should have been
+registered but wasn't — it fails the PR with "orphan doc_id" if the declared
+`doc_id` isn't in the registry, but says nothing about files with no
+frontmatter, controlled or not.
+
+If you're editing a document already in `document-registry.yaml`, no
+registration step is needed. If you're adding a genuinely new controlled
+document, `document-registry.yaml` has no scan step of its own: it's a
+curated YAML list you hand-edit directly, adding your `doc_id` entry with its
+required fields — `doc_id`, `title`, `canonical_repo`, `canonical_path`, and
+`status` at minimum (`.doc-control/validate.py` blocks merge on any missing).
+After registering, run `python3 .doc-control/render.py` to regenerate
 `CONTROLLED_DOCUMENTS.md` from it — like `TOOLS_MANIFEST.md`, that rendered
-index is never hand-edited. If you're not adding a governance/research-of-record
-document, you almost certainly don't need frontmatter at all — most tool READMEs,
-specs, and this file itself carry none.
+index is never hand-edited. Most new `.md` files you'll write (tool READMEs,
+specs, this file itself) are genuinely free-form and need neither
+registration nor frontmatter — but confirm that by checking the registry, not
+by the file's subject matter.
 
 ## 7. Before you open or update a PR, run what CI runs
 
