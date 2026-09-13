@@ -18,9 +18,10 @@ true, say so in the PR rather than asserting it.
 Per `GOVERNANCE.md`'s zone system:
 
 - **Zone 1 (you execute):** code, docs, analysis, non-credentialed tool changes.
-- **Zone 2 (operator decides):** editing canonical records, registering findings,
-  governance changes, anything an issue marks `z2-ratified` or that names Night/the
-  Admiral as approver.
+- **Zone 2 (operator decides):** document tier changes, public-facing content,
+  financial decisions, strategic choices, finding registrations, governance
+  amendments — `GOVERNANCE.md`'s own list — plus anything an issue marks
+  `z2-ratified` or that names Night/the Admiral as approver.
 - **Zone 3 (operator only):** terminal commands, git pushes, revenue collection,
   grant submissions, API key rotation, relationship actions, and deploying to
   production — `GOVERNANCE.md`'s own list. You only ever act through a pull
@@ -94,20 +95,28 @@ new tool" section):
 - `TOOL_NAME`, `TOOL_VERSION`, `TOOL_CATEGORY`, `TOOL_SESSION`, and `TOOL_ZONE`
   constants.
 - An `if __name__ == "__main__":` guard, with `--help` and `--input` support.
-- A `--smoke-test` CLI flag (usually implemented by calling an internal
-  `run_smoke_test()`, which is the piece the scanner below actually looks for).
-  The flag itself must be present and callable — a `run_smoke_test()` function
-  with nothing wiring it to `--smoke-test` is not sufficient.
+- A `--smoke-test` CLI flag, usually implemented by calling an internal
+  `run_smoke_test()`. The flag itself must be present and callable — the
+  scanner below only checks for the *text* `smoke.test` or `run_smoke_test`
+  somewhere in the file (a regex, not a functional check), so a comment or
+  docstring mentioning either string would satisfy the scanner without
+  satisfying the actual contract; don't rely on the scanner to catch that gap.
 
 `python3 tools/builder_compliance_scanner_v1.0.py --path <your file>` verifies
 only its own six hard checks — the docstring phrase, `TOOL_NAME`/`TOOL_VERSION`,
 the `HumanAIOS` tag, a smoke test, and the main guard. It does **not** check
 `TOOL_CATEGORY`/`TOOL_SESSION`/`TOOL_ZONE` or `--help`/`--input` — a scanner
 pass isn't full compliance with `tools/README.md`'s broader contract, so check
-those by hand. The manifest gate (below) separately enforces `TOOL_CATEGORY`/
-`TOOL_ZONE`, but not `TOOL_SESSION` — `tools-manifest.yaml`'s own `REQUIRED`
-fields don't include it, so a tool missing `TOOL_SESSION` can still pass every
-automated gate here while violating the README contract; hand-check it too.
+those by hand. The manifest gate (below) enforces the resulting `category`/
+`zone` *fields in the manifest entry*, not the constants themselves —
+`scan.py` falls back to a curated value, then the README catalog, then
+`unclassified`/zone 1 if the file declares neither. Declaring the constants is
+still the right way to set them (see the note on manifest edits below), but a
+tool with no `TOOL_CATEGORY`/`TOOL_ZONE` at all can still pass if its curated
+fields are already valid. `TOOL_SESSION` has no such fallback or gate at
+all — `tools-manifest.yaml`'s own `REQUIRED` fields don't include it, so a
+tool missing it passes every automated gate here while violating the README
+contract; hand-check it too.
 
 A tool that touches `tools/**/*.py` also needs
 `python3 tools/behavioral_compliance_gate_v1_0.py --path <your file>` to pass
@@ -159,7 +168,7 @@ frontmatter declares a `doc_id` (format `HAIOS-<AREA>-<nnn>`) — those must be
 registered in `document-registry.yaml` first, or `.doc-control/validate.py` fails
 the PR with "orphan doc_id". Unlike the tool manifest, `document-registry.yaml`
 has no scan step: it's a curated YAML list you hand-edit directly, adding your
-`doc_id` entry with its required fields — `title`, `canonical_repo`,
+`doc_id` entry with its required fields — `doc_id`, `title`, `canonical_repo`,
 `canonical_path`, and `status` at minimum (`.doc-control/validate.py` blocks
 merge on any missing). After registering, run `python3 .doc-control/render.py`
 to regenerate
