@@ -16,9 +16,11 @@
 ---
 version: "0.1"
 schema_version: "1.0"
-status: CANDIDATE
-ratification_hash: null
-ratified_at: null
+status: RATIFIED
+ratification_hash: "b6b8233dd06400f565e5e21286cc0fec65a71472adfa1ebb98045f2dfaeff2a2"
+ratified_by: "Night"
+ratified_at: "2026-09-13T17:33:00Z"
+ratification_decision: "ACCEPT"
 proposed_by: "Z1 (Claude)"
 proposed_at: "2026-09-13"
 proposal_row: "Q-RBE-01"
