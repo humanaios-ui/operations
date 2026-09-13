@@ -83,6 +83,22 @@ jobs:
       - name: Renderer self-test
         run: python3 .z1-control/render.py --smoke-test
 
+      - name: Ratification tool self-test
+        # A self-test no workflow runs is decoration — the pattern this whole
+        # gate exists to catch. ratify.py records Z2 signatures, so its own
+        # test belongs in the gate that enforces them.
+        run: python3 .z1-control/ratify.py --smoke-test
+
+      - name: Recorded Z2 signatures still match their candidates
+        # A sha256 signature pins the candidate's bytes. If a ratified block is
+        # edited afterwards the signature no longer describes what was signed,
+        # and this is the only thing that would notice. Advisory for now: the
+        # three rulings on record pre-date ratify.py and carry slugs, so the
+        # count of pinned signatures is zero and a blocking rule would assert
+        # nothing. It ratchets when the first real signature lands.
+        continue-on-error: true
+        run: python3 .z1-control/ratify.py --verify
+
       - name: Z1 inbox index integrity (ERROR — blocks merge)
         # Coverage, falsifier discipline on candidates, derived decision
         # windows, and the no-self-grant rule on Z2 signatures.
