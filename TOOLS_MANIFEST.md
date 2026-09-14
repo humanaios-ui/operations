@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**154 registered tools** · 2 MCP servers · 0 excluded · 123 carrying Builder v1.7 markers
+**154 registered tools** · 2 MCP servers · 0 excluded · 124 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -16,7 +16,7 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | Registered tools | 154 |
 | — status `draft` | 152 |
 | — status `archived` | 2 |
-| Builder v1.7 markers present | 123 |
+| Builder v1.7 markers present | 124 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -130,7 +130,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
-| HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
+| HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | 0.2.0 | 1 | draft | — | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
 | HAIOS-TOOL-090 | molt_cycle | `tools/molt_cycle.py` | unversioned | 1 | archived | no-builder-markers, no-smoke-test | molt_cycle.py — READ + PROPOSE phases only (Tier 0). Never applies. |
 | HAIOS-TOOL-151 | doc_review_scheduler | `.doc-control/review.py` | 1.0.0 | 1 | draft | no-builder-markers | Document review scheduler — record a review, derive the next one, triage the backlog. |
 | HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.1.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |

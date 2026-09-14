@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok.
+Builder v1.7 compliant · governance_tool
+HumanAIOS · S-090826-01 (markers added S-091426-01; behaviour unchanged)
 
 Zones (system_graph v0.2): the board is Z2's hand · this relay is Z3 (lands) · the /assist path is Z1 (proposes).
 Rules in code, not prose:
@@ -17,6 +19,11 @@ Run:  RELAY_SECRET=... GITHUB_TOKEN=... python3 tools/decision_relay.py 8787
 """
 import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse
 from http.server import BaseHTTPRequestHandler, HTTPServer
+
+TOOL_NAME = "decision_relay"
+TOOL_VERSION = "0.2.0"  # 0.1 = 09-08 relay; 0.2 = Authorization header allowed through CORS for the browser board
+TOOL_CATEGORY = "governance_tool"
+TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
 
 SECRET=os.environ.get("RELAY_SECRET",""); TOKEN=os.environ.get("GITHUB_TOKEN","")
 REPO=os.environ.get("GITHUB_REPO","humanaios-ui/operations"); DRY=os.environ.get("DRY_RUN")=="1"
@@ -102,6 +109,10 @@ class H(BaseHTTPRequestHandler):
             self._send(404,{"status":"REFUSED","why":"unknown path"})
         except Exception as e: self._send(500,{"status":"ERROR","why":str(e)})
 
+def run_smoke_test():
+    """Builder v1.7 smoke test = the self-test below (DRY_RUN, no network, no token)."""
+    return selftest()==0
+
 def selftest():
     global DRY,SECRET; DRY=True; SECRET="s3"; ok=True
     d={"id":"d6","q":"batch source?","choice":"own postings","tagline":"Night","project":"HumanAIOS","ts":"2026-09-08T12:00:00Z"}
@@ -119,7 +130,7 @@ def selftest():
     print("SELF-TEST","PASS" if ok else "FAIL"); return 0 if ok else 2
 
 if __name__=="__main__":
-    ap=argparse.ArgumentParser(); ap.add_argument("port",nargs="?",type=int,default=8787); ap.add_argument("--self-test",action="store_true"); a=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("port",nargs="?",type=int,default=8787); ap.add_argument("--self-test","--smoke-test",dest="self_test",action="store_true"); a=ap.parse_args()
     if a.self_test: sys.exit(selftest())
     if not SECRET: sys.exit("REFUSED: RELAY_SECRET not set (set it at intake)")
     print(f"relay on :{a.port} dry={DRY} repo={REPO}"); HTTPServer(("0.0.0.0",a.port),H).serve_forever()

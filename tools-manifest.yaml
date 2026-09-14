@@ -33,7 +33,7 @@ counts:
   tools: 154
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 123
+  builder_markers_present: 124
   missing_from_tree: 1
   unclassified: 0
 categories:
@@ -625,14 +625,14 @@ tools:
 - tool_id: HAIOS-TOOL-051
   name: decision_relay
   path: tools/decision_relay.py
-  version: unversioned
+  version: 0.2.0
   category: governance_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok.
 - tool_id: HAIOS-TOOL-052
   name: dimension_attribution
