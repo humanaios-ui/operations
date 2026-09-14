@@ -46,13 +46,23 @@ this mapping is ratified. The "kernel image" stage below (REGISTERED.md) is
 conditional under the SESSION_RITUALS.md reading; everything else in this map
 applies session-wide under both readings.
 
+**A second, separate scope caveat:** "every session runs §A Steps 1-7" is
+itself an oversimplification carried over from SESSION_RITUALS.md's own
+framing. OPERATOR_RUNBOOK.md's Claude startup checklist says explicitly:
+"Don't request Phase 1 for quick lookups — Phase 1 is for work sessions
+only." That's a third source (alongside CLAUDE.md and SESSION_RITUALS.md)
+narrowing when the full boot sequence actually runs. This document does not
+attempt to reconcile all three; treat "every session" throughout as shorthand
+for "every session this document is scoped to describe (work sessions)," not
+literally universal.
+
 ---
 
 ## Executive Summary
 
 | Boot Chain Stage | HumanAIOS Equivalent | Governing File(s) | On Failure |
 |:---|:---|:---|:---|
-| **POST** (power-on self-test) | Fetch live operational state | Primary: WGS #wgs-sync via Slack MCP (per CURRENT.md, Class 1). Secondary/cross-check named in SESSION_RITUALS §A.1's literal text: `haioscc.pages.dev/api/state/*` — CURRENT.md notes this endpoint is unreachable from Claude's bash environment and is demoted to secondary for Claude sessions specifically | Slack MCP unavailable → **PATH C (degraded)**, proceed from CURRENT.md only (OPERATOR_RUNBOOK.md) — not a blanket halt |
+| **POST** (power-on self-test) | Fetch live operational state | **Claude sessions:** primary WGS #wgs-sync via Slack MCP (CURRENT.md, Class 1), haioscc secondary/cross-check. **SESSION_RITUALS §A.1 itself is substrate-agnostic** and names only `haioscc.pages.dev/api/state/*` for any substrate — the WGS-primary reading is CURRENT.md/OPERATOR_RUNBOOK.md's Claude-specific refinement, not the universal rule | **Claude, Slack MCP unavailable** → PATH C (degraded), proceed from CURRENT.md only (OPERATOR_RUNBOOK.md) — not a blanket halt. **Other substrates / the haioscc path itself failing:** SESSION_RITUALS §A.1's literal halt-and-report |
 | **Firmware / Secure Boot** | Pin commit SHA (demonstrated); content-hash-vs-manifest check (specified; a dated single-drop manifest exists as precedent, but no current one covering REGISTERED.md+ZONE_REGISTRY.md was located) | `git fetch && git rev-parse HEAD` (commit pin) + sha256-vs-manifest per CLAUDE.md §A.5 | Commit-fetch failure → halt; manifest mismatch has no dedicated branch, generic §F.1 "stop and ask" plausibly applies |
 | **Bootloader / boot spec** | Session-open ritual specification | `SESSION_RITUALS.md` (parser-tag authority) + `CURRENT.md`/`GOVERNANCE.md`/`OPERATOR_RUNBOOK.md` (orchestration detail, per SESSION_RITUALS.md's own §A closing note and §H) | Fetch fails → halt, report |
 | **Boot parameters / policy** | Load standing principles + operating process | `GOVERNANCE.md`, `CURRENT.md` | Proceed on last-known if fetch fails is NOT allowed — halt |
@@ -62,9 +72,9 @@ applies session-wide under both readings.
 | **Kernel permission model** | Authority tiers (Z1/Z2/Z3) — specified in CLAUDE.md; CLAUDE.md's own tables disagree on whether Z1 may write CANDIDATE blocks to REGISTERED.md (see §8 below) | `CLAUDE.md`; `.github/CODEOWNERS` names itself a self-review placeholder, not yet an independent gate | Action outside cap → escalate to Z2 |
 | **Boot log / dmesg** | Drift catalog + Phase 1 declaration | SESSION_RITUALS §A.5-6 | — |
 | **Login prompt** | Wait for user confirmation | SESSION_RITUALS §A.7 | Work does not begin until acknowledged |
-| **Runtime tuning (sysctl)** | Molt cycle, constants | `molt_cycle.py`, `constants.json`, `MOLT_STATE.md` | Anti-cascade freeze (K=3, revert-twice rule) |
+| **Runtime tuning (sysctl)** | Molt cycle, constants | `/molt_cycle.py`, `constants.json`, `MOLT_STATE.md` | Anti-cascade freeze (K=3, revert-twice rule) — **specified as policy; `/molt_cycle.py`'s own check is currently a stub that always passes** |
 | **Shutdown / close ritual** | Session close | SESSION_RITUALS §B | B.0 hard gate before a close artifact that asserts contents (receipt, WGS post, summary, status report) |
-| **Journal (append-only log)** | Per-session close record = WGS Slack log (§B.7); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, unrelated subsystem — not written by §B) | WGS `#wgs-sync` (session record); `ledgers/NF_LEDGER.jsonl` (pattern only) | WGS post omitted → next session's Class 1 read is stale (CURRENT.md) |
+| **Journal (append-only log)** | Per-session close record = WGS Slack log (Section B, item 7); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, unrelated subsystem — not written by §B) | WGS `#wgs-sync` (session record); `ledgers/NF_LEDGER.jsonl` (pattern only) | WGS post omitted → next session's Class 1 read is stale (CURRENT.md) |
 
 ---
 
@@ -173,16 +183,16 @@ Independent of that conflict, the escalation half is clearer: neither Z1 nor Z3 
 ### 10. Login Prompt — Wait for Confirmation
 **Concept:** A booted system does not begin running arbitrary user workloads until someone authenticates at the login prompt — the boot chain is complete, but execution is gated on an explicit human go-ahead.
 
-**HumanAIOS Mapping:** SESSION_RITUALS §A.7 — "Wait for user confirmation or correction. Do not begin work until the declared state is acknowledged or corrected." This is the login prompt. The corrected state becomes binding for session close (§B.1) the same way an authenticated session's environment is fixed at login.
+**HumanAIOS Mapping:** SESSION_RITUALS §A.7 — "Wait for user confirmation or correction. Do not begin work until the declared state is acknowledged or corrected. The corrected state is binding for Phase 3 comparison." This is the login prompt: the session doesn't proceed until acknowledged, and the corrected state — not the original draft — is what session close compares against, the same way an authenticated session's environment is fixed at login.
 
 ---
 
 ### 11. Runtime Tuning — Molt Cycle
 **Concept:** Once a system is running, some parameters can still be changed at runtime (`sysctl`) — but changed carefully, with limits on how many can be in flight, and a policy for what happens when a change misbehaves (rollback).
 
-**HumanAIOS Mapping:** `molt_cycle.py` + `MOLT_STATE.md` + `constants.json` — molts are post-boot runtime tuning of constants, gated by the same anti-cascade rules a careful ops team would apply to live `sysctl` changes: one open change per constant, K=3 system-wide cap, freeze after two consecutive reverts.
+**HumanAIOS Mapping:** the root `/molt_cycle.py` (its `MoltCycle` class — distinct from `tools/molt_cycle_tier0_v0_1.py`, a different file; cite the root one specifically to avoid ambiguity) + `MOLT_STATE.md` + `constants.json` — molts are *specified* as post-boot runtime tuning of constants, gated by anti-cascade rules a careful ops team would apply to live `sysctl` changes: one open change per constant, K=3 system-wide cap, freeze after two consecutive reverts. **That gating is policy, not (yet) runtime-enforced by this file:** `/molt_cycle.py`'s `check_anti_cascade_rules()` currently returns a hard-coded `{'overall_status': 'OK', 'rules_passed': 5, 'rules_warnings': 0, 'rules_blocked': 0}` regardless of actual molt state, and `propose_molts()` returns every candidate it's given without filtering. Read the anti-cascade rules as documented in `CLAUDE.md`/`MOLT_STATE.md` as the intended policy — this stage is a specified-but-stubbed runtime check, the same category of gap as the Secure Boot manifest above, not a demonstrated live gate.
 
-**Files Involved:** `molt_cycle.py`, `MOLT_STATE.md`, `constants.json`, `constants_registry.py`
+**Files Involved:** `/molt_cycle.py`, `MOLT_STATE.md`, `constants.json`, `constants_registry.py`
 
 ---
 
@@ -203,7 +213,7 @@ Independent of that conflict, the escalation half is clearer: neither Z1 nor Z3 
 
 **HumanAIOS Mapping — corrected from an earlier draft of this document:** `ledgers/NF_LEDGER.jsonl` is **not** SESSION_RITUALS.md's session/boot journal — SESSION_RITUALS.md never mentions it (checked: zero occurrences), and §B does not write to it at close. What NF_LEDGER.jsonl actually is, per its own README: an append-only, hash-chained ledger of NF TOKEN/OPEN/PIN/RESOLVE events for a specific mesh/molt prediction-tracking build (`tools/nf_ledger_v0_1.py`), scoped to that subsystem, not a general per-session record.
 
-The record SESSION_RITUALS.md §B actually specifies for "what happened this session" is the **WGS Slack log** — with a caveat SESSION_RITUALS.md states explicitly and this paragraph should too: §B.7 scopes that step to "substrates with Slack write access only — typically Claude"; it is not a universal per-substrate requirement. For substrates with that access, §B.1-8 (Step 7) requires logging to `#wgs-sync` with the Receipt Reconciliation paragraph, and CURRENT.md separately calls the WGS post "a required close ritual" and "the canonical live-state source" for the next session's Class 1 read. That Slack log — not NF_LEDGER.jsonl — is the closer functional analogue of "what gets written at shutdown that the next boot reads back," for the substrates that can write it.
+The record SESSION_RITUALS.md §B actually specifies for "what happened this session" is the **WGS Slack log** — with a caveat SESSION_RITUALS.md states explicitly and this paragraph should too: Section B, item 7 (under the "B.1 through B.6 — Standard Close Sequence" heading, which despite its name lists 8 items) scopes that step to "substrates with Slack write access only — typically Claude"; it is not a universal per-substrate requirement. For substrates with that access, that item requires logging to `#wgs-sync` with the Receipt Reconciliation paragraph, and CURRENT.md separately calls the WGS post "a required close ritual" and "the canonical live-state source" for the next session's Class 1 read. That Slack log — not NF_LEDGER.jsonl — is the closer functional analogue of "what gets written at shutdown that the next boot reads back," for the substrates that can write it.
 
 NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the append-only, hash-chained journal pattern this stage is meant to illustrate — its chain is checkable via `tools/nf_ledger_cli_v1_0.py` (`verify_chain`) / `tools/nf_ledger_v0_1.py` (`verify`), and current CI (`quality-baseline.yml`, `test_nf_ledger_cli.py`) exercises the verification tool's logic on test fixtures rather than re-verifying the live file's chain on every PR — but it should be read as an illustration of the pattern, not as the thing SESSION_RITUALS.md's close ritual writes to.
 
@@ -283,8 +293,8 @@ NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the appen
 ┌───────────────────────────▼──────────────────────────────────────┐
 │ CLOSE RITUAL — SESSION_RITUALS.md §B (analogy, not literal I/O)    │
 │  B.0 verify command output → B.6 reconcile receipt against it →    │
-│  journal = WGS #wgs-sync post (§B.7; NF_LEDGER.jsonl is an         │
-│  unrelated subsystem's pattern example, not written here)          │
+│  journal = WGS #wgs-sync post (Section B, item 7; NF_LEDGER.jsonl  │
+│  is an unrelated subsystem's pattern example, not written here)    │
 │  close artifact drafted before B.0, or contradicting it → HALT     │
 │  (§F.7-8)                                                           │
 └─────────────────────────────────────────────────────────────────┘
@@ -296,7 +306,7 @@ NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the appen
 
 | Boot-chain failure | HumanAIOS equivalent | Where it's specified |
 |:---|:---|:---|
-| POST failure (no power/memory) | Live-state fetch fails | SESSION_RITUALS §A.1 |
+| POST failure (no power/memory) | Live-state fetch fails — Claude sessions with Slack MCP down degrade to PATH C (CURRENT.md only) rather than halt; SESSION_RITUALS §A.1's literal, substrate-agnostic text is halt-and-report | SESSION_RITUALS §A.1 (halt-and-report text); OPERATOR_RUNBOOK.md (PATH C, Claude-specific fallback) |
 | Secure Boot signature mismatch | REGISTERED.md content sha256 fails manifest check (CLAUDE.md §A.5 requires the check but names no explicit consequence — open gap, not yet a specified failure mode) | CLAUDE.md §A.5 |
 | Kernel panic | Registry-touching halt (fetch failed, or UNAVAILABLE/UNKNOWN/STALE) | SESSION_RITUALS §F.9 |
 | Boot into single-user/rescue mode | DEGRADED mode, CLASS_STATE block | IC-029, SESSION_RITUALS §F |
@@ -330,7 +340,7 @@ NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the appen
 | Permission model | CLAUDE.md + CODEOWNERS (review-gated, not filesystem-enforced) | Z1/Z2/Z3 caps |
 | Boot log | Drift catalog + Phase 1 block | Structured self-report |
 | Login prompt | §A.7 confirmation wait | Work gated on acknowledgment |
-| Runtime tuning | molt_cycle.py, MOLT_STATE.md | Rate-limited live changes |
+| Runtime tuning | `/molt_cycle.py`, MOLT_STATE.md | Rate-limiting specified; `/molt_cycle.py`'s check is currently a stub (always OK) |
 | Close ritual | §B (B.0, B.6) | Verify before asserting (analogy, not literal I/O) |
 | Journal | WGS `#wgs-sync` (actual per-session record) | Required close ritual; `ledgers/NF_LEDGER.jsonl` is a pattern example only, not what §B writes to |
 
