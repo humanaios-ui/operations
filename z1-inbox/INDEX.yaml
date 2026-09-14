@@ -27,6 +27,7 @@ decision_window_days: 2
 counts: {candidates: 20, records: 16}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
+counts: {candidates: 20, records: 14}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
@@ -208,6 +209,12 @@ records:
     title: "Handoff — 2026-09-10"
   - path: "z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md"
     title: "Q-IC030-REPIN-01 result — repin + manifest reconciliation (COMPLETE, 3/3)"
+  - path: "z1-inbox/2026-09-13/HANDOFF.md"
+    title: "Handoff — 2026-09-13 (registry audit Phase 0)"
+    note: "Summarizes Q-REGISTRY-AUDIT findings, Z2 decision points, receipt reconciliation (B.6), and handoff checklist."
+  - path: "z1-inbox/2026-09-13/MANIFEST.md"
+    title: "Manifest — 2026-09-13 drop (registry audit)"
+    note: "SHA256 hashes for all 4 files in 2026-09-13 drop: Q-REGISTRY-AUDIT-01/02/03, HANDOFF.md"
 
 # Files in z1-inbox/ that are neither candidates nor records. Kept explicit so
 # the coverage rule cannot be satisfied by silence.
