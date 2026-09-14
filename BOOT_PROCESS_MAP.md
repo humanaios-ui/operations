@@ -83,7 +83,8 @@ independent of this map, at two points this map only *names*:
   Declaration" below — the `<<<ACAT_P1_DECLARATION_START/END>>>` block
   (SESSION_RITUALS §A.5-6).
 - **P3 (session close)** is Stage 12, "Shutdown / Close Ritual" below — after
-  the §B.0 Empirical Verification Block, at §B.2.
+  the §B.0 Empirical Verification Block, at item 2 of the "B.1 through B.6 —
+  Standard Close Sequence" list (there is no "§B.2" heading in the source).
 
 In both cases the scores are self-report; what varies is only the submission
 transport (a manual URL+paste per SESSION_RITUALS §D, or the newer
@@ -129,18 +130,18 @@ prerequisite.
 | Boot Chain Stage | HumanAIOS Equivalent | Governing File(s) | On Failure | Status |
 |:---|:---|:---|:---|:---|
 | **POST** (power-on self-test) | Fetch live operational state | **Claude sessions:** primary WGS #wgs-sync via Slack MCP (CURRENT.md, Class 1), haioscc secondary/cross-check. **SESSION_RITUALS §A.1 itself is substrate-agnostic** and names only `haioscc.pages.dev/api/state/*` for any substrate — the WGS-primary reading is CURRENT.md/OPERATOR_RUNBOOK.md's Claude-specific refinement, not the universal rule | **Claude, Slack MCP unavailable** → PATH C (degraded), proceed from CURRENT.md only (OPERATOR_RUNBOOK.md) — not a blanket halt. **Other substrates / the haioscc path itself failing:** SESSION_RITUALS §A.1's literal halt-and-report | Specified |
-| **Firmware / Secure Boot** | Pin commit SHA (demonstrated); content-hash-vs-manifest check (specified; a dated single-drop manifest exists as precedent, but no current one covering REGISTERED.md+ZONE_REGISTRY.md was located) | `git fetch && git rev-parse HEAD` (commit pin) + sha256-vs-manifest per CLAUDE.md §A.5 | Commit-fetch failure → halt; manifest mismatch has no dedicated branch, generic §F.1 "stop and ask" plausibly applies | Partial — commit pin **Enforced**, manifest check **Aspirational** |
+| **Firmware / Secure Boot** | Pin commit SHA (a real command, but manually invoked — no session-open gate runs it automatically); content-hash-vs-manifest check (specified; a dated single-drop manifest exists as precedent, but no current one covering REGISTERED.md+ZONE_REGISTRY.md was located) | `git fetch && git rev-parse HEAD` (commit pin) + sha256-vs-manifest per CLAUDE.md §A.5 | Commit-fetch failure → halt; manifest mismatch has no dedicated branch, generic §F.1 "stop and ask" plausibly applies | Specified — both halves: CLAUDE.md §A.1/§A.5 instruct the commands, but no automated gate invokes either |
 | **Bootloader / boot spec** | Session-open ritual specification | `SESSION_RITUALS.md` (parser-tag authority) + `CURRENT.md`/`GOVERNANCE.md`/`OPERATOR_RUNBOOK.md` (orchestration detail, per SESSION_RITUALS.md's own §A closing note and §H) | Fetch fails → halt, report | Specified |
 | **Boot parameters / policy** | Load standing principles + operating process | `GOVERNANCE.md`, `CURRENT.md` | Proceed on last-known if fetch fails is NOT allowed — halt | Specified |
 | **Kernel image** *(registry-touching sessions per SESSION_RITUALS.md; CLAUDE.md's own §A reads this as unconditional — see "Open conflict" above)* | Load registered findings/context | `REGISTERED.md` (pinned SHA, live-fetch) | DEGRADED mode (SESSION_RITUALS §F.9, IC-029/IC-030) | Specified (protocol-level hard gate, not code-enforced) |
+| **Init / unit ordering** *(fetched before device enumeration — CLAUDE.md §A step 3, before step 4; this table's row order matches that fetch order, not a separate conceptual grouping)* | Ranked work queue | `PRIORITY_QUEUE.md` | Blocked row without unblock action → GAP callout | Specified |
 | **Device/node enumeration** | Enumerate active zones/repos | `ZONE_REGISTRY.md` | ZONE_REGISTRY.md's own header claims "merge block"; CLAUDE.md lists the `registry_consistency` CI gate as "planned Phase 3" — not yet confirmed live either way in this document | Aspirational (per CLAUDE.md's own "planned Phase 3") |
-| **Init / unit ordering** | Ranked work queue | `PRIORITY_QUEUE.md` | Blocked row without unblock action → GAP callout | Specified |
 | **Kernel permission model** | Authority tiers (Z1/Z2/Z3) — specified in CLAUDE.md; CLAUDE.md's own tables disagree on whether Z1 may write CANDIDATE blocks to REGISTERED.md (see §8 below) | `CLAUDE.md`; `.github/CODEOWNERS` names itself a self-review placeholder, not yet an independent gate | Action outside cap → escalate to Z2 | Partial — Z2-hash escalation gate **Specified**, CODEOWNERS review gate **Aspirational** |
 | **Boot log / dmesg** | Drift catalog + Phase 1 declaration | SESSION_RITUALS §A.5-6 | — | Specified |
 | **Login prompt** | Wait for user confirmation | SESSION_RITUALS §A.7 | Work does not begin until acknowledged | Specified |
 | **Runtime tuning (sysctl)** | Molt cycle, constants | `/molt_cycle.py`, `constants.json`, `MOLT_STATE.md` | Anti-cascade freeze (K=3, revert-twice rule) — **specified as policy; `/molt_cycle.py`'s own check is currently a stub that always passes** | Aspirational (confirmed stub) |
 | **Shutdown / close ritual** | Session close | SESSION_RITUALS §B | B.0 hard gate before a close artifact that asserts contents (receipt, WGS post, summary, status report) | Specified |
-| **Journal (append-only log)** | Per-session close record = WGS Slack log (Section B, item 7 — scoped to "substrates with Slack write access only, typically Claude," not universal); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, unrelated subsystem — not written by §B) | WGS `#wgs-sync` (session record, Claude/Slack-write-access sessions); `ledgers/NF_LEDGER.jsonl` (pattern only) | For substrates that write it: WGS post omitted → next session's Class 1 read is stale (CURRENT.md). Other substrates: no journal write specified here | Specified (Slack-write-access substrates only) |
+| **Journal (append-only log)** | Per-session close record = WGS Slack log (Section B, item 7 — scoped to "substrates with Slack write access only, typically Claude," not universal); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, but it's the permanent record for the Stage 11 molt/prediction-tracking subsystem, per MOLT_STATE.md — not written by §B) | WGS `#wgs-sync` (session record, Claude/Slack-write-access sessions); `ledgers/NF_LEDGER.jsonl` (pattern only) | For substrates that write it: WGS post omitted → next session's Class 1 read is stale (CURRENT.md). Other substrates: no journal write specified here | Specified (Slack-write-access substrates only) |
 
 ---
 
@@ -227,7 +228,7 @@ prerequisite.
 ### 8. Kernel Permission Model — CLAUDE.md + CODEOWNERS
 **Concept:** The kernel enforces a permission/capability model (ring 0 vs. userspace, syscall gating, SELinux/AppArmor policy) loaded at boot and enforced for the life of the running system.
 
-**HumanAIOS Mapping:** `CLAUDE.md` (this file) — the Z1/Z2/Z3 authority structure is loaded once at boot and is meant to gate every subsequent action for the session's lifetime. **CLAUDE.md contradicts itself on exactly how the write/execute boundary works, and this document does not adjudicate that conflict:**
+**HumanAIOS Mapping:** `CLAUDE.md` — the Z1/Z2/Z3 authority structure is loaded once at boot and is meant to gate every subsequent action for the session's lifetime. **CLAUDE.md contradicts itself on exactly how the write/execute boundary works, and this document does not adjudicate that conflict:**
 - Its "Governance Files & CI/CD Integration" table lists REGISTERED.md as "Z2 sole write," enforcement "CI: no write without Z2 hash" — reading that as ring-0-only, no unprivileged write syscall at all.
 - Its "Z1: Proposers" section lists Z1's rights as including candidate-block proposals, with "Output: Candidate blocks → REGISTERED.md (awaiting Z2 hash)" — reading that as an unprivileged write (append a CANDIDATE) that a separate privileged operation (Z2's hash) later escalates to execution.
 
@@ -362,7 +363,8 @@ NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the appen
 │ CLOSE RITUAL — SESSION_RITUALS.md §B (analogy, not literal I/O)    │
 │  B.0 verify command output → B.6 reconcile receipt against it →    │
 │  journal = WGS #wgs-sync post (Section B, item 7; NF_LEDGER.jsonl  │
-│  is an unrelated subsystem's pattern example, not written here)    │
+│  is the molt subsystem's own record (MOLT_STATE.md), not written   │
+│  here — a pattern example only)                                    │
 │  close artifact drafted before B.0, or contradicting it → HALT     │
 │  (§F.7-8)                                                           │
 └─────────────────────────────────────────────────────────────────┘
@@ -377,7 +379,7 @@ NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the appen
 | POST failure (no power/memory) | Live-state fetch fails — Claude sessions with Slack MCP down degrade to PATH C (CURRENT.md only) rather than halt; SESSION_RITUALS §A.1's literal, substrate-agnostic text is halt-and-report | SESSION_RITUALS §A.1 (halt-and-report text); OPERATOR_RUNBOOK.md (PATH C, Claude-specific fallback) |
 | Secure Boot signature mismatch | REGISTERED.md content sha256 fails manifest check (CLAUDE.md §A.5 requires the check but names no explicit consequence — open gap, not yet a specified failure mode) | CLAUDE.md §A.5 |
 | Kernel panic | Registry-touching halt (fetch failed, or UNAVAILABLE/UNKNOWN/STALE) | SESSION_RITUALS §F.9 |
-| Boot into single-user/rescue mode | DEGRADED mode, CLASS_STATE block | IC-029, SESSION_RITUALS §F |
+| Boot into single-user/rescue mode | DEGRADED-mode declaration (live in §F.9) — the fuller recovery procedure a `CLASS_STATE` block would specify is not present in the live file (see §5 above, `IC-CAND-BSM-A`) | IC-029, SESSION_RITUALS §F.9 |
 | Device not enumerated, driver refuses bind | Zone misalignment → merge block per ZONE_REGISTRY.md; CLAUDE.md lists the enforcing gate as "planned Phase 3" (conflict, unresolved) | ZONE_REGISTRY.md vs. CLAUDE.md governance table |
 | Unit failed, dependency unmet | Blocked Priority Queue row, no unblock action | GAP callout |
 | Close artifact drafted before verification, or contradicting it | Close artifact drafted before B.0, or asserting content B.0 doesn't confirm | SESSION_RITUALS §F.7-8 |
