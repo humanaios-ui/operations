@@ -30,7 +30,9 @@ No network. Read-only. Deps: none beyond git on PATH.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
+import io
 import json
 import os
 import re
@@ -214,9 +216,30 @@ def run_smoke_test() -> bool:
             .replace(f'{{artifact:"commit dangling (exists, unreachable)", sha:"{dangling}"}},\n', "") \
             .replace('{artifact:"bad fingerprint (path, non-hex)", sha:"not-a-hash", path:"a.txt"},\n', "")
         open(os.path.join(td, "ui", "board.html"), "w").write(clean)
-        holds = run(os.path.join("ui", "board.html"), td)["verdict"] == "HOLDS"
+        clean_rep = run(os.path.join("ui", "board.html"), td)
+        holds = clean_rep["verdict"] == "HOLDS"
         print("  clean board → HOLDS:", "OK" if holds else "FAIL")
         ok = ok and holds
+        # read.against distance: a read at HEAD is 0 behind and the table says "at HEAD"; after one
+        # more commit on the branch the same read is 1 behind, still PRESENT, still HOLDS, and the
+        # table says so — the visibility must not silently disappear.
+        def table_line(rep: dict) -> str:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                print_table(rep)
+            return next(l for l in buf.getvalue().splitlines() if l.startswith("read.against:"))
+        at_head = clean_rep["read_against"].get("behind_head") == 0 and table_line(clean_rep).endswith("· at HEAD")
+        print("  read.against at HEAD → behind_head 0, table 'at HEAD':", "OK" if at_head else "FAIL")
+        subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t",
+                        "commit", "-q", "--allow-empty", "-m", "one more"], check=True)
+        older = run(os.path.join("ui", "board.html"), td)
+        ra = older["read_against"]
+        behind_ok = (ra["status"] == "PRESENT" and ra.get("behind_head") == 1
+                     and older["verdict"] == "HOLDS"
+                     and table_line(older).endswith("· 1 commit(s) behind HEAD"))
+        print("  read.against 1 commit old → PRESENT, behind_head 1, HOLDS, table says so:",
+              "OK" if behind_ok else "FAIL")
+        ok = ok and at_head and behind_ok
         # fail closed: no dataset / no seals / no read.against must each be STALE, never HOLDS
         for label, variant in (
             ("no HUMANAIOS block", clean.replace("const HUMANAIOS", "const SOMETHING")),

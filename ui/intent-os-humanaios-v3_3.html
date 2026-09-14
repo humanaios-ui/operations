@@ -271,8 +271,9 @@ const EXAMPLE = {
 };
 
 /* ---------- HumanAIOS — live board, read 2026-09-14 ---------- */
-/* Every fact below was verified by a fetch in the session that wrote it (main at b52f805). Re-check the seals
-   with `python3 tools/intent_os_board_check_v1_0.py`; a STALE verdict means re-read before citing anything here. */
+/* Every fact below was verified by a fetch in the session that wrote it. First read: main at b52f805; the
+   seals were re-taken at 9079c52 (after #323) and at 6d3443a (after #325) — `read.against` names the current one.
+   Re-check with `python3 tools/intent_os_board_check_v1_0.py`; a STALE verdict means re-read before citing anything here. */
 const HUMANAIOS = {
  title:"Intent-OS", rev:"2026-09-14",
  owner:{tagline:"Night", project:"HumanAIOS"},
@@ -481,7 +482,7 @@ const HUMANAIOS = {
   {artifact:"WITCH/SPELL/CASCADE block — unchanged", sha:"aca4ee8c319e62b5", path:"z1-inbox/2026-09-07/WITCH_SPELL_CASCADE_BLOCK.md"},
   {artifact:"decision_relay.py v0.3.1 (lands in z1-inbox + INDEX.yaml under d18; body hash pinned at decide, server-side ratifier and date; self-test PASS)", sha:"4801d88428e6f2c7", path:"tools/decision_relay.py"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
-  {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"6323e867e3425ffe", path:"tools/intent_os_board_check_v1_0.py"},
+  {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"515406c189694732", path:"tools/intent_os_board_check_v1_0.py"},
   {artifact:"z1-inbox/INDEX.yaml (40 candidates · 21 records · 4 ratified · 36 awaiting_z2 · after the 09-14 rulings, the 14 board-ruling candidates and Q-IC-BOARD-SEALS-01)", sha:"6db845820c29d492", path:"z1-inbox/INDEX.yaml"},
   {artifact:"Z2 rulings 2026-09-14 — Q-INTENTOS-LAUNCH-01 ACCEPT signed by ratify.py", sha:"d6bc85e4e21dd631", path:"z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"},
   {artifact:"Z2 ruling — d17 local only · d18 z1-inbox · d19 freeze path · tokens revoked", sha:"5694e1a9bd50f150", path:"z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"},
