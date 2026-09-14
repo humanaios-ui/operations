@@ -163,8 +163,8 @@
 |:-----|:----------|:---|:---|
 | REGISTERED.md | Z2 sole write | Any proposal/ratification | CI: no write without Z2 hash |
 | PRIORITY_QUEUE.md | Z2 ratifies scores | Impact ±1+, status change, scope | CI: falsifier_lint + registry_consistency |
-| ZONE_REGISTRY.md | Z2 ratifies active repos | Repo add/remove/count change | CI: registry_consistency gate |
-| PLANNED_REPOS.md | Z2 ratifies roadmap | Planned repo add/status change | CI: registry_consistency gate |
+| ZONE_REGISTRY.md | Z2 ratifies active repos | Repo add/remove/count change | CI: registry_consistency gate (planned Phase 3) |
+| PLANNED_REPOS.md | Z2 ratifies roadmap | Planned repo add/status change | CI: registry_consistency gate (planned Phase 3) |
 | CLAUDE.md | Z2 ratifies authority | Authority/escalation change | CI: CODEOWNERS enforcement |
 | MOLT_STATE.md | Z2 ratifies molts | Molt candidate → ratified | CI: anti-cascade lint |
 | NF_LEDGER.jsonl | Code (append-only) | Measurement window close | CI: hash-chain validation |

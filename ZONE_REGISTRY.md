@@ -58,15 +58,16 @@
 ### **Z1 Proposer Rights & Caps**
 
 **Full cap** (can propose anything, needs Z2 hash):
-- humanaios, humanaios-internal, acat-inspect, acat-x, acat-dashboard, acat-observatory, empirica-practice-mesh
+- humanaios, humanaios-internal, acat-inspect, acat-x, empirica-practice-mesh
 
 **Limited cap** (can propose only in scope):
+- acat-dashboard: dashboard features only
+- acat-observatory: observatory schema only
 - lasting-light-ai: methodology/research designs only
 - docs, findlocaltattooartists: content proposals only
-- research: read-only (frozen papers, no proposals)
 
 **Read-only** (Z0, no proposals):
-- research (archive)
+- research (frozen papers, archive)
 
 ### **Z2 Ratifier (Night) — Serial Gate**
 

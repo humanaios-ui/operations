@@ -64,8 +64,8 @@ This document tracks **19 planned, aspirational, or archived repositories** that
 |:-----|:--------|:---|:---|:---|
 | **Repo A** | Other HumanAIOS org (pending broader scan) | UNKNOWN | Night | Phase 1b: Cross-org audit |
 | **Repo B** | Other HumanAIOS org (pending broader scan) | UNKNOWN | Night | Phase 1b: Cross-org audit |
-| **Repo C** | Archived on GitHub | ARCHIVED | Night | Search GitHub archives |
-| **Repo D** | Archived on GitHub | ARCHIVED | Night | Search GitHub archives |
+| **Repo C** | Possibly archived on GitHub (verification pending) | UNKNOWN | Night | Search GitHub archives |
+| **Repo D** | Possibly archived on GitHub (verification pending) | UNKNOWN | Night | Search GitHub archives |
 | **Repo E** | Deleted/renamed (impossible to verify) | UNKNOWN | Night | Manual verification with team |
 | **Repo F** | Deleted/renamed (impossible to verify) | UNKNOWN | Night | Manual verification with team |
 
@@ -85,15 +85,16 @@ This document tracks **19 planned, aspirational, or archived repositories** that
 
 ---
 
-## CI Gate Integration
+## CI Gate Integration (Planned for Phase 3)
 
-**registry_consistency.yml** validates this file (if Option B/C applied):
-- [ ] All 13 planned repos listed with status ∈ [PLANNED, ARCHIVED, RETIRED, OTHER_ORG, UNKNOWN]
-- [ ] All 6 unaccounted repos listed with investigation plan
-- [ ] Total: 19 repos (13 planned + 6 unaccounted)
-- [ ] No active GitHub repos missing from either ZONE_REGISTRY.md or PLANNED_REPOS.md
+**registry_consistency.yml** (to be deployed in Phase 3: Q-REGISTRY-AUDIT-03 implementation) will validate:
+- All 13 planned repos listed with status ∈ [PLANNED, ARCHIVED, RETIRED, OTHER_ORG, UNKNOWN]
+- All 6 unaccounted repos listed with investigation plan
+- Total: 19 repos (13 planned + 6 unaccounted)
+- No active GitHub repos missing from ZONE_REGISTRY.md (active repos only)
+- PLANNED_REPOS.md status tracking consistent with active repo list
 
-**Enforcement:** Gate passes iff both files consistent; header count (31) = active (12) + planned (13) + unaccounted (6).
+**Enforcement (planned):** Gate will pass iff both files consistent; active count (12) accurately reflects GitHub reality.
 
 ---
 
@@ -120,7 +121,7 @@ This document tracks **19 planned, aspirational, or archived repositories** that
 
 1. **Phase 1 (Infrastructure):** website, operations bootstrap
 2. **Phase 1b (Audit):** Cross-org HumanAIOS scan (find remaining 6 unaccounted)
-3. **Phase 2 (Practice Hubs):** empirica-autonomy, foundation-evaluator, mesh-support, outreach, resource-miner, flta-app-empirica, opportunity-aggregator
+3. **Phase 2 (Practice Hubs):** empirica-autonomy, empirica-foundation-evaluator, empirica-mesh-support, empirica-outreach, empirica-resource-miner, flta-app-empirica, opportunity-aggregator
 4. **Phase 3 (Research & Tooling):** grok-crossref, collaborator-ops, local-machine-optimizer
 5. **TBD (Future):** Archives, deferred experiments
 

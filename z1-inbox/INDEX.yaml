@@ -24,10 +24,9 @@ version: 1
 generated: "2026-09-14"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 25, records: 19}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
-counts: {candidates: 20, records: 14}
+counts: {candidates: 25, records: 19}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
@@ -209,27 +208,6 @@ candidates:
     submitted: "2026-09-14"
     status: awaiting_z2
     note: "Board re-read against b52f805; persistence and relay-auth fixes; seal checker tools/intent_os_board_check_v1_0.py; runbook docs/INTENT_OS_BOARD_RUNBOOK.md. The 14 board rulings d2–d16 are not re-argued here — once d18 rules they are filed one candidate each."
-
-  - q_id: Q-REGISTRY-AUDIT-01
-    title: "ZONE_REGISTRY.md reconciliation — classify 13 missing repos (planned, never created)"
-    path: "z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Phase 1 of registry audit. Identifies 13 repos claimed in ZONE_REGISTRY but absent from GitHub (all classified as planned/never-created). Proposes 3 options for header correction (Option A/B/C). Awaits Z2 decision."
-
-  - q_id: Q-REGISTRY-AUDIT-02
-    title: "ZONE_REGISTRY.md reconciliation — register 7 active repos missing from registry"
-    path: "z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-02.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Phase 2 of registry audit. Identifies 7 repos on GitHub but missing from ZONE_REGISTRY. Proposes zone assignments for each. Blocked on Q-REGISTRY-AUDIT-01 ratification."
-
-  - q_id: Q-REGISTRY-AUDIT-03
-    title: "ZONE_REGISTRY.md reconciliation — implement + deploy CI gate"
-    path: "z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-03.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Phase 3 of registry audit. Implementation plan for chosen reconciliation option. Deploys registry_consistency CI gate to prevent future drift. Blocked on -01 and -02 ratification."
 
 records:
   - path: "z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md"
