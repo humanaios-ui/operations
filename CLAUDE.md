@@ -263,6 +263,7 @@ When these occur, emit callout immediately:
 ## Appended Events
 
 ```
+2026-09-14 — Z1 proposed Q-BOOT-PROCESS-MAP-01 (BOOT_PROCESS_MAP.md: REGISTERED.md's position in the session boot chain, mapped onto standard boot-chain stages); awaiting Z2 RATIFY signature
 2026-09-14 — Z1 implemented Option B (separate PLANNED_REPOS.md for roadmap repos, updated ZONE_REGISTRY.md & CLAUDE.md)
 2026-09-10 22:13 UTC — Z1 proposed Q-FRAMEWORK-MAPPING-01 (FRAMEWORK_MAPPING.md: 5 AI engineering concepts → Z-roles)
 2026-09-10 22:17 UTC — PR #264 merged (FRAMEWORK_MAPPING.md content); awaiting Z2 RATIFY signature for Q-FRAMEWORK-MAPPING-01
@@ -285,4 +286,6 @@ When these occur, emit callout immediately:
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
 
 **Framework Reference:** See [`FRAMEWORK_MAPPING.md`](./FRAMEWORK_MAPPING.md) for unified mental model mapping 5 Modern AI Engineering Concepts (Graph, Loop, Context, Harness, Prompt Engineering) to HumanAIOS Z-roles, governance files, and CI/CD gates. All proposers, ratifiers, and executors should reference this mapping when designing or evaluating work across the 31-repo ecosystem.
+
+**Boot Process Reference:** See [`BOOT_PROCESS_MAP.md`](./BOOT_PROCESS_MAP.md) for an explicit mapping of REGISTERED.md's position in the session boot chain — the SESSION_RITUALS.md §A ordered, halt-on-failure fetch sequence — onto standard computer boot-chain stages (Secure Boot integrity check, bootloader, kernel image, device enumeration, init ordering, permission model, login prompt, runtime tuning, shutdown/sync, journal). Read this alongside FRAMEWORK_MAPPING.md when reasoning about session-open/close ordering, halt conditions (IC-029/IC-030), or why REGISTERED.md is append-only and live-fetched rather than cached.
 

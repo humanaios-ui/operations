@@ -4145,3 +4145,35 @@ superseded_by: null
 
 **Status:** ACCEPTED · Ready for Z3 execution
 
+---
+
+### Q-BOOT-PROCESS-MAP-01 — Boot Process/Boot Chain Mapping for REGISTERED.md
+
+```yaml
+---
+id: "Q-BOOT-PROCESS-MAP-01"
+name: "boot-process-chain-mapping"
+status: CANDIDATE
+class: Q
+date_registered: "2026-09-14"
+date_origin: "2026-09-14"
+session_registered: "S-091426-Z1-bootmap"
+principles_triggered: ["P-governance", "P-framework"]
+substrate: "Claude Sonnet 5 (claude-code-remote) — Z1 proposer session"
+tags: ["governance", "boot-chain", "session-rituals", "documentation", "reference-architecture"]
+related_finding: ["Q-FRAMEWORK-MAPPING-01"]
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+- **Synopsis:** Creates `BOOT_PROCESS_MAP.md`, an explicit mapping of REGISTERED.md's position in the session boot chain — the SESSION_RITUALS.md §A ordered, halt-on-failure fetch sequence — onto standard computer boot-chain stages (POST, firmware/Secure Boot, bootloader, kernel image, device enumeration, init/unit ordering, permission model, boot log, login prompt, runtime tuning, shutdown/sync, journal). REGISTERED.md is mapped to the **kernel image**: live-fetched (not cached) per IC-030, append-only (superseded, never overwritten), and its absence/staleness is a hard halt (SESSION_RITUALS §F.9 registry-touching halt) — the direct analogue of a kernel panic dropping the system into a documented recovery mode (DEGRADED, per IC-029) rather than continuing on unverified state. SESSION_RITUALS.md is mapped to the bootloader (orchestrates load order, carries no state itself, per its own §H); GOVERNANCE.md/CURRENT.md to boot parameters/policy; ZONE_REGISTRY.md to device enumeration; PRIORITY_QUEUE.md to init/unit ordering; CLAUDE.md + CODEOWNERS to the kernel permission model; the drift catalog + Phase 1 declaration to the boot log; SESSION_RITUALS §A.7 (wait for confirmation) to the login prompt; molt_cycle.py to post-boot runtime tuning (sysctl-style, anti-cascade rate-limited); SESSION_RITUALS §B to shutdown/sync; NF_LEDGER.jsonl to the immutable journal. Companion document to `FRAMEWORK_MAPPING.md` (Q-FRAMEWORK-MAPPING-01), same format precedent.
+- **Scope guard:** Documentation only. No changes to REGISTERED.md entry schema, CI/CD gates, or authority structure. Does not modify SESSION_RITUALS.md, GOVERNANCE.md, ZONE_REGISTRY.md, or CLAUDE.md content beyond an optional reference link (see Deliverables).
+- **Deliverables:** (1) `BOOT_PROCESS_MAP.md` created at repo root; (2) this candidate block registered in REGISTERED.md; (3) optional — CLAUDE.md "How to Use This Document" section updated with a link, mirroring the FRAMEWORK_MAPPING.md precedent, on Z2 ACCEPT.
+- **Falsifier (required for Z2 ratification):** Any stage mapping in `BOOT_PROCESS_MAP.md` misstates the actual SESSION_RITUALS.md §A/§B sequence or halt conditions (verifiable by direct comparison against SESSION_RITUALS.md v6.4.1) OR the mapping is found to contradict CLAUDE.md's authority structure OR the document is not cross-referenced from CLAUDE.md within 7 days of Z2 ACCEPT.
+- **Promotion gate:** (1) Z2 ACCEPT signature on this candidate; (2) CLAUDE.md Framework Reference section updated to also link BOOT_PROCESS_MAP.md; (3) no open dispute on stage-mapping accuracy at time of ratification.
+
+**Priority:** Medium (reference architecture, non-blocking)
+**Estimated effort:** Documentation only — no code or CI changes
+**Assigned executor (pending Z2 delegation):** N/A (documentation candidate; no Z3 execution required beyond the optional CLAUDE.md link)
+
