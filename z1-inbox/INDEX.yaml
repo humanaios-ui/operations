@@ -24,7 +24,7 @@ version: 1
 generated: "2026-09-14"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 39, records: 21}
+counts: {candidates: 40, records: 21}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
 
@@ -310,6 +310,13 @@ candidates:
     submitted: "2026-09-14"
     status: awaiting_z2
     note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOOT-STATE-MACHINE-01
+    title: "Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation"
+    path: "z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Asks Z2 for EDIT-over-REJECT on the prototype and for disposition of four upstream candidates it surfaced while verifying citations: IC-CAND-BSM-A (SESSION_RITUALS changelog claims a Section F Degraded-Mode Specification the live file does not contain — halt 9 points at nothing), IC-CAND-BSM-B (P27 cites a SESSION_RITUALS Section B Step 0 that does not exist), AMBIGUITY-BSM-C (CLAUDE.md §A and SESSION_RITUALS §A both specify session open, differently — P22.1 first-match-wins is unsatisfiable until one governs), AMBIGUITY-BSM-D (§A.1 halt vs Z2-GOVARCH-02 demotion: read literally, every Claude session halts at open). Also carries F-CAND-BSM-E. The Q- id did not exist in-repo before this entry (F-BSM-12); filed here rather than left dangling. Companion code at z1-inbox/2026-09-14/boot_state_machine_v0_2.py; reviewed input preserved verbatim at boot_state_machine_v0_1_AS_REVIEWED.py.txt. No calibration_ref — the P30 gate is NOT cleared, so this is not ratification-ready as filed."
 
 
 records:
