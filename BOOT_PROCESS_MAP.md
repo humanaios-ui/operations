@@ -74,7 +74,7 @@ literally universal.
 | **Login prompt** | Wait for user confirmation | SESSION_RITUALS §A.7 | Work does not begin until acknowledged |
 | **Runtime tuning (sysctl)** | Molt cycle, constants | `/molt_cycle.py`, `constants.json`, `MOLT_STATE.md` | Anti-cascade freeze (K=3, revert-twice rule) — **specified as policy; `/molt_cycle.py`'s own check is currently a stub that always passes** |
 | **Shutdown / close ritual** | Session close | SESSION_RITUALS §B | B.0 hard gate before a close artifact that asserts contents (receipt, WGS post, summary, status report) |
-| **Journal (append-only log)** | Per-session close record = WGS Slack log (Section B, item 7); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, unrelated subsystem — not written by §B) | WGS `#wgs-sync` (session record); `ledgers/NF_LEDGER.jsonl` (pattern only) | WGS post omitted → next session's Class 1 read is stale (CURRENT.md) |
+| **Journal (append-only log)** | Per-session close record = WGS Slack log (Section B, item 7 — scoped to "substrates with Slack write access only, typically Claude," not universal); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, unrelated subsystem — not written by §B) | WGS `#wgs-sync` (session record, Claude/Slack-write-access sessions); `ledgers/NF_LEDGER.jsonl` (pattern only) | For substrates that write it: WGS post omitted → next session's Class 1 read is stale (CURRENT.md). Other substrates: no journal write specified here |
 
 ---
 
