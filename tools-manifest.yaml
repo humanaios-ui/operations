@@ -33,8 +33,8 @@ counts:
   tools: 155
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 124
-  missing_from_tree: 0
+  builder_markers_present: 125
+  missing_from_tree: 1
   unclassified: 0
 categories:
 - analytics_tool
@@ -1968,14 +1968,14 @@ tools:
 - tool_id: HAIOS-TOOL-162
   name: witness_framework
   path: tools/witness_framework.py
-  version: unversioned
+  version: 0.1.0
   category: validation_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: 'Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts'
 mcp_servers:
 - server_id: HAIOS-MCP-001
