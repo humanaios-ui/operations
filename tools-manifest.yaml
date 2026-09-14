@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 153
+  tools: 154
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 122
+  builder_markers_present: 124
   missing_from_tree: 1
   unclassified: 0
 categories:
@@ -625,14 +625,14 @@ tools:
 - tool_id: HAIOS-TOOL-051
   name: decision_relay
   path: tools/decision_relay.py
-  version: unversioned
+  version: 0.2.0
   category: governance_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok.
 - tool_id: HAIOS-TOOL-052
   name: dimension_attribution
@@ -1951,6 +1951,19 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop.
+- tool_id: HAIOS-TOOL-161
+  name: intent_os_board_check
+  path: tools/intent_os_board_check_v1_0.py
+  version: 1.0.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_os_board_check — verify the Intent-OS board's "verified records" against the tree.
+  session: S-091426-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
