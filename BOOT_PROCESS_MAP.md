@@ -104,9 +104,13 @@ its own candidate — not something this document implies or authorizes.
 
 **Related work:** a separate, more rigorous formalization of these stages as
 an executable, adversarially-reviewed state machine exists at PR #332
-(`Q-BOOT-STATE-MACHINE-01` adversarial review + corrected `v0.3` prototype,
-`z1-inbox/2026-09-14/`). It is explicit that ACAT/calibration signals are out
-of scope for that prototype too, and — like this document — that it is a Z1
+(`Q-BOOT-STATE-MACHINE-01` adversarial review + corrected
+`z1-inbox/2026-09-14/boot_state_machine_v0_2.py` — the PR's title calls this
+"v0.2"; the review document's own text notes it reached "v0.3" after a
+second round of fixes applied to that same file, so cite the filename, not
+either version number, if you go looking for it). It is explicit that
+ACAT/calibration signals are out of scope for that prototype too, and — like
+this document — that it is a Z1
 working artifact, not ratified, with `calibration_ref` (P30) still pending.
 It also surfaced two upstream findings this document's "Open conflict" notes
 above are consistent with: `IC-CAND-BSM-A` (SESSION_RITUALS.md's own
@@ -198,7 +202,7 @@ prerequisite.
 
 **Files Involved:** `REGISTERED.md`, `REGISTERED_FAILURE_MODES.md` (the RFM taxonomy is, in this analogy, the kernel's own panic-code registry)
 
-**Failure mode → recovery mode:** DEGRADED mode (SESSION_RITUALS §F.9, CLASS_STATE block, IC-029) is single-user/rescue-mode boot: the system comes up enough to report what's wrong, but explicitly forbids the normal registry-touching workload (no F/IC/H proposals against unverified state) until the kernel image is re-verified.
+**Failure mode → recovery mode:** SESSION_RITUALS §F.9 requires declaring DEGRADED mode and forbids F/IC/H proposals against unverified state — that much is live in the file today. Read "recovery mode" narrowly: **a documented `CLASS_STATE` block or fuller recovery procedure is not present in the live file.** SESSION_RITUALS.md's own changelog (line 437) claims a "Section F Degraded-Mode Specification (CLASS_STATE block, prohibited-actions table by class state, DEGRADED mode Phase 1 header, recovery protocol, periodic testing cadence)" was added S-050726-04 — but Section F as it exists today (lines 319-332) contains only the 9 halt conditions, none of that specification. This is `IC-CAND-BSM-A`, surfaced independently by PR #332's adversarial review. So: DEGRADED-mode single-user/rescue-mode boot is the *correct shape* for the analogy, but the concrete recovery procedure it implies (what's permitted, how re-verification is confirmed, a periodic testing cadence) is itself an open gap in the source document, not something this document can point to as already specified.
 
 ---
 
@@ -214,7 +218,7 @@ prerequisite.
 ### 7. Init / Unit Ordering — PRIORITY_QUEUE.md
 **Concept:** PID 1 (init/systemd) brings up services in dependency order once devices are enumerated — some units block others, some run in parallel, failures are reported without necessarily halting the whole boot.
 
-**HumanAIOS Mapping:** `PRIORITY_QUEUE.md` is the ordered unit list — ranked by Z1-proposed scores under a declared formula, with explicit blocked-row semantics (a GAP callout is the equivalent of a systemd unit reporting `failed` with a dependency reason instead of silently vanishing). The queue's own metadata currently shows `ratification_hash: — (pending Z2 signature)` — the scores are declared and ranked, not yet Z2-ratified — which mirrors units that are enumerated and ordered but whose dependency graph hasn't been signed off; the `status_gate: READY` still governs which rows may begin regardless.
+**HumanAIOS Mapping:** `PRIORITY_QUEUE.md` is the ordered unit list — ranked by Z1-proposed scores under a declared formula, with explicit blocked-row semantics (a GAP callout is the equivalent of a systemd unit reporting `failed` with a dependency reason instead of silently vanishing). The queue's own metadata currently shows `ratification_hash: — (pending Z2 signature)` — but the file's changelog separately records "2026-09-09 18:49 CST — Z2 (Night) ratified ... PRIORITY_QUEUE.md v1_1 ratified." That's an internal contradiction in the source file, not resolved by this document: the metadata table and the changelog disagree on whether the queue itself is ratified. Either way, individual row scores are declared and ranked, not independently Z2-signed per row — which mirrors units that are enumerated and ordered but whose dependency graph hasn't been signed off; the `status_gate: READY` still governs which rows may begin regardless.
 
 **Files Involved:** `PRIORITY_QUEUE.md`
 
@@ -411,7 +415,7 @@ map does not update itself, and a stale diagram is worse than no diagram.
 | Boot parameters | GOVERNANCE.md, CURRENT.md | Policy before payload |
 | Kernel image *(registry-touching sessions)* | REGISTERED.md | Live-fetched, append-only, halts on failed fetch/staleness |
 | Device enumeration | ZONE_REGISTRY.md | 12 active repos as nodes (live count — see file) |
-| Init/unit order | PRIORITY_QUEUE.md | Ranked (Z1-proposed scores, Z2 hash pending), blockers surfaced |
+| Init/unit order | PRIORITY_QUEUE.md | Ranked; the file disagrees with itself on ratification — its own Queue Metadata table says `ratification_hash: — (pending Z2 signature)`, while its changelog records "2026-09-09 ... PRIORITY_QUEUE.md v1_1 ratified"; blockers surfaced regardless |
 | Permission model | CLAUDE.md + CODEOWNERS (review-gated, not filesystem-enforced) | Z1/Z2/Z3 caps |
 | Boot log | Drift catalog + Phase 1 block | Structured self-report |
 | Login prompt | §A.7 confirmation wait | Work gated on acknowledgment |
