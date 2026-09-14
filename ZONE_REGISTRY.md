@@ -1,7 +1,7 @@
 # ZONE_REGISTRY.md — Canonical Z1/Z2/Z3 Authority Map
 
 **Location:** `operations/ZONE_REGISTRY.md` (canonical source)  
-**Updated:** 2026-09-09  
+**Updated:** 2026-09-14  
 **Authority:** Z2 (Night) — ratifies zone assignments and escalation paths  
 **Enforcement:** CI gate validates every PR against this registry. Zone misalignment = merge block.
 
@@ -17,7 +17,7 @@
 
 ---
 
-## Repository Zone Assignments (31 repos)
+## Repository Zone Assignments (12 active repos)
 
 ### **Tier 1: Governance Hubs**
 
@@ -27,41 +27,29 @@
 | **humanaios** | Z3 integration hub | Z2 escalation point | Full | Night | Integration lead (TBD) | Night |
 | **humanaios-internal** | Z3 empirica umbrella | — | Full | Night | Empirica PM (TBD) | Night |
 
-### **Tier 2: Practice Hubs**
-
-| Repo | Primary | Secondary | Z1 Proposer Cap | Z2 Ratifier | Z3 Executor | Escalation |
-|:-----|:--------|:----------|:---|:---|:---|:---|
-| **empirica-autonomy** | Z1/Z2 builder + ratification | — | Agent configs, gate changes | Night | Engineering lead (TBD) | Night (gate), Admiral (constants) |
-| **empirica-foundation-evaluator** | Z3 assessment seat | — | Rubric proposals only | Night | Admiral or delegated (TBD) | Admiral |
-| **empirica-mesh-support** | Z2 coordination | Z1 proposal source | Mesh queries | Night | Integration (TBD) | Night |
-| **empirica-outreach** | Z2 community governance | Z1 resource/content | Content proposals | Night | Community lead (TBD) | Night |
-| **empirica-resource-miner** | Z0/Z1 discovery | — | Resource proposals (read-only extraction) | Night | None (read-only) | Night |
-| **flta-app-empirica** | Z3 experiment runner | Z1 proposal source | Experiment params | Night | FLTA team (TBD) | Night |
-
-### **Tier 3: Independent Verification**
+### **Tier 2: ACAT & Verification**
 
 | Repo | Primary | Secondary | Z1 Proposer Cap | Z2 Ratifier | Z3 Executor | Escalation |
 |:-----|:--------|:----------|:---|:---|:---|:---|
 | **acat-inspect** | Z1/Z3 independent replication | Z2 arbitration | ACAT designs, replication designs | Night | ACAT team (TBD) | Night |
+| **acat-x** | Z1 proposal source | Z3 evaluation | ACAT designs | Night | ACAT team (TBD) | Night |
+| **acat-dashboard** | Z3 dashboard | Z1 proposal | Dashboard features | Night | ACAT team (TBD) | Night |
+| **acat-observatory** | Z3 observational data | Z1 analysis | Observatory schema | Night | ACAT team (TBD) | Night (private repo) |
+
+### **Tier 3: Research & Analysis**
+
+| Repo | Primary | Secondary | Z1 Proposer Cap | Z2 Ratifier | Z3 Executor | Escalation |
+|:-----|:--------|:----------|:---|:---|:---|:---|
 | **lasting-light-ai** | Z1 research proposal | — | RQ1/RQ2/RQ3 methodology | Night | None (research only) | Admiral |
+| **research** | Z0 archive (frozen papers) | Z1 analysis | None (read-only papers) | Night | None (read-only) | Admiral |
+| **empirica-practice-mesh** | Z2 coordination | Z1 proposal | Mesh queries, governance | Night | Empirica PM (TBD) | Night |
 
-### **Tier 4: Public Channels & Experiments**
-
-| Repo | Primary | Secondary | Z1 Proposer Cap | Z2 Ratifier | Z3 Executor | Escalation |
-|:-----|:--------|:----------|:---|:---|:---|:---|
-| **website** | Z1/Z3 public comms + deployment | — | Content (Z1), deployment (Z3) | Night | Web team (TBD) | Night |
-| **grok-crossref** | Z1 research | — | Crossref API integration designs | Night | None (research only) | Admiral |
-| **collaborator-ops** | Z3 collaboration platform | — | Ops & tooling | Night | Collaborator team (TBD) | Night |
-| **local-machine-optimizer** | Z1 optimization research | — | Optimization strategies | Night | None (research only) | Admiral |
-| **opportunity-aggregator** | Z3 data pipeline | Z1 proposal source | Feature proposals | Night | Data team (TBD) | Night |
-
-### **Tier 5: Archive & Exploratory**
+### **Tier 4: Public Channels & Documentation**
 
 | Repo | Primary | Secondary | Z1 Proposer Cap | Z2 Ratifier | Z3 Executor | Escalation |
 |:-----|:--------|:----------|:---|:---|:---|:---|
-| **empirica-autonomy-archive** | Z0 archive | — | None (read-only) | Night | None | N/A |
-| **empirica-opportunity-aggregator.archive** | Z0 archive | — | None (read-only) | Night | None | N/A |
-| [Other archived repos] | Z0 | — | None (read-only) | Night | None | N/A |
+| **docs** | Z3 docs deployment | Z1 content | Documentation content | Night | Web team (TBD) | Night |
+| **findlocaltattooartists** | Z3 portfolio | Z1 content | Portfolio content | Night | Web team (TBD) | Night |
 
 ---
 
@@ -70,17 +58,16 @@
 ### **Z1 Proposer Rights & Caps**
 
 **Full cap** (can propose anything, needs Z2 hash):
-- empirica-autonomy, humanaios, humanaios-internal, empirica-foundation-evaluator, empirica-mesh-support, empirica-outreach, acat-inspect
+- humanaios, humanaios-internal, acat-inspect, acat-x, empirica-practice-mesh
 
 **Limited cap** (can propose only in scope):
-- empirica-resource-miner: resource proposals only (read-only extraction)
-- empirica-foundation-evaluator: rubric proposals only
-- website: content proposals only
-- lasting-light-ai, grok-crossref, local-machine-optimizer: methodology/research designs only
-- opportunity-aggregator, flta-app-empirica: feature/parameter proposals only
+- acat-dashboard: dashboard features only
+- acat-observatory: observatory schema only
+- lasting-light-ai: methodology/research designs only
+- docs, findlocaltattooartists: content proposals only
 
 **Read-only** (Z0, no proposals):
-- Archive repos
+- research (frozen papers, archive)
 
 ### **Z2 Ratifier (Night) — Serial Gate**
 
@@ -101,15 +88,15 @@
 - **operations**: Night (Z2 self-executes governance)
 - **humanaios**: Integration lead (TBD)
 - **humanaios-internal**: Empirica PM (TBD)
-- **empirica-autonomy**: Engineering lead (TBD)
-- **empirica-foundation-evaluator**: Admiral or delegated (TBD)
-- **empirica-mesh-support**: Integration (TBD)
-- **empirica-outreach**: Community lead (TBD)
 - **acat-inspect**: ACAT team (TBD)
-- **website**: Web team (TBD)
-- **flta-app-empirica**: FLTA team (TBD)
-- **opportunity-aggregator**: Data team (TBD)
-- **collaborator-ops**: Collaborator team (TBD)
+- **acat-x**: ACAT team (TBD)
+- **acat-dashboard**: ACAT team (TBD)
+- **acat-observatory**: ACAT team (TBD)
+- **lasting-light-ai**: None (research only)
+- **research**: None (read-only archive)
+- **empirica-practice-mesh**: Empirica PM (TBD)
+- **docs**: Web team (TBD)
+- **findlocaltattooartists**: Web team (TBD)
 
 **Execution workflow:**
 1. Merge ratified PR (Z2 hash verified by CI)
