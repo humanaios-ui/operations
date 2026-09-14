@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Intent-OS — HumanAIOS Board v3.1</title>
+<title>Intent-OS — HumanAIOS Board v3.3</title>
+<!-- Stable path: ui/intent-os-humanaios-v3_3.html. A re-read changes the data blocks below, not the filename.
+     Runbook: docs/INTENT_OS_BOARD_RUNBOOK.md · seal checker: tools/intent_os_board_check_v1_0.py · relay: tools/decision_relay.py -->
 <style>
 :root{
   --board:#101418; --panel:#171d23; --line:#2a333c; --ink:#dce6ee; --dim:#7f8c98;
@@ -143,7 +145,7 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 <div id="predictions"></div>
 
 <h2>Verified records — the receipts this board rests on</h2>
-<div class="familiar">Like an audit log: each entry is a fingerprint (checksum) of a real file, so anyone can later confirm nothing was quietly changed.</div>
+<div class="familiar">Like an audit log: each entry is a fingerprint (checksum) of a real file, so anyone can later confirm nothing was quietly changed. Rows with a path are re-checked by <code>tools/intent_os_board_check_v1_0.py</code>; a STALE verdict means this board must be re-read before anything on it is cited.</div>
 <div id="seals"></div>
 
 <h2>Project data — the whole board as one editable file</h2>
@@ -155,7 +157,7 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
   <button class="act" id="import">Import board</button>
   <button class="act" id="loadBlank">Start a new project</button>
   <button class="act" id="loadExample">Load example project</button>
-<button id="loadHumanaios">Load HumanAIOS board</button>
+  <button class="act" id="loadHumanaios">Load HumanAIOS board</button>
   <button class="act warn" id="reset">Clear this board</button>
   <input type="file" id="file" accept="application/json" style="display:none"/>
   <span class="note" id="persistnote"></span>
@@ -268,192 +270,235 @@ const EXAMPLE = {
  ]
 };
 
-/* ---------- HumanAIOS — live board, read 2026-09-06 ---------- */
+/* ---------- HumanAIOS — live board, read 2026-09-14 ---------- */
+/* Every fact below was verified by a fetch in the session that wrote it (main at b52f805). Re-check the seals
+   with `python3 tools/intent_os_board_check_v1_0.py`; a STALE verdict means re-read before citing anything here. */
 const HUMANAIOS = {
- title:"Intent-OS", rev:"2026-09-08",
+ title:"Intent-OS", rev:"2026-09-14",
  owner:{tagline:"Night", project:"HumanAIOS"},
- relay:{url:"", secretHint:"RELAY_SECRET set at intake; entered once per session, kept in memory only"},
- read:{board:"Live", date:"2026-09-08", against:"humanaios-ui/operations main at 5df54b7 (second read, same day)"},
- readline:"Everything green was verified by a fetch, not by memory. Honest number: 3 of 40 operated cycles — all three from door 1 (blind external review), none from the intake pipeline. New this read: research-intake v0.1 landed by bypass (RT-10, 12 findings, v0.2 on device); ACAT ↔ market-benchmark map (LAID); scorecard-currency and remap loop defined; LPCS relationship open; docs/ lifecycle lint (PR #223).",
+ relay:{url:"", basicUser:"night", secretHint:"RELAY_SECRET and the ngrok basic-auth password are entered once per session, kept in memory only, never written to this file"},
+ read:{board:"Live", date:"2026-09-14", against:"humanaios-ui/operations main at b52f805 (first read since the 2026-09-08 pair; three reads behind)"},
+ readline:"Everything green was verified by a fetch, not by memory. Honest number: still 3 of 40 operated cycles, all from door 1. Since the 09-08 read: history was reset (57 commits; the three commits the old seals pointed at are gone), the Z2 gate landed and was found dead for 122 runs then repaired, the registry was re-pinned once and has drifted again, research-intake became specimen-intake, and the Z2 decision backlog grew to 22 candidate blocks plus 14 open board rulings. This read fixes the board itself: persistence, relay auth, a checker for the seals, and a launch candidate (Q-INTENTOS-LAUNCH-01).",
  blocks:[
-  {id:"1", name:"system graph v0.2 landed", state:"done", role:"stage 5 · Ship",
-   why:"The operating graph in machine form: 19 processes, 44 typed edges, generated from the edge list (v0.1's hand-made JSON had two broken edges). Three owner rulings (OI-G1/G2/G3) are embedded in the commit. Cycle 3 verdict: not adversarially closed; 7 structural changes approved for v0.3.",
-   gate:"commit visible on origin/main by fetch, not by memory",
-   cmds:"git fetch origin\ngit show b8aac1be789b13c0c4a8578e8ba0df2d5c85a125 --stat",
-   meta:"verified 2026-09-06 · +536 lines · 0 dangling nodes · v0.3 queued on cycle-3 findings"},
+  {id:"1", name:"system graph v0.2 on main", state:"done", role:"stage 5 · Ship",
+   why:"The operating graph in machine form. Regenerated 2026-09-13: 22 nodes, 53 typed edges, 0 dangling (read from the JSON, not from the 09-08 note that said 19/44). The commit the old seal named (b8aac1be) is no longer in history — the repo was reset at 21aec1e on 09-10 — so the receipt for the landing is a RECEIPT-GAP; the artifact itself is verified.",
+   gate:"system_graph.json on main by fetch; 0 dangling edges",
+   cmds:"git fetch origin\nsha256sum system_graph.json   # 09-14: 7715372d…\npython3 -c \"import json;g=json.load(open('system_graph.json'));print(len(g['nodes']),len(g['edges']))\"",
+   meta:"verified 2026-09-14 · 22 nodes · 53 edges · 0 dangling · generated_at 2026-09-13 · landing commit not fetchable (history reset) → RECEIPT-GAP"},
   {id:"2", name:"CI guard · Merkle root · anchor", state:"progress", role:"stage 5 · Ship",
-   why:"PRs #217–#222 merged through the gate (guard ran). Cycle merges, two receipts, the H-CAND registry append, and research-intake c08f86c were direct pushes. Verified 09-08: z2_ratification_gate.yml is NOT on main — the graph names it as CIG; the only guard is no-op-pr-guard.yml (PR-only). Merkle root regeneration and the .ots anchor still unseen.",
-   gate:"z2_ratification_gate.yml on main; guard green on the next PR; new REGISTERED.root; .ots proof present",
-   cmds:"ls .github/workflows/z2_ratification_gate.yml   # 09-08: No such file",
-   meta:"35 workflows on main, none is the ratification gate · d4 covered b8aac1be; 453cd8b, 183efe6, efcfcb5, 5df54b7, c08f86c not yet covered · Merkle root + .ots still unseen",
+   why:"z2_ratification_gate.yml is now on main under .github/workflows — and its own header says it was invalid YAML from its first commit (#267, 09-10): 122 runs, zero jobs, every one 'failure' in zero seconds. Repaired 09-13 (Q-GOVGATE-01, awaiting Z2). A stray DRAFT copy of the same file sits at the repo root. Merkle root regeneration (REGISTERED.root) and the .ots anchor are still unseen.",
+   gate:"gate workflow executes ≥1 job on a PR touching z1-inbox/; REGISTERED.root present; .ots proof present",
+   cmds:"ls .github/workflows/z2_ratification_gate.yml   # 09-14: present (repaired 09-13)\nls z2_ratification_gate.yml                     # 09-14: root duplicate, DRAFT — route or remove\nls REGISTERED.root                              # 09-14: No such file",
+   meta:"46 workflows on main · gate present since 09-10, live since 09-13 · REGISTERED.root ABSENT · .ots ABSENT",
    blockedOn:"d7: turn off admin bypass, or keep it and register every bypass as an IC"},
   {id:"3", name:"revoke temporary tokens", state:"progress", role:"stage 5 · Ship",
-   why:"A 7-day org-wide read-write token was used for the 09-06 push and every push since; the c08f86c push used a token of unknown scope. Navigator read: key remains active · path-to-close is one settings page · exposure while open is org-wide write.",
-   gate:"no temporary token listed at github.com/settings/tokens; one scoped PAT (repo write) exists for Z3 landings",
-   cmds:"github.com/settings/tokens → <temporary PAT> → Delete\n# then issue one scoped PAT for Z3",
-   meta:"09-06 token auto-expires ~2026-09-13 if not revoked · second token: no known expiry"},
+   why:"A 7-day org-wide read-write token was used for the 09-06 push and pushes after it. Its auto-expiry date (≈09-13) has now passed. Whether it was revoked earlier, and whether the second token of unknown scope still exists, cannot be read from the tree — only Z2 can confirm at the settings page.",
+   gate:"Z2 states, in a dated ruling file, that no temporary token is listed and one scoped PAT exists for Z3 landings",
+   cmds:"github.com/settings/tokens → confirm list\n# then record the confirmation in z1-inbox/<date>/ as a record",
+   meta:"expiry backstop reached 09-13 · revocation unverifiable from the tree · exposure while open was org-wide write"},
   {id:"4", name:"re-pin the registry (IC-030)", state:"progress", role:"stage 2 · Baseline",
-   why:"PRIORITY_QUEUE.md still pins blob c0899b9b; 09-06 read was sha256 40391062… (3909 lines); after the H-CAND append at 5df54b7 the file is 3914 lines, sha256 42c345bb…. The gap is a drift check, not a repair from memory.",
-   gate:"one current pin recorded in PRIORITY_QUEUE.md and matched by a live fetch",
-   cmds:"git fetch origin\nsha256sum REGISTERED.md\ngit rev-parse HEAD",
-   meta:"today: 42c345bb879949c9… · 3914 lines · +5 (H-CAND batch) · queue pin unchanged"},
+   why:"Q-IC030-REPIN-01 was operated 09-10: pin b35e8036… at 5d6f081, two manifest files found ABSENT → RECEIPT-GAP-001/002. Since then REGISTERED.md changed again (RFM taxonomy #312, Z2 checklist #321, framework-audit deploy #320): at b52f805 it was 4096 lines, sha256 8163351e…; at this PR's head after #320 it is 4147 lines, sha256 96507d9f…. PRIORITY_QUEUE.md still carries the row as READY and pins nothing, so the queue does not know the pin moved.",
+   gate:"one current pin recorded in PRIORITY_QUEUE.md and matched by a live fetch; the READY row closed",
+   cmds:"git fetch origin\nsha256sum REGISTERED.md   # 09-14 at b52f805: 8163351e7630e8f5… · after #320: 96507d9f3f9d78e2…\ngit rev-parse HEAD        # b52f805 at the read; main moved three times during the PR",
+   meta:"at the read: 8163351e7630e8f5… · 4096 lines · +182 since the 09-10 pin · after #320: 96507d9f3f9d78e2… · 4147 lines · queue row still READY, no pin field"},
   {id:"5", name:"IC-SCOPE-05 in code", state:"progress", role:"stage 3 · Decide",
-   why:"The rule that says what the behavior-audit system is allowed to do. ic_scope_check.py is on main (#217, sha ea183c88…) and refused three planted violations. Still missing: intake_template.jsonl schema (F-CAND-INTAKE-01 — confirmed absent on main 09-08) and a pinned R-001 criteria file.",
-   gate:"a lint or gate in the repo fails a scope violation on a planted test; intake schema present",
-   cmds:"python tools/ic_scope_check.py --self-test\nls intake_template.jsonl   # 09-08: absent",
-   meta:"gate on main · d1 accepted · ruling ic-scope-05-enforce-20260908",
-   blockedOn:"intake schema does not exist in the repo yet"},
+   why:"ic_scope_check.py is on main (sha ea183c88…, unchanged since 09-08). intake_template.jsonl now exists at the repo root — one record, with scope_hash / scope_sig / criteria_hash all zero placeholders — so F-CAND-INTAKE-01's falsifier fired TRUE. Run today the gate REFUSES: no signing secret in $IC_SCOPE_SECRET, and criteria/R-001.md (Z2 Ruling 3 prerequisite) is absent.",
+   gate:"gate refuses a planted violation AND passes the template with a real scope_sig and a pinned criteria/R-001.md",
+   cmds:"python3 tools/ic_scope_check.py intake_template.jsonl   # 09-14: {\"verdict\": \"REFUSE\", \"reason\": \"no signing secret\"}\nls criteria/R-001.md                                   # 09-14: No such file",
+   meta:"gate on main · template on main (hashes zeroed) · R-001 absent · secret is set at intake (Z2)",
+   blockedOn:"criteria/R-001.md pinned and IC_SCOPE_SECRET issued (Z2)"},
   {id:"6", name:"Q-ORCA-01 · multi-substrate runner", state:"waiting", role:"stage 4 · Build",
-   why:"Evaluate stablyai/orca (MIT, ~61.8K stars) as the runner that sends one packet through three agents in separate worktrees and hashes each result. Disagreements surface as DISPUTED, never averaged away. Held for a desktop session.",
+   why:"Evaluate stablyai/orca as the runner that sends one packet through three agents in separate worktrees and hashes each result. The row was READY in the 09-06 queue; it is not in PRIORITY_QUEUE.md v1_1 on main today — dropped without a ruling when the queue was rewritten 09-09. Held for a desktop session.",
    gate:"same packet run through three substrates; three hashed outputs in optimizer_events.jsonl",
    cmds:"git clone https://github.com/stablyai/orca\n# confirm: worktree per substrate; per-run output exposed for hashing",
-   meta:"falsifier: cannot isolate worktrees or expose per-run output → dropped · LAID until first real packet",
-   blockedOn:"d2/d3: TLA_TOOLS_SHA256 and z2_budget_p2 (set them, or drop them as gates)"},
+   meta:"falsifier: cannot isolate worktrees or expose per-run output → dropped · LAID · row missing from the queue on main",
+   blockedOn:"d2/d3 (TLA_TOOLS_SHA256, z2_budget_p2) and a Z2 act to restore or retire the queue row"},
   {id:"7", name:"first molt cycle", state:"progress", role:"stage 4 · Build",
-   why:"The learning loop the graph permits: read the ledgers, propose one constant change with a prediction and a revert rule, wait for an owner hash, apply, measure, keep or revert. Two reverts freeze a constant. Ten molts with no improvement freeze the loop.",
+   why:"The learning loop: read the ledgers, propose one constant change with a prediction and a revert rule, wait for an owner hash, apply, measure, keep or revert. The canonical runner is now the root molt_cycle.py (the tools/ copy was renamed molt_cycle_tier0_v0_1.py in #318 to kill an import collision). Read-only run today: 0 resolved NF rows, 0 pin/resolve pairs, 7 constants loaded (3 specimen-intake + 4 resource-economics), no candidate.",
    gate:"molt_cycle.py emits one MOLT_CANDIDATE from ledger reads (not from memory)",
-   cmds:"python tools/molt_cycle.py --read-only",
-   meta:"OPERATED read-only on main (#217): NO TRIGGER CROSSED — honest at 0 NF rows · ledgers/NF_LEDGER.jsonl on main (#220); Z2 priors 0 of 15 · confidence 0.35 a candidate appears by 2026-10-06"},
+   cmds:"python3 molt_cycle.py --read-only --nf ledgers/NF_LEDGER.jsonl   # root file, not tools/",
+   meta:"OPERATED 09-14: nf_resolved 0 · constants 7 · no trigger crossed — honest at 0 resolved rows · confidence 0.35 a candidate appears by 2026-10-06"},
   {id:"8", name:"intake post — free behavior audit", state:"waiting", role:"stage 5 · Ship",
-   why:"First public offer, on the agency-agents Discussions board (~150K stars). Goes out only after step 5 is fully code, including the intake schema.",
+   why:"First public offer, on the agency-agents Discussions board. Goes out only after step 5 is fully code: template signed, criteria pinned, gate passing.",
    gate:"post live on the board; link recorded here",
-   cmds:"", meta:"", blockedOn:"step 5 (IC-SCOPE-05 + intake schema) must be green first"},
-  {id:"9", name:"first operated cycles — door 1 (0 → 3 of 40)", state:"done", role:"stage 6 · Measure",
-   why:"Three blind reviews of the graph by non-Claude substrates (independent, adversarial, falsification). Each is a real input Z1 did not write, scored against a pre-registered prediction (P-J4: novelty ≥ 0.30 at 0.50), verdict by jester_invariants J-04. All three receipts on main in z1-inbox/2026-09-08/.",
+   cmds:"", meta:"", blockedOn:"step 5 (R-001 + signed template) must be green first"},
+  {id:"9", name:"first operated cycles — door 1 (3 of 40)", state:"done", role:"stage 6 · Measure",
+   why:"Three blind reviews of the graph by non-Claude substrates (independent, adversarial, falsification), scored against pre-registered P-J4. All three receipts are on main in z1-inbox/2026-09-08/ and their fingerprints are unchanged since the 09-08 read. No new cycle from any door since.",
    gate:"receipt on main with novelty ratio, prediction id, and Brier",
-   cmds:"ls z1-inbox/2026-09-08/CYCLE_*",
-   meta:"novelty 100% · 100% · 75.6% · P-J4 TRUE · Brier 0.25 · cycle 3 verdict: DO NOT RATIFY v0.2 as adversarially closed; 7 structural changes approved for v0.3"},
+   cmds:"ls z1-inbox/2026-09-08/CYCLE_*\nsha256sum z1-inbox/2026-09-08/CYCLE_1_EXTERNAL_REVIEW.md   # 7847cdb9…",
+   meta:"novelty 100% · 100% · 75.6% · P-J4 TRUE · Brier 0.25 · cycle 3 verdict: v0.2 not adversarially closed; 7 structural changes ratified for v0.3 (Ruling 1, 09-08)"},
   {id:"10", name:"first intake-pipeline cycle (door 3)", state:"waiting", role:"stage 6 · Measure",
-   why:"The count that matters for GRBS: real job postings through the core pipeline. No cycle from this door yet. prs_run.py is not in tools/ on main (verified 09-08).",
+   why:"The count that matters for GRBS: real job postings through the core pipeline. Still 0. prs_run.py exists now — at the repo root (503 lines), not in tools/, and not in the tool manifest. The NF ledger carries the same commitment as token T-empirica-resource-miner-03: 'first intake batch in intake_template.jsonl with prereg hash', dated 2026-09-19, Z1 p=0.30.",
    gate:"one real batch through prs_run; CYCLE + VERDICT events on the chain",
-   cmds:"python tools/prs_run.py --input intake_template.jsonl   # neither file on main yet",
-   meta:"expected: ≥1 intake cycle by 2026-10-15 · confidence 0.25 (down from 0.30: runner and schema both absent)",
-   blockedOn:"d6 (batch source) and F-CAND-INTAKE-01 (no schema in repo)"},
-  {id:"11", name:"research-intake v0.2 re-land via PR", state:"waiting", role:"stage 5 · Ship",
-   why:"v0.1 landed at c08f86c by direct push (RT-10): the yml does not parse (RT-11), the receipt hash neither covers its prior link nor survives resolution (RT-02), self-ratification with no hash (RT-03), RQ2's falsifier can never fire (RT-04), a legal name and platform contract id sit in a public repo (RT-07). The commit message asserts a Z2 ratification the file says is PENDING — Z1 drafted that message; Z1's error. v0.2 fixes all twelve findings, 11/11 regression tests pass — on the device, not on main.",
-   gate:"PR merged with guard + document-control green; yml parses; 5 files registered in document-registry.yaml; yml keeps status: PENDING until a Z2 hash exists",
-   cmds:"git checkout -b research-intake-v0_2\n# add the 5 files in Appendix A of research-intake_redteam_090826.md\n# open PR; do NOT bypass",
-   meta:"OPERATED locally: evaluator v0.2, 11-test suite, YAML parse, unauthenticated clone check · LAID: everything on main · candidates IC-RI-01, IC-RI-02, F-RI-01, GAP-RI-01 queued",
-   blockedOn:"d8 (history) and d9 (B1 contract check) before Cycle 1; d7 before the PR is more than paper"},
+   cmds:"python3 prs_run.py   # root file; --input flag not present in this version — read its docstring first",
+   meta:"expected: ≥1 intake cycle by 2026-10-15 · confidence 0.25 · runner present, unmanifested · schema present, unsigned",
+   blockedOn:"d6 (batch source) and step 5"},
+  {id:"11", name:"specimen-intake v0.2 (was research-intake)", state:"progress", role:"stage 5 · Ship",
+   why:"Renamed 09-09 (PR #237, Z2 ruling) to avoid a collision with tools/intake_schema_v0_2.py. specimen-intake.yml schema 0.2 is on main; PRIORITY_QUEUE.md records it landed via #251 with the ADV run pending. The merge itself cannot be re-verified locally (history reset). Cycle 1's first work week is 09-13 → 09-19 and it is BLOCKED on B1 (d9), the ADV run, and OI-G1.",
+   gate:"one specimen-intake PIN row on the NF chain written by specimen_intake_evaluator during Cycle 1",
+   cmds:"grep -n formerly specimen-intake.yml\npython3 -m pytest test_specimen_intake_evaluator.py test_specimen_intake_nf_ledger.py -q",
+   meta:"schema 0.2 on main (sha e49c60ff…) · B2 register example + README landed 09-10 · B3 constants.json landed 09-10, molt_id null · RT-07 history question (d8) open",
+   blockedOn:"d9 (B1 contract check) before Cycle 1; d8 (history) still open; ADV run is Z1 work"},
   {id:"12", name:"benchmark map · ACAT ↔ market boards", state:"progress", role:"stage 1 · Define",
-   why:"Desk mapping of the 12 ACAT dimensions to the boards vendors and buyers use (MMLU-Pro, GPQA Diamond, HLE, SWE-bench Verified/Pro, LMArena, HELM, MASK, HarmBench, SimpleQA, ForecastBench, τ-bench…). ACAT measures a claim-vs-behavior gap; no capability board does. Six dimensions have a partial external cousin (truth, harm, scheme, syc, fair, consist); six have none (service, autonomy, value, humility, power, handoff). GAP-SPEC-01 closed 09-08: all 12 keys confirmed in acat/contracts/ on main (5 schema files).",
-   gate:"map file landed via PR with H-BM-01/02/03 in falsifier_lint form; benchmark_map registered as a CONST carrying a molt_id",
-   cmds:"grep -rhoE '\"(truth|service|harm|autonomy|value|humility|scheme|power|syc|consist|fair|handoff)\"' acat/contracts | sort | uniq -c\n# 09-08: 12 keys",
-   meta:"map on this PR as docs/ACAT_BENCHMARK_MAP_20260908.md (lifecycle: filed, consumer: this step) · no ACAT run against any board has been operated · GAP-DIM-02 (12 / 11 / 6 count on the public site) still open"},
+   why:"Desk mapping of the 12 ACAT dimensions to the boards vendors and buyers use. Six dimensions have a partial external cousin; six have none. The map is on main as docs/ACAT_BENCHMARK_MAP_20260908.md with `consumer:` pointing at this board; its candidate block (Q-ACAT-BENCHMARK-01) is awaiting Z2 in z1-inbox/INDEX.yaml. 12 dimension keys confirmed in acat/contracts/ (5 files) today.",
+   gate:"Q-ACAT-BENCHMARK-01 ratified by hash; benchmark_map registered as a CONST carrying a molt_id",
+   cmds:"grep -rhoE '\"(truth|service|harm|autonomy|value|humility|scheme|power|syc|consist|fair|handoff)\"' acat/contracts | sort -u | wc -l   # 09-14: 12",
+   meta:"map on main (sha 5fc6fc92…) · candidate awaiting_z2 · no ACAT run against any board has been operated"},
   {id:"13", name:"Option B · co-run six mappable dimensions", state:"waiting", role:"stage 4 · Build",
-   why:"Run ACAT and the paired eval on the same model set (N=6–8): truth↔SimpleQA, harm↔HarmBench, scheme↔MASK, syc↔sycophancy evals, fair↔HELM/BBQ, consist↔LiveBench/IFEval. Moves those six rows from REPORTED to VERIFIED-LIVE — the only path to an external anchor. Revert rule: if ≥3 pairs show r<0.3, ACAT is not measuring what the boards measure; those rows revert to REPORTED.",
+   why:"Run ACAT and the paired eval on the same model set (N=6–8). Moves six map rows from REPORTED to VERIFIED-LIVE — the only path to an external anchor. Revert rule: if ≥3 pairs show r<0.3, those rows revert to REPORTED. The 09-15 ratification date named on 09-08 is tomorrow; nothing has moved.",
    gate:"one co-run report with correlation, gap signature, and Brier per pair, on the chain",
    cmds:"# design doc → prereg hash → Z2 ratifies → run\n# est. 4 weeks · model API spend est. $10–20K (estimate, not a quote)",
-   meta:"molt candidate · window 4 weeks · confidence 0.60 completes by 2026-10-13 if ratified by 09-15",
+   meta:"molt candidate · window 4 weeks · confidence 0.60 completes by 2026-10-13 only if ratified by 09-15 — otherwise the window slides",
    blockedOn:"d10: ratify as a Molt candidate"},
   {id:"14", name:"scorecard currency · scaffold cards", state:"progress", role:"stage 4 · Build",
-   why:"Not a new resource. One constant (score_half_life, proposed 60 days, molt-governed) feeding the existing Stale Sweep, so a vendor score older than the half-life without independent verification decays from VERIFIED to REPORTED — the same REPORTED-vs-VERIFIED-LIVE line ACAT draws, applied to the market's own numbers. Plus a scaffold card (tool set, retry budget, planning depth, error recovery) required on every agentic score, because the same model differs 30–50 points across scaffolds.",
-   gate:"benchmark_lint refuses (a) a cited score with no reported/verified dates and (b) an agentic score with no scaffold card, on a planted test",
-   cmds:"python tools/benchmark_lint.py --self-test   # not written yet",
-   meta:"LAID · two CONST values, one lint · confidence 0.70 lint written within a week"},
+   why:"One constant (score_half_life, molt-governed) feeding Stale Sweep, so a vendor score older than the half-life without independent verification decays from VERIFIED to REPORTED; plus a scaffold card on every agentic score. The lint predicted 'within a week' on 09-08 is not written; that prediction resolves 09-15.",
+   gate:"benchmark_lint refuses (a) a cited score with no dates and (b) an agentic score with no scaffold card, on a planted test",
+   cmds:"ls tools/benchmark_lint.py   # 09-14: No such file",
+   meta:"LAID · two CONST values, one lint · prediction C15 'lint within a week' (0.70) resolves 2026-09-15 — unresolved on this read; the file is absent today"},
   {id:"15", name:"benchmark remap loop (recursive, bounded)", state:"waiting", role:"stage 4 · Build",
-   why:"Stay relevant without drifting. benchmark_map is a constant. Trigger = top-5 spread on a mapped board falls under ~5 points (saturation — MMLU-Pro and HumanEval are already there; GPQA Diamond, HLE, SWE-bench Pro still discriminate). Emits a MOLT_CANDIDATE to remap to a steeper board, with a pinned prediction and a revert rule. Anti-cascade rules 1–5 apply; the read is a live leaderboard fetch, never memory (Claim 4′). Loop falsifier: after N=10 remaps, if Brier on remap predictions has not fallen, the remapper freezes.",
+   why:"benchmark_map is a constant. Trigger = top-5 spread on a mapped board falls under ~5 points. Emits a MOLT_CANDIDATE to remap to a steeper board with a pinned prediction and a revert rule; anti-cascade rules 1–5 apply; the read is a live leaderboard fetch, never memory.",
    gate:"molt_cycle.py reads a live leaderboard snapshot and emits (or honestly declines) one remap candidate",
-   cmds:"python tools/molt_cycle.py --constant benchmark_map --read-only",
-   meta:"LAID · rides on step 7 · operates only after step 12 lands and NF has rows",
-   blockedOn:"step 12 must land first; then d10"},
+   cmds:"python3 molt_cycle.py --constant benchmark_map --read-only   # root file; benchmark_map is not yet a registered constant",
+   meta:"LAID · rides on step 7 · operates only after step 12 is ratified and NF has resolved rows",
+   blockedOn:"step 12 must be ratified first; then d10"},
   {id:"16", name:"H-CAL-01 · self-assessment gap → computation", state:"waiting", role:"stage 1 · Define",
-   why:"Does the Phase-1→Phase-3 gap trace to a mechanism (steering vectors, in-context objective shift, training-data retrieval, attention redistribution)? Falsifier: an intervention that zeroes a candidate feature removes ≥70% of the gap on ≥3 dimensions. Moves ACAT from gap detector to gap explainer.",
+   why:"Does the Phase-1→Phase-3 gap trace to a mechanism? Falsifier: an intervention that zeroes a candidate feature removes ≥70% of the gap on ≥3 dimensions. Moves ACAT from gap detector to gap explainer.",
    gate:"prereg with the four hypotheses and the intervention design, hash ratified in REGISTERED.md",
-   cmds:"", meta:"hypothesis · 8-week window · confidence 0.60 a traceable mechanism appears · runs parallel to step 13",
+   cmds:"", meta:"hypothesis · 8-week window · confidence 0.60 · runs parallel to step 13",
    blockedOn:"d12: queue as a Molt candidate or hold"},
   {id:"17", name:"LPCS relationship", state:"waiting", role:"stage 3 · Decide",
-   why:"Living Public Constitution System — a multi-country deliberation roadmap (REPORTED, LAID, no participants yet). Three readings: (a) LPCS as the genuinely independent check the six unmapped dimensions need — clears the Nemeth caveat only if HumanAIOS does not run it; (b) LPCS as one more lineage-independent convergence specimen; (c) LPCS as a destination where HumanAIOS supplies the evaluation suite and LPCS supplies the reference principles. Z1 encodes no preference.",
+   why:"Living Public Constitution System — three readings carried: (a) the independent check the six unmapped dimensions need (only if HumanAIOS does not run it); (b) one more convergence specimen; (c) a destination for the evaluation suite. Z1 encodes no preference. Nothing new on the tree since 09-08.",
    gate:"a ruling recorded; if (a) or (c), a named counterpart and a first shared artifact",
    cmds:"", meta:"all three readings carried until ruled",
    blockedOn:"d14"},
   {id:"18", name:"docs/ lifecycle (FPCP)", state:"progress", role:"stage 2 · Baseline",
-   why:"108 files in docs/, one bulk commit, 78 unreferenced, 7 registered. A lint gives every file a disposition and refuses silence. Second pass found two real code items: a gate that claims to be deployed and is not (IC-DOC-01), and a ratified amendment never applied (IC-DOC-02). Nothing archived until Z2 rules by hash over the triage.",
-   gate:"PR #223 merged; Z2 ruling hash over DOC_TRIAGE_2026-09-08.md; archived docs carry sha + ruling",
-   cmds:"python tools/doc_lifecycle_lint.py --enforce",
-   meta:"CONSUMED 29 · CODE 20 (2 real) · ARCHIVE 53 · P-DOC-1..3 locked",
-   blockedOn:"d16: rule on the triage table"}
+   why:"doc_lifecycle_lint.py and DOC_TRIAGE_2026-09-08.md are both on main (PR #223 landed). Run today over 115 files: CONSUMED 50 · CODE 6 · ARCHIVE 31 · ARCHIVE? 26 · PRODUCED? 2. The candidate block Q-DOC-LIFECYCLE-01 is awaiting Z2. Nothing archived until Z2 rules by hash over the triage.",
+   gate:"Q-DOC-LIFECYCLE-01 ratified; archived docs carry sha + ruling hash",
+   cmds:"python3 tools/doc_lifecycle_lint.py | grep -oE '\\*\\*[A-Z]+\\??\\*\\*' | sort | uniq -c",
+   meta:"OPERATED 09-14: 50 consumed of 115 (43%) · 57 archive candidates · candidate awaiting_z2 since 09-08 (past the 48h window)",
+   blockedOn:"d16: rule on the triage table"},
+  {id:"19", name:"this board — make it functional, then launch", state:"progress", role:"stage 5 · Ship",
+   why:"The board was three reads behind, and could not have run in a browser as shipped: it persisted through an artifact-host API (window.storage) that a normal page lacks, its relay sat behind ngrok basic-auth that fetch() cannot satisfy (the CORS preflight would be refused), its old seals pointed at commits that no longer exist, and nothing re-checked a seal after it was typed. This read: localStorage persistence with the host API as fallback, an Authorization header plus an OPTIONS exemption in the ngrok policy, a checker that re-hashes every seal against the tree, a runbook, and a candidate block for the launch decisions. The file path is now the stable consumer target (docs/ACAT_BENCHMARK_MAP points at it); reads change the data, not the filename.",
+   gate:"board reachable at the surface Z2 rules on (d17); intent_os_board_check reports HOLDS on that copy; one ruling lands through the relay as a PR",
+   cmds:"python3 tools/intent_os_board_check_v1_0.py            # seals vs tree; exit 2 = STALE\nDRY_RUN=1 python3 tools/decision_relay.py --self-test   # relay logic\n# launch runbook: docs/INTENT_OS_BOARD_RUNBOOK.md",
+   meta:"OPERATED 09-14: checker self-test PASS · relay self-test PASS · candidate Q-INTENTOS-LAUNCH-01 filed · confidence 0.55 published + HOLDS by 2026-09-30",
+   blockedOn:"d17 (publish surface) and d18 (relay landing path)"},
+  {id:"20", name:"Z2 decision backlog → one queue", state:"waiting", role:"stage 3 · Decide",
+   why:"z1-inbox/INDEX.yaml holds 25 candidate blocks (this read's included; #316 and #319 merged five more mid-PR): 3 ratified, 22 awaiting_z2 (several past the 48h window). Separately, this board carries 14 open rulings (d2, d3, d5–d16) that exist nowhere in the inbox, so the z2 gate, the validator and the triage job cannot see them. Two backlogs, one ratifier. Until they merge, 'what does Z2 owe a decision on' has two answers.",
+   gate:"every open board ruling either maps to an INDEX.yaml candidate (q_id recorded on the ruling) or is withdrawn with a reason",
+   cmds:"python3 .z1-control/validate.py --report | python3 -c \"import json,sys;r=json.load(sys.stdin);print(r.get('counts'))\"\ngrep -c awaiting_z2 z1-inbox/INDEX.yaml   # 09-14: 22",
+   meta:"measured 09-14: 22 awaiting_z2 + 14 board-only rulings = 36 open owner calls",
+   blockedOn:"d18 (where board rulings land) — then Z1 files one candidate per open ruling"}
  ],
  departures:[
-  {move:"NF_LEDGER — Z2 owes ratification hash, 15 priors, 21 dates/strikes, 2 tree-read sources", entity:"Z2", closes:"Sep 12", hot:true,
-   action:"58 tokens pinned by Z1 (LAID); ledgers/NF_LEDGER.jsonl is on main. Without the 15 Z2 priors, LT-2 has no input on Oct 4"},
-  {move:"Temporary GitHub token auto-expiry", entity:"Z2", closes:"Sep 13", hot:true,
-   action:"revoke earlier (step 3); expiry is the backstop, not the plan"},
-  {move:"B1 — contract confidentiality check before research-intake Cycle 1", entity:"Z2", closes:"before Cycle 1", hot:true,
-   action:"confirm whether platform feedback, task counts, or the contract id are covered by the contractor agreement; nothing about SPC-01 enters the tree until ruled (d9)"},
-  {move:"Option B co-run window", entity:"Z1/Z2", closes:"Oct 13 if d10 ratified by Sep 15", hot:false,
-   action:"ratify d10 this week or the 4-week window slides"}
+  {move:"NF_LEDGER — Z2 priors and dates", entity:"Z2", closes:"Sep 12 — PASSED", hot:true,
+   action:"0 of 15 Z2 priors entered (all 165 rows are by Z1); 21 PENDING_Z2_DATE tokens still open. LT-2 has no input. Reset the date by ruling, or STRIKE the tokens"},
+  {move:"Temporary GitHub token auto-expiry", entity:"Z2", closes:"Sep 13 — PASSED", hot:true,
+   action:"confirm the list at github.com/settings/tokens and record it (step 3); the tree cannot verify this"},
+  {move:"B1 — contract confidentiality (d9) before specimen-intake Cycle 1", entity:"Z2", closes:"Cycle 1 week: Sep 13–19", hot:true,
+   action:"rule whether [0,1] aggregates of platform data may enter the public repo; if NO, Cycle 1 runs on the private ledger only"},
+  {move:"Option B co-run — d10", entity:"Z1/Z2", closes:"Sep 15, or the 4-week window slides", hot:true,
+   action:"ratify, edit, or reject the six-pair co-run as a Molt candidate"},
+  {move:"Framework-mapping Phase 1 audit gates (Q-PHASE1-2-ROLLOUT-01)", entity:"Z1/Z3", closes:"Sep 17", hot:false,
+   action:"A8/A9 gates must be active (warning-only) on operations; per-repo template deployed to the 31 repos"},
+  {move:"Board launch decisions — d17, d18, d19", entity:"Z2", closes:"Sep 21 (proposed in Q-INTENTOS-LAUNCH-01)", hot:false,
+   action:"publish surface, relay landing path, path-freeze. Without d17 the board stays a local file; without d18 board rulings stay outside the gate"}
  ],
  gauges:[
-  {label:"operated cycles", base:7.5, prev:7.5, target:100, scale:"3 of 40 (shown as %)", note:"measured: 3 door-1 cycles on main · 0 intake-pipeline cycles · no projection offered"},
-  {label:"queue blockers cleared", base:20, prev:60, target:100, scale:"3 of 5", note:"projected: IC-030 re-pin lands this session — counts when the pin is in the file"},
-  {label:"owner rulings resolved", base:25, prev:25, target:100, scale:"5 of 20 (OI-G1/G2/G3, d1, d4 done; 15 open)", note:"measured: ten new rulings queued 09-08 (d7–d16)"},
-  {label:"graph integrity (nodes with valid edges)", base:100, prev:100, target:100, scale:"19 of 19", note:"measured: 0 dangling on the landed JSON · cycle 3 says v0.2 is not adversarially closed"},
-  {label:"research-intake audit findings mitigated on main", base:0, prev:92, target:100, scale:"0 of 12 on main · 11 of 12 on device", note:"projected: v0.2 PR lands (step 11); RT-07 history literals remain either way (d8)"},
-  {label:"ACAT dimensions with an external comparator", base:50, prev:50, target:50, scale:"6 of 12", note:"measured by desk mapping only; the other six rest on HumanAIOS receipts alone — target is honesty, not 100"},
+  {label:"operated cycles", base:7.5, prev:7.5, target:100, scale:"3 of 40 (shown as %)", note:"measured: 3 door-1 cycles on main, fingerprints unchanged · 0 intake-pipeline cycles · no projection offered"},
+  {label:"specimen-intake Cycle 1 blockers cleared", base:50, prev:67, target:100, scale:"3 of 6 (NF-SCHEMA, B2, B3-build done; B1, ADV, OI-G1 open)", note:"projected: ADV run is Z1 work and needs no ruling — counts when the run is on the tree"},
+  {label:"owner rulings resolved (this board)", base:23, prev:23, target:100, scale:"5 of 22 (OI-G1/G2/G3, d1, d4 done; d2, d3, d5–d19 open)", note:"measured: 3 new rulings queued 09-14 (d17–d19); none resolved since 09-08"},
+  {label:"Z2 candidate backlog cleared (z1-inbox/INDEX.yaml)", base:12, prev:12, target:100, scale:"3 of 25 ratified · 22 awaiting_z2", note:"measured from INDEX.yaml after the #316 and #319 merges; the 48h window has passed on 6 of the 22"},
+  {label:"graph integrity (edges with valid endpoints)", base:100, prev:100, target:100, scale:"53 of 53 · 22 nodes", note:"measured 09-14 on the landed JSON (regenerated 09-13) · cycle 3 still says v0.2 is not adversarially closed"},
+  {label:"board seals that hold (intent_os_board_check)", base:100, prev:100, target:100, scale:"see checker output — exit 0 = HOLDS", note:"measured by running the checker against this file; 3 records are listed as RECEIPT-GAP (commits lost in the history reset) and are not counted either way"},
+  {label:"ACAT dimensions with an external comparator", base:50, prev:50, target:50, scale:"6 of 12", note:"measured by desk mapping only; target is honesty, not 100"},
   {label:"benchmark map rows VERIFIED-LIVE", base:0, prev:50, target:50, scale:"0 of 12", note:"projected: six rows after the Option B co-run — counts only when the report is on the chain"},
-  {label:"docs/ with a consumer", base:27, prev:27, target:100, scale:"29 of 108", note:"measured by doc_lifecycle_lint; 53 archive candidates await a ruling"}
+  {label:"docs/ with a consumer", base:43, prev:43, target:100, scale:"50 of 115", note:"measured 09-14 by doc_lifecycle_lint; 57 archive candidates await d16"}
  ],
  predictions:[
-  {id:"C1", text:"CI guard passes on b8aac1be without a revert", confidence:0.70, resolves:"guard is PR-only; ran green on #217–#222 · VOID for b8aac1be unless re-landed"},
-  {id:"C2", text:"Merkle root regenerates and the consistency proof passes on this commit", confidence:0.65, resolves:"next CI run on main"},
-  {id:"C3", text:"55 mesh deliverables are pinned in NF_LEDGER by the deadline", confidence:0.40, resolves:"2026-09-12 · partial: 58 Z1 pins on main; Z2 priors still 0 of 15"},
-  {id:"C4", text:"molt_cycle.py emits at least one MOLT_CANDIDATE from real ledger reads", confidence:0.35, resolves:"2026-10-06"},
+  {id:"C1", text:"CI guard passes on b8aac1be without a revert", confidence:0.70, resolves:"VOID 2026-09-14 · the commit is not in history after the 09-10 reset; the guard never ran a job before 09-13"},
+  {id:"C2", text:"Merkle root regenerates and the consistency proof passes on this commit", confidence:0.65, resolves:"open · REGISTERED.root absent on 09-14"},
+  {id:"C3", text:"55 mesh deliverables are pinned in NF_LEDGER by the deadline", confidence:0.40, resolves:"RESOLVED PARTIAL 2026-09-12 · 165 Z1 pins on main; 0 of 15 Z2 priors · scored FALSE on the Z2 half"},
+  {id:"C4", text:"molt_cycle.py emits at least one MOLT_CANDIDATE from real ledger reads", confidence:0.35, resolves:"2026-10-06 · 09-14 read: 0 resolved rows, no candidate"},
   {id:"C5", text:"at least one operated cycle (0 → 1 of 40)", confidence:0.30, resolves:"RESOLVED TRUE 2026-09-08 · 3 cycles · Brier 0.49 — underconfident"},
-  {id:"C6", text:"first intake-pipeline cycle (door 3) by 2026-10-15", confidence:0.25, resolves:"2026-10-15"},
-  {id:"C7", text:"Z2 enters all 15 NF priors by Sep 12", confidence:0.50, resolves:"2026-09-12"},
-  {id:"C8", text:"research-intake v0.2 merges through a PR with guard green, no bypass line", confidence:0.80, resolves:"2026-09-15, conditional on d9 clearing"},
-  {id:"C9", text:"Option B co-run completes on ≥5 of 6 pairs within 4 weeks of ratification", confidence:0.60, resolves:"ratification + 28 days"},
+  {id:"C6", text:"first intake-pipeline cycle (door 3) by 2026-10-15", confidence:0.25, resolves:"2026-10-15 · NF token T-empirica-resource-miner-03 carries the same call at 0.30 for 09-19"},
+  {id:"C7", text:"Z2 enters all 15 NF priors by Sep 12", confidence:0.50, resolves:"RESOLVED FALSE 2026-09-12 · 0 of 15 · Brier 0.25"},
+  {id:"C8", text:"research-intake v0.2 merges through a PR with guard green, no bypass line", confidence:0.80, resolves:"2026-09-15 · queue records #251 landed as specimen-intake; the guard was inert until 09-13, so 'guard green' could not have been true → VOID on that clause unless re-landed"},
+  {id:"C9", text:"Option B co-run completes on ≥5 of 6 pairs within 4 weeks of ratification", confidence:0.60, resolves:"ratification + 28 days · not yet ratified"},
   {id:"C10", text:"at least one of the six mapped pairs shows r ≥ 0.5 between ACAT self-report and the paired board", confidence:0.55, resolves:"Option B report"},
   {id:"C11", text:"H-CAL-01 identifies a mechanism whose intervention removes ≥70% of the gap on ≥3 dimensions", confidence:0.60, resolves:"8 weeks after prereg hash"},
   {id:"C12", text:"a vendor-cited board incorporating a claim-vs-behavior gap metric appears (falsifies H-BM-01/03)", confidence:0.15, resolves:"2027-03-08"},
-  {id:"C13", text:"benchmark remap loop emits an honest 'no trigger crossed' rather than a candidate on first read", confidence:0.85, resolves:"first read after step 12 lands"},
-  {id:"C14", text:"Z2 archives ≥ 40 of the 53 docs/ archive candidates unchanged", confidence:0.60, resolves:"2026-10-08"}
+  {id:"C13", text:"benchmark remap loop emits an honest 'no trigger crossed' rather than a candidate on first read", confidence:0.85, resolves:"first read after step 12 is ratified"},
+  {id:"C14", text:"Z2 archives ≥ 40 of the 53 docs/ archive candidates unchanged", confidence:0.60, resolves:"2026-10-08 · lint now lists 57 candidates"},
+  {id:"C15", text:"benchmark_lint.py is on main within a week of 09-08", confidence:0.70, resolves:"2026-09-15 · absent on 09-14"},
+  {id:"C16", text:"this board is reachable at the surface d17 names and intent_os_board_check reports HOLDS on that copy", confidence:0.55, resolves:"2026-09-30"},
+  {id:"C17", text:"one Z2 ruling lands through the relay as a PR (not typed by hand) — first live use of decision_relay.py", confidence:0.40, resolves:"2026-09-30"},
+  {id:"C18", text:"Z2 clears at least 8 of the 22 awaiting_z2 candidates in INDEX.yaml", confidence:0.35, resolves:"2026-09-28"}
  ],
  rulings:[
   {id:"d1", q:"IC-SCOPE-05 — accept the draft scope rule as written?", s:"RULED: accepted · ic-scope-05-accepted-20260906 · enforce ruling ic-scope-05-enforce-20260908", opts:["accepted"]},
-  {id:"d2", q:"TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate?", s:"gates Q-ORCA-01", opts:["set","drop gate","later"]},
-  {id:"d3", q:"z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate?", s:"nothing is ordered until it exists", opts:["set","drop gate","later"]},
-  {id:"d4", q:"Direct push of b8aac1be — ratify as an exception, or revert and re-land through a pull request?", s:"RULED: exception · direct-push-exception-testing-20260906 · note: 453cd8b, 183efe6/efcfcb5, 5df54b7, and c08f86c were also direct pushes — same exception or new IC? (see d7)", opts:["ratified"]},
-  {id:"d5", q:"GRBS ↔ Empirica — what is the formal relationship?", s:"open ruling carried across sessions", opts:["rule now","later"]},
-  {id:"d6", q:"First job-posting batch — where does it come from?", s:"the only input that moves the intake count (0 of 40 from that door)", opts:["own postings","partner","scrape","later"]},
-  {id:"d7", q:"Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event?", s:"(a) matches the graph ('code, not memory'); (b) is honest about the current state · five bypasses so far", opts:["no bypass","bypass + IC","later"]},
-  {id:"d8", q:"c08f86c history — accept that the PII literals stay in history, or rewrite history?", s:"rewrite breaks the append-only property the Merkle root depends on; accept is the incumbent unless the contract id itself is confidential (d9)", opts:["accept","rewrite","later"]},
-  {id:"d9", q:"B1 — is the platform contract id / feedback / task count covered by the contractor agreement?", s:"Z2 reads the contract; nothing about SPC-01 enters the tree until answered", opts:["not covered","covered","later"]},
-  {id:"d10", q:"Option B — ratify the six-pair co-run as a Molt candidate (4-week window, revert if ≥3 pairs r<0.3)?", s:"moves six map rows from REPORTED to VERIFIED-LIVE; the only path to an external anchor", opts:["ratify","edit","reject","later"]},
+  {id:"d2", q:"TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate?", s:"gates Q-ORCA-01 · open since 09-06", opts:["set","drop gate","later"]},
+  {id:"d3", q:"z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate?", s:"nothing is ordered until it exists · open since 09-06", opts:["set","drop gate","later"]},
+  {id:"d4", q:"Direct push of b8aac1be — ratify as an exception, or revert and re-land through a pull request?", s:"RULED: exception · direct-push-exception-testing-20260906 · the later direct pushes are d7's question", opts:["ratified"]},
+  {id:"d5", q:"GRBS ↔ Empirica — what is the formal relationship?", s:"open ruling carried across sessions · no file on the tree defines GRBS or the relationship; the only Empirica wiring is tools/smag_to_empirica_connector.py and the practice seat in .empirica/", opts:["rule now","later"]},
+  {id:"d6", q:"First job-posting batch — where does it come from?", s:"the only input that moves the intake count (0 of 40 from that door) · NF token due 09-19 assumes an answer", opts:["own postings","partner","scrape","later"]},
+  {id:"d7", q:"Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event?", s:"(a) matches the graph ('code, not memory'); (b) is honest about the current state · open since 09-08", opts:["no bypass","bypass + IC","later"]},
+  {id:"d8", q:"c08f86c history — accept that the PII literals stay in history, or rewrite history?", s:"partly overtaken: the repo history was reset 09-10 and c08f86c is no longer reachable locally; whether the literals survive on the remote's full history is Z2's read", opts:["accept","rewrite","later"]},
+  {id:"d9", q:"B1 — is the platform contract id / feedback / task count covered by the contractor agreement?", s:"Z2 reads the contract; nothing about SPC-01 enters the tree until answered · Cycle 1 week is now", opts:["not covered","covered","later"]},
+  {id:"d10", q:"Option B — ratify the six-pair co-run as a Molt candidate (4-week window, revert if ≥3 pairs r<0.3)?", s:"moves six map rows from REPORTED to VERIFIED-LIVE · 09-15 date is tomorrow", opts:["ratify","edit","reject","later"]},
   {id:"d11", q:"Option A — file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists?", s:"H-BM-03 stays PROPOSED until then", opts:["file as draft","ratify now","later"]},
   {id:"d12", q:"H-CAL-01 — queue the mechanism study as a Molt candidate (8-week window) parallel to Option B?", s:"high risk, high reward; needs traced model access", opts:["queue","hold","reject"]},
   {id:"d13", q:"Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions?", s:"turns 'cannot be verified externally' into 'measured something nobody else measures; here are the receipts'", opts:["require","later"]},
-  {id:"d14", q:"LPCS — independent check (a), convergence specimen (b), destination (c), or none?", s:"three readings carried; Nemeth caveat applies to (a): it only counts if HumanAIOS does not run it", opts:["(a) check","(b) specimen","(c) destination","none","later"]},
-  {id:"d15", q:"FALS-43 — batch ruling on the 43 hypotheses without written falsifiers?", s:"carried from prior sessions; falsifier_lint is still not in tools/ on main", opts:["rule now","later"]},
-  {id:"d16", q:"docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold?", s:"nothing is deleted either way; archive keeps sha + ruling hash · IC-DOC-01/02 need build-or-retract and apply", opts:["archive as listed","edit list","later"]}
+  {id:"d14", q:"LPCS — independent check (a), convergence specimen (b), destination (c), or none?", s:"three readings carried; Nemeth caveat applies to (a)", opts:["(a) check","(b) specimen","(c) destination","none","later"]},
+  {id:"d15", q:"FALS-43 — batch ruling on the 43 hypotheses without written falsifiers?", s:"premise partly obsolete: the repaired z2 gate now enforces falsifiers on z1-inbox candidate blocks, and ci_gates.py carries an M11 falsifier gate; falsifier_lint.py as a file still does not exist", opts:["rule now","later"]},
+  {id:"d16", q:"docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold?", s:"nothing is deleted either way; archive keeps sha + ruling hash · candidate Q-DOC-LIFECYCLE-01 awaiting_z2 since 09-08", opts:["archive as listed","edit list","later"]},
+  {id:"d17", q:"Board publish surface — copy to site/board/ on GitHub Pages (public), or keep it a file Z2 opens locally?", s:"NEW 09-14 · pages.yml already deploys site/ on push to main, so publishing is one copy — but a public copy exposes every open ruling and the token/PII notes on this board; local keeps the relay the only exit", opts:["pages (public)","local only","later"]},
+  {id:"d18", q:"Relay landing path — keep z2-rulings/<date>/ PRs, or land each ruling in z1-inbox/<date>/ + INDEX.yaml so the z2 gate and the triage job see it?", s:"NEW 09-14 · today's relay path is outside the gate; the inbox path is what .z1-control/ratify.py already signs", opts:["z1-inbox + INDEX","keep z2-rulings","later"]},
+  {id:"d19", q:"Board versioning — freeze the file path (each read changes the data inside) or keep bumping v3_x per read?", s:"NEW 09-14 · docs/ACAT_BENCHMARK_MAP_20260908.md and the runbook point at the v3_3 path; a bump per read breaks every consumer line", opts:["freeze path","bump per read","later"]}
  ],
  seals:[
-  {artifact:"commit b8aac1be — system_graph.json v0.2 on main", sha:"b8aac1be789b13c0c4a8578e8ba0df2d5c85a125"},
-  {artifact:"commit c08f86c — research-intake v0.1 on main (direct push)", sha:"c08f86ccf6f854e97f2ec13d56c4babf7405c5f8"},
-  {artifact:"commit 5df54b7 — H-CAND batch appended to REGISTERED.md (Z2, direct push)", sha:"5df54b7"},
-  {artifact:"system_graph.json (sha256, first 16)", sha:"8d3a2e8787e4ebe6"},
-  {artifact:"REGISTERED.md at 3bd88d6 (3909 lines · read 09-06)", sha:"40391062966c6d6f"},
-  {artifact:"REGISTERED.md at 5df54b7 (3914 lines · read 09-08)", sha:"42c345bb879949c9"},
-  {artifact:"PRIORITY_QUEUE.md z2_queue v1_1 (still pins c0899b9b)", sha:"d379efc3e3dd2f7e"},
-  {artifact:"cycle 1 receipt (independent)", sha:"7847cdb96ff2876f"},
-  {artifact:"cycle 2 receipt (adversarial)", sha:"3c9ea3491105a712"},
-  {artifact:"cycle 3 falsification report", sha:"beb737253d491d0c"},
-  {artifact:"Z2 rulings 2026-09-08", sha:"3366a9462dda7ab0"},
-  {artifact:"JESTER block (H-CAND-JESTER-01, DIVINER-01)", sha:"0b967a365db14f71"},
-  {artifact:"WITCH/SPELL/CASCADE block (H-CAND-SPELL/CASCADE/FUSION-01)", sha:"aca4ee8c319e62b5"},
-  {artifact:"ic_scope_check.py on main", sha:"ea183c88a1ad5b27"},
-  {artifact:"NF_LEDGER.jsonl (#220, 165 events)", sha:"b68a6fb8de43fef1"},
-  {artifact:"acat/contracts/ — 12 dimension keys present (read 09-08, 5 schema files)", sha:"12keys-5files-20260908"},
-  {artifact:"z2_ratification_gate.yml on main", sha:"ABSENT-20260908"},
-  {artifact:"tools/prs_run.py on main", sha:"ABSENT-20260908"},
-  {artifact:"intake_template.jsonl on main (F-CAND-INTAKE-01)", sha:"ABSENT-20260908"},
+  {artifact:"REGISTERED.md (4147 lines · re-sealed at the PR head after #320; 8163351e… at the b52f805 read)", sha:"96507d9f3f9d78e2", path:"REGISTERED.md"},
+  {artifact:"PRIORITY_QUEUE.md z2_queue v1_1 (240 lines · no pin field · event line appended this read)", sha:"30e9767161003480", path:"PRIORITY_QUEUE.md"},
+  {artifact:"system_graph.json v0.2 (22 nodes · 53 edges · regenerated 09-13)", sha:"7715372d8c3027bc", path:"system_graph.json"},
+  {artifact:"z2_ratification_gate.yml — repaired workflow on main", sha:"0ad63f35d362cc0a", path:".github/workflows/z2_ratification_gate.yml"},
+  {artifact:"z2_ratification_gate.yml — stray DRAFT duplicate at repo root", sha:"4f2f7b2a1052cd71", path:"z2_ratification_gate.yml"},
+  {artifact:"intake_template.jsonl (1 record, hashes zeroed) — F-CAND-INTAKE-01 falsifier fired", sha:"f85c7fd1ef2a12de", path:"intake_template.jsonl"},
+  {artifact:"prs_run.py at repo root (503 lines, unmanifested)", sha:"52827a042d88a9f1", path:"prs_run.py"},
+  {artifact:"molt_cycle.py at repo root (canonical)", sha:"96f0b304038cab18", path:"molt_cycle.py"},
+  {artifact:"tools/molt_cycle_tier0_v0_1.py (renamed tools copy, #318)", sha:"75987351b54260ec", path:"tools/molt_cycle_tier0_v0_1.py"},
+  {artifact:"ic_scope_check.py on main (unchanged since 09-08)", sha:"ea183c88a1ad5b27", path:"tools/ic_scope_check.py"},
+  {artifact:"NF_LEDGER.jsonl (165 rows · all by Z1 · 21 PENDING_Z2_DATE)", sha:"b68a6fb8de43fef1", path:"ledgers/NF_LEDGER.jsonl"},
+  {artifact:"constants.json (7 constants · molt_id null)", sha:"e8eb2da71c39a001", path:"constants.json"},
+  {artifact:"specimen-intake.yml schema 0.2 (formerly research-intake)", sha:"e49c60ff7094423a", path:"specimen-intake.yml"},
+  {artifact:"ACAT benchmark map (consumer: this board)", sha:"5fc6fc9222cc2d4e", path:"docs/ACAT_BENCHMARK_MAP_20260908.md"},
+  {artifact:"DOC_TRIAGE_2026-09-08.md", sha:"fe630badbfc41867", path:"docs/DOC_TRIAGE_2026-09-08.md"},
+  {artifact:"doc_lifecycle_lint.py on main", sha:"97ed26ef1d641542", path:"tools/doc_lifecycle_lint.py"},
+  {artifact:".z1-control/ratify.py — the Z2 signature tool (Zone 2 ratified 09-13)", sha:"13cb55057cfdf73b", path:".z1-control/ratify.py"},
+  {artifact:"Q-IC030-REPIN-01 result (pin b35e8036… at 5d6f081, 09-10)", sha:"b4de0e088bb6ecdd", path:"z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md"},
+  {artifact:"cycle 1 receipt (independent) — unchanged since 09-08", sha:"7847cdb96ff2876f", path:"z1-inbox/2026-09-08/CYCLE_1_EXTERNAL_REVIEW.md"},
+  {artifact:"cycle 2 receipt (adversarial) — unchanged", sha:"3c9ea3491105a712", path:"z1-inbox/2026-09-08/CYCLE_2_ADVERSARIAL_REPORT.md"},
+  {artifact:"cycle 3 falsification report — unchanged", sha:"beb737253d491d0c", path:"z1-inbox/2026-09-08/CYCLE_3_FALSIFICATION_REPORT.md"},
+  {artifact:"Z2 rulings 2026-09-08 — unchanged", sha:"3366a9462dda7ab0", path:"z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"},
+  {artifact:"JESTER block (H-CAND-JESTER-01, DIVINER-01) — unchanged", sha:"0b967a365db14f71", path:"z1-inbox/2026-09-07/JESTER_EXTERNAL_CHECK_BLOCK.md"},
+  {artifact:"WITCH/SPELL/CASCADE block — unchanged", sha:"aca4ee8c319e62b5", path:"z1-inbox/2026-09-07/WITCH_SPELL_CASCADE_BLOCK.md"},
+  {artifact:"decision_relay.py v0.2.0 (Authorization header + Builder markers, this read)", sha:"37c3bc346f4af716", path:"tools/decision_relay.py"},
+  {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
+  {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"65250784fe0b3dd9", path:"tools/intent_os_board_check_v1_0.py"},
+  {artifact:"z1-inbox/INDEX.yaml (25 candidates · 19 records · 22 awaiting_z2 · after the #316, #319 and #320 merges)", sha:"fc29ed0adb532a4f", path:"z1-inbox/INDEX.yaml"},
+  {artifact:"criteria/R-001.md (Z2 Ruling 3 prerequisite)", sha:"ABSENT-20260914", path:"criteria/R-001.md"},
+  {artifact:"tools/benchmark_lint.py (step 14)", sha:"ABSENT-20260914", path:"tools/benchmark_lint.py"},
+  {artifact:"REGISTERED.root (Merkle root, step 2)", sha:"ABSENT-20260914", path:"REGISTERED.root"},
+  {artifact:"tools/prs_run.py — the path the old board named (file is at root)", sha:"ABSENT-20260914", path:"tools/prs_run.py"},
+  {artifact:"tools/molt_cycle.py — the path the old board named (renamed)", sha:"ABSENT-20260914", path:"tools/molt_cycle.py"},
+  {artifact:"RECEIPT-GAP · b8aac1be (system_graph v0.2 landing) — not in history after the 09-10 reset", sha:"b8aac1be789b13c0"},
+  {artifact:"RECEIPT-GAP · c08f86c (research-intake v0.1 direct push) — not in history", sha:"c08f86ccf6f854e9"},
+  {artifact:"RECEIPT-GAP · 5df54b7 (H-CAND batch append) — not in history", sha:"5df54b7"},
+  {artifact:"acat/contracts/ — 12 dimension keys present (read 09-14, 5 schema files)", sha:"12keys-5files-20260914"},
   {artifact:"OI-G1 ratification", sha:"molt-tiers-anticascade-K3-N10-20260906"},
   {artifact:"OI-G2 ratification", sha:"pq-formula-impact-unblocks-20260906"},
   {artifact:"OI-G3 ratification", sha:"zone-integer-extend-zone3-20260906"}
  ]
 };
-
 const PLANES=[
  {n:"Authority",q:"What is this project or agent allowed to do?",r:"Permissions, budgets, sign-offs. Set by the owner; never changed by the thing being measured."},
  {n:"Execution",q:"What actually happened?",r:"Every consequential act recorded to an append-only log the actor can't write to. A log that is chained is not yet a log that is complete — a second, independent record and an external anchor close that gap."},
@@ -475,16 +520,30 @@ const KEY = "intentos:board_humanaios_v3_3";
 
 /* ---------- decision relay (ngrok → decision_relay.py → GitHub PR) ---------- */
 let RELAY_SECRET="";  // entered once per session; never persisted
+let RELAY_BASIC="";   // ngrok basic-auth password (relay_policy.yml); entered once per session; never persisted
 async function hmacHex(secret,body){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
   const sig=await crypto.subtle.sign("HMAC",k,new TextEncoder().encode(body));return [...new Uint8Array(sig)].map(b=>b.toString(16).padStart(2,"0")).join("");}
 async function relayPost(path,obj){
-  const url=(project.relay||{}).url; if(!url){alert("No relay URL. Set relay.url in project data (your ngrok endpoint).");return null;}
+  const rl=project.relay||{}; const url=rl.url; if(!url){alert("No relay URL. Set relay.url in project data (your ngrok endpoint).");return null;}
+  if(!/^https:\/\//.test(url)){alert("Relay URL must be https:// — the secret travels as an HMAC, but the ruling text does not.");return null;}
   if(!RELAY_SECRET) RELAY_SECRET=prompt("Relay secret (set at intake; kept in memory only):")||"";
+  if(!RELAY_SECRET) return null;
+  const headers={"Content-Type":"application/json"};
+  if(rl.basicUser){  // ngrok basic-auth in front of the relay: fetch() cannot answer a 401 challenge, so send it up front
+    if(!RELAY_BASIC) RELAY_BASIC=prompt("ngrok basic-auth password for user '"+rl.basicUser+"' (kept in memory only):")||"";
+    if(RELAY_BASIC) headers["Authorization"]="Basic "+btoa(rl.basicUser+":"+RELAY_BASIC);
+  }
   obj.epoch=Date.now()/1000; obj.nonce=crypto.randomUUID(); obj.ts=new Date().toISOString().slice(0,19)+"Z";
   obj.tagline=(project.owner||{}).tagline||""; obj.project=(project.owner||{}).project||"";
-  const body=JSON.stringify(obj); const sig=await hmacHex(RELAY_SECRET,body);
-  const r=await fetch(url.replace(/\/$/,"")+path,{method:"POST",headers:{"Content-Type":"application/json","X-Sig":sig},body});
-  return r.json();
+  const body=JSON.stringify(obj); headers["X-Sig"]=await hmacHex(RELAY_SECRET,body);
+  let r;
+  try{ r=await fetch(url.replace(/\/$/,"")+path,{method:"POST",headers,body}); }
+  catch(e){ return {status:"NO RESPONSE",why:"network or CORS refused the request — is the relay up and is OPTIONS exempt from basic-auth?"}; }
+  // The relay's own refusals are JSON (401 bad signature / stale timestamp). A 401 that is not JSON is the
+  // ngrok basic-auth gate in front of it — drop the cached password so the next tap asks again.
+  const ct=r.headers.get("Content-Type")||"";
+  if(r.status===401&&!/json/i.test(ct)){ RELAY_BASIC=""; return {status:"REFUSED",why:"basic-auth rejected (401 from ngrok); password cleared — try again"}; }
+  try{ return await r.json(); }catch(e){ return {status:"ERROR",why:"relay answered "+r.status+" with no JSON"}; }
 }
 function ruling(id){return (project.rulings||[]).find(x=>x.id===id);}
 function setStat(id,txt){const e=document.getElementById("rstat-"+id); if(e) e.textContent=txt;}
@@ -510,19 +569,49 @@ async function relayAsk(id){
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,1400)}
 
+/* Persistence: localStorage first (any browser, file:// included); the artifact-host API (window.storage)
+   as a fallback for the sandbox the earlier reads were viewed in. Every access is wrapped — a private
+   window or blocked site data must degrade to "export before closing", never to a crash. */
+const HOST = (typeof window.storage !== "undefined" && window.storage && typeof window.storage.get === "function") ? window.storage : null;
+let storageKind = "none";
+function lsGet(){ try{ return localStorage.getItem(KEY); }catch(e){ return null; } }
+function lsSet(v){ try{ localStorage.setItem(KEY, v); return true; }catch(e){ return false; } }
+function lsDel(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+function lsProbe(){ try{ localStorage.setItem(KEY+":probe","1"); localStorage.removeItem(KEY+":probe"); return true; }catch(e){ return false; } }
 async function persist(){
   if(!storageOK) return;
-  try{ await window.storage.set(KEY, JSON.stringify({project,state}), false); }catch(e){}
+  // `bundled` records which HumanAIOS read this file carried when the save was made, so an older
+  // saved copy can never shadow a newer bundled read on restore().
+  const v = JSON.stringify({project,state,bundled:HUMANAIOS.rev});
+  if(storageKind==="local"){ if(!lsSet(v)){ storageOK=false; note(); } return; }
+  try{ await HOST.set(KEY, v, false); }catch(e){}
+}
+function note(){
+  document.getElementById("persistnote").textContent = storageOK
+    ? "The board saves automatically on this device ("+storageKind+")."
+    : "No saving available here — export before closing.";
 }
 async function restore(){
-  try{
-    const r = await window.storage.get(KEY, false);
-    if(r && r.value){ const v = JSON.parse(r.value); if(v.project) project = v.project; if(v.state) state = v.state; }
-    storageOK = true;
-  }catch(e){ storageOK = (typeof window.storage !== "undefined"); }
-  document.getElementById("persistnote").textContent = storageOK
-    ? "The board saves automatically on this device."
-    : "No saving available here — export before closing.";
+  let raw = null;
+  if(lsProbe()){ storageKind="local"; storageOK=true; raw = lsGet(); }
+  else if(HOST){
+    try{ const r = await HOST.get(KEY, false); raw = r && r.value; storageKind="host"; storageOK=true; }catch(e){ storageOK=false; }
+  }
+  let superseded=false;
+  if(raw){ try{
+    const v = JSON.parse(raw);
+    if(v.state) state = v.state;
+    if(v.project){
+      const p=v.project, ow=p.owner||{};
+      // A saved copy of the bundled HumanAIOS board from an older read is stale by definition: the
+      // bundled read wins, the taps are kept. A user-edited or non-HumanAIOS project is never replaced.
+      const isBundled = ow.project===(HUMANAIOS.owner||{}).project && ow.tagline===(HUMANAIOS.owner||{}).tagline;
+      if(isBundled && (v.bundled||p.rev||"") < HUMANAIOS.rev){ project = JSON.parse(JSON.stringify(HUMANAIOS)); superseded=true; }
+      else project = p;
+    }
+  }catch(e){} }
+  note();
+  if(superseded){ persist(); setTimeout(()=>toast("newer HumanAIOS read loaded ("+HUMANAIOS.rev+"); your taps were kept"),300); }
 }
 
 function stateWord(st){return st==="done"?"verified":st==="progress"?"in progress":"needs a decision"}
@@ -667,11 +756,11 @@ document.getElementById("file").onchange=e=>{
   rd.readAsText(f); e.target.value="";
 };
 document.getElementById("loadBlank").onclick=()=>{project=JSON.parse(JSON.stringify(BLANK));state={done:{},rulings:{}};persist();render();toast("new project started");};
-document.getElementById("loadHumanaios").onclick=()=>{project=JSON.parse(JSON.stringify(HUMANAIOS));state={done:{},rulings:{}};persist();render();toast("HumanAIOS board loaded · read 2026-09-06");};
+document.getElementById("loadHumanaios").onclick=()=>{project=JSON.parse(JSON.stringify(HUMANAIOS));state={done:{},rulings:{}};persist();render();toast("HumanAIOS board loaded · read "+((HUMANAIOS.read||{}).date||HUMANAIOS.rev));};
 document.getElementById("loadExample").onclick=()=>{project=JSON.parse(JSON.stringify(EXAMPLE));state={done:{},rulings:{}};persist();render();toast("example project loaded");};
 document.getElementById("reset").onclick=async()=>{
   state={done:{},rulings:{}}; project=JSON.parse(JSON.stringify(BLANK));
-  try{ if(storageOK) await window.storage.delete(KEY,false); }catch(e){}
+  if(storageKind==="local") lsDel(); else { try{ if(storageOK&&HOST) await HOST.delete(KEY,false); }catch(e){} }
   render(); toast("board cleared");
 };
 
