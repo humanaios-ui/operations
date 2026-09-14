@@ -38,14 +38,12 @@ Header and changelog updated. The changelog entry states the scope narrowly and 
 ## Ratification record
 
 ```yaml
-ruling_id: "Z2-AMBIGUITY-BSM-D"
+ruling_id: Z2-AMBIGUITY-BSM-D
 decision: ACCEPT
 by: Night
-at: "2026-09-14"
-mechanism: "in-session ruling, transcribed by Z1"
-z2_hash: null
-scope: "SESSION_RITUALS.md Section A Step 1 only"
+at: '2026-09-14'
+mechanism: in-session ruling, transcribed by Z1
+z2_hash: d656299cf62089ce5a4881663bd29dd200ad0694390e0d3a6a0b763b5bfa2c13
+scope: SESSION_RITUALS.md Section A Step 1 only
 supersedes: null
 ```
-
-**Status:** UNSIGNED — z2_hash pending Night's signature via `ratify.py`. Once signed, the hash will pin the ruling's prose content and validate the amendment's statement of effects per precedent (Q-INTENTOS-LAUNCH-01).
