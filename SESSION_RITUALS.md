@@ -2,7 +2,7 @@
 
 **Status:** LIVE
 **Version:** v6.4.1
-**Last updated:** September 12, 2026 (S-051926-02-z3-closeout)
+**Last updated:** May 19, 2026 (S-051926-02-z3-closeout · Empirical Verification Block + Receipt Reconciliation + Locus-of-Correction Note added · F-44/F-45 grounded)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`
 **Scope:** Applies to every LLM substrate operating in HumanAIOS (Claude, Grok, GPT-5.x, Gemini, future). Substrate-specific extensions (the Claude Project CI, the Grok Workspace L1) sit on top of this.
 **Authority:** This file is the canonical parser-tag specification for the ACAT protocol. When any other operations file restates a parser-critical tag, the spec in this file wins.
@@ -42,9 +42,7 @@ Substrates may still make in-session course corrections (e.g., "I should have ru
 
 Every session, regardless of substrate, opens with these steps in order:
 
-1. **Fetch live state.** Class 1 has two endpoints; read them in that order.
-   - **Endpoints — haioscc.** GET `https://haioscc.pages.dev/api/state/operational` and `https://haioscc.pages.dev/api/state/zone3?status=open` as a cross-check.
-   - **Halt rule.** Halt and report if either endpoint fails.
+1. **Fetch live state.** GET `https://haioscc.pages.dev/api/state/operational` and `https://haioscc.pages.dev/api/state/zone3?status=open`. If either fails, halt and report.
 2. **Fetch operating process.** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`. Do not proceed on memory of prior CI versions.
 2.5. **Prompt Environment Classification (AFA-1).** At session open, operator or Claude declares the session's primary prompt environment:
    - **NEUTRAL** — standard task work, no elevated approval pressure
@@ -417,10 +415,6 @@ This file is the parser-tag specification and protocol-layer authority. Everythi
 ---
 
 ## Changelog
-
-- **2026-09-14 (S-091426-NN-boot-findings-scan) · v6.4.2** —
-  - **Section A Step 1 (Fetch live state) amended.** Prior text named only the two haioscc endpoints and halted if *either* failed. Composed with Z2-GOVARCH-02 (ratified S-060826-04), which made WGS the Class 1 primary and recorded haioscc as "unreachable from Claude's bash environment," that text required every Claude session to halt at open — a halt no session obeyed. Z2 ruling (Night, in-session 2026-09-14): **Z2-GOVARCH-02 supersedes; amend §A.1.** Step 1 now names WGS primary and haioscc secondary, halts only when **both** fail, and requires a DEGRADED declaration naming the lost source when exactly one fails. Raised as `AMBIGUITY-BSM-D` in `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md`; ruling transcribed at `z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md`.
-  - **Scope of this entry:** Section A Step 1 only. **No other section was changed by this revision** — in particular, the Section F Degraded-Mode Specification that this file's 2026-05-08 entry claims was added is *still absent*, and is filed as `IC-CAND-BSM-A` awaiting Z2. This entry is written narrowly on purpose: a changelog that describes more than the diff delivered is the defect that finding names.
 
 - **2026-05-19 (S-051926-02-z3-closeout) · v6.4.1** —
   - **Section A.0 (Locus-of-Correction Note)** added. Grounds F-45 (Stateless-Substrate Correction Locus, Z2 ratified S-051926-02). Names protocol layer as the reliable locus of structural correction for stateless inference-engine substrates.

@@ -49,7 +49,7 @@ An automated review of rev 1 raised eleven findings. All were correct; all are a
 | `IC-CAND-BSM-B` | §IC candidates → BSM-B | `grep -c "Step 0"` > 0, or a differently-named step discharging P27 |
 | `IC-CAND-BSM-F` | §IC candidates → BSM-F | a `REGISTERED.md` fetch present in the #332 transcript, or Z2 ruling candidate blocks non-registry-touching |
 | `H-CAND-BSM-E` | §H candidate | N=5 artifacts, rate below 20% → H₀ holds, hypothesis falsified |
-| `AMBIGUITY-BSM-D` | — | **RULED by Z2 2026-09-14**; no longer an open prediction |
+| `AMBIGUITY-BSM-D` | — | **UNSIGNED Z2 ruling transcript (2026-09-14)**; pending ratification hash |
 
 Every absence claim is additionally conditioned on the fetch-success precondition in the header: **HTTP 200 plus matching blob SHA**, else `CHECK_UNAVAILABLE` rather than "absent."
 
@@ -312,10 +312,10 @@ Until resolved, **P22.1 Cascade Discipline** ("first-match wins; do not scan all
 
 ---
 
-### AMBIGUITY-BSM-D — §A.1 halt vs Z2-GOVARCH-02 demotion — **RULED (Z2, 2026-09-14)**
+### AMBIGUITY-BSM-D — §A.1 halt vs Z2-GOVARCH-02 demotion — **UNSIGNED ruling transcript (Z2, 2026-09-14)**
 
 > **Z2 ruling, Night, in-session 2026-09-14:** *"Superseded → amend §A.1. Accepting suggested shape."*
-> Landed as `SESSION_RITUALS.md` v6.4.2, Section A Step 1 only. Ruling transcribed at `z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md`; `z2_hash` **unsigned**, pending `ratify.py`. The analysis below is retained as the record of what was ruled on.
+> Ruling transcribed at `z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md`; `z2_hash` **unsigned**, pending `ratify.py`. No canonical amendment is applied in this PR. The analysis below is retained as the record of what was ruled on.
 
 Two **canonical** instruments conflict, and the conflict is resolved in practice by silent non-compliance.
 

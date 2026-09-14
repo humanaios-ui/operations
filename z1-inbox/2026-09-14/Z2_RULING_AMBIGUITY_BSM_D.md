@@ -18,16 +18,16 @@
 
 Z2-GOVARCH-02 governs. §A.1 is amended to match the Class 1 architecture that ratification already established.
 
-## What landed
+## Proposed amendment (pending signature)
 
-`SESSION_RITUALS.md` **v6.4.1 → v6.4.2**, Section A Step 1 only:
+If signed, this would amend `SESSION_RITUALS.md` Section A Step 1 only:
 
 - **Primary:** WGS (`#wgs-sync`, Slack `C0AND66PT7U`) — the Class 1 source of record per Z2-GOVARCH-02.
 - **Secondary:** the two haioscc endpoints, as cross-check; unreachability from a substrate's bash environment is recorded as **expected, not an incident**.
 - **Halt rule:** halt and report only if **both** fail. If exactly one fails, proceed and **declare DEGRADED in the Phase 1 header**, naming the lost source. Loss of the Slack path is the case `OPERATOR_RUNBOOK.md` §3a calls PATH C.
 - A substrate that skips the primary and reports the secondary's failure as a halt has **not** satisfied the step.
 
-Header and changelog updated. The changelog entry states the scope narrowly and explicitly records that **no other section changed** — in particular that the Section F Degraded-Mode Specification claimed by the 2026-05-08 entry is still absent (`IC-CAND-BSM-A`, open).
+No canonical file change is applied from this transcript while `z2_hash` remains null.
 
 ## What this ruling does NOT do
 
