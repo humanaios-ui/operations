@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**20 candidates** — ⏳ awaiting Z2 17 · ✅ ratified 3 · **15 records**
+**21 candidates** — ⏳ awaiting Z2 18 · ✅ ratified 3 · **15 records**
 
-## Awaiting Z2 (17)
+## Awaiting Z2 (18)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -137,19 +137,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Brier calculation is mathematically sound (review formula)
 - [ ] Schema extends without breaking existing records (review migration path)
 - [ ] Molt Cycle integration is viable (review pseudocode in schema)
-
-### Q-RFM-01 (8)
-
-`z1-inbox/2026-09-13/Q-RFM-01.md`
-
-- [ ] Is the RFM taxonomy the right vocabulary, and is 19 the right granularity?
-- [ ] Should `--enforce` be turned on, and if so before or after remediating the 107 defects?
-- [ ] Should the scanner be wired into CI, given `findings-registry.yml` already runs a blocking validator?
-- [ ] Which instrument's census is authoritative — 126, 130 or 135?
-- [ ] Is `RFM-06` right to score the **full** ten-field schema (57.0%) rather than the core five (91.1%)? The gap is `substrate` / `tags` / `superseded_by` / `date_origin` — declared but never adopted. Schema erosion, or an over-declared schema that should be trimmed?
-- [ ] Accept / edit / reject IC-CAND-A through IC-CAND-D; assign numbers if accepted
-- [ ] Commission `Q-RFM-02` (cost-class taxonomy)? It is the blocker on every `UNSCORED` FMEA cell
-- [ ] Is naval command vocabulary in Column 2 acceptable, or should the map stay in existing terms?
 
 ### Q-TOOLCONTROL-01 (8)
 
