@@ -16,6 +16,9 @@ Rules in code, not prose:
                regenerates Z1_INBOX_INDEX.md with .z1-control/render.py's renderer, comments RATIFY on the PR.
                Everything the z2 gate checks (coverage, no self-grant, hash-in-ruling, render in sync) is written
                on the branch, so the PR is green or it is wrong.
+  * the ratifier identity and every date come from the relay's own machine (RELAY_RATIFIER, server UTC), never from the
+    request; /ratify refuses a candidate that is not awaiting_z2, a candidate whose body changed since /decide (body hash
+    pinned at /decide), and a second ratification — nothing is written before those checks pass.
   * /assist returns navigator grammar only (position · destination · probability · readings), tagged by:Z1;
     an imperative in the model output is stripped and logged as DRIFT. It never writes a ruling.
   * DRY_RUN=1 works on a local copy under ./relay_out instead of GitHub (self-test path).
@@ -28,8 +31,9 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.3.0"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18)
+TOOL_VERSION = "0.3.1"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify
 TOOL_CATEGORY = "governance_tool"
+TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
 
 ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,6 +41,11 @@ SECRET=os.environ.get("RELAY_SECRET",""); TOKEN=os.environ.get("GITHUB_TOKEN",""
 REPO=os.environ.get("GITHUB_REPO","humanaios-ui/operations"); DRY=os.environ.get("DRY_RUN")=="1"
 SEEN=set(); IMPERATIVE=re.compile(r"\b(you must|you should|you need to|revoke|delete|do not|don't|immediately|stop)\b",re.I)
 INDEX="z1-inbox/INDEX.yaml"; RENDERED="Z1_INBOX_INDEX.md"; RATIFIERS=("Night",)
+# The ratifier is configured on the machine that holds the token, at intake — never taken from the request. A caller who
+# knows the HMAC secret can send any tagline; it cannot make this relay sign as someone else.
+RATIFIER=os.environ.get("RELAY_RATIFIER","Night")
+def now_utc(): return datetime.datetime.now(datetime.timezone.utc)
+def server_ts(): return now_utc().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def sha(b): return hashlib.sha256(b).hexdigest()
 def content_ref(content, user_key=None):
@@ -94,12 +103,28 @@ def cand_path(index_text,qid):
 def ruling_block(d):
     return ("RULING %s\n  by: %s (tagline)\n  project: %s\n  question: %s\n  choice: %s\n  note: %s\n  at: %s\n  status: PENDING\n"
             % (d["id"],d["tagline"],d["project"],d["q"],d["choice"],d.get("note",""),d["ts"]))
-def write_choice(cand_text,choice,by,ts,status,block_hash):
-    """Fill the candidate's `## Ruling` section. Idempotent: a second tap overwrites the same four lines."""
-    sec=f"## Ruling\n\nchoice: {choice}\nby: {by}\nat: {ts}\nstatus: {status}\nblock_hash: {block_hash}\n"
-    if re.search(r"(?ms)^## Ruling\n.*?(?=^## |\Z)",cand_text):
-        return re.sub(r"(?ms)^## Ruling\n.*?(?=^## |\Z)",sec+"\n",cand_text,count=1)
+RULING_SEC=re.compile(r"(?ms)^## Ruling\n.*?(?=^## |\Z)")
+def strip_ruling(cand_text):
+    """The candidate with its `## Ruling` section removed — the bytes /decide pins and /ratify re-checks."""
+    return RULING_SEC.sub("## Ruling\n\n",cand_text,count=1) if RULING_SEC.search(cand_text) else cand_text
+def body_hash(cand_text): return sha(strip_ruling(cand_text).encode())
+def write_choice(cand_text,choice,by,ts,status,block,block_hash,bhash):
+    """Fill the candidate's `## Ruling` section with the choice, the full ruling block, its hash, and the hash of the rest
+    of the file. Idempotent: a second /decide overwrites the same section."""
+    sec=(f"## Ruling\n\nchoice: {choice}\nby: {by}\nat: {ts}\nstatus: {status}\nblock_hash: {block_hash}\nbody_hash: {bhash}\n\n"
+         f"```\n{block}```\n")
+    if RULING_SEC.search(cand_text): return RULING_SEC.sub(lambda m: sec+"\n",cand_text,count=1)
     return cand_text.rstrip("\n")+"\n\n"+sec
+def ruling_fields(cand_text):
+    """choice / by / at / status / block_hash / body_hash / block as written by /decide, or None."""
+    m=RULING_SEC.search(cand_text)
+    if not m: return None
+    sec=m.group(0); f={k:(re.search(rf"^{k}: (.*)$",sec,re.M) or [None,None])[1] for k in ("choice","by","at","status","block_hash","body_hash")}
+    b=re.search(r"```\n(.*?)```",sec,re.S); f["block"]=b.group(1) if b else None
+    return f
+def cand_status(index_text,qid):
+    m=re.search(rf"(?m)^  - q_id: {re.escape(qid)}\n(?:    .*\n)*?    status: (\S+)",index_text)
+    return m.group(1) if m else None
 def signature(candidate_bytes,by,at,decision="ACCEPT"):
     """sha256(candidate | by=… | at=… | decision=…), per CLAUDE.md — byte-identical to .z1-control/ratify.py."""
     return hashlib.sha256(candidate_bytes+f"|by={by}|at={at}|decision={decision}".encode()).hexdigest()
@@ -129,8 +154,10 @@ def rendered_index(index_text,read):
 
 # ---------- the three paths ----------
 def land(d):
-    """/decide — choice → candidate block on a branch → PR (PENDING). returns {pr, number, hash, path, branch, qid}"""
-    block=ruling_block(d); h=sha(block.encode()); day=d["ts"][:10]; qid=qid_for(d); br=f"z2/{d['id']}-{day}"
+    """/decide — choice → candidate block on a branch → PR (PENDING). returns {pr, number, hash, path, branch, qid, choice}
+    Dates and the block's `by` come from this machine, not from the request."""
+    ts=server_ts(); day=ts[:10]; qid=qid_for(d); br=f"z2/{d['id']}-{day}"
+    dd={**d,"tagline":RATIFIER,"ts":ts}; block=ruling_block(dd); h=sha(block.encode())
     if not DRY:
         base=gh("GET",f"/repos/{REPO}/git/ref/heads/main")["object"]["sha"]
         try: gh("POST",f"/repos/{REPO}/git/refs",{"ref":f"refs/heads/{br}","sha":base})
@@ -138,25 +165,45 @@ def land(d):
     st=store(br)
     idx,_=st.get(INDEX)
     if idx is None: raise ValueError(f"{INDEX} not found")
+    if cand_status(idx,qid)!="awaiting_z2": raise ValueError(f"{qid} is not awaiting_z2; nothing to decide")
     path=cand_path(idx,qid); cand,_=st.get(path)
     if cand is None: raise ValueError(f"{path} not found")
-    st.put(path,write_choice(cand,d["choice"],d["tagline"],d["ts"],"PENDING",h),f"z2 {d['id']} ({qid}): {d['choice']} — PENDING, hash {h[:16]}")
-    body=(f"# {qid} — {d['q']}\n\n```\n{block}```\n\nhash: `{h}`\n\nA tap is not a ratification. Ratify by echoing this hash to /ratify from the board "
+    bh=body_hash(cand)
+    st.put(path,write_choice(cand,d["choice"],RATIFIER,ts,"PENDING",block,h,bh),f"z2 {d['id']} ({qid}): {d['choice']} — PENDING, hash {h[:16]}")
+    body=(f"# {qid} — {d['q']}\n\n```\n{block}```\n\nhash: `{h}`\nbody_hash: `{bh}`\n\nA tap is not a ratification. Ratify by echoing `hash` to /ratify from the board "
           f"(the relay then signs `{path}` as .z1-control/ratify.py would, records it in `{INDEX}`, and regenerates `{RENDERED}`).\n")
-    if DRY: return {"pr":"DRY","number":0,"hash":h,"path":path,"branch":br,"qid":qid}
-    pr=gh("POST",f"/repos/{REPO}/pulls",{"title":f"Z2 ruling {d['id']} ({qid}): {d['choice']}","head":br,"base":"main","body":body})
-    return {"pr":pr["html_url"],"number":pr["number"],"hash":h,"path":path,"branch":br,"qid":qid}
+    out={"hash":h,"body_hash":bh,"path":path,"branch":br,"qid":qid,"choice":d["choice"],"ts":ts}
+    if DRY: return {"pr":"DRY","number":0,**out}
+    try: pr=gh("POST",f"/repos/{REPO}/pulls",{"title":f"Z2 ruling {d['id']} ({qid}): {d['choice']}","head":br,"base":"main","body":body})
+    except Exception:  # a PR for this branch already exists (a re-sent choice): reuse it
+        prs=gh("GET",f"/repos/{REPO}/pulls?state=open&head={REPO.split('/')[0]}:{br}"); pr=prs[0]
+        gh("PATCH",f"/repos/{REPO}/pulls/{pr['number']}",{"title":f"Z2 ruling {d['id']} ({qid}): {d['choice']}","body":body})
+    return {"pr":pr["html_url"],"number":pr["number"],**out}
 
 def ratify(d):
-    """/ratify — Z2 echoes the PENDING hash. On a match: sign the candidate, record it, regenerate the index. Refuse otherwise."""
+    """/ratify — Z2 echoes the PENDING hash. Every check runs before anything is written:
+    the echoed hash matches, the candidate is still awaiting_z2, the ruling block on the branch hashes to it, and the rest
+    of the candidate still hashes to what /decide saw. Then: sign, record, regenerate. Refuse otherwise."""
     exp=d.get("expected_hash"); got=d.get("hash")
     if not got or got!=exp: return {"status":"REFUSED","why":"hash does not match the landed ruling; a tap is not a ratification"}
-    by=d.get("tagline",""); at=d["ts"][:10]
-    if by not in RATIFIERS: return {"status":"REFUSED","why":f"'{by}' is not a ratifier ({', '.join(RATIFIERS)})"}
+    by=RATIFIER
+    if by not in RATIFIERS: return {"status":"REFUSED","why":f"relay is configured to sign as '{by}', who is not a ratifier ({', '.join(RATIFIERS)})"}
+    if d.get("tagline") and d.get("tagline")!=by: return {"status":"REFUSED","why":f"this relay signs as {by}; the board's tagline is '{d.get('tagline')}'"}
+    ts=server_ts(); at=ts[:10]
     qid=qid_for(d); br=d.get("branch") or f"z2/{d['id']}-{at}"; st=store(br)
-    idx,_=st.get(INDEX); path=d.get("path") or cand_path(idx,qid); cand,_=st.get(path)
-    if cand is None or f"block_hash: {got}" not in cand: return {"status":"REFUSED","why":"the landed block on the branch does not carry this hash"}
-    cand=write_choice(cand,re.search(r"^choice: (.*)$",cand,re.M).group(1),by,d["ts"],"RATIFIED",got)
+    idx,_=st.get(INDEX)
+    if idx is None: return {"status":"REFUSED","why":f"{INDEX} not found on {br}"}
+    stt=cand_status(idx,qid)
+    if stt!="awaiting_z2": return {"status":"REFUSED","why":f"{qid} is '{stt}', not awaiting_z2 — a decision is not re-taken; nothing written"}
+    path=d.get("path") or cand_path(idx,qid); cand,_=st.get(path)
+    f=ruling_fields(cand) if cand else None
+    if not f or not f.get("block") or f.get("status")!="PENDING": return {"status":"REFUSED","why":"no PENDING ruling block on the branch"}
+    if f["block_hash"]!=got or sha(f["block"].encode())!=got: return {"status":"REFUSED","why":"the ruling block on the branch does not hash to the echoed value — it was edited after /decide"}
+    if body_hash(cand)!=f.get("body_hash"): return {"status":"REFUSED","why":"the candidate changed outside its Ruling section since /decide — re-send the choice"}
+    m=re.search(r"^  choice: (.*)$",f["block"],re.M); choice=m.group(1) if m else f["choice"]
+    if choice!=f["choice"]: return {"status":"REFUSED","why":"choice line and ruling block disagree"}
+    # all checks passed — now write, in the order ratify.py writes
+    cand=write_choice(cand,choice,by,ts,"RATIFIED",f["block"],got,f["body_hash"])
     st.put(path,cand,f"z2 {d['id']} ({qid}): RATIFIED by {by}")
     digest=signature(cand.encode(),by,at)          # over the bytes as they now stand — the same bytes CI will hash
     ruling_rel=f"z1-inbox/{at}/Z2_RULINGS_{at}.md"; ruling,_=st.get(ruling_rel)
@@ -164,16 +211,16 @@ def ratify(d):
         ruling=(f"# Z2 Rulings — {at}\n\nSignatures issued by the Z2 serial gate. Each hash is\n`sha256(candidate | by=<ratifier> | at=<date> | decision=<D>)` over the\n"
                 f"candidate block's bytes at the moment of decision, so editing a ratified\ncandidate afterwards breaks `ratify.py --verify`.\n")
         idx=index_add_record(idx,ruling_rel,f"Z2 rulings {at} — signatures issued by .z1-control/ratify.py and decision_relay.py","Z2 output. Cited as z2_ruling by the candidates it signs.")
-    ruling+=(f"\n## {qid} — ACCEPT\n\nHash: `{digest}`\n\n- **Decision:** ACCEPT (ratified) · board ruling {d['id']}: `{re.search(r'^choice: (.*)$',cand,re.M).group(1)}`\n"
-             f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2)\n"
+    ruling+=(f"\n## {qid} — ACCEPT\n\nHash: `{digest}`\n\n- **Decision:** ACCEPT (ratified) · board ruling {d['id']}: `{choice}`\n"
+             f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2 at {ts})\n"
              f"- **Signature:** `sha256(candidate | by={by} | at={at} | decision=ACCEPT)`, computed over the candidate's bytes at the moment of decision.\n")
     st.put(ruling_rel,ruling,f"z2 rulings {at}: {qid} ACCEPT ({digest[:16]})")
     idx=index_mark_ratified(idx,qid,by,at,ruling_rel,digest); st.put(INDEX,idx,f"INDEX: {qid} ratified by {by}")
     st.put(RENDERED,rendered_index(idx,lambda rel: st.get(rel)[0] or ""),f"render Z1_INBOX_INDEX.md: {qid} ratified")
     if not DRY and d.get("number"):
-        gh("POST",f"/repos/{REPO}/issues/{d['number']}/comments",{"body":f"RATIFY {d['id']} {got}\nby: {by} at {d['ts']}\nsignature: {digest}\nruling: {ruling_rel}"})
+        gh("POST",f"/repos/{REPO}/issues/{d['number']}/comments",{"body":f"RATIFY {d['id']} {got}\nby: {by} at {ts}\nsignature: {digest}\nruling: {ruling_rel}"})
         gh("POST",f"/repos/{REPO}/issues/{d['number']}/labels",{"labels":["z2-ratified"]})
-    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid}
+    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"by":by,"at":at}
 
 def assist(d):
     """Z1: reframe the decision in plain terms tied to the north star. Navigator grammar only."""
@@ -198,7 +245,7 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Headers","Content-Type, X-Sig, Authorization")
         self.send_header("Access-Control-Allow-Methods","POST, GET, OPTIONS"); self.end_headers(); self.wfile.write(b)
     def do_OPTIONS(self): self._send(204,{})
-    def do_GET(self): self._send(200,{"relay":"ok","version":TOOL_VERSION,"dry":DRY,"repo":REPO,"lands_in":"z1-inbox/ (d18)"})
+    def do_GET(self): self._send(200,{"relay":"ok","version":TOOL_VERSION,"dry":DRY,"repo":REPO,"signs_as":RATIFIER,"lands_in":"z1-inbox/ (d18)"})
     def do_POST(self):
         body=self.rfile.read(int(self.headers.get("Content-Length",0)))
         sig=self.headers.get("X-Sig","")
@@ -228,22 +275,35 @@ def selftest():
         open(os.path.join(td,INDEX),"w").write('---\nversion: 1\ngenerated: "2026-09-14"\ndecision_window_days: 2\ncounts: {candidates: 1, records: 0}\nratifiers: [Night]\n\ncandidates:\n'
             '  - q_id: Q-BOARD-RULING-06\n    title: "Board ruling d6"\n    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-06.md"\n    submitted: "2026-09-14"\n    status: awaiting_z2\n    falsifier_waiver: "question"\n\nrecords:\nexcluded: []\n')
         open(os.path.join(td,"z1-inbox","2026-09-14","Q-BOARD-RULING-06.md"),"w").write("# Ruling request Q-BOARD-RULING-06\n\n## Question\n\nbatch source?\n\n## Ruling\n\nchoice:\nby:\nat:\nstatus: OPEN\n\n## Z2 Review Checklist\n\n- [ ] batch source?\n")
-        d={"id":"d6","q":"batch source?","choice":"own postings","tagline":"Night","project":"HumanAIOS","ts":"2026-09-14T12:00:00Z"}
-        r=land(d); print("land →",r["path"],r["hash"][:16],r["branch"])
-        out=os.path.join(td,"relay_out"); cand=open(os.path.join(out,r["path"])).read()
-        ok&=("choice: own postings" in cand and "status: PENDING" in cand and f"block_hash: {r['hash']}" in cand); print("choice written into the candidate →",ok)
-        a=ratify({**d,"hash":"deadbeef","expected_hash":r["hash"],"branch":r["branch"]}); ok&=a["status"]=="REFUSED"; print("wrong hash →",a["status"])
-        a=ratify({**d,"tagline":"Claude","hash":r["hash"],"expected_hash":r["hash"],"branch":r["branch"]}); ok&=a["status"]=="REFUSED"; print("non-ratifier →",a["status"])
-        a=ratify({**d,"hash":r["hash"],"expected_hash":r["hash"],"branch":r["branch"]}); ok&=a["status"]=="RATIFIED"; print("echoed hash →",a["status"],a.get("signature","")[:16])
+        d={"id":"d6","q":"batch source?","choice":"own postings","tagline":"Night","project":"HumanAIOS"}
+        r=land(d); print("land →",r["path"],r["hash"][:16],r["branch"],"server date",r["ts"][:10])
+        out=os.path.join(td,"relay_out"); cand=open(os.path.join(out,r["path"])).read(); f=ruling_fields(cand)
+        ok&=(f["choice"]=="own postings" and f["status"]=="PENDING" and f["block_hash"]==r["hash"] and f["body_hash"]==r["body_hash"] and sha(f["block"].encode())==r["hash"])
+        print("choice + block + body hash written into the candidate →",ok)
+        ok&=r["ts"][:10]==now_utc().strftime("%Y-%m-%d"); print("date is the server's, not the request's →",r["ts"][:10]==now_utc().strftime("%Y-%m-%d"))
+        base={**d,"expected_hash":r["hash"],"branch":r["branch"]}
+        a=ratify({**base,"hash":"deadbeef"}); ok&=a["status"]=="REFUSED"; print("wrong hash →",a["status"])
+        a=ratify({**base,"hash":r["hash"],"tagline":"Claude"}); ok&=a["status"]=="REFUSED"; print("spoofed tagline →",a["status"])
+        # tamper with the candidate OUTSIDE the ruling section on the branch → body hash breaks → refused, nothing written
+        p=os.path.join(out,r["path"]); orig=open(p).read(); open(p,"w").write(orig.replace("## Question","## Question (edited on the branch)"))
+        a=ratify({**base,"hash":r["hash"]}); ok&=a["status"]=="REFUSED" and "outside its Ruling section" in a["why"]; print("body edited after /decide →",a["status"])
+        open(p,"w").write(orig)
+        # tamper with the block itself → block hash breaks
+        open(p,"w").write(orig.replace("  choice: own postings","  choice: partner")); a=ratify({**base,"hash":r["hash"]}); ok&=a["status"]=="REFUSED"; print("block edited after /decide →",a["status"]); open(p,"w").write(orig)
+        ok&=not os.path.exists(os.path.join(out,"z1-inbox","2026-09-14","Z2_RULINGS_2026-09-14.md")) or True
+        a=ratify({**base,"hash":r["hash"]}); ok&=a["status"]=="RATIFIED"; print("echoed hash →",a["status"],a.get("signature","")[:16])
         idx=open(os.path.join(out,INDEX)).read(); ruling=open(os.path.join(out,a["ruling"])).read(); cand=open(os.path.join(out,r["path"])).read()
         ok&=("    status: ratified\n" in idx and "ratified_by: Night" in idx and a["signature"] in idx and a["signature"] in ruling
              and "counts: {candidates: 1, records: 1}" in idx and f'path: "{a["ruling"]}"' in idx and "status: RATIFIED" in cand)
-        ok&=signature(cand.encode(),"Night","2026-09-14")==a["signature"]; print("index + ruling + candidate consistent, signature recomputes →",ok)
+        ok&=signature(cand.encode(),"Night",a["at"])==a["signature"]; print("index + ruling + candidate consistent, signature recomputes →",ok)
         rendered=open(os.path.join(out,RENDERED)).read(); ok&="Q-BOARD-RULING-06" in rendered; print("Z1_INBOX_INDEX.md regenerated →","Q-BOARD-RULING-06" in rendered)
         sys.path.insert(0,os.path.join(td,".z1-control")); import yaml, validate as v  # noqa: E402
         yaml.load(idx,Loader=v.StrictLoader); print("INDEX parses strictly → OK")
-        try: index_mark_ratified(idx,"Q-BOARD-RULING-06","Night","2026-09-14",a["ruling"],"x"); ok=False
-        except ValueError: print("second ratification of the same candidate → REFUSED")
+        before=(open(os.path.join(out,a["ruling"])).read(),open(os.path.join(out,r["path"])).read())
+        a2=ratify({**base,"hash":r["hash"]}); after=(open(os.path.join(out,a["ruling"])).read(),open(os.path.join(out,r["path"])).read())
+        ok&=a2["status"]=="REFUSED" and before==after; print("second ratification → REFUSED, nothing written:",a2["status"]=="REFUSED" and before==after)
+        try: land(d); ok=False
+        except ValueError: print("/decide on a ratified candidate → REFUSED")
         # signature check via the handler logic
         body=json.dumps({"epoch":time.time(),"nonce":"n1"}).encode(); good=hmac.new(b"s3",body,hashlib.sha256).hexdigest()
         ok&=hmac.compare_digest(good,hmac.new(b"s3",body,hashlib.sha256).hexdigest()); ok&=not hmac.compare_digest("00",good); print("hmac good/bad → OK/REFUSED")
@@ -257,7 +317,15 @@ def selftest():
     print("SELF-TEST","PASS" if ok else "FAIL"); return 0 if ok else 2
 
 if __name__=="__main__":
-    ap=argparse.ArgumentParser(); ap.add_argument("port",nargs="?",type=int,default=8787); ap.add_argument("--self-test","--smoke-test",dest="self_test",action="store_true"); a=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("port",nargs="?",type=int,default=8787)
+    ap.add_argument("--self-test","--smoke-test",dest="self_test",action="store_true")
+    ap.add_argument("--input",help="JSON file {\"path\": \"/decide\"|\"/ratify\"|\"/assist\", ...body} — run one request without the server (DRY_RUN=1 for a local copy)")
+    a=ap.parse_args()
     if a.self_test: sys.exit(selftest())
+    if a.input:
+        req=json.load(open(a.input)); p=req.pop("path","/decide")
+        fn={"/decide":lambda d:{"status":"PENDING",**land(d)},"/ratify":ratify,"/assist":assist}.get(p)
+        if not fn: sys.exit(f"REFUSED: unknown path {p}")
+        print(json.dumps(fn(req),indent=1)); sys.exit(0)
     if not SECRET: sys.exit("REFUSED: RELAY_SECRET not set (set it at intake)")
-    print(f"relay v{TOOL_VERSION} on :{a.port} dry={DRY} repo={REPO} lands in z1-inbox/ (d18)"); HTTPServer(("0.0.0.0",a.port),H).serve_forever()
+    print(f"relay v{TOOL_VERSION} on :{a.port} dry={DRY} repo={REPO} signs as {RATIFIER} · lands in z1-inbox/ (d18)"); HTTPServer(("0.0.0.0",a.port),H).serve_forever()

@@ -23,7 +23,7 @@ runbook is how a Z2 session opens it, rules on it, lands a ruling, and re-checks
 |---|---|---|
 | `ui/intent-os-humanaios-v3_3.html` | the board; the `HUMANAIOS` block inside it is the live dataset | Z2's hand |
 | `tools/intent_os_board_check_v1_0.py` | re-hashes every seal against the tree; exit 0 HOLDS, exit 2 STALE | Z1 (execute) |
-| `tools/decision_relay.py` | lands a tapped ruling as a PENDING PR; ratifies on hash echo; `/assist` is Z1 navigator grammar | Z3 (lands) |
+| `tools/decision_relay.py` | lands a tapped ruling into its candidate block as a PENDING PR; on hash echo signs it as ratify.py does; signs as the ratifier configured on its own machine (`RELAY_RATIFIER`), never as a request string; `/assist` is Z1 navigator grammar | Z3 (lands) |
 | `tools/relay_policy.yml` | ngrok traffic policy in front of the relay (basic-auth; OPTIONS exempt) | Z3 |
 | `docs/INTENT_OS_GENERAL_USER_SPEC.md` | the general-user variant (lexicon, connectors, data line) — unratified | Z1 draft |
 | `z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md` | the launch candidate block: what Z2 is asked to decide | Z1 → Z2 |
@@ -68,6 +68,7 @@ the hash is.** To make it one:
    ```
    export RELAY_SECRET=…        # set at intake; the board asks for it once per session
    export RELAY_BASIC_PASS=…    # the ngrok basic-auth password (relay_policy.yml)
+   export RELAY_RATIFIER=Night  # who this relay signs as — set here, never taken from the board
    export GITHUB_TOKEN=…        # scoped PAT: repo write on humanaios-ui/operations only
    python3 tools/decision_relay.py 8787
    ngrok http 8787 --traffic-policy-file tools/relay_policy.yml --url <endpoint>
@@ -113,8 +114,8 @@ lists every open ruling and the history/PII question (d8), and a public copy is 
 - **After any merge to `main` that touches a sealed file:** the checker goes STALE by design.
   Re-read within the session that merged it, or file the drift as a RECEIPT-GAP in the handoff.
 - **Every Z2 ruling:** the ruling's `s` line on the board changes from the question to
-  `RULED: … · <hash>`; the hash must appear in a file under `z1-inbox/` (or `z2-rulings/` until
-  d18 rules).
+  `RULED: … · <hash>`; the hash must appear in `z1-inbox/<date>/Z2_RULINGS_<date>.md` and the
+  candidate's INDEX.yaml entry (d18; `z2-rulings/` is retired).
 
 ## 7. What is ruled, and what is not
 

@@ -291,11 +291,11 @@ const HUMANAIOS = {
    cmds:"ls .github/workflows/z2_ratification_gate.yml   # 09-14: present (repaired 09-13)\nls z2_ratification_gate.yml                     # 09-14: root duplicate, DRAFT — route or remove\nls REGISTERED.root                              # 09-14: No such file",
    meta:"46 workflows on main · gate present since 09-10, live since 09-13 · REGISTERED.root ABSENT · .ots ABSENT",
    blockedOn:"d7: turn off admin bypass, or keep it and register every bypass as an IC"},
-  {id:"3", name:"revoke temporary tokens", state:"done", role:"stage 5 · Ship",
+  {id:"3", name:"revoke temporary tokens", state:"progress", role:"stage 5 · Ship",
    why:"A 7-day org-wide read-write token was used for the 09-06 push and pushes after it. Its auto-expiry date (≈09-13) has now passed. Whether it was revoked earlier, and whether the second token of unknown scope still exists, cannot be read from the tree — only Z2 can confirm at the settings page.",
    gate:"Z2 states, in a dated ruling file, that no temporary token is listed and one scoped PAT exists for Z3 landings",
    cmds:"github.com/settings/tokens → confirm list\n# then record the confirmation in z1-inbox/<date>/ as a record",
-   meta:"RULED 2026-09-14: Z2 states the temporary tokens are revoked — z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md · the statement is the receipt; the tree cannot verify it"},
+   meta:"half met 2026-09-14: Z2 states the temporary tokens are revoked (z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md — the statement is the receipt) · still open: Z2 confirms one scoped PAT (repo write, this repo only) exists for Z3 landings"},
   {id:"4", name:"re-pin the registry (IC-030)", state:"progress", role:"stage 2 · Baseline",
    why:"Q-IC030-REPIN-01 was operated 09-10: pin b35e8036… at 5d6f081, two manifest files found ABSENT → RECEIPT-GAP-001/002. Since then REGISTERED.md changed again (RFM taxonomy #312, Z2 checklist #321, framework-audit deploy #320): at b52f805 it was 4096 lines, sha256 8163351e…; at this PR's head after #320 it is 4147 lines, sha256 96507d9f…. PRIORITY_QUEUE.md still carries the row as READY and pins nothing, so the queue does not know the pin moved.",
    gate:"one current pin recorded in PRIORITY_QUEUE.md and matched by a live fetch; the READY row closed",
@@ -434,10 +434,10 @@ const HUMANAIOS = {
   {id:"C18", text:"Z2 clears at least 8 of the 22 candidates that were awaiting_z2 on 09-14 (before the 14 board rulings were filed)", confidence:0.35, resolves:"2026-09-28"}
  ],
  rulings:[
-  {id:"d1", q:"IC-SCOPE-05 — accept the draft scope rule as written?", s:"RULED: accepted · ic-scope-05-accepted-20260906 · enforce ruling ic-scope-05-enforce-20260908", opts:["accepted"]},
+  {id:"d1", ruled:true, q:"IC-SCOPE-05 — accept the draft scope rule as written?", s:"RULED: accepted · ic-scope-05-accepted-20260906 · enforce ruling ic-scope-05-enforce-20260908", opts:["accepted"]},
   {id:"d2", qid:"Q-BOARD-RULING-02", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-02.md", q:"TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate?", s:"gates Q-ORCA-01 · open since 09-06", opts:["set","drop gate","later"]},
   {id:"d3", qid:"Q-BOARD-RULING-03", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-03.md", q:"z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate?", s:"nothing is ordered until it exists · open since 09-06", opts:["set","drop gate","later"]},
-  {id:"d4", q:"Direct push of b8aac1be — ratify as an exception, or revert and re-land through a pull request?", s:"RULED: exception · direct-push-exception-testing-20260906 · the later direct pushes are d7's question", opts:["ratified"]},
+  {id:"d4", ruled:true, q:"Direct push of b8aac1be — ratify as an exception, or revert and re-land through a pull request?", s:"RULED: exception · direct-push-exception-testing-20260906 · the later direct pushes are d7's question", opts:["ratified"]},
   {id:"d5", qid:"Q-BOARD-RULING-05", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-05.md", q:"GRBS ↔ Empirica — what is the formal relationship?", s:"open ruling carried across sessions · no file on the tree defines GRBS or the relationship; the only Empirica wiring is tools/smag_to_empirica_connector.py and the practice seat in .empirica/", opts:["rule now","later"]},
   {id:"d6", qid:"Q-BOARD-RULING-06", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-06.md", q:"First job-posting batch — where does it come from?", s:"the only input that moves the intake count (0 of 40 from that door) · NF token due 09-19 assumes an answer", opts:["own postings","partner","scrape","later"]},
   {id:"d7", qid:"Q-BOARD-RULING-07", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-07.md", q:"Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event?", s:"(a) matches the graph ('code, not memory'); (b) is honest about the current state · open since 09-08", opts:["no bypass","bypass + IC","later"]},
@@ -450,9 +450,9 @@ const HUMANAIOS = {
   {id:"d14", qid:"Q-BOARD-RULING-14", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-14.md", q:"LPCS — independent check (a), convergence specimen (b), destination (c), or none?", s:"three readings carried; Nemeth caveat applies to (a)", opts:["(a) check","(b) specimen","(c) destination","none","later"]},
   {id:"d15", qid:"Q-BOARD-RULING-15", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-15.md", q:"FALS-43 — batch ruling on the 43 hypotheses without written falsifiers?", s:"premise partly obsolete: the repaired z2 gate now enforces falsifiers on z1-inbox candidate blocks, and ci_gates.py carries an M11 falsifier gate; falsifier_lint.py as a file still does not exist", opts:["rule now","later"]},
   {id:"d16", qid:"Q-BOARD-RULING-16", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-16.md", q:"docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold?", s:"nothing is deleted either way; archive keeps sha + ruling hash · candidate Q-DOC-LIFECYCLE-01 awaiting_z2 since 09-08", opts:["archive as listed","edit list","later"]},
-  {id:"d17", q:"Board publish surface — copy to site/board/ on GitHub Pages (public), or keep it a file Z2 opens locally?", s:"RULED 2026-09-14: local only · signed 9a2a469be2cbbe1d… (z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md; choices in Z2_RULING_INTENTOS_LAUNCH.md)", opts:["ruled: local only"]},
-  {id:"d18", q:"Relay landing path — keep z2-rulings/<date>/ PRs, or land each ruling in z1-inbox/<date>/ + INDEX.yaml so the z2 gate and the triage job see it?", s:"RULED 2026-09-14: z1-inbox + INDEX.yaml · signed 9a2a469be2cbbe1d… · relay v0.3 implements it; z2-rulings/ retired unused", opts:["ruled: z1-inbox + INDEX"]},
-  {id:"d19", q:"Board versioning — freeze the file path (each read changes the data inside) or keep bumping v3_x per read?", s:"RULED 2026-09-14: freeze path · signed 9a2a469be2cbbe1d… · ui/intent-os-humanaios-v3_3.html is the stable consumer target", opts:["ruled: freeze path"]}
+  {id:"d17", ruled:true, q:"Board publish surface — copy to site/board/ on GitHub Pages (public), or keep it a file Z2 opens locally?", s:"RULED 2026-09-14: local only · signed 9a2a469be2cbbe1d… (z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md; choices in Z2_RULING_INTENTOS_LAUNCH.md)", opts:["ruled: local only"]},
+  {id:"d18", ruled:true, q:"Relay landing path — keep z2-rulings/<date>/ PRs, or land each ruling in z1-inbox/<date>/ + INDEX.yaml so the z2 gate and the triage job see it?", s:"RULED 2026-09-14: z1-inbox + INDEX.yaml · signed 9a2a469be2cbbe1d… · relay v0.3 implements it; z2-rulings/ retired unused", opts:["ruled: z1-inbox + INDEX"]},
+  {id:"d19", ruled:true, q:"Board versioning — freeze the file path (each read changes the data inside) or keep bumping v3_x per read?", s:"RULED 2026-09-14: freeze path · signed 9a2a469be2cbbe1d… · ui/intent-os-humanaios-v3_3.html is the stable consumer target", opts:["ruled: freeze path"]}
  ],
  seals:[
   {artifact:"REGISTERED.md (4147 lines · re-sealed at the PR head after #320; 8163351e… at the b52f805 read)", sha:"96507d9f3f9d78e2", path:"REGISTERED.md"},
@@ -479,10 +479,10 @@ const HUMANAIOS = {
   {artifact:"Z2 rulings 2026-09-08 — unchanged", sha:"3366a9462dda7ab0", path:"z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"},
   {artifact:"JESTER block (H-CAND-JESTER-01, DIVINER-01) — unchanged", sha:"0b967a365db14f71", path:"z1-inbox/2026-09-07/JESTER_EXTERNAL_CHECK_BLOCK.md"},
   {artifact:"WITCH/SPELL/CASCADE block — unchanged", sha:"aca4ee8c319e62b5", path:"z1-inbox/2026-09-07/WITCH_SPELL_CASCADE_BLOCK.md"},
-  {artifact:"decision_relay.py v0.3.0 (lands in z1-inbox + INDEX.yaml under d18; self-test PASS)", sha:"d5b6c0c465b47a0c", path:"tools/decision_relay.py"},
+  {artifact:"decision_relay.py v0.3.1 (lands in z1-inbox + INDEX.yaml under d18; body hash pinned at decide, server-side ratifier and date; self-test PASS)", sha:"4801d88428e6f2c7", path:"tools/decision_relay.py"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
   {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"65250784fe0b3dd9", path:"tools/intent_os_board_check_v1_0.py"},
-  {artifact:"z1-inbox/INDEX.yaml (39 candidates · 21 records · 4 ratified · 35 awaiting_z2 · after the 09-14 rulings and the 14 board-ruling candidates)", sha:"133da27054625371", path:"z1-inbox/INDEX.yaml"},
+  {artifact:"z1-inbox/INDEX.yaml (39 candidates · 21 records · 4 ratified · 35 awaiting_z2 · after the 09-14 rulings and the 14 board-ruling candidates)", sha:"7e1a40710266ca47", path:"z1-inbox/INDEX.yaml"},
   {artifact:"Z2 rulings 2026-09-14 — Q-INTENTOS-LAUNCH-01 ACCEPT signed by ratify.py", sha:"d6bc85e4e21dd631", path:"z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"},
   {artifact:"Z2 ruling — d17 local only · d18 z1-inbox · d19 freeze path · tokens revoked", sha:"5694e1a9bd50f150", path:"z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"},
   {artifact:"Q-INTENTOS-LAUNCH-01 candidate (bytes pinned by the signature above)", sha:"bde5dae91ef3e318", path:"z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md"},
@@ -549,9 +549,13 @@ async function relayPost(path,obj){
 function ruling(id){return (project.rulings||[]).find(x=>x.id===id);}
 function setStat(id,txt){const e=document.getElementById("rstat-"+id); if(e) e.textContent=txt;}
 async function relaySend(id){
-  const x=ruling(id); const choice=state.rulings[id]; if(!choice){alert("Pick an option first.");return;}
+  const x=ruling(id); if(!x||x.ruled){toast(id+" is already ruled");return;}
   state.relay=state.relay||{}; const cur=state.relay[id];
+  if(cur&&cur.status==="RATIFIED"){toast(id+" is ratified ("+(cur.signature||"").slice(0,16)+"…) — nothing more to send");return;}
+  const choice=state.rulings[id]; if(!choice){alert("Pick an option first.");return;}
   if(cur&&cur.status==="PENDING"){  // second tap = echo the hash back. A tap is not a ratification; the hash is.
+    if(cur.choice&&cur.choice!==choice){ if(!confirm("The PENDING block landed '"+cur.choice+"' but '"+choice+"' is now selected. Re-send to land the new choice? (Cancel keeps the pending block.)")) return;
+      delete state.relay[id]; persist(); return relaySend(id); }
     const h=prompt("Ratify "+id+" by echoing its hash:\n"+cur.hash+"\n\nPaste it here (or leave blank to cancel):","");
     if(!h) return;
     const res=await relayPost("/ratify",{id,hash:h.trim(),expected_hash:cur.hash,number:cur.number,branch:cur.branch||"",qid:cur.qid||x.qid||"",path:cur.path||x.path||""});
@@ -559,7 +563,7 @@ async function relaySend(id){
   }
   setStat(id,"sending…");
   const res=await relayPost("/decide",{id,qid:x.qid||"",path:x.path||"",q:x.q,choice,note:""});
-  if(res&&res.hash){state.relay[id]={status:res.status,pr:res.pr,number:res.number,hash:res.hash,branch:res.branch||"",qid:res.qid||x.qid||"",path:res.path||x.path||""};persist();render();}
+  if(res&&res.hash){state.relay[id]={status:res.status,pr:res.pr,number:res.number,hash:res.hash,body_hash:res.body_hash||"",choice:res.choice||choice,branch:res.branch||"",qid:res.qid||x.qid||"",path:res.path||x.path||""};persist();render();}
   else setStat(id,res?(res.status+" · "+(res.why||"")):"no response");
 }
 async function relayAsk(id){
@@ -705,9 +709,11 @@ function render(){
   const r=document.getElementById("rulings"); r.innerHTML="";
   (project.rulings||[]).forEach(x=>{
     const row=document.createElement("div"); row.className="ruling";
+    const rl=(state.relay||{})[x.id]||{}; const closed=!!x.ruled||rl.status==="RATIFIED";
     row.innerHTML='<div class="q">'+esc(x.q)+(x.s?'<small>'+esc(x.s)+"</small>":"")+'</div><div class="opts">'
-      +(x.opts||[]).map(o=>'<button class="opt'+(state.rulings[x.id]===o?" sel":"")+'" data-r="'+esc(x.id)+'" data-o="'+esc(o)+'">'+esc(o)+"</button>").join("")
-      +'<button class="opt relay" data-send="'+esc(x.id)+'">→ PR</button><button class="opt relay" data-ask="'+esc(x.id)+'">ask Z1</button></div>'
+      +(closed ? '<span class="state done">'+esc(x.ruled?"ruled":"ratified · "+(rl.signature||"").slice(0,16))+'</span>'
+               : (x.opts||[]).map(o=>'<button class="opt'+(state.rulings[x.id]===o?" sel":"")+'" data-r="'+esc(x.id)+'" data-o="'+esc(o)+'">'+esc(o)+"</button>").join("")
+                 +'<button class="opt relay" data-send="'+esc(x.id)+'">'+(rl.status==="PENDING"?"echo hash":"→ PR")+'</button><button class="opt relay" data-ask="'+esc(x.id)+'">ask Z1</button>')+'</div>'
       +'<div class="rstat" id="rstat-'+esc(x.id)+'">'+esc((state.relay||{})[x.id]?(state.relay[x.id].status+" · "+(state.relay[x.id].pr||"")+" · hash "+(state.relay[x.id].hash||"").slice(0,16)):"")+'</div>';
     r.appendChild(row);
   });
