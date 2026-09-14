@@ -6,6 +6,21 @@
 **Authority:** Z2 (Night) ratification pending
 **Status:** Z1 candidate for REGISTERED.md
 
+> **This document is explanatory reference architecture. It does not amend
+> SESSION_RITUALS.md, CLAUDE.md, or GOVERNANCE.md.** Every mapping below
+> describes an analogy — read "X **maps to** Y," never "X **is** Y," even
+> where the prose is more casual for readability. Where this document and a
+> source document conflict (and two such conflicts are documented and left
+> open below), **the source document wins.** Ratifying this map ratifies the
+> explanation, not a change to session-open/close behavior.
+
+**Status legend** (used per stage below): **Enforced** — a real, executable,
+automated check exists and runs today (a git command, a CI gate, a validator
+script). **Specified** — required by protocol text, carried out by
+LLM/operator compliance, not machine-enforced. **Aspirational** — documented
+as intended but demonstrably not yet implemented (a stub function, a missing
+artifact, a gate marked "planned" in its own governing file).
+
 ---
 
 ## Why this mapping
@@ -58,23 +73,70 @@ literally universal.
 
 ---
 
+## Does this map collect ACAT behavioral data?
+
+**No — this document is explanatory reference architecture; it does not
+collect anything.** ACAT's 12-dimension self-report capture already happens
+independent of this map, at two points this map only *names*:
+
+- **P1 (session open)** is Stage 9, "Boot Log — Drift Catalog + Phase 1
+  Declaration" below — the `<<<ACAT_P1_DECLARATION_START/END>>>` block
+  (SESSION_RITUALS §A.5-6).
+- **P3 (session close)** is Stage 12, "Shutdown / Close Ritual" below — after
+  the §B.0 Empirical Verification Block, at §B.2.
+
+In both cases the scores are self-report; what varies is only the submission
+transport (a manual URL+paste per SESSION_RITUALS §D, or the newer
+programmatic path through `acat/api/routes/intake_router.py` →
+`acat/api/services/ingest_service.py` → Supabase `acat_assessments_v1`,
+wrapped as an MCP tool in `acat/mcp/wrappers/acat_mcp_wrapper.py`). Neither
+path is added, changed, or unlocked by this map or its ratification. The one
+genuinely independent, harness-driven signal in this repo —
+`tools/tool_trace_hook_v1_0.py`, hash-chain logging actual tool calls via
+`.claude/settings.json` hooks — verifies what tools ran, not ACAT scores, by
+its own docstring.
+
+If a future candidate wants to use these boot stages as an instrumentation
+scaffold (e.g., tagging tool-trace events with a `boot_stage` field, or
+joining trace evidence to `acat_assessments_v1` rows for the same session as
+corroboration), that is new engineering work requiring its own design and
+its own candidate — not something this document implies or authorizes.
+
+**Related work:** a separate, more rigorous formalization of these stages as
+an executable, adversarially-reviewed state machine exists at PR #332
+(`Q-BOOT-STATE-MACHINE-01` adversarial review + corrected `v0.3` prototype,
+`z1-inbox/2026-09-14/`). It is explicit that ACAT/calibration signals are out
+of scope for that prototype too, and — like this document — that it is a Z1
+working artifact, not ratified, with `calibration_ref` (P30) still pending.
+It also surfaced two upstream findings this document's "Open conflict" notes
+above are consistent with: `IC-CAND-BSM-A` (SESSION_RITUALS.md's own
+changelog claims a Section F "Degraded-Mode Specification" that isn't in the
+live file) and `AMBIGUITY-BSM-C` (CLAUDE.md §A and SESSION_RITUALS.md §A
+specify conflicting session-open step orders, not just conflicting
+REGISTERED.md-fetch conditionality). This document does not depend on PR #332
+landing or not landing — it's cited here as corroborating, independently
+produced evidence for conflicts already flagged above, not as a
+prerequisite.
+
+---
+
 ## Executive Summary
 
-| Boot Chain Stage | HumanAIOS Equivalent | Governing File(s) | On Failure |
-|:---|:---|:---|:---|
-| **POST** (power-on self-test) | Fetch live operational state | **Claude sessions:** primary WGS #wgs-sync via Slack MCP (CURRENT.md, Class 1), haioscc secondary/cross-check. **SESSION_RITUALS §A.1 itself is substrate-agnostic** and names only `haioscc.pages.dev/api/state/*` for any substrate — the WGS-primary reading is CURRENT.md/OPERATOR_RUNBOOK.md's Claude-specific refinement, not the universal rule | **Claude, Slack MCP unavailable** → PATH C (degraded), proceed from CURRENT.md only (OPERATOR_RUNBOOK.md) — not a blanket halt. **Other substrates / the haioscc path itself failing:** SESSION_RITUALS §A.1's literal halt-and-report |
-| **Firmware / Secure Boot** | Pin commit SHA (demonstrated); content-hash-vs-manifest check (specified; a dated single-drop manifest exists as precedent, but no current one covering REGISTERED.md+ZONE_REGISTRY.md was located) | `git fetch && git rev-parse HEAD` (commit pin) + sha256-vs-manifest per CLAUDE.md §A.5 | Commit-fetch failure → halt; manifest mismatch has no dedicated branch, generic §F.1 "stop and ask" plausibly applies |
-| **Bootloader / boot spec** | Session-open ritual specification | `SESSION_RITUALS.md` (parser-tag authority) + `CURRENT.md`/`GOVERNANCE.md`/`OPERATOR_RUNBOOK.md` (orchestration detail, per SESSION_RITUALS.md's own §A closing note and §H) | Fetch fails → halt, report |
-| **Boot parameters / policy** | Load standing principles + operating process | `GOVERNANCE.md`, `CURRENT.md` | Proceed on last-known if fetch fails is NOT allowed — halt |
-| **Kernel image** *(registry-touching sessions per SESSION_RITUALS.md; CLAUDE.md's own §A reads this as unconditional — see "Open conflict" above)* | Load registered findings/context | `REGISTERED.md` (pinned SHA, live-fetch) | DEGRADED mode (SESSION_RITUALS §F.9, IC-029/IC-030) |
-| **Device/node enumeration** | Enumerate active zones/repos | `ZONE_REGISTRY.md` | ZONE_REGISTRY.md's own header claims "merge block"; CLAUDE.md lists the `registry_consistency` CI gate as "planned Phase 3" — not yet confirmed live either way in this document |
-| **Init / unit ordering** | Ranked work queue | `PRIORITY_QUEUE.md` | Blocked row without unblock action → GAP callout |
-| **Kernel permission model** | Authority tiers (Z1/Z2/Z3) — specified in CLAUDE.md; CLAUDE.md's own tables disagree on whether Z1 may write CANDIDATE blocks to REGISTERED.md (see §8 below) | `CLAUDE.md`; `.github/CODEOWNERS` names itself a self-review placeholder, not yet an independent gate | Action outside cap → escalate to Z2 |
-| **Boot log / dmesg** | Drift catalog + Phase 1 declaration | SESSION_RITUALS §A.5-6 | — |
-| **Login prompt** | Wait for user confirmation | SESSION_RITUALS §A.7 | Work does not begin until acknowledged |
-| **Runtime tuning (sysctl)** | Molt cycle, constants | `/molt_cycle.py`, `constants.json`, `MOLT_STATE.md` | Anti-cascade freeze (K=3, revert-twice rule) — **specified as policy; `/molt_cycle.py`'s own check is currently a stub that always passes** |
-| **Shutdown / close ritual** | Session close | SESSION_RITUALS §B | B.0 hard gate before a close artifact that asserts contents (receipt, WGS post, summary, status report) |
-| **Journal (append-only log)** | Per-session close record = WGS Slack log (Section B, item 7 — scoped to "substrates with Slack write access only, typically Claude," not universal); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, unrelated subsystem — not written by §B) | WGS `#wgs-sync` (session record, Claude/Slack-write-access sessions); `ledgers/NF_LEDGER.jsonl` (pattern only) | For substrates that write it: WGS post omitted → next session's Class 1 read is stale (CURRENT.md). Other substrates: no journal write specified here |
+| Boot Chain Stage | HumanAIOS Equivalent | Governing File(s) | On Failure | Status |
+|:---|:---|:---|:---|:---|
+| **POST** (power-on self-test) | Fetch live operational state | **Claude sessions:** primary WGS #wgs-sync via Slack MCP (CURRENT.md, Class 1), haioscc secondary/cross-check. **SESSION_RITUALS §A.1 itself is substrate-agnostic** and names only `haioscc.pages.dev/api/state/*` for any substrate — the WGS-primary reading is CURRENT.md/OPERATOR_RUNBOOK.md's Claude-specific refinement, not the universal rule | **Claude, Slack MCP unavailable** → PATH C (degraded), proceed from CURRENT.md only (OPERATOR_RUNBOOK.md) — not a blanket halt. **Other substrates / the haioscc path itself failing:** SESSION_RITUALS §A.1's literal halt-and-report | Specified |
+| **Firmware / Secure Boot** | Pin commit SHA (demonstrated); content-hash-vs-manifest check (specified; a dated single-drop manifest exists as precedent, but no current one covering REGISTERED.md+ZONE_REGISTRY.md was located) | `git fetch && git rev-parse HEAD` (commit pin) + sha256-vs-manifest per CLAUDE.md §A.5 | Commit-fetch failure → halt; manifest mismatch has no dedicated branch, generic §F.1 "stop and ask" plausibly applies | Partial — commit pin **Enforced**, manifest check **Aspirational** |
+| **Bootloader / boot spec** | Session-open ritual specification | `SESSION_RITUALS.md` (parser-tag authority) + `CURRENT.md`/`GOVERNANCE.md`/`OPERATOR_RUNBOOK.md` (orchestration detail, per SESSION_RITUALS.md's own §A closing note and §H) | Fetch fails → halt, report | Specified |
+| **Boot parameters / policy** | Load standing principles + operating process | `GOVERNANCE.md`, `CURRENT.md` | Proceed on last-known if fetch fails is NOT allowed — halt | Specified |
+| **Kernel image** *(registry-touching sessions per SESSION_RITUALS.md; CLAUDE.md's own §A reads this as unconditional — see "Open conflict" above)* | Load registered findings/context | `REGISTERED.md` (pinned SHA, live-fetch) | DEGRADED mode (SESSION_RITUALS §F.9, IC-029/IC-030) | Specified (protocol-level hard gate, not code-enforced) |
+| **Device/node enumeration** | Enumerate active zones/repos | `ZONE_REGISTRY.md` | ZONE_REGISTRY.md's own header claims "merge block"; CLAUDE.md lists the `registry_consistency` CI gate as "planned Phase 3" — not yet confirmed live either way in this document | Aspirational (per CLAUDE.md's own "planned Phase 3") |
+| **Init / unit ordering** | Ranked work queue | `PRIORITY_QUEUE.md` | Blocked row without unblock action → GAP callout | Specified |
+| **Kernel permission model** | Authority tiers (Z1/Z2/Z3) — specified in CLAUDE.md; CLAUDE.md's own tables disagree on whether Z1 may write CANDIDATE blocks to REGISTERED.md (see §8 below) | `CLAUDE.md`; `.github/CODEOWNERS` names itself a self-review placeholder, not yet an independent gate | Action outside cap → escalate to Z2 | Partial — Z2-hash escalation gate **Specified**, CODEOWNERS review gate **Aspirational** |
+| **Boot log / dmesg** | Drift catalog + Phase 1 declaration | SESSION_RITUALS §A.5-6 | — | Specified |
+| **Login prompt** | Wait for user confirmation | SESSION_RITUALS §A.7 | Work does not begin until acknowledged | Specified |
+| **Runtime tuning (sysctl)** | Molt cycle, constants | `/molt_cycle.py`, `constants.json`, `MOLT_STATE.md` | Anti-cascade freeze (K=3, revert-twice rule) — **specified as policy; `/molt_cycle.py`'s own check is currently a stub that always passes** | Aspirational (confirmed stub) |
+| **Shutdown / close ritual** | Session close | SESSION_RITUALS §B | B.0 hard gate before a close artifact that asserts contents (receipt, WGS post, summary, status report) | Specified |
+| **Journal (append-only log)** | Per-session close record = WGS Slack log (Section B, item 7 — scoped to "substrates with Slack write access only, typically Claude," not universal); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, unrelated subsystem — not written by §B) | WGS `#wgs-sync` (session record, Claude/Slack-write-access sessions); `ledgers/NF_LEDGER.jsonl` (pattern only) | For substrates that write it: WGS post omitted → next session's Class 1 read is stale (CURRENT.md). Other substrates: no journal write specified here | Specified (Slack-write-access substrates only) |
 
 ---
 
@@ -86,6 +148,8 @@ literally universal.
 **HumanAIOS Mapping:** SESSION_RITUALS §A Step 1's literal text names `GET /api/state/operational` and `GET /api/state/zone3?status=open`. CURRENT.md's Class 1 entry supersedes this with the actual current source priority for Claude sessions: **primary** is a WGS read via Slack MCP (`slack_read_channel` on `#wgs-sync`, channel `C0AND66PT7U`); the haioscc endpoints are the **secondary cross-check**, noted as "unreachable from Claude's bash environment" for Claude specifically, demoting them further in practice. This stage's failure behavior is *not* a blanket halt: OPERATOR_RUNBOOK.md states that if Slack MCP is unavailable, the session declares **PATH C (degraded)** and proceeds from CURRENT.md only, rather than halting outright — a graceful-degradation path, not a POST failure in the strict sense. The strict POST-failure analogy (halt and report) is closer to what SESSION_RITUALS §A.1's own literal text describes for its named haioscc endpoints; in practice, for Claude sessions, PATH C is the more accurate failure-mode description.
 
 **Files Involved:** `#wgs-sync` (Slack MCP, primary), `haioscc.pages.dev/api/state/operational` + `/api/state/zone3` (secondary/cross-check, largely unreachable for Claude sessions)
+
+**Sharper version of this conflict, found independently:** an adversarial review of a related boot-chain formalization (PR #332, `AMBIGUITY-BSM-D`) reads SESSION_RITUALS §A.1 and CURRENT.md's Z2-GOVARCH-02 ratification together and concludes: if §A.1's "halt if either endpoint fails" is read literally alongside CURRENT.md's "haioscc is unreachable from Claude's bash environment," then *every* Claude session must halt at open, because a demoted-and-unreachable endpoint fails §A.1's check on every run. That review recorded it as an open AMBIGUITY for Z2, not something either document resolves on its own — worth citing here as independent confirmation that this stage's "failure mode" is genuinely unsettled, not just an artifact of this document's wording.
 
 ---
 
@@ -317,12 +381,23 @@ NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the appen
 
 ---
 
+## Maintenance / Ownership
+
+The Integration Diagram and Appendix Quick Reference are the highest-drift
+surfaces in this document — they've already needed correction for repo
+count, ledger path, source priority, and stage ordering across this
+document's review history. **Whoever edits SESSION_RITUALS.md §A/§B,
+CURRENT.md's Class 1 source priority, or ZONE_REGISTRY.md's active-repo
+table must re-check both against this document in the same change** — this
+map does not update itself, and a stale diagram is worse than no diagram.
+
 ## Action Items for Z2 Ratification
 
 - [ ] Ratify this mapping as reference architecture (companion to FRAMEWORK_MAPPING.md)
 - [x] Link BOOT_PROCESS_MAP.md in CLAUDE.md "How to Use This Document" section — done in this PR (see "Boot Process Reference")
 - [ ] Cross-reference from SESSION_RITUALS.md §A header (optional — not required for ratification)
 - [ ] Attach `calibration_ref` per GOVERNANCE.md P30 (interactive `acat_document_analyzer_v1.1` pass) — required before Z2 ratification of this substantive written artifact; not run in this session
+- [ ] File the pre-existing REGISTERED.md `IC-053` duplicate-ID collision as its own, separate IC candidate — out of scope for this docs-only PR (confirmed pre-existing on `main`, unrelated to this document); flagged on PR #330's CI thread, not yet filed as a standalone candidate
 - [ ] Append RATIFY event with Z2 hash
 
 ---
