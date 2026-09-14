@@ -30,11 +30,11 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 154
+  tools: 155
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 124
-  missing_from_tree: 1
+  missing_from_tree: 0
   unclassified: 0
 categories:
 - analytics_tool
@@ -1965,6 +1965,18 @@ tools:
   builder_markers: true
   purpose: intent_os_board_check — verify the Intent-OS board's "verified records" against the tree.
   session: S-091426-01
+- tool_id: HAIOS-TOOL-162
+  name: witness_framework
+  path: tools/witness_framework.py
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: 'Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

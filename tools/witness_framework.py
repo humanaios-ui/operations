@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Witness Framework — Verify that ratified fixes landed in the cited artifacts.
+"""
+Builder v1.7 compliant - witness_framework
+HumanAIOS - Q-RFM-01 extension (fix-verification framework)
+
+Witness Framework — Verify that ratified fixes landed in the cited artifacts.
 
 This tool implements the Witness checker proposed in Q-BOOT-FINDINGS-SCAN-01:
 for each REGISTERED.md entry with a 'Fix →' line citing a file and section,
@@ -12,10 +16,16 @@ The framework detects un-landed fixes by verifying content is in the claimed sec
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+
+TOOL_NAME = "witness_framework"
+TOOL_VERSION = "0.1.0"
 
 
 @dataclass
@@ -155,6 +165,46 @@ def run_witness_checks() -> list[WitnessCheck]:
     return checks
 
 
+def write_report(checks: list[WitnessCheck], output_path: str | None = None) -> None:
+    """Write results to a JSON report file."""
+    if not output_path:
+        return
+
+    report = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "tool": TOOL_NAME,
+        "version": TOOL_VERSION,
+        "total_checks": len(checks),
+        "passed": sum(1 for c in checks if c.result == (c.expected_status == "should_exist")),
+        "failed": sum(1 for c in checks if c.result != (c.expected_status == "should_exist")),
+        "checks": [
+            {
+                "case_id": c.case_id,
+                "entry_id": c.entry_id,
+                "file_path": c.file_path,
+                "search_term": c.search_term,
+                "expected_status": c.expected_status,
+                "result": c.result,
+                "detail": c.detail,
+            }
+            for c in checks
+        ],
+    }
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2)
+
+
+def run_smoke_test() -> int:
+    """Smoke test: verify basic framework functionality."""
+    checks = run_witness_checks()
+    if not checks:
+        print("ERROR: No checks executed in smoke test")
+        return 1
+    print(f"OK: Smoke test passed ({len(checks)} checks executed)")
+    return 0
+
+
 def main() -> int:
     """Run the Witness framework checks."""
     parser = argparse.ArgumentParser(
@@ -162,13 +212,24 @@ def main() -> int:
     )
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Show detailed results")
+    parser.add_argument("--smoke-test", action="store_true",
+                        help="Run smoke test and exit")
+    parser.add_argument("--output", type=str,
+                        help="Write JSON report to file")
     args = parser.parse_args()
+
+    if args.smoke_test:
+        return run_smoke_test()
 
     checks = run_witness_checks()
 
     if not checks:
         print("No checks executed")
         return 1
+
+    # Write report if requested
+    if args.output:
+        write_report(checks, args.output)
 
     # Separate passes and fails
     passed = [c for c in checks if c.result == (c.expected_status == "should_exist")]
