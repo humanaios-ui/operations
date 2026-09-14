@@ -1,0 +1,197 @@
+# REVIEWED INPUT — verbatim, DO NOT EXECUTE, DO NOT IMPORT
+#
+# This is the v0.1 artifact exactly as supplied for adversarial review, preserved
+# so that F-BSM-01 through F-BSM-17 in
+# Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md are reproducible against their
+# actual subject rather than against a paraphrase of it.
+#
+# It is stored with a .txt suffix on purpose: the file is truncated mid-statement
+# (that truncation IS finding F-BSM-01) and must not be collected by any test
+# runner or import path. Confirmed non-parsing:
+#
+#     $ python3 -c "import ast; ast.parse(open(...).read())"
+#     IndentationError: expected an indented block after 'else' statement on line 5
+#
+# The truncation is reproduced faithfully. Nothing below this header has been
+# added, corrected, reformatted, or completed.
+#
+# ----------------------------------------------------------------------------
+
+#!/usr/bin/env python3
+"""
+BOOT STATE MACHINE — Minimal Advisory Prototype
+================================================
+Q-BOOT-STATE-MACHINE-01 companion demonstration.
+
+STATUS: Experimental / advisory only.
+Does NOT amend SESSION_RITUALS.md, CLAUDE.md, GOVERNANCE.md, or CURRENT.md.
+Where this model conflicts with those sources, the sources win.
+
+Fidelity notes (from red-team test):
+- KERNEL stage is conditional on registry-touching (SESSION_RITUALS narrower reading).
+- SECURE_BOOT failure maps to stop-and-ask (closer to §F.1) rather than pure terminal halt.
+- SHUTDOWN carries B.0-style hard gate before close artifacts.
+- No new halt conditions introduced.
+- Mid-session "becomes registry-touching" is not yet modeled (known limitation).
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Callable, Optional, List, Dict, Any
+import time
+
+
+class BootState(Enum):
+    BS_POWER_ON = auto()
+    BS_POST = auto()
+    BS_SECURE_BOOT = auto()
+    BS_BOOTLOADER = auto()
+    BS_BOOT_PARAMS = auto()
+    BS_KERNEL = auto()          # only entered if registry_touching
+    BS_DEVICE_ENUM = auto()
+    BS_INIT = auto()
+    BS_LOGIN = auto()
+    BS_RUNTIME = auto()
+    BS_SHUTDOWN = auto()
+    BS_JOURNAL = auto()
+    BS_DEGRADED = auto()
+    BS_HALTED = auto()          # terminal / stop-and-ask
+    BS_DONE = auto()            # clean terminal
+
+
+# Allowed actions per state (agent may only propose these)
+ALLOWED_ACTIONS: Dict[BootState, List[str]] = {
+    BootState.BS_POWER_ON:      ["start"],
+    BootState.BS_POST:          ["fetch_live_state"],
+    BootState.BS_SECURE_BOOT:   ["pin_commit"],
+    BootState.BS_BOOTLOADER:    ["load_rituals"],
+    BootState.BS_BOOT_PARAMS:   ["load_governance_current"],
+    BootState.BS_KERNEL:        ["fetch_registered"],
+    BootState.BS_DEVICE_ENUM:   ["enumerate_zones"],
+    BootState.BS_INIT:          ["build_drift_catalog", "emit_declaration"],
+    BootState.BS_LOGIN:         ["await_confirmation"],
+    BootState.BS_RUNTIME:       ["do_work", "request_close"],
+    BootState.BS_SHUTDOWN:      ["run_b0_verification", "emit_close_artifact"],
+    BootState.BS_JOURNAL:       ["post_wgs"],
+    BootState.BS_DEGRADED:      ["report_status", "request_recovery"],
+    BootState.BS_HALTED:        ["report_status", "await_operator"],
+    BootState.BS_DONE:          [],
+}
+
+
+@dataclass
+class TransitionResult:
+    success: bool
+    new_state: BootState
+    reason: str
+    details: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class MachineContext:
+    """Mutable session context the machine and agent share."""
+    registry_touching: bool = False
+    live_state_ok: bool = False
+    path_c: bool = False                # Slack MCP unavailable → PATH_C
+    commit_pin_ok: bool = False
+    registered_fetch_ok: bool = False
+    registered_class_state: str = "UNKNOWN"  # OK | UNAVAILABLE | UNKNOWN | STALE
+    confirmation_received: bool = False
+    b0_verification_ok: bool = False
+    work_done: bool = False
+    close_artifact_emitted: bool = False
+    notes: List[str] = field(default_factory=list)
+
+
+class BootStateMachine:
+    """
+    Minimal advisory state machine.
+    Agent actions are validated against current state; transitions are
+    driven by explicit guards that restate existing protocol language.
+    """
+
+    def __init__(self, registry_touching: bool = False):
+        self.state = BootState.BS_POWER_ON
+        self.ctx = MachineContext(registry_touching=registry_touching)
+        self.history: List[str] = []
+        self._log(f"INIT registry_touching={registry_touching}")
+
+    def _log(self, msg: str) -> None:
+        entry = f"[{self.state.name}] {msg}"
+        self.history.append(entry)
+        print(entry)
+
+    def current_state(self) -> BootState:
+        return self.state
+
+    def allowed_actions(self) -> List[str]:
+        return ALLOWED_ACTIONS.get(self.state, [])
+
+    def can_act(self, action: str) -> bool:
+        return action in self.allowed_actions()
+
+    # ------------------------------------------------------------------
+    # Guards / transition logic (faithful to existing language)
+    # ------------------------------------------------------------------
+
+    def transition(self, action: str, **kwargs) -> TransitionResult:
+        if not self.can_act(action):
+            return TransitionResult(
+                False, self.state,
+                f"Action '{action}' not allowed in state {self.state.name}"
+            )
+
+        handler = getattr(self, f"_do_{action}", None)
+        if handler is None:
+            return TransitionResult(False, self.state, f"No handler for action '{action}'")
+
+        result = handler(**kwargs)
+        if result.success and result.new_state != self.state:
+            old = self.state
+            self.state = result.new_state
+            self._log(f"TRANSITION {old.name} → {self.state.name} | {result.reason}")
+        else:
+            self._log(f"ACTION {action} | {result.reason}")
+        return result
+
+    # --- action handlers ---
+
+    def _do_start(self) -> TransitionResult:
+        return TransitionResult(True, BootState.BS_POST, "Power-on → POST")
+
+    def _do_fetch_live_state(self, slack_mcp_available: bool = True) -> TransitionResult:
+        if not slack_mcp_available:
+            self.ctx.path_c = True
+            self.ctx.live_state_ok = False
+            self.ctx.notes.append("PATH_C declared (Slack MCP unavailable)")
+            # OPERATOR_RUNBOOK: declare PATH_C and proceed from CURRENT.md only
+            return TransitionResult(
+                True, BootState.BS_SECURE_BOOT,
+                "PATH_C (degraded live-state path) — proceed with CURRENT.md only"
+            )
+        self.ctx.live_state_ok = True
+        return TransitionResult(True, BootState.BS_SECURE_BOOT, "Live state OK")
+
+    def _do_pin_commit(self, pin_ok: bool = True) -> TransitionResult:
+        self.ctx.commit_pin_ok = pin_ok
+        if not pin_ok:
+            # §F.1 style: stop and ask (softened from pure terminal halt)
+            return TransitionResult(
+                True, BootState.BS_HALTED,
+                "Commit pin failed — stop and ask operator (§F.1)"
+            )
+        return TransitionResult(True, BootState.BS_BOOTLOADER, "Commit pin OK")
+
+    def _do_load_rituals(self) -> TransitionResult:
+        return TransitionResult(True, BootState.BS_BOOT_PARAMS, "SESSION_RITUALS + orchestration loaded")
+
+    def _do_load_governance_current(self) -> TransitionResult:
+        # After boot params, decide whether to enter KERNEL
+        if self.ctx.registry_touching:
+            return TransitionResult(True, BootState.BS_KERNEL, "Registry-touching → enter KERNEL")
+        else:
+
+# ---- END OF SUPPLIED ARTIFACT ----
+# The file ends here, mid-`else:`, with no block body. This is F-BSM-01.
