@@ -27,7 +27,6 @@ decision_window_days: 2
 counts: {candidates: 39, records: 21}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
-counts: {candidates: 25, records: 19}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
