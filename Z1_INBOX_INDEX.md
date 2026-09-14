@@ -26,6 +26,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-15 | **Q-GOVGATE-01** | The Z2 gate never ran; z1-inbox conversion mechanism | `z1-inbox/2026-09-13/Q-GOVGATE-01.md` |
 | 2026-09-15 | **Q-NF-ADAPTER-01** | molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger | `z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md` |
 | 2026-09-15 | **Q-RBE-01** | Resource-based operations v0.1 — units, ledger, census, priced queue | `z1-inbox/2026-09-13/Q-RBE-01.md` |
+| 2026-09-15 | **Q-RFM-01** | REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner | `z1-inbox/2026-09-13/Q-RFM-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-01** | Tool manifest & document-control registry | `z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-02** | Tool category vocabulary & backlog clearance | `z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-03** | Turning the gate on itself — every blocking rule must be able to fail | `z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md` |
@@ -136,6 +137,19 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Brier calculation is mathematically sound (review formula)
 - [ ] Schema extends without breaking existing records (review migration path)
 - [ ] Molt Cycle integration is viable (review pseudocode in schema)
+
+### Q-RFM-01 (8)
+
+`z1-inbox/2026-09-13/Q-RFM-01.md`
+
+- [ ] Is the RFM taxonomy the right vocabulary, and is 19 the right granularity?
+- [ ] Should `--enforce` be turned on, and if so before or after remediating the 107 defects?
+- [ ] Should the scanner be wired into CI, given `findings-registry.yml` already runs a blocking validator?
+- [ ] Which instrument's census is authoritative — 126, 130 or 135?
+- [ ] Is `RFM-06` right to score the **full** ten-field schema (57.0%) rather than the core five (91.1%)? The gap is `substrate` / `tags` / `superseded_by` / `date_origin` — declared but never adopted. Schema erosion, or an over-declared schema that should be trimmed?
+- [ ] Accept / edit / reject IC-CAND-A through IC-CAND-D; assign numbers if accepted
+- [ ] Commission `Q-RFM-02` (cost-class taxonomy)? It is the blocker on every `UNSCORED` FMEA cell
+- [ ] Is naval command vocabulary in Column 2 acceptable, or should the map stay in existing terms?
 
 ### Q-TOOLCONTROL-01 (8)
 

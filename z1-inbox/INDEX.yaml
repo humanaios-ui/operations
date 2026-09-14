@@ -107,6 +107,13 @@ candidates:
     submitted: "2026-09-12"
     status: awaiting_z2
 
+  - q_id: Q-RFM-01
+    title: "REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner"
+    path: "z1-inbox/2026-09-13/Q-RFM-01.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Eight-item Z2 checklist. Blocking decisions: whether to turn on --enforce, and which of four disagreeing instruments states the registry census (126 / 130 / 135 / 138 / 142). Current baseline post-second-main-merge: 142 entries, 107/568 defects, 81.2% FPY, 188,380 DPMO."
+
   - q_id: Q-TOOLCONTROL-01
     title: "Tool manifest & document-control registry"
     path: "z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md"
