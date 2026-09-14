@@ -4094,3 +4094,34 @@ H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, ko
 - Q-SI-C1: System integration checkpoint 1, Phase 1 gate verification
 
 **Callouts:** None — no blockers, no gaps, no ambiguities. Phase 0 execution clean.
+
+### Q-FRAMEWORK-AUDIT-DEPLOY-01 — Deploy Framework-Audit Workflow to 12 Repositories
+
+```yaml
+---
+id: "Q-FRAMEWORK-AUDIT-DEPLOY-01"
+name: "framework-audit-deploy-phase-1b"
+status: CANDIDATE
+class: Q
+date_registered: "2026-09-14"
+date_origin: "2026-09-14"
+session_registered: "S-091426-Z1-framework"
+principles_triggered: ["P-governance", "P-framework"]
+substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
+tags: ["governance", "framework-audit", "workflow", "CI/CD", "multi-repo", "phase-1b"]
+related_finding: []
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+- **Synopsis:** Phase 1B of FRAMEWORK_MAPPING.md rollout. Deploy framework-audit workflow (CI/CD gate) to 12 remaining repositories in the HumanAIOS ecosystem. Each repo receives: (1) `.github/workflows/framework-audit.yml` copied from template at `.github/workflows/per-repo-framework-audit.yml.template`, (2) CLAUDE.md updated with Framework Reference section linking to `FRAMEWORK_MAPPING.md`, (3) PR created to `claude/framework-audit-deploy-lqr32u` branch. Repositories: empirica-autonomy, empirica-foundation-evaluator, empirica-mesh-support, empirica-outreach, empirica-resource-miner, flta-app-empirica, website, grok-crossref, collaborator-ops, local-machine-optimizer, opportunity-aggregator, empirica-autonomy-archive.
+- **Scope guard:** Workflow template deployment only. No changes to governance files, REGISTERED.md, or authority structure. Each repo's CLAUDE.md updated only with inert Framework Reference section (links only; no authority changes).
+- **Deliverables:** (1) Framework-audit workflow active in CI/CD on all 12 repos by 2026-09-17T22:27Z; (2) PRs merged to main on each repo; (3) REGISTERED.md updated with VERDICT entry post-deployment.
+- **Falsifier (required for Z2 ratification):** Workflow deployment fails on ≥3 repos (push error, PR merge failure, CI gate rejection) OR deadline not met (after 2026-09-17T22:27Z) OR Framework Reference link in CLAUDE.md points to wrong document path OR any repo's workflow conflicts with existing `.github/workflows/` structure (merge conflict unresolved).
+- **Promotion gate:** (1) Z2 ACCEPT signature on this candidate; (2) all 12 repos have framework-audit.yml active and passing CI on their main branch; (3) VERDICT event filed in REGISTERED.md with completion timestamp and falsifier-check result.
+
+**Priority:** High (Phase 1B deadline-driven, unblocks Phase 2 integration testing)  
+**Estimated effort:** 2–3 hours (parallel repo work, CI gate validation per repo)  
+**Assigned executor (pending Z2 delegation):** Z3 (primary: Claude Haiku, fallback: ops-steward if escalation needed)
+
