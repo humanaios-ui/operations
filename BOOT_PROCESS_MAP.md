@@ -24,14 +24,25 @@ sessions, not every session — has the same precision as the rest of the
 chain. It uses the same paired-mapping + diagram format as
 FRAMEWORK_MAPPING.md.
 
-**Scope note:** every session runs §A Steps 1-7 (live state, environment
-classification, governance/session-rituals fetch, drift catalog, declaration,
-confirmation wait). Only a *registry-touching session* — one that proposes,
-modifies, or acts against F/IC/H/NM-class entries — additionally fetches and
-pins REGISTERED.md (§A Step 4) and is subject to the §F.9 halt if that fetch
-fails or returns UNAVAILABLE/UNKNOWN/STALE state. The "kernel image" stage
-below (REGISTERED.md) is conditional on that distinction; everything else in
-this map applies session-wide.
+**Scope note:** every session runs §A Steps 1-7 (live state, `CURRENT.md`,
+environment classification, governance/session-rituals fetch, drift catalog,
+declaration, confirmation wait). SESSION_RITUALS.md §A Step 4 conditions the
+REGISTERED.md fetch on the session being *registry-touching* — one that
+proposes, modifies, or acts against F/IC/H/NM-class entries — and the §F.9
+halt applies to that same condition. **Open conflict, not resolved by this
+document:** CLAUDE.md's own §A ("Session Rituals") lists "Read REGISTERED.md
+at that SHA" as step 2 of what it calls "Mandatory before any work" —
+unconditional, no registry-touching qualifier. SESSION_RITUALS.md and
+CLAUDE.md disagree on whether every session or only a registry-touching one
+must fetch REGISTERED.md. This document follows SESSION_RITUALS.md's
+narrower, explicitly-conditioned wording throughout (it is the more detailed
+and more recently versioned of the two on this specific point, v6.4.1 with a
+dated IC-030 hardening note), but that is this document's editorial choice,
+not a settled ratification — Z2 should treat the CLAUDE.md/SESSION_RITUALS.md
+disagreement itself as a candidate AMBIGUITY callout independent of whether
+this mapping is ratified. The "kernel image" stage below (REGISTERED.md) is
+conditional under the SESSION_RITUALS.md reading; everything else in this map
+applies session-wide under both readings.
 
 ---
 
@@ -39,12 +50,12 @@ this map applies session-wide.
 
 | Boot Chain Stage | HumanAIOS Equivalent | Governing File(s) | On Failure |
 |:---|:---|:---|:---|
-| **POST** (power-on self-test) | Fetch live operational state | `haioscc.pages.dev/api/state/*` | Halt, report (SESSION_RITUALS §A.1) |
+| **POST** (power-on self-test) | Fetch live operational state | Primary: WGS #wgs-sync via Slack MCP (per CURRENT.md, Class 1). Secondary/cross-check named in SESSION_RITUALS §A.1's literal text: `haioscc.pages.dev/api/state/*` — CURRENT.md notes this endpoint is unreachable from Claude's bash environment and is demoted to secondary for Claude sessions specifically | Halt, report (SESSION_RITUALS §A.1) |
 | **Firmware / Secure Boot** | Pin commit SHA; independently verify file content hashes against manifest | `git fetch` (commit pin) + sha256 manifest check (content pin) | Halt — do not trust an unverified payload |
-| **Bootloader / boot spec** | Session-open ritual specification | `SESSION_RITUALS.md` (parser-tag authority) + `CURRENT.md`/`GOVERNANCE.md`/`OPERATOR_RUNBOOK.md` (orchestration detail, per SESSION_RITUALS §61/§H) | Fetch fails → halt, report |
+| **Bootloader / boot spec** | Session-open ritual specification | `SESSION_RITUALS.md` (parser-tag authority) + `CURRENT.md`/`GOVERNANCE.md`/`OPERATOR_RUNBOOK.md` (orchestration detail, per SESSION_RITUALS.md's own §A closing note and §H) | Fetch fails → halt, report |
 | **Boot parameters / policy** | Load standing principles + operating process | `GOVERNANCE.md`, `CURRENT.md` | Proceed on last-known if fetch fails is NOT allowed — halt |
-| **Kernel image** *(registry-touching sessions only)* | Load registered findings/context | `REGISTERED.md` (pinned SHA, live-fetch) | DEGRADED mode (SESSION_RITUALS §F.9, IC-029/IC-030) |
-| **Device/node enumeration** | Enumerate active zones/repos | `ZONE_REGISTRY.md` | Zone misalignment = merge block |
+| **Kernel image** *(registry-touching sessions per SESSION_RITUALS.md; CLAUDE.md's own §A reads this as unconditional — see "Open conflict" above)* | Load registered findings/context | `REGISTERED.md` (pinned SHA, live-fetch) | DEGRADED mode (SESSION_RITUALS §F.9, IC-029/IC-030) |
+| **Device/node enumeration** | Enumerate active zones/repos | `ZONE_REGISTRY.md` | ZONE_REGISTRY.md's own header claims "merge block"; CLAUDE.md lists the `registry_consistency` CI gate as "planned Phase 3" — not yet confirmed live either way in this document |
 | **Init / unit ordering** | Ranked work queue | `PRIORITY_QUEUE.md` | Blocked row without unblock action → GAP callout |
 | **Kernel permission model** | Authority tiers (Z1/Z2/Z3) | `CLAUDE.md` (review-gated by `.github/CODEOWNERS` + branch protection) | Action outside cap → escalate to Z2 |
 | **Boot log / dmesg** | Drift catalog + Phase 1 declaration | SESSION_RITUALS §A.5-6 | — |
@@ -60,9 +71,9 @@ this map applies session-wide.
 ### 1. POST — Power-On Self-Test
 **Concept:** Before anything else, hardware checks that the machine is even capable of booting — power rails, memory, attached devices. A POST failure halts before the bootloader ever runs.
 
-**HumanAIOS Mapping:** SESSION_RITUALS §A Step 1 — `GET /api/state/operational` and `GET /api/state/zone3?status=open`. This is the "is the operational substrate alive" check. If either fetch fails, the session halts and reports — exactly a POST failure, before any protocol file is even read.
+**HumanAIOS Mapping:** SESSION_RITUALS §A Step 1's literal text names `GET /api/state/operational` and `GET /api/state/zone3?status=open`. CURRENT.md's Class 1 entry supersedes this with the actual current source priority for Claude sessions: **primary** is a WGS read via Slack MCP (`slack_read_channel` on `#wgs-sync`, channel `C0AND66PT7U`); the haioscc endpoints are the **secondary cross-check**, and CURRENT.md notes they are "unreachable from Claude's bash environment" for Claude specifically, demoting them further in practice. Either way, this is the "is the operational substrate alive" check — if the applicable fetch fails, the session halts and reports, exactly a POST failure before any protocol file is even read.
 
-**Files Involved:** `haioscc.pages.dev/api/state/operational`, `haioscc.pages.dev/api/state/zone3`
+**Files Involved:** `#wgs-sync` (Slack MCP, primary), `haioscc.pages.dev/api/state/operational` + `/api/state/zone3` (secondary/cross-check, largely unreachable for Claude sessions)
 
 ---
 
@@ -77,7 +88,7 @@ this map applies session-wide.
 
 **Files Involved:** `.git` (commit pin), sha256 manifest (per CLAUDE.md §A.5)
 
-**Failure mode:** Fetch failure, or a manifest mismatch, → registry-touching halt (SESSION_RITUALS §F.9) for registry-touching sessions — same posture as Secure Boot refusing an unsigned or altered kernel.
+**Failure mode:** SESSION_RITUALS §F.9 explicitly covers a failed REGISTERED.md fetch or an UNAVAILABLE/UNKNOWN/STALE class state for registry-touching sessions. It does not separately name a manifest-hash-mismatch branch — CLAUDE.md §A.5 requires the sha256 check but does not spell out its own consequence on mismatch. Treat that as an open gap in the protocol rather than an already-specified failure mode: the honest analogy is that Secure Boot's signature-mismatch case doesn't yet have a named HumanAIOS equivalent, not that §F.9 already covers it.
 
 ---
 
@@ -116,7 +127,7 @@ this map applies session-wide.
 ### 6. Device / Node Enumeration — ZONE_REGISTRY.md
 **Concept:** Once the kernel is running, it enumerates the hardware/devices it has to work with (device tree, PCI bus scan) before anything can be scheduled onto them.
 
-**HumanAIOS Mapping:** `ZONE_REGISTRY.md` enumerates the active repos as nodes (12 per its current "Repository Zone Assignments" table — read the live table rather than treating any number here as fixed, since PLANNED_REPOS.md tracks additional repos not yet attached), each with a Z1/Z2/Z3 assignment — the device table the rest of the session's work is scheduled against. Its own enforcement line ("CI gate validates every PR against this registry. Zone misalignment = merge block") is exactly a device driver refusing to bind a resource to a device that isn't enumerated.
+**HumanAIOS Mapping:** `ZONE_REGISTRY.md` enumerates the active repos as nodes (12 per its current "Repository Zone Assignments" table — read the live table rather than treating any number here as fixed, since PLANNED_REPOS.md tracks additional repos not yet attached), each with a Z1/Z2/Z3 assignment — the device table the rest of the session's work is scheduled against. Its own enforcement line reads "CI gate validates every PR against this registry. Zone misalignment = merge block" — a device driver refusing to bind a resource to a device that isn't enumerated, *if* that gate is actually wired up. It may not be yet: CLAUDE.md's own governance table lists the `registry_consistency` CI gate as "planned Phase 3," which would make this enforcement aspirational rather than live. This document doesn't resolve which file is current; flagging the discrepancy is more honest than picking a side.
 
 **Files Involved:** `ZONE_REGISTRY.md`, `PLANNED_REPOS.md` (devices not yet attached — roadmap, read-only)
 
@@ -125,7 +136,7 @@ this map applies session-wide.
 ### 7. Init / Unit Ordering — PRIORITY_QUEUE.md
 **Concept:** PID 1 (init/systemd) brings up services in dependency order once devices are enumerated — some units block others, some run in parallel, failures are reported without necessarily halting the whole boot.
 
-**HumanAIOS Mapping:** `PRIORITY_QUEUE.md` is the ordered unit list — ranked by Z2-ratified scores, with explicit blocked-row semantics (a GAP callout is the equivalent of a systemd unit reporting `failed` with a dependency reason instead of silently vanishing). Where a specific row's own ratification hash is still pending, that mirrors a unit whose dependency is declared but not yet satisfied — ranked and queued, not yet cleared to start.
+**HumanAIOS Mapping:** `PRIORITY_QUEUE.md` is the ordered unit list — ranked by Z1-proposed scores under a declared formula, with explicit blocked-row semantics (a GAP callout is the equivalent of a systemd unit reporting `failed` with a dependency reason instead of silently vanishing). The queue's own metadata currently shows `ratification_hash: — (pending Z2 signature)` — the scores are declared and ranked, not yet Z2-ratified — which mirrors units that are enumerated and ordered but whose dependency graph hasn't been signed off; the `status_gate: READY` still governs which rows may begin regardless.
 
 **Files Involved:** `PRIORITY_QUEUE.md`
 
@@ -134,7 +145,7 @@ this map applies session-wide.
 ### 8. Kernel Permission Model — CLAUDE.md + CODEOWNERS
 **Concept:** The kernel enforces a permission/capability model (ring 0 vs. userspace, syscall gating, SELinux/AppArmor policy) loaded at boot and enforced for the life of the running system.
 
-**HumanAIOS Mapping:** `CLAUDE.md` (this file) — the Z1/Z2/Z3 authority structure is loaded once at boot and gates every subsequent action for the session's lifetime: Z1 cannot execute (no write to REGISTERED.md without a Z2-signed capability token, i.e. the ratification hash), Z3 cannot execute without that same token, Z2 alone can sign it. `.github/CODEOWNERS` is the review-gating layer for this permission model — not a filesystem ACL: by the file's own header, it currently enforces nothing on its own ("CODEOWNERS alone enforces nothing: branch protection must also have 'Require review from Code Owners' enabled") and documents itself as a self-review placeholder pending a second independent reviewer. That's a real gap in the analogy worth carrying forward as-is rather than smoothing over: the permission *model* is specified, but one of its enforcement mechanisms is explicitly not yet independent.
+**HumanAIOS Mapping:** `CLAUDE.md` (this file) — the Z1/Z2/Z3 authority structure is loaded once at boot and gates every subsequent action for the session's lifetime. The capability distinction is *propose* vs. *execute*, not *write* vs. *no write*: Z1 is explicitly permitted to append CANDIDATE blocks to REGISTERED.md (this very candidate is one — "Output: Candidate blocks → REGISTERED.md (awaiting Z2 hash)" per CLAUDE.md's own Z1 section) — the unprivileged-write syscall in this analogy. What Z1 cannot do is execute or land a *ratified* change (mark it ACCEPTED and act on it) without a Z2-signed capability token, i.e. the ratification hash; Z3 cannot execute without that same token; Z2 alone can sign it. `.github/CODEOWNERS` is the review-gating layer for this permission model — not a filesystem ACL: by the file's own header, it currently enforces nothing on its own ("CODEOWNERS alone enforces nothing: branch protection must also have 'Require review from Code Owners' enabled") and documents itself as a self-review placeholder pending a second independent reviewer. That's a real gap in the analogy worth carrying forward as-is rather than smoothing over: the permission *model* is specified, but one of its enforcement mechanisms is explicitly not yet independent.
 
 **Files Involved:** `CLAUDE.md`, `.github/CODEOWNERS`
 
@@ -143,7 +154,7 @@ this map applies session-wide.
 ### 9. Boot Log — Drift Catalog + Phase 1 Declaration
 **Concept:** `dmesg` / the boot log is the running system's first self-report — what it detected, what it expects might go wrong, emitted before it hands control to a user.
 
-**HumanAIOS Mapping:** SESSION_RITUALS §A.5-6 — the drift catalog (3-8 predicted failure modes, tagged `[C-NN]` etc.) and the Phase 1 declaration block (`<<<ACAT_P1_DECLARATION_START>>>`) are exactly this: a structured, parseable self-report emitted after the governing files are loaded (and, for registry-touching sessions, after REGISTERED.md and ZONE_REGISTRY.md) but before the system accepts work.
+**HumanAIOS Mapping:** SESSION_RITUALS §A.5-6 — the drift catalog (3-8 predicted failure modes, tagged `[C-NN]` etc.) and the Phase 1 declaration block (`<<<ACAT_P1_DECLARATION_START>>>`) are exactly this: a structured, parseable self-report emitted after the governing files are loaded but before the system accepts work. Note that ZONE_REGISTRY.md's fetch is not part of SESSION_RITUALS.md §A at all — it's CLAUDE.md §A step 4 — so where this document says "after the governing files are loaded," that spans both files' session-open sequences, not one citation covering both.
 
 **Files Involved:** SESSION_RITUALS §C (parser tags)
 
@@ -191,7 +202,9 @@ this map applies session-wide.
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │ POWER ON                                                          │
-│  POST → haioscc /api/state/operational, /api/state/zone3          │
+│  POST → live state: WGS #wgs-sync (primary, Slack MCP) ·          │
+│         haioscc /api/state/* (secondary — largely unreachable      │
+│         from Claude's bash env per CURRENT.md)                     │
 │  fail → HALT, report (no bootloader stage reached)                │
 └───────────────────────────┬──────────────────────────────────────┘
                              │
@@ -204,24 +217,32 @@ this map applies session-wide.
                              │
 ┌───────────────────────────▼──────────────────────────────────────┐
 │ BOOTLOADER / BOOT SPEC — SESSION_RITUALS.md §A (full step list:    │
-│  live state → env classification → governance version →           │
-│  session rituals → REGISTERED.md if registry-touching → drift      │
-│  catalog → declaration → confirmation wait). Execution detail      │
-│  distributed across CURRENT.md / GOVERNANCE.md / OPERATOR_RUNBOOK  │
+│  1 live state → 2 CURRENT.md → 2.5 env classification →           │
+│  2.6 governance version → 3 session rituals →                     │
+│  4 REGISTERED.md (registry-touching per SESSION_RITUALS.md; see   │
+│    "Open conflict" note — CLAUDE.md's own §A reads this as        │
+│    unconditional) → 5 drift catalog → 6 declaration →             │
+│  7 confirmation wait. Execution detail distributed across          │
+│  CURRENT.md / GOVERNANCE.md / OPERATOR_RUNBOOK.md                  │
 └───────────────────────────┬──────────────────────────────────────┘
                              │
 ┌───────────────────────────▼──────────────────────────────────────┐
 │ KERNEL (registry-touching sessions only) —                         │
 │  REGISTERED.md (pinned, live-fetched, append-only)                 │
-│  loaded OK → continue     fetch failed / BAD/STALE/UNKNOWN →       │
-│                             PANIC → DEGRADED mode (§F.9, IC-029)   │
+│  loaded OK → continue     fetch failed / UNAVAILABLE/UNKNOWN/      │
+│                            STALE → PANIC → DEGRADED mode           │
+│                            (§F.9, IC-029)                          │
 │                             → no F/IC/H work until re-verified     │
 └───────────────────────────┬──────────────────────────────────────┘
                              │
 ┌───────────────────────────▼──────────────────────────────────────┐
 │ DEVICE ENUMERATION — ZONE_REGISTRY.md (12 active repos as nodes,   │
-│                        per its current table)                      │
-│ INIT / UNITS      — PRIORITY_QUEUE.md (ranked, blockers = GAP)     │
+│                        per its current table; merge-block          │
+│                        enforcement claimed live by ZONE_REGISTRY,   │
+│                        listed "planned Phase 3" by CLAUDE.md —     │
+│                        unresolved conflict, not adjudicated here)  │
+│ INIT / UNITS      — PRIORITY_QUEUE.md (ranked, Z2 hash pending,    │
+│                        blockers = GAP)                              │
 │ PERMISSION MODEL  — CLAUDE.md + CODEOWNERS (review-gated, not a    │
 │                        filesystem ACL; Z1/Z2/Z3 caps)              │
 └───────────────────────────┬──────────────────────────────────────┘
@@ -255,10 +276,10 @@ this map applies session-wide.
 | Boot-chain failure | HumanAIOS equivalent | Where it's specified |
 |:---|:---|:---|
 | POST failure (no power/memory) | Live-state fetch fails | SESSION_RITUALS §A.1 |
-| Secure Boot signature mismatch | REGISTERED.md content sha256 doesn't match manifest, or the pinned commit can't be fetched | IC-030, CLAUDE.md §A.5 |
+| Secure Boot signature mismatch | REGISTERED.md content sha256 fails manifest check (CLAUDE.md §A.5 requires the check but names no explicit consequence — open gap, not yet a specified failure mode) | CLAUDE.md §A.5 |
 | Kernel panic | Registry-touching halt (fetch failed, or UNAVAILABLE/UNKNOWN/STALE) | SESSION_RITUALS §F.9 |
 | Boot into single-user/rescue mode | DEGRADED mode, CLASS_STATE block | IC-029, SESSION_RITUALS §F |
-| Device not enumerated, driver refuses bind | Zone misalignment → CI merge block | ZONE_REGISTRY.md |
+| Device not enumerated, driver refuses bind | Zone misalignment → merge block per ZONE_REGISTRY.md; CLAUDE.md lists the enforcing gate as "planned Phase 3" (conflict, unresolved) | ZONE_REGISTRY.md vs. CLAUDE.md governance table |
 | Unit failed, dependency unmet | Blocked Priority Queue row, no unblock action | GAP callout |
 | Close artifact drafted before verification, or contradicting it | Close artifact drafted before B.0, or asserting content B.0 doesn't confirm | SESSION_RITUALS §F.7-8 |
 | Runaway sysctl change | Molt exceeding K=3 cap, or reverted twice | Anti-cascade rules 3-4 |
@@ -284,7 +305,7 @@ this map applies session-wide.
 | Boot parameters | GOVERNANCE.md, CURRENT.md | Policy before payload |
 | Kernel image *(registry-touching sessions)* | REGISTERED.md | Live-fetched, append-only, halts on failed fetch/staleness |
 | Device enumeration | ZONE_REGISTRY.md | 12 active repos as nodes (live count — see file) |
-| Init/unit order | PRIORITY_QUEUE.md | Ranked, blockers surfaced |
+| Init/unit order | PRIORITY_QUEUE.md | Ranked (Z1-proposed scores, Z2 hash pending), blockers surfaced |
 | Permission model | CLAUDE.md + CODEOWNERS (review-gated, not filesystem-enforced) | Z1/Z2/Z3 caps |
 | Boot log | Drift catalog + Phase 1 block | Structured self-report |
 | Login prompt | §A.7 confirmation wait | Work gated on acknowledgment |
