@@ -4125,3 +4125,23 @@ superseded_by: null
 **Estimated effort:** 2–3 hours (parallel repo work, CI gate validation per repo)  
 **Assigned executor (pending Z2 delegation):** Z3 (primary: Claude Haiku, fallback: ops-steward if escalation needed)
 
+
+---
+
+## Z2 Ratification — 2026-09-14
+
+**Candidate ID:** Q-FRAMEWORK-AUDIT-DEPLOY-01  
+**Z2 Signature:** Night (Carly R. Anderson)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-14T22:35:00 UTC  
+**Ratification Hash:** 249a0026f44624ddeff8bc52ceb6951a0ca85589e59a7505e794f00c2f30df6e  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Ratified Scope:**
+- Deploy framework-audit workflow to 12 repositories
+- Deadline: 2026-09-17T22:27Z
+- Executor: Z3 (Claude Haiku 4.5)
+- Falsifier: deployment failure on ≥3 repos, deadline miss, incorrect link, or workflow conflicts
+
+**Status:** ACCEPTED · Ready for Z3 execution
+
