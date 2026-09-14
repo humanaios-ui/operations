@@ -2,7 +2,7 @@
 
 **Ruling by:** Night (Carly R. Anderson) — Z2 Ratifier / Admiral
 **Given:** in-session, 2026-09-14
-**Transcribed by:** Z1 (Claude). This file is a **transcription of a decision given in session**, following the precedent of `z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md`. Signed by Night via `ratify.py` on 2026-09-14.
+**Transcribed by:** Z1 (Claude). This file is a **transcription of a decision given in session**, following the precedent of `z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md`. **Status:** UNSIGNED — pending Night's `ratify.py` signature.
 
 ---
 
@@ -43,9 +43,9 @@ decision: ACCEPT
 by: Night
 at: "2026-09-14"
 mechanism: "in-session ruling, transcribed by Z1"
-z2_hash: "2d0753aafbbca989f1b815c722524659a9fbaed31fbfa3d51fb7b2c79a28b193"
+z2_hash: null
 scope: "SESSION_RITUALS.md Section A Step 1 only"
 supersedes: null
 ```
 
-**Status:** Signed. The z2_hash carries the sha256 of the ruling's prose content, pinning the amendment's statement of effects. The signature is valid as of 2026-09-14 by Night, following the precedent of Q-INTENTOS-LAUNCH-01.
+**Status:** UNSIGNED — z2_hash pending Night's signature via `ratify.py`. Once signed, the hash will pin the ruling's prose content and validate the amendment's statement of effects per precedent (Q-INTENTOS-LAUNCH-01).

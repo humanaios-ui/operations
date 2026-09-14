@@ -110,26 +110,27 @@ At the pinned SHA, `SESSION_RITUALS.md` **Section F spans lines 319–334** (`##
 | `periodic testing cadence` | 1 | 437 | **no** |
 | `Degraded-Mode Specification` | 1 | 437 | **no** |
 
-**Three independent surfaces assert the artifact exists:**
+**Three surfaces assert the artifact exists (common-mode, not independent):**
 
 | # | Surface | Assertion |
 |---|---|---|
-| 1 | `REGISTERED.md:1460` | IC-029 Fix line — **ratified** |
-| 2 | `REGISTERED.md:3082` | NM-001 row — "Promoted → Degraded-Mode Spec (Section F, SESSION_RITUALS) adopted" |
-| 3 | `SESSION_RITUALS.md:437` | v6.4.1 changelog |
+| 1 | `REGISTERED.md:1460` | IC-029 Fix line — **ratified**, source of truth |
+| 2 | `REGISTERED.md:3082` | NM-001 row — copies the IC-029 claim "Degraded-Mode Spec adopted" |
+| 3 | `SESSION_RITUALS.md:437` | v6.4.1 changelog — copies the IC-029 claim from ratification |
 
 **Reproduce (pinned, component-wise):**
 ```bash
 SHA=99b113698507dd82d39d8a9acc1cb7804e2b6c79
 curl -sSf "https://raw.githubusercontent.com/humanaios-ui/operations/$SHA/SESSION_RITUALS.md" -o SR.md \
-  && [ "$(git hash-object SR.md)" = "29cc99ae4dac6e700cb04afe60cc6a96f1081e0c" ] || echo "CHECK_UNAVAILABLE"
+  && [ "$(git hash-object SR.md)" = "29cc99ae4dac6e700cb04afe60cc6a96f1081e0c" ] \
+  || { echo "CHECK_UNAVAILABLE"; exit 1; }
 for p in "CLASS_STATE" "prohibited-actions" "recovery protocol" \
          "periodic testing cadence" "Degraded-Mode Specification"; do
   printf "%-28s %s\n" "$p" "$(grep -n "$p" SR.md | tr '\n' ' ')"
 done
 sed -n '319,334p' SR.md      # Section F body in full
 ```
-`curl -sSf` fails loudly on non-200, so a zero-match result cannot be produced by a failed fetch.
+The `|| exit 1` guard stops the block if the fetch fails or the hash does not match; a failed fetch cannot produce a zero-match result.
 
 **Why it is load-bearing.** §F halt 9 orders a substrate to "declare DEGRADED mode in Phase 1 header," and IC-030 depends on the class-state vocabulary (`UNAVAILABLE` / `UNKNOWN` / `STALE`). The specification defining what DEGRADED *permits and prohibits* does not exist to be followed. A substrate that correctly detects the halt has no defined mode to enter.
 
@@ -180,12 +181,14 @@ At the pinned SHA, `SESSION_RITUALS.md` Section B contains **B.0** (Empirical Ve
 ```bash
 SHA=99b113698507dd82d39d8a9acc1cb7804e2b6c79
 curl -sSf "https://raw.githubusercontent.com/humanaios-ui/operations/$SHA/SESSION_RITUALS.md" -o SR.md \
-  && [ "$(git hash-object SR.md)" = "29cc99ae4dac6e700cb04afe60cc6a96f1081e0c" ] || echo "CHECK_UNAVAILABLE"
+  && [ "$(git hash-object SR.md)" = "29cc99ae4dac6e700cb04afe60cc6a96f1081e0c" ] \
+  || { echo "CHECK_UNAVAILABLE"; exit 1; }
 grep -c "Step 0" SR.md                        # -> 0
 grep -n "^### B\.\|^## Section B" SR.md        # -> Section B, B.0, B.1 through B.6
 
 curl -sSf "https://raw.githubusercontent.com/humanaios-ui/operations/$SHA/GOVERNANCE.md" -o GOV.md \
-  && [ "$(git hash-object GOV.md)" = "9415715532f3067c9b825597eab46333e6124a27" ] || echo "CHECK_UNAVAILABLE"
+  && [ "$(git hash-object GOV.md)" = "9415715532f3067c9b825597eab46333e6124a27" ] \
+  || { echo "CHECK_UNAVAILABLE"; exit 1; }
 grep -n "Section B Step 0" GOV.md              # -> 158, 159, 299
 ```
 

@@ -1,8 +1,8 @@
 # HumanAIOS Session Rituals — Substrate-Agnostic
 
 **Status:** LIVE
-**Version:** v6.4.2
-**Last updated:** September 14, 2026 (S-091426-NN-boot-findings-scan · Section A Step 1 amended per Z2 ruling on AMBIGUITY-BSM-D: WGS primary, haioscc secondary, halt only if both fail · no other section changed)
+**Version:** v6.4.1
+**Last updated:** September 12, 2026 (S-051926-02-z3-closeout)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`
 **Scope:** Applies to every LLM substrate operating in HumanAIOS (Claude, Grok, GPT-5.x, Gemini, future). Substrate-specific extensions (the Claude Project CI, the Grok Workspace L1) sit on top of this.
 **Authority:** This file is the canonical parser-tag specification for the ACAT protocol. When any other operations file restates a parser-critical tag, the spec in this file wins.
@@ -42,11 +42,9 @@ Substrates may still make in-session course corrections (e.g., "I should have ru
 
 Every session, regardless of substrate, opens with these steps in order:
 
-1. **Fetch live state.** Class 1 has a primary and a secondary source; read them in that order.
-   - **Primary — WGS.** Read `#wgs-sync` (Slack `C0AND66PT7U`), e.g. `slack_read_channel C0AND66PT7U limit=10`. Per Z2-GOVARCH-02 (ratified S-060826-04) this is the Class 1 source of record.
-   - **Secondary — haioscc.** GET `https://haioscc.pages.dev/api/state/operational` and `https://haioscc.pages.dev/api/state/zone3?status=open` as a cross-check. These are frequently unreachable from a substrate's bash environment; that is expected, not an incident.
-   - **Halt rule.** Halt and report only if **both** the primary and the secondary fail. If exactly one fails, proceed and **declare DEGRADED in the Phase 1 header**, naming which source was lost — the loss of the Slack path is the case OPERATOR_RUNBOOK.md §3a calls PATH C (proceed from CURRENT.md only).
-   - A substrate that skips the primary and reports the secondary's failure as a halt has not satisfied this step.
+1. **Fetch live state.** Class 1 has two endpoints; read them in that order.
+   - **Endpoints — haioscc.** GET `https://haioscc.pages.dev/api/state/operational` and `https://haioscc.pages.dev/api/state/zone3?status=open` as a cross-check.
+   - **Halt rule.** Halt and report if either endpoint fails.
 2. **Fetch operating process.** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`. Do not proceed on memory of prior CI versions.
 2.5. **Prompt Environment Classification (AFA-1).** At session open, operator or Claude declares the session's primary prompt environment:
    - **NEUTRAL** — standard task work, no elevated approval pressure
