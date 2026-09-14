@@ -51,18 +51,18 @@ applies session-wide under both readings.
 | Boot Chain Stage | HumanAIOS Equivalent | Governing File(s) | On Failure |
 |:---|:---|:---|:---|
 | **POST** (power-on self-test) | Fetch live operational state | Primary: WGS #wgs-sync via Slack MCP (per CURRENT.md, Class 1). Secondary/cross-check named in SESSION_RITUALS §A.1's literal text: `haioscc.pages.dev/api/state/*` — CURRENT.md notes this endpoint is unreachable from Claude's bash environment and is demoted to secondary for Claude sessions specifically | Halt, report (SESSION_RITUALS §A.1) |
-| **Firmware / Secure Boot** | Pin commit SHA; independently verify file content hashes against manifest | `git fetch` (commit pin) + sha256 manifest check (content pin) | Halt — do not trust an unverified payload |
+| **Firmware / Secure Boot** | Pin commit SHA (demonstrated); content-hash-vs-manifest check (specified, manifest not located — open gap) | `git fetch && git rev-parse HEAD` (commit pin) + sha256-vs-manifest per CLAUDE.md §A.5 (manifest artifact not found in this checkout) | Commit-fetch failure → halt; manifest mismatch has no defined consequence in the protocol |
 | **Bootloader / boot spec** | Session-open ritual specification | `SESSION_RITUALS.md` (parser-tag authority) + `CURRENT.md`/`GOVERNANCE.md`/`OPERATOR_RUNBOOK.md` (orchestration detail, per SESSION_RITUALS.md's own §A closing note and §H) | Fetch fails → halt, report |
 | **Boot parameters / policy** | Load standing principles + operating process | `GOVERNANCE.md`, `CURRENT.md` | Proceed on last-known if fetch fails is NOT allowed — halt |
 | **Kernel image** *(registry-touching sessions per SESSION_RITUALS.md; CLAUDE.md's own §A reads this as unconditional — see "Open conflict" above)* | Load registered findings/context | `REGISTERED.md` (pinned SHA, live-fetch) | DEGRADED mode (SESSION_RITUALS §F.9, IC-029/IC-030) |
 | **Device/node enumeration** | Enumerate active zones/repos | `ZONE_REGISTRY.md` | ZONE_REGISTRY.md's own header claims "merge block"; CLAUDE.md lists the `registry_consistency` CI gate as "planned Phase 3" — not yet confirmed live either way in this document |
 | **Init / unit ordering** | Ranked work queue | `PRIORITY_QUEUE.md` | Blocked row without unblock action → GAP callout |
-| **Kernel permission model** | Authority tiers (Z1/Z2/Z3) | `CLAUDE.md` (review-gated by `.github/CODEOWNERS` + branch protection) | Action outside cap → escalate to Z2 |
+| **Kernel permission model** | Authority tiers (Z1/Z2/Z3) — specified in CLAUDE.md; CLAUDE.md's own tables disagree on whether Z1 may write CANDIDATE blocks to REGISTERED.md (see §8 below) | `CLAUDE.md`; `.github/CODEOWNERS` names itself a self-review placeholder, not yet an independent gate | Action outside cap → escalate to Z2 |
 | **Boot log / dmesg** | Drift catalog + Phase 1 declaration | SESSION_RITUALS §A.5-6 | — |
 | **Login prompt** | Wait for user confirmation | SESSION_RITUALS §A.7 | Work does not begin until acknowledged |
 | **Runtime tuning (sysctl)** | Molt cycle, constants | `molt_cycle.py`, `constants.json`, `MOLT_STATE.md` | Anti-cascade freeze (K=3, revert-twice rule) |
 | **Shutdown / close ritual** | Session close | SESSION_RITUALS §B | B.0 hard gate before any close artifact |
-| **Journal (append-only log)** | Hash-chained ledger | `ledgers/NF_LEDGER.jsonl` | Hash-chain verifiable via `tools/nf_ledger_cli_v1_0.py` |
+| **Journal (append-only log)** | Per-session close record = WGS Slack log (§B.7); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, unrelated subsystem — not written by §B) | WGS `#wgs-sync` (session record); `ledgers/NF_LEDGER.jsonl` (pattern only) | WGS post omitted → next session's Class 1 read is stale (CURRENT.md) |
 
 ---
 
@@ -80,15 +80,17 @@ applies session-wide under both readings.
 ### 2. Firmware / Secure Boot — Integrity Verification
 **Concept:** Firmware (BIOS/UEFI) verifies the signature of what it is about to load before handing off control. Secure Boot refuses to chain-load an image whose signature doesn't match — that's the whole point: don't trust content merely because it's present.
 
-**HumanAIOS Mapping:** This is two distinct checks, not one — the same way Secure Boot separates "is this the revision I asked for" from "does its content hash match what I expect":
+**HumanAIOS Mapping:** This is *specified* as two distinct checks, not one — the same way Secure Boot separates "is this the revision I asked for" from "does its content hash match what I expect":
 1. `git fetch && git rev-parse HEAD` pins the *commit* — which revision is being read.
-2. CLAUDE.md §A step 5 separately verifies REGISTERED.md's (and ZONE_REGISTRY.md's) *content* sha256 against a manifest — that the file at that pinned revision is the one expected.
+2. CLAUDE.md §A step 5 separately calls for verifying "each file's sha256 against manifest" — content verification at that pinned revision.
 
-**IC-030** ("live-fetch, pin SHA") is the secure-boot policy statement covering both: "do not boot from a payload you have not freshly fetched and verified," not "trust whatever is cached from a prior session."
+**IC-030** ("live-fetch, pin SHA") is the secure-boot policy statement covering the commit-pin half of this: "do not boot from a payload you have not freshly fetched," not "trust whatever is cached from a prior session."
 
-**Files Involved:** `.git` (commit pin), sha256 manifest (per CLAUDE.md §A.5)
+**This document could not locate the manifest CLAUDE.md §A.5 refers to.** A repo-wide search turns up no canonical sha256 manifest file for REGISTERED.md/ZONE_REGISTRY.md — only an unrelated dated build manifest (`z1-inbox/2026-09-06/MANIFEST.md`) for a different mesh artifact. Read this stage as **specified but not demonstrably backed by an artifact in this checkout**, not as an active, reproducible check. That's a materially weaker claim than "Secure Boot," and the document should not imply otherwise.
 
-**Failure mode:** SESSION_RITUALS §F.9 explicitly covers a failed REGISTERED.md fetch or an UNAVAILABLE/UNKNOWN/STALE class state for registry-touching sessions. It does not separately name a manifest-hash-mismatch branch — CLAUDE.md §A.5 requires the sha256 check but does not spell out its own consequence on mismatch. Treat that as an open gap in the protocol rather than an already-specified failure mode: the honest analogy is that Secure Boot's signature-mismatch case doesn't yet have a named HumanAIOS equivalent, not that §F.9 already covers it.
+**Files Involved:** `.git` (commit pin); the manifest CLAUDE.md §A.5 requires is not identified in this checkout
+
+**Failure mode:** SESSION_RITUALS §F.9 explicitly covers a failed REGISTERED.md fetch or an UNAVAILABLE/UNKNOWN/STALE class state for registry-touching sessions. It does not name a content-hash-mismatch branch, and — per the gap just noted — there is no located manifest to mismatch against in the first place. Treat the entire "content verification" half of this stage as an open protocol gap: specified in CLAUDE.md's step list, but neither backed by a concrete manifest nor given a defined failure consequence.
 
 ---
 
@@ -145,7 +147,13 @@ applies session-wide under both readings.
 ### 8. Kernel Permission Model — CLAUDE.md + CODEOWNERS
 **Concept:** The kernel enforces a permission/capability model (ring 0 vs. userspace, syscall gating, SELinux/AppArmor policy) loaded at boot and enforced for the life of the running system.
 
-**HumanAIOS Mapping:** `CLAUDE.md` (this file) — the Z1/Z2/Z3 authority structure is loaded once at boot and gates every subsequent action for the session's lifetime. The capability distinction is *propose* vs. *execute*, not *write* vs. *no write*: Z1 is explicitly permitted to append CANDIDATE blocks to REGISTERED.md (this very candidate is one — "Output: Candidate blocks → REGISTERED.md (awaiting Z2 hash)" per CLAUDE.md's own Z1 section) — the unprivileged-write syscall in this analogy. What Z1 cannot do is execute or land a *ratified* change (mark it ACCEPTED and act on it) without a Z2-signed capability token, i.e. the ratification hash; Z3 cannot execute without that same token; Z2 alone can sign it. `.github/CODEOWNERS` is the review-gating layer for this permission model — not a filesystem ACL: by the file's own header, it currently enforces nothing on its own ("CODEOWNERS alone enforces nothing: branch protection must also have 'Require review from Code Owners' enabled") and documents itself as a self-review placeholder pending a second independent reviewer. That's a real gap in the analogy worth carrying forward as-is rather than smoothing over: the permission *model* is specified, but one of its enforcement mechanisms is explicitly not yet independent.
+**HumanAIOS Mapping:** `CLAUDE.md` (this file) — the Z1/Z2/Z3 authority structure is loaded once at boot and is meant to gate every subsequent action for the session's lifetime. **CLAUDE.md contradicts itself on exactly how the write/execute boundary works, and this document does not adjudicate that conflict:**
+- Its "Governance Files & CI/CD Integration" table lists REGISTERED.md as "Z2 sole write," enforcement "CI: no write without Z2 hash" — reading that as ring-0-only, no unprivileged write syscall at all.
+- Its "Z1: Proposers" section lists Z1's rights as including candidate-block proposals, with "Output: Candidate blocks → REGISTERED.md (awaiting Z2 hash)" — reading that as an unprivileged write (append a CANDIDATE) that a separate privileged operation (Z2's hash) later escalates to execution.
+
+This candidate block (`Q-BOOT-PROCESS-MAP-01`, appended with `zone2_ratification: null`) is itself a live instance of the ambiguity, not proof of either reading — the repo's own history includes other Z1-appended CANDIDATE blocks pending Z2 signature, which is consistent with the second reading but doesn't resolve the contradiction against the first. Z2 should treat this as its own AMBIGUITY item.
+
+Independent of that conflict, the escalation half is clearer: neither Z1 nor Z3 can execute or land a *ratified* change (mark it ACCEPTED and act on it) without a Z2-signed capability token, i.e. the ratification hash; Z2 alone can sign it. `.github/CODEOWNERS` is the intended review-gating layer for this permission model — not a filesystem ACL, and not yet independent either: by the file's own header, it currently enforces nothing on its own ("CODEOWNERS alone enforces nothing: branch protection must also have 'Require review from Code Owners' enabled") and documents itself as a self-review placeholder pending a second independent reviewer.
 
 **Files Involved:** `CLAUDE.md`, `.github/CODEOWNERS`
 
@@ -188,12 +196,16 @@ applies session-wide under both readings.
 
 ---
 
-### 13. Journal — ledgers/NF_LEDGER.jsonl
+### 13. Journal — per-session close log vs. NF_LEDGER.jsonl
 **Concept:** An immutable, hash-chained journal (systemd-journald with sealing, or a write-ahead log) records what happened across boots — appended, never rewritten, checkable after the fact.
 
-**HumanAIOS Mapping:** `ledgers/NF_LEDGER.jsonl` — append-only, hash-chained, the durable record spanning every boot (session) of the system. Its chain is checkable via `tools/nf_ledger_cli_v1_0.py` (`verify_chain`) / `tools/nf_ledger_v0_1.py` (`verify`). Note the current CI (`quality-baseline.yml`, `test_nf_ledger_cli.py`) exercises the verification *tool's* logic on test fixtures; it is not, as of this writing, a workflow step that re-verifies the live `ledgers/NF_LEDGER.jsonl` file's chain on every PR. Treat "hash-chain validated" as "hash-chain verifiable on demand," not "continuously re-checked by CI," until a gate does that directly.
+**HumanAIOS Mapping — corrected from an earlier draft of this document:** `ledgers/NF_LEDGER.jsonl` is **not** SESSION_RITUALS.md's session/boot journal — SESSION_RITUALS.md never mentions it (checked: zero occurrences), and §B does not write to it at close. What NF_LEDGER.jsonl actually is, per its own README: an append-only, hash-chained ledger of NF TOKEN/OPEN/PIN/RESOLVE events for a specific mesh/molt prediction-tracking build (`tools/nf_ledger_v0_1.py`), scoped to that subsystem, not a general per-session record.
 
-**Files Involved:** `ledgers/NF_LEDGER.jsonl`, `tools/nf_ledger_cli_v1_0.py`, `tools/nf_ledger_v0_1.py`
+The record SESSION_RITUALS.md §B actually specifies for "what happened this session" is the **WGS Slack log**: §B.1-8 (Step 7) requires logging to `#wgs-sync` with the Receipt Reconciliation paragraph, and CURRENT.md separately calls the WGS post "a required close ritual" and "the canonical live-state source" for the next session's Class 1 read. That Slack log — not NF_LEDGER.jsonl — is the closer functional analogue of "what gets written at shutdown that the next boot reads back."
+
+NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the append-only, hash-chained journal pattern this stage is meant to illustrate — its chain is checkable via `tools/nf_ledger_cli_v1_0.py` (`verify_chain`) / `tools/nf_ledger_v0_1.py` (`verify`), and current CI (`quality-baseline.yml`, `test_nf_ledger_cli.py`) exercises the verification tool's logic on test fixtures rather than re-verifying the live file's chain on every PR — but it should be read as an illustration of the pattern, not as the thing SESSION_RITUALS.md's close ritual writes to.
+
+**Files Involved:** WGS `#wgs-sync` Slack channel (the actual per-session close record); `ledgers/NF_LEDGER.jsonl`, `tools/nf_ledger_cli_v1_0.py`, `tools/nf_ledger_v0_1.py` (pattern example, separate subsystem)
 
 ---
 
@@ -236,15 +248,19 @@ applies session-wide under both readings.
 └───────────────────────────┬──────────────────────────────────────┘
                              │
 ┌───────────────────────────▼──────────────────────────────────────┐
+│ (order below follows CLAUDE.md §A: step 3 PRIORITY_QUEUE.md before  │
+│  step 4 ZONE_REGISTRY.md)                                           │
+│ INIT / UNITS      — PRIORITY_QUEUE.md (ranked, Z2 hash pending,    │
+│                        blockers = GAP)                              │
 │ DEVICE ENUMERATION — ZONE_REGISTRY.md (12 active repos as nodes,   │
 │                        per its current table; merge-block          │
 │                        enforcement claimed live by ZONE_REGISTRY,   │
 │                        listed "planned Phase 3" by CLAUDE.md —     │
 │                        unresolved conflict, not adjudicated here)  │
-│ INIT / UNITS      — PRIORITY_QUEUE.md (ranked, Z2 hash pending,    │
-│                        blockers = GAP)                              │
-│ PERMISSION MODEL  — CLAUDE.md + CODEOWNERS (review-gated, not a    │
-│                        filesystem ACL; Z1/Z2/Z3 caps)              │
+│ PERMISSION MODEL  — CLAUDE.md + CODEOWNERS (specified, not yet     │
+│                        independently enforced; Z1/Z2/Z3 caps —     │
+│                        CLAUDE.md's own tables disagree on Z1's     │
+│                        REGISTERED.md write right, see §8)          │
 └───────────────────────────┬──────────────────────────────────────┘
                              │
 ┌───────────────────────────▼──────────────────────────────────────┐
@@ -263,7 +279,8 @@ applies session-wide under both readings.
 ┌───────────────────────────▼──────────────────────────────────────┐
 │ CLOSE RITUAL — SESSION_RITUALS.md §B (analogy, not literal I/O)    │
 │  B.0 verify command output → B.6 reconcile receipt against it →    │
-│  journal (ledgers/NF_LEDGER.jsonl)                                  │
+│  journal = WGS #wgs-sync post (§B.7; NF_LEDGER.jsonl is an         │
+│  unrelated subsystem's pattern example, not written here)          │
 │  close artifact drafted before B.0, or contradicting it → HALT     │
 │  (§F.7-8)                                                           │
 └─────────────────────────────────────────────────────────────────┘
@@ -311,7 +328,7 @@ applies session-wide under both readings.
 | Login prompt | §A.7 confirmation wait | Work gated on acknowledgment |
 | Runtime tuning | molt_cycle.py, MOLT_STATE.md | Rate-limited live changes |
 | Close ritual | §B (B.0, B.6) | Verify before asserting (analogy, not literal I/O) |
-| Journal | `ledgers/NF_LEDGER.jsonl` | Append-only, hash-chain verifiable on demand |
+| Journal | WGS `#wgs-sync` (actual per-session record) | Required close ritual; `ledgers/NF_LEDGER.jsonl` is a pattern example only, not what §B writes to |
 
 ---
 
