@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 152
+  tools: 153
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 121
+  builder_markers_present: 122
   missing_from_tree: 1
   unclassified: 0
 categories:
@@ -1890,30 +1890,20 @@ tools:
   builder_markers: false
   purpose: z1-inbox/ is where Z1 stages proposals for Z2. Until now nothing said which of
 - tool_id: HAIOS-TOOL-156
-  name: resource_census
-  path: tools/resource_census_v0_1.py
+  name: registered_failure_mode_scan
+  path: tools/registered_failure_mode_scan_v0_1.py
   version: 0.1.0
-  category: diagnostic_tool
+  category: audit_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: resource_census_v0_1.py — measure the resource state of the operations tree.
+  purpose: Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level first-pass
+    yield / DPMO. Advisory unless `--enforce`.
+  session: S-091326-01
 - tool_id: HAIOS-TOOL-157
-  name: resource_ledger
-  path: tools/resource_ledger_v0_1.py
-  version: 0.1.0
-  category: governance_tool
-  zone: 1
-  status: draft
-  interface: cli
-  lang: python
-  smoke_test: true
-  builder_markers: true
-  purpose: resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims,
-- tool_id: HAIOS-TOOL-158
   name: molt_cycle_tier0_v0_1
   path: tools/molt_cycle_tier0_v0_1.py
   version: unversioned
@@ -1925,7 +1915,31 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies.
+- tool_id: HAIOS-TOOL-158
+  name: resource_census
+  path: tools/resource_census_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: resource_census_v0_1.py — measure the resource state of the operations tree.
 - tool_id: HAIOS-TOOL-159
+  name: resource_ledger
+  path: tools/resource_ledger_v0_1.py
+  version: 0.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims,
+- tool_id: HAIOS-TOOL-160
   name: smag_feedback
   path: tools/smag_feedback_v1_0.py
   version: 1.0.0

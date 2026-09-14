@@ -24,7 +24,7 @@ version: 1
 generated: "2026-09-13"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 18, records: 15}
+counts: {candidates: 19, records: 15}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
 
@@ -106,6 +106,13 @@ candidates:
     path: "z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md"
     submitted: "2026-09-12"
     status: awaiting_z2
+
+  - q_id: Q-RFM-01
+    title: "REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner"
+    path: "z1-inbox/2026-09-13/Q-RFM-01.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Eight-item Z2 checklist. Blocking decisions: whether to turn on --enforce, and which of four disagreeing instruments states the registry census (126 / 130 / 135 / 138 / 142). Current baseline post-second-main-merge: 142 entries, 107/568 defects, 81.2% FPY, 188,380 DPMO."
 
   - q_id: Q-TOOLCONTROL-01
     title: "Tool manifest & document-control registry"
