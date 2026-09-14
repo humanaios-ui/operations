@@ -66,8 +66,8 @@ falsifier: |
   Format: "This hypothesis is FALSE if [concrete, observable, testable condition]"
   
   Example: "This hypothesis is FALSE if REGISTERED.md re-pin fails 3+ times 
-            in a row, OR if re-pin time exceeds 2 hours, OR if falsifier 
-            lint detects invalid sha256 hash."
+            in a row, OR if re-pin resource cost exceeds 5 units, OR if 
+            falsifier_lint detects invalid sha256 hash."
   
   Why: Falsifier is required by z2_ratification_gate.yml CI gate.
        Without it, Z2 cannot ratify. No exceptions.
@@ -289,8 +289,8 @@ falsifier: |
   - OR error rate (VOID outcomes) increases
   - OR Z2 determines root cause not addressable by budget increase alone
   
-  Measurement window: 21 days of Z3 agent cycles
-  Revert rule: If falsifier trips, revert to 50k immediately; file F-candidate
+  Measurement: Test falsifier conditions over resource budget of 1000 NF_LEDGER entries.
+  Revert rule: If falsifier trips, trigger anti-cascade freeze; file F/IC candidate.
 
 evidence:
   - "NF_LEDGER.jsonl entries showing budget-hit events"

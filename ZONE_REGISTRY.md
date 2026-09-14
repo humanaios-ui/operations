@@ -11,6 +11,7 @@
 
 | Zone ID | Repo Name | Purpose | Z3 Executor | Resource Cap | Status |
 |:--------|:----------|:--------|:-----------|:-------------|:-------|
+| Z-000 | operations | Governance coordination + REGISTERED.md | TBD | 80 units/cycle | ✅ ACTIVE |
 | Z-001 | humanaios | Core platform | TBD | 100 units/cycle | ✅ ACTIVE |
 | Z-002 | humanaios-internal | Internal tools | TBD | 80 units/cycle | ✅ ACTIVE |
 | Z-003 | acat-inspect | Audit/inspection | TBD | 60 units/cycle | ✅ ACTIVE |
@@ -46,9 +47,9 @@
 | Z-012 | empirica-autonomy | PLANNED | TBD | Autonomy module |
 | Z-013–Z-031 | (19 more repos) | PLANNED | See PLANNED_REPOS.md | TBD |
 
-**Total active:** 11 zones (7 full-cap + 3 limited-cap + 1 read-only)  
+**Total active:** 12 zones (8 full-cap + 3 limited-cap + 1 read-only)  
 **Total planned:** 20 zones  
-**Total ecosystem:** 31 zones
+**Total ecosystem:** 32 zones
 
 ---
 
@@ -122,9 +123,9 @@ handoff_schedule: "<When executor receives VERDICT/cycle results>"
 
 ```yaml
 metadata:
-  total_active_zones: 11
+  total_active_zones: 12
   total_planned_zones: 20
-  total_ecosystem: 31
+  total_ecosystem: 32
   authority: "Z2 (Night)"
   model: "resource-based caps (not time-based deadlines)"
   format: "YAML table + registry"

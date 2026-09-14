@@ -49,14 +49,16 @@
 
 ## File Dependencies & Boot Order
 
-**§A (Session Open) — Read in this order:**
+**§A (Session Open) — Read in this order (per BOOT_PROCESS_MAP.md §A):**
 
-1. **CLAUDE.md** (first; establishes authority context)
-2. **ZONE_REGISTRY.md** (verify repo is active; confirms caps)
-3. **REGISTERED.md** (live-fetch at pinned SHA; proposals awaiting ratification)
-4. **PRIORITY_QUEUE.md** (ranked by resource_impact; current work)
-5. **MOLT_STATE.md** (open molts; state transitions)
-6. **BOOT_PROCESS_MAP.md** (reference; session ritual mapping)
+1. **Pin SHA** — Fetch REGISTERED.md live (IC-030; A.1)
+2. **ZONE_REGISTRY.md** — Verify repo is active; confirm authority caps (A.2)
+3. **REGISTERED.md** — Read at pinned SHA; load live proposals (A.3)
+4. **PRIORITY_QUEUE.md** — Load work queue ranked by resource_impact (A.4)
+5. **MOLT_STATE.md** — Load open molts; check state consistency (A.5)
+6. **BOOT_PROCESS_MAP.md** — Reference this file; verify ritual steps (A.6)
+
+**Note:** CLAUDE.md authority context is assumed established before §A starts. Boot order takes precedence over logical authority hierarchy; resource-based gates enforce both.
 
 **§B (Session Close) — Write/Emit in this order:**
 

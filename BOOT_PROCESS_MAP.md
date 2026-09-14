@@ -51,7 +51,7 @@
                     ↓
 ┌─ SESSION CLOSE (§B) ────────────────────────────────────┐
 │                                                          │
-│ B.1: Walk claim vs. NF_LEDGER.jsonl (receipt reconcile) │ ← Resource: Ledger I/O
+│ B.1: Walk claim vs. ledgers/NF_LEDGER.jsonl (receipt reconcile) │ ← Resource: Ledger I/O
 │      HALT if: ledger inaccessible → no measurement data │
 │                                                          │
 │ B.2: Generate receipt (claim → ledger entry)            │ ← Resource: Analysis (audit)
@@ -83,7 +83,7 @@
 | SHA mismatch on REGISTERED.md (A.3) | Boot | Stale context; IC-030 violated | Live-fetch again; verify cache cleared |
 | PRIORITY_QUEUE.md empty (A.4) | Boot | No work defined; queue inaccessible | Z2 populates queue from findings or creates new work |
 | MOLT_STATE.md inconsistent (A.5) | Boot | State machine corrupted; molts undefined | Z2 verifies state consistency; regenerate if needed |
-| NF_LEDGER.jsonl inaccessible (B.1) | Close | Cannot verify measurements; audit fails | Check ledger hash-chain; recover from backup if needed |
+| ledgers/NF_LEDGER.jsonl inaccessible (B.1) | Close | Cannot verify measurements; audit fails | Check ledger hash-chain; recover from backup if needed |
 | RECEIPT-GAP exists (B.2) | Close | Claim not found in ledger; audit fails | Verify claim is real; file IC-RECONCILIATION candidate if needed |
 
 ---
