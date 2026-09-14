@@ -113,16 +113,6 @@
       border-color: rgba(91, 155, 127, 0.5);
       background: rgba(91, 155, 127, 0.1);
     }
-    .checkbox-group {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-    input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
 
     .candidates-list {
       display: flex;
@@ -141,6 +131,10 @@
     .candidate-card:hover {
       background: rgba(255, 255, 255, 0.06);
       border-color: rgba(255, 255, 255, 0.15);
+    }
+    .candidate-card:focus {
+      outline: 2px solid rgba(91, 155, 127, 0.5);
+      outline-offset: 2px;
     }
     .candidate-card.active {
       border-color: rgba(91, 155, 127, 0.5);
@@ -164,9 +158,6 @@
       color: #7a776d;
       display: flex;
       gap: 16px;
-    }
-    .candidate-status {
-      display: inline-block;
     }
 
     .detail-panel {
@@ -199,6 +190,38 @@
       gap: 8px;
       font-size: 12px;
       color: #a8a39a;
+      word-break: break-all;
+    }
+    .detail-meta strong {
+      color: #e5e1d8;
+    }
+
+    .candidate-content {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .content-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #a8a39a;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .content-preview {
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 2px solid rgba(91, 155, 127, 0.3);
+      border-radius: 4px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #a8a39a;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Menlo', monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
     .decision-section {
@@ -230,6 +253,10 @@
       cursor: pointer;
       transition: all 0.2s ease;
       font-family: inherit;
+    }
+    button:focus {
+      outline: 2px solid rgba(91, 155, 127, 0.5);
+      outline-offset: 2px;
     }
     .btn-accept {
       background: rgba(91, 155, 127, 0.3);
@@ -294,20 +321,6 @@
       color: #5b9b7f;
     }
 
-    .content-preview {
-      margin-top: 16px;
-      padding: 12px;
-      background: rgba(0, 0, 0, 0.3);
-      border-left: 2px solid rgba(91, 155, 127, 0.3);
-      border-radius: 4px;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #a8a39a;
-      max-height: 400px;
-      overflow-y: auto;
-      font-family: 'Monaco', 'Menlo', monospace;
-    }
-
     .empty-state {
       text-align: center;
       padding: 60px 20px;
@@ -367,6 +380,31 @@
       padding: 40px 20px;
       color: #7a776d;
     }
+
+    .error-message {
+      color: #b4573f;
+      font-size: 13px;
+      padding: 12px;
+      background: rgba(180, 87, 63, 0.1);
+      border-left: 2px solid rgba(180, 87, 63, 0.3);
+      border-radius: 4px;
+      margin-top: 12px;
+    }
+
+    .due-date {
+      background: rgba(201, 154, 61, 0.1);
+      border-left: 2px solid rgba(201, 154, 61, 0.3);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #c99a3d;
+      margin-top: 8px;
+    }
+    .due-date.overdue {
+      background: rgba(180, 87, 63, 0.1);
+      border-left-color: rgba(180, 87, 63, 0.3);
+      color: #b4573f;
+    }
   </style>
 </head>
 <body>
@@ -380,7 +418,7 @@
     <div class="stats" id="statsContainer">
       <div class="stat">
         <div class="stat-value" id="totalCandidates">0</div>
-        <div class="stat-label">Candidates Awaiting Decision</div>
+        <div class="stat-label">Awaiting Decision</div>
       </div>
       <div class="stat">
         <div class="stat-value" id="pendingCandidates">0</div>
@@ -388,7 +426,7 @@
       </div>
       <div class="stat">
         <div class="stat-value" id="ratifiedCount">0</div>
-        <div class="stat-label">Ratified This Session</div>
+        <div class="stat-label">Ratified (All Time)</div>
       </div>
     </div>
 
@@ -396,7 +434,7 @@
       <div>
         <div class="controls">
           <div class="control-group">
-            <label>Search Candidates</label>
+            <label for="searchInput">Search Candidates</label>
             <input
               type="text"
               id="searchInput"
@@ -404,23 +442,13 @@
             >
           </div>
           <div class="control-group">
-            <label>Filter by Status</label>
+            <label for="statusFilter">Filter by Status</label>
             <select id="statusFilter">
               <option value="">All Statuses</option>
               <option value="pending">Pending Decision</option>
               <option value="ratified">Ratified</option>
               <option value="edit_requested">Edit Requested</option>
               <option value="rejected">Rejected</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label>Filter by Class</label>
-            <select id="classFilter">
-              <option value="">All Classes</option>
-              <option value="F">Finding (F)</option>
-              <option value="H">Hypothesis (H)</option>
-              <option value="IC">Internal Constraint (IC)</option>
-              <option value="P">Procedure (P)</option>
             </select>
           </div>
         </div>
@@ -444,32 +472,67 @@
 
   <script>
     const RATIFIERS = ['Night'];
+    const QID_PATTERN = /^Q-[A-Z0-9-]+$/;
     let allCandidates = [];
     let selectedCandidate = null;
     let indexData = null;
+    let currentDecision = null;
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      };
+      return String(text || '').replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function validateQId(qId) {
+      return QID_PATTERN.test(qId);
+    }
+
+    function normalizeStatus(status) {
+      if (status === 'awaiting_z2' || !status) return 'pending';
+      return status;
+    }
+
+    function calculateDueDate(submitted, windowDays) {
+      if (!submitted || !windowDays) return null;
+      const date = new Date(submitted);
+      date.setDate(date.getDate() + windowDays);
+      return date;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'unknown';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+    }
 
     async function loadCandidates() {
       try {
-        // Fetch INDEX.yaml
         const indexResponse = await fetch('../z1-inbox/INDEX.yaml');
+        if (!indexResponse.ok) {
+          throw new Error(`HTTP ${indexResponse.status}`);
+        }
         const indexText = await indexResponse.text();
         indexData = parseYAML(indexText);
         allCandidates = (indexData.candidates || []).map(c => ({
           ...c,
-          status: c.status || 'pending',
-          class: extractClass(c.q_id),
+          status: normalizeStatus(c.status),
         }));
 
         updateUI();
       } catch (error) {
         console.error('Error loading candidates:', error);
-        document.getElementById('candidatesList').innerHTML =
-          '<div class="no-candidates">Error loading candidates. Ensure INDEX.yaml is accessible.</div>';
+        const container = document.getElementById('candidatesList');
+        container.innerHTML = '<div class="error-message">Error loading candidates: ' + escapeHtml(error.message) + '</div>';
       }
     }
 
     function parseYAML(yamlText) {
-      // Simple YAML parser for our structure
       const lines = yamlText.split('\n');
       const result = {};
       let inCandidates = false;
@@ -477,6 +540,11 @@
       let current = null;
 
       for (const line of lines) {
+        // Stop parsing candidates at next top-level section
+        if (line.match(/^\w+:/) && inCandidates && !line.startsWith('  ')) {
+          break;
+        }
+
         if (line.startsWith('candidates:')) {
           inCandidates = true;
           result.candidates = candidates;
@@ -503,9 +571,9 @@
           }
         }
 
-        if (line.startsWith('counts:')) {
-          const match = line.match(/candidates:\s*(\d+)/);
-          if (match) result.candidates_count = parseInt(match[1]);
+        if (line.startsWith('decision_window_days:')) {
+          const match = line.match(/decision_window_days:\s*(\d+)/);
+          if (match) result.decision_window_days = parseInt(match[1]);
         }
 
         if (line.startsWith('ratifiers:')) {
@@ -515,12 +583,6 @@
       }
 
       return result;
-    }
-
-    function extractClass(qId) {
-      if (!qId) return '?';
-      const match = qId.match(/^(F|H|IC|P)/);
-      return match ? match[1] : '?';
     }
 
     function updateUI() {
@@ -541,17 +603,15 @@
     function filterAndRenderCandidates() {
       const searchTerm = document.getElementById('searchInput').value.toLowerCase();
       const statusFilter = document.getElementById('statusFilter').value;
-      const classFilter = document.getElementById('classFilter').value;
 
       const filtered = allCandidates.filter(c => {
         if (searchTerm &&
             !(c.q_id.toLowerCase().includes(searchTerm) ||
-              c.title.toLowerCase().includes(searchTerm) ||
-              c.path.toLowerCase().includes(searchTerm))) {
+              (c.title && c.title.toLowerCase().includes(searchTerm)) ||
+              (c.path && c.path.toLowerCase().includes(searchTerm)))) {
           return false;
         }
         if (statusFilter && c.status !== statusFilter) return false;
-        if (classFilter && c.class !== classFilter) return false;
         return true;
       });
 
@@ -565,19 +625,23 @@
       }
 
       noResults.style.display = 'none';
-      container.innerHTML = filtered.map(c => `
-        <div class="candidate-card ${selectedCandidate?.q_id === c.q_id ? 'active' : ''}"
-             onclick="selectCandidate('${c.q_id}')">
-          <div class="candidate-id">${c.q_id}</div>
-          <div class="candidate-title">${c.title}</div>
-          <div class="candidate-meta">
-            <span class="candidate-status">
+      container.innerHTML = filtered.map(c => {
+        const isActive = selectedCandidate?.q_id === c.q_id;
+        return `
+          <button
+            class="candidate-card ${isActive ? 'active' : ''}"
+            onclick="selectCandidate('${escapeHtml(c.q_id)}');"
+            aria-pressed="${isActive}"
+          >
+            <div class="candidate-id">${escapeHtml(c.q_id)}</div>
+            <div class="candidate-title">${escapeHtml(c.title || '(untitled)')}</div>
+            <div class="candidate-meta">
               <span class="status-badge ${getStatusClass(c.status)}">${c.status.replace(/_/g, ' ')}</span>
-            </span>
-            <span>${c.submitted}</span>
-          </div>
-        </div>
-      `).join('');
+              <span>${c.submitted || 'unknown date'}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
     }
 
     function getStatusClass(status) {
@@ -591,12 +655,17 @@
     }
 
     function selectCandidate(qId) {
+      if (!validateQId(qId)) {
+        console.error('Invalid Q-ID:', qId);
+        return;
+      }
       selectedCandidate = allCandidates.find(c => c.q_id === qId);
+      currentDecision = null; // Reset decision on selection change
       filterAndRenderCandidates();
       updateDetailPanel();
     }
 
-    function updateDetailPanel() {
+    async function updateDetailPanel() {
       const panel = document.getElementById('detailPanel');
 
       if (!selectedCandidate) {
@@ -612,64 +681,95 @@
       const c = selectedCandidate;
       const statusClass = getStatusClass(c.status);
       const isAlreadyRatified = c.status !== 'pending';
+      const windowDays = indexData?.decision_window_days || 2;
+      const dueDate = calculateDueDate(c.submitted, windowDays);
+      const isOverdue = dueDate && new Date() > dueDate;
+
+      let contentHtml = '';
+      if (!isAlreadyRatified) {
+        // Fetch and display candidate content
+        try {
+          const contentResponse = await fetch('../' + c.path);
+          if (contentResponse.ok) {
+            const content = await contentResponse.text();
+            contentHtml = `
+              <div class="candidate-content">
+                <div class="content-label">Candidate Content (to be signed)</div>
+                <div class="content-preview">${escapeHtml(content.slice(0, 2000))}</div>
+                ${content.length > 2000 ? '<p style="font-size: 11px; color: #a8a39a; margin: 8px 0;">…(truncated)</p>' : ''}
+              </div>
+            `;
+          }
+        } catch (e) {
+          contentHtml = `<div class="error-message">Could not load candidate content from ${escapeHtml(c.path)}</div>`;
+        }
+      }
+
+      const decisionHtml = !isAlreadyRatified ? `
+        <div class="decision-section">
+          <div class="decision-label">Z2 Decision</div>
+          <div class="decision-buttons">
+            <button class="btn-accept" onclick="makeDecision('ACCEPT')">✓ Accept</button>
+            <button class="btn-edit" onclick="makeDecision('EDIT')">✎ Edit</button>
+            <button class="btn-reject" onclick="makeDecision('REJECT')">✕ Reject</button>
+          </div>
+
+          <div class="ratifier-section">
+            <div class="ratifier-label">Ratifier (Z2)</div>
+            <div class="ratifier-name">🌙 Night (Carly R. Anderson)</div>
+          </div>
+
+          <button class="btn-sign" onclick="generateSignCommand()">
+            🔐 Generate Sign Command
+          </button>
+
+          <div id="commandOutput"></div>
+        </div>
+      ` : `
+        <div class="decision-section">
+          <div class="decision-label">Decision Already Recorded</div>
+          <p style="color: #a8a39a; font-size: 13px; margin: 0;">
+            Ratified by <strong>${escapeHtml(c.ratified_by || 'unknown')}</strong> on <strong>${escapeHtml(c.ratified_at || 'unknown')}</strong>.
+          </p>
+          ${c.z2_hash ? `<p style="color: #a8a39a; font-size: 11px; margin: 8px 0; font-family: monospace; word-break: break-all;">Hash: ${escapeHtml(c.z2_hash)}</p>` : ''}
+        </div>
+      `;
 
       panel.innerHTML = `
         <div class="detail-header">
-          <div class="detail-id">${c.q_id}</div>
-          <h2 class="detail-title">${c.title}</h2>
+          <div class="detail-id">${escapeHtml(c.q_id)}</div>
+          <h2 class="detail-title">${escapeHtml(c.title || '(untitled)')}</h2>
           <div class="detail-meta">
-            <div><strong>Path:</strong> ${c.path}</div>
-            <div><strong>Submitted:</strong> ${c.submitted}</div>
-            <div><strong>Status:</strong> <span class="status-badge ${statusClass}">${c.status.replace(/_/g, ' ')}</span></div>
-            ${c.status !== 'pending' ? `<div><strong>Ratified By:</strong> ${c.ratified_by}</div>` : ''}
-            ${c.status !== 'pending' ? `<div><strong>Ratified At:</strong> ${c.ratified_at}</div>` : ''}
+            <div><strong>Path:</strong> ${escapeHtml(c.path || '(unknown)')}</div>
+            <div><strong>Submitted:</strong> ${escapeHtml(c.submitted || '(unknown)')}</div>
+            ${dueDate ? `
+              <div class="due-date ${isOverdue ? 'overdue' : ''}">
+                <strong>${isOverdue ? 'OVERDUE' : 'Due'}:</strong> ${escapeHtml(formatDate(dueDate.toISOString()))}
+              </div>
+            ` : ''}
+            <div><strong>Status:</strong> <span class="status-badge ${statusClass}">${escapeHtml(c.status.replace(/_/g, ' '))}</span></div>
           </div>
         </div>
 
-        ${!isAlreadyRatified ? `
-          <div class="decision-section">
-            <div class="decision-label">Z2 Decision</div>
-            <div class="decision-buttons">
-              <button class="btn-accept" onclick="makeDecision('ACCEPT')">✓ Accept</button>
-              <button class="btn-edit" onclick="makeDecision('EDIT')">✎ Edit Request</button>
-              <button class="btn-reject" onclick="makeDecision('REJECT')">✕ Reject</button>
-            </div>
-
-            <div class="ratifier-section">
-              <div class="ratifier-label">Ratifier (Z2)</div>
-              <div class="ratifier-name">🌙 Night (Carly R. Anderson)</div>
-            </div>
-
-            <button class="btn-sign" onclick="generateSignCommand()">
-              🔐 Generate Sign Command
-            </button>
-
-            <div id="commandOutput"></div>
-          </div>
-        ` : `
-          <div class="decision-section">
-            <div class="decision-label">Decision Already Recorded</div>
-            <p style="color: #a8a39a; font-size: 13px; margin: 0;">
-              This candidate has already been reviewed and signed by <strong>${c.ratified_by}</strong> on <strong>${c.ratified_at}</strong>.
-            </p>
-          </div>
-        `}
+        ${contentHtml}
+        ${decisionHtml}
       `;
     }
 
-    let currentDecision = null;
-
     function makeDecision(decision) {
+      if (!validateQId(selectedCandidate.q_id)) {
+        alert('Invalid candidate ID');
+        return;
+      }
       currentDecision = decision;
       document.querySelectorAll('.decision-buttons button').forEach(btn => {
-        btn.style.opacity = '0.5';
+        btn.style.opacity = btn.textContent.includes(decision[0]) ? '1' : '0.5';
       });
-      event.target.style.opacity = '1';
     }
 
     function generateSignCommand() {
-      if (!currentDecision || !selectedCandidate) {
-        alert('Please select a decision first');
+      if (!currentDecision || !selectedCandidate || !validateQId(selectedCandidate.q_id)) {
+        alert('Please select a valid decision and candidate');
         return;
       }
 
@@ -677,18 +777,18 @@
 
       const output = document.getElementById('commandOutput');
       output.innerHTML = `
-        <div class="command-box">${cmd}</div>
+        <div class="command-box">${escapeHtml(cmd)}</div>
         <p style="font-size: 12px; color: #a8a39a; margin-top: 12px;">
-          Copy and run this command in your terminal to sign the decision. The ratify.py script will:
+          Copy and run this command in your terminal. The ratify.py script will:
         </p>
         <ul style="font-size: 12px; color: #a8a39a; margin: 8px 0; padding-left: 20px;">
           <li>Compute the Z2 signature hash</li>
           <li>Append the ruling to the dated ruling file</li>
           <li>Update z1-inbox/INDEX.yaml with the decision</li>
+          <li>You must then commit and push the changes</li>
         </ul>
       `;
 
-      // Copy to clipboard
       const copyBtn = document.createElement('button');
       copyBtn.style.cssText = 'padding: 8px 12px; background: rgba(91, 155, 127, 0.3); border: 1px solid rgba(91, 155, 127, 0.3); border-radius: 4px; color: #5b9b7f; cursor: pointer; font-size: 12px; margin-top: 12px; font-weight: 600;';
       copyBtn.textContent = '📋 Copy Command';
@@ -696,12 +796,14 @@
         navigator.clipboard.writeText(cmd).then(() => {
           copyBtn.textContent = '✓ Copied!';
           setTimeout(() => { copyBtn.textContent = '📋 Copy Command'; }, 2000);
+        }).catch(err => {
+          console.error('Copy failed:', err);
+          alert('Failed to copy. You can select and copy manually.');
         });
       };
       output.appendChild(copyBtn);
     }
 
-    // Event listeners
     document.getElementById('searchInput').addEventListener('input', () => {
       filterAndRenderCandidates();
     });
@@ -710,11 +812,6 @@
       filterAndRenderCandidates();
     });
 
-    document.getElementById('classFilter').addEventListener('change', () => {
-      filterAndRenderCandidates();
-    });
-
-    // Load candidates on page load
     loadCandidates();
   </script>
 </body>

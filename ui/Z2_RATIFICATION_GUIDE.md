@@ -62,7 +62,7 @@ For **pending** candidates (not yet signed), three decision buttons appear:
 
 ### Decision Window
 
-Per `CLAUDE.md`, you have **48 hours** from submission (`submitted` date) to sign a decision. The detail panel shows when this window closes.
+Per `CLAUDE.md`, you have **48 hours** from submission (`submitted` date) to sign a decision. The detail panel calculates and displays the deadline from the submitted date and the configured decision window.
 
 ### Signing Process
 
@@ -86,8 +86,16 @@ Per `CLAUDE.md`, you have **48 hours** from submission (`submitted` date) to sig
    - Reading the candidate file from `z1-inbox/`
    - Hashing the file's exact bytes at the moment you signed
    - Writing the decision + hash to a `Z2_RULINGS_….md` file
-   - Updating `INDEX.yaml` atomically
-   - Creating a git commit with the signature
+   - Updating `INDEX.yaml` with the ratification metadata
+
+5. **You must then commit the changes:**
+   After the script completes, commit and push the signed ruling:
+   ```bash
+   git add z1-inbox/
+   git commit -m "Z2 ratified Q-XXXXX as ACCEPT"
+   git push
+   ```
+   The script output will show the files that were modified.
 
 ### Without `--apply` (Dry Run)
 
@@ -111,7 +119,7 @@ To confirm a decision still matches the original candidate (hasn't been edited):
 python3 .z1-control/ratify.py --verify
 ```
 
-This re-computes all Z2 hashes on record and compares them to the current file bytes. Mismatches indicate tampering or accidental edits.
+This re-computes Z2 hashes (SHA256) on record and compares them to the current file bytes. Legacy non-SHA256 slug values are printed as warnings and skipped. Mismatches on SHA256 hashes indicate tampering or accidental edits.
 
 ### Reading the Z2 Ruling File
 
@@ -140,9 +148,9 @@ Each ruling entry includes:
 
 ---
 
-## Anti-Cascade Rules (Enforced by CI)
+## Anti-Cascade Rules (Governance Policy)
 
-When you ratify a **molt** (a constant change), these rules apply:
+When you ratify a **molt** (a constant change), these rules apply per `CLAUDE.md`:
 
 1. **One open molt per constant** — No new molt candidate for the same constant while one is already being measured
 2. **No self-reference** — A molt candidate cannot cite events from within its own measurement window
@@ -150,7 +158,9 @@ When you ratify a **molt** (a constant change), these rules apply:
 4. **Two-revert freeze** — If a constant reverts twice in a row, it's frozen (only Admiral can reopen via Tier-2 ruling)
 5. **Priority Queue ranking** — Molt candidates are ranked by Priority Queue impact score; no bypassing
 
-See `CLAUDE.md` for the full anti-cascade specification.
+**Implementation note:** These rules are documented in `CLAUDE.md` and enforced by Z2 governance; they are not currently automated by CI gates. When signing molt candidates, review them against these rules per the governance framework.
+
+See `CLAUDE.md` for the full specification.
 
 ---
 
@@ -158,10 +168,10 @@ See `CLAUDE.md` for the full anti-cascade specification.
 
 When you sign **ACCEPT** on a candidate:
 
-1. A Z1 proposal is filed (by you, from this UI)
-2. The ratify.py script adds the candidate to `REGISTERED.md` at its proper position (alphabetically or by hierarchy, per entry class)
-3. The entry carries your signature hash in a `z2_hash` field
-4. CI gates verify the hash on every push
+1. The `ratify.py` script records your decision in `z1-inbox/INDEX.yaml` and the dated `Z2_RULINGS_….md` file
+2. Your signature hash is stored as a record of your ratification
+3. A separate authorized process (outside this UI) handles promotion of ratified entries to `REGISTERED.md`
+4. Once in `REGISTERED.md`, entries carry the Z2 hash and are protected by CI gate verification
 
 ---
 
