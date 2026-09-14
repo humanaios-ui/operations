@@ -1,7 +1,13 @@
 # ngrok Traffic Policy for the decision relay: one owner, basic-auth in front, everything else denied.
 # ngrok http 8787 --traffic-policy-file tools/relay_policy.yml --url <your-cloud-endpoint>
+#
+# The board is a browser page. A browser sends a CORS preflight (OPTIONS) with no credentials before
+# every POST; if basic-auth answers that preflight with 401 the POST never happens. So basic-auth is
+# applied to everything EXCEPT OPTIONS. The relay itself answers OPTIONS with an empty 204 and no data,
+# and every real request is still HMAC-signed (X-Sig) and replay-checked inside decision_relay.py.
 on_http_request:
-  - actions:
+  - expressions: ["req.method != 'OPTIONS'"]
+    actions:
       - type: basic-auth
         config:
           realm: intent-os

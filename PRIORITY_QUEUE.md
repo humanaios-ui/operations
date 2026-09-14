@@ -232,6 +232,7 @@ Per `z1-inbox/2026-09-06/registry_block_and_manifest_090626_v2.md` §Landing ord
 ## Appended Events
 
 ```
+2026-09-14 — Z1 filed Q-INTENTOS-LAUNCH-01 (z1-inbox/2026-09-14/) — Intent-OS board re-read against b52f805, persistence + relay-auth fixes, seal checker tools/intent_os_board_check_v1_0.py, runbook docs/INTENT_OS_BOARD_RUNBOOK.md. No queue row added (Z2 act, §Ratification Authority); the block asks Z2 for rulings d17–d19 and a row decision. Note: Q-IC030-REPIN-01 above was operated 2026-09-10 (z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md) but the row still reads READY; REGISTERED.md has since drifted to sha256 8163351e… at b52f805 — closing or re-opening the row is Z2's.
 2026-09-13 — Z1 removed Q-RFM-01 from queue (Phase 4 authority compliance). Per §Ratification Authority, new rows require Z2 decision. Q-RFM-01 submitted as z1-inbox candidate; Z2 decision to add it to the queue is pending upon ratification of the candidate itself.
 2026-09-13 — Z1 proposed Q-RFM-01 (REGISTERED_FAILURE_MODES.md + registered_failure_mode_scan_v0_1.py); REGISTERED.md measured at 81.2% FPY / 188,380 DPMO (post-second-main-merge: 142 entries, 107 defects). Candidate submitted to Z2; queue row entry deferred pending Z2 ratification.
 2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | PRIORITY_QUEUE.md v1_1 ratified | Phase 0 READY

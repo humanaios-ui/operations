@@ -82,7 +82,8 @@ def assist(d):
 class H(BaseHTTPRequestHandler):
     def _send(self,code,obj):
         b=json.dumps(obj).encode(); self.send_response(code); self.send_header("Content-Type","application/json")
-        self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Headers","Content-Type, X-Sig"); self.end_headers(); self.wfile.write(b)
+        # Authorization is listed so a browser board can carry the ngrok basic-auth credential through the CORS preflight.
+        self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Headers","Content-Type, X-Sig, Authorization"); self.end_headers(); self.wfile.write(b)
     def do_OPTIONS(self): self._send(204,{})
     def do_GET(self): self._send(200,{"relay":"ok","dry":DRY,"repo":REPO})
     def do_POST(self):

@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**19 candidates** — ⏳ awaiting Z2 16 · ✅ ratified 3 · **15 records**
+**20 candidates** — ⏳ awaiting Z2 17 · ✅ ratified 3 · **16 records**
 
-## Awaiting Z2 (16)
+## Awaiting Z2 (17)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -28,6 +28,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-15 | **Q-TOOLCONTROL-01** | Tool manifest & document-control registry | `z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-02** | Tool category vocabulary & backlog clearance | `z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-03** | Turning the gate on itself — every blocking rule must be able to fail | `z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md` |
+| 2026-09-16 | **Q-INTENTOS-LAUNCH-01** | Intent-OS board — organize the development, decide the launch (d17 surface · d18 relay landing · d19 path freeze) | `z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md` |
 
 ## Decided (3)
 
@@ -45,7 +46,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (67)
+## Open questions for Z2 (59)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -112,19 +113,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Schema extends without breaking existing records (review migration path)
 - [ ] Molt Cycle integration is viable (review pseudocode in schema)
 
-### Q-RFM-01 (8)
-
-`z1-inbox/2026-09-13/Q-RFM-01.md`
-
-- [ ] Is the RFM taxonomy the right vocabulary, and is 19 the right granularity?
-- [ ] Should `--enforce` be turned on, and if so before or after remediating the 107 defects?
-- [ ] Should the scanner be wired into CI, given `findings-registry.yml` already runs a blocking validator?
-- [ ] Which instrument's census is authoritative — 126, 130 or 135?
-- [ ] Is `RFM-06` right to score the **full** ten-field schema (57.0%) rather than the core five (91.1%)? The gap is `substrate` / `tags` / `superseded_by` / `date_origin` — declared but never adopted. Schema erosion, or an over-declared schema that should be trimmed?
-- [ ] Accept / edit / reject IC-CAND-A through IC-CAND-D; assign numbers if accepted
-- [ ] Commission `Q-RFM-02` (cost-class taxonomy)? It is the blocker on every `UNSCORED` FMEA cell
-- [ ] Is naval command vocabulary in Column 2 acceptable, or should the map stay in existing terms?
-
 ### Q-TOOLCONTROL-01 (8)
 
 `z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md`
@@ -161,7 +149,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (15)
+## Records (16)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -182,6 +170,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md` | Q-IC030-REPIN-01 result — repin + manifest reconciliation (COMPLETE, 3/3) |
 | `z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md` | Z2 ruling — RESOURCE_UNITS.yaml header ratified; hash remains unsigned by Z2 |
 | `z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md` | Z2 ruling — .z1-control/ratify.py Zone 2 ratified (Night, 2026-09-13) |
+| `z1-inbox/2026-09-14/HANDOFF.md` | Handoff — 2026-09-14 (Intent-OS board re-read, checker, relay fixes) |
 
 ---
 
