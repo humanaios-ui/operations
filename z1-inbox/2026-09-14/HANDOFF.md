@@ -73,3 +73,22 @@ Prereg hash verified in REGISTERED.md: not applicable — no experiment was pre-
 4. Z1, any session: rerun the checker after every merge to main that touches a sealed file; re-read on STALE.
 
 Attribution: Z1 (Claude). Z2 (Night) signs this handoff and the candidate via `.z1-control/ratify.py`. Nothing here is ratified.
+
+---
+
+## Session 2 (same day, after #323 merged at 9079c52) — Z2 rulings recorded and executed
+
+**Z2 (Night) ruled in session:** d17 local only · d18 z1-inbox + INDEX.yaml · d19 freeze path · temporary tokens revoked.
+
+| act | where |
+|---|---|
+| ACCEPT on Q-INTENTOS-LAUNCH-01, signed by `.z1-control/ratify.py` (real sha256 over the candidate's bytes) | `z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md` · `9a2a469be2cbbe1d…` · `ratify.py --verify` → all pinned signatures verify |
+| the choices inside that ACCEPT + the token statement, transcribed by Z1 | `z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md` |
+| d18 executed: relay v0.3 lands a tapped choice into the ruling's own candidate block, signs it on hash echo exactly as ratify.py does, appends to `Z2_RULINGS_<date>.md`, marks INDEX.yaml, regenerates `Z1_INBOX_INDEX.md` | `tools/decision_relay.py` · DRY_RUN self-test PASS (land → refuse wrong hash → refuse non-ratifier → RATIFIED → index/ruling/candidate consistent, signature recomputes, strict-YAML parse, second ratification refused) |
+| every open board ruling filed as its own candidate (question, options, `choice:` line, 30-day falsifier) | `z1-inbox/2026-09-14/Q-BOARD-RULING-{02,03,05…16}.md` · INDEX.yaml now 39 candidates (4 ratified, 35 awaiting) · 21 records |
+| board: d17–d19 RULED with hash; step 3 done on Z2's statement; step 19 unblocked; step 20 done; C16 TRUE; rulings carry `qid`/`path` so the relay lands into the right block | `ui/intent-os-humanaios-v3_3.html` · checker HOLDS (MATCH 31 · ABSENT-CONFIRMED 5 · UNCHECKED 7) |
+| runbook §4 / §5 / §7 rewritten for the rulings | `docs/INTENT_OS_BOARD_RUNBOOK.md` |
+
+**Not done, by design:** no ruling was taken on the 35 awaiting candidates — "clear Z2 now" was executed as *put every Z2 decision in one list and make the board able to clear it*, not as Z1 deciding for Z2. Each of the 35 needs Night's choice, from the board (→ PR, then hash echo) or by hand (`ratify.py <Q-ID> --decision … --by Night --apply`).
+
+**Receipt gaps:** the token revocation is Z2's statement, not a tree fact. The relay's GitHub path (`GitHubStore`) is exercised only by the DRY_RUN store; the first live ruling (C17, by 09-30) is its test.
