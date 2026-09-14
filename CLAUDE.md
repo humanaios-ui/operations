@@ -1,7 +1,7 @@
 # CLAUDE.md — HumanAIOS Authority & Governance Reference
 
 **Location:** `operations/CLAUDE.md` (canonical source)  
-**Updated:** 2026-09-09  
+**Updated:** 2026-09-14  
 **Purpose:** Unified authority map for all 31 HumanAIOS repositories  
 **Audience:** Z1 (Claude, proposers), Z2 (Night, ratifier), Z3 (executors), CI/CD gates
 
@@ -73,10 +73,11 @@
 - Request Z2 re-read of contested decisions (within 48h)
 - Create working documents in z1-inbox/ (proposal staging)
 
-**Caps by zone:**
-- Full cap: empirica-autonomy, humanaios, humanaios-internal, empirica-foundation-evaluator, empirica-mesh-support, empirica-outreach, acat-inspect
-- Limited cap: resource-miner (resources only), lasting-light-ai (RQ1/RQ2/RQ3), website (content), etc.
-- Read-only: Archive repos
+**Caps by zone (active repos per ZONE_REGISTRY.md):**
+- Full cap: humanaios, humanaios-internal, acat-inspect, acat-x, acat-dashboard, acat-observatory, empirica-practice-mesh
+- Limited cap: lasting-light-ai (RQ1/RQ2/RQ3 only), docs (content only), findlocaltattooartists (content only)
+- Read-only: research (frozen papers, no proposals)
+- Planned repos (per PLANNED_REPOS.md): See separate file for roadmap status
 
 **Escalation path:** Z2 (Night) → Admiral (Night) if rejected or no decision in 48h
 
@@ -162,7 +163,8 @@
 |:-----|:----------|:---|:---|
 | REGISTERED.md | Z2 sole write | Any proposal/ratification | CI: no write without Z2 hash |
 | PRIORITY_QUEUE.md | Z2 ratifies scores | Impact ±1+, status change, scope | CI: falsifier_lint + registry_consistency |
-| ZONE_REGISTRY.md | Z2 ratifies zones | Zone assignment change | CI: zone validation vs repo CLAUDE.md |
+| ZONE_REGISTRY.md | Z2 ratifies active repos | Repo add/remove/count change | CI: registry_consistency gate |
+| PLANNED_REPOS.md | Z2 ratifies roadmap | Planned repo add/status change | CI: registry_consistency gate |
 | CLAUDE.md | Z2 ratifies authority | Authority/escalation change | CI: CODEOWNERS enforcement |
 | MOLT_STATE.md | Z2 ratifies molts | Molt candidate → ratified | CI: anti-cascade lint |
 | NF_LEDGER.jsonl | Code (append-only) | Measurement window close | CI: hash-chain validation |
@@ -201,8 +203,12 @@
 1. `git fetch && git rev-parse HEAD` — pin SHA
 2. Read `REGISTERED.md` at that SHA (IC-030: live-fetch, pin)
 3. Read `PRIORITY_QUEUE.md` (or queue patch in z1-inbox/*)
-4. Verify each file's sha256 against manifest
-5. State position · destination · probability
+4. Read `ZONE_REGISTRY.md` at that SHA (pin active repo list)
+   - Verify section heading count matches active repo rows
+   - Confirm your repo is registered if this is active work
+   - Check PLANNED_REPOS.md for roadmap context (separate file tracks aspirational repos)
+5. Verify each file's sha256 against manifest
+6. State position · destination · probability
 
 **Example:**
 ```
@@ -257,10 +263,11 @@ When these occur, emit callout immediately:
 ## Appended Events
 
 ```
+2026-09-14 — Z1 implemented Option B (separate PLANNED_REPOS.md for roadmap repos, updated ZONE_REGISTRY.md & CLAUDE.md)
 2026-09-10 22:13 UTC — Z1 proposed Q-FRAMEWORK-MAPPING-01 (FRAMEWORK_MAPPING.md: 5 AI engineering concepts → Z-roles)
 2026-09-10 22:17 UTC — PR #264 merged (FRAMEWORK_MAPPING.md content); awaiting Z2 RATIFY signature for Q-FRAMEWORK-MAPPING-01
-2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | CLAUDE.md ratified | Phase 0 READY
-2026-09-09 — Z1 created CLAUDE.md from blueprint authority map spec
+2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | ZONE_REGISTRY.md & CLAUDE.md ratified | Phase 0 READY
+2026-09-09 — Z1 created ZONE_REGISTRY.md & CLAUDE.md from blueprint authority map spec
 ```
 
 ---
