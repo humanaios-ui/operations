@@ -277,7 +277,7 @@ const HUMANAIOS = {
  title:"Intent-OS", rev:"2026-09-14",
  owner:{tagline:"Night", project:"HumanAIOS"},
  relay:{url:"", basicUser:"night", secretHint:"RELAY_SECRET and the ngrok basic-auth password are entered once per session, kept in memory only, never written to this file"},
- read:{board:"Live", date:"2026-09-14", against:"humanaios-ui/operations main at 9079c52 (#323 merged; read taken at b52f805 earlier the same day; d17–d19 ruled)"},
+ read:{board:"Live", date:"2026-09-14", against:"humanaios-ui/operations main at 6d3443a (#325 merged; first read taken at b52f805, re-sealed at 9079c52 after #323 and at 6d3443a after #325; d17–d19 ruled)"},
  readline:"RULED 2026-09-14 (Night, signed 9a2a469be2cbbe1d…): d17 local only · d18 rulings land in z1-inbox + INDEX.yaml · d19 path frozen · temporary tokens revoked. Every open board ruling is now its own queue candidate (Q-BOARD-RULING-02…16). Everything green was verified by a fetch, not by memory. Honest number: still 3 of 40 operated cycles, all from door 1. Since the 09-08 read: history was reset (57 commits; the three commits the old seals pointed at are gone), the Z2 gate landed and was found dead for 122 runs then repaired, the registry was re-pinned once and has drifted again, research-intake became specimen-intake, and the Z2 decision backlog grew to 22 candidate blocks plus 14 open board rulings. This read fixes the board itself: persistence, relay auth, a checker for the seals, and a launch candidate (Q-INTENTOS-LAUNCH-01).",
  blocks:[
   {id:"1", name:"system graph v0.2 on main", state:"done", role:"stage 5 · Ship",
@@ -429,7 +429,7 @@ const HUMANAIOS = {
   {id:"C13", text:"benchmark remap loop emits an honest 'no trigger crossed' rather than a candidate on first read", confidence:0.85, resolves:"first read after step 12 is ratified"},
   {id:"C14", text:"Z2 archives ≥ 40 of the 53 docs/ archive candidates unchanged", confidence:0.60, resolves:"2026-10-08 · lint now lists 57 candidates"},
   {id:"C15", text:"benchmark_lint.py is on main within a week of 09-08", confidence:0.70, resolves:"2026-09-15 · absent on 09-14"},
-  {id:"C16", text:"this board is reachable at the surface d17 names and intent_os_board_check reports HOLDS on that copy", confidence:0.55, resolves:"RESOLVED TRUE 2026-09-14 · d17 = local only, so the surface is the file on main (9079c52); checker HOLDS · Brier 0.20"},
+  {id:"C16", text:"this board is reachable at the surface d17 names and intent_os_board_check reports HOLDS on that copy", confidence:0.55, resolves:"RESOLVED TRUE 2026-09-14 · d17 = local only, so the surface is the file on main (6d3443a); checker HOLDS · Brier 0.20"},
   {id:"C17", text:"one Z2 ruling lands through the relay as a PR (not typed by hand) — first live use of decision_relay.py", confidence:0.40, resolves:"2026-09-30"},
   {id:"C18", text:"Z2 clears at least 8 of the 22 candidates that were awaiting_z2 on 09-14 (before the 14 board rulings were filed)", confidence:0.35, resolves:"2026-09-28"}
  ],
@@ -481,7 +481,7 @@ const HUMANAIOS = {
   {artifact:"WITCH/SPELL/CASCADE block — unchanged", sha:"aca4ee8c319e62b5", path:"z1-inbox/2026-09-07/WITCH_SPELL_CASCADE_BLOCK.md"},
   {artifact:"decision_relay.py v0.3.1 (lands in z1-inbox + INDEX.yaml under d18; body hash pinned at decide, server-side ratifier and date; self-test PASS)", sha:"4801d88428e6f2c7", path:"tools/decision_relay.py"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
-  {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"65250784fe0b3dd9", path:"tools/intent_os_board_check_v1_0.py"},
+  {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"6323e867e3425ffe", path:"tools/intent_os_board_check_v1_0.py"},
   {artifact:"z1-inbox/INDEX.yaml (40 candidates · 21 records · 4 ratified · 36 awaiting_z2 · after the 09-14 rulings, the 14 board-ruling candidates and Q-IC-BOARD-SEALS-01)", sha:"6db845820c29d492", path:"z1-inbox/INDEX.yaml"},
   {artifact:"Z2 rulings 2026-09-14 — Q-INTENTOS-LAUNCH-01 ACCEPT signed by ratify.py", sha:"d6bc85e4e21dd631", path:"z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"},
   {artifact:"Z2 ruling — d17 local only · d18 z1-inbox · d19 freeze path · tokens revoked", sha:"5694e1a9bd50f150", path:"z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"},

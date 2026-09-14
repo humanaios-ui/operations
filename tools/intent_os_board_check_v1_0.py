@@ -117,6 +117,12 @@ def run(board: str, root: str) -> dict:
     if against:
         against_row = {"sha": against,
                        "status": "PRESENT" if commit_exists(against, root) else "NOT-IN-HISTORY"}
+        if against_row["status"] == "PRESENT":
+            # How far the read is behind HEAD. Informational: a board re-sealed after a merge is
+            # still a HOLDS board, but a read that is many commits old is a re-read waiting to happen.
+            r = subprocess.run(["git", "rev-list", "--count", f"{against}..HEAD"], cwd=root,
+                               capture_output=True, text=True)
+            against_row["behind_head"] = int(r.stdout.strip() or 0) if r.returncode == 0 else None
     counts: dict[str, int] = {}
     for r in rows:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
@@ -139,7 +145,9 @@ def run(board: str, root: str) -> dict:
 def print_table(rep: dict) -> None:
     print(f"board: {rep['board']}")
     if rep["read_against"]:
-        print(f"read.against: {rep['read_against']['sha']} → {rep['read_against']['status']}")
+        ra = rep["read_against"]; behind = ra.get("behind_head")
+        print(f"read.against: {ra['sha']} → {ra['status']}"
+              + (f" · {behind} commit(s) behind HEAD" if behind else " · at HEAD" if behind == 0 else ""))
     print(f"{'status':<17} {'sha':<18} {'observed':<18} artifact")
     for r in rep["seals"]:
         print(f"{r['status']:<17} {r['sha'][:16]:<18} {r.get('observed', '')[:16]:<18} {r['artifact']}")
