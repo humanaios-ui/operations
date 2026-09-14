@@ -35,10 +35,12 @@ at that SHA" as step 2 of what it calls "Mandatory before any work" —
 unconditional, no registry-touching qualifier. SESSION_RITUALS.md and
 CLAUDE.md disagree on whether every session or only a registry-touching one
 must fetch REGISTERED.md. This document follows SESSION_RITUALS.md's
-narrower, explicitly-conditioned wording throughout (it is the more detailed
-and more recently versioned of the two on this specific point, v6.4.1 with a
-dated IC-030 hardening note), but that is this document's editorial choice,
-not a settled ratification — Z2 should treat the CLAUDE.md/SESSION_RITUALS.md
+narrower, explicitly-conditioned wording throughout — it is the more detailed
+and specifically-scoped source on this exact point, and names its own IC-030
+hardening rationale for the condition — but that is this document's editorial
+choice, not a settled ratification; CLAUDE.md's overall file is dated more
+recently (2026-09-14) than SESSION_RITUALS.md (v6.4.1, May 19), so recency
+alone does not favor either reading. Z2 should treat the CLAUDE.md/SESSION_RITUALS.md
 disagreement itself as a candidate AMBIGUITY callout independent of whether
 this mapping is ratified. The "kernel image" stage below (REGISTERED.md) is
 conditional under the SESSION_RITUALS.md reading; everything else in this map
@@ -50,8 +52,8 @@ applies session-wide under both readings.
 
 | Boot Chain Stage | HumanAIOS Equivalent | Governing File(s) | On Failure |
 |:---|:---|:---|:---|
-| **POST** (power-on self-test) | Fetch live operational state | Primary: WGS #wgs-sync via Slack MCP (per CURRENT.md, Class 1). Secondary/cross-check named in SESSION_RITUALS §A.1's literal text: `haioscc.pages.dev/api/state/*` — CURRENT.md notes this endpoint is unreachable from Claude's bash environment and is demoted to secondary for Claude sessions specifically | Halt, report (SESSION_RITUALS §A.1) |
-| **Firmware / Secure Boot** | Pin commit SHA (demonstrated); content-hash-vs-manifest check (specified, manifest not located — open gap) | `git fetch && git rev-parse HEAD` (commit pin) + sha256-vs-manifest per CLAUDE.md §A.5 (manifest artifact not found in this checkout) | Commit-fetch failure → halt; manifest mismatch has no defined consequence in the protocol |
+| **POST** (power-on self-test) | Fetch live operational state | Primary: WGS #wgs-sync via Slack MCP (per CURRENT.md, Class 1). Secondary/cross-check named in SESSION_RITUALS §A.1's literal text: `haioscc.pages.dev/api/state/*` — CURRENT.md notes this endpoint is unreachable from Claude's bash environment and is demoted to secondary for Claude sessions specifically | Slack MCP unavailable → **PATH C (degraded)**, proceed from CURRENT.md only (OPERATOR_RUNBOOK.md) — not a blanket halt |
+| **Firmware / Secure Boot** | Pin commit SHA (demonstrated); content-hash-vs-manifest check (specified; a dated single-drop manifest exists as precedent, but no current one covering REGISTERED.md+ZONE_REGISTRY.md was located) | `git fetch && git rev-parse HEAD` (commit pin) + sha256-vs-manifest per CLAUDE.md §A.5 | Commit-fetch failure → halt; manifest mismatch has no dedicated branch, generic §F.1 "stop and ask" plausibly applies |
 | **Bootloader / boot spec** | Session-open ritual specification | `SESSION_RITUALS.md` (parser-tag authority) + `CURRENT.md`/`GOVERNANCE.md`/`OPERATOR_RUNBOOK.md` (orchestration detail, per SESSION_RITUALS.md's own §A closing note and §H) | Fetch fails → halt, report |
 | **Boot parameters / policy** | Load standing principles + operating process | `GOVERNANCE.md`, `CURRENT.md` | Proceed on last-known if fetch fails is NOT allowed — halt |
 | **Kernel image** *(registry-touching sessions per SESSION_RITUALS.md; CLAUDE.md's own §A reads this as unconditional — see "Open conflict" above)* | Load registered findings/context | `REGISTERED.md` (pinned SHA, live-fetch) | DEGRADED mode (SESSION_RITUALS §F.9, IC-029/IC-030) |
@@ -61,7 +63,7 @@ applies session-wide under both readings.
 | **Boot log / dmesg** | Drift catalog + Phase 1 declaration | SESSION_RITUALS §A.5-6 | — |
 | **Login prompt** | Wait for user confirmation | SESSION_RITUALS §A.7 | Work does not begin until acknowledged |
 | **Runtime tuning (sysctl)** | Molt cycle, constants | `molt_cycle.py`, `constants.json`, `MOLT_STATE.md` | Anti-cascade freeze (K=3, revert-twice rule) |
-| **Shutdown / close ritual** | Session close | SESSION_RITUALS §B | B.0 hard gate before any close artifact |
+| **Shutdown / close ritual** | Session close | SESSION_RITUALS §B | B.0 hard gate before a close artifact that asserts contents (receipt, WGS post, summary, status report) |
 | **Journal (append-only log)** | Per-session close record = WGS Slack log (§B.7); `ledgers/NF_LEDGER.jsonl` is a *pattern example* (hash-chained, unrelated subsystem — not written by §B) | WGS `#wgs-sync` (session record); `ledgers/NF_LEDGER.jsonl` (pattern only) | WGS post omitted → next session's Class 1 read is stale (CURRENT.md) |
 
 ---
@@ -71,7 +73,7 @@ applies session-wide under both readings.
 ### 1. POST — Power-On Self-Test
 **Concept:** Before anything else, hardware checks that the machine is even capable of booting — power rails, memory, attached devices. A POST failure halts before the bootloader ever runs.
 
-**HumanAIOS Mapping:** SESSION_RITUALS §A Step 1's literal text names `GET /api/state/operational` and `GET /api/state/zone3?status=open`. CURRENT.md's Class 1 entry supersedes this with the actual current source priority for Claude sessions: **primary** is a WGS read via Slack MCP (`slack_read_channel` on `#wgs-sync`, channel `C0AND66PT7U`); the haioscc endpoints are the **secondary cross-check**, and CURRENT.md notes they are "unreachable from Claude's bash environment" for Claude specifically, demoting them further in practice. Either way, this is the "is the operational substrate alive" check — if the applicable fetch fails, the session halts and reports, exactly a POST failure before any protocol file is even read.
+**HumanAIOS Mapping:** SESSION_RITUALS §A Step 1's literal text names `GET /api/state/operational` and `GET /api/state/zone3?status=open`. CURRENT.md's Class 1 entry supersedes this with the actual current source priority for Claude sessions: **primary** is a WGS read via Slack MCP (`slack_read_channel` on `#wgs-sync`, channel `C0AND66PT7U`); the haioscc endpoints are the **secondary cross-check**, noted as "unreachable from Claude's bash environment" for Claude specifically, demoting them further in practice. This stage's failure behavior is *not* a blanket halt: OPERATOR_RUNBOOK.md states that if Slack MCP is unavailable, the session declares **PATH C (degraded)** and proceeds from CURRENT.md only, rather than halting outright — a graceful-degradation path, not a POST failure in the strict sense. The strict POST-failure analogy (halt and report) is closer to what SESSION_RITUALS §A.1's own literal text describes for its named haioscc endpoints; in practice, for Claude sessions, PATH C is the more accurate failure-mode description.
 
 **Files Involved:** `#wgs-sync` (Slack MCP, primary), `haioscc.pages.dev/api/state/operational` + `/api/state/zone3` (secondary/cross-check, largely unreachable for Claude sessions)
 
@@ -86,11 +88,11 @@ applies session-wide under both readings.
 
 **IC-030** ("live-fetch, pin SHA") is the secure-boot policy statement covering the commit-pin half of this: "do not boot from a payload you have not freshly fetched," not "trust whatever is cached from a prior session."
 
-**This document could not locate the manifest CLAUDE.md §A.5 refers to.** A repo-wide search turns up no canonical sha256 manifest file for REGISTERED.md/ZONE_REGISTRY.md — only an unrelated dated build manifest (`z1-inbox/2026-09-06/MANIFEST.md`) for a different mesh artifact. Read this stage as **specified but not demonstrably backed by an artifact in this checkout**, not as an active, reproducible check. That's a materially weaker claim than "Secure Boot," and the document should not imply otherwise.
+**This document could not locate a current, canonical manifest covering both REGISTERED.md and ZONE_REGISTRY.md, as CLAUDE.md §A.5 implies.** `z1-inbox/2026-09-06/MANIFEST.md` is a real, related artifact — it pins a REGISTERED.md blob hash and instructs "verify sha256 before reading; a mismatch is a loud failure" — but it's a dated, single-drop manifest for one mesh Phase-2 inbox delivery (pinned at `c0899b9b...`, commit `d1fb5f0d2dd9`, 2026-08-16), now roughly four weeks and dozens of commits stale, and it doesn't cover ZONE_REGISTRY.md at all. Calling it "unrelated" (an earlier draft of this document did) overstated the gap; the accurate framing is: a manifest convention exists and has been used, but no current, general-purpose manifest for the specific pair CLAUDE.md §A.5 names was found in this checkout. Read this stage as **specified, with a demonstrated but non-current example, not an active reproducible check as of this document's writing.**
 
 **Files Involved:** `.git` (commit pin); the manifest CLAUDE.md §A.5 requires is not identified in this checkout
 
-**Failure mode:** SESSION_RITUALS §F.9 explicitly covers a failed REGISTERED.md fetch or an UNAVAILABLE/UNKNOWN/STALE class state for registry-touching sessions. It does not name a content-hash-mismatch branch, and — per the gap just noted — there is no located manifest to mismatch against in the first place. Treat the entire "content verification" half of this stage as an open protocol gap: specified in CLAUDE.md's step list, but neither backed by a concrete manifest nor given a defined failure consequence.
+**Failure mode:** SESSION_RITUALS §F.9 explicitly covers a failed REGISTERED.md fetch or an UNAVAILABLE/UNKNOWN/STALE class state for registry-touching sessions — that's a dedicated, named branch. A content-hash mismatch has no equivalent dedicated branch, but it is not entirely unaddressed: SESSION_RITUALS §F.1's general halt condition ("a canonical-source fetch fails or returns unexpected data") plausibly covers it as a "stop and ask the user" case, even without F.9's specific automated DEGRADED-mode handling. Treat this as a weaker, generic fallback rather than either "no consequence at all" or "covered by §F.9."
 
 ---
 
@@ -201,7 +203,7 @@ Independent of that conflict, the escalation half is clearer: neither Z1 nor Z3 
 
 **HumanAIOS Mapping — corrected from an earlier draft of this document:** `ledgers/NF_LEDGER.jsonl` is **not** SESSION_RITUALS.md's session/boot journal — SESSION_RITUALS.md never mentions it (checked: zero occurrences), and §B does not write to it at close. What NF_LEDGER.jsonl actually is, per its own README: an append-only, hash-chained ledger of NF TOKEN/OPEN/PIN/RESOLVE events for a specific mesh/molt prediction-tracking build (`tools/nf_ledger_v0_1.py`), scoped to that subsystem, not a general per-session record.
 
-The record SESSION_RITUALS.md §B actually specifies for "what happened this session" is the **WGS Slack log**: §B.1-8 (Step 7) requires logging to `#wgs-sync` with the Receipt Reconciliation paragraph, and CURRENT.md separately calls the WGS post "a required close ritual" and "the canonical live-state source" for the next session's Class 1 read. That Slack log — not NF_LEDGER.jsonl — is the closer functional analogue of "what gets written at shutdown that the next boot reads back."
+The record SESSION_RITUALS.md §B actually specifies for "what happened this session" is the **WGS Slack log** — with a caveat SESSION_RITUALS.md states explicitly and this paragraph should too: §B.7 scopes that step to "substrates with Slack write access only — typically Claude"; it is not a universal per-substrate requirement. For substrates with that access, §B.1-8 (Step 7) requires logging to `#wgs-sync` with the Receipt Reconciliation paragraph, and CURRENT.md separately calls the WGS post "a required close ritual" and "the canonical live-state source" for the next session's Class 1 read. That Slack log — not NF_LEDGER.jsonl — is the closer functional analogue of "what gets written at shutdown that the next boot reads back," for the substrates that can write it.
 
 NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the append-only, hash-chained journal pattern this stage is meant to illustrate — its chain is checkable via `tools/nf_ledger_cli_v1_0.py` (`verify_chain`) / `tools/nf_ledger_v0_1.py` (`verify`), and current CI (`quality-baseline.yml`, `test_nf_ledger_cli.py`) exercises the verification tool's logic on test fixtures rather than re-verifying the live file's chain on every PR — but it should be read as an illustration of the pattern, not as the thing SESSION_RITUALS.md's close ritual writes to.
 
@@ -217,14 +219,16 @@ NF_LEDGER.jsonl is still a useful example *elsewhere in the system* of the appen
 │  POST → live state: WGS #wgs-sync (primary, Slack MCP) ·          │
 │         haioscc /api/state/* (secondary — largely unreachable      │
 │         from Claude's bash env per CURRENT.md)                     │
-│  fail → HALT, report (no bootloader stage reached)                │
+│  Slack MCP down → PATH C (degraded): proceed from CURRENT.md      │
+│  only (OPERATOR_RUNBOOK.md) — not a blanket halt                   │
 └───────────────────────────┬──────────────────────────────────────┘
                              │
 ┌───────────────────────────▼──────────────────────────────────────┐
 │ FIRMWARE / SECURE BOOT                                             │
-│  git fetch && pin commit SHA (revision) · sha256 vs. manifest      │
-│  (content) for REGISTERED.md / ZONE_REGISTRY.md — two checks       │
-│  fail → HALT, do not trust unverified payload                      │
+│  git fetch && rev-parse HEAD → commit pin (fail → HALT)            │
+│  sha256 vs. manifest (content, per CLAUDE.md §A.5) — no current    │
+│  manifest located for this file pair; mismatch has no dedicated    │
+│  branch, generic §F.1 "stop and ask" plausibly applies             │
 └───────────────────────────┬──────────────────────────────────────┘
                              │
 ┌───────────────────────────▼──────────────────────────────────────┐
