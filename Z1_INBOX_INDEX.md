@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**39 candidates** — ⏳ awaiting Z2 35 · ✅ ratified 4 · **21 records**
+**41 candidates** — ⏳ awaiting Z2 37 · ✅ ratified 4 · **21 records**
 
-## Awaiting Z2 (35)
+## Awaiting Z2 (37)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -47,6 +47,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-16 | **Q-BOARD-RULING-14** | Board ruling d14 — LPCS — independent check (a), convergence specimen (b), destination (c), or none? | `z1-inbox/2026-09-14/Q-BOARD-RULING-14.md` |
 | 2026-09-16 | **Q-BOARD-RULING-15** | Board ruling d15 — FALS-43 — batch ruling on the 43 hypotheses without written falsifiers? | `z1-inbox/2026-09-14/Q-BOARD-RULING-15.md` |
 | 2026-09-16 | **Q-BOARD-RULING-16** | Board ruling d16 — docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold? | `z1-inbox/2026-09-14/Q-BOARD-RULING-16.md` |
+| 2026-09-16 | **Q-BOOT-STATE-MACHINE-01** | Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation | `z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md` |
+| 2026-09-16 | **Q-IC-BOARD-SEALS-01** | IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class) | `z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md` |
 
 ## Decided (4)
 
@@ -65,7 +67,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (87)
+## Open questions for Z2 (90)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -218,6 +220,14 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] The coverage rule is accepted as merge-blocking from day one.
 - [ ] `ratifiers: [Night]` is the correct and complete list — it is now pinned in `KNOWN_RATIFIERS` in `.z1-control/validate.py`, so changing it is a code review.
 - [ ] **Item 7 (rank first): no path in this repo has a valid code owner.** Verified, not suspected — `@carly-r-anderson` and `@sab-backup` are not GitHub logins, and the repo has one collaborator. The #306 mitigation for this exact problem is itself inert. Every no-self-grant rule in the system — including this PR's — is advisory in practice until a Zone 3 fix lands. Decide: real logins as collaborators, or `@humanaios-ui` in the file.
+
+### Q-IC-BOARD-SEALS-01 (3)
+
+`z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md`
+
+- [ ] Register IC-BOARD-SEALS-01 in REGISTERED.md as an IC (class memory-vs-fetch), or fold it into IC-030 as a recurrence
+- [ ] Accept, edit or reject prevention (1): an advisory `board-check` CI job on pushes to main touching sealed paths
+- [ ] Accept, edit or reject prevention (2): the checker as a §A session-open line in CLAUDE.md
 
 ### Q-NF-ADAPTER-01 (5)
 

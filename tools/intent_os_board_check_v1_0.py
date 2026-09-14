@@ -30,7 +30,9 @@ No network. Read-only. Deps: none beyond git on PATH.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
+import io
 import json
 import os
 import re
@@ -117,6 +119,12 @@ def run(board: str, root: str) -> dict:
     if against:
         against_row = {"sha": against,
                        "status": "PRESENT" if commit_exists(against, root) else "NOT-IN-HISTORY"}
+        if against_row["status"] == "PRESENT":
+            # How far the read is behind HEAD. Informational: a board re-sealed after a merge is
+            # still a HOLDS board, but a read that is many commits old is a re-read waiting to happen.
+            r = subprocess.run(["git", "rev-list", "--count", f"{against}..HEAD"], cwd=root,
+                               capture_output=True, text=True)
+            against_row["behind_head"] = int(r.stdout.strip() or 0) if r.returncode == 0 else None
     counts: dict[str, int] = {}
     for r in rows:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
@@ -139,7 +147,9 @@ def run(board: str, root: str) -> dict:
 def print_table(rep: dict) -> None:
     print(f"board: {rep['board']}")
     if rep["read_against"]:
-        print(f"read.against: {rep['read_against']['sha']} → {rep['read_against']['status']}")
+        ra = rep["read_against"]; behind = ra.get("behind_head")
+        print(f"read.against: {ra['sha']} → {ra['status']}"
+              + (f" · {behind} commit(s) behind HEAD" if behind else " · at HEAD" if behind == 0 else ""))
     print(f"{'status':<17} {'sha':<18} {'observed':<18} artifact")
     for r in rep["seals"]:
         print(f"{r['status']:<17} {r['sha'][:16]:<18} {r.get('observed', '')[:16]:<18} {r['artifact']}")
@@ -206,9 +216,30 @@ def run_smoke_test() -> bool:
             .replace(f'{{artifact:"commit dangling (exists, unreachable)", sha:"{dangling}"}},\n', "") \
             .replace('{artifact:"bad fingerprint (path, non-hex)", sha:"not-a-hash", path:"a.txt"},\n', "")
         open(os.path.join(td, "ui", "board.html"), "w").write(clean)
-        holds = run(os.path.join("ui", "board.html"), td)["verdict"] == "HOLDS"
+        clean_rep = run(os.path.join("ui", "board.html"), td)
+        holds = clean_rep["verdict"] == "HOLDS"
         print("  clean board → HOLDS:", "OK" if holds else "FAIL")
         ok = ok and holds
+        # read.against distance: a read at HEAD is 0 behind and the table says "at HEAD"; after one
+        # more commit on the branch the same read is 1 behind, still PRESENT, still HOLDS, and the
+        # table says so — the visibility must not silently disappear.
+        def table_line(rep: dict) -> str:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                print_table(rep)
+            return next(l for l in buf.getvalue().splitlines() if l.startswith("read.against:"))
+        at_head = clean_rep["read_against"].get("behind_head") == 0 and table_line(clean_rep).endswith("· at HEAD")
+        print("  read.against at HEAD → behind_head 0, table 'at HEAD':", "OK" if at_head else "FAIL")
+        subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t",
+                        "commit", "-q", "--allow-empty", "-m", "one more"], check=True)
+        older = run(os.path.join("ui", "board.html"), td)
+        ra = older["read_against"]
+        behind_ok = (ra["status"] == "PRESENT" and ra.get("behind_head") == 1
+                     and older["verdict"] == "HOLDS"
+                     and table_line(older).endswith("· 1 commit(s) behind HEAD"))
+        print("  read.against 1 commit old → PRESENT, behind_head 1, HOLDS, table says so:",
+              "OK" if behind_ok else "FAIL")
+        ok = ok and at_head and behind_ok
         # fail closed: no dataset / no seals / no read.against must each be STALE, never HOLDS
         for label, variant in (
             ("no HUMANAIOS block", clean.replace("const HUMANAIOS", "const SOMETHING")),
