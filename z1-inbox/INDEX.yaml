@@ -24,7 +24,7 @@ version: 1
 generated: "2026-09-14"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 39, records: 21}
+counts: {candidates: 40, records: 21}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
 
@@ -311,6 +311,13 @@ candidates:
     status: awaiting_z2
     note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
 
+
+  - q_id: Q-IC-BOARD-SEALS-01
+    title: "IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class)"
+    path: "z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "From the S-091426-01 findings scan. Correction already landed (#323/#325: the seal checker); the block asks Z2 to register the IC and to accept or edit two preventions (advisory board-check CI job; checker as a §A session-open line)."
 
 records:
   - path: "z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"
