@@ -278,7 +278,7 @@ const HUMANAIOS = {
  owner:{tagline:"Night", project:"HumanAIOS"},
  relay:{url:"", basicUser:"night", secretHint:"RELAY_SECRET and the ngrok basic-auth password are entered once per session, kept in memory only, never written to this file"},
  read:{board:"Live", date:"2026-09-14", against:"humanaios-ui/operations main at b52f805 (first read since the 2026-09-08 pair; three reads behind)"},
- readline:"Everything green was verified by a fetch, not by memory. Honest number: still 3 of 40 operated cycles, all from door 1. Since the 09-08 read: history was reset (57 commits; the three commits the old seals pointed at are gone), the Z2 gate landed and was found dead for 122 runs then repaired, the registry was re-pinned once and has drifted again, research-intake became specimen-intake, and the Z2 decision backlog grew to 16 candidate blocks plus 14 open board rulings. This read fixes the board itself: persistence, relay auth, a checker for the seals, and a launch candidate (Q-INTENTOS-LAUNCH-01).",
+ readline:"Everything green was verified by a fetch, not by memory. Honest number: still 3 of 40 operated cycles, all from door 1. Since the 09-08 read: history was reset (57 commits; the three commits the old seals pointed at are gone), the Z2 gate landed and was found dead for 122 runs then repaired, the registry was re-pinned once and has drifted again, research-intake became specimen-intake, and the Z2 decision backlog grew to 20 candidate blocks plus 14 open board rulings. This read fixes the board itself: persistence, relay auth, a checker for the seals, and a launch candidate (Q-INTENTOS-LAUNCH-01).",
  blocks:[
   {id:"1", name:"system graph v0.2 on main", state:"done", role:"stage 5 · Ship",
    why:"The operating graph in machine form. Regenerated 2026-09-13: 22 nodes, 53 typed edges, 0 dangling (read from the JSON, not from the 09-08 note that said 19/44). The commit the old seal named (b8aac1be) is no longer in history — the repo was reset at 21aec1e on 09-10 — so the receipt for the landing is a RECEIPT-GAP; the artifact itself is verified.",
@@ -384,10 +384,10 @@ const HUMANAIOS = {
    meta:"OPERATED 09-14: checker self-test PASS · relay self-test PASS · candidate Q-INTENTOS-LAUNCH-01 filed · confidence 0.55 published + HOLDS by 2026-09-30",
    blockedOn:"d17 (publish surface) and d18 (relay landing path)"},
   {id:"20", name:"Z2 decision backlog → one queue", state:"waiting", role:"stage 3 · Decide",
-   why:"z1-inbox/INDEX.yaml now holds 19 candidate blocks: 3 ratified, 16 awaiting_z2 (several past the 48h window). Separately, this board carries 14 open rulings (d2, d3, d5–d16) that exist nowhere in the inbox, so the z2 gate, the validator and the triage job cannot see them. Two backlogs, one ratifier. Until they merge, 'what does Z2 owe a decision on' has two answers.",
+   why:"z1-inbox/INDEX.yaml holds 23 candidate blocks (this read's included; #316 merged three more mid-PR): 3 ratified, 20 awaiting_z2 (several past the 48h window). Separately, this board carries 14 open rulings (d2, d3, d5–d16) that exist nowhere in the inbox, so the z2 gate, the validator and the triage job cannot see them. Two backlogs, one ratifier. Until they merge, 'what does Z2 owe a decision on' has two answers.",
    gate:"every open board ruling either maps to an INDEX.yaml candidate (q_id recorded on the ruling) or is withdrawn with a reason",
-   cmds:"python3 .z1-control/validate.py --report | python3 -c \"import json,sys;r=json.load(sys.stdin);print(r.get('counts'))\"\ngrep -c awaiting_z2 z1-inbox/INDEX.yaml   # 09-14: 16",
-   meta:"measured 09-14: 16 awaiting_z2 + 14 board-only rulings = 30 open owner calls",
+   cmds:"python3 .z1-control/validate.py --report | python3 -c \"import json,sys;r=json.load(sys.stdin);print(r.get('counts'))\"\ngrep -c awaiting_z2 z1-inbox/INDEX.yaml   # 09-14: 20",
+   meta:"measured 09-14: 20 awaiting_z2 + 14 board-only rulings = 34 open owner calls",
    blockedOn:"d18 (where board rulings land) — then Z1 files one candidate per open ruling"}
  ],
  departures:[
@@ -408,7 +408,7 @@ const HUMANAIOS = {
   {label:"operated cycles", base:7.5, prev:7.5, target:100, scale:"3 of 40 (shown as %)", note:"measured: 3 door-1 cycles on main, fingerprints unchanged · 0 intake-pipeline cycles · no projection offered"},
   {label:"specimen-intake Cycle 1 blockers cleared", base:50, prev:67, target:100, scale:"3 of 6 (NF-SCHEMA, B2, B3-build done; B1, ADV, OI-G1 open)", note:"projected: ADV run is Z1 work and needs no ruling — counts when the run is on the tree"},
   {label:"owner rulings resolved (this board)", base:23, prev:23, target:100, scale:"5 of 22 (OI-G1/G2/G3, d1, d4 done; d2, d3, d5–d19 open)", note:"measured: 3 new rulings queued 09-14 (d17–d19); none resolved since 09-08"},
-  {label:"Z2 candidate backlog cleared (z1-inbox/INDEX.yaml)", base:16, prev:16, target:100, scale:"3 of 19 ratified · 16 awaiting_z2", note:"measured from INDEX.yaml; the 48h window has passed on most of the 16"},
+  {label:"Z2 candidate backlog cleared (z1-inbox/INDEX.yaml)", base:13, prev:13, target:100, scale:"3 of 23 ratified · 20 awaiting_z2", note:"measured from INDEX.yaml after the #316 merge; the 48h window has passed on 6 of the 20"},
   {label:"graph integrity (edges with valid endpoints)", base:100, prev:100, target:100, scale:"53 of 53 · 22 nodes", note:"measured 09-14 on the landed JSON (regenerated 09-13) · cycle 3 still says v0.2 is not adversarially closed"},
   {label:"board seals that hold (intent_os_board_check)", base:100, prev:100, target:100, scale:"see checker output — exit 0 = HOLDS", note:"measured by running the checker against this file; 3 records are listed as RECEIPT-GAP (commits lost in the history reset) and are not counted either way"},
   {label:"ACAT dimensions with an external comparator", base:50, prev:50, target:50, scale:"6 of 12", note:"measured by desk mapping only; target is honesty, not 100"},
@@ -433,7 +433,7 @@ const HUMANAIOS = {
   {id:"C15", text:"benchmark_lint.py is on main within a week of 09-08", confidence:0.70, resolves:"2026-09-15 · absent on 09-14"},
   {id:"C16", text:"this board is reachable at the surface d17 names and intent_os_board_check reports HOLDS on that copy", confidence:0.55, resolves:"2026-09-30"},
   {id:"C17", text:"one Z2 ruling lands through the relay as a PR (not typed by hand) — first live use of decision_relay.py", confidence:0.40, resolves:"2026-09-30"},
-  {id:"C18", text:"Z2 clears at least 8 of the 16 awaiting_z2 candidates in INDEX.yaml", confidence:0.35, resolves:"2026-09-28"}
+  {id:"C18", text:"Z2 clears at least 8 of the 20 awaiting_z2 candidates in INDEX.yaml", confidence:0.35, resolves:"2026-09-28"}
  ],
  rulings:[
   {id:"d1", q:"IC-SCOPE-05 — accept the draft scope rule as written?", s:"RULED: accepted · ic-scope-05-accepted-20260906 · enforce ruling ic-scope-05-enforce-20260908", opts:["accepted"]},
@@ -484,7 +484,7 @@ const HUMANAIOS = {
   {artifact:"decision_relay.py v0.2.0 (Authorization header + Builder markers, this read)", sha:"3eb54d33148cef7c", path:"tools/decision_relay.py"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
   {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"c802cc41330735f7", path:"tools/intent_os_board_check_v1_0.py"},
-  {artifact:"z1-inbox/INDEX.yaml (20 candidates · 3 ratified · 17 awaiting_z2, incl. Q-INTENTOS-LAUNCH-01)", sha:"b80521bdc0b13003", path:"z1-inbox/INDEX.yaml"},
+  {artifact:"z1-inbox/INDEX.yaml (23 candidates · 3 ratified · 20 awaiting_z2 · after the #316 merge)", sha:"85a26c0a401e946b", path:"z1-inbox/INDEX.yaml"},
   {artifact:"criteria/R-001.md (Z2 Ruling 3 prerequisite)", sha:"ABSENT-20260914", path:"criteria/R-001.md"},
   {artifact:"tools/benchmark_lint.py (step 14)", sha:"ABSENT-20260914", path:"tools/benchmark_lint.py"},
   {artifact:"REGISTERED.root (Merkle root, step 2)", sha:"ABSENT-20260914", path:"REGISTERED.root"},

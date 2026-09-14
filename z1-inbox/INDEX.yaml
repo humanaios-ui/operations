@@ -24,10 +24,9 @@ version: 1
 generated: "2026-09-14"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 20, records: 16}
+counts: {candidates: 23, records: 18}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
-counts: {candidates: 20, records: 14}
 
 candidates:
   - q_id: Q-JESTER-CHECK-01
@@ -169,6 +168,27 @@ candidates:
     submitted: "2026-09-13"
     status: awaiting_z2
     note: "Asks for four acts: a hash on RESOURCE_UNITS.yaml, a RAT-min capacity declaration, two constant molts, and disposition of F-RBE-01/02/03. Every artifact is inert until then; the queue keeps the incumbent formula."
+
+  - q_id: Q-REGISTRY-AUDIT-01
+    title: "ZONE_REGISTRY.md reconciliation — classify 13 missing repos (planned, never created)"
+    path: "z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-01.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Phase 1 of registry audit. Identifies 13 repos claimed in ZONE_REGISTRY but absent from GitHub (all classified as planned/never-created). Proposes 3 options for header correction (Option A/B/C). Awaits Z2 decision."
+
+  - q_id: Q-REGISTRY-AUDIT-02
+    title: "ZONE_REGISTRY.md reconciliation — register 7 active repos missing from registry"
+    path: "z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-02.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Phase 2 of registry audit. Identifies 7 repos on GitHub but missing from ZONE_REGISTRY. Proposes zone assignments for each. Blocked on Q-REGISTRY-AUDIT-01 ratification."
+
+  - q_id: Q-REGISTRY-AUDIT-03
+    title: "ZONE_REGISTRY.md reconciliation — implement + deploy CI gate"
+    path: "z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-03.md"
+    submitted: "2026-09-13"
+    status: awaiting_z2
+    note: "Phase 3 of registry audit. Implementation plan for chosen reconciliation option. Deploys registry_consistency CI gate to prevent future drift. Blocked on -01 and -02 ratification."
 
   - q_id: Q-INTENTOS-LAUNCH-01
     title: "Intent-OS board — organize the development, decide the launch (d17 surface · d18 relay landing · d19 path freeze)"
