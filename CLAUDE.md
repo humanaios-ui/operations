@@ -276,4 +276,6 @@ When these occur, emit callout immediately:
 **For CI/CD:** Use CODEOWNERS rules. Run falsifier_lint, z2_hash_verify, registry_consistency, molt_anti_cascade gates.
 
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
+
 **Framework Reference:** See [`FRAMEWORK_MAPPING.md`](./FRAMEWORK_MAPPING.md) for unified mental model mapping 5 Modern AI Engineering Concepts (Graph, Loop, Context, Harness, Prompt Engineering) to HumanAIOS Z-roles, governance files, and CI/CD gates. All proposers, ratifiers, and executors should reference this mapping when designing or evaluating work across the 31-repo ecosystem.
+
