@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**23 candidates** — ⏳ awaiting Z2 20 · ✅ ratified 3 · **18 records**
+**25 candidates** — ⏳ awaiting Z2 22 · ✅ ratified 3 · **18 records**
 
-## Awaiting Z2 (20)
+## Awaiting Z2 (22)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -19,6 +19,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-12 | **Q-NF-SCHEMA-01** | Unify NF_LEDGER schema | `z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md` |
 | 2026-09-13 | **Q-PHASE1-2-ROLLOUT-01** | Framework Mapping Phase 1–3 rollout plan | `z1-inbox/2026-09-11/PHASE_1_2_ROLLOUT_PLAN.md` |
 | 2026-09-14 | **Q-ADVREVIEW-CALIB-01** | Adversarial review as a PR-gated calibration node | `z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md` |
+| 2026-09-15 | **Q-CGBG-BASELINE-01** | Adversarial review: CGBG-MARKET-BASELINE-001 (Evidence-Linked Market Observation v0.1) | `z1-inbox/2026-09-13/Q-CGBG-BASELINE-01.md` |
+| 2026-09-15 | **Q-CGBG-PILOT-01** | Adversarial review: CGBG Pilot Offer (AI Research Capacity) | `z1-inbox/2026-09-13/Q-CGBG-PILOT-01.md` |
 | 2026-09-15 | **Q-DOCREVIEW-01** | The 39 overdue document reviews — lifecycle, not re-dating | `z1-inbox/2026-09-13/Q-DOCREVIEW-01.md` |
 | 2026-09-15 | **Q-DOCREVIEW-02** | Findings from the first real document review pass (11 reviewed, 28 unreachable) | `z1-inbox/2026-09-13/Q-DOCREVIEW-02.md` |
 | 2026-09-15 | **Q-GOVGATE-01** | The Z2 gate never ran; z1-inbox conversion mechanism | `z1-inbox/2026-09-13/Q-GOVGATE-01.md` |
@@ -49,7 +51,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (59)
+## Open questions for Z2 (73)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -65,6 +67,30 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Stage 3 is accepted as requiring a trusted-base evaluator and ratified attack corpus
 - [ ] Registrable item 1 is routed with priority — it concerns the authority map's accuracy
 - [ ] Out-of-scope boundary on `score_transcript()` is accepted
+
+### Q-CGBG-BASELINE-01 (6)
+
+`z1-inbox/2026-09-13/Q-CGBG-BASELINE-01.md`
+
+- [ ] Confirm or refute the filename/description mismatch flagged in finding 1 before any field tied to that evidence candidate is upgraded.
+- [ ] Decide whether "NONE" and "PROHIBITED" should be added to §2's enumerated states, or the two matrix rows restated using the existing seven (finding 3).
+- [ ] Decide whether "$X/project" should be downgraded to "reported figure, unit unverified" pending confirmation of what "project" denotes (finding 2).
+- [ ] Decide whether the source engagement record should be captured/hashed/dated now, before it can be edited or removed (finding 4).
+- [ ] Name (or explicitly decline to name) a third party who could ever move a claim to INDEPENDENTLY_CORROBORATED (finding 5).
+- [ ] Decide whether the future Treatment exchange runs under the Pilot Offer as published or a revised version addressing `Q-CGBG-PILOT-01` (finding 6).
+
+### Q-CGBG-PILOT-01 (8)
+
+`z1-inbox/2026-09-13/Q-CGBG-PILOT-01.md`
+
+- [ ] Set an actual expiration date/time for the offer (finding 1 — currently the field is broken).
+- [ ] Decide a settlement floor and/or explicit Provider refusal right for inadequate reciprocal resources (finding 2).
+- [ ] Decide delivery sequencing — who goes first, and what recourse exists if the counterparty doesn't reciprocate (finding 3).
+- [ ] Define the "5 hours" unit and boundary behavior (finding 4).
+- [ ] Add an explicit right to decline a task spec that's out of scope, infeasible, unlawful, or unsafe (finding 5).
+- [ ] Decide whether to publish an acceptance-latency SLA (finding 6) — optional given this is a one-off pilot, not a recurring program.
+- [ ] Decide whether evidence/verification should be strengthened from "where applicable" / "permitted" to a firmer commitment (finding 7).
+- [ ] Findings 8–10 — acknowledge or explicitly accept as out of scope for a single-pilot experiment.
 
 ### Q-DOCREVIEW-01 (9)
 
