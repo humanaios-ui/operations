@@ -53,7 +53,7 @@ HEX_RE = re.compile(r"^[0-9a-f]{7,64}$")
 AGAINST_RE = re.compile(r'against\s*:\s*"[^"]*?\bat\s+([0-9a-f]{7,40})\b')
 HUMANAIOS_RE = re.compile(r"const\s+HUMANAIOS\s*=\s*\{(.*?)\n\};", re.S)
 
-BAD = {"DRIFT", "MISSING", "NOT-IN-HISTORY"}
+BAD = {"DRIFT", "MISSING", "NOT-IN-HISTORY", "UNVERIFIABLE"}
 
 
 def sha256_prefix(path: str, n: int) -> str:
@@ -65,7 +65,10 @@ def sha256_prefix(path: str, n: int) -> str:
 
 
 def commit_exists(sha: str, root: str) -> bool:
-    r = subprocess.run(["git", "cat-file", "-e", f"{sha}^{{commit}}"], cwd=root,
+    """True only if the commit is REACHABLE from HEAD. `git cat-file -e` would also say yes to a
+    dangling object left behind by a history reset — which is exactly the case the board must not
+    count as verified."""
+    r = subprocess.run(["git", "merge-base", "--is-ancestor", sha, "HEAD"], cwd=root,
                        capture_output=True, text=True)
     return r.returncode == 0
 
@@ -92,7 +95,9 @@ def check_seal(seal: dict, root: str) -> dict:
                 got = sha256_prefix(full, len(sha))
                 out.update(status="MATCH" if got == sha else "DRIFT", observed=got)
             else:
-                out.update(status="UNCHECKED", detail="sha is not hex; file exists")
+                # A path-bearing row claims to be checkable. A fingerprint that cannot be compared
+                # is a broken seal, not an informational one — it must not let the board HOLD.
+                out.update(status="UNVERIFIABLE", detail="sha is not hex; file exists but cannot be compared")
         else:
             out.update(status="ABSENT-CONFIRMED" if sha.upper().startswith("ABSENT") else "MISSING")
         return out
@@ -105,6 +110,7 @@ def check_seal(seal: dict, root: str) -> dict:
 
 def run(board: str, root: str) -> dict:
     src = open(os.path.join(root, board), encoding="utf-8").read()
+    has_dataset = HUMANAIOS_RE.search(src) is not None
     seals, against = extract(src)
     rows = [check_seal(s, root) for s in seals]
     against_row = None
@@ -117,6 +123,15 @@ def run(board: str, root: str) -> dict:
     bad = [r for r in rows if r["status"] in BAD]
     if against_row and against_row["status"] in BAD:
         bad.append({"artifact": "read.against", **against_row})
+    # Fail closed. A board with no dataset, no seals, or no `read.against` commit has verified
+    # nothing, and "nothing checked" must never read as HOLDS.
+    checkable = [r for r in rows if r["status"] not in ("UNCHECKED",)]
+    if not has_dataset:
+        bad.append({"artifact": "HUMANAIOS dataset", "status": "MISSING", "detail": "no `const HUMANAIOS = {…};` block found"})
+    if not checkable:
+        bad.append({"artifact": "seals", "status": "MISSING", "detail": "no seal with a path or a commit sha found"})
+    if against_row is None:
+        bad.append({"artifact": "read.against", "status": "MISSING", "detail": "no `at <sha>` in read.against"})
     return {"board": board, "read_against": against_row, "counts": counts, "seals": rows,
             "verdict": "STALE" if bad else "HOLDS", "bad": bad}
 
@@ -140,6 +155,13 @@ def run_smoke_test() -> bool:
                         "commit", "-q", "--allow-empty", "-m", "seed"], check=True)
         head = subprocess.run(["git", "-C", td, "rev-parse", "HEAD"], capture_output=True,
                               text=True, check=True).stdout.strip()
+        # A commit that EXISTS in the object store but is not reachable from HEAD — what a history
+        # reset leaves behind. `git cat-file -e` says yes to it; the checker must say NOT-IN-HISTORY.
+        tree = subprocess.run(["git", "-C", td, "rev-parse", "HEAD^{tree}"], capture_output=True,
+                              text=True, check=True).stdout.strip()
+        dangling = subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t",
+                                   "commit-tree", tree, "-m", "orphan"], capture_output=True,
+                                  text=True, check=True).stdout.strip()
         os.makedirs(os.path.join(td, "ui"))
         open(os.path.join(td, "a.txt"), "w").write("alpha\n")
         open(os.path.join(td, "b.txt"), "w").write("beta\n")
@@ -156,6 +178,8 @@ def run_smoke_test() -> bool:
             '  {artifact:"still absent", sha:"ABSENT-20260908", path:"never.txt"},\n'
             f'  {{artifact:"commit head", sha:"{head}"}},\n'
             '  {artifact:"commit ghost", sha:"abcdef0123456789abcdef0123456789abcdef01"},\n'
+            f'  {{artifact:"commit dangling (exists, unreachable)", sha:"{dangling}"}},\n'
+            '  {artifact:"bad fingerprint (path, non-hex)", sha:"not-a-hash", path:"a.txt"},\n'
             '  {artifact:"OI-G1 ratification", sha:"molt-tiers-slug-20260906"}\n'
             ' ]\n};\n'
         )
@@ -165,28 +189,46 @@ def run_smoke_test() -> bool:
         want = {"a (match)": "MATCH", "b (drift)": "DRIFT",
                 "c (was absent, now present)": "DRIFT", "gone (missing)": "MISSING",
                 "still absent": "ABSENT-CONFIRMED", "commit head": "PRESENT",
-                "commit ghost": "NOT-IN-HISTORY", "OI-G1 ratification": "UNCHECKED"}
+                "commit ghost": "NOT-IN-HISTORY",
+                "commit dangling (exists, unreachable)": "NOT-IN-HISTORY",
+                "bad fingerprint (path, non-hex)": "UNVERIFIABLE",
+                "OI-G1 ratification": "UNCHECKED"}
         ok = got == want and "decoy" not in got and rep["verdict"] == "STALE" \
             and rep["read_against"]["status"] == "PRESENT"
         for k in want:
-            print(f"  {k:<32} → {got.get(k)}  {'OK' if got.get(k) == want[k] else 'FAIL'}")
+            print(f"  {k:<40} → {got.get(k)}  {'OK' if got.get(k) == want[k] else 'FAIL'}")
         print("  EXAMPLE dataset ignored →", "OK" if "decoy" not in got else "FAIL")
         # a fully-holding board must come back HOLDS
         clean = html.replace('{artifact:"b (drift)", sha:"0000000000000000", path:"b.txt"},\n', "") \
             .replace('{artifact:"c (was absent, now present)", sha:"ABSENT-20260908", path:"c.txt"},\n', "") \
             .replace('{artifact:"gone (missing)", sha:"1111111111111111", path:"nope.txt"},\n', "") \
-            .replace('{artifact:"commit ghost", sha:"abcdef0123456789abcdef0123456789abcdef01"},\n', "")
+            .replace('{artifact:"commit ghost", sha:"abcdef0123456789abcdef0123456789abcdef01"},\n', "") \
+            .replace(f'{{artifact:"commit dangling (exists, unreachable)", sha:"{dangling}"}},\n', "") \
+            .replace('{artifact:"bad fingerprint (path, non-hex)", sha:"not-a-hash", path:"a.txt"},\n', "")
         open(os.path.join(td, "ui", "board.html"), "w").write(clean)
         holds = run(os.path.join("ui", "board.html"), td)["verdict"] == "HOLDS"
         print("  clean board → HOLDS:", "OK" if holds else "FAIL")
         ok = ok and holds
+        # fail closed: no dataset / no seals / no read.against must each be STALE, never HOLDS
+        for label, variant in (
+            ("no HUMANAIOS block", clean.replace("const HUMANAIOS", "const SOMETHING")),
+            ("no checkable seals", clean.replace(f'  {{artifact:"a (match)", sha:"{a_sha}", path:"a.txt"}},\n', "")
+                                        .replace('  {artifact:"still absent", sha:"ABSENT-20260908", path:"never.txt"},\n', "")
+                                        .replace(f'  {{artifact:"commit head", sha:"{head}"}},\n', "")),
+            ("no read.against commit", clean.replace('against:"main at ' + head[:12] + '"', 'against:"memory"')),
+        ):
+            open(os.path.join(td, "ui", "board.html"), "w").write(variant)
+            v = run(os.path.join("ui", "board.html"), td)["verdict"]
+            print(f"  fail-closed · {label:<24} → {v}  {'OK' if v == 'STALE' else 'FAIL'}")
+            ok = ok and v == "STALE"
     print("SELF-TEST", "PASS" if ok else "FAIL")
     return ok
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--board", default=DEFAULT_BOARD, help="board HTML, relative to repo root")
+    ap.add_argument("--board", "--input", dest="board", default=DEFAULT_BOARD,
+                    help="board HTML, relative to repo root (--input is the tools/README.md alias)")
     ap.add_argument("--root", default=ROOT)
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--self-test", "--smoke-test", dest="self_test", action="store_true")

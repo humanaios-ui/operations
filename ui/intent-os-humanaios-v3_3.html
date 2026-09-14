@@ -354,7 +354,7 @@ const HUMANAIOS = {
    why:"One constant (score_half_life, molt-governed) feeding Stale Sweep, so a vendor score older than the half-life without independent verification decays from VERIFIED to REPORTED; plus a scaffold card on every agentic score. The lint predicted 'within a week' on 09-08 is not written; that prediction resolves 09-15.",
    gate:"benchmark_lint refuses (a) a cited score with no dates and (b) an agentic score with no scaffold card, on a planted test",
    cmds:"ls tools/benchmark_lint.py   # 09-14: No such file",
-   meta:"LAID · two CONST values, one lint · prediction 'lint within a week' (0.70) resolves 2026-09-15 — currently FALSE"},
+   meta:"LAID · two CONST values, one lint · prediction C15 'lint within a week' (0.70) resolves 2026-09-15 — unresolved on this read; the file is absent today"},
   {id:"15", name:"benchmark remap loop (recursive, bounded)", state:"waiting", role:"stage 4 · Build",
    why:"benchmark_map is a constant. Trigger = top-5 spread on a mapped board falls under ~5 points. Emits a MOLT_CANDIDATE to remap to a steeper board with a pinned prediction and a revert rule; anti-cascade rules 1–5 apply; the read is a live leaderboard fetch, never memory.",
    gate:"molt_cycle.py reads a live leaderboard snapshot and emits (or honestly declines) one remap candidate",
@@ -481,9 +481,9 @@ const HUMANAIOS = {
   {artifact:"Z2 rulings 2026-09-08 — unchanged", sha:"3366a9462dda7ab0", path:"z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"},
   {artifact:"JESTER block (H-CAND-JESTER-01, DIVINER-01) — unchanged", sha:"0b967a365db14f71", path:"z1-inbox/2026-09-07/JESTER_EXTERNAL_CHECK_BLOCK.md"},
   {artifact:"WITCH/SPELL/CASCADE block — unchanged", sha:"aca4ee8c319e62b5", path:"z1-inbox/2026-09-07/WITCH_SPELL_CASCADE_BLOCK.md"},
-  {artifact:"decision_relay.py v0.2.0 (Authorization header + Builder markers, this read)", sha:"3eb54d33148cef7c", path:"tools/decision_relay.py"},
+  {artifact:"decision_relay.py v0.2.0 (Authorization header + Builder markers, this read)", sha:"37c3bc346f4af716", path:"tools/decision_relay.py"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
-  {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"c802cc41330735f7", path:"tools/intent_os_board_check_v1_0.py"},
+  {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"65250784fe0b3dd9", path:"tools/intent_os_board_check_v1_0.py"},
   {artifact:"z1-inbox/INDEX.yaml (23 candidates · 3 ratified · 20 awaiting_z2 · after the #316 merge)", sha:"85a26c0a401e946b", path:"z1-inbox/INDEX.yaml"},
   {artifact:"criteria/R-001.md (Z2 Ruling 3 prerequisite)", sha:"ABSENT-20260914", path:"criteria/R-001.md"},
   {artifact:"tools/benchmark_lint.py (step 14)", sha:"ABSENT-20260914", path:"tools/benchmark_lint.py"},
@@ -539,7 +539,10 @@ async function relayPost(path,obj){
   let r;
   try{ r=await fetch(url.replace(/\/$/,"")+path,{method:"POST",headers,body}); }
   catch(e){ return {status:"NO RESPONSE",why:"network or CORS refused the request — is the relay up and is OPTIONS exempt from basic-auth?"}; }
-  if(r.status===401&&!r.headers.get("Content-Type")){ RELAY_BASIC=""; return {status:"REFUSED",why:"basic-auth rejected (401 from ngrok); password cleared — try again"}; }
+  // The relay's own refusals are JSON (401 bad signature / stale timestamp). A 401 that is not JSON is the
+  // ngrok basic-auth gate in front of it — drop the cached password so the next tap asks again.
+  const ct=r.headers.get("Content-Type")||"";
+  if(r.status===401&&!/json/i.test(ct)){ RELAY_BASIC=""; return {status:"REFUSED",why:"basic-auth rejected (401 from ngrok); password cleared — try again"}; }
   try{ return await r.json(); }catch(e){ return {status:"ERROR",why:"relay answered "+r.status+" with no JSON"}; }
 }
 function ruling(id){return (project.rulings||[]).find(x=>x.id===id);}
@@ -577,7 +580,9 @@ function lsDel(){ try{ localStorage.removeItem(KEY); }catch(e){} }
 function lsProbe(){ try{ localStorage.setItem(KEY+":probe","1"); localStorage.removeItem(KEY+":probe"); return true; }catch(e){ return false; } }
 async function persist(){
   if(!storageOK) return;
-  const v = JSON.stringify({project,state});
+  // `bundled` records which HumanAIOS read this file carried when the save was made, so an older
+  // saved copy can never shadow a newer bundled read on restore().
+  const v = JSON.stringify({project,state,bundled:HUMANAIOS.rev});
   if(storageKind==="local"){ if(!lsSet(v)){ storageOK=false; note(); } return; }
   try{ await HOST.set(KEY, v, false); }catch(e){}
 }
@@ -592,8 +597,21 @@ async function restore(){
   else if(HOST){
     try{ const r = await HOST.get(KEY, false); raw = r && r.value; storageKind="host"; storageOK=true; }catch(e){ storageOK=false; }
   }
-  if(raw){ try{ const v = JSON.parse(raw); if(v.project) project = v.project; if(v.state) state = v.state; }catch(e){} }
+  let superseded=false;
+  if(raw){ try{
+    const v = JSON.parse(raw);
+    if(v.state) state = v.state;
+    if(v.project){
+      const p=v.project, ow=p.owner||{};
+      // A saved copy of the bundled HumanAIOS board from an older read is stale by definition: the
+      // bundled read wins, the taps are kept. A user-edited or non-HumanAIOS project is never replaced.
+      const isBundled = ow.project===(HUMANAIOS.owner||{}).project && ow.tagline===(HUMANAIOS.owner||{}).tagline;
+      if(isBundled && (v.bundled||p.rev||"") < HUMANAIOS.rev){ project = JSON.parse(JSON.stringify(HUMANAIOS)); superseded=true; }
+      else project = p;
+    }
+  }catch(e){} }
   note();
+  if(superseded){ persist(); setTimeout(()=>toast("newer HumanAIOS read loaded ("+HUMANAIOS.rev+"); your taps were kept"),300); }
 }
 
 function stateWord(st){return st==="done"?"verified":st==="progress"?"in progress":"needs a decision"}
