@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Z2 Ratification Reviewer — HumanAIOS Governance</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #0f1419 0%, #1a1f28 100%);
+      color: #e5e1d8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    header {
+      margin-bottom: 40px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 24px;
+    }
+    h1 {
+      font-size: 28px;
+      margin: 0 0 8px 0;
+      font-weight: 600;
+    }
+    .subtitle {
+      color: #a8a39a;
+      font-size: 14px;
+      margin: 0;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .status-pending {
+      background: rgba(138, 143, 152, 0.2);
+      color: #8a8f98;
+    }
+    .status-ratified {
+      background: rgba(91, 155, 127, 0.2);
+      color: #5b9b7f;
+    }
+    .status-rejected {
+      background: rgba(180, 87, 63, 0.2);
+      color: #b4573f;
+    }
+    .status-edit {
+      background: rgba(201, 154, 61, 0.2);
+      color: #c99a3d;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 500px;
+      gap: 32px;
+      align-items: start;
+    }
+    @media (max-width: 1200px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .controls {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .control-group {
+      margin-bottom: 16px;
+    }
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #a8a39a;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      color: #e5e1d8;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    input[type="text"]::placeholder {
+      color: rgba(229, 225, 216, 0.4);
+    }
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(91, 155, 127, 0.5);
+      background: rgba(91, 155, 127, 0.1);
+    }
+    .checkbox-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .candidates-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .candidate-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .candidate-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .candidate-card.active {
+      border-color: rgba(91, 155, 127, 0.5);
+      background: rgba(91, 155, 127, 0.1);
+    }
+    .candidate-id {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #a8a39a;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .candidate-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .candidate-meta {
+      font-size: 12px;
+      color: #7a776d;
+      display: flex;
+      gap: 16px;
+    }
+    .candidate-status {
+      display: inline-block;
+    }
+
+    .detail-panel {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 24px;
+    }
+    .detail-header {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .detail-id {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #a8a39a;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .detail-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+    .detail-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+      color: #a8a39a;
+    }
+
+    .decision-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .decision-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #a8a39a;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .decision-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .btn-accept {
+      background: rgba(91, 155, 127, 0.3);
+      color: #5b9b7f;
+      border: 1px solid rgba(91, 155, 127, 0.3);
+    }
+    .btn-accept:hover {
+      background: rgba(91, 155, 127, 0.5);
+      border-color: rgba(91, 155, 127, 0.5);
+    }
+    .btn-edit {
+      background: rgba(201, 154, 61, 0.3);
+      color: #c99a3d;
+      border: 1px solid rgba(201, 154, 61, 0.3);
+    }
+    .btn-edit:hover {
+      background: rgba(201, 154, 61, 0.5);
+      border-color: rgba(201, 154, 61, 0.5);
+    }
+    .btn-reject {
+      background: rgba(180, 87, 63, 0.3);
+      color: #b4573f;
+      border: 1px solid rgba(180, 87, 63, 0.3);
+    }
+    .btn-reject:hover {
+      background: rgba(180, 87, 63, 0.5);
+      border-color: rgba(180, 87, 63, 0.5);
+    }
+    .btn-sign {
+      width: 100%;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, rgba(91, 155, 127, 0.4) 0%, rgba(91, 155, 127, 0.2) 100%);
+      border: 1px solid rgba(91, 155, 127, 0.4);
+      color: #5b9b7f;
+      font-weight: 700;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+    .btn-sign:hover {
+      background: linear-gradient(135deg, rgba(91, 155, 127, 0.6) 0%, rgba(91, 155, 127, 0.4) 100%);
+      border-color: rgba(91, 155, 127, 0.6);
+    }
+
+    .ratifier-section {
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(91, 155, 127, 0.1);
+      border: 1px solid rgba(91, 155, 127, 0.2);
+      border-radius: 4px;
+    }
+    .ratifier-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #5b9b7f;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .ratifier-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #5b9b7f;
+    }
+
+    .content-preview {
+      margin-top: 16px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 2px solid rgba(91, 155, 127, 0.3);
+      border-radius: 4px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #a8a39a;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Menlo', monospace;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #7a776d;
+    }
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .empty-state-text {
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .command-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      padding: 12px;
+      margin-top: 16px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 11px;
+      color: #5b9b7f;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #5b9b7f;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #a8a39a;
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .no-candidates {
+      text-align: center;
+      padding: 40px 20px;
+      color: #7a776d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Z2 Ratification Reviewer</h1>
+      <p class="subtitle">HumanAIOS Governance — Authority: Carly R. Anderson (Night)</p>
+      <span class="status-badge status-pending">Z2 Gate Authority</span>
+    </header>
+
+    <div class="stats" id="statsContainer">
+      <div class="stat">
+        <div class="stat-value" id="totalCandidates">0</div>
+        <div class="stat-label">Candidates Awaiting Decision</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="pendingCandidates">0</div>
+        <div class="stat-label">Pending Review</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="ratifiedCount">0</div>
+        <div class="stat-label">Ratified This Session</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="controls">
+          <div class="control-group">
+            <label>Search Candidates</label>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Filter by Q-ID, title, or path..."
+            >
+          </div>
+          <div class="control-group">
+            <label>Filter by Status</label>
+            <select id="statusFilter">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending Decision</option>
+              <option value="ratified">Ratified</option>
+              <option value="edit_requested">Edit Requested</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Filter by Class</label>
+            <select id="classFilter">
+              <option value="">All Classes</option>
+              <option value="F">Finding (F)</option>
+              <option value="H">Hypothesis (H)</option>
+              <option value="IC">Internal Constraint (IC)</option>
+              <option value="P">Procedure (P)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="candidatesList" class="candidates-list"></div>
+        <div id="noCandidates" class="no-candidates" style="display: none;">
+          No candidates match your filters
+        </div>
+      </div>
+
+      <div>
+        <div id="detailPanel" class="detail-panel">
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p class="empty-state-text">Select a candidate to review and sign</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const RATIFIERS = ['Night'];
+    let allCandidates = [];
+    let selectedCandidate = null;
+    let indexData = null;
+
+    async function loadCandidates() {
+      try {
+        // Fetch INDEX.yaml
+        const indexResponse = await fetch('../z1-inbox/INDEX.yaml');
+        const indexText = await indexResponse.text();
+        indexData = parseYAML(indexText);
+        allCandidates = (indexData.candidates || []).map(c => ({
+          ...c,
+          status: c.status || 'pending',
+          class: extractClass(c.q_id),
+        }));
+
+        updateUI();
+      } catch (error) {
+        console.error('Error loading candidates:', error);
+        document.getElementById('candidatesList').innerHTML =
+          '<div class="no-candidates">Error loading candidates. Ensure INDEX.yaml is accessible.</div>';
+      }
+    }
+
+    function parseYAML(yamlText) {
+      // Simple YAML parser for our structure
+      const lines = yamlText.split('\n');
+      const result = {};
+      let inCandidates = false;
+      let candidates = [];
+      let current = null;
+
+      for (const line of lines) {
+        if (line.startsWith('candidates:')) {
+          inCandidates = true;
+          result.candidates = candidates;
+          continue;
+        }
+
+        if (inCandidates) {
+          if (line.startsWith('  - ')) {
+            current = {};
+            candidates.push(current);
+            continue;
+          }
+
+          if (line.startsWith('    ') && current) {
+            const match = line.match(/^    (\w+):\s*['"]*(.*)['"]?\s*$/);
+            if (match) {
+              const key = match[1];
+              let value = match[2].trim().replace(/['"]/g, '');
+              if (value === 'null') value = null;
+              if (value === 'true') value = true;
+              if (value === 'false') value = false;
+              current[key] = value;
+            }
+          }
+        }
+
+        if (line.startsWith('counts:')) {
+          const match = line.match(/candidates:\s*(\d+)/);
+          if (match) result.candidates_count = parseInt(match[1]);
+        }
+
+        if (line.startsWith('ratifiers:')) {
+          const match = line.match(/\[([^\]]+)\]/);
+          if (match) result.ratifiers = match[1].split(',').map(r => r.trim());
+        }
+      }
+
+      return result;
+    }
+
+    function extractClass(qId) {
+      if (!qId) return '?';
+      const match = qId.match(/^(F|H|IC|P)/);
+      return match ? match[1] : '?';
+    }
+
+    function updateUI() {
+      updateStats();
+      filterAndRenderCandidates();
+      updateDetailPanel();
+    }
+
+    function updateStats() {
+      const pending = allCandidates.filter(c => c.status === 'pending').length;
+      const ratified = allCandidates.filter(c => c.status === 'ratified').length;
+
+      document.getElementById('totalCandidates').textContent = pending;
+      document.getElementById('pendingCandidates').textContent = pending;
+      document.getElementById('ratifiedCount').textContent = ratified;
+    }
+
+    function filterAndRenderCandidates() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+      const classFilter = document.getElementById('classFilter').value;
+
+      const filtered = allCandidates.filter(c => {
+        if (searchTerm &&
+            !(c.q_id.toLowerCase().includes(searchTerm) ||
+              c.title.toLowerCase().includes(searchTerm) ||
+              c.path.toLowerCase().includes(searchTerm))) {
+          return false;
+        }
+        if (statusFilter && c.status !== statusFilter) return false;
+        if (classFilter && c.class !== classFilter) return false;
+        return true;
+      });
+
+      const container = document.getElementById('candidatesList');
+      const noResults = document.getElementById('noCandidates');
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        noResults.style.display = 'block';
+        return;
+      }
+
+      noResults.style.display = 'none';
+      container.innerHTML = filtered.map(c => `
+        <div class="candidate-card ${selectedCandidate?.q_id === c.q_id ? 'active' : ''}"
+             onclick="selectCandidate('${c.q_id}')">
+          <div class="candidate-id">${c.q_id}</div>
+          <div class="candidate-title">${c.title}</div>
+          <div class="candidate-meta">
+            <span class="candidate-status">
+              <span class="status-badge ${getStatusClass(c.status)}">${c.status.replace(/_/g, ' ')}</span>
+            </span>
+            <span>${c.submitted}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function getStatusClass(status) {
+      const map = {
+        'pending': 'status-pending',
+        'ratified': 'status-ratified',
+        'edit_requested': 'status-edit',
+        'rejected': 'status-rejected',
+      };
+      return map[status] || 'status-pending';
+    }
+
+    function selectCandidate(qId) {
+      selectedCandidate = allCandidates.find(c => c.q_id === qId);
+      filterAndRenderCandidates();
+      updateDetailPanel();
+    }
+
+    function updateDetailPanel() {
+      const panel = document.getElementById('detailPanel');
+
+      if (!selectedCandidate) {
+        panel.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p class="empty-state-text">Select a candidate to review and sign</p>
+          </div>
+        `;
+        return;
+      }
+
+      const c = selectedCandidate;
+      const statusClass = getStatusClass(c.status);
+      const isAlreadyRatified = c.status !== 'pending';
+
+      panel.innerHTML = `
+        <div class="detail-header">
+          <div class="detail-id">${c.q_id}</div>
+          <h2 class="detail-title">${c.title}</h2>
+          <div class="detail-meta">
+            <div><strong>Path:</strong> ${c.path}</div>
+            <div><strong>Submitted:</strong> ${c.submitted}</div>
+            <div><strong>Status:</strong> <span class="status-badge ${statusClass}">${c.status.replace(/_/g, ' ')}</span></div>
+            ${c.status !== 'pending' ? `<div><strong>Ratified By:</strong> ${c.ratified_by}</div>` : ''}
+            ${c.status !== 'pending' ? `<div><strong>Ratified At:</strong> ${c.ratified_at}</div>` : ''}
+          </div>
+        </div>
+
+        ${!isAlreadyRatified ? `
+          <div class="decision-section">
+            <div class="decision-label">Z2 Decision</div>
+            <div class="decision-buttons">
+              <button class="btn-accept" onclick="makeDecision('ACCEPT')">✓ Accept</button>
+              <button class="btn-edit" onclick="makeDecision('EDIT')">✎ Edit Request</button>
+              <button class="btn-reject" onclick="makeDecision('REJECT')">✕ Reject</button>
+            </div>
+
+            <div class="ratifier-section">
+              <div class="ratifier-label">Ratifier (Z2)</div>
+              <div class="ratifier-name">🌙 Night (Carly R. Anderson)</div>
+            </div>
+
+            <button class="btn-sign" onclick="generateSignCommand()">
+              🔐 Generate Sign Command
+            </button>
+
+            <div id="commandOutput"></div>
+          </div>
+        ` : `
+          <div class="decision-section">
+            <div class="decision-label">Decision Already Recorded</div>
+            <p style="color: #a8a39a; font-size: 13px; margin: 0;">
+              This candidate has already been reviewed and signed by <strong>${c.ratified_by}</strong> on <strong>${c.ratified_at}</strong>.
+            </p>
+          </div>
+        `}
+      `;
+    }
+
+    let currentDecision = null;
+
+    function makeDecision(decision) {
+      currentDecision = decision;
+      document.querySelectorAll('.decision-buttons button').forEach(btn => {
+        btn.style.opacity = '0.5';
+      });
+      event.target.style.opacity = '1';
+    }
+
+    function generateSignCommand() {
+      if (!currentDecision || !selectedCandidate) {
+        alert('Please select a decision first');
+        return;
+      }
+
+      const cmd = `python3 .z1-control/ratify.py ${selectedCandidate.q_id} --decision ${currentDecision} --by Night --apply`;
+
+      const output = document.getElementById('commandOutput');
+      output.innerHTML = `
+        <div class="command-box">${cmd}</div>
+        <p style="font-size: 12px; color: #a8a39a; margin-top: 12px;">
+          Copy and run this command in your terminal to sign the decision. The ratify.py script will:
+        </p>
+        <ul style="font-size: 12px; color: #a8a39a; margin: 8px 0; padding-left: 20px;">
+          <li>Compute the Z2 signature hash</li>
+          <li>Append the ruling to the dated ruling file</li>
+          <li>Update z1-inbox/INDEX.yaml with the decision</li>
+        </ul>
+      `;
+
+      // Copy to clipboard
+      const copyBtn = document.createElement('button');
+      copyBtn.style.cssText = 'padding: 8px 12px; background: rgba(91, 155, 127, 0.3); border: 1px solid rgba(91, 155, 127, 0.3); border-radius: 4px; color: #5b9b7f; cursor: pointer; font-size: 12px; margin-top: 12px; font-weight: 600;';
+      copyBtn.textContent = '📋 Copy Command';
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(cmd).then(() => {
+          copyBtn.textContent = '✓ Copied!';
+          setTimeout(() => { copyBtn.textContent = '📋 Copy Command'; }, 2000);
+        });
+      };
+      output.appendChild(copyBtn);
+    }
+
+    // Event listeners
+    document.getElementById('searchInput').addEventListener('input', () => {
+      filterAndRenderCandidates();
+    });
+
+    document.getElementById('statusFilter').addEventListener('change', () => {
+      filterAndRenderCandidates();
+    });
+
+    document.getElementById('classFilter').addEventListener('change', () => {
+      filterAndRenderCandidates();
+    });
+
+    // Load candidates on page load
+    loadCandidates();
+  </script>
+</body>
+</html>
