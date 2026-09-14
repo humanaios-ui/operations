@@ -24,7 +24,7 @@ version: 1
 generated: "2026-09-14"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 25, records: 18}
+counts: {candidates: 25, records: 19}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
 
@@ -210,6 +210,9 @@ candidates:
     note: "Board re-read against b52f805; persistence and relay-auth fixes; seal checker tools/intent_os_board_check_v1_0.py; runbook docs/INTENT_OS_BOARD_RUNBOOK.md. The 14 board rulings d2–d16 are not re-argued here — once d18 rules they are filed one candidate each."
 
 records:
+  - path: "z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md"
+    title: "Z3 deployment log — Q-FRAMEWORK-AUDIT-DEPLOY-01 (12 repos, per-repo framework audit)"
+    note: "Landed on main via #320 without an index entry; indexed here as a record (a deployment log requests no Z2 decision) so the z1-inbox coverage rule passes. Carries a Z2 ACCEPT hash in its own header; not re-verified by this entry."
   - path: "z1-inbox/2026-09-14/HANDOFF.md"
     title: "Handoff — 2026-09-14 (Intent-OS board re-read, checker, relay fixes)"
   - path: "z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md"
