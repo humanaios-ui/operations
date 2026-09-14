@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**25 candidates** — ⏳ awaiting Z2 22 · ✅ ratified 3 · **19 records**
+**39 candidates** — ⏳ awaiting Z2 35 · ✅ ratified 4 · **21 records**
 
-## Awaiting Z2 (22)
+## Awaiting Z2 (35)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -33,15 +33,29 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-15 | **Q-TOOLCONTROL-01** | Tool manifest & document-control registry | `z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-02** | Tool category vocabulary & backlog clearance | `z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-03** | Turning the gate on itself — every blocking rule must be able to fail | `z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md` |
-| 2026-09-16 | **Q-INTENTOS-LAUNCH-01** | Intent-OS board — organize the development, decide the launch (d17 surface · d18 relay landing · d19 path freeze) | `z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md` |
+| 2026-09-16 | **Q-BOARD-RULING-02** | Board ruling d2 — TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate? | `z1-inbox/2026-09-14/Q-BOARD-RULING-02.md` |
+| 2026-09-16 | **Q-BOARD-RULING-03** | Board ruling d3 — z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate? | `z1-inbox/2026-09-14/Q-BOARD-RULING-03.md` |
+| 2026-09-16 | **Q-BOARD-RULING-05** | Board ruling d5 — GRBS ↔ Empirica — what is the formal relationship? | `z1-inbox/2026-09-14/Q-BOARD-RULING-05.md` |
+| 2026-09-16 | **Q-BOARD-RULING-06** | Board ruling d6 — First job-posting batch — where does it come from? | `z1-inbox/2026-09-14/Q-BOARD-RULING-06.md` |
+| 2026-09-16 | **Q-BOARD-RULING-07** | Board ruling d7 — Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event? | `z1-inbox/2026-09-14/Q-BOARD-RULING-07.md` |
+| 2026-09-16 | **Q-BOARD-RULING-08** | Board ruling d8 — c08f86c history — accept that the PII literals stay in history, or rewrite history? | `z1-inbox/2026-09-14/Q-BOARD-RULING-08.md` |
+| 2026-09-16 | **Q-BOARD-RULING-09** | Board ruling d9 — B1 — is the platform contract id / feedback / task count covered by the contractor agreement? | `z1-inbox/2026-09-14/Q-BOARD-RULING-09.md` |
+| 2026-09-16 | **Q-BOARD-RULING-10** | Board ruling d10 — Option B — ratify the six-pair co-run as a Molt candidate (4-week window, revert if ≥3 pairs r<0.3)? | `z1-inbox/2026-09-14/Q-BOARD-RULING-10.md` |
+| 2026-09-16 | **Q-BOARD-RULING-11** | Board ruling d11 — Option A — file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists? | `z1-inbox/2026-09-14/Q-BOARD-RULING-11.md` |
+| 2026-09-16 | **Q-BOARD-RULING-12** | Board ruling d12 — H-CAL-01 — queue the mechanism study as a Molt candidate (8-week window) parallel to Option B? | `z1-inbox/2026-09-14/Q-BOARD-RULING-12.md` |
+| 2026-09-16 | **Q-BOARD-RULING-13** | Board ruling d13 — Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions? | `z1-inbox/2026-09-14/Q-BOARD-RULING-13.md` |
+| 2026-09-16 | **Q-BOARD-RULING-14** | Board ruling d14 — LPCS — independent check (a), convergence specimen (b), destination (c), or none? | `z1-inbox/2026-09-14/Q-BOARD-RULING-14.md` |
+| 2026-09-16 | **Q-BOARD-RULING-15** | Board ruling d15 — FALS-43 — batch ruling on the 43 hypotheses without written falsifiers? | `z1-inbox/2026-09-14/Q-BOARD-RULING-15.md` |
+| 2026-09-16 | **Q-BOARD-RULING-16** | Board ruling d16 — docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or ho | `z1-inbox/2026-09-14/Q-BOARD-RULING-16.md` |
 
-## Decided (3)
+## Decided (4)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
 | ✅ ratified | **Q-CYCLE3-FALSIFY-01** | Night | 2026-09-08 | `z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md`<br>`cycle-3-falsification-approved-20260908` |
 | ✅ ratified | **Q-JESTER-CHECK-01** | Night | 2026-09-08 | `z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md`<br>`h-cand-batch-ratified-20260908` |
 | ✅ ratified | **Q-WITCH-CASCADE-01** | Night | 2026-09-08 | `z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md`<br>`h-cand-batch-ratified-20260908` |
+| ✅ ratified | **Q-INTENTOS-LAUNCH-01** | Night | 2026-09-14 | `z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md`<br>`9a2a469be2cbbe1d559b78d0b0fd41d286c21d0313bc61482b906b474f5d3309` |
 
 ## ⚠️ Falsifier waivers (1) — open for Z2
 
@@ -51,7 +65,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (73)
+## Open questions for Z2 (87)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -67,6 +81,90 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Stage 3 is accepted as requiring a trusted-base evaluator and ratified attack corpus
 - [ ] Registrable item 1 is routed with priority — it concerns the authority map's accuracy
 - [ ] Out-of-scope boundary on `score_transcript()` is accepted
+
+### Q-BOARD-RULING-02 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-02.md`
+
+- [ ] TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate? — options: set, drop gate, later
+
+### Q-BOARD-RULING-03 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-03.md`
+
+- [ ] z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate? — options: set, drop gate, later
+
+### Q-BOARD-RULING-05 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-05.md`
+
+- [ ] GRBS ↔ Empirica — what is the formal relationship? — options: rule now, later
+
+### Q-BOARD-RULING-06 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-06.md`
+
+- [ ] First job-posting batch — where does it come from? — options: own postings, partner, scrape, later
+
+### Q-BOARD-RULING-07 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-07.md`
+
+- [ ] Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event? — options: no bypass, bypass + IC, later
+
+### Q-BOARD-RULING-08 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-08.md`
+
+- [ ] c08f86c history — accept that the PII literals stay in history, or rewrite history? — options: accept, rewrite, later
+
+### Q-BOARD-RULING-09 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-09.md`
+
+- [ ] B1 — is the platform contract id / feedback / task count covered by the contractor agreement? — options: not covered, covered, later
+
+### Q-BOARD-RULING-10 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-10.md`
+
+- [ ] Option B — ratify the six-pair co-run as a Molt candidate (4-week window, revert if ≥3 pairs r<0.3)? — options: ratify, edit, reject, later
+
+### Q-BOARD-RULING-11 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-11.md`
+
+- [ ] Option A — file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists? — options: file as draft, ratify now, later
+
+### Q-BOARD-RULING-12 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-12.md`
+
+- [ ] H-CAL-01 — queue the mechanism study as a Molt candidate (8-week window) parallel to Option B? — options: queue, hold, reject
+
+### Q-BOARD-RULING-13 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-13.md`
+
+- [ ] Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions? — options: require, later
+
+### Q-BOARD-RULING-14 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-14.md`
+
+- [ ] LPCS — independent check (a), convergence specimen (b), destination (c), or none? — options: (a) check, (b) specimen, (c) destination, none, later
+
+### Q-BOARD-RULING-15 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-15.md`
+
+- [ ] FALS-43 — batch ruling on the 43 hypotheses without written falsifiers? — options: rule now, later
+
+### Q-BOARD-RULING-16 (1)
+
+`z1-inbox/2026-09-14/Q-BOARD-RULING-16.md`
+
+- [ ] docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold? — options: archive as listed, edit list, later
 
 ### Q-CGBG-BASELINE-01 (6)
 
@@ -178,7 +276,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (19)
+## Records (21)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -202,6 +300,8 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md` | Z2 ruling — RESOURCE_UNITS.yaml header ratified; hash remains unsigned by Z2 |
 | `z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md` | Z2 ruling — .z1-control/ratify.py Zone 2 ratified (Night, 2026-09-13) |
 | `z1-inbox/2026-09-14/HANDOFF.md` | Handoff — 2026-09-14 (Intent-OS board re-read, checker, relay fixes) |
+| `z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md` | Z2 rulings 2026-09-14 — signatures issued by .z1-control/ratify.py (Q-INTENTOS-LAUNCH-01 ACCEPT) |
+| `z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md` | Z2 ruling — d17 local only · d18 z1-inbox + INDEX.yaml · d19 freeze path · temporary tokens revoked (Night, 2026-09-14) |
 | `z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md` | Z3 deployment log — Q-FRAMEWORK-AUDIT-DEPLOY-01 (12 repos, per-repo framework audit) |
 
 ---

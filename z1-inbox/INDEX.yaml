@@ -24,7 +24,7 @@ version: 1
 generated: "2026-09-14"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 25, records: 19}
+counts: {candidates: 39, records: 21}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
 
@@ -206,10 +206,119 @@ candidates:
     title: "Intent-OS board — organize the development, decide the launch (d17 surface · d18 relay landing · d19 path freeze)"
     path: "z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md"
     submitted: "2026-09-14"
-    status: awaiting_z2
+    status: ratified
     note: "Board re-read against b52f805; persistence and relay-auth fixes; seal checker tools/intent_os_board_check_v1_0.py; runbook docs/INTENT_OS_BOARD_RUNBOOK.md. The 14 board rulings d2–d16 are not re-argued here — once d18 rules they are filed one candidate each."
+    ratified_by: Night
+    ratified_at: "2026-09-14"
+    z2_ruling: "z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"
+    z2_hash: "9a2a469be2cbbe1d559b78d0b0fd41d286c21d0313bc61482b906b474f5d3309"
+
+  - q_id: Q-BOARD-RULING-02
+    title: "Board ruling d2 — TLA_TOOLS_SHA256 \u2014 set the repository variable, or drop it as a gate?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-02.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-03
+    title: "Board ruling d3 — z2_budget_p2 \u2014 set the Phase 2 envelope, or drop it as a gate?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-03.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-05
+    title: "Board ruling d5 — GRBS \u2194 Empirica \u2014 what is the formal relationship?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-05.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-06
+    title: "Board ruling d6 — First job-posting batch \u2014 where does it come from?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-06.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-07
+    title: "Board ruling d7 — Branch protection \u2014 turn off admin bypass on main, or keep it and register every bypass as an IC event?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-07.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-08
+    title: "Board ruling d8 — c08f86c history \u2014 accept that the PII literals stay in history, or rewrite history?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-08.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-09
+    title: "Board ruling d9 — B1 \u2014 is the platform contract id / feedback / task count covered by the contractor agreement?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-09.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-10
+    title: "Board ruling d10 — Option B \u2014 ratify the six-pair co-run as a Molt candidate (4-week window, revert if \u22653 pairs r<0.3)?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-10.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-11
+    title: "Board ruling d11 — Option A \u2014 file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-11.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-12
+    title: "Board ruling d12 — H-CAL-01 \u2014 queue the mechanism study as a Molt candidate (8-week window) parallel to Option B?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-12.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-13
+    title: "Board ruling d13 — Option C \u2014 require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-13.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-14
+    title: "Board ruling d14 — LPCS \u2014 independent check (a), convergence specimen (b), destination (c), or none?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-14.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-15
+    title: "Board ruling d15 — FALS-43 \u2014 batch ruling on the 43 hypotheses without written falsifiers?"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-15.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
+  - q_id: Q-BOARD-RULING-16
+    title: "Board ruling d16 — docs/ triage \u2014 rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or ho"
+    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-16.md"
+    submitted: "2026-09-14"
+    status: awaiting_z2
+    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
+
 
 records:
+  - path: "z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"
+    title: "Z2 rulings 2026-09-14 — signatures issued by .z1-control/ratify.py (Q-INTENTOS-LAUNCH-01 ACCEPT)"
+    note: "Z2 output. Cited as z2_ruling by Q-INTENTOS-LAUNCH-01; decision_relay.py appends board-ruling signatures here under d18."
+  - path: "z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"
+    title: "Z2 ruling — d17 local only · d18 z1-inbox + INDEX.yaml · d19 freeze path · temporary tokens revoked (Night, 2026-09-14)"
+    note: "The choices inside the ACCEPT on Q-INTENTOS-LAUNCH-01; recorded by Z1 as transcription of Z2's decision given in session."
   - path: "z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md"
     title: "Z3 deployment log — Q-FRAMEWORK-AUDIT-DEPLOY-01 (12 repos, per-repo framework audit)"
     note: "Landed on main via #320 without an index entry; indexed here as a record (a deployment log requests no Z2 decision) so the z1-inbox coverage rule passes. Carries a Z2 ACCEPT hash in its own header; not re-verified by this entry."
