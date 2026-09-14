@@ -385,8 +385,8 @@ const HUMANAIOS = {
   {id:"20", name:"Z2 decision backlog → one queue", state:"done", role:"stage 3 · Decide",
    why:"On 09-14 morning the inbox held 22 awaiting_z2 candidates while this board carried 14 open rulings (d2, d3, d5–d16) that existed nowhere in it — two backlogs, one ratifier. d18 ruled the board's rulings into the inbox; each is now a candidate block the z2 gate, the validator and the triage job can see, and the relay ratifies it in place. One list: Z1_INBOX_INDEX.md.",
    gate:"every open board ruling either maps to an INDEX.yaml candidate (q_id recorded on the ruling) or is withdrawn with a reason",
-   cmds:"python3 .z1-control/validate.py --report | python3 -c \"import json,sys;r=json.load(sys.stdin);print(r.get('counts'))\"\ngrep -c awaiting_z2 z1-inbox/INDEX.yaml   # 09-14 after filing: 35",
-   meta:"DONE 09-14 under d18: 14 candidates Q-BOARD-RULING-02…16 filed (each with the question, options, a choice: line ratify.py signs over, and a 30-day falsifier) · queue now 39 candidates: 4 ratified · 35 awaiting_z2 — one list, no board-only rulings left"}
+   cmds:"python3 .z1-control/validate.py --report | python3 -c \"import json,sys;r=json.load(sys.stdin);print(r.get('counts'))\"\ngrep -c awaiting_z2 z1-inbox/INDEX.yaml   # 09-14 after filing: 36",
+   meta:"DONE 09-14 under d18: 14 candidates Q-BOARD-RULING-02…16 filed (each with the question, options, a choice: line ratify.py signs over, and a 30-day falsifier) · queue now 40 candidates: 4 ratified · 36 awaiting_z2 (incl. the IC candidate Q-IC-BOARD-SEALS-01 from this read's findings scan) — one list, no board-only rulings left"}
  ],
  departures:[
   {move:"NF_LEDGER — Z2 priors and dates", entity:"Z2", closes:"Sep 12 — PASSED", hot:true,
@@ -406,7 +406,7 @@ const HUMANAIOS = {
   {label:"operated cycles", base:7.5, prev:7.5, target:100, scale:"3 of 40 (shown as %)", note:"measured: 3 door-1 cycles on main, fingerprints unchanged · 0 intake-pipeline cycles · no projection offered"},
   {label:"specimen-intake Cycle 1 blockers cleared", base:50, prev:67, target:100, scale:"3 of 6 (NF-SCHEMA, B2, B3-build done; B1, ADV, OI-G1 open)", note:"projected: ADV run is Z1 work and needs no ruling — counts when the run is on the tree"},
   {label:"owner rulings resolved (this board)", base:36, prev:36, target:100, scale:"8 of 22 (OI-G1/G2/G3, d1, d4, d17, d18, d19 done; d2, d3, d5–d16 open — each now a queue candidate)", note:"measured: d17–d19 ruled 09-14 evening, signed 9a2a469be2cbbe1d…"},
-  {label:"Z2 candidate backlog cleared (z1-inbox/INDEX.yaml)", base:10, prev:10, target:100, scale:"4 of 39 ratified · 35 awaiting_z2 (14 of them the board rulings filed 09-14)", note:"measured from INDEX.yaml after Q-INTENTOS-LAUNCH-01 was signed; the 48h window has passed on 6"},
+  {label:"Z2 candidate backlog cleared (z1-inbox/INDEX.yaml)", base:10, prev:10, target:100, scale:"4 of 40 ratified · 36 awaiting_z2 (14 of them the board rulings filed 09-14, 1 the IC candidate)", note:"measured from INDEX.yaml after Q-INTENTOS-LAUNCH-01 was signed; the 48h window has passed on 6"},
   {label:"graph integrity (edges with valid endpoints)", base:100, prev:100, target:100, scale:"53 of 53 · 22 nodes", note:"measured 09-14 on the landed JSON (regenerated 09-13) · cycle 3 still says v0.2 is not adversarially closed"},
   {label:"board seals that hold (intent_os_board_check)", base:100, prev:100, target:100, scale:"see checker output — exit 0 = HOLDS", note:"measured by running the checker against this file; 3 records are listed as RECEIPT-GAP (commits lost in the history reset) and are not counted either way"},
   {label:"ACAT dimensions with an external comparator", base:50, prev:50, target:50, scale:"6 of 12", note:"measured by desk mapping only; target is honesty, not 100"},
@@ -456,7 +456,7 @@ const HUMANAIOS = {
  ],
  seals:[
   {artifact:"REGISTERED.md (4147 lines · re-sealed at the PR head after #320; 8163351e… at the b52f805 read)", sha:"96507d9f3f9d78e2", path:"REGISTERED.md"},
-  {artifact:"PRIORITY_QUEUE.md z2_queue v1_1 (241 lines · no pin field · ruling event appended 09-14 evening)", sha:"d883dcaccb46252e", path:"PRIORITY_QUEUE.md"},
+  {artifact:"PRIORITY_QUEUE.md z2_queue v1_1 (242 lines · no pin field · hygiene + IC-candidate events appended 09-14 late)", sha:"4c8ea02566044a89", path:"PRIORITY_QUEUE.md"},
   {artifact:"system_graph.json v0.2 (22 nodes · 53 edges · regenerated 09-13)", sha:"7715372d8c3027bc", path:"system_graph.json"},
   {artifact:"z2_ratification_gate.yml — repaired workflow on main", sha:"0ad63f35d362cc0a", path:".github/workflows/z2_ratification_gate.yml"},
   {artifact:"z2_ratification_gate.yml — stray DRAFT duplicate at repo root", sha:"4f2f7b2a1052cd71", path:"z2_ratification_gate.yml"},
@@ -482,7 +482,7 @@ const HUMANAIOS = {
   {artifact:"decision_relay.py v0.3.1 (lands in z1-inbox + INDEX.yaml under d18; body hash pinned at decide, server-side ratifier and date; self-test PASS)", sha:"4801d88428e6f2c7", path:"tools/decision_relay.py"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
   {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"65250784fe0b3dd9", path:"tools/intent_os_board_check_v1_0.py"},
-  {artifact:"z1-inbox/INDEX.yaml (39 candidates · 21 records · 4 ratified · 35 awaiting_z2 · after the 09-14 rulings and the 14 board-ruling candidates)", sha:"7e1a40710266ca47", path:"z1-inbox/INDEX.yaml"},
+  {artifact:"z1-inbox/INDEX.yaml (40 candidates · 21 records · 4 ratified · 36 awaiting_z2 · after the 09-14 rulings, the 14 board-ruling candidates and Q-IC-BOARD-SEALS-01)", sha:"6db845820c29d492", path:"z1-inbox/INDEX.yaml"},
   {artifact:"Z2 rulings 2026-09-14 — Q-INTENTOS-LAUNCH-01 ACCEPT signed by ratify.py", sha:"d6bc85e4e21dd631", path:"z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"},
   {artifact:"Z2 ruling — d17 local only · d18 z1-inbox · d19 freeze path · tokens revoked", sha:"5694e1a9bd50f150", path:"z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"},
   {artifact:"Q-INTENTOS-LAUNCH-01 candidate (bytes pinned by the signature above)", sha:"bde5dae91ef3e318", path:"z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md"},

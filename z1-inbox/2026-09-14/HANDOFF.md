@@ -92,3 +92,15 @@ Attribution: Z1 (Claude). Z2 (Night) signs this handoff and the candidate via `.
 **Not done, by design:** no ruling was taken on the 35 awaiting candidates — "clear Z2 now" was executed as *put every Z2 decision in one list and make the board able to clear it*, not as Z1 deciding for Z2. Each of the 35 needs Night's choice, from the board (→ PR, then hash echo) or by hand (`ratify.py <Q-ID> --decision … --by Night --apply`).
 
 **Receipt gaps:** the token revocation is Z2's statement, not a tree fact. The relay's GitHub path (`GitHubStore`) is exercised only by the DRY_RUN store; the first live ruling (C17, by 09-30) is its test.
+
+---
+
+## Session 3 (same day, after #325 merged at 6d3443a) — Z1 follow-ups needing no ruling
+
+| act | where |
+|---|---|
+| board re-checked against merged main | `tools/intent_os_board_check_v1_0.py` → HOLDS (MATCH 31 · ABSENT-CONFIRMED 5 · UNCHECKED 7) |
+| IC candidate from the session-1 findings scan filed as a block | `z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md` · `Q-IC-BOARD-SEALS-01` awaiting_z2 · asks Z2 to register the IC and rule on two preventions |
+| PRIORITY_QUEUE.md hygiene item executed: `.breadcrumbs.yaml` untracked (`git rm --cached`) so the `.gitignore` entry is no longer inert; the local file and Empirica's writes to it are untouched | tree no longer carries a live calibration store; no tool reads it from the tree (grep: docs and queue only) |
+
+**Still Z1, not done:** the stray root `z2_ratification_gate.yml` DRAFT duplicate and `prs_run.py` sitting outside every tool-manifest scan root are named in Q-GOVGATE-01 / Q-TOOLCONTROL-* territory; removing or re-rooting them changes a gate or a scan policy, so they wait on those candidates rather than on a quiet Z1 edit.
