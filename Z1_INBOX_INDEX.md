@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**42 candidates** — ⏳ awaiting Z2 38 · ✅ ratified 4 · **21 records**
+**42 candidates** — ⏳ awaiting Z2 38 · ✅ ratified 4 · **22 records**
 
 ## Awaiting Z2 (38)
 
@@ -287,7 +287,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (21)
+## Records (22)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -312,6 +312,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md` | Z2 ruling — .z1-control/ratify.py Zone 2 ratified (Night, 2026-09-13) |
 | `z1-inbox/2026-09-14/HANDOFF.md` | Handoff — 2026-09-14 (Intent-OS board re-read, checker, relay fixes) |
 | `z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md` | Z2 rulings 2026-09-14 — signatures issued by .z1-control/ratify.py (Q-INTENTOS-LAUNCH-01 ACCEPT) |
+| `z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md` | Z2 ruling — AMBIGUITY-BSM-D: Z2-GOVARCH-02 supersedes SESSION_RITUALS §A.1; amend to WGS-primary / halt-only-if-both-fail (Night, 2026-09-14) |
 | `z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md` | Z2 ruling — d17 local only · d18 z1-inbox + INDEX.yaml · d19 freeze path · temporary tokens revoked (Night, 2026-09-14) |
 | `z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md` | Z3 deployment log — Q-FRAMEWORK-AUDIT-DEPLOY-01 (12 repos, per-repo framework audit) |
 

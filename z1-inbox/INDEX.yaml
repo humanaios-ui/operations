@@ -24,7 +24,7 @@ version: 1
 generated: "2026-09-14"
 # The Z2 decision window from CLAUDE.md ("48h for routine decisions").
 decision_window_days: 2
-counts: {candidates: 42, records: 21}
+counts: {candidates: 42, records: 22}
 # Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
 ratifiers: [Night]
 
@@ -334,6 +334,9 @@ candidates:
     note: "From the S-091426-01 findings scan. Correction already landed (#323/#325: the seal checker); the block asks Z2 to register the IC and to accept or edit two preventions (advisory board-check CI job; checker as a §A session-open line)."
 
 records:
+  - path: "z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md"
+    title: "Z2 ruling — AMBIGUITY-BSM-D: Z2-GOVARCH-02 supersedes SESSION_RITUALS §A.1; amend to WGS-primary / halt-only-if-both-fail (Night, 2026-09-14)"
+    note: "Z2 output, transcribed by Z1 from an in-session ruling, following the Z2_RULING_INTENTOS_LAUNCH.md precedent. Landed as SESSION_RITUALS.md v6.4.2, Section A Step 1 only. z2_hash is UNSIGNED pending .z1-control/ratify.py — the content is in but the signature is outstanding."
   - path: "z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"
     title: "Z2 rulings 2026-09-14 — signatures issued by .z1-control/ratify.py (Q-INTENTOS-LAUNCH-01 ACCEPT)"
     note: "Z2 output. Cited as z2_ruling by Q-INTENTOS-LAUNCH-01; decision_relay.py appends board-ruling signatures here under d18."
