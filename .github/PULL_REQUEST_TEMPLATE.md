@@ -19,6 +19,10 @@
      Why? System measures your accuracy → learns → feeds back as gates.
      Help it learn by being honest about risk.
      Omitted lines are VOID (not scored); no penalty, but no signal either.
+     
+     FOR SMAG CONSOLIDATION PRs: Also pin smag_p_meta (SMAG's confidence in its own
+     consolidation accuracy). Example: smag_p_meta: 0.82 (gap report regeneration is
+     mechanical but ledger merges are risky). This wires SMAG's self-learning loop.
 -->
 
 ## Zone
