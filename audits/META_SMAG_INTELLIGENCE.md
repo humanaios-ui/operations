@@ -55,10 +55,10 @@ Before a consolidation PR merges, SMAG must pin a **self-confidence** score (`sm
 ```markdown
 ## Prediction (SMAG calibration)
 
-smag_p: 0.85  # (authors' predictions, backfilled)
-smag_p_meta: 0.82  # (SMAG's self-confidence in this consolidation)
+smag_p: 0.85
+smag_p_meta: 0.82
 
-Why 0.82?
+Why 0.85 (authors' predictions, backfilled) and 0.82 (SMAG's self-confidence)?
 - Ledger dedup is mechanical (high confidence)
 - Gap-report regeneration is mechanical (high confidence)
 - Lessons upsert is mechanical (high confidence)
@@ -228,6 +228,6 @@ A: Not directly. Authors improve author-SMAG by pinning honest `smag_p:` predict
 
 ---
 
-**Deployed:** 2026-09-15 (S-091526)  
-**Ratified by:** Z2 approval of smag-consolidate.yml workflow integration  
-**Next review:** 2026-10-15 (after 4 weekly cycles of meta-SMAG data)
+**Status:** Proposed (S-091526)  
+**Awaiting:** Z2 ratification of smag-consolidate.yml workflow integration  
+**Scheduled review:** 2026-10-15 (after 4 weekly cycles of meta-SMAG data, pending approval)

@@ -39,7 +39,7 @@ Add this line **anywhere in your PR description:**
 smag_p: 0.85
 ```
 
-**That's it.** The system extracts it automatically via regex: `smag_p:\s*(\d+\.?\d*)`
+**That's it.** The system extracts it automatically via regex: `^\s*smag_p\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*$` (0.0–1.0, anchored to line)
 
 ### Examples
 
@@ -99,7 +99,8 @@ The system compares your **predicted** score to the **measured** outcome:
 }
 ```
 
-**Gap recorded** → you were overconfident → system learns your predictions run hot 🔴
+**Gap recorded** → calibrated (prediction pinned) but inaccurate → system learns your predictions run hot 🔴
+Note: "calibrated" means a prediction was pinned and can be scored; "accuracy" shows how well it performed.
 
 ---
 
@@ -164,7 +165,7 @@ SMAG creates its own PRs (`smag-consolidate.yml` runs weekly). Can we measure SM
 
 **Next step:** Wire SMAG to predict its own performance, then measure itself.
 
-See `SMAG_INTELLIGENCE_ROADMAP.md` for how to make SMAG self-improving.
+See `audits/META_SMAG_INTELLIGENCE.md` for how SMAG measures its own accuracy.
 
 ---
 
