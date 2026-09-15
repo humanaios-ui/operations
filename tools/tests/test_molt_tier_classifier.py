@@ -100,6 +100,7 @@ def test_no_false_negatives_gates():
         ".z1-control/ratify.py":    ".z1-control/ratify.py",
         ".z1-control/validate.py":  ".z1-control/validate.py",
         ".z1-control/render.py":    ".z1-control/render.py",
+        "tools/molting_protocol_diff_v1_0.py": "tools/molting_protocol_diff_v1_0.py",
     }
     assert set(samples) == set(molt.GATE_PATHS), (
         "GATE_PATHS changed without updating this test — widening or narrowing "
@@ -125,6 +126,19 @@ def test_repo_gate_paths_exist_on_disk():
 
 # ── False positives: the substring trap ───────────────────────────────────────
 
+def test_the_rule_can_see_its_own_edits():
+    """
+    A PR that changes only this classifier is a PR that changes the tier rule.
+    If that measured Tier 0, the rule could be rewritten — an entry deleted,
+    the max inverted — with nothing flagging it. A control that cannot see its
+    own edits is not a control.
+    """
+    assert classify_molt_tier(["tools/molting_protocol_diff_v1_0.py"]) == 2
+    assert molt.__file__.endswith(tuple(
+        e for e in molt.GATE_PATHS if e.endswith("molting_protocol_diff_v1_0.py")
+    )), "the module lists a path that is not its own — the self-reference is broken"
+
+
 def test_handicaps_is_not_caps():
     """A raw `'caps/' in path` test matches 'handicaps/'. Segment matching must not."""
     assert classify_molt_tier(["docs/handicaps/notes.md"]) == 0
@@ -148,6 +162,17 @@ def test_empty_and_malformed_input_is_tier_0():
     assert classify_molt_tier([]) == 0
     assert classify_molt_tier(None) == 0
     assert classify_molt_tier(["", "   ", None]) == 0
+
+
+def test_non_iterable_input_does_not_raise():
+    """
+    The docstring promises totality. A scalar reaching the loop would raise
+    TypeError instead — and a classifier that can be made to throw is a
+    classifier that can be made to skip a gate.
+    """
+    for scalar in (42, 3.5, object(), True):
+        assert classify_molt_tier(scalar) == 0
+        assert molt.tier_evidence(scalar) == []
 
 
 def test_path_normalization():
@@ -176,6 +201,17 @@ def test_parse_claimed_tier():
     assert molt.parse_claimed_tier("") is None
     assert molt.parse_claimed_tier(None) is None
     assert molt.parse_claimed_tier("molt_tier_claimed: 7") is None, "out of range is no claim"
+
+
+def test_multi_digit_claim_is_not_truncated_to_its_first_digit():
+    """
+    A single-digit capture reads `molt_tier_claimed: 10` as a claim of Tier 1
+    and then scores a gap against it — inventing a hypothesis the author never
+    made, and putting a fabricated row in the audit ledger.
+    """
+    assert molt.parse_claimed_tier("molt_tier_claimed: 10") is None
+    assert molt.parse_claimed_tier("molt_tier_claimed: 22") is None
+    assert molt.parse_claimed_tier("molt_tier_claimed: 2") == 2
 
 
 def test_unfilled_template_placeholder_is_not_a_claim_of_zero():
@@ -214,6 +250,24 @@ def test_run_refuses_input_it_cannot_read():
         except molt.SpecLoadFailed:
             continue
         raise AssertionError(f"run({bad!r}) should have raised SpecLoadFailed")
+
+
+def test_cli_rejects_valid_json_that_is_not_an_object():
+    """
+    `--input '[]'` loads fine as JSON. Applying --claimed/--pr to a list raises
+    TypeError from argparse handling rather than reporting SPEC_LOAD_FAILED, so
+    the shape is checked before the overrides are applied.
+    """
+    import subprocess
+    root = TOOLS_DIR.parent
+    proc = subprocess.run(
+        [sys.executable, "tools/molting_protocol_diff_v1_0.py",
+         "--input", "[]", "--claimed", "1", "--no-report"],
+        cwd=root, capture_output=True, text=True,
+    )
+    assert proc.returncode == 2, proc.stderr
+    assert "SPEC_LOAD_FAILED" in proc.stderr
+    assert "Traceback" not in proc.stderr
 
 
 def test_smoke_test_passes():

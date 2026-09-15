@@ -201,9 +201,13 @@ molt_tier_measured_at_pr_open: true
 molt_tier_check_blocking: false          # advisory; measures, does not gate
 under_claim_falsifier: >-
   Zero PRs under-claim molt tier by more than one level. Measured as
-  (PRs with |claimed - measured| > 1) / (total PRs) over a rolling 30-day
-  window; target < 5%. A sustained under-claim pattern is a DRIFT callout
-  to Z2, not a per-PR rejection.
+  (PRs with measured - claimed > 1) / (total PRs) over a rolling 30-day
+  window; target < 5%. Directional on purpose: an absolute |claimed -
+  measured| would count a two-level OVER-claim as a falsifier trip, and
+  molt_tier_gap_record scores over-claims LOW — over-claiming costs
+  caution, under-claiming is how a gate change merges labelled "not a
+  molt". A sustained under-claim pattern is a DRIFT callout to Z2, not a
+  per-PR rejection.
 ```
 
 **Z2 note — two open items this creates.** (1) The gap rows are currently

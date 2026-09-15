@@ -51,9 +51,12 @@ class SpecLoadFailed(Exception):
 #
 # These two sets ARE the rule. They are deliberately data, not logic, so that
 # the question "why is my PR Tier 2?" is answered by reading a list rather than
-# by reading an argument. Changing either set is itself a Tier-2 change (this
-# file is reachable from the gate path list below only via tools/ — see the
-# note on `ci_gates.py`), so the rule cannot be quietly widened or narrowed.
+# by reading an argument.
+#
+# This file lists ITSELF in GATE_PATHS. Without that entry a PR touching only
+# this module could rewrite the tier rule — delete an entry, invert the max —
+# while measuring Tier 0 and drawing no attention at all. A rule that cannot
+# see its own edits is not a control.
 #
 # MATCHING RULE (segment-aware containment, not raw substring):
 #   * An entry ending in "/" is a DIRECTORY prefix. It matches when it appears
@@ -101,6 +104,8 @@ GATE_PATHS = (
     ".z1-control/ratify.py",
     ".z1-control/validate.py",
     ".z1-control/render.py",
+    # The rule must be able to see edits to itself — see the note above.
+    "tools/molting_protocol_diff_v1_0.py",
 )
 
 TIER_NAMES = {
@@ -126,6 +131,27 @@ def normalize_path(filepath: str) -> str:
     return p.lstrip("/")
 
 
+def _as_path_list(diff_filepaths) -> list:
+    """
+    Coerce whatever a caller passed into a list of candidate paths.
+
+    A bare string is one path. Anything that is not iterable — an int, an
+    object — yields nothing rather than raising: `classify_molt_tier` documents
+    itself as total, and a classifier that can be made to throw is a classifier
+    that can be made to skip a gate.
+    """
+    if diff_filepaths is None:
+        return []
+    if isinstance(diff_filepaths, str):
+        return [diff_filepaths]
+    if isinstance(diff_filepaths, (bytes, bytearray)):
+        return [diff_filepaths.decode("utf-8", "replace")]
+    try:
+        return list(diff_filepaths)
+    except TypeError:
+        return []
+
+
 def _matches(path: str, entry: str) -> bool:
     """Segment-aware containment — see MATCHING RULE above."""
     if not path or not entry:
@@ -149,10 +175,8 @@ def classify_molt_tier(diff_filepaths) -> int:
     not a match. A classifier that can throw is a classifier that can be made
     to skip a gate.
     """
-    if isinstance(diff_filepaths, str):
-        diff_filepaths = [diff_filepaths]
     tier = 0
-    for raw in diff_filepaths or []:
+    for raw in _as_path_list(diff_filepaths):
         path = normalize_path(raw)
         if not path:
             continue
@@ -171,10 +195,8 @@ def tier_evidence(diff_filepaths) -> list:
     Each row: {"path", "tier", "matched"} where `matched` names the rule
     entries that fired. Paths that matched nothing are omitted.
     """
-    if isinstance(diff_filepaths, str):
-        diff_filepaths = [diff_filepaths]
     rows = []
-    for raw in diff_filepaths or []:
+    for raw in _as_path_list(diff_filepaths):
         path = normalize_path(raw)
         if not path:
             continue
@@ -204,14 +226,19 @@ def parse_claimed_tier(pr_body: str):
         return None
     # Tolerate the markdown the field is actually written in: `**molt_tier_claimed:** \`1\``,
     # `molt_tier_claimed: 1`, `molt_tier_claimed: [1]`.
-    m = re.search(r"molt_tier_claimed:[\s*`\[]*([0-2])", str(pr_body))
+    #
+    # The digits are captured WHOLE (\d+), not as a single [0-2]. Capturing one
+    # digit would read "molt_tier_claimed: 10" as a claim of Tier 1 and then
+    # score a gap against it — inventing a hypothesis the author never made.
+    m = re.search(r"molt_tier_claimed:[\s*`\[]*(\d+)", str(pr_body))
     if not m:
         return None
     # The unfilled placeholder "[0 | 1 | 2]" would otherwise read as a claim of 0.
     tail = pr_body[m.start():m.start() + 40]
     if "|" in tail.split("\n")[0]:
         return None
-    return int(m.group(1))
+    value = int(m.group(1))
+    return value if value in (0, 1, 2) else None
 
 
 def molt_tier_gap_record(pr_number, claimed, measured, evidence=None) -> dict:
@@ -424,8 +451,16 @@ def run_smoke_test() -> bool:
         assert classify_molt_tier(["docs/handicaps/notes.md"]) == 0, \
             "'caps/' must not match 'handicaps/'"
 
-        # Totality: odd input must not raise
+        # The rule must be able to see edits to itself
+        assert classify_molt_tier(["tools/molting_protocol_diff_v1_0.py"]) == 2, \
+            "changing the rule must itself measure Tier 2"
+
+        # Totality: odd input must not raise, including a non-iterable scalar
         assert classify_molt_tier([None, "", "   ", "./README.md"]) == 0
+        assert classify_molt_tier(42) == 0
+
+        # A multi-digit claim is not truncated to its first digit
+        assert parse_claimed_tier("molt_tier_claimed: 10") is None
 
         # Envelope test
         output = aggregate(result, "_smoke")
@@ -518,6 +553,14 @@ def main() -> None:
     else:
         parser.print_help()
         sys.exit(1)
+
+    # `--input '[]'` loads valid JSON that is not an object. Applying the CLI
+    # overrides to it would raise TypeError from argument parsing rather than
+    # reporting SPEC_LOAD_FAILED, so the shape is checked before they are set.
+    if not isinstance(data, dict):
+        print(f"SPEC_LOAD_FAILED: expected a JSON object, got {type(data).__name__}",
+              file=sys.stderr)
+        sys.exit(2)
 
     if args.claimed is not None:
         data["molt_tier_claimed"] = args.claimed

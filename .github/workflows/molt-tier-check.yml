@@ -11,25 +11,49 @@ name: molt-tier-check
 # Promote it to blocking only once the measured under-claim rate over a rolling
 # 30-day window is under 5% — i.e. once the field is actually being filled in.
 #
-# Two things this deliberately does NOT do:
+# WHY TWO JOBS. The classifier has to run the PR's own copy of
+# tools/molting_protocol_diff_v1_0.py, because a PR that edits the rule is
+# exactly the PR whose tier must be measured against the rule it is proposing.
+# Running PR-head code in a job that also holds `pull-requests: write` would
+# hand any same-repo contributor arbitrary code execution with a write-capable
+# token. So the work is split:
+#
+#   classify — runs PR-head code, token is `contents: read` and nothing else.
+#   comment  — holds the write permission, checks out NOTHING, and touches only
+#              the three short strings the first job emitted, each re-validated
+#              against a closed set before it reaches the comment body.
+#
+# Two further things this deliberately does NOT do:
 #   * It does not interpolate the PR body into a shell command. `${{ ... }}` of
 #     attacker-controlled text is a script-injection sink; the body reaches
 #     Python through the environment instead, where it is only ever data.
 #   * It does not post a new comment per push. It upserts one comment keyed by
-#     the marker below, so a ten-push PR has one tier row, not ten.
+#     the marker below, with a per-PR concurrency group so two rapid pushes
+#     cannot both find no marker and both create one.
 
 on:
   pull_request:
-  workflow_dispatch:
 
-permissions:
-  contents: read
-  pull-requests: write
+# Serializes runs per PR. The read-then-upsert below is not atomic, so without
+# this two overlapping runs could each see no existing comment and each create
+# one, breaking the one-comment-per-PR contract.
+concurrency:
+  group: molt-tier-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
 
 jobs:
   classify:
     name: Measure molt tier from the diff (ADVISORY)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read        # deliberately no pull-requests: write — see above
+    outputs:
+      measured: ${{ steps.classify.outputs.measured }}
+      claimed:  ${{ steps.classify.outputs.claimed }}
+      verdict:  ${{ steps.classify.outputs.verdict }}
+      evidence: ${{ steps.classify.outputs.evidence }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,7 +66,6 @@ jobs:
       # origin/main is not necessarily fetched, which is how that form silently
       # reports an empty diff — and an empty diff measures Tier 0.
       - name: Collect changed files
-        id: files
         uses: actions/github-script@v7
         with:
           script: |
@@ -51,7 +74,6 @@ jobs:
               { owner: context.repo.owner, repo: context.repo.repo,
                 pull_number: context.issue.number, per_page: 100 }
             );
-            core.setOutput('count', String(files.length));
             require('fs').writeFileSync(
               'changed_files.txt',
               files.map(f => f.filename).join('\n') + '\n'
@@ -83,11 +105,14 @@ jobs:
               claimed = gap["molt_tier_claimed"]
               out.write(f"claimed={'missing' if claimed is None else claimed}\n")
               out.write(f"verdict={gap['verdict']}\n")
-              out.write("evidence<<EOF\n")
+              out.write("evidence<<MOLTTIEREOF\n")
               for row in gap["evidence"][:20]:
-                  out.write(f"- `{row['path']}` -> Tier {row['tier']} "
-                            f"(matched {', '.join('`%s`' % m for m in row['matched'])})\n")
-              out.write("EOF\n")
+                  # Backticks are stripped: this text is written by the PR and
+                  # lands inside a markdown comment the next job posts.
+                  path = row["path"].replace("`", "")
+                  matched = ", ".join("`%s`" % m.replace("`", "") for m in row["matched"])
+                  out.write(f"- `{path}` -> Tier {row['tier']} (matched {matched})\n")
+              out.write("MOLTTIEREOF\n")
           print(json.dumps(gap, indent=2))
           PY
 
@@ -103,34 +128,58 @@ jobs:
           path: molt_tier_gap.json
           retention-days: 90
 
-      - name: Report to PR
+  comment:
+    name: Report tier to the PR
+    needs: classify
+    if: always() && needs.classify.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      # No checkout. This job runs only actions/github-script and the inline
+      # script below, so nothing from the PR head is ever executed here.
+      - name: Upsert the tier comment
         continue-on-error: true   # a fork PR gets a read-only token; not a failure
         uses: actions/github-script@v7
         env:
-          MEASURED: ${{ steps.classify.outputs.measured }}
-          CLAIMED: ${{ steps.classify.outputs.claimed }}
-          VERDICT: ${{ steps.classify.outputs.verdict }}
-          EVIDENCE: ${{ steps.classify.outputs.evidence }}
+          MEASURED: ${{ needs.classify.outputs.measured }}
+          CLAIMED: ${{ needs.classify.outputs.claimed }}
+          VERDICT: ${{ needs.classify.outputs.verdict }}
+          EVIDENCE: ${{ needs.classify.outputs.evidence }}
         with:
           script: |
             const MARKER = '<!-- molt-tier-check -->';
-            const { MEASURED, CLAIMED, VERDICT, EVIDENCE } = process.env;
+
+            // These four values crossed a job boundary from a job that ran
+            // PR-head code. Re-validate rather than trust: the tiers and the
+            // verdict are closed sets, and the evidence block is clamped to
+            // plain lines so it cannot smuggle markup into the comment.
+            const tier = v => (['0','1','2'].includes(v) ? v : '?');
+            const measured = tier(process.env.MEASURED);
+            const claimed  = process.env.CLAIMED === 'missing'
+              ? 'missing' : tier(process.env.CLAIMED);
+            const VERDICTS = ['MATCH','UNDER_CLAIM','OVER_CLAIM','MISSING'];
+            const verdict  = VERDICTS.includes(process.env.VERDICT)
+              ? process.env.VERDICT : 'UNKNOWN';
+            const evidence = (process.env.EVIDENCE || '')
+              .split('\n').filter(l => l.startsWith('- `')).slice(0, 20).join('\n');
 
             const verdicts = {
-              MATCH:       `✅ **Match:** Tier ${MEASURED}.`,
-              UNDER_CLAIM: `⚠️ **Under-claim:** claimed Tier ${CLAIMED}, the diff measures Tier ${MEASURED}. ` +
+              MATCH:       `✅ **Match:** Tier ${measured}.`,
+              UNDER_CLAIM: `⚠️ **Under-claim:** claimed Tier ${claimed}, the diff measures Tier ${measured}. ` +
                            `Not a blocker — but this is the gap the audit is looking for.`,
-              OVER_CLAIM:  `ℹ️ **Over-claim:** claimed Tier ${CLAIMED}, the diff measures Tier ${MEASURED}. Informational.`,
+              OVER_CLAIM:  `ℹ️ **Over-claim:** claimed Tier ${claimed}, the diff measures Tier ${measured}. Informational.`,
               MISSING:     `⚠️ **No claim:** the PR body has no filled-in \`molt_tier_claimed: [0|1|2]\`. ` +
                            `The claim is VOID (no penalty, but no signal either); the measured tier stands.`,
+              UNKNOWN:     `The classifier did not return a readable verdict.`,
             };
 
             let body = `${MARKER}\n### Molt Tier Classification\n\n`;
             body += `| | tier |\n|:--|:--|\n`;
-            body += `| claimed | ${CLAIMED} |\n| measured | **${MEASURED}** |\n\n`;
-            body += (verdicts[VERDICT] || `Verdict: ${VERDICT}`) + `\n`;
-            if (EVIDENCE && EVIDENCE.trim()) {
-              body += `\n<details><summary>Which paths set the tier</summary>\n\n${EVIDENCE}\n</details>\n`;
+            body += `| claimed | ${claimed} |\n| measured | **${measured}** |\n\n`;
+            body += verdicts[verdict] + `\n`;
+            if (evidence) {
+              body += `\n<details><summary>Which paths set the tier</summary>\n\n${evidence}\n</details>\n`;
             }
             body += `\nAdvisory: this check never blocks a merge. The rule is the two path ` +
                     `lists in \`tools/molting_protocol_diff_v1_0.py\`.\n`;
@@ -147,13 +196,10 @@ jobs:
               await github.rest.issues.createComment({ owner, repo, issue_number, body });
             }
 
-      - name: Job summary
-        if: always()
-        run: |
-          {
-            echo "### Molt tier"
-            echo ""
-            echo "- claimed: ${{ steps.classify.outputs.claimed }}"
-            echo "- measured: ${{ steps.classify.outputs.measured }}"
-            echo "- verdict: ${{ steps.classify.outputs.verdict }}"
-          } >> "$GITHUB_STEP_SUMMARY"
+            await core.summary
+              .addHeading('Molt tier', 3)
+              .addTable([
+                [{data: 'field', header: true}, {data: 'value', header: true}],
+                ['claimed', claimed], ['measured', measured], ['verdict', verdict],
+              ])
+              .write();
