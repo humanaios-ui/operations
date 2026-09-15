@@ -30,11 +30,11 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 156
+  tools: 155
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 126
-  missing_from_tree: 1
+  missing_from_tree: 0
   unclassified: 0
 categories:
 - analytics_tool
@@ -1111,23 +1111,6 @@ tools:
   builder_markers: true
   purpose: Traces question-source → method-design → data-output chain for Market-Harmonic Research auditability.
   session: S-060126-01
-- tool_id: HAIOS-TOOL-090
-  name: molt_cycle
-  path: tools/molt_cycle.py
-  version: unversioned
-  category: governance_tool
-  zone: 1
-  status: archived
-  interface: cli
-  lang: python
-  smoke_test: false
-  builder_markers: false
-  purpose: molt_cycle.py — READ + PROPOSE phases only (Tier 0). Never applies.
-  missing_from_tree: true
-  notes: Renamed to tools/molt_cycle_tier0_v0_1.py (HAIOS-TOOL-158) to remove a naming collision with
-    the canonical root /molt_cycle.py — see Q-NF-ADAPTER-01 IC candidate and that file's own docstring.
-    A path change is a new tool per this manifest's own rule; this entry is retired explicitly rather
-    than left dangling.
 - tool_id: HAIOS-TOOL-091
   name: molting_protocol_diff
   path: tools/molting_protocol_diff_v1_0.py
