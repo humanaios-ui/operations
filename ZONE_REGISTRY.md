@@ -40,16 +40,15 @@
 
 ---
 
-## Planned Zones (Aspirational, 20 Repos TBD)
+## Planned Zones (Aspirational, Per PLANNED_REPOS.md)
 
 | Zone ID | Repo Name | Status | Roadmap Date | Notes |
 |:--------|:----------|:--------|:-------------|:------|
-| Z-012 | empirica-autonomy | PLANNED | TBD | Autonomy module |
-| Z-013–Z-031 | (19 more repos) | PLANNED | See PLANNED_REPOS.md | TBD |
+| Z-012+ | See PLANNED_REPOS.md | PLANNED | Phases 2–3 | 13 planned + 6 unaccounted (see roadmap) |
 
 **Total active:** 12 zones (8 full-cap + 3 limited-cap + 1 read-only)  
-**Total planned:** 20 zones  
-**Total ecosystem:** 32 zones
+**Total planned:** 13 zones (per PLANNED_REPOS.md; 6 unaccounted pending audit)  
+**Total aspirational scope:** 31 zones (original claim; see PLANNED_REPOS.md §Overview)
 
 ---
 
@@ -58,14 +57,14 @@
 Each zone has a **per-cycle resource budget** (measured in units, not time):
 
 ```
-Example: Z-001 (humanaios) cap = 100 units/cycle
+Example: Z-001 (humanaios) cap = 100 units/cycle; Z-000 cap = 80 units/cycle
 
 Each activity consumes units:
 - Z1 proposal creation: 1-5 units (depends on complexity)
 - Z2 ratification: 1-2 units (decision review)
 - Z3 agent execution: 5-50 units (depends on agent cycles, tools used)
 
-When 100 units consumed → zone halts work
+When zone's per-cycle cap consumed → zone halts work until next cycle
 No 48h deadline; no arbitrary window
 Capacity refills on next cycle or when Z2 allocates
 ```

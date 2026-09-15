@@ -1,381 +1,460 @@
-# HumanAIOS — Z1 Inbox Index (Single Source of Truth)
-#
-# What this is: the conversion record for z1-inbox/. Every file dropped in the
-# inbox is either a CANDIDATE (it asks Z2 for a decision) or a RECORD (it
-# reports, receipts, or hands off — no decision requested). This file says
-# which, and for candidates it carries the decision state.
-#
-# Why it is a sidecar and not frontmatter: z1-inbox/2026-09-06/MANIFEST.md sets
-# the inbox convention as "append-only; a correction is a new dated folder,
-# never an edit." Writing frontmatter into 24 existing dated drops would be an
-# edit to each. The metadata lives here instead, the same shape
-# document-registry.yaml and tools-manifest.yaml already use, and
-# `.z1-control/validate.py` enforces that this file and the tree agree.
-#
-# `decision_due` is DERIVED (submitted + the 48h Z2 window from CLAUDE.md) and
-# is recomputed by the validator — do not hand-set it to buy time.
-#
-# `status: ratified | edit_requested | rejected` is Z2's act. The validator
-# refuses any of them without `ratified_by`, `ratified_at`, and a `z2_ruling`
-# that resolves to a real file — Z1 cannot sign for Z2, the same no-self-grant
-# rule .tool-control/validate.py already enforces for the Z2 tool waiver.
----
 version: 1
-generated: "2026-09-14"
-# The Z2 decision window from CLAUDE.md ("48h for routine decisions").
+generated: '2026-09-14'
 decision_window_days: 2
-counts: {candidates: 41, records: 21}
-# Who may sign a Z2 decision. Z1 (Claude) is deliberately absent.
-ratifiers: [Night]
-
+counts:
+  candidates: 42
+  records: 22
+ratifiers:
+- Night
 candidates:
-  - q_id: Q-JESTER-CHECK-01
-    title: "Jester → External Check · registry candidate block"
-    path: "z1-inbox/2026-09-07/JESTER_EXTERNAL_CHECK_BLOCK.md"
-    submitted: "2026-09-07"
-    status: ratified
-    ratified_by: Night
-    ratified_at: "2026-09-08"
-    z2_ruling: "z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"
-    z2_hash: "h-cand-batch-ratified-20260908"
-    note: "Ruling 2 — ratified as records; H-CAND-JESTER-01 enters REGISTERED.md pending per-block hash pinning."
-
-  - q_id: Q-WITCH-CASCADE-01
-    title: "Witch · Spell · Cascade — registry candidate block"
-    path: "z1-inbox/2026-09-07/WITCH_SPELL_CASCADE_BLOCK.md"
-    submitted: "2026-09-07"
-    status: ratified
-    ratified_by: Night
-    ratified_at: "2026-09-08"
-    z2_ruling: "z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"
-    z2_hash: "h-cand-batch-ratified-20260908"
-    note: "Ruling 2 — covers H-CAND-DIVINER-01, -SPELL-01, -CASCADE-01, -FUSION-01."
-
-  - q_id: Q-CYCLE3-FALSIFY-01
-    title: "Cycle 3 falsification findings (17 findings, 4 severity tiers, 6 attack chains)"
-    path: "z1-inbox/2026-09-08/CYCLE_3_FALSIFICATION_REPORT.md"
-    submitted: "2026-09-08"
-    status: ratified
-    ratified_by: Night
-    ratified_at: "2026-09-08"
-    z2_ruling: "z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"
-    z2_hash: "cycle-3-falsification-approved-20260908"
-    note: "Ruling 1 — findings accepted as factual; seven structural changes registered as v0.3 blockers (F-CAND-STRUCT-01..07)."
-
-  - q_id: Q-ACAT-BENCHMARK-01
-    title: "ACAT ↔ market-benchmark map (H-BM-01..03)"
-    path: "z1-inbox/2026-09-08/ACAT_BENCHMARK_CANDIDATE_BLOCK.md"
-    submitted: "2026-09-08"
-    status: awaiting_z2
-
-  - q_id: Q-DOC-LIFECYCLE-01
-    title: "docs/ lifecycle — disposition for 108 files"
-    path: "z1-inbox/2026-09-08/DOC_LIFECYCLE_CANDIDATE_BLOCK.md"
-    submitted: "2026-09-08"
-    status: awaiting_z2
-
-  - q_id: Q-FRAMEWORK-MAPPING-01
-    title: "Framework Mapping — 5 AI engineering concepts → Z-roles"
-    path: "z1-inbox/2026-09-10/FRAMEWORK_MAPPING_CANDIDATE.md"
-    submitted: "2026-09-10"
-    status: awaiting_z2
-    falsifier_waiver: "the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it."
-    note: "CLAUDE.md appended events, 2026-09-10 22:17 UTC: PR #264 merged the content; the RATIFY signature is still outstanding."
-
-  - q_id: Q-FRAMEWORK-MAPPING-INTEGRATION-01
-    title: "Framework Mapping governance integration across 31 repos"
-    path: "z1-inbox/2026-09-10/FRAMEWORK_MAPPING_FOLLOWUP.md"
-    submitted: "2026-09-10"
-    status: awaiting_z2
-
-  - q_id: Q-NF-SCHEMA-01
-    title: "Unify NF_LEDGER schema"
-    path: "z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md"
-    submitted: "2026-09-10"
-    status: awaiting_z2
-    note: "Priority Queue score 8; unblocks Q-MOLT-04 (score 9)."
-
-  - q_id: Q-PHASE1-2-ROLLOUT-01
-    title: "Framework Mapping Phase 1–3 rollout plan"
-    path: "z1-inbox/2026-09-11/PHASE_1_2_ROLLOUT_PLAN.md"
-    submitted: "2026-09-11"
-    status: awaiting_z2
-
-  - q_id: Q-ADVREVIEW-CALIB-01
-    title: "Adversarial review as a PR-gated calibration node"
-    path: "z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md"
-    submitted: "2026-09-12"
-    status: awaiting_z2
-
-  - q_id: Q-RFM-01
-    title: "REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner"
-    path: "z1-inbox/2026-09-13/Q-RFM-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Eight-item Z2 checklist. Blocking decisions: whether to turn on --enforce, and which of four disagreeing instruments states the registry census (126 / 130 / 135 / 138 / 142). Current baseline post-second-main-merge: 142 entries, 107/568 defects, 81.2% FPY, 188,380 DPMO."
-
-  - q_id: Q-TOOLCONTROL-01
-    title: "Tool manifest & document-control registry"
-    path: "z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Eight-item Z2 checklist; item 6 is the 39 overdue document reviews."
-
-  - q_id: Q-TOOLCONTROL-02
-    title: "Tool category vocabulary & backlog clearance"
-    path: "z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Landed on main via PR #306 while this branch was open. The coverage rule caught it unindexed in CI — the first real firing of that rule."
-
-  - q_id: Q-TOOLCONTROL-03
-    title: "Turning the gate on itself — every blocking rule must be able to fail"
-    path: "z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Answers the operator's question after #306: 10 of 26 blocking conditions had ever been executed. This block was itself caught unindexed by .z1-control/validate.py on its first run against it."
-
-  - q_id: Q-GOVGATE-01
-    title: "The Z2 gate never ran; z1-inbox conversion mechanism"
-    path: "z1-inbox/2026-09-13/Q-GOVGATE-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "z2_ratification_gate.yml was invalid YAML from its first commit — 122 runs, 0 jobs. Four further workflows are in the same state."
-
-  - q_id: Q-DOCREVIEW-01
-    title: "The 39 overdue document reviews — lifecycle, not re-dating"
-    path: "z1-inbox/2026-09-13/Q-DOCREVIEW-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Answers Q-TOOLCONTROL-01 checklist item 6. Decision A (backlog) and Decision B (owners) are the owner's acts; no date was moved."
-
-  - q_id: Q-DOCREVIEW-02
-    title: "Findings from the first real document review pass (11 reviewed, 28 unreachable)"
-    path: "z1-inbox/2026-09-13/Q-DOCREVIEW-02.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Executes Q-DOCREVIEW-01. Five findings, led by DOCUMENT_CONTROL_PLAN.md being absent while .doc-control/validate.py, the registry and four external practice notifications all cite it as authoritative. Also needs a Z2 routing decision for the 28 overdue documents in humanaios-internal and lasting-light-ai, which this session cannot open."
-  - q_id: Q-NF-ADAPTER-01
-    title: "molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger"
-    path: "z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Closes PRIORITY_QUEUE.md's Q-NF-SCHEMA-01 row (score 9) via PR #313, per that row's own narrower acceptance criteria — not the fuller rewrite the 2026-09-10 Q-NF-SCHEMA-01 candidate above proposes. Given a distinct q_id to avoid a duplicate-key collision with that still-open candidate; Z2 ratifying this one should also resolve that one."
-
-  - q_id: Q-RBE-01
-    title: "Resource-based operations v0.1 — units, ledger, census, priced queue"
-    path: "z1-inbox/2026-09-13/Q-RBE-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Asks for four acts: a hash on RESOURCE_UNITS.yaml, a RAT-min capacity declaration, two constant molts, and disposition of F-RBE-01/02/03. Every artifact is inert until then; the queue keeps the incumbent formula."
-  - q_id: Q-CGBG-PILOT-01
-    title: "Adversarial review: CGBG Pilot Offer (AI Research Capacity)"
-    path: "z1-inbox/2026-09-13/Q-CGBG-PILOT-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Ten adversarial findings on the externally-circulated CGBG Pilot Offer; flags a broken expiration clause (references a deadline never stated) and no settlement floor / delivery sequencing as the top exploitation risks. Recommends patching before the offer is shown to a real counterparty."
-  - q_id: Q-CGBG-BASELINE-01
-    title: "Adversarial review: CGBG-MARKET-BASELINE-001 (Evidence-Linked Market Observation v0.1)"
-    path: "z1-inbox/2026-09-13/Q-CGBG-BASELINE-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Seven findings on the companion market-baseline document: an unflagged identity-match red flag already visible in its own inputs, and two evidence-matrix values outside its own declared epistemic-state vocabulary. Client/manager/compensation specifics redacted in this file per the subject document's own confidentiality clause."
-
-  - q_id: Q-REGISTRY-AUDIT-01
-    title: "ZONE_REGISTRY.md reconciliation — classify 13 missing repos (planned, never created)"
-    path: "z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-01.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Phase 1 of registry audit. Identifies 13 repos claimed in ZONE_REGISTRY but absent from GitHub (all classified as planned/never-created). Proposes 3 options for header correction (Option A/B/C). Awaits Z2 decision."
-
-  - q_id: Q-REGISTRY-AUDIT-02
-    title: "ZONE_REGISTRY.md reconciliation — register 7 active repos missing from registry"
-    path: "z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-02.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Phase 2 of registry audit. Identifies 7 repos on GitHub but missing from ZONE_REGISTRY. Proposes zone assignments for each. Blocked on Q-REGISTRY-AUDIT-01 ratification."
-
-  - q_id: Q-REGISTRY-AUDIT-03
-    title: "ZONE_REGISTRY.md reconciliation — implement + deploy CI gate"
-    path: "z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-03.md"
-    submitted: "2026-09-13"
-    status: awaiting_z2
-    note: "Phase 3 of registry audit. Implementation plan for chosen reconciliation option. Deploys registry_consistency CI gate to prevent future drift. Blocked on -01 and -02 ratification."
-
-  - q_id: Q-INTENTOS-LAUNCH-01
-    title: "Intent-OS board — organize the development, decide the launch (d17 surface · d18 relay landing · d19 path freeze)"
-    path: "z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md"
-    submitted: "2026-09-14"
-    status: ratified
-    note: "Board re-read against b52f805; persistence and relay-auth fixes; seal checker tools/intent_os_board_check_v1_0.py; runbook docs/INTENT_OS_BOARD_RUNBOOK.md. The 14 board rulings d2–d16 are not re-argued here — once d18 rules they are filed one candidate each."
-    ratified_by: Night
-    ratified_at: "2026-09-14"
-    z2_ruling: "z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"
-    z2_hash: "9a2a469be2cbbe1d559b78d0b0fd41d286c21d0313bc61482b906b474f5d3309"
-
-  - q_id: Q-BOARD-RULING-02
-    title: "Board ruling d2 — TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-02.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-03
-    title: "Board ruling d3 — z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-03.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-05
-    title: "Board ruling d5 — GRBS ↔ Empirica — what is the formal relationship?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-05.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-06
-    title: "Board ruling d6 — First job-posting batch — where does it come from?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-06.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-06; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-07
-    title: "Board ruling d7 — Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-07.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-08
-    title: "Board ruling d8 — c08f86c history — accept that the PII literals stay in history, or rewrite history?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-08.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-09
-    title: "Board ruling d9 — B1 — is the platform contract id / feedback / task count covered by the contractor agreement?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-09.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-10
-    title: "Board ruling d10 — Option B — ratify the six-pair co-run as a Molt candidate (4-week window, revert if ≥3 pairs r<0.3)?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-10.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-11
-    title: "Board ruling d11 — Option A — file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-11.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-12
-    title: "Board ruling d12 — H-CAL-01 — queue the mechanism study as a Molt candidate (8-week window) parallel to Option B?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-12.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-13
-    title: "Board ruling d13 — Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-13.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-14
-    title: "Board ruling d14 — LPCS — independent check (a), convergence specimen (b), destination (c), or none?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-14.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-15
-    title: "Board ruling d15 — FALS-43 — batch ruling on the 43 hypotheses without written falsifiers?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-15.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOARD-RULING-16
-    title: "Board ruling d16 — docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold?"
-    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-16.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Open on the Intent-OS board since 2026-09-08; filed as its own candidate under d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or by hand via ratify.py."
-
-  - q_id: Q-BOOT-STATE-MACHINE-01
-    title: "Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation"
-    path: "z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "Asks Z2 for EDIT-over-REJECT on the prototype and for disposition of four upstream candidates it surfaced while verifying citations: IC-CAND-BSM-A (SESSION_RITUALS changelog claims a Section F Degraded-Mode Specification the live file does not contain — halt 9 points at nothing), IC-CAND-BSM-B (P27 cites a SESSION_RITUALS Section B Step 0 that does not exist), AMBIGUITY-BSM-C (CLAUDE.md §A and SESSION_RITUALS §A both specify session open, differently — P22.1 first-match-wins is unsatisfiable until one governs), AMBIGUITY-BSM-D (§A.1 halt vs Z2-GOVARCH-02 demotion: read literally, every Claude session halts at open). Also carries F-CAND-BSM-E. The Q- id did not exist in-repo before this entry (F-BSM-12); filed here rather than left dangling. Companion code at z1-inbox/2026-09-14/boot_state_machine_v0_2.py; reviewed input preserved verbatim at boot_state_machine_v0_1_AS_REVIEWED.py.txt. No calibration_ref — the P30 gate is NOT cleared, so this is not ratification-ready as filed."
-
-
-  - q_id: Q-IC-BOARD-SEALS-01
-    title: "IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class)"
-    path: "z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md"
-    submitted: "2026-09-14"
-    status: awaiting_z2
-    note: "From the S-091426-01 findings scan. Correction already landed (#323/#325: the seal checker); the block asks Z2 to register the IC and to accept or edit two preventions (advisory board-check CI job; checker as a §A session-open line)."
-
+- q_id: Q-JESTER-CHECK-01
+  title: "Jester \u2192 External Check \xB7 registry candidate block"
+  path: z1-inbox/2026-09-07/JESTER_EXTERNAL_CHECK_BLOCK.md
+  submitted: '2026-09-07'
+  status: ratified
+  ratified_by: Night
+  ratified_at: '2026-09-08'
+  z2_ruling: z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md
+  z2_hash: h-cand-batch-ratified-20260908
+  note: "Ruling 2 \u2014 ratified as records; H-CAND-JESTER-01 enters REGISTERED.md\
+    \ pending per-block hash pinning."
+- q_id: Q-WITCH-CASCADE-01
+  title: "Witch \xB7 Spell \xB7 Cascade \u2014 registry candidate block"
+  path: z1-inbox/2026-09-07/WITCH_SPELL_CASCADE_BLOCK.md
+  submitted: '2026-09-07'
+  status: ratified
+  ratified_by: Night
+  ratified_at: '2026-09-08'
+  z2_ruling: z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md
+  z2_hash: h-cand-batch-ratified-20260908
+  note: "Ruling 2 \u2014 covers H-CAND-DIVINER-01, -SPELL-01, -CASCADE-01, -FUSION-01."
+- q_id: Q-CYCLE3-FALSIFY-01
+  title: Cycle 3 falsification findings (17 findings, 4 severity tiers, 6 attack chains)
+  path: z1-inbox/2026-09-08/CYCLE_3_FALSIFICATION_REPORT.md
+  submitted: '2026-09-08'
+  status: ratified
+  ratified_by: Night
+  ratified_at: '2026-09-08'
+  z2_ruling: z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md
+  z2_hash: cycle-3-falsification-approved-20260908
+  note: "Ruling 1 \u2014 findings accepted as factual; seven structural changes registered\
+    \ as v0.3 blockers (F-CAND-STRUCT-01..07)."
+- q_id: Q-ACAT-BENCHMARK-01
+  title: "ACAT \u2194 market-benchmark map (H-BM-01..03)"
+  path: z1-inbox/2026-09-08/ACAT_BENCHMARK_CANDIDATE_BLOCK.md
+  submitted: '2026-09-08'
+  status: awaiting_z2
+- q_id: Q-DOC-LIFECYCLE-01
+  title: "docs/ lifecycle \u2014 disposition for 108 files"
+  path: z1-inbox/2026-09-08/DOC_LIFECYCLE_CANDIDATE_BLOCK.md
+  submitted: '2026-09-08'
+  status: awaiting_z2
+- q_id: Q-FRAMEWORK-MAPPING-01
+  title: "Framework Mapping \u2014 5 AI engineering concepts \u2192 Z-roles"
+  path: z1-inbox/2026-09-10/FRAMEWORK_MAPPING_CANDIDATE.md
+  submitted: '2026-09-10'
+  status: awaiting_z2
+  falsifier_waiver: "the block declares itself Type H, 'no falsifier required \u2014\
+    \ reference architecture'. Recorded as the candidate's own claim, not as an accepted\
+    \ exemption: Z2 accepts or refuses it."
+  note: 'CLAUDE.md appended events, 2026-09-10 22:17 UTC: PR #264 merged the content;
+    the RATIFY signature is still outstanding.'
+- q_id: Q-FRAMEWORK-MAPPING-INTEGRATION-01
+  title: Framework Mapping governance integration across 31 repos
+  path: z1-inbox/2026-09-10/FRAMEWORK_MAPPING_FOLLOWUP.md
+  submitted: '2026-09-10'
+  status: awaiting_z2
+- q_id: Q-NF-SCHEMA-01
+  title: Unify NF_LEDGER schema
+  path: z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md
+  submitted: '2026-09-10'
+  status: awaiting_z2
+  note: Priority Queue score 8; unblocks Q-MOLT-04 (score 9).
+- q_id: Q-PHASE1-2-ROLLOUT-01
+  title: "Framework Mapping Phase 1\u20133 rollout plan"
+  path: z1-inbox/2026-09-11/PHASE_1_2_ROLLOUT_PLAN.md
+  submitted: '2026-09-11'
+  status: awaiting_z2
+- q_id: Q-ADVREVIEW-CALIB-01
+  title: Adversarial review as a PR-gated calibration node
+  path: z1-inbox/2026-09-12/Q-ADVREVIEW-CALIB-01.md
+  submitted: '2026-09-12'
+  status: awaiting_z2
+- q_id: Q-RFM-01
+  title: REGISTERED.md failure-mode map (RFM taxonomy) + executable scanner
+  path: z1-inbox/2026-09-13/Q-RFM-01.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: 'Eight-item Z2 checklist. Blocking decisions: whether to turn on --enforce,
+    and which of four disagreeing instruments states the registry census (126 / 130
+    / 135 / 138 / 142). Current baseline post-second-main-merge: 142 entries, 107/568
+    defects, 81.2% FPY, 188,380 DPMO.'
+- q_id: Q-TOOLCONTROL-01
+  title: Tool manifest & document-control registry
+  path: z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: Eight-item Z2 checklist; item 6 is the 39 overdue document reviews.
+- q_id: Q-TOOLCONTROL-02
+  title: Tool category vocabulary & backlog clearance
+  path: z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: "Landed on main via PR #306 while this branch was open. The coverage rule\
+    \ caught it unindexed in CI \u2014 the first real firing of that rule."
+- q_id: Q-TOOLCONTROL-03
+  title: "Turning the gate on itself \u2014 every blocking rule must be able to fail"
+  path: z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: 'Answers the operator''s question after #306: 10 of 26 blocking conditions
+    had ever been executed. This block was itself caught unindexed by .z1-control/validate.py
+    on its first run against it.'
+- q_id: Q-GOVGATE-01
+  title: The Z2 gate never ran; z1-inbox conversion mechanism
+  path: z1-inbox/2026-09-13/Q-GOVGATE-01.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: "z2_ratification_gate.yml was invalid YAML from its first commit \u2014 122\
+    \ runs, 0 jobs. Four further workflows are in the same state."
+- q_id: Q-DOCREVIEW-01
+  title: "The 39 overdue document reviews \u2014 lifecycle, not re-dating"
+  path: z1-inbox/2026-09-13/Q-DOCREVIEW-01.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: Answers Q-TOOLCONTROL-01 checklist item 6. Decision A (backlog) and Decision
+    B (owners) are the owner's acts; no date was moved.
+- q_id: Q-DOCREVIEW-02
+  title: Findings from the first real document review pass (11 reviewed, 28 unreachable)
+  path: z1-inbox/2026-09-13/Q-DOCREVIEW-02.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: Executes Q-DOCREVIEW-01. Five findings, led by DOCUMENT_CONTROL_PLAN.md being
+    absent while .doc-control/validate.py, the registry and four external practice
+    notifications all cite it as authoritative. Also needs a Z2 routing decision for
+    the 28 overdue documents in humanaios-internal and lasting-light-ai, which this
+    session cannot open.
+- q_id: Q-NF-ADAPTER-01
+  title: molt_cycle.py + specimen_intake_evaluator.py onto the real NF ledger
+  path: z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: "Closes PRIORITY_QUEUE.md's Q-NF-SCHEMA-01 row (score 9) via PR #313, per\
+    \ that row's own narrower acceptance criteria \u2014 not the fuller rewrite the\
+    \ 2026-09-10 Q-NF-SCHEMA-01 candidate above proposes. Given a distinct q_id to\
+    \ avoid a duplicate-key collision with that still-open candidate; Z2 ratifying\
+    \ this one should also resolve that one."
+- q_id: Q-RBE-01
+  title: "Resource-based operations v0.1 \u2014 units, ledger, census, priced queue"
+  path: z1-inbox/2026-09-13/Q-RBE-01.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: 'Asks for four acts: a hash on RESOURCE_UNITS.yaml, a RAT-min capacity declaration,
+    two constant molts, and disposition of F-RBE-01/02/03. Every artifact is inert
+    until then; the queue keeps the incumbent formula.'
+- q_id: Q-CGBG-PILOT-01
+  title: 'Adversarial review: CGBG Pilot Offer (AI Research Capacity)'
+  path: z1-inbox/2026-09-13/Q-CGBG-PILOT-01.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: Ten adversarial findings on the externally-circulated CGBG Pilot Offer; flags
+    a broken expiration clause (references a deadline never stated) and no settlement
+    floor / delivery sequencing as the top exploitation risks. Recommends patching
+    before the offer is shown to a real counterparty.
+- q_id: Q-CGBG-BASELINE-01
+  title: 'Adversarial review: CGBG-MARKET-BASELINE-001 (Evidence-Linked Market Observation
+    v0.1)'
+  path: z1-inbox/2026-09-13/Q-CGBG-BASELINE-01.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: 'Seven findings on the companion market-baseline document: an unflagged identity-match
+    red flag already visible in its own inputs, and two evidence-matrix values outside
+    its own declared epistemic-state vocabulary. Client/manager/compensation specifics
+    redacted in this file per the subject document''s own confidentiality clause.'
+- q_id: Q-REGISTRY-AUDIT-01
+  title: "ZONE_REGISTRY.md reconciliation \u2014 classify 13 missing repos (planned,\
+    \ never created)"
+  path: z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-01.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: Phase 1 of registry audit. Identifies 13 repos claimed in ZONE_REGISTRY but
+    absent from GitHub (all classified as planned/never-created). Proposes 3 options
+    for header correction (Option A/B/C). Awaits Z2 decision.
+- q_id: Q-REGISTRY-AUDIT-02
+  title: "ZONE_REGISTRY.md reconciliation \u2014 register 7 active repos missing from\
+    \ registry"
+  path: z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-02.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: Phase 2 of registry audit. Identifies 7 repos on GitHub but missing from ZONE_REGISTRY.
+    Proposes zone assignments for each. Blocked on Q-REGISTRY-AUDIT-01 ratification.
+- q_id: Q-REGISTRY-AUDIT-03
+  title: "ZONE_REGISTRY.md reconciliation \u2014 implement + deploy CI gate"
+  path: z1-inbox/2026-09-13/Q-REGISTRY-AUDIT-03.md
+  submitted: '2026-09-13'
+  status: awaiting_z2
+  note: Phase 3 of registry audit. Implementation plan for chosen reconciliation option.
+    Deploys registry_consistency CI gate to prevent future drift. Blocked on -01 and
+    -02 ratification.
+- q_id: Q-INTENTOS-LAUNCH-01
+  title: "Intent-OS board \u2014 organize the development, decide the launch (d17\
+    \ surface \xB7 d18 relay landing \xB7 d19 path freeze)"
+  path: z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md
+  submitted: '2026-09-14'
+  status: ratified
+  note: "Board re-read against b52f805; persistence and relay-auth fixes; seal checker\
+    \ tools/intent_os_board_check_v1_0.py; runbook docs/INTENT_OS_BOARD_RUNBOOK.md.\
+    \ The 14 board rulings d2\u2013d16 are not re-argued here \u2014 once d18 rules\
+    \ they are filed one candidate each."
+  ratified_by: Night
+  ratified_at: '2026-09-14'
+  z2_ruling: z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md
+  z2_hash: 9a2a469be2cbbe1d559b78d0b0fd41d286c21d0313bc61482b906b474f5d3309
+- q_id: Q-BOARD-RULING-02
+  title: "Board ruling d2 \u2014 TLA_TOOLS_SHA256 \u2014 set the repository variable,\
+    \ or drop it as a gate?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-02.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-06; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-03
+  title: "Board ruling d3 \u2014 z2_budget_p2 \u2014 set the Phase 2 envelope, or\
+    \ drop it as a gate?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-03.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-06; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-05
+  title: "Board ruling d5 \u2014 GRBS \u2194 Empirica \u2014 what is the formal relationship?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-05.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-06; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-06
+  title: "Board ruling d6 \u2014 First job-posting batch \u2014 where does it come\
+    \ from?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-06.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-06; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-07
+  title: "Board ruling d7 \u2014 Branch protection \u2014 turn off admin bypass on\
+    \ main, or keep it and register every bypass as an IC event?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-07.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-08
+  title: "Board ruling d8 \u2014 c08f86c history \u2014 accept that the PII literals\
+    \ stay in history, or rewrite history?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-08.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-09
+  title: "Board ruling d9 \u2014 B1 \u2014 is the platform contract id / feedback\
+    \ / task count covered by the contractor agreement?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-09.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-10
+  title: "Board ruling d10 \u2014 Option B \u2014 ratify the six-pair co-run as a\
+    \ Molt candidate (4-week window, revert if \u22653 pairs r<0.3)?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-10.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-11
+  title: "Board ruling d11 \u2014 Option A \u2014 file the 'orthogonal gap layer'\
+    \ positioning as DRAFT.md until Option B data exists?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-11.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-12
+  title: "Board ruling d12 \u2014 H-CAL-01 \u2014 queue the mechanism study as a Molt\
+    \ candidate (8-week window) parallel to Option B?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-12.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-13
+  title: "Board ruling d13 \u2014 Option C \u2014 require an evidence-tier tag on\
+    \ every public ACAT claim for the six unmapped dimensions?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-13.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-14
+  title: "Board ruling d14 \u2014 LPCS \u2014 independent check (a), convergence specimen\
+    \ (b), destination (c), or none?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-14.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-15
+  title: "Board ruling d15 \u2014 FALS-43 \u2014 batch ruling on the 43 hypotheses\
+    \ without written falsifiers?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-15.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOARD-RULING-16
+  title: "Board ruling d16 \u2014 docs/ triage \u2014 rule by hash over DOC_TRIAGE_2026-09-08.md:\
+    \ archive the 53 as listed, edit the list, or hold?"
+  path: z1-inbox/2026-09-14/Q-BOARD-RULING-16.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
+    d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
+    by hand via ratify.py.
+- q_id: Q-BOOT-STATE-MACHINE-01
+  title: "Adversarial review of the boot state machine prototype \u2014 17 findings\
+    \ mapped to the 12 ACAT dimensions, plus a corrected implementation"
+  path: z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: "Asks Z2 for EDIT-over-REJECT on the prototype and for disposition of four\
+    \ upstream candidates it surfaced while verifying citations: IC-CAND-BSM-A (SESSION_RITUALS\
+    \ changelog claims a Section F Degraded-Mode Specification the live file does\
+    \ not contain \u2014 halt 9 points at nothing), IC-CAND-BSM-B (P27 cites a SESSION_RITUALS\
+    \ Section B Step 0 that does not exist), AMBIGUITY-BSM-C (CLAUDE.md \xA7A and\
+    \ SESSION_RITUALS \xA7A both specify session open, differently \u2014 P22.1 first-match-wins\
+    \ is unsatisfiable until one governs), AMBIGUITY-BSM-D (\xA7A.1 halt vs Z2-GOVARCH-02\
+    \ demotion: read literally, every Claude session halts at open). Also carries\
+    \ F-CAND-BSM-E. The Q- id did not exist in-repo before this entry (F-BSM-12);\
+    \ filed here rather than left dangling. Companion code at z1-inbox/2026-09-14/boot_state_machine_v0_2.py;\
+    \ reviewed input preserved verbatim at boot_state_machine_v0_1_AS_REVIEWED.py.txt.\
+    \ No calibration_ref \u2014 the P30 gate is NOT cleared, so this is not ratification-ready\
+    \ as filed. MERGED via #332 (f0c0cec); its four upstream candidates are re-filed\
+    \ with live-registry cross-walk under Q-BOOT-FINDINGS-SCAN-01 below, which supersedes\
+    \ the routing table in this block."
+- q_id: Q-BOOT-FINDINGS-SCAN-01
+  title: "Registry candidate block \u2014 post-merge findings scan over Q-BOOT-STATE-MACHINE-01,\
+    \ cross-walked against a live REGISTERED.md fetch"
+  path: z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: "Produced by the humanaios-findings-scan skill (standalone), which hard-gates\
+    \ on IC-030. The live fetch surfaced three IC candidates and one H candidate.\
+    \ IC-CAND-BSM-A: IC-029 is status REGISTERED with z2_ratification 'Night \xB7\
+    \ 2026-05-08', and its Fix line asserts a Section F Degraded-Mode Specification\
+    \ that grep against the live file shows is absent \u2014 three surfaces assert\
+    \ it (REGISTERED.md:1460, REGISTERED.md:3082, SESSION_RITUALS.md:437), so a ratified\
+    \ fix never landed and halt 9 would order substrates into an undefined mode. IC-CAND-BSM-B:\
+    \ P27 cites 'Section B Step 0' which does not exist; B.0 is the empirical gate,\
+    \ not the P27 prerequisite. IC-CAND-BSM-F: #332 did registry-touching work with\
+    \ no live fetch, violating IC-030. AMBIGUITY-BSM-D is a Z2 ruling (2026-09-14,\
+    \ Night): \xA7A.1 amended to WGS-primary / halt-only-if-both-fail, resolving the\
+    \ composed halt conflict with Z2-GOVARCH-02. H-CAND-BSM-E: adversarial review\
+    \ reproduces the class it charges; filed at N=1, not promotion-eligible, falsifier\
+    \ on record. Synthesis for Z2: three IC items share IC-031's error class (registry\
+    \ layer, not session layer) \u2014 ratified instruments not operative in the named\
+    \ location. Nothing currently verifies that a ratified 'Fix \u2192' line landed\
+    \ in the file it names; Q-RFM-01's scanner is the natural home for this check.\
+    \ No calibration_ref \u2014 P30 NOT cleared."
+- q_id: Q-IC-BOARD-SEALS-01
+  title: "IC candidate \u2014 the Intent-OS board's seals outlived the commits the\
+    \ 09-10 history reset removed (IC-030 class)"
+  path: z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md
+  submitted: '2026-09-14'
+  status: awaiting_z2
+  note: "From the S-091426-01 findings scan. Correction already landed (#323/#325:\
+    \ the seal checker); the block asks Z2 to register the IC and to accept or edit\
+    \ two preventions (advisory board-check CI job; checker as a \xA7A session-open\
+    \ line)."
 records:
-  - path: "z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"
-    title: "Z2 rulings 2026-09-14 — signatures issued by .z1-control/ratify.py (Q-INTENTOS-LAUNCH-01 ACCEPT)"
-    note: "Z2 output. Cited as z2_ruling by Q-INTENTOS-LAUNCH-01; decision_relay.py appends board-ruling signatures here under d18."
-  - path: "z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"
-    title: "Z2 ruling — d17 local only · d18 z1-inbox + INDEX.yaml · d19 freeze path · temporary tokens revoked (Night, 2026-09-14)"
-    note: "The choices inside the ACCEPT on Q-INTENTOS-LAUNCH-01; recorded by Z1 as transcription of Z2's decision given in session."
-  - path: "z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md"
-    title: "Z3 deployment log — Q-FRAMEWORK-AUDIT-DEPLOY-01 (12 repos, per-repo framework audit)"
-    note: "Landed on main via #320 without an index entry; indexed here as a record (a deployment log requests no Z2 decision) so the z1-inbox coverage rule passes. Carries a Z2 ACCEPT hash in its own header; not re-verified by this entry."
-  - path: "z1-inbox/2026-09-14/HANDOFF.md"
-    title: "Handoff — 2026-09-14 (Intent-OS board re-read, checker, relay fixes)"
-  - path: "z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md"
-    title: "Z2 ruling — .z1-control/ratify.py Zone 2 ratified (Night, 2026-09-13)"
-  - path: "z1-inbox/2026-09-06/HANDOFF.md"
-    title: "Handoff — 2026-09-06 drop"
-  - path: "z1-inbox/2026-09-06/MANIFEST.md"
-    title: "Manifest — 2026-09-06 drop (sets the inbox append-only convention)"
-  - path: "z1-inbox/2026-09-08/CYCLE_1_EXTERNAL_REVIEW.md"
-    title: "Cycle 1 external review"
-  - path: "z1-inbox/2026-09-08/CYCLE_2_ADVERSARIAL_REPORT.md"
-    title: "Cycle 2 adversarial report"
-  - path: "z1-inbox/2026-09-08/CYCLE_3_METADATA.md"
-    title: "Cycle 3 metadata"
-  - path: "z1-inbox/2026-09-08/MERGE_RECEIPT_AND_CYCLE1.md"
-    title: "Merge receipt 2026-09-08 (#217, #218 verified from origin/main)"
-  - path: "z1-inbox/2026-09-08/P_J4_BRIER_EXPLAINED.md"
-    title: "P_J4 Brier score explainer"
-  - path: "z1-inbox/2026-09-08/REGISTRY_ENTRY_TEMPLATE.md"
-    title: "Template — registry entry for H-CAND blocks"
-  - path: "z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"
-    title: "Z2 rulings 2026-09-08 (three decisions, hashed)"
-    note: "Z2 output, not a Z1 proposal. Cited as z2_ruling by Q-JESTER-CHECK-01, Q-WITCH-CASCADE-01, Q-CYCLE3-FALSIFY-01."
-  - path: "z1-inbox/2026-09-09/HANDOFF.md"
-    title: "Handoff — 2026-09-09"
-  - path: "z1-inbox/2026-09-09/IC-030-REPIN-01.md"
-    title: "Q-IC030-REPIN-01 work order (Z1 self-assigned; no Z2 decision requested)"
-  - path: "z1-inbox/2026-09-10/HANDOFF.md"
-    title: "Handoff — 2026-09-10"
-  - path: "z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md"
-    title: "Q-IC030-REPIN-01 result — repin + manifest reconciliation (COMPLETE, 3/3)"
-  - path: "z1-inbox/2026-09-13/HANDOFF.md"
-    title: "Handoff — 2026-09-13 (registry audit Phase 0)"
-    note: "Summarizes Q-REGISTRY-AUDIT findings, Z2 decision points, receipt reconciliation (B.6), and handoff checklist."
-  - path: "z1-inbox/2026-09-13/MANIFEST.md"
-    title: "Manifest — 2026-09-13 drop (registry audit)"
-    note: "SHA256 hashes for all 4 files in 2026-09-13 drop: Q-REGISTRY-AUDIT-01/02/03, HANDOFF.md"
-
-# Files in z1-inbox/ that are neither candidates nor records. Kept explicit so
-# the coverage rule cannot be satisfied by silence.
-  - path: "z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md"
-    title: "Z2 ruling — RESOURCE_UNITS.yaml header ratified; hash remains unsigned by Z2"
+- path: z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md
+  title: "Z2 ruling \u2014 AMBIGUITY-BSM-D: Z2-GOVARCH-02 supersedes SESSION_RITUALS\
+    \ \xA7A.1; amend to WGS-primary / halt-only-if-both-fail (Night, 2026-09-14)"
+  note: "Z2 output, transcribed by Z1 from an in-session ruling, following the Z2_RULING_INTENTOS_LAUNCH.md\
+    \ precedent. SESSION_RITUALS.md REVERTED to v6.4.1 \u2014 amendment held pending\
+    \ Z2 signature. z2_hash signed by Night via .z1-control/ratify.py on 2026-09-14."
+- path: z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md
+  title: "Z2 rulings 2026-09-14 \u2014 signatures issued by .z1-control/ratify.py\
+    \ (Q-INTENTOS-LAUNCH-01 ACCEPT)"
+  note: Z2 output. Cited as z2_ruling by Q-INTENTOS-LAUNCH-01; decision_relay.py appends
+    board-ruling signatures here under d18.
+- path: z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md
+  title: "Z2 ruling \u2014 d17 local only \xB7 d18 z1-inbox + INDEX.yaml \xB7 d19\
+    \ freeze path \xB7 temporary tokens revoked (Night, 2026-09-14)"
+  note: The choices inside the ACCEPT on Q-INTENTOS-LAUNCH-01; recorded by Z1 as transcription
+    of Z2's decision given in session.
+- path: z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md
+  title: "Z3 deployment log \u2014 Q-FRAMEWORK-AUDIT-DEPLOY-01 (12 repos, per-repo\
+    \ framework audit)"
+  note: 'Landed on main via #320 without an index entry; indexed here as a record
+    (a deployment log requests no Z2 decision) so the z1-inbox coverage rule passes.
+    Carries a Z2 ACCEPT hash in its own header; not re-verified by this entry.'
+- path: z1-inbox/2026-09-14/HANDOFF.md
+  title: "Handoff \u2014 2026-09-14 (Intent-OS board re-read, checker, relay fixes)"
+- path: z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md
+  title: "Z2 ruling \u2014 .z1-control/ratify.py Zone 2 ratified (Night, 2026-09-13)"
+- path: z1-inbox/2026-09-06/HANDOFF.md
+  title: "Handoff \u2014 2026-09-06 drop"
+- path: z1-inbox/2026-09-06/MANIFEST.md
+  title: "Manifest \u2014 2026-09-06 drop (sets the inbox append-only convention)"
+- path: z1-inbox/2026-09-08/CYCLE_1_EXTERNAL_REVIEW.md
+  title: Cycle 1 external review
+- path: z1-inbox/2026-09-08/CYCLE_2_ADVERSARIAL_REPORT.md
+  title: Cycle 2 adversarial report
+- path: z1-inbox/2026-09-08/CYCLE_3_METADATA.md
+  title: Cycle 3 metadata
+- path: z1-inbox/2026-09-08/MERGE_RECEIPT_AND_CYCLE1.md
+  title: 'Merge receipt 2026-09-08 (#217, #218 verified from origin/main)'
+- path: z1-inbox/2026-09-08/P_J4_BRIER_EXPLAINED.md
+  title: P_J4 Brier score explainer
+- path: z1-inbox/2026-09-08/REGISTRY_ENTRY_TEMPLATE.md
+  title: "Template \u2014 registry entry for H-CAND blocks"
+- path: z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md
+  title: Z2 rulings 2026-09-08 (three decisions, hashed)
+  note: Z2 output, not a Z1 proposal. Cited as z2_ruling by Q-JESTER-CHECK-01, Q-WITCH-CASCADE-01,
+    Q-CYCLE3-FALSIFY-01.
+- path: z1-inbox/2026-09-09/HANDOFF.md
+  title: "Handoff \u2014 2026-09-09"
+- path: z1-inbox/2026-09-09/IC-030-REPIN-01.md
+  title: Q-IC030-REPIN-01 work order (Z1 self-assigned; no Z2 decision requested)
+- path: z1-inbox/2026-09-10/HANDOFF.md
+  title: "Handoff \u2014 2026-09-10"
+- path: z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md
+  title: "Q-IC030-REPIN-01 result \u2014 repin + manifest reconciliation (COMPLETE,\
+    \ 3/3)"
+- path: z1-inbox/2026-09-13/HANDOFF.md
+  title: "Handoff \u2014 2026-09-13 (registry audit Phase 0)"
+  note: Summarizes Q-REGISTRY-AUDIT findings, Z2 decision points, receipt reconciliation
+    (B.6), and handoff checklist.
+- path: z1-inbox/2026-09-13/MANIFEST.md
+  title: "Manifest \u2014 2026-09-13 drop (registry audit)"
+  note: 'SHA256 hashes for all 4 files in 2026-09-13 drop: Q-REGISTRY-AUDIT-01/02/03,
+    HANDOFF.md'
+- path: z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md
+  title: "Z2 ruling \u2014 RESOURCE_UNITS.yaml header ratified; hash remains unsigned\
+    \ by Z2"
 excluded: []

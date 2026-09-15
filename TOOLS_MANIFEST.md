@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**154 registered tools** · 2 MCP servers · 0 excluded · 124 carrying Builder v1.7 markers
+**155 registered tools** · 2 MCP servers · 0 excluded · 125 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 154 |
-| — status `draft` | 152 |
+| Registered tools | 155 |
+| — status `draft` | 153 |
 | — status `archived` | 2 |
-| Builder v1.7 markers present | 124 |
+| Builder v1.7 markers present | 125 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -239,7 +239,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-135 | tool_scaffolder | `tools/tool_scaffolder_v1_0.py` | 1.0.0 | 1 | draft | — | Scaffolds new Builder v1.7-compliant tools from template. |
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 
-## Validation — `validation_tool` (18)
+## Validation — `validation_tool` (19)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -261,6 +261,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-149 | tool_control_selftest | `.tool-control/selftest.py` | 1.1.0 | 1 | draft | no-builder-markers | Adversarial self-test for the tool-control gate: prove every rule can FAIL. |
 | HAIOS-TOOL-150 | tool_manifest_validator | `.tool-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers | The merge gate for `tools-manifest.yaml`, built to the same contract as |
 | HAIOS-TOOL-161 | intent_os_board_check | `tools/intent_os_board_check_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_check — verify the Intent-OS board's "verified records" against the tree. |
+| HAIOS-TOOL-162 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |
 
 ## MCP servers (2)
 
@@ -296,7 +297,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 9 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 10 |
 | `template_tool` | A scaffold or template for producing new tools. | 2 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 18 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 19 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 

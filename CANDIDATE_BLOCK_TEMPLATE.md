@@ -85,7 +85,7 @@ z2_decision:
 
 # Optional fields:
 related_candidates: ["Q-IC001", "Q-IC029"]
-regulatory_deadline: null  # If externally constrained (e.g., GDPR), date here
+regulatory_deadline: null  # If externally constrained (e.g., GDPR), RFC3339 timestamp (e.g., "2026-09-30T23:59:59Z")
 links:
   - name: "Related PR"
     url: ""
