@@ -60,6 +60,20 @@ jobs:
             --ledger audits/smag_pilot_ledger.jsonl \
             --lessons data/lessons_learned_ledger.json
 
+      - name: META FEED BACK — measure SMAG's own consolidation accuracy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Wire SMAG's self-accuracy signal: how well did SMAG predict its own PRs?
+          # This closes the loop on SMAG's own learning.
+          python3 tools/smag_meta_feedback_v1_0.py \
+            --repo "${{ github.repository }}" \
+            --consolidation-pr-prefix "SMAG: consolidate" \
+            --lessons data/lessons_learned_ledger.json \
+            --lookback-days 30
+        continue-on-error: true
+        # Continue if API throttle or GH_TOKEN issues; meta-feedback is advisory
+
       - name: Wire SMAG rows to empirica CLI with LLM analysis + predictions
         run: |
           # Generate ACAT-classified gaps + remediation suggestions + next-cycle predictions
@@ -99,4 +113,10 @@ jobs:
           git push origin "$branch"
           gh pr create --base main --head "$branch" \
             --title "SMAG: consolidate ledger + refresh gap report" \
-            --body "Automated CONSOLIDATE+ANALYZE+FEED BACK step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into the ledger, refreshes the gap report, and upserts any gap-driver or insufficient-calibration-data cue into data/lessons_learned_ledger.json (tools/smag_feedback_v1_0.py). Promoting a cue to a blocking gate or a REGISTERED finding is a separate, human act — this only records the cue. Review the gap_rate trend before merging."
+            --body "Automated CONSOLIDATE+ANALYZE+FEED BACK step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into the ledger, refreshes the gap report, and upserts any gap-driver or insufficient-calibration-data cue into data/lessons_learned_ledger.json (tools/smag_feedback_v1_0.py). Promoting a cue to a blocking gate or a REGISTERED finding is a separate, human act — this only records the cue. Review the gap_rate trend before merging.
+
+## Prediction (SMAG calibration)
+
+smag_p_meta: 0.85
+
+Why 0.85? Consolidation is mostly mechanical (ledger dedup, gap report regeneration), but schema changes and edge cases carry risk. CI checks will validate before merge."

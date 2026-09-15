@@ -4,12 +4,26 @@
 
 <!-- One or two sentences: what this changes and the reason. -->
 
-<!-- SMAG calibration pin (recursive-learning loop, audits/SMAG_RECURSIVE_LOOP.md):
-     your own probability that this PR merges clean (no failing checks) — a
-     standalone line, exactly this shape, anywhere in this body:
-       smag_p: 0.NN
-     Omitted or reworded lines are captured as VOID, not scored — they cost you
-     nothing, but they also teach the loop nothing about your calibration. -->
+## Prediction (SMAG calibration)
+
+<!-- Pin your confidence that this PR merges with all required checks passing.
+     Format: smag_p: 0.XX (where 1.0 = 100% confidence, 0.0 = certain to fail)
+     
+     Scoring guide (see SMAG_AUTHOR_CALIBRATION_GUIDE.md):
+     - 0.95+: typo/doc fix, test-only
+     - 0.85-0.94: feature, straightforward refactor
+     - 0.70-0.84: larger change, known optional flake possible
+     - 0.50-0.69: risky change, one check might fail
+     - 0.0-0.49: known failing check, intentional test
+     
+     Why? System measures your accuracy → learns → feeds back as gates.
+     Help it learn by being honest about risk.
+     Omitted lines are VOID (not scored); no penalty, but no signal either.
+     
+     FOR SMAG CONSOLIDATION PRs: Also pin smag_p_meta (SMAG's confidence in its own
+     consolidation accuracy). Example: smag_p_meta: 0.82 (gap report regeneration is
+     mechanical but ledger merges are risky). This wires SMAG's self-learning loop.
+-->
 
 ## Zone
 
