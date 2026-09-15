@@ -9,34 +9,34 @@
 
 ## Review Window Economics
 
-### Phase 1: Data Accumulation (Weeks 1–4)
+### Phase 1: Data Accumulation (~5 weeks: 2026-09-15 → 2026-10-20)
 
 | Metric | Value | Rationale |
 |--------|-------|-----------|
-| **Consolidation cycles** | 4 (weekly Mon 06:17 UTC) | Minimum for statistical significance |
-| **Expected meta-PRs measured** | 12–20 (3–5 per cycle) | Phase 1 consolidation frequency |
-| **Observation floor** | 3 PRs minimum | Prevents low-N false signals |
-| **Calendar window** | 2026-09-22 → 2026-10-20 | 4 weeks post-merge |
-| **Expected confidence** | "stable" if 0.75–0.95 | Indicates normal operation |
+| **Consolidation cycles** | 4–5 (weekly Mon 06:17 UTC) | Standard cron schedule; 35-day window = 5 weeks |
+| **Expected meta-PRs measured** | ~4–5 (one per cycle) | One consolidation PR per weekly run |
+| **Observation floor** | 3 PRs minimum | Prevents low-N false signals (sufficient after ~3 weeks) |
+| **Calendar window** | 2026-09-15 (PR #341 merge) → 2026-10-20 10:00 UTC | Review point after ~5 weeks data accumulation |
+| **Expected confidence** | "stable" if gap ≤5% | Calibration is well-behaved at ±5% drift |
 
 ### Cost/Benefit: Why Not Review Sooner?
 
-**Cost of early review (Week 1–2):**
-- Insufficient data (1–2 consolidation cycles = 3–6 PRs)
-- High variance in accuracy signal (may flip 0.7 → 0.9 → 0.6 in next cycle)
+**Cost of early review (Week 1–2, ~1–2 PRs):**
+- Below observation floor (1–2 PRs << 3-PR minimum)
+- High variance in accuracy signal (one PR changing outcome doubles success rate)
 - Z2 decision made on unstable foundation
 - Likely recalibration churn (cost: rework SMAG weights, re-run consolidations)
 - Estimated cost: 1–2 hours Z2 time × high uncertainty
 
-**Benefit of waiting (Week 4):**
-- 12–20 observations (above floor by 4–7×)
-- Stable confidence label ("stable" if truly 0.75–0.95)
-- Focus areas stabilized (if "pr_rework_needed" recurs 3+ times, it's a signal)
+**Benefit of waiting (Week 5, ~4–5 PRs):**
+- At/above observation floor (4–5 PRs ≥ 3-PR minimum, sufficient N for signal)
+- Calibration gap stabilized (drift pattern observable over multiple cycles)
+- Focus areas signal or noise (if "pr_not_merged" recurs 2+ times, it's a pattern)
 - Z2 decision has statistical foundation
-- One review cycle covers 4 weeks of data
+- One review cycle covers ~5 weeks of data
 - Estimated cost: 30–45 min Z2 time × high confidence
 
-**Economics:** 4-week window trades 4–8 hours of Z2 wait time for 1–1.5 hours of higher-confidence decision-making. **Net ROI: positive** (wait time is passive; decision time is active).
+**Economics:** 5-week window trades passive wait time for 1 focused decision hour. **Net ROI: positive** (passive time has zero active cost; decision is one-time event per cycle).
 
 ### When to Review Early (Override)
 
@@ -77,7 +77,7 @@ Required actions:
 This schedule implements:
 - **CLAUDE.md § Callout Mandatory Triggers:** GAUGE (Z3 assumption violation) and DRIFT (behavior dial change)
 - **Z2 decision window:** 48h for routine (meta-accuracy is advisory, so async review ok)
-- **Anti-cascade rules:** No new molt inside this observation window (4 weeks is hardcoded in META FEED BACK)
+- **Phase 1 constraint:** No automatic enforcement yet; Z2 exercises judgment on molt scheduling (anti-cascade rules live in CLAUDE.md § anti-cascade rules, not this tool)
 
 ---
 

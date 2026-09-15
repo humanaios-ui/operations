@@ -138,7 +138,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-157 | molt_cycle_tier0_v0_1 | `tools/molt_cycle_tier0_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies. |
 | HAIOS-TOOL-159 | resource_ledger | `tools/resource_ledger_v0_1.py` | 0.1.0 | 1 | draft | — | resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims, |
 | HAIOS-TOOL-160 | smag_feedback | `tools/smag_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop. |
-| HAIOS-TOOL-161 | smag_meta_feedback | `tools/smag_meta_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy. |
+| HAIOS-TOOL-163 | smag_meta_feedback | `tools/smag_meta_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy. |
 
 ## Infrastructure — `infrastructure_tool` (20)
 
@@ -260,8 +260,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-146 | doc_control_validator | `.doc-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers, no-smoke-test | Enforces the mechanical controlled-document rules from DOCUMENT_CONTROL_PLAN.md: |
 | HAIOS-TOOL-149 | tool_control_selftest | `.tool-control/selftest.py` | 1.1.0 | 1 | draft | no-builder-markers | Adversarial self-test for the tool-control gate: prove every rule can FAIL. |
 | HAIOS-TOOL-150 | tool_manifest_validator | `.tool-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers | The merge gate for `tools-manifest.yaml`, built to the same contract as |
-| HAIOS-TOOL-162 | intent_os_board_check | `tools/intent_os_board_check_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_check — verify the Intent-OS board's "verified records" against the tree. |
-| HAIOS-TOOL-163 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |
+| HAIOS-TOOL-161 | intent_os_board_check | `tools/intent_os_board_check_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_check — verify the Intent-OS board's "verified records" against the tree. |
+| HAIOS-TOOL-162 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |
 
 ## MCP servers (2)
 

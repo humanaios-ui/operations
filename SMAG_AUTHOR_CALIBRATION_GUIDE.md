@@ -158,14 +158,13 @@ Once cue is ratified in REGISTERED.md:
 
 SMAG creates its own PRs (`smag-consolidate.yml` runs weekly). Can we measure SMAG's predictions?
 
-**Current state:**
-- SMAG always predicts `VOID: missing smag_p` (hasn't pinned itself yet)
-- It doesn't know its own accuracy
-- It's not learning how to predict better
+**Current state (PR #341 deployed):**
+- SMAG pins both `smag_p:` (main FEED BACK prediction) and `smag_p_meta:` (self-accuracy prediction)
+- Meta-SMAG measures SMAG's consolidation PR outcomes each cycle
+- SMAG learns its own calibration (via meta-lessons upserted to lessons_learned_ledger.json)
+- Z2 reviews accumulated meta-accuracy signals at 4–5 week checkpoints
 
-**Next step:** Wire SMAG to predict its own performance, then measure itself.
-
-See `audits/META_SMAG_INTELLIGENCE.md` for how SMAG measures its own accuracy.
+**How it works:** See `audits/META_SMAG_INTELLIGENCE.md` for full architecture and `audits/META_SMAG_REVIEW_SCHEDULE.md` for review timing.
 
 ---
 
