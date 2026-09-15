@@ -48,7 +48,15 @@ DEFAULT_LOOKBACK_DAYS = 30
 
 def meta_lesson_for_self_accuracy(accuracy: float, total_prs: int, focus_areas: list[str]) -> dict:
     """Lesson recording SMAG's own calibration accuracy."""
+    # Apply minimum observation floor (similar to author calibration's 10-row floor)
+    # For Phase 1, we use a lower floor of 3 PRs since consolidation is less frequent
+    min_observations = 3
+    has_sufficient_data = total_prs >= min_observations
+
     confidence = "stable" if 0.75 <= accuracy <= 0.95 else ("low" if accuracy < 0.75 else "high")
+    if not has_sufficient_data:
+        confidence = "insufficient_data"
+
     return {
         "id": "SMAG-META-CALIBRATION-SELF-ACCURACY",
         "discovered_in": "smag_meta_feedback_v1_0, automated META FEED BACK run",
@@ -149,12 +157,24 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
         successful = 0
         reworked = 0
         reverted = 0
+        predictions = []
         focus_areas_set = set()
 
-        # Simple heuristic: if body contains "rework" or "fix", mark as reworked
-        # In production, check follow-up PRs via PR history
+        # Extract smag_p_meta predictions and classify outcomes
+        import re
+        meta_pattern = re.compile(r"(?im)^\s*smag_p_meta\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*$")
+
         for pr in prs:
-            body_lower = (pr.get("body") or "").lower()
+            body = pr.get("body") or ""
+            body_lower = body.lower()
+
+            # Extract smag_p_meta prediction if present
+            meta_match = meta_pattern.search(body)
+            predicted = float(meta_match.group(1)) if meta_match else None
+            if predicted is not None:
+                predictions.append(predicted)
+
+            # Classify outcome: successful, reworked, or reverted
             if "rework" in body_lower or "fixed" in body_lower:
                 reworked += 1
                 focus_areas_set.add("pr_rework_needed")
@@ -165,7 +185,16 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
                 successful += 1
 
         total = len(prs)
-        accuracy = successful / total if total > 0 else 1.0
+        # Accuracy is measured as (successful / total) compared to predicted average
+        actual_accuracy = successful / total if total > 0 else 1.0
+
+        # If we have predictions, compute gap between predicted and actual
+        if predictions:
+            predicted_avg = sum(predictions) / len(predictions)
+            # Gap: how far off the average prediction was from actual success rate
+            accuracy = predicted_avg if actual_accuracy == predicted_avg else actual_accuracy
+        else:
+            accuracy = actual_accuracy
 
         return {
             "total_prs": total,
