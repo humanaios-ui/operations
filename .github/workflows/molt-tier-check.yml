@@ -1,0 +1,159 @@
+name: molt-tier-check
+
+# Molt tier is a classification of what a diff DOES, not of what its author
+# intends. This workflow measures it from the changed-file list and reports the
+# gap against the author's `molt_tier_claimed`.
+#
+# ADVISORY ON PURPOSE. It never fails the build. The point is to put a number
+# where prose used to be, so "is this Tier 1 or Tier 2?" stops being a
+# negotiation; blocking on it would make authors argue with the classifier
+# instead of with the rule, which is the thing that is supposed to be public.
+# Promote it to blocking only once the measured under-claim rate over a rolling
+# 30-day window is under 5% — i.e. once the field is actually being filled in.
+#
+# Two things this deliberately does NOT do:
+#   * It does not interpolate the PR body into a shell command. `${{ ... }}` of
+#     attacker-controlled text is a script-injection sink; the body reaches
+#     Python through the environment instead, where it is only ever data.
+#   * It does not post a new comment per push. It upserts one comment keyed by
+#     the marker below, so a ten-push PR has one tier row, not ten.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  classify:
+    name: Measure molt tier from the diff (ADVISORY)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # The changed-file list comes from the API rather than from `git diff
+      # origin/main...HEAD`: the pull_request checkout is a merge commit and
+      # origin/main is not necessarily fetched, which is how that form silently
+      # reports an empty diff — and an empty diff measures Tier 0.
+      - name: Collect changed files
+        id: files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              { owner: context.repo.owner, repo: context.repo.repo,
+                pull_number: context.issue.number, per_page: 100 }
+            );
+            core.setOutput('count', String(files.length));
+            require('fs').writeFileSync(
+              'changed_files.txt',
+              files.map(f => f.filename).join('\n') + '\n'
+            );
+
+      - name: Classify
+        id: classify
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' | tee molt_tier_gap.json
+          import json, os, sys
+          sys.path.insert(0, "tools")
+          from molting_protocol_diff_v1_0 import run
+
+          with open("changed_files.txt", encoding="utf-8") as fh:
+              files = fh.read().splitlines()
+
+          result = run({
+              "filepaths": files,
+              "pr_body":   os.environ.get("PR_BODY") or "",
+              "pr_number": int(os.environ.get("PR_NUMBER") or 0),
+          })
+          gap = result["gap"]
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"measured={gap['molt_tier_measured']}\n")
+              claimed = gap["molt_tier_claimed"]
+              out.write(f"claimed={'missing' if claimed is None else claimed}\n")
+              out.write(f"verdict={gap['verdict']}\n")
+              out.write("evidence<<EOF\n")
+              for row in gap["evidence"][:20]:
+                  out.write(f"- `{row['path']}` -> Tier {row['tier']} "
+                            f"(matched {', '.join('`%s`' % m for m in row['matched'])})\n")
+              out.write("EOF\n")
+          print(json.dumps(gap, indent=2))
+          PY
+
+      # The gap row belongs in the SMAG self-accuracy ledger
+      # (data/lessons_learned_ledger.json). That consumer is still open work —
+      # see the follow-up noted in MOLT_STATE.md — so until it lands the row is
+      # retained as a build artifact rather than pushed to main from CI, which
+      # is the same no-main-push discipline smag-capture.yml already follows.
+      - name: Retain gap row for SMAG reconciliation
+        uses: actions/upload-artifact@v4
+        with:
+          name: molt-tier-gap-${{ github.event.pull_request.number }}
+          path: molt_tier_gap.json
+          retention-days: 90
+
+      - name: Report to PR
+        continue-on-error: true   # a fork PR gets a read-only token; not a failure
+        uses: actions/github-script@v7
+        env:
+          MEASURED: ${{ steps.classify.outputs.measured }}
+          CLAIMED: ${{ steps.classify.outputs.claimed }}
+          VERDICT: ${{ steps.classify.outputs.verdict }}
+          EVIDENCE: ${{ steps.classify.outputs.evidence }}
+        with:
+          script: |
+            const MARKER = '<!-- molt-tier-check -->';
+            const { MEASURED, CLAIMED, VERDICT, EVIDENCE } = process.env;
+
+            const verdicts = {
+              MATCH:       `✅ **Match:** Tier ${MEASURED}.`,
+              UNDER_CLAIM: `⚠️ **Under-claim:** claimed Tier ${CLAIMED}, the diff measures Tier ${MEASURED}. ` +
+                           `Not a blocker — but this is the gap the audit is looking for.`,
+              OVER_CLAIM:  `ℹ️ **Over-claim:** claimed Tier ${CLAIMED}, the diff measures Tier ${MEASURED}. Informational.`,
+              MISSING:     `⚠️ **No claim:** the PR body has no filled-in \`molt_tier_claimed: [0|1|2]\`. ` +
+                           `The claim is VOID (no penalty, but no signal either); the measured tier stands.`,
+            };
+
+            let body = `${MARKER}\n### Molt Tier Classification\n\n`;
+            body += `| | tier |\n|:--|:--|\n`;
+            body += `| claimed | ${CLAIMED} |\n| measured | **${MEASURED}** |\n\n`;
+            body += (verdicts[VERDICT] || `Verdict: ${VERDICT}`) + `\n`;
+            if (EVIDENCE && EVIDENCE.trim()) {
+              body += `\n<details><summary>Which paths set the tier</summary>\n\n${EVIDENCE}\n</details>\n`;
+            }
+            body += `\nAdvisory: this check never blocks a merge. The rule is the two path ` +
+                    `lists in \`tools/molting_protocol_diff_v1_0.py\`.\n`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const existing = (await github.paginate(github.rest.issues.listComments,
+              { owner, repo, issue_number, per_page: 100 }))
+              .find(c => c.body && c.body.includes(MARKER));
+
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "### Molt tier"
+            echo ""
+            echo "- claimed: ${{ steps.classify.outputs.claimed }}"
+            echo "- measured: ${{ steps.classify.outputs.measured }}"
+            echo "- verdict: ${{ steps.classify.outputs.verdict }}"
+          } >> "$GITHUB_STEP_SUMMARY"

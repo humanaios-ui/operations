@@ -179,6 +179,43 @@ Each MOLT_STATE entry corresponds to an NF_LEDGER row. Progression is encoded in
 
 ---
 
+## Tier Measurement (PROPOSED state)
+
+Tier is no longer an opinion carried in prose. It is measured from the set of
+filepaths a diff touches, by `tools/molting_protocol_diff_v1_0.py`:
+
+| Tier | Rule | Obligation |
+|:-----|:-----|:-----------|
+| **0** | Touches no CONSTANTS path and no GATE path | Not a molt; consumes no slot against K=3 |
+| **1** | Touches ≥1 CONSTANTS path | Needs `molt_id`, prediction, measurement window |
+| **2** | Touches ≥1 GATE path | Needs registry entry + ADV run before KEEP |
+
+The tier is the **maximum** over every path in the diff. The two path lists are
+the published rule; they live as data at the top of the classifier so that a
+disputed tier is settled by reading a list rather than by re-arguing.
+
+```yaml
+molt_classifier_version: 1.1.0
+molt_classifier_tool: tools/molting_protocol_diff_v1_0.py
+molt_tier_measured_at_pr_open: true
+molt_tier_check_blocking: false          # advisory; measures, does not gate
+under_claim_falsifier: >-
+  Zero PRs under-claim molt tier by more than one level. Measured as
+  (PRs with |claimed - measured| > 1) / (total PRs) over a rolling 30-day
+  window; target < 5%. A sustained under-claim pattern is a DRIFT callout
+  to Z2, not a per-PR rejection.
+```
+
+**Z2 note — two open items this creates.** (1) The gap rows are currently
+retained as CI build artifacts; wiring them into the SMAG self-accuracy ledger
+at `data/lessons_learned_ledger.json` waits on the meta-SMAG consumer. (2) The
+classifier reports `molt_tier_measured`; nothing yet *enforces* that a measured
+Tier 1 carries a `molt_id`, or that a measured Tier 2 carries a registry entry
+and an ADV run. Measurement precedes enforcement on purpose — promote only once
+the field is actually being filled in.
+
+---
+
 ## Anti-Cascade State Tracking
 
 Each NF_LEDGER entry includes `anti_cascade_check`:

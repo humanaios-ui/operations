@@ -25,6 +25,23 @@
      mechanical but ledger merges are risky). This wires SMAG's self-learning loop.
 -->
 
+## Molt Classification
+
+<!-- Predict the tier of this PR from what it CHANGES, not what it intends:
+       Tier 0 — no constants, no gates. Not a molt; consumes no molt slot.
+       Tier 1 — constants: behavior_spec.json, RESOURCE_UNITS.yaml, constants.json,
+                weights/, caps/, rubrics/, … (needs molt_id + prediction + window)
+       Tier 2 — gates: .github/workflows/, .z1-control/ratify.py, .z1-control/validate.py,
+                system_graph.json, CODEOWNERS, ci_gates.py (needs registry entry + ADV run)
+
+     The published rule is the two path lists in tools/molting_protocol_diff_v1_0.py.
+     CI runs the classifier and reports molt_tier_measured. It does NOT block merge —
+     the gap between your claim and the measurement is audit data, and under-claims
+     are the ones that matter. Leaving the placeholder in is VOID, not a claim of 0.
+-->
+
+**molt_tier_claimed:** `[0 | 1 | 2]`
+
 ## Zone
 
 <!-- See GOVERNANCE.md. Delete the lines that don't apply. -->
