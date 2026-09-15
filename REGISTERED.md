@@ -3434,11 +3434,11 @@ superseded_by: null
 
 -----
 
-### IC-053 — Q-SI-C1-B3 Global Constant Count as Local Acceptance Gate
+### IC-059 — Q-SI-C1-B3 Global Constant Count as Local Acceptance Gate
 
 ```yaml
 ---
-id: "IC-053"
+id: "IC-059"
 name: "global-count-as-local-gate"
 status: REGISTERED
 class: IC
