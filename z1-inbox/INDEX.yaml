@@ -396,12 +396,7 @@ records:
     \ \xA7A.1; amend to WGS-primary / halt-only-if-both-fail (Night, 2026-09-14)"
   note: "Z2 output, transcribed by Z1 from an in-session ruling, following the Z2_RULING_INTENTOS_LAUNCH.md\
     \ precedent. SESSION_RITUALS.md REVERTED to v6.4.1 \u2014 amendment held pending\
-    \ Z2 signature. z2_hash UNSIGNED \u2014 pending Night's `ratify.py` signature.\
-    \ Once signed, will pin the amendment and validate that it matches the ruling's\
-    \ statement of effects."
-  z2_hash: d656299cf62089ce5a4881663bd29dd200ad0694390e0d3a6a0b763b5bfa2c13
-  ratified_by: Night
-  ratified_at: '2026-09-14'
+    \ Z2 signature. z2_hash signed by Night via .z1-control/ratify.py on 2026-09-14."
 - path: z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md
   title: "Z2 rulings 2026-09-14 \u2014 signatures issued by .z1-control/ratify.py\
     \ (Q-INTENTOS-LAUNCH-01 ACCEPT)"
