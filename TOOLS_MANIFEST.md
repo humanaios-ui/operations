@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**155 registered tools** · 2 MCP servers · 0 excluded · 125 carrying Builder v1.7 markers
+**155 registered tools** · 2 MCP servers · 0 excluded · 126 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -14,9 +14,9 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | metric | value |
 |---|---|
 | Registered tools | 155 |
-| — status `draft` | 153 |
-| — status `archived` | 2 |
-| Builder v1.7 markers present | 125 |
+| — status `draft` | 154 |
+| — status `archived` | 1 |
+| Builder v1.7 markers present | 126 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -131,7 +131,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | 0.3.1 | 1 | draft | — | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
-| HAIOS-TOOL-090 | molt_cycle | `tools/molt_cycle.py` | unversioned | 1 | archived | no-builder-markers, no-smoke-test | molt_cycle.py — READ + PROPOSE phases only (Tier 0). Never applies. |
 | HAIOS-TOOL-151 | doc_review_scheduler | `.doc-control/review.py` | 1.0.0 | 1 | draft | no-builder-markers | Document review scheduler — record a review, derive the next one, triage the backlog. |
 | HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.1.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
 | HAIOS-TOOL-154 | z1_inbox_renderer | `.z1-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render Z1_INBOX_INDEX.md from z1-inbox/INDEX.yaml. |
@@ -139,6 +138,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-157 | molt_cycle_tier0_v0_1 | `tools/molt_cycle_tier0_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies. |
 | HAIOS-TOOL-159 | resource_ledger | `tools/resource_ledger_v0_1.py` | 0.1.0 | 1 | draft | — | resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims, |
 | HAIOS-TOOL-160 | smag_feedback | `tools/smag_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop. |
+| HAIOS-TOOL-161 | smag_meta_feedback | `tools/smag_meta_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy. |
 
 ## Infrastructure — `infrastructure_tool` (20)
 
@@ -260,8 +260,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-146 | doc_control_validator | `.doc-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers, no-smoke-test | Enforces the mechanical controlled-document rules from DOCUMENT_CONTROL_PLAN.md: |
 | HAIOS-TOOL-149 | tool_control_selftest | `.tool-control/selftest.py` | 1.1.0 | 1 | draft | no-builder-markers | Adversarial self-test for the tool-control gate: prove every rule can FAIL. |
 | HAIOS-TOOL-150 | tool_manifest_validator | `.tool-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers | The merge gate for `tools-manifest.yaml`, built to the same contract as |
-| HAIOS-TOOL-161 | intent_os_board_check | `tools/intent_os_board_check_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_check — verify the Intent-OS board's "verified records" against the tree. |
-| HAIOS-TOOL-162 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |
+| HAIOS-TOOL-162 | intent_os_board_check | `tools/intent_os_board_check_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_check — verify the Intent-OS board's "verified records" against the tree. |
+| HAIOS-TOOL-163 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |
 
 ## MCP servers (2)
 
