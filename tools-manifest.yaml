@@ -1936,18 +1936,17 @@ tools:
   builder_markers: true
   purpose: smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop.
 - tool_id: HAIOS-TOOL-161
-  name: smag_meta_feedback
-  path: tools/smag_meta_feedback_v1_0.py
-  version: 1.0.0
-  category: governance_tool
+  name: witness_framework
+  path: tools/witness_framework.py
+  version: 0.1.0
+  category: validation_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy.
-  session: S-091526-meta
+  purpose: 'Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts'
 - tool_id: HAIOS-TOOL-162
   name: intent_os_board_check
   path: tools/intent_os_board_check_v1_0.py
@@ -1961,18 +1960,6 @@ tools:
   builder_markers: true
   purpose: intent_os_board_check — verify the Intent-OS board's "verified records" against the tree.
   session: S-091426-01
-- tool_id: HAIOS-TOOL-163
-  name: witness_framework
-  path: tools/witness_framework.py
-  version: 0.1.0
-  category: validation_tool
-  zone: 1
-  status: draft
-  interface: cli
-  lang: python
-  smoke_test: true
-  builder_markers: true
-  purpose: 'Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts'
 - tool_id: HAIOS-TOOL-163
   name: smag_meta_feedback
   path: tools/smag_meta_feedback_v1_0.py
