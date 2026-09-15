@@ -168,7 +168,7 @@ lessons_learned_ledger.json (upserted)
 
 ## Weekly Ritual (Enhanced)
 
-1. **Sunday 06:17 UTC:** `smag-consolidate.yml` triggers
+1. **Monday 06:17 UTC:** `smag-consolidate.yml` triggers (weekly cron: `17 6 * * 1`)
 2. **Steps 1–4:** Standard CONSOLIDATE + ANALYZE + FEED BACK (author cues)
 3. **Step 5 (NEW):** META FEED BACK measures SMAG itself
 4. **Step 6:** Opens one PR with both ledger + lessons + meta-lesson upserts

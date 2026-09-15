@@ -27,7 +27,7 @@ smag_p: 0.85           merged? checks?         accuracy                         
 
 **With it:** Your prediction is verified. If you predicted 0.85 and got a clean merge, the system knows predictions of that type are reliable. If you predicted 0.85 but a check failed, the system learns that prediction is overconfident.
 
-**The floor:** We need 10 calibrated rows (predictions) before the system can confidently promote gap-drivers to blocking gates. Currently at 6/10. **Every author who pins `smag_p:` accelerates autonomous feedback loops.**
+**The floor:** We need 10 calibrated rows (predictions) before the system can confidently promote gap-drivers to blocking gates. Currently at 2 pinned (42 backfilled but awaiting consolidation workflow). **Every author who pins `smag_p:` accelerates autonomous feedback loops.**
 
 ---
 
@@ -146,9 +146,10 @@ Once cue is ratified in REGISTERED.md:
 2. **Assigned `smag_p:` retroactively** to PR descriptions
 3. **Re-ran consolidation** to capture updated predictions
 
-**Before backfill:** 6 calibrated rows  
-**After backfill:** 35+ calibrated rows  
-**Result:** Floor cleared immediately → gap-drivers can be promoted now ✅
+**Before backfill:** 2 pinned rows in ledger; 42 PRs lack predictions  
+**Backfill (S-091526):** 42 PR descriptions updated with smag_p predictions  
+**After consolidation:** Expected 44+ calibrated rows → floor cleared → gap-drivers promotable  
+**Status:** Waiting for `smag-consolidate.yml` to run (weekly Monday 06:17 UTC) to consolidate backfilled PRs into ledger
 
 ---
 

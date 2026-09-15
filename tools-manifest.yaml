@@ -1953,6 +1953,19 @@ tools:
   builder_markers: true
   purpose: smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop.
 - tool_id: HAIOS-TOOL-161
+  name: smag_meta_feedback
+  path: tools/smag_meta_feedback_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy.
+  session: S-091526-meta
+- tool_id: HAIOS-TOOL-162
   name: intent_os_board_check
   path: tools/intent_os_board_check_v1_0.py
   version: 1.0.0

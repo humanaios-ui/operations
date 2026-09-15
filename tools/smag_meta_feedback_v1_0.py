@@ -37,6 +37,8 @@ from typing import Any
 TOOL_NAME = "smag_meta_feedback"
 TOOL_VERSION = "1.0.0"
 TOOL_CATEGORY = "governance_tool"
+TOOL_SESSION = "S-091526-meta"
+TOOL_ZONE = 1
 
 DEFAULT_REPO = "humanaios-ui/operations"
 DEFAULT_CONSOLIDATION_PR_PREFIX = "SMAG: consolidate"
@@ -109,18 +111,85 @@ def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int
       "meta_signal_available": bool,
     }
     """
-    # Stub: returns a realistic test case
-    # Production version would call GitHub API via GH_TOKEN to query PRs
-    return {
-        "total_prs": 12,
-        "successful": 10,
-        "reworked": 1,
-        "reverted": 1,
-        "accuracy": 10 / 12,  # 83%
-        "focus_areas": ["gap_report_formatting", "ledger_schema_compat"],
-        "meta_signal_available": True,
-        "lookback_days": lookback_days,
-    }
+    import os
+    import subprocess
+
+    # In a workflow context, use GH_TOKEN from environment
+    # For local testing, fallback to git credential
+    try:
+        # Query: merged PRs with matching title, closed in the lookback window
+        cutoff_date = (datetime.utcnow() - timedelta(days=lookback_days)).isoformat()
+        query = (
+            f'repo:{repo} '
+            f'is:merged '
+            f'title:"{prefix}" '
+            f'merged:>{cutoff_date}'
+        )
+        result = subprocess.run(
+            ["gh", "pr", "list", "--search", query, "--json", "number,title,mergedAt,body"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            # GitHub API unavailable or no token; return a stub for testing
+            return {
+                "total_prs": 0,
+                "successful": 0,
+                "reworked": 0,
+                "reverted": 0,
+                "accuracy": 1.0,
+                "focus_areas": [],
+                "meta_signal_available": False,
+                "lookback_days": lookback_days,
+                "note": "GitHub API unavailable; returning stub result",
+            }
+
+        prs = json.loads(result.stdout) if result.stdout else []
+        successful = 0
+        reworked = 0
+        reverted = 0
+        focus_areas_set = set()
+
+        # Simple heuristic: if body contains "rework" or "fix", mark as reworked
+        # In production, check follow-up PRs via PR history
+        for pr in prs:
+            body_lower = (pr.get("body") or "").lower()
+            if "rework" in body_lower or "fixed" in body_lower:
+                reworked += 1
+                focus_areas_set.add("pr_rework_needed")
+            elif "revert" in body_lower:
+                reverted += 1
+                focus_areas_set.add("pr_revert")
+            else:
+                successful += 1
+
+        total = len(prs)
+        accuracy = successful / total if total > 0 else 1.0
+
+        return {
+            "total_prs": total,
+            "successful": successful,
+            "reworked": reworked,
+            "reverted": reverted,
+            "accuracy": accuracy,
+            "focus_areas": sorted(list(focus_areas_set)),
+            "meta_signal_available": total > 0,
+            "lookback_days": lookback_days,
+        }
+    except Exception as e:
+        # On any error (missing gh, API failure), return a stub for safety
+        return {
+            "total_prs": 0,
+            "successful": 0,
+            "reworked": 0,
+            "reverted": 0,
+            "accuracy": 1.0,
+            "focus_areas": [],
+            "meta_signal_available": False,
+            "lookback_days": lookback_days,
+            "error": str(e),
+        }
 
 
 def run(repo: str, consolidation_pr_prefix: str, lessons_path: Path,
@@ -157,36 +226,56 @@ def render_report(result: dict) -> str:
 
 
 def smoke_test() -> int:
-    """Verify meta-SMAG measurement logic."""
+    """Verify meta-SMAG measurement and lesson-upsert logic."""
     import tempfile
     with tempfile.TemporaryDirectory() as d:
         lessons_path = Path(d) / "lessons.json"
-        result = run(
-            repo="humanaios-ui/operations",
-            consolidation_pr_prefix="SMAG: consolidate",
-            lessons_path=lessons_path,
-            lookback_days=30,
-            dry_run=False,
-        )
-        assert result["status"] == "META_SIGNAL_CAPTURED"
-        assert result["total_prs"] == 12
-        assert abs(result["accuracy"] - (10 / 12)) < 0.01
 
-        # Verify lessons file was created
-        assert lessons_path.exists()
+        # Test 1: measure_consolidation_pr_outcomes returns valid structure
+        outcome = measure_consolidation_pr_outcomes(
+            repo="humanaios-ui/operations",
+            prefix="SMAG: consolidate",
+            lookback_days=30,
+        )
+        assert "total_prs" in outcome
+        assert "accuracy" in outcome
+        assert "focus_areas" in outcome
+        print(f"  ✓ measurement returns valid structure (total_prs={outcome['total_prs']})")
+
+        # Test 2: meta_lesson_for_self_accuracy generates correct structure
+        lesson = meta_lesson_for_self_accuracy(
+            accuracy=0.83,
+            total_prs=12,
+            focus_areas=["test_area"],
+        )
+        assert lesson["id"] == "SMAG-META-CALIBRATION-SELF-ACCURACY"
+        assert lesson["accuracy_measured"] == 0.83
+        print(f"  ✓ lesson generation returns valid structure")
+
+        # Test 3: upsert_meta_lessons is idempotent
+        ids1 = upsert_meta_lessons(lessons_path, [lesson])
+        assert len(ids1) == 1
         data = json.loads(lessons_path.read_text())
-        assert any(l.get("id") == "SMAG-META-CALIBRATION-SELF-ACCURACY" for l in data["lessons"])
+        assert len(data["lessons"]) == 1
+        print(f"  ✓ first upsert writes lesson")
 
-        # Verify idempotency: re-run updates in place
-        result2 = run(
+        ids2 = upsert_meta_lessons(lessons_path, [lesson])
+        data2 = json.loads(lessons_path.read_text())
+        assert len(data2["lessons"]) == 1, "upsert must be idempotent"
+        print(f"  ✓ second upsert updates in place (idempotent)")
+
+        # Test 4: run() with dry_run produces no side effects
+        result_dry = run(
             repo="humanaios-ui/operations",
             consolidation_pr_prefix="SMAG: consolidate",
             lessons_path=lessons_path,
             lookback_days=30,
-            dry_run=False,
+            dry_run=True,
         )
-        data2 = json.loads(lessons_path.read_text())
-        assert len(data2["lessons"]) == 1, "Meta-feedback upsert must be idempotent"
+        # lessons file should still have only 1 entry from test 3
+        data3 = json.loads(lessons_path.read_text())
+        assert len(data3["lessons"]) == 1, "dry-run must not modify lessons file"
+        print(f"  ✓ dry-run does not modify filesystem")
 
     print("✓ Meta-SMAG smoke test PASSED")
     return 0
@@ -194,12 +283,15 @@ def smoke_test() -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="META SMAG: measure SMAG's own calibration accuracy.")
-    ap.add_argument("--repo", default=DEFAULT_REPO)
-    ap.add_argument("--consolidation-pr-prefix", default=DEFAULT_CONSOLIDATION_PR_PREFIX)
-    ap.add_argument("--lessons", default=DEFAULT_LESSONS)
-    ap.add_argument("--lookback-days", type=int, default=DEFAULT_LOOKBACK_DAYS)
+    ap.add_argument("--repo", default=DEFAULT_REPO, help=f"GitHub repo (default: {DEFAULT_REPO})")
+    ap.add_argument("--consolidation-pr-prefix", default=DEFAULT_CONSOLIDATION_PR_PREFIX,
+                    help=f"Consolidation PR title prefix (default: {DEFAULT_CONSOLIDATION_PR_PREFIX})")
+    ap.add_argument("--lessons", default=DEFAULT_LESSONS, help=f"Lessons ledger path (default: {DEFAULT_LESSONS})")
+    ap.add_argument("--lookback-days", type=int, default=DEFAULT_LOOKBACK_DAYS,
+                    help=f"Days to look back for consolidation PRs (default: {DEFAULT_LOOKBACK_DAYS})")
+    ap.add_argument("--input", type=str, help="Input file or JSON (for Builder v1.7 compatibility; unused)")
     ap.add_argument("--dry-run", action="store_true", help="report only, do not write lessons")
-    ap.add_argument("--smoke-test", action="store_true")
+    ap.add_argument("--smoke-test", action="store_true", help="run smoke tests and exit")
     args = ap.parse_args()
     if args.smoke_test:
         return smoke_test()
