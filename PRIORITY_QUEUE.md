@@ -27,11 +27,17 @@ priority_score = (resource_impact * 10) + (blocking_capacity_pct * 5)
 No time-based gates. Regulatory deadlines override resource_impact rank.
 ```
 
+**Regulatory Deadline Exception Policy:**
+- Candidates with `regulatory_deadline` (RFC3339 timestamp) flag external constraints (GDPR, legal hold, compliance audit, etc.)
+- Z2 must document evidence: statute/regulation/mandate + deadline + impact if missed
+- Exception requires Z2 explicit act (ratification comment): "This deadline qualifies as regulatory exception per [evidence]"
+- Without Z2 explicit approval, treat deadline as data point for prioritization, not override
+
 ---
 
 ## Blocked Items
 
-- Q-IC030-REPIN-01 (blocked by Q-BOOT-PROCESS-MAP-01, Q-REGISTERED-SCHEMA-01)
+- Q-IC030-REPIN-01 (blocked by Q-BOOT-PROCESS-MAP-01)
 
 ---
 
