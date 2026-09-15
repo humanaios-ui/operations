@@ -477,6 +477,7 @@
     let selectedCandidate = null;
     let indexData = null;
     let currentDecision = null;
+    let contentAbortController = null;
 
     function escapeHtml(text) {
       const map = {
@@ -513,7 +514,10 @@
 
     async function loadCandidates() {
       try {
-        const indexResponse = await fetch('../z1-inbox/INDEX.yaml');
+        const indexResponse = await fetch('../z1-inbox/INDEX.yaml', {
+          headers: { 'Cache-Control': 'no-store' },
+          cache: 'no-store'
+        });
         if (!indexResponse.ok) {
           throw new Error(`HTTP ${indexResponse.status}`);
         }
@@ -552,17 +556,30 @@
         }
 
         if (inCandidates) {
+          // Handle list item with inline key:value (e.g., "  - q_id: Q-XXX")
           if (line.startsWith('  - ')) {
             current = {};
             candidates.push(current);
+
+            // Extract inline key:value if present
+            const inlineMatch = line.match(/^  - (\w+):\s*(.+)$/);
+            if (inlineMatch) {
+              const key = inlineMatch[1];
+              let value = inlineMatch[2].trim().replace(/^['"]|['"]$/g, '');
+              if (value === 'null') value = null;
+              if (value === 'true') value = true;
+              if (value === 'false') value = false;
+              current[key] = value;
+            }
             continue;
           }
 
+          // Handle nested properties (4 spaces indentation)
           if (line.startsWith('    ') && current) {
-            const match = line.match(/^    (\w+):\s*['"]*(.*)['"]?\s*$/);
+            const match = line.match(/^    (\w+):\s*(.+)$/);
             if (match) {
               const key = match[1];
-              let value = match[2].trim().replace(/['"]/g, '');
+              let value = match[2].trim().replace(/^['"]|['"]$/g, '');
               if (value === 'null') value = null;
               if (value === 'true') value = true;
               if (value === 'false') value = false;
@@ -627,17 +644,19 @@
       noResults.style.display = 'none';
       container.innerHTML = filtered.map(c => {
         const isActive = selectedCandidate?.q_id === c.q_id;
+        const statusDisplay = c.status.replace(/_/g, ' ');
+        const submittedDisplay = c.submitted || 'unknown date';
         return `
           <button
             class="candidate-card ${isActive ? 'active' : ''}"
-            onclick="selectCandidate('${escapeHtml(c.q_id)}');"
+            data-qid="${escapeHtml(c.q_id)}"
             aria-pressed="${isActive}"
           >
             <div class="candidate-id">${escapeHtml(c.q_id)}</div>
             <div class="candidate-title">${escapeHtml(c.title || '(untitled)')}</div>
             <div class="candidate-meta">
-              <span class="status-badge ${getStatusClass(c.status)}">${c.status.replace(/_/g, ' ')}</span>
-              <span>${c.submitted || 'unknown date'}</span>
+              <span class="status-badge ${getStatusClass(c.status)}">${escapeHtml(statusDisplay)}</span>
+              <span>${escapeHtml(submittedDisplay)}</span>
             </div>
           </button>
         `;
@@ -678,6 +697,13 @@
         return;
       }
 
+      // Cancel any pending content fetch for previous selection
+      if (contentAbortController) {
+        contentAbortController.abort();
+      }
+      contentAbortController = new AbortController();
+      const currentSelection = selectedCandidate.q_id;
+
       const c = selectedCandidate;
       const statusClass = getStatusClass(c.status);
       const isAlreadyRatified = c.status !== 'pending';
@@ -689,7 +715,15 @@
       if (!isAlreadyRatified) {
         // Fetch and display candidate content
         try {
-          const contentResponse = await fetch('../' + c.path);
+          const contentResponse = await fetch('../' + c.path, {
+            signal: contentAbortController.signal
+          });
+
+          // Only process if this request is still relevant
+          if (selectedCandidate.q_id !== currentSelection) {
+            return;
+          }
+
           if (contentResponse.ok) {
             const content = await contentResponse.text();
             contentHtml = `
@@ -699,9 +733,14 @@
                 ${content.length > 2000 ? '<p style="font-size: 11px; color: #a8a39a; margin: 8px 0;">…(truncated)</p>' : ''}
               </div>
             `;
+          } else {
+            contentHtml = `<div class="error-message">Could not load candidate content (HTTP ${contentResponse.status})</div>`;
           }
         } catch (e) {
-          contentHtml = `<div class="error-message">Could not load candidate content from ${escapeHtml(c.path)}</div>`;
+          // Only report error if not aborted
+          if (e.name !== 'AbortError') {
+            contentHtml = `<div class="error-message">Could not load candidate content from ${escapeHtml(c.path)}</div>`;
+          }
         }
       }
 
@@ -803,6 +842,15 @@
       };
       output.appendChild(copyBtn);
     }
+
+    // Event delegation for candidate card selection
+    document.getElementById('candidatesList').addEventListener('click', (e) => {
+      const card = e.target.closest('[data-qid]');
+      if (card) {
+        const qId = card.getAttribute('data-qid');
+        selectCandidate(qId);
+      }
+    });
 
     document.getElementById('searchInput').addEventListener('input', () => {
       filterAndRenderCandidates();
