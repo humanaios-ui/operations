@@ -1961,7 +1961,7 @@ tools:
   builder_markers: true
   purpose: intent_os_board_check — verify the Intent-OS board's "verified records" against the tree.
   session: S-091426-01
-- tool_id: HAIOS-TOOL-162
+- tool_id: HAIOS-TOOL-163
   name: witness_framework
   path: tools/witness_framework.py
   version: 0.1.0
