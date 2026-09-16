@@ -26,6 +26,11 @@ Two independent sources, because each fails differently:
 |:--|:--|:--|
 | Authenticated repo listing | existence, canonical name, visibility, push access | shows repos the account can see; silent about ones it cannot |
 | `git ls-remote --heads` (anonymous) | the URL resolves for an unauthenticated client | **returns the same failure for "private" and "does not exist"** |
+| Local: `git -C "$d" rev-parse --git-dir` | the directory is a working repository | — |
+
+**Do not probe local state with `git remote get-url origin 2>/dev/null`.** It prints nothing for a repo
+with no remote *and* for a directory that is not a repo, and the suppressed stderr is the only thing that
+distinguishes them. §5.1 records what that cost. Ask `rev-parse --git-dir` first, then the remote.
 
 A private repo therefore reads as `no-anon-access` in column 5 while being confirmed real in column 3.
 Reading that as "broken" is the trap; it is recorded rather than smoothed over.
@@ -122,15 +127,34 @@ Two roots, not one — read off the machine on 2026-09-16, not inferred.
 | `findlocaltattooartists` | `humanaios-ui/findlocaltattooartists.git` | Z-010 |
 | `humanaios-internal` | `humanaios-ui/humanaios-internal.git` | Z-002 |
 | `lasting-light-ai` | `humanaios-ui/lasting-light-ai.git` | Z-008 |
-| **`operations`** | **— none —** | **Z-000** |
+| **`operations`** | **not a repository — see below** | **Z-000: NOT CLONED** |
 | `research` | `humanaios-ui/research.git` | Z-011 |
 
-**`operations` has no `origin`.** `git remote get-url origin` returns nothing. This is the clone where
-`ratify.py` is run, so `git pull`, `git push` and every prepared command that assumes a remote fail
-there. Repair: `git remote add origin https://github.com/humanaios-ui/operations.git`.
+**`github/operations` is not a clone of Z-000. It is a different project wearing the name.** Its `.git/`
+contains one subdirectory, `hooks/` — no `HEAD`, `config`, `objects` or `refs` — so git rejects the tree
+outright: *"fatal: not a git repository."* Its contents (`AUTOMATION_FRAMEWORK_SUMMARY.md`,
+`INTENT-OS_AUTOMATION_SETUP.md`, `RECURSIVE_ORCHESTRATION_STRATEGY.md`, `REPOSITORY_SYNC_HANDOFF.md`,
+dated 2026-09-11) exist in `humanaios-ui/operations` **on no branch**, and the markers a real clone must
+have — `.z1-control/`, `CLAUDE.md`, `z1-inbox/` — are absent.
+
+**So Z-000 has never been cloned to this machine.** That is the root cause of every "No such file or
+directory" in this session's signing attempts, and `.z1-control/ratify.py` cannot be run locally until
+it is fixed.
+
+Two corrections recorded rather than overwritten, because the second was actively dangerous:
+
+1. An earlier revision of this file said *"`operations` has no `origin`"*. Wrong. The discovery loop that
+   produced it ran `git remote get-url origin 2>/dev/null`, which prints nothing both for a repo with no
+   remote and for a directory that is not a repo at all. **The check could not distinguish its own two
+   failure modes**, and the benign reading was recorded.
+2. That revision prescribed `git remote add origin …` as the repair. Had it been followed after a
+   `git init`, a push would have sent this unrelated project's contents **to the governance repository**.
+
+The directory holds real, untracked work that exists nowhere else — no functioning git, and nothing of it
+in any branch. It must be renamed, never deleted, before Z-000 is cloned into that path.
 
 Not cloned in either root: **`humanaios` (Z-001)** exists only under `practices/`, over SSH; **`docs`
-(Z-009)** is absent entirely.
+(Z-009)** is absent entirely; **`operations` (Z-000)** as above.
 
 ### 5.2 · `/Users/andersonfamily/practices` — the mesh practice directories
 
