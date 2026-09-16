@@ -414,14 +414,23 @@ candidates:
     \ reload in headless Chromium; REPOSITORY_STRUCTURE.md verified path by path."
 records:
 - path: z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md
-  title: "Z2 rulings \u2014 2026-09-16: PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01 ACCEPT,\
-    \ SESSION_RITUALS v6.4.2 bump ACCEPT (applied), Section F.1 HELD (Night, 2026-09-16)"
+  title: "Z2 rulings \u2014 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01\
+    \ ACCEPT, SESSION_RITUALS v6.4.2 bump ACCEPT (applied), Section F.1 ACCEPT reading\
+    \ (a), ledger \u2192 resource-based DIRECTION_GIVEN, ratify.py 1.2.0 awaiting Z2\
+    \ (Night, 2026-09-16)"
   note: "Z2 output, transcribed by Z1 from in-session rulings, following the Z2_RULING_AMBIGUITY_BSM_D.md\
-    \ precedent. UNSIGNED \u2014 z2_hash null on all three ACCEPTs pending Night's ratify.py\
+    \ precedent. UNSIGNED \u2014 z2_hash null on every ACCEPT pending Night's ratify.py\
     \ signatures; Z1 does not sign for Z2 (validate.py rule 6, and ratify.py asserts\
     \ 'Claude' not in KNOWN_RATIFIERS). The v6.4.2 bump is applied ahead of signature\
     \ because it changes no rule \u2014 it makes the header describe content a signed\
-    \ ruling already placed. Section F.1 held: substance not specified and not Z1's to infer."
+    \ ruling already placed. Section F.1 was HELD at 16:32 UTC for want of substance;\
+    \ Night supplied reading (a) later in the same session, so the replacement text is\
+    \ written out and unapplied. Ruling 5 supersedes the earlier same-session instruction\
+    \ to date 21 PENDING_Z2_DATE tokens \u2014 no dating act was performed; it names four\
+    \ things the resource-based transition does not yet specify. Ruling 6 records that\
+    \ ratify.py's INDEX.yaml write had never run at all (a dead regex, not the manual\
+    \ steps filed as #339 gap 1) and that fixing it widens PR #343 past Ruling 1's\
+    \ enumerated scope."
 - path: z1-inbox/2026-09-16/HANDOFF.md
   title: "Handoff — 2026-09-16 (Intent-OS test surface: harness, dashboard, pathway,\
     \ repository index)"
