@@ -2,8 +2,8 @@ version: 1
 generated: '2026-09-14'
 decision_window_days: 2
 counts:
-  candidates: 43
-  records: 23
+  candidates: 44
+  records: 24
 ratifiers:
 - Night
 candidates:
@@ -390,6 +390,17 @@ candidates:
     \ the seal checker); the block asks Z2 to register the IC and to accept or edit\
     \ two preventions (advisory board-check CI job; checker as a \xA7A session-open\
     \ line)."
+- q_id: Q-MOLT-LEDGER-SCAN-01
+  title: "Molt verification findings scan \u2014 the molt lifecycle writes no permanent\
+    \ record, and the anti-cascade rules that would read it are wired nowhere"
+  path: z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md
+  submitted: '2026-09-15'
+  status: awaiting_z2
+  note: "From the S-091526-01 findings scan (1 F / 5 IC / 1 H / 5 NM / 1 DUPLICATE\
+    \ from 14 observations). Resolves the open_molt_count ambiguity: the open slot\
+    \ is molt f7a49f667c09f1f6 (Q-RBE-01), not PR #342. Carries five proposed preventions\
+    \ and an appendix on mending nf_resolved \u2014 including a \u00a7B.7 ledger-resolution\
+    \ ritual step, which is a SESSION_RITUALS change and so Z2's alone."
 - q_id: Q-INTENTOS-TEST-01
   title: "Intent-OS test surface — harness (T0–T4), dashboard, pathway;\
     \ d20 \xA7A adoption \xB7 d21 receipt in tree \xB7 d22 scale-out order \xB7 F-CAND\
@@ -402,6 +413,24 @@ candidates:
     \ proven over a socket (DRY_RUN) and verified by ratify.py; a board tap survives\
     \ reload in headless Chromium; REPOSITORY_STRUCTURE.md verified path by path."
 records:
+- path: z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md
+  title: "Z2 rulings \u2014 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01\
+    \ ACCEPT, SESSION_RITUALS v6.4.2 bump ACCEPT (applied), Section F.1 ACCEPT reading\
+    \ (a), ledger \u2192 resource-based DIRECTION_GIVEN, ratify.py 1.2.0 awaiting Z2\
+    \ (Night, 2026-09-16)"
+  note: "Z2 output, transcribed by Z1 from in-session rulings, following the Z2_RULING_AMBIGUITY_BSM_D.md\
+    \ precedent. UNSIGNED \u2014 z2_hash null on every ACCEPT pending Night's ratify.py\
+    \ signatures; Z1 does not sign for Z2 (validate.py rule 6, and ratify.py asserts\
+    \ 'Claude' not in KNOWN_RATIFIERS). The v6.4.2 bump is applied ahead of signature\
+    \ because it changes no rule \u2014 it makes the header describe content a signed\
+    \ ruling already placed. Section F.1 was HELD at 16:32 UTC for want of substance;\
+    \ Night supplied reading (a) later in the same session, so the replacement text is\
+    \ written out and unapplied. Ruling 5 supersedes the earlier same-session instruction\
+    \ to date 21 PENDING_Z2_DATE tokens \u2014 no dating act was performed; it names four\
+    \ things the resource-based transition does not yet specify. Ruling 6 records that\
+    \ ratify.py's INDEX.yaml write had never run at all (a dead regex, not the manual\
+    \ steps filed as #339 gap 1) and that fixing it widens PR #343 past Ruling 1's\
+    \ enumerated scope."
 - path: z1-inbox/2026-09-16/HANDOFF.md
   title: "Handoff — 2026-09-16 (Intent-OS test surface: harness, dashboard, pathway,\
     \ repository index)"
