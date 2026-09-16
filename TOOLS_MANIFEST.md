@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**156 registered tools** · 2 MCP servers · 0 excluded · 127 carrying Builder v1.7 markers
+**157 registered tools** · 2 MCP servers · 0 excluded · 128 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 156 |
-| — status `draft` | 155 |
+| Registered tools | 157 |
+| — status `draft` | 156 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 127 |
+| Builder v1.7 markers present | 128 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -173,7 +173,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-030 | monitor_stability_v1 | `tools/agents/monitor_stability_v1.py` | 1.0.0 | 1 | draft | — | Monitoring Dashboard: Phase 1/2 Stability |
 | HAIOS-TOOL-048 | clone_sync_health | `tools/clone_sync_health_v1_0.py` | 1.0.0 | 1 | draft | — | Clone Sync Health — v1.0 |
 
-## Orchestration — `orchestrator_tool` (6)
+## Orchestration — `orchestrator_tool` (7)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -183,6 +183,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-110 | run_acat_validation_suite | `tools/run_acat_validation_suite_v1.0.py` | 1.0.0 | 1 | draft | — | ACAT Validation Suite Orchestrator — v1.0 |
 | HAIOS-TOOL-112 | scheduled_audit_runner | `tools/scheduled_audit_runner_v1_0.py` | 1.0.0 | 1 | draft | — | scheduled_audit_runner_v1_0 — Measure+Issue automated audit loop orchestrator |
 | HAIOS-TOOL-128 | system_audit | `tools/system_audit_v1_0.py` | 1.1.0 | 1 | draft | — | ⚠️ SUPERSEDED — Do NOT use this version |
+| HAIOS-TOOL-165 | holographic_orchestrator | `tools/holographic_orchestrator.py` | 0.1.0 | 1 | draft | — | Orchestrates holographic person representation via external services: |
 
 ## Pipelines — `pipeline_tool` (4)
 
@@ -292,7 +293,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 9 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 20 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 3 |
-| `orchestrator_tool` | Runs other tools or agents in sequence. | 6 |
+| `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 4 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 5 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 9 |
