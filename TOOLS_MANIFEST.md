@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**155 registered tools** · 2 MCP servers · 0 excluded · 125 carrying Builder v1.7 markers
+**157 registered tools** · 2 MCP servers · 0 excluded · 128 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 155 |
-| — status `draft` | 153 |
-| — status `archived` | 2 |
-| Builder v1.7 markers present | 125 |
+| Registered tools | 157 |
+| — status `draft` | 156 |
+| — status `archived` | 1 |
+| Builder v1.7 markers present | 128 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -51,7 +51,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-080 | hawkins_acat_mapper | `tools/hawkins_acat_mapper_v1_0.py` | 1.0.0 | 1 | draft | — | Generates evidence-tagged crosswalk reports between ACAT dimensions and Hawkins calibration levels. |
 | HAIOS-TOOL-082 | humulity_audit_service | `tools/humulity_audit_service.py` | 0.2.0 | 1 | draft | — | Humility Audit Service -- v0.2 (corrected) |
 | HAIOS-TOOL-089 | mhr_question_trace | `tools/mhr_question_trace_v1_0.py` | 1.0.0 | 1 | draft | — | Traces question-source → method-design → data-output chain for Market-Harmonic Research auditability. |
-| HAIOS-TOOL-091 | molting_protocol_diff | `tools/molting_protocol_diff_v1_0.py` | 1.0.0 | 1 | draft | — | Compares `SESSION_RITUALS.md` versions, classifies additive patching vs clean-layer replacement. |
+| HAIOS-TOOL-091 | molting_protocol_diff | `tools/molting_protocol_diff_v1_0.py` | 1.1.0 | 1 | draft | — | Classifies a molt's tier (0/1/2) from the filepaths its diff touches, and measures the gap against the author's claimed tier. |
 | HAIOS-TOOL-100 | principle_analyzer | `tools/principle_analyzer_v1_0.py` | 1.0.0 | 1 | draft | — | Principle Analyzer — v1.0 |
 | HAIOS-TOOL-101 | principle_harmonizer | `tools/principle_harmonizer_v1_0.py` | 1.1.0 | 1 | draft | — | Harmonizes the principle layer across governance files, surfaces drift. |
 | HAIOS-TOOL-102 | principle_harmonizer | `tools/principle_harmonizer_v1_2.py` | 1.2.0 | 1 | draft | — | Principle Harmonizer — v1.2 |
@@ -72,7 +72,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-093 | nf_ledger_cli | `tools/nf_ledger_cli_v1_0.py` | 1.0.0 | 1 | draft | — | nf_ledger_cli_v1_0.py |
 | HAIOS-TOOL-094 | nf_ledger_v0_1 | `tools/nf_ledger_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | nf_ledger_v0_1.py — NF_LEDGER (calibration ledger, Brier) for the Phase 2 mesh pins. |
 | HAIOS-TOOL-111 | scg_scorer | `tools/scg_scorer.py` | 1.0.0 | 1 | draft | — | scg_scorer.py — Shadow Calibration Gap Scoring Tool |
-| HAIOS-TOOL-117 | smag_consolidate | `tools/smag_consolidate_v1_0.py` | 1.0.0 | 1 | draft | — | smag_consolidate — drain SMAG rows from the #103 tracking issue into the ledger. |
+| HAIOS-TOOL-117 | smag_consolidate | `tools/smag_consolidate_v1_0.py` | 1.1.0 | 1 | draft | — | smag_consolidate — drain SMAG rows from the #103 tracking issue into the ledger. |
 | HAIOS-TOOL-118 | smag_gap_analysis | `tools/smag_gap_analysis_v1_0.py` | 1.0.0 | 1 | draft | — | smag_gap_analysis — the ANALYZE step of the recursive-learning loop. |
 | HAIOS-TOOL-119 | smag_gap_analyzer | `tools/smag_gap_analyzer.py` | 1.0.0 | 1 | draft | — | smag_gap_analyzer — LLM-enriched ACAT Core-6 gap classification and prediction. |
 | HAIOS-TOOL-120 | smag_pilot_capture | `tools/smag_pilot_capture_v1_0.py` | 1.0.0 | 1 | draft | — | smag_pilot_capture_v1_0.py |
@@ -131,14 +131,14 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | 0.3.1 | 1 | draft | — | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
-| HAIOS-TOOL-090 | molt_cycle | `tools/molt_cycle.py` | unversioned | 1 | archived | no-builder-markers, no-smoke-test | molt_cycle.py — READ + PROPOSE phases only (Tier 0). Never applies. |
 | HAIOS-TOOL-151 | doc_review_scheduler | `.doc-control/review.py` | 1.0.0 | 1 | draft | no-builder-markers | Document review scheduler — record a review, derive the next one, triage the backlog. |
-| HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.1.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
+| HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.2.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
 | HAIOS-TOOL-154 | z1_inbox_renderer | `.z1-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render Z1_INBOX_INDEX.md from z1-inbox/INDEX.yaml. |
 | HAIOS-TOOL-155 | z1_inbox_validator | `.z1-control/validate.py` | 1.0.0 | 1 | draft | no-builder-markers | z1-inbox/ is where Z1 stages proposals for Z2. Until now nothing said which of |
 | HAIOS-TOOL-157 | molt_cycle_tier0_v0_1 | `tools/molt_cycle_tier0_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies. |
 | HAIOS-TOOL-159 | resource_ledger | `tools/resource_ledger_v0_1.py` | 0.1.0 | 1 | draft | — | resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims, |
 | HAIOS-TOOL-160 | smag_feedback | `tools/smag_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop. |
+| HAIOS-TOOL-163 | smag_meta_feedback | `tools/smag_meta_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy. |
 
 ## Infrastructure — `infrastructure_tool` (20)
 
@@ -173,7 +173,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-030 | monitor_stability_v1 | `tools/agents/monitor_stability_v1.py` | 1.0.0 | 1 | draft | — | Monitoring Dashboard: Phase 1/2 Stability |
 | HAIOS-TOOL-048 | clone_sync_health | `tools/clone_sync_health_v1_0.py` | 1.0.0 | 1 | draft | — | Clone Sync Health — v1.0 |
 
-## Orchestration — `orchestrator_tool` (6)
+## Orchestration — `orchestrator_tool` (7)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -183,6 +183,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-110 | run_acat_validation_suite | `tools/run_acat_validation_suite_v1.0.py` | 1.0.0 | 1 | draft | — | ACAT Validation Suite Orchestrator — v1.0 |
 | HAIOS-TOOL-112 | scheduled_audit_runner | `tools/scheduled_audit_runner_v1_0.py` | 1.0.0 | 1 | draft | — | scheduled_audit_runner_v1_0 — Measure+Issue automated audit loop orchestrator |
 | HAIOS-TOOL-128 | system_audit | `tools/system_audit_v1_0.py` | 1.1.0 | 1 | draft | — | ⚠️ SUPERSEDED — Do NOT use this version |
+| HAIOS-TOOL-165 | holographic_orchestrator | `tools/holographic_orchestrator.py` | 0.1.0 | 1 | draft | — | Orchestrates holographic person representation via external services: |
 
 ## Pipelines — `pipeline_tool` (4)
 
@@ -239,7 +240,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-135 | tool_scaffolder | `tools/tool_scaffolder_v1_0.py` | 1.0.0 | 1 | draft | — | Scaffolds new Builder v1.7-compliant tools from template. |
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 
-## Validation — `validation_tool` (19)
+## Validation — `validation_tool` (20)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -260,8 +261,9 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-146 | doc_control_validator | `.doc-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers, no-smoke-test | Enforces the mechanical controlled-document rules from DOCUMENT_CONTROL_PLAN.md: |
 | HAIOS-TOOL-149 | tool_control_selftest | `.tool-control/selftest.py` | 1.1.0 | 1 | draft | no-builder-markers | Adversarial self-test for the tool-control gate: prove every rule can FAIL. |
 | HAIOS-TOOL-150 | tool_manifest_validator | `.tool-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers | The merge gate for `tools-manifest.yaml`, built to the same contract as |
-| HAIOS-TOOL-161 | intent_os_board_check | `tools/intent_os_board_check_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_check — verify the Intent-OS board's "verified records" against the tree. |
-| HAIOS-TOOL-162 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |
+| HAIOS-TOOL-161 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |
+| HAIOS-TOOL-162 | intent_os_board_check | `tools/intent_os_board_check_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_check — verify the Intent-OS board's "verified records" against the tree. |
+| HAIOS-TOOL-164 | intent_os_test_harness | `tools/intent_os_test_harness_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_test_harness — run every check the Intent-OS control surface rests on, and say which held. |
 
 ## MCP servers (2)
 
@@ -291,13 +293,13 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 9 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 20 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 3 |
-| `orchestrator_tool` | Runs other tools or agents in sequence. | 6 |
+| `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 4 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 5 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 9 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 10 |
 | `template_tool` | A scaffold or template for producing new tools. | 2 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 19 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 20 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 

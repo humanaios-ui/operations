@@ -4,12 +4,48 @@
 
 <!-- One or two sentences: what this changes and the reason. -->
 
-<!-- SMAG calibration pin (recursive-learning loop, audits/SMAG_RECURSIVE_LOOP.md):
-     your own probability that this PR merges clean (no failing checks) — a
-     standalone line, exactly this shape, anywhere in this body:
-       smag_p: 0.NN
-     Omitted or reworded lines are captured as VOID, not scored — they cost you
-     nothing, but they also teach the loop nothing about your calibration. -->
+## Prediction (SMAG calibration)
+
+<!-- Pin your confidence that this PR merges with all required checks passing.
+     Format: smag_p: 0.XX (where 1.0 = 100% confidence, 0.0 = certain to fail)
+     
+     Scoring guide (see SMAG_AUTHOR_CALIBRATION_GUIDE.md):
+     - 0.95+: typo/doc fix, test-only
+     - 0.85-0.94: feature, straightforward refactor
+     - 0.70-0.84: larger change, known optional flake possible
+     - 0.50-0.69: risky change, one check might fail
+     - 0.0-0.49: known failing check, intentional test
+     
+     Why? System measures your accuracy → learns → feeds back as gates.
+     Help it learn by being honest about risk.
+     Omitted lines are VOID (not scored); no penalty, but no signal either.
+     
+     FOR SMAG CONSOLIDATION PRs: Also pin smag_p_meta (SMAG's confidence in its own
+     consolidation accuracy). Example: smag_p_meta: 0.82 (gap report regeneration is
+     mechanical but ledger merges are risky). This wires SMAG's self-learning loop.
+-->
+
+## Molt Classification
+
+<!-- Predict the tier of this PR from what it CHANGES, not what it intends:
+       Tier 0 — no constants, no gates. Not a molt; consumes no molt slot.
+       Tier 1 — constants (needs molt_id + prediction + window). Examples:
+                behavior_spec.json, RESOURCE_UNITS.yaml, constants.json,
+                weights/, caps/, rubrics/, …
+       Tier 2 — gates (needs registry entry + ADV run). Examples:
+                .github/workflows/, .z1-control/{ratify,validate,render}.py,
+                system_graph.json, .github/CODEOWNERS, ci_gates.py, …
+
+     The examples above are NOT the rule and are NOT exhaustive — they are the
+     entries you are most likely to touch. The rule is the two path lists,
+     CONSTANTS_PATHS and GATE_PATHS, in tools/molting_protocol_diff_v1_0.py.
+     Read those if your claim is a close call; editing that file is itself Tier 2.
+     CI runs the classifier and reports molt_tier_measured. It does NOT block merge —
+     the gap between your claim and the measurement is audit data, and under-claims
+     are the ones that matter. Leaving the placeholder in is VOID, not a claim of 0.
+-->
+
+**molt_tier_claimed:** `[0 | 1 | 2]`
 
 ## Zone
 

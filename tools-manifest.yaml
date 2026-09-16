@@ -30,11 +30,11 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 155
+  tools: 157
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 125
-  missing_from_tree: 1
+  builder_markers_present: 128
+  missing_from_tree: 0
   unclassified: 0
 categories:
 - analytics_tool
@@ -1111,27 +1111,10 @@ tools:
   builder_markers: true
   purpose: Traces question-source → method-design → data-output chain for Market-Harmonic Research auditability.
   session: S-060126-01
-- tool_id: HAIOS-TOOL-090
-  name: molt_cycle
-  path: tools/molt_cycle.py
-  version: unversioned
-  category: governance_tool
-  zone: 1
-  status: archived
-  interface: cli
-  lang: python
-  smoke_test: false
-  builder_markers: false
-  purpose: molt_cycle.py — READ + PROPOSE phases only (Tier 0). Never applies.
-  missing_from_tree: true
-  notes: Renamed to tools/molt_cycle_tier0_v0_1.py (HAIOS-TOOL-158) to remove a naming collision with
-    the canonical root /molt_cycle.py — see Q-NF-ADAPTER-01 IC candidate and that file's own docstring.
-    A path change is a new tool per this manifest's own rule; this entry is retired explicitly rather
-    than left dangling.
 - tool_id: HAIOS-TOOL-091
   name: molting_protocol_diff
   path: tools/molting_protocol_diff_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: audit_tool
   zone: 1
   status: draft
@@ -1139,7 +1122,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Compares `SESSION_RITUALS.md` versions, classifies additive patching vs clean-layer replacement.
+  purpose: Classifies a molt's tier (0/1/2) from the filepaths its diff touches, and measures the gap
+    against the author's claimed tier.
   session: S-060126-01
 - tool_id: HAIOS-TOOL-092
   name: multi_provider_elicitation_client
@@ -1438,7 +1422,7 @@ tools:
 - tool_id: HAIOS-TOOL-117
   name: smag_consolidate
   path: tools/smag_consolidate_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -1853,7 +1837,7 @@ tools:
 - tool_id: HAIOS-TOOL-153
   name: z1_ratify
   path: .z1-control/ratify.py
-  version: 1.1.0
+  version: 1.2.0
   category: governance_tool
   zone: 2
   status: draft
@@ -1953,6 +1937,18 @@ tools:
   builder_markers: true
   purpose: smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop.
 - tool_id: HAIOS-TOOL-161
+  name: witness_framework
+  path: tools/witness_framework.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts'
+- tool_id: HAIOS-TOOL-162
   name: intent_os_board_check
   path: tools/intent_os_board_check_v1_0.py
   version: 1.0.0
@@ -1965,10 +1961,23 @@ tools:
   builder_markers: true
   purpose: intent_os_board_check — verify the Intent-OS board's "verified records" against the tree.
   session: S-091426-01
-- tool_id: HAIOS-TOOL-162
-  name: witness_framework
-  path: tools/witness_framework.py
-  version: 0.1.0
+- tool_id: HAIOS-TOOL-163
+  name: smag_meta_feedback
+  path: tools/smag_meta_feedback_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy.
+  session: S-091526-meta
+- tool_id: HAIOS-TOOL-164
+  name: intent_os_test_harness
+  path: tools/intent_os_test_harness_v1_0.py
+  version: 1.0.0
   category: validation_tool
   zone: 1
   status: draft
@@ -1976,7 +1985,22 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: 'Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts'
+  purpose: intent_os_test_harness — run every check the Intent-OS control surface rests on, and say which
+    held.
+  session: S-091626-01
+- tool_id: HAIOS-TOOL-165
+  name: holographic_orchestrator
+  path: tools/holographic_orchestrator.py
+  version: 0.1.0
+  category: orchestrator_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'Orchestrates holographic person representation via external services:'
+  session: S-091626-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

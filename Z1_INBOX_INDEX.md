@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**42 candidates** — ⏳ awaiting Z2 38 · ✅ ratified 4 · **22 records**
+**45 candidates** — ⏳ awaiting Z2 41 · ✅ ratified 4 · **26 records**
 
-## Awaiting Z2 (38)
+## Awaiting Z2 (41)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -50,6 +50,9 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-16 | **Q-BOOT-FINDINGS-SCAN-01** | Registry candidate block — post-merge findings scan over Q-BOOT-STATE-MACHINE-01, cross-walked against a live REGISTERED.md fetch | `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md` |
 | 2026-09-16 | **Q-BOOT-STATE-MACHINE-01** | Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation | `z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md` |
 | 2026-09-16 | **Q-IC-BOARD-SEALS-01** | IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class) | `z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md` |
+| 2026-09-17 | **Q-MOLT-LEDGER-SCAN-01** | Molt verification findings scan — the molt lifecycle writes no permanent record, and the anti-cascade rules that would read it are wired nowhere | `z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md` |
+| 2026-09-18 | **Q-INTENTOS-TEST-01** | Intent-OS test surface — harness (T0–T4), dashboard, pathway; d20 §A adoption · d21 receipt in tree · d22 scale-out order · F-CAND ACAT tests predate the write-token gate | `z1-inbox/2026-09-16/Q-INTENTOS-TEST-01.md` |
+| 2026-09-18 | **Q-MERGE-SCOPE-01** | A PR with no Q-ID has no signing path, so the merge ratifies whatever it happens to carry — #343 merged 21 files against a five-item enumerated scope | `z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md` |
 
 ## Decided (4)
 
@@ -68,7 +71,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (90)
+## Open questions for Z2 (108)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -230,6 +233,34 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Accept, edit or reject prevention (1): an advisory `board-check` CI job on pushes to main touching sealed paths
 - [ ] Accept, edit or reject prevention (2): the checker as a §A session-open line in CLAUDE.md
 
+### Q-MERGE-SCOPE-01 (8)
+
+`z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md`
+
+- [ ] Disposition for the scope gap: option 1, 2 or 3 above.
+- [ ] `ratify.py` 1.2.0 and `tools/tests/test_ratify_index_write.py`. Ruling 6 names the pair but is `AWAITING Z2`, and it **cannot be signed directly** — the rulings file is indexed under `records:`, and `ratify.py` only resolves a `q_id` from `candidates:`. Needs a new indexed candidate, or an explicit manual signing mechanism.
+- [ ] The seven `NF_LEDGER.jsonl` RESOLVE rows — **record the merge disposition that already applies**, or issue a DISPUTE. Not "ratify as written": this block establishes that the merge ratified them, so asking whether to ratify reopens a status it just settled. Append-only, so a wrong resolution is correctable only by a DISPUTE event, never by deletion.
+- [ ] `ledgers/PRACTICE_RESOLUTION_MAP.md` — it declares itself unratified; ratify, or leave it so.
+- [ ] `.gitleaks.toml` — a security-scanner allowlist, merged with no decision naming it.
+- [ ] Prevention: MS-2 now (independent), then MS-1-with-scope, then MS-3 — or none. MS-1 without a declared machine-readable scope does not close this. (MS- labels, because `GOVERNANCE.md` already owns P1/P2/P3.)
+- [ ] `IC-CAND-MERGE-RATIFIES-UNSCOPED-01` — register as IC, or NM.
+- [ ] Whether this extends **H-GOV-01**'s `evidence_basis` as the sixth instance. The register is append-only and the forward-pointer is Z2's to write; Z1 has not proposed the edit.
+
+### Q-MOLT-LEDGER-SCAN-01 (10)
+
+`z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md`
+
+- [ ] Register or reject `F-CAND-SELF-EXEMPT-RULE-01` (promotion gate: 2 further instances)
+- [ ] Rule on `IC-CAND-TIER-RULE-ABSENT-PATHS-01` — IC (EXTENSION of IC-041) or NM (caught pre-merge)
+- [ ] Register or reject `IC-CAND-MOLT-LEDGER-ABSENT-01` (both limbs)
+- [ ] Register or reject `IC-CAND-ANTICASCADE-UNWIRED-01` (EXTENSION of IC-050)
+- [ ] Register or reject `IC-CAND-MOLTCYCLE-TIER0-BROKEN-01`
+- [ ] Register or reject `IC-CAND-SEED-INTAKE-LABELS-01`
+- [ ] Register or reject `H-CAND-MOLT-TIER-UNDERCLAIM-01` (conditional on #343 merging)
+- [ ] Accept / edit / reject preventions (1)–(5), including the §B.7 ritual addition
+- [ ] **H-GOV-01 forward-pointer:** all five IC candidates trigger P3 and share one shape — the principle existed and was documented, the mechanism was absent or unwired. That is limb (a) of H-GOV-01's promotion gate verbatim. Its `evidence_basis` currently reads `IC-024 through IC-038`; if these ratify it wants extending. Not proposed as an edit — the register is append-only and the forward-pointer is Z2's to write.
+- [ ] Confirm `open_molt_count: 1` = molt `f7a49f667c09f1f6` (Q-RBE-01), **not** PR #342, and that #343 may proceed as the second of K=3
+
 ### Q-NF-ADAPTER-01 (5)
 
 `z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md`
@@ -287,7 +318,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (22)
+## Records (26)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -315,6 +346,10 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md` | Z2 ruling — AMBIGUITY-BSM-D: Z2-GOVARCH-02 supersedes SESSION_RITUALS §A.1; amend to WGS-primary / halt-only-if-both-fail (Night, 2026-09-14) |
 | `z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md` | Z2 ruling — d17 local only · d18 z1-inbox + INDEX.yaml · d19 freeze path · temporary tokens revoked (Night, 2026-09-14) |
 | `z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md` | Z3 deployment log — Q-FRAMEWORK-AUDIT-DEPLOY-01 (12 repos, per-repo framework audit) |
+| `z1-inbox/2026-09-16/HANDOFF.md` | Handoff — 2026-09-16 (two sessions: Intent-OS test surface · Z2 queue at close of S-091626-01) |
+| `z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md` | Holographic self-representation hypothesis testing protocol (Phase 2 integration mocks, Phase 3 live services, Phase 4 verdict analysis) |
+| `z1-inbox/2026-09-16/PHASE2_HANDOFF.md` | Phase 2 Handoff — Holographic integration tests complete, CI green, ready for Z2 review and Phase 3 authorization |
+| `z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md` | Z2 rulings — 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01 ACCEPT, SESSION_RITUALS v6.4.2 bump ACCEPT (applied), Section F.1 ACCEPT reading (a), ledger → resource-based DIRECTION_GIVEN, ratify.py 1.2.0 awaiting Z2 (Night, 2026-09-16) |
 
 ---
 

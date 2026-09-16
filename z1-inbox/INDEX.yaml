@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-09-14'
+generated: '2026-09-16'
 decision_window_days: 2
 counts:
-  candidates: 42
-  records: 22
+  candidates: 45
+  records: 26
 ratifiers:
 - Night
 candidates:
@@ -390,7 +390,84 @@ candidates:
     \ the seal checker); the block asks Z2 to register the IC and to accept or edit\
     \ two preventions (advisory board-check CI job; checker as a \xA7A session-open\
     \ line)."
+- q_id: Q-MOLT-LEDGER-SCAN-01
+  title: "Molt verification findings scan \u2014 the molt lifecycle writes no permanent\
+    \ record, and the anti-cascade rules that would read it are wired nowhere"
+  path: z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md
+  submitted: '2026-09-15'
+  status: awaiting_z2
+  note: "From the S-091526-01 findings scan (1 F / 5 IC / 1 H / 5 NM / 1 DUPLICATE\
+    \ from 14 observations). Resolves the open_molt_count ambiguity: the open slot\
+    \ is molt f7a49f667c09f1f6 (Q-RBE-01), not PR #342. Carries five proposed preventions\
+    \ and an appendix on mending nf_resolved \u2014 including a \u00a7B.7 ledger-resolution\
+    \ ritual step, which is a SESSION_RITUALS change and so Z2's alone."
+- q_id: Q-INTENTOS-TEST-01
+  title: "Intent-OS test surface — harness (T0–T4), dashboard, pathway;\
+    \ d20 \xA7A adoption \xB7 d21 receipt in tree \xB7 d22 scale-out order \xB7 F-CAND\
+    \ ACAT tests predate the write-token gate"
+  path: z1-inbox/2026-09-16/Q-INTENTOS-TEST-01.md
+  submitted: '2026-09-16'
+  status: awaiting_z2
+  note: "First run on 7ff302d: 46 checks, 45 PASS, 1 FAIL (t3-pytest-acat: four ACAT\
+    \ tests send no X-ACAT-Write-Token; no workflow runs them). Relay /decide→/ratify\
+    \ proven over a socket (DRY_RUN) and verified by ratify.py; a board tap survives\
+    \ reload in headless Chromium; REPOSITORY_STRUCTURE.md verified path by path."
+- q_id: Q-MERGE-SCOPE-01
+  title: "A PR with no Q-ID has no signing path, so the merge ratifies whatever it\
+    \ happens to carry \u2014 #343 merged 21 files against a five-item enumerated scope"
+  path: z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md
+  submitted: '2026-09-16'
+  status: awaiting_z2
+  note: "RECEIPT-GAP, reconciled against merge commit 880c01f. Five merged items are\
+    \ UNSCOPED, not unratified: the merge is the ratifying act for a PR with no Q-ID,\
+    \ so .z1-control/ratify.py (Tier 2 gate), its test, seven append-only NF_LEDGER\
+    \ RESOLVE rows, PRACTICE_RESOLUTION_MAP.md and .gitleaks.toml are canonical \u2014\
+    \ what is missing is a decision naming them. Ruling 1's scope must NOT be widened\
+    \ to cover them: CLAUDE.md forbids changing a Z2 decision retroactively, so the fix\
+    \ is a new RATIFY event carrying its own z2_hash with 880c01f as named subject (a\
+    \ commit sha pins a tree, not a signature). Three dispositions, eight-item checklist."
 records:
+- path: z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md
+  title: "Z2 rulings \u2014 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01\
+    \ ACCEPT, SESSION_RITUALS v6.4.2 bump ACCEPT (applied), Section F.1 ACCEPT reading\
+    \ (a), ledger \u2192 resource-based DIRECTION_GIVEN, ratify.py 1.2.0 awaiting Z2\
+    \ (Night, 2026-09-16)"
+  note: "Z2 output, transcribed by Z1 from in-session rulings, following the Z2_RULING_AMBIGUITY_BSM_D.md\
+    \ precedent. UNSIGNED \u2014 z2_hash null on every ACCEPT pending Night's ratify.py\
+    \ signatures; Z1 does not sign for Z2 (validate.py rule 6, and ratify.py asserts\
+    \ 'Claude' not in KNOWN_RATIFIERS). The v6.4.2 bump is applied ahead of signature\
+    \ because it changes no rule \u2014 it makes the header describe content a signed\
+    \ ruling already placed. Section F.1 was HELD at 16:32 UTC for want of substance;\
+    \ Night supplied reading (a) later in the same session, so the replacement text is\
+    \ written out and unapplied. Ruling 5 supersedes the earlier same-session instruction\
+    \ to date 21 PENDING_Z2_DATE tokens \u2014 no dating act was performed; it names four\
+    \ things the resource-based transition does not yet specify. Ruling 6 records that\
+    \ ratify.py's INDEX.yaml write had never run at all (a dead regex, not the manual\
+    \ steps filed as #339 gap 1) and that fixing it widens PR #343 past Ruling 1's\
+    \ enumerated scope."
+- path: z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md
+  title: "Holographic self-representation hypothesis testing protocol (Phase 2 integration\
+    \ mocks, Phase 3 live services, Phase 4 verdict analysis)"
+  note: "Testing protocol for H-HOLO-SELF-REP-01, ratified via REGISTERED.md Z2 decision\
+    \ entry (2026-09-16). See REGISTERED.md for full ratification details, falsifiers,\
+    \ and deliverables."
+- path: z1-inbox/2026-09-16/PHASE2_HANDOFF.md
+  title: "Phase 2 Handoff — Holographic integration tests complete, CI green, ready\
+    \ for Z2 review and Phase 3 authorization"
+  note: "Phase 2 deliverables complete (15 mocked integration tests, all passing).\
+    \ All 16 CI checks passing. Falsifiers F1/F2 confirmed to not trigger; F3/F4 pending\
+    \ Phase 3. 15 non-blocking Copilot findings deferred to Phase 3. Awaiting Z2 ratification\
+    \ for Phase 2 completion and Phase 3 launch authorization. PR #348 ready for merge."
+- path: z1-inbox/2026-09-16/HANDOFF.md
+  title: "Handoff — 2026-09-16 (two sessions: Intent-OS test surface · Z2 queue at\
+    \ close of S-091626-01)"
+  note: "Two sessions closed on this date. The one-file-per-date convention is in\
+    \ GOVERNANCE_FILES.md:46, CLAUDE.md:238 and BOOT_PROCESS_MAP.md:63 \u2014 NOT in\
+    \ SESSION_RITUALS.md \u00a7B, which does not name the handoff surface. None of the\
+    \ three says what happens when two sessions close on one date, so appending under a\
+    \ second heading is this session's choice and unresolved convention, not a rule. The\
+    \ Intent-OS handoff (session_01CePrSjPSB8Epbpq3Lj8oKj) is unchanged; the appended\
+    \ section records what is owed to Z2 and decides nothing."
 - path: z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md
   title: "Z2 ruling \u2014 AMBIGUITY-BSM-D: Z2-GOVARCH-02 supersedes SESSION_RITUALS\
     \ \xA7A.1; amend to WGS-primary / halt-only-if-both-fail (Night, 2026-09-14)"
