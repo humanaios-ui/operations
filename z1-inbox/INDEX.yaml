@@ -459,8 +459,15 @@ records:
     \ Phase 3. 15 non-blocking Copilot findings deferred to Phase 3. Awaiting Z2 ratification\
     \ for Phase 2 completion and Phase 3 launch authorization. PR #348 ready for merge."
 - path: z1-inbox/2026-09-16/HANDOFF.md
-  title: "Handoff — 2026-09-16 (Intent-OS test surface: harness, dashboard, pathway,\
-    \ repository index)"
+  title: "Handoff — 2026-09-16 (two sessions: Intent-OS test surface · Z2 queue at\
+    \ close of S-091626-01)"
+  note: "Two sessions closed on this date. The one-file-per-date convention is in\
+    \ GOVERNANCE_FILES.md:46, CLAUDE.md:238 and BOOT_PROCESS_MAP.md:63 \u2014 NOT in\
+    \ SESSION_RITUALS.md \u00a7B, which does not name the handoff surface. None of the\
+    \ three says what happens when two sessions close on one date, so appending under a\
+    \ second heading is this session's choice and unresolved convention, not a rule. The\
+    \ Intent-OS handoff (session_01CePrSjPSB8Epbpq3Lj8oKj) is unchanged; the appended\
+    \ section records what is owed to Z2 and decides nothing."
 - path: z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md
   title: "Z2 ruling \u2014 AMBIGUITY-BSM-D: Z2-GOVARCH-02 supersedes SESSION_RITUALS\
     \ \xA7A.1; amend to WGS-primary / halt-only-if-both-fail (Night, 2026-09-14)"
