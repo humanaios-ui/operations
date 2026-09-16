@@ -2,8 +2,8 @@ version: 1
 generated: '2026-09-16'
 decision_window_days: 2
 counts:
-  candidates: 43
-  records: 24
+  candidates: 45
+  records: 26
 ratifiers:
 - Night
 candidates:
@@ -412,7 +412,39 @@ candidates:
     \ tests send no X-ACAT-Write-Token; no workflow runs them). Relay /decide→/ratify\
     \ proven over a socket (DRY_RUN) and verified by ratify.py; a board tap survives\
     \ reload in headless Chromium; REPOSITORY_STRUCTURE.md verified path by path."
+- q_id: Q-MERGE-SCOPE-01
+  title: "A PR with no Q-ID has no signing path, so the merge ratifies whatever it\
+    \ happens to carry \u2014 #343 merged 21 files against a five-item enumerated scope"
+  path: z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md
+  submitted: '2026-09-16'
+  status: awaiting_z2
+  note: "RECEIPT-GAP, reconciled against merge commit 880c01f. Five merged items are\
+    \ UNSCOPED, not unratified: the merge is the ratifying act for a PR with no Q-ID,\
+    \ so .z1-control/ratify.py (Tier 2 gate), its test, seven append-only NF_LEDGER\
+    \ RESOLVE rows, PRACTICE_RESOLUTION_MAP.md and .gitleaks.toml are canonical \u2014\
+    \ what is missing is a decision naming them. Ruling 1's scope must NOT be widened\
+    \ to cover them: CLAUDE.md forbids changing a Z2 decision retroactively, so the fix\
+    \ is a new RATIFY event carrying its own z2_hash with 880c01f as named subject (a\
+    \ commit sha pins a tree, not a signature). Three dispositions, eight-item checklist."
 records:
+- path: z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md
+  title: "Z2 rulings \u2014 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01\
+    \ ACCEPT, SESSION_RITUALS v6.4.2 bump ACCEPT (applied), Section F.1 ACCEPT reading\
+    \ (a), ledger \u2192 resource-based DIRECTION_GIVEN, ratify.py 1.2.0 awaiting Z2\
+    \ (Night, 2026-09-16)"
+  note: "Z2 output, transcribed by Z1 from in-session rulings, following the Z2_RULING_AMBIGUITY_BSM_D.md\
+    \ precedent. UNSIGNED \u2014 z2_hash null on every ACCEPT pending Night's ratify.py\
+    \ signatures; Z1 does not sign for Z2 (validate.py rule 6, and ratify.py asserts\
+    \ 'Claude' not in KNOWN_RATIFIERS). The v6.4.2 bump is applied ahead of signature\
+    \ because it changes no rule \u2014 it makes the header describe content a signed\
+    \ ruling already placed. Section F.1 was HELD at 16:32 UTC for want of substance;\
+    \ Night supplied reading (a) later in the same session, so the replacement text is\
+    \ written out and unapplied. Ruling 5 supersedes the earlier same-session instruction\
+    \ to date 21 PENDING_Z2_DATE tokens \u2014 no dating act was performed; it names four\
+    \ things the resource-based transition does not yet specify. Ruling 6 records that\
+    \ ratify.py's INDEX.yaml write had never run at all (a dead regex, not the manual\
+    \ steps filed as #339 gap 1) and that fixing it widens PR #343 past Ruling 1's\
+    \ enumerated scope."
 - path: z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md
   title: "Holographic self-representation hypothesis testing protocol (Phase 2 integration\
     \ mocks, Phase 3 live services, Phase 4 verdict analysis)"
