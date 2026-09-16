@@ -33,12 +33,31 @@ name: molt-tier-check
 
 on:
   pull_request:
+    # `closed` is added for the capture job below; the default set is
+    # [opened, synchronize, reopened] and naming any type replaces it, so all
+    # four are listed or the advisory comment stops running on pushes.
+    types: [opened, synchronize, reopened, closed]
+
+env:
+  # The molt-tier gap series has its own sink, NOT the SMAG pilot ledger (#103).
+  # smag_consolidate_v1_0.py dedups on `pr` and keeps the FIRST row per PR, so a
+  # molt-tier row posted into #103 would either shadow that PR's SMAG row or be
+  # silently dropped. Same mechanism, separate issue, separate ledger.
+  #
+  # 0 is a sentinel meaning "not yet created". The capture job errors loudly on
+  # it rather than skipping quietly — a silent skip is how a measurement ends up
+  # with no consumer, which is the thing this job exists to fix.
+  MOLT_TIER_TRACKING_ISSUE: "0"
 
 # Serializes runs per PR. The read-then-upsert below is not atomic, so without
 # this two overlapping runs could each see no existing comment and each create
 # one, breaking the one-comment-per-PR contract.
 concurrency:
-  group: molt-tier-check-${{ github.event.pull_request.number }}
+  # Keyed on the ACTION as well as the PR. Without that, the merge run and an
+  # in-flight push run share a group and cancel-in-progress drops one of them —
+  # and the one worth losing least is the merge run, which writes the only row
+  # that ever reaches the series.
+  group: molt-tier-check-${{ github.event.pull_request.number }}-${{ github.event.action }}
   cancel-in-progress: true
 
 permissions: {}
@@ -46,6 +65,7 @@ permissions: {}
 jobs:
   classify:
     name: Measure molt tier from the diff (ADVISORY)
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
       contents: read        # deliberately no pull-requests: write — see above
@@ -116,17 +136,125 @@ jobs:
           print(json.dumps(gap, indent=2))
           PY
 
-      # The gap row belongs in the SMAG self-accuracy ledger
-      # (data/lessons_learned_ledger.json). That consumer is still open work —
-      # see the follow-up noted in MOLT_STATE.md — so until it lands the row is
-      # retained as a build artifact rather than pushed to main from CI, which
-      # is the same no-main-push discipline smag-capture.yml already follows.
-      - name: Retain gap row for SMAG reconciliation
+      # A per-push copy, for debugging a run after the fact. It is NOT the
+      # series: artifacts expire, nothing downloads them, and this job fires on
+      # every push rather than once per PR. The measured row that counts is the
+      # one the `capture` job posts on merge.
+      #
+      # An earlier version of this comment claimed the artifact was "the same
+      # no-main-push discipline smag-capture.yml already follows." It is not.
+      # smag-capture.yml posts a row as a comment on a tracking issue, which
+      # smag-consolidate.yml drains weekly into a ledger. This took the goal and
+      # invented a different mechanism, pointed at a place with no reader.
+      - name: Retain gap row for this run (debug copy, not the series)
         uses: actions/upload-artifact@v4
         with:
           name: molt-tier-gap-${{ github.event.pull_request.number }}
           path: molt_tier_gap.json
           retention-days: 90
+
+  # ONE row per merged PR, into the tracking issue the weekly consolidator
+  # drains. This is what makes MOLT_STATE.md's falsifier computable: it reads
+  # "(measured - claimed > 1) / total PRs over a rolling 30-day window, target
+  # < 5%", and that series cannot be built from per-push build artifacts.
+  #
+  # Modelled on smag-capture.yml, including the part that matters for safety:
+  # it checks out `main`, so the classifier that runs here is the merged,
+  # reviewed rule and never PR-head code — this job holds `issues: write`.
+  capture:
+    name: Capture merged-PR tier row
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main       # main's copy of the rule, not the PR head's
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Refuse a sentinel tracking issue
+        run: |
+          if [ "${MOLT_TIER_TRACKING_ISSUE}" = "0" ]; then
+            echo "::error::MOLT_TIER_TRACKING_ISSUE is still the 0 sentinel. Create the"
+            echo "::error::tracking issue, set the number in this workflow's env block, and"
+            echo "::error::add a drain step for it to smag-consolidate.yml. Until then the"
+            echo "::error::gap series has no sink and the MOLT_STATE falsifier cannot be"
+            echo "::error::computed. Failing loudly on purpose — a skip here is invisible."
+            exit 1
+          fi
+
+      - name: Collect changed files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              { owner: context.repo.owner, repo: context.repo.repo,
+                pull_number: context.issue.number, per_page: 100 }
+            );
+            require('fs').writeFileSync(
+              'changed_files.txt',
+              files.map(f => f.filename).join('\n') + '\n'
+            );
+
+      - name: Build the gap row
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > molt_tier_row.json
+          import json, os, sys
+          sys.path.insert(0, "tools")
+          from molting_protocol_diff_v1_0 import run
+
+          with open("changed_files.txt", encoding="utf-8") as fh:
+              files = fh.read().splitlines()
+
+          pr = int(os.environ.get("PR_NUMBER") or 0)
+          gap = run({"filepaths": files,
+                     "pr_body": os.environ.get("PR_BODY") or "",
+                     "pr_number": pr})["gap"]
+          # smag_consolidate_v1_0.py requires a `pr` key and dedups on it; the
+          # classifier's own record names the field `pr_number`. Adding `pr`
+          # here rather than renaming it there: the classifier is the subject of
+          # an unsigned Z2 ruling, and its schema is not this workflow's to edit.
+          gap.pop("evidence", None)   # paths belong in the PR, not the series
+          print(json.dumps({"pr": pr, **gap}, sort_keys=True))
+          PY
+
+      - name: Post the row to the tracking issue
+        uses: actions/github-script@v7
+        env:
+          TRACKING_ISSUE: ${{ env.MOLT_TIER_TRACKING_ISSUE }}
+        with:
+          script: |
+            const fs = require('fs');
+            const raw = fs.readFileSync('molt_tier_row.json', 'utf8').trim();
+            // Re-parse before posting. The row is built from PR-authored text
+            // (the claimed tier is read out of the PR body), so it reaches this
+            // job as data to be validated, never as markup to be trusted.
+            const row = JSON.parse(raw);
+            if (typeof row.pr !== 'number') throw new Error('row.pr is not a number');
+            const body = [
+              '<!-- molt-tier-gap-row -->',
+              `**PR #${row.pr}** — claimed \`${row.molt_tier_claimed}\`, ` +
+              `measured \`${row.molt_tier_measured}\`, verdict \`${row.verdict}\`.`,
+              '',
+              '```json',
+              JSON.stringify(row, null, 2),
+              '```',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: Number(process.env.TRACKING_ISSUE), body,
+            });
 
   comment:
     name: Report tier to the PR

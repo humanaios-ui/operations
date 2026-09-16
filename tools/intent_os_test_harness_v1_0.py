@@ -145,9 +145,26 @@ def registry() -> list[dict]:
         requires=["playwright"], proves=["W1"])
 
     # T3 — CI gates (what the workflows run)
-    baseline = ["tools/tests/test_behavioral_compliance_gate.py", "test_specimen_intake_evaluator.py",
+    # MUST match the pytest step in .github/workflows/quality-baseline.yml, in
+    # content if not in order. This list had already drifted from it once —
+    # missing both suites added by PR #343 — which made the harness report a
+    # pass CI would not have given. tools/tests/test_ci_suite_enumeration.py
+    # now asserts the two agree, and that every file under tools/tests/ is on
+    # them; add to both places or that guard goes red.
+    baseline = ["tools/tests/test_assess_router_structure.py",
+                "tools/tests/test_behavioral_compliance_gate.py",
+                "tools/tests/test_ci_suite_enumeration.py",
+                "tools/tests/test_clone_sync_health.py",
+                "tools/tests/test_intake_schema_v0_2.py",
+                "tools/tests/test_orchestrator_molt.py",
+                "tools/tests/test_pre_push_gate.py",
+                "tools/tests/test_registry_site_generator.py",
+                "tools/tests/test_tool_gap_scaffolds.py",
+                "test_specimen_intake_evaluator.py",
                 "test_specimen_intake_nf_ledger.py", "tools/tests/test_molt_cycle_nf_read.py",
                 "test_resource_economics.py", "tools/tests/test_builder_compliance_scanner.py",
+                "tools/tests/test_molt_tier_classifier.py",
+                "tools/tests/test_ratify_index_write.py",
                 "tools/tests/test_smag_predict_lint.py", "tools/tests/test_smag_feedback.py",
                 "tools/tests/test_nf_ledger_cli.py", "tools/tests/test_ci_predict.py",
                 "tools/tests/test_lifecycle_predict.py", "tools/tests/test_dimension_attribution.py",
