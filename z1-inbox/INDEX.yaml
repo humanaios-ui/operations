@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-09-14'
+generated: '2026-09-16'
 decision_window_days: 2
 counts:
   candidates: 45
-  records: 24
+  records: 26
 ratifiers:
 - Night
 candidates:
@@ -445,6 +445,19 @@ records:
     \ ratify.py's INDEX.yaml write had never run at all (a dead regex, not the manual\
     \ steps filed as #339 gap 1) and that fixing it widens PR #343 past Ruling 1's\
     \ enumerated scope."
+- path: z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md
+  title: "Holographic self-representation hypothesis testing protocol (Phase 2 integration\
+    \ mocks, Phase 3 live services, Phase 4 verdict analysis)"
+  note: "Testing protocol for H-HOLO-SELF-REP-01, ratified via REGISTERED.md Z2 decision\
+    \ entry (2026-09-16). See REGISTERED.md for full ratification details, falsifiers,\
+    \ and deliverables."
+- path: z1-inbox/2026-09-16/PHASE2_HANDOFF.md
+  title: "Phase 2 Handoff — Holographic integration tests complete, CI green, ready\
+    \ for Z2 review and Phase 3 authorization"
+  note: "Phase 2 deliverables complete (15 mocked integration tests, all passing).\
+    \ All 16 CI checks passing. Falsifiers F1/F2 confirmed to not trigger; F3/F4 pending\
+    \ Phase 3. 15 non-blocking Copilot findings deferred to Phase 3. Awaiting Z2 ratification\
+    \ for Phase 2 completion and Phase 3 launch authorization. PR #348 ready for merge."
 - path: z1-inbox/2026-09-16/HANDOFF.md
   title: "Handoff — 2026-09-16 (Intent-OS test surface: harness, dashboard, pathway,\
     \ repository index)"

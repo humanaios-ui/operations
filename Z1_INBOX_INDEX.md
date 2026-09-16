@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**45 candidates** — ⏳ awaiting Z2 41 · ✅ ratified 4 · **24 records**
+**45 candidates** — ⏳ awaiting Z2 41 · ✅ ratified 4 · **26 records**
 
 ## Awaiting Z2 (41)
 
@@ -318,7 +318,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (24)
+## Records (26)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -347,6 +347,8 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md` | Z2 ruling — d17 local only · d18 z1-inbox + INDEX.yaml · d19 freeze path · temporary tokens revoked (Night, 2026-09-14) |
 | `z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md` | Z3 deployment log — Q-FRAMEWORK-AUDIT-DEPLOY-01 (12 repos, per-repo framework audit) |
 | `z1-inbox/2026-09-16/HANDOFF.md` | Handoff — 2026-09-16 (Intent-OS test surface: harness, dashboard, pathway, repository index) |
+| `z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md` | Holographic self-representation hypothesis testing protocol (Phase 2 integration mocks, Phase 3 live services, Phase 4 verdict analysis) |
+| `z1-inbox/2026-09-16/PHASE2_HANDOFF.md` | Phase 2 Handoff — Holographic integration tests complete, CI green, ready for Z2 review and Phase 3 authorization |
 | `z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md` | Z2 rulings — 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01 ACCEPT, SESSION_RITUALS v6.4.2 bump ACCEPT (applied), Section F.1 ACCEPT reading (a), ledger → resource-based DIRECTION_GIVEN, ratify.py 1.2.0 awaiting Z2 (Night, 2026-09-16) |
 
 ---
