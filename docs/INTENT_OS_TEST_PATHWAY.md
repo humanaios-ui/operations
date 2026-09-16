@@ -31,7 +31,7 @@ and from nothing else, so a dashboard opened without a run says so in red.
 | **T0 self-tests** | every tool can tell a plant from a pass | `--self-test` / `--smoke-test` on 17 tools (board checker, relay, the three control layers, lints, gates) | each exits 0 |
 | **T1 governance integrity** | the tree is internally consistent *right now* | the z2 gate's ERROR steps, signature re-verification, manifest/doc-control `--check`s, YAML parses, graph endpoints, board seals HOLD, fail-closed refusals | each exits as expected (`ic_scope_check` must exit 2) |
 | **T2 board + relay** | a Z2 session can open, tap, land and ratify | `node --check` on both pages; the real relay on a loopback port answering a signed `/decide` → PENDING hash → `/ratify` → signature that `.z1-control/ratify.py --verify` accepts; headless Chromium keeps a tap across reload | every step OK; nothing written under the repo |
-| **T3 ci gates** | what the workflows block on | the exact pytest list from `quality-baseline.yml`, `tests/`, `tools/tests/`, `acat/tests/`, mypy on `src/` | suites pass; SKIP (never green) when a dep is absent locally |
+| **T3 ci gates** | what `quality-baseline.yml` blocks on, plus the suites it does not run | its exact pytest list, its Ruff step (`--select=E9,F63,F7,F82` over `src/`, `acat/api/services`, `tools/tests`, `tests`), its mypy step; and `tests/`, `tools/tests/`, `acat/tests/` in full | each exits 0; SKIP (never green) when pytest, mypy or ruff is absent locally |
 | **T4 cross-repo** | the scale-out surface is real | `ZONE_REGISTRY.md` tables populated and `operations` ACTIVE; `PLANNED_REPOS.md` present; every path `REPOSITORY_STRUCTURE.md` names exists | each check OK |
 
 A tier is GREEN only if it has at least one PASS and no FAIL/TIMEOUT/ERROR. A SKIP is listed and never
@@ -54,8 +54,11 @@ counted. The whole run is GREEN only if every tier that ran is GREEN.
 4. Work.
 5. Before close: run 3 again. A FAIL that this session introduced is fixed or filed; a FAIL that was
    already there is cited by id in the handoff with its tail.
-6. Commit the receipt and the rendered dashboard with the work: the receipt is the B.0 "code ran"
-   proof; `git.head` inside it is the SHA it ran on.
+6. Commit the rendered dashboard with the work (it carries the receipt in its `RESULTS` block; the
+   standalone `outputs/` copy is gitignored). `git.head` inside the receipt is the commit it ran on
+   and `git.tree_hash` is the working tree it ran on with the dashboard and `outputs/` excluded, so a
+   reader can rerun the harness on that commit and compare. Whether a standalone receipt also belongs
+   in the tree is **d21**; until it rules, this step is the dashboard only.
 
 ## 4. Falsifiers (what proves this pathway is theatre)
 

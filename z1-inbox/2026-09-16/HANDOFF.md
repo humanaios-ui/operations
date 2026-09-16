@@ -1,7 +1,7 @@
 # Handoff — 2026-09-16 (Intent-OS test surface: harness, dashboard, pathway, repository index)
 
 **Session:** `session_01CePrSjPSB8Epbpq3Lj8oKj` · **Branch:** `claude/vigilant-newton-ko9pcr` · **Pinned:** `main` at `7ff302d94fb0329266b7106860a04e0c089c61d8`
-**Position at close:** board HOLDS (31 MATCH · 5 ABSENT-CONFIRMED · 7 UNCHECKED); harness RED on one pre-existing row (45 PASS · 1 FAIL); 43 candidates in the queue, 39 awaiting Z2.
+**Position at close:** board HOLDS (31 MATCH · 5 ABSENT-CONFIRMED · 7 UNCHECKED); harness RED on one pre-existing row (46 PASS · 1 FAIL of 47); 43 candidates in the queue, 39 awaiting Z2.
 
 ## Landed this session (main)
 
@@ -12,10 +12,10 @@
 
 | file | what |
 |---|---|
-| `tools/intent_os_test_harness_v1_0.py` | 46 checks in tiers T0–T4; receipt; `--render`; `--self-test` (21 plants) |
+| `tools/intent_os_test_harness_v1_0.py` | 47 checks in tiers T0–T4; receipt with `git.tree_hash`; `--render`; `--self-test` (25 plants) |
 | `ui/intent-os-test-dashboard-v1_0.html` | four panels rendered only from the embedded receipt |
 | `docs/INTENT_OS_TEST_PATHWAY.md` | tiers, roles, session order, falsifiers, scale-out |
-| `REPOSITORY_STRUCTURE.md` | rewritten from `ls`; every backticked path verified (158, 0 missing) |
+| `REPOSITORY_STRUCTURE.md` | rewritten from `ls`; every backticked path verified (160 claims, 0 missing) |
 | receipt of the last run | embedded in the dashboard; the standalone `outputs/intent_os_test_results.json` is gitignored (d21) |
 | `z1-inbox/2026-09-16/Q-INTENTOS-TEST-01.md` | asks d20 · d21 · d22 and registers F-CAND (ACAT tests) |
 | `tools-manifest.yaml` · `TOOLS_MANIFEST.md` | harness registered (156 tools) |
@@ -36,12 +36,13 @@
 |---|---|
 | relay answers a signed `/decide` → `/ratify` over a socket and `ratify.py --verify` accepts the result | `outputs/intent_os_test_results.json` → `t2-relay-roundtrip.tail` |
 | a board tap survives reload in a browser | same → `t2-browser-persist.tail` |
-| every backticked path in the index exists | same → `t4-repo-index.tail` (158 · 0 missing) |
+| every backticked path in the index exists | same → `t4-repo-index.tail` (160 · 0 missing) |
 | harness classifications fire on plants | `python3 tools/intent_os_test_harness_v1_0.py --self-test` |
 | board HOLDS | `python3 tools/intent_os_board_check_v1_0.py` |
 
-RECEIPT-GAP: none known. The receipt records `git.dirty: true` and `head 7ff302d` because it ran on this
-branch before its own commit existed; that is the honest state, not a gap.
+RECEIPT-GAP: none known. The receipt records `git.dirty: true` because it ran on the working tree before
+its own commit existed; `git.tree_hash` (dashboard and `outputs/` excluded) is what a reader compares
+after rerunning the harness on the commit that carries it.
 
 ## Next blockers
 

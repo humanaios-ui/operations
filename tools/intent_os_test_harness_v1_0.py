@@ -74,7 +74,7 @@ TIERS = [
     ("T0", "self-tests", "every tool proves its own classifications fire"),
     ("T1", "governance integrity", "inbox, signatures, manifests, document control, board seals — live"),
     ("T2", "board + relay", "script parses; signed /decide → /ratify over a socket; taps survive reload"),
-    ("T3", "ci gates", "unit suites and type-check the workflows run"),
+    ("T3", "ci gates", "the unit suites, lint and type-check the workflows block on"),
     ("T4", "cross-repo", "zone registry, planned repos, repository index name real paths"),
 ]
 
@@ -134,7 +134,7 @@ def registry() -> list[dict]:
     add("t1-repo-health", "T1", "ci", "repo_health --strict (quality-baseline step)", _py("tools/repo_health.py", "--strict"), proves=["G4"])
     add("t1-findings-registry", "T1", "governance", "REGISTERED.md integrity (findings-registry-gate ERROR step)", kind="findings", timeout=300, proves=["G1"])
     add("t1-ic-scope-refuses", "T1", "governance", "ic_scope_check refuses without a signing secret (fail-closed)", _py("tools/ic_scope_check.py", "intake_template.jsonl"), expect=2,
-        note="exit 2 is the correct answer: no $IC_SCOPE_SECRET → REFUSE")
+        env={"IC_SCOPE_SECRET": ""}, note="exit 2 is the correct answer: no $IC_SCOPE_SECRET → REFUSE (the variable is cleared for this row)")
 
     # T2 — board + relay end to end
     add("t2-board-script", "T2", "board", "board <script> parses (node --check)", kind="node_check", needs_cmd=["node"], proves=["W1"])
@@ -163,6 +163,9 @@ def registry() -> list[dict]:
         requires=["pytest", "fastapi", "jsonschema"], proves=["G4"])
     add("t3-mypy", "T3", "ci", "python3 -m mypy src/humanaios_operations (quality-baseline blocking step)",
         _py("-m", "mypy", "src/humanaios_operations", "--ignore-missing-imports"), timeout=600, requires=["mypy"], proves=["G4"])
+    add("t3-ruff", "T3", "ci", "python3 -m ruff check --select=E9,F63,F7,F82 (quality-baseline blocking step)",
+        _py("-m", "ruff", "check", "--select=E9,F63,F7,F82", "src/humanaios_operations", "acat/api/services", "tools/tests", "tests"),
+        timeout=300, requires=["ruff"], proves=["G4"])
 
     # T4 — cross-repo scale-out
     add("t4-zone-registry", "T4", "registry", "ZONE_REGISTRY.md: tables populated; operations registered ACTIVE", kind="zones", proves=["R1"])
@@ -340,10 +343,19 @@ def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
         v = subprocess.run(_py(os.path.join(out, ".z1-control", "ratify.py"), "--verify"), cwd=out, capture_output=True, text=True, timeout=30)
         ok &= _ok(lines, v.returncode == 0, f".z1-control/ratify.py --verify on the landed copy → {(v.stdout + v.stderr).strip().splitlines()[-1][:60] if (v.stdout + v.stderr).strip() else 'rc ' + str(v.returncode)}")
         r = {**r, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
-        before = open(ruling_p, encoding="utf-8").read() if os.path.isfile(ruling_p) else ""
+
+        def snapshot() -> dict[str, bytes]:
+            """Every file under the landed copy, so a refusal that touches anything is caught."""
+            s = {}
+            for dp, _, fns in os.walk(out):
+                for fn in fns:
+                    fp = os.path.join(dp, fn)
+                    s[os.path.relpath(fp, out)] = open(fp, "rb").read()
+            return s
+        before = snapshot()
         code, _, j = req("POST", "/ratify", r)
-        after = open(ruling_p, encoding="utf-8").read() if os.path.isfile(ruling_p) else ""
-        ok &= _ok(lines, j.get("status") == "REFUSED" and before == after, f"second /ratify → {j.get('status')}, nothing written")
+        after = snapshot()
+        ok &= _ok(lines, j.get("status") == "REFUSED" and before == after, f"second /ratify → {j.get('status')}, {len(after)} landed files byte-identical")
     except Exception as e:  # noqa: BLE001
         ok = False
         lines.append(f"  exception: {type(e).__name__}: {e}")
@@ -444,7 +456,8 @@ def check_zones(root: str) -> tuple[bool, str]:
     ok &= _ok(lines, len(ro) >= 1, f"read-only table: {len(ro)} rows")
     ok &= _ok(lines, len(planned) >= 1, f"planned table: {len(planned)} rows")
     ops = [r for r in active if len(r) > 1 and r[1] == "operations"]
-    ok &= _ok(lines, bool(ops) and "ACTIVE" in " ".join(ops[0]), "operations is registered in the active table as ACTIVE")
+    # whole-word token: "✅ ACTIVE" passes, "INACTIVE" does not
+    ok &= _ok(lines, bool(ops) and "ACTIVE" in re.findall(r"[A-Z]+", " ".join(ops[0])), "operations is registered in the active table as ACTIVE")
     ids = [r[0] for r in active + limited + ro if r]
     ok &= _ok(lines, len(ids) == len(set(ids)), f"zone ids unique across tables ({len(ids)})")
     return ok, "\n".join(lines)
@@ -455,11 +468,24 @@ def check_planned(root: str) -> tuple[bool, str]:
     if not os.path.isfile(p):
         return False, "  PLANNED_REPOS.md: missing"
     t = _md_tables(open(p, encoding="utf-8").read())
-    n = sum(max(0, len(v) - 1) for v in t.values())
-    return n >= 1, f"  PLANNED_REPOS.md: {len(t)} table(s), {n} rows"
+    rows = [r for v in t.values() for r in v[1:]]
+    planned = [r for r in rows if "PLANNED" in re.findall(r"[A-Z]+", " ".join(r))]
+    return len(planned) >= 1, f"  PLANNED_REPOS.md: {len(t)} table(s), {len(rows)} rows, {len(planned)} marked PLANNED"
 
 
-PATH_RE = re.compile(r"`([A-Za-z0-9_./-]+(?:\.(?:md|py|ya?ml|html|jsonl?|csv|toml|txt|js)|/))`")
+# A backticked token is a path claim when it looks like one: starts with a letter, digit or dot, contains
+# only path characters, and has a "/" or a "." somewhere — so `.github/CODEOWNERS`, `ui/registry_viewer.jsx`
+# and `.gitignore` are claims; `--self-test`, `Q-ID`, `python3` and anything with spaces or `<…>` are not.
+PATH_RE = re.compile(r"`([A-Za-z0-9.][A-Za-z0-9_./-]*)`")
+
+
+def index_path_claims(src: str) -> list[str]:
+    out = set()
+    for m in PATH_RE.finditer(src):
+        n = m.group(1)
+        if ("/" in n or "." in n) and not n.endswith(".") and not n.startswith(("http", "sha256")) and n not in (".", ".."):
+            out.add(n)
+    return sorted(out)
 
 
 def check_repo_index(root: str) -> tuple[bool, str]:
@@ -467,8 +493,7 @@ def check_repo_index(root: str) -> tuple[bool, str]:
     if not os.path.isfile(p):
         return False, "  REPOSITORY_STRUCTURE.md: missing"
     src = open(p, encoding="utf-8").read()
-    names = sorted({m.group(1) for m in PATH_RE.finditer(src)})
-    names = [n for n in names if not n.startswith(("http", "<", "sha256"))]
+    names = index_path_claims(src)
     missing = [n for n in names if not os.path.exists(os.path.join(root, n))]
     lines = [f"  paths named in backticks: {len(names)} · exist: {len(names) - len(missing)} · missing: {len(missing)}"]
     lines += [f"    MISSING {m}" for m in missing[:40]]
@@ -521,13 +546,32 @@ def run_one(t: dict, root: str) -> dict:
     return res
 
 
+def worktree_tree_hash(root: str) -> str | None:
+    """Tree hash of the working tree as git would commit it, with the dashboard and outputs/ removed —
+    the two files a run itself rewrites. Rerunning on the commit that carries a receipt reproduces this
+    value iff the rest of the tree is the same, which is what makes a receipt from an uncommitted tree
+    checkable after the fact."""
+    try:
+        with tempfile.TemporaryDirectory() as td:
+            env = {**os.environ, "GIT_INDEX_FILE": os.path.join(td, "index")}
+            subprocess.run(["git", "read-tree", "HEAD"], cwd=root, env=env, check=True, capture_output=True)
+            subprocess.run(["git", "add", "-A", "--", "."], cwd=root, env=env, check=True, capture_output=True)
+            subprocess.run(["git", "rm", "-r", "-q", "--cached", "--ignore-unmatch", "--", DASHBOARD, "outputs"],
+                           cwd=root, env=env, check=True, capture_output=True)
+            r = subprocess.run(["git", "write-tree"], cwd=root, env=env, check=True, capture_output=True, text=True)
+            return r.stdout.strip()
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def git_info(root: str) -> dict:
     def g(*a: str) -> str:
         r = subprocess.run(["git", *a], cwd=root, capture_output=True, text=True)
         return r.stdout.strip() if r.returncode == 0 else ""
     head = g("rev-parse", "HEAD")
     return {"head": head, "short": head[:7], "branch": g("rev-parse", "--abbrev-ref", "HEAD"),
-            "dirty": bool(g("status", "--porcelain")), "commit_count": int(g("rev-list", "--count", "HEAD") or 0)}
+            "dirty": bool(g("status", "--porcelain")), "commit_count": int(g("rev-list", "--count", "HEAD") or 0),
+            "tree_hash": worktree_tree_hash(root), "tree_hash_excludes": [DASHBOARD, "outputs/"]}
 
 
 HUMANAIOS_RE = re.compile(r"const\s+HUMANAIOS\s*=\s*\{(.*?)\n\};", re.S)
@@ -614,7 +658,9 @@ def assemble(results: list[dict], root: str, with_snapshots: bool = True) -> dic
         v = "EMPTY" if not rs else ("RED" if any(r["status"] in BAD for r in rs) else ("GREEN" if c.get("PASS") else "RED"))
         tiers.append({"id": tid, "name": name, "desc": desc, "counts": c, "verdict": v})
     bad = [r["id"] for r in results if r["status"] in BAD]
-    verdict = "GREEN" if results and counts.get("PASS", 0) > 0 and not bad else "RED"
+    # the run is GREEN only if every tier that ran is GREEN — a tier that only skipped is RED, not absent
+    ran = [t for t in tiers if t["verdict"] != "EMPTY"]
+    verdict = "GREEN" if ran and all(t["verdict"] == "GREEN" for t in ran) else "RED"
     rep = {"tool": TOOL_NAME, "version": TOOL_VERSION, "schema": SCHEMA,
            "ran_at": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "git": git_info(root), "python": sys.version.split()[0],
@@ -657,7 +703,8 @@ def render_into(dashboard_path: str, rep: dict) -> None:
     i, j = src.find(BEGIN), src.find(END)
     if i < 0 or j < 0 or j < i:
         raise ValueError(f"{dashboard_path}: RESULTS markers not found")
-    payload = json.dumps(rep, ensure_ascii=False, separators=(",", ":")).replace("</script", "<\\/script")
+    # HTML end tags are case-insensitive: any "</script" in a captured tail would close the block
+    payload = re.sub(r"</(script)", r"<\\/\1", json.dumps(rep, ensure_ascii=False, separators=(",", ":")), flags=re.I)
     out = src[:i] + BEGIN + "\nconst RESULTS = " + payload + ";\n" + src[j:]
     open(dashboard_path, "w", encoding="utf-8").write(out)
 
@@ -697,20 +744,22 @@ def run_smoke_test() -> bool:
         clean = assemble([r for r in res if r["status"] == "PASS"], td, with_snapshots=False)
         ok &= clean["verdict"] == "GREEN"
         print("  all-PASS run → GREEN:", "OK" if clean["verdict"] == "GREEN" else "FAIL")
-        for label, subset in (("empty run", []), ("all-SKIP run", [r for r in res if r["status"] == "SKIP"])):
+        for label, subset in (("empty run", []), ("all-SKIP run", [r for r in res if r["status"] == "SKIP"]),
+                              ("PASS + a SKIP-only tier", [r for r in res if r["status"] in ("PASS", "SKIP")])):
             v = assemble(subset, td, with_snapshots=False)["verdict"]
-            print(f"  fail-closed · {label:<14} → {v}  {'OK' if v == 'RED' else 'FAIL'}")
+            print(f"  fail-closed · {label:<24} → {v}  {'OK' if v == 'RED' else 'FAIL'}")
             ok &= v == "RED"
-        # render round trip: markers replaced, payload parses back, a </script> inside output cannot close the tag
+        # render round trip: markers replaced, payload parses back, a </script> (any case) cannot close the tag
         dash = os.path.join(td, "dash.html")
         open(dash, "w", encoding="utf-8").write("<html><script>\n/*RESULTS-BEGIN*/\nconst RESULTS = null;\n/*RESULTS-END*/\nconsole.log(RESULTS);\n</script></html>")
-        clean["results"][0]["tail"] = "x</script><b>y"
+        clean["results"][0]["tail"] = "x</script><b>y</SCRIPT></ScRiPt>"
         render_into(dash, clean)
         out = open(dash, encoding="utf-8").read()
         m = re.search(r"/\*RESULTS-BEGIN\*/\nconst RESULTS = (.*);\n/\*RESULTS-END\*/", out, re.S)
-        back = json.loads(m.group(1).replace("<\\/script", "</script")) if m else None
-        ok &= back is not None and back["verdict"] == "GREEN" and "</script>" not in m.group(1) and out.count("<script>") == 1
-        print("  --render: markers replaced, payload round-trips, </script> escaped:", "OK" if back else "FAIL")
+        back = json.loads(re.sub(r"<\\/(script)", r"</\1", m.group(1), flags=re.I)) if m else None
+        ok &= (back is not None and back["verdict"] == "GREEN" and re.search(r"</script", m.group(1), re.I) is None
+               and out.lower().count("<script>") == 1 and back["results"][0]["tail"] == "x</script><b>y</SCRIPT></ScRiPt>")
+        print("  --render: markers replaced, payload round-trips, </script> escaped in every case:", "OK" if back else "FAIL")
         render_into(dash, clean)
         ok &= open(dash, encoding="utf-8").read().count("RESULTS-BEGIN") == 1
         print("  --render twice → still one block:", "OK" if ok else "FAIL")
@@ -732,15 +781,27 @@ def run_smoke_test() -> bool:
                and snap["predictions"][0]["confidence"] == 0.7 and snap["rulings"][0]["ruled"] and not snap["rulings"][1]["ruled"]
                and snap["rulings"][1]["qid"] == "Q-BOARD-RULING-02" and snap["gauges"][0]["base"] == 7.5 and snap["rev"] == "2026-09-16")
         print("  board snapshot: blocks/predictions/rulings/gauges/rev parsed from the HUMANAIOS block:", "OK" if ok else "FAIL")
-        # repo index check: a named path that does not exist must FAIL
-        open(os.path.join(td, "REPOSITORY_STRUCTURE.md"), "w").write("see `ui/intent-os-humanaios-v3_3.html` and `tools/nope.py`\n")
+        # repo index check: a named path that does not exist must FAIL — with or without an extension
+        os.makedirs(os.path.join(td, ".github"))
+        open(os.path.join(td, ".github", "CODEOWNERS"), "w").write("* @x\n")
+        open(os.path.join(td, "REPOSITORY_STRUCTURE.md"), "w").write(
+            "see `ui/intent-os-humanaios-v3_3.html`, `.github/CODEOWNERS`, `tools/nope.py` and `.github/NOFILE`; not paths: `--self-test`, `Q-ID`, `python3`, `<date>`\n")
         good, txt = check_repo_index(td)
-        ok &= (not good) and "MISSING tools/nope.py" in txt
-        print("  repo index: a named path that is absent → FAIL:", "OK" if not good else "FAIL")
-        open(os.path.join(td, "REPOSITORY_STRUCTURE.md"), "w").write("see `ui/intent-os-humanaios-v3_3.html`\n")
+        claims = index_path_claims(open(os.path.join(td, "REPOSITORY_STRUCTURE.md")).read())
+        ok &= (not good) and "MISSING tools/nope.py" in txt and "MISSING .github/NOFILE" in txt \
+            and claims == [".github/CODEOWNERS", ".github/NOFILE", "tools/nope.py", "ui/intent-os-humanaios-v3_3.html"]
+        print("  repo index: absent paths (with and without extension) → FAIL; flags/ids not counted:", "OK" if not good and len(claims) == 4 else "FAIL")
+        open(os.path.join(td, "REPOSITORY_STRUCTURE.md"), "w").write("see `ui/intent-os-humanaios-v3_3.html` and `.github/CODEOWNERS`\n")
         good, _ = check_repo_index(td)
         ok &= good
         print("  repo index: every named path exists → PASS:", "OK" if good else "FAIL")
+        # planned repos: rows must actually be marked PLANNED
+        open(os.path.join(td, "PLANNED_REPOS.md"), "w").write("## Planned\n| Repo | Status |\n|---|---|\n| x | PLANNED |\n## Status Definitions\n| Term | Meaning |\n|---|---|\n| PLANNED | claimed |\n")
+        g1, _ = check_planned(td)
+        open(os.path.join(td, "PLANNED_REPOS.md"), "w").write("## Status Definitions\n| Term | Meaning |\n|---|---|\n| ACTIVE | live |\n")
+        g2, _ = check_planned(td)
+        ok &= g1 and not g2
+        print("  planned repos: a PLANNED row → PASS; definition tables alone → FAIL:", "OK" if g1 and not g2 else "FAIL")
         # zones: operations must be ACTIVE
         open(os.path.join(td, "ZONE_REGISTRY.md"), "w").write("## Active Zones\n| Zone ID | Repo Name | Purpose | Status |\n|---|---|---|---|\n| Z-000 | operations | gov | ✅ ACTIVE |\n"
                                                               "## Limited-Cap Zones\n| Zone ID | Repo Name | Status |\n|---|---|---|\n| Z-008 | docs | LIMITED |\n"
@@ -751,14 +812,21 @@ def run_smoke_test() -> bool:
         open(os.path.join(td, "ZONE_REGISTRY.md"), "w").write("## Active Zones\n| Zone ID | Repo Name | Purpose | Status |\n|---|---|---|---|\n| Z-001 | humanaios | core | ✅ ACTIVE |\n")
         bad_, _ = check_zones(td)
         ok &= not bad_
-        print("  zones: operations ACTIVE → PASS; operations absent → FAIL:", "OK" if good and not bad_ else "FAIL")
+        open(os.path.join(td, "ZONE_REGISTRY.md"), "w").write("## Active Zones\n| Zone ID | Repo Name | Purpose | Status |\n|---|---|---|---|\n| Z-000 | operations | gov | INACTIVE |\n"
+                                                              "## Limited-Cap Zones\n| Zone ID | Repo Name | Status |\n|---|---|---|\n| Z-008 | docs | LIMITED |\n"
+                                                              "## Read-Only Zones\n| Zone ID | Repo Name | Status |\n|---|---|---|\n| Z-011 | research | RO |\n"
+                                                              "## Planned Zones\n| Zone ID | Repo Name |\n|---|---|\n| Z-012+ | see |\n")
+        inactive, _ = check_zones(td)
+        ok &= not inactive
+        print("  zones: operations ACTIVE → PASS; absent → FAIL; INACTIVE → FAIL:", "OK" if good and not bad_ and not inactive else "FAIL")
     print("SELF-TEST", "PASS" if ok else "FAIL")
     return ok
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--root", default=ROOT)
+    ap.add_argument("--root", "--input", dest="root", default=ROOT,
+                    help="repository root to test (--input is the tools/README.md alias)")
     ap.add_argument("--tier", nargs="*", help="run only these tiers (T0..T4)")
     ap.add_argument("--only", nargs="*", help="run only these check ids")
     ap.add_argument("--list", action="store_true")

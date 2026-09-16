@@ -35,22 +35,28 @@ one pre-existing defect, named below, whose fix is ~10 lines in tests this block
 
 | file | what it is | proof |
 |---|---|---|
-| `tools/intent_os_test_harness_v1_0.py` | registry of 46 checks in five tiers; runs each, records exit / duration / tail; writes `outputs/intent_os_test_results.json`; `--render` injects it into the dashboard; `--self-test` plants PASS · FAIL · expected-nonzero · TIMEOUT · SKIP (module) · SKIP (binary) · ERROR and proves each fires, proves empty and all-SKIP runs are RED, proves `--render` round-trips and escapes `</script>`, proves the index and zone checks fail on plants | `SELF-TEST PASS`; registered `HAIOS-TOOL-164` by `scan.py` (156 tools) |
+| `tools/intent_os_test_harness_v1_0.py` | registry of 47 checks in five tiers; runs each, records exit / duration / tail; writes `outputs/intent_os_test_results.json`; `--render` injects it into the dashboard; `--self-test` plants PASS · FAIL · expected-nonzero · TIMEOUT · SKIP (module) · SKIP (binary) · ERROR and proves each fires, proves empty and all-SKIP runs are RED, proves `--render` round-trips and escapes `</script>`, proves the index and zone checks fail on plants | `SELF-TEST PASS`; registered `HAIOS-TOOL-164` by `scan.py` (156 tools) |
 | `ui/intent-os-test-dashboard-v1_0.html` | four panels; renders **only** from the embedded receipt; a page without one says so in red; import/export a receipt; no persistence of results (prefs only) | `node --check` PASS; headless Chromium: renders, no page errors, node click filters the matrix, tail toggles |
 | `docs/INTENT_OS_TEST_PATHWAY.md` | tiers, roles, session order (extends §A/§B), falsifiers, scale-out order | `lifecycle: consumed`, consumer = the harness |
-| `REPOSITORY_STRUCTURE.md` (rewritten) | the index, now with one rule: every backticked path is a claim `t4-repo-index` verifies | first version named 6 paths that did not exist; three more rounds of bare filenames were caught before it held (158 paths, 0 missing) |
+| `REPOSITORY_STRUCTURE.md` (rewritten) | the index, now with one rule: every backticked path is a claim `t4-repo-index` verifies | first version named 6 paths that did not exist; three more rounds of bare filenames were caught before it held (160 path claims, 0 missing — the matcher counts every backticked path-shaped token, extensionless ones included) |
 | the receipt (`schema intentos/test_results_v1`, `git.head 7ff302d`, working tree dirty = this branch before commit) | written to `outputs/intent_os_test_results.json`, which `.gitignore` excludes; it travels **embedded in the dashboard** (`RESULTS` block) — whether a standalone copy belongs in the tree is d21 | `ui/intent-os-test-dashboard-v1_0.html` carries it |
 
-## The run (2026-09-16T01:24:04Z on 7ff302d + this branch)
+## The run (2026-09-16T01:40:38Z on 56a2fad + the review fixes; tree 1e8c79b5c76c…)
 
 ```
 T0 self-tests             GREEN  PASS=17
 T1 governance integrity   GREEN  PASS=17
 T2 board + relay          GREEN  PASS=4
-T3 ci gates               RED    FAIL=1 PASS=4
+T3 ci gates               RED    FAIL=1 PASS=5
 T4 cross-repo             GREEN  PASS=3
-counts: FAIL=1, PASS=45 · verdict: RED
+counts: FAIL=1, PASS=46 · verdict: RED
 ```
+
+The verdict is computed from tier verdicts: GREEN only if every tier that ran is GREEN, and a tier is
+GREEN only with at least one PASS and no FAIL / TIMEOUT / ERROR (a tier that only skipped is RED). The
+dashboard recomputes the same rule from the rows and never trusts a receipt's stated verdict. The
+receipt's `git.tree_hash` is the working tree with the dashboard and `outputs/` removed, so the run can
+be reproduced against the commit that carries it.
 
 **T2, in full, because it is the first time these were operated:**
 
@@ -80,6 +86,8 @@ counts: FAIL=1, PASS=45 · verdict: RED
   them — `quality-baseline.yml` runs only `acat/tests/test_tool_trace_schema.py`. 78 of 82 pass.
   **Proposed patch (separate PR, tests only):** a conftest fixture that `monkeypatch.setenv`s the token
   and a TestClient that sends the header; then add `acat/tests/` to the quality-baseline list.
+- Also in T3, both green: `t3-ruff` runs the workflow's exact Ruff step (`--select=E9,F63,F7,F82` over
+  `src/humanaios_operations`, `acat/api/services`, `tools/tests`, `tests`).
 - Environment, not defect: `t3-mypy` reproduces CI's exact command and passes; on a machine where
   `requests` is installed without `types-requests`, the same command fails on
   `src/humanaios_operations/profile.py:10` (`import-untyped`). GitHub runners ship `requests`; the
@@ -120,12 +128,12 @@ renderer is wrong, never the run.
 
 ```
 python3 tools/intent_os_test_harness_v1_0.py --self-test      → SELF-TEST PASS (21 plants)
-python3 tools/intent_os_test_harness_v1_0.py --render         → 45 PASS · 1 FAIL · RED · receipt written · dashboard rendered
+python3 tools/intent_os_test_harness_v1_0.py --render         → 46 PASS · 1 FAIL · RED · receipt written · dashboard rendered
 python3 tools/intent_os_test_harness_v1_0.py --tier T2 --out - → 4 PASS · GREEN
 python3 tools/intent_os_board_check_v1_0.py                   → HOLDS (31 MATCH · 5 ABSENT-CONFIRMED · 7 UNCHECKED)
-python3 .tool-control/scan.py && validate.py && render.py --check → 156 tools, no violations, in sync
-python3 .doc-control/validate.py && render.py --check         → 46 registered documents, no violations, in sync
-python3 .z1-control/validate.py && render.py --check          → after this entry: see the PR's z2 gate
+python3 .tool-control/scan.py --check && python3 .tool-control/validate.py && python3 .tool-control/render.py --check → 156 tools, no violations, in sync
+python3 .doc-control/validate.py && python3 .doc-control/render.py --check   → 46 registered documents, no violations, in sync
+python3 .z1-control/validate.py && python3 .z1-control/render.py --check     → 43 candidates, 23 records, no violations, in sync
 headless Chromium (playwright 1.63, /opt/pw-browsers/chromium) → dashboard: verdict RED, 17 nodes, 46 rows, no page errors
 ```
 
