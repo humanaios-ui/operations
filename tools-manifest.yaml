@@ -30,16 +30,17 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 156
+  tools: 157
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 127
+  builder_markers_present: 128
   missing_from_tree: 0
   unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
 - calibration_tool
+- capability_integration
 - connector_tool
 - dependency
 - diagnostic_tool
@@ -1986,6 +1987,19 @@ tools:
   builder_markers: true
   purpose: intent_os_test_harness — run every check the Intent-OS control surface rests on, and say which
     held.
+  session: S-091626-01
+- tool_id: HAIOS-TOOL-165
+  name: holographic_orchestrator
+  path: tools/holographic_orchestrator.py
+  version: 0.1.0
+  category: capability_integration
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'Orchestrates holographic person representation via external services:'
   session: S-091626-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
