@@ -44,7 +44,15 @@ jobs:
       - name: Pytest baseline suites (blocking)
         run: |
           python3 -m pytest \
+            tools/tests/test_assess_router_structure.py \
             tools/tests/test_behavioral_compliance_gate.py \
+            tools/tests/test_ci_suite_enumeration.py \
+            tools/tests/test_clone_sync_health.py \
+            tools/tests/test_intake_schema_v0_2.py \
+            tools/tests/test_orchestrator_molt.py \
+            tools/tests/test_pre_push_gate.py \
+            tools/tests/test_registry_site_generator.py \
+            tools/tests/test_tool_gap_scaffolds.py \
             test_specimen_intake_evaluator.py \
             test_specimen_intake_nf_ledger.py \
             tools/tests/test_molt_cycle_nf_read.py \

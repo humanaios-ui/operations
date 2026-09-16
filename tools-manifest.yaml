@@ -1422,7 +1422,7 @@ tools:
 - tool_id: HAIOS-TOOL-117
   name: smag_consolidate
   path: tools/smag_consolidate_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
