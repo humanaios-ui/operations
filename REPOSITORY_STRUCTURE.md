@@ -1,503 +1,290 @@
 ---
-title: Repository Structure Map — humanaios-ui/operations
+title: Repository structure map — humanaios-ui/operations
 status: reference
+lifecycle: consumed
+consumer: tools/intent_os_test_harness_v1_0.py   # check t4-repo-index: every backticked path below must exist
 updated: 2026-09-16
-authority: Z1 documentation (reference layer, not governance-controlled)
-purpose: Centralized index of all directories, key files, and their purposes
+authority: Z1 reference document (not governance-controlled); rewritten 2026-09-16 from `ls` output, not memory
 ---
 
-# Repository Structure Map — humanaios-ui/operations
+# Repository structure map — humanaios-ui/operations
 
-**Repository:** [humanaios-ui/operations](https://github.com/humanaios-ui/operations)  
-**Primary Use:** Governance, Intent-OS board control surface, research coordination, ACAT (Adversarial Collaboration Assessment Tool)  
-**Authority:** Z2 serial gate (Night); governance files at CLAUDE.md  
+**Repository:** humanaios-ui/operations · **Zone:** Z-000 (`ZONE_REGISTRY.md`) · **Authority:** `CLAUDE.md`
 
----
-
-## Quick Navigation
-
-| Directory | Purpose | Key Files |
-|-----------|---------|-----------|
-| [Root Governance](#root-governance--files) | Governance, authority, decisions | CLAUDE.md, REGISTERED.md, PRIORITY_QUEUE.md |
-| [z1-inbox/](#z1-inbox) | Proposal staging, candidate blocks, Z2 queue | Q-*.md, Z2_RULING*.md, INDEX.yaml |
-| [.z1-control/](#z1-control) | Z2 ratification tools, signing | ratify.py |
-| [tools/](#tools) | Automation, validators, relay, board checker | decision_relay.py, intent_os_board_check_v1_0.py, etc. |
-| [ui/](#ui) | User-facing surfaces | intent-os-humanaios-v3_3.html (board) |
-| [docs/](#docs) | Documentation, runbooks, guides | INTENT_OS_BOARD_RUNBOOK.md, lifecycle docs |
-| [.github/](#github) | CI/CD workflows, automation gates | z2_ratification_gate.yml, actions |
-| [.tool-control/](#tool-control) | Tool manifest, registration, scanning | scan.py, manifest.yaml |
-| [acat/](#acat) | ACAT research infrastructure | contracts, specs, analyses |
-| [ledgers/](#ledgers) | Measurement, falsifier tracking | NF_LEDGER.jsonl |
-| [Other Directories](#other-directories) | Research, examples, outputs, archives | See detailed section |
+**The one rule of this file:** every path written in backticks is a claim that the path exists, and
+`python3 tools/intent_os_test_harness_v1_0.py --only t4-repo-index` fails if any does not. A name
+without backticks is a description. When a path moves, this file is wrong until it is re-read.
 
 ---
 
-## Root Governance & Files
+## Quick navigation
 
-**Purpose:** Z2 decision surface and governance configuration  
-**Authority:** CLAUDE.md is authoritative; changes require Z2 signature  
-
-### Critical Governance Files
-
-| File | Purpose | Updated | Type |
-|------|---------|---------|------|
-| **CLAUDE.md** | Authority map, Z-roles (Z1/Z2/Z3), decision routing, CI/CD gates | 2026-09-14 | Governance |
-| **REGISTERED.md** | Append-only registry of all findings, IC corrections, decision records | Live | Governance |
-| **PRIORITY_QUEUE.md** | Resource-impact ranked work queue; gates next work | Live | Governance |
-| **ZONE_REGISTRY.md** | Index of 31 HumanAIOS repositories, active/planned/read-only | 2026-09-14 | Governance |
-| **FRAMEWORK_MAPPING.md** | Maps 5 AI engineering concepts to Z-roles and governance workflow | 2026-09-10 | Reference |
-| **BOOT_PROCESS_MAP.md** | Maps REGISTERED.md's position in session boot chain (SESSION_RITUALS §A) | 2026-09-14 | Reference |
-| **CONTROLLED_DOCUMENTS.md** | Document lifecycle tracking (draft/code/consumed/archived/produced) | 2026-09-14 | Reference |
-| **CANDIDATE_BLOCK_TEMPLATE.md** | Template for Z1 proposals; pinned SHA, position/destination/probability | 2026-09-14 | Reference |
-
-### Other Key Root Files
-
-- `CONTRIBUTING.md` — Contribution guidelines
-- `CODE_OF_CONDUCT.md` — Community standards
-- `COLLABORATION_MANAGEMENT.md` — Cross-repo coordination
-- `CROSS_REPO_COORDINATION.md` — Multi-repo governance
-- `ACAT_BENCHMARK_MAP_20260908.md` — ACAT measurement spec
-- `A4_INTAKE_PIPELINE_SPEC.md`, `A5_MULTIREPO_ROLLOUT_PLAN.md`, `A6_DRIFT_MONITOR_SPEC.md` — Infrastructure specs
+| directory | purpose | start here |
+|---|---|---|
+| root | governance, authority, registries, session rituals | `CLAUDE.md` · `REGISTERED.md` · `PRIORITY_QUEUE.md` · `ZONE_REGISTRY.md` · `SESSION_RITUALS.md` |
+| `z1-inbox/` | Z1 proposals and Z2 rulings, one dated folder per session | `z1-inbox/INDEX.yaml` · `Z1_INBOX_INDEX.md` (rendered, at root) |
+| `.z1-control/` | the Z2 gate's tools: validate, render, sign | `.z1-control/ratify.py` |
+| `.tool-control/` | tool manifest scanner, validator, renderer | `tools-manifest.yaml` (root) · `TOOLS_MANIFEST.md` (root, rendered) |
+| `.doc-control/` | document registry validator, renderer, review scheduler | `document-registry.yaml` (root) · `CONTROLLED_DOCUMENTS.md` (root, rendered) |
+| `tools/` | 156 registered tools; the Intent-OS relay, checker and harness live here | `tools/decision_relay.py` · `tools/intent_os_board_check_v1_0.py` · `tools/intent_os_test_harness_v1_0.py` |
+| `ui/` | Z2's surfaces: the Intent-OS board and the test dashboard | `ui/intent-os-humanaios-v3_3.html` · `ui/intent-os-test-dashboard-v1_0.html` |
+| `docs/` | 87 documents; runbooks and the test pathway | `docs/INTENT_OS_BOARD_RUNBOOK.md` · `docs/INTENT_OS_TEST_PATHWAY.md` |
+| `.github/` | 46 workflows, CODEOWNERS, templates | `.github/workflows/z2_ratification_gate.yml` |
+| `acat/` | ACAT (assessment) package: API, CLI, contracts, scoring, tests | `acat/README.md` · `acat/contracts/` |
+| `ledgers/` | NF (falsifier) ledger and resource ledger, append-only | `ledgers/NF_LEDGER.jsonl` |
+| `outputs/` | machine-written receipts; gitignored (`.gitignore` line 42) — the harness receipt lives here locally and travels embedded in the dashboard | outputs/intent_os_test_results.json (not tracked) |
+| `tests/` · `tools/tests/` · `acat/tests/` | pytest suites CI runs | `.github/workflows/quality-baseline.yml` names the blocking list |
 
 ---
 
-## z1-inbox/
+## Root — governance and registries
 
-**Purpose:** Z1 proposal staging area and Z2 queue  
-**Authority:** Z1 files here; Z2 ratifications stored here  
-**Lifecycle:** Candidate blocks → Z2 reads → ratification → INDEX.yaml entry → REGISTERED.md  
+| file | role | who writes |
+|---|---|---|
+| `CLAUDE.md` | authority map: Z1 proposes · Z2 (Night) ratifies · Z3 executes; decision routing; CI gates; §A/§B rituals | Z2 ratifies changes |
+| `REGISTERED.md` | append-only registry of findings (F), corrections (IC), hypotheses (H) and decisions | Z2 sole write |
+| `PRIORITY_QUEUE.md` | ranked work queue; a new row is a Z2 act | Z2 ratifies scores |
+| `ZONE_REGISTRY.md` | the 31 repositories: 8 active, 3 limited-cap, 1 read-only, planned rows point at `PLANNED_REPOS.md` | Z2 |
+| `PLANNED_REPOS.md` | roadmap repositories (not active zones) | Z2 |
+| `SESSION_RITUALS.md` | §A open (fetch, pin, read) · §B close (receipts, findings, handoff) | Z2 |
+| `MOLT_STATE.md` | open molts, anti-cascade state | code + Z2 |
+| `FRAMEWORK_MAPPING.md` | 5 AI-engineering concepts → Z-roles, files, gates | Z1 (ratified) |
+| `BOOT_PROCESS_MAP.md` | `REGISTERED.md`'s place in the session boot chain | Z1 (awaiting Z2) |
+| `CONTROLLED_DOCUMENTS.md` | rendered from `document-registry.yaml` — never edit by hand | `.doc-control/render.py` |
+| `TOOLS_MANIFEST.md` | rendered from `tools-manifest.yaml` — never edit by hand | `.tool-control/render.py` |
+| `Z1_INBOX_INDEX.md` | rendered from `z1-inbox/INDEX.yaml` — never edit by hand | `.z1-control/render.py` |
+| `CANDIDATE_BLOCK_TEMPLATE.md` | how a Z1 proposal is written (pinned SHA, position · destination · probability, falsifier) | Z1 |
+| `system_graph.json` | the operating graph in machine form (22 nodes, 53 edges at the 09-16 read) | generated |
+| `constants.json` | 7 governed constants; changed only by a ratified molt | molt cycle |
+| `molt_cycle.py` · `prs_run.py` | molt runner and PR runner — at the root, not under `tools/` (the board's seals say so) | code |
+| `intake_template.jsonl` | one intake record; `tools/ic_scope_check.py` refuses it without a signing secret (by design) | intake |
+| `REPOSITORY_STRUCTURE.md` | this file | Z1; verified by T4 |
 
-### Structure
+Other root documents (specs, onboarding, assessments, session closes) are listed in `CONTROLLED_DOCUMENTS.md`
+with their lifecycle; `python3 tools/doc_lifecycle_lint.py` prints the disposition table.
+
+---
+
+## `z1-inbox/` — proposals in, rulings out
 
 ```
 z1-inbox/
-├── INDEX.yaml                          # Master index of all candidates & ratifications
-├── Z1_INBOX_INDEX.md                   # Rendered version of INDEX.yaml (auto-generated)
-├── 2026-09-06/
-│   ├── HANDOFF.md                      # Session handoff (findings, blockers, next steps)
-│   └── MANIFEST.md                     # Day's entries
-├── 2026-09-07/
-│   ├── JESTER_EXTERNAL_CHECK_BLOCK.md  # Example: F-type finding candidate
-│   └── WITCH_SPELL_CASCADE_BLOCK.md    # Example: IC-type correction candidate
-├── 2026-09-14/
-│   ├── Q-INTENTOS-LAUNCH-01.md                          # Launch candidate (14 ruling questions + falsifier)
-│   ├── Q-BOARD-RULING-02.md through Q-BOARD-RULING-16.md# 14 board ruling candidates (d2, d3, d5–d16)
-│   ├── Z2_RULING_INTENTOS_LAUNCH.md                     # Z2 decisions d17–d19 with reasoning
-│   └── Z2_RULINGS_2026-09-14.md                         # Ratification block (signed hashes)
-└── <date>/
-    └── <CANDIDATE_TYPE>-<ID>.md       # Pattern for all candidates
+├── INDEX.yaml                  every candidate and record; status awaiting_z2 | ratified | …; ratified_by, z2_hash
+├── 2026-09-06/ … 2026-09-14/   one folder per session date
+│   ├── Q-<TOPIC>-<nn>.md       a candidate block asking Z2 for a decision
+│   ├── <TOPIC>_CANDIDATE_BLOCK.md / <TOPIC>_BLOCK.md   older naming, same shape
+│   ├── Z2_RULING_<topic>.md    Z2's choices, transcribed by Z1 (e.g. the Intent-OS launch)
+│   ├── Z2_RULINGS_<date>.md    the signatures `.z1-control/ratify.py` issued that day
+│   └── HANDOFF.md              §B close: pinned SHA, findings, receipt walk-back, next blockers
+└── (rendered at root)          Z1_INBOX_INDEX.md
 ```
 
-### INDEX.yaml Structure
+Live examples: `z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md` (the launch candidate),
+`z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md` (d17 local only · d18 z1-inbox landing · d19 path
+freeze), `z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md` (its signature), the fourteen board rulings
+`z1-inbox/2026-09-14/Q-BOARD-RULING-02.md` … `z1-inbox/2026-09-14/Q-BOARD-RULING-16.md`, and
+`z1-inbox/2026-09-14/HANDOFF.md`.
+
+A `z1-inbox/INDEX.yaml` candidate entry, as actually written:
 
 ```yaml
-- id: Q-INTENTOS-LAUNCH-01
-  type: MOLT/F/IC/H/CANDIDATE  # Finding, correction, hypothesis, or mol change
-  status: AWAITING_Z2/RATIFIED/REJECTED/WITHDRAWN
-  submitted_at: 2026-09-14
-  z2_response_at: 2026-09-14
-  hash: sha256(...)  # Content hash for auditing
-  location: z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md
-```
-
-### Candidate Block Template
-
-See `CANDIDATE_BLOCK_TEMPLATE.md`. Pattern:
-
-```
-# Candidate Block: <ID> — <Title>
-
-**Z1 Proposer:** Claude (AI agent)
-**Date Submitted:** <date>
-**Pinned SHA:** <commit_hash>
-**Branch:** <feature_branch>
-**Phase:** <current/max>
-**Status:** AWAITING Z2 RATIFICATION
-
----
-
-## §A Position · Destination · Probability
-
-**Position:** Current state (repo pinned at X, key observations)
-**Destination:** What will be done (1–5 bullets)
-**Probability:** Likelihood of success by date_X
-
----
-
-## What Z2 Is Asked to Decide
-
-| id | question | reading |
-|:--|:--|:--|
-| **d1** | First ruling question | Z1 analysis (neutral) |
-
-## Falsifier
-
-If by DATE (condition A) or (condition B), then [outcome].
+- q_id: Q-INTENTOS-LAUNCH-01
+  title: "Intent-OS board — organize the development, decide the launch"
+  path: z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md
+  submitted: '2026-09-14'
+  status: ratified
+  note: "…"
+  ratified_by: Night
+  ratified_at: '2026-09-14'
+  z2_ruling: z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md
+  z2_hash: 9a2a469be2cbbe1d…
 ```
 
 ---
 
-## .z1-control/
+## `.z1-control/` — the Z2 gate's tools
 
-**Purpose:** Z2 signature tools and ratification enforcement  
-**Authority:** Z2 control layer; signatures validate all governance decisions  
+| file | does | CI step |
+|---|---|---|
+| `.z1-control/validate.py` | inbox rules (coverage, no self-grant, hash-in-ruling, windows); `--report` emits the Z2 queue as JSON; `--smoke-test` | z2 gate: ERROR, blocks merge |
+| `.z1-control/render.py` | writes `Z1_INBOX_INDEX.md`; `--check` fails if out of sync | z2 gate: ERROR |
+| `.z1-control/ratify.py` | `Q-ID --decision ACCEPT --by Night --apply` signs `sha256(candidate \| by=Night \| at=<date> \| decision=ACCEPT)`; `--verify` re-checks every recorded signature; `--list` | z2 gate |
 
-### Files
-
-| File | Purpose |
-|------|---------|
-| **ratify.py** | Generates Z2 signature: `sha256(candidate \| by=Night \| at=<date> \| decision=ACCEPT\|EDIT\|REJECT)` |
-| **validate.py** | Validates candidate blocks against schema; falsifier lint |
-| **scan.py** | Registers tools in `tools-manifest.yaml`; runs consistency checks |
-| **render.py** | Generates `Z1_INBOX_INDEX.md` from `INDEX.yaml` |
-
-### Usage
-
-```bash
-# Ratify a candidate block
-python3 .z1-control/ratify.py Q-INTENTOS-LAUNCH-01 --decision ACCEPT --by Night --apply
-
-# Validate candidates
-python3 .z1-control/validate.py
-
-# Scan and register tools
-python3 .tool-control/scan.py
-```
+`tools/decision_relay.py` writes the same bytes these tools write, so a ruling landed from the board
+passes the same gate.
 
 ---
 
-## tools/
+## `.tool-control/` and `.doc-control/` — the two registries
 
-**Purpose:** Automation, validation, control surfaces  
-**Authority:** Z3 executes; scripts governed by falsifier doctrine  
+| file | does |
+|---|---|
+| `.tool-control/scan.py` | discovers tools under `tools/`, `scripts/`, `bin/`, the control dirs; refreshes mechanical fields in `tools-manifest.yaml`; `--check` |
+| `.tool-control/validate.py` | id, existence, approval (no self-grant), zone and MCP rules |
+| `.tool-control/render.py` | writes `TOOLS_MANIFEST.md`; `--check` |
+| `.tool-control/selftest.py` | 31 blocking conditions the manifest workflow enforces |
+| `.tool-control/README.md` | the rules in prose |
+| `.doc-control/validate.py` | front-matter and registry rules over `document-registry.yaml` (schema: `.doc-control/frontmatter.schema.json`) |
+| `.doc-control/render.py` | writes `CONTROLLED_DOCUMENTS.md`; `--check` |
+| `.doc-control/review.py` | review schedule; every recorded review derives its own next due date; `--check` |
+| `.doc-control/strict_yaml.py` | the strict loader both registries share |
+| `.doc-control/MAINTAINER_ASSIGNMENT.md` · `.doc-control/TEAM_OWNERS.md` | who reviews what |
 
-### Critical Tools
-
-| Tool | Purpose | Status |
-|------|---------|--------|
-| **decision_relay.py** (v0.3.1) | HTTP server landing Z2 rulings from browser into z1-inbox/ | Production |
-| **intent_os_board_check_v1_0.py** | Seal checker: re-hashes all board seals against git tree; exit 0 = HOLDS | Production |
-| **relay_policy.yml** | ngrok traffic policy (basic-auth, CORS exemptions for OPTIONS) | Production |
-| **molt_cycle.py** | Applies ratified molts; measures at window close; anti-cascade enforce | Production |
-| **prs_run.py** | PR status monitoring and triage | Production |
-| **intent_os_board_check_v1_0.py** | Registers board checker in tools-manifest.yaml | Registered |
-| **ic_scope_check.py** | Validates IC candidates against signing secret | Tooling |
-| **doc_lifecycle_lint.py** | Validates document lifecycle status per CONTROLLED_DOCUMENTS.md | Tooling |
-| **registry_site_generator_v1_0.py** | Generates static site from registry (GitHub Pages publisher) | Tooling |
-
-### ACAT Tools Suite
-
-- `acat_adversarial_execution_v1.py` — Adversarial test runner
-- `acat_mcp_full_wrapper_v1_2.py` — MCP integration for ACAT
-- `acat_merkle_auditor_v2_0.py` — Merkle tree validation
-- `acat_psychometric_validator_v1_0.py` — Assessment validation
-- `acat_dimension_scorer.py` — Dimension scoring engine
-- And 20+ others (see `tools/` for full list)
-
-### Tool Manifest
-
-**File:** `tools-manifest.yaml`  
-**Purpose:** Registry of all production tools; scanned and validated by `scan.py`  
-**Entry:** `id`, `name`, `path`, `version`, `type` (VALIDATOR/EXECUTOR/CHECKER/RELAY), `falsifier` (yes/no)  
-
-### Usage Pattern
-
-```bash
-# Run relay (local test mode)
-DRY_RUN=1 python3 tools/decision_relay.py --self-test
-
-# Check board seals
-python3 tools/intent_os_board_check_v1_0.py
-
-# Apply and measure molt
-python3 tools/molt_cycle.py --read-only --nf ledgers/NF_LEDGER.jsonl
-```
+Workflows: `.github/workflows/tool-manifest.yml` · `.github/workflows/document-control.yml`.
 
 ---
 
-## ui/
+## `tools/` — the Intent-OS control surface and the gates
 
-**Purpose:** User-facing control surfaces  
+| file | role | proof |
+|---|---|---|
+| `tools/decision_relay.py` | v0.3.1 · HTTP relay: signed `/decide` writes a tapped choice into its candidate block on a branch (PR PENDING); `/ratify` on the echoed hash signs as `.z1-control/ratify.py` does; `DRY_RUN=1` works on a local copy | `--self-test`; harness `t2-relay-roundtrip` |
+| `tools/relay_policy.yml` | ngrok traffic policy in front of the relay (basic-auth; OPTIONS exempt for the browser preflight) | — |
+| `tools/intent_os_board_check_v1_0.py` | re-hashes every board seal against the tree; exit 0 HOLDS · 2 STALE | `--self-test` |
+| `tools/intent_os_test_harness_v1_0.py` | runs T0–T4, writes the receipt to outputs/intent_os_test_results.json (gitignored), `--render` embeds it in the dashboard | `--self-test` |
+| `tools/ic_scope_check.py` | scope check on intake records; refuses without `$IC_SCOPE_SECRET` | exit 2 = correct |
+| `tools/doc_lifecycle_lint.py` | disposition table for `docs/`; `--enforce` fails on unfiled docs | `--self-test` |
+| `tools/cascade_guard.py` · `tools/jester_invariants.py` | anti-cascade and invariant checks | `--self-test` |
+| `tools/repo_health.py` | `--strict` in the quality-baseline workflow | — |
+| `tools/behavioral_compliance_gate_v1_0.py` | corpus pass-rate gate (≥ 0.70) | `--smoke-test` |
+| `tools/registered_findings_validator_v1_0.py` | `REGISTERED.md` integrity (findings-registry-gate) | `--smoke-test` |
+| `tools/registry_site_generator_v1_0.py` | writes `site/` for the Pages workflow (the board is *not* published — d17) | — |
+| `tools/molt_cycle_tier0_v0_1.py` | the tools/ copy of the molt runner; the canonical one is `molt_cycle.py` at root | — |
+| `tools/smag_to_empirica_connector.py` | Empirica wiring (`.empirica/project.yaml`) | — |
+| `tools/acat_merkle_auditor_v2_0.py` · `tools/acat_psychometric_validator_v1_0.py` · `tools/acat_dimension_scorer.py` | ACAT auditing and scoring (20+ ACAT tools in this directory) | see `TOOLS_MANIFEST.md` |
 
-### Critical Files
-
-| File | Purpose | Consumer |
-|------|---------|----------|
-| **intent-os-humanaios-v3_3.html** | Intent-OS board: 20 steps, 18 predictions, 19 rulings, 40 seals | Z2 session |
-| **INTENT_OS_GENERAL_USER_SPEC.md** | General-user board variant (unratified) | Future |
-
-### intent-os-humanaios-v3_3.html Structure
-
-- **Data block (`HUMANAIOS`):** Board state, rev (version), relay config, localStorage mapping
-- **Seals:** Cryptographic hashes of critical files; re-verified by `intent_os_board_check_v1_0.py`
-- **Rulings (d1–d19):** 19 owner decision points; d17–d19 ruled 2026-09-14; d2, d3, d5–d16 awaiting Z2
-- **Predictions:** 18 pre-registered claims; C-type (falsifier date + condition)
-- **Pipeline Steps:** 20 sequential milestones from proposal through publication
-
-### Persistence & Relay
-
-- **localStorage:** Browser-side state, survives reload within same device
-- **Relay:** HTTP POST to `relay.url` (ngrok endpoint) with ruling choice + secret
-- **Flow:** Tap **→ PR** on ruling → relay creates PR with candidate block → re-tap with hash echo → relay signs
+The manifest is the list: `tools-manifest.yaml` (156 tools, 2 MCP servers at the 09-16 scan). A tool
+without Builder markers (`TOOL_NAME`, `TOOL_VERSION`, `TOOL_CATEGORY`, `TOOL_ZONE`) is registered
+unclassified; a smoke test is what makes it count.
 
 ---
 
-## docs/
+## `ui/` — Z2's surfaces (local only, d17)
 
-**Purpose:** Documentation, runbooks, operational guides  
-
-### Critical Docs
-
-| File | Purpose | Audience |
-|------|---------|----------|
-| **INTENT_OS_BOARD_RUNBOOK.md** | How to open, read, rule, land, publish, re-check the board | Z2 sessions |
-| **INTENT_OS_GENERAL_USER_SPEC.md** | Lexicon and connectors for board general-user variant | Design/UX |
-| **ACAT_BENCHMARK_MAP_20260908.md** | Measurement spec for board falsifier tracking | Research |
-| **doc_lifecycle_lint.py** | Generates lifecycle status table (consumed/code/archived/produced) | CI/CD |
-
-### Lifecycle Status
-
-- `lifecycle: consumed` → Document is a control surface (e.g., runbook); consumer defined in frontmatter
-- `lifecycle: code` → Embedded in code or generated by code
-- `lifecycle: archived` → Retired, moved to `docs/_archive/`
-- `lifecycle: produced` → Generated output (e.g., test reports)
+| file | role |
+|---|---|
+| `ui/intent-os-humanaios-v3_3.html` | the Intent-OS board: 20 steps (3 done · 10 in progress · 7 waiting), 9 gauges, 18 predictions, 19 rulings (d1, d4, d17–d19 ruled; d2, d3, d5–d16 open), 43 seals — counts read by the harness on 2026-09-16. The `HUMANAIOS` block inside is the dataset; the path is frozen (d19) and a re-read changes the data, never the filename |
+| `ui/intent-os-test-dashboard-v1_0.html` | the test dashboard: ruling workflow · authority map · test matrix · live status, rendered only from the receipt the harness embeds |
+| `ui/z2-ratification-reviewer.html` · `ui/Z2_RATIFICATION_GUIDE.md` | Z2's candidate reviewer and its guide |
+| `ui/registry_viewer.jsx` · `ui/calibration_trace_viewer.jsx` | React viewers (registry, calibration traces) |
 
 ---
 
-## .github/
+## `docs/` — runbooks and the pathway
 
-**Purpose:** CI/CD automation, workflows, branch protection  
+| file | role |
+|---|---|
+| `docs/INTENT_OS_BOARD_RUNBOOK.md` | open · read honestly · rule · land through the relay · (publish: not until d17 is reversed) · re-read cadence |
+| `docs/INTENT_OS_TEST_PATHWAY.md` | tiers T0–T4, roles, session order, falsifiers, scale-out order |
+| `docs/INTENT_OS_GENERAL_USER_SPEC.md` | general-user board variant (lexicon, connectors, data line) — unratified |
+| `docs/ACAT_BENCHMARK_MAP_20260908.md` | ACAT ↔ market-benchmark map; a consumer of the frozen board path |
+| `docs/CLAUDE.md` | the empirica-outreach practice seat instructions |
 
-### Workflows
-
-| Workflow | Trigger | Gate Enforced | Z2 Controlled? |
-|----------|---------|---------------|---|
-| **z2_ratification_gate.yml** | Push to main or PR to main | Z2 hash on RATIFY event; falsifier lint; anti-cascade rules | YES |
-| **pages.yml** | Push to main | Deploys `site/**` to GitHub Pages (d17 rules "local only", so publish disabled) | Conditional |
-| **document-control.yml** | Push touching `*.md` | Lifecycle status lint per CONTROLLED_DOCUMENTS.md | YES |
-| **Copilot-review.yml** | PR open/push | Code review findings (optional/blocking marked) | Advisory |
-
-### Branch Protection
-
-- **main:** Requires z2_ratification_gate pass before merge
-- **Feature branches:** No protection; merged via Z2-signed PR
-- **claude/*** branches:** Session branches used for feature PRs
-
-### ISSUE_TEMPLATE/
-
-- `CANDIDATE_BLOCK.md` — Template for filing Z1 proposals as GitHub issues
-- `BUG_REPORT.md` — Template for findings (F-type candidates)
-- `IC_CORRECTION.md` — Template for corrections (IC-type candidates)
+87 documents in all; lifecycle per `CONTROLLED_DOCUMENTS.md` (`lifecycle: consumed | code | archived | produced`).
+docs/_archive/ does not exist yet — it is where a retired board or dashboard goes under the falsifiers.
 
 ---
 
-## .tool-control/
+## `.github/` — CI and ownership
 
-**Purpose:** Tool registration and scanning  
+| file | enforces |
+|---|---|
+| `.github/workflows/z2_ratification_gate.yml` | validator/renderer/ratify smoke tests; recorded signatures verify; inbox index integrity (ERROR); rendered index in sync (ERROR); Seed Constitution changes carry a Z2 hash |
+| `.github/workflows/tool-manifest.yml` | the four `.tool-control/` smoke tests, then `.tool-control/selftest.py`, `.tool-control/scan.py` `--check`, `.tool-control/validate.py`, `.tool-control/render.py` `--check` |
+| `.github/workflows/document-control.yml` | `.doc-control/` smoke tests, then `.doc-control/validate.py`, `.doc-control/review.py` `--check`, `.doc-control/render.py` `--check` |
+| `.github/workflows/quality-baseline.yml` | `tools/repo_health.py --strict`, `.doc-control/validate.py`, mypy on `src/humanaios_operations/`, the blocking pytest list |
+| `.github/workflows/findings-registry-gate.yml` | `tools/registered_findings_validator_v1_0.py --input REGISTERED.md` |
+| `.github/workflows/behavioral-compliance.yml` | corpus pass-rate gate and its unit tests |
+| `.github/workflows/priority-queue-triage.yml` | triage over `PRIORITY_QUEUE.md` and the inbox |
+| `.github/workflows/pages.yml` | deploys `site/` — the board is excluded by ruling d17 |
+| `.github/workflows/auto-request-copilot-review.yml` · `.github/workflows/copilot-base-guard.yml` | Copilot review on PRs; base guard |
+| `.github/CODEOWNERS` · `.github/PULL_REQUEST_TEMPLATE.md` · `.github/copilot-instructions.md` · `.github/dependabot.yml` | ownership, PR shape, reviewer instructions, dependency updates |
+| `.github/ISSUE_TEMPLATE/code-quality.md` · `.github/ISSUE_TEMPLATE/seed-amendment.md` | the two issue templates |
 
-### Files
-
-| File | Purpose |
-|------|---------|
-| **scan.py** | Scans `tools/` directory; registers in `tools-manifest.yaml`; validates falsifier presence |
-| **tools-manifest.yaml** | Registry of all production tools (version, type, falsifier flag) |
-| **preflight.js** | (Artifact runtime control; not in repo) |
-
-### Manifest Entry Pattern
-
-```yaml
-- id: decision-relay-v0.3.1
-  name: Decision Relay
-  path: tools/decision_relay.py
-  version: 0.3.1
-  type: RELAY
-  falsifier: yes  # Must land ruling by 2026-09-30 per Q-INTENTOS-LAUNCH-01
-  consumer: Intent-OS board
-```
+46 workflow files in `.github/workflows/`; the harness's T3 tier runs what the blocking ones run.
 
 ---
 
-## acat/
-
-**Purpose:** ACAT (Adversarial Collaboration Assessment Tool) infrastructure  
-
-### Structure
+## `acat/` — the assessment package
 
 ```
 acat/
-├── contracts/                          # 12 dimension keys (12 schema files)
-├── acat_specifications.md              # Dimension definitions
-├── acat_analysis_template.md           # Analysis structure template
-└── <analysis-files>                    # Adversarial analyses and results
+├── README.md · HF_DATASET_CARD.md
+├── api/  cli/  mcp/            service, command line, MCP wrapper
+├── contracts/                  5 JSON schemas: assess_request, human_score, phase1_intake, phase3_submission, score_result
+├── normalization/  scoring/    pipeline stages
+├── research/  data/  db/  sql/ studies, fixtures, persistence
+├── tools/                      ACAT-side tools
+├── tests/                      14 pytest files (fastapi + jsonschema required)
+└── canonical_stats.json · canonical_stats_v2.json
 ```
 
-### Key Concepts
-
-- **Dimensions:** 12 orthogonal assessment dimensions (e.g., clarity, rigor, bias)
-- **Contracts:** Specification files for each dimension (schema)
-- **Psychometric Validator:** Ensures dimension ratings are consistent and valid
-- **Merkle Auditor:** Validates dimension proof chains
+Schemas: `acat/contracts/assess_request.schema.json` · `acat/contracts/human_score.schema.json` ·
+`acat/contracts/phase1_intake.schema.json` · `acat/contracts/phase3_submission.schema.json` ·
+`acat/contracts/score_result.schema.json`.
 
 ---
 
-## ledgers/
+## `ledgers/` — measurement, append-only
 
-**Purpose:** Measurement, prediction falsifier tracking, NF (National Forecast) ledger  
+| file | role |
+|---|---|
+| `ledgers/NF_LEDGER.jsonl` | falsifier ledger: 165 rows at the 09-16 read, all by Z1, 21 PENDING_Z2_DATE; hash-chained |
+| `ledgers/NF_LEDGER_README.md` · `ledgers/NF_EVENT_SCHEMA.md` | how a row is written and what it must carry |
+| `ledgers/RESOURCE_LEDGER.jsonl` | resource units per cycle |
+| `ledgers/mesh_pins_090826.json` | the 09-08 mesh pin set |
 
-### Files
+`python3 molt_cycle.py --read-only --nf ledgers/NF_LEDGER.jsonl` reads it without writing.
 
-| File | Purpose |
-|------|---------|
-| **NF_LEDGER.jsonl** | Append-only log of measurement events; hash-chain validated |
-| **NF_LEDGER.csv** | Human-readable export of NF ledger |
-| **MOLT_STATE.md** | Molt candidate tracking and anti-cascade state |
+---
 
-### NF Ledger Entry
+## Everything else at the root
 
-```json
-{
-  "timestamp": "2026-09-16T00:00:00Z",
-  "constant_id": "const-001",
-  "molt_id": "molt-v1.0",
-  "measurement": 0.85,
-  "falsifier_tripped": false,
-  "prior_hash": "abc123...",
-  "entry_hash": "def456..."
-}
+| directory | holds |
+|---|---|
+| `src/humanaios_operations/` | the Python package (`src/humanaios_operations/cli.py`, `src/humanaios_operations/dashboard.py`, `src/humanaios_operations/deadline_checker.py`, `src/humanaios_operations/scoring.py`, …); mypy target |
+| `tests/` | research-scenario tests (`tests/research/`) and `tests/integration_test.py` |
+| `scripts/` · `bin/` | scanned by the tool manifest alongside `tools/` |
+| `site/` | generated static site for the Pages workflow |
+| `seed-publication/` · `seeds/` | the Seed Constitution and its publication config |
+| `registry-candidates/` · `ic_archive/` · `reports/` · `audits/` · `outputs/` · `artifacts/` · `deliverables/` | candidates, archived corrections, reports, audit logs, receipts, artifacts, deliverables |
+| `applications/` · `humanaios-funding-pipeline/` · `orcid-publications-manager/` · `market-research/` · `collaborators/` · `collaborator-ops/` | applications, funding pipeline, ORCID manager, market research, collaborator records |
+| `architecture/` · `instruments/` · `examples/` · `data/` · `sql/` · `supabase/` · `fuzzers/` · `patches/` · `workflows/` · `autonomy/` · `assets/` | architecture notes, instruments, examples, data, SQL, Supabase config, fuzz harnesses, patches, proposed workflows, autonomy gates, brand assets |
+| `.agents/` · `.claude/` · `.codex/` · `.empirica/` · `.postflight/` · `.clusterfuzzlite/` | agent and seat configuration, Empirica project, post-flight logs, fuzzing config |
+
+---
+
+## Naming patterns
+
+| pattern | meaning | example |
+|---|---|---|
+| `z1-inbox/<date>/Q-<TOPIC>-<nn>.md` | a Z1 candidate asking a Z2 decision | `z1-inbox/2026-09-14/Q-BOARD-RULING-07.md` |
+| `z1-inbox/<date>/Z2_RULING_<topic>.md` | Z2's choices on one topic, transcribed | `z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md` |
+| `z1-inbox/<date>/Z2_RULINGS_<date>.md` | that day's signatures | `z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md` |
+| `tools/<name>_v<major>_<minor>.py` | a versioned tool; Builder markers inside | `tools/intent_os_board_check_v1_0.py` |
+| `ui/intent-os-<project>-v<major>_<minor>.html` | a board; path frozen per d19 | `ui/intent-os-humanaios-v3_3.html` |
+| `*_CANDIDATE_BLOCK.md` / `*_BLOCK.md` | older candidate naming, same shape | `z1-inbox/2026-09-08/ACAT_BENCHMARK_CANDIDATE_BLOCK.md` |
+
+---
+
+## Authority flow, in files
+
+1. **Z1** writes `z1-inbox/<date>/Q-….md` with a pinned SHA and a falsifier; adds it to `z1-inbox/INDEX.yaml`; runs `.z1-control/render.py`.
+2. **CI** (`.github/workflows/z2_ratification_gate.yml`) refuses the PR if the inbox rules break or the rendered index is stale.
+3. **Z2** taps on the board → `tools/decision_relay.py` → PR PENDING → echoes the hash → signature in `z1-inbox/<date>/Z2_RULINGS_<date>.md`, `status: ratified` in `z1-inbox/INDEX.yaml`. Or by hand: `.z1-control/ratify.py Q-ID --decision ACCEPT --by Night --apply`.
+4. **Z3** merges with the hash; the board is re-read; `tools/intent_os_board_check_v1_0.py` HOLDS again.
+5. **Anyone** runs `tools/intent_os_test_harness_v1_0.py --render` and opens `ui/intent-os-test-dashboard-v1_0.html` to see all of the above lit by its checks.
+
+## Session open (§A, `SESSION_RITUALS.md`)
+
+```
+git fetch origin && git rev-parse HEAD
+python3 tools/intent_os_board_check_v1_0.py
+python3 tools/intent_os_test_harness_v1_0.py --render
 ```
 
----
+## Maintenance
 
-## Other Directories
-
-| Directory | Purpose |
-|-----------|---------|
-| **bin/** | Executable scripts (CLI, setup) |
-| **collaborator-ops/** | Collaboration tooling and logs |
-| **data/** | Raw data, datasets |
-| **deliverables/** | Output artifacts, reports, submissions |
-| **examples/** | Example scripts, setup walkthroughs |
-| **fuzzers/** | Fuzz testing harnesses |
-| **ic_archive/** | Archived IC (interpretation correction) candidates |
-| **instruments/** | Assessment instruments, templates, rubrics |
-| **market-research/** | Market research, competitive analysis, external findings |
-| **outputs/** | Generated outputs, reports |
-| **scripts/** | Ad-hoc scripts, utilities |
-| **sql/** | Database schemas, migrations, queries |
-| **src/humanaios_operations/** | Python source code library |
-| **supabase/** | Supabase database config and migrations |
-| **workflows/proposed/** | Proposed workflow definitions |
-| **.agents/** | Agent definitions, behavior specs |
-| **.claude/** | Claude Code configuration, hooks, MCP |
-| **.codex/** | Codex agent configurations |
-| **.empirica/** | Empirica framework configuration |
-| **.postflight/** | Post-flight check logs and results |
-| **assets/brand/** | Brand assets, logos, style guides |
-| **audits/** | Audit logs, compliance reports |
-| **autonomy/gates/** | Autonomy decision gates and rules |
-| **applications/** | Application services, configurations |
-| **architecture/** | Architecture documentation, diagrams |
-| **artifacts/** | Generated artifacts, saved outputs |
-
----
-
-## Key File Patterns & Naming
-
-### Candidate Blocks
-
-- **Format:** `z1-inbox/<date>/<TYPE>-<ID>.md`
-- **Types:** 
-  - `Q-*` = Query/Question (proposal for Z2 decision)
-  - `F-*` = Finding (issue found)
-  - `IC-*` = Interpretation Correction (fix/clarification)
-  - `H-*` = Hypothesis (claim to test)
-  - `MOLT-*` = Molt (constant change proposal)
-
-**Example:** `z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md`
-
-### Z2 Rulings
-
-- **Format:** `z1-inbox/<date>/Z2_RULING<S>_<date>.md` (for multiple rulings) or `z1-inbox/<date>/Z2_RULING_<topic>.md` (single topic)
-- **Pattern:** Contains decision rubric table, reasoning, receipts, effects
-
-**Example:** `z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md`
-
-### Ratification Blocks
-
-- **Format:** `z1-inbox/<date>/Z2_RULINGS_<date>.md`
-- **Content:** Signed ACCEPT/EDIT/REJECT blocks with sha256 hashes, byline (Night), timestamp
-- **Use:** Stored in INDEX.yaml as proof of Z2 ratification
-
----
-
-## Cross-References & Authority
-
-### Authority Flow
-
-1. **Z1 (Claude)** → Creates candidate block, places in z1-inbox/<date>/
-2. **Z2 (Night)** → Reads candidate, signs with .z1-control/ratify.py
-3. **Z3 (Executor)** → Merges PR with Z2 hash, executes change
-4. **CI/CD Gates** → Validate Z2 hash, falsifier, anti-cascade rules
-
-### File Fetch Ritual (§A per CLAUDE.md)
-
-```bash
-git fetch && git rev-parse HEAD                    # Pin SHA
-cat REGISTERED.md | head -50                       # Read governance
-cat PRIORITY_QUEUE.md | head -30                   # Check queue
-cat ZONE_REGISTRY.md | head -30                    # Verify active repos
-python3 tools/intent_os_board_check_v1_0.py        # Verify board seals
-```
-
-### Session Lifecycle
-
-| Stage | Owner | Files Read | Action |
-|-------|-------|-----------|--------|
-| **§A Open** | Z1 | REGISTERED.md, PRIORITY_QUEUE.md, ZONE_REGISTRY.md, board seals | Fetch, pin SHA, state position/destination/probability |
-| **Work** | Z1/Z3 | Task-specific | Implement, test, commit |
-| **§B Close** | Z1 | Board, RECEIPT-GAP findings, NF ledger | Emit candidates, walk claim vs. tree, handoff |
-| **Z2 Gate** | Z2 (Night) | Candidates in z1-inbox/, INDEX.yaml | Ratify (ACCEPT/EDIT/REJECT with hash) |
-| **Merge** | Z3 | PR with Z2 hash, CI gate | Merge to main, deploy |
-
----
-
-## Important Notes
-
-### What's Indexed Here
-
-- ✅ Directory structure and purposes
-- ✅ Critical governance files and their roles
-- ✅ Key tools and their functions
-- ✅ File naming patterns and templates
-- ✅ Authority flow and governance sequences
-- ✅ Cross-references and session rituals
-
-### What This Map Does NOT Include
-
-- ❌ Detailed contents of individual files (read those directly)
-- ❌ Complete file list (repo has 1000+ files; use `find` and `grep`)
-- ❌ Line-by-line code documentation (see docstrings in each tool)
-- ❌ Historical change log (see `git log` and REGISTERED.md)
-
-### How to Use This Map
-
-1. **Finding a file:** Use directory section + filename pattern
-2. **Understanding purpose:** Read "Purpose" and "Key Files" table
-3. **Following authority:** Read "Cross-References & Authority" section
-4. **Session setup:** Follow "File Fetch Ritual" (§A per CLAUDE.md)
-5. **Adding new work:** Follow "Candidate Blocks" naming pattern; store in z1-inbox/<date>/
-
----
-
-## Updates & Maintenance
-
-This file is a **reference document** (lifecycle: reference, not governance-controlled). It is updated by Z1 (Claude) when:
-- New directories are added
-- New governance files are created
-- Key tools change purpose or location
-- Authority flow is updated (with Z2 ratification)
-
-**Last Updated:** 2026-09-16  
-**Next Review:** When new major directory added or governance file created  
-**Maintained By:** Z1 (Claude)
-
+Re-read this file whenever a directory is added, a tool moves, or `t4-repo-index` fails. Write it from
+`ls`, never from memory: the T4 check exists because the first version of this file named six paths
+that were not there.
