@@ -61,8 +61,14 @@ after rerunning the harness on the commit that carries it.
 
 Two sessions closed on 2026-09-16 and `z1-inbox/<date>/HANDOFF.md` is one file per date, so this is
 appended under its own heading rather than merged into the Intent-OS handoff above. That handoff is
-`session_01CePrSjPSB8Epbpq3Lj8oKj`'s and is left untouched. *(The collision is itself worth a ruling: §B
-names one handoff per date and says nothing about a second session on that date.)*
+`session_01CePrSjPSB8Epbpq3Lj8oKj`'s and is left untouched.
+
+*The one-file-per-date convention is documented in `GOVERNANCE_FILES.md:46`, `CLAUDE.md:238` (§B handoff
+block) and `BOOT_PROCESS_MAP.md:63` — **not** in `SESSION_RITUALS.md` §B, which defines the close steps
+and does not name the handoff surface at all. An earlier revision of this section attributed it to §B,
+which would have turned an undocumented convention into a protocol rule by citation. What none of the
+three say is what happens when two sessions close on one date: that is **unresolved convention, not a
+rule**, and appending under a second heading is this session's choice, not an established practice.*
 
 This section **records what is owed. It decides nothing** — every item below is a Z2 act.
 
@@ -109,10 +115,21 @@ Changing a ratified pin spec is a molt, Tier 1 minimum.
   prevention (MS-2 now → MS-1-with-scope → MS-3), the IC registration, and whether it extends
   **H-GOV-01**'s `evidence_basis` as the sixth instance.
 - **D1 / D2** from `ledgers/PRACTICE_RESOLUTION_MAP.md` — 16 AMBIGUOUS tokens (two candidate targets,
-  different verdicts) and 6 UNRESOLVABLE (no target exists). §B.7 stays unproposed until both land.
-- **`IC-050` observed live.** On `b392739`, `Verify Z2 Ratification Requirements` was `completed /
-  failure` and #348 merged regardless, having dropped the `records:` entry for the rulings transcript.
-  The gate ran, failed, and did not block. Flagged, not filed.
+  different verdicts) and 6 UNRESOLVABLE (no target exists). **§B.7 is proposed, pending and unapplied**
+  — `Q-MOLT-LEDGER-SCAN-01` carries a `B.7 — Ledger Resolution` step at its lines 259–272 and its
+  checklist asks Z2 to accept, edit or reject it. An earlier revision of this section called it
+  "unproposed", which was a stale claim from before the practice→repo mapping was written: the rule was
+  that §B.7 should not be proposed *until* the mapping existed, the mapping now exists, and the proposal
+  went into that block.
+- **A fresh occurrence of `IC-050`.** The finding itself is already registered —
+  `REGISTERED.md:3373`, *"IC-050 — Blocker Gate Not Enforced (sibling of IC-041)"* — so this is evidence
+  extending a registered class, not a new one. An earlier revision said "flagged, not filed", which
+  misstated the registry by implying the class was unregistered.
+
+  The occurrence: on `b392739`, `Verify Z2 Ratification Requirements` was `completed / failure` and #348
+  merged regardless, having dropped the `records:` entry for the rulings transcript. The gate ran,
+  failed, and did not block. **Z2's to decide** whether this extends `IC-050`'s evidence basis; the
+  register is append-only and the edit is not Z1's.
 
 ## 5 · Tree state at close
 
@@ -128,5 +145,14 @@ Changing a ratified pin spec is a molt, Tier 1 minimum.
 1. Nothing in §1–§4 is Z1's to settle. Do not infer a ruling from silence.
 2. Force-push is **blocked by a repository ruleset** on `claude/molt-classifier-constitution-3720n1`.
    Restarting it after a merged PR needs a merge commit, not a rebase.
-3. The molt-tier gap series needs **≥30 measured PRs over 30 days** before its under-claim falsifier can
-   be evaluated. It has 1.
+3. **Correction — there is no ≥30-PR threshold.** Earlier statements in this session, and the bodies of
+   #343 and #349, said the molt-tier falsifier needs "≥30 PRs measured" before it can be evaluated. That
+   number appears **nowhere**: not in `MOLT_STATE.md:202–211`, not in `molt-tier-check.yml`. The actual
+   contract is `(PRs with measured − claimed > 1) / (total PRs)` over a rolling 30-day window, target
+   < 5%, and the workflow's promotion note says only *"once the measured under-claim rate over a rolling
+   30-day window is under 5%."* The threshold was invented and then repeated as if specified — an
+   IC-031-class overstatement, recorded here rather than quietly dropped.
+
+   What is true: the series has **1 row** (PR #349, on tracking issue #350). A rate over one sample is
+   not a useful measurement, but "not yet useful" is a judgement, not a specified gate, and the
+   distinction is exactly what the invented number obscured.
