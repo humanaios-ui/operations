@@ -211,22 +211,26 @@ assert stored_job["status"] == "complete"
 
 | Artifact | Location | Status |
 |:---------|:---------|:-------|
-| Orchestrator Code | `tools/holographic_orchestrator.py` | ✅ Scaffolded |
-| Unit Tests | `tools/tests/test_holographic_orchestrator.py` | ✅ Scaffolded |
-| Integration Tests | `tools/tests/test_holographic_integration.py` | 📝 To write |
-| Live Service Config | `tools/holographic_services.yaml` | 📝 To write |
+| Orchestrator Code | `tools/holographic_orchestrator.py` | ✅ Complete |
+| Unit Tests | `tools/tests/test_holographic_orchestrator.py` | ✅ Complete (21/21 passing) |
+| Integration Tests | `tools/tests/test_holographic_integration.py` | ✅ Complete (15 tests with mocked HTTP) |
+| Live Service Config | `tools/holographic_services.yaml` | 📝 Phase 3 |
 | Hypothesis Protocol | This file | ✅ Current |
-| Findings Registry | `REGISTERED.md` | Awaiting Z2 |
+| Findings Registry | `REGISTERED.md` | ✅ Z2 Ratified |
 
 ---
 
-## Next Steps (Z1 → Z2)
+## Next Steps (Phase 3: Live Service Testing)
 
-1. **Phase 1 Execution:** Run unit tests locally
-   - Command: `python tools/tests/test_holographic_orchestrator.py -v`
-   - Expected: 50+ assertions pass
+1. **Phase 2 Complete:** Mocked integration tests all passing
+   - 15 integration tests with HTTP mocking
+   - Credential redaction verified
+   - Error handling coverage for capture, render, storage stages
 
-2. **Phase 2 Preparation:** Write mocked integration tests
+2. **Phase 3 Launch:** Live service testing with real Polycam/Replicate/Supabase
+   - Set production service credentials via environment
+   - Run live capture/render pipeline
+   - Verify hypothesis falsifiers against real system
    - Intercept HTTP at urllib level
    - Validate request contracts
    - Simulate error scenarios (429, 5xx, timeout)
