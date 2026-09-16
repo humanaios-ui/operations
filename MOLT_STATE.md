@@ -215,10 +215,16 @@ retained as CI build artifacts~~ **Superseded: one row per merged PR is now
 posted to the molt-tier tracking issue by `molt-tier-check.yml`'s `capture` job
 and drained weekly by `smag-consolidate.yml` into
 `audits/molt_tier_gap_ledger.jsonl`, which is what makes the falsifier above
-computable. The build artifact is kept as a per-run debug copy only. One manual
-prerequisite remains: the tracking issue does not exist yet, and both workflows
-carry `MOLT_TIER_TRACKING_ISSUE: "0"` until it does — the capture job fails
-loudly on the sentinel rather than skipping.** Wiring them into the SMAG
+computable (tracking issue #350). The build artifact is kept as a per-run debug
+copy only.
+
+The captured row is the snapshot the advisory comment recorded **at PR open**,
+copied on merge — not a re-measurement. `molt_tier_measured_at_pr_open: true`
+above is the contract, and a merge-time recompute would break it twice over:
+`molt_tier_claimed` is read from the PR body, which the author can edit after
+seeing the advisory result, and the classifier itself may change while a PR is
+open. A PR merged with no advisory comment therefore records no row — the series
+carries an honest gap rather than a merge-time guess.** Wiring them into the SMAG
 self-accuracy ledger
 at `data/lessons_learned_ledger.json` waits on the meta-SMAG consumer. (2) The
 classifier reports `molt_tier_measured`; nothing yet *enforces* that a measured

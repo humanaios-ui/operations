@@ -34,7 +34,7 @@ from pathlib import Path
 # Builder v1.7 compliant
 # HumanAIOS
 TOOL_NAME = "smag_consolidate"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 DEFAULT_REPO = "humanaios-ui/operations"
 DEFAULT_ISSUE = "103"
 DEFAULT_LEDGER = "audits/smag_pilot_ledger.jsonl"
@@ -43,14 +43,33 @@ _JSON_BLOCK = re.compile(r"```json\s*(.*?)\s*```", re.DOTALL)
 
 
 # --- pure helpers (testable, no I/O) -----------------------------------------
-def extract_row(comment_body: str, created_at: str | None = None) -> dict | None:
-    """Parse the embedded ```json row block from one SMAG comment. None if absent."""
-    m = _JSON_BLOCK.search(comment_body or "")
+def extract_row(comment_body: str, created_at: str | None = None,
+                marker: str | None = None) -> dict | None:
+    """Parse the embedded ```json row block from one comment. None if absent.
+
+    `marker`, when given, restricts extraction to comments carrying that literal
+    string. Without it this function will take the first ```json block from ANY
+    comment on the issue whose object has a truthy `pr` — and because
+    `consolidate()` keeps the FIRST row seen per PR, an unrelated comment could
+    claim a PR's slot before the real row arrived. That is tolerable for the
+    original #103 sink, which predates this argument and is left on the old
+    behaviour, and is not tolerable for a sink whose rows feed a falsifier.
+
+    None is also returned for a JSON block that is not an object. `row.get`
+    on a list or a number raises AttributeError, which took the whole
+    consolidation run down rather than skipping one comment.
+    """
+    body = comment_body or ""
+    if marker is not None and marker not in body:
+        return None
+    m = _JSON_BLOCK.search(body)
     if not m:
         return None
     try:
         row = json.loads(m.group(1))
     except json.JSONDecodeError:
+        return None
+    if not isinstance(row, dict):
         return None
     if not row.get("pr"):
         return None
@@ -75,15 +94,17 @@ def existing_prs(ledger_lines: list[str]) -> set:
     return prs
 
 
-def consolidate(comments: list, ledger_lines: list[str]) -> tuple:
+def consolidate(comments: list, ledger_lines: list[str],
+                marker: str | None = None) -> tuple:
     """Return (new_rows, skipped_dup) from comments not already in the ledger.
 
     comments: list of {"body": str, "createdAt": str}. Deterministic order.
+    marker: see extract_row. None keeps the pre-existing #103 behaviour.
     """
     have = existing_prs(ledger_lines)
     new_rows, skipped, seen = [], 0, set(have)
     for c in comments:
-        row = extract_row(c.get("body", ""), c.get("createdAt"))
+        row = extract_row(c.get("body", ""), c.get("createdAt"), marker)
         if row is None:
             continue
         pr = str(row["pr"])
@@ -122,11 +143,11 @@ def append_rows(path: Path, rows: list[dict]) -> None:
             fh.write(json.dumps(r) + "\n")
 
 
-def run(repo: str, issue: str, ledger: str) -> int:
+def run(repo: str, issue: str, ledger: str, marker: str | None = None) -> int:
     path = Path(ledger)
     ledger_lines = read_ledger(path)
     comments = fetch_comments(repo, issue)
-    new_rows, skipped = consolidate(comments, ledger_lines)
+    new_rows, skipped = consolidate(comments, ledger_lines, marker)
     if new_rows:
         append_rows(path, new_rows)
     print(f"smag_consolidate v{TOOL_VERSION}: ledger had {len(existing_prs(ledger_lines))} "
@@ -170,11 +191,15 @@ def main() -> int:
     ap.add_argument("--repo", default=DEFAULT_REPO)
     ap.add_argument("--issue", default=DEFAULT_ISSUE)
     ap.add_argument("--ledger", default=DEFAULT_LEDGER)
+    ap.add_argument("--marker", default=None,
+                    help="only read comments containing this literal string "
+                         "(e.g. 'molt-tier-gap-row'). Omit for the #103 sink, "
+                         "whose rows predate markers.")
     ap.add_argument("--smoke-test", action="store_true")
     args = ap.parse_args()
     if args.smoke_test:
         return smoke_test()
-    return run(args.repo, args.issue, args.ledger)
+    return run(args.repo, args.issue, args.ledger, args.marker)
 
 
 if __name__ == "__main__":

@@ -21,11 +21,11 @@ permissions:
   issues: read
 
 env:
-  # MUST match the value in .github/workflows/molt-tier-check.yml. 0 is the
-  # sentinel for "the tracking issue does not exist yet": that workflow refuses
-  # to post on it and this one skips the drain, so the two never disagree about
-  # whether the series is live.
-  MOLT_TIER_TRACKING_ISSUE: "0"
+  # MUST match the value in .github/workflows/molt-tier-check.yml — one posts,
+  # this one drains. 0 is the sentinel for "the tracking issue does not exist
+  # yet": that workflow refuses to post and this one skips the drain, so the two
+  # never disagree about whether the series is live.
+  MOLT_TIER_TRACKING_ISSUE: "350"
 
 jobs:
   consolidate:
@@ -54,9 +54,10 @@ jobs:
       # window, target < 5%". No new tooling; the consolidator was already
       # parameterised on --issue and --ledger.
       #
-      # MOLT_TIER_TRACKING_ISSUE is 0 in .github/workflows/molt-tier-check.yml
-      # until the tracking issue is created. Set BOTH to the real number in the
-      # same change, or this step drains nothing while that one refuses to post.
+      # --marker is not optional here. Without it the tool takes the first ```json
+      # block from ANY comment on the issue and keeps the FIRST row seen per PR,
+      # so anyone who could comment could claim a PR's slot before its real row
+      # arrived. #103 above predates markers and keeps the old behaviour.
       - name: Consolidate molt-tier gap rows into their ledger
         if: env.MOLT_TIER_TRACKING_ISSUE != '0'
         env:
@@ -64,7 +65,8 @@ jobs:
         run: |
           python3 tools/smag_consolidate_v1_0.py \
             --repo "${{ github.repository }}" --issue "${MOLT_TIER_TRACKING_ISSUE}" \
-            --ledger audits/molt_tier_gap_ledger.jsonl
+            --ledger audits/molt_tier_gap_ledger.jsonl \
+            --marker molt-tier-gap-row
 
       - name: Resolve capture timing (record CI outcome after checks finish)
         env:
@@ -140,11 +142,11 @@ jobs:
           git checkout -b "$branch"
           git add audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md \
                   data/lessons_learned_ledger.json audits/molt_tier_gap_ledger.jsonl
-          git commit -m "chore(smag): consolidate #103 rows + refresh gap report + FEED BACK cues"
+          git commit -m "chore(smag): consolidate #103 + molt-tier rows, refresh gap report, FEED BACK cues"
           git push origin "$branch"
           gh pr create --base main --head "$branch" \
             --title "SMAG: consolidate ledger + refresh gap report" \
-            --body "Automated CONSOLIDATE+ANALYZE+FEED BACK step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into the ledger, refreshes the gap report, and upserts any gap-driver or insufficient-calibration-data cue into data/lessons_learned_ledger.json (tools/smag_feedback_v1_0.py). Promoting a cue to a blocking gate or a REGISTERED finding is a separate, human act — this only records the cue. Review the gap_rate trend before merging.
+            --body "Automated CONSOLIDATE+ANALYZE+FEED BACK step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into audits/smag_pilot_ledger.jsonl AND new molt-tier gap rows from the molt-tier tracking issue into audits/molt_tier_gap_ledger.jsonl, refreshes the gap report, and upserts any gap-driver or insufficient-calibration-data cue into data/lessons_learned_ledger.json (tools/smag_feedback_v1_0.py). Promoting a cue to a blocking gate or a REGISTERED finding is a separate, human act — this only records the cue. Review the gap_rate trend before merging.
 
           ## Prediction (SMAG calibration)
 

@@ -45,6 +45,7 @@ import glob
 import os
 import re
 import sys
+from collections import Counter
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 WORKFLOW = os.path.join(REPO, ".github", "workflows", "quality-baseline.yml")
@@ -134,13 +135,16 @@ def test_the_harness_copy_matches_the_workflow() -> None:
     """Two hand-maintained copies of one list drift by default. This one had."""
     wf, harness = workflow_suites(), harness_suites()
     assert harness, "could not parse the `baseline = [...]` list from the harness"
-    only_wf = [p for p in wf if p not in harness]
-    only_harness = [p for p in harness if p not in wf]
-    assert not only_wf and not only_harness, (
+    # Multisets, not sets. A set difference ignores multiplicity, so listing one
+    # suite twice in `baseline` leaves both differences empty and the guard
+    # passes while the harness runs that suite twice — drift of exactly the kind
+    # this exists to catch. Order is not asserted; count is.
+    wf_counts, harness_counts = Counter(wf), Counter(harness)
+    assert wf_counts == harness_counts, (
         "tools/intent_os_test_harness_v1_0.py's t3-pytest-baseline list has drifted "
         "from quality-baseline.yml.\n"
-        f"  in the workflow, not the harness: {only_wf}\n"
-        f"  in the harness, not the workflow: {only_harness}\n"
+        f"  in the workflow, not the harness: {sorted((wf_counts - harness_counts).elements())}\n"
+        f"  in the harness, not the workflow: {sorted((harness_counts - wf_counts).elements())}\n"
         "The harness exists to reproduce what CI runs; a harness that runs a "
         "different set reports a pass CI would not give."
     )
@@ -154,7 +158,15 @@ def test_no_duplicate_entries() -> None:
 
 
 def main() -> int:
-    tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
+    # DEFINITION order, not alphabetical. test_the_workflow_step_is_still_parseable
+    # is written first because every other assertion here is vacuous against an
+    # empty suite list; sorting by name buried it in the middle, so a broken regex
+    # would have shown four passes and one failure instead of failing first.
+    # pytest already runs tests in definition order; this makes the standalone
+    # runner agree with it.
+    src = open(__file__, encoding="utf-8").read()
+    order = re.findall(r"^def (test_\w+)", src, re.MULTILINE)
+    tests = [globals()[name] for name in order]
     failed = 0
     for t in tests:
         try:

@@ -44,21 +44,26 @@ env:
   # molt-tier row posted into #103 would either shadow that PR's SMAG row or be
   # silently dropped. Same mechanism, separate issue, separate ledger.
   #
-  # 0 is a sentinel meaning "not yet created". The capture job errors loudly on
-  # it rather than skipping quietly — a silent skip is how a measurement ends up
-  # with no consumer, which is the thing this job exists to fix.
-  MOLT_TIER_TRACKING_ISSUE: "0"
+  # 0 is the sentinel for "not yet created"; the capture job refuses to run on
+  # it rather than posting somewhere arbitrary. Keep this in step with the copy
+  # in smag-consolidate.yml — one posts, the other drains.
+  MOLT_TIER_TRACKING_ISSUE: "350"
 
 # Serializes runs per PR. The read-then-upsert below is not atomic, so without
 # this two overlapping runs could each see no existing comment and each create
 # one, breaking the one-comment-per-PR contract.
 concurrency:
-  # Keyed on the ACTION as well as the PR. Without that, the merge run and an
-  # in-flight push run share a group and cancel-in-progress drops one of them —
-  # and the one worth losing least is the merge run, which writes the only row
-  # that ever reaches the series.
-  group: molt-tier-check-${{ github.event.pull_request.number }}-${{ github.event.action }}
-  cancel-in-progress: true
+  # ONE group per PR, and cancellation OFF. The read-then-upsert in the comment
+  # job is not atomic, so two overlapping runs could each see no marker and each
+  # create one — that is what the group is for. An earlier revision keyed the
+  # group on the event action too, to stop a merge run being cancelled by a
+  # push run; that fixed the cancellation but broke the serialization it was
+  # there to provide. Queuing instead of cancelling gets both: runs are
+  # serialized per PR, and the merge run waits its turn rather than dying.
+  # The cost is a superseded push run still finishing, which for an advisory
+  # check is a few seconds of runner time.
+  group: molt-tier-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
 
 permissions: {}
 
@@ -74,6 +79,7 @@ jobs:
       claimed:  ${{ steps.classify.outputs.claimed }}
       verdict:  ${{ steps.classify.outputs.verdict }}
       evidence: ${{ steps.classify.outputs.evidence }}
+      row:      ${{ steps.classify.outputs.row }}
     steps:
       - uses: actions/checkout@v4
 
@@ -133,6 +139,11 @@ jobs:
                   matched = ", ".join("`%s`" % m.replace("`", "") for m in row["matched"])
                   out.write(f"- `{path}` -> Tier {row['tier']} (matched {matched})\n")
               out.write("MOLTTIEREOF\n")
+              # The whole row, on one line, for the comment job to embed as the
+              # open-time snapshot. Evidence is dropped: it is a list of paths
+              # for a human reading the PR, not part of the measurement.
+              row = {k: v for k, v in gap.items() if k != "evidence"}
+              out.write("row=" + json.dumps(row, sort_keys=True) + "\n")
           print(json.dumps(gap, indent=2))
           PY
 
@@ -158,103 +169,100 @@ jobs:
   # "(measured - claimed > 1) / total PRs over a rolling 30-day window, target
   # < 5%", and that series cannot be built from per-push build artifacts.
   #
-  # Modelled on smag-capture.yml, including the part that matters for safety:
-  # it checks out `main`, so the classifier that runs here is the merged,
-  # reviewed rule and never PR-head code — this job holds `issues: write`.
+  # IT DOES NOT RE-MEASURE. It copies the snapshot the advisory comment recorded
+  # when the PR was open, for two reasons, both of which would have quietly
+  # broken the falsifier:
+  #
+  #   * `molt_tier_claimed` is read out of the PR body, and the body is mutable.
+  #     Read at merge time it is whatever the author last typed — including
+  #     after seeing the advisory result. A claim that can be edited to match
+  #     the measurement is not a prediction, and an under-claim series built
+  #     from it measures nothing.
+  #   * MOLT_STATE.md declares `molt_tier_measured_at_pr_open: true`. If the
+  #     classifier changes while a PR is open, a merge-time recompute records a
+  #     different tier from the one the PR was told, and the ledger disagrees
+  #     with the comment on the PR it came from.
+  #
+  # Consequence worth stating: a PR merged without the advisory comment ever
+  # landing (merged before it ran, or a fork PR whose comment step could not
+  # write) records NO row. That is correct. A row invented at merge time to
+  # avoid a gap in the series would be the same fabrication in a different coat.
   capture:
     name: Capture merged-PR tier row
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      issues: write
-      pull-requests: read
+      issues: write         # posts to the tracking issue
+      pull-requests: read   # reads the advisory comment back
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main       # main's copy of the rule, not the PR head's
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-
-      - name: Refuse a sentinel tracking issue
-        run: |
-          if [ "${MOLT_TIER_TRACKING_ISSUE}" = "0" ]; then
-            echo "::error::MOLT_TIER_TRACKING_ISSUE is still the 0 sentinel. Create the"
-            echo "::error::tracking issue, set the number in this workflow's env block, and"
-            echo "::error::add a drain step for it to smag-consolidate.yml. Until then the"
-            echo "::error::gap series has no sink and the MOLT_STATE falsifier cannot be"
-            echo "::error::computed. Failing loudly on purpose — a skip here is invisible."
-            exit 1
-          fi
-
-      - name: Collect changed files
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const files = await github.paginate(
-              github.rest.pulls.listFiles,
-              { owner: context.repo.owner, repo: context.repo.repo,
-                pull_number: context.issue.number, per_page: 100 }
-            );
-            require('fs').writeFileSync(
-              'changed_files.txt',
-              files.map(f => f.filename).join('\n') + '\n'
-            );
-
-      - name: Build the gap row
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          set -euo pipefail
-          python3 - <<'PY' > molt_tier_row.json
-          import json, os, sys
-          sys.path.insert(0, "tools")
-          from molting_protocol_diff_v1_0 import run
-
-          with open("changed_files.txt", encoding="utf-8") as fh:
-              files = fh.read().splitlines()
-
-          pr = int(os.environ.get("PR_NUMBER") or 0)
-          gap = run({"filepaths": files,
-                     "pr_body": os.environ.get("PR_BODY") or "",
-                     "pr_number": pr})["gap"]
-          # smag_consolidate_v1_0.py requires a `pr` key and dedups on it; the
-          # classifier's own record names the field `pr_number`. Adding `pr`
-          # here rather than renaming it there: the classifier is the subject of
-          # an unsigned Z2 ruling, and its schema is not this workflow's to edit.
-          gap.pop("evidence", None)   # paths belong in the PR, not the series
-          print(json.dumps({"pr": pr, **gap}, sort_keys=True))
-          PY
-
-      - name: Post the row to the tracking issue
+      # No checkout, no Python, no classifier. This job holds a write token and
+      # runs nothing from any branch.
+      - name: Copy the open-time snapshot to the tracking issue
         uses: actions/github-script@v7
         env:
           TRACKING_ISSUE: ${{ env.MOLT_TIER_TRACKING_ISSUE }}
         with:
           script: |
-            const fs = require('fs');
-            const raw = fs.readFileSync('molt_tier_row.json', 'utf8').trim();
-            // Re-parse before posting. The row is built from PR-authored text
-            // (the claimed tier is read out of the PR body), so it reaches this
-            // job as data to be validated, never as markup to be trusted.
-            const row = JSON.parse(raw);
-            if (typeof row.pr !== 'number') throw new Error('row.pr is not a number');
+            const issue = Number(process.env.TRACKING_ISSUE);
+            if (!issue) {
+              core.setFailed('MOLT_TIER_TRACKING_ISSUE is the 0 sentinel — set it '
+                + 'in this workflow and in smag-consolidate.yml, in the same change.');
+              return;
+            }
+            const { owner, repo } = context.repo;
+            const pr = context.issue.number;
+
+            const advisory = (await github.paginate(github.rest.issues.listComments,
+              { owner, repo, issue_number: pr, per_page: 100 }))
+              .find(c => c.body && c.body.includes('<!-- molt-tier-check -->'));
+            if (!advisory) {
+              core.warning(`no advisory comment on PR #${pr}; no row recorded. The `
+                + `series carries a gap here rather than a merge-time guess.`);
+              return;
+            }
+            const m = advisory.body.match(/<!-- molt-tier-snapshot (\{.*?\}) -->/s);
+            if (!m) {
+              core.warning(`the advisory comment on PR #${pr} carries no snapshot `
+                + `(posted before snapshots existed); no row recorded.`);
+              return;
+            }
+
+            // Rebuild the row field by field rather than forwarding what was
+            // parsed. The snapshot originates from a job that ran PR-head code,
+            // and this one can write to an issue the consolidator trusts.
+            const snap = JSON.parse(m[1]);
+            const tier = v => (Number.isInteger(v) && v >= 0 && v <= 2) ? v : null;
+            const VERDICTS = ['MATCH', 'UNDER_CLAIM', 'OVER_CLAIM', 'MISSING'];
+            const IMPACTS  = ['NONE', 'LOW', 'HIGH'];
+            const measured = tier(snap.molt_tier_measured);
+            if (measured === null) {
+              core.setFailed('snapshot molt_tier_measured is not a tier'); return;
+            }
+            const row = {
+              pr,                                    // from context, never the snapshot
+              molt_tier_claimed:  tier(snap.molt_tier_claimed),
+              molt_tier_measured: measured,
+              gap: Number.isInteger(snap.gap) ? snap.gap : null,
+              verdict: VERDICTS.includes(snap.verdict) ? snap.verdict : 'UNKNOWN',
+              accuracy_impact: IMPACTS.includes(snap.accuracy_impact)
+                ? snap.accuracy_impact : 'UNKNOWN',
+              classifier_version: String(snap.classifier_version || '').slice(0, 32),
+              measured_at: 'pr_open',
+              timestamp: String(snap.timestamp || '').slice(0, 40),
+            };
+
             const body = [
               '<!-- molt-tier-gap-row -->',
               `**PR #${row.pr}** — claimed \`${row.molt_tier_claimed}\`, ` +
-              `measured \`${row.molt_tier_measured}\`, verdict \`${row.verdict}\`.`,
+              `measured \`${row.molt_tier_measured}\`, verdict \`${row.verdict}\`. ` +
+              `Snapshot taken at PR open.`,
               '',
               '```json',
               JSON.stringify(row, null, 2),
               '```',
             ].join('\n');
-            await github.rest.issues.createComment({
-              owner: context.repo.owner, repo: context.repo.repo,
-              issue_number: Number(process.env.TRACKING_ISSUE), body,
-            });
+            await github.rest.issues.createComment(
+              { owner, repo, issue_number: issue, body });
 
   comment:
     name: Report tier to the PR
@@ -274,6 +282,7 @@ jobs:
           CLAIMED: ${{ needs.classify.outputs.claimed }}
           VERDICT: ${{ needs.classify.outputs.verdict }}
           EVIDENCE: ${{ needs.classify.outputs.evidence }}
+          ROW: ${{ needs.classify.outputs.row }}
         with:
           script: |
             const MARKER = '<!-- molt-tier-check -->';
@@ -311,6 +320,25 @@ jobs:
             }
             body += `\nAdvisory: this check never blocks a merge. The rule is the two path ` +
                     `lists in \`tools/molting_protocol_diff_v1_0.py\`.\n`;
+
+            // The open-time snapshot. This comment is the record of what the PR
+            // was measured as WHEN IT WAS OPEN, and the capture job copies this
+            // block verbatim into the gap ledger on merge rather than
+            // re-measuring — see the capture job for why that matters.
+            // Re-serialised from a parse, never pasted through as text, so a
+            // malformed value from the PR-head job cannot break out of the
+            // HTML comment it is wrapped in.
+            try {
+              const snap = JSON.parse(process.env.ROW || '{}');
+              if (Number.isInteger(snap.molt_tier_measured)) {
+                body += `\n<!-- molt-tier-snapshot ${JSON.stringify(snap)} -->\n`;
+              } else {
+                core.warning('classifier row carried no measured tier; no snapshot '
+                  + 'embedded, so this PR will record no gap row on merge.');
+              }
+            } catch (e) {
+              core.warning(`classifier row did not parse (${e.message}); no snapshot embedded.`);
+            }
 
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
