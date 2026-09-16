@@ -210,8 +210,22 @@ under_claim_falsifier: >-
   per-PR rejection.
 ```
 
-**Z2 note — two open items this creates.** (1) The gap rows are currently
-retained as CI build artifacts; wiring them into the SMAG self-accuracy ledger
+**Z2 note — two open items this creates.** (1) ~~The gap rows are currently
+retained as CI build artifacts~~ **Superseded: one row per merged PR is now
+posted to the molt-tier tracking issue by `molt-tier-check.yml`'s `capture` job
+and drained weekly by `smag-consolidate.yml` into
+`audits/molt_tier_gap_ledger.jsonl`, which is what makes the falsifier above
+computable (tracking issue #350). The build artifact is kept as a per-run debug
+copy only.
+
+The captured row is the snapshot the advisory comment recorded **at PR open**,
+copied on merge — not a re-measurement. `molt_tier_measured_at_pr_open: true`
+above is the contract, and a merge-time recompute would break it twice over:
+`molt_tier_claimed` is read from the PR body, which the author can edit after
+seeing the advisory result, and the classifier itself may change while a PR is
+open. A PR merged with no advisory comment therefore records no row — the series
+carries an honest gap rather than a merge-time guess.** Wiring them into the SMAG
+self-accuracy ledger
 at `data/lessons_learned_ledger.json` waits on the meta-SMAG consumer. (2) The
 classifier reports `molt_tier_measured`; nothing yet *enforces* that a measured
 Tier 1 carries a `molt_id`, or that a measured Tier 2 carries a registry entry
