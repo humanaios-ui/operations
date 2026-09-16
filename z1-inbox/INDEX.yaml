@@ -395,29 +395,37 @@ candidates:
     \ record, and the anti-cascade rules that would read it are wired nowhere"
   path: z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md
   submitted: '2026-09-15'
-  status: awaiting_z2
+  status: ratified
   note: "From the S-091526-01 findings scan (1 F / 5 IC / 1 H / 5 NM / 1 DUPLICATE\
     \ from 14 observations). Resolves the open_molt_count ambiguity: the open slot\
     \ is molt f7a49f667c09f1f6 (Q-RBE-01), not PR #342. Carries five proposed preventions\
     \ and an appendix on mending nf_resolved \u2014 including a \u00a7B.7 ledger-resolution\
     \ ritual step, which is a SESSION_RITUALS change and so Z2's alone."
+  ratified_by: Night
+  ratified_at: "2026-09-16"
+  z2_ruling: "z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md"
+  z2_hash: "44276df7c921d87cc388922155eace549f1f57b71134f65422d9be1770859eb2"
 - q_id: Q-INTENTOS-TEST-01
   title: "Intent-OS test surface — harness (T0–T4), dashboard, pathway;\
     \ d20 \xA7A adoption \xB7 d21 receipt in tree \xB7 d22 scale-out order \xB7 F-CAND\
     \ ACAT tests predate the write-token gate"
   path: z1-inbox/2026-09-16/Q-INTENTOS-TEST-01.md
   submitted: '2026-09-16'
-  status: awaiting_z2
+  status: ratified
   note: "First run on 7ff302d: 46 checks, 45 PASS, 1 FAIL (t3-pytest-acat: four ACAT\
     \ tests send no X-ACAT-Write-Token; no workflow runs them). Relay /decide→/ratify\
     \ proven over a socket (DRY_RUN) and verified by ratify.py; a board tap survives\
     \ reload in headless Chromium; REPOSITORY_STRUCTURE.md verified path by path."
+  ratified_by: Night
+  ratified_at: "2026-09-16"
+  z2_ruling: "z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md"
+  z2_hash: "eb568ab4a65efbae21927c646b18be459a0c8de8353d59fe8b4cc451f3ed36ae"
 - q_id: Q-MERGE-SCOPE-01
   title: "A PR with no Q-ID has no signing path, so the merge ratifies whatever it\
     \ happens to carry \u2014 #343 merged 21 files against a five-item enumerated scope"
   path: z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md
   submitted: '2026-09-16'
-  status: awaiting_z2
+  status: ratified
   note: "RECEIPT-GAP, reconciled against merge commit 880c01f. Five merged items are\
     \ UNSCOPED, not unratified: the merge is the ratifying act for a PR with no Q-ID,\
     \ so .z1-control/ratify.py (Tier 2 gate), its test, seven append-only NF_LEDGER\
@@ -426,6 +434,10 @@ candidates:
     \ to cover them: CLAUDE.md forbids changing a Z2 decision retroactively, so the fix\
     \ is a new RATIFY event carrying its own z2_hash with 880c01f as named subject (a\
     \ commit sha pins a tree, not a signature). Three dispositions, eight-item checklist."
+  ratified_by: Night
+  ratified_at: "2026-09-16"
+  z2_ruling: "z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md"
+  z2_hash: "f04b05d31dad3138c47b3875b2104776b3f4a80a65c5d1a376ec50f867dac53a"
 records:
 - path: z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md
   title: "Z2 rulings \u2014 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01\
