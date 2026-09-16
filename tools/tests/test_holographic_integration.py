@@ -401,12 +401,12 @@ class TestRequestCredentialRedaction(unittest.TestCase):
     """Test that credentials are redacted from error messages."""
 
     @patch('holographic_orchestrator.CAPTURE_SERVICE_URL', 'https://capture.example.com')
-    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'sk_FAKETEST_NOT_A_REAL_KEY_x1x2x3x4x5x6')
+    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'service_key_test_value_123456789abcdef')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_capture_error_redacts_key(self, mock_urlopen):
         """Capture error logs redact the service key."""
         error = HTTPError("http://example.com", 401, "Unauthorized", {},
-                         io.BytesIO(b"Invalid key: sk_FAKETEST_NOT_A_REAL_KEY_x1x2x3x4x5x6_ignored"))
+                         io.BytesIO(b"Invalid key: service_key_test_value_123456789abcdef_suffix"))
         mock_urlopen.side_effect = error
 
         with self.assertRaises(CaptureServiceError) as ctx:

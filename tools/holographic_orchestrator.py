@@ -112,6 +112,7 @@ def redact_for_log(s: str) -> str:
     s = re.sub(r"eyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+", "***REDACTED***", s)
     s = re.sub(r"sk_[A-Za-z0-9_\-]{20,}", "***REDACTED***", s)
     s = re.sub(r"pk_[A-Za-z0-9_\-]{20,}", "***REDACTED***", s)
+    s = re.sub(r"(service_key|api_key)[_\-][A-Za-z0-9_\-]{20,}", "***REDACTED***", s)
     # URL tokens
     s = re.sub(r"(apikey=)[A-Za-z0-9_\-\.]+", r"\1***REDACTED***", s)
     return s
@@ -617,7 +618,7 @@ def run_smoke_test() -> bool:
         assert "stages" in out, "Missing stages in dry run"
 
         # Test 4: Redaction
-        sample_key = "sk_FAKETEST_NOTREAL_abcdefghijklmnop"
+        sample_key = "service_key_demo_value_123456789abcdef"
         redacted = redact_for_log(f"key={sample_key}")
         assert sample_key not in redacted, "Service key not redacted"
         assert "***REDACTED***" in redacted, "Redaction marker missing"
