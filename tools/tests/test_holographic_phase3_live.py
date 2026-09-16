@@ -29,7 +29,8 @@ from typing import Any
 # Import the orchestrator
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from holographic_orchestrator import HolographicOrchestrator, CaptureMode, RenderTarget
+import holographic_orchestrator as orchestrator_module
+from holographic_orchestrator import CaptureMode, RenderTarget
 
 
 class Phase3LiveTester:
@@ -42,7 +43,6 @@ class Phase3LiveTester:
     """
 
     def __init__(self):
-        self.orchestrator = HolographicOrchestrator()
         self.replicate_api_key = os.getenv("REPLICATE_API_KEY", "")
         self.supabase_url = os.getenv("SUPABASE_URL", "")
         self.supabase_key = os.getenv("SUPABASE_KEY", "")
@@ -119,7 +119,7 @@ class Phase3LiveTester:
 
         # Run dry-run
         try:
-            dry_result = self.orchestrator.run(dry_spec)
+            dry_result = orchestrator_module.run(dry_spec)
             dry_keys = set(dry_result.get("stages", {}).keys())
         except Exception as e:
             self.results["tests"].append(
@@ -165,7 +165,7 @@ class Phase3LiveTester:
 
         start = time.time()
         try:
-            result = self.orchestrator.run(dry_spec)
+            result = orchestrator_module.run(dry_spec)
             elapsed = time.time() - start
             self.latency_measurements = {
                 "test": "dry_run_latency",
