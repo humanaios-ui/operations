@@ -264,21 +264,29 @@ def submit_capture_job(
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
 
-    try:
-        with urllib.request.urlopen(req, timeout=POST_TIMEOUT) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-            return {
-                "capture_job_id": result.get("id"),
-                "status": result.get("status", "submitted"),
-                "asset_url": result.get("asset_url"),
-            }
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")[:500]
-        raise CaptureServiceError(
-            f"Capture service HTTP {exc.code}: {redact_for_log(body)}"
-        ) from exc
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        raise CaptureServiceError(f"Capture service request failed: {exc}") from exc
+    # Retry with exponential backoff on 5xx errors
+    max_retries = 2
+    for attempt in range(max_retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=POST_TIMEOUT) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+                return {
+                    "capture_job_id": result.get("id"),
+                    "status": result.get("status", "submitted"),
+                    "asset_url": result.get("asset_url"),
+                }
+        except urllib.error.HTTPError as exc:
+            # Retry on 5xx errors
+            if 500 <= exc.code < 600 and attempt < max_retries:
+                delay = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                time.sleep(delay)
+                continue
+            body = exc.read().decode("utf-8", errors="replace")[:500]
+            raise CaptureServiceError(
+                f"Capture service HTTP {exc.code}: {redact_for_log(body)}"
+            ) from exc
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            raise CaptureServiceError(f"Capture service request failed: {exc}") from exc
 
 
 # ---------------------------------------------------------------------------
