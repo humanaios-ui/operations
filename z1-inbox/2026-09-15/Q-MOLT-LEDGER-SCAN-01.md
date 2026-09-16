@@ -232,10 +232,16 @@ F-64 registers the gap; it does not say how to close it. Three facts, all execut
   `source` (sha or path); no source → refused"* — and refuses to resolve a token still in
   `PENDING_Z2_DATE`. `score` computes Brier per predictor over RESOLVED pins only. **This is unrun
   tooling, not missing tooling.**
-- **48 Z1 pins are scoreable right now.** `nf_ledger_v0_1.py status ledgers/NF_LEDGER.jsonl` reports
-  tokens `{DATED: 37, PENDING_Z2_DATE: 21}` and, per predictor, Z1 `75 total / 75 entered / 48
-  scoreable-now`, plus ~11 practice pins scoreable across the mesh predictors. Nothing blocks resolving
-  those 48 except somebody running the command with a tree read behind each verdict.
+- **~~48 Z1 pins are scoreable right now.~~ CORRECTED 2026-09-16 (P2, in place): 7 were ripe, not 48.**
+  The earlier figure misread the tool. `scoreable-now` is computed as `p["scoreable"] and p["p"] is not
+  None` — "the pin is well-formed and its token carries a Z2 date." It says **nothing** about whether
+  the measurement window has closed. The binding rule is the spec's own resolver in
+  `ledgers/mesh_pins_090826.json`: *"tree read of the named repo at date+3 (UTC); missing file = NO;
+  final read 2026-10-04."* At 2026-09-16 that made **7** tokens ripe and 51 not yet (earliest
+  2026-09-18). Resolving the other 51 would have been scoring predictions before their windows closed —
+  manufacturing the exact data this block warns against. The error is left visible rather than
+  silently overwritten; it is itself an instance of reading a tool's column name instead of its
+  definition.
 - **21 tokens are blocked on Z2, not on Z1.** They sit in `PENDING_Z2_DATE` and cannot be resolved until
   a `date` event signed by Z2 lands. That is a genuine ratifier dependency and it is the mechanism
   F-62 (*Ratification Attention Is the Binding Constraint*) predicts.
@@ -272,6 +278,62 @@ zero and give F-64 its first evidence.
 Deliberately **not** proposed: auto-resolution. A pin resolved by a script that infers the outcome from
 anything other than a tree read manufactures calibration data, which is worse than having none — it is
 IC-031's cost class pointed at the calibration programme itself.
+
+### Executed — 2026-09-16, first resolution pass in the ledger's history
+
+Seven ripe tokens resolved **NO** by tree read of `empirica-practice-mesh` @
+`f2d37a87ec8da924de4c15319528e8e236b02aa2`, each RESOLVE carrying that sha plus the practice path as
+its `source`:
+
+| token | due | read-at | p | outcome |
+|:--|:--|:--|:--|:--|
+| `T-empirica-outreach-01` | 2026-09-06 | 09-09 | 0.6 | NO |
+| `T-grok-crossref-01` | 2026-09-08 | 09-11 | 0.5 | NO |
+| `T-grok-crossref-02` | 2026-09-10 | 09-13 | 0.45 | NO |
+| `T-empirica-foundation-evaluator-01` | 2026-09-12 | 09-15 | 0.4 | NO |
+| `T-empirica-outreach-02` | 2026-09-12 | 09-15 | 0.4 | NO |
+| `T-grok-crossref-03` | 2026-09-12 | 09-15 | 0.4 | NO |
+| `T-opportunity-aggregator-01` | 2026-09-12 | 09-15 | 0.4 | NO |
+
+**Basis for every NO:** each of those four practice directories contains exactly one file,
+`.empirica/project.yaml`, added 2026-09-11 in commit `48fb0a1`. Across all 12 commits of the repository's
+history, `git log --diff-filter=AD` shows no deliverable was ever added under them and none was deleted.
+The named artifacts never existed. Per the spec, missing file = NO.
+
+**Measured effect:**
+
+| metric | before | after |
+|:--|:--|:--|
+| `nf_resolved` | 0 | 7 |
+| `brier_overall` | null | 0.2075 |
+| `stocks.EVID-row` | 0 | 7 |
+| `stocks.CAL-pt` | 0 | 7 |
+
+Chain verified intact at 172 events. **F-64's falsifier is NOT tripped** — its condition was "any
+sourced RESOLVE event in the tree that `resource_census_v0_1.py` fails to count," and the census counts
+all seven as MEASURED. F-64 now has its first evidence, and Z1's Brier of 0.208 sits below the 0.25
+coin-flip baseline.
+
+**What the run surfaced that drafting did not:**
+
+1. **"The named repo" is under-specified.** The practices are not repositories — no `empirica-outreach`
+   or `grok-crossref` repo exists. They are directories inside `empirica-practice-mesh` (Z-007). That
+   reading is recorded in each RESOLVE's `source` so it is auditable; if Z2 reads "the named repo"
+   differently, the correction path is a DISPUTE event, not an edit.
+2. **Resolution needs cross-repo read access**, which the operations session scope does not cover. It
+   worked only because the repository is public and the git proxy serves anonymous reads. A private
+   practice repo would have blocked the pass outright.
+3. **The cost is front-loaded, not per-pin.** The reads themselves were seconds. Nearly all the effort
+   went to locating the resolver rule and mapping practice → repo. That is the load-bearing input for
+   §B.7: a per-session resolution step is cheap **only once the resolver mapping is written down**.
+   Proposing §B.7 without first recording that mapping would ship a ritual whose real cost nobody
+   has measured.
+4. **A delivery signal, not just a calibration one.** Seven of seven practice deliverables due on or
+   before 2026-09-12 do not exist. That is a mesh-execution finding in its own right and is not what
+   this block was scanning for; flagged for Z2 rather than folded into an existing candidate.
+
+Still blocked, unchanged: 21 tokens in `PENDING_Z2_DATE` cannot be resolved until a Z2-signed `date`
+event lands. 30 tokens remain DATED with windows still open (earliest ripe 2026-09-18).
 
 ---
 
@@ -311,5 +373,8 @@ Per candidate, each independently falsifiable against the tree at the pinned SHA
   label.
 - `H-CAND-MOLT-TIER-UNDERCLAIM-01` — falsified by ≥30 measured PRs with an under-claim rate at or
   below 5%.
-- **Appendix** — falsified if `nf_ledger_v0_1.py status` reports zero scoreable-now pins, which would
-  mean the backlog is blocked on Z2 dating rather than on Z1 effort. It reports 48 for Z1.
+- **Appendix** — ~~falsified if `nf_ledger_v0_1.py status` reports zero scoreable-now pins…~~
+  **Superseded by execution, 2026-09-16.** The claim was tested by running the pass rather than
+  arguing it. 7 ripe tokens were resolved by tree read; `nf_resolved` moved 0 → 7 and `brier_overall`
+  null → 0.2075. The appendix's substantive claim — that the tooling exists and the work is Z1's, not
+  Z2's — held. Its *number* did not. See "Executed" below.
