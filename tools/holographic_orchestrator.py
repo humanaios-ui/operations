@@ -616,7 +616,7 @@ def run_smoke_test() -> bool:
         assert "stages" in out, "Missing stages in dry run"
 
         # Test 4: Redaction
-        sample_key = "sk_live_1234567890abcdefghij"
+        sample_key = "sk_FAKETEST_NOTREAL_abcdefghijklmnop"
         redacted = redact_for_log(f"key={sample_key}")
         assert sample_key not in redacted, "Service key not redacted"
         assert "***REDACTED***" in redacted, "Redaction marker missing"
