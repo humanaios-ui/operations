@@ -238,11 +238,11 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 `z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md`
 
 - [ ] Disposition for the scope gap: option 1, 2 or 3 above.
-- [ ] Ruling 6 — `ratify.py` 1.2.0 and `tools/tests/test_ratify_index_write.py`. It names the pair but is `AWAITING Z2` and unsigned.
-- [ ] The seven `NF_LEDGER.jsonl` RESOLVE rows — ratify as written, or dispute. Append-only: a wrong resolution is correctable only by a DISPUTE event, never by deletion.
+- [ ] `ratify.py` 1.2.0 and `tools/tests/test_ratify_index_write.py`. Ruling 6 names the pair but is `AWAITING Z2`, and it **cannot be signed directly** — the rulings file is indexed under `records:`, and `ratify.py` only resolves a `q_id` from `candidates:`. Needs a new indexed candidate, or an explicit manual signing mechanism.
+- [ ] The seven `NF_LEDGER.jsonl` RESOLVE rows — **record the merge disposition that already applies**, or issue a DISPUTE. Not "ratify as written": this block establishes that the merge ratified them, so asking whether to ratify reopens a status it just settled. Append-only, so a wrong resolution is correctable only by a DISPUTE event, never by deletion.
 - [ ] `ledgers/PRACTICE_RESOLUTION_MAP.md` — it declares itself unratified; ratify, or leave it so.
 - [ ] `.gitleaks.toml` — a security-scanner allowlist, merged with no decision naming it.
-- [ ] Prevention: P2 now (independent), then P1-with-scope, then P3 — or none. P1 without a declared machine-readable scope does not close this.
+- [ ] Prevention: MS-2 now (independent), then MS-1-with-scope, then MS-3 — or none. MS-1 without a declared machine-readable scope does not close this. (MS- labels, because `GOVERNANCE.md` already owns P1/P2/P3.)
 - [ ] `IC-CAND-MERGE-RATIFIES-UNSCOPED-01` — register as IC, or NM.
 - [ ] Whether this extends **H-GOV-01**'s `evidence_basis` as the sixth instance. The register is append-only and the forward-pointer is Z2's to write; Z1 has not proposed the edit.
 

@@ -89,8 +89,10 @@ is the merge, and nothing compares what merged against what was accepted.
 
 Ruling 6 already records the asymmetry in one line: *"a PR changing a gate has a weaker signing path than
 a candidate block changing prose."* This is that asymmetry costing something measurable. A candidate
-block's `z2_hash` pins content, so `ratify.py --verify` shows any drift; a merge pins nothing, and the
-enumeration lives in prose that no gate reads.
+block's `z2_hash` pins content, so `ratify.py --verify` shows any drift. A merge pins a tree — `880c01f`
+is as immutable as any digest — but **no signed ruling names that sha**, nothing recomputes anything
+against it, and the enumeration that was supposed to bound it lives in prose no gate reads. The defect is
+not that the merge is unpinned; it is that the pin and the decision were never connected.
 
 Same shape as the class already registered this session: the principle existed and was documented, the
 mechanism was absent. That is limb (a) of **H-GOV-01**'s promotion gate, and this is the sixth instance.
@@ -106,10 +108,17 @@ Each is a **new RATIFY event**, not an amendment.
    the normal way and *names* `880c01f` as what it decides about. Strongest pin — a sha cannot drift the
    way an enumeration can — but it accepts five items wholesale, ledger rows included, on the strength of
    them already being in the tree.
-2. **Ratify the unscoped items individually.** Sign Ruling 6, which names `ratify.py` 1.2.0 and its test
-   but is currently `AWAITING Z2`; then separate decisions for the `NF_LEDGER` resolutions,
-   `PRACTICE_RESOLUTION_MAP.md` and `.gitleaks.toml`. Slowest, and the most honest about the fact that
-   four unrelated things rode one merge.
+2. **Ratify the unscoped items individually.** Note the mechanics first, because an earlier draft of this
+   block got them wrong: **"sign Ruling 6" is not executable.** `Z2_RULINGS_2026-09-16.md` is indexed
+   under `records:`, not `candidates:`, and `cmd_ratify` resolves its argument with `find(index, q_id)`
+   over the candidate list and errors out otherwise. There is no `q_id` to pass. So this option means
+   **filing a new indexed candidate** for the `ratify.py` 1.2.0 disposition — which Ruling 6 already
+   describes, so the candidate is a short block pointing at it — and separate decisions for the
+   `NF_LEDGER` resolutions, `PRACTICE_RESOLUTION_MAP.md` and `.gitleaks.toml`. Slowest, and the most
+   honest about the fact that four unrelated things rode one merge.
+
+   That an instruction named a mechanism which cannot perform it is the **third** instance of this
+   block's own class inside this block. Recorded rather than quietly repaired.
 3. **Both.** Option 1's ruling — own digest, `880c01f` as named subject — with option 2's enumeration
    written beneath it, so the record carries the pin and the reasoning.
 
@@ -121,38 +130,52 @@ leaves the same prose-free record that produced this gap; option 2 alone leaves 
 
 Not applied — this is a Z2 call, and one of these is itself Tier 2.
 
-- **P1 — a PR touching a Tier 1 or Tier 2 path requires a Q-ID.** Routes the PR through `ratify.py`, so
+*(Labelled **MS-** for merge-scope. `P1`, `P2` and `P3` are taken: `GOVERNANCE.md` F2 defines them as
+Infrastructure Framing, Document Correction and GitHub Verification — and this block invokes the real P2
+above, for correcting a document in place. An earlier draft reused the names for these three, which made
+"P2 does not apply" and "P2 is independent, do it now" both true of different things in one file.)*
+
+- **MS-1 — a PR touching a Tier 1 or Tier 2 path requires a Q-ID.** Routes the PR through `ratify.py`, so
   a Z2 signature exists and pins the candidate's bytes. Costs a candidate block per gate PR.
-- **P2 — name the merge sha in the ruling.** Cheapest; gives the decision an immutable subject. Detects
+- **MS-2 — name the merge sha in the ruling.** Cheapest; gives the decision an immutable subject. Detects
   nothing on its own.
-- **P3 — a check comparing the merged file list against the ruling's declared scope.** The only one of
+- **MS-3 — a check comparing the merged file list against the ruling's declared scope.** The only one of
   the three that can actually fail. Needs the scope to be machine-readable, which today it is not.
 
-**P1 and P3 are not alternatives — P3 depends on P1 being extended.** An earlier draft of this block
+**MS-1 and MS-3 are not alternatives — MS-3 depends on MS-1 being extended.** An earlier draft of this block
 offered them as either/or, which was wrong and is corrected here. `ratify.py` signs the candidate's
 *bytes*; it never compares the candidate's scope against the merged file list, and nothing else does
 either. A Q-ID alone therefore produces a signature that says "Night decided about this document" and
 still cannot detect a merge carrying files the document never mentioned — which is this incident exactly.
 
-For P3 to be buildable, P1 has to be extended: the candidate block must declare its scope as a
+For MS-3 to be buildable, MS-1 has to be extended: the candidate block must declare its scope as a
 **machine-readable file list** (front-matter, alongside the `source_pr` field these blocks already
-carry), not as the prose sentence Ruling 1 used. Then P3 is a diff of two lists and the signature covers
+carry), not as the prose sentence Ruling 1 used. Then MS-3 is a diff of two lists and the signature covers
 the list, because the list is part of the bytes being hashed.
 
-That changes the cost estimate. P1-plus-scope is more work than "require a Q-ID," and P3 is cheap once it
-exists. The ordering is P2 (independent, now) → P1-with-scope → P3.
+That changes the cost estimate. MS-1-plus-scope is more work than "require a Q-ID," and MS-3 is cheap
+once it exists. The ordering is MS-2 (independent, now) → MS-1-with-scope → MS-3.
 
 ## Falsifier
 
-**If P1-with-scope and P3 are ratified and applied, then for the next 10 PRs touching a Tier 1 or Tier 2
+**If MS-1-with-scope and MS-3 are ratified and applied, then for the next 10 PRs touching a Tier 1 or Tier 2
 path, the set of files in the merge commit is a subset of the machine-readable scope declared in that
 PR's ratifying act.**
 
-Stated against P1-with-scope *and* P3 together, not either alone: P1 without a declared scope produces a
+Stated against MS-1-with-scope *and* MS-3 together, not either alone: MS-1 without a declared scope produces a
 signature that cannot be compared to anything, so it could not make this falsifier pass and naming it
 here would have made the prediction unfalsifiable by construction.
 
-Falsified if any such PR merges carrying a Tier 1 or Tier 2 path that its ratifying act does not name.
+Falsified if any such PR merges carrying **any file** its ratifying act does not name — not only a Tier 1
+or Tier 2 path. An earlier draft tested only the Tier 1/2 subset while the antecedent said "the set of
+files in the merge commit," so a PR could add an unlisted `README.md` beside a correctly-named gate path
+and pass a falsifier it was violating.
+
+The stronger reading is also the one this incident supports: of the five unscoped items,
+`.gitleaks.toml` and `ledgers/PRACTICE_RESOLUTION_MAP.md` are **neither** Tier 1 nor Tier 2, and they are
+squarely part of the gap. A test scoped to gate paths would have missed two of the five it was written
+about.
+
 Measured by reconciling each merge commit against its ruling, the same walk performed above.
 
 Directional on purpose: a merge carrying **fewer** files than the ruling scoped is not a falsification —
@@ -184,14 +207,19 @@ silently absent from the generated queue in `Z1_INBOX_INDEX.md`. A checklist nob
 failure class this block is about.)*
 
 - [ ] Disposition for the scope gap: option 1, 2 or 3 above.
-- [ ] Ruling 6 — `ratify.py` 1.2.0 and `tools/tests/test_ratify_index_write.py`. It names the pair but is
-      `AWAITING Z2` and unsigned.
-- [ ] The seven `NF_LEDGER.jsonl` RESOLVE rows — ratify as written, or dispute. Append-only: a wrong
-      resolution is correctable only by a DISPUTE event, never by deletion.
+- [ ] `ratify.py` 1.2.0 and `tools/tests/test_ratify_index_write.py`. Ruling 6 names the pair but is
+      `AWAITING Z2`, and it **cannot be signed directly** — the rulings file is indexed under `records:`,
+      and `ratify.py` only resolves a `q_id` from `candidates:`. Needs a new indexed candidate, or an
+      explicit manual signing mechanism.
+- [ ] The seven `NF_LEDGER.jsonl` RESOLVE rows — **record the merge disposition that already applies**,
+      or issue a DISPUTE. Not "ratify as written": this block establishes that the merge ratified them,
+      so asking whether to ratify reopens a status it just settled. Append-only, so a wrong resolution is
+      correctable only by a DISPUTE event, never by deletion.
 - [ ] `ledgers/PRACTICE_RESOLUTION_MAP.md` — it declares itself unratified; ratify, or leave it so.
 - [ ] `.gitleaks.toml` — a security-scanner allowlist, merged with no decision naming it.
-- [ ] Prevention: P2 now (independent), then P1-with-scope, then P3 — or none. P1 without a declared
-      machine-readable scope does not close this.
+- [ ] Prevention: MS-2 now (independent), then MS-1-with-scope, then MS-3 — or none. MS-1 without a
+      declared machine-readable scope does not close this. (MS- labels, because `GOVERNANCE.md` already
+      owns P1/P2/P3.)
 - [ ] `IC-CAND-MERGE-RATIFIES-UNSCOPED-01` — register as IC, or NM.
 - [ ] Whether this extends **H-GOV-01**'s `evidence_basis` as the sixth instance. The register is
       append-only and the forward-pointer is Z2's to write; Z1 has not proposed the edit.
