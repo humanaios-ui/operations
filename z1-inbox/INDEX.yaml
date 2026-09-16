@@ -2,8 +2,8 @@ version: 1
 generated: '2026-09-14'
 decision_window_days: 2
 counts:
-  candidates: 43
-  records: 22
+  candidates: 44
+  records: 23
 ratifiers:
 - Night
 candidates:
@@ -401,7 +401,21 @@ candidates:
     \ is molt f7a49f667c09f1f6 (Q-RBE-01), not PR #342. Carries five proposed preventions\
     \ and an appendix on mending nf_resolved \u2014 including a \u00a7B.7 ledger-resolution\
     \ ritual step, which is a SESSION_RITUALS change and so Z2's alone."
+- q_id: Q-INTENTOS-TEST-01
+  title: "Intent-OS test surface — harness (T0–T4), dashboard, pathway;\
+    \ d20 \xA7A adoption \xB7 d21 receipt in tree \xB7 d22 scale-out order \xB7 F-CAND\
+    \ ACAT tests predate the write-token gate"
+  path: z1-inbox/2026-09-16/Q-INTENTOS-TEST-01.md
+  submitted: '2026-09-16'
+  status: awaiting_z2
+  note: "First run on 7ff302d: 46 checks, 45 PASS, 1 FAIL (t3-pytest-acat: four ACAT\
+    \ tests send no X-ACAT-Write-Token; no workflow runs them). Relay /decide→/ratify\
+    \ proven over a socket (DRY_RUN) and verified by ratify.py; a board tap survives\
+    \ reload in headless Chromium; REPOSITORY_STRUCTURE.md verified path by path."
 records:
+- path: z1-inbox/2026-09-16/HANDOFF.md
+  title: "Handoff — 2026-09-16 (Intent-OS test surface: harness, dashboard, pathway,\
+    \ repository index)"
 - path: z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md
   title: "Z2 ruling \u2014 AMBIGUITY-BSM-D: Z2-GOVARCH-02 supersedes SESSION_RITUALS\
     \ \xA7A.1; amend to WGS-primary / halt-only-if-both-fail (Night, 2026-09-14)"

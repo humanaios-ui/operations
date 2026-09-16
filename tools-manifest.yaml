@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 155
+  tools: 156
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 126
+  builder_markers_present: 127
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -1973,6 +1973,20 @@ tools:
   builder_markers: true
   purpose: smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy.
   session: S-091526-meta
+- tool_id: HAIOS-TOOL-164
+  name: intent_os_test_harness
+  path: tools/intent_os_test_harness_v1_0.py
+  version: 1.0.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_os_test_harness — run every check the Intent-OS control surface rests on, and say which
+    held.
+  session: S-091626-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
