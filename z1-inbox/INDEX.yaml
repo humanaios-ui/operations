@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-09-14'
+generated: '2026-09-16'
 decision_window_days: 2
 counts:
   candidates: 43
-  records: 23
+  records: 24
 ratifiers:
 - Night
 candidates:
@@ -402,6 +402,12 @@ candidates:
     \ proven over a socket (DRY_RUN) and verified by ratify.py; a board tap survives\
     \ reload in headless Chromium; REPOSITORY_STRUCTURE.md verified path by path."
 records:
+- path: z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md
+  title: "Holographic self-representation hypothesis testing protocol (Phase 2 integration\
+    \ mocks, Phase 3 live services, Phase 4 verdict analysis)"
+  note: "Testing protocol for H-HOLO-SELF-REP-01, ratified via REGISTERED.md Z2 decision\
+    \ entry (2026-09-16). See REGISTERED.md for full ratification details, falsifiers,\
+    \ and deliverables."
 - path: z1-inbox/2026-09-16/HANDOFF.md
   title: "Handoff — 2026-09-16 (Intent-OS test surface: harness, dashboard, pathway,\
     \ repository index)"
