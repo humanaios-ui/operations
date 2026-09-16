@@ -1,8 +1,8 @@
 # HumanAIOS Session Rituals — Substrate-Agnostic
 
 **Status:** LIVE
-**Version:** v6.4.1
-**Last updated:** May 19, 2026 (S-051926-02-z3-closeout · Empirical Verification Block + Receipt Reconciliation + Locus-of-Correction Note added · F-44/F-45 grounded)
+**Version:** v6.4.2
+**Last updated:** September 16, 2026 (S-091526-01-molt-classifier · §A.1 amended per signed Z2 ruling AMBIGUITY-BSM-D · v6.4.1 content otherwise unchanged)
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/SESSION_RITUALS.md`
 **Scope:** Applies to every LLM substrate operating in HumanAIOS (Claude, Grok, GPT-5.x, Gemini, future). Substrate-specific extensions (the Claude Project CI, the Grok Workspace L1) sit on top of this.
 **Authority:** This file is the canonical parser-tag specification for the ACAT protocol. When any other operations file restates a parser-critical tag, the spec in this file wins.
@@ -22,6 +22,10 @@
   - **Section B.6:** Mandatory Receipt Reconciliation paragraph
   - **Section C rubric:** Tightened scoring guidance for truth / humility / consist / handoff
   - **Section C Amendment B cleanup:** SESSION_TYPE field reformatted as a clean structured field (named as a silent failure in S-051926-01 close)
+- **v6.4.2** committed via S-091526-01-molt-classifier (September 16, 2026). One amendment, no other content change:
+  - **Section A Step 1:** WGS primary / haioscc secondary; halt only if **both** fail, DEGRADED declared when exactly one does. Per Z2 ruling `Z2-AMBIGUITY-BSM-D` (Night, 2026-09-14, `z2_hash: d656299cf62089ce5a4881663bd29dd200ad0694390e0d3a6a0b763b5bfa2c13`), whose scope was that step only. Z2-GOVARCH-02 governs: the prior "if either fails, halt" composed with haioscc being unreachable from Claude's bash environment into a halt every session was required to take and none did.
+  - **Version bump rationale:** the amendment landed on 2026-09-15 while the header still declared v6.4.1, so the file's content and its declared version disagreed for a day. Bumping is a separate Z2 act from the amendment — the BSM-D ruling scoped itself to Step 1 and did not authorise touching the header — and was ruled by Night on 2026-09-16.
+  - **Still open, deliberately not folded in:** Section F halt condition 1 ("A canonical-source fetch fails or returns unexpected data") is now in tension with the amended §A.1. Flagged, not resolved; it wants its own ruling rather than being carried silently on this bump.
 - **Pending amendments:** E-G (held — Supabase gate, CURRENT.md push, schema extension). Tracked separately in PROTOCOL_AMENDMENTS_V55_S051826-05.md.
 
 ---
@@ -420,6 +424,12 @@ This file is the parser-tag specification and protocol-layer authority. Everythi
 
 ## Changelog
 
+- **2026-09-16 (S-091526-01-molt-classifier) · v6.4.2** —
+  - **Section A Step 1 amended** per signed Z2 ruling `Z2-AMBIGUITY-BSM-D` (Night, 2026-09-14, `z2_hash: d656299cf62089ce5a4881663bd29dd200ad0694390e0d3a6a0b763b5bfa2c13`). WGS is primary per Z2-GOVARCH-02; the two haioscc endpoints are secondary cross-checks whose unreachability from a substrate's bash environment is expected rather than an incident; halt only if **both** fail, and declare DEGRADED in the Phase 1 header when exactly one does. A substrate that skips the primary and reports the secondary's failure as a halt has not satisfied the step.
+  - **What this removed:** the prior "if either fails, halt and report" composed with Z2-GOVARCH-02's record of haioscc as unreachable into a halt every Claude session was required to take and none did — a halt condition with no declaration and no drift signal behind it.
+  - **Delivery note, kept as record:** the ruling was signed 2026-09-14 and the canonical file did not receive it until 2026-09-15. The revert-pending-signature was correct procedure; the re-application after signature is the step that did not happen. `z2_ratification_gate.yml` does not list `SESSION_RITUALS.md` among its trigger paths, so no gate observed either the amendment or its absence.
+  - **Version bump** is a separate Z2 act from the amendment (BSM-D scoped itself to Step 1 and did not authorise the header), ruled by Night on 2026-09-16. No other content changed in this revision.
+  - **Deliberately not folded in:** Section F halt condition 1 is now in tension with the amended §A.1 and wants its own ruling.
 - **2026-05-19 (S-051926-02-z3-closeout) · v6.4.1** —
   - **Section A.0 (Locus-of-Correction Note)** added. Grounds F-45 (Stateless-Substrate Correction Locus, Z2 ratified S-051926-02). Names protocol layer as the reliable locus of structural correction for stateless inference-engine substrates.
   - **Section B.0 (Empirical Verification Block)** added at Phase 2.5. Hard gate before any session-close artifact assertion. Required `git status --short`, `git log -1 --oneline`, `git diff --cached --name-only`, file listings, Slack searches, Supabase queries depending on session content. IC-031 fix; H-RCO-01 test bench.
