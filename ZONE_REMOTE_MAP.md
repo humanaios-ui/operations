@@ -97,9 +97,10 @@ the answer.
 Worth noting separately: `LastingLightAI/HAIOSCC` is the source of the `haioscc.pages.dev` endpoints
 that `SESSION_RITUALS.md` §A.1 names as the secondary fetch. It appears in no registry.
 
-## 4 · Count reconciliation
+## 4 · Count reconciliation — and the registry disagrees with itself
 
-`ZONE_REGISTRY.md` titles itself a **31-Zone Ecosystem Map**. The arithmetic holds:
+`ZONE_REGISTRY.md` titles itself a **31-Zone Ecosystem Map**, and against `PLANNED_REPOS.md` that
+number reconciles:
 
 | | count |
 |:--|--:|
@@ -110,6 +111,28 @@ that `SESSION_RITUALS.md` §A.1 names as the secondary fetch. It appears in no r
 
 Stated because "31 repos" is quoted often and the registry itself names only twelve; a reader who
 expects 31 rows and finds 12 is looking at a correct file.
+
+**But the registry's own metadata block does not agree with the registry's own title.**
+`ZONE_REGISTRY.md:125–127`:
+
+```yaml
+  total_active_zones: 12
+  total_planned_zones: 20
+  total_ecosystem: 32
+```
+
+12 + 20 = 32, which is internally consistent and is **not** the 31 in the file's title on line 1. And
+`total_planned_zones: 20` is one more than the 19 rows `PLANNED_REPOS.md` actually carries (11 + 2 + 6).
+So there are three figures in play — 31 (title), 32 (metadata), 31 (derived from the roadmap file) —
+and no source reconciles all three.
+
+An earlier revision of this section said only that "the arithmetic holds," having reconciled the title
+against `PLANNED_REPOS.md` without reading the metadata block twelve lines further down **in the same
+file**. One arithmetic holds. The file's two self-descriptions do not.
+
+Which figure is correct is **Z2's**, not this file's: `ZONE_REGISTRY.md` is ratified, and both the title
+and the metadata are inside it, so either correction is an edit to a ratified instrument. Recorded here
+as an observed contradiction, not resolved.
 
 ## 5 · Local clones
 
@@ -167,7 +190,7 @@ directories, some of which are independent git repos with remotes that do not ma
 | **`empirica-outreach`** | **`humanaios-ui/operations.git`** | **points at the governance repo** |
 | **`empirica-foundation-evaluator`** | **`humanaios-ui/humanaios.git`** | **points at the core platform** |
 | `empirica-mesh-support` | `humanaios-ui/empirica-mesh-support.git` | remote **does not exist** — PLANNED, never created |
-| `website` | `git.getempirica.com/carly/website.git` | a **non-GitHub host**; no registry covers it |
+| `website` | `git.getempirica.com/carly/website.git` | **PLANNED** (`PLANNED_REPOS.md:55`), so not unregistered — but its remote is a **non-GitHub host**, which no registry records |
 | `humanaios` | `git@…humanaios.git` (SSH) | Z-001, the only SSH remote |
 | `humanaios.archive.20260911-112252` | `git@…humanaios.git` (SSH) | archive clone, same remote |
 | `acat-x` | `humanaios-ui/acat-x.git` | Z-004 — **second clone**, also in `github/` |
@@ -178,15 +201,30 @@ directories, some of which are independent git repos with remotes that do not ma
 
 **A push from `empirica-outreach` goes to `operations`.** Same for `empirica-foundation-evaluator` and
 `humanaios`. Nothing about the directory name says so; `git push` from either succeeds and writes to a
-repository the operator was not thinking about. Both are Z-007 practice directories by name and
-governance-critical repositories by remote.
+repository the operator was not thinking about.
+
+Three different things wear those two names, and an earlier revision of this line collapsed two of them
+by calling the directories "Z-007 practice directories" — which is the exact conflation this file exists
+to remove. Separated:
+
+| | `empirica-outreach` | `empirica-foundation-evaluator` |
+|:--|:--|:--|
+| as a **planned repository** | `PLANNED_REPOS.md:31`, PLANNED, Phase 2 | `PLANNED_REPOS.md:29`, PLANNED, Phase 2 |
+| as a **local directory** | `practices/empirica-outreach` | `practices/empirica-foundation-evaluator` |
+| that directory's **remote** | `humanaios-ui/operations.git` (Z-000) | `humanaios-ui/humanaios.git` (Z-001) |
+
+Neither is Z-007. **Z-007 is `empirica-practice-mesh`**, and nothing else. Each of these is a planned
+repository in its own right that has not been created, a local directory grouped under `practices/`, and
+a checkout of a governance repository — three facts that share one string and point three ways.
 
 **Two clones of `acat-x` and of `humanaios-internal`.** The `operations` / `operations-staging` hazard
 the runbook already described, present twice more: work in one, push from the other, and the divergence
 is silent until a merge conflicts.
 
-**`schema.sql` is a directory.** `PRACTICE_RESOLUTION_MAP.md` already flagged it as "likely a scaffolding
-accident"; the local listing confirms it exists as a directory with no remote.
+**`schema.sql` is a directory.** `ledgers/PRACTICE_RESOLUTION_MAP.md` already flagged it as "likely a
+scaffolding accident"; the local listing confirms it exists as a directory with no remote. (An earlier
+revision cited it by bare filename, which does not resolve — the file is under `ledgers/`, not at the
+root.)
 
 **`git.getempirica.com` could not be verified from here** — the outbound proxy returns 403 on CONNECT to
 that host. Its state is unknown, not broken.
