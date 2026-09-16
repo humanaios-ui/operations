@@ -72,7 +72,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-093 | nf_ledger_cli | `tools/nf_ledger_cli_v1_0.py` | 1.0.0 | 1 | draft | — | nf_ledger_cli_v1_0.py |
 | HAIOS-TOOL-094 | nf_ledger_v0_1 | `tools/nf_ledger_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | nf_ledger_v0_1.py — NF_LEDGER (calibration ledger, Brier) for the Phase 2 mesh pins. |
 | HAIOS-TOOL-111 | scg_scorer | `tools/scg_scorer.py` | 1.0.0 | 1 | draft | — | scg_scorer.py — Shadow Calibration Gap Scoring Tool |
-| HAIOS-TOOL-117 | smag_consolidate | `tools/smag_consolidate_v1_0.py` | 1.0.0 | 1 | draft | — | smag_consolidate — drain SMAG rows from the #103 tracking issue into the ledger. |
+| HAIOS-TOOL-117 | smag_consolidate | `tools/smag_consolidate_v1_0.py` | 1.1.0 | 1 | draft | — | smag_consolidate — drain SMAG rows from the #103 tracking issue into the ledger. |
 | HAIOS-TOOL-118 | smag_gap_analysis | `tools/smag_gap_analysis_v1_0.py` | 1.0.0 | 1 | draft | — | smag_gap_analysis — the ANALYZE step of the recursive-learning loop. |
 | HAIOS-TOOL-119 | smag_gap_analyzer | `tools/smag_gap_analyzer.py` | 1.0.0 | 1 | draft | — | smag_gap_analyzer — LLM-enriched ACAT Core-6 gap classification and prediction. |
 | HAIOS-TOOL-120 | smag_pilot_capture | `tools/smag_pilot_capture_v1_0.py` | 1.0.0 | 1 | draft | — | smag_pilot_capture_v1_0.py |
