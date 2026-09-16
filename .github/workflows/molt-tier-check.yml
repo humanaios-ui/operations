@@ -1,0 +1,205 @@
+name: molt-tier-check
+
+# Molt tier is a classification of what a diff DOES, not of what its author
+# intends. This workflow measures it from the changed-file list and reports the
+# gap against the author's `molt_tier_claimed`.
+#
+# ADVISORY ON PURPOSE. It never fails the build. The point is to put a number
+# where prose used to be, so "is this Tier 1 or Tier 2?" stops being a
+# negotiation; blocking on it would make authors argue with the classifier
+# instead of with the rule, which is the thing that is supposed to be public.
+# Promote it to blocking only once the measured under-claim rate over a rolling
+# 30-day window is under 5% — i.e. once the field is actually being filled in.
+#
+# WHY TWO JOBS. The classifier has to run the PR's own copy of
+# tools/molting_protocol_diff_v1_0.py, because a PR that edits the rule is
+# exactly the PR whose tier must be measured against the rule it is proposing.
+# Running PR-head code in a job that also holds `pull-requests: write` would
+# hand any same-repo contributor arbitrary code execution with a write-capable
+# token. So the work is split:
+#
+#   classify — runs PR-head code, token is `contents: read` and nothing else.
+#   comment  — holds the write permission, checks out NOTHING, and touches only
+#              the three short strings the first job emitted, each re-validated
+#              against a closed set before it reaches the comment body.
+#
+# Two further things this deliberately does NOT do:
+#   * It does not interpolate the PR body into a shell command. `${{ ... }}` of
+#     attacker-controlled text is a script-injection sink; the body reaches
+#     Python through the environment instead, where it is only ever data.
+#   * It does not post a new comment per push. It upserts one comment keyed by
+#     the marker below, with a per-PR concurrency group so two rapid pushes
+#     cannot both find no marker and both create one.
+
+on:
+  pull_request:
+
+# Serializes runs per PR. The read-then-upsert below is not atomic, so without
+# this two overlapping runs could each see no existing comment and each create
+# one, breaking the one-comment-per-PR contract.
+concurrency:
+  group: molt-tier-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  classify:
+    name: Measure molt tier from the diff (ADVISORY)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # deliberately no pull-requests: write — see above
+    outputs:
+      measured: ${{ steps.classify.outputs.measured }}
+      claimed:  ${{ steps.classify.outputs.claimed }}
+      verdict:  ${{ steps.classify.outputs.verdict }}
+      evidence: ${{ steps.classify.outputs.evidence }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # The changed-file list comes from the API rather than from `git diff
+      # origin/main...HEAD`: the pull_request checkout is a merge commit and
+      # origin/main is not necessarily fetched, which is how that form silently
+      # reports an empty diff — and an empty diff measures Tier 0.
+      - name: Collect changed files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              { owner: context.repo.owner, repo: context.repo.repo,
+                pull_number: context.issue.number, per_page: 100 }
+            );
+            require('fs').writeFileSync(
+              'changed_files.txt',
+              files.map(f => f.filename).join('\n') + '\n'
+            );
+
+      - name: Classify
+        id: classify
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' | tee molt_tier_gap.json
+          import json, os, sys
+          sys.path.insert(0, "tools")
+          from molting_protocol_diff_v1_0 import run
+
+          with open("changed_files.txt", encoding="utf-8") as fh:
+              files = fh.read().splitlines()
+
+          result = run({
+              "filepaths": files,
+              "pr_body":   os.environ.get("PR_BODY") or "",
+              "pr_number": int(os.environ.get("PR_NUMBER") or 0),
+          })
+          gap = result["gap"]
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"measured={gap['molt_tier_measured']}\n")
+              claimed = gap["molt_tier_claimed"]
+              out.write(f"claimed={'missing' if claimed is None else claimed}\n")
+              out.write(f"verdict={gap['verdict']}\n")
+              out.write("evidence<<MOLTTIEREOF\n")
+              for row in gap["evidence"][:20]:
+                  # Backticks are stripped: this text is written by the PR and
+                  # lands inside a markdown comment the next job posts.
+                  path = row["path"].replace("`", "")
+                  matched = ", ".join("`%s`" % m.replace("`", "") for m in row["matched"])
+                  out.write(f"- `{path}` -> Tier {row['tier']} (matched {matched})\n")
+              out.write("MOLTTIEREOF\n")
+          print(json.dumps(gap, indent=2))
+          PY
+
+      # The gap row belongs in the SMAG self-accuracy ledger
+      # (data/lessons_learned_ledger.json). That consumer is still open work —
+      # see the follow-up noted in MOLT_STATE.md — so until it lands the row is
+      # retained as a build artifact rather than pushed to main from CI, which
+      # is the same no-main-push discipline smag-capture.yml already follows.
+      - name: Retain gap row for SMAG reconciliation
+        uses: actions/upload-artifact@v4
+        with:
+          name: molt-tier-gap-${{ github.event.pull_request.number }}
+          path: molt_tier_gap.json
+          retention-days: 90
+
+  comment:
+    name: Report tier to the PR
+    needs: classify
+    if: always() && needs.classify.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      # No checkout. This job runs only actions/github-script and the inline
+      # script below, so nothing from the PR head is ever executed here.
+      - name: Upsert the tier comment
+        continue-on-error: true   # a fork PR gets a read-only token; not a failure
+        uses: actions/github-script@v7
+        env:
+          MEASURED: ${{ needs.classify.outputs.measured }}
+          CLAIMED: ${{ needs.classify.outputs.claimed }}
+          VERDICT: ${{ needs.classify.outputs.verdict }}
+          EVIDENCE: ${{ needs.classify.outputs.evidence }}
+        with:
+          script: |
+            const MARKER = '<!-- molt-tier-check -->';
+
+            // These four values crossed a job boundary from a job that ran
+            // PR-head code. Re-validate rather than trust: the tiers and the
+            // verdict are closed sets, and the evidence block is clamped to
+            // plain lines so it cannot smuggle markup into the comment.
+            const tier = v => (['0','1','2'].includes(v) ? v : '?');
+            const measured = tier(process.env.MEASURED);
+            const claimed  = process.env.CLAIMED === 'missing'
+              ? 'missing' : tier(process.env.CLAIMED);
+            const VERDICTS = ['MATCH','UNDER_CLAIM','OVER_CLAIM','MISSING'];
+            const verdict  = VERDICTS.includes(process.env.VERDICT)
+              ? process.env.VERDICT : 'UNKNOWN';
+            const evidence = (process.env.EVIDENCE || '')
+              .split('\n').filter(l => l.startsWith('- `')).slice(0, 20).join('\n');
+
+            const verdicts = {
+              MATCH:       `✅ **Match:** Tier ${measured}.`,
+              UNDER_CLAIM: `⚠️ **Under-claim:** claimed Tier ${claimed}, the diff measures Tier ${measured}. ` +
+                           `Not a blocker — but this is the gap the audit is looking for.`,
+              OVER_CLAIM:  `ℹ️ **Over-claim:** claimed Tier ${claimed}, the diff measures Tier ${measured}. Informational.`,
+              MISSING:     `⚠️ **No claim:** the PR body has no filled-in \`molt_tier_claimed: [0|1|2]\`. ` +
+                           `The claim is VOID (no penalty, but no signal either); the measured tier stands.`,
+              UNKNOWN:     `The classifier did not return a readable verdict.`,
+            };
+
+            let body = `${MARKER}\n### Molt Tier Classification\n\n`;
+            body += `| | tier |\n|:--|:--|\n`;
+            body += `| claimed | ${claimed} |\n| measured | **${measured}** |\n\n`;
+            body += verdicts[verdict] + `\n`;
+            if (evidence) {
+              body += `\n<details><summary>Which paths set the tier</summary>\n\n${evidence}\n</details>\n`;
+            }
+            body += `\nAdvisory: this check never blocks a merge. The rule is the two path ` +
+                    `lists in \`tools/molting_protocol_diff_v1_0.py\`.\n`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const existing = (await github.paginate(github.rest.issues.listComments,
+              { owner, repo, issue_number, per_page: 100 }))
+              .find(c => c.body && c.body.includes(MARKER));
+
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+            await core.summary
+              .addHeading('Molt tier', 3)
+              .addTable([
+                [{data: 'field', header: true}, {data: 'value', header: true}],
+                ['claimed', claimed], ['measured', measured], ['verdict', verdict],
+              ])
+              .write();

@@ -51,7 +51,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-080 | hawkins_acat_mapper | `tools/hawkins_acat_mapper_v1_0.py` | 1.0.0 | 1 | draft | — | Generates evidence-tagged crosswalk reports between ACAT dimensions and Hawkins calibration levels. |
 | HAIOS-TOOL-082 | humulity_audit_service | `tools/humulity_audit_service.py` | 0.2.0 | 1 | draft | — | Humility Audit Service -- v0.2 (corrected) |
 | HAIOS-TOOL-089 | mhr_question_trace | `tools/mhr_question_trace_v1_0.py` | 1.0.0 | 1 | draft | — | Traces question-source → method-design → data-output chain for Market-Harmonic Research auditability. |
-| HAIOS-TOOL-091 | molting_protocol_diff | `tools/molting_protocol_diff_v1_0.py` | 1.0.0 | 1 | draft | — | Compares `SESSION_RITUALS.md` versions, classifies additive patching vs clean-layer replacement. |
+| HAIOS-TOOL-091 | molting_protocol_diff | `tools/molting_protocol_diff_v1_0.py` | 1.1.0 | 1 | draft | — | Classifies a molt's tier (0/1/2) from the filepaths its diff touches, and measures the gap against the author's claimed tier. |
 | HAIOS-TOOL-100 | principle_analyzer | `tools/principle_analyzer_v1_0.py` | 1.0.0 | 1 | draft | — | Principle Analyzer — v1.0 |
 | HAIOS-TOOL-101 | principle_harmonizer | `tools/principle_harmonizer_v1_0.py` | 1.1.0 | 1 | draft | — | Harmonizes the principle layer across governance files, surfaces drift. |
 | HAIOS-TOOL-102 | principle_harmonizer | `tools/principle_harmonizer_v1_2.py` | 1.2.0 | 1 | draft | — | Principle Harmonizer — v1.2 |
@@ -132,7 +132,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | 0.3.1 | 1 | draft | — | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
 | HAIOS-TOOL-151 | doc_review_scheduler | `.doc-control/review.py` | 1.0.0 | 1 | draft | no-builder-markers | Document review scheduler — record a review, derive the next one, triage the backlog. |
-| HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.1.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
+| HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.2.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
 | HAIOS-TOOL-154 | z1_inbox_renderer | `.z1-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render Z1_INBOX_INDEX.md from z1-inbox/INDEX.yaml. |
 | HAIOS-TOOL-155 | z1_inbox_validator | `.z1-control/validate.py` | 1.0.0 | 1 | draft | no-builder-markers | z1-inbox/ is where Z1 stages proposals for Z2. Until now nothing said which of |
 | HAIOS-TOOL-157 | molt_cycle_tier0_v0_1 | `tools/molt_cycle_tier0_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies. |

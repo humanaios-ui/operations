@@ -1114,7 +1114,7 @@ tools:
 - tool_id: HAIOS-TOOL-091
   name: molting_protocol_diff
   path: tools/molting_protocol_diff_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: audit_tool
   zone: 1
   status: draft
@@ -1122,7 +1122,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Compares `SESSION_RITUALS.md` versions, classifies additive patching vs clean-layer replacement.
+  purpose: Classifies a molt's tier (0/1/2) from the filepaths its diff touches, and measures the gap
+    against the author's claimed tier.
   session: S-060126-01
 - tool_id: HAIOS-TOOL-092
   name: multi_provider_elicitation_client
@@ -1836,7 +1837,7 @@ tools:
 - tool_id: HAIOS-TOOL-153
   name: z1_ratify
   path: .z1-control/ratify.py
-  version: 1.1.0
+  version: 1.2.0
   category: governance_tool
   zone: 2
   status: draft

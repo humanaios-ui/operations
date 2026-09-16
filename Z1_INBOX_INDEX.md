@@ -6,7 +6,7 @@ A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands 
 
 **43 candidates** — ⏳ awaiting Z2 39 · ✅ ratified 4 · **25 records**
 
-## Awaiting Z2 (39)
+## Awaiting Z2 (40)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -50,6 +50,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-16 | **Q-BOOT-FINDINGS-SCAN-01** | Registry candidate block — post-merge findings scan over Q-BOOT-STATE-MACHINE-01, cross-walked against a live REGISTERED.md fetch | `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md` |
 | 2026-09-16 | **Q-BOOT-STATE-MACHINE-01** | Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation | `z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md` |
 | 2026-09-16 | **Q-IC-BOARD-SEALS-01** | IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class) | `z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md` |
+| 2026-09-17 | **Q-MOLT-LEDGER-SCAN-01** | Molt verification findings scan — the molt lifecycle writes no permanent record, and the anti-cascade rules that would read it are wired nowhere | `z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md` |
 | 2026-09-18 | **Q-INTENTOS-TEST-01** | Intent-OS test surface — harness (T0–T4), dashboard, pathway; d20 §A adoption · d21 receipt in tree · d22 scale-out order · F-CAND ACAT tests predate the write-token gate | `z1-inbox/2026-09-16/Q-INTENTOS-TEST-01.md` |
 
 ## Decided (4)
@@ -69,7 +70,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (90)
+## Open questions for Z2 (100)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -230,6 +231,21 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Register IC-BOARD-SEALS-01 in REGISTERED.md as an IC (class memory-vs-fetch), or fold it into IC-030 as a recurrence
 - [ ] Accept, edit or reject prevention (1): an advisory `board-check` CI job on pushes to main touching sealed paths
 - [ ] Accept, edit or reject prevention (2): the checker as a §A session-open line in CLAUDE.md
+
+### Q-MOLT-LEDGER-SCAN-01 (10)
+
+`z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md`
+
+- [ ] Register or reject `F-CAND-SELF-EXEMPT-RULE-01` (promotion gate: 2 further instances)
+- [ ] Rule on `IC-CAND-TIER-RULE-ABSENT-PATHS-01` — IC (EXTENSION of IC-041) or NM (caught pre-merge)
+- [ ] Register or reject `IC-CAND-MOLT-LEDGER-ABSENT-01` (both limbs)
+- [ ] Register or reject `IC-CAND-ANTICASCADE-UNWIRED-01` (EXTENSION of IC-050)
+- [ ] Register or reject `IC-CAND-MOLTCYCLE-TIER0-BROKEN-01`
+- [ ] Register or reject `IC-CAND-SEED-INTAKE-LABELS-01`
+- [ ] Register or reject `H-CAND-MOLT-TIER-UNDERCLAIM-01` (conditional on #343 merging)
+- [ ] Accept / edit / reject preventions (1)–(5), including the §B.7 ritual addition
+- [ ] **H-GOV-01 forward-pointer:** all five IC candidates trigger P3 and share one shape — the principle existed and was documented, the mechanism was absent or unwired. That is limb (a) of H-GOV-01's promotion gate verbatim. Its `evidence_basis` currently reads `IC-024 through IC-038`; if these ratify it wants extending. Not proposed as an edit — the register is append-only and the forward-pointer is Z2's to write.
+- [ ] Confirm `open_molt_count: 1` = molt `f7a49f667c09f1f6` (Q-RBE-01), **not** PR #342, and that #343 may proceed as the second of K=3
 
 ### Q-NF-ADAPTER-01 (5)
 
