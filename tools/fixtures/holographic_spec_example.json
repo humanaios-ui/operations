@@ -1,0 +1,18 @@
+{
+  "user_id": "carly.r.anderson@gmail.com",
+  "person_id": "holographic-self-rep-001",
+  "capture_mode": "photogrammetry",
+  "input_source": "https://example.com/capture/images-2026-09-16.zip",
+  "render_target": "browser_webgl",
+  "rendering_config": {
+    "quality": "high",
+    "resolution": 2048,
+    "fps": 30
+  },
+  "capture_metadata": {
+    "lighting": "studio",
+    "camera_count": 64,
+    "image_resolution": "8k"
+  },
+  "dry_run": true
+}
