@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**42 candidates** — ⏳ awaiting Z2 38 · ✅ ratified 4 · **22 records**
+**43 candidates** — ⏳ awaiting Z2 39 · ✅ ratified 4 · **23 records**
 
-## Awaiting Z2 (38)
+## Awaiting Z2 (39)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -50,6 +50,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-16 | **Q-BOOT-FINDINGS-SCAN-01** | Registry candidate block — post-merge findings scan over Q-BOOT-STATE-MACHINE-01, cross-walked against a live REGISTERED.md fetch | `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md` |
 | 2026-09-16 | **Q-BOOT-STATE-MACHINE-01** | Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation | `z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md` |
 | 2026-09-16 | **Q-IC-BOARD-SEALS-01** | IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class) | `z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md` |
+| 2026-09-18 | **Q-INTENTOS-TEST-01** | Intent-OS test surface — harness (T0–T4), dashboard, pathway; d20 §A adoption · d21 receipt in tree · d22 scale-out order · F-CAND ACAT tests predate the write-token gate | `z1-inbox/2026-09-16/Q-INTENTOS-TEST-01.md` |
 
 ## Decided (4)
 
@@ -287,7 +288,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (22)
+## Records (23)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -315,6 +316,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md` | Z2 ruling — AMBIGUITY-BSM-D: Z2-GOVARCH-02 supersedes SESSION_RITUALS §A.1; amend to WGS-primary / halt-only-if-both-fail (Night, 2026-09-14) |
 | `z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md` | Z2 ruling — d17 local only · d18 z1-inbox + INDEX.yaml · d19 freeze path · temporary tokens revoked (Night, 2026-09-14) |
 | `z1-inbox/2026-09-14/Z3-DEPLOYMENT-Q-FRAMEWORK-AUDIT-DEPLOY-01.md` | Z3 deployment log — Q-FRAMEWORK-AUDIT-DEPLOY-01 (12 repos, per-repo framework audit) |
+| `z1-inbox/2026-09-16/HANDOFF.md` | Handoff — 2026-09-16 (Intent-OS test surface: harness, dashboard, pathway, repository index) |
 
 ---
 
