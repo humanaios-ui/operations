@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-14'
 decision_window_days: 2
 counts:
-  candidates: 44
+  candidates: 45
   records: 24
 ratifiers:
 - Night
@@ -412,6 +412,18 @@ candidates:
     \ tests send no X-ACAT-Write-Token; no workflow runs them). Relay /decide→/ratify\
     \ proven over a socket (DRY_RUN) and verified by ratify.py; a board tap survives\
     \ reload in headless Chromium; REPOSITORY_STRUCTURE.md verified path by path."
+- q_id: Q-MERGE-SCOPE-01
+  title: "A PR with no Q-ID has no signing path, so the merge ratifies whatever it\
+    \ happens to carry \u2014 #343 merged 21 files against a five-item enumerated scope"
+  path: z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md
+  submitted: '2026-09-16'
+  status: awaiting_z2
+  note: "RECEIPT-GAP, reconciled against merge commit 880c01f. Five merged items carry\
+    \ no ratifying act: .z1-control/ratify.py (Tier 2 gate), its test, seven append-only\
+    \ NF_LEDGER RESOLVE rows, PRACTICE_RESOLUTION_MAP.md (self-declared unratified)\
+    \ and .gitleaks.toml. Ruling 1's scope must NOT be widened to cover them \u2014\
+    \ CLAUDE.md forbids changing a Z2 decision retroactively; the fix is a new RATIFY\
+    \ event. Three dispositions offered, eight-item Z2 checklist."
 records:
 - path: z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md
   title: "Z2 rulings \u2014 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01\

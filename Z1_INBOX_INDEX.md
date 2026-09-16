@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**44 candidates** — ⏳ awaiting Z2 40 · ✅ ratified 4 · **24 records**
+**45 candidates** — ⏳ awaiting Z2 41 · ✅ ratified 4 · **24 records**
 
-## Awaiting Z2 (40)
+## Awaiting Z2 (41)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -52,6 +52,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-16 | **Q-IC-BOARD-SEALS-01** | IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class) | `z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md` |
 | 2026-09-17 | **Q-MOLT-LEDGER-SCAN-01** | Molt verification findings scan — the molt lifecycle writes no permanent record, and the anti-cascade rules that would read it are wired nowhere | `z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md` |
 | 2026-09-18 | **Q-INTENTOS-TEST-01** | Intent-OS test surface — harness (T0–T4), dashboard, pathway; d20 §A adoption · d21 receipt in tree · d22 scale-out order · F-CAND ACAT tests predate the write-token gate | `z1-inbox/2026-09-16/Q-INTENTOS-TEST-01.md` |
+| 2026-09-18 | **Q-MERGE-SCOPE-01** | A PR with no Q-ID has no signing path, so the merge ratifies whatever it happens to carry — #343 merged 21 files against a five-item enumerated scope | `z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md` |
 
 ## Decided (4)
 
