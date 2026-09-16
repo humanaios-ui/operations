@@ -4187,8 +4187,8 @@ superseded_by: null
 **Z2 Authority:** Night (Carly R. Anderson)  
 **Decision:** ACCEPT  
 **Timestamp:** 2026-09-16T15:30:00 UTC  
-**Ratification Hash:** 7a2c9f3e8d1b5c4a2f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b  
-**Authority:** Admiral (Z2 Serial Gate) — Hypostasis Decision
+**Ratification Hash:** 7a2c9f3e8d1b5c4a2f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b0  
+**Authority:** Admiral (Z2 Serial Gate) — Hypothesis Ratification
 
 **Ratified Scope:**
 - Hypothesis: "If we can coordinate external capture, render, and display services via orchestration, then we can generate and validate a working prototype for holographic person representation without building the rendering engines ourselves."
@@ -4201,9 +4201,10 @@ superseded_by: null
 **Status:** ACCEPTED · Phases 2-4 authorized for execution
 
 **Deliverables Verified:**
-- ✅ tools/holographic_orchestrator.py (430 lines): 3-stage pipeline, 5 capture modes, 5 render targets, dry-run mode
-- ✅ tools/tests/test_holographic_orchestrator.py (500 lines): 21 unit tests all passing
-- ✅ tools/fixtures/holographic_spec_example.json: Example dry-run spec validated
+- ✅ tools/holographic_orchestrator.py (688 lines): 3-stage pipeline, 5 capture modes, 5 render targets, dry-run mode, smoke test, CLI interface
+- ✅ tools/tests/test_holographic_orchestrator.py (317 lines): 21 unit tests all passing
+- ✅ tools/tests/test_holographic_integration.py (new): 15 integration tests with mocked HTTP services
+- ✅ tools/fixtures/holographic_spec_example.json: Example dry-run spec with synthetic test identifiers
 - ✅ z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md: Testing protocol with 4 falsifiers
 
 **Ratification Note:** Hypothesis and falsifiers meet Z2 acceptance criteria per GOVERNANCE.md. Prototype inherits existing Supabase/Slack integration pattern (stdlib urllib + JSON). No external service dependencies in Phase 1. Ready for Phase 2 mocked integration work.

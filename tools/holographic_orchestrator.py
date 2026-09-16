@@ -41,7 +41,8 @@ from enum import Enum
 # ---------------------------------------------------------------------------
 TOOL_NAME = "holographic_orchestrator"
 TOOL_VERSION = "0.1.0"
-TOOL_CATEGORY = "capability_integration"
+TOOL_CATEGORY = "orchestrator_tool"
+TOOL_ZONE = 1
 TOOL_SESSION = "S-091626-01"
 
 # ---------------------------------------------------------------------------

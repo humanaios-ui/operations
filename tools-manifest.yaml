@@ -40,7 +40,6 @@ categories:
 - analytics_tool
 - audit_tool
 - calibration_tool
-- capability_integration
 - connector_tool
 - dependency
 - diagnostic_tool
@@ -1992,7 +1991,7 @@ tools:
   name: holographic_orchestrator
   path: tools/holographic_orchestrator.py
   version: 0.1.0
-  category: capability_integration
+  category: orchestrator_tool
   zone: 1
   status: draft
   interface: cli
