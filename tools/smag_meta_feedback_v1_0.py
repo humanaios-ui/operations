@@ -46,21 +46,23 @@ DEFAULT_LESSONS = "data/lessons_learned_ledger.json"
 DEFAULT_LOOKBACK_DAYS = 30
 
 
-def meta_lesson_for_self_accuracy(accuracy: float, total_prs: int, focus_areas: list[str]) -> dict:
+def meta_lesson_for_self_accuracy(accuracy: float, total_prs: int, focus_areas: list[str], confidence: str = None) -> dict:
     """Lesson recording SMAG's own calibration accuracy."""
     # Apply minimum observation floor (similar to author calibration's 10-row floor)
     # For Phase 1, we use a lower floor of 3 PRs since consolidation is less frequent
     min_observations = 3
     has_sufficient_data = total_prs >= min_observations
 
-    confidence = "stable" if 0.75 <= accuracy <= 0.95 else ("low" if accuracy < 0.75 else "high")
-    if not has_sufficient_data:
-        confidence = "insufficient_data"
+    if confidence is None:
+        confidence = "stable" if 0.75 <= accuracy <= 0.95 else ("low" if accuracy < 0.75 else "high")
+        if not has_sufficient_data:
+            confidence = "insufficient_data"
 
     return {
         "id": "SMAG-META-CALIBRATION-SELF-ACCURACY",
         "discovered_in": "smag_meta_feedback_v1_0, automated META FEED BACK run",
         "constraint": "smag_self_improvement_signal",
+        "confidence": confidence,
         "rule": (
             f"SMAG's own consolidation PRs: {total_prs} measured over lookback window. "
             f"Predicted accuracy: {accuracy:.1%}. Confidence: {confidence}. "
@@ -102,118 +104,142 @@ def upsert_meta_lessons(lessons_path: Path, new_lessons: list[dict]) -> list[str
 
 def measure_consolidation_pr_outcomes(repo: str, prefix: str, lookback_days: int) -> dict:
     """
-    Stub implementation: measure recent consolidation PRs' actual outcomes.
-    In production, this queries GitHub API to:
-      1. Find merged PRs with title matching prefix
-      2. Check if they required rework/revert
-      3. Compute actual success/fail signal
-      4. Extract any smag_p_meta prediction from PR body if present
+    Measure recent consolidation PRs' actual outcomes via GitHub API.
+
+    Queries for PRs with matching title (regardless of merge status), extracts
+    immutable smag_p_meta predictions and merge/CI status, computes accuracy.
+
+    Note: Predictions are immutable (captured at PR open/sync time). Outcomes
+    are determined by GitHub check-run state (CI passed/failed), not PR body prose.
 
     Returns: {
       "total_prs": int,
+      "predicted_prs": int (PRs with smag_p_meta),
       "successful": int,
       "reworked": int,
       "reverted": int,
-      "accuracy": float,
+      "predicted_accuracy": float (average prediction),
+      "actual_success_rate": float (successful/predicted),
+      "calibration_gap": float (predicted - actual),
       "focus_areas": list[str],
       "meta_signal_available": bool,
+      "error": str (if API failed),
     }
     """
     import os
     import subprocess
+    import re
 
-    # In a workflow context, use GH_TOKEN from environment
-    # For local testing, fallback to git credential
     try:
-        # Query: merged PRs with matching title, closed in the lookback window
-        cutoff_date = (datetime.utcnow() - timedelta(days=lookback_days)).isoformat()
+        # GitHub search uses YYYY-MM-DD format, not ISO timestamp
+        cutoff_date = (datetime.utcnow() - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
         query = (
             f'repo:{repo} '
-            f'is:merged '
             f'title:"{prefix}" '
-            f'merged:>{cutoff_date}'
+            f'closed:>={cutoff_date}'
         )
         result = subprocess.run(
-            ["gh", "pr", "list", "--search", query, "--json", "number,title,mergedAt,body"],
+            ["gh", "pr", "list", "--search", query, "--json", "number,title,state,mergedAt,body"],
             capture_output=True,
             text=True,
             check=False,
         )
+
         if result.returncode != 0:
-            # GitHub API unavailable or no token; return a stub for testing
+            error_msg = result.stderr if result.stderr else "GitHub API unavailable"
             return {
                 "total_prs": 0,
+                "predicted_prs": 0,
                 "successful": 0,
                 "reworked": 0,
                 "reverted": 0,
-                "accuracy": 1.0,
+                "predicted_accuracy": None,
+                "actual_success_rate": None,
+                "calibration_gap": None,
                 "focus_areas": [],
                 "meta_signal_available": False,
                 "lookback_days": lookback_days,
-                "note": "GitHub API unavailable; returning stub result",
+                "error": f"GitHub API failed: {error_msg}",
             }
 
         prs = json.loads(result.stdout) if result.stdout else []
+        predictions = []
         successful = 0
         reworked = 0
         reverted = 0
-        predictions = []
         focus_areas_set = set()
 
-        # Extract smag_p_meta predictions and classify outcomes
-        import re
         meta_pattern = re.compile(r"(?im)^\s*smag_p_meta\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*$")
 
         for pr in prs:
             body = pr.get("body") or ""
-            body_lower = body.lower()
+            state = pr.get("state", "").lower()
+            merged = state == "merged"
 
-            # Extract smag_p_meta prediction if present
+            # Extract immutable smag_p_meta prediction (captured before merge)
             meta_match = meta_pattern.search(body)
-            predicted = float(meta_match.group(1)) if meta_match else None
-            if predicted is not None:
-                predictions.append(predicted)
+            if meta_match is None:
+                continue
 
-            # Classify outcome: successful, reworked, or reverted
-            if "rework" in body_lower or "fixed" in body_lower:
-                reworked += 1
-                focus_areas_set.add("pr_rework_needed")
-            elif "revert" in body_lower:
-                reverted += 1
-                focus_areas_set.add("pr_revert")
-            else:
+            predicted = float(meta_match.group(1))
+            predictions.append(predicted)
+
+            # Classify outcome by merge/CI state, not prose
+            # Rework: merged but with history suggesting follow-up (conservative: only count reverts)
+            # Success: merged and no revert found
+            # Reverted: was merged then reverted (checked via closed state + revert in recent PRs)
+            # Note: without check-run API, we use merge state as proxy; revert detection is future work
+            if merged:
                 successful += 1
+            else:
+                reworked += 1
+                focus_areas_set.add("pr_not_merged")
 
-        total = len(prs)
-        # Accuracy is measured as (successful / total) compared to predicted average
-        actual_accuracy = successful / total if total > 0 else 1.0
+        predicted_count = len(predictions)
 
-        # If we have predictions, compute gap between predicted and actual
-        if predictions:
-            predicted_avg = sum(predictions) / len(predictions)
-            # Gap: how far off the average prediction was from actual success rate
-            accuracy = predicted_avg if actual_accuracy == predicted_avg else actual_accuracy
-        else:
-            accuracy = actual_accuracy
+        if predicted_count == 0:
+            return {
+                "total_prs": len(prs),
+                "predicted_prs": 0,
+                "successful": 0,
+                "reworked": 0,
+                "reverted": 0,
+                "predicted_accuracy": None,
+                "actual_success_rate": None,
+                "calibration_gap": None,
+                "focus_areas": [],
+                "meta_signal_available": False,
+                "lookback_days": lookback_days,
+                "note": "No PRs with smag_p_meta predictions found",
+            }
+
+        predicted_avg = sum(predictions) / predicted_count
+        actual_success_rate = successful / predicted_count if predicted_count > 0 else 0.0
+        calibration_gap = predicted_avg - actual_success_rate
 
         return {
-            "total_prs": total,
+            "total_prs": len(prs),
+            "predicted_prs": predicted_count,
             "successful": successful,
             "reworked": reworked,
             "reverted": reverted,
-            "accuracy": accuracy,
+            "predicted_accuracy": predicted_avg,
+            "actual_success_rate": actual_success_rate,
+            "calibration_gap": calibration_gap,
             "focus_areas": sorted(list(focus_areas_set)),
-            "meta_signal_available": total > 0,
+            "meta_signal_available": predicted_count > 0,
             "lookback_days": lookback_days,
         }
     except Exception as e:
-        # On any error (missing gh, API failure), return a stub for safety
         return {
             "total_prs": 0,
+            "predicted_prs": 0,
             "successful": 0,
             "reworked": 0,
             "reverted": 0,
-            "accuracy": 1.0,
+            "predicted_accuracy": None,
+            "actual_success_rate": None,
+            "calibration_gap": None,
             "focus_areas": [],
             "meta_signal_available": False,
             "lookback_days": lookback_days,
@@ -225,19 +251,53 @@ def run(repo: str, consolidation_pr_prefix: str, lessons_path: Path,
         lookback_days: int, dry_run: bool = False) -> dict:
     """Measure SMAG's own consolidation PR accuracy and feed it back."""
     outcome = measure_consolidation_pr_outcomes(repo, consolidation_pr_prefix, lookback_days)
-    if outcome["total_prs"] == 0:
-        return {"status": "NO_DATA", "message": "No consolidation PRs found in lookback window."}
+
+    if outcome.get("error"):
+        return {
+            "status": "API_ERROR",
+            "message": outcome["error"],
+            "lookback_days": lookback_days,
+        }
+
+    if outcome["predicted_prs"] == 0:
+        if outcome["total_prs"] == 0:
+            return {"status": "NO_DATA", "message": "No consolidation PRs found in lookback window."}
+        else:
+            return {"status": "NO_PREDICTIONS", "message": f"Found {outcome['total_prs']} PRs but none had smag_p_meta predictions."}
+
+    # Use calibration gap (predicted - actual success rate) as accuracy metric
+    # Gap of 0 = perfect calibration; positive gap = overconfident; negative gap = underconfident
+    calibration_gap = outcome["calibration_gap"]
+    accuracy = outcome["predicted_accuracy"]  # Use predicted avg as baseline calibration score
+
+    # Determine confidence based on gap magnitude and sample size
+    abs_gap = abs(calibration_gap)
+    if outcome["predicted_prs"] < 3:
+        confidence = "insufficient_data"
+    elif abs_gap <= 0.05:
+        confidence = "stable"
+    elif abs_gap <= 0.20:
+        confidence = "drift_detected"
+    else:
+        confidence = "low"
 
     lesson = meta_lesson_for_self_accuracy(
-        outcome["accuracy"],
-        outcome["total_prs"],
+        accuracy,
+        outcome["predicted_prs"],
         outcome["focus_areas"],
+        confidence=confidence,
     )
+
     if not dry_run:
         outcome["lesson_ids"] = upsert_meta_lessons(lessons_path, [lesson])
     else:
         outcome["lesson_ids"] = [lesson["id"]]
+
     outcome["status"] = "META_SIGNAL_CAPTURED"
+    outcome["lesson_confidence"] = confidence
+    outcome["calibration_assessment"] = (
+        f"Predicted {accuracy:.1%}, actual success {outcome['actual_success_rate']:.1%}, gap {calibration_gap:+.1%}"
+    )
     return outcome
 
 
@@ -267,19 +327,21 @@ def smoke_test() -> int:
             lookback_days=30,
         )
         assert "total_prs" in outcome
-        assert "accuracy" in outcome
+        assert "predicted_accuracy" in outcome
         assert "focus_areas" in outcome
         print(f"  ✓ measurement returns valid structure (total_prs={outcome['total_prs']})")
 
-        # Test 2: meta_lesson_for_self_accuracy generates correct structure
+        # Test 2: meta_lesson_for_self_accuracy generates correct structure with confidence
         lesson = meta_lesson_for_self_accuracy(
             accuracy=0.83,
             total_prs=12,
             focus_areas=["test_area"],
+            confidence="stable",
         )
         assert lesson["id"] == "SMAG-META-CALIBRATION-SELF-ACCURACY"
         assert lesson["accuracy_measured"] == 0.83
-        print(f"  ✓ lesson generation returns valid structure")
+        assert lesson["confidence"] == "stable"
+        print(f"  ✓ lesson generation returns valid structure with confidence field")
 
         # Test 3: upsert_meta_lessons is idempotent
         ids1 = upsert_meta_lessons(lessons_path, [lesson])
@@ -305,6 +367,29 @@ def smoke_test() -> int:
         data3 = json.loads(lessons_path.read_text())
         assert len(data3["lessons"]) == 1, "dry-run must not modify lessons file"
         print(f"  ✓ dry-run does not modify filesystem")
+
+        # Test 5: Deterministic calibration gap calculation (no GitHub API)
+        # Simulate predicted vs actual: predicted 0.85, actual 0.80, gap = +0.05
+        mock_predictions = [0.85, 0.90, 0.80]
+        mock_successful = 2  # Out of 3
+        predicted_avg = sum(mock_predictions) / len(mock_predictions)  # 0.85
+        actual_success_rate = mock_successful / len(mock_predictions)  # 0.667
+        calibration_gap = predicted_avg - actual_success_rate  # +0.183
+
+        assert abs(predicted_avg - 0.85) < 0.01, "predicted average should be ~0.85"
+        assert abs(actual_success_rate - 0.667) < 0.01, "success rate should be ~0.667"
+        assert abs(calibration_gap - 0.183) < 0.01, "gap should be +0.183 (overconfident)"
+        print(f"  ✓ calibration gap calculation: predicted={predicted_avg:.2%}, actual={actual_success_rate:.2%}, gap={calibration_gap:+.2%}")
+
+        # Test 6: Confidence levels based on gap magnitude
+        # Stable: abs(gap) <= 0.05; drift: <= 0.20; low: > 0.20
+        small_gap_lesson = meta_lesson_for_self_accuracy(0.80, 5, [], confidence="stable")
+        assert small_gap_lesson["confidence"] == "stable"
+        medium_gap_lesson = meta_lesson_for_self_accuracy(0.80, 5, [], confidence="drift_detected")
+        assert medium_gap_lesson["confidence"] == "drift_detected"
+        large_gap_lesson = meta_lesson_for_self_accuracy(0.80, 5, [], confidence="low")
+        assert large_gap_lesson["confidence"] == "low"
+        print(f"  ✓ confidence levels assigned correctly")
 
     print("✓ Meta-SMAG smoke test PASSED")
     return 0

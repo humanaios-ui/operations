@@ -228,6 +228,6 @@ A: Not directly. Authors improve author-SMAG by pinning honest `smag_p:` predict
 
 ---
 
-**Status:** Proposed (S-091526)  
-**Awaiting:** Z2 ratification of smag-consolidate.yml workflow integration  
-**Scheduled review:** 2026-10-15 (after 4 weekly cycles of meta-SMAG data, pending approval)
+**Status:** Deployed (PR #341 merged 2026-09-15; smag-consolidate.yml integration live)  
+**Awaiting:** Z2 review checkpoint at 2026-10-20 10:00 UTC (after ~5 weeks of accumulated meta-SMAG data)  
+**Scheduled check-in:** 2026-10-20 10:00 UTC (automatic trigger to review calibration signal)

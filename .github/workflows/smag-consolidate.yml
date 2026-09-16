@@ -117,6 +117,9 @@ jobs:
 
 ## Prediction (SMAG calibration)
 
+smag_p: 0.90
 smag_p_meta: 0.85
 
-Why 0.85? Consolidation is mostly mechanical (ledger dedup, gap report regeneration), but schema changes and edge cases carry risk. CI checks will validate before merge."
+Why 0.90 (author-SMAG)? Standard FEED BACK step is mostly mechanical; consolidated ledger and reports have few dependencies.
+
+Why 0.85 (meta-SMAG self-prediction)? Consolidation is mostly mechanical (ledger dedup, gap report regeneration), but schema changes and edge cases carry risk. CI checks will validate before merge."
