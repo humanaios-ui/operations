@@ -42,7 +42,11 @@ Substrates may still make in-session course corrections (e.g., "I should have ru
 
 Every session, regardless of substrate, opens with these steps in order:
 
-1. **Fetch live state.** GET `https://haioscc.pages.dev/api/state/operational` and `https://haioscc.pages.dev/api/state/zone3?status=open`. If either fails, halt and report.
+1. **Fetch live state.** *(Amended per Z2 ruling `Z2-AMBIGUITY-BSM-D` — Night, 2026-09-14, `z2_hash: d656299cf62089ce5a4881663bd29dd200ad0694390e0d3a6a0b763b5bfa2c13`. Ruling scope: this step only. Z2-GOVARCH-02 governs: WGS is the Class 1 source of record, and the prior "if either fails, halt" composed with it into a halt every session was required to take and none did.)*
+   - **Primary:** WGS (`#wgs-sync`, Slack `C0AND66PT7U`) — the Class 1 source of record per Z2-GOVARCH-02.
+   - **Secondary:** GET `https://haioscc.pages.dev/api/state/operational` and `https://haioscc.pages.dev/api/state/zone3?status=open`, as cross-check. Unreachability from a substrate's bash environment is recorded as **expected, not an incident**.
+   - **Halt rule:** halt and report only if **both** fail. If exactly one fails, proceed and **declare DEGRADED in the Phase 1 header**, naming the lost source. Loss of the Slack path is the case `OPERATOR_RUNBOOK.md` §3a calls PATH C.
+   - A substrate that skips the primary and reports the secondary's failure as a halt has **not** satisfied this step.
 2. **Fetch operating process.** GET `https://raw.githubusercontent.com/humanaios-ui/operations/main/CURRENT.md`. Do not proceed on memory of prior CI versions.
 2.5. **Prompt Environment Classification (AFA-1).** At session open, operator or Claude declares the session's primary prompt environment:
    - **NEUTRAL** — standard task work, no elevated approval pressure

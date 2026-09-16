@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-14'
 decision_window_days: 2
 counts:
-  candidates: 42
+  candidates: 43
   records: 22
 ratifiers:
 - Night
@@ -390,6 +390,17 @@ candidates:
     \ the seal checker); the block asks Z2 to register the IC and to accept or edit\
     \ two preventions (advisory board-check CI job; checker as a \xA7A session-open\
     \ line)."
+- q_id: Q-MOLT-LEDGER-SCAN-01
+  title: "Molt verification findings scan \u2014 the molt lifecycle writes no permanent\
+    \ record, and the anti-cascade rules that would read it are wired nowhere"
+  path: z1-inbox/2026-09-15/Q-MOLT-LEDGER-SCAN-01.md
+  submitted: '2026-09-15'
+  status: awaiting_z2
+  note: "From the S-091526-01 findings scan (1 F / 5 IC / 1 H / 5 NM / 1 DUPLICATE\
+    \ from 14 observations). Resolves the open_molt_count ambiguity: the open slot\
+    \ is molt f7a49f667c09f1f6 (Q-RBE-01), not PR #342. Carries five proposed preventions\
+    \ and an appendix on mending nf_resolved \u2014 including a \u00a7B.7 ledger-resolution\
+    \ ritual step, which is a SESSION_RITUALS change and so Z2's alone."
 records:
 - path: z1-inbox/2026-09-14/Z2_RULING_AMBIGUITY_BSM_D.md
   title: "Z2 ruling \u2014 AMBIGUITY-BSM-D: Z2-GOVARCH-02 supersedes SESSION_RITUALS\
