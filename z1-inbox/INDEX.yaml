@@ -418,12 +418,14 @@ candidates:
   path: z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md
   submitted: '2026-09-16'
   status: awaiting_z2
-  note: "RECEIPT-GAP, reconciled against merge commit 880c01f. Five merged items carry\
-    \ no ratifying act: .z1-control/ratify.py (Tier 2 gate), its test, seven append-only\
-    \ NF_LEDGER RESOLVE rows, PRACTICE_RESOLUTION_MAP.md (self-declared unratified)\
-    \ and .gitleaks.toml. Ruling 1's scope must NOT be widened to cover them \u2014\
-    \ CLAUDE.md forbids changing a Z2 decision retroactively; the fix is a new RATIFY\
-    \ event. Three dispositions offered, eight-item Z2 checklist."
+  note: "RECEIPT-GAP, reconciled against merge commit 880c01f. Five merged items are\
+    \ UNSCOPED, not unratified: the merge is the ratifying act for a PR with no Q-ID,\
+    \ so .z1-control/ratify.py (Tier 2 gate), its test, seven append-only NF_LEDGER\
+    \ RESOLVE rows, PRACTICE_RESOLUTION_MAP.md and .gitleaks.toml are canonical \u2014\
+    \ what is missing is a decision naming them. Ruling 1's scope must NOT be widened\
+    \ to cover them: CLAUDE.md forbids changing a Z2 decision retroactively, so the fix\
+    \ is a new RATIFY event carrying its own z2_hash with 880c01f as named subject (a\
+    \ commit sha pins a tree, not a signature). Three dispositions, eight-item checklist."
 records:
 - path: z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md
   title: "Z2 rulings \u2014 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01\

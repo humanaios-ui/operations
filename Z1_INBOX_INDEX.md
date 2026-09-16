@@ -71,7 +71,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (100)
+## Open questions for Z2 (108)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -232,6 +232,19 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Register IC-BOARD-SEALS-01 in REGISTERED.md as an IC (class memory-vs-fetch), or fold it into IC-030 as a recurrence
 - [ ] Accept, edit or reject prevention (1): an advisory `board-check` CI job on pushes to main touching sealed paths
 - [ ] Accept, edit or reject prevention (2): the checker as a §A session-open line in CLAUDE.md
+
+### Q-MERGE-SCOPE-01 (8)
+
+`z1-inbox/2026-09-16/Q-MERGE-SCOPE-01.md`
+
+- [ ] Disposition for the scope gap: option 1, 2 or 3 above.
+- [ ] Ruling 6 — `ratify.py` 1.2.0 and `tools/tests/test_ratify_index_write.py`. It names the pair but is `AWAITING Z2` and unsigned.
+- [ ] The seven `NF_LEDGER.jsonl` RESOLVE rows — ratify as written, or dispute. Append-only: a wrong resolution is correctable only by a DISPUTE event, never by deletion.
+- [ ] `ledgers/PRACTICE_RESOLUTION_MAP.md` — it declares itself unratified; ratify, or leave it so.
+- [ ] `.gitleaks.toml` — a security-scanner allowlist, merged with no decision naming it.
+- [ ] Prevention: P2 now (independent), then P1-with-scope, then P3 — or none. P1 without a declared machine-readable scope does not close this.
+- [ ] `IC-CAND-MERGE-RATIFIES-UNSCOPED-01` — register as IC, or NM.
+- [ ] Whether this extends **H-GOV-01**'s `evidence_basis` as the sixth instance. The register is append-only and the forward-pointer is Z2's to write; Z1 has not proposed the edit.
 
 ### Q-MOLT-LEDGER-SCAN-01 (10)
 
