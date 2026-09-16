@@ -46,7 +46,7 @@ class TestCaptureServiceIntegration(unittest.TestCase):
     """Test capture service calls with mocked HTTP."""
 
     @patch('holographic_orchestrator.CAPTURE_SERVICE_URL', 'https://capture.example.com')
-    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'sk_test_abc123')
+    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'test_key_not_a_real_credential')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_capture_submit_success(self, mock_urlopen):
         """Capture service returns job_id and asset_url."""
@@ -81,7 +81,7 @@ class TestCaptureServiceIntegration(unittest.TestCase):
         self.assertIn(b"person_001", req.data)
 
     @patch('holographic_orchestrator.CAPTURE_SERVICE_URL', 'https://capture.example.com')
-    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'sk_test_abc123')
+    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'test_key_not_a_real_credential')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_capture_service_auth_header(self, mock_urlopen):
         """Capture service receives correct Authorization header."""
@@ -115,7 +115,7 @@ class TestCaptureServiceIntegration(unittest.TestCase):
         self.assertIn("CAPTURE_SERVICE_URL", str(ctx.exception))
 
     @patch('holographic_orchestrator.CAPTURE_SERVICE_URL', 'https://capture.example.com')
-    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'sk_test_abc123')
+    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'test_key_not_a_real_credential')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_capture_service_http_error(self, mock_urlopen):
         """Capture service raises on HTTP error."""
@@ -131,7 +131,7 @@ class TestCaptureServiceIntegration(unittest.TestCase):
         self.assertIn("HTTP 400", str(ctx.exception))
 
     @patch('holographic_orchestrator.CAPTURE_SERVICE_URL', 'https://capture.example.com')
-    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'sk_test_abc123')
+    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'test_key_not_a_real_credential')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_capture_service_retry_on_5xx(self, mock_urlopen):
         """Capture service retries on 5xx errors."""
@@ -161,7 +161,7 @@ class TestRenderServiceIntegration(unittest.TestCase):
     """Test render service calls with mocked HTTP."""
 
     @patch('holographic_orchestrator.RENDER_SERVICE_URL', 'https://render.example.com')
-    @patch('holographic_orchestrator.RENDER_SERVICE_KEY', 'sk_render_xyz')
+    @patch('holographic_orchestrator.RENDER_SERVICE_KEY', 'test_key_render_credential')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_render_submit_success(self, mock_urlopen):
         """Render service returns job_id and model_url."""
@@ -186,7 +186,7 @@ class TestRenderServiceIntegration(unittest.TestCase):
         self.assertEqual(result["model_url"], "https://storage.example.com/model_xyz789.glb")
 
     @patch('holographic_orchestrator.RENDER_SERVICE_URL', 'https://render.example.com')
-    @patch('holographic_orchestrator.RENDER_SERVICE_KEY', 'sk_render_xyz')
+    @patch('holographic_orchestrator.RENDER_SERVICE_KEY', 'test_key_render_credential')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_render_payload_contains_capture_ref(self, mock_urlopen):
         """Render request includes capture job_id."""
@@ -225,7 +225,7 @@ class TestStorageServiceIntegration(unittest.TestCase):
     """Test storage (Supabase) calls with mocked HTTP."""
 
     @patch('holographic_orchestrator.SUPABASE_URL', 'https://proj.supabase.co')
-    @patch('holographic_orchestrator.SUPABASE_KEY', 'sk_supabase_test')
+    @patch('holographic_orchestrator.SUPABASE_KEY', 'test_key_supabase_credential')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_storage_upsert_success(self, mock_urlopen):
         """Storage returns row with id."""
@@ -249,7 +249,7 @@ class TestStorageServiceIntegration(unittest.TestCase):
         self.assertEqual(result["status"], "logged")
 
     @patch('holographic_orchestrator.SUPABASE_URL', 'https://proj.supabase.co')
-    @patch('holographic_orchestrator.SUPABASE_KEY', 'sk_supabase_test')
+    @patch('holographic_orchestrator.SUPABASE_KEY', 'test_key_supabase_credential')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_storage_on_conflict_header(self, mock_urlopen):
         """Storage request includes Prefer header for merge-duplicates."""
@@ -401,12 +401,12 @@ class TestRequestCredentialRedaction(unittest.TestCase):
     """Test that credentials are redacted from error messages."""
 
     @patch('holographic_orchestrator.CAPTURE_SERVICE_URL', 'https://capture.example.com')
-    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'sk_live_abcdef1234567890')
+    @patch('holographic_orchestrator.CAPTURE_SERVICE_KEY', 'sk_test_0123456789abcdefghijklmno')
     @patch('holographic_orchestrator.urllib.request.urlopen')
     def test_capture_error_redacts_key(self, mock_urlopen):
         """Capture error logs redact the service key."""
         error = HTTPError("http://example.com", 401, "Unauthorized", {},
-                         io.BytesIO(b"Invalid key: sk_live_abcdef1234567890secret"))
+                         io.BytesIO(b"Invalid key: sk_test_0123456789abcdefghijklmnosecret"))
         mock_urlopen.side_effect = error
 
         with self.assertRaises(CaptureServiceError) as ctx:
@@ -418,7 +418,7 @@ class TestRequestCredentialRedaction(unittest.TestCase):
 
         error_msg = str(ctx.exception)
         # Key should be redacted
-        self.assertNotIn("abcdef", error_msg)
+        self.assertNotIn("0123456789ab", error_msg)
         self.assertIn("***REDACTED***", error_msg)
 
 
