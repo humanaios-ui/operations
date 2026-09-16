@@ -4,14 +4,14 @@
 # Test credentials in holographic_orchestrator.py (non-production test keys)
 # These are intentionally fake patterns used for testing credential redaction logic
 # Production credentials use environment variables or secure vaults
-d0bf397:tools/holographic_orchestrator.py:619
-d0bf397:tools/tests/test_holographic_integration.py:404
-d0bf397:tools/tests/test_holographic_integration.py:409
+d0bf39793e55bea2f8fda611fc42399656921a4a:tools/holographic_orchestrator.py:619
+d0bf39793e55bea2f8fda611fc42399656921a4a:tools/tests/test_holographic_integration.py:404
+d0bf39793e55bea2f8fda611fc42399656921a4a:tools/tests/test_holographic_integration.py:409
 
 # Historical test commits (replaced with obviously fake patterns in bdd5fd3)
-0b09445:tools/holographic_orchestrator.py:619
-0b09445:tools/tests/test_holographic_integration.py:404
-0b09445:tools/tests/test_holographic_integration.py:409
+0b094457b45bab7c5384726cc55da50493f5fce9:tools/holographic_orchestrator.py:619
+0b094457b45bab7c5384726cc55da50493f5fce9:tools/tests/test_holographic_integration.py:404
+0b094457b45bab7c5384726cc55da50493f5fce9:tools/tests/test_holographic_integration.py:409
 
-7d8b054:tools/tests/test_holographic_integration.py:404
-7d8b054:tools/tests/test_holographic_integration.py:409
+7d8b05414ff236f66e3165231c0318fae734744a:tools/tests/test_holographic_integration.py:404
+7d8b05414ff236f66e3165231c0318fae734744a:tools/tests/test_holographic_integration.py:409
