@@ -159,6 +159,10 @@ refusals a board tap can meet look different there and on the board's status lin
 | `POST /assist 401 bad signature` | `REFUSED · bad signature … secret cleared` | the secret typed at the prompt is not `RELAY_SECRET`; the board asks again on the next tap |
 | `POST /decide 401 stale timestamp` | `REFUSED · stale timestamp` | the machine's clock is more than 300 s from the host's |
 | `POST /decide 200` | `PENDING · <PR> · hash …` | landed; the second tap echoes the hash |
+| `POST /ratify 200 refused` | `REFUSED · <the relay's reason>` | the relay answered but refused (hash mismatch, tagline, body changed since `/decide`); the reason is on the board, not in the log |
+
+The reason in the log is a closed set (the relay's own fixed refusals, or the status word); anything
+that quotes the request — a tagline, an exception — stays in the board's answer and out of the host's log.
 
 Copy each value from the service's Variables tab (the eye icon, then select-all) rather than the raw
 editor: the board trims what it is given, but a value pasted with its quotes or its name is still wrong.
