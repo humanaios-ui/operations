@@ -104,7 +104,7 @@ RECEIPT-GAP: none known.
 
 The bus plan's last step is a block, not code: **d27** model endpoint policy (none / local / hosted, in
 resource units), **d28** issue mirror, **d29** the smoke contract in the manifest (the two step-3
-measurements as one rule: `smoke_test` means *runs*, and a smoke test leaves the tree as it found it),
+measurements as one rule: `smoke_test` means *carries a flag*, and a smoke test leaves the git-visible tree as it found it),
 **d30** the squash-merge read pointer (mechanical when the tree hashes match, or human as now).
 Falsifier over the next ten requests on the bus; predictions C25–C28 in sessions, requests, scans and
 merges. The bus carries zero requests at filing; the first should be ours — the beta run.
