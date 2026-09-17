@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 158
+  tools: 159
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 129
+  builder_markers_present: 130
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -625,7 +625,7 @@ tools:
 - tool_id: HAIOS-TOOL-051
   name: decision_relay
   path: tools/decision_relay.py
-  version: 0.3.1
+  version: 0.4.0
   category: governance_tool
   zone: 1
   status: draft
@@ -1977,7 +1977,7 @@ tools:
 - tool_id: HAIOS-TOOL-164
   name: intent_os_test_harness
   path: tools/intent_os_test_harness_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: validation_tool
   zone: 1
   status: draft
@@ -2014,6 +2014,19 @@ tools:
   builder_markers: true
   purpose: intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse
     the rest.
+  session: S-091726-01
+- tool_id: HAIOS-TOOL-167
+  name: intent_os_requests
+  path: tools/intent_os_requests_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage.'
   session: S-091726-01
 mcp_servers:
 - server_id: HAIOS-MCP-001

@@ -27,7 +27,7 @@ Nothing noticed. The dashboard on `main` still showed the 09-16 receipt. A Z1 se
 re-seal, rerun, commit. That is the gap: the board's rule is *green means a fetch verified it*, and
 between sessions nobody fetched.
 
-**Destination:** a job that runs the fetch on every merge that touches a sealed file and daily; that
+**Destination:** a job that runs the fetch on every merge to `main` — event-driven, no clock schedule; that
 re-hashes only the seals whose drift is mechanical and says so on each row; that refuses to touch a
 seal whose meaning changed and instead opens one issue naming it; that publishes the receipt and the
 rendered pages as run artifacts; and that stays **report-only** until Z2 turns the PR/issue half on
@@ -44,7 +44,7 @@ board (C22). **0.55** that the STALE issue fires at least once on a genuine NEED
 | file | what it is | proof |
 |---|---|---|
 | `tools/intent_os_board_reseal_v1_0.py` | classifies the checker's drift: **MECHANICAL** (a hash-to-hash DRIFT on `z1-inbox/INDEX.yaml`, `REGISTERED.md`, `PRIORITY_QUEUE.md`, `ledgers/NF_LEDGER.jsonl`, `ledgers/RESOURCE_LEDGER.jsonl`, `Z1_INBOX_INDEX.md`, `TOOLS_MANIFEST.md`, `CONTROLLED_DOCUMENTS.md`) vs **NEEDS-HUMAN** (everything else; any MISSING / NOT-IN-HISTORY row; a seal that said ABSENT and now finds a file). `--apply` re-hashes only mechanical rows, rewrites each description to *"(re-sealed <date> at <head>; content changed, description not re-read)"*, moves `read.against` to HEAD (the old sha joins the prior-reads list), advances `rev` strictly (ISO stamp to the second, with a zero-padded ordinal if the clock has not moved past the current rev — so an open browser copy always loads the new data on restore and keeps its taps), leaves `read.date` alone (it records the last *human* read), and refuses outright if any NEEDS-HUMAN row exists. Exit 0 HOLDS · 1 mechanical · 2 human. | `--self-test` plants: clean → HOLDS; inbox+registry → MECHANICAL, applied, HOLDS, notes replaced not stacked, prior read kept, rev advanced, read.date untouched; apply on HOLDS → no-op; rev already ahead of the clock → `+001`, `+002`, each lexically greater; ABSENT seal now present on a mechanical path → NEEDS-HUMAN, refused; a tool changed alongside the inbox → NEEDS-HUMAN, refused, board byte-identical; a mechanical path MISSING → NEEDS-HUMAN. Registered `HAIOS-TOOL-166`. Row `t0-board-reseal` in the harness. |
-| `.github/workflows/intent-os-refresh.yml` | on every push to `main` (the seal set changes as the board is re-read, so no path filter stays complete), daily 05:41 UTC, and by hand — the job is pinned to `main`, so a dispatch against another ref is skipped and modified code never runs with its write token: tool self-tests first (a job that cannot tell a plant from a pass does not judge); seal check; drift classification; harness `--render`; job summary; receipt + board report + rendered pages as a 30-day run artifact (reports live under gitignored `outputs/`, excluded from the receipt's `tree_hash`). Step outputs derived from the checkout reach the shell through `env` and are quoted as data; row ids are restricted to `[a-z0-9-]` before they become outputs. **Gated on `vars.INTENT_OS_REFRESH_AUTOPR == 'true'`:** MECHANICAL → `--apply`, re-render, one PR `intent-os/refresh` (updated in place, `audit:auto`, `smag_p: 0.90`, `molt_tier_claimed: 0`); NEEDS-HUMAN or a red harness row not in `INTENT_OS_KNOWN_RED` → one `intent-os-stale` issue (commented in place). It never signs, never touches `z1-inbox/`, never publishes the board (d17). | parses under `workflow-lint.yml`'s strict duplicate-key loader; `on: push · schedule · workflow_dispatch`; `if: github.ref == 'refs/heads/main'`; permissions `contents · pull-requests · issues: write` (same as `smag-consolidate.yml`) |
+| `.github/workflows/intent-os-refresh.yml` | on every push to `main` (the seal set changes as the board is re-read, so no path filter stays complete) and by hand — event-driven only, no clock schedule (d26) — the job is pinned to `main`, so a dispatch against another ref is skipped and modified code never runs with its write token: tool self-tests first (a job that cannot tell a plant from a pass does not judge); seal check; drift classification; harness `--render`; job summary; receipt + board report + rendered pages as a 30-day run artifact (reports live under gitignored `outputs/`, excluded from the receipt's `tree_hash`). Step outputs derived from the checkout reach the shell through `env` and are quoted as data; row ids are restricted to `[a-z0-9-]` before they become outputs. **Gated on `vars.INTENT_OS_REFRESH_AUTOPR == 'true'`:** MECHANICAL → `--apply`, re-render, one PR `intent-os/refresh` (updated in place, `audit:auto`, `smag_p: 0.90`, `molt_tier_claimed: 0`); NEEDS-HUMAN or a red harness row not in `INTENT_OS_KNOWN_RED` → one `intent-os-stale` issue (commented in place). It never signs, never touches `z1-inbox/`, never publishes the board (d17). | parses under `workflow-lint.yml`'s strict duplicate-key loader; `on: push · schedule · workflow_dispatch`; `if: github.ref == 'refs/heads/main'`; permissions `contents · pull-requests · issues: write` (same as `smag-consolidate.yml`) |
 | the board, re-read at `e2b9a7a` | three mechanical rows re-hashed by the tool; the `ratify.py` row re-read by hand (description now says what 1.2.0 does and that Ruling 6 is pending); `read.against` → `e2b9a7a`; `rev` advanced to the ISO stamp of the last apply (the committed board carries the exact value); `read.date` stays `2026-09-17` from this session's human read | checker HOLDS at HEAD, 0 behind |
 | the dashboard, re-rendered | receipt of the run below | 48 rows |
 | `docs/INTENT_OS_BOARD_RUNBOOK.md` §6 · `docs/INTENT_OS_TEST_PATHWAY.md` §3 · `REPOSITORY_STRUCTURE.md` | the cadence now names the job and the tool; a session opens by checking for the `intent-os-stale` issue | `t4-repo-index` PASS |
@@ -58,11 +58,12 @@ T2 board + relay          GREEN  PASS=4
 T3 ci gates               RED    FAIL=1 PASS=5     ← t3-pytest-acat, the F-CAND registered in Q-INTENTOS-TEST-01
 T4 cross-repo             GREEN  PASS=3
 counts: FAIL=1, PASS=47 · verdict: RED
-board: HOLDS · queue: 46 candidates (this block included) · 39 awaiting Z2 · 38 past the 2-day window
+board: HOLDS · queue: 46 candidates (this block included) · 39 awaiting Z2 · validator flags 38 under its 2-day window
 ```
 
 (The receipt embedded in the dashboard is the final run on this branch, after this block was
-indexed; the numbers above are that receipt's.)
+indexed; the numbers above are that receipt's. The validator's 2-day window is the pre-RBE rule
+Ruling 5 retires; it is reported as the validator's fact, not relied on as a deadline.)
 
 The re-seal, as operated on the real drift:
 
@@ -83,6 +84,7 @@ fourth with an issue; the fourth took a human sentence.
 | **d24** | An automated re-seal advances `rev`, so a copy of the board open in a browser is superseded by the new data on its next restore (taps kept, as the board's own rule says). Accept that a *job's* read may supersede an open copy, or reserve `rev` advances for human re-reads? | If reserved, an open copy keeps showing hashes the tree no longer has until a session re-reads; if accepted, an open copy's narrative fields (readline, gauges) can age while its hashes stay true — which the re-sealed descriptions say out loud. |
 | **d25** | Local copies (e.g. one in `~/Downloads`): coordinate by re-downloading `ui/intent-os-humanaios-v3_3.html` from the repository after each refresh (no new surface), or publish a rolling release asset `intent-os-latest` on this repository so a copy has one stable URL to refresh from? | d17 ruled *local only, no `site/`, no Pages*. A release asset is repository-scoped (the same access as the file) but it is a new surface; Z2's read whether it is inside d17. Path freeze (d19) already makes the filename stable, so the localStorage key, and the taps, survive a replace either way. |
 | **KNOWN_RED** | The job carries `INTENT_OS_KNOWN_RED: t3-pytest-acat` so the registered F-CAND does not open a STALE issue on every run. Accept that list as the place a registered-but-unfixed red row is named, or require the list to be empty (every red row files)? | The list is in the workflow file, so adding to it is a reviewed change; it is not a way to hide a row (the row stays RED on the dashboard and in the receipt). |
+| **d26** | Resource-based grounding (Z2, 2026-09-17: *no AI-imposed time-frames; time-frames only where a regulatory authority requires them; if the resources are available, we process*). The job is now event-driven only (the daily cron is removed in this block's PR); the relay's request ids carry no daily quota; this block's falsifiers and predictions are stated in merges and events. Confirm that reading, or name a regulatory time-frame that applies. | Three time-framed things remain that are not Z1's to change: `.z1-control/validate.py`'s `decision_window_days: 2` (Ruling 5's mechanism is unspecified), the board's dated *Deadlines* and *we'll know by* columns, and the ratified `Q-INTENTOS-TEST-01`'s dated falsifier (editing a ratified candidate breaks its signature; a resource-based restatement would be a new candidate or Z2's edit). |
 
 Also on the table, from `Q-INTENTOS-TEST-01`'s ACCEPT: **d20 · d21 · d22** were accepted as asked but
 no choice is recorded in a ruling file. This block assumes the status quo for d21 (the dashboard
@@ -91,11 +93,13 @@ dashboard.
 
 ## Predictions (pre-registered)
 
+Resolution is stated in resource events (merges, runs, sessions), never in calendar time.
+
 | id | text | p | resolves |
 |---|---|---|---|
-| C22 | with d23 enabled, no Z1 session in the following 14 days opens on a STALE board | 0.70 | d23 + 14 days |
-| C23 | the `intent-os-stale` issue fires at least once on a genuine NEEDS-HUMAN change | 0.55 | 2026-10-07 |
-| C24 | at least one refresh PR is merged without a human editing it | 0.65 | 2026-10-07 |
+| C22 | with d23 enabled, none of the next 10 Z1 sessions that open on `main` finds a STALE board | 0.70 | after the 10th session following d23 |
+| C23 | the `intent-os-stale` issue fires on the first genuine NEEDS-HUMAN drift after d23 | 0.55 | that drift's refresh run |
+| C24 | the first refresh PR the job opens is merged without a human editing it | 0.65 | that PR's close |
 
 ## Falsifier
 
@@ -103,11 +107,12 @@ Row-level: if the tool ever re-hashes a NEEDS-HUMAN row — any re-sealed descri
 the MECHANICAL list — it is laundering drift, and it is pulled from the manifest. `--self-test` plants
 exactly that case (a tool change beside an inbox change) and proves the refusal.
 
-Surface-level, by **2026-10-07**: with d23 enabled, if (a) a merge to `main` that drifts only mechanical
-seals leaves the board STALE for more than 24 hours with no refresh PR open, or (b) a NEEDS-HUMAN drift
-sits for more than 24 hours with no `intent-os-stale` issue, the job is not doing its work: disable it
-and return the cadence to runbook §6 as it was. If d23 is not ruled by then, (a) and (b) are VOID and
-only the row-level falsifier stands.
+Surface-level, measured over the next **20 merges to `main`** after d23 is enabled: if (a) any merge
+that drifts only mechanical seals is followed by a further merge with the board still STALE and no
+refresh PR open, or (b) any NEEDS-HUMAN drift is followed by a further merge with no `intent-os-stale`
+issue open, the job is not doing its work: disable it and return the cadence to runbook §6 as it was.
+Until d23 rules, (a) and (b) are VOID and only the row-level falsifier stands. No date is attached: the
+job runs when a merge happens, and a merge happens when the resources to make one exist.
 
 ## Receipts (operated this session)
 
@@ -118,7 +123,7 @@ python3 tools/intent_os_board_reseal_v1_0.py --apply          → MECHANICAL · 
 python3 tools/intent_os_board_check_v1_0.py                   → HOLDS · read.against e2b9a7a at HEAD
 python3 tools/intent_os_test_harness_v1_0.py --render         → 47 PASS · 1 FAIL · RED (t3-pytest-acat) · 48 rows
 python3 .tool-control/scan.py --check && python3 .tool-control/validate.py && python3 .tool-control/render.py --check → 158 tools, in sync
-strict YAML load of .github/workflows/intent-os-refresh.yml   → parses; on: push · schedule · workflow_dispatch; 12 steps
+strict YAML load of .github/workflows/intent-os-refresh.yml   → parses; on: push (main) · workflow_dispatch — no schedule; 12 steps
 ```
 
 Attribution: Z1 (Claude) proposes; Z2 (Night) ratifies by hash via `.z1-control/ratify.py`; Z3 lands.
