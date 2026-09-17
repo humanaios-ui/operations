@@ -43,7 +43,7 @@
 
 ## Run A
 
-- governance_condition: HUMANAIOS | MINIMAL_OVERLAY
+- governance_condition: HUMANAIOS | MINIMAL_OVERLAY (the paired runs must contain exactly one of each)
 - platform:
 - start timestamp:
 - end timestamp:
