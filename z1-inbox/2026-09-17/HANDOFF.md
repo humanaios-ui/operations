@@ -154,6 +154,20 @@ different address and a Windows browser — the gate held against whoever that w
 `Q-INTENTOS-LAUNCH-01` (one ruling through the relay) is still open; the copy in `~/Downloads` must be
 replaced with this file after merge (blocker 3 below) for the fixes to reach the browser.
 
+**First signed exchange on the live relay (Z2, 2026-09-17 22:37Z, board rev 22:01:23Z from main after
+#385):** the host's log (relay 0.4.3) reads `POST /assist 401 basic-auth required` at 22:37:07Z — the
+password typed at the prompt was wrong and, for the first time, the log says so — then, after the board
+cleared it and asked again, `POST /assist 200` at 22:37:16Z, 22:37:22Z, 22:37:26Z and 22:37:28Z: four
+signed, gated requests answered. The board fix and the log fix both did what they were shipped to do.
+No `/decide` or `/task` was tapped, so nothing landed and C17 is still open. Z2's board export
+(`intentos_night_1789684726942.json`, exported 22:38:46Z, kept by Z2, not in the tree) shows 14 choices
+selected locally — d2 later · d3 set · d5 rule now · d6 scrape · d7 bypass + IC · d8 accept · d9 later ·
+d10 ratify · d11 file as draft · d12 queue · d13 require · d14 later · d15 rule now · d16 archive as
+listed — and no relay state: a selected option is not a tap; each becomes a PENDING block only when its
+"→ PR" is tapped (`/decide`), and a ruling only when the hash is echoed (`/ratify`). One wording defect
+seen on that surface: with no model key on the service, `/assist` answered "relay dry-run", which is
+false on a live host; 0.4.4 says "no model key on this relay" and names d27 as the decision that sets one.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.

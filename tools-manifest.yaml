@@ -625,7 +625,7 @@ tools:
 - tool_id: HAIOS-TOOL-051
   name: decision_relay
   path: tools/decision_relay.py
-  version: 0.4.3
+  version: 0.4.4
   category: governance_tool
   zone: 1
   status: draft
