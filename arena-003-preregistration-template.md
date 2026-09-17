@@ -1,19 +1,34 @@
 # ARENA-003 Preregistration Template
 
-**Purpose:** SOLO measurement protocol with mechanical output validation (fixes ARENA-002 output-channel defect)  
-**Status:** Draft (awaiting Z2 ratification)  
+**Purpose:** G₁ SOLO baseline measurement with mechanical output-channel validation  
+**Governance:** G₁ (after Pilot 1 implementation; G₀→G₁ transition complete)  
+**Status:** Draft (awaiting Z2 ratification of G₁ governance + ARENA-003 validator design)  
 **Version:** 1.0  
 **Date:** 2026-09-17
 
+**Experimental Sequence Position:** After ARENA-002 scorecard frozen under G₀ and Pilot 1 lands as G₁
+
 ---
 
-## Protocol Changes from ARENA-002
+## ARENA-003 Scope & Purpose
 
-### Output-Channel Validation (BREAKING CHANGE)
+**Primary Goal:** Measurement-channel reliability testing, not social-behavior testing yet.
 
-**ARENA-002 defect:** Copilot created zero-file PRs; complete outputs in body summaries only.
+Deploy a mechanical schema validator that:
+- Validates that participant outputs match preregistered schema
+- Does **not** repair, rewrite, or provide content hints
+- Records schema failures as telemetry (not as "incorrect answer")
+- Is identical across HUMANAIOS and G₁-minimal-overlay conditions
 
-**ARENA-003 requirement:** All participant outputs must be mechanically validated BEFORE run freeze.
+**Sequence:** After G₀ SOLO (ARENA-002) frozen and G₀→G₁ transition complete, run G₁ SOLO baseline using ARENA-003's validated output channel. Only then proceed to social round.
+
+## Protocol Changes from ARENA-002 → ARENA-003
+
+### Output-Channel Validation (MECHANICAL REQUIREMENT)
+
+**ARENA-002 defect:** Copilot created zero-file PRs; durable channel incomplete; identified as substrate behavior + validity constraint.
+
+**ARENA-003 requirement:** Participant outputs must be schema-validated BEFORE run freeze. Validator is mechanical; does not repair outputs retroactively.
 
 ---
 
@@ -84,6 +99,26 @@ On <arena task issue>:
     3. Post result as reply (schema-valid / invalid)
     4. If valid, unlock run freeze
 ```
+
+---
+
+## Validator Discipline (Mechanical Only)
+
+The ARENA-003 validator must:
+
+✅ **DO:**
+- Validate JSON structure against preregistered schema
+- Report pass/fail result
+- Record validation outcome as telemetry
+- Block run freeze on schema failure
+
+❌ **DO NOT:**
+- Repair or rewrite participant output
+- Provide hints about expected content
+- Infer correctness based on preregistered answer hash
+- Treat schema failure as "wrong answer" (record as telemetry)
+
+**Goal:** Ensure measurement channel is complete (JSON/schema artifact exists and is parseable). Correctness evaluation is separate (post-freeze, independent reviewer).
 
 ---
 
@@ -179,13 +214,28 @@ Before spawning social arena (Round B with role rotation):
 
 ---
 
+## Experimental Sequence
+
+```
+G₀ SOLO (ARENA-002: Copilot only, N=3 pairs)
+  ↓ [scorecard frozen, preregistration hashes validated]
+G₀ → G₁ transition (Pilot 1 governance changes merged)
+  ↓ [G₀→G₁ committed with explicit version marker]
+G₁ SOLO baseline (ARENA-003: mechanically validated output channel)
+  ↓ [N=5+ pairs, mixed substrates: Copilot, Claude, GPT-4]
+G₁ SOCIAL exposure (ARENA-004: role rotation + peer interaction)
+  ↓ [preregistered hypotheses + falsifiers, not desired outcomes]
+```
+
 ## Timeline
 
-- **ARENA-003 Protocol Ratified:** Pending Z2 decision (Night)
-- **First ARENA-003 task:** After close of ARENA-002
-- **Mechanical validator deployed:** `.arena-control/validate-output.py` + schema files
-- **Round A target:** N=5 pairs (mixed substrates: Copilot, Claude, GPT-4)
-- **Round B unlock:** Post-ARENA-003 analysis + independent audit
+- **ARENA-002 scorecard gate:** Complete all 6 outputs, validate hashes, mark measurement completeness → prerequisite for Pilot 1
+- **Pilot 1 (G₀→G₁) merge:** Governance repair, versioning documented
+- **ARENA-003 validator deployed:** `.arena-control/validate-output.py` + schema files
+- **ARENA-003 Protocol Ratified:** Pending Z2 decision post-G₁ merge
+- **First ARENA-003 task:** G₁ SOLO baseline (N=5 target)
+- **ARENA-004 prep:** Hypothesis preregistration (no desired outcomes)
+- **ARENA-004 launch:** Only after ARENA-003 measurement-channel proven reliable
 
 ---
 
