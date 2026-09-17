@@ -99,6 +99,7 @@ def registry() -> list[dict]:
 
     # T0 — self-tests
     add("t0-board-check", "T0", "board", "board seal checker self-test", _py(CHECKER, "--self-test"), proves=["W1", "W8"])
+    add("t0-board-reseal", "T0", "board", "board re-seal self-test (mechanical drift re-hashed; a changed tool refused)", _py("tools/intent_os_board_reseal_v1_0.py", "--self-test"), proves=["W8"])
     add("t0-relay", "T0", "relay", "decision relay self-test (DRY_RUN)", _py(RELAY, "--self-test"), env={"DRY_RUN": "1"}, proves=["W2", "W4", "Z3"])
     add("t0-z1-validate", "T0", "governance", ".z1-control/validate.py smoke", _py(".z1-control/validate.py", "--smoke-test"), proves=["G1"])
     add("t0-z1-render", "T0", "governance", ".z1-control/render.py smoke", _py(".z1-control/render.py", "--smoke-test"), proves=["W6"])
