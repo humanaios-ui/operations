@@ -33,11 +33,14 @@ Q-TEMPORAL-DISSOLUTION-01 therefore does **not** create a parallel resource econ
 |---|---|---|---|
 | `docs/RESOURCE_BASED_ECONOMICS.md` | correct non-commensurable resource allocation; some examples use calendar windows/cadences | ALIGNED + REVIEW | retain RBE allocation; ensure windows are measurement metadata, not scheduling authority |
 | `RESOURCE_UNITS.yaml` | ratified SSOT; includes `period: week/month/day`, `review_cadence_days`, PRICE windows, `STALE-day`, half-life concepts | MIXED / REVIEW REQUIRED | versioned migration required where time passage changes capacity, validity, priority, assurance, or refill; do not silently rewrite ratified v0.1 |
+| `constants.json` | active resource constants carry `measurement_window_days`, “90 days”, “4 weeks of capacity”, and similar time predicates | `INVALID_INTERNAL_DEADLINE` where these trigger/revert control state from elapsed time | migrate resource/governance constant evaluation to observation-count / state-change predicates; preserve timestamps as evidence only |
 | `priority_queue_engine.py` | impact/resource modes; no deadline term in queue score; readiness depends on blockers/pricing | ALIGNED | preserve; add temporal purity tests around work admission rather than a second scheduler |
 | `CANDIDATE_BLOCK_TEMPLATE.md` | still uses scalar `estimated_effort_units`; optional bare `regulatory_deadline` timestamp | DRIFT | replace scalar cost with canonical `RESOURCE_UNITS.yaml` cost vector; replace bare timestamp with complete external regulatory constraint contract |
 | `PRIORITY_QUEUE.md` | explicitly resource-impact ranked; regulatory exception policy | ALIGNED | strengthen as global gate; pin #378 |
 | `BOOT_PROCESS_MAP.md` | removes 48h/window_end and uses resource depletion | ALIGNED | retain; verify no disguised timebox enters cycle semantics |
 | `ZONE_REGISTRY.md` | resource caps per cycle; says no arbitrary window | ALIGNED / REVIEW | define cycle as allocation/accounting epoch, not day/week; capacity refills only by observed/allocation state, not calendar rollover |
+| `document-registry.yaml` | review intervals (`30/90/180` days), seeded `review_due` dates, “overdue” state | `INVALID_INTERNAL_DEADLINE` | replace calendar review enforcement with event/evidence freshness predicates; review dates may remain historical/observational only |
+| `.doc-control/review.py` | mechanically derives next `review_due` from days and can fail checks on time-based registry state | `INVALID_INTERNAL_DEADLINE` | redesign review gate around source drift / dependency change / explicit evidence invalidation; no merge failure solely because N days passed |
 | `ui/intent-os-humanaios-v3_3.html` | generic `Deadlines — moves that die on a date`; project mechanism uses “date to check” / “date you'll know by” | `INVALID_INTERNAL_DEADLINE` | replace with `External Constraints`; replace date-driven gates with state/evidence predicates |
 | `src/humanaios_operations/deadline_checker.py` | checks funding deadlines/opportunities | `REVIEW_REQUIRED` | distinguish external eligibility windows from regulatory authority; external commercial/funding windows may be context but do not become priority overrides |
 | `PHASE2_SETUP.md` | daily deadline alert workflow | `REVIEW_REQUIRED` | distinguish informational external-window monitoring from internal work scheduling; remove agent urgency if not regulatory |
@@ -63,6 +66,20 @@ These are the highest-risk conflict with the new directive. If mere passage of N
 
 A PRICE event may record the observation set/window over which a marginal rate was measured. That is measurement metadata. Calendar expiry alone must not automatically inject a new priority or rate; replacement requires new measured evidence and the governed PRICE path.
 
+## Document-control finding
+
+The current document-control subsystem is a direct example of the failure mode Q-TEMPORAL-DISSOLUTION-01 is intended to prevent: an internal document can become “overdue” and affect checks solely because a review interval elapsed. A provenance timestamp is useful; a calendar-generated obligation is not.
+
+Candidate successor predicates include:
+
+- canonical source hash changed since last review;
+- cited dependency changed or disappeared;
+- verification command no longer reproduces the recorded state;
+- owner explicitly requests review because authority/scope changed;
+- evidence source is superseded or invalidated.
+
+These predicates create work from **state change**, not from a clock.
+
 ## Important distinction: external opportunity window vs regulatory deadline
 
 An external grant/application/funding closing date is a real external constraint, but it is **not automatically a regulatory deadline** and therefore does not automatically override resource-based ordering.
@@ -79,7 +96,8 @@ The gate is not complete while any active control surface can:
 - replenish execution capacity solely at a calendar boundary;
 - order work by arbitrary calendar window;
 - define “cycle” as a hidden day/week/hour timebox;
-- degrade governance authority solely from age where an evidence/state predicate can be used instead.
+- degrade governance authority solely from age where an evidence/state predicate can be used instead;
+- fail a merge solely because an internal review date elapsed.
 
 ## Next audit pass
 
@@ -88,6 +106,8 @@ Search and classify active occurrences of:
 ```text
 deadline
 due / overdue
+review_due
+review_interval_days
 window_end
 start_after
 respond_within
