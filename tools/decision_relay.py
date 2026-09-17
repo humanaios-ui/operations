@@ -37,7 +37,7 @@ Run:  RELAY_SECRET=... GITHUB_TOKEN=... python3 tools/decision_relay.py 8787
       RELAY_SECRET=... RELAY_BASIC_PASS=... GITHUB_TOKEN=... python3 tools/decision_relay.py   # host (Railway): the relay is its own gate
 GET /healthz answers {"relay":"ok"} with no credential (the host's liveness probe); GET / behind the gate reports the configuration.
 """
-import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse, datetime, shutil, tempfile
+import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse, datetime, shutil, tempfile, io, contextlib, threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
@@ -464,6 +464,26 @@ def selftest():
         ok&=basic_ok(ba("night:pw-1")) and not basic_ok(ba("night:pw-2")) and not basic_ok(ba("day:pw-1")) and not basic_ok("") and not basic_ok("Basic not-base64!") and not basic_ok("Bearer xyz")
         BASIC_PASS=""
         print("basic-auth gate: off without a password; on → exact user:password only; malformed/absent → refused → OK")
+        # the host's logging contract: one line per request on STDOUT, nothing on stderr (Railway shows stderr as "error").
+        # A real round-trip on a loopback socket, both streams captured, so a regression to BaseHTTPRequestHandler's
+        # stderr default is caught here and not on the host.
+        srv=HTTPServer(("127.0.0.1",0),H); port=srv.server_address[1]; cap_out,cap_err=io.StringIO(),io.StringIO()
+        BASIC_PASS="pw-1"
+        with contextlib.redirect_stdout(cap_out), contextlib.redirect_stderr(cap_err):
+            th=threading.Thread(target=srv.serve_forever,kwargs={"poll_interval":0.05},daemon=True); th.start()
+            try:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz?probe=1") as rr: hz=json.load(rr)
+                try: urllib.request.urlopen(f"http://127.0.0.1:{port}/"); gated=None
+                except urllib.error.HTTPError as e: gated=(e.code,e.headers.get("WWW-Authenticate",""),e.read())
+                rq=urllib.request.Request(f"http://127.0.0.1:{port}/",headers={"Authorization":ba("night:pw-1")})
+                with urllib.request.urlopen(rq) as rr: st=json.load(rr)
+            finally: srv.shutdown(); th.join(2); srv.server_close()
+        BASIC_PASS=""
+        lines=cap_out.getvalue().splitlines()
+        ok&=(hz=={"relay":"ok"} and gated==(401,'Basic realm="intent-os"',b"basic-auth required\n") and st.get("basic_auth") is True
+             and lines==["127.0.0.1 GET /healthz","127.0.0.1 GET /","127.0.0.1 GET /"] and cap_err.getvalue()=="")
+        print("HTTP round-trip: /healthz open, / gated then answered; request lines on stdout (query string dropped), stderr empty →",
+              lines==["127.0.0.1 GET /healthz","127.0.0.1 GET /","127.0.0.1 GET /"] and cap_err.getvalue()=="")
         x=assist({"q":"?","opts":[]}); ok&=x["by"]=="Z1"; text="You must revoke the key immediately."; dr=IMPERATIVE.findall(text); ok&=len(dr)==3; print("imperative strip →",dr)
         r1=content_ref("Re: budget  approval\n","k"); r2=content_ref("Re: budget approval","k"); r3=content_ref("Re: budget approval","k2")
         ok&=(r1==r2 and r1!=r3); print("content_ref canonical-equal / key-distinct →",r1==r2,r1!=r3)
