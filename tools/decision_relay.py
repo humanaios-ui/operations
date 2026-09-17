@@ -30,14 +30,18 @@ Rules in code, not prose:
   * DRY_RUN=1 works on a local copy under ./relay_out instead of GitHub (self-test path).
 
 Env: RELAY_SECRET (required) · GITHUB_TOKEN · GITHUB_REPO=humanaios-ui/operations · ANTHROPIC_API_KEY (optional)
+     RELAY_BASIC_USER=night · RELAY_BASIC_PASS (set → basic-auth gate on every request but OPTIONS; the ngrok policy's gate, inside)
+     PORT (a host's assigned port; the positional argument overrides it) · RELAY_RATIFIER=Night
 Run:  RELAY_SECRET=... GITHUB_TOKEN=... python3 tools/decision_relay.py 8787
-      ngrok http 8787 --traffic-policy-file tools/relay_policy.yml
+      ngrok http 8787 --traffic-policy-file tools/relay_policy.yml          # laptop: ngrok is the gate, leave RELAY_BASIC_PASS unset
+      RELAY_SECRET=... RELAY_BASIC_PASS=... GITHUB_TOKEN=... python3 tools/decision_relay.py   # host (Railway): the relay is its own gate
+GET /healthz answers {"relay":"ok"} with no credential (the host's liveness probe); GET / behind the gate reports the configuration.
 """
 import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse, datetime, shutil, tempfile
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.4.0"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic
+TOOL_VERSION = "0.4.1"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -360,15 +364,37 @@ def assist(d):
     if drift: text=IMPERATIVE.sub("[…]",text)
     return {"by":"Z1","text":text,"drift":drift,"note":"advice, not a ruling; nothing is written"}
 
+BASIC_USER=os.environ.get("RELAY_BASIC_USER","night"); BASIC_PASS=os.environ.get("RELAY_BASIC_PASS","")
+def basic_ok(header):
+    """The gate tools/relay_policy.yml used to put in front of the relay under ngrok, now inside it: when RELAY_BASIC_PASS is
+    set, every request except the CORS preflight must carry HTTP basic-auth for RELAY_BASIC_USER. Unset → no gate (local use).
+    The HMAC on every POST is still the real proof; this only keeps an unauthenticated caller from probing the endpoint."""
+    if not BASIC_PASS: return True
+    if not header.startswith("Basic "): return False
+    try: user,_,pw=base64.b64decode(header[6:].strip()).decode().partition(":")
+    except Exception: return False
+    return hmac.compare_digest(user,BASIC_USER) and hmac.compare_digest(pw,BASIC_PASS)
+
 class H(BaseHTTPRequestHandler):
     def _send(self,code,obj):
         b=json.dumps(obj).encode(); self.send_response(code); self.send_header("Content-Type","application/json")
-        # Authorization is listed so a browser board can carry the ngrok basic-auth credential through the CORS preflight.
+        # Authorization is listed so a browser board can carry the basic-auth credential through the CORS preflight.
         self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Headers","Content-Type, X-Sig, Authorization")
         self.send_header("Access-Control-Allow-Methods","POST, GET, OPTIONS"); self.end_headers(); self.wfile.write(b)
+    def _gate(self):
+        """401 with a text body (not JSON): the board reads a non-JSON 401 as the basic-auth gate and clears its cached password."""
+        if basic_ok(self.headers.get("Authorization","")): return True
+        b=b"basic-auth required\n"; self.send_response(401); self.send_header("WWW-Authenticate",'Basic realm="intent-os"'); self.send_header("Content-Type","text/plain")
+        self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Headers","Content-Type, X-Sig, Authorization"); self.end_headers(); self.wfile.write(b); return False
+    def log_message(self,fmt,*args):  # no request bodies, no credentials in the host's logs; one line per request
+        sys.stderr.write("%s %s %s\n"%(self.address_string(),self.command,self.path.split("?")[0]))
     def do_OPTIONS(self): self._send(204,{})
-    def do_GET(self): self._send(200,{"relay":"ok","version":TOOL_VERSION,"dry":DRY,"repo":REPO,"signs_as":RATIFIER,"lands_in":"z1-inbox/ (d18)","paths":["/decide","/ratify","/assist","/task"]})
+    def do_GET(self):
+        if self.path.split("?")[0]=="/healthz": return self._send(200,{"relay":"ok"})  # the host's liveness probe; says nothing else, needs no credential
+        if not self._gate(): return
+        self._send(200,{"relay":"ok","version":TOOL_VERSION,"dry":DRY,"repo":REPO,"signs_as":RATIFIER,"basic_auth":bool(BASIC_PASS),"github_token":bool(TOKEN),"lands_in":"z1-inbox/ (d18)","paths":["/decide","/ratify","/assist","/task"]})
     def do_POST(self):
+        if not self._gate(): return
         body=self.rfile.read(int(self.headers.get("Content-Length",0)))
         sig=self.headers.get("X-Sig","")
         if not SECRET or not hmac.compare_digest(sig,hmac.new(SECRET.encode(),body,hashlib.sha256).hexdigest()): return self._send(401,{"status":"REFUSED","why":"bad signature"})
@@ -430,6 +456,14 @@ def selftest():
         # signature check via the handler logic
         body=json.dumps({"epoch":time.time(),"nonce":"n1"}).encode(); good=hmac.new(b"s3",body,hashlib.sha256).hexdigest()
         ok&=hmac.compare_digest(good,hmac.new(b"s3",body,hashlib.sha256).hexdigest()); ok&=not hmac.compare_digest("00",good); print("hmac good/bad → OK/REFUSED")
+        # basic-auth gate: off when no password is set; on, only the exact user:password pair passes; malformed headers fail closed
+        global BASIC_PASS,BASIC_USER
+        ok&=basic_ok("") and basic_ok("garbage")
+        BASIC_PASS,BASIC_USER="pw-1","night"
+        ba=lambda s:"Basic "+base64.b64encode(s.encode()).decode()
+        ok&=basic_ok(ba("night:pw-1")) and not basic_ok(ba("night:pw-2")) and not basic_ok(ba("day:pw-1")) and not basic_ok("") and not basic_ok("Basic not-base64!") and not basic_ok("Bearer xyz")
+        BASIC_PASS=""
+        print("basic-auth gate: off without a password; on → exact user:password only; malformed/absent → refused → OK")
         x=assist({"q":"?","opts":[]}); ok&=x["by"]=="Z1"; text="You must revoke the key immediately."; dr=IMPERATIVE.findall(text); ok&=len(dr)==3; print("imperative strip →",dr)
         r1=content_ref("Re: budget  approval\n","k"); r2=content_ref("Re: budget approval","k"); r3=content_ref("Re: budget approval","k2")
         ok&=(r1==r2 and r1!=r3); print("content_ref canonical-equal / key-distinct →",r1==r2,r1!=r3)
@@ -485,7 +519,7 @@ def selftest():
     print("SELF-TEST","PASS" if ok else "FAIL"); return 0 if ok else 2
 
 if __name__=="__main__":
-    ap=argparse.ArgumentParser(); ap.add_argument("port",nargs="?",type=int,default=8787)
+    ap=argparse.ArgumentParser(); ap.add_argument("port",nargs="?",type=int,default=int(os.environ.get("PORT","8787")))  # $PORT: what a host such as Railway assigns
     ap.add_argument("--self-test","--smoke-test",dest="self_test",action="store_true")
     ap.add_argument("--input",help="JSON file {\"path\": \"/decide\"|\"/ratify\"|\"/assist\", ...body} — run one request without the server (DRY_RUN=1 for a local copy)")
     a=ap.parse_args()
@@ -496,4 +530,5 @@ if __name__=="__main__":
         if not fn: sys.exit(f"REFUSED: unknown path {p}")
         print(json.dumps(fn(req),indent=1)); sys.exit(0)
     if not SECRET: sys.exit("REFUSED: RELAY_SECRET not set (set it at intake)")
-    print(f"relay v{TOOL_VERSION} on :{a.port} dry={DRY} repo={REPO} signs as {RATIFIER} · lands in z1-inbox/ (d18)"); HTTPServer(("0.0.0.0",a.port),H).serve_forever()
+    print(f"relay v{TOOL_VERSION} on :{a.port} dry={DRY} repo={REPO} signs as {RATIFIER} · basic-auth {'on' if BASIC_PASS else 'off'} · github token {'set' if TOKEN else 'MISSING (every landing will fail)'} · lands in z1-inbox/ (d18)",flush=True)
+    HTTPServer(("0.0.0.0",a.port),H).serve_forever()

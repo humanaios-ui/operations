@@ -109,6 +109,16 @@ measurements as one rule: `smoke_test` means *carries a flag*, and a smoke test 
 Falsifier over the next ten requests on the bus; predictions C25–C28 in sessions, requests, scans and
 merges. The bus carries zero requests at filing; the first should be ours — the beta run.
 
+## The first request on the bus, and the relay online (Z2, in session: "file the first request on the bus and test it then let's wire it live")
+
+`REQ-20260917-01` — *Wire the decision relay live so the board can rule and request from a browser* —
+written by the relay's own `/task` in DRY_RUN (no GitHub token here) and landed by this session's PR;
+taken by this session (the same one that filed it — the bus block's falsifier counts it); fulfilled by
+the PR that adds the relay's own basic-auth gate and `/healthz`, honours `$PORT`, and stands the relay
+up as a second Railway service beside the ACAT API (runbook §4c). d17 is untouched: the board stays a
+local file; the relay was always the part meant to be online (ngrok before, a host now). Z2 directed
+the hosting change in session; no ruling file records it yet — a line for the next block.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.
