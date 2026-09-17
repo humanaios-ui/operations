@@ -109,6 +109,27 @@ measurements as one rule: `smoke_test` means *carries a flag*, and a smoke test 
 Falsifier over the next ten requests on the bus; predictions C25–C28 in sessions, requests, scans and
 merges. The bus carries zero requests at filing; the first should be ours — the beta run.
 
+## The first request on the bus, and the relay online (Z2, in session: "file the first request on the bus and test it then let's wire it live")
+
+`REQ-20260917-01` — *Wire the decision relay live so the board can rule and request from a browser* —
+written by the relay's own `/task` in DRY_RUN (no GitHub token here) and landed by this session's PR;
+taken by this session (the same one that filed it — the bus block's falsifier counts it); fulfilled by
+the PR that adds the relay's own basic-auth gate and `/healthz`, honours `$PORT`, and stands the relay
+up as a second Railway service beside the ACAT API (runbook §4c). d17 is untouched: the board stays a
+local file; the relay was always the part meant to be online (ngrok before, a host now). Z2 directed
+the hosting change in session; no ruling file records it yet — a line for the next block.
+
+**Live:** service `intent-os-relay`, `https://intent-os-relay-production.up.railway.app`, deployed from
+this branch at `c617993` (deploy `6a6050f3`, SUCCESS). The host's deploy log carries the relay's start
+line (`v0.4.1 · basic-auth on · github token MISSING`) and its answer to the host's `/healthz` probe —
+the deployment reaches SUCCESS only when that probe returns 200. **RECEIPT-GAP, stated:** this session's
+sandbox egress policy denies `*.up.railway.app` (CONNECT 403), so Z1 did not observe `GET /` behind the
+gate or a signed POST *on the live host*; those paths are proven by the local HTTP run of the same
+code (healthz 200 · unauthenticated 401 text · bad signature 401 JSON · signed + gated `/task` lands ·
+replay 409 · stale epoch 401). The first observation on the live host is Z2's, from a browser: open
+the URL, answer the basic-auth prompt, read the status JSON. `GITHUB_TOKEN` is unset on the service
+until Z2 sets it; every landing answers ERROR until then.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.

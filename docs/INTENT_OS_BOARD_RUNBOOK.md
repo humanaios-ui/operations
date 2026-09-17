@@ -127,6 +127,28 @@ not verify, or the index does not carry it. The test dashboard § 5 shows the sa
 last harness run, and its **Fetch live from main** button re-reads the records over HTTPS on click and
 re-hashes each one in the browser before lighting a row (no network on open; a failed fetch lights nothing).
 
+## 4c. The relay, live (Z2's direction, 2026-09-17: "wire it live to the internet")
+
+The board stays a local file (d17 is untouched); what goes online is its only exit, the relay. It runs
+as the service `intent-os-relay` at `https://intent-os-relay-production.up.railway.app` in the existing
+Railway project beside the ACAT API, from this repository, with the start command
+`python3 tools/decision_relay.py` (it listens on the host's `$PORT`). Nothing in the
+tree carries a secret. The service's variables, set at intake in Railway and nowhere else:
+
+| variable | what | who sets it |
+|---|---|---|
+| `RELAY_SECRET` | the HMAC key; the board asks for it once per session and keeps it in memory | Z1 generated it at intake; read it from the service's variables, never from the tree |
+| `RELAY_BASIC_USER` / `RELAY_BASIC_PASS` | the basic-auth gate the ngrok policy used to provide, now inside the relay (every request but the CORS preflight); the board asks for the password once per session | as above |
+| `GITHUB_TOKEN` | a fine-grained token scoped to this repository: contents, pull requests and issues read/write — what `/decide`, `/ratify` and `/task` need to land branches, files and PRs | **Z2 only.** Until it is set, `GET /` reports `github_token: false` and every landing answers `ERROR`; signing and the gate still work, so the wiring is testable without it |
+| `RELAY_RATIFIER` | the name the relay signs as (`Night`) | set |
+
+The board's project data names the live URL (`relay.url`) and the basic-auth user; both secrets are
+typed into the browser prompts and never written to the file. `GET /healthz` is the host's liveness
+probe and says nothing but `ok`; `GET /` (behind the gate) reports version, repo, whether the gate and
+the token are set. Every POST is still HMAC-signed and replay-checked inside the relay — the gate only
+stops an unauthenticated caller from probing. The ngrok path (`tools/relay_policy.yml`) still works
+for a relay run on a laptop; set `RELAY_BASIC_PASS` empty there and let ngrok's policy be the gate.
+
 ## 5. Publish — ruled **local only** (d17, 2026-09-14)
 
 The board is not published. Z2 opens `ui/intent-os-humanaios-v3_3.html` from the repository;

@@ -130,7 +130,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
-| HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | 0.4.0 | 1 | draft | — | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
+| HAIOS-TOOL-051 | decision_relay | `tools/decision_relay.py` | 0.4.1 | 1 | draft | — | decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok. |
 | HAIOS-TOOL-151 | doc_review_scheduler | `.doc-control/review.py` | 1.0.0 | 1 | draft | no-builder-markers | Document review scheduler — record a review, derive the next one, triage the backlog. |
 | HAIOS-TOOL-153 | z1_ratify | `.z1-control/ratify.py` | 1.2.0 | 2 | draft | no-builder-markers | Record a Z2 decision on a candidate block. Run by Z2, not by Z1. |
 | HAIOS-TOOL-154 | z1_inbox_renderer | `.z1-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render Z1_INBOX_INDEX.md from z1-inbox/INDEX.yaml. |
