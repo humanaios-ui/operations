@@ -263,6 +263,7 @@ Schemas: `acat/contracts/assess_request.schema.json` · `acat/contracts/human_sc
 | `z1-inbox/<date>/Q-<TOPIC>-<nn>.md` | a Z1 candidate asking a Z2 decision | `z1-inbox/2026-09-14/Q-BOARD-RULING-07.md` |
 | `z1-inbox/<date>/Z2_RULING_<topic>.md` | Z2's choices on one topic, transcribed | `z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md` |
 | `z1-inbox/<date>/Z2_RULINGS_<date>.md` | that day's signatures | `z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md` |
+| `z1-inbox/<date>/REQ-<yyyymmdd>-<nn>.md` | an agent request landed by the relay's `/task` — a record with a hashed ask and a Fulfilment section a worker fills by PR | (first one lands when the bus is used; runbook §4b) |
 | `tools/<name>_v<major>_<minor>.py` | a versioned tool; Builder markers inside | `tools/intent_os_board_check_v1_0.py` |
 | `ui/intent-os-<project>-v<major>_<minor>.html` | a board; path frozen per d19 | `ui/intent-os-humanaios-v3_3.html` |
 | `*_CANDIDATE_BLOCK.md` / `*_BLOCK.md` | older candidate naming, same shape | `z1-inbox/2026-09-08/ACAT_BENCHMARK_CANDIDATE_BLOCK.md` |

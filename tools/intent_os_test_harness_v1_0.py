@@ -140,7 +140,7 @@ def registry() -> list[dict]:
     # T2 — board + relay end to end
     add("t2-board-script", "T2", "board", "board <script> parses (node --check)", kind="node_check", needs_cmd=["node"], proves=["W1"])
     add("t2-dashboard-script", "T2", "board", "dashboard <script> parses (node --check)", kind="node_check_dashboard", needs_cmd=["node"], proves=["W1"])
-    add("t2-relay-roundtrip", "T2", "relay", "signed /decide → PENDING hash → /ratify → signature, over HTTP (DRY_RUN)", kind="relay_roundtrip", timeout=60,
+    add("t2-relay-roundtrip", "T2", "relay", "signed /decide → PENDING hash → /ratify → signature, and /task → REQ record, over HTTP (DRY_RUN)", kind="relay_roundtrip", timeout=60,
         proves=["W2", "W3", "W4", "W5", "W6", "Z3"])
     add("t2-browser-persist", "T2", "board", "headless Chromium: board renders; a tap survives reload (localStorage)", kind="browser", timeout=90,
         requires=["playwright"], proves=["W1"])
@@ -256,10 +256,10 @@ def _free_port() -> int:
         return s.getsockname()[1]
 
 
-MIN_INDEX = ('---\nversion: 1\ngenerated: "2026-09-14"\ndecision_window_days: 2\ncounts: {candidates: 1, records: 0}\n'
-             'ratifiers: [Night]\n\ncandidates:\n  - q_id: Q-BOARD-RULING-06\n    title: "Board ruling d6"\n'
-             '    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-06.md"\n    submitted: "2026-09-14"\n    status: awaiting_z2\n'
-             '    falsifier_waiver: "question"\n\nrecords:\nexcluded: []\n')
+# the index in the shape ratify.py 1.2.0 writes it (items at column 0, counts as a block) — the shape the relay meets on main
+MIN_INDEX = ('version: 1\ngenerated: \'2026-09-16\'\ndecision_window_days: 2\ncounts:\n  candidates: 1\n  records: 0\nratifiers:\n- Night\n'
+             'candidates:\n- q_id: Q-BOARD-RULING-06\n  title: Board ruling d6\n  path: z1-inbox/2026-09-14/Q-BOARD-RULING-06.md\n'
+             '  submitted: \'2026-09-14\'\n  status: awaiting_z2\n  falsifier_waiver: question\nrecords:\nexcluded: []\n')
 MIN_CAND = ("# Ruling request Q-BOARD-RULING-06\n\n## Question\n\nbatch source?\n\n## Ruling\n\nchoice:\nby:\nat:\n"
             "status: OPEN\n\n## Z2 Review Checklist\n\n- [ ] batch source?\n")
 
@@ -363,6 +363,23 @@ def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
         v = subprocess.run(_py(os.path.join(out, ".z1-control", "ratify.py"), "--verify"), cwd=out, capture_output=True, text=True, timeout=30)
         ok &= _ok(lines, v.returncode == 0, f".z1-control/ratify.py --verify on the landed copy → {(v.stdout + v.stderr).strip().splitlines()[-1][:60] if (v.stdout + v.stderr).strip() else 'rc ' + str(v.returncode)}")
         r = {**r, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
+        # /task — the agent bus: a signed request becomes a record, indexed and rendered, nothing signed
+        t = {"title": "Re-read the ACAT benchmark map", "ask": "Compare the 12 rows to the 09-08 read.", "wants": "pr", "lane": "acat",
+             "tagline": "Night", "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
+        code, _, j = req("POST", "/task", t)
+        ok &= _ok(lines, code == 200 and j.get("status") == "OPEN" and re.fullmatch(r"REQ-\d{8}-\d{2}", j.get("id", "") or "") is not None,
+                  f"POST /task signed → {code} {j.get('status')} · {j.get('id')} · hash {str(j.get('hash', ''))[:16]}")
+        rec_p = os.path.join(out, j.get("path", "") or "x")
+        rec = open(rec_p, encoding="utf-8").read() if os.path.isfile(rec_p) else ""
+        idx = open(os.path.join(out, "z1-inbox", "INDEX.yaml"), encoding="utf-8").read()
+        rendered = open(os.path.join(out, "Z1_INBOX_INDEX.md"), encoding="utf-8").read() if os.path.isfile(os.path.join(out, "Z1_INBOX_INDEX.md")) else ""
+        ok &= _ok(lines, f"hash: `{j.get('hash')}`" in rec and "## Fulfilment" in rec and "**Status:** OPEN" in rec, f"{j.get('path')}: request block hashed, Fulfilment empty, OPEN")
+        ok &= _ok(lines, (j.get("path") or "x") in idx and str(j.get("id")) in rendered, "INDEX.yaml records: entry + rendered index carry the request")
+        ok &= _ok(lines, "z2_hash" not in rec and "status: RATIFIED" not in rec and "**Status:** OPEN" in rec, "nothing signed: no z2_hash, no RATIFIED status in the record")
+        code, _, j2 = req("POST", "/task", {**t, "nonce": "n-" + os.urandom(6).hex(), "epoch": time.time()})
+        ok &= _ok(lines, j2.get("id", "").endswith("-02"), f"second /task the same day → {j2.get('id')}")
+        code, _, j3 = req("POST", "/task", {**t, "title": "", "nonce": "n-" + os.urandom(6).hex(), "epoch": time.time()})
+        ok &= _ok(lines, code == 500 and j3.get("status") == "ERROR", f"POST /task with an empty title → {code} {j3.get('status')}")
 
         def snapshot() -> dict[str, bytes]:
             """Every file under the landed copy, so a refusal that touches anything is caught."""

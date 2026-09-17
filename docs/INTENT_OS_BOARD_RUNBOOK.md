@@ -97,6 +97,29 @@ used and is retired. Every open board ruling has its own candidate block (`Q-BOA
 ruling can also be recorded by hand — write the choice on the block's `choice:` line and run
 `python3 .z1-control/ratify.py Q-BOARD-RULING-<nn> --decision ACCEPT --by Night --apply`.
 
+## 4b. Ask an agent for work (the bus — relay v0.4)
+
+A request is not a ruling and not a candidate: it asks Z2 for nothing. `POST /task` on the relay
+(signed like every other call) lands it as a **record**:
+
+```
+z1-inbox/<day>/REQ-<yyyymmdd>-<nn>.md     the ask, a hashed request block, an empty ## Fulfilment
+z1-inbox/INDEX.yaml  records:             one entry, note "OPEN · wants pr|answer|ruling · lane …"
+Z1_INBOX_INDEX.md                         regenerated
+branch req/<id> → PR "REQ-…: <title>"     merging it records the request; it decides nothing
+```
+
+Fields: `title` (one line), `ask`, `wants` (`pr` · `answer` · `ruling`), `lane` (optional), `tagline`
+(recorded **as sent and marked unverified** — the HMAC proves the caller knew the secret, not who
+they are). Any worker takes a request — a Claude Code session, a local model behind the relay, a
+person — by filling `## Fulfilment` (`taken_by`, `pr`, `merged`, `at`) in its own PR and citing the
+`REQ-` id in that PR's body. Governance is unchanged: anything the work needs ratified goes through a
+candidate block as always. Without the relay, the same record can be written by hand and indexed; the
+validator's coverage rule will insist on the index entry.
+
+`DRY_RUN=1 python3 tools/decision_relay.py --input req.json` with `{"path": "/task", "title": …,
+"ask": …, "wants": "pr"}` lands one request on a local copy under `relay_out/` for inspection.
+
 ## 5. Publish — ruled **local only** (d17, 2026-09-14)
 
 The board is not published. Z2 opens `ui/intent-os-humanaios-v3_3.html` from the repository;

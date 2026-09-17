@@ -21,6 +21,12 @@ Rules in code, not prose:
     pinned at /decide), and a second ratification — nothing is written before those checks pass.
   * /assist returns navigator grammar only (position · destination · probability · readings), tagged by:Z1;
     an imperative in the model output is stripped and logged as DRIFT. It never writes a ruling.
+  * /task (v0.4) is the agent bus: a signed request lands as a RECORD — z1-inbox/<day>/REQ-<yyyymmdd>-<nn>.md with a
+    hashed request block and an empty Fulfilment section — indexed under records:, rendered, on a branch req/<id> with a
+    PR. It asks Z2 for nothing and signs nothing. Any worker (a Claude Code session, a local model, a person) takes it
+    by filling Fulfilment in its own PR. The tagline is recorded as sent and marked unverified: the HMAC proves the
+    caller knew the secret, not who they are.
+  * index helpers accept entries at any indentation — ratify.py 1.2.0 rewrites INDEX.yaml with items at column 0.
   * DRY_RUN=1 works on a local copy under ./relay_out instead of GitHub (self-test path).
 
 Env: RELAY_SECRET (required) · GITHUB_TOKEN · GITHUB_REPO=humanaios-ui/operations · ANTHROPIC_API_KEY (optional)
@@ -31,7 +37,7 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.3.1"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify
+TOOL_VERSION = "0.4.0"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -96,10 +102,17 @@ def qid_for(d):
     m=re.fullmatch(r"d(\d+)",str(d.get("id","")))
     if not m: raise ValueError("ruling id is not d<n> and no qid given")
     return f"Q-BOARD-RULING-{int(m.group(1)):02d}"
+def item_indent(index_text,section="candidates"):
+    """Indentation of the list items under `candidates:` / `records:` — 2 spaces in the hand-written index, 0 after
+    ratify.py 1.2.0's yaml dump. Both are valid YAML; mixing them inside one list is not, so writes must match."""
+    m=re.search(rf"(?m)^{section}:\n( *)- ",index_text)
+    if m: return m.group(1)
+    m=re.search(r"(?m)^candidates:\n( *)- ",index_text)
+    return m.group(1) if m else "  "
 def cand_path(index_text,qid):
-    m=re.search(rf"(?m)^  - q_id: {re.escape(qid)}\n(?:    .*\n)*?    path: \"([^\"]+)\"",index_text)
+    m=re.search(rf"(?m)^( *)- q_id: {re.escape(qid)}\n(?:\1  .*\n)*?\1  path: \"?([^\"\n]+?)\"?$",index_text)
     if not m: raise ValueError(f"{qid} is not a candidate in {INDEX}")
-    return m.group(1)
+    return m.group(2)
 def ruling_block(d):
     return ("RULING %s\n  by: %s (tagline)\n  project: %s\n  question: %s\n  choice: %s\n  note: %s\n  at: %s\n  status: PENDING\n"
             % (d["id"],d["tagline"],d["project"],d["q"],d["choice"],d.get("note",""),d["ts"]))
@@ -123,27 +136,34 @@ def ruling_fields(cand_text):
     b=re.search(r"```\n(.*?)```",sec,re.S); f["block"]=b.group(1) if b else None
     return f
 def cand_status(index_text,qid):
-    m=re.search(rf"(?m)^  - q_id: {re.escape(qid)}\n(?:    .*\n)*?    status: (\S+)",index_text)
-    return m.group(1) if m else None
+    m=re.search(rf"(?m)^( *)- q_id: {re.escape(qid)}\n(?:\1  .*\n)*?\1  status: (\S+)",index_text)
+    return m.group(2) if m else None
 def signature(candidate_bytes,by,at,decision="ACCEPT"):
     """sha256(candidate | by=… | at=… | decision=…), per CLAUDE.md — byte-identical to .z1-control/ratify.py."""
     return hashlib.sha256(candidate_bytes+f"|by={by}|at={at}|decision={decision}".encode()).hexdigest()
 def index_mark_ratified(index_text,qid,by,at,ruling_rel,digest):
-    block=re.search(rf"(^  - q_id: {re.escape(qid)}\n)(.*?)(?=^  - q_id: |^records:|\Z)",index_text,re.M|re.S)
+    ind=item_indent(index_text); f=ind+"  "
+    block=re.search(rf"(^{ind}- q_id: {re.escape(qid)}\n)(.*?)(?=^{ind}- q_id: |^records:|\Z)",index_text,re.M|re.S)
     if not block: raise ValueError(f"could not locate {qid} in {INDEX}")
     head,body=block.group(1),block.group(2)
-    if not re.search(r"^    status: awaiting_z2\n",body,re.M): raise ValueError(f"{qid} is not awaiting_z2; a decision is not re-taken by overwriting it")
-    body=re.sub(r"^    status: .*\n",f"    status: ratified\n",body,count=1,flags=re.M)
-    add=f'    ratified_by: {by}\n    ratified_at: "{at}"\n    z2_ruling: "{ruling_rel}"\n    z2_hash: "{digest}"\n'
+    if not re.search(rf"^{f}status: awaiting_z2\n",body,re.M): raise ValueError(f"{qid} is not awaiting_z2; a decision is not re-taken by overwriting it")
+    body=re.sub(rf"^{f}status: .*\n",f"{f}status: ratified\n",body,count=1,flags=re.M)
+    add=f'{f}ratified_by: {by}\n{f}ratified_at: "{at}"\n{f}z2_ruling: "{ruling_rel}"\n{f}z2_hash: "{digest}"\n'
     trailing=""
     while body.endswith("\n\n"): body,trailing=body[:-1],"\n"
     return index_text[:block.start()]+head+body+add+trailing+index_text[block.end():]
-def index_add_record(index_text,path,title,note):
-    if f'path: "{path}"' in index_text: return index_text
+def bump_counts(index_text,candidates=0,records=0):
+    """counts: is written two ways — inline `{candidates: n, records: m}` or as a block. Both are updated in place."""
     m=re.search(r"counts: \{candidates: (\d+), records: (\d+)\}",index_text)
+    if m: return index_text[:m.start()]+f"counts: {{candidates: {int(m.group(1))+candidates}, records: {int(m.group(2))+records}}}"+index_text[m.end():]
+    m=re.search(r"(?m)^counts:\n( *)candidates: (\d+)\n\1records: (\d+)\n",index_text)
     if not m: raise ValueError("counts: line not found")
-    index_text=index_text[:m.start()]+f"counts: {{candidates: {m.group(1)}, records: {int(m.group(2))+1}}}"+index_text[m.end():]
-    rec=f'records:\n  - path: "{path}"\n    title: "{title}"\n    note: "{note}"\n'
+    return index_text[:m.start()]+f"counts:\n{m.group(1)}candidates: {int(m.group(2))+candidates}\n{m.group(1)}records: {int(m.group(3))+records}\n"+index_text[m.end():]
+def index_add_record(index_text,path,title,note):
+    if f'path: "{path}"' in index_text or f"path: {path}\n" in index_text: return index_text
+    index_text=bump_counts(index_text,records=1)
+    ind=item_indent(index_text,"records"); f=ind+"  "
+    rec=f'records:\n{ind}- path: "{path}"\n{f}title: "{title}"\n{f}note: "{note}"\n'
     if "records:\n" not in index_text: raise ValueError("records: section not found")
     return index_text.replace("records:\n",rec,1)
 def rendered_index(index_text,read):
@@ -222,6 +242,56 @@ def ratify(d):
         gh("POST",f"/repos/{REPO}/issues/{d['number']}/labels",{"labels":["z2-ratified"]})
     return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"by":by,"at":at}
 
+REQ_KINDS=("pr","answer","ruling")
+def req_block(d):
+    return ("REQUEST %s\n  title: %s\n  lane: %s\n  wants: %s\n  tagline: %s (as sent; unverified)\n  at: %s\n"
+            % (d["id"],d["title"],d.get("lane") or "—",d["wants"],d.get("tagline") or "—",d["ts"]))
+def next_req_id(index_text,day):
+    compact=day.replace("-",""); n=0
+    for m in re.finditer(rf"z1-inbox/{re.escape(day)}/REQ-{compact}-(\d{{2}})\.md",index_text): n=max(n,int(m.group(1)))
+    return f"REQ-{compact}-{n+1:02d}"
+def req_record(d,block,h):
+    return (f"# Agent request {d['id']} — {d['title']}\n\n"
+            f"**Requested via:** tools/decision_relay.py v{TOOL_VERSION} (`/task`) · tagline as sent: `{d.get('tagline') or '—'}` (unverified — the HMAC proves the caller knew the secret, not who they are)\n"
+            f"**At:** {d['ts']}\n**Lane:** {d.get('lane') or '—'}\n**Wants:** {d['wants']}\n**Status:** OPEN\n\n"
+            f"This is a RECORD, not a candidate: it asks Z2 for nothing and carries no falsifier. A worker — a Claude Code session, a local model behind the relay, or a person — takes it by filling the Fulfilment section in its own PR and citing `{d['id']}` in that PR's body. Governance is unchanged: anything the work needs ratified goes through a candidate block as always.\n\n"
+            f"## Ask\n\n{d['ask'].strip()}\n\n"
+            f"## Request block\n\n```\n{block}```\n\nhash: `{h}`\n\n"
+            f"## Fulfilment\n\ntaken_by:\npr:\nmerged:\nat:\n")
+def task(d):
+    """/task — a signed request → REQ record in z1-inbox (records:, rendered) on a branch → PR. Nothing is decided, nothing
+    is signed. Fields: title, ask, wants (pr|answer|ruling), lane (optional), tagline (recorded as sent)."""
+    title=str(d.get("title","")).strip(); ask=str(d.get("ask","")).strip(); wants=str(d.get("wants","pr")).strip().lower()
+    if not title or not ask: raise ValueError("a request needs a title and an ask")
+    if wants not in REQ_KINDS: raise ValueError(f"wants must be one of {REQ_KINDS}")
+    if "\n" in title or len(title)>140: raise ValueError("title is one line, at most 140 characters")
+    ts=server_ts(); day=ts[:10]
+    # the id is numbered from main's index (so two relays cannot both mint -01); the branch is cut afterwards
+    st=store("main"); idx,_=st.get(INDEX)
+    if idx is None: raise ValueError(f"{INDEX} not found")
+    rid=next_req_id(idx,day); br=f"req/{rid.lower()}"
+    if not DRY:
+        base=gh("GET",f"/repos/{REPO}/git/ref/heads/main")["object"]["sha"]
+        try: gh("POST",f"/repos/{REPO}/git/refs",{"ref":f"refs/heads/{br}","sha":base})
+        except Exception: pass
+        st=store(br); idx,_=st.get(INDEX)
+    dd={**d,"id":rid,"title":title,"ask":ask,"wants":wants,"ts":ts,"tagline":str(d.get("tagline") or "")[:80],"lane":str(d.get("lane") or "")[:80]}
+    block=req_block(dd); h=sha(block.encode()); path=f"z1-inbox/{day}/{rid}.md"
+    st.put(path,req_record(dd,block,h),f"{rid}: {title} — OPEN, hash {h[:16]}")
+    idx=index_add_record(idx,path,f"Agent request {rid} — {title}",f"OPEN · wants {wants} · lane {dd['lane'] or '—'} · landed by decision_relay.py /task; fulfilled by a worker's PR citing {rid}")
+    st.put(INDEX,idx,f"INDEX: {rid} recorded")
+    st.put(RENDERED,rendered_index(idx,lambda rel: st.get(rel)[0] or ""),f"render Z1_INBOX_INDEX.md: {rid}")
+    out={"id":rid,"hash":h,"path":path,"branch":br,"wants":wants,"ts":ts}
+    if DRY: return {"status":"OPEN","pr":"DRY","number":0,**out}
+    body=(f"# {rid} — {title}\n\n```\n{block}```\n\nhash: `{h}`\n\nAn agent request landed by tools/decision_relay.py `/task`. Merging this records the request; the work itself "
+          f"is a separate PR that fills `{path}` § Fulfilment and cites `{rid}`. No decision is asked of Z2 here.\n\n## Prediction (SMAG calibration)\n\nsmag_p: 0.95\n\nmolt_tier_claimed: 0\n")
+    try: pr=gh("POST",f"/repos/{REPO}/pulls",{"title":f"{rid}: {title}","head":br,"base":"main","body":body})
+    except Exception:
+        prs=gh("GET",f"/repos/{REPO}/pulls?state=open&head={REPO.split('/')[0]}:{br}"); pr=prs[0]
+    try: gh("POST",f"/repos/{REPO}/issues/{pr['number']}/labels",{"labels":["agent-request"]})
+    except Exception: pass
+    return {"status":"OPEN","pr":pr["html_url"],"number":pr["number"],**out}
+
 def assist(d):
     """Z1: reframe the decision in plain terms tied to the north star. Navigator grammar only."""
     key=os.environ.get("ANTHROPIC_API_KEY")
@@ -245,7 +315,7 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Headers","Content-Type, X-Sig, Authorization")
         self.send_header("Access-Control-Allow-Methods","POST, GET, OPTIONS"); self.end_headers(); self.wfile.write(b)
     def do_OPTIONS(self): self._send(204,{})
-    def do_GET(self): self._send(200,{"relay":"ok","version":TOOL_VERSION,"dry":DRY,"repo":REPO,"signs_as":RATIFIER,"lands_in":"z1-inbox/ (d18)"})
+    def do_GET(self): self._send(200,{"relay":"ok","version":TOOL_VERSION,"dry":DRY,"repo":REPO,"signs_as":RATIFIER,"lands_in":"z1-inbox/ (d18)","paths":["/decide","/ratify","/assist","/task"]})
     def do_POST(self):
         body=self.rfile.read(int(self.headers.get("Content-Length",0)))
         sig=self.headers.get("X-Sig","")
@@ -259,6 +329,7 @@ class H(BaseHTTPRequestHandler):
             if self.path=="/decide": return self._send(200,{"status":"PENDING",**land(d)})
             if self.path=="/ratify": return self._send(200,ratify(d))
             if self.path=="/assist": return self._send(200,assist(d))
+            if self.path=="/task": return self._send(200,task(d))
             self._send(404,{"status":"REFUSED","why":"unknown path"})
         except Exception as e: self._send(500,{"status":"ERROR","why":str(e)})
 
@@ -312,6 +383,27 @@ def selftest():
         ok&=(r1==r2 and r1!=r3); print("content_ref canonical-equal / key-distinct →",r1==r2,r1!=r3)
         try: content_ref("x",""); ok=False
         except ValueError: print("keyless ref → REFUSED")
+        # /task — a request lands as a record: file, index entry, rendered index; ids count up within a day; nothing signed
+        t1=task({"title":"Re-read the ACAT benchmark map","ask":"Compare the 12 rows to the 09-08 read.","wants":"pr","lane":"acat","tagline":"Night"})
+        rec=open(os.path.join(out,t1["path"])).read(); idx=open(os.path.join(out,INDEX)).read(); rendered=open(os.path.join(out,RENDERED)).read()
+        ok&=(t1["status"]=="OPEN" and re.fullmatch(r"REQ-\d{8}-01",t1["id"]) is not None and f"hash: `{t1['hash']}`" in rec and "## Fulfilment\n\ntaken_by:\n" in rec
+             and "**Status:** OPEN" in rec and f'path: "{t1["path"]}"' in idx and "counts: {candidates: 1, records: 2}" in idx and t1["id"] in rendered and "unverified" in rec)
+        print("/task → OPEN record, indexed under records:, rendered, tagline marked unverified →",ok)
+        t2=task({"title":"Second ask","ask":"x","wants":"answer"}); ok&=t2["id"].endswith("-02"); print("second /task same day → -02:",t2["id"])
+        for bad in ({"title":"","ask":"x"},{"title":"t","ask":"x","wants":"deploy"},{"title":"a\nb","ask":"x"}):
+            try: task(bad); ok=False
+            except ValueError: pass
+        print("/task refuses an empty title, an unknown wants, a multi-line title → OK")
+        yaml.load(open(os.path.join(out,INDEX)).read(),Loader=v.StrictLoader); print("INDEX with REQ records parses strictly → OK")
+        # the same paths against the index format ratify.py 1.2.0 writes (items at column 0, block counts:)
+        shutil.rmtree(out,ignore_errors=True)
+        open(os.path.join(td,INDEX),"w").write('version: 1\ngenerated: "2026-09-16"\ndecision_window_days: 2\ncounts:\n  candidates: 1\n  records: 0\nratifiers:\n- Night\ncandidates:\n'
+            '- q_id: Q-BOARD-RULING-06\n  title: Board ruling d6\n  path: z1-inbox/2026-09-14/Q-BOARD-RULING-06.md\n  submitted: \'2026-09-14\'\n  status: awaiting_z2\n  falsifier_waiver: question\nrecords:\nexcluded: []\n')
+        r0=land(d); a0=ratify({**d,"expected_hash":r0["hash"],"branch":r0["branch"],"hash":r0["hash"]}); t0=task({"title":"col-0 index","ask":"y","wants":"pr"})
+        idx0=open(os.path.join(out,INDEX)).read()
+        ok&=(a0["status"]=="RATIFIED" and t0["status"]=="OPEN" and "\n- path: \"z1-inbox/" in idx0 and "\n  status: ratified\n" in idx0 and "counts:\n  candidates: 1\n  records: 2\n" in idx0)
+        yaml.load(idx0,Loader=v.StrictLoader)
+        print("column-0 index (ratify.py 1.2.0 format): /decide → /ratify → /task all land, counts block updated, parses strictly →",a0["status"]=="RATIFIED" and t0["status"]=="OPEN")
     finally:
         ROOT=real_root; shutil.rmtree(td,ignore_errors=True)
     print("SELF-TEST","PASS" if ok else "FAIL"); return 0 if ok else 2
@@ -324,7 +416,7 @@ if __name__=="__main__":
     if a.self_test: sys.exit(selftest())
     if a.input:
         req=json.load(open(a.input)); p=req.pop("path","/decide")
-        fn={"/decide":lambda d:{"status":"PENDING",**land(d)},"/ratify":ratify,"/assist":assist}.get(p)
+        fn={"/decide":lambda d:{"status":"PENDING",**land(d)},"/ratify":ratify,"/assist":assist,"/task":task}.get(p)
         if not fn: sys.exit(f"REFUSED: unknown path {p}")
         print(json.dumps(fn(req),indent=1)); sys.exit(0)
     if not SECRET: sys.exit("REFUSED: RELAY_SECRET not set (set it at intake)")
