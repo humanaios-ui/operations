@@ -1,11 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://humanaios.ai/schemas/external_constraint.schema.json",
-  "title": "HumanAIOS External Constraint",
+  "title": "HumanAIOS External Regulatory Constraint",
+  "description": "The only time-based work-priority override permitted by Q-TEMPORAL-DISSOLUTION-01. Commercial, grant, partner, or self-imposed windows do not satisfy this schema merely because they have closing dates.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "type",
+    "temporal_class",
     "authority",
     "citation",
     "due_at",
@@ -16,10 +18,15 @@
   ],
   "properties": {
     "type": {"const": "REGULATORY_DEADLINE"},
+    "temporal_class": {"const": "REGULATORY_EXTERNAL"},
     "authority": {"type": "string", "minLength": 1},
     "citation": {"type": "string", "minLength": 1},
     "due_at": {"type": "string", "format": "date-time"},
-    "evidence_ref": {"type": "string", "minLength": 1},
+    "evidence_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Immutable or durably addressable source for the external mandate."
+    },
     "impact_if_missed": {"type": "string", "minLength": 1},
     "z2_ratified": {"const": true},
     "ratification_ref": {"type": "string", "minLength": 1}
