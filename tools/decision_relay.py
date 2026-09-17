@@ -41,7 +41,7 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.4.1"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host
+TOOL_VERSION = "0.4.2"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -386,8 +386,8 @@ class H(BaseHTTPRequestHandler):
         if basic_ok(self.headers.get("Authorization","")): return True
         b=b"basic-auth required\n"; self.send_response(401); self.send_header("WWW-Authenticate",'Basic realm="intent-os"'); self.send_header("Content-Type","text/plain")
         self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Headers","Content-Type, X-Sig, Authorization"); self.end_headers(); self.wfile.write(b); return False
-    def log_message(self,fmt,*args):  # no request bodies, no credentials in the host's logs; one line per request
-        sys.stderr.write("%s %s %s\n"%(self.address_string(),self.command,self.path.split("?")[0]))
+    def log_message(self,fmt,*args):  # no request bodies, no credentials in the host's logs; one line per request, on stdout (a host reads stderr as "error")
+        sys.stdout.write("%s %s %s\n"%(self.address_string(),self.command,self.path.split("?")[0])); sys.stdout.flush()
     def do_OPTIONS(self): self._send(204,{})
     def do_GET(self):
         if self.path.split("?")[0]=="/healthz": return self._send(200,{"relay":"ok"})  # the host's liveness probe; says nothing else, needs no credential
