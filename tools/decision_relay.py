@@ -284,13 +284,31 @@ def req_record(d,block,h):
             f"## Ask\n\n{canon_ask(d['ask'])}\n\n"
             f"## Request block\n\n```\n{block}```\n\nhash: `{h}` — sha256 of the block above; `ask_sha256` inside it is sha256 of the `## Ask` section (lines right-stripped, outer whitespace stripped), so an edited ask breaks the hash.\n\n"
             f"## Fulfilment\n\ntaken_by:\npr:\nmerged:\nat:\n")
+def one_line(d,name,maxlen,required=False):
+    """A one-line metadata field as it will be written into the fenced, hashed request block: a string (never a coerced
+    None/number), no newlines or control characters, and no backtick — a backtick could close the block's fence, and the
+    record would no longer parse back to the bytes that were hashed."""
+    v=d.get(name)
+    if v is None or v=="":
+        if required: raise ValueError(f"a request needs a {name}")
+        return ""
+    if not isinstance(v,str): raise ValueError(f"{name} must be a string")
+    v=v.strip()
+    if not v and required: raise ValueError(f"a request needs a {name}")
+    if any(ord(c)<32 for c in v) or "`" in v: raise ValueError(f"{name} is one line: no newlines, control characters or backticks")
+    if len(v)>maxlen: raise ValueError(f"{name} is at most {maxlen} characters")
+    return v
 def task(d):
     """/task — a signed request → REQ record in z1-inbox (records:, rendered) on a branch → PR. Nothing is decided, nothing
     is signed. Fields: title, ask, wants (pr|answer|ruling), lane (optional), tagline (recorded as sent)."""
-    title=str(d.get("title","")).strip(); ask=str(d.get("ask","")).strip(); wants=str(d.get("wants","pr")).strip().lower()
-    if not title or not ask: raise ValueError("a request needs a title and an ask")
-    if wants not in REQ_KINDS: raise ValueError(f"wants must be one of {REQ_KINDS}")
-    if "\n" in title or len(title)>140: raise ValueError("title is one line, at most 140 characters")
+    title=one_line(d,"title",140,required=True); lane=one_line(d,"lane",80); tagline=one_line(d,"tagline",80)
+    ask=d.get("ask")
+    if not isinstance(ask,str) or not ask.strip(): raise ValueError("a request needs an ask (a string)")
+    ask=canon_ask(ask)
+    if re.search(r"(?m)^## ",ask): raise ValueError("the ask may not contain a level-2 heading line (## …): the record's own sections are delimited by them")
+    wants=d.get("wants","pr")
+    if not isinstance(wants,str) or wants.strip().lower() not in REQ_KINDS: raise ValueError(f"wants must be one of {REQ_KINDS}")
+    wants=wants.strip().lower()
     ts=server_ts(); day=ts[:10]
     # the id is numbered from main's index (merged requests) plus the req/ branches already on GitHub (landed, unmerged);
     # creating the branch ref is the atomic step — GitHub refuses a ref that exists — so a collision refuses, never reuses
@@ -302,8 +320,13 @@ def task(d):
         try: gh("POST",f"/repos/{REPO}/git/refs",{"ref":f"refs/heads/{br}","sha":base})
         except Exception as e: raise ValueError(f"{rid} was reserved by another request between read and write ({br} exists); resend to take the next id") from e
         st=store(br); idx,_=st.get(INDEX)
-    dd={**d,"id":rid,"title":title,"ask":canon_ask(ask),"wants":wants,"ts":ts,"tagline":str(d.get("tagline") or "")[:80],"lane":str(d.get("lane") or "")[:80]}
-    block=req_block(dd); h=sha(block.encode()); path=f"z1-inbox/{day}/{rid}.md"
+        if idx is None: raise ValueError(f"{INDEX} not found on {br}")
+    path=f"z1-inbox/{day}/{rid}.md"
+    # a request that merged (and had its req/ branch deleted) between the index read and the ref create is on main now
+    # but was in neither the index we read nor the reservations: re-read at the branch and refuse rather than overwrite
+    if st.get(path)[0] is not None or f"/{rid}.md" in idx: raise ValueError(f"{path} already exists on the base; resend to take the next id")
+    dd={**d,"id":rid,"title":title,"ask":ask,"wants":wants,"ts":ts,"tagline":tagline,"lane":lane}
+    block=req_block(dd); h=sha(block.encode())
     st.put(path,req_record(dd,block,h),f"{rid}: {title} — OPEN, hash {h[:16]}")
     idx=index_add_record(idx,path,f"Agent request {rid} — {title}",f"OPEN · wants {wants} · lane {dd['lane'] or '—'} · landed by decision_relay.py /task; fulfilled by a worker's PR citing {rid}")
     st.put(INDEX,idx,f"INDEX: {rid} recorded")
@@ -315,9 +338,10 @@ def task(d):
     try: pr=gh("POST",f"/repos/{REPO}/pulls",{"title":f"{rid}: {title}","head":br,"base":"main","body":body})
     except Exception:
         prs=gh("GET",f"/repos/{REPO}/pulls?state=open&head={REPO.split('/')[0]}:{br}"); pr=prs[0]
-    try: gh("POST",f"/repos/{REPO}/issues/{pr['number']}/labels",{"labels":["agent-request"]})
-    except Exception: pass
-    return {"status":"OPEN","pr":pr["html_url"],"number":pr["number"],**out}
+    # the label is how workers find requests; if it cannot be applied the request still landed, and the response says so
+    try: gh("POST",f"/repos/{REPO}/issues/{pr['number']}/labels",{"labels":["agent-request"]}); label,label_error="agent-request",None
+    except Exception as e: label,label_error=None,f"label not applied: {type(e).__name__}: {str(e)[:160]}"
+    return {"status":"OPEN","pr":pr["html_url"],"number":pr["number"],"label":label,"label_error":label_error,**out}
 
 def assist(d):
     """Z1: reframe the decision in plain terms tied to the north star. Navigator grammar only."""
@@ -425,10 +449,17 @@ def selftest():
         yaml.load(idx,Loader=v.StrictLoader); print("INDEX parses strictly with a quoted, colon-bearing title → OK")
         t2=task({"title":"Second ask","ask":"x","wants":"answer"}); ok&=t2["id"].endswith("-02"); print("second /task same day → -02:",t2["id"])
         idx=open(os.path.join(out,INDEX)).read()  # the index now carries -01 and -02 (records: 3)
-        for bad in ({"title":"","ask":"x"},{"title":"t","ask":"x","wants":"deploy"},{"title":"a\nb","ask":"x"}):
-            try: task(bad); ok=False
+        for bad in ({"title":"","ask":"x"},{"title":"t","ask":"x","wants":"deploy"},{"title":"a\nb","ask":"x"},{"title":None,"ask":None},{"title":7,"ask":"x"},
+                    {"title":"a `fence` closer","ask":"x"},{"title":"t","ask":"x","lane":"a`b"},{"title":"t","ask":"line\n## Details\nmore"},{"title":"t","ask":"x","wants":None}):
+            try: task(bad); ok=False; print("  NOT refused:",bad)
             except ValueError: pass
-        print("/task refuses an empty title, an unknown wants, a multi-line title → OK")
+        print("/task refuses: empty/None/non-string/multi-line/backtick title, backtick lane, unknown or None wants, an ask with a ## heading → OK")
+        # race: a record for the next id already exists on the base (merged between the index read and the ref create) → refuse, never overwrite
+        rc_day=t1["ts"][:10]; rc_path=os.path.join(out,"z1-inbox",rc_day,f"REQ-{rc_day.replace('-','')}-03.md")
+        open(rc_path,"w").write("# planted\n")
+        try: task({"title":"Third","ask":"x"}); ok=False; print("  NOT refused: existing path overwritten")
+        except ValueError as e: print("/task refuses when the chosen path already exists on the base →",str(e)[:60])
+        os.remove(rc_path)
         # ids: reserved branches count; the day is a namespace with no quota — 99 → 100, never a wrap to 01
         day=t1["ts"][:10]; compact=day.replace("-","")
         ok&=next_req_id(idx,day,taken={7})==f"REQ-{compact}-08" and next_req_id(idx,day)==f"REQ-{compact}-03" and next_req_id(idx,day,taken={99})==f"REQ-{compact}-100"

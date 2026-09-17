@@ -15,7 +15,7 @@ the PR/issue half on.
 | file | what |
 |---|---|
 | `tools/intent_os_board_reseal_v1_0.py` | MECHANICAL vs NEEDS-HUMAN drift; `--apply` re-hashes only the former; refuses otherwise; `--self-test` (8 plants); `HAIOS-TOOL-166` |
-| `.github/workflows/intent-os-refresh.yml` | on sealed-path merges + daily: checks, harness, artifacts, summary; PR/issue half gated on `vars.INTENT_OS_REFRESH_AUTOPR` (d23) |
+| `.github/workflows/intent-os-refresh.yml` | on every push to `main` and by hand (event-driven only; no clock schedule — see *Resource-based grounding* below): checks, harness, artifacts, summary; PR/issue half gated on `vars.INTENT_OS_REFRESH_AUTOPR` (d23) |
 | `ui/intent-os-humanaios-v3_3.html` | re-read at `e2b9a7a`; `ratify.py` 1.2.0 row re-read by hand (Ruling 6 pending); `rev` advanced by the tool to the stamp of the last apply (the committed board carries it); `read.date` = `2026-09-17`, this session's human read |
 | `ui/intent-os-test-dashboard-v1_0.html` | receipt of this run; W8 now includes the re-seal self-test; **§ 5 Agent requests** (step 2 of the approved bus plan): stages `requested → taken → pr → merged` from each record's Fulfilment, rendered from the receipt; *Fetch live from main* on click re-hashes every record in the browser |
 | `tools/intent_os_requests_v1_0.py` | the bus reader behind § 5: hashes recomputed, stage from Fulfilment only (no time-based state), `--check` for the harness (`t0-requests`, `t1-requests`); `HAIOS-TOOL-167` |

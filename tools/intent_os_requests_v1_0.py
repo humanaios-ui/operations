@@ -69,15 +69,38 @@ def canon_ask(ask: str) -> str:
     return "\n".join(ln.rstrip() for ln in str(ask).strip().splitlines())
 
 
-def section(text: str, heading: str) -> str | None:
-    m = re.search(rf"(?ms)^## {re.escape(heading)}\n(.*?)(?=^## |\Z)", text)
-    return m.group(1) if m else None
+def between(text: str, start: str, end: str | None = None) -> str | None:
+    """The record's section under `## <start>`, up to its known next delimiter `## <end>` (or the end of the file).
+    Known delimiters only: an ask is verbatim user text, so a `## Something` inside it must not end the section."""
+    m = re.search(rf"(?m)^## {re.escape(start)}\n", text)
+    if not m:
+        return None
+    s = m.end()
+    if end is None:
+        return text[s:]
+    e = re.search(rf"(?m)^## {re.escape(end)}\n", text[s:])
+    return text[s:s + e.start()] if e else text[s:]
+
+
+BLOCK_FIELDS = ("title", "lane", "wants", "tagline", "at")
+
+
+def block_fields(block: str) -> dict:
+    """The one-line metadata inside the hashed block, as the relay writes it (`tagline` carries its '(as sent; unverified)' tail)."""
+    out = {}
+    for k in BLOCK_FIELDS:
+        m = re.search(rf"^  {k}: (.*)$", block, re.M)
+        v = m.group(1) if m else None
+        if k == "tagline" and v is not None:
+            v = re.sub(r" \(as sent; unverified\)$", "", v)
+        out[k] = v
+    return out
 
 
 def parse_record(text: str, path: str) -> dict:
     """One REQ record → fields, hashes recomputed, stage derived. `errors` lists what a reader could not verify."""
     rec: dict = {"path": path, "id": None, "title": None, "at": None, "lane": None, "wants": None, "tagline": None,
-                 "header_status": None, "hash": None, "hash_ok": False, "ask_ok": False, "id_ok": False,
+                 "header_status": None, "hash": None, "hash_ok": False, "ask_ok": False, "id_ok": False, "meta_ok": False,
                  "taken_by": "", "pr": "", "merged": "", "fulfilled_at": "", "stage": None, "errors": [], "warnings": []}
     fname = re.search(r"(REQ-\d{8}-\d+)\.md$", path)
     file_id = fname.group(1) if fname else None
@@ -92,10 +115,10 @@ def parse_record(text: str, path: str) -> dict:
     m = re.search(r"tagline as sent: `([^`]*)`", text)
     rec["tagline"] = m.group(1) if m else None
     # hashes: the block's sha256 is the record's `hash:`; ask_sha256 inside the block is sha256 of ## Ask, canonicalised
-    blk_sec = section(text, "Request block") or ""
+    blk_sec = between(text, "Request block", "Fulfilment") or ""
     b = re.search(r"```\n(REQUEST .*?)```", blk_sec, re.S)
     hl = re.search(r"^hash: `([0-9a-f]{64})`", blk_sec, re.M)
-    ask = section(text, "Ask")
+    ask = between(text, "Ask", "Request block")
     if not b:
         rec["errors"].append("no REQUEST block")
     if not hl:
@@ -119,7 +142,14 @@ def parse_record(text: str, path: str) -> dict:
                 rec["errors"].append("## Ask does not hash to the block's ask_sha256 (the ask was edited)")
         elif not am:
             rec["errors"].append("block carries no ask_sha256")
-    ful = section(text, "Fulfilment")
+        # the header is what a reader sees; the block is what was hashed — they must agree, or the shown metadata is unverified
+        bf = block_fields(b.group(1))
+        shown = {"title": rec["title"], "lane": rec["lane"], "wants": rec["wants"], "tagline": rec["tagline"], "at": rec["at"]}
+        diff = [f"{k} (header {shown[k]!r}, block {bf[k]!r})" for k in BLOCK_FIELDS if shown[k] != bf[k]]
+        rec["meta_ok"] = not diff
+        if diff:
+            rec["errors"].append("header disagrees with the hashed block: " + "; ".join(diff))
+    ful = between(text, "Fulfilment")
     if ful is None:
         rec["errors"].append("no ## Fulfilment section")
     else:
@@ -140,19 +170,29 @@ def parse_record(text: str, path: str) -> dict:
     return rec
 
 
-def indexed_paths(root: str) -> set[str]:
-    """Record paths the inbox index carries (regex over the YAML text: quoted or bare scalars, any indentation)."""
+def indexed_paths(root: str) -> set[str] | None:
+    """Record paths under the index's `records:` section only (quoted or bare scalars, any indentation) — a REQ path
+    listed under `candidates:` or `excluded:` is not coverage. None when the index is missing or has no records: key."""
     try:
         with open(os.path.join(root, INDEX), encoding="utf-8") as fh:
             idx = fh.read()
     except OSError:
-        return set()
-    return {m.group(1) for m in re.finditer(r'(?m)^\s*-\s+path:\s*"?([^"\n]+?)"?\s*$', idx)}
+        return None
+    # the section ends at the next top-level KEY (a letter at column 0); column-0 list items ("- path: …") belong to it
+    m = re.search(r"(?ms)^records:[ \t]*\n?(.*?)(?=^[A-Za-z_]|\Z)", idx)
+    if not m:
+        return None
+    return {x.group(1) for x in re.finditer(r'(?m)^\s*-\s+path:\s*"?([^"\n]+?)"?\s*$', m.group(1))}
 
 
 def snapshot(root: str) -> dict:
     paths = sorted(p for p in glob.glob(os.path.join(root, "z1-inbox", "*", "REQ-*.md")))
     idx = indexed_paths(root)
+    index_error = None
+    if idx is None:
+        if os.path.isdir(os.path.join(root, "z1-inbox")):
+            index_error = f"{INDEX} missing or has no records: section — coverage cannot be read"
+        idx = set()
     reqs = []
     for p in paths:
         rel = os.path.relpath(p, root).replace(os.sep, "/")
@@ -163,7 +203,7 @@ def snapshot(root: str) -> dict:
             rec["errors"].append(f"not under records: in {INDEX} (the coverage rule will refuse this tree)")
         reqs.append(rec)
     counts = {s: sum(1 for r in reqs if r["stage"] == s) for s in (*STAGES, "inconsistent")}
-    errors = [f"{r['path']}: {e}" for r in reqs for e in r["errors"]]
+    errors = ([index_error] if index_error else []) + [f"{r['path']}: {e}" for r in reqs for e in r["errors"]]
     warnings = [f"{r['path']}: {w}" for r in reqs for w in r["warnings"]]
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=False).stdout.strip()
     return {"tool": TOOL_NAME, "version": TOOL_VERSION, "schema": SCHEMA,
@@ -228,15 +268,19 @@ def run_self_test() -> bool:
         edited_ask = rec("REQ-20260917-06", "Sixth", "the ask").replace("## Ask\n\nthe ask", "## Ask\n\nthe ask, edited")
         edited_block = rec("REQ-20260917-07", "Seventh", "x").replace("  wants: pr", "  wants: ruling")
         wrong_id = rec("REQ-20260917-09", "Ninth", "x")  # written to the -08 filename
+        edited_header = rec("REQ-20260917-10", "Tenth", "x").replace("**Wants:** pr", "**Wants:** ruling")  # block still says pr
+        heading_ask = rec("REQ-20260917-11", "Eleventh", "first line\n\n## Details\n\nmore")  # written by the writer directly; the ask carries a ## line
         files = {"REQ-20260917-01.md": fresh, "REQ-20260917-02.md": taken, "REQ-20260917-03.md": withpr, "REQ-20260917-04.md": merged_open,
-                 "REQ-20260917-05.md": bad_order, "REQ-20260917-06.md": edited_ask, "REQ-20260917-07.md": edited_block, "REQ-20260917-08.md": wrong_id}
+                 "REQ-20260917-05.md": bad_order, "REQ-20260917-06.md": edited_ask, "REQ-20260917-07.md": edited_block, "REQ-20260917-08.md": wrong_id,
+                 "REQ-20260917-10.md": edited_header, "REQ-20260917-11.md": heading_ask}
         for name, txt in files.items():
             with open(os.path.join(day, name), "w", encoding="utf-8") as fh:
                 fh.write(txt)
-        # index: -01..-07 carried (quoted and bare, column 0 and 2-space), -08 not
-        idx = 'version: 1\ncounts: {candidates: 0, records: 7}\ncandidates: []\nrecords:\n'
+        # index: -01..-07, -10, -11 carried under records: (quoted and bare, column 0 and 2-space); -08 listed only under candidates: (not coverage)
+        idx = 'version: 1\ncounts: {candidates: 1, records: 9}\ncandidates:\n- q_id: Q-X\n  path: "z1-inbox/2026-09-17/REQ-20260917-08.md"\n  status: awaiting_z2\nrecords:\n'
         idx += ''.join(f'- path: "z1-inbox/2026-09-17/REQ-20260917-0{i}.md"\n  title: "t"\n  note: "n"\n' for i in (1, 2, 3))
         idx += ''.join(f'  - path: z1-inbox/2026-09-17/REQ-20260917-0{i}.md\n    title: t\n    note: n\n' for i in (4, 5, 6, 7))
+        idx += ''.join(f'  - path: z1-inbox/2026-09-17/REQ-20260917-{i}.md\n    title: t\n    note: n\n' for i in (10, 11))
         idx += 'excluded: []\n'
         with open(os.path.join(td, INDEX), "w", encoding="utf-8") as fh:
             fh.write(idx)
@@ -249,10 +293,15 @@ def run_self_test() -> bool:
             ok &= cond
             print(f"  {label:<78} {'OK' if cond else 'FAIL'}")
 
-        check("8 records read; stages requested/taken/pr/merged derived from Fulfilment alone",
-              s["total"] == 8 and [by[f"REQ-20260917-0{i}"]["stage"] for i in (1, 2, 3, 4)] == list(STAGES))
-        check("fresh record: block hash, ask_sha256 (canonicalised, quotes in title) and id all verify; indexed",
-              by["REQ-20260917-01"]["hash_ok"] and by["REQ-20260917-01"]["ask_ok"] and by["REQ-20260917-01"]["id_ok"] and by["REQ-20260917-01"]["indexed"] and not by["REQ-20260917-01"]["errors"])
+        check("10 records read; stages requested/taken/pr/merged derived from Fulfilment alone",
+              s["total"] == 10 and [by[f"REQ-20260917-0{i}"]["stage"] for i in (1, 2, 3, 4)] == list(STAGES))
+        check("fresh record: block hash, ask_sha256 (canonicalised, quotes in title), id and header↔block metadata all verify; indexed",
+              by["REQ-20260917-01"]["hash_ok"] and by["REQ-20260917-01"]["ask_ok"] and by["REQ-20260917-01"]["id_ok"] and by["REQ-20260917-01"]["meta_ok"]
+              and by["REQ-20260917-01"]["indexed"] and not by["REQ-20260917-01"]["errors"] and by["REQ-20260917-01"]["tagline"] == "Night")
+        check("edited header (**Wants:** ≠ block's wants) → error; hashes alone would have passed",
+              not by["REQ-20260917-10"]["meta_ok"] and by["REQ-20260917-10"]["hash_ok"] and any("header disagrees" in e for e in by["REQ-20260917-10"]["errors"]))
+        check("an ask carrying a '## Details' line still verifies (sections end at known delimiters only)",
+              by["REQ-20260917-11"]["ask_ok"] and not by["REQ-20260917-11"]["errors"] and "## Details" in (between(files["REQ-20260917-11.md"], "Ask", "Request block") or ""))
         check("filling Fulfilment does not break the hash (the block is above it)",
               all(by[f"REQ-20260917-0{i}"]["hash_ok"] and not by[f"REQ-20260917-0{i}"]["errors"] for i in (2, 3, 4)))
         check("fields read: taken_by / pr / merged / at", by["REQ-20260917-03"]["taken_by"] == "Night" and by["REQ-20260917-03"]["pr"].endswith("/400")
@@ -262,11 +311,15 @@ def run_self_test() -> bool:
         check("edited ask → ask_sha256 mismatch (error); block hash still fine", not by["REQ-20260917-06"]["ask_ok"] and by["REQ-20260917-06"]["hash_ok"] and by["REQ-20260917-06"]["errors"])
         check("edited block → hash mismatch (error)", not by["REQ-20260917-07"]["hash_ok"] and by["REQ-20260917-07"]["errors"])
         r8 = by["REQ-20260917-09"]
-        check("id in heading/block ≠ filename → error; not in index → error", not r8["id_ok"] and not r8["indexed"] and len(r8["errors"]) >= 2)
-        check("index paths read quoted and bare, column 0 and indented", all(by[f"REQ-20260917-0{i}"]["indexed"] for i in range(1, 8)))
-        check("counts + verdict: stage counts from Fulfilment (a broken hash is still 'requested'), ERROR overall, 4 verify",
-              s["counts"] == {"requested": 4, "taken": 1, "pr": 1, "merged": 1, "inconsistent": 1} and s["verdict"] == "ERROR" and s["verified"] == 4)
-        # empty inbox → OK, nothing to show
+        check("id in heading/block ≠ filename → error; listed under candidates: only → not indexed (error)", not r8["id_ok"] and not r8["indexed"] and len(r8["errors"]) >= 2)
+        check("index paths read quoted and bare, column 0 and indented, records: section only", all(by[f"REQ-20260917-0{i}"]["indexed"] for i in range(1, 8)))
+        check("counts + verdict: stage counts from Fulfilment (a broken hash is still 'requested'), ERROR overall, 5 verify",
+              s["counts"] == {"requested": 6, "taken": 1, "pr": 1, "merged": 1, "inconsistent": 1} and s["verdict"] == "ERROR" and s["verified"] == 5)
+        # missing index with an inbox present → error (coverage cannot be read); empty inbox → OK, nothing to show
+        os.rename(os.path.join(td, INDEX), os.path.join(td, INDEX + ".bak"))
+        e = snapshot(td)
+        check("index missing while z1-inbox/ exists → ERROR naming the index", e["verdict"] == "ERROR" and any("missing" in x for x in e["errors"]))
+        os.rename(os.path.join(td, INDEX + ".bak"), os.path.join(td, INDEX))
         for n in files:
             os.remove(os.path.join(day, n))
         e = snapshot(td)
