@@ -56,7 +56,7 @@ import urllib.error
 import urllib.request
 
 TOOL_NAME = "intent_os_test_harness"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"  # 1.1: tiers T5 (manifest smoke, generated), T6 (service boot), T7 (key-gated live provider); requests snapshot
 TOOL_CATEGORY = "validation_tool"
 TOOL_SESSION = "S-091626-01"
 TOOL_ZONE = 1  # 1=execute, 2=ratify, 3=night
@@ -77,7 +77,11 @@ TIERS = [
     ("T2", "board + relay", "script parses; signed /decide → /ratify over a socket; taps survive reload"),
     ("T3", "ci gates", "the unit suites, lint and type-check the workflows block on"),
     ("T4", "cross-repo", "zone registry, planned repos, repository index name real paths"),
+    ("T5", "manifest smoke", "every tool the manifest says has a smoke test, run with the flag its source carries — the manifest's claim, measured"),
+    ("T6", "service boot", "the ACAT API boots in-process and answers its health routes"),
+    ("T7", "live provider", "a real model call through the relay's /assist — key-gated; SKIP without a key, never green by default"),
 ]
+MANIFEST = "tools-manifest.yaml"
 
 PY = sys.executable or "python3"
 
@@ -89,14 +93,14 @@ def _py(*args: str) -> list[str]:
 # ---------------------------------------------------------------------------------------------------
 # registry — every entry is a command or a native check; `proves` names diagram nodes on the dashboard
 # ---------------------------------------------------------------------------------------------------
-def registry() -> list[dict]:
+def registry(root: str = ROOT) -> list[dict]:
     T = []
 
-    def add(id, tier, area, name, cmd=None, *, expect=0, timeout=120, requires=(), needs_cmd=(),
-            env=None, kind="cmd", proves=(), note=""):
+    def add(id, tier, area, name, cmd=None, *, expect=0, timeout=120, requires=(), needs_cmd=(), needs_env=(),
+            env=None, kind="cmd", proves=(), note="", skip_reason=""):
         T.append(dict(id=id, tier=tier, area=area, name=name, cmd=cmd, expect=expect, timeout=timeout,
-                      requires=list(requires), needs_cmd=list(needs_cmd), env=env or {}, kind=kind,
-                      proves=list(proves), note=note))
+                      requires=list(requires), needs_cmd=list(needs_cmd), needs_env=list(needs_env), env=env or {}, kind=kind,
+                      proves=list(proves), note=note, skip_reason=skip_reason))
 
     # T0 — self-tests
     add("t0-board-check", "T0", "board", "board seal checker self-test", _py(CHECKER, "--self-test"), proves=["W1", "W8"])
@@ -194,7 +198,88 @@ def registry() -> list[dict]:
     add("t4-zone-registry", "T4", "registry", "ZONE_REGISTRY.md: tables populated; operations registered ACTIVE", kind="zones", proves=["R1"])
     add("t4-planned-repos", "T4", "registry", "PLANNED_REPOS.md present with ≥1 planned row", kind="planned", proves=["R1"])
     add("t4-repo-index", "T4", "registry", "REPOSITORY_STRUCTURE.md: every path it names exists", kind="repo_index", proves=["R2"])
+
+    # T5 — the manifest's smoke_test claims, every one of them (T0's curated rows are not repeated)
+    covered = {os.path.relpath(t["cmd"][1], root).replace(os.sep, "/") if os.path.isabs(t["cmd"][1]) else t["cmd"][1]
+               for t in T if t["tier"] == "T0" and t.get("cmd") and len(t["cmd"]) > 1}
+    for row in manifest_smoke_rows(root, covered):
+        add(**row)
+
+    # T6 — a service boots: the ACAT API in-process, both health routes answer
+    add("t6-acat-boot", "T6", "service", "acat.api.app boots under FastAPI's TestClient; / , /health and /api/v1/acat/health answer 200 ok",
+        _py("-c", "from fastapi.testclient import TestClient; from acat.api.app import app; c=TestClient(app); "
+                  "rs=[c.get(p) for p in ('/','/health','/api/v1/acat/health')]; print([(r.status_code, r.json().get('status')) for r in rs]); "
+                  "import sys; sys.exit(0 if all(r.status_code==200 and r.json().get('status')=='ok' for r in rs) else 1)"),
+        timeout=120, requires=["fastapi", "httpx"], proves=["G4"])  # the app import is the test, run from the root
+
+    # T7 — a live model call through the relay; without a key this row is listed and SKIPPED, never green
+    add("t7-live-assist", "T7", "relay", "relay /assist answers with a real model reading (ANTHROPIC_API_KEY; costs one small call)",
+        kind="live_assist", timeout=90, needs_env=["ANTHROPIC_API_KEY"],
+        note="never green by default: a key in the environment is the only thing that turns this row on; the answer is checked for the navigator-grammar fields, not for its content")
     return T
+
+
+SMOKE_FLAGS = ("--smoke-test", "--self-test")
+
+
+def manifest_smoke_rows(root: str, covered: set[str]) -> list[dict]:
+    """One row per manifest tool that claims `smoke_test: true`, run with the flag its source actually carries.
+    The manifest sets that field from a text match ('smoke test' anywhere in the file), so the claim is exactly
+    what this tier measures: a tool with no `--smoke-test`/`--self-test` in its source is listed as SKIP (never
+    green); an archived tool is SKIP; a tool already run by a T0 row is not repeated. Order: the manifest's."""
+    import yaml  # noqa: E402
+    try:
+        m = yaml.safe_load(open(os.path.join(root, MANIFEST), encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return []
+    tools = m.get("tools", []) if isinstance(m, dict) else (m or [])
+    rows, seen = [], set()
+    for t in tools:
+        if not isinstance(t, dict) or not t.get("smoke_test") or t.get("lang", "python") != "python":
+            continue
+        p = str(t.get("path", "")).replace(os.sep, "/")
+        if not p or p in covered:
+            continue
+        stem = re.sub(r"^tools/", "", os.path.splitext(p)[0])  # tools/Metaculus/main.py → metaculus-main; .doc-control/x.py → doc-control-x
+        rid = "t5-" + re.sub(r"[^a-z0-9]+", "-", stem.lower()).strip("-")
+        while rid in seen:
+            rid += "-x"
+        seen.add(rid)
+        base = dict(id=rid, tier="T5", area="manifest", timeout=60, env={"DRY_RUN": "1"})
+        if str(t.get("status", "")).lower() == "archived":
+            rows.append(dict(base, name=f"{p} — archived in the manifest", kind="skip", skip_reason="archived: not run"))
+            continue
+        try:
+            src = open(os.path.join(root, p), encoding="utf-8", errors="replace").read()
+        except OSError:
+            rows.append(dict(base, name=f"{p} — named by the manifest, not on disk", kind="skip", skip_reason="file missing"))
+            continue
+        flag = next((f for f in SMOKE_FLAGS if f in src), None)
+        if flag is None:
+            rows.append(dict(base, name=f"{p} — manifest says smoke_test, source has no {' / '.join(SMOKE_FLAGS)}", kind="skip",
+                             skip_reason="manifest smoke_test is a text match; no smoke flag in the source"))
+            continue
+        rows.append(dict(base, name=f"{p} {flag} (manifest {t.get('tool_id', '?')})", cmd=_py(p, flag)))
+    return rows
+
+
+def live_assist(root: str, timeout: int) -> tuple[bool, str]:
+    """A real /assist call through the relay's --input path (no server, no GitHub): the answer must carry the
+    navigator-grammar fields the prompt asks for. DRY_RUN is removed from the environment for this one call."""
+    env = {k: v for k, v in os.environ.items() if k != "DRY_RUN"}
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+        json.dump({"path": "/assist", "q": "Does the Intent-OS test harness prove what the board claims?",
+                   "opts": ["yes, the receipts are the proof", "no, it proves only its own rows"],
+                   "s": "harness receipt embedded in the dashboard; board seals HOLD"}, fh)
+        path = fh.name
+    try:
+        r = subprocess.run(_py(RELAY, "--input", path), cwd=root, env=env, capture_output=True, text=True, timeout=timeout)
+    finally:
+        os.unlink(path)
+    out = r.stdout + r.stderr
+    low = out.lower()
+    good = r.returncode == 0 and "position" in low and "dry-run" not in low and "no model key" not in low
+    return good, out[-1500:]
 
 
 # ---------------------------------------------------------------------------------------------------
@@ -558,7 +643,11 @@ def _have_module(name: str) -> bool:
 def run_one(t: dict, root: str) -> dict:
     res = {k: t[k] for k in ("id", "tier", "area", "name", "expect", "kind", "proves", "note")}
     res["cmd"] = " ".join(t["cmd"]) if t.get("cmd") else f"<native:{t['kind']}>"
-    missing = [m for m in t["requires"] if not _have_module(m)] + [c for c in t["needs_cmd"] if not shutil.which(c)]
+    if t["kind"] == "skip":
+        res.update(status="SKIP", rc=None, duration_s=0.0, tail="", reason=t.get("skip_reason") or "listed, not run")
+        return res
+    missing = [m for m in t["requires"] if not _have_module(m)] + [c for c in t["needs_cmd"] if not shutil.which(c)] \
+        + [f"${v}" for v in t.get("needs_env", []) if not os.environ.get(v)]
     if missing:
         res.update(status="SKIP", rc=None, duration_s=0.0, tail="", reason="requires " + ", ".join(missing))
         return res
@@ -575,6 +664,7 @@ def run_one(t: dict, root: str) -> dict:
                   "node_check_dashboard": lambda: check_node(root, DASHBOARD, t["timeout"]),
                   "relay_roundtrip": lambda: relay_roundtrip(root, t["timeout"]),
                   "browser": lambda: browser_persist(root, t["timeout"]),
+                  "live_assist": lambda: live_assist(root, t["timeout"]),
                   "zones": lambda: check_zones(root), "planned": lambda: check_planned(root),
                   "repo_index": lambda: check_repo_index(root)}[t["kind"]]
             good, out = fn()
@@ -697,7 +787,7 @@ def zones_snapshot(root: str) -> dict:
 
 
 def run_all(root: str, tiers: list[str] | None = None, only: list[str] | None = None, with_snapshots: bool = True) -> dict:
-    reg = [t for t in registry() if (not tiers or t["tier"] in tiers) and (not only or t["id"] in only)]
+    reg = [t for t in registry(root) if (not tiers or t["tier"] in tiers) and (not only or t["id"] in only)]
     results = [run_one(t, root) for t in reg]
     return assemble(results, root, with_snapshots)
 
@@ -779,19 +869,27 @@ def run_smoke_test() -> bool:
     with tempfile.TemporaryDirectory() as td:
         subprocess.run(["git", "init", "-q", td], check=True)
         subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "seed"], check=True)
+        def row(**kw):
+            base = dict(expect=0, timeout=10, requires=[], needs_cmd=[], needs_env=[], env={}, kind="cmd", proves=[], note="", skip_reason="", cmd=None)
+            return {**base, **kw}
         planted = [
-            dict(id="p-pass", tier="T0", area="x", name="pass", cmd=[PY, "-c", "print('ok')"], expect=0, timeout=10, requires=[], needs_cmd=[], env={}, kind="cmd", proves=["W1"], note=""),
-            dict(id="p-fail", tier="T0", area="x", name="fail", cmd=[PY, "-c", "import sys;print('boom');sys.exit(1)"], expect=0, timeout=10, requires=[], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-expect2", tier="T1", area="x", name="expected nonzero", cmd=[PY, "-c", "import sys;sys.exit(2)"], expect=2, timeout=10, requires=[], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-timeout", tier="T1", area="x", name="timeout", cmd=[PY, "-c", "import time;time.sleep(5)"], expect=0, timeout=1, requires=[], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-skip", tier="T2", area="x", name="skip", cmd=[PY, "-c", "print(1)"], expect=0, timeout=10, requires=["no_such_module_xyz_123"], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-skipcmd", tier="T2", area="x", name="skip cmd", cmd=["no-such-binary-xyz"], expect=0, timeout=10, requires=[], needs_cmd=["no-such-binary-xyz"], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-error", tier="T3", area="x", name="error", cmd=["/nonexistent/binary/xyz"], expect=0, timeout=10, requires=[], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-env", tier="T3", area="x", name="env passed", cmd=[PY, "-c", "import os,sys;sys.exit(0 if os.environ.get('HARNESS_X')=='1' else 1)"], expect=0, timeout=10, requires=[], needs_cmd=[], env={"HARNESS_X": "1"}, kind="cmd", proves=[], note=""),
+            row(id="p-pass", tier="T0", area="x", name="pass", cmd=[PY, "-c", "print('ok')"], proves=["W1"]),
+            row(id="p-fail", tier="T0", area="x", name="fail", cmd=[PY, "-c", "import sys;print('boom');sys.exit(1)"]),
+            row(id="p-expect2", tier="T1", area="x", name="expected nonzero", cmd=[PY, "-c", "import sys;sys.exit(2)"], expect=2),
+            row(id="p-timeout", tier="T1", area="x", name="timeout", cmd=[PY, "-c", "import time;time.sleep(5)"], timeout=1),
+            row(id="p-skip", tier="T2", area="x", name="skip", cmd=[PY, "-c", "print(1)"], requires=["no_such_module_xyz_123"]),
+            row(id="p-skipcmd", tier="T2", area="x", name="skip cmd", cmd=["no-such-binary-xyz"], needs_cmd=["no-such-binary-xyz"]),
+            row(id="p-error", tier="T3", area="x", name="error", cmd=["/nonexistent/binary/xyz"]),
+            row(id="p-env", tier="T3", area="x", name="env passed", cmd=[PY, "-c", "import os,sys;sys.exit(0 if os.environ.get('HARNESS_X')=='1' else 1)"], env={"HARNESS_X": "1"}),
+            row(id="p-needs-env", tier="T3", area="x", name="needs an env var", cmd=[PY, "-c", "print(1)"], needs_env=["HARNESS_NO_SUCH_KEY_XYZ"]),
+            row(id="p-listed", tier="T3", area="x", name="listed, not run", kind="skip", skip_reason="planted reason"),
         ]
         res = [run_one(t, td) for t in planted]
         got = {r["id"]: r["status"] for r in res}
-        want = {"p-pass": "PASS", "p-fail": "FAIL", "p-expect2": "PASS", "p-timeout": "TIMEOUT", "p-skip": "SKIP", "p-skipcmd": "SKIP", "p-error": "ERROR", "p-env": "PASS"}
+        want = {"p-pass": "PASS", "p-fail": "FAIL", "p-expect2": "PASS", "p-timeout": "TIMEOUT", "p-skip": "SKIP", "p-skipcmd": "SKIP", "p-error": "ERROR", "p-env": "PASS",
+                "p-needs-env": "SKIP", "p-listed": "SKIP"}
+        ok &= next(r for r in res if r["id"] == "p-needs-env")["reason"] == "requires $HARNESS_NO_SUCH_KEY_XYZ"
+        ok &= next(r for r in res if r["id"] == "p-listed")["reason"] == "planted reason"
         for k, v in want.items():
             print(f"  {k:<12} → {got.get(k):<8} {'OK' if got.get(k) == v else 'FAIL'}")
             ok &= got.get(k) == v
@@ -801,8 +899,32 @@ def run_smoke_test() -> bool:
         ok &= rep["verdict"] == "RED" and set(rep["bad"]) == {"p-fail", "p-timeout", "p-error"}
         print("  mixed run → RED, bad = fail+timeout+error:", "OK" if rep["verdict"] == "RED" else "FAIL")
         tv = {t["id"]: t["verdict"] for t in rep["tiers"]}
-        ok &= tv == {"T0": "RED", "T1": "RED", "T2": "RED", "T3": "RED", "T4": "EMPTY"}
-        print("  tier verdicts (T2 all-SKIP → RED, T4 → EMPTY):", tv)
+        ok &= tv == {"T0": "RED", "T1": "RED", "T2": "RED", "T3": "RED", "T4": "EMPTY", "T5": "EMPTY", "T6": "EMPTY", "T7": "EMPTY"}
+        print("  tier verdicts (T2 all-SKIP → RED, T4–T7 → EMPTY):", tv)
+        # T5 generator: a planted manifest — a runnable smoke flag, a self-test flag, a text-only claim, an archived tool,
+        # a missing file, a T0-covered path (omitted) — yields exactly the rows the tier promises
+        os.makedirs(os.path.join(td, "tools"), exist_ok=True)
+        open(os.path.join(td, "tools", "a.py"), "w").write("import sys\n# smoke test\nif '--smoke-test' in sys.argv: sys.exit(0)\nsys.exit(3)\n")
+        open(os.path.join(td, "tools", "b.py"), "w").write("import sys\n# smoke test lives under --self-test\nsys.exit(0 if '--self-test' in sys.argv else 4)\n")
+        open(os.path.join(td, "tools", "c.py"), "w").write("# this file mentions a smoke test but takes no flag\nprint('hi')\n")
+        open(os.path.join(td, "tools", "d.py"), "w").write("# smoke test\n")
+        open(os.path.join(td, "tools", "e.py"), "w").write("import sys\n# smoke test\nsys.exit(0)\n")
+        open(os.path.join(td, MANIFEST), "w").write(
+            "tools:\n- {tool_id: HAIOS-TOOL-001, path: tools/a.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-002, path: tools/b.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-003, path: tools/c.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-004, path: tools/d.py, smoke_test: true, status: archived, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-005, path: tools/gone.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-006, path: tools/e.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-007, path: tools/f.py, smoke_test: false, status: draft, lang: python}\n")
+        t5 = manifest_smoke_rows(td, covered={"tools/e.py"})
+        full = [row(**dict(r, cmd=r.get("cmd"))) for r in t5]
+        r5 = {r["id"]: r for r in (run_one(t, td) for t in full)}
+        ok &= [r["id"] for r in t5] == ["t5-a", "t5-b", "t5-c", "t5-d", "t5-gone"] and r5["t5-a"]["status"] == "PASS" and r5["t5-b"]["status"] == "PASS" \
+            and r5["t5-c"]["status"] == "SKIP" and "text match" in r5["t5-c"]["reason"] and r5["t5-d"]["status"] == "SKIP" and "archived" in r5["t5-d"]["reason"] \
+            and r5["t5-gone"]["status"] == "SKIP" and "missing" in r5["t5-gone"]["reason"] and "--self-test" in r5["t5-b"]["cmd"]
+        print("  T5 rows from a planted manifest: flag detected per source, text-only claim / archived / missing → SKIP, T0-covered omitted, smoke_test:false omitted:",
+              "OK" if [r["id"] for r in t5] == ["t5-a", "t5-b", "t5-c", "t5-d", "t5-gone"] else f"FAIL {[r['id'] for r in t5]}")
         clean = assemble([r for r in res if r["status"] == "PASS"], td, with_snapshots=False)
         ok &= clean["verdict"] == "GREEN"
         print("  all-PASS run → GREEN:", "OK" if clean["verdict"] == "GREEN" else "FAIL")
@@ -893,7 +1015,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--root", "--input", dest="root", default=ROOT,
                     help="repository root to test (--input is the tools/README.md alias)")
-    ap.add_argument("--tier", nargs="*", help="run only these tiers (T0..T4)")
+    ap.add_argument("--tier", nargs="*", help="run only these tiers (T0..T7)")
     ap.add_argument("--only", nargs="*", help="run only these check ids")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--json", action="store_true")
@@ -904,7 +1026,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.self_test:
         return 0 if run_smoke_test() else 2
     if a.list:
-        for t in registry():
+        for t in registry(a.root):
             print(f"{t['tier']} {t['id']:<27} {t['name']:<70} {' '.join(t['cmd']) if t['cmd'] else '<native:' + t['kind'] + '>'}")
         return 0
     rep = run_all(a.root, a.tier, a.only)

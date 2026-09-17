@@ -33,6 +33,9 @@ and from nothing else, so a dashboard opened without a run says so in red.
 | **T2 board + relay** | a Z2 session can open, tap, land and ratify | `node --check` on both pages; the real relay on a loopback port answering a signed `/decide` → PENDING hash → `/ratify` → signature that `.z1-control/ratify.py --verify` accepts; headless Chromium keeps a tap across reload | every step OK; nothing written under the repo |
 | **T3 ci gates** | what `quality-baseline.yml` blocks on, plus the suites it does not run | its exact pytest list, its Ruff step (`--select=E9,F63,F7,F82` over `src/`, `acat/api/services`, `tools/tests`, `tests`), its mypy step; and `tests/`, `tools/tests/`, `acat/tests/` in full | each exits 0; SKIP (never green) when pytest, mypy or ruff is absent locally |
 | **T4 cross-repo** | the scale-out surface is real | `ZONE_REGISTRY.md` tables populated and `operations` ACTIVE; `PLANNED_REPOS.md` present; every path `REPOSITORY_STRUCTURE.md` names exists | each check OK |
+| **T5 manifest smoke** | the manifest's `smoke_test: true` claims hold | one row per manifest tool that claims a smoke test, run with the flag its source carries (`--smoke-test`, else `--self-test`); a tool whose source has neither is listed as SKIP (the manifest sets that field from a text match), an archived tool is SKIP, T0's curated rows are not repeated. The first run measured the claim: 141 claimed · 106 pass · 17 fail · 18 no flag | each exits 0; SKIP rows are listed, never green |
+| **T6 service boot** | a service actually starts | `acat.api.app` under FastAPI's `TestClient`; `/`, `/health`, `/api/v1/acat/health` answer 200 `ok` | exit 0; SKIP when `fastapi`/`httpx` are absent |
+| **T7 live provider** | the relay's `/assist` reaches a real model | one small call through `--input` with `DRY_RUN` removed; the answer must carry the navigator-grammar fields | exit 0 only with `ANTHROPIC_API_KEY` in the environment; otherwise SKIP — listed, never green |
 
 A tier is GREEN only if it has at least one PASS and no FAIL/TIMEOUT/ERROR. A SKIP is listed and never
 counted. The whole run is GREEN only if every tier that ran is GREEN.
@@ -110,7 +113,7 @@ its own ruling.
 
 | file | role |
 |---|---|
-| `tools/intent_os_test_harness_v1_0.py` | registry + runner + receipt + `--render` + `--self-test` |
+| `tools/intent_os_test_harness_v1_0.py` | registry (T0–T4 curated; T5 generated from `tools-manifest.yaml`; T6 service boot; T7 key-gated live call) + runner + receipt + `--render` + `--self-test` |
 | `ui/intent-os-test-dashboard-v1_0.html` | five panels: ruling workflow · Z1/Z2/Z3 gates · test matrix · live board/queue/zones · agent requests — renders from the embedded receipt; § 5's live fetch is on click only and re-hashes each record in the browser |
 | `tools/intent_os_requests_v1_0.py` | the agent-bus reader: every `REQ-` record, hashes recomputed, stage from Fulfilment (`requested → taken → pr → merged`); `--check` for T1, `--json` for the receipt, `--self-test` |
 | `outputs/intent_os_test_results.json` | the last receipt on this machine (schema `intentos/test_results_v1`); gitignored — the copy in the tree is the one embedded in the dashboard (d21) |

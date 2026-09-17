@@ -1977,7 +1977,7 @@ tools:
 - tool_id: HAIOS-TOOL-164
   name: intent_os_test_harness
   path: tools/intent_os_test_harness_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: validation_tool
   zone: 1
   status: draft
