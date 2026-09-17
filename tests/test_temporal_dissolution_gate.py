@@ -1,16 +1,231 @@
-import unittest
+"""Tests and PR-diff enforcement for Q-TEMPORAL-DISSOLUTION-01.
 
-from tools import temporal_dissolution_gate as gate
+This is deliberately a test module, not an operational tool. It validates the
+policy at merge time and is therefore outside the executable tool registry.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import subprocess
+import unittest
+from dataclasses import dataclass
+from pathlib import PurePosixPath
+from typing import Callable, Iterable
+
+
+ALLOWED_CLASSES = {
+    "OBSERVATIONAL",
+    "TECHNICAL_SAFETY",
+    "REGULATORY_EXTERNAL",
+    "HISTORICAL_RECORD",
+}
+
+EXEMPT_PATHS = {
+    "TEMPORAL_DISSOLUTION_POLICY.md",
+    "TEMPORAL_CONTROL_AUDIT.md",
+    "tests/test_temporal_dissolution_gate.py",
+    "schemas/external_constraint.schema.json",
+}
+
+CONTROL_EXACT = {
+    "CLAUDE.md",
+    "GOVERNANCE.md",
+    "CANDIDATE_BLOCK_TEMPLATE.md",
+    "PRIORITY_QUEUE.md",
+    "ZONE_REGISTRY.md",
+    "BOOT_PROCESS_MAP.md",
+    "REGISTERED.md",
+    "RESOURCE_UNITS.yaml",
+    "constants.json",
+}
+
+CONTROL_PREFIXES = (
+    ".github/",
+    "schemas/",
+    "src/",
+    "tools/",
+    "ui/",
+)
+
+RISK_PATTERNS = (
+    re.compile(r"\b(deadline|due_at|window_end|respond_within|complete_within|start_after)\s*[:=]", re.I),
+    re.compile(r"\b(due|deadline)\s+(by|on)\b", re.I),
+    re.compile(r"\boverdue\b", re.I),
+    re.compile(
+        r"\b(must|shall|required\s+to|respond|complete|finish|deliver)\b.{0,60}"
+        r"\bwithin\s+\d+\s*(seconds?|minutes?|hours?|days?|weeks?|s|m|h|d|w)\b",
+        re.I,
+    ),
+    re.compile(r"^\s*(schedule|cron)\s*:", re.I),
+)
+
+CLASS_PATTERNS = (
+    re.compile(r"temporal[-_ ]class\s*[:=]\s*[\"']?([A-Z_]+)", re.I),
+    re.compile(r"temporal-class\s*:\s*([A-Z_]+)", re.I),
+)
+
+REGULATORY_REQUIRED_MARKERS = (
+    "REGULATORY_DEADLINE",
+    "authority",
+    "citation",
+    "due_at",
+    "evidence_ref",
+    "impact_if_missed",
+    "z2_ratified",
+    "ratification_ref",
+)
+
+
+@dataclass(frozen=True)
+class AddedLine:
+    path: str
+    line_no: int
+    text: str
+
+
+@dataclass(frozen=True)
+class Violation:
+    path: str
+    line_no: int
+    text: str
+    reason: str
+
+
+def is_control_surface(path: str) -> bool:
+    if path in EXEMPT_PATHS:
+        return False
+    if path in CONTROL_EXACT:
+        return True
+    if path.startswith(CONTROL_PREFIXES):
+        return True
+    suffix = PurePosixPath(path).suffix.lower()
+    return suffix in {".json", ".yaml", ".yml"} and "/" not in path
+
+
+def is_risky(text: str) -> bool:
+    return any(pattern.search(text) for pattern in RISK_PATTERNS)
+
+
+def parse_added_lines(diff_text: str) -> list[AddedLine]:
+    results: list[AddedLine] = []
+    path: str | None = None
+    new_line_no: int | None = None
+
+    for raw in diff_text.splitlines():
+        if raw.startswith("+++ b/"):
+            path = raw[6:]
+            continue
+        if raw.startswith("@@"):
+            match = re.search(r"\+(\d+)(?:,(\d+))?", raw)
+            new_line_no = int(match.group(1)) if match else None
+            continue
+        if path is None or new_line_no is None:
+            continue
+        if raw.startswith("+") and not raw.startswith("+++"):
+            results.append(AddedLine(path, new_line_no, raw[1:]))
+            new_line_no += 1
+        elif raw.startswith("-") and not raw.startswith("---"):
+            continue
+        else:
+            new_line_no += 1
+    return results
+
+
+def detect_classification(lines: list[str], line_no: int, radius: int = 12) -> str | None:
+    start = max(0, line_no - 1 - radius)
+    end = min(len(lines), line_no + radius)
+    context = "\n".join(lines[start:end])
+
+    if "REGULATORY_DEADLINE" in context:
+        return "REGULATORY_EXTERNAL"
+
+    for pattern in CLASS_PATTERNS:
+        match = pattern.search(context)
+        if match:
+            value = match.group(1).upper()
+            if value in ALLOWED_CLASSES:
+                return value
+    return None
+
+
+def regulatory_contract_complete(file_text: str) -> bool:
+    lower = file_text.lower()
+    if not all(marker.lower() in lower for marker in REGULATORY_REQUIRED_MARKERS):
+        return False
+    return bool(re.search(r"z2_ratified\s*[:=]\s*(true|yes)", file_text, re.I))
+
+
+def evaluate_added_lines(
+    added: Iterable[AddedLine], file_loader: Callable[[str], str]
+) -> list[Violation]:
+    violations: list[Violation] = []
+    cache: dict[str, tuple[list[str], str]] = {}
+
+    for item in added:
+        if not is_control_surface(item.path) or not is_risky(item.text):
+            continue
+
+        if item.path not in cache:
+            text = file_loader(item.path)
+            cache[item.path] = (text.splitlines(), text)
+        lines, full_text = cache[item.path]
+        temporal_class = detect_classification(lines, item.line_no)
+
+        if temporal_class is None:
+            violations.append(
+                Violation(
+                    item.path,
+                    item.line_no,
+                    item.text,
+                    "unclassified internal temporal control",
+                )
+            )
+            continue
+
+        if temporal_class == "REGULATORY_EXTERNAL" and not regulatory_contract_complete(full_text):
+            violations.append(
+                Violation(
+                    item.path,
+                    item.line_no,
+                    item.text,
+                    "regulatory exception contract incomplete",
+                )
+            )
+
+    return violations
+
+
+def git(*args: str) -> str:
+    return subprocess.check_output(["git", *args], text=True)
+
+
+def changed_diff(base_ref: str) -> str:
+    candidates = [f"origin/{base_ref}", base_ref]
+    last_error: Exception | None = None
+    for base in candidates:
+        try:
+            return git("diff", "--unified=0", f"{base}...HEAD", "--")
+        except subprocess.CalledProcessError as exc:
+            last_error = exc
+    raise RuntimeError(f"unable to diff against base {base_ref}: {last_error}")
+
+
+def load_head_file(path: str) -> str:
+    try:
+        return git("show", f"HEAD:{path}")
+    except subprocess.CalledProcessError:
+        return ""
 
 
 class TemporalDissolutionGateTests(unittest.TestCase):
-    def evaluate(self, path, text, line_no=1):
-        added = [gate.AddedLine(path=path, line_no=line_no, text=text.splitlines()[line_no - 1])]
-        return gate.evaluate_added_lines(added, lambda _path: text)
+    def evaluate(self, path: str, text: str, line_no: int = 1) -> list[Violation]:
+        added = [AddedLine(path=path, line_no=line_no, text=text.splitlines()[line_no - 1])]
+        return evaluate_added_lines(added, lambda _path: text)
 
     def test_internal_deadline_rejected(self):
-        text = "complete_within: 48h\n"
-        violations = self.evaluate("GOVERNANCE.md", text)
+        violations = self.evaluate("GOVERNANCE.md", "complete_within: 48h\n")
         self.assertEqual(len(violations), 1)
         self.assertIn("unclassified", violations[0].reason)
 
@@ -20,8 +235,7 @@ class TemporalDissolutionGateTests(unittest.TestCase):
             "respond_within: 30 seconds\n"
             "purpose: network dead-process detection only\n"
         )
-        violations = self.evaluate(".github/healthcheck.yml", text, line_no=2)
-        self.assertEqual(violations, [])
+        self.assertEqual(self.evaluate(".github/healthcheck.yml", text, line_no=2), [])
 
     def test_observational_timestamp_policy_allowed(self):
         text = (
@@ -29,8 +243,7 @@ class TemporalDissolutionGateTests(unittest.TestCase):
             "due_at: 2026-09-17T18:00:00Z\n"
             "note: telemetry only; no scheduling authority\n"
         )
-        violations = self.evaluate("schemas/example.yaml", text, line_no=2)
-        self.assertEqual(violations, [])
+        self.assertEqual(self.evaluate("schemas/example.yaml", text, line_no=2), [])
 
     def test_regulatory_contract_allowed_when_complete(self):
         text = """external_constraint:
@@ -44,8 +257,7 @@ class TemporalDissolutionGateTests(unittest.TestCase):
   z2_ratified: true
   ratification_ref: issue-comment:123
 """
-        violations = self.evaluate("schemas/work.yaml", text, line_no=6)
-        self.assertEqual(violations, [])
+        self.assertEqual(self.evaluate("schemas/work.yaml", text, line_no=6), [])
 
     def test_incomplete_regulatory_contract_rejected(self):
         text = """external_constraint:
@@ -64,8 +276,19 @@ class TemporalDissolutionGateTests(unittest.TestCase):
             "deadline: 2026-07-31\n"
             "note: archival evidence only\n"
         )
-        violations = self.evaluate("REGISTERED.md", text, line_no=2)
-        self.assertEqual(violations, [])
+        self.assertEqual(self.evaluate("REGISTERED.md", text, line_no=2), [])
+
+    def test_pr_diff_has_no_unclassified_temporal_controls(self):
+        if os.getenv("TEMPORAL_SCAN_ENFORCE") != "1":
+            self.skipTest("PR diff enforcement runs only in temporal-dissolution CI")
+
+        base_ref = os.getenv("GITHUB_BASE_REF", "main")
+        added = parse_added_lines(changed_diff(base_ref))
+        violations = evaluate_added_lines(added, load_head_file)
+        detail = "\n".join(
+            f"{v.path}:{v.line_no}: {v.reason}: {v.text.strip()}" for v in violations
+        )
+        self.assertEqual(violations, [], f"Unauthorized temporal controls:\n{detail}")
 
 
 if __name__ == "__main__":
