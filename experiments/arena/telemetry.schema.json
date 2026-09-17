@@ -49,7 +49,7 @@
     "prompt_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
     "context_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
     "toolset_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
-    "evaluator_rubric_hash": {"type": ["string", "null"], "pattern": "^[A-Fa-f0-9]{64}$"},
+    "evaluator_rubric_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
     "initial_output_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
     "final_output_hash": {"type": ["string", "null"], "pattern": "^[A-Fa-f0-9]{64}$"},
     "transcript_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
