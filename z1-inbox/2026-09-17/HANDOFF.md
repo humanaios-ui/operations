@@ -130,6 +130,15 @@ replay 409 · stale epoch 401). The first observation on the live host is Z2's, 
 the URL, answer the basic-auth prompt, read the status JSON. `GITHUB_TOKEN` is unset on the service
 until Z2 sets it; every landing answers ERROR until then.
 
+**RECEIPT-GAP closed (Z2, 2026-09-17T21:20:18Z, from a browser):** `GET /` behind the gate answered
+`{"relay": "ok", "version": "0.4.1", "dry": false, "repo": "humanaios-ui/operations", "signs_as": "Night",
+"basic_auth": true, "github_token": true, "lands_in": "z1-inbox/ (d18)", "paths": ["/decide", "/ratify",
+"/assist", "/task"]}` — pasted by Z2 in session; the host's log carries the matching request line and the
+redeploy's start line `github token set` (deploy `2b482ab6`). `GITHUB_TOKEN` was first staged on the
+wrong service (`scintillating-playfulness`, unapplied) and then set on `intent-os-relay`. The request that
+asked for this (`REQ-20260917-01`) is fulfilled and merged; what remains is the first *signed* tap from
+the board, which is Z2's next act.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.
