@@ -13,8 +13,11 @@ cap or authority. `ZONE_REGISTRY.md` remains the ratified instrument and is not 
 
 `ZONE_REGISTRY.md` names repositories as bare strings: `operations`, `humanaios`, `acat-dashboard`. It
 carries no owner, no URL, and no evidence that any of them resolve. Every consumer — a prepared command,
-a clone script, a reader — has to supply the missing half from memory. Two wrong paths were shipped into
-`z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md` in one session for exactly that reason.
+a clone script, a reader — has to supply the missing half from memory. **Three** wrong paths were shipped
+into `z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md` in one session for exactly that reason: a bare
+relative command naming no directory at all, then `~/Desktop/HAIOS-Main/operations` read out of a stale
+runbook, then `/Users/andersonfamily/github/operations` — which existed but was not a clone of this repo.
+An earlier revision of this line said two; the ruling file's own account says three.
 
 This file supplies the missing half and records how it was checked, so the next reader does not guess.
 
@@ -40,7 +43,12 @@ Reading that as "broken" is the trap; it is recorded rather than smoothed over.
 All twelve named zones resolve. Canonical name is GitHub's spelling; **bold** marks a divergence from
 `ZONE_REGISTRY.md`.
 
-| Zone | Registry name | Canonical remote | Visibility | Anon probe |
+Values in *Canonical remote* are `owner/repo` **slugs**, not URLs. The clone URLs are
+`https://github.com/<slug>.git` and `git@github.com:<slug>.git` — uniform across every row, so they are
+stated once here rather than repeated twelve times. The slug is the part the registry was missing; the
+host and protocol never varied.
+
+| Zone | Registry name | Canonical remote (slug) | Visibility | Anon probe |
 |:--|:--|:--|:--|:--|
 | Z-000 | `operations` | `humanaios-ui/operations` | public | resolves |
 | Z-001 | `humanaios` | `humanaios-ui/humanaios` | public | resolves |
@@ -160,9 +168,15 @@ outright: *"fatal: not a git repository."* Its contents (`AUTOMATION_FRAMEWORK_S
 dated 2026-09-11) exist in `humanaios-ui/operations` **on no branch**, and the markers a real clone must
 have — `.z1-control/`, `CLAUDE.md`, `z1-inbox/` — are absent.
 
-**So Z-000 has never been cloned to this machine.** That is the root cause of every "No such file or
-directory" in this session's signing attempts, and `.z1-control/ratify.py` cannot be run locally until
-it is fixed.
+**So Z-000 had never been cloned to this machine**, and `.z1-control/ratify.py` could not be run locally
+until that was fixed. (It was, later the same day: rename-then-clone, and the three ACCEPTs were signed
+from the new clone.)
+
+That explains the *third* failure, not all of them. An earlier revision called it "the root cause of
+every `No such file or directory` in this session's signing attempts," which over-attributes: the first
+attempt failed because the command named no directory and ran from `~/practices`, and the second because
+the runbook's path does not exist. Three attempts, three distinct causes, and only the last one is the
+missing clone. Collapsing them would leave a reader thinking one fix addressed all three.
 
 Two corrections recorded rather than overwritten, because the second was actively dangerous:
 
@@ -199,9 +213,14 @@ directories, some of which are independent git repos with remotes that do not ma
 
 ## 5.3 · What the local layout costs
 
-**A push from `empirica-outreach` goes to `operations`.** Same for `empirica-foundation-evaluator` and
-`humanaios`. Nothing about the directory name says so; `git push` from either succeeds and writes to a
-repository the operator was not thinking about.
+**A push from `empirica-outreach` goes to `operations`, and from `empirica-foundation-evaluator` to
+`humanaios`.** Nothing about either directory name says so; `git push` from either succeeds and writes to
+a repository the operator was not thinking about.
+
+An earlier revision added `practices/humanaios` to that group. It does not belong: its remote is
+`humanaios-ui/humanaios`, which is exactly what the directory name says. It is a second checkout of
+Z-001 — worth noting under the duplicate-clone hazard below, but not a name/destination mismatch, and
+listing it as one dilutes the two cases that are.
 
 Three different things wear those two names, and an earlier revision of this line collapsed two of them
 by calling the directories "Z-007 practice directories" — which is the exact conflation this file exists
