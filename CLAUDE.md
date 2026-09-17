@@ -260,6 +260,14 @@ When these occur, emit callout immediately:
 
 ---
 
+## Framework Reference
+
+**Primary:** See [`FRAMEWORK_MAPPING.md`](./FRAMEWORK_MAPPING.md) for unified mental model mapping 5 Modern AI Engineering Concepts (Graph, Loop, Context, Harness, Prompt Engineering) to HumanAIOS Z-roles, governance files, and CI/CD gates. All proposers, ratifiers, and executors should reference this mapping when designing or evaluating work across the 31-repo ecosystem.
+
+**Boot Process:** See [`BOOT_PROCESS_MAP.md`](./BOOT_PROCESS_MAP.md) for an explicit mapping of REGISTERED.md's position in the session boot chain — the SESSION_RITUALS.md §A ordered, halt-on-failure fetch sequence — onto standard computer boot-chain stages (Secure Boot integrity check, bootloader, kernel image, device enumeration, init ordering, permission model, login prompt, runtime tuning, shutdown/sync, journal). Read this alongside FRAMEWORK_MAPPING.md when reasoning about session-open/close ordering, halt conditions (IC-029/IC-030), or why REGISTERED.md is append-only and live-fetched rather than cached.
+
+---
+
 ## Appended Events
 
 ```
@@ -285,7 +293,5 @@ When these occur, emit callout immediately:
 
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
 
-**Framework Reference:** See [`FRAMEWORK_MAPPING.md`](./FRAMEWORK_MAPPING.md) for unified mental model mapping 5 Modern AI Engineering Concepts (Graph, Loop, Context, Harness, Prompt Engineering) to HumanAIOS Z-roles, governance files, and CI/CD gates. All proposers, ratifiers, and executors should reference this mapping when designing or evaluating work across the 31-repo ecosystem.
-
-**Boot Process Reference:** See [`BOOT_PROCESS_MAP.md`](./BOOT_PROCESS_MAP.md) for an explicit mapping of REGISTERED.md's position in the session boot chain — the SESSION_RITUALS.md §A ordered, halt-on-failure fetch sequence — onto standard computer boot-chain stages (Secure Boot integrity check, bootloader, kernel image, device enumeration, init ordering, permission model, login prompt, runtime tuning, shutdown/sync, journal). Read this alongside FRAMEWORK_MAPPING.md when reasoning about session-open/close ordering, halt conditions (IC-029/IC-030), or why REGISTERED.md is append-only and live-fetched rather than cached.
+See **Framework Reference** section below for foundational material on FRAMEWORK_MAPPING.md and BOOT_PROCESS_MAP.md.
 
