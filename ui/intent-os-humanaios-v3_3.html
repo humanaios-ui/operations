@@ -103,7 +103,7 @@ button.act.warn{border-color:var(--waiting);color:var(--waiting)}
 .arena-phase-icon{width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
 .arena-phase-icon.done{background:var(--done);color:var(--board)}
 .arena-phase-icon.progress{background:var(--progress);color:var(--board)}
-.arena-phase-icon.waiting{background:var(--waiting);color:var(--board)}
+.arena-phase-icon.waiting{background:var(--progress);color:var(--board)}
 .arena-phase-icon.blocked{background:var(--waiting);color:var(--board)}
 .arena-phase-name{flex:1}
 .arena-threat{display:flex;gap:6px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1d242c}
@@ -119,7 +119,7 @@ button.act.warn{border-color:var(--waiting);color:var(--waiting)}
 .arena-checkpoint-check.done{background:var(--done);color:var(--board);border-color:var(--done)}
 .arena-checkpoint-check.blocked{background:transparent;border-color:var(--waiting)}
 .arena-ratification{background:#0b0f13;border:1px solid var(--line);border-radius:4px;padding:8px;font-family:var(--mono);font-size:11px}
-.arena-ratification.signed{color:var(--done)}
+.arena-ratification.approved{color:var(--done)}
 .arena-ratification.pending{color:var(--progress)}
 textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px solid var(--line);border-radius:5px;font-family:var(--mono);font-size:12px;padding:10px 12px;resize:vertical}
 .schemabar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
@@ -584,7 +584,7 @@ const ARENA_FRAMEWORK = {
  preregistration_anchors: [
   {id:"ops368", ref:"ops#368", content:"G₀ baseline snapshot (ARENA-002 preregistration)", artifact:"experiments/arena/ARENA_002_BATTERY.md", artifact_sha:"c724fca", status:"committed"},
   {id:"ops369-371", ref:"ops#369-371", content:"Task hashes T1/T2/T3 (preregistration)", artifact:"experiments/arena/ARENA_002_BATTERY.md#T1-T2-T3", artifact_sha:"c724fca", status:"committed"},
-  {id:"manifest", ref:"ARENA-003", content:"Preregistration manifest with answer validation schema", artifact:".arena-control/ARENA-003-preregistration-template.md", artifact_sha:"c724fca", status:"prepared"}
+  {id:"manifest", ref:"ARENA-003", content:"Preregistration manifest with answer validation schema", artifact:"arena-003-preregistration-template.md", artifact_sha:"c724fca", status:"prepared"}
  ],
  phase_gates: [
   {phase:"ARENA-002 scorecard", blocker:"Validate preregistration hashes (T1/T2/T3); mark measurement_channel_complete; assign run_validity", status:"CRITICAL"},
@@ -822,12 +822,11 @@ function render(){
     document.getElementById("schema").value = JSON.stringify(project, null, 1);
     return;
   }
-  // Guard: ARENA only renders for HumanAIOS project
-  if(project.owner?.tagline !== "HumanAIOS") {
-    ar.innerHTML = '';
-    return;
-  }
-  let arenaHtml = '<div class="arena-section">';
+  let arenaHtml = '';
+
+  // Only render ARENA section for HumanAIOS project (check owner.project, not tagline)
+  if(project.owner?.project === "HumanAIOS") {
+    arenaHtml = '<div class="arena-section">';
 
   /* Provenance metadata */
   arenaHtml += '<div style="padding:8px;margin-bottom:12px;background:#0b0f13;border-left:3px solid var(--dim);font-size:10px;color:var(--dim);font-family:var(--mono)">';
@@ -926,9 +925,10 @@ function render(){
   arenaHtml += '<div style="color:var(--dim)"><b>G₂ (Future)</b><br/>Reserved for post-ARENA-004 governance transition; requires separate ratification and G₂ SOLO baseline before any G₂ SOCIAL</div>';
   arenaHtml += '</div></div>';
 
-  arenaHtml += '</div>';
-  ar.innerHTML = arenaHtml;
+    arenaHtml += '</div>';
+  }
 
+  ar.innerHTML = arenaHtml;
   document.getElementById("schema").value = JSON.stringify(project, null, 1);
 }
 
