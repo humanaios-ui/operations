@@ -172,7 +172,7 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 <div id="departures"></div>
 
 <h2>ARENA Experimental Framework — Governance-versioned multi-agent collaboration</h2>
-<div class="familiar">Controlled experiment measuring the behavioral effect of governance protocol on agent collaboration. Phases sequenced with explicit gates; threats ranked by severity; measurement validity checkpoints tracked; Z2 ratification recorded; preregistration anchors maintained; governance versions explicit (G₀/G₁/G₂).</div>
+<div class="familiar">Controlled experiment designed to compare behavioral differences associated with governance protocol exposure. Current small-N results do not establish causal governance effect; causal validity remains unknown until statistical power is verified. Phases sequenced with explicit gates; threats ranked by severity; measurement validity checkpoints tracked; Z2 ratification recorded; preregistration anchors maintained; governance versions explicit (G₀/G₁/G₂).</div>
 <div id="arena"></div>
 
 <h2>Commitments — predictions made before seeing results</h2>
@@ -545,6 +545,10 @@ const PLANES=[
 
 /* ---------- ARENA experimental framework state ---------- */
 const ARENA_FRAMEWORK = {
+ state_mode: "SNAPSHOT",
+ source_artifact: "ARENA-EXECUTION-STATUS.md",
+ source_sha: "c724fca4e52e2f90f3cfa3d735cabc6e37c231a4",
+ captured_at: "2026-09-17T17:32:49Z",
  ratified_at: "2026-09-17T16:10:46Z",
  z2_authority: "Night (Z2)",
  governance_version: "G₀",
@@ -555,11 +559,11 @@ const ARENA_FRAMEWORK = {
   {id:"g1-social", name:"G₁ SOCIAL", phase:"ARENA-004", state:"waiting", description:"Role rotation + peer exposure under G₁", blocker:"G₁ SOLO baseline complete"}
  ],
  threat_mitigations: [
-  {threat:"Output-channel defect persists", severity:"MEDIUM", mitigation:"ARENA-003 mechanical schema validation", status:"approved", detail:"Template drafted; Z2 ratified"},
-  {threat:"N-insufficiency (N=3 still low)", severity:"MEDIUM", mitigation:"Repeat ARENA-003 to N=5+ pairs", status:"approved", detail:"Documented as requirement"},
-  {threat:"Arena PR #1 contamination", severity:"HIGH", mitigation:"Close/flag PR; keep governance out of arena", status:"resolved", detail:"✅ CLOSED (Z2 ratified)"},
-  {threat:"Preregistration drift", severity:"MEDIUM", mitigation:"Audit ARENA-002 hashes before thaw", status:"pending", detail:"⏳ Next action: scorecard completion"},
-  {threat:"No independent replication", severity:"LOW", mitigation:"Introduce independent reviewer post-ARENA-003", status:"documented", detail:"✅ Documented for future"}
+  {threat:"Output-channel defect persists", severity:"MEDIUM", mitigation:"ARENA-003 mechanical schema validation", status:"APPROVED", detail:"Template drafted; Z2 ratified; not yet implemented"},
+  {threat:"N-insufficiency (N=3 still low)", severity:"MEDIUM", mitigation:"Repeat ARENA-003 to N=5+ pairs", status:"APPROVED", detail:"Documented as requirement; not yet implemented"},
+  {threat:"Arena PR #1 contamination", severity:"HIGH", mitigation:"Close/flag PR; keep governance out of arena", status:"VERIFIED", detail:"✅ CLOSED and verified (Z2 ratified)"},
+  {threat:"Preregistration drift", severity:"MEDIUM", mitigation:"Audit ARENA-002 hashes before thaw", status:"PROPOSED", detail:"⏳ Next action: scorecard completion"},
+  {threat:"No independent replication", severity:"LOW", mitigation:"Introduce independent reviewer post-ARENA-003", status:"DOCUMENTED", detail:"✅ Documented for future; deferred to post-ARENA-003"}
  ],
  measurement_checkpoints: [
   {id:"cp1", name:"ARENA-002 SOLO outputs frozen", status:"done"},
@@ -571,16 +575,16 @@ const ARENA_FRAMEWORK = {
   {id:"cp7", name:"G₁ SOLO baseline complete", status:"waiting"}
  ],
  z2_ratifications: [
-  {id:"r1", decision:"Approve threat mitigation plan", status:"signed", signature:"2026-09-17T16:10:46Z"},
-  {id:"r2", decision:"Freeze ARENA-002 under G₀", status:"signed", signature:"2026-09-17T16:10:46Z"},
-  {id:"r3", decision:"Defer Pilot 1 until scorecard complete", status:"signed", signature:"2026-09-17T16:10:46Z"},
-  {id:"r4", decision:"Close arena#1 (contamination boundary)", status:"signed", signature:"2026-09-17T16:10:46Z"},
-  {id:"r5", decision:"Document governance versioning discipline", status:"signed", signature:"2026-09-17T16:10:46Z"}
+  {id:"r1", decision:"Approve threat mitigation plan", status:"approved", ratified_at:"2026-09-17T16:10:46Z", source:"ARENA-EXECUTION-STATUS.md"},
+  {id:"r2", decision:"Freeze ARENA-002 under G₀", status:"approved", ratified_at:"2026-09-17T16:10:46Z", source:"ARENA-EXECUTION-STATUS.md"},
+  {id:"r3", decision:"Defer Pilot 1 until scorecard complete", status:"approved", ratified_at:"2026-09-17T16:10:46Z", source:"ARENA-EXECUTION-STATUS.md"},
+  {id:"r4", decision:"Close arena#1 (contamination boundary)", status:"approved", ratified_at:"2026-09-17T16:10:46Z", source:"ARENA-EXECUTION-STATUS.md"},
+  {id:"r5", decision:"Document governance versioning discipline", status:"approved", ratified_at:"2026-09-17T16:10:46Z", source:"ARENA-EXECUTION-STATUS.md"}
  ],
  preregistration_anchors: [
-  {id:"ops368", ref:"ops#368", content:"G₀ baseline snapshot (ARENA-002 preregistration)", status:"committed"},
-  {id:"ops369-371", ref:"ops#369-371", content:"Task hashes T1/T2/T3", status:"committed"},
-  {id:"manifest", ref:".arena-control/ARENA-003-preregistration-manifest.yaml", content:"Hash-only manifest with answer validation", status:"prepared"}
+  {id:"ops368", ref:"ops#368", content:"G₀ baseline snapshot (ARENA-002 preregistration)", artifact:"experiments/arena/ARENA_002_BATTERY.md", artifact_sha:"c724fca", status:"committed"},
+  {id:"ops369-371", ref:"ops#369-371", content:"Task hashes T1/T2/T3 (preregistration)", artifact:"experiments/arena/ARENA_002_BATTERY.md#T1-T2-T3", artifact_sha:"c724fca", status:"committed"},
+  {id:"manifest", ref:"ARENA-003", content:"Preregistration manifest with answer validation schema", artifact:".arena-control/ARENA-003-preregistration-template.md", artifact_sha:"c724fca", status:"prepared"}
  ],
  phase_gates: [
   {phase:"ARENA-002 scorecard", blocker:"Validate preregistration hashes (T1/T2/T3); mark measurement_channel_complete; assign run_validity", status:"CRITICAL"},
@@ -825,6 +829,13 @@ function render(){
   }
   let arenaHtml = '<div class="arena-section">';
 
+  /* Provenance metadata */
+  arenaHtml += '<div style="padding:8px;margin-bottom:12px;background:#0b0f13;border-left:3px solid var(--dim);font-size:10px;color:var(--dim);font-family:var(--mono)">';
+  arenaHtml += '<b style="color:var(--progress)">'+esc(ARENA_FRAMEWORK.state_mode)+'</b> — captured '+esc(ARENA_FRAMEWORK.captured_at)+'<br/>';
+  arenaHtml += 'Source: '+esc(ARENA_FRAMEWORK.source_artifact)+' @ '+esc(ARENA_FRAMEWORK.source_sha)+'<br/>';
+  arenaHtml += '<em>This is a snapshot from '+esc(ARENA_FRAMEWORK.source_sha.slice(0,7))+'. Canonical state in ARENA-EXECUTION-STATUS.md may have changed.</em>';
+  arenaHtml += '</div>';
+
   /* 1. Experimental Sequence Gates */
   arenaHtml += '<div class="arena-card"><div class="arena-title">1. Experimental Sequence Gates</div>';
   ARENA_FRAMEWORK.experimental_sequence.forEach(seq => {
@@ -842,10 +853,15 @@ function render(){
   arenaHtml += '<div class="arena-card"><div class="arena-title">2. Threat Mitigation Status</div>';
   ARENA_FRAMEWORK.threat_mitigations.forEach(threat => {
     const badgeClass = threat.severity === "HIGH" ? "high" : (threat.severity === "MEDIUM" ? "medium" : "low");
-    const statusIcon = threat.status === "resolved" ? "✓" : (threat.status === "approved" ? "✓" : (threat.status === "pending" ? "⏳" : "📋"));
+    let statusIcon = "?", statusColor = "var(--dim)";
+    if(threat.status === "PROPOSED") {statusIcon = "⚪"; statusColor = "var(--dim)"; }
+    else if(threat.status === "APPROVED") {statusIcon = "👍"; statusColor = "var(--progress)"; }
+    else if(threat.status === "IMPLEMENTED") {statusIcon = "⚙️"; statusColor = "var(--progress)"; }
+    else if(threat.status === "VERIFIED") {statusIcon = "✓"; statusColor = "var(--done)"; }
+    else if(threat.status === "DOCUMENTED") {statusIcon = "📋"; statusColor = "var(--progress)"; }
     arenaHtml += '<div class="arena-threat">';
     arenaHtml += '<div class="arena-threat-badge '+badgeClass+'">'+esc(threat.severity)+'</div>';
-    arenaHtml += '<div class="arena-threat-name"><b>'+statusIcon+' '+esc(threat.threat)+'</b><br/>';
+    arenaHtml += '<div class="arena-threat-name"><b style="color:'+statusColor+'">'+statusIcon+' '+esc(threat.threat)+'</b> <span style="color:var(--dim);font-size:10px">['+esc(threat.status)+']</span><br/>';
     arenaHtml += '<span style="color:var(--dim);font-size:11px">'+esc(threat.mitigation)+'</span><br/>';
     arenaHtml += '<span class="arena-threat-status">'+esc(threat.detail)+'</span></div></div>';
   });
@@ -868,12 +884,12 @@ function render(){
 
   /* 4. Z2 Ratification State */
   arenaHtml += '<div class="arena-card"><div class="arena-title">4. Z2 Ratification State</div>';
-  arenaHtml += '<div style="font-size:11px;margin-bottom:8px">All 5 gates signed by '+esc(ARENA_FRAMEWORK.z2_authority)+' at '+esc(ARENA_FRAMEWORK.ratified_at)+'</div>';
+  arenaHtml += '<div style="font-size:11px;margin-bottom:8px">All 5 gates ratified/approved by '+esc(ARENA_FRAMEWORK.z2_authority)+' at '+esc(ARENA_FRAMEWORK.ratified_at)+'<br/><span style="font-size:10px;color:var(--dim)">Source: '+esc(ARENA_FRAMEWORK.source_artifact)+'</span></div>';
   ARENA_FRAMEWORK.z2_ratifications.forEach(rat => {
-    const statusClass = rat.status === "signed" ? "signed" : "pending";
+    const statusClass = rat.status === "approved" ? "approved" : "pending";
     arenaHtml += '<div class="arena-ratification '+statusClass+'">';
-    arenaHtml += (rat.status === "signed" ? "✓ " : "⏳ ") + esc(rat.decision);
-    if(rat.status === "signed") arenaHtml += " — "+esc(rat.signature.slice(0,10));
+    arenaHtml += (rat.status === "approved" ? "✓ " : "⏳ ") + esc(rat.decision);
+    if(rat.status === "approved") arenaHtml += " — <span style='font-size:10px;color:var(--dim)'>"+esc(rat.source)+"</span>";
     arenaHtml += '</div>';
   });
   arenaHtml += '</div>';
@@ -884,9 +900,9 @@ function render(){
   arenaHtml += '<div class="arena-card"><div class="arena-title">5. Preregistration Anchors</div>';
   ARENA_FRAMEWORK.preregistration_anchors.forEach(anchor => {
     arenaHtml += '<div style="padding:6px 0;border-bottom:1px solid #1d242c;font-size:12px">';
-    arenaHtml += '<b>'+esc(anchor.ref)+'</b><br/>';
+    arenaHtml += '<b>'+esc(anchor.ref)+'</b> <span style="color:var(--dim);font-size:10px">['+esc(anchor.status)+']</span><br/>';
     arenaHtml += '<span style="color:var(--dim)">'+esc(anchor.content)+'</span><br/>';
-    arenaHtml += '<span style="color:var(--done);font-size:11px">'+esc(anchor.status)+'</span>';
+    arenaHtml += '<span style="font-size:10px;color:var(--progress);font-family:var(--mono)">Artifact: '+esc(anchor.artifact)+' @ '+esc(anchor.artifact_sha)+'</span>';
     arenaHtml += '</div>';
   });
   arenaHtml += '</div>';
@@ -906,8 +922,8 @@ function render(){
   arenaHtml += '<div class="arena-card"><div class="arena-title">7. Governance Version State</div>';
   arenaHtml += '<div style="padding:8px;background:#0b0f13;border-radius:4px;font-family:var(--mono);font-size:12px">';
   arenaHtml += '<div style="color:var(--done);margin-bottom:6px"><b>G₀ (Current — Live)</b><br/>ARENA-002 frozen under current governance; preregistration locked; no changes until scorecard</div>';
-  arenaHtml += '<div style="color:var(--progress);margin-bottom:6px"><b>G₁ (Draft — Pilot 1)</b><br/>Governance amendments queued; CLAUDE.md/GOVERNANCE.md changes; COMPLETION_SCHEMA.md; EVIDENCE_SCHEMA.md (deferred until scorecard)</div>';
-  arenaHtml += '<div style="color:var(--dim)"><b>G₂ (Future)</b><br/>Post-G₁ SOLO baseline validation; social arena governance version TBD</div>';
+  arenaHtml += '<div style="color:var(--progress);margin-bottom:6px"><b>G₁ (Draft → Pilot 1)</b><br/>ARENA-003 (G₁ SOLO baseline) + ARENA-004 (G₁ SOCIAL). Governance amendments: CLAUDE.md/GOVERNANCE.md changes; COMPLETION_SCHEMA.md; EVIDENCE_SCHEMA.md (deferred until scorecard complete)</div>';
+  arenaHtml += '<div style="color:var(--dim)"><b>G₂ (Future)</b><br/>Reserved for post-ARENA-004 governance transition; requires separate ratification and G₂ SOLO baseline before any G₂ SOCIAL</div>';
   arenaHtml += '</div></div>';
 
   arenaHtml += '</div>';
