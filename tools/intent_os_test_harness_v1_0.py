@@ -661,7 +661,7 @@ def run_one(t: dict, root: str) -> dict:
             if before is not None:
                 wrote = tree_writes(root, before)
                 if wrote:
-                    status, out = "FAIL", out + "\n\nwrote into the tree (a smoke test must leave the repository as it found it; rolled back): " + ", ".join(wrote)
+                    status, out = "FAIL", out + "\n\nwrote into the tree (a smoke test must leave the git-visible tree as it found it — tracked files unchanged, no new untracked files; gitignored paths are not seen; rolled back): " + ", ".join(wrote)
                     tree_restore(root, wrote)
         else:
             fn = {"yaml": lambda: check_yaml(root), "graph": lambda: check_graph(root),
