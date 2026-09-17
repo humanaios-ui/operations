@@ -14,9 +14,9 @@ the PR/issue half on.
 
 | file | what |
 |---|---|
-| `tools/intent_os_board_reseal_v1_0.py` | MECHANICAL vs NEEDS-HUMAN drift; `--apply` re-hashes only the former; refuses otherwise; `--self-test` (6 plants) |
+| `tools/intent_os_board_reseal_v1_0.py` | MECHANICAL vs NEEDS-HUMAN drift; `--apply` re-hashes only the former; refuses otherwise; `--self-test` (8 plants); `HAIOS-TOOL-166` |
 | `.github/workflows/intent-os-refresh.yml` | on sealed-path merges + daily: checks, harness, artifacts, summary; PR/issue half gated on `vars.INTENT_OS_REFRESH_AUTOPR` (d23) |
-| `ui/intent-os-humanaios-v3_3.html` | re-read at `e2b9a7a`; `ratify.py` 1.2.0 row re-read by hand (Ruling 6 pending); `rev` → `2026-09-17T00:28Z` |
+| `ui/intent-os-humanaios-v3_3.html` | re-read at `e2b9a7a`; `ratify.py` 1.2.0 row re-read by hand (Ruling 6 pending); `rev` advanced by the tool to the stamp of the last apply (the committed board carries it); `read.date` = `2026-09-17`, this session's human read |
 | `ui/intent-os-test-dashboard-v1_0.html` | receipt of this run; W8 now includes the re-seal self-test |
 | `z1-inbox/2026-09-17/Q-INTENTOS-REFRESH-01.md` | d23 enable · d24 rev by job · d25 local copies · KNOWN_RED list |
 | runbook §6 · pathway §3 · `REPOSITORY_STRUCTURE.md` | cadence names the job and the tool |

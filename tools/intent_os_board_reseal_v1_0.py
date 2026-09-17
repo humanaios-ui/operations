@@ -11,8 +11,10 @@ what the new bytes mean. This tool draws that line in code:
 
   * MECHANICAL paths (below) that DRIFT are re-hashed; the seal's description gains
     "(re-sealed <date> at <head>; content changed, description not re-read)" so nobody mistakes a hash
-    refresh for a read. `read.against` moves to HEAD and `rev` advances so an open browser copy loads the
-    new data on its next restore (taps are kept — the board's own rule).
+    refresh for a read. `read.against` moves to HEAD (the re-hash is a fetch at HEAD) and `rev` advances,
+    strictly, so an open browser copy loads the new data on its next restore (taps are kept — the
+    board's own rule). `read.date` is never touched: it records the last human read, and this is not one.
+    A seal that said ABSENT and now finds a file is an appearance, not a re-hash: NEEDS-HUMAN.
   * anything else that DRIFTs / is MISSING / NOT-IN-HISTORY → REFUSED: exit 2, nothing written, the rows
     listed. That is a re-read for a Z1 session, not a job.
 
@@ -82,7 +84,10 @@ def plan(root: str, board: str) -> dict:
     mech, human = [], []
     for r in rep["seals"]:
         if r["status"] in ("DRIFT", "MISSING", "NOT-IN-HISTORY", "UNVERIFIABLE"):
-            (mech if (r.get("path") in MECHANICAL and r["status"] == "DRIFT") else human).append(r)
+            # a hash-to-hash DRIFT on a mechanical path is a job's; a seal that said ABSENT and now
+            # finds a file (DRIFT with no observed hash) is an appearance, and a human's
+            mechanical = r.get("path") in MECHANICAL and r["status"] == "DRIFT" and bool(r.get("observed"))
+            (mech if mechanical else human).append(r)
     for b in rep.get("bad", []):
         if b.get("artifact") in ("read.against", "HUMANAIOS dataset", "seals"):
             human.append(b)
@@ -102,7 +107,7 @@ def apply(root: str, board: str, p: dict, today: str | None = None) -> dict:
     if p["outcome"] != "MECHANICAL":
         return {"applied": False, "why": p["outcome"], "changed": []}
     today = today or _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%d")
-    stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+    stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     head = p["head"]
     src = open(os.path.join(root, board), encoding="utf-8").read()
     m = HUMANAIOS_RE.search(src)
@@ -126,13 +131,25 @@ def apply(root: str, board: str, p: dict, today: str | None = None) -> dict:
         if n:
             blk = re.sub(r'(prior reads at [^;"]*?)(;|\))', lambda mm: f"{mm.group(1)}, {old}{mm.group(2)}" if old not in mm.group(1) else mm.group(0), blk, count=1)
             changed.append({"read.against": old, "to": head})
-    # rev advances so a saved older copy in a browser is superseded on restore(); ISO stamps sort lexically
-    blk, n = re.subn(r'(\brev\s*:\s*")([^"]*)(")', lambda mm: f'{mm.group(1)}{stamp}{mm.group(3)}' if mm.group(2) < stamp else mm.group(0), blk, count=1)
-    blk = re.sub(r'(read\s*:\s*\{[^}]*?\bdate\s*:\s*")([^"]*)(")', lambda mm: f"{mm.group(1)}{today}{mm.group(3)}", blk, count=1)
+    # rev must strictly increase so a saved older copy in a browser is superseded on restore(): the
+    # board compares rev strings lexically. ISO stamps sort; two applies inside one second, or a clock
+    # that went backwards, get a zero-padded ordinal suffix instead of a stale rev. read.date is NOT
+    # touched: it records the last human read, and this is not one.
+    new_rev = {"v": stamp}
+
+    def bump(mm):
+        old = mm.group(2)
+        if old < stamp:
+            new_rev["v"] = stamp
+        else:
+            base, _, n = old.partition("+")
+            new_rev["v"] = f"{base}+{int(n or 0) + 1:03d}"
+        return f'{mm.group(1)}{new_rev["v"]}{mm.group(3)}'
+    blk = re.sub(r'(\brev\s*:\s*")([^"]*)(")', bump, blk, count=1)
     out = src[:m.start()] + m.group(1) + blk + m.group(3) + src[m.end():]
     open(os.path.join(root, board), "w", encoding="utf-8").write(out)
     after = load_checker(root).run(board, root)
-    return {"applied": True, "changed": changed, "rev": stamp, "verdict_after": after["verdict"]}
+    return {"applied": True, "changed": changed, "rev": new_rev["v"], "verdict_after": after["verdict"]}
 
 
 def print_plan(p: dict) -> None:
@@ -182,12 +199,35 @@ def run_smoke_test() -> bool:
         src = open(bp).read()
         ok &= (a["applied"] and a["verdict_after"] == "HOLDS" and len(a["changed"]) == 3
                and src.count("re-sealed 2026-09-17 at " + head1) == 2 and "re-sealed 2026-09-16 at 0749022" not in src
-               and f"main at {head1} (prior reads at aaaaaaa, {head0};" in src and 'date:"2026-09-17"' in src
-               and re.search(r'rev:"2026-09-1\dT\d\d:\d\dZ"', src) is not None and "x.py — a tool" in src)
-        print("  --apply: 2 seals re-hashed, notes replaced not stacked, read.against moved, prior read kept, rev advanced, HOLDS:", "OK" if ok else "FAIL")
+               and f"main at {head1} (prior reads at aaaaaaa, {head0};" in src and 'date:"2026-09-16"' in src
+               and re.search(r'rev:"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ"', src) is not None and "x.py — a tool" in src)
+        rev1 = a["rev"]
+        print("  --apply: 2 seals re-hashed, notes replaced not stacked, read.against moved, prior read kept, rev advanced, read.date untouched, HOLDS:", "OK" if ok else "FAIL")
         # a second apply on a holding board is a no-op
         a2 = apply(td, "ui/b.html", plan(td, "ui/b.html"))
         ok &= not a2["applied"] and a2["why"] == "HOLDS"; print("  --apply on HOLDS → nothing written:", not a2["applied"])
+        # rev is strictly monotonic even inside one second / with a rev already ahead of the clock
+        open(os.path.join(td, "z1-inbox", "INDEX.yaml"), "a").write("d: 4\n")
+        subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-am", "inbox2"], check=True)
+        cur = open(bp).read()
+        open(bp, "w").write(re.sub(r'rev:"[^"]*"', 'rev:"2999-01-01T00:00:00Z"', cur, count=1))
+        a_m = apply(td, "ui/b.html", plan(td, "ui/b.html"))
+        ok &= a_m["applied"] and a_m["rev"] == "2999-01-01T00:00:00Z+001" and a_m["rev"] > "2999-01-01T00:00:00Z"
+        open(os.path.join(td, "z1-inbox", "INDEX.yaml"), "a").write("e: 5\n")
+        subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-am", "inbox3"], check=True)
+        a_m2 = apply(td, "ui/b.html", plan(td, "ui/b.html"))
+        ok &= a_m2["applied"] and a_m2["rev"] == "2999-01-01T00:00:00Z+002" and a_m2["rev"] > a_m["rev"] and rev1 < a_m["rev"]
+        print("  rev already ahead of the clock → +001, then +002, each lexically greater:", "OK" if a_m2["rev"] == "2999-01-01T00:00:00Z+002" else "FAIL")
+        # a seal that said ABSENT and now finds a file on a mechanical path is an appearance, not a re-hash
+        open(bp, "w").write(board(h("z1-inbox/INDEX.yaml"), h("REGISTERED.md"), h("tools/x.py"), head_short(td)).replace(
+            ' ]\n};', '  {artifact:"PRIORITY_QUEUE.md (absent)", sha:"ABSENT-20260901", path:"PRIORITY_QUEUE.md"},\n ]\n};'))
+        open(os.path.join(td, "PRIORITY_QUEUE.md"), "w").write("q\n")
+        p_abs = plan(td, "ui/b.html")
+        a_abs = apply(td, "ui/b.html", p_abs)
+        ok &= p_abs["outcome"] == "NEEDS-HUMAN" and [r.get("path") for r in p_abs["human"]] == ["PRIORITY_QUEUE.md"] and not a_abs["applied"]
+        print("  ABSENT seal now present on a mechanical path → NEEDS-HUMAN, refused:", p_abs["outcome"])
+        os.remove(os.path.join(td, "PRIORITY_QUEUE.md"))
+        open(bp, "w").write(board(h("z1-inbox/INDEX.yaml"), h("REGISTERED.md"), h("tools/x.py"), head_short(td)))
         # non-mechanical drift: the tool changes → refused, nothing written even though the inbox also drifted
         open(os.path.join(td, "tools", "x.py"), "w").write("print(2)\n"); open(os.path.join(td, "z1-inbox", "INDEX.yaml"), "a").write("c: 3\n")
         subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-am", "tool"], check=True)
