@@ -41,7 +41,37 @@ the ratified `Q-INTENTOS-TEST-01`'s dated falsifier (editing a ratified candidat
 The relay's 300-second request-skew check stays: it is replay protection, a correctness resource, not
 a work deadline.
 
+## Step 3 (after #377 merged): tiers T5–T7
+
+| tier | what it measures | first run |
+|---|---|---|
+| **T5 manifest smoke** | every `smoke_test: true` claim in `tools-manifest.yaml`, run with the flag the tool's source carries; generated, not curated (T0's rows are not repeated) | 125 rows · 91 PASS · 16 FAIL · 18 SKIP (no flag in the source) — the whole tier runs in about 13 seconds |
+| **T6 service boot** | `acat.api.app` boots under FastAPI's `TestClient`; three health routes answer | see the receipt on this branch |
+| **T7 live provider** | one real `/assist` call through the relay with `DRY_RUN` removed | SKIP without `ANTHROPIC_API_KEY` — listed, never green by default |
+
+The board's `read.against` was re-pointed by hand to `1b7cd96` (the squash of #377): its tree is byte-identical
+to the branch head the read was made at, and a squash leaves that head out of `main`'s history, so the
+re-seal tool correctly refused (NEEDS-HUMAN). This will recur on every squash-merge — d24/d25 territory.
+
 ## Findings scan
+
+- **IC-candidate (manifest field overstates), for Z2 to register:** `tools-manifest.yaml` sets `smoke_test: true`
+  from a text match (`.tool-control/scan.py`: the words "smoke test" anywhere in the file), not from a flag that
+  runs. Measured by T5 on its first run: of 141 tools claiming a smoke test, 106 pass, **17 fail** (missing
+  modules, `argparse` demanding other arguments, one `SyntaxError`, two tools whose parser does not know
+  `--smoke-test`) and **18 carry no `--smoke-test`/`--self-test` at all**. The field is honest as "mentions a smoke
+  test" and dishonest as "has one". Proposed mechanism (not applied here): scan.py records `smoke_flag:
+  --smoke-test|--self-test|none` from the source, and the harness's T5 row is the proof. Until then the tier is
+  the measurement, re-taken on every run.
+- **IC-candidate (a smoke test with side effects), for Z2 to register:** `tools/haios_agent_orchestrator_v1_0_patched.py
+  --smoke-test` runs a molt cycle against the current directory and wrote three files at the repository root —
+  `MOLT_LOG.json`, `node_store.json`, `REGISTERED_MD_DRAFT.md` (a NODE-CAND row with `ratification_required: false`,
+  i.e. draft registry text produced by a test) — on each of T5's three first runs. They were swept into this branch's
+  first commit by `git add -A` and removed in the next; the ECC taxonomy bot's changed-file list is what exposed them.
+  Mechanism applied in the harness: T5 rows are **tree-guarded** — a smoke test that leaves the repository different
+  from how it found it FAILS even with exit 0, and its writes are rolled back (tracked files restored, new files
+  removed; pre-existing dirt is not blamed on it). The tool's own fix — write under a temp dir or `outputs/` in smoke
+  mode — is its owner's.
 
 - **IC-050-class occurrence (gate not enforced), for Z2 to register:** #354 (`07915e6`, 2026-09-16) landed
   `z1-inbox/2026-09-16/PHASE3_LAUNCH.md` and `PHASE3_EXECUTION_CHECKLIST.md` without index entries.

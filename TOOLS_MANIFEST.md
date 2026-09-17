@@ -265,7 +265,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-150 | tool_manifest_validator | `.tool-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers | The merge gate for `tools-manifest.yaml`, built to the same contract as |
 | HAIOS-TOOL-161 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |
 | HAIOS-TOOL-162 | intent_os_board_check | `tools/intent_os_board_check_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_check — verify the Intent-OS board's "verified records" against the tree. |
-| HAIOS-TOOL-164 | intent_os_test_harness | `tools/intent_os_test_harness_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_test_harness — run every check the Intent-OS control surface rests on, and say which held. |
+| HAIOS-TOOL-164 | intent_os_test_harness | `tools/intent_os_test_harness_v1_0.py` | 1.1.0 | 1 | draft | — | intent_os_test_harness — run every check the Intent-OS control surface rests on, and say which held. |
 
 ## MCP servers (2)
 
