@@ -41,7 +41,7 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.4.4"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"
+TOOL_VERSION = "0.4.5"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"; 0.4.5 = a GitHub refusal is never swallowed: the answer carries GitHub's message and what it means for the token (the first live /decide failed as "INDEX not found" because the branch create was refused silently); the self-test drives the GitHub path through a stub
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -66,17 +66,47 @@ def content_ref(content, user_key=None):
     if not key: raise ValueError("REFUSED: USER_KEY not set; a keyless fingerprint is dictionary-guessable")
     canon=" ".join(str(content).split()).encode()
     return hmac.new(key,canon,hashlib.sha256).hexdigest()
+class GitHubError(Exception):
+    """a GitHub refusal, carrying the status and GitHub's own message (never the token) so the board can show what was refused"""
+    def __init__(self,method,path,code,message):
+        super().__init__(f"GitHub {method} {path.split('?')[0]}: HTTP {code} — {message}"); self.code=code; self.message=message or ""
 def gh(method,path,data=None):
     req=urllib.request.Request(f"https://api.github.com{path}",method=method,data=json.dumps(data).encode() if data else None,
         headers={"Authorization":f"token {TOKEN}","Accept":"application/vnd.github+json","Content-Type":"application/json"})
-    with urllib.request.urlopen(req) as r: return json.load(r)
+    try:
+        with urllib.request.urlopen(req) as r: return json.load(r)
+    except urllib.error.HTTPError as e:
+        try: msg=json.loads(e.read().decode()).get("message","")
+        except Exception: msg=""
+        raise GitHubError(method,path,e.code,msg or str(e.reason)) from None
+def token_hint(e):
+    """what a GitHub refusal means for GITHUB_TOKEN, the token Z2 set at intake (runbook §4c). The board shows this line."""
+    m=e.message.lower()
+    if e.code==401: why="GITHUB_TOKEN is invalid or expired"
+    elif e.code in (403,404) and "access token" in m: why=("GITHUB_TOKEN cannot do this: a fine-grained token needs Contents, Pull requests and Issues read & write on this "
+                                                          "repository, and an organisation-owned repository must have approved the token")
+    elif e.code==403: why="GitHub refused — a ruleset or branch protection may block the relay's branch, or the token lacks a permission"
+    elif e.code==404: why="GITHUB_TOKEN cannot see this repository (a fine-grained token answers 404 where access is missing)"
+    else: why="GitHub refused"
+    return f"{why} ({e})"
+def make_branch(br):
+    """refs/heads/<br> from main. True = created; False = it already existed (a re-sent tap, or a reserved id); anything else
+    raises with GitHub's message and the token hint — the live relay once swallowed this and reported 'INDEX not found' (2026-09-17)."""
+    try: base=gh("GET",f"/repos/{REPO}/git/ref/heads/main")["object"]["sha"]
+    except GitHubError as e: raise ValueError(f"could not read main: {token_hint(e)}") from e
+    try: gh("POST",f"/repos/{REPO}/git/refs",{"ref":f"refs/heads/{br}","sha":base}); return True
+    except GitHubError as e:
+        if e.code==422 and "already exists" in e.message.lower(): return False
+        raise ValueError(f"could not create branch {br}: {token_hint(e)}") from e
 
 # ---------- the two stores: GitHub (a branch) or a local copy (DRY_RUN / self-test) ----------
 class GitHubStore:
     def __init__(self,branch): self.branch=branch
     def get(self,path):
         try: r=gh("GET",f"/repos/{REPO}/contents/{path}?ref={self.branch}")
-        except Exception: return None,None
+        except GitHubError as e:
+            if e.code==404: return None,None  # absent on this branch — the one refusal that means "not there"
+            raise ValueError(f"could not read {path} on {self.branch}: {token_hint(e)}") from e
         return base64.b64decode(r["content"]).decode(), r["sha"]
     def put(self,path,text,msg):
         _,cur=self.get(path); body={"message":msg,"content":base64.b64encode(text.encode()).decode(),"branch":self.branch}
@@ -194,13 +224,10 @@ def land(d):
     Dates and the block's `by` come from this machine, not from the request."""
     ts=server_ts(); day=ts[:10]; qid=qid_for(d); br=f"z2/{d['id']}-{day}"
     dd={**d,"tagline":RATIFIER,"ts":ts}; block=ruling_block(dd); h=sha(block.encode())
-    if not DRY:
-        base=gh("GET",f"/repos/{REPO}/git/ref/heads/main")["object"]["sha"]
-        try: gh("POST",f"/repos/{REPO}/git/refs",{"ref":f"refs/heads/{br}","sha":base})
-        except Exception: pass
+    if not DRY: make_branch(br)  # created, or already there from an earlier tap; a refusal raises with GitHub's message
     st=store(br)
     idx,_=st.get(INDEX)
-    if idx is None: raise ValueError(f"{INDEX} not found")
+    if idx is None: raise ValueError(f"{INDEX} not found on {br}")
     if cand_status(idx,qid)!="awaiting_z2": raise ValueError(f"{qid} is not awaiting_z2; nothing to decide")
     path=cand_path(idx,qid); cand,_=st.get(path)
     if cand is None: raise ValueError(f"{path} not found")
@@ -320,9 +347,7 @@ def task(d):
     if idx is None: raise ValueError(f"{INDEX} not found")
     rid=next_req_id(idx,day,reserved_req_ids(day) if not DRY else ()); br=f"req/{rid.lower()}"
     if not DRY:
-        base=gh("GET",f"/repos/{REPO}/git/ref/heads/main")["object"]["sha"]
-        try: gh("POST",f"/repos/{REPO}/git/refs",{"ref":f"refs/heads/{br}","sha":base})
-        except Exception as e: raise ValueError(f"{rid} was reserved by another request between read and write ({br} exists); resend to take the next id") from e
+        if not make_branch(br): raise ValueError(f"{rid} was reserved by another request between read and write ({br} exists); resend to take the next id")
         st=store(br); idx,_=st.get(INDEX)
         if idx is None: raise ValueError(f"{INDEX} not found on {br}")
     path=f"z1-inbox/{day}/{rid}.md"
@@ -587,6 +612,57 @@ def selftest():
         ok&=(a0["status"]=="RATIFIED" and t0["status"]=="OPEN" and "\n- path: \"z1-inbox/" in idx0 and "\n  status: ratified\n" in idx0 and "counts:\n  candidates: 1\n  records: 2\n" in idx0)
         yaml.load(idx0,Loader=v.StrictLoader)
         print("column-0 index (ratify.py 1.2.0 format): /decide → /ratify → /task all land, counts block updated, parses strictly →",a0["status"]=="RATIFIED" and t0["status"]=="OPEN")
+        # the GitHub path itself, through a stub of gh(): never exercised before 0.4.5 — on the live host the first /decide
+        # (2026-09-17 22:52Z) had its branch create refused, the refusal was swallowed, and the board read "INDEX not found".
+        global gh; real_gh=gh
+        class FakeGH:
+            """answers the calls land()/ratify()/task() make; files written are kept; POST refs answers as configured"""
+            def __init__(s,refs): s.refs=refs; s.files={}; s.calls=[]
+            def __call__(s,method,path,data=None):
+                p=path.split("?")[0]; s.calls.append((method,p))
+                if method=="GET" and p.endswith("/git/ref/heads/main"): return {"object":{"sha":"abc123"}}
+                if method=="POST" and p.endswith("/git/refs"):
+                    if isinstance(s.refs,GitHubError): raise s.refs
+                    return {"ref":data["ref"]}
+                if method=="GET" and "/git/matching-refs/" in p: return []
+                if "/contents/" in p:
+                    rel=p.split("/contents/",1)[1]
+                    if method=="PUT": s.files[rel]=base64.b64decode(data["content"]).decode(); return {}
+                    if rel in s.files: text=s.files[rel]
+                    elif os.path.exists(os.path.join(td,rel)): text=open(os.path.join(td,rel),encoding="utf-8").read()
+                    else: raise GitHubError("GET",path,404,"Not Found")
+                    return {"content":base64.b64encode(text.encode()).decode(),"sha":"blob"}
+                if method=="POST" and p.endswith("/pulls"): return {"html_url":"https://example.test/pull/1","number":1}
+                if method=="POST" and (p.endswith("/labels") or p.endswith("/comments")): return {}
+                raise GitHubError(method,path,500,"the self-test stub does not answer this call")
+        DRY=False
+        try:
+            gh=FakeGH(GitHubError("POST","/repos/x/git/refs",403,"Resource not accessible by personal access token"))
+            try: land(d); ok=False; print("  NOT refused: branch create 403 swallowed")
+            except ValueError as e:
+                ok&=("could not create branch z2/d6-" in str(e) and "Contents, Pull requests and Issues read & write" in str(e) and "HTTP 403" in str(e))
+                print("GitHub refuses the branch (403, token) → /decide answers with GitHub's message + the token hint →",str(e)[:72]+"…")
+            gh=FakeGH(GitHubError("POST","/repos/x/git/refs",422,"Reference already exists"))
+            rg=land(d); ok&=rg["pr"]=="https://example.test/pull/1" and rg["number"]==1 and "status: PENDING" in gh.files[rg["path"]] and ("POST","/repos/%s/pulls"%REPO) in gh.calls
+            print("branch already exists (422, a re-sent tap) → /decide lands: candidate PENDING on the branch, PR opened →",rg["pr"])
+            ag=ratify({**d,"expected_hash":rg["hash"],"branch":rg["branch"],"hash":rg["hash"]})
+            ok&=ag["status"]=="RATIFIED" and INDEX in gh.files and RENDERED in gh.files and ag["ruling"] in gh.files and ag["signature"] in gh.files[ag["ruling"]]
+            print("/ratify over the stub → RATIFIED; ruling, INDEX and rendered index written to the branch →",ag["status"])
+            gh=FakeGH(None); tg=task({"title":"via stub","ask":"x","wants":"pr","tagline":"Night"})
+            ok&=tg["status"]=="OPEN" and tg["pr"]=="https://example.test/pull/1" and tg["label"]=="agent-request" and tg["path"] in gh.files and ("POST","/repos/%s/git/refs"%REPO) in gh.calls
+            print("/task over the stub → branch created, record + INDEX + rendered written, PR + label →",tg["status"],tg["id"])
+            gh=FakeGH(GitHubError("POST","/repos/x/git/refs",422,"Reference already exists"))
+            try: task({"title":"via stub","ask":"x","wants":"pr"}); ok=False; print("  NOT refused: reserved id reused")
+            except ValueError as e: ok&="reserved by another request" in str(e); print("/task with the id's branch already there → refused as reserved →",str(e)[:60]+"…")
+            gh=FakeGH(GitHubError("POST","/repos/x/git/refs",403,"Resource not accessible by personal access token"))
+            try: task({"title":"via stub","ask":"x","wants":"pr"}); ok=False; print("  NOT refused: /task branch create 403 swallowed")
+            except ValueError as e: ok&="could not create branch req/" in str(e) and "token" in str(e); print("/task with the branch refused (403) → the token hint, not 'reserved' →",str(e)[:60]+"…")
+        finally: gh=real_gh; DRY=True
+        # a refusal that is not 404 on a read is the token, not an absence
+        try: token_hint(GitHubError("GET","/x",401,"Bad credentials")); ok&="invalid or expired" in token_hint(GitHubError("GET","/x",401,"Bad credentials"))
+        except Exception: ok=False
+        ok&="cannot see this repository" in token_hint(GitHubError("POST","/x",404,"Not Found")) and "ruleset" in token_hint(GitHubError("POST","/x",403,"Branch creation restricted"))
+        print("token hints: 401 → invalid/expired · 404 → cannot see the repo · 403 (no 'access token') → ruleset/permission → OK")
     finally:
         ROOT=real_root; shutil.rmtree(td,ignore_errors=True)
     print("SELF-TEST","PASS" if ok else "FAIL"); return 0 if ok else 2

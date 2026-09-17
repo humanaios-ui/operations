@@ -168,6 +168,20 @@ listed — and no relay state: a selected option is not a tap; each becomes a PE
 seen on that surface: with no model key on the service, `/assist` answered "relay dry-run", which is
 false on a live host; 0.4.4 says "no model key on this relay" and names d27 as the decision that sets one.
 
+**First `/decide` tap (Z2, 2026-09-17 22:52:30Z, d6 → `scrape`):** the host's log reads `OPTIONS /decide 204`
+then `POST /decide 500 error`; the board showed `ERROR · z1-inbox/INDEX.yaml not found`. Diagnosis from
+the tree and the remote: `git ls-remote` shows no `z2/d6-2026-09-17` (and no `req/`) branch, so
+GitHub refused the relay's branch create; the relay read main's ref first (so `GITHUB_TOKEN` is valid
+and can read), then swallowed the create refusal in a bare `except: pass` and went on to read the
+index on a branch that did not exist. The message Z2 saw was the symptom, not the cause. The cause is
+on GitHub's side of the token — most likely the fine-grained token lacks **Contents: write** (and Pull
+requests / Issues write), or the organisation has not approved it — and only GitHub's own message can
+say which; 0.4.4 threw it away. Relay 0.4.5: `gh()` raises `GitHubError` with GitHub's message, a
+branch create is never swallowed (422 "already exists" is the one benign answer), `token_hint()` turns
+401/403/404 into what the token needs, and the self-test now drives `/decide`, `/ratify` and `/task`
+through a stub of the GitHub API — the path had never been exercised, which is how a silent `pass`
+shipped. Nothing landed; C17 is still open. Z2's next tap will show the real reason on the board.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.

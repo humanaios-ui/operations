@@ -160,6 +160,11 @@ refusals a board tap can meet look different there and on the board's status lin
 | `POST /decide 401 stale timestamp` | `REFUSED · stale timestamp` | the machine's clock is more than 300 s from the host's |
 | `POST /decide 200` | `PENDING · <PR> · hash …` | landed; the second tap echoes the hash |
 | `POST /ratify 200 refused` | `REFUSED · <the relay's reason>` | the relay answered but refused (hash mismatch, tagline, body changed since `/decide`); the reason is on the board, not in the log |
+| `POST /decide 500 error` | `ERROR · could not create branch z2/… : GITHUB_TOKEN cannot do this … (GitHub POST …/git/refs: HTTP 403 — Resource not accessible by personal access token)` | GitHub refused the relay's write. The token can read but not write: give it **Contents**, **Pull requests** and **Issues** read & write on this repository, and — because the repository is organisation-owned — approve the fine-grained token for the organisation (Settings → Third-party access → Personal access tokens). A 403 without "access token" in GitHub's message is a ruleset or branch protection blocking the `z2/` or `req/` branch |
+
+The first live `/decide` (2026-09-17 22:52:30Z, d6 → `scrape`) was refused at exactly that step — no
+`z2/d6-2026-09-17` branch exists on the remote — and relay 0.4.4 swallowed the refusal and reported
+`INDEX.yaml not found`. From 0.4.5 the answer carries GitHub's own message and the meaning above.
 
 The reason in the log is a closed set (the relay's own fixed refusals, or the status word); anything
 that quotes the request — a tagline, an exception — stays in the board's answer and out of the host's log.
