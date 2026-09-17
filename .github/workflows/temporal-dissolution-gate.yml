@@ -22,8 +22,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Unit-test temporal gate
+      - name: Test policy and scan PR diff
+        env:
+          TEMPORAL_SCAN_ENFORCE: "1"
         run: python -m unittest tests.test_temporal_dissolution_gate
-
-      - name: Scan added control-surface lines
-        run: python tools/temporal_dissolution_gate.py --base-ref "${{ github.base_ref }}"
