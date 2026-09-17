@@ -41,7 +41,7 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.4.3"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host)
+TOOL_VERSION = "0.4.4"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -354,8 +354,10 @@ def assist(d):
             "Answer in navigator grammar only — no imperatives to Z2, no calendar horizons (this project is resource-based: name resources, never deadlines). "
             "Give: position (one line), each option's reading (one line each, plain words), probability each option advances the north star for the resources it "
             "consumes, and what would prove the favoured reading wrong. Under 120 words.") % (d["q"],d.get("opts"),d.get("s",""))
-    if not key or DRY:
-        text="position: relay dry-run · no model key · readings not generated"
+    if DRY:
+        text="position: relay dry-run · no model call · readings not generated"
+    elif not key:  # live relay, no model endpoint yet: say so plainly — "dry-run" on a live host misreads (Z2 saw it 2026-09-17 22:37Z)
+        text="position: no model key on this relay (ANTHROPIC_API_KEY unset; Q-INTENTOS-BUS-01 d27 decides the endpoint) · readings not generated · the tap itself was signed, gated and answered"
     else:
         req=urllib.request.Request("https://api.anthropic.com/v1/messages",data=json.dumps({"model":"claude-sonnet-4-6","max_tokens":400,"messages":[{"role":"user","content":prompt}]}).encode(),
             headers={"x-api-key":key,"anthropic-version":"2023-06-01","content-type":"application/json"})
