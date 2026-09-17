@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-16'
 decision_window_days: 2
 counts:
-  candidates: 46
+  candidates: 47
   records: 29
 ratifiers:
 - Night
@@ -448,6 +448,12 @@ candidates:
     \ tools/intent_os_board_reseal_v1_0.py + .github/workflows/intent-os-refresh.yml,\
     \ report-only until vars.INTENT_OS_REFRESH_AUTOPR=true. Operated on the real drift\
     \ at e2b9a7a: 3 rows re-hashed, ratify.py 1.2.0 refused and re-read by hand."
+- q_id: Q-INTENTOS-BUS-01
+  title: "Agent bus policy — d27 model endpoint none/local/hosted · d28 issue mirror · d29 smoke contract in the manifest · d30 squash-merge read pointer"
+  path: z1-inbox/2026-09-17/Q-INTENTOS-BUS-01.md
+  submitted: '2026-09-17'
+  status: awaiting_z2
+  note: "Step 4 of the bus plan Z2 approved 09-17. Steps 1-3 are on main (#377, #380). Four policy choices in resource units; falsifier over the next ten requests; predictions C25-C28 in sessions, requests, scans and merges. Files the two IC-candidates step 3 measured (manifest smoke_test is a text match; a smoke test with side effects) as d29."
 records:
 - path: "z1-inbox/2026-09-16/PHASE3_EXECUTION_CHECKLIST.md"
   title: "Phase 3 execution checklist (infrastructure complete; awaiting credential deployment)"

@@ -100,8 +100,17 @@ re-seal tool correctly refused (NEEDS-HUMAN). This will recur on every squash-me
 
 RECEIPT-GAP: none known.
 
+## Step 4: `Q-INTENTOS-BUS-01` (this branch)
+
+The bus plan's last step is a block, not code: **d27** model endpoint policy (none / local / hosted, in
+resource units), **d28** issue mirror, **d29** the smoke contract in the manifest (the two step-3
+measurements as one rule: `smoke_test` means *runs*, and a smoke test leaves the tree as it found it),
+**d30** the squash-merge read pointer (mechanical when the tree hashes match, or human as now).
+Falsifier over the next ten requests on the bus; predictions C25–C28 in sessions, requests, scans and
+merges. The bus carries zero requests at filing; the first should be ours — the beta run.
+
 ## Next blockers
 
-1. Z2: d23–d25 + KNOWN_RED (this block); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16.
+1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.
 2. `Q-INTENTOS-LAUNCH-01` falsifier: a ruling through the relay by **2026-09-30**.
 3. Local copies: until d25, refresh a `~/Downloads` copy by replacing the file with the repository's after each merge — the filename is frozen (d19), so the browser's saved taps survive and the new `rev` loads on restore.
