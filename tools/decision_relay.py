@@ -98,20 +98,48 @@ def make_branch(br):
     except GitHubError as e:
         if e.code==422 and "already exists" in e.message.lower(): return False
         raise ValueError(f"could not create branch {br}: {token_hint(e)}") from e
+def open_pr(br,title,body):
+    """The pull request for a branch: opened, or — only when GitHub answers 422 "already exists" for this head (a re-sent
+    tap) — the open one, retitled. Any other refusal raises with GitHub's message and the token hint (a 403 here is
+    Pull requests: write missing); an "exists" answer with no open PR to reuse raises too, never an IndexError."""
+    try: return gh("POST",f"/repos/{REPO}/pulls",{"title":title,"head":br,"base":"main","body":body}),True
+    except GitHubError as e:
+        if not (e.code==422 and "already exist" in e.message.lower()): raise ValueError(f"could not open the pull request for {br}: {token_hint(e)}") from e
+        try: prs=gh("GET",f"/repos/{REPO}/pulls?state=open&head={REPO.split('/')[0]}:{br}")
+        except GitHubError as e2: raise ValueError(f"could not list pull requests for {br}: {token_hint(e2)}") from e2
+        if not prs: raise ValueError(f"GitHub says a pull request already exists for {br} but none is open — reopen or close it on GitHub, then re-send ({e})")
+        pr=prs[0]
+        try: gh("PATCH",f"/repos/{REPO}/pulls/{pr['number']}",{"title":title,"body":body})
+        except GitHubError as e3: raise ValueError(f"could not update pull request #{pr['number']} for {br}: {token_hint(e3)}") from e3
+        return pr,False
+def written_so_far(written):
+    return f"written before the refusal: {', '.join(written) if written else 'nothing'}; the branch is {'partially changed — Z2 completes or reverts it by hand' if written else 'unchanged'}"
 
 # ---------- the two stores: GitHub (a branch) or a local copy (DRY_RUN / self-test) ----------
 class GitHubStore:
-    def __init__(self,branch): self.branch=branch
+    def __init__(self,branch): self.branch=branch; self._seen=False  # True once the branch is known to exist and be visible
+    def _probe(self):
+        """A contents 404 means one of three things: the file is absent, the branch is absent, or the token cannot see the
+        repository (a fine-grained token answers 404 where access is missing). One ref probe per store settles which."""
+        if self._seen: return
+        try: gh("GET",f"/repos/{REPO}/git/ref/heads/{self.branch}"); self._seen=True; return
+        except GitHubError as e:
+            if e.code!=404: raise ValueError(f"could not read branch {self.branch}: {token_hint(e)}") from e
+        try: gh("GET",f"/repos/{REPO}")
+        except GitHubError as e2: raise ValueError(f"{REPO} is not visible to GITHUB_TOKEN: {token_hint(e2)}") from e2
+        raise ValueError(f"branch {self.branch} does not exist on GitHub — nothing landed there; re-send from /decide")
     def get(self,path):
         try: r=gh("GET",f"/repos/{REPO}/contents/{path}?ref={self.branch}")
         except GitHubError as e:
-            if e.code==404: return None,None  # absent on this branch — the one refusal that means "not there"
+            if e.code==404: self._probe(); return None,None  # the branch is there and visible: the file is absent
             raise ValueError(f"could not read {path} on {self.branch}: {token_hint(e)}") from e
+        self._seen=True
         return base64.b64decode(r["content"]).decode(), r["sha"]
     def put(self,path,text,msg):
         _,cur=self.get(path); body={"message":msg,"content":base64.b64encode(text.encode()).decode(),"branch":self.branch}
         if cur: body["sha"]=cur
-        gh("PUT",f"/repos/{REPO}/contents/{path}",body)
+        try: gh("PUT",f"/repos/{REPO}/contents/{path}",body)
+        except GitHubError as e: raise ValueError(f"could not write {path} on {self.branch}: {token_hint(e)}") from e
 class LocalStore:
     """DRY_RUN: files are copied from `src` into `out` on first touch and edited there; the repo itself is never written."""
     def __init__(self,out,src=None): self.out=out; self.src=src or ROOT  # resolved at call time so the self-test can rebind ROOT
@@ -232,15 +260,16 @@ def land(d):
     path=cand_path(idx,qid); cand,_=st.get(path)
     if cand is None: raise ValueError(f"{path} not found")
     bh=body_hash(cand)
-    st.put(path,write_choice(cand,d["choice"],RATIFIER,ts,"PENDING",block,h,bh),f"z2 {d['id']} ({qid}): {d['choice']} — PENDING, hash {h[:16]}")
+    try: st.put(path,write_choice(cand,d["choice"],RATIFIER,ts,"PENDING",block,h,bh),f"z2 {d['id']} ({qid}): {d['choice']} — PENDING, hash {h[:16]}")
+    except ValueError as e: raise ValueError(f"{e} — {written_so_far([])}") from e
     body=(f"# {qid} — {d['q']}\n\n```\n{block}```\n\nhash: `{h}`\nbody_hash: `{bh}`\n\nA tap is not a ratification. Ratify by echoing `hash` to /ratify from the board "
           f"(the relay then signs `{path}` as .z1-control/ratify.py would, records it in `{INDEX}`, and regenerates `{RENDERED}`).\n")
     out={"hash":h,"body_hash":bh,"path":path,"branch":br,"qid":qid,"choice":d["choice"],"ts":ts}
     if DRY: return {"pr":"DRY","number":0,**out}
-    try: pr=gh("POST",f"/repos/{REPO}/pulls",{"title":f"Z2 ruling {d['id']} ({qid}): {d['choice']}","head":br,"base":"main","body":body})
-    except Exception:  # a PR for this branch already exists (a re-sent choice): reuse it
-        prs=gh("GET",f"/repos/{REPO}/pulls?state=open&head={REPO.split('/')[0]}:{br}"); pr=prs[0]
-        gh("PATCH",f"/repos/{REPO}/pulls/{pr['number']}",{"title":f"Z2 ruling {d['id']} ({qid}): {d['choice']}","body":body})
+    # the PENDING block is on the branch now — durable state. If the PR cannot be opened the answer is still PENDING, with
+    # the refusal as a warning, never an ERROR that says nothing happened.
+    try: pr,_=open_pr(br,f"Z2 ruling {d['id']} ({qid}): {d['choice']}",body)
+    except ValueError as e: return {"pr":None,"number":0,"warning":f"landed on {br} (hash {h[:16]}…) but no pull request: {e}. Re-send to try again — the branch is reused",**out}
     return {"pr":pr["html_url"],"number":pr["number"],**out}
 
 def ratify(d):
@@ -265,25 +294,33 @@ def ratify(d):
     if body_hash(cand)!=f.get("body_hash"): return {"status":"REFUSED","why":"the candidate changed outside its Ruling section since /decide — re-send the choice"}
     m=re.search(r"^  choice: (.*)$",f["block"],re.M); choice=m.group(1) if m else f["choice"]
     if choice!=f["choice"]: return {"status":"REFUSED","why":"choice line and ruling block disagree"}
-    # all checks passed — now write, in the order ratify.py writes
-    cand=write_choice(cand,choice,by,ts,"RATIFIED",f["block"],got,f["body_hash"])
-    st.put(path,cand,f"z2 {d['id']} ({qid}): RATIFIED by {by}")
-    digest=signature(cand.encode(),by,at)          # over the bytes as they now stand — the same bytes CI will hash
-    ruling_rel=f"z1-inbox/{at}/Z2_RULINGS_{at}.md"; ruling,_=st.get(ruling_rel)
-    if ruling is None:
-        ruling=(f"# Z2 Rulings — {at}\n\nSignatures issued by the Z2 serial gate. Each hash is\n`sha256(candidate | by=<ratifier> | at=<date> | decision=<D>)` over the\n"
-                f"candidate block's bytes at the moment of decision, so editing a ratified\ncandidate afterwards breaks `ratify.py --verify`.\n")
-        idx=index_add_record(idx,ruling_rel,f"Z2 rulings {at} — signatures issued by .z1-control/ratify.py and decision_relay.py","Z2 output. Cited as z2_ruling by the candidates it signs.")
-    ruling+=(f"\n## {qid} — ACCEPT\n\nHash: `{digest}`\n\n- **Decision:** ACCEPT (ratified) · board ruling {d['id']}: `{choice}`\n"
-             f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2 at {ts})\n"
-             f"- **Signature:** `sha256(candidate | by={by} | at={at} | decision=ACCEPT)`, computed over the candidate's bytes at the moment of decision.\n")
-    st.put(ruling_rel,ruling,f"z2 rulings {at}: {qid} ACCEPT ({digest[:16]})")
-    idx=index_mark_ratified(idx,qid,by,at,ruling_rel,digest); st.put(INDEX,idx,f"INDEX: {qid} ratified by {by}")
-    st.put(RENDERED,rendered_index(idx,lambda rel: st.get(rel)[0] or ""),f"render Z1_INBOX_INDEX.md: {qid} ratified")
+    # all checks passed — now write, in the order ratify.py writes. A refusal mid-way names what was written before it.
+    written=[]
+    try:
+        cand=write_choice(cand,choice,by,ts,"RATIFIED",f["block"],got,f["body_hash"])
+        st.put(path,cand,f"z2 {d['id']} ({qid}): RATIFIED by {by}"); written.append(path)
+        digest=signature(cand.encode(),by,at)          # over the bytes as they now stand — the same bytes CI will hash
+        ruling_rel=f"z1-inbox/{at}/Z2_RULINGS_{at}.md"; ruling,_=st.get(ruling_rel)
+        if ruling is None:
+            ruling=(f"# Z2 Rulings — {at}\n\nSignatures issued by the Z2 serial gate. Each hash is\n`sha256(candidate | by=<ratifier> | at=<date> | decision=<D>)` over the\n"
+                    f"candidate block's bytes at the moment of decision, so editing a ratified\ncandidate afterwards breaks `ratify.py --verify`.\n")
+            idx=index_add_record(idx,ruling_rel,f"Z2 rulings {at} — signatures issued by .z1-control/ratify.py and decision_relay.py","Z2 output. Cited as z2_ruling by the candidates it signs.")
+        ruling+=(f"\n## {qid} — ACCEPT\n\nHash: `{digest}`\n\n- **Decision:** ACCEPT (ratified) · board ruling {d['id']}: `{choice}`\n"
+                 f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2 at {ts})\n"
+                 f"- **Signature:** `sha256(candidate | by={by} | at={at} | decision=ACCEPT)`, computed over the candidate's bytes at the moment of decision.\n")
+        st.put(ruling_rel,ruling,f"z2 rulings {at}: {qid} ACCEPT ({digest[:16]})"); written.append(ruling_rel)
+        idx=index_mark_ratified(idx,qid,by,at,ruling_rel,digest); st.put(INDEX,idx,f"INDEX: {qid} ratified by {by}"); written.append(INDEX)
+        st.put(RENDERED,rendered_index(idx,lambda rel: st.get(rel)[0] or ""),f"render Z1_INBOX_INDEX.md: {qid} ratified"); written.append(RENDERED)
+    except ValueError as e: raise ValueError(f"{e} — {written_so_far(written)}") from e
+    # the ratification is on the branch — durable, authoritative. The PR comment and label are notification: if they are
+    # refused the answer is still RATIFIED, with the refusal as a warning, never an ERROR after a governance write.
+    warning=None
     if not DRY and d.get("number"):
-        gh("POST",f"/repos/{REPO}/issues/{d['number']}/comments",{"body":f"RATIFY {d['id']} {got}\nby: {by} at {ts}\nsignature: {digest}\nruling: {ruling_rel}"})
-        gh("POST",f"/repos/{REPO}/issues/{d['number']}/labels",{"labels":["z2-ratified"]})
-    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"by":by,"at":at}
+        try:
+            gh("POST",f"/repos/{REPO}/issues/{d['number']}/comments",{"body":f"RATIFY {d['id']} {got}\nby: {by} at {ts}\nsignature: {digest}\nruling: {ruling_rel}"})
+            gh("POST",f"/repos/{REPO}/issues/{d['number']}/labels",{"labels":["z2-ratified"]})
+        except GitHubError as e: warning=f"ratified on {br} (signature {digest[:16]}…) but the pull request could not be commented or labelled: {token_hint(e)}"
+    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"by":by,"at":at,"warning":warning}
 
 REQ_KINDS=("pr","answer","ruling")
 def canon_ask(ask): return "\n".join(l.rstrip() for l in str(ask).strip().splitlines())
@@ -356,20 +393,23 @@ def task(d):
     if st.get(path)[0] is not None or f"/{rid}.md" in idx: raise ValueError(f"{path} already exists on the base; resend to take the next id")
     dd={**d,"id":rid,"title":title,"ask":ask,"wants":wants,"ts":ts,"tagline":tagline,"lane":lane}
     block=req_block(dd); h=sha(block.encode())
-    st.put(path,req_record(dd,block,h),f"{rid}: {title} — OPEN, hash {h[:16]}")
-    idx=index_add_record(idx,path,f"Agent request {rid} — {title}",f"OPEN · wants {wants} · lane {dd['lane'] or '—'} · landed by decision_relay.py /task; fulfilled by a worker's PR citing {rid}")
-    st.put(INDEX,idx,f"INDEX: {rid} recorded")
-    st.put(RENDERED,rendered_index(idx,lambda rel: st.get(rel)[0] or ""),f"render Z1_INBOX_INDEX.md: {rid}")
+    written=[]
+    try:
+        st.put(path,req_record(dd,block,h),f"{rid}: {title} — OPEN, hash {h[:16]}"); written.append(path)
+        idx=index_add_record(idx,path,f"Agent request {rid} — {title}",f"OPEN · wants {wants} · lane {dd['lane'] or '—'} · landed by decision_relay.py /task; fulfilled by a worker's PR citing {rid}")
+        st.put(INDEX,idx,f"INDEX: {rid} recorded"); written.append(INDEX)
+        st.put(RENDERED,rendered_index(idx,lambda rel: st.get(rel)[0] or ""),f"render Z1_INBOX_INDEX.md: {rid}"); written.append(RENDERED)
+    except ValueError as e: raise ValueError(f"{e} — {written_so_far(written)}") from e
     out={"id":rid,"hash":h,"path":path,"branch":br,"wants":wants,"ts":ts}
     if DRY: return {"status":"OPEN","pr":"DRY","number":0,**out}
     body=(f"# {rid} — {title}\n\n```\n{block}```\n\nhash: `{h}`\n\nAn agent request landed by tools/decision_relay.py `/task`. Merging this records the request; the work itself "
           f"is a separate PR that fills `{path}` § Fulfilment and cites `{rid}`. No decision is asked of Z2 here.\n\n## Prediction (SMAG calibration)\n\nsmag_p: 0.95\n\nmolt_tier_claimed: 0\n")
-    try: pr=gh("POST",f"/repos/{REPO}/pulls",{"title":f"{rid}: {title}","head":br,"base":"main","body":body})
-    except Exception:
-        prs=gh("GET",f"/repos/{REPO}/pulls?state=open&head={REPO.split('/')[0]}:{br}"); pr=prs[0]
+    # the record is on the branch — durable. A refused PR is a warning on an OPEN answer, not an ERROR that says nothing landed.
+    try: pr,_=open_pr(br,f"{rid}: {title}",body)
+    except ValueError as e: return {"status":"OPEN","pr":None,"number":0,"label":None,"label_error":None,"warning":f"landed on {br} but no pull request: {e}",**out}
     # the label is how workers find requests; if it cannot be applied the request still landed, and the response says so
     try: gh("POST",f"/repos/{REPO}/issues/{pr['number']}/labels",{"labels":["agent-request"]}); label,label_error="agent-request",None
-    except Exception as e: label,label_error=None,f"label not applied: {type(e).__name__}: {str(e)[:160]}"
+    except GitHubError as e: label,label_error=None,f"label not applied: {token_hint(e)}"
     return {"status":"OPEN","pr":pr["html_url"],"number":pr["number"],"label":label,"label_error":label_error,**out}
 
 def assist(d):
@@ -616,14 +656,18 @@ def selftest():
         # (2026-09-17 22:52Z) had its branch create refused, the refusal was swallowed, and the board read "INDEX not found".
         global gh; real_gh=gh
         class FakeGH:
-            """answers the calls land()/ratify()/task() make; files written are kept; POST refs answers as configured"""
-            def __init__(s,refs): s.refs=refs; s.files={}; s.calls=[]
+            """Answers the calls land()/ratify()/task() make. `fail` injects a GitHubError at any boundary: a map of
+            (method, path suffix) → error; a PUT suffix may name one file. Files written are kept (and can be seeded)."""
+            def __init__(s,fail=None,files=None,open_prs=None):
+                s.fail=fail or {}; s.files=dict(files or {}); s.calls=[]; s.open_prs=open_prs if open_prs is not None else [{"html_url":"https://example.test/pull/1","number":1}]
             def __call__(s,method,path,data=None):
                 p=path.split("?")[0]; s.calls.append((method,p))
+                for (m,suffix),err in s.fail.items():
+                    if method==m and p.endswith(suffix): raise err
                 if method=="GET" and p.endswith("/git/ref/heads/main"): return {"object":{"sha":"abc123"}}
-                if method=="POST" and p.endswith("/git/refs"):
-                    if isinstance(s.refs,GitHubError): raise s.refs
-                    return {"ref":data["ref"]}
+                if method=="GET" and "/git/ref/heads/" in p: return {"object":{"sha":"def456"}}
+                if method=="GET" and p.endswith(f"/repos/{REPO}"): return {"full_name":REPO}
+                if method=="POST" and p.endswith("/git/refs"): return {"ref":data["ref"]}
                 if method=="GET" and "/git/matching-refs/" in p: return []
                 if "/contents/" in p:
                     rel=p.split("/contents/",1)[1]
@@ -633,30 +677,87 @@ def selftest():
                     else: raise GitHubError("GET",path,404,"Not Found")
                     return {"content":base64.b64encode(text.encode()).decode(),"sha":"blob"}
                 if method=="POST" and p.endswith("/pulls"): return {"html_url":"https://example.test/pull/1","number":1}
+                if method=="GET" and p.endswith("/pulls"): return s.open_prs
+                if method=="PATCH" and "/pulls/" in p: return {}
                 if method=="POST" and (p.endswith("/labels") or p.endswith("/comments")): return {}
                 raise GitHubError(method,path,500,"the self-test stub does not answer this call")
+        E=lambda code,msg,m="POST",p="/x": GitHubError(m,p,code,msg)
+        TOKEN403=E(403,"Resource not accessible by personal access token"); EXISTS=E(422,"Reference already exists"); PR_EXISTS=E(422,"A pull request already exists for x:y")
         DRY=False
         try:
-            gh=FakeGH(GitHubError("POST","/repos/x/git/refs",403,"Resource not accessible by personal access token"))
+            gh=FakeGH({("POST","/git/refs"):TOKEN403})
             try: land(d); ok=False; print("  NOT refused: branch create 403 swallowed")
             except ValueError as e:
                 ok&=("could not create branch z2/d6-" in str(e) and "Contents, Pull requests and Issues read & write" in str(e) and "HTTP 403" in str(e))
                 print("GitHub refuses the branch (403, token) → /decide answers with GitHub's message + the token hint →",str(e)[:72]+"…")
-            gh=FakeGH(GitHubError("POST","/repos/x/git/refs",422,"Reference already exists"))
+            gh=FakeGH({("POST","/git/refs"):EXISTS})
             rg=land(d); ok&=rg["pr"]=="https://example.test/pull/1" and rg["number"]==1 and "status: PENDING" in gh.files[rg["path"]] and ("POST","/repos/%s/pulls"%REPO) in gh.calls
             print("branch already exists (422, a re-sent tap) → /decide lands: candidate PENDING on the branch, PR opened →",rg["pr"])
-            ag=ratify({**d,"expected_hash":rg["hash"],"branch":rg["branch"],"hash":rg["hash"]})
-            ok&=ag["status"]=="RATIFIED" and INDEX in gh.files and RENDERED in gh.files and ag["ruling"] in gh.files and ag["signature"] in gh.files[ag["ruling"]]
-            print("/ratify over the stub → RATIFIED; ruling, INDEX and rendered index written to the branch →",ag["status"])
-            gh=FakeGH(None); tg=task({"title":"via stub","ask":"x","wants":"pr","tagline":"Night"})
+            pending_files=dict(gh.files)  # the branch as /decide left it, for the /ratify cases below
+            ag=ratify({**d,"expected_hash":rg["hash"],"branch":rg["branch"],"hash":rg["hash"],"number":1})
+            ok&=ag["status"]=="RATIFIED" and ag["warning"] is None and INDEX in gh.files and RENDERED in gh.files and ag["ruling"] in gh.files and ag["signature"] in gh.files[ag["ruling"]]
+            print("/ratify over the stub → RATIFIED; ruling, INDEX and rendered index written to the branch; comment + label posted →",ag["status"])
+            gh=FakeGH(); tg=task({"title":"via stub","ask":"x","wants":"pr","tagline":"Night"})
             ok&=tg["status"]=="OPEN" and tg["pr"]=="https://example.test/pull/1" and tg["label"]=="agent-request" and tg["path"] in gh.files and ("POST","/repos/%s/git/refs"%REPO) in gh.calls
             print("/task over the stub → branch created, record + INDEX + rendered written, PR + label →",tg["status"],tg["id"])
-            gh=FakeGH(GitHubError("POST","/repos/x/git/refs",422,"Reference already exists"))
+            gh=FakeGH({("POST","/git/refs"):EXISTS})
             try: task({"title":"via stub","ask":"x","wants":"pr"}); ok=False; print("  NOT refused: reserved id reused")
             except ValueError as e: ok&="reserved by another request" in str(e); print("/task with the id's branch already there → refused as reserved →",str(e)[:60]+"…")
-            gh=FakeGH(GitHubError("POST","/repos/x/git/refs",403,"Resource not accessible by personal access token"))
-            try: task({"title":"via stub","ask":"x","wants":"pr"}); ok=False; print("  NOT refused: /task branch create 403 swallowed")
-            except ValueError as e: ok&="could not create branch req/" in str(e) and "token" in str(e); print("/task with the branch refused (403) → the token hint, not 'reserved' →",str(e)[:60]+"…")
+            # the failure matrix: a GitHubError injected at every later boundary. For each: the answer keeps GitHub's status
+            # and message (no fallback exception replaces it, never an IndexError), and the status agrees with what durable
+            # state changed — refused with "nothing written" before the first write, PENDING/OPEN/RATIFIED with a warning after.
+            cand_rel=rg["path"]; ratify_d={**d,"expected_hash":rg["hash"],"branch":rg["branch"],"hash":rg["hash"],"number":1}
+            def run(fn,fail,**kw):
+                global gh; gh=FakeGH(fail,**kw)
+                try: return "ok",fn(),gh
+                except ValueError as e: return "refused",str(e),gh
+                except Exception as e: return "other",f"{type(e).__name__}: {e}",gh
+            matrix=[  # (label, callable, injected failures, stub kwargs, expected kind, checks over (result, stub))
+              ("decide · PR POST 403", lambda: land(d), {("POST","/pulls"):TOKEN403}, {}, "ok",
+                 lambda r,g: r["pr"] is None and "no pull request" in r["warning"] and "HTTP 403" in r["warning"] and "Pull requests" in r["warning"] and cand_rel in g.files),
+              ("decide · PR exists, none open", lambda: land(d), {("POST","/pulls"):PR_EXISTS}, {"open_prs":[]}, "ok",
+                 lambda r,g: r["pr"] is None and "none is open" in r["warning"] and "HTTP 422" in r["warning"]),
+              ("decide · PR exists, one open → reused", lambda: land(d), {("POST","/pulls"):PR_EXISTS}, {}, "ok",
+                 lambda r,g: r["pr"]=="https://example.test/pull/1" and ("PATCH","/repos/%s/pulls/1"%REPO) in g.calls and "warning" not in r),
+              ("decide · PR exists, PATCH 403", lambda: land(d), {("POST","/pulls"):PR_EXISTS,("PATCH","/pulls/1"):TOKEN403}, {}, "ok",
+                 lambda r,g: r["pr"] is None and "could not update pull request #1" in r["warning"] and "HTTP 403" in r["warning"]),
+              ("decide · content PUT 403 (first write)", lambda: land(d), {("PUT","/contents/"+cand_rel):TOKEN403}, {}, "refused",
+                 lambda r,g: "could not write" in r and "HTTP 403" in r and "written before the refusal: nothing" in r and cand_rel not in g.files),
+              ("decide · INDEX GET 404, branch present → absent", lambda: land(d), {("GET","/contents/"+INDEX):E(404,"Not Found","GET")}, {}, "refused",
+                 lambda r,g: "INDEX.yaml not found on z2/" in r and ("GET","/repos/%s/git/ref/heads/%s"%(REPO,rg["branch"])) in g.calls),
+              ("decide · INDEX GET 404, branch 404, repo visible → branch missing", lambda: land(d), {("GET","/contents/"+INDEX):E(404,"Not Found","GET"),("GET","/git/ref/heads/"+rg["branch"]):E(404,"Not Found","GET")}, {}, "refused",
+                 lambda r,g: "does not exist on GitHub" in r and "re-send" in r),
+              ("decide · INDEX GET 404, branch 404, repo 404 → token cannot see the repo", lambda: land(d), {("GET","/contents/"+INDEX):E(404,"Not Found","GET"),("GET","/git/ref/heads/"+rg["branch"]):E(404,"Not Found","GET"),("GET","/repos/"+REPO):E(404,"Not Found","GET")}, {}, "refused",
+                 lambda r,g: "not visible to GITHUB_TOKEN" in r and "cannot see this repository" in r),
+              ("decide · INDEX GET 401", lambda: land(d), {("GET","/contents/"+INDEX):E(401,"Bad credentials","GET")}, {}, "refused",
+                 lambda r,g: "could not read" in r and "invalid or expired" in r),
+              ("ratify · comment POST 403 after the writes", lambda: ratify(ratify_d), {("POST","/comments"):TOKEN403}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and "could not be commented or labelled" in r["warning"] and "HTTP 403" in r["warning"] and INDEX in g.files and RENDERED in g.files),
+              ("ratify · label POST 403 after the writes", lambda: ratify(ratify_d), {("POST","/labels"):TOKEN403}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and "HTTP 403" in r["warning"] and ("POST","/repos/%s/issues/1/comments"%REPO) in g.calls),
+              ("ratify · candidate PUT 403 (first write)", lambda: ratify(ratify_d), {("PUT","/contents/"+cand_rel):TOKEN403}, {"files":pending_files}, "refused",
+                 lambda r,g: "could not write" in r and "written before the refusal: nothing" in r and "unchanged" in r and INDEX not in g.files),
+              ("ratify · INDEX PUT 403 (third write)", lambda: ratify(ratify_d), {("PUT","/contents/"+INDEX):TOKEN403}, {"files":pending_files}, "refused",
+                 lambda r,g: "could not write z1-inbox/INDEX.yaml" in r and "written before the refusal: "+cand_rel in r and "partially changed" in r and RENDERED not in g.files),
+              ("ratify · INDEX GET 404, branch 404, repo visible", lambda: ratify(ratify_d), {("GET","/contents/"+INDEX):E(404,"Not Found","GET"),("GET","/git/ref/heads/"+rg["branch"]):E(404,"Not Found","GET")}, {"files":pending_files}, "refused",
+                 lambda r,g: "does not exist on GitHub" in r),
+              ("task · branch POST 403", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/git/refs"):TOKEN403}, {}, "refused",
+                 lambda r,g: "could not create branch req/" in r and "Contents, Pull requests and Issues" in r),
+              ("task · branch POST 401", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/git/refs"):E(401,"Bad credentials")}, {}, "refused",
+                 lambda r,g: "invalid or expired" in r),
+              ("task · PR POST 403", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/pulls"):TOKEN403}, {}, "ok",
+                 lambda r,g: r["status"]=="OPEN" and r["pr"] is None and "no pull request" in r["warning"] and "HTTP 403" in r["warning"] and r["path"] in g.files),
+              ("task · label POST 403", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/labels"):TOKEN403}, {}, "ok",
+                 lambda r,g: r["status"]=="OPEN" and r["pr"]=="https://example.test/pull/1" and r["label"] is None and "HTTP 403" in r["label_error"]),
+              ("task · rendered PUT 403 (third write)", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("PUT","/contents/"+RENDERED):TOKEN403}, {}, "refused",
+                 lambda r,g: "could not write "+RENDERED in r and "written before the refusal: z1-inbox/" in r and INDEX in r and "partially changed" in r),
+            ]
+            bad=0
+            for label,fn,fail,kw,expect,check in matrix:
+                kind,res,g=run(fn,fail,**kw)
+                good=(kind==expect) and "IndexError" not in str(res) and bool(check(res,g))
+                if not good: bad+=1; print("  MATRIX FAIL:",label,"→",kind,str(res)[:220])
+            ok&=bad==0; print(f"GitHub failure matrix: {len(matrix)} injected refusals across branch/contents/PR/comment/label — each keeps GitHub's status + message, no fallback exception, status agrees with what was written →",bad==0)
         finally: gh=real_gh; DRY=True
         # a refusal that is not 404 on a read is the token, not an absence
         try: token_hint(GitHubError("GET","/x",401,"Bad credentials")); ok&="invalid or expired" in token_hint(GitHubError("GET","/x",401,"Bad credentials"))

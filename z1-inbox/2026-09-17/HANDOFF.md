@@ -182,6 +182,21 @@ branch create is never swallowed (422 "already exists" is the one benign answer)
 through a stub of the GitHub API — the path had never been exercised, which is how a silent `pass`
 shipped. Nothing landed; C17 is still open. Z2's next tap will show the real reason on the board.
 
+**Z2's red-team audit of 0.4.5 (review on #387, 23:05Z) — HOLD for two P1s, both taken:** (P1) the PR
+create in `/decide` and `/task` still swallowed every refusal into an open-PR lookup that could end in
+`IndexError`; now `open_pr()` reuses a PR only on GitHub's 422 "already exists" (and refuses, with the
+message, when none is open), and since the block or record is on the branch by then the answer is
+PENDING / OPEN *with a warning*, not ERROR. (P1) `/ratify` wrote the ruling, INDEX and rendered index
+and then could answer 500 if the PR comment or label was refused; now the writes are the ratification
+(RATIFIED, with the refusal as a warning), and a write refused mid-way names what was written before it
+("the branch is partially changed — Z2 completes or reverts it by hand"). (P2) a contents 404 is now
+probed: branch ref, then repository — a missing file, a missing branch and a token that cannot see the
+repository answer differently. (P2) the self-test carries a 19-case failure matrix (branch POST ·
+contents GET/PUT · PR POST/PATCH · comment POST · label POST × 401/403/404/422): each answer keeps
+GitHub's status and message, no fallback exception replaces it, and the status agrees with what was
+written. The runbook's 403 wording is non-exclusive, as the audit asked. The board shows a warning
+beside PENDING / RATIFIED. The 0.4.5 claim — a GitHub refusal is never swallowed — is now the tested one.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.

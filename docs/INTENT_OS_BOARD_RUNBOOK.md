@@ -160,7 +160,15 @@ refusals a board tap can meet look different there and on the board's status lin
 | `POST /decide 401 stale timestamp` | `REFUSED · stale timestamp` | the machine's clock is more than 300 s from the host's |
 | `POST /decide 200` | `PENDING · <PR> · hash …` | landed; the second tap echoes the hash |
 | `POST /ratify 200 refused` | `REFUSED · <the relay's reason>` | the relay answered but refused (hash mismatch, tagline, body changed since `/decide`); the reason is on the board, not in the log |
-| `POST /decide 500 error` | `ERROR · could not create branch z2/… : GITHUB_TOKEN cannot do this … (GitHub POST …/git/refs: HTTP 403 — Resource not accessible by personal access token)` | GitHub refused the relay's write. The token can read but not write: give it **Contents**, **Pull requests** and **Issues** read & write on this repository, and — because the repository is organisation-owned — approve the fine-grained token for the organisation (Settings → Third-party access → Personal access tokens). A 403 without "access token" in GitHub's message is a ruleset or branch protection blocking the `z2/` or `req/` branch |
+| `POST /decide 500 error` | `ERROR · could not create branch z2/… : GITHUB_TOKEN cannot do this … (GitHub POST …/git/refs: HTTP 403 — Resource not accessible by personal access token)` | GitHub refused the relay's write. The token can read but not write: give it **Contents**, **Pull requests** and **Issues** read & write on this repository, and — because the repository is organisation-owned — approve the fine-grained token for the organisation (Settings → Third-party access → Personal access tokens). A 403 without "access token" in GitHub's message may be a ruleset or branch protection blocking the `z2/` or `req/` branch, or a permission the token lacks — the status alone does not say which; read GitHub's message on the board |
+
+| `POST /decide 200` with a **warning** on the board (`PENDING · · hash … · landed on z2/… but no pull request: …`) | the choice is on the branch (durable) but the pull request could not be opened — GitHub's message follows, usually Pull requests: write missing. Re-send after fixing the token: the branch is reused and a PR opened |
+| `POST /ratify 200` with a **warning** (`RATIFIED · ratified on z2/… but the pull request could not be commented or labelled: …`) | the signature, ruling file, INDEX and rendered index are on the branch — the ratification stands; only the PR notification failed (Issues: write missing). Nothing to re-send; the PR merges as it is |
+| `POST /decide 500 error` with `could not write … — written before the refusal: nothing; the branch is unchanged` | GitHub refused the first write; nothing landed. `… written before the refusal: <files>; the branch is partially changed` names what did land before a later write was refused — Z2 completes or reverts the branch by hand |
+
+An answer's status always agrees with what is on the branch: refused before the first write means
+nothing changed; a warning on PENDING / OPEN / RATIFIED means the governance write happened and only
+the notification (PR, comment, label) did not.
 
 The first live `/decide` (2026-09-17 22:52:30Z, d6 → `scrape`) was refused at exactly that step — no
 `z2/d6-2026-09-17` branch exists on the remote — and relay 0.4.4 swallowed the refusal and reported
