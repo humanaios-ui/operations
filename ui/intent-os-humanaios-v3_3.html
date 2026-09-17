@@ -818,16 +818,21 @@ function render(){
     document.getElementById("schema").value = JSON.stringify(project, null, 1);
     return;
   }
+  // Guard: ARENA only renders for HumanAIOS project
+  if(project.owner?.tagline !== "HumanAIOS") {
+    ar.innerHTML = '';
+    return;
+  }
   let arenaHtml = '<div class="arena-section">';
 
   /* 1. Experimental Sequence Gates */
   arenaHtml += '<div class="arena-card"><div class="arena-title">1. Experimental Sequence Gates</div>';
   ARENA_FRAMEWORK.experimental_sequence.forEach(seq => {
-    const stateClass = seq.state === "done" ? "done" : (seq.state === "progress" ? "progress" : (seq.blocker ? "blocked" : "pending"));
-    const icon = seq.state === "done" ? "✓" : (seq.blocker ? "⊘" : "○");
+    const stateClass = seq.state === "done" ? "done" : (seq.state === "progress" ? "progress" : (seq.state === "waiting" ? "waiting" : "blocked"));
+    const icon = seq.state === "done" ? "✓" : (seq.state === "waiting" ? "⏳" : (seq.state === "blocked" ? "⊘" : "○"));
     arenaHtml += '<div class="arena-phase">';
     arenaHtml += '<div class="arena-phase-icon '+stateClass+'">'+icon+'</div>';
-    arenaHtml += '<div class="arena-phase-name"><b>'+esc(seq.name)+'</b><br/><span style="color:var(--dim);font-size:11px">'+esc(seq.description)+'</span>';
+    arenaHtml += '<div class="arena-phase-name"><b>'+esc(seq.phase)+': '+esc(seq.name)+'</b><br/><span style="color:var(--dim);font-size:11px">'+esc(seq.description)+'</span>';
     if(seq.blocker) arenaHtml += '<br/><span style="color:var(--waiting);font-size:11px">⏳ '+esc(seq.blocker)+'</span>';
     arenaHtml += '</div></div>';
   });
@@ -851,7 +856,7 @@ function render(){
   /* 3. Measurement Validity Checkpoints */
   arenaHtml += '<div class="arena-card"><div class="arena-title">3. Measurement Validity Checkpoints</div>';
   ARENA_FRAMEWORK.measurement_checkpoints.forEach(cp => {
-    const checkClass = cp.status === "done" ? "done" : "blocked";
+    const checkClass = cp.status === "done" ? "done" : (cp.status === "waiting" ? "waiting" : "blocked");
     arenaHtml += '<div class="arena-checkpoint">';
     arenaHtml += '<div class="arena-checkpoint-check '+checkClass+'">'+( cp.status === "done" ? "✓" : "□")+'</div>';
     arenaHtml += '<div>'+esc(cp.name);
@@ -863,7 +868,7 @@ function render(){
 
   /* 4. Z2 Ratification State */
   arenaHtml += '<div class="arena-card"><div class="arena-title">4. Z2 Ratification State</div>';
-  arenaHtml += '<div style="font-size:11px;margin-bottom:8px">All 5 gates signed by '+esc(ARENA_FRAMEWORK.z2_authority)+' at '+esc(ARENA_FRAMEWORK.ratified_at.slice(0,10))+'</div>';
+  arenaHtml += '<div style="font-size:11px;margin-bottom:8px">All 5 gates signed by '+esc(ARENA_FRAMEWORK.z2_authority)+' at '+esc(ARENA_FRAMEWORK.ratified_at)+'</div>';
   ARENA_FRAMEWORK.z2_ratifications.forEach(rat => {
     const statusClass = rat.status === "signed" ? "signed" : "pending";
     arenaHtml += '<div class="arena-ratification '+statusClass+'">';
