@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/external_constraint.schema.json",
+  "title": "HumanAIOS External Constraint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "authority",
+    "citation",
+    "due_at",
+    "evidence_ref",
+    "impact_if_missed",
+    "z2_ratified",
+    "ratification_ref"
+  ],
+  "properties": {
+    "type": {"const": "REGULATORY_DEADLINE"},
+    "authority": {"type": "string", "minLength": 1},
+    "citation": {"type": "string", "minLength": 1},
+    "due_at": {"type": "string", "format": "date-time"},
+    "evidence_ref": {"type": "string", "minLength": 1},
+    "impact_if_missed": {"type": "string", "minLength": 1},
+    "z2_ratified": {"const": true},
+    "ratification_ref": {"type": "string", "minLength": 1}
+  }
+}
