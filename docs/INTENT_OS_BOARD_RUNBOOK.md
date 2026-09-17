@@ -130,8 +130,9 @@ re-hashes each one in the browser before lighting a row (no network on open; a f
 ## 4c. The relay, live (Z2's direction, 2026-09-17: "wire it live to the internet")
 
 The board stays a local file (d17 is untouched); what goes online is its only exit, the relay. It runs
-as a second service in the existing Railway project beside the ACAT API, from this repository, with
-the start command `python3 tools/decision_relay.py` (it listens on the host's `$PORT`). Nothing in the
+as the service `intent-os-relay` at `https://intent-os-relay-production.up.railway.app` in the existing
+Railway project beside the ACAT API, from this repository, with the start command
+`python3 tools/decision_relay.py` (it listens on the host's `$PORT`). Nothing in the
 tree carries a secret. The service's variables, set at intake in Railway and nowhere else:
 
 | variable | what | who sets it |
