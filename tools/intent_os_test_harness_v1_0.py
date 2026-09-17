@@ -66,6 +66,7 @@ BOARD = os.path.join("ui", "intent-os-humanaios-v3_3.html")
 DASHBOARD = os.path.join("ui", "intent-os-test-dashboard-v1_0.html")
 CHECKER = os.path.join("tools", "intent_os_board_check_v1_0.py")
 RELAY = os.path.join("tools", "decision_relay.py")
+REQUESTS = os.path.join("tools", "intent_os_requests_v1_0.py")
 RECEIPT = os.path.join("outputs", "intent_os_test_results.json")
 SCHEMA = "intentos/test_results_v1"
 BAD = {"FAIL", "TIMEOUT", "ERROR"}
@@ -101,6 +102,7 @@ def registry() -> list[dict]:
     add("t0-board-check", "T0", "board", "board seal checker self-test", _py(CHECKER, "--self-test"), proves=["W1", "W8"])
     add("t0-board-reseal", "T0", "board", "board re-seal self-test (mechanical drift re-hashed; a changed tool refused)", _py("tools/intent_os_board_reseal_v1_0.py", "--self-test"), proves=["W8"])
     add("t0-relay", "T0", "relay", "decision relay self-test (DRY_RUN)", _py(RELAY, "--self-test"), env={"DRY_RUN": "1"}, proves=["W2", "W4", "Z3"])
+    add("t0-requests", "T0", "bus", "agent-request reader self-test (fixtures from the relay's own writer; every classification fires)", _py(REQUESTS, "--self-test"))
     add("t0-z1-validate", "T0", "governance", ".z1-control/validate.py smoke", _py(".z1-control/validate.py", "--smoke-test"), proves=["G1"])
     add("t0-z1-render", "T0", "governance", ".z1-control/render.py smoke", _py(".z1-control/render.py", "--smoke-test"), proves=["W6"])
     add("t0-z1-ratify", "T0", "governance", ".z1-control/ratify.py smoke", _py(".z1-control/ratify.py", "--smoke-test"), proves=["G2", "W5"])
@@ -121,6 +123,7 @@ def registry() -> list[dict]:
     add("t1-board-holds", "T1", "board", "board seals HOLD against the tree", _py(CHECKER), proves=["W1", "W8"])
     add("t1-z1-inbox", "T1", "governance", "z1-inbox/INDEX.yaml integrity (z2 gate ERROR step)", _py(".z1-control/validate.py"), proves=["Z1", "G1", "W6"])
     add("t1-z1-render-sync", "T1", "governance", "Z1_INBOX_INDEX.md in sync (z2 gate ERROR step)", _py(".z1-control/render.py", "--check"), proves=["W6"])
+    add("t1-requests", "T1", "bus", "every REQ- record in the inbox verifies (hash, ask, id, Fulfilment order, indexed)", _py(REQUESTS, "--check"), proves=["W6"])
     add("t1-signatures", "T1", "governance", "recorded Z2 signatures still match their candidates", _py(".z1-control/ratify.py", "--verify"), proves=["Z2", "G2", "W5"])
     add("t1-manifest-fresh", "T1", "tools", "tool manifest up to date", _py(".tool-control/scan.py", "--check"), proves=["G3"])
     add("t1-manifest-valid", "T1", "tools", "tool manifest rules hold", _py(".tool-control/validate.py"), proves=["G3"])
@@ -140,7 +143,7 @@ def registry() -> list[dict]:
     # T2 — board + relay end to end
     add("t2-board-script", "T2", "board", "board <script> parses (node --check)", kind="node_check", needs_cmd=["node"], proves=["W1"])
     add("t2-dashboard-script", "T2", "board", "dashboard <script> parses (node --check)", kind="node_check_dashboard", needs_cmd=["node"], proves=["W1"])
-    add("t2-relay-roundtrip", "T2", "relay", "signed /decide → PENDING hash → /ratify → signature, over HTTP (DRY_RUN)", kind="relay_roundtrip", timeout=60,
+    add("t2-relay-roundtrip", "T2", "relay", "signed /decide → PENDING hash → /ratify → signature, and /task → REQ record, over HTTP (DRY_RUN)", kind="relay_roundtrip", timeout=60,
         proves=["W2", "W3", "W4", "W5", "W6", "Z3"])
     add("t2-browser-persist", "T2", "board", "headless Chromium: board renders; a tap survives reload (localStorage)", kind="browser", timeout=90,
         requires=["playwright"], proves=["W1"])
@@ -256,10 +259,10 @@ def _free_port() -> int:
         return s.getsockname()[1]
 
 
-MIN_INDEX = ('---\nversion: 1\ngenerated: "2026-09-14"\ndecision_window_days: 2\ncounts: {candidates: 1, records: 0}\n'
-             'ratifiers: [Night]\n\ncandidates:\n  - q_id: Q-BOARD-RULING-06\n    title: "Board ruling d6"\n'
-             '    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-06.md"\n    submitted: "2026-09-14"\n    status: awaiting_z2\n'
-             '    falsifier_waiver: "question"\n\nrecords:\nexcluded: []\n')
+# the index in the shape ratify.py 1.2.0 writes it (items at column 0, counts as a block) — the shape the relay meets on main
+MIN_INDEX = ('version: 1\ngenerated: \'2026-09-16\'\ndecision_window_days: 2\ncounts:\n  candidates: 1\n  records: 0\nratifiers:\n- Night\n'
+             'candidates:\n- q_id: Q-BOARD-RULING-06\n  title: Board ruling d6\n  path: z1-inbox/2026-09-14/Q-BOARD-RULING-06.md\n'
+             '  submitted: \'2026-09-14\'\n  status: awaiting_z2\n  falsifier_waiver: question\nrecords:\nexcluded: []\n')
 MIN_CAND = ("# Ruling request Q-BOARD-RULING-06\n\n## Question\n\nbatch source?\n\n## Ruling\n\nchoice:\nby:\nat:\n"
             "status: OPEN\n\n## Z2 Review Checklist\n\n- [ ] batch source?\n")
 
@@ -363,6 +366,27 @@ def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
         v = subprocess.run(_py(os.path.join(out, ".z1-control", "ratify.py"), "--verify"), cwd=out, capture_output=True, text=True, timeout=30)
         ok &= _ok(lines, v.returncode == 0, f".z1-control/ratify.py --verify on the landed copy → {(v.stdout + v.stderr).strip().splitlines()[-1][:60] if (v.stdout + v.stderr).strip() else 'rc ' + str(v.returncode)}")
         r = {**r, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
+        # /task — the agent bus: a signed request becomes a record, indexed and rendered, nothing signed
+        t = {"title": 'Re-read the "ACAT" benchmark map: rows 1–12', "ask": "Compare the 12 rows to the 09-08 read.", "wants": "pr", "lane": "acat",
+             "tagline": "Night", "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
+        code, _, j = req("POST", "/task", t)
+        ok &= _ok(lines, code == 200 and j.get("status") == "OPEN" and re.fullmatch(r"REQ-\d{8}-\d{2}", j.get("id", "") or "") is not None,
+                  f"POST /task signed → {code} {j.get('status')} · {j.get('id')} · hash {str(j.get('hash', ''))[:16]}")
+        rec_p = os.path.join(out, j.get("path", "") or "x")
+        rec = open(rec_p, encoding="utf-8").read() if os.path.isfile(rec_p) else ""
+        idx = open(os.path.join(out, "z1-inbox", "INDEX.yaml"), encoding="utf-8").read()
+        rendered = open(os.path.join(out, "Z1_INBOX_INDEX.md"), encoding="utf-8").read() if os.path.isfile(os.path.join(out, "Z1_INBOX_INDEX.md")) else ""
+        ok &= _ok(lines, f"hash: `{j.get('hash')}`" in rec and "## Fulfilment" in rec and "**Status:** OPEN" in rec, f"{j.get('path')}: request block hashed, Fulfilment empty, OPEN")
+        blk_m = re.search(r"```\n(REQUEST .*?)```", rec, re.S); ask_m = re.search(r"## Ask\n\n(.*?)\n\n## Request block", rec, re.S)
+        ok &= _ok(lines, bool(blk_m and ask_m) and hashlib.sha256(blk_m.group(1).encode()).hexdigest() == j.get("hash")
+                  and f"ask_sha256: {hashlib.sha256(ask_m.group(1).encode()).hexdigest()}" in blk_m.group(1),
+                  "hash recomputes from the record; ask_sha256 inside it recomputes from ## Ask")
+        ok &= _ok(lines, (j.get("path") or "x") in idx and str(j.get("id")) in rendered, "INDEX.yaml records: entry + rendered index carry the request")
+        ok &= _ok(lines, "z2_hash" not in rec and "status: RATIFIED" not in rec and "**Status:** OPEN" in rec, "nothing signed: no z2_hash, no RATIFIED status in the record")
+        code, _, j2 = req("POST", "/task", {**t, "nonce": "n-" + os.urandom(6).hex(), "epoch": time.time()})
+        ok &= _ok(lines, j2.get("id", "").endswith("-02"), f"second /task the same day → {j2.get('id')}")
+        code, _, j3 = req("POST", "/task", {**t, "title": "", "nonce": "n-" + os.urandom(6).hex(), "epoch": time.time()})
+        ok &= _ok(lines, code == 500 and j3.get("status") == "ERROR", f"POST /task with an empty title → {code} {j3.get('status')}")
 
         def snapshot() -> dict[str, bytes]:
             """Every file under the landed copy, so a refusal that touches anything is caught."""
@@ -637,10 +661,23 @@ def queue_snapshot(root: str) -> dict:
     try:
         r = subprocess.run(_py(".z1-control/validate.py", "--report"), cwd=root, capture_output=True, text=True, timeout=60)
         rep = json.loads(r.stdout)
-        od = rep.get("overdue", [])
+        # temporal_class: OBSERVATIONAL — the validator reports how many candidates fall outside its decision window;
+        # the harness carries that count as a measurement (Ruling 5, 2026-09-16, retires the window as a rule). It
+        # reorders nothing and sets no due date; the receipt shows it so the number is visible, not enforced.
+        flagged = rep.get("overdue", [])
         return {"candidates": rep.get("candidates"), "records": rep.get("records"), "awaiting_z2": rep.get("awaiting_z2"),
-                "overdue": len(od), "overdue_top": [{k: x.get(k) for k in ("q_id", "title", "submitted", "overdue_days")} for x in od[:8]],
+                "window_flagged": len(flagged), "window_flagged_top": [{k: x.get(k) for k in ("q_id", "title", "submitted")} for x in flagged[:8]],
                 "decision_window_days": rep.get("decision_window_days")}
+    except Exception as e:  # noqa: BLE001
+        return {"error": f"{type(e).__name__}: {e}"}
+
+
+def requests_snapshot(root: str) -> dict:
+    """The agent bus as the reader tool sees it (schema intentos/requests_v1). The tool is taken from this
+    harness's own tree and pointed at `root`, so a temp root in the self-test still has a reader."""
+    try:
+        r = subprocess.run(_py(os.path.join(ROOT, REQUESTS), "--json", "--root", root), cwd=root, capture_output=True, text=True, timeout=60)
+        return json.loads(r.stdout)
     except Exception as e:  # noqa: BLE001
         return {"error": f"{type(e).__name__}: {e}"}
 
@@ -690,6 +727,7 @@ def assemble(results: list[dict], root: str, with_snapshots: bool = True) -> dic
         rep["board"] = board_snapshot(root)
         rep["queue"] = queue_snapshot(root)
         rep["zones"] = zones_snapshot(root)
+        rep["requests"] = requests_snapshot(root)
     return rep
 
 
@@ -710,7 +748,11 @@ def print_table(rep: dict) -> None:
         print(f"board: {b.get('verdict')} · seals {b.get('counts')} · read {b.get('read_date')} · rulings {len(b.get('rulings', []))} · predictions {len(b.get('predictions', []))}")
     if rep.get("queue") and "candidates" in rep["queue"]:
         q = rep["queue"]
-        print(f"queue: {q['candidates']} candidates · {q['awaiting_z2']} awaiting Z2 · {q['overdue']} past the {q['decision_window_days']}d window")
+        # temporal_class: OBSERVATIONAL — a count the validator measured, printed; not a deadline and not a ranking input
+        print(f"queue: {q['candidates']} candidates · {q['awaiting_z2']} awaiting Z2 · validator counts {q['window_flagged']} outside its {q['decision_window_days']}d window (a measurement it reports; Ruling 5 retires the rule)")
+    if rep.get("requests") and "total" in rep["requests"]:
+        rq = rep["requests"]
+        print(f"requests: {rq['total']} on the bus · " + " · ".join(f"{k} {v}" for k, v in rq["counts"].items()) + f" · {rq['verified']} verify · {rq['verdict']}")
     print("counts:", ", ".join(f"{k}={v}" for k, v in sorted(rep["counts"].items())))
     print("verdict:", rep["verdict"])
 
@@ -801,6 +843,10 @@ def run_smoke_test() -> bool:
                and snap["predictions"][0]["confidence"] == 0.7 and snap["rulings"][0]["ruled"] and not snap["rulings"][1]["ruled"]
                and snap["rulings"][1]["qid"] == "Q-BOARD-RULING-02" and snap["gauges"][0]["base"] == 7.5 and snap["rev"] == "2026-09-16")
         print("  board snapshot: blocks/predictions/rulings/gauges/rev parsed from the HUMANAIOS block:", "OK" if ok else "FAIL")
+        # requests snapshot: the reader is taken from this tree and pointed at the temp root — empty bus, OK verdict
+        rq = requests_snapshot(td)
+        ok &= rq.get("schema") == "intentos/requests_v1" and rq.get("total") == 0 and rq.get("verdict") == "OK"
+        print("  requests snapshot: reader runs against another root; empty bus → total 0, OK:", "OK" if rq.get("total") == 0 else "FAIL")
         # repo index check: a named path that does not exist must FAIL — with or without an extension
         os.makedirs(os.path.join(td, ".github"))
         open(os.path.join(td, ".github", "CODEOWNERS"), "w").write("* @x\n")

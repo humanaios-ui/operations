@@ -26,7 +26,7 @@ without backticks is a description. When a path moves, this file is wrong until 
 | `.z1-control/` | the Z2 gate's tools: validate, render, sign | `.z1-control/ratify.py` |
 | `.tool-control/` | tool manifest scanner, validator, renderer | `tools-manifest.yaml` (root) · `TOOLS_MANIFEST.md` (root, rendered) |
 | `.doc-control/` | document registry validator, renderer, review scheduler | `document-registry.yaml` (root) · `CONTROLLED_DOCUMENTS.md` (root, rendered) |
-| `tools/` | 156 registered tools; the Intent-OS relay, checker and harness live here | `tools/decision_relay.py` · `tools/intent_os_board_check_v1_0.py` · `tools/intent_os_test_harness_v1_0.py` |
+| `tools/` | 159 registered tools; the Intent-OS relay, checker and harness live here | `tools/decision_relay.py` · `tools/intent_os_board_check_v1_0.py` · `tools/intent_os_test_harness_v1_0.py` |
 | `ui/` | Z2's surfaces: the Intent-OS board and the test dashboard | `ui/intent-os-humanaios-v3_3.html` · `ui/intent-os-test-dashboard-v1_0.html` |
 | `docs/` | 87 documents; runbooks and the test pathway | `docs/INTENT_OS_BOARD_RUNBOOK.md` · `docs/INTENT_OS_TEST_PATHWAY.md` |
 | `.github/` | 46 workflows, CODEOWNERS, templates | `.github/workflows/z2_ratification_gate.yml` |
@@ -138,11 +138,12 @@ Workflows: `.github/workflows/tool-manifest.yml` · `.github/workflows/document-
 
 | file | role | proof |
 |---|---|---|
-| `tools/decision_relay.py` | v0.3.1 · HTTP relay: signed `/decide` writes a tapped choice into its candidate block on a branch (PR PENDING); `/ratify` on the echoed hash signs as `.z1-control/ratify.py` does; `DRY_RUN=1` works on a local copy | `--self-test`; harness `t2-relay-roundtrip` |
+| `tools/decision_relay.py` | v0.4.0 · HTTP relay: signed `/decide` writes a tapped choice into its candidate block on a branch (PR PENDING); `/ratify` on the echoed hash signs as `.z1-control/ratify.py` does; `/task` lands an agent request as a `REQ-` record; `DRY_RUN=1` works on a local copy | `--self-test`; harness `t2-relay-roundtrip` |
 | `tools/relay_policy.yml` | ngrok traffic policy in front of the relay (basic-auth; OPTIONS exempt for the browser preflight) | — |
 | `tools/intent_os_board_check_v1_0.py` | re-hashes every board seal against the tree; exit 0 HOLDS · 2 STALE | `--self-test` |
 | `tools/intent_os_test_harness_v1_0.py` | runs T0–T4, writes the receipt to outputs/intent_os_test_results.json (gitignored), `--render` embeds it in the dashboard | `--self-test` |
 | `tools/intent_os_board_reseal_v1_0.py` | after a merge: re-hashes MECHANICAL seals (inbox index, registry, ledgers, rendered indexes) and refuses anything else; `--check` exit 0 HOLDS · 1 mechanical · 2 needs a human | `--self-test` |
+| `tools/intent_os_requests_v1_0.py` | the agent-bus reader: every `REQ-` record in z1-inbox, hashes recomputed, stage from its Fulfilment (`requested → taken → pr → merged`, never from time); `--check` exit 2 if any record does not verify; `--json` is what the harness embeds | `--self-test`; harness `t0-requests` · `t1-requests` |
 | `tools/ic_scope_check.py` | scope check on intake records; refuses without `$IC_SCOPE_SECRET` | exit 2 = correct |
 | `tools/doc_lifecycle_lint.py` | disposition table for `docs/`; `--enforce` fails on unfiled docs | `--self-test` |
 | `tools/cascade_guard.py` · `tools/jester_invariants.py` | anti-cascade and invariant checks | `--self-test` |
@@ -165,7 +166,7 @@ unclassified; a smoke test is what makes it count.
 | file | role |
 |---|---|
 | `ui/intent-os-humanaios-v3_3.html` | the Intent-OS board: 20 steps (3 done · 10 in progress · 7 waiting), 9 gauges, 18 predictions, 19 rulings (d1, d4, d17–d19 ruled; d2, d3, d5–d16 open), 43 seals — counts read by the harness on 2026-09-16. The `HUMANAIOS` block inside is the dataset; the path is frozen (d19) and a re-read changes the data, never the filename |
-| `ui/intent-os-test-dashboard-v1_0.html` | the test dashboard: ruling workflow · authority map · test matrix · live status, rendered only from the receipt the harness embeds |
+| `ui/intent-os-test-dashboard-v1_0.html` | the test dashboard: ruling workflow · authority map · test matrix · live status · agent requests, rendered from the receipt the harness embeds; § 5's live fetch runs on click only and re-hashes each record in the browser |
 | `ui/z2-ratification-reviewer.html` · `ui/Z2_RATIFICATION_GUIDE.md` | Z2's candidate reviewer and its guide |
 | `ui/registry_viewer.jsx` · `ui/calibration_trace_viewer.jsx` | React viewers (registry, calibration traces) |
 
@@ -197,7 +198,7 @@ docs/_archive/ does not exist yet — it is where a retired board or dashboard g
 | `.github/workflows/findings-registry-gate.yml` | `tools/registered_findings_validator_v1_0.py --input REGISTERED.md` |
 | `.github/workflows/behavioral-compliance.yml` | corpus pass-rate gate and its unit tests |
 | `.github/workflows/priority-queue-triage.yml` | triage over `PRIORITY_QUEUE.md` and the inbox |
-| `.github/workflows/intent-os-refresh.yml` | on every push to `main` and daily (job pinned to `main`): seal check, drift classification, harness, receipt as artifact; report-only until d23, then refresh PR (mechanical) or `intent-os-stale` issue (human) |
+| `.github/workflows/intent-os-refresh.yml` | on every push to `main` (event-driven, no clock schedule; job pinned to `main`): seal check, drift classification, harness, receipt as artifact; report-only until d23, then refresh PR (mechanical) or `intent-os-stale` issue (human) |
 | `.github/workflows/pages.yml` | deploys `site/` — the board is excluded by ruling d17 |
 | `.github/workflows/auto-request-copilot-review.yml` · `.github/workflows/copilot-base-guard.yml` | Copilot review on PRs; base guard |
 | `.github/CODEOWNERS` · `.github/PULL_REQUEST_TEMPLATE.md` · `.github/copilot-instructions.md` · `.github/dependabot.yml` | ownership, PR shape, reviewer instructions, dependency updates |
@@ -263,6 +264,7 @@ Schemas: `acat/contracts/assess_request.schema.json` · `acat/contracts/human_sc
 | `z1-inbox/<date>/Q-<TOPIC>-<nn>.md` | a Z1 candidate asking a Z2 decision | `z1-inbox/2026-09-14/Q-BOARD-RULING-07.md` |
 | `z1-inbox/<date>/Z2_RULING_<topic>.md` | Z2's choices on one topic, transcribed | `z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md` |
 | `z1-inbox/<date>/Z2_RULINGS_<date>.md` | that day's signatures | `z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md` |
+| `z1-inbox/<date>/REQ-<yyyymmdd>-<nn>.md` | an agent request landed by the relay's `/task` — a record with a hashed ask and a Fulfilment section a worker fills by PR | (first one lands when the bus is used; runbook §4b) |
 | `tools/<name>_v<major>_<minor>.py` | a versioned tool; Builder markers inside | `tools/intent_os_board_check_v1_0.py` |
 | `ui/intent-os-<project>-v<major>_<minor>.html` | a board; path frozen per d19 | `ui/intent-os-humanaios-v3_3.html` |
 | `*_CANDIDATE_BLOCK.md` / `*_BLOCK.md` | older candidate naming, same shape | `z1-inbox/2026-09-08/ACAT_BENCHMARK_CANDIDATE_BLOCK.md` |

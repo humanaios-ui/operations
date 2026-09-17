@@ -15,14 +15,44 @@ the PR/issue half on.
 | file | what |
 |---|---|
 | `tools/intent_os_board_reseal_v1_0.py` | MECHANICAL vs NEEDS-HUMAN drift; `--apply` re-hashes only the former; refuses otherwise; `--self-test` (8 plants); `HAIOS-TOOL-166` |
-| `.github/workflows/intent-os-refresh.yml` | on sealed-path merges + daily: checks, harness, artifacts, summary; PR/issue half gated on `vars.INTENT_OS_REFRESH_AUTOPR` (d23) |
+| `.github/workflows/intent-os-refresh.yml` | on every push to `main` and by hand (event-driven only; no clock schedule — see *Resource-based grounding* below): checks, harness, artifacts, summary; PR/issue half gated on `vars.INTENT_OS_REFRESH_AUTOPR` (d23) |
 | `ui/intent-os-humanaios-v3_3.html` | re-read at `e2b9a7a`; `ratify.py` 1.2.0 row re-read by hand (Ruling 6 pending); `rev` advanced by the tool to the stamp of the last apply (the committed board carries it); `read.date` = `2026-09-17`, this session's human read |
-| `ui/intent-os-test-dashboard-v1_0.html` | receipt of this run; W8 now includes the re-seal self-test |
+| `ui/intent-os-test-dashboard-v1_0.html` | receipt of this run; W8 now includes the re-seal self-test; **§ 5 Agent requests** (step 2 of the approved bus plan): stages `requested → taken → pr → merged` from each record's Fulfilment, rendered from the receipt; *Fetch live from main* on click re-hashes every record in the browser |
+| `tools/intent_os_requests_v1_0.py` | the bus reader behind § 5: hashes recomputed, stage from Fulfilment only (no time-based state), `--check` for the harness (`t0-requests`, `t1-requests`); `HAIOS-TOOL-167` |
 | `z1-inbox/2026-09-17/Q-INTENTOS-REFRESH-01.md` | d23 enable · d24 rev by job · d25 local copies · KNOWN_RED list |
 | runbook §6 · pathway §3 · `REPOSITORY_STRUCTURE.md` | cadence names the job and the tool |
 
+## Resource-based grounding (Z2 instruction, 2026-09-17)
+
+*No AI-imposed time-frames; time-frames only where a regulatory authority requires them; if the
+resources are available, we process.* Applied to this session's own artifacts before going further:
+
+| was | now |
+|---|---|
+| relay `/task` capped requests at 99 per day | no quota; the day in a `REQ-` id is a namespace, the counter grows |
+| relay `/assist` prompt asked for "probability … within 30 days" | "for the resources it consumes"; no calendar horizon |
+| `intent-os-refresh.yml` ran daily at 05:41 UTC | event-driven only: every push to `main`, and by hand |
+| `Q-INTENTOS-REFRESH-01` falsifier "by 2026-10-07 / 24 hours"; predictions resolving on dates | measured over the next 20 merges / 10 sessions / the first event; d26 asks Z2 to confirm |
+| dashboard headlined "N past the 2-day window" in red | the validator's fact, labelled pre-RBE (Ruling 5), not a deadline |
+
+Not Z1's to change, recorded for Z2: `.z1-control/validate.py`'s `decision_window_days: 2` (Ruling 5's
+mechanism unspecified); the board's dated *Deadlines* and *we'll know by* columns (C1–C18 carry dates);
+the ratified `Q-INTENTOS-TEST-01`'s dated falsifier (editing a ratified candidate breaks its signature).
+The relay's 300-second request-skew check stays: it is replay protection, a correctness resource, not
+a work deadline.
+
 ## Findings scan
 
+- **IC-050-class occurrence (gate not enforced), for Z2 to register:** #354 (`07915e6`, 2026-09-16) landed
+  `z1-inbox/2026-09-16/PHASE3_LAUNCH.md` and `PHASE3_EXECUTION_CHECKLIST.md` without index entries.
+  `.z1-control/validate.py`'s coverage rule — the z2 gate's ERROR step — was red on `main` from that merge
+  until this session indexed them as records (harness row `t1-z1-inbox` caught it on the first run after
+  the branch restart from `0fe7782`). Whether the gate ran and did not block, or did not run, is Z2's to read
+  from the #354 checks; the handoff of the 09-16 second session records the same class on #348.
+- **Latent relay defect, fixed in this session's relay v0.4.0:** the relay's index helpers assumed 2-space
+  indented entries; `ratify.py` 1.2.0 (09-16) rewrote `INDEX.yaml` with entries at column 0, so a live
+  `/decide` against the current index would not have found its candidate. Neither self-test nor the harness
+  fixture used the new shape. Both now do.
 - **Observation (not a new class):** `.z1-control/ratify.py` 1.2.0 landed in #343 while its seal on the
   board still described 1.1; the board's own rule caught it as DRIFT, and the re-seal tool correctly
   classed it NEEDS-HUMAN. Ruling 6 (2026-09-16) on 1.2.0 is awaiting Z2 signature — nothing here
