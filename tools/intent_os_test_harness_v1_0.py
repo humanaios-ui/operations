@@ -66,6 +66,7 @@ BOARD = os.path.join("ui", "intent-os-humanaios-v3_3.html")
 DASHBOARD = os.path.join("ui", "intent-os-test-dashboard-v1_0.html")
 CHECKER = os.path.join("tools", "intent_os_board_check_v1_0.py")
 RELAY = os.path.join("tools", "decision_relay.py")
+REQUESTS = os.path.join("tools", "intent_os_requests_v1_0.py")
 RECEIPT = os.path.join("outputs", "intent_os_test_results.json")
 SCHEMA = "intentos/test_results_v1"
 BAD = {"FAIL", "TIMEOUT", "ERROR"}
@@ -101,6 +102,7 @@ def registry() -> list[dict]:
     add("t0-board-check", "T0", "board", "board seal checker self-test", _py(CHECKER, "--self-test"), proves=["W1", "W8"])
     add("t0-board-reseal", "T0", "board", "board re-seal self-test (mechanical drift re-hashed; a changed tool refused)", _py("tools/intent_os_board_reseal_v1_0.py", "--self-test"), proves=["W8"])
     add("t0-relay", "T0", "relay", "decision relay self-test (DRY_RUN)", _py(RELAY, "--self-test"), env={"DRY_RUN": "1"}, proves=["W2", "W4", "Z3"])
+    add("t0-requests", "T0", "bus", "agent-request reader self-test (fixtures from the relay's own writer; every classification fires)", _py(REQUESTS, "--self-test"))
     add("t0-z1-validate", "T0", "governance", ".z1-control/validate.py smoke", _py(".z1-control/validate.py", "--smoke-test"), proves=["G1"])
     add("t0-z1-render", "T0", "governance", ".z1-control/render.py smoke", _py(".z1-control/render.py", "--smoke-test"), proves=["W6"])
     add("t0-z1-ratify", "T0", "governance", ".z1-control/ratify.py smoke", _py(".z1-control/ratify.py", "--smoke-test"), proves=["G2", "W5"])
@@ -121,6 +123,7 @@ def registry() -> list[dict]:
     add("t1-board-holds", "T1", "board", "board seals HOLD against the tree", _py(CHECKER), proves=["W1", "W8"])
     add("t1-z1-inbox", "T1", "governance", "z1-inbox/INDEX.yaml integrity (z2 gate ERROR step)", _py(".z1-control/validate.py"), proves=["Z1", "G1", "W6"])
     add("t1-z1-render-sync", "T1", "governance", "Z1_INBOX_INDEX.md in sync (z2 gate ERROR step)", _py(".z1-control/render.py", "--check"), proves=["W6"])
+    add("t1-requests", "T1", "bus", "every REQ- record in the inbox verifies (hash, ask, id, Fulfilment order, indexed)", _py(REQUESTS, "--check"), proves=["W6"])
     add("t1-signatures", "T1", "governance", "recorded Z2 signatures still match their candidates", _py(".z1-control/ratify.py", "--verify"), proves=["Z2", "G2", "W5"])
     add("t1-manifest-fresh", "T1", "tools", "tool manifest up to date", _py(".tool-control/scan.py", "--check"), proves=["G3"])
     add("t1-manifest-valid", "T1", "tools", "tool manifest rules hold", _py(".tool-control/validate.py"), proves=["G3"])
@@ -666,6 +669,16 @@ def queue_snapshot(root: str) -> dict:
         return {"error": f"{type(e).__name__}: {e}"}
 
 
+def requests_snapshot(root: str) -> dict:
+    """The agent bus as the reader tool sees it (schema intentos/requests_v1). The tool is taken from this
+    harness's own tree and pointed at `root`, so a temp root in the self-test still has a reader."""
+    try:
+        r = subprocess.run(_py(os.path.join(ROOT, REQUESTS), "--json", "--root", root), cwd=root, capture_output=True, text=True, timeout=60)
+        return json.loads(r.stdout)
+    except Exception as e:  # noqa: BLE001
+        return {"error": f"{type(e).__name__}: {e}"}
+
+
 def zones_snapshot(root: str) -> dict:
     try:
         t = _md_tables(open(os.path.join(root, "ZONE_REGISTRY.md"), encoding="utf-8").read())
@@ -711,6 +724,7 @@ def assemble(results: list[dict], root: str, with_snapshots: bool = True) -> dic
         rep["board"] = board_snapshot(root)
         rep["queue"] = queue_snapshot(root)
         rep["zones"] = zones_snapshot(root)
+        rep["requests"] = requests_snapshot(root)
     return rep
 
 
@@ -732,6 +746,9 @@ def print_table(rep: dict) -> None:
     if rep.get("queue") and "candidates" in rep["queue"]:
         q = rep["queue"]
         print(f"queue: {q['candidates']} candidates · {q['awaiting_z2']} awaiting Z2 · validator flags {q['overdue']} under its {q['decision_window_days']}d window (pre-RBE rule; reported, not a deadline)")
+    if rep.get("requests") and "total" in rep["requests"]:
+        rq = rep["requests"]
+        print(f"requests: {rq['total']} on the bus · " + " · ".join(f"{k} {v}" for k, v in rq["counts"].items()) + f" · {rq['verified']} verify · {rq['verdict']}")
     print("counts:", ", ".join(f"{k}={v}" for k, v in sorted(rep["counts"].items())))
     print("verdict:", rep["verdict"])
 
@@ -822,6 +839,10 @@ def run_smoke_test() -> bool:
                and snap["predictions"][0]["confidence"] == 0.7 and snap["rulings"][0]["ruled"] and not snap["rulings"][1]["ruled"]
                and snap["rulings"][1]["qid"] == "Q-BOARD-RULING-02" and snap["gauges"][0]["base"] == 7.5 and snap["rev"] == "2026-09-16")
         print("  board snapshot: blocks/predictions/rulings/gauges/rev parsed from the HUMANAIOS block:", "OK" if ok else "FAIL")
+        # requests snapshot: the reader is taken from this tree and pointed at the temp root — empty bus, OK verdict
+        rq = requests_snapshot(td)
+        ok &= rq.get("schema") == "intentos/requests_v1" and rq.get("total") == 0 and rq.get("verdict") == "OK"
+        print("  requests snapshot: reader runs against another root; empty bus → total 0, OK:", "OK" if rq.get("total") == 0 else "FAIL")
         # repo index check: a named path that does not exist must FAIL — with or without an extension
         os.makedirs(os.path.join(td, ".github"))
         open(os.path.join(td, ".github", "CODEOWNERS"), "w").write("* @x\n")

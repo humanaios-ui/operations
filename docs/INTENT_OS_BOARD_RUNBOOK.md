@@ -120,6 +120,13 @@ validator's coverage rule will insist on the index entry.
 `DRY_RUN=1 python3 tools/decision_relay.py --input req.json` with `{"path": "/task", "title": …,
 "ask": …, "wants": "pr"}` lands one request on a local copy under `relay_out/` for inspection.
 
+**Seeing the bus.** `python3 tools/intent_os_requests_v1_0.py` lists every `REQ-` record with its stage —
+`requested` (Fulfilment empty) → `taken` (`taken_by`) → `pr` → `merged` — derived from the Fulfilment
+fields alone, never from time; `--check` exits 2 if any record's hash, ask, id or Fulfilment order does
+not verify, or the index does not carry it. The test dashboard § 5 shows the same snapshot from the
+last harness run, and its **Fetch live from main** button re-reads the records over HTTPS on click and
+re-hashes each one in the browser before lighting a row (no network on open; a failed fetch lights nothing).
+
 ## 5. Publish — ruled **local only** (d17, 2026-09-14)
 
 The board is not published. Z2 opens `ui/intent-os-humanaios-v3_3.html` from the repository;
