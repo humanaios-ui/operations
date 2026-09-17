@@ -139,6 +139,21 @@ wrong service (`scintillating-playfulness`, unapplied) and then set on `intent-o
 asked for this (`REQ-20260917-01`) is fulfilled and merged; what remains is the first *signed* tap from
 the board, which is Z2's next act.
 
+**First taps (Z2, 2026-09-17, from a `~/Downloads` copy of the board):** the host's proxy log shows
+three `OPTIONS /assist 204` + `POST /assist 401` pairs from one Mac browser at 21:34:09Z, 21:35:03Z and
+21:37:26Z — the taps reached the relay and were refused; nothing reached `/decide` or `/task`, so no
+branch or PR exists from them. The relay's own log (0.4.2) recorded the method and path only, so the
+tree cannot say *which* 401 it was: the gate (wrong `RELAY_BASIC_PASS`) or the signature (wrong
+`RELAY_SECRET`); both are plausible, and the board made the second one sticky (a refused secret was
+re-sent on every tap, never re-asked) and printed `Z1: undefined` for an `ask Z1` refusal. Fixed on
+this branch: relay 0.4.3 logs `<status> [<reason>]` and the self-test proves the two 401s read
+differently; the board trims both prompted values, clears a refused secret as it already cleared a
+refused password, names the Railway variables in its prompts, and shows a refusal as a refusal
+(runbook §4c "Reading a refusal"). One more line in the same log: `GET / 401` at 21:38:22Z from a
+different address and a Windows browser — the gate held against whoever that was. The falsifier for
+`Q-INTENTOS-LAUNCH-01` (one ruling through the relay) is still open; the copy in `~/Downloads` must be
+replaced with this file after merge (blocker 3 below) for the fixes to reach the browser.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.

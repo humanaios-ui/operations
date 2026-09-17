@@ -41,7 +41,7 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.4.2"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout
+TOOL_VERSION = "0.4.3"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host)
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -377,6 +377,7 @@ def basic_ok(header):
 
 class H(BaseHTTPRequestHandler):
     def _send(self,code,obj):
+        self._why=str(obj.get("why","")) if code>=400 else ""  # read by log_request: the relay's own reason, never a body or a credential
         b=json.dumps(obj).encode(); self.send_response(code); self.send_header("Content-Type","application/json")
         # Authorization is listed so a browser board can carry the basic-auth credential through the CORS preflight.
         self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Headers","Content-Type, X-Sig, Authorization")
@@ -384,10 +385,16 @@ class H(BaseHTTPRequestHandler):
     def _gate(self):
         """401 with a text body (not JSON): the board reads a non-JSON 401 as the basic-auth gate and clears its cached password."""
         if basic_ok(self.headers.get("Authorization","")): return True
-        b=b"basic-auth required\n"; self.send_response(401); self.send_header("WWW-Authenticate",'Basic realm="intent-os"'); self.send_header("Content-Type","text/plain")
+        b=b"basic-auth required\n"; self._why="basic-auth required"; self.send_response(401); self.send_header("WWW-Authenticate",'Basic realm="intent-os"'); self.send_header("Content-Type","text/plain")
         self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Headers","Content-Type, X-Sig, Authorization"); self.end_headers(); self.wfile.write(b); return False
-    def log_message(self,fmt,*args):  # no request bodies, no credentials in the host's logs; one line per request, on stdout (a host reads stderr as "error")
-        sys.stdout.write("%s %s %s\n"%(self.address_string(),self.command,self.path.split("?")[0])); sys.stdout.flush()
+    # The host's log, one line per request on stdout (a host reads stderr as "error"): address, method, path without its query
+    # string, the status, and for a refusal the relay's own one-line reason — so "401 basic-auth required" and "401 bad
+    # signature" read differently on the host. Never a body, a header or a credential.
+    def log_request(self,code="-",size="-"):
+        why=re.sub(r"\s+"," ",getattr(self,"_why","") or "").strip()[:80]
+        sys.stdout.write("%s %s %s %s%s\n"%(self.address_string(),self.command,self.path.split("?")[0],code," "+why if why else "")); sys.stdout.flush()
+    def log_message(self,fmt,*args):  # anything else the base class would log (a malformed request line) goes to stdout too
+        sys.stdout.write("%s %s\n"%(self.address_string(),fmt%args)); sys.stdout.flush()
     def do_OPTIONS(self): self._send(204,{})
     def do_GET(self):
         if self.path.split("?")[0]=="/healthz": return self._send(200,{"relay":"ok"})  # the host's liveness probe; says nothing else, needs no credential
@@ -464,26 +471,40 @@ def selftest():
         ok&=basic_ok(ba("night:pw-1")) and not basic_ok(ba("night:pw-2")) and not basic_ok(ba("day:pw-1")) and not basic_ok("") and not basic_ok("Basic not-base64!") and not basic_ok("Bearer xyz")
         BASIC_PASS=""
         print("basic-auth gate: off without a password; on → exact user:password only; malformed/absent → refused → OK")
-        # the host's logging contract: one line per request on STDOUT, nothing on stderr (Railway shows stderr as "error").
-        # A real round-trip on a loopback socket, both streams captured, so a regression to BaseHTTPRequestHandler's
-        # stderr default is caught here and not on the host.
+        # the host's logging contract: one line per request on STDOUT with the status and the refusal reason, nothing on
+        # stderr (Railway shows stderr as "error"). A real round-trip on a loopback socket, both streams captured, so a
+        # regression to BaseHTTPRequestHandler's stderr default is caught here and not on the host — and the two 401s a
+        # board can meet (the gate; a wrong secret) are proven to read differently.
         srv=HTTPServer(("127.0.0.1",0),H); port=srv.server_address[1]; cap_out,cap_err=io.StringIO(),io.StringIO()
-        BASIC_PASS="pw-1"
+        BASIC_PASS="pw-1"; auth={"Authorization":ba("night:pw-1")}
+        def post(path,body,headers):
+            try:
+                with urllib.request.urlopen(urllib.request.Request(f"http://127.0.0.1:{port}{path}",data=body,headers=headers,method="POST")) as rr: return rr.status,json.load(rr)
+            except urllib.error.HTTPError as e: return e.code,(json.loads(e.read()) if "json" in e.headers.get("Content-Type","") else None)
         with contextlib.redirect_stdout(cap_out), contextlib.redirect_stderr(cap_err):
             th=threading.Thread(target=srv.serve_forever,kwargs={"poll_interval":0.05},daemon=True); th.start()
             try:
                 with urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz?probe=1") as rr: hz=json.load(rr)
                 try: urllib.request.urlopen(f"http://127.0.0.1:{port}/"); gated=None
                 except urllib.error.HTTPError as e: gated=(e.code,e.headers.get("WWW-Authenticate",""),e.read())
-                rq=urllib.request.Request(f"http://127.0.0.1:{port}/",headers={"Authorization":ba("night:pw-1")})
-                with urllib.request.urlopen(rq) as rr: st=json.load(rr)
+                with urllib.request.urlopen(urllib.request.Request(f"http://127.0.0.1:{port}/",headers=auth)) as rr: st=json.load(rr)
+                # the CORS preflight is exempt from the gate (a browser sends it with no credential):
+                with urllib.request.urlopen(urllib.request.Request(f"http://127.0.0.1:{port}/assist",method="OPTIONS")) as rr: pre=rr.status
+                body=json.dumps({"epoch":time.time(),"nonce":"n-log-1","q":"?","opts":[]}).encode()
+                bad_pw=post("/assist",body,{"Authorization":ba("night:pw-2"),"X-Sig":hmac.new(b"s3",body,hashlib.sha256).hexdigest(),"Content-Type":"application/json"})
+                bad_sig=post("/assist",body,{**auth,"X-Sig":"00","Content-Type":"application/json"})
+                good=post("/assist",body,{**auth,"X-Sig":hmac.new(b"s3",body,hashlib.sha256).hexdigest(),"Content-Type":"application/json"})
             finally: srv.shutdown(); th.join(2); srv.server_close()
         BASIC_PASS=""
         lines=cap_out.getvalue().splitlines()
-        ok&=(hz=={"relay":"ok"} and gated==(401,'Basic realm="intent-os"',b"basic-auth required\n") and st.get("basic_auth") is True
-             and lines==["127.0.0.1 GET /healthz","127.0.0.1 GET /","127.0.0.1 GET /"] and cap_err.getvalue()=="")
-        print("HTTP round-trip: /healthz open, / gated then answered; request lines on stdout (query string dropped), stderr empty →",
-              lines==["127.0.0.1 GET /healthz","127.0.0.1 GET /","127.0.0.1 GET /"] and cap_err.getvalue()=="")
+        want=["127.0.0.1 GET /healthz 200","127.0.0.1 GET / 401 basic-auth required","127.0.0.1 GET / 200","127.0.0.1 OPTIONS /assist 204",
+              "127.0.0.1 POST /assist 401 basic-auth required","127.0.0.1 POST /assist 401 bad signature","127.0.0.1 POST /assist 200"]
+        ok&=(hz=={"relay":"ok"} and gated==(401,'Basic realm="intent-os"',b"basic-auth required\n") and st.get("basic_auth") is True and pre==204
+             and bad_pw[0]==401 and bad_pw[1] is None and bad_sig==(401,{"status":"REFUSED","why":"bad signature"}) and good[0]==200 and good[1]["by"]=="Z1"
+             and lines==want and cap_err.getvalue()=="")
+        print("HTTP round-trip: /healthz open, / gated then answered, OPTIONS exempt, wrong password → 401 text, wrong secret → 401 json, signed → 200;",
+              "log lines on stdout carry status + reason (query string dropped), stderr empty →",lines==want and cap_err.getvalue()=="")
+        if lines!=want: print("  got:",lines)
         x=assist({"q":"?","opts":[]}); ok&=x["by"]=="Z1"; text="You must revoke the key immediately."; dr=IMPERATIVE.findall(text); ok&=len(dr)==3; print("imperative strip →",dr)
         r1=content_ref("Re: budget  approval\n","k"); r2=content_ref("Re: budget approval","k"); r3=content_ref("Re: budget approval","k2")
         ok&=(r1==r2 and r1!=r3); print("content_ref canonical-equal / key-distinct →",r1==r2,r1!=r3)

@@ -149,6 +149,22 @@ the token are set. Every POST is still HMAC-signed and replay-checked inside the
 stops an unauthenticated caller from probing. The ngrok path (`tools/relay_policy.yml`) still works
 for a relay run on a laptop; set `RELAY_BASIC_PASS` empty there and let ngrok's policy be the gate.
 
+**Reading a refusal.** The relay writes one line per request to the host's log (Railway → the service →
+Deploy logs): `<addr> <METHOD> <path> <status> [<reason>]`, never a body or a credential. The two
+refusals a board tap can meet look different there and on the board's status line:
+
+| host log line | the board shows | what it means |
+|---|---|---|
+| `POST /assist 401 basic-auth required` | `REFUSED · basic-auth rejected … password cleared` | the password typed at the prompt is not `RELAY_BASIC_PASS`; the board asks again on the next tap |
+| `POST /assist 401 bad signature` | `REFUSED · bad signature … secret cleared` | the secret typed at the prompt is not `RELAY_SECRET`; the board asks again on the next tap |
+| `POST /decide 401 stale timestamp` | `REFUSED · stale timestamp` | the machine's clock is more than 300 s from the host's |
+| `POST /decide 200` | `PENDING · <PR> · hash …` | landed; the second tap echoes the hash |
+
+Copy each value from the service's Variables tab (the eye icon, then select-all) rather than the raw
+editor: the board trims what it is given, but a value pasted with its quotes or its name is still wrong.
+The first live taps (2026-09-17 21:34–21:37Z, three `POST /assist`) were all answered 401 by a relay
+whose log did not yet say which; 0.4.3 and the board's re-prompting fix both.
+
 ## 5. Publish — ruled **local only** (d17, 2026-09-14)
 
 The board is not published. Z2 opens `ui/intent-os-humanaios-v3_3.html` from the repository;
