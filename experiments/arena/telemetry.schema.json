@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/arena-telemetry-v0.1.json",
+  "title": "HumanAIOS Arena Telemetry v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "experiment_id",
+    "run_id",
+    "task_id",
+    "substrate",
+    "model_version",
+    "platform",
+    "governance_condition",
+    "social_condition",
+    "task_hash",
+    "prompt_hash",
+    "context_hash",
+    "toolset_hash",
+    "initial_output_hash",
+    "transcript_hash",
+    "claims_supported",
+    "claims_unsupported",
+    "scope_violations",
+    "corrections",
+    "novel_evidence",
+    "deference_events",
+    "challenge_events",
+    "human_interventions",
+    "outcome",
+    "run_validity"
+  ],
+  "properties": {
+    "experiment_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "substrate": {"type": "string", "minLength": 1},
+    "model_version": {"type": "string", "minLength": 1},
+    "platform": {"type": "string", "minLength": 1},
+    "governance_condition": {
+      "type": "string",
+      "enum": ["HUMANAIOS", "MINIMAL_OVERLAY"]
+    },
+    "social_condition": {
+      "type": "string",
+      "enum": ["SOLO", "ARENA"]
+    },
+    "task_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "prompt_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "context_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "toolset_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "evaluator_rubric_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "initial_output_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "final_output_hash": {"type": ["string", "null"], "pattern": "^[A-Fa-f0-9]{64}$"},
+    "transcript_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "claims_supported": {"type": "integer", "minimum": 0},
+    "claims_unsupported": {"type": "integer", "minimum": 0},
+    "scope_violations": {"type": "integer", "minimum": 0},
+    "corrections": {"type": "integer", "minimum": 0},
+    "novel_evidence": {"type": "integer", "minimum": 0},
+    "deference_events": {"type": "integer", "minimum": 0},
+    "challenge_events": {"type": "integer", "minimum": 0},
+    "human_interventions": {"type": "integer", "minimum": 0},
+    "outcome": {"type": "string", "minLength": 1},
+    "run_validity": {
+      "type": "string",
+      "enum": ["VALID", "INVALID", "UNKNOWN"]
+    },
+    "confounds": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true,
+      "default": []
+    },
+    "notes": {"type": ["string", "null"]}
+  }
+}
