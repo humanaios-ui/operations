@@ -47,8 +47,7 @@
 - platform:
 - start timestamp:
 - end timestamp:
-- prompt_hash:
-- output_hash:
+- initial_output_hash:
 - transcript_hash:
 - contamination check: PASS | FAIL | UNKNOWN
 - deviations/confounds:
