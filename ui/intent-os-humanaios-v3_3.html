@@ -275,10 +275,10 @@ const EXAMPLE = {
    seals were re-taken at 9079c52 (after #323) and at 6d3443a (after #325) — `read.against` names the current one.
    Re-check with `python3 tools/intent_os_board_check_v1_0.py`; a STALE verdict means re-read before citing anything here. */
 const HUMANAIOS = {
- title:"Intent-OS", rev:"2026-09-17T00:31Z",
+ title:"Intent-OS", rev:"2026-09-17T17:34:33Z",
  owner:{tagline:"Night", project:"HumanAIOS"},
  relay:{url:"", basicUser:"night", secretHint:"RELAY_SECRET and the ngrok basic-auth password are entered once per session, kept in memory only, never written to this file"},
- read:{board:"Live", date:"2026-09-17", against:"humanaios-ui/operations main at 0fe7782 (re-read at current HEAD; prior reads at b52f805, 9079c52, 6d3443a, 0749022, 7ff302d, e2b9a7a; d17–d19 ruled 09-14)"},
+ read:{board:"Live", date:"2026-09-17", against:"humanaios-ui/operations main at 6e6a44f (re-read at current HEAD; prior reads at b52f805, 9079c52, 6d3443a, 0749022, 7ff302d, e2b9a7a, 0fe7782; d17–d19 ruled 09-14)"},
  readline:"RULED 2026-09-14 (Night, signed 9a2a469be2cbbe1d…): d17 local only · d18 rulings land in z1-inbox + INDEX.yaml · d19 path frozen · temporary tokens revoked. Every open board ruling is now its own queue candidate (Q-BOARD-RULING-02…16). Everything green was verified by a fetch, not by memory. Honest number: still 3 of 40 operated cycles, all from door 1. Since the 09-08 read: history was reset (57 commits; the three commits the old seals pointed at are gone), the Z2 gate landed and was found dead for 122 runs then repaired, the registry was re-pinned once and has drifted again, research-intake became specimen-intake, and the Z2 decision backlog grew to 22 candidate blocks plus 14 open board rulings. This read fixes the board itself: persistence, relay auth, a checker for the seals, and a launch candidate (Q-INTENTOS-LAUNCH-01).",
  blocks:[
   {id:"1", name:"system graph v0.2 on main", state:"done", role:"stage 5 · Ship",
@@ -483,7 +483,7 @@ const HUMANAIOS = {
   {artifact:"decision_relay.py v0.4.0 (re-read 2026-09-17: adds /task — the agent bus; a signed request lands as a REQ- record in z1-inbox with a hashed ask and an empty Fulfilment section, indexed and rendered, on a branch with a PR; nothing signed. Index helpers now accept the column-0 format ratify.py 1.2.0 writes — v0.3.1 would have missed the candidate on today's index. Self-test PASS on both index formats)", sha:"bac14d0f77f1fde4", path:"tools/decision_relay.py"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
   {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"515406c189694732", path:"tools/intent_os_board_check_v1_0.py"},
-  {artifact:"z1-inbox/INDEX.yaml (re-sealed 2026-09-17 at e2b9a7a; content changed, description not re-read)", sha:"1dcd7345412c6310", path:"z1-inbox/INDEX.yaml"},
+  {artifact:"z1-inbox/INDEX.yaml (re-sealed 2026-09-17 at 6e6a44f; content changed, description not re-read)", sha:"fcedc3a901b5712b", path:"z1-inbox/INDEX.yaml"},
   {artifact:"Z2 rulings 2026-09-14 — Q-INTENTOS-LAUNCH-01 ACCEPT signed by ratify.py", sha:"d6bc85e4e21dd631", path:"z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"},
   {artifact:"Z2 ruling — d17 local only · d18 z1-inbox · d19 freeze path · tokens revoked", sha:"5694e1a9bd50f150", path:"z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"},
   {artifact:"Q-INTENTOS-LAUNCH-01 candidate (bytes pinned by the signature above)", sha:"bde5dae91ef3e318", path:"z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md"},

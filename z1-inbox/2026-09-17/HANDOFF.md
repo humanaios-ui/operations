@@ -23,6 +23,16 @@ the PR/issue half on.
 
 ## Findings scan
 
+- **IC-050-class occurrence (gate not enforced), for Z2 to register:** #354 (`07915e6`, 2026-09-16) landed
+  `z1-inbox/2026-09-16/PHASE3_LAUNCH.md` and `PHASE3_EXECUTION_CHECKLIST.md` without index entries.
+  `.z1-control/validate.py`'s coverage rule — the z2 gate's ERROR step — was red on `main` from that merge
+  until this session indexed them as records (harness row `t1-z1-inbox` caught it on the first run after
+  the branch restart from `0fe7782`). Whether the gate ran and did not block, or did not run, is Z2's to read
+  from the #354 checks; the handoff of the 09-16 second session records the same class on #348.
+- **Latent relay defect, fixed in this session's relay v0.4.0:** the relay's index helpers assumed 2-space
+  indented entries; `ratify.py` 1.2.0 (09-16) rewrote `INDEX.yaml` with entries at column 0, so a live
+  `/decide` against the current index would not have found its candidate. Neither self-test nor the harness
+  fixture used the new shape. Both now do.
 - **Observation (not a new class):** `.z1-control/ratify.py` 1.2.0 landed in #343 while its seal on the
   board still described 1.1; the board's own rule caught it as DRIFT, and the re-seal tool correctly
   classed it NEEDS-HUMAN. Ruling 6 (2026-09-16) on 1.2.0 is awaiting Z2 signature — nothing here

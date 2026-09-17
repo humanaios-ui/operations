@@ -3,7 +3,7 @@ generated: '2026-09-16'
 decision_window_days: 2
 counts:
   candidates: 46
-  records: 27
+  records: 29
 ratifiers:
 - Night
 candidates:
@@ -449,6 +449,12 @@ candidates:
     \ report-only until vars.INTENT_OS_REFRESH_AUTOPR=true. Operated on the real drift\
     \ at e2b9a7a: 3 rows re-hashed, ratify.py 1.2.0 refused and re-read by hand."
 records:
+- path: "z1-inbox/2026-09-16/PHASE3_EXECUTION_CHECKLIST.md"
+  title: "Phase 3 execution checklist (infrastructure complete; awaiting credential deployment)"
+  note: "Landed via #354 (07915e6) without an index entry; indexed as a record alongside PHASE3_LAUNCH.md. A checklist: no Z2 decision requested here."
+- path: "z1-inbox/2026-09-16/PHASE3_LAUNCH.md"
+  title: "Phase 3 launch — holographic live service testing (Z2 authorization received; awaiting credential configuration)"
+  note: "Landed via #354 (07915e6) without an index entry; the coverage rule was red on main from then until this record. A launch report: no Z2 decision requested here."
 - path: z1-inbox/2026-09-17/HANDOFF.md
   title: "Handoff — 2026-09-17 (Intent-OS refresh: the mechanism for automated updates)"
 - path: z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md
