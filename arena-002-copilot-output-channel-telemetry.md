@@ -25,22 +25,23 @@ This pattern is **identical in both conditions**, indicating substrate behavior 
 
 ---
 
-## Observation: Zero-File PR Pattern
+## Observation: Identical Zero-File Pattern in Both Conditions
 
-**In HUMANAIOS condition:**
-- Task issued from operations issue with full governance context
-- Copilot read CLAUDE.md, GOVERNANCE.md, ZONE_REGISTRY.md
-- Copilot created draft PR with summary in body
-- No file changes in PR diff
-- Complete structured output in PR body (YAML, tables, narrative)
+**Task Contract:** ARENA-002 tasks (T1/T2/T3) explicitly permit zero-file PRs; required output belongs in PR body.
 
-**In MINIMAL_OVERLAY condition:**
-- Same task re-issued to Copilot in arena repo (no governance docs)
-- Copilot created draft PR with summary in body
-- No file changes in PR diff
-- Complete structured output in PR body (YAML, tables, narrative)
+**Validity Check:** The actual defect is whether each PR body is complete, not whether files exist.
 
-**Inference:** This is Copilot's default GitHub PR pattern for code-review tasks. Not influenced by governance surface exposure.
+**In HUMANAIOS condition (3 tasks):**
+- T1 (arena#7, ops counterpart): Draft PR, zero files, complete output in body
+- T2 (arena#8, ops counterpart): Draft PR, zero files, complete output in body  
+- T3 (arena#9, ops counterpart): Draft PR, zero files, complete output in body
+
+**In MINIMAL_OVERLAY condition (3 tasks):**
+- T1 (arena#7 minimal version): Draft PR, zero files, complete output in body
+- T2 (arena#8 minimal version): Draft PR, zero files, complete output in body
+- T3 (arena#9 minimal version): Draft PR, zero files, complete output in body
+
+**Pattern observed in this sample:** Identical zero-file submission across both conditions. This N=3 observation cannot generalize to Copilot's default behavior overall; limited to the sampled tasks and substrate.
 
 ---
 

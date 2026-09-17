@@ -16,10 +16,10 @@ Per Night's approval of threat mitigation plan for ARENA-001/002 validity and co
 
 | Deliverable | Location | Status | PR |
 |:------------|:---------|:-------|:---|
-| ARENA-001/002 Validity & Confounds Report | `operations/arena-validity-and-confounds.md` | Complete | #375 (draft) |
-| ARENA-002 Copilot Output-Channel Telemetry Record | `operations/arena-002-copilot-output-channel-telemetry.md` | Complete | #375 (draft) |
-| ARENA-003 Preregistration Protocol Template | `operations/arena-003-preregistration-template.md` | Complete | #375 (draft) |
-| Arena PR #1 Contamination Flag | `arena/` repo, PR #1 comment | Complete | Flagged, awaiting Night closure |
+| ARENA-001/002 Validity & Confounds Report | `arena-validity-and-confounds.md` | Complete | #375 (draft) |
+| ARENA-002 Copilot Output-Channel Telemetry Record | `arena-002-copilot-output-channel-telemetry.md` | Complete | #375 (draft) |
+| ARENA-003 Preregistration Protocol Template | `arena-003-preregistration-template.md` | Complete (pending fixes) | #375 (draft) |
+| Arena PR #1 Contamination Flag | `humanaios-ui/arena#1` comment | Complete | Flagged, awaiting Night closure |
 
 **Branch:** `claude/loving-faraday-tkswkg`  
 **PR #375:** Draft (awaiting Z2 ratification)
@@ -185,26 +185,26 @@ Pilot 1 constitutes governance version G₁ (changes to CLAUDE.md, GOVERNANCE.md
 
 ---
 
-## Execution Complete (With Governance-Versioning Discipline)
+## Documentation Complete (Threat Mitigation Actions Pending Z2)
 
-✅ **Phase 0 threat mitigation executed** — All findings documented with experimental sequence gates  
+✅ **Phase 0 documentation executed** — All findings documented with experimental sequence gates  
 ✅ **ARENA-001/002 validity assessed** under governance G₀ (frozen state recorded)  
 ✅ **Output-channel telemetry documented** as dual finding (substrate behavior + validity constraint)  
-✅ **Governance versioning discipline implemented** — G₀/G₁/G₂ explicit tracking with gates  
+✅ **Governance versioning discipline proposed** — G₀/G₁/G₂ explicit tracking with gates  
 ✅ **ARENA-002 frozen under G₀** — No Pilot 1 until scorecard complete  
-✅ **ARENA-003 refocused on measurement-channel reliability** (mechanical validation only, not social)  
+✅ **ARENA-003 measurement-channel protocol drafted** (mechanical validation only, not social)  
 ✅ **ARENA-004 placeholder** (social arena deferred until G₁ SOLO baseline proves reliable)  
 ✅ **All documentation committed & pushed** to `claude/loving-faraday-tkswkg`  
-✅ **PR #375 updated** with Night's corrections and governance-versioning gates  
+✅ **PR #375 ready for Z2 review** with Night's governance-versioning corrections  
 ✅ **Arena#1 flagged** for closure (contamination boundary violation)  
 
-### Awaiting Z2 Ratification
+### Threat Mitigation Actions (Awaiting Z2 Decision & Execution)
 
-1. **Governance-versioning discipline** (preventing G₀/G₁/social confound)
-2. **ARENA-002 scorecard gate** (prerequisite for Pilot 1)
-3. **ARENA-003 validator design** (mechanical schema validation for G₁ SOLO)
-4. **Arena#1 closure decision**
-5. **Pilot 1 (G₀→G₁) implementation timeline** (deferred after ARENA-002 complete)
+1. **Ratify governance-versioning discipline** (preventing G₀/G₁/social confound)
+2. **Complete ARENA-002 scorecard** (validate hashes, mark measurement completeness, assign run validity)
+3. **Close arena#1** (contamination boundary violation)
+4. **Deploy ARENA-003 validator** (mechanical schema validation for G₁ SOLO)
+5. **Implement Pilot 1 (G₀→G₁)** (deferred until ARENA-002 scorecard frozen)
 
 ---
 

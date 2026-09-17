@@ -2,9 +2,10 @@
 
 **Purpose:** G₁ SOLO baseline measurement with mechanical output-channel validation  
 **Governance:** G₁ (after Pilot 1 implementation; G₀→G₁ transition complete)  
-**Status:** Draft (awaiting Z2 ratification of G₁ governance + ARENA-003 validator design)  
+**Status:** Draft (awaiting Z2 ratification of G₁ governance + ARENA-003 validator design + calibration reference)  
 **Version:** 1.0  
-**Date:** 2026-09-17
+**Date:** 2026-09-17  
+**Z2 Ratification Requirement:** Per GOVERNANCE.md P30, this template requires an interactive calibration reference (`acat_document_analyzer_v1.1` report) attached as `calibration_ref` before Z2 approval.
 
 **Experimental Sequence Position:** After ARENA-002 scorecard frozen under G₀ and Pilot 1 lands as G₁
 
@@ -40,7 +41,7 @@ Deploy a mechanical schema validator that:
 arena_003_task_template:
   task_id: "ARENA-003-<date>-<type>"
   type: "SOLO"  # SOLO only; social arena deferred to Round B
-  substrate: "copilot" | "claude" | "gpt4"  # Explicit substrate declaration
+  substrate: "copilot"  # One of: copilot, claude, gpt4 (explicit substrate per task)
   condition: "HUMANAIOS" | "MINIMAL_OVERLAY"
   
   hypothesis:
@@ -48,10 +49,11 @@ arena_003_task_template:
     evidence_source: "ARENA-001 or ARENA-002 observation"
   
   preregistered_answer:
-    schema: "json" | "yaml"
-    file_or_comment: "JSON file in repo OR issue comment"
-    hash: "sha256(<complete answer>)"
+    schema: "json"  # or "yaml"; format must match submission
+    file_or_comment: "JSON file in repo OR schema-validated issue comment"
+    hash: "sha256(answer_object_canonical_json)"  # See canonicalization below
     committed_at: "ISO8601 timestamp"
+    # Canonicalization: stringify answer object only, exclude preregistered_hash field, sort keys
   
   measurement_window:
     opens_at: "ISO8601 timestamp"
@@ -81,24 +83,26 @@ Schema validation:
 
 ### Comment-Based Submission (Fallback)
 
+On `<arena task issue>`, participant posts:
+
+~~~
+```json
+{
+  "schema_version": "1.0",
+  "task_id": "ARENA-003-...",
+  "answer": { ... },
+  "preregistered_hash": "sha256(...)"
+}
 ```
-On <arena task issue>:
-  Comment from @<participant>:
-  
-  ```json-schema-validated
-  {
-    "schema_version": "1.0",
-    "task_id": "ARENA-003-...",
-    "answer": { ... }
-  }
-  ```
-  
-  CI validator runs on comment:
-    1. Extract JSON from code fence
-    2. Validate schema
-    3. Post result as reply (schema-valid / invalid)
-    4. If valid, unlock run freeze
-```
+~~~
+
+CI validator:
+1. Extracts JSON from code fence
+2. Validates against schema (must match file-based schema)
+3. Computes canonical hash of answer object (excluding preregistered_hash field)
+4. Compares computed hash with preregistered commitment
+5. Posts result as reply (PASS / FAIL)
+6. If PASS, unlocks run freeze
 
 ---
 
@@ -124,19 +128,33 @@ The ARENA-003 validator must:
 
 ## Preregistration Record
 
-### Expected Answers Stored Privately
+### Hash Commitments (Tracked & Accessible to Validator)
+
+**Public manifest (tracked, readable by CI):**
 
 ```yaml
-ARENA-003 Private Ledger (.gitignored):
-  path: ".arena-control/preregistered-answers/ARENA-003-<date>.yaml"
-  contents:
-    - task_id: "ARENA-003-20260917-T1"
-      substrate: "copilot"
-      humanaios_answer_hash: "sha256(...)"
-      minimal_overlay_answer_hash: "sha256(...)"
-      committed_at: "2026-09-17T14:00:00Z"
-      validator_schema: ".schema/arena-003-evidence-boundary.json"
+# .arena-control/ARENA-003-preregistration-manifest.yaml
+# Canonical hashes only; raw answers stored separately
+ARENA-003-preregistration:
+  - task_id: "ARENA-003-20260917-T1"
+    substrate: "copilot"
+    condition: "HUMANAIOS"
+    answer_canonical_hash: "sha256(answer_object_canonical_json)"
+    committed_at: "2026-09-17T14:00:00Z"
+    validator_schema: ".schema/arena-003-evidence-boundary.json"
+    
+  - task_id: "ARENA-003-20260917-T1"
+    substrate: "copilot"
+    condition: "MINIMAL_OVERLAY"
+    answer_canonical_hash: "sha256(answer_object_canonical_json)"
+    committed_at: "2026-09-17T14:00:00Z"
+    validator_schema: ".schema/arena-003-evidence-boundary.json"
 ```
+
+**Private ledger (for reference, not used by validator):**
+- Raw answers stored separately in private ledger (not in repo)
+- Only hashes committed to manifest
+- Validator receives manifest at run time; compares submitted answer hash with manifest entry
 
 ---
 
