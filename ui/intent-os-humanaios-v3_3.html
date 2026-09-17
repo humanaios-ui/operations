@@ -275,10 +275,10 @@ const EXAMPLE = {
    seals were re-taken at 9079c52 (after #323) and at 6d3443a (after #325) — `read.against` names the current one.
    Re-check with `python3 tools/intent_os_board_check_v1_0.py`; a STALE verdict means re-read before citing anything here. */
 const HUMANAIOS = {
- title:"Intent-OS", rev:"2026-09-16",
+ title:"Intent-OS", rev:"2026-09-17T00:31Z",
  owner:{tagline:"Night", project:"HumanAIOS"},
  relay:{url:"", basicUser:"night", secretHint:"RELAY_SECRET and the ngrok basic-auth password are entered once per session, kept in memory only, never written to this file"},
- read:{board:"Live", date:"2026-09-16", against:"humanaios-ui/operations main at 7ff302d (re-read at current HEAD; prior reads at b52f805, 9079c52, 6d3443a, 0749022; d17–d19 ruled 09-14)"},
+ read:{board:"Live", date:"2026-09-17", against:"humanaios-ui/operations main at e2b9a7a (re-read at current HEAD; prior reads at b52f805, 9079c52, 6d3443a, 0749022, 7ff302d; d17–d19 ruled 09-14)"},
  readline:"RULED 2026-09-14 (Night, signed 9a2a469be2cbbe1d…): d17 local only · d18 rulings land in z1-inbox + INDEX.yaml · d19 path frozen · temporary tokens revoked. Every open board ruling is now its own queue candidate (Q-BOARD-RULING-02…16). Everything green was verified by a fetch, not by memory. Honest number: still 3 of 40 operated cycles, all from door 1. Since the 09-08 read: history was reset (57 commits; the three commits the old seals pointed at are gone), the Z2 gate landed and was found dead for 122 runs then repaired, the registry was re-pinned once and has drifted again, research-intake became specimen-intake, and the Z2 decision backlog grew to 22 candidate blocks plus 14 open board rulings. This read fixes the board itself: persistence, relay auth, a checker for the seals, and a launch candidate (Q-INTENTOS-LAUNCH-01).",
  blocks:[
   {id:"1", name:"system graph v0.2 on main", state:"done", role:"stage 5 · Ship",
@@ -456,7 +456,7 @@ const HUMANAIOS = {
   {id:"d19", ruled:true, q:"Board versioning — freeze the file path (each read changes the data inside) or keep bumping v3_x per read?", s:"RULED 2026-09-14: freeze path · signed 9a2a469be2cbbe1d… · ui/intent-os-humanaios-v3_3.html is the stable consumer target", opts:["ruled: freeze path"]}
  ],
  seals:[
-  {artifact:"REGISTERED.md (re-sealed 2026-09-16 at current HEAD 0749022)", sha:"38192e8bec42a874", path:"REGISTERED.md"},
+  {artifact:"REGISTERED.md (re-sealed 2026-09-17 at e2b9a7a; content changed, description not re-read)", sha:"f33ba7bfeccc2387", path:"REGISTERED.md"},
   {artifact:"PRIORITY_QUEUE.md (re-sealed 2026-09-16 at current HEAD 0749022)", sha:"39d21948cbc6260f", path:"PRIORITY_QUEUE.md"},
   {artifact:"system_graph.json v0.2 (22 nodes · 53 edges · regenerated 09-13)", sha:"7715372d8c3027bc", path:"system_graph.json"},
   {artifact:"z2_ratification_gate.yml — repaired workflow on main", sha:"0ad63f35d362cc0a", path:".github/workflows/z2_ratification_gate.yml"},
@@ -466,13 +466,13 @@ const HUMANAIOS = {
   {artifact:"molt_cycle.py at repo root (canonical)", sha:"96f0b304038cab18", path:"molt_cycle.py"},
   {artifact:"tools/molt_cycle_tier0_v0_1.py (renamed tools copy, #318)", sha:"75987351b54260ec", path:"tools/molt_cycle_tier0_v0_1.py"},
   {artifact:"ic_scope_check.py on main (unchanged since 09-08)", sha:"ea183c88a1ad5b27", path:"tools/ic_scope_check.py"},
-  {artifact:"NF_LEDGER.jsonl (165 rows · all by Z1 · 21 PENDING_Z2_DATE)", sha:"b68a6fb8de43fef1", path:"ledgers/NF_LEDGER.jsonl"},
+  {artifact:"NF_LEDGER.jsonl (165 rows · all by Z1 · 21 PENDING_Z2_DATE) (re-sealed 2026-09-17 at e2b9a7a; content changed, description not re-read)", sha:"336fb7ea0eb7a679", path:"ledgers/NF_LEDGER.jsonl"},
   {artifact:"constants.json (7 constants · molt_id null)", sha:"e8eb2da71c39a001", path:"constants.json"},
   {artifact:"specimen-intake.yml schema 0.2 (formerly research-intake)", sha:"e49c60ff7094423a", path:"specimen-intake.yml"},
   {artifact:"ACAT benchmark map (consumer: this board)", sha:"5fc6fc9222cc2d4e", path:"docs/ACAT_BENCHMARK_MAP_20260908.md"},
   {artifact:"DOC_TRIAGE_2026-09-08.md", sha:"fe630badbfc41867", path:"docs/DOC_TRIAGE_2026-09-08.md"},
   {artifact:"doc_lifecycle_lint.py on main", sha:"97ed26ef1d641542", path:"tools/doc_lifecycle_lint.py"},
-  {artifact:".z1-control/ratify.py — the Z2 signature tool (Zone 2 ratified 09-13)", sha:"13cb55057cfdf73b", path:".z1-control/ratify.py"},
+  {artifact:".z1-control/ratify.py 1.2.0 — the Z2 signature tool (Zone 2 ratified 09-13); 1.2.0 landed in #343 and writes the index fields, the records entry and the counts in one act — re-read 2026-09-17; Ruling 6 (2026-09-16) on 1.2.0 itself is awaiting Z2 signature", sha:"b401a26ba824346f", path:".z1-control/ratify.py"},
   {artifact:"Q-IC030-REPIN-01 result (pin b35e8036… at 5d6f081, 09-10)", sha:"b4de0e088bb6ecdd", path:"z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md"},
   {artifact:"cycle 1 receipt (independent) — unchanged since 09-08", sha:"7847cdb96ff2876f", path:"z1-inbox/2026-09-08/CYCLE_1_EXTERNAL_REVIEW.md"},
   {artifact:"cycle 2 receipt (adversarial) — unchanged", sha:"3c9ea3491105a712", path:"z1-inbox/2026-09-08/CYCLE_2_ADVERSARIAL_REPORT.md"},
@@ -483,7 +483,7 @@ const HUMANAIOS = {
   {artifact:"decision_relay.py v0.3.1 (lands in z1-inbox + INDEX.yaml under d18; body hash pinned at decide, server-side ratifier and date; self-test PASS)", sha:"4801d88428e6f2c7", path:"tools/decision_relay.py"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
   {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"515406c189694732", path:"tools/intent_os_board_check_v1_0.py"},
-  {artifact:"z1-inbox/INDEX.yaml (re-sealed 2026-09-16 at 7ff302d after Q-INTENTOS-TEST-01 was filed: 43 candidates · 23 records)", sha:"db0da7ef005c25ff", path:"z1-inbox/INDEX.yaml"},
+  {artifact:"z1-inbox/INDEX.yaml (re-sealed 2026-09-17 at e2b9a7a; content changed, description not re-read)", sha:"1dcd7345412c6310", path:"z1-inbox/INDEX.yaml"},
   {artifact:"Z2 rulings 2026-09-14 — Q-INTENTOS-LAUNCH-01 ACCEPT signed by ratify.py", sha:"d6bc85e4e21dd631", path:"z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"},
   {artifact:"Z2 ruling — d17 local only · d18 z1-inbox · d19 freeze path · tokens revoked", sha:"5694e1a9bd50f150", path:"z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"},
   {artifact:"Q-INTENTOS-LAUNCH-01 candidate (bytes pinned by the signature above)", sha:"bde5dae91ef3e318", path:"z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md"},

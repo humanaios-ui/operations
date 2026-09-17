@@ -48,8 +48,15 @@ counted. The whole run is GREEN only if every tier that ran is GREEN.
 
 ## 3. Session order (extends SESSION_RITUALS §A / §B)
 
+Between sessions, `.github/workflows/intent-os-refresh.yml` runs the same three commands on every
+merge that touches a sealed file (and daily), publishes the receipt as a run artifact, and — once d23
+enables it — re-seals mechanical drift by PR and files an `intent-os-stale` issue for anything a
+human has to re-read. A session opens by checking whether that issue exists.
+
 1. `git fetch origin && git rev-parse HEAD` — pin.
-2. `python3 tools/intent_os_board_check_v1_0.py` — the board HOLDS, or re-read first (runbook §3).
+2. `python3 tools/intent_os_board_check_v1_0.py` — the board HOLDS, or `python3
+   tools/intent_os_board_reseal_v1_0.py --check` says which rows a job may re-hash and which need a
+   re-read (runbook §3, §6).
 3. `python3 tools/intent_os_test_harness_v1_0.py --render` — everything else.
 4. Work.
 5. Before close: run 3 again. A FAIL that this session introduced is fixed or filed; a FAIL that was
