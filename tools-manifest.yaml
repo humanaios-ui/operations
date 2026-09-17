@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 157
+  tools: 158
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 128
+  builder_markers_present: 129
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2001,6 +2001,20 @@ tools:
   builder_markers: true
   purpose: 'Orchestrates holographic person representation via external services:'
   session: S-091626-01
+- tool_id: HAIOS-TOOL-166
+  name: intent_os_board_reseal
+  path: tools/intent_os_board_reseal_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse
+    the rest.
+  session: S-091726-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

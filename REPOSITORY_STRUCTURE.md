@@ -142,6 +142,7 @@ Workflows: `.github/workflows/tool-manifest.yml` · `.github/workflows/document-
 | `tools/relay_policy.yml` | ngrok traffic policy in front of the relay (basic-auth; OPTIONS exempt for the browser preflight) | — |
 | `tools/intent_os_board_check_v1_0.py` | re-hashes every board seal against the tree; exit 0 HOLDS · 2 STALE | `--self-test` |
 | `tools/intent_os_test_harness_v1_0.py` | runs T0–T4, writes the receipt to outputs/intent_os_test_results.json (gitignored), `--render` embeds it in the dashboard | `--self-test` |
+| `tools/intent_os_board_reseal_v1_0.py` | after a merge: re-hashes MECHANICAL seals (inbox index, registry, ledgers, rendered indexes) and refuses anything else; `--check` exit 0 HOLDS · 1 mechanical · 2 needs a human | `--self-test` |
 | `tools/ic_scope_check.py` | scope check on intake records; refuses without `$IC_SCOPE_SECRET` | exit 2 = correct |
 | `tools/doc_lifecycle_lint.py` | disposition table for `docs/`; `--enforce` fails on unfiled docs | `--self-test` |
 | `tools/cascade_guard.py` · `tools/jester_invariants.py` | anti-cascade and invariant checks | `--self-test` |
@@ -196,6 +197,7 @@ docs/_archive/ does not exist yet — it is where a retired board or dashboard g
 | `.github/workflows/findings-registry-gate.yml` | `tools/registered_findings_validator_v1_0.py --input REGISTERED.md` |
 | `.github/workflows/behavioral-compliance.yml` | corpus pass-rate gate and its unit tests |
 | `.github/workflows/priority-queue-triage.yml` | triage over `PRIORITY_QUEUE.md` and the inbox |
+| `.github/workflows/intent-os-refresh.yml` | on every push to `main` and daily (job pinned to `main`): seal check, drift classification, harness, receipt as artifact; report-only until d23, then refresh PR (mechanical) or `intent-os-stale` issue (human) |
 | `.github/workflows/pages.yml` | deploys `site/` — the board is excluded by ruling d17 |
 | `.github/workflows/auto-request-copilot-review.yml` · `.github/workflows/copilot-base-guard.yml` | Copilot review on PRs; base guard |
 | `.github/CODEOWNERS` · `.github/PULL_REQUEST_TEMPLATE.md` · `.github/copilot-instructions.md` · `.github/dependabot.yml` | ownership, PR shape, reviewer instructions, dependency updates |

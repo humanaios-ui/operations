@@ -112,7 +112,15 @@ lists every open ruling and the history/PII question (d8), and a public copy is 
 
 - **Before any session cites the board:** §3.
 - **After any merge to `main` that touches a sealed file:** the checker goes STALE by design.
-  Re-read within the session that merged it, or file the drift as a RECEIPT-GAP in the handoff.
+  `.github/workflows/intent-os-refresh.yml` runs on every push to `main` and daily, classifies the drift
+  with `tools/intent_os_board_reseal_v1_0.py`, and publishes the receipt and the rendered pages as run
+  artifacts. **MECHANICAL** drift (the inbox index, the registry, the ledgers, the rendered indexes —
+  files whose bytes change by construction) is re-hashed, with each row's description saying so; the
+  job opens a refresh PR once Z2 enables it (d23, `Q-INTENTOS-REFRESH-01`). **NEEDS-HUMAN** drift — a
+  tool, a workflow, the graph, a ruling file — is never re-hashed by a job: the session that merged it
+  re-reads it (say what the new bytes mean in the seal's description), or the job files a
+  `intent-os-stale` issue and the next session does. Either way the same command decides:
+  `python3 tools/intent_os_board_reseal_v1_0.py --check` (exit 0 HOLDS · 1 mechanical · 2 human).
 - **Every Z2 ruling:** the ruling's `s` line on the board changes from the question to
   `RULED: … · <hash>`; the hash must appear in `z1-inbox/<date>/Z2_RULINGS_<date>.md` and the
   candidate's INDEX.yaml entry (d18; `z2-rulings/` is retired).

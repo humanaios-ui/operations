@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**157 registered tools** · 2 MCP servers · 0 excluded · 128 carrying Builder v1.7 markers
+**158 registered tools** · 2 MCP servers · 0 excluded · 129 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 157 |
-| — status `draft` | 156 |
+| Registered tools | 158 |
+| — status `draft` | 157 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 128 |
+| Builder v1.7 markers present | 129 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -126,7 +126,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-142 | z2_queue | `tools/z2_queue_v1_0.py` | 1.1.0 | 1 | draft | — | Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first, flags ≥3 sessions unresolved. |
 | HAIOS-TOOL-158 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
 
-## Governance — `governance_tool` (9)
+## Governance — `governance_tool` (10)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -139,6 +139,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-159 | resource_ledger | `tools/resource_ledger_v0_1.py` | 0.1.0 | 1 | draft | — | resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims, |
 | HAIOS-TOOL-160 | smag_feedback | `tools/smag_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop. |
 | HAIOS-TOOL-163 | smag_meta_feedback | `tools/smag_meta_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy. |
+| HAIOS-TOOL-166 | intent_os_board_reseal | `tools/intent_os_board_reseal_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse the rest. |
 
 ## Infrastructure — `infrastructure_tool` (20)
 
@@ -290,7 +291,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 11 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 14 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 9 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 10 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 20 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 3 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
