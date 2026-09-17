@@ -21,6 +21,25 @@ the PR/issue half on.
 | `z1-inbox/2026-09-17/Q-INTENTOS-REFRESH-01.md` | d23 enable · d24 rev by job · d25 local copies · KNOWN_RED list |
 | runbook §6 · pathway §3 · `REPOSITORY_STRUCTURE.md` | cadence names the job and the tool |
 
+## Resource-based grounding (Z2 instruction, 2026-09-17)
+
+*No AI-imposed time-frames; time-frames only where a regulatory authority requires them; if the
+resources are available, we process.* Applied to this session's own artifacts before going further:
+
+| was | now |
+|---|---|
+| relay `/task` capped requests at 99 per day | no quota; the day in a `REQ-` id is a namespace, the counter grows |
+| relay `/assist` prompt asked for "probability … within 30 days" | "for the resources it consumes"; no calendar horizon |
+| `intent-os-refresh.yml` ran daily at 05:41 UTC | event-driven only: every push to `main`, and by hand |
+| `Q-INTENTOS-REFRESH-01` falsifier "by 2026-10-07 / 24 hours"; predictions resolving on dates | measured over the next 20 merges / 10 sessions / the first event; d26 asks Z2 to confirm |
+| dashboard headlined "N past the 2-day window" in red | the validator's fact, labelled pre-RBE (Ruling 5), not a deadline |
+
+Not Z1's to change, recorded for Z2: `.z1-control/validate.py`'s `decision_window_days: 2` (Ruling 5's
+mechanism unspecified); the board's dated *Deadlines* and *we'll know by* columns (C1–C18 carry dates);
+the ratified `Q-INTENTOS-TEST-01`'s dated falsifier (editing a ratified candidate breaks its signature).
+The relay's 300-second request-skew check stays: it is replay protection, a correctness resource, not
+a work deadline.
+
 ## Findings scan
 
 - **IC-050-class occurrence (gate not enforced), for Z2 to register:** #354 (`07915e6`, 2026-09-16) landed

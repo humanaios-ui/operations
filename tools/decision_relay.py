@@ -108,7 +108,7 @@ def item_indent(index_text,section="candidates"):
     m=re.search(rf"(?m)^{section}:\n( *)- ",index_text)
     if m: return m.group(1)
     m=re.search(r"(?m)^candidates:\n( *)- ",index_text)
-    return m.group(1) if m else "  "
+    return m.group(1) if m else ""  # no items anywhere: column 0, the shape ratify.py 1.2.0 writes today
 def cand_path(index_text,qid):
     m=re.search(rf"(?m)^( *)- q_id: {re.escape(qid)}\n(?:\1  .*\n)*?\1  path: \"?([^\"\n]+?)\"?$",index_text)
     if not m: raise ValueError(f"{qid} is not a candidate in {INDEX}")
@@ -152,20 +152,32 @@ def index_mark_ratified(index_text,qid,by,at,ruling_rel,digest):
     trailing=""
     while body.endswith("\n\n"): body,trailing=body[:-1],"\n"
     return index_text[:block.start()]+head+body+add+trailing+index_text[block.end():]
-def bump_counts(index_text,candidates=0,records=0):
-    """counts: is written two ways — inline `{candidates: n, records: m}` or as a block. Both are updated in place."""
+def recount(index_text):
+    """Recompute counts: from the entries actually present — never from a branch's starting snapshot, which two
+    concurrent request PRs would both increment from N to N+1 (the failure mode .z1-control/ratify.py documents).
+    Written back in whichever shape the file uses: inline `{candidates: n, records: m}` or a block."""
+    ind=item_indent(index_text)
+    cands=len(re.findall(rf"(?m)^{ind}- q_id: ",index_text))
+    rs=re.search(r"(?ms)^records:.*?(?=^excluded:|\Z)",index_text); rsec=rs.group(0) if rs else ""
+    rind=item_indent(index_text,"records")
+    recs=len(re.findall(rf"(?m)^{rind}- path: ",rsec))
     m=re.search(r"counts: \{candidates: (\d+), records: (\d+)\}",index_text)
-    if m: return index_text[:m.start()]+f"counts: {{candidates: {int(m.group(1))+candidates}, records: {int(m.group(2))+records}}}"+index_text[m.end():]
+    if m: return index_text[:m.start()]+f"counts: {{candidates: {cands}, records: {recs}}}"+index_text[m.end():]
     m=re.search(r"(?m)^counts:\n( *)candidates: (\d+)\n\1records: (\d+)\n",index_text)
     if not m: raise ValueError("counts: line not found")
-    return index_text[:m.start()]+f"counts:\n{m.group(1)}candidates: {int(m.group(2))+candidates}\n{m.group(1)}records: {int(m.group(3))+records}\n"+index_text[m.end():]
+    return index_text[:m.start()]+f"counts:\n{m.group(1)}candidates: {cands}\n{m.group(1)}records: {recs}\n"+index_text[m.end():]
+def yq(s):
+    """A YAML double-quoted scalar: JSON string syntax is a subset of it, so user text with quotes, colons or
+    backslashes cannot break the index."""
+    return json.dumps(str(s),ensure_ascii=False)
 def index_add_record(index_text,path,title,note):
     if f'path: "{path}"' in index_text or f"path: {path}\n" in index_text: return index_text
-    index_text=bump_counts(index_text,records=1)
-    ind=item_indent(index_text,"records"); f=ind+"  "
-    rec=f'records:\n{ind}- path: "{path}"\n{f}title: "{title}"\n{f}note: "{note}"\n'
+    # `records: []` is a valid empty list (ratify.py writes it); it must become a block before an item can go under it
+    index_text=re.sub(r"(?m)^records: \[\]\s*$","records:",index_text,count=1)
     if "records:\n" not in index_text: raise ValueError("records: section not found")
-    return index_text.replace("records:\n",rec,1)
+    ind=item_indent(index_text,"records"); f=ind+"  "
+    rec=f'records:\n{ind}- path: {yq(path)}\n{f}title: {yq(title)}\n{f}note: {yq(note)}\n'
+    return recount(index_text.replace("records:\n",rec,1))
 def rendered_index(index_text,read):
     """Z1_INBOX_INDEX.md exactly as .z1-control/render.py would write it for this INDEX text."""
     sys.path.insert(0,os.path.join(ROOT,".z1-control"))
@@ -243,20 +255,34 @@ def ratify(d):
     return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"by":by,"at":at}
 
 REQ_KINDS=("pr","answer","ruling")
+def canon_ask(ask): return "\n".join(l.rstrip() for l in str(ask).strip().splitlines())
 def req_block(d):
-    return ("REQUEST %s\n  title: %s\n  lane: %s\n  wants: %s\n  tagline: %s (as sent; unverified)\n  at: %s\n"
-            % (d["id"],d["title"],d.get("lane") or "—",d["wants"],d.get("tagline") or "—",d["ts"]))
-def next_req_id(index_text,day):
-    compact=day.replace("-",""); n=0
-    for m in re.finditer(rf"z1-inbox/{re.escape(day)}/REQ-{compact}-(\d{{2}})\.md",index_text): n=max(n,int(m.group(1)))
+    """The hashed block pins every request field: the ask enters as its own sha256 (it is multi-line and lives in
+    the record's `## Ask` section verbatim, so a reader recomputes it from there)."""
+    return ("REQUEST %s\n  title: %s\n  lane: %s\n  wants: %s\n  tagline: %s (as sent; unverified)\n  ask_sha256: %s\n  at: %s\n"
+            % (d["id"],d["title"],d.get("lane") or "—",d["wants"],d.get("tagline") or "—",sha(canon_ask(d["ask"]).encode()),d["ts"]))
+def next_req_id(index_text,day,taken=()):
+    """Next id: the day is a NAMESPACE (the folder the record lives in), not a window or a quota — resource-based
+    operations put no calendar cap on requests, so the counter simply grows (-01 … -99, -100, …). Counted from the
+    index (merged) plus `taken` (ids reserved by existing req/ branches: landed, not yet merged)."""
+    compact=day.replace("-",""); n=max([0,*taken])
+    for m in re.finditer(rf"z1-inbox/{re.escape(day)}/REQ-{compact}-(\d+)\.md",index_text): n=max(n,int(m.group(1)))
     return f"REQ-{compact}-{n+1:02d}"
+def reserved_req_ids(day):
+    """Ids already reserved by req/ branches on GitHub for this day (a request is reserved the moment its branch
+    exists, before its PR merges into the index)."""
+    compact=day.replace("-",""); out=set()
+    for ref in gh("GET",f"/repos/{REPO}/git/matching-refs/heads/req/req-{compact}-"):
+        m=re.search(rf"heads/req/req-{compact}-(\d+)$",ref.get("ref",""))
+        if m: out.add(int(m.group(1)))
+    return out
 def req_record(d,block,h):
     return (f"# Agent request {d['id']} — {d['title']}\n\n"
             f"**Requested via:** tools/decision_relay.py v{TOOL_VERSION} (`/task`) · tagline as sent: `{d.get('tagline') or '—'}` (unverified — the HMAC proves the caller knew the secret, not who they are)\n"
             f"**At:** {d['ts']}\n**Lane:** {d.get('lane') or '—'}\n**Wants:** {d['wants']}\n**Status:** OPEN\n\n"
             f"This is a RECORD, not a candidate: it asks Z2 for nothing and carries no falsifier. A worker — a Claude Code session, a local model behind the relay, or a person — takes it by filling the Fulfilment section in its own PR and citing `{d['id']}` in that PR's body. Governance is unchanged: anything the work needs ratified goes through a candidate block as always.\n\n"
-            f"## Ask\n\n{d['ask'].strip()}\n\n"
-            f"## Request block\n\n```\n{block}```\n\nhash: `{h}`\n\n"
+            f"## Ask\n\n{canon_ask(d['ask'])}\n\n"
+            f"## Request block\n\n```\n{block}```\n\nhash: `{h}` — sha256 of the block above; `ask_sha256` inside it is sha256 of the `## Ask` section (lines right-stripped, outer whitespace stripped), so an edited ask breaks the hash.\n\n"
             f"## Fulfilment\n\ntaken_by:\npr:\nmerged:\nat:\n")
 def task(d):
     """/task — a signed request → REQ record in z1-inbox (records:, rendered) on a branch → PR. Nothing is decided, nothing
@@ -266,16 +292,17 @@ def task(d):
     if wants not in REQ_KINDS: raise ValueError(f"wants must be one of {REQ_KINDS}")
     if "\n" in title or len(title)>140: raise ValueError("title is one line, at most 140 characters")
     ts=server_ts(); day=ts[:10]
-    # the id is numbered from main's index (so two relays cannot both mint -01); the branch is cut afterwards
+    # the id is numbered from main's index (merged requests) plus the req/ branches already on GitHub (landed, unmerged);
+    # creating the branch ref is the atomic step — GitHub refuses a ref that exists — so a collision refuses, never reuses
     st=store("main"); idx,_=st.get(INDEX)
     if idx is None: raise ValueError(f"{INDEX} not found")
-    rid=next_req_id(idx,day); br=f"req/{rid.lower()}"
+    rid=next_req_id(idx,day,reserved_req_ids(day) if not DRY else ()); br=f"req/{rid.lower()}"
     if not DRY:
         base=gh("GET",f"/repos/{REPO}/git/ref/heads/main")["object"]["sha"]
         try: gh("POST",f"/repos/{REPO}/git/refs",{"ref":f"refs/heads/{br}","sha":base})
-        except Exception: pass
+        except Exception as e: raise ValueError(f"{rid} was reserved by another request between read and write ({br} exists); resend to take the next id") from e
         st=store(br); idx,_=st.get(INDEX)
-    dd={**d,"id":rid,"title":title,"ask":ask,"wants":wants,"ts":ts,"tagline":str(d.get("tagline") or "")[:80],"lane":str(d.get("lane") or "")[:80]}
+    dd={**d,"id":rid,"title":title,"ask":canon_ask(ask),"wants":wants,"ts":ts,"tagline":str(d.get("tagline") or "")[:80],"lane":str(d.get("lane") or "")[:80]}
     block=req_block(dd); h=sha(block.encode()); path=f"z1-inbox/{day}/{rid}.md"
     st.put(path,req_record(dd,block,h),f"{rid}: {title} — OPEN, hash {h[:16]}")
     idx=index_add_record(idx,path,f"Agent request {rid} — {title}",f"OPEN · wants {wants} · lane {dd['lane'] or '—'} · landed by decision_relay.py /task; fulfilled by a worker's PR citing {rid}")
@@ -296,8 +323,9 @@ def assist(d):
     """Z1: reframe the decision in plain terms tied to the north star. Navigator grammar only."""
     key=os.environ.get("ANTHROPIC_API_KEY")
     prompt=("You are Z1 in HumanAIOS. Z2 is deciding: %s\nOptions: %s\nContext: %s\nNorth star: fund and operate a recovery center; GRBS profits go there.\n"
-            "Answer in navigator grammar only — no imperatives to Z2. Give: position (one line), each option's reading (one line each, plain words), "
-            "probability each option advances the north star within 30 days, and what would prove the favoured reading wrong. Under 120 words.") % (d["q"],d.get("opts"),d.get("s",""))
+            "Answer in navigator grammar only — no imperatives to Z2, no calendar horizons (this project is resource-based: name resources, never deadlines). "
+            "Give: position (one line), each option's reading (one line each, plain words), probability each option advances the north star for the resources it "
+            "consumes, and what would prove the favoured reading wrong. Under 120 words.") % (d["q"],d.get("opts"),d.get("s",""))
     if not key or DRY:
         text="position: relay dry-run · no model key · readings not generated"
     else:
@@ -384,17 +412,34 @@ def selftest():
         try: content_ref("x",""); ok=False
         except ValueError: print("keyless ref → REFUSED")
         # /task — a request lands as a record: file, index entry, rendered index; ids count up within a day; nothing signed
-        t1=task({"title":"Re-read the ACAT benchmark map","ask":"Compare the 12 rows to the 09-08 read.","wants":"pr","lane":"acat","tagline":"Night"})
+        t1=task({"title":'Re-read the "ACAT" benchmark map: rows 1–12','ask':"Compare the 12 rows to the 09-08 read.  \n\nSecond paragraph.","wants":"pr","lane":"acat","tagline":"Night"})
         rec=open(os.path.join(out,t1["path"])).read(); idx=open(os.path.join(out,INDEX)).read(); rendered=open(os.path.join(out,RENDERED)).read()
         ok&=(t1["status"]=="OPEN" and re.fullmatch(r"REQ-\d{8}-01",t1["id"]) is not None and f"hash: `{t1['hash']}`" in rec and "## Fulfilment\n\ntaken_by:\n" in rec
              and "**Status:** OPEN" in rec and f'path: "{t1["path"]}"' in idx and "counts: {candidates: 1, records: 2}" in idx and t1["id"] in rendered and "unverified" in rec)
         print("/task → OPEN record, indexed under records:, rendered, tagline marked unverified →",ok)
+        # the hash pins the ask: recompute from the record's ## Ask section; an edited ask breaks it
+        blk=re.search(r"```\n(REQUEST .*?)```",rec,re.S).group(1); asks=re.search(r"## Ask\n\n(.*?)\n\n## Request block",rec,re.S).group(1)
+        ok&=sha(blk.encode())==t1["hash"] and f"ask_sha256: {sha(asks.encode())}" in blk and asks=="Compare the 12 rows to the 09-08 read.\n\nSecond paragraph."
+        ok&=f"ask_sha256: {sha((asks+' edited').encode())}" not in blk
+        print("request hash covers the ask (ask_sha256 recomputes from ## Ask; trailing spaces canonicalised) →",ok)
+        yaml.load(idx,Loader=v.StrictLoader); print("INDEX parses strictly with a quoted, colon-bearing title → OK")
         t2=task({"title":"Second ask","ask":"x","wants":"answer"}); ok&=t2["id"].endswith("-02"); print("second /task same day → -02:",t2["id"])
+        idx=open(os.path.join(out,INDEX)).read()  # the index now carries -01 and -02 (records: 3)
         for bad in ({"title":"","ask":"x"},{"title":"t","ask":"x","wants":"deploy"},{"title":"a\nb","ask":"x"}):
             try: task(bad); ok=False
             except ValueError: pass
         print("/task refuses an empty title, an unknown wants, a multi-line title → OK")
-        yaml.load(open(os.path.join(out,INDEX)).read(),Loader=v.StrictLoader); print("INDEX with REQ records parses strictly → OK")
+        # ids: reserved branches count; the day is a namespace with no quota — 99 → 100, never a wrap to 01
+        day=t1["ts"][:10]; compact=day.replace("-","")
+        ok&=next_req_id(idx,day,taken={7})==f"REQ-{compact}-08" and next_req_id(idx,day)==f"REQ-{compact}-03" and next_req_id(idx,day,taken={99})==f"REQ-{compact}-100"
+        idx100=idx.replace(f"{compact}-02.md",f"{compact}-100.md"); ok&=next_req_id(idx100,day)==f"REQ-{compact}-101"
+        print("next id honours reserved branches (07 → 08); 99 → 100 → 101, no wrap, no daily cap → OK")
+        # counts are recomputed from entries, not incremented from a stale snapshot; `records: []` is normalised
+        stale=idx.replace("counts: {candidates: 1, records: 3}","counts: {candidates: 1, records: 1}")
+        fixed=index_add_record(stale,"z1-inbox/x/REQ-X.md","t","n"); ok&="counts: {candidates: 1, records: 4}" in fixed
+        empty=index_add_record('version: 1\ncounts: {candidates: 0, records: 0}\nratifiers: [Night]\ncandidates: []\nrecords: []\nexcluded: []\n',"z1-inbox/x/REQ-Y.md",'q "t"',"n")
+        ok&="records:\n- path: \"z1-inbox/x/REQ-Y.md\"" in empty and "counts: {candidates: 0, records: 1}" in empty; yaml.load(empty,Loader=v.StrictLoader)
+        print("counts recomputed from entries (stale 1 → 4); `records: []` normalised and parses →",ok)
         # the same paths against the index format ratify.py 1.2.0 writes (items at column 0, block counts:)
         shutil.rmtree(out,ignore_errors=True)
         open(os.path.join(td,INDEX),"w").write('version: 1\ngenerated: "2026-09-16"\ndecision_window_days: 2\ncounts:\n  candidates: 1\n  records: 0\nratifiers:\n- Night\ncandidates:\n'

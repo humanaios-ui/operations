@@ -135,7 +135,8 @@ lists every open ruling and the history/PII question (d8), and a public copy is 
 
 - **Before any session cites the board:** §3.
 - **After any merge to `main` that touches a sealed file:** the checker goes STALE by design.
-  `.github/workflows/intent-os-refresh.yml` runs on every push to `main` and daily, classifies the drift
+  `.github/workflows/intent-os-refresh.yml` runs on every push to `main` (event-driven; no clock schedule — this
+  project is resource-based and a merge is the event that drifts a seal), classifies the drift
   with `tools/intent_os_board_reseal_v1_0.py`, and publishes the receipt and the rendered pages as run
   artifacts. **MECHANICAL** drift (the inbox index, the registry, the ledgers, the rendered indexes —
   files whose bytes change by construction) is re-hashed, with each row's description saying so; the

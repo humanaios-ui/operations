@@ -364,7 +364,7 @@ def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
         ok &= _ok(lines, v.returncode == 0, f".z1-control/ratify.py --verify on the landed copy → {(v.stdout + v.stderr).strip().splitlines()[-1][:60] if (v.stdout + v.stderr).strip() else 'rc ' + str(v.returncode)}")
         r = {**r, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
         # /task — the agent bus: a signed request becomes a record, indexed and rendered, nothing signed
-        t = {"title": "Re-read the ACAT benchmark map", "ask": "Compare the 12 rows to the 09-08 read.", "wants": "pr", "lane": "acat",
+        t = {"title": 'Re-read the "ACAT" benchmark map: rows 1–12', "ask": "Compare the 12 rows to the 09-08 read.", "wants": "pr", "lane": "acat",
              "tagline": "Night", "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
         code, _, j = req("POST", "/task", t)
         ok &= _ok(lines, code == 200 and j.get("status") == "OPEN" and re.fullmatch(r"REQ-\d{8}-\d{2}", j.get("id", "") or "") is not None,
@@ -374,6 +374,10 @@ def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
         idx = open(os.path.join(out, "z1-inbox", "INDEX.yaml"), encoding="utf-8").read()
         rendered = open(os.path.join(out, "Z1_INBOX_INDEX.md"), encoding="utf-8").read() if os.path.isfile(os.path.join(out, "Z1_INBOX_INDEX.md")) else ""
         ok &= _ok(lines, f"hash: `{j.get('hash')}`" in rec and "## Fulfilment" in rec and "**Status:** OPEN" in rec, f"{j.get('path')}: request block hashed, Fulfilment empty, OPEN")
+        blk_m = re.search(r"```\n(REQUEST .*?)```", rec, re.S); ask_m = re.search(r"## Ask\n\n(.*?)\n\n## Request block", rec, re.S)
+        ok &= _ok(lines, bool(blk_m and ask_m) and hashlib.sha256(blk_m.group(1).encode()).hexdigest() == j.get("hash")
+                  and f"ask_sha256: {hashlib.sha256(ask_m.group(1).encode()).hexdigest()}" in blk_m.group(1),
+                  "hash recomputes from the record; ask_sha256 inside it recomputes from ## Ask")
         ok &= _ok(lines, (j.get("path") or "x") in idx and str(j.get("id")) in rendered, "INDEX.yaml records: entry + rendered index carry the request")
         ok &= _ok(lines, "z2_hash" not in rec and "status: RATIFIED" not in rec and "**Status:** OPEN" in rec, "nothing signed: no z2_hash, no RATIFIED status in the record")
         code, _, j2 = req("POST", "/task", {**t, "nonce": "n-" + os.urandom(6).hex(), "epoch": time.time()})
@@ -727,7 +731,7 @@ def print_table(rep: dict) -> None:
         print(f"board: {b.get('verdict')} · seals {b.get('counts')} · read {b.get('read_date')} · rulings {len(b.get('rulings', []))} · predictions {len(b.get('predictions', []))}")
     if rep.get("queue") and "candidates" in rep["queue"]:
         q = rep["queue"]
-        print(f"queue: {q['candidates']} candidates · {q['awaiting_z2']} awaiting Z2 · {q['overdue']} past the {q['decision_window_days']}d window")
+        print(f"queue: {q['candidates']} candidates · {q['awaiting_z2']} awaiting Z2 · validator flags {q['overdue']} under its {q['decision_window_days']}d window (pre-RBE rule; reported, not a deadline)")
     print("counts:", ", ".join(f"{k}={v}" for k, v in sorted(rep["counts"].items())))
     print("verdict:", rep["verdict"])
 

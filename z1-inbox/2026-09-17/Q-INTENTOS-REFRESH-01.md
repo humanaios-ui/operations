@@ -27,7 +27,7 @@ Nothing noticed. The dashboard on `main` still showed the 09-16 receipt. A Z1 se
 re-seal, rerun, commit. That is the gap: the board's rule is *green means a fetch verified it*, and
 between sessions nobody fetched.
 
-**Destination:** a job that runs the fetch on every merge that touches a sealed file and daily; that
+**Destination:** a job that runs the fetch on every merge to `main` — event-driven, no clock schedule; that
 re-hashes only the seals whose drift is mechanical and says so on each row; that refuses to touch a
 seal whose meaning changed and instead opens one issue naming it; that publishes the receipt and the
 rendered pages as run artifacts; and that stays **report-only** until Z2 turns the PR/issue half on
@@ -58,11 +58,12 @@ T2 board + relay          GREEN  PASS=4
 T3 ci gates               RED    FAIL=1 PASS=5     ← t3-pytest-acat, the F-CAND registered in Q-INTENTOS-TEST-01
 T4 cross-repo             GREEN  PASS=3
 counts: FAIL=1, PASS=47 · verdict: RED
-board: HOLDS · queue: 46 candidates (this block included) · 39 awaiting Z2 · 38 past the 2-day window
+board: HOLDS · queue: 46 candidates (this block included) · 39 awaiting Z2 · validator flags 38 under its 2-day window
 ```
 
 (The receipt embedded in the dashboard is the final run on this branch, after this block was
-indexed; the numbers above are that receipt's.)
+indexed; the numbers above are that receipt's. The validator's 2-day window is the pre-RBE rule
+Ruling 5 retires; it is reported as the validator's fact, not relied on as a deadline.)
 
 The re-seal, as operated on the real drift:
 
@@ -83,6 +84,7 @@ fourth with an issue; the fourth took a human sentence.
 | **d24** | An automated re-seal advances `rev`, so a copy of the board open in a browser is superseded by the new data on its next restore (taps kept, as the board's own rule says). Accept that a *job's* read may supersede an open copy, or reserve `rev` advances for human re-reads? | If reserved, an open copy keeps showing hashes the tree no longer has until a session re-reads; if accepted, an open copy's narrative fields (readline, gauges) can age while its hashes stay true — which the re-sealed descriptions say out loud. |
 | **d25** | Local copies (e.g. one in `~/Downloads`): coordinate by re-downloading `ui/intent-os-humanaios-v3_3.html` from the repository after each refresh (no new surface), or publish a rolling release asset `intent-os-latest` on this repository so a copy has one stable URL to refresh from? | d17 ruled *local only, no `site/`, no Pages*. A release asset is repository-scoped (the same access as the file) but it is a new surface; Z2's read whether it is inside d17. Path freeze (d19) already makes the filename stable, so the localStorage key, and the taps, survive a replace either way. |
 | **KNOWN_RED** | The job carries `INTENT_OS_KNOWN_RED: t3-pytest-acat` so the registered F-CAND does not open a STALE issue on every run. Accept that list as the place a registered-but-unfixed red row is named, or require the list to be empty (every red row files)? | The list is in the workflow file, so adding to it is a reviewed change; it is not a way to hide a row (the row stays RED on the dashboard and in the receipt). |
+| **d26** | Resource-based grounding (Z2, 2026-09-17: *no AI-imposed time-frames; time-frames only where a regulatory authority requires them; if the resources are available, we process*). The job is now event-driven only (the daily cron is removed in this block's PR); the relay's request ids carry no daily quota; this block's falsifiers and predictions are stated in merges and events. Confirm that reading, or name a regulatory time-frame that applies. | Three time-framed things remain that are not Z1's to change: `.z1-control/validate.py`'s `decision_window_days: 2` (Ruling 5's mechanism is unspecified), the board's dated *Deadlines* and *we'll know by* columns, and the ratified `Q-INTENTOS-TEST-01`'s dated falsifier (editing a ratified candidate breaks its signature; a resource-based restatement would be a new candidate or Z2's edit). |
 
 Also on the table, from `Q-INTENTOS-TEST-01`'s ACCEPT: **d20 · d21 · d22** were accepted as asked but
 no choice is recorded in a ruling file. This block assumes the status quo for d21 (the dashboard
@@ -91,11 +93,13 @@ dashboard.
 
 ## Predictions (pre-registered)
 
+Resolution is stated in resource events (merges, runs, sessions), never in calendar time.
+
 | id | text | p | resolves |
 |---|---|---|---|
-| C22 | with d23 enabled, no Z1 session in the following 14 days opens on a STALE board | 0.70 | d23 + 14 days |
-| C23 | the `intent-os-stale` issue fires at least once on a genuine NEEDS-HUMAN change | 0.55 | 2026-10-07 |
-| C24 | at least one refresh PR is merged without a human editing it | 0.65 | 2026-10-07 |
+| C22 | with d23 enabled, none of the next 10 Z1 sessions that open on `main` finds a STALE board | 0.70 | after the 10th session following d23 |
+| C23 | the `intent-os-stale` issue fires on the first genuine NEEDS-HUMAN drift after d23 | 0.55 | that drift's refresh run |
+| C24 | the first refresh PR the job opens is merged without a human editing it | 0.65 | that PR's close |
 
 ## Falsifier
 
@@ -103,11 +107,12 @@ Row-level: if the tool ever re-hashes a NEEDS-HUMAN row — any re-sealed descri
 the MECHANICAL list — it is laundering drift, and it is pulled from the manifest. `--self-test` plants
 exactly that case (a tool change beside an inbox change) and proves the refusal.
 
-Surface-level, by **2026-10-07**: with d23 enabled, if (a) a merge to `main` that drifts only mechanical
-seals leaves the board STALE for more than 24 hours with no refresh PR open, or (b) a NEEDS-HUMAN drift
-sits for more than 24 hours with no `intent-os-stale` issue, the job is not doing its work: disable it
-and return the cadence to runbook §6 as it was. If d23 is not ruled by then, (a) and (b) are VOID and
-only the row-level falsifier stands.
+Surface-level, measured over the next **20 merges to `main`** after d23 is enabled: if (a) any merge
+that drifts only mechanical seals is followed by a further merge with the board still STALE and no
+refresh PR open, or (b) any NEEDS-HUMAN drift is followed by a further merge with no `intent-os-stale`
+issue open, the job is not doing its work: disable it and return the cadence to runbook §6 as it was.
+Until d23 rules, (a) and (b) are VOID and only the row-level falsifier stands. No date is attached: the
+job runs when a merge happens, and a merge happens when the resources to make one exist.
 
 ## Receipts (operated this session)
 

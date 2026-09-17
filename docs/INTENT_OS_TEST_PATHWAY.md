@@ -49,7 +49,8 @@ counted. The whole run is GREEN only if every tier that ran is GREEN.
 ## 3. Session order (extends SESSION_RITUALS §A / §B)
 
 Between sessions, `.github/workflows/intent-os-refresh.yml` runs the same three commands on every
-push to `main` (and daily), publishes the receipt as a run artifact, and — once d23
+push to `main` (event-driven only — no clock schedule; a merge is the resource event that can drift a
+seal), publishes the receipt as a run artifact, and — once d23
 enables it — re-seals mechanical drift by PR and files an `intent-os-stale` issue for anything a
 human has to re-read. A session opens by checking whether that issue exists.
 
