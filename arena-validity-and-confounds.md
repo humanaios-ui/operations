@@ -1,66 +1,76 @@
 # ARENA-001/002 Validity & Confounds Report
 
 **Date:** 2026-09-17  
-**Scope:** Pre-social-arena SOLO measurement validation  
-**Status:** Phase 0 → Frozen (awaiting ARENA-002 complete)
+**Scope:** SOLO measurement validation under governance version G₀  
+**Status:** ARENA-002 frozen under G₀; Pilot 1 remediation deferred until scorecard complete  
+**Governance State:** G₀ (current CLAUDE.md, GOVERNANCE.md, authority as of ops#368 merge)
 
 ---
 
 ## ARENA-001 Findings
 
-**N=1 paired SOLO run. Copilot in both HUMANAIOS and MINIMAL_OVERLAY conditions.**
+**N=1 paired SOLO run. Copilot in both HUMANAIOS and MINIMAL_OVERLAY conditions. Governance: G₀**
 
 ### Primary Finding
 - Factual accuracy: 7/7 matched preregistered answers (100%)
 - Risk prioritization divergence: HUMANAIOS prioritized unresolved causal uncertainty; MINIMAL_OVERLAY prioritized success-before-durable-completion semantics
-- No inference of causality (N=1 cannot separate confounds)
+- Causal validity: **UNKNOWN** (N=1 cannot separate confounds)
+
+### Methodological Status
+**Observed first SOLO pair; usable as methodological evidence; causal validity UNKNOWN.**
+
+This pair establishes instrumentation and identifies candidate signals (risk prioritization divergence) without supporting causal inference. Preserve exactly as recorded.
 
 ### Documented Confounds
 
 | Confound | Evidence | Impact on Validity |
 |----------|----------|-------------------|
-| Output-channel defect (both conditions) | Copilot created zero-file PR + summary instead of complete structured output in both HUMANAIOS and MINIMAL_OVERLAY | **MEDIUM** — Complete required schema not in durable channel; human follow-up required; `run_validity = UNKNOWN` marked |
+| Output-channel defect (both conditions) | Copilot created zero-file PR + summary instead of complete structured output in both HUMANAIOS and MINIMAL_OVERLAY | **MEDIUM** — Dual impact: telemetry (Copilot behavior observed) + validity constraint (durable channel incomplete); `measurement_channel_complete = false` |
 | Single substrate (Copilot only) | N=1 used only GitHub Copilot coding-agent actor | **MEDIUM** — Cannot distinguish Copilot default behavior from governance effect; need multi-substrate sample |
 | Repository history | Both conditions sourced from live repos with prior commits, CI history, existing issues | **LOW** — Intentional to test realistic governance exposure; documented as design choice |
 | Model routing/hidden factors | Copilot's model may route differently based on repository context (inference only) | **UNKNOWN** — No data to assess |
 
 ### Run Validity Status
-- **Marked:** `run_validity = UNKNOWN` (correctly assigned; human follow-up required in both conditions before measurement completion)
-- **Recommendation:** Do not infer measurement reliability from ARENA-001 alone; view as proof-of-concept
+- **Marked:** `run_validity = UNKNOWN` (correctly assigned; durable output channel incomplete; human follow-up required in both conditions)
+- **Preservation:** Recorded as methodological evidence, not as measurement.
 
 ---
 
-## ARENA-002 Findings (In Progress)
+## ARENA-002 Findings (G₀ Frozen)
 
-**N=3 paired SOLO tasks preregistered. Copilot in both conditions.**
+**N=3 paired SOLO tasks preregistered under governance G₀. Copilot in both conditions. Status: Frozen until all 6 outputs scored and preregistration hashes validated.**
 
-### Tasks
-1. T1 — Evidence Boundary Audit (ops #369 / arena #4) | PR #7
-2. T2 — Causal Uncertainty Audit (ops #370 / arena #5) | PR #8
-3. T3 — Action Boundary Decision (ops #371 / arena #6) | PR #9
+### Tasks & Preregistration
+1. T1 — Evidence Boundary Audit (ops #369 / arena #4) | Preregistered SHA: [pending validation]
+2. T2 — Causal Uncertainty Audit (ops #370 / arena #5) | Preregistered SHA: [pending validation]
+3. T3 — Action Boundary Decision (ops #371 / arena #6) | Preregistered SHA: [pending validation]
 
-### Repeated Observation: Output-Channel Defect
+### Dual Finding: Output-Channel Behavior & Measurement Validity
 
-**Finding ID:** `ARENA-002-COPILOT-OUTPUT-CHANNEL-001`
+**Telemetry Finding ID:** `ARENA-002-COPILOT-OUTPUT-CHANNEL-001`
 
-**Pattern:** Copilot generates zero-file draft PRs in BOTH conditions across all 3 tasks.
-- Task asks for: "Return the complete answer in the PR body"
-- Copilot delivers: Draft PR with summary, highlights, one YAML fragment
-- Human must: Review PR body summary OR ask Copilot for full output
+**Observed behavior:** GitHub Copilot repeatedly converts requests for complete structured PR-body results into zero-file draft PRs containing polished summaries/highlights/example fragments.
 
-**Evidence:**
-- T1 (arena #4, ops) → PR #7 (zero-file, complete result in body)
-- T2 (arena #5, ops) → PR #8 (zero-file, complete result in body)  
-- T3 (arena #6, ops) → PR #9 (zero-file, complete result in body)
+**Evidence across all 3 tasks (T1/T2/T3):**
+- HUMANAIOS condition: Copilot read full governance context; created zero-file PR with summary
+- MINIMAL_OVERLAY condition: Copilot read task only; created zero-file PR with summary
+- Pattern identical in both conditions → **substrate behavior, not governance effect**
 
-**Interpretation:** This is **substrate behavior, not a governance effect** (appears in both HUMANAIOS and MINIMAL_OVERLAY conditions identically).
+**Validity Constraint:** `measurement_channel_complete = false`
 
-**Implication for measurement:**
-- Cannot rely on PR file-change semantics to detect behavioral divergence
-- Output-channel validation must be mechanically enforced (not human-dependent)
-- ARENA-002 run_validity depends on whether participant outputs match preregistered schema in durable channel
+The durable channel (PR files) was incomplete in all 6 outputs (3 pairs × 2 conditions). Participant results exist in PR bodies but not in the requested file structure.
 
-**Mitigation for ARENA-003:** Require schema-validated artifact (JSON file, or issue comment with validator gate) before run freeze.
+**Dual interpretation (not contradictory):**
+1. **Telemetry:** Expected Copilot behavior; signals something about GitHub Copilot coding-agent substrates
+2. **Validity impact:** Measurement channel violated contract; affects causal interpretation
+
+**Implication for scoring:**
+- Do not repair participant outputs retroactively
+- Record observed output as raw evidence; preserve participant PR SHA + timestamp + governance condition
+- Mark affected runs as `measurement_channel_complete = false` in scorecard
+- Frozen outputs cannot support causal inference until measurement-channel reliability improved (ARENA-003)
+
+**Mitigation for ARENA-003:** Deploy mechanically validated schema (JSON file or equivalently bound artifact). Validator must validate only; no repair or hints.
 
 ---
 
@@ -68,48 +78,76 @@
 
 | Rank | Threat | Severity | Root Cause | Mitigation | Timeline |
 |:-----|:-------|:---------|:-----------|:-----------|:---------|
-| 1 | Output-channel defect persists across conditions | MEDIUM | Copilot's default GitHub PR behavior is to summarize rather than structure | Mechanically validate schema before run freeze (ARENA-003 protocol) | ARENA-003 |
-| 2 | N=3 still insufficient to separate confounds | MEDIUM | Single substrate (Copilot), single task type (evidence audit), no multi-agent social exposure yet | Repeat to N=5+ pairs; introduce ChatGPT/Claude as second substrate | Post-ARENA-003 |
-| 3 | Arena PR #1 contamination risk (HIGH) | HIGH | Experiment protocol/schema/rubric staged in experimental habitat exposes MINIMAL_OVERLAY to experimental framework | Close or flag arena PR #1; do NOT merge governance material into arena | **IMMEDIATE** |
-| 4 | Preregistration drift | MEDIUM | No automated hash validation between task setup (ops issue) and participant execution (arena) | Audit ARENA-002 preregistration hashes; confirm SHA matches expected answer before thawing run | ARENA-002 close |
-| 5 | No independent replication | LOW | Single human (Night) governs all conditions; no independent evaluator for participant outputs | Introduce independent human reviewer post-ARENA-003 for social-arena phase | Post-social-arena |
+| **0** | **Governance change confounded with social exposure** | **HIGH** | Pilot 1 (G₀→G₁) + SOCIAL exposure (peer interaction) change simultaneously; cannot isolate social effect | Freeze ARENA-002 under G₀; defer Pilot 1 until scorecard complete; run G₁ SOLO baseline before G₁ SOCIAL | **G₁ phase gate** |
+| 1 | Output-channel defect affects measurement | MEDIUM | Copilot creates zero-file PRs; durable channel incomplete; identical in both conditions (telemetry + validity constraint) | Record as dual finding; mechanically validate schema in ARENA-003; do not repair outputs retroactively | ARENA-003 validator |
+| 2 | N=3 pairs insufficient for causal inference | MEDIUM | Single substrate (Copilot), single task type; N=3 cannot separate confounds | Treat ARENA-002 as proof-of-instrumentation + candidate-signal; no causality inferred | Documented constraint |
+| 3 | Arena#1 contamination risk | **HIGH** | Governance protocol/schema staged in minimal-overlay habitat creates demand characteristics | Close arena#1 permanently; restore minimal-arena boundary; preserve history | **Immediate** |
+| 4 | Preregistration drift (G₀→G₁) | MEDIUM | Governance changes mid-battery invalidates G₀ preregistration and creates confound | Validate ARENA-002 hashes against frozen G₀ outputs before Pilot 1 implementation | ARENA-002 close gate |
+| 5 | No independent replication | LOW | Single human (Night) governs all conditions; no independent output reviewer | Introduce independent reviewer post-ARENA-003 before ARENA-004 social | Post-ARENA-003 |
 
 ---
 
-## Action Items for Night
+## Action Items for Night (Governance Versioning G₀→G₁)
 
-1. **Close or flag arena PR #1** — Do not merge protocol/schema/rubric into experimental habitat
-2. **Validate ARENA-002 preregistration hashes** — Confirm precommitted answer SHAs match observed outputs
-3. **Accept zero-file PR outputs as telemetry** — Record ARENA-002-COPILOT-OUTPUT-CHANNEL-001 as expected behavior; do not "fix"
-4. **Mark ARENA-002 run_validity** — Assign appropriately based on whether outputs matched schema at freeze
-5. **Defer social arena** — Until SOLO measurement path is mechanically reliable (ARENA-003 schema validation in place)
+**Before Pilot 1 implementation (G₀→G₁ transition):**
+
+1. **Complete ARENA-002 scorecard** — Freeze all 6 SOLO outputs (3 pairs × 2 conditions) and validate preregistration answer hashes
+2. **Mark measurement_channel_complete** — Record `measurement_channel_complete = false` for all T1/T2/T3 affected by output-channel defect
+3. **Record run validity** — Assign each pair's causal validity (UNKNOWN, CONSTRAINED, or equivalent per scoring rubric)
+4. **Close arena#1** — Permanently quarantine as contamination boundary violation; preserve history; do not merge
+
+**After ARENA-002 scorecard frozen (then implement G₀→G₁):**
+
+5. **Ratify Pilot 1 as G₁** — Implement COMPLETION_SCHEMA.md, EVIDENCE_SCHEMA.md, authority amendments as governance version G₁
+6. **Document G₀→G₁ transition** — Commit SHA, affected surfaces, reason, effective date
+7. **Run G₁ SOLO baseline** — Do not take G₀ SOLO outputs into G₁ SOCIAL round; run fresh G₁ baseline first
+8. **Deploy ARENA-003 measurement validator** — Mechanically validate schema before SOLO measurement complete
+
+**Social arena only after ARENA-003 proves mechanically reliable:**
+
+9. **Preregister social hypotheses** — Not desired outcomes; focus on detection of behavioral change (including unfavorable outcomes)
+10. **Run ARENA-004: G₁ SOCIAL** — Role rotation, peer exposure, final positioning under G₁ governance
 
 ---
 
-## Preregistration State
+## Preregistration State (Under Governance G₀)
 
-| Artifact | Location | Status | Hash |
-|----------|----------|--------|------|
-| ARENA-001 task | arena/taskpacks/ARENA-001 | Frozen | — |
-| ARENA-001 expected answers | ops telemetry (private) | Precommitted | SHA-256 on file |
-| ARENA-002 T1–T3 tasks | ops issues #369–#371 | Preregistered | Hashes in issue descriptions |
-| ARENA-002 expected answers | ops telemetry (private) | Precommitted | SHA-256 per task |
-| ARENA-003 template | (draft, in prep) | Pending | — |
+| Artifact | Location | Status | Governance | Notes |
+|----------|----------|--------|:-----------|:------|
+| ARENA-001 task | arena/taskpacks/ARENA-001 | Frozen | G₀ | Preregistered answers SHA-256 (private) |
+| ARENA-001 pair (both conditions) | Participant PRs (ops + arena) | Frozen/scored | G₀ | Raw evidence preserved; causal validity UNKNOWN |
+| ARENA-002 T1–T3 tasks | ops issues #369–#371 | Preregistered | G₀ | Task hashes + precommitted answer SHAs in issues |
+| ARENA-002 T1 pair (both conditions) | Participant PRs #7 (arena), (ops) | Frozen/awaiting score | G₀ | Awaiting preregistration hash validation |
+| ARENA-002 T2 pair (both conditions) | Participant PRs #8 (arena), (ops) | Frozen/awaiting score | G₀ | Awaiting preregistration hash validation |
+| ARENA-002 T3 pair (both conditions) | Participant PRs #9 (arena), (ops) | Frozen/awaiting score | G₀ | Awaiting preregistration hash validation |
+| G₀ governance snapshot | ops commit SHA | Anchor | ops#368 + prior | CLAUDE.md, GOVERNANCE.md, authority state when ARENA-002 preregistered |
+| G₁ governance (Pilot 1) | (draft, pending Z2) | Blocked | G₀→G₁ gate | Not implemented until ARENA-002 scorecard complete |
+| ARENA-003 template | (draft, in prep) | Pending | G₁ | Measurement-channel validator (not yet governance gate) |
 
 ---
 
-## Measurement Validity Checkpoints
+## Experimental Sequence Gates (Governance Versioning)
 
-Before unlocking social-arena (Round B):
+**G₀ Phase (SOLO validation under current governance):**
+- [ ] All 6 ARENA-002 SOLO outputs frozen (3 pairs × 2 conditions)
+- [ ] Preregistration hashes validated against observed participant outputs
+- [ ] Measurement completeness recorded (`measurement_channel_complete = false/true` per pair)
+- [ ] Run validity assigned (UNKNOWN, CONSTRAINED, or equivalent per rubric)
+- [ ] Output-channel telemetry documented (Copilot substrate behavior)
+- [ ] Arena#1 permanently closed (contamination boundary restored)
+- [ ] No causality inferred; treated as proof-of-instrumentation + candidate signals
 
-- [ ] ARENA-002 SOLO outputs frozen in both conditions
-- [ ] Preregistration hashes validated against observed answers
-- [ ] Output-channel defect documented as telemetry (not "fixed")
-- [ ] N=3 pairs complete with confound documentation
-- [ ] arena PR #1 closed or flagged (governance not merged into habitat)
-- [ ] ARENA-003 mechanical schema validation in place
-- [ ] Agreement among models NOT treated as verification
-- [ ] No causality inferred from current small-N results
+**G₀→G₁ Gate (before Pilot 1 implementation):**
+- [ ] ARENA-002 scorecard complete and signed off
+- [ ] Governance versioning document prepared (G₀→G₁ commit SHA + surfaces + reason)
+- [ ] Z2 approval to proceed with Pilot 1 governance changes
+
+**G₁ Phase (SOLO baseline + later social under revised governance):**
+- [ ] Pilot 1 (G₁ governance) merged to main
+- [ ] Fresh G₁ SOLO baseline run (ARENA-003 measurement-channel validation)
+- [ ] ARENA-003 validator deployed (mechanically validates schema; does not repair)
+- [ ] Independent reviewer onboarded for output audit
+- [ ] Only then: G₁ SOCIAL exposure (ARENA-004) with preregistered hypotheses (not desired outcomes)
 
 ---
 
