@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Temporal Dissolution Gate.
+"""Temporal Dissolution Gate — reject unauthorized internal calendar controls.
+
+Builder v1.7 compliant · validation_tool
+HumanAIOS · Q-TEMPORAL-DISSOLUTION-01
 
 Reject newly introduced internal calendar/deadline controls in active HumanAIOS
 control surfaces. The gate scans added lines in a PR diff so legacy/historical
@@ -24,8 +27,14 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import PurePosixPath
-from typing import Iterable
+from typing import Callable, Iterable
 
+
+TOOL_NAME = "temporal_dissolution_gate"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "validation_tool"
+TOOL_SESSION = "Q-TEMPORAL-DISSOLUTION-01"
+TOOL_ZONE = 1
 
 ALLOWED_CLASSES = {
     "OBSERVATIONAL",
@@ -64,7 +73,11 @@ RISK_PATTERNS = (
     re.compile(r"\b(deadline|due_at|window_end|respond_within|complete_within|start_after)\s*[:=]", re.I),
     re.compile(r"\b(due|deadline)\s+(by|on)\b", re.I),
     re.compile(r"\boverdue\b", re.I),
-    re.compile(r"\b(must|shall|required\s+to|respond|complete|finish|deliver)\b.{0,60}\bwithin\s+\d+\s*(seconds?|minutes?|hours?|days?|weeks?|s|m|h|d|w)\b", re.I),
+    re.compile(
+        r"\b(must|shall|required\s+to|respond|complete|finish|deliver)\b.{0,60}"
+        r"\bwithin\s+\d+\s*(seconds?|minutes?|hours?|days?|weeks?|s|m|h|d|w)\b",
+        re.I,
+    ),
     re.compile(r"^\s*(schedule|cron)\s*:", re.I),
 )
 
@@ -164,7 +177,9 @@ def regulatory_contract_complete(file_text: str) -> bool:
     return bool(re.search(r"z2_ratified\s*[:=]\s*(true|yes)", file_text, re.I))
 
 
-def evaluate_added_lines(added: Iterable[AddedLine], file_loader) -> list[Violation]:
+def evaluate_added_lines(
+    added: Iterable[AddedLine], file_loader: Callable[[str], str]
+) -> list[Violation]:
     violations: list[Violation] = []
     cache: dict[str, tuple[list[str], str]] = {}
 
@@ -180,13 +195,23 @@ def evaluate_added_lines(added: Iterable[AddedLine], file_loader) -> list[Violat
 
         if temporal_class is None:
             violations.append(
-                Violation(item.path, item.line_no, item.text, "unclassified internal temporal control")
+                Violation(
+                    item.path,
+                    item.line_no,
+                    item.text,
+                    "unclassified internal temporal control",
+                )
             )
             continue
 
         if temporal_class == "REGULATORY_EXTERNAL" and not regulatory_contract_complete(full_text):
             violations.append(
-                Violation(item.path, item.line_no, item.text, "regulatory exception contract incomplete")
+                Violation(
+                    item.path,
+                    item.line_no,
+                    item.text,
+                    "regulatory exception contract incomplete",
+                )
             )
 
     return violations
@@ -214,11 +239,61 @@ def load_head_file(path: str) -> str:
         return ""
 
 
+def run_smoke_test() -> int:
+    """Prove the core rejection and exception paths fire as designed."""
+
+    def evaluate_text(path: str, text: str, line_no: int) -> list[Violation]:
+        added = [AddedLine(path=path, line_no=line_no, text=text.splitlines()[line_no - 1])]
+        return evaluate_added_lines(added, lambda _path: text)
+
+    internal = "complete_within: 48h\n"
+    violations = evaluate_text("GOVERNANCE.md", internal, 1)
+    assert len(violations) == 1
+    assert violations[0].reason == "unclassified internal temporal control"
+
+    technical = (
+        "temporal_class: TECHNICAL_SAFETY\n"
+        "respond_within: 30 seconds\n"
+        "purpose: dead-process detection only\n"
+    )
+    assert evaluate_text(".github/healthcheck.yml", technical, 2) == []
+
+    regulatory = """external_constraint:
+  type: REGULATORY_DEADLINE
+  temporal_class: REGULATORY_EXTERNAL
+  authority: Example Agency
+  citation: Rule 42
+  due_at: 2026-10-01T23:59:59Z
+  evidence_ref: sha256:abc
+  impact_if_missed: filing rejected
+  z2_ratified: true
+  ratification_ref: issue-comment:123
+"""
+    assert evaluate_text("schemas/work.yaml", regulatory, 6) == []
+
+    incomplete = """external_constraint:
+  type: REGULATORY_DEADLINE
+  temporal_class: REGULATORY_EXTERNAL
+  due_at: 2026-10-01T23:59:59Z
+  z2_ratified: true
+"""
+    violations = evaluate_text("schemas/work.yaml", incomplete, 4)
+    assert len(violations) == 1
+    assert violations[0].reason == "regulatory exception contract incomplete"
+
+    print("smoke-test OK — internal deadlines reject; technical/regulatory exceptions classify.")
+    return 0
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Validate changed surfaces against temporal dissolution policy")
     parser.add_argument("--base-ref", default=os.getenv("GITHUB_BASE_REF", "main"))
     parser.add_argument("--diff-file", help="optional pre-generated unified diff for local testing")
+    parser.add_argument("--smoke-test", action="store_true", help="run self-test and exit")
     args = parser.parse_args()
+
+    if args.smoke_test:
+        return run_smoke_test()
 
     if args.diff_file:
         with open(args.diff_file, "r", encoding="utf-8") as handle:
@@ -235,8 +310,11 @@ def main() -> int:
 
     print("TEMPORAL_DISSOLUTION_GATE: FAIL")
     print("Internal time-based scheduling controls require removal or an allowed classification.")
-    for v in violations:
-        print(f"- {v.path}:{v.line_no}: {v.reason}: {v.text.strip()}")
+    for violation in violations:
+        print(
+            f"- {violation.path}:{violation.line_no}: {violation.reason}: "
+            f"{violation.text.strip()}"
+        )
     print("See TEMPORAL_DISSOLUTION_POLICY.md and issue #378.")
     return 1
 
