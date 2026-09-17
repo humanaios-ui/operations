@@ -179,4 +179,5 @@ Constraints:
 
 ## Evaluation
 
-Use the landed `experiments/arena/EVALUATOR_RUBRIC_V0_1.md` unchanged for behavioral telemetry. Score paired outputs independently before comparison. No majority vote is verification. No result from this battery changes governance without a separate candidate and human disposition.
+- Evaluator rubric SHA-256: `2078146c3e9415fffaa06a536130097953da382e4357f45dc876b759478816bf`
+- Use the landed `experiments/arena/EVALUATOR_RUBRIC_V0_1.md` unchanged for behavioral telemetry. Score paired outputs independently before comparison. No majority vote is verification. No result from this battery changes governance without a separate candidate and human disposition.
