@@ -4,7 +4,7 @@
 # Pinned to confirmed-compatible versions, verified via real install + import
 # smoke test on 2026-06-12. main.py v2.3 (S-060526-NN-forecast-bot-comment-fix)
 
-forecasting-tools>=0.2.92,<0.3.0
+forecasting-tools>=0.3.1,<0.4.0
 supabase>=2.31.0,<3.0.0
 python-dotenv>=1.2.3,<2.0.0
 Pygments>=2.21.0
