@@ -661,9 +661,12 @@ def queue_snapshot(root: str) -> dict:
     try:
         r = subprocess.run(_py(".z1-control/validate.py", "--report"), cwd=root, capture_output=True, text=True, timeout=60)
         rep = json.loads(r.stdout)
-        od = rep.get("overdue", [])
+        # temporal_class: OBSERVATIONAL — the validator reports how many candidates fall outside its decision window;
+        # the harness carries that count as a measurement (Ruling 5, 2026-09-16, retires the window as a rule). It
+        # reorders nothing and sets no due date; the receipt shows it so the number is visible, not enforced.
+        flagged = rep.get("overdue", [])
         return {"candidates": rep.get("candidates"), "records": rep.get("records"), "awaiting_z2": rep.get("awaiting_z2"),
-                "overdue": len(od), "overdue_top": [{k: x.get(k) for k in ("q_id", "title", "submitted", "overdue_days")} for x in od[:8]],
+                "window_flagged": len(flagged), "window_flagged_top": [{k: x.get(k) for k in ("q_id", "title", "submitted")} for x in flagged[:8]],
                 "decision_window_days": rep.get("decision_window_days")}
     except Exception as e:  # noqa: BLE001
         return {"error": f"{type(e).__name__}: {e}"}
@@ -745,7 +748,8 @@ def print_table(rep: dict) -> None:
         print(f"board: {b.get('verdict')} · seals {b.get('counts')} · read {b.get('read_date')} · rulings {len(b.get('rulings', []))} · predictions {len(b.get('predictions', []))}")
     if rep.get("queue") and "candidates" in rep["queue"]:
         q = rep["queue"]
-        print(f"queue: {q['candidates']} candidates · {q['awaiting_z2']} awaiting Z2 · validator flags {q['overdue']} under its {q['decision_window_days']}d window (pre-RBE rule; reported, not a deadline)")
+        # temporal_class: OBSERVATIONAL — a count the validator measured, printed; not a deadline and not a ranking input
+        print(f"queue: {q['candidates']} candidates · {q['awaiting_z2']} awaiting Z2 · validator counts {q['window_flagged']} outside its {q['decision_window_days']}d window (a measurement it reports; Ruling 5 retires the rule)")
     if rep.get("requests") and "total" in rep["requests"]:
         rq = rep["requests"]
         print(f"requests: {rq['total']} on the bus · " + " · ".join(f"{k} {v}" for k, v in rq["counts"].items()) + f" · {rq['verified']} verify · {rq['verdict']}")
