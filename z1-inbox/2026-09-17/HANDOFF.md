@@ -63,6 +63,15 @@ re-seal tool correctly refused (NEEDS-HUMAN). This will recur on every squash-me
   test" and dishonest as "has one". Proposed mechanism (not applied here): scan.py records `smoke_flag:
   --smoke-test|--self-test|none` from the source, and the harness's T5 row is the proof. Until then the tier is
   the measurement, re-taken on every run.
+- **IC-candidate (a smoke test with side effects), for Z2 to register:** `tools/haios_agent_orchestrator_v1_0_patched.py
+  --smoke-test` runs a molt cycle against the current directory and wrote three files at the repository root —
+  `MOLT_LOG.json`, `node_store.json`, `REGISTERED_MD_DRAFT.md` (a NODE-CAND row with `ratification_required: false`,
+  i.e. draft registry text produced by a test) — on each of T5's three first runs. They were swept into this branch's
+  first commit by `git add -A` and removed in the next; the ECC taxonomy bot's changed-file list is what exposed them.
+  Mechanism applied in the harness: T5 rows are **tree-guarded** — a smoke test that leaves the repository different
+  from how it found it FAILS even with exit 0, and its writes are rolled back (tracked files restored, new files
+  removed; pre-existing dirt is not blamed on it). The tool's own fix — write under a temp dir or `outputs/` in smoke
+  mode — is its owner's.
 
 - **IC-050-class occurrence (gate not enforced), for Z2 to register:** #354 (`07915e6`, 2026-09-16) landed
   `z1-inbox/2026-09-16/PHASE3_LAUNCH.md` and `PHASE3_EXECUTION_CHECKLIST.md` without index entries.

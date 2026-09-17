@@ -97,10 +97,10 @@ def registry(root: str = ROOT) -> list[dict]:
     T = []
 
     def add(id, tier, area, name, cmd=None, *, expect=0, timeout=120, requires=(), needs_cmd=(), needs_env=(),
-            env=None, kind="cmd", proves=(), note="", skip_reason=""):
+            env=None, kind="cmd", proves=(), note="", skip_reason="", guard_tree=False):
         T.append(dict(id=id, tier=tier, area=area, name=name, cmd=cmd, expect=expect, timeout=timeout,
                       requires=list(requires), needs_cmd=list(needs_cmd), needs_env=list(needs_env), env=env or {}, kind=kind,
-                      proves=list(proves), note=note, skip_reason=skip_reason))
+                      proves=list(proves), note=note, skip_reason=skip_reason, guard_tree=guard_tree))
 
     # T0 — self-tests
     add("t0-board-check", "T0", "board", "board seal checker self-test", _py(CHECKER, "--self-test"), proves=["W1", "W8"])
@@ -245,7 +245,7 @@ def manifest_smoke_rows(root: str, covered: set[str]) -> list[dict]:
         while rid in seen:
             rid += "-x"
         seen.add(rid)
-        base = dict(id=rid, tier="T5", area="manifest", timeout=60, env={"DRY_RUN": "1"})
+        base = dict(id=rid, tier="T5", area="manifest", timeout=60, env={"DRY_RUN": "1"}, guard_tree=True)
         if str(t.get("status", "")).lower() == "archived":
             rows.append(dict(base, name=f"{p} — archived in the manifest", kind="skip", skip_reason="archived: not run"))
             continue
@@ -652,11 +652,17 @@ def run_one(t: dict, root: str) -> dict:
         res.update(status="SKIP", rc=None, duration_s=0.0, tail="", reason="requires " + ", ".join(missing))
         return res
     t0 = time.time()
+    before = tree_state(root) if t.get("guard_tree") else None
     try:
         if t["kind"] == "cmd":
             r = subprocess.run(t["cmd"], cwd=root, env={**os.environ, **t["env"]}, capture_output=True, text=True, timeout=t["timeout"])
             rc, out = r.returncode, (r.stdout + r.stderr)
             status = "PASS" if rc == t["expect"] else "FAIL"
+            if before is not None:
+                wrote = tree_writes(root, before)
+                if wrote:
+                    status, out = "FAIL", out + "\n\nwrote into the tree (a smoke test must leave the repository as it found it; rolled back): " + ", ".join(wrote)
+                    tree_restore(root, wrote)
         else:
             fn = {"yaml": lambda: check_yaml(root), "graph": lambda: check_graph(root),
                   "findings": lambda: check_findings(root, t["timeout"]),
@@ -678,6 +684,33 @@ def run_one(t: dict, root: str) -> dict:
     tail = "\n".join(out.strip().splitlines()[-12:])
     res.update(status=status, rc=rc, duration_s=round(time.time() - t0, 2), tail=tail[-2400:], reason="")
     return res
+
+
+def tree_state(root: str) -> dict[str, str]:
+    """`git status --porcelain` as {path: XY} — what is already dirty or untracked before a guarded row runs."""
+    r = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all", "-z"], cwd=root, capture_output=True, text=True, check=False)
+    out: dict[str, str] = {}
+    for item in r.stdout.split("\0"):
+        if len(item) > 3:
+            out[item[3:]] = item[:2]
+    return out
+
+
+def tree_writes(root: str, before: dict[str, str]) -> list[str]:
+    """Paths a guarded row left changed that were not already dirty/untracked before it ran (gitignored paths never show)."""
+    after = tree_state(root)
+    return sorted(p for p, xy in after.items() if before.get(p) != xy)
+
+
+def tree_restore(root: str, paths: list[str]) -> None:
+    """Undo a guarded row's writes: tracked files back to the index, untracked files removed. Only the paths it wrote."""
+    for p in paths:
+        full = os.path.join(root, p)
+        tracked = subprocess.run(["git", "ls-files", "--error-unmatch", "--", p], cwd=root, capture_output=True, check=False).returncode == 0
+        if tracked:
+            subprocess.run(["git", "checkout", "--", p], cwd=root, capture_output=True, check=False)
+        elif os.path.isfile(full):
+            os.remove(full)
 
 
 def worktree_tree_hash(root: str) -> str | None:
@@ -870,7 +903,7 @@ def run_smoke_test() -> bool:
         subprocess.run(["git", "init", "-q", td], check=True)
         subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "seed"], check=True)
         def row(**kw):
-            base = dict(expect=0, timeout=10, requires=[], needs_cmd=[], needs_env=[], env={}, kind="cmd", proves=[], note="", skip_reason="", cmd=None)
+            base = dict(expect=0, timeout=10, requires=[], needs_cmd=[], needs_env=[], env={}, kind="cmd", proves=[], note="", skip_reason="", cmd=None, guard_tree=False)
             return {**base, **kw}
         planted = [
             row(id="p-pass", tier="T0", area="x", name="pass", cmd=[PY, "-c", "print('ok')"], proves=["W1"]),
@@ -890,6 +923,22 @@ def run_smoke_test() -> bool:
                 "p-needs-env": "SKIP", "p-listed": "SKIP"}
         ok &= next(r for r in res if r["id"] == "p-needs-env")["reason"] == "requires $HARNESS_NO_SUCH_KEY_XYZ"
         ok &= next(r for r in res if r["id"] == "p-listed")["reason"] == "planted reason"
+        # tree guard: a guarded row that writes into the repository FAILS even with rc 0, and its writes are rolled back;
+        # a file that was already dirty before the row is not blamed on it
+        open(os.path.join(td, "tracked.txt"), "w").write("v1\n")
+        subprocess.run(["git", "-C", td, "add", "tracked.txt"], check=True)
+        subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "tracked"], check=True)
+        open(os.path.join(td, "already_dirty.txt"), "w").write("pre-existing untracked\n")
+        g = run_one(row(id="p-writer", tier="T5", area="x", name="writes", guard_tree=True,
+                        cmd=[PY, "-c", "open('tracked.txt','w').write('changed\\n'); open('side_effect.json','w').write('{}')"]), td)
+        ok &= g["status"] == "FAIL" and "wrote into the tree" in g["tail"] and "side_effect.json" in g["tail"] and "tracked.txt" in g["tail"] \
+            and "already_dirty.txt" not in g["tail"] and not os.path.exists(os.path.join(td, "side_effect.json")) \
+            and open(os.path.join(td, "tracked.txt")).read() == "v1\n" and os.path.exists(os.path.join(td, "already_dirty.txt"))
+        print("  tree guard: rc 0 but wrote tracked + untracked files → FAIL, both rolled back, pre-existing dirt not blamed:", "OK" if g["status"] == "FAIL" and not os.path.exists(os.path.join(td, "side_effect.json")) else "FAIL")
+        c = run_one(row(id="p-clean", tier="T5", area="x", name="clean", guard_tree=True, cmd=[PY, "-c", "print('no writes')"]), td)
+        ok &= c["status"] == "PASS"
+        print("  tree guard: a clean guarded row → PASS:", "OK" if c["status"] == "PASS" else "FAIL")
+        os.remove(os.path.join(td, "already_dirty.txt"))
         for k, v in want.items():
             print(f"  {k:<12} → {got.get(k):<8} {'OK' if got.get(k) == v else 'FAIL'}")
             ok &= got.get(k) == v
