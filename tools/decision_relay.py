@@ -528,7 +528,16 @@ def selftest():
               "log lines on stdout carry status + closed-set reason, stderr empty →",lines==want and cap_err.getvalue()=="")
         if lines!=want: print("  got:",lines)
         if not ok: print("  round-trip detail: hz",hz,"gated",gated,"st.basic_auth",st.get("basic_auth"),"pre",pre,"bad_pw",bad_pw,"bad_sig",bad_sig,"good",good[0],"ref",ref,"raw",raw[:24])
-        x=assist({"q":"?","opts":[]}); ok&=x["by"]=="Z1"; text="You must revoke the key immediately."; dr=IMPERATIVE.findall(text); ok&=len(dr)==3; print("imperative strip →",dr)
+        x=assist({"q":"?","opts":[]}); ok&=x["by"]=="Z1" and x["text"].startswith("position: relay dry-run")
+        # live (not dry) with no model key: says so, never "dry-run" — Z2 read "dry-run" on the live host 2026-09-17 22:37Z
+        saved_key=os.environ.pop("ANTHROPIC_API_KEY",None); DRY=False
+        try: xl=assist({"q":"?","opts":[]})
+        finally:
+            DRY=True
+            if saved_key is not None: os.environ["ANTHROPIC_API_KEY"]=saved_key
+        ok&=xl["by"]=="Z1" and xl["text"].startswith("position: no model key on this relay") and "dry-run" not in xl["text"] and "d27" in xl["text"]
+        print("assist: dry-run says dry-run; live without a key says 'no model key on this relay' →",xl["text"].startswith("position: no model key on this relay"))
+        text="You must revoke the key immediately."; dr=IMPERATIVE.findall(text); ok&=len(dr)==3; print("imperative strip →",dr)
         r1=content_ref("Re: budget  approval\n","k"); r2=content_ref("Re: budget approval","k"); r3=content_ref("Re: budget approval","k2")
         ok&=(r1==r2 and r1!=r3); print("content_ref canonical-equal / key-distinct →",r1==r2,r1!=r3)
         try: content_ref("x",""); ok=False
