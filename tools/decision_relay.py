@@ -760,7 +760,7 @@ def selftest():
             ok&=bad==0; print(f"GitHub failure matrix: {len(matrix)} injected refusals across branch/contents/PR/comment/label — each keeps GitHub's status + message, no fallback exception, status agrees with what was written →",bad==0)
 
             # KNOWN_RED recovery falsifier: if ratification fails after the candidate + ruling writes but before INDEX,
-            # retrying the *same* /ratify must deterministically finish the transaction rather than strand a RATIFIED
+            # retrying the *same* /ratify is expected to deterministically finish the transaction rather than strand a RATIFIED
             # candidate behind an awaiting_z2 INDEX entry. This is intentionally red until recovery is implemented.
             gh=FakeGH({("PUT","/contents/"+INDEX):TOKEN403},files=pending_files)
             partial_error=None
