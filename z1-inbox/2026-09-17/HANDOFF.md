@@ -294,6 +294,6 @@ recover.
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.
-2. `Q-INTENTOS-LAUNCH-01` falsifier (b): closes when the first reconcile PR (d14, d2) merges after #406.
-3. Z2: review and merge the twelve decided PRs #394–#405 (any order); each merge is a ruling; the reconcile job records them.
+2. `Q-INTENTOS-LAUNCH-01` falsifier (b): **closed 2026-09-18 16:38Z** — #406 merged (d8775a7), the reconcile job's first live run opened #407 with d2 (#393) and d14 (#391) signed by Night at 2026-09-18 over the merged bytes, Z2 approved and merged it (a23acb3); `validate.py`, `ratify.py --verify` and `render.py --check` pass on main; the job's second run found nothing awaiting. Relay 0.5.0 is live on Railway. The board re-read after it marks d2 and d14 ruled with their hashes and re-seals the index (this PR).
+3. Z2: review and merge the twelve decided PRs #394–#405 (any order); each merge is a ruling; the reconcile job records them. GitHub holds the PR-triggered checks on a job-opened PR until a person clicks "Approve and run" — the job's own dispatch of the z2 gate is already green on the same commit.
 4. Local copies: until d25, refresh a `~/Downloads` copy by replacing the file with the repository's after each merge — the filename is frozen (d19), so the browser's saved taps survive and the new `rev` loads on restore.
