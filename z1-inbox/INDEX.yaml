@@ -3,7 +3,7 @@ generated: '2026-09-16'
 decision_window_days: 2
 counts:
   candidates: 47
-  records: 31
+  records: 32
 ratifiers:
 - Night
 candidates:
@@ -215,10 +215,14 @@ candidates:
     \ or drop it as a gate?"
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-02.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-06; filed as its own candidate under
     d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
     by hand via ratify.py.
+  ratified_by: Night
+  ratified_at: "2026-09-18"
+  z2_ruling: "z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"
+  z2_hash: "b80131eba24815480dfd83630cfbdd69672fb017bf4e264e081a9a05326f3c6a"
 - q_id: Q-BOARD-RULING-03
   title: "Board ruling d3 \u2014 z2_budget_p2 \u2014 set the Phase 2 envelope, or\
     \ drop it as a gate?"
@@ -313,10 +317,14 @@ candidates:
     \ (b), destination (c), or none?"
   path: z1-inbox/2026-09-14/Q-BOARD-RULING-14.md
   submitted: '2026-09-14'
-  status: awaiting_z2
+  status: ratified
   note: Open on the Intent-OS board since 2026-09-08; filed as its own candidate under
     d18 so the Z2 queue is one list. Ruled from the board via decision_relay.py or
     by hand via ratify.py.
+  ratified_by: Night
+  ratified_at: "2026-09-18"
+  z2_ruling: "z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"
+  z2_hash: "27c98b653cefe16826fe3b2b76fcfdc822cb87b00a5ce81dc7c256112a7f51eb"
 - q_id: Q-BOARD-RULING-15
   title: "Board ruling d15 \u2014 FALS-43 \u2014 batch ruling on the 43 hypotheses\
     \ without written falsifiers?"
@@ -455,6 +463,9 @@ candidates:
   status: awaiting_z2
   note: "Step 4 of the bus plan Z2 approved 09-17. Steps 1-3 are on main (#377, #380). Four policy choices in resource units; falsifier over the next ten requests; predictions C25-C28 in sessions, requests, scans and merges. Files the two IC-candidates step 3 measured (manifest smoke_test is a text match; a smoke test with side effects) as d29."
 records:
+- path: "z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"
+  title: "Z2 rulings 2026-09-18 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
+  note: "Z2 output. Cited as z2_ruling by the candidates it signs; the reconcile job records each merge of a decided candidate here."
 - path: z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md
   title: "Z2 ruling \u2014 the merge is the ratification: the hash echo is retired, a ruling's\
     \ PR changes one file, the merger and the merge date sign it, a job on main records it\
