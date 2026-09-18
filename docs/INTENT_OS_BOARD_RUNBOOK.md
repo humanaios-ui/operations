@@ -170,6 +170,18 @@ An answer's status always agrees with what is on the branch: refused before the 
 nothing changed; a warning on PENDING / OPEN / RATIFIED means the governance write happened and only
 the notification (PR, comment, label) did not.
 
+**Ratify one at a time: echo, merge that PR, then the next echo.** Taps may land as many PENDING
+blocks as there are choices (fourteen landed in one minute on 2026-09-18, #391 and #393–#405); each
+sits on its own branch and touches only its candidate file, so they coexist. A *ratification* also
+writes `z1-inbox/INDEX.yaml` (the entry, the counts, a records: entry for the day's ruling file) and
+the day's `Z2_RULINGS_<date>.md`; two ratified branches from the same base add the same lines and only
+the first can merge. From relay 0.4.7 `/ratify` merges main into the branch before it writes, so an
+echo made after the previous PR merged lands on the current index. An echo made while another
+ratified PR is still unmerged produces a PR that will conflict on merge; the fix is to merge the
+earlier one, then re-echo (the relay resumes the ratification on the refreshed branch, rewriting
+nothing). A `409` on the refresh means the candidate itself changed on main since the tap: re-send
+the choice from "→ PR".
+
 The first live `/decide` (2026-09-17 22:52:30Z, d6 → `scrape`) was refused at exactly that step — no
 `z2/d6-2026-09-17` branch exists on the remote — and relay 0.4.4 swallowed the refusal and reported
 `INDEX.yaml not found`. From 0.4.5 the answer carries GitHub's own message and the meaning above.

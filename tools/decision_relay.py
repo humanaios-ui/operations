@@ -44,7 +44,7 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.4.6"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"; 0.4.5 = a GitHub refusal is never swallowed: the answer carries GitHub's message and what it means for the token (the first live /decide failed as "INDEX not found" because the branch create was refused silently); the self-test drives the GitHub path through a stub; 0.4.6 = /ratify resumes a ratification GitHub refused mid-way (Z2's falsifier, #388): a RATIFIED candidate behind an awaiting_z2 index entry is completed by the identical echo, nothing rewritten
+TOOL_VERSION = "0.4.7"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"; 0.4.5 = a GitHub refusal is never swallowed: the answer carries GitHub's message and what it means for the token (the first live /decide failed as "INDEX not found" because the branch create was refused silently); the self-test drives the GitHub path through a stub; 0.4.6 = /ratify resumes a ratification GitHub refused mid-way (Z2's falsifier, #388): a RATIFIED candidate behind an awaiting_z2 index entry is completed by the identical echo, nothing rewritten; 0.4.7 = /ratify refreshes the branch from main before it writes (14 taps landed in one minute on 2026-09-18; two ratifications from one base cannot both merge — ratify, merge, then the next)
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -101,6 +101,18 @@ def make_branch(br):
     except GitHubError as e:
         if e.code==422 and "already exists" in e.message.lower(): return False
         raise ValueError(f"could not create branch {br}: {token_hint(e)}") from e
+def refresh_branch(br):
+    """Merge main into refs/heads/<br> before /ratify writes, so the ratification lands on the current INDEX.yaml and
+    the current day's ruling file. Two branches ratified from the same base both add the same records: entry, the
+    same counts: change and the same ruling-file header, and only the first can merge; refreshing first, and merging
+    each ratified PR before the next echo, keeps the queue serial (runbook §4c). True = main merged in; False = nothing
+    to merge; a conflict (the candidate itself changed on main since the tap) or a refusal raises."""
+    try: r=gh("POST",f"/repos/{REPO}/merges",{"base":br,"head":"main","commit_message":f"refresh {br} from main before ratification"})
+    except GitHubError as e:
+        if e.code==409: raise ValueError(f"{br} conflicts with main — the candidate changed on main since the tap; re-send the choice from /decide") from e
+        if e.code==204: return False
+        raise ValueError(f"could not refresh {br} from main: {token_hint(e)}") from e
+    return bool(r)  # GitHub answers 201 with the merge commit, or 204 (no body) when the branch already carries main
 def open_pr(br,title,body):
     """The pull request for a branch: opened, or — only when GitHub answers 422 "already exists" for this head (a re-sent
     tap) — the open one, retitled. Any other refusal raises with GitHub's message and the token hint (a 403 here is
@@ -115,6 +127,13 @@ def open_pr(br,title,body):
         try: gh("PATCH",f"/repos/{REPO}/pulls/{pr['number']}",{"title":title,"body":body})
         except GitHubError as e3: raise ValueError(f"could not update pull request #{pr['number']} for {br}: {token_hint(e3)}") from e3
         return pr,False
+def short_q(q,n=110):
+    """the question on one line, cut at a word if longer than n — for a PR title or a comment's first line"""
+    q=" ".join(str(q or "").split())
+    return q if len(q)<=n else q[:n].rsplit(" ",1)[0]+"…"
+def pr_title(rid,q,choice,qid):
+    """'Z2 ruling d14: LPCS — independent check (a), … or none? → later (Q-BOARD-RULING-14)': the PR list reads as decisions"""
+    return f"Z2 ruling {rid}: {short_q(q)} → {choice} ({qid})"
 def written_so_far(written):
     return f"written before the refusal: {', '.join(written) if written else 'nothing'}; the branch is {'partially changed — Z2 completes or reverts it by hand' if written else 'unchanged'}"
 
@@ -271,7 +290,7 @@ def land(d):
     if DRY: return {"pr":"DRY","number":0,**out}
     # the PENDING block is on the branch now — durable state. If the PR cannot be opened the answer is still PENDING, with
     # the refusal as a warning, never an ERROR that says nothing happened.
-    try: pr,_=open_pr(br,f"Z2 ruling {d['id']} ({qid}): {d['choice']}",body)
+    try: pr,_=open_pr(br,pr_title(d['id'],d['q'],d['choice'],qid),body)
     except ValueError as e: return {"pr":None,"number":0,"warning":f"landed on {br} (hash {h[:16]}…) but no pull request: {e}. Re-send to try again — the branch is reused",**out}
     return {"pr":pr["html_url"],"number":pr["number"],**out}
 
@@ -293,6 +312,7 @@ def ratify(d):
     if d.get("tagline") and d.get("tagline")!=by: return {"status":"REFUSED","why":f"this relay signs as {by}; the board's tagline is '{d.get('tagline')}'"}
     ts=server_ts(); at=ts[:10]
     qid=qid_for(d); br=d.get("branch") or f"z2/{d['id']}-{at}"; st=store(br)
+    if not DRY: refresh_branch(br)  # the ratification lands on main's current index and ruling file, not the tap-time snapshot
     idx,_=st.get(INDEX)
     if idx is None: return {"status":"REFUSED","why":f"{INDEX} not found on {br}"}
     stt=cand_status(idx,qid)
@@ -304,6 +324,7 @@ def ratify(d):
     if body_hash(cand)!=f.get("body_hash"): return {"status":"REFUSED","why":"the candidate changed outside its Ruling section since /decide — re-send the choice"}
     m=re.search(r"^  choice: (.*)$",f["block"],re.M); choice=m.group(1) if m else f["choice"]
     if choice!=f["choice"]: return {"status":"REFUSED","why":"choice line and ruling block disagree"}
+    mq=re.search(r"^  question: (.*)$",f["block"],re.M); question=mq.group(1) if mq else (d.get("q") or "")  # from the hashed block, not the request
     # A candidate already RATIFIED on the branch whose INDEX entry is still awaiting_z2 is a ratification that was refused
     # mid-way by GitHub (the candidate write succeeded, a later one did not). The same echo resumes it deterministically:
     # the signature is recomputed over the bytes as they stand, with the `by` and `at` the candidate carries, and each
@@ -340,10 +361,10 @@ def ratify(d):
     warning=None
     if not DRY and d.get("number"):
         try:
-            gh("POST",f"/repos/{REPO}/issues/{d['number']}/comments",{"body":f"RATIFY {d['id']} {got}\nby: {by} at {ts}\nsignature: {digest}\nruling: {ruling_rel}"})
+            gh("POST",f"/repos/{REPO}/issues/{d['number']}/comments",{"body":f"RATIFY {d['id']} — {short_q(question)} → {choice}\nhash: {got}\nby: {by} at {echo_ts}\nsignature: {digest}\nruling: {ruling_rel}"})
             gh("POST",f"/repos/{REPO}/issues/{d['number']}/labels",{"labels":["z2-ratified"]})
         except GitHubError as e: warning=f"ratified on {br} (signature {digest[:16]}…) but the pull request could not be commented or labelled: {token_hint(e)}"
-    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"by":by,"at":at,"warning":warning}
+    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"q":question,"by":by,"at":at,"warning":warning}
 
 REQ_KINDS=("pr","answer","ruling")
 def canon_ask(ask): return "\n".join(l.rstrip() for l in str(ask).strip().splitlines())
@@ -682,15 +703,17 @@ def selftest():
             """Answers the calls land()/ratify()/task() make. `fail` injects a GitHubError at any boundary: a map of
             (method, path suffix) → error; a PUT suffix may name one file. Files written are kept (and can be seeded)."""
             def __init__(s,fail=None,files=None,open_prs=None):
-                s.fail=fail or {}; s.files=dict(files or {}); s.calls=[]; s.open_prs=open_prs if open_prs is not None else [{"html_url":"https://example.test/pull/1","number":1}]
+                s.fail=fail or {}; s.files=dict(files or {}); s.calls=[]; s.sent=[]; s.open_prs=open_prs if open_prs is not None else [{"html_url":"https://example.test/pull/1","number":1}]
             def __call__(s,method,path,data=None):
                 p=path.split("?")[0]; s.calls.append((method,p))
+                if data and (p.endswith("/pulls") or p.endswith("/comments") or "/pulls/" in p): s.sent.append((p,data))
                 for (m,suffix),err in s.fail.items():
                     if method==m and p.endswith(suffix): raise err
                 if method=="GET" and p.endswith("/git/ref/heads/main"): return {"object":{"sha":"abc123"}}
                 if method=="GET" and "/git/ref/heads/" in p: return {"object":{"sha":"def456"}}
                 if method=="GET" and p.endswith(f"/repos/{REPO}"): return {"full_name":REPO}
                 if method=="POST" and p.endswith("/git/refs"): return {"ref":data["ref"]}
+                if method=="POST" and p.endswith("/merges"): return {"sha":"merged"}
                 if method=="GET" and "/git/matching-refs/" in p: return []
                 if "/contents/" in p:
                     rel=p.split("/contents/",1)[1]
@@ -717,9 +740,14 @@ def selftest():
             rg=land(d); ok&=rg["pr"]=="https://example.test/pull/1" and rg["number"]==1 and "status: PENDING" in gh.files[rg["path"]] and ("POST","/repos/%s/pulls"%REPO) in gh.calls
             print("branch already exists (422, a re-sent tap) → /decide lands: candidate PENDING on the branch, PR opened →",rg["pr"])
             pending_files=dict(gh.files)  # the branch as /decide left it, for the /ratify cases below
+            titles=[x["title"] for pth,x in gh.sent if pth.endswith("/pulls")]
+            ok&=titles==[f"Z2 ruling d6: batch source? → own postings (Q-BOARD-RULING-06)"]; print("the PR title carries the question and the choice →",titles[0] if titles else None)
             ag=ratify({**d,"expected_hash":rg["hash"],"branch":rg["branch"],"hash":rg["hash"],"number":1})
             ok&=ag["status"]=="RATIFIED" and ag["warning"] is None and INDEX in gh.files and RENDERED in gh.files and ag["ruling"] in gh.files and ag["signature"] in gh.files[ag["ruling"]]
-            print("/ratify over the stub → RATIFIED; ruling, INDEX and rendered index written to the branch; comment + label posted →",ag["status"])
+            bodies=[x["body"] for pth,x in gh.sent if pth.endswith("/comments")]
+            ok&=len(bodies)==1 and bodies[0].startswith("RATIFY d6 — batch source? → own postings\nhash: "+rg["hash"]) and ag["q"]=="batch source?"
+            print("/ratify over the stub → RATIFIED; ruling, INDEX and rendered index written to the branch; RATIFY comment names the question and choice →",ag["status"])
+            ok&=short_q("a "*80,20)=="a a a a a a a a a a…" and short_q("  two\nlines  ")=="two lines"; print("short_q cuts at a word and joins lines → OK")
             gh=FakeGH(); tg=task({"title":"via stub","ask":"x","wants":"pr","tagline":"Night"})
             ok&=tg["status"]=="OPEN" and tg["pr"]=="https://example.test/pull/1" and tg["label"]=="agent-request" and tg["path"] in gh.files and ("POST","/repos/%s/git/refs"%REPO) in gh.calls
             print("/task over the stub → branch created, record + INDEX + rendered written, PR + label →",tg["status"],tg["id"])
@@ -764,6 +792,12 @@ def selftest():
                  lambda r,g: "could not write z1-inbox/INDEX.yaml" in r and "written before the refusal: "+cand_rel in r and "partially changed" in r and RENDERED not in g.files),
               ("ratify · INDEX GET 404, branch 404, repo visible", lambda: ratify(ratify_d), {("GET","/contents/"+INDEX):E(404,"Not Found","GET"),("GET","/git/ref/heads/"+rg["branch"]):E(404,"Not Found","GET")}, {"files":pending_files}, "refused",
                  lambda r,g: "does not exist on GitHub" in r),
+              ("ratify · refresh from main 409 (candidate changed on main)", lambda: ratify(ratify_d), {("POST","/merges"):E(409,"Merge conflict")}, {"files":pending_files}, "refused",
+                 lambda r,g: "conflicts with main" in r and "re-send the choice" in r and INDEX not in g.files),
+              ("ratify · refresh from main 403", lambda: ratify(ratify_d), {("POST","/merges"):TOKEN403}, {"files":pending_files}, "refused",
+                 lambda r,g: "could not refresh" in r and "HTTP 403" in r and INDEX not in g.files),
+              ("ratify · refresh happens before any write", lambda: ratify(ratify_d), {}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and g.calls.index(("POST","/repos/%s/merges"%REPO))<g.calls.index(("PUT","/repos/%s/contents/%s"%(REPO,cand_rel)))),
               ("task · branch POST 403", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/git/refs"):TOKEN403}, {}, "refused",
                  lambda r,g: "could not create branch req/" in r and "Contents, Pull requests and Issues" in r),
               ("task · branch POST 401", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/git/refs"):E(401,"Bad credentials")}, {}, "refused",

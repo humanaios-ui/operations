@@ -227,6 +227,31 @@ file is what is present at that point — the ported case asserts that, intent u
 (the relay self-test wired into the tool-manifest CI job) is a workflow change, Tier 2 by the classifier,
 and stays Z2's to land.
 
+**Thirteen more taps (Z2, 2026-09-18 01:21:49–01:22:31Z):** `POST /decide 200` ×13, about three seconds
+apart — d2 later · d3 set · d5 rule now · d6 scrape · d7 bypass + IC · d8 accept · d9 later · d10 ratify ·
+d11 file as draft · d12 queue · d13 require · d15 rule now · d16 archive as listed — each landed as a
+PENDING block on its own `z2/<id>-2026-09-18` branch with a PR (#393–#405), CI green where finished.
+With d14 (#391) every choice in Z2's 22:38Z export is now a PENDING block on the tree. Z2 reports
+echoing d14's hash in the same minute; the host log carries no `/ratify` after 01:01:32Z, so that echo
+did not leave the browser (d14 is still PENDING on its branch, no ruling file). **Found by simulating
+two ratifications from the same base (d14 and d6, DRY):** both add `records: 31` and a records: entry
+for `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md` to INDEX.yaml and the same header to that ruling
+file — the second PR cannot merge after the first. Relay 0.4.7: `/ratify` merges main into the branch
+before it writes (GitHub's merge API; 409 → "the candidate changed on main since the tap; re-send"),
+and the runbook states the protocol: echo, merge that PR, then the next echo; an echo made while an
+earlier ratified PR is unmerged is repaired by merging it and re-echoing (0.4.6's resume finishes the
+ratification on the refreshed branch).
+
+**Second echo on d14 (Z2, 2026-09-18 01:26:37Z):** `POST /ratify 200 refused` — Z2 typed the first eight
+characters, because a browser prompt's text cannot be selected or copied, and the live relay (0.4.5)
+compares the whole hash. The board now pre-fills the prompt with the hash (OK is the echo), accepts a
+typed prefix of 8+ matching characters, and prints the whole hash on the status line as selectable
+text. Z2 also asked that every place the board or the relay names a ruling carry a short title, not the
+id alone: ruling entries gain `t` ("d14 — LPCS relationship"), prompts, alerts, toasts and status lines
+use it, the relay's PR title reads `Z2 ruling d14: <question> → later (Q-BOARD-RULING-14)` and its RATIFY
+comment names the question and the choice from the hashed block. The fourteen PRs already open keep
+their 0.4.5 titles unless re-sent.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.
