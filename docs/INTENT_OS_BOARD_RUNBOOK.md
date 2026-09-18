@@ -210,16 +210,45 @@ editor: the board trims what it is given, but a value pasted with its quotes or 
 The first live taps (2026-09-17 21:34–21:37Z, three `POST /assist`) were all answered 401 by a relay
 whose log did not yet say which; 0.4.3 and the board's re-prompting fix both.
 
-## 5. Publish — ruled **local only** (d17, 2026-09-14)
+## 5. Publish — ruled **local only** (d17, 2026-09-14); a login-gated Worker asked as d31 (2026-09-18)
 
-The board is not published. Z2 opens `ui/intent-os-humanaios-v3_3.html` from the repository;
-the relay is its only exit. Nothing is copied under `site/` and the Pages job is not involved.
+d17 stands until d31 rules: the board is a file Z2 opens from the repository, nothing is copied under
+`site/`, and the Pages job is not involved.
 
-If a later ruling reverses d17, the mechanics are one copy: `.github/workflows/pages.yml`
-deploys `site/**` on push to `main`, and `tools/registry_site_generator_v1_0.py` leaves
-subdirectories it does not write alone, so `site/board/index.html` plus a link from
-`site/index.html` would ship it. Until then that is a description, not an instruction — the board
-lists every open ruling and the history/PII question (d8), and a public copy is a disclosure.
+Z2's direction on 2026-09-18 — *no public copy; a login to open the board* — is built and inert on `main`:
+
+| piece | what it does |
+|---|---|
+| `board/worker.js` | a Cloudflare Worker that serves `ui/` (the board, the test dashboard, the Z2 reviewer) only after verifying a **Cloudflare Access** login: an RS256 token from the team's keys (`https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`), issued for this application (`aud`), unexpired. With `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` unset it answers `401` to everything but `/healthz` — it fails closed. `POST` is 405; every page is `Cache-Control: no-store`, `noindex`. Self-test: `node board/worker.test.mjs`. |
+| `wrangler.jsonc` | the Workers Builds configuration: name `intent-os-board`, `assets.directory ./ui` with `run_worker_first` (the check runs before the asset router on every path), `keep_vars` (variables set in the dashboard survive deploys). No secrets in the tree. |
+
+The login is an **identity**, not a shared password: Access allow-lists emails (or GitHub logins), one per
+member, and logs every authentication. A second member is one more line in the policy, which is the shape
+the two-member rule (§4) needs.
+
+**When d31 rules `serve behind login`, Z2 does these in the Cloudflare dashboard (Z1 cannot):**
+
+1. **Workers & Pages → Create → Import a repository** → `humanaios-ui/operations`. Root directory `/`, no
+   build command, deploy command `npx wrangler deploy`, production branch `main`. Cloudflare builds and
+   deploys `intent-os-board` on this push and every later push to `main`; its `*.workers.dev` URL answers
+   `401` on every page until step 3.
+2. **Zero Trust → Access → Applications → Add → Self-hosted** → destination: the Worker `intent-os-board`
+   (by name) → policy **Allow · Emails:** Z2's address (and, later, each member's). Save; note the
+   application's **AUD** tag (Overview) and the team domain (`<team>.cloudflareaccess.com`).
+3. **The Worker → Settings → Variables and Secrets:** `ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com`,
+   `ACCESS_AUD=<AUD tag>`. From the next request on, a logged-in allow-listed identity gets the board;
+   everyone else gets Cloudflare's login page, and a request that reaches the Worker without a valid
+   token gets `401`.
+4. *Optional:* **the Worker → Settings → Domains & Routes → add `board.humanaios.ai`** (the zone must be on
+   Cloudflare); then the Access application's hostname is that name.
+
+**Reading the result.** `GET /healthz` reports `access_configured`; any other path without a login must be
+`401` (that is d31's falsifier). Taps still go to the relay on Railway with its own HMAC and gate; the
+board's saved state lives in the browser under the Worker's origin, so a first visit starts clean and taps
+persist from then on. The seals and the checker are untouched: they hash the file on `main`, which is the
+byte-identical file the Worker serves.
+
+If d31 rules `stay local`, the two files are removed. `later` leaves them inert.
 
 ## 6. Re-read cadence
 
