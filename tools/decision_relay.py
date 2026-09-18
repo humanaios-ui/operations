@@ -17,8 +17,11 @@ Rules in code, not prose:
                Everything the z2 gate checks (coverage, no self-grant, hash-in-ruling, render in sync) is written
                on the branch, so the PR is green or it is wrong.
   * the ratifier identity and every date come from the relay's own machine (RELAY_RATIFIER, server UTC), never from the
-    request; /ratify refuses a candidate that is not awaiting_z2, a candidate whose body changed since /decide (body hash
-    pinned at /decide), and a second ratification — nothing is written before those checks pass.
+    request; /ratify refuses a candidate that is not awaiting_z2 in INDEX.yaml, a candidate whose body changed since
+    /decide (body hash pinned at /decide), and a second ratification — nothing is written before those checks pass.
+    The one thing it resumes rather than refuses: a candidate already RATIFIED on the branch by this relay's ratifier,
+    with the echoed hash, whose INDEX entry is still awaiting_z2 — a ratification GitHub refused mid-way (0.4.6, #388);
+    the identical echo finishes the remaining writes, rewriting nothing.
   * /assist returns navigator grammar only (position · destination · probability · readings), tagged by:Z1;
     an imperative in the model output is stripped and logged as DRIFT. It never writes a ruling.
   * /task (v0.4) is the agent bus: a signed request lands as a RECORD — z1-inbox/<day>/REQ-<yyyymmdd>-<nn>.md with a
@@ -274,8 +277,15 @@ def land(d):
 
 def ratify(d):
     """/ratify — Z2 echoes the PENDING hash. Every check runs before anything is written:
-    the echoed hash matches, the candidate is still awaiting_z2, the ruling block on the branch hashes to it, and the rest
-    of the candidate still hashes to what /decide saw. Then: sign, record, regenerate. Refuse otherwise."""
+    the echoed hash matches, the candidate is still awaiting_z2 in INDEX.yaml, the ruling block on the branch hashes to
+    it, and the rest of the candidate still hashes to what /decide saw. Then: sign, record, regenerate. Refuse otherwise.
+    One narrow exception to "the block must be PENDING": a candidate already RATIFIED on the branch — by this relay's
+    ratifier, with the echoed block hash and the same body hash — whose INDEX entry is still awaiting_z2 is a
+    ratification GitHub refused mid-way (0.4.5 named what was written; #388 asked that the same echo finish it). It is
+    resumed, never re-decided: the signature is recomputed over the bytes as they stand with the candidate's own by/at,
+    the ruling section and the records entry are added only if absent, INDEX is marked, the index rendered. A candidate
+    RATIFIED by any other name, or recorded under a different signature, is refused; a complete ratification (INDEX
+    already ratified) is refused before anything is read."""
     exp=d.get("expected_hash"); got=d.get("hash")
     if not got or got!=exp: return {"status":"REFUSED","why":"hash does not match the landed ruling; a tap is not a ratification"}
     by=RATIFIER
@@ -298,10 +308,10 @@ def ratify(d):
     # mid-way by GitHub (the candidate write succeeded, a later one did not). The same echo resumes it deterministically:
     # the signature is recomputed over the bytes as they stand, with the `by` and `at` the candidate carries, and each
     # remaining write is made only if absent — nothing is re-decided, nothing is written twice (Z2's falsifier, #388).
-    resume=f["status"]=="RATIFIED"
+    resume=f["status"]=="RATIFIED"; echo_ts=ts  # when Z2 echoed — this request's time, on the first echo and on a resume alike
     if resume:
         if f.get("by")!=by or not f.get("at"): return {"status":"REFUSED","why":f"the candidate is RATIFIED on the branch by '{f.get('by')}', not by this relay's ratifier {by}; nothing written"}
-        ts=f["at"]; at=ts[:10]
+        ts=f["at"]; at=ts[:10]  # the signature's date is the candidate's own — the bytes on the branch carry it
     written=[]
     try:
         if not resume:
@@ -312,11 +322,13 @@ def ratify(d):
         if ruling is None:
             ruling=(f"# Z2 Rulings — {at}\n\nSignatures issued by the Z2 serial gate. Each hash is\n`sha256(candidate | by=<ratifier> | at=<date> | decision=<D>)` over the\n"
                     f"candidate block's bytes at the moment of decision, so editing a ratified\ncandidate afterwards breaks `ratify.py --verify`.\n")
-            if f'path: "{ruling_rel}"' not in idx and f"path: {ruling_rel}" not in idx:
-                idx=index_add_record(idx,ruling_rel,f"Z2 rulings {at} — signatures issued by .z1-control/ratify.py and decision_relay.py","Z2 output. Cited as z2_ruling by the candidates it signs.")
+        # the ruling file's records: entry is added whenever the index lacks it — on a resume the file may already exist
+        # (second write done, third refused) while the index read from the branch never took the entry
+        if f'path: "{ruling_rel}"' not in idx and f"path: {ruling_rel}" not in idx:
+            idx=index_add_record(idx,ruling_rel,f"Z2 rulings {at} — signatures issued by .z1-control/ratify.py and decision_relay.py","Z2 output. Cited as z2_ruling by the candidates it signs.")
         if f"## {qid} — ACCEPT" not in ruling:
             ruling+=(f"\n## {qid} — ACCEPT\n\nHash: `{digest}`\n\n- **Decision:** ACCEPT (ratified) · board ruling {d['id']}: `{choice}`\n"
-                     f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2 at {ts})\n"
+                     f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2 at {echo_ts})\n"
                      f"- **Signature:** `sha256(candidate | by={by} | at={at} | decision=ACCEPT)`, computed over the candidate's bytes at the moment of decision.\n")
             st.put(ruling_rel,ruling,f"z2 rulings {at}: {qid} ACCEPT ({digest[:16]})"); written.append(ruling_rel)
         elif f"`{digest}`" not in ruling: return {"status":"REFUSED","why":f"{ruling_rel} already records {qid} with a different signature; nothing written"}
@@ -782,9 +794,14 @@ def selftest():
                        and len(ruling_rel_p)==1 and INDEX not in partial_files and RENDERED not in partial_files)
             gh=FakeGH(files=partial_files); resumed=ratify(ratify_d)
             digest_p=re.search(r"Hash: `([0-9a-f]{64})`",partial_files[ruling_rel_p[0]]).group(1) if ruling_rel_p else ""
+            rr=ruling_rel_p[0] if ruling_rel_p else ""
             recovery_ok=(first_leg and resumed.get("status")=="RATIFIED" and resumed.get("signature")==digest_p and INDEX in gh.files and RENDERED in gh.files
                          and "status: ratified" in gh.files[INDEX] and f'z2_hash: "{digest_p}"' in gh.files[INDEX]
-                         and gh.files[ruling_rel_p[0]].count("— ACCEPT")==1 and gh.files[cand_rel]==cand_partial and ("PUT","/repos/%s/contents/%s"%(REPO,cand_rel)) not in gh.calls)
+                         and (f'path: "{rr}"' in gh.files[INDEX] or f"path: {rr}" in gh.files[INDEX])  # the ruling file is indexed under records: (validate.py's coverage)
+                         and f"echoed by Z2 at {server_ts()[:13]}" in gh.files[rr]  # the echo time is this request's, not the landing's
+                         and gh.files[rr].count("— ACCEPT")==1 and gh.files[cand_rel]==cand_partial and ("PUT","/repos/%s/contents/%s"%(REPO,cand_rel)) not in gh.calls)
+            if recovery_ok:  # the recovered index parses strictly and covers the ruling file, as the z2 gate checks
+                yaml.load(gh.files[INDEX],Loader=v.StrictLoader)
             ok&=recovery_ok
             print("ratify recovery (#388): third-write refusal → identical retry completes ruling+INDEX+rendered with the same signature, candidate untouched, one ACCEPT section →",recovery_ok,
                   "" if recovery_ok else f"(retry: {resumed.get('status')} {resumed.get('why') or resumed.get('warning')})")
@@ -793,7 +810,9 @@ def selftest():
             try: ratify(ratify_d); second_leg_err=None
             except ValueError as e: second_leg_err=str(e)
             p2=dict(gh.files); gh=FakeGH(files=p2); r2=ratify(ratify_d)
-            ok&=(second_leg_err is not None and "written before the refusal: "+cand_rel in second_leg_err and r2["status"]=="RATIFIED" and INDEX in gh.files and any("Z2_RULINGS_" in k for k in gh.files))
+            rr2=[k for k in gh.files if "Z2_RULINGS_" in k]
+            ok&=(second_leg_err is not None and "written before the refusal: "+cand_rel in second_leg_err and r2["status"]=="RATIFIED" and INDEX in gh.files and len(rr2)==1
+                 and (f'path: "{rr2[0]}"' in gh.files[INDEX] or f"path: {rr2[0]}" in gh.files[INDEX]))
             print("ratify recovery: second-write refusal → identical retry writes ruling+INDEX+rendered →",r2["status"])
             # a complete ratification stays refused on a second echo (nothing written), and a candidate RATIFIED by someone else is refused
             gh=FakeGH(files=dict(gh.files)); before_files=dict(gh.files); r3=ratify(ratify_d)
