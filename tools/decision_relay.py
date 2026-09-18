@@ -758,6 +758,26 @@ def selftest():
                 good=(kind==expect) and "IndexError" not in str(res) and bool(check(res,g))
                 if not good: bad+=1; print("  MATRIX FAIL:",label,"→",kind,str(res)[:220])
             ok&=bad==0; print(f"GitHub failure matrix: {len(matrix)} injected refusals across branch/contents/PR/comment/label — each keeps GitHub's status + message, no fallback exception, status agrees with what was written →",bad==0)
+
+            # KNOWN_RED recovery falsifier: if ratification fails after the candidate + ruling writes but before INDEX,
+            # retrying the *same* /ratify is expected to deterministically finish the transaction rather than strand a RATIFIED
+            # candidate behind an awaiting_z2 INDEX entry. This is intentionally red until recovery is implemented.
+            gh=FakeGH({("PUT","/contents/"+INDEX):TOKEN403},files=pending_files)
+            partial_error=None
+            try: ratify(ratify_d)
+            except ValueError as e: partial_error=str(e)
+            partial_files=dict(gh.files)
+            candidate_after_partial=partial_files.get(cand_rel,"")
+            first_leg=(partial_error is not None and "partially changed" in partial_error and
+                       "status: RATIFIED" in candidate_after_partial and INDEX in partial_files and RENDERED not in partial_files)
+            gh=FakeGH(files=partial_files)
+            resumed=ratify(ratify_d)
+            recovery_ok=(first_leg and resumed.get("status")=="RATIFIED" and
+                         INDEX in gh.files and RENDERED in gh.files and
+                         "status: ratified" in gh.files[INDEX])
+            ok&=recovery_ok
+            print("ratify recovery falsifier: third-write refusal → identical retry completes candidate+ruling+INDEX+rendered →",recovery_ok,
+                  "(current retry:",resumed.get("status"),resumed.get("why") or resumed.get("warning"),")")
         finally: gh=real_gh; DRY=True
         # a refusal that is not 404 on a read is the token, not an absence
         try: token_hint(GitHubError("GET","/x",401,"Bad credentials")); ok&="invalid or expired" in token_hint(GitHubError("GET","/x",401,"Bad credentials"))
