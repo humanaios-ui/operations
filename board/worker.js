@@ -7,20 +7,23 @@
 //   * every request but /healthz must carry a Cloudflare Access JWT (header Cf-Access-Jwt-Assertion, or
 //     the CF_Authorization cookie Access sets after login), signed by the team's current keys
 //     (https://<ACCESS_TEAM_DOMAIN>/cdn-cgi/access/certs), issued for this application (aud == ACCESS_AUD),
-//     not expired. Anything else is 401 — never the file.
+//     not expired, not before its nbf (no clock-skew allowance). Anything else is 401 — never the file.
 //   * ACCESS_TEAM_DOMAIN and ACCESS_AUD unset → 401 "Access is not configured". Fails closed: a deploy
 //     without the login in front of it publishes nothing.
 //   * `assets.run_worker_first` in wrangler.jsonc makes this code run BEFORE the asset router, so no path
-//     under ui/ is reachable without passing the check above.
+//     under ui/ is reachable without passing the check above — and only the two pages in SERVED are served
+//     at all: the Z2 reviewer under ui/ reads ../z1-inbox/ at runtime, which is not in the bundle, so it is
+//     not offered here rather than offered broken.
 //   * the relay is untouched: the board still POSTs to it cross-origin with its own HMAC and gate.
 //
 // Deployed by Cloudflare Workers Builds from this repository on every push to main (wrangler.jsonc at the
-// root). No secrets live here: the team domain and the application audience are Worker variables set in
-// the dashboard (kept across deploys by keep_vars).
+// root; wrangler pinned in package.json). No secrets live here: the team domain and the application
+// audience are Worker variables set in the dashboard (kept across deploys by keep_vars).
 //
 // Self-test: `node board/worker.test.mjs` (no network; a generated key signs the test tokens).
 
 const BOARD = "/intent-os-humanaios-v3_3.html";
+const SERVED = new Set([BOARD, "/intent-os-test-dashboard-v1_0.html"]);
 const CERTS_TTL_MS = 5 * 60 * 1000;
 let certCache = { domain: "", at: 0, keys: [] };
 
@@ -29,8 +32,10 @@ function b64url(s) {
   const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/") + pad);
   return Uint8Array.from(bin, (c) => c.charCodeAt(0));
 }
-function decodeJson(seg) {
-  return JSON.parse(new TextDecoder().decode(b64url(seg)));
+function decodeObject(seg) {
+  const v = JSON.parse(new TextDecoder().decode(b64url(seg)));
+  if (v === null || typeof v !== "object" || Array.isArray(v)) throw new Error("not an object");
+  return v;
 }
 function tokenFrom(request) {
   const h = request.headers.get("Cf-Access-Jwt-Assertion");
@@ -55,9 +60,10 @@ export function resetCertCache() {
 }
 
 /**
- * Verify a Cloudflare Access JWT. Returns {ok, why, email}. Checks, in order: shape, alg RS256, issuer is
- * the team domain, audience includes this application, not expired, not before, then the RSA signature
- * against the key the header names. Nothing is trusted from the token until the signature verifies.
+ * Verify a Cloudflare Access JWT. Returns {ok, why, email}. Checks, in order: shape (three segments, both
+ * decoded parts JSON objects), alg RS256 with a kid, issuer is the team domain, audience includes this
+ * application, not expired, not before nbf, then the RSA signature against the key the header names.
+ * Nothing is trusted from the token until the signature verifies.
  */
 export async function verifyAccessJwt(token, env, fetchFn = fetch, nowSec = Date.now() / 1000) {
   if (!env || !env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) return { ok: false, why: "Access is not configured on this Worker (ACCESS_TEAM_DOMAIN, ACCESS_AUD)" };
@@ -65,52 +71,53 @@ export async function verifyAccessJwt(token, env, fetchFn = fetch, nowSec = Date
   const parts = token.split(".");
   if (parts.length !== 3) return { ok: false, why: "malformed token" };
   let header, payload;
-  try { header = decodeJson(parts[0]); payload = decodeJson(parts[1]); } catch { return { ok: false, why: "malformed token" }; }
-  if (header.alg !== "RS256" || !header.kid) return { ok: false, why: "unsupported token" };
+  try { header = decodeObject(parts[0]); payload = decodeObject(parts[1]); } catch { return { ok: false, why: "malformed token" }; }
+  if (header.alg !== "RS256" || typeof header.kid !== "string" || !header.kid) return { ok: false, why: "unsupported token" };
   if (payload.iss !== `https://${env.ACCESS_TEAM_DOMAIN}`) return { ok: false, why: "token is not from this team" };
   const aud = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
   if (!aud.includes(env.ACCESS_AUD)) return { ok: false, why: "token is not for this application" };
   if (typeof payload.exp !== "number" || payload.exp <= nowSec) return { ok: false, why: "token expired" };
-  if (typeof payload.nbf === "number" && payload.nbf > nowSec + 60) return { ok: false, why: "token not yet valid" };
+  if (typeof payload.nbf === "number" && payload.nbf > nowSec) return { ok: false, why: "token not yet valid" };
   let keys;
   try { keys = await accessKeys(env.ACCESS_TEAM_DOMAIN, fetchFn, nowSec * 1000); } catch (e) { return { ok: false, why: `could not read the team's keys: ${e.message}` }; }
-  const jwk = keys.find((k) => k.kid === header.kid);
+  const jwk = keys.find((k) => k && k.kid === header.kid);
   if (!jwk) return { ok: false, why: "token signed by an unknown key" };
   let ok = false;
   try {
     const key = await crypto.subtle.importKey("jwk", { kty: jwk.kty, n: jwk.n, e: jwk.e, alg: "RS256", ext: true }, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
     ok = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, b64url(parts[2]), new TextEncoder().encode(`${parts[0]}.${parts[1]}`));
   } catch { ok = false; }
-  return ok ? { ok: true, email: payload.email || "" } : { ok: false, why: "bad signature" };
+  return ok ? { ok: true, email: typeof payload.email === "string" ? payload.email : "" } : { ok: false, why: "bad signature" };
 }
 
+// every answer this Worker gives is uncacheable, unindexed and leaks no referrer — a login-gated surface
+const POLICY = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex", "Referrer-Policy": "no-referrer" };
+function answer(status, body, extra = {}) {
+  return new Response(body, { status, headers: { ...POLICY, ...extra } });
+}
 function refuse(status, why) {
-  return new Response(`intent-os board: ${why}\n`, {
-    status,
-    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" },
-  });
+  return answer(status, `intent-os board: ${why}\n`, { "Content-Type": "text/plain; charset=utf-8" });
 }
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const configured = !!(env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD);
+    const readOnly = request.method === "GET" || request.method === "HEAD";
     if (url.pathname === "/healthz") {
-      return new Response(JSON.stringify({ board: "ok", access_configured: configured }), {
-        headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-      });
+      if (!readOnly) return refuse(405, "read-only surface");
+      const configured = !!(env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD);
+      return answer(200, JSON.stringify({ board: "ok", access_configured: configured }), { "Content-Type": "application/json" });
     }
-    const v = await verifyAccessJwt(tokenFrom(request), env);
+    const v = await verifyAccessJwt(tokenFrom(request), env); // an unauthenticated request learns nothing but 401
     if (!v.ok) return refuse(401, v.why);
+    if (!readOnly) return refuse(405, "read-only surface");
     if (url.pathname === "/" || url.pathname === "/board" || url.pathname === "/board/") {
-      return Response.redirect(`${url.origin}${BOARD}`, 302);
+      return answer(302, null, { Location: `${url.origin}${BOARD}` });
     }
-    if (request.method !== "GET" && request.method !== "HEAD") return refuse(405, "read-only surface");
+    if (!SERVED.has(url.pathname)) return refuse(404, "not a page this surface serves");
     const res = await env.ASSETS.fetch(request);
     const headers = new Headers(res.headers);
-    headers.set("Cache-Control", "no-store"); // a login-gated page is never cached by a proxy
-    headers.set("X-Robots-Tag", "noindex");
-    headers.set("Referrer-Policy", "no-referrer");
+    for (const [k, val] of Object.entries(POLICY)) headers.set(k, val);
     return new Response(res.body, { status: res.status, headers });
   },
 };

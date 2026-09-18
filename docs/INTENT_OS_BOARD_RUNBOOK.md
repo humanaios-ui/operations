@@ -219,8 +219,9 @@ Z2's direction on 2026-09-18 — *no public copy; a login to open the board* —
 
 | piece | what it does |
 |---|---|
-| `board/worker.js` | a Cloudflare Worker that serves `ui/` (the board, the test dashboard, the Z2 reviewer) only after verifying a **Cloudflare Access** login: an RS256 token from the team's keys (`https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`), issued for this application (`aud`), unexpired. With `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` unset it answers `401` to everything but `/healthz` — it fails closed. `POST` is 405; every page is `Cache-Control: no-store`, `noindex`. Self-test: `node board/worker.test.mjs`. |
+| `board/worker.js` | a Cloudflare Worker that serves **two pages** of `ui/` — the board and the test dashboard — only after verifying a **Cloudflare Access** login: an RS256 token from the team's keys (`https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`), issued by the team, for this application (`aud`), unexpired, not before its `nbf`. With `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` unset it answers `401` to everything but `/healthz` — it fails closed. The login is judged before the method, so an unauthenticated `POST` learns nothing but `401`; an authenticated one is `405`. Every answer (pages, the redirect from `/`, refusals) carries `Cache-Control: no-store`, `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`. The Z2 reviewer under `ui/` is **not** served (`404`): it reads `../z1-inbox/` at runtime, which is not in the bundle, so it would open broken. Self-test: `node board/worker.test.mjs`. |
 | `wrangler.jsonc` | the Workers Builds configuration: name `intent-os-board`, `assets.directory ./ui` with `run_worker_first` (the check runs before the asset router on every path), `keep_vars` (variables set in the dashboard survive deploys). No secrets in the tree. |
+| `package.json` + `package-lock.json` | pin `wrangler` (the deploy tool) so Workers Builds installs a known version instead of whatever `npx` resolves on the day. Not a package: nothing is published or imported. |
 
 The login is an **identity**, not a shared password: Access allow-lists emails (or GitHub logins), one per
 member, and logs every authentication. A second member is one more line in the policy, which is the shape
@@ -229,9 +230,10 @@ the two-member rule (§4) needs.
 **When d31 rules `serve behind login`, Z2 does these in the Cloudflare dashboard (Z1 cannot):**
 
 1. **Workers & Pages → Create → Import a repository** → `humanaios-ui/operations`. Root directory `/`, no
-   build command, deploy command `npx wrangler deploy`, production branch `main`. Cloudflare builds and
-   deploys `intent-os-board` on this push and every later push to `main`; its `*.workers.dev` URL answers
-   `401` on every page until step 3.
+   build command, deploy command `npx wrangler deploy` (the pinned one from `package.json`), production
+   branch `main`. Cloudflare builds and deploys `intent-os-board` on this push and every later push to
+   `main`; its `*.workers.dev` URL answers `401` on every page until step 3. Between steps 1 and 3 nothing
+   fronts that URL but the Worker itself, and the Worker refuses everything — that is the intended state.
 2. **Zero Trust → Access → Applications → Add → Self-hosted** → destination: the Worker `intent-os-board`
    (by name) → policy **Allow · Emails:** Z2's address (and, later, each member's). Save; note the
    application's **AUD** tag (Overview) and the team domain (`<team>.cloudflareaccess.com`).
@@ -242,11 +244,15 @@ the two-member rule (§4) needs.
 4. *Optional:* **the Worker → Settings → Domains & Routes → add `board.humanaios.ai`** (the zone must be on
    Cloudflare); then the Access application's hostname is that name.
 
-**Reading the result.** `GET /healthz` reports `access_configured`; any other path without a login must be
-`401` (that is d31's falsifier). Taps still go to the relay on Railway with its own HMAC and gate; the
+**Reading the result.** `GET /healthz` reports `access_configured`. d31's falsifier is two probes, run after
+a Workers Builds deploy has *completed*: an unauthenticated
+`curl -sS -o /dev/null -w '%{http_code}' https://<worker>/intent-os-humanaios-v3_3.html` prints `401` (or
+`302` to the Access login once Access fronts the name — that request never reaches the Worker), never `200`;
+and an authenticated `GET` of the board, hashed with `sha256sum`, matches `ui/intent-os-humanaios-v3_3.html`
+at the commit the deploy built. Taps still go to the relay on Railway with its own HMAC and gate; the
 board's saved state lives in the browser under the Worker's origin, so a first visit starts clean and taps
 persist from then on. The seals and the checker are untouched: they hash the file on `main`, which is the
-byte-identical file the Worker serves.
+file the Worker serves.
 
 If d31 rules `stay local`, the two files are removed. `later` leaves them inert.
 

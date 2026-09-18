@@ -13,11 +13,12 @@ Board surface — serve the board from a login-gated Cloudflare Worker (Cloudfla
 ## Context carried on the board
 
 Z2, 2026-09-18: *"I don't want any public, I want to have to login to open the board."* The mechanism is built
-and inert on `main`: `board/worker.js` serves `ui/` only after verifying a Cloudflare Access login (RS256 token
-from the team's keys, issued for this application, unexpired); with the two Access variables unset it answers
-401 to everything but `/healthz`, so a deploy publishes nothing until Access is in front of it. `wrangler.jsonc`
-at the root is the Workers Builds configuration; Cloudflare deploys it from this repository on each push to
-`main` once Z2 connects the repository in the dashboard. The relay is untouched. Runbook §5 has the steps.
+and inert on `main`: `board/worker.js` serves two pages of `ui/` — the board and the test dashboard — only after
+verifying a Cloudflare Access login (RS256 token from the team's keys, issued for this application, unexpired);
+with the two Access variables unset it answers 401 to everything but `/healthz`, so a deploy publishes nothing
+until Access is in front of it. `wrangler.jsonc` at the root is the Workers Builds configuration and
+`package.json` pins the deploy tool; Cloudflare deploys from this repository on each push to `main` once Z2
+connects the repository in the dashboard. The relay is untouched. Runbook §5 has the steps.
 
 ## Options
 
@@ -63,8 +64,19 @@ status: OPEN
 
 ## Falsifier
 
-Event-based, no clock: if at any point after the Worker is deployed a `GET` of any path under it other than
-`/healthz`, sent without a valid Access token, answers anything but `401` — or the served bytes of
-`intent-os-humanaios-v3_3.html` differ from the file on `main` — the surface is not what this block claims:
-disconnect the repository from Workers Builds, and this block is withdrawn rather than carried. The check is
-`node board/worker.test.mjs` against the code and one unauthenticated `curl -I` against the deployment.
+Event-based, no clock. The claim is about requests that **reach the Worker**: once Access fronts the hostname,
+an unauthenticated request is answered by Cloudflare's login redirect and never reaches the Worker — that is
+compliant, not a failure. The block is falsified if either of these is ever observed after a Workers Builds
+deploy has **completed** (a build in progress is not measured):
+
+- (a) a request without a valid Access token that reaches the Worker is answered with `200` and the board's
+  bytes — any path other than `/healthz`. Probe: an unauthenticated
+  `curl -sS -o /dev/null -w '%{http_code}' https://<worker>/intent-os-humanaios-v3_3.html` must print `401`
+  (or a `302` to the Access login when Access fronts the name), never `200`.
+- (b) an **authenticated** `GET` of `/intent-os-humanaios-v3_3.html` returns bytes whose `sha256` differs from
+  `ui/intent-os-humanaios-v3_3.html` at the commit that deploy built (the deploy's commit in the Workers
+  Builds log), i.e. the surface serves something other than the ratified file.
+
+On either: disconnect the repository from Workers Builds, and this block is withdrawn rather than carried.
+`node board/worker.test.mjs` is the check against the code (every refusal path, and that only the board and the
+test dashboard are served); the two probes above are the check against the deployment.

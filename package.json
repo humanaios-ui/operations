@@ -1,0 +1,9 @@
+{
+  "name": "operations-board",
+  "private": true,
+  "type": "module",
+  "description": "Pins wrangler for Cloudflare Workers Builds (board/worker.js, wrangler.jsonc). Not a package: nothing here is published or imported.",
+  "devDependencies": {
+    "wrangler": "4.135.0"
+  }
+}
