@@ -80,13 +80,19 @@ the hash is.** To make it one:
    password (kept in memory, never written). The relay writes the choice into the ruling's own
    candidate block (`z1-inbox/2026-09-14/Q-BOARD-RULING-<nn>.md`, section *Ruling*) on a branch and
    opens a PR marked **PENDING** with the block's sha256.
-4. Tap **→ PR** again and paste the hash back. The relay refuses a hash that does not match the
-   landed block. On a match it signs the candidate exactly as `.z1-control/ratify.py` does
-   (`sha256(candidate | by=Night | at=<date> | decision=ACCEPT)`), appends the signature to
-   `z1-inbox/<date>/Z2_RULINGS_<date>.md`, marks the candidate `ratified` in
-   `z1-inbox/INDEX.yaml`, regenerates `Z1_INBOX_INDEX.md`, comments `RATIFY <id> <hash>` and
-   labels the PR `z2-ratified`. Every check the z2 gate runs is satisfied on the branch, so the
-   PR is green or the relay is wrong.
+4. Tap the button again — it now reads **echo hash**. The prompt names the ruling
+   (`d14 — LPCS relationship: later`) and comes pre-filled with the landed block's hash: **OK is
+   the echo**. A browser prompt's text cannot be selected, so if you type instead, the first 8+
+   characters of the hash are enough (the status line under the ruling prints the whole hash as
+   selectable text); anything else is sent as typed and refused. The relay checks the branch as it
+   stands (hash, body, status), merges main into the branch, re-checks, then signs the candidate
+   exactly as `.z1-control/ratify.py` does (`sha256(candidate | by=Night | at=<date> |
+   decision=ACCEPT)`), appends the signature to `z1-inbox/<date>/Z2_RULINGS_<date>.md`, marks the
+   candidate `ratified` in `z1-inbox/INDEX.yaml`, regenerates `Z1_INBOX_INDEX.md`, comments
+   `RATIFY <id> — <question> → <choice>` with the hash and signature, and labels the PR
+   `z2-ratified`. Every check the z2 gate runs is satisfied on the branch, so the PR is green or
+   the relay is wrong. Then **merge that PR before the next echo** (see "Ratify one at a time"
+   below).
 5. **ask Z1** returns navigator grammar only (position · readings · probability · what would
    prove the favoured reading wrong). Imperatives are stripped and logged as DRIFT. It writes
    nothing.
@@ -169,6 +175,18 @@ refusals a board tap can meet look different there and on the board's status lin
 An answer's status always agrees with what is on the branch: refused before the first write means
 nothing changed; a warning on PENDING / OPEN / RATIFIED means the governance write happened and only
 the notification (PR, comment, label) did not.
+
+**Ratify one at a time: echo, merge that PR, then the next echo.** Taps may land as many PENDING
+blocks as there are choices (fourteen landed in one minute on 2026-09-18, #391 and #393–#405); each
+sits on its own branch and touches only its candidate file, so they coexist. A *ratification* also
+writes `z1-inbox/INDEX.yaml` (the entry, the counts, a records: entry for the day's ruling file) and
+the day's `Z2_RULINGS_<date>.md`; two ratified branches from the same base add the same lines and only
+the first can merge. From relay 0.4.7 `/ratify` merges main into the branch before it writes, so an
+echo made after the previous PR merged lands on the current index. An echo made while another
+ratified PR is still unmerged produces a PR that will conflict on merge; the fix is to merge the
+earlier one, then re-echo (the relay resumes the ratification on the refreshed branch, rewriting
+nothing). A `409` on the refresh means the candidate itself changed on main since the tap: re-send
+the choice from "→ PR".
 
 The first live `/decide` (2026-09-17 22:52:30Z, d6 → `scrape`) was refused at exactly that step — no
 `z2/d6-2026-09-17` branch exists on the remote — and relay 0.4.4 swallowed the refusal and reported
