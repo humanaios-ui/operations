@@ -75,6 +75,9 @@ jobs:
           python3 .tool-control/render.py --smoke-test
           python3 .tool-control/selftest.py --smoke-test
 
+      - name: Decision relay self-test
+        run: python3 tools/decision_relay.py --self-test
+
       # Proves every blocking rule can actually FAIL, and fails if any rule has
       # no fixture demonstrating it. Four defects on PRs #304/#306 were rules
       # the docs asserted and the code did not enforce; at the time, 10 of 26
