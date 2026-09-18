@@ -1,5 +1,11 @@
 # Handoff — 2026-09-17 (Intent-OS refresh: the mechanism for automated updates)
 
+> **Continued through 2026-09-18.** The header below records the 09-17 close (pinned `e2b9a7a`). The same
+> session went on: the relay live on Railway, the first rulings through it, Z2's ruling that the merge is
+> the ratification (#406), the reconcile job's first run (#407), and the board re-read (#408). The current
+> state is the last dated sections and "Next blockers"; `main` is at `a23acb3` or later. A fresh handoff
+> file opens at the next session close.
+
 **Session:** `session_01CePrSjPSB8Epbpq3Lj8oKj` (continued) · **Branch:** `claude/vigilant-newton-ko9pcr` · **Pinned:** `main` at `e2b9a7a`
 **Position at close:** board HOLDS at HEAD (re-sealed: 3 mechanical rows by tool, 1 row by hand); harness 47 PASS · 1 FAIL of 48 (the registered ACAT finding); queue 46 candidates (this block included), 39 awaiting Z2, 38 past the 2-day window.
 
