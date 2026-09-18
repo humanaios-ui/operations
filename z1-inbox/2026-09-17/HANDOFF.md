@@ -197,6 +197,36 @@ GitHub's status and message, no fallback exception replaces it, and the status a
 written. The runbook's 403 wording is non-exclusive, as the audit asked. The board shows a warning
 beside PENDING / RATIFIED. The 0.4.5 claim — a GitHub refusal is never swallowed — is now the tested one.
 
+**Second and third `/decide` taps (Z2, 2026-09-17 23:54:52Z ×2):** both `500 error`. Railway had created
+a new deployment of the same commit at 23:54:28Z — a variable change, i.e. the token — and kept the old
+container serving until the new one passed its probe at 23:55:13Z; the taps at 23:54:52Z ran on the old
+container with the old token. Nothing landed.
+
+**The first ruling through the relay (Z2, 2026-09-18 01:01:02Z):** `POST /decide 200`. The relay created
+`z2/d14-2026-09-18`, wrote the PENDING block into `z1-inbox/2026-09-14/Q-BOARD-RULING-14.md` (choice
+`later`, by Night, at 01:00:56Z, block hash `a04583f5b839958e…`, body hash `4c783772…`) and opened
+[#391](https://github.com/humanaios-ui/operations/pull/391), on which every CI check is green — the
+relay's landing passes the z2 gate. Z2 reports tapping d6; the request the relay received carried `d14`
+(the board sends the id of the row whose button was tapped; d6's candidate on that branch is untouched).
+C17 — "one Z2 ruling lands through the relay as a PR (not typed by hand)" — resolves TRUE on this event.
+The hash echo at 01:01:32Z answered `200 refused`: a local re-run of the same checks against the branch's
+bytes ratifies with the full 64-character hash, so the echoed value did not match — the board's status
+line shows the first 16 characters and the prompt asked for the whole hash. The board now completes a
+matching prefix of 16+ characters to the full hash (the echo is Z2's act of confirmation; the board
+holds the hash). Q-INTENTOS-LAUNCH-01 falsifier (b) — landed *and ratified by hash echo* — stays open
+until the echo lands; d14's choice was `later`, so ratifying it records a deferral, which is a ruling.
+
+**Z2's #388 (KNOWN_RED, ratify partial-write recovery):** taken. `/ratify` now resumes a ratification that
+GitHub refused mid-way: a candidate already RATIFIED on the branch with the echoed block hash, the same
+body hash and this relay's ratifier, whose INDEX entry is still awaiting_z2, is completed by the identical
+echo — signature recomputed over the bytes as they stand with the candidate's own `by`/`at`, the ruling
+section appended only if absent, INDEX marked, index rendered; the candidate is not rewritten. A complete
+ratification re-echoed is still REFUSED with nothing written, and a candidate RATIFIED by another name is
+refused. The falsifier as filed asserted `INDEX` present after the INDEX write was refused; the ruling
+file is what is present at that point — the ported case asserts that, intent unchanged. #388's other hunk
+(the relay self-test wired into the tool-manifest CI job) is a workflow change, Tier 2 by the classifier,
+and stays Z2's to land.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.

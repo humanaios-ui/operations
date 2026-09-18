@@ -41,7 +41,7 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.4.5"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"; 0.4.5 = a GitHub refusal is never swallowed: the answer carries GitHub's message and what it means for the token (the first live /decide failed as "INDEX not found" because the branch create was refused silently); the self-test drives the GitHub path through a stub
+TOOL_VERSION = "0.4.6"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"; 0.4.5 = a GitHub refusal is never swallowed: the answer carries GitHub's message and what it means for the token (the first live /decide failed as "INDEX not found" because the branch create was refused silently); the self-test drives the GitHub path through a stub; 0.4.6 = /ratify resumes a ratification GitHub refused mid-way (Z2's falsifier, #388): a RATIFIED candidate behind an awaiting_z2 index entry is completed by the identical echo, nothing rewritten
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -289,26 +289,37 @@ def ratify(d):
     if stt!="awaiting_z2": return {"status":"REFUSED","why":f"{qid} is '{stt}', not awaiting_z2 — a decision is not re-taken; nothing written"}
     path=d.get("path") or cand_path(idx,qid); cand,_=st.get(path)
     f=ruling_fields(cand) if cand else None
-    if not f or not f.get("block") or f.get("status")!="PENDING": return {"status":"REFUSED","why":"no PENDING ruling block on the branch"}
+    if not f or not f.get("block") or f.get("status") not in ("PENDING","RATIFIED"): return {"status":"REFUSED","why":"no PENDING ruling block on the branch"}
     if f["block_hash"]!=got or sha(f["block"].encode())!=got: return {"status":"REFUSED","why":"the ruling block on the branch does not hash to the echoed value — it was edited after /decide"}
     if body_hash(cand)!=f.get("body_hash"): return {"status":"REFUSED","why":"the candidate changed outside its Ruling section since /decide — re-send the choice"}
     m=re.search(r"^  choice: (.*)$",f["block"],re.M); choice=m.group(1) if m else f["choice"]
     if choice!=f["choice"]: return {"status":"REFUSED","why":"choice line and ruling block disagree"}
-    # all checks passed — now write, in the order ratify.py writes. A refusal mid-way names what was written before it.
+    # A candidate already RATIFIED on the branch whose INDEX entry is still awaiting_z2 is a ratification that was refused
+    # mid-way by GitHub (the candidate write succeeded, a later one did not). The same echo resumes it deterministically:
+    # the signature is recomputed over the bytes as they stand, with the `by` and `at` the candidate carries, and each
+    # remaining write is made only if absent — nothing is re-decided, nothing is written twice (Z2's falsifier, #388).
+    resume=f["status"]=="RATIFIED"
+    if resume:
+        if f.get("by")!=by or not f.get("at"): return {"status":"REFUSED","why":f"the candidate is RATIFIED on the branch by '{f.get('by')}', not by this relay's ratifier {by}; nothing written"}
+        ts=f["at"]; at=ts[:10]
     written=[]
     try:
-        cand=write_choice(cand,choice,by,ts,"RATIFIED",f["block"],got,f["body_hash"])
-        st.put(path,cand,f"z2 {d['id']} ({qid}): RATIFIED by {by}"); written.append(path)
+        if not resume:
+            cand=write_choice(cand,choice,by,ts,"RATIFIED",f["block"],got,f["body_hash"])
+            st.put(path,cand,f"z2 {d['id']} ({qid}): RATIFIED by {by}"); written.append(path)
         digest=signature(cand.encode(),by,at)          # over the bytes as they now stand — the same bytes CI will hash
         ruling_rel=f"z1-inbox/{at}/Z2_RULINGS_{at}.md"; ruling,_=st.get(ruling_rel)
         if ruling is None:
             ruling=(f"# Z2 Rulings — {at}\n\nSignatures issued by the Z2 serial gate. Each hash is\n`sha256(candidate | by=<ratifier> | at=<date> | decision=<D>)` over the\n"
                     f"candidate block's bytes at the moment of decision, so editing a ratified\ncandidate afterwards breaks `ratify.py --verify`.\n")
-            idx=index_add_record(idx,ruling_rel,f"Z2 rulings {at} — signatures issued by .z1-control/ratify.py and decision_relay.py","Z2 output. Cited as z2_ruling by the candidates it signs.")
-        ruling+=(f"\n## {qid} — ACCEPT\n\nHash: `{digest}`\n\n- **Decision:** ACCEPT (ratified) · board ruling {d['id']}: `{choice}`\n"
-                 f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2 at {ts})\n"
-                 f"- **Signature:** `sha256(candidate | by={by} | at={at} | decision=ACCEPT)`, computed over the candidate's bytes at the moment of decision.\n")
-        st.put(ruling_rel,ruling,f"z2 rulings {at}: {qid} ACCEPT ({digest[:16]})"); written.append(ruling_rel)
+            if f'path: "{ruling_rel}"' not in idx and f"path: {ruling_rel}" not in idx:
+                idx=index_add_record(idx,ruling_rel,f"Z2 rulings {at} — signatures issued by .z1-control/ratify.py and decision_relay.py","Z2 output. Cited as z2_ruling by the candidates it signs.")
+        if f"## {qid} — ACCEPT" not in ruling:
+            ruling+=(f"\n## {qid} — ACCEPT\n\nHash: `{digest}`\n\n- **Decision:** ACCEPT (ratified) · board ruling {d['id']}: `{choice}`\n"
+                     f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2 at {ts})\n"
+                     f"- **Signature:** `sha256(candidate | by={by} | at={at} | decision=ACCEPT)`, computed over the candidate's bytes at the moment of decision.\n")
+            st.put(ruling_rel,ruling,f"z2 rulings {at}: {qid} ACCEPT ({digest[:16]})"); written.append(ruling_rel)
+        elif f"`{digest}`" not in ruling: return {"status":"REFUSED","why":f"{ruling_rel} already records {qid} with a different signature; nothing written"}
         idx=index_mark_ratified(idx,qid,by,at,ruling_rel,digest); st.put(INDEX,idx,f"INDEX: {qid} ratified by {by}"); written.append(INDEX)
         st.put(RENDERED,rendered_index(idx,lambda rel: st.get(rel)[0] or ""),f"render Z1_INBOX_INDEX.md: {qid} ratified"); written.append(RENDERED)
     except ValueError as e: raise ValueError(f"{e} — {written_so_far(written)}") from e
@@ -758,6 +769,38 @@ def selftest():
                 good=(kind==expect) and "IndexError" not in str(res) and bool(check(res,g))
                 if not good: bad+=1; print("  MATRIX FAIL:",label,"→",kind,str(res)[:220])
             ok&=bad==0; print(f"GitHub failure matrix: {len(matrix)} injected refusals across branch/contents/PR/comment/label — each keeps GitHub's status + message, no fallback exception, status agrees with what was written →",bad==0)
+            # Z2's recovery falsifier (#388): a ratification refused after the candidate and ruling writes but before INDEX
+            # must be finished by the identical /ratify once GitHub is healthy — not stranded as a RATIFIED candidate behind
+            # an awaiting_z2 index entry. (The falsifier as filed asserted INDEX present after the INDEX write was refused;
+            # the ruling file is what is present at that point — corrected here, the intent unchanged.)
+            gh=FakeGH({("PUT","/contents/"+INDEX):TOKEN403},files=pending_files)
+            partial_error=None
+            try: ratify(ratify_d)
+            except ValueError as e: partial_error=str(e)
+            partial_files=dict(gh.files); cand_partial=partial_files.get(cand_rel,""); ruling_rel_p=[k for k in partial_files if "Z2_RULINGS_" in k]
+            first_leg=(partial_error is not None and "partially changed" in partial_error and "status: RATIFIED" in cand_partial
+                       and len(ruling_rel_p)==1 and INDEX not in partial_files and RENDERED not in partial_files)
+            gh=FakeGH(files=partial_files); resumed=ratify(ratify_d)
+            digest_p=re.search(r"Hash: `([0-9a-f]{64})`",partial_files[ruling_rel_p[0]]).group(1) if ruling_rel_p else ""
+            recovery_ok=(first_leg and resumed.get("status")=="RATIFIED" and resumed.get("signature")==digest_p and INDEX in gh.files and RENDERED in gh.files
+                         and "status: ratified" in gh.files[INDEX] and f'z2_hash: "{digest_p}"' in gh.files[INDEX]
+                         and gh.files[ruling_rel_p[0]].count("— ACCEPT")==1 and gh.files[cand_rel]==cand_partial and ("PUT","/repos/%s/contents/%s"%(REPO,cand_rel)) not in gh.calls)
+            ok&=recovery_ok
+            print("ratify recovery (#388): third-write refusal → identical retry completes ruling+INDEX+rendered with the same signature, candidate untouched, one ACCEPT section →",recovery_ok,
+                  "" if recovery_ok else f"(retry: {resumed.get('status')} {resumed.get('why') or resumed.get('warning')})")
+            # the retry after a refusal at the SECOND write (ruling): candidate RATIFIED, no ruling file, INDEX awaiting → resumed too
+            gh=FakeGH({("PUT","/contents/z1-inbox/"):TOKEN403},files=pending_files); gh.fail={("PUT","/contents/z1-inbox/%s/Z2_RULINGS_%s.md"%(server_ts()[:10],server_ts()[:10])):TOKEN403}
+            try: ratify(ratify_d); second_leg_err=None
+            except ValueError as e: second_leg_err=str(e)
+            p2=dict(gh.files); gh=FakeGH(files=p2); r2=ratify(ratify_d)
+            ok&=(second_leg_err is not None and "written before the refusal: "+cand_rel in second_leg_err and r2["status"]=="RATIFIED" and INDEX in gh.files and any("Z2_RULINGS_" in k for k in gh.files))
+            print("ratify recovery: second-write refusal → identical retry writes ruling+INDEX+rendered →",r2["status"])
+            # a complete ratification stays refused on a second echo (nothing written), and a candidate RATIFIED by someone else is refused
+            gh=FakeGH(files=dict(gh.files)); before_files=dict(gh.files); r3=ratify(ratify_d)
+            ok&=r3["status"]=="REFUSED" and "not awaiting_z2" in r3["why"] and gh.files==before_files
+            other=dict(pending_files); other[cand_rel]=write_choice(other[cand_rel],"own postings","Someone",server_ts(),"RATIFIED",ruling_fields(other[cand_rel])["block"],rg["hash"],ruling_fields(other[cand_rel])["body_hash"])
+            gh=FakeGH(files=other); r4=ratify(ratify_d); ok&=r4["status"]=="REFUSED" and "not by this relay's ratifier" in r4["why"] and gh.files==other
+            print("complete ratification re-echoed → REFUSED, nothing written; RATIFIED by another name → REFUSED, nothing written →",r3["status"],r4["status"])
         finally: gh=real_gh; DRY=True
         # a refusal that is not 404 on a read is the token, not an absence
         try: token_hint(GitHubError("GET","/x",401,"Bad credentials")); ok&="invalid or expired" in token_hint(GitHubError("GET","/x",401,"Bad credentials"))
