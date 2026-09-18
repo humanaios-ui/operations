@@ -109,9 +109,12 @@ the hash is.** To make it one:
 
 **Ruled (d18, 2026-09-14):** rulings land in `z1-inbox/` + `INDEX.yaml`. `z2-rulings/` was never
 used and is retired. Every open board ruling has its own candidate block (`Q-BOARD-RULING-02` …
-`Q-BOARD-RULING-16`), so "what does Z2 owe a decision on" has one answer: `Z1_INBOX_INDEX.md`. The same
-ruling can also be recorded by hand — write the choice on the block's `choice:` line and run
-`python3 .z1-control/ratify.py Q-BOARD-RULING-<nn> --decision ACCEPT --by Night --apply`.
+`Q-BOARD-RULING-16`), so "what does Z2 owe a decision on" has one answer: `Z1_INBOX_INDEX.md`. There is
+no by-hand signature for a board ruling: `.z1-control/ratify.py --apply` refuses any block that carries a
+`## Ruling` section with a `choice:` line, because the merge of that block's pull request is the ratification
+(Z2, 2026-09-18) and a hand-run signature would be a second, unreviewed act for the same decision. Without
+the relay, open the one-file pull request by hand (choice on the `choice:` line, `status: DECIDED`); the
+merge is still the act, and the reconcile job still records it.
 
 ## 4b. Ask an agent for work (the bus — relay v0.4)
 
@@ -238,11 +241,26 @@ the two-member rule (§4) needs.
    URL but the Worker itself, and the Worker refuses everything — that is the intended state.
 2. **Zero Trust → Access → Applications → Add → Self-hosted** → destination: the Worker `intent-os-board`
    (by name) → policy **Allow · Emails:** Z2's address (and, later, each member's). Save; note the
-   application's **AUD** tag (Overview) and the team domain (`<team>.cloudflareaccess.com`).
+   application's **AUD** tag (Overview) and the team domain (`<team>.cloudflareaccess.com`). Then write
+   the **policy receipt** — `z1-inbox/<date>/ACCESS_POLICY_RECEIPT_<date>.md`, indexed as a record — so a
+   later widening of the policy is detectable without publishing addresses:
+
+   ```
+   # Access policy receipt — intent-os-board — <date>
+   application: intent-os-board (self-hosted)   destination: <worker>.workers.dev
+   aud: <AUD tag>
+   policy: Allow · include rule type: Emails   identities: <count>
+   list sha256: <sha256 of the sorted, lower-cased addresses, one per line>
+   worker ACCESS_ALLOWED_EMAILS sha256: <same construction over the Worker variable — must match>
+   read by: Night   at: <date>
+   ```
 3. **The Worker → Settings → Variables and Secrets:** `ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com`,
-   `ACCESS_AUD=<AUD tag>`. From the next request on, a logged-in allow-listed identity gets the board;
-   everyone else gets Cloudflare's login page, and a request that reaches the Worker without a valid
-   token gets `401`.
+   `ACCESS_AUD=<AUD tag>`, `ACCESS_ALLOWED_EMAILS=<the same addresses, comma-separated>`. The Worker
+   enforces that list itself: a valid login for an identity not on it is `403`, whatever the Access policy
+   says — so "allow-listed identities only" is a property of the code, not only of the dashboard. From the
+   next request on, a logged-in listed identity gets the board; everyone else gets Cloudflare's login page,
+   a request that reaches the Worker without a valid token gets `401`, and a valid login that is not listed
+   gets `403`.
 4. *Optional:* **the Worker → Settings → Domains & Routes → add `board.humanaios.ai`** (the zone must be on
    Cloudflare); then the Access application's hostname is that name.
 
@@ -254,7 +272,11 @@ Builds deploy has *completed*: an unauthenticated
 `302` to the Access login once Access fronts the name — that request never reaches the Worker), never `200`;
 and an authenticated `GET` of the board returns `X-Board-Commit: <sha>`, and the body hashed with `sha256sum`
 matches `ui/intent-os-humanaios-v3_3.html` at that commit (`git show <sha>:ui/intent-os-humanaios-v3_3.html |
-sha256sum`) — no build-log lookup. Taps still go to the relay on Railway with its own HMAC and gate; the
+sha256sum`) — no build-log lookup. A third probe covers **authorization**, which the first two do not: a
+valid login for an identity that is *not* on `ACCESS_ALLOWED_EMAILS` must get `403` (a second address Z2
+controls, admitted by the Access policy for the test only, then removed). If no second identity is
+available, write **NO_GATE — authorization unverified** into the record, not PASS; the self-test proves the
+code path, not the deployment. Taps still go to the relay on Railway with its own HMAC and gate; the
 board's saved state lives in the browser under the Worker's origin, so a first visit starts clean and taps
 persist from then on. The seals and the checker are untouched: they hash the file on `main`, which is the
 file the Worker serves.

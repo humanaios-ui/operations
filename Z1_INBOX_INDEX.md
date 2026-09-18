@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**48 candidates** — ⏳ awaiting Z2 39 · ✅ ratified 9 · **32 records**
+**49 candidates** — ⏳ awaiting Z2 40 · ✅ ratified 9 · **32 records**
 
-## Awaiting Z2 (39)
+## Awaiting Z2 (40)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -51,6 +51,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-19 | **Q-INTENTOS-BUS-01** | Agent bus policy — d27 model endpoint none/local/hosted · d28 issue mirror · d29 smoke contract in the manifest · d30 squash-merge read pointer | `z1-inbox/2026-09-17/Q-INTENTOS-BUS-01.md` |
 | 2026-09-19 | **Q-INTENTOS-REFRESH-01** | Automated Intent-OS refresh — re-seal what a job may, file what a human must; d23 enable · d24 rev by job · d25 local copies · KNOWN_RED list | `z1-inbox/2026-09-17/Q-INTENTOS-REFRESH-01.md` |
 | 2026-09-20 | **Q-BOARD-PUBLISH-01** | Board ruling d31 — board surface — serve the board from a login-gated Cloudflare Worker (Access, allow-listed identities), replacing d17's local-only? | `z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md` |
+| 2026-09-20 | **Q-IC-RATIFY-BYPASS-01** | IC candidate — a by-hand signature path (ratify.py --apply) stayed executable for board rulings after the merge-is-ratification ruling; guarded in #409 (a Tier 2 gate change) | `z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md` |
 
 ## Decided (9)
 
@@ -74,7 +75,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (91)
+## Open questions for Z2 (95)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -91,12 +92,13 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Registrable item 1 is routed with priority — it concerns the authority map's accuracy
 - [ ] Out-of-scope boundary on `score_transcript()` is accepted
 
-### Q-BOARD-PUBLISH-01 (3)
+### Q-BOARD-PUBLISH-01 (4)
 
 `z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md`
 
 - [ ] Board surface — serve the board from a login-gated Cloudflare Worker, replacing d17's local-only? — options: serve behind login, stay local, later
-- [ ] The allow-list is identities (email / GitHub login), one per member — no shared password
+- [ ] The allow-list is identities (email / GitHub login), one per member — no shared password — and it is enforced twice: by the Access policy in front, and by the Worker itself (`ACCESS_ALLOWED_EMAILS`), so a policy widened by mistake still gets `403` from the Worker
+- [ ] The Access policy is receipted in the tree (`z1-inbox/<date>/ACCESS_POLICY_RECEIPT_<date>.md`, runbook §5): application, AUD, rule type, identity count and the hash of the list — so a later widening is detectable without publishing addresses
 - [ ] The relay's own gate and HMAC stay as they are; the Worker adds a login in front of the page, not a new path into the relay
 
 ### Q-BOARD-RULING-03 (1)
@@ -231,6 +233,14 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Register IC-BOARD-SEALS-01 in REGISTERED.md as an IC (class memory-vs-fetch), or fold it into IC-030 as a recurrence
 - [ ] Accept, edit or reject prevention (1): an advisory `board-check` CI job on pushes to main touching sealed paths
 - [ ] Accept, edit or reject prevention (2): the checker as a §A session-open line in CLAUDE.md
+
+### Q-IC-RATIFY-BYPASS-01 (3)
+
+`z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md`
+
+- [ ] Register IC-RATIFY-BYPASS-01 as stated (or edit the class / duration)
+- [ ] Accept the guard as the correction — a Tier 2 gate change carried in #409 — or ask instead for the alternative the review named: a Z2 ruling that keeps a by-hand exception and says how its review and provenance requirement is met
+- [ ] Accept, edit or refuse the prevention (a cross-tool self-test case)
 
 ### Q-NF-ADAPTER-01 (5)
 

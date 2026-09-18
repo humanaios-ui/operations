@@ -10,8 +10,12 @@
 //     be signed by the team's current keys (https://<ACCESS_TEAM_DOMAIN>/cdn-cgi/access/certs), issued for
 //     this application (aud == ACCESS_AUD), not expired, not before its nbf (no clock-skew allowance).
 //     Anything else is 401 — never the file.
-//   * ACCESS_TEAM_DOMAIN and ACCESS_AUD unset → 401 "Access is not configured". Fails closed: a deploy
-//     without the login in front of it publishes nothing.
+//   * a valid token is authentication, not authorization: the Worker then requires the token's email to be
+//     on ACCESS_ALLOWED_EMAILS (a Worker variable; comma-separated; case-insensitive). Any other identity is
+//     403, even if the Access policy in front was widened by mistake. "Allow-listed identities only" is
+//     therefore a property of this code, tested in the self-test, not only of the dashboard policy.
+//   * ACCESS_TEAM_DOMAIN, ACCESS_AUD or ACCESS_ALLOWED_EMAILS unset → 401 "Access is not configured". Fails
+//     closed: a deploy without the login and the list in front of it publishes nothing.
 //   * `assets.run_worker_first` in wrangler.jsonc makes this code run BEFORE the asset router, so no path
 //     under ui/ is reachable without passing the check above — and only the two pages in SERVED are served
 //     at all: the Z2 reviewer under ui/ reads ../z1-inbox/ at runtime, which is not in the bundle, so it is
@@ -96,8 +100,16 @@ export function resetCertCache() {
  * application, not expired, not before nbf (a present nbf must be a number), then the RSA signature
  * against the key the header names. Nothing is trusted from the token until the signature verifies.
  */
+export function allowedEmails(env) {
+  const raw = env && typeof env.ACCESS_ALLOWED_EMAILS === "string" ? env.ACCESS_ALLOWED_EMAILS : "";
+  return new Set(raw.split(/[\s,;]+/).map((s) => s.trim().toLowerCase()).filter(Boolean));
+}
+export function configured(env) {
+  return !!(env && env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD && allowedEmails(env).size > 0);
+}
+
 export async function verifyAccessJwt(token, env, fetchFn = fetch, nowSec = Date.now() / 1000) {
-  if (!env || !env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) return { ok: false, why: "Access is not configured on this Worker (ACCESS_TEAM_DOMAIN, ACCESS_AUD)" };
+  if (!configured(env)) return { ok: false, why: "Access is not configured on this Worker (ACCESS_TEAM_DOMAIN, ACCESS_AUD, ACCESS_ALLOWED_EMAILS)" };
   if (!token) return { ok: false, why: "login required" };
   const parts = token.split(".");
   if (parts.length !== 3) return { ok: false, why: "malformed token" };
@@ -125,7 +137,12 @@ export async function verifyAccessJwt(token, env, fetchFn = fetch, nowSec = Date
     const key = await crypto.subtle.importKey("jwk", { kty: jwk.kty, n: jwk.n, e: jwk.e, alg: "RS256", ext: true }, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
     ok = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, b64url(parts[2]), new TextEncoder().encode(`${parts[0]}.${parts[1]}`));
   } catch { ok = false; }
-  return ok ? { ok: true, email: typeof payload.email === "string" ? payload.email : "" } : { ok: false, why: "bad signature" };
+  if (!ok) return { ok: false, why: "bad signature" };
+  // authorization, in the Worker itself: a valid token proves the request passed Access for this application;
+  // only an identity on ACCESS_ALLOWED_EMAILS gets the page. A widened Access policy is therefore not enough.
+  const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
+  if (!email || !allowedEmails(env).has(email)) return { ok: false, status: 403, why: "identity is not on the allow-list" };
+  return { ok: true, email };
 }
 
 // every answer this Worker gives is uncacheable, unindexed, unframed, un-sniffed and leaks no referrer —
@@ -158,11 +175,10 @@ export default {
     const readOnly = request.method === "GET" || request.method === "HEAD";
     if (url.pathname === "/healthz") {
       if (!readOnly) return refuse(env, 405, "read-only surface");
-      const configured = !!(env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD);
-      return answer(env, 200, JSON.stringify({ board: "ok", access_configured: configured }), { "Content-Type": "application/json" });
+      return answer(env, 200, JSON.stringify({ board: "ok", access_configured: configured(env) }), { "Content-Type": "application/json" });
     }
     const v = await verifyAccessJwt(tokenFrom(request), env); // an unauthenticated request learns nothing but 401
-    if (!v.ok) return refuse(env, 401, v.why);
+    if (!v.ok) return refuse(env, v.status || 401, v.why); // 403 only for a valid token whose identity is not listed
     const stamp = { "X-Board-Commit": commitOf(env) }; // only a logged-in identity learns the commit
     if (!readOnly) return refuse(env, 405, "read-only surface", stamp);
     if (url.pathname === "/" || url.pathname === "/board" || url.pathname === "/board/") {

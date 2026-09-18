@@ -30,13 +30,14 @@ Runbook §5 has the steps and the failure modes.
 
 ## How this gets ruled
 
-1. **From the board:** tap the option under Decisions, then **→ PR**. `tools/decision_relay.py` writes the
-   choice into the *Ruling* section below on a branch and opens a one-file pull request. **Merging that pull
-   request is the ratification** (Z2, 2026-09-18): `.github/workflows/intent-os-reconcile.yml` then signs the
-   merged bytes, records the signature in `z1-inbox/<date>/Z2_RULINGS_<date>.md`, marks this candidate
-   `ratified` in `z1-inbox/INDEX.yaml` and regenerates `Z1_INBOX_INDEX.md` in a reconcile pull request.
-2. **By hand:** write the chosen option on the `choice:` line below, then run
-   `python3 .z1-control/ratify.py Q-BOARD-PUBLISH-01 --decision ACCEPT --by Night --apply`.
+One act, and only one: tap the option under Decisions on the board, then **→ PR**. `tools/decision_relay.py`
+writes the choice into the *Ruling* section below on a branch and opens a one-file pull request. **Merging
+that pull request is the ratification** (Z2, 2026-09-18): `.github/workflows/intent-os-reconcile.yml` then
+signs the merged bytes, records the signature in `z1-inbox/<date>/Z2_RULINGS_<date>.md`, marks this candidate
+`ratified` in `z1-inbox/INDEX.yaml` and regenerates `Z1_INBOX_INDEX.md` in a reconcile pull request. Without
+the relay, the same one-file pull request can be opened by hand (write the option on the `choice:` line,
+`status: DECIDED`) — the merge is still the act. `.z1-control/ratify.py --apply` refuses a block of this shape,
+so there is no second, unreviewed path to a signature.
 
 A choice of `later` is a ruling too: it closes this block (its bytes are signed); the question returns only
 as a new block. `stay local` leaves d17 in force and the Worker unconnected.
@@ -61,7 +62,12 @@ status: OPEN
 ## Z2 Review Checklist
 
 - [ ] Board surface — serve the board from a login-gated Cloudflare Worker, replacing d17's local-only? — options: serve behind login, stay local, later
-- [ ] The allow-list is identities (email / GitHub login), one per member — no shared password
+- [ ] The allow-list is identities (email / GitHub login), one per member — no shared password — and it is
+      enforced twice: by the Access policy in front, and by the Worker itself (`ACCESS_ALLOWED_EMAILS`), so a
+      policy widened by mistake still gets `403` from the Worker
+- [ ] The Access policy is receipted in the tree (`z1-inbox/<date>/ACCESS_POLICY_RECEIPT_<date>.md`, runbook
+      §5): application, AUD, rule type, identity count and the hash of the list — so a later widening is
+      detectable without publishing addresses
 - [ ] The relay's own gate and HMAC stay as they are; the Worker adds a login in front of the page, not a new path into the relay
 
 ## Falsifier
@@ -80,7 +86,17 @@ deploy has **completed** (a build in progress is not measured):
   is stamped with the built commit at deploy time), i.e. the surface serves something other than the
   ratified file. If the header reads `unknown`, the deploy command lost its stamp: that is a failure of (b)
   too, since the served bytes can then not be tied to a commit.
+- (c) **authorization, not only authentication:** a request carrying a *valid* Access token for an identity
+  that is **not** on the allow-list is answered with the board (`200`) instead of `403`. A valid token proves
+  only that the request passed Access for this application; the claim "allow-listed identities only" is the
+  Worker's own list. Probes: positive — Z2's listed identity logs in and gets `200`; negative — an identity
+  that can log in to the team but is not on `ACCESS_ALLOWED_EMAILS` (a second address Z2 controls, admitted
+  by the Access policy for the test only) gets `403` from the Worker. If no such second identity is
+  available, the deployment-level result for (c) is recorded as **NO_GATE — authorization unverified**, not
+  as PASS; the code-level check (`node board/worker.test.mjs`: a valid token for an unlisted identity → 403)
+  stands on its own but does not substitute.
 
-On either: disconnect the repository from Workers Builds, and this block is withdrawn rather than carried.
-`node board/worker.test.mjs` is the check against the code (every refusal path, and that only the board and the
-test dashboard are served); the two probes above are the check against the deployment.
+On any of the three: disconnect the repository from Workers Builds, and this block is withdrawn rather than
+carried. `node board/worker.test.mjs` is the check against the code (every refusal path, the allow-list, and
+that only the board and the test dashboard are served); the probes above are the check against the
+deployment, and the policy receipt (checklist) is what makes a later widening of the Access policy visible.

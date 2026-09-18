@@ -7,7 +7,7 @@ const enc = (o) => btoa(JSON.stringify(o)).replace(/\+/g, "-").replace(/\//g, "_
 const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
 const TEAM = "example.cloudflareaccess.com", AUD = "aud-for-the-board";
-const env = { ACCESS_TEAM_DOMAIN: TEAM, ACCESS_AUD: AUD };
+const env = { ACCESS_TEAM_DOMAIN: TEAM, ACCESS_AUD: AUD, ACCESS_ALLOWED_EMAILS: "Night@Example.test, second@example.test" };
 const gen = () => crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
 const pair = await gen(), other = await gen(), rotated = await gen();
 const pub = async (k) => { const j = await crypto.subtle.exportKey("jwk", k.publicKey); return { kty: j.kty, n: j.n, e: j.e, alg: "RS256", use: "sig" }; };
@@ -33,7 +33,8 @@ function check(name, cond) { n++; ok &&= !!cond; console.log((cond ? "  ok  " : 
 const why = async (tok, e = env, at = now) => (await verifyAccessJwt(tok, e, fetchStub, at)).why;
 
 // verifyAccessJwt: every refusal, then the one acceptance
-check("unconfigured env → refused, names the two variables", /ACCESS_TEAM_DOMAIN/.test(await why("x", {})));
+check("unconfigured env → refused, names the three variables", /ACCESS_TEAM_DOMAIN.*ACCESS_AUD.*ACCESS_ALLOWED_EMAILS/.test(await why("x", {})));
+check("team and audience set but no allow-list → still not configured (fails closed)", /not configured/.test(await why("x", { ACCESS_TEAM_DOMAIN: TEAM, ACCESS_AUD: AUD })));
 check("no token → login required", (await why("")) === "login required");
 check("two segments → malformed", (await why("a.b")) === "malformed token");
 check("segments that decode to JSON null → malformed, not a throw", (await why(`${enc(null)}.${enc(null)}.AAAA`)) === "malformed token");
@@ -52,7 +53,12 @@ check("signed by another key → bad signature", (await why(await sign(good, oth
 const tampered = (await sign(good)).split("."); tampered[1] = enc({ ...good, email: "attacker@example.test" });
 check("payload edited after signing → bad signature", (await why(tampered.join("."))) === "bad signature");
 const v = await verifyAccessJwt(await sign(good), env, fetchStub, now);
-check("valid token → ok, carries the email", v.ok && v.email === "night@example.test");
+check("valid token for a listed identity → ok, carries the email (list compared case-insensitively)", v.ok && v.email === "night@example.test");
+const notListed = await verifyAccessJwt(await sign({ ...good, email: "stranger@example.test" }), env, fetchStub, now);
+check("valid token for an identity NOT on the list → refused as 403, not accepted (authorization is the Worker's, not only the policy's)", !notListed.ok && notListed.status === 403 && /allow-list/.test(notListed.why));
+const noEmail = await verifyAccessJwt(await sign({ ...good, email: undefined }), env, fetchStub, now);
+check("valid token with no email claim (a service token) → refused", !noEmail.ok && noEmail.status === 403);
+check("an unsigned claim of a listed email → still bad signature (the list is checked only after the signature)", (await why(await sign({ ...good }, other.privateKey))) === "bad signature");
 let before = certsCalls; await verifyAccessJwt(await sign(good), env, fetchStub, now);
 check("the team's keys are cached between verifications", certsCalls === before);
 
@@ -89,6 +95,8 @@ r = await worker.fetch(req("/intent-os-humanaios-v3_3.html", { "Cf-Access-Jwt-As
 check("wrong application's token → 401, no asset fetch", r.status === 401 && assetCalls === 0);
 r = await worker.fetch(req("/intent-os-humanaios-v3_3.html", { "Cf-Access-Jwt-Assertion": `${enc(null)}.${enc(null)}.AAAA` }), envWithAssets);
 check("null-JSON token → 401, never a 500", r.status === 401);
+r = await worker.fetch(req("/intent-os-humanaios-v3_3.html", { "Cf-Access-Jwt-Assertion": await sign({ ...good, email: "stranger@example.test" }) }), envWithAssets);
+check("valid token, identity not on the list → 403, no asset fetch, no commit header", r.status === 403 && assetCalls === 0 && !r.headers.get("X-Board-Commit"));
 r = await worker.fetch(req("/", {}, "POST"), envWithAssets);
 check("POST / without a login → 401 (the method is not judged before the login)", r.status === 401);
 const tok = await sign(good);
