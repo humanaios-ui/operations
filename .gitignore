@@ -54,3 +54,6 @@ ledgers/*.lock
 
 # Advisory lock sidecars written by resource_ledger_v0_1.py
 *.jsonl.lock
+
+# tools/decision_relay.py DRY_RUN=1 writes its local copy here
+relay_out/

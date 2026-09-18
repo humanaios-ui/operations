@@ -261,8 +261,39 @@ the PENDING PR is no longer open the relay opens a new PR (`Z2 ratification d14:
 the signature, ruling file, INDEX and rendered index, and answers with it; the board shows it. The
 runbook says: echo before merging. The two merged ones are repaired by echoing them now.
 
+**Z2 (2026-09-18, after the two merges): the merge is the ratification.** Z2's finding: the hash echo "puts
+too much friction"; the pull request "acts as a governing function"; "our PRs act as the final approval and
+the hash is submitted there on the merge"; every PR is reviewed and approved — with one member the author
+approves their own as an override, with more than one a board ratification is approved on the PR by another
+member, and "humans cannot ratify on board and merge reviewed PRs". Z1 proposed, Z2 approved and folded #406
+into it: each ruling PR touches only its candidate file; a job on `main` regenerates the other three after
+every merge, the way the refresh workflow regenerates derived files. Recorded as
+`z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md` (a record; indexed).
+
+What changed (#406): relay 0.5.0 — `/decide` writes `status: DECIDED`, refreshes a reused branch from main
+before it rewrites the section, the PR body says the merge is the ratification; `/ratify`, its resume path,
+its refresh-before-write and its new-PR-after-merge are removed with their tests (the failure matrix is 17
+rows: branch, refresh, contents, PR, label). New `tools/intent_os_reconcile_v1_0.py`: for every awaiting
+candidate whose file carries a relay block, verify the hashes, find the merged PR behind the file's last
+commit (`git log -1 -- path` → `GET /repos/{repo}/commits/{sha}/pulls`), map the merger's login to a declared
+ratifier (`RECONCILE_RATIFIERS=humanaios-ui=Night`), sign the merged bytes with that name and the merge date,
+append to the day's ruling file, mark the index, render — the candidate file untouched, so `ratify.py
+--verify` recomputes the same hash. Refusals are named (UNVERIFIED · NO-PR · NOT-RATIFIER) and write
+nothing. Its self-test runs `validate.py`, `render.py --check` and `ratify.py --verify` on the reconciled
+tree. New `.github/workflows/intent-os-reconcile.yml`: on every push to `main` touching `z1-inbox/`, plan →
+apply → the gate's own checks → one PR `intent-os: reconcile ratifications` on `intent-os/reconcile`; it
+dispatches the z2 gate on that branch because a push made with `GITHUB_TOKEN` starts no runs of its own.
+Run against the real tree from this branch, `--check` already names d2 (#393) and d14 (#391), merged by
+`humanaios-ui` → Night on 2026-09-18, single-member override: the job's first run on `main` after #406 merges
+writes both signatures, and `Q-INTENTOS-LAUNCH-01` falsifier (b) closes on that reconcile PR. The twelve
+open PRs (#394–#405) carry 0.4.x PENDING blocks and ratify when merged, in any order. The board drops the echo:
+`→ PR` (or `→ PR again` after a landing, which asks first), status line `DECIDED · <choice> · <PR> · hash … ·
+merge the PR to ratify`. #388 (the ratify-recovery falsifier) is moot: there is no relay-side ratification to
+recover.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.
-2. `Q-INTENTOS-LAUNCH-01` falsifier: a ruling through the relay by **2026-09-30**.
-3. Local copies: until d25, refresh a `~/Downloads` copy by replacing the file with the repository's after each merge — the filename is frozen (d19), so the browser's saved taps survive and the new `rev` loads on restore.
+2. `Q-INTENTOS-LAUNCH-01` falsifier (b): closes when the first reconcile PR (d14, d2) merges after #406.
+3. Z2: review and merge the twelve decided PRs #394–#405 (any order); each merge is a ruling; the reconcile job records them.
+4. Local copies: until d25, refresh a `~/Downloads` copy by replacing the file with the repository's after each merge — the filename is frozen (d19), so the browser's saved taps survive and the new `rev` loads on restore.
