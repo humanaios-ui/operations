@@ -23,7 +23,9 @@ runbook is how a Z2 session opens it, rules on it, lands a ruling, and re-checks
 |---|---|---|
 | `ui/intent-os-humanaios-v3_3.html` | the board; the `HUMANAIOS` block inside it is the live dataset | Z2's hand |
 | `tools/intent_os_board_check_v1_0.py` | re-hashes every seal against the tree; exit 0 HOLDS, exit 2 STALE | Z1 (execute) |
-| `tools/decision_relay.py` | lands a tapped ruling into its candidate block as a PENDING PR; on hash echo signs it as ratify.py does; signs as the ratifier configured on its own machine (`RELAY_RATIFIER`), never as a request string; `/assist` is Z1 navigator grammar | Z3 (lands) |
+| `tools/decision_relay.py` | lands a tapped ruling into its candidate block as a one-file pull request marked DECIDED; signs nothing (0.5.0 — the merge is the ratification); the block's `by` is the ratifier configured on its own machine (`RELAY_RATIFIER`), never a request string; `/assist` is Z1 navigator grammar; `/task` is the agent bus | Z3 (lands) |
+| `tools/intent_os_reconcile_v1_0.py` | after a decided candidate merges: signs the merged bytes with the merger and the merge date, writes the day's ruling file, the INDEX entry and the rendered index; `--check` exit 1 = something waiting, 2 = refused | Z1 (records a Z2 act) |
+| `.github/workflows/intent-os-reconcile.yml` | runs the reconcile tool on every push to `main` that touches `z1-inbox/`, verifies with the z2 gate's own tools, opens one PR `intent-os: reconcile ratifications` | Z1 job |
 | `tools/relay_policy.yml` | ngrok traffic policy in front of the relay (basic-auth; OPTIONS exempt) | Z3 |
 | `docs/INTENT_OS_GENERAL_USER_SPEC.md` | the general-user variant (lexicon, connectors, data line) — unratified | Z1 draft |
 | `z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md` | the launch candidate block: what Z2 is asked to decide | Z1 → Z2 |
@@ -78,21 +80,29 @@ the hash is.** To make it one:
 2. Put the ngrok URL in the board's project data as `relay.url` (https only) and apply.
 3. Tap **→ PR** on the ruling. The board prompts for the relay secret and the basic-auth
    password (kept in memory, never written). The relay writes the choice into the ruling's own
-   candidate block (`z1-inbox/2026-09-14/Q-BOARD-RULING-<nn>.md`, section *Ruling*) on a branch and
-   opens a PR marked **PENDING** with the block's sha256.
-4. Tap the button again — it now reads **echo hash**. The prompt names the ruling
-   (`d14 — LPCS relationship: later`) and comes pre-filled with the landed block's hash: **OK is
-   the echo**. A browser prompt's text cannot be selected, so if you type instead, the first 8+
-   characters of the hash are enough (the status line under the ruling prints the whole hash as
-   selectable text); anything else is sent as typed and refused. The relay checks the branch as it
-   stands (hash, body, status), merges main into the branch, re-checks, then signs the candidate
-   exactly as `.z1-control/ratify.py` does (`sha256(candidate | by=Night | at=<date> |
-   decision=ACCEPT)`), appends the signature to `z1-inbox/<date>/Z2_RULINGS_<date>.md`, marks the
-   candidate `ratified` in `z1-inbox/INDEX.yaml`, regenerates `Z1_INBOX_INDEX.md`, comments
-   `RATIFY <id> — <question> → <choice>` with the hash and signature, and labels the PR
-   `z2-ratified`. Every check the z2 gate runs is satisfied on the branch, so the PR is green or
-   the relay is wrong. Then **merge that PR before the next echo** (see "Ratify one at a time"
-   below).
+   candidate block (`z1-inbox/2026-09-14/Q-BOARD-RULING-<nn>.md`, section *Ruling*, `status: DECIDED`)
+   on a branch `z2/<id>-<date>` and opens a pull request titled
+   `Z2 ruling <id>: <question> → <choice> (<Q-id>)`. The PR changes **one file** — the candidate — so
+   any number of taps can land and merge in any order. The status line under the ruling reads
+   `DECIDED · <choice> · <PR> · hash … · merge the PR to ratify`. A second tap re-sends (the board
+   asks first): the branch is refreshed from main and the same section rewritten, so a changed choice
+   updates the open PR.
+4. **Review the pull request and merge it. The merge is the ratification** (Z2, 2026-09-18,
+   `z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md`). The relay signs nothing and the board
+   has no second step: whoever merges, and the day they do, are the signature's `by` and `at`.
+   `.github/workflows/intent-os-reconcile.yml` then runs on `main`, finds every awaiting candidate whose
+   file carries a relay block behind a merged PR, computes `sha256(candidate | by=Night | at=<merge
+   date> | decision=ACCEPT)` over the merged bytes (what `.z1-control/ratify.py --verify` recomputes),
+   appends it to `z1-inbox/<date>/Z2_RULINGS_<date>.md`, marks the candidate `ratified` in
+   `z1-inbox/INDEX.yaml`, regenerates `Z1_INBOX_INDEX.md`, checks the result with the z2 gate's own
+   tools and opens one PR **`intent-os: reconcile ratifications`** listing id, question, choice, who
+   merged, which PR, and the signature. Merge that too (it is derived files only; nothing in it
+   decides). Until it merges the index still says `awaiting_z2` — the ruling is made, not yet recorded.
+   *Who may merge:* with one member, Z2 reviews and merges their own PR — that is d7's bypass and the
+   ruling section says so (`single-member override`). Once there is a second member, the repository's
+   required review makes the approver and the merger two people; the board is then not a ratifier at
+   all, only the hand that opens the PR, and a person cannot both rule on the board and merge their own
+   ruling. The reconcile job records the approvers it finds either way.
 5. **ask Z1** returns navigator grammar only (position · readings · probability · what would
    prove the favoured reading wrong). Imperatives are stripped and logged as DRIFT. It writes
    nothing.
@@ -164,29 +174,29 @@ refusals a board tap can meet look different there and on the board's status lin
 | `POST /assist 401 basic-auth required` | `REFUSED · basic-auth rejected … password cleared` | the password typed at the prompt is not `RELAY_BASIC_PASS`; the board asks again on the next tap |
 | `POST /assist 401 bad signature` | `REFUSED · bad signature … secret cleared` | the secret typed at the prompt is not `RELAY_SECRET`; the board asks again on the next tap |
 | `POST /decide 401 stale timestamp` | `REFUSED · stale timestamp` | the machine's clock is more than 300 s from the host's |
-| `POST /decide 200` | `PENDING · <PR> · hash …` | landed; the second tap echoes the hash |
-| `POST /ratify 200 refused` | `REFUSED · <the relay's reason>` | the relay answered but refused (hash mismatch, tagline, body changed since `/decide`); the reason is on the board, not in the log |
+| `POST /decide 200` | `DECIDED · <choice> · <PR> · hash … · merge the PR to ratify` | landed; review and merge the PR — the merge is the ratification |
+| `POST /ratify 404 unknown path` | `REFUSED · unknown path` | a board older than 2026-09-18 tried the retired hash echo; load the current board from the repository |
 | `POST /decide 500 error` | `ERROR · could not create branch z2/… : GITHUB_TOKEN cannot do this … (GitHub POST …/git/refs: HTTP 403 — Resource not accessible by personal access token)` | GitHub refused the relay's write. The token can read but not write: give it **Contents**, **Pull requests** and **Issues** read & write on this repository, and — because the repository is organisation-owned — approve the fine-grained token for the organisation (Settings → Third-party access → Personal access tokens). A 403 without "access token" in GitHub's message may be a ruleset or branch protection blocking the `z2/` or `req/` branch, or a permission the token lacks — the status alone does not say which; read GitHub's message on the board |
 
-| `POST /decide 200` with a **warning** on the board (`PENDING · · hash … · landed on z2/… but no pull request: …`) | the choice is on the branch (durable) but the pull request could not be opened — GitHub's message follows, usually Pull requests: write missing. Re-send after fixing the token: the branch is reused and a PR opened |
-| `POST /ratify 200` with a **warning** (`RATIFIED · ratified on z2/… but the pull request could not be commented or labelled: …`) | the signature, ruling file, INDEX and rendered index are on the branch — the ratification stands; only the PR notification failed (Issues: write missing). Nothing to re-send; the PR merges as it is |
+| `POST /decide 200` with a **warning** on the board (`DECIDED · … · landed on z2/… but no pull request: …`) | the choice is on the branch (durable) but the pull request could not be opened — GitHub's message follows, usually Pull requests: write missing. Re-send after fixing the token: the branch is reused and a PR opened |
+| `POST /decide 500 error` with `z2/… conflicts with main` | a re-sent tap on a branch whose candidate changed on main since the earlier tap (its PR merged and the file was edited after). Close that PR and delete the branch on GitHub, then tap again |
 | `POST /decide 500 error` with `could not write … — written before the refusal: nothing; the branch is unchanged` | GitHub refused the first write; nothing landed. `… written before the refusal: <files>; the branch is partially changed` names what did land before a later write was refused — Z2 completes or reverts the branch by hand |
 
 An answer's status always agrees with what is on the branch: refused before the first write means
-nothing changed; a warning on PENDING / OPEN / RATIFIED means the governance write happened and only
-the notification (PR, comment, label) did not.
+nothing changed; a warning on DECIDED / OPEN means the write to the branch happened and only the
+pull request could not be opened.
 
-**Ratify one at a time: echo, merge that PR, then the next echo.** Taps may land as many PENDING
-blocks as there are choices (fourteen landed in one minute on 2026-09-18, #391 and #393–#405); each
-sits on its own branch and touches only its candidate file, so they coexist. A *ratification* also
-writes `z1-inbox/INDEX.yaml` (the entry, the counts, a records: entry for the day's ruling file) and
-the day's `Z2_RULINGS_<date>.md`; two ratified branches from the same base add the same lines and only
-the first can merge. From relay 0.4.7 `/ratify` merges main into the branch before it writes, so an
-echo made after the previous PR merged lands on the current index. An echo made while another
-ratified PR is still unmerged produces a PR that will conflict on merge; the fix is to merge the
-earlier one, then re-echo (the relay resumes the ratification on the refreshed branch, rewriting
-nothing). A `409` on the refresh means the candidate itself changed on main since the tap: re-send
-the choice from "→ PR".
+**Any number at once; merge in any order.** A tap's branch touches only its candidate file, so the
+fourteen that landed in one minute on 2026-09-18 (#391, #393–#405) never conflict with each other. The
+files a ratification shares — `z1-inbox/INDEX.yaml`, the day's `Z2_RULINGS_<date>.md`, the rendered
+index — are written by the reconcile job on `main`, once, after the merges, and land in one reconcile
+PR. The 0.4.x protocol ("echo, merge, then the next echo") is retired with the echo.
+
+**A merged PR is a ruling.** Before 2026-09-18 a PR marked PENDING was not; #391 (d14) and #393 (d2)
+were merged so, with `awaiting_z2` still in the index. Under the ruling that retired the echo those
+two merges *are* the ratifications of d14 and d2, and the reconcile job records them on its first run
+(a `PENDING` block from relay 0.4.x is accepted exactly like a `DECIDED` one). The twelve PRs still open
+(#394–#405) carry 0.4.x PENDING blocks too: merging any of them ratifies it.
 
 The first live `/decide` (2026-09-17 22:52:30Z, d6 → `scrape`) was refused at exactly that step — no
 `z2/d6-2026-09-17` branch exists on the remote — and relay 0.4.4 swallowed the refusal and reported
@@ -227,7 +237,8 @@ lists every open ruling and the history/PII question (d8), and a public copy is 
   `python3 tools/intent_os_board_reseal_v1_0.py --check` (exit 0 HOLDS · 1 mechanical · 2 human).
 - **Every Z2 ruling:** the ruling's `s` line on the board changes from the question to
   `RULED: … · <hash>`; the hash must appear in `z1-inbox/<date>/Z2_RULINGS_<date>.md` and the
-  candidate's INDEX.yaml entry (d18; `z2-rulings/` is retired).
+  candidate's INDEX.yaml entry (d18; `z2-rulings/` is retired). From 2026-09-18 both are written by
+  the reconcile job after the ruling's PR merges; the board is re-read once the reconcile PR is in.
 
 ## 7. What is ruled, and what is not
 
