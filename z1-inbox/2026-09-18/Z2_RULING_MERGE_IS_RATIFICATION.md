@@ -48,3 +48,16 @@ regenerates derived files."
 
 Still open after this ruling: the twelve decided PRs (#394–#405) await Z2's review and merge; d23 (the refresh job's
 auto-PR gate) is a separate question and this job does not depend on it.
+
+## Correction (2026-09-18, Z1, from Z2's adversarial review on #408)
+
+Effect 5 above misstates `Q-INTENTOS-LAUNCH-01` falsifier (b). As signed on 2026-09-14 (`9a2a469b…`) the
+falsifier reads: *"(b) no ruling has landed through the relay (no PR whose body carries a `RULING d<n>` block
+and a `hash:` line, in `z2-rulings/` or `z1-inbox/`)"*. It asks for a landing, not a ratification. It was met
+at 2026-09-18 01:00:59Z when #391 opened with a `RULING d14` block and a `hash:` line in its body. The
+"landed *and ratified*" reading, carried in the 2026-09-17 handoff from the first hash echo onward and repeated
+in effect 5, was criterion drift: a signed falsifier does not gain a condition after the fact (CLAUDE.md: a Z2
+decision is not changed retroactively; falsifier doctrine is not overridden). The 09-18 ratification loop —
+#391 and #393 merged by Z2, signed by the reconcile job in #407 — is a separate milestone, stronger evidence
+that the merge-is-ratification control works, and not what (b) measured. The signed candidate, its signature
+and the rulings table above are unchanged.

@@ -1,5 +1,11 @@
 # Handoff — 2026-09-17 (Intent-OS refresh: the mechanism for automated updates)
 
+> **Continued through 2026-09-18.** The header below records the 09-17 close (pinned `e2b9a7a`). The same
+> session went on: the relay live on Railway, the first rulings through it, Z2's ruling that the merge is
+> the ratification (#406), the reconcile job's first run (#407), and the board re-read (#408). The current
+> state is the last dated sections and "Next blockers"; `main` is at `a23acb3` or later. A fresh handoff
+> file opens at the next session close.
+
 **Session:** `session_01CePrSjPSB8Epbpq3Lj8oKj` (continued) · **Branch:** `claude/vigilant-newton-ko9pcr` · **Pinned:** `main` at `e2b9a7a`
 **Position at close:** board HOLDS at HEAD (re-sealed: 3 mechanical rows by tool, 1 row by hand); harness 47 PASS · 1 FAIL of 48 (the registered ACAT finding); queue 46 candidates (this block included), 39 awaiting Z2, 38 past the 2-day window.
 
@@ -213,7 +219,7 @@ The hash echo at 01:01:32Z answered `200 refused`: a local re-run of the same ch
 bytes ratifies with the full 64-character hash, so the echoed value did not match — the board's status
 line shows the first 16 characters and the prompt asked for the whole hash. The board now completes a
 matching prefix of 16+ characters to the full hash (the echo is Z2's act of confirmation; the board
-holds the hash). Q-INTENTOS-LAUNCH-01 falsifier (b) — landed *and ratified by hash echo* — stays open
+holds the hash). Q-INTENTOS-LAUNCH-01 falsifier (b) — landed *and ratified by hash echo* [corrected 09-18 17:45Z: the signed falsifier asks for a landing only; (b) was met when #391 opened — see blocker 2] — stays open
 until the echo lands; d14's choice was `later`, so ratifying it records a deferral, which is a ruling.
 
 **Z2's #388 (KNOWN_RED, ratify partial-write recovery):** taken. `/ratify` now resumes a ratification that
@@ -285,7 +291,7 @@ apply → the gate's own checks → one PR `intent-os: reconcile ratifications` 
 dispatches the z2 gate on that branch because a push made with `GITHUB_TOKEN` starts no runs of its own.
 Run against the real tree from this branch, `--check` already names d2 (#393) and d14 (#391), merged by
 `humanaios-ui` → Night on 2026-09-18, single-member override: the job's first run on `main` after #406 merges
-writes both signatures, and `Q-INTENTOS-LAUNCH-01` falsifier (b) closes on that reconcile PR. The twelve
+writes both signatures — the ratification loop; `Q-INTENTOS-LAUNCH-01` falsifier (b) itself was met when #391 landed at 01:01Z (blocker 2). The twelve
 open PRs (#394–#405) carry 0.4.x PENDING blocks and ratify when merged, in any order. The board drops the echo:
 `→ PR` (or `→ PR again` after a landing, which asks first), status line `DECIDED · <choice> · <PR> · hash … ·
 merge the PR to ratify`. #388 (the ratify-recovery falsifier) is moot: there is no relay-side ratification to
@@ -293,7 +299,7 @@ recover.
 
 ## Next blockers
 
-1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.
-2. `Q-INTENTOS-LAUNCH-01` falsifier (b): closes when the first reconcile PR (d14, d2) merges after #406.
-3. Z2: review and merge the twelve decided PRs #394–#405 (any order); each merge is a ruling; the reconcile job records them.
+1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d3, d5–d13, d15, d16 (d2 and d14 ruled 09-18 by merge). The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.
+2. `Q-INTENTOS-LAUNCH-01` falsifier (b): **met 2026-09-18 01:00:59Z**, when #391 opened with a `RULING d14` block and a `hash:` line in its body — the condition as signed on 09-14 (`9a2a469b…`): *"no ruling has landed through the relay (no PR whose body carries a RULING block and a hash: line)"*. The "landed *and ratified*" reading this handoff carried from the first echo onward was criterion drift — a signed falsifier does not gain a condition after the fact (CLAUDE.md) — withdrawn on Z2's adversarial review of #408; a correction is appended to `z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md`, whose effect 5 repeated it. **Separately, the ratification loop closed 16:38Z:** #406 merged (d8775a7), the reconcile job's first live run opened #407 with d2 (#393) and d14 (#391) signed by Night over the merged bytes, Z2 approved and merged it (a23acb3); `validate.py`, `ratify.py --verify` and `render.py --check` pass on main; the job's second run found nothing awaiting reconciliation (the Z2 queue itself still holds 38 candidates). Relay 0.5.0 is live on Railway. **`later` semantics (Z2's review, finding 2):** terminal for the Q-ID — the signed block is closed, the row stays on the board marked ruled, and re-opening is a successor Q- block citing the original (runbook §7); nothing returns to the queue on its own, and the board's gauge now says "decisions recorded", not "resolved".
+3. Z2: review and merge the twelve decided PRs #394–#405 (any order); each merge is a ruling; the reconcile job records them. GitHub holds the PR-triggered checks on a job-opened PR until a person clicks "Approve and run" — the job's own dispatch of the z2 gate is already green on the same commit.
 4. Local copies: until d25, refresh a `~/Downloads` copy by replacing the file with the repository's after each merge — the filename is frozen (d19), so the browser's saved taps survive and the new `rev` loads on restore.
