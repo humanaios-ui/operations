@@ -188,6 +188,13 @@ earlier one, then re-echo (the relay resumes the ratification on the refreshed b
 nothing). A `409` on the refresh means the candidate itself changed on main since the tap: re-send
 the choice from "→ PR".
 
+**A PENDING PR is not a ruling — echo before merging it.** Merging a PENDING PR puts the choice on
+main with `status: PENDING` and the INDEX entry still `awaiting_z2` (2026-09-18: #391 and #393 were
+merged so). Nothing is lost: the branch still exists, and the echo still ratifies on it; from relay
+0.4.8, when the PENDING PR is no longer open the relay opens a **new** PR titled
+`Z2 ratification <id>: <question> → <choice>` that carries the signature, the ruling file, INDEX and
+the rendered index — the board's status line shows it. Merge that one before the next echo.
+
 The first live `/decide` (2026-09-17 22:52:30Z, d6 → `scrape`) was refused at exactly that step — no
 `z2/d6-2026-09-17` branch exists on the remote — and relay 0.4.4 swallowed the refusal and reported
 `INDEX.yaml not found`. From 0.4.5 the answer carries GitHub's own message and the meaning above.

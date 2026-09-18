@@ -252,6 +252,15 @@ use it, the relay's PR title reads `Z2 ruling d14: <question> → later (Q-BOARD
 comment names the question and the choice from the hashed block. The fourteen PRs already open keep
 their 0.4.5 titles unless re-sent.
 
+**Two PENDING PRs merged before their echo (Z2, 2026-09-18 01:46:32Z #391 d14, 01:50:42Z #393 d2):**
+main now carries both candidates with `status: PENDING` in their Ruling section and `awaiting_z2` in
+INDEX.yaml; the validator accepts that (a PENDING block is not a decision); the branches still exist.
+A merged PENDING PR is not a ruling, and 0.4.7's `/ratify` would have commented on a closed PR and left
+the ratification on the branch with nothing to carry it to main. Relay 0.4.8: after the writes, if
+the PENDING PR is no longer open the relay opens a new PR (`Z2 ratification d14: … → later`) carrying
+the signature, ruling file, INDEX and rendered index, and answers with it; the board shows it. The
+runbook says: echo before merging. The two merged ones are repaired by echoing them now.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d2, d3, d5–d16. The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.

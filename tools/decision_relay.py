@@ -44,7 +44,7 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.4.7"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"; 0.4.5 = a GitHub refusal is never swallowed: the answer carries GitHub's message and what it means for the token (the first live /decide failed as "INDEX not found" because the branch create was refused silently); the self-test drives the GitHub path through a stub; 0.4.6 = /ratify resumes a ratification GitHub refused mid-way (Z2's falsifier, #388): a RATIFIED candidate behind an awaiting_z2 index entry is completed by the identical echo, nothing rewritten; 0.4.7 = /ratify refreshes the branch from main before it writes (14 taps landed in one minute on 2026-09-18; two ratifications from one base cannot both merge — ratify, merge, then the next)
+TOOL_VERSION = "0.4.8"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"; 0.4.5 = a GitHub refusal is never swallowed: the answer carries GitHub's message and what it means for the token (the first live /decide failed as "INDEX not found" because the branch create was refused silently); the self-test drives the GitHub path through a stub; 0.4.6 = /ratify resumes a ratification GitHub refused mid-way (Z2's falsifier, #388): a RATIFIED candidate behind an awaiting_z2 index entry is completed by the identical echo, nothing rewritten; 0.4.7 = /ratify refreshes the branch from main before it writes (14 taps landed in one minute on 2026-09-18; two ratifications from one base cannot both merge — ratify, merge, then the next); 0.4.8 = a ratification whose PENDING PR was merged or closed before the echo lands in a new PR (#391 and #393 were merged as PENDING)
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -367,13 +367,30 @@ def ratify(d):
     except ValueError as e: raise ValueError(f"{e} — {written_so_far(written)}") from e
     # the ratification is on the branch — durable, authoritative. The PR comment and label are notification: if they are
     # refused the answer is still RATIFIED, with the refusal as a warning, never an ERROR after a governance write.
-    warning=None
-    if not DRY and d.get("number"):
+    warning=None; pr_url=None; pr_number=d.get("number") or 0; reopened=False
+    if not DRY:
+        # The ratification must reach main through an open pull request. If the PENDING PR was merged or closed before the
+        # echo (2026-09-18: #391 and #393 were merged as PENDING), the ratified branch has no PR — open one for it.
         try:
-            gh("POST",f"/repos/{REPO}/issues/{d['number']}/comments",{"body":f"RATIFY {d['id']} — {short_q(question)} → {choice}\nhash: {got}\nby: {by} at {echo_ts}\nsignature: {digest}\nruling: {ruling_rel}"})
-            gh("POST",f"/repos/{REPO}/issues/{d['number']}/labels",{"labels":["z2-ratified"]})
-        except GitHubError as e: warning=f"ratified on {br} (signature {digest[:16]}…) but the pull request could not be commented or labelled: {token_hint(e)}"
-    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"q":question,"by":by,"at":at,"warning":warning}
+            open_now=False
+            if pr_number:
+                try: open_now=gh("GET",f"/repos/{REPO}/pulls/{pr_number}").get("state")=="open"
+                except GitHubError as e:
+                    if e.code!=404: raise
+            if not open_now:
+                pr,_=open_pr(br,f"Z2 ratification {d['id']}: {short_q(question)} → {choice} ({qid})",
+                             f"# {qid} — {question}\n\nRATIFIED by {by} at {echo_ts}: `{choice}`\n\nsignature: `{digest}`\nruling: `{ruling_rel}`\n\n"
+                             f"The PENDING pull request for this branch was {'merged' if pr_number else 'never opened'} before the hash echo; this one carries the ratification "
+                             f"(candidate signed, `{ruling_rel}`, `{INDEX}`, `{RENDERED}`). Merge it before the next echo.\n")
+                pr_number=pr["number"]; pr_url=pr["html_url"]; reopened=True
+        except ValueError as e: warning=f"ratified on {br} (signature {digest[:16]}…) but no open pull request carries it: {e}"
+        if pr_number and warning is None:
+            try:
+                gh("POST",f"/repos/{REPO}/issues/{pr_number}/comments",{"body":f"RATIFY {d['id']} — {short_q(question)} → {choice}\nhash: {got}\nby: {by} at {echo_ts}\nsignature: {digest}\nruling: {ruling_rel}"})
+                gh("POST",f"/repos/{REPO}/issues/{pr_number}/labels",{"labels":["z2-ratified"]})
+            except GitHubError as e: warning=f"ratified on {br} (signature {digest[:16]}…) but the pull request could not be commented or labelled: {token_hint(e)}"
+    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"q":question,"by":by,"at":at,"warning":warning,
+            **({"pr":pr_url,"number":pr_number,"note":"the PENDING pull request was no longer open; a new one carries the ratification — merge it before the next echo"} if reopened else {})}
 
 REQ_KINDS=("pr","answer","ruling")
 def canon_ask(ask): return "\n".join(l.rstrip() for l in str(ask).strip().splitlines())
@@ -719,7 +736,9 @@ def selftest():
                 for (m,suffix),err in s.fail.items():
                     if method==m and p.endswith(suffix):
                         if err is None: return None  # an empty 204 answer
+                        if isinstance(err,dict): return err  # a configured answer
                         raise err
+                if method=="GET" and re.search(r"/pulls/\d+$",p): return {"state":"open","number":int(p.rsplit("/",1)[1])}
                 if method=="GET" and p.endswith("/git/ref/heads/main"): return {"object":{"sha":"abc123"}}
                 if method=="GET" and "/git/ref/heads/" in p: return {"object":{"sha":"def456"}}
                 if method=="GET" and p.endswith(f"/repos/{REPO}"): return {"full_name":REPO}
@@ -812,6 +831,13 @@ def selftest():
                             and g.calls.count(("GET","/repos/%s/contents/%s"%(REPO,INDEX)))>=2),  # re-read after the merge
               ("ratify · refresh 204 (branch already carries main)", lambda: ratify(ratify_d), {("POST","/merges"):None}, {"files":pending_files}, "ok",
                  lambda r,g: r["status"]=="RATIFIED" and ("POST","/repos/%s/merges"%REPO) in g.calls and INDEX in g.files),
+              ("ratify · PENDING PR already merged → the ratification lands in a new PR", lambda: ratify(ratify_d), {("GET","/pulls/1"):{"state":"closed","number":1}}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and r.get("pr")=="https://example.test/pull/1" and "new one carries the ratification" in r.get("note","") and r["warning"] is None
+                            and any(pth.endswith("/pulls") and x["title"].startswith("Z2 ratification d6: batch source? → own postings") for pth,x in g.sent) and INDEX in g.files),
+              ("ratify · PENDING PR merged and the new PR refused → RATIFIED with a warning", lambda: ratify(ratify_d), {("GET","/pulls/1"):{"state":"closed"},("POST","/pulls"):TOKEN403}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and "no open pull request carries it" in r["warning"] and "HTTP 403" in r["warning"] and INDEX in g.files),
+              ("ratify · PENDING PR open → commented and labelled, no new PR", lambda: ratify(ratify_d), {}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and "pr" not in r and not [1 for pth,x in g.sent if pth.endswith("/pulls")] and ("POST","/repos/%s/issues/1/labels"%REPO) in g.calls),
               ("ratify · wrong hash → refused before any refresh", lambda: ratify({**ratify_d,"hash":"deadbeef"}), {}, {"files":pending_files}, "ok",
                  lambda r,g: r["status"]=="REFUSED" and ("POST","/repos/%s/merges"%REPO) not in g.calls and not [c for c in g.calls if c[0]=="PUT"]),
               ("ratify · block edited on the branch → refused, no refresh, nothing written", lambda: ratify(ratify_d), {}, {"files":{**pending_files,cand_rel:pending_files[cand_rel].replace("  choice: own postings","  choice: partner")}}, "ok",
