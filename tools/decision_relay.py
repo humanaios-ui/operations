@@ -17,8 +17,11 @@ Rules in code, not prose:
                Everything the z2 gate checks (coverage, no self-grant, hash-in-ruling, render in sync) is written
                on the branch, so the PR is green or it is wrong.
   * the ratifier identity and every date come from the relay's own machine (RELAY_RATIFIER, server UTC), never from the
-    request; /ratify refuses a candidate that is not awaiting_z2, a candidate whose body changed since /decide (body hash
-    pinned at /decide), and a second ratification — nothing is written before those checks pass.
+    request; /ratify refuses a candidate that is not awaiting_z2 in INDEX.yaml, a candidate whose body changed since
+    /decide (body hash pinned at /decide), and a second ratification — nothing is written before those checks pass.
+    The one thing it resumes rather than refuses: a candidate already RATIFIED on the branch by this relay's ratifier,
+    with the echoed hash, whose INDEX entry is still awaiting_z2 — a ratification GitHub refused mid-way (0.4.6, #388);
+    the identical echo finishes the remaining writes, rewriting nothing.
   * /assist returns navigator grammar only (position · destination · probability · readings), tagged by:Z1;
     an imperative in the model output is stripped and logged as DRIFT. It never writes a ruling.
   * /task (v0.4) is the agent bus: a signed request lands as a RECORD — z1-inbox/<day>/REQ-<yyyymmdd>-<nn>.md with a
@@ -41,7 +44,7 @@ import os, sys, json, hmac, hashlib, time, base64, urllib.request, re, argparse,
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOOL_NAME = "decision_relay"
-TOOL_VERSION = "0.4.5"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"; 0.4.5 = a GitHub refusal is never swallowed: the answer carries GitHub's message and what it means for the token (the first live /decide failed as "INDEX not found" because the branch create was refused silently); the self-test drives the GitHub path through a stub
+TOOL_VERSION = "0.4.7"  # 0.1 = 09-08 relay; 0.2 = browser CORS; 0.3 = lands in z1-inbox + INDEX.yaml (d18); 0.3.1 = body hash pinned at decide, server-side ratifier + date, idempotent ratify; 0.4.0 = /task agent bus (REQ- records), index helpers indentation-agnostic; 0.4.1 = basic-auth gate inside the relay (RELAY_BASIC_PASS), /healthz, $PORT — runs on a host; 0.4.2 = request log on stdout; 0.4.3 = the log line carries the status and the refusal reason (a gate 401 and a signature 401 read differently on the host); 0.4.4 = /assist without a model key says so instead of "dry-run"; 0.4.5 = a GitHub refusal is never swallowed: the answer carries GitHub's message and what it means for the token (the first live /decide failed as "INDEX not found" because the branch create was refused silently); the self-test drives the GitHub path through a stub; 0.4.6 = /ratify resumes a ratification GitHub refused mid-way (Z2's falsifier, #388): a RATIFIED candidate behind an awaiting_z2 index entry is completed by the identical echo, nothing rewritten; 0.4.7 = /ratify refreshes the branch from main before it writes (14 taps landed in one minute on 2026-09-18; two ratifications from one base cannot both merge — ratify, merge, then the next)
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "S-091426-01"
 TOOL_ZONE = 1  # matches tools-manifest.yaml (HAIOS-TOOL-051). The docstring names this relay as Z3 (it lands with a token); raising the declared zone is a Z2 ratification act, not a marker edit
@@ -74,7 +77,9 @@ def gh(method,path,data=None):
     req=urllib.request.Request(f"https://api.github.com{path}",method=method,data=json.dumps(data).encode() if data else None,
         headers={"Authorization":f"token {TOKEN}","Accept":"application/vnd.github+json","Content-Type":"application/json"})
     try:
-        with urllib.request.urlopen(req) as r: return json.load(r)
+        with urllib.request.urlopen(req) as r:
+            raw=r.read()
+            return json.loads(raw) if raw.strip() else None  # 204 (the merge API when a branch already carries main) has no body
     except urllib.error.HTTPError as e:
         try: msg=json.loads(e.read().decode()).get("message","")
         except Exception: msg=""
@@ -98,6 +103,17 @@ def make_branch(br):
     except GitHubError as e:
         if e.code==422 and "already exists" in e.message.lower(): return False
         raise ValueError(f"could not create branch {br}: {token_hint(e)}") from e
+def refresh_branch(br):
+    """Merge main into refs/heads/<br> before /ratify writes, so the ratification lands on the current INDEX.yaml and
+    the current day's ruling file. Two branches ratified from the same base both add the same records: entry, the
+    same counts: change and the same ruling-file header, and only the first can merge; refreshing first, and merging
+    each ratified PR before the next echo, keeps the queue serial (runbook §4c). True = main merged in; False = nothing
+    to merge; a conflict (the candidate itself changed on main since the tap) or a refusal raises."""
+    try: r=gh("POST",f"/repos/{REPO}/merges",{"base":br,"head":"main","commit_message":f"refresh {br} from main before ratification"})
+    except GitHubError as e:
+        if e.code==409: raise ValueError(f"{br} conflicts with main — the candidate changed on main since the tap; re-send the choice from /decide") from e
+        raise ValueError(f"could not refresh {br} from main: {token_hint(e)}") from e
+    return r is not None  # 201 with the merge commit → True; 204 with no body (the branch already carries main) → False
 def open_pr(br,title,body):
     """The pull request for a branch: opened, or — only when GitHub answers 422 "already exists" for this head (a re-sent
     tap) — the open one, retitled. Any other refusal raises with GitHub's message and the token hint (a 403 here is
@@ -112,6 +128,13 @@ def open_pr(br,title,body):
         try: gh("PATCH",f"/repos/{REPO}/pulls/{pr['number']}",{"title":title,"body":body})
         except GitHubError as e3: raise ValueError(f"could not update pull request #{pr['number']} for {br}: {token_hint(e3)}") from e3
         return pr,False
+def short_q(q,n=110):
+    """the question on one line, cut at a word if longer than n — for a PR title or a comment's first line"""
+    q=" ".join(str(q or "").split())
+    return q if len(q)<=n else q[:n].rsplit(" ",1)[0]+"…"
+def pr_title(rid,q,choice,qid):
+    """'Z2 ruling d14: LPCS — independent check (a), … or none? → later (Q-BOARD-RULING-14)': the PR list reads as decisions"""
+    return f"Z2 ruling {rid}: {short_q(q)} → {choice} ({qid})"
 def written_so_far(written):
     return f"written before the refusal: {', '.join(written) if written else 'nothing'}; the branch is {'partially changed — Z2 completes or reverts it by hand' if written else 'unchanged'}"
 
@@ -268,14 +291,21 @@ def land(d):
     if DRY: return {"pr":"DRY","number":0,**out}
     # the PENDING block is on the branch now — durable state. If the PR cannot be opened the answer is still PENDING, with
     # the refusal as a warning, never an ERROR that says nothing happened.
-    try: pr,_=open_pr(br,f"Z2 ruling {d['id']} ({qid}): {d['choice']}",body)
+    try: pr,_=open_pr(br,pr_title(d['id'],d['q'],d['choice'],qid),body)
     except ValueError as e: return {"pr":None,"number":0,"warning":f"landed on {br} (hash {h[:16]}…) but no pull request: {e}. Re-send to try again — the branch is reused",**out}
     return {"pr":pr["html_url"],"number":pr["number"],**out}
 
 def ratify(d):
     """/ratify — Z2 echoes the PENDING hash. Every check runs before anything is written:
-    the echoed hash matches, the candidate is still awaiting_z2, the ruling block on the branch hashes to it, and the rest
-    of the candidate still hashes to what /decide saw. Then: sign, record, regenerate. Refuse otherwise."""
+    the echoed hash matches, the candidate is still awaiting_z2 in INDEX.yaml, the ruling block on the branch hashes to
+    it, and the rest of the candidate still hashes to what /decide saw. Then: sign, record, regenerate. Refuse otherwise.
+    One narrow exception to "the block must be PENDING": a candidate already RATIFIED on the branch — by this relay's
+    ratifier, with the echoed block hash and the same body hash — whose INDEX entry is still awaiting_z2 is a
+    ratification GitHub refused mid-way (0.4.5 named what was written; #388 asked that the same echo finish it). It is
+    resumed, never re-decided: the signature is recomputed over the bytes as they stand with the candidate's own by/at,
+    the ruling section and the records entry are added only if absent, INDEX is marked, the index rendered. A candidate
+    RATIFIED by any other name, or recorded under a different signature, is refused; a complete ratification (INDEX
+    already ratified) is refused before anything is read."""
     exp=d.get("expected_hash"); got=d.get("hash")
     if not got or got!=exp: return {"status":"REFUSED","why":"hash does not match the landed ruling; a tap is not a ratification"}
     by=RATIFIER
@@ -283,32 +313,55 @@ def ratify(d):
     if d.get("tagline") and d.get("tagline")!=by: return {"status":"REFUSED","why":f"this relay signs as {by}; the board's tagline is '{d.get('tagline')}'"}
     ts=server_ts(); at=ts[:10]
     qid=qid_for(d); br=d.get("branch") or f"z2/{d['id']}-{at}"; st=store(br)
-    idx,_=st.get(INDEX)
-    if idx is None: return {"status":"REFUSED","why":f"{INDEX} not found on {br}"}
-    stt=cand_status(idx,qid)
-    if stt!="awaiting_z2": return {"status":"REFUSED","why":f"{qid} is '{stt}', not awaiting_z2 — a decision is not re-taken; nothing written"}
-    path=d.get("path") or cand_path(idx,qid); cand,_=st.get(path)
-    f=ruling_fields(cand) if cand else None
-    if not f or not f.get("block") or f.get("status")!="PENDING": return {"status":"REFUSED","why":"no PENDING ruling block on the branch"}
-    if f["block_hash"]!=got or sha(f["block"].encode())!=got: return {"status":"REFUSED","why":"the ruling block on the branch does not hash to the echoed value — it was edited after /decide"}
-    if body_hash(cand)!=f.get("body_hash"): return {"status":"REFUSED","why":"the candidate changed outside its Ruling section since /decide — re-send the choice"}
-    m=re.search(r"^  choice: (.*)$",f["block"],re.M); choice=m.group(1) if m else f["choice"]
-    if choice!=f["choice"]: return {"status":"REFUSED","why":"choice line and ruling block disagree"}
-    # all checks passed — now write, in the order ratify.py writes. A refusal mid-way names what was written before it.
+    def read_checked():
+        """The branch as it stands, read and checked without writing: a refusal dict, or the pieces the writes need."""
+        idx,_=st.get(INDEX)
+        if idx is None: return {"status":"REFUSED","why":f"{INDEX} not found on {br}"}
+        stt=cand_status(idx,qid)
+        if stt!="awaiting_z2": return {"status":"REFUSED","why":f"{qid} is '{stt}', not awaiting_z2 — a decision is not re-taken; nothing written"}
+        path=d.get("path") or cand_path(idx,qid); cand,_=st.get(path)
+        f=ruling_fields(cand) if cand else None
+        if not f or not f.get("block") or f.get("status") not in ("PENDING","RATIFIED"): return {"status":"REFUSED","why":"no PENDING ruling block on the branch"}
+        if f["block_hash"]!=got or sha(f["block"].encode())!=got: return {"status":"REFUSED","why":"the ruling block on the branch does not hash to the echoed value — it was edited after /decide"}
+        if body_hash(cand)!=f.get("body_hash"): return {"status":"REFUSED","why":"the candidate changed outside its Ruling section since /decide — re-send the choice"}
+        m=re.search(r"^  choice: (.*)$",f["block"],re.M); choice=m.group(1) if m else f["choice"]
+        if choice!=f["choice"]: return {"status":"REFUSED","why":"choice line and ruling block disagree"}
+        mq=re.search(r"^  question: (.*)$",f["block"],re.M); question=mq.group(1) if mq else (d.get("q") or "")  # from the hashed block, not the request
+        return {"idx":idx,"path":path,"cand":cand,"f":f,"choice":choice,"question":question}
+    r=read_checked()
+    if "status" in r: return r  # refused on the branch as it stands: nothing written, nothing merged
+    if not DRY and refresh_branch(br):  # main merged in: the ratification lands on the current index and ruling file — re-read and re-check
+        r=read_checked()
+        if "status" in r: return r
+    idx,path,cand,f,choice,question=r["idx"],r["path"],r["cand"],r["f"],r["choice"],r["question"]
+    # A candidate already RATIFIED on the branch whose INDEX entry is still awaiting_z2 is a ratification that was refused
+    # mid-way by GitHub (the candidate write succeeded, a later one did not). The same echo resumes it deterministically:
+    # the signature is recomputed over the bytes as they stand, with the `by` and `at` the candidate carries, and each
+    # remaining write is made only if absent — nothing is re-decided, nothing is written twice (Z2's falsifier, #388).
+    resume=f["status"]=="RATIFIED"; echo_ts=ts  # when Z2 echoed — this request's time, on the first echo and on a resume alike
+    if resume:
+        if f.get("by")!=by or not f.get("at"): return {"status":"REFUSED","why":f"the candidate is RATIFIED on the branch by '{f.get('by')}', not by this relay's ratifier {by}; nothing written"}
+        ts=f["at"]; at=ts[:10]  # the signature's date is the candidate's own — the bytes on the branch carry it
     written=[]
     try:
-        cand=write_choice(cand,choice,by,ts,"RATIFIED",f["block"],got,f["body_hash"])
-        st.put(path,cand,f"z2 {d['id']} ({qid}): RATIFIED by {by}"); written.append(path)
+        if not resume:
+            cand=write_choice(cand,choice,by,ts,"RATIFIED",f["block"],got,f["body_hash"])
+            st.put(path,cand,f"z2 {d['id']} ({qid}): RATIFIED by {by}"); written.append(path)
         digest=signature(cand.encode(),by,at)          # over the bytes as they now stand — the same bytes CI will hash
         ruling_rel=f"z1-inbox/{at}/Z2_RULINGS_{at}.md"; ruling,_=st.get(ruling_rel)
         if ruling is None:
             ruling=(f"# Z2 Rulings — {at}\n\nSignatures issued by the Z2 serial gate. Each hash is\n`sha256(candidate | by=<ratifier> | at=<date> | decision=<D>)` over the\n"
                     f"candidate block's bytes at the moment of decision, so editing a ratified\ncandidate afterwards breaks `ratify.py --verify`.\n")
+        # the ruling file's records: entry is added whenever the index lacks it — on a resume the file may already exist
+        # (second write done, third refused) while the index read from the branch never took the entry
+        if f'path: "{ruling_rel}"' not in idx and f"path: {ruling_rel}" not in idx:
             idx=index_add_record(idx,ruling_rel,f"Z2 rulings {at} — signatures issued by .z1-control/ratify.py and decision_relay.py","Z2 output. Cited as z2_ruling by the candidates it signs.")
-        ruling+=(f"\n## {qid} — ACCEPT\n\nHash: `{digest}`\n\n- **Decision:** ACCEPT (ratified) · board ruling {d['id']}: `{choice}`\n"
-                 f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2 at {ts})\n"
-                 f"- **Signature:** `sha256(candidate | by={by} | at={at} | decision=ACCEPT)`, computed over the candidate's bytes at the moment of decision.\n")
-        st.put(ruling_rel,ruling,f"z2 rulings {at}: {qid} ACCEPT ({digest[:16]})"); written.append(ruling_rel)
+        if f"## {qid} — ACCEPT" not in ruling:
+            ruling+=(f"\n## {qid} — ACCEPT\n\nHash: `{digest}`\n\n- **Decision:** ACCEPT (ratified) · board ruling {d['id']}: `{choice}`\n"
+                     f"- **By:** {by}\n- **At:** {at}\n- **Candidate:** `{path}`\n- **Landed by:** tools/decision_relay.py v{TOOL_VERSION} (PENDING block hash `{got[:16]}…` echoed by Z2 at {echo_ts})\n"
+                     f"- **Signature:** `sha256(candidate | by={by} | at={at} | decision=ACCEPT)`, computed over the candidate's bytes at the moment of decision.\n")
+            st.put(ruling_rel,ruling,f"z2 rulings {at}: {qid} ACCEPT ({digest[:16]})"); written.append(ruling_rel)
+        elif f"`{digest}`" not in ruling: return {"status":"REFUSED","why":f"{ruling_rel} already records {qid} with a different signature; nothing written"}
         idx=index_mark_ratified(idx,qid,by,at,ruling_rel,digest); st.put(INDEX,idx,f"INDEX: {qid} ratified by {by}"); written.append(INDEX)
         st.put(RENDERED,rendered_index(idx,lambda rel: st.get(rel)[0] or ""),f"render Z1_INBOX_INDEX.md: {qid} ratified"); written.append(RENDERED)
     except ValueError as e: raise ValueError(f"{e} — {written_so_far(written)}") from e
@@ -317,10 +370,10 @@ def ratify(d):
     warning=None
     if not DRY and d.get("number"):
         try:
-            gh("POST",f"/repos/{REPO}/issues/{d['number']}/comments",{"body":f"RATIFY {d['id']} {got}\nby: {by} at {ts}\nsignature: {digest}\nruling: {ruling_rel}"})
+            gh("POST",f"/repos/{REPO}/issues/{d['number']}/comments",{"body":f"RATIFY {d['id']} — {short_q(question)} → {choice}\nhash: {got}\nby: {by} at {echo_ts}\nsignature: {digest}\nruling: {ruling_rel}"})
             gh("POST",f"/repos/{REPO}/issues/{d['number']}/labels",{"labels":["z2-ratified"]})
         except GitHubError as e: warning=f"ratified on {br} (signature {digest[:16]}…) but the pull request could not be commented or labelled: {token_hint(e)}"
-    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"by":by,"at":at,"warning":warning}
+    return {"status":"RATIFIED","hash":got,"signature":digest,"ruling":ruling_rel,"qid":qid,"choice":choice,"q":question,"by":by,"at":at,"warning":warning}
 
 REQ_KINDS=("pr","answer","ruling")
 def canon_ask(ask): return "\n".join(l.rstrip() for l in str(ask).strip().splitlines())
@@ -659,15 +712,19 @@ def selftest():
             """Answers the calls land()/ratify()/task() make. `fail` injects a GitHubError at any boundary: a map of
             (method, path suffix) → error; a PUT suffix may name one file. Files written are kept (and can be seeded)."""
             def __init__(s,fail=None,files=None,open_prs=None):
-                s.fail=fail or {}; s.files=dict(files or {}); s.calls=[]; s.open_prs=open_prs if open_prs is not None else [{"html_url":"https://example.test/pull/1","number":1}]
+                s.fail=fail or {}; s.files=dict(files or {}); s.calls=[]; s.sent=[]; s.open_prs=open_prs if open_prs is not None else [{"html_url":"https://example.test/pull/1","number":1}]
             def __call__(s,method,path,data=None):
                 p=path.split("?")[0]; s.calls.append((method,p))
+                if data and (p.endswith("/pulls") or p.endswith("/comments") or "/pulls/" in p): s.sent.append((p,data))
                 for (m,suffix),err in s.fail.items():
-                    if method==m and p.endswith(suffix): raise err
+                    if method==m and p.endswith(suffix):
+                        if err is None: return None  # an empty 204 answer
+                        raise err
                 if method=="GET" and p.endswith("/git/ref/heads/main"): return {"object":{"sha":"abc123"}}
                 if method=="GET" and "/git/ref/heads/" in p: return {"object":{"sha":"def456"}}
                 if method=="GET" and p.endswith(f"/repos/{REPO}"): return {"full_name":REPO}
                 if method=="POST" and p.endswith("/git/refs"): return {"ref":data["ref"]}
+                if method=="POST" and p.endswith("/merges"): return {"sha":"merged"}
                 if method=="GET" and "/git/matching-refs/" in p: return []
                 if "/contents/" in p:
                     rel=p.split("/contents/",1)[1]
@@ -694,9 +751,14 @@ def selftest():
             rg=land(d); ok&=rg["pr"]=="https://example.test/pull/1" and rg["number"]==1 and "status: PENDING" in gh.files[rg["path"]] and ("POST","/repos/%s/pulls"%REPO) in gh.calls
             print("branch already exists (422, a re-sent tap) → /decide lands: candidate PENDING on the branch, PR opened →",rg["pr"])
             pending_files=dict(gh.files)  # the branch as /decide left it, for the /ratify cases below
+            titles=[x["title"] for pth,x in gh.sent if pth.endswith("/pulls")]
+            ok&=titles==[f"Z2 ruling d6: batch source? → own postings (Q-BOARD-RULING-06)"]; print("the PR title carries the question and the choice →",titles[0] if titles else None)
             ag=ratify({**d,"expected_hash":rg["hash"],"branch":rg["branch"],"hash":rg["hash"],"number":1})
             ok&=ag["status"]=="RATIFIED" and ag["warning"] is None and INDEX in gh.files and RENDERED in gh.files and ag["ruling"] in gh.files and ag["signature"] in gh.files[ag["ruling"]]
-            print("/ratify over the stub → RATIFIED; ruling, INDEX and rendered index written to the branch; comment + label posted →",ag["status"])
+            bodies=[x["body"] for pth,x in gh.sent if pth.endswith("/comments")]
+            ok&=len(bodies)==1 and bodies[0].startswith("RATIFY d6 — batch source? → own postings\nhash: "+rg["hash"]) and ag["q"]=="batch source?"
+            print("/ratify over the stub → RATIFIED; ruling, INDEX and rendered index written to the branch; RATIFY comment names the question and choice →",ag["status"])
+            ok&=short_q("a "*80,20)=="a a a a a a a a a a…" and short_q("  two\nlines  ")=="two lines"; print("short_q cuts at a word and joins lines → OK")
             gh=FakeGH(); tg=task({"title":"via stub","ask":"x","wants":"pr","tagline":"Night"})
             ok&=tg["status"]=="OPEN" and tg["pr"]=="https://example.test/pull/1" and tg["label"]=="agent-request" and tg["path"] in gh.files and ("POST","/repos/%s/git/refs"%REPO) in gh.calls
             print("/task over the stub → branch created, record + INDEX + rendered written, PR + label →",tg["status"],tg["id"])
@@ -741,6 +803,19 @@ def selftest():
                  lambda r,g: "could not write z1-inbox/INDEX.yaml" in r and "written before the refusal: "+cand_rel in r and "partially changed" in r and RENDERED not in g.files),
               ("ratify · INDEX GET 404, branch 404, repo visible", lambda: ratify(ratify_d), {("GET","/contents/"+INDEX):E(404,"Not Found","GET"),("GET","/git/ref/heads/"+rg["branch"]):E(404,"Not Found","GET")}, {"files":pending_files}, "refused",
                  lambda r,g: "does not exist on GitHub" in r),
+              ("ratify · refresh from main 409 (candidate changed on main)", lambda: ratify(ratify_d), {("POST","/merges"):E(409,"Merge conflict")}, {"files":pending_files}, "refused",
+                 lambda r,g: "conflicts with main" in r and "re-send the choice" in r and INDEX not in g.files),
+              ("ratify · refresh from main 403", lambda: ratify(ratify_d), {("POST","/merges"):TOKEN403}, {"files":pending_files}, "refused",
+                 lambda r,g: "could not refresh" in r and "HTTP 403" in r and INDEX not in g.files),
+              ("ratify · refresh happens after the checks and before any write", lambda: ratify(ratify_d), {}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and g.calls.index(("GET","/repos/%s/contents/%s"%(REPO,INDEX)))<g.calls.index(("POST","/repos/%s/merges"%REPO))<g.calls.index(("PUT","/repos/%s/contents/%s"%(REPO,cand_rel)))
+                            and g.calls.count(("GET","/repos/%s/contents/%s"%(REPO,INDEX)))>=2),  # re-read after the merge
+              ("ratify · refresh 204 (branch already carries main)", lambda: ratify(ratify_d), {("POST","/merges"):None}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and ("POST","/repos/%s/merges"%REPO) in g.calls and INDEX in g.files),
+              ("ratify · wrong hash → refused before any refresh", lambda: ratify({**ratify_d,"hash":"deadbeef"}), {}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="REFUSED" and ("POST","/repos/%s/merges"%REPO) not in g.calls and not [c for c in g.calls if c[0]=="PUT"]),
+              ("ratify · block edited on the branch → refused, no refresh, nothing written", lambda: ratify(ratify_d), {}, {"files":{**pending_files,cand_rel:pending_files[cand_rel].replace("  choice: own postings","  choice: partner")}}, "ok",
+                 lambda r,g: r["status"]=="REFUSED" and ("POST","/repos/%s/merges"%REPO) not in g.calls and not [c for c in g.calls if c[0]=="PUT"]),
               ("task · branch POST 403", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/git/refs"):TOKEN403}, {}, "refused",
                  lambda r,g: "could not create branch req/" in r and "Contents, Pull requests and Issues" in r),
               ("task · branch POST 401", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/git/refs"):E(401,"Bad credentials")}, {}, "refused",
@@ -758,6 +833,45 @@ def selftest():
                 good=(kind==expect) and "IndexError" not in str(res) and bool(check(res,g))
                 if not good: bad+=1; print("  MATRIX FAIL:",label,"→",kind,str(res)[:220])
             ok&=bad==0; print(f"GitHub failure matrix: {len(matrix)} injected refusals across branch/contents/PR/comment/label — each keeps GitHub's status + message, no fallback exception, status agrees with what was written →",bad==0)
+            # Z2's recovery falsifier (#388): a ratification refused after the candidate and ruling writes but before INDEX
+            # must be finished by the identical /ratify once GitHub is healthy — not stranded as a RATIFIED candidate behind
+            # an awaiting_z2 index entry. (The falsifier as filed asserted INDEX present after the INDEX write was refused;
+            # the ruling file is what is present at that point — corrected here, the intent unchanged.)
+            gh=FakeGH({("PUT","/contents/"+INDEX):TOKEN403},files=pending_files)
+            partial_error=None
+            try: ratify(ratify_d)
+            except ValueError as e: partial_error=str(e)
+            partial_files=dict(gh.files); cand_partial=partial_files.get(cand_rel,""); ruling_rel_p=[k for k in partial_files if "Z2_RULINGS_" in k]
+            first_leg=(partial_error is not None and "partially changed" in partial_error and "status: RATIFIED" in cand_partial
+                       and len(ruling_rel_p)==1 and INDEX not in partial_files and RENDERED not in partial_files)
+            gh=FakeGH(files=partial_files); resumed=ratify(ratify_d)
+            digest_p=re.search(r"Hash: `([0-9a-f]{64})`",partial_files[ruling_rel_p[0]]).group(1) if ruling_rel_p else ""
+            rr=ruling_rel_p[0] if ruling_rel_p else ""
+            recovery_ok=(first_leg and resumed.get("status")=="RATIFIED" and resumed.get("signature")==digest_p and INDEX in gh.files and RENDERED in gh.files
+                         and "status: ratified" in gh.files[INDEX] and f'z2_hash: "{digest_p}"' in gh.files[INDEX]
+                         and (f'path: "{rr}"' in gh.files[INDEX] or f"path: {rr}" in gh.files[INDEX])  # the ruling file is indexed under records: (validate.py's coverage)
+                         and f"echoed by Z2 at {server_ts()[:13]}" in gh.files[rr]  # the echo time is this request's, not the landing's
+                         and gh.files[rr].count("— ACCEPT")==1 and gh.files[cand_rel]==cand_partial and ("PUT","/repos/%s/contents/%s"%(REPO,cand_rel)) not in gh.calls)
+            if recovery_ok:  # the recovered index parses strictly and covers the ruling file, as the z2 gate checks
+                yaml.load(gh.files[INDEX],Loader=v.StrictLoader)
+            ok&=recovery_ok
+            print("ratify recovery (#388): third-write refusal → identical retry completes ruling+INDEX+rendered with the same signature, candidate untouched, one ACCEPT section →",recovery_ok,
+                  "" if recovery_ok else f"(retry: {resumed.get('status')} {resumed.get('why') or resumed.get('warning')})")
+            # the retry after a refusal at the SECOND write (ruling): candidate RATIFIED, no ruling file, INDEX awaiting → resumed too
+            gh=FakeGH({("PUT","/contents/z1-inbox/"):TOKEN403},files=pending_files); gh.fail={("PUT","/contents/z1-inbox/%s/Z2_RULINGS_%s.md"%(server_ts()[:10],server_ts()[:10])):TOKEN403}
+            try: ratify(ratify_d); second_leg_err=None
+            except ValueError as e: second_leg_err=str(e)
+            p2=dict(gh.files); gh=FakeGH(files=p2); r2=ratify(ratify_d)
+            rr2=[k for k in gh.files if "Z2_RULINGS_" in k]
+            ok&=(second_leg_err is not None and "written before the refusal: "+cand_rel in second_leg_err and r2["status"]=="RATIFIED" and INDEX in gh.files and len(rr2)==1
+                 and (f'path: "{rr2[0]}"' in gh.files[INDEX] or f"path: {rr2[0]}" in gh.files[INDEX]))
+            print("ratify recovery: second-write refusal → identical retry writes ruling+INDEX+rendered →",r2["status"])
+            # a complete ratification stays refused on a second echo (nothing written), and a candidate RATIFIED by someone else is refused
+            gh=FakeGH(files=dict(gh.files)); before_files=dict(gh.files); r3=ratify(ratify_d)
+            ok&=r3["status"]=="REFUSED" and "not awaiting_z2" in r3["why"] and gh.files==before_files
+            other=dict(pending_files); other[cand_rel]=write_choice(other[cand_rel],"own postings","Someone",server_ts(),"RATIFIED",ruling_fields(other[cand_rel])["block"],rg["hash"],ruling_fields(other[cand_rel])["body_hash"])
+            gh=FakeGH(files=other); r4=ratify(ratify_d); ok&=r4["status"]=="REFUSED" and "not by this relay's ratifier" in r4["why"] and gh.files==other
+            print("complete ratification re-echoed → REFUSED, nothing written; RATIFIED by another name → REFUSED, nothing written →",r3["status"],r4["status"])
         finally: gh=real_gh; DRY=True
         # a refusal that is not 404 on a read is the token, not an absence
         try: token_hint(GitHubError("GET","/x",401,"Bad credentials")); ok&="invalid or expired" in token_hint(GitHubError("GET","/x",401,"Bad credentials"))
