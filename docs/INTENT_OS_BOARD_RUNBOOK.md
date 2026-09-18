@@ -246,5 +246,9 @@ Ruled 2026-09-14 (`z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md`; ACCEPT sig
 `z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md`): **d17 local only · d18 z1-inbox + INDEX.yaml ·
 d19 freeze path**; the temporary GitHub tokens are revoked (Z2's statement is the receipt).
 
-Not ruled: the fourteen board rulings d2, d3, d5–d16, now each a candidate block
-(`z1-inbox/2026-09-14/Q-BOARD-RULING-<nn>.md`) in the same queue as everything else Z2 owes.
+Ruled 2026-09-18 by merge (`z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md`, written by the reconcile
+job in #407): **d2 later · d14 later** — the first two rulings through the relay.
+
+Not ruled: the twelve board rulings d3, d5–d13, d15, d16, each a candidate block
+(`z1-inbox/2026-09-14/Q-BOARD-RULING-<nn>.md`) in the same queue as everything else Z2 owes, and each
+with a decided pull request open (#394–#405) whose merge is the ruling.
