@@ -254,7 +254,10 @@ board's saved state lives in the browser under the Worker's origin, so a first v
 persist from then on. The seals and the checker are untouched: they hash the file on `main`, which is the
 file the Worker serves.
 
-If d31 rules `stay local`, the two files are removed. `later` leaves them inert.
+If d31 rules `stay local`, the whole surface is removed in one PR: `board/` (`worker.js`, `worker.test.mjs`),
+`wrangler.jsonc`, the root `package.json` and `package-lock.json`, the two `!/package…` lines in `.gitignore`
+that un-ignore them, this section's table, and the three board seals for those files (`board/worker.js`,
+`wrangler.jsonc`, `package.json`). `later` leaves all of it inert.
 
 ## 6. Re-read cadence
 

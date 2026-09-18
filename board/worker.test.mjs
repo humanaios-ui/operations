@@ -43,6 +43,9 @@ check("wrong audience → refused", (await why(await sign({ ...good, aud: ["some
 check("expired → refused", (await why(await sign({ ...good, exp: now - 1 }))) === "token expired");
 check("nbf one second in the future → refused (no skew allowance)", (await why(await sign({ ...good, nbf: now + 1 }))) === "token not yet valid");
 check("nbf equal to now → accepted", (await verifyAccessJwt(await sign({ ...good, nbf: now }), env, fetchStub, now)).ok);
+check("nbf present but a string (a future value encoded as text) → malformed, not skipped", (await why(await sign({ ...good, nbf: String(now + 600) }))) === "malformed token");
+check("nbf present but null → malformed", (await why(await sign({ ...good, nbf: null }))) === "malformed token");
+check("exp as a string → refused", (await why(await sign({ ...good, exp: String(now + 600) }))) === "token expired");
 check("unknown kid → refused", (await why(await sign(good, pair.privateKey, "kid-9"))) === "token signed by an unknown key");
 check("signed by another key → bad signature", (await why(await sign(good, other.privateKey))) === "bad signature");
 const tampered = (await sign(good)).split("."); tampered[1] = enc({ ...good, email: "attacker@example.test" });

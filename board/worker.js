@@ -77,6 +77,7 @@ export async function verifyAccessJwt(token, env, fetchFn = fetch, nowSec = Date
   const aud = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
   if (!aud.includes(env.ACCESS_AUD)) return { ok: false, why: "token is not for this application" };
   if (typeof payload.exp !== "number" || payload.exp <= nowSec) return { ok: false, why: "token expired" };
+  if ("nbf" in payload && typeof payload.nbf !== "number") return { ok: false, why: "malformed token" }; // a present nbf must be a number — never skipped for being a string
   if (typeof payload.nbf === "number" && payload.nbf > nowSec) return { ok: false, why: "token not yet valid" };
   let keys;
   try { keys = await accessKeys(env.ACCESS_TEAM_DOMAIN, fetchFn, nowSec * 1000); } catch (e) { return { ok: false, why: `could not read the team's keys: ${e.message}` }; }
