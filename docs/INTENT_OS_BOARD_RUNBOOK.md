@@ -80,13 +80,19 @@ the hash is.** To make it one:
    password (kept in memory, never written). The relay writes the choice into the ruling's own
    candidate block (`z1-inbox/2026-09-14/Q-BOARD-RULING-<nn>.md`, section *Ruling*) on a branch and
    opens a PR marked **PENDING** with the block's sha256.
-4. Tap **→ PR** again and paste the hash back. The relay refuses a hash that does not match the
-   landed block. On a match it signs the candidate exactly as `.z1-control/ratify.py` does
-   (`sha256(candidate | by=Night | at=<date> | decision=ACCEPT)`), appends the signature to
-   `z1-inbox/<date>/Z2_RULINGS_<date>.md`, marks the candidate `ratified` in
-   `z1-inbox/INDEX.yaml`, regenerates `Z1_INBOX_INDEX.md`, comments `RATIFY <id> <hash>` and
-   labels the PR `z2-ratified`. Every check the z2 gate runs is satisfied on the branch, so the
-   PR is green or the relay is wrong.
+4. Tap the button again — it now reads **echo hash**. The prompt names the ruling
+   (`d14 — LPCS relationship: later`) and comes pre-filled with the landed block's hash: **OK is
+   the echo**. A browser prompt's text cannot be selected, so if you type instead, the first 8+
+   characters of the hash are enough (the status line under the ruling prints the whole hash as
+   selectable text); anything else is sent as typed and refused. The relay checks the branch as it
+   stands (hash, body, status), merges main into the branch, re-checks, then signs the candidate
+   exactly as `.z1-control/ratify.py` does (`sha256(candidate | by=Night | at=<date> |
+   decision=ACCEPT)`), appends the signature to `z1-inbox/<date>/Z2_RULINGS_<date>.md`, marks the
+   candidate `ratified` in `z1-inbox/INDEX.yaml`, regenerates `Z1_INBOX_INDEX.md`, comments
+   `RATIFY <id> — <question> → <choice>` with the hash and signature, and labels the PR
+   `z2-ratified`. Every check the z2 gate runs is satisfied on the branch, so the PR is green or
+   the relay is wrong. Then **merge that PR before the next echo** (see "Ratify one at a time"
+   below).
 5. **ask Z1** returns navigator grammar only (position · readings · probability · what would
    prove the favoured reading wrong). Imperatives are stripped and logged as DRIFT. It writes
    nothing.

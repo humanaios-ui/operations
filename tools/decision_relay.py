@@ -77,7 +77,9 @@ def gh(method,path,data=None):
     req=urllib.request.Request(f"https://api.github.com{path}",method=method,data=json.dumps(data).encode() if data else None,
         headers={"Authorization":f"token {TOKEN}","Accept":"application/vnd.github+json","Content-Type":"application/json"})
     try:
-        with urllib.request.urlopen(req) as r: return json.load(r)
+        with urllib.request.urlopen(req) as r:
+            raw=r.read()
+            return json.loads(raw) if raw.strip() else None  # 204 (the merge API when a branch already carries main) has no body
     except urllib.error.HTTPError as e:
         try: msg=json.loads(e.read().decode()).get("message","")
         except Exception: msg=""
@@ -110,9 +112,8 @@ def refresh_branch(br):
     try: r=gh("POST",f"/repos/{REPO}/merges",{"base":br,"head":"main","commit_message":f"refresh {br} from main before ratification"})
     except GitHubError as e:
         if e.code==409: raise ValueError(f"{br} conflicts with main — the candidate changed on main since the tap; re-send the choice from /decide") from e
-        if e.code==204: return False
         raise ValueError(f"could not refresh {br} from main: {token_hint(e)}") from e
-    return bool(r)  # GitHub answers 201 with the merge commit, or 204 (no body) when the branch already carries main
+    return r is not None  # 201 with the merge commit → True; 204 with no body (the branch already carries main) → False
 def open_pr(br,title,body):
     """The pull request for a branch: opened, or — only when GitHub answers 422 "already exists" for this head (a re-sent
     tap) — the open one, retitled. Any other refusal raises with GitHub's message and the token hint (a 403 here is
@@ -312,19 +313,27 @@ def ratify(d):
     if d.get("tagline") and d.get("tagline")!=by: return {"status":"REFUSED","why":f"this relay signs as {by}; the board's tagline is '{d.get('tagline')}'"}
     ts=server_ts(); at=ts[:10]
     qid=qid_for(d); br=d.get("branch") or f"z2/{d['id']}-{at}"; st=store(br)
-    if not DRY: refresh_branch(br)  # the ratification lands on main's current index and ruling file, not the tap-time snapshot
-    idx,_=st.get(INDEX)
-    if idx is None: return {"status":"REFUSED","why":f"{INDEX} not found on {br}"}
-    stt=cand_status(idx,qid)
-    if stt!="awaiting_z2": return {"status":"REFUSED","why":f"{qid} is '{stt}', not awaiting_z2 — a decision is not re-taken; nothing written"}
-    path=d.get("path") or cand_path(idx,qid); cand,_=st.get(path)
-    f=ruling_fields(cand) if cand else None
-    if not f or not f.get("block") or f.get("status") not in ("PENDING","RATIFIED"): return {"status":"REFUSED","why":"no PENDING ruling block on the branch"}
-    if f["block_hash"]!=got or sha(f["block"].encode())!=got: return {"status":"REFUSED","why":"the ruling block on the branch does not hash to the echoed value — it was edited after /decide"}
-    if body_hash(cand)!=f.get("body_hash"): return {"status":"REFUSED","why":"the candidate changed outside its Ruling section since /decide — re-send the choice"}
-    m=re.search(r"^  choice: (.*)$",f["block"],re.M); choice=m.group(1) if m else f["choice"]
-    if choice!=f["choice"]: return {"status":"REFUSED","why":"choice line and ruling block disagree"}
-    mq=re.search(r"^  question: (.*)$",f["block"],re.M); question=mq.group(1) if mq else (d.get("q") or "")  # from the hashed block, not the request
+    def read_checked():
+        """The branch as it stands, read and checked without writing: a refusal dict, or the pieces the writes need."""
+        idx,_=st.get(INDEX)
+        if idx is None: return {"status":"REFUSED","why":f"{INDEX} not found on {br}"}
+        stt=cand_status(idx,qid)
+        if stt!="awaiting_z2": return {"status":"REFUSED","why":f"{qid} is '{stt}', not awaiting_z2 — a decision is not re-taken; nothing written"}
+        path=d.get("path") or cand_path(idx,qid); cand,_=st.get(path)
+        f=ruling_fields(cand) if cand else None
+        if not f or not f.get("block") or f.get("status") not in ("PENDING","RATIFIED"): return {"status":"REFUSED","why":"no PENDING ruling block on the branch"}
+        if f["block_hash"]!=got or sha(f["block"].encode())!=got: return {"status":"REFUSED","why":"the ruling block on the branch does not hash to the echoed value — it was edited after /decide"}
+        if body_hash(cand)!=f.get("body_hash"): return {"status":"REFUSED","why":"the candidate changed outside its Ruling section since /decide — re-send the choice"}
+        m=re.search(r"^  choice: (.*)$",f["block"],re.M); choice=m.group(1) if m else f["choice"]
+        if choice!=f["choice"]: return {"status":"REFUSED","why":"choice line and ruling block disagree"}
+        mq=re.search(r"^  question: (.*)$",f["block"],re.M); question=mq.group(1) if mq else (d.get("q") or "")  # from the hashed block, not the request
+        return {"idx":idx,"path":path,"cand":cand,"f":f,"choice":choice,"question":question}
+    r=read_checked()
+    if "status" in r: return r  # refused on the branch as it stands: nothing written, nothing merged
+    if not DRY and refresh_branch(br):  # main merged in: the ratification lands on the current index and ruling file — re-read and re-check
+        r=read_checked()
+        if "status" in r: return r
+    idx,path,cand,f,choice,question=r["idx"],r["path"],r["cand"],r["f"],r["choice"],r["question"]
     # A candidate already RATIFIED on the branch whose INDEX entry is still awaiting_z2 is a ratification that was refused
     # mid-way by GitHub (the candidate write succeeded, a later one did not). The same echo resumes it deterministically:
     # the signature is recomputed over the bytes as they stand, with the `by` and `at` the candidate carries, and each
@@ -708,7 +717,9 @@ def selftest():
                 p=path.split("?")[0]; s.calls.append((method,p))
                 if data and (p.endswith("/pulls") or p.endswith("/comments") or "/pulls/" in p): s.sent.append((p,data))
                 for (m,suffix),err in s.fail.items():
-                    if method==m and p.endswith(suffix): raise err
+                    if method==m and p.endswith(suffix):
+                        if err is None: return None  # an empty 204 answer
+                        raise err
                 if method=="GET" and p.endswith("/git/ref/heads/main"): return {"object":{"sha":"abc123"}}
                 if method=="GET" and "/git/ref/heads/" in p: return {"object":{"sha":"def456"}}
                 if method=="GET" and p.endswith(f"/repos/{REPO}"): return {"full_name":REPO}
@@ -796,8 +807,15 @@ def selftest():
                  lambda r,g: "conflicts with main" in r and "re-send the choice" in r and INDEX not in g.files),
               ("ratify · refresh from main 403", lambda: ratify(ratify_d), {("POST","/merges"):TOKEN403}, {"files":pending_files}, "refused",
                  lambda r,g: "could not refresh" in r and "HTTP 403" in r and INDEX not in g.files),
-              ("ratify · refresh happens before any write", lambda: ratify(ratify_d), {}, {"files":pending_files}, "ok",
-                 lambda r,g: r["status"]=="RATIFIED" and g.calls.index(("POST","/repos/%s/merges"%REPO))<g.calls.index(("PUT","/repos/%s/contents/%s"%(REPO,cand_rel)))),
+              ("ratify · refresh happens after the checks and before any write", lambda: ratify(ratify_d), {}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and g.calls.index(("GET","/repos/%s/contents/%s"%(REPO,INDEX)))<g.calls.index(("POST","/repos/%s/merges"%REPO))<g.calls.index(("PUT","/repos/%s/contents/%s"%(REPO,cand_rel)))
+                            and g.calls.count(("GET","/repos/%s/contents/%s"%(REPO,INDEX)))>=2),  # re-read after the merge
+              ("ratify · refresh 204 (branch already carries main)", lambda: ratify(ratify_d), {("POST","/merges"):None}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and ("POST","/repos/%s/merges"%REPO) in g.calls and INDEX in g.files),
+              ("ratify · wrong hash → refused before any refresh", lambda: ratify({**ratify_d,"hash":"deadbeef"}), {}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="REFUSED" and ("POST","/repos/%s/merges"%REPO) not in g.calls and not [c for c in g.calls if c[0]=="PUT"]),
+              ("ratify · block edited on the branch → refused, no refresh, nothing written", lambda: ratify(ratify_d), {}, {"files":{**pending_files,cand_rel:pending_files[cand_rel].replace("  choice: own postings","  choice: partner")}}, "ok",
+                 lambda r,g: r["status"]=="REFUSED" and ("POST","/repos/%s/merges"%REPO) not in g.calls and not [c for c in g.calls if c[0]=="PUT"]),
               ("task · branch POST 403", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/git/refs"):TOKEN403}, {}, "refused",
                  lambda r,g: "could not create branch req/" in r and "Contents, Pull requests and Issues" in r),
               ("task · branch POST 401", lambda: task({"title":"m","ask":"x","wants":"pr"}), {("POST","/git/refs"):E(401,"Bad credentials")}, {}, "refused",
