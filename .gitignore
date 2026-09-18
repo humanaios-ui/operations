@@ -5,7 +5,7 @@ out/
 node_modules/
 package-lock.json
 package.json
-# ...except the root pair, which pins wrangler for Cloudflare Workers Builds (board/worker.js, wrangler.jsonc)
+# ...except the root pair, which pins wrangler for Cloudflare Workers Builds (board/worker.mjs, wrangler.jsonc)
 !/package.json
 !/package-lock.json
 

@@ -1,7 +1,9 @@
-// wrangler.jsonc — the Intent-OS board as a Cloudflare Worker, login-gated (board/worker.js).
+// wrangler.jsonc — the Intent-OS board as a Cloudflare Worker, login-gated (board/worker.mjs).
 // Deployed by Cloudflare Workers Builds from this repository (Workers & Pages → connect humanaios-ui/operations,
-// root directory "/", no build command, deploy command `npx wrangler deploy`). Nothing runs from a laptop.
-// Serves two pages of ui/ — the board and the test dashboard — and only after board/worker.js has verified a
+// root directory "/", no build command, deploy command
+// `npx wrangler deploy --var BOARD_COMMIT:$WORKERS_CI_COMMIT_SHA` — the commit stamp the Worker returns as
+// X-Board-Commit). Nothing runs from a laptop.
+// Serves two pages of ui/ — the board and the test dashboard — and only after board/worker.mjs has verified a
 // Cloudflare Access login; run_worker_first makes that check precede the asset router on every path. The Z2
 // reviewer under ui/ reads ../z1-inbox/ at runtime, which is not in the bundle, so the Worker does not offer it.
 // wrangler itself is pinned in package.json (+ package-lock.json) so Workers Builds installs that version.
@@ -10,7 +12,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "intent-os-board",
-  "main": "board/worker.js",
+  "main": "board/worker.mjs",
   "compatibility_date": "2026-09-18",
   "workers_dev": true,
   "keep_vars": true,

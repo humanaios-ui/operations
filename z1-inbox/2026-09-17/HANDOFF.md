@@ -299,12 +299,15 @@ recover.
 
 **Z2 (2026-09-18, evening): "how do we make the board a webpage … I don't want any public, I want to have to
 login to open the board."** Built inert and filed as d31 (`z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md`; d17 stands
-until it rules): `board/worker.js`, a Cloudflare Worker that serves two pages of `ui/` — the board and the test
+until it rules): `board/worker.mjs`, a Cloudflare Worker that serves two pages of `ui/` — the board and the test
 dashboard; not the Z2 reviewer, which reads `../z1-inbox/` at runtime — only behind a verified Cloudflare Access
-login (RS256 against the team's keys; shape, issuer, audience, expiry, `nbf`, signature) and answers 401 to
-everything but `/healthz` until `ACCESS_TEAM_DOMAIN`/`ACCESS_AUD` are set — 35-check self-test in
-`board/worker.test.mjs` (after Copilot's two reviews on #409); `wrangler.jsonc`, the Workers Builds configuration
-(assets `./ui`, `run_worker_first`, `keep_vars`); `package.json` + lockfile pinning wrangler for the build. No
+login (the token from Access's request header, the cookie unread; RS256 against the team's keys; shape, issuer,
+audience, expiry, `nbf`, signature) and answers 401 to everything but `/healthz` until
+`ACCESS_TEAM_DOMAIN`/`ACCESS_AUD` are set; keys cached in an immutable snapshot with a rate-limited refresh on
+an unknown kid and a 24 h last-known-good bound; CSP / nosniff / frame-deny on every answer; `X-Board-Commit`
+on every authenticated one — 41-check self-test in `board/worker.test.mjs` (after Copilot's two reviews and
+Z2's red-team review on #409); `wrangler.jsonc`, the Workers Builds configuration (assets `./ui`,
+`run_worker_first`, `keep_vars`); `package.json` + lockfile pinning wrangler for the build. No
 secrets in the tree; nothing deploys until Z2 connects the repository in the dashboard; the steps are in runbook
 §5. Z2 connected the Cloudflare connector to this session (docs search and account reads); the Cloudflare API
 and docs site are denied by the sandbox egress policy, and no credentials are set here, so nothing was deployed

@@ -469,7 +469,7 @@ candidates:
   submitted: '2026-09-18'
   status: awaiting_z2
   note: "Z2's direction 2026-09-18: no public copy, a login to open the board. The Worker\
-    \ (board/worker.js, wrangler.jsonc) is on main and fails closed until Access is configured;\
+    \ (board/worker.mjs, wrangler.jsonc) is on main and fails closed until Access is configured;\
     \ nothing is served until Z2 rules and connects the repository. Ruled from the board via\
     \ decision_relay.py (merge is the ratification) or by hand via ratify.py."
 records:

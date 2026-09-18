@@ -1,8 +1,7 @@
 {
   "name": "operations-board",
   "private": true,
-  "type": "module",
-  "description": "Pins wrangler for Cloudflare Workers Builds (board/worker.js, wrangler.jsonc). Not a package: nothing here is published or imported.",
+  "description": "Pins wrangler for Cloudflare Workers Builds (board/worker.mjs, wrangler.jsonc). Not a package: nothing here is published or imported, and no \"type\" is set so the CommonJS tools under tools/ keep their semantics — the Worker is .mjs on its own.",
   "devDependencies": {
     "wrangler": "4.135.0"
   }

@@ -13,12 +13,14 @@ Board surface — serve the board from a login-gated Cloudflare Worker (Cloudfla
 ## Context carried on the board
 
 Z2, 2026-09-18: *"I don't want any public, I want to have to login to open the board."* The mechanism is built
-and inert on `main`: `board/worker.js` serves two pages of `ui/` — the board and the test dashboard — only after
-verifying a Cloudflare Access login (RS256 token from the team's keys, issued for this application, unexpired);
-with the two Access variables unset it answers 401 to everything but `/healthz`, so a deploy publishes nothing
-until Access is in front of it. `wrangler.jsonc` at the root is the Workers Builds configuration and
-`package.json` pins the deploy tool; Cloudflare deploys from this repository on each push to `main` once Z2
-connects the repository in the dashboard. The relay is untouched. Runbook §5 has the steps.
+and inert on `main`: `board/worker.mjs` serves two pages of `ui/` — the board and the test dashboard — only
+after verifying a Cloudflare Access login (the RS256 token Access injects in its request header, checked
+against the team's keys, issued for this application, unexpired, not before its `nbf`); with the two Access
+variables unset it answers 401 to everything but `/healthz`, so a deploy publishes nothing until Access is in
+front of it. Every authenticated answer names the deployed commit (`X-Board-Commit`). `wrangler.jsonc` at the
+root is the Workers Builds configuration and `package.json` pins the deploy tool; Cloudflare deploys from this
+repository on each push to `main` once Z2 connects the repository in the dashboard. The relay is untouched.
+Runbook §5 has the steps and the failure modes.
 
 ## Options
 
@@ -74,8 +76,10 @@ deploy has **completed** (a build in progress is not measured):
   `curl -sS -o /dev/null -w '%{http_code}' https://<worker>/intent-os-humanaios-v3_3.html` must print `401`
   (or a `302` to the Access login when Access fronts the name), never `200`.
 - (b) an **authenticated** `GET` of `/intent-os-humanaios-v3_3.html` returns bytes whose `sha256` differs from
-  `ui/intent-os-humanaios-v3_3.html` at the commit that deploy built (the deploy's commit in the Workers
-  Builds log), i.e. the surface serves something other than the ratified file.
+  `ui/intent-os-humanaios-v3_3.html` at the commit the answer's own `X-Board-Commit` header names (the Worker
+  is stamped with the built commit at deploy time), i.e. the surface serves something other than the
+  ratified file. If the header reads `unknown`, the deploy command lost its stamp: that is a failure of (b)
+  too, since the served bytes can then not be tied to a commit.
 
 On either: disconnect the repository from Workers Builds, and this block is withdrawn rather than carried.
 `node board/worker.test.mjs` is the check against the code (every refusal path, and that only the board and the
