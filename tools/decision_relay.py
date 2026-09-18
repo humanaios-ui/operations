@@ -376,7 +376,7 @@ def ratify(d):
             if pr_number:
                 try: open_now=gh("GET",f"/repos/{REPO}/pulls/{pr_number}").get("state")=="open"
                 except GitHubError as e:
-                    if e.code!=404: raise
+                    if e.code!=404: raise ValueError(f"could not read pull request #{pr_number}: {token_hint(e)}") from e  # → the warning below; the writes stand
             if not open_now:
                 pr,_=open_pr(br,f"Z2 ratification {d['id']}: {short_q(question)} → {choice} ({qid})",
                              f"# {qid} — {question}\n\nRATIFIED by {by} at {echo_ts}: `{choice}`\n\nsignature: `{digest}`\nruling: `{ruling_rel}`\n\n"
@@ -836,6 +836,8 @@ def selftest():
                             and any(pth.endswith("/pulls") and x["title"].startswith("Z2 ratification d6: batch source? → own postings") for pth,x in g.sent) and INDEX in g.files),
               ("ratify · PENDING PR merged and the new PR refused → RATIFIED with a warning", lambda: ratify(ratify_d), {("GET","/pulls/1"):{"state":"closed"},("POST","/pulls"):TOKEN403}, {"files":pending_files}, "ok",
                  lambda r,g: r["status"]=="RATIFIED" and "no open pull request carries it" in r["warning"] and "HTTP 403" in r["warning"] and INDEX in g.files),
+              ("ratify · reading the PENDING PR refused (403) → RATIFIED with a warning, never a 500", lambda: ratify(ratify_d), {("GET","/pulls/1"):TOKEN403}, {"files":pending_files}, "ok",
+                 lambda r,g: r["status"]=="RATIFIED" and "could not read pull request #1" in r["warning"] and "HTTP 403" in r["warning"] and INDEX in g.files and "pr" not in r),
               ("ratify · PENDING PR open → commented and labelled, no new PR", lambda: ratify(ratify_d), {}, {"files":pending_files}, "ok",
                  lambda r,g: r["status"]=="RATIFIED" and "pr" not in r and not [1 for pth,x in g.sent if pth.endswith("/pulls")] and ("POST","/repos/%s/issues/1/labels"%REPO) in g.calls),
               ("ratify · wrong hash → refused before any refresh", lambda: ratify({**ratify_d,"hash":"deadbeef"}), {}, {"files":pending_files}, "ok",
