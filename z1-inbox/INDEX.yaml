@@ -3,7 +3,7 @@ generated: '2026-09-16'
 decision_window_days: 2
 counts:
   candidates: 47
-  records: 30
+  records: 31
 ratifiers:
 - Night
 candidates:
@@ -455,6 +455,14 @@ candidates:
   status: awaiting_z2
   note: "Step 4 of the bus plan Z2 approved 09-17. Steps 1-3 are on main (#377, #380). Four policy choices in resource units; falsifier over the next ten requests; predictions C25-C28 in sessions, requests, scans and merges. Files the two IC-candidates step 3 measured (manifest smoke_test is a text match; a smoke test with side effects) as d29."
 records:
+- path: z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md
+  title: "Z2 ruling \u2014 the merge is the ratification: the hash echo is retired, a ruling's\
+    \ PR changes one file, the merger and the merge date sign it, a job on main records it\
+    \ (Night, 2026-09-18)"
+  note: "Z2 output, transcribed by Z1 from an in-session ruling, following the Z2_RULING_INTENTOS_LAUNCH.md\
+    \ precedent. Executed by tools/decision_relay.py 0.5.0, tools/intent_os_reconcile_v1_0.py and\
+    \ .github/workflows/intent-os-reconcile.yml (#406). Single-member override and the two-member rule\
+    \ stated inside. Decides nothing further here."
 - path: "z1-inbox/2026-09-17/REQ-20260917-01.md"
   title: "Agent request REQ-20260917-01 — Wire the decision relay live so the board can rule and request from a browser"
   note: "OPEN · wants pr · lane intent-os · the bus's first request (the beta run), filed via decision_relay.py /task in DRY_RUN and landed by the same session's PR because the relay has no GitHub token here; fulfilled by the PR that wires the relay live"

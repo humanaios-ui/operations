@@ -138,7 +138,8 @@ Workflows: `.github/workflows/tool-manifest.yml` · `.github/workflows/document-
 
 | file | role | proof |
 |---|---|---|
-| `tools/decision_relay.py` | v0.4.0 · HTTP relay: signed `/decide` writes a tapped choice into its candidate block on a branch (PR PENDING); `/ratify` on the echoed hash signs as `.z1-control/ratify.py` does; `/task` lands an agent request as a `REQ-` record; `DRY_RUN=1` works on a local copy | `--self-test`; harness `t2-relay-roundtrip` |
+| `tools/decision_relay.py` | v0.5.0 · HTTP relay: signed `/decide` writes a tapped choice into its candidate block on a branch as a one-file PR marked DECIDED — the merge is the ratification, the relay signs nothing; `/task` lands an agent request as a `REQ-` record; `DRY_RUN=1` works on a local copy | `--self-test`; harness `t2-relay-roundtrip` |
+| `tools/intent_os_reconcile_v1_0.py` | after a decided candidate merges: `sha256(candidate \| by=<merger's ratifier name> \| at=<merge date> \| decision=ACCEPT)` over the merged bytes → the day's `Z2_RULINGS_<date>.md`, `status: ratified` in `z1-inbox/INDEX.yaml`, `Z1_INBOX_INDEX.md`; `--check` exit 1 waiting · 2 refused | `--self-test` (runs validate.py, render.py --check, ratify.py --verify on the result) |
 | `tools/relay_policy.yml` | ngrok traffic policy in front of the relay (basic-auth; OPTIONS exempt for the browser preflight) | — |
 | `tools/intent_os_board_check_v1_0.py` | re-hashes every board seal against the tree; exit 0 HOLDS · 2 STALE | `--self-test` |
 | `tools/intent_os_test_harness_v1_0.py` | runs T0–T7 (T5 is generated from `tools-manifest.yaml`: every `smoke_test: true` claim, measured; T6 boots the ACAT API; T7 is a key-gated live model call), writes the receipt to outputs/intent_os_test_results.json (gitignored), `--render` embeds it in the dashboard | `--self-test` |
@@ -192,6 +193,7 @@ docs/_archive/ does not exist yet — it is where a retired board or dashboard g
 | file | enforces |
 |---|---|
 | `.github/workflows/z2_ratification_gate.yml` | validator/renderer/ratify smoke tests; recorded signatures verify; inbox index integrity (ERROR); rendered index in sync (ERROR); Seed Constitution changes carry a Z2 hash |
+| `.github/workflows/intent-os-reconcile.yml` | on every push to `main` touching `z1-inbox/`: `tools/intent_os_reconcile_v1_0.py` records each merged decided candidate (merger = `by`, merge date = `at`), checks the result with the z2 gate's own tools, opens `intent-os: reconcile ratifications` |
 | `.github/workflows/tool-manifest.yml` | the four `.tool-control/` smoke tests, then `.tool-control/selftest.py`, `.tool-control/scan.py` `--check`, `.tool-control/validate.py`, `.tool-control/render.py` `--check` |
 | `.github/workflows/document-control.yml` | `.doc-control/` smoke tests, then `.doc-control/validate.py`, `.doc-control/review.py` `--check`, `.doc-control/render.py` `--check` |
 | `.github/workflows/quality-baseline.yml` | `tools/repo_health.py --strict`, `.doc-control/validate.py`, mypy on `src/humanaios_operations/`, the blocking pytest list |
@@ -275,7 +277,7 @@ Schemas: `acat/contracts/assess_request.schema.json` · `acat/contracts/human_sc
 
 1. **Z1** writes `z1-inbox/<date>/Q-….md` with a pinned SHA and a falsifier; adds it to `z1-inbox/INDEX.yaml`; runs `.z1-control/render.py`.
 2. **CI** (`.github/workflows/z2_ratification_gate.yml`) refuses the PR if the inbox rules break or the rendered index is stale.
-3. **Z2** taps on the board → `tools/decision_relay.py` → PR PENDING → echoes the hash → signature in `z1-inbox/<date>/Z2_RULINGS_<date>.md`, `status: ratified` in `z1-inbox/INDEX.yaml`. Or by hand: `.z1-control/ratify.py Q-ID --decision ACCEPT --by Night --apply`.
+3. **Z2** taps on the board → `tools/decision_relay.py` → a one-file PR marked DECIDED → **Z2 reviews and merges it (the merge is the ratification)** → `.github/workflows/intent-os-reconcile.yml` writes the signature into `z1-inbox/<date>/Z2_RULINGS_<date>.md` and `status: ratified` into `z1-inbox/INDEX.yaml` in a reconcile PR. Or by hand: `.z1-control/ratify.py Q-ID --decision ACCEPT --by Night --apply`.
 4. **Z3** merges with the hash; the board is re-read; `tools/intent_os_board_check_v1_0.py` HOLDS again.
 5. **Anyone** runs `tools/intent_os_test_harness_v1_0.py --render` and opens `ui/intent-os-test-dashboard-v1_0.html` to see all of the above lit by its checks.
 
