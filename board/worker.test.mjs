@@ -114,10 +114,18 @@ r = await worker.fetch(req("/", { "Cf-Access-Jwt-Assertion": tok }, "POST"), env
 check("POST / with a login → 405, not a redirect", r.status === 405);
 r = await worker.fetch(req("/intent-os-humanaios-v3_3.html", { "Cf-Access-Jwt-Assertion": tok }, "POST"), envWithAssets);
 check("POST a page with a login → 405", r.status === 405);
+let served = 0;
+for (const p of ["/intent-os-decisions.html", "/intent-os-commitments.html", "/intent-os-records.html", "/intent-os-arena.html"]) {
+  r = await worker.fetch(req(p, { "Cf-Access-Jwt-Assertion": tok }), envWithAssets);
+  if (r.status === 200 && r.headers.get("X-Board-Commit") === "unknown") served++;
+}
+check("the four section pages (generated from the board) are served to a listed identity, stamped", served === 4 && assetCalls === 6);
+r = await worker.fetch(req("/intent-os-decisions.html"), envWithAssets);
+check("a section page without a login → 401, no asset fetch", r.status === 401 && assetCalls === 6);
 r = await worker.fetch(req("/z2-ratification-reviewer.html", { "Cf-Access-Jwt-Assertion": tok }), envWithAssets);
-check("the Z2 reviewer (reads ../z1-inbox at runtime) is not served: 404, no asset fetch", r.status === 404 && assetCalls === 2);
+check("the Z2 reviewer (reads ../z1-inbox at runtime) is not served: 404, no asset fetch", r.status === 404 && assetCalls === 6);
 r = await worker.fetch(req("/anything-else.html", { "Cf-Access-Jwt-Assertion": tok }), envWithAssets);
-check("an unlisted path with a login → 404, no asset fetch", r.status === 404 && assetCalls === 2);
+check("an unlisted path with a login → 404, no asset fetch", r.status === 404 && assetCalls === 6);
 const csp = policyHeaders(env)["Content-Security-Policy"];
 check("CSP: no default source, inline script/style for the single-file pages, the relay and the live read as the only connect targets, unframeable", /default-src 'none'/.test(csp) && /connect-src 'self' https:\/\/intent-os-relay-production\.up\.railway\.app https:\/\/raw\.githubusercontent\.com;/.test(csp) && /frame-ancestors 'none'/.test(csp));
 check("CSP_CONNECT_SRC overrides the connect targets when the relay moves", /connect-src 'self' https:\/\/relay\.example\.test;/.test(policyHeaders({ ...env, CSP_CONNECT_SRC: "https://relay.example.test" })["Content-Security-Policy"]));

@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**49 candidates** — ⏳ awaiting Z2 40 · ✅ ratified 9 · **32 records**
+**62 candidates** — ⏳ awaiting Z2 53 · ✅ ratified 9 · **32 records**
 
-## Awaiting Z2 (40)
+## Awaiting Z2 (53)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -52,6 +52,19 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-19 | **Q-INTENTOS-REFRESH-01** | Automated Intent-OS refresh — re-seal what a job may, file what a human must; d23 enable · d24 rev by job · d25 local copies · KNOWN_RED list | `z1-inbox/2026-09-17/Q-INTENTOS-REFRESH-01.md` |
 | 2026-09-20 | **Q-BOARD-PUBLISH-01** | Board ruling d31 — board surface — serve the board from a login-gated Cloudflare Worker (Access, allow-listed identities), replacing d17's local-only? | `z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md` |
 | 2026-09-20 | **Q-IC-RATIFY-BYPASS-01** | IC candidate — a by-hand signature path (ratify.py --apply) stayed executable for board rulings after the merge-is-ratification ruling; guarded in #409 (a Tier 2 gate change) | `z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md` |
+| 2026-09-21 | **Q-BOARD-RULING-20** | Board ruling d20 — Test harness as §A step 3 | `z1-inbox/2026-09-19/Q-BOARD-RULING-20.md` |
+| 2026-09-21 | **Q-BOARD-RULING-21** | Board ruling d21 — Dashboard: commit the rendered receipt | `z1-inbox/2026-09-19/Q-BOARD-RULING-21.md` |
+| 2026-09-21 | **Q-BOARD-RULING-22** | Board ruling d22 — Scale-out order for the test surface | `z1-inbox/2026-09-19/Q-BOARD-RULING-22.md` |
+| 2026-09-21 | **Q-BOARD-RULING-23** | Board ruling d23 — Refresh job: enable the PR/issue half | `z1-inbox/2026-09-19/Q-BOARD-RULING-23.md` |
+| 2026-09-21 | **Q-BOARD-RULING-24** | Board ruling d24 — May a job advance the board's rev? | `z1-inbox/2026-09-19/Q-BOARD-RULING-24.md` |
+| 2026-09-21 | **Q-BOARD-RULING-25** | Board ruling d25 — Local copies: re-download or a release asset | `z1-inbox/2026-09-19/Q-BOARD-RULING-25.md` |
+| 2026-09-21 | **Q-BOARD-RULING-26** | Board ruling d26 — Resource-based grounding of the refresh job | `z1-inbox/2026-09-19/Q-BOARD-RULING-26.md` |
+| 2026-09-21 | **Q-BOARD-RULING-27** | Board ruling d27 — Model endpoint policy for the bus | `z1-inbox/2026-09-19/Q-BOARD-RULING-27.md` |
+| 2026-09-21 | **Q-BOARD-RULING-28** | Board ruling d28 — Issue mirror for REQ- records | `z1-inbox/2026-09-19/Q-BOARD-RULING-28.md` |
+| 2026-09-21 | **Q-BOARD-RULING-29** | Board ruling d29 — The smoke contract in the manifest | `z1-inbox/2026-09-19/Q-BOARD-RULING-29.md` |
+| 2026-09-21 | **Q-BOARD-RULING-30** | Board ruling d30 — Squash-merge read pointer | `z1-inbox/2026-09-19/Q-BOARD-RULING-30.md` |
+| 2026-09-21 | **Q-BOARD-RULING-32** | Board ruling d32 — KNOWN_RED list in the refresh job | `z1-inbox/2026-09-19/Q-BOARD-RULING-32.md` |
+| 2026-09-21 | **Q-BOARD-RULING-33** | Board ruling d33 — board filename: rename to intent-os-board.html with a redirect from the old path (successor to d19's freeze), keep the frozen path, or later | `z1-inbox/2026-09-19/Q-BOARD-RULING-33.md` |
 
 ## Decided (9)
 
@@ -75,7 +88,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (95)
+## Open questions for Z2 (122)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -172,6 +185,98 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 `z1-inbox/2026-09-14/Q-BOARD-RULING-16.md`
 
 - [ ] docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold? — options: archive as listed, edit list, later
+
+### Q-BOARD-RULING-20 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-20.md`
+
+- [ ] Test harness as §A step 3 — options: adopt as §A step 3, keep advisory, later
+- [ ] The parent block `Q-INTENTOS-TEST-01` keeps its own status; this block records the choice for d20 only
+
+### Q-BOARD-RULING-21 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-21.md`
+
+- [ ] Dashboard: commit the rendered receipt — options: commit the rendered dashboard, render locally per session, later
+- [ ] The parent block `Q-INTENTOS-TEST-01` keeps its own status; this block records the choice for d21 only
+
+### Q-BOARD-RULING-22 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-22.md`
+
+- [ ] Scale-out order for the test surface — options: registry order (Z-001 first), name the first repo, later
+- [ ] The parent block `Q-INTENTOS-TEST-01` keeps its own status; this block records the choice for d22 only
+
+### Q-BOARD-RULING-23 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-23.md`
+
+- [ ] Refresh job: enable the PR/issue half — options: enable auto-PR, report-only, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d23 only
+
+### Q-BOARD-RULING-24 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-24.md`
+
+- [ ] May a job advance the board's rev? — options: a job may advance rev, reserve rev for human re-reads, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d24 only
+
+### Q-BOARD-RULING-25 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-25.md`
+
+- [ ] Local copies: re-download or a release asset — options: re-download from the repository, rolling release asset, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d25 only
+
+### Q-BOARD-RULING-26 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-26.md`
+
+- [ ] Resource-based grounding of the refresh job — options: confirm the reading, name a regulatory time-frame, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d26 only
+
+### Q-BOARD-RULING-27 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-27.md`
+
+- [ ] Model endpoint policy for the bus — options: none, local, hosted, later
+- [ ] The parent block `Q-INTENTOS-BUS-01` keeps its own status; this block records the choice for d27 only
+
+### Q-BOARD-RULING-28 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-28.md`
+
+- [ ] Issue mirror for REQ- records — options: mirror to issues, git-only, later
+- [ ] The parent block `Q-INTENTOS-BUS-01` keeps its own status; this block records the choice for d28 only
+
+### Q-BOARD-RULING-29 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-29.md`
+
+- [ ] The smoke contract in the manifest — options: flag means carries, keep the text match, later
+- [ ] The parent block `Q-INTENTOS-BUS-01` keeps its own status; this block records the choice for d29 only
+
+### Q-BOARD-RULING-30 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-30.md`
+
+- [ ] Squash-merge read pointer — options: mechanical pointer move, keep NEEDS-HUMAN, later
+- [ ] The parent block `Q-INTENTOS-BUS-01` keeps its own status; this block records the choice for d30 only
+
+### Q-BOARD-RULING-32 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-32.md`
+
+- [ ] KNOWN_RED list in the refresh job — options: accept the list, require empty, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d32 only
+
+### Q-BOARD-RULING-33 (3)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-33.md`
+
+- [ ] Board filename — rename to `intent-os-board.html` with a redirect from the old path, keep the frozen path, or later
+- [ ] The move is one commit: rename, every reference, the Worker redirect, the runbook, the re-seal — nothing lands piecemeal
+- [ ] Sequenced after d31: the executing PR opens only after d31's ruling PR has merged
 
 ### Q-CGBG-BASELINE-01 (6)
 

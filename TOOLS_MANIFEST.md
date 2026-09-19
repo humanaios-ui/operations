@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**160 registered tools** · 2 MCP servers · 0 excluded · 131 carrying Builder v1.7 markers
+**161 registered tools** · 2 MCP servers · 0 excluded · 132 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 160 |
-| — status `draft` | 159 |
+| Registered tools | 161 |
+| — status `draft` | 160 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 131 |
+| Builder v1.7 markers present | 132 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -236,12 +236,13 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-129 | system_audit | `tools/system_audit_v1_1.py` | 1.1.0 | 1 | draft | — | System Audit — v1.1 |
 | HAIOS-TOOL-134 | tier_b_activation_gate | `tools/tier_b_activation_gate.py` | 1.0.0 | 1 | draft | — | tier_b_activation_gate.py |
 
-## Templates — `template_tool` (2)
+## Templates — `template_tool` (3)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-135 | tool_scaffolder | `tools/tool_scaffolder_v1_0.py` | 1.0.0 | 1 | draft | — | Scaffolds new Builder v1.7-compliant tools from template. |
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
+| HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
 ## Validation — `validation_tool` (20)
 
@@ -301,7 +302,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 5 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 9 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 10 |
-| `template_tool` | A scaffold or template for producing new tools. | 2 |
+| `template_tool` | A scaffold or template for producing new tools. | 3 |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. | 20 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.

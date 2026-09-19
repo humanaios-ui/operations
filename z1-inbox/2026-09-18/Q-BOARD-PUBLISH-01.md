@@ -13,8 +13,9 @@ Board surface — serve the board from a login-gated Cloudflare Worker (Cloudfla
 ## Context carried on the board
 
 Z2, 2026-09-18: *"I don't want any public, I want to have to login to open the board."* The mechanism is built
-and inert on `main`: `board/worker.mjs` serves two pages of `ui/` — the board and the test dashboard — only
-after verifying a Cloudflare Access login (the RS256 token Access injects in its request header, checked
+and inert on `main`: `board/worker.mjs` serves the board's pages under `ui/` — the board, its four section
+pages (Decisions, Commitments, Verified records, ARENA — generated from the board by
+`tools/intent_os_pages_v1_0.py`) and the test dashboard — only after verifying a Cloudflare Access login (the RS256 token Access injects in its request header, checked
 against the team's keys, issued for this application, unexpired, not before its `nbf`); with the two Access
 variables unset it answers 401 to everything but `/healthz`, so a deploy publishes nothing until Access is in
 front of it. Every authenticated answer names the deployed commit (`X-Board-Commit`). `wrangler.jsonc` at the
@@ -98,5 +99,5 @@ deploy has **completed** (a build in progress is not measured):
 
 On any of the three: disconnect the repository from Workers Builds, and this block is withdrawn rather than
 carried. `node board/worker.test.mjs` is the check against the code (every refusal path, the allow-list, and
-that only the board and the test dashboard are served); the probes above are the check against the
+that only the board's six pages are served); the probes above are the check against the
 deployment, and the policy receipt (checklist) is what makes a later widening of the Access policy visible.

@@ -321,10 +321,43 @@ from this session — Workers Builds is the deploy path by design. The account a
 (`humanaios`, `haios-personal-ops` — the latter a May 2026 password-cookie ops page reading from KV); neither is
 touched.
 
+**Z2 (2026-09-19, after #409 merged): "How do I open the board now?" → the open-the-board card; every open
+decision on the board; the whole pipeline; Decisions ↔ Pipeline hyperlinked; four sections as their own pages;
+a Witness navigation built for Intent-OS.** Done on this branch, from main at c203835:
+- **Runbook §5** opens with the card: six pages, today's local-file path, the post-d31 URL path.
+- **Every open decision.** d20–d22 (inside Q-INTENTOS-TEST-01, ratified with no choice recorded), d23–d26 and
+  KNOWN_RED (inside Q-INTENTOS-REFRESH-01) and d27–d30 (inside Q-INTENTOS-BUS-01) had no row on the board and
+  no block a tap could land in. Each is now its own board-ruling block under d18 (`z1-inbox/2026-09-19/
+  Q-BOARD-RULING-20…30.md`, KNOWN_RED as `d32` — d31 is the login-gated board), indexed (61 candidates), with
+  the one-act ruling text and an event-based falsifier tied to the pipeline step it gates; `ratify.py` refuses
+  them by shape. The board's Decisions view shows d1–d32. The 09-14 blocks (d3, d5–d13, d15, d16) still
+  carry the pre-0.5.0 "paste the hash back" prose: **do not edit them** — their decided PRs (#394–#405) pin
+  the rest of the file by `body_hash`, and an edit on main would make every one UNVERIFIED at reconcile.
+- **The whole pipeline.** Steps 21–25 added (test surface, refresh job, agent bus, merge-is-ratification +
+  reconcile job [done], login-gated board), each with the decisions it waits on; the rail is a wrapping grid,
+  so all 25 steps show — the flex rail had been squeezing the tail into an overflow.
+- **Hyperlinks.** A step's `blockedOn` renders every `d<n>` as a link to that row on the Decisions page; each
+  decision row lists "gates step 2, step 22 …" linking to the step's card, plus its Q-ID on GitHub; a `#card-N`
+  or `#d<n>` in the URL opens and highlights the target. Rows have `id="d<n>"`, cards `id="card-<n>"`.
+- **Pages.** `tools/intent_os_pages_v1_0.py` generates `ui/intent-os-decisions.html`, `-commitments.html`,
+  `-records.html`, `-arena.html` from the board: the same bytes under `<body data-view="…">` with a canonical
+  link back, so data, seals, taps, saved state and the relay are one script — nothing copied by hand. `--check`
+  says whether the pages are current; regenerate after every board change (not yet a CI step: the refresh
+  workflow is a gate path — a follow-up under Q-INTENTOS-REFRESH-01).
+- **Witness navigation for Intent-OS.** Inline in the board (canonical) and the dashboard, copied into the
+  pages by the generator: the site's `witness-nav.js` v3.1 panel, button and glyph (baseURI
+  `https://humanaios.ai/`, the home link), with groups DECIDE / EVIDENCE / EXPERIMENT / HUMANAIOS over the six
+  pages; the footer shows the board's read date. A `#pages` strip under the header does the same in text.
+- **Worker.** `SERVED` is now the six pages; 48 checks. d31's candidate, the runbook table and the falsifier say
+  "the board's six pages" instead of "two pages".
+- Gauges re-based: owner decisions 10 of 35 (denominator grew by the twelve filed rows), backlog 9 of 61.
+  Read pointer on main's c203835. Chromium drove all six pages under the Worker's CSP: views, nav, cross-links,
+  zero violations.
+
 ## Next blockers
 
 1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d3, d5–d13, d15, d16 (d2 and d14 ruled 09-18 by merge). The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register, and `Q-IC-RATIFY-BYPASS-01` (the by-hand `ratify.py` bypass of merge-is-ratification, found by Z2's red team on #409 — the registry entry the Tier 2 rule asks for, since #409 changes `.z1-control/ratify.py`).
 2. `Q-INTENTOS-LAUNCH-01` falsifier (b): **met 2026-09-18 01:00:59Z**, when #391 opened with a `RULING d14` block and a `hash:` line in its body — the condition as signed on 09-14 (`9a2a469b…`): *"no ruling has landed through the relay (no PR whose body carries a RULING block and a hash: line)"*. The "landed *and ratified*" reading this handoff carried from the first echo onward was criterion drift — a signed falsifier does not gain a condition after the fact (CLAUDE.md) — withdrawn on Z2's adversarial review of #408; a correction is appended to `z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md`, whose effect 5 repeated it. **Separately, the ratification loop closed 16:38Z:** #406 merged (d8775a7), the reconcile job's first live run opened #407 with d2 (#393) and d14 (#391) signed by Night over the merged bytes, Z2 approved and merged it (a23acb3); `validate.py`, `ratify.py --verify` and `render.py --check` pass on main; the job's second run found nothing awaiting reconciliation (the Z2 queue itself still holds 38 candidates). Relay 0.5.0 is live on Railway. **`later` semantics (Z2's review, finding 2):** terminal for the Q-ID — the signed block is closed, the row stays on the board marked ruled, and re-opening is a successor Q- block citing the original (runbook §7); nothing returns to the queue on its own, and the board's gauge now says "decisions recorded", not "resolved".
-3. Z2: rule d31 on the board (tap → merge); on `serve behind login`, the four dashboard steps in runbook §5 — including the policy receipt after the Access step and the third Worker variable `ACCESS_ALLOWED_EMAILS`, then the three probes (the third, authorization, is NO_GATE until a second identity can be tested).
+3. Z2: rule d31 on the board (tap → merge); on `serve behind login`, the four dashboard steps in runbook §5 — including the policy receipt after the Access step and the third Worker variable `ACCESS_ALLOWED_EMAILS`, then the three probes (the third, authorization, is NO_GATE until a second identity can be tested). Then d20–d30 and d32 from the Decisions page, each a tap → PR → merge. **d33 (Z2, 09-19): a clean filename, `ui/intent-os-board.html`, as d19's successor** — filed as `z1-inbox/2026-09-19/Q-BOARD-RULING-33.md` with the one move written out (rename; every reference; a one-line Worker redirect from the old path so bookmarks and the local-copy instruction keep working; re-seal; the browser's `KEY` unchanged so taps survive). **Held: the executing PR opens only after d31's ruling PR merges**, whatever order the taps come in; falsifier (c) says so.
 4. Z2: review and merge the twelve decided PRs #394–#405 (any order); each merge is a ruling; the reconcile job records them. GitHub holds the PR-triggered checks on a job-opened PR until a person clicks "Approve and run" — the job's own dispatch of the z2 gate is already green on the same commit.
 5. Local copies: until d25, refresh a `~/Downloads` copy by replacing the file with the repository's after each merge — the filename is frozen (d19), so the browser's saved taps survive and the new `rev` loads on restore.
