@@ -37,10 +37,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: scrape
+by: Night
+at: 2026-09-18T01:21:57Z
+status: PENDING
+block_hash: e97cdf5bd4f80a5a1e67d2487e38388e26704d13fb45711bddc582026e49b05f
+body_hash: e69e5c6a05adc0be48b65ab6f92b8b1314ad2ccd5330c140a3fd20c975d56ca5
+
+```
+RULING d6
+  by: Night (tagline)
+  project: HumanAIOS
+  question: First job-posting batch — where does it come from?
+  choice: scrape
+  note: 
+  at: 2026-09-18T01:21:57Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 
