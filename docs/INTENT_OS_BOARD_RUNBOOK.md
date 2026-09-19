@@ -218,8 +218,10 @@ whose log did not yet say which; 0.4.3 and the board's re-prompting fix both.
 > ### Open the board — the card
 >
 > **The pages.** One board, six pages, one navigation. The board file is canonical; the four section pages
-> are generated from it (`python3 tools/intent_os_pages_v1_0.py`; `--check` says whether they are current)
-> and the Witness button at bottom-left carries you between them.
+> are generated from it (`python3 tools/intent_os_pages_v1_0.py`; `--check` says whether they are current —
+> also the harness row `t1-pages-fresh`, RED on the dashboard when a page falls behind) and the Witness
+> button at bottom-left carries you between them. A served page that is older than the board says so in a
+> *stale page* banner at the top; a pre-merge gate for this is `Q-INTENTOS-PAGES-GATE-01`, Z2's to rule.
 >
 > | page | file under `ui/` | what it holds |
 > |---|---|---|

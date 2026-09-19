@@ -128,6 +128,9 @@ def registry(root: str = ROOT) -> list[dict]:
 
     # T1 — governance integrity (live)
     add("t1-board-holds", "T1", "board", "board seals HOLD against the tree", _py(CHECKER), proves=["W1", "W8"])
+    add("t1-pages-fresh", "T1", "board", "the four section pages are what the board generates (intent_os_pages --check)",
+        _py("tools/intent_os_pages_v1_0.py", "--check"), proves=["W1"],
+        note="a board change without a regeneration turns this row RED on the dashboard and in the refresh job's report")
     add("t1-z1-inbox", "T1", "governance", "z1-inbox/INDEX.yaml integrity (z2 gate ERROR step)", _py(".z1-control/validate.py"), proves=["Z1", "G1", "W6"])
     add("t1-z1-render-sync", "T1", "governance", "Z1_INBOX_INDEX.md in sync (z2 gate ERROR step)", _py(".z1-control/render.py", "--check"), proves=["W6"])
     add("t1-requests", "T1", "bus", "every REQ- record in the inbox verifies (hash, ask, id, Fulfilment order, indexed)", _py(REQUESTS, "--check"), proves=["W6"])

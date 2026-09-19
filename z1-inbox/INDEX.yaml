@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-16'
 decision_window_days: 2
 counts:
-  candidates: 62
+  candidates: 63
   records: 32
 ratifiers:
 - Night
@@ -587,6 +587,15 @@ candidates:
   note: "Z2's direction 2026-09-19: a clean filename as a successor block to d19, in one move (rename,\
     \ every reference, a Worker redirect from the old path, re-seal), held until d31 rules. Filed now so\
     \ it is on the board; the executing PR opens only after d31's ruling PR merges."
+- q_id: Q-INTENTOS-PAGES-GATE-01
+  title: "Gates for the board's page set — intent_os_pages --check as a pre-merge step (G1), the d33\
+    \ rename-hold test pre-merge (G2), the runbook card sealed or not (G3): a Tier 2 proposal"
+  path: z1-inbox/2026-09-19/Q-INTENTOS-PAGES-GATE-01.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "From residual risks 1 and 2 of Z2's red-team review on #410. Detection (harness row, stale-page\
+    \ banner, post-merge test) lands in #410 without touching a gate; prevention needs a workflow change,\
+    \ which is Tier 2 and Z2's to rule."
 records:
 - path: "z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"
   title: "Z2 rulings 2026-09-18 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
