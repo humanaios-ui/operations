@@ -4277,3 +4277,64 @@ superseded_by: null
 
 **Status:** ACCEPTED · Ready for CLAUDE.md amendment and stop-hook implementation (Phase 1)
 
+---
+
+## Q-INTENT-OS-WITNESS-LEDGER-01 — Witness Ledger Architecture for Human-Machine Governance
+
+```yaml
+---
+id: "Q-INTENT-OS-WITNESS-LEDGER-01"
+name: "intent-os-witness-ledger-architecture"
+status: CANDIDATE
+class: Q
+date_registered: "2026-09-19"
+date_origin: "2026-09-19"
+session_registered: "S-091926-Z1-witness-ledger"
+principles_triggered: ["P-governance", "P-authority", "P-intent-os", "P-audit"]
+substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
+tags: ["governance", "witness-ledger", "INTENT-OS", "audit-trail", "human-machine-collaboration", "authority"]
+related_finding: ["Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01"]
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+- **Synopsis:** Proposes INTENT-OS Witness Ledger architecture to capture human-machine decision attribution in HumanAIOS governance. Current system records technical execution (git commits, CI/CD) but not human decision-making (prompts, concepts, approvals, ratification timestamps). Witness ledger fills this gap by maintaining an append-only decision registry indexed by decision ID, capturing actor type (human/machine), role (Z1/Z2/Z3), decision class (approve/propose/execute/ratify), timestamp, artifacts (PR, commit, session URL), rationale, and falsifiers. Enables scalable Z3 executor onboarding: stop hook queries INTENT-OS for authorized machine identities instead of hardcoding emails. Binds human Z2 decisions (both authorized emails per Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01) to machine Z3 execution via cryptographic capability signatures.
+
+- **Scope guard:** Architecture and ledger schema design only. Does not implement INTENT-OS endpoints or stop-hook integration in this candidate—those belong to Phase 1 implementation post-ratification. No changes to existing code, CI gates, or repository structure. Z1-inbox staging document only (z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md).
+
+- **Problem solved:** Governance audit trail gap. Example: Z2 approval of dual-authority model (Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01, ratified 2026-09-19T18:55Z) now has ledger binding. Future regulators/auditors can query: "who decided what, when, why?" without git archaeology.
+
+- **Ledger Entry Schema:**
+  - `decision_id`: Unique identifier (e.g., Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01)
+  - `timestamp_utc`: ISO 8601 timestamp
+  - `actor_type`: human | machine
+  - `actor_email`: Principal identity (carly.r.anderson@gmail.com | aioshuman@gmail.com | noreply@anthropic.com)
+  - `actor_role`: Z1 | Z2 | Z3
+  - `decision_class`: approve | propose | execute | ratify
+  - `authority_level`: Z1 | Z2 | Z3
+  - `artifacts`: Links to PR, commit, session URL, REGISTERED.md entry
+  - `rationale`: Why this decision was made (governance, threat model, constraints)
+  - `falsifier`: Conditions that invalidate the ledger entry
+
+- **Integration points (Phase 1–3):**
+  - Phase 1: `/api/z2-authorized-emails` endpoint, stop hook queries it, manual ledger entries via CLI
+  - Phase 2: Auto-log Z2 merges via GitHub webhook, link PRs to ledger entries, REGISTERED.md references
+  - Phase 3: Z1 candidates include decision context, Z3 execution logs automatically, INTENT-OS board shows timeline
+
+- **Falsifier (required for Z2 ratification):**
+  1. Ledger modified retroactively without Z2 signature
+  2. Z2 authorized email removed from stop hook without ledger entry
+  3. Z3 commits not logged to ledger within 48h of execution
+  4. Z2 decision missing from ledger for any merged PR (after Phase 2 implementation)
+
+- **Deliverables:**
+  1. Ledger schema documented (done, above)
+  2. Phase 1–3 roadmap specified
+  3. Reference implementation in Phase 1 (pending Z2 ratification)
+  4. Ledger entries created for Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 and future decisions
+
+**Priority:** High (Tier 2 architecture, enables scalable Z3 governance, closes audit trail gap)  
+**Estimated effort:** Phase 1 = 3–4 hours (schema, `/api/z2-authorized-emails` endpoint, CLI tool); Phase 2–3 = TBD  
+**Assigned executor (pending Z2 delegation):** Z1/Z3 (Claude Haiku 4.5, per session S-091926-Z1-witness-ledger)
+
