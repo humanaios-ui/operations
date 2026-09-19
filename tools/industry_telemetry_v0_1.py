@@ -197,13 +197,12 @@ class LinkParser(HTMLParser):
         )
         if qualifies and url and url != normalize_url(self.base, self.base):
             title = re.sub(r"\s+", " ", " ".join(self.parts)).strip()[:250]
-            if title:
-                prior = self.items.get(url, {}).get("title", "")
-                if title not in prior:
-                    title = (prior + " " + title).strip()[:250]
-                else:
-                    title = prior
-                self.items[url] = {"title": title, "published_at": None}
+            prior = self.items.get(url, {}).get("title", "")
+            if title and title not in prior:
+                title = (prior + " " + title).strip()[:250]
+            else:
+                title = prior
+            self.items[url] = {"title": title, "published_at": None}
         self.href = None
         self.parts = []
 
@@ -256,6 +255,10 @@ def load_previous(path: Path | None, config: dict) -> dict | None:
         raise TelemetryError("previous snapshot is not for this frozen forecast baseline")
     if not isinstance(prev.get("sources"), dict):
         raise TelemetryError("previous snapshot is malformed")
+    sources = prev["sources"]
+    for key in WATCHES:
+        if key not in sources or not isinstance(sources[key].get("items"), dict):
+            raise TelemetryError(f"previous snapshot missing or invalid items for source '{key}'")
     return prev
 
 

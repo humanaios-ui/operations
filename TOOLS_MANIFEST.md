@@ -17,7 +17,7 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | — status `draft` | 170 |
 | — status `archived` | 1 |
 | Builder v1.7 markers present | 133 |
-| Uncategorized | 2 |
+| Uncategorized | 0 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -128,7 +128,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-142 | z2_queue | `tools/z2_queue_v1_0.py` | 1.1.0 | 1 | draft | — | Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first, flags ≥3 sessions unresolved. |
 | HAIOS-TOOL-158 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
 
-## Governance — `governance_tool` (14)
+## Governance — `governance_tool` (16)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -144,6 +144,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-166 | intent_os_board_reseal | `tools/intent_os_board_reseal_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse the rest. |
 | HAIOS-TOOL-167 | intent_os_requests | `tools/intent_os_requests_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage. |
 | HAIOS-TOOL-168 | intent_os_reconcile | `tools/intent_os_reconcile_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_reconcile — after a decided candidate merges, record the ratification the merge was. |
+| HAIOS-TOOL-170 | governance-rulings-backfill | `tools/governance-rulings-backfill.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | — |
+| HAIOS-TOOL-171 | governance-rulings-ingestion | `tools/governance-rulings-ingestion.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | — |
 | HAIOS-TOOL-172 | board-decisions-backfill | `tools/board-decisions-backfill.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Phase 2: Historical backfill of Z2 board decisions & molt events from git log → Supabase |
 | HAIOS-TOOL-173 | board-decisions-ingestion | `tools/board-decisions-ingestion.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Phase 2: Real-time ingestion of Z2 board decisions & molt events via GitHub + relay webhooks → Supabase |
 
@@ -180,7 +182,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-029 | api_monitoring_bot_v1 | `tools/agents/api_monitoring_bot_v1.py` | 1.0.0 | 1 | draft | — | Agent 1.2: API Monitoring Bot |
 | HAIOS-TOOL-030 | monitor_stability_v1 | `tools/agents/monitor_stability_v1.py` | 1.0.0 | 1 | draft | — | Monitoring Dashboard: Phase 1/2 Stability |
 | HAIOS-TOOL-048 | clone_sync_health | `tools/clone_sync_health_v1_0.py` | 1.0.0 | 1 | draft | — | Clone Sync Health — v1.0 |
-| HAIOS-TOOL-170 | industry_telemetry | `tools/industry_telemetry_v0_1.py` | 0.1.0 | 1 | draft | — | Phase 1: Real-time ingestion of Z2 rulings via GitHub webhooks → Supabase |
+| HAIOS-TOOL-179 | industry_telemetry | `tools/industry_telemetry_v0_1.py` | 0.1.0 | 1 | draft | — | Bounded Q4 2026 industry telemetry and human triage pilot |
 
 ## Orchestration — `orchestrator_tool` (7)
 
@@ -277,13 +279,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-175 | grant_match_verifier_v1_0 | `tools/grant_match_verifier_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Pre-Award Match Verifier v1.0 |
 | HAIOS-TOOL-178 | nonprofit_profile_v1_0 | `tools/nonprofit_profile_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Nonprofit Profile Model & Validation |
 
-## Unclassified — blocks the gate — `unclassified` (2)
-
-| tool_id | tool | path | ver | zone | status | flags | purpose |
-|---|---|---|---|---|---|---|---|
-| HAIOS-TOOL-179 | governance-rulings-backfill | `tools/governance-rulings-backfill.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | — |
-| HAIOS-TOOL-180 | governance-rulings-ingestion | `tools/governance-rulings-ingestion.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | — |
-
 ## MCP servers (2)
 
 External tool surfaces the agent may call. Registered here because an MCP server is a tool with a network boundary: `scope` and `data_classification` must be set by an owner before a server can reach `approved`.
@@ -309,7 +304,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 14 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 14 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 16 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 21 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 4 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |

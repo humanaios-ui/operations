@@ -1,9 +1,8 @@
 # Q4 2026 industry × HAIOS research telemetry pilot
 
 **Status:** Zone 1 research instrument, draft. [Issue #413](https://github.com/humanaios-ui/operations/issues/413)
-is the forecast source. The companion [research document in PR #414](https://github.com/humanaios-ui/operations/pull/414)
-is still under review as of September 19. A passed check or new link does not validate a
-forecast, ACAT, a live agent trace, or a governance claim.
+is the forecast source. The companion [research document](https://github.com/humanaios-ui/operations/pull/414)
+is merged. A passed check or new link does not validate a forecast, ACAT, a live agent trace, or a governance claim.
 
 ## What a weekly capture does
 
