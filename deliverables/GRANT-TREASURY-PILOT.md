@@ -63,13 +63,19 @@ GREEN_LIGHT → log to board CRM pipeline | RED_LIGHT → send triage alert to t
 
 ### Phase 2: Post-Award Sub-Ledger Orchestration
 
-**Goal:** When a grant is awarded, auto-create an isolated financial container that holds grant funds separately from operating capital.
+**⚠️ LIVE AWARDS ONLY**
+
+**Goal:** When a real grant is awarded (confirmed by funder, money committed), auto-create an isolated financial container that holds grant funds separately from operating capital.
+
+**Trigger:** Real CRM award notifications only. Phase 2 does not run on test data, mock grants, or hypothetical scenarios. Production execution waits for actual funder award confirmation + disbursement terms.
 
 **Flow:**
 ```
-Grant status → "AWARDED" (via CRM webhook)
+Grant status → "AWARDED" (via live CRM webhook from actual award event)
   ↓
 Extract: grant_id, total_amount_usd, disbursement_schedule (JSON array with phase + amount + date)
+  ↓
+Verify: total_amount_usd > 0 AND grant_id matches funder records
   ↓
 POST to brokerage API: create isolated sub-account
   { name: "Grant-Vault-${grant_id}", restricted: true, parent_policy: board_policy_id }
@@ -80,14 +86,16 @@ For each disbursement_phase:
   elif phase.months_until_due >= 6:
     route phase.amount → YIELD_INSTRUMENT (T-Bill / money market matching phase.months)
   ↓
-Log sub-ledger creation + allocation to audit trail
+Log sub-ledger creation + allocation to audit trail (REGISTERED.md / NF_LEDGER.jsonl)
 ```
 
 **Deliverable:** Post-award orchestrator function (async, REST or async/await) that fires on CRM grant award status change. Creates vault, routes capital, logs audit trail.
 
-**Test harness:** Mock CRM webhooks + mock brokerage API responses → verify sub-ledger isolation, no cross-grant fund bleed, audit trail completeness.
+**Test harness (Gates 0b):** Mock CRM webhooks + mock brokerage API responses → verify sub-ledger isolation, no cross-grant fund bleed, audit trail completeness. **Test harness does not touch real capital.**
 
-**Gate 0b (integration):** Five test grants created end-to-end (mock) with correct vault isolation and allocation splits. Audit trail recovers full fund path for each phase.
+**Gate 0b (integration testing):** Five mock grants created end-to-end (with synthetic grant_ids, fake disbursement schedules) with correct vault isolation and allocation splits. Audit trail recovers full fund path for each phase. **After Gate 0b passes: Phase 2 waits for real awarded grants to process.**
+
+**Phase 4 (Live Deployment):** Phase 2 processes first 3 real awarded grants in parallel with manual treasurer oversight. Real money flows through sub-ledgers. Falsifier conditions monitored during live operation.
 
 ---
 
