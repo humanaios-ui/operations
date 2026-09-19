@@ -98,3 +98,10 @@ while d31 stands at `later`, the hold was not honoured: it is closed without mer
 redirect when d31 ruled `stay local`, or carries none when d31 ruled `serve behind login`, it executed the
 wrong branch of the table above: it is reverted as a whole. All four are read off the tree, d31's ruling
 section and the Worker, not a calendar.
+
+How they are read: `tests/test_board_rename_hold.py` reads the `choice:` line of this block's and d31's ruling
+sections and `board/worker.mjs`, and fails on (a), (c) or (d) whenever `ui/intent-os-board.html` is in the tree
+— every invalid combination is planted in the test. It runs after a merge (the harness's pytest row, so the
+refresh job), which means it proves a bad merge rather than refusing it; the pre-merge refusal is G2 of
+`Q-INTENTOS-PAGES-GATE-01`, Z2's to rule. Until G2 lands, the hold is detection plus the revert the falsifiers
+name, not a gate.

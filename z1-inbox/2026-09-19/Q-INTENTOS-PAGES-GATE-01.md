@@ -2,7 +2,7 @@
 
 **Z1 Proposer:** Claude (Z1) — from residual risks 1 and 2 of Z2's red-team review on #410, 2026-09-19
 **Date Submitted:** 2026-09-19
-**Pinned SHA:** `c203835` (main's HEAD, the squash-merge of #409)
+**Pinned SHA:** `6233c26` (main's HEAD, the squash-merge of #410 — the tree that carries the generator, the four pages, d33 and the harness row this block would gate; filed at `c203835` while those were still on #410's branch, re-pinned once #410 merged, per the ChatGPT read of #411)
 **Status:** AWAITING Z2 RATIFICATION
 **Relates to:** `Q-INTENTOS-REFRESH-01` (the refresh job), `Q-BOARD-RULING-33` (the filename hold), `tools/intent_os_pages_v1_0.py` (#410)
 
@@ -28,7 +28,7 @@ entry — this block.
 | **G1** | Add `python3 tools/intent_os_pages_v1_0.py --check` as an ERROR step to a pull-request job (the natural home is the refresh workflow's PR-facing half, or `quality-baseline`), so a PR that changes the board without regenerating the pages cannot merge? | Makes the pages a derived file with a gate, like `Z1_INBOX_INDEX.md` under `render.py --check`. Cost: one more step per PR; a contributor regenerates with one command. |
 | **G2** | Add `tests/test_board_rename_hold.py` to `quality-baseline`'s pytest list, so the d33 hold refuses a rename PR before it merges rather than reporting it after? | The hold then stops being prose. Once d31 and d33 are both ratified the test passes on the renamed tree and can be retired with the successor block that records the rename. |
 | **G3** | Treat the runbook's open-the-board card as a sealed surface (a board seal on `docs/INTENT_OS_BOARD_RUNBOOK.md`, re-sealed by the tool on every edit), or leave it prose? | A seal makes drift visible on the board; the reseal tool marks it MECHANICAL on every runbook edit, so the cost is noise. |
-| **G4** | Make decomposition a validator rule: `.z1-control/ratify.py --apply` refuses a candidate whose file carries a `**Decomposed into:**` line while any named child is not `ratified`, and `.z1-control/validate.py` reports a decomposed parent that still carries a `\| **dNN** \|` row as a violation? (From the ChatGPT red-team read of #410: the REFRESH and BUS parents held the same calls as their d23–d30/d32 children.) | Today the parents carry no decision rows and `tests/test_decision_decomposition.py` fails if a row returns — post-merge. G4 makes the refusal pre-signature, in the two gate files. |
+| **G4** | Make decomposition a **structural** validator rule: `.z1-control/validate.py` reports, and `.z1-control/ratify.py --apply` refuses to sign, a candidate whose file carries a `**Decomposed into:**` line and either names a child that is not an indexed board-ruling block or still carries a decision of its own (a `\| **dNN** \|` row, an `## Options` section, a `## Ruling` section). It does **not** make the parent's ratification wait on the children: a decomposed parent accepts a mechanism and resolves none of the calls, whatever the children's status (the REFRESH and BUS blocks say exactly that; a child ruled `later` is `ratified` too, so a status rule would measure nothing useful). From the ChatGPT reads of #410 and #411. | Today `tests/test_decision_decomposition.py` checks the same structure — post-merge. G4 makes the refusal pre-signature, in the two gate files, without changing what a parent's signature means. |
 
 ## Options
 

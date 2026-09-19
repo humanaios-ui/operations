@@ -8,9 +8,10 @@ could read as a ruling on its children. The parents now say **Decomposed into:**
 This test makes that mechanical, at Z1's cap (no gate path): for every candidate file under z1-inbox/ with
 a `**Decomposed into:**` line, each child it names is in INDEX.yaml and is a board-ruling block (a `## Ruling`
 section with a `choice:` line — the shape ratify.py refuses to sign by hand), and the parent has no decision
-table row (`| **dNN** |`) or decision-bearing `## Options` section left. A validator rule that refuses to
-ratify a decomposed parent while a child is OPEN is a Tier 2 change and is asked as G4 of
-`Q-INTENTOS-PAGES-GATE-01`.
+table row (`| **dNN** |`) or decision-bearing `## Options` section left. The parent's ratification stays
+independent of its children's (the parent accepts a mechanism; each child is its own call), so the rule is
+structural, never a status dependency. Refusing to sign a parent that fails the structural rule is a Tier 2
+change and is asked as G4 of `Q-INTENTOS-PAGES-GATE-01`.
 """
 import glob
 import os
