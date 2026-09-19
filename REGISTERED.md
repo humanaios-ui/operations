@@ -4731,6 +4731,53 @@ superseded_by: null
 
 ## Z2 Ratification — ACCEPTED 2026-09-19
 
+**Candidate ID:** Q-GRANT-BROKER-PHASE-2B-01  
+**Z2 Signature:** carly.r.anderson@gmail.com (Night, Admiral/Z2 Serial Gate)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-19 22:50 UTC  
+**Ratification Hash:** sha256(Q-GRANT-BROKER-PHASE-2B-01 | by=Night | at=2026-09-19T22:50Z | decision=ACCEPT)  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Z2 Decision Rationale:**
+- ✅ Phase 1B prerequisite satisfied: Gate 0a-broker PASSED (17/17 tests)
+- ✅ Capacity integration approach approved: Phase 2B correctly reuses Track A Phase 1 verify_rfp() for GREEN_LIGHT/RED_LIGHT verdicts
+- ✅ KYC workflow scope approved: Self-service profile creation with EIN validation, mission keywords, geography, financial data
+- ✅ Dashboard MVP scope approved: 4 core screens (search, detail, profile edit, saved grants)
+- ✅ Test gate approach approved: 25 tests spanning 5 test classes covering capacity integration, profile ingestion, grant search, dashboard flow, and E2E onboarding
+- ✅ Falsifiers confirmed: 5 conditions that invalidate Phase 2B documented and testable
+- ✅ Effort estimate and 2-day timeline acceptable for completion after ratification
+- ⏳ Business model decision deferred: SaaS subscription + transaction fee framework pending separate Phase 3 decision; does not block Phase 2B technical execution
+
+**Ratification Checklist — APPROVED:**
+- [x] Phase 1B complete & Gate 0a-broker passed? YES ✅
+- [x] Capacity integration approach approved? YES ✅
+- [x] KYC workflow scope approved? YES ✅
+- [x] Dashboard MVP scope approved? YES ✅
+- [x] Effort estimate & 2-day timeline acceptable? YES ✅
+- [x] Test gate approach approved (25 tests, Gate 0b criteria)? YES ✅
+- [x] Falsifiers confirmed? YES ✅
+- [x] Clear green to start immediately after ratification? YES ✅
+
+**Status:** RATIFIED · Core API implemented (20/20 tests passing) · Frontend development authorized immediately · Ready for Z3 execution
+
+**Phase 2B Implementation Progress:**
+- ✅ `tools/nonprofit_profile_v1_0.py` (347 lines): Profile model + validation (KYC fields, completion tracking)
+- ✅ `tools/nonprofit_dashboard_api_v1_0.py` (249 lines): FastAPI backend (profile CRUD + grant search with capacity)
+- ✅ `tools/tests/test_nonprofit_dashboard.py` (638 lines): Comprehensive test harness (25 tests, 20/20 passing for core API)
+- ⏳ `frontend/grant-search-dashboard/` (pending): React dashboard (search, detail, profile edit, saved grants) — 1-2 day sprint
+- ⏳ Grant filter implementation and metadata population (focus_areas, eligible_states, URL) — included in frontend sprint
+
+**Next Actions:**
+1. Z3 executor can start Phase 2B frontend development immediately
+2. Core API deployment to staging for integration testing
+3. Frontend + frontend tests completion within 2-day sprint
+4. Phase 2B full Gate 0b validation upon frontend completion
+5. Production pilot deployment ready upon all tests passing
+
+---
+
+## Z2 Ratification — ACCEPTED 2026-09-19
+
 **Candidate ID:** Q-PHASE-2-BOARD-MOLT-01  
 **Z2 Signature:** ACCEPT  
 **Decision:** RATIFIED  
@@ -4747,4 +4794,14 @@ superseded_by: null
 - [x] Deployment feasible? (Night can execute 6-step guide) ✓
 
 **Status:** RATIFIED · Merged to main (commit 260e85a) · Ready for Z3 execution · Phase 2 infrastructure deployment next (per PHASE_2_SETUP_GUIDE.md, 6-step process)
+
+---
+
+## Appended Events — Z2 Ratification Log
+
+```
+2026-09-19 22:50 UTC — Z2 (Night, Admiral) RATIFIED Q-GRANT-BROKER-PHASE-2B-01 | Nonprofit Dashboard & Capacity Integration Phase 2B | ACCEPT | Core API complete (20/20 tests), frontend development authorized, 1-2 day completion estimate | Ready for Z3 execution
+
+2026-09-19 19:45 UTC — Z2 (Night, Admiral) RATIFIED Q-GRANT-MATCHING-ENGINE-PHASE-1B-01 | Grant Matching Engine Phase 1B | ACCEPT | All test gates passed (17/17), capacity integration verified, latency SLA met | Ready for production pilot deployment
+```
 
