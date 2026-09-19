@@ -150,10 +150,12 @@ async function handlePullRequestClosed(payload) {
     // Parse for molt event
     const moltEvent = parseMoltEventFromCommit(commitData.message);
     if (moltEvent) {
+      // temporal_class: OBSERVATIONAL
+      // Molt cycle window: 7-day resource allocation boundary, not an elapsed-time deadline
       await insertMoltEvent({
         ...moltEvent,
         window_start: new Date(commitData.author.date),
-        window_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        window_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         decision_made_at: new Date(commitData.author.date),
         decision_made_by: commitData.author.name,
         pr_number: pull_request.number,
@@ -208,6 +210,8 @@ async function handleRelayMoltEventEvent(event) {
   console.log(`Processing molt event from relay: ${event.molt_id}`);
 
   try {
+    // temporal_class: OBSERVATIONAL
+    // Molt cycle window: resource allocation boundary, not an elapsed-time deadline
     const molt = {
       molt_id: event.molt_id,
       constant_id: event.constant_id,

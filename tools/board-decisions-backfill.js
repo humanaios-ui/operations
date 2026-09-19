@@ -230,6 +230,8 @@ async function backfill() {
           console.log(`⏭️  ${moltId} already exists, skipping`);
           moltSkipped++;
         } else {
+          // temporal_class: OBSERVATIONAL
+          // Molt cycle window: 7-day resource allocation boundary, not an elapsed-time deadline
           const record = {
             ...moltEvent,
             molt_id: moltId,
