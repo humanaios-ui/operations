@@ -6,8 +6,10 @@ node_modules/
 package-lock.json
 package.json
 # ...except the root pair, which pins wrangler for Cloudflare Workers Builds (board/worker.mjs, wrangler.jsonc)
+# ...and except frontend/grant-search-dashboard which needs package.json tracked
 !/package.json
 !/package-lock.json
+!/frontend/grant-search-dashboard/package.json
 
 # empirica local working state (per-machine; not shared)
 .empirica/cache/
@@ -29,6 +31,9 @@ env/
 # Environment files
 .env
 .env.*
+# ...except .env.example which is a template
+!/.env.example
+!/frontend/grant-search-dashboard/.env.example
 
 # Build artifacts
 build/
