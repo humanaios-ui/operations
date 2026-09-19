@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 163
+  tools: 170
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 132
@@ -2078,6 +2078,91 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: 'Phase 1: Real-time ingestion of Z2 rulings via GitHub webhooks → Supabase'
+- tool_id: HAIOS-TOOL-172
+  name: board-decisions-backfill
+  path: tools/board-decisions-backfill.js
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
+  purpose: 'Phase 2: Historical backfill of Z2 board decisions & molt events from git log → Supabase'
+- tool_id: HAIOS-TOOL-173
+  name: board-decisions-ingestion
+  path: tools/board-decisions-ingestion.js
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
+  purpose: 'Phase 2: Real-time ingestion of Z2 board decisions & molt events via GitHub + relay webhooks
+    → Supabase'
+- tool_id: HAIOS-TOOL-174
+  name: grant_data_loader_v1_0
+  path: tools/grant_data_loader_v1_0.py
+  version: unversioned
+  category: connector_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Data Loader v1.0
+- tool_id: HAIOS-TOOL-175
+  name: grant_match_verifier_v1_0
+  path: tools/grant_match_verifier_v1_0.py
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Pre-Award Match Verifier v1.0
+- tool_id: HAIOS-TOOL-176
+  name: grant_matching_engine_v1_0
+  path: tools/grant_matching_engine_v1_0.py
+  version: unversioned
+  category: analytics_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Matching Engine v1.0
+- tool_id: HAIOS-TOOL-177
+  name: nonprofit_dashboard_api_v1_0
+  path: tools/nonprofit_dashboard_api_v1_0.py
+  version: unversioned
+  category: infrastructure_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Nonprofit Dashboard API v1.0
+- tool_id: HAIOS-TOOL-178
+  name: nonprofit_profile_v1_0
+  path: tools/nonprofit_profile_v1_0.py
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Nonprofit Profile Model & Validation
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
