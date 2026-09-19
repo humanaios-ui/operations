@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**163 registered tools** · 2 MCP servers · 0 excluded · 132 carrying Builder v1.7 markers
+**162 registered tools** · 2 MCP servers · 0 excluded · 133 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 163 |
-| — status `draft` | 162 |
+| Registered tools | 162 |
+| — status `draft` | 161 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 132 |
+| Builder v1.7 markers present | 133 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -170,13 +170,14 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-147 | tool_manifest_renderer | `.tool-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render TOOLS_MANIFEST.md from tools-manifest.yaml. |
 | HAIOS-TOOL-148 | tool_manifest_scanner | `.tool-control/scan.py` | 1.1.0 | 1 | draft | no-builder-markers | Walks the registered tool roots, extracts each tool's declared metadata, and |
 
-## Monitoring — `monitoring_tool` (3)
+## Monitoring — `monitoring_tool` (4)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-029 | api_monitoring_bot_v1 | `tools/agents/api_monitoring_bot_v1.py` | 1.0.0 | 1 | draft | — | Agent 1.2: API Monitoring Bot |
 | HAIOS-TOOL-030 | monitor_stability_v1 | `tools/agents/monitor_stability_v1.py` | 1.0.0 | 1 | draft | — | Monitoring Dashboard: Phase 1/2 Stability |
 | HAIOS-TOOL-048 | clone_sync_health | `tools/clone_sync_health_v1_0.py` | 1.0.0 | 1 | draft | — | Clone Sync Health — v1.0 |
+| HAIOS-TOOL-170 | industry_telemetry | `tools/industry_telemetry_v0_1.py` | 0.1.0 | 1 | draft | — | Watch fixed public AI research indexes and produce lead-only Q4 forecast review cards. |
 
 ## Orchestration — `orchestrator_tool` (7)
 
@@ -298,7 +299,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 14 |
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 14 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 20 |
-| `monitoring_tool` | Watches a surface over time and raises alerts. | 3 |
+| `monitoring_tool` | Watches a surface over time and raises alerts. | 4 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 4 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 5 |

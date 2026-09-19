@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 163
+  tools: 162
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 132
+  builder_markers_present: 133
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2055,29 +2055,19 @@ tools:
   purpose: intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board.
   session: S-091926-01
 - tool_id: HAIOS-TOOL-170
-  name: governance-rulings-backfill
-  path: tools/governance-rulings-backfill.js
-  version: unversioned
-  category: governance_tool
+  name: industry_telemetry
+  path: tools/industry_telemetry_v0_1.py
+  version: 0.1.0
+  category: monitoring_tool
   zone: 1
   status: draft
-  interface: script
-  lang: node
-  smoke_test: false
-  builder_markers: false
-  purpose: 'Phase 1: Autonomous governance rulings backfill from git history into Supabase'
-- tool_id: HAIOS-TOOL-171
-  name: governance-rulings-ingestion
-  path: tools/governance-rulings-ingestion.js
-  version: unversioned
-  category: governance_tool
-  zone: 1
-  status: draft
-  interface: script
-  lang: node
-  smoke_test: false
-  builder_markers: false
-  purpose: 'Phase 1: Real-time ingestion of Z2 rulings via GitHub webhooks → Supabase'
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  owner: humanaios-ui
+  purpose: Watch fixed public AI research indexes and produce lead-only Q4 forecast review cards.
+  session: S-091926
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
