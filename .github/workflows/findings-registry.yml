@@ -4,12 +4,12 @@ name: findings-registry
 # safe. Runs the validator WITHOUT --strict on purpose: --strict escalates the
 # benign REG_UNCOMMITTED_CANDIDATE warnings (findings legitimately marked
 # CANDIDATE, awaiting Z2 ratification) into failures, which would block every PR
-# touching REGISTERED.md. Non-strict blocks on the real hard failures only
-# (ID collisions, date-format violations, invalid status, append violations)
-# and reports missing fields as warnings (non-blocking). Candidate entries are
-# tolerated. Mirrors the document-control.yml pattern.
-# Acceptance: a PR reintroducing a real ID collision fails CI; a clean one passes.
-# Note: Missing required fields are detected but reported as warnings, not failures.
+# touching REGISTERED.md. Non-strict blocks on the real hard failures only:
+# ID collisions, date-format violations, invalid status, missing required fields,
+# and append violations. Candidate entries are tolerated (warnings only).
+# Mirrors the document-control.yml pattern.
+# Acceptance: a PR reintroducing a real ID collision or missing field fails CI;
+# a clean one passes. Missing fields are hard failures and block the gate.
 #
 # This unified workflow consolidates prior separate gate validation, and captures
 # validation reports as artifacts for audit/governance records (S-070726).

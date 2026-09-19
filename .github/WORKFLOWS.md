@@ -1,16 +1,16 @@
 # GitHub Actions Workflow Audit & Classification
 
 **Last Updated:** 2026-09-19  
-**Total Workflows:** 44  
-**Consolidation Phase:** Phase 1 Complete (findings-registry + sonarqube unified)
+**Total Workflows:** 48  
+**Consolidation Phase:** Phase 1 Complete (findings-registry + sonarqube unified; 2 redundant workflows removed)
 
 ## Executive Summary
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Critical-Path Gates | 8 | Lean, required |
-| Scheduled Audits | 21 | Intentional separation by scope/schedule |
-| Specialized Frameworks | 3 | SMAG calibration (Stage 2) + research |
+| Scheduled Audits | 23 | Intentional separation by scope/schedule |
+| Specialized Frameworks | 5 | SMAG calibration (Stage 2), research, industry telemetry |
 | Infrastructure/Maintenance | 12 | Ancillary support workflows |
 
 ### Quick Consolidation Facts
