@@ -4516,3 +4516,85 @@ superseded_by: null
 3. Delegate 3-pilot-grant selection for Phase 4 (live deployment post-pilot success)
 4. Schedule Z2 re-read of Phase 1–3 findings report before Phase 4 approval
 
+---
+
+## Q-GRANT-MATCHING-ENGINE-PHASE-1B-01 — Nonprofit Grant Discovery & Matching Service (Broker Track)
+
+```yaml
+---
+id: "Q-GRANT-MATCHING-ENGINE-PHASE-1B-01"
+name: "grant-matching-engine-broker-service"
+status: CANDIDATE
+class: Q
+date_registered: "2026-09-19"
+date_origin: "2026-09-19"
+session_registered: "S-091926-Z1-grant-treasury-pilot"
+principles_triggered: ["P-governance", "P-authority", "P-resource-discovery", "P-service-economics"]
+substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
+tags: ["grant-discovery", "nonprofit-matching", "broker-service", "saas-economics", "parallel-track"]
+related_finding: ["Q-GRANT-TREASURY-ORCHESTRATION-PILOT-01"]
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+- **Synopsis:** Proposes Phase 1B Grant Matching Engine as part of parallel Track B (Broker Service) within Q-GRANT-TREASURY-ORCHESTRATION-PILOT-01. Extends internal grant matching (Track A Phase 1) into external service for nonprofits: ingest nonprofit profile (mission, geography, budget, restrictions), query public grant databases (Grants.gov, Foundation Center, Instrumentl, local foundations), score matches by keyword fit (0.4) + geography (0.3) + budget (0.2) + timeline (0.1), and integrate capacity assessment via Track A Phase 1 verify_rfp() to return ranked opportunities with GREEN_LIGHT/RED_LIGHT verdicts. Enables nonprofit discovery workflow: search grants → instant capacity check (can you afford the match?) → proceed to apply or fundraise first. Deliverable: grant matching service (REST API: POST /api/grants/search) + test harness. Test gate: 15 parametrized tests (5 nonprofits × 3 grant sources) with 80%+ precision, 90%+ recall vs. human expert baseline, deterministic ranking, <2s latency.
+
+- **Scope & Positioning:** Phase 1B is NOT a separate pilot; it's a parallel track within the existing Q-GRANT-TREASURY-ORCHESTRATION-PILOT-01 that extends Phase 1 (pre-award matching) into an external service. Track A (internal HumanAIOS treasury) continues unchanged; Track B (broker service) uses Track A components (Phase 1: match verifier, Phase 2: orchestration) but adds grant discovery layer. Sequence: Phase 1B (grant matching) → Phase 2B (nonprofits get capacity assessment) → Phase 3B (auto-orchestration if awarded). Business model decision pending (SaaS subscription + transaction fee structure for Z2 approval).
+
+- **Phase 1B (Grant Matching Engine):**
+  - Goal: Help nonprofits discover fundable grants and instantly assess capacity
+  - Input: Nonprofit profile (mission, geography, annual revenue, focus areas, restrictions)
+  - Query: Grant databases (Grants.gov, Foundation Center, Instrumentl, local sources)
+  - Matching: Score by keyword fit (0.4) + geography (0.3) + budget (0.2) + timeline (0.1)
+  - Output: Ranked [grant_id, funder, amount, match_required, score, deadline, capacity_verdict (GREEN/RED)]
+  - Integration: Each top grant → call verify_rfp(nonprofit_capital, grant.match_required) → annotate with capacity status
+  - Test gate: 15 parametrized tests; 80%+ precision, 90%+ recall, deterministic, <2s latency
+  - Deliverable: Grant matching service + API contract + test harness
+
+- **Falsifiers (required for Z2 ratification):**
+  1. Matching algorithm produces false positives (high-scored grants with <50% expert fit rating)
+  2. Capacity check integration fails to call verify_rfp() or misinterprets GREEN/RED verdict
+  3. Grant database ETL misses 20%+ of fundable grants (recall <80%)
+  4. Ranking is non-deterministic (same search returns different results on repeated calls)
+  5. API latency exceeds 2 seconds for 50-grant database queries
+
+- **Integration with Track A:**
+  - Phase 1B output: nonprofit profile + ranked [grant_id, match_required] → feeds directly into Phase 2B capacity check
+  - Phase 2B: calls Track A Phase 1 verify_rfp() with nonprofit's unrestricted capital and grant.match_required
+  - Phase 3B: uses Track A Phase 2 orchestrator (sub-ledger creation, allocation, yield optimization)
+  - Audit trail: every capacity check and grant search logged in REGISTERED.md / NF_LEDGER.jsonl per witness ledger pattern
+
+- **Deliverables:**
+  1. Grant data loader: Grants.gov API, Foundation Center API, Instrumentl API, local source import (Python, ~200 lines)
+  2. Grant matching engine: Nonprofit profile model, matching algorithm, ranking, capacity integration (Python, ~300 lines)
+  3. API endpoint: POST /api/grants/search with full contract specification
+  4. Test harness: 7 scenario test classes, 15 parametrized tests, mock data fixtures (Python, ~250 lines)
+  5. Spec document: z1-inbox/2026-09-19/PHASE-1B-GRANT-MATCHING-SPEC.md
+
+**Priority:** High (enables broker service; unblocks Track B execution; relies on Track A Phase 1 which is complete)  
+**Estimated effort:** 9 hours (data loader 3h + algorithm 2h + capacity integration 1h + test harness 2h + spec/doc 1h)  
+**Assigned executor (pending Z2 delegation):** Z1/Z3 (Claude Haiku 4.5, per session S-091926-Z1-grant-treasury-pilot)  
+**Start condition:** Z2 ratification of Phase 1B spec (no blocking Z2 decisions required; uses existing verify_rfp() from Phase 1)  
+**Execution order:** Phase 1B implementation BEFORE Phase 2–3 on Track A (user directive: "in order grant matching engine first, then orchestration")
+
+---
+
+## Z2 Ratification — PENDING 2026-09-19
+
+**Candidate ID:** Q-GRANT-MATCHING-ENGINE-PHASE-1B-01  
+**Z2 Signature:** Pending  
+**Decision:** PENDING  
+**Timestamp:** (awaiting Z2 read)  
+**Ratification Hash:** (pending Z2 decision)  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Awaiting Z2 Decision:**
+- [ ] Scope approved: Phase 1B as parallel Track B within existing pilot?
+- [ ] Integration approach confirmed: Phase 1B uses Track A Phase 1 verify_rfp()?
+- [ ] Business model direction approved: SaaS subscription + transaction fee framework?
+- [ ] Falsifiers confirmed: 5 conditions that invalidate matching accuracy?
+- [ ] Test gate approach approved: 80%+ precision, 90%+ recall, deterministic, <2s latency?
+
+**Status:** CANDIDATE · Spec submitted to z1-inbox/2026-09-19/PHASE-1B-GRANT-MATCHING-SPEC.md · Awaiting Z2 ratification
+
