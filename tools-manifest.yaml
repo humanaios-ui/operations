@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 165
+  tools: 168
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 132
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 3
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2103,6 +2104,42 @@ tools:
   builder_markers: false
   purpose: 'Phase 2: Real-time ingestion of Z2 board decisions & molt events via GitHub + relay webhooks
     → Supabase'
+- tool_id: HAIOS-TOOL-174
+  name: grant_data_loader_v1_0
+  path: tools/grant_data_loader_v1_0.py
+  version: unversioned
+  category: connector_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Data Loader v1.0
+- tool_id: HAIOS-TOOL-175
+  name: grant_match_verifier_v1_0
+  path: tools/grant_match_verifier_v1_0.py
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Pre-Award Match Verifier v1.0
+- tool_id: HAIOS-TOOL-176
+  name: grant_matching_engine_v1_0
+  path: tools/grant_matching_engine_v1_0.py
+  version: unversioned
+  category: analytics_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Matching Engine v1.0
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
