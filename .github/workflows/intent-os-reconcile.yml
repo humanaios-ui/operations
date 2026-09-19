@@ -1,0 +1,176 @@
+# intent-os-reconcile — after a decided candidate merges, record the ratification the merge was.
+#
+# Z2's ruling of 2026-09-18 (z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md): a tap on the
+# Intent-OS board lands a choice in the ruling's own candidate block, in a pull request that changes
+# that one file (tools/decision_relay.py 0.5.0, `status: DECIDED`). Reviewing and merging that pull
+# request is the Z2 act — whoever merged it, and the day they did, are the signature's `by` and `at`.
+# The merge cannot write the three derived files a ratification needs (the day's ruling file, the
+# index entry, the rendered index): two branches that both wrote them could not both merge. So this
+# job writes them on main after the fact, the way intent-os-refresh.yml regenerates the board's
+# derived files:
+#
+#   1. tools/intent_os_reconcile_v1_0.py --check   every awaiting candidate whose file carries a relay
+#      block: the hashes verify, the file's last commit belongs to a pull request merged into main,
+#      the merger maps to a declared ratifier (RECONCILE_RATIFIERS) → RECONCILE; else refused, named
+#   2. --apply                                       sha256(candidate | by=<ratifier> | at=<merge date> |
+#      decision=ACCEPT) over the merged bytes → z1-inbox/<date>/Z2_RULINGS_<date>.md, `ratified` in
+#      z1-inbox/INDEX.yaml, Z1_INBOX_INDEX.md regenerated. The candidate file is never touched.
+#   3. the z2 gate's own checks run here on the result (validate.py, render.py --check, ratify.py
+#      --verify) before anything is pushed; then one pull request "intent-os: reconcile ratifications"
+#      on branch intent-os/reconcile, updated in place while it is open
+#
+# Runs on every push to main that touches z1-inbox/ (a merged decided candidate is one) and by hand.
+# Event-driven only, no clock schedule (resource-based, RESOURCE_UNITS.yaml). Pinned to main: a
+# workflow_dispatch against any other ref is skipped, so modified code never runs with this job's
+# write token. Step outputs derived from the checkout are passed through env and quoted as data.
+# It decides nothing: the merge already did. It records who merged, and whether a second person
+# approved (with one member, the author's own merge is d7's bypass, written into the ruling section).
+# A push made with GITHUB_TOKEN starts no workflow runs of its own, so the job dispatches the z2 gate
+# on the reconcile branch itself; the gate's run is attached to that commit. Uses the standard
+# GITHUB_TOKEN.
+name: intent-os-reconcile
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'z1-inbox/**'
+      - 'tools/intent_os_reconcile_v1_0.py'
+      - '.github/workflows/intent-os-reconcile.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+env:
+  # GitHub login → declared ratifier (z1-inbox/INDEX.yaml `ratifiers:`). A merger not listed here is
+  # NOT-RATIFIER and nothing is written for that candidate. Extend when a second ratifier is declared.
+  RECONCILE_RATIFIERS: "humanaios-ui=Night"
+  REPORT_DIR: outputs
+
+concurrency:
+  group: intent-os-reconcile
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: python3 -m pip install --quiet pyyaml
+
+      - name: Tool self-tests (the job refuses to record with tools that cannot tell a plant from a pass)
+        run: |
+          python3 tools/intent_os_reconcile_v1_0.py --self-test
+          DRY_RUN=1 python3 tools/decision_relay.py --self-test
+
+      - name: Plan (what merged, who merged it)
+        id: plan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          mkdir -p "$REPORT_DIR"
+          python3 tools/intent_os_reconcile_v1_0.py --check --json > "$REPORT_DIR/reconcile_plan.json"
+          python3 tools/intent_os_reconcile_v1_0.py --check
+          outcome=$(python3 -c "import json,os;print(json.load(open(os.environ['REPORT_DIR']+'/reconcile_plan.json'))['outcome'])")
+          case "$outcome" in NOTHING|RECONCILE|REFUSED) ;; *) outcome=UNKNOWN ;; esac
+          echo "outcome=$outcome" >> "$GITHUB_OUTPUT"
+          echo "reconcile outcome: $outcome"
+
+      - name: Apply, verify with the z2 gate's own tools, open or update the reconcile PR
+        if: steps.plan.outputs.outcome == 'RECONCILE' || steps.plan.outputs.outcome == 'REFUSED'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          set +e
+          python3 tools/intent_os_reconcile_v1_0.py --apply --json > "$REPORT_DIR/reconcile_result.json"
+          apply_exit=$?
+          set -e
+          python3 - <<'PY'
+          import json, os
+          r = json.load(open(os.environ["REPORT_DIR"] + "/reconcile_result.json"))
+          print("written:", r.get("written"))
+          for row in r["rows"]:
+              print(" ", row["outcome"], row["q_id"], row.get("id"), row.get("choice"), row.get("why", ""))
+          PY
+          if git diff --quiet; then
+            echo "nothing written (every listed candidate was refused: see the plan above)"
+            exit "$apply_exit"
+          fi
+          python3 .z1-control/validate.py
+          python3 .z1-control/render.py --check
+          python3 .z1-control/ratify.py --verify
+          git config user.name "intent-os-reconcile[bot]"
+          git config user.email "intent-os-reconcile@users.noreply.github.com"
+          branch="intent-os/reconcile"
+          git checkout -B "$branch"
+          git add z1-inbox/INDEX.yaml Z1_INBOX_INDEX.md z1-inbox/*/Z2_RULINGS_*.md
+          git commit -m "intent-os: reconcile ratifications merged as of $(git rev-parse --short main)"
+          git push --force-with-lease origin "$branch"
+          existing=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')
+          python3 - > "$REPORT_DIR/pr_body.md" <<'PY'
+          import json, os
+          r = json.load(open(os.environ["REPORT_DIR"] + "/reconcile_result.json"))
+          rows = [x for x in r["rows"] if x["outcome"] == "RECONCILE"]
+          refused = [x for x in r["rows"] if x["outcome"] != "RECONCILE"]
+          print("Automated by `.github/workflows/intent-os-reconcile.yml` after a decided candidate merged. **The merge was the ratification**; this records it: the signature over the merged bytes, the day's ruling file, the index entry, the rendered index. No candidate file is changed here. Review that each row names the pull request you merged.")
+          print()
+          print("| id | question | choice | merged by | pull request | signature |")
+          print("|---|---|---|---|---|---|")
+          for x in rows:
+              pr = x["pr"]
+              who = f"{x['by']} ({pr['merged_by']}) at {x['at']}" + (" · single-member override" if x.get("override") else f" · approved by {', '.join(pr.get('approvers') or [])}")
+              q = " ".join(str(x.get("question") or "").split())[:80]
+              print(f"| {x.get('id')} | {q} | `{x.get('choice')}` | {who} | #{pr['number']} | `{x['signature'][:16]}…` |")
+          if refused:
+              print()
+              print("Refused (nothing written for these; a person reads them):")
+              print()
+              for x in refused:
+                  print(f"- `{x['q_id']}` — {x['outcome']}: {x.get('why', '')}")
+          print()
+          print("## Prediction (SMAG calibration)")
+          print()
+          print("smag_p: 0.90")
+          print()
+          print("molt_tier_claimed: 0")
+          print()
+          print("Why 0.90? Derived files only, written by a tool whose self-test ran in this job and checked here by the z2 gate's own validator, renderer and verifier before the push. Tier 0: the decision was made by the merge this records; nothing here decides.")
+          PY
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --body-file "$REPORT_DIR/pr_body.md"
+            echo "updated PR #$existing"
+          else
+            gh pr create --base main --head "$branch" --title "intent-os: reconcile ratifications" --body-file "$REPORT_DIR/pr_body.md" --label "audit:auto"
+          fi
+          # a push made with GITHUB_TOKEN starts no runs of its own: dispatch the z2 gate on the branch so its verdict is on the commit
+          gh workflow run z2_ratification_gate.yml --ref "$branch" || echo "::warning::could not dispatch the z2 gate on $branch — run it by hand before merging"
+          exit "$apply_exit"
+
+      - name: Job summary
+        if: always()
+        env:
+          OUTCOME: ${{ steps.plan.outputs.outcome }}
+        run: |
+          {
+            echo "## Intent-OS reconcile — $(git rev-parse --short HEAD)"
+            echo
+            printf 'outcome: `%s`\n' "$OUTCOME"
+            echo
+            echo '```'
+            cat "$REPORT_DIR/reconcile_plan.json" 2>/dev/null | python3 -c "import json,sys;p=json.load(sys.stdin);[print(r['outcome'],r['q_id'],r.get('id'),r.get('choice'),r.get('why','')) for r in p['rows']] or print('nothing awaiting reconciliation')" || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
