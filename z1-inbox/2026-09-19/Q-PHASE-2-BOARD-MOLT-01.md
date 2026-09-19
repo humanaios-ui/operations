@@ -29,10 +29,13 @@ Extends Phase 1 (governance_rulings) with two additional autonomous data collect
 
 ## Molt Classification
 
-**Molt Tier Claimed:** 0  
-**Molt Tier Measured:** 0  
+**Molt Tier Claimed:** 0 (infrastructure-only proposal)  
+**Molt Tier Measured:** 2 (per ECC Tools molt tier classifier)
 
-Rationale: No constants changed, no gates modified, no behavior changes. Pure infrastructure addition (tables, webhooks, backfill script). Zero impact on Z2 molts or ratification cycles.
+**Tier Adjustment Rationale:** 
+The Phase 2 proposal includes infrastructure (Supabase schema, ingestion service) at Tier 0. However, the backfill of the `quality-baseline.yml` workflow to register new grant/nonprofit tests (commit 9b0ed2d) triggered Tier 2 classification per the molting protocol. Workflow changes (`.github/workflows/`) are classified as Tier 2 per `tools/molting_protocol_diff_v1_0.py`.
+
+**Correction:** This is a Tier 2 molt due to the CI/CD workflow integration requirement. No constants changed; the Tier 2 classification stems from operational/workflow changes, not behavioral/constant changes.
 
 ---
 

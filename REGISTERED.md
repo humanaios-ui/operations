@@ -4740,7 +4740,7 @@ superseded_by: null
 
 **Awaiting Z2 Decision:**
 - [ ] Falsifier acceptable? (data persistence + 5-min SLA)
-- [ ] Molt tier verified? (0 claimed = 0 measured, no constants changed)
+- [ ] Molt tier verified? (claimed 0 → measured 2 due to workflow integration; no constants changed)
 - [ ] Governance compliance confirmed? (Temporal dissolution, RLS, audit trail)
 - [ ] Risk mitigations sufficient? (webhook rate limit, Supabase outage, parsing failure)
 - [ ] Deployment feasible? (Night can execute 6-step guide)
