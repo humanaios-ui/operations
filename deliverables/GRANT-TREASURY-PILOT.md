@@ -34,6 +34,31 @@
 
 ---
 
+## 2.5 Parallel Tracks: Internal vs. Broker Service
+
+**Two parallel execution tracks** leverage the same infrastructure but serve different markets:
+
+### Track A: Internal HumanAIOS Treasury (current)
+- **Phase 1:** Pre-award match verifier (✅ DONE — Gate 0a passed 20/20)
+- **Phase 2:** Post-award sub-ledger orchestration (planned)
+- **Phase 3:** Yield optimization (planned)
+- **Use case:** HumanAIOS's own grant applications + treasury management
+- **Personas:** Board treasurer, CFO, grants officer
+- **Output:** Audit trail in REGISTERED.md / NF_LEDGER.jsonl
+
+### Track B: Broker Service for Nonprofits (new)
+- **Phase 1B:** Grant matching engine (to start FIRST)
+- **Phase 2B:** Capacity check via verify_rfp() (reuses Track A Phase 1)
+- **Phase 3B:** Orchestration (reuses Track A Phase 2)
+- **Use case:** External nonprofit discovery + resource allocation
+- **Personas:** Grant consultant, nonprofit CFO, development director
+- **Business model:** SaaS subscription + transaction fee on awarded grants
+- **Output:** Grant match rankings + capacity reports + auto-orchestration
+
+**Sequencing:** Phase 1B (grant matching) → Phase 2B (capacity check + orchestration) means nonprofits can discover fundable grants, get instant capacity assessment, and auto-manage funds if awarded.
+
+---
+
 ## 3. The design (all three phases)
 
 ### Phase 1: Pre-Award Match-Verification Engine
@@ -58,6 +83,36 @@ GREEN_LIGHT → log to board CRM pipeline | RED_LIGHT → send triage alert to t
 **Test harness:** Mock RFP payloads + mock ledger responses → verify correct GREEN/RED verdicts with no false negatives on borderline capital states.
 
 **Gate 0a (inner):** Automated verdicts match manual treasurer re-check on 10 historical RFPs (100% agreement threshold).
+
+---
+
+### Phase 1B: Grant Matching Engine (Broker Track)
+
+**Goal:** Ingest public grant databases, match nonprofits to fundable opportunities, and rank by fit + capacity.
+
+**Flow:**
+```
+Nonprofit profile ingestion (mission, geography, annual revenue, focus areas)
+  ↓
+Query grant sources (Grants.gov, Foundation Center, Instrumentl, local foundations)
+  ↓
+Parse RFP metadata: amount, deadline, focus, match_required, restrictions
+  ↓
+Matching algorithm:
+  score = (keyword_fit × 0.4) + (geography_fit × 0.3) + (budget_fit × 0.2) + (timeline_fit × 0.1)
+  ↓
+Rank opportunities by score (descending)
+  ↓
+Return: [grant_id, funder, amount, match_required, score, deadline, summary]
+```
+
+**Deliverable:** Grant matching service (REST API) that accepts nonprofit profile, returns ranked opportunities.
+
+**Integration:** Phase 1B output (grant opportunities + match_required) feeds directly into Track A Phase 1 (verify_rfp) for capacity check.
+
+**Test harness:** Mock nonprofit profiles + 5 public grant sources (Grants.gov sample, Foundation Center sample, etc.) → verify matching accuracy against human-curated baseline (5 nonprofits × 3 grant sources = 15 match tests).
+
+**Gate 0a-broker:** Matching engine rankings correlate ≥0.80 with human expert curation on 15 test nonprofits. Zero false negatives (fundable grants not in top 10 results).
 
 ---
 
@@ -363,18 +418,35 @@ Night (Z2) approved:
 
 ## 9. Next actions
 
-| # | Action | Owner | Zone | Gate |
-|---|--------|-------|------|------|
-| 1 | Build Phase 1 match verifier (API + test harness) | Claude (Z1/Z3) | execution | Gate 0a (10 RFPs verified) |
-| 2 | Build Phase 2 post-award orchestrator (vault creation + allocation) | Claude (Z1/Z3) | execution | Gate 0b (5 test grants isolated) |
-| 3 | Build Phase 3 yield rebalancer (daily job + backtest) | Claude (Z1/Z3) | execution | Gate 0c (12-month backtest clean) |
-| 4 | Select brokerage API (Infinite Giving, Schwab, or local banking partner) | Night (Z2) | decision | API contract finalized |
-| 5 | Select CRM source (Salesforce, Hubspot, Monday.com webhook) | Night (Z2) | decision | Webhook format agreed |
-| 6 | Execute Phase 1–3 testing (harness → integration → backtest) | Claude (Z1/Z3) | execution | All three gates pass |
-| 7 | Draft pilot findings report (§7 template) | Claude (Z1/Z3) | reporting | Report ready for Z2 review |
-| 8 | Z2 final ratification (if findings support hypothesis) | Night (Z2) | ratification | Approved for Phase 4 (live pilots) |
-| 9 | Phase 4 live deployment (3 grants in parallel with manual) | Night + Claude (Z2/Z3) | execution | 90-day observation |
-| 10 | Phase 5 full automation decision (based on Phase 4 results) | Night (Z2) | decision | Proceed or iterate |
+### Track A: Internal HumanAIOS Treasury
+
+| # | Action | Owner | Zone | Gate | Status |
+|---|--------|-------|------|------|--------|
+| A1 | Build Phase 1 match verifier (API + test harness) | Claude (Z1/Z3) | execution | Gate 0a | ✅ DONE |
+| A2 | Build Phase 2 post-award orchestrator (vault creation + allocation) | Claude (Z1/Z3) | execution | Gate 0b | Blocked on Z2 decisions |
+| A3 | Build Phase 3 yield rebalancer (daily job + backtest) | Claude (Z1/Z3) | execution | Gate 0c | Planned after A2 |
+| A4 | Select brokerage API (Infinite Giving, Schwab, or local banking partner) | Night (Z2) | decision | API contract | Pending |
+| A5 | Select CRM source (Salesforce, Hubspot, Monday.com webhook) | Night (Z2) | decision | Webhook format | Pending |
+| A6 | Phase 4 live deployment (3 grants in parallel with manual) | Night + Claude (Z2/Z3) | execution | 90-day observation | Post-A2/A3 |
+
+### Track B: Broker Service (Priority Order: Grant Matching First)
+
+| # | Action | Owner | Zone | Gate | Status |
+|---|--------|-------|------|------|--------|
+| B1 | Build Phase 1B grant matching engine | Claude (Z1/Z3) | execution | Gate 0a-broker | **NEXT** |
+| B2 | Integrate Phase 1B output → Phase 2B capacity check (verify_rfp) | Claude (Z1/Z3) | integration | Gate 0b-broker | Post-B1 |
+| B3 | Nonprofit profile ingestion (KYC + API framework) | Claude (Z1/Z3) | execution | Profile schema | Post-B1 |
+| B4 | Wire grant sources (Grants.gov API, Foundation Center, Instrumentl) | Claude (Z1/Z3) | integration | Data source contracts | Post-B1 |
+| B5 | Create nonprofit dashboard (grant search + capacity alerts) | Claude (Z1/Z3) | frontend | UI spec | Post-B2 |
+| B6 | Define SaaS pricing + transaction fee model | Night (Z2) | business | Pricing policy | Parallel to B1–B5 |
+
+### Decision Blockers
+
+| Blocker | Owner | Impact | Note |
+|---------|-------|--------|------|
+| Brokerage API selection (Track A, A4) | Night (Z2) | Blocks Phase 2 orchestration | Infinite Giving, Schwab, or local bank? |
+| CRM webhook source (Track A, A5) | Night (Z2) | Blocks Phase 2 integration testing | Salesforce, Hubspot, or Monday.com? |
+| Broker business model (Track B, B6) | Night (Z2) | Gates B5 (pricing in dashboard) | SaaS subscription + transaction fee? |
 
 ---
 
