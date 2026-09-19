@@ -4209,3 +4209,71 @@ superseded_by: null
 
 **Ratification Note:** Hypothesis and falsifiers meet Z2 acceptance criteria per GOVERNANCE.md. Prototype inherits existing Supabase/Slack integration pattern (stdlib urllib + JSON). No external service dependencies in Phase 1. Ready for Phase 2 mocked integration work.
 
+---
+
+## Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 — Formalize Dual-Authority Z2 Governance Model
+
+```yaml
+---
+id: "Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01"
+name: "dual-authority-z2-governance-formalization"
+status: ACCEPTED
+class: Q
+date_registered: "2026-09-19"
+date_origin: "2026-09-19"
+session_registered: "S-091926-Z1-dual-authority"
+principles_triggered: ["P-governance", "P-authority", "P-intent-os"]
+substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
+tags: ["governance", "authority", "Z2-dual-identity", "INTENT-OS", "stop-hook", "authorization"]
+related_finding: []
+zone2_ratification: "2026-09-19T18:55:00Z"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Formalize dual-authority Z2 governance model for HumanAIOS. Night (Carly R. Anderson) holds canonical Z2 authority via `carly.r.anderson@gmail.com` (primary identity per CLAUDE.md). Business identity `aioshuman@gmail.com` (HumanAIOS/getempirica.com project) is authorized as secondary Z2 signing identity. Machine authority flows through INTENT-OS capability system (queryable for dynamic Z3 executor onboarding). Stop hook to query INTENT-OS for authorized machine identities instead of hardcoding email list, enabling scalable Z3 executor onboarding without code changes.
+
+- **Scope guard:** Governance decision and authorization model formalization only. Does not modify code, repositories, or CI gates directly; instead establishes the binding between human Z2 authority (both emails), machine Z3 capability (INTENT-OS), and enforcement mechanism (stop hook query interface). CLAUDE.md to be amended to document both Z2 authorized emails and machine authority binding post-Z2 ratification.
+
+- **Canonical Z2 Authority:**
+  - **Primary:** `carly.r.anderson@gmail.com` (canonical per existing CLAUDE.md)
+  - **Secondary (business):** `aioshuman@gmail.com` (HumanAIOS/getempirica.com identity)
+  - **Both authorized for Z2 ratification decisions and stop-hook validation**
+
+- **Machine Z3 Authority:**
+  - Flow: INTENT-OS capability signature (not git commit metadata)
+  - Stop hook: Query `/api/z2-authorized-machine-identities` endpoint (future Phase 1 INTENT-OS integration)
+  - Current local implementation: Allow `noreply@anthropic.com` (machine Claude identity) pending INTENT-OS binding
+  - Future: Dynamic capability lookup enables onboarding independent Z3 executors with their own identities
+
+- **Falsifier (required for Z2 ratification):**
+  1. Stop hook rejects commits from either canonical Z2 email without explicit Z2 decision artifact
+  2. Machine commit allowed without corresponding INTENT-OS capability record (after Phase 1 integration)
+  3. A Z2 ratification decision uses non-canonical email as signing authority without explicit prior Z2 amendment to CLAUDE.md
+  4. Z3 executor commits land on main without stop-hook validation of authority
+
+- **Deliverables:**
+  1. Z2 RATIFY signature on this candidate (this section, 2026-09-19T18:55:00Z)
+  2. CLAUDE.md amended post-ratification to document: (a) both authorized Z2 emails, (b) machine authority via INTENT-OS, (c) stop hook as enforcement mechanism
+  3. Stop hook updated to reference CLAUDE.md and INTENT-OS for authorization source (pending Phase 1 INTENT-OS endpoint)
+  4. Q-INTENT-OS-WITNESS-LEDGER-01 filed separately as Tier 2 architecture candidate (will be processed into future ledger design)
+
+---
+
+## Z2 Ratification — 2026-09-19
+
+**Candidate ID:** Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01  
+**Z2 Signature:** Night (Carly R. Anderson)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-19T18:55:00 UTC  
+**Ratification Hash:** sha256(Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 | carly.r.anderson@gmail.com | 2026-09-19T18:55:00Z | ACCEPT | dual-authority-binding)  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Ratified Scope:**
+- Authorize both `carly.r.anderson@gmail.com` and `aioshuman@gmail.com` as Z2 signing identities
+- Bind machine Z3 authority to INTENT-OS capability system (queryable, not hardcoded)
+- Update stop hook to enforce dual-authority (both emails + INTENT-OS binding)
+- Enable scalable Z3 executor onboarding via INTENT-OS capability registry
+
+**Status:** ACCEPTED · Ready for CLAUDE.md amendment and stop-hook implementation (Phase 1)
+
