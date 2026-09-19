@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 170
+  tools: 171
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 133
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 2
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2061,11 +2062,12 @@ tools:
   category: monitoring_tool
   zone: 1
   status: draft
-  interface: script
-  lang: node
-  smoke_test: false
-  builder_markers: false
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
   purpose: 'Phase 1: Real-time ingestion of Z2 rulings via GitHub webhooks → Supabase'
+  session: S-091926
 - tool_id: HAIOS-TOOL-172
   name: board-decisions-backfill
   path: tools/board-decisions-backfill.js
@@ -2151,6 +2153,28 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Nonprofit Profile Model & Validation
+- tool_id: HAIOS-TOOL-179
+  name: governance-rulings-backfill
+  path: tools/governance-rulings-backfill.js
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
+- tool_id: HAIOS-TOOL-180
+  name: governance-rulings-ingestion
+  path: tools/governance-rulings-ingestion.js
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
