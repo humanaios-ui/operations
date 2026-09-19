@@ -4338,3 +4338,30 @@ superseded_by: null
 **Estimated effort:** Phase 1 = 3–4 hours (schema, `/api/z2-authorized-emails` endpoint, CLI tool); Phase 2–3 = TBD  
 **Assigned executor (pending Z2 delegation):** Z1/Z3 (Claude Haiku 4.5, per session S-091926-Z1-witness-ledger)
 
+---
+
+## Z2 Ratification — 2026-09-19
+
+**Candidate ID:** Q-INTENT-OS-WITNESS-LEDGER-01  
+**Z2 Signature:** Night (Carly R. Anderson)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-19T19:00:00 UTC  
+**Ratification Hash:** sha256(Q-INTENT-OS-WITNESS-LEDGER-01 | carly.r.anderson@gmail.com | 2026-09-19T19:00:00Z | ACCEPT | witness-ledger-architecture)  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Ratified Scope:**
+- INTENT-OS Witness Ledger architecture approved as Tier 2 foundation
+- Ledger schema captures human-machine decision attribution (actor, role, decision_class, artifacts, falsifiers)
+- Enables scalable Z3 executor onboarding via INTENT-OS capability queries
+- Phase 1 implementation: `/api/z2-authorized-emails` endpoint, stop-hook queries, CLI ledger tool
+- Phase 2 implementation: Auto-log Z2 merges, link PRs to ledger entries
+- Phase 3 implementation: Z1 candidates contextualized, Z3 execution tracked automatically
+
+**Falsifiers Ratified:**
+1. Ledger modified retroactively without Z2 signature
+2. Z2 authorized email removed from stop hook without ledger entry
+3. Z3 commits not logged to ledger within 48h of execution
+4. Z2 decision missing from ledger for any merged PR (after Phase 2 implementation)
+
+**Status:** ACCEPTED · Ready for Phase 1 implementation (Z3 executor assignment pending)
+
