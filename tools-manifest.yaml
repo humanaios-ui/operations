@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 163
+  tools: 165
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 132
@@ -2078,6 +2078,31 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: 'Phase 1: Real-time ingestion of Z2 rulings via GitHub webhooks → Supabase'
+- tool_id: HAIOS-TOOL-172
+  name: board-decisions-backfill
+  path: tools/board-decisions-backfill.js
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
+  purpose: 'Phase 2: Historical backfill of Z2 board decisions & molt events from git log → Supabase'
+- tool_id: HAIOS-TOOL-173
+  name: board-decisions-ingestion
+  path: tools/board-decisions-ingestion.js
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
+  purpose: 'Phase 2: Real-time ingestion of Z2 board decisions & molt events via GitHub + relay webhooks
+    → Supabase'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
