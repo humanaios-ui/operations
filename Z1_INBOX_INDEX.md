@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**61 candidates** — ⏳ awaiting Z2 52 · ✅ ratified 9 · **32 records**
+**62 candidates** — ⏳ awaiting Z2 53 · ✅ ratified 9 · **32 records**
 
-## Awaiting Z2 (52)
+## Awaiting Z2 (53)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -64,6 +64,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-21 | **Q-BOARD-RULING-29** | Board ruling d29 — The smoke contract in the manifest | `z1-inbox/2026-09-19/Q-BOARD-RULING-29.md` |
 | 2026-09-21 | **Q-BOARD-RULING-30** | Board ruling d30 — Squash-merge read pointer | `z1-inbox/2026-09-19/Q-BOARD-RULING-30.md` |
 | 2026-09-21 | **Q-BOARD-RULING-32** | Board ruling d32 — KNOWN_RED list in the refresh job | `z1-inbox/2026-09-19/Q-BOARD-RULING-32.md` |
+| 2026-09-21 | **Q-BOARD-RULING-33** | Board ruling d33 — board filename: rename to intent-os-board.html with a redirect from the old path (successor to d19's freeze), keep the frozen path, or later | `z1-inbox/2026-09-19/Q-BOARD-RULING-33.md` |
 
 ## Decided (9)
 
@@ -87,7 +88,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (119)
+## Open questions for Z2 (122)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -268,6 +269,14 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 
 - [ ] KNOWN_RED list in the refresh job — options: accept the list, require empty, later
 - [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d32 only
+
+### Q-BOARD-RULING-33 (3)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-33.md`
+
+- [ ] Board filename — rename to `intent-os-board.html` with a redirect from the old path, keep the frozen path, or later
+- [ ] The move is one commit: rename, every reference, the Worker redirect, the runbook, the re-seal — nothing lands piecemeal
+- [ ] Sequenced after d31: the executing PR opens only after d31's ruling PR has merged
 
 ### Q-CGBG-BASELINE-01 (6)
 

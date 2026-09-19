@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-16'
 decision_window_days: 2
 counts:
-  candidates: 61
+  candidates: 62
   records: 32
 ratifiers:
 - Night
@@ -578,6 +578,15 @@ candidates:
   note: "One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its\
     \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
     \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-33
+  title: "Board ruling d33 — board filename: rename to intent-os-board.html with a redirect from the\
+    \ old path (successor to d19's freeze), keep the frozen path, or later"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-33.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "Z2's direction 2026-09-19: a clean filename as a successor block to d19, in one move (rename,\
+    \ every reference, a Worker redirect from the old path, re-seal), held until d31 rules. Filed now so\
+    \ it is on the board; the executing PR opens only after d31's ruling PR merges."
 records:
 - path: "z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"
   title: "Z2 rulings 2026-09-18 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
