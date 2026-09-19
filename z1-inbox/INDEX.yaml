@@ -3,7 +3,7 @@ generated: '2026-09-16'
 decision_window_days: 2
 counts:
   candidates: 66
-  records: 34
+  records: 37
 ratifiers:
 - Night
 candidates:
@@ -664,6 +664,15 @@ records:
 - path: z1-inbox/2026-09-19/PHASE-1B-GRANT-MATCHING-SPEC.md
   title: Phase 1B Grant Matching Engine specification
   note: Technical specification for the grant matching engine implementation (17/17 tests passing)
+- path: z1-inbox/2026-09-19/PHASE-1B-IMPLEMENTATION-STATUS.md
+  title: Phase 1B implementation status report
+  note: Status report on Phase 1B grant matching engine implementation and broker track progress
+- path: z1-inbox/2026-09-19/PHASE-2B-SPECIFICATION.md
+  title: Phase 2B specification
+  note: Technical specification for Phase 2B resource-based orchestration and yield optimization
+- path: z1-inbox/2026-09-19/BROKER-TRACK-STATUS-2026-09-19.md
+  title: Broker Track status report (2026-09-19)
+  note: Status report on broker service implementation and nonprofit partnership track
 - path: z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md
   title: "Z2 rulings 2026-09-18 \u2014 signatures issued by .z1-control/ratify.py\
     \ and tools/intent_os_reconcile_v1_0.py"
