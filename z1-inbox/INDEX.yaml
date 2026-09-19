@@ -600,6 +600,19 @@ candidates:
   note: "From residual risks 1 and 2 of Z2's red-team review on #410. Detection (harness row, stale-page\
     \ banner, post-merge test) lands in #410 without touching a gate; prevention needs a workflow change,\
     \ which is Tier 2 and Z2's to rule."
+- q_id: Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01
+  title: "Research→Governance→Operations Loop + Automated Repository Auditor — three tools:\
+    \ research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt)"
+  path: z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  tier: 2
+  note: "Proposes automated research→governance→operations loop: research documents\
+    \ feed into candidates; Z2 decides on board; findings auto-implement via manifest\
+    \ spec; gates validate. Also proposes repository_auditor.py that scans open-source/arXiv\
+    \ for best practices and files candidates automatically. Falsifiers are mechanical.\
+    \ Predictions pre-registered: 3+ candidates filed within 30 days, 1+ PR merged within\
+    \ 60 days, <4-hour implementation time, no tool failures in 90 days."
 records:
 - path: "z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"
   title: "Z2 rulings 2026-09-18 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"
