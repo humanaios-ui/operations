@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**63 candidates** — ⏳ awaiting Z2 54 · ✅ ratified 9 · **32 records**
+**64 candidates** — ⏳ awaiting Z2 55 · ✅ ratified 9 · **32 records**
 
-## Awaiting Z2 (54)
+## Awaiting Z2 (55)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -66,6 +66,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-21 | **Q-BOARD-RULING-32** | Board ruling d32 — KNOWN_RED list in the refresh job | `z1-inbox/2026-09-19/Q-BOARD-RULING-32.md` |
 | 2026-09-21 | **Q-BOARD-RULING-33** | Board ruling d33 — board filename: rename to intent-os-board.html with a redirect from the old path (successor to d19's freeze), keep the frozen path, or later | `z1-inbox/2026-09-19/Q-BOARD-RULING-33.md` |
 | 2026-09-21 | **Q-INTENTOS-PAGES-GATE-01** | Gates for the board's page set — intent_os_pages --check as a pre-merge step (G1), the d33 rename-hold test pre-merge (G2), the runbook card sealed or not (G3): a Tier 2 proposal | `z1-inbox/2026-09-19/Q-INTENTOS-PAGES-GATE-01.md` |
+| 2026-09-21 | **Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01** | Research→Governance→Operations Loop + Automated Repository Auditor — three tools: research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt) | `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md` |
 
 ## Decided (9)
 
@@ -89,7 +90,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (122)
+## Open questions for Z2 (131)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -368,6 +369,20 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Brier calculation is mathematically sound (review formula)
 - [ ] Schema extends without breaking existing records (review migration path)
 - [ ] Molt Cycle integration is viable (review pseudocode in schema)
+
+### Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01 (9)
+
+`z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md`
+
+- [ ] Research findings currently stall; this loop solves a real bottleneck
+- [ ] The three tools are well-specified and non-overlapping in purpose
+- [ ] findings-manifest.yaml format is clear enough for reliable encoding of operations
+- [ ] Gate conditions are strong enough to prevent bad implementations from merging
+- [ ] Falsifiers are mechanical, testable, not subjective (all event-based)
+- [ ] Predictions are pre-registered and falsifiable within 90 days
+- [ ] The auditor sources (GitHub, arXiv, OSPO) are trustworthy; filtering logic won't spam the board
+- [ ] This is a genuine Tier 2 molt (changes how work flows; requires validation cycle and ratification)
+- [ ] Once adopted, the system scales: every research finding and external best practice feeds into governance automatically
 
 ### Q-TOOLCONTROL-01 (8)
 
