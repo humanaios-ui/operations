@@ -17,9 +17,11 @@ describe('ProfileScreen Component', () => {
     render(
       <ProfileScreen onProfileCreated={mockOnProfileCreated} isNew={true} />
     );
-    expect(screen.getByLabelText(/Organization Name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/EIN/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Annual Revenue/i)).toBeInTheDocument();
+    const inputs = screen.getAllByRole('textbox');
+    expect(inputs.length).toBeGreaterThan(0);
+    expect(screen.getByText(/Organization Name/i)).toBeInTheDocument();
+    expect(screen.getByText(/EIN/i)).toBeInTheDocument();
+    expect(screen.getByText(/Annual Revenue/i)).toBeInTheDocument();
   });
 
   test('displays profile completion percentage', () => {
@@ -31,16 +33,22 @@ describe('ProfileScreen Component', () => {
 
   test('submits form with valid data', async () => {
     const user = userEvent.setup();
-    const mockProfile = { nonprofit_id: 'np-001', name: 'Test Org', ein: '123456789' };
+    const mockProfile = { nonprofit_id: 'np-001', name: 'Test Org', ein: '123456789', contact_email: 'test@org.org', annual_revenue_usd: 100000 };
     axios.post.mockResolvedValueOnce({ data: mockProfile });
 
     render(
       <ProfileScreen onProfileCreated={mockOnProfileCreated} isNew={true} />
     );
 
-    await user.type(screen.getByLabelText(/Organization Name/i), 'Test Org');
-    await user.type(screen.getByLabelText(/EIN/i), '123456789');
-    await user.click(screen.getByRole('button', { name: /Save Profile/i }));
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], 'Test Org');
+    await user.type(inputs[1], '12-3456789');
+    await user.type(inputs[2], 'test@org.org');
+
+    const numberInputs = screen.getAllByRole('spinbutton');
+    await user.type(numberInputs[0], '100000');
+
+    await user.click(screen.getByRole('button', { name: /Create Profile/i }));
 
     await waitFor(() => {
       expect(axios.post).toHaveBeenCalled();
@@ -55,9 +63,15 @@ describe('ProfileScreen Component', () => {
       <ProfileScreen onProfileCreated={mockOnProfileCreated} isNew={true} />
     );
 
-    await user.type(screen.getByLabelText(/Organization Name/i), 'Test Org');
-    await user.type(screen.getByLabelText(/EIN/i), 'invalid');
-    await user.click(screen.getByRole('button', { name: /Save Profile/i }));
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], 'Test Org');
+    await user.type(inputs[1], 'invalid');
+    await user.type(inputs[2], 'test@org.org');
+
+    const numberInputs = screen.getAllByRole('spinbutton');
+    await user.type(numberInputs[0], '100000');
+
+    await user.click(screen.getByRole('button', { name: /Create Profile/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Invalid EIN/i)).toBeInTheDocument();
@@ -70,8 +84,8 @@ describe('ProfileScreen Component', () => {
       <ProfileScreen onProfileCreated={mockOnProfileCreated} isNew={true} />
     );
 
-    const keywordInput = screen.getByPlaceholderText(/Enter a keyword/i);
-    const addButton = screen.getByRole('button', { name: /Add Keyword/i });
+    const keywordInput = screen.getByPlaceholderText(/e\.g\., education/i);
+    const addButton = screen.getByRole('button', { name: /^Add$/i });
 
     await user.type(keywordInput, 'education');
     await user.click(addButton);
@@ -81,16 +95,22 @@ describe('ProfileScreen Component', () => {
 
   test('calls onProfileCreated callback after successful submission', async () => {
     const user = userEvent.setup();
-    const mockProfile = { nonprofit_id: 'np-001', name: 'Test Org' };
+    const mockProfile = { nonprofit_id: 'np-001', name: 'Test Org', ein: '123456789', contact_email: 'test@org.org', annual_revenue_usd: 100000 };
     axios.post.mockResolvedValueOnce({ data: mockProfile });
 
     render(
       <ProfileScreen onProfileCreated={mockOnProfileCreated} isNew={true} />
     );
 
-    await user.type(screen.getByLabelText(/Organization Name/i), 'Test Org');
-    await user.type(screen.getByLabelText(/EIN/i), '123456789');
-    await user.click(screen.getByRole('button', { name: /Save Profile/i }));
+    const inputs = screen.getAllByRole('textbox');
+    await user.type(inputs[0], 'Test Org');
+    await user.type(inputs[1], '12-3456789');
+    await user.type(inputs[2], 'test@org.org');
+
+    const numberInputs = screen.getAllByRole('spinbutton');
+    await user.type(numberInputs[0], '100000');
+
+    await user.click(screen.getByRole('button', { name: /Create Profile/i }));
 
     await waitFor(() => {
       expect(mockOnProfileCreated).toHaveBeenCalledWith(mockProfile);

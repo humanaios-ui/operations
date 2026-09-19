@@ -5,18 +5,18 @@ import GrantCard from './GrantCard';
 describe('GrantCard Component', () => {
   const mockGrant = {
     grant_id: 'grant-001',
-    funder_name: 'Tech Foundation',
+    funder: 'Tech Foundation',
     amount_usd: 50000,
-    match_score: 0.85,
+    combined_score: 0.85,
     deadline: '2026-12-31',
-    nonprofit_match_usd: 10000,
+    days_until_deadline: 407,
+    match_required_usd: 10000,
     capacity_verdict: 'GREEN_LIGHT',
-    component_scores: {
-      keyword_fit: 0.9,
-      geography_fit: 0.8,
-      budget_fit: 0.75,
-      timeline_fit: 0.85
-    }
+    capacity_shortfall_usd: 0,
+    keyword_fit: 0.9,
+    geography_fit: 0.8,
+    budget_fit: 0.75,
+    timeline_fit: 0.85
   };
 
   test('renders grant information correctly', () => {
@@ -40,7 +40,7 @@ describe('GrantCard Component', () => {
     render(
       <GrantCard grant={mockGrant} isSaved={false} onSaveToggle={mockToggle} onClick={() => {}} />
     );
-    const saveButton = screen.getByRole('button', { name: /★/i });
+    const saveButton = screen.getByRole('button', { name: /☆/i });
     fireEvent.click(saveButton);
     expect(mockToggle).toHaveBeenCalled();
   });
@@ -67,9 +67,9 @@ describe('GrantCard Component', () => {
     render(
       <GrantCard grant={mockGrant} isSaved={false} onSaveToggle={() => {}} onClick={() => {}} />
     );
-    expect(screen.getByText('Keyword Fit')).toBeInTheDocument();
-    expect(screen.getByText('Geography Fit')).toBeInTheDocument();
-    expect(screen.getByText('Budget Fit')).toBeInTheDocument();
-    expect(screen.getByText('Timeline Fit')).toBeInTheDocument();
+    expect(screen.getByText('Keywords:')).toBeInTheDocument();
+    expect(screen.getByText('Geography:')).toBeInTheDocument();
+    expect(screen.getByText('Budget:')).toBeInTheDocument();
+    expect(screen.getByText('Timeline:')).toBeInTheDocument();
   });
 });

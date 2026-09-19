@@ -10,33 +10,33 @@ describe('SavedGrantsScreen Component', () => {
   const mockGrants = [
     {
       grant_id: 'g-001',
-      funder_name: 'Foundation A',
+      funder: 'Foundation A',
       amount_usd: 50000,
-      match_score: 0.85,
+      combined_score: 0.85,
       deadline: '2026-12-31',
-      nonprofit_match_usd: 10000,
+      days_until_deadline: 407,
+      match_required_usd: 10000,
       capacity_verdict: 'GREEN_LIGHT',
-      component_scores: {
-        keyword_fit: 0.9,
-        geography_fit: 0.8,
-        budget_fit: 0.75,
-        timeline_fit: 0.85
-      }
+      capacity_shortfall_usd: 0,
+      keyword_fit: 0.9,
+      geography_fit: 0.8,
+      budget_fit: 0.75,
+      timeline_fit: 0.85
     },
     {
       grant_id: 'g-002',
-      funder_name: 'Foundation B',
+      funder: 'Foundation B',
       amount_usd: 75000,
-      match_score: 0.92,
+      combined_score: 0.92,
       deadline: '2026-11-30',
-      nonprofit_match_usd: 15000,
+      days_until_deadline: 377,
+      match_required_usd: 15000,
       capacity_verdict: 'GREEN_LIGHT',
-      component_scores: {
-        keyword_fit: 0.95,
-        geography_fit: 0.85,
-        budget_fit: 0.9,
-        timeline_fit: 0.92
-      }
+      capacity_shortfall_usd: 0,
+      keyword_fit: 0.95,
+      geography_fit: 0.85,
+      budget_fit: 0.9,
+      timeline_fit: 0.92
     }
   ];
 
