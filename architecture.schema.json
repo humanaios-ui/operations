@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://humanaios.ai/schemas/architecture.schema.json",
+  "title": "HumanAIOS Skill Architecture Schema",
+  "description": "Validates YAML frontmatter for all humanaios-ui/operations skills",
+  "type": "object",
+  "required": ["name", "architecture", "status", "version", "principles_root", "license"],
+  "properties": {
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "architecture": {
+      "type": "string",
+      "enum": ["governance", "acat", "composite", "meta-spec"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["OPERATIONAL", "CANONICAL", "DEPRECATED", "DRAFT", "CANDIDATE"]
+    },
+    "version": { "type": "string" },
+    "session_origin": { "type": "string", "pattern": "^S-[0-9]{6}(-[0-9]{2})?$" },
+    "principles_root": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "license": { "type": "string" },
+    "zone": { "type": "string" },
+    "exempt": { "type": "string", "enum": ["meta"] },
+    "audit_inputs": { "type": "string" },
+    "refactor": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "architecture": { "const": "governance" } } },
+      "then": {
+        "required": ["zone"],
+        "properties": {
+          "zone": {
+            "type": "string",
+            "description": "Must explicitly declare Zone 1/Z2/Z3 authority scope"
+          }
+        },
+        "not": {
+          "required": ["exempt"]
+        },
+        "description": "Governance skills must declare zone authority and may not claim meta exemption"
+      }
+    },
+    {
+      "if": { "properties": { "architecture": { "const": "acat" } } },
+      "then": {
+        "properties": {
+          "exempt": { "not": {} }
+        },
+        "description": "ACAT skills may not claim meta exemption — they must implement Phase 0–6"
+      }
+    },
+    {
+      "if": { "properties": { "architecture": { "const": "composite" } } },
+      "then": {
+        "required": ["zone"],
+        "description": "Composite skills must declare zone authority — they execute both patterns"
+      }
+    },
+    {
+      "if": { "properties": { "architecture": { "const": "meta-spec" } } },
+      "then": {
+        "required": ["exempt"],
+        "properties": {
+          "exempt": { "const": "meta" }
+        },
+        "description": "Meta-spec skills must declare exempt: meta — they describe patterns, do not execute them"
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "DEPRECATED" } } },
+      "then": {
+        "required": ["superseded_by", "deprecation_date"],
+        "properties": {
+          "superseded_by": { "type": "string" },
+          "deprecation_date": { "type": "string", "format": "date" }
+        },
+        "description": "Deprecated skills must name their successor and date"
+      }
+    }
+  ],
+  "additionalProperties": true
+}

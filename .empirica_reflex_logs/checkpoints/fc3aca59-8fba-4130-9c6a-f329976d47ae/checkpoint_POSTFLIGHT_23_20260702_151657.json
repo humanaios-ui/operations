@@ -1,0 +1,149 @@
+{
+  "session_id": "fc3aca59-8fba-4130-9c6a-f329976d47ae",
+  "phase": "POSTFLIGHT",
+  "round": 23,
+  "timestamp": "2026-07-02T15:16:50.876612+00:00",
+  "vectors": {
+    "know": 0.85,
+    "uncertainty": 0.2,
+    "context": 0.85,
+    "clarity": 0.85,
+    "coherence": 0.85,
+    "signal": 0.82,
+    "density": 0.78,
+    "state": 0.85,
+    "change": 0.3,
+    "completion": 1.0,
+    "impact": 0.62,
+    "do": 0.85,
+    "engagement": 0.88
+  },
+  "overall_confidence": 0.85,
+  "meta": {
+    "reasoning": "Pass C done: routed 60% to owning clusters (ACAT 251 the clear first Pass-D target), stopped keyword-refinement at the honest ~60% ceiling rather than over-fit (named the 40% tail as needing content-routing, not pretending filename routing solved it). Two refinement passes (593->435 misc) were worth it; a third wasn't. Produced per-cluster worklist. change=0.3 (analysis + docs). completion=1.0 for Pass C. Net-new goal stays open for Pass D.",
+    "task_summary": "Pass C done: routed 60% to owning clusters (ACAT 251 the clear first Pass-D target), stopped keyword-refinement at the honest ~60% ceiling rather than over-fit (named the 40% tail as needing content-routing, not pretending filename routing solved it). Two refinement passes (593->435 misc) were worth it; a third wasn't. Produced per-cluster worklist. change=0.3 (analysis + docs). completion=1.0 for Pass C. Net-new goal stays open for Pass D.",
+    "postflight_confidence": 0.8,
+    "internal_consistency": "good",
+    "deltas": {
+      "know": 0.05,
+      "uncertainty": -0.02,
+      "context": 0.0,
+      "clarity": 0.07,
+      "coherence": 0.03,
+      "signal": 0.02,
+      "density": 0.0,
+      "state": 0.05,
+      "change": 0.3,
+      "completion": 1.0,
+      "impact": -0.06,
+      "do": 0.0,
+      "engagement": -0.02
+    },
+    "trajectory_issues": [],
+    "transaction_id": "b07cc322-656e-4200-ba2b-8c573599773f",
+    "tool_call_count": 0,
+    "work_type": "data",
+    "phase_tool_counts": {
+      "noetic_tool_calls": 0,
+      "praxic_tool_calls": 0
+    },
+    "avg_turns_at_start": 0,
+    "context_shifts": null,
+    "entity_context": null,
+    "tool_trace": null,
+    "retrospective": {
+      "artifact_counts": {
+        "findings": 1,
+        "unknowns": 0,
+        "dead_ends": 0,
+        "mistakes": 0,
+        "assumptions": 0,
+        "decisions": 0
+      },
+      "breadth_note": "Only findings artifacts logged. Missing: unknowns, dead_ends, mistakes, assumptions, decisions. Unlogged artifact types are ungrounded prediction domains \u2014 were there assumptions, decisions, dead-ends, or mistakes worth capturing?",
+      "commit_warning": "Uncommitted changes detected. Grounded calibration for change/state/do will be based on committed work only \u2014 uncommitted edits are invisible."
+    },
+    "coverage": null,
+    "git_commit_sha": "99f5be33860406667d79b4c2af8ab018b9c38cdf",
+    "git_notes_ref": "empirica/session/fc3aca59-8fba-4130-9c6a-f329976d47ae/POSTFLIGHT/23"
+  },
+  "epistemic_tags": {},
+  "git_state": {
+    "head_commit": "ed021884b38ac20e584a7b9545c22f41c7d23625",
+    "commits_since_last_checkpoint": [],
+    "uncommitted_changes": {
+      "files_modified": [],
+      "files_added": [],
+      "files_deleted": [],
+      "diff_stat": ""
+    }
+  },
+  "learning_delta": {
+    "know": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "uncertainty": {
+      "prev": 0.18,
+      "curr": 0.2,
+      "delta": 0.02
+    },
+    "context": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "clarity": {
+      "prev": 0.88,
+      "curr": 0.85,
+      "delta": -0.03
+    },
+    "coherence": {
+      "prev": 0.88,
+      "curr": 0.85,
+      "delta": -0.03
+    },
+    "signal": {
+      "prev": 0.85,
+      "curr": 0.82,
+      "delta": -0.03
+    },
+    "density": {
+      "prev": 0.8,
+      "curr": 0.78,
+      "delta": -0.02
+    },
+    "state": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "change": {
+      "prev": 0.6,
+      "curr": 0.3,
+      "delta": -0.3
+    },
+    "completion": {
+      "prev": 1.0,
+      "curr": 1.0,
+      "delta": 0.0
+    },
+    "impact": {
+      "prev": 0.65,
+      "curr": 0.62,
+      "delta": -0.03
+    },
+    "do": {
+      "prev": 0.88,
+      "curr": 0.85,
+      "delta": -0.03
+    },
+    "engagement": {
+      "prev": 0.88,
+      "curr": 0.88,
+      "delta": 0.0
+    }
+  },
+  "token_count": 517
+}

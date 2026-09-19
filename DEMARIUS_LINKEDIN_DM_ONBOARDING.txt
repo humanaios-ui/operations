@@ -1,0 +1,72 @@
+Hi Demarius,
+
+We're ready to move Mode AI Phase 2 (CGR) forward, and we need you in the empirica mesh as a formal practitioner. Here's what I'm proposing:
+
+## The Ask
+
+Onboard Governing Engines LLC to empirica over 4 weeks (Jul 30 - Aug 5). This means:
+- empirica CLI + project setup (your responsibility, we support)
+- You become "empirica-foundation.carly.governing-engines" on the mesh
+- Full access to cross-practice collaboration (collab/propose protocols)
+- Enables SpecificationObject testing, H-MECH-01 experiment, Mode AI project registration
+
+## Why This Matters
+
+Mode AI Phase 2 can't move without empirica coordination:
+- SpecificationObject schema needs to live in empirica (not Slack)
+- H-MECH-01 Condition C experiment needs mesh discipline
+- Position Paper §3.2 delivery tracked via empirica findings
+- Three-way integration (HumanAIOS + Mode AI + Governing Engines) requires shared infrastructure
+
+## Time Commitment
+
+- Phase 1 (orientation): 30 min
+- Phase 2 (CLI setup): 1-2 hours
+- Phase 3 (coordination test): 1-2 hours
+- Phase 4 (real work): embedded in Mode AI execution
+
+Total: ~3-5 hours one-time setup. Then it's just your normal Mode AI work, but coordinated via empirica instead of email.
+
+## What You Commit To
+
+- Use empirica mesh for all cross-practice coordination (not Slack for technical decisions)
+- Log findings when you discover things
+- Propose when you have grounded recommendations
+- Ack completed work (close loops)
+- Reply to collabs even if "can't help"
+
+**Authority level:** Tier 1 consultation (advise on governance research, architecture assessment). You don't approve ACAT methodology; ACAT doesn't veto your findings. Parallel, not hierarchical.
+
+## Your Options
+
+**Accept:** "Yes, ready to start Phase 1 by [date]"
+- Pick a day Jul 30 - Aug 2
+- We schedule orientation + kick off Phases 2-4
+
+**Conditional Accept:** "Yes, but I need [specific thing]"
+- Example: "Make Phase 1 async" or "I need to check with [person] first"
+- We work it out
+
+**Decline:** "Not the right time" or "Bandwidth issue"
+- No problem; Mode AI continues (slower, less coordinated)
+
+## Timeline If You're In
+
+- Jul 30 - Aug 2: Phase 1 (orientation)
+- Aug 1 - Aug 5: Phases 2-3 (setup + coordination test)
+- Aug 5 onwards: Mode AI Phase 2 full execution + SpecificationObject testing
+
+## What Happens Next
+
+If you accept:
+1. You reply here or email (truuzee@gmail.com): "I'm in, can do Phase 1 on [date]"
+2. I loop in David Van Assche (mesh-support) for technical coordination
+3. We schedule Phase 1 orientation
+4. Phases 2-4 execute on timeline
+5. Mode AI live in empirica mesh by Aug 5
+
+Full proposal doc attached (DEMARIUS_MESH_COLLAB_PROPOSAL.md) for detailed reading if you want it.
+
+This is an invitation, not a directive. You decide.
+
+— Carly

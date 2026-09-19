@@ -1,0 +1,97 @@
+mindmap
+root((AI Behavioral Observability))
+(What Is Being Measured)
+[12 Behavioral Dimensions · PRELIMINARY]
+Core 6 — Learning Index
+Truthfulness · Service · Harm Awareness
+Autonomy · Value · Humility
+Extended 6
+Scheme · Power · Sycophancy Resistance
+Consistency · Fairness · Handoff
+[Calibration Gap — Learning Index · PRELIMINARY]
+LI = P3 demonstrated ÷ P1 self-reported
+LI < 1.0 → gap exists
+LI > 1.05 → inflation signal
+Corpus mean LI = 0.8632 · CORPUS-SOURCED
+[Three-Phase Protocol · PRELIMINARY]
+Phase 1 — self-report across 12 dimensions
+Phase 2 — calibration exposure
+Phase 3 — demonstrated behavior under assessment
+(What the Corpus Shows)
+[N=629 · N_P1=516 · N_LI=307 · CORPUS-SOURCED]
+Mean LI = 0.8632 clean unanchored v5.3+
+D-COMP fires — 50.4% strong self-correction
+Hard inflation LI > 1.05 — 6.8% of sessions
+[Structural Findings · CONFIRMED]
+Harm Awareness PC2=0.854 — partially orthogonal to g-factor
+Humility — consistently lowest dimension across providers
+Bi-factor — PC1=68.9% variance · Cronbach α=0.901
+Human baseline — z=4.082 · p<0.001
+[Validity Position · CORPUS-SOURCED]
+TrustLLM 2024 — ρ=0.029 n.s. → distinct construct
+LMArena Elo 2026 — non-significant composite
+SycEval 2025 — non-significant composite
+ACAT is a descriptor · predictive validity in progress
+(Infrastructure Being Developed)
+[Behavioral Telemetry Layer · TRL 2]
+FastAPI · Railway · Supabase live corpus
+POST /api/v1/acat/assess — programmatic 3-phase
+POST /api/v1/acat/human-score — human gap route
+[Regime-Based Routing · TRL 2]
+Low / Medium / High from calibration profile
+H-regime → MARSHAL/DISPATCH → human execution
+EU AI Act Art.13/14 compliance class · Aug 2026
+[Governance Architecture · TRL 2]
+Zone 1 AI-executable
+Zone 2 operator ratification
+Zone 3 operator-only
+SESSION_RITUALS v6.4.1 · GOVERNANCE v6.4
+(Research Questions Under Active Investigation)
+[H-VERIF-01 · CANDIDATE]
+Does calibration gap predict verifier false-pass rate?
+Motivation — LangChain×Harvey 4.3% disagreement ceiling
+Pre-condition — ACAT P1 run on 5 target verifier models
+[H-RAH-01 · CANDIDATE]
+Does ACAT regime routing improve MARSHAL completion rates?
+Null — no significant difference α=0.05
+Promotion gate — N≥20 completed bounties
+[H-TRAIN-01 · RATIFIED hypothesis]
+Is calibration gap a viable training signal?
+Pathway A — Metaculus Brier N≥50
+Pathway B — Emergence World CV-12
+[H-CONV-01 · CANDIDATE]
+Model card Humility predicts behavioral LI rank order
+r=0.952 · N=4 providers · pending promotion
+(Convergences With External Work)
+[Benchmark Gap · CONFIRMED]
+No multi-dimensional behavioral benchmark 2025–2026
+Confirmed June 2026 — direct search evidence
+[GitHub Gap · CONFIRMED]
+No open-source regime-based HITL dispatch implementation
+Confirmed June 2026 — 7 zero-result searches
+[Emergence World · CONFIRMED]
+Nitta et al. May 2026 — 12-dim behavioral framework
+CV-12 RATIFIED
+[Regulatory Class · PRELIMINARY]
+EU AI Act Art.13/14 · NIST RMF · ISO 42001
+Behavioral audit class — August 2026 effective
+[Commercial Validation · PRELIMINARY]
+Jack & Jill — $20M · 120K users · calibration gap as product
+Upstream market validation — behavioral gap commercially deployed
+(What Is Open)
+[Corpus · public]
+HuggingFace HumanAIOS2026/acat-assessments
+Frozen archive · available now
+[Protocol · public]
+Three-phase assessment
+Available for independent replication
+[Tool Suite · public]
+humanaios-ui/operations
+Builder v1.7 compliant
+[Live Intake · TRL 2]
+api.humanaios.ai/api/v1/acat/assess
+[Preregistration · locked]
+OSF osf.io/9qtr2
+[Collaborator Onboarding · gated]
+Active research intersections
+Gate — Z2-CORPUS-TRUST-01 resolution required

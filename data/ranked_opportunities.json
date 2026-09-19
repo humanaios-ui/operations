@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Longview Grants for Applied Work",
+    "sponsor": "Longview Philanthropy",
+    "deadline": "2026-08-31",
+    "award_size": "$50,000-$200,000",
+    "fit_score": 0.92,
+    "days_to_deadline": 41
+  },
+  {
+    "name": "Blue Dot Rapid Grants",
+    "sponsor": "Blue Dot Impact",
+    "deadline": "2026-08-15",
+    "award_size": "$25,000-$75,000",
+    "fit_score": 0.88,
+    "days_to_deadline": 25
+  },
+  {
+    "name": "MATS Fellowship",
+    "sponsor": "Machine Learning for Good",
+    "deadline": "2026-09-15",
+    "award_size": "$30,000-$60,000",
+    "fit_score": 0.85,
+    "days_to_deadline": 56
+  }
+]

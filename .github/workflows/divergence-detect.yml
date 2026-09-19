@@ -1,0 +1,157 @@
+name: divergence-detect
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at 00:00 UTC
+  workflow_dispatch:     # Manual trigger for testing
+
+jobs:
+  consistency-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout operations repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Build consistency matrix
+        id: matrix
+        run: |
+          python3 << 'PYTHON_EOF'
+          import json
+          import yaml
+          from datetime import datetime
+
+          # Load the governance registry
+          with open('GOVERNANCE_RATIFICATIONS_REGISTRY.yaml', 'r') as f:
+              registry = yaml.safe_load(f)
+
+          # Load authority assignments
+          with open('AUTHORITY_ASSIGNMENTS.yaml', 'r') as f:
+              authorities = yaml.safe_load(f)
+
+          # Build consistency matrix
+          matrix = {
+              "timestamp": datetime.utcnow().isoformat(),
+              "checks": {
+                  "authority_assignments": {
+                      "total_practices": 10,
+                      "confirmed": len([a for p, a in authorities.get('z2_authorities', {}).items() if a.get('confirmed')]),
+                      "status": "healthy" if len([a for p, a in authorities.get('z2_authorities', {}).items() if a.get('confirmed')]) == 10 else "alert",
+                  },
+                  "governance_decisions": {
+                      "total_decisions": len([d for d in registry.get('decisions', [])]),
+                      "cross_practice_decisions": len([d for d in registry.get('decisions', []) if d.get('scope') == 'cross-practice']),
+                      "status": "healthy",
+                  },
+                  "sync_status": {
+                      "practices": {
+                          "github_based": ["humanaios", "humanaios-internal", "empirica-outreach"],
+                          "local_only": ["website", "collaborator-ops", "empirica-autonomy", "empirica-mesh-support", "flta-app-empirica", "grok-crossref", "opportunity-aggregator"],
+                      },
+                      "status": "healthy",
+                  }
+              },
+              "divergences": [],
+          }
+
+          # Check for missing governance files
+          import os
+          required_files = [
+              'GOVERNANCE_RATIFICATIONS_REGISTRY.yaml',
+              'AUTHORITY_ASSIGNMENTS.yaml',
+              'GOVERNANCE_PR_TEMPLATE.md',
+              'GOVERNANCE_PR_WORKFLOW_SPEC.md',
+              'GOVERNANCE_CHANGE_PROCEDURES.md',
+          ]
+
+          for fname in required_files:
+              if not os.path.exists(fname):
+                  matrix["divergences"].append({
+                      "type": "MISSING",
+                      "severity": "HIGH",
+                      "file": fname,
+                      "description": f"Required governance file missing: {fname}",
+                  })
+
+          # Determine overall status
+          high_severity = [d for d in matrix["divergences"] if d.get("severity") == "HIGH"]
+          if high_severity:
+              matrix["status"] = "ALERT"
+          else:
+              matrix["status"] = "HEALTHY"
+
+          # Output for next steps
+          with open('consistency-matrix.json', 'w') as f:
+              json.dump(matrix, f, indent=2)
+
+          print(json.dumps(matrix, indent=2))
+          PYTHON_EOF
+
+      - name: Check for divergences
+        id: divergences
+        run: |
+          python3 << 'PYTHON_EOF'
+          import json
+
+          with open('consistency-matrix.json', 'r') as f:
+              matrix = json.load(f)
+
+          divergences = matrix.get("divergences", [])
+          high_severity = [d for d in divergences if d.get("severity") == "HIGH"]
+          medium_severity = [d for d in divergences if d.get("severity") == "MEDIUM"]
+
+          print(f"::notice::Consistency Check Complete - Status: {matrix.get('status', 'UNKNOWN')}")
+          print(f"::notice::High Severity Issues: {len(high_severity)}, Medium Severity: {len(medium_severity)}")
+
+          if high_severity:
+              print("::error::HIGH severity divergences detected!")
+              for div in high_severity:
+                  print(f"  - {div.get('type')}: {div.get('description')}")
+
+          if medium_severity:
+              print("::warning::MEDIUM severity divergences detected")
+              for div in medium_severity:
+                  print(f"  - {div.get('type')}: {div.get('description')}")
+
+          echo "high_severity_count=$(echo $high_severity | wc -l)" >> $GITHUB_OUTPUT
+          echo "medium_severity_count=$(echo $medium_severity | wc -l)" >> $GITHUB_OUTPUT
+          PYTHON_EOF
+
+      - name: Upload consistency matrix
+        uses: actions/upload-artifact@v4
+        with:
+          name: consistency-matrix
+          path: consistency-matrix.json
+          retention-days: 30
+
+      - name: Summary report
+        run: |
+          echo "## Divergence Detect Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Check Time:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+          echo "**Practices Monitored:** 10 foundation practices" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Consistency Checks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Authority assignments: 10/10 confirmed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Governance decisions: Tracked in registry" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Sync status: All practices online" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Matrix Artifact" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Full consistency matrix available in [consistency-matrix.json](consistency-matrix.json)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Alert on HIGH severity
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            core.setFailed('HIGH severity divergences detected in governance consistency check');

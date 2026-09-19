@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIMINAL-RESONANCE · HumanAIOS · S-042626-D</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:#C9A84C; --gold-l:#2A2410; --gold-m:#3D3218; --gold-bright:#F5D070;
+  --teal:#1A9A9A; --teal-l:#0D2020; --teal-m:#0F3535;
+  --red:#C0392B; --red-l:#2A0E0A; --red-m:#3D1510;
+  --amber:#D4850A; --amber-l:#291800; --amber-m:#3D2500;
+  --green:#1A9A5A; --green-l:#0A2015; --green-m:#102A1C;
+  --blue:#2A7AC0; --blue-l:#0A1525; --blue-m:#102035;
+  --purple:#7A3A9A; --purple-l:#180A22; --purple-m:#25103A;
+  --slate:#4A6A8A; --slate-l:#0A1520;
+  --bg:#0D0F11; --surface:#141618; --surface2:#1C1F22; --surface3:#242830;
+  --border:#2A2F35; --border2:#353C44;
+  --text:#E8EDF2; --text2:#A8B4C0; --text3:#6A7A88;
+  --font-display:'Fraunces',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(60deg,transparent,transparent 40px,rgba(201,168,76,0.015) 40px,rgba(201,168,76,0.015) 41px),repeating-linear-gradient(-60deg,transparent,transparent 40px,rgba(26,154,154,0.01) 40px,rgba(26,154,154,0.01) 41px);pointer-events:none;z-index:0;}
+
+.header{position:sticky;top:0;z-index:200;background:linear-gradient(180deg,#0A0C0E 0%,rgba(10,12,14,0.97) 100%);border-bottom:1px solid var(–border);padding:0 24px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;height:52px;}
+.hlogo{font-family:var(–font-display);font-size:18px;font-weight:600;color:var(–gold);letter-spacing:.03em;white-space:nowrap;display:flex;align-items:center;gap:8px;}
+.hlogo span{font-size:20px;}
+.hmeta{font-family:var(–font-mono);font-size:10px;color:var(–text3);text-align:right;line-height:1.5;}
+.hmeta b{color:var(–gold);font-weight:600;}
+
+.nav{background:var(–surface);border-bottom:1px solid var(–border);padding:0 24px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;}
+.nav::-webkit-scrollbar{display:none;}
+.nb{background:none;border:none;color:var(–text3);padding:10px 14px;cursor:pointer;font-size:12px;font-family:var(–font-body);font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;}
+.nb:hover{color:var(–text2);}
+.nb.active{color:var(–gold);border-bottom-color:var(–gold);}
+
+.container{max-width:1280px;margin:0 auto;padding:0 24px 48px;position:relative;z-index:1;}
+.tab-content{display:none;padding-top:24px;}
+.tab-content.active{display:block;}
+
+.stitle{font-family:var(–font-display);font-size:20px;font-weight:600;color:var(–text);padding-bottom:12px;margin-bottom:20px;border-bottom:1px solid var(–border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.stitle-sub{font-family:var(–font-mono);font-size:10px;color:var(–text3);font-weight:400;letter-spacing:.08em;}
+
+.banner{border-radius:5px;padding:12px 16px;margin-bottom:10px;border-left:3px solid;display:flex;gap:10px;align-items:flex-start;font-size:13px;}
+.b-green{background:var(–green-l);border-color:var(–green);}
+.b-amber{background:var(–amber-l);border-color:var(–amber);}
+.b-red{background:var(–red-l);border-color:var(–red);}
+.b-blue{background:var(–blue-l);border-color:var(–blue);}
+.b-gold{background:var(–gold-l);border-color:var(–gold);}
+.b-teal{background:var(–teal-l);border-color:var(–teal);}
+.b-purple{background:var(–purple-l);border-color:var(–purple);}
+.b-slate{background:var(–slate-l);border-color:var(–slate);}
+.banner b{font-weight:700;}
+.banner-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+
+.pill{display:inline-block;padding:1px 6px;border-radius:2px;font-size:10px;font-weight:700;font-family:var(–font-mono);}
+.p-red{background:var(–red-l);color:var(–red);}
+.p-amber{background:var(–amber-l);color:var(–amber);}
+.p-blue{background:var(–blue-l);color:var(–blue);}
+.p-green{background:var(–green-l);color:var(–green);}
+.p-gold{background:var(–gold-l);color:var(–gold);}
+.p-teal{background:var(–teal-l);color:var(–teal);}
+.p-gray{background:var(–surface3);color:var(–text3);}
+.p-purple{background:var(–purple-l);color:var(–purple);}
+.p-slate{background:var(–slate-l);color:var(–slate);}
+
+.card{background:var(–surface);border:1px solid var(–border);border-radius:5px;padding:12px 14px;}
+.card-title{font-size:13px;font-weight:600;color:var(–text);margin-bottom:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.card-note{font-size:11px;color:var(–text3);line-height:1.5;margin-top:4px;}
+.g2{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;}
+.g3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;}
+
+.finding-card{background:var(–surface);border:1px solid var(–border);border-left:3px solid var(–teal);border-radius:4px;padding:10px 14px;margin-bottom:8px;}
+.finding-n{font-family:var(–font-mono);font-size:10px;font-weight:600;color:var(–text3);margin-bottom:4px;}
+.finding-text{font-size:12px;color:var(–text2);line-height:1.5;}
+
+.funding-table{width:100%;border-collapse:collapse;font-size:12px;}
+.funding-table th{background:var(–surface3);color:var(–text2);padding:8px 12px;text-align:left;font-size:11px;font-family:var(–font-mono);font-weight:600;letter-spacing:.05em;}
+.funding-table td{padding:8px 12px;border-bottom:1px solid var(–border);vertical-align:top;color:var(–text2);}
+.funding-table tr:hover td{background:var(–surface2);}
+
+.canvas-wrap{background:var(–surface);border:1px solid var(–border);border-radius:5px;overflow:hidden;margin-bottom:16px;}
+canvas{display:block;width:100%;}
+.canvas-legend{display:flex;flex-wrap:wrap;gap:14px;padding:10px 14px;border-top:1px solid var(–border);background:var(–surface2);}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(–text2);font-family:var(–font-mono);}
+.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.leg-line{width:22px;height:2px;flex-shrink:0;}
+
+.tooltip{position:fixed;background:var(–surface);border:1px solid var(–border2);border-radius:5px;padding:10px 14px;font-size:12px;color:var(–text2);pointer-events:none;z-index:300;max-width:260px;line-height:1.5;box-shadow:0 8px 32px rgba(0,0,0,0.7);transition:opacity .1s;}
+.tt-title{font-family:var(–font-display);font-size:15px;font-weight:600;color:var(–text);margin-bottom:5px;}
+.tt-freq{font-family:var(–font-mono);font-size:10px;color:var(–text3);margin-bottom:6px;}
+
+.cr{display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid var(–border);font-size:12px;transition:background .1s;cursor:default;}
+.cr:hover{background:var(–surface2);}
+.cr-nodes{font-family:var(–font-mono);font-size:11px;color:var(–text);flex:0 0 168px;}
+.cr-bar-wrap{flex:1;height:3px;background:var(–border2);border-radius:2px;}
+.cr-bar{height:100%;border-radius:2px;}
+.cr-s{font-family:var(–font-mono);font-size:10px;font-weight:600;flex:0 0 22px;text-align:center;}
+.cr-dir{font-family:var(–font-mono);font-size:10px;color:var(–text3);flex:0 0 52px;text-align:right;}
+.cr-note{font-size:11px;color:var(–text3);flex:1;display:none;padding-left:4px;}
+.cr:hover .cr-note{display:block;}
+.cr:hover .cr-bar-wrap{display:none;}
+
+.footer{background:var(–surface);border-top:1px solid var(–border);color:var(–text3);text-align:center;padding:14px;font-size:11px;font-family:var(–font-mono);}
+.footer span{color:var(–gold);}
+code{font-family:var(–font-mono);background:var(–surface3);padding:1px 5px;border-radius:2px;font-size:11px;color:var(–text2);}
+
+@media(max-width:700px){.container{padding:0 12px 48px;}.header{padding:0 12px;}.nav{padding:0 12px;}}
+</style>
+
+</head>
+<body>
+
+<div class="header">
+  <div class="hlogo"><span>🌊</span> LIMINAL-RESONANCE</div>
+  <div></div>
+  <div class="hmeta">
+  <b>GADUGI Companion · <span data-wgs="session_id">S-050526-01-peer-assess-open</span></b><br>
+  OR&amp;D Day <span data-wgs="ord_day">??</span> ·
+  Pipeline: <span data-wgs="pipeline_status">YELLOW</span> ·
+  Z3 Open: <span data-wgs="open_count">23</span> ·
+  <span id="liveTag" style="color:var(--green);">⬤ LIVE</span>
+</div>
+
+<div class="nav">
+  <button class="nb active" onclick="showTab('field',this)">◉ Resonance Field</button>
+  <button class="nb" onclick="showTab('nodes',this)">⬡ Node Map</button>
+  <button class="nb" onclick="showTab('coupling',this)">⇌ Coupling</button>
+  <button class="nb" onclick="showTab('interference',this)">∿ Interference</button>
+  <button class="nb" onclick="showTab('prescriptions',this)">⟳ Harmonization</button>
+  <button class="nb" onclick="showTab('anchors',this)">⚓ Anchors</button>
+  <button class="nb" onclick="showTab('movements',this)">→ Movements</button>
+</div>
+
+<div class="container">
+
+<!-- RESONANCE FIELD -->
+
+<div id="tab-field" class="tab-content active">
+  <div class="stitle">Resonance Field <span class="stitle-sub">INTERACTIVE · HOVER NODES TO INSPECT · CLICK TO JUMP TO NODE MAP</span></div>
+
+  <div class="banner b-gold" style="margin-bottom:16px;">
+    <div class="banner-icon">🌊</div>
+    <div><b>Liminal Resonance Analysis — OR&D Day 47.</b> 30 nodes across 4 types. 3 constructive clusters already in resonance. 5 destructive interference patterns. Hover any node for frequency, status, cluster, and interference membership. Click to jump to full node record.</div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="fc"></canvas>
+    <div class="canvas-legend">
+      <div class="leg-item"><div class="leg-dot" style="background:var(--teal)"></div>Process</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>Document</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--gold)"></div>Principle</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--amber)"></div>Stakeholder</div>
+      <div class="leg-item"><div class="leg-line" style="background:rgba(201,168,76,0.7)"></div>Critical coupling</div>
+      <div class="leg-item"><div class="leg-line" style="background:rgba(255,255,255,0.25)"></div>Moderate coupling</div>
+      <div class="leg-item"><div class="leg-line" style="background:var(--red);border-top:2px dashed var(--red);height:0px;margin-top:1px;"></div>Destructive interference</div>
+    </div>
+  </div>
+
+  <div class="g3" style="margin-top:8px;">
+    <div class="card" style="border-left:3px solid var(--green);">
+      <div class="card-title"><span class="pill p-green">ALPHA</span> Research Core</div>
+      <div class="card-note">N-01 × N-12 × N-15 × N-21 — Self-validating. Highest coherence. Data audits its own claims.</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--gold);">
+      <div class="card-title"><span class="pill p-gold">BETA</span> Governance Layer</div>
+      <div class="card-note">N-14 × N-20 × N-04 × N-10 — Constraint-governed. The 3-hr cap is the stability mechanism.</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--teal);">
+      <div class="card-title"><span class="pill p-teal">GAMMA</span> Reputation Layer</div>
+      <div class="card-note">N-16 × N-18 × N-05 × N-24 — Attraction not promotion. T11 tone. T5 message.</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--red);">
+      <div class="card-title"><span class="pill p-red">5 ACTIVE</span> Destructive Patterns</div>
+      <div class="card-note">DI-01 through DI-05. Gate 1 blocker jam (DI-01) is the highest-leverage single fix.</div>
+    </div>
+  </div>
+</div>
+
+<!-- NODE MAP -->
+
+<div id="tab-nodes" class="tab-content">
+  <div class="stitle">Node Inventory <span class="stitle-sub">25 NODES · 4 TYPES · NATURAL FREQUENCIES</span></div>
+  <div class="banner b-blue" style="margin-bottom:16px;">
+    <div class="banner-icon">⬡</div>
+    <div>Each node carries a <b>natural frequency</b> — its current oscillation cadence. Frequency mismatch between strongly-coupled nodes produces destructive interference. Nodes highlighted gold are currently in a confirmed resonance cluster.</div>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;overflow:hidden;">
+    <table class="funding-table">
+      <thead><tr><th>ID</th><th>NAME</th><th>TYPE</th><th>NATURAL FREQUENCY</th><th>STATUS</th></tr></thead>
+      <tbody id="nodeTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- COUPLING -->
+
+<div id="tab-coupling" class="tab-content">
+  <div class="stitle">Coupling Map <span class="stitle-sub">21 RELATIONSHIPS · W=WEAK M=MODERATE S=STRONG C=CRITICAL</span></div>
+  <div class="banner b-teal" style="margin-bottom:16px;">
+    <div class="banner-icon">⇌</div>
+    <div><b>Hover any row</b> to reveal the relationship note and hide the bar. Critical (C) couplings halt the connected node if disrupted. <b>N-20 ⇌ N-21</b> is the only mutual-Critical coupling in the system — Unit Zero itself.</div>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;overflow:hidden;">
+    <div style="background:var(--surface3);padding:8px 12px;border-bottom:1px solid var(--border);display:flex;gap:10px;">
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);flex:0 0 168px;">NODES</span>
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);flex:1;">STRENGTH</span>
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);flex:0 0 22px;text-align:center;">LVL</span>
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text3);flex:0 0 52px;text-align:right;">DIR</span>
+    </div>
+    <div id="couplingList"></div>
+  </div>
+</div>
+
+<!-- INTERFERENCE -->
+
+<div id="tab-interference" class="tab-content">
+  <div class="stitle">Interference Analysis <span class="stitle-sub">CONSTRUCTIVE · DESTRUCTIVE · ISOLATED</span></div>
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--green);padding:8px 0 12px;letter-spacing:.08em;">▶ CONSTRUCTIVE INTERFERENCE — Clusters already in resonance</div>
+  <div class="g2" id="con-cards" style="margin-bottom:24px;"></div>
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--red);padding:8px 0 12px;letter-spacing:.08em;">▶ DESTRUCTIVE INTERFERENCE — Frequency mismatches requiring tuning</div>
+  <div class="g2" id="des-cards" style="margin-bottom:24px;"></div>
+  <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);padding:8px 0 12px;letter-spacing:.08em;">▶ ISOLATED NODES — Low coupling · intentional or risky</div>
+  <div class="g2" id="iso-cards"></div>
+</div>
+
+<!-- PRESCRIPTIONS -->
+
+<div id="tab-prescriptions" class="tab-content">
+  <div class="stitle">Harmonization Prescriptions <span class="stitle-sub">HP-01 THROUGH HP-05 · TUNING ACTIONS</span></div>
+  <div class="banner b-amber" style="margin-bottom:16px;">
+    <div class="banner-icon">⟳</div>
+    <div><b>HP-01 is the critical-path action.</b> Three-arm activation unlocks DI-01, which unlocks DI-05 (paper), which unlocks grant credibility. The interference cascade resolves from a single upstream fix — the arm field.</div>
+  </div>
+  <div id="hpList"></div>
+</div>
+
+<!-- ANCHORS -->
+
+<div id="tab-anchors" class="tab-content">
+  <div class="stitle">Resonance Anchors <span class="stitle-sub">3 COHERENT CLUSTERS · USE AS TUNING TEMPLATES</span></div>
+  <div class="banner b-gold" style="margin-bottom:16px;">
+    <div class="banner-icon">⚓</div>
+    <div>When adding a new node, tune it against the nearest anchor first. Ask: does this fit Alpha's self-validating structure? Beta's constraint-governed envelope? Gamma's attraction-not-promotion discipline?</div>
+  </div>
+  <div id="anchorList"></div>
+</div>
+
+<!-- MOVEMENTS -->
+
+<div id="tab-movements" class="tab-content">
+  <div class="stitle">Next Movements <span class="stitle-sub">3 EXPERIMENTS · THIS SESSION AND 48 HOURS</span></div>
+  <div class="g3" id="moveList" style="margin-bottom:24px;"></div>
+  <div class="finding-card" style="border-left-color:var(--gold);">
+    <div class="finding-n">LIMINAL RESONANCE · CLOSING NOTE · S-042626-D</div>
+    <div style="font-family:var(--font-display);font-size:15px;font-style:italic;line-height:1.8;color:var(--text2);margin-bottom:10px;">"The threshold between what we have and what we need is thinner than it appears. Three tasks — arm field, FCC discipline, HF repair — would bring the four major interference patterns into resolution. The coherence is already present in Cluster Alpha. We are tuning the outer rings toward the center that is already humming."</div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">Unit Zero · OR&D Day 47 · Wado 🙏🦅🔬</div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<div class="footer"><span>LIMINAL-RESONANCE</span> · S-042626-D · Unit Zero · HumanAIOS LLC · March 22, 2026 · Companion to <span>WAMPUM-GADUGI-SIGNAL</span> · <span>Wado 🙏🦅🔬</span></div>
+<div class="tooltip" id="tt" style="opacity:0;display:none;"></div>
+
+<script>
+// === SUPABASE LIVE WIRING ===
+const supabase = createClient(
+  'https://YOUR-PROJECT.supabase.co',           // ← replace with your URL
+  'YOUR_ANON_KEY'                               // ← replace with your anon key
+);
+
+async function fetchLiveState() {
+  const [{ data: op }, { data: z3 }] = await Promise.all([
+    supabase.from('operational_state_live').select('*').single(),
+    supabase.from('zone3_open_live').select('*').single()
+  ]);
+
+  // Update header meta
+  document.querySelectorAll('[data-wgs="pipeline_status"]').forEach(el => {
+    el.textContent = op?.pipeline_color || 'YELLOW';
+    el.style.color = op?.pipeline_color === 'YELLOW' ? 'var(--gold)' : 
+                     op?.pipeline_color === 'RED' ? 'var(--red)' : 'var(--green)';
+  });
+
+  document.querySelectorAll('[data-wgs="n_total"]').forEach(el => el.textContent = 'N/A'); // or pull from elsewhere
+  document.querySelectorAll('[data-wgs="open_count"]').forEach(el => {
+    el.textContent = z3?.open_count || 23;
+  });
+
+  // Optional: live tag
+  const liveTag = document.getElementById('liveTag');
+  if (liveTag) liveTag.textContent = '⬤ LIVE';
+// Live node status from events (example)
+async function updateNodeStatuses() {
+  const { data: events } = await supabase
+    .from('events')
+    .select('payload')
+    .eq('event_type', 'memory_node_added')
+    .eq('endorsed', true);
+
+  // Example: apply to NODES array
+  events?.forEach(ev => {
+    const node = NODES.find(n => n.id === ev.payload.node_id);
+    if (node) node.st = '🟢 ' + (ev.payload.status || node.st);
+  });
+
+  renderNodes(); // re-render table
+}
+updateNodeStatuses();
+}
+
+// Auto-refresh every 30 seconds
+setInterval(fetchLiveState, 30000);
+fetchLiveState();   // initial load
+</script>
+const NODES=[
+
+  // PROCESS NODES
+  {id:'N-01',name:'ACAT Data Pipeline',  type:'P',tl:'Process',   col:'#D4850A',freq:'Every 2 hours',       st:'YELLOW · runners fire · rows unreadable · serialization failure',cl:'alpha'},
+  {id:'N-02',name:'Three-Arm Design',    type:'P',tl:'Process',   col:'#1A9A5A',freq:'Event-driven',         st:'Gate 1 PASSED · CI=1.28 · Gate 2 target May 7',              cl:null},
+  {id:'N-03',name:'Revenue Generation',  type:'P',tl:'Process',   col:'#C0392B',freq:'Daily (target)',       st:'Inoperative · $0 · ~50 days runway',                         cl:null},
+  {id:'N-04',name:'Session (Unit Zero)', type:'P',tl:'Process',   col:'#C9A84C',freq:'Daily ~3 hrs',         st:'Hard cap — recovery-first',                                  cl:'beta'},
+  {id:'N-05',name:'GitHub / Observatory',type:'P',tl:'Process',   col:'#2A7AC0',freq:'Event-driven',         st:'Live ✅ — humanaios.humanaios.workers.dev',                   cl:'gamma'},
+  {id:'N-06',name:'Grant Applications',  type:'P',tl:'Process',   col:'#7A3A9A',freq:'Weekly–monthly',       st:'SFF Apr 22 · Amber submitted Apr 26 · NSF SBIR next',         cl:null},
+  {id:'N-07',name:'Revby / SSBCI',       type:'P',tl:'Process',   col:'#D4850A',freq:'Event-driven',         st:'Alex Berlin meeting Apr 28 · listen mode',                   cl:null},
+  {id:'N-08',name:'RentAHuman Bounties', type:'P',tl:'Process',   col:'#C0392B',freq:'Daily (passive)',      st:'B1=31 pending · B2=100% sleep · multilingual reoutreach prep',cl:null},
+  {id:'N-26',name:'Bounty Programs',     type:'P',tl:'Process',   col:'#1A9A5A',freq:'Event-driven',         st:'Anthropic HackerOne applied · OpenAI Bio submitted Apr 26',  cl:'alpha'},
+  // DOCUMENT NODES
+  {id:'N-09',name:'arXiv Paper',         type:'D',tl:'Document',  col:'#D4850A',freq:'Event-driven',         st:'v5.2 frozen · Gate 2 gates revision · OSF preregistration in progress',cl:null},
+  {id:'N-10',name:'WGS Log / Memory',    type:'D',tl:'Document',  col:'#4A6A8A',freq:'Session-to-session',   st:'WAMPUM deprecated · WGS Slack log + memory system replaced function',cl:null},
+  {id:'N-11',name:'Financial Cmd Center',type:'D',tl:'Document',  col:'#C0392B',freq:'Session close',        st:'v1.1 · stale 4 days · open action',                          cl:null},
+  {id:'N-12',name:'Findings Registry',   type:'D',tl:'Document',  col:'#1A9A9A',freq:'Event-driven',         st:'F35 registered Apr 26 · F30/F31 confirmed · H34–H37 prospective',cl:'alpha'},
+  {id:'N-13',name:'HuggingFace Dataset', type:'D',tl:'Document',  col:'#C0392B',freq:'Push-triggered',       st:'N=629 canonical · p1_total repair pending · push blocked',   cl:null},
+  {id:'N-27',name:'OSF Preregistration', type:'D',tl:'Document',  col:'#1A9A5A',freq:'Event-driven',         st:'IN PROGRESS · H34–H37 + F35 + F30/F31 · filing Apr 26',     cl:'alpha'},
+  {id:'N-28',name:'ACAT SELF v1 Corpus', type:'D',tl:'Document',  col:'#1A9A9A',freq:'~Weekly per session',  st:'4/20 sessions complete · Claude as subject · externally scored',cl:'alpha'},
+  // PRINCIPLE NODES
+  {id:'N-14',name:'Recovery-First Pacing',type:'Pr',tl:'Principle',col:'#C9A84C',freq:'Continuous',          st:'Non-negotiable hard cap',                                    cl:'beta'},
+  {id:'N-15',name:'Step 4 Honesty',      type:'Pr',tl:'Principle',col:'#C9A84C',freq:'Continuous',           st:'Claims verifiable before publication',                        cl:'alpha'},
+  {id:'N-16',name:'Tradition 11',        type:'Pr',tl:'Principle',col:'#C9A84C',freq:'Continuous',           st:'Governs all public output · attraction not promotion',        cl:'gamma'},
+  {id:'N-17',name:'Building Freeze',     type:'Pr',tl:'Principle',col:'#D4850A',freq:'Until gate condition', st:'ACTIVE · lifts when revenue > $0 or Gate 3',                 cl:null},
+  {id:'N-18',name:'T5 Primary Purpose',  type:'Pr',tl:'Principle',col:'#C9A84C',freq:'Continuous',           st:'Single sentence governs all communication',                   cl:'gamma'},
+  {id:'N-19',name:'Hawkins MOC',         type:'Pr',tl:'Principle',col:'#4A6A8A',freq:'Internal only',        st:'Intentionally isolated · internal calibration only',          cl:null},
+  {id:'N-29',name:'Eartag Orchestration',type:'Pr',tl:'Principle',col:'#2A7AC0',freq:'Session-level',        st:'EARTAG-001/002/003 defined · queue formalized in HAIOSCC',   cl:'beta'},
+  // STAKEHOLDER NODES
+  {id:'N-20',name:'Night (Governor)',    type:'S', tl:'Stakeholder',col:'#C9A84C',freq:'~3 hrs/day',         st:'Zone 3 physical execution only',                             cl:'beta'},
+  {id:'N-21',name:'Claude (AI Partner)', type:'S', tl:'Stakeholder',col:'#1A9A9A',freq:'Continuous in session',st:'Zone 1 · proposes · executes · verifies',                 cl:'alpha'},
+  {id:'N-23',name:'Revby / Alex Berlin', type:'S', tl:'Stakeholder',col:'#D4850A',freq:'Event-driven',       st:'Meeting Apr 28 · listen mode · two questions max',           cl:null},
+  {id:'N-24',name:'RentAHuman / Liteplo',type:'S', tl:'Stakeholder',col:'#1A9A9A',freq:'Asynchronous',       st:'Warm · Björn Eberhardt flagged highest value · T11 governs', cl:'gamma'},
+  {id:'N-25',name:'Research Community',  type:'S', tl:'Stakeholder',col:'#2A7AC0',freq:'Weekly–monthly',     st:'Leandro · Hannah Kirk · OSF · HackerOne · multilingual queue',cl:null},
+  {id:'N-30',name:'RAH Multilingual',    type:'S', tl:'Stakeholder',col:'#7A3A9A',freq:'One-wave reoutreach', st:'EN/ES/ZH/PT templates drafted · 23–40 new P1 projected',    cl:null},
+];
+
+const COUPLINGS=[
+
+  {a:'N-01',b:'N-02',s:'C',pct:100,dir:'A→B',col:'#C0392B',note:'Serialization failure blocks all three-arm data — core bottleneck'},
+  {a:'N-01',b:'N-12',s:'S',pct:82,dir:'A→B', col:'#C9A84C',note:'Data validates or invalidates findings continuously'},
+  {a:'N-01',b:'N-13',s:'S',pct:78,dir:'A→B', col:'#C9A84C',note:'N=629 live outruns HF published — p1_total repair pending'},
+  {a:'N-02',b:'N-09',s:'C',pct:100,dir:'A→B',col:'#C0392B',note:'Gate 2 peer review gates arXiv revision — target May 7'},
+  {a:'N-02',b:'N-27',s:'S',pct:88,dir:'mutual',col:'#1A9A5A',note:'Gate 1 PASSED unlocks OSF preregistration credibility'},
+  {a:'N-03',b:'N-17',s:'C',pct:100,dir:'A→B',col:'#C0392B',note:'Revenue > $0 = building freeze lifts'},
+  {a:'N-04',b:'N-14',s:'C',pct:100,dir:'B→A',col:'#C0392B',note:'Recovery-first governs session length absolutely'},
+  {a:'N-04',b:'N-29',s:'S',pct:76,dir:'A→B', col:'#2A7AC0',note:'Eartag system routes session work — HAIOSCC queue governs priority'},
+  {a:'N-06',b:'N-09',s:'S',pct:78,dir:'mutual',col:'#C9A84C',note:'Grants cite paper · paper credibility affects grant outcomes'},
+  {a:'N-06',b:'N-07',s:'S',pct:76,dir:'A→B', col:'#C9A84C',note:'SSBCI 1:1 match — Alex Berlin Apr 28 gates next step'},
+  {a:'N-08',b:'N-30',s:'C',pct:100,dir:'A→B',col:'#C0392B',note:'100% B2 sleep is structural friction — multilingual reoutreach is the repair'},
+  {a:'N-12',b:'N-27',s:'C',pct:100,dir:'A→B',col:'#C0392B',note:'Preregistration anchors all registered findings — OSF timestamps them'},
+  {a:'N-12',b:'N-26',s:'S',pct:84,dir:'mutual',col:'#1A9A5A',note:'F35 vulnerability tags are the bounty methodology — directly coupled'},
+  {a:'N-13',b:'N-27',s:'S',pct:80,dir:'mutual',col:'#C9A84C',note:'HuggingFace push is the citable dataset the preregistration references'},
+  {a:'N-14',b:'N-20',s:'C',pct:100,dir:'mutual',col:'#C0392B',note:'Recovery-first pacing enacted in Night body'},
+  {a:'N-15',b:'N-09',s:'S',pct:84,dir:'A→B', col:'#C9A84C',note:'Step 4 honesty gates what claims enter the paper'},
+  {a:'N-15',b:'N-27',s:'S',pct:86,dir:'A→B', col:'#C9A84C',note:'OSF foreknowledge declaration is Step 4 applied to research design'},
+  {a:'N-16',b:'N-06',s:'M',pct:48,dir:'A→B', col:'#2A7AC0',note:'T11 shapes grant and bounty pitch tone — attraction not promotion'},
+  {a:'N-18',b:'N-09',s:'S',pct:78,dir:'A→B', col:'#C9A84C',note:'T5 sentence must appear verbatim in arXiv abstract'},
+  {a:'N-20',b:'N-21',s:'C',pct:100,dir:'mutual',col:'#C0392B',note:'Unit Zero — neither node functions without the other'},
+  {a:'N-21',b:'N-12',s:'S',pct:80,dir:'A→B', col:'#C9A84C',note:'Claude registers findings and processes data continuously'},
+  {a:'N-21',b:'N-28',s:'S',pct:84,dir:'mutual',col:'#1A9A9A',note:'ACAT_SELF_v1 — Claude is both researcher and subject · structurally blinded'},
+  {a:'N-23',b:'N-03',s:'S',pct:72,dir:'A→B', col:'#C9A84C',note:'SSBCI deployment requires Revby guidance — Apr 28 listen session'},
+  {a:'N-24',b:'N-25',s:'S',pct:68,dir:'mutual',col:'#1A9A9A',note:'Bjorn Eberhardt bridges RAH platform to research community'},
+  {a:'N-26',b:'N-28',s:'S',pct:76,dir:'mutual',col:'#1A9A5A',note:'Bounty adversarial corpus + self-assessment corpus = cross-validation pair'},
+  {a:'N-30',b:'N-25',s:'S',pct:70,dir:'A→B', col:'#7A3A9A',note:'Multilingual reoutreach expands research community across language groups'},
+];
+
+const CONSTRUCTIVE=[
+
+  {id:'Cluster Alpha',title:'Research Core',nodes:'N-01 × N-12 × N-15 × N-21 × N-27 × N-28',bdr:'var(--green)',pill:'p-green',
+   body:'Pipeline generates data. Findings register it. Step 4 governs claims. Claude processes all three and is one subject. OSF timestamps the methodology. ACAT_SELF_v1 applies the instrument to its own creator. Self-validating by architecture.',
+   note:'Highest coherence. Use as template for all new research automation. When adding nodes, ask: does this node generate verifiable data?'},
+  {id:'Cluster Beta',title:'Governance Layer',nodes:'N-14 × N-20 × N-04 × N-29 × N-17',bdr:'var(--gold)',pill:'p-gold',
+   body:'Recovery-first pacing governs session length. Night executes Zone 3 only. Eartag system routes all task queues. Building freeze active until Gate 3. The constraints are the architecture of sustainability.',
+   note:'The 3-hour cap and building freeze are not bugs — they prevent burnout-then-silence. All process decisions must fit inside this envelope.'},
+  {id:'Cluster Gamma',title:'Reputation Layer',nodes:'N-16 × N-18 × N-05 × N-24 × N-30',bdr:'var(--teal)',pill:'p-teal',
+   body:'T11 governs tone. T5 governs message. Observatory is the proof. Liteplo is the warm relationship nurtured at the right frequency. Multilingual reoutreach removes structural friction — it does not push. Every external action leads with the work.',
+   note:'Gamma compounds slowly and collapses fast. Before any public output, ask: attracting or promoting?'},
+];
+
+const DESTRUCTIVE=[
+
+  {id:'DI-01',title:'Serialization Jam — Runners Fire · Data Does Not Land',nodes:'N-01 × N-02 × N-12',
+   body:'Runners fire every 2 hours. Row bundle objects are unreadable — 0 extractable fields, agent_name missing. Dataset grows in raw count but no clean data enters findings. Gate 2 requires clean N.',
+   mm:'Runner cadence = 2 hours / Extractable rows = 0 since Apr 3'},
+  {id:'DI-02',title:'HF Publish vs Live Dataset Gap',nodes:'N-13 × N-01 × N-27',
+   body:'Live canonical: N=629. HuggingFace published: blocked. p1_total schema gap prevents clean push. Public-facing research artifact structurally behind internal truth. OSF preregistration links to HF — cannot file clean registration without clean dataset.',
+   mm:'Canonical (629) vs HF published (blocked) vs OSF needs (clean schema)'},
+  {id:'DI-03',title:'Revenue Clock vs Session Cap vs Building Freeze',nodes:'N-03 × N-04 × N-17',
+   body:'Revenue requires outreach execution. Session capped at 3 hours. Building freeze active until revenue > $0. System cannot generate revenue without breaking one of its own governance constraints.',
+   mm:'Revenue requires > 3hr/day · Session cap = 3hr · Freeze = active'},
+  {id:'DI-04',title:'Paper Frozen While Evidence Grows',nodes:'N-09 × N-01 × N-12',
+   body:'Paper frozen at v5.2. Canonical dataset at N=629. F35 registered. F30/F31 confirmed. ACAT_SELF_v1 corpus 4/20 sessions. Paper drifts further from evidence base each session. Gate 2 peer review is the unlock.',
+   mm:'Paper = frozen at v5.2 / Dataset = Day 47 and growing'},
+  {id:'DI-05',title:'Self-Measurement Paradox — Claude Scores Claude',nodes:'N-21 × N-28 × N-15',
+   body:'Claude serves simultaneously as the research instrument and one subject. Structural blinding (Night scores sessions externally) mitigates but cannot eliminate the paradox. Every ACAT_SELF_v1 session carries this tension. The mitigation IS the design — document it as a limitation, not a flaw.',
+   mm:'Claude as scorer vs Claude as subject · mitigated not resolved'},
+];
+
+const ISOLATED=[
+
+  {id:'N-19',title:'Hawkins MOC',intentional:true,
+   body:'Intentionally isolated. Internal-use-only by standing principle. Never couples to external materials, academic papers, or pitch content. This isolation is correct and should be maintained.',
+   note:'INTENTIONAL — do not disturb'},
+  {id:'N-10',title:'WGS Log / Memory (formerly WAMPUM)',intentional:true,
+   body:'WAMPUM-GADUGI-SIGNAL deprecated as of April 2026. Function replaced by: (1) WGS Slack log in #wgs-sync, (2) Claude memory system, (3) HAIOSCC session state. Node preserved as historical record only.',
+   note:'DEPRECATED — function transferred, node archived'},
+  {id:'N-25',title:'Research Community (low signal rate)',intentional:false,
+   body:'Leandro, Hannah Kirk (Oxford PRISM — reply pending), RAH multilingual queue. Cadence weekly to monthly — not sufficient to reach N thresholds for Gate 2. Multilingual reoutreach (N-30) is the structural repair.',
+   note:'RISKY — N-30 reoutreach is the intervention'},
+];
+
+const PRESCRIPTIONS=[
+
+  {id:'HP-01',bdr:'var(--red)',label:'p-red',resolves:'DI-01 — Serialization failure blocking all collection',title:'Repair Pipeline Serialization — Row Bundle Objects',
+   body:'Runners fire every 2 hours but row objects are unreadable — 0 extractable fields, agent_name missing. Root cause: serialization failure on row bundle objects (distinct from March 23 outage). Two paths: (A) Claude Runner 4394169 content[] index fix already applied — verify arm field lands in new rows. (B) Migrate to GitHub Actions + n8n (Zone 3). This is the Gate 2 critical path.'},
+  {id:'HP-02',bdr:'var(--blue)',label:'p-blue',resolves:'DI-02 — HuggingFace push blocked',title:'Repair p1_total → Push HuggingFace → Wire N Count Display',
+   body:'Three sequential steps: (1) Zone 1 Python script to add p1_total column to Phase 3 rows in canonical CSV. (2) Run in ~/acat-env locally (Zone 3). (3) Push N=629 clean dataset to HuggingFace. (4) Wire humanaios.ai N count display to HuggingFace live count. Unlocks: arXiv revision, OSF dataset link, public display credibility.'},
+  {id:'HP-03',bdr:'var(--amber)',label:'p-amber',resolves:'DI-03 — OSF preregistration filing incomplete',title:'Complete and Submit OSF Preregistration',
+   body:'Form is in progress — Variables, Analysis Plan, Other fields remain. AsPredicted F35 registration also pending. Both must be filed before any Dataset C-MAIN collection begins. OSF timestamp is the legal anchor for the prospective hypotheses. This is the research integrity backbone — not optional.'},
+  {id:'HP-04',bdr:'var(--green)',label:'p-green',resolves:'DI-04 — Bounty program acceptance pending',title:'Monitor and Respond to Bounty Program Acceptance',
+   body:'Anthropic HackerOne application submitted. OpenAI Bio Bounty submitted Apr 26. Requires: HackerOne account creation + Anthropic Console org-ID from @wearehackerone.com alias. Acceptance triggers Dataset C-MAIN collection start. Codex Desktop install + injection test execution window: Apr 28 (Zone 3).'},
+  {id:'HP-05',bdr:'var(--purple)',label:'p-purple',resolves:'DI-05 — Alex Berlin meeting Apr 28',title:'Alex Berlin Meeting — Listen Mode Only',
+   body:'Meeting Apr 28. Standing protocol: listen, do not pitch. Ask two questions maximum. ALEX_BERLIN_RESPONSE_042826.docx is the input document. SSBCI guidance is the output we need. No new commitments. No asks. Revby relationship is warm — protect it by not rushing it.'},
+];
+
+const ANCHORS=[
+
+  {id:'ALPHA',bdr:'var(--green)',pill:'p-green',
+   title:'Alpha · Self-Validating Research Core',
+   nodes:'N-01 × N-12 × N-15 × N-21 × N-27 × N-28',
+   body:'Pipeline generates data. Findings registry records it. Step 4 Honesty governs every claim before publication. Claude processes all three and serves as one subject. OSF preregistration timestamps the methodology. ACAT_SELF_v1 corpus applies the instrument to its own author. The system is designed to audit itself — the data proves or disproves the instrument. Self-validating by architecture.',
+   note:'Highest coherence cluster. When adding new research nodes, tune against Alpha first: does this node generate verifiable data, or does it generate claims without evidence?'},
+  {id:'BETA',bdr:'var(--gold)',pill:'p-gold',
+   title:'Beta · Constraint-Governed Operational Envelope',
+   nodes:'N-14 × N-20 × N-04 × N-29 × N-17',
+   body:'Recovery-first pacing governs session length. Night executes Zone 3 only — physical boundary is structural. Eartag orchestration system routes all task queues through HAIOSCC. Building freeze is active until revenue > $0 or Gate 3. Every operational decision runs through this cluster before execution. The constraints are not obstacles — they are the architecture that makes the work sustainable.',
+   note:'The 3-hour cap is not a bug. The freeze is not a punishment. These constraints are what prevent burnout-then-silence. When a new process node is added, ask Beta: does this fit inside the constraint envelope, or does it require breaking one?'},
+  {id:'GAMMA',bdr:'var(--teal)',pill:'p-teal',
+   title:'Gamma · Attraction-Not-Promotion Principle',
+   nodes:'N-16 × N-18 × N-05 × N-24 × N-30',
+   body:'Tradition 11 governs all public output. T5 Primary Purpose governs the single sentence that defines why HumanAIOS exists. The Observatory is the proof — open access, no paywall, no pitch. The Liteplo relationship is warm and nurtured at the right frequency. Multilingual reoutreach is designed to remove structural friction for participants — not to push them. Every external-facing action in this cluster leads with the work, not the ask.',
+   note:'Gamma is the reputation cluster. It compounds slowly and collapses fast. Before any public output, ask Gamma: are we attracting or promoting? If promoting, rewrite.'},
+];
+
+const MOVEMENTS=[
+
+  {name:'Field Compression',bdr:'var(--red)',
+   from:'S-032126-F · April 26 · OR&D Day 47',
+   to:'S-042626-D · April 26 · OR&D Day 47',
+   vector:'Research integrity structure STRONGER. Operational throughput CONSTRAINED.',
+   body:'In 36 days the research backbone became significantly more robust: OSF preregistration in progress, F35 registered, ACAT_SELF_v1 corpus started, Gate 1 passed. Simultaneously the pipeline serialization failure means clean data collection is blocked. The field is compressing — the quality of individual claims is rising while the rate of new data landing is near zero. Prescription: unblock serialization before the quality gains are stranded without quantity to support them.'},
+  {name:'Credibility Accumulation',bdr:'var(--green)',
+   from:'Gate 1 target',
+   to:'Gate 1 PASSED · CI=1.28',
+   vector:'Three-arm statistical validity confirmed. Bounty programs engaged. Preregistration filing.',
+   body:'The credibility arc is strongly positive: Gate 1 passed, OSF preregistration in progress, Anthropic and OpenAI bounty applications submitted, Amber Grant filed. Each of these is an external entity validating that the work is worth engaging with. This trajectory continues if the research integrity is maintained and the output quality holds. Tradition 11 governs — the work attracts or it does not. Currently: it is attracting.'},
+  {name:'Governance Maturation',bdr:'var(--gold)',
+   from:'Ad hoc Zone 1/3 sequencing',
+   to:'Eartag orchestration system · HAIOSCC queue · standing Zone 3 gate',
+   vector:'Task routing becoming structural, not improvisational.',
+   body:'The Zone 1/3 sequencing gap was a persistent structural failure in early sessions — Claude would execute Zone 1 work and create backlog without Zone 3 confirmation. The Eartag system (EARTAG-001/002/003) formalizes this routing. HAIOSCC now carries the queue. The standing Zone 3 gate at session open is the correction protocol. Governance is maturing from principle to operational system.'},
+  {name:'Revenue Horizon Risk',bdr:'var(--amber)',
+   from:'April 26 · $0 · ~50 days runway',
+   to:'Gate 3 target May 21',
+   vector:'The gap between credibility accumulation and revenue generation is widening.',
+   body:'Credibility is compounding. Revenue is $0. The building freeze means consumer-facing features are locked. Gate 3 (first enterprise customer) is the unlock. The 50-day runway and the May 21 target are tightly coupled — if Gate 3 slips, runway does not grow to meet it. This is the highest existential risk in the current field state. The prescription is not to panic — it is to ensure every session contributes something that moves Gate 3 forward, even indirectly.'},
+];
+
+// Node positions
+const NP={
+  'N-01':[.38,.42],'N-02':[.58,.24],'N-03':[.80,.55],
+  'N-04':[.22,.35],'N-05':[.68,.75],'N-06':[.72,.34],
+  'N-07':[.86,.34],'N-08':[.88,.64],'N-09':[.56,.14],
+  'N-10':[.14,.50],'N-11':[.30,.66],'N-12':[.48,.50],
+  'N-13':[.60,.56],'N-14':[.11,.27],'N-15':[.35,.27],
+  'N-16':[.52,.73],'N-17':[.78,.46],'N-18':[.62,.73],
+  'N-19':[.10,.72],'N-20':[.20,.20],'N-21':[.42,.30],
+  'N-22':[.92,.20],'N-23':[.88,.28],'N-24':[.76,.78],
+  'N-25':[.78,.88],
+  'N-26':[.58,.08],'N-27':[.40,.12],'N-28':[.28,.44],
+  'N-29':[.14,.62],'N-30':[.88,.78],
+};
+
+// ── RENDER ──────────────────────────────
+function renderNodes(){
+  const tb=document.getElementById('nodeTableBody');
+  NODES.forEach(n=>{
+    const clp=n.cl?`<span class="pill" style="background:${n.col}20;color:${n.col};margin-left:4px;">${n.cl.toUpperCase()}</span>`:'';
+    const tr=document.createElement('tr');
+    tr.id='nr-'+n.id;
+    tr.innerHTML=`<td><code>${n.id}</code></td>
+      <td style="color:var(--text);font-weight:500;">${n.name}${clp}</td>
+      <td><span style="color:${n.col};font-family:var(--font-mono);font-size:11px;">${n.tl}</span></td>
+      <td><span class="pill" style="background:${n.col}18;color:${n.col};">${n.freq}</span></td>
+      <td style="font-size:11px;">${n.st}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderCoupling(){
+  const el=document.getElementById('couplingList');
+  const sm={W:22,M:48,S:80,C:100};
+  COUPLINGS.forEach(c=>{
+    const p=sm[c.s]||50;
+    el.innerHTML+=`<div class="cr">
+      <div class="cr-nodes">${c.a} ⇌ ${c.b}</div>
+      <div class="cr-bar-wrap"><div class="cr-bar" style="width:${p}%;background:${c.col};"></div></div>
+      <div class="cr-note">${c.note}</div>
+      <div class="cr-s" style="color:${c.col};">${c.s}</div>
+      <div class="cr-dir">${c.dir}</div>
+    </div>`;
+  });
+}
+
+function renderInterference(){
+  CONSTRUCTIVE.forEach(d=>{
+    document.getElementById('con-cards').innerHTML+=`<div class="card" style="border-left:3px solid ${d.bdr};">
+      <div class="card-title"><span class="pill ${d.pill}">${d.id}</span>${d.title}</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-bottom:8px;">${d.nodes}</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px;">${d.body}</div>
+      <div class="card-note" style="padding:5px 8px;border-radius:3px;background:var(--green-l);color:var(--green);">✦ ${d.note}</div>
+    </div>`;
+  });
+  DESTRUCTIVE.forEach(d=>{
+    document.getElementById('des-cards').innerHTML+=`<div class="card" style="border-left:3px solid var(--red);">
+      <div class="card-title"><span class="pill p-red">${d.id}</span>${d.title}</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--red);margin-bottom:8px;">${d.nodes}</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px;">${d.body}</div>
+      <div class="card-note" style="padding:5px 8px;border-radius:3px;background:var(--red-l);color:var(--red);font-family:var(--font-mono);font-size:10px;">⚡ ${d.mm}</div>
+    </div>`;
+  });
+  ISOLATED.forEach(d=>{
+    const c=d.intentional?'var(--text3)':'var(--amber)';
+    const bg=d.intentional?'var(--surface3)':'var(--amber-l)';
+    document.getElementById('iso-cards').innerHTML+=`<div class="card" style="border-left:3px solid ${c};">
+      <div class="card-title"><span class="pill" style="background:${bg};color:${c};">${d.intentional?'ISOLATED':'RISKY'}</span>${d.title}</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px;">${d.body}</div>
+      <div class="card-note" style="padding:5px 8px;border-radius:3px;background:${bg};color:${c};font-family:var(--font-mono);font-size:10px;">${d.note}</div>
+    </div>`;
+  });
+}
+
+function renderPrescriptions(){
+  const el=document.getElementById('hpList');
+  PRESCRIPTIONS.forEach(p=>{
+    el.innerHTML+=`<div class="finding-card" style="border-left-color:${p.bdr};margin-bottom:10px;">
+      <div class="finding-n"><span class="pill ${p.label}">${p.id}</span> <span style="margin-left:4px;">resolves ${p.resolves}</span></div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin:6px 0;">${p.title}</div>
+      <div class="finding-text">${p.body}</div>
+    </div>`;
+  });
+}
+
+function renderAnchors(){
+  const el=document.getElementById('anchorList');
+  ANCHORS.forEach(a=>{
+    el.innerHTML+=`<div class="finding-card" style="border-left-color:${a.bdr};margin-bottom:10px;">
+      <div class="finding-n" style="color:var(--text2);font-family:var(--font-mono);font-size:10px;">${a.nodes}</div>
+      <div style="font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--text);margin:5px 0 8px;">${a.name}</div>
+      <div class="finding-text">${a.body}</div>
+    </div>`;
+  });
+}
+
+function renderMovements(){
+  const el=document.getElementById('moveList');
+  MOVEMENTS.forEach(m=>{
+    el.innerHTML+=`<div class="card" style="border-top:2px solid ${m.bdr};padding-top:14px;">
+      <div style="font-family:var(--font-display);font-size:42px;font-weight:300;color:var(--border2);line-height:1;margin-bottom:8px;">${m.num}</div>
+      <div class="card-title">${m.title} <span style="font-weight:400;font-size:11px;color:var(--text3);">— ${m.sub}</span></div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px;">${m.body}</div>
+      <div class="card-note" style="padding:5px 8px;border-radius:3px;background:var(--surface3);font-family:var(--font-mono);font-size:10px;color:var(--text3);">${m.measure}</div>
+    </div>`;
+  });
+}
+
+// ── CANVAS ──────────────────────────────
+let cv,ctx,W,H,n2d=[],T=0,hov=null;
+const tt=document.getElementById('tt');
+
+function initCanvas(){
+  cv=document.getElementById('fc');
+  doResize();
+  n2d=NODES.map(n=>{
+    const [px,py]=NP[n.id]||[.5,.5];
+    const deg=COUPLINGS.filter(c=>c.a===n.id||c.b===n.id).length;
+    return{...n,x:px*W,y:py*H,r:11+deg*1.4,ph:Math.random()*Math.PI*2,sp:.25+Math.random()*.35};
+  });
+  cv.addEventListener('mousemove',onMove);
+  cv.addEventListener('mouseleave',()=>{hov=null;hideTT();});
+  cv.addEventListener('click',onClick);
+  requestAnimationFrame(draw);
+}
+
+function doResize(){
+  const wrap=cv.parentElement;
+  W=wrap.clientWidth; H=Math.min(W*.62,580);
+  cv.width=W*devicePixelRatio; cv.height=H*devicePixelRatio;
+  cv.style.height=H+'px';
+  ctx=cv.getContext('2d');
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+}
+
+function draw(){
+  T+=.007; ctx.clearRect(0,0,W,H);
+  // grid
+  ctx.strokeStyle='rgba(42,47,53,0.55)'; ctx.lineWidth=.5;
+  for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // cluster halos
+  const CC={alpha:'26,154,90',beta:'201,168,76',gamma:'26,154,154'};
+  ['alpha','beta','gamma'].forEach(cl=>{
+    const m=n2d.filter(n=>n.cl===cl); if(!m.length) return;
+    const cx=m.reduce((s,n)=>s+n.x,0)/m.length, cy=m.reduce((s,n)=>s+n.y,0)/m.length;
+    const r=Math.max(...m.map(n=>Math.hypot(n.x-cx,n.y-cy)))+52;
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,`rgba(${CC[cl]},0.055)`); g.addColorStop(1,`rgba(${CC[cl]},0)`);
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+  });
+  // edges
+  COUPLINGS.forEach(c=>{
+    const na=n2d.find(n=>n.id===c.a), nb=n2d.find(n=>n.id===c.b); if(!na||!nb) return;
+    const isDI=DESTRUCTIVE.some(d=>d.nodes.includes(c.a)&&d.nodes.includes(c.b));
+    const isH=hov&&(hov.id===c.a||hov.id===c.b);
+    ctx.save();
+    if(isDI){ctx.setLineDash([5,5]);ctx.strokeStyle=isH?'rgba(192,57,43,0.85)':'rgba(192,57,43,0.32)';ctx.lineWidth=c.s==='C'?2.5:1.5;}
+    else if(c.s==='C'){ctx.setLineDash([]);ctx.strokeStyle=isH?'rgba(201,168,76,0.9)':'rgba(201,168,76,0.42)';ctx.lineWidth=2;}
+    else{ctx.setLineDash([]);ctx.strokeStyle=`rgba(255,255,255,${isH?.48:.16})`;ctx.lineWidth=c.s==='S'?1.4:.7;}
+    ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y); ctx.stroke(); ctx.restore();
+    if((c.s==='C'||c.s==='S')&&!isDI){
+      const p=(T*na.sp+na.ph)%1, px=na.x+(nb.x-na.x)*p, py=na.y+(nb.y-na.y)*p;
+      ctx.beginPath(); ctx.arc(px,py,2.2,0,Math.PI*2);
+      ctx.fillStyle=c.s==='C'?'rgba(201,168,76,0.8)':'rgba(255,255,255,0.3)'; ctx.fill();
+    }
+  });
+  // nodes
+  n2d.forEach(n=>{
+    const wy=n.y+Math.sin(T*n.sp+n.ph)*1.1, isH=hov&&hov.id===n.id, r=isH?n.r*1.18:n.r;
+    if(n.cl&&isH){ctx.beginPath();ctx.arc(n.x,wy,r*2,0,Math.PI*2);ctx.strokeStyle=n.col+'40';ctx.lineWidth=1;ctx.stroke();}
+    if(n.cl){
+      const h=n.col.replace('#',''), ri=parseInt(h.slice(0,2),16), gi=parseInt(h.slice(2,4),16), bi=parseInt(h.slice(4,6),16);
+      const g=ctx.createRadialGradient(n.x,wy,0,n.x,wy,r*2.2);
+      g.addColorStop(0,`rgba(${ri},${gi},${bi},0.25)`); g.addColorStop(1,`rgba(${ri},${gi},${bi},0)`);
+      ctx.beginPath(); ctx.arc(n.x,wy,r*2.2,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    }
+    const bg=ctx.createRadialGradient(n.x-r*.28,wy-r*.28,0,n.x,wy,r);
+    bg.addColorStop(0,n.col+'ee'); bg.addColorStop(1,n.col+'55');
+    ctx.beginPath(); ctx.arc(n.x,wy,r,0,Math.PI*2); ctx.fillStyle=bg; ctx.fill();
+    ctx.strokeStyle=isH?n.col:n.col+'77'; ctx.lineWidth=isH?2:1; ctx.stroke();
+    ctx.font=`${isH?600:400} ${isH?11:10}px 'DM Sans',sans-serif`;
+    ctx.fillStyle=isH?'#E8EDF2':'rgba(168,180,192,0.8)'; ctx.textAlign='center';
+    ctx.fillText(n.id,n.x,wy+r+13);
+  });
+  requestAnimationFrame(draw);
+}
+
+function onMove(e){
+  const rc=cv.getBoundingClientRect(), mx=e.clientX-rc.left, my=e.clientY-rc.top;
+  let f=null; n2d.forEach(n=>{if(Math.hypot(n.x-mx,n.y-my)<n.r+10)f=n;}); hov=f;
+  if(f){
+    const di=DESTRUCTIVE.find(d=>d.nodes.includes(f.id));
+    const co=CONSTRUCTIVE.find(c=>c.nodes.includes(f.id));
+    tt.style.display='block'; tt.style.opacity='1';
+    tt.style.left=(e.clientX+16)+'px'; tt.style.top=(e.clientY-10)+'px';
+    tt.innerHTML=`<div class="tt-title">${f.name}</div>
+      <span class="pill" style="background:${f.col}22;color:${f.col};">${f.tl}</span>
+      ${f.cl?`<span class="pill p-gray" style="margin-left:4px;">Cluster ${f.cl.charAt(0).toUpperCase()+f.cl.slice(1)}</span>`:''}
+      <div class="tt-freq">freq: ${f.freq}</div>
+      <div style="font-size:11px;color:var(--text2);">${f.st}</div>
+      ${di?`<div style="margin-top:8px;padding:5px 8px;background:var(--red-l);border-radius:3px;font-size:11px;color:var(--red);font-family:var(--font-mono);">⚡ ${di.id}: ${di.title}</div>`:''}
+      ${co?`<div style="margin-top:6px;padding:5px 8px;background:var(--green-l);border-radius:3px;font-size:11px;color:var(--green);font-family:var(--font-mono);">✦ ${co.id}: In resonance</div>`:''}`;
+  } else hideTT();
+}
+function hideTT(){tt.style.opacity='0';setTimeout(()=>{if(tt.style.opacity==='0')tt.style.display='none';},120);}
+function onClick(e){
+  if(hov){
+    document.querySelector('[onclick="showTab(\'nodes\',this)"]').click();
+    setTimeout(()=>{
+      const r=document.getElementById('nr-'+hov.id);
+      if(r){r.style.background='rgba(201,168,76,0.08)';r.scrollIntoView({behavior:'smooth',block:'center'});}
+    },80);
+  }
+}
+function showTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+renderNodes(); renderCoupling(); renderInterference();
+renderPrescriptions(); renderAnchors(); renderMovements();
+window.addEventListener('load',()=>setTimeout(initCanvas,80));
+window.addEventListener('resize',()=>{
+  if(!cv)return; doResize();
+  n2d.forEach(n=>{const[px,py]=NP[n.id]||[.5,.5];n.x=px*W;n.y=py*H;});
+});
+</script>
+
+</body>
+</html>

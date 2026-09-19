@@ -1,0 +1,588 @@
+{
+ "issued": "2026-09-08",
+ "window": "2026-09-06..2026-10-04",
+ "source_plan": "PHASE2_PLAN_v0_1.md \u00a73 (Z1 2026-09-06; LAID, not on main)",
+ "registered_sha": "40391062966c6d6f9e29819a56ba1b87a035146e9d962a331d33de0aa8069029",
+ "main_sha": "efcfcb50fe35e5c9a13842a3f924c0753abba5c9",
+ "resolver": "tree read of the named repo at date+3 (UTC); missing file = NO; final read 2026-10-04",
+ "practices": [
+  {
+   "id": "empirica-foundation-evaluator",
+   "org": "Empirica",
+   "practice_p": {
+    "empirica-foundation-evaluator": 0.9,
+    "Z1": 0.2
+   },
+   "tokens": [
+    {
+     "id": "T-empirica-foundation-evaluator-01",
+     "title": "Notion Governance Hub (exported md)",
+     "date": "2026-09-12",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-empirica-foundation-evaluator-02",
+     "title": "Governance Coherence Model .md+.py",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-foundation-evaluator-03",
+     "title": "Scorecard Dashboard .html+.yaml",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-foundation-evaluator-04",
+     "title": "Escalation Complexity Analysis",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-empirica-foundation-evaluator-05",
+     "title": "Phase Success Prediction Model .py (held-out test)",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "acat-x",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "acat-x": 0.95,
+    "Z1": 0.15
+   },
+   "tokens": [
+    {
+     "id": "T-acat-x-01",
+     "title": "Cross-version analysis .md+.json",
+     "date": "2026-09-19",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-acat-x-02",
+     "title": "Real-time monitoring .py+dashboard",
+     "date": "2026-09-26",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-acat-x-03",
+     "title": "Capability prediction model (held-out)",
+     "date": "2026-10-03",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    }
+   ],
+   "note": "pin void unless Z2 dates by Sep 12; five P1 debts outrank deliverables"
+  },
+  {
+   "id": "humanaios",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "humanaios": 0.92,
+    "Z1": 0.25
+   },
+   "tokens": [
+    {
+     "id": "T-humanaios-01",
+     "title": "Behavioral Alignment Framework .yaml+.md (behavior_spec + integrity_modes w/ molt_id)",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-humanaios-02",
+     "title": "Trust Dynamics Model (LT-3 first reading)",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-humanaios-03",
+     "title": "Adaptive Engagement Strategies (technical-level dial per node)",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-humanaios-04",
+     "title": "Pedagogical Effectiveness Study (LT-6)",
+     "date": "2026-10-03",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "empirica-autonomy",
+   "org": "Empirica",
+   "practice_p": {
+    "empirica-autonomy": 0.95,
+    "Z1": 0.2
+   },
+   "tokens": [
+    {
+     "id": "T-empirica-autonomy-01",
+     "title": "Confidence Calibration Model (ingests resolved predictions)",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-autonomy-02",
+     "title": "Tool Authorization Framework .yaml (allowlist constant)",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-autonomy-03",
+     "title": "Cross-Practice Enforcement Audit",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-empirica-autonomy-04",
+     "title": "Escalation Failure Prediction",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "empirica-mesh-support",
+   "org": "Empirica",
+   "practice_p": {
+    "empirica-mesh-support": 0.98,
+    "Z1": 0.15
+   },
+   "tokens": [
+    {
+     "id": "T-empirica-mesh-support-01",
+     "title": "Mesh Communication Health Model (delivery log as chain)",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-mesh-support-02",
+     "title": "Incident Priority Framework .yaml",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-mesh-support-03",
+     "title": "SER Topology Study",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-empirica-mesh-support-04",
+     "title": "Communication Pattern Analysis",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    }
+   ],
+   "note": "0.98 is the pin most worth watching; P1 '0 missed deadlines' DISPUTED vs 37-day OA / 11-day grok"
+  },
+  {
+   "id": "empirica-outreach",
+   "org": "Empirica",
+   "practice_p": {
+    "empirica-outreach": 0.88,
+    "Z1": 0.25
+   },
+   "tokens": [
+    {
+     "id": "T-empirica-outreach-01",
+     "title": "Admiral approval on outreach narrative",
+     "date": "2026-09-06",
+     "date_source": "PRACTICE",
+     "p_z1": 0.6
+    },
+    {
+     "id": "T-empirica-outreach-02",
+     "title": "Comms Calendar .yaml",
+     "date": "2026-09-12",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-empirica-outreach-03",
+     "title": "Narrative Coherence Framework",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-outreach-04",
+     "title": "12 briefing templates",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-empirica-outreach-05",
+     "title": "Stakeholder Engagement Model .py",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "website",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "website": 0.9,
+    "Z1": 0.1
+   },
+   "tokens": [
+    {
+     "id": "T-website-01",
+     "title": "14 practice profiles (registry-generated, hashed claims only)",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.25
+    },
+    {
+     "id": "T-website-02",
+     "title": "Analytics Dashboard",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-website-03",
+     "title": "SEO Audit",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-website-04",
+     "title": "Community Engagement Model",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "humanaios-internal",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "humanaios-internal": 0.92,
+    "Z1": 0.3
+   },
+   "tokens": [
+    {
+     "id": "T-humanaios-internal-01",
+     "title": "Collaboration pattern analysis (B.6 RECEIPT-GAP series)",
+     "date": "2026-09-19",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-humanaios-internal-02",
+     "title": "Feedback-loop metrics (LT-4/LT-5 from session logs)",
+     "date": "2026-09-26",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-humanaios-internal-03",
+     "title": "Generalization study (skeleton on a second practice)",
+     "date": "2026-10-03",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "collaborator-ops",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "collaborator-ops": 0.88,
+    "Z1": 0.2
+   },
+   "tokens": [
+    {
+     "id": "T-collaborator-ops-01",
+     "title": "Toolchain analysis + cost model (opt_budget_v0 inputs)",
+     "date": "2026-09-19",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-collaborator-ops-02",
+     "title": "Friction classifier (falsifier or drop)",
+     "date": "2026-09-26",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-collaborator-ops-03",
+     "title": "Workspace scaling guidelines (12 teams membership rules)",
+     "date": "2026-09-26",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "empirica-epistemology",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "empirica-epistemology": 0.93,
+    "Z1": 0.25
+   },
+   "tokens": [
+    {
+     "id": "T-empirica-epistemology-01",
+     "title": "Cross-domain epistemic metrics (evidence-tier distribution per practice)",
+     "date": "2026-09-19",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-epistemology-02",
+     "title": "Rubric refinement + calibration study (LT-2 on mesh pins)",
+     "date": "2026-09-26",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-empirica-epistemology-03",
+     "title": "Overconfidence detection system (validated on the 15 P1 confidences)",
+     "date": "2026-10-03",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "empirica-quality-assurance",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "empirica-quality-assurance": 0.9,
+    "Z1": 0.2
+   },
+   "tokens": [
+    {
+     "id": "T-empirica-quality-assurance-01",
+     "title": "Coverage model (catch-rate per gate, 26 workflows)",
+     "date": "2026-09-19",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-quality-assurance-02",
+     "title": "Health-degradation detector (Stale Sweep scheduled)",
+     "date": "2026-09-26",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-empirica-quality-assurance-03",
+     "title": "Tier-adaptive compliance (Tier 0/1/2 as CI rules)",
+     "date": "2026-10-03",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "opportunity-aggregator",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "opportunity-aggregator:own-audit": 0.65,
+    "opportunity-aggregator:closure-report": 0.8,
+    "Z1": 0.15
+   },
+   "tokens": [
+    {
+     "id": "T-opportunity-aggregator-01",
+     "title": "SLA Recovery (routing log shows 37-day gap closed)",
+     "date": "2026-09-12",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-opportunity-aggregator-02",
+     "title": "Impact Measurement Framework .yaml",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-opportunity-aggregator-03",
+     "title": "Funding Pipeline Dashboard .html",
+     "date": "2026-09-26",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-opportunity-aggregator-04",
+     "title": "Matching Algorithm .py",
+     "date": "2026-10-03",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    }
+   ],
+   "note": "DISPUTED: two P1 confidences same day; both entered, both scored"
+  },
+  {
+   "id": "grok-crossref",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "grok-crossref": 0.7,
+    "Z1": 0.3
+   },
+   "tokens": [
+    {
+     "id": "T-grok-crossref-01",
+     "title": "Recovery restart",
+     "date": "2026-09-08",
+     "date_source": "PRACTICE",
+     "p_z1": 0.5
+    },
+    {
+     "id": "T-grok-crossref-02",
+     "title": "Validation run",
+     "date": "2026-09-10",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-grok-crossref-03",
+     "title": "Sign-off = validated crossref run with hash",
+     "date": "2026-09-12",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-grok-crossref-04",
+     "title": "KG optimization",
+     "date": "2026-09-26",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-grok-crossref-05",
+     "title": "Accuracy benchmark",
+     "date": "2026-09-26",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    },
+    {
+     "id": "T-grok-crossref-06",
+     "title": "Theme detection",
+     "date": "2026-10-03",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "local-machine-optimizer",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "local-machine-optimizer": 0.85,
+    "Z1": 0.25
+   },
+   "tokens": [
+    {
+     "id": "T-local-machine-optimizer-01",
+     "title": "Optimization guide + benchmarks (tokens per operated cycle)",
+     "date": "2026-09-19",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-local-machine-optimizer-02",
+     "title": "CI perf-regression hook (builder-lint ext)",
+     "date": "2026-09-19",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-local-machine-optimizer-03",
+     "title": "Perf prediction model (held-out)",
+     "date": "2026-09-26",
+     "date_source": "Z1_PROPOSED",
+     "p_z1": 0.4
+    }
+   ]
+  },
+  {
+   "id": "empirica-resource-miner",
+   "org": "HumanAIOS",
+   "practice_p": {
+    "empirica-resource-miner": 0.6,
+    "Z1": 0.25
+   },
+   "tokens": [
+    {
+     "id": "T-empirica-resource-miner-01",
+     "title": "Reactivation",
+     "date": "2026-09-15",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-resource-miner-02",
+     "title": "P1 spec (file + hash)",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.45
+    },
+    {
+     "id": "T-empirica-resource-miner-03",
+     "title": "First intake batch in intake_template.jsonl with prereg hash",
+     "date": "2026-09-19",
+     "date_source": "PRACTICE",
+     "p_z1": 0.3,
+     "owner_add": true
+    },
+    {
+     "id": "T-empirica-resource-miner-04",
+     "title": "P2 transition (n/40 reported)",
+     "date": "2026-10-01",
+     "date_source": "PRACTICE",
+     "p_z1": 0.4
+    }
+   ],
+   "note": "single-track section RM\u2192SS\u2192OA; SS has no owner"
+  }
+ ],
+ "extra_pins": [
+  {
+   "pin_id": "P2-DIST:Z1",
+   "target": "P2-DIST",
+   "predictor": "Z1",
+   "p": 0.5,
+   "claim": "Oct 4 practice outcomes are pass 6 / conditional 5 / fail 4 within \u00b12 per column (\u00a75)"
+  },
+  {
+   "pin_id": "P2-SEP12-19:Z1",
+   "target": "P2-SEP12-19",
+   "predictor": "Z1",
+   "p": 0.3,
+   "claim": "all practice-dated tokens due Sep 12\u201319 exist as files on time (the plan's first pin, \u00a70)"
+  }
+ ]
+}

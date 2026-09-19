@@ -1,0 +1,51 @@
+name: Weekly Profile Sync
+
+permissions:
+  contents: read
+on:
+  schedule:
+    # Run every Monday at 09:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Fetch ORCID profile and extract research areas
+        env:
+          PYTHONPATH: ./src
+        run: |
+          python -m humanaios_operations.cli profile sync --verbose
+
+      - name: Commit profile updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "HumanAIOS Bot"
+
+          # Check if there are changes to commit
+          if git diff --quiet data/research_profile.json data/expertise_map.json; then
+            echo "No changes to profile, skipping commit"
+          else
+            git add data/research_profile.json data/expertise_map.json
+            git commit -m "chore: auto-update research profile from ORCID ($(date -u +'%Y-%m-%d'))"
+            git push
+          fi

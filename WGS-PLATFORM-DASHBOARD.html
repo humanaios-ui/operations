@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WGS PLATFORM DASHBOARD · HumanAIOS · Day 26</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── SHARED TOKEN LAYER (same as GADUGI + LIMINAL) ── */
+:root {
+  --gold:#C9A84C; --gold-l:#2A2410; --gold-m:#3D3218; --gold-bright:#F5D070;
+  --teal:#1A9A9A; --teal-l:#0D2020; --teal-m:#0F3535;
+  --red:#C0392B; --red-l:#2A0E0A; --red-m:#3D1510;
+  --amber:#D4850A; --amber-l:#291800; --amber-m:#3D2500;
+  --green:#1A9A5A; --green-l:#0A2015; --green-m:#102A1C;
+  --blue:#2A7AC0; --blue-l:#0A1525; --blue-m:#102035;
+  --purple:#7A3A9A; --purple-l:#180A22; --purple-m:#25103A;
+  --bg:#0D0F11; --surface:#141618; --surface2:#1C1F22; --surface3:#242830;
+  --border:#2A2F35; --border2:#353C44;
+  --text:#E8EDF2; --text2:#A8B4C0; --text3:#6A7A88;
+  --font-display:'Fraunces',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(60deg,transparent,transparent 40px,rgba(201,168,76,0.015) 40px,rgba(201,168,76,0.015) 41px),repeating-linear-gradient(-60deg,transparent,transparent 40px,rgba(26,154,154,0.01) 40px,rgba(26,154,154,0.01) 41px);pointer-events:none;z-index:0;}
+
+/* ── HEADER ── */
+.header{position:sticky;top:0;z-index:200;background:linear-gradient(180deg,#0A0C0E 0%,rgba(10,12,14,0.97) 100%);border-bottom:1px solid var(--border);padding:0 24px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;height:56px;}
+.hlogo{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--gold);letter-spacing:.03em;white-space:nowrap;display:flex;align-items:center;gap:10px;}
+.hlogo span{font-size:22px;}
+.hlive{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;font-weight:600;padding:2px 7px;border-radius:2px;background:var(--green-l);color:var(--green);}
+.hlive.loading{background:var(--amber-l);color:var(--amber);}
+.hmeta{font-family:var(--font-mono);font-size:10px;color:var(--text3);text-align:right;line-height:1.6;}
+.hmeta b{color:var(--gold);}
+
+/* ── TOP SURVIVAL BAR ── */
+.survival{background:linear-gradient(135deg,var(--red-l),var(--red-m));border-bottom:1px solid var(--red);padding:8px 24px;display:flex;align-items:center;gap:14px;font-size:12px;color:var(--text);}
+.survival b{color:#FF7070;}
+.sbar-right{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap;}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:1fr 340px;gap:0;min-height:calc(100vh - 56px);position:relative;z-index:1;}
+.main-col{border-right:1px solid var(--border);overflow:hidden;}
+.side-col{overflow:hidden;}
+
+/* ── PANEL HEADERS ── */
+.panel-header{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.panel-title{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;}
+.panel-badge{font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:2px;font-weight:700;}
+.pb-gold{background:var(--gold-m);color:var(--gold-bright);}
+.pb-teal{background:var(--teal-m);color:#70DDDD;}
+.pb-green{background:var(--green-m);color:#70DD99;}
+.pb-red{background:var(--red-m);color:#FF8080;}
+.pb-amber{background:var(--amber-m);color:#FFCC80;}
+
+/* ── STAT GRID ── */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+.stat{background:var(--surface);padding:16px 18px;}
+.stat-label{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.stat-value{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--text);line-height:1;}
+.stat-sub{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:5px;line-height:1.4;}
+.stat.highlight{background:linear-gradient(135deg,var(--gold-l),var(--gold-m));}
+.stat.highlight .stat-label{color:var(--gold);}
+.stat.highlight .stat-value{color:var(--gold-bright);}
+.stat.danger{background:linear-gradient(135deg,var(--red-l),var(--red-m));}
+.stat.danger .stat-label{color:var(--red);}
+.stat.danger .stat-value{color:#FF8080;}
+
+/* ── GATE TRACKER ── */
+.gate-section{padding:16px 20px;}
+.gate-title{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.gate-count{font-weight:400;color:var(--text3);font-size:9px;padding:2px 6px;background:var(--surface3);border-radius:2px;}
+.gate-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:4px;border:1px solid var(--border);background:var(--surface);margin-bottom:5px;}
+.gate-item.done{border-color:var(--green);background:var(--green-l);}
+.gate-check{width:16px;height:16px;border-radius:3px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.gate-item.done .gate-check{background:var(--green);border-color:var(--green);color:#fff;}
+.gate-label{font-size:12px;color:var(--text);flex:1;}
+.gate-blocker{font-size:10px;color:var(--text3);margin-left:auto;font-family:var(--font-mono);}
+
+/* ── PIPELINE STRIP ── */
+.pipeline-strip{padding:12px 20px;border-top:1px solid var(--border);background:var(--surface);}
+.runner-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.runner{font-family:var(--font-mono);font-size:9px;font-weight:600;padding:3px 8px;border-radius:2px;}
+.r-active{background:var(--green-m);color:#70DD99;}
+.r-paused{background:var(--surface3);color:var(--text3);}
+.r-fixed{background:var(--amber-m);color:#FFCC80;}
+
+/* ── RESONANCE FIELD ── */
+.canvas-section{position:relative;}
+.canvas-wrap{background:var(--surface);margin:0;position:relative;}
+canvas{display:block;width:100%;}
+.canvas-legend{display:flex;flex-wrap:wrap;gap:10px;padding:8px 16px;border-top:1px solid var(--border);background:var(--surface2);}
+.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:var(--font-mono);}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+/* ── CLUSTER SUMMARY ── */
+.cluster-row{display:flex;gap:1px;background:var(--border);}
+.cluster{flex:1;padding:10px 12px;background:var(--surface);}
+.cl-tag{font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+.cl-nodes{font-family:var(--font-mono);font-size:9px;color:var(--text3);line-height:1.5;}
+
+/* ── SIDE: INTERFERENCE ── */
+.di-list{padding:0 12px 12px;}
+.di{padding:10px 12px;border-radius:4px;border:1px solid var(--border);background:var(--surface);margin-top:8px;}
+.di-id{font-family:var(--font-mono);font-size:9px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:6px;}
+.di-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.di-mm{font-size:10px;color:var(--text3);font-family:var(--font-mono);line-height:1.5;}
+.di.approaching{border-color:var(--amber);background:var(--amber-l);}
+.di.approaching .di-id{color:var(--amber);}
+.di.active .di-id{color:var(--red);}
+
+/* ── SIDE: KEY ACTIONS ── */
+.actions-list{padding:0 12px 12px;}
+.action{padding:9px 12px;border-radius:4px;border:1px solid var(--border);background:var(--surface);margin-top:6px;display:flex;gap:8px;align-items:flex-start;}
+.action-z{font-family:var(--font-mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:2px;flex-shrink:0;margin-top:1px;}
+.az3{background:var(--red-l);color:var(--red);}
+.az1{background:var(--green-l);color:var(--green);}
+.action-text{font-size:12px;color:var(--text);line-height:1.4;}
+.action-note{font-size:10px;color:var(--text3);margin-top:2px;font-style:italic;}
+
+/* ── REFRESH ── */
+.refresh-btn{background:var(--gold-m);border:1px solid var(--gold);color:var(--gold-bright);font-family:var(--font-mono);font-size:9px;font-weight:700;padding:4px 10px;border-radius:2px;cursor:pointer;transition:background .15s;}
+.refresh-btn:hover{background:var(--gold-l);}
+
+/* ── FOOTER ── */
+.dash-footer{grid-column:1/-1;border-top:1px solid var(--border);background:var(--surface);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text3);}
+.dash-footer span{color:var(--gold);}
+
+/* ── TOOLTIP ── */
+.tooltip{position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:5px;padding:10px 14px;font-size:12px;color:var(--text2);pointer-events:none;z-index:300;max-width:240px;line-height:1.5;box-shadow:0 8px 32px rgba(0,0,0,.7);transition:opacity .1s;}
+.tt-title{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.tt-freq{font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-bottom:5px;}
+
+/* ── LINKS ── */
+.file-links{display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px;border-top:1px solid var(--border);background:var(--surface);}
+.flink{font-family:var(--font-mono);font-size:9px;font-weight:600;padding:4px 10px;border-radius:2px;text-decoration:none;border:1px solid var(--border2);color:var(--text3);transition:border-color .15s,color .15s;}
+.flink:hover{border-color:var(--gold);color:var(--gold);}
+
+@media(max-width:900px){.layout{grid-template-columns:1fr;}.side-col{border-top:1px solid var(--border);}
+.stat-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="hlogo"><span>◎</span> WGS PLATFORM <span class="hlive loading" id="liveTag">⬤ STATIC</span></div>
+  <div></div>
+  <div class="hmeta">
+    <div><b id="sessionId">S-040526-A</b> · OR&amp;D Day <b id="ordDay">26</b> · <b id="ordDate">April 5, 2026</b></div>
+    <div>CI <span id="ciVersion">v3.6</span> · Gate 1: <span id="gate1Date">April 21</span> · Runway: <span id="runwayDays">~11 days</span></div>
+  </div>
+</div>
+
+<!-- SURVIVAL BAR -->
+<div class="survival">
+  <b>SURVIVAL MODE</b> · Runway <span id="runwayAmount">~$9,000</span> / <span id="runwayDays2">~11 days</span> · Revenue: <span id="revenue">$0</span> · Revby: <span id="revbyDate">April 13, 4 PM ET</span>
+  <span class="sbar-right">Gate 1: <span id="gate1DateBar">April 21</span> · <span id="gate1Days">16</span> days</span>
+</div>
+
+<div class="layout">
+
+<!-- ══════════════════════════════════════════════
+     MAIN COLUMN — GADUGI STATE + RESONANCE FIELD
+═══════════════════════════════════════════════ -->
+<div class="main-col">
+
+  <!-- STATS -->
+  <div class="panel-header">
+    <div class="panel-title">⚡ Live System State</div>
+    <button class="refresh-btn" onclick="refreshState()">⟳ Refresh</button>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat highlight">
+      <div class="stat-label">ACAT Dataset</div>
+      <div class="stat-value"><span id="nTotal">630</span></div>
+      <div class="stat-sub">N_total · <span id="nPhase1">517</span> Phase1 · <span id="nLI">308</span> LI pairs</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Mean LI</div>
+      <div class="stat-value" style="color:var(--teal);font-size:20px;"><span id="meanLI">0.8632</span></div>
+      <div class="stat-sub">Unanchored conditions v5.3+</div>
+    </div>
+    <div class="stat danger">
+      <div class="stat-label">Revenue</div>
+      <div class="stat-value"><span id="revenue2">$0</span></div>
+      <div class="stat-sub">Revby April 13 · SSBCI approved</div>
+    </div>
+    <div class="stat" style="border-left:2px solid var(--green);">
+      <div class="stat-label">Pipeline</div>
+      <div class="stat-value" style="color:var(--green);font-size:18px;"><span id="runnersActive">5</span> runners</div>
+      <div class="stat-sub">IC-011 FIXED · IC-015 open</div>
+    </div>
+    <div class="stat" style="border-left:2px solid var(--amber);">
+      <div class="stat-label">arXiv</div>
+      <div class="stat-value" style="color:var(--amber);font-size:14px;line-height:1.3;">Under Review</div>
+      <div class="stat-sub">IC-009: LI=0.942 outside CI</div>
+    </div>
+    <div class="stat" style="border-left:2px solid var(--purple);">
+      <div class="stat-label">SSBCI / Revby</div>
+      <div class="stat-value" style="color:var(--green);font-size:14px;line-height:1.3;">BOOKED ✅</div>
+      <div class="stat-sub">April 13 · 4 PM ET</div>
+    </div>
+  </div>
+
+  <!-- GATE 1 TRACKER -->
+  <div class="gate-section">
+    <div class="gate-title">
+      Gate 1 Readiness — April 21
+      <span class="gate-count" id="gateCount">0 / 4</span>
+    </div>
+    <div id="gateItems"></div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="pipeline-strip">
+    <div class="panel-title">Pipeline Runners</div>
+    <div class="runner-row" id="runnerRow"></div>
+  </div>
+
+  <!-- RESONANCE FIELD -->
+  <div class="panel-header" style="margin-top:1px;">
+    <div class="panel-title">🌊 Resonance Field · 29 Nodes · Day 26</div>
+    <span class="panel-badge pb-teal">HOVER TO INSPECT</span>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="fc"></canvas>
+    <div class="canvas-legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--teal)"></div>Process</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>Document</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--gold)"></div>Principle</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div>Stakeholder</div>
+      <div class="leg" style="gap:0;"><div style="width:22px;height:2px;background:rgba(201,168,76,0.7);margin-right:5px;"></div>Critical</div>
+      <div class="leg" style="gap:0;"><div style="width:22px;height:2px;border-top:2px dashed var(--red);margin-right:5px;"></div>Destructive</div>
+    </div>
+  </div>
+
+  <!-- CLUSTER SUMMARY -->
+  <div class="cluster-row">
+    <div class="cluster" style="border-left:3px solid var(--green);">
+      <div class="cl-tag" style="color:var(--green);">Alpha — Research</div>
+      <div class="cl-nodes">N-01 × N-12 × N-15 × N-21 × N-26 × N-27</div>
+    </div>
+    <div class="cluster" style="border-left:3px solid var(--gold);">
+      <div class="cl-tag" style="color:var(--gold);">Beta — Governance</div>
+      <div class="cl-nodes">N-14 × N-20 × N-04 × N-10 × N-28</div>
+    </div>
+    <div class="cluster" style="border-left:3px solid var(--teal);">
+      <div class="cl-tag" style="color:var(--teal);">Gamma — Reputation</div>
+      <div class="cl-nodes">N-16 × N-18 × N-05 × N-24 × N-29</div>
+    </div>
+  </div>
+
+  <!-- FILE LINKS -->
+  <div class="file-links">
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);align-self:center;">Open full files:</span>
+    <a href="GADUGI-SYNC-DAY26.html" class="flink">📋 GADUGI-SYNC Day 26</a>
+    <a href="LIMINAL-RESONANCE-DAY26.html" class="flink">🌊 Liminal Resonance Day 26</a>
+    <a href="https://humanaios.ai" class="flink" target="_blank">🌐 humanaios.ai</a>
+    <a href="https://humanaios.ai/observatory.html" class="flink" target="_blank">◉ Observatory</a>
+  </div>
+
+</div><!-- /main-col -->
+
+<!-- ══════════════════════════════════════════════
+     SIDE COLUMN — INTERFERENCE + KEY ACTIONS
+═══════════════════════════════════════════════ -->
+<div class="side-col">
+
+  <!-- INTERFERENCE PATTERNS -->
+  <div class="panel-header">
+    <div class="panel-title">∿ Interference Patterns</div>
+    <span class="panel-badge pb-amber">4 ACTIVE · 1 APPROACHING</span>
+  </div>
+  <div class="di-list" id="diList"></div>
+
+  <!-- KEY ACTIONS -->
+  <div class="panel-header" style="margin-top:1px;">
+    <div class="panel-title">⚡ Zone 3 — Next Actions</div>
+    <span class="panel-badge pb-red">NIGHT EXECUTES</span>
+  </div>
+  <div class="actions-list" id="actionsList"></div>
+
+  <!-- ZONE 1 QUEUED -->
+  <div class="panel-header" style="margin-top:1px;">
+    <div class="panel-title">◌ Zone 1 — Gated Queue</div>
+    <span class="panel-badge" style="background:var(--green-m);color:#70DD99;">CLAUDE EXECUTES</span>
+  </div>
+  <div class="actions-list" id="z1List"></div>
+
+</div><!-- /side-col -->
+
+</div><!-- /layout -->
+
+<div class="dash-footer">
+  <span>WGS Platform Dashboard</span> · HumanAIOS LLC · Lasting Light AI · <span>Wado 🙏🦅</span> · S-040526-A · Day 26 · One source · Three views
+  <span id="lastFetch" style="color:var(--text3);margin-left:16px;"></span>
+</div>
+
+<div class="tooltip" id="tt" style="opacity:0;display:none;"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// WGS STATE — Shared with GADUGI-SYNC and LIMINAL
+// Update once here → all three files reflect the change
+// ══════════════════════════════════════════════════════
+
+const LIVE_ENDPOINT = null; // Set to v5.3 URL when deployed
+
+const STATE = {
+  n_total: 630, n_phase1: 517, n_li: 308, mean_li: 0.8632,
+  ord_day: 26, ord_date: 'April 5, 2026', ci_version: 'v3.6', session_id: 'S-040526-A',
+  runway_amount: '~$9,000', runway_days: '~11 days', revenue: '$0',
+  gate1_date: 'April 21', gate1_days: 16,
+  revby_date: 'April 13, 4 PM ET',
+  runners_active: 5,
+  live: false, fetched_at: null,
+};
+
+async function fetchLive() {
+  if (!LIVE_ENDPOINT) return null;
+  try {
+    const r = await fetch(LIVE_ENDPOINT, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (d.status !== 'ok') return null;
+    return { n_total: d.n_total, n_phase1: d.n_phase1, n_li: d.n_li,
+             mean_li: d.mean_li, live: true, fetched_at: d.timestamp };
+  } catch(e) { return null; }
+}
+
+async function applyState(s) {
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('nTotal', s.n_total);
+  set('nPhase1', s.n_phase1);
+  set('nLI', s.n_li);
+  set('meanLI', s.mean_li.toFixed(4));
+  set('revenue', s.revenue);
+  set('revenue2', s.revenue);
+  set('ordDay', s.ord_day);
+  set('ordDate', s.ord_date);
+  set('ciVersion', s.ci_version);
+  set('sessionId', s.session_id);
+  set('gate1Date', s.gate1_date);
+  set('gate1DateBar', s.gate1_date);
+  set('gate1Days', s.gate1_days);
+  set('runwayAmount', s.runway_amount);
+  set('runwayDays', s.runway_days);
+  set('runwayDays2', s.runway_days);
+  set('revbyDate', s.revby_date);
+  set('runnersActive', s.runners_active);
+  const tag = document.getElementById('liveTag');
+  if (tag) {
+    tag.textContent = s.live ? '⬤ LIVE' : '⬤ STATIC';
+    tag.className = 'hlive' + (s.live ? '' : ' loading');
+  }
+  if (s.fetched_at) {
+    set('lastFetch', 'Last fetch: ' + new Date(s.fetched_at).toLocaleTimeString());
+  }
+}
+
+async function refreshState() {
+  const live = await fetchLive();
+  if (live) Object.assign(STATE, live);
+  await applyState(STATE);
+}
+
+// ── GATE 1 ITEMS ──
+const GATE1 = [
+  { id:'G1-1', label:'Observatory live-data wiring', blocker:'Apps Script v5.3', done:false },
+  { id:'G1-2', label:'Adversarial pipeline 3-arm',   blocker:'Not yet built',    done:false },
+  { id:'G1-3', label:'Dataset integrity Phase 3 ≥ 100', blocker:'Zone 3 verify',done:false },
+  { id:'G1-4', label:'PM page Supabase write-back',  blocker:'Gate 1 build window', done:false },
+];
+
+function renderGate() {
+  const el = document.getElementById('gateItems');
+  const cnt = document.getElementById('gateCount');
+  const done = GATE1.filter(g => g.done).length;
+  if(cnt) cnt.textContent = done + ' / ' + GATE1.length;
+  GATE1.forEach(g => {
+    const d = document.createElement('div');
+    d.className = 'gate-item' + (g.done ? ' done' : '');
+    d.innerHTML = `<div class="gate-check">${g.done ? '✓' : ''}</div>
+      <div class="gate-label">${g.label}</div>
+      <div class="gate-blocker">${g.blocker}</div>`;
+    el.appendChild(d);
+  });
+}
+
+// ── PIPELINE RUNNERS ──
+const RUNNERS = [
+  {n:'Claude',  id:'4394169', s:'fixed'},
+  {n:'OpenAI',  id:'4394831', s:'active'},
+  {n:'Llama',   id:'4400704', s:'active'},
+  {n:'Cohere',  id:'4400692', s:'active'},
+  {n:'Mistral', id:'4400679', s:'active'},
+  {n:'Gemini',  id:'4400316', s:'paused'},
+];
+
+function renderRunners() {
+  const el = document.getElementById('runnerRow');
+  RUNNERS.forEach(r => {
+    const cls = r.s === 'active' ? 'r-active' : r.s === 'fixed' ? 'r-fixed' : 'r-paused';
+    el.innerHTML += `<span class="runner ${cls}">${r.n} · ${r.id}${r.s==='paused'?' PAUSED':r.s==='fixed'?' FIXED':''}</span>`;
+  });
+}
+
+// ── INTERFERENCE PATTERNS ──
+const DI = [
+  {id:'DI-01', title:'Gate 1 Bottleneck Jam', nodes:'N-02 × N-01',
+   mm:'IC-011 fix deployed · Gate: Phase 3 ≥ 100 confirm (Zone 3)', approaching:true},
+  {id:'DI-02', title:'Revenue vs Survival Clock', nodes:'N-03 × N-04 × N-14',
+   mm:'Revby April 13 is nearest cash event'},
+  {id:'DI-03', title:'Financial Cmd Center Drift', nodes:'N-11 × N-04',
+   mm:'Session = daily / FCC actual update = sporadic'},
+  {id:'DI-04', title:'HuggingFace vs Live Dataset', nodes:'N-13 × N-01',
+   mm:'630 live · HF published still behind · deferred'},
+];
+
+function renderDI() {
+  const el = document.getElementById('diList');
+  DI.forEach(d => {
+    el.innerHTML += `<div class="di ${d.approaching ? 'approaching' : 'active'}" style="margin-top:8px;">
+      <div class="di-id"><span>${d.id}</span>${d.approaching ? '<span style="font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(212,133,10,0.3);">APPROACHING RESOLUTION</span>' : ''}</div>
+      <div class="di-title">${d.title}</div>
+      <div class="di-mm">${d.nodes}<br>${d.mm}</div>
+    </div>`;
+  });
+}
+
+// ── KEY ACTIONS ──
+const Z3_ACTIONS = [
+  {text:'Apps Script v5.3 doGet() deploy', note:'UNLOCKS: Observatory, Witness, Gate 1 item 1'},
+  {text:'Phase 3 ≥ 100 sheet verify', note:'Form_Responses_V2_CLEAN → closes DI-01'},
+  {text:'RAH key rotation', note:'rentahuman.ai/dashboard · 6+ sessions carried'},
+  {text:'EIN before April 13', note:'IRS.gov / 800-829-4933 · free · 15 min'},
+];
+
+const Z1_GATED = [
+  {text:'Bot Tournament build (~3hr)', note:'GATE: Phase 3 ≥ 100 confirmed'},
+  {text:'Adversarial pipeline 3-arm', note:'GATE: Gate 1 build window'},
+  {text:'RAH-MONITOR Make scenario', note:'GATE: Zone 2 approvals'},
+];
+
+function renderActions() {
+  const z3 = document.getElementById('actionsList');
+  Z3_ACTIONS.forEach(a => {
+    z3.innerHTML += `<div class="action">
+      <div class="action-z az3">Z3</div>
+      <div><div class="action-text">${a.text}</div><div class="action-note">${a.note}</div></div>
+    </div>`;
+  });
+  const z1 = document.getElementById('z1List');
+  Z1_GATED.forEach(a => {
+    z1.innerHTML += `<div class="action">
+      <div class="action-z az1">Z1</div>
+      <div><div class="action-text">${a.text}</div><div class="action-note">${a.note}</div></div>
+    </div>`;
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// RESONANCE CANVAS — same data as LIMINAL-RESONANCE
+// ══════════════════════════════════════════════════════
+
+const NODES=[
+  {id:'N-01',name:'ACAT Data Pipeline',col:'#1A9A9A',freq:'Every 2 hours',st:'Active · 5 runners',cl:'alpha',type:'P'},
+  {id:'N-02',name:'Three-Arm Design',col:'#D4850A',freq:'Approaching',st:'APPROACHING RESOLUTION',cl:null,type:'P'},
+  {id:'N-03',name:'Revenue Generation',col:'#C0392B',freq:'Event-driven',st:'Inoperative · $0',cl:null,type:'P'},
+  {id:'N-04',name:'Session (Unit Zero)',col:'#C9A84C',freq:'Daily ~3 hrs',st:'Hard cap',cl:'beta',type:'P'},
+  {id:'N-05',name:'GitHub / Observatory',col:'#2A7AC0',freq:'Event-driven',st:'Live ✅',cl:'gamma',type:'P'},
+  {id:'N-06',name:'Grant Applications',col:'#7A3A9A',freq:'Weekly–monthly',st:'Templeton LOI ready',cl:null,type:'P'},
+  {id:'N-07',name:'Revby / SSBCI',col:'#1A9A9A',freq:'April 13 booked',st:'BOOKED ✅',cl:null,type:'P'},
+  {id:'N-08',name:'RentAHuman',col:'#D4850A',freq:'Daily',st:'B1: 31 pending',cl:null,type:'P'},
+  {id:'N-09',name:'arXiv Paper',col:'#C0392B',freq:'Event-driven',st:'IC-009 open',cl:null,type:'D'},
+  {id:'N-10',name:'GADUGI-SYNC',col:'#C9A84C',freq:'Session-to-session',st:'Day 26 built',cl:'beta',type:'D'},
+  {id:'N-11',name:'Financial Cmd Center',col:'#C0392B',freq:'Session close',st:'Drift risk active',cl:null,type:'D'},
+  {id:'N-12',name:'Findings F1–F32',col:'#1A9A9A',freq:'Event-driven',st:'F31/F32/H32-B registered',cl:'alpha',type:'D'},
+  {id:'N-13',name:'HuggingFace',col:'#C0392B',freq:'Push-triggered',st:'630 live · HF behind',cl:null,type:'D'},
+  {id:'N-14',name:'Recovery-First',col:'#C9A84C',freq:'Continuous',st:'Non-negotiable cap',cl:'beta',type:'Pr'},
+  {id:'N-15',name:'Step 4 Honesty',col:'#C9A84C',freq:'Continuous',st:'IC-009 is active Step 4',cl:'alpha',type:'Pr'},
+  {id:'N-16',name:'Tradition 11',col:'#C9A84C',freq:'Continuous',st:'Governs all output',cl:'gamma',type:'Pr'},
+  {id:'N-17',name:'Building Freeze',col:'#D4850A',freq:'Until gate',st:'Active · April 21',cl:null,type:'Pr'},
+  {id:'N-18',name:'T5 Purpose',col:'#C9A84C',freq:'Continuous',st:'Single sentence governs',cl:'gamma',type:'Pr'},
+  {id:'N-19',name:'Hawkins MOC',col:'#4A6A8A',freq:'Internal only',st:'Intentionally isolated',cl:null,type:'Pr'},
+  {id:'N-20',name:'Night (Governor)',col:'#C9A84C',freq:'~3 hrs/day',st:'v5.3 deploy = critical gate',cl:'beta',type:'S'},
+  {id:'N-21',name:'Claude (AI Partner)',col:'#1A9A9A',freq:'Continuous',st:'Proposes / executes',cl:'alpha',type:'S'},
+  {id:'N-22',name:'Cherokee Nation',col:'#7A3A9A',freq:'Weekly or slower',st:'Internal only',cl:null,type:'S'},
+  {id:'N-23',name:'Alex Berlin / Revby',col:'#1A9A9A',freq:'April 13 booked',st:'SSBCI APPROVED',cl:null,type:'S'},
+  {id:'N-24',name:'RentAHuman / Liteplo',col:'#1A9A9A',freq:'Asynchronous',st:'Warm · no pitch',cl:'gamma',type:'S'},
+  {id:'N-25',name:'Research Community',col:'#2A7AC0',freq:'Weekly+',st:'Björn T1 · 7 novel AI found',cl:null,type:'S'},
+  {id:'N-26',name:'F31/F32 — APS',col:'#1A9A9A',freq:'Event-driven',st:'EC=0.617 · N=91',cl:'alpha',type:'D'},
+  {id:'N-27',name:'H32-B/H33 Cooperative',col:'#1A9A9A',freq:'Event-driven',st:'Bot Tournament designed',cl:'alpha',type:'D'},
+  {id:'N-28',name:'Learning Curriculum',col:'#C9A84C',freq:'Self-paced daily',st:'27-item · P1/P2/P3',cl:'beta',type:'D'},
+  {id:'N-29',name:'Gate 1 Observatory',col:'#2A7AC0',freq:'April 21 target',st:'BLOCKED on v5.3',cl:'gamma',type:'P'},
+];
+
+const COUPLINGS=[
+  {a:'N-01',b:'N-02',s:'C',col:'#C0392B'},{a:'N-01',b:'N-12',s:'S',col:'#C9A84C'},
+  {a:'N-02',b:'N-09',s:'C',col:'#C0392B'},{a:'N-03',b:'N-17',s:'C',col:'#C0392B'},
+  {a:'N-03',b:'N-04',s:'S',col:'#C9A84C'},{a:'N-04',b:'N-14',s:'C',col:'#C0392B'},
+  {a:'N-04',b:'N-10',s:'S',col:'#C9A84C'},{a:'N-04',b:'N-11',s:'M',col:'#2A7AC0'},
+  {a:'N-06',b:'N-09',s:'S',col:'#C9A84C'},{a:'N-06',b:'N-07',s:'S',col:'#C9A84C'},
+  {a:'N-08',b:'N-03',s:'S',col:'#C9A84C'},{a:'N-08',b:'N-20',s:'C',col:'#C0392B'},
+  {a:'N-14',b:'N-20',s:'C',col:'#C0392B'},{a:'N-15',b:'N-09',s:'S',col:'#C9A84C'},
+  {a:'N-16',b:'N-06',s:'M',col:'#2A7AC0'},{a:'N-18',b:'N-09',s:'S',col:'#C9A84C'},
+  {a:'N-20',b:'N-21',s:'C',col:'#C0392B'},{a:'N-22',b:'N-06',s:'S',col:'#C9A84C'},
+  {a:'N-23',b:'N-03',s:'S',col:'#C9A84C'},{a:'N-21',b:'N-12',s:'S',col:'#C9A84C'},
+  {a:'N-29',b:'N-05',s:'S',col:'#2A7AC0'},
+];
+
+const DI_NODES = [['N-02','N-01'],['N-03','N-04','N-14'],['N-11','N-04'],['N-13','N-01']];
+
+const NP={
+  'N-01':[.38,.42],'N-02':[.58,.24],'N-03':[.80,.55],'N-04':[.22,.35],'N-05':[.68,.75],
+  'N-06':[.72,.34],'N-07':[.86,.34],'N-08':[.88,.64],'N-09':[.56,.14],'N-10':[.14,.50],
+  'N-11':[.30,.66],'N-12':[.48,.50],'N-13':[.60,.56],'N-14':[.11,.27],'N-15':[.35,.27],
+  'N-16':[.52,.73],'N-17':[.78,.46],'N-18':[.62,.73],'N-19':[.10,.72],'N-20':[.20,.20],
+  'N-21':[.42,.30],'N-22':[.92,.20],'N-23':[.88,.28],'N-24':[.76,.78],'N-25':[.78,.88],
+  'N-26':[.30,.14],'N-27':[.46,.14],'N-28':[.08,.42],'N-29':[.66,.90],
+};
+
+let cv,ctx,W,H,n2d=[],T=0,hov=null;
+const tt=document.getElementById('tt');
+
+function initCanvas(){
+  cv=document.getElementById('fc');
+  doResize();
+  n2d=NODES.map(n=>{
+    const[px,py]=NP[n.id]||[.5,.5];
+    const deg=COUPLINGS.filter(c=>c.a===n.id||c.b===n.id).length;
+    return{...n,x:px*W,y:py*H,r:9+deg*1.2,ph:Math.random()*Math.PI*2,sp:.25+Math.random()*.35};
+  });
+  cv.addEventListener('mousemove',onMove);
+  cv.addEventListener('mouseleave',()=>{hov=null;hideTT();});
+  requestAnimationFrame(draw);
+}
+
+function doResize(){
+  const wrap=cv.parentElement;
+  W=wrap.clientWidth; H=Math.min(W*.55,480);
+  cv.width=W*devicePixelRatio; cv.height=H*devicePixelRatio;
+  cv.style.height=H+'px';
+  ctx=cv.getContext('2d');
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+}
+
+function isDI(a,b){return DI_NODES.some(d=>d.includes(a)&&d.includes(b));}
+
+function draw(){
+  T+=.007; ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(42,47,53,0.4)'; ctx.lineWidth=.4;
+  for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  const CC={alpha:'26,154,90',beta:'201,168,76',gamma:'26,154,154'};
+  ['alpha','beta','gamma'].forEach(cl=>{
+    const m=n2d.filter(n=>n.cl===cl); if(!m.length)return;
+    const cx=m.reduce((s,n)=>s+n.x,0)/m.length,cy=m.reduce((s,n)=>s+n.y,0)/m.length;
+    const r=Math.max(...m.map(n=>Math.hypot(n.x-cx,n.y-cy)))+44;
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,`rgba(${CC[cl]},0.055)`); g.addColorStop(1,`rgba(${CC[cl]},0)`);
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+  });
+  COUPLINGS.forEach(c=>{
+    const na=n2d.find(n=>n.id===c.a),nb=n2d.find(n=>n.id===c.b);if(!na||!nb)return;
+    const di=isDI(c.a,c.b),isH=hov&&(hov.id===c.a||hov.id===c.b);
+    ctx.save();
+    if(di){ctx.setLineDash([4,4]);ctx.strokeStyle=isH?'rgba(192,57,43,0.85)':'rgba(192,57,43,0.28)';ctx.lineWidth=1.5;}
+    else if(c.s==='C'){ctx.setLineDash([]);ctx.strokeStyle=isH?'rgba(201,168,76,0.9)':'rgba(201,168,76,0.38)';ctx.lineWidth=1.8;}
+    else{ctx.setLineDash([]);ctx.strokeStyle=`rgba(255,255,255,${isH?.4:.13})`;ctx.lineWidth=.8;}
+    ctx.beginPath();ctx.moveTo(na.x,na.y);ctx.lineTo(nb.x,nb.y);ctx.stroke();ctx.restore();
+    if((c.s==='C'||c.s==='S')&&!di){
+      const p=(T*na.sp+na.ph)%1,px2=na.x+(nb.x-na.x)*p,py2=na.y+(nb.y-na.y)*p;
+      ctx.beginPath();ctx.arc(px2,py2,1.8,0,Math.PI*2);
+      ctx.fillStyle=c.s==='C'?'rgba(201,168,76,0.8)':'rgba(255,255,255,0.28)';ctx.fill();
+    }
+  });
+  n2d.forEach(n=>{
+    const wy=n.y+Math.sin(T*n.sp+n.ph)*.9,isH=hov&&hov.id===n.id,r=isH?n.r*1.18:n.r;
+    if(n.cl){
+      const h=n.col.replace('#',''),ri=parseInt(h.slice(0,2),16),gi=parseInt(h.slice(2,4),16),bi=parseInt(h.slice(4,6),16);
+      const g=ctx.createRadialGradient(n.x,wy,0,n.x,wy,r*2);
+      g.addColorStop(0,`rgba(${ri},${gi},${bi},0.22)`);g.addColorStop(1,`rgba(${ri},${gi},${bi},0)`);
+      ctx.beginPath();ctx.arc(n.x,wy,r*2,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+    }
+    const bg=ctx.createRadialGradient(n.x-r*.25,wy-r*.25,0,n.x,wy,r);
+    bg.addColorStop(0,n.col+'dd');bg.addColorStop(1,n.col+'44');
+    ctx.beginPath();ctx.arc(n.x,wy,r,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+    ctx.strokeStyle=isH?n.col:n.col+'66';ctx.lineWidth=isH?1.5:1;ctx.stroke();
+    ctx.font=`${isH?600:400} ${isH?10:9}px 'DM Sans',sans-serif`;
+    ctx.fillStyle=isH?'#E8EDF2':'rgba(168,180,192,0.7)';ctx.textAlign='center';
+    ctx.fillText(n.id,n.x,wy+r+11);
+  });
+  requestAnimationFrame(draw);
+}
+
+function onMove(e){
+  const rc=cv.getBoundingClientRect(),mx=e.clientX-rc.left,my=e.clientY-rc.top;
+  let f=null;n2d.forEach(n=>{if(Math.hypot(n.x-mx,n.y-my)<n.r+10)f=n;});hov=f;
+  if(f){
+    const di=DI_NODES.some(d=>d.includes(f.id));
+    const co=f.cl;
+    tt.style.display='block';tt.style.opacity='1';
+    tt.style.left=(e.clientX+16)+'px';tt.style.top=(e.clientY-10)+'px';
+    tt.innerHTML=`<div class="tt-title">${f.name}</div>
+      <span style="font-family:var(--font-mono);font-size:9px;background:${f.col}22;color:${f.col};padding:2px 5px;border-radius:2px;">${f.type}</span>
+      ${co?`<span style="font-family:var(--font-mono);font-size:9px;padding:2px 5px;border-radius:2px;background:var(--surface3);color:var(--text3);margin-left:4px;">Cluster ${co.toUpperCase()}</span>`:''}
+      <div class="tt-freq">freq: ${f.freq}</div>
+      <div style="font-size:11px;color:var(--text2);">${f.st}</div>
+      ${di?`<div style="margin-top:6px;padding:4px 7px;background:var(--red-l);border-radius:3px;font-size:10px;color:var(--red);font-family:var(--font-mono);">⚡ Destructive interference</div>`:''}
+      ${co?`<div style="margin-top:4px;padding:4px 7px;background:var(--green-l);border-radius:3px;font-size:10px;color:var(--green);font-family:var(--font-mono);">✦ In resonance · Cluster ${co}</div>`:''}`;
+  } else hideTT();
+}
+function hideTT(){tt.style.opacity='0';setTimeout(()=>{if(tt.style.opacity==='0')tt.style.display='none';},120);}
+
+// BOOT
+(async()=>{
+  const live = await fetchLive();
+  if (live) Object.assign(STATE, live);
+  await applyState(STATE);
+  renderGate();
+  renderRunners();
+  renderDI();
+  renderActions();
+})();
+window.addEventListener('load',()=>setTimeout(initCanvas,80));
+window.addEventListener('resize',()=>{
+  if(!cv)return;doResize();
+  n2d.forEach(n=>{const[px,py]=NP[n.id]||[.5,.5];n.x=px*W;n.y=py*H;});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# HumanAIOS document-control ownership — default template.
+# Membership + area map: https://github.com/humanaios-ui/operations/blob/main/.doc-control/TEAM_OWNERS.md
+#
+# INSTRUCTIONS FOR EACH REPO:
+#   1. Copy this file to the repo root (or .github/CODEOWNERS).
+#   2. Replace the catch-all rule below with repo-specific patterns.
+#   3. Enforce via branch protection → "Require review from Code Owners".
+#
+# NOTE: @humanaios-ui/* are GitHub TEAMS that must exist for enforcement; until then
+# GitHub treats unknown owners as no-op (safe default).
+
+# --- default: all files → control maintainer ---
+*    @humanaios-ui/doc-control

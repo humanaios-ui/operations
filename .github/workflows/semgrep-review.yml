@@ -1,0 +1,76 @@
+# semgrep-review — free, keyless, open-source PR review (replaces the paid claude-review layer).
+#
+# Self-contained: depends only on actions/checkout + actions/setup-python (first-party)
+# and the Semgrep CLI (OSS, pip). No third-party review action, no token, no cost.
+# Runs Semgrep's public `p/` rulesets over the Python files THIS PR changes and emits
+# GitHub ::warning annotations (advisory — they render inline on the PR's changed files
+# and never block a merge). Promote to blocking once tuned.
+#
+# Complements, does not duplicate:
+#   behavioral-compliance.yml (behavioral-not-marker / IC-045), sonarqube.yml,
+#   scorecard.yml, and Copilot review (auto-request-copilot-review.yml).
+
+name: semgrep-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # need the base to diff changed files
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Semgrep (keyless OSS) → advisory PR annotations
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet semgrep
+
+          # Scope to the Python files this PR touches (advisory review of the diff).
+          if [ -n "${BASE_SHA:-}" ]; then
+            mapfile -t FILES < <(git diff --name-only --diff-filter=d "$BASE_SHA" "$HEAD_SHA" -- '*.py' || true)
+          else
+            mapfile -t FILES < <(git ls-files '*.py')
+          fi
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "No changed Python files — nothing for semgrep to review."
+            exit 0
+          fi
+          printf '%s\n' "${FILES[@]}"
+
+          semgrep scan \
+            --config p/default --config p/python --config p/security-audit \
+            --metrics=off --json --output semgrep.json --error=false \
+            "${FILES[@]}" || true
+
+          python - <<'PY'
+          import json, os
+          try:
+              data = json.load(open("semgrep.json"))
+          except Exception:
+              data = {"results": []}
+          results = data.get("results", [])
+          for r in results:
+              path = r.get("path", "")
+              line = (r.get("start") or {}).get("line", 1)
+              cid = r.get("check_id", "").split(".")[-1]
+              msg = (r.get("extra", {}).get("message", "") or "").replace("\n", " ").strip()[:400]
+              # GitHub Actions annotation → renders inline on the PR's changed files.
+              print(f"::warning file={path},line={line},title=semgrep:{cid}::{msg}")
+          print(f"semgrep-review: {len(results)} advisory finding(s) across the PR's Python diff.")
+          PY

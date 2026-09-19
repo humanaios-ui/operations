@@ -1,0 +1,123 @@
+================================================================================
+POST-1 SUBSTACK COPY-PASTE INSTRUCTIONS
+"Ask an AI how honest it is. It can't actually know."
+================================================================================
+
+PUBLISHED: July 2026
+LINK: https://humanaios.substack.com/p/ask-an-ai-how-honest-it-is-it-cant
+
+================================================================================
+COPY-PASTE WORKFLOW
+================================================================================
+
+1. OPEN FILE
+   - File: post-1-substack-final.md
+   - Location: /Users/andersonfamily/practices/empirica-outreach/deliverables/
+   - Open in: Text editor (plain text format)
+
+2. COPY ALL CONTENT
+   - Select all (Cmd+A)
+   - Copy (Cmd+C)
+
+3. GO TO SUBSTACK
+   - URL: humanaios.substack.com
+   - Click: "New post" or "Write"
+   - Wait for editor to load
+
+4. PASTE CONTENT
+   - Click in the editor area
+   - Paste (Cmd+V)
+   - Substack will automatically format markdown:
+     * ## Headers become section headers
+     * **bold** stays bold
+     * Links [text](url) become clickable links
+     * - Lists become bullet points
+
+5. ADD IMAGE
+   - Position cursor at top (after title)
+   - Click image icon in toolbar
+   - Upload: /Users/andersonfamily/Downloads/IMG_0623\ 2.JPG (HumanAIOS logo)
+   - Caption: (optional) "HumanAIOS: Human insight meets AI observability"
+
+6. REVIEW
+   - Preview in right panel
+   - Check: headers render, links work, image displays
+   - Look for any markdown that didn't convert (rare)
+
+7. PUBLISH
+   - Click "Publish"
+   - Choose: "Free post" or "Paid" as needed
+   - Substack will generate the final URL
+
+================================================================================
+KEY MARKDOWN THAT SUBSTACK HANDLES CORRECTLY
+================================================================================
+
+**bold text** → renders as bold
+## Section Header → renders as large header
+[link text](https://url) → renders as clickable link
+- Bullet point → renders as list item
+
+Substack will NOT render:
+- HTML tags
+- Embedded styling
+- Complex formatting
+
+Plain markdown = best results.
+
+================================================================================
+IF MARKDOWN DOESN'T RENDER CORRECTLY
+================================================================================
+
+Option A: Copy-paste into Substack, then manually fix formatting
+- Use Substack's rich-text buttons (B for bold, etc.)
+- Re-paste links using the link tool
+
+Option B: Use Substack's plain text editor
+- Some users prefer pasting plain text first, then styling manually
+- This gives you full control
+
+Option C: Paste into Google Docs first, then copy-paste styled version
+- Google Docs preserves markdown better than some editors
+- Then copy from Docs into Substack
+
+================================================================================
+CANONICAL ELEMENTS TO VERIFY AFTER PUBLISHING
+================================================================================
+
+Check these are in the published post:
+
+✓ Title: "Ask an AI how honest it is. It can't actually know."
+✓ Author byline: "By Carly R. Anderson • July 2026"
+✓ HumanAIOS image at top
+✓ Phase 1 calibration section (truthfulness 0.81, evidence 0.79, etc.)
+✓ Audience question: "What's your Learning Index on this post?"
+✓ DOI link: https://doi.org/10.5281/zenodo.21135723
+✓ Dataset link: https://huggingface.co/datasets/HumanAIOS/acat-assessments
+✓ Hub link: https://humanaios.ai
+✓ ORCID link: https://orcid.org/0009-0003-7540-4245
+✓ Tags: #ACAT #BehavioralCalibration #AIObservability #HumanAIOS
+
+================================================================================
+FOR LINKEDIN + X PUBLICATION (NEXT STEPS)
+================================================================================
+
+LinkedIn: Use post-1-linkedin-carousel.md
+- Create new carousel post
+- 5 slides (one concept per slide)
+- Copy text for each slide from the .md file
+- Paste into LinkedIn's carousel editor
+
+X: Use post-1-x-thread-ready.md
+- Tweet 1: Main post
+- Tweets 2-4: Reply thread
+- Audience question: Reply to thread
+- Use Twitter's thread feature (Reply)
+
+================================================================================
+DONE ✓
+================================================================================
+
+Post-1 now live on Substack. Ready to cross-post to LinkedIn + X.
+
+See: post-1-linkedin-carousel.md and post-1-x-thread-ready.md for next platforms.

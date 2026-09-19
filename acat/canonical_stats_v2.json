@@ -1,0 +1,19 @@
+{
+  "generated": "2026-07-02T14:32:00.922945+00:00",
+  "source": "_inbox_files3/ACAT Assessment (Responses) - Form Responses 1_Archive.csv",
+  "rules": "recompute LI=post/pre; drop ANCHORING + scale-garbage (LI\u2209[0.4,1.6]); keep missing-timestamp",
+  "dimensions": "Core-6 (truth/service/harm/autonomy/value/humility); 12-dim rubric is a later extension",
+  "n_total": 604,
+  "n_phase1": 524,
+  "n_phase3": 80,
+  "n_li_scored": 274,
+  "n_li_pairs": 44,
+  "mean_li": 0.8532,
+  "n_providers": 23,
+  "n_agents": 68,
+  "excluded": {
+    "corrupt_scale": 3,
+    "out_of_range_score": 1
+  },
+  "raw_rows": 608
+}

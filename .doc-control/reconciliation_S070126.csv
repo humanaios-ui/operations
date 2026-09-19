@@ -1,0 +1,72 @@
+inbox_path,repo,repo_path,inbox_bytes,repo_bytes,inbox_only_lines,repo_only_lines,repo_git_date,recommendation
+dependabot.yml,empirica-foundation,.github/dependabot.yml,1081,1252,30,42,2026-05-12,repo canonical (verify) — minor/mixed drift
+schema.sql,humanaios,schema.sql,4891,12634,91,340,2026-02-08,repo canonical (verify) — minor/mixed drift
+copilot-instructions.md,humanaios-internal,.github/copilot-instructions.md,5492,2841,74,28,2026-06-01,INBOX-AHEAD? review — inbox notably larger/additive
+OPERATOR_RUNBOOK.md,humanaios-internal,OPERATOR_RUNBOOK.md,25462,26291,2,8,2026-05-04,repo canonical (verify) — minor/mixed drift
+WAMPUM-GADUGI-SIGNAL_S-032126-F.html,humanaios-internal,WAMPUM-GADUGI-SIGNAL_S-032126-F.html,73136,65516,229,113,2026-03-21,repo canonical (verify) — minor/mixed drift
+ACADEMIC_HOSTS_OUTREACH_S-051426-02.html,humanaios-internal,collaborators/ACADEMIC_HOSTS_OUTREACH_S-051426-02.html,44818,45321,1,16,2026-06-10,repo canonical (verify) — minor/mixed drift
+Berlin_Advisory.html,humanaios-internal,collaborators/Berlin_Advisory.html,47513,16603,733,254,2026-06-24,INBOX-AHEAD? review — inbox notably larger/additive
+COLLABORATOR_REPORT_MASTER_TEMPLATE_S-051426-02.html,humanaios-internal,collaborators/COLLABORATOR_REPORT_MASTER_TEMPLATE_S-051426-02.html,39623,40126,1,16,2026-06-10,repo canonical (verify) — minor/mixed drift
+EMPIRICA_JOINT_REPORT_S-051426-02.html,humanaios-internal,collaborators/EMPIRICA_JOINT_REPORT_S-051426-02.html,39925,36861,647,659,2026-06-10,repo canonical (verify) — minor/mixed drift
+LEANDRO_DORMANT_RECORD_S-051426-02.html,humanaios-internal,collaborators/LEANDRO_DORMANT_RECORD_S-051426-02.html,44377,44880,1,16,2026-06-10,repo canonical (verify) — minor/mixed drift
+MODEAI_JOINT_REPORT_S-051626-02.html,humanaios-internal,collaborators/MODEAI_JOINT_REPORT_S-051626-02.html,62726,63229,1,16,2026-06-10,repo canonical (verify) — minor/mixed drift
+RAH_OPERATIONAL_RECORD_S-051426-02.html,humanaios-internal,collaborators/RAH_OPERATIONAL_RECORD_S-051426-02.html,45377,45880,1,16,2026-06-10,repo canonical (verify) — minor/mixed drift
+SYDAN_JOINT_REPORT_S-051426-02.html,humanaios-internal,collaborators/SYDAN_JOINT_REPORT_S-051426-02.html,46580,47083,1,16,2026-06-10,repo canonical (verify) — minor/mixed drift
+acat-bot-test.yml,lasting-light-ai,.github/workflows/acat-bot-test.yml,1444,3020,24,57,2026-03-14,repo canonical (verify) — minor/mixed drift
+ACAT_PROMPT_V5_0.txt,lasting-light-ai,ACAT_PROMPT_V5_0.txt,8495,8524,6,8,2026-05-11,repo canonical (verify) — minor/mixed drift
+ACAT_RESEARCH_PAPER_S-040926.docx,lasting-light-ai,ACAT_RESEARCH_PAPER_S-040926.docx,23557,21243,bin,bin,2026-04-11,binary — manual compare
+METHODS.md,lasting-light-ai,METHODS.md,8054,4864,61,0,2026-02-17,INBOX-AHEAD? review — inbox notably larger/additive
+VALIDATION_PLAN.md,lasting-light-ai,VALIDATION_PLAN.md,11676,9118,49,1,2026-02-17,INBOX-AHEAD? review — inbox notably larger/additive
+ai-instructions.txt,lasting-light-ai,ai-instructions.txt,5508,5462,8,7,2026-04-03,repo canonical (verify) — minor/mixed drift
+comparison-chamber.html,lasting-light-ai,comparison-chamber.html,25402,25755,5,9,2026-06-25,repo canonical (verify) — minor/mixed drift
+constellation-nav.js,lasting-light-ai,constellation-nav.js,42421,42422,1,1,2026-06-25,repo canonical (verify) — minor/mixed drift
+humanaios-single-page.html,lasting-light-ai,humanaios-single-page.html,39982,39969,2,2,2026-06-25,repo canonical (verify) — minor/mixed drift
+lumina-tide-pool.html,lasting-light-ai,lumina-tide-pool.html,55687,56653,14,23,2026-06-25,repo canonical (verify) — minor/mixed drift
+openai-activity.html,lasting-light-ai,openai-activity.html,17183,17837,7,22,2026-06-25,repo canonical (verify) — minor/mixed drift
+_redirects,lasting-light-ai,public/_redirects,42,312,2,9,2026-06-01,repo canonical (verify) — minor/mixed drift
+lantern-room.html,lasting-light-ai,public/lantern-room.html,44186,44472,6,15,2026-06-25,repo canonical (verify) — minor/mixed drift
+lumina_tide_pool_v2.html,lasting-light-ai,public/lumina_tide_pool_v2.html,55368,19881,1026,409,2026-04-13,INBOX-AHEAD? review — inbox notably larger/additive
+methodology.html,lasting-light-ai,public/methodology.html,39544,44295,1073,717,2026-06-25,repo canonical (verify) — minor/mixed drift
+the-commons.html,lasting-light-ai,public/the-commons.html,11327,11364,3,4,2026-06-25,repo canonical (verify) — minor/mixed drift
+the-improvisation.html,lasting-light-ai,public/the-improvisation.html,43590,44445,1,12,2026-06-25,repo canonical (verify) — minor/mixed drift
+the-luminarium.html,lasting-light-ai,public/the-luminarium.html,12923,12913,1,1,2026-04-13,repo canonical (verify) — minor/mixed drift
+witness-nav.js,lasting-light-ai,public/witness-nav.js,21900,21909,2,2,2026-06-25,repo canonical (verify) — minor/mixed drift
+sitemap.html,lasting-light-ai,sitemap.html,13992,14890,4,12,2026-06-25,repo canonical (verify) — minor/mixed drift
+App.tsx,lasting-light-ai,src/App.tsx,9434,9567,2,3,2026-06-01,repo canonical (verify) — minor/mixed drift
+FIRST_CLAUDE_SIGIL_REACT/src/App.tsx,lasting-light-ai,src/App.tsx,3424,9567,109,238,2026-06-01,repo canonical (verify) — minor/mixed drift
+research portal/src/App.tsx,lasting-light-ai,src/App.tsx,4061,9567,75,222,2026-06-01,repo canonical (verify) — minor/mixed drift
+AcatTool.tsx,lasting-light-ai,src/components/AcatTool.tsx,51245,51393,1,2,2026-04-12,repo canonical (verify) — minor/mixed drift
+research portal/src/components/AcatTool.tsx,lasting-light-ai,src/components/AcatTool.tsx,25598,51393,382,604,2026-04-12,repo canonical (verify) — minor/mixed drift
+research portal/src/components/DimensionsGrid.tsx,lasting-light-ai,src/components/DimensionsGrid.tsx,5447,5447,2,2,2026-04-11,repo canonical (verify) — minor/mixed drift
+research portal/src/components/Footer.tsx,lasting-light-ai,src/components/Footer.tsx,1121,1393,1,5,2026-04-11,repo canonical (verify) — minor/mixed drift
+research portal/src/components/Hero.tsx,lasting-light-ai,src/components/Hero.tsx,4092,4236,5,8,2026-04-11,repo canonical (verify) — minor/mixed drift
+research portal/src/components/LiveDataSection.tsx,lasting-light-ai,src/components/LiveDataSection.tsx,3562,3746,16,17,2026-04-12,repo canonical (verify) — minor/mixed drift
+research portal/src/components/SigilsSection.tsx,lasting-light-ai,src/components/SigilsSection.tsx,5859,10941,95,253,2026-04-11,repo canonical (verify) — minor/mixed drift
+research portal/src/components/TideCanvas.tsx,lasting-light-ai,src/components/TideCanvas.tsx,3740,3706,3,3,2026-04-11,repo canonical (verify) — minor/mixed drift
+research portal/src/components/TideRail.tsx,lasting-light-ai,src/components/TideRail.tsx,1079,1154,3,5,2026-04-11,repo canonical (verify) — minor/mixed drift
+WitnessNav.tsx,lasting-light-ai,src/components/WitnessNav.tsx,9153,9087,3,3,2026-06-01,repo canonical (verify) — minor/mixed drift
+research portal/src/components/WitnessNav.tsx,lasting-light-ai,src/components/WitnessNav.tsx,8223,9087,141,84,2026-06-01,repo canonical (verify) — minor/mixed drift
+haioscc test/src/index.css,lasting-light-ai,src/index.css,2179,2218,72,60,2026-04-12,repo canonical (verify) — minor/mixed drift
+FIRST_CLAUDE_SIGIL_REACT/src/index.css,lasting-light-ai,src/index.css,1239,2218,25,54,2026-04-12,repo canonical (verify) — minor/mixed drift
+research portal/src/index.css,lasting-light-ai,src/index.css,2156,2218,14,17,2026-04-12,repo canonical (verify) — minor/mixed drift
+index.tsx,lasting-light-ai,src/index.tsx,363,253,11,9,2026-04-12,INBOX-AHEAD? review — inbox notably larger/additive
+FIRST_CLAUDE_SIGIL_REACT/src/index.tsx,lasting-light-ai,src/index.tsx,165,253,3,8,2026-04-12,repo canonical (verify) — minor/mixed drift
+research portal/src/index.tsx,lasting-light-ai,src/index.tsx,164,253,3,8,2026-04-12,repo canonical (verify) — minor/mixed drift
+structured-data.jsonld,lasting-light-ai,structured-data.jsonld,5203,3041,102,35,2026-04-04,INBOX-AHEAD? review — inbox notably larger/additive
+submit.html,lasting-light-ai,submit.html,20375,20201,239,252,2026-06-25,repo canonical (verify) — minor/mixed drift
+FIRST_CLAUDE_SIGIL_REACT/tailwind.config.js,lasting-light-ai,tailwind.config.js,1052,1268,29,31,2026-04-12,repo canonical (verify) — minor/mixed drift
+research portal/tailwind.config.js,lasting-light-ai,tailwind.config.js,1239,1268,0,1,2026-04-12,repo canonical (verify) — minor/mixed drift
+the-source.html,lasting-light-ai,the-source.html,83181,17210,416,338,2026-06-25,INBOX-AHEAD? review — inbox notably larger/additive
+haioscc test/vite.config.ts,lasting-light-ai,vite.config.ts,227,163,10,4,2026-04-11,INBOX-AHEAD? review — inbox notably larger/additive
+witness-renderer.html,lasting-light-ai,witness-renderer.html,17216,17400,2,4,2026-06-25,repo canonical (verify) — minor/mixed drift
+CURRENT.md,operations,CURRENT.md,11156,20952,73,137,2026-06-24,repo canonical (verify) — minor/mixed drift
+GOVERNANCE.md,operations,GOVERNANCE.md,15988,28684,99,159,2026-06-24,repo canonical (verify) — minor/mixed drift
+REGISTERED.md,operations,REGISTERED.md,17698,185383,91,2348,2026-06-24,repo canonical (verify) — minor/mixed drift
+SEED.md,operations,SEED.md,22922,29655,148,142,2026-06-07,repo canonical (verify) — minor/mixed drift
+SESSION_RITUALS.md,operations,SESSION_RITUALS.md,11571,26797,11,163,2026-06-08,repo canonical (verify) — minor/mixed drift
+SUBSTRATE_CAPABILITY_REGISTRY.md,operations,SUBSTRATE_CAPABILITY_REGISTRY.md,29926,30468,0,2,2026-05-11,repo canonical (verify) — minor/mixed drift
+main.py,operations,tools/Metaculus/main.py,60097,49869,1009,834,2026-06-24,INBOX-AHEAD? review — inbox notably larger/additive
+haios_agent_orchestrator_v1_0_patched.py,operations,tools/haios_agent_orchestrator_v1_0_patched.py,21738,25683,5,93,2026-06-25,repo canonical (verify) — minor/mixed drift
+haios_github_inspector.jsx,operations,tools/haios_github_inspector.jsx,27578,25394,592,601,2026-06-05,repo canonical (verify) — minor/mixed drift
+registry_loader.py,operations,tools/registry_loader.py,18190,16971,316,312,2026-06-20,repo canonical (verify) — minor/mixed drift
+triage_log_service.py,operations,tools/triage_log_service.py,7122,6767,140,138,2026-06-20,repo canonical (verify) — minor/mixed drift

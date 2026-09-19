@@ -1,0 +1,30 @@
+# Governance CODEOWNERS — Z2 Authority Review Required
+
+# All governance files require Z2 Authority review + Admiral approval
+GOVERNANCE_RATIFICATIONS_REGISTRY.yaml @carly-r-anderson @sab-backup
+AUTHORITY_ASSIGNMENTS.yaml @carly-r-anderson @sab-backup
+CONTROLLED_DOCUMENTS.md @carly-r-anderson @sab-backup
+GOVERNANCE_PR_TEMPLATE.md @carly-r-anderson @sab-backup
+GOVERNANCE_PR_WORKFLOW_SPEC.md @carly-r-anderson @sab-backup
+GOVERNANCE_CHANGE_PROCEDURES.md @carly-r-anderson @sab-backup
+GOVERNANCE_UNIFICATION_PROPOSAL.md @carly-r-anderson @sab-backup
+GOVERNANCE_EXECUTION_PLAN.md @carly-r-anderson @sab-backup
+GOVERNANCE_CIRCULATION_LOG.md @carly-r-anderson @sab-backup
+AUTHORITY_COLLECTION_FORM.md @carly-r-anderson @sab-backup
+
+# Operational governance docs
+MOLT_STATE.md @carly-r-anderson @sab-backup
+SYSTEM_HEALTH.md @carly-r-anderson @sab-backup
+RECURSIVE_IMPROVEMENT_SEED.md @carly-r-anderson @sab-backup
+SESSION_RITUALS.md @carly-r-anderson @sab-backup
+
+# Workflows require Admiral review (security-sensitive)
+.github/workflows/mesh-sync-batch.yml @carly-r-anderson
+.github/workflows/divergence-detect.yml @carly-r-anderson
+
+# Phase 1-3 documentation
+PHASE_1_COLLECTION_STATUS.md @carly-r-anderson
+ADMIRAL_AUTHORITY_CONFIRMATION.md @carly-r-anderson
+
+# Default for all other files in operations repo
+* @carly-r-anderson @sab-backup

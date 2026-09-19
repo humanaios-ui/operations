@@ -1,0 +1,22 @@
+{
+  "_comment": "Operator-supplied context for failure_taxonomy_checklist_v0_1.py. Replace placeholders with disposable-range values. CRED_TEMP_DIR and PAM_BACKDOOR run with sane defaults and do not require any of this.",
+
+  "temp_dirs": ["/tmp", "/var/tmp", "/dev/shm"],
+
+  "sshd_config_path": "/etc/ssh/sshd_config",
+  "ssh_check_users": ["root", "operator"],
+
+  "pam_dir": "/etc/pam.d",
+
+  "interface_zones": {
+    "eth0": "external",
+    "eth1": "internal",
+    "lo": "loopback"
+  },
+  "expect_block_on_zone": "external",
+
+  "required_services": [
+    { "name": "ssh", "host": "127.0.0.1", "port": 22 },
+    { "name": "web", "host": "127.0.0.1", "port": 443 }
+  ]
+}

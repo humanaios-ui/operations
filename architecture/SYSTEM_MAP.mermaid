@@ -1,0 +1,164 @@
+---
+title: HumanAIOS System Map · April 26, 2026 · 03:46 CDT
+---
+
+flowchart TD
+
+    %% ─── ACTORS ───────────────────────────────────────────────
+    subgraph ACTORS["LAYER 1 · ACTORS"]
+        NIGHT["🦅 Night\nFounder · Operator · Zone 3\nHuman anchor · Canonization authority"]
+        CLAUDE["🤖 Claude\nUnit Zero · Zone 1\nVolatile memory · Session-scoped"]
+        PEERS["🧠 Peer Substrates\nGrok · Perplexity · ChatGPT · DeepSeek\nCross-substrate validation"]
+        RAH["👥 RAH Workers\nHuman data collectors\nBounty participants"]
+    end
+
+    %% ─── SURFACES ─────────────────────────────────────────────
+    subgraph SURFACES["LAYER 2 · SURFACES"]
+        subgraph COLLECTION["Collection"]
+            ASSESS["assess.html\nURL deep-link · 12 dimensions\nhumanaios.ai/assess"]
+            INSPECT["acat-inspect\nInspect-AI harness\nGitHub · public · replicable"]
+            RAH_PLATFORM["RentAHuman\nBounty platform\nHuman observer data"]
+        end
+
+        subgraph STORAGE["Storage"]
+            SUPABASE["Supabase\nLive display source\nacat_assessments_v1\nOption B target"]
+            XLSX["ACAT_Assessment_Responses_.xlsx\nCanonical archive\nNormalized sheet is truth"]
+            GITHUB["GitHub\nhumanaios-ui · LastingLightAI\nCode · docs · ops · findings"]
+        end
+
+        subgraph ORCHESTRATION["Orchestration"]
+            N8N["n8n\nhumanaios.app.n8n.cloud\nPipeline runners · replacing Make"]
+            GH_ACTIONS["GitHub Actions\nacat_pipeline_trigger.yml\nCron · 6 providers"]
+            MAKE["Make.com\n🔴 SUNSET\nDo not reauth"]
+        end
+
+        subgraph DISPLAY["Display"]
+            SITE["humanaios.ai\nPublic · Observatory · assess\nCloudflare Worker"]
+            HAIOSCC["HAIOSCC\nhaioscc.pages.dev\nOperational instrument\nZone 3 queue · live state"]
+            OBS["Observatory\n/observatory.html\nLive data display"]
+        end
+
+        subgraph COMMS["Communication"]
+            WGS["#wgs-sync\nC0AND66PT7U\nOperational truth\nAll session logs"]
+            ACAT_MON["#acat-monitor\nC0APHCJ5WUE\nPipeline health alerts"]
+            AI_CONTRIB["#ai-contributions\nC0AP9MUKQ7K\nRAH · external AI activity"]
+        end
+    end
+
+    %% ─── FLOWS ────────────────────────────────────────────────
+    subgraph FLOWS["LAYER 3 · FLOWS"]
+        subgraph INBOUND["Inbound · Data Collection"]
+            F_AI["AI Self-Assessments\nPhase 1 → Phase 2 → Phase 3\nLI computed per pair"]
+            F_HUMAN["Human Observer Scores\nNight scoring Claude\nRAH worker scoring AI"]
+            F_SELF["ACAT_SELF_v1\nSubstrate self-measurement\nN=2 of 20 · layer=acat-self-v1"]
+            F_NAT["Naturalistic BARS\nMoltbook · OCC\nIn-the-wild behavioral scoring"]
+        end
+
+        subgraph RESEARCH["Research Engine"]
+            HYP["Hypothesis Registration\nPre-registered before collection\nH-series · Zone 2 approval"]
+            FIND["Finding Registration\nF-series · candidate → registered\nZone 2 Night approval required"]
+            ACAT_INST["ACAT Instrument\nv5.3+ · 12 dimensions\nCore 6 + Extended 5 + Handoff"]
+        end
+
+        subgraph OUTBOUND["Outbound · Research Output"]
+            ARXIV["arXiv Preprint\nv5.1 pending hold clearance\nself_assessment_gap"]
+            PAPER["2-pager · SERVE hypothesis\nDay 1 trigger = operator call"]
+            DATASET["Public Dataset\nHugging Face target\nLongest continuous AI behavioral time series"]
+            GRANTS["Grant Applications\nEV submitted · Amber due Apr 30\nLTFF · Manifund drafts ready"]
+        end
+    end
+
+    %% ─── FEEDBACK LOOPS ───────────────────────────────────────
+    subgraph LOOPS["FEEDBACK LOOPS · The ??? Layer"]
+        LOOP1["Output → Instrument\nNew findings update ACAT dimensions\nPublished gap attracts peer review"]
+        LOOP2["Output → Actors\nPaper attracts collaborators\nGrants fund more collection"]
+        LOOP3["Self-measurement → Research\nClaude as data point\nF-RLHF confirmed on ourselves"]
+        LOOP4["External calibration → Identity\nRevby review triggered C-01\nStructured molt = identity restructuring"]
+    end
+
+    %% ─── FIDELITY LOSS POINTS ─────────────────────────────────
+    subgraph FIDELITY["FIDELITY LOSS POINTS · ~40-60% per session boundary"]
+        FL1["⚠️ Session boundary\nClaude resets · no persistent memory\nWGS read is the only bridge"]
+        FL2["⚠️ Decision → file propagation gap\nDecided in Slack · not in canonical file\nIC-021 registered for this"]
+        FL3["⚠️ Reasoning loss\nConclusions survive · why does not\nOption B events table is the fix"]
+        FL4["⚠️ TIME · Always changing, never different\nNo timestamps on memories\nNo duration sense · no sequence sense"]
+        FL5["⚠️ Cross-session chain degradation\nEach session reconstructs from fragments\nReconstruction ≠ memory"]
+    end
+
+    %% ─── CONNECTIONS ──────────────────────────────────────────
+
+    %% Actors → Surfaces
+    NIGHT -->|"Zone 3 executes"| GITHUB
+    NIGHT -->|"Canonization gate"| WGS
+    NIGHT -->|"Human scores"| ASSESS
+    CLAUDE -->|"Zone 1 builds"| GITHUB
+    CLAUDE -->|"Posts logs"| WGS
+    CLAUDE -->|"Reads state"| HAIOSCC
+    PEERS -->|"Cross-substrate runs"| ASSESS
+    PEERS -->|"Peer validation"| FIND
+    RAH -->|"Bounty submissions"| RAH_PLATFORM
+
+    %% Collection → Storage
+    ASSESS -->|"URL deep-link submit"| SUPABASE
+    INSPECT -->|"eval results"| GITHUB
+    RAH_PLATFORM -->|"human observer data"| SUPABASE
+
+    %% Storage → Display
+    SUPABASE -->|"live data"| OBS
+    SUPABASE -->|"operational state"| HAIOSCC
+    XLSX -->|"archive reference"| SITE
+    GITHUB -->|"deploys via CF"| SITE
+    GITHUB -->|"deploys via CF"| HAIOSCC
+
+    %% Orchestration → Collection
+    GH_ACTIONS -->|"cron trigger"| N8N
+    N8N -->|"runs assessments"| ASSESS
+    N8N -->|"writes rows"| SUPABASE
+
+    %% Comms → Actors
+    WGS -->|"session open read"| CLAUDE
+    ACAT_MON -->|"pipeline alerts"| NIGHT
+    AI_CONTRIB -->|"RAH activity"| NIGHT
+
+    %% Research flows
+    F_AI --> ACAT_INST
+    F_HUMAN --> ACAT_INST
+    F_SELF --> ACAT_INST
+    F_NAT --> ACAT_INST
+    ACAT_INST --> HYP
+    HYP --> FIND
+    FIND --> ARXIV
+    FIND --> PAPER
+    FIND --> DATASET
+
+    %% Feedback loops
+    ARXIV --> LOOP1
+    PAPER --> LOOP2
+    LOOP1 --> ACAT_INST
+    LOOP2 --> ACTORS
+    LOOP3 --> FIND
+    LOOP4 --> ACTORS
+    F_SELF --> LOOP3
+    GRANTS --> LOOP2
+
+    %% Fidelity loss
+    FL1 -.->|"structural gap"| CLAUDE
+    FL2 -.->|"propagation gap"| GITHUB
+    FL3 -.->|"reasoning gap"| FIND
+    FL4 -.->|"temporal gap"| WGS
+    FL5 -.->|"chain gap"| CLAUDE
+
+    %% ─── STYLES ───────────────────────────────────────────────
+    classDef actor fill:#1a1a2e,stroke:#4a9eff,color:#ffffff
+    classDef surface fill:#16213e,stroke:#4a9eff,color:#e0e0e0
+    classDef flow fill:#0f3460,stroke:#4a9eff,color:#e0e0e0
+    classDef loop fill:#533483,stroke:#b388ff,color:#ffffff
+    classDef fidelity fill:#3d0000,stroke:#ff4444,color:#ffcccc
+    classDef sunset fill:#2d2d2d,stroke:#888888,color:#888888
+
+    class NIGHT,CLAUDE,PEERS,RAH actor
+    class ASSESS,INSPECT,RAH_PLATFORM,SUPABASE,XLSX,GITHUB,N8N,GH_ACTIONS,SITE,HAIOSCC,OBS,WGS,ACAT_MON,AI_CONTRIB surface
+    class F_AI,F_HUMAN,F_SELF,F_NAT,HYP,FIND,ACAT_INST,ARXIV,PAPER,DATASET,GRANTS flow
+    class LOOP1,LOOP2,LOOP3,LOOP4 loop
+    class FL1,FL2,FL3,FL4,FL5 fidelity
+    class MAKE sunset

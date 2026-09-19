@@ -1,0 +1,131 @@
+# Breadcrumbs Configuration
+# Auto-generated with Empirica calibration
+
+git:
+  recent_commits: 5
+  modified_files: true
+  current_branch: true
+
+epistemic:
+  enabled: true
+  scale: "1-5 (1=guessing, 3=reasonable, 5=certain)"
+  track_uncertainties: true
+  track_decisions: true
+
+task:
+  extract_last_task: 500
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Learning trajectory (PREFLIGHT→POSTFLIGHT deltas — measures learning, NOT calibration bias)
+# For actual bias corrections see grounded_calibration.grounded_bias_corrections
+learning_trajectory:
+  last_updated: "2026-07-06T20:04:38.011691"
+  ai_id: website
+  observations: 30
+  session_deltas:
+    know: +0.03
+    do: -0.02
+    engagement: -0.01
+    context: -0.01
+    clarity: +0.01
+    uncertainty: -0.00
+  readiness:
+    min_know: 0.70
+    max_uncertainty: 0.35
+  summary:
+    overestimates: []
+    underestimates: []
+    well_calibrated: [uncertainty, clarity, context, do, know]
+
+# Brier calibration (auto-updated by Empirica post-test verification)
+brier_calibration:
+  last_updated: "2026-07-06T20:04:38.047179"
+  ai_id: website
+  note: "Murphy (1973) decomposition: BS = Reliability - Resolution + Uncertainty"
+  noetic:
+    status: insufficient_data
+    samples: 0
+  praxic:
+    status: insufficient_data
+    samples: 0
+  combined:
+    brier_score: 0.0354
+    reliability: 0.0288
+    resolution: 0.0086
+    uncertainty: 0.0153
+    n_predictions: 3
+    trend: stable
+
+# Grounded calibration (auto-updated by Empirica post-test verification)
+# NOTE: These scores are drift indicators from deterministic proxies, not
+# ground truth. They detect systematic bias patterns over time but cannot
+# fully measure holistic epistemic state. Use alongside self-assessment,
+# not as a replacement. See dual-track calibration philosophy in docs.
+grounded_calibration:
+  last_updated: "2026-07-06T20:04:38.444068"
+  ai_id: website
+  observations: 20
+  grounded_coverage: 0.33
+  divergence:
+    signal: -0.31
+    uncertainty: -0.24
+    context: +0.05
+    know: +0.04
+  ungrounded: [engagement]
+  grounded_bias_corrections:
+    signal: +0.19
+    context: +0.11
+    know: +0.11
+    uncertainty: +0.02
+  phase_weights:
+    noetic: 0.5
+    praxic: 0.5
+    source: no_tool_data
+  holistic_calibration_score: 0.1538
+  holistic_gaps:
+    signal: -0.5000
+    uncertainty: -0.2877
+    know: -0.1500
+    context: +0.0500
+  insights:
+    - vector: signal
+      phase: both
+      pattern: chronic_underestimate
+      severity: 1.00
+      description: "signal underestimated in 10/10 calibrations (mean gap -0.33)"
+      suggestion: "increase_self_assessment:signal"
+    - vector: context
+      phase: both
+      pattern: chronic_overestimate
+      severity: 0.82
+      description: "context overestimated in 8/10 calibrations (mean gap +0.27)"
+      suggestion: "reduce_self_assessment:context"
+    - vector: uncertainty
+      phase: both
+      pattern: chronic_underestimate
+      severity: 1.00
+      description: "uncertainty underestimated in 10/10 calibrations (mean gap -0.41)"
+      suggestion: "increase_self_assessment:uncertainty"
+    - vector: do
+      phase: both
+      pattern: evidence_gap
+      severity: 0.70
+      description: "do has evidence in only 0/10 verifications (mean coverage 0.23)"
+      suggestion: "add_evidence_source:do"
+    - vector: impact
+      phase: both
+      pattern: evidence_gap
+      severity: 0.70
+      description: "impact has evidence in only 0/10 verifications (mean coverage 0.23)"
+      suggestion: "add_evidence_source:impact"

@@ -1,0 +1,156 @@
+SUBJECT: RE: HumanAIOS × Ohmenrah Convergent-Validity Pilot — Pilot 1 Scope & Terms
+
+Hi Sarah,
+
+Thank you for the detailed clarification questions. You're right to ask for plain language before committing. I'll answer each directly.
+
+---
+
+## Your Seven Questions — Direct Answers
+
+### 1. Is this onboarding-framework validation separate from the original HumanAIOS × Ohmenrah convergent-validity pilot?
+
+**Answer: No.**
+
+The convergent-validity pilot IS structured as a validation of our collaboration process (Stages 1–2). There is no separate engagement. Pilot 1 is what's described in the materials: **you independently score a public AI system using the Ohmenrah four-layer framework while HumanAIOS independently scores it using ACAT. We compare the results to validate convergence.**
+
+The onboarding playbook serves as the *container* for that validation. We're testing whether our process works while simultaneously running the actual research.
+
+**Pilot 2** (a potential later engagement involving internal governance review) exists only as a *possibility after Pilot 1 succeeds*. It is **not** part of your current commitment. Pilot 1 is the only engagement we're offering you now.
+
+---
+
+### 2. Is HumanAIOS offering compensation or an honorarium for the approximately two hours of document review, meeting participation, feedback, and written recommendations?
+
+**Answer: No direct compensation. The exchange is research-based.**
+
+HumanAIOS is not offering an honorarium or hourly payment. However, the value exchange is real:
+
+- You get **dataset access** to the full results (HumanAIOS ACAT + Ohmenrah four-layer scores, the AI system tested, methodology comparison)
+- You get **co-authored findings** (if the pilot produces findings worth publishing, we publish jointly and both organizations receive attribution)
+- **Your time investment:** ~2.5 hours (document review, async scoring, one sync call to debrief findings)
+
+---
+
+### 3. If the engagement is unpaid, what specific reciprocal benefit is being offered to Ohmenrah?
+
+**Answer: Dataset access + attributed co-authorship of findings (if any).**
+
+**What Ohmenrah receives:**
+- **Data:** The full dataset from the pilot (HumanAIOS ACAT scores, Ohmenrah four-layer scores, the AI system, methodology notes)
+- **Attribution:** Your methodology, your framework, and Ohmenrah's name appear in any published findings or memo
+- **Research value:** A validated comparison that proves (or disproves) convergence between the two scoring systems — valuable for both organizations' methodology refinement
+- **No exclusivity:** You can use the data and findings for your own research, publications, or client work
+
+**What HumanAIOS receives:**
+- Independent validation of ACAT against an established external framework
+- Dataset with two independent scoring perspectives
+
+This is mutual research benefit, not a contractor relationship.
+
+---
+
+### 4. Will any of my comments, judgments, name, company affiliation, participation, or methods be entered into HumanAIOS records, shared through the Empirica mesh, quoted, published, or used in external materials?
+
+**Answer: Only with explicit per-artifact consent.**
+
+**Here's the boundary:**
+
+- **Your scoring data:** Yes, entered into the dataset. Your scores are core research data.
+- **Your name/affiliation:** Yes, if findings are published. You'll be attributed. Credit is automatic.
+- **Your comments/judgments:** Only if you explicitly consent to publication. We won't quote your written feedback, concerns, or process notes without asking first.
+- **Empirica mesh:** We may log findings about the pilot's success/approach in our internal knowledge system (empirica finding-log). Your methodology won't be quoted, but a finding like "ACAT-Ohmenrah convergence validated at [threshold]" would be shared with our mesh. We can exclude Ohmenrah references if you prefer.
+- **Published work:** Any memo or findings we publish will be shown to you for review before circulation. You approve or decline publication of any artifact bearing your name.
+
+**Default: P-ANON (privacy-first).** Your internal process, feedback, and concerns stay private. Your data and (if you consent) your attribution stay public.
+
+---
+
+### 5. Will Ohmenrah receive and approve any final document that incorporates my feedback before it is circulated, published, or relied upon as validated?
+
+**Answer: Yes.**
+
+Any memo, findings document, or published work that:
+- Cites the Ohmenrah four-layer framework
+- References your scoring or methodology
+- Claims validation/convergence with your approach
+
+...must be reviewed and approved by you (or a delegate you name) before it leaves HumanAIOS. You have the right to request changes, remove your attribution, or decline publication altogether.
+
+We will not circulate findings under the premise of "Ohmenrah validation" without explicit sign-off from Ohmenrah.
+
+---
+
+### 6. Please confirm that I am being treated as an external founder and independent collaborator, not as an internal HumanAIOS collaborator or as a candidate already committed to a 5–10 hour monthly Advisor role.
+
+**Answer: Confirmed.**
+
+You are an **external founder, independent research partner for this pilot only.**
+
+- No commitment to ongoing advisory work
+- No monthly cadence expected (this is a discrete pilot: ~2.5 hours over ~4 weeks)
+- No internal collaborator status
+- No expectation of joining the HumanAIOS team
+
+If Pilot 1 succeeds and both organizations see value in deeper collaboration, we can discuss Pilot 2 or ongoing advisory roles. But **that conversation happens after Pilot 1 closes, with explicit new terms.**
+
+---
+
+### 7. Please confirm that participation in this review would create no ongoing advisory obligation, exclusivity, transfer or implied license of Ohmenrah methods or intellectual property, or authority to characterize the work as an Ohmenrah validation, endorsement, or formal approval.
+
+**Answer: Confirmed on all counts.**
+
+- **No ongoing obligation:** One pilot, clear endpoint (2026-08-31)
+- **No exclusivity:** You can work with HumanAIOS competitors or run parallel research
+- **No IP transfer:** Ohmenrah methods remain yours. We license the four-layer framework for this pilot only; we don't own it or reuse it elsewhere without permission
+- **No authority to characterize:** HumanAIOS cannot call this an "Ohmenrah validation," "Ohmenrah endorsement," or "Ohmenrah approval." We can say "scored independently using the Ohmenrah four-layer framework" — that's accurate. Any stronger claim requires your explicit sign-off.
+
+---
+
+## Name Correction
+
+All materials will be corrected from "Sarah Preseley" to **"Sarah Presley"** before we proceed. I apologize for the repeated misspelling.
+
+---
+
+## Next Steps (If You're Ready to Proceed)
+
+1. **Reply to this email with two confirmations:**
+   - You're ready to run Pilot 1 as described above
+   - **Interface preference for scoring:** Do you prefer a web UI or command-line interface? (We can provide either for the Ohmenrah framework scoring tool)
+
+2. **We'll send:**
+   - Corrected Pilot 1 Brief (with clear technical scope, methodology, timeline, deliverables)
+   - Scoring access + documentation (in your preferred interface)
+   - Scheduling invite for one sync call: convergence debrief + findings discussion (2026-08-22, ~60 min)
+
+3. **Timeline:** Pilot 1 runs 2026-08-01 to 2026-08-31 (one month)
+
+4. **Deliverables:**
+   - Full dataset (ACAT 12-dimension scores + Ohmenrah four-layer scores + metadata + AI system specs)
+   - Methodology comparison memo
+   - Convergence analysis + findings (if any)
+
+---
+
+## Remaining Clarification (For Us)
+
+Until your reply, we're holding:
+- Pilot 2 (on hold pending Pilot 1 success)
+- Onboarding playbook work (separate from Pilot 1 scope)
+- Any governance or walkthrough calls beyond the Pilot 1 sync
+
+Our engagement is Pilot 1 only. Everything else is future conversation, contingent on success.
+
+---
+
+I remain committed to running this pilot with the respect and clarity you've asked for. If any of the above is unclear or unacceptable, let me know — we can refine the terms before you commit.
+
+Best,
+Carly Anderson
+Founder & Principal Investigator, HumanAIOS
+empirica-outreach
+
+---
+
+CC: David Van Assche (empirica-foundation.carly.empirica-mesh-support) — governance clarity on HumanAIOS decision gates

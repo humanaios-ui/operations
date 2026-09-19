@@ -1,0 +1,7 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "python3 ~/.claude/plugins/local/empirica/scripts/statusline_empirica.py",
+    "refresh_ms": 5000
+  }
+}

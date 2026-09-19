@@ -1,0 +1,108 @@
+{
+  "session_id": "fc3aca59-8fba-4130-9c6a-f329976d47ae",
+  "phase": "PREFLIGHT",
+  "round": 20,
+  "timestamp": "2026-07-02T14:45:56.346029+00:00",
+  "vectors": {
+    "know": 0.8,
+    "uncertainty": 0.22,
+    "context": 0.85,
+    "clarity": 0.78,
+    "coherence": 0.82,
+    "signal": 0.8,
+    "density": 0.78,
+    "state": 0.8,
+    "change": 0.0,
+    "completion": 0.0,
+    "impact": 0.68,
+    "do": 0.85,
+    "engagement": 0.9
+  },
+  "overall_confidence": 0.833,
+  "meta": {
+    "reasoning": "Synthesis grounded in the framework I built (5 shapes + mechanisms) + well-established runtime patterns. The comparison is the falsification test for B3's claim. Uncertainty on how honestly to weight convergence vs divergence \u2014 will be calibrated, not boosterish (name where biology diverges/adds, not just confirms).",
+    "prompt": "Synthesis grounded in the framework I built (5 shapes + mechanisms) + well-established runtime patterns. The comparison is the falsification test for B3's claim. Uncertainty on how honestly to weight convergence vs divergence \u2014 will be calibrated, not boosterish (name where biology diverges/adds, not just confirms).",
+    "transaction_id": "2c722c3b-b4a1-4c41-9982-3fcf1e6ddce3",
+    "git_commit_sha": "73c840576e7cc47e7e72b790ab2dc274bd12be5d",
+    "git_notes_ref": "empirica/session/fc3aca59-8fba-4130-9c6a-f329976d47ae/PREFLIGHT/20"
+  },
+  "epistemic_tags": {},
+  "git_state": {
+    "head_commit": "9b28a40244c3c953f2fb16b1c240ba1bd1ec4ebb",
+    "commits_since_last_checkpoint": [],
+    "uncommitted_changes": {
+      "files_modified": [],
+      "files_added": [],
+      "files_deleted": [],
+      "diff_stat": ""
+    }
+  },
+  "learning_delta": {
+    "know": {
+      "prev": 0.85,
+      "curr": 0.8,
+      "delta": -0.05
+    },
+    "uncertainty": {
+      "prev": 0.18,
+      "curr": 0.22,
+      "delta": 0.04
+    },
+    "context": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "clarity": {
+      "prev": 0.85,
+      "curr": 0.78,
+      "delta": -0.07
+    },
+    "coherence": {
+      "prev": 0.85,
+      "curr": 0.82,
+      "delta": -0.03
+    },
+    "signal": {
+      "prev": 0.82,
+      "curr": 0.8,
+      "delta": -0.02
+    },
+    "density": {
+      "prev": 0.78,
+      "curr": 0.78,
+      "delta": 0.0
+    },
+    "state": {
+      "prev": 0.82,
+      "curr": 0.8,
+      "delta": -0.02
+    },
+    "change": {
+      "prev": 0.4,
+      "curr": 0.0,
+      "delta": -0.4
+    },
+    "completion": {
+      "prev": 1.0,
+      "curr": 0.0,
+      "delta": -1.0
+    },
+    "impact": {
+      "prev": 0.68,
+      "curr": 0.68,
+      "delta": 0.0
+    },
+    "do": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "engagement": {
+      "prev": 0.9,
+      "curr": 0.9,
+      "delta": 0.0
+    }
+  },
+  "token_count": 314
+}

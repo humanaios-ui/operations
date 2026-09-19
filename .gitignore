@@ -1,0 +1,46 @@
+# repurpose.py channel-draft output (regenerated per post; not source)
+out/
+
+# npx / node artifacts (from MCP server invocation)
+node_modules/
+package-lock.json
+package.json
+
+# empirica local working state (per-machine; not shared)
+.empirica/cache/
+.empirica/sessions/
+.empirica/config.yaml
+.empirica/active_transaction_term_*.json
+.empirica_reflex_logs/
+.breadcrumbs.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.*
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Tool reports (machine-readable run metadata — not committed)
+reports/
+outputs/
+# ...except the funding pipeline's reports/, which holds human-authored
+# funding docs (Longview apps, roadmap, opportunities), not tool metadata.
+!humanaios-funding-pipeline/reports/
+!humanaios-funding-pipeline/reports/**

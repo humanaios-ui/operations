@@ -1,0 +1,90 @@
+# CALIBRATION_OOO_v0.1.yaml
+# Status: Z1-PROPOSED — verbal ratification of amendments received; formal append via PR per P21
+# Object: Repository-level ACAT calibration protocol (stated-vs-enacted gap construct)
+# Instrument: ACAT-CAL-P (version frozen at Step 0)
+
+artifact:
+  id: CALIBRATION_OOO
+  version: 0.1-draft
+  proposer: Z1
+  ratifier: Z2 (pending PR)
+  construct_note: >
+    ACAT's object is the gap between stated principles and enacted practice.
+    "Repository calibration" here means Layer-2 public-surface scoring of the
+    repository as governance artifact. This claim scope is fixed for all steps.
+    Conceptual lineage: work-as-imagined vs work-as-done (Hollnagel);
+    policy-practice decoupling (Meyer & Rowan). [V]
+
+step_0_preconditions:
+  - freeze_instrument: "ACAT-CAL-P version pinned; held constant through Step 7"
+  - define_gate_criteria: >
+      Step 9 GO/NO-GO thresholds defined and recorded HERE, before any
+      calibration runs, to prevent outcome-motivated thresholds.
+  - anchor_selection:
+      selected_anchor: functionalresonance/FMV_Community_Edition
+      status: RATIFIED by Z2 (verbal, this session; formal append via PR per P21)
+      verification: >
+        [V] Live-fetched 2026-08-13: public repo, AGPL-3.0, branch `standard`,
+        144 commits, Blazor WebAssembly (.NET 8) deployed as public PWA at
+        functionalresonance.github.io/FMV_Community_Edition. README explicitly
+        invites Issues / Pull Requests / Discussions — sanctioned channel for
+        Step 6 outreach.
+      scale_caveat: >
+        [M] Small-community project (17 stars, 14 forks at fetch). Some
+        governance-surface dimensions may score low due to project scale,
+        not gap-discipline; Step 4 human-endorsement check must screen for
+        scale effects before treating deltas as signal.
+      companion: functionalresonance/FRAM_Model_Examples             # [V] published-model library
+      secondary_candidate: ttricco/framalytics                       # [V] Python FRAM tooling; enters at Step 7
+      rationale: >
+        Anchor artifact's own construct (WAI/WAD gap) matches ACAT's
+        construct at the object level; converts two-artifact relative
+        discrimination into criterion-referenced calibration.
+  - ic_030: "Live-fetch REGISTERED.md before any registry-touching step"
+
+steps:
+  - step: 1
+    action: "Calibrate humanaios-ui/humanaios (main)"
+    method: "N>=3 runs per calibration; per-dimension variance computed in-step"
+  - step: 2
+    action: "Calibrate selected Hollnagel-lineage anchor repo"
+    method: "Identical protocol to Step 1; same frozen instrument, same N"
+  - step: 3
+    action: "FOLDED INTO STEPS 1-2 (ratified amendment)"
+    note: "Variance is generated inside calibration runs, not collected after"
+  - step: 4
+    action: "Compare calibrations; identify learning calibration indicators"
+    signal_criterion: >
+      A delta qualifies as signal ONLY IF (a) it exceeds the per-dimension
+      spread from Steps 1-2, AND (b) a human reviewer independently endorses
+      the difference as real and meaningful. (Ratified.)
+    register_note: >
+      F-RESONANCE-NEUTRALITY applies: "harmonically improve" is intent-layer
+      language; calibration records carry the neutral formulation
+      "spread-exceeding, independently endorsed delta." (Ratified.)
+    output: "Surviving deltas routed to Z2 as adoption candidates (P21)"
+  - step: 5
+    action: "Apply Z2-ratified improvements; recalibrate humanaios"
+    method: "Pre/post paired measurement under frozen instrument"
+  - step: 6
+    action: "If Step 5 successful: communicate with anchor maintainers via repository"
+    channel: "Issue/PR on anchor repo; findings shared with provenance and methods"
+  - step: 7
+    action: "Recalibrate humanaios-ui against remaining anchors"
+    note: "Same frozen instrument; secondary/operational anchors (e.g. OpenSSF-scored exemplar) enter here"
+  - step: 8
+    action: "Red-team audit of full process"
+    method: "Standing three-substrate review pass"
+    explicit_check: >
+      Reflexivity (GD-10): did the process improve the repository, or improve
+      the repository's score on the instrument? Evidence required for the former.
+  - step: 9
+    action: "GO/NO-GO for integration into system"
+    gate: "Evaluated strictly against Step-0 pre-registered criteria"
+
+dual_purpose:
+  instrument_validation: >
+    Ratified: exercise doubles as ACAT validation — does the instrument
+    discriminate sensibly between known artifacts, and do deltas correspond
+    to differences a human reviewer independently endorses? Results logged
+    to evidence base regardless of Step 9 outcome.

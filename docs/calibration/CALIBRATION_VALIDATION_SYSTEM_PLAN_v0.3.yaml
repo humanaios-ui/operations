@@ -1,0 +1,101 @@
+# CALIBRATION_VALIDATION_SYSTEM_PLAN_v0.3.yaml
+# Formerly CALIBRATION_OOO ("Order of Operations") — renamed per Z2: this is the
+# calibration validation system plan, not merely a step sequence.
+# Status: Z2 verbally ratified in-session S-081326; formal append via PR per P21.
+
+artifact:
+  id: CALIBRATION_VALIDATION_SYSTEM_PLAN
+  version: 0.3
+  supersedes: [CALIBRATION_OOO_v0.1, CALIBRATION_OOO_v0.2]
+  run_designation: BASELINE_SETTING   # thresholds revisable empirically in v0.4
+  proposer: Z1
+  ratifier: Z2
+
+construct:
+  object: "Gap between stated principles and enacted practice (say-do gap)"
+  scope: "Repository calibration = Layer-2 public-surface scoring of the repository as governance artifact"
+  lineage: "Work-as-imagined vs work-as-done (Hollnagel); policy-practice decoupling (Meyer & Rowan) [V]"
+
+instrument_pin:   # RATIFIED, live-verified; frozen through Step 7
+  operations_repo: "humanaios-ui/operations @ a6d0744c1f7ad5e161d896184186e58fd18aadae"
+  acat_x: "humanaios-ui/acat-x v0.1.0 @ aa966092c9f43cd19e578104479a86191d7d1251"
+  rubric_variant: "v1.1"   # RATIFIED by Z2
+  scoring_mode: >
+    Rater-mediated (per live ACAT_STATE.md [V]: automated scoring-from-behaviour is
+    stubbed; LI = P3/P1, SAG = P1 - P3, Core-6 only for LI). N>=3 runs = N>=3
+    independent rater passes; criterion 1 doubles as inter-rater reliability
+    (tooling: scoring/validation/inter_rater_eval.py).
+  ic_candidate: >
+    "ACAT-CAL-P" identifier absent from both canonical repos [V]; session-history
+    protocol name not committed. Documentation-provenance gap routed to Z2 queue.
+
+anchors:   # RATIFIED triad
+  verse: "usnistgov/OSCAL [V] — same quadrant as subject (60% doc-class, 0.3% assets); XML control statements count as claim-bearing (granularity record required)"
+  subject: "humanaios-ui/humanaios [V] public (54% doc-class, 3% assets pre-remediation)"
+  inverse: "functionalresonance/FMV_Community_Edition [V] (5% claim-bearing, 50% assets; scale caveat [M]: 17 stars/14 forks)"
+  secondary: ["cncf/tag-security [M] wrong quadrant (34% assets)", "ttricco/framalytics (Step 7)", "functionalresonance/FRAM_Model_Examples (companion)"]
+
+validation_arms:   # RATIFIED
+  arm_1_convergent: "ACAT scores vs independent source-of-truth ratings — feeds gate"
+  arm_2_divergent: "ACAT scores vs nuisance variables (size, file count, doc volume, stars/forks) — must NOT track — feeds gate"
+  arm_3_regulatory_mapping: "Reading A: frameworks as per-dimension anchors, operationalizing HARMONIZATION_CROSSWALK v0.3 cells — feeds gate"
+  reading_b: "Frameworks as calibration objects — separate research arm, own construct note, does NOT gate"
+
+per_dimension_anchoring:   # mitigations RATIFIED
+  gate_blocking: "Core 6 (truth, service, harm, autonomy, value, humility) — corroborated by live Core-6-only LI convention [V]"
+  informational: "Extended six — promotable v0.4 once anchors prove out"
+  mitigation_anchor_quality_tiers: "[V]/[M]/[I] per dimension; weak never treated as strong"
+  mitigation_preregistration: "Gate-blocking vs informational designated before Step 1 (done, above)"
+  mitigation_anchor_overlap: "Shared reference docs recorded as correlated, not independent, evidence"
+  granularity_records: "Every external-rating -> file-score mapping recorded per source, per dimension"
+
+null_arm:   # Amendment A RATIFIED as pooling; now sole viable path
+  design: "Pool null files across anchors; provenance recorded as covariate"
+  finding: "All 16 native humanaios nulls WERE the .pyc files [V]; post-remediation subject has ~0 native nulls — recompute n at Step 1"
+  contingent_seed: "5-10 files only if pooled results ambiguous"
+
+normalization: "Amendment B RATIFIED: per-claim, not per-file (anchor is claims-sparse: 1 normative file vs 144 [V])"
+
+taxonomy:   # RATIFIED — no residual unclassified class
+  json_split: "schema/config/manifest -> intermediate; data -> null; principle-encoding (registry exports, ACAT payloads) -> claim-bearing (content probe)"
+  prose_and_extensionless: "content-probed for normative markers -> claim-bearing else null"
+  data_files: "jsonl/csv -> null"
+  dotfiles_config: "intermediate"
+  last_resort: "human-assigned; catching rule appended — taxonomy is append-only, zero residue"
+
+remediation:   # sequencing RATIFIED: fix BEFORE baseline, verify after
+  target: "16 tracked __pycache__/*.pyc in subject repo [V] (count corrected from 5 per receipt discipline)"
+  pre_fix_evidence_hash: "a899660d414a5b78b01aa9d631e2139b29a996fb"   # permanent citation for found specimen
+  commands_validated_in_pilot: true   # 16 -> 0 tracked; on-disk files untouched
+  production_execution: "Z2 runs validated block locally + git push; verify: git ls-files | grep -c '\\.pyc$' == 0"
+  sensitivity_note: "Found specimen becomes documented historical instance (cite hash); live cases via contingent seed if criterion 5 needs them"
+
+gate:   # NUMBERS RATIFIED — pre-registered, no mid-run adjustment
+  c1_repeatability: "per-dimension CV <= 15% across N>=3 rater passes (all dimensions)"
+  c2_convergent: "Spearman rho >= 0.6 vs source-of-truth (per gate-blocking dimension)"
+  c3_divergent: "abs(rho) <= 0.3 vs each nuisance variable (per gate-blocking dimension)"
+  c4_null_discrimination: "FPR <= 10% AND Cliff's delta >= 0.5 (per gate-blocking dimension)"
+  c5_sensitivity: ">= 80% detection of seeded decouplings; if not run -> recorded NOT-RUN, never silent"
+  c6_human_endorsement: ">= 70% of spread-exceeding deltas independently endorsed; reviewer blinded where feasible"
+  rule: "GO = all applicable pass; any single failure = NO-GO with named cause"
+
+run_order:
+  step_0: "CLOSED except production remediation: pin frozen (above); anchor table drafting = first run artifact; IC-030 live-fetch before registry touches"
+  step_1: "Calibrate subject (post-remediation), N>=3 rater passes, variance in-step"
+  step_2: "Calibrate anchors (verse + inverse), identical protocol"
+  step_3: "FOLDED into 1-2"
+  step_4: "Compare; signal = spread-exceeding AND independently endorsed delta (F-RESONANCE-NEUTRALITY register); survivors -> Z2"
+  step_5: "Apply ratified improvements; recalibrate (pre/post paired, frozen instrument)"
+  step_6: "On success: outreach via anchor repos' sanctioned channels (Issues/PRs/Discussions)"
+  step_7: "Recalibrate vs remaining anchors (framalytics; OpenSSF-scored exemplar)"
+  step_8: "Red-team: three-substrate pass + explicit GD-10 reflexivity check (improved repo or improved score?)"
+  step_9: "GO/NO-GO strictly against pre-registered gate"
+
+linked_artifacts:
+  - "PILOT_REPORT_calibration_inputs.md (S-081326 live-collected)"
+  - "H-CAND-Z1-COMM-CAL-01_registry_block.md (audited first data point)"
+
+z2_queue_remaining:
+  - "Production remediation execution + verify"
+  - "ACAT-CAL-P documentation-provenance reconciliation (IC-candidate)"
+  - "PR appends: this plan, H-CAND-Z1-COMM-CAL-01, pilot findings"

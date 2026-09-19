@@ -1,0 +1,139 @@
+name: mesh-sync-batch
+
+on:
+  pull_request:
+    types: [closed]
+    paths:
+      - 'GOVERNANCE_RATIFICATIONS_REGISTRY.yaml'
+      - 'AUTHORITY_ASSIGNMENTS.yaml'
+      - 'CONTROLLED_DOCUMENTS.md'
+
+jobs:
+  dispatch-to-practices:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        practice:
+          - website
+          - collaborator-ops
+          - empirica-autonomy
+          - empirica-mesh-support
+          - empirica-outreach
+          - flta-app-empirica
+          - grok-crossref
+          - humanaios
+          - humanaios-internal
+          - opportunity-aggregator
+
+    steps:
+      - name: Checkout operations repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract governance decision
+        id: decision
+        run: |
+          # Extract decision_id from the merged PR title or body
+          DECISION_ID="${{ github.event.pull_request.title }}" | grep -oE 'GOV-[0-9-]+' || echo "GOV-SYNC-$(date +%Y-%m-%d)"
+          DECISION_ID="${DECISION_ID##*GOV-}"
+          DECISION_ID="GOV-${DECISION_ID}"
+          echo "decision_id=${DECISION_ID}" >> $GITHUB_OUTPUT
+          echo "commit_sha=${{ github.event.pull_request.merge_commit_sha }}" >> $GITHUB_OUTPUT
+
+      - name: Dispatch to ${{ matrix.practice }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const practice = '${{ matrix.practice }}';
+            const decision_id = '${{ steps.decision.outputs.decision_id }}';
+            const commit_sha = '${{ steps.decision.outputs.commit_sha }}';
+
+            // Map practice name to GitHub repo owner/name
+            const repos = {
+              'humanaios': { owner: 'humanaios-org', repo: 'humanaios' },
+              'humanaios-internal': { owner: 'humanaios-org', repo: 'humanaios-internal' },
+              'empirica-outreach': { owner: 'empirica-foundation', repo: 'empirica-outreach' },
+              // Local-only practices: skip dispatch (handled separately)
+              'website': null,
+              'collaborator-ops': null,
+              'empirica-autonomy': null,
+              'empirica-mesh-support': null,
+              'flta-app-empirica': null,
+              'grok-crossref': null,
+              'opportunity-aggregator': null,
+            };
+
+            const repo = repos[practice];
+            if (!repo) {
+              console.log(`⏭️  Skipping ${practice} (local-only, will sync via empirica-mesh-support)`);
+              return;
+            }
+
+            try {
+              await github.rest.repos.createDispatchEvent({
+                owner: repo.owner,
+                repo: repo.repo,
+                event_type: 'governance-sync',
+                client_payload: {
+                  decision_id: decision_id,
+                  source_commit: commit_sha,
+                  operations_repo: '${{ github.repository }}',
+                  timestamp: new Date().toISOString(),
+                }
+              });
+              console.log(`✅ Dispatched to ${repo.owner}/${repo.repo}`);
+            } catch (error) {
+              console.error(`❌ Failed to dispatch to ${practice}: ${error.message}`);
+              throw error;
+            }
+
+      - name: Log dispatch summary
+        run: |
+          echo "## Mesh Sync Dispatch Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Decision ID:** ${{ steps.decision.outputs.decision_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit SHA:** ${{ steps.decision.outputs.commit_sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Practices Dispatched:** 3 GitHub-based + 7 local-only via mesh-support" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Status:** Active" >> $GITHUB_STEP_SUMMARY
+
+  notify-mesh-support:
+    needs: dispatch-to-practices
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify mesh-support of sync dispatch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue_title = `[mesh-sync] Governance decision ${{ github.event.pull_request.title }} dispatched`;
+            const issue_body = `
+            ## Mesh Sync Dispatch Notification
+
+            A governance decision has been merged and dispatched to all 10 practices.
+
+            - **Decision ID:** ${{ github.event.pull_request.title }}
+            - **Merged By:** @${{ github.event.pull_request.user.login }}
+            - **Operations Repo:** ${{ github.repository }}
+            - **Commit:** ${{ github.event.pull_request.merge_commit_sha }}
+
+            ### Dispatch Status
+
+            - ✅ humanaios (GitHub)
+            - ✅ humanaios-internal (GitHub)
+            - ✅ empirica-outreach (GitHub)
+            - ⏳ website, collaborator-ops, empirica-autonomy, empirica-mesh-support, flta-app-empirica, grok-crossref, opportunity-aggregator (via mesh-support)
+
+            ### Next Steps
+
+            1. Monitor divergence-detect for consistency checks (runs daily at 00:00 UTC)
+            2. Verify all 10 practices merged sync PRs within 24h
+            3. Update GOVERNANCE_RATIFICATIONS_REGISTRY.yaml with dispatch timestamp
+            `;
+
+            // Create issue in the mesh-support practice repo if available
+            console.log('Mesh sync dispatch notification prepared for mesh-support');

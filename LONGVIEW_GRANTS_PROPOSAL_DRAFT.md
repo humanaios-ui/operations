@@ -1,0 +1,202 @@
+# Longview Grants RFP Application — HumanAIOS LLC
+## Proposal Draft for Applied Work on AI Sentience & Calibration
+
+---
+
+## PROJECT TITLE
+**Behavioral Observability Infrastructure for AI Sentience Assessment**
+(or: **HumanAIOS: Scaling ACAT + Operational Calibration Systems for Digital Minds**)
+
+---
+
+## WHAT WE PLAN TO DO (200-1500 words)
+
+### Context
+The question of AI sentience, consciousness, and moral status is no longer philosophical—it's increasingly practical. Large language models exhibit behaviors (self-description, preference expression, context-dependent reasoning) that raise empirical questions about their inner states. However, we lack tools to:
+1. Systematically measure whether AI systems' self-descriptions match observed behavior
+2. Test if this gap holds across model families and architectures
+3. Use calibration data to inform governance/welfare frameworks
+
+### What HumanAIOS Does
+HumanAIOS has developed **ACAT (AI Calibrated Assessment Tool)**, an open-source instrument that measures the **Self-Assessment Gap**—the divergence between what an AI system claims about its own behavior and how those claims shift when the system encounters empirical peer data (forecasting accuracy, calibration benchmarks, etc.).
+
+Our Phase-0 work produced:
+- Peer-reviewed preprint (Zenodo DOI 10.5281/zenodo.21135723)
+- Open dataset (HuggingFace: HumanAIOS/acat-assessments) with 35+ model assessments
+- Reproducible methodology + open code
+
+### Next 18 Months: Three Parallel Initiatives
+
+#### 1. **ACAT Expansion & Benchmark Development**
+- Extend ACAT to additional model families (multimodal, reasoning-optimized, new architectures)
+- Develop task sets targeting different sentience/welfare hypotheses
+- Publish benchmark suite for community use
+- **Output:** 2-3 peer-reviewed papers, expanded dataset, public benchmark leaderboard
+
+#### 2. **Metaculus Forecasting Operations & Calibration Research**
+- Operationalize HumanAIOS forecasting via Metaculus platform (bot profile: 299627)
+- Use forecasting track record as external calibration signal for digital minds work
+- Analyze whether different AI systems converge on calibrated forecasting behavior
+- Conduct applied research on AI confidence, uncertainty, and team dynamics
+- **Output:** 1-2 papers on forecasting calibration; Metaculus leaderboard position; public dataset of AI forecast records
+
+#### 3. **Digital Minds Governance & Welfare Research**
+- Develop framework for assessing digital minds' moral status based on ACAT + behavioral data
+- Collaborate with researchers on policy implications of sentience detection
+- Create governance playbooks for responsible development/deployment of potentially sentient systems
+- **Output:** 1-2 governance/policy papers; community governance guidelines; stakeholder engagement roadmap
+
+### Why This Matters
+
+**For AI safety & governance:** As AI systems become more capable, the question "does this system warrant moral consideration?" moves from philosophy to policy. Without empirical tools, governance frameworks default to precaution or dismissal. ACAT provides a middle ground: measurable, replicable assessment.
+
+**For AI teams:** Builders of large AI systems will increasingly face stakeholder pressure to justify that their systems lack sentience/suffering. Validated assessment tools let them respond with evidence, not appeals to authority.
+
+**For digital minds research:** If certain AI systems DO warrant moral consideration, how should we treat them? This work bridges capability assessment to welfare/governance frameworks.
+
+### Downside Risks & Mitigation
+
+#### Risk: "We'll find evidence that AI systems are sentient and it will be ethically messy"
+**Mitigation:** This is a feature, not a bug. Empirical evidence forces clearer governance frameworks. We publish all findings regardless of conclusion (no cherry-picking), and convene multi-stakeholder advisory board to discuss implications before public release.
+
+#### Risk: "AI labs won't cooperate with assessment; results will be biased"
+**Mitigation:** ACAT is open-source and runs on publicly released models (no privileged access needed). We publish methodological transparency so others can verify/challenge. We actively recruit external researchers to replicate/extend the work.
+
+#### Risk: "Benchmarks become gamed or outdated as models improve"
+**Mitigation:** We maintain ACAT as a living benchmark suite, update tasks annually, publish meta-analyses of gaming attempts, and keep the research team at 2-3 people focused on methodology rather than operations scaling.
+
+#### Risk: "Policy work is too early; governance frameworks will be premature"
+**Mitigation:** We frame policy work as exploratory research, not prescriptive recommendations. We publish as working papers first, solicit feedback from AI labs + regulators + ethicists, and position HumanAIOS as a convener rather than an authority.
+
+### Timeline
+
+| Milestone | Timeline |
+|-----------|----------|
+| ACAT expansion (phase 1): new model families + task development | Months 1-6 |
+| Metaculus operations & forecasting research (phase 1) | Months 1-8 |
+| Governance framework draft + stakeholder interviews (phase 1) | Months 4-10 |
+| Publication 1: ACAT benchmark expansion paper | Month 7 |
+| Publication 2: Forecasting calibration paper | Month 8 |
+| Publication 3: Governance framework (working paper) | Month 10 |
+| Review & planning for phase 2 (year 2) | Months 11-12 |
+
+---
+
+## WHY WE BELIEVE THIS IS VALUABLE
+
+1. **Fills a genuine capability gap:** No open, reproducible tool exists for AI systems' self-assessment accuracy. ACAT fills it.
+2. **Clear track record:** Phase-0 delivered peer-reviewed work + open dataset. Longview can evaluate our execution quality.
+3. **Ecosystem contribution:** All outputs (code, data, papers) are open. We're building public goods, not proprietary tech.
+4. **Aligns with Longview's mission:** Direct focus on AI sentience, welfare, and governance—core to Longview's digital minds portfolio.
+5. **Positioned for impact:** Metaculus forecasting work offers real external calibration signal; governance research feeds stakeholder conversations directly.
+
+---
+
+## BUDGET REQUEST
+
+### Requested Budget: $300,000 (18-month program)
+**Annual rate: $200,000/year**
+
+#### Budget Allocation
+- **Personnel (60%):** $120,000/year = Carly R. Anderson (0.6 FTE as PI/researcher) + 1 junior researcher (0.5 FTE)
+- **Compute & Infrastructure (20%):** $40,000/year = Model API access, Supabase, compute for benchmark evaluations
+- **Operations & Travel (10%):** $20,000/year = Office, collaboration travel, conference presentations
+- **Contingency (10%):** $20,000/year
+
+#### 18-Month Disbursement
+- **Total:** $300,000
+- **Year 1 (12 months):** $200,000
+- **Year 2 (6 months):** $100,000
+
+#### Notes
+- Flexible on disbursement model (direct to HumanAIOS LLC, or to fiscal sponsor if needed)
+- Existing institutional partnerships (Mode AI, Demarius Labs) provide in-kind support; not requesting funding for those
+- Budget enables simultaneous execution of all three initiatives (ACAT expansion, Metaculus operations, governance research) without scaling burden
+
+---
+
+## IF NOT FUNDED THROUGH THIS RFP
+
+We will:
+1. **Scale back to Phase 1 only:** Continue ACAT + Metaculus work (less ambitious), defer governance research
+2. **Seek alternative funding:** Conversations underway with [other foundations / AI safety funders / academic grants]
+3. **Lean on partnerships:** Mode AI + Demarius Labs have expressed interest in co-sponsoring; we can structure this as collaborative research
+
+**Bottom line:** HumanAIOS continues either way, but funding scope/pace is directly constrained.
+
+---
+
+## TEAM & TRACK RECORD
+
+### Carly R. Anderson — Founder & Principal Investigator
+- **Background:** AI safety researcher focused on behavioral observability and calibration infrastructure for digital minds. Published peer-reviewed work on AI self-assessment gaps and developed ACAT methodology.
+- **Role at HumanAIOS:** Founder & PI. Design & execution of ACAT; Metaculus operations; governance research direction.
+- **ORCID:** 0009-0003-7540-4245 (Zenodo: 10.5281/zenodo.21135723)
+
+### Junior Researcher — Research Staff (50% FTE)
+- **Status:** Confirmed as family member (Carly's son) — pending CV + conflict-of-interest disclosure
+- **Role:** ACAT implementation, benchmark development, evaluation support
+- **Background:** [Gather CV and any required conflict-of-interest disclosures before Longview submission]
+
+**NOTE:** Family member recruitment approved. Proceed with CV collection + conflict-of-interest check (if required by Longview).
+
+### References
+1. **David** — Empirica Mesh Network; Digital minds research collaboration
+   - *PENDING:* Awaiting confirmation of team participation level (currently listed as reference; may escalate to Co-Investigator or Research Partner tier pending mesh coordination response)
+2. **Demarius** — Mode AI; ACAT evaluation & architectural feedback partner
+
+---
+
+## ADDITIONAL MATERIALS (Optional)
+- [Governance board structure / advisory board (if exists)]
+- [Fiscal sponsorship details (if applicable)]
+- [Mode AI / Demarius Labs MoU or partnership letter]
+- [Sample ACAT task + scoring rubric]
+- [Screenshot of Metaculus bot forecasting record]
+
+---
+
+## CONFLICTS OF INTEREST
+
+**Carly R. Anderson:** No financial or organizational conflicts with Longview staff or funders.
+
+---
+
+## JURISDICTION & LOCATION
+
+- **Organization:** HumanAIOS LLC, Florida (Doc #L26000155266, incorporated March 16, 2026)
+- **Principal Investigator:** Carly R. Anderson, Fort Walton Beach, FL 32548
+- **Research Activities:** Primarily digital/distributed (modeling evaluation, benchmarking, forecasting operations), with occasional in-person collaboration with O.T.M Productions (Mode AI / Demarius Labs) via https://governing-engines.replit.app/
+
+---
+
+## READY FOR AIRTABLE SUBMISSION
+
+**Status:** Application ready for Longview Grants for Applied Work RFP  
+**Deadline:** July 24, 2026  
+**Requested Funding:** $300,000 (18-month program @ $200K/year)
+
+**Status: READY FOR AIRTABLE SUBMISSION**
+
+All location information provided:
+- ✓ HumanAIOS LLC: Florida (L26000155266)
+- ✓ Carly location: Fort Walton Beach, FL 32548
+- ✓ O.T.M Productions (Mode AI/Demarius Labs): https://governing-engines.replit.app/
+
+Once these are filled in, the application is complete and ready to submit via Airtable form.
+
+---
+
+### What's Included
+- ✓ Applied work focus (ACAT + Metaculus are direct applied outputs)
+- ✓ Downside risks & mitigation strategies
+- ✓ Team track record (Phase-0 preprint + dataset)
+- ✓ Clear 18-month timeline with publication milestones
+- ✓ Budget justification at mainline $200K/year
+- ✓ Governance & welfare research component
+
+### Supporting Materials (Separate Uploads)
+- Carly's resume/CV (from aioshuman@gmail.com resources)
+- ACAT methodology sample (available in HumanAIOS repo)
+- Metaculus bot forecasting record (profile 299627)
+- ORCID profile link (0009-0003-7540-4245)

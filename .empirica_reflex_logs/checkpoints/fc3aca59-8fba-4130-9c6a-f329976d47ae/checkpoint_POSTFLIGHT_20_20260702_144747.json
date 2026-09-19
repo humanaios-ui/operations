@@ -1,0 +1,169 @@
+{
+  "session_id": "fc3aca59-8fba-4130-9c6a-f329976d47ae",
+  "phase": "POSTFLIGHT",
+  "round": 20,
+  "timestamp": "2026-07-02T14:47:41.057818+00:00",
+  "vectors": {
+    "know": 0.85,
+    "uncertainty": 0.2,
+    "context": 0.85,
+    "clarity": 0.85,
+    "coherence": 0.88,
+    "signal": 0.82,
+    "density": 0.8,
+    "state": 0.82,
+    "change": 0.4,
+    "completion": 1.0,
+    "impact": 0.72,
+    "do": 0.85,
+    "engagement": 0.9
+  },
+  "overall_confidence": 0.85,
+  "meta": {
+    "reasoning": "B4 executed as a genuine falsification test, not a booster piece: mapped 14 mechanisms to grounded runtimes (strong convergence), then named 3 honest divergences as the research-worthy part. Verdict grounded in the framework I actually built + established runtime patterns. epistemic_source=intuition on the finding (synthesis from knowledge, not fresh retrieval) \u2014 tagged honestly. Completes the bio-track B1-B4. completion=1.0.",
+    "task_summary": "B4 executed as a genuine falsification test, not a booster piece: mapped 14 mechanisms to grounded runtimes (strong convergence), then named 3 honest divergences as the research-worthy part. Verdict grounded in the framework I actually built + established runtime patterns. epistemic_source=intuition on the finding (synthesis from knowledge, not fresh retrieval) \u2014 tagged honestly. Completes the bio-track B1-B4. completion=1.0.",
+    "postflight_confidence": 0.8,
+    "internal_consistency": "good",
+    "deltas": {
+      "know": 0.05,
+      "uncertainty": -0.02,
+      "context": 0.0,
+      "clarity": 0.07,
+      "coherence": 0.06,
+      "signal": 0.02,
+      "density": 0.02,
+      "state": 0.02,
+      "change": 0.4,
+      "completion": 1.0,
+      "impact": 0.04,
+      "do": 0.0,
+      "engagement": 0.0
+    },
+    "trajectory_issues": [],
+    "transaction_id": "2c722c3b-b4a1-4c41-9982-3fcf1e6ddce3",
+    "tool_call_count": 0,
+    "work_type": "research",
+    "phase_tool_counts": {
+      "noetic_tool_calls": 0,
+      "praxic_tool_calls": 0
+    },
+    "avg_turns_at_start": 0,
+    "context_shifts": null,
+    "entity_context": null,
+    "tool_trace": null,
+    "retrospective": {
+      "artifact_counts": {
+        "findings": 1,
+        "unknowns": 0,
+        "dead_ends": 0,
+        "mistakes": 0,
+        "assumptions": 0,
+        "decisions": 0
+      },
+      "breadth_note": "Only findings artifacts logged. Missing: unknowns, dead_ends, mistakes, assumptions, decisions. Unlogged artifact types are ungrounded prediction domains \u2014 were there assumptions, decisions, dead-ends, or mistakes worth capturing?",
+      "commit_warning": "Uncommitted changes detected. Grounded calibration for change/state/do will be based on committed work only \u2014 uncommitted edits are invisible."
+    },
+    "coverage": null,
+    "git_commit_sha": "af49c79eb51d5480eacdc1dd7e4116b09ad478f0",
+    "git_notes_ref": "empirica/session/fc3aca59-8fba-4130-9c6a-f329976d47ae/POSTFLIGHT/20"
+  },
+  "epistemic_tags": {},
+  "git_state": {
+    "head_commit": "ed021884b38ac20e584a7b9545c22f41c7d23625",
+    "commits_since_last_checkpoint": [
+      {
+        "sha": "ed021884b38ac20e584a7b9545c22f41c7d23625",
+        "message": "roadmap: last N=629 -> N=604 (HF corpus is now v2)",
+        "author": "Carly Anderson",
+        "timestamp": "2026-07-02T09:47:15-05:00",
+        "files_changed": [
+          "humanaios-funding-pipeline/reports/ACAT_MARKETPLACE_ROADMAP.md"
+        ]
+      },
+      {
+        "sha": "24342a5eb9e62e565cc011adb54c938940fb754a",
+        "message": "Cronbach pass: soften asserted psychometrics to 'recomputing'; fix roadmap N=629->604",
+        "author": "Carly Anderson",
+        "timestamp": "2026-07-02T09:46:15-05:00",
+        "files_changed": [
+          "humanaios-funding-pipeline/reports/ACAT_MARKETPLACE_ROADMAP.md",
+          "humanaios-funding-pipeline/reports/LONGVIEW_FELLOWSHIP_APP.md"
+        ]
+      }
+    ],
+    "uncommitted_changes": {
+      "files_modified": [],
+      "files_added": [],
+      "files_deleted": [],
+      "diff_stat": ""
+    }
+  },
+  "learning_delta": {
+    "know": {
+      "prev": 0.8,
+      "curr": 0.85,
+      "delta": 0.05
+    },
+    "uncertainty": {
+      "prev": 0.22,
+      "curr": 0.2,
+      "delta": -0.02
+    },
+    "context": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "clarity": {
+      "prev": 0.78,
+      "curr": 0.85,
+      "delta": 0.07
+    },
+    "coherence": {
+      "prev": 0.82,
+      "curr": 0.88,
+      "delta": 0.06
+    },
+    "signal": {
+      "prev": 0.8,
+      "curr": 0.82,
+      "delta": 0.02
+    },
+    "density": {
+      "prev": 0.78,
+      "curr": 0.8,
+      "delta": 0.02
+    },
+    "state": {
+      "prev": 0.8,
+      "curr": 0.82,
+      "delta": 0.02
+    },
+    "change": {
+      "prev": 0.0,
+      "curr": 0.4,
+      "delta": 0.4
+    },
+    "completion": {
+      "prev": 0.0,
+      "curr": 1.0,
+      "delta": 1.0
+    },
+    "impact": {
+      "prev": 0.68,
+      "curr": 0.72,
+      "delta": 0.04
+    },
+    "do": {
+      "prev": 0.85,
+      "curr": 0.85,
+      "delta": 0.0
+    },
+    "engagement": {
+      "prev": 0.9,
+      "curr": 0.9,
+      "delta": 0.0
+    }
+  },
+  "token_count": 546
+}

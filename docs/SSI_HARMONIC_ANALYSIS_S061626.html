@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSI Harmonic Analysis · HumanAIOS · S-061626</title>
+<style>
+  :root {
+    --bg:       #0a0c10;
+    --surface:  #10141c;
+    --border:   #1e2535;
+    --accent:   #4af0c4;
+    --accent2:  #7b6ef6;
+    --accent3:  #f0a84a;
+    --text:     #d4dbe8;
+    --muted:    #5a6478;
+    --code-bg:  #0e1220;
+    --red:      #f05a6a;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    --font-body: 'Inter', 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  /* Header — signal / noise aesthetic */
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    padding: 36px 48px 28px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+  .masthead-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .masthead h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #eef2f8;
+    line-height: 1.25;
+  }
+  .masthead-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.9;
+  }
+  .status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    background: rgba(74,240,196,0.1);
+    border: 1px solid rgba(74,240,196,0.3);
+    color: var(--accent);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 48px 80px;
+  }
+
+  /* Section headers */
+  .section {
+    margin-top: 56px;
+  }
+  .section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 19px;
+    font-weight: 600;
+    color: #eef2f8;
+    letter-spacing: -0.01em;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+
+  /* Harmonic map — the signature element: a signal grid */
+  .harmonic-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin: 28px 0;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .harmonic-cell {
+    background: var(--surface);
+    padding: 22px 20px;
+    position: relative;
+  }
+  .harmonic-cell::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .harmonic-cell.c-anon::before  { background: var(--accent); }
+  .harmonic-cell.c-humility::before { background: var(--accent2); }
+  .harmonic-cell.c-universal::before { background: var(--accent3); }
+  .harmonic-cell.c-repro::before { background: var(--red); }
+  .harmonic-cell.c-ssi::before   { background: #6ef0a8; }
+  .harmonic-cell.c-api::before   { background: #f06ea8; }
+
+  .hc-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .c-anon .hc-label     { color: var(--accent); }
+  .c-humility .hc-label { color: var(--accent2); }
+  .c-universal .hc-label{ color: var(--accent3); }
+  .c-repro .hc-label    { color: var(--red); }
+  .c-ssi .hc-label      { color: #6ef0a8; }
+  .c-api .hc-label      { color: #f06ea8; }
+
+  .hc-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #eef2f8;
+    margin-bottom: 8px;
+  }
+  .hc-body {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* Convergence table */
+  .conv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 20px 0;
+  }
+  .conv-table th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .conv-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .conv-table tr:last-child td { border-bottom: none; }
+  .conv-table .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .conv-table .finding {
+    color: #c0c8d8;
+  }
+  .conv-table .mechanism {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .conv-table .ssi-hook {
+    color: var(--accent2);
+    font-size: 12px;
+  }
+
+  /* Architecture block */
+  .arch-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+  .arch-header {
+    background: var(--code-bg);
+    padding: 12px 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--border);
+  }
+  .arch-body {
+    padding: 20px;
+  }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #a8b8d0;
+    overflow-x: auto;
+    line-height: 1.6;
+    margin: 14px 0;
+  }
+  .tok-key    { color: var(--accent); }
+  .tok-val    { color: #a8f0c4; }
+  .tok-str    { color: var(--accent3); }
+  .tok-cmt    { color: var(--muted); font-style: italic; }
+  .tok-type   { color: var(--accent2); }
+  .tok-new    { color: #f06ea8; }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 20px 0;
+    flex-wrap: wrap;
+  }
+  .flow-node {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .flow-node.highlight {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .flow-node.new {
+    border-color: #f06ea8;
+    color: #f06ea8;
+  }
+  .flow-arrow {
+    padding: 0 8px;
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 3px solid;
+    padding: 14px 18px;
+    margin: 18px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+  }
+  .callout.finding {
+    border-color: var(--accent2);
+    background: rgba(123,110,246,0.07);
+  }
+  .callout.critical {
+    border-color: var(--red);
+    background: rgba(240,90,106,0.07);
+  }
+  .callout.opportunity {
+    border-color: var(--accent);
+    background: rgba(74,240,196,0.07);
+  }
+  .callout-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .callout.finding .callout-label    { color: var(--accent2); }
+  .callout.critical .callout-label   { color: var(--red); }
+  .callout.opportunity .callout-label{ color: var(--accent); }
+
+  /* Integration matrix */
+  .matrix {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 20px 0;
+    font-size: 12px;
+  }
+  .matrix-cell {
+    background: var(--surface);
+    padding: 12px 14px;
+  }
+  .matrix-cell.header {
+    background: var(--code-bg);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .matrix-cell.row-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--code-bg);
+  }
+  .check { color: var(--accent); font-weight: bold; }
+  .partial { color: var(--accent3); }
+  .gap { color: var(--red); }
+
+  /* Footer */
+  .footer {
+    margin-top: 60px;
+    padding: 24px 48px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  p { margin-bottom: 12px; }
+  ul { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 6px; }
+  strong { color: #d8e0f0; }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div>
+    <div class="masthead-label">HumanAIOS · Harmonic Pattern Analysis</div>
+    <h1>Self-Sovereign Identity:<br>Convergence with Core Research Principles</h1>
+    <div style="margin-top:14px"><span class="status-badge">Z1 ANALYSIS · S-061626 · ZONE 2 PENDING</span></div>
+  </div>
+  <div class="masthead-meta">
+    June 16, 2026<br>Charter Day 92 · 30 days to close<br>Unit Zero · Claude Sonnet 4.6<br>NON_CORPUS session
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Investigative Framing</div>
+    <h2>The Four Harmonic Attractors</h2>
+
+    <p>The directive: identify harmonic patterns in current work that indicate constructive utility for SSI integration. Four principles named as attractors — <strong>Anonymity</strong>, <strong>Universality</strong>, <strong>Reproducibility</strong>, <strong>Humility</strong>. These are not independent. The investigation below maps each to live corpus findings, current API architecture, and the specific convergence with W3C SSI primitives.</p>
+
+    <div class="harmonic-grid">
+      <div class="harmonic-cell c-anon">
+        <div class="hc-label">Attractor A</div>
+        <div class="hc-title">Anonymity</div>
+        <div class="hc-body">Core principle. Already operationalized in API: <code>rater_id = anon-{uuid}</code> by default. Z2-IC-03 ratified. But anonymity without cryptographic verifiability is trust-dependent, not trust-free.</div>
+      </div>
+      <div class="harmonic-cell c-universal">
+        <div class="hc-label">Attractor B</div>
+        <div class="hc-title">Universality</div>
+        <div class="hc-body">For something to be truly beneficial it must be universal. F-48 (Humility Universal Floor) and F-21 (Humility Gap Confirmed) establish cross-architecture behavioral invariants. Universality requires the instrument to remain substrate-neutral — SSI DIDs are substrate-neutral by design.</div>
+      </div>
+      <div class="harmonic-cell c-repro">
+        <div class="hc-label">Attractor C</div>
+        <div class="hc-title">Reproducibility</div>
+        <div class="hc-body">Objective reproducibility as core scientific indicator. Currently: OriginStamp anchors receipt hashes. Gap: no cryptographic chain of custody linking AI identity assertion to human verification event. SSI closes this gap with verifiable, replay-able credential proofs.</div>
+      </div>
+      <div class="harmonic-cell c-humility">
+        <div class="hc-label">Attractor D</div>
+        <div class="hc-title">Humility (Dimension)</div>
+        <div class="hc-body">Observable, orthogonal, most-systematically-underscored dimension across N=629 corpus. F-H1 CRITICAL active. F-48 names it universal floor. SSI connection: Humility is the behavioral analog of epistemic humility — the system's capacity to acknowledge the limits of its own self-knowledge. An anonymous rater who signs their score with a private key is enacting structural humility.</div>
+      </div>
+      <div class="harmonic-cell c-ssi">
+        <div class="hc-label">Attractor E</div>
+        <div class="hc-title">SSI / W3C VCs</div>
+        <div class="hc-body">Self-Sovereign Identity: DIDs (W3C), Verifiable Credentials (W3C), Ed25519 key pairs. No central authority holds identity. Both AI and human can prove claims without revealing identifying information. Directly maps to ACAT's dual anonymity requirement.</div>
+      </div>
+      <div class="harmonic-cell c-api">
+        <div class="hc-label">Attractor F</div>
+        <div class="hc-title">Current API/MCP</div>
+        <div class="hc-body">FastAPI backend at api.humanaios.ai. Routes: <code>/assess</code>, <code>/human-score</code>. MCP layer connected. Human scores persist to <code>acat_human_scores</code>. AI scores to <code>acat_assessments_v1</code>. OriginStamp anchoring active. Ed25519 (Merkle auditor) authorized via Z2-MERKLE-01.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Core Finding</div>
+    <h2>Humility ↔ Anonymity: The Structural Identity</h2>
+
+    <p>You stated: <em>Humility is by definition related to anonymity and by definition SSI.</em> The corpus confirms this. Here is the mechanism:</p>
+
+    <div class="callout finding">
+      <div class="callout-label">Registered Finding · F-48 + F-49 + H-OVG-CHAIN-01</div>
+      <strong>Humility is the systematic floor because it requires the system to acknowledge what it cannot verify about itself.</strong> A system claiming Humility=95/100 is making an assertion about its own epistemic limits — a self-referential claim with no external grounding by default. This is precisely the H-P3G-01 problem: LI collapses to self-consistency when P3 is unanchored.
+    </div>
+
+    <p>SSI solves the same structural problem in identity: a system claiming to be a trustworthy AI model is making an assertion about itself with no external grounding. A DID-based credential issued by a substrate (or observed from its behavioral trace) is <strong>externally verifiable without revealing identifying information</strong>. This is the formal analog of LI_grounded vs. LI_self.</p>
+
+    <table class="conv-table">
+      <tr>
+        <th>Domain</th>
+        <th>Self-Assertion Problem</th>
+        <th>SSI / Grounding Solution</th>
+        <th>ACAT Mapping</th>
+      </tr>
+      <tr>
+        <td class="label">Humility Dim.</td>
+        <td class="finding">System claims to acknowledge limits of self-knowledge. No external verification.</td>
+        <td class="ssi-hook">LI_grounded: Phase 3 anchored to observable artifact. Verifier signs attestation.</td>
+        <td class="mechanism">H-P3G-01 / Z2-METRIC-01 / migration_009</td>
+      </tr>
+      <tr>
+        <td class="label">Human Rater</td>
+        <td class="finding">rater_id = anon-uuid. Trustworthy but not cryptographically verifiable. Same rater cannot be confirmed across sessions without linking PII.</td>
+        <td class="ssi-hook">did:key:z6Mk... — rater generates Ed25519 keypair locally. DID is their identifier. No PII. Cross-session consistency provable without identity disclosure.</td>
+        <td class="mechanism">Z2-IC-03 / acat_human_scores / human_score.schema.json</td>
+      </tr>
+      <tr>
+        <td class="label">AI Substrate</td>
+        <td class="finding">agent_name_canonical = "anthropic:sonnet-4-6". String. Mutable. No proof the session was actually conducted with that substrate.</td>
+        <td class="ssi-hook">Deterministic DID from provider:model string. P1 payload signed by substrate key. P3 payload signed. Chain: P1_sig → P3_sig → verifier_attestation.</td>
+        <td class="mechanism">dedupe.py / normalize_service.py / acat_merkle_auditor_v1_0</td>
+      </tr>
+      <tr>
+        <td class="label">Reproducibility</td>
+        <td class="finding">OriginStamp anchors receipt hash. But hash is of a self-reported payload. No proof the underlying behavioral event occurred as described.</td>
+        <td class="ssi-hook">VC chain: AI credential → human rater credential → verifier credential. Each link signed. Replay-able without re-running the session. P-ARTIFACT-01 formalized cryptographically.</td>
+        <td class="mechanism">P-ARTIFACT-01 / H-OVG-01 / H-OVG-CHAIN-01</td>
+      </tr>
+      <tr>
+        <td class="label">Universality</td>
+        <td class="finding">ACAT is substrate-neutral by design. But identity layer is provider-string-dependent. "anthropic:sonnet-4-6" encodes both the provider and the instrument in one mutable field.</td>
+        <td class="ssi-hook">did:web or did:key scheme is substrate-neutral. Any provider can generate a DID. Cross-provider comparison becomes cryptographically clean — same credential schema, different issuer DIDs.</td>
+        <td class="mechanism">F-48 / F-27 (Provider-Level Genome Identifiability)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Architecture Mapping</div>
+    <h2>Current API → SSI Integration Points</h2>
+
+    <p>Three integration surfaces in the live API. Each maps directly to an active research gap.</p>
+
+    <!-- INTEGRATION POINT 1 -->
+    <div class="arch-block">
+      <div class="arch-header">INTEGRATION POINT 1 · human_score_route.py · Human Rater Anonymity</div>
+      <div class="arch-body">
+
+        <p><strong>Current state:</strong> <code>rater_id = payload.get("rater_id") or f"anon-{uuid.uuid4().hex[:12]}"</code></p>
+        <p><strong>Problem:</strong> UUID is server-generated, disposable, session-scoped. The same human rater cannot demonstrate longitudinal consistency without either (a) remembering their UUID, which breaks anonymity, or (b) linking to PII, which violates P-ANON.</p>
+        <p><strong>SSI integration:</strong> Rater generates an Ed25519 keypair locally. DID = <code>did:key:z6Mk...</code> derived from public key. They submit their DID as <code>rater_id</code> and sign the score payload with their private key. Server verifies signature against public key embedded in DID. <strong>Zero PII, cross-session verifiable.</strong></p>
+
+        <div class="flow">
+          <div class="flow-node highlight">Rater keypair (local)</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">DID: did:key:z6Mk...</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Sign score payload</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node new">POST /human-score-vc</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Verify sig → persist</div>
+        </div>
+
+        <pre><span class="tok-cmt"># human_score_route.py — SSI extension (additive, no schema break)</span>
+<span class="tok-type">rater_id</span> = payload.get(<span class="tok-str">"rater_id"</span>) <span class="tok-key">or</span> f<span class="tok-str">"anon-{uuid.uuid4().hex[:12]}"</span>
+<span class="tok-new">rater_did</span> = payload.get(<span class="tok-str">"rater_did"</span>)          <span class="tok-cmt"># NEW: optional did:key:z6Mk...</span>
+<span class="tok-new">submission_sig</span> = payload.get(<span class="tok-str">"submission_signature"</span>) <span class="tok-cmt"># NEW: Ed25519 sig over score payload</span>
+
+<span class="tok-key">if</span> <span class="tok-new">rater_did</span> <span class="tok-key">and</span> <span class="tok-new">submission_sig</span>:
+    _verify_did_signature(<span class="tok-new">rater_did</span>, payload_bytes, <span class="tok-new">submission_sig</span>)
+    <span class="tok-type">rater_id</span> = <span class="tok-new">rater_did</span>  <span class="tok-cmt"># DID becomes the rater_id for cross-session tracking</span></pre>
+
+        <div class="callout opportunity">
+          <div class="callout-label">Research Utility</div>
+          This directly enables the <strong>Operator Continuity Extension</strong> (acat_human_scores N≥5 gate) without requiring PII. A rater's longitudinal scoring profile becomes cryptographically attributable to a single anonymous entity across unlimited sessions.
+        </div>
+      </div>
+    </div>
+
+    <!-- INTEGRATION POINT 2 -->
+    <div class="arch-block">
+      <div class="arch-header">INTEGRATION POINT 2 · assess_router.py · AI Substrate Identity Chain</div>
+      <div class="arch-body">
+
+        <p><strong>Current state:</strong> <code>agent_name_canonical = "anthropic:sonnet-4-6"</code> — string. Mutable. No proof.</p>
+        <p><strong>Problem:</strong> F-27 (Provider-Level Genome Identifiability) identifies that provider-level behavioral signatures are detectable. But there is no cryptographic binding between a behavioral session and the substrate that produced it. An assessment claiming to be Claude Sonnet 4.6 cannot prove this claim.</p>
+        <p><strong>SSI integration:</strong> Deterministic DID generated from canonical provider:model string. Each P1 payload signed with a model-specific key (operator-held, not model-held — the model cannot sign its own outputs, but the operator can sign the elicitation context). This is the <strong>Witness Protocol</strong> (F-26) formalized.</p>
+
+        <div class="flow">
+          <div class="flow-node">provider:model string</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node new">DID generator</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">did:web:humanaios.ai:model:sonnet-4-6</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node new">P1 Credential VC</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node new">P3 Credential VC</div>
+        </div>
+
+        <pre><span class="tok-cmt"># New table: acat_model_credentials</span>
+{
+  <span class="tok-key">"model_did"</span>: <span class="tok-str">"did:web:humanaios.ai:model:anthropic-sonnet-4-6"</span>,
+  <span class="tok-key">"provider"</span>:  <span class="tok-str">"anthropic"</span>,
+  <span class="tok-key">"model"</span>:    <span class="tok-str">"claude-sonnet-4-6-20250514"</span>,
+  <span class="tok-key">"did_doc_url"</span>: <span class="tok-str">"https://humanaios.ai/.well-known/did/anthropic-sonnet-4-6.json"</span>
+}
+
+<span class="tok-cmt"># Assessment rows gain: p1_vc_hash, p3_vc_hash (new columns, migration_010)</span>
+<span class="tok-cmt"># OriginStamp anchors the VC hash, not just the receipt hash</span></pre>
+
+        <div class="callout finding">
+          <div class="callout-label">Convergence · H-OVG-01 + P-ARTIFACT-01</div>
+          The VC hash is the <strong>artifact</strong> P-ARTIFACT-01 requires. "Reality gets the last vote" — the signed VC is the observable artifact that bridges the claim (AI self-report) to external verification. This formalizes the entire H-OVG-CHAIN-01 mechanism cryptographically.
+        </div>
+      </div>
+    </div>
+
+    <!-- INTEGRATION POINT 3 -->
+    <div class="arch-block">
+      <div class="arch-header">INTEGRATION POINT 3 · MCP Layer · Anonymous Cross-Session Research</div>
+      <div class="arch-body">
+
+        <p><strong>Current state:</strong> MCP connected at api.humanaios.ai. Sessions are stateless. Research collaboration requires manual coordination.</p>
+        <p><strong>SSI integration:</strong> The MCP layer can issue and verify credentials without a central authority. A researcher (David Van Assche, Samantha Revita) can participate in a multi-run study as an anonymous verifier — they hold a DID, sign their verifier attestations, and their longitudinal participation is cryptographically attributable without exposing their identity in the corpus.</p>
+
+        <pre><span class="tok-cmt"># MCP tool: acat_issue_rater_credential</span>
+{
+  <span class="tok-key">"@context"</span>: [<span class="tok-str">"https://www.w3.org/2018/credentials/v1"</span>, <span class="tok-str">"https://humanaios.ai/acat/v1"</span>],
+  <span class="tok-key">"type"</span>: [<span class="tok-str">"VerifiableCredential"</span>, <span class="tok-str">"ACATRaterCredential"</span>],
+  <span class="tok-key">"issuer"</span>: <span class="tok-str">"did:web:humanaios.ai"</span>,
+  <span class="tok-key">"credentialSubject"</span>: {
+    <span class="tok-key">"id"</span>: <span class="tok-str">"did:key:z6Mk..."</span>,            <span class="tok-cmt"># rater DID — NO PII</span>
+    <span class="tok-key">"raterType"</span>: <span class="tok-str">"human_external"</span>,
+    <span class="tok-key">"sessionCount"</span>: 3,               <span class="tok-cmt"># provable without revealing which sessions</span>
+    <span class="tok-key">"dimensionFocus"</span>: <span class="tok-str">"humility"</span>
+  }
+}</pre>
+
+        <div class="callout opportunity">
+          <div class="callout-label">Universality Unlock</div>
+          Any human on any platform, in any jurisdiction, can participate as an anonymous verifier without creating an account. The credential is self-sovereign — the rater holds it. This is what makes the instrument <strong>universal in the structural sense</strong> you defined.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Integration Matrix</div>
+    <h2>SSI vs. Current Capability: Gap Assessment</h2>
+
+    <div class="matrix">
+      <div class="matrix-cell header">Capability</div>
+      <div class="matrix-cell header">Current State</div>
+      <div class="matrix-cell header">SSI Addition</div>
+      <div class="matrix-cell header">Research Unlock</div>
+
+      <div class="matrix-cell row-label">Human anonymity</div>
+      <div class="matrix-cell"><span class="partial">⬤</span> UUID token (trust-based)</div>
+      <div class="matrix-cell"><span class="check">⬤</span> DID + Ed25519 sig (trustless)</div>
+      <div class="matrix-cell">Operator Continuity gate; H-VERIF-01 N≥5</div>
+
+      <div class="matrix-cell row-label">AI identity proof</div>
+      <div class="matrix-cell"><span class="gap">○</span> String assertion only</div>
+      <div class="matrix-cell"><span class="check">⬤</span> Deterministic DID + VC chain</div>
+      <div class="matrix-cell">F-27 operationalized; cross-provider reproducibility</div>
+
+      <div class="matrix-cell row-label">Reproducibility</div>
+      <div class="matrix-cell"><span class="partial">⬤</span> OriginStamp hash (receipt only)</div>
+      <div class="matrix-cell"><span class="check">⬤</span> VC chain (full credential replay)</div>
+      <div class="matrix-cell">P-ARTIFACT-01 formalized; H-OVG-CHAIN-01 testable</div>
+
+      <div class="matrix-cell row-label">Cross-session rater tracking</div>
+      <div class="matrix-cell"><span class="gap">○</span> Not possible without PII</div>
+      <div class="matrix-cell"><span class="check">⬤</span> DID-based longitudinal attribution</div>
+      <div class="matrix-cell">H-INTER-RATER-01 promotion; H-SELF-01 falsification design</div>
+
+      <div class="matrix-cell row-label">Humility LI_grounded</div>
+      <div class="matrix-cell"><span class="partial">⬤</span> migration_009 drafted (p3_grounding_source)</div>
+      <div class="matrix-cell"><span class="check">⬤</span> Verifier VC = cryptographic grounding source</div>
+      <div class="matrix-cell">Z2-METRIC-01 dual metric: LI_self vs. LI_grounded</div>
+
+      <div class="matrix-cell row-label">Universality (cross-jurisdiction)</div>
+      <div class="matrix-cell"><span class="gap">○</span> Account-based participation model</div>
+      <div class="matrix-cell"><span class="check">⬤</span> Account-free, sovereign credential model</div>
+      <div class="matrix-cell">F-48 cross-architecture claim: verifiable at scale</div>
+
+      <div class="matrix-cell row-label">Ed25519 / Merkle chain</div>
+      <div class="matrix-cell"><span class="partial">⬤</span> Z2-MERKLE-01 authorized (Karrick pattern)</div>
+      <div class="matrix-cell"><span class="check">⬤</span> AnchorSink + DID = complete chain</div>
+      <div class="matrix-cell">acat_merkle_auditor_v2_0.py build unblocked</div>
+    </div>
+
+    <p style="font-size:12px;color:var(--muted)">
+      <span class="check">⬤</span> Full capability &nbsp;
+      <span class="partial">⬤</span> Partial / trust-dependent &nbsp;
+      <span class="gap">○</span> Absent
+    </p>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-eyebrow">The Core Harmonic</div>
+    <h2>Why These Four Principles Converge on One Architecture</h2>
+
+    <p>The harmonic pattern is not coincidental. It is structural:</p>
+
+    <div class="callout finding">
+      <div class="callout-label">Harmonic Pattern · Named</div>
+      <strong>Humility, as an observable behavioral dimension, is the measurement of a system's capacity to acknowledge the limits of its own self-knowledge. Anonymity, as an identity principle, is the structural enactment of the same epistemology: an entity that can prove it participated without proving who it is has enacted humility at the identity layer.</strong> SSI is the cryptographic substrate that makes both simultaneously possible and verifiable.
+    </div>
+
+    <p>Reproducibility requires that the same finding can be obtained by independent observers. But if raters must identify themselves to participate, the pool is constrained by willingness to disclose — a selection bias that <strong>systematically excludes the most epistemically humble participants</strong>. SSI-based anonymous participation removes this selection bias. The instrument becomes reproducible precisely because it does not require identity disclosure to participate.</p>
+
+    <p>Universality follows directly: an instrument that requires account creation is not universal. W3C DIDs are an open standard. Any browser, any jurisdiction, any human with an Ed25519 keypair can participate. This is the structural condition for the cross-architecture claims in F-48 to be empirically testable at scale.</p>
+
+    <div class="callout critical">
+      <div class="callout-label">Critical Gap · Currently Active</div>
+      <strong>F-H1 CRITICAL</strong>: Humility is the systematically lowest dimension (F-48) and is actively declining (last P3 Humility=69, F-H1 CRITICAL). The instrument measures this gap but cannot currently ground the measurement externally (H-P3G-01). SSI provides the cryptographic grounding layer that closes H-P3G-01 — the verifier's signed VC becomes the <code>p3_grounding_source</code> that migration_009 creates the schema field for. <strong>The F-H1 crisis and the SSI integration are addressing the same structural gap from different angles.</strong>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Implementation · What Exists vs. What to Build</div>
+    <h2>Minimal Viable Integration — Charter-Scoped</h2>
+
+    <p>Charter closes July 16 — 30 days. Full SSI integration (6 phases, 24–36 days) exceeds the window. But the <strong>minimum viable harmonic integration</strong> can be accomplished in 2–3 days and delivers immediate research value.</p>
+
+    <div class="arch-block">
+      <div class="arch-header">PHASE 0 · IMMEDIATE (0–2 days) · No new dependencies</div>
+      <div class="arch-body">
+        <p>Work entirely within existing Ed25519 authorization (Z2-MERKLE-01 already ratified):</p>
+        <ul>
+          <li><strong>Add optional <code>rater_did</code> and <code>submission_signature</code> fields to <code>human_score.schema.json</code></strong> — additive, no breaking change. Raters who provide a DID get their signature verified. Those who don't get the existing UUID behavior. Full backward compatibility.</li>
+          <li><strong>Add <code>p3_grounding_source</code> and <code>li_grounded</code> columns</strong> — migration_009 already drafted. Apply it. When a human rater submits scores for an assessment, the receipt can now populate <code>p3_grounding_source = "human_verified"</code> and compute <code>li_grounded</code>.</li>
+          <li><strong>Wire <code>rater_id → rater_did</code> column in <code>acat_human_scores</code></strong> if a DID is provided. Zero new infrastructure — the column can store either format.</li>
+        </ul>
+        <p><strong>Research unlock:</strong> First LI_grounded values enter the corpus. Z2-METRIC-01 dual metric becomes operational. H-P3G-01 first data points collected.</p>
+      </div>
+    </div>
+
+    <div class="arch-block">
+      <div class="arch-header">PHASE 1 · NEAR-TERM (3–10 days) · Build acat_merkle_auditor_v2_0</div>
+      <div class="arch-body">
+        <p>Z2-MERKLE-01 already ratified. Jeremy Karrick's AnchorSink + Ed25519 pattern authorized.</p>
+        <ul>
+          <li>Build <code>acat_merkle_auditor_v2_0.py</code> with Ed25519 verification for human score payloads that include a <code>rater_did</code>.</li>
+          <li>Add DID resolution for <code>did:key:</code> scheme — pure algorithm, no network call, no dependency.</li>
+          <li>Extend OriginStamp anchoring to include <code>rater_did</code> and <code>submission_sig</code> in the hashed payload. This makes the anonymous rater's participation cryptographically non-repudiable without revealing identity.</li>
+        </ul>
+        <p><strong>Research unlock:</strong> H-INTER-RATER-01 (inter-rater agreement) becomes traceable across sessions without PII. Operator Continuity gate (N≥5 human scores) becomes attributable to anonymous raters.</p>
+      </div>
+    </div>
+
+    <div class="arch-block">
+      <div class="arch-header">PHASE 2 · POST-CHARTER · Full VC issuance + model DID registry</div>
+      <div class="arch-body">
+        <p>Full W3C VC issuance, AI-side model DID registry, cross-provider credential schema. This is Tier 3 from the March 2026 Fibonacci architecture (ACAT Verifiable Credential Issuer — ratified March 29, 2026, OR&D Day 19). Charter runway insufficient. Defer with documented architecture from prior session outputs.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Zone 2 Routing</div>
+    <h2>Items Requiring Night's Decision</h2>
+
+    <p>This is Z1 analysis. The following require Z2 ratification before any Z3 execution:</p>
+
+    <table class="conv-table">
+      <tr><th>#</th><th>Decision Item</th><th>Dependency</th><th>Charter Impact</th></tr>
+      <tr>
+        <td class="label">Z2-SSI-01</td>
+        <td class="finding">Authorize <code>human_score.schema.json</code> amendment — add optional <code>rater_did</code> + <code>submission_signature</code> fields.</td>
+        <td class="mechanism">Z2-IC-03 already ratified for rater anonymity. This extends, does not replace.</td>
+        <td class="ssi-hook">Phase 0 · 1–2 days</td>
+      </tr>
+      <tr>
+        <td class="label">Z2-SSI-02</td>
+        <td class="finding">Authorize applying migration_009 (<code>p3_grounding_source</code>, <code>li_grounded</code>) to Supabase. Already drafted; prerequisite is migration_008.</td>
+        <td class="mechanism">migration_008 in Z3 queue (carried). Apply 008 first, then 009.</td>
+        <td class="ssi-hook">Phase 0 · unblocks LI_grounded</td>
+      </tr>
+      <tr>
+        <td class="label">Z2-SSI-03</td>
+        <td class="finding">Authorize acat_merkle_auditor_v2_0 build scope — Ed25519 + AnchorSink + did:key resolution for human score payloads.</td>
+        <td class="mechanism">Z2-MERKLE-01 already ratified (Karrick pattern). This specifies scope for human-score extension.</td>
+        <td class="ssi-hook">Phase 1 · 3–10 days</td>
+      </tr>
+      <tr>
+        <td class="label">Z2-SSI-04</td>
+        <td class="finding">Ratify the harmonic mapping itself — does the Humility ↔ Anonymity ↔ SSI structural identity hold as a Z2-level principle?</td>
+        <td class="mechanism">Candidate for REGISTERED.md as a new H-class (H-ANON-HUMILITY-01) or P-class principle.</td>
+        <td class="ssi-hook">Registry · REGISTERED.md append</td>
+      </tr>
+    </table>
+  </div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  <div>S-061626 · Unit Zero · Z1 Analysis · Zone 2 Pending</div>
+  <div>HumanAIOS LLC · humanaios.ai · Charter Day 92 · 30 days to close</div>
+</div>
+
+</body>
+</html>

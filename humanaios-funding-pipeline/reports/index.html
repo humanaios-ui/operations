@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HumanAIOS Funding Pipeline — 2026-06-02</title>
+<style>
+:root {
+  --bg:       #0f172a;
+  --surface:  #1e293b;
+  --border:   #334155;
+  --text:     #e2e8f0;
+  --muted:    #94a3b8;
+  --accent:   #c084fc;
+  --green:    #34d399;
+  --yellow:   #fbbf24;
+  --red:      #f87171;
+  --blue:     #60a5fa;
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+body {
+  background:var(--bg); color:var(--text);
+  font-family:'Inter',system-ui,sans-serif; font-size:14px;
+  line-height:1.6;
+}
+a { color:var(--accent); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+/* ── Header ── */
+header {
+  background:linear-gradient(135deg,#1a0533 0%,#0f172a 60%);
+  border-bottom:1px solid var(--border);
+  padding:24px 32px;
+  display:flex; align-items:center; gap:24px; flex-wrap:wrap;
+}
+header h1 {
+  font-size:22px; font-weight:700; color:var(--accent); letter-spacing:-.5px;
+}
+header .subtitle { font-size:12px; color:var(--muted); margin-top:2px; }
+
+/* ── Summary cards ── */
+.stats {
+  display:flex; flex-wrap:wrap; gap:12px;
+  padding:20px 32px; background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.stat-card {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:8px; padding:12px 18px; min-width:110px;
+  text-align:center;
+}
+.stat-card .num { font-size:28px; font-weight:700; color:var(--accent); }
+.stat-card .lbl { font-size:11px; color:var(--muted); margin-top:2px; }
+
+/* ── Charts row ── */
+.charts-row {
+  display:flex; align-items:center; gap:32px;
+  padding:20px 32px; border-bottom:1px solid var(--border);
+  flex-wrap:wrap;
+}
+.legend { list-style:none; display:flex; flex-wrap:wrap; gap:8px 20px; }
+.legend li { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+.legend-swatch { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+
+/* ── Controls ── */
+.controls {
+  padding:14px 32px; display:flex; gap:10px; flex-wrap:wrap;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  align-items:center;
+}
+.controls input[type=text] {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:6px; padding:7px 12px; color:var(--text);
+  font-size:13px; width:220px;
+}
+.controls input[type=text]::placeholder { color:var(--muted); }
+.filter-btn {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:6px; padding:6px 12px; color:var(--muted);
+  font-size:12px; cursor:pointer; transition:all .15s;
+}
+.filter-btn:hover, .filter-btn.active {
+  background:var(--accent); color:#0f172a;
+  border-color:var(--accent); font-weight:600;
+}
+.controls label { font-size:12px; color:var(--muted); }
+
+/* ── Table ── */
+.table-wrap { overflow-x:auto; padding:0 32px 32px; }
+table {
+  width:100%; border-collapse:collapse;
+  font-size:13px; margin-top:16px;
+}
+thead th {
+  background:var(--surface); color:var(--muted);
+  text-transform:uppercase; font-size:11px; letter-spacing:.5px;
+  padding:10px 12px; text-align:left; border-bottom:2px solid var(--border);
+  cursor:pointer; user-select:none; white-space:nowrap;
+}
+thead th:hover { color:var(--text); }
+thead th::after { content:" ↕"; opacity:.3; }
+tbody tr {
+  border-bottom:1px solid var(--border);
+  transition:background .12s;
+}
+tbody tr:hover { background:#ffffff08; }
+tbody tr.row-both { background:#c084fc0d; }
+tbody tr.hidden { display:none; }
+td { padding:10px 12px; vertical-align:top; }
+.notes-col { color:var(--muted); font-size:11px; max-width:220px; }
+.award { white-space:nowrap; color:var(--green); font-weight:500; }
+
+/* ── Badges ── */
+.badge {
+  display:inline-block; border-radius:4px;
+  padding:2px 7px; font-size:11px; font-weight:600;
+  white-space:nowrap;
+}
+.badge-imminent { background:#7f1d1d; color:var(--red); }
+.badge-soon     { background:#422006; color:var(--yellow); }
+.badge-ok       { background:#134e4a; color:var(--green); }
+.badge-rolling  { background:#1e293b; color:var(--muted); }
+.badge-closed   { background:#1e293b; color:#475569; }
+
+.flags { margin-top:4px; display:flex; gap:4px; flex-wrap:wrap; }
+.flag-badge {
+  font-size:10px; font-weight:700; border-radius:3px;
+  padding:1px 5px; letter-spacing:.3px;
+}
+.flag-badge.native { background:#581c87; color:#e9d5ff; }
+.flag-badge.safety { background:#064e3b; color:#a7f3d0; }
+
+.cat-pill {
+  display:inline-block; border-radius:20px; padding:3px 10px;
+  font-size:11px; font-weight:600; white-space:nowrap;
+}
+
+/* ── Footer ── */
+footer {
+  border-top:1px solid var(--border); padding:16px 32px;
+  color:var(--muted); font-size:11px; text-align:center;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏛️ HumanAIOS Funding &amp; Resource Pipeline</h1>
+    <div class="subtitle">
+      Cherokee Nation · AI Safety/Observability · TRL 2–3 · Solo LLC ·
+      Generated 2026-06-02
+    </div>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat-card"><div class="num">45</div><div class="lbl">Total</div></div>
+  <div class="stat-card"><div class="num" style="color:#c084fc">45</div><div class="lbl">Native-eligible</div></div>
+  <div class="stat-card"><div class="num" style="color:#34d399">37</div><div class="lbl">AI-safety</div></div>
+  <div class="stat-card"><div class="num" style="color:#fbbf24">37</div><div class="lbl">Both flags</div></div>
+  <div class="stat-card"><div class="num" style="color:#60a5fa">43</div><div class="lbl">Active/Rolling</div></div>
+  <div class="stat-card"><div class="num" style="color:#f87171">1</div><div class="lbl">Deadline ≤30d</div></div>
+</div>
+
+<div class="charts-row">
+  <div><svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg"><path d="M 80.0 20.0 A 60 60 0 0 1 133.9 53.7 L 114.2 63.3 A 38 38 0 0 0 80.0 42.0 Z" fill="#34d399" opacity="0.9"><title>🛡️ AI Safety: 8</title></path><path d="M 133.9 53.7 A 60 60 0 0 1 127.3 116.9 L 109.9 103.4 A 38 38 0 0 0 114.2 63.3 Z" fill="#c084fc" opacity="0.9"><title>🏛️ Native: 8</title></path><path d="M 127.3 116.9 A 60 60 0 0 1 92.5 138.7 L 87.9 117.2 A 38 38 0 0 0 109.9 103.4 Z" fill="#38bdf8" opacity="0.9"><title>☁️ Compute: 5</title></path><path d="M 92.5 138.7 A 60 60 0 0 1 51.8 133.0 L 62.2 113.6 A 38 38 0 0 0 87.9 117.2 Z" fill="#f97316" opacity="0.9"><title>🆓 Free API: 5</title></path><path d="M 51.8 133.0 A 60 60 0 0 1 28.0 110.0 L 47.1 99.0 A 38 38 0 0 0 62.2 113.6 Z" fill="#60a5fa" opacity="0.9"><title>🔬 Research Grant: 4</title></path><path d="M 28.0 110.0 A 60 60 0 0 1 20.0 77.9 L 42.0 78.7 A 38 38 0 0 0 47.1 99.0 Z" fill="#4ade80" opacity="0.9"><title>💰 Paid Work: 4</title></path><path d="M 20.0 77.9 A 60 60 0 0 1 30.3 46.5 L 48.5 58.8 A 38 38 0 0 0 42.0 78.7 Z" fill="#94a3b8" opacity="0.9"><title>🖥️ Free Infra: 4</title></path><path d="M 30.3 46.4 A 60 60 0 0 1 48.2 29.1 L 59.9 47.8 A 38 38 0 0 0 48.5 58.8 Z" fill="#a78bfa" opacity="0.9"><title>🎓 Fellowship: 3</title></path><path d="M 48.2 29.1 A 60 60 0 0 1 63.5 22.3 L 69.5 43.5 A 38 38 0 0 0 59.9 47.8 Z" fill="#fbbf24" opacity="0.9"><title>🏆 Contest: 2</title></path><path d="M 63.5 22.3 A 60 60 0 0 1 80.0 20.0 L 80.0 42.0 A 38 38 0 0 0 69.5 43.5 Z" fill="#e2e8f0" opacity="0.9"><title>📄 Publishing: 2</title></path><text x="80" y="74" text-anchor="middle" fill="#e2e8f0" font-size="18" font-weight="bold">45</text><text x="80" y="92" text-anchor="middle" fill="#94a3b8" font-size="9">opps</text></svg></div>
+  <ul class="legend"><li><span class="legend-swatch" style="background:#34d399"></span>🛡️ AI Safety (8)</li><li><span class="legend-swatch" style="background:#c084fc"></span>🏛️ Native (8)</li><li><span class="legend-swatch" style="background:#38bdf8"></span>☁️ Compute (5)</li><li><span class="legend-swatch" style="background:#f97316"></span>🆓 Free API (5)</li><li><span class="legend-swatch" style="background:#60a5fa"></span>🔬 Research Grant (4)</li><li><span class="legend-swatch" style="background:#4ade80"></span>💰 Paid Work (4)</li><li><span class="legend-swatch" style="background:#94a3b8"></span>🖥️ Free Infra (4)</li><li><span class="legend-swatch" style="background:#a78bfa"></span>🎓 Fellowship (3)</li><li><span class="legend-swatch" style="background:#fbbf24"></span>🏆 Contest (2)</li><li><span class="legend-swatch" style="background:#e2e8f0"></span>📄 Publishing (2)</li></ul>
+</div>
+
+<div class="controls">
+  <label>Search:</label>
+  <input type="text" id="search" placeholder="name, sponsor, notes…" oninput="filterRows()"/>
+
+  <label>Category:</label>
+  <button class="filter-btn active" data-filter="cat" data-val="" onclick="toggleCat(this)">All</button>
+  <button class="filter-btn" data-filter="cat" data-val="ai_safety" onclick="toggleCat(this)">🛡️ AI Safety</button><button class="filter-btn" data-filter="cat" data-val="compute_credit" onclick="toggleCat(this)">☁️ Compute</button><button class="filter-btn" data-filter="cat" data-val="contest" onclick="toggleCat(this)">🏆 Contest</button><button class="filter-btn" data-filter="cat" data-val="fellowship" onclick="toggleCat(this)">🎓 Fellowship</button><button class="filter-btn" data-filter="cat" data-val="free_api" onclick="toggleCat(this)">🆓 Free API</button><button class="filter-btn" data-filter="cat" data-val="free_infra" onclick="toggleCat(this)">🖥️ Free Infra</button><button class="filter-btn" data-filter="cat" data-val="native" onclick="toggleCat(this)">🏛️ Native</button><button class="filter-btn" data-filter="cat" data-val="paid_work" onclick="toggleCat(this)">💰 Paid Work</button><button class="filter-btn" data-filter="cat" data-val="publishing" onclick="toggleCat(this)">📄 Publishing</button><button class="filter-btn" data-filter="cat" data-val="research_grant" onclick="toggleCat(this)">🔬 Research Grant</button>
+
+  <button class="filter-btn" id="btn-native"  onclick="toggleFlag('native')" >🏛️ Native only</button>
+  <button class="filter-btn" id="btn-safety"  onclick="toggleFlag('safety')" >🛡️ AI Safety only</button>
+  <button class="filter-btn" id="btn-both"    onclick="toggleFlag('both')"   >⭐ Both flags</button>
+  <button class="filter-btn" id="btn-soon"    onclick="toggleFlag('soon')"   >⏰ Deadline soon</button>
+</div>
+
+<div class="table-wrap">
+<table id="oppsTable">
+  <thead>
+    <tr>
+      <th onclick="sortTable(0)">Name</th>
+      <th onclick="sortTable(1)">Category</th>
+      <th onclick="sortTable(2)">Sponsor</th>
+      <th onclick="sortTable(3)">Award</th>
+      <th onclick="sortTable(4)">Deadline</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody">
+
+        <tr class="opp-row row-both" data-cat="ai_safety" data-native="true" data-safety="true" data-name="Longview Power Concentration RFP" data-status="active">
+          <td>
+            <a href="https://www.longview.org/request-for-proposals-on-extreme-power-concentration/" target="_blank" rel="noopener">Longview Power Concentration RFP</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#34d39922;
+              color:#34d399; border:1px solid #34d39955;">
+              🛡️ AI Safety
+            </span>
+          </td>
+          <td>Longview Philanthropy</td>
+          <td class="award">$100k-$2M/yr</td>
+          <td><span class="badge badge-soon">⏰ 30d</span></td>
+          <td class="notes-col" title="Closes July 2, 2026. Career-transition track also available.">Closes July 2, 2026. Career-transition track also available.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="native" data-native="true" data-safety="true" data-name="MIT Solve Indigenous Communities Fellowship" data-status="upcoming">
+          <td>
+            <a href="https://solve.mit.edu/" target="_blank" rel="noopener">MIT Solve Indigenous Communities Fellowship</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#c084fc22;
+              color:#c084fc; border:1px solid #c084fc55;">
+              🏛️ Native
+            </span>
+          </td>
+          <td>MIT Solve</td>
+          <td class="award">$10,000 + AI for Humanity to $150k</td>
+          <td><span class="badge badge-ok">2026-09-01</span></td>
+          <td class="notes-col" title="Standalone fellowship expected to reopen Sep 2026. Community-serving project required.">Standalone fellowship expected to reopen Sep 2026. Community-serving p…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="ai_safety" data-native="true" data-safety="true" data-name="AI Alignment Foundation" data-status="rolling">
+          <td>
+            <a href="https://www.aialignmentfoundation.org/approach/apply" target="_blank" rel="noopener">AI Alignment Foundation</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#34d39922;
+              color:#34d399; border:1px solid #34d39955;">
+              🛡️ AI Safety
+            </span>
+          </td>
+          <td>AIAF</td>
+          <td class="award">varies</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Fiscal sponsorship available for independent researchers">Fiscal sponsorship available for independent researchers</td>
+        </tr>
+
+        <tr class="opp-row" data-cat="native" data-native="true" data-safety="false" data-name="AISES Scholarships" data-status="active">
+          <td>
+            <a href="https://aises.org/scholarships/" target="_blank" rel="noopener">AISES Scholarships</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#c084fc22;
+              color:#c084fc; border:1px solid #c084fc55;">
+              🏛️ Native
+            </span>
+          </td>
+          <td>AISES</td>
+          <td class="award">$1,000-$10,000/yr</td>
+          <td><span class="badge badge-rolling">annual</span></td>
+          <td class="notes-col" title="STEM focus. GPA 3.0.">STEM focus. GPA 3.0.</td>
+        </tr>
+
+        <tr class="opp-row" data-cat="native" data-native="true" data-safety="false" data-name="American Indian College Fund Full Circle" data-status="active">
+          <td>
+            <a href="https://collegefund.org/students/scholarships/" target="_blank" rel="noopener">American Indian College Fund Full Circle</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#c084fc22;
+              color:#c084fc; border:1px solid #c084fc55;">
+              🏛️ Native
+            </span>
+          </td>
+          <td>AICF</td>
+          <td class="award">$2,000-$3,000 avg</td>
+          <td><span class="badge badge-closed">Closed</span></td>
+          <td class="notes-col" title="Priority deadline May 31. Grad and undergrad.">Priority deadline May 31. Grad and undergrad.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="ai_safety" data-native="true" data-safety="true" data-name="BlueDot Rapid Grants" data-status="rolling">
+          <td>
+            <a href="https://bluedot.org/programs/rapid-grants" target="_blank" rel="noopener">BlueDot Rapid Grants</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#34d39922;
+              color:#34d399; border:1px solid #34d39955;">
+              🛡️ AI Safety
+            </span>
+          </td>
+          <td>BlueDot Impact</td>
+          <td class="award">$50-$10,000</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="~5 working day decisions. 77+ grants. Very founder-friendly.">~5 working day decisions. 77+ grants. Very founder-friendly.</td>
+        </tr>
+
+        <tr class="opp-row" data-cat="native" data-native="true" data-safety="false" data-name="Cherokee Nation SBAC" data-status="active">
+          <td>
+            <a href="https://www.cherokee.org/all-services/commerce-services/" target="_blank" rel="noopener">Cherokee Nation SBAC</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#c084fc22;
+              color:#c084fc; border:1px solid #c084fc55;">
+              🏛️ Native
+            </span>
+          </td>
+          <td>Cherokee Nation</td>
+          <td class="award">training + capital access</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="sbac@cherokee.org; 918-453-5536">sbac@cherokee.org; 918-453-5536</td>
+        </tr>
+
+        <tr class="opp-row" data-cat="native" data-native="true" data-safety="false" data-name="Cherokee Nation SSBCI Loans" data-status="active">
+          <td>
+            <a href="https://www.cherokee.org/all-services/commerce-services/opportunity-zone-program/" target="_blank" rel="noopener">Cherokee Nation SSBCI Loans</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#c084fc22;
+              color:#c084fc; border:1px solid #c084fc55;">
+              🏛️ Native
+            </span>
+          </td>
+          <td>Cherokee Nation / US Treasury</td>
+          <td class="award">up to $5M loan</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="$86.9M Treasury allocation. Contact: shay-stanfill@cherokee.org, 918-772-4167">$86.9M Treasury allocation. Contact: shay-stanfill@cherokee.org, 918-7…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="ai_safety" data-native="true" data-safety="true" data-name="Coefficient Giving" data-status="rolling">
+          <td>
+            <a href="https://coefficientgiving.org/apply-for-funding/" target="_blank" rel="noopener">Coefficient Giving</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#34d39922;
+              color:#34d399; border:1px solid #34d39955;">
+              🛡️ AI Safety
+            </span>
+          </td>
+          <td>Coefficient Giving (ex-Open Philanthropy)</td>
+          <td class="award">large (undisclosed)</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Largest x-risk funder. High bar but highest ceiling.">Largest x-risk funder. High bar but highest ceiling.</td>
+        </tr>
+
+        <tr class="opp-row" data-cat="native" data-native="true" data-safety="false" data-name="First Nations Development Institute" data-status="active">
+          <td>
+            <a href="https://www.firstnations.org/grantmaking/" target="_blank" rel="noopener">First Nations Development Institute</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#c084fc22;
+              color:#c084fc; border:1px solid #c084fc55;">
+              🏛️ Native
+            </span>
+          </td>
+          <td>First Nations Development Institute</td>
+          <td class="award">varies</td>
+          <td><span class="badge badge-rolling">recurring</span></td>
+          <td class="notes-col" title="LOI-based; reservation/rural link often required">LOI-based; reservation/rural link often required</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="ai_safety" data-native="true" data-safety="true" data-name="Foresight AI Safety Nodes" data-status="rolling">
+          <td>
+            <a href="https://foresight.org/grants/grants-ai-for-science-safety/" target="_blank" rel="noopener">Foresight AI Safety Nodes</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#34d39922;
+              color:#34d399; border:1px solid #34d39955;">
+              🛡️ AI Safety
+            </span>
+          </td>
+          <td>Foresight Institute</td>
+          <td class="award">funding + compute access</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="SF/Berlin local compute included.">SF/Berlin local compute included.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="ai_safety" data-native="true" data-safety="true" data-name="IFP Launch Sequence" data-status="rolling">
+          <td>
+            <a href="https://ifp.org/rfp-launch/" target="_blank" rel="noopener">IFP Launch Sequence</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#34d39922;
+              color:#34d399; border:1px solid #34d39955;">
+              🛡️ AI Safety
+            </span>
+          </td>
+          <td>Institute for Progress</td>
+          <td class="award">$10,000 honorarium</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="$10k + funder matchmaking. Alignment/control/evals/security themes.">$10k + funder matchmaking. Alignment/control/evals/security themes.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="ai_safety" data-native="true" data-safety="true" data-name="Long-Term Future Fund" data-status="rolling">
+          <td>
+            <a href="https://funds.effectivealtruism.org/funds/far-future" target="_blank" rel="noopener">Long-Term Future Fund</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#34d39922;
+              color:#34d399; border:1px solid #34d39955;">
+              🛡️ AI Safety
+            </span>
+          </td>
+          <td>EA Funds</td>
+          <td class="award">~$5k+</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Straightforward application. Individuals and small projects.">Straightforward application. Individuals and small projects.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="ai_safety" data-native="true" data-safety="true" data-name="Manifund Regranting" data-status="rolling">
+          <td>
+            <a href="https://manifund.org/" target="_blank" rel="noopener">Manifund Regranting</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#34d39922;
+              color:#34d399; border:1px solid #34d39955;">
+              🛡️ AI Safety
+            </span>
+          </td>
+          <td>Manifund</td>
+          <td class="award">varies</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Days not months. For-profit eligible pending due diligence.">Days not months. For-profit eligible pending due diligence.</td>
+        </tr>
+
+        <tr class="opp-row" data-cat="native" data-native="true" data-safety="false" data-name="MBDA AIANNH Business Centers" data-status="active">
+          <td>
+            <a href="https://www.mbda.gov/mbda-business-center-american-indian-alaska-native-and-native-hawaiian-project" target="_blank" rel="noopener">MBDA AIANNH Business Centers</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#c084fc22;
+              color:#c084fc; border:1px solid #c084fc55;">
+              🏛️ Native
+            </span>
+          </td>
+          <td>MBDA</td>
+          <td class="award">free technical assistance</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Free entrepreneurial and capital-access assistance">Free entrepreneurial and capital-access assistance</td>
+        </tr>
+
+        <tr class="opp-row" data-cat="native" data-native="true" data-safety="false" data-name="SBA 8(a) Business Development" data-status="active">
+          <td>
+            <a href="https://www.sba.gov/federal-contracting/contracting-assistance-programs/8a-business-development-program" target="_blank" rel="noopener">SBA 8(a) Business Development</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#c084fc22;
+              color:#c084fc; border:1px solid #c084fc55;">
+              🏛️ Native
+            </span>
+          </td>
+          <td>US SBA</td>
+          <td class="award">sole-source contracts up to $4.5M/$7M</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Tribal citizen = presumed socially disadvantaged. Economic disadvantage also required.">Tribal citizen = presumed socially disadvantaged. Economic disadvantag…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="research_grant" data-native="true" data-safety="true" data-name="Emergent Ventures" data-status="rolling">
+          <td>
+            <a href="https://www.mercatus.org/emergent-ventures" target="_blank" rel="noopener">Emergent Ventures</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#60a5fa22;
+              color:#60a5fa; border:1px solid #60a5fa55;">
+              🔬 Research Grant
+            </span>
+          </td>
+          <td>Mercatus Center</td>
+          <td class="award">~$1k-$50k (unofficial)</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Individual-friendly. ~2-3 week decisions.">Individual-friendly. ~2-3 week decisions.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="research_grant" data-native="true" data-safety="true" data-name="Mozilla Technology Fund" data-status="active">
+          <td>
+            <a href="https://foundation.mozilla.org/en/what-we-fund/awards/" target="_blank" rel="noopener">Mozilla Technology Fund</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#60a5fa22;
+              color:#60a5fa; border:1px solid #60a5fa55;">
+              🔬 Research Grant
+            </span>
+          </td>
+          <td>Mozilla Foundation</td>
+          <td class="award">varies</td>
+          <td><span class="badge badge-rolling">annual</span></td>
+          <td class="notes-col" title="Trustworthy AI focus. Open source required.">Trustworthy AI focus. Open source required.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="research_grant" data-native="true" data-safety="true" data-name="NSF PESOSE" data-status="active">
+          <td>
+            <a href="https://www.nsf.gov/funding/opportunities/pesose-pathways-enable-secure-open-source-ecosystems" target="_blank" rel="noopener">NSF PESOSE</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#60a5fa22;
+              color:#60a5fa; border:1px solid #60a5fa55;">
+              🔬 Research Grant
+            </span>
+          </td>
+          <td>NSF</td>
+          <td class="award">up to ~$1.5M</td>
+          <td><span class="badge badge-ok">2026-09-01</span></td>
+          <td class="notes-col" title="STRETCH: solo for-profit eligibility uncertain. Partner with nonprofit/IHE.">STRETCH: solo for-profit eligibility uncertain. Partner with nonprofit…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="research_grant" data-native="true" data-safety="true" data-name="NSF SBIR/STTR Phase I" data-status="upcoming">
+          <td>
+            <a href="https://seedfund.nsf.gov/" target="_blank" rel="noopener">NSF SBIR/STTR Phase I</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#60a5fa22;
+              color:#60a5fa; border:1px solid #60a5fa55;">
+              🔬 Research Grant
+            </span>
+          </td>
+          <td>NSF</td>
+          <td class="award">up to $305,000</td>
+          <td><span class="badge badge-ok">2026-11-04</span></td>
+          <td class="notes-col" title="Project Pitch reopens June 2 2026. Equity-free. 10-20% funding rate. &lt;500 employees.">Project Pitch reopens June 2 2026. Equity-free. 10-20% funding rate. &…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="contest" data-native="true" data-safety="true" data-name="Apart Research Hackathons" data-status="active">
+          <td>
+            <a href="https://apartresearch.com/sprints" target="_blank" rel="noopener">Apart Research Hackathons</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#fbbf2422;
+              color:#fbbf24; border:1px solid #fbbf2455;">
+              🏆 Contest
+            </span>
+          </td>
+          <td>Apart Research</td>
+          <td class="award">~$2,000 pools + fellowship</td>
+          <td><span class="badge badge-rolling">monthly</span></td>
+          <td class="notes-col" title="Monthly sprints. Fellowship pipeline + compute + API credits.">Monthly sprints. Fellowship pipeline + compute + API credits.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="contest" data-native="true" data-safety="true" data-name="Gray Swan Arena" data-status="active">
+          <td>
+            <a href="https://app.grayswan.ai/arena" target="_blank" rel="noopener">Gray Swan Arena</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#fbbf2422;
+              color:#fbbf24; border:1px solid #fbbf2455;">
+              🏆 Contest
+            </span>
+          </td>
+          <td>Gray Swan AI</td>
+          <td class="award">pools to $171,800</td>
+          <td><span class="badge badge-rolling">recurring</span></td>
+          <td class="notes-col" title="Agent Red-Teaming pool $171.8k. Safeguards $140k. Top 40-50 -&gt; paid private network. Direct ACAT skill fit.">Agent Red-Teaming pool $171.8k. Safeguards $140k. Top 40-50 -&gt; paid…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="compute_credit" data-native="true" data-safety="true" data-name="AWS Activate" data-status="active">
+          <td>
+            <a href="https://aws.amazon.com/activate/" target="_blank" rel="noopener">AWS Activate</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#38bdf822;
+              color:#38bdf8; border:1px solid #38bdf855;">
+              ☁️ Compute
+            </span>
+          </td>
+          <td>AWS</td>
+          <td class="award">$1k-$300k</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="$1k self-serve. NVIDIA Inception = backdoor to $10k.">$1k self-serve. NVIDIA Inception = backdoor to $10k.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="compute_credit" data-native="true" data-safety="true" data-name="Google for Startups Cloud" data-status="active">
+          <td>
+            <a href="https://cloud.google.com/startup" target="_blank" rel="noopener">Google for Startups Cloud</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#38bdf822;
+              color:#38bdf8; border:1px solid #38bdf855;">
+              ☁️ Compute
+            </span>
+          </td>
+          <td>Google</td>
+          <td class="award">$2k-$350k (AI tier)</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="AI-focused tier up to $350k.">AI-focused tier up to $350k.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="compute_credit" data-native="true" data-safety="true" data-name="Microsoft for Startups Founders Hub" data-status="active">
+          <td>
+            <a href="https://www.microsoft.com/en-us/startups" target="_blank" rel="noopener">Microsoft for Startups Founders Hub</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#38bdf822;
+              color:#38bdf8; border:1px solid #38bdf855;">
+              ☁️ Compute
+            </span>
+          </td>
+          <td>Microsoft</td>
+          <td class="award">$1k-$5k self-serve / up to $150k investor</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="NO VC NEEDED base tier. GitHub Copilot + Azure OpenAI. Apply first.">NO VC NEEDED base tier. GitHub Copilot + Azure OpenAI. Apply first.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="compute_credit" data-native="true" data-safety="true" data-name="NVIDIA Inception" data-status="active">
+          <td>
+            <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener">NVIDIA Inception</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#38bdf822;
+              color:#38bdf8; border:1px solid #38bdf855;">
+              ☁️ Compute
+            </span>
+          </td>
+          <td>NVIDIA</td>
+          <td class="award">credits + hardware discounts</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="No VC required. AI startup backdoor. Unlocks AWS $10k + Azure $1k+ pathways.">No VC required. AI startup backdoor. Unlocks AWS $10k + Azure $1k+ pat…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="compute_credit" data-native="true" data-safety="true" data-name="Oracle Always Free Cloud" data-status="active">
+          <td>
+            <a href="https://www.oracle.com/cloud/free/" target="_blank" rel="noopener">Oracle Always Free Cloud</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#38bdf822;
+              color:#38bdf8; border:1px solid #38bdf855;">
+              ☁️ Compute
+            </span>
+          </td>
+          <td>Oracle</td>
+          <td class="award">persistent Always Free VMs</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Ampere ARM VMs always free. Best $0 persistent compute.">Ampere ARM VMs always free. Best $0 persistent compute.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="fellowship" data-native="true" data-safety="true" data-name="Apart Lab Fellowship" data-status="active">
+          <td>
+            <a href="https://apartresearch.com/lab" target="_blank" rel="noopener">Apart Lab Fellowship</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#a78bfa22;
+              color:#a78bfa; border:1px solid #a78bfa55;">
+              🎓 Fellowship
+            </span>
+          </td>
+          <td>Apart Research</td>
+          <td class="award">compute + API credits + publication support</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="4-6 month fellowship. Fast-track from hackathon performance.">4-6 month fellowship. Fast-track from hackathon performance.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="fellowship" data-native="true" data-safety="true" data-name="GovAI Fellowship" data-status="active">
+          <td>
+            <a href="https://www.governance.ai/fellowship" target="_blank" rel="noopener">GovAI Fellowship</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#a78bfa22;
+              color:#a78bfa; border:1px solid #a78bfa55;">
+              🎓 Fellowship
+            </span>
+          </td>
+          <td>Centre for the Governance of AI</td>
+          <td class="award">stipend</td>
+          <td><span class="badge badge-rolling">annual</span></td>
+          <td class="notes-col" title="AI governance and policy. Oxford-based with remote options.">AI governance and policy. Oxford-based with remote options.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="fellowship" data-native="true" data-safety="true" data-name="MATS Fellowship" data-status="active">
+          <td>
+            <a href="https://www.matsprogram.org/" target="_blank" rel="noopener">MATS Fellowship</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#a78bfa22;
+              color:#a78bfa; border:1px solid #a78bfa55;">
+              🎓 Fellowship
+            </span>
+          </td>
+          <td>ML Alignment & Theory Scholars</td>
+          <td class="award">$1,250/week ($12,500 / 10 weeks)</td>
+          <td><span class="badge badge-rolling">biannual</span></td>
+          <td class="notes-col" title="+housing+travel+compute. 4-7% acceptance. Extensions possible.">+housing+travel+compute. 4-7% acceptance. Extensions possible.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="paid_work" data-native="true" data-safety="true" data-name="GitHub Sponsors" data-status="active">
+          <td>
+            <a href="https://github.com/sponsors" target="_blank" rel="noopener">GitHub Sponsors</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#4ade8022;
+              color:#4ade80; border:1px solid #4ade8055;">
+              💰 Paid Work
+            </span>
+          </td>
+          <td>GitHub</td>
+          <td class="award">community-funded</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Fund the open-source observability repo. Monthly recurring.">Fund the open-source observability repo. Monthly recurring.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="paid_work" data-native="true" data-safety="true" data-name="Gray Swan Private Red-Team Network" data-status="active">
+          <td>
+            <a href="https://app.grayswan.ai/arena/about" target="_blank" rel="noopener">Gray Swan Private Red-Team Network</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#4ade8022;
+              color:#4ade80; border:1px solid #4ade8055;">
+              💰 Paid Work
+            </span>
+          </td>
+          <td>Gray Swan AI</td>
+          <td class="award">paid NDA engagements</td>
+          <td><span class="badge badge-rolling">invite</span></td>
+          <td class="notes-col" title="Entry via Arena competitions. Top 40-50 per competition invited.">Entry via Arena competitions. Top 40-50 per competition invited.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="paid_work" data-native="true" data-safety="true" data-name="Mercor Red-Teamer" data-status="active">
+          <td>
+            <a href="https://work.mercor.com/" target="_blank" rel="noopener">Mercor Red-Teamer</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#4ade8022;
+              color:#4ade80; border:1px solid #4ade8055;">
+              💰 Paid Work
+            </span>
+          </td>
+          <td>Mercor</td>
+          <td class="award">$50-$111/hr</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Domain expert eval to $200/hr. Weekly Stripe payouts. Direct ACAT skill fit.">Domain expert eval to $200/hr. Weekly Stripe payouts. Direct ACAT skil…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="free_api" data-native="true" data-safety="true" data-name="Cerebras Free API" data-status="active">
+          <td>
+            <a href="https://cloud.cerebras.ai/" target="_blank" rel="noopener">Cerebras Free API</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#f9731622;
+              color:#f97316; border:1px solid #f9731655;">
+              🆓 Free API
+            </span>
+          </td>
+          <td>Cerebras</td>
+          <td class="award">1M tokens/day</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="30 RPM. Temporary 8,192-token context cap. ~2,600 tok/s. Best batch throughput.">30 RPM. Temporary 8,192-token context cap. ~2,600 tok/s. Best batch th…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="free_api" data-native="true" data-safety="true" data-name="Google AI Studio" data-status="active">
+          <td>
+            <a href="https://ai.google.dev/" target="_blank" rel="noopener">Google AI Studio</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#f9731622;
+              color:#f97316; border:1px solid #f9731655;">
+              🆓 Free API
+            </span>
+          </td>
+          <td>Google</td>
+          <td class="award">Flash ~250 RPD / Flash-Lite ~1,000 RPD</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Pro removed Apr 2026. Limits cut Dec 2025. Verify in dashboard - changes frequently.">Pro removed Apr 2026. Limits cut Dec 2025. Verify in dashboard - chang…</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="free_api" data-native="true" data-safety="true" data-name="Groq Free API" data-status="active">
+          <td>
+            <a href="https://console.groq.com/" target="_blank" rel="noopener">Groq Free API</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#f9731622;
+              color:#f97316; border:1px solid #f9731655;">
+              🆓 Free API
+            </span>
+          </td>
+          <td>Groq</td>
+          <td class="award">14,400 req/day</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="30 RPM / 6,000 TPM on 8B. Best for low-latency agent loops.">30 RPM / 6,000 TPM on 8B. Best for low-latency agent loops.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="free_api" data-native="true" data-safety="true" data-name="Mistral La Plateforme" data-status="active">
+          <td>
+            <a href="https://console.mistral.ai/" target="_blank" rel="noopener">Mistral La Plateforme</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#f9731622;
+              color:#f97316; border:1px solid #f9731655;">
+              🆓 Free API
+            </span>
+          </td>
+          <td>Mistral AI</td>
+          <td class="award">1B tokens/month</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="~2 RPM. Codestral for code. Phone verify + data opt-in required.">~2 RPM. Codestral for code. Phone verify + data opt-in required.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="free_api" data-native="true" data-safety="true" data-name="OpenRouter Free Models" data-status="active">
+          <td>
+            <a href="https://openrouter.ai/" target="_blank" rel="noopener">OpenRouter Free Models</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#f9731622;
+              color:#f97316; border:1px solid #f9731655;">
+              🆓 Free API
+            </span>
+          </td>
+          <td>OpenRouter</td>
+          <td class="award">50-1,000 req/day</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="20 RPM. 50/day free; 1,000/day with $10 topup. One key for many models.">20 RPM. 50/day free; 1,000/day with $10 topup. One key for many models…</td>
+        </tr>
+
+        <tr class="opp-row" data-cat="paid_work" data-native="true" data-safety="false" data-name="Outlier / DataAnnotation" data-status="active">
+          <td>
+            <a href="https://www.dataannotation.tech/" target="_blank" rel="noopener">Outlier / DataAnnotation</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#4ade8022;
+              color:#4ade80; border:1px solid #4ade8055;">
+              💰 Paid Work
+            </span>
+          </td>
+          <td>Scale / DataAnnotation</td>
+          <td class="award">$40-$75/hr</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Coding + RLHF eval tiers. Flexible hours.">Coding + RLHF eval tiers. Flexible hours.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="free_infra" data-native="true" data-safety="true" data-name="Kaggle Notebooks" data-status="active">
+          <td>
+            <a href="https://www.kaggle.com/" target="_blank" rel="noopener">Kaggle Notebooks</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#94a3b822;
+              color:#94a3b8; border:1px solid #94a3b855;">
+              🖥️ Free Infra
+            </span>
+          </td>
+          <td>Kaggle/Google</td>
+          <td class="award">30 GPU hrs/week</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="T4/P100 16GB. Most reliable free GPU source.">T4/P100 16GB. Most reliable free GPU source.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="free_infra" data-native="true" data-safety="true" data-name="Langfuse (OSS)" data-status="active">
+          <td>
+            <a href="https://langfuse.com/" target="_blank" rel="noopener">Langfuse (OSS)</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#94a3b822;
+              color:#94a3b8; border:1px solid #94a3b855;">
+              🖥️ Free Infra
+            </span>
+          </td>
+          <td>Langfuse</td>
+          <td class="award">free self-host</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="LLM tracing. Directly relevant to ACAT behavioral telemetry product.">LLM tracing. Directly relevant to ACAT behavioral telemetry product.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="free_infra" data-native="true" data-safety="true" data-name="Phoenix / Arize OSS" data-status="active">
+          <td>
+            <a href="https://phoenix.arize.com/" target="_blank" rel="noopener">Phoenix / Arize OSS</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#94a3b822;
+              color:#94a3b8; border:1px solid #94a3b855;">
+              🖥️ Free Infra
+            </span>
+          </td>
+          <td>Arize AI</td>
+          <td class="award">free self-host</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="LLM eval + tracing. Complements Langfuse.">LLM eval + tracing. Complements Langfuse.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="free_infra" data-native="true" data-safety="true" data-name="Supabase Free Tier" data-status="active">
+          <td>
+            <a href="https://supabase.com/" target="_blank" rel="noopener">Supabase Free Tier</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#94a3b822;
+              color:#94a3b8; border:1px solid #94a3b855;">
+              🖥️ Free Infra
+            </span>
+          </td>
+          <td>Supabase</td>
+          <td class="award">500MB DB + pgvector</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Your existing stack. pgvector included. 2 free projects.">Your existing stack. pgvector included. 2 free projects.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="publishing" data-native="true" data-safety="true" data-name="Alignment Forum" data-status="active">
+          <td>
+            <a href="https://www.alignmentforum.org/" target="_blank" rel="noopener">Alignment Forum</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#e2e8f022;
+              color:#e2e8f0; border:1px solid #e2e8f055;">
+              📄 Publishing
+            </span>
+          </td>
+          <td>Alignment Forum</td>
+          <td class="award">community bounties</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Bounties for priority research questions. Visibility = funding access.">Bounties for priority research questions. Visibility = funding access.</td>
+        </tr>
+
+        <tr class="opp-row row-both" data-cat="publishing" data-native="true" data-safety="true" data-name="arXiv" data-status="active">
+          <td>
+            <a href="https://arxiv.org/" target="_blank" rel="noopener">arXiv</a>
+            <div class="flags"><span class="flag-badge native">NATIVE</span><span class="flag-badge safety">AISAFETY</span></div>
+          </td>
+          <td>
+            <span class="cat-pill" style="background:#e2e8f022;
+              color:#e2e8f0; border:1px solid #e2e8f055;">
+              📄 Publishing
+            </span>
+          </td>
+          <td>Cornell / arXiv</td>
+          <td class="award">free</td>
+          <td><span class="badge badge-rolling">rolling</span></td>
+          <td class="notes-col" title="Already in use. Credibility signal.">Already in use. Credibility signal.</td>
+        </tr>
+  </tbody>
+</table>
+<p id="count-label" style="margin-top:10px;color:var(--muted);font-size:12px;"></p>
+</div>
+
+<footer>
+  HumanAIOS LLC · aioshuman@gmail.com ·
+  <a href="https://humanaios.ai">humanaios.ai</a> ·
+  <a href="https://github.com/humanaios-ui/humanaios-funding-pipeline">GitHub</a> ·
+  Data: <a href="../data/sources.json">sources.json</a>
+</footer>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let activeCat   = "";
+let activeFlags = {native:false, safety:false, both:false, soon:false};
+
+function filterRows() {
+  const q       = document.getElementById("search").value.toLowerCase();
+  const rows    = document.querySelectorAll("#tableBody tr.opp-row");
+  let visible   = 0;
+
+  rows.forEach(r => {
+    const name   = (r.dataset.name   || "").toLowerCase();
+    const cat    = r.dataset.cat    || "";
+    const native = r.dataset.native === "true";
+    const safety = r.dataset.safety === "true";
+    const status = r.dataset.status || "";
+    const txt    = r.innerText.toLowerCase();
+
+    let show = true;
+    if (q && !name.includes(q) && !txt.includes(q)) show = false;
+    if (activeCat && cat !== activeCat)              show = false;
+    if (activeFlags.native && !native)               show = false;
+    if (activeFlags.safety && !safety)               show = false;
+    if (activeFlags.both   && !(native && safety))   show = false;
+    if (activeFlags.soon) {
+      // row has imminent/soon badge?
+      const hasUrgent = r.querySelector(".badge-imminent, .badge-soon");
+      if (!hasUrgent) show = false;
+    }
+
+    r.classList.toggle("hidden", !show);
+    if (show) visible++;
+  });
+
+  const lbl = document.getElementById("count-label");
+  lbl.textContent = visible + " / " + rows.length + " opportunities shown";
+}
+
+function toggleCat(btn) {
+  activeCat = btn.dataset.val;
+  document.querySelectorAll('[data-filter="cat"]').forEach(b =>
+    b.classList.toggle("active", b === btn));
+  filterRows();
+}
+
+function toggleFlag(flag) {
+  const id = "btn-" + flag;
+  activeFlags[flag] = !activeFlags[flag];
+  document.getElementById(id).classList.toggle("active", activeFlags[flag]);
+  filterRows();
+}
+
+// ── Sort ──────────────────────────────────────────────────────────────────
+let sortDir = {};
+function sortTable(col) {
+  const tbody = document.getElementById("tableBody");
+  const rows  = Array.from(tbody.querySelectorAll("tr.opp-row"));
+  sortDir[col] = (sortDir[col] || 0) === 1 ? -1 : 1;
+  rows.sort((a, b) => {
+    const ta = a.cells[col]?.innerText.trim() || "";
+    const tb = b.cells[col]?.innerText.trim() || "";
+    return ta.localeCompare(tb) * sortDir[col];
+  });
+  rows.forEach(r => tbody.appendChild(r));
+  filterRows();
+}
+
+// Init count
+window.addEventListener("DOMContentLoaded", filterRows);
+</script>
+</body>
+</html>

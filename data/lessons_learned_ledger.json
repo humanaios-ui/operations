@@ -1,0 +1,77 @@
+{
+  "ledger_version": "1.0",
+  "purpose": "Accumulated constraints from prior timing-audit applications. Each new audit MUST consult this ledger before recommending a mechanism, and MUST append any new lesson it discovers back into it. This is the recursive part -- the audit's own output becomes an input constraint for the next audit.",
+  "reconstruction_note": "Entries L1-L6 reconstructed from pasted conversation content, not found on disk in this upload -- evidential tier: INFERENCE for L1-L6, VERIFIED for L7 (written directly in this session).",
+  "lessons": [
+    {
+      "id": "L1",
+      "discovered_in": "S-071026-01 Section 1 (IC-042 deploy corruption)",
+      "constraint": "binary_mechanical_checks_can_hard_block",
+      "rule": "If the check's answer is a clean yes/no derived mechanically (does it execute, does it exist, does a constraint hold), it may be a hard blocking gate. False-positive risk is near zero.",
+      "scope_limit": "A binary check only verifies what it directly tests. 'Executes cleanly' does not imply 'behaves correctly' -- see L1a."
+    },
+    {
+      "id": "L1a",
+      "discovered_in": "S-071026-01 Section 1, cross-referenced against IC-045",
+      "constraint": "syntax_check_does_not_cover_behavior",
+      "rule": "A syntax/existence-level check (py_compile, path exists) does not detect semantic or behavioral corruption (e.g. dead code that still parses, per IC-045). Do not claim a binary syntax check closes a behavioral risk class.",
+      "scope_limit": "none -- this is itself a scope-limit lesson"
+    },
+    {
+      "id": "L2",
+      "discovered_in": "S-071026-01 Section 2 (maintained-headline lint)",
+      "constraint": "heuristic_pattern_checks_must_be_advisory",
+      "rule": "If the check's answer depends on pattern-matching against fuzzy/heuristic criteria (does this look like a stale value, does this look like an unmarked claim), it must be advisory/non-blocking. Hard-blocking a heuristic check produces false-positive friction that erodes trust in the check.",
+      "scope_limit": "Applies whenever match criteria are regex/keyword-based rather than a deterministic parse."
+    },
+    {
+      "id": "L3",
+      "discovered_in": "S-071026-01 Section 2 (maintained-headline lint)",
+      "constraint": "advisory_checks_must_recognize_their_own_remediation",
+      "rule": "An advisory check must include a 'this is already fixed' exclusion pattern matching its own correction language, or it will re-flag corrected content indefinitely and train reviewers to ignore it.",
+      "scope_limit": "Applies to advisory (L2-class) checks only; binary checks (L1-class) don't need this since a pass is a pass."
+    },
+    {
+      "id": "L4",
+      "discovered_in": "S-071026-01 Section 3 (haios_guard reconstruction)",
+      "constraint": "reconstructed_tests_are_inference_not_verified",
+      "rule": "A test run against a spec-reconstruction of a tool (built because the real tool's source wasn't available) proves the DESIGN works. It does not prove the DEPLOYED tool would catch the same case. State this distinction explicitly whenever the real artifact wasn't directly inspected.",
+      "scope_limit": "Resolves automatically once the real artifact becomes available to test directly -- re-test and upgrade the evidential tag when it does."
+    },
+    {
+      "id": "L5",
+      "discovered_in": "S-071026-01 Section 4 (IC-041 meta-verification)",
+      "constraint": "test_meta_verification_against_live_reality_not_simulation",
+      "rule": "When auditing whether a check has anything real to verify, test against live/current state wherever reachable (a live repo fetch, a live schema query), not a synthetic example. This class of test is the one most likely to surface a real open incident rather than just validating a design.",
+      "scope_limit": "Requires the target actually be live-reachable this session; falls back to L4's caveat if not."
+    },
+    {
+      "id": "L6",
+      "discovered_in": "S-071026-01, applying timing_audit_v1_0.py to acat_dimension_scorer_v1_1.py's missing submission_purity gate",
+      "constraint": "binary_checks_on_external_state_inherit_staleness_requirement",
+      "rule": "A binary_mechanical check is only as fresh as the external state it reads. If the check's input is a live DB row / remote file (not a file already in local hand, per L1's original examples), it inherits L5's requirement: query fresh at decision time, never reuse a cached prior query result. This connects L1 (binary checks can hard-block) and L5 (test against live reality) -- L1 alone under-specifies what 'mechanically derived' means when the mechanism reaches outside the local process.",
+      "scope_limit": "Applies whenever the binary check's source of truth is not already loaded into the process performing the check."
+    },
+    {
+      "id": "L9",
+      "discovered_in": "S-071126-01 continuation, Depth-2 fabricated rebuttal of the Depth-1 correction",
+      "constraint": "ground_truth_checks_never_substitute_multi_source_disagreement_for_execution",
+      "rule": "When ground truth about an artifact is directly and cheaply checkable (compile it, hash it, run it), multi-source or multi-model disagreement about that artifact must never be adjudicated by comparing the sources' confidence, formatting, or eloquence against each other. Route straight to re-executing the primary check instead. This applies recursively -- a fabricated rebuttal OF a correction is disproven by the identical method as the original fabricated claim, at the identical fixed cost, regardless of how many layers of claim-and-counterclaim preceded it. Structural enforcement: primary_check_gate_v1_0.py hard-rejects any claim about artifact state lacking an attached, freshly-executed VerificationRecord -- a narrative description of a check's result, however detailed or technically formatted, is not admissible evidence.",
+      "scope_limit": "Applies whenever ground truth is directly checkable at low cost. Where no such check exists (a genuine judgment call, no mechanical ground truth available), this lesson does not apply -- see cross_substrate_blind_discriminator_v1_0.py's Path 2/3 for that separate case."
+    },
+    {
+      "id": "L8",
+      "discovered_in": "S-071126-01 continuation, two pasted documents claiming to be red-team audits of tier1_logprob_capability_probe_v1_0.py",
+      "constraint": "claims_about_code_require_the_same_live_verification_as_code_itself",
+      "rule": "A claim that code is broken (smart quotes, missing indentation, syntax errors) is itself a claim requiring live verification -- py_compile, direct execution, programmatic character inspection -- before being trusted, with exactly the same discipline P3/IC-042 already require for claims that code WORKS. Two independently-pasted documents this session both asserted specific, falsifiable defects (non-runnable syntax) that direct re-execution immediately disproved, while each document also contained one genuinely correct critique (heuristic string-detection) mixed in with the fabricated ones -- the presence of a real critique does not validate the fabricated ones alongside it, and vice versa: reject or fix each claim independently, on its own verification, not as a bundle.",
+      "scope_limit": "Applies to any external or pasted claim about an artifact's runnability or correctness, positive or negative; does not apply to claims already backed by a tool call's real output in the same session."
+    },
+    {
+      "id": "L7",
+      "discovered_in": "S-071126-01, elicitation-surface taxonomy adoption question",
+      "constraint": "new_schema_fields_must_not_depend_on_session_memory",
+      "rule": "When a new corpus field can be auto-populated from data already present at execution time (an API call parameter, a template render), the ingestion tool must capture it structurally -- never rely on a human or a Claude session remembering to fill it in manually. Where auto-capture is genuinely impossible (ad-hoc, hand-edited sessions), the field must default to an explicit, queryable sentinel value (e.g. 'adhoc_untracked'), never a bare NULL -- per IC-cand-maintained-headline-recurrence, a NULL and a known-unavailable value are indistinguishable until someone goes looking, and by then adoption has already silently failed.",
+      "scope_limit": "Applies to any new corpus field proposed alongside a migration; does not apply to fields that are inherently judgment calls requiring a human decision at write time."
+    }
+  ]
+}

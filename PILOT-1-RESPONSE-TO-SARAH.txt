@@ -1,0 +1,87 @@
+SUBJECT: RE: Pilot 1 Brief — Revisions Complete + Materials Ready for Review
+
+Hi Sarah,
+
+Thank you for the detailed feedback. You identified critical gaps that needed fixing, and I've incorporated all of your requested revisions:
+
+---
+
+## What Changed
+
+**1. Language (Exploratory, Not Validating)**
+   ✓ "Validate convergence" → "Explore alignment and divergence"
+   ✓ Removed "convergence validates both frameworks"
+   ✓ Removed "independent validation" claims
+   ✓ Mesh records: findings logged as exploratory analysis, not validation
+   ✓ All exploratory language now reflects genuine uncertainty about what we'll find
+
+**2. Scoring Materials (Complete Before Start)**
+   ✓ Added explicit "Required Materials" section
+   ✓ HumanAIOS provides: complete ACAT scoring packet (definitions, rubric, anchors, protocol)
+   ✓ Sarah provides (or confirms): complete Ohmenrah materials under your control
+   ✓ Both parties agree on: mapping method + predefined convergence criteria BEFORE scoring
+   ✓ Scoring time fixed at 45 minutes each (consistent)
+   ✓ Trigger: all materials reviewed, criteria agreed = scoring begins
+
+**3. Data Use (Mutual Approval Required)**
+   ✓ Dataset use outside internal review = requires written approval from BOTH parties
+   ✓ Internal use only = no approval needed
+   ✓ External sharing, research, client work, publications = all require mutual approval
+
+**4. Ohmenrah IP (Restricted License)**
+   ✓ Ohmenrah four-layer methodology: all rights reserved, Ohmenrah's IP
+   ✓ HumanAIOS has limited license for Pilot 1 only (August 2026, one AI system)
+   ✓ Cannot reuse, adapt, distribute, or reference framework without explicit written agreement
+   ✓ Explicitly removed: any statement that "HumanAIOS will provide Ohmenrah documentation"
+   ✓ Ohmenrah owns and controls all scoring materials and methodology documentation
+
+---
+
+## Next Steps to Confirm Participation
+
+**By 2026-07-30:**
+1. Review updated PILOT-1-BRIEF.md for completeness (all revisions incorporated)
+2. Confirm AI system to evaluate (which model + version)
+3. Confirm interface preference (Web UI or CLI for scoring)
+4. Confirm which Ohmenrah materials you'll provide
+
+**Before 2026-08-01 (scoring start):**
+1. Exchange complete scoring materials (ACAT packet + Ohmenrah materials)
+2. Agree on mapping method (correlation, thematic, qualitative, etc.)
+3. Agree on predefined convergence criteria (what counts as alignment vs. divergence?)
+4. Confirm understanding of data governance (mutual approval for any external use)
+
+**Timeline:**
+- 2026-07-30: Materials & criteria confirmation
+- 2026-08-01 to 08-15: Independent scoring
+- 2026-08-22: Sync debrief (~60 min)
+- 2026-08-29: Memo draft shared for review
+- 2026-08-31: Sarah approves/declines; Pilot 1 complete
+
+---
+
+## What This Pilot Is (And Isn't)
+
+**This is:** A structured comparison of two independent scoring frameworks on one AI system. An exploratory effort to understand where they align and diverge.
+
+**This is NOT:**
+- A validation of either framework (both remain under investigation)
+- An endorsement (convergence doesn't prove either framework is "correct")
+- An authority transfer (Ohmenrah methodology remains entirely yours; HumanAIOS doesn't control it)
+- An obligation (Pilot 1 is standalone; no commitment to Pilot 2 or ongoing work)
+
+---
+
+I remain committed to running this pilot with full respect for your concerns and full transparency about what we're claiming. You have final approval on any public findings before circulation.
+
+The updated PILOT-1-BRIEF.md is ready for your review. Please let me know if any revisions are still needed, or confirm when you'd like to proceed with the next steps above.
+
+Best,
+Carly R. Anderson
+HumanAIOS
+
+---
+
+**Updated document:** PILOT-1-BRIEF.md (all revisions incorporated)
+**Date:** 2026-07-29
+**Status:** Ready for Sarah's confirmation

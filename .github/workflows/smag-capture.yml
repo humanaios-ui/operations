@@ -1,0 +1,39 @@
+name: smag-capture
+
+# MECHANICAL SMAG capture (no LLM, no human notification). On every merged PR,
+# derive predicted/measured/substrate and post one row as a comment on the
+# SMAG pilot ledger tracking issue (conflict-free, append-only, no main push).
+# The optional LLM-review layer (claude-review.yml) enriches the `gap` field later.
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  checks: read
+
+env:
+  TRACKING_ISSUE: "103"   # 📊 SMAG pilot ledger (auto-capture sink)
+
+jobs:
+  capture:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main       # run main's script, not the merged PR head (no untrusted exec)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Capture SMAG row -> tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/smag_pr_autocapture_v1_0.py \
+            --pr "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}" \
+            --tracking-issue "${TRACKING_ISSUE}"

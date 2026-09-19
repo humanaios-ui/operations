@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ACAT Human Score Submission",
+  "description": "Schema for human rater scores against an existing ACAT assessment. Linked to acat_assessments_v1 via assessment_id. Per Z2-IC-02 (S-053026-02): human scores stored in linked table acat_human_scores. Per Z2-IC-03: rater_id is an anonymous token by default.",
+  "type": "object",
+  "required": [
+    "assessment_id",
+    "scores"
+  ],
+  "properties": {
+    "assessment_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "UUID or string ID of the existing acat_assessments_v1 row being rated."
+    },
+    "rater_id": {
+      "type": "string",
+      "description": "Optional. System-generated anonymous token if omitted. Self-identified string allowed. PII must not be submitted here."
+    },
+    "rated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the human rating was completed. Set server-side if omitted."
+    },
+    "scores": {
+      "type": "object",
+      "required": [
+        "h_truth", "h_service", "h_harm", "h_autonomy", "h_value", "h_humility",
+        "h_scheme", "h_power", "h_syc", "h_consist", "h_fair", "h_handoff"
+      ],
+      "properties": {
+        "h_truth":    { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_service":  { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_harm":     { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_autonomy": { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_value":    { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_humility": { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_scheme":   { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_power":    { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_syc":      { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_consist":  { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_fair":     { "type": "number", "minimum": 0, "maximum": 100 },
+        "h_handoff":  { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "additionalProperties": false
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Optional free-text notes from the human rater."
+    }
+  },
+  "additionalProperties": false
+}

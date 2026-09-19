@@ -1,0 +1,5 @@
+[
+  {"name": "Opportunity A", "deadline": "2026-08-15", "days_to_deadline": 25},
+  {"name": "Opportunity B", "deadline": "2026-08-05", "days_to_deadline": 15},
+  {"name": "Opportunity C", "deadline": "2026-07-25", "days_to_deadline": 4}
+]

@@ -1,0 +1,166 @@
+{
+  "name": "ACAT_Runner_Claude",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 2 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "command": "python3 /opt/acat/acat_crew.py --agent \"Claude-Sonnet-4-6\" --mode automated 2>&1"
+      },
+      "id": "run-crew",
+      "name": "Run ACAT Crew",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.stdout }}",
+              "operation": "contains",
+              "value2": "LI="
+            }
+          ]
+        }
+      },
+      "id": "check-success",
+      "name": "Assessment Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const stdout = $input.first().json.stdout;\nconst liMatch = stdout.match(/LI=([\\d.]+)/);\nconst sagMatch = stdout.match(/SAG=(\\d+)/);\nconst agentMatch = stdout.match(/Agent=([^\\n]+)/);\n\nreturn [{\n  json: {\n    li: liMatch ? parseFloat(liMatch[1]) : null,\n    sag: sagMatch ? parseInt(sagMatch[1]) : null,\n    agent: agentMatch ? agentMatch[1].trim() : 'Claude-Sonnet-4-6',\n    stdout: stdout,\n    timestamp: new Date().toISOString(),\n    status: 'success'\n  }\n}];"
+      },
+      "id": "parse-result",
+      "name": "Parse LI + SAG",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 220]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1qdw3FjPp9Qu5wmXHppBW74SZT87cJZ45OOw8csk-Yew",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Pipeline_Health",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "agent": "={{ $json.agent }}",
+            "li": "={{ $json.li }}",
+            "sag": "={{ $json.sag }}",
+            "status": "={{ $json.status }}",
+            "source": "n8n_runner"
+          }
+        }
+      },
+      "id": "log-to-sheets",
+      "name": "Log to Pipeline Health",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [1120, 220]
+    },
+    {
+      "parameters": {
+        "channel": "C0APHCJ5WUE",
+        "text": "=✅ *ACAT Claude Runner* | LI={{ $json.li }} | SAG={{ $json.sag }} | {{ $json.timestamp }}",
+        "otherOptions": {}
+      },
+      "id": "slack-success",
+      "name": "Slack #acat-monitor (Success)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1340, 220]
+    },
+    {
+      "parameters": {
+        "channel": "C0APHCJ5WUE",
+        "text": "=🚨 *ACAT Claude Runner FAILED* | {{ $now.toISO() }}\nOutput: {{ $input.first().json.stdout.slice(0, 500) }}",
+        "otherOptions": {}
+      },
+      "id": "slack-error",
+      "name": "Slack #acat-monitor (Error)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [900, 400]
+    }
+  ],
+  "connections": {
+    "Every 2 Hours": {
+      "main": [
+        [{ "node": "Run ACAT Crew", "type": "main", "index": 0 }]
+      ]
+    },
+    "Run ACAT Crew": {
+      "main": [
+        [{ "node": "Assessment Success?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Assessment Success?": {
+      "main": [
+        [{ "node": "Parse LI + SAG", "type": "main", "index": 0 }],
+        [{ "node": "Slack #acat-monitor (Error)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse LI + SAG": {
+      "main": [
+        [{ "node": "Log to Pipeline Health", "type": "main", "index": 0 }]
+      ]
+    },
+    "Log to Pipeline Health": {
+      "main": [
+        [{ "node": "Slack #acat-monitor (Success)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "meta": {
+    "instanceId": "humanaios-n8n",
+    "templateCredsSetupCompleted": false
+  },
+  "_comments": [
+    "ACAT Runner — Claude provider",
+    "Replaces Make.com scenario 4394169",
+    "Requires: acat_crew.py at /opt/acat/acat_crew.py OR update path",
+    "Requires: ANTHROPIC_API_KEY env var set in n8n instance",
+    "Requires: Google Sheets OAuth2 credential configured in n8n",
+    "Requires: Slack credential configured in n8n",
+    "Slack channel IDs: #acat-monitor=C0APHCJ5WUE",
+    "To use on n8n cloud free: replace executeCommand node with HTTP Request",
+    "  calling the acat_crew FastAPI wrapper (see acat_crew_api.py)",
+    "FDS: F2-Building Block | Parent: ACAT pipeline schema | Status: ACTIVE"
+  ]
+}
