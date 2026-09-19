@@ -1,0 +1,150 @@
+name: industry-telemetry
+
+# Z1 research observation: fetch fixed public indexes and propose human review
+# of new links. No forecast resolution, evidence ratification, agent dispatch,
+# external action or autonomous change to governance.
+# temporal_class: OBSERVATIONAL — the weekly clock samples public indexes.
+# A tick grants no internal priority, authority, or obligation to act.
+on:
+  schedule:
+    - cron: "30 9 * * 1"  # weekly Monday 09:30 UTC
+  workflow_dispatch:
+    inputs:
+      reset_snapshot:
+        description: "Manually acknowledge missing history and create a new baseline"
+        required: false
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - ".github/workflows/industry-telemetry.yml"
+      - "tools/industry_telemetry_v0_1.py"
+      - "tools/tests/test_industry_telemetry.py"
+      - "research/industry_telemetry/**"
+
+concurrency:
+  group: industry-telemetry-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  observe:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      needs_review: ${{ steps.triage.outputs.needs_review }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test dependencies
+        run: python3 -m pip install --quiet pytest
+      - name: Test frozen baseline and adversarial boundaries
+        run: |
+          python3 tools/industry_telemetry_v0_1.py --smoke-test
+          python3 -m pytest tools/tests/test_industry_telemetry.py -q
+      - name: Find prior successful default-branch snapshot
+        if: github.event_name != 'pull_request' && inputs.reset_snapshot != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          previous_id=""
+          prior_runs=0
+          page=1
+          # Paginate default-branch observations. A page cap bounds API use but
+          # never silently treats an older success as a first-run baseline.
+          while [ "$page" -le 20 ]; do
+            batch=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/industry-telemetry.yml/runs?branch=main&per_page=100&page=$page")
+            count=$(jq '.workflow_runs | length' <<< "$batch")
+            if [ "$count" -eq 0 ]; then break; fi
+            other=$(jq --argjson self "$GITHUB_RUN_ID" '[.workflow_runs[] | select(.id != $self and (.event == "schedule" or .event == "workflow_dispatch"))] | length' <<< "$batch")
+            prior_runs=$((prior_runs + other))
+            previous_id=$(jq -r --argjson self "$GITHUB_RUN_ID" '[.workflow_runs[] | select(.id != $self and .conclusion == "success" and (.event == "schedule" or .event == "workflow_dispatch"))][0].id // empty' <<< "$batch")
+            if [ -n "$previous_id" ]; then break; fi
+            page=$((page + 1))
+          done
+          if [ -n "$previous_id" ]; then
+            mkdir -p /tmp/industry-telemetry-prior
+            gh run download "$previous_id" --name industry-telemetry-snapshot \
+              --dir /tmp/industry-telemetry-prior
+            test -s /tmp/industry-telemetry-prior/snapshot.json
+            echo "PRIOR_SNAPSHOT=/tmp/industry-telemetry-prior/snapshot.json" >> "$GITHUB_ENV"
+          elif [ "$prior_runs" -gt 0 ] || [ "$page" -gt 20 ]; then
+            echo "::error::No usable prior success found; require an explicit reset_snapshot dispatch."
+            exit 1
+          else
+            echo "No earlier default-branch observation: first run will establish a baseline."
+          fi
+      - name: Capture the public index diff
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          args=()
+          if [ -n "${PRIOR_SNAPSHOT:-}" ]; then args+=(--previous "$PRIOR_SNAPSHOT"); fi
+          python3 tools/industry_telemetry_v0_1.py \
+            --input research/industry_telemetry/q4_2026_forecasts.json \
+            --fetch --output-dir outputs/industry_telemetry "${args[@]}"
+      - name: PR validation without network fetch
+        if: github.event_name == 'pull_request'
+        run: |
+          python3 tools/industry_telemetry_v0_1.py \
+            --input research/industry_telemetry/q4_2026_forecasts.json \
+            --output-dir outputs/industry_telemetry
+      - name: Publish review card in run summary
+        if: success()
+        run: cat outputs/industry_telemetry/review.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Flag new research leads for human triage
+        id: triage
+        if: github.event_name != 'pull_request' && success()
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads(Path('outputs/industry_telemetry/report.json').read_text())
+          needs_review = bool(report['leads'] or report['new_source_failures'])
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              output.write(f"needs_review={str(needs_review).lower()}\n")
+          PY
+      - name: Save observation and next-run baseline
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: industry-telemetry-snapshot
+          retention-days: 90
+          path: outputs/industry_telemetry/
+          if-no-files-found: warn
+
+  triage:
+    needs: observe
+    if: github.event_name != 'pull_request' && needs.observe.outputs.needs_review == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      issues: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: industry-telemetry-snapshot
+          path: outputs/industry_telemetry/
+      - name: Open or update a Z1 human-triage issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title="[Z1 research telemetry] Q4 forecast leads for human review"
+          body=outputs/industry_telemetry/review.md
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title \"$title\"" --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --repo "$GITHUB_REPOSITORY" --body-file "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$body"
+          fi
