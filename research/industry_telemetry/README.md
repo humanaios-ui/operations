@@ -48,12 +48,14 @@ python3 tools/industry_telemetry_v0_1.py \
 
 Without `--fetch`, the tool validates the forecast and renders an offline card.
 The workflow uses this mode for PR checks. A scheduled run starts a fresh
-baseline if there has never been a successful run; existing links do not become
-new leads. The workflow runs Monday 09:30 UTC after a reviewed merge and can be
-manually dispatched. Its `reset_snapshot` input requires a deliberate operator
-choice if historic artifacts are unavailable; ordinary runs fail closed when a
-prior success exists but its artifact cannot be downloaded. Artifacts are retained
-for 90 days and rolling weekly runs maintain continuity.
+baseline only if there has never been another default-branch observation;
+existing links do not become new leads. The workflow runs Monday 09:30 UTC
+after a reviewed merge and can be manually dispatched on `main`. Its
+`reset_snapshot` input requires a deliberate operator choice if historic
+artifacts are unavailable. History lookup paginates and fails closed if it
+finds earlier runs but no usable success; concurrent runs on the same ref
+queue so they cannot race the triage issue. Artifacts are retained for 90 days
+and rolling weekly runs maintain continuity.
 
 ## Human guidance and measurement
 

@@ -22,12 +22,17 @@ on:
       - "tools/tests/test_industry_telemetry.py"
       - "research/industry_telemetry/**"
 
+concurrency:
+  group: industry-telemetry-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
   actions: read
 
 jobs:
   observe:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       needs_review: ${{ steps.triage.outputs.needs_review }}
@@ -50,17 +55,32 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          previous_id=$(gh run list --workflow industry-telemetry.yml --branch main --limit 20 \
-            --json databaseId,conclusion,event \
-            --jq '[.[] | select(.conclusion == "success" and (.event == "schedule" or .event == "workflow_dispatch"))][0].databaseId // empty')
+          previous_id=""
+          prior_runs=0
+          page=1
+          # Paginate default-branch observations. A page cap bounds API use but
+          # never silently treats an older success as a first-run baseline.
+          while [ "$page" -le 20 ]; do
+            batch=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/industry-telemetry.yml/runs?branch=main&per_page=100&page=$page")
+            count=$(jq '.workflow_runs | length' <<< "$batch")
+            if [ "$count" -eq 0 ]; then break; fi
+            other=$(jq --argjson self "$GITHUB_RUN_ID" '[.workflow_runs[] | select(.id != $self and (.event == "schedule" or .event == "workflow_dispatch"))] | length' <<< "$batch")
+            prior_runs=$((prior_runs + other))
+            previous_id=$(jq -r --argjson self "$GITHUB_RUN_ID" '[.workflow_runs[] | select(.id != $self and .conclusion == "success" and (.event == "schedule" or .event == "workflow_dispatch"))][0].id // empty' <<< "$batch")
+            if [ -n "$previous_id" ]; then break; fi
+            page=$((page + 1))
+          done
           if [ -n "$previous_id" ]; then
             mkdir -p /tmp/industry-telemetry-prior
             gh run download "$previous_id" --name industry-telemetry-snapshot \
               --dir /tmp/industry-telemetry-prior
             test -s /tmp/industry-telemetry-prior/snapshot.json
             echo "PRIOR_SNAPSHOT=/tmp/industry-telemetry-prior/snapshot.json" >> "$GITHUB_ENV"
+          elif [ "$prior_runs" -gt 0 ] || [ "$page" -gt 20 ]; then
+            echo "::error::No usable prior success found; require an explicit reset_snapshot dispatch."
+            exit 1
           else
-            echo "No previous successful observation: first run will establish a baseline."
+            echo "No earlier default-branch observation: first run will establish a baseline."
           fi
       - name: Capture the public index diff
         if: github.event_name != 'pull_request'
