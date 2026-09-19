@@ -29,7 +29,7 @@ C. Hybrid: raw local, features central, raw deleted on schedule; hardest to audi
 "No personal information" is only true under B. Under A or C the claim fails a read.
 
 ## 4. Feature set that leaves the device under B (behavioral outputs, never content)
-decision latency (question posted → option picked) · reversal rate · echo-hash time · forecast vs outcome (Brier) ·
+decision latency (question posted → option picked) · reversal rate · decision-to-merge time (PR opened → merged) · forecast vs outcome (Brier) ·
 step state transitions per day · deadline hit/miss · external-review novelty ratio · DRIFT count in assistant output ·
 connector call counts by type (no payloads) · session length and cadence.
 Excluded by construction: names, emails, message bodies, file contents, repo names, calendar titles, IPs.
