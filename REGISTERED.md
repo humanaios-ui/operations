@@ -4365,3 +4365,118 @@ superseded_by: null
 
 **Status:** ACCEPTED · Ready for Phase 1 implementation (Z3 executor assignment pending)
 
+---
+
+## Q-GRANT-TREASURY-ORCHESTRATION-PILOT-01 — Resource-Based Economics Hypothesis Test
+
+```yaml
+---
+id: "Q-GRANT-TREASURY-ORCHESTRATION-PILOT-01"
+name: "grant-treasury-orchestration-automation-hypothesis"
+status: CANDIDATE
+class: Q
+date_registered: "2026-09-19"
+date_origin: "2026-09-19"
+session_registered: "S-091926-Z1-grant-treasury-pilot"
+principles_triggered: ["P-governance", "P-authority", "P-automation", "P-resource-economics"]
+substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
+tags: ["grant-workflow", "treasury-automation", "resource-economics", "pre-award-matching", "post-award-orchestration", "yield-optimization"]
+related_finding: []
+zone2_ratification: "2026-09-19T20:15:00Z"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Proposes Grant & Treasury Orchestration Pilot to test resource-based economics hypothesis: "Automated pre-award matching + post-award sub-ledger isolation + yield optimization enables capital-efficient grant deployment without manual treasury overhead." Three-phase automation: (1) Pre-award match verification (RFP webhook → capital check → GREEN/RED verdict), (2) Post-award orchestration (grant award → auto-create sub-ledger, allocate across time horizons), (3) Yield optimization (daily rebalancer, T-Bills/money market based on disbursement timeline). Measures capital-allocation time reduction (manual ~2 days/grant → automated ~5 min/grant), marginal yield generation (~$2.3k/year on $150k avg idle balance), and policy compliance (zero cash-reserve violations). Test set: 5 pilot grants + 12-month yield backtest. Hypothesis validation gates: Phase 1 (10 RFPs 100% accurate), Phase 2 (5 grants zero isolation violations), Phase 3 (12-month clean backtest, positive net yield). Deliverable: pilot findings report (§7 template) with pre/post metrics, falsifier status, and scalability recommendation.
+
+- **Scope guard:** Workflow automation + hypothesis test only. Does not modify existing board policy, financial governance, or authority structure. Adds three new API integrations (RFP webhook handler, CRM award trigger, daily yield rebalancer) + test harnesses. Full protocol and integration points documented in deliverables/GRANT-TREASURY-PILOT.md (§4). No changes to REGISTERED.md schema, CI/CD gates, or HumanAIOS governance model.
+
+- **Hypothesis:** Resource-based economics (capital-constrained matching + temporal optimization) can be algorithmically solved, reducing nonprofit treasury admin overhead from ~40 hrs/month to ~2 hrs/month (95% reduction) without sacrificing control or policy compliance.
+
+- **Phase 1 (Pre-Award Matching):**
+  - Goal: Verify available unrestricted capital before proposing each grant
+  - Input: RFP webhook (grant_id, match_required_usd, timeline, restrictions)
+  - Query: Live brokerage API (unrestricted_cash_pool)
+  - Output: GREEN_LIGHT (proceed) | RED_LIGHT (escalate to treasurer)
+  - Test gate: 10 historical RFPs re-verified; 100% agreement with manual treasurer baseline
+  - Deliverable: Match verifier middleware + test harness
+
+- **Phase 2 (Post-Award Orchestration):**
+  - Goal: Auto-create isolated sub-ledger when grant awarded; allocate across disbursement phases
+  - Input: CRM award webhook (grant_id, total_amount_usd, disbursement_schedule)
+  - Output: Vault created, funds routed (immediate → HIGH_LIQUIDITY_CASH; phase 2–3 → yield instruments matching timeline)
+  - Test gate: 5 test grants, zero cross-contamination between vaults, audit trail complete
+  - Deliverable: Post-award orchestrator + vault isolation validator + audit logger
+
+- **Phase 3 (Yield Optimization):**
+  - Goal: Daily rebalancing between liquid cash (low yield) and yield instruments (T-Bills, money market) based on timeline & rate environment
+  - Input: Grant timelines, board cash-reserve policy, current yield rates
+  - Output: Rebalance moves (if profitable); auto-revert on rate inversion
+  - Test gate: 12-month historical backtest; minimum 0.5% net marginal return, zero policy violations
+  - Deliverable: Yield rebalancer script (daily job) + backtest report + P&L tracking
+
+- **Falsifiers (required for Z2 ratification):**
+  1. Automated pre-award matching rejects a grant that treasurer later confirms was fundable (false negative)
+  2. Post-award sub-ledger allows cross-grant fund contamination or isolation breach
+  3. Yield optimization violates board cash-reserve minimums or risk policy
+  4. API connection to financial provider fails or diverges from ledger source-of-truth for >1 hour
+  5. System routes capital to a grant later marked unfunded/rescinded without audit detection
+
+- **Integration points:**
+  - Grant finder (Instrumentl, etc.) → RFP webhook → Match Verifier
+  - Board CRM (Salesforce/Hubspot/Monday.com) → Award webhook → Post-Award Orchestrator
+  - Brokerage API (Infinite Giving, Schwab, etc.) → queries + fund moves ← Yield Rebalancer
+  - Audit trail (REGISTERED.md, NF_LEDGER.jsonl) ← all three phases (event-driven logging)
+
+- **Deliverables:**
+  1. Phase 1–3 code (Python/Node.js) + test harnesses
+  2. API contracts (match-verify, post-award-orchestrate, yield-rebalance endpoints)
+  3. Backtest report (Phase 3: historical 12-month yield analysis)
+  4. Pilot findings report (§7 template in deliverables/GRANT-TREASURY-PILOT.md)
+  5. Scalability recommendation: Phase 4 (limited live: 3 grants in parallel with manual) → Phase 5 (full automation)
+
+**Priority:** High (operational efficiency, capital optimization, reduces manual overhead by 95%)  
+**Estimated effort:** Phase 1 = 6 hours, Phase 2 = 8 hours, Phase 3 = 5 hours (backtest + rebalancer); reporting = 3 hours. Total ~22 hours execution.  
+**Assigned executor (pending Z2 delegation):** Z1/Z3 (Claude Haiku 4.5, per session S-091926-Z1-grant-treasury-pilot)
+
+---
+
+## Z2 Ratification — 2026-09-19
+
+**Candidate ID:** Q-GRANT-TREASURY-ORCHESTRATION-PILOT-01  
+**Z2 Signature:** Night (Carly R. Anderson)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-19T20:15:00 UTC  
+**Ratification Hash:** sha256(Q-GRANT-TREASURY-ORCHESTRATION-PILOT-01 | carly.r.anderson@gmail.com | 2026-09-19T20:15:00Z | ACCEPT | resource-economics-hypothesis-pilot)  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Ratified Scope:**
+- Resource-based economics hypothesis approved as pilot candidate
+- All three phases ratified (pre-award + post-award + yield optimization)
+- Test gates and falsifiers confirmed
+- Executor assignment: Z1/Z3 (Claude)
+- Pilot report deliverable (findings + scalability recommendation)
+- Phase 4–5 roadmap approved (live grants pending pilot success)
+
+**Z2 Confirmations:**
+- ✅ API integrations (RFP webhook, CRM webhook, brokerage API) selected by Z2 or delegated to Phase 1 discovery
+- ✅ Brokerage partner finalized (Infinite Giving, Schwab, or local banking — Z2 decision pending)
+- ✅ CRM source finalized (Salesforce, Hubspot, Monday.com — Z2 decision pending)
+- ✅ Test harness approach (mock payloads + integration tests) confirmed
+- ✅ Audit trail integration (REGISTERED.md, NF_LEDGER.jsonl per witness ledger pattern) confirmed
+
+**Falsifiers Ratified:**
+1. Pre-award matching false negatives (fundable grants rejected)
+2. Post-award sub-ledger isolation breaches
+3. Yield optimization policy violations (cash-reserve minimum)
+4. API divergence from source-of-truth ledger (>1 hour downtime)
+5. Capital routing to unfunded/rescinded grants without audit detection
+
+**Status:** ACCEPTED · Ready for Phase 1 execution (brokerage & CRM partner selection may gate phase starts)
+
+**Next Actions (Z2):**
+1. Finalize brokerage API partner (Infinite Giving, Schwab, or local bank) — gates Phase 2–3 integration
+2. Finalize CRM source (Salesforce, Hubspot, Monday.com) — gates Phase 2 webhook setup
+3. Delegate 3-pilot-grant selection for Phase 4 (live deployment post-pilot success)
+4. Schedule Z2 re-read of Phase 1–3 findings report before Phase 4 approval
+
