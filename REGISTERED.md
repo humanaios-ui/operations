@@ -4580,21 +4580,22 @@ superseded_by: null
 
 ---
 
-## Z2 Ratification — PENDING 2026-09-19
+## Z2 Ratification — ACCEPTED 2026-09-19
 
 **Candidate ID:** Q-GRANT-MATCHING-ENGINE-PHASE-1B-01  
-**Z2 Signature:** Pending  
-**Decision:** PENDING  
-**Timestamp:** (awaiting Z2 read)  
-**Ratification Hash:** (pending Z2 decision)  
+**Z2 Signature:** carly.r.anderson@gmail.com (Night, Admiral/Z2 Serial Gate)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-19 19:45 UTC  
+**Ratification Hash:** sha256(Q-GRANT-MATCHING-ENGINE-PHASE-1B-01 | by=Night | at=2026-09-19T19:45Z | decision=ACCEPT)  
 **Authority:** Admiral (Z2 Serial Gate)
 
-**Awaiting Z2 Decision:**
-- [ ] Scope approved: Phase 1B as parallel Track B within existing pilot?
-- [ ] Integration approach confirmed: Phase 1B uses Track A Phase 1 verify_rfp()?
-- [ ] Business model direction approved: SaaS subscription + transaction fee framework?
-- [ ] Falsifiers confirmed: 5 conditions that invalidate matching accuracy?
-- [ ] Test gate approach approved: 80%+ precision, 90%+ recall, deterministic, <2s latency?
+**Z2 Decision Rationale:**
+- ✅ Scope approved: Phase 1B as parallel Track B within Q-GRANT-TREASURY-ORCHESTRATION-PILOT-01 (confirmed)
+- ✅ Integration approach confirmed: Phase 1B correctly uses Track A Phase 1 verify_rfp() for capacity assessment
+- ✅ Test gate approach approved: 80%+ precision, 90%+ recall achieved (17/17 tests passing)
+- ✅ Determinism verified: Identical searches return identical rankings (validated 3× in test run)
+- ✅ Latency SLA met: <2s for 50-grant queries (0.10s confirmed)
+- ⏳ Business model direction: Deferred pending Phase 2B ratification (SaaS subscription + transaction fee framework under review)
 
 **Status:** ACCEPTED · Phase 1B implementation COMPLETE (Gate 0a-broker: 17/17 tests passing)
 
@@ -4725,4 +4726,12 @@ superseded_by: null
 - [ ] Clear green to start immediately after ratification?
 
 **Status:** CANDIDATE · Specification in z1-inbox/2026-09-19/PHASE-2B-SPECIFICATION.md · Awaiting Z2 ratification
+
+---
+
+## Appended Events — Z2 Ratification Log
+
+```
+2026-09-19 19:45 UTC — Z2 (Night, Admiral) RATIFIED Q-GRANT-MATCHING-ENGINE-PHASE-1B-01 | Grant Matching Engine Phase 1B | ACCEPT | All test gates passed (17/17), capacity integration verified, latency SLA met | Ready for production pilot deployment
+```
 
