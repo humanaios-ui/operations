@@ -35,7 +35,7 @@ counts:
   excluded: 0
   builder_markers_present: 132
   missing_from_tree: 0
-  unclassified: 2
+  unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
@@ -52,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2067,7 +2066,6 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: 'Phase 1: Autonomous governance rulings backfill from git history into Supabase'
-  session: S-091926-01
 - tool_id: HAIOS-TOOL-171
   name: governance-rulings-ingestion
   path: tools/governance-rulings-ingestion.js
@@ -2080,7 +2078,6 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: 'Phase 1: Real-time ingestion of Z2 rulings via GitHub webhooks → Supabase'
-  session: S-091926-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
