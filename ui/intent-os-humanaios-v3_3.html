@@ -27,7 +27,7 @@ h1 .rev{color:var(--gold);font-weight:400}
 h2{font-size:13px;font-family:var(--mono);font-weight:600;color:var(--dim);margin:34px 0 4px;border-bottom:1px solid var(--line);padding-bottom:6px}
 .familiar{font-size:12px;color:var(--dim);margin-bottom:12px;font-style:italic}
 .track{position:relative;padding:14px 0 4px;overflow-x:auto}
-.rail{display:flex;align-items:stretch;min-width:640px}
+.rail{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:2px 0;align-items:stretch}  /* every step, wrapped — never a hidden tail */
 .block{flex:1;position:relative;padding:10px 10px 12px;border-top:3px solid var(--line);cursor:pointer;transition:background .15s}
 .block:hover{background:#1b2229}
 .block .sig{width:11px;height:11px;border-radius:50%;position:absolute;top:-7px;left:10px;border:2px solid var(--board)}
@@ -125,19 +125,39 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
 .schemabar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--done);color:var(--ink);border-radius:6px;padding:8px 16px;font-family:var(--mono);font-size:12px;opacity:0;pointer-events:none;transition:opacity .2s}
 .empty{color:var(--dim);font-size:13px;padding:8px 0}
+/* ---------- views: the board and its section pages are the same file; data-view picks what shows ---------- */
+.pages{display:flex;gap:6px 14px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;margin:-10px 0 18px}
+.pages a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--line)}
+.pages a:hover{color:var(--ink)} .pages a.here{color:var(--gold);border-bottom-color:var(--gold)}
+body[data-view="board"] .sec-arena,body[data-view="board"] .sec-decisions,body[data-view="board"] .sec-commitments,body[data-view="board"] .sec-records{display:none}
+body[data-view="decisions"] .sec:not(.sec-decisions){display:none}
+body[data-view="commitments"] .sec:not(.sec-commitments){display:none}
+body[data-view="records"] .sec:not(.sec-records){display:none}
+body[data-view="arena"] .sec:not(.sec-arena){display:none}
+.sec h2{margin-top:26px}
+/* ---------- cross-links: a step names the decisions it waits on; a decision names the steps it gates ---------- */
+a.xref{color:var(--steel);text-decoration:none;font-family:var(--mono);font-size:12px;border-bottom:1px dotted var(--steel)}
+a.xref:hover{color:var(--ink)}
+.ruling .gates{font-size:12px;color:var(--dim);margin-top:4px}
+.ruling.hit{background:#1b2229;outline:1px solid var(--gold);border-radius:4px;padding-left:8px;padding-right:8px}
+.stale{border:1px solid var(--waiting);border-left-width:4px;border-radius:6px;padding:8px 12px;margin:-6px 0 16px;font-size:13px;color:var(--ink)}
+.stale b{color:var(--waiting);font-family:var(--mono);font-size:12px}
+.card.hit{outline:1px solid var(--gold)}
 @media (prefers-reduced-motion: reduce){*{transition:none !important}}
 </style>
 </head>
-<body>
+<body data-view="board">
 <div class="wrap">
 <header>
   <h1 id="title">Intent-OS</h1>
   <div class="header2" id="header2"></div>
   <div class="readline" id="readline"></div>
 </header>
+<nav class="pages" id="pages" aria-label="Intent-OS pages"></nav>
 
+<section class="sec sec-pipeline" id="pipeline">
 <h2>Pipeline — this project's steps, in delivery order</h2>
-<div class="familiar">Like a project board, with one extra rule: a step only turns green when it's verified, not when someone says it's done.</div>
+<div class="familiar">Like a project board, with one extra rule: a step only turns green when it's verified, not when someone says it's done. A step waiting on a decision links to it on the <a class="xref" href="intent-os-decisions.html">Decisions</a> page; every decision there links back to the steps it gates.</div>
 <div class="track">
   <div class="rail" id="rail"></div>
   <div class="legend">
@@ -147,42 +167,60 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
   </div>
 </div>
 <div id="blocks"></div>
+</section>
 
+<section class="sec sec-metrics">
 <h2>Metrics — what the work must actually move</h2>
 <div class="familiar">Like a metrics dashboard, with one difference: projections are marked as projections and never counted as results.</div>
 <div id="gauges"></div>
 <p class="note">Solid bar = measured today. Dashed edge = projected after the staged work — not counted. Gold tick = target. Only measurements taken after work is verified count.</p>
+</section>
 
+<section class="sec sec-decisions" id="decisions">
 <h2>Decisions — calls only the project owner can make</h2>
-<div class="familiar">Like an approvals queue. Work that needs one of these shows red in the pipeline until it's decided. A tap is not a ratification; the hash is.</div>
+<div class="familiar">Like an approvals queue. Work that needs one of these shows red in the <a class="xref" href="intent-os-humanaios-v3_3.html#pipeline">Pipeline</a> until it's decided; each row names the steps it gates. A tap is not a ratification: it opens a one-file pull request, and the merge of that pull request is the ratification.</div>
 <div id="rulings"></div>
+</section>
 
+<section class="sec sec-mech">
 <h2>How projects run here — the six stages every project walks</h2>
 <div class="familiar">Like a project lifecycle framework, except each stage has a checkable condition instead of a description.</div>
 <div id="mech"></div>
 <p class="note" style="margin-top:8px">A project is fully set up once every stage's condition has been true at least once. The pipeline above is one project on this map; the project data section below is where a new project fills it in.</p>
+</section>
 
+<section class="sec sec-planes">
 <h2>Four planes and four rules — what holds no matter the score</h2>
 <div class="familiar">Like the separation between a permissions system, an audit log, a forecast, and a report card — kept apart so none can rewrite another.</div>
 <div id="planes"></div>
 <p class="note" style="margin-top:8px">Every judgment about behavior must be written as a check a machine can run — not "was it careful?" but "unauthorized actions = 0", "claims without support = 0", "stated confidence vs. actual accuracy". If a judgment can't be written that way, it isn't scored yet.</p>
+</section>
 
+<section class="sec sec-deadlines">
 <h2>Deadlines — moves that die on a date</h2>
 <div class="familiar">Like calendar deadlines — only things with a real closing window belong here.</div>
 <div id="departures"></div>
+</section>
 
+<section class="sec sec-arena" id="arena-page">
 <h2>ARENA Experimental Framework — Governance-versioned multi-agent collaboration</h2>
 <div class="familiar">Controlled experiment designed to compare behavioral differences associated with governance protocol exposure. Current small-N results do not establish causal governance effect; causal validity remains unknown until statistical power is verified. Phases sequenced with explicit gates; threats ranked by severity; measurement validity checkpoints tracked; Z2 ratification recorded; preregistration anchors maintained; governance versions explicit (G₀/G₁/G₂).</div>
 <div id="arena"></div>
+</section>
 
+<section class="sec sec-commitments" id="commitments">
 <h2>Commitments — predictions made before seeing results</h2>
 <div class="familiar">Rare in any product: you write down what you expect, how confident you are, and when you'll know — before the result exists. Over time this shows whether the team's judgment is getting better.</div>
 <div id="predictions"></div>
+</section>
 
+<section class="sec sec-records" id="records">
 <h2>Verified records — the receipts this board rests on</h2>
 <div class="familiar">Like an audit log: each entry is a fingerprint (checksum) of a real file, so anyone can later confirm nothing was quietly changed. Rows with a path are re-checked by <code>tools/intent_os_board_check_v1_0.py</code>; a STALE verdict means this board must be re-read before anything on it is cited.</div>
 <div id="seals"></div>
+</section>
 
+<section class="sec sec-data">
 <h2>Project data — the whole board as one editable file</h2>
 <p class="note" style="margin-bottom:8px">Everything above renders from this. Edit and apply to reshape the board; export saves it with every checkbox and decision; import picks up exactly where a board was left.</p>
 <textarea id="schema" spellcheck="false"></textarea>
@@ -197,6 +235,7 @@ textarea{width:100%;min-height:260px;background:#0b0f13;color:#bfe3c8;border:1px
   <input type="file" id="file" accept="application/json" style="display:none"/>
   <span class="note" id="persistnote"></span>
 </div>
+</section>
 </div>
 <div id="toast">copied</div>
 
@@ -294,9 +333,9 @@ const EXAMPLE = {
   {id:"C4", text:"bounce rate improves within a month", confidence:0.50, resolves:"30 days after launch"}
  ],
  rulings:[
-  {id:"d1", q:"Old blog archive — keep it live or retire it?", s:"referenced by 6 partner pages; launch waits on this", opts:["keep","retire","later"]},
-  {id:"d2", q:"Analytics — stay on the current tool or switch at launch?", s:"switching at launch means a clean baseline; staying means continuity", opts:["stay","switch","later"]},
-  {id:"d3", q:"Ship the newsletter signup at launch or in the first update?", s:"", opts:["at launch","first update","later"]}
+  {id:"d1", t:"IC-SCOPE-05 scope rule", q:"Old blog archive — keep it live or retire it?", s:"referenced by 6 partner pages; launch waits on this", opts:["keep","retire","later"]},
+  {id:"d2", t:"TLA_TOOLS_SHA256 gate", q:"Analytics — stay on the current tool or switch at launch?", s:"switching at launch means a clean baseline; staying means continuity", opts:["stay","switch","later"]},
+  {id:"d3", t:"z2_budget_p2 envelope", q:"Ship the newsletter signup at launch or in the first update?", s:"", opts:["at launch","first update","later"]}
  ],
  seals:[
   {artifact:"starting metrics, measured Aug 31", sha:"cb29b87680c8cc3b"},
@@ -310,10 +349,10 @@ const EXAMPLE = {
    seals were re-taken at 9079c52 (after #323) and at 6d3443a (after #325) — `read.against` names the current one.
    Re-check with `python3 tools/intent_os_board_check_v1_0.py`; a STALE verdict means re-read before citing anything here. */
 const HUMANAIOS = {
- title:"Intent-OS", rev:"2026-09-17T23:27:37Z",
+ title:"Intent-OS", rev:"2026-09-19T04:06:36Z",
  owner:{tagline:"Night", project:"HumanAIOS"},
  relay:{url:"https://intent-os-relay-production.up.railway.app", basicUser:"night", secretHint:"RELAY_SECRET and the basic-auth password (RELAY_BASIC_PASS on the Railway service intent-os-relay; runbook §4c) are entered once per session, kept in memory only, never written to this file"},
- read:{board:"Live", date:"2026-09-17", against:"humanaios-ui/operations main at a528b23 (main's HEAD — the squash-merge of #382; its tree is byte-identical to the branch head 12ba936 this read was made at, so the read stands and the pointer moved by hand; the re-seal tool had moved it to ff19e91 mechanically before the squash, which a squash leaves out of main's history — d30's case, the third time this session. Prior reads at b52f805, 9079c52, 6d3443a, 0749022, 7ff302d, e2b9a7a, 0fe7782, 6e6a44f, 3ca4fcd, 1b7cd96, 8124162, ff19e91; d17–d19 ruled 09-14)"},
+ read:{board:"Live", date:"2026-09-19", against:"humanaios-ui/operations main at 6233c26 (main's HEAD — the squash-merge of #410: the thirteen board-ruling blocks d20–d30/d32/d33, the section pages generated by tools/intent_os_pages_v1_0.py, the Intent-OS Witness nav and the open-the-board card, on #409's login-gated board; this read's branch sits on it and adds the answer to Z2's red-team review of #410 — the page-gate proposal Q-INTENTOS-PAGES-GATE-01, the harness row t1-pages-fresh, the stale-page banner and tests/test_board_rename_hold.py — so main's tree plus those files is what every seal hashes; the pointer names a commit on main so it survives the squash-merge of this read — d30's case. Prior reads at c203835, b52f805, 9079c52, 6d3443a, 0749022, 7ff302d, e2b9a7a, 0fe7782, 6e6a44f, 3ca4fcd, 1b7cd96, 8124162, ff19e91, a528b23, c059d0b, 06b9813; d17–d19 ruled 09-14; merge-is-ratification ruled 09-18; d2 and d14 ruled 09-18 by merge)"},
  readline:"RULED 2026-09-14 (Night, signed 9a2a469be2cbbe1d…): d17 local only · d18 rulings land in z1-inbox + INDEX.yaml · d19 path frozen · temporary tokens revoked. Every open board ruling is now its own queue candidate (Q-BOARD-RULING-02…16). Everything green was verified by a fetch, not by memory. Honest number: still 3 of 40 operated cycles, all from door 1. Since the 09-08 read: history was reset (57 commits; the three commits the old seals pointed at are gone), the Z2 gate landed and was found dead for 122 runs then repaired, the registry was re-pinned once and has drifted again, research-intake became specimen-intake, and the Z2 decision backlog grew to 22 candidate blocks plus 14 open board rulings. This read fixes the board itself: persistence, relay auth, a checker for the seals, and a launch candidate (Q-INTENTOS-LAUNCH-01).",
  blocks:[
   {id:"1", name:"system graph v0.2 on main", state:"done", role:"stage 5 · Ship",
@@ -415,14 +454,44 @@ const HUMANAIOS = {
    blockedOn:"d16: rule on the triage table"},
   {id:"19", name:"this board — make it functional, then launch", state:"progress", role:"stage 5 · Ship",
    why:"The board was three reads behind, and could not have run in a browser as shipped: it persisted through an artifact-host API (window.storage) that a normal page lacks, its relay sat behind ngrok basic-auth that fetch() cannot satisfy (the CORS preflight would be refused), its old seals pointed at commits that no longer exist, and nothing re-checked a seal after it was typed. This read: localStorage persistence with the host API as fallback, an Authorization header plus an OPTIONS exemption in the ngrok policy, a checker that re-hashes every seal against the tree, a runbook, and a candidate block for the launch decisions. The file path is now the stable consumer target (docs/ACAT_BENCHMARK_MAP points at it); reads change the data, not the filename.",
-   gate:"d17 = local only: the file on main is the surface (met); intent_os_board_check HOLDS on it (met); one ruling lands through the relay into z1-inbox (open — C17)",
+   gate:"d17 = local only: the file on main is the surface (met); intent_os_board_check HOLDS on it (met); one ruling lands through the relay into z1-inbox (met 2026-09-18 01:01Z — C17 TRUE, PR #391; this is Q-INTENTOS-LAUNCH-01 falsifier (b) as signed: a PR whose body carries a RULING block and a hash line — ratification was never its condition); the ratification loop, a separate 09-18 milestone (met 16:38Z: #391 and #393 merged by Z2, signed by the reconcile job's first live run, #407 merged)",
    cmds:"python3 tools/intent_os_board_check_v1_0.py            # seals vs tree; exit 2 = STALE\nDRY_RUN=1 python3 tools/decision_relay.py --self-test   # relay logic\n# launch runbook: docs/INTENT_OS_BOARD_RUNBOOK.md",
-   meta:"RULED 09-14: d17 local only · d18 z1-inbox · d19 freeze path (hash 9a2a469be2cbbe1d…) · relay v0.3 lands in z1-inbox/ + INDEX.yaml, self-test PASS · waiting on the first live ruling through it (C17, by 09-30)"},
+   decisions:["d33"],
+   meta:"RULED 09-14: d17 local only · d18 z1-inbox · d19 freeze path (hash 9a2a469be2cbbe1d…) · d33 filed 09-19 as d19's successor (a clean filename, held until d31 rules) · relay live on Railway since 09-17 (own gate, /task bus, refusals named — the version is the relay seal's) · LANDED 09-18 01:01Z: d14 → PR #391 through the relay, C17 TRUE; thirteen more taps → #393–#405 · RULED 09-18 (Z2): the merge is the ratification — the hash echo is retired, a tap opens a one-file PR, review + merge is the Z2 act, .github/workflows/intent-os-reconcile.yml signs on main after each merge (merger = by, merge date = at); with one member the author merges their own PR (d7's bypass, recorded); with more, required review makes approver and merger two people · 09-18 evening: Z2 wants a login-gated board, no public copy — the Worker is built fail-closed and filed as d31; d17 stands until it rules"},
   {id:"20", name:"Z2 decision backlog → one queue", state:"done", role:"stage 3 · Decide",
    why:"On 09-14 morning the inbox held 22 awaiting_z2 candidates while this board carried 14 open rulings (d2, d3, d5–d16) that existed nowhere in it — two backlogs, one ratifier. d18 ruled the board's rulings into the inbox; each is now a candidate block the z2 gate, the validator and the triage job can see, and the relay ratifies it in place. One list: Z1_INBOX_INDEX.md.",
    gate:"every open board ruling either maps to an INDEX.yaml candidate (q_id recorded on the ruling) or is withdrawn with a reason",
    cmds:"python3 .z1-control/validate.py --report | python3 -c \"import json,sys;r=json.load(sys.stdin);print(r.get('counts'))\"\ngrep -c awaiting_z2 z1-inbox/INDEX.yaml   # 09-14 after filing: 36",
-   meta:"DONE 09-14 under d18: 14 candidates Q-BOARD-RULING-02…16 filed (each with the question, options, a choice: line ratify.py signs over, and a 30-day falsifier) · queue now 40 candidates: 4 ratified · 36 awaiting_z2 (incl. the IC candidate Q-IC-BOARD-SEALS-01 from this read's findings scan) — one list, no board-only rulings left"}
+   meta:"DONE 09-14 under d18: 14 candidates Q-BOARD-RULING-02…16 filed (each with the question, options, a choice: line ratify.py signs over, and a 30-day falsifier) · queue now 40 candidates: 4 ratified · 36 awaiting_z2 (incl. the IC candidate Q-IC-BOARD-SEALS-01 from this read's findings scan) — one list, no board-only rulings left · 09-19: d20–d30 and d32, carried inside three later blocks, filed as Q-BOARD-RULING-20…30/32 so a tap can land each (63 candidates with d33 and Q-INTENTOS-PAGES-GATE-01)"},
+  {id:"21", name:"test surface — harness T0–T7, dashboard, pathway", state:"progress", role:"stage 6 · Measure",
+   why:"tools/intent_os_test_harness_v1_0.py runs every testable surface (self-tests, validators, the z2 gate's tools, the board checker, the relay's self-test, pytest) and writes one JSON receipt; ui/intent-os-test-dashboard-v1_0.html renders only from that receipt; docs/INTENT_OS_TEST_PATHWAY.md is the tiered pathway. Q-INTENTOS-TEST-01 was ratified 09-16 with three decisions inside it (d20–d22) whose choices were never recorded — filed 09-19 as their own blocks.",
+   gate:"the harness returns GREEN on main, or every red row is named in a candidate (the ACAT pytest row is the one registered red: F-CAND, carried as KNOWN_RED by the refresh job — d32)",
+   cmds:"python3 tools/intent_os_test_harness_v1_0.py --self-test\npython3 tools/intent_os_test_harness_v1_0.py --render   # run + inject the receipt into the dashboard",
+   meta:"on main since #37x (09-16) · prediction C19: GREEN on main (0.60) · C21: the harness catches a regression before a human reports it (0.55)",
+   blockedOn:"d20 (§A step 3 or advisory), d21 (commit the rendered dashboard), d22 (scale-out order)"},
+  {id:"22", name:"refresh job — re-seal what a job may, file what a human must", state:"progress", role:"stage 5 · Ship",
+   why:".github/workflows/intent-os-refresh.yml runs on every push to main that touches a sealed path: the checker, the reseal tool in report mode, a summary line HOLDS / MECHANICAL / NEEDS-HUMAN, artifacts. The PR/issue half is behind a repository variable (d23). It ran green on the merge of #409 (run 28). Event-driven only: the daily cron was removed under the resource-based grounding (d26).",
+   gate:"a merge touching a sealed path produces a summary line and, if d23 enables it, a re-seal PR a human merges — never a signature",
+   cmds:"# Actions → intent-os-refresh → the run for the last merge to main\npython3 tools/intent_os_board_reseal_v1_0.py            # report mode: what the job would re-seal",
+   meta:"Q-INTENTOS-REFRESH-01 awaiting Z2 · runs green on every merge since 09-17 · report-only until d23",
+   blockedOn:"d23 (auto-PR), d24 (may a job advance rev), d25 (local copies — mooted if d31 rules serve behind login), d26 (resource-based grounding), d32 (KNOWN_RED list)"},
+  {id:"23", name:"agent bus — /task requests on the tree", state:"progress", role:"stage 4 · Build",
+   why:"The relay's /task lands a signed request as a REQ- record in z1-inbox (hashed ask, empty Fulfilment, indexed and rendered, on a branch with a PR); any worker — a Claude Code session, a local model, a person — takes it by filling Fulfilment in its own PR. #377 merged 09-17 (the bus), #380 (tiers T5–T7). Four policy choices (d27–d30) are open in resource units.",
+   gate:"three requests taken and fulfilled through the bus with their stage transitions visible on the dashboard's § 5",
+   cmds:"DRY_RUN=1 python3 tools/decision_relay.py --input req.json   # {\"path\": \"/task\", \"title\": …, \"ask\": …}\npython3 tools/intent_os_requests_v1_0.py --check",
+   meta:"Q-INTENTOS-BUS-01 awaiting Z2 · first request filed 09-17 · predictions C25–C28 in sessions, requests, scans and merges",
+   blockedOn:"d27 (model endpoint policy), d28 (issue mirror), d29 (smoke contract), d30 (squash-merge read pointer)"},
+  {id:"24", name:"the merge is the ratification — reconcile job on main", state:"done", role:"stage 5 · Ship",
+   why:"Z2 ruled 09-18 that the hash echo is retired and the merge of a ruling's PR is the ratification. Relay 0.5.0 writes DECIDED and opens a one-file PR; tools/intent_os_reconcile_v1_0.py on main (.github/workflows/intent-os-reconcile.yml) finds the merged PR, maps the merger to a declared ratifier, signs the merged bytes as ratify.py --verify recomputes, and records it. Proven live: #406 merged → the job's first run opened #407 (d2 #393, d14 #391, Night, single-member override) → Z2 merged it → validate, verify and render pass on main. ratify.py refuses to sign a board-ruling block by hand (#409, Q-IC-RATIFY-BYPASS-01), so the merge is the only act.",
+   gate:"a reconcile PR with signatures that ratify.py --verify recomputes, merged; no by-hand path to a board-ruling signature",
+   cmds:"python3 tools/intent_os_reconcile_v1_0.py --check\npython3 .z1-control/ratify.py --verify\npython3 .z1-control/ratify.py Q-BOARD-PUBLISH-01 --decision ACCEPT --by Night   # dry run: refused, by design",
+   meta:"VERIFIED 09-18: #407 merged (a23acb3), d2 and d14 signed b80131eb… / 27c98b65… · the guard landed 09-19 in #409 (c203835) · twelve decided PRs #394–#405 await Z2's merge"},
+  {id:"25", name:"login-gated board — Cloudflare Worker, no public copy", state:"progress", role:"stage 5 · Ship",
+   why:"Z2 (09-18): no public copy, a login to open the board. board/worker.mjs serves the board, its four section pages and the test dashboard only after verifying a Cloudflare Access token AND the identity's presence on the Worker's own allow-list (403 otherwise); fails closed until three variables are set; every answer no-store/noindex/CSP; X-Board-Commit on every authenticated answer. Deployed by Workers Builds from this repository once Z2 connects it. Built, reviewed by Copilot twice and by three red-team passes, merged 09-19 (#409, c203835) — inert until d31 rules.",
+   gate:"d31 ruled serve behind login; the four dashboard steps done; the three probes: unauthenticated GET never 200, authenticated body hash equals the file at X-Board-Commit, an unlisted identity gets 403 (NO_GATE if no second identity can be tested)",
+   cmds:"node board/worker.test.mjs\ncurl -sS -o /dev/null -w '%{http_code}' https://<worker>/intent-os-humanaios-v3_3.html   # 401, or 302 to the Access login — never 200",
+   meta:"runbook §5 has the open-the-board card and the four steps · 46 Worker checks PASS · d17 (local only) stands until d31 rules",
+   blockedOn:"d31 (serve behind login / stay local / later)"}
  ],
  departures:[
   {move:"NF_LEDGER — Z2 priors and dates", entity:"Z2", closes:"Sep 12 — PASSED", hot:true,
@@ -435,14 +504,14 @@ const HUMANAIOS = {
    action:"ratify, edit, or reject the six-pair co-run as a Molt candidate"},
   {move:"Framework-mapping Phase 1 audit gates (Q-PHASE1-2-ROLLOUT-01)", entity:"Z1/Z3", closes:"Sep 17", hot:false,
    action:"A8/A9 gates must be active (warning-only) on operations; per-repo template deployed to the 31 repos"},
-  {move:"First ruling through the relay — Q-INTENTOS-LAUNCH-01 falsifier (b)", entity:"Z2 (tap) · Z3 (relay)", closes:"Sep 30", hot:false,
-   action:"one board ruling lands via decision_relay.py into z1-inbox/ and is ratified by hash echo; otherwise the board is a report, not a control, and retires to docs/_archive/"}
+  {move:"First ruling through the relay — Q-INTENTOS-LAUNCH-01 falsifier (b)", entity:"Z2 (tap) · Z3 (relay)", closes:"Sep 30 — MET Sep 18", hot:false,
+   action:"MET 2026-09-18 01:00:59Z, when #391 opened with a RULING d14 block and a hash: line in its body — the falsifier as signed 09-14 (9a2a469b…) asks for a landing, not a ratification; the 'landed and ratified' reading carried since the first hash echo was criterion drift and is withdrawn (Z2's adversarial review on #408; correction appended to Z2_RULING_MERGE_IS_RATIFICATION.md). Separately, the ratification loop closed 16:38Z: #391 and #393 merged by Z2, signed by the reconcile job in #407. The board is a control, not a report"}
  ],
  gauges:[
   {label:"operated cycles", base:7.5, prev:7.5, target:100, scale:"3 of 40 (shown as %)", note:"measured: 3 door-1 cycles on main, fingerprints unchanged · 0 intake-pipeline cycles · no projection offered"},
   {label:"specimen-intake Cycle 1 blockers cleared", base:50, prev:67, target:100, scale:"3 of 6 (NF-SCHEMA, B2, B3-build done; B1, ADV, OI-G1 open)", note:"projected: ADV run is Z1 work and needs no ruling — counts when the run is on the tree"},
-  {label:"owner rulings resolved (this board)", base:36, prev:36, target:100, scale:"8 of 22 (OI-G1/G2/G3, d1, d4, d17, d18, d19 done; d2, d3, d5–d16 open — each now a queue candidate)", note:"measured: d17–d19 ruled 09-14 evening, signed 9a2a469be2cbbe1d…"},
-  {label:"Z2 candidate backlog cleared (z1-inbox/INDEX.yaml)", base:10, prev:10, target:100, scale:"4 of 40 ratified · 36 awaiting_z2 (14 of them the board rulings filed 09-14, 1 the IC candidate)", note:"measured from INDEX.yaml after Q-INTENTOS-LAUNCH-01 was signed; the 48h window has passed on 6"},
+  {label:"owner decisions recorded (this board)", base:28, prev:61, target:100, scale:"10 of 36 (OI-G1/G2/G3, d1, d4, d17, d18, d19, d2, d14 done; d3, d5–d13, d15, d16 open with a decided PR each, #394–#405; d20–d30, d32, d33 filed 09-19; d31 open)", note:"measured: d17–d19 ruled 09-14 evening, signed 9a2a469be2cbbe1d…; d2 and d14 ruled 09-18 by merge, signed b80131eb… and 27c98b65… (#407) — a ruling counts here when its reconcile PR is merged · denominator 22 → 36 on 09-19: d20–d30 and d32 were carried inside three later candidate blocks with no row here, and d33 (the filename, d19's successor) is new — each is its own block and row, so the board shows every open decision; a new question adds to both numbers · projected 22 of 36 if the twelve decided PRs merge · recorded ≠ resolved: d2 and d14 are `later`"},
+  {label:"Z2 candidate backlog cleared (z1-inbox/INDEX.yaml)", base:15, prev:34, target:100, scale:"9 of 63 ratified · 54 awaiting_z2 (12 board rulings with a decided PR open; 13 board-ruling blocks d20–d30/d32/d33 filed 09-19; 1 IC candidate for the ratify bypass; d31; Q-INTENTOS-PAGES-GATE-01, the Tier 2 page-gate proposal from Z2's red-team review of #410)", note:"measured from INDEX.yaml on the 09-19 read (63 candidates, 54 awaiting); the 2-day window has passed on 36 — a measurement the validator reports, not a deadline (Ruling 5) · denominator 47 → 63: Q-BOARD-PUBLISH-01 and Q-IC-RATIFY-BYPASS-01 (#409), the thirteen board-ruling blocks and Q-INTENTOS-PAGES-GATE-01 (#410) — the universe grows as Z1 files, so the ratio can fall while rulings land · filed since the 09-18 read: +16 (47 → 63) · ratified since: 0 — the ratio moved on the denominator alone · projected 21 of 63 if the twelve decided PRs merge"},
   {label:"graph integrity (edges with valid endpoints)", base:100, prev:100, target:100, scale:"53 of 53 · 22 nodes", note:"measured 09-14 on the landed JSON (regenerated 09-13) · cycle 3 still says v0.2 is not adversarially closed"},
   {label:"board seals that hold (intent_os_board_check)", base:100, prev:100, target:100, scale:"see checker output — exit 0 = HOLDS", note:"measured by running the checker against this file; 3 records are listed as RECEIPT-GAP (commits lost in the history reset) and are not counted either way"},
   {label:"ACAT dimensions with an external comparator", base:50, prev:50, target:50, scale:"6 of 12", note:"measured by desk mapping only; target is honesty, not 100"},
@@ -466,29 +535,43 @@ const HUMANAIOS = {
   {id:"C14", text:"Z2 archives ≥ 40 of the 53 docs/ archive candidates unchanged", confidence:0.60, resolves:"2026-10-08 · lint now lists 57 candidates"},
   {id:"C15", text:"benchmark_lint.py is on main within a week of 09-08", confidence:0.70, resolves:"2026-09-15 · absent on 09-14"},
   {id:"C16", text:"this board is reachable at the surface d17 names and intent_os_board_check reports HOLDS on that copy", confidence:0.55, resolves:"RESOLVED TRUE 2026-09-14 · d17 = local only, so the surface is the file on main (6d3443a); checker HOLDS · Brier 0.20"},
-  {id:"C17", text:"one Z2 ruling lands through the relay as a PR (not typed by hand) — first live use of decision_relay.py", confidence:0.40, resolves:"2026-09-30"},
+  {id:"C17", text:"one Z2 ruling lands through the relay as a PR (not typed by hand) — first live use of decision_relay.py", confidence:0.40, resolves:"RESOLVED TRUE 2026-09-18 · d14 (later) landed by /decide at 01:01:02Z as PR #391 on z2/d14-2026-09-18, every CI check green · Brier 0.36 — underconfident · merged by Z2 at 01:46Z: under the 09-18 ruling that merge is the ratification; signed 27c98b653cefe168… by the reconcile job's first live run (#407, merged 16:38Z) — the loop is closed end to end · the Brier 0.36 stands as scored against C17's own claim (lands as a PR, 01:01Z); the stronger criterion — ratified — was falsifier (b)'s, met 16:38Z, and is not re-scored here"},
   {id:"C18", text:"Z2 clears at least 8 of the 22 candidates that were awaiting_z2 on 09-14 (before the 14 board rulings were filed)", confidence:0.35, resolves:"2026-09-28"}
  ],
  rulings:[
   {id:"d1", ruled:true, q:"IC-SCOPE-05 — accept the draft scope rule as written?", s:"RULED: accepted · ic-scope-05-accepted-20260906 · enforce ruling ic-scope-05-enforce-20260908", opts:["accepted"]},
-  {id:"d2", qid:"Q-BOARD-RULING-02", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-02.md", q:"TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate?", s:"gates Q-ORCA-01 · open since 09-06", opts:["set","drop gate","later"]},
+  {id:"d2", ruled:true, qid:"Q-BOARD-RULING-02", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-02.md", t:"TLA_TOOLS_SHA256 gate", q:"TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate?", s:"RULED 2026-09-18: later · tapped on this board, landed by the relay as #393, merged by Night 01:50Z — the merge is the ratification — signed b80131eba2481548… by the reconcile job (#407; z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md) · SINGLE-MEMBER OVERRIDE: the author reviewed and merged their own PR (d7's bypass), recorded as such in the ruling section · a deferral is a ruling and this block is closed: its bytes are signed, so re-opening the question is a new Q- block (filed when Q-ORCA-01 needs it, citing this one as provenance), never an edit of this one; the row stays on this board, marked ruled, as the block says", opts:["ruled: later"]},
   {id:"d3", qid:"Q-BOARD-RULING-03", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-03.md", q:"z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate?", s:"nothing is ordered until it exists · open since 09-06", opts:["set","drop gate","later"]},
-  {id:"d4", ruled:true, q:"Direct push of b8aac1be — ratify as an exception, or revert and re-land through a pull request?", s:"RULED: exception · direct-push-exception-testing-20260906 · the later direct pushes are d7's question", opts:["ratified"]},
-  {id:"d5", qid:"Q-BOARD-RULING-05", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-05.md", q:"GRBS ↔ Empirica — what is the formal relationship?", s:"open ruling carried across sessions · no file on the tree defines GRBS or the relationship; the only Empirica wiring is tools/smag_to_empirica_connector.py and the practice seat in .empirica/", opts:["rule now","later"]},
-  {id:"d6", qid:"Q-BOARD-RULING-06", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-06.md", q:"First job-posting batch — where does it come from?", s:"the only input that moves the intake count (0 of 40 from that door) · NF token due 09-19 assumes an answer", opts:["own postings","partner","scrape","later"]},
-  {id:"d7", qid:"Q-BOARD-RULING-07", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-07.md", q:"Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event?", s:"(a) matches the graph ('code, not memory'); (b) is honest about the current state · open since 09-08", opts:["no bypass","bypass + IC","later"]},
-  {id:"d8", qid:"Q-BOARD-RULING-08", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-08.md", q:"c08f86c history — accept that the PII literals stay in history, or rewrite history?", s:"partly overtaken: the repo history was reset 09-10 and c08f86c is no longer reachable locally; whether the literals survive on the remote's full history is Z2's read", opts:["accept","rewrite","later"]},
-  {id:"d9", qid:"Q-BOARD-RULING-09", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-09.md", q:"B1 — is the platform contract id / feedback / task count covered by the contractor agreement?", s:"Z2 reads the contract; nothing about SPC-01 enters the tree until answered · Cycle 1 week is now", opts:["not covered","covered","later"]},
-  {id:"d10", qid:"Q-BOARD-RULING-10", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-10.md", q:"Option B — ratify the six-pair co-run as a Molt candidate (4-week window, revert if ≥3 pairs r<0.3)?", s:"moves six map rows from REPORTED to VERIFIED-LIVE · 09-15 date is tomorrow", opts:["ratify","edit","reject","later"]},
-  {id:"d11", qid:"Q-BOARD-RULING-11", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-11.md", q:"Option A — file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists?", s:"H-BM-03 stays PROPOSED until then", opts:["file as draft","ratify now","later"]},
-  {id:"d12", qid:"Q-BOARD-RULING-12", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-12.md", q:"H-CAL-01 — queue the mechanism study as a Molt candidate (8-week window) parallel to Option B?", s:"high risk, high reward; needs traced model access", opts:["queue","hold","reject"]},
-  {id:"d13", qid:"Q-BOARD-RULING-13", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-13.md", q:"Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions?", s:"turns 'cannot be verified externally' into 'measured something nobody else measures; here are the receipts'", opts:["require","later"]},
-  {id:"d14", qid:"Q-BOARD-RULING-14", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-14.md", q:"LPCS — independent check (a), convergence specimen (b), destination (c), or none?", s:"three readings carried; Nemeth caveat applies to (a)", opts:["(a) check","(b) specimen","(c) destination","none","later"]},
-  {id:"d15", qid:"Q-BOARD-RULING-15", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-15.md", q:"FALS-43 — batch ruling on the 43 hypotheses without written falsifiers?", s:"premise partly obsolete: the repaired z2 gate now enforces falsifiers on z1-inbox candidate blocks, and ci_gates.py carries an M11 falsifier gate; falsifier_lint.py as a file still does not exist", opts:["rule now","later"]},
-  {id:"d16", qid:"Q-BOARD-RULING-16", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-16.md", q:"docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold?", s:"nothing is deleted either way; archive keeps sha + ruling hash · candidate Q-DOC-LIFECYCLE-01 awaiting_z2 since 09-08", opts:["archive as listed","edit list","later"]},
-  {id:"d17", ruled:true, q:"Board publish surface — copy to site/board/ on GitHub Pages (public), or keep it a file Z2 opens locally?", s:"RULED 2026-09-14: local only · signed 9a2a469be2cbbe1d… (z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md; choices in Z2_RULING_INTENTOS_LAUNCH.md)", opts:["ruled: local only"]},
-  {id:"d18", ruled:true, q:"Relay landing path — keep z2-rulings/<date>/ PRs, or land each ruling in z1-inbox/<date>/ + INDEX.yaml so the z2 gate and the triage job see it?", s:"RULED 2026-09-14: z1-inbox + INDEX.yaml · signed 9a2a469be2cbbe1d… · relay v0.3 implements it; z2-rulings/ retired unused", opts:["ruled: z1-inbox + INDEX"]},
-  {id:"d19", ruled:true, q:"Board versioning — freeze the file path (each read changes the data inside) or keep bumping v3_x per read?", s:"RULED 2026-09-14: freeze path · signed 9a2a469be2cbbe1d… · ui/intent-os-humanaios-v3_3.html is the stable consumer target", opts:["ruled: freeze path"]}
+  {id:"d4", ruled:true, t:"Direct push of b8aac1be", q:"Direct push of b8aac1be — ratify as an exception, or revert and re-land through a pull request?", s:"RULED: exception · direct-push-exception-testing-20260906 · the later direct pushes are d7's question", opts:["ratified"]},
+  {id:"d5", qid:"Q-BOARD-RULING-05", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-05.md", t:"GRBS ↔ Empirica relationship", q:"GRBS ↔ Empirica — what is the formal relationship?", s:"open ruling carried across sessions · no file on the tree defines GRBS or the relationship; the only Empirica wiring is tools/smag_to_empirica_connector.py and the practice seat in .empirica/", opts:["rule now","later"]},
+  {id:"d6", qid:"Q-BOARD-RULING-06", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-06.md", t:"First job-posting batch source", q:"First job-posting batch — where does it come from?", s:"the only input that moves the intake count (0 of 40 from that door) · NF token due 09-19 assumes an answer", opts:["own postings","partner","scrape","later"]},
+  {id:"d7", qid:"Q-BOARD-RULING-07", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-07.md", t:"Branch protection · admin bypass", q:"Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event?", s:"(a) matches the graph ('code, not memory'); (b) is honest about the current state · open since 09-08", opts:["no bypass","bypass + IC","later"]},
+  {id:"d8", qid:"Q-BOARD-RULING-08", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-08.md", t:"c08f86c history (PII literals)", q:"c08f86c history — accept that the PII literals stay in history, or rewrite history?", s:"partly overtaken: the repo history was reset 09-10 and c08f86c is no longer reachable locally; whether the literals survive on the remote's full history is Z2's read", opts:["accept","rewrite","later"]},
+  {id:"d9", qid:"Q-BOARD-RULING-09", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-09.md", t:"B1 contract confidentiality", q:"B1 — is the platform contract id / feedback / task count covered by the contractor agreement?", s:"Z2 reads the contract; nothing about SPC-01 enters the tree until answered · Cycle 1 week is now", opts:["not covered","covered","later"]},
+  {id:"d10", qid:"Q-BOARD-RULING-10", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-10.md", t:"Option B co-run as Molt candidate", q:"Option B — ratify the six-pair co-run as a Molt candidate (4-week window, revert if ≥3 pairs r<0.3)?", s:"moves six map rows from REPORTED to VERIFIED-LIVE · 09-15 date is tomorrow", opts:["ratify","edit","reject","later"]},
+  {id:"d11", qid:"Q-BOARD-RULING-11", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-11.md", t:"Option A positioning as draft", q:"Option A — file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists?", s:"H-BM-03 stays PROPOSED until then", opts:["file as draft","ratify now","later"]},
+  {id:"d12", qid:"Q-BOARD-RULING-12", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-12.md", t:"H-CAL-01 mechanism study", q:"H-CAL-01 — queue the mechanism study as a Molt candidate (8-week window) parallel to Option B?", s:"high risk, high reward; needs traced model access", opts:["queue","hold","reject"]},
+  {id:"d13", qid:"Q-BOARD-RULING-13", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-13.md", t:"Option C evidence-tier tag", q:"Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions?", s:"turns 'cannot be verified externally' into 'measured something nobody else measures; here are the receipts'", opts:["require","later"]},
+  {id:"d14", ruled:true, qid:"Q-BOARD-RULING-14", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-14.md", t:"LPCS relationship", q:"LPCS — independent check (a), convergence specimen (b), destination (c), or none?", s:"RULED 2026-09-18: later · the first ruling through the relay (#391, 01:01Z), merged by Night 01:46Z — the merge is the ratification — signed 27c98b653cefe168… by the reconcile job (#407; z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md) · SINGLE-MEMBER OVERRIDE: the author reviewed and merged their own PR (d7's bypass), recorded as such in the ruling section · this block is closed (bytes signed); re-opening the question is a new Q- block citing this one; the row stays on this board, marked ruled · three readings still carried; Nemeth caveat applies to (a)", opts:["ruled: later"]},
+  {id:"d15", qid:"Q-BOARD-RULING-15", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-15.md", t:"FALS-43 batch ruling", q:"FALS-43 — batch ruling on the 43 hypotheses without written falsifiers?", s:"premise partly obsolete: the repaired z2 gate now enforces falsifiers on z1-inbox candidate blocks, and ci_gates.py carries an M11 falsifier gate; falsifier_lint.py as a file still does not exist", opts:["rule now","later"]},
+  {id:"d16", qid:"Q-BOARD-RULING-16", path:"z1-inbox/2026-09-14/Q-BOARD-RULING-16.md", t:"docs/ triage by hash", q:"docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold?", s:"nothing is deleted either way; archive keeps sha + ruling hash · candidate Q-DOC-LIFECYCLE-01 awaiting_z2 since 09-08", opts:["archive as listed","edit list","later"]},
+  {id:"d17", ruled:true, t:"Board publish surface", q:"Board publish surface — copy to site/board/ on GitHub Pages (public), or keep it a file Z2 opens locally?", s:"RULED 2026-09-14: local only · signed 9a2a469be2cbbe1d… (z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md; choices in Z2_RULING_INTENTOS_LAUNCH.md)", opts:["ruled: local only"]},
+  {id:"d18", ruled:true, t:"Relay landing path", q:"Relay landing path — keep z2-rulings/<date>/ PRs, or land each ruling in z1-inbox/<date>/ + INDEX.yaml so the z2 gate and the triage job see it?", s:"RULED 2026-09-14: z1-inbox + INDEX.yaml · signed 9a2a469be2cbbe1d… · relay v0.3 implements it; z2-rulings/ retired unused", opts:["ruled: z1-inbox + INDEX"]},
+  {id:"d19", ruled:true, t:"Board versioning", q:"Board versioning — freeze the file path (each read changes the data inside) or keep bumping v3_x per read?", s:"RULED 2026-09-14: freeze path · signed 9a2a469be2cbbe1d… · ui/intent-os-humanaios-v3_3.html is the stable consumer target", opts:["ruled: freeze path"]},
+  {id:"d20", qid:"Q-BOARD-RULING-20", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-20.md", t:"Test harness as §A step 3", q:"Test harness — adopt tools/intent_os_test_harness_v1_0.py as session-open (§A) step 3, so a session cites the board only on a GREEN run or one whose every red row is named in a candidate — or keep it advisory?", s:"carried inside Q-INTENTOS-TEST-01 (ratified 09-16); the choice was never recorded — filed 09-19 as its own block so a tap can land it", opts:["adopt as §A step 3","keep advisory","later"]},
+  {id:"d21", qid:"Q-BOARD-RULING-21", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-21.md", t:"Dashboard: commit the rendered receipt", q:"Test dashboard — commit the rendered dashboard and receipt with each run (the tree carries the last verified state), or keep main's dashboard unrendered and render locally per session?", s:"carried inside Q-INTENTOS-TEST-01; Q-INTENTOS-REFRESH-01 assumes the status quo (the dashboard carries the receipt)", opts:["commit the rendered dashboard","render locally per session","later"]},
+  {id:"d22", qid:"Q-BOARD-RULING-22", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-22.md", t:"Scale-out order for the test surface", q:"Test surface scale-out — follow the zone registry's order (Z-001 humanaios first), or name the first repository?", s:"carried inside Q-INTENTOS-TEST-01 · pathway §5: per repo, index → registry → surface · C20 (0.45) expects a second zone to pass t4-repo-index", opts:["registry order (Z-001 first)","name the first repo","later"]},
+  {id:"d23", qid:"Q-BOARD-RULING-23", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-23.md", t:"Refresh job: enable the PR/issue half", q:"Refresh job — set INTENT_OS_REFRESH_AUTOPR=true so the job opens a re-seal PR per mechanical drift and an issue per NEEDS-HUMAN read, or keep it report-only?", s:"carried inside Q-INTENTOS-REFRESH-01 · report-only already ends the silence (a summary line per merge); enabling adds one bot PR per drift that a human still merges · nothing is signed either way", opts:["enable auto-PR","report-only","later"]},
+  {id:"d24", qid:"Q-BOARD-RULING-24", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-24.md", t:"May a job advance the board's rev?", q:"Board rev — an automated re-seal advances rev, so an open copy is superseded on its next restore (taps kept). Accept that a job's read may supersede an open copy, or reserve rev advances for human re-reads?", s:"carried inside Q-INTENTOS-REFRESH-01 · sibling of d30 (mechanical pointer moves)", opts:["a job may advance rev","reserve rev for human re-reads","later"]},
+  {id:"d25", qid:"Q-BOARD-RULING-25", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-25.md", t:"Local copies: re-download or a release asset", q:"Local copies — re-download ui/intent-os-humanaios-v3_3.html from the repository after each refresh, or publish a rolling release asset intent-os-latest so a copy has one stable URL?", s:"carried inside Q-INTENTOS-REFRESH-01 · d17 ruled local only · d31 may moot this: a served board has one URL and no local copy — if d31 rules serve behind login, later is the honest answer here", opts:["re-download from the repository","rolling release asset","later"]},
+  {id:"d26", qid:"Q-BOARD-RULING-26", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-26.md", t:"Resource-based grounding of the refresh job", q:"Resource-based grounding (Z2, 09-17: no AI-imposed time-frames; time-frames only where a regulatory authority requires them) — confirm that reading for the refresh job (event-driven only, no cron, falsifiers stated in merges and events), or name a regulatory time-frame that applies?", s:"carried inside Q-INTENTOS-REFRESH-01 · the daily cron is already removed; the relay's request ids carry no daily quota", opts:["confirm the reading","name a regulatory time-frame","later"]},
+  {id:"d27", qid:"Q-BOARD-RULING-27", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-27.md", t:"Model endpoint policy for the bus", q:"Model endpoint policy for /assist and for workers that take requests — none (no model in the loop; workers are Claude Code sessions and people, the relay only records), local (an open-weight model behind the relay), or hosted (a provider key on the relay host)?", s:"carried inside Q-INTENTOS-BUS-01 · today /assist answers without a model key by saying so · the relay's gate and HMAC are unchanged by any choice", opts:["none","local","hosted","later"]},
+  {id:"d28", qid:"Q-BOARD-RULING-28", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-28.md", t:"Issue mirror for REQ- records", q:"Issue mirror — mirror every REQ- record to one GitHub issue (the Ask verbatim, the request block, a link to the record; labels agent-request + one stage label), or keep it git-only (the req/ PR is the notice)?", s:"carried inside Q-INTENTOS-BUS-01 · its falsifier: if accepted, the first three requests each have an issue whose (state, stage) pair matches the record", opts:["mirror to issues","git-only","later"]},
+  {id:"d29", qid:"Q-BOARD-RULING-29", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-29.md", t:"The smoke contract in the manifest", q:"Smoke contract — make smoke_test: true in the tool manifest mean carries a flag (--smoke-test or --self-test exists in the source), not mentions: 18 no-flag rows drop (141 → 123), the 17 whose flag fails stay claimed and red in T5 — or keep the text match?", s:"carried inside Q-INTENTOS-BUS-01 · the two IC-candidates step 3 measured (a text-match smoke_test; a smoke test with side effects) ride on this · a flag that fails is a bug to fix, not a claim to drop", opts:["flag means carries","keep the text match","later"]},
+  {id:"d30", qid:"Q-BOARD-RULING-30", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-30.md", t:"Squash-merge read pointer", q:"Squash-merge read pointer — let intent_os_board_reseal move read.against mechanically when the tree hash at the new HEAD equals the tree hash at the read (a fetch, not a judgement), or keep it NEEDS-HUMAN as now?", s:"carried inside Q-INTENTOS-BUS-01 · the pointer named a branch-only commit twice on #408 (Copilot caught it) and the reseal tool rewrote it to a branch commit twice on #409 (corrected by hand) — a mechanical rule would end both; NEEDS-HUMAN keeps a person on every squash-merge", opts:["mechanical pointer move","keep NEEDS-HUMAN","later"]},
+  {id:"d31", qid:"Q-BOARD-PUBLISH-01", path:"z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md", t:"Board surface: login-gated Worker", q:"Board surface — serve the board from a login-gated Cloudflare Worker (Access, allow-listed identities; no public copy), replacing d17's local-only?", s:"Z2 09-18: 'no public, login to open the board' · built inert on main: board/worker.mjs serves the board's six pages (the board, Decisions, Commitments, Verified records, ARENA, the test dashboard) only behind a verified Access login for an identity on its own allow-list (403 otherwise) and answers 401 until ACCESS_TEAM_DOMAIN/ACCESS_AUD/ACCESS_ALLOWED_EMAILS are set; ratify.py refuses to sign this block by hand — the merge of its PR is the only act; wrangler.jsonc is the Workers Builds config · steps in runbook §5", opts:["serve behind login","stay local","later"]},
+  {id:"d32", qid:"Q-BOARD-RULING-32", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-32.md", t:"KNOWN_RED list in the refresh job", q:"KNOWN_RED — the refresh job carries INTENT_OS_KNOWN_RED: t3-pytest-acat so the registered F-CAND does not open a STALE issue on every run. Accept that list as the place a registered-but-unfixed red row is named, or require the list to be empty (every red row files)?", s:"carried inside Q-INTENTOS-REFRESH-01 without a d-number; d32 because d31 is the login-gated board · the list is in the workflow file, so adding to it is a reviewed change; the row stays RED on the dashboard and in the receipt", opts:["accept the list","require empty","later"]},
+  {id:"d33", qid:"Q-BOARD-RULING-33", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-33.md", t:"Board filename (successor to d19)", q:"Board filename — rename ui/intent-os-humanaios-v3_3.html to ui/intent-os-board.html as the stable consumer target (a successor to d19's freeze), with a redirect from the old path so bookmarks and the local-copy instruction keep working?", s:"Z2 09-19: a clean file name, in one move — rename, every reference, re-seal — CONDITIONED on d31: the executing PR opens only after d31's ruling PR merges and carries the Worker redirect exactly when d31 ruled serve behind login (no Worker obligation on stay local; held while d31 is later) · d19 stays signed; this is its successor block", opts:["rename to intent-os-board.html","keep the frozen path","later"]},
  ],
  seals:[
   {artifact:"REGISTERED.md (re-sealed 2026-09-17 at e2b9a7a; content changed, description not re-read)", sha:"f33ba7bfeccc2387", path:"REGISTERED.md"},
@@ -507,7 +590,7 @@ const HUMANAIOS = {
   {artifact:"ACAT benchmark map (consumer: this board)", sha:"5fc6fc9222cc2d4e", path:"docs/ACAT_BENCHMARK_MAP_20260908.md"},
   {artifact:"DOC_TRIAGE_2026-09-08.md", sha:"fe630badbfc41867", path:"docs/DOC_TRIAGE_2026-09-08.md"},
   {artifact:"doc_lifecycle_lint.py on main", sha:"97ed26ef1d641542", path:"tools/doc_lifecycle_lint.py"},
-  {artifact:".z1-control/ratify.py 1.2.0 — the Z2 signature tool (Zone 2 ratified 09-13); 1.2.0 landed in #343 and writes the index fields, the records entry and the counts in one act — re-read 2026-09-17; Ruling 6 (2026-09-16) on 1.2.0 itself is awaiting Z2 signature", sha:"b401a26ba824346f", path:".z1-control/ratify.py"},
+  {artifact:".z1-control/ratify.py 1.2.0 — the Z2 signature tool (Zone 2 ratified 09-13); 1.2.0 landed in #343 and writes the index fields, the records entry and the counts in one act — re-read 2026-09-17; Ruling 6 (2026-09-16) on 1.2.0 itself is awaiting Z2 signature. Re-read 2026-09-18 (#409, from Z2's ChatGPT red-team finding 1): --apply now refuses any block with a ## Ruling section and a choice: line — a board ruling is ratified only by merging its PR (Z2, 09-18) — a Tier 2 gate change, registered as Q-IC-RATIFY-BYPASS-01", sha:"9a993ff8f59ecc81", path:".z1-control/ratify.py"},
   {artifact:"Q-IC030-REPIN-01 result (pin b35e8036… at 5d6f081, 09-10)", sha:"b4de0e088bb6ecdd", path:"z1-inbox/2026-09-10/Q-IC030-REPIN-01-RESULT.md"},
   {artifact:"cycle 1 receipt (independent) — unchanged since 09-08", sha:"7847cdb96ff2876f", path:"z1-inbox/2026-09-08/CYCLE_1_EXTERNAL_REVIEW.md"},
   {artifact:"cycle 2 receipt (adversarial) — unchanged", sha:"3c9ea3491105a712", path:"z1-inbox/2026-09-08/CYCLE_2_ADVERSARIAL_REPORT.md"},
@@ -515,10 +598,18 @@ const HUMANAIOS = {
   {artifact:"Z2 rulings 2026-09-08 — unchanged", sha:"3366a9462dda7ab0", path:"z1-inbox/2026-09-08/Z2_RULINGS_2026-09-08.md"},
   {artifact:"JESTER block (H-CAND-JESTER-01, DIVINER-01) — unchanged", sha:"0b967a365db14f71", path:"z1-inbox/2026-09-07/JESTER_EXTERNAL_CHECK_BLOCK.md"},
   {artifact:"WITCH/SPELL/CASCADE block — unchanged", sha:"aca4ee8c319e62b5", path:"z1-inbox/2026-09-07/WITCH_SPELL_CASCADE_BLOCK.md"},
-  {artifact:"decision_relay.py v0.4.5 (re-read 2026-09-17, second read: 0.4.0 added /task — the agent bus (a signed request lands as a REQ- record in z1-inbox, hashed ask, empty Fulfilment, indexed and rendered, on a branch with a PR; nothing signed), index helpers for the column-0 index, no daily quota, string-only one-line fields, an ask may not carry a ## line, an existing path is refused. 0.4.1 makes the relay its own gate so it can run on a host: RELAY_BASIC_PASS turns on HTTP basic-auth for every request but the CORS preflight (the ngrok policy's gate, inside), GET /healthz answers ok with no credential for the host's probe, $PORT is honoured, request lines are logged without bodies or credentials. Self-test PASS incl. the gate; local wiring test: healthz 200, unauthenticated 401 text, signed+authenticated /task lands, replay 409. 0.4.2 (re-read 2026-09-17, third read): request lines logged on stdout, not stderr — a host read them as errors; Z2's first live observation from a browser at 21:20Z: GET / behind the gate answered ok, github_token true; fourth read: self-test now runs a loopback HTTP round-trip with both streams captured and fails if a request line reaches stderr — the host's logging contract is protected by test, as Copilot asked on #384); 0.4.3 (re-read 2026-09-17, fifth read): the log line carries the status and the refusal reason — Z2's first three taps (POST /assist, 21:34–21:37Z) were all 401 and 0.4.2's log could not say which of the two 401s; the self-test now proves gate-401 and signature-401 read differently; the reason is a closed set — a why that quotes the request, and a malformed request line, never reach the log); 0.4.4 (sixth read): Z2's first signed exchange on the live host, 22:37Z — one gate 401 named by the log, then four /assist 200; /assist without a model key now says so instead of \"dry-run\", and the self-test asserts it live, not only dry); 0.4.5 (seventh read): Z2's first /decide tap (22:52Z, d6 → scrape) failed as \"INDEX not found\" because GitHub refused the branch create and the relay swallowed it — no z2/ branch on the remote; now a GitHub refusal answers with GitHub's message and what the token needs, and the self-test drives /decide, /ratify and /task through a stub of the GitHub API; Z2's red-team audit on #387 taken: a refused PR create or a refused notification after a governance write answers PENDING/OPEN/RATIFIED with a warning, a refused write names what was written before it, a contents 404 is probed (file · branch · repository), 19-case failure matrix)", sha:"9d13f772619dde45", path:"tools/decision_relay.py"},
+  {artifact:"decision_relay.py v0.5.0 (re-read 2026-09-17, second read: 0.4.0 added /task — the agent bus (a signed request lands as a REQ- record in z1-inbox, hashed ask, empty Fulfilment, indexed and rendered, on a branch with a PR; nothing signed), index helpers for the column-0 index, no daily quota, string-only one-line fields, an ask may not carry a ## line, an existing path is refused. 0.4.1 makes the relay its own gate so it can run on a host: RELAY_BASIC_PASS turns on HTTP basic-auth for every request but the CORS preflight (the ngrok policy's gate, inside), GET /healthz answers ok with no credential for the host's probe, $PORT is honoured, request lines are logged without bodies or credentials. Self-test PASS incl. the gate; local wiring test: healthz 200, unauthenticated 401 text, signed+authenticated /task lands, replay 409. 0.4.2 (re-read 2026-09-17, third read): request lines logged on stdout, not stderr — a host read them as errors; Z2's first live observation from a browser at 21:20Z: GET / behind the gate answered ok, github_token true; fourth read: self-test now runs a loopback HTTP round-trip with both streams captured and fails if a request line reaches stderr — the host's logging contract is protected by test, as Copilot asked on #384); 0.4.3 (re-read 2026-09-17, fifth read): the log line carries the status and the refusal reason — Z2's first three taps (POST /assist, 21:34–21:37Z) were all 401 and 0.4.2's log could not say which of the two 401s; the self-test now proves gate-401 and signature-401 read differently; the reason is a closed set — a why that quotes the request, and a malformed request line, never reach the log); 0.4.4 (sixth read): Z2's first signed exchange on the live host, 22:37Z — one gate 401 named by the log, then four /assist 200; /assist without a model key now says so instead of \"dry-run\", and the self-test asserts it live, not only dry); 0.4.5 (seventh read): Z2's first /decide tap (22:52Z, d6 → scrape) failed as \"INDEX not found\" because GitHub refused the branch create and the relay swallowed it — no z2/ branch on the remote; now a GitHub refusal answers with GitHub's message and what the token needs, and the self-test drives /decide, /ratify and /task through a stub of the GitHub API; Z2's red-team audit on #387 taken: a refused PR create or a refused notification after a governance write answers PENDING/OPEN/RATIFIED with a warning, a refused write names what was written before it, a contents 404 is probed (file · branch · repository), 19-case failure matrix); 0.4.6 (re-read 2026-09-18, eighth read): the first ruling landed through it — d14 (later), PR #391, 01:01:02Z — and its hash echo was refused (a partial hash); /ratify now resumes a ratification GitHub refused mid-way (Z2's falsifier #388: RATIFIED candidate behind an awaiting_z2 index entry, completed by the identical echo, nothing rewritten; the ruling file's records: entry is added whenever the index lacks it, the echo time is the request's, the docstrings state the exception); 0.4.7 (re-read 2026-09-18, ninth read): thirteen more taps landed in one minute (#393–#405) — /ratify now merges main into the branch before it writes, since two ratifications from one base cannot both merge (echo, merge, then the next); PR titles and RATIFY comments carry the question and the choice; the refresh comes after the read-only checks and is re-checked, and an empty 204 from the merge API is handled); 0.4.8 (re-read 2026-09-18, tenth read): #391 and #393 were merged as PENDING before their echo — a ratification whose PENDING PR is no longer open now lands in a new PR that carries it; a refused read of the old PR is a warning on RATIFIED, never a 500); 0.5.0 (re-read 2026-09-18, eleventh read — Z2's ruling: the merge is the ratification): /decide writes status: DECIDED into the candidate's Ruling section on a one-file branch, refreshed from main when a tap is re-sent, and opens a PR whose body says the merge is the ratification; the relay signs nothing — /ratify, its resume, its refresh-before-write and its new-PR-after-merge are removed with their tests (404 unknown path; 17-row failure matrix over branch, refresh, contents, PR, label); the signing moved to tools/intent_os_reconcile_v1_0.py on main)", sha:"4ebd15195394b749", path:"tools/decision_relay.py"},
+  {artifact:"intent_os_reconcile_v1_0.py — the reconcile tool (this read, 2026-09-18): for every awaiting candidate whose file carries a relay block (DECIDED, or 0.4.x PENDING) it verifies the block and body hashes, finds the merged PR behind the file's last commit, maps the merger's login to a declared ratifier (RECONCILE_RATIFIERS), signs the merged bytes with that name and the merge date exactly as ratify.py --verify recomputes, appends to the day's ruling file, marks INDEX.yaml, renders; the candidate file is never touched; UNVERIFIED · NO-PR · NOT-RATIFIER write nothing; its self-test runs validate.py, render.py --check and ratify.py --verify on the result; run against main from #406 it names d2 (#393) and d14 (#391), merged by Night, single-member override", sha:"b58b3de3963c108c", path:"tools/intent_os_reconcile_v1_0.py"},
+  {artifact:"board/worker.mjs — the login-gated board Worker (filed as d31 on 2026-09-18, merged in #409; re-read 2026-09-19): serves the board's six pages under ui/ (the board, its four section pages generated by tools/intent_os_pages_v1_0.py, the test dashboard — not the Z2 reviewer, which reads ../z1-inbox at runtime) only after verifying the Cloudflare Access RS256 token from Access's request header (the cookie is not read) against the team's keys (shape, issuer, audience, expiry, nbf — a present nbf must be a number, and a future one is refused without skew — signature, in that order) AND requiring the token's email to be on ACCESS_ALLOWED_EMAILS (a valid login for an unlisted identity is 403: authorization is the code's, not only the Access policy's — Z2's ChatGPT red-team finding 2); keys held in an immutable snapshot, one rate-limited refresh on an unknown kid, last-known-good for 24 h if the certs endpoint fails, then closed; login judged before method, so an unauthenticated POST learns only 401; every answer no-store/noindex/no-referrer/nosniff/frame-deny with a CSP naming the relay and raw.githubusercontent.com as the only connect targets; every authenticated answer carries X-Board-Commit; with ACCESS_TEAM_DOMAIN/ACCESS_AUD/ACCESS_ALLOWED_EMAILS unset it answers 401 to everything but /healthz — fails closed, so a deploy before d31 rules publishes nothing; self-test node board/worker.test.mjs, 48 checks", sha:"dbadb3598d12ac64", path:"board/worker.mjs"},
+  {artifact:"wrangler.jsonc — Workers Builds configuration for intent-os-board (this read, 2026-09-18): assets ./ui behind run_worker_first, keep_vars so the three dashboard-set Access variables survive deploys; the deploy command stamps BOARD_COMMIT from WORKERS_CI_COMMIT_SHA; inert until Z2 connects the repository", sha:"c75a9f436e416589", path:"wrangler.jsonc"},
+  {artifact:"package.json — pins wrangler 4.135.0 for Workers Builds (this read, 2026-09-18; the lockfile beside it is the resolved tree); not a package, nothing published or imported, no type field so the CommonJS tools keep their semantics", sha:"67b25bcd5287aa89", path:"package.json"},
+  {artifact:"tools/intent_os_pages_v1_0.py — the section-page generator (re-read 2026-09-19 after three red-team passes on #410/#411): writes ui/intent-os-decisions.html, -commitments.html, -records.html and -arena.html from this board — the same bytes under a data-view with a canonical link back and a stamp carrying the sha256 of the board bytes, so a served page can compare fingerprints with the board beside it; data, seals, taps, saved state and the relay stay one script; --check says whether the pages are current (a harness row, t1-pages-fresh, runs it after every merge); render refuses a board with more than one body tag, a foreign canonical link, or CSS views it does not write (SpecLoadFailed; both quote styles; regexes over the text, not a parser — the known gap is in its docstring), and the smoke test carries those adversarial boards plus the stale and hand-edited page cases; the JSON receipt names the board actually rendered (--input); Builder v1.7: argparse, --smoke-test, --input, write_report to outputs/", sha:"6514c7f6dff21ba8", path:"tools/intent_os_pages_v1_0.py"},
+  {artifact:"intent-os-reconcile.yml — the job on main (this read, 2026-09-18): on every push to main touching z1-inbox/, plan → apply → the z2 gate's own checks → one PR 'intent-os: reconcile ratifications' on intent-os/reconcile (updated in place while open); dispatches the z2 gate on that branch because a push made with GITHUB_TOKEN starts no runs; pinned to main; concurrency-serialised; decides nothing — records who merged and whether a second person approved", sha:"0e0162df6a62655c", path:".github/workflows/intent-os-reconcile.yml"},
+  {artifact:"Z2 ruling 2026-09-18 — the merge is the ratification (echo retired · one file per ruling PR · merger + merge date sign · reviewed and approved, single-member override until a second member · #391/#393 are the ratifications of d14/d2); a record, no decision asked; correction appended 09-18 from Z2's adversarial review on #408: effect 5's \"landed and ratified\" reading of Q-INTENTOS-LAUNCH-01 falsifier (b) withdrawn — the signed falsifier asks for a landing, met by #391 at 01:00:59Z", sha:"0a2b01fd11c9b3da", path:"z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md"},
+  {artifact:"Z2 rulings 2026-09-18 — Q-BOARD-RULING-02 and -14 ACCEPT (later), the first two signatures written by the reconcile job (#407): merged by Night, single-member override, hashes b80131eb… and 27c98b65… over the merged bytes; the file grows by one section per merged ruling, so every later reconcile PR drifts this seal and the next read re-seals it", sha:"b5ea1532a2964e0c", path:"z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
   {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"515406c189694732", path:"tools/intent_os_board_check_v1_0.py"},
-  {artifact:"z1-inbox/INDEX.yaml (re-sealed 2026-09-17 at ff19e91; content changed, description not re-read)", sha:"f2f7bce6cd6b1ed7", path:"z1-inbox/INDEX.yaml"},
+  {artifact:"z1-inbox/INDEX.yaml (re-sealed 2026-09-19 on this read's branch after main 6233c26 — adds Q-INTENTOS-PAGES-GATE-01 (G1–G4), marks Q-INTENTOS-REFRESH-01 and Q-INTENTOS-BUS-01 DECOMPOSED into their board-ruling blocks, and d33's note conditioned on d31's outcome; 63 candidates, 54 awaiting_z2 per .z1-control/validate.py; content re-read)", sha:"198430fdc01e09a9", path:"z1-inbox/INDEX.yaml"},
   {artifact:"Z2 rulings 2026-09-14 — Q-INTENTOS-LAUNCH-01 ACCEPT signed by ratify.py", sha:"d6bc85e4e21dd631", path:"z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"},
   {artifact:"Z2 ruling — d17 local only · d18 z1-inbox · d19 freeze path · tokens revoked", sha:"5694e1a9bd50f150", path:"z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"},
   {artifact:"Q-INTENTOS-LAUNCH-01 candidate (bytes pinned by the signature above)", sha:"bde5dae91ef3e318", path:"z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md"},
@@ -638,23 +729,25 @@ async function relayPost(path,obj){
   return res;
 }
 function ruling(id){return (project.rulings||[]).find(x=>x.id===id);}
-function setStat(id,txt){const e=document.getElementById("rstat-"+id); if(e) e.textContent=txt;}
+// A ruling names itself as "d14 — LPCS relationship" wherever the board speaks about it (prompts, alerts, status lines):
+// the entry's short title `t`, or the question's first clause when an entry has none.
+function rtitle(x){return x&&(x.t||String(x.q||"").split(" — ")[0].replace(/\?$/,"").slice(0,60))||"";}
+function rname(id){const x=ruling(id); return x?id+" — "+rtitle(x):id;}
+function setStat(id,txt){const e=document.getElementById("rstat-"+id); if(e) e.textContent=txt?rname(id)+": "+txt:"";}
 async function relaySend(id){
-  const x=ruling(id); if(!x||x.ruled){toast(id+" is already ruled");return;}
+  const x=ruling(id); if(!x||x.ruled){toast(rname(id)+" is already ruled");return;}
   state.relay=state.relay||{}; const cur=state.relay[id];
-  if(cur&&cur.status==="RATIFIED"){toast(id+" is ratified ("+(cur.signature||"").slice(0,16)+"…) — nothing more to send");return;}
-  const choice=state.rulings[id]; if(!choice){alert("Pick an option first.");return;}
-  if(cur&&cur.status==="PENDING"){  // second tap = echo the hash back. A tap is not a ratification; the hash is.
-    if(cur.choice&&cur.choice!==choice){ if(!confirm("The PENDING block landed '"+cur.choice+"' but '"+choice+"' is now selected. Re-send to land the new choice? (Cancel keeps the pending block.)")) return;
-      delete state.relay[id]; persist(); return relaySend(id); }
-    const h=prompt("Ratify "+id+" by echoing its hash:\n"+cur.hash+"\n\nPaste it here (or leave blank to cancel):","");
-    if(!h) return;
-    const res=await relayPost("/ratify",{id,hash:h.trim(),expected_hash:cur.hash,number:cur.number,branch:cur.branch||"",qid:cur.qid||x.qid||"",path:cur.path||x.path||""});
-    if(res&&res.status==="RATIFIED"){state.relay[id]={...cur,status:"RATIFIED",signature:res.signature||"",ruling:res.ruling||"",warning:res.warning||""};} setStat(id,res?res.status+(res.why?" · "+res.why:"")+(res.warning?" · "+res.warning:""):"no response"); persist(); render(); return;
+  const choice=state.rulings[id]; if(!choice){alert(rname(id)+": pick an option first.");return;}
+  // The merge is the ratification (Z2, 2026-09-18): a tap lands the choice in the ruling's own candidate block, in a pull
+  // request that changes that one file; reviewing and merging the PR is the Z2 act; the reconcile job on main records
+  // the signature. The board never learns of the merge — it asks before it re-sends a choice that already landed.
+  if(cur&&cur.hash){
+    const same=!cur.choice||cur.choice===choice;
+    if(!confirm(rname(id)+": '"+cur.choice+"' already landed"+(cur.pr?" as "+cur.pr:"")+(same?". Re-send it? (The branch is refreshed from main and the same section rewritten; if that PR is already merged, the merge stands.)":". Re-send to land '"+choice+"' instead? (The open PR is updated; a merged one already stands.)"))) return;
   }
   setStat(id,"sending…");
   const res=await relayPost("/decide",{id,qid:x.qid||"",path:x.path||"",q:x.q,choice,note:""});
-  // a warning rides a PENDING answer when the block landed on the branch but the pull request could not be opened
+  // a warning rides a DECIDED answer when the block landed on the branch but the pull request could not be opened
   if(res&&res.hash){state.relay[id]={status:res.status,pr:res.pr||"",number:res.number,hash:res.hash,body_hash:res.body_hash||"",choice:res.choice||choice,branch:res.branch||"",qid:res.qid||x.qid||"",path:res.path||x.path||"",warning:res.warning||""};persist();render();}
   else setStat(id,res?(res.status+" · "+(res.why||"")):"no response");
 }
@@ -715,6 +808,86 @@ async function restore(){
 
 function stateWord(st){return st==="done"?"verified":st==="progress"?"in progress":"needs a decision"}
 
+/* ---------- pages and cross-links ----------
+   The board and its section pages are one file rendered under a view (body[data-view]); tools/intent_os_pages_v1_0.py
+   writes the pages from the board. A step's blockedOn names decisions (d7, d23 …) — each becomes a link to its row on
+   the Decisions page; each decision row lists the steps whose blockedOn names it, linking back to the step's card. */
+const PAGES=[
+  {view:"board", file:"intent-os-humanaios-v3_3.html", name:"Board", desc:"pipeline · metrics · deadlines"},
+  {view:"decisions", file:"intent-os-decisions.html", name:"Decisions", desc:"calls only the owner makes"},
+  {view:"commitments", file:"intent-os-commitments.html", name:"Commitments", desc:"predictions before results"},
+  {view:"records", file:"intent-os-records.html", name:"Verified records", desc:"the receipts"},
+  {view:"arena", file:"intent-os-arena.html", name:"ARENA", desc:"the experiment"},
+  {view:"dashboard", file:"intent-os-test-dashboard-v1_0.html", name:"Test dashboard", desc:"the harness receipt"}
+];
+const BOARD_FILE="intent-os-humanaios-v3_3.html", DECISIONS_FILE="intent-os-decisions.html";
+/* From file:// the six files are six documents, and whether they share one localStorage is undefined (it is per
+   file in some browsers): a tap on one could be invisible on another. So under file: the board is the one
+   state-bearing document and a page is a view of it — #view=decisions (an anchor follows after &) — and every
+   page link routes into the board file. Served from one origin (the Worker) the six files share storage and
+   keep their own URLs. A section file opened directly from file:// still renders its view; its links lead in. */
+const LOCAL=location.protocol==="file:";
+const VIEWS=["board","decisions","commitments","records","arena"];
+function hashView(){const m=/(?:^#|&)view=([a-z]+)/.exec(location.hash||""); return m&&VIEWS.includes(m[1])?m[1]:null;}
+function hashAnchor(){const h=(location.hash||"").slice(1); return h.replace(/(^|&)view=[a-z]+/,"").replace(/^&/,"");}
+let VIEW=(LOCAL&&hashView())||document.body.getAttribute("data-view")||"board";
+document.body.setAttribute("data-view",VIEW);
+function pageHref(view,anchor){
+  const p=PAGES.find(x=>x.view===view); if(!p) return "#";
+  if(LOCAL&&VIEWS.includes(view)) return BOARD_FILE+"#view="+view+(anchor?"&"+anchor:"");
+  return p.file+(anchor?"#"+anchor:"");
+}
+function setView(v){ if(!VIEWS.includes(v)||v===VIEW) return; VIEW=v; document.body.setAttribute("data-view",v); pagesStrip(); if(window.__witMark) window.__witMark(v); }
+const DID_RE=/\bd\d{1,3}\b/g;
+function decisionIds(text){return [...new Set(String(text||"").match(DID_RE)||[])];}
+// escape first, then linkify the ids — an id is [a-z0-9] only, so the link markup is the only markup in the result
+function linkDecisions(text){return esc(text).replace(DID_RE,m=>ruling(m)?'<a class="xref" href="'+pageHref("decisions",m)+'" title="open '+esc(rname(m))+'">'+m+'</a>':m);}
+function stepsGatedBy(id){return (project.blocks||[]).filter(b=>decisionIds(b.blockedOn).includes(id)||(Array.isArray(b.decisions)&&b.decisions.includes(id)));}
+function pagesStrip(){
+  const n=document.getElementById("pages"); if(!n) return;
+  n.innerHTML=PAGES.map(p=>'<a href="'+pageHref(p.view)+'"'+(p.view===VIEW?' class="here" aria-current="page"':'')+' title="'+esc(p.desc)+'">'+esc(p.name)+'</a>').join('<span class="note">·</span>');
+}
+/* A section page is the board's bytes at the read it was generated from. Served beside the board (the Worker, or any
+   server), it fetches the board and compares reads: an older page says so at the top instead of passing as current.
+   From file:// the fetch fails and nothing is shown — the local-copy instruction is to replace all six files together. */
+async function sha256hex(text){
+  if(!(window.crypto&&crypto.subtle)) return null;
+  const d=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function pageStamp(){  // the generator's comment in <head>: the sha256 of the board bytes this page was rendered from
+  for(const n of document.head.childNodes){ if(n.nodeType===8){ const m=/board sha256 ([0-9a-f]{64})/.exec(n.data); if(m) return m[1]; } }
+  return null;
+}
+/* A section page is the board's bytes at the read it was generated from. Served beside the board (the Worker, or any
+   server), it fetches the board and compares fingerprints: the sha256 in its stamp against the sha256 of the bytes it
+   fetched — content identity, so a board edit that forgot to advance rev is caught too; where hashing is unavailable
+   it falls back to the rev field and says so. A fetch that fails is shown, not treated as current. From file:// the
+   board is the one document and the pages are its views (pageHref), so nothing is fetched. */
+async function freshness(){
+  if(LOCAL||VIEW==="board"||VIEW==="dashboard") return;
+  const wrap=document.querySelector(".wrap"), pages=document.getElementById("pages");
+  const say=(id,html)=>{ const el=document.createElement("div"); el.className="stale"; el.id=id; el.innerHTML=html; wrap.insertBefore(el,pages); };
+  const boardLink='<a class="xref" href="'+pageHref("board")+'">board</a>';
+  let text; try{ const r=await fetch(BOARD_FILE,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); text=await r.text(); }
+  catch(e){ say("fresh-unknown",'<b>freshness unknown</b> — the board beside this page could not be fetched ('+esc(String(e&&e.message||e))+'), so this page cannot show whether it is current. Open the '+boardLink+'.'); return; }
+  const m=/const HUMANAIOS = \{\n title:"Intent-OS", rev:"([^"]+)"/.exec(text); const board=m?m[1]:"(no rev found)", mine=HUMANAIOS.rev;
+  const stamp=pageStamp(), live=stamp?await sha256hex(text):null;
+  const byHash=!!(stamp&&live), stale=byHash?stamp!==live:board!==mine;
+  if(!stale) return;
+  say("stale",'<b>stale page</b> — generated from board read <span class="p">'+esc(mine)+'</span>'+(byHash?' (sha256 '+esc(stamp.slice(0,12))+'…)':'')
+    +'; the board is at <span class="p">'+esc(board)+'</span>'+(byHash?' (sha256 '+esc(live.slice(0,12))+'…)':' — compared by rev only')
+    +(byHash&&board===mine?' — same rev, different bytes':'')+'. Open the '+boardLink+', or regenerate: <span class="p">python3 tools/intent_os_pages_v1_0.py</span>.');
+}
+function jumpToHash(){
+  if(LOCAL){const v=hashView(); if(v) setView(v);}
+  document.querySelectorAll(".hit").forEach(e=>e.classList.remove("hit"));
+  const h=hashAnchor(); if(!h) return;
+  const el=document.getElementById(h); if(!el) return;
+  if(el.classList.contains("card")) el.classList.add("open");
+  el.classList.add("hit"); el.scrollIntoView({block:"center"});
+}
+
 function render(){
   // title = "Intent-OS · " + the user's anonymous tagline (intake variable); project name is its own intake variable
   const ow = project.owner || {};
@@ -742,7 +915,7 @@ function render(){
     card.className="card"; card.id="card-"+b.id;
     let inner='<div class="head"><span class="t">'+esc(b.id)+" — "+esc(b.name)+'<small>'+esc(b.role||"")+'</small></span><span class="state '+st+'">'+stateWord(st)+"</span></div>"
       +'<div class="body"><p>'+esc(b.why||"")+"</p>";
-    if(b.blockedOn) inner+='<p><span class="state waiting">waiting:</span> '+esc(b.blockedOn)+"</p>";
+    if(b.blockedOn) inner+='<p><span class="state waiting">waiting:</span> '+linkDecisions(b.blockedOn)+"</p>";
     if(b.gate) inner+='<div class="gate"><b>counts as done when</b> — '+esc(b.gate)+"</div>";
     if(b.cmds) inner+='<div class="cmdrow"><pre>'+esc(b.cmds)+'</pre><button class="copy" data-c="'+esc(b.id)+'">copy</button></div>';
     if(b.meta) inner+='<div class="meta"><b>'+esc(b.meta)+"</b></div>";
@@ -802,13 +975,15 @@ function render(){
 
   const r=document.getElementById("rulings"); r.innerHTML="";
   (project.rulings||[]).forEach(x=>{
-    const row=document.createElement("div"); row.className="ruling";
-    const rl=(state.relay||{})[x.id]||{}; const closed=!!x.ruled||rl.status==="RATIFIED";
-    row.innerHTML='<div class="q">'+esc(x.q)+(x.s?'<small>'+esc(x.s)+"</small>":"")+'</div><div class="opts">'
-      +(closed ? '<span class="state done">'+esc(x.ruled?"ruled":"ratified · "+(rl.signature||"").slice(0,16))+'</span>'
+    const row=document.createElement("div"); row.className="ruling"; row.id=x.id;
+    const rl=(state.relay||{})[x.id]||{}; const closed=!!x.ruled;  // a landed choice stays open on the board until the ruling entry is re-read as ruled — the merge, not the board, ratifies
+    const gated=stepsGatedBy(x.id);
+    const gates='<div class="gates"><span class="p">'+esc(x.id)+'</span> · gates '+(gated.length?gated.map(b=>'<a class="xref" href="'+pageHref("board","card-"+esc(b.id))+'" title="'+esc(b.name)+'">step '+esc(b.id)+'</a>').join(", "):'no pipeline step names it')+(x.qid?' · <a class="xref" href="https://github.com/humanaios-ui/operations/blob/main/'+esc(x.path||"")+'">'+esc(x.qid)+'</a>':'')+'</div>';
+    row.innerHTML='<div class="q">'+esc(x.q)+(x.s?'<small>'+esc(x.s)+"</small>":"")+gates+'</div><div class="opts">'
+      +(closed ? '<span class="state done">ruled</span>'
                : (x.opts||[]).map(o=>'<button class="opt'+(state.rulings[x.id]===o?" sel":"")+'" data-r="'+esc(x.id)+'" data-o="'+esc(o)+'">'+esc(o)+"</button>").join("")
-                 +'<button class="opt relay" data-send="'+esc(x.id)+'">'+(rl.status==="PENDING"?"echo hash":"→ PR")+'</button><button class="opt relay" data-ask="'+esc(x.id)+'">ask Z1</button>')+'</div>'
-      +'<div class="rstat" id="rstat-'+esc(x.id)+'">'+esc((state.relay||{})[x.id]?(state.relay[x.id].status+" · "+(state.relay[x.id].pr||"")+" · hash "+(state.relay[x.id].hash||"").slice(0,16)+(state.relay[x.id].warning?" · "+state.relay[x.id].warning:"")):"")+'</div>';
+                 +'<button class="opt relay" data-send="'+esc(x.id)+'">'+(rl.hash?"→ PR again":"→ PR")+'</button><button class="opt relay" data-ask="'+esc(x.id)+'">ask Z1</button>')+'</div>'
+      +'<div class="rstat" id="rstat-'+esc(x.id)+'">'+esc((state.relay||{})[x.id]?(x.id+" — "+rtitle(x)+": "+state.relay[x.id].status+" · "+(state.relay[x.id].choice||"")+" · "+(state.relay[x.id].pr||"")+" · hash "+(state.relay[x.id].hash||"")+" · merge the PR to ratify"+(state.relay[x.id].warning?" · "+state.relay[x.id].warning:"")):"")+'</div>';
     r.appendChild(row);
   });
   if(!(project.rulings||[]).length) r.innerHTML='<div class="empty">No open decisions — nothing in the pipeline is waiting on the owner.</div>';
@@ -978,7 +1153,316 @@ document.getElementById("reset").onclick=async()=>{
   render(); toast("board cleared");
 };
 
-restore().then(render);
+restore().then(()=>{render(); pagesStrip(); jumpToHash(); freshness();});
+window.addEventListener("hashchange", jumpToHash);
+</script>
+<!-- ── WITNESS NAVIGATION — intent-os-witness-nav v1.0 · canonical source (inline) · built for Intent-OS from
+     lasting-light-ai/public/witness-nav.js v3.1 (baseURI https://humanaios.ai/): the same panel, button and glyph;
+     the groups are the board's pages; the home link is the public site. Copied into every generated page by
+     tools/intent_os_pages_v1_0.py; the board is the source. ── -->
+<script>
+(function() {
+  'use strict';
+  if (document.querySelector('.wit-v3-wrap')) return;
+  var HOME = 'https://humanaios.ai/';
+  var NAV_GROUPS = [
+    { label: null, items: [
+      { id: 'board', href: 'intent-os-humanaios-v3_3.html', name: 'Board', desc: 'Pipeline · metrics · deadlines', icon: '◌' }
+    ]},
+    { label: 'DECIDE', items: [
+      { id: 'decisions', href: 'intent-os-decisions.html', name: 'Decisions', desc: 'Calls only the owner makes · tap → PR → merge', icon: '⬡' }
+    ]},
+    { label: 'EVIDENCE', items: [
+      { id: 'commitments', href: 'intent-os-commitments.html', name: 'Commitments', desc: 'Predictions written before results', icon: '⬡' },
+      { id: 'records', href: 'intent-os-records.html', name: 'Verified records', desc: 'The fingerprints the board rests on', icon: '⬡' },
+      { id: 'dashboard', href: 'intent-os-test-dashboard-v1_0.html', name: 'Test dashboard', desc: 'The harness receipt · T0–T7', icon: '⬡' }
+    ]},
+    { label: 'EXPERIMENT', items: [
+      { id: 'arena', href: 'intent-os-arena.html', name: 'ARENA', desc: 'Governance-versioned multi-agent runs', icon: '⬡' }
+    ]},
+    { label: 'HUMANAIOS', items: [
+      { id: 'home', href: HOME, name: 'The Witness', desc: 'humanaios.ai · the public site', icon: '◌' }
+    ]}
+  ];
+  var LOCAL = window.location.protocol === 'file:';
+  var BOARD = 'intent-os-humanaios-v3_3.html';
+  function hashView() { var m = /(?:^#|&)view=([a-z]+)/.exec(window.location.hash || ''); return m ? m[1] : null; }
+  function currentPage() { return window.location.pathname.split('/').pop() || BOARD; }
+  function itemHref(item) {  // under file:// the board's views are hashes of the one board file (see the board's pageHref)
+    if (LOCAL && item.id !== 'dashboard' && item.id !== 'home') return BOARD + '#view=' + item.id;
+    return item.href;
+  }
+  function isActive(item) {
+    if (LOCAL && currentPage() === BOARD && item.id !== 'dashboard' && item.id !== 'home') return item.id === (hashView() || 'board');
+    return item.href === page;
+  }
+  function readStamp() {  // the board's read date on the board's pages; the harness run on the dashboard; a plain name otherwise
+    try { if (typeof HUMANAIOS !== 'undefined' && HUMANAIOS.read) return 'read ' + HUMANAIOS.read.date; } catch (e) {}
+    try { if (typeof RESULTS !== 'undefined' && RESULTS && RESULTS.at) return 'run ' + String(RESULTS.at).slice(0, 10); } catch (e) {}
+    return 'no read on this page';
+  }
+  var CSS = `
+    .wit-v3-wrap { position: fixed; bottom: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-start; }
+    .wit-v3-panel { position: absolute; bottom: calc(100% + 14px); left: 0; width: 260px; max-height: 80vh; display: flex; flex-direction: column;
+      background: #1d1915; border: 1px solid rgba(212,160,74,.32); border-radius: 14px; overflow: hidden;
+      box-shadow: 0 -8px 40px rgba(0,0,0,.62), 0 0 40px rgba(212,160,74,.06); opacity: 0; transform: translateY(10px) scale(.97);
+      pointer-events: none; transition: opacity .22s cubic-bezier(.34,1.56,.64,1), transform .22s cubic-bezier(.34,1.56,.64,1); transform-origin: bottom left; }
+    .wit-v3-panel.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    .wit-v3-ph { padding: 14px 16px 10px; border-bottom: 1px solid rgba(212,160,74,.18); background: linear-gradient(135deg,rgba(212,160,74,.08),transparent); flex-shrink: 0; }
+    .wit-v3-pt { font-family: 'IBM Plex Mono',monospace; font-size: .75rem; color: #d4a04a; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
+    .wit-v3-pd { font-family: 'IBM Plex Mono',monospace; font-size: .68rem; color: #7a7268; }
+    .wit-v3-scroll { flex: 1; overflow-y: auto; padding: 4px 0; }
+    .wit-v3-scroll::-webkit-scrollbar { width: 4px; } .wit-v3-scroll::-webkit-scrollbar-track { background: transparent; }
+    .wit-v3-scroll::-webkit-scrollbar-thumb { background: rgba(212,160,74,.2); border-radius: 4px; } .wit-v3-scroll::-webkit-scrollbar-thumb:hover { background: rgba(212,160,74,.4); }
+    .wit-v3-gl { font-family: 'Cormorant Garamond','IBM Plex Mono',serif; font-size: .65rem; color: #7a7268; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; padding: 10px 16px 4px; }
+    .wit-v3-link { display: flex; align-items: flex-start; gap: 10px; padding: 7px 16px; text-decoration: none; cursor: pointer; border-left: 2px solid transparent; background: transparent;
+      width: 100%; border-top: none; border-right: none; border-bottom: none; transition: background .12s, border-left-color .12s; }
+    .wit-v3-link:hover { background: rgba(212,160,74,.04); border-left-color: rgba(212,160,74,.38); }
+    .wit-v3-link.active { background: rgba(212,160,74,.06); border-left-color: #d4a04a; }
+    .wit-v3-link:focus-visible { outline: 2px solid rgba(212,160,74,.5); outline-offset: -2px; }
+    .wit-v3-icon { color: #d4a04a; font-size: .8rem; margin-top: 2px; flex-shrink: 0; }
+    .wit-v3-ln { font-family: 'IBM Plex Mono',monospace; font-size: .86rem; color: #f4ebdf; line-height: 1.2; }
+    .wit-v3-link.active .wit-v3-ln::after { content: ' ←'; color: #d4a04a; }
+    .wit-v3-ld { font-family: 'IBM Plex Mono',monospace; font-size: .72rem; color: #7a7268; margin-top: 2px; line-height: 1.3; }
+    .wit-v3-pf { border-top: 1px solid rgba(212,160,74,.18); padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; background: #1d1915; }
+    .wit-v3-pfl { display: flex; align-items: center; gap: 6px; }
+    .wit-v3-dot { width: 6px; height: 6px; border-radius: 50%; background: #87b68b; box-shadow: 0 0 5px #87b68b; animation: wit-dot 2s ease-in-out infinite; }
+    @keyframes wit-dot { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.8);} }
+    .wit-v3-pft { font-family:'IBM Plex Mono',monospace; font-size:.6rem; color:#7a7268; }
+    .wit-v3-btn-row { display: flex; align-items: center; gap: 12px; position: relative; }
+    .wit-v3-pulse { position: absolute; left: 0; top: 0; width: 64px; height: 64px; border-radius: 50%; border: 1px solid rgba(212,160,74,.15); pointer-events: none; animation: wit-ring 6s ease-in-out infinite; }
+    @keyframes wit-ring { 0% { width:52px;height:52px;opacity:1; } 25% { width:80px;height:80px;left:-14px;top:-14px;opacity:0; } 100%{ width:80px;height:80px;left:-14px;top:-14px;opacity:0; } }
+    .wit-v3-btn { width: 64px; height: 64px; border-radius: 50%; background: #000; border: 1px solid rgba(212,160,74,.3); cursor: pointer; display: grid; place-items: center;
+      overflow: hidden; padding: 0; box-shadow: 0 0 20px rgba(212,160,74,.14); position: relative; z-index: 1; transition: box-shadow .25s, transform .22s; animation: wit-slow 4s ease-in-out infinite; }
+    .wit-v3-btn canvas { display: block; width: 64px; height: 64px; }
+    @keyframes wit-slow { 0%,100%{transform:scale(1);}50%{transform:scale(1.04);} }
+    .wit-v3-btn:hover, .wit-v3-btn:focus-visible { box-shadow: 0 0 32px rgba(212,160,74,.34); outline: none; }
+    .wit-v3-btn.rotated { transform: rotate(180deg); animation: none; }
+    .wit-v3-label { font-family: 'IBM Plex Mono',monospace; font-size: .65rem; color: rgba(212,160,74,.58); letter-spacing: .1em; white-space: nowrap; transition: opacity .25s; }
+    @media(max-width:480px){ .wit-v3-wrap { bottom: 14px; left: 14px; } .wit-v3-panel { width: calc(100vw - 28px); } .wit-v3-label { display: none; } }
+    @media (prefers-reduced-motion: reduce){ .wit-v3-dot, .wit-v3-pulse, .wit-v3-btn { animation: none; } }
+  `;
+  var style = document.createElement('style'); style.textContent = CSS; document.head.appendChild(style);
+  var page = currentPage();
+  var wrap = document.createElement('div');
+  wrap.className = 'wit-v3-wrap'; wrap.setAttribute('role', 'navigation'); wrap.setAttribute('aria-label', 'Intent-OS navigation');
+  var navHTML = '';
+  NAV_GROUPS.forEach(function(group) {
+    if (group.label) navHTML += '<div class="wit-v3-gl">' + group.label + '</div>';
+    group.items.forEach(function(item) {
+      var active = isActive(item);
+      navHTML += '<a class="wit-v3-link' + (active ? ' active' : '') + '" href="' + itemHref(item) + '" role="menuitem"' + (active ? ' aria-current="page"' : '') + ' data-nav="' + item.id + '"' +
+        (item.href === HOME ? ' rel="noopener"' : '') + '><span class="wit-v3-icon">' + item.icon + '</span><div><div class="wit-v3-ln">' + item.name +
+        '</div><div class="wit-v3-ld">' + item.desc + '</div></div></a>';
+    });
+  });
+  wrap.innerHTML =
+    '<div class="wit-v3-panel" id="wit-panel" role="menu" aria-hidden="true">' +
+      '<div class="wit-v3-ph"><div class="wit-v3-pt">◌ Intent-OS</div><div class="wit-v3-pd">HumanAIOS · the Z2 decision surface</div></div>' +
+      '<div class="wit-v3-scroll">' + navHTML + '</div>' +
+      '<div class="wit-v3-pf"><div class="wit-v3-pfl"><div class="wit-v3-dot"></div><span class="wit-v3-pft" id="wit-stamp"></span></div>' +
+      '<span class="wit-v3-pft">login-gated · humanaios.ai</span></div>' +
+    '</div>' +
+    '<div class="wit-v3-btn-row"><div class="wit-v3-pulse"></div>' +
+      '<button class="wit-v3-btn" id="wit-btn" aria-haspopup="true" aria-expanded="false" aria-controls="wit-panel" aria-label="Open Intent-OS navigation">' +
+      '<canvas id="wit-glyph" width="128" height="128"></canvas></button><span class="wit-v3-label">Navigate</span></div>';
+  document.body.appendChild(wrap);
+  window.__witMark = function (v) {  // the board calls this when a view switches under file:// (no navigation happens)
+    wrap.querySelectorAll('.wit-v3-link').forEach(function (a) {
+      var on = a.getAttribute('data-nav') === v; a.classList.toggle('active', on);
+      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  };
+  document.getElementById('wit-stamp').textContent = readStamp();
+  var btn = document.getElementById('wit-btn'), panel = document.getElementById('wit-panel'), open = false;
+  function setOpen(state) {
+    open = state; btn.setAttribute('aria-expanded', String(state)); panel.setAttribute('aria-hidden', String(!state));
+    panel.inert = !state;  // a closed panel is not in the tab order either — hidden from every reader, not only the visual one
+    panel.classList.toggle('open', state); btn.classList.toggle('rotated', state);
+  }
+  panel.inert = true;
+  btn.addEventListener('click', function() { setOpen(!open); });
+  document.addEventListener('click', function(e) { if (open && !wrap.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && open) { setOpen(false); btn.focus(); } });
+
+  // ── WitnessRenderer — full glyph on wit-glyph canvas ──
+  (function(){
+    var cv=document.getElementById('wit-glyph');
+    if(!cv)return;
+    var SIZE=128;cv.width=SIZE;cv.height=SIZE;
+    var SOLFEGGIO=[55,174,285,396,417,528,594,639,741,963];
+    var RESP_RATES=[28,22,17,13,10,8,7,6,5,4];
+    var DIM_COLORS=['#88a7d8','#87b68b','#d97d70','#b48fd8','#d4c47a','#7ab8b0'];
+    var liveScores=[77.5,79.1,77.8,78.3,76.2,75.0];
+    var targetLI=0.8632,meanLI=0.8632,tSecs=0,lastTs=null,cometAngle=-Math.PI/2;
+    function bandIdx(li){return Math.min(9,Math.max(0,Math.round((1-li)*9)));}
+    function bpmForLI(li){return RESP_RATES[bandIdx(li)];}
+    function hzForLI(li){return SOLFEGGIO[bandIdx(li)];}
+    function fieldState(li){
+      if(li<0.8)return{primary:'#d97d70',secondary:'#f0a898'};
+      if(li<0.97)return{primary:'#d4a04a',secondary:'#f1c36e'};
+      if(li<=1.0)return{primary:'#87b68b',secondary:'#b8e0bc'};
+      return{primary:'#d97d70',secondary:'#f0a898'};
+    }
+    function hexRGB(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+    function rgba(hex,a){var c=hexRGB(hex);return'rgba('+c[0]+','+c[1]+','+c[2]+','+a.toFixed(3)+')';}
+    function breathPhase(t,bpm){var p=(t%(60/bpm))/(60/bpm);return p<0.4?p/0.4:1-(p-0.4)/0.6;}
+    function solPhase(t,hz){return 0.5+0.5*Math.sin((t*(hz/963))*Math.PI*2);}
+    function humilityRingColor(score,ph){var t=score/100,r=Math.round(212-(212-122)*t),g=Math.round(160-(160-184)*t),b=Math.round(74+(176-74)*t);return'rgba('+r+','+g+','+b+','+(0.28+ph*0.22).toFixed(2)+')';}
+    function cometRadPerSec(bpm){return(Math.PI*2)/(60/bpm);}
+    function drawOuterArc(ctx,cx,cy,R,phase,li){
+      var fs=fieldState(li);
+      var arcR=R*1.065,baseW=Math.max(R*0.042,2.8);
+      var arcW=baseW*(0.72+phase*0.56),alphaB=0.12+phase*0.22;
+      var gapFrac=Math.min(Math.max(0,1-li)*1.05,0.98);
+      var gapHalf=gapFrac*Math.PI,seamAngle=-Math.PI/2;
+      var arcStart=seamAngle+gapHalf,arcEnd=seamAngle-gapHalf+Math.PI*2;
+      ctx.beginPath();ctx.arc(cx,cy,arcR,arcStart,arcEnd);
+      ctx.strokeStyle=rgba(fs.primary,0.06+phase*0.07);ctx.lineWidth=arcW*3.8+phase*arcW;ctx.lineCap='round';ctx.stroke();
+      ctx.beginPath();ctx.arc(cx,cy,arcR,arcStart,arcEnd);
+      ctx.strokeStyle=rgba(fs.primary,0.1+phase*0.1);ctx.lineWidth=arcW*1.9;ctx.lineCap='round';ctx.stroke();
+      var ag=ctx.createLinearGradient(cx-arcR,cy-arcR*0.3,cx+arcR,cy+arcR*0.3);
+      ag.addColorStop(0,rgba(fs.primary,0.6+alphaB));ag.addColorStop(0.35,rgba(fs.secondary,0.9+alphaB*0.8));
+      ag.addColorStop(0.65,rgba(fs.secondary,0.9+alphaB*0.8));ag.addColorStop(1,rgba(fs.primary,0.55+alphaB*0.7));
+      ctx.beginPath();ctx.arc(cx,cy,arcR,arcStart,arcEnd);
+      ctx.strokeStyle=ag;ctx.lineWidth=arcW;ctx.lineCap='round';ctx.stroke();
+      [[arcStart],[arcEnd]].forEach(function(pair){
+        var angle=pair[0],px=cx+Math.cos(angle)*arcR,py=cy+Math.sin(angle)*arcR;
+        var dotR=arcW*0.72;
+        var dg=ctx.createRadialGradient(px,py,0,px,py,dotR*3.5);
+        dg.addColorStop(0,rgba(fs.secondary,0.8+phase*0.2));dg.addColorStop(0.35,rgba(fs.primary,0.35+phase*0.15));dg.addColorStop(1,'transparent');
+        ctx.beginPath();ctx.arc(px,py,dotR*3.5,0,Math.PI*2);ctx.fillStyle=dg;ctx.fill();
+        ctx.beginPath();ctx.arc(px,py,dotR,0,Math.PI*2);ctx.fillStyle=rgba(fs.secondary,0.95);ctx.fill();
+      });
+    }
+    function drawComet(ctx,cx,cy,R,phase,li,cAngle){
+      var fs=fieldState(li),baseW=Math.max(R*0.042,2.8);
+      var arcR=R*1.065,cometR=arcR-baseW*0.18;
+      var tailSpan=Math.PI*(1.05+phase*0.12),tailStart=cAngle-tailSpan,segments=28;
+      for(var i=0;i<segments;i++){
+        var t0=tailStart+(i/segments)*tailSpan,t1=tailStart+((i+1)/segments)*tailSpan;
+        var frac=(i+0.5)/segments,alpha=frac*frac*(0.55+phase*0.2),segW=baseW*(0.08+frac*frac*0.85);
+        ctx.beginPath();ctx.arc(cx,cy,cometR,t0,t1);
+        ctx.strokeStyle=rgba(fs.secondary,alpha);ctx.lineWidth=segW;ctx.lineCap='butt';ctx.stroke();
+      }
+      var hx=cx+Math.cos(cAngle)*cometR,hy=cy+Math.sin(cAngle)*cometR;
+      var headGlowR=baseW*(2.2+phase*1.0);
+      var hg=ctx.createRadialGradient(hx,hy,0,hx,hy,headGlowR);
+      hg.addColorStop(0,rgba(fs.secondary,0.85+phase*0.15));hg.addColorStop(0.25,rgba(fs.primary,0.55+phase*0.2));
+      hg.addColorStop(0.6,rgba(fs.primary,0.18+phase*0.1));hg.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.arc(hx,hy,headGlowR,0,Math.PI*2);ctx.fillStyle=hg;ctx.fill();
+      ctx.beginPath();ctx.arc(hx,hy,baseW*(0.38+phase*0.18),0,Math.PI*2);ctx.fillStyle=rgba(fs.secondary,0.98);ctx.fill();
+    }
+    function drawBreathRing(ctx,cx,cy,R,hz,tS,scores){
+      var sph=solPhase(tS,hz),ringR=R*(0.82+sph*0.038);
+      ctx.beginPath();ctx.arc(cx,cy,ringR,0,Math.PI*2);
+      ctx.strokeStyle=humilityRingColor(scores[5],sph);
+      ctx.lineWidth=R*0.018+sph*R*0.01;ctx.stroke();
+    }
+    function drawSkull(ctx,cx,cy,R,phase,tS,scores){
+      var sph=solPhase(tS,528);
+      ctx.save();
+      ctx.beginPath();ctx.rect(0,0,cx+1,cy*2.4);ctx.clip();
+      var cg=ctx.createRadialGradient(cx-R*0.26,cy-R*0.5,R*0.02,cx-R*0.08,cy-R*0.08,R*1.02);
+      cg.addColorStop(0,'rgba(250,243,224,0.96)');cg.addColorStop(0.5,'rgba(200,168,92,0.84)');cg.addColorStop(1,'rgba(107,74,28,0.0)');
+      ctx.beginPath();
+      ctx.moveTo(cx,cy+R*0.52);
+      ctx.bezierCurveTo(cx-R*0.05,cy+R*0.58,cx-R*0.35,cy+R*0.54,cx-R*0.5,cy+R*0.3);
+      ctx.bezierCurveTo(cx-R*0.68,cy+R*0.04,cx-R*0.72,cy-R*0.22,cx-R*0.62,cy-R*0.48);
+      ctx.bezierCurveTo(cx-R*0.52,cy-R*0.7,cx-R*0.22,cy-R*0.85,cx,cy-R*0.82);
+      ctx.lineTo(cx,cy+R*0.52);ctx.fillStyle=cg;ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(cx-R*0.1,cy-R*0.8);ctx.bezierCurveTo(cx-R*0.2,cy-R*0.7,cx-R*0.3,cy-R*0.6,cx-R*0.4,cy-R*0.5);
+      ctx.moveTo(cx-R*0.4,cy-R*0.5);ctx.bezierCurveTo(cx-R*0.5,cy-R*0.4,cx-R*0.6,cy-R*0.3,cx-R*0.65,cy-R*0.1);
+      ctx.strokeStyle='rgba(160,120,56,0.3)';ctx.lineWidth=0.8;ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx-R*0.05,cy-R*0.15);ctx.bezierCurveTo(cx-R*0.15,cy-R*0.18,cx-R*0.25,cy-R*0.18,cx-R*0.35,cy-R*0.12);
+      ctx.strokeStyle='rgba(160,120,56,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.beginPath();ctx.ellipse(cx-R*0.22,cy-R*0.05,R*0.12,R*0.1,Math.PI/6,0,Math.PI*2);
+      ctx.fillStyle='rgba(58,36,8,0.85)';ctx.fill();ctx.strokeStyle='rgba(200,168,92,0.6)';ctx.lineWidth=1;ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx,cy+R*0.05);ctx.lineTo(cx-R*0.08,cy+R*0.15);ctx.lineTo(cx,cy+R*0.15);
+      ctx.fillStyle='rgba(58,36,8,0.85)';ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.beginPath();ctx.rect(cx-1,0,cx*1.5,cy*2.4);ctx.clip();
+      var crG=ctx.createRadialGradient(cx+R*0.18,cy-R*0.28,R*0.05,cx+R*0.08,cy-R*0.1,R*1.05);
+      crG.addColorStop(0,'rgba(52,72,108,0.88)');crG.addColorStop(0.6,'rgba(18,28,52,0.75)');crG.addColorStop(1,'rgba(8,12,24,0.0)');
+      ctx.beginPath();
+      ctx.moveTo(cx,cy+R*0.52);
+      ctx.bezierCurveTo(cx+R*0.05,cy+R*0.58,cx+R*0.35,cy+R*0.54,cx+R*0.5,cy+R*0.3);
+      ctx.bezierCurveTo(cx+R*0.68,cy+R*0.04,cx+R*0.72,cy-R*0.22,cx+R*0.62,cy-R*0.48);
+      ctx.bezierCurveTo(cx+R*0.52,cy-R*0.7,cx+R*0.22,cy-R*0.85,cx,cy-R*0.82);
+      ctx.lineTo(cx,cy+R*0.52);ctx.fillStyle=crG;ctx.fill();
+      ctx.strokeStyle='rgba(100,160,255,0.3)';ctx.lineWidth=0.7;
+      ctx.fillStyle='rgba(100,160,255,'+(0.4+sph*0.6).toFixed(2)+')';
+      var traces=[[cx+R*0.1,cy-R*0.6,cx+R*0.3,cy-R*0.6,cx+R*0.3,cy-R*0.4],[cx+R*0.2,cy-R*0.3,cx+R*0.4,cy-R*0.3,cx+R*0.4,cy-R*0.1],[cx+R*0.1,cy+R*0.1,cx+R*0.25,cy+R*0.1,cx+R*0.25,cy+R*0.3]];
+      traces.forEach(function(t){ctx.beginPath();ctx.moveTo(t[0],t[1]);ctx.lineTo(t[2],t[3]);ctx.lineTo(t[4],t[5]);ctx.stroke();ctx.beginPath();ctx.arc(t[4],t[5],R*0.008,0,Math.PI*2);ctx.fill();});
+      var eyeX=cx+R*0.22,eyeY=cy-R*0.05;
+      ctx.fillStyle='rgba(8,12,24,0.85)';ctx.fillRect(eyeX-R*0.1,eyeY-R*0.08,R*0.2,R*0.16);
+      ctx.strokeStyle='rgba(100,160,255,0.5)';ctx.lineWidth=1;ctx.strokeRect(eyeX-R*0.1,eyeY-R*0.08,R*0.2,R*0.16);
+      var scanY=eyeY-R*0.06+((tSecs*2)%(R*0.12));
+      ctx.fillStyle='rgba(100,200,255,'+(0.5+sph*0.5).toFixed(2)+')';ctx.fillRect(eyeX-R*0.08,scanY,R*0.16,R*0.02);
+      ctx.restore();
+      var st=cy-R*0.82,sh=R*1.42;
+      var sG=ctx.createLinearGradient(cx,st,cx,st+sh);
+      sG.addColorStop(0,'rgba(241,195,110,0.0)');sG.addColorStop(0.5,'rgba(212,160,74,'+(0.74+phase*0.26).toFixed(2)+')');sG.addColorStop(1,'rgba(241,195,110,0.0)');
+      ctx.beginPath();ctx.moveTo(cx,st);ctx.lineTo(cx,st+sh);ctx.strokeStyle=sG;ctx.lineWidth=1.2+phase*0.6;ctx.stroke();
+      for(var i=0;i<6;i++){
+        var angle=(i/6)*Math.PI*2-Math.PI/2;
+        var skullR=R*0.6;
+        if(i===0)skullR=R*0.82;else if(i===1||i===5)skullR=R*0.65;else if(i===2||i===4)skullR=R*0.5;else if(i===3)skullR=R*0.52;
+        var ax=cx+Math.cos(angle)*skullR,ay=cy+Math.sin(angle)*skullR;
+        var dotR=R*0.015*(scores[i]/100);
+        ctx.beginPath();ctx.arc(ax,ay,dotR,0,Math.PI*2);ctx.fillStyle=DIM_COLORS[i];ctx.globalAlpha=0.8+sph*0.2;ctx.fill();
+        var glowG=ctx.createRadialGradient(ax,ay,0,ax,ay,dotR*3);
+        glowG.addColorStop(0,DIM_COLORS[i]+'88');glowG.addColorStop(1,'transparent');
+        ctx.beginPath();ctx.arc(ax,ay,dotR*3,0,Math.PI*2);ctx.fillStyle=glowG;ctx.fill();
+        ctx.globalAlpha=1;
+      }
+    }
+    function drawDataCore(ctx,cx,cy,R,phase,tS,scores,stateColor){
+      var r=R*0.38,sph=solPhase(tS,528);
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle='rgba(212,160,74,'+(0.24+sph*0.18).toFixed(2)+')';ctx.lineWidth=1.2;ctx.stroke();
+      for(var i=0;i<6;i++){
+        var angle=(i/6)*Math.PI*2-Math.PI/2,len=r*(0.3+(scores[i]/100)*0.6);
+        ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(angle)*len,cy+Math.sin(angle)*len);
+        ctx.strokeStyle=DIM_COLORS[i];ctx.globalAlpha=0.55;ctx.lineWidth=1.2;ctx.stroke();ctx.globalAlpha=1;
+      }
+      var cR=R*0.038+phase*R*0.022;
+      var grd=ctx.createRadialGradient(cx,cy,0,cx,cy,cR*3);
+      grd.addColorStop(0,stateColor+'FF');grd.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.arc(cx,cy,cR*3,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+      ctx.beginPath();ctx.arc(cx,cy,cR,0,Math.PI*2);ctx.fillStyle=stateColor;ctx.globalAlpha=0.92+phase*0.08;ctx.fill();ctx.globalAlpha=1;
+    }
+    function frame(timestamp){
+      if(lastTs===null)lastTs=timestamp;
+      var dt=(timestamp-lastTs)/1000;lastTs=timestamp;tSecs+=dt;
+      meanLI+=(targetLI-meanLI)*dt*0.5;
+      var bpm=bpmForLI(meanLI),hz=hzForLI(meanLI);
+      var phase=breathPhase(tSecs,bpm);
+      cometAngle=(cometAngle+cometRadPerSec(bpm)*dt)%(Math.PI*2);
+      var ctx=cv.getContext('2d');
+      var W=SIZE,H=SIZE,cx=W/2,cy=H*0.47,R=Math.min(W,H)*0.42;
+      ctx.clearRect(0,0,W,H);
+      var ag=ctx.createRadialGradient(cx,cy,R*0.1,cx,cy,R*1.5);
+      ag.addColorStop(0,'rgba(0,0,0,0)');ag.addColorStop(1,'rgba(0,0,0,0.55)');
+      ctx.beginPath();ctx.arc(cx,cy,R*1.5,0,Math.PI*2);ctx.fillStyle=ag;ctx.fill();
+      drawBreathRing(ctx,cx,cy,R,hz,tSecs,liveScores);
+      drawSkull(ctx,cx,cy,R,phase,tSecs,liveScores);
+      var fs=fieldState(meanLI);
+      drawDataCore(ctx,cx,cy,R,phase,tSecs,liveScores,fs.primary);
+      drawComet(ctx,cx,cy,R,phase,meanLI,cometAngle);
+      drawOuterArc(ctx,cx,cy,R,phase,meanLI);
+      var vg=ctx.createRadialGradient(cx,cy,R*0.68,cx,cy,R*1.12);
+      vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,0,0.38)');
+      ctx.beginPath();ctx.arc(cx,cy,R*1.12,0,Math.PI*2);ctx.fillStyle=vg;ctx.fill();
+      if(!REDUCED)requestAnimationFrame(frame);  // reduced motion: one frame, no loop
+    }
+    var REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    requestAnimationFrame(frame);
+  })();
+
+})();
 </script>
 </body>
 </html>

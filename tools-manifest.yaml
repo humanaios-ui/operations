@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 159
+  tools: 161
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 130
+  builder_markers_present: 132
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -625,7 +625,7 @@ tools:
 - tool_id: HAIOS-TOOL-051
   name: decision_relay
   path: tools/decision_relay.py
-  version: 0.4.5
+  version: 0.5.0
   category: governance_tool
   zone: 1
   status: draft
@@ -2028,6 +2028,32 @@ tools:
   builder_markers: true
   purpose: 'intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage.'
   session: S-091726-01
+- tool_id: HAIOS-TOOL-168
+  name: intent_os_reconcile
+  path: tools/intent_os_reconcile_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_os_reconcile — after a decided candidate merges, record the ratification the merge was.
+  session: S-091826-01
+- tool_id: HAIOS-TOOL-169
+  name: intent_os_pages
+  path: tools/intent_os_pages_v1_0.py
+  version: 1.0.0
+  category: template_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board.
+  session: S-091926-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
