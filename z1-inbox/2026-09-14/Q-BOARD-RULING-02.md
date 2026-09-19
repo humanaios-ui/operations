@@ -36,10 +36,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night
+at: 2026-09-18T01:21:47Z
+status: PENDING
+block_hash: 4bee6ffe7fa75a6942e426ce00eb9ae9f57dec2622a57289131e003e46b70ef9
+body_hash: 73dedbeab6e269056f63b63a44abd0ca372824ca95619ff1239c16274cf9148a
+
+```
+RULING d2
+  by: Night (tagline)
+  project: HumanAIOS
+  question: TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate?
+  choice: later
+  note: 
+  at: 2026-09-18T01:21:47Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 
