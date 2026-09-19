@@ -17,7 +17,7 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | — status `draft` | 169 |
 | — status `archived` | 1 |
 | Builder v1.7 markers present | 132 |
-| Uncategorized | 2 |
+| Uncategorized | 0 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
