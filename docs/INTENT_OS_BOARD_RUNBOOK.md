@@ -218,8 +218,13 @@ whose log did not yet say which; 0.4.3 and the board's re-prompting fix both.
 > ### Open the board — the card
 >
 > **The pages.** One board, six pages, one navigation. The board file is canonical; the four section pages
-> are generated from it (`python3 tools/intent_os_pages_v1_0.py`; `--check` says whether they are current)
-> and the Witness button at bottom-left carries you between them.
+> are generated from it (`python3 tools/intent_os_pages_v1_0.py`; `--check` says whether they are current —
+> also the harness row `t1-pages-fresh`, RED on the dashboard when a page falls behind) and the Witness
+> button at bottom-left carries you between them. A served page that is older than the board says so in a
+> *stale page* banner at the top: it compares the board fingerprint in its own stamp with the board it fetches
+> beside it (bytes, not the rev field), and a page that cannot fetch the board says *freshness unknown* rather
+> than passing as current. Everything in this paragraph detects after a merge; nothing here refuses one — the
+> pre-merge gates are `Q-INTENTOS-PAGES-GATE-01`, Z2's to rule.
 >
 > | page | file under `ui/` | what it holds |
 > |---|---|---|
@@ -232,9 +237,15 @@ whose log did not yet say which; 0.4.3 and the board's re-prompting fix both.
 >
 > **Today (d17 stands): a local file.**
 > 1. Download `ui/intent-os-humanaios-v3_3.html` from `main` (GitHub → the file → *Download raw file*; the
->    raw link itself shows text, not a page) — and the five files beside it if you want the pages and the
->    nav to work locally: they link to each other by filename in the same folder.
-> 2. Open the board file in a browser. It runs from `file://`; no server.
+>    raw link itself shows text, not a page). The test dashboard is a second file if you want it; the four
+>    section pages are not needed locally (next step).
+> 2. Open the board file in a browser. It runs from `file://`; no server. From a file, the pages strip and
+>    the Witness button switch views **inside this one file** (`#view=decisions`, `#view=records`, …), so
+>    every tap and every saved choice lives in one document — browsers do not promise that six `file://`
+>    documents share one saved state. The separate page files are for the served board (one origin, one
+>    storage); opened from `file://` they still render, and their links lead back into the board file. Verified
+>    under Chromium; a browser that reloads on a `#view=` hash from `file://` would lose nothing but the
+>    smoothness — the board file alone remains the safe surface.
 > 3. The first tap asks for the relay URL's secret and the basic-auth password (Railway → the service
 >    `intent-os-relay` → Variables). Kept in memory only.
 > 4. After every merge to `main`, replace the downloaded files. The board's filename is frozen (d19), so your
