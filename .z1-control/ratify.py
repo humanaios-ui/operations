@@ -404,6 +404,16 @@ def cmd_verify_artifact(path: str) -> int:
     return 1
 
 
+BOARD_RULING_RE = re.compile(rb"^## Ruling\s*\n(?:.*\n)*?choice:", re.M)
+
+
+def is_board_ruling(candidate_bytes: bytes) -> bool:
+    """A board ruling block: a `## Ruling` section followed by a `choice:` line — the shape
+    tools/decision_relay.py writes and tools/intent_os_reconcile_v1_0.py signs. Such a block is
+    ratified only by merging its ruling PR (Z2, 2026-09-18), never by this tool."""
+    return bool(BOARD_RULING_RE.search(candidate_bytes))
+
+
 def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> int:
     if by not in KNOWN_RATIFIERS:
         print(f"::error::'{by}' is not a ratifier. Allowed: {sorted(KNOWN_RATIFIERS)}")
@@ -421,6 +431,16 @@ def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> i
     full = os.path.join(ROOT, path)
     if not os.path.isfile(full):
         print(f"::error::{q_id}: {path} does not resolve")
+        return 1
+    if is_board_ruling(open(full, "rb").read()):
+        # Z2, 2026-09-18 (z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md): a board ruling is
+        # ratified by MERGING its ruling PR; the merger and the merge date sign it, and
+        # tools/intent_os_reconcile_v1_0.py records the signature on main. This tool signing such a
+        # block by hand would be a second, unreviewed act of ratification for the same decision.
+        print(f"::error::{q_id} is a board ruling (its file carries a `## Ruling` section with a "
+              f"`choice:` line). Board rulings are ratified by merging their ruling pull request "
+              f"(Z2, 2026-09-18); the reconcile job on main records the signature. This tool does "
+              f"not sign them.")
         return 1
 
     at = datetime.date.today().isoformat()
