@@ -4650,3 +4650,79 @@ superseded_by: null
 
 **Next:** Phase 2B (nonprofit profile ingestion + dashboard) pending Z2 business model decision
 
+---
+
+## Q-GRANT-BROKER-PHASE-2B-01 — Nonprofit Dashboard & Capacity Integration
+
+**Prepared by:** Claude (Z1 proposer)  
+**Date:** 2026-09-19  
+**Session:** S-091926-Z1-grant-treasury-pilot  
+**Prerequisite:** Q-GRANT-MATCHING-ENGINE-PHASE-1B-01 (Phase 1B complete ✅)
+
+**Title:** Phase 2B — Nonprofit Dashboard & Capacity Integration (Broker Track)
+
+**Scope:** Integrate Phase 1B grant matches with Phase 1A capacity checks (verify_rfp) + build nonprofit self-service dashboard for grant discovery
+
+**Design Approach:**
+1. **Capacity Integration:** Route Phase 1B grant results through verify_rfp() to mark GREEN_LIGHT/RED_LIGHT
+2. **Nonprofit Profile KYC:** Self-service profile creation with EIN validation, mission keywords, geography, financial data
+3. **Dashboard MVP:** Web UI for search, grant details, profile management, saved opportunities
+4. **REST API:** 3 endpoints (create/update profile, search grants with capacity, get profile)
+
+**Test Approach:**
+- TestCapacityIntegration (5 tests): GREEN/RED verdicts, latency <100ms per grant
+- TestNonprofitProfileIngestion (8 tests): validation, persistence, completion tracking
+- TestGrantSearchWithCapacity (6 tests): filter application, capacity annotation, search accuracy
+- TestDashboardDataFlow (4 tests): profile screen, search results, grant detail, save grant
+- TestIntegrationE2E (2 tests): onboarding flow, capacity update impact
+- **Total: 25 tests**
+
+**Gate 0b Criteria:**
+- ✅ 25/25 tests passing
+- ✅ Capacity check latency <100ms/grant (search <2s total for 15 results)
+- ✅ Profile validation catches all required fields + invalid data rejected
+- ✅ Dashboard renders all 4 core screens
+- ✅ API contract matches spec
+
+**Falsifiers (5 conditions that invalidate Phase 2B):**
+1. Capacity verdict mismatch: verify_rfp() says RED but nonprofit funds the match anyway
+2. Dashboard returns GREEN grants nonprofit cannot afford
+3. Invalid profiles accepted as "verified"
+4. Capacity check latency >100ms/grant breaks 2s total budget
+5. Frontend/backend desync: UI shows GREEN, API returns RED
+
+**Effort:** 13 hours (profile model 2h + FastAPI backend 3h + React dashboard 4h + capacity integration 1h + tests 3h)
+
+**Timeline:** 2-day sprint (estimated complete 2026-09-21 if Z2 ratification by 2026-09-19 18:00 UTC)
+
+**Deliverables:**
+- `tools/nonprofit_profile_v1_0.py` (~150 lines): Profile model + validation schema
+- `tools/nonprofit_dashboard_api_v1_0.py` (~300 lines): FastAPI backend (profile CRUD + grant search with capacity)
+- `frontend/grant-search-dashboard/` (~400 lines): React dashboard (search, detail, profile edit, saved grants)
+- `tools/tests/test_nonprofit_dashboard.py` (~25 tests): Comprehensive test harness
+- `z1-inbox/2026-09-19/PHASE-2B-IMPLEMENTATION-STATUS.md`: Gate 0b results summary
+
+**Blockers to Start:**
+- ⚠️ PENDING: Z2 decision on SaaS pricing model (doesn't block tech work, but affects Phase 2B deployment features like subscription tiers)
+- ⚠️ PENDING: IRS 501c3 validation access (Phase 2B uses mock validation, real database requires later Z2 approval)
+
+**No blockers for Gate 0b implementation** — all prerequisites satisfied (Phase 1A verify_rfp available, Phase 1B grant matching complete, mock data ready).
+
+**Integration Points:**
+- Phase 1B `search_grants()` → Phase 2B: modified to inject verify_rfp() calls for capacity annotation
+- Phase 1A `verify_rfp()` → Phase 2B: called for each top-N grant to get GREEN/RED verdict
+- REGISTERED.md: track profile KYC migrations as nonprofits self-onboard
+
+**Z2 Ratification Checklist:**
+
+- [ ] Phase 1B complete & Gate 0a-broker passed? YES ✅
+- [ ] Capacity integration approach approved (reuse Phase 1A verify_rfp)?
+- [ ] KYC workflow scope approved (self-service profile creation)?
+- [ ] Dashboard MVP scope approved (4 core screens)?
+- [ ] Effort estimate & 2-day timeline acceptable?
+- [ ] Test gate approach approved (25 tests, Gate 0b criteria)?
+- [ ] Falsifiers confirmed (5 conditions that invalidate Phase 2B)?
+- [ ] Clear green to start immediately after ratification?
+
+**Status:** CANDIDATE · Specification in z1-inbox/2026-09-19/PHASE-2B-SPECIFICATION.md · Awaiting Z2 ratification
+
