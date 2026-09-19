@@ -17,9 +17,9 @@
 //   * ACCESS_TEAM_DOMAIN, ACCESS_AUD or ACCESS_ALLOWED_EMAILS unset → 401 "Access is not configured". Fails
 //     closed: a deploy without the login and the list in front of it publishes nothing.
 //   * `assets.run_worker_first` in wrangler.jsonc makes this code run BEFORE the asset router, so no path
-//     under ui/ is reachable without passing the check above — and only the two pages in SERVED are served
-//     at all: the Z2 reviewer under ui/ reads ../z1-inbox/ at runtime, which is not in the bundle, so it is
-//     not offered here rather than offered broken.
+//     under ui/ is reachable without passing the check above — and only the pages in SERVED are served at
+//     all (the board, its four section pages, the test dashboard): the Z2 reviewer under ui/ reads
+//     ../z1-inbox/ at runtime, which is not in the bundle, so it is not offered here rather than offered broken.
 //   * the relay is untouched: the board still POSTs to it cross-origin with its own HMAC and gate; the
 //     Content-Security-Policy below names the relay and raw.githubusercontent.com (the dashboard's live
 //     read) as the only connect targets. CSP_CONNECT_SRC (a Worker variable) overrides that list if the
@@ -45,7 +45,10 @@
 // Self-test: `node board/worker.test.mjs` (no network; a generated key signs the test tokens).
 
 const BOARD = "/intent-os-humanaios-v3_3.html";
-const SERVED = new Set([BOARD, "/intent-os-test-dashboard-v1_0.html"]);
+// the board, its four section pages (generated from it by tools/intent_os_pages_v1_0.py) and the test dashboard —
+// nothing else under ui/ (the Z2 reviewer reads ../z1-inbox at runtime, which is not in the bundle)
+const SERVED = new Set([BOARD, "/intent-os-decisions.html", "/intent-os-commitments.html", "/intent-os-records.html",
+  "/intent-os-arena.html", "/intent-os-test-dashboard-v1_0.html"]);
 const CERTS_TTL_MS = 5 * 60 * 1000; // within this window the snapshot is used without a fetch
 const CERTS_REFRESH_MIN_MS = 30 * 1000; // an unknown kid forces a refresh at most this often
 const CERTS_MAX_AGE_MS = 24 * 60 * 60 * 1000; // last-known-good bound when the certs endpoint fails

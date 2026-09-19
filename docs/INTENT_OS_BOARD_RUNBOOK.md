@@ -215,6 +215,45 @@ whose log did not yet say which; 0.4.3 and the board's re-prompting fix both.
 
 ## 5. Publish — ruled **local only** (d17, 2026-09-14); a login-gated Worker asked as d31 (2026-09-18)
 
+> ### Open the board — the card
+>
+> **The pages.** One board, six pages, one navigation. The board file is canonical; the four section pages
+> are generated from it (`python3 tools/intent_os_pages_v1_0.py`; `--check` says whether they are current)
+> and the Witness button at bottom-left carries you between them.
+>
+> | page | file under `ui/` | what it holds |
+> |---|---|---|
+> | Board | `intent-os-humanaios-v3_3.html` | pipeline (every step, each linking the decisions it waits on), metrics, the six stages, planes and rules, deadlines, project data |
+> | Decisions | `intent-os-decisions.html` | every open call, each linking the steps it gates; tap → PR → merge |
+> | Commitments | `intent-os-commitments.html` | predictions written before results |
+> | Verified records | `intent-os-records.html` | the fingerprints the checker re-hashes |
+> | ARENA | `intent-os-arena.html` | the governance-versioned experiment |
+> | Test dashboard | `intent-os-test-dashboard-v1_0.html` | the harness receipt |
+>
+> **Today (d17 stands): a local file.**
+> 1. Download `ui/intent-os-humanaios-v3_3.html` from `main` (GitHub → the file → *Download raw file*; the
+>    raw link itself shows text, not a page) — and the five files beside it if you want the pages and the
+>    nav to work locally: they link to each other by filename in the same folder.
+> 2. Open the board file in a browser. It runs from `file://`; no server.
+> 3. The first tap asks for the relay URL's secret and the basic-auth password (Railway → the service
+>    `intent-os-relay` → Variables). Kept in memory only.
+> 4. After every merge to `main`, replace the downloaded files. The board's filename is frozen (d19), so your
+>    saved taps survive and the new read loads on top.
+>
+> **After d31 rules `serve behind login`: a URL you sign in to.**
+> 1. Tap `serve behind login` on the d31 row → **→ PR** → merge that pull request (the merge is the ruling).
+> 2. Cloudflare → Workers & Pages → Create → import `humanaios-ui/operations`: root `/`, no build command,
+>    deploy command `npx wrangler deploy --var BOARD_COMMIT:$WORKERS_CI_COMMIT_SHA`. The Worker's
+>    `*.workers.dev` URL answers `401` to everything — by design, until step 4.
+> 3. Zero Trust → Access → Applications → Add → Self-hosted → the Worker `intent-os-board` → policy
+>    *Allow · Emails:* your address. Note the **AUD** tag and the team domain; write the policy receipt (below).
+> 4. The Worker → Settings → Variables: `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `ACCESS_ALLOWED_EMAILS`.
+> 5. Open the Worker's URL (or `board.humanaios.ai` once the domain is added): Cloudflare's login, then the
+>    board; every page and the nav work the same there. Anyone else sees the login; a valid login that is not
+>    on your list gets `403`.
+>
+> The steps below are the same four, in full, with what each one proves.
+
 d17 stands until d31 rules: the board is a file Z2 opens from the repository, nothing is copied under
 `site/`, and the Pages job is not involved.
 
@@ -222,7 +261,7 @@ Z2's direction on 2026-09-18 — *no public copy; a login to open the board* —
 
 | piece | what it does |
 |---|---|
-| `board/worker.mjs` | a Cloudflare Worker that serves **two pages** of `ui/` — the board and the test dashboard — only after verifying a **Cloudflare Access** login: the RS256 token Access injects in the `Cf-Access-Jwt-Assertion` header (the only source read; the cookie is not parsed), checked against the team's keys (`https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`), issued by the team, for this application (`aud`), unexpired, not before its `nbf` (a present `nbf` must be a number). With `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` unset it answers `401` to everything but `/healthz` — it fails closed. The login is judged before the method, so an unauthenticated `POST` learns nothing but `401`; an authenticated one is `405`. Every answer (pages, the redirect from `/`, refusals) carries `Cache-Control: no-store`, `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` and a `Content-Security-Policy` that allows the pages' own inline script and style, connections to the relay and to `raw.githubusercontent.com` (the dashboard's live read), and nothing else. Every **authenticated** answer also carries `X-Board-Commit`, the commit the deploy was built from. The Z2 reviewer under `ui/` is **not** served (`404`): it reads `../z1-inbox/` at runtime, which is not in the bundle, so it would open broken. Self-test: `node board/worker.test.mjs`. |
+| `board/worker.mjs` | a Cloudflare Worker that serves **the board's six pages** under `ui/` — the board, its four section pages (generated from it) and the test dashboard — only after verifying a **Cloudflare Access** login: the RS256 token Access injects in the `Cf-Access-Jwt-Assertion` header (the only source read; the cookie is not parsed), checked against the team's keys (`https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`), issued by the team, for this application (`aud`), unexpired, not before its `nbf` (a present `nbf` must be a number). With `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` unset it answers `401` to everything but `/healthz` — it fails closed. The login is judged before the method, so an unauthenticated `POST` learns nothing but `401`; an authenticated one is `405`. Every answer (pages, the redirect from `/`, refusals) carries `Cache-Control: no-store`, `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` and a `Content-Security-Policy` that allows the pages' own inline script and style, connections to the relay and to `raw.githubusercontent.com` (the dashboard's live read), and nothing else. Every **authenticated** answer also carries `X-Board-Commit`, the commit the deploy was built from. The Z2 reviewer under `ui/` is **not** served (`404`): it reads `../z1-inbox/` at runtime, which is not in the bundle, so it would open broken. Self-test: `node board/worker.test.mjs`. |
 | `wrangler.jsonc` | the Workers Builds configuration: name `intent-os-board`, `assets.directory ./ui` with `run_worker_first` (the check runs before the asset router on every path), `keep_vars` (variables set in the dashboard survive deploys). No secrets in the tree. |
 | `package.json` + `package-lock.json` | pin `wrangler` (the deploy tool) so Workers Builds installs a known version instead of whatever `npx` resolves on the day. Not a package: nothing is published or imported, and it sets no `"type"`, so the CommonJS tools under `tools/` keep their semantics — the Worker is `.mjs` on its own. |
 

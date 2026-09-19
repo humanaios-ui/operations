@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-16'
 decision_window_days: 2
 counts:
-  candidates: 49
+  candidates: 61
   records: 32
 ratifiers:
 - Night
@@ -482,6 +482,102 @@ candidates:
     \ ratify.py refuses a block with a `## Ruling` section and a `choice:` line; d31 and runbook \xA74\
     \ drop the by-hand route. This block is the registry entry the Tier 2 rule asks for; the prevention\
     \ (a cross-tool self-test case) is Z2's to accept."
+- q_id: Q-BOARD-RULING-20
+  title: "Board ruling d20 — Test harness as §A step 3"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-20.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-TEST-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-21
+  title: "Board ruling d21 — Dashboard: commit the rendered receipt"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-21.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-TEST-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-22
+  title: "Board ruling d22 — Scale-out order for the test surface"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-22.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-TEST-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-23
+  title: "Board ruling d23 — Refresh job: enable the PR/issue half"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-23.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-24
+  title: "Board ruling d24 — May a job advance the board's rev?"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-24.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-25
+  title: "Board ruling d25 — Local copies: re-download or a release asset"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-25.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-26
+  title: "Board ruling d26 — Resource-based grounding of the refresh job"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-26.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-27
+  title: "Board ruling d27 — Model endpoint policy for the bus"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-27.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-BUS-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-28
+  title: "Board ruling d28 — Issue mirror for REQ- records"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-28.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-BUS-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-29
+  title: "Board ruling d29 — The smoke contract in the manifest"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-29.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-BUS-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-30
+  title: "Board ruling d30 — Squash-merge read pointer"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-30.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-BUS-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
+- q_id: Q-BOARD-RULING-32
+  title: "Board ruling d32 — KNOWN_RED list in the refresh job"
+  path: z1-inbox/2026-09-19/Q-BOARD-RULING-32.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "One of the decisions carried inside Q-INTENTOS-REFRESH-01 (see its decision table), filed as its\
+    \ own board-ruling block under d18 so a tap on the board can land it: the merge of its PR is the\
+    \ ratification; ratify.py refuses the block. The parent block is unchanged."
 records:
 - path: "z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"
   title: "Z2 rulings 2026-09-18 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"

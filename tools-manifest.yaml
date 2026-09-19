@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 160
+  tools: 161
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 131
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 1
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2041,6 +2042,18 @@ tools:
   builder_markers: true
   purpose: intent_os_reconcile — after a decided candidate merges, record the ratification the merge was.
   session: S-091826-01
+- tool_id: HAIOS-TOOL-169
+  name: intent_os_pages_v1_0
+  path: tools/intent_os_pages_v1_0.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
