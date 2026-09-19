@@ -1,10 +1,14 @@
 name: SonarCloud Baseline Auto-Capture
 
-# Automatically runs SonarCloud scan, captures metrics, creates issues, and updates baseline
-# Triggered on every push to main branch
+# Automatically runs SonarCloud scan, captures metrics, creates issues, and updates baseline.
+# Consolidates previous sonarqube.yml (PR scans) and sonarcloud-baseline-auto.yml (main scans).
+# - On PRs: Quality scan for review (metrics only, advisory)
+# - On main: Full capture with baseline update and issue creation
 # No manual steps required after commit
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
   push:
     branches: [main]
   workflow_dispatch:
