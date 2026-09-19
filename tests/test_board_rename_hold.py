@@ -7,7 +7,9 @@ filename exists in the tree while d31 is still awaiting Z2 in z1-inbox/INDEX.yam
 still awaiting Z2 (the rename is d33's executing move, so it cannot precede d33's own ruling either).
 
 It reads the index as text, not YAML, so it needs no dependency and cannot be fooled by a loader default.
-Run by the quality-baseline job (pytest over tests/) and by the test harness (t3-pytest).
+Run by the test harness's `t3-pytest-research` row (pytest over tests/), so by the refresh job after every
+merge to main — post-merge detection. The pre-merge `quality-baseline` job lists its pytest files one by one
+and does not include this one; adding it is G2 of Q-INTENTOS-PAGES-GATE-01, Z2's to rule.
 """
 import os
 import re
