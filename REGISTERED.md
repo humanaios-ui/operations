@@ -4598,3 +4598,23 @@ superseded_by: null
 
 **Status:** CANDIDATE · Spec submitted to z1-inbox/2026-09-19/PHASE-1B-GRANT-MATCHING-SPEC.md · Awaiting Z2 ratification
 
+---
+
+## Z2 Ratification — PENDING 2026-09-19
+
+**Candidate ID:** Q-PHASE-2-BOARD-MOLT-01  
+**Z2 Signature:** Pending  
+**Decision:** PENDING  
+**Timestamp:** (awaiting Z2 read)  
+**Ratification Hash:** (pending Z2 decision)  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Awaiting Z2 Decision:**
+- [ ] Falsifier acceptable? (data persistence + 5-min SLA)
+- [ ] Molt tier verified? (0 claimed = 0 measured, no constants changed)
+- [ ] Governance compliance confirmed? (Temporal dissolution, RLS, audit trail)
+- [ ] Risk mitigations sufficient? (webhook rate limit, Supabase outage, parsing failure)
+- [ ] Deployment feasible? (Night can execute 6-step guide)
+
+**Status:** CANDIDATE · Spec submitted to z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md · Awaiting Z2 ratification · PR #419 (temporal dissolution fixes applied, all security checks pass)
+
