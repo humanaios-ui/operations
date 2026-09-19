@@ -500,9 +500,10 @@ render();
     ]}
   ];
   function currentPage() { return window.location.pathname.split('/').pop() || 'intent-os-humanaios-v3_3.html'; }
-  function readStamp() {
+  function readStamp() {  // the board's read date on the board's pages; the harness run on the dashboard; a plain name otherwise
     try { if (typeof HUMANAIOS !== 'undefined' && HUMANAIOS.read) return 'read ' + HUMANAIOS.read.date; } catch (e) {}
-    return 'Intent-OS';
+    try { if (typeof RESULTS !== 'undefined' && RESULTS && RESULTS.at) return 'run ' + String(RESULTS.at).slice(0, 10); } catch (e) {}
+    return 'no read on this page';
   }
   var CSS = `
     .wit-v3-wrap { position: fixed; bottom: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-start; }
@@ -574,8 +575,10 @@ render();
   var btn = document.getElementById('wit-btn'), panel = document.getElementById('wit-panel'), open = false;
   function setOpen(state) {
     open = state; btn.setAttribute('aria-expanded', String(state)); panel.setAttribute('aria-hidden', String(!state));
+    panel.inert = !state;  // a closed panel is not in the tab order either — hidden from every reader, not only the visual one
     panel.classList.toggle('open', state); btn.classList.toggle('rotated', state);
   }
+  panel.inert = true;
   btn.addEventListener('click', function() { setOpen(!open); });
   document.addEventListener('click', function(e) { if (open && !wrap.contains(e.target)) setOpen(false); });
   document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && open) { setOpen(false); btn.focus(); } });
@@ -751,8 +754,9 @@ render();
       var vg=ctx.createRadialGradient(cx,cy,R*0.68,cx,cy,R*1.12);
       vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,0,0.38)');
       ctx.beginPath();ctx.arc(cx,cy,R*1.12,0,Math.PI*2);ctx.fillStyle=vg;ctx.fill();
-      requestAnimationFrame(frame);
+      if(!REDUCED)requestAnimationFrame(frame);  // reduced motion: one frame, no loop
     }
+    var REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     requestAnimationFrame(frame);
   })();
 
