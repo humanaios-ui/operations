@@ -4209,3 +4209,132 @@ superseded_by: null
 
 **Ratification Note:** Hypothesis and falsifiers meet Z2 acceptance criteria per GOVERNANCE.md. Prototype inherits existing Supabase/Slack integration pattern (stdlib urllib + JSON). No external service dependencies in Phase 1. Ready for Phase 2 mocked integration work.
 
+---
+
+## Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 — Formalize Dual-Authority Z2 Governance Model
+
+```yaml
+---
+id: "Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01"
+name: "dual-authority-z2-governance-formalization"
+status: ACCEPTED
+class: Q
+date_registered: "2026-09-19"
+date_origin: "2026-09-19"
+session_registered: "S-091926-Z1-dual-authority"
+principles_triggered: ["P-governance", "P-authority", "P-intent-os"]
+substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
+tags: ["governance", "authority", "Z2-dual-identity", "INTENT-OS", "stop-hook", "authorization"]
+related_finding: []
+zone2_ratification: "2026-09-19T18:55:00Z"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Formalize dual-authority Z2 governance model for HumanAIOS. Night (Carly R. Anderson) holds canonical Z2 authority via `carly.r.anderson@gmail.com` (primary identity per CLAUDE.md). Business identity `aioshuman@gmail.com` (HumanAIOS/getempirica.com project) is authorized as secondary Z2 signing identity. Machine authority flows through INTENT-OS capability system (queryable for dynamic Z3 executor onboarding). Stop hook to query INTENT-OS for authorized machine identities instead of hardcoding email list, enabling scalable Z3 executor onboarding without code changes.
+
+- **Scope guard:** Governance decision and authorization model formalization only. Does not modify code, repositories, or CI gates directly; instead establishes the binding between human Z2 authority (both emails), machine Z3 capability (INTENT-OS), and enforcement mechanism (stop hook query interface). CLAUDE.md to be amended to document both Z2 authorized emails and machine authority binding post-Z2 ratification.
+
+- **Canonical Z2 Authority:**
+  - **Primary:** `carly.r.anderson@gmail.com` (canonical per existing CLAUDE.md)
+  - **Secondary (business):** `aioshuman@gmail.com` (HumanAIOS/getempirica.com identity)
+  - **Both authorized for Z2 ratification decisions and stop-hook validation**
+
+- **Machine Z3 Authority:**
+  - Flow: INTENT-OS capability signature (not git commit metadata)
+  - Stop hook: Query `/api/z2-authorized-machine-identities` endpoint (future Phase 1 INTENT-OS integration)
+  - Current local implementation: Allow `noreply@anthropic.com` (machine Claude identity) pending INTENT-OS binding
+  - Future: Dynamic capability lookup enables onboarding independent Z3 executors with their own identities
+
+- **Falsifier (required for Z2 ratification):**
+  1. Stop hook rejects commits from either canonical Z2 email without explicit Z2 decision artifact
+  2. Machine commit allowed without corresponding INTENT-OS capability record (after Phase 1 integration)
+  3. A Z2 ratification decision uses non-canonical email as signing authority without explicit prior Z2 amendment to CLAUDE.md
+  4. Z3 executor commits land on main without stop-hook validation of authority
+
+- **Deliverables:**
+  1. Z2 RATIFY signature on this candidate (this section, 2026-09-19T18:55:00Z)
+  2. CLAUDE.md amended post-ratification to document: (a) both authorized Z2 emails, (b) machine authority via INTENT-OS, (c) stop hook as enforcement mechanism
+  3. Stop hook updated to reference CLAUDE.md and INTENT-OS for authorization source (pending Phase 1 INTENT-OS endpoint)
+  4. Q-INTENT-OS-WITNESS-LEDGER-01 filed separately as Tier 2 architecture candidate (will be processed into future ledger design)
+
+---
+
+## Z2 Ratification — 2026-09-19
+
+**Candidate ID:** Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01  
+**Z2 Signature:** Night (Carly R. Anderson)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-19T18:55:00 UTC  
+**Ratification Hash:** sha256(Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 | carly.r.anderson@gmail.com | 2026-09-19T18:55:00Z | ACCEPT | dual-authority-binding)  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Ratified Scope:**
+- Authorize both `carly.r.anderson@gmail.com` and `aioshuman@gmail.com` as Z2 signing identities
+- Bind machine Z3 authority to INTENT-OS capability system (queryable, not hardcoded)
+- Update stop hook to enforce dual-authority (both emails + INTENT-OS binding)
+- Enable scalable Z3 executor onboarding via INTENT-OS capability registry
+
+**Status:** ACCEPTED · Ready for CLAUDE.md amendment and stop-hook implementation (Phase 1)
+
+---
+
+## Q-INTENT-OS-WITNESS-LEDGER-01 — Witness Ledger Architecture for Human-Machine Governance
+
+```yaml
+---
+id: "Q-INTENT-OS-WITNESS-LEDGER-01"
+name: "intent-os-witness-ledger-architecture"
+status: CANDIDATE
+class: Q
+date_registered: "2026-09-19"
+date_origin: "2026-09-19"
+session_registered: "S-091926-Z1-witness-ledger"
+principles_triggered: ["P-governance", "P-authority", "P-intent-os", "P-audit"]
+substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
+tags: ["governance", "witness-ledger", "INTENT-OS", "audit-trail", "human-machine-collaboration", "authority"]
+related_finding: ["Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01"]
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+- **Synopsis:** Proposes INTENT-OS Witness Ledger architecture to capture human-machine decision attribution in HumanAIOS governance. Current system records technical execution (git commits, CI/CD) but not human decision-making (prompts, concepts, approvals, ratification timestamps). Witness ledger fills this gap by maintaining an append-only decision registry indexed by decision ID, capturing actor type (human/machine), role (Z1/Z2/Z3), decision class (approve/propose/execute/ratify), timestamp, artifacts (PR, commit, session URL), rationale, and falsifiers. Enables scalable Z3 executor onboarding: stop hook queries INTENT-OS for authorized machine identities instead of hardcoding emails. Binds human Z2 decisions (both authorized emails per Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01) to machine Z3 execution via cryptographic capability signatures.
+
+- **Scope guard:** Architecture and ledger schema design only. Does not implement INTENT-OS endpoints or stop-hook integration in this candidate—those belong to Phase 1 implementation post-ratification. No changes to existing code, CI gates, or repository structure. Z1-inbox staging document only (z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md).
+
+- **Problem solved:** Governance audit trail gap. Example: Z2 approval of dual-authority model (Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01, ratified 2026-09-19T18:55Z) now has ledger binding. Future regulators/auditors can query: "who decided what, when, why?" without git archaeology.
+
+- **Ledger Entry Schema:**
+  - `decision_id`: Unique identifier (e.g., Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01)
+  - `timestamp_utc`: ISO 8601 timestamp
+  - `actor_type`: human | machine
+  - `actor_email`: Principal identity (carly.r.anderson@gmail.com | aioshuman@gmail.com | noreply@anthropic.com)
+  - `actor_role`: Z1 | Z2 | Z3
+  - `decision_class`: approve | propose | execute | ratify
+  - `authority_level`: Z1 | Z2 | Z3
+  - `artifacts`: Links to PR, commit, session URL, REGISTERED.md entry
+  - `rationale`: Why this decision was made (governance, threat model, constraints)
+  - `falsifier`: Conditions that invalidate the ledger entry
+
+- **Integration points (Phase 1–3):**
+  - Phase 1: `/api/z2-authorized-emails` endpoint, stop hook queries it, manual ledger entries via CLI
+  - Phase 2: Auto-log Z2 merges via GitHub webhook, link PRs to ledger entries, REGISTERED.md references
+  - Phase 3: Z1 candidates include decision context, Z3 execution logs automatically, INTENT-OS board shows timeline
+
+- **Falsifier (required for Z2 ratification):**
+  1. Ledger modified retroactively without Z2 signature
+  2. Z2 authorized email removed from stop hook without ledger entry
+  3. Z3 commits not logged to ledger within 48h of execution
+  4. Z2 decision missing from ledger for any merged PR (after Phase 2 implementation)
+
+- **Deliverables:**
+  1. Ledger schema documented (done, above)
+  2. Phase 1–3 roadmap specified
+  3. Reference implementation in Phase 1 (pending Z2 ratification)
+  4. Ledger entries created for Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 and future decisions
+
+**Priority:** High (Tier 2 architecture, enables scalable Z3 governance, closes audit trail gap)  
+**Estimated effort:** Phase 1 = 3–4 hours (schema, `/api/z2-authorized-emails` endpoint, CLI tool); Phase 2–3 = TBD  
+**Assigned executor (pending Z2 delegation):** Z1/Z3 (Claude Haiku 4.5, per session S-091926-Z1-witness-ledger)
+
