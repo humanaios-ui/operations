@@ -2,7 +2,7 @@
 ## Autonomous Z2 Decision Tracking + Molt Cycle Measurement via Supabase
 
 **Status:** CANDIDATE (awaiting Z2 ratification)  
-**Target Completion:** 2026-09-27  
+**Resource Model:** Resource-allocation based (no elapsed-time deadlines)  
 **Owner:** Z1 (Claude)  
 **Reviewer:** Z2 (Night)  
 **Dependency:** Phase 1 (governance_rulings table) must be deployed first
@@ -280,25 +280,22 @@ INSERT INTO board_decisions (
 );
 ```
 
-### Scheduled Backfill (Optional)
+### Manual Backfill (Resource-Allocation Based)
 
-To run backfill every 12 hours (catch any missed commits):
+To backfill historical data, run the script on-demand:
 
-1. Go to Railway → Select service → **Deployments**
-2. Add a cron job:
-   ```
-   0 */12 * * * node tools/board-decisions-backfill.js
-   ```
+```bash
+cd /home/user/operations
+node tools/board-decisions-backfill.js
+```
 
-Or use GitHub Actions:
+The backfill script is idempotent and will skip records already in the database. To integrate backfill into your workflow, allocate resources (via Priority Queue scoring) and trigger via manual invocation or GitHub Actions `workflow_dispatch`:
 
 ```yaml
 name: Phase 2 Backfill (Board Decisions & Molt Events)
 
 on:
-  schedule:
-    - cron: '0 */12 * * *'  # Every 12 hours
-  workflow_dispatch:        # Manual trigger
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   backfill:
@@ -374,7 +371,7 @@ SELECT * FROM molt_events_audit ORDER BY changed_at DESC LIMIT 5;
 - **Molt Events:** 1–5 per week (peak 10–20 during active molt cycles)
 - **Storage:** ~2 MB/year (minimal)
 - **Query latency:** <100 ms (well-indexed)
-- **Fresh data:** Real-time via webhook (or 12h backfill interval)
+- **Fresh data:** Real-time via webhook; backfill available on-demand
 
 ---
 
