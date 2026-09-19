@@ -499,10 +499,21 @@ render();
       { id: 'home', href: HOME, name: 'The Witness', desc: 'humanaios.ai · the public site', icon: '◌' }
     ]}
   ];
-  function currentPage() { return window.location.pathname.split('/').pop() || 'intent-os-humanaios-v3_3.html'; }
+  var LOCAL = window.location.protocol === 'file:';
+  var BOARD = 'intent-os-humanaios-v3_3.html';
+  function hashView() { var m = /(?:^#|&)view=([a-z]+)/.exec(window.location.hash || ''); return m ? m[1] : null; }
+  function currentPage() { return window.location.pathname.split('/').pop() || BOARD; }
+  function itemHref(item) {  // under file:// the board's views are hashes of the one board file (see the board's pageHref)
+    if (LOCAL && item.id !== 'dashboard' && item.id !== 'home') return BOARD + '#view=' + item.id;
+    return item.href;
+  }
+  function isActive(item) {
+    if (LOCAL && currentPage() === BOARD && item.id !== 'dashboard' && item.id !== 'home') return item.id === (hashView() || 'board');
+    return item.href === page;
+  }
   function readStamp() {  // the board's read date on the board's pages; the harness run on the dashboard; a plain name otherwise
     try { if (typeof HUMANAIOS !== 'undefined' && HUMANAIOS.read) return 'read ' + HUMANAIOS.read.date; } catch (e) {}
-    try { if (typeof RESULTS !== 'undefined' && RESULTS && RESULTS.at) return 'run ' + String(RESULTS.at).slice(0, 10); } catch (e) {}
+    try { if (typeof RESULTS !== 'undefined' && RESULTS && RESULTS.ran_at) return 'run ' + String(RESULTS.ran_at).slice(0, 10); } catch (e) {}
     return 'no read on this page';
   }
   var CSS = `
@@ -554,8 +565,8 @@ render();
   NAV_GROUPS.forEach(function(group) {
     if (group.label) navHTML += '<div class="wit-v3-gl">' + group.label + '</div>';
     group.items.forEach(function(item) {
-      var active = item.href === page;
-      navHTML += '<a class="wit-v3-link' + (active ? ' active' : '') + '" href="' + item.href + '" role="menuitem"' + (active ? ' aria-current="page"' : '') +
+      var active = isActive(item);
+      navHTML += '<a class="wit-v3-link' + (active ? ' active' : '') + '" href="' + itemHref(item) + '" role="menuitem"' + (active ? ' aria-current="page"' : '') + ' data-nav="' + item.id + '"' +
         (item.href === HOME ? ' rel="noopener"' : '') + '><span class="wit-v3-icon">' + item.icon + '</span><div><div class="wit-v3-ln">' + item.name +
         '</div><div class="wit-v3-ld">' + item.desc + '</div></div></a>';
     });
@@ -571,6 +582,12 @@ render();
       '<button class="wit-v3-btn" id="wit-btn" aria-haspopup="true" aria-expanded="false" aria-controls="wit-panel" aria-label="Open Intent-OS navigation">' +
       '<canvas id="wit-glyph" width="128" height="128"></canvas></button><span class="wit-v3-label">Navigate</span></div>';
   document.body.appendChild(wrap);
+  window.__witMark = function (v) {  // the board calls this when a view switches under file:// (no navigation happens)
+    wrap.querySelectorAll('.wit-v3-link').forEach(function (a) {
+      var on = a.getAttribute('data-nav') === v; a.classList.toggle('active', on);
+      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  };
   document.getElementById('wit-stamp').textContent = readStamp();
   var btn = document.getElementById('wit-btn'), panel = document.getElementById('wit-panel'), open = false;
   function setOpen(state) {

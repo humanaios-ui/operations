@@ -452,7 +452,9 @@ candidates:
   path: z1-inbox/2026-09-17/Q-INTENTOS-REFRESH-01.md
   submitted: '2026-09-17'
   status: awaiting_z2
-  note: "Answers Z2's 09-17 question (the inbox keeps growing; is there a mechanism?).\
+  note: "DECOMPOSED 2026-09-19 into Q-BOARD-RULING-23/24/25/32/26 (its d23-d26 and KNOWN_RED are ruled\
+    \ from the board, one block each); ratifying this block accepts the refresh mechanism as built and\
+    \ resolves none of those calls. Answers Z2's 09-17 question (the inbox keeps growing; is there a mechanism?).\
     \ tools/intent_os_board_reseal_v1_0.py + .github/workflows/intent-os-refresh.yml,\
     \ report-only until vars.INTENT_OS_REFRESH_AUTOPR=true. Operated on the real drift\
     \ at e2b9a7a: 3 rows re-hashed, ratify.py 1.2.0 refused and re-read by hand."
@@ -461,7 +463,7 @@ candidates:
   path: z1-inbox/2026-09-17/Q-INTENTOS-BUS-01.md
   submitted: '2026-09-17'
   status: awaiting_z2
-  note: "Step 4 of the bus plan Z2 approved 09-17. Steps 1-3 are on main (#377, #380). Four policy choices in resource units; falsifier over the next ten requests; predictions C25-C28 in sessions, requests, scans and merges. Files the two IC-candidates step 3 measured (manifest smoke_test is a text match; a smoke test with side effects) as d29."
+  note: "DECOMPOSED 2026-09-19 into Q-BOARD-RULING-27/28/29/30 (d27-d30 are ruled from the board, one block each); ratifying this block accepts steps 1-3 of the bus as built and resolves none of those calls. Step 4 of the bus plan Z2 approved 09-17. Steps 1-3 are on main (#377, #380). Four policy choices in resource units; falsifier over the next ten requests; predictions C25-C28 in sessions, requests, scans and merges. Files the two IC-candidates step 3 measured (manifest smoke_test is a text match; a smoke test with side effects) as d29."
 - q_id: Q-BOARD-PUBLISH-01
   title: "Board ruling d31 \u2014 board surface \u2014 serve the board from a login-gated Cloudflare\
     \ Worker (Access, allow-listed identities), replacing d17's local-only?"
@@ -585,7 +587,9 @@ candidates:
   submitted: '2026-09-19'
   status: awaiting_z2
   note: "Z2's direction 2026-09-19: a clean filename as a successor block to d19, in one move (rename,\
-    \ every reference, a Worker redirect from the old path, re-seal), held until d31 rules. Filed now so\
+    \ every reference, a Worker redirect from the old path, re-seal), conditioned on d31's outcome: the\
+    \ Worker redirect exactly when d31 rules serve behind login, no Worker obligation on stay local, held\
+    \ while d31 is later (state table in the block, red-team read of #410). Filed now so\
     \ it is on the board; the executing PR opens only after d31's ruling PR merges."
 - q_id: Q-INTENTOS-PAGES-GATE-01
   title: "Gates for the board's page set — intent_os_pages --check as a pre-merge step (G1), the d33\

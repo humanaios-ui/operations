@@ -28,12 +28,14 @@ entry — this block.
 | **G1** | Add `python3 tools/intent_os_pages_v1_0.py --check` as an ERROR step to a pull-request job (the natural home is the refresh workflow's PR-facing half, or `quality-baseline`), so a PR that changes the board without regenerating the pages cannot merge? | Makes the pages a derived file with a gate, like `Z1_INBOX_INDEX.md` under `render.py --check`. Cost: one more step per PR; a contributor regenerates with one command. |
 | **G2** | Add `tests/test_board_rename_hold.py` to `quality-baseline`'s pytest list, so the d33 hold refuses a rename PR before it merges rather than reporting it after? | The hold then stops being prose. Once d31 and d33 are both ratified the test passes on the renamed tree and can be retired with the successor block that records the rename. |
 | **G3** | Treat the runbook's open-the-board card as a sealed surface (a board seal on `docs/INTENT_OS_BOARD_RUNBOOK.md`, re-sealed by the tool on every edit), or leave it prose? | A seal makes drift visible on the board; the reseal tool marks it MECHANICAL on every runbook edit, so the cost is noise. |
+| **G4** | Make decomposition a validator rule: `.z1-control/ratify.py --apply` refuses a candidate whose file carries a `**Decomposed into:**` line while any named child is not `ratified`, and `.z1-control/validate.py` reports a decomposed parent that still carries a `\| **dNN** \|` row as a violation? (From the ChatGPT red-team read of #410: the REFRESH and BUS parents held the same calls as their d23–d30/d32 children.) | Today the parents carry no decision rows and `tests/test_decision_decomposition.py` fails if a row returns — post-merge. G4 makes the refusal pre-signature, in the two gate files. |
 
 ## Options
 
-- `adopt G1 + G2` (G3 as Z2 chooses)
+- `adopt G1 + G2 + G4` (G3 as Z2 chooses)
+- `adopt G1 + G2` (G3, G4 as Z2 chooses)
 - `adopt G1 only`
-- `keep detection only` (the harness row, the banner and the post-merge test stand; no pre-merge gate)
+- `keep detection only` (the harness row, the banner and the post-merge tests stand; no pre-merge gate)
 - `later`
 
 ## Predictions (pre-registered)

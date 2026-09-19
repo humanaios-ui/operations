@@ -234,9 +234,13 @@ whose log did not yet say which; 0.4.3 and the board's re-prompting fix both.
 >
 > **Today (d17 stands): a local file.**
 > 1. Download `ui/intent-os-humanaios-v3_3.html` from `main` (GitHub → the file → *Download raw file*; the
->    raw link itself shows text, not a page) — and the five files beside it if you want the pages and the
->    nav to work locally: they link to each other by filename in the same folder.
-> 2. Open the board file in a browser. It runs from `file://`; no server.
+>    raw link itself shows text, not a page). The test dashboard is a second file if you want it; the four
+>    section pages are not needed locally (next step).
+> 2. Open the board file in a browser. It runs from `file://`; no server. From a file, the pages strip and
+>    the Witness button switch views **inside this one file** (`#view=decisions`, `#view=records`, …), so
+>    every tap and every saved choice lives in one document — browsers do not promise that six `file://`
+>    documents share one saved state. The separate page files are for the served board (one origin, one
+>    storage); opened from `file://` they still render, and their links lead back into the board file.
 > 3. The first tap asks for the relay URL's secret and the basic-auth password (Railway → the service
 >    `intent-os-relay` → Variables). Kept in memory only.
 > 4. After every merge to `main`, replace the downloaded files. The board's filename is frozen (d19), so your

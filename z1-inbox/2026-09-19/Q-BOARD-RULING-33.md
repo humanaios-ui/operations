@@ -5,8 +5,8 @@
 **Source:** Z2 in session (2026-09-19): *"I want a clean file name (intent-os-board.html), the path is a successor block to d19 in one move: rename, update every reference above it, add a one-line redirect in the Worker from the old path so bookmarks and the local-copy instruction keep working, and re-seal. I'd hold it until after d31 rules."* · `ui/intent-os-humanaios-v3_3.html` · `rulings[d33]`
 **Status:** AWAITING Z2 RATIFICATION
 **Succeeds:** d19 (`z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md`, *freeze path* — signed `9a2a469be2cbbe1d…`). d19 is not edited: a signed ruling is closed; this block is the successor that asks the next question, citing d19 as provenance.
-**Gates:** board pipeline step 19 (this board); sequenced after d31
-**Held:** Z2 asked that the move land only after d31 rules. This block is filed now so the question is on the board with every other open decision; the executing pull request is opened only after d31's ruling PR has merged, whatever order the taps come in.
+**Gates:** board pipeline step 19 (this board); conditioned on d31's outcome, not merely sequenced after it
+**Held:** Z2 asked that the move land only after d31 rules. This block is filed now so the question is on the board with every other open decision; the executing pull request is opened only after d31's ruling PR has merged, whatever order the taps come in — and what that PR carries depends on which way d31 went (the table under *State transitions from d31*). A red-team read of #410 (ChatGPT, 2026-09-19) found the first draft of this block assumed the Worker exists, which is true only for one of d31's three outcomes.
 
 ## Question
 
@@ -35,6 +35,21 @@ reads change the data — and drops the suffix. The one move, when this rules `r
    and is simply the old download locally — replace it once.
 5. Re-seal: `tools/intent_os_board_reseal_v1_0.py --apply`, the pages regenerated, the checker HOLDS, and
    the `KEY` under which the browser saves taps is kept as it is, so saved state survives the rename.
+
+## State transitions from d31
+
+The move is one move in every branch; what the one move contains is fixed by d31's ruling, read off
+`z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md`'s *Ruling* section once its PR has merged:
+
+| d31 ruled | what a `rename` here executes | what falsifier (b) reads |
+|---|---|---|
+| `serve behind login` | steps 1–5 above in full: the rename, every reference, the Worker's `301` from the old path after the login check (with its test), the runbook, the re-seal | the old path answers a redirect on the Worker; checker HOLDS; pages `--check` clean |
+| `stay local` | steps 1, 2, 4 and 5 — there is no Worker to redirect from (d31's rollback removes that surface), so the "redirect" is the runbook's local-copy instruction naming the new file and saying the old download is simply the old file; no Worker obligation | no `board/worker.mjs` change in the executing PR; checker HOLDS; pages `--check` clean; the runbook names the new file |
+| `later` | nothing: this block stays **HELD** (not merely "after the merge") until a successor to d31 rules one way; a `rename` tapped here before that is recorded and waits | an executing PR opened while d31 is `later` is closed without merging (falsifier (c)) |
+
+So the dependency is a state transition, not an ordering: the executing PR is opened only after d31's
+ruling PR has merged **and** d31 ruled `serve behind login` or `stay local`; it carries the Worker redirect
+exactly when d31 ruled `serve behind login`.
 
 ## Options
 
@@ -67,15 +82,19 @@ status: OPEN
 
 - [ ] Board filename — rename to `intent-os-board.html` with a redirect from the old path, keep the frozen path, or later
 - [ ] The move is one commit: rename, every reference, the Worker redirect, the runbook, the re-seal — nothing lands piecemeal
-- [ ] Sequenced after d31: the executing PR opens only after d31's ruling PR has merged
+- [ ] Conditioned on d31: the executing PR opens only after d31's ruling PR has merged, and carries the Worker redirect exactly when d31 ruled `serve behind login`; it stays held while d31 is `later`
 
 ## Falsifier
 
 Event-based, no clock. (a) If `ui/intent-os-board.html` appears on `main` while this block is still
-`status: OPEN`, the rename bypassed the ruling: it is reverted and this block is withdrawn rather than carried.
-(b) If this block is ruled `rename` and, after the executing PR merges, either the old path answers anything
-but a redirect to the new one on the Worker, or the board checker reads STALE on the new file, or
-`tools/intent_os_pages_v1_0.py --check` reports a stale page, the move was not one move: the executing PR is
-reverted as a whole and a successor block names what was missed. (c) If the executing PR opens before d31's
-ruling PR has merged, the hold was not honoured: it is closed without merging and re-opened after d31. All
-three are read off the tree and the Worker, not a calendar.
+`status: OPEN`, the rename bypassed the ruling: it is reverted and this block is withdrawn rather than carried
+(`tests/test_board_rename_hold.py` fails on such a tree). (b) If this block is ruled `rename` and, after the
+executing PR merges, the board checker reads STALE on the new file, `tools/intent_os_pages_v1_0.py --check`
+reports a stale page, or — when d31 ruled `serve behind login` — the old path answers anything but a redirect
+to the new one on the Worker, the move was not one move: the executing PR is reverted as a whole and a
+successor block names what was missed. (c) If the executing PR opens before d31's ruling PR has merged, or
+while d31 stands at `later`, the hold was not honoured: it is closed without merging and re-opened once d31
+(or its successor) has ruled `serve behind login` or `stay local`. (d) If the executing PR carries a Worker
+redirect when d31 ruled `stay local`, or carries none when d31 ruled `serve behind login`, it executed the
+wrong branch of the table above: it is reverted as a whole. All four are read off the tree, d31's ruling
+section and the Worker, not a calendar.

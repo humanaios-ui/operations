@@ -277,7 +277,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 
 - [ ] Board filename — rename to `intent-os-board.html` with a redirect from the old path, keep the frozen path, or later
 - [ ] The move is one commit: rename, every reference, the Worker redirect, the runbook, the re-seal — nothing lands piecemeal
-- [ ] Sequenced after d31: the executing PR opens only after d31's ruling PR has merged
+- [ ] Conditioned on d31: the executing PR opens only after d31's ruling PR has merged, and carries the Worker redirect exactly when d31 ruled `serve behind login`; it stays held while d31 is `later`
 
 ### Q-CGBG-BASELINE-01 (6)
 

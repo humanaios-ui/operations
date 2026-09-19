@@ -462,7 +462,7 @@ const HUMANAIOS = {
    why:"On 09-14 morning the inbox held 22 awaiting_z2 candidates while this board carried 14 open rulings (d2, d3, d5–d16) that existed nowhere in it — two backlogs, one ratifier. d18 ruled the board's rulings into the inbox; each is now a candidate block the z2 gate, the validator and the triage job can see, and the relay ratifies it in place. One list: Z1_INBOX_INDEX.md.",
    gate:"every open board ruling either maps to an INDEX.yaml candidate (q_id recorded on the ruling) or is withdrawn with a reason",
    cmds:"python3 .z1-control/validate.py --report | python3 -c \"import json,sys;r=json.load(sys.stdin);print(r.get('counts'))\"\ngrep -c awaiting_z2 z1-inbox/INDEX.yaml   # 09-14 after filing: 36",
-   meta:"DONE 09-14 under d18: 14 candidates Q-BOARD-RULING-02…16 filed (each with the question, options, a choice: line ratify.py signs over, and a 30-day falsifier) · queue now 40 candidates: 4 ratified · 36 awaiting_z2 (incl. the IC candidate Q-IC-BOARD-SEALS-01 from this read's findings scan) — one list, no board-only rulings left · 09-19: d20–d30 and d32, carried inside three later blocks, filed as Q-BOARD-RULING-20…30/32 so a tap can land each (61 candidates)"},
+   meta:"DONE 09-14 under d18: 14 candidates Q-BOARD-RULING-02…16 filed (each with the question, options, a choice: line ratify.py signs over, and a 30-day falsifier) · queue now 40 candidates: 4 ratified · 36 awaiting_z2 (incl. the IC candidate Q-IC-BOARD-SEALS-01 from this read's findings scan) — one list, no board-only rulings left · 09-19: d20–d30 and d32, carried inside three later blocks, filed as Q-BOARD-RULING-20…30/32 so a tap can land each (63 candidates with d33 and Q-INTENTOS-PAGES-GATE-01)"},
   {id:"21", name:"test surface — harness T0–T7, dashboard, pathway", state:"progress", role:"stage 6 · Measure",
    why:"tools/intent_os_test_harness_v1_0.py runs every testable surface (self-tests, validators, the z2 gate's tools, the board checker, the relay's self-test, pytest) and writes one JSON receipt; ui/intent-os-test-dashboard-v1_0.html renders only from that receipt; docs/INTENT_OS_TEST_PATHWAY.md is the tiered pathway. Q-INTENTOS-TEST-01 was ratified 09-16 with three decisions inside it (d20–d22) whose choices were never recorded — filed 09-19 as their own blocks.",
    gate:"the harness returns GREEN on main, or every red row is named in a candidate (the ACAT pytest row is the one registered red: F-CAND, carried as KNOWN_RED by the refresh job — d32)",
@@ -571,7 +571,7 @@ const HUMANAIOS = {
   {id:"d30", qid:"Q-BOARD-RULING-30", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-30.md", t:"Squash-merge read pointer", q:"Squash-merge read pointer — let intent_os_board_reseal move read.against mechanically when the tree hash at the new HEAD equals the tree hash at the read (a fetch, not a judgement), or keep it NEEDS-HUMAN as now?", s:"carried inside Q-INTENTOS-BUS-01 · the pointer named a branch-only commit twice on #408 (Copilot caught it) and the reseal tool rewrote it to a branch commit twice on #409 (corrected by hand) — a mechanical rule would end both; NEEDS-HUMAN keeps a person on every squash-merge", opts:["mechanical pointer move","keep NEEDS-HUMAN","later"]},
   {id:"d31", qid:"Q-BOARD-PUBLISH-01", path:"z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md", t:"Board surface: login-gated Worker", q:"Board surface — serve the board from a login-gated Cloudflare Worker (Access, allow-listed identities; no public copy), replacing d17's local-only?", s:"Z2 09-18: 'no public, login to open the board' · built inert on main: board/worker.mjs serves the board's six pages (the board, Decisions, Commitments, Verified records, ARENA, the test dashboard) only behind a verified Access login for an identity on its own allow-list (403 otherwise) and answers 401 until ACCESS_TEAM_DOMAIN/ACCESS_AUD/ACCESS_ALLOWED_EMAILS are set; ratify.py refuses to sign this block by hand — the merge of its PR is the only act; wrangler.jsonc is the Workers Builds config · steps in runbook §5", opts:["serve behind login","stay local","later"]},
   {id:"d32", qid:"Q-BOARD-RULING-32", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-32.md", t:"KNOWN_RED list in the refresh job", q:"KNOWN_RED — the refresh job carries INTENT_OS_KNOWN_RED: t3-pytest-acat so the registered F-CAND does not open a STALE issue on every run. Accept that list as the place a registered-but-unfixed red row is named, or require the list to be empty (every red row files)?", s:"carried inside Q-INTENTOS-REFRESH-01 without a d-number; d32 because d31 is the login-gated board · the list is in the workflow file, so adding to it is a reviewed change; the row stays RED on the dashboard and in the receipt", opts:["accept the list","require empty","later"]},
-  {id:"d33", qid:"Q-BOARD-RULING-33", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-33.md", t:"Board filename (successor to d19)", q:"Board filename — rename ui/intent-os-humanaios-v3_3.html to ui/intent-os-board.html as the stable consumer target (a successor to d19's freeze), with a redirect from the old path so bookmarks and the local-copy instruction keep working?", s:"Z2 09-19: a clean file name, in one move — rename, every reference, a one-line Worker redirect from the old path, re-seal — HELD until d31 rules: the executing PR opens only after d31's ruling PR merges · d19 stays signed; this is its successor block", opts:["rename to intent-os-board.html","keep the frozen path","later"]},
+  {id:"d33", qid:"Q-BOARD-RULING-33", path:"z1-inbox/2026-09-19/Q-BOARD-RULING-33.md", t:"Board filename (successor to d19)", q:"Board filename — rename ui/intent-os-humanaios-v3_3.html to ui/intent-os-board.html as the stable consumer target (a successor to d19's freeze), with a redirect from the old path so bookmarks and the local-copy instruction keep working?", s:"Z2 09-19: a clean file name, in one move — rename, every reference, re-seal — CONDITIONED on d31: the executing PR opens only after d31's ruling PR merges and carries the Worker redirect exactly when d31 ruled serve behind login (no Worker obligation on stay local; held while d31 is later) · d19 stays signed; this is its successor block", opts:["rename to intent-os-board.html","keep the frozen path","later"]},
  ],
  seals:[
   {artifact:"REGISTERED.md (re-sealed 2026-09-17 at e2b9a7a; content changed, description not re-read)", sha:"f33ba7bfeccc2387", path:"REGISTERED.md"},
@@ -603,13 +603,13 @@ const HUMANAIOS = {
   {artifact:"board/worker.mjs — the login-gated board Worker (filed as d31 on 2026-09-18, merged in #409; re-read 2026-09-19): serves the board's six pages under ui/ (the board, its four section pages generated by tools/intent_os_pages_v1_0.py, the test dashboard — not the Z2 reviewer, which reads ../z1-inbox at runtime) only after verifying the Cloudflare Access RS256 token from Access's request header (the cookie is not read) against the team's keys (shape, issuer, audience, expiry, nbf — a present nbf must be a number, and a future one is refused without skew — signature, in that order) AND requiring the token's email to be on ACCESS_ALLOWED_EMAILS (a valid login for an unlisted identity is 403: authorization is the code's, not only the Access policy's — Z2's ChatGPT red-team finding 2); keys held in an immutable snapshot, one rate-limited refresh on an unknown kid, last-known-good for 24 h if the certs endpoint fails, then closed; login judged before method, so an unauthenticated POST learns only 401; every answer no-store/noindex/no-referrer/nosniff/frame-deny with a CSP naming the relay and raw.githubusercontent.com as the only connect targets; every authenticated answer carries X-Board-Commit; with ACCESS_TEAM_DOMAIN/ACCESS_AUD/ACCESS_ALLOWED_EMAILS unset it answers 401 to everything but /healthz — fails closed, so a deploy before d31 rules publishes nothing; self-test node board/worker.test.mjs, 48 checks", sha:"dbadb3598d12ac64", path:"board/worker.mjs"},
   {artifact:"wrangler.jsonc — Workers Builds configuration for intent-os-board (this read, 2026-09-18): assets ./ui behind run_worker_first, keep_vars so the three dashboard-set Access variables survive deploys; the deploy command stamps BOARD_COMMIT from WORKERS_CI_COMMIT_SHA; inert until Z2 connects the repository", sha:"c75a9f436e416589", path:"wrangler.jsonc"},
   {artifact:"package.json — pins wrangler 4.135.0 for Workers Builds (this read, 2026-09-18; the lockfile beside it is the resolved tree); not a package, nothing published or imported, no type field so the CommonJS tools keep their semantics", sha:"67b25bcd5287aa89", path:"package.json"},
-  {artifact:"tools/intent_os_pages_v1_0.py — the section-page generator (re-read 2026-09-19 after Z2's red-team review of #410): writes ui/intent-os-decisions.html, -commitments.html, -records.html and -arena.html from this board — the same bytes under a data-view with a canonical link back, so data, seals, taps, saved state and the relay stay one script; --check says whether the pages are current (a harness row, t1-pages-fresh, runs it after every merge); render refuses a board with more than one body tag, a foreign canonical link, or CSS views it does not write (SpecLoadFailed), and the smoke test carries those adversarial boards plus the stale and hand-edited page cases; Builder v1.7: argparse, --smoke-test, --input, write_report to outputs/", sha:"634535dc06ad4f7b", path:"tools/intent_os_pages_v1_0.py"},
+  {artifact:"tools/intent_os_pages_v1_0.py — the section-page generator (re-read 2026-09-19 after the two red-team reads of #410): writes ui/intent-os-decisions.html, -commitments.html, -records.html and -arena.html from this board — the same bytes under a data-view with a canonical link back, so data, seals, taps, saved state and the relay stay one script; --check says whether the pages are current (a harness row, t1-pages-fresh, runs it after every merge); render refuses a board with more than one body tag, a foreign canonical link, or CSS views it does not write (SpecLoadFailed), and the smoke test carries those adversarial boards plus the stale and hand-edited page cases; the JSON receipt names the board actually rendered (--input); Builder v1.7: argparse, --smoke-test, --input, write_report to outputs/", sha:"a0e98ef1215681f3", path:"tools/intent_os_pages_v1_0.py"},
   {artifact:"intent-os-reconcile.yml — the job on main (this read, 2026-09-18): on every push to main touching z1-inbox/, plan → apply → the z2 gate's own checks → one PR 'intent-os: reconcile ratifications' on intent-os/reconcile (updated in place while open); dispatches the z2 gate on that branch because a push made with GITHUB_TOKEN starts no runs; pinned to main; concurrency-serialised; decides nothing — records who merged and whether a second person approved", sha:"0e0162df6a62655c", path:".github/workflows/intent-os-reconcile.yml"},
   {artifact:"Z2 ruling 2026-09-18 — the merge is the ratification (echo retired · one file per ruling PR · merger + merge date sign · reviewed and approved, single-member override until a second member · #391/#393 are the ratifications of d14/d2); a record, no decision asked; correction appended 09-18 from Z2's adversarial review on #408: effect 5's \"landed and ratified\" reading of Q-INTENTOS-LAUNCH-01 falsifier (b) withdrawn — the signed falsifier asks for a landing, met by #391 at 01:00:59Z", sha:"0a2b01fd11c9b3da", path:"z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md"},
   {artifact:"Z2 rulings 2026-09-18 — Q-BOARD-RULING-02 and -14 ACCEPT (later), the first two signatures written by the reconcile job (#407): merged by Night, single-member override, hashes b80131eb… and 27c98b65… over the merged bytes; the file grows by one section per merged ruling, so every later reconcile PR drifts this seal and the next read re-seals it", sha:"b5ea1532a2964e0c", path:"z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"},
   {artifact:"relay_policy.yml (basic-auth skips OPTIONS, this read)", sha:"3e2d6e24d8791e6a", path:"tools/relay_policy.yml"},
   {artifact:"intent_os_board_check_v1_0.py — the seal checker (this read)", sha:"515406c189694732", path:"tools/intent_os_board_check_v1_0.py"},
-  {artifact:"z1-inbox/INDEX.yaml (re-sealed 2026-09-19 on this read's branch after main c203835 — adds the thirteen board-ruling blocks Q-BOARD-RULING-20…30/32/33 and Q-INTENTOS-PAGES-GATE-01, the Tier 2 page-gate proposal from Z2's red-team review of #410; 63 candidates, 54 awaiting_z2 per .z1-control/validate.py; content re-read)", sha:"3bf2f66f474d337b", path:"z1-inbox/INDEX.yaml"},
+  {artifact:"z1-inbox/INDEX.yaml (re-sealed 2026-09-19 on this read's branch after main 6233c26 — adds Q-INTENTOS-PAGES-GATE-01 (G1–G4), marks Q-INTENTOS-REFRESH-01 and Q-INTENTOS-BUS-01 DECOMPOSED into their board-ruling blocks, and d33's note conditioned on d31's outcome; 63 candidates, 54 awaiting_z2 per .z1-control/validate.py; content re-read)", sha:"198430fdc01e09a9", path:"z1-inbox/INDEX.yaml"},
   {artifact:"Z2 rulings 2026-09-14 — Q-INTENTOS-LAUNCH-01 ACCEPT signed by ratify.py", sha:"d6bc85e4e21dd631", path:"z1-inbox/2026-09-14/Z2_RULINGS_2026-09-14.md"},
   {artifact:"Z2 ruling — d17 local only · d18 z1-inbox · d19 freeze path · tokens revoked", sha:"5694e1a9bd50f150", path:"z1-inbox/2026-09-14/Z2_RULING_INTENTOS_LAUNCH.md"},
   {artifact:"Q-INTENTOS-LAUNCH-01 candidate (bytes pinned by the signature above)", sha:"bde5dae91ef3e318", path:"z1-inbox/2026-09-14/Q-INTENTOS-LAUNCH-01.md"},
@@ -820,16 +820,32 @@ const PAGES=[
   {view:"arena", file:"intent-os-arena.html", name:"ARENA", desc:"the experiment"},
   {view:"dashboard", file:"intent-os-test-dashboard-v1_0.html", name:"Test dashboard", desc:"the harness receipt"}
 ];
-const VIEW=document.body.getAttribute("data-view")||"board";
 const BOARD_FILE="intent-os-humanaios-v3_3.html", DECISIONS_FILE="intent-os-decisions.html";
+/* From file:// the six files are six documents, and whether they share one localStorage is undefined (it is per
+   file in some browsers): a tap on one could be invisible on another. So under file: the board is the one
+   state-bearing document and a page is a view of it — #view=decisions (an anchor follows after &) — and every
+   page link routes into the board file. Served from one origin (the Worker) the six files share storage and
+   keep their own URLs. A section file opened directly from file:// still renders its view; its links lead in. */
+const LOCAL=location.protocol==="file:";
+const VIEWS=["board","decisions","commitments","records","arena"];
+function hashView(){const m=/(?:^#|&)view=([a-z]+)/.exec(location.hash||""); return m&&VIEWS.includes(m[1])?m[1]:null;}
+function hashAnchor(){const h=(location.hash||"").slice(1); return h.replace(/(^|&)view=[a-z]+/,"").replace(/^&/,"");}
+let VIEW=(LOCAL&&hashView())||document.body.getAttribute("data-view")||"board";
+document.body.setAttribute("data-view",VIEW);
+function pageHref(view,anchor){
+  const p=PAGES.find(x=>x.view===view); if(!p) return "#";
+  if(LOCAL&&VIEWS.includes(view)) return BOARD_FILE+"#view="+view+(anchor?"&"+anchor:"");
+  return p.file+(anchor?"#"+anchor:"");
+}
+function setView(v){ if(!VIEWS.includes(v)||v===VIEW) return; VIEW=v; document.body.setAttribute("data-view",v); pagesStrip(); if(window.__witMark) window.__witMark(v); }
 const DID_RE=/\bd\d{1,3}\b/g;
 function decisionIds(text){return [...new Set(String(text||"").match(DID_RE)||[])];}
 // escape first, then linkify the ids — an id is [a-z0-9] only, so the link markup is the only markup in the result
-function linkDecisions(text){return esc(text).replace(DID_RE,m=>ruling(m)?'<a class="xref" href="'+DECISIONS_FILE+'#'+m+'" title="open '+esc(rname(m))+'">'+m+'</a>':m);}
+function linkDecisions(text){return esc(text).replace(DID_RE,m=>ruling(m)?'<a class="xref" href="'+pageHref("decisions",m)+'" title="open '+esc(rname(m))+'">'+m+'</a>':m);}
 function stepsGatedBy(id){return (project.blocks||[]).filter(b=>decisionIds(b.blockedOn).includes(id)||(Array.isArray(b.decisions)&&b.decisions.includes(id)));}
 function pagesStrip(){
   const n=document.getElementById("pages"); if(!n) return;
-  n.innerHTML=PAGES.map(p=>'<a href="'+p.file+'"'+(p.view===VIEW?' class="here" aria-current="page"':'')+' title="'+esc(p.desc)+'">'+esc(p.name)+'</a>').join('<span class="note">·</span>');
+  n.innerHTML=PAGES.map(p=>'<a href="'+pageHref(p.view)+'"'+(p.view===VIEW?' class="here" aria-current="page"':'')+' title="'+esc(p.desc)+'">'+esc(p.name)+'</a>').join('<span class="note">·</span>');
 }
 /* A section page is the board's bytes at the read it was generated from. Served beside the board (the Worker, or any
    server), it fetches the board and compares reads: an older page says so at the top instead of passing as current.
@@ -842,12 +858,13 @@ async function freshness(){
   if(board===mine) return;
   const el=document.createElement("div"); el.className="stale"; el.id="stale";
   el.innerHTML='<b>stale page</b> — generated from board read <span class="p">'+esc(mine)+'</span>; the board is at <span class="p">'+esc(board)+'</span>. '
-    +'Open the <a class="xref" href="'+BOARD_FILE+'">board</a>, or regenerate: <span class="p">python3 tools/intent_os_pages_v1_0.py</span>.';
+    +'Open the <a class="xref" href="'+pageHref("board")+'">board</a>, or regenerate: <span class="p">python3 tools/intent_os_pages_v1_0.py</span>.';
   document.querySelector(".wrap").insertBefore(el, document.getElementById("pages"));
 }
 function jumpToHash(){
+  if(LOCAL){const v=hashView(); if(v) setView(v);}
   document.querySelectorAll(".hit").forEach(e=>e.classList.remove("hit"));
-  const h=(location.hash||"").slice(1); if(!h) return;
+  const h=hashAnchor(); if(!h) return;
   const el=document.getElementById(h); if(!el) return;
   if(el.classList.contains("card")) el.classList.add("open");
   el.classList.add("hit"); el.scrollIntoView({block:"center"});
@@ -943,7 +960,7 @@ function render(){
     const row=document.createElement("div"); row.className="ruling"; row.id=x.id;
     const rl=(state.relay||{})[x.id]||{}; const closed=!!x.ruled;  // a landed choice stays open on the board until the ruling entry is re-read as ruled — the merge, not the board, ratifies
     const gated=stepsGatedBy(x.id);
-    const gates='<div class="gates"><span class="p">'+esc(x.id)+'</span> · gates '+(gated.length?gated.map(b=>'<a class="xref" href="'+BOARD_FILE+'#card-'+esc(b.id)+'" title="'+esc(b.name)+'">step '+esc(b.id)+'</a>').join(", "):'no pipeline step names it')+(x.qid?' · <a class="xref" href="https://github.com/humanaios-ui/operations/blob/main/'+esc(x.path||"")+'">'+esc(x.qid)+'</a>':'')+'</div>';
+    const gates='<div class="gates"><span class="p">'+esc(x.id)+'</span> · gates '+(gated.length?gated.map(b=>'<a class="xref" href="'+pageHref("board","card-"+esc(b.id))+'" title="'+esc(b.name)+'">step '+esc(b.id)+'</a>').join(", "):'no pipeline step names it')+(x.qid?' · <a class="xref" href="https://github.com/humanaios-ui/operations/blob/main/'+esc(x.path||"")+'">'+esc(x.qid)+'</a>':'')+'</div>';
     row.innerHTML='<div class="q">'+esc(x.q)+(x.s?'<small>'+esc(x.s)+"</small>":"")+gates+'</div><div class="opts">'
       +(closed ? '<span class="state done">ruled</span>'
                : (x.opts||[]).map(o=>'<button class="opt'+(state.rulings[x.id]===o?" sel":"")+'" data-r="'+esc(x.id)+'" data-o="'+esc(o)+'">'+esc(o)+"</button>").join("")
@@ -1149,7 +1166,18 @@ window.addEventListener("hashchange", jumpToHash);
       { id: 'home', href: HOME, name: 'The Witness', desc: 'humanaios.ai · the public site', icon: '◌' }
     ]}
   ];
-  function currentPage() { return window.location.pathname.split('/').pop() || 'intent-os-humanaios-v3_3.html'; }
+  var LOCAL = window.location.protocol === 'file:';
+  var BOARD = 'intent-os-humanaios-v3_3.html';
+  function hashView() { var m = /(?:^#|&)view=([a-z]+)/.exec(window.location.hash || ''); return m ? m[1] : null; }
+  function currentPage() { return window.location.pathname.split('/').pop() || BOARD; }
+  function itemHref(item) {  // under file:// the board's views are hashes of the one board file (see the board's pageHref)
+    if (LOCAL && item.id !== 'dashboard' && item.id !== 'home') return BOARD + '#view=' + item.id;
+    return item.href;
+  }
+  function isActive(item) {
+    if (LOCAL && currentPage() === BOARD && item.id !== 'dashboard' && item.id !== 'home') return item.id === (hashView() || 'board');
+    return item.href === page;
+  }
   function readStamp() {  // the board's read date on the board's pages; the harness run on the dashboard; a plain name otherwise
     try { if (typeof HUMANAIOS !== 'undefined' && HUMANAIOS.read) return 'read ' + HUMANAIOS.read.date; } catch (e) {}
     try { if (typeof RESULTS !== 'undefined' && RESULTS && RESULTS.at) return 'run ' + String(RESULTS.at).slice(0, 10); } catch (e) {}
@@ -1204,8 +1232,8 @@ window.addEventListener("hashchange", jumpToHash);
   NAV_GROUPS.forEach(function(group) {
     if (group.label) navHTML += '<div class="wit-v3-gl">' + group.label + '</div>';
     group.items.forEach(function(item) {
-      var active = item.href === page;
-      navHTML += '<a class="wit-v3-link' + (active ? ' active' : '') + '" href="' + item.href + '" role="menuitem"' + (active ? ' aria-current="page"' : '') +
+      var active = isActive(item);
+      navHTML += '<a class="wit-v3-link' + (active ? ' active' : '') + '" href="' + itemHref(item) + '" role="menuitem"' + (active ? ' aria-current="page"' : '') + ' data-nav="' + item.id + '"' +
         (item.href === HOME ? ' rel="noopener"' : '') + '><span class="wit-v3-icon">' + item.icon + '</span><div><div class="wit-v3-ln">' + item.name +
         '</div><div class="wit-v3-ld">' + item.desc + '</div></div></a>';
     });
@@ -1221,6 +1249,12 @@ window.addEventListener("hashchange", jumpToHash);
       '<button class="wit-v3-btn" id="wit-btn" aria-haspopup="true" aria-expanded="false" aria-controls="wit-panel" aria-label="Open Intent-OS navigation">' +
       '<canvas id="wit-glyph" width="128" height="128"></canvas></button><span class="wit-v3-label">Navigate</span></div>';
   document.body.appendChild(wrap);
+  window.__witMark = function (v) {  // the board calls this when a view switches under file:// (no navigation happens)
+    wrap.querySelectorAll('.wit-v3-link').forEach(function (a) {
+      var on = a.getAttribute('data-nav') === v; a.classList.toggle('active', on);
+      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  };
   document.getElementById('wit-stamp').textContent = readStamp();
   var btn = document.getElementById('wit-btn'), panel = document.getElementById('wit-panel'), open = false;
   function setOpen(state) {

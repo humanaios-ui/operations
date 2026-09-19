@@ -125,14 +125,14 @@ def check_pages(root: str, board_rel: str = BOARD) -> dict:
     return {"mode": "check", "pages": rows, "stale": stale}
 
 
-def write_report(report: dict, root: str = ROOT) -> str:
+def write_report(report: dict, root: str = ROOT, board: str = BOARD) -> str:
     """The run's JSON receipt under outputs/ (gitignored): what was rendered or checked, and the verdict."""
     out_dir = os.path.join(root, "outputs")
     os.makedirs(out_dir, exist_ok=True)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     path = os.path.join(out_dir, f"{TOOL_NAME}_{stamp}.json")
     body = {"tool": TOOL_NAME, "version": TOOL_VERSION, "category": TOOL_CATEGORY, "zone": TOOL_ZONE,
-            "at": stamp, "board": BOARD, **report}
+            "at": stamp, "board": board, **report}
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(body, fh, indent=1)
     return path
@@ -199,9 +199,9 @@ def main() -> int:
         report = check_pages(a.root, a.input) if a.check else write_pages(a.root, a.input)
     except SpecLoadFailed as e:
         print(f"::error::{e}")
-        write_report({"mode": "check" if a.check else "write", "error": str(e)}, a.root)
+        write_report({"mode": "check" if a.check else "write", "error": str(e)}, a.root, a.input)
         return 1
-    write_report(report, a.root)
+    write_report(report, a.root, a.input)
     return 2 if report["stale"] and a.check else 0
 
 
