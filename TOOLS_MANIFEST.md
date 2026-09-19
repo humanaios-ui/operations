@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**161 registered tools** · 2 MCP servers · 0 excluded · 132 carrying Builder v1.7 markers
+**163 registered tools** · 2 MCP servers · 0 excluded · 132 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,8 +13,8 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 161 |
-| — status `draft` | 160 |
+| Registered tools | 163 |
+| — status `draft` | 162 |
 | — status `archived` | 1 |
 | Builder v1.7 markers present | 132 |
 | Uncategorized | 0 |
@@ -126,7 +126,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-142 | z2_queue | `tools/z2_queue_v1_0.py` | 1.1.0 | 1 | draft | — | Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first, flags ≥3 sessions unresolved. |
 | HAIOS-TOOL-158 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
 
-## Governance — `governance_tool` (12)
+## Governance — `governance_tool` (14)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -142,6 +142,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-166 | intent_os_board_reseal | `tools/intent_os_board_reseal_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse the rest. |
 | HAIOS-TOOL-167 | intent_os_requests | `tools/intent_os_requests_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage. |
 | HAIOS-TOOL-168 | intent_os_reconcile | `tools/intent_os_reconcile_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_reconcile — after a decided candidate merges, record the ratification the merge was. |
+| HAIOS-TOOL-170 | governance-rulings-backfill | `tools/governance-rulings-backfill.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Phase 1: Autonomous governance rulings backfill from git history into Supabase |
+| HAIOS-TOOL-171 | governance-rulings-ingestion | `tools/governance-rulings-ingestion.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Phase 1: Real-time ingestion of Z2 rulings via GitHub webhooks → Supabase |
 
 ## Infrastructure — `infrastructure_tool` (20)
 
@@ -294,7 +296,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 11 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 14 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 12 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 14 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 20 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 3 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
