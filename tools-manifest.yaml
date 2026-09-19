@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 168
+  tools: 170
   mcp_servers: 2
   excluded: 0
   builder_markers_present: 132
   missing_from_tree: 0
-  unclassified: 3
+  unclassified: 2
 categories:
 - analytics_tool
 - audit_tool
@@ -2140,6 +2140,30 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Grant Matching Engine v1.0
+- tool_id: HAIOS-TOOL-177
+  name: nonprofit_dashboard_api_v1_0
+  path: tools/nonprofit_dashboard_api_v1_0.py
+  version: unversioned
+  category: infrastructure_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Nonprofit Dashboard API v1.0
+- tool_id: HAIOS-TOOL-178
+  name: nonprofit_profile_v1_0
+  path: tools/nonprofit_profile_v1_0.py
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Nonprofit Profile Model & Validation
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
