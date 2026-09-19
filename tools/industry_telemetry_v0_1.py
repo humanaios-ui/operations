@@ -270,6 +270,8 @@ def run(config: dict, previous: dict | None, fetcher=fetch_public, live: bool = 
         now: datetime | None = None) -> tuple[dict, dict]:
     now = now or datetime.now(timezone.utc)
     cutoff = date.fromisoformat(config["research_cutoff"])
+    # temporal_class: OBSERVATIONAL — the external forecast event window is
+    # measurement metadata, not a deadline or authority for internal work.
     window_end = date.fromisoformat(config["window_end"])
     watch_terms = {f["id"]: [t.casefold() for t in f["watch_terms"]] for f in config["forecasts"]}
     sources, leads, errors = {}, [], []

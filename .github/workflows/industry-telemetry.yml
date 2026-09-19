@@ -3,6 +3,8 @@ name: industry-telemetry
 # Z1 research observation: fetch fixed public indexes and propose human review
 # of new links. No forecast resolution, evidence ratification, agent dispatch,
 # external action or autonomous change to governance.
+# temporal_class: OBSERVATIONAL — the weekly clock samples public indexes.
+# A tick grants no internal priority, authority, or obligation to act.
 on:
   schedule:
     - cron: "30 9 * * 1"  # weekly Monday 09:30 UTC
