@@ -35,10 +35,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: require
+by: Night
+at: 2026-09-18T01:22:22Z
+status: PENDING
+block_hash: f6c2dfcc8dfef49c61758b0b58827699ec3b0818fed43882df9d69c1b64e5ac9
+body_hash: 4857bf926521f2c7326d8839d86dec43e73d280165d55df9fa12bb86c96f2fed
+
+```
+RULING d13
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions?
+  choice: require
+  note: 
+  at: 2026-09-18T01:22:22Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 

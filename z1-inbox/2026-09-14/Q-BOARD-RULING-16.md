@@ -36,10 +36,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: archive as listed
+by: Night
+at: 2026-09-18T01:22:26Z
+status: PENDING
+block_hash: 57d71bbc33301bc4478d61ab5eec681bcc3c7fddc995f99e8cc21091c88e70f1
+body_hash: e0264493ee42b69a66f9b67f2ef3e7c568e0fff6d9cf6f2ee2be23b7157df9ab
+
+```
+RULING d16
+  by: Night (tagline)
+  project: HumanAIOS
+  question: docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold?
+  choice: archive as listed
+  note: 
+  at: 2026-09-18T01:22:26Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 

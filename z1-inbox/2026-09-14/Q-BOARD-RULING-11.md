@@ -36,10 +36,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: file as draft
+by: Night
+at: 2026-09-18T01:22:15Z
+status: PENDING
+block_hash: f6e656a5a1f7db7fc2407702d3b91450c7e4570473563bfa29c6541b42ec00d8
+body_hash: 9dca83e81cd746e6a8e613178810896edfd49a14f42f1fdfd51cd32c5d95324d
+
+```
+RULING d11
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Option A — file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists?
+  choice: file as draft
+  note: 
+  at: 2026-09-18T01:22:15Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 
