@@ -108,6 +108,18 @@ def test_date_window_before_after_and_unverified():
     assert report["leads"][0]["url"].endswith("/astra-october")
 
 
+def test_topic_in_sep_slug_survives_generic_index_label():
+    sources = fixtures()
+    _, previous = capture(sources)
+    sources[telemetry.WATCHES["mcp_seps"][0]] += (
+        b"<a href='/seps/2468-agent-identity'>SEP-2468</a>"
+    )
+    report, _ = capture(sources, previous)
+    assert [(x["forecast_id"], x["status"]) for x in report["leads"]] == [
+        ("F2", "REVIEW_DATE")
+    ]
+
+
 def test_missing_source_retains_previous_index_without_spurious_realert():
     sources = fixtures()
     _, baseline = capture(sources)

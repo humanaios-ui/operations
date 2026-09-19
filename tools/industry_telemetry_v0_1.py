@@ -293,7 +293,9 @@ def run(config: dict, previous: dict | None, fetcher=fetch_public, live: bool = 
             for link, item in items.items():
                 if link in old_items:
                     continue
-                title = item["title"].casefold()
+                # An index may render an opaque SEP number while the linked
+                # path still names the proposal's subject.
+                title = (item["title"] + " " + urlsplit(link).path).casefold()
                 pub = _iso_day(item.get("published_at"))
                 for fid in forecast_ids:
                     if any(term in title for term in watch_terms[fid]) and (

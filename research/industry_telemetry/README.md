@@ -13,7 +13,7 @@ forecast, ACAT, a live agent trace, or a governance claim.
    Anthropic news, MCP SEPs, and European Commission digital news. Save item URLs,
    titles, available dates, source states and a capture timestamp.
 3. Compare with the prior *successful default-branch workflow run* snapshot.
-   New URLs with a matching forecast keyword become **leads for review**, not
+   New URLs whose title or path matches a forecast keyword become **leads for review**, not
    event resolutions. Links without a trustworthy feed date need date review.
 4. Compare only named repository paths across captured Git commits. A changed
    path identifies work to read; it does not mean the checkpoint passed.
