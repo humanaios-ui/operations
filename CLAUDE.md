@@ -284,6 +284,7 @@ When these occur, emit callout immediately:
 ## Appended Events
 
 ```
+2026-09-19 19:00 UTC — Z2 (Night) ratified Q-INTENT-OS-WITNESS-LEDGER-01 | Witness ledger architecture approved | Human-machine decision attribution ledger | Phase 1–3 roadmap ratified | Enables scalable Z3 executor onboarding
 2026-09-19 18:55 UTC — Z2 (Night) ratified Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 | Dual-authority Z2 model formalized | Both carly.r.anderson@gmail.com & aioshuman@gmail.com authorized | Machine authority via INTENT-OS capability | Stop hook to query INTENT-OS (Phase 1)
 2026-09-14 — Z1 proposed Q-BOOT-PROCESS-MAP-01 (BOOT_PROCESS_MAP.md: REGISTERED.md's position in the session boot chain, mapped onto standard boot-chain stages); awaiting Z2 RATIFY signature
 2026-09-14 — Z1 implemented Option B (separate PLANNED_REPOS.md for roadmap repos, updated ZONE_REGISTRY.md & CLAUDE.md)
