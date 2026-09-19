@@ -4209,3 +4209,91 @@ superseded_by: null
 
 **Ratification Note:** Hypothesis and falsifiers meet Z2 acceptance criteria per GOVERNANCE.md. Prototype inherits existing Supabase/Slack integration pattern (stdlib urllib + JSON). No external service dependencies in Phase 1. Ready for Phase 2 mocked integration work.
 
+
+---
+
+### Q-INTENT-OS-WITNESS-LEDGER-01 — INTENT-OS Witness Ledger for Human-Machine Decision Attribution
+
+```yaml
+---
+id: "Q-INTENT-OS-WITNESS-LEDGER-01"
+name: "intent-os-witness-ledger"
+status: CANDIDATE
+class: Q
+date_registered: "2026-09-19"
+date_origin: "2026-09-19"
+session_registered: "S-091926-Z1-intent-os-witness"
+principles_triggered: ["P-governance", "P-framework", "P-audit-trail"]
+related_finding: []
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+**Proposal:** Add witness ledger to INTENT-OS to capture and audit human-machine governance decisions, enabling:
+1. **Stop hook scalability:** Query `/api/z2-authorized-emails` instead of hardcoded list
+2. **Audit trail:** Machine-readable record of who decided what, when, and why (timestamps, rationales, actors)
+3. **Compliance:** Regulatory-ready decision log for human approval of machine authority
+4. **Scale onboarding:** As Z3 executors grow (10s→100s), ledger becomes source of truth instead of per-repo configuration
+
+**Problem context:** Current governance captures technical execution (git commits, CI/CD) but not human decisions that shaped the work. This session (2026-09-19 17:00–18:45 UTC) exemplifies the gap: Night (Z2) approved dual-authority stop hook model; Claude executed rebase + stop hook update; but only machine commits and merge are in git history. Night's concepts, prompts, and approval decisions are missing from audit trail.
+
+**Proposed solution:** INTENT-OS Witness Ledger with schema:
+- `decision_id`, `timestamp_utc`, `actor_type` (human|machine), `actor_email`, `actor_role` (Z1/Z2/Z3)
+- `decision_class` (approve, propose, execute, ratify), `title`, `context`, `rationale`
+- `artifacts` (PR, commit, session_url, REGISTERED.md entry)
+- `falsifier` (defined per decision)
+
+**Phase 1 (Tier 2 foundation):**
+- [ ] Design ledger schema (✓ done)
+- [ ] Add `/api/z2-authorized-emails` endpoint to INTENT-OS
+- [ ] Update stop hook to query it with local fallback
+- [ ] Manual ledger entry creation (CLI/Python)
+
+**Phase 2 (integration):**
+- [ ] Auto-log Z2 merges via GitHub webhook
+- [ ] Link PRs to ledger entries via commit trailer
+- [ ] Add REGISTERED.md references to decision IDs
+
+**Phase 3 (scale):**
+- [ ] Z1 candidates include decision context links
+- [ ] Z3 execution logs automatically
+- [ ] INTENT-OS board shows decision timeline + actors
+
+**Falsifier (required for Z2 ratification):**
+1. Ledger is modified retroactively without Z2 signature
+2. Z2 authorized email is removed from stop hook without corresponding ledger entry
+3. Z3 executor commits not logged within 48h of execution
+4. Human Z2 decision missing from ledger for any merged PR
+
+**Why now:** Dual-authority stop hook model (PR #416, 2026-09-19) demonstrates the need: human approval and machine execution must be captured as co-authored decisions, not just machine commits. INTENT-OS witness ledger solves this at scale.
+
+**Impact:** Unblocks:
+- Stop hook INTENT-OS integration (Tier 2, scales with Z3 onboarding)
+- Governance audit trail for compliance reviews
+- Human-machine collaboration attribution model
+- Future Z3 executor onboarding without per-repo stop-hook edits
+
+**Priority:** Medium (foundational for scale, not blocking current operations)  
+**Estimated effort:** 8–12 hours (schema refinement, API endpoint, integration)  
+**Assigned proposer:** Claude (Z1)  
+**Assigned executor (pending Z2 delegation):** Z1→Z3 pipeline
+
+**Supporting artifacts:**
+- Candidate file: `z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md`
+- Session context: Claude Code session 012WCbNY31capoZ99NtXQuQC (2026-09-19 17:00–18:45 UTC)
+- Related work: PR #416 (dual-authority stop hook); CLAUDE.md (Z-roles); FRAMEWORK_MAPPING.md (AI engineering concepts → Z-roles)
+
+**For Z2 review:**
+This candidate addresses Night's architectural question (Session §B.6 findings): "How do we represent that human concepts and machine execution happened together?" Witness ledger provides the answer: machine-readable governance decision log with human and machine actors, linked timestamps, and artifacts.
+
+---
+
+## Pending Z2 Ratification
+
+**Candidate:** Q-INTENT-OS-WITNESS-LEDGER-01  
+**Proposed by:** Claude (Z1)  
+**Awaiting:** Night (Z2 ratification)  
+**Decision window:** 2026-09-21T17:00 UTC (48h from filing)  
+**Status:** CANDIDATE · Awaiting Z2 signature
+
