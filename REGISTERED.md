@@ -4472,7 +4472,43 @@ superseded_by: null
 4. API divergence from source-of-truth ledger (>1 hour downtime)
 5. Capital routing to unfunded/rescinded grants without audit detection
 
-**Status:** ACCEPTED · Ready for Phase 1 execution (brokerage & CRM partner selection may gate phase starts)
+**Status:** ACCEPTED · Phase 1 COMPLETE (Gate 0a: 20/20 tests passing)
+
+---
+
+## Phase 1 Implementation — Pre-Award Match Verifier
+
+**Status:** ✅ GATE 0A PASSED (2026-09-19)
+
+**Deliverables:**
+- `tools/grant_match_verifier_v1_0.py`: Core verifier + API handler (348 lines)
+- `tools/tests/test_grant_match_verifier.py`: Test harness, 20/20 tests passing (298 lines)
+- `z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md`: Implementation report
+
+**Gate 0a Results:**
+- ✅ 10 RFP scenarios verified with 100% accuracy
+- ✅ Borderline capital handled correctly (zero surplus = GREEN)
+- ✅ Restricted funds policy enforced (endowment/emergency excluded)
+- ✅ API contract finalized (POST /api/match-verify)
+- ✅ Hard gate rule deterministic: `available_unrestricted >= match_required`
+
+**Test Coverage (20 tests):**
+- Scenario 1a (clear green): 2 tests ✅
+- Scenario 1b (borderline): 2 tests ✅
+- Scenario 1c (red light): 2 tests ✅
+- Scenario 1d (restricted excluded): 2 tests ✅
+- Gate 0a (10 RFP parametrized): 10 tests ✅
+- Entrypoint integration: 2 tests ✅
+
+**Effort:** 5 hours (Phase 1 of ~22 hours total pilot)
+
+**Next:** Phase 2 (Post-Award Orchestration) blocked on Z2 decision:
+1. Brokerage API partner (Infinite Giving, Schwab, or local bank)
+2. CRM source (Salesforce, Hubspot, Monday.com)
+
+**Phase 2 estimated effort:** 8 hours
+
+**Commit:** 7466f47 | Session: S-091926-Z1-grant-treasury-pilot
 
 **Next Actions (Z2):**
 1. Finalize brokerage API partner (Infinite Giving, Schwab, or local bank) — gates Phase 2–3 integration
