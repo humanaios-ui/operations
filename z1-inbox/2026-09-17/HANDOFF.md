@@ -297,9 +297,34 @@ open PRs (#394–#405) carry 0.4.x PENDING blocks and ratify when merged, in any
 merge the PR to ratify`. #388 (the ratify-recovery falsifier) is moot: there is no relay-side ratification to
 recover.
 
+**Z2 (2026-09-18, evening): "how do we make the board a webpage … I don't want any public, I want to have to
+login to open the board."** Built inert and filed as d31 (`z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md`; d17 stands
+until it rules): `board/worker.mjs`, a Cloudflare Worker that serves two pages of `ui/` — the board and the test
+dashboard; not the Z2 reviewer, which reads `../z1-inbox/` at runtime — only behind a verified Cloudflare Access
+login (the token from Access's request header, the cookie unread; RS256 against the team's keys; shape, issuer,
+audience, expiry, `nbf`, signature) and answers 401 to everything but `/healthz` until
+`ACCESS_TEAM_DOMAIN`/`ACCESS_AUD`/`ACCESS_ALLOWED_EMAILS` are set; the Worker enforces the allow-list itself (a
+valid login for an unlisted identity is 403 — authorization is the code's, not only the Access policy's); keys
+cached in an immutable snapshot with a rate-limited refresh on an unknown kid and a 24 h last-known-good bound;
+CSP / nosniff / frame-deny on every answer; `X-Board-Commit` on every authenticated one — 46-check self-test in
+`board/worker.test.mjs` (after Copilot's two reviews and Z2's three red-team reviews on #409); `wrangler.jsonc`,
+the Workers Builds configuration (assets `./ui`, `run_worker_first`, `keep_vars`); `package.json` + lockfile
+pinning wrangler for the build. **Z2's ChatGPT review found a governance bypass** — `ratify.py --apply` still
+signed board-ruling blocks by hand after the merge-is-ratification ruling, and d31 documented it: the tool now
+refuses any block with a `## Ruling` section and a `choice:` line, d31 / runbook §4 drop the by-hand route,
+and `z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md` (Q-IC-RATIFY-BYPASS-01) is the registry entry the
+Tier 2 rule asks for (`.z1-control/ratify.py` is a GATE path, so #409 measures Tier 2). No
+secrets in the tree; nothing deploys until Z2 connects the repository in the dashboard; the steps are in runbook
+§5. Z2 connected the Cloudflare connector to this session (docs search and account reads); the Cloudflare API
+and docs site are denied by the sandbox egress policy, and no credentials are set here, so nothing was deployed
+from this session — Workers Builds is the deploy path by design. The account already holds two Workers
+(`humanaios`, `haios-personal-ops` — the latter a May 2026 password-cookie ops page reading from KV); neither is
+touched.
+
 ## Next blockers
 
-1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d3, d5–d13, d15, d16 (d2 and d14 ruled 09-18 by merge). The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register.
+1. Z2: d23–d26 + KNOWN_RED (`Q-INTENTOS-REFRESH-01`); d27–d30 (`Q-INTENTOS-BUS-01`); d20–d22 choices (accepted, unrecorded); Ruling 6; d3, d5–d13, d15, d16 (d2 and d14 ruled 09-18 by merge). The two IC-candidates above (manifest `smoke_test`; a smoke test with side effects) to register, and `Q-IC-RATIFY-BYPASS-01` (the by-hand `ratify.py` bypass of merge-is-ratification, found by Z2's red team on #409 — the registry entry the Tier 2 rule asks for, since #409 changes `.z1-control/ratify.py`).
 2. `Q-INTENTOS-LAUNCH-01` falsifier (b): **met 2026-09-18 01:00:59Z**, when #391 opened with a `RULING d14` block and a `hash:` line in its body — the condition as signed on 09-14 (`9a2a469b…`): *"no ruling has landed through the relay (no PR whose body carries a RULING block and a hash: line)"*. The "landed *and ratified*" reading this handoff carried from the first echo onward was criterion drift — a signed falsifier does not gain a condition after the fact (CLAUDE.md) — withdrawn on Z2's adversarial review of #408; a correction is appended to `z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md`, whose effect 5 repeated it. **Separately, the ratification loop closed 16:38Z:** #406 merged (d8775a7), the reconcile job's first live run opened #407 with d2 (#393) and d14 (#391) signed by Night over the merged bytes, Z2 approved and merged it (a23acb3); `validate.py`, `ratify.py --verify` and `render.py --check` pass on main; the job's second run found nothing awaiting reconciliation (the Z2 queue itself still holds 38 candidates). Relay 0.5.0 is live on Railway. **`later` semantics (Z2's review, finding 2):** terminal for the Q-ID — the signed block is closed, the row stays on the board marked ruled, and re-opening is a successor Q- block citing the original (runbook §7); nothing returns to the queue on its own, and the board's gauge now says "decisions recorded", not "resolved".
-3. Z2: review and merge the twelve decided PRs #394–#405 (any order); each merge is a ruling; the reconcile job records them. GitHub holds the PR-triggered checks on a job-opened PR until a person clicks "Approve and run" — the job's own dispatch of the z2 gate is already green on the same commit.
-4. Local copies: until d25, refresh a `~/Downloads` copy by replacing the file with the repository's after each merge — the filename is frozen (d19), so the browser's saved taps survive and the new `rev` loads on restore.
+3. Z2: rule d31 on the board (tap → merge); on `serve behind login`, the four dashboard steps in runbook §5 — including the policy receipt after the Access step and the third Worker variable `ACCESS_ALLOWED_EMAILS`, then the three probes (the third, authorization, is NO_GATE until a second identity can be tested).
+4. Z2: review and merge the twelve decided PRs #394–#405 (any order); each merge is a ruling; the reconcile job records them. GitHub holds the PR-triggered checks on a job-opened PR until a person clicks "Approve and run" — the job's own dispatch of the z2 gate is already green on the same commit.
+5. Local copies: until d25, refresh a `~/Downloads` copy by replacing the file with the repository's after each merge — the filename is frozen (d19), so the browser's saved taps survive and the new `rev` loads on restore.

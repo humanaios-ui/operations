@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-16'
 decision_window_days: 2
 counts:
-  candidates: 47
+  candidates: 49
   records: 32
 ratifiers:
 - Night
@@ -462,6 +462,26 @@ candidates:
   submitted: '2026-09-17'
   status: awaiting_z2
   note: "Step 4 of the bus plan Z2 approved 09-17. Steps 1-3 are on main (#377, #380). Four policy choices in resource units; falsifier over the next ten requests; predictions C25-C28 in sessions, requests, scans and merges. Files the two IC-candidates step 3 measured (manifest smoke_test is a text match; a smoke test with side effects) as d29."
+- q_id: Q-BOARD-PUBLISH-01
+  title: "Board ruling d31 \u2014 board surface \u2014 serve the board from a login-gated Cloudflare\
+    \ Worker (Access, allow-listed identities), replacing d17's local-only?"
+  path: z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md
+  submitted: '2026-09-18'
+  status: awaiting_z2
+  note: "Z2's direction 2026-09-18: no public copy, a login to open the board. The Worker\
+    \ (board/worker.mjs, wrangler.jsonc) is on main and fails closed until Access is configured;\
+    \ nothing is served until Z2 rules and connects the repository. Ruled from the board via\
+    \ decision_relay.py: the merge of the ruling PR is the ratification; ratify.py refuses the block."
+- q_id: Q-IC-RATIFY-BYPASS-01
+  title: "IC candidate — a by-hand signature path (ratify.py --apply) stayed executable for board\
+    \ rulings after the merge-is-ratification ruling; guarded in #409 (a Tier 2 gate change)"
+  path: z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md
+  submitted: '2026-09-18'
+  status: awaiting_z2
+  note: "From finding 1 of Z2's red-team review (ChatGPT) on #409. The correction lands in #409:\
+    \ ratify.py refuses a block with a `## Ruling` section and a `choice:` line; d31 and runbook \xA74\
+    \ drop the by-hand route. This block is the registry entry the Tier 2 rule asks for; the prevention\
+    \ (a cross-tool self-test case) is Z2's to accept."
 records:
 - path: "z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md"
   title: "Z2 rulings 2026-09-18 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py"

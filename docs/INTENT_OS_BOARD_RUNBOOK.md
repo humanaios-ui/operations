@@ -109,9 +109,12 @@ the hash is.** To make it one:
 
 **Ruled (d18, 2026-09-14):** rulings land in `z1-inbox/` + `INDEX.yaml`. `z2-rulings/` was never
 used and is retired. Every open board ruling has its own candidate block (`Q-BOARD-RULING-02` …
-`Q-BOARD-RULING-16`), so "what does Z2 owe a decision on" has one answer: `Z1_INBOX_INDEX.md`. The same
-ruling can also be recorded by hand — write the choice on the block's `choice:` line and run
-`python3 .z1-control/ratify.py Q-BOARD-RULING-<nn> --decision ACCEPT --by Night --apply`.
+`Q-BOARD-RULING-16`), so "what does Z2 owe a decision on" has one answer: `Z1_INBOX_INDEX.md`. There is
+no by-hand signature for a board ruling: `.z1-control/ratify.py --apply` refuses any block that carries a
+`## Ruling` section with a `choice:` line, because the merge of that block's pull request is the ratification
+(Z2, 2026-09-18) and a hand-run signature would be a second, unreviewed act for the same decision. Without
+the relay, open the one-file pull request by hand (choice on the `choice:` line, `status: DECIDED`); the
+merge is still the act, and the reconcile job still records it.
 
 ## 4b. Ask an agent for work (the bus — relay v0.4)
 
@@ -210,16 +213,94 @@ editor: the board trims what it is given, but a value pasted with its quotes or 
 The first live taps (2026-09-17 21:34–21:37Z, three `POST /assist`) were all answered 401 by a relay
 whose log did not yet say which; 0.4.3 and the board's re-prompting fix both.
 
-## 5. Publish — ruled **local only** (d17, 2026-09-14)
+## 5. Publish — ruled **local only** (d17, 2026-09-14); a login-gated Worker asked as d31 (2026-09-18)
 
-The board is not published. Z2 opens `ui/intent-os-humanaios-v3_3.html` from the repository;
-the relay is its only exit. Nothing is copied under `site/` and the Pages job is not involved.
+d17 stands until d31 rules: the board is a file Z2 opens from the repository, nothing is copied under
+`site/`, and the Pages job is not involved.
 
-If a later ruling reverses d17, the mechanics are one copy: `.github/workflows/pages.yml`
-deploys `site/**` on push to `main`, and `tools/registry_site_generator_v1_0.py` leaves
-subdirectories it does not write alone, so `site/board/index.html` plus a link from
-`site/index.html` would ship it. Until then that is a description, not an instruction — the board
-lists every open ruling and the history/PII question (d8), and a public copy is a disclosure.
+Z2's direction on 2026-09-18 — *no public copy; a login to open the board* — is built and inert on `main`:
+
+| piece | what it does |
+|---|---|
+| `board/worker.mjs` | a Cloudflare Worker that serves **two pages** of `ui/` — the board and the test dashboard — only after verifying a **Cloudflare Access** login: the RS256 token Access injects in the `Cf-Access-Jwt-Assertion` header (the only source read; the cookie is not parsed), checked against the team's keys (`https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`), issued by the team, for this application (`aud`), unexpired, not before its `nbf` (a present `nbf` must be a number). With `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` unset it answers `401` to everything but `/healthz` — it fails closed. The login is judged before the method, so an unauthenticated `POST` learns nothing but `401`; an authenticated one is `405`. Every answer (pages, the redirect from `/`, refusals) carries `Cache-Control: no-store`, `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` and a `Content-Security-Policy` that allows the pages' own inline script and style, connections to the relay and to `raw.githubusercontent.com` (the dashboard's live read), and nothing else. Every **authenticated** answer also carries `X-Board-Commit`, the commit the deploy was built from. The Z2 reviewer under `ui/` is **not** served (`404`): it reads `../z1-inbox/` at runtime, which is not in the bundle, so it would open broken. Self-test: `node board/worker.test.mjs`. |
+| `wrangler.jsonc` | the Workers Builds configuration: name `intent-os-board`, `assets.directory ./ui` with `run_worker_first` (the check runs before the asset router on every path), `keep_vars` (variables set in the dashboard survive deploys). No secrets in the tree. |
+| `package.json` + `package-lock.json` | pin `wrangler` (the deploy tool) so Workers Builds installs a known version instead of whatever `npx` resolves on the day. Not a package: nothing is published or imported, and it sets no `"type"`, so the CommonJS tools under `tools/` keep their semantics — the Worker is `.mjs` on its own. |
+
+The login is an **identity**, not a shared password: Access allow-lists emails (or GitHub logins), one per
+member, and logs every authentication. A second member is one more line in the policy, which is the shape
+the two-member rule (§4) needs.
+
+**When d31 rules `serve behind login`, Z2 does these in the Cloudflare dashboard (Z1 cannot):**
+
+1. **Workers & Pages → Create → Import a repository** → `humanaios-ui/operations`. Root directory `/`, no
+   build command, deploy command `npx wrangler deploy --var BOARD_COMMIT:$WORKERS_CI_COMMIT_SHA` (the pinned
+   wrangler from `package.json`; `WORKERS_CI_COMMIT_SHA` is a variable Workers Builds injects into every
+   build, and `--var` hands it to the Worker, which returns it as `X-Board-Commit`), production branch
+   `main`. Cloudflare builds and deploys `intent-os-board` on this push and every later push to `main`; its
+   `*.workers.dev` URL answers `401` on every page until step 3. Between steps 1 and 3 nothing fronts that
+   URL but the Worker itself, and the Worker refuses everything — that is the intended state.
+2. **Zero Trust → Access → Applications → Add → Self-hosted** → destination: the Worker `intent-os-board`
+   (by name) → policy **Allow · Emails:** Z2's address (and, later, each member's). Save; note the
+   application's **AUD** tag (Overview) and the team domain (`<team>.cloudflareaccess.com`). Then write
+   the **policy receipt** — `z1-inbox/<date>/ACCESS_POLICY_RECEIPT_<date>.md`, indexed as a record — so a
+   later widening of the policy is detectable without publishing addresses:
+
+   ```
+   # Access policy receipt — intent-os-board — <date>
+   application: intent-os-board (self-hosted)   destination: <worker>.workers.dev
+   aud: <AUD tag>
+   policy: Allow · include rule type: Emails   identities: <count>
+   list sha256: <sha256 of the sorted, lower-cased addresses, one per line>
+   worker ACCESS_ALLOWED_EMAILS sha256: <same construction over the Worker variable — must match>
+   read by: Night   at: <date>
+   ```
+3. **The Worker → Settings → Variables and Secrets:** `ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com`,
+   `ACCESS_AUD=<AUD tag>`, `ACCESS_ALLOWED_EMAILS=<the same addresses, comma-separated>`. The Worker
+   enforces that list itself: a valid login for an identity not on it is `403`, whatever the Access policy
+   says — so "allow-listed identities only" is a property of the code, not only of the dashboard. From the
+   next request on, a logged-in listed identity gets the board; everyone else gets Cloudflare's login page,
+   a request that reaches the Worker without a valid token gets `401`, and a valid login that is not listed
+   gets `403`.
+4. *Optional:* **the Worker → Settings → Domains & Routes → add `board.humanaios.ai`** (the zone must be on
+   Cloudflare); then the Access application's hostname is that name.
+
+**Reading the result.** `GET /healthz` reports `access_configured` — to anyone, by design: it is the
+liveness signal the falsifier and the operator use, the same fact is already visible in every `401` body while
+unconfigured, and it carries no commit, identity or path. d31's falsifier is two probes, run after a Workers
+Builds deploy has *completed*: an unauthenticated
+`curl -sS -o /dev/null -w '%{http_code}' https://<worker>/intent-os-humanaios-v3_3.html` prints `401` (or
+`302` to the Access login once Access fronts the name — that request never reaches the Worker), never `200`;
+and an authenticated `GET` of the board returns `X-Board-Commit: <sha>`, and the body hashed with `sha256sum`
+matches `ui/intent-os-humanaios-v3_3.html` at that commit (`git show <sha>:ui/intent-os-humanaios-v3_3.html |
+sha256sum`) — no build-log lookup. A third probe covers **authorization**, which the first two do not: a
+valid login for an identity that is *not* on `ACCESS_ALLOWED_EMAILS` must get `403` (a second address Z2
+controls, admitted by the Access policy for the test only, then removed). If no second identity is
+available, write **NO_GATE — authorization unverified** into the record, not PASS; the self-test proves the
+code path, not the deployment. Taps still go to the relay on Railway with its own HMAC and gate; the
+board's saved state lives in the browser under the Worker's origin, so a first visit starts clean and taps
+persist from then on. The seals and the checker are untouched: they hash the file on `main`, which is the
+file the Worker serves.
+
+**Failure modes and residual risks** (Z2's red-team review of #409, kept here so they are read before the
+first hardening pass):
+
+- *The certs endpoint.* The team's keys are cached five minutes in an immutable snapshot. A key the snapshot
+  does not know (Cloudflare rotated inside those five minutes) forces one refresh, at most every thirty
+  seconds, so unknown-key probes cannot make the endpoint a per-request fetch. If the endpoint is down, the
+  last snapshot is used for up to 24 hours, then the Worker fails closed ("could not read the team's keys").
+  Cloudflare's certs service is a soft dependency with a hard bound.
+- *The relay moves.* The CSP names the relay's origin. A new relay URL typed into the board is blocked by the
+  browser until the Worker variable `CSP_CONNECT_SRC` (space-separated origins) names it.
+- *`nbf` is strict.* A token whose `nbf` is one second in the future is refused; Access issues `nbf` at or
+  before `iat`, so this is a boundary, not a working condition.
+- *Residual.* An authenticated browser holds live board state (the relay secret typed into a prompt lives in
+  that page's memory). The CSP and `frame-ancestors 'none'` bound what a script injection could do; they do
+  not make the board something other than a control surface. Keep the allow-list to identities that need it.
+
+If d31 rules `stay local`, the whole surface is removed in one PR: `board/` (`worker.mjs`, `worker.test.mjs`),
+`wrangler.jsonc`, the root `package.json` and `package-lock.json`, the two `!/package…` lines in `.gitignore`
+that un-ignore them, this section's table, and the three board seals for those files (`board/worker.mjs`,
+`wrangler.jsonc`, `package.json`). `later` leaves all of it inert.
 
 ## 6. Re-read cadence
 
