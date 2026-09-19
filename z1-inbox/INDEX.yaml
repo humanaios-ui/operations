@@ -644,6 +644,11 @@ candidates:
     \ Falsifiers are mechanical. Predictions pre-registered: 3+ candidates filed within\
     \ 30 days, 1+ PR merged within 60 days, <4-hour implementation time, no tool failures\
     \ in 90 days."
+- q_id: Q-PHASE-2-BOARD-MOLT-01
+  title: "Z2 Board Decisions & Molt Events Ingestion"
+  path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
 records:
 - path: z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md
   title: "Z2 rulings 2026-09-18 \u2014 signatures issued by .z1-control/ratify.py\
