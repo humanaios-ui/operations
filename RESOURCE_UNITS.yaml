@@ -1,7 +1,9 @@
 # RESOURCE_UNITS.yaml — canonical unit registry for HumanAIOS resource-based operations
 #
-# Status: CANDIDATE. Z1 proposes; Z2 ratifies (CLAUDE.md → Decision Routing).
-# Nothing in this file takes effect until `ratification_hash` is non-null.
+# Status: RATIFIED by Night, 2026-09-13 (Z1 proposes; Z2 ratifies — CLAUDE.md →
+# Decision Routing). The live `status:` and `ratification_hash:` fields below are
+# authoritative; this header describes them and is checked against them by
+# test_resource_economics.py, so the two cannot drift apart again.
 #
 # Reading order: docs/RESOURCE_BASED_ECONOMICS.md defines the regime; this file
 # is the machine-readable unit map it refers to. tools/resource_census_v0_1.py

@@ -1,0 +1,222 @@
+# intent-os-refresh — keep the Intent-OS board and test dashboard honest after every merge.
+#
+# The board (ui/intent-os-humanaios-v3_3.html) seals the files its green steps rest on. Every
+# merge that touches one — the inbox index on every candidate, the registry on every ruling —
+# makes it STALE by design (docs/INTENT_OS_BOARD_RUNBOOK.md §6). Until now a Z1 session had
+# to notice, re-seal, rerun the harness and commit. This job does the noticing, and the
+# mechanical half of the fixing, in code:
+#
+#   1. run the seal checker and the T0–T4 harness; publish the receipt, the board report and
+#      the rendered dashboard as run artifacts; write the verdicts to the job summary
+#   2. classify the drift with tools/intent_os_board_reseal_v1_0.py:
+#        MECHANICAL  only by-construction files drifted (INDEX.yaml, REGISTERED.md, ledgers…)
+#        NEEDS-HUMAN a tool, workflow, graph or ruling file changed — a re-read, not a job
+#   3. REPORT-ONLY until Z2 sets the repository variable INTENT_OS_REFRESH_AUTOPR=true
+#      (asked as d23 in z1-inbox/2026-09-17/Q-INTENTOS-REFRESH-01.md). With it set:
+#        MECHANICAL  → re-seal, re-render, open (or update) one PR "intent-os: refresh"
+#        NEEDS-HUMAN → open (or update) one issue labelled intent-os-stale naming the rows
+#
+# Runs on every push to main (the seal set changes as the board is re-read, so no path filter
+# can be trusted to stay complete) and by hand. Event-driven only: there is no clock schedule.
+# This project is resource-based (RESOURCE_UNITS.yaml; Ruling 5, 2026-09-16) — a merge is the
+# resource event that can drift a seal, so a merge is what runs the job; a daily poll would be
+# a time-frame with nothing behind it. The job is pinned to main: a workflow_dispatch against
+# any other ref is skipped, so modified code never runs with this job's write token.
+# Step outputs derived from the checkout are passed to shell through env and quoted as data.
+# It never signs, never touches z1-inbox/, never publishes the board (d17: local only — run
+# artifacts are repository-scoped and expire). Uses the standard GITHUB_TOKEN.
+name: intent-os-refresh
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+env:
+  # Harness rows that are RED by a registered finding, not by regression. A row here still shows
+  # RED on the dashboard and in the receipt; it just does not open a STALE issue on its own.
+  # t3-pytest-acat: F-CAND in z1-inbox/2026-09-16/Q-INTENTOS-TEST-01.md (ACAT tests predate the
+  # write-token gate). Remove the id when the tests-only patch lands.
+  INTENT_OS_KNOWN_RED: "t3-pytest-acat"
+  BOARD: ui/intent-os-humanaios-v3_3.html
+  DASHBOARD: ui/intent-os-test-dashboard-v1_0.html
+  # outputs/ is gitignored and excluded from the receipt's tree_hash, so reports written here
+  # neither dirty the tree nor make the receipt irreproducible.
+  REPORT_DIR: outputs
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install what the harness rows need (a missing dep is a SKIP, never a PASS)
+        run: |
+          python3 -m pip install --quiet pyyaml pytest fastapi httpx jsonschema mypy types-requests ruff playwright cryptography
+          python3 -m playwright install --with-deps chromium || echo "::warning::playwright browser install failed — t2-browser-persist will SKIP"
+
+      - name: Tool self-tests (the job refuses to judge with tools that cannot tell a plant from a pass)
+        run: |
+          python3 tools/intent_os_board_check_v1_0.py --self-test
+          python3 tools/intent_os_board_reseal_v1_0.py --self-test
+          python3 tools/intent_os_test_harness_v1_0.py --self-test
+
+      - name: Seal check + drift classification
+        id: seals
+        run: |
+          set +e
+          mkdir -p "$REPORT_DIR"
+          python3 tools/intent_os_board_check_v1_0.py --json > "$REPORT_DIR/board_report.json"
+          python3 tools/intent_os_board_check_v1_0.py | tail -3
+          python3 tools/intent_os_board_reseal_v1_0.py --check --json > "$REPORT_DIR/reseal_plan.json"
+          python3 tools/intent_os_board_reseal_v1_0.py --check
+          outcome=$(python3 -c "import json,os;print(json.load(open(os.environ['REPORT_DIR']+'/reseal_plan.json'))['plan']['outcome'])")
+          case "$outcome" in HOLDS|MECHANICAL|NEEDS-HUMAN) ;; *) outcome=UNKNOWN ;; esac
+          echo "outcome=$outcome" >> "$GITHUB_OUTPUT"
+          echo "board outcome: $outcome"
+
+      - name: Harness T0–T4 → receipt → rendered dashboard
+        id: harness
+        run: |
+          set +e
+          python3 tools/intent_os_test_harness_v1_0.py --render
+          echo "harness exit $?"
+          python3 - >> "$GITHUB_OUTPUT" <<'PY'
+          import json, os, re
+          r = json.load(open("outputs/intent_os_test_results.json"))
+          known = set(filter(None, os.environ.get("INTENT_OS_KNOWN_RED", "").split(",")))
+          # row ids are restricted to a safe alphabet before they become step outputs
+          safe = [b for b in r["bad"] if re.fullmatch(r"[a-z0-9-]+", b)]
+          print("verdict=" + ("GREEN" if r["verdict"] == "GREEN" else "RED"))
+          print("bad=" + ",".join(safe))
+          print("unexplained=" + ",".join(b for b in safe if b not in known))
+          PY
+
+      - name: Job summary
+        env:
+          OUTCOME: ${{ steps.seals.outputs.outcome }}
+          VERDICT: ${{ steps.harness.outputs.verdict }}
+          BAD: ${{ steps.harness.outputs.bad }}
+          UNEXPLAINED: ${{ steps.harness.outputs.unexplained }}
+          AUTOPR: ${{ vars.INTENT_OS_REFRESH_AUTOPR }}
+        run: |
+          {
+            echo "## Intent-OS refresh — $(git rev-parse --short HEAD)"
+            echo
+            echo "| surface | result |"
+            echo "|---|---|"
+            printf '| board seals | `%s` |\n' "$OUTCOME"
+            printf '| harness | `%s` — red rows: `%s` — not covered by a registered finding: `%s` |\n' "$VERDICT" "$BAD" "$UNEXPLAINED"
+            if [ "$AUTOPR" = "true" ]; then mode=enabled; else mode='report-only (d23 not ruled: set repository variable INTENT_OS_REFRESH_AUTOPR=true)'; fi
+            printf '| auto-PR / issue | %s |\n' "$mode"
+            echo
+            echo '```'
+            python3 tools/intent_os_board_reseal_v1_0.py --check || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish receipt, board report and rendered pages as run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: intent-os-${{ github.sha }}
+          path: |
+            outputs/intent_os_test_results.json
+            outputs/board_report.json
+            outputs/reseal_plan.json
+            ${{ env.DASHBOARD }}
+            ${{ env.BOARD }}
+          retention-days: 30
+
+      - name: Re-seal, re-render, open the refresh PR (MECHANICAL drift only; d23 gate)
+        if: vars.INTENT_OS_REFRESH_AUTOPR == 'true' && steps.seals.outputs.outcome == 'MECHANICAL'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERDICT: ${{ steps.harness.outputs.verdict }}
+          BAD: ${{ steps.harness.outputs.bad }}
+        run: |
+          set -euo pipefail
+          python3 tools/intent_os_board_reseal_v1_0.py --apply
+          python3 tools/intent_os_board_check_v1_0.py | tail -1
+          python3 tools/intent_os_test_harness_v1_0.py --render || true
+          git config user.name "intent-os-refresh[bot]"
+          git config user.email "intent-os-refresh@users.noreply.github.com"
+          branch="intent-os/refresh"
+          git checkout -B "$branch"
+          git add "$BOARD" "$DASHBOARD"
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "intent-os: re-seal mechanical drift at $(git rev-parse --short main) and re-render the dashboard"
+          git push --force-with-lease origin "$branch"
+          existing=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')
+          {
+            echo 'Automated refresh (`.github/workflows/intent-os-refresh.yml`). Only MECHANICAL seals were re-hashed — the inbox index, the registry, the ledgers and the rendered indexes, whose bytes change by construction on ordinary governance work. Each re-sealed row says so in its description; nothing here is a re-read of what the new bytes mean. `read.against` moved to `main`, `rev` advanced so open copies load the new data on restore (taps kept); `read.date` is untouched — it records the last human read. The dashboard carries the receipt of this run.'
+            echo
+            echo '```'
+            python3 tools/intent_os_board_reseal_v1_0.py --check | tail -2
+            printf 'harness: %s — red: %s\n' "$VERDICT" "$BAD"
+            echo '```'
+            echo
+            echo '## Prediction (SMAG calibration)'
+            echo
+            echo 'smag_p: 0.90'
+            echo
+            echo 'molt_tier_claimed: 0'
+            echo
+            echo 'Why 0.90? Two generated files, both produced by tools with passing self-tests in this same run; the z2 gate is not involved (no inbox change). Tier 0: only ui/ data changes.'
+          } > "$REPORT_DIR/pr_body.md"
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --body-file "$REPORT_DIR/pr_body.md"
+            echo "updated PR #$existing"
+          else
+            gh pr create --base main --head "$branch" --title "intent-os: refresh board seals + dashboard" --body-file "$REPORT_DIR/pr_body.md" --label "audit:auto"
+          fi
+
+      - name: Open or update the STALE issue (NEEDS-HUMAN drift or an unexplained red row; d23 gate)
+        if: vars.INTENT_OS_REFRESH_AUTOPR == 'true' && (steps.seals.outputs.outcome == 'NEEDS-HUMAN' || steps.harness.outputs.unexplained != '')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERDICT: ${{ steps.harness.outputs.verdict }}
+          UNEXPLAINED: ${{ steps.harness.outputs.unexplained }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="intent-os: STALE — human re-read needed"
+          {
+            printf 'The board or the harness needs a Z1 session, not a job (`.github/workflows/intent-os-refresh.yml`, run %s, main at %s).\n' "$RUN_ID" "$(git rev-parse --short HEAD)"
+            echo
+            echo '```'
+            python3 tools/intent_os_board_reseal_v1_0.py --check || true
+            printf 'harness: %s — red rows not covered by a registered finding: %s\n' "$VERDICT" "$UNEXPLAINED"
+            echo '```'
+            echo
+            echo 'Runbook §3: re-read the board (facts, hashes, read.against), rerun the checker until it HOLDS, run the harness with --render, land the change through a PR. A NEEDS-HUMAN row is a file whose meaning changed — say what the new bytes mean in the seal description; do not just re-hash it.'
+          } > "$REPORT_DIR/issue_body.md"
+          gh label create intent-os-stale --color D93F0B --description "Intent-OS board or harness needs a human re-read" 2>/dev/null || true
+          existing=$(gh issue list --label intent-os-stale --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file "$REPORT_DIR/issue_body.md"
+            echo "updated issue #$existing"
+          else
+            gh issue create --title "$title" --body-file "$REPORT_DIR/issue_body.md" --label intent-os-stale
+          fi
+
+      - name: Verdict line (the job itself never fails on a RED board — that is the issue's job)
+        env:
+          OUTCOME: ${{ steps.seals.outputs.outcome }}
+          VERDICT: ${{ steps.harness.outputs.verdict }}
+          UNEXPLAINED: ${{ steps.harness.outputs.unexplained }}
+        run: |
+          printf 'board: %s · harness: %s · unexplained red: %s\n' "$OUTCOME" "$VERDICT" "${UNEXPLAINED:-none}"

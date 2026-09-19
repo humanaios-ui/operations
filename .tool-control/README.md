@@ -46,8 +46,9 @@ been driven red by hand during development and the demonstration thrown away.
 
 `selftest.py` is the correction, and it enforces two things:
 
-1. **Every blocking condition has a fixture that triggers it.** All 26, plus
-   seven document-control conditions driven end to end as a subprocess.
+1. **Every blocking condition has a fixture that triggers it.** All of them —
+   31 as of the ratification-reference rule — plus seven document-control
+   conditions driven end to end as a subprocess.
 2. **Coverage is enforced, not reported.** A blocking condition with no fixture
    fails the suite. Adding an `err()` without a demonstration is itself a
    violation.
@@ -184,14 +185,29 @@ A Zone 2/3 tool that sets the flag without being listed there is rejected with
 exactly the self-grant this gate exists to prevent. And it never carries a tool
 to `approved`.
 
-Two paths are listed. `tools/message_calibration_v1_0.py` predates this system.
-`.z1-control/ratify.py` arrived with PR #308 and declares `TOOL_ZONE = 2`
-deliberately — it records a Z2 decision and is run by the ratifier, so the claim
-is almost certainly *correct*. Correct is not ratified, and Z1 cannot sign for
-Z2. It surfaced only when `SCAN_ROOTS` widened to cover `.z1-control`: the
-coverage rule finding an unratified authority claim is the rule doing its job.
-The constant is deliberately not named "legacy" — one of its entries merged the
-same day it was added.
+One path is listed today. `.z1-control/ratify.py` was the other: it arrived with
+PR #308 declaring `TOOL_ZONE = 2`, surfaced only when `SCAN_ROOTS` widened to
+cover `.z1-control`, and Night ratified the declaration on 2026-09-13
+(`z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md`). It now carries a real
+`ratified_by` and needs no exemption — which is the point of the list: entries
+leave it by being decided, not by being forgotten. The constant is deliberately
+not named "legacy" — one of its entries arrived the day it was added.
+
+### `ratified_by` has to resolve
+
+Presence is not a signature. Z1 writes the manifest, so a `ratified_by` field
+satisfied by any non-empty string would re-create the self-grant one line later.
+An entry that sets it must therefore also set `ratification_ruling`: a path
+under `z1-inbox/` that exists and whose text contains **both** the hash and the
+tool's own path. A ruling about some other tool, a hash that appears nowhere, or
+a file written outside `z1-inbox/` are each merge-blocking.
+
+This is not cryptographic — the repo holds no Z2 key. It is the weaker, real
+property that the claim can be read: fabricating a ratification now costs a
+CODEOWNER-reviewed document that says the thing. `.z1-control/ratify.py` signs
+candidate blocks with a true sha256; tool-zone rulings have no equivalent yet
+(Q-TOOLCONTROL-03), and when they do, `verify_ratification` is where the
+recomputation goes.
 
 ## MCP servers
 

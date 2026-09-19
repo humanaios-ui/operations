@@ -1,0 +1,19 @@
+# Gitleaks configuration for holographic test project
+# This file allowlists known false positives used in test code
+
+[allowlist]
+description = "Allow test-only credential patterns used for testing credential redaction"
+
+# Test files with synthetic credentials
+paths = [
+    "tools/tests/test_holographic_integration\\.py$",
+    "tools/holographic_orchestrator\\.py$"
+]
+
+# Allow patterns like: sk_test_, sk_live_, service_key_, etc. in test files only
+regexes = [
+    "sk_test_",
+    "sk_live_",
+    "sk_FAKETEST",
+    "service_key_",
+]

@@ -88,14 +88,22 @@
       "name": "QUEUE_SCORING_MODE",
       "description": "Which formula orders the Priority Queue. 'impact' is the incumbent (score = impact + Σ impact(unblocks)); 'resource' divides that numerator by the row's draw on the binding constraint and bands rows that do not touch the constraint ahead of those that do.",
       "scope": "priority-queue",
-      "current_value": "impact",
+      "current_value": "resource",
       "prior_value": "impact",
       "prior_version": "PRIORITY_QUEUE.md v1_1 genesis",
       "value_type": "string",
       "valid_values": ["impact", "resource"],
-      "molt_id": null,
-      "molt_history": [],
-      "ratified_at": null,
+      "molt_id": "f7a49f667c09f1f6",
+      "molt_history": [
+        {
+          "event": "MOLT_RATIFIED",
+          "by": "Z2 (Night)",
+          "at": "2026-09-13T18:15:00Z",
+          "new_value": "resource",
+          "basis": "Q-RBE-01 resource-based economics v0.1 ratification"
+        }
+      ],
+      "ratified_at": "2026-09-13T18:15:00Z",
       "trigger": {
         "metric": "constraint_backlog_rat_min",
         "condition": "Open obligations on the constraint unit exceed 4 weeks of declared capacity",
@@ -169,14 +177,22 @@
       "name": "UNPRICED_ROW_POLICY",
       "description": "What the READY gate does with a work order that declares no cost in the constraint unit.",
       "scope": "priority-queue",
-      "current_value": "ALLOWED",
+      "current_value": "REFUSED_TO_START",
       "prior_value": "ALLOWED",
       "prior_version": "PRIORITY_QUEUE.md v1_1 genesis (no cost field exists today)",
       "value_type": "string",
       "valid_values": ["ALLOWED", "WARNED", "REFUSED_TO_START"],
-      "molt_id": null,
-      "molt_history": [],
-      "ratified_at": null,
+      "molt_id": "f7a49f667c09f1f6",
+      "molt_history": [
+        {
+          "event": "MOLT_RATIFIED",
+          "by": "Z2 (Night)",
+          "at": "2026-09-13T18:15:00Z",
+          "new_value": "REFUSED_TO_START",
+          "basis": "Q-RBE-01 resource-based economics v0.1 ratification"
+        }
+      ],
+      "ratified_at": "2026-09-13T18:15:00Z",
       "trigger": {
         "metric": "unpriced_row_share",
         "condition": "More than half of open rows carry no cost vector after resource mode is ratified",

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -44,6 +45,37 @@ from priority_queue_engine import (  # noqa: E402
 # Tests that exercise the mode name a test molt; they are not a way around the gate.
 TEST_MOLT = "M-TEST-RBE-01"
 
+# Artifacts whose ratification_hash was minted before `ratify.py --artifact`
+# existed, and therefore verifies against nothing.
+#
+# This list lives in CODE, reviewed like any other change, for the same reason
+# `UNRATIFIED_ZONE_CLAIMS` does in .tool-control/validate.py: an exemption that
+# an artifact could grant itself by setting a field is not an exemption, it is a
+# bypass. A registry ratified from here on must carry a verifiable signature.
+#
+# RESOURCE_UNITS.yaml leaves this list the moment Z2 runs:
+#     python3 .z1-control/ratify.py --artifact RESOURCE_UNITS.yaml \
+#         --decision ACCEPT --by Night --apply
+# and the test above FAILS if it is still listed once it verifies, so the
+# exemption cannot outlive its cause.
+UNVERIFIED_ARTIFACT_RATIFICATIONS = frozenset({"RESOURCE_UNITS.yaml"})
+
+# What the content of an exempt artifact currently signs to.
+#
+# Asserting only "recomputed != recorded" was satisfied by ANY wrong value, so
+# while the exemption stood the artifact had no content pinning at all: a unit,
+# a prior or a policy could change, or the hash be swapped for a different
+# 64-hex string, and the suite stayed green. That is the same hole as the Z2
+# hash itself — a field that verifies against nothing — reproduced inside the
+# mechanism built to expose it.
+#
+# So the exemption pins the RECOMPUTED digest instead. Z2's signature still
+# doesn't verify (that is the open item), but the content is frozen: change it
+# and this fails, naming the new digest to re-pin if the change was intended.
+EXPECTED_UNVERIFIED_DIGEST = {
+    "RESOURCE_UNITS.yaml": "be5358fa06864ce3461fc46932fa89ef07d199ecbc0f32e405a074803210d737",
+}
+
 
 def _load(name: str, relpath: str):
     spec = importlib.util.spec_from_file_location(name, ROOT / relpath)
@@ -63,9 +95,69 @@ def units() -> dict:
 
 # ---------------------------------------------------------------- registry
 class TestUnitRegistry:
-    def test_registry_parses_and_declares_itself_candidate(self, units):
-        assert units["status"] == "CANDIDATE"
-        assert units["ratification_hash"] is None, "a Z1 proposal must not carry a hash"
+    def test_registry_is_ratified_and_says_who_and_when(self, units):
+        assert units["status"] == "RATIFIED"
+        assert units["ratification_decision"] == "ACCEPT"
+        assert units["ratified_by"], "a ratification is somebody's act"
+        assert units["ratified_at"]
+        assert units["ratification_hash"], "a ratified registry must carry a hash"
+
+    def test_ratification_hash_is_a_sha256_and_not_a_slug(self, units):
+        """The weakest property the hash must have, and the one it had lost.
+
+        The three rulings of 2026-09-08 carry hand-written slugs, and
+        `ratify.py --verify` reports them as "content not pinned" rather than
+        pretending otherwise. A slug in this field would leave the registry
+        ratified by a value that pins nothing.
+        """
+        assert re.fullmatch(r"[0-9a-f]{64}", str(units["ratification_hash"])), \
+            "ratification_hash must be a sha256, not a slug"
+
+    def test_ratification_hash_verifies_against_the_content(self, units):
+        """The strong property: recompute the signature and compare.
+
+        This is what `assert ratification_hash is not None` could never do. The
+        digest covers the registry's content with the ratification fields
+        excluded, so editing a unit, a policy or a prior breaks it while fixing
+        a comment does not.
+
+        UNVERIFIED_ARTIFACT_RATIFICATIONS below is an explicit, reviewed record
+        of hashes minted before `ratify.py` could sign an artifact — not a way
+        for a new one to skip this. A registry that is not on that list must
+        verify, and nothing in this file can add itself to it.
+        """
+        ratify = _load("z1_ratify", ".z1-control/ratify.py")
+        recomputed = ratify.artifact_signature(
+            units, str(units["ratified_by"]), str(units["ratified_at"]),
+            str(units["ratification_decision"]))
+        if "RESOURCE_UNITS.yaml" in UNVERIFIED_ARTIFACT_RATIFICATIONS:
+            assert recomputed != units["ratification_hash"], (
+                "RESOURCE_UNITS.yaml now verifies — remove it from "
+                "UNVERIFIED_ARTIFACT_RATIFICATIONS so the exemption cannot outlive its cause")
+            # The exemption excuses Z2's signature, NOT the content. Pin what the
+            # content signs to, so an edit under an unverifiable hash still fails.
+            assert recomputed == EXPECTED_UNVERIFIED_DIGEST["RESOURCE_UNITS.yaml"], (
+                f"RESOURCE_UNITS.yaml content changed while its ratification is "
+                f"unverifiable. If the change is intended, re-pin "
+                f"EXPECTED_UNVERIFIED_DIGEST to {recomputed!r} in the same commit — "
+                f"and note that Z2's hash still pins nothing, so this is the only "
+                f"thing standing between the registry and a silent edit.")
+            return
+        assert recomputed == units["ratification_hash"], (
+            "ratification_hash does not match the content it claims to ratify")
+
+    def test_header_comment_agrees_with_the_status_field(self):
+        """The defect that produced this test: lines 3-4 said CANDIDATE, and
+        nothing said they were wrong, for as long as nobody happened to read
+        them next to the field they describe."""
+        head = UNITS_PATH.read_text(encoding="utf-8").split("---", 1)[0]
+        status = yaml.safe_load(UNITS_PATH.read_text(encoding="utf-8"))["status"]
+        assert status in head, (
+            f"the header comment does not mention status {status!r}; it describes "
+            f"a state the file is not in")
+        other = "CANDIDATE" if status != "CANDIDATE" else "RATIFIED"
+        assert f"Status: {other}" not in head, \
+            f"the header still announces 'Status: {other}' while status is {status!r}"
 
     def test_every_registered_unit_has_an_instrument(self, units):
         for u in units["units"]:
@@ -251,11 +343,21 @@ class TestLedgerRefusals:
     def test_smoke_test_passes(self):
         assert ledger.run_smoke_test() == 0
 
-    def test_genesis_pins_the_units_registry_hash(self, led):
+    def test_genesis_pins_the_units_registry_hash(self, led, units):
+        """Genesis records BOTH hashes, and they answer different questions.
+
+        `units_registry_sha256` is the ledger's own digest of the file it read —
+        it detects the registry changing under an open ledger. `units_ratification_hash`
+        is Z2's signature copied from the registry — it records which ratified
+        version this ledger was opened against. Before Z2 accepted the registry
+        the second was null; asserting it stays null would now assert the
+        registry is unratified.
+        """
         first = json.loads(Path(led).read_text(encoding="utf-8").splitlines()[0])
         assert first["type"] == "OPEN"
         assert len(first["units_registry_sha256"]) == 64
-        assert first["units_ratification_hash"] is None
+        assert first["units_ratification_hash"] == units["ratification_hash"], \
+            "genesis must pin the ratification the registry actually carries"
 
     def test_unknown_unit_is_refused(self, led):
         assert run_ledger(["claim", led, "Q-1", "--budget", "NOPE=1"]) != 0
@@ -488,17 +590,66 @@ class TestQueueReshape:
 
 
 class TestModeIsGoverned:
-    def test_resource_mode_is_dormant_while_the_constant_is_unratified(self):
-        q = PriorityQueueEngine.from_constants(str(ROOT / "constants.json"))
+    def test_an_unratified_constant_is_still_dormant(self):
+        """The guarantee the live-constant test used to carry, kept after ratification.
+
+        QUEUE_SCORING_MODE was ratified on 2026-09-13, so the live file can no
+        longer demonstrate dormancy. Flipping the old assertion to the new value
+        would have dropped the property entirely, so it moves to a fixture: the
+        SAME constant, unratified, must still leave behaviour unchanged.
+        """
+        path = ROOT / "constants.json"
+        consts = json.loads(path.read_text(encoding="utf-8"))["constants"]
+        dormant = [{**c, "molt_id": None} if c["name"] == "QUEUE_SCORING_MODE" else c
+                   for c in consts]
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            json.dump({"constants": dormant}, fh)
+            tmp = fh.name
+        q = PriorityQueueEngine.from_constants(tmp)
         assert q.mode == MODE_IMPACT, "an unratified constant must not change behaviour"
         assert q.mode_molt_id is None
 
-    def test_the_live_constant_is_present_and_unratified(self):
+    def test_the_live_constant_is_ratified_and_its_molt_is_on_the_ledger(self):
+        """Ratified, and the molt_id RESOLVES — not merely non-null.
+
+        `assert molt_id is not None` would pass for any string Z1 typed, which is
+        the same defect as a `ratification_hash` that verifies against nothing.
+        The molt id is cross-checked against the MOLT_RATIFY event in the
+        hash-chained ledger, which names the constant and the value it authorised.
+        """
         consts = json.loads((ROOT / "constants.json").read_text(encoding="utf-8"))["constants"]
         row = next(c for c in consts if c["name"] == "QUEUE_SCORING_MODE")
-        assert row["molt_id"] is None
-        assert row["current_value"] == "impact"
+        assert row["current_value"] == "resource"
+        assert row["molt_id"], "a ratified constant must name its molt"
+        # Anti-cascade (CLAUDE.md) requires these to survive ratification: a molt
+        # with no falsifier and no revert rule cannot be measured or reverted.
         assert row.get("falsifier") and row.get("revert_rule")
+        assert row.get("prior_value") == "impact", "the revert target must be recorded"
+
+        events = [json.loads(line) for line in
+                  (ROOT / "ledgers/RESOURCE_LEDGER.jsonl").read_text(encoding="utf-8").splitlines()
+                  if line.strip()]
+        ratifications = [e for e in events if e.get("type") == "MOLT_RATIFY"
+                         and e.get("molt_id") == row["molt_id"]]
+        assert ratifications, (
+            f"constants.json claims molt_id {row['molt_id']!r}, but no MOLT_RATIFY "
+            f"event on the ledger carries it — the constant is ratified by a value "
+            f"that resolves to nothing")
+        named = [c for e in ratifications for c in e.get("constants_ratified") or []
+                 if c.get("name") == "QUEUE_SCORING_MODE"]
+        assert named, "the molt on the ledger does not name QUEUE_SCORING_MODE"
+        assert named[0].get("new_value") == row["current_value"], (
+            f"the ledger ratified {named[0].get('new_value')!r} but constants.json "
+            f"carries {row['current_value']!r}")
+
+    def test_the_live_ratified_constant_activates_resource_mode(self):
+        q = PriorityQueueEngine.from_constants(str(ROOT / "constants.json"))
+        consts = json.loads((ROOT / "constants.json").read_text(encoding="utf-8"))["constants"]
+        row = next(c for c in consts if c["name"] == "QUEUE_SCORING_MODE")
+        assert q.mode == MODE_RESOURCE
+        assert q.mode_molt_id == row["molt_id"], \
+            "the engine must run under the molt the constants file records"
 
     def test_a_ratified_constant_activates_resource_mode(self, tmp_path):
         path = tmp_path / "constants.json"

@@ -46,9 +46,10 @@ haios --mode check
 |`carry_tracker_v1_0.py`        |`diagnostic_tool`   |Reads WGS posts, counts sessions-carried per item, flags WARN at N>5 and ESCALATE at N>10.                      |
 |`z2_queue_v1_0.py`             |`diagnostic_tool`   |Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first, flags ≥3 sessions unresolved.|
 |`zone_boundary_audit_v1_0.py`  |`audit_tool`        |Detects Zone 1/2/3 boundary violations in workflow artifacts and operator logs.                                 |
+|`registered_failure_mode_scan_v0_1.py`|`audit_tool`  |Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level first-pass yield / DPMO. Advisory unless `--enforce`.|
 |`governance_mapper_v1_0.py`    |`governance_tool`   |Maps governance principles to structural roles across documents.                                                |
 |`principle_harmonizer_v1_0.py` |`governance_tool`   |Harmonizes the principle layer across governance files, surfaces drift.                                         |
-|`molting_protocol_diff_v1_0.py`|`audit_tool`        |Compares `SESSION_RITUALS.md` versions, classifies additive patching vs clean-layer replacement.                |
+|`molting_protocol_diff_v1_0.py`|`audit_tool`        |Classifies a molt's tier (0/1/2) from the filepaths its diff touches; measures the gap against the claimed tier. |
 |`mhr_question_trace_v1_0.py`   |`audit_tool`        |Traces question-source → method-design → data-output chain for Market-Harmonic Research auditability.           |
 |`aa_principle_audit_v1_0.py`   |`audit_tool`        |Evaluates protocol artifacts against honesty, humility, and service operational markers (AA frame).             |
 

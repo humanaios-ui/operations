@@ -82,6 +82,9 @@ superseded_by: null | "F-XX"
 |F-53                  |Cross-Substrate Verification Confidence Cascade                     |CANDIDATE |2026-06-17|
 |F-54                  |RLHF-Artifact Rejection (universal S-H/T-H self-report gap)          |CANDIDATE |2026-07-01|
 |F-55                  |Calibration Triad (Truth+Service+Humility)                          |CANDIDATE |2026-07-01|
+|F-62                  |Ratification Attention Is Binding Constraint, Oversubscribed         |REGISTERED|2026-09-13|
+|F-63                  |Benefit-Only Queue Cannot Reject Work                                |REGISTERED|2026-09-13|
+|F-64                  |Assurance Accumulating; Evidence Not                                 |REGISTERED|2026-09-13|
 
 -----
 
@@ -3431,6 +3434,31 @@ superseded_by: null
 
 -----
 
+### IC-059 — Q-SI-C1-B3 Global Constant Count as Local Acceptance Gate
+
+```yaml
+---
+id: "IC-059"
+name: "global-count-as-local-gate"
+status: REGISTERED
+class: IC
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P2"]
+related_finding: ["F-62", "F-63", "F-64"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Pattern:** A global figure (total constant count) copied into a local acceptance criterion, making the criterion brittle to unrelated changes. Same shape as maintained-headline class (IC-038, IC-022).
+- **Observation:** `Q-SI-C1-B3` acceptance criterion reads *"`molt_cycle --read-only` reports `constants: 3`"*. This is a count of the whole registry standing in for "the three specimen-intake constants load". Adding four unrelated constants (QUEUE_SCORING_MODE, CONSTRAINT_UNIT, SHADOW_PRICE_MIN_N, UNPRICED_ROW_POLICY) moves the count to 7, and the criterion now reads as failed although nothing about specimen-intake changed.
+- **Correction:** Restate Q-SI-C1-B3 acceptance criterion as *"the three specimen-intake constants are present and load"* with `scope: specimen-intake`, scoped by name rather than by global count. Fix required in PRIORITY_QUEUE.md queue row metadata.
+- **Principle P2 (Document Correction Protocol):** Scoped acceptance criteria, not global counts.
+
+-----
+
 ### IC-041 — Audit False-Pass — FIX-NOT-LANDED CORRECTION
 
 ```
@@ -3846,6 +3874,93 @@ superseded_by: null
 
 -----
 
+### F-62 — Ratification Attention Is the Binding Constraint, and It Is Oversubscribed
+
+```yaml
+---
+id: "F-62"
+name: "rbe-ratification-constraint-oversubscribed"
+status: REGISTERED
+class: F
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P21"]
+substrate: "resource_census_v0_1.py — mechanical obligation enumeration"
+tags: ["resource-based-economics", "constraint", "capacity", "throughput", "governance"]
+related_finding: ["F-63", "F-64"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Synopsis:** Every zone's throughput is capacity-constrained by a single Z2 ratification queue with unmeasured service rate. Current backlog: 130 open items across 8 obligation classes, representing ~1,575 RAT-min (≈26 hours) of measured Z2 work against a capacity nobody has declared. The 48-hour decision window in CLAUDE.md is a promise made against an unknown capacity.
+- **Observation:** Registry-candidate 35 · doc-owner-approval 40 · nf-token-date 21 · nf-z2-prior 15 · nf-past-date-resolution 7 · constant-ratification 7 · queue-row-ratification 4 · queue-hash 1. Five are Q-RBE-01's own (four constants and its queue row).
+- **Structural failure:** Utilization is undefined without a declared capacity. The constraint designation moves with measurement; absent measurement, the ordering is opaque and the falsifier unreachable.
+- **Falsifier:** If obligations close over four weeks at a rate implying < 60 RAT-min/week of actual Z2 time, the demand priors are inflated. If a declared capacity puts utilization below 1.0 with the backlog flat or falling, ratification attention is not the constraint.
+- **Z2 decision:** Capacity declared at 600 RAT-min/week (2026-09-13).
+- **Evidence basis:** `outputs/resource_census.json` (obligations registry per class), `tools/resource_census_v0_1.py` (mechanical enumerator, runnable), `CLAUDE.md` (48-hour window promise), `ledgers/RESOURCE_LEDGER.jsonl` (CAP event recorded).
+
+-----
+
+### F-63 — A Benefit-Only Queue Cannot Reject Work
+
+```yaml
+---
+id: "F-63"
+name: "rbe-benefit-only-queue-unbounded"
+status: REGISTERED
+class: F
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P21"]
+substrate: "PRIORITY_QUEUE.md (score formula inspection), resource_census_v0_1.py (demand enumeration)"
+tags: ["resource-based-economics", "queue", "scoring", "cost", "allocation"]
+related_finding: ["F-62", "F-64"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Synopsis:** The incumbent queue formula `score = impact + Σ impact(unblocks)` has no cost term, so no row can ever be too expensive and demand on the constraint has no upper bound. The largest single draw on the constraint (Q-NF-Z2-PINS, 168 RAT-min — more than every other open row combined) is invisible to the ordering under the benefit-only formula.
+- **Observation:** `PRIORITY_QUEUE.md` lists Q-NF-Z2-PINS under *"Hygiene (no score)"* while consuming the vast majority of RAT-min capacity. Without a denominator, the queue cannot reject work or order by yield-per-constraint-minute.
+- **Structural failure:** The allocation rule cannot function without a cost side. A benefit-only formula creates the appearance of ordering while leaving capacity allocation to informal, unmeasured override outside the queue.
+- **Falsifier:** Evidence of a queue row deferred or rejected on cost grounds under the incumbent formula would show the gate already exists informally, making the regime change cosmetic rather than substantive.
+- **Z2 decision:** QUEUE_SCORING_MODE molt ratified to switch to `resource` mode with `UNPRICED_ROW_POLICY` set to `REFUSED_TO_START` (2026-09-13), gating the change on molt_id assignment.
+- **Evidence basis:** `PRIORITY_QUEUE.md` (schema and score formula), `RESOURCE_UNITS.yaml` (ratification hash and demand priors), `priority_queue_engine.py` (mode implementation and dormancy gate).
+
+-----
+
+### F-64 — Assurance Is Accumulating; Evidence Is Not
+
+```yaml
+---
+id: "F-64"
+name: "rbe-assurance-evidence-gap"
+status: REGISTERED
+class: F
+date_registered: "2026-09-13"
+date_origin: "2026-09-13"
+session_registered: "S-091326-RBE-Z2"
+principles_triggered: ["P21"]
+substrate: "resource_census_v0_1.py (stocks enumeration), NF_LEDGER.jsonl (event type analysis)"
+tags: ["resource-based-economics", "evidence", "calibration", "brier", "measurement"]
+related_finding: ["F-62", "F-63"]
+zone2_ratification: "Night · 2026-09-13 · Q-RBE-01 acceptance"
+superseded_by: null
+---
+```
+
+- **Synopsis:** The tree holds 94 ratified artifacts (RAT-art stocks) and 165 NF_LEDGER events, but **zero** sourced evidence rows (EVID-row stocks). Every pin is a forecast; none has been resolved against a tree read, so Brier score is undefined and the calibration programme has no input.
+- **Observation:** `stocks.EVID-row = 0`, `stocks.CAL-pt = 0`, `stocks.RAT-art = 94`. NF_LEDGER event types: 106 PIN, 58 TOKEN, 1 OPEN — no RESOLVE of any kind.
+- **Structural failure:** Separating assurance (artifacts, forecasts) from evidence (resolutions, calibration) reveals that the system accumulates prediction density but never closes the measurement loop. A blended "progress" measure would hide this completely.
+- **Falsifier:** Any sourced RESOLVE event in the tree that `resource_census_v0_1.py` fails to count.
+- **Z2 decision:** Finding registered to surface the measurement gap. Resolution awaits the calibration programme's first evidence collection cycle.
+- **Evidence basis:** `outputs/resource_census.json` (stocks section), `ledgers/NF_LEDGER.jsonl` (event type counts), `tools/resource_census_v0_1.py` (mechanical counter, runnable).
+
+-----
+
 ### H-CAND-GOVERNANCE-CAPTURE-SURFACE-01 — Sole-Ratifier Capture Surface (XZ-Class)
 
 ```yaml
@@ -3979,3 +4094,118 @@ H-CAND-FUSION-01 | Sacred clown fuses external check + feedback read (heyoka, ko
 - Q-SI-C1: System integration checkpoint 1, Phase 1 gate verification
 
 **Callouts:** None — no blockers, no gaps, no ambiguities. Phase 0 execution clean.
+
+### Q-FRAMEWORK-AUDIT-DEPLOY-01 — Deploy Framework-Audit Workflow to 12 Repositories
+
+```yaml
+---
+id: "Q-FRAMEWORK-AUDIT-DEPLOY-01"
+name: "framework-audit-deploy-phase-1b"
+status: CANDIDATE
+class: Q
+date_registered: "2026-09-14"
+date_origin: "2026-09-14"
+session_registered: "S-091426-Z1-framework"
+principles_triggered: ["P-governance", "P-framework"]
+substrate: "Claude Haiku 4.5 (claude-code-remote) — Z1 proposer session"
+tags: ["governance", "framework-audit", "workflow", "CI/CD", "multi-repo", "phase-1b"]
+related_finding: []
+zone2_ratification: null
+superseded_by: null
+---
+```
+
+- **Synopsis:** Phase 1B of FRAMEWORK_MAPPING.md rollout. Deploy framework-audit workflow (CI/CD gate) to 12 remaining repositories in the HumanAIOS ecosystem. Each repo receives: (1) `.github/workflows/framework-audit.yml` copied from template at `.github/workflows/per-repo-framework-audit.yml.template`, (2) CLAUDE.md updated with Framework Reference section linking to `FRAMEWORK_MAPPING.md`, (3) PR created to `claude/framework-audit-deploy-lqr32u` branch. Repositories: empirica-autonomy, empirica-foundation-evaluator, empirica-mesh-support, empirica-outreach, empirica-resource-miner, flta-app-empirica, website, grok-crossref, collaborator-ops, local-machine-optimizer, opportunity-aggregator, empirica-autonomy-archive.
+- **Scope guard:** Workflow template deployment only. No changes to governance files, REGISTERED.md, or authority structure. Each repo's CLAUDE.md updated only with inert Framework Reference section (links only; no authority changes).
+- **Deliverables:** (1) Framework-audit workflow active in CI/CD on all 12 repos by 2026-09-17T22:27Z; (2) PRs merged to main on each repo; (3) REGISTERED.md updated with VERDICT entry post-deployment.
+- **Falsifier (required for Z2 ratification):** Workflow deployment fails on ≥3 repos (push error, PR merge failure, CI gate rejection) OR deadline not met (after 2026-09-17T22:27Z) OR Framework Reference link in CLAUDE.md points to wrong document path OR any repo's workflow conflicts with existing `.github/workflows/` structure (merge conflict unresolved).
+- **Promotion gate:** (1) Z2 ACCEPT signature on this candidate; (2) all 12 repos have framework-audit.yml active and passing CI on their main branch; (3) VERDICT event filed in REGISTERED.md with completion timestamp and falsifier-check result.
+
+**Priority:** High (Phase 1B deadline-driven, unblocks Phase 2 integration testing)  
+**Estimated effort:** 2–3 hours (parallel repo work, CI gate validation per repo)  
+**Assigned executor (pending Z2 delegation):** Z3 (primary: Claude Haiku, fallback: ops-steward if escalation needed)
+
+
+---
+
+## Z2 Ratification — 2026-09-14
+
+**Candidate ID:** Q-FRAMEWORK-AUDIT-DEPLOY-01  
+**Z2 Signature:** Night (Carly R. Anderson)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-14T22:35:00 UTC  
+**Ratification Hash:** 249a0026f44624ddeff8bc52ceb6951a0ca85589e59a7505e794f00c2f30df6e  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Ratified Scope:**
+- Deploy framework-audit workflow to 12 repositories
+- Deadline: 2026-09-17T22:27Z
+- Executor: Z3 (Claude Haiku 4.5)
+- Falsifier: deployment failure on ≥3 repos, deadline miss, incorrect link, or workflow conflicts
+
+**Status:** ACCEPTED · Ready for Z3 execution
+
+---
+
+### Q-BOOT-PROCESS-MAP-01 — Boot Process/Boot Chain Mapping for REGISTERED.md
+
+```yaml
+---
+id: "Q-BOOT-PROCESS-MAP-01"
+name: "boot-process-chain-mapping"
+status: CANDIDATE
+class: Q
+date_registered: "2026-09-14"
+date_origin: "2026-09-14"
+session_registered: "S-091426-Z1-bootmap"  # NOTE: repo's own schema is S-MMDDYY-NN-{slug} (numeric sequence, not "Z1"). "S-091426-01" was suggested as the fix, but that ID is verified (z1-inbox/2026-09-14/HANDOFF.md:3) to belong to a *different*, concurrent Z1 session (Intent-OS board work, PR #326/branch claude/adoring-franklin-rwun0t) -- adopting it here would misattribute this candidate to that session's work, which is worse than the schema deviation. Several concurrent Z1 sessions ran 2026-09-14; this repo has no visible mechanism for a session to learn its own canonical NN short of Z2 assigning one. Kept non-conforming and flagged, matching the adjacent Q-FRAMEWORK-MAPPING-01 entry's session_registered ("S-091426-Z1-framework"), rather than fabricating or borrowing a sequence number.
+principles_triggered: ["P-governance", "P-framework", "P30"]
+substrate: "Claude Sonnet 5 (claude-code-remote) — Z1 proposer session"
+tags: ["governance", "boot-chain", "session-rituals", "documentation", "reference-architecture"]
+related_finding: []  # Q-FRAMEWORK-MAPPING-01 (mentioned in prose below as the format precedent) has no REGISTERED.md entry of its own — it exists only in CLAUDE.md/z1-inbox — so it is not cited here as an in-registry relation
+zone2_ratification: null
+calibration_ref: null  # PENDING — P30 interactive acat_document_analyzer_v1.1 pass not run this session; required before Z2 ratification
+superseded_by: null
+---
+```
+
+- **Synopsis:** Creates `BOOT_PROCESS_MAP.md`, an explicit mapping of REGISTERED.md's position in the session boot chain onto standard computer boot-chain stages (POST, firmware/Secure Boot, bootloader/boot spec, kernel image, device enumeration, init/unit ordering, permission model, boot log, login prompt, runtime tuning, close ritual, journal). REGISTERED.md is mapped to the **kernel image** under SESSION_RITUALS.md's §A/§F.9 reading, which scopes the fetch and its halt condition to registry-touching sessions specifically: live-fetched (not cached) per IC-030, append-only (superseded, never overwritten), and a failed fetch or UNAVAILABLE/UNKNOWN/STALE state is a hard halt — the direct analogue of a kernel panic for that workload class, dropping the session into a documented recovery mode (DEGRADED, per IC-029). **Flagged, not resolved, by this candidate:** CLAUDE.md's own §A lists the REGISTERED.md read as unconditional ("mandatory before any work"), which disagrees with SESSION_RITUALS.md's registry-touching qualifier — the document follows SESSION_RITUALS.md's more detailed wording but surfaces the conflict rather than silently picking a side; Z2 should treat the underlying disagreement as its own AMBIGUITY item independent of this candidate's disposition. SESSION_RITUALS.md is mapped to the boot spec/parser-tag contract, with orchestration execution distributed across CURRENT.md/GOVERNANCE.md/OPERATOR_RUNBOOK.md per its own §A closing note and §H; GOVERNANCE.md/CURRENT.md to boot parameters/policy; ZONE_REGISTRY.md to device enumeration (12 active repos, live count — its claimed "merge block" enforcement also conflicts with CLAUDE.md listing that CI gate as "planned Phase 3," likewise flagged rather than adjudicated); PRIORITY_QUEUE.md to init/unit ordering (ranked by Z1-proposed scores, Z2 ratification hash currently pending per the queue's own metadata); CLAUDE.md + CODEOWNERS to the kernel permission model — flagged, not resolved: CLAUDE.md's own governance table says REGISTERED.md is "Z2 sole write," while its "Z1: Proposers" section lists candidate-block writes as Z1's output; this candidate is itself a live instance of that ambiguity, not proof of either reading (CODEOWNERS itself is review-gating, not a filesystem ACL — it documents itself as a self-review placeholder pending branch protection + a second reviewer); the drift catalog + Phase 1 declaration to the boot log; SESSION_RITUALS §A.7 (wait for confirmation) to the login prompt; molt_cycle.py to post-boot runtime tuning (sysctl-style, anti-cascade rate-limited); SESSION_RITUALS §B to a close ritual analogous to (not literally) shutdown/sync, with the WGS `#wgs-sync` Slack post (Section B, item 7) as the actual per-session journal — `ledgers/NF_LEDGER.jsonl` is a same-pattern example from the molt/prediction-tracking subsystem this map's runtime-tuning stage also cites (MOLT_STATE.md names it that subsystem's permanent record; SESSION_RITUALS.md never references it as a session journal), not what §B writes to; the CLAUDE.md §A.5 sha256-manifest check is flagged as specified with a demonstrated but non-current precedent (`z1-inbox/2026-09-06/MANIFEST.md` pins a REGISTERED.md blob hash but is a dated single-drop manifest, now stale, and doesn't cover ZONE_REGISTRY.md), not an active general-purpose manifest. Companion document to `FRAMEWORK_MAPPING.md` (Q-FRAMEWORK-MAPPING-01 — note that ID has no REGISTERED.md entry of its own, so it is not cited in this candidate's `related_finding` field), same format precedent. **Hardened per external review:** adds an explanatory-only banner, a per-stage specified/enforced/aspirational status label, an ownership/maintenance note, an explicit non-collection statement for ACAT behavioral data (P1/P3 capture already happens independent of this map — see the document's own "Does this map collect ACAT behavioral data?" section), and a pointer to PR #332's independently-produced, more rigorous adversarial review + state-machine prototype of the same stages (also unratified, also P30-pending) rather than duplicating that work here.
+- **Scope guard:** Documentation only. No changes to REGISTERED.md entry schema, CI/CD gates, or authority structure. Does modify CLAUDE.md — one Appended Events line and one new "Boot Process Reference" line under "How to Use This Document" (both already included in this PR, not gated on a later change). Does not modify SESSION_RITUALS.md, GOVERNANCE.md, or ZONE_REGISTRY.md content. **Not done by this candidate:** the file-top "Last updated" header still reads August 15, 2026, which CURRENT.md §4 treats as the registry's freshness signal — this append does not update it, consistent with how the adjacent Q-FRAMEWORK-AUDIT-DEPLOY-01 and Q-RBE-01 Q-class appends also left it unchanged, but noted here rather than silently left stale. This is deliberate, not an oversight: that header is prose summarizing F/H/IC-class content changes, and updating it is arguably part of the same "Z2 sole write" authority CLAUDE.md's governance table assigns to this file, not something a Z1 candidate append should assert on its own. **On the IC-030 risk specifically:** IC-030's live-fetch-and-pin requirement is satisfied by `git fetch` + a fresh sha256 check against the actual file content at HEAD (CLAUDE.md §A.5), not by reading this prose header — a session doing IC-030 verification correctly never trusts this line's date in the first place, so its staleness doesn't reintroduce the failure mode this candidate maps, though it is still worth Z2 correcting for readers who *do* rely on it as CURRENT.md §4 instructs.
+- **Deliverables:** (1) `BOOT_PROCESS_MAP.md` created at repo root; (2) this candidate block registered in REGISTERED.md; (3) CLAUDE.md "How to Use This Document" section updated with a "Boot Process Reference" link, mirroring the FRAMEWORK_MAPPING.md precedent — already done in this PR, not deferred to Z2 ACCEPT.
+- **Falsifier (required for Z2 ratification):** Any stage mapping in `BOOT_PROCESS_MAP.md` misstates the actual SESSION_RITUALS.md §A/§B sequence or halt conditions (verifiable by direct comparison against SESSION_RITUALS.md v6.4.1) OR the mapping is found to contradict CLAUDE.md's authority structure OR a factual claim (repo count, file path, CI behavior) drifts from the live source it cites without the document being updated to match.
+- **Promotion gate:** (1) `calibration_ref` attached per P30 (interactive `acat_document_analyzer_v1.1` pass — not yet run); (2) Z2 ACCEPT signature on this candidate; (3) no open dispute on stage-mapping accuracy at time of ratification. The CLAUDE.md "Boot Process Reference" link is already live as of this PR, not a gate condition.
+
+**Priority:** Medium (reference architecture, non-blocking)
+**Estimated effort:** Documentation only — no code or CI changes
+**Assigned executor (pending Z2 delegation):** N/A (documentation candidate; no Z3 execution required beyond the optional CLAUDE.md link)
+
+
+---
+
+## Z2 Ratification — 2026-09-16
+
+**Candidate ID:** H-HOLO-SELF-REP-01  
+**Z2 Authority:** Night (Carly R. Anderson)  
+**Decision:** ACCEPT  
+**Timestamp:** 2026-09-16T15:30:00 UTC  
+**Ratification Hash:** 7a2c9f3e8d1b5c4a2f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b0  
+**Authority:** Admiral (Z2 Serial Gate) — Hypothesis Ratification
+
+**Ratified Scope:**
+- Hypothesis: "If we can coordinate external capture, render, and display services via orchestration, then we can generate and validate a working prototype for holographic person representation without building the rendering engines ourselves."
+- Phase 1 (completed): Unit tests (21/21 passing), protocol documentation, dry-run validation
+- Phases 2-4: Mocked integration tests → live service tests → hypothesis verdict
+- Falsifiers: 4 explicit conditions detailed in z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md
+- Executor: Z1/Z3 (Claude Haiku 4.5, per session S-091626-01)
+- Decision window: 48h (window closes 2026-09-18T15:30 UTC)
+
+**Status:** ACCEPTED · Phases 2-4 authorized for execution
+
+**Deliverables Verified:**
+- ✅ tools/holographic_orchestrator.py (688 lines): 3-stage pipeline, 5 capture modes, 5 render targets, dry-run mode, smoke test, CLI interface
+- ✅ tools/tests/test_holographic_orchestrator.py (317 lines): 21 unit tests all passing
+- ✅ tools/tests/test_holographic_integration.py (new): 15 integration tests with mocked HTTP services
+- ✅ tools/fixtures/holographic_spec_example.json: Example dry-run spec with synthetic test identifiers
+- ✅ z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md: Testing protocol with 4 falsifiers
+
+**Ratification Note:** Hypothesis and falsifiers meet Z2 acceptance criteria per GOVERNANCE.md. Prototype inherits existing Supabase/Slack integration pattern (stdlib urllib + JSON). No external service dependencies in Phase 1. Ready for Phase 2 mocked integration work.
+

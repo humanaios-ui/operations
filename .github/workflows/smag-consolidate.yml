@@ -20,6 +20,13 @@ permissions:
   pull-requests: write
   issues: read
 
+env:
+  # MUST match the value in .github/workflows/molt-tier-check.yml — one posts,
+  # this one drains. 0 is the sentinel for "the tracking issue does not exist
+  # yet": that workflow refuses to post and this one skips the drain, so the two
+  # never disagree about whether the series is live.
+  MOLT_TIER_TRACKING_ISSUE: "350"
+
 jobs:
   consolidate:
     runs-on: ubuntu-latest
@@ -37,6 +44,30 @@ jobs:
             --repo "${{ github.repository }}" --issue 103 \
             --ledger audits/smag_pilot_ledger.jsonl
 
+      # The molt-tier gap series, drained by the SAME tool into its OWN ledger.
+      # A separate issue and a separate file because smag_consolidate_v1_0.py
+      # dedups on `pr` and keeps the first row per PR — merged into #103 the two
+      # series would shadow each other one row at a time.
+      #
+      # This is what gives MOLT_STATE.md's under-claim falsifier something to
+      # read: "(measured - claimed > 1) / total PRs over a rolling 30-day
+      # window, target < 5%". No new tooling; the consolidator was already
+      # parameterised on --issue and --ledger.
+      #
+      # --marker is not optional here. Without it the tool takes the first ```json
+      # block from ANY comment on the issue and keeps the FIRST row seen per PR,
+      # so anyone who could comment could claim a PR's slot before its real row
+      # arrived. #103 above predates markers and keeps the old behaviour.
+      - name: Consolidate molt-tier gap rows into their ledger
+        if: env.MOLT_TIER_TRACKING_ISSUE != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/smag_consolidate_v1_0.py \
+            --repo "${{ github.repository }}" --issue "${MOLT_TIER_TRACKING_ISSUE}" \
+            --ledger audits/molt_tier_gap_ledger.jsonl \
+            --marker molt-tier-gap-row
+
       - name: Resolve capture timing (record CI outcome after checks finish)
         env:
           GH_TOKEN: ${{ github.token }}
@@ -53,6 +84,26 @@ jobs:
           python3 tools/smag_gap_analysis_v1_0.py \
             --ledger audits/smag_pilot_ledger.jsonl \
             --out audits/smag_gap_report.md
+
+      - name: FEED BACK — gap cues into the lessons ledger
+        run: |
+          python3 tools/smag_feedback_v1_0.py \
+            --ledger audits/smag_pilot_ledger.jsonl \
+            --lessons data/lessons_learned_ledger.json
+
+      - name: META FEED BACK — measure SMAG's own consolidation accuracy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Wire SMAG's self-accuracy signal: how well did SMAG predict its own PRs?
+          # This closes the loop on SMAG's own learning.
+          python3 tools/smag_meta_feedback_v1_0.py \
+            --repo "${{ github.repository }}" \
+            --consolidation-pr-prefix "SMAG: consolidate" \
+            --lessons data/lessons_learned_ledger.json \
+            --lookback-days 30
+        continue-on-error: true
+        # Continue if API throttle or GH_TOKEN issues; meta-feedback is advisory
 
       - name: Wire SMAG rows to empirica CLI with LLM analysis + predictions
         run: |
@@ -80,7 +131,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet -- audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md; then
+          if git diff --quiet -- audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md \
+               data/lessons_learned_ledger.json audits/molt_tier_gap_ledger.jsonl; then
             echo "No new SMAG rows — nothing to consolidate."
             exit 0
           fi
@@ -88,9 +140,19 @@ jobs:
           git config user.name  "smag-consolidate[bot]"
           git config user.email "smag-consolidate@users.noreply.github.com"
           git checkout -b "$branch"
-          git add audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md
-          git commit -m "chore(smag): consolidate #103 rows + refresh gap report"
+          git add audits/smag_pilot_ledger.jsonl audits/smag_gap_report.md \
+                  data/lessons_learned_ledger.json audits/molt_tier_gap_ledger.jsonl
+          git commit -m "chore(smag): consolidate #103 + molt-tier rows, refresh gap report, FEED BACK cues"
           git push origin "$branch"
           gh pr create --base main --head "$branch" \
             --title "SMAG: consolidate ledger + refresh gap report" \
-            --body "Automated CONSOLIDATE+ANALYZE step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into the ledger and refreshes the gap report. Review the gap_rate trend before merging."
+            --body "Automated CONSOLIDATE+ANALYZE+FEED BACK step of the recursive-learning loop. Drains new predicted-vs-measured rows from #103 into audits/smag_pilot_ledger.jsonl AND new molt-tier gap rows from the molt-tier tracking issue into audits/molt_tier_gap_ledger.jsonl, refreshes the gap report, and upserts any gap-driver or insufficient-calibration-data cue into data/lessons_learned_ledger.json (tools/smag_feedback_v1_0.py). Promoting a cue to a blocking gate or a REGISTERED finding is a separate, human act — this only records the cue. Review the gap_rate trend before merging.
+
+          ## Prediction (SMAG calibration)
+
+          smag_p: 0.90
+          smag_p_meta: 0.85
+
+          Why 0.90 (author-SMAG)? Standard FEED BACK step is mostly mechanical; consolidated ledger and reports have few dependencies.
+
+          Why 0.85 (meta-SMAG self-prediction)? Consolidation is mostly mechanical (ledger dedup, gap report regeneration), but schema changes and edge cases carry risk. CI checks will validate before merge."
