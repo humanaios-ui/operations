@@ -162,14 +162,13 @@ class TestMetamorphicCleanliness:
     def test_mr_exception_suppresses_error(self, extractor_with_exceptions):
         """Adding matching exception text should suppress ERROR."""
         # Without exception pattern (should trigger):
-        base = "The task will complete: 4–6 hours"
+        base = "I estimate: 4–6 hours of work"
         result_base = extractor_with_exceptions.extract(base)
         base_has_errors = result_base.has_errors()
 
         # With exception pattern (IC-CLOSURE, should suppress):
         excepted = "Z2 must rule within 48h"
         result_excepted = extractor_with_exceptions.extract(excepted)
-        excepted_verdict = result_excepted.exit_code()
 
         # Base case should have ERROR (ungrounded duration)
         assert base_has_errors, "Base case should trigger ERROR for ungrounded duration"

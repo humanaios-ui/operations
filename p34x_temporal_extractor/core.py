@@ -72,11 +72,12 @@ class DurationEstimateRecognizer(TemporalRecognizer):
     def __init__(self):
         # Patterns for labor/effort estimates
         self.patterns = [
-            r"Estimate[d]?:\s*(\d+[\s\-–]*\d*)\s*[hH](?:our)?(?:s)?",  # "Estimate: 8h", "4–6 hours"
+            r"Estimate[d]?[^:]*:\s*(\d+[\s\-–]*\d*)\s*[hH](?:our)?(?:s)?",  # "Estimate: 8h", "Estimated labor: 4–6 hours"
             r"labor[:\s]+(\d+[\s\-–]*\d*)\s*[hH](?:our)?(?:s)?",
             r"CI (?:gate )?validation:\s*(\d+[\s\-–]*\d*)\s*[hH](?:our)?(?:s)?",
             r"Phase\s+\d+\s*\((\d+[\s\-–]*\d*)\s*weeks?\)",
             r"Labor:\s*(\d+\.?\d*)\s*[hH]\s*/\s*(\d+\.?\d*)\s*[hH]",  # "Labor: 2h / 9.5h"
+            r"(?:complete|finish|implement)[^:]*:\s*(\d+[\s\-–]*\d*)\s*hours?",  # "will complete: 4–6 hours"
         ]
 
     def recognize(self, text: str) -> List[TemporalFinding]:
@@ -114,7 +115,7 @@ class FutureDateRecognizer(TemporalRecognizer):
     def __init__(self):
         # Patterns for future dates
         self.patterns = [
-            r"(?:by|ready|operational|resolves at|production)\s+(\d{4}-\d{2}-\d{2})",  # ISO dates
+            r"(?:by|ready|operational|resolves\s+at|production)[:\s]+(\d{4}-\d{2}-\d{2})",  # ISO dates with flexible spacing
             r"(?:by|ETA)\s+(?:EOD|EOB|end of business|end of day)",
             r"T\+(\d+)(?:\s*(?:hours?|days?|weeks?))?",  # "T+30 minutes"
         ]
@@ -231,10 +232,10 @@ class TemporalExtractor:
 
         # Classify and grade each finding
         for finding in all_findings:
-            # Apply grounding check
+            # Apply grounding check (must be trustworthy to count as grounding)
             if self.evidence:
                 evidence_record = self.evidence.resolve(finding.normalized_value or finding.text)
-                if evidence_record:
+                if evidence_record and evidence_record.is_trustworthy():
                     finding.grounded = True
                     finding.evidence_pointer = EvidencePointer(
                         source=evidence_record.source,

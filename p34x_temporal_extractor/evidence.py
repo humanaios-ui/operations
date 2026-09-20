@@ -88,29 +88,18 @@ class LedgerProvider(EvidenceProvider):
 
     def _load_molt_windows(self):
         """Parse REGISTERED.md for molt window dates."""
-        # TODO: Parse REGISTERED.md and extract molt window dates
-        # For now, load some known windows as a stub
-        self._molt_windows = {
-            "2026-09-23": "molt_id=f7a49f667c09f1f6",
-        }
+        # TODO v1: Parse REGISTERED.md and extract molt window dates
+        # Phase 0: Don't provide evidence until ledger reading is implemented
+        # This prevents false grounding from hard-coded test data
+        self._molt_windows = {}
 
     def resolve(self, value: str, context: Optional[Dict[str, Any]] = None) -> Optional[EvidenceRecord]:
-        """Check if value matches a ratified molt window."""
-        # Match ISO dates
-        iso_date_pattern = r"\d{4}-\d{2}-\d{2}"
-        match = re.search(iso_date_pattern, value)
-        if not match:
-            return None
+        """Check if value matches a ratified molt window.
 
-        date = match.group(0)
-        if date in self._molt_windows:
-            return EvidenceRecord(
-                source="ledger",
-                ref=self._molt_windows[date],
-                value=value,
-                attestation_time=datetime.now().isoformat() + "Z",
-            )
-
+        In Phase 0, returns None (stub). Phase 1 will read and verify ledger.
+        """
+        # TODO v1: Match ISO dates against actual ledger entries
+        # For now, return None to avoid false grounding during Phase 0
         return None
 
     def name(self) -> str:
