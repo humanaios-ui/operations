@@ -183,8 +183,11 @@ def registry(root: str = ROOT) -> list[dict]:
                 "tools/tests/test_nf_ledger_cli.py", "tools/tests/test_ci_predict.py",
                 "tools/tests/test_lifecycle_predict.py", "tools/tests/test_dimension_attribution.py",
                 "tools/tests/test_tool_trace_hook.py", "tools/tests/test_tool_trace_reader.py",
-                "tools/tests/test_copilot_acat_scanner.py", "tools/tests/test_holographic_integration.py",
+                "tools/tests/test_copilot_acat_scanner.py",
+                "tools/tests/test_grant_match_verifier.py", "tools/tests/test_grant_matching_engine.py",
+                "tools/tests/test_holographic_integration.py",
                 "tools/tests/test_holographic_orchestrator.py", "tools/tests/test_holographic_phase3_live.py",
+                "tools/tests/test_industry_telemetry.py", "tools/tests/test_nonprofit_dashboard.py",
                 "acat/tests/test_tool_trace_schema.py"]
     pyt = ["-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider"]
     add("t3-pytest-baseline", "T3", "ci", "pytest baseline suites (quality-baseline blocking step)", _py(*pyt, *baseline), timeout=600,

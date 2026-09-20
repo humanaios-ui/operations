@@ -1,10 +1,15 @@
 name: SonarCloud Baseline Auto-Capture
 
-# Automatically runs SonarCloud scan, captures metrics, creates issues, and updates baseline
-# Triggered on every push to main branch
-# No manual steps required after commit
+# Automatically runs SonarCloud scan, captures metrics, creates issues, and updates baseline.
+# Consolidates previous sonarqube.yml (PR scans) and sonarcloud-baseline-auto.yml (main scans).
+# - On PRs: Quality scan only (no mutations; advisory metrics for review)
+# - On main: Full capture with baseline update and issue creation
+# - On workflow_dispatch: Same as main (full capture and mutations)
+# No manual steps required after commit to main
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
   push:
     branches: [main]
   workflow_dispatch:
@@ -74,7 +79,7 @@ jobs:
           pip install requests pyyaml
 
       - name: Fetch metrics from SonarCloud
-        if: steps.guard.outputs.configured == 'true' && steps.scan-status.outputs.completed == 'true'
+        if: steps.guard.outputs.configured == 'true' && steps.scan-status.outputs.completed == 'true' && github.event_name != 'pull_request'
         id: metrics
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

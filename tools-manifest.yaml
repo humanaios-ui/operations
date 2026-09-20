@@ -2175,6 +2175,7 @@ tools:
   builder_markers: true
   purpose: Bounded Q4 2026 industry telemetry and human triage pilot
   session: S-091926
+<<<<<<< HEAD
 - tool_id: HAIOS-TOOL-180
   name: workflow_dependency_analyzer
   path: tools/workflow_dependency_analyzer_v1_0.py
@@ -2188,6 +2189,8 @@ tools:
   builder_markers: true
   purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines
   session: Q-WORKFLOW-GOVERNANCE-01
+=======
+>>>>>>> origin/main
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
