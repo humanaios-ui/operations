@@ -2,27 +2,27 @@
 
 **Status:** RATIFIED PROPOSAL (awaiting Z2 signature)  
 **Date:** 2026-09-20  
-**Based on:** Complete analysis of 48 GitHub Actions workflows  
+**Based on:** Complete analysis of 49 GitHub Actions workflows  
 **Authority:** Z1 proposal for Z2 ratification (Q-WORKFLOW-GOVERNANCE-01)
 
 ---
 
 ## Executive Summary
 
-The HumanAIOS operations repository manages **48 workflows** across 4 governance classes:
+The HumanAIOS operations repository manages **49 workflows** across 4 governance classes:
 
 | Class | Count | Governance | Evidence Required |
 |:------|:-----:|:-----------|:------------------|
 | **A: Critical Gates** | 7 | Z2 ratification | Falsifier + test case |
 | **B: Audit Monitors** | 6 | Z2 ratification | Measurement + rationale |
 | **C: Event-Driven** | 0 | Standard review | None |
-| **D: Infrastructure** | 35 | Standard review | None |
+| **D: Infrastructure** | 36 | Standard review | None |
 
-**Key Insight:** Only 7 workflows block PRs to main (excluding molt-tier-check, which is advisory by design). The remaining 41 are audits, monitors, or infrastructure. This creates an opportunity to introduce **evidence-based governance** for the critical 7, while keeping the others lightweight.
+**Key Insight:** Only 7 workflows block PRs to main. The remaining 42 are audits, monitors, or infrastructure. This creates an opportunity to introduce **evidence-based governance** for the critical 7, while keeping the others lightweight.
 
 ---
 
-## Class A: Critical-Path Gates (8 workflows)
+## Class A: Critical-Path Gates (7 workflows)
 
 These workflows **block merges to main**. They must pass before any PR can merge.
 
@@ -35,7 +35,6 @@ These workflows **block merges to main**. They must pass before any PR can merge
 | 5 | `temporal-dissolution-gate` | pull_request | Rejects unauthorized deadline semantics (S-070726 policy) | ❌ NONE | 🟡 NEEDS |
 | 6 | `workflow-lint` | pull_request, push | Validates workflow YAML syntax + dead-workflow detection | ❌ NONE | 🟡 NEEDS |
 | 7 | `z2_ratification_gate` | pull_request, push | Z2 hash verification + constitutional rules | ✅ IMPLICIT | 🟢 PARTIAL |
-| 8 | ~~`molt-tier-check`~~ | ~~pull_request~~ | ~~Molt tier classification~~ | ~~❌ NONE~~ | ~~🟡 NEEDS~~ |
 
 **Legend:**
 - ✅ Falsifier exists (documented or implicit in validator code)
@@ -65,8 +64,8 @@ Scheduled audits that produce governance signals but **do not block merges**.
 ## Workflow Trigger Distribution
 
 ```
-Pull Request (PR-blocking or PR-observing):   24 workflows
-  - 8 critical gates (block merge)
+Pull Request (PR-blocking or PR-observing):   23 workflows
+  - 7 critical gates (block merge)
   - 16 advisory/monitoring
 
 Scheduled (cron):                              21 workflows
@@ -76,7 +75,7 @@ Scheduled (cron):                              21 workflows
 Push to main:                                  17 workflows
   - Some are gates, some are post-merge automation
 
-Workflow Dispatch (manual):                    39 workflows
+Workflow Dispatch (manual):                    38 workflows
   - All gates + audits support manual trigger for testing
 ```
 
@@ -303,7 +302,7 @@ audit_measurement:
 
 Before merging this framework, key questions for Night (Z2):
 
-1. **Scope of "critical path":** Should we require falsifiers for all 8 Class A gates, or start with a subset (e.g., 3-5)?
+1. **Scope of "critical path":** Should we require falsifiers for all 7 Class A gates, or start with a subset (e.g., 3-5)?
 
 2. **Evidence burden:** Is falsifier + test case + impact statement the right bar? Too heavy? Too light?
 

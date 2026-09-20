@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Workflow Dependency Analyzer v1.0
+Workflow Dependency Analyzer v1.0 — Builder v1.7 compliant · HumanAIOS
 
 Analyzes GitHub Actions workflows to build a dependency graph:
 - What triggers each workflow?
@@ -36,12 +36,11 @@ class WorkflowAnalyzer:
     """Analyzes workflow dependencies from .github/workflows/"""
 
     CRITICAL_GATES = {
-        'findings-registry', 'molt-tier-check', 'quality-baseline',
+        'findings-registry', 'quality-baseline',
         'security-gates', 'z2_ratification_gate', 'temporal-dissolution-gate',
         'builder-lint', 'workflow-lint'
     }
 
-    PR_BLOCKING_KEYWORDS = {'pull_request', 'push', 'main'}
     AUDIT_KEYWORDS = {'schedule', 'audit', 'monitor', 'drift', 'standing', 'harmonizer'}
 
     def __init__(self, workflows_dir: str = ".github/workflows"):
