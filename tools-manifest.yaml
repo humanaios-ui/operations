@@ -30,14 +30,13 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 172
+  tools: 168
   mcp_servers: 2
-  excluded: 0
+  excluded: 4
   builder_markers_present: 134
   missing_from_tree: 0
   unclassified: 0
 categories:
-- analysis_tool
 - analytics_tool
 - audit_tool
 - calibration_tool
@@ -2135,12 +2134,12 @@ tools:
   category: diagnostic_tool
   zone: 1
   status: draft
-  interface: cli
+  interface: module
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines
-  session: Q-WORKFLOW-GOVERNANCE-01
+  purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance
+    tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
@@ -2161,11 +2160,11 @@ mcp_servers:
   scope: unscoped — set before approval
   notes: ''
 excluded:
-  - path: tools/board-decisions-backfill.js
-    reason: draft tool archived 2026-09-20
-  - path: tools/board-decisions-ingestion.js
-    reason: draft tool archived 2026-09-20
-  - path: tools/governance-rulings-backfill.js
-    reason: draft tool archived 2026-09-20
-  - path: tools/governance-rulings-ingestion.js
-    reason: draft tool archived 2026-09-20
+- path: tools/board-decisions-backfill.js
+  reason: draft tool archived 2026-09-20
+- path: tools/board-decisions-ingestion.js
+  reason: draft tool archived 2026-09-20
+- path: tools/governance-rulings-backfill.js
+  reason: draft tool archived 2026-09-20
+- path: tools/governance-rulings-ingestion.js
+  reason: draft tool archived 2026-09-20
