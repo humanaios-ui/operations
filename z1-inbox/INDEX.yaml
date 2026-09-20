@@ -1,8 +1,8 @@
 version: 1
-generated: '2026-09-16'
+generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 66
+  candidates: 69
   records: 37
 ratifiers:
 - Night
@@ -644,7 +644,30 @@ candidates:
     \ Falsifiers are mechanical. Predictions pre-registered: 3+ candidates filed within\
     \ 30 days, 1+ PR merged within 60 days, <4-hour implementation time, no tool failures\
     \ in 90 days."
-<<<<<<< HEAD
+- q_id: Q-TOOL-MANIFEST-DRIFT-PREVENTION-01
+  title: "Tool manifest drift prevention \u2014 .github/workflows/tool-sync-gate.yml\
+    \ (Tier 0 infrastructure)"
+  path: z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md
+  submitted: '2026-09-20'
+  status: awaiting_z2
+  tier: 0
+  note: "Root cause analysis of tool manifest CI failures in PR #425. Proposes automated\
+    \ tool-sync-gate workflow to prevent drift between tools-manifest.yaml and TOOLS_MANIFEST.md.\
+    \ Reduces technical friction by ~80% (eliminates 3 manual steps per tool change).\
+    \ Falsifiers and test cases included."
+- q_id: Q-PHASE-2-BOARD-MOLT-01
+  title: "Z2 Board Decisions & Molt Events Ingestion"
+  path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+- q_id: Q-INTENT-OS-WITNESS-LEDGER-01
+  title: "Intent-OS witness ledger \u2014 human-machine decision attribution ledger"
+  path: z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "Witness ledger architecture; human-machine decision attribution ledger;\
+    \ enables scalable Z3 executor onboarding. Phase 1\u20133 roadmap. Per CLAUDE.md,\
+    \ approved 2026-09-19 19:00 UTC pending formal INDEX entry."
 records:
 =======
 - q_id: Q-PHASE-2-BOARD-MOLT-01
