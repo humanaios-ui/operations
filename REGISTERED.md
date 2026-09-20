@@ -4805,3 +4805,170 @@ superseded_by: null
 2026-09-19 19:45 UTC — Z2 (Night, Admiral) RATIFIED Q-GRANT-MATCHING-ENGINE-PHASE-1B-01 | Grant Matching Engine Phase 1B | ACCEPT | All test gates passed (17/17), capacity integration verified, latency SLA met | Ready for production pilot deployment
 ```
 
+-----
+
+## Z1 Red Team Audit Candidates — Q-WITNESS-COMMONS-ASSURANCE-01
+
+### IC-035 — Q-WITNESS Phase 0 Resource Allocation Gap
+
+```yaml
+---
+id: "IC-035"
+name: "q-witness-phase-0-resource-allocation-undefined"
+status: CANDIDATE
+class: IC
+date_registered: "2026-09-20"
+date_origin: "2026-09-20"
+session_registered: "S-092026-01-red-team-audit"
+principles_triggered: ["P3", "P21"]
+related_issue: "humanaios-ui/operations#429"
+related_finding: "Q-WITNESS-COMMONS-ASSURANCE-01 red team audit"
+tags: ["resource-queue", "phase-0", "allocation", "witness-commons", "governance"]
+---
+```
+
+- **Issue:** Issue #429 proposes Phase 0 work (six artifacts per §20) but does not specify resource cost (Z1-ktok, Z3-hr, CI-min, RUN-day, SPEC-hr).
+- **Impact:** Cannot be ranked in PRIORITY_QUEUE.md without cost estimate; Z2 cannot allocate Z3 executor or authorize work start without resource specification.
+- **Correction:** Z1 should file separate Phase 0 resource-estimate candidate block (one per artifact in §20) for Z2 ratification. Proposed estimates: 8–10 weeks total, 200–300 Z1-ktok + 150–200 Z3-hr + 50 CI-min.
+- **Gate:** Phase 0 cannot start until resource costs are specified, estimated, and Z2-ratified via PRIORITY_QUEUE.md insertion.
+- **Status:** CANDIDATE · Awaiting Z2 decision on issue #429 approval
+
+---
+
+### IC-036 — Z3 Executor Assignment Pending for Q-WITNESS Phase 0
+
+```yaml
+---
+id: "IC-036"
+name: "z3-executor-assignment-witness-phase-0-pending"
+status: CANDIDATE
+class: IC
+date_registered: "2026-09-20"
+date_origin: "2026-09-20"
+session_registered: "S-092026-01-red-team-audit"
+principles_triggered: ["P21", "P19"]
+related_issue: "humanaios-ui/operations#429"
+related_governance: "ZONE_REGISTRY.md (Z3 assignments TBD)"
+tags: ["executor", "phase-0", "witness-commons", "zone-assignment", "authority"]
+---
+```
+
+- **Issue:** ZONE_REGISTRY.md states Z3 executor assignments are "TBD" across all zones. Phase 0 work (ARTIFACT_INVENTORY.jsonl, EVIDENCE_GRAPH.json, GENESIS_READINESS.md, schema artifacts) requires Z3 assignment before work can begin.
+- **Impact:** Phase 0 cannot start without executor assignment; work ownership is undefined.
+- **Correction:** Z2 must assign Z3 executor(s) or external team for Phase 0. Recommended structure: one executor for ARTIFACT_INVENTORY.jsonl + EVIDENCE_GRAPH.json (4–6 weeks); one executor for GENESIS_READINESS.md (3–4 weeks); one executor for schema artifacts D/E/F (6–8 weeks in parallel).
+- **Gate:** Phase 0 cannot start until Z3 executor assignments are defined in ZONE_REGISTRY.md.
+- **Status:** CANDIDATE · Awaiting Z2 decision and executor delegation
+
+---
+
+### IC-037 — Legal/Ethics Pre-Assessment Not Commissioned
+
+```yaml
+---
+id: "IC-037"
+name: "legal-ethics-pre-assessment-not-commissioned"
+status: CANDIDATE
+class: IC
+date_registered: "2026-09-20"
+date_origin: "2026-09-20"
+session_registered: "S-092026-01-red-team-audit"
+principles_triggered: ["P1", "P21"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§17 External Assurance References; §23 Requested Z2 Decision"
+tags: ["legal", "ethics", "irb", "regulatory", "human-subjects", "phase-1-gate"]
+---
+```
+
+- **Issue:** Issue #429 §17 states "Human participation should receive an appropriate independent legal/ethics determination before public standing-research enrollment," but no legal/ethics review has been commissioned. First human enrollment (Genesis Sigil, §15) may be blocked pending external legal/ethics assessment.
+- **Impact:** Phase 1 human enrollment cannot proceed without legal/ethics determination; current RFC does not establish scope, timeline, or cost.
+- **Correction:** Z2 should commission preliminary legal/ethics assessment letter (external counsel, ~4 weeks) before Phase 1 planning. Assessment scope: (1) IRB review threshold for standing human behavioral research; (2) privacy implications of persistent pseudonymous records; (3) model-learning data-deletion obligations; (4) regulatory compliance for US/EU participants.
+- **Gate:** Phase 1 human enrollment is blocked until legal/ethics assessment is complete and approval is obtained.
+- **Status:** CANDIDATE · Awaiting Z2 decision to engage counsel
+
+---
+
+### H-WITNESS-READINESS-01 — Genesis Readiness Measurable Falsifiers
+
+```yaml
+---
+id: "H-WITNESS-READINESS-01"
+name: "genesis-readiness-measurable-falsifiers"
+status: CANDIDATE
+class: H
+date_registered: "2026-09-20"
+date_origin: "2026-09-20"
+session_registered: "S-092026-01-red-team-audit"
+principles_triggered: ["P21", "P1"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§15 Anonymous Sigil Genesis; §16 Observability Horizon; §22 Initial Falsifiers"
+tags: ["genesis", "readiness", "falsifier", "witness", "human-enrollment", "assurance"]
+---
+```
+
+- **Hypothesis:** GENESIS_READINESS.md (Phase 0 artifact C) must define measurable falsifiers for human enrollment approval. Four candidate falsifiers from issue #429 §22:
+  1. **Falsifier F1 (Identifiability):** Persistent continuity requires unacceptable identifying/correlation data.
+  2. **Falsifier F2 (Explainability):** "Why?" explanations cannot be reconstructed from actual system records.
+  3. **Falsifier F3 (Revocation):** Optional-channel revocation cannot reliably stop future collection/use.
+  4. **Falsifier F5 (Authority Separation):** Research and governance roles cannot remain technically separable.
+- **Prediction:** If any of F1, F2, F3, F5 are confirmed during Phase 0, first human (Genesis) Sigil creation is blocked until remediation is complete.
+- **Operationalization:** Each falsifier requires testable conditions (e.g., F2: independent reviewer can reconstruct 4 of 5 elements {intended action, authority, actual action, resource, consequence} from archived session logs).
+- **Promotion gate:** GENESIS_READINESS.md complete with all falsifiers operationalized; Z2 pre-registers threshold for each falsifier before Phase 0 completion.
+- **Status:** CANDIDATE · Awaiting Z2 approval of issue #429
+
+---
+
+### H-WITNESS-OBSERVABLE-01 — Observable-to-Independent-Reviewer Model Operationalization
+
+```yaml
+---
+id: "H-WITNESS-OBSERVABLE-01"
+name: "observable-to-independent-reviewer-operationalization"
+status: CANDIDATE
+class: H
+date_registered: "2026-09-20"
+date_origin: "2026-09-20"
+session_registered: "S-092026-01-red-team-audit"
+principles_triggered: ["P21", "P13"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§16 Observability Horizon"
+tags: ["observability", "independent-review", "assurance", "governance", "witness"]
+---
+```
+
+- **Hypothesis:** Issue #429 §16 states "give an independent reviewer only the captured evidence and test whether they can reconstruct {intended action, applicable authority, actual action, resource exchange, consequence, uncertainty/omitted channels}." This principle requires operationalization:
+  - Who is the independent reviewer? (Background requirements: technical? Legal? Participant advocate? Combination?)
+  - What is the evidence review window? (Real-time? 24h after session? End-of-session?)
+  - What reconstruction success rate triggers Observability Horizon as a go/no-go gate? (100%? 95%? 80%?)
+- **Prediction:** Without operationalization, "Observability" remains aspirational; with operationalization, it becomes measurable and governable.
+- **Operationalization plan:** Phase 0 GENESIS_READINESS.md should define: (1) Independent-reviewer qualification model (expertise, conflict-of-interest rules); (2) Evidence-review timeline SLA; (3) Reconstruction success threshold (pre-registered by Z2); (4) Reconstruction failure → escalation path.
+- **Promotion gate:** Independent-reviewer model defined and approved by Z2; three candidate reviewers identified and trained; first 5-10 sessions undergo blind reconstruction review before Phase 1 human enrollment authorization.
+- **Status:** CANDIDATE · Awaiting Z2 approval of issue #429
+
+---
+
+### H-WITNESS-PHASE-1-SCOPE-01 — Phase 1 Scope Clarification
+
+```yaml
+---
+id: "H-WITNESS-PHASE-1-SCOPE-01"
+name: "phase-1-scope-clarification"
+status: CANDIDATE
+class: H
+date_registered: "2026-09-20"
+date_origin: "2026-09-20"
+session_registered: "S-092026-01-red-team-audit"
+principles_triggered: ["P21", "P3"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§23 Requested Z2 Decision (does NOT authorize Phase 1)"
+tags: ["phase-1", "scope", "witness-ui", "human-enrollment", "governance"]
+---
+```
+
+- **Hypothesis:** Issue #429 explicitly disclaims Phase 1 authorization ("Do NOT infer approval for... public-chain identity linkage, new autonomous execution, production Witness deployment"). However, Phase 1 scope is undefined: Is it Witness UI implementation? First human standing-research enrollment? Both? Neither?
+- **Prediction:** Without explicit Phase 1 scope in a separate issue/proposal, stakeholders may infer Phase 1 scope from Phase 0 approval, creating scope creep or governance conflict.
+- **Clarification needed:** Z2 should request separate Phase 1 proposal (new issue) specifying: (1) Witness UI MVP scope (text/visual/transcript/voice/optional gaze); (2) First standing-research enrollment scope (EPHEMERAL? STANDING_SIGIL?); (3) Resource allocation; (4) Timeline; (5) Falsifier gates from Phase 0.
+- **Promotion gate:** Phase 1 proposal filed and Z2-approved before Phase 0 completion; Phase 1 cannot start until GENESIS_READINESS.md, EVIDENCE_GRAPH.json, and legal/ethics assessment are complete and falsifiers F1/F2/F3/F5 show no violations.
+- **Status:** CANDIDATE · Awaiting Z2 decision to request Phase 1 proposal as separate work
+
+
+
