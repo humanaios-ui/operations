@@ -2132,7 +2132,7 @@ tools:
   name: workflow_dependency_analyzer
   path: tools/workflow_dependency_analyzer_v1_0.py
   version: 1.0.0
-  category: analysis_tool
+  category: diagnostic_tool
   zone: 1
   status: draft
   interface: cli
@@ -2160,4 +2160,12 @@ mcp_servers:
   data_classification: UNCLASSIFIED — set before approval
   scope: unscoped — set before approval
   notes: ''
-excluded: []
+excluded:
+  - path: tools/board-decisions-backfill.js
+    reason: draft tool archived 2026-09-20
+  - path: tools/board-decisions-ingestion.js
+    reason: draft tool archived 2026-09-20
+  - path: tools/governance-rulings-backfill.js
+    reason: draft tool archived 2026-09-20
+  - path: tools/governance-rulings-ingestion.js
+    reason: draft tool archived 2026-09-20
