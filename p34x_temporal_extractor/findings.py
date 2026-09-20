@@ -79,6 +79,7 @@ class TemporalFinding:
     exception_id: Optional[str] = None
     severity: Severity = Severity.WARN
     confidence: float = 0.5  # Recognizer heuristic score (0.0–1.0)
+    suggested_rewrite: Optional[SuggestedRewrite] = None
 
     def to_json(self) -> Dict[str, Any]:
         """Convert to JSON-serializable dict."""
@@ -95,6 +96,7 @@ class TemporalFinding:
             "exception_id": self.exception_id,
             "severity": self.severity.value,
             "confidence": self.confidence,
+            "suggested_rewrite": self.suggested_rewrite.to_dict() if self.suggested_rewrite else None,
         }
         return result
 

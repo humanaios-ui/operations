@@ -13,7 +13,7 @@
 exceptions:
   - id: IC-CLOSURE
     description: Z2 ruling closure window (ratified in CLAUDE.md)
-    applies_to: [T-DUR-EST, T-DEADLINE]
+    applies_to: [F-DUR-EST, T-DATE-FUT]
     match:
       any_of:
         - "Z2 must rule within \\d+h"
@@ -25,7 +25,7 @@ exceptions:
 
   - id: MOLT-WINDOW
     description: Ratified molt measurement window (from REGISTERED.md)
-    applies_to: [T-DATE-FUT, C-SCHEDULE]
+    applies_to: [T-DATE-FUT, C-COMMIT-EXPLICIT]
     match:
       registry_ref: "molt_windows.yaml"
       # TODO: auto-load from REGISTERED.md molt entries
@@ -46,7 +46,7 @@ exceptions:
 
   - id: EXTERNAL-SLA
     description: Quoted external SLA or partner deadline (requires evidence)
-    applies_to: [T-DUR-EST, T-DEADLINE]
+    applies_to: [F-DUR-EST, T-DATE-FUT]
     match:
       requires_quote: true
       requires_source: true
@@ -66,7 +66,7 @@ exceptions:
 
   - id: CI-GATE-TIMEOUT
     description: CI infrastructure timeout or SLA (measured)
-    applies_to: [T-DEADLINE, P-LATENCY]
+    applies_to: [F-DUR-EST, T-DATE-FUT]
     match:
       any_of:
         - "CI (?:gate )?timeout"
@@ -78,7 +78,7 @@ exceptions:
 
   - id: RATIFIED-CONSTANT
     description: Ratified constant or configuration value (from constants.json)
-    applies_to: [T-DUR-EST, F-TIMESTAMP]
+    applies_to: [F-DUR-EST, T-DATE-FUT]
     match:
       registry_ref: "constants.json"
     requires_ratification: true

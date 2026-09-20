@@ -84,12 +84,24 @@ class DurationEstimateRecognizer(TemporalRecognizer):
         for pattern in self.patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 span = Span(match.start(), match.end())
+                # Normalize based on unit in match text
+                normalized = None
+                match_text = match.group(0).lower()
+                value_str = match.group(1)
+
+                if "week" in match_text:
+                    normalized = f"P{value_str}W"  # ISO 8601 weeks
+                elif "hour" in match_text or "h" in match_text:
+                    normalized = f"PT{value_str}H"  # ISO 8601 hours
+                elif "day" in match_text or "d" in match_text:
+                    normalized = f"P{value_str}D"  # ISO 8601 days
+
                 finding = self._create_finding(
                     span=span,
                     text=match.group(0),
                     category=TemporalCategory.F_DUR_EST,
                     timex3_type=TimexType.DURATION,
-                    normalized_value=f"PT{match.group(1)}H" if "h" in match.group(0).lower() else None,
+                    normalized_value=normalized,
                     confidence=0.85,
                 )
                 findings.append(finding)
@@ -281,11 +293,27 @@ class TemporalExtractor:
         if not match_config:
             return False
 
-        # Check any_of patterns
+        # Check any_of patterns (regex)
         for pattern in match_config.get("any_of", []):
             if re.search(pattern, finding.text, re.IGNORECASE):
                 return True
 
+        # Check requires_quote (deferred to v1.5; stub returns False for now)
+        if match_config.get("requires_quote"):
+            # TODO v1.5: implement quote-span detection
+            return False
+
+        # Check requires_human_attribution (deferred to v1.5; stub returns False)
+        if match_config.get("requires_human_attribution"):
+            # TODO v1.5: implement role/speaker attribution
+            return False
+
+        # Check registry_ref (deferred to v1.5; stub returns False)
+        if match_config.get("registry_ref"):
+            # TODO v1.5: load and match against ledger/constants registry
+            return False
+
+        # If match_config is empty or only has deferred conditions, don't match
         return False
 
     def _suggest_rewrite(self, finding: TemporalFinding) -> SuggestedRewrite:

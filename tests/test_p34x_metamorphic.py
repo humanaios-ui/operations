@@ -10,9 +10,22 @@ Instead, it tests hand-crafted mutations that should preserve/flip verdicts.
 """
 
 import pytest
+import json
+from pathlib import Path
 from p34x_temporal_extractor import TemporalExtractor, ExtractorConfig
 from p34x_temporal_extractor.findings import Severity
 from p34x_temporal_extractor.evidence import LedgerProvider, CompositeEvidenceProvider
+
+
+def load_jsonl(filepath):
+    """Load JSONL corpus file."""
+    examples = []
+    if Path(filepath).exists():
+        with open(filepath) as f:
+            for line in f:
+                if line.strip():
+                    examples.append(json.loads(line))
+    return examples
 
 
 class TestMetamorphicInvariant:
@@ -79,19 +92,23 @@ class TestMetamorphicEvasion:
         return TemporalExtractor(config)
 
     def test_mr_spelled_out_numbers(self, extractor):
-        """Spelled-out numbers should still trigger."""
+        """Spelled-out numbers should still trigger (v2 enhancement).
+
+        Current limitation: recognizers only handle digit patterns.
+        Spelled-out numbers are deferred to Phase 2+.
+        """
         texts = [
-            "Estimate: 8 hours labor",  # digits (triggers)
-            "Estimate: eight hours labor",  # spelled out (should still trigger)
-            "Estimate: four to six hours",  # range spelled out
+            "Estimate: 8 hours labor",  # digits (should trigger)
+            "Estimate: eight hours labor",  # spelled out (v2 target)
+            "Estimate: four to six hours",  # range spelled out (v2 target)
         ]
         results = [extractor.extract(text) for text in texts]
 
-        # All should have ERROR-level findings
-        errors = [r.has_errors() for r in results]
-        # TODO: This will fail until recognizer is enhanced to handle spelled-out numbers.
-        # For now, document as a known limitation (v2 enhancement).
-        # assert all(errors), f"Spelled-out numbers bypassed detection"
+        # At least the digit version should trigger
+        assert results[0].has_errors(), "Digit-based estimate should trigger"
+        # Spelled-out versions are documented as v2 enhancement
+        # assert results[1].has_errors(), "v2: spelled-out numbers"
+        # assert results[2].has_errors(), "v2: range spelled out"
 
     def test_mr_abbreviation_evasion(self, extractor):
         """Standard abbreviations (EOD, ETA, T+) should still trigger."""
@@ -130,7 +147,7 @@ class TestMetamorphicCleanliness:
     def extractor_with_exceptions(self):
         exception_registry = {
             "IC-CLOSURE": {
-                "applies_to": ["T-DUR-EST", "T-DEADLINE"],
+                "applies_to": ["F-DUR-EST", "T-DATE-FUT"],
                 "match": {
                     "any_of": ["Z2 must rule within \\d+h", "IC closure"]
                 }
@@ -144,21 +161,24 @@ class TestMetamorphicCleanliness:
 
     def test_mr_exception_suppresses_error(self, extractor_with_exceptions):
         """Adding matching exception text should suppress ERROR."""
-        # Without exception pattern:
+        # Without exception pattern (should trigger):
         base = "The task will complete: 4–6 hours"
         result_base = extractor_with_exceptions.extract(base)
-        base_verdict = result_base.exit_code()
+        base_has_errors = result_base.has_errors()
 
-        # With exception pattern (IC-CLOSURE):
+        # With exception pattern (IC-CLOSURE, should suppress):
         excepted = "Z2 must rule within 48h"
         result_excepted = extractor_with_exceptions.extract(excepted)
         excepted_verdict = result_excepted.exit_code()
 
-        # Excepted should be INFO or lower (not ERROR)
+        # Base case should have ERROR (ungrounded duration)
+        assert base_has_errors, "Base case should trigger ERROR for ungrounded duration"
+
+        # Excepted case should not have ERROR (exception matched)
         if result_excepted.findings:
-            excepted_severity = result_excepted.findings[0].severity
-            assert excepted_severity != Severity.ERROR, \
-                f"Exception did not suppress ERROR: {excepted_severity}"
+            for finding in result_excepted.findings:
+                assert finding.severity != Severity.ERROR, \
+                    f"Exception did not suppress ERROR: {finding.severity}"
 
     def test_mr_grounding_must_pass_clean(self):
         """A grounded timestamp (in ledger) should pass."""
@@ -292,3 +312,54 @@ class TestFalsifierSentences:
             if finding.grounded:
                 assert finding.severity != Severity.ERROR, \
                     "Grounded timestamp flagged as ERROR. FALSIFIER VIOLATED."
+
+
+class TestCorpusBaseline:
+    """Validate against seeded CONTAM and CLEAN corpus examples."""
+
+    @pytest.fixture
+    def extractor(self):
+        config = ExtractorConfig(
+            evidence_providers=[LedgerProvider()],
+        )
+        return TemporalExtractor(config)
+
+    def test_corpus_contam_examples(self, extractor):
+        """Contamination examples should trigger findings."""
+        contam_examples = load_jsonl("tests/corpus/contam.jsonl")
+        assert len(contam_examples) > 0, "CONTAM corpus not loaded"
+
+        for ex in contam_examples:
+            text = ex["text"]
+            expected_category = ex.get("category")
+            result = extractor.extract(text)
+
+            # Should have at least one finding
+            assert len(result.findings) > 0, \
+                f"CONTAM example not detected: {text}"
+
+            # Finding category should match expected
+            if expected_category and result.findings:
+                detected_category = result.findings[0].category.value
+                assert detected_category == expected_category, \
+                    f"Category mismatch for '{text}': expected {expected_category}, got {detected_category}"
+
+    def test_corpus_clean_examples(self, extractor):
+        """Clean examples should NOT trigger false positives."""
+        clean_examples = load_jsonl("tests/corpus/clean.jsonl")
+        assert len(clean_examples) > 0, "CLEAN corpus not loaded"
+
+        false_positives = []
+        for ex in clean_examples:
+            text = ex["text"]
+            should_pass = ex.get("should_pass", True)
+            result = extractor.extract(text)
+
+            # If marked as should_pass, should have no ERROR findings
+            if should_pass:
+                errors = [f for f in result.findings if f.severity == Severity.ERROR]
+                if errors:
+                    false_positives.append((text, errors[0].text))
+
+        assert len(false_positives) == 0, \
+            f"False positives detected: {false_positives}"
