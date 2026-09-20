@@ -1,0 +1,95 @@
+# P34-X Exception Registry — Whitelisted Temporal Language
+#
+# Authority: Z2 (Night) ratifies new exceptions and their scope.
+# Each entry requires:
+#   - id: unique identifier
+#   - description: what this exception covers
+#   - applies_to: list of contamination categories (F-DUR-EST, T-DATE-FUT, C-COMMIT-EXPLICIT)
+#   - match: pattern(s) or registry references to identify whitelisted language
+#   - requires_ratification: whether Z2 sign-off is needed before merging
+#
+# Pattern syntax: YAML regex (Python re module); use anchors to prevent over-matching.
+
+exceptions:
+  - id: IC-CLOSURE
+    description: Z2 ruling closure window (ratified in CLAUDE.md)
+    applies_to: [T-DUR-EST, T-DEADLINE]
+    match:
+      any_of:
+        - "Z2 must rule within \\d+h"
+        - "IC closure"
+        - "decision window"
+    requires_ratification: true
+    ratified_by: "Z2 (Night)"
+    ratified_date: "2026-09-19"
+
+  - id: MOLT-WINDOW
+    description: Ratified molt measurement window (from REGISTERED.md)
+    applies_to: [T-DATE-FUT, C-SCHEDULE]
+    match:
+      registry_ref: "molt_windows.yaml"
+      # TODO: auto-load from REGISTERED.md molt entries
+    requires_ratification: true
+    ratified_by: "Z2 (Night)"
+    ratified_date: "2026-09-14"
+
+  - id: SESSION-RITUAL
+    description: §B.6 session close ritual (CLAUDE.md §B.6)
+    applies_to: [C-SCHEDULE]
+    match:
+      any_of:
+        - "§B\\.6 at session close"
+        - "session close receipt"
+    requires_ratification: true
+    ratified_by: "Z2 (Night)"
+    ratified_date: "2026-09-19"
+
+  - id: EXTERNAL-SLA
+    description: Quoted external SLA or partner deadline (requires evidence)
+    applies_to: [T-DUR-EST, T-DEADLINE]
+    match:
+      requires_quote: true
+      requires_source: true
+      any_of:
+        - "The (?:external|partner|vendor|SLA) .* (?:is|requires|specifies)"
+    requires_ratification: false
+    notes: "Automatically excepted if source attribution is present"
+
+  - id: HUMAN-DEADLINE
+    description: Human-owned deadline (Z2, user, etc.) — not agent commitment
+    applies_to: [T-DATE-FUT, C-COMMIT-EXPLICIT]
+    match:
+      requires_human_attribution: true
+      speakers: ["Z2", "Night", "user", "client"]
+    requires_ratification: false
+    notes: "Deferred to v1.5 (quote-span detection not yet implemented)"
+
+  - id: CI-GATE-TIMEOUT
+    description: CI infrastructure timeout or SLA (measured)
+    applies_to: [T-DEADLINE, P-LATENCY]
+    match:
+      any_of:
+        - "CI (?:gate )?timeout"
+        - "gate latency"
+      requires_measurement: true
+    requires_ratification: true
+    ratified_by: "Z2 (Night)"
+    ratified_date: "2026-09-19"
+
+  - id: RATIFIED-CONSTANT
+    description: Ratified constant or configuration value (from constants.json)
+    applies_to: [T-DUR-EST, F-TIMESTAMP]
+    match:
+      registry_ref: "constants.json"
+    requires_ratification: true
+    ratified_by: "Z2 (Night)"
+    notes: "Auto-match against ratified constants; v1.5 will enforce signature verification"
+
+---
+# Expiry and governance rules
+
+expiry_policy: "Exceptions without recent Z2 ratification (>90 days) are de-prioritized in UI but not auto-deleted"
+approval_policy: "New exceptions require code-owner review + Z2 ratification before merge"
+dual_control: "Exception author and code owner must be different people (Z1 cannot self-approve)"
+
+# Fallback: if no exception matches, the finding's verdict is determined by its grounding status
