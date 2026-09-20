@@ -13,12 +13,12 @@ The HumanAIOS operations repository manages **48 workflows** across 4 governance
 
 | Class | Count | Governance | Evidence Required |
 |:------|:-----:|:-----------|:------------------|
-| **A: Critical Gates** | 8 | Z2 ratification | Falsifier + test case |
+| **A: Critical Gates** | 7 | Z2 ratification | Falsifier + test case |
 | **B: Audit Monitors** | 6 | Z2 ratification | Measurement + rationale |
 | **C: Event-Driven** | 0 | Standard review | None |
-| **D: Infrastructure** | 34 | Standard review | None |
+| **D: Infrastructure** | 35 | Standard review | None |
 
-**Key Insight:** Only 8 workflows block PRs to main. The remaining 40 are audits, monitors, or infrastructure. This creates an opportunity to introduce **evidence-based governance** for the critical 8, while keeping the others lightweight.
+**Key Insight:** Only 7 workflows block PRs to main (excluding molt-tier-check, which is advisory by design). The remaining 41 are audits, monitors, or infrastructure. This creates an opportunity to introduce **evidence-based governance** for the critical 7, while keeping the others lightweight.
 
 ---
 
@@ -30,12 +30,12 @@ These workflows **block merges to main**. They must pass before any PR can merge
 |:--|:---------|:---------|:--------|:------------------|:-------|
 | 1 | `builder-lint` | pull_request, push | Corpus pass-rate ≥0.90 + new-file 100% compliance | ❌ NONE | 🟡 NEEDS |
 | 2 | `findings-registry` | pull_request, push | Registry integrity: ID collision detection + hard-failure blocking | ✅ IMPLICIT | 🟢 PARTIAL |
-| 3 | `molt-tier-check` | pull_request | Molt tier classification + anti-cascade rules | ❌ NONE | 🟡 NEEDS |
-| 4 | `quality-baseline` | pull_request, push | pytest + ruff + mypy + repo health check | ❌ NONE | 🟡 NEEDS |
-| 5 | `security-gates` | pull_request, push | Gitleaks (secrets) + pip-audit (dependencies) | ❌ NONE | 🟡 NEEDS |
-| 6 | `temporal-dissolution-gate` | pull_request | Rejects unauthorized deadline semantics (S-070726 policy) | ❌ NONE | 🟡 NEEDS |
-| 7 | `workflow-lint` | pull_request, push | Validates workflow YAML syntax + dead-workflow detection | ❌ NONE | 🟡 NEEDS |
-| 8 | `z2_ratification_gate` | pull_request, push | Z2 hash verification + constitutional rules | ✅ IMPLICIT | 🟢 PARTIAL |
+| 3 | `quality-baseline` | pull_request, push | pytest + ruff + mypy + repo health check | ❌ NONE | 🟡 NEEDS |
+| 4 | `security-gates` | pull_request, push | Gitleaks (secrets) + pip-audit (dependencies) | ❌ NONE | 🟡 NEEDS |
+| 5 | `temporal-dissolution-gate` | pull_request | Rejects unauthorized deadline semantics (S-070726 policy) | ❌ NONE | 🟡 NEEDS |
+| 6 | `workflow-lint` | pull_request, push | Validates workflow YAML syntax + dead-workflow detection | ❌ NONE | 🟡 NEEDS |
+| 7 | `z2_ratification_gate` | pull_request, push | Z2 hash verification + constitutional rules | ✅ IMPLICIT | 🟢 PARTIAL |
+| 8 | ~~`molt-tier-check`~~ | ~~pull_request~~ | ~~Molt tier classification~~ | ~~❌ NONE~~ | ~~🟡 NEEDS~~ |
 
 **Legend:**
 - ✅ Falsifier exists (documented or implicit in validator code)
@@ -275,7 +275,7 @@ audit_measurement:
 - [x] Workflow inventory audit (WORKFLOWS.md)
 
 ### 🟡 Phase 1 (This week)
-- [ ] Create `tools/workflow_falsifiers_v1_0.py` with 8 Class A falsifiers
+- [ ] Create `tools/workflow_falsifiers_v1_0.py` with 7 Class A falsifiers
 - [ ] Write test cases for each falsifier
 - [ ] Create `tools/workflow_governance_lint.py` (validates falsifier presence)
 - [ ] Propose Z2 ratification of this framework (Q-WORKFLOW-GOVERNANCE-01)
@@ -319,15 +319,14 @@ Before merging this framework, key questions for Night (Z2):
 
 ## Appendix: Full Workflow Classification
 
-### Class A (Critical Gates - 8)
+### Class A (Critical Gates - 7)
 1. builder-lint
 2. findings-registry
-3. molt-tier-check
-4. quality-baseline
-5. security-gates
-6. temporal-dissolution-gate
-7. workflow-lint
-8. z2_ratification_gate
+3. quality-baseline
+4. security-gates
+5. temporal-dissolution-gate
+6. workflow-lint
+7. z2_ratification_gate
 
 ### Class B (Audits - 6)
 1. agent-api-monitor
