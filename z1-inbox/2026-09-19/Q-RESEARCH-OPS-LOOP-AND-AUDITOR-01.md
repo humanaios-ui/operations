@@ -199,7 +199,7 @@ findings:
       
       # Operation 4: Update manifest
       - step: 4
-        file: "tools/TOOLS_MANIFEST.yaml"
+        file: "tools-manifest.yaml"
         action: "register_tool_change"
         tool_name: "acat_calibration_v1_0.py"
         change: "added disinterested_observer_posture dimension"

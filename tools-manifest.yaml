@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 171
+  tools: 168
   mcp_servers: 2
-  excluded: 0
-  builder_markers_present: 133
+  excluded: 4
+  builder_markers_present: 134
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2054,53 +2054,6 @@ tools:
   builder_markers: true
   purpose: intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board.
   session: S-091926-01
-- tool_id: HAIOS-TOOL-170
-  name: governance-rulings-backfill
-  path: tools/governance-rulings-backfill.js
-  version: unversioned
-  category: governance_tool
-  zone: 1
-  status: draft
-  interface: script
-  lang: node
-  smoke_test: false
-  builder_markers: false
-- tool_id: HAIOS-TOOL-171
-  name: governance-rulings-ingestion
-  path: tools/governance-rulings-ingestion.js
-  version: unversioned
-  category: governance_tool
-  zone: 1
-  status: draft
-  interface: script
-  lang: node
-  smoke_test: false
-  builder_markers: false
-- tool_id: HAIOS-TOOL-172
-  name: board-decisions-backfill
-  path: tools/board-decisions-backfill.js
-  version: unversioned
-  category: governance_tool
-  zone: 1
-  status: draft
-  interface: script
-  lang: node
-  smoke_test: false
-  builder_markers: false
-  purpose: 'Phase 2: Historical backfill of Z2 board decisions & molt events from git log → Supabase'
-- tool_id: HAIOS-TOOL-173
-  name: board-decisions-ingestion
-  path: tools/board-decisions-ingestion.js
-  version: unversioned
-  category: governance_tool
-  zone: 1
-  status: draft
-  interface: script
-  lang: node
-  smoke_test: false
-  builder_markers: false
-  purpose: 'Phase 2: Real-time ingestion of Z2 board decisions & molt events via GitHub + relay webhooks
-    → Supabase'
 - tool_id: HAIOS-TOOL-174
   name: grant_data_loader_v1_0
   path: tools/grant_data_loader_v1_0.py
@@ -2174,6 +2127,19 @@ tools:
   builder_markers: true
   purpose: Bounded Q4 2026 industry telemetry and human triage pilot
   session: S-091926
+- tool_id: HAIOS-TOOL-180
+  name: workflow_dependency_analyzer
+  path: tools/workflow_dependency_analyzer_v1_0.py
+  version: 1.0.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance
+    tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
@@ -2193,4 +2159,12 @@ mcp_servers:
   data_classification: UNCLASSIFIED — set before approval
   scope: unscoped — set before approval
   notes: ''
-excluded: []
+excluded:
+- path: tools/board-decisions-backfill.js
+  reason: draft tool archived 2026-09-20
+- path: tools/board-decisions-ingestion.js
+  reason: draft tool archived 2026-09-20
+- path: tools/governance-rulings-backfill.js
+  reason: draft tool archived 2026-09-20
+- path: tools/governance-rulings-ingestion.js
+  reason: draft tool archived 2026-09-20
