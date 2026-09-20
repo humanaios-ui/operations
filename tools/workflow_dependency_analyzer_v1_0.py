@@ -23,6 +23,9 @@ from pathlib import Path
 from typing import Dict, List, Set
 from dataclasses import dataclass, asdict
 
+TOOL_NAME = "workflow_dependency_analyzer"
+TOOL_VERSION = "1.0.0"
+
 @dataclass
 class WorkflowInfo:
     """Workflow metadata."""
@@ -163,9 +166,28 @@ class WorkflowAnalyzer:
             ]
         }
 
+def run_smoke_test():
+    """Smoke test: verify tool can analyze workflows."""
+    try:
+        analyzer = WorkflowAnalyzer(".github/workflows")
+        result = analyzer.analyze()
+        assert isinstance(result, dict), "Result must be dict"
+        assert "workflows" in result, "Result must have 'workflows' key"
+        assert "classifications" in result, "Result must have 'classifications' key"
+        assert "summary" in result, "Result must have 'summary' key"
+        print("✓ Smoke test passed")
+        return 0
+    except Exception as e:
+        print(f"✗ Smoke test failed: {e}", file=sys.stderr)
+        return 2
+
 def main():
     """Main entry point."""
-    if len(sys.argv) > 1:
+    # Handle smoke test flag
+    if "--smoke-test" in sys.argv:
+        sys.exit(run_smoke_test())
+
+    if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
         workflows_dir = sys.argv[1]
     else:
         workflows_dir = ".github/workflows"
