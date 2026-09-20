@@ -30,13 +30,14 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 161
+  tools: 172
   mcp_servers: 2
   excluded: 0
-  builder_markers_present: 132
+  builder_markers_present: 134
   missing_from_tree: 0
   unclassified: 0
 categories:
+- analysis_tool
 - analytics_tool
 - audit_tool
 - calibration_tool
@@ -2054,6 +2055,139 @@ tools:
   builder_markers: true
   purpose: intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board.
   session: S-091926-01
+- tool_id: HAIOS-TOOL-170
+  name: governance-rulings-backfill
+  path: tools/governance-rulings-backfill.js
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
+- tool_id: HAIOS-TOOL-171
+  name: governance-rulings-ingestion
+  path: tools/governance-rulings-ingestion.js
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
+- tool_id: HAIOS-TOOL-172
+  name: board-decisions-backfill
+  path: tools/board-decisions-backfill.js
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
+  purpose: 'Phase 2: Historical backfill of Z2 board decisions & molt events from git log → Supabase'
+- tool_id: HAIOS-TOOL-173
+  name: board-decisions-ingestion
+  path: tools/board-decisions-ingestion.js
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: node
+  smoke_test: false
+  builder_markers: false
+  purpose: 'Phase 2: Real-time ingestion of Z2 board decisions & molt events via GitHub + relay webhooks
+    → Supabase'
+- tool_id: HAIOS-TOOL-174
+  name: grant_data_loader_v1_0
+  path: tools/grant_data_loader_v1_0.py
+  version: unversioned
+  category: connector_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Data Loader v1.0
+- tool_id: HAIOS-TOOL-175
+  name: grant_match_verifier_v1_0
+  path: tools/grant_match_verifier_v1_0.py
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Pre-Award Match Verifier v1.0
+- tool_id: HAIOS-TOOL-176
+  name: grant_matching_engine_v1_0
+  path: tools/grant_matching_engine_v1_0.py
+  version: unversioned
+  category: analytics_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Matching Engine v1.0
+- tool_id: HAIOS-TOOL-177
+  name: nonprofit_dashboard_api_v1_0
+  path: tools/nonprofit_dashboard_api_v1_0.py
+  version: unversioned
+  category: infrastructure_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Nonprofit Dashboard API v1.0
+- tool_id: HAIOS-TOOL-178
+  name: nonprofit_profile_v1_0
+  path: tools/nonprofit_profile_v1_0.py
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Nonprofit Profile Model & Validation
+- tool_id: HAIOS-TOOL-179
+  name: industry_telemetry
+  path: tools/industry_telemetry_v0_1.py
+  version: 0.1.0
+  category: monitoring_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Bounded Q4 2026 industry telemetry and human triage pilot
+  session: S-091926
+- tool_id: HAIOS-TOOL-180
+  name: workflow_dependency_analyzer
+  path: tools/workflow_dependency_analyzer_v1_0.py
+  version: 1.0.0
+  category: analysis_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines
+  session: Q-WORKFLOW-GOVERNANCE-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

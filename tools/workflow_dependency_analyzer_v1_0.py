@@ -7,6 +7,13 @@ Analyzes GitHub Actions workflows to build a dependency graph:
 - What other workflows does it depend on?
 - What's the cascade risk if it fails?
 - Is it on the critical path?
+
+BUILDER_MARKERS:
+  tool_id: HAIOS-TOOL-180
+  tool_name: workflow_dependency_analyzer
+  category: analysis_tool
+  version: 1.0.0
+  interface: cli
 """
 
 import json
