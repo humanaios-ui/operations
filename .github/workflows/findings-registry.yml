@@ -14,16 +14,27 @@ name: findings-registry
 # This unified workflow consolidates prior separate gate validation, and captures
 # validation reports as artifacts for audit/governance records (S-070726).
 
+# Path filters must cover every file a job here checks, or the check protects
+# nothing on a PR that touches only that file — the IC-041 shape ("CI check
+# targets a path absent from the repo; reports PASS by construction"). The
+# failure-mode map and its scanner are listed for exactly that reason: a PR
+# editing only the map must re-run the verifier that guards it.
 on:
   pull_request:
     paths:
       - "REGISTERED.md"
+      - "REGISTERED_FAILURE_MODES.md"
       - "tools/registered_findings_validator_v1_0.py"
+      - "tools/registered_failure_mode_scan_v0_1.py"
+      - ".github/workflows/findings-registry.yml"
   push:
     branches: [main]
     paths:
       - "REGISTERED.md"
+      - "REGISTERED_FAILURE_MODES.md"
       - "tools/registered_findings_validator_v1_0.py"
+      - "tools/registered_failure_mode_scan_v0_1.py"
+      - ".github/workflows/findings-registry.yml"
   workflow_dispatch:
 
 permissions:
@@ -39,6 +50,15 @@ jobs:
           python-version: "3.x"
       - name: Findings registry integrity (BLOCKING — hard failures fail the build)
         run: python3 tools/registered_findings_validator_v1_0.py --input REGISTERED.md --output /tmp/registry-report
+
+      # REGISTERED_FAILURE_MODES.md restates the registry's own defect counts. The
+      # scanner has supported --verify-doc since it was written, but nothing ran it,
+      # so the map sat at "4,093 lines, 142 entries" while the registry grew to 4,992
+      # and 154 — a document whose thesis is that hand-copied counts drift, drifting.
+      # RFM-11 is the named failure mode; this step is what makes the map's own claim
+      # about itself ("verified against it by scan --verify-doc") true.
+      - name: Failure-mode map matches the registry (BLOCKING)
+        run: python3 tools/registered_failure_mode_scan_v0_1.py scan --verify-doc REGISTERED_FAILURE_MODES.md
       - name: Upload registry validation report (audit S-070726)
         if: always()
         uses: actions/upload-artifact@v4

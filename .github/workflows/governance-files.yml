@@ -1,0 +1,64 @@
+name: governance-files
+
+# BLOCKING gate for the governance-file registry.
+#
+# GOVERNANCE_FILES.md used to be hand-maintained. On 2026-09-21 it marked eight
+# present files 🔴 MISSING and described REGISTERED.md in terms the ratified
+# REGISTRY_SPEC.md contradicts. Nothing caught it because nothing was watching:
+# the file belonged to no control plane and appeared in no registry, including
+# the controlled-document registry it sits beside.
+#
+# It is now a rendered view of .gov-control/governance-files.yaml, with the
+# Status column derived by stat-ing each declared path at render time. This
+# workflow is what keeps that true:
+#
+#   validate.py  — every declared path resolves; no hand-set status anywhere
+#   render.py --check — the published markdown matches the SSOT
+#
+# Same shape as document-control.yml and the z2 gate: self-test the tooling
+# first (a renderer that silently no-ops would make the --check vacuous), then
+# gate.
+#
+# Path filters cover every file the jobs read. A PR that edits only
+# GOVERNANCE_FILES.md by hand must fail here, which it cannot do if the filter
+# does not list it.
+
+on:
+  pull_request:
+    paths:
+      - "GOVERNANCE_FILES.md"
+      - ".gov-control/**"
+      - ".github/workflows/governance-files.yml"
+  push:
+    branches: [main]
+    paths:
+      - "GOVERNANCE_FILES.md"
+      - ".gov-control/**"
+      - ".github/workflows/governance-files.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install deps
+        run: pip install --quiet pyyaml
+
+      - name: Renderer self-test
+        run: python3 .gov-control/render.py --smoke-test
+
+      - name: Validator self-test
+        run: python3 .gov-control/validate.py --smoke-test
+
+      - name: Registry matches the tree (ERROR — blocks merge)
+        run: python3 .gov-control/validate.py
+
+      - name: GOVERNANCE_FILES.md is in sync (ERROR — blocks merge)
+        run: python3 .gov-control/render.py --check

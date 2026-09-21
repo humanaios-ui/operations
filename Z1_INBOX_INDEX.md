@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**66 candidates** — ⏳ awaiting Z2 57 · ✅ ratified 9 · **37 records**
+**68 candidates** — ⏳ awaiting Z2 59 · ✅ ratified 9 · **37 records**
 
-## Awaiting Z2 (57)
+## Awaiting Z2 (59)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -69,6 +69,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-21 | **Q-INTENTOS-PAGES-GATE-01** | Gates for the board's page set — intent_os_pages --check as a pre-merge step (G1), the d33 rename-hold test pre-merge (G2), the runbook card sealed or not (G3): a Tier 2 proposal | `z1-inbox/2026-09-19/Q-INTENTOS-PAGES-GATE-01.md` |
 | 2026-09-21 | **Q-PHASE-2-BOARD-MOLT-01** | Z2 Board Decisions & Molt Events Ingestion | `z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md` |
 | 2026-09-21 | **Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01** | Research→Governance→Operations Loop + Automated Repository Auditor — three tools: research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt) | `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md` |
+| 2026-09-22 | **Q-TOOL-MANIFEST-DRIFT-PREVENTION-01** | Tool manifest drift prevention — .github/workflows/tool-sync-gate.yml (Tier 0 infrastructure) | `z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md` |
+| 2026-09-23 | **Q-GOVDRIFT-01** | Derived-artifact convention, and four items only Z2 can close | `z1-inbox/2026-09-21/Q-GOVDRIFT-01.md` |
 
 ## Decided (9)
 
@@ -372,8 +374,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Schema extends without breaking existing records (review migration path)
 - [ ] Molt Cycle integration is viable (review pseudocode in schema)
 
-<<<<<<< HEAD
-=======
 ### Q-PHASE-2-BOARD-MOLT-01 (6)
 
 `z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md`
@@ -385,7 +385,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] **Deployment feasible?** (Night can execute 6-step guide?)
 - [ ] **Ready to ratify?** (Sign with sha256 hash)
 
->>>>>>> origin/main
 ### Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01 (9)
 
 `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md`

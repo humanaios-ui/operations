@@ -1,8 +1,8 @@
 # REGISTERED.md Failure-Mode Map
 ## Registry Failure Modes → Standing Orders → Industrial Failure Modes
 
-**Source:** `REGISTERED.md` @ HEAD (4,093 lines, 142 entries post-second-main-merge)
-**Mapping Date:** 2026-09-13
+**Source:** `REGISTERED.md` @ HEAD (4,992 lines, 154 entries)
+**Mapping Date:** 2026-09-13 · **Counts re-measured:** 2026-09-21
 **Authority:** Z2 (Night) ratification pending
 **Status:** Z1 candidate for REGISTERED.md
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED_FAILURE_MODES.md`
@@ -39,22 +39,22 @@ This document does that, in three columns:
 
 Reproduce with `python3 tools/registered_failure_mode_scan_v0_1.py scan`.
 
-**Entry-level conformance** (142 entries × 4 checks = 568 opportunities):
+**Entry-level conformance** (154 entries × 4 checks = 616 opportunities):
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|
-| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 35/142 | 75.4% |
-| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 61/142 | 57.0% |
-| Front-matter fence form | RFM-07 | 8/142 | 94.4% |
-| Quote hygiene | RFM-08 | 3/142 | 97.9% |
+| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 41/154 | 73.4% |
+| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 67/154 | 56.5% |
+| Front-matter fence form | RFM-07 | 8/154 | 94.8% |
+| Quote hygiene | RFM-08 | 3/154 | 98.1% |
 
-**107 defects / 568 opportunities → 81.2% first-pass yield → 188,380 DPMO → ~2.4σ**
+**119 defects / 616 opportunities → 80.7% first-pass yield → 193,182 DPMO → ~2.4σ**
 
 `RFM-06` scores the **full** schema at `REGISTERED.md:16-32`, all ten declared fields. The registry says entries
 *"must open with"* that block, so the whole list is the contract; scoring a convenient subset would let the
 measurement flatter the registry. For triage the core five (`name`, `status`, `class`, `date_registered`,
-`session_registered`) are at **12/135 — 91.1% conforming**. The gap between 91.1% and 57.0% is `substrate` (45
-absent), `tags` (38), `superseded_by` (33) and `date_origin` (29): fields declared but never adopted. Whether that
+`session_registered`) are at **14/154 — 90.9% conforming**. The gap between 90.9% and 56.5% is `substrate` (58
+absent), `tags` (45), `superseded_by` (45) and `date_origin` (33): fields declared but never adopted. Whether that
 is schema erosion or an over-declared schema is Z2's call, not the scanner's — it reports both numbers and picks
 the declared one as the headline.
 
@@ -64,13 +64,13 @@ Same methodology and 1.5-shift convention as `audits/T1_DEFECT_BASELINE_S070726.
 
 | Check | RFM | Result |
 |:---|:---|:---|
-| F quick-index desync | RFM-11 | 10 of 45 F-entries absent from index (77.8% coverage) |
-| Post-terminal append | RFM-10 | 25 entries after the `## Changelog` boundary (by line position, so a later terminal section cannot hide one) |
-| Orphan roll-up row | RFM-12 | 1 — IC-036 cited at `REGISTERED.md:118`, no body entry |
+| F quick-index desync | RFM-11 | 9 of 48 F-entries absent from index (81.2% coverage) |
+| Post-terminal append | RFM-10 | 43 entries after the `## Changelog` boundary (by line position, so a later terminal section cannot hide one) |
+| Orphan roll-up row | RFM-12 | 0 — PASS (the IC-036 orphan recorded at the 2026-09-13 baseline has since been resolved) |
 | Ratified-class starvation | RFM-16 | 3 of 6 — D, R, GD defined, zero entries |
-| Header staleness | RFM-17 | declared 2026-08-15; newest content 2026-09-09 |
-| Ratification-hash form | RFM-15 | 1 — 7 hex chars where 64 are specified |
-| Cross-artifact ratification | RFM-14 | 2 contradictions |
+| Header staleness | RFM-17 | declared 2026-08-15; newest content 2026-09-20 |
+| Ratification-hash form | RFM-15 | 8 — git SHAs and unterminated `sha256(...)` expressions where 64 hex chars are specified |
+| Cross-artifact ratification | RFM-14 | 0 — PASS |
 
 **Whitelisted, not defects:** F-32 and F-33 appear in the quick index with no body entry **by design** — documented honest gaps, deliberately never backfilled. Flagging them would be a false positive of exactly the IC-037 genus this document warns about. The scanner whitelists them and self-tests that the whitelist works.
 
