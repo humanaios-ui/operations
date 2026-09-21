@@ -34,6 +34,12 @@ EXEMPT_PATHS = {
     # while letting a conflict row name what it is reporting. A line scanner
     # cannot tell those two apart; a structure-aware validator can.
     "INTENT_GRAPH.yaml",
+    # Same reason this file itself is exempt: a module that detects a pattern has
+    # to contain the pattern, in its fixtures if nowhere else. The exemption is
+    # safe because the tool reads no clock at all — it imports no time, datetime
+    # or calendar module, which its own smoke test asserts, so there is no
+    # temporal control for a scan to find.
+    "tools/intent_graph_v1_0.py",
 }
 
 CONTROL_EXACT = {

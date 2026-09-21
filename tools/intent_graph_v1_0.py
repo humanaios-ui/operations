@@ -660,6 +660,16 @@ def run_smoke_test() -> int:
     check("unmeasured objective warns but does not block",
           errors == [] and any(w.startswith("W2") for w in warnings))
 
+    # This module is exempt from the line scanner in
+    # tests/test_temporal_dissolution_gate.py because its E10 fixtures must quote
+    # the patterns they detect. That exemption is only safe while the tool reads
+    # no clock, so the claim is a test rather than a comment.
+    with open(os.path.abspath(__file__), encoding="utf-8") as handle:
+        own_source = handle.read()
+    clock_imports = re.findall(r"^\s*(?:import|from)\s+(time|datetime|calendar)\b",
+                               own_source, re.M)
+    check("tool reads no clock (no time/datetime/calendar import)", clock_imports == [])
+
     # Render must be deterministic — CI --check depends on it.
     first = render(base, [], [])
     second = render(base, [], [])
