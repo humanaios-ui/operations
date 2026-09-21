@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 170
+  tools: 171
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 136
+  builder_markers_present: 137
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2167,6 +2167,19 @@ tools:
   builder_markers: true
   purpose: intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it.
   session: S-092126-intent-graph
+- tool_id: HAIOS-TOOL-183
+  name: graph_convergence
+  path: tools/graph_convergence_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: graph_convergence_v1_0.py — grade convergence between two agent-authored graphs.
+  session: S-092126-graph-convergence
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
