@@ -4896,6 +4896,44 @@ tags: ["legal", "ethics", "irb", "regulatory", "human-subjects", "phase-1-gate"]
 
 ---
 
+### IC-038 — Molt Window Semantics Under Temporal Dissolution Gate
+
+```yaml
+---
+id: "IC-038"
+name: "molt-window-temporal-semantics"
+status: REGISTERED
+class: IC
+date_registered: "2026-09-21"
+date_origin: "2026-09-21"
+session_registered: "S-092126-01-blockchain-pilot"
+principles_triggered: ["P-governance", "Q-TEMPORAL-DISSOLUTION-01"]
+related_finding: "Q-TEMPORAL-DISSOLUTION-01"
+related_issue: "humanaios-ui/operations#435"
+tags: ["molt", "temporal-dissolution", "measurement-window", "governance-gap"]
+---
+```
+
+- **Issue:** MOLT_STATE.md defines molt measurement via calendar-based window_start/window_end timestamps. The falsifier test executes "at window_end," making the window boundary a decision trigger (e.g., "on 2026-09-28, measure Sharpe ratio and decide KEEP/REVERT"). Q-TEMPORAL-DISSOLUTION-01 classifies this as OBSERVATIONAL (timestamp for provenance), but the architecture depends on the calendar deadline to trigger the measurement decision and state transition.
+
+- **Design tension:** 
+  - **Observational allowed:** PRIORITY_QUEUE.md permits OBSERVATIONAL temporal data (timestamps for audit trail, not scheduling)
+  - **Architecture reality:** Molt cycle code (molt_cycle.py) uses window_end as a boundary condition: `if now >= window_end then test_falsifier()`. This is a deadline, not provenance-only timestamp.
+  - **Temporal dissolution intent:** Q-TEMPORAL-DISSOLUTION-01 seeks to eliminate internal calendar-based scheduling from work orchestration. Molt windows predate the gate, but using them for future molts may conflict with the gate's final policy.
+
+- **Current state:** Blockchain trading pilot (Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001, PR #435, merged) uses 7-day calendar window. Molt infrastructure already uses windows, so this pilot does NOT introduce new temporal semantics. However, the pilot EXPOSES the question: should molt measurement windows be redesigned for resource/event-driven boundaries (block height, on-chain event count, resource spend) instead of calendar deadlines?
+
+- **Correction:** Z2 decision required after blockchain pilot measurement phase (2026-09-28):
+  1. **Accept:** Molt windows are acceptable as OBSERVATIONAL + measurement boundaries (no redesign needed)
+  2. **Reject:** Molt infrastructure must migrate to event-driven measurement windows before Phase 2 molts
+  3. **Conditional:** Future molts may use calendar windows, but only when explicitly marked as REGULATORY_EXTERNAL or gated by temporal dissolution completion
+
+- **Gate:** New molt proposals after Q-TEMPORAL-DISSOLUTION-01 completion should reference this IC to justify their temporal semantics. Existing molts using calendar windows are grandfathered but flagged for audit.
+
+- **Status:** REGISTERED · Awaiting Z2 decision on molt window redesign scope
+
+---
+
 ### H-WITNESS-READINESS-01 — Genesis Readiness Measurable Falsifiers
 
 ```yaml
