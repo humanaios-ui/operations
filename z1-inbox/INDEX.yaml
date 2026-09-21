@@ -3,7 +3,7 @@ generated: '2026-09-21'
 decision_window_days: 2
 counts:
   candidates: 76
-  records: 37
+  records: 38
 ratifiers:
 - Night
 candidates:
@@ -929,4 +929,10 @@ records:
 - path: z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md
   title: "Z2 ruling \u2014 RESOURCE_UNITS.yaml header ratified; hash remains unsigned\
     \ by Z2"
+- path: z1-inbox/2026-09-21/Z2_RATIFY_SMAG_BLOCKERS.md
+  title: "Z2 ratification \u2014 SMAG calibration schema (Option A) + task sequencing\
+    \ confirmed (s1 independent, s2/s3 parallel)"
+  note: "Ratifies Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01 (Option A: expand WITNESS\
+    \ to v0.2) and Q-SMAG-Z3-TASK-SEQUENCING-01 (Phase 1\u21922 sequencing, s1 starts immediately,\
+    \ s2/s3 after schema). Awaiting Z2 signature; phase execution begins upon signing."
 excluded: []
