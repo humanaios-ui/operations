@@ -1,8 +1,78 @@
 {
   "ledger_version": "1.0",
-  "purpose": "SMAG feedback cues and recursive learning lessons.",
-  "generated_at": "2026-09-21T00:00:00Z",
+  "purpose": "Accumulated constraints from prior timing-audit applications and SMAG feedback cues. Each new audit MUST consult this ledger before recommending a mechanism, and MUST append any new lesson it discovers back into it. This is the recursive part -- the audit's own output becomes an input constraint for the next audit.",
+  "generated_at": "2026-09-21T09:30:00Z",
   "lessons": [
+    {
+      "id": "L1",
+      "discovered_in": "S-071026-01 Section 1 (IC-042 deploy corruption)",
+      "constraint": "binary_mechanical_checks_can_hard_block",
+      "rule": "If the check's answer is a clean yes/no derived mechanically (does it execute, does it exist, does a constraint hold), it may be a hard blocking gate. False-positive risk is near zero.",
+      "scope_limit": "A binary check only verifies what it directly tests. 'Executes cleanly' does not imply 'behaves correctly' -- see L1a."
+    },
+    {
+      "id": "L1a",
+      "discovered_in": "S-071026-01 Section 1, cross-referenced against IC-045",
+      "constraint": "syntax_check_does_not_cover_behavior",
+      "rule": "A syntax/existence-level check (py_compile, path exists) does not detect semantic or behavioral corruption (e.g. dead code that still parses, per IC-045). Do not claim a binary syntax check closes a behavioral risk class.",
+      "scope_limit": "none -- this is itself a scope-limit lesson"
+    },
+    {
+      "id": "L2",
+      "discovered_in": "S-071026-01 Section 2 (maintained-headline lint)",
+      "constraint": "heuristic_pattern_checks_must_be_advisory",
+      "rule": "If the check's answer depends on pattern-matching against fuzzy/heuristic criteria (does this look like a stale value, does this look like an unmarked claim), it must be advisory/non-blocking. Hard-blocking a heuristic check produces false-positive friction that erodes trust in the check.",
+      "scope_limit": "Applies whenever match criteria are regex/keyword-based rather than a deterministic parse."
+    },
+    {
+      "id": "L3",
+      "discovered_in": "S-071026-01 Section 2 (maintained-headline lint)",
+      "constraint": "advisory_checks_must_recognize_their_own_remediation",
+      "rule": "An advisory check must include a 'this is already fixed' exclusion pattern matching its own correction language, or it will re-flag corrected content indefinitely and train reviewers to ignore it.",
+      "scope_limit": "Applies to advisory (L2-class) checks only; binary checks (L1-class) don't need this since a pass is a pass."
+    },
+    {
+      "id": "L4",
+      "discovered_in": "S-071026-01 Section 3 (haios_guard reconstruction)",
+      "constraint": "reconstructed_tests_are_inference_not_verified",
+      "rule": "A test run against a spec-reconstruction of a tool (built because the real tool's source wasn't available) proves the DESIGN works. It does not prove the DEPLOYED tool would catch the same case. State this distinction explicitly whenever the real artifact wasn't directly inspected.",
+      "scope_limit": "Resolves automatically once the real artifact becomes available to test directly -- re-test and upgrade the evidential tag when it does."
+    },
+    {
+      "id": "L5",
+      "discovered_in": "S-071026-01 Section 4 (IC-041 meta-verification)",
+      "constraint": "test_meta_verification_against_live_reality_not_simulation",
+      "rule": "When auditing whether a check has anything real to verify, test against live/current state wherever reachable (a live repo fetch, a live schema query), not a synthetic example. This class of test is the one most likely to surface a real open incident rather than just validating a design.",
+      "scope_limit": "Requires the target actually be live-reachable this session; falls back to L4's caveat if not."
+    },
+    {
+      "id": "L6",
+      "discovered_in": "S-071026-01, applying timing_audit_v1_0.py to acat_dimension_scorer_v1_1.py's missing submission_purity gate",
+      "constraint": "binary_checks_on_external_state_inherit_staleness_requirement",
+      "rule": "A binary_mechanical check is only as fresh as the external state it reads. If the check's input is a live DB row / remote file (not a file already in local hand, per L1's original examples), it inherits L5's requirement: query fresh at decision time, never reuse a cached prior query result. This connects L1 (binary checks can hard-block) and L5 (test against live reality) -- L1 alone under-specifies what 'mechanically derived' means when the mechanism reaches outside the local process.",
+      "scope_limit": "Applies whenever the binary check's source of truth is not already loaded into the process performing the check."
+    },
+    {
+      "id": "L9",
+      "discovered_in": "S-071126-01 continuation, Depth-2 fabricated rebuttal of the Depth-1 correction",
+      "constraint": "ground_truth_checks_never_substitute_multi_source_disagreement_for_execution",
+      "rule": "When ground truth about an artifact is directly and cheaply checkable (compile it, hash it, run it), multi-source or multi-model disagreement about that artifact must never be adjudicated by comparing the sources' confidence, formatting, or eloquence against each other. Route straight to re-executing the primary check instead. This applies recursively -- a fabricated rebuttal OF a correction is disproven by the identical method as the original fabricated claim, at the identical fixed cost, regardless of how many layers of claim-and-counterclaim preceded it. Structural enforcement: primary_check_gate_v1_0.py hard-rejects any claim about artifact state lacking an attached, freshly-executed VerificationRecord -- a narrative description of a check's result, however detailed or technically formatted, is not admissible evidence.",
+      "scope_limit": "Applies whenever ground truth is directly checkable at low cost. Where no such check exists (a genuine judgment call, no mechanical ground truth available), this lesson does not apply -- see cross_substrate_blind_discriminator_v1_0.py's Path 2/3 for that separate case."
+    },
+    {
+      "id": "L8",
+      "discovered_in": "S-071126-01 continuation, two pasted documents claiming to be red-team audits of tier1_logprob_capability_probe_v1_0.py",
+      "constraint": "claims_about_code_require_the_same_live_verification_as_code_itself",
+      "rule": "A claim that code is broken (smart quotes, missing indentation, syntax errors) is itself a claim requiring live verification -- py_compile, direct execution, programmatic character inspection -- before being trusted, with exactly the same discipline P3/IC-042 already require for claims that code WORKS. Two independently-pasted documents this session both asserted specific, falsifiable defects (non-runnable syntax) that direct re-execution immediately disproved, while each document also contained one genuinely correct critique (heuristic string-detection) mixed in with the fabricated ones -- the presence of a real critique does not validate the fabricated ones alongside it, and vice versa: reject or fix each claim independently, on its own verification, not as a bundle.",
+      "scope_limit": "Applies to any external or pasted claim about an artifact's runnability or correctness, positive or negative; does not apply to claims already backed by a tool call's real output in the same session."
+    },
+    {
+      "id": "L7",
+      "discovered_in": "S-071126-01, elicitation-surface taxonomy adoption question",
+      "constraint": "new_schema_fields_must_not_depend_on_session_memory",
+      "rule": "When a new corpus field can be auto-populated from data already present at execution time (an API call parameter, a template render), the ingestion tool must capture it structurally -- never rely on a human or a Claude session remembering to fill it in manually. Where auto-capture is genuinely impossible (ad-hoc, hand-edited sessions), the field must default to an explicit, queryable sentinel value (e.g. 'adhoc_untracked'), never a bare NULL -- per IC-cand-maintained-headline-recurrence, a NULL and a known-unavailable value are indistinguishable until someone goes looking, and by then adoption has already silently failed.",
+      "scope_limit": "Applies to any new corpus field proposed alongside a migration; does not apply to fields that are inherently judgment calls requiring a human decision at write time."
+    },
     {
       "id": "SMAG-FEEDBACK-CALIBRATION-STARVED",
       "discovered_in": "smag_feedback_v1_0.py, automated FEED BACK backfill 2026-09-21",
@@ -11,7 +81,7 @@
       "rule": "Only 10 of the SMAG ledger's 126 rows carry a pinned `smag_p:` prediction (below the 10-row floor for pattern claims); 116 are VOID per IC-SMAG-01 mitigation. A 'dominant failing check' claim computed over so few pinned rows would be noise. Do not promote a gap-driver finding to a hard gate until calibration_rows clears the floor.",
       "root_cause": "PR template prompt for `smag_p:` was added S-091326, but existing PRs pre-template were retroactively marked VOID. New PRs with pinned predictions accumulate slowly.",
       "scope_limit": "Resolves once PR authors consistently pin `smag_p:` (see .github/PULL_REQUEST_TEMPLATE.md) at a rate that clears the floor within 30 days of current date.",
-      "action_for_z2": "Monitor calibration_rows growth weekly. Once ≥10 pinned rows on recent PRs (post-2026-09-21), re-run smag_feedback_v1_0.py to extract gap-drivers for possible REGISTERED findings.",
+      "action_for_z2": "Monitor calibration_rows growth weekly. Once \u226510 pinned rows on recent PRs (post-2026-09-21), re-run smag_feedback_v1_0.py to extract gap-drivers for possible REGISTERED findings.",
       "smag_generated": true,
       "data_source": "audits/smag_pilot_ledger.jsonl (126 total rows, 10 calibrated, 116 VOID)"
     },
@@ -20,7 +90,7 @@
       "discovered_in": "smag_gap_analysis_v1_0.py backfill 2026-09-21",
       "constraint": "recursive_learning_data_collection_established",
       "severity": "INFO",
-      "rule": "Baseline measurement window (126 historical rows, 10 calibrated): clean_rate=0.9, gap_rate=0.1, measurable_rate=1.0. Substrate: human:humanaios-ui. Failing checks: `validate` (1x), `validate-registry` (1x). No systemic driver threshold met (need ≥3 recurrences). Signal: system is operating well within acceptable calibration bounds.",
+      "rule": "Baseline measurement window (126 historical rows, 10 calibrated): clean_rate=0.9, gap_rate=0.1, measurable_rate=1.0. Substrate: human:humanaios-ui. Failing checks: `validate` (1x), `validate-registry` (1x). No systemic driver threshold met (need \u22653 recurrences). Signal: system is operating well within acceptable calibration bounds.",
       "context": "This is the baseline before metadata-feedback and upstream impact mechanisms are wired. Gap_rate of 0.1 (90% clean) is healthy. One-off friction cases do not yet warrant gate hardening.",
       "action_for_z2": "Accept baseline. Continue collecting calibration data (smag_p: predictions on new PRs). Rerun analysis monthly to detect drift.",
       "smag_generated": true,
@@ -28,12 +98,12 @@
     },
     {
       "id": "SMAG-META-CALIBRATION-HISTORICAL-BASELINE",
-      "discovered_in": "smag_meta_feedback backfill 2026-09-21 (gh CLI unavailable; backfilled from ledger metadata)",
+      "discovered_in": "smag_meta_feedback backfill 2026-09-21 (gh CLI unavailable; NO VERIFIED DATA)",
       "constraint": "smag_self_improvement_signal",
-      "severity": "INFO",
-      "confidence": "preliminary",
-      "rule": "SMAG consolidation PRs (weekly smag-consolidate.yml runs): No data available on SMAG's own smag_p_meta predictions (not pinned yet in template). Historical successful runs exist (PR#376, #377, #378, #379, #380 all merged without rework). Estimated SMAG accuracy (conservative, from operational data): 0.90+. Meta-signal available once consolidation PRs consistently pin smag_p_meta in template.",
-      "scope_limit": "Z2 may use this historical estimate (0.90+) as baseline. True meta-feedback requires smag_p_meta to be pinned on consolidation PRs going forward.",
+      "severity": "PRELIMINARY",
+      "confidence": "insufficient",
+      "rule": "SMAG consolidation PRs (weekly smag-consolidate.yml runs): Claims about PRs #376-380 could not be verified against repository records. Accuracy estimates must wait for actual pinned smag_p_meta predictions on consolidation PRs. Do not use pre-template historical claims as a baseline.",
+      "scope_limit": "Z2 must require consolidation PRs to pin smag_p_meta before any meta-feedback accuracy signal is credible.",
       "action_for_z2": "Update .github/PULL_REQUEST_TEMPLATE.md to prompt for `smag_p_meta:` on consolidation PRs. Once 5+ consolidation PRs carry pinned predictions, run smag_meta_feedback_v1_0.py with GitHub API access to measure true accuracy and detect recalibration needs.",
       "smag_generated": true,
       "meta_signal": true
@@ -44,7 +114,7 @@
       "constraint": "calibration_profile_per_substrate",
       "severity": "INFO",
       "rule": "Substrate `human:humanaios-ui`: 10 PRs measured, 9 clean (0.9 clean_rate), 1 friction (humility + truthfulness dimension stress via failed `validate` check). Baseline calibration profile recommendation: confidence_weight=1.0, review_bar=standard. No reduction needed; substrate is well-calibrated. Recheck monthly as data accumulates.",
-      "action_for_z2": "Accept baseline profile for human substrate. Codify in WITNESS_STATE_V0_1.schema.json's confidence_profile field. Update CI gates to use this as baseline.",
+      "action_for_z2": "Accept baseline profile for human substrate. Codify in WITNESS_STATE_V0_1.schema.json's calibration_profile field. Update CI gates to use this as baseline.",
       "smag_generated": true
     }
   ]
