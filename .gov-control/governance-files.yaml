@@ -1,0 +1,314 @@
+# HumanAIOS — Governance File Registry (Single Source of Truth)
+#
+# GOVERNANCE_FILES.md is a VIEW of this file. Edit this; run
+# `python3 .gov-control/render.py`; commit both. CI runs `--check` and blocks
+# when the two disagree.
+#
+# WHY THIS EXISTS
+# ---------------
+# GOVERNANCE_FILES.md carried a hand-maintained `Status` column. On 2026-09-21 it
+# marked eight files 🔴 MISSING — REGISTERED.md, PRIORITY_QUEUE.md,
+# ZONE_REGISTRY.md, BOOT_PROCESS_MAP.md, PLANNED_REPOS.md, NF_LEDGER.jsonl,
+# system_graph.json, behavior_spec.json — every one of which was present at HEAD,
+# several for over a week. Its "Next Steps" section instructed the reader to
+# create files that already existed, and its one-line description of REGISTERED.md
+# ("YAML array; candidate proposal log") contradicted the ratified REGISTRY_SPEC.md
+# ("Markdown file under Git version control"; append-only findings registry).
+#
+# A registry-of-registries that disagrees with the ratified spec about the
+# load-bearing artifact is worse than no registry: it is a confident wrong answer
+# at the exact point a new substrate looks for the right one.
+#
+# The root cause was not inattention. It was that `status` was a hand-copied
+# mirror of state the filesystem already knows. REGISTRY_SPEC.md ("DERIVED VIEWS")
+# already governs this case: *"Every mirror, cache, summary, or database view is
+# DERIVED and non-authoritative. Where a mirror and the canonical file disagree,
+# the file wins and the mirror is repaired."*
+#
+# So `status` is not a field here. render.py derives it by looking. A file cannot
+# be described as MISSING while it sits in the tree, because nobody types the
+# answer any more.
+#
+# INVARIANT: no entry below may carry a `status` key. validate.py rule 2 rejects
+# it. Presence is observed, never asserted.
+---
+version: 1
+rendered_to: "GOVERNANCE_FILES.md"
+renderer: ".gov-control/render.py"
+updated: "2026-09-21"
+authority: "Z2 (Night) — ratifies file definitions, structure changes, ownership"
+model: "Resource-based (no arbitrary time deadlines; resource_cost & capacity-driven)"
+
+sections:
+  - key: core
+    title: "Core Governance (Z2 Writes)"
+    intro: >-
+      The files Z2 signs. Policy is that a change to any of these carries a
+      ratification receipt. That is ownership, not an enforced invariant —
+      governance-files.yml checks declared paths, derived status and rendered
+      sync, and does not inspect receipts; z2_ratification_gate.yml covers
+      REGISTERED.md and z1-inbox, not every row here. Which rows are gated and
+      which rest on convention is Q-GOVDRIFT-01's ask 1.
+    files:
+      - path: REGISTERED.md
+        purpose: >-
+          Canonical append-only registry of findings (F), integrity corrections (IC),
+          hypotheses (H), drift classes (D), rulings (R) and governance directives (GD).
+          The index that binds every independent verification stream; entries are
+          superseded by addition, never deleted.
+        format: "Markdown, append-only; per-entry YAML front-matter"
+        authority: "Z2 sole write (ratification receipt; Z1 proposes via PR)"
+        rw: "Z1 read, Z2 write"
+        spec: REGISTRY_SPEC.md
+
+      - path: CLAUDE.md
+        purpose: "Authority map; Z-roles, escalation paths, decision routing, callout triggers"
+        format: "Markdown"
+        authority: "Z2 ratifies changes"
+        rw: "Z1 read, Z2 write"
+
+      - path: PRIORITY_QUEUE.md
+        purpose: >-
+          Eligible work ordered by the ratified RBE-OPS constraint allocator.
+          Ranks which candidates get scarce ratification attention. Never ordered
+          by elapsed time — internal calendar deadlines are prohibited by
+          Q-TEMPORAL-DISSOLUTION-01.
+        format: "Markdown; resource-scored rows"
+        authority: "Z2 ratifies allocation constants and cost pins"
+        rw: "Z1 read, Z2 ratify"
+
+      - path: ZONE_REGISTRY.md
+        purpose: "Active repos (31 zones), Z3 executor assignments, per-zone resource caps"
+        format: "Markdown tables"
+        authority: "Z2 ratifies zone list, executors, caps"
+        rw: "Z1 read, Z2 write"
+
+      - path: MOLT_STATE.md
+        purpose: >-
+          Molt lifecycle state machine (PROPOSED → MEASURING → KEEP/REVERT) and the
+          anti-cascade rules. Tracks the journey; NF_LEDGER holds the outcome.
+        format: "Markdown state chart + ledger"
+        authority: "Z2 ratifies molt transitions"
+        rw: "Z1 read, Z2 write"
+
+      - path: FRAMEWORK_MAPPING.md
+        purpose: "Maps 5 AI engineering concepts → Z-roles, governance files, CI/CD gates"
+        format: "Markdown"
+        authority: "Z2 ratification pending (Q-FRAMEWORK-MAPPING-01)"
+        rw: "Z1 read"
+
+  - key: reference
+    title: "Reference Docs (Z1 Reads; Z2 Ratifies Structure)"
+    intro: >-
+      Read during the session rituals. These shape how work is done; they do not
+      themselves carry ratified state.
+    files:
+      - path: BOOT_PROCESS_MAP.md
+        purpose: >-
+          Maps session rituals (§A open, §B close) onto boot-chain stages and names
+          the halt conditions — including A.1, the REGISTERED.md live-fetch whose
+          failure hard-halts the session (IC-030).
+        format: "Markdown stages + flowchart"
+        authority: "Z2 ratifies design"
+        rw: "Z1 read, Z2 write"
+
+      - path: PLANNED_REPOS.md
+        purpose: "Roadmap (aspirational repos); resource budget per planned zone"
+        format: "Markdown"
+        authority: "Z2 ratifies roadmap"
+        rw: "Z1 read, Z2 write"
+
+      - path: GOVERNANCE_FILES.md
+        purpose: "This file; the rendered registry of all governance files"
+        format: "Markdown — rendered from .gov-control/governance-files.yaml"
+        authority: "Z2 ratifies definitions"
+        rw: "Z1 read, Z2 write"
+
+      - path: CANDIDATE_BLOCK_TEMPLATE.md
+        purpose: "Template for Z1 proposals; falsifier, resource_cost, impact"
+        format: "Markdown + YAML example"
+        authority: "Z2 ratifies template"
+        rw: "Z1 read"
+
+      - path: SESSION_RITUALS.md
+        purpose: >-
+          The §A open / §B close protocol, substrate-agnostic. Canonical
+          parser-tag specification: where another operations file restates a
+          parser-critical tag, this file wins.
+        format: "Markdown"
+        authority: "Z2 ratifies amendments (signed rulings)"
+        rw: "Z1 read, Z2 write"
+
+      - path: REGISTRY_SPEC.md
+        purpose: >-
+          Ratified specification of the findings registry itself — canonical store,
+          entry classes, entry schema, write rules, the IC-030 read rule, and the
+          derived-views doctrine. Governs what counts as a registry entry.
+        format: "Markdown"
+        authority: "Z2 ratified 2026-08-04"
+        rw: "Z1 read, Z2 write"
+
+  - key: state
+    title: "System State (Code Writes; Z1/Z2 Read)"
+    intro: >-
+      Written by instruments, not by hand. These carry the measurements that
+      registry entries cite.
+    files:
+      - path: ledgers/NF_LEDGER.jsonl
+        purpose: >-
+          Append-only measurement ledger; every VERDICT/CYCLE/MEASURE event,
+          hash-chained. §B.6 receipt reconciliation walks session claims against
+          this file.
+        format: "JSONL"
+        authority: "Code append"
+        rw: "Code write, all read"
+        spec: ledgers/NF_EVENT_SCHEMA.md
+
+      - path: ledgers/NF_EVENT_SCHEMA.md
+        purpose: "The event format actually in force (narrowed Q-NF-SCHEMA-01 scope)"
+        format: "Markdown"
+        authority: "Z2 ratifies schema changes"
+        rw: "Z1 read, Z2 write"
+
+      - path: NF_LEDGER_SCHEMA_v1.md
+        purpose: >-
+          Forward design for the unified single-record ledger. Not the format in
+          force — see ledgers/NF_EVENT_SCHEMA.md for what instruments write today.
+        format: "Markdown"
+        authority: "Z2 ratifies schema changes"
+        rw: "Z1 read, Z2 write"
+
+      - path: system_graph.json
+        purpose: "Dependency topology; zones as nodes, inter-repo edges"
+        format: "JSON graph"
+        authority: "Z2 (via blueprint); regenerated by system_graph_generator.py"
+        rw: "Code write, all read"
+
+      - path: behavior_spec.json
+        purpose: "Z3 agent capability caps; tool limits, rate budgets, resource allocations"
+        format: "JSON"
+        authority: "Z2 ratifies"
+        rw: "Z1 read, Z2 write"
+
+      - path: molt_ledger.jsonl
+        purpose: "Molt measurement outcomes; one line per completed molt"
+        format: "JSONL"
+        authority: "Code append"
+        rw: "Code write, all read"
+
+  - key: derived
+    title: "Derived Views (Rendered — never hand-edited)"
+    intro: >-
+      Each is a VIEW of a machine-readable SSOT, regenerated by a renderer and
+      held in sync by a blocking CI check. Editing one by hand is the drift this
+      section exists to prevent — the renderer will overwrite it and `--check`
+      will fail the merge first.
+    files:
+      - path: CONTROLLED_DOCUMENTS.md
+        purpose: "Controlled-document index — companion to REGISTERED.md (documents, not findings)"
+        format: "Markdown — rendered"
+        authority: "Z2 ratifies registry contents"
+        rw: "All read"
+        ssot: document-registry.yaml
+        renderer: ".doc-control/render.py"
+
+      - path: Z1_INBOX_INDEX.md
+        purpose: "Conversion index — which candidates await Z2, which are ratified, what each asks"
+        format: "Markdown — rendered"
+        authority: "Z2 signs ratifications (.z1-control/ratify.py)"
+        rw: "Z1 write, Z2 read"
+        ssot: z1-inbox/INDEX.yaml
+        renderer: ".z1-control/render.py"
+
+      - path: TOOLS_MANIFEST.md
+        purpose: "Tool inventory by category; surfaces tools awaiting Z2 ratification"
+        format: "Markdown — rendered"
+        authority: "Z2 ratifies tool classifications"
+        rw: "All read"
+        ssot: tools-manifest.yaml
+        renderer: ".tool-control/render.py"
+
+      - path: REGISTERED_FAILURE_MODES.md
+        purpose: >-
+          The registry turned on itself — registry failure modes (RFM-nn) mapped to
+          standing orders and industrial failure modes. Every count is produced by
+          the scanner and re-verified by `--verify-doc`, which fails if the map
+          drifts from the registry.
+        format: "Markdown — tool-verified"
+        authority: "Z2 ratification pending"
+        rw: "Z1 read"
+        ssot: REGISTERED.md
+        renderer: "tools/registered_failure_mode_scan_v0_1.py"
+
+  - key: staging
+    title: "Proposal Staging (Z1 Drafts; Z2 Ratifies)"
+    intro: >-
+      Where a candidate lives before it is registry-final. Per REGISTRY_SPEC.md
+      read rules, anything here is labelled reconciliation-pending and is never
+      presented as ratified.
+    files:
+      - path: z1-inbox/
+        purpose: "Candidate blocks and records, filed by date, before REGISTERED.md submission"
+        format: "Markdown, one file per candidate"
+        authority: "Z1 author"
+        rw: "Z1 write, Z2 read"
+
+      - path: z1-inbox/INDEX.yaml
+        purpose: >-
+          SSOT for the inbox; declares which files are candidates (ask Z2 for a
+          decision) and which are records (ask nothing). decision_due is derived
+          from the CLAUDE.md window, not hand-set.
+        format: "YAML"
+        authority: "Z1 author; .z1-control/validate.py enforces"
+        rw: "Z1 write, Z2 read"
+
+      - path: registry-candidates/
+        purpose: >-
+          Entries staged in registry-ready form awaiting the operator's append.
+          Z1 prepares; Z2/Z3 assigns sequential numbers and commits — no
+          self-numbering (G-4 / IC-030).
+        format: "Markdown"
+        authority: "Z1 stages, Z2 appends"
+        rw: "Z1 write, Z2 append"
+
+# §A boot order. Each step names a file above; validate.py rule 4 rejects a step
+# naming a path this registry does not declare.
+boot_order_a:
+  - step: "A.1"
+    file: REGISTERED.md
+    action: "Live-fetch at HEAD and pin SHA (IC-030). HALT if the fetch fails — no valid registry."
+  - step: "A.2"
+    file: ZONE_REGISTRY.md
+    action: "Verify this repo is an active zone; confirm proposal cap"
+  - step: "A.3"
+    file: REGISTERED.md
+    action: "Read at the pinned SHA; load live entries"
+  - step: "A.4"
+    file: PRIORITY_QUEUE.md
+    action: "Load eligible work, allocator-ordered"
+  - step: "A.5"
+    file: MOLT_STATE.md
+    action: "Load open molts; check anti-cascade consistency"
+  - step: "A.6"
+    file: BOOT_PROCESS_MAP.md
+    action: "Verify ritual steps and halt conditions"
+
+boot_order_b:
+  - step: "B.6"
+    file: ledgers/NF_LEDGER.jsonl
+    action: "Walk every session claim against the ledger (receipt reconciliation)"
+  - step: "B.6b"
+    file: ledgers/NF_LEDGER.jsonl
+    action: "Emit receipt (claim → matched ledger entry); report RECEIPT-GAP for any claim without one"
+  - step: "B.7"
+    file: z1-inbox/
+    action: "Harvest F/IC/H candidates into z1-inbox/<date>/HANDOFF.md"
+  - step: "B.8"
+    file: PRIORITY_QUEUE.md
+    action: "Z2 signs the handoff; ratified candidates move into the queue"
+
+authorization_model:
+  - "Ratification receipt — date + form (in-session | PR | ruling id) + scope note"
+  - "Resource cost estimate — the candidate states what it will consume"
+  - "Impact prediction — scored by resource_impact, never by deadline"
+  - "Falsifier — required on hypotheses; tested at measurement time"

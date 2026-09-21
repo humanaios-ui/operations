@@ -37,6 +37,7 @@ superseded_by: null | "F-XX"
 1. F-numbers F-32 and F-33 are honest gaps (no entries claim them — they reflect the historical transition from slug-only naming to numbered findings; preserved rather than backfilled because external references depend on stable IDs).
 1. Slug-named legacy entries retain their slugs in the `name:` field but carry a sequential F-number for ordering. Originals: F-RLHF → F-20 · F-H1-CONFIRMED → F-21 · F-INSULA-GAP → F-22 · F-INTENT-PARSE-MUTATION → F-31. These numbers were assigned S-051926-02-z3-closeout to fix document flow. External citations using the original slugs remain valid.
 1. IC entries follow the F block in sequential IC-number order.
+1. IC-060 and IC-061 were misfiled 2026-09-20 as "IC-035" and "IC-037" — numbers already held since June by unrelated entries — because the filing session did not re-check the live registry (the IC-030 condition). Corrected on Z2 ratification of Q-GOVDRIFT-01 ask 2, option (b) · Night · 2026-09-21. Unlike the F-RLHF-style slug reassignments above, this was not a naming convention fixing document flow — it was a collision, and the `name:` field is unchanged (`q-witness-phase-0-resource-allocation-undefined`, `legal-ethics-pre-assessment-not-commissioned`); only the `id:` field was wrong. Content and the 2026-09-21 issue #429 Z2 ratification are unaffected — these were live, ratified findings under the wrong number, not entries later found obsolete, which is why they carry no `superseded_by` pointer.
 1. H entries follow the IC block.
 1. NM entries follow the H block.
 
@@ -4810,11 +4811,16 @@ superseded_by: null
 
 ## Z1 Red Team Audit Candidates — Q-WITNESS-COMMONS-ASSURANCE-01
 
-### IC-035 — Q-WITNESS Phase 0 Resource Allocation Gap
+### IC-060 — Q-WITNESS Phase 0 Resource Allocation Gap
+
+*(Filed 2026-09-20 as "IC-035" — collided with the 2026-06-09 IC-035 entry above,
+which predates it and is unchanged. Corrected to IC-060 on Z2 ratification of
+Q-GOVDRIFT-01 ask 2, option (b) · Night · 2026-09-21. Content and the original
+issue #429 Z2 ratification below are unchanged; only the id was wrong.)*
 
 ```yaml
 ---
-id: "IC-035"
+id: "IC-060"
 name: "q-witness-phase-0-resource-allocation-undefined"
 status: REGISTERED
 class: IC
@@ -4868,11 +4874,16 @@ tags: ["executor", "phase-0", "witness-commons", "zone-assignment", "authority"]
 
 ---
 
-### IC-037 — Legal/Ethics Pre-Assessment Not Commissioned
+### IC-061 — Legal/Ethics Pre-Assessment Not Commissioned
+
+*(Filed 2026-09-20 as "IC-037" — collided with the 2026-06-11 IC-037 entry above,
+which predates it and is unchanged. Corrected to IC-061 on Z2 ratification of
+Q-GOVDRIFT-01 ask 2, option (b) · Night · 2026-09-21. Content and the original
+issue #429 Z2 ratification below are unchanged; only the id was wrong.)*
 
 ```yaml
 ---
-id: "IC-037"
+id: "IC-061"
 name: "legal-ethics-pre-assessment-not-commissioned"
 status: REGISTERED
 class: IC
