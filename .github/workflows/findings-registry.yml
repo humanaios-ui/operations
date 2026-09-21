@@ -57,7 +57,16 @@ jobs:
       # and 154 — a document whose thesis is that hand-copied counts drift, drifting.
       # RFM-11 is the named failure mode; this step is what makes the map's own claim
       # about itself ("verified against it by scan --verify-doc") true.
+      #
+      # `if: always()` because these two checks are independent, and a step that
+      # only runs when an unrelated one passes is not a gate. The validator above
+      # is currently red on main for the IC-035/IC-037 collisions (routed to Z2 as
+      # Q-GOVDRIFT-01), and with the default `success()` condition this step would
+      # be silently skipped for as long as that stands — a verifier wired in but
+      # never executed, which is the exact defect it was added to close. Each step
+      # reports its own verdict; the job still fails if either does.
       - name: Failure-mode map matches the registry (BLOCKING)
+        if: always()
         run: python3 tools/registered_failure_mode_scan_v0_1.py scan --verify-doc REGISTERED_FAILURE_MODES.md
       - name: Upload registry validation report (audit S-070726)
         if: always()
