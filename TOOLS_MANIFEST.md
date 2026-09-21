@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**170 registered tools** · 2 MCP servers · 0 excluded · 132 carrying Builder v1.7 markers
+**169 registered tools** · 2 MCP servers · 4 excluded · 135 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 170 |
-| — status `draft` | 169 |
+| Registered tools | 169 |
+| — status `draft` | 168 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 132 |
+| Builder v1.7 markers present | 135 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -109,7 +109,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-133 | tier1_principles_stub | `tools/tier1_principles_stub.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — stub for smoke test execution. |
 | HAIOS-TOOL-152 | strict_yaml | `.doc-control/strict_yaml.py` | unversioned | 1 | draft | no-builder-markers | A YAML loader that refuses duplicate mapping keys, for registry consumers. |
 
-## Diagnostics — `diagnostic_tool` (14)
+## Diagnostics — `diagnostic_tool` (15)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -127,8 +127,9 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-138 | tool_trace_reader | `tools/tool_trace_reader_v1_0.py` | 1.0.0 | 1 | draft | — | tool_trace_reader_v1_0.py |
 | HAIOS-TOOL-142 | z2_queue | `tools/z2_queue_v1_0.py` | 1.1.0 | 1 | draft | — | Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first, flags ≥3 sessions unresolved. |
 | HAIOS-TOOL-158 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
+| HAIOS-TOOL-180 | workflow_dependency_analyzer | `tools/workflow_dependency_analyzer_v1_0.py` | 1.0.0 | 1 | draft | — | Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines |
 
-## Governance — `governance_tool` (16)
+## Governance — `governance_tool` (13)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -144,10 +145,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-166 | intent_os_board_reseal | `tools/intent_os_board_reseal_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse the rest. |
 | HAIOS-TOOL-167 | intent_os_requests | `tools/intent_os_requests_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage. |
 | HAIOS-TOOL-168 | intent_os_reconcile | `tools/intent_os_reconcile_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_reconcile — after a decided candidate merges, record the ratification the merge was. |
-| HAIOS-TOOL-170 | governance-rulings-backfill | `tools/governance-rulings-backfill.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Phase 1: Autonomous governance rulings backfill from git history into Supabase |
-| HAIOS-TOOL-171 | governance-rulings-ingestion | `tools/governance-rulings-ingestion.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Phase 1: Real-time ingestion of Z2 rulings via GitHub webhooks → Supabase |
-| HAIOS-TOOL-172 | board-decisions-backfill | `tools/board-decisions-backfill.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Phase 2: Historical backfill of Z2 board decisions & molt events from git log → Supabase |
-| HAIOS-TOOL-173 | board-decisions-ingestion | `tools/board-decisions-ingestion.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Phase 2: Real-time ingestion of Z2 board decisions & molt events via GitHub + relay webhooks → Supabase |
+| HAIOS-TOOL-181 | receipt_reconciliation | `tools/receipt_reconciliation.py` | 1.0.0 | 1 | draft | — | §B.6 Receipt Reconciliation — Auto-validates claims against NF_LEDGER.jsonl, files IC-CANDIDATE gaps for Z2 ratification |
 
 ## Infrastructure — `infrastructure_tool` (21)
 
@@ -175,13 +173,14 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-148 | tool_manifest_scanner | `.tool-control/scan.py` | 1.1.0 | 1 | draft | no-builder-markers | Walks the registered tool roots, extracts each tool's declared metadata, and |
 | HAIOS-TOOL-177 | nonprofit_dashboard_api_v1_0 | `tools/nonprofit_dashboard_api_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Nonprofit Dashboard API v1.0 |
 
-## Monitoring — `monitoring_tool` (3)
+## Monitoring — `monitoring_tool` (4)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
 | HAIOS-TOOL-029 | api_monitoring_bot_v1 | `tools/agents/api_monitoring_bot_v1.py` | 1.0.0 | 1 | draft | — | Agent 1.2: API Monitoring Bot |
 | HAIOS-TOOL-030 | monitor_stability_v1 | `tools/agents/monitor_stability_v1.py` | 1.0.0 | 1 | draft | — | Monitoring Dashboard: Phase 1/2 Stability |
 | HAIOS-TOOL-048 | clone_sync_health | `tools/clone_sync_health_v1_0.py` | 1.0.0 | 1 | draft | — | Clone Sync Health — v1.0 |
+| HAIOS-TOOL-179 | industry_telemetry | `tools/industry_telemetry_v0_1.py` | 0.1.0 | 1 | draft | — | Bounded Q4 2026 industry telemetry and human triage pilot |
 
 ## Orchestration — `orchestrator_tool` (7)
 
@@ -287,6 +286,15 @@ External tool surfaces the agent may call. Registered here because an MCP server
 | HAIOS-MCP-001 | rentahuman | stdio | `npx -y rentahuman-mcp` | 1 | draft | unscoped — set before approval | UNCLASSIFIED — set before approval |
 | HAIOS-MCP-002 | supabase | http | `https://mcp.supabase.com/mcp?project_ref=ksinisdzgtnqzsymhfya` | 1 | draft | unscoped — set before approval | UNCLASSIFIED — set before approval |
 
+## Excluded from tool-control (4)
+
+| path | reason |
+|---|---|
+| `tools/board-decisions-backfill.js` | draft tool archived 2026-09-20 |
+| `tools/board-decisions-ingestion.js` | draft tool archived 2026-09-20 |
+| `tools/governance-rulings-backfill.js` | draft tool archived 2026-09-20 |
+| `tools/governance-rulings-ingestion.js` | draft tool archived 2026-09-20 |
+
 ---
 
 **Scan roots:** `tools`, `scripts`, `bin`, `.tool-control`, `.doc-control`, `.z1-control` · **excluded dirs:** `.git`, `__pycache__`, `node_modules`, `skills`, `tests` (`tools/skills/` is governed by `SKILL_REGISTRY.md`). Also not tools, mirroring `_skip_reason` in `tools/builder_compliance_scanner_v1.0.py`: `test_*`/`*_test` modules, `__init__.py`, and `_`-prefixed private/shared helper directories. Archived tools stay registered at `status: archived`.
@@ -302,10 +310,10 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
-| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 14 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 16 |
+| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 15 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 13 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 21 |
-| `monitoring_tool` | Watches a surface over time and raises alerts. | 3 |
+| `monitoring_tool` | Watches a surface over time and raises alerts. | 4 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 4 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 5 |

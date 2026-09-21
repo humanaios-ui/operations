@@ -1,0 +1,10 @@
+{
+  "rebalance_threshold": 0.55,
+  "rebalance_threshold_prior_value": 0.50,
+  "rebalance_threshold_molt_id": "Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001",
+  "rebalance_threshold_molt_window_end": "2026-09-28T00:00:00Z",
+  "rebalance_threshold_molt_state": "APPLIED",
+  "strategy": "correlation-based-rebalance",
+  "measurement_unit": "sharpe_ratio",
+  "description": "Trading strategy constants for blockchain market behavioral calibration (Z-012)"
+}

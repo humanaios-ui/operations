@@ -351,6 +351,37 @@ Score = impact + Σ(impact of items this unblocks)
 
 ---
 
+## Ratified Molt: Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001
+
+**Z2 Ratification:** 2026-09-21T00:00:00Z | by=carly.r.anderson@gmail.com | decision=ACCEPT  
+**Ratification Hash:** `sha256(Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001|Z-012|rebalance_threshold|0.50→0.55|Sharpe>=0.80|7-day|by=carly.r.anderson@gmail.com|at=2026-09-21T00:00:00Z)`
+
+```json
+{
+  "molt_id": "Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001",
+  "zone": "Z-012",
+  "constant": "trading_spec.json:rebalance_threshold",
+  "prior_value": 0.50,
+  "proposed_value": 0.55,
+  "prediction": {
+    "metric": "Sharpe",
+    "target": ">= 0.80",
+    "window_days": 7,
+    "falsifier": "Sharpe < 0.80 OR realized_drawdown > 5%"
+  },
+  "z2_ratified_at": "2026-09-21T00:00:00Z",
+  "z2_ratifier": "carly.r.anderson@gmail.com",
+  "ratification_hash": "sha256(Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001|Z-012|rebalance_threshold|0.50→0.55|Sharpe>=0.80|7-day|by=carly.r.anderson@gmail.com|at=2026-09-21T00:00:00Z)",
+  "window_start": "2026-09-21T00:00:00Z",
+  "window_end": "2026-09-28T00:00:00Z",
+  "outcome": "APPLIED"
+}
+```
+
+**Scope:** Pilot molt on single trading constant (rebalance correlation threshold). Measures 7 days. Falsifier: Sharpe ratio < 0.80 or realized max drawdown > 5%. Z2 ratifies; code applies; receipt reconciliation at window_end determines KEEP or REVERT.
+
+---
+
 ## Open Questions for Z2
 
 1. Should contested decisions create a new molt_id, or reuse the prior one with new hash?
