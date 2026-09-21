@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "graph_id": "Q-WITNESS-COMMONS-ASSURANCE-01-phase0",
+  "version": "0.1.0",
+  "description": "Phase 0 typed evidence graph for Witness/Commons readiness.",
+  "edge_state_enum": ["CLAIMED", "SPECIFIED", "IMPLEMENTED", "TESTED", "OBSERVED"],
+  "nodes": [
+    {"id": "A1", "type": "artifact", "label": "PARTICIPATION_CONTRACT_V0_1.schema.json"},
+    {"id": "A2", "type": "artifact", "label": "WITNESS_STATE_V0_1.schema.json"},
+    {"id": "C1", "type": "claim", "label": "Participation is not authority"},
+    {"id": "C2", "type": "claim", "label": "Explanation is reconstructed from record"},
+    {"id": "CT1", "type": "control", "label": "Authority resolved from independent governance source"},
+    {"id": "CT2", "type": "control", "label": "Revocation uses event-sequence boundary"},
+    {"id": "T1", "type": "test", "label": "Schema gate: contract cannot self-grant authority"},
+    {"id": "T2", "type": "test", "label": "Schema gate: revocation requires effective_after_event_seq"},
+    {"id": "E1", "type": "evidence", "label": "Issue #429 Z2 ratification comment 2026-09-21"},
+    {"id": "F1", "type": "failure", "label": "AA-429-01 authority-escalation surface"},
+    {"id": "F2", "type": "failure", "label": "AA-429-02 revocation race ambiguity"},
+    {"id": "FS1", "type": "falsifier", "label": "If independent authority cannot be resolved, reject governance action"},
+    {"id": "D1", "type": "decision", "label": "Phase 0 only: inventory/audit outputs authorized"},
+    {"id": "S1", "type": "standard", "label": "NIST AI RMF crosswalk reference"},
+    {"id": "R1", "type": "readiness_domain", "label": "Observability and boundary assurance"}
+  ],
+  "edges": [
+    {"from": "C1", "to": "CT1", "relation": "constrained_by", "state": "SPECIFIED"},
+    {"from": "C2", "to": "CT2", "relation": "constrained_by", "state": "SPECIFIED"},
+    {"from": "A1", "to": "C1", "relation": "implements", "state": "SPECIFIED"},
+    {"from": "A2", "to": "C2", "relation": "implements", "state": "SPECIFIED"},
+    {"from": "T1", "to": "CT1", "relation": "verifies", "state": "SPECIFIED"},
+    {"from": "T2", "to": "CT2", "relation": "verifies", "state": "SPECIFIED"},
+    {"from": "E1", "to": "D1", "relation": "supports", "state": "OBSERVED"},
+    {"from": "F1", "to": "C1", "relation": "defeats_if_unmitigated", "state": "OBSERVED"},
+    {"from": "F2", "to": "C2", "relation": "defeats_if_unmitigated", "state": "OBSERVED"},
+    {"from": "FS1", "to": "D1", "relation": "narrows_scope", "state": "SPECIFIED"},
+    {"from": "S1", "to": "R1", "relation": "crosswalk_for", "state": "CLAIMED"},
+    {"from": "R1", "to": "D1", "relation": "gates", "state": "SPECIFIED"}
+  ]
+}
