@@ -18,7 +18,7 @@
 
 ## Reading a Profile
 
-```json
+```jsonc
 {
   "substrates": {
     "human:humanaios-ui": {
@@ -59,7 +59,7 @@
 - name: Apply calibration profile constraints
   run: |
     PROFILE=$(curl -s https://raw.githubusercontent.com/.../calibration_profiles/BASELINE_S092126.json)
-    SUBSTRATE=$(git log -1 --format='%ae' | cut -d@ -f2)
+    SUBSTRATE="human:humanaios-ui"  # Canonical substrate identifier from ledger
     REVIEW_BAR=$(echo $PROFILE | jq ".substrates.\"$SUBSTRATE\".review_bar")
     # Enforce review_bar before merge approval
 ```
@@ -108,4 +108,4 @@ System uses this to gate proposal scope and review requirements before merge
 
 ---
 
-See `data/lessons_learned_ledger.json` for lessonsby-data lineage.
+See `data/lessons_learned_ledger.json` for lessons-by-data lineage.
