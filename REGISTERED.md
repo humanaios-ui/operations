@@ -4805,3 +4805,80 @@ superseded_by: null
 2026-09-19 19:45 UTC — Z2 (Night, Admiral) RATIFIED Q-GRANT-MATCHING-ENGINE-PHASE-1B-01 | Grant Matching Engine Phase 1B | ACCEPT | All test gates passed (17/17), capacity integration verified, latency SLA met | Ready for production pilot deployment
 ```
 
+
+---
+
+## Z2 Ratification — ACCEPTED 2026-09-21
+
+**Candidate ID:** Q-P34-X-HARDENED-V1-01  
+**Z2 Signature:** carly.r.anderson@gmail.com (Night, Admiral/Z2 Serial Gate)  
+**Decision:** ACCEPT (Phase 0 Scaffold + Phase 1 Entry Criteria)  
+**Timestamp:** 2026-09-21T00:00:00Z  
+**Ratification Hash:** sha256(Q-P34-X-HARDENED-V1-01 | by=Night | at=2026-09-21T00:00Z | decision=ACCEPT | phase0_merged=pr428)  
+**Authority:** Admiral (Z2 Serial Gate)
+
+**Ratification Checklist — APPROVED:**
+- [x] Phase 0 scaffold complete & merged? YES ✅ (PR #428 merged)
+- [x] Red team audit findings incorporated? YES ✅ (design hardened per audit)
+- [x] Corpus seeded & validated? YES ✅ (40 labeled examples: 20 CONTAM + 20 CLEAN)
+- [x] Metamorphic test framework complete? YES ✅ (invariant, evasion, cleanliness, falsifiers)
+- [x] All CI gates passing? YES ✅ (security, molt-tier, promotion readiness)
+- [x] Copilot critical findings resolved? YES ✅ (grounding logic fixed, recognizer patterns corrected)
+- [x] Falsifier regression tests locked in? YES ✅ (2 permanent falsifiers)
+
+**Status:** RATIFIED · Phase 0 complete and merged (commit 1f0c316) · Phase 1 entry criteria approved · Ready for Z3 implementation
+
+**Z2 Decision — Phase 1 Entry Criteria Ratified:**
+
+### 1. Grounding Contract (APPROVED)
+- **Requirement:** Evidence must be cryptographically signed, append-only, or independently attested
+- **Accepted backends:** Git commits (author-signed), Ledger entries (blockchain/merkle proofs), Timestamp servers (virtual acceptable, witness-backed preferred)
+- **Implementation gate:** Phase 1.5 implements signature verification; Phase 1 uses stub providers (disabled during Phase 0)
+
+### 2. Evidence Sources Whitelist (APPROVED)
+- **All sources enabled for v1:** git log, ledger, tool-transcript, quoted, human-attributed
+- **Rationale:** Maximize test case diversity; trustworthiness filtered by grounding contract
+- **Phase 1 implementation:** GitLogProvider, LedgerProvider (actual parsing), ToolTranscriptProvider stubs; Phase 1.5 adds signing
+
+### 3. Exception Registry (APPROVED)
+- **All 7 entries ratified for v1:** IC-CLOSURE, MOLT-WINDOW, SESSION-RITUAL, EXTERNAL-SLA, HUMAN-DEADLINE, CI-GATE-TIMEOUT, RATIFIED-CONSTANT
+- **Governance:** Z2 controls modifications; IC entries supersede via REGISTERED.md amendment
+- **Enforcement:** exception_registry.yaml locked; changes require new Z2 ratification
+
+### 4. CI Gate Configuration (APPROVED)
+- **Exit code 2 behavior:** BLOCKING (prevents merge)
+- **Override authority:** Code-owner only
+- **Downstream verification:** Reinforces gate decisions (non-suppressed)
+- **ROI:** Blocking preferred (false negatives costlier than false positives in temporal contamination)
+
+**Phase 0 Deliverables (Now Live):**
+- ✅ P34-X_HARDENED_V1_PLAN.md: 47 KB design doc, rollout, Z2 decision points
+- ✅ p34x_temporal_extractor/: core module (500+ LOC), findings schema, evidence interface, recognizers
+- ✅ tests/corpus/: 40 labeled examples (contam.jsonl + clean.jsonl)
+- ✅ tests/test_p34x_metamorphic.py: 300+ LOC test framework
+- ✅ exception_registry.yaml: 7 governed exceptions with Z2 markers
+
+**Phase 1 Now Unblocked (Z3 executor assignment pending):**
+1. Implement GitLogProvider.resolve() (git log grep + commit signing validation)
+2. Implement LedgerProvider.resolve() (parse REGISTERED.md molt windows + verify)
+3. Implement ToolTranscriptProvider.resolve() (.claude/tool_traces parsing)
+4. Integrate recognizers against corpus (measure baseline metrics)
+5. Implement signature verification layer (Phase 1.5)
+6. Complete metamorphic test suite (Phase 1)
+7. Run full test validation against corpus (Phase 1)
+
+**Effort Estimate:** 5–8 days (full-time Z3 execution)
+
+**Next Checkpoint:** Phase 1 implementation gate — all recognizers validated against corpus with ≥0.85 baseline precision before advancing to Phase 2 (measurement on production traffic)
+
+---
+
+## Appended Events — Z2 Ratification Log
+
+```
+2026-09-21 00:00 UTC — Z2 (Night, Admiral) RATIFIED Q-P34-X-HARDENED-V1-01 | P34-X Temporal Contamination Extractor v1 (Phase 0) | ACCEPT | Phase 0 complete (hardened design, seeded corpus, core scaffold, tests) | Phase 1 entry criteria approved (grounding contract, evidence sources, exceptions, CI gate) | PR #428 merged | Ready for Z3 implementation
+
+2026-09-19 22:50 UTC — Z2 (Night, Admiral) RATIFIED Q-GRANT-BROKER-PHASE-2B-01 | Nonprofit Dashboard & Capacity Integration Phase 2B | ACCEPT | Core API complete (20/20 tests), frontend development authorized, 1-2 day completion estimate | Ready for Z3 execution
+
+2026-09-19 19:45 UTC — Z2 (Night, Admiral) RATIFIED Q-GRANT-MATCHING-ENGINE-PHASE-1B-01 | Grant Matching Engine Phase 1B | ACCEPT | All test gates passed (17/17), capacity integration verified, latency SLA met | Ready for production pilot deployment
+```
