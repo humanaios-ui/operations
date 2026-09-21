@@ -68,7 +68,7 @@ Same methodology and 1.5-shift convention as `audits/T1_DEFECT_BASELINE_S070726.
 | Post-terminal append | RFM-10 | 43 entries after the `## Changelog` boundary (by line position, so a later terminal section cannot hide one) |
 | Orphan roll-up row | RFM-12 | 0 — PASS (the IC-036 orphan recorded at the 2026-09-13 baseline has since been resolved) |
 | Ratified-class starvation | RFM-16 | 3 of 6 — D, R, GD defined, zero entries |
-| Header staleness | RFM-17 | declared 2026-08-15; newest content 2026-09-20 |
+| Header staleness | RFM-17 | 0 — PASS (declared 2026-09-20, matching newest content; corrected from 2026-08-15 on Q-GOVDRIFT-01 ask 3, Night, 2026-09-21) |
 | Ratification-hash form | RFM-15 | 8 — git SHAs and unterminated `sha256(...)` expressions where 64 hex chars are specified |
 | Cross-artifact ratification | RFM-14 | 0 — PASS |
 
@@ -117,7 +117,7 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 | **RFM-14** | **Cross-artifact ratification desync** — an artifact's ratification state contradicts itself or the registry | `PRIORITY_QUEUE.md:11` says *"pending Z2 signature"*; that same file's `## Appended Events` says *"PRIORITY_QUEUE.md v1_1 ratified"*; `REGISTERED.md:3925` lists it ratified at `e8a501f` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
 | **RFM-15** | **Ratification-hash substitution** — a git commit SHA recorded where a decision signature is specified | `REGISTERED.md:3925` = `e8a501f` (7 hex); plus a 63-char near-miss and six unterminated `sha256(Q-…` labels; spec requires exactly 64 hex | **8** | 10 → 5 |
 | **RFM-16** | **Ratified-class starvation** — a class `REGISTRY_SPEC.md` ratifies has zero entries. Indistinguishable from a healthy unused channel without a proof test | D-class (`REGISTRY_SPEC.md:16`), R, GD | **3 / 6 classes** | 10 → 5 |
-| **RFM-17** | **Header staleness** — `Last updated` drifts behind the newest dated content | header 2026-08-15 vs content 2026-09-20 | **1** | 10 → 5 |
+| **RFM-17** | **Header staleness** — `Last updated` drifts behind the newest dated content | was header 2026-08-15 vs content 2026-09-20; corrected on Q-GOVDRIFT-01 ask 3, Night, 2026-09-21 | **0** — resolved since the 2026-09-21 baseline | 10 → 5 |
 
 ### GOVERN — the doctrine around the file
 
@@ -263,18 +263,18 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 | RFM-03 | UNSCORED | UNMEASURED | 10 | — |
 | RFM-04 | UNSCORED | UNMEASURED | 5 | — |
 | RFM-05 | UNSCORED — IC-031 gives $150–730, but no ratified mapping turns a dollar range into a 1–10 severity | UNMEASURED | 5 | — |
-| RFM-06 | UNSCORED | 58 / 137 | 10 | — |
-| RFM-07 | UNSCORED | 8 / 137 | 5 | — |
-| RFM-08 | UNSCORED | 5 / 137 | 5 | — |
-| RFM-09 | UNSCORED | 30 / 137 | 5 | — |
-| RFM-10 | UNSCORED | 25 | 5 | — |
-| RFM-11 | UNSCORED | 10 / 45 | 5 | — |
-| RFM-12 | UNSCORED | 1 | 5 | — |
+| RFM-06 | UNSCORED | 67 / 154 | 10 | — |
+| RFM-07 | UNSCORED | 8 / 154 | 5 | — |
+| RFM-08 | UNSCORED | 3 / 154 | 5 | — |
+| RFM-09 | UNSCORED | 41 / 154 | 5 | — |
+| RFM-10 | UNSCORED | 43 | 5 | — |
+| RFM-11 | UNSCORED | 9 / 48 | 5 | — |
+| RFM-12 | UNSCORED | 0 | 5 | — |
 | RFM-13 | UNSCORED | 1 known | 10 | — |
-| RFM-14 | UNSCORED | 2 | 5 | — |
-| RFM-15 | UNSCORED | 1 | 5 | — |
+| RFM-14 | UNSCORED | 0 | 5 | — |
+| RFM-15 | UNSCORED | 8 | 5 | — |
 | RFM-16 | UNSCORED | 3 / 6 | 5 | — |
-| RFM-17 | UNSCORED | 1 | 5 | — |
+| RFM-17 | UNSCORED | 0 | 5 | — |
 | RFM-18 | UNSCORED | 1 of 43 IC cost-classed | 10 | — |
 | RFM-19 | UNSCORED | n/a | 10 | — |
 

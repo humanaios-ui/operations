@@ -786,38 +786,60 @@ def _verify_taxonomy_rows(report: Dict[str, Any], text: str) -> List[str]:
     ("9 / 48 F", "3 / 6 classes", "1 known") stays free-form. Rows for RFMs the
     scanner does not produce are skipped rather than failed, so hand-authored
     entries like RFM-13 and RFM-18 remain valid.
+
+    A second, plain-text row shape is checked too: `| RFM-NN | UNSCORED |
+    occurrence | detection | RPN |`, the FMEA summary table. It was invisible
+    to the pattern above — no `**` — and on 2026-09-21 that let ten of its
+    Occurrence cells sit stale (58/137, 25, 2, 1, ...) through every prior
+    round of this fix, including the round that had just regenerated the same
+    numbers three headings above it. Anchored on the literal `UNSCORED` token
+    in the Severity column, which is this table's own stated invariant (its
+    text: "even [RFM-05] is UNSCORED" — no ratified severity mapping exists
+    for any row yet); if that ever changes, the anchor should move with it
+    rather than silently stop matching.
     """
     problems: List[str] = []
     for r in report["results"]:
         rfm = r["rfm"]
-        row = re.search(rf"^\|\s*\*\*{re.escape(rfm)}\*\*\s*\|.*$", text, re.M)
-        if not row:
-            continue  # not tabulated in this document
-        cells = row.group(0).split("|")
-        if len(cells) < 6:
-            problems.append(f"{rfm} row is malformed — expected 5 cells")
-            continue
-        found = re.search(r"\d+", cells[4])
-        if not found:
-            problems.append(f"{rfm} occurrence cell has no number: {cells[4].strip()!r}")
-            continue
-        if int(found.group(0)) != r["defects"]:
+        for pattern, width in (
+            (rf"^\|\s*\*\*{re.escape(rfm)}\*\*\s*\|.*$", 6),
+            (rf"^\|\s*{re.escape(rfm)}\s*\|\s*UNSCORED[^|]*\|.*$", 5),
+        ):
+            row = re.search(pattern, text, re.M)
+            if not row:
+                continue  # not tabulated in this shape
+            cells = row.group(0).split("|")
+            if len(cells) < width:
+                problems.append(f"{rfm} row is malformed — expected {width - 1} cells")
+                continue
+            occ_cell = cells[4] if width == 6 else cells[3]
+            problems.extend(_check_occurrence_cell(rfm, occ_cell, r))
+    return problems
+
+
+def _check_occurrence_cell(rfm: str, cell: str, r: Dict[str, Any]) -> List[str]:
+    problems: List[str] = []
+    found = re.search(r"\d+", cell)
+    if not found:
+        problems.append(f"{rfm} occurrence cell has no number: {cell.strip()!r}")
+        return problems
+    if int(found.group(0)) != r["defects"]:
+        problems.append(
+            f"{rfm} occurrence cell says {found.group(0)}, scan says "
+            f"{r['defects']} — regenerate the row"
+        )
+    # Checking the numerator alone leaves the denominator free to rot: the
+    # RFM-07 row read "8 / 137" against a 154-entry registry and passed,
+    # because its numerator was right. A stale denominator understates the
+    # corpus the defect was measured over, which is the number a reader
+    # divides by.
+    ratio = re.search(r"(\d+)\s*/\s*(\d+)", cell)
+    if ratio and r["opportunities"] is not None:
+        if int(ratio.group(2)) != r["opportunities"]:
             problems.append(
-                f"{rfm} occurrence cell says {found.group(0)}, scan says "
-                f"{r['defects']} — regenerate the row"
+                f"{rfm} occurrence denominator says {ratio.group(2)}, scan "
+                f"measured over {r['opportunities']} — regenerate the row"
             )
-        # Checking the numerator alone leaves the denominator free to rot: the
-        # RFM-07 row read "8 / 137" against a 154-entry registry and passed,
-        # because its numerator was right. A stale denominator understates the
-        # corpus the defect was measured over, which is the number a reader
-        # divides by.
-        ratio = re.search(r"(\d+)\s*/\s*(\d+)", cells[4])
-        if ratio and r["opportunities"] is not None:
-            if int(ratio.group(2)) != r["opportunities"]:
-                problems.append(
-                    f"{rfm} occurrence denominator says {ratio.group(2)}, scan "
-                    f"measured over {r['opportunities']} — regenerate the row"
-                )
     return problems
 
 
