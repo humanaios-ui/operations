@@ -27,6 +27,19 @@ EXEMPT_PATHS = {
     "TEMPORAL_CONTROL_AUDIT.md",
     "tests/test_temporal_dissolution_gate.py",
     "schemas/external_constraint.schema.json",
+    # Q-INTENT-GRAPH-01. Its `conflicts_with` rows exist to quote the defect they
+    # report — the same reason the policy and the audit are exempt. Exempting it
+    # here does not leave it unpoliced: `tools/intent_graph_v1_0.py` rule E10
+    # applies the same patterns to node text, where a real control could hide,
+    # while letting a conflict row name what it is reporting. A line scanner
+    # cannot tell those two apart; a structure-aware validator can.
+    "INTENT_GRAPH.yaml",
+    # Same reason this file itself is exempt: a module that detects a pattern has
+    # to contain the pattern, in its fixtures if nowhere else. The exemption is
+    # safe because the tool reads no clock at all — it imports no time, datetime
+    # or calendar module, which its own smoke test asserts, so there is no
+    # temporal control for a scan to find.
+    "tools/intent_graph_v1_0.py",
 }
 
 CONTROL_EXACT = {
@@ -37,6 +50,11 @@ CONTROL_EXACT = {
     "ZONE_REGISTRY.md",
     "BOOT_PROCESS_MAP.md",
     "REGISTERED.md",
+    # Q-MOLT-TEMPORAL-PURITY-01. MOLT_STATE.md decides whether a ratified
+    # constant change is kept or reverted; its absence here is how window_end
+    # semantics survived the first audit pass. Root .md files are not picked up
+    # by the suffix rule below, so control surfaces of this shape must be named.
+    "MOLT_STATE.md",
     "RESOURCE_UNITS.yaml",
     "constants.json",
 }
@@ -50,7 +68,16 @@ CONTROL_PREFIXES = (
 )
 
 RISK_PATTERNS = (
-    re.compile(r"\b(deadline|due_at|window_end|respond_within|complete_within|start_after)\s*[:=]", re.I),
+    # Q-MOLT-TEMPORAL-PURITY-01 added the *_days forms. Without them the gate
+    # refused a reintroduced `window_end:` but accepted `window_days: 7` and
+    # `measurement_window_days: 28` — the same control expressed as a duration
+    # instead of an instant, which is how the molt cycle carried it all along.
+    re.compile(
+        r"\b(deadline|due_at|window_end|respond_within|complete_within|start_after"
+        r"|window_days|measurement_window_days|review_cadence_days|half_life_days"
+        r"|review_interval_days)\s*[:=]",
+        re.I,
+    ),
     re.compile(r"\b(due|deadline)\s+(by|on)\b", re.I),
     re.compile(r"\boverdue\b", re.I),
     re.compile(

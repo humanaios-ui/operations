@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 69
+  candidates: 74
   records: 37
 ratifiers:
 - Night
@@ -668,21 +668,87 @@ candidates:
   note: "Witness ledger architecture; human-machine decision attribution ledger;\
     \ enables scalable Z3 executor onboarding. Phase 1\u20133 roadmap. Per CLAUDE.md,\
     \ approved 2026-09-19 19:00 UTC pending formal INDEX entry."
-records:
-=======
-- q_id: Q-PHASE-2-BOARD-MOLT-01
-  title: "Z2 Board Decisions & Molt Events Ingestion"
-  path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
-  submitted: '2026-09-19'
+- q_id: Q-MOLT-TEMPORAL-PURITY-01
+  title: "Molt closure is a state predicate, not a clock \u2014 MOLT_STATE.md window\
+    \ semantics vs Q-TEMPORAL-DISSOLUTION-01"
+  path: z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md
+  submitted: '2026-09-21'
   status: awaiting_z2
-- q_id: Q-INTENT-OS-WITNESS-LEDGER-01
-  title: "Intent-OS witness ledger — human-machine decision attribution ledger"
-  path: z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md
-  submitted: '2026-09-19'
+  tier: 2
+  note: "AMBIGUITY callout. MOLT_STATE.md resolves molts at window_end; BOOT_PROCESS_MAP.md\
+    \ already published the successor reading and MOLT_STATE.md was never migrated.\
+    \ Proposes closure by pinned observation set, MEASUREMENT_STARVED as a census\
+    \ predicate, and adds MOLT_STATE.md to the temporal gate's control surfaces\
+    \ (Tier 2 \u2014 gate path; needs registry entry + ADV run before KEEP)."
+- q_id: Q-DATA-SSOT-REGENERATION-01
+  title: "Regenerate the data SSOT \u2014 contaminated v0.1 corpus retained as lesson\
+    \ artifact, not corrected figures"
+  path: z1-inbox/2026-09-21/Q-DATA-SSOT-REGENERATION-01.md
+  submitted: '2026-09-21'
   status: awaiting_z2
-  note: "Witness ledger architecture; human-machine decision attribution ledger;\
-    \ enables scalable Z3 executor onboarding. Phase 1–3 roadmap. Per CLAUDE.md,\
-    \ approved 2026-09-19 19:00 UTC pending formal INDEX entry."
+  note: "Records a Z2 position stated in session (Night, 2026-09-21) reframing the\
+    \ corpus question: v0.1 is contaminated, that is the lesson, regenerate the\
+    \ SSOT rather than correct the numbers. Supersedes the Option A/B framing of\
+    \ Q-CORPUS-STATS-RECONCILE-01. Finds that submission_purity already stratifies\
+    \ the contamination, so clean derivation is a WHERE clause. Also answers\
+    \ pseudonymous login (did:key / anonymous token, both primitives already in\
+    \ the tree), bidirectional influence measurement as an H- candidate not a\
+    \ capability, and HA-000 as a milestone with a not-Z1 administrator.\
+    \ UNVERIFIED: Supabase connector needs authorization; live table not queried."
+- q_id: Q-GATE-PATHS-TEST-LOGIC-01
+  title: "A gate's logic measures Tier 0 while its workflow wrapper measures Tier 2"
+  path: z1-inbox/2026-09-21/Q-GATE-PATHS-TEST-LOGIC-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  tier: 2
+  note: "tests/test_temporal_dissolution_gate.py is the temporal gate's refusal\
+    \ logic; the workflow only wraps it. GATE_PATHS lists .github/workflows/ but\
+    \ not the test, so changing what the gate refuses measures not-a-molt. Same\
+    \ gap patched twice before per the file's own REPO notes. Z1 filed rather than\
+    \ self-applied: it would retroactively vindicate Z1's own over-claim on PR #436."
+- q_id: Q-SEED-TRL-PROPAGATION-01
+  title: "Ratified TRL correction never reached SEED.md — identity anchor still\
+    \ states TRL 2–3"
+  path: z1-inbox/2026-09-21/Q-SEED-TRL-PROPAGATION-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "S-061226-02 ratified TRL 2–3 → 4 throughout and OPS_ROADMAP applied\
+    \ it; SEED.md (Class 0, live-fetched at session open) still says 2–3 in three\
+    \ places. 57 tree-wide occurrences of 2–3 against 21 of 4. Same defect class\
+    \ as the molt window. Z1 files, does not edit the seed."
+- q_id: Q-CORPUS-STATS-RECONCILE-01
+  title: "July corpus audit still unresolved — SEED.md publishes figures the\
+    \ audit found unreproducible"
+  path: z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "audits/CORPUS_RECONCILIATION_S-070226.md is a Zone 1 submission-blocking\
+    \ finding offering Option A/B; no selection recorded. SEED.md still canonicalises\
+    \ N=629 / N_LI=307 / mean LI 0.8632 against the audit's 608 / 0.8431 raw / 0.8572\
+    \ cleaned. Three live statistic sets. Z2 selects the option; Z1 does not set\
+    \ published research figures."
+- q_id: Q-AGENT-CHECKIN-CALIBRATION-01
+  title: "Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review\
+    \ comparison"
+  path: z1-inbox/2026-09-21/Q-AGENT-CHECKIN-CALIBRATION-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "Builds on PR #431. PARTICIPATION_CONTRACT_V0_1 already specifies agent\
+    \ check-in (continuity_mode EPHEMERAL) but carries no calibration field for\
+    \ agent or human; H-ACAT HA-000 has never been run. Also analyses Copilot's\
+    \ EVIDENCE_GRAPH.json against INTENT_GRAPH.yaml — see AGENT_GRAPH_COMPARISON.md.\
+    \ Recommends adopting Copilot's edge-state grading."
+- q_id: Q-INTENT-GRAPH-01
+  title: "Shared intent substrate \u2014 typed graph for vision/mission/principles/objectives\
+    \ with a conflict validator"
+  path: z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "Structural half of Q-MOLT-TEMPORAL-PURITY-01. INTENT_GRAPH.yaml +\
+    \ tools/intent_graph_v1_0.py + rendered INTENT_GRAPH.md. Found 3 previously\
+    \ unrecorded items on first run, including falsifier_lint cited in CLAUDE.md\
+    \ with no implementing workflow. Includes a collaboration protocol Z2 is asked\
+    \ to accept or amend."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
@@ -699,7 +765,6 @@ records:
 - path: z1-inbox/2026-09-19/BROKER-TRACK-STATUS-2026-09-19.md
   title: Broker Track status report (2026-09-19)
   note: Status report on broker service implementation and nonprofit partnership track
->>>>>>> origin/main
 - path: z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md
   title: "Z2 rulings 2026-09-18 \u2014 signatures issued by .z1-control/ratify.py\
     \ and tools/intent_os_reconcile_v1_0.py"
