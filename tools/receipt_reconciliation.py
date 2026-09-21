@@ -221,8 +221,43 @@ def main():
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Verbose output"
     )
+    parser.add_argument(
+        "--smoke-test", action="store_true", help="Run smoke test (Builder v1.7 compliance)"
+    )
 
     args = parser.parse_args()
+
+    # Smoke test for Builder v1.7 compliance
+    if args.smoke_test:
+        print(f"🧪 {TOOL_NAME} v{TOOL_VERSION} smoke test")
+        try:
+            # Test: extract claims from text
+            test_text = "See Q-TEST-001 and IC-042 in the proposal"
+            claims = extract_claims_from_text(test_text)
+            assert "Q-TEST-001" in claims, "Failed to extract Q- pattern"
+            assert "IC-042" in claims, "Failed to extract IC- pattern"
+            print("   ✅ Claim extraction works")
+
+            # Test: find gaps (no ledger, so should have gaps)
+            gaps = find_gaps(claims, {})
+            assert len(gaps) == 2, f"Expected 2 gaps, got {len(gaps)}"
+            print("   ✅ Gap detection works")
+
+            # Test: generate IC candidate
+            if gaps:
+                candidate = generate_ic_candidate(gaps[0])
+                assert "RECEIPT-GAP" in candidate, "Candidate doesn't contain RECEIPT-GAP"
+                assert gaps[0]["claim_id"] in candidate, f"Candidate doesn't reference {gaps[0]['claim_id']}"
+                print("   ✅ IC candidate generation works")
+
+            print(f"✅ Smoke test passed\n")
+            return 0
+        except AssertionError as e:
+            print(f"❌ Smoke test failed: {e}\n")
+            return 1
+        except Exception as e:
+            print(f"❌ Smoke test error: {e}\n")
+            return 1
 
     print("📋 Receipt Reconciliation — Claims vs. Ledger")
     print()
