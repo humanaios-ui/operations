@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 69
+  candidates: 72
   records: 37
 ratifiers:
 - Night
@@ -680,6 +680,38 @@ candidates:
     \ Proposes closure by pinned observation set, MEASUREMENT_STARVED as a census\
     \ predicate, and adds MOLT_STATE.md to the temporal gate's control surfaces\
     \ (Tier 2 \u2014 gate path; needs registry entry + ADV run before KEEP)."
+- q_id: Q-SEED-TRL-PROPAGATION-01
+  title: "Ratified TRL correction never reached SEED.md — identity anchor still\
+    \ states TRL 2–3"
+  path: z1-inbox/2026-09-21/Q-SEED-TRL-PROPAGATION-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "S-061226-02 ratified TRL 2–3 → 4 throughout and OPS_ROADMAP applied\
+    \ it; SEED.md (Class 0, live-fetched at session open) still says 2–3 in three\
+    \ places. 57 tree-wide occurrences of 2–3 against 21 of 4. Same defect class\
+    \ as the molt window. Z1 files, does not edit the seed."
+- q_id: Q-CORPUS-STATS-RECONCILE-01
+  title: "July corpus audit still unresolved — SEED.md publishes figures the\
+    \ audit found unreproducible"
+  path: z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "audits/CORPUS_RECONCILIATION_S-070226.md is a Zone 1 submission-blocking\
+    \ finding offering Option A/B; no selection recorded. SEED.md still canonicalises\
+    \ N=629 / N_LI=307 / mean LI 0.8632 against the audit's 608 / 0.8431 raw / 0.8572\
+    \ cleaned. Three live statistic sets. Z2 selects the option; Z1 does not set\
+    \ published research figures."
+- q_id: Q-AGENT-CHECKIN-CALIBRATION-01
+  title: "Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review\
+    \ comparison"
+  path: z1-inbox/2026-09-21/Q-AGENT-CHECKIN-CALIBRATION-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "Builds on PR #431. PARTICIPATION_CONTRACT_V0_1 already specifies agent\
+    \ check-in (continuity_mode EPHEMERAL) but carries no calibration field for\
+    \ agent or human; H-ACAT HA-000 has never been run. Also analyses Copilot's\
+    \ EVIDENCE_GRAPH.json against INTENT_GRAPH.yaml — see AGENT_GRAPH_COMPARISON.md.\
+    \ Recommends adopting Copilot's edge-state grading."
 - q_id: Q-INTENT-GRAPH-01
   title: "Shared intent substrate \u2014 typed graph for vision/mission/principles/objectives\
     \ with a conflict validator"

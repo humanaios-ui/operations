@@ -254,6 +254,24 @@ nodes:
     source: document-registry.yaml
     status: CONFLICTED
 
+  - id: O-IDENTITY-ANCHOR
+    type: objective
+    name: Identity anchor
+    statement: >-
+      SEED.md is the canonical answer to what this organism is, live-fetched at
+      session open. Ratified corrections to identity claims must reach it.
+    source: SEED.md
+    status: CONFLICTED
+
+  - id: O-CORPUS-INTEGRITY
+    type: objective
+    name: Corpus integrity
+    statement: >-
+      The published ACAT corpus and the headline statistics cited from it are the
+      same numbers, reproducible by anyone who downloads the dataset.
+    source: audits/CORPUS_RECONCILIATION_S-070226.md
+    status: LIVE
+
   - id: O-INTENT-GRAPH
     type: objective
     name: Shared intent substrate
@@ -341,6 +359,19 @@ nodes:
     source: priority_queue_engine.py
     status: LIVE
 
+  - id: I-CORPUS-VALIDATOR
+    type: instrument
+    name: Corpus integrity validator
+    statement: >-
+      Recomputes the Learning Index per row and flags mismatch, anchoring and
+      missing-timestamp defects in the published corpus.
+    source: tools/corpus_integrity_validator.py
+    status: LIVE
+    note: >-
+      Exists, works, and the published dataset currently fails it — 31
+      LI_RECALC_MISMATCH rows per audits/CORPUS_RECONCILIATION_S-070226.md.
+      Nothing runs it in CI. Q-CORPUS-STATS-RECONCILE-01 asks Z2 whether it gates.
+
   - id: I-INTENT-GRAPH
     type: instrument
     name: Intent graph renderer
@@ -368,6 +399,8 @@ edges:
   - {from: O-INTENT-GRAPH,  to: M-GOVERNED-CHANGE, rel: realizes}
   - {from: O-DOC-CONTROL,   to: M-GOVERNED-CHANGE, rel: realizes}
   - {from: O-DECISION-ROUTING, to: M-GOVERNED-CHANGE, rel: realizes}
+  - {from: O-IDENTITY-ANCHOR,  to: M-GOVERNED-CHANGE, rel: realizes}
+  - {from: O-CORPUS-INTEGRITY, to: M-OBSERVABILITY,   rel: realizes}
   - {from: O-QUEUE,         to: M-RESOURCE-TRUTH,  rel: realizes}
   - {from: O-TEMPORAL-GATE, to: M-RESOURCE-TRUTH,  rel: realizes}
 
@@ -384,6 +417,9 @@ edges:
   - {from: P-EVIDENCE-OVER-CLAIM, to: O-REGISTRY,     rel: grounds}
   - {from: P-EVIDENCE-OVER-CLAIM, to: O-INTENT-GRAPH, rel: grounds}
   - {from: P-EVIDENCE-OVER-CLAIM, to: O-DOC-CONTROL,  rel: grounds}
+  - {from: P-EVIDENCE-OVER-CLAIM, to: O-CORPUS-INTEGRITY, rel: grounds}
+  - {from: P-SERIAL-GATE,        to: O-IDENTITY-ANCHOR,  rel: grounds}
+  - {from: P-ADMISSION,          to: O-CORPUS-INTEGRITY, rel: grounds}
   - {from: P-NON-COMMENSURABLE,  to: O-QUEUE,         rel: grounds}
   - {from: P-TEMPORAL-PURITY,    to: O-QUEUE,         rel: grounds}
   - {from: P-TEMPORAL-PURITY,    to: O-TEMPORAL-GATE, rel: grounds}
@@ -408,6 +444,7 @@ edges:
   - {from: I-RESOURCE-CENSUS, to: O-QUEUE,       rel: measures}
   - {from: I-QUEUE-ENGINE,   to: O-QUEUE,        rel: measures}
   - {from: I-INTENT-GRAPH,   to: O-INTENT-GRAPH, rel: measures}
+  - {from: I-CORPUS-VALIDATOR, to: O-CORPUS-INTEGRITY, rel: measures}
 
   # constraints
   - {from: G-ANTI-CASCADE,  to: O-MOLT-CYCLE, rel: constrains}
@@ -449,6 +486,49 @@ edges:
     evidence:
       - 'document-registry.yaml: review_interval_days, review_due, overdue'
       - 'TEMPORAL_CONTROL_AUDIT.md: document-control finding'
+
+  # Filed under the Q-INTENT-GRAPH-01 obligation: a conflicts_with row goes in
+  # the moment Z1 reads two artifacts that disagree. Both rows below were found
+  # by a sweep prompted by Night asking "what else disagrees?" — neither was
+  # previously represented anywhere a check could see it.
+
+  - from: O-IDENTITY-ANCHOR
+    to: V-HAIOS
+    rel: conflicts_with
+    status: OPEN
+    q_ref: Q-SEED-TRL-PROPAGATION-01
+    detail: >-
+      OPS_ROADMAP_V1.2.md records a Z2 ratification — "TRL corrected from 2-3 to 4
+      throughout | RATIFIED - Night | S-061226-02" — and applies TRL 4. SEED.md,
+      the identity anchor that is live-fetched at session open, still states TRL
+      2-3 in three places including its footer. A ratified correction was applied
+      to one surface and never propagated to the canonical one, so every session
+      boots on the superseded value. Exactly the shape of the molt-window finding.
+    evidence:
+      - 'OPS_ROADMAP_V1.2.md line 18: TRL corrected from 2-3 to 4 throughout, RATIFIED'
+      - 'SEED.md lines 33, 231, 318: TRL 2-3'
+      - 'tree-wide: 57 occurrences of TRL 2-3 against 21 of TRL 4'
+
+  - from: O-IDENTITY-ANCHOR
+    to: O-CORPUS-INTEGRITY
+    rel: conflicts_with
+    status: OPEN
+    q_ref: Q-CORPUS-STATS-RECONCILE-01
+    detail: >-
+      audits/CORPUS_RECONCILIATION_S-070226.md is a Zone 1 submission-blocking
+      finding: the cited headline statistics are not reproducible from the
+      published dataset. It offers two resolution options and records no
+      selection. SEED.md still publishes the unreproducible set as canonical —
+      N_total 629, N_LI 307, mean LI 0.8632 — against the audit's measured 608
+      rows, 0.8431 raw and 0.8572 cleaned. Tree-wide, 0.8632 appears 38 times. A
+      third set (LI 0.87, the "canonical paper numbers") is in use with a written
+      instruction not to mix it with the others. The finding is documented,
+      unresolved, and load-bearing for the instrument's own credibility claim.
+    evidence:
+      - 'audits/CORPUS_RECONCILIATION_S-070226.md: "Not one of the five headline numbers matches"'
+      - 'SEED.md lines 89-92: N_total 629, N_LI 307, Mean LI 0.8632'
+      - 'deliverables/witness-stand-post-1.md: "Do NOT swap in the 0.8632/N=629 draft figures"'
+      - 'tree-wide mean LI values: 0.8632 x38, 0.8532 x7, 0.8431 x2, 0.8572 x1'
 
   - from: O-DECISION-ROUTING
     to: O-TEMPORAL-GATE
