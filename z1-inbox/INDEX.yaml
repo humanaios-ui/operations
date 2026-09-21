@@ -757,9 +757,11 @@ candidates:
   status: awaiting_z2
   note: "BLOCKER 1 of 2 preventing Z3 automation wiring. WITNESS_STATE_V0_1.schema.json\
     \ declares additionalProperties: false but BASELINE_S092126.json profile contains\
-    \ 9 additional fields (measured_gap_rate, calibration_notes, etc.). Z2 must choose\
-    \ Option A (expand WITNESS to v0.2) or Option B (separate ProfileSchema.json).\
-    \ Blocks Z3 s2 and s3 executor tasks toward 2026-10-21 monthly cycle deadline."
+    \ 7 additional fields (measured_gap_rate, measured_clean_rate, status, calibration_notes,\
+    \ failing_checks_observed, acat_dimensions_stressed, next_review_date). Schema\
+    \ structure also incorrect (substrates container). Z2 must choose Option A (expand\
+    \ WITNESS to v0.2) or Option B (separate ProfileSchema.json). Blocks Z3 s2 and\
+    \ s3 executor tasks toward 2026-10-21 monthly cycle deadline."
 - q_id: Q-SMAG-Z3-TASK-SEQUENCING-01
   title: "SMAG Z3 executor task sequencing and ownership \u2014 s1/s2/s3 dependency\
     \ graph"
