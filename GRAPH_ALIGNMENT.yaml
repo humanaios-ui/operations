@@ -104,9 +104,15 @@ graphs:
 # here instead, which makes them Z2-reviewable rather than inferred — and makes
 # the gap visible: this is Z1 attributing sources to another agent's nodes, and
 # Z1 may have attributed them wrongly. A row with `sources: []` asserts the node
-# was derived from no tree artifact; the tool treats an empty set as disjoint
-# from everything, which is the generous reading, so an under-populated map
-# inflates independence. That is the known failure mode of this file.
+# was derived from no tree artifact, which is unknown provenance rather than
+# independence: the tool grades such a pair UNSOURCED at weight 0 and refuses to
+# treat "nobody recorded where this came from" as evidence of anything. So an
+# under-populated map costs coverage, and cannot inflate independence.
+#
+# Paths here are compared by their real path inside the tree, not by spelling.
+# `./CLAUDE.md` and `CLAUDE.md` are one source, and a path that resolves through
+# a symlink to a file outside the tree is refused outright — provenance pointing
+# outside the repository is provenance a later reader cannot re-check.
 #
 # W-rule: the tool warns on every EVIDENCE node with no source_map entry.
 

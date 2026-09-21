@@ -130,19 +130,41 @@ rule silently omits.
 
 ## Falsifier
 
-FALSE if two graphs in this repository can be shown to have genuinely disjoint
-sources while describing the same governance objects — which would mean the
-shared-source problem is an artifact of this particular pair and not structural.
-Mechanically checkable: declare the alignment, run `grade`, look for a nonzero
-weight.
+*Rewritten on review (Copilot, PR #442). The first version was reversed and the
+error is worth recording rather than quietly replacing.* It read: FALSE if two
+graphs can be shown to have genuinely disjoint sources while describing the same
+governance objects. **That is the grader's success case, not its failure case.**
+A disjoint pair scoring INDEPENDENT is the mechanism working; as written, the
+first time this candidate did its job it would have marked itself false.
 
-Also FALSE if the grading can be gamed upward by an author declaring fewer
-sources than it used. This is a real attack and the mitigation is partial:
-`UNSOURCED` closes the obvious form (declare nothing, score independent) by
-refusing to grade an undeclared side at all, but an author who declares one true
-source and omits a second still scores too high. There is no mechanical defence
-against that from inside the tree; it is the reason W1 reports coverage and the
-reason `Q-EXTERNAL-JESTER-01` exists.
+The slip came from writing a falsifier for the wrong claim. Z1 falsified the
+*observation* — "shared sources are structural in this repository" — which is an
+incidental finding of one run, and attached it to a candidate whose claim is the
+*mechanism*: that grading by source disjointness separates corroboration from
+transcription. A mechanism is falsified by grading something wrongly, not by
+finding the case it was built to recognise.
+
+The mechanism is FALSE if either of these holds:
+
+1. **A known shared-source pair grades INDEPENDENT.** Two nodes demonstrably
+   derived from one artifact scoring 1.0 means the closure does not close.
+   Mechanically checkable: declare such a pair, run `grade`. Two instances are
+   already fixtures — a pair sharing a file directly, and a pair sharing one
+   through declared lineage.
+2. **A pair graded INDEPENDENT is later shown to have an unmodelled shared
+   source.** The grade was bought by a source the declaration omitted. This is
+   the live risk and the one to watch, because it is the form the grading cannot
+   see from inside the tree.
+
+Failure 2 is not fully defensible and the limit should be stated rather than
+papered over. `UNSOURCED` closes the crude attack — declare nothing, score
+independent — by refusing to grade an undeclared side at all. Canonicalisation
+closes the alias attack: `./CLAUDE.md` and `CLAUDE.md` now collapse to one
+identity, so a pair cannot score INDEPENDENT by spelling one side differently.
+Neither closes the case of an author who declares one true source and omits a
+second. W1 reports coverage so the omission is at least visible, and
+`Q-EXTERNAL-JESTER-01` exists because a source set declared by someone outside
+the project is the only structural answer.
 
 ## Evidence
 

@@ -21,7 +21,12 @@ sides could have got the answer from the same place.
   --alignment <path>     read an alignment other than GRAPH_ALIGNMENT.yaml;
                          renders to stdout so a candidate cannot overwrite the
                          canonical page
-  --smoke-test           self-check on fixtures; no filesystem writes
+  --input <path>         alias for --alignment, per the tool contract in
+                         tools/README.md ("Support --help and --input")
+  --smoke-test           self-check on fixtures. Writes nothing inside the
+                         repository; the symlink-containment case needs a real
+                         symlink, so it builds one in a temporary directory and
+                         removes it.
 
 What it does NOT do: it does not decide which graph is right, and it cannot
 promote a pair to INDEPENDENT. Independence is computed from the declared source
@@ -60,7 +65,10 @@ VALIDATION RULES (all mechanical, all re-runnable)
   A4  every alignment kind and divergence class is in the vocabulary
   A5  every alignment and divergence row carries a non-empty basis
   A6  a BACKFILL row may not be graded INDEPENDENT or SEQUENTIAL_UNREAD
-  A7  every graph declares an explicit access grade toward the other
+  A7  every graph declares an explicit access grade, with a basis, toward the
+      OTHER graph. The target is checked: a declaration aimed anywhere else
+      could supply UNAVAILABLE for the later graph and buy INDEPENDENT without
+      ever describing access to the earlier one
   A8  a relation alignment names rels that exist in both vocabularies
   A9  a FALSE_FRIEND row contributes no corroboration weight
   A10 a divergence row names at least one side
@@ -80,7 +88,9 @@ import argparse
 import json
 import os
 import re
+import shutil
 import sys
+import tempfile
 from typing import Any
 
 try:
@@ -160,19 +170,47 @@ def load_alignment(path: str = ALIGNMENT, root: str = ROOT) -> dict[str, Any]:
 def _resolve_in_tree(source: str, root: str) -> str | None:
     """Resolve a declared source path inside the tree, or None.
 
-    Refuses absolute paths and any path escaping the root. Mirrors E3 in
-    tools/intent_graph_v1_0.py; the two rules must stay the same shape, because
-    a source that escapes the tree cannot be re-checked by a later reader.
+    Refuses absolute paths and any path whose REAL path escapes the root.
+    normpath alone checks lexical containment only, so a path inside the tree
+    that is a symlink to a file outside it would pass — and provenance pointing
+    outside the tree is a false independence grade, since the external file is
+    not one a later reader can re-check. Mirrors E3 in
+    tools/intent_graph_v1_0.py; the two rules must stay the same shape.
     """
-    if not source or os.path.isabs(source):
+    if not source or os.path.isabs(source) or \
+            (os.path.altsep and source.startswith(os.path.altsep)):
         return None
-    candidate = os.path.normpath(os.path.join(root, source))
-    if not (candidate == root or candidate.startswith(root + os.sep)):
+    root_real = os.path.realpath(root)
+    candidate = os.path.realpath(os.path.join(root_real, source))
+    if candidate != root_real and not candidate.startswith(root_real + os.sep):
         return None
     return candidate if os.path.exists(candidate) else None
 
 
-def source_closure(sources: list[str], lineage: dict[str, list[str]]) -> set[str]:
+def _canon(source: str, root: str) -> str:
+    """The identity a source is compared by: its real path inside the tree.
+
+    Source sets are intersected to decide independence, so comparing the
+    declared spellings lets `./CLAUDE.md` and `CLAUDE.md` look like two
+    different sources and score a pair INDEPENDENT that is reading one file.
+    A source that does not resolve keeps a normalized form of its own spelling;
+    A3 has already errored on it, and collapsing it to something else would
+    hide which row is at fault.
+    """
+    resolved = _resolve_in_tree(source, root)
+    return resolved if resolved is not None else os.path.normpath(source)
+
+
+def _display(path: str, root: str) -> str:
+    """A canonical path written the way the alignment file writes it."""
+    root_real = os.path.realpath(root)
+    if path.startswith(root_real + os.sep):
+        return path[len(root_real) + 1:]
+    return path
+
+
+def source_closure(sources: list[str], lineage: dict[str, list[str]],
+                   root: str = ROOT) -> set[str]:
     """Expand a source set over declared lineage.
 
     Path-level disjointness under-detects the shared-source case: CLAUDE.md and
@@ -182,17 +220,24 @@ def source_closure(sources: list[str], lineage: dict[str, list[str]]) -> set[str
     GRAPH_ALIGNMENT.yaml declares those derivations, and this expands each node's
     sources to their closure before the intersection is taken.
 
+    Every path is canonicalized first, so an alias cannot evade the
+    intersection by being spelled differently on the two sides.
+
     Cycle-safe: a lineage loop terminates on the visited set rather than
     recursing, so a malformed declaration cannot hang the tool (A12).
     """
+    canon_lineage: dict[str, list[str]] = {}
+    for src, derives in lineage.items():
+        canon_lineage.setdefault(_canon(src, root), []).extend(
+            _canon(d, root) for d in derives)
     seen: set[str] = set()
-    stack = list(sources)
+    stack = [_canon(s, root) for s in sources]
     while stack:
         src = stack.pop()
         if src in seen:
             continue
         seen.add(src)
-        stack.extend(lineage.get(src) or [])
+        stack.extend(canon_lineage.get(src) or [])
     return seen
 
 
@@ -244,7 +289,8 @@ def adapt_evidence(path: str, root: str, source_map: dict) -> dict[str, dict]:
 # ---------------------------------------------------------------------------
 
 def grade_row(row: dict, left: dict, right: dict, later_access: str,
-              lineage: dict[str, list[str]] | None = None) -> tuple[str, str]:
+              lineage: dict[str, list[str]] | None = None,
+              root: str = ROOT) -> tuple[str, str]:
     """Return (grade, detail) for one alignment row.
 
     Order matters. Backfill and FALSE_FRIEND short-circuit before any source
@@ -259,17 +305,19 @@ def grade_row(row: dict, left: dict, right: dict, later_access: str,
         return "NOT_CONVERGENCE", "declared FALSE_FRIEND"
 
     lineage = lineage or {}
-    left_src = source_closure(list(left.get("sources") or []), lineage)
-    right_src = source_closure(list(right.get("sources") or []), lineage)
+    left_src = source_closure(list(left.get("sources") or []), lineage, root)
+    right_src = source_closure(list(right.get("sources") or []), lineage, root)
     if not left_src or not right_src:
         side = "intent" if not left_src else "evidence"
         return "UNSOURCED", f"{side} side declares no source; provenance unknown"
 
     overlap = sorted(left_src & right_src)
     if overlap:
-        direct = sorted(set(left.get("sources") or []) & set(right.get("sources") or []))
+        direct = {_canon(p, root) for p in (left.get("sources") or [])} & \
+                 {_canon(p, root) for p in (right.get("sources") or [])}
         via = "" if direct else " (via declared lineage)"
-        return "SHARED_SOURCE", "shared: " + ", ".join(overlap) + via
+        return "SHARED_SOURCE", "shared: " + ", ".join(
+            _display(p, root) for p in overlap) + via
     if later_access == "READ":
         return "CONTAMINATED", "later author read the earlier graph"
     if later_access == "AVAILABLE_UNREAD_ASSERTED":
@@ -310,6 +358,12 @@ def validate(align: dict, graphs: dict[str, dict], root: str = ROOT
             errors.append(f"A7: graph {gid} access grade {grade!r} not in {sorted(ACCESS_GRADES)}")
         if not str(access.get("basis") or "").strip():
             errors.append(f"A7: graph {gid} declares no basis for its access grade")
+        other = ({"INTENT", "EVIDENCE"} - {gid}).pop()
+        if access.get("to") != other:
+            errors.append(
+                f"A7: graph {gid} declares access to {access.get('to')!r}; the only "
+                f"access that grades is access to {other!r}. A grade aimed elsewhere "
+                f"buys independence without describing the exposure that matters.")
         orderings.append(g.get("ordering"))
     if len(set(orderings)) != len(orderings):
         errors.append(f"A11: graphs share an ordering value: {orderings}")
@@ -375,7 +429,7 @@ def validate(align: dict, graphs: dict[str, dict], root: str = ROOT
         mentioned.add(("EVIDENCE", e))
 
         grade, detail = grade_row(row, graphs["INTENT"]["nodes"][i],
-                                  graphs["EVIDENCE"]["nodes"][e], later, lineage)
+                                  graphs["EVIDENCE"]["nodes"][e], later, lineage, root)
         weight = GRADE_WEIGHT[grade]
 
         # A6 — backfill can never be independent. Defence in depth: grade_row
@@ -581,7 +635,12 @@ def render(align: dict, graphs: dict[str, dict], graded: list[dict],
 # ---------------------------------------------------------------------------
 
 def run_smoke_test() -> int:
-    """Fixture-driven self-check. Writes nothing."""
+    """Fixture-driven self-check. Writes nothing inside the repository.
+
+    The symlink case builds a real symlink in a temporary directory, because a
+    containment rule that is only asserted is the defect this tool exists to
+    grade.
+    """
     failures: list[str] = []
     ran = [0]
 
@@ -648,12 +707,45 @@ def run_smoke_test() -> int:
     ])
     check("ordering, not list order, picks the later graph", later == "READ")
 
+    # -- alias identity ------------------------------------------------------
+    alias_l = {"sources": ["./CLAUDE.md"], "provenance": ""}
+    alias_r = {"sources": ["z1-inbox/../CLAUDE.md"], "provenance": ""}
+    g, d = grade_row(plain, alias_l, alias_r, "UNAVAILABLE")
+    check("two spellings of one file cannot score INDEPENDENT",
+          g == "SHARED_SOURCE" and "CLAUDE.md" in d)
+    check("a canonical path is displayed as the alignment file writes it",
+          _display(_canon("./CLAUDE.md", ROOT), ROOT) == "CLAUDE.md")
+    check("aliases collapse in the closure",
+          source_closure(["./CLAUDE.md"], {}, ROOT)
+          == source_closure(["CLAUDE.md"], {}, ROOT))
+
     # -- path resolution -----------------------------------------------------
     check("absolute source refused", _resolve_in_tree("/etc/passwd", ROOT) is None)
     check("escaping source refused", _resolve_in_tree("../../etc/passwd", ROOT) is None)
     check("empty source refused", _resolve_in_tree("", ROOT) is None)
     check("missing source refused", _resolve_in_tree("no/such/file.md", ROOT) is None)
     check("real source resolves", _resolve_in_tree("CLAUDE.md", ROOT) is not None)
+
+    # -- symlink containment: lexical containment is not containment ---------
+    tmp = tempfile.mkdtemp(prefix="graph_convergence_smoke_")
+    try:
+        outside = os.path.join(tmp, "outside.md")
+        with open(outside, "w", encoding="utf-8") as fh:
+            fh.write("not in this tree\n")
+        link = os.path.join(ROOT, ".graph_convergence_smoke_link.md")
+        try:
+            os.symlink(outside, link)
+        except (OSError, NotImplementedError):  # pragma: no cover - platform
+            check("symlink escape refused (skipped: symlinks unavailable)", True)
+        else:
+            try:
+                check("a symlink out of the tree is refused, though it is "
+                      "lexically inside", _resolve_in_tree(
+                          ".graph_convergence_smoke_link.md", ROOT) is None)
+            finally:
+                os.unlink(link)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
     # -- strict loader -------------------------------------------------------
     try:
@@ -698,8 +790,10 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", nargs="?", default="check",
                     choices=["check", "grade", "render"])
-    ap.add_argument("--alignment", default=ALIGNMENT,
+    ap.add_argument("--alignment", default=None,
                     help="read a different alignment file; render goes to stdout")
+    ap.add_argument("--input", dest="input_path", default=None,
+                    help="alias for --alignment (tools/README.md tool contract)")
     ap.add_argument("--check", action="store_true",
                     help="with render: exit 1 if the rendered page is out of sync")
     ap.add_argument("--smoke-test", action="store_true")
@@ -708,7 +802,12 @@ def main() -> int:
     if args.smoke_test:
         return run_smoke_test()
 
-    align = load_alignment(args.alignment)
+    if args.alignment and args.input_path and args.alignment != args.input_path:
+        print("::error::--alignment and --input name different files; they are "
+              "the same option and cannot disagree")
+        return 2
+    alignment_path = args.alignment or args.input_path or ALIGNMENT
+    align = load_alignment(alignment_path)
     smap = align.get("source_map") or {}
     declared = {g["id"]: g for g in (align.get("graphs") or [])}
     try:
@@ -727,7 +826,7 @@ def main() -> int:
         return 1 if errors else 0
 
     page = render(align, graphs, graded, errors, warnings)
-    if args.alignment != ALIGNMENT:
+    if alignment_path != ALIGNMENT:
         sys.stdout.write(page)
         return 1 if errors else 0
 
