@@ -212,3 +212,60 @@ audits, but no such artifact in the tree.
 ```yaml
 z2_decision: {status: awaiting_ratification, ratified_at: null, ratification_hash: null, z2_notes: ""}
 ```
+
+---
+
+## Verification result — Z1 correction, same day
+
+Z2 authorized the Supabase connector. The falsifier above was run. Full record:
+`audits/CORPUS_LIVE_VERIFICATION_S-092126.md`.
+
+**§2's central claim was wrong and is corrected here.** It said clean derivation
+was "a `WHERE` clause, not a rebuild." The `WHERE` clause exists and returns
+**4 rows**.
+
+| Live `acat_assessments_v1` | measured |
+|---|---|
+| total rows | **116** (not 629, not the frozen archive's 608) |
+| `two_stage_verified` **and** `contamination_status='clean'` | **4 rows**, mean LI 0.9074 |
+| all `two_stage_verified` | 21 rows, mean LI 0.9849 — but 15 are contamination `unknown` |
+| `agent_self_only` | 89 rows, mean LI 0.9823 |
+| `acknowledged_elicitation = true` | **0 rows, every stratum** |
+
+Three consequences for this candidate:
+
+1. **The mechanism holds; the execution does not.** Stratification is real and
+   queryable, so the reframe survives. But "regenerate canonical statistics from
+   the clean stratum" is not executable at N=4.
+2. **Mean LI in the live corpus is ~0.98–1.00, not 0.8632** — two strata sit
+   *above* 1.0. That is not a rounding difference from the cited figure, it is a
+   different research finding: no calibration gap, or inflation. Z1 cannot
+   determine whether the live table is a partial re-collection, a different
+   population, or the successor to the frozen archive. **That is now the first
+   question, ahead of everything else in this candidate.**
+3. **§5's influence measurement has no data.** `acknowledged_elicitation` has
+   never been set true. The instrument exists; the collection does not. The
+   honest claim is smaller than §5 made it.
+
+The reframe Z2 ratified — v0.1 as lesson artifact — is *strengthened* by this,
+not weakened: the live table is early, small, and instrumented well enough to
+show its own limits. What changes is sequencing. Nothing can be derived until Z2
+rules on what the live table is relative to the frozen archive.
+
+---
+
+## Z2 Ruling
+
+**Decision:** ACCEPT — stated by Night (Z2/Admiral) in session, 2026-09-21.
+**Recorded by:** Claude (Z1), as transcription. Z1 did not make this call.
+**Signature:** none on this file. Per `z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md`,
+the hash echo is retired and **the merge of this candidate's pull request is the
+act of ratification** — the merger and the merge date are the signature's `by`
+and `at`, recomputable by `.z1-control/ratify.py --verify` over the bytes as
+merged. The index entry stays `awaiting_z2` until that merge, because Z1
+recording a terminal status would be the self-grant `.z1-control/validate.py`
+rule 6 refuses.
+
+Single-member override applies: with one board member, Night reviews, approves
+and merges her own ruling PR, recorded as an override per that ruling's `review`
+row.

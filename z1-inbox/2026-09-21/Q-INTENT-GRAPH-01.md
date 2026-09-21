@@ -297,3 +297,21 @@ z2_decision:
   ratification_hash: null
   z2_notes: ""
 ```
+
+---
+
+## Z2 Ruling
+
+**Decision:** ACCEPT — stated by Night (Z2/Admiral) in session, 2026-09-21.
+**Recorded by:** Claude (Z1), as transcription. Z1 did not make this call.
+**Signature:** none on this file. Per `z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md`,
+the hash echo is retired and **the merge of this candidate's pull request is the
+act of ratification** — the merger and the merge date are the signature's `by`
+and `at`, recomputable by `.z1-control/ratify.py --verify` over the bytes as
+merged. The index entry stays `awaiting_z2` until that merge, because Z1
+recording a terminal status would be the self-grant `.z1-control/validate.py`
+rule 6 refuses.
+
+Single-member override applies: with one board member, Night reviews, approves
+and merges her own ruling PR, recorded as an override per that ruling's `review`
+row.
