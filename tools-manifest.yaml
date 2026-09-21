@@ -2144,7 +2144,7 @@ tools:
 - tool_id: HAIOS-TOOL-181
   name: receipt_reconciliation
   path: tools/receipt_reconciliation.py
-  version: unversioned
+  version: "1.0.0"
   category: governance_tool
   zone: 1
   status: draft
