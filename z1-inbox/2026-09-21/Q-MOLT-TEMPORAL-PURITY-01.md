@@ -75,6 +75,15 @@ Falsifier phrasing moves from "at window close" to "over the pinned observation
 set at closure". `window_days` is retired as control and retained, where a prior
 ratified molt carries it, as `HISTORICAL_RECORD` reporting normalization.
 
+**Closure without evidence yields no verdict.** Two `closes_on` predicates —
+`z2_explicit_close` and `constant_superseded_by_later_ratified_molt` — are
+administrative and can fire below threshold. A molt closing that way resolves to
+`INCONCLUSIVE` with `brier_actual: null`, never `KEEP` or `REVERT`, and does not
+count toward the two-consecutive-reverts freeze. A freeze asserts that a constant
+resisted two *measured* attempts; letting an administrative close supply one would
+reproduce the window bug in a new costume — a verdict produced by something other
+than the evidence. Full table in `MOLT_STATE.md` § Measurement closure.
+
 This is the same substitution `RBE_TEMPORAL_MIGRATION_CANDIDATE.md` already makes
 for `review_cadence_days` (→ `min_completed_censuses` + state invalidators). The
 molt cycle is that pattern's second consumer, not a new mechanism.
@@ -180,9 +189,10 @@ This candidate is FALSE if any of the following holds after the migration lands:
    alone, without reading the observation set.
 3. `MEASUREMENT_STARVED` cannot be computed from two consecutive resource
    censuses without reference to a clock.
-4. Adding `window_end:` or an equivalent unclassified internal deadline to
-   `MOLT_STATE.md` does **not** fail `tests/test_temporal_dissolution_gate.py`
-   after this diff.
+4. Adding `window_end:` — or the duration spelling `window_days:` /
+   `measurement_window_days:` — or an equivalent unclassified internal deadline
+   to `MOLT_STATE.md` does **not** fail
+   `tests/test_temporal_dissolution_gate.py` after this diff.
 5. The migration makes molt outcomes materially **less** measurable than the
    window shape — inherited from `RBE_TEMPORAL_MIGRATION_CANDIDATE.md`'s own
    falsifier, which this candidate must not violate.

@@ -68,7 +68,16 @@ CONTROL_PREFIXES = (
 )
 
 RISK_PATTERNS = (
-    re.compile(r"\b(deadline|due_at|window_end|respond_within|complete_within|start_after)\s*[:=]", re.I),
+    # Q-MOLT-TEMPORAL-PURITY-01 added the *_days forms. Without them the gate
+    # refused a reintroduced `window_end:` but accepted `window_days: 7` and
+    # `measurement_window_days: 28` — the same control expressed as a duration
+    # instead of an instant, which is how the molt cycle carried it all along.
+    re.compile(
+        r"\b(deadline|due_at|window_end|respond_within|complete_within|start_after"
+        r"|window_days|measurement_window_days|review_cadence_days|half_life_days"
+        r"|review_interval_days)\s*[:=]",
+        re.I,
+    ),
     re.compile(r"\b(due|deadline)\s+(by|on)\b", re.I),
     re.compile(r"\boverdue\b", re.I),
     re.compile(

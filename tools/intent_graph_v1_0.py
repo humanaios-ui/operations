@@ -101,6 +101,35 @@ ALLOWED_TEMPORAL_CLASSES = {
     "HISTORICAL_RECORD",
 }
 
+# E11. The status vocabulary. Documented in INTENT_GRAPH.yaml's header comment;
+# without this it was documented and unenforced, so `PROPOSD` would have read as
+# an unknown status and been treated as "not CONFLICTED" by E9.
+NODE_STATUSES = {
+    "LIVE",
+    "PROPOSED",
+    "CONFLICTED",
+    "CITED_NOT_IMPLEMENTED",
+}
+
+# E12. What each edge type is allowed to connect. An edge whose rel is spelled
+# correctly but points the wrong way — `grounds` from an objective to a
+# principle, say — reverses the meaning of the graph while passing every other
+# check. `conflicts_with` is deliberately unconstrained: any two live artifacts
+# can contradict each other.
+EDGE_DOMAINS: dict[str, tuple[set[str], set[str]]] = {
+    "realizes": ({"objective", "mission"}, {"mission", "vision"}),
+    "grounds": ({"principle"}, {"objective", "gate"}),
+    "measures": ({"instrument"}, {"objective"}),
+    "enforces": ({"gate"}, {"principle"}),
+    "constrains": ({"gate", "principle"}, {"objective", "gate", "instrument"}),
+}
+
+# Node types this validator actually has structural rules for. A type declared in
+# the graph but absent here is reported (W5): the file's own header says adding a
+# type without teaching the validator what it means is a lint failure, and that
+# claim was previously unenforced.
+KNOWN_NODE_TYPES = {"vision", "mission", "principle", "objective", "gate", "instrument"}
+
 GENERATED_BANNER = (
     "<!-- GENERATED FILE — do not hand-edit.\n"
     "     Source: INTENT_GRAPH.yaml · Renderer: tools/intent_graph_v1_0.py\n"
@@ -207,6 +236,14 @@ def validate(graph: dict, root: str = ROOT) -> tuple[list[str], list[str]]:
         if ntype not in node_types:
             errors.append(f"E2 {nid}: unknown node type {ntype!r}")
 
+        status = node.get("status")
+        if status not in NODE_STATUSES:
+            errors.append(
+                f"E11 {nid}: unknown status {status!r}. One of "
+                f"{', '.join(sorted(NODE_STATUSES))}. A misspelled status reads as "
+                f"'not CONFLICTED' to E9, which is how a known contradiction goes quiet."
+            )
+
         source = node.get("source")
         if not source:
             errors.append(f"E3 {nid}: no source path")
@@ -260,6 +297,19 @@ def validate(graph: dict, root: str = ROOT) -> tuple[list[str], list[str]]:
         if rel == "realizes":
             realizes.setdefault(src, []).append(dst)
 
+        # E12 — an edge pointing the wrong way reverses the graph's meaning.
+        domain = EDGE_DOMAINS.get(rel)
+        if domain:
+            allowed_from, allowed_to = domain
+            src_type = by_id[src].get("type")
+            dst_type = by_id[dst].get("type")
+            if src_type not in allowed_from or dst_type not in allowed_to:
+                errors.append(
+                    f"E12 {where}: `{rel}` connects {src_type} → {dst_type}; it is "
+                    f"defined as {'|'.join(sorted(allowed_from))} → "
+                    f"{'|'.join(sorted(allowed_to))}"
+                )
+
         if rel == "conflicts_with":
             status = edge.get("status")
             if status not in {"OPEN", "RESOLVED"}:
@@ -306,6 +356,27 @@ def validate(graph: dict, root: str = ROOT) -> tuple[list[str], list[str]]:
     for nid, node in by_id.items():
         if node.get("type") == "mission" and not inbound.get((nid, "realizes")):
             warnings.append(f"W3 {nid}: no objective in this repository realizes this mission")
+
+    # W4 — vision cardinality. The vocabulary says "Expected count 1"; two
+    # visions is not obviously an error but it is never accidental.
+    if len(visions) != 1:
+        warnings.append(
+            f"W4 {len(visions)} vision nodes ({', '.join(sorted(visions)) or 'none'}); "
+            f"the vocabulary expects exactly 1"
+        )
+
+    # W5 — a type the graph declares that this validator has no rule for. The
+    # header claims adding one is a lint failure; this is that lint.
+    for declared in sorted(set(node_types) - KNOWN_NODE_TYPES):
+        warnings.append(
+            f"W5 node type {declared!r} is declared but the validator has no "
+            f"structural rule for it — it is checked only for id and source"
+        )
+    for declared in sorted(set(edge_types) - set(EDGE_DOMAINS) - {"conflicts_with"}):
+        warnings.append(
+            f"W5 edge type {declared!r} is declared but has no entry in "
+            f"EDGE_DOMAINS — its endpoints are unchecked"
+        )
 
     return errors, warnings
 
@@ -691,6 +762,35 @@ def run_smoke_test() -> int:
     errors, _ = validate(undeclared, root=ROOT)
     check("undeclared conflicted status is an error", any(e.startswith("E9") for e in errors))
 
+    # E11 — a misspelled status must not read as "not CONFLICTED".
+    typo = yaml.safe_load(_FIXTURE)
+    typo["nodes"][2]["status"] = "PROPOSD"
+    errors, _ = validate(typo, root=ROOT)
+    check("misspelled status is an error", any(e.startswith("E11") for e in errors))
+
+    # E12 — a correctly spelled rel pointing the wrong way reverses the meaning.
+    reversed_edge = yaml.safe_load(_FIXTURE)
+    reversed_edge["edges"] = [
+        {"from": "O", "to": "P", "rel": "grounds"} if e["rel"] == "grounds" else e
+        for e in reversed_edge["edges"]
+    ]
+    errors, _ = validate(reversed_edge, root=ROOT)
+    check("reversed `grounds` edge is an error", any(e.startswith("E12") for e in errors))
+
+    # W4 — vision cardinality is reported, not enforced.
+    two_visions = yaml.safe_load(_FIXTURE)
+    two_visions["nodes"].append({"id": "V2", "type": "vision", "name": "V2",
+                                 "source": "README.md", "status": "LIVE"})
+    errors, warnings = validate(two_visions, root=ROOT)
+    check("second vision warns but does not block",
+          errors == [] and any(w.startswith("W4") for w in warnings))
+
+    # W5 — a type the graph declares that the validator cannot reason about.
+    widened = yaml.safe_load(_FIXTURE)
+    widened["node_types"]["ritual"] = "a type the validator knows nothing about"
+    _, warnings = validate(widened, root=ROOT)
+    check("undeclared-to-validator node type warns", any(w.startswith("W5") for w in warnings))
+
     # A duplicate mapping key must raise, not silently drop the first block.
     duped = "version: 1\nnodes: []\nnodes: []\n"
     try:
@@ -837,6 +937,13 @@ def main() -> int:
         if not args.node:
             print("trace needs a node id", file=sys.stderr)
             return 2
+        known = {n.get("id") for n in _nodes(graph)}
+        if args.node not in known:
+            # Exit nonzero: a typo'd id previously printed "no such node" and
+            # returned success, so a script asking "is this grounded?" read a
+            # missing node as a clean answer.
+            print(f"no such node: {args.node}", file=sys.stderr)
+            return 1
         print(trace(graph, args.node))
         return 0
 

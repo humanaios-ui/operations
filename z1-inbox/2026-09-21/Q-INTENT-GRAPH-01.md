@@ -270,10 +270,25 @@ correct and unused has failed.
 4. **Rule on `G-FALSIFIER-LINT`:** does the check exist under another name, or is
    `P-FALSIFIER` enforced by convention?
 5. **Set N** for falsifier condition 4.
-6. **Decide whether `check` becomes merge-blocking.** Z1 proposes it stays
-   advisory until the node statements have been through one Z2 correction pass —
-   a blocking gate on Z1's unreviewed reading of Night's intent would be Z1
-   enforcing its own interpretation.
+6. **Decide whether `check` becomes merge-blocking, and whether a workflow runs
+   it at all.** Nothing in `.github/workflows/` currently runs `check` or
+   `render --check`, so `INTENT_GRAPH.md` can drift from `INTENT_GRAPH.yaml`
+   unnoticed — the exact failure this candidate exists to prevent, and a fair
+   criticism of the diff as it stands.
+
+   Z1 has **not** added that workflow, and the reason is this question. A gate
+   enforcing the graph before Z2 has ratified the graph would be Z1 enforcing its
+   own unreviewed reading of Night's intent — the thing point 3 above says this
+   must not do. Z1's proposal, ready to land on ratification:
+
+   - `render --check` **blocking** — purely mechanical ("did you regenerate the
+     page"), same contract as `.z1-control/render.py --check` and
+     `.tool-control/render.py --check`, which are already gated.
+   - `check` **advisory** — its errors are judgements about grounding and
+     contradiction, and those are Z2's to correct first.
+
+   If Z2 prefers both blocking, or both advisory, that is a one-line difference
+   in the workflow.
 
 ```yaml
 z2_decision:

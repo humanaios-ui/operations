@@ -121,6 +121,11 @@ Each MOLT_STATE entry corresponds to an NF_LEDGER row. Progression is encoded in
 
 ### What is wrong with the v1 shape
 
+> Every v1 field quoted in this section is `temporal_class: HISTORICAL_RECORD` —
+> it records the retired shape in order to retire it, and carries no scheduling
+> authority. The temporal gate scans added lines and cannot distinguish a
+> quotation from a control, so the classification is stated rather than implied.
+
 A molt in v1 closes because a timestamp arrived. `window_days: 7` fixes the
 close in advance, `window_end` names the instant, and the falsifier reads
 "Brier score >= 0.20 **at window close**". Three consequences follow, and all
@@ -169,6 +174,27 @@ measurement_gate:
 
   opened_at: <RFC3339>               # HISTORICAL_RECORD once written; not a start gun
 ```
+
+**Closure without evidence does not produce a verdict.** Two of the three
+`closes_on` predicates can fire with an observation set below
+`min_resolved_observations` — `z2_explicit_close` and
+`constant_superseded_by_later_ratified_molt` are administrative, not empirical.
+A molt closing that way resolves to `INCONCLUSIVE` with `brier_actual: null`,
+never to `KEEP` or `REVERT`:
+
+| Closure | Outcome | Constant |
+|:--|:--|:--|
+| `resolved_observations >= min_resolved_observations` | `KEEP` or `REVERT` per the falsifier | kept or rolled back |
+| `z2_explicit_close` below threshold | `INCONCLUSIVE` | rolled back to `prior_value` unless Z2 rules otherwise |
+| `constant_superseded_by_later_ratified_molt` | `INCONCLUSIVE` | the superseding molt owns it |
+| any `invalidated_by` trigger | `INCONCLUSIVE` | rolled back to `prior_value` |
+
+`INCONCLUSIVE` does **not** count toward the two-consecutive-reverts freeze in
+anti-cascade rule 4. A freeze is a statement that a constant resisted two
+measured attempts; an administrative close measured nothing and must not be
+allowed to masquerade as evidence against the constant. Writing a Brier score
+over an empty or under-powered set would be the window bug in a new costume —
+a verdict produced by something other than the evidence.
 
 The falsifier is restated against the set rather than the instant:
 
@@ -500,6 +526,8 @@ Score = impact + Σ(impact of items this unblocks)
 **Q-MOLT-TEMPORAL-PURITY-01 annotation.** The record above is left byte-exact: its
 `ratification_hash` covers the string `7-day`, and re-deriving a Z2 signature over
 edited text is not a Z1 act. It is read under the v1 semantics it was signed under.
+The v1 fields quoted below are `temporal_class: HISTORICAL_RECORD` — a signed,
+already-ratified record, quoted to explain it, not a live control.
 
 Note that this molt is the case the successor predicate is for. `window_days: 7`
 on a Sharpe ratio is a measurement window whose sample size is whatever the
