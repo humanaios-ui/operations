@@ -1,7 +1,7 @@
 # GitHub Actions Workflow Audit & Classification
 
 **Last Updated:** 2026-09-21  
-**Total Workflows:** 52 — `ls .github/workflows/*.yml *.yaml | wc -l`  
+**Total Workflows:** 52 — `ls .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l`  
 
 > This count is hand-maintained and was 48 while 52 files were present. It is a
 > derived view of a directory listing and belongs under a renderer like the other

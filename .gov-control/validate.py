@@ -37,6 +37,18 @@ except ImportError:  # pragma: no cover - CI installs it
     print("::error::PyYAML not installed (pip install pyyaml)")
     sys.exit(2)
 
+# `yaml.safe_load` silently keeps the LAST of a repeated key, so one duplicated
+# line could hide part of this registry while both validate.py and
+# `render.py --check` agreed on the same truncated parse — a gate reading a file
+# that is not the file. `.doc-control/strict_yaml.py` exists because that defect
+# was found twice before; its own docstring notes the first fix "hardened
+# z1-inbox/INDEX.yaml alone and left its sibling registry open." This control
+# plane was the third one open. Reused rather than re-implemented, for the
+# reason that module gives.
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".doc-control"))
+from strict_yaml import load_registry  # noqa: E402
+
 TOOL_NAME = "governance_files_validator"
 TOOL_VERSION = "1.0.0"
 TOOL_CATEGORY = "validation_tool"
@@ -221,7 +233,13 @@ def main() -> int:
         print(f"::error::missing {os.path.relpath(SSOT, ROOT)}")
         return 1
 
-    errors = validate(yaml.safe_load(open(SSOT, encoding="utf-8")) or {})
+    try:
+        data = load_registry(SSOT)
+    except yaml.YAMLError as exc:
+        print(f"::error::{os.path.relpath(SSOT, ROOT)} does not parse strictly: {exc}")
+        return 1
+
+    errors = validate(data)
     for e in errors:
         print(f"::error::{e}")
 

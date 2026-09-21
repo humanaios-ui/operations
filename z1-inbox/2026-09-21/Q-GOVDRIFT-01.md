@@ -100,7 +100,10 @@ been done.
    status `draft` — approval is the owner's act.
 6. **Resolved a committed merge conflict** in `z1-inbox/INDEX.yaml` (markers `=======` /
    `>>>>>>> origin/main` were on `main`, so the file did not parse and both `.z1-control`
-   gates were red). Union resolution; no entry lost; 67 candidates / 37 records.
+   gates were red). Union resolution; no entry lost — 67 candidates / 37 records at
+   that point. The branch has since merged `main` (#436), so the current index holds
+   **75 candidates / 37 records**: main's 74 plus this block, verified by q_id set
+   difference with nothing dropped from either side.
 
 ---
 

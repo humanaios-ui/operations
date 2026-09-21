@@ -104,6 +104,7 @@ import dataclasses
 import json
 import re
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from statistics import NormalDist
@@ -748,6 +749,23 @@ def verify_doc(report: Dict[str, Any], doc_path: Path) -> Tuple[bool, List[str]]
     }
     problems = [f"{label} {val!r} not found in Measured Baseline section"
                 for label, val in expect.items() if val not in baseline_text]
+
+    # The Executive Summary restates the headline yield and DPMO in prose and was
+    # left outside verification, so it went on asserting 81.2% / 188,380 while the
+    # section below it said 80.7% / 193,182 — the same document disagreeing with
+    # itself, which is the condition this whole check exists to detect. Scoped to
+    # that section on purpose: the Changelog legitimately preserves superseded
+    # figures as dated historical entries, and must keep them.
+    summary_match = re.search(r'## Executive Summary\s*\n(.*?)(?:\n## |\Z)', text, re.DOTALL)
+    if summary_match:
+        summary_text = summary_match.group(1)
+        for label in ("first-pass yield", "DPMO"):
+            if expect[label] not in summary_text:
+                problems.append(
+                    f"{label} {expect[label]!r} not found in Executive Summary "
+                    f"(it restates the headline; regenerate or mark historical)"
+                )
+
     problems.extend(_verify_taxonomy_rows(report, text))
     return (not problems), problems
 
@@ -788,6 +806,18 @@ def _verify_taxonomy_rows(report: Dict[str, Any], text: str) -> List[str]:
                 f"{rfm} occurrence cell says {found.group(0)}, scan says "
                 f"{r['defects']} — regenerate the row"
             )
+        # Checking the numerator alone leaves the denominator free to rot: the
+        # RFM-07 row read "8 / 137" against a 154-entry registry and passed,
+        # because its numerator was right. A stale denominator understates the
+        # corpus the defect was measured over, which is the number a reader
+        # divides by.
+        ratio = re.search(r"(\d+)\s*/\s*(\d+)", cells[4])
+        if ratio and r["opportunities"] is not None:
+            if int(ratio.group(2)) != r["opportunities"]:
+                problems.append(
+                    f"{rfm} occurrence denominator says {ratio.group(2)}, scan "
+                    f"measured over {r['opportunities']} — regenerate the row"
+                )
     return problems
 
 
@@ -1110,6 +1140,67 @@ def run_self_test(verbose: bool = True) -> bool:
           b["defects"] == 44 and b["opportunities"] == 524,
           f"got {b['defects']}/{b['opportunities']}")
     check("baseline DPMO arithmetic", abs(b["dpmo"] - 83969) < 2, f"got {b['dpmo']:.0f}")
+
+    # --- verify_doc itself, which gates a published document and had no fixture.
+    #     A parser regression here would make the blocking step pass silently on
+    #     a stale map, which is the failure it was added to catch.
+    vd_report = {
+        "entries_parsed": 154,
+        "baseline": {"defects": 119, "opportunities": 616,
+                     "fpy": 0.807, "dpmo": 193182.0, "sigma": 2.4},
+        # dict form, as run_scan serializes it — verify_doc consumes the report
+        # after serialization, so the fixture must match that shape, not the
+        # dataclass.
+        "results": [
+            dataclasses.asdict(
+                CheckResult("frontmatter_fence_form", "RFM-07", "", FAIL, "critical", 8, 154)),
+            dataclasses.asdict(
+                CheckResult("index_desync", "RFM-11", "", FAIL, "warning", 9, 48)),
+        ],
+    }
+    good_doc = (
+        "## Executive Summary\n\nscores 80.7% first-pass yield / 193,182 DPMO.\n\n"
+        "## Measured Baseline\n\n154 entries, 119 defects / 616 opportunities "
+        "-> 80.7% first-pass yield -> 193,182 DPMO\n\n"
+        "## Taxonomy\n\n"
+        "| **RFM-07** | name | evidence | **8 / 154** | 10 |\n"
+        "| **RFM-11** | name | evidence | **9 / 48 F** | 10 |\n"
+    )
+    with tempfile.TemporaryDirectory() as td:
+        gp = Path(td) / "good.md"
+        gp.write_text(good_doc, encoding="utf-8")
+        ok, probs = verify_doc(vd_report, gp)
+        check("verify-doc clean on a current document", ok, f"got {probs}")
+
+        # numerator stale
+        p2 = Path(td) / "num.md"
+        p2.write_text(good_doc.replace("**8 / 154**", "**5 / 154**"), encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p2)
+        check("verify-doc catches a stale occurrence numerator",
+              not ok and any("says 5" in p for p in probs), f"got {probs}")
+
+        # denominator stale while numerator is right — the RFM-07 "8 / 137" case
+        p3 = Path(td) / "den.md"
+        p3.write_text(good_doc.replace("**8 / 154**", "**8 / 137**"), encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p3)
+        check("verify-doc catches a stale denominator behind a correct numerator",
+              not ok and any("denominator" in p for p in probs), f"got {probs}")
+
+        # Executive Summary contradicting the baseline it summarizes
+        p4 = Path(td) / "sum.md"
+        p4.write_text(good_doc.replace(
+            "scores 80.7% first-pass yield / 193,182 DPMO.",
+            "scores 81.2% first-pass yield / 188,380 DPMO."), encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p4)
+        check("verify-doc catches a stale Executive Summary",
+              not ok and any("Executive Summary" in p for p in probs), f"got {probs}")
+
+        # a taxonomy row for an RFM the scanner does not produce must not fail
+        p5 = Path(td) / "extra.md"
+        p5.write_text(good_doc + "| **RFM-18** | hand-authored | ev | 1 of 43 | 10 |\n",
+                      encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p5)
+        check("verify-doc ignores rows the scanner does not produce", ok, f"got {probs}")
 
     if verbose:
         print()

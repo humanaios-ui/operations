@@ -29,6 +29,14 @@ except ImportError:  # pragma: no cover - CI installs it
     print("::error::PyYAML not installed (pip install pyyaml)")
     sys.exit(2)
 
+# Both control-plane entry points must parse the SSOT the same strict way. If
+# only the validator rejected duplicate keys, `render.py --check` would still
+# render from the loose parse and the two could agree on a file neither read in
+# full. See .doc-control/strict_yaml.py for why this is shared, not re-written.
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".doc-control"))
+from strict_yaml import load_registry  # noqa: E402
+
 TOOL_NAME = "governance_files_renderer"
 TOOL_VERSION = "1.0.0"
 TOOL_CATEGORY = "governance_tool"
@@ -224,7 +232,11 @@ def main() -> int:
         print(f"::error::missing {os.path.relpath(SSOT, ROOT)}")
         return 1
 
-    out = render(yaml.safe_load(open(SSOT, encoding="utf-8")) or {})
+    try:
+        out = render(load_registry(SSOT))
+    except yaml.YAMLError as exc:
+        print(f"::error::{os.path.relpath(SSOT, ROOT)} does not parse strictly: {exc}")
+        return 1
 
     if args.check:
         current = open(OUTPUT, encoding="utf-8").read() if os.path.exists(OUTPUT) else ""

@@ -313,7 +313,10 @@ When Phase 1 launches, initialize NF_LEDGER.jsonl:
 - ✅ NF_LEDGER_SCHEMA_v1.md published in operations/
 - ✅ Unified schema resolves all 4 format incompatibilities
 - ⬜ CI gate validates hash chain — **NOT MET.** No workflow that runs performs this
-  check; see "CI validation — NOT IN FORCE" above. Marked ✅ here until 2026-09-21.
+  check; see "CI validation — NOT IN FORCE" above. *(History: this line read ✅ from
+  the document's creation until 2026-09-21, when the claim was checked against the
+  live workflows and found to be unsupported. The criterion itself has never been
+  met — only the reporting of it changed.)*
 - ✅ molt_cycle.py reads/writes NF_LEDGER correctly
 - ✅ Brier calculation implemented and tested
 - ✅ Genesis record committed to main
