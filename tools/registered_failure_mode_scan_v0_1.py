@@ -1186,7 +1186,9 @@ def run_self_test(verbose: bool = True) -> bool:
         "-> 80.7% first-pass yield -> 193,182 DPMO\n\n"
         "## Taxonomy\n\n"
         "| **RFM-07** | name | evidence | **8 / 154** | 10 |\n"
-        "| **RFM-11** | name | evidence | **9 / 48 F** | 10 |\n"
+        "| **RFM-11** | name | evidence | **9 / 48 F** | 10 |\n\n"
+        "## FMEA\n\n"
+        "| RFM-07 | UNSCORED | 8 / 154 | 5 | — |\n"
     )
     with tempfile.TemporaryDirectory() as td:
         gp = Path(td) / "good.md"
@@ -1223,6 +1225,24 @@ def run_self_test(verbose: bool = True) -> bool:
                       encoding="utf-8")
         ok, probs = verify_doc(vd_report, p5)
         check("verify-doc ignores rows the scanner does not produce", ok, f"got {probs}")
+
+        # the plain FMEA row shape (no **bold**) is the one that drifted through
+        # every prior round undetected; it needs its own numerator and
+        # denominator regressions, not just coverage via good_doc above,
+        # exactly per the review that asked for this.
+        p6 = Path(td) / "fmea_num.md"
+        p6.write_text(good_doc.replace("| RFM-07 | UNSCORED | 8 / 154 |",
+                                        "| RFM-07 | UNSCORED | 5 / 154 |"), encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p6)
+        check("verify-doc catches a stale FMEA-row numerator",
+              not ok and any("says 5" in p for p in probs), f"got {probs}")
+
+        p7 = Path(td) / "fmea_den.md"
+        p7.write_text(good_doc.replace("| RFM-07 | UNSCORED | 8 / 154 |",
+                                        "| RFM-07 | UNSCORED | 8 / 137 |"), encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p7)
+        check("verify-doc catches a stale FMEA-row denominator",
+              not ok and any("denominator" in p for p in probs), f"got {probs}")
 
     if verbose:
         print()

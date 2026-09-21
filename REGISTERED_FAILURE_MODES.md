@@ -31,7 +31,7 @@ This document does that, in three columns:
 1. The registry scores **80.7% first-pass yield / 193,182 DPMO / ~2.4σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
 2. Of 19 failure modes, **before this scan 17 had no detector at all**. The dominant failure mode of the registry is not any single defect — it is the absence of instrumentation.
 3. **Four instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports **130** entries; `tools/repo_health.py` reports **126** immune entries; this scanner reported **131** before review, **135** after first correction, and **137** after Phase 2 parser fix (correction-to discovery + F-24 variant regex + ordering violation counting). No single instrument can be cited as authoritative. Routed to Z2 as a measurement-system finding — its resolution is a Z2 decision about which census should govern RFM-06 scoring and downstream action items.
-4. The value recorded as **Ratification Hash** at `REGISTERED.md:3925` is `e8a501f` — a 7-character git commit SHA, where `CLAUDE.md` Decision Routing step 6 and `NF_LEDGER_SCHEMA_v1.md` both specify `sha256(candidate | by=Night | at=timestamp | decision=ACCEPT)`. A commit SHA proves *when code landed*, not *what was approved*.
+4. The value recorded as **Ratification Hash** at `REGISTERED.md:4074` is `e8a501f` — a 7-character git commit SHA, where `CLAUDE.md` Decision Routing step 6 and `NF_LEDGER_SCHEMA_v1.md` both specify `sha256(candidate | by=Night | at=timestamp | decision=ACCEPT)`. A commit SHA proves *when code landed*, not *what was approved*.
 
 ---
 
@@ -114,8 +114,8 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 
 | ID | Failure mode | Evidence | Occurrence | Detection today |
 |:---|:---|:---|:---|:---|
-| **RFM-14** | **Cross-artifact ratification desync** — an artifact's ratification state contradicts itself or the registry | `PRIORITY_QUEUE.md:11` says *"pending Z2 signature"*; that same file's `## Appended Events` says *"PRIORITY_QUEUE.md v1_1 ratified"*; `REGISTERED.md:3925` lists it ratified at `e8a501f` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
-| **RFM-15** | **Ratification-hash substitution** — a git commit SHA recorded where a decision signature is specified | `REGISTERED.md:3925` = `e8a501f` (7 hex); plus a 63-char near-miss and six unterminated `sha256(Q-…` labels; spec requires exactly 64 hex | **8** | 10 → 5 |
+| **RFM-14** | **Cross-artifact ratification desync** — an artifact's ratification state contradicts itself or the registry | 2026-09-13 baseline evidence (no longer current — `PRIORITY_QUEUE.md` has since been rewritten and no longer contains the cited text): `PRIORITY_QUEUE.md:11` said *"pending Z2 signature"*; that same file's `## Appended Events` said *"PRIORITY_QUEUE.md v1_1 ratified"*; `REGISTERED.md:3925` listed it ratified at `e8a501f` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
+| **RFM-15** | **Ratification-hash substitution** — a git commit SHA recorded where a decision signature is specified | `REGISTERED.md:4074` = `e8a501f` (7 hex); plus a 63-char near-miss and six unterminated `sha256(Q-…` labels; spec requires exactly 64 hex | **8** | 10 → 5 |
 | **RFM-16** | **Ratified-class starvation** — a class `REGISTRY_SPEC.md` ratifies has zero entries. Indistinguishable from a healthy unused channel without a proof test | D-class (`REGISTRY_SPEC.md:16`), R, GD | **3 / 6 classes** | 10 → 5 |
 | **RFM-17** | **Header staleness** — `Last updated` drifts behind the newest dated content | was header 2026-08-15 vs content 2026-09-20; corrected on Q-GOVDRIFT-01 ask 3, Night, 2026-09-21 | **0** — resolved since the 2026-09-21 baseline | 10 → 5 |
 
@@ -343,8 +343,8 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 
 | Candidate | Claim | Evidence |
 |:---|:---|:---|
-| **IC-CAND-A** | Ratification hash is a commit SHA where a decision signature is specified | `REGISTERED.md:3925` = `e8a501f` (7 hex, spec requires 64) |
-| **IC-CAND-B** | `PRIORITY_QUEUE.md` contradicts itself on its own ratification state | `PRIORITY_QUEUE.md:11` vs its `## Appended Events` |
+| **IC-CAND-A** | Ratification hash is a commit SHA where a decision signature is specified | `REGISTERED.md:4074` = `e8a501f` (7 hex, spec requires 64) |
+| **IC-CAND-B** | *(no longer current)* `PRIORITY_QUEUE.md` contradicted itself on its own ratification state, 2026-09-13 baseline | `PRIORITY_QUEUE.md:11` vs its `## Appended Events`, as of the baseline — the file has since been rewritten and no longer contains this text; matches RFM-14's resolution above |
 | **IC-CAND-C** | IC roll-up cites IC-036, which has no body entry | `REGISTERED.md:118` |
 | **IC-CAND-D** | IC-052 and IC-053 number the same defect twice | both "drift validator missing D-OVERCLAIM" |
 
