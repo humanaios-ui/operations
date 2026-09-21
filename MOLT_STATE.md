@@ -374,8 +374,7 @@ Score = impact + Σ(impact of items this unblocks)
   "ratification_hash": "sha256(Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001|Z-012|rebalance_threshold|0.50→0.55|Sharpe>=0.80|7-day|by=carly.r.anderson@gmail.com|at=2026-09-21T00:00:00Z)",
   "window_start": "2026-09-21T00:00:00Z",
   "window_end": "2026-09-28T00:00:00Z",
-  "state": "RATIFIED",
-  "outcome": null
+  "outcome": "APPLIED"
 }
 ```
 

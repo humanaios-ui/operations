@@ -49,7 +49,7 @@
 
 **Total active:** 13 zones (9 full-cap + 3 limited-cap + 1 read-only)  
 **Total planned:** 12 zones (per PLANNED_REPOS.md; 6 unaccounted pending audit)  
-**Total aspirational scope:** 31 zones (original claim; see PLANNED_REPOS.md §Overview)
+**Total ecosystem:** 25 zones (active + planned; see PLANNED_REPOS.md §Overview for full roadmap)
 
 ---
 
