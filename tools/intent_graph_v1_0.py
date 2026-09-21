@@ -45,9 +45,15 @@ VALIDATION RULES (all mechanical, all re-runnable)
       exists precisely to quote the defect it reports and a line scanner cannot
       tell a quotation from a control. E10 restores that enforcement where it
       belongs: on node text, which is the graph speaking in its own voice.
+  E11 every node status is in the documented vocabulary
+  E12 every edge connects the node types its rel is defined for
+  E13 an OPEN conflict's q_ref matches the repository's Q-<AREA>-<nn> contract
   W1  a node marked CITED_NOT_IMPLEMENTED is reported, never fatal
   W2  an objective with no inbound `measures` edge is reported
   W3  a mission no objective in this tree realizes is reported
+  W4  a vision count other than 1 is reported
+  W5  a declared type the validator has no structural rule for is reported
+  W6  a well-formed q_ref not indexed in z1-inbox/INDEX.yaml is reported
 """
 from __future__ import annotations
 
@@ -130,6 +136,17 @@ EDGE_DOMAINS: dict[str, tuple[set[str], set[str]]] = {
 # claim was previously unenforced.
 KNOWN_NODE_TYPES = {"vision", "mission", "principle", "objective", "gate", "instrument"}
 
+# E13. The repository's candidate-id contract, identical to QID_RE in
+# .z1-control/validate.py. E8 previously accepted any truthy q_ref, so a typo
+# left a contradiction looking actionable with nothing actually resolving it —
+# which is the failure this file exists to prevent, one level up.
+QID_RE = re.compile(r"^Q-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{2}$")
+
+# Where candidates are indexed. A q_ref that parses but is not indexed warns
+# rather than errors: a conflict may legitimately cite a ratified gate that was
+# never an inbox candidate (Q-TEMPORAL-DISSOLUTION-01 is one).
+CANDIDATE_INDEX = os.path.join(ROOT, "z1-inbox", "INDEX.yaml")
+
 GENERATED_BANNER = (
     "<!-- GENERATED FILE — do not hand-edit.\n"
     "     Source: INTENT_GRAPH.yaml · Renderer: tools/intent_graph_v1_0.py\n"
@@ -211,10 +228,32 @@ def _edges(graph: dict) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 
-def validate(graph: dict, root: str = ROOT) -> tuple[list[str], list[str]]:
+def known_candidate_ids(path: str = CANDIDATE_INDEX) -> set[str]:
+    """Candidate ids from the Z1 inbox index; empty if it cannot be read.
+
+    Absence is not an error — this tool must stay usable on a tree where the
+    index is missing or (as this PR found) temporarily unparseable.
+    """
+    try:
+        with open(path, encoding="utf-8") as handle:
+            index = yaml.safe_load(handle)
+    except (OSError, yaml.YAMLError):
+        return set()
+    if not isinstance(index, dict):
+        return set()
+    return {
+        str(c.get("q_id")) for c in (index.get("candidates") or [])
+        if isinstance(c, dict) and c.get("q_id")
+    }
+
+
+def validate(graph: dict, root: str = ROOT,
+             known_candidates: set[str] | None = None) -> tuple[list[str], list[str]]:
     """Return (errors, warnings). Errors are merge-blocking; warnings are not."""
     errors: list[str] = []
     warnings: list[str] = []
+    if known_candidates is None:
+        known_candidates = known_candidate_ids()
 
     node_types = set(graph.get("node_types") or {})
     edge_types = set(graph.get("edge_types") or {})
@@ -315,10 +354,22 @@ def validate(graph: dict, root: str = ROOT) -> tuple[list[str], list[str]]:
             if status not in {"OPEN", "RESOLVED"}:
                 errors.append(f"E8 {where}: conflicts_with needs status OPEN or RESOLVED")
             elif status == "OPEN":
-                if not edge.get("q_ref"):
+                q_ref = edge.get("q_ref")
+                if not q_ref:
                     errors.append(
                         f"E8 {where}: an OPEN conflict must name the candidate that would "
                         f"resolve it (q_ref). Noticed-and-left is the failure P-ADMISSION refuses."
+                    )
+                elif not QID_RE.match(str(q_ref)):
+                    errors.append(
+                        f"E13 {where}: q_ref {q_ref!r} does not match the repository's "
+                        f"candidate-id contract Q-<AREA>-<nn>. A malformed reference leaves "
+                        f"the conflict looking actionable with nothing resolving it."
+                    )
+                elif str(q_ref) not in known_candidates:
+                    warnings.append(
+                        f"W6 {where}: q_ref {q_ref} is well-formed but not indexed in "
+                        f"z1-inbox/INDEX.yaml — check it is not a typo for a real candidate"
                     )
                 # Directional: only the departing side is marked. See E9.
                 conflicted.add(src)
@@ -464,7 +515,8 @@ def render(graph: dict, errors: list[str], warnings: list[str]) -> str:
     add("")
     add("Read it upward: instruments measure objectives, principles ground them, objectives")
     add("realize missions, missions realize the vision. A crossed edge (`x--x`) is a live")
-    add("contradiction, labelled with the candidate open against it.")
+    add("contradiction, labelled with the candidate open against it; a resolved one is")
+    add("drawn as an ordinary dotted edge.")
     add("")
     add("```mermaid")
     add("flowchart BT")
@@ -495,8 +547,15 @@ def render(graph: dict, errors: list[str], warnings: list[str]) -> str:
         }.get(rel, "-->")
         add(f'  {edge["from"]} {arrow}|{rel}| {edge["to"]}')
 
-    for index, edge in enumerate(conflict_edges):
-        add(f'  {edge["from"]} x--x|conflicts: {edge.get("q_ref", "unfiled")}| {edge["to"]}')
+    for edge in conflict_edges:
+        # A RESOLVED conflict must not draw as `x--x`: the caption below defines
+        # that mark as a live contradiction, so rendering both the same way would
+        # make the canvas report settled disagreements as open ones.
+        if edge.get("status") == "RESOLVED":
+            label = f'resolved: {edge.get("q_ref", "—")}'
+            add(f'  {edge["from"]} -.->|{label}| {edge["to"]}')
+        else:
+            add(f'  {edge["from"]} x--x|conflicts: {edge.get("q_ref", "unfiled")}| {edge["to"]}')
 
     # Style the conflicted nodes so the contradiction is visible at a glance.
     conflicted_ids = sorted(
@@ -757,7 +816,7 @@ def run_smoke_test() -> int:
     undeclared["edges"] += [
         {"from": "O2", "to": "V", "rel": "realizes"},
         {"from": "P", "to": "O2", "rel": "grounds"},
-        {"from": "O", "to": "O2", "rel": "conflicts_with", "status": "OPEN", "q_ref": "Q-X"},
+        {"from": "O", "to": "O2", "rel": "conflicts_with", "status": "OPEN", "q_ref": "Q-FIXTURE-01"},
     ]
     errors, _ = validate(undeclared, root=ROOT)
     check("undeclared conflicted status is an error", any(e.startswith("E9") for e in errors))
@@ -790,6 +849,53 @@ def run_smoke_test() -> int:
     widened["node_types"]["ritual"] = "a type the validator knows nothing about"
     _, warnings = validate(widened, root=ROOT)
     check("undeclared-to-validator node type warns", any(w.startswith("W5") for w in warnings))
+
+    # E13 / W6 — a q_ref must be a real candidate id, not merely truthy.
+    def _with_conflict(**edge_extra):
+        graph = yaml.safe_load(_FIXTURE)
+        graph["nodes"].append({"id": "O2", "type": "objective", "name": "O2",
+                               "source": "README.md", "status": "LIVE"})
+        graph["nodes"][2]["status"] = "CONFLICTED"
+        graph["edges"] += [
+            {"from": "O2", "to": "V", "rel": "realizes"},
+            {"from": "P", "to": "O2", "rel": "grounds"},
+            {"from": "O", "to": "O2", "rel": "conflicts_with", "status": "OPEN", **edge_extra},
+        ]
+        return graph
+
+    errors, _ = validate(_with_conflict(q_ref="not-a-qid"), root=ROOT,
+                         known_candidates={"Q-FIXTURE-01"})
+    check("malformed q_ref is an error", any(e.startswith("E13") for e in errors))
+
+    errors, warnings = validate(_with_conflict(q_ref="Q-GHOST-99"), root=ROOT,
+                                known_candidates={"Q-FIXTURE-01"})
+    check("well-formed but unindexed q_ref warns only",
+          errors == [] and any(w.startswith("W6") for w in warnings))
+
+    errors, warnings = validate(_with_conflict(q_ref="Q-FIXTURE-01"), root=ROOT,
+                                known_candidates={"Q-FIXTURE-01"})
+    check("indexed q_ref is clean",
+          errors == [] and not any(w.startswith("W6") for w in warnings))
+
+    # A missing or unparseable index must not break the tool — this repository
+    # shipped an unparseable INDEX.yaml, which is how that case was found.
+    check("unreadable candidate index degrades to empty",
+          known_candidate_ids(os.path.join(ROOT, "does-not-exist.yaml")) == set())
+
+    # A RESOLVED conflict must not draw as a live contradiction.
+    resolved = _with_conflict(q_ref="Q-FIXTURE-01")
+    resolved["edges"][-1]["status"] = "RESOLVED"
+    resolved["nodes"][2]["status"] = "LIVE"      # no OPEN edge, so not CONFLICTED
+    errs, warns = validate(resolved, root=ROOT, known_candidates={"Q-FIXTURE-01"})
+    page = render(resolved, errs, warns)
+    check("resolved conflict validates", errs == [])
+    # Assert on the emitted edge line, not the page: the canvas caption itself
+    # contains the literal `x--x` while explaining what it means.
+    edge_lines = [ln.strip() for ln in page.splitlines()
+                  if ln.startswith("  O ") and ("x--x" in ln or "-.->" in ln)]
+    check("resolved conflict is not drawn as a live contradiction",
+          any("resolved: Q-FIXTURE-01" in ln for ln in edge_lines)
+          and not any("x--x" in ln for ln in edge_lines))
 
     # A duplicate mapping key must raise, not silently drop the first block.
     duped = "version: 1\nnodes: []\nnodes: []\n"
@@ -831,7 +937,7 @@ def run_smoke_test() -> int:
     quoting["edges"] += [
         {"from": "O2", "to": "V", "rel": "realizes"},
         {"from": "P", "to": "O2", "rel": "grounds"},
-        {"from": "O", "to": "O2", "rel": "conflicts_with", "status": "OPEN", "q_ref": "Q-X",
+        {"from": "O", "to": "O2", "rel": "conflicts_with", "status": "OPEN", "q_ref": "Q-FIXTURE-01",
          "detail": "renders documents visibly overdue once the interval elapses"},
     ]
     errors, _ = validate(quoting, root=ROOT)

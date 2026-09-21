@@ -74,6 +74,7 @@
 | **MEASURED** | Code | Falsifier tested at closure; brier_actual computed over the pinned observation set. *(v1: at `window_end`. See **Measurement closure** — Q-MOLT-TEMPORAL-PURITY-01.)* | KEPT, REVERTED |
 | **KEPT** | Code | Prediction held; constant change permanent | (terminal) |
 | **REVERTED** | Code | Falsifier tripped; constant rolled back to prior_value | (terminal, but may trigger new molt) |
+| **INCONCLUSIVE** | Code | Closure fired without enough evidence to judge the falsifier — administrative close, supersession, or an `invalidated_by` trigger. `brier_actual` stays null. Does **not** count toward the anti-cascade freeze. *(PROPOSED — Q-MOLT-TEMPORAL-PURITY-01.)* | (terminal, but may trigger new molt) |
 | **CONTESTED** | Z1 | Z1 contests Z2 decision; re-read requested within 48h | ACCEPTED, REJECTED (with contest_response) |
 
 ---
@@ -111,6 +112,10 @@ Each MOLT_STATE entry corresponds to an NF_LEDGER row. Progression is encoded in
 - `outcome="MEASURING"` ← APPLIED state (waiting for window_end)
 - `outcome="KEEP"` + `brier_actual` ← KEPT state
 - `outcome="REVERT"` + `prior_value` restoration ← REVERTED state
+- `outcome="INCONCLUSIVE"` + `brier_actual: null` + `closure_reason` ← INCONCLUSIVE state
+  *(PROPOSED — Q-MOLT-TEMPORAL-PURITY-01. A consumer reading `outcome` must treat
+  an unrecognized value as "not a verdict" rather than coercing it to REVERT;
+  `closure_reason` names which `closes_on` or `invalidated_by` predicate fired.)*
 - `outcome="HISTORICAL"` ← Backfilled from v0.1, not part of molt cycle
 
 ---
@@ -414,14 +419,19 @@ START
   │                                 │
   │                             ↓
   │                          APPLIED ────→ MEASURED ─┐
-  │                                      (test falsifier)
-  │                                                   │
-  │                        ┌─────────────────────────┴────────────────────┐
-  │                        │                                              │
-  │                    ↓ (PASS)                                  ↓ (FAIL)
-  │                   KEPT                                     REVERTED
-  │                 (terminal)                            (→ freeze check)
-  │                                                       (terminal)
+  │                             │        (test falsifier)
+  │                             │                     │
+  │                             │   ┌─────────────────┴──────────────┐
+  │                             │   │                                │
+  │                             │  ↓ (PASS)                     ↓ (FAIL)
+  │                             │ KEPT                        REVERTED
+  │                             │ (terminal)             (→ freeze check)
+  │                             │                             (terminal)
+  │                             │
+  │                             └─→ INCONCLUSIVE   [PROPOSED]
+  │                                 closure below threshold, supersession,
+  │                                 or invalidated_by. brier_actual null.
+  │                                 NO freeze increment. (terminal)
   │
   └─ PROPOSED ──(Z1 contests, <48h)──→ CONTESTED
                                            │
@@ -447,8 +457,9 @@ END
 | ACCEPTED → RATIFIED | Code invoked at session open | NF_LEDGER entry created, outcome=MEASURING |
 | RATIFIED → APPLIED | Code executes constant assignment | constant updated with molt_id tracking |
 | APPLIED → MEASURED | a `closes_on` predicate holds, falsifier tested *(v1: `window_end` reached)* | outcome updated (KEEP or REVERT), brier_actual set |
-| MEASURED → KEPT | Falsifier passed | Constant change permanent; next molt can propose |
-| MEASURED → REVERTED | Falsifier failed | Constant reverted; F/IC candidate filed; freeze check |
+| MEASURED → KEPT | Falsifier passed over the pinned observation set | Constant change permanent; next molt can propose |
+| MEASURED → REVERTED | Falsifier failed over the pinned observation set | Constant reverted; F/IC candidate filed; freeze check |
+| APPLIED → INCONCLUSIVE | Closure fired below `min_resolved_observations` (`z2_explicit_close`, supersession) or an `invalidated_by` trigger fired *(PROPOSED)* | `outcome=INCONCLUSIVE`, `brier_actual` null, `closure_reason` set; constant rolled back unless superseded or Z2 rules otherwise; **no freeze increment**; slot released |
 | PROPOSED → CONTESTED | Z1 contest request, <48h of Z2 decision | MOLT_STATE marked contested; Z2 re-reads |
 | CONTESTED → ACCEPTED | Z2 re-reads, approves with context | New ratification hash; → RATIFIED |
 | CONTESTED → REJECTED | Z2 re-reads, declines | Rejected state, with contest_response in NF_LEDGER |

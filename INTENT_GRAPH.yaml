@@ -269,9 +269,23 @@ nodes:
   - id: G-Z2-RATIFY
     type: gate
     name: Z2 ratification gate
-    statement: Refuses a merge without a Z2 hash, a falsifier, and anti-cascade compliance.
+    statement: >-
+      Blocks a merge on Z1 inbox index integrity — which carries falsifier
+      discipline on candidates, derived decision windows and the no-self-grant
+      rule on Z2 signatures — on the rendered index being in sync, and on a seed
+      Constitution change carrying a Z2 ratification.
     source: .github/workflows/z2_ratification_gate.yml
     status: LIVE
+    note: >-
+      Deliberately narrower than "refuses any merge without a Z2 hash", which is
+      what this node claimed until review caught it. Two limits, both in the
+      workflow's own comments: the recorded-signature check
+      (`.z1-control/ratify.py --verify`) is `continue-on-error: true`, because
+      the three rulings on record pre-date ratify.py and carry slugs, so zero
+      signatures are pinned and a blocking rule would assert nothing — it
+      ratchets when the first real signature lands. And anti-cascade is not
+      evaluated by this workflow at all; `molt_cycle.py` (G-ANTI-CASCADE) holds
+      those rules, and nothing in CI runs them either.
 
   - id: G-TEMPORAL-SCAN
     type: gate

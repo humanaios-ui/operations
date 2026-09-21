@@ -18,7 +18,8 @@ graph states nothing whose source does not resolve in the tree.
 
 Read it upward: instruments measure objectives, principles ground them, objectives
 realize missions, missions realize the vision. A crossed edge (`x--x`) is a live
-contradiction, labelled with the candidate open against it.
+contradiction, labelled with the candidate open against it; a resolved one is
+drawn as an ordinary dotted edge.
 
 ```mermaid
 flowchart BT
@@ -188,7 +189,7 @@ candidate that would settle it — an open row with no candidate fails validatio
 
 | Id | Name | Statement | Source | State |
 |:--|:--|:--|:--|:--|
-| `G-Z2-RATIFY` | Z2 ratification gate | Refuses a merge without a Z2 hash, a falsifier, and anti-cascade compliance. | `.github/workflows/z2_ratification_gate.yml` | live |
+| `G-Z2-RATIFY` | Z2 ratification gate | Blocks a merge on Z1 inbox index integrity — which carries falsifier discipline on candidates, derived decision windows and the no-self-grant rule on Z2 signatures — on the rendered index being in sync, and on a seed Constitution change carrying a Z2 ratification. | `.github/workflows/z2_ratification_gate.yml` | live |
 | `G-TEMPORAL-SCAN` | Temporal control scan | Refuses added lines on active control surfaces that create internal deadlines without a permitted temporal classification. | `tests/test_temporal_dissolution_gate.py` | live |
 | `G-ANTI-CASCADE` | Anti-cascade bounds | One open molt per constant, K=3 system-wide, freeze after two consecutive reverts. | `molt_cycle.py` | live |
 | `G-FALSIFIER-LINT` | Falsifier lint | Named in CLAUDE.md and in z2_ratification_gate.yml as the check that refuses a hypothesis without a falsifier. No workflow implementing it was found under .github/workflows/. | `CLAUDE.md` · CI/CD Gates | cited, not implemented |
@@ -228,9 +229,10 @@ No errors: every node resolves to a path in the tree, every objective reaches
 the vision, every objective and gate is grounded, and every open contradiction
 names a candidate.
 
-**6 warning(s)** — reported, not blocking:
+**7 warning(s)** — reported, not blocking:
 
 - W1 G-FALSIFIER-LINT: cited by CLAUDE.md with no implementation found
+- W6 edge[44] O-DOC-CONTROL-conflicts_with->O-TEMPORAL-GATE: q_ref Q-TEMPORAL-DISSOLUTION-01 is well-formed but not indexed in z1-inbox/INDEX.yaml — check it is not a typo for a real candidate
 - W2 O-TEMPORAL-GATE: no instrument measures this objective
 - W2 O-WITNESS: no instrument measures this objective
 - W2 O-DECISION-ROUTING: no instrument measures this objective
