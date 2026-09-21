@@ -801,20 +801,42 @@ def _verify_taxonomy_rows(report: Dict[str, Any], text: str) -> List[str]:
     problems: List[str] = []
     for r in report["results"]:
         rfm = r["rfm"]
-        for pattern, width in (
-            (rf"^\|\s*\*\*{re.escape(rfm)}\*\*\s*\|.*$", 6),
-            (rf"^\|\s*{re.escape(rfm)}\s*\|\s*UNSCORED[^|]*\|.*$", 5),
+        for pattern, occurrence_index in (
+            (rf"^\|\s*\*\*{re.escape(rfm)}\*\*\s*\|.*$", 3),  # id, name, evidence, OCC, detection
+            (rf"^\|\s*{re.escape(rfm)}\s*\|\s*UNSCORED[^|]*\|.*$", 2),  # id, severity, OCC, detection, rpn
         ):
             row = re.search(pattern, text, re.M)
             if not row:
                 continue  # not tabulated in this shape
-            cells = row.group(0).split("|")
-            if len(cells) < width:
-                problems.append(f"{rfm} row is malformed — expected {width - 1} cells")
+            cells = _normalized_row_cells(row.group(0))
+            if len(cells) != 5:
+                problems.append(
+                    f"{rfm} row is malformed — expected 5 cells, found {len(cells)}: "
+                    f"{row.group(0)!r}"
+                )
                 continue
-            occ_cell = cells[4] if width == 6 else cells[3]
-            problems.extend(_check_occurrence_cell(rfm, occ_cell, r))
+            problems.extend(_check_occurrence_cell(rfm, cells[occurrence_index], r))
     return problems
+
+
+def _normalized_row_cells(row: str) -> List[str]:
+    """Split a `| a | b | c |`-style row into content cells only.
+
+    `row.split("|")` keeps the empty strings on either side of the enclosing
+    pipes, so a well-formed 5-cell row splits to 7 elements, not 5. A prior
+    version of this function used raw split length as the malformed-row
+    check (`len(cells) < 5`), which a genuinely malformed row satisfied
+    anyway (6 elements is not < 5) — a row missing its Severity cell then had
+    every later cell shift left by one, and the Occurrence read silently
+    became the Detection value with no error raised. Stripping the
+    pipe-delimiter artifacts first makes the count mean what it says.
+    """
+    cells = row.split("|")
+    if cells and cells[0].strip() == "":
+        cells = cells[1:]
+    if cells and cells[-1].strip() == "":
+        cells = cells[:-1]
+    return cells
 
 
 def _check_occurrence_cell(rfm: str, cell: str, r: Dict[str, Any]) -> List[str]:
@@ -1243,6 +1265,19 @@ def run_self_test(verbose: bool = True) -> bool:
         ok, probs = verify_doc(vd_report, p7)
         check("verify-doc catches a stale FMEA-row denominator",
               not ok and any("denominator" in p for p in probs), f"got {probs}")
+
+        # a row missing its trailing RPN cell (anchor token intact, so it
+        # still matches as an FMEA row) must be flagged as malformed, not
+        # silently misread. A raw split-length check let exactly this through
+        # in an earlier version: len(cells) < 5 was never true for a 4-cell
+        # row, since the unstripped split of even a truncated row still
+        # carries the leading/trailing pipe artifacts.
+        p8 = Path(td) / "fmea_malformed.md"
+        p8.write_text(good_doc.replace("| RFM-07 | UNSCORED | 8 / 154 | 5 | — |",
+                                        "| RFM-07 | UNSCORED | 8 / 154 | 5 |"), encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p8)
+        check("verify-doc flags a malformed FMEA row rather than misreading it",
+              not ok and any("malformed" in p for p in probs), f"got {probs}")
 
     if verbose:
         print()
