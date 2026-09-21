@@ -16,6 +16,9 @@
     "explanation_context",
     "updated_at"
   ],
+  "optional": [
+    "calibration_profile"
+  ],
   "properties": {
     "schema_version": {"const": "0.1.0"},
     "session_id": {"type": "string", "minLength": 1},
@@ -78,7 +81,52 @@
         "reconstructable": {"type": "boolean"}
       }
     },
-    "updated_at": {"type": "string", "format": "date-time"}
+    "updated_at": {"type": "string", "format": "date-time"},
+    "calibration_profile": {
+      "type": "object",
+      "description": "Per-substrate calibration constraints derived from recursive learning (gap analysis, meta-feedback). Wires Z2-ratified decisions into runtime intent-executable constraints.",
+      "additionalProperties": false,
+      "properties": {
+        "profile_version": {"type": "string", "default": "0.1.0"},
+        "sourced_from_lesson": {"type": "string", "description": "Lesson ID from data/lessons_learned_ledger.json"},
+        "substrates": {
+          "type": "object",
+          "description": "Per-substrate behavioral adaptation rules",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "confidence_weight": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0,
+                "default": 1.0,
+                "description": "Multiplier on proposed scope/claim breadth. 1.0=full scope proposed; 0.85=reduce scope by 15%; 0.5=conservative mode (scope capped at 50%)"
+              },
+              "review_bar": {
+                "type": "string",
+                "enum": ["minimal", "standard", "enhanced", "maximum"],
+                "default": "standard",
+                "description": "Pre-merge review gate: minimal (linter only) | standard (CI + code review) | enhanced (+ security review) | maximum (+ architect + Z2 sign-off)"
+              },
+              "merge_pause_threshold": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0,
+                "description": "If friction_rate (failing checks / merged PRs) exceeds this in recent window, pause merges pending manual review"
+              },
+              "calibration_floor": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Minimum calibration-pinned predictions required before this substrate's gap-rate claims are credible"
+              },
+              "ratification_date": {"type": "string", "format": "date"},
+              "expires_at": {"type": "string", "format": "date", "description": "Optional: Z2-set expiration date; profile resets to defaults if not renewed"}
+            }
+          }
+        }
+      }
+    }
   },
   "$defs": {
     "modalityToggle": {
