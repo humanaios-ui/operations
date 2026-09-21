@@ -4815,11 +4815,14 @@ superseded_by: null
 ---
 id: "IC-035"
 name: "q-witness-phase-0-resource-allocation-undefined"
-status: CANDIDATE
+status: REGISTERED
 class: IC
 date_registered: "2026-09-20"
 date_origin: "2026-09-20"
 session_registered: "S-092026-01-red-team-audit"
+date_ratified: "2026-09-21"
+session_ratified: "S-092126-01"
+zone2_ratification: "Night · 2026-09-21 · issue #429 ratification"
 principles_triggered: ["P3", "P21"]
 related_issue: "humanaios-ui/operations#429"
 related_finding: "Q-WITNESS-COMMONS-ASSURANCE-01 red team audit"
@@ -4841,11 +4844,14 @@ tags: ["resource-queue", "phase-0", "allocation", "witness-commons", "governance
 ---
 id: "IC-036"
 name: "z3-executor-assignment-witness-phase-0-pending"
-status: CANDIDATE
+status: REGISTERED
 class: IC
 date_registered: "2026-09-20"
 date_origin: "2026-09-20"
 session_registered: "S-092026-01-red-team-audit"
+date_ratified: "2026-09-21"
+session_ratified: "S-092126-01"
+zone2_ratification: "Night · 2026-09-21 · issue #429 ratification"
 principles_triggered: ["P21", "P19"]
 related_issue: "humanaios-ui/operations#429"
 related_governance: "ZONE_REGISTRY.md (Z3 assignments TBD)"
@@ -4867,11 +4873,14 @@ tags: ["executor", "phase-0", "witness-commons", "zone-assignment", "authority"]
 ---
 id: "IC-037"
 name: "legal-ethics-pre-assessment-not-commissioned"
-status: CANDIDATE
+status: REGISTERED
 class: IC
 date_registered: "2026-09-20"
 date_origin: "2026-09-20"
 session_registered: "S-092026-01-red-team-audit"
+date_ratified: "2026-09-21"
+session_ratified: "S-092126-01"
+zone2_ratification: "Night · 2026-09-21 · issue #429 ratification"
 principles_triggered: ["P1", "P21"]
 related_issue: "humanaios-ui/operations#429"
 related_section: "§17 External Assurance References; §23 Requested Z2 Decision"
@@ -4893,11 +4902,14 @@ tags: ["legal", "ethics", "irb", "regulatory", "human-subjects", "phase-1-gate"]
 ---
 id: "H-WITNESS-READINESS-01"
 name: "genesis-readiness-measurable-falsifiers"
-status: CANDIDATE
+status: REGISTERED
 class: H
 date_registered: "2026-09-20"
 date_origin: "2026-09-20"
 session_registered: "S-092026-01-red-team-audit"
+date_ratified: "2026-09-21"
+session_ratified: "S-092126-01"
+zone2_ratification: "Night · 2026-09-21 · issue #429 ratification"
 principles_triggered: ["P21", "P1"]
 related_issue: "humanaios-ui/operations#429"
 related_section: "§15 Anonymous Sigil Genesis; §16 Observability Horizon; §22 Initial Falsifiers"
@@ -4923,11 +4935,14 @@ tags: ["genesis", "readiness", "falsifier", "witness", "human-enrollment", "assu
 ---
 id: "H-WITNESS-OBSERVABLE-01"
 name: "observable-to-independent-reviewer-operationalization"
-status: CANDIDATE
+status: REGISTERED
 class: H
 date_registered: "2026-09-20"
 date_origin: "2026-09-20"
 session_registered: "S-092026-01-red-team-audit"
+date_ratified: "2026-09-21"
+session_ratified: "S-092126-01"
+zone2_ratification: "Night · 2026-09-21 · issue #429 ratification"
 principles_triggered: ["P21", "P13"]
 related_issue: "humanaios-ui/operations#429"
 related_section: "§16 Observability Horizon"
@@ -4952,11 +4967,14 @@ tags: ["observability", "independent-review", "assurance", "governance", "witnes
 ---
 id: "H-WITNESS-PHASE-1-SCOPE-01"
 name: "phase-1-scope-clarification"
-status: CANDIDATE
+status: REGISTERED
 class: H
 date_registered: "2026-09-20"
 date_origin: "2026-09-20"
 session_registered: "S-092026-01-red-team-audit"
+date_ratified: "2026-09-21"
+session_ratified: "S-092126-01"
+zone2_ratification: "Night · 2026-09-21 · issue #429 ratification"
 principles_triggered: ["P21", "P3"]
 related_issue: "humanaios-ui/operations#429"
 related_section: "§23 Requested Z2 Decision (does NOT authorize Phase 1)"
