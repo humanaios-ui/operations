@@ -1,0 +1,370 @@
+# GRAPH_ALIGNMENT.yaml — declared correspondence between two agent-authored graphs
+#
+# Candidate: Q-GRAPH-CONVERGENCE-01
+# Status:    PROPOSED — not effective until Z2 ratification hash
+# Authority: Z2 ratifies alignment rows; Z1 proposes; grading is mechanical
+#
+# WHY THIS FILE EXISTS
+# --------------------
+# Night asked: "do we have a mechanism or method for determining INDEPENDENT
+# convergence, and graphing it? Would divergence be useful?"
+#
+# The naive mechanism compares two graphs by string similarity and reports the
+# overlap as agreement. That mechanism is worthless here and the reason is the
+# whole point of this file: **two agents reading the same repository are not two
+# witnesses.** When Copilot's EVIDENCE_GRAPH.json and Claude's INTENT_GRAPH.yaml
+# both say "participation is not authority", they are not corroborating each
+# other — they are both transcribing WITNESS_SERVICE_CONTRACT.md. Counting that
+# as convergence manufactures confidence out of a single source.
+#
+# So the alignment is split in two, and only one half is a judgment:
+#
+#   DECLARED here (a judgment, reviewable by Z2):
+#     - which node in graph A refers to the same thing as which node in graph B
+#     - which sources each node was derived from
+#     - what access each author had to the other's output
+#
+#   COMPUTED by tools/graph_convergence_v1_0.py (mechanical, not a judgment):
+#     - whether that correspondence counts as INDEPENDENT convergence
+#     - the corroboration weight it carries
+#
+# Z1 may not declare a pair "independent". Independence is graded from the
+# source sets and the access record, because an author asserting its own
+# independence is the thing the grading exists to check.
+#
+# TEMPORAL POSITION (Q-TEMPORAL-DISSOLUTION-01)
+# ---------------------------------------------
+# No row carries a deadline, cadence or expiry. `ordering` fields below are
+# HISTORICAL_RECORD provenance: they record which artifact existed before which,
+# because access is a causal question, not a scheduling one. Nothing here becomes
+# stale by elapsing.
+
+version: "1.0.0"
+schema: graph_alignment/v1
+q_id: Q-GRAPH-CONVERGENCE-01
+status: PROPOSED
+temporal_class: HISTORICAL_RECORD
+scheduling_authority: none
+
+# ---------------------------------------------------------------------------
+# THE GRAPHS BEING COMPARED
+# ---------------------------------------------------------------------------
+# `access` is the load-bearing field and it is tri-state on purpose:
+#
+#   UNAVAILABLE                 the artifact did not exist, or was unreachable,
+#                               when this graph was authored. Only this grade
+#                               supports INDEPENDENT.
+#   AVAILABLE_UNREAD_ASSERTED   it existed and was reachable; the author asserts
+#                               it did not read it. An assertion, not a proof —
+#                               graded down accordingly.
+#   READ                        the author read it. Convergence is inheritance.
+#
+# There is deliberately no "probably didn't read it" grade.
+
+graphs:
+  - id: INTENT
+    path: INTENT_GRAPH.yaml
+    format: intent_graph/v1
+    author: Claude (Z1)
+    authored_under: Q-INTENT-GRAPH-01
+    ordering: 2
+    access:
+      to: EVIDENCE
+      grade: AVAILABLE_UNREAD_ASSERTED
+      basis: >
+        EVIDENCE_GRAPH.json landed on main via PR #431 before INTENT_GRAPH.yaml's
+        ontology was written. It appeared in a directory listing in this session's
+        transcript and was not opened until after the node and edge vocabularies
+        were fixed. That is an assertion about an agent's own reading, which is
+        exactly the class of claim this repository does not accept at face value,
+        so it grades AVAILABLE_UNREAD_ASSERTED and not UNAVAILABLE. Nothing here
+        can promote it: no evidence short of the artifact being unreachable
+        supports INDEPENDENT, and it was reachable.
+
+  - id: EVIDENCE
+    path: EVIDENCE_GRAPH.json
+    format: evidence_graph/v0.1
+    author: Copilot
+    authored_under: Q-WITNESS-COMMONS-ASSURANCE-01
+    ordering: 1
+    access:
+      to: INTENT
+      grade: UNAVAILABLE
+      basis: >
+        INTENT_GRAPH.yaml did not exist when EVIDENCE_GRAPH.json was authored.
+        This direction is genuinely independent of the other graph — which is
+        not the same as independent of the repository, and the repository is
+        where the shared-source problem lives.
+
+# ---------------------------------------------------------------------------
+# SOURCE MAP
+# ---------------------------------------------------------------------------
+# EVIDENCE_GRAPH.json carries no per-node `source` field, so its sources cannot
+# be read off the artifact the way INTENT_GRAPH.yaml's can. They are declared
+# here instead, which makes them Z2-reviewable rather than inferred — and makes
+# the gap visible: this is Z1 attributing sources to another agent's nodes, and
+# Z1 may have attributed them wrongly. A row with `sources: []` asserts the node
+# was derived from no tree artifact; the tool treats an empty set as disjoint
+# from everything, which is the generous reading, so an under-populated map
+# inflates independence. That is the known failure mode of this file.
+#
+# W-rule: the tool warns on every EVIDENCE node with no source_map entry.
+
+source_map:
+  A1: [PARTICIPATION_CONTRACT_V0_1.schema.json]
+  A2: [WITNESS_STATE_V0_1.schema.json]
+  C1: [WITNESS_SERVICE_CONTRACT.md, PARTICIPATION_CONTRACT_V0_1.schema.json]
+  C2: [WITNESS_SERVICE_CONTRACT.md, WITNESS_STATE_V0_1.schema.json]
+  CT1: [WITNESS_SERVICE_CONTRACT.md]
+  CT2: [WITNESS_STATE_V0_1.schema.json]
+  T1: [PARTICIPATION_CONTRACT_V0_1.schema.json]
+  T2: [WITNESS_STATE_V0_1.schema.json]
+  E1: []          # GitHub issue #429 — external to the tree, no path
+  F1: []          # adversarial finding, produced by the review, not read from a file
+  F2: []
+  FS1: [WITNESS_SERVICE_CONTRACT.md]
+  D1: []
+  S1: []          # NIST AI RMF — external standard
+  R1: []
+
+# ---------------------------------------------------------------------------
+# SOURCE LINEAGE
+# ---------------------------------------------------------------------------
+# Comparing source paths is not enough. CLAUDE.md and WITNESS_SERVICE_CONTRACT.md
+# are different files, and the second takes its serial-gate and falsifier
+# language from the first. Two nodes citing them separately look disjoint and are
+# reading one doctrine — so path-level disjointness would score them as
+# independent agreement, which is exactly the error this whole file exists to
+# prevent, reintroduced one level down.
+#
+# `derives_from` declares those derivations. The tool expands each node's sources
+# to their transitive closure before intersecting. Declaring a lineage can only
+# LOWER a grade, never raise one, so this list is safe to extend and unsafe to
+# leave short: every omission is a pair that may score higher than it deserves.
+
+source_lineage:
+  - source: WITNESS_SERVICE_CONTRACT.md
+    derives_from: [CLAUDE.md]
+    basis: >
+      The contract's "cannot self-ratify, self-authorize, widen consent, or
+      convert participation metadata into effective governance authority" is the
+      Z2 serial gate and the falsifier doctrine applied to one service. It does
+      not cite CLAUDE.md, which is why a path comparison misses it, and it has
+      no independent content on either point: remove CLAUDE.md and that sentence
+      has nothing to refuse on behalf of.
+  - source: PARTICIPATION_CONTRACT_V0_1.schema.json
+    derives_from: [WITNESS_SERVICE_CONTRACT.md]
+    basis: >
+      The schema encodes the contract's continuity modes and its
+      participation-is-not-authority rule as structure. A schema and the prose
+      it enforces are one source in two forms.
+  - source: WITNESS_STATE_V0_1.schema.json
+    derives_from: [WITNESS_SERVICE_CONTRACT.md]
+    basis: Same relation as the participation schema, for the state machine.
+
+# ---------------------------------------------------------------------------
+# RELATION VOCABULARY ALIGNMENT
+# ---------------------------------------------------------------------------
+# Both graphs name relations; the names differ. Mapping them is a judgment and
+# belongs here rather than in either tool. `kind: PARTIAL` records that the two
+# relations overlap without being the same relation — which is itself a finding
+# and is reported, not silently collapsed.
+
+relations:
+  - intent: grounds
+    evidence: constrained_by
+    kind: PARTIAL
+    basis: >
+      Both say "this holds because of that". `grounds` points from the ground to
+      the grounded; `constrained_by` points the other way. Direction is reversed,
+      so a tool that matched on name alone would read every such pair backwards.
+  - intent: measures
+    evidence: verifies
+    kind: PARTIAL
+    basis: >
+      `measures` produces a number; `verifies` produces a pass/fail. A gate that
+      verifies does not necessarily measure, and W2 (an objective with no inbound
+      `measures`) would not fire for a verified-only objective.
+  - intent: enforces
+    evidence: gates
+    kind: SAME
+    basis: Both name a refusal surface standing between a change and the tree.
+  - intent: realizes
+    evidence: implements
+    kind: PARTIAL
+    basis: >
+      `realizes` runs objective -> mission -> vision, an intent ladder.
+      `implements` runs artifact -> claim, an evidence ladder. They meet only
+      where an objective is also an artifact.
+  - intent: conflicts_with
+    evidence: defeats_if_unmitigated
+    kind: PARTIAL
+    basis: >
+      The nearest thing to a real convergence in the two vocabularies, and the
+      difference is the interesting part. `conflicts_with` is symmetric in force
+      and open until a Z2 decision closes it. `defeats_if_unmitigated` is
+      directional and closes on mitigation, not on ratification. Adopting it
+      wholesale would let an engineer close a governance conflict by patching.
+
+# ---------------------------------------------------------------------------
+# NODE ALIGNMENTS
+# ---------------------------------------------------------------------------
+# kind:
+#   SAME_REFERENT  the two nodes are about the same thing in the world
+#   RELATED        they touch the same thing without being the same claim
+#   FALSE_FRIEND   they look alignable and are not. Never counted as
+#                  convergence; recorded so a later reader does not re-align them
+#
+# `provenance: BACKFILL` marks a row asserted about artifacts that predate this
+# file, by an author who has already seen how it turned out. Backfilled rows can
+# never grade INDEPENDENT — see the backfill note at the foot of this file.
+
+alignments:
+  - intent: O-WITNESS
+    evidence: C1
+    kind: SAME_REFERENT
+    basis: >
+      Both are about the witness service refusing to let participation become
+      authority. O-WITNESS is sourced from WITNESS_SERVICE_CONTRACT.md; C1 is
+      declared above as sourced from the same contract plus the participation
+      schema. Same document, two readers.
+
+  - intent: P-SERIAL-GATE
+    evidence: CT1
+    kind: SAME_REFERENT
+    basis: >
+      "Authority resolved from an independent governance source" is the Z2 serial
+      gate stated in control language. P-SERIAL-GATE is sourced from CLAUDE.md,
+      CT1 from WITNESS_SERVICE_CONTRACT.md — different files, but the second
+      restates the first, so the sources are not as disjoint as their paths make
+      them look. The tool cannot see that; it is recorded here.
+
+  - intent: P-FALSIFIER
+    evidence: FS1
+    kind: SAME_REFERENT
+    basis: >
+      Both name the falsifier doctrine: a claim that cannot fail is not admitted.
+      FS1 states it as a runtime refusal, P-FALSIFIER as a submission rule.
+
+  - intent: G-Z2-RATIFY
+    evidence: R1
+    kind: RELATED
+    basis: >
+      R1 ("observability and boundary assurance") gates D1 the way G-Z2-RATIFY
+      gates a merge, but R1 is a readiness domain and G-Z2-RATIFY is a workflow.
+      Not the same object; adjacent role.
+
+  - intent: O-REGISTRY
+    evidence: E1
+    kind: RELATED
+    basis: >
+      E1 is one ratification comment; O-REGISTRY is the append-only record such
+      comments belong in. A single observation against its ledger.
+
+  - intent: P-EVIDENCE-OVER-CLAIM
+    evidence: D1
+    kind: FALSE_FRIEND
+    basis: >
+      D1 ("Phase 0 only: inventory/audit outputs authorized") reads like the
+      evidence-over-claim principle and is not: it is a scope limit on one
+      candidate, not a standing rule about what may be asserted. Aligning them
+      would let a phase decision masquerade as a principle. Recorded so the next
+      pass does not make that mistake.
+
+# ---------------------------------------------------------------------------
+# DECLARED DIVERGENCES
+# ---------------------------------------------------------------------------
+# class:
+#   COVERAGE_GAP          one graph represents something the other has no node
+#                         for at all. Names what a method cannot see.
+#   ONTOLOGY_DIVERGENCE   both represent it, structurally differently.
+#   CONTRADICTION         both make a claim about the same referent and the
+#                         claims cannot both hold. The highest-value class.
+#
+# On whether divergence is useful: under shared sources, agreement is the
+# expected outcome and carries no information — two transcriptions of one
+# document agreeing is not a finding. Disagreement is the surprise, and the only
+# part of this comparison that survives the independence grading below. That is
+# not a consolation prize; it is where the whole signal is.
+
+divergences:
+  - class: ONTOLOGY_DIVERGENCE
+    intent: "node.status"
+    evidence: "edge.state"
+    basis: >
+      INTENT grades maturity on the NODE ("this objective is CITED_NOT_IMPLEMENTED").
+      EVIDENCE grades it on the EDGE ("this artifact implements that claim, at
+      state SPECIFIED"). The edge is the better locus and the reason is this
+      session's own record: every Copilot finding across three review rounds was
+      a statement about a source written without executing against the source —
+      a defective edge between a node and its evidence, which a node-level status
+      has no slot to express.
+
+  - class: COVERAGE_GAP
+    intent: "conflicts_with (3 OPEN rows)"
+    evidence: null
+    basis: >
+      EVIDENCE has no relation for "two artifacts in this tree disagree with each
+      other". Its failure nodes record defects found in one artifact. The
+      molt-window defect — MOLT_STATE.md resolving at window_end while
+      TEMPORAL_DISSOLUTION_POLICY.md prohibits it — is invisible in that
+      ontology, because neither file is wrong on its own terms.
+
+  - class: COVERAGE_GAP
+    intent: null
+    evidence: "failure / defeats_if_unmitigated"
+    basis: >
+      INTENT has no node type for an adversarial finding. AA-429-01 and AA-429-02
+      have nowhere to live in it, so a known authority-escalation surface would
+      not appear on the intent graph at all.
+
+  - class: COVERAGE_GAP
+    intent: null
+    evidence: "crosswalk_for (S1 -> R1)"
+    basis: >
+      INTENT has no edge to an external standard. Every node resolves to a path
+      inside this tree by E3, which is the anti-drift rule and also the reason
+      the graph cannot say "this is our NIST AI RMF coverage".
+
+  - class: CONTRADICTION
+    intent: G-Z2-RATIFY
+    evidence: R1
+    basis: >
+      INTENT records G-Z2-RATIFY as a gate. EVIDENCE's R1 gates D1 at state
+      SPECIFIED — specified, not TESTED, not OBSERVED. The tree agrees with
+      EVIDENCE: .z1-control/ratify.py --verify runs continue-on-error: true in
+      that workflow, and anti-cascade is not evaluated there. An earlier version
+      of the INTENT node claimed the workflow "refuses a merge without a Z2 hash"
+      and was corrected. Where the two graphs contradicted each other, the one
+      grading the edge rather than the node was right.
+
+# ---------------------------------------------------------------------------
+# BACKFILL
+# ---------------------------------------------------------------------------
+# Night asked whether graphs can be backfilled. They can, and this file is the
+# reason it needs a rule rather than a yes.
+#
+# Backfilling is asserting a node or edge about an artifact that already exists,
+# by an author who has already seen what happened to it. That is legitimate for
+# coverage — a graph that only describes what was built after the graph is a
+# graph of almost nothing — and illegitimate for corroboration, because the
+# backfiller is not a witness. They are reading the answer off the tree.
+#
+# So: `provenance: BACKFILL` on an alignment row, or on a node in either graph,
+# forces the grade to BACKFILL_UNGRADED with corroboration weight 0, and the
+# tool errors (A6) if such a row also claims independence. Backfilled rows still
+# render, still count for coverage, and never count as evidence that two methods
+# found the same thing.
+#
+# The three-column discipline for a backfilled row: what was asserted, what
+# source it was read from, and what the author already knew when asserting it.
+# The third column is the one that makes it ungradeable, and it is the one a
+# backfill without this rule silently omits.
+
+backfill_policy:
+  permitted: true
+  marks_row: provenance
+  mark_value: BACKFILL
+  grade_forced: BACKFILL_UNGRADED
+  weight: 0.0
+  rationale_ref: A6
