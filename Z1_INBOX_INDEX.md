@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**74 candidates** — ⏳ awaiting Z2 65 · ✅ ratified 9 · **37 records**
+**76 candidates** — ⏳ awaiting Z2 67 · ✅ ratified 9 · **37 records**
 
-## Awaiting Z2 (65)
+## Awaiting Z2 (67)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -77,6 +77,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-23 | **Q-INTENT-GRAPH-01** | Shared intent substrate — typed graph for vision/mission/principles/objectives with a conflict validator | `z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md` |
 | 2026-09-23 | **Q-MOLT-TEMPORAL-PURITY-01** | Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01 | `z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md` |
 | 2026-09-23 | **Q-SEED-TRL-PROPAGATION-01** | Ratified TRL correction never reached SEED.md — identity anchor still states TRL 2–3 | `z1-inbox/2026-09-21/Q-SEED-TRL-PROPAGATION-01.md` |
+| 2026-09-23 | **Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01** | SMAG calibration profile schema conformance — WITNESS_STATE additionalProperties conflict | `z1-inbox/2026-09-21/Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01.md` |
+| 2026-09-23 | **Q-SMAG-Z3-TASK-SEQUENCING-01** | SMAG Z3 executor task sequencing and ownership — s1/s2/s3 dependency graph | `z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md` |
 
 ## Decided (9)
 
