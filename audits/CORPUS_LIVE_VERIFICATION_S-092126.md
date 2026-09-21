@@ -16,7 +16,15 @@
 ## 1. The headline: the live table holds 116 rows
 
 ```sql
-select table_name, ... from information_schema.tables ...  -- row counts, public schema
+-- exact query run; re-runnable as written
+select table_name,
+       (xpath('/row/c/text()',
+              query_to_xml(format('select count(*) c from public.%I', table_name),
+                           false, true, '')))[1]::text::int as rows
+from information_schema.tables
+where table_schema = 'public' and table_type = 'BASE TABLE'
+order by rows desc nulls last
+limit 25;
 ```
 
 `acat_assessments_v1` = **116 rows**. No table in the project holds 629 or 608.
