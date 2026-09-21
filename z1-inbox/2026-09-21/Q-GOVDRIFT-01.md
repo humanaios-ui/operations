@@ -166,6 +166,41 @@ options and does not choose:
 Z1's reading is that **(b)** is the option most consistent with the spec's own
 "corrections happen by addition" rule, but the call is Z2's.
 
+---
+
+**RESOLVED 2026-09-21.** Z2 (Night) ratified option (b), in-session, per
+`REGISTRY_SPEC.md`'s "In-session approval + formal declaration" receipt form —
+the same form used for the spec's own 2026-08-04 activation.
+
+Executing it surfaced a conflict this ask's own drafting had not caught: option
+(b)'s bullet says "mark SUPERSEDED with forward pointers," but the "Proposed"
+paragraph two above it already says "a superseded-by pointer not used, since
+neither supersedes anything." Those disagree, and `check_id_collisions()` in
+`tools/registered_findings_validator_v1_0.py` settled which one governs —
+it counts literal `id:` occurrences only, with no exemption for `status` or
+`superseded_by`, so a duplicate id marked SUPERSEDED still hard-fails. Its own
+message says as much: *"deduplicate before commit."* `superseded_by` would also
+have been the wrong semantic regardless — these entries carry
+`zone2_ratification: "Night · 2026-09-21 · issue #429 ratification"`; they are
+live, already-ratified findings under the wrong number, not findings later
+found obsolete.
+
+Executed per the file's own precedent for exactly this shape of problem —
+`F-RLHF → F-20` (documented three bullets above): `id:` corrected in place,
+`name:` unchanged, no `superseded_by`, one conventions-list line recording
+what happened and why. IC-060 = the 2026-09-20 entry filed as "IC-035";
+IC-061 = the one filed as "IC-037." The June IC-035/IC-037 entries — which
+hold every existing citation, including in `REGISTERED_FAILURE_MODES.md` —
+are untouched.
+
+`tools/registered_findings_validator_v1_0.py --input REGISTERED.md`: **WARN**,
+zero `FAILURES` (was 2). `registered_failure_mode_scan_v0_1.py scan --verify-doc
+REGISTERED_FAILURE_MODES.md`: PASS, no changes needed there — its cited counts
+did not move. Full local gate sweep green, including the exact `grep -q
+FAILURES` shape `findings-registry.yml` uses to gate.
+
+Asks 1, 3 and 4 remain open.
+
 ### ASK 3 — RFM-17 header staleness on `REGISTERED.md`
 
 Header declares `**Last updated:** August 15, 2026`; newest dated content is 2026-09-20.
