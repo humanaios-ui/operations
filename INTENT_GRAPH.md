@@ -121,7 +121,7 @@ candidate that would settle it — an open row with no candidate fails validatio
 
 | Between | And | Candidate | What contradicts |
 |:--|:--|:--|:--|
-| `O-MOLT-CYCLE` | `O-TEMPORAL-GATE` | Q-MOLT-TEMPORAL-PURITY-01 | MOLT_STATE.md resolves a molt at `window_end` and computes brier_actual "at window close" — a molt outcome determined by elapsed time. TEMPORAL_ DISSOLUTION_POLICY.md classifies exactly that as INVALID_INTERNAL_DEADLINE, and BOOT_PROCESS_MAP.md already published the successor reading ("Molt completes when measurement criteria met") without MOLT_STATE.md being migrated to match. |
+| `O-MOLT-CYCLE` | `O-TEMPORAL-GATE` | Q-MOLT-TEMPORAL-PURITY-01 | MOLT_STATE.md resolves a molt at `window_end` and computes brier_actual "at window close" — a molt outcome determined by elapsed time. TEMPORAL_DISSOLUTION_POLICY.md classifies exactly that as INVALID_INTERNAL_DEADLINE, and BOOT_PROCESS_MAP.md already published the successor reading ("Molt completes when measurement criteria met") without MOLT_STATE.md being migrated to match. |
 | `O-DOC-CONTROL` | `O-TEMPORAL-GATE` | Q-TEMPORAL-DISSOLUTION-01 | document-registry.yaml derives review_due from review_interval_days and renders documents "visibly overdue" once the interval elapses. Obligation is created by the calendar rather than by source drift. |
 | `O-DECISION-ROUTING` | `O-TEMPORAL-GATE` | Q-MOLT-TEMPORAL-PURITY-01 | z1-inbox/INDEX.yaml carries `decision_window_days: 2` and CLAUDE.md states a 48h Z2 decision window with contest rights expiring on elapsed time. The ratifier's attention is a measured resource (RAT-min); a two-day clock neither creates it nor licenses escalation when it runs out. |
 

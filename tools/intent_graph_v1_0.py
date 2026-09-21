@@ -12,6 +12,9 @@ what enforces it, and what in the tree contradicts it.
   render                 write INTENT_GRAPH.md
   render --check         exit 1 if INTENT_GRAPH.md is out of sync (CI mode)
   trace <node-id>        print one node's grounding, measurement and conflicts
+  --input <path>         read a graph other than INTENT_GRAPH.yaml; renders to
+                         stdout, so trying a candidate graph cannot overwrite
+                         the canonical page
   --smoke-test           self-check on a fixture; no filesystem writes
 
 What it does NOT do: it does not decide anything. It refuses a graph that has
@@ -63,23 +66,33 @@ except ImportError:  # pragma: no cover - CI installs it
 TOOL_NAME = "intent_graph"
 TOOL_VERSION = "1.0.0"
 TOOL_CATEGORY = "governance_tool"
+TOOL_SESSION = "S-092126-intent-graph"
 TOOL_ZONE = 1
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GRAPH = os.path.join(ROOT, "INTENT_GRAPH.yaml")
 OUTPUT = os.path.join(ROOT, "INTENT_GRAPH.md")
 
-# E10. Kept in step with RISK_PATTERNS in tests/test_temporal_dissolution_gate.py.
-# Applied to a node's own text only — never to a conflicts_with row, whose job is
-# to quote the control it is reporting.
+# E10. The full RISK_PATTERNS set from tests/test_temporal_dissolution_gate.py,
+# adapted for field text rather than diff lines: the gate's `^\s*(schedule|cron):`
+# is line-anchored, which means nothing inside a YAML scalar, so it is matched on
+# a word boundary here instead. The compact unit alternatives (48h, 2d) are kept —
+# dropping them was the hole this set is closing.
+#
+# Parity matters more here than anywhere else in this file: INTENT_GRAPH.yaml is
+# exempt from the line scanner, so E10 is the *only* thing standing between a node
+# statement and a control the gate would have rejected. Any pattern added to
+# RISK_PATTERNS belongs here too; `--smoke-test` asserts the two sets agree.
 TEMPORAL_RISK = (
     re.compile(r"\b(deadline|due_at|window_end|respond_within|complete_within|start_after)\s*[:=]", re.I),
+    re.compile(r"\b(due|deadline)\s+(by|on)\b", re.I),
     re.compile(r"\boverdue\b", re.I),
     re.compile(
         r"\b(must|shall|required\s+to|respond|complete|finish|deliver)\b.{0,60}"
-        r"\bwithin\s+\d+\s*(seconds?|minutes?|hours?|days?|weeks?)\b",
+        r"\bwithin\s+\d+\s*(seconds?|minutes?|hours?|days?|weeks?|s|m|h|d|w)\b",
         re.I,
     ),
+    re.compile(r"\b(schedule|cron)\s*:", re.I),
 )
 ALLOWED_TEMPORAL_CLASSES = {
     "OBSERVATIONAL",
@@ -121,9 +134,36 @@ SHAPE = {
 # ---------------------------------------------------------------------------
 
 
+class StrictLoader(yaml.SafeLoader):
+    """SafeLoader that refuses duplicate mapping keys.
+
+    `yaml.safe_load` silently keeps the last of a duplicated key, so a second
+    `nodes:` or `edges:` block would hide everything in the first one — and hide
+    it *before* E1–E10 ever run, so `check` would pass on a graph with content
+    missing. For a governance SSOT that is the worst possible failure: silent,
+    and it reads as a clean bill of health. Mirrors `.z1-control/validate.py`,
+    which refuses duplicate keys for the same reason.
+    """
+
+
+def _no_duplicates(loader: yaml.Loader, node: yaml.MappingNode, deep: bool = False) -> dict:
+    mapping: dict[Any, Any] = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if key in mapping:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping", node.start_mark,
+                f"duplicate key {key!r}", key_node.start_mark)
+        mapping[key] = loader.construct_object(value_node, deep=deep)
+    return mapping
+
+
+StrictLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _no_duplicates)
+
+
 def load(path: str = GRAPH) -> dict[str, Any]:
     with open(path, encoding="utf-8") as handle:
-        data = yaml.safe_load(handle)
+        data = yaml.load(handle, Loader=StrictLoader)
     if not isinstance(data, dict):
         raise ValueError(f"{path}: expected a mapping at the top level")
     return data
@@ -170,8 +210,17 @@ def validate(graph: dict, root: str = ROOT) -> tuple[list[str], list[str]]:
         source = node.get("source")
         if not source:
             errors.append(f"E3 {nid}: no source path")
-        elif not os.path.exists(os.path.join(root, source)):
-            errors.append(f"E3 {nid}: source does not resolve in the tree: {source}")
+        else:
+            resolved = _resolve_in_tree(str(source), root)
+            if resolved is None:
+                errors.append(
+                    f"E3 {nid}: source escapes the repository root: {source}. "
+                    f"E3 claims the graph describes *this* tree; an absolute path or "
+                    f"one climbing out of it would satisfy the letter of that check "
+                    f"while pointing somewhere else."
+                )
+            elif not os.path.exists(resolved):
+                errors.append(f"E3 {nid}: source does not resolve in the tree: {source}")
 
         if node.get("status") == "CITED_NOT_IMPLEMENTED":
             warnings.append(f"W1 {nid}: cited by {node.get('source')} with no implementation found")
@@ -259,6 +308,22 @@ def validate(graph: dict, root: str = ROOT) -> tuple[list[str], list[str]]:
             warnings.append(f"W3 {nid}: no objective in this repository realizes this mission")
 
     return errors, warnings
+
+
+def _resolve_in_tree(source: str, root: str) -> str | None:
+    """Absolute path for `source` inside `root`, or None if it escapes.
+
+    Returns None for an absolute source and for anything whose real path lands
+    outside the repository root, so E3 cannot be satisfied by a path that is not
+    in this tree.
+    """
+    if os.path.isabs(source) or (os.path.altsep and source.startswith(os.path.altsep)):
+        return None
+    root_real = os.path.realpath(root)
+    candidate = os.path.realpath(os.path.join(root_real, source))
+    if candidate != root_real and not candidate.startswith(root_real + os.sep):
+        return None
+    return candidate
 
 
 def _reaches(start: str, targets: set[str], forward: dict[str, list[str]]) -> bool:
@@ -626,6 +691,25 @@ def run_smoke_test() -> int:
     errors, _ = validate(undeclared, root=ROOT)
     check("undeclared conflicted status is an error", any(e.startswith("E9") for e in errors))
 
+    # A duplicate mapping key must raise, not silently drop the first block.
+    duped = "version: 1\nnodes: []\nnodes: []\n"
+    try:
+        yaml.load(duped, Loader=StrictLoader)
+        check("duplicate mapping key is refused", False)
+    except yaml.constructor.ConstructorError as exc:
+        check("duplicate mapping key is refused", "duplicate key" in str(exc))
+    if yaml.safe_load(duped).get("nodes") != []:  # pragma: no cover - tripwire
+        check("safe_load still takes the last duplicate; revisit StrictLoader", False)
+
+    # E3 must refuse a source that leaves the tree, however it is spelled.
+    for label, escape in (("absolute", "/etc/passwd"),
+                          ("parent-climbing", "../../../../etc/passwd")):
+        escaped = yaml.safe_load(_FIXTURE)
+        escaped["nodes"][2]["source"] = escape
+        errors, _ = validate(escaped, root=ROOT)
+        check(f"{label} source path is refused",
+              any(e.startswith("E3") and "escapes" in e for e in errors))
+
     # E10 — a temporal control in the graph's own voice is refused...
     leaky = yaml.safe_load(_FIXTURE)
     leaky["nodes"][2]["statement"] = "Work is overdue when the review interval elapses."
@@ -659,6 +743,40 @@ def run_smoke_test() -> int:
     errors, warnings = validate(unmeasured, root=ROOT)
     check("unmeasured objective warns but does not block",
           errors == [] and any(w.startswith("W2") for w in warnings))
+
+    # E10 must not be weaker than the scanner it stands in for. Anything the gate
+    # would flag on a diff line, E10 flags in node text — checked against the
+    # gate's own patterns rather than a copy of them, so the two cannot drift
+    # apart silently. One-directional on purpose: E10 being stricter is fine.
+    try:
+        if ROOT not in sys.path:
+            sys.path.insert(0, ROOT)
+        from tests.test_temporal_dissolution_gate import is_risky as gate_is_risky
+    except Exception as exc:  # pragma: no cover - reported, not raised
+        check(f"gate patterns importable for parity check ({exc})", False)
+    else:
+        corpus = [
+            "complete_within: 48h",
+            "respond_within: 30 seconds",
+            "window_end: 2026-10-01T00:00:00Z",
+            "start_after: 2026-10-01",
+            "due_at: 2026-10-01",
+            "due by 2026-10-01",
+            "deadline on Friday",
+            "this row is overdue",
+            "must respond within 2d",
+            "shall complete within 48 hours",
+            "schedule: 0 0 * * *",
+            "cron: 5 4 * * *",
+        ]
+        gate_flags = [s for s in corpus if gate_is_risky(s)]
+        missed = [s for s in gate_flags
+                  if not any(p.search(s) for p in TEMPORAL_RISK)]
+        check(f"E10 catches everything the gate catches ({len(gate_flags)} samples)",
+              missed == [])
+        if missed:
+            for sample in missed:
+                print(f"        gate flags, E10 misses: {sample!r}")
 
     # This module is exempt from the line scanner in
     # tests/test_temporal_dissolution_gate.py because its E10 fixtures must quote
@@ -698,6 +816,10 @@ def main() -> int:
     parser.add_argument("command", nargs="?", default="check",
                         choices=["check", "render", "trace"])
     parser.add_argument("node", nargs="?", help="node id, for `trace`")
+    parser.add_argument("--input", default=GRAPH, metavar="PATH",
+                        help="graph to read (default: INTENT_GRAPH.yaml). A graph "
+                             "other than the default renders to stdout instead of "
+                             "overwriting the canonical page.")
     parser.add_argument("--check", action="store_true",
                         help="with `render`: exit 1 if INTENT_GRAPH.md is out of sync")
     parser.add_argument("--smoke-test", action="store_true")
@@ -706,8 +828,10 @@ def main() -> int:
     if args.smoke_test:
         return run_smoke_test()
 
-    graph = load()
+    graph = load(args.input)
     errors, warnings = validate(graph)
+    # Only the canonical graph owns the canonical page; anything else prints.
+    is_default = os.path.realpath(args.input) == os.path.realpath(GRAPH)
 
     if args.command == "trace":
         if not args.node:
@@ -727,6 +851,13 @@ def main() -> int:
 
     # render
     text = render(graph, errors, warnings)
+    if not is_default:
+        if args.check:
+            print("::error::--check compares the canonical page; it needs the "
+                  "default --input", file=sys.stderr)
+            return 2
+        sys.stdout.write(text)
+        return 1 if errors else 0
     if args.check:
         current = ""
         if os.path.exists(OUTPUT):

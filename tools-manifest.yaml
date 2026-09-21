@@ -2166,6 +2166,7 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it.
+  session: S-092126-intent-graph
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

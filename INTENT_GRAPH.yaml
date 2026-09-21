@@ -413,11 +413,11 @@ edges:
     q_ref: Q-MOLT-TEMPORAL-PURITY-01
     detail: >-
       MOLT_STATE.md resolves a molt at `window_end` and computes brier_actual "at
-      window close" — a molt outcome determined by elapsed time. TEMPORAL_
-      DISSOLUTION_POLICY.md classifies exactly that as INVALID_INTERNAL_DEADLINE,
-      and BOOT_PROCESS_MAP.md already published the successor reading ("Molt
-      completes when measurement criteria met") without MOLT_STATE.md being
-      migrated to match.
+      window close" — a molt outcome determined by elapsed time.
+      TEMPORAL_DISSOLUTION_POLICY.md classifies exactly that as
+      INVALID_INTERNAL_DEADLINE, and BOOT_PROCESS_MAP.md already published the
+      successor reading ("Molt completes when measurement criteria met") without
+      MOLT_STATE.md being migrated to match.
     evidence:
       - 'MOLT_STATE.md: window_start / window_end / prediction.window_days'
       - 'BOOT_PROCESS_MAP.md: "Molt window_end at timestamp" listed as REMOVED'

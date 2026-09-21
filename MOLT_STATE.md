@@ -149,7 +149,12 @@ measurement_gate:
 
   # The molt is MEASURED when any closes_on predicate holds. Not before, and
   # not automatically when a date passes.
-  min_resolved_observations: 24      # how much evidence the falsifier needs
+  #
+  # No default is given on purpose. Q-MOLT-TEMPORAL-PURITY-01 open question 4
+  # asks Z2 to set this per molt at ratification: the molt ledger has too few
+  # closed molts to estimate a defensible number, and a placeholder printed here
+  # would become the de facto policy by being the only number in the spec.
+  min_resolved_observations: <Z2-set at ratification>
   observation_set_ref: <NF_LEDGER range or hash>   # pinned; makes it reproducible
   closes_on:
     - resolved_observations >= min_resolved_observations
