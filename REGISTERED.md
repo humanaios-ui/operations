@@ -4988,5 +4988,232 @@ tags: ["phase-1", "scope", "witness-ui", "human-enrollment", "governance"]
 - **Promotion gate:** Phase 1 proposal filed and Z2-approved before Phase 0 completion; Phase 1 cannot start until GENESIS_READINESS.md, EVIDENCE_GRAPH.json, and legal/ethics assessment are complete and falsifiers F1/F2/F3/F5 show no violations.
 - **Status:** CANDIDATE · Awaiting Z2 decision to request Phase 1 proposal as separate work
 
+-----
+
+## Q-WITNESS Phase 0 Resource-Allocated Proposals (Condition A)
+
+Per Z2 approval (issue #429), Phase 0 work is split into 6 resource-allocated proposals. Each must be Z2-ratified in PRIORITY_QUEUE.md before Phase 0 kickoff.
+
+### Q-WITNESS-PHASE-0-ARTIFACT-INVENTORY-01
+
+```yaml
+---
+id: "Q-WITNESS-PHASE-0-ARTIFACT-INVENTORY-01"
+name: "phase-0-artifact-inventory-census"
+status: CANDIDATE
+class: Q (Proposal)
+date_registered: "2026-09-21"
+date_origin: "2026-09-21"
+session_registered: "S-092126-02"
+principles_triggered: ["P21", "P3"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§20 Required First Artifacts (A)"
+tags: ["phase-0", "inventory", "artifact-classification", "witness-commons"]
+resource_cost:
+  z1_ktok: 15
+  z3_hr: 25
+  ci_min: 10
+  spec_hr: 8
+estimated_duration_weeks: 3
+z3_executor: "TBD (Z2 assignment required)"
+falsifier: "Classification incomplete or ambiguous for >10% of artifacts; defeatist frame exceeds honest uncertainty"
+---
+```
+
+**Deliverable:** `ARTIFACT_INVENTORY.jsonl` — Machine-readable census of existing artifacts (code, design docs, proposals, prototypes) classified by: GENERALIZABLE, DOMAIN_SPECIFIC, INTENT_OS_BOUND, PROTOTYPE, HISTORICAL, SUPERSEDED, CONTESTED, UNKNOWN. Implementation state tracked: SPECIFIED, CODED, TESTED, OPERATED, VERIFIED.
+
+**Criticality:** Phase 0 critical path start. Output feeds EVIDENCE_GRAPH.json (proposal B).
+
+---
+
+### Q-WITNESS-PHASE-0-EVIDENCE-GRAPH-01
+
+```yaml
+---
+id: "Q-WITNESS-PHASE-0-EVIDENCE-GRAPH-01"
+name: "phase-0-evidence-graph-schema"
+status: CANDIDATE
+class: Q (Proposal)
+date_registered: "2026-09-21"
+date_origin: "2026-09-21"
+session_registered: "S-092126-02"
+principles_triggered: ["P21", "P1"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§20 Required First Artifacts (B)"
+tags: ["phase-0", "evidence-graph", "schema", "governance", "witness-commons"]
+resource_cost:
+  z1_ktok: 20
+  z3_hr: 35
+  ci_min: 15
+  spec_hr: 12
+estimated_duration_weeks: 4
+z3_executor: "TBD (Z2 assignment required)"
+dependencies: ["Q-WITNESS-PHASE-0-ARTIFACT-INVENTORY-01"]
+falsifier: "Graph incomplete or inconsistent; node/edge state unclear for >5% of entries; schema versioning not specified"
+---
+```
+
+**Deliverable:** `EVIDENCE_GRAPH.json` — Typed graph connecting: artifact, claim, control, test, evidence, failure, falsifier, decision, standard, readiness domain. Enables canonical traceability.
+
+**Criticality:** Feeds GENESIS_READINESS.md (proposal C) and PARTICIPATION_CONTRACT_V0_1.schema.json (proposal E).
+
+---
+
+### Q-WITNESS-PHASE-0-GENESIS-READINESS-01
+
+```yaml
+---
+id: "Q-WITNESS-PHASE-0-GENESIS-READINESS-01"
+name: "phase-0-genesis-readiness-specification"
+status: CANDIDATE
+class: Q (Proposal)
+date_registered: "2026-09-21"
+date_origin: "2026-09-21"
+session_registered: "S-092126-02"
+principles_triggered: ["P21", "P15"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§20 Required First Artifacts (C)"
+tags: ["phase-0", "genesis", "readiness", "falsifier", "human-enrollment"]
+resource_cost:
+  z1_ktok: 18
+  z3_hr: 30
+  ci_min: 12
+  spec_hr: 10
+estimated_duration_weeks: 3
+z3_executor: "TBD (Z2 assignment required)"
+dependencies: ["Q-WITNESS-PHASE-0-EVIDENCE-GRAPH-01"]
+falsifier: "Readiness criteria undefined for >1 of F1/F2/F3/F5 falsifiers; threshold for human enrollment remains ambiguous"
+---
+```
+
+**Deliverable:** `GENESIS_READINESS.md` — One question: What must be demonstrated before first official standing human Sigil (Genesis event) may be created? Operationalizes falsifiers F1 (identifiability), F2 (explainability), F3 (revocation), F5 (authority separation) as measurable gates.
+
+**Criticality:** Hard Gate 2 blocker. No human enrollment until this is complete and falsifiers clear.
+
+---
+
+### Q-WITNESS-PHASE-0-WITNESS-STATE-SCHEMA-01
+
+```yaml
+---
+id: "Q-WITNESS-PHASE-0-WITNESS-STATE-SCHEMA-01"
+name: "phase-0-witness-state-v0-1-schema"
+status: CANDIDATE
+class: Q (Proposal)
+date_registered: "2026-09-21"
+date_origin: "2026-09-21"
+session_registered: "S-092126-02"
+principles_triggered: ["P21", "P13"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§20 Required First Artifacts (D)"
+tags: ["phase-0", "witness", "state", "schema", "multimodal"]
+resource_cost:
+  z1_ktok: 12
+  z3_hr: 20
+  ci_min: 8
+  spec_hr: 6
+estimated_duration_weeks: 2
+z3_executor: "TBD (Z2 assignment required)"
+falsifier: "State machine incomplete (missing modalities, transitions, or fields); spec does not cover text/visual/transcript/voice/optional gaze"
+---
+```
+
+**Deliverable:** `WITNESS_STATE_V0_1.schema.json` — Canonical state consumed by text navigator, visual Sigil, live transcript, speech interface, optional audio/gaze adapters. Enables multimodal consistency.
+
+**Criticality:** Parallel track (can proceed weeks 1–4 while A/B/C underway). No hard dependency.
+
+---
+
+### Q-WITNESS-PHASE-0-PARTICIPATION-CONTRACT-SCHEMA-01
+
+```yaml
+---
+id: "Q-WITNESS-PHASE-0-PARTICIPATION-CONTRACT-SCHEMA-01"
+name: "phase-0-participation-contract-v0-1-schema"
+status: CANDIDATE
+class: Q (Proposal)
+date_registered: "2026-09-21"
+date_origin: "2026-09-21"
+session_registered: "S-092126-02"
+principles_triggered: ["P21", "P1"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§20 Required First Artifacts (E)"
+tags: ["phase-0", "participation", "contract", "schema", "consent", "revocation"]
+resource_cost:
+  z1_ktok: 16
+  z3_hr: 28
+  ci_min: 10
+  spec_hr: 8
+estimated_duration_weeks: 2
+z3_executor: "TBD (Z2 assignment required)"
+dependencies: ["Q-WITNESS-PHASE-0-GENESIS-READINESS-01"]
+falsifier: "Contract axes incomplete (missing observation, research role, governance role, continuity, modalities, purposes, or retention); consent-withdrawal state machine undefined"
+---
+```
+
+**Deliverable:** `PARTICIPATION_CONTRACT_V0_1.schema.json` — Versioned contract binding session to: observation depth (O0–O3), research role (R0–R3), governance role (G0–G5), continuity mode, permitted modalities, research/data purposes, model-learning eligibility, resource permissions, retention, revocation state.
+
+**Criticality:** Depends on GENESIS_READINESS.md (proposal C). Hard Gate 2 dependency.
+
+---
+
+### Q-WITNESS-PHASE-0-SERVICE-CONTRACT-01
+
+```yaml
+---
+id: "Q-WITNESS-PHASE-0-SERVICE-CONTRACT-01"
+name: "phase-0-witness-service-contract"
+status: CANDIDATE
+class: Q (Proposal)
+date_registered: "2026-09-21"
+date_origin: "2026-09-21"
+session_registered: "S-092126-02"
+principles_triggered: ["P21", "P13"]
+related_issue: "humanaios-ui/operations#429"
+related_section: "§20 Required First Artifacts (F)"
+tags: ["phase-0", "service", "contract", "acat", "anti-manipulation"]
+resource_cost:
+  z1_ktok: 10
+  z3_hr: 18
+  ci_min: 6
+  spec_hr: 5
+estimated_duration_weeks: 2
+z3_executor: "TBD (Z2 assignment required)"
+falsifier: "Service obligations non-testable; ADAPTATION_SERVES_COMPREHENSION_NOT_COMPLIANCE invariant not operationalized; no success metrics defined"
+---
+```
+
+**Deliverable:** `WITNESS_SERVICE_CONTRACT.md` — Testable service obligations mapped to ACAT (Truthfulness, Service, Harm Awareness, Autonomy Respect, Value Alignment, Humility) + anti-manipulation constraints. Explicit falsifiers preventing hidden persuasion/conversion/dependency objectives.
+
+**Criticality:** Parallel track (can proceed weeks 1–4 with proposal D). No hard dependency.
+
+---
+
+## Phase 0 Critical Path & Resource Summary
+
+**Serialized dependency chain (blocker):**
+1. A (ARTIFACT_INVENTORY.jsonl) → 3 weeks
+2. B (EVIDENCE_GRAPH.json) → 4 weeks  
+3. C (GENESIS_READINESS.md) → 3 weeks
+4. E (PARTICIPATION_CONTRACT_V0_1.schema.json) → 2 weeks
+**Total critical path: 12 weeks**
+
+**Parallel tracks (weeks 1–4):**
+- D (WITNESS_STATE_V0_1.schema.json) → 2 weeks
+- F (WITNESS_SERVICE_CONTRACT.md) → 2 weeks
+
+**Resource allocation (total):**
+- Z1-ktok: 91 ktok
+- Z3-hr: 156 hr
+- CI-min: 61 min
+- SPEC-hr: 49 hr
+
+**Total Phase 0 duration: 12 weeks (critical path) assuming continuous parallel execution.**
+
+**Z2 Action Required:**
+1. Ratify all 6 proposals in PRIORITY_QUEUE.md
+2. Assign Z3 executor(s) per proposal (recommended: 1 for A+B, 1 for C+E, 1 for D+F parallel)
+3. Authorize Phase 0 kickoff once Conditions B–D satisfied
+
 
 
