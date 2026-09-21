@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 72
+  candidates: 73
   records: 37
 ratifiers:
 - Night
@@ -680,6 +680,17 @@ candidates:
     \ Proposes closure by pinned observation set, MEASUREMENT_STARVED as a census\
     \ predicate, and adds MOLT_STATE.md to the temporal gate's control surfaces\
     \ (Tier 2 \u2014 gate path; needs registry entry + ADV run before KEEP)."
+- q_id: Q-GATE-PATHS-TEST-LOGIC-01
+  title: "A gate's logic measures Tier 0 while its workflow wrapper measures Tier 2"
+  path: z1-inbox/2026-09-21/Q-GATE-PATHS-TEST-LOGIC-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  tier: 2
+  note: "tests/test_temporal_dissolution_gate.py is the temporal gate's refusal\
+    \ logic; the workflow only wraps it. GATE_PATHS lists .github/workflows/ but\
+    \ not the test, so changing what the gate refuses measures not-a-molt. Same\
+    \ gap patched twice before per the file's own REPO notes. Z1 filed rather than\
+    \ self-applied: it would retroactively vindicate Z1's own over-claim on PR #436."
 - q_id: Q-SEED-TRL-PROPAGATION-01
   title: "Ratified TRL correction never reached SEED.md — identity anchor still\
     \ states TRL 2–3"
