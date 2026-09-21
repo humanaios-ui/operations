@@ -127,3 +127,80 @@ Both are checkable against `REGISTERED.md` at a pinned SHA.
 ```yaml
 z2_decision: {status: awaiting_ratification, ratified_at: null, ratification_hash: null, z2_notes: ""}
 ```
+
+---
+
+## Z2 Ruling
+
+**Decision:** ACCEPT, on the reshaped ask only — stated by Night (Z2/Admiral) in
+session, 2026-09-21: *"ratify trl derivation."*
+**Recorded by:** Claude (Z1), as transcription. Z1 did not make this call.
+**Signature:** none on this file, and the merge does not create one.
+
+### What was accepted, precisely
+
+Night's earlier response was *"I need more clarity to help with that decision
+because my understanding is that TRL is a calculated process."* That observation
+is what reshaped this candidate, and the ACCEPT lands on the reshaped form:
+
+**Accepted** — item 1 of the reshaped ask. A derivation is to be ratified, not a
+value. Name the rubric in use, and the evidence each level requires.
+
+**Not decided here** — items 2, 3 and 4 remain open, and deliberately:
+
+- **Per-layer recording** follows from the derivation rather than preceding it. A
+  rubric that yields one figure and a rubric that yields a figure per layer are
+  different rubrics, so item 2 is answered by item 1's choice, not alongside it.
+- **Re-derivation against current evidence** cannot run before the rubric exists.
+  `audits/CORPUS_LIVE_VERIFICATION_S-092126.md` measured the live corpus at 116
+  rows, strictest clean stratum 4, `acknowledged_elicitation = true` in zero rows
+  in every stratum. A recalculation may move the figure **down**. That was stated
+  before the ACCEPT and is restated here so the ratification cannot later be read
+  as endorsing the existing value.
+- **Propagation** is last by construction. Once a derivation exists, `SEED.md`
+  carries a *derivation reference* rather than a copied constant — which is the
+  only form that cannot go stale the way 57 occurrences of "TRL 2–3" did.
+
+### Why this ruling changes the shape of the finding
+
+The original candidate reported a propagation failure: a ratified value reached
+`OPS_ROADMAP_V1.2.md` and never reached `SEED.md`. Night's observation reclassifies
+it. If TRL is calculated, then a ratification cannot set it any more than it can
+set a measurement, and "TRL corrected from 2–3 to 4 throughout" was a value edit
+standing in for a derivation that was never recorded. The stale `SEED.md` is a
+symptom. **The defect is that no artifact can recompute the number**, which is why
+every citation of it is hand-copied — the `canonical_stats.json` problem in a
+different domain.
+
+Accepting a derivation rather than a value is therefore not a narrower ruling
+than the one originally asked for. It is the only one that closes the class.
+
+### What Z1 does next, and does not
+
+Does not: select a rubric, compute a TRL, edit `SEED.md`, or touch any of the 57
+occurrences. A TRL figure goes to funders, and Z1 choosing the rubric that
+produces it would be Z1 setting the figure by the back door — the same objection
+that kept Z1 from selecting Option A in `Q-CORPUS-STATS-RECONCILE-01`.
+
+Does: on Z2 naming the rubric, build the derivation as a tool with the evidence
+mapping as data, so the figure is recomputable and `SEED.md` can reference it.
+
+### Mechanism
+
+```
+python3 .z1-control/ratify.py Q-SEED-TRL-PROPAGATION-01 --decision ACCEPT --by Night --apply
+```
+
+computes `sha256(candidate | by | at | decision)` over the file's bytes, writes
+the dated ruling file, and updates `z1-inbox/INDEX.yaml` to a terminal status —
+the three things `.z1-control/validate.py` requires and that a merge does not
+supply. Run it **after this PR merges**, so the hash covers the final bytes
+including this section.
+
+Z1 does not run it: the tool's own docstring says "Run by Z2, not by Z1", because
+Z1 writing the ruling file, computing the hash and setting the status in one pass
+would satisfy every check while proving nothing.
+
+Single-member override applies: with one board member, Night reviews, approves
+and merges her own ruling PR, recorded as an override per that ruling's `review`
+row.
