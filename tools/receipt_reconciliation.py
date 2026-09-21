@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 Receipt Reconciliation Script — Validates claims against NF_LEDGER
+Builder v1.7 compliant · governance_tool
+HumanAIOS · S-092126-receipt-reconciliation
 
 §B.6 Automation: Walk claim vs. tree, emit RECEIPT-GAP candidates.
 
@@ -24,6 +26,13 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
+
+
+TOOL_NAME     = "receipt_reconciliation"
+TOOL_VERSION  = "1.0.0"
+TOOL_CATEGORY = "governance_tool"
+TOOL_SESSION  = "S-092126-receipt-reconciliation"
+TOOL_ZONE     = 1   # 1=execute, 2=ratify, 3=night
 
 
 def run_git(cmd: str) -> str:

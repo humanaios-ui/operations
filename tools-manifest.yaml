@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 168
+  tools: 169
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 134
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 1
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2140,6 +2141,18 @@ tools:
   builder_markers: true
   purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance
     tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines
+- tool_id: HAIOS-TOOL-181
+  name: receipt_reconciliation
+  path: tools/receipt_reconciliation.py
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: §B.6 Receipt Reconciliation — Auto-validates claims against NF_LEDGER.jsonl, files IC-CANDIDATE gaps for Z2 ratification
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
