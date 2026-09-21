@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**77 candidates** — ⏳ awaiting Z2 68 · ✅ ratified 9 · **37 records**
+**78 candidates** — ⏳ awaiting Z2 69 · ✅ ratified 9 · **37 records**
 
-## Awaiting Z2 (68)
+## Awaiting Z2 (69)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -73,6 +73,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-23 | **Q-AGENT-CHECKIN-CALIBRATION-01** | Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review comparison | `z1-inbox/2026-09-21/Q-AGENT-CHECKIN-CALIBRATION-01.md` |
 | 2026-09-23 | **Q-CORPUS-STATS-RECONCILE-01** | July corpus audit still unresolved — SEED.md publishes figures the audit found unreproducible | `z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md` |
 | 2026-09-23 | **Q-DATA-SSOT-REGENERATION-01** | Regenerate the data SSOT — contaminated v0.1 corpus retained as lesson artifact, not corrected figures | `z1-inbox/2026-09-21/Q-DATA-SSOT-REGENERATION-01.md` |
+| 2026-09-23 | **Q-DEFERRAL-RULE-01** | A deferral needs an ending condition, not just a better home | `z1-inbox/2026-09-21/Q-DEFERRAL-RULE-01.md` |
 | 2026-09-23 | **Q-EXTERNAL-JESTER-01** | The ratified Jester's independence rule is the wrong rule, and we can now measure that | `z1-inbox/2026-09-21/Q-EXTERNAL-JESTER-01.md` |
 | 2026-09-23 | **Q-GATE-PATHS-TEST-LOGIC-01** | A gate's logic measures Tier 0 while its workflow wrapper measures Tier 2 | `z1-inbox/2026-09-21/Q-GATE-PATHS-TEST-LOGIC-01.md` |
 | 2026-09-23 | **Q-GOVDRIFT-01** | Derived-artifact convention, and four items only Z2 can close | `z1-inbox/2026-09-21/Q-GOVDRIFT-01.md` |
