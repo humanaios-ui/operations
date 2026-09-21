@@ -48,12 +48,15 @@ VALIDATION RULES (all mechanical, all re-runnable)
   E11 every node status is in the documented vocabulary
   E12 every edge connects the node types its rel is defined for
   E13 an OPEN conflict's q_ref matches the repository's Q-<AREA>-<nn> contract
+  E14 every node's persistence class is SESSION, TRANSMISSION or RATIFIED
+  E15 a durable node is not grounded/measured/enforced by a less durable one
   W1  a node marked CITED_NOT_IMPLEMENTED is reported, never fatal
   W2  an objective with no inbound `measures` edge is reported
   W3  a mission no objective in this tree realizes is reported
   W4  a vision count other than 1 is reported
   W5  a declared type the validator has no structural rule for is reported
   W6  a well-formed q_ref not indexed in z1-inbox/INDEX.yaml is reported
+  W7  a TRANSMISSION node with no outbound edge is reported
 """
 from __future__ import annotations
 
@@ -136,6 +139,25 @@ EDGE_DOMAINS: dict[str, tuple[set[str], set[str]]] = {
 # claim was previously unenforced.
 KNOWN_NODE_TYPES = {"vision", "mission", "principle", "objective", "gate", "instrument"}
 
+# E14 / W7. Persistence class — how long a node survives, expressed as a *state*
+# rather than a duration, so it does not reintroduce the clock authority
+# Q-TEMPORAL-DISSOLUTION-01 removes. Nothing here says "N days"; each class names
+# the event that ends the node's life.
+#
+#   SESSION       dies when the session ends. Working state, drafts, an agent's
+#                 in-context reasoning. Maps to PARTICIPATION_CONTRACT's
+#                 continuity_mode: EPHEMERAL.
+#   TRANSMISSION  exists to be handed over, and is discharged when the handoff
+#                 resolves. Candidate blocks, handoffs, review findings in
+#                 flight. Maps to QUALIFICATION_PROOF.
+#   RATIFIED      survives until a Z2 act supersedes it. The tree's long-term
+#                 memory. Maps to STANDING_SIGIL.
+#
+# The default is RATIFIED: a node in this graph describes something in the tree,
+# and the tree is what survives.
+PERSISTENCE_CLASSES = {"SESSION", "TRANSMISSION", "RATIFIED"}
+DEFAULT_PERSISTENCE = "RATIFIED"
+
 # E13. The repository's candidate-id contract, identical to QID_RE in
 # .z1-control/validate.py. E8 previously accepted any truthy q_ref, so a typo
 # left a contradiction looking actionable with nothing actually resolving it —
@@ -155,6 +177,13 @@ GENERATED_BANNER = (
 
 # Render order for the layer sections and the mermaid subgraphs.
 LAYER_ORDER = ("vision", "mission", "principle", "objective", "gate", "instrument")
+
+# What ends each class's life — phrased as the event, never a duration.
+PERSISTENCE_MARK = {
+    "SESSION": "session ends",
+    "TRANSMISSION": "handoff resolves",
+    "RATIFIED": "Z2 supersedes",
+}
 
 STATUS_MARK = {
     "LIVE": "live",
@@ -274,6 +303,13 @@ def validate(graph: dict, root: str = ROOT,
         ntype = node.get("type")
         if ntype not in node_types:
             errors.append(f"E2 {nid}: unknown node type {ntype!r}")
+
+        persistence = node.get("persistence", DEFAULT_PERSISTENCE)
+        if persistence not in PERSISTENCE_CLASSES:
+            errors.append(
+                f"E14 {nid}: unknown persistence class {persistence!r}. One of "
+                f"{', '.join(sorted(PERSISTENCE_CLASSES))}."
+            )
 
         status = node.get("status")
         if status not in NODE_STATUSES:
@@ -407,6 +443,36 @@ def validate(graph: dict, root: str = ROOT,
     for nid, node in by_id.items():
         if node.get("type") == "mission" and not inbound.get((nid, "realizes")):
             warnings.append(f"W3 {nid}: no objective in this repository realizes this mission")
+
+    # E15 — a durable node may not rest on one that does not outlive it.
+    # Grounding long-term work in something that dies at session end is how a
+    # governance claim ends up with no surviving basis: the session that held the
+    # reasoning is gone, and nothing in the tree carries it. This is the
+    # structural form of "what is not written down did not happen".
+    rank = {"SESSION": 0, "TRANSMISSION": 1, "RATIFIED": 2}
+    for edge in edges:
+        if edge.get("rel") not in {"grounds", "measures", "enforces"}:
+            continue
+        src, dst = edge.get("from"), edge.get("to")
+        if src not in by_id or dst not in by_id:
+            continue
+        src_p = by_id[src].get("persistence", DEFAULT_PERSISTENCE)
+        dst_p = by_id[dst].get("persistence", DEFAULT_PERSISTENCE)
+        if src_p in rank and dst_p in rank and rank[src_p] < rank[dst_p]:
+            errors.append(
+                f"E15 {src}({src_p}) -{edge['rel']}-> {dst}({dst_p}): a "
+                f"{dst_p.lower()} node cannot rest on a {src_p.lower()} one — the "
+                f"basis would not outlive what it supports"
+            )
+
+    # W7 — a transmission node with nowhere to land.
+    outbound = {e.get("from") for e in edges if e.get("rel") != "conflicts_with"}
+    for nid, node in by_id.items():
+        if node.get("persistence") == "TRANSMISSION" and nid not in outbound:
+            warnings.append(
+                f"W7 {nid}: TRANSMISSION with no outbound edge — in flight with "
+                f"nothing it resolves into"
+            )
 
     # W4 — vision cardinality. The vocabulary says "Expected count 1"; two
     # visions is not obviously an error but it is never accidental.
@@ -610,8 +676,8 @@ def render(graph: dict, errors: list[str], warnings: list[str]) -> str:
             continue
         add(f"### {layer.title()}")
         add("")
-        add("| Id | Name | Statement | Source | State |")
-        add("|:--|:--|:--|:--|:--|")
+        add("| Id | Name | Statement | Source | State | Persists until |")
+        add("|:--|:--|:--|:--|:--|:--|")
         for node in members:
             source = _esc(node.get("source"))
             anchor = node.get("anchor")
@@ -619,7 +685,8 @@ def render(graph: dict, errors: list[str], warnings: list[str]) -> str:
             add(
                 f'| `{node["id"]}` | {_esc(node.get("name"))} '
                 f'| {_esc(_oneline(node.get("statement")))} | {source_cell} '
-                f'| {STATUS_MARK.get(node.get("status"), _esc(node.get("status")))} |'
+                f'| {STATUS_MARK.get(node.get("status"), _esc(node.get("status")))} '
+                f'| {PERSISTENCE_MARK.get(node.get("persistence", DEFAULT_PERSISTENCE), "—")} |'
             )
         add("")
 
@@ -849,6 +916,35 @@ def run_smoke_test() -> int:
     widened["node_types"]["ritual"] = "a type the validator knows nothing about"
     _, warnings = validate(widened, root=ROOT)
     check("undeclared-to-validator node type warns", any(w.startswith("W5") for w in warnings))
+
+    # E14 — persistence class vocabulary.
+    bad_persist = yaml.safe_load(_FIXTURE)
+    bad_persist["nodes"][2]["persistence"] = "FOREVER"
+    errors, _ = validate(bad_persist, root=ROOT)
+    check("unknown persistence class is an error", any(e.startswith("E14") for e in errors))
+
+    # E15 — a ratified objective may not be grounded by a session-scoped principle.
+    inverted = yaml.safe_load(_FIXTURE)
+    inverted["nodes"][1]["persistence"] = "SESSION"      # P
+    inverted["nodes"][2]["persistence"] = "RATIFIED"     # O
+    errors, _ = validate(inverted, root=ROOT)
+    check("ratified node grounded by session node is an error",
+          any(e.startswith("E15") for e in errors))
+
+    # ...and the same direction is fine.
+    ordered = yaml.safe_load(_FIXTURE)
+    ordered["nodes"][1]["persistence"] = "RATIFIED"
+    ordered["nodes"][2]["persistence"] = "TRANSMISSION"
+    errors, _ = validate(ordered, root=ROOT)
+    check("less durable node resting on a durable one is fine",
+          not any(e.startswith("E15") for e in errors))
+
+    # W7 — a transmission node with nothing it resolves into.
+    stranded = yaml.safe_load(_FIXTURE)
+    stranded["nodes"][3]["persistence"] = "TRANSMISSION"   # I, measures O
+    stranded["edges"] = [e for e in stranded["edges"] if e["rel"] != "measures"]
+    _, warnings = validate(stranded, root=ROOT)
+    check("stranded TRANSMISSION node warns", any(w.startswith("W7") for w in warnings))
 
     # E13 / W6 — a q_ref must be a real candidate id, not merely truthy.
     def _with_conflict(**edge_extra):

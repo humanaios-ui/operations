@@ -23,6 +23,31 @@
 # mechanically: what grounds this objective, what measures it, what falsifies it,
 # what does it contradict, and what is cited but not implemented.
 #
+# PERSISTENCE CLASSES (Q-INTENT-GRAPH-01 · answers "long-term, short-term,
+# transmission?")
+# -------------------------------------------------------------------------
+# Every node carries a `persistence` class, defaulting to RATIFIED. These are
+# *state* classes, not durations — each names the event that ends the node's
+# life, so the distinction does not smuggle back the clock authority
+# Q-TEMPORAL-DISSOLUTION-01 removes. There is no "N days" anywhere in them.
+#
+#   SESSION       ends when the session ends. Working state, an agent's
+#                 in-context reasoning, a draft never written down.
+#                 = PARTICIPATION_CONTRACT continuity_mode: EPHEMERAL
+#   TRANSMISSION  ends when the handoff it exists for resolves. A candidate
+#                 block, a handoff, a review finding in flight.
+#                 = continuity_mode: QUALIFICATION_PROOF
+#   RATIFIED      ends when a Z2 act supersedes it. The tree's durable memory.
+#                 = continuity_mode: STANDING_SIGIL
+#
+# Honest current state: this graph is almost entirely RATIFIED. It describes
+# artifacts in the tree, and the tree is the long-term layer. O-DECISION-ROUTING
+# is the only TRANSMISSION node. There are **no SESSION nodes at all** — which is
+# itself the finding: the short-term layer, where an agent's reasoning actually
+# happens, is not represented anywhere in this repository, and dies unrecorded at
+# every session close. E15 exists so that gap cannot be papered over: a RATIFIED
+# node may not be grounded, measured or enforced by a less durable one.
+
 # TEMPORAL POSITION (Q-TEMPORAL-DISSOLUTION-01)
 # ---------------------------------------------
 # This graph carries no scheduling authority. `recorded_at` fields are
@@ -246,6 +271,12 @@ nodes:
       on, and record the decision against the block.
     source: z1-inbox/INDEX.yaml
     status: CONFLICTED
+    persistence: TRANSMISSION
+    note: >-
+      The one genuinely in-flight layer in this graph. A candidate exists to be
+      handed from Z1 to Z2 and is discharged when a decision lands; it is not
+      working state and not a durable record. Everything else here is RATIFIED —
+      see the persistence note in the header.
 
   - id: O-DOC-CONTROL
     type: objective

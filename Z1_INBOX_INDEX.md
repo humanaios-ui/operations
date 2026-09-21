@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**73 candidates** — ⏳ awaiting Z2 64 · ✅ ratified 9 · **37 records**
+**74 candidates** — ⏳ awaiting Z2 65 · ✅ ratified 9 · **37 records**
 
-## Awaiting Z2 (64)
+## Awaiting Z2 (65)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -72,6 +72,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-22 | **Q-TOOL-MANIFEST-DRIFT-PREVENTION-01** | Tool manifest drift prevention — .github/workflows/tool-sync-gate.yml (Tier 0 infrastructure) | `z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md` |
 | 2026-09-23 | **Q-AGENT-CHECKIN-CALIBRATION-01** | Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review comparison | `z1-inbox/2026-09-21/Q-AGENT-CHECKIN-CALIBRATION-01.md` |
 | 2026-09-23 | **Q-CORPUS-STATS-RECONCILE-01** | July corpus audit still unresolved — SEED.md publishes figures the audit found unreproducible | `z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md` |
+| 2026-09-23 | **Q-DATA-SSOT-REGENERATION-01** | Regenerate the data SSOT — contaminated v0.1 corpus retained as lesson artifact, not corrected figures | `z1-inbox/2026-09-21/Q-DATA-SSOT-REGENERATION-01.md` |
 | 2026-09-23 | **Q-GATE-PATHS-TEST-LOGIC-01** | A gate's logic measures Tier 0 while its workflow wrapper measures Tier 2 | `z1-inbox/2026-09-21/Q-GATE-PATHS-TEST-LOGIC-01.md` |
 | 2026-09-23 | **Q-INTENT-GRAPH-01** | Shared intent substrate — typed graph for vision/mission/principles/objectives with a conflict validator | `z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md` |
 | 2026-09-23 | **Q-MOLT-TEMPORAL-PURITY-01** | Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01 | `z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md` |

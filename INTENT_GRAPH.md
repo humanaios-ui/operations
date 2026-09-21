@@ -175,62 +175,62 @@ candidate that would settle it — an open row with no candidate fails validatio
 
 ### Vision
 
-| Id | Name | Statement | Source | State |
-|:--|:--|:--|:--|:--|
-| `V-HAIOS` | Self-sufficient human-AI orchestration | A human-AI orchestration system demonstrating human-generated agency, independent growth, and mutual harmonization between technical systems and human operators — operating as behavioral observability infrastructure rather than as a product. | `OPS_ROADMAP_V1.2.md` · 1. Vision & Objective | live |
+| Id | Name | Statement | Source | State | Persists until |
+|:--|:--|:--|:--|:--|:--|
+| `V-HAIOS` | Self-sufficient human-AI orchestration | A human-AI orchestration system demonstrating human-generated agency, independent growth, and mutual harmonization between technical systems and human operators — operating as behavioral observability infrastructure rather than as a product. | `OPS_ROADMAP_V1.2.md` · 1. Vision & Objective | live | Z2 supersedes |
 
 ### Mission
 
-| Id | Name | Statement | Source | State |
-|:--|:--|:--|:--|:--|
-| `M-OBSERVABILITY` | Behavioral observability | Measure the gap between what an AI system claims about its own behavior and what it does when that claim is tested. The gap is the finding; it requires no claim about consciousness or intent to be meaningful. | `SEED.md` · 1. What HumanAIOS Is | live |
-| `M-GOVERNED-CHANGE` | Governed recursive change | Every change to a constant, gate or authority passes a serial ratifier, carries a prediction and a falsifier, and is measured after application — so that the system can correct itself without cascading. | `CLAUDE.md` · Decision Routing | live |
-| `M-RESOURCE-TRUTH` | Resource-based operation | Schedule work by measured resource state and readiness predicates, in non-commensurable natural units, with no numeraire and no clock authority. | `docs/RESOURCE_BASED_ECONOMICS.md` | live |
+| Id | Name | Statement | Source | State | Persists until |
+|:--|:--|:--|:--|:--|:--|
+| `M-OBSERVABILITY` | Behavioral observability | Measure the gap between what an AI system claims about its own behavior and what it does when that claim is tested. The gap is the finding; it requires no claim about consciousness or intent to be meaningful. | `SEED.md` · 1. What HumanAIOS Is | live | Z2 supersedes |
+| `M-GOVERNED-CHANGE` | Governed recursive change | Every change to a constant, gate or authority passes a serial ratifier, carries a prediction and a falsifier, and is measured after application — so that the system can correct itself without cascading. | `CLAUDE.md` · Decision Routing | live | Z2 supersedes |
+| `M-RESOURCE-TRUTH` | Resource-based operation | Schedule work by measured resource state and readiness predicates, in non-commensurable natural units, with no numeraire and no clock authority. | `docs/RESOURCE_BASED_ECONOMICS.md` | live | Z2 supersedes |
 
 ### Principle
 
-| Id | Name | Statement | Source | State |
-|:--|:--|:--|:--|:--|
-| `P-FALSIFIER` | Falsifier doctrine | No hypothesis, molt or candidate enters the registry without a specific observable condition that would prove it wrong. | `CLAUDE.md` · Decision Routing | live |
-| `P-ADMISSION` | Admission precedes correction | A system that cannot admit its own malfunction cannot correct it. Sequence is load-bearing — admission, inventory, disclosure, amends. | `PRINCIPLES_SEED_V1_0.md` · 1.A | live |
-| `P-EVIDENCE-OVER-CLAIM` | Claim reconciles to tree | Every statement made in a session is walked back against the tree at close. A claim with no matching artifact is a RECEIPT-GAP, not a result. | `CLAUDE.md` · B.6 | live |
-| `P-NON-COMMENSURABLE` | Non-commensurable units | Resource cost is a vector of registered natural units. No scalar effort unit, no numeraire, no cross-dimension conversion. | `RESOURCE_UNITS.yaml` | live |
-| `P-TEMPORAL-PURITY` | Clocks measure, they do not authorize | No internal work becomes urgent, expired, escalated, reordered or replenished because elapsed time passed. Readiness is authority ∧ dependencies ∧ resources ∧ evidence ∧ safety. | `TEMPORAL_DISSOLUTION_POLICY.md` · Invariant | live |
-| `P-SERIAL-GATE` | Serial ratification | One ratifier signs. Proposal, ratification and execution are separate roles and no role may collapse into another. | `CLAUDE.md` · Authority Roles | live |
+| Id | Name | Statement | Source | State | Persists until |
+|:--|:--|:--|:--|:--|:--|
+| `P-FALSIFIER` | Falsifier doctrine | No hypothesis, molt or candidate enters the registry without a specific observable condition that would prove it wrong. | `CLAUDE.md` · Decision Routing | live | Z2 supersedes |
+| `P-ADMISSION` | Admission precedes correction | A system that cannot admit its own malfunction cannot correct it. Sequence is load-bearing — admission, inventory, disclosure, amends. | `PRINCIPLES_SEED_V1_0.md` · 1.A | live | Z2 supersedes |
+| `P-EVIDENCE-OVER-CLAIM` | Claim reconciles to tree | Every statement made in a session is walked back against the tree at close. A claim with no matching artifact is a RECEIPT-GAP, not a result. | `CLAUDE.md` · B.6 | live | Z2 supersedes |
+| `P-NON-COMMENSURABLE` | Non-commensurable units | Resource cost is a vector of registered natural units. No scalar effort unit, no numeraire, no cross-dimension conversion. | `RESOURCE_UNITS.yaml` | live | Z2 supersedes |
+| `P-TEMPORAL-PURITY` | Clocks measure, they do not authorize | No internal work becomes urgent, expired, escalated, reordered or replenished because elapsed time passed. Readiness is authority ∧ dependencies ∧ resources ∧ evidence ∧ safety. | `TEMPORAL_DISSOLUTION_POLICY.md` · Invariant | live | Z2 supersedes |
+| `P-SERIAL-GATE` | Serial ratification | One ratifier signs. Proposal, ratification and execution are separate roles and no role may collapse into another. | `CLAUDE.md` · Authority Roles | live | Z2 supersedes |
 
 ### Objective
 
-| Id | Name | Statement | Source | State |
-|:--|:--|:--|:--|:--|
-| `O-MOLT-CYCLE` | Molt lifecycle | Ratified constant changes move PROPOSED → RATIFIED → APPLIED → MEASURED → KEPT\|REVERTED under anti-cascade bounds. | `MOLT_STATE.md` | conflicted |
-| `O-REGISTRY` | Findings registry | Append-only record of findings, integrity corrections and hypotheses. | `REGISTERED.md` | live |
-| `O-QUEUE` | Work admission | Rank eligible work by impact and by yield per binding-constraint unit. No term in the score is derived from waiting. | `PRIORITY_QUEUE.md` | live |
-| `O-TEMPORAL-GATE` | Temporal dissolution | Remove hidden calendar authority from every active control surface; classify every remaining clock. | `TEMPORAL_DISSOLUTION_POLICY.md` | live |
-| `O-WITNESS` | Witness ledger | Human-machine decision attribution, so Z3 executors can be onboarded without collapsing authority. | `WITNESS_SERVICE_CONTRACT.md` | proposed |
-| `O-DECISION-ROUTING` | Z1 to Z2 decision routing | Candidate blocks reach the ratifier, carry a status the ratifier can act on, and record the decision against the block. | `z1-inbox/INDEX.yaml` | conflicted |
-| `O-DOC-CONTROL` | Document control | Controlled documents carry an owner, a review state and a provenance record. | `document-registry.yaml` | conflicted |
-| `O-IDENTITY-ANCHOR` | Identity anchor | SEED.md is the canonical answer to what this organism is, live-fetched at session open. Ratified corrections to identity claims must reach it. | `SEED.md` | conflicted |
-| `O-CORPUS-INTEGRITY` | Corpus integrity | The published ACAT corpus and the headline statistics cited from it are the same numbers, reproducible by anyone who downloads the dataset. | `audits/CORPUS_RECONCILIATION_S-070226.md` | live |
-| `O-INTENT-GRAPH` | Shared intent substrate | Hold vision, mission, principles and objectives as a typed graph so that grounding, measurement and contradiction are machine-checkable rather than re-derived by reading. | `INTENT_GRAPH.yaml` | proposed |
+| Id | Name | Statement | Source | State | Persists until |
+|:--|:--|:--|:--|:--|:--|
+| `O-MOLT-CYCLE` | Molt lifecycle | Ratified constant changes move PROPOSED → RATIFIED → APPLIED → MEASURED → KEPT\|REVERTED under anti-cascade bounds. | `MOLT_STATE.md` | conflicted | Z2 supersedes |
+| `O-REGISTRY` | Findings registry | Append-only record of findings, integrity corrections and hypotheses. | `REGISTERED.md` | live | Z2 supersedes |
+| `O-QUEUE` | Work admission | Rank eligible work by impact and by yield per binding-constraint unit. No term in the score is derived from waiting. | `PRIORITY_QUEUE.md` | live | Z2 supersedes |
+| `O-TEMPORAL-GATE` | Temporal dissolution | Remove hidden calendar authority from every active control surface; classify every remaining clock. | `TEMPORAL_DISSOLUTION_POLICY.md` | live | Z2 supersedes |
+| `O-WITNESS` | Witness ledger | Human-machine decision attribution, so Z3 executors can be onboarded without collapsing authority. | `WITNESS_SERVICE_CONTRACT.md` | proposed | Z2 supersedes |
+| `O-DECISION-ROUTING` | Z1 to Z2 decision routing | Candidate blocks reach the ratifier, carry a status the ratifier can act on, and record the decision against the block. | `z1-inbox/INDEX.yaml` | conflicted | handoff resolves |
+| `O-DOC-CONTROL` | Document control | Controlled documents carry an owner, a review state and a provenance record. | `document-registry.yaml` | conflicted | Z2 supersedes |
+| `O-IDENTITY-ANCHOR` | Identity anchor | SEED.md is the canonical answer to what this organism is, live-fetched at session open. Ratified corrections to identity claims must reach it. | `SEED.md` | conflicted | Z2 supersedes |
+| `O-CORPUS-INTEGRITY` | Corpus integrity | The published ACAT corpus and the headline statistics cited from it are the same numbers, reproducible by anyone who downloads the dataset. | `audits/CORPUS_RECONCILIATION_S-070226.md` | live | Z2 supersedes |
+| `O-INTENT-GRAPH` | Shared intent substrate | Hold vision, mission, principles and objectives as a typed graph so that grounding, measurement and contradiction are machine-checkable rather than re-derived by reading. | `INTENT_GRAPH.yaml` | proposed | Z2 supersedes |
 
 ### Gate
 
-| Id | Name | Statement | Source | State |
-|:--|:--|:--|:--|:--|
-| `G-Z2-RATIFY` | Z2 ratification gate | Blocks a merge on Z1 inbox index integrity — which carries falsifier discipline on candidates, derived decision windows and the no-self-grant rule on Z2 signatures — on the rendered index being in sync, and on a seed Constitution change carrying a Z2 ratification. | `.github/workflows/z2_ratification_gate.yml` | live |
-| `G-TEMPORAL-SCAN` | Temporal control scan | Refuses added lines on active control surfaces that create internal deadlines without a permitted temporal classification. | `tests/test_temporal_dissolution_gate.py` | live |
-| `G-ANTI-CASCADE` | Anti-cascade bounds | One open molt per constant, K=3 system-wide, freeze after two consecutive reverts. | `molt_cycle.py` | live |
-| `G-FALSIFIER-LINT` | Falsifier lint | Named in CLAUDE.md and in z2_ratification_gate.yml as the check that refuses a hypothesis without a falsifier. No workflow implementing it was found under .github/workflows/. | `CLAUDE.md` · CI/CD Gates | cited, not implemented |
+| Id | Name | Statement | Source | State | Persists until |
+|:--|:--|:--|:--|:--|:--|
+| `G-Z2-RATIFY` | Z2 ratification gate | Blocks a merge on Z1 inbox index integrity — which carries falsifier discipline on candidates, derived decision windows and the no-self-grant rule on Z2 signatures — on the rendered index being in sync, and on a seed Constitution change carrying a Z2 ratification. | `.github/workflows/z2_ratification_gate.yml` | live | Z2 supersedes |
+| `G-TEMPORAL-SCAN` | Temporal control scan | Refuses added lines on active control surfaces that create internal deadlines without a permitted temporal classification. | `tests/test_temporal_dissolution_gate.py` | live | Z2 supersedes |
+| `G-ANTI-CASCADE` | Anti-cascade bounds | One open molt per constant, K=3 system-wide, freeze after two consecutive reverts. | `molt_cycle.py` | live | Z2 supersedes |
+| `G-FALSIFIER-LINT` | Falsifier lint | Named in CLAUDE.md and in z2_ratification_gate.yml as the check that refuses a hypothesis without a falsifier. No workflow implementing it was found under .github/workflows/. | `CLAUDE.md` · CI/CD Gates | cited, not implemented | Z2 supersedes |
 
 ### Instrument
 
-| Id | Name | Statement | Source | State |
-|:--|:--|:--|:--|:--|
-| `I-NF-LEDGER` | NF ledger | Append-only hash-chained record of predictions and resolved outcomes. | `ledgers/NF_LEDGER.jsonl` | live |
-| `I-RESOURCE-CENSUS` | Resource census | Measures obligations, stocks and waste against the binding constraint. | `tools/resource_census_v0_1.py` | live |
-| `I-QUEUE-ENGINE` | Priority queue engine | Two-band constraint allocation over eligible work. | `priority_queue_engine.py` | live |
-| `I-CORPUS-VALIDATOR` | Corpus integrity validator | Recomputes the Learning Index per row and flags mismatch, anchoring and missing-timestamp defects in the published corpus. | `tools/corpus_integrity_validator.py` | live |
-| `I-INTENT-GRAPH` | Intent graph renderer | Validates this file against the tree and renders INTENT_GRAPH.md. Reports orphans, unresolved sources and open conflicts. | `tools/intent_graph_v1_0.py` | proposed |
+| Id | Name | Statement | Source | State | Persists until |
+|:--|:--|:--|:--|:--|:--|
+| `I-NF-LEDGER` | NF ledger | Append-only hash-chained record of predictions and resolved outcomes. | `ledgers/NF_LEDGER.jsonl` | live | Z2 supersedes |
+| `I-RESOURCE-CENSUS` | Resource census | Measures obligations, stocks and waste against the binding constraint. | `tools/resource_census_v0_1.py` | live | Z2 supersedes |
+| `I-QUEUE-ENGINE` | Priority queue engine | Two-band constraint allocation over eligible work. | `priority_queue_engine.py` | live | Z2 supersedes |
+| `I-CORPUS-VALIDATOR` | Corpus integrity validator | Recomputes the Learning Index per row and flags mismatch, anchoring and missing-timestamp defects in the published corpus. | `tools/corpus_integrity_validator.py` | live | Z2 supersedes |
+| `I-INTENT-GRAPH` | Intent graph renderer | Validates this file against the tree and renders INTENT_GRAPH.md. Reports orphans, unresolved sources and open conflicts. | `tools/intent_graph_v1_0.py` | proposed | Z2 supersedes |
 
 ---
 

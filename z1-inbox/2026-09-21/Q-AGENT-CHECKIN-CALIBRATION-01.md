@@ -68,6 +68,44 @@ Two process consequences:
   comments; they were nearly missed. Any capture mechanism must read the summary
   table, not just the comment stream.
 
+### 3a. Is the mitigation bidirectional? No — and the missing half is the larger one
+
+Night asked whether there is a bidirectional mitigation. There is not. Stating
+both directions plainly:
+
+| Direction | Channel today | Loss |
+|---|---|---|
+| **Copilot → Claude** | review comments arrive as events; **summary-table findings do not** | 9 of 20 findings on PR #436 were reachable only by fetching the review body and parsing its file table |
+| **Claude → Copilot** | **nothing** | Copilot re-reviews the diff from scratch each round. It cannot read Z1's replies, does not know a finding was accepted, deferred with a reason, or judged wrong, and re-raises accordingly |
+
+The second row is the worse one, and it is the asymmetry that costs most: Claude
+accumulates context across rounds; Copilot re-derives from the diff every time. A
+finding Z1 deferred *with a stated reason* looks identical to a finding Z1
+ignored. The only channel back is the diff itself — which is why the reply
+comments Z1 has been writing are, from Copilot's side, invisible.
+
+**Proposed mitigation, both directions:**
+
+1. **Copilot → Claude.** Whatever harvests review findings must read
+   `pull_request_read(method="get_reviews")` and parse the summary table, not
+   only the inline comment stream. This is a documentation/process rule, not code:
+   Z1 nearly missed nine real findings by trusting the event stream.
+2. **Claude → Copilot.** Findings that are *deferred rather than fixed* get a
+   durable in-diff record — the reason lives in the candidate block or a code
+   comment at the site, not only in a PR reply. Two of PR #436's deferrals (the
+   CI workflow, source content hashing) were handled this way and did not
+   re-appear in the next review; the ones answered only in replies are not
+   testable either way, which is itself the point. A reviewer that re-derives
+   from the diff can only see what the diff says.
+
+Z1 does **not** propose automating a Claude→Copilot channel. There is no
+supported mechanism to inject state into Copilot's review, and inventing one
+would mean writing text into the diff aimed at steering a reviewer rather than
+documenting the code — which is the manipulation pattern
+`WITNESS_SERVICE_CONTRACT.md`'s anti-manipulation invariant exists to refuse.
+The honest mitigation is that a deferral must be defensible in the artifact,
+where any reviewer — bot, human, or a future session — can find it.
+
 ## 4. The check-in gap — H-ACAT
 
 Night asked whether the check-in process includes H-ACAT. **It does not, for
