@@ -43,8 +43,21 @@ MISSING = "🔴 MISSING"
 
 
 def probe(path: str, root: str = ROOT) -> str:
-    """Derive presence by looking. Never read from the SSOT."""
-    return PRESENT if os.path.exists(os.path.join(root, path)) else MISSING
+    """Derive presence by looking. Never read from the SSOT.
+
+    Resolved inside `root` first: `os.path.join(root, "/etc/passwd")` discards
+    `root`, and `../` walks out, so a bare exists() would report an out-of-tree
+    file as PRESENT in this repository's registry. validate.py rejects such a
+    path outright (rule 0); this keeps the rendered view honest even if a
+    renderer somehow runs on an SSOT the validator has not passed.
+    """
+    if os.path.isabs(path):
+        return MISSING
+    full = os.path.realpath(os.path.join(root, path))
+    base = os.path.realpath(root)
+    if full != base and not full.startswith(base + os.sep):
+        return MISSING
+    return PRESENT if os.path.exists(full) else MISSING
 
 
 def _esc(text: object) -> str:
@@ -57,12 +70,15 @@ def render(data: dict, root: str = ROOT) -> str:
     lines: list[str] = []
     add = lines.append
 
-    add("# GOVERNANCE_FILES.md — Authoritative Registry")
+    add("# GOVERNANCE_FILES.md — Governance File Registry (rendered view)")
     add("")
     add("> Rendered from `.gov-control/governance-files.yaml` (SSOT) by `.gov-control/render.py`.")
     add("> **Do not hand-edit — edit the SSOT.** CI blocks when the two disagree.")
     add("")
-    add("**Purpose:** Single source of truth for all governance files, their structure, authority, and location.  ")
+    add("**Purpose:** A view of every governance file, its structure, authority and location.")
+    add("The SSOT is `.gov-control/governance-files.yaml`; this file is derived from it and")
+    add("is not authoritative. Calling a rendered view the single source of truth is how a")
+    add("maintainer ends up editing the output and losing the edit on the next render.  ")
     add(f"**Updated:** {_esc(data.get('updated'))}  ")
     add(f"**Authority:** {_esc(data.get('authority'))}  ")
     add(f"**Model:** {_esc(data.get('model'))}")
@@ -184,6 +200,13 @@ def run_smoke_test() -> int:
     with tempfile.TemporaryDirectory() as td:
         flipped = render(sample, root=td)
     assert f"| {PRESENT} |" not in flipped, "status did not follow the filesystem"
+
+    # An out-of-tree path must never render as PRESENT: os.path.join discards
+    # root for an absolute path, so /etc/passwd would otherwise read as present
+    # in this repository.
+    with tempfile.TemporaryDirectory() as td:
+        for escape in ("/etc/passwd", "../../../etc/passwd"):
+            assert probe(escape, root=td) == MISSING, f"{escape} probed as PRESENT"
     print("smoke-test OK — renders, escapes cells, derives status from the tree.")
     return 0
 

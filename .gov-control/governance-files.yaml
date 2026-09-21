@@ -43,8 +43,12 @@ sections:
   - key: core
     title: "Core Governance (Z2 Writes)"
     intro: >-
-      The files Z2 signs. A change to any of these needs a ratification receipt;
-      CI refuses the merge without one.
+      The files Z2 signs. Policy is that a change to any of these carries a
+      ratification receipt. That is ownership, not an enforced invariant —
+      governance-files.yml checks declared paths, derived status and rendered
+      sync, and does not inspect receipts; z2_ratification_gate.yml covers
+      REGISTERED.md and z1-inbox, not every row here. Which rows are gated and
+      which rest on convention is Q-GOVDRIFT-01's ask 1.
     files:
       - path: REGISTERED.md
         purpose: >-

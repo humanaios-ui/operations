@@ -94,9 +94,9 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 |:---|:---|:---|:---|:---|
 | **RFM-04** | **Under-registration** — a registrable item surfaces in-session and is never registered | `tools/skills/humanaios-findings-scan/SKILL.md:29` | UNMEASURED | 5 — skill exists, manually invoked |
 | **RFM-05** | **Over-registration / receipt overstatement** — asserting registry state that does not exist | IC-031 | UNMEASURED | 5 — §B.6, `receipt_reconciliation.py` |
-| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **58 / 137** full schema · 12 / 137 core | 10 — see note below |
+| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **67 / 154** full schema · 14 / 154 core | 10 — see note below |
 | **RFM-07** | **Front-matter fence loss** — the entry carries no machine-readable front matter, so a fence-based parser cannot see it. Two forms: `id:` rendered as a markdown heading (F-52…F-55), and legacy `### ID — Title` entries with bold-prose fields or none at all (H-ELICIT-01 at `:2302`, plus H-1 / H-42 / H-LE-02) | F-52…F-55; H-1, H-42, H-LE-02, H-ELICIT-01 | **8 / 137** | 10 → 5 with this scanner |
-| **RFM-08** | **Quote contamination** — curly quotes break straight-quote string parsing. Checked across every declared field, not just `id`/`name`/`status`/`class` | F-52, F-53, H-AICASCADE-01, (2 additional found in Phase 2 review) | **5 / 137** | 10 → 5 with this scanner |
+| **RFM-08** | **Quote contamination** — curly quotes break straight-quote string parsing. Checked across every declared field, not just `id`/`name`/`status`/`class` | F-52, F-53, H-AICASCADE-01, (2 additional found in Phase 2 review) | **3 / 154** | 10 → 5 with this scanner |
 
 > **Note on RFM-06 detection.** `.github/workflows/findings-registry.yml` runs `tools/registered_findings_validator_v1_0.py` as a blocking gate and its documented hard classes include *missing fields*. Run against the live registry it returns **Verdict: WARN, exit 0** with `✓ F-class ✓ H-class ✓ IC-class`, and does not surface the 8 entries missing required fields. A check that is nominally blocking and empirically silent is the IC-041 *audit-false-pass* genus. Scored 10, not 1, because detection is scored on observed behaviour rather than declared intent. **Routed to Z2 as an IC-candidate; not self-registered.**
 
@@ -104,20 +104,20 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 
 | ID | Failure mode | Evidence | Occurrence | Detection today |
 |:---|:---|:---|:---|:---|
-| **RFM-09** | **Append-ordering decay** — entry outside the class block `REGISTRY_SPEC.md:114` declares, *and* the class blocks themselves out of F→IC→H order | Z2-ASSESS-01, IC-044/045 in the H block; 25 more past the Changelog; F-31/IC-041 discovered via correction-to field | **30 / 137** | 10 → 5 |
-| **RFM-10** | **Post-terminal append** — entries land after the `## Changelog` boundary, forming a shadow zone the declared structure does not describe | L3246–3917 | **25** | 10 → 5 |
-| **RFM-11** | **Index desync** — the hand-maintained quick index stops tracking the body | F-24, F-56…F-61, 3× `F-CAND-*` | **10 / 45 F** | 10 → 5 |
-| **RFM-12** | **Orphan roll-up row** — the IC Pareto cites an ID with no entry; the row still reports healthy | IC-036 @ `REGISTERED.md:118` | **1** | 10 → 5 |
+| **RFM-09** | **Append-ordering decay** — entry outside the class block `REGISTRY_SPEC.md:114` declares, *and* the class blocks themselves out of F→IC→H order | Z2-ASSESS-01, IC-044/045 in the H block; 25 more past the Changelog; F-31/IC-041 discovered via correction-to field | **41 / 154** | 10 → 5 |
+| **RFM-10** | **Post-terminal append** — entries land after the `## Changelog` boundary, forming a shadow zone the declared structure does not describe | L3246–3917 | **43** | 10 → 5 |
+| **RFM-11** | **Index desync** — the hand-maintained quick index stops tracking the body | F-24, F-56…F-61, 3× `F-CAND-*` | **9 / 48 F** | 10 → 5 |
+| **RFM-12** | **Orphan roll-up row** — the IC Pareto cites an ID with no entry; the row still reports healthy | IC-036 @ `REGISTERED.md:118` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
 | **RFM-13** | **Semantic duplicate numbering** — two IDs for one defect. Invisible to any validator that detects only *literal* ID collisions | IC-052 / IC-053, both "drift validator missing D-OVERCLAIM" | **1 known** | 10 — no detector possible without semantic comparison |
 
 ### RECONCILE — registry vs the world
 
 | ID | Failure mode | Evidence | Occurrence | Detection today |
 |:---|:---|:---|:---|:---|
-| **RFM-14** | **Cross-artifact ratification desync** — an artifact's ratification state contradicts itself or the registry | `PRIORITY_QUEUE.md:11` says *"pending Z2 signature"*; that same file's `## Appended Events` says *"PRIORITY_QUEUE.md v1_1 ratified"*; `REGISTERED.md:3925` lists it ratified at `e8a501f` | **2** | 10 → 5 |
-| **RFM-15** | **Ratification-hash substitution** — a git commit SHA recorded where a decision signature is specified | `REGISTERED.md:3925` = `e8a501f` (7 hex); spec requires 64 | **1** | 10 → 5 |
+| **RFM-14** | **Cross-artifact ratification desync** — an artifact's ratification state contradicts itself or the registry | `PRIORITY_QUEUE.md:11` says *"pending Z2 signature"*; that same file's `## Appended Events` says *"PRIORITY_QUEUE.md v1_1 ratified"*; `REGISTERED.md:3925` lists it ratified at `e8a501f` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
+| **RFM-15** | **Ratification-hash substitution** — a git commit SHA recorded where a decision signature is specified | `REGISTERED.md:3925` = `e8a501f` (7 hex); plus a 63-char near-miss and six unterminated `sha256(Q-…` labels; spec requires exactly 64 hex | **8** | 10 → 5 |
 | **RFM-16** | **Ratified-class starvation** — a class `REGISTRY_SPEC.md` ratifies has zero entries. Indistinguishable from a healthy unused channel without a proof test | D-class (`REGISTRY_SPEC.md:16`), R, GD | **3 / 6 classes** | 10 → 5 |
-| **RFM-17** | **Header staleness** — `Last updated` drifts behind the newest dated content | header 2026-08-15 vs content 2026-09-09 | **1** | 10 → 5 |
+| **RFM-17** | **Header staleness** — `Last updated` drifts behind the newest dated content | header 2026-08-15 vs content 2026-09-20 | **1** | 10 → 5 |
 
 ### GOVERN — the doctrine around the file
 

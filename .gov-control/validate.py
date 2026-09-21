@@ -48,6 +48,26 @@ SSOT = os.path.join(ROOT, ".gov-control", "governance-files.yaml")
 REQUIRED = ("path", "purpose", "format", "authority", "rw")
 
 
+def resolve_in_tree(path: str, root: str) -> str | None:
+    """Return the absolute path if it is inside `root`, else None.
+
+    `os.path.join(root, "/etc/passwd")` discards `root` and returns
+    `/etc/passwd`, and `../` walks out of the tree, so a bare
+    `os.path.exists(os.path.join(root, path))` will happily confirm that a
+    declared path "exists" while pointing outside the repository — satisfying
+    rule 1 without the file being in the tree at all. Presence is only
+    meaningful relative to this repository, so a path that leaves it is a
+    registry error rather than a missing file.
+    """
+    if os.path.isabs(path) or (os.name == "nt" and os.path.splitdrive(path)[0]):
+        return None
+    full = os.path.realpath(os.path.join(root, path))
+    base = os.path.realpath(root)
+    if full != base and not full.startswith(base + os.sep):
+        return None
+    return full
+
+
 def _find_status_keys(node: object, trail: str = "") -> list[str]:
     """Rule 2 is only worth having if it cannot be evaded by nesting."""
     hits: list[str] = []
@@ -89,7 +109,13 @@ def validate(data: dict, root: str = ROOT) -> list[str]:
                 errors.append(f"rule 5 — `{path}` declared more than once; one row per file")
             declared.add(path)
 
-            if not os.path.exists(os.path.join(root, path)):
+            resolved = resolve_in_tree(path, root)
+            if resolved is None:
+                errors.append(
+                    f"rule 0 — `{path}` is absolute or escapes the repository. Declared "
+                    f"paths are repository-relative; presence outside the tree proves nothing."
+                )
+            elif not os.path.exists(resolved):
                 errors.append(
                     f"rule 1 — `{path}` is declared in the registry but absent from the tree. "
                     f"Either land the file or remove its row."
@@ -97,7 +123,15 @@ def validate(data: dict, root: str = ROOT) -> list[str]:
 
             for pointer in ("spec", "ssot", "renderer"):
                 target = f.get(pointer)
-                if target and not os.path.exists(os.path.join(root, target)):
+                if not target:
+                    continue
+                target_resolved = resolve_in_tree(target, root)
+                if target_resolved is None:
+                    errors.append(
+                        f"rule 0 — `{path}` points at {pointer} `{target}`, which is absolute "
+                        f"or escapes the repository"
+                    )
+                elif not os.path.exists(target_resolved):
                     errors.append(
                         f"rule 3 — `{path}` points at {pointer} `{target}`, which does not exist"
                     )
@@ -150,8 +184,28 @@ def run_smoke_test() -> int:
         ]}]}
         assert any("rule 2" in e for e in validate(nested, root=td)), "nested status escaped"
 
-    print("smoke-test OK — catches absent paths, declared status (incl. nested), "
-          "dangling pointers, undeclared boot steps, duplicates, missing fields.")
+        # rule 0: a path that leaves the tree must not be able to satisfy rule 1.
+        # os.path.join(root, "/etc/passwd") == "/etc/passwd", which exists on the
+        # runner, so without containment this row would pass as PRESENT.
+        for escape in ("/etc/passwd", "../../../etc/passwd"):
+            out = {"sections": [{"key": "c", "files": [
+                {"path": escape, "purpose": "p", "format": "md",
+                 "authority": "Z2", "rw": "r"},
+            ]}]}
+            errs = validate(out, root=td)
+            assert any("rule 0" in e for e in errs), f"{escape} escaped containment: {errs}"
+            assert not any("rule 1" in e for e in errs), \
+                f"{escape} reported as merely missing rather than out-of-tree"
+
+        ptr = {"sections": [{"key": "c", "files": [
+            {"path": "real.md", "purpose": "p", "format": "md", "authority": "Z2",
+             "rw": "r", "spec": "/etc/passwd"},
+        ]}]}
+        assert any("rule 0" in e for e in validate(ptr, root=td)), "out-of-tree spec pointer escaped"
+
+    print("smoke-test OK — catches out-of-tree paths, absent paths, declared status "
+          "(incl. nested), dangling pointers, undeclared boot steps, duplicates, "
+          "missing fields.")
     return 0
 
 

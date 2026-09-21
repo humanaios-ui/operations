@@ -31,8 +31,14 @@ Two further defects found while fixing those, both red on `main` before this ses
 
 | Defect | Mirror | Source of truth |
 |:---|:---|:---|
-| `counts.candidates: 69` | `z1-inbox/INDEX.yaml` header | the `candidates:` list (67) |
+| `counts.candidates: 69` | `z1-inbox/INDEX.yaml` header | the `candidates:` list (67 at discovery) |
 | IC-035 / IC-037 each defined twice | new entries' `id:` | the live registry |
+
+*Both figures in the fifth row are the values at discovery (SHA `026322e`), not
+current state: the declared count read 69 while the list held 67. The list has
+since grown — this block's own submission and the seven candidates from #436 —
+so the live number is not 67 and is not meant to be read as one. The defect was
+the gap between the two, which `.z1-control/validate.py` now reports and blocks.*
 
 Six for six. The pattern is the finding.
 

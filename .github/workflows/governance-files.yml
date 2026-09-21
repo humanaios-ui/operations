@@ -19,22 +19,25 @@ name: governance-files
 # first (a renderer that silently no-ops would make the --check vacuous), then
 # gate.
 #
-# Path filters cover every file the jobs read. A PR that edits only
-# GOVERNANCE_FILES.md by hand must fail here, which it cannot do if the filter
-# does not list it.
+# NO PATH FILTER, deliberately.
+#
+# `validate.py` reads every path the SSOT declares and `render.py` derives the
+# Status column from the tree, so this gate's verdict depends on the whole
+# repository, not on the control-plane files. A filter listing only
+# `.gov-control/**` and `GOVERNANCE_FILES.md` would let a PR that adds or
+# deletes a declared file — `REGISTERED.md`, `PRIORITY_QUEUE.md`, any of them —
+# skip the gate entirely and leave the rendered status asserting PRESENT for a
+# file that is gone. That is the same IC-041 shape this PR is fixing elsewhere,
+# and an exhaustive filter would itself be a hand-maintained mirror of the
+# SSOT's path list: the exact defect the control plane exists to remove.
+#
+# The job is four short Python runs with no network, so running it on every PR
+# costs less than maintaining a list that can drift.
 
 on:
   pull_request:
-    paths:
-      - "GOVERNANCE_FILES.md"
-      - ".gov-control/**"
-      - ".github/workflows/governance-files.yml"
   push:
     branches: [main]
-    paths:
-      - "GOVERNANCE_FILES.md"
-      - ".gov-control/**"
-      - ".github/workflows/governance-files.yml"
   workflow_dispatch:
 
 permissions:

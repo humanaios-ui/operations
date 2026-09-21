@@ -1,14 +1,27 @@
 # GitHub Actions Workflow Audit & Classification
 
-**Last Updated:** 2026-09-19  
-**Total Workflows:** 48  
+**Last Updated:** 2026-09-21  
+**Total Workflows:** 52 — `ls .github/workflows/*.yml *.yaml | wc -l`  
+
+> This count is hand-maintained and was 48 while 52 files were present. It is a
+> derived view of a directory listing and belongs under a renderer like the other
+> registries in this repository; see `Q-GOVDRIFT-01` ask 1. Until then, re-run the
+> command above when adding or removing a workflow.
+> 
+> **Five of the 52 do not parse** as GitHub reads them, so they produce zero-job
+> runs that read as failing gates but never execute a step: `drift-monitor.yml`,
+> `receipt-reconciliation-post-merge.yml`, `sonarcloud-baseline-auto.yml`,
+> `weekly-funding-rescore.yml`, `weekly-profile-sync.yml`. `workflow-lint.yml`
+> reports them advisory; repairing them is its stated precondition for becoming
+> blocking.
+
 **Consolidation Phase:** Phase 1 Complete (findings-registry + sonarqube unified; 2 redundant workflows removed)
 
 ## Executive Summary
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Critical-Path Gates | 8 | Lean, required |
+| Critical-Path Gates | 9 | Lean, required |
 | Scheduled Audits | 23 | Intentional separation by scope/schedule |
 | Specialized Frameworks | 5 | SMAG calibration (Stage 2), research, industry telemetry |
 | Infrastructure/Maintenance | 12 | Ancillary support workflows |
@@ -22,7 +35,7 @@
 
 ## Critical-Path Gates (Blocking PRs)
 
-These 8 workflows must pass before a PR can merge to main:
+These 9 workflows must pass before a PR can merge to main:
 
 | Workflow | Purpose | Trigger | Category |
 |----------|---------|---------|----------|
@@ -30,12 +43,13 @@ These 8 workflows must pass before a PR can merge to main:
 | `molt-tier-check.yml` | Classify molt tier (Tier 0/1/2) and validate anti-cascade rules | PR changes | Governance |
 | `quality-baseline.yml` | Run pytest baseline (29 test suites: intent_os, industry_telemetry, etc.) | PR to main | Testing |
 | `security-gates.yml` | Run security checks (semgrep, component scanning, secret scanning) | PR to main | Security |
-| `z2_ratification_gate.yml` | Enforce Z2 hash presence + anti-cascade rules on REGISTERED.md changes | PR to REGISTERED.md | Governance |
+| `z2_ratification_gate.yml` | Verify Z2 ratification requirements on candidate blocks: z1-inbox integrity, rendered-index sync, recorded signatures, Seed Constitution Z2 hashes | PR to `z1-inbox/**`, `REGISTERED.md`, `seeds/`, `seed-publication/**` | Governance |
+| `governance-files.yml` | Hold `GOVERNANCE_FILES.md` to `.gov-control/governance-files.yaml`: every declared path resolves in-tree, no hand-set status, rendered view in sync | every PR and push to main (no path filter — the gate reads the whole tree) | Governance |
 | `temporal-dissolution-gate.yml` | Policy enforcement: reject unauthorized internal deadline semantics (audit-critical, S-070726) | PR to main | Policy |
 | `builder-lint.yml` | Lint builders and infrastructure-as-code | PR to main | Linting |
 | `workflow-lint.yml` | Lint GitHub Actions workflows themselves | PR to main | Linting |
 
-**Why 8 is the right size:** These gates cover the critical path (code quality, security, governance, policy). Additional audits run on schedule or event-trigger but do not block merges—by design, to prevent audit overhead from becoming a merge blocker.
+**Why this stays small:** These gates cover the critical path (code quality, security, governance, policy). Additional audits run on schedule or event-trigger but do not block merges—by design, to prevent audit overhead from becoming a merge blocker.
 
 ---
 

@@ -1,9 +1,12 @@
-# GOVERNANCE_FILES.md — Authoritative Registry
+# GOVERNANCE_FILES.md — Governance File Registry (rendered view)
 
 > Rendered from `.gov-control/governance-files.yaml` (SSOT) by `.gov-control/render.py`.
 > **Do not hand-edit — edit the SSOT.** CI blocks when the two disagree.
 
-**Purpose:** Single source of truth for all governance files, their structure, authority, and location.  
+**Purpose:** A view of every governance file, its structure, authority and location.
+The SSOT is `.gov-control/governance-files.yaml`; this file is derived from it and
+is not authoritative. Calling a rendered view the single source of truth is how a
+maintainer ends up editing the output and losing the edit on the next render.  
 **Updated:** 2026-09-21  
 **Authority:** Z2 (Night) — ratifies file definitions, structure changes, ownership  
 **Model:** Resource-based (no arbitrary time deadlines; resource_cost & capacity-driven)
@@ -18,7 +21,7 @@ SSOT to fall out of date, and `validate.py` rejects one if it is ever added.
 
 ### Core Governance (Z2 Writes)
 
-The files Z2 signs. A change to any of these needs a ratification receipt; CI refuses the merge without one.
+The files Z2 signs. Policy is that a change to any of these carries a ratification receipt. That is ownership, not an enforced invariant — governance-files.yml checks declared paths, derived status and rendered sync, and does not inspect receipts; z2_ratification_gate.yml covers REGISTERED.md and z1-inbox, not every row here. Which rows are gated and which rest on convention is Q-GOVDRIFT-01's ask 1.
 
 | File | Purpose | Format | Authority | R/W | Status |
 |:-----|:--------|:-------|:----------|:----|:-------|

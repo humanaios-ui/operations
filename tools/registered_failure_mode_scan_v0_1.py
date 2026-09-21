@@ -748,7 +748,47 @@ def verify_doc(report: Dict[str, Any], doc_path: Path) -> Tuple[bool, List[str]]
     }
     problems = [f"{label} {val!r} not found in Measured Baseline section"
                 for label, val in expect.items() if val not in baseline_text]
+    problems.extend(_verify_taxonomy_rows(report, text))
     return (not problems), problems
+
+
+def _verify_taxonomy_rows(report: Dict[str, Any], text: str) -> List[str]:
+    """Check each RFM's occurrence cell in the taxonomy tables against the scan.
+
+    Anchoring only to "Measured Baseline" left the rest of the document
+    unguarded: the detail tables carry their own per-RFM occurrence counts, and
+    on 2026-09-21 the headline numbers were refreshed while RFM-10 still read
+    25 (actual 43), RFM-11 10/45 (actual 9/48), RFM-12 1 (actual 0), RFM-14 2
+    (actual 0) and RFM-15 1 (actual 8). The gate passed and the document
+    contradicted the scan on the same page — RFM-11 committed by the table that
+    defines RFM-11.
+
+    A row is `| **RFM-NN** | name | evidence | **count...** | detection |`. The
+    occurrence cell is compared on its first integer, so the surrounding prose
+    ("9 / 48 F", "3 / 6 classes", "1 known") stays free-form. Rows for RFMs the
+    scanner does not produce are skipped rather than failed, so hand-authored
+    entries like RFM-13 and RFM-18 remain valid.
+    """
+    problems: List[str] = []
+    for r in report["results"]:
+        rfm = r["rfm"]
+        row = re.search(rf"^\|\s*\*\*{re.escape(rfm)}\*\*\s*\|.*$", text, re.M)
+        if not row:
+            continue  # not tabulated in this document
+        cells = row.group(0).split("|")
+        if len(cells) < 6:
+            problems.append(f"{rfm} row is malformed — expected 5 cells")
+            continue
+        found = re.search(r"\d+", cells[4])
+        if not found:
+            problems.append(f"{rfm} occurrence cell has no number: {cells[4].strip()!r}")
+            continue
+        if int(found.group(0)) != r["defects"]:
+            problems.append(
+                f"{rfm} occurrence cell says {found.group(0)}, scan says "
+                f"{r['defects']} — regenerate the row"
+            )
+    return problems
 
 
 def render_report(report: Dict[str, Any]) -> str:
