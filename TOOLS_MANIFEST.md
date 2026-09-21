@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**168 registered tools** · 2 MCP servers · 4 excluded · 134 carrying Builder v1.7 markers
+**170 registered tools** · 2 MCP servers · 4 excluded · 136 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 168 |
-| — status `draft` | 167 |
+| Registered tools | 170 |
+| — status `draft` | 169 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 134 |
+| Builder v1.7 markers present | 136 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -129,7 +129,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-158 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
 | HAIOS-TOOL-180 | workflow_dependency_analyzer | `tools/workflow_dependency_analyzer_v1_0.py` | 1.0.0 | 1 | draft | — | Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines |
 
-## Governance — `governance_tool` (12)
+## Governance — `governance_tool` (14)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -145,6 +145,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-166 | intent_os_board_reseal | `tools/intent_os_board_reseal_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse the rest. |
 | HAIOS-TOOL-167 | intent_os_requests | `tools/intent_os_requests_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage. |
 | HAIOS-TOOL-168 | intent_os_reconcile | `tools/intent_os_reconcile_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_reconcile — after a decided candidate merges, record the ratification the merge was. |
+| HAIOS-TOOL-181 | receipt_reconciliation | `tools/receipt_reconciliation.py` | 1.0.0 | 1 | draft | — | §B.6 Receipt Reconciliation — Auto-validates claims against NF_LEDGER.jsonl, files IC-CANDIDATE gaps for Z2 ratification |
+| HAIOS-TOOL-182 | intent_graph | `tools/intent_graph_v1_0.py` | 1.0.0 | 1 | draft | — | intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it. |
 
 ## Infrastructure — `infrastructure_tool` (21)
 
@@ -310,7 +312,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 15 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 12 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 14 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 21 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 4 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
