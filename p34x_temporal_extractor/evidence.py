@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Any
 import re
 from datetime import datetime
+import subprocess
 
 
 @dataclass
@@ -65,10 +66,40 @@ class GitLogProvider(EvidenceProvider):
         self.repo_path = repo_path
 
     def resolve(self, value: str, context: Optional[Dict[str, Any]] = None) -> Optional[EvidenceRecord]:
-        """Check if value appears in git log."""
-        # TODO: implement `git log --all --grep=<value>` + return commit SHA
-        # For now, return None (unimplemented)
-        return None
+        """Check if value appears in git log.
+
+        Searches git log for the value (date, estimate, or other temporal claim).
+        If found, returns EvidenceRecord with commit SHA as ref.
+        In v1.5, will verify commit signature.
+        """
+        try:
+            # Escape value for safe grep
+            escaped_value = value.replace('"', '\\"')
+
+            # Search git log for the value
+            result = subprocess.run(
+                ["git", "log", "--all", "--oneline", f"--grep={escaped_value}"],
+                cwd=self.repo_path,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+
+            if result.returncode == 0 and result.stdout.strip():
+                # Extract first matching commit SHA
+                first_line = result.stdout.strip().split('\n')[0]
+                commit_sha = first_line.split()[0]
+
+                return EvidenceRecord(
+                    source="git",
+                    ref=commit_sha,
+                    value=value,
+                    signed=False,  # v1.5: verify signature
+                )
+
+            return None
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            return None
 
     def name(self) -> str:
         return "git-log"

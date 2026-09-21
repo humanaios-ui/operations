@@ -11,7 +11,7 @@
 
 | Zone ID | Repo Name | Purpose | Z3 Executor | Resource Cap | Status |
 |:--------|:----------|:--------|:-----------|:-------------|:-------|
-| Z-000 | operations | Governance coordination + REGISTERED.md | TBD | 80 units/cycle | ✅ ACTIVE |
+| Z-000 | operations | Governance coordination + REGISTERED.md | `noreply@anthropic.com` (Phase 1) | 80 units/cycle | ✅ ACTIVE |
 | Z-001 | humanaios | Core platform | TBD | 100 units/cycle | ✅ ACTIVE |
 | Z-002 | humanaios-internal | Internal tools | TBD | 80 units/cycle | ✅ ACTIVE |
 | Z-003 | acat-inspect | Audit/inspection | TBD | 60 units/cycle | ✅ ACTIVE |
