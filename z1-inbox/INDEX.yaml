@@ -1,8 +1,8 @@
 version: 1
-generated: '2026-09-20'
+generated: '2026-09-21'
 decision_window_days: 2
 counts:
-  candidates: 74
+  candidates: 76
   records: 37
 ratifiers:
 - Night
@@ -749,6 +749,27 @@ candidates:
     \ unrecorded items on first run, including falsifier_lint cited in CLAUDE.md\
     \ with no implementing workflow. Includes a collaboration protocol Z2 is asked\
     \ to accept or amend."
+- q_id: Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01
+  title: "SMAG calibration profile schema conformance \u2014 WITNESS_STATE additionalProperties\
+    \ conflict"
+  path: z1-inbox/2026-09-21/Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "BLOCKER 1 of 2 preventing Z3 automation wiring. WITNESS_STATE_V0_1.schema.json\
+    \ declares additionalProperties: false but BASELINE_S092126.json profile contains\
+    \ 9 additional fields (measured_gap_rate, calibration_notes, etc.). Z2 must choose\
+    \ Option A (expand WITNESS to v0.2) or Option B (separate ProfileSchema.json).\
+    \ Blocks Z3 s2 and s3 executor tasks toward 2026-10-21 monthly cycle deadline."
+- q_id: Q-SMAG-Z3-TASK-SEQUENCING-01
+  title: "SMAG Z3 executor task sequencing and ownership \u2014 s1/s2/s3 dependency\
+    \ graph"
+  path: z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "BLOCKER 2 of 2 preventing Z3 automation wiring. s1 (CI gate), s2 (Intent-OS\
+    \ binding), s3 (monthly automation) lack stated execution order, dependencies,\
+    \ and executor ownership. Proposes three-phase sequencing with go/no-go gates\
+    \ and 2026-10-21 deadline. Z2 must approve order and assign Z3 executors."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
