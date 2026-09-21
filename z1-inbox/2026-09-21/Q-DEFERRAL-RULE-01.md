@@ -46,9 +46,19 @@ The literature's standard remedy is **periodic review** — audit your suppressi
 every N months. `Q-TEMPORAL-DISSOLUTION-01` forbids it: an internal cadence is an
 `INVALID_INTERNAL_DEADLINE`.
 
-The unavailability is useful. This repository already solved the same problem for
-molt closure — **resolve by pinned observation set, not by elapsed window** — and
-that form applies directly:
+The unavailability is useful. This repository has **proposed** a solution to the
+same problem for molt closure — **resolve by pinned observation set, not by
+elapsed window** — and that form applies directly:
+
+> *Corrected on review (Copilot, PR #447), and the correction changes what Z2 is
+> being asked to ratify.* An earlier version said the repository "already solved"
+> this. It has not. `MOLT_STATE.md` line 125 reads **"Status: PROPOSED —
+> Q-MOLT-TEMPORAL-PURITY-01. Not in force until a Z2 hash"**, and the index has
+> that candidate at `awaiting_z2` with no hash. Leg 3 borrows a **specified but
+> unratified** pattern. Z1 has spent this session reminding Z2 that those
+> ratifications are outstanding and then wrote that one of them was done — the
+> same defect class this session has been cataloguing, committed while
+> cataloguing it.
 
 > A deferral names the **observation whose arrival ends it**, not a date by which
 > someone will look again. A check reports a deferral whose observation has
@@ -103,9 +113,19 @@ nobody able to say it had failed.
 Z1 recommends the tool for legs 2 and 3 be built **before** the rule binds, and
 recommends against a staged adoption beginning with leg 1.
 
+**This recommendation is conditional on `Q-MOLT-TEMPORAL-PURITY-01`.** Leg 3's
+form is specified in `MOLT_STATE.md` and explicitly not in force there. Ratifying
+a deferral rule whose third leg borrows an unratified closure pattern would create
+the dependency without the dependency — the `G-Z2-RATIFY` mistake in a new place,
+where a node claimed a gate that the workflow did not actually enforce. If Z2
+declines the molt candidate, this one should be re-read rather than applied.
+
 ## What Z2 is asked to decide
 
 1. **Three legs, or none.** Z1 recommends against splitting the question.
+   Ordering note: this depends on `Q-MOLT-TEMPORAL-PURITY-01`, which is
+   `awaiting_z2` with no hash, so that one is decided first or this one is
+   decided knowing leg 3 rests on a proposal.
 2. **Scope.** Which deferrals bind? Three legs for a one-line nit is
    disproportionate, and disproportionate rules get routed around. Z1 has no basis
    to draw the line and does not recommend guessing — candidate boundaries include
@@ -124,14 +144,35 @@ research before a decision; this is the research and a recommendation.
 
 ## Falsifier
 
-FALSE if artifact-resident deferrals **do not** accumulate unretired in a corpus
-that *requires* a written justification. Findings 2 and 3 of the research study
-corpora where justification was mostly optional. If a corpus enforcing
-`require-explanation` shows a materially lower dead-suppression rate, leg 2 alone
-suffices and leg 3 is over-engineering. Mechanically checkable against Go projects
-setting `nolintlint: require-explanation: true`, by measuring what fraction of
-their `//nolint` directives suppress a diagnostic the current analyzer would still
-emit.
+*Rewritten on review (Copilot, PR #447).* The first version measured Go `//nolint`
+directives and treated the result as deciding whether leg 3 is over-engineering
+**here**. That does not follow — those are analyzer suppressions in Go source,
+this rule governs review-finding deferrals in a governance repository, and no
+population, baseline or materiality threshold was stated. It falsifies the
+analogy, not the rule. Both are now stated, separately, with thresholds.
+
+**F1 — falsifies the analogy.** FALSE if artifact-resident suppressions do not
+accumulate unretired where justification is *required*.
+Population: Go repositories whose `.golangci.yml` sets `nolintlint:
+require-explanation: true` **and** `require-specific: true`.
+Measure: the fraction of `//nolint` directives suppressing no diagnostic the
+configured analyzers would emit.
+Baseline: 50.8%, as reported for mostly-unjustified corpora.
+Materiality: **below 25%** means enforcing a justification does most of the work
+and the evidence motivating leg 3 does not transfer.
+
+**F2 — falsifies the rule here.** FALSE if deferrals recorded under legs 1 and 2
+alone do not go dead in this repository.
+Population: deferrals recorded in this tree's artifacts under legs 1 and 2,
+counted from the first one.
+Measure: the fraction whose named finding no longer exists in the tree and which
+were never retired.
+Threshold: **below 10% at a census of 20 deferrals** — a count predicate, not a
+window, carrying no scheduling authority.
+Note: running F2 requires adopting legs 1–2 without leg 3, which the
+recommendation above argues against. Z2 may reasonably prefer the recommendation
+to the experiment; if so this is a falsifier the repository has declined to run,
+and that should be recorded rather than left implicit.
 
 Also FALSE if the 50.8% figure is materially wrong when the primary text is read.
 **The evidence tier is CLAIM+LINK: every PDF host returned `EGRESS_BLOCKED` from

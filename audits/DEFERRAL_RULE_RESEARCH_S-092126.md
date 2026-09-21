@@ -145,8 +145,18 @@ carries an open contradiction where a validator computes deadlines from
 `decision_window_days: 2`.
 
 So the obvious fix is unavailable, and the unavailability is useful. The
-alternative this repository already built for molt closure — **resolve by pinned
-observation set rather than by elapsed window** — is the correct form here too:
+alternative this repository has **proposed** for molt closure — **resolve by
+pinned observation set rather than by elapsed window** — is the right form here
+too:
+
+> *Corrected on review (Copilot, PR #447).* An earlier version of this sentence
+> said the repository "already built" that alternative. It has not.
+> `MOLT_STATE.md` line 125 states **"Status: PROPOSED — Q-MOLT-TEMPORAL-PURITY-01.
+> Not in force until a Z2 hash"**, and the index records that candidate as
+> `awaiting_z2` with no hash. Leg 3 below borrows a **specified but unratified**
+> pattern, not an operational mechanism, and §9 is conditional accordingly. The
+> miss is worth recording: Z1 has spent this entire session telling Z2 that those
+> ratifications are outstanding, and then wrote that one of them was done.
 
 > A deferral names the **observation whose arrival ends it**, not a date by which
 > it will be revisited. A mechanical check reports a deferral whose observation
@@ -179,14 +189,17 @@ to assert the documented `--help`/`--input` tool contract, rather than fixing th
 one tool. The reasoning was recorded in a review reply **and** in the PR
 description.
 
-Under the proposed rule **that deferral is non-compliant**, and on all three legs:
+Under the proposed rule **that deferral is non-compliant, failing two of its three
+legs**:
 
-1. It lives in a PR reply and a PR description. Both are channel messages. Nothing
-   in `tools/` or `.tool-control/` records that the contract is enforced by hand.
-2. It names the finding, which is the one leg it passes.
-3. It names no ending observation. Nothing anywhere will report that 171 registered
-   tools are still unchecked against a documented contract, and nothing will notice
-   when the 172nd is added without `--input`.
+1. **Leg 1 — fails.** It lives in a PR reply and a PR description. Both are
+   channel messages. Nothing in `tools/` or `.tool-control/` records that the
+   contract is enforced by hand.
+2. **Leg 2 — passes.** It names the specific finding, not a category. The one leg
+   it clears.
+3. **Leg 3 — fails.** It names no ending observation. Nothing anywhere will report
+   that 171 registered tools are still unchecked against a documented contract,
+   and nothing will notice when the 172nd is added without `--input`.
 
 That is a live instance of Finding 1 produced by the author of the rule, in the
 same session, which is the most defensible reason to adopt it and the reason this
@@ -220,18 +233,58 @@ Z1 recommends Z2 rule on the three-leg form as a single question, with the tool
 for legs 2 and 3 built before the rule binds, and does not recommend a staged
 adoption that starts with leg 1.
 
+**Conditional on `Q-MOLT-TEMPORAL-PURITY-01`.** Leg 3's form — closure by pinned
+observation set — is specified in `MOLT_STATE.md` and explicitly not in force
+there. If Z2 declines that candidate, leg 3 has no ratified pattern to borrow and
+this recommendation should be re-read rather than applied. Ratifying a deferral
+rule that depends on an unratified closure form would create the dependency
+without the dependency, which is the `G-Z2-RATIFY` mistake in a new place.
+
 Filed as `Q-DEFERRAL-RULE-01`. Z1 has not applied anything.
 
 ## 10. Falsifier
 
-FALSE if suppression-style artifact-resident deferrals **do not** accumulate
-unretired in a corpus that requires a written justification. Findings 2 and 3
-study corpora where justification was mostly optional; if a corpus enforcing
-`require-explanation` shows a materially lower dead-suppression rate, then leg 2
-alone is sufficient and leg 3 is over-engineering. Mechanically checkable against
-Go projects that set `nolintlint: require-explanation: true`, by measuring what
-fraction of their `//nolint` directives suppress a diagnostic that the current
-analyzer would still emit.
+*Rewritten on review (Copilot, PR #447).* The first version proposed measuring
+dead-suppression rates in Go projects that enforce `require-explanation` and
+treated the result as deciding whether leg 3 is over-engineering **here**. That
+does not follow: `//nolint` directives are analyzer suppressions in Go source,
+this rule governs review-finding deferrals in a governance repository, and no
+population mapping, baseline or materiality threshold was given. It falsifies the
+**analogy**, not the rule. Separated below.
+
+### F1 — falsifies the suppression analogy
+
+FALSE if suppression-style artifact-resident deferrals do **not** accumulate
+unretired where a written justification is *required*. Findings 2 and 3 study
+corpora where justification was mostly optional.
+
+- **Population:** Go repositories whose `.golangci.yml` sets
+  `nolintlint: require-explanation: true` **and** `require-specific: true`.
+- **Measure:** the fraction of `//nolint` directives that suppress no diagnostic
+  the currently configured analyzers would emit — the FSE 2025 "does not affect
+  any warning" construction, applied to a justification-enforcing corpus.
+- **Baseline:** 50.8%, as reported for the mostly-unjustified corpora.
+- **Materiality:** below 25% — less than half the baseline — means enforcing a
+  justification is itself doing most of the work, and the analogy that motivates
+  leg 3 weakens.
+
+This does not settle the rule. It settles whether the evidence transfers.
+
+### F2 — falsifies the rule for this repository
+
+FALSE if deferrals recorded under legs 1 and 2 alone do not go dead here.
+
+- **Population:** deferrals recorded in this repository's artifacts under legs 1
+  and 2, counted from the first such deferral.
+- **Measure:** the fraction whose named finding no longer exists in the tree and
+  which were never retired.
+- **Threshold:** **below 10% at a census of 20 deferrals** — a count predicate,
+  not a window, so it carries no scheduling authority — means leg 3 is
+  over-engineering and legs 1–2 suffice.
+- **Note:** running F2 requires adopting legs 1–2 without leg 3, which §9
+  recommends against. Z2 may reasonably prefer the recommendation to the
+  experiment; if so, F2 is a falsifier this repository has chosen not to run, and
+  that choice should be recorded rather than left implicit.
 
 Also FALSE if the 50.8% figure is materially wrong when the primary text is read
 from an environment with egress. The argument's direction survives a smaller
