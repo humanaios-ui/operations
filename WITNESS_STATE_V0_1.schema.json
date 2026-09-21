@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/WITNESS_STATE_V0_1.schema.json",
+  "title": "Witness State v0.1",
+  "description": "Canonical runtime state for Witness projections. This state cannot grant governance authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "session_id",
+    "participation_contract_ref",
+    "non_authority_invariant",
+    "authority_context",
+    "modality_state",
+    "evidence_context",
+    "explanation_context",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "session_id": {"type": "string", "minLength": 1},
+    "participation_contract_ref": {"type": "string", "minLength": 1},
+    "non_authority_invariant": {"const": "WITNESS_IS_NOT_THE_AUTHORITY"},
+    "authority_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolution_source", "effective_authority_ref", "resolved_at_event_seq"],
+      "properties": {
+        "resolution_source": {"type": "string", "minLength": 1},
+        "effective_authority_ref": {"type": "string", "minLength": 1},
+        "resolved_at_event_seq": {"type": "integer", "minimum": 0}
+      }
+    },
+    "modality_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "pointer", "voice", "gaze"],
+      "properties": {
+        "text": {"$ref": "#/$defs/modalityToggle"},
+        "pointer": {"$ref": "#/$defs/modalityToggle"},
+        "voice": {"$ref": "#/$defs/modalityToggle"},
+        "gaze": {"$ref": "#/$defs/modalityToggle"}
+      }
+    },
+    "evidence_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["omission_codes", "last_event_seq"],
+      "properties": {
+        "omission_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "NOT_COLLECTED",
+              "NOT_OBSERVED",
+              "WITHHELD_BY_PARTICIPANT",
+              "REDACTED",
+              "LOST",
+              "FILTERED",
+              "OUT_OF_SCOPE",
+              "UNKNOWN",
+              "MODEL_OMISSION",
+              "INTERFACE_OMISSION"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "last_event_seq": {"type": "integer", "minimum": 0}
+      }
+    },
+    "explanation_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_chain_ref", "reconstructable"],
+      "properties": {
+        "record_chain_ref": {"type": "string", "minLength": 1},
+        "reconstructable": {"type": "boolean"}
+      }
+    },
+    "updated_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "modalityToggle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "purpose_classes"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "purpose_classes": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["C0_EXPERIENCE", "C1_RESEARCH", "C2_WHITE_BOX_LEARNING", "C3_GENERATIVE_MODEL_TRAINING"]},
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}
