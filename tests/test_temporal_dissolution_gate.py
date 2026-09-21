@@ -27,6 +27,13 @@ EXEMPT_PATHS = {
     "TEMPORAL_CONTROL_AUDIT.md",
     "tests/test_temporal_dissolution_gate.py",
     "schemas/external_constraint.schema.json",
+    # Q-INTENT-GRAPH-01. Its `conflicts_with` rows exist to quote the defect they
+    # report — the same reason the policy and the audit are exempt. Exempting it
+    # here does not leave it unpoliced: `tools/intent_graph_v1_0.py` rule E10
+    # applies the same patterns to node text, where a real control could hide,
+    # while letting a conflict row name what it is reporting. A line scanner
+    # cannot tell those two apart; a structure-aware validator can.
+    "INTENT_GRAPH.yaml",
 }
 
 CONTROL_EXACT = {
@@ -42,7 +49,6 @@ CONTROL_EXACT = {
     # semantics survived the first audit pass. Root .md files are not picked up
     # by the suffix rule below, so control surfaces of this shape must be named.
     "MOLT_STATE.md",
-    "INTENT_GRAPH.yaml",
     "RESOURCE_UNITS.yaml",
     "constants.json",
 }

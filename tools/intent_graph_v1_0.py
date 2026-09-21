@@ -36,6 +36,12 @@ VALIDATION RULES (all mechanical, all re-runnable)
       The edge is directional on purpose — `from` is the artifact that departs,
       `to` is the standard it departs from. Marking the standard "conflicted"
       would read as though the policy were the defect.
+  E10 no node carries an unclassified internal temporal control in its own text.
+      This file is exempt from the line scanner in
+      tests/test_temporal_dissolution_gate.py, because a `conflicts_with` row
+      exists precisely to quote the defect it reports and a line scanner cannot
+      tell a quotation from a control. E10 restores that enforcement where it
+      belongs: on node text, which is the graph speaking in its own voice.
   W1  a node marked CITED_NOT_IMPLEMENTED is reported, never fatal
   W2  an objective with no inbound `measures` edge is reported
   W3  a mission no objective in this tree realizes is reported
@@ -44,6 +50,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
 from typing import Any
 
@@ -61,6 +68,25 @@ TOOL_ZONE = 1
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GRAPH = os.path.join(ROOT, "INTENT_GRAPH.yaml")
 OUTPUT = os.path.join(ROOT, "INTENT_GRAPH.md")
+
+# E10. Kept in step with RISK_PATTERNS in tests/test_temporal_dissolution_gate.py.
+# Applied to a node's own text only — never to a conflicts_with row, whose job is
+# to quote the control it is reporting.
+TEMPORAL_RISK = (
+    re.compile(r"\b(deadline|due_at|window_end|respond_within|complete_within|start_after)\s*[:=]", re.I),
+    re.compile(r"\boverdue\b", re.I),
+    re.compile(
+        r"\b(must|shall|required\s+to|respond|complete|finish|deliver)\b.{0,60}"
+        r"\bwithin\s+\d+\s*(seconds?|minutes?|hours?|days?|weeks?)\b",
+        re.I,
+    ),
+)
+ALLOWED_TEMPORAL_CLASSES = {
+    "OBSERVATIONAL",
+    "TECHNICAL_SAFETY",
+    "REGULATORY_EXTERNAL",
+    "HISTORICAL_RECORD",
+}
 
 GENERATED_BANNER = (
     "<!-- GENERATED FILE — do not hand-edit.\n"
@@ -149,6 +175,19 @@ def validate(graph: dict, root: str = ROOT) -> tuple[list[str], list[str]]:
 
         if node.get("status") == "CITED_NOT_IMPLEMENTED":
             warnings.append(f"W1 {nid}: cited by {node.get('source')} with no implementation found")
+
+        # E10 — the graph's own voice is held to the policy it records.
+        own_text = " ".join(
+            str(node.get(field) or "") for field in ("name", "statement", "note")
+        )
+        if any(pattern.search(own_text) for pattern in TEMPORAL_RISK):
+            declared = str(node.get("temporal_class") or "").upper()
+            if declared not in ALLOWED_TEMPORAL_CLASSES:
+                errors.append(
+                    f"E10 {nid}: node text carries an internal temporal control with no "
+                    f"permitted temporal_class. A node describing such a control belongs "
+                    f"in a conflicts_with row, not in a node statement."
+                )
 
     # Edges.
     inbound: dict[tuple[str, str], list[str]] = {}
@@ -586,6 +625,33 @@ def run_smoke_test() -> int:
     ]
     errors, _ = validate(undeclared, root=ROOT)
     check("undeclared conflicted status is an error", any(e.startswith("E9") for e in errors))
+
+    # E10 — a temporal control in the graph's own voice is refused...
+    leaky = yaml.safe_load(_FIXTURE)
+    leaky["nodes"][2]["statement"] = "Work is overdue when the review interval elapses."
+    errors, _ = validate(leaky, root=ROOT)
+    check("temporal control in node text is an error", any(e.startswith("E10") for e in errors))
+
+    # ...unless it is classified, and...
+    classified = yaml.safe_load(_FIXTURE)
+    classified["nodes"][2]["statement"] = "Records an overdue flag for provenance."
+    classified["nodes"][2]["temporal_class"] = "HISTORICAL_RECORD"
+    errors, _ = validate(classified, root=ROOT)
+    check("classified temporal reference is allowed", not any(e.startswith("E10") for e in errors))
+
+    # ...a conflicts_with row may quote the defect it reports without tripping it.
+    quoting = yaml.safe_load(_FIXTURE)
+    quoting["nodes"].append({"id": "O2", "type": "objective", "name": "O2",
+                             "source": "README.md", "status": "LIVE"})
+    quoting["nodes"][2]["status"] = "CONFLICTED"
+    quoting["edges"] += [
+        {"from": "O2", "to": "V", "rel": "realizes"},
+        {"from": "P", "to": "O2", "rel": "grounds"},
+        {"from": "O", "to": "O2", "rel": "conflicts_with", "status": "OPEN", "q_ref": "Q-X",
+         "detail": "renders documents visibly overdue once the interval elapses"},
+    ]
+    errors, _ = validate(quoting, root=ROOT)
+    check("conflicts_with row may quote a prohibited control", errors == [])
 
     # W2 — missing measurement is a warning, not a block.
     unmeasured = yaml.safe_load(_FIXTURE)
