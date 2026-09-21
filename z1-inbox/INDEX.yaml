@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 76
+  candidates: 77
   records: 37
 ratifiers:
 - Night
@@ -742,18 +742,20 @@ candidates:
     \ and divergence (the only part carrying information under shared sources).\
     \ Retracts the independence claim in AGENT_GRAPH_COMPARISON.md."
 - q_id: Q-EXTERNAL-JESTER-01
-  title: "An adversarial witness outside the vault, and a way to tell whether it\
-    \ is really outside"
+  title: "The ratified Jester's independence rule is the wrong rule, and we can\
+    \ now measure that"
   path: z1-inbox/2026-09-21/Q-EXTERNAL-JESTER-01.md
   submitted: '2026-09-21'
   status: awaiting_z2
-  note: "Night's objection that Copilot red-teams from inside the vault, now\
-    \ measured at corroboration weight 0.0 rather than intuited. Proposes a\
-    \ Jester that reads only published outputs, never the tree, whose externality\
-    \ is checkable by the convergence grader rather than asserted. Witch deferred\
-    \ until the Jester produces one INDEPENDENT-graded finding, because Witness\
-    \ and Jester are non-authoritative and a transforming role is not. Depends on\
-    \ audits/ROI_RUBRICS_S-092126.md."
+  note: "Amends ratified Q-JESTER-CHECK-01 design rule 2. Substrate independence\
+    \ (critic != author substrate) is satisfied today by Copilot and tests the\
+    \ property that does not matter: the convergence grader measures 0 INDEPENDENT\
+    \ pairs and corroboration weight 0.0 between two different-substrate agents,\
+    \ because both read the same tree. Proposes source disjointness in its place,\
+    \ with substrate independence kept as a necessary-but-insufficient sub-clause.\
+    \ Bears on ratified H-CAND-CASCADE-01, which registers the external check as\
+    \ the component that stops the other three amplifying. Composes with the\
+    \ ratified novelty-ratio detector rather than replacing it."
 - q_id: Q-AGENT-CHECKIN-CALIBRATION-01
   title: "Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review\
     \ comparison"
@@ -776,6 +778,19 @@ candidates:
     \ unrecorded items on first run, including falsifier_lint cited in CLAUDE.md\
     \ with no implementing workflow. Includes a collaboration protocol Z2 is asked\
     \ to accept or amend."
+- q_id: Q-GOVDRIFT-01
+  title: "Derived-artifact convention, and four items only Z2 can close"
+  path: z1-inbox/2026-09-21/Q-GOVDRIFT-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  tier: 1
+  note: "Four asks; ask 2 RATIFIED 2026-09-21 (Night, in-session) and EXECUTED —\
+    \ IC-035/IC-037 collisions corrected to IC-060/IC-061, findings-registry.yml\
+    \ validator now WARN not FAIL. Asks 1, 3, 4 still open: (1) ratify a\
+    \ derived-artifact rule in REGISTRY_SPEC.md so summarizing documents are born\
+    \ gated; (3) refresh the REGISTERED.md header (RFM-17); (4) settle whether the\
+    \ 64-hex signature in REGISTRY_SPEC.md or the merge-is-ratification ruling\
+    \ governs (RFM-15 — AMBIGUITY). Falsifier per ask; all counts tool-produced."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
