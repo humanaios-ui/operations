@@ -52,6 +52,43 @@ Permitted temporal classes:
 
 ---
 
+## Phase 0 Witness Proposals (Z2-Ratified 2026-09-21)
+
+**Authority:** Z2 ratified issue #429 (Q-WITNESS-COMMONS-ASSURANCE-01); Phase 0 artifacts filed as separate resource-allocated Z1 proposals in REGISTERED.md.
+
+**Resource Allocation Model:** Scored by density = benefit / cost[RAT-min] equivalent (resource vector unpriced; proposals below use Z3-hr as primary cost axis for ranking purposes).
+
+| Rank | ID | Artifact | Duration | Z1-ktok | Z3-hr | CI-min | SPEC-hr | Dependencies | Impact | Density (Z3-hr proxy) | Executor |
+|:-----|:---|:---------|:---------|:--------|:------|:-------|:--------|:-----------|:-------|:---------------------|:---------|
+| A | Q-WITNESS-PHASE-0-ARTIFACT-INVENTORY-01 | artifact/claim/control/test/evidence/failure/falsifier inventory | 3w | 15 | 25 | 10 | 8 | none | 9/10 | 0.36 | TBD |
+| B | Q-WITNESS-PHASE-0-EVIDENCE-GRAPH-01 | Typed evidence graph schema & genesis | 4w | 20 | 35 | 15 | 12 | A | 9/10 | 0.26 | TBD |
+| C | Q-WITNESS-PHASE-0-GENESIS-READINESS-01 | Observable Horizon thresholds & genesis readiness seal | 3w | 18 | 30 | 12 | 10 | B | 9/10 | 0.30 | TBD |
+| E | Q-WITNESS-PHASE-0-PARTICIPATION-CONTRACT-SCHEMA-01 | Participation Contract schema (V0.1) & orthogonal axes | 2w | 16 | 28 | 10 | 8 | C | 8/10 | 0.29 | TBD |
+| D | Q-WITNESS-PHASE-0-WITNESS-STATE-SCHEMA-01 | Witness state schema (W_state_type definition) | 2w | 12 | 20 | 8 | 6 | none (parallel) | 7/10 | 0.35 | TBD |
+| F | Q-WITNESS-PHASE-0-SERVICE-CONTRACT-01 | Witness Service Contract (W_service_type) | 2w | 10 | 18 | 6 | 5 | none (parallel) | 7/10 | 0.39 | TBD |
+
+**Critical Path:** A→B→C→E (12 weeks, 91 Z1-ktok, 118 Z3-hr, 47 CI-min, 40 SPEC-hr)  
+**Parallel Tracks:** D+F weeks 1–4 (4 Z1-ktok, 38 Z3-hr, 14 CI-min, 11 SPEC-hr)  
+**Total Phase 0:** 91 Z1-ktok, 156 Z3-hr, 61 CI-min, 49 SPEC-hr  
+
+**Recommended Executor Assignment:**
+- **Executor A:** Q-WITNESS-PHASE-0-ARTIFACT-INVENTORY-01 + Q-WITNESS-PHASE-0-EVIDENCE-GRAPH-01 (serial path A→B; 55 Z3-hr)
+- **Executor B:** Q-WITNESS-PHASE-0-GENESIS-READINESS-01 + Q-WITNESS-PHASE-0-PARTICIPATION-CONTRACT-SCHEMA-01 (serial path C→E; 58 Z3-hr)
+- **Executor C:** Q-WITNESS-PHASE-0-WITNESS-STATE-SCHEMA-01 + Q-WITNESS-PHASE-0-SERVICE-CONTRACT-01 (parallel D+F; 38 Z3-hr)
+
+**Blocking Conditions (issue #429 Z2 approval):**
+1. ✅ Condition A: Phase 0 split into resource proposals — **COMPLETE** (6 proposals filed in REGISTERED.md, now ratified in PRIORITY_QUEUE.md)
+2. ✔️ Condition B: 5 critical edits to RFC — **COMPLETE** (recorded in issue #429 approval comment)
+3. ⏳ Condition C: Phase 1 scope separately proposed — **PENDING** (propose as follow-up after Phase 0 executors assigned)
+4. ⏳ Condition D: Legal/ethics assessment gated — **PENDING** (Z2 to commission 4-week external counsel review)
+
+**Dates Ratified:**
+- Z2 decision: 2026-09-21 (issue #429 approval)
+- REGISTERED.md entries: 2026-09-21 (6 CANDIDATE blocks created; 6 REGISTERED blocks with Z2 ratification)
+- PRIORITY_QUEUE.md entry: 2026-09-21 (this table)
+
+---
+
 ## Canonical RBE Allocation Model
 
 The queue does not invent a new resource formula here. `priority_queue_engine.py` and the RBE-OPS stack are authoritative.
