@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 75
+  candidates: 77
   records: 37
 ratifiers:
 - Night
@@ -727,6 +727,35 @@ candidates:
     \ N=629 / N_LI=307 / mean LI 0.8632 against the audit's 608 / 0.8431 raw / 0.8572\
     \ cleaned. Three live statistic sets. Z2 selects the option; Z1 does not set\
     \ published research figures."
+- q_id: Q-GRAPH-CONVERGENCE-01
+  title: "Grade agreement between agent-authored graphs by source disjointness,\
+    \ not similarity"
+  path: z1-inbox/2026-09-21/Q-GRAPH-CONVERGENCE-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "Answers Night's question about determining INDEPENDENT convergence.\
+    \ GRAPH_ALIGNMENT.yaml holds the judgments (which node means which, what\
+    \ sources, what access); tools/graph_convergence_v1_0.py computes the grade\
+    \ and has no field an author can use to assert its own independence. Result\
+    \ on the two real graphs: 6 pairs, 0 INDEPENDENT, corroboration weight 0.0.\
+    \ Also settles backfill (permitted, forced to BACKFILL_UNGRADED at weight 0)\
+    \ and divergence (the only part carrying information under shared sources).\
+    \ Retracts the independence claim in AGENT_GRAPH_COMPARISON.md."
+- q_id: Q-EXTERNAL-JESTER-01
+  title: "The ratified Jester's independence rule is the wrong rule, and we can\
+    \ now measure that"
+  path: z1-inbox/2026-09-21/Q-EXTERNAL-JESTER-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "Amends ratified Q-JESTER-CHECK-01 design rule 2. Substrate independence\
+    \ (critic != author substrate) is satisfied today by Copilot and tests the\
+    \ property that does not matter: the convergence grader measures 0 INDEPENDENT\
+    \ pairs and corroboration weight 0.0 between two different-substrate agents,\
+    \ because both read the same tree. Proposes source disjointness in its place,\
+    \ with substrate independence kept as a necessary-but-insufficient sub-clause.\
+    \ Bears on ratified H-CAND-CASCADE-01, which registers the external check as\
+    \ the component that stops the other three amplifying. Composes with the\
+    \ ratified novelty-ratio detector rather than replacing it."
 - q_id: Q-AGENT-CHECKIN-CALIBRATION-01
   title: "Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review\
     \ comparison"
