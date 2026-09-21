@@ -12,7 +12,7 @@
 
 ## Executive Summary
 
-WITNESS_STATE_V0_1.schema.json declares `calibration_profile.substrates` with `additionalProperties: false`, but BASELINE_S092126.json contains nine additional fields per substrate (measured_gap_rate, measured_clean_rate, status, calibration_notes, acat_dimensions_stressed, failing_checks_observed, next_review_date, ratification_date, expires_at). This violates the schema contract and prevents Intent-OS Phase 1 runtime validation and capability binding.
+WITNESS_STATE_V0_1.schema.json declares `calibration_profile.substrates` with a fixed properties object and `additionalProperties: false`, but BASELINE_S092126.json uses dynamic substrate names as keys (e.g., `human:humanaios-ui`) with seven additional fields per substrate beyond the core four (measured_gap_rate, measured_clean_rate, status, calibration_notes, acat_dimensions_stressed, failing_checks_observed, next_review_date). This violates the schema contract and prevents Intent-OS Phase 1 runtime validation and capability binding.
 
 **Z2 Decision Required:** Should we expand WITNESS_STATE to v0.2 (Option A) or create separate ProfileSchema.json (Option B)?
 
@@ -25,7 +25,7 @@ The schema mismatch emerges from two independent design processes:
 1. **WITNESS_STATE_V0_1 design (Phase 0):** Created to capture runtime state at merge gate, defined minimal calibration_profile fields.
 2. **Calibration profile data (SMAG feedback):** Designed to capture auditable measurement, gap analysis, and per-substrate metadata for Z2 ratification.
 
-**Schema declares:**
+**Schema structure flaw:**
 ```json
 "calibration_profile": {
   "type": "object",
@@ -43,6 +43,31 @@ The schema mismatch emerges from two independent design processes:
   }
 }
 ```
+
+**Problem:** This schema locks `substrates` to a fixed set of properties with no additional properties allowed. But actual substrate data uses substrate names as object keys (e.g., `"human:humanaios-ui": {...}`) — a dynamic key-value structure, not fixed properties.
+
+**Correct schema structure:**
+```json
+"calibration_profile": {
+  "type": "object",
+  "properties": {
+    "substrates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "confidence_weight": {"type": "number"},
+          "review_bar": {"type": "string"},
+          "merge_pause_threshold": {"type": "number"},
+          "calibration_floor": {"type": "integer"}
+        }
+      }
+    }
+  }
+}
+```
+
+**Key fix:** `additionalProperties` now wraps the object definition for each substrate key, allowing arbitrary substrate names with validated properties inside each one.
 
 **Profile data contains (actual BASELINE_S092126.json):**
 ```json
@@ -94,31 +119,37 @@ The schema mismatch emerges from two independent design processes:
 - Schema coupling: any new profile field requires schema version bump
 - May leak internal metadata (calibration_notes, acat_dimensions_stressed) to runtime layer
 
-**Schema change:**
+**Schema change (corrected, Option A):**
 ```json
 "calibration_profile": {
-  "substrates": {
-    "additionalProperties": false,
-    "properties": {
-      "confidence_weight": {"type": "number"},
-      "review_bar": {"type": "string"},
-      "merge_pause_threshold": {"type": "number"},
-      "calibration_floor": {"type": "integer"},
-      "ratification_date": {"type": "string", "format": "date"},
-      "expires_at": {"type": "string", "format": "date"},
-      "measured_gap_rate": {"type": "number", "minimum": 0, "maximum": 1},
-      "measured_clean_rate": {"type": "number", "minimum": 0, "maximum": 1},
-      "status": {"type": "string", "enum": ["ACTIVE", "RESERVED_NO_DATA_YET", "DEPRECATED"]},
-      "calibration_notes": {"type": "string"},
-      "failing_checks_observed": {"type": "array", "items": {"type": "string"}},
-      "acat_dimensions_stressed": {"type": "array", "items": {"type": "string"}},
-      "next_review_date": {"type": "string", "format": "date"}
+  "type": "object",
+  "properties": {
+    "substrates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "confidence_weight": {"type": "number"},
+          "review_bar": {"type": "string"},
+          "merge_pause_threshold": {"type": "number"},
+          "calibration_floor": {"type": "integer"},
+          "measured_gap_rate": {"type": "number", "minimum": 0, "maximum": 1},
+          "measured_clean_rate": {"type": "number", "minimum": 0, "maximum": 1},
+          "status": {"type": "string", "enum": ["ACTIVE", "RESERVED_NO_DATA_YET", "DEPRECATED"]},
+          "calibration_notes": {"type": "string"},
+          "failing_checks_observed": {"type": "array", "items": {"type": "string"}},
+          "acat_dimensions_stressed": {"type": "array", "items": {"type": "string"}},
+          "next_review_date": {"type": "string", "format": "date"}
+        }
+      }
     }
   }
 }
 ```
 
-**Implementation cost:** Modify schema (1 file), re-validate BASELINE_S092126.json (confirm valid), update smag-consolidate.yml output (add fields).
+**Correction:** `ratification_date` and `expires_at` already exist in WITNESS_STATE_V0_1, so they are NOT new fields. The seven new fields being added are: `measured_gap_rate`, `measured_clean_rate`, `status`, `calibration_notes`, `failing_checks_observed`, `acat_dimensions_stressed`, `next_review_date`.
+
+**Implementation cost:** Modify schema (1 file), re-validate BASELINE_S092126.json (confirm valid), update smag-consolidate.yml output (add 7 new fields).
 
 ---
 
