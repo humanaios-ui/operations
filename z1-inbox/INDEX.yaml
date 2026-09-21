@@ -645,16 +645,16 @@ candidates:
     \ 30 days, 1+ PR merged within 60 days, <4-hour implementation time, no tool failures\
     \ in 90 days."
 - q_id: Q-TOOL-MANIFEST-DRIFT-PREVENTION-01
-  title: "Tool manifest drift prevention \u2014 .github/workflows/tool-sync-gate.yml\
-    \ (Tier 0 infrastructure)"
+  title: "Tool manifest drift prevention \u2014 validation gate (Tier 0 infrastructure)"
   path: z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md
   submitted: '2026-09-20'
-  status: awaiting_z2
+  status: ratified
   tier: 0
-  note: "Root cause analysis of tool manifest CI failures in PR #425. Proposes automated\
-    \ tool-sync-gate workflow to prevent drift between tools-manifest.yaml and TOOLS_MANIFEST.md.\
-    \ Reduces technical friction by ~80% (eliminates 3 manual steps per tool change).\
-    \ Falsifiers and test cases included."
+  ratified_at: '2026-09-21T00:00:00Z'
+  note: "Root cause analysis of tool manifest CI failures in PR #425. Consolidated\
+    \ into existing tool-manifest.yml gate (eliminates duplicate validation). Prevents\
+    \ drift by validating scan.py --check and render.py --check on all manifest\
+    \ input paths. Ratified 2026-09-21 by Z2 (Night)."
 - q_id: Q-PHASE-2-BOARD-MOLT-01
   title: "Z2 Board Decisions & Molt Events Ingestion"
   path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
@@ -669,7 +669,6 @@ candidates:
     \ enables scalable Z3 executor onboarding. Phase 1\u20133 roadmap. Per CLAUDE.md,\
     \ approved 2026-09-19 19:00 UTC pending formal INDEX entry."
 records:
-=======
 - q_id: Q-PHASE-2-BOARD-MOLT-01
   title: "Z2 Board Decisions & Molt Events Ingestion"
   path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
@@ -699,7 +698,6 @@ records:
 - path: z1-inbox/2026-09-19/BROKER-TRACK-STATUS-2026-09-19.md
   title: Broker Track status report (2026-09-19)
   note: Status report on broker service implementation and nonprofit partnership track
->>>>>>> origin/main
 - path: z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md
   title: "Z2 rulings 2026-09-18 \u2014 signatures issued by .z1-control/ratify.py\
     \ and tools/intent_os_reconcile_v1_0.py"

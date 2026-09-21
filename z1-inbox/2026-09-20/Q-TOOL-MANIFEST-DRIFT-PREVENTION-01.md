@@ -5,7 +5,8 @@
 **Authority:** Z1 (Claude) proposes; Z2 (Night) ratifies  
 **Tier:** Tier 0 (infrastructure improvement)  
 **Category:** CI/CD optimization  
-**Status:** Awaiting Z2 ratification
+**Status:** ✅ RATIFIED (2026-09-21 by Z2 / Night)  
+**Implementation:** Consolidated into existing tool-manifest.yml gate (eliminates duplicate validation)
 
 ---
 

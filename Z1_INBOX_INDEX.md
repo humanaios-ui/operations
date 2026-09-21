@@ -372,8 +372,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Schema extends without breaking existing records (review migration path)
 - [ ] Molt Cycle integration is viable (review pseudocode in schema)
 
-<<<<<<< HEAD
-=======
 ### Q-PHASE-2-BOARD-MOLT-01 (6)
 
 `z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md`
@@ -385,7 +383,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] **Deployment feasible?** (Night can execute 6-step guide?)
 - [ ] **Ready to ratify?** (Sign with sha256 hash)
 
->>>>>>> origin/main
 ### Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01 (9)
 
 `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md`
