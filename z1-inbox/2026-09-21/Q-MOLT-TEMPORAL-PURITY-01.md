@@ -256,3 +256,40 @@ z2_decision:
   ratification_hash: null
   z2_notes: ""
 ```
+
+---
+
+## Z2 Ruling
+
+**Decision:** ACCEPT — stated by Night (Z2/Admiral) in session, 2026-09-21.
+**Recorded by:** Claude (Z1), as transcription. Z1 did not make this call.
+**Signature:** none on this file, and **the merge does not create one.**
+
+*Corrected on review (Copilot, PR #440), and the correction matters.* An earlier
+version of this section said the merge of the pull request was the act of
+ratification, citing `Z2_RULING_MERGE_IS_RATIFICATION.md`. That rule is real but
+**narrower than Z1 read it**: `.z1-control/ratify.py` implements merge-ratification
+only for *board rulings* — a file carrying a `## Ruling` section with a `choice:`
+line, the shape `tools/decision_relay.py` writes — and explicitly refuses to sign
+those itself. This candidate is not that shape, so **merging its PR ratifies
+nothing**; the index stays `awaiting_z2` and no signature exists.
+
+The mechanism for a standard candidate is Z2 running:
+
+```
+python3 .z1-control/ratify.py Q-MOLT-TEMPORAL-PURITY-01 --decision ACCEPT --by Night --apply
+```
+
+which computes `sha256(candidate | by | at | decision)` over the file's bytes,
+writes the dated ruling file, and updates `z1-inbox/INDEX.yaml` to a terminal
+status — the three things `.z1-control/validate.py` requires and that a merge
+does not supply. Run it **after this PR merges**, so the hash covers the final
+bytes including this section.
+
+Z1 does not run it: the tool's own docstring says "Run by Z2, not by Z1", because
+Z1 writing the ruling file, computing the hash and setting the status in one pass
+would satisfy every check while proving nothing.
+
+Single-member override applies: with one board member, Night reviews, approves
+and merges her own ruling PR, recorded as an override per that ruling's `review`
+row.
