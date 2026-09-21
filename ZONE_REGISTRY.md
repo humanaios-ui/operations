@@ -3,7 +3,7 @@
 **Purpose:** Authoritative registry of 31 HumanAIOS repositories (zones); executor assignments; resource caps  
 **Authority:** Z2 ratifies zone list, executor assignments, and caps  
 **Model:** Resource-based economy; each zone has resource budget (not time-based)  
-**Updated:** 2026-09-14T00:00:00Z
+**Updated:** 2026-09-21T00:00:00Z (Z2 ratified Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001)
 
 ---
 
@@ -19,6 +19,7 @@
 | Z-005 | acat-dashboard | Analytics dashboard | TBD | 50 units/cycle | ✅ ACTIVE |
 | Z-006 | acat-observatory | System monitoring | TBD | 40 units/cycle | ✅ ACTIVE |
 | Z-007 | empirica-practice-mesh | Empirica integration | TBD | 70 units/cycle | ✅ ACTIVE |
+| Z-012 | blockchain-trading | Algorithmic trading calibration | TBD | 60 units/cycle | ✅ ACTIVE |
 
 ---
 
@@ -44,10 +45,10 @@
 
 | Zone ID | Repo Name | Status | Roadmap Date | Notes |
 |:--------|:----------|:--------|:-------------|:------|
-| Z-012+ | See PLANNED_REPOS.md | PLANNED | Phases 2–3 | 13 planned + 6 unaccounted (see roadmap) |
+| Z-013+ | See PLANNED_REPOS.md | PLANNED | Phases 2–3 | 12 planned + 6 unaccounted (see roadmap) |
 
-**Total active:** 12 zones (8 full-cap + 3 limited-cap + 1 read-only)  
-**Total planned:** 13 zones (per PLANNED_REPOS.md; 6 unaccounted pending audit)  
+**Total active:** 13 zones (9 full-cap + 3 limited-cap + 1 read-only)  
+**Total planned:** 12 zones (per PLANNED_REPOS.md; 6 unaccounted pending audit)  
 **Total aspirational scope:** 31 zones (original claim; see PLANNED_REPOS.md §Overview)
 
 ---
