@@ -277,7 +277,7 @@ nothing**; the index stays `awaiting_z2` and no signature exists.
 The mechanism for a standard candidate is Z2 running:
 
 ```
-python3 .z1-control/ratify.py --q-id <this candidate> --decision ACCEPT --by Night --apply
+python3 .z1-control/ratify.py Q-MOLT-TEMPORAL-PURITY-01 --decision ACCEPT --by Night --apply
 ```
 
 which computes `sha256(candidate | by | at | decision)` over the file's bytes,
