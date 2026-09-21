@@ -63,18 +63,18 @@ jobs:
             git add z1-inbox/receipt-gap-*.md
             git commit -m "Auto-file receipt gaps from reconciliation
 
-§B.6 Receipt Walk-Back: Auto-filed IC-CAND from post-merge ledger reconciliation.
+          §B.6 Receipt Walk-Back: Auto-filed IC-CAND from post-merge ledger reconciliation.
 
-Generated IC candidates:
-- Claim references without ledger entries
-- Pattern: receipt-content-inaccuracy (P3 violation)
-- Action: Z2 to verify and ratify
+          Generated IC candidates:
+          - Claim references without ledger entries
+          - Pattern: receipt-content-inaccuracy (P3 violation)
+          - Action: Z2 to verify and ratify
 
-Post-merge reconciliation triggered by: ${{ github.event_name }}
-Commit: ${{ github.sha }}
+          Post-merge reconciliation triggered by: ${{ github.event_name }}
+          Commit: ${{ github.sha }}
 
-Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01U7UTEEY9AbvnFmq66XAWSq" || true
+          Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_01U7UTEEY9AbvnFmq66XAWSq" || true
           else
             echo "ℹ No new IC candidates to commit"
           fi
