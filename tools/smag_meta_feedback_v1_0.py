@@ -302,14 +302,20 @@ def run(repo: str, consolidation_pr_prefix: str, lessons_path: Path,
 
 
 def render_report(result: dict) -> str:
-    if result.get("status") == "NO_DATA":
-        return f"META FEED BACK: {result.get('message', 'No data available.')}"
+    status = result.get("status")
+    if status in ("NO_DATA", "NO_PREDICTIONS", "API_ERROR"):
+        return f"META FEED BACK: {status} — {result.get('message', 'No data available.')}"
+
     outcome = result
-    accuracy_pct = outcome["accuracy"] * 100 if isinstance(outcome["accuracy"], float) else 0
+    accuracy_pct = outcome.get("predicted_accuracy", outcome.get("accuracy", 0)) * 100 if isinstance(outcome.get("predicted_accuracy", outcome.get("accuracy")), float) else 0
+    successful = outcome.get("successful", 0)
+    reworked = outcome.get("reworked", 0)
+    reverted = outcome.get("reverted", 0)
+    total_prs = outcome.get("total_prs", 0)
     return (
-        f"META FEED BACK: {outcome['total_prs']} consolidation PRs measured. "
-        f"Accuracy: {accuracy_pct:.0f}% (successful={outcome['successful']}, "
-        f"reworked={outcome['reworked']}, reverted={outcome['reverted']}). "
+        f"META FEED BACK: {total_prs} consolidation PRs measured. "
+        f"Accuracy: {accuracy_pct:.0f}% (successful={successful}, "
+        f"reworked={reworked}, reverted={reverted}). "
         f"Focus areas: {', '.join(outcome['focus_areas']) if outcome['focus_areas'] else 'none'}."
     )
 

@@ -1,0 +1,77 @@
+{
+  "n_rows": 126,
+  "calibration_rows": 10,
+  "void_rows": 116,
+  "overall": {
+    "clean": 9,
+    "friction": 1,
+    "pending": 0,
+    "miss": 0,
+    "unknown": 0,
+    "n": 10,
+    "confirmed": 10,
+    "clean_rate": 0.9,
+    "gap_rate": 0.1,
+    "measurable_rate": 1.0
+  },
+  "by_substrate": {
+    "human:humanaios-ui": {
+      "clean": 9,
+      "friction": 1,
+      "pending": 0,
+      "miss": 0,
+      "unknown": 0,
+      "n": 10,
+      "confirmed": 10,
+      "clean_rate": 0.9,
+      "gap_rate": 0.1,
+      "measurable_rate": 1.0
+    }
+  },
+  "trend": [
+    {
+      "date": "2026-09-12",
+      "clean": 2,
+      "friction": 0,
+      "pending": 0,
+      "miss": 0,
+      "unknown": 0,
+      "gap_rate": 0.0
+    },
+    {
+      "date": "2026-09-13",
+      "clean": 1,
+      "friction": 0,
+      "pending": 0,
+      "miss": 0,
+      "unknown": 0,
+      "gap_rate": 0.0
+    },
+    {
+      "date": "2026-09-14",
+      "clean": 5,
+      "friction": 1,
+      "pending": 0,
+      "miss": 0,
+      "unknown": 0,
+      "gap_rate": 0.167
+    },
+    {
+      "date": "2026-09-15",
+      "clean": 1,
+      "friction": 0,
+      "pending": 0,
+      "miss": 0,
+      "unknown": 0,
+      "gap_rate": 0.0
+    }
+  ],
+  "acat_dimensions": {
+    "humility": 1,
+    "truthfulness": 1
+  },
+  "gap_drivers": {
+    "validate": 1,
+    "validate-registry": 1
+  }
+}

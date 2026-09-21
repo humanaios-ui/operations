@@ -1,0 +1,86 @@
+{
+  "profile_id": "BASELINE_S092126",
+  "profile_version": "0.1.0",
+  "created_at": "2026-09-21T00:00:00Z",
+  "ratified_by_z2": "Night (carly.r.anderson@gmail.com)",
+  "ratification_hash": "TBD_AWAITING_Z2_SIGNATURE",
+  "authority_basis": "Q-RECURSIVE-LEARNING-UPSTREAM-IMPACT-01",
+  "description": "Phase 0 baseline calibration profiles derived from SMAG gap analysis (126 historical PR rows, 10 calibrated). Establishes per-substrate behavioral constraints based on measured gap_rate, clean_rate, and ACAT dimension stress patterns.",
+  
+  "sourced_from_lessons": [
+    "SMAG-GAP-ANALYSIS-BASELINE-S092126",
+    "CALIBRATION-PROFILE-SUBSTRATE-HUMAN-BASELINE",
+    "SMAG-FEEDBACK-CALIBRATION-STARVED"
+  ],
+  
+  "substrates": {
+    "human:humanaios-ui": {
+      "confidence_weight": 1.0,
+      "review_bar": "standard",
+      "merge_pause_threshold": 0.25,
+      "calibration_floor": 10,
+      "ratification_date": "2026-09-21",
+      "expires_at": "2026-12-21",
+      "measured_clean_rate": 0.9,
+      "measured_gap_rate": 0.1,
+      "calibration_notes": "Baseline is very healthy (90% clean). No reduction in confidence_weight needed. Maintain standard review bar. If gap_rate drifts above 0.25 (25% friction), pause and investigate. Require 10 pinned smag_p: predictions per month to keep profile credible.",
+      "failing_checks_observed": ["validate", "validate-registry"],
+      "acat_dimensions_stressed": ["humility", "truthfulness"],
+      "next_review_date": "2026-10-21"
+    },
+    "Copilot": {
+      "confidence_weight": 1.0,
+      "review_bar": "standard",
+      "merge_pause_threshold": 0.20,
+      "calibration_floor": 5,
+      "ratification_date": "2026-09-21",
+      "expires_at": "2026-12-21",
+      "status": "RESERVED_NO_DATA_YET",
+      "calibration_notes": "No measured data yet (need ≥5 calibrated Copilot PRs). Reserved with standard defaults. Once data available, will measure gap_rate independently and adjust. Threshold 0.20 (20% friction tolerance) is conservative pending evidence.",
+      "next_review_date": "2026-10-21"
+    },
+    "Claude": {
+      "confidence_weight": 1.0,
+      "review_bar": "standard",
+      "merge_pause_threshold": 0.20,
+      "calibration_floor": 5,
+      "ratification_date": "2026-09-21",
+      "expires_at": "2026-12-21",
+      "status": "RESERVED_NO_DATA_YET",
+      "calibration_notes": "No measured data yet (need ≥5 calibrated Claude PRs). Reserved with standard defaults. Once data available, will measure gap_rate independently and adjust. Threshold 0.20 (20% friction tolerance) is conservative pending evidence.",
+      "next_review_date": "2026-10-21"
+    }
+  },
+  
+  "global_rules": {
+    "rule_1_calibration_driven_adaptation": "Calibration profiles are updated monthly based on gap analysis. No runtime changes to review bars or confidence_weight occur outside Z2 ratification.",
+    "rule_2_falsifier_binding": "If any substrate's measured gap_rate exceeds merge_pause_threshold in a rolling 30-day window, auto-pause new merges for that substrate and file IC candidate in Priority Queue for Z2 review.",
+    "rule_3_profile_expiry": "All profiles expire 90 days from ratification_date. Z2 must ratify renewal or profile reverts to defaults.",
+    "rule_4_intent_os_wiring": "Calibration profiles bind to Intent-OS v1.0 capability layer (Phase 1). Runtime system queries profile before accepting proposal from substrate; if confidence_weight < 1.0 or review_bar > substrate's current setting, constraint is enforced before merge.",
+    "rule_5_meta_signal_precedence": "If meta-feedback (SMAG's own accuracy, or substrate's own self-measurement) conflicts with gap analysis, meta-signal takes precedence and overrides gap-analysis-derived profile until next monthly review."
+  },
+  
+  "implementation_checklist": {
+    "s1_ci_gate_wire_up": {
+      "task": "Add calibration_profile lookup to merge gate CI workflow",
+      "status": "BLOCKED_AWAITING_Z2_SIGN_OFF",
+      "files_to_update": [".github/workflows/merge-gate.yml"],
+      "owner": "Z3 executor",
+      "completion_criteria": "Gate queries calibration_profiles/BASELINE_S092126.json and enforces review_bar before merge approval"
+    },
+    "s2_intent_os_binding": {
+      "task": "Register profile in Intent-OS capability manifest",
+      "status": "BLOCKED_AWAITING_PHASE_1_INTEGRATION",
+      "files_to_update": ["/intent-os/manifests/calibration-profiles.yaml"],
+      "owner": "Z3 executor (machine identity)",
+      "completion_criteria": "Profile is queryable via Intent-OS `/api/calibration-profiles/{substrate}` endpoint; runtime system uses it to gate proposals"
+    },
+    "s3_monthly_refresh_automation": {
+      "task": "Wire monthly gap analysis + profile update to smag-consolidate.yml",
+      "status": "PENDING_Z2_DECISION",
+      "files_to_update": [".github/workflows/smag-consolidate.yml"],
+      "owner": "Z1 proposer (Claude)",
+      "completion_criteria": "smag-consolidate.yml automatically generates updated calibration profiles and opens PR with Z2-ratification-signature requirement"
+    }
+  }
+}
