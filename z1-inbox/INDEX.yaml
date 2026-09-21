@@ -668,21 +668,29 @@ candidates:
   note: "Witness ledger architecture; human-machine decision attribution ledger;\
     \ enables scalable Z3 executor onboarding. Phase 1\u20133 roadmap. Per CLAUDE.md,\
     \ approved 2026-09-19 19:00 UTC pending formal INDEX entry."
-records:
-=======
-- q_id: Q-PHASE-2-BOARD-MOLT-01
-  title: "Z2 Board Decisions & Molt Events Ingestion"
-  path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
-  submitted: '2026-09-19'
+- q_id: Q-MOLT-TEMPORAL-PURITY-01
+  title: "Molt closure is a state predicate, not a clock \u2014 MOLT_STATE.md window\
+    \ semantics vs Q-TEMPORAL-DISSOLUTION-01"
+  path: z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md
+  submitted: '2026-09-21'
   status: awaiting_z2
-- q_id: Q-INTENT-OS-WITNESS-LEDGER-01
-  title: "Intent-OS witness ledger — human-machine decision attribution ledger"
-  path: z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md
-  submitted: '2026-09-19'
+  tier: 2
+  note: "AMBIGUITY callout. MOLT_STATE.md resolves molts at window_end; BOOT_PROCESS_MAP.md\
+    \ already published the successor reading and MOLT_STATE.md was never migrated.\
+    \ Proposes closure by pinned observation set, MEASUREMENT_STARVED as a census\
+    \ predicate, and adds MOLT_STATE.md to the temporal gate's control surfaces\
+    \ (Tier 2 \u2014 gate path; needs registry entry + ADV run before KEEP)."
+- q_id: Q-INTENT-GRAPH-01
+  title: "Shared intent substrate \u2014 typed graph for vision/mission/principles/objectives\
+    \ with a conflict validator"
+  path: z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md
+  submitted: '2026-09-21'
   status: awaiting_z2
-  note: "Witness ledger architecture; human-machine decision attribution ledger;\
-    \ enables scalable Z3 executor onboarding. Phase 1–3 roadmap. Per CLAUDE.md,\
-    \ approved 2026-09-19 19:00 UTC pending formal INDEX entry."
+  note: "Structural half of Q-MOLT-TEMPORAL-PURITY-01. INTENT_GRAPH.yaml +\
+    \ tools/intent_graph_v1_0.py + rendered INTENT_GRAPH.md. Found 3 previously\
+    \ unrecorded items on first run, including falsifier_lint cited in CLAUDE.md\
+    \ with no implementing workflow. Includes a collaboration protocol Z2 is asked\
+    \ to accept or amend."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
@@ -699,7 +707,6 @@ records:
 - path: z1-inbox/2026-09-19/BROKER-TRACK-STATUS-2026-09-19.md
   title: Broker Track status report (2026-09-19)
   note: Status report on broker service implementation and nonprofit partnership track
->>>>>>> origin/main
 - path: z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md
   title: "Z2 rulings 2026-09-18 \u2014 signatures issued by .z1-control/ratify.py\
     \ and tools/intent_os_reconcile_v1_0.py"

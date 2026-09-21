@@ -37,6 +37,12 @@ CONTROL_EXACT = {
     "ZONE_REGISTRY.md",
     "BOOT_PROCESS_MAP.md",
     "REGISTERED.md",
+    # Q-MOLT-TEMPORAL-PURITY-01. MOLT_STATE.md decides whether a ratified
+    # constant change is kept or reverted; its absence here is how window_end
+    # semantics survived the first audit pass. Root .md files are not picked up
+    # by the suffix rule below, so control surfaces of this shape must be named.
+    "MOLT_STATE.md",
+    "INTENT_GRAPH.yaml",
     "RESOURCE_UNITS.yaml",
     "constants.json",
 }
