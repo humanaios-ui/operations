@@ -289,3 +289,5 @@ When these occur, emit callout immediately:
 
 **Boot Process Reference:** See [`BOOT_PROCESS_MAP.md`](./BOOT_PROCESS_MAP.md) for an explicit mapping of REGISTERED.md's position in the session boot chain — the SESSION_RITUALS.md §A ordered, halt-on-failure fetch sequence — onto standard computer boot-chain stages (Secure Boot integrity check, bootloader, kernel image, device enumeration, init ordering, permission model, login prompt, runtime tuning, shutdown/sync, journal). Read this alongside FRAMEWORK_MAPPING.md when reasoning about session-open/close ordering, halt conditions (IC-029/IC-030), or why REGISTERED.md is append-only and live-fetched rather than cached.
 
+**PR Workflow & Quality Gates:** See [`.claude/PR_WORKFLOW_GUIDE.md`](./.claude/PR_WORKFLOW_GUIDE.md) for Z1's (Claude's) PR handling process. Covers task tracking, upfront scope documentation, local CI validation, and formal handoff to Z2. Uses automated verification script (`scripts/verify_pr_readiness.sh`) for manifest, document, and code quality checks before push. Essential reference for PRs with multiple findings or review feedback.
+
