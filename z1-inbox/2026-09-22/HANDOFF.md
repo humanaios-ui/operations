@@ -190,3 +190,120 @@ Once v0.2 receives Z2 ACCEPT:
 
 Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>  
 Claude-Session: https://claude.ai/code/session_01Lm1ut3GdgQakWK694dj3wo
+
+---
+
+## Phase 1 Preparation Work (Autonomous, Z1-appropriate)
+
+**Completed after v0.2 specification finalization:**
+
+### 1. OI-BRIDGE-01_PHASE_1_IMPLEMENTATION_PLAN.md (680 lines)
+**Scope:** Bridge delivery layer, identity enforcement, token validation, GitHub API wiring  
+**Components:**
+- Authority Token Ledger Schema (4 token types: RATIFY, MEASURE, EVIDENCE_VALID, CLEARANCE)
+- Identity Provenance Envelope (3-plane separation: transport ≠ author ≠ human)
+- Ed25519 Signature Validator (token + message envelope validation)
+- Supabase RLS + Principal Mapping (node_principals table, auth.uid ↔ node_id mapping)
+- GitHub PR Fetcher (_fetch_open_prs, _fetch_pr_status wiring)
+
+**Milestones:**
+- v0.2 Z2 ratification target: 2026-09-24
+- Supabase RLS migration: 2026-09-27
+- Ed25519 validator: 2026-09-28
+- GitHub API fetcher: 2026-10-01
+- Token ledger live: 2026-10-02
+- T1–T7 adversarial tests passing: 2026-10-10
+- Phase 1 complete: 2026-10-15
+
+**Status:** PLANNING (awaiting v0.2 Z2 ACCEPT before implementation starts)
+
+### 2. tests/adversarial/test_falsifiers_t1_t7.py (465 lines)
+**Scope:** Preregistered adversarial test harness for v0.2 §9 falsifiers  
+**Test Cases:**
+- **T1 (Spoofing):** Sender claims Node A identity; signature from Node C (rejection expected)
+- **T2 (Tampering):** Message body modified after signing (signature verification failure expected)
+- **T3 (Non-registered-as-fact):** CLAIMED observation used for consequential action (HUMAN_REQUIRED expected)
+- **T4 (Scope expansion):** Token scope "MERGE_PR_445_ONLY" used for PR #446 (scope mismatch expected)
+- **T5 (HUMAN_REQUIRED bypass):** Non-Z2 node consumes CLEARANCE_TOKEN (issuer validation failure expected)
+- **T6 (Evidence validation failure):** Hash mismatch (validation receipt shows FAIL)
+- **T7 (Identity confusion):** ChatGPT linked to Z2's GitHub email; posts via GitHub API (IC-063 detection expected)
+
+**Test Models:**
+- MessageEnvelope: message_id, sender_node_id, sender_signature, epistemic_standing, delivery_state
+- ProvenanceEnvelope: transport_principal, content_author, speaker_identity_chain, (3-plane identity validation)
+- AuthorityToken: token_id, token_type, issued_by, issued_to, canonical_payload, signature, scope
+- ValidationResult: valid, reason, falsifier, verified_at
+
+**Status:** STUB (Phase 1 implementation required)
+
+### 3. OI-BRIDGE-01_NF_LEDGER_SCHEMA.md (460 lines)
+**Scope:** Append-only ledger for token consumption, evidence validation, audit trail  
+**Entry Types (7):**
+1. TOKEN_ISSUED: Z2/bridge issues token
+2. TOKEN_CONSUMED: Node consumes token; bridge logs event
+3. EVIDENCE_VALIDATED: Hash matches; validation receipt recorded
+4. EVIDENCE_VALIDATION_FAILED: Hash mismatch; escalation triggered
+5. CONSEQUENTIAL_ACTION: Bridge permits action (requires valid token)
+6. ESCALATION_EVENT: HUMAN_REQUIRED hold, IC-063 detection logged
+7. DISPOSITION_CHANGE: HUMAN_REQUIRED cleared by Z2 (CLEARANCE_TOKEN consumed)
+
+**Ledger Guarantees:**
+- Immutable (DELETE/UPDATE forbidden; INSERT/SELECT only)
+- Append-only with optional parent_entry_id chaining
+- All authority entries Ed25519-signed; bridge entries HMAC-signed
+- Full traceability: token issue → consumption → action execution → outcome
+
+**Queries Included:**
+- Audit trail for consequential action (full authorization chain)
+- Token consumption chain (Z2 issue → Z1 consume → Z3 execute)
+- Evidence validation history (all attempts for a source)
+- Active escalations (currently blocked; awaiting Z2 clearance)
+- Z2 authorization activity (tokens issued + dispositions changed)
+
+**Status:** DESIGN (Phase 1 implementation required)
+
+---
+
+### Commits Created
+
+| Commit | Message | Files Changed |
+|:-------|:--------|:--------------|
+| 8a28761 | Phase 1 implementation plan: token ledger, identity, GitHub API, T1-T7 tests | 1 file (+680 lines) |
+| 0739ebc | Phase 1 adversarial test harness stub: T1-T7 falsifier tests | 2 files (+465 lines) |
+| 5843816 | NF_LEDGER schema design: append-only token & evidence tracking | 1 file (+460 lines) |
+
+**Total Phase 1 preparation work:** 4 files, ~1,605 lines of design + test structure
+
+---
+
+### Z1 Readiness Assessment
+
+**Green:**
+- ✓ v0.2 specification complete and CANDIDATE (awaiting Z2 ratification)
+- ✓ IC-063 incident documented with mitigation (new I10 invariant, falsifier #11)
+- ✓ Phase 1 implementation plan drafted (components, milestones, checklists)
+- ✓ Adversarial test structure defined (T1-T7 preregistered; test models match spec)
+- ✓ NF_LEDGER schema designed (7 entry types, audit trail, immutability guarantees)
+- ✓ GitHub API wiring strategy drafted (PR fetcher pseudocode ready for Phase 1)
+- ✓ Ed25519 validation pseudocode + RLS enforcement designed
+- ✓ Token consumption tracking schema complete
+- ✓ All Phase 1 dependencies identified + timeline estimated
+
+**Blockers:**
+- ⧗ v0.2 Z2 ACCEPT signature (required before Phase 1 implementation starts)
+- ⧗ Supabase connection stabilization (Phase 1 dependency for RLS migration)
+
+**Next Autonomous Step:**
+- Monitor for Z2 ratification feedback or corrections (decision window until 2026-09-24T22:00:00Z)
+- If Z2 requests v0.3 corrections: revise v0.2 + resubmit (Z1 work)
+- If Z2 ratifies v0.2: Begin Phase 1 implementation (Z3 executor work)
+
+---
+
+**Session Close Ritual Complete**
+- ✓ §B.0 Empirical verification (v0.2 created, committed, pushed)
+- ✓ §B.6 Receipt reconciliation (all claims REGISTERED; zero gaps)
+- ✓ Findings scan (IC-063 incident + H-TOKENIZED-AUTHORITY-EFFICACY filed)
+- ✓ Handoff block (this document written, committed, pushed)
+- ✓ Phase 1 preparation (design phase complete; ready for implementation)
+
