@@ -5459,3 +5459,101 @@ Phase 1 Complete (per se):     FALSE
 2026-09-22T23:01:50Z — Bridge confirmed fail-open in cryptographic layer (Phase 1 validators accept format; real verification Phase 2)
 ```
 
+
+### CL-OI-BRIDGE-01-PROVENANCE-CLARIFICATION — Z2 Ratification Human Authorship Confirmed
+
+**Date:** 2026-09-22T23:04:40Z  
+**Finding Class:** PROVENANCE OBSERVABILITY (not authenticity challenge)  
+**Authority:** ChatGPT-5.6 (independent provenance recorder, authority_effect: NONE)  
+**Research Context:** IC-063, three-plane separation gap detection
+
+**Clarification:**
+
+Night has explicitly confirmed (in current ChatGPT session) that PR comment `5785480905` ("Z2 RATIFY: ACCEPT v0.3") **was personally authored by Night**.
+
+The prior blocking finding should therefore be **narrowed, not erased**.
+
+**Corrected Assessment:**
+
+```
+Z2 RATIFICATION INTENT:        HUMAN-CONFIRMED ✓
+Z2 AUTHORSHIP:                 HUMAN-ATTESTED ✓
+EVENT-LEVEL CRYPTO PROOF:      NOT ESTABLISHED ✗
+RATIFICATION SUBSTANCE:        SHOULD NOT BE VOIDED ✓
+PROVENANCE CONTROL GAP:        REMAINS OPEN ✗
+```
+
+**Distinction:**
+
+The problem is **not** that Claude fabricated a human decision.
+
+The problem is that the PR event itself did not carry sufficient provenance to let an **independent observer** mechanically distinguish:
+- A. Night personally authored the ratification, from
+- B. An AI posted equivalent text through the same GitHub transport account
+
+Given IC-063 (identity confusion prevention), that distinction **must be mechanically resolvable**.
+
+**Research Result:**
+
+> A genuinely human Z2 decision occurred, but the communication substrate did not contain sufficient evidence for an independent observer to prove that fact at the time of receipt.
+
+**That is an observability defect.**
+
+**Updated Standing:**
+
+- ✓ Ratification v0.3 is valid (human intent confirmed)
+- ✓ Do not roll back Z2 decision
+- ✗ Event-level cryptographic proof was absent (gap confirmed)
+- ✗ Bridge cannot automatically learn rule: `humanaios-ui + "Z2 RATIFY" text → Z2 authority`
+
+**Future Remediation:**
+
+After detached signature or trusted hardware-bound proof is available:
+```
+evidence_strength: CRYPTO_VERIFIED (instead of HUMAN_ATTESTED)
+```
+
+**Preservation:** Do not delete or overwrite ratification record. Keep:
+1. Original ratification event
+2. Independent observability finding (prior blocking finding)
+3. This human confirmation
+4. Future cryptographic remediation
+
+**Phase 1 Consequence:**
+
+Proceed with v0.3 specification authority. Do not void ratification.
+
+But preserve the finding: the runtime bridge must not learn `humanaios-ui + "Z2 RATIFY" text → automatic Z2 authority` without positive speaker authentication.
+
+---
+
+## Current Standing Summary
+
+### Ratification (v0.3)
+
+| Aspect | Status | Evidence |
+|--------|--------|----------|
+| Specification | REGISTERED | G-OI-BRIDGE-01-v0.3 content approved |
+| Human Intent | CONFIRMED | Night explicitly attested in current session |
+| Authenticity | HUMAN-ATTESTED | Night confirms personal authorship |
+| Event-Level Crypto | NOT ESTABLISHED | PR comment lacks detached Ed25519 signature |
+| Substance Validity | VALID | Should not be voided by observability gap |
+| Proceeding Authority | YES | v0.3 ratification stands as human decision |
+
+### Phase 1 Implementation
+
+| Aspect | Status | Notes |
+|--------|--------|-------|
+| Scaffolding | COMPLETE | 7 workstreams, 16 modules, ~4000 LOC |
+| Runtime Integration | PARTIAL/STUB | Validators format-check-only; Phase 2 for real verification |
+| Local Validation | READY | Suitable for staging/test use cases |
+| Production Deployment | NOT READY | Authority enforcement pending Phase 2 |
+| Observability Gap | IDENTIFIED & PRESERVED | Future cryptographic remediation required |
+
+### Z2 Authority Model
+
+- ✓ Z2 ratification (v0.3) stands as genuine human decision
+- ✓ Proceed with specification authority
+- ⚠ Observability gap remains (runtime must not auto-trust text-only claims)
+- ⚠ Phase 2 must implement cryptographic/hardware-bound proof for speaker authentication
+
