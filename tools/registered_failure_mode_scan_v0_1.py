@@ -786,38 +786,82 @@ def _verify_taxonomy_rows(report: Dict[str, Any], text: str) -> List[str]:
     ("9 / 48 F", "3 / 6 classes", "1 known") stays free-form. Rows for RFMs the
     scanner does not produce are skipped rather than failed, so hand-authored
     entries like RFM-13 and RFM-18 remain valid.
+
+    A second, plain-text row shape is checked too: `| RFM-NN | UNSCORED |
+    occurrence | detection | RPN |`, the FMEA summary table. It was invisible
+    to the pattern above — no `**` — and on 2026-09-21 that let ten of its
+    Occurrence cells sit stale (58/137, 25, 2, 1, ...) through every prior
+    round of this fix, including the round that had just regenerated the same
+    numbers three headings above it. Anchored on the literal `UNSCORED` token
+    in the Severity column, which is this table's own stated invariant (its
+    text: "even [RFM-05] is UNSCORED" — no ratified severity mapping exists
+    for any row yet); if that ever changes, the anchor should move with it
+    rather than silently stop matching.
     """
     problems: List[str] = []
     for r in report["results"]:
         rfm = r["rfm"]
-        row = re.search(rf"^\|\s*\*\*{re.escape(rfm)}\*\*\s*\|.*$", text, re.M)
-        if not row:
-            continue  # not tabulated in this document
-        cells = row.group(0).split("|")
-        if len(cells) < 6:
-            problems.append(f"{rfm} row is malformed — expected 5 cells")
-            continue
-        found = re.search(r"\d+", cells[4])
-        if not found:
-            problems.append(f"{rfm} occurrence cell has no number: {cells[4].strip()!r}")
-            continue
-        if int(found.group(0)) != r["defects"]:
-            problems.append(
-                f"{rfm} occurrence cell says {found.group(0)}, scan says "
-                f"{r['defects']} — regenerate the row"
-            )
-        # Checking the numerator alone leaves the denominator free to rot: the
-        # RFM-07 row read "8 / 137" against a 154-entry registry and passed,
-        # because its numerator was right. A stale denominator understates the
-        # corpus the defect was measured over, which is the number a reader
-        # divides by.
-        ratio = re.search(r"(\d+)\s*/\s*(\d+)", cells[4])
-        if ratio and r["opportunities"] is not None:
-            if int(ratio.group(2)) != r["opportunities"]:
+        for pattern, occurrence_index in (
+            (rf"^\|\s*\*\*{re.escape(rfm)}\*\*\s*\|.*$", 3),  # id, name, evidence, OCC, detection
+            (rf"^\|\s*{re.escape(rfm)}\s*\|\s*UNSCORED[^|]*\|.*$", 2),  # id, severity, OCC, detection, rpn
+        ):
+            row = re.search(pattern, text, re.M)
+            if not row:
+                continue  # not tabulated in this shape
+            cells = _normalized_row_cells(row.group(0))
+            if len(cells) != 5:
                 problems.append(
-                    f"{rfm} occurrence denominator says {ratio.group(2)}, scan "
-                    f"measured over {r['opportunities']} — regenerate the row"
+                    f"{rfm} row is malformed — expected 5 cells, found {len(cells)}: "
+                    f"{row.group(0)!r}"
                 )
+                continue
+            problems.extend(_check_occurrence_cell(rfm, cells[occurrence_index], r))
+    return problems
+
+
+def _normalized_row_cells(row: str) -> List[str]:
+    """Split a `| a | b | c |`-style row into content cells only.
+
+    `row.split("|")` keeps the empty strings on either side of the enclosing
+    pipes, so a well-formed 5-cell row splits to 7 elements, not 5. A prior
+    version of this function used raw split length as the malformed-row
+    check (`len(cells) < 5`), which a genuinely malformed row satisfied
+    anyway (6 elements is not < 5) — a row missing its Severity cell then had
+    every later cell shift left by one, and the Occurrence read silently
+    became the Detection value with no error raised. Stripping the
+    pipe-delimiter artifacts first makes the count mean what it says.
+    """
+    cells = row.split("|")
+    if cells and cells[0].strip() == "":
+        cells = cells[1:]
+    if cells and cells[-1].strip() == "":
+        cells = cells[:-1]
+    return cells
+
+
+def _check_occurrence_cell(rfm: str, cell: str, r: Dict[str, Any]) -> List[str]:
+    problems: List[str] = []
+    found = re.search(r"\d+", cell)
+    if not found:
+        problems.append(f"{rfm} occurrence cell has no number: {cell.strip()!r}")
+        return problems
+    if int(found.group(0)) != r["defects"]:
+        problems.append(
+            f"{rfm} occurrence cell says {found.group(0)}, scan says "
+            f"{r['defects']} — regenerate the row"
+        )
+    # Checking the numerator alone leaves the denominator free to rot: the
+    # RFM-07 row read "8 / 137" against a 154-entry registry and passed,
+    # because its numerator was right. A stale denominator understates the
+    # corpus the defect was measured over, which is the number a reader
+    # divides by.
+    ratio = re.search(r"(\d+)\s*/\s*(\d+)", cell)
+    if ratio and r["opportunities"] is not None:
+        if int(ratio.group(2)) != r["opportunities"]:
+            problems.append(
+                f"{rfm} occurrence denominator says {ratio.group(2)}, scan "
+                f"measured over {r['opportunities']} — regenerate the row"
+            )
     return problems
 
 
@@ -1164,7 +1208,9 @@ def run_self_test(verbose: bool = True) -> bool:
         "-> 80.7% first-pass yield -> 193,182 DPMO\n\n"
         "## Taxonomy\n\n"
         "| **RFM-07** | name | evidence | **8 / 154** | 10 |\n"
-        "| **RFM-11** | name | evidence | **9 / 48 F** | 10 |\n"
+        "| **RFM-11** | name | evidence | **9 / 48 F** | 10 |\n\n"
+        "## FMEA\n\n"
+        "| RFM-07 | UNSCORED | 8 / 154 | 5 | — |\n"
     )
     with tempfile.TemporaryDirectory() as td:
         gp = Path(td) / "good.md"
@@ -1201,6 +1247,37 @@ def run_self_test(verbose: bool = True) -> bool:
                       encoding="utf-8")
         ok, probs = verify_doc(vd_report, p5)
         check("verify-doc ignores rows the scanner does not produce", ok, f"got {probs}")
+
+        # the plain FMEA row shape (no **bold**) is the one that drifted through
+        # every prior round undetected; it needs its own numerator and
+        # denominator regressions, not just coverage via good_doc above,
+        # exactly per the review that asked for this.
+        p6 = Path(td) / "fmea_num.md"
+        p6.write_text(good_doc.replace("| RFM-07 | UNSCORED | 8 / 154 |",
+                                        "| RFM-07 | UNSCORED | 5 / 154 |"), encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p6)
+        check("verify-doc catches a stale FMEA-row numerator",
+              not ok and any("says 5" in p for p in probs), f"got {probs}")
+
+        p7 = Path(td) / "fmea_den.md"
+        p7.write_text(good_doc.replace("| RFM-07 | UNSCORED | 8 / 154 |",
+                                        "| RFM-07 | UNSCORED | 8 / 137 |"), encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p7)
+        check("verify-doc catches a stale FMEA-row denominator",
+              not ok and any("denominator" in p for p in probs), f"got {probs}")
+
+        # a row missing its trailing RPN cell (anchor token intact, so it
+        # still matches as an FMEA row) must be flagged as malformed, not
+        # silently misread. A raw split-length check let exactly this through
+        # in an earlier version: len(cells) < 5 was never true for a 4-cell
+        # row, since the unstripped split of even a truncated row still
+        # carries the leading/trailing pipe artifacts.
+        p8 = Path(td) / "fmea_malformed.md"
+        p8.write_text(good_doc.replace("| RFM-07 | UNSCORED | 8 / 154 | 5 | — |",
+                                        "| RFM-07 | UNSCORED | 8 / 154 | 5 |"), encoding="utf-8")
+        ok, probs = verify_doc(vd_report, p8)
+        check("verify-doc flags a malformed FMEA row rather than misreading it",
+              not ok and any("malformed" in p for p in probs), f"got {probs}")
 
     if verbose:
         print()

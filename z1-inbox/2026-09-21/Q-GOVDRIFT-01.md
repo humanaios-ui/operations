@@ -208,6 +208,39 @@ Z1 did not edit the header — it is the canonical file. Z2 to refresh, or rule 
 header tracks schema-version changes rather than content and have the scanner stop
 flagging it.
 
+---
+
+**RESOLVED 2026-09-21.** Z2 (Night) ratified: refresh the header date. In-session
+receipt, same form as ask 2.
+
+Set to `September 20, 2026 (S-092026-01-red-team-audit)` — the newest
+`date_registered` in the file per `evaluate_header_staleness()`'s own formula (max
+of every `date_registered:` and every `### YYYY-MM-DD —` heading). Not "today"
+(2026-09-21): nothing in the file carries that as a `date_registered` — the 16
+occurrences of "2026-09-21" already present are `zone2_ratification`/`date_ratified`
+fields and my own ask-2 prose, none of which the scanner counts, and inventing a
+`date_registered` the file doesn't have would be a different lie than the one being
+fixed. `python3 tools/registered_failure_mode_scan_v0_1.py scan` confirms:
+`[RFM-17] Header staleness — PASS`.
+
+Fixing this exposed a fourth stale table in `REGISTERED_FAILURE_MODES.md` — the
+FMEA `Occurrence` column, ten cells stale (RFM-06 58/137, RFM-07 8/137, RFM-08
+5/137, RFM-09 30/137, RFM-10 25, RFM-11 10/45, RFM-12 1, RFM-14 2, RFM-15 1,
+RFM-17 1), invisible to `_verify_taxonomy_rows` because its rows aren't
+bold-formatted (`| RFM-06 |` vs `| **RFM-06** |`) — so it drifted through
+every one of the three prior review rounds undetected, including the round
+that had just regenerated the same ten numbers three headings above it in the
+same file. Regenerated to match the scan, and `_verify_taxonomy_rows` extended
+to also match this row shape (anchored on the literal `UNSCORED` token the
+table's own honesty rule guarantees is present in every Severity cell today),
+proven by deliberately breaking an FMEA-only cell and confirming
+`verify-doc` fails on it alone (exit 1), then passes restored (exit 0).
+
+Asks 2 and 3 now resolved; asks 1 and 4 remain open. `REGISTERED.md`'s only
+change beyond ask 2 is this header line. Full local gate sweep green,
+including `self-test` (existing fixtures unaffected by the refactor) and the
+temporal-dissolution gate in CI mode.
+
 ### ASK 4 — RFM-15 ratification-hash substitution (8 instances)
 
 `REGISTRY_SPEC.md` specifies `sha256(candidate | by | at | decision)` — 64 hex chars.
