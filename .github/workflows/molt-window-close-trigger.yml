@@ -3,6 +3,11 @@ name: MOLT Window Close Measurement Trigger
 # Runs at midnight UTC daily to check for molt window closures
 # Extracts measurement data and updates molt outcome (KEEP/REVERT based on falsifier)
 # Triggers MOLT_STATE.md update to fire molt-notification-hook notifications
+#
+# temporal_class: OBSERVATIONAL
+# note: Molt window measurement is Z2-ratified governance infrastructure (MOLT_STATE.md).
+#       This workflow observes window_end times for automated measurement trigger only;
+#       no scheduling authority, no deadline enforcement, telemetry class.
 
 on:
   schedule:
@@ -35,6 +40,8 @@ jobs:
         id: window-check
         run: |
           python3 - <<'PYTHON'
+          # temporal_class: OBSERVATIONAL
+          # Molt window_end observation for Z2-ratified measurement scheduling.
           import json
           import os
           from datetime import datetime, timezone
@@ -58,7 +65,9 @@ jobs:
           now = datetime.now(timezone.utc)
           today_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
+          # temporal_class: OBSERVATIONAL
           # Find molts with window_end matching today at 00:00 UTC
+          # (measurement observation checkpoint, not deadline enforcement)
           closed_molts = []
           for molt in molts:
               window_end_str = molt.get("window_end")
