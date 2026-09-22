@@ -1,6 +1,6 @@
 {
   "title": "CT-001 — Constitutional Tuning Reconstruction Test",
-  "description": "Preregistered three-pass experiment testing whether a typed multi-voice evidence graph can preserve human, AI, industry, tool, constitutional, and normative signals without collapsing agreement into authority.",
+  "description": "Transparent registration of CT-001 with a pre-Pass-A Git preregistration record; prospective OSF preregistration applies to Pass B and Pass C only because Pass A was completed before OSF submission.",
   "contributors": [
     {
       "name": "Carly R. Anderson",
@@ -14,6 +14,12 @@
     "Software Engineering",
     "Open Science"
   ],
+  "temporal_status": {
+    "git_preregistration": "PRE_PASS_A",
+    "pass_a": "COMPLETED_BEFORE_OSF_SUBMISSION",
+    "pass_b": "NOT_RUN_PROSPECTIVE",
+    "pass_c": "NOT_RUN_PROSPECTIVE"
+  },
   "license_recommendation": "Choose the project license intentionally in OSF; do not infer one from this package.",
   "git_preregistration_commit": "d17b75d6b0f30e0d96607713ffeeddcb76eecda6",
   "repository": "https://github.com/humanaios-ui/operations",
