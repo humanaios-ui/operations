@@ -17,7 +17,7 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | — status `draft` | 156 |
 | — status `archived` | 1 |
 | Builder v1.7 markers present | 126 |
-| Uncategorized | 2 |
+| Uncategorized | 0 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -140,7 +140,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-160 | smag_feedback | `tools/smag_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop. |
 | HAIOS-TOOL-163 | smag_meta_feedback | `tools/smag_meta_feedback_v1_0.py` | 1.0.0 | 1 | draft | — | smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy. |
 
-## Infrastructure — `infrastructure_tool` (20)
+## Infrastructure — `infrastructure_tool` (21)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -164,6 +164,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-145 | doc_registry_renderer | `.doc-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render CONTROLLED_DOCUMENTS.md from document-registry.yaml. |
 | HAIOS-TOOL-147 | tool_manifest_renderer | `.tool-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render TOOLS_MANIFEST.md from tools-manifest.yaml. |
 | HAIOS-TOOL-148 | tool_manifest_scanner | `.tool-control/scan.py` | 1.1.0 | 1 | draft | no-builder-markers | Walks the registered tool roots, extracts each tool's declared metadata, and |
+| HAIOS-TOOL-164 | install_git_hooks | `scripts/install_git_hooks.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Install git hooks for this repository |
 
 ## Monitoring — `monitoring_tool` (3)
 
@@ -239,7 +240,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-135 | tool_scaffolder | `tools/tool_scaffolder_v1_0.py` | 1.0.0 | 1 | draft | — | Scaffolds new Builder v1.7-compliant tools from template. |
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 
-## Validation — `validation_tool` (19)
+## Validation — `validation_tool` (20)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -262,12 +263,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-150 | tool_manifest_validator | `.tool-control/validate.py` | 1.1.0 | 1 | draft | no-builder-markers | The merge gate for `tools-manifest.yaml`, built to the same contract as |
 | HAIOS-TOOL-161 | witness_framework | `tools/witness_framework.py` | 0.1.0 | 1 | draft | — | Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts |
 | HAIOS-TOOL-162 | intent_os_board_check | `tools/intent_os_board_check_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_check — verify the Intent-OS board's "verified records" against the tree. |
-
-## Unclassified — blocks the gate — `unclassified` (2)
-
-| tool_id | tool | path | ver | zone | status | flags | purpose |
-|---|---|---|---|---|---|---|---|
-| HAIOS-TOOL-164 | install_git_hooks | `scripts/install_git_hooks.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Install git hooks for this repository |
 | HAIOS-TOOL-165 | verify_pr_readiness | `scripts/verify_pr_readiness.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | PR Readiness Verification — Run all validation checks in sequence |
 
 ## MCP servers (2)
@@ -296,7 +291,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 14 |
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 9 |
-| `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 20 |
+| `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 21 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 3 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 6 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 4 |
@@ -304,7 +299,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 9 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 10 |
 | `template_tool` | A scaffold or template for producing new tools. | 2 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 19 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 20 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 

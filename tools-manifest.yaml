@@ -35,7 +35,7 @@ counts:
   excluded: 0
   builder_markers_present: 126
   missing_from_tree: 0
-  unclassified: 2
+  unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
@@ -52,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -1978,7 +1977,7 @@ tools:
   name: install_git_hooks
   path: scripts/install_git_hooks.sh
   version: unversioned
-  category: unclassified
+  category: infrastructure_tool
   zone: 1
   status: draft
   interface: script
@@ -1990,7 +1989,7 @@ tools:
   name: verify_pr_readiness
   path: scripts/verify_pr_readiness.sh
   version: unversioned
-  category: unclassified
+  category: validation_tool
   zone: 1
   status: draft
   interface: script
