@@ -4946,6 +4946,40 @@ tags: ["molt", "temporal-dissolution", "measurement-window", "governance-gap"]
 
 ---
 
+### IC-063 — Identity Confusion: Transport Identity Masking Speaker Identity
+
+```yaml
+---
+id: "IC-063"
+name: "identity-confusion-transport-masking-speaker"
+status: CANDIDATE
+class: IC
+date_registered: "2026-09-22"
+date_origin: "2026-09-22"
+session_registered: "S-092226-01-oi-bridge-spec"
+principles_triggered: ["P1", "P3", "P21"]
+related_finding: "G-OI-BRIDGE-01-v0.2"
+related_issue: "humanaios-ui/operations#455"
+tags: ["governance", "identity", "provenance", "authentication", "authority-reference"]
+zone2_decision_window: "48h from 2026-09-22T22:00:00Z"
+---
+```
+
+- **Incident Date:** 2026-09-22T18:00:00Z
+- **Discovery:** ChatGPT app (linked to user's GitHub account like Claude is) posted review comments on PR #455 via GitHub API. GitHub transport layer displayed reviewer identity as "carly.r.anderson@gmail.com" (user's canonical email, also Z2's canonical email). Initial interpretation: feedback attributed to Z2 (Night) authority; actual speaker: ChatGPT (AI assistant, not authority).
+- **Root Cause:** Transport identity (GitHub account owner email) ≠ speaker identity (which app/agent generated the message) ≠ authority effect (whether message should trigger Z2-level decisions). System conflated three independent planes of identity.
+- **Impact:** Specification v0.1 was initially revised based on feedback attributed to Z2 authority when it was actually ChatGPT analysis. Demonstrates failure of unauthenticated identity inference: "Because message arrived via Z2's GitHub account, assume Z2 authorized it."
+- **Mitigation (v0.2 Specification):** 
+  1. New invariant I10: **TRANSPORT_IDENTITY_IS_NOT_SPEAKER_IDENTITY** — require explicit provenance envelope separating `transport_principal`, `content_author`, `human_principal`, and cryptographic authority proof.
+  2. All authority-carrying communications must include Ed25519 signature by Z2 (not self-asserted `valid: true`).
+  3. Secondary falsifier #11: System infers authority from transport identity without cryptographic proof → v0.2 FAILS.
+  4. Adversarial test T7: ChatGPT posts via GitHub; system should reject Z2 authority inference (signature verification fails).
+- **Governance Change:** Authority references must resolve to cryptographically signed external events (Z2 Ed25519 signature) or independently verified INTENT-OS capability tokens—never to transport layer identity alone.
+- **Prevention:** All GitHub/Slack/email integrations must include content_author field in envelopes. Bridge must enforce signature verification before any authority effect. Nodes receiving messages must validate signature against registered Z2 public key before treating message as Z2 decision.
+- **Status:** CANDIDATE · Mitigation included in OI-BRIDGE-01 v0.2 specification (awaiting Z2 ratification).
+
+---
+
 ### F-MEASUREMENT-SCOPE-AUDIT-01 — Blockchain Trading Pilot Measurement Scope Gap
 
 ```yaml
@@ -5118,6 +5152,44 @@ tags: ["governance", "infrastructure", "communication", "authority-reference", "
 - **Architectural Distinction:** Bridge = governed communication substrate (NOT autonomous collective intelligence). Nodes cannot vote, consensus, or bypass authority. All consequential decisions route through independently-resolved Z2 authority or INTENT-OS machine capability. Flow is MESSAGE → DISPOSITION (Z2 ratifies) → CONTINUE (node proceeds with authority reference) not MESSAGE → AUTO-DECISION.
 - **Next Steps:** (1) Z2 ratification of control surface spec; (2) Phase 1 implementation (GitHub PR Manager + Bridge substrate); (3) Phase 2 evidence layer + Z2 ratification workflow; (4) Phase 3+ multi-node support + INTENT-OS machine capability integration.
 - **Status:** CANDIDATE · Z1 filed 2026-09-22; awaiting Z2 ratification decision by 2026-09-24 00:00 UTC.
+
+---
+
+### G-OI-BRIDGE-01-v0.2 — HAIOS Agent Bridge Control Surface Specification (Phase 0 Revision)
+
+```yaml
+---
+id: "G-OI-BRIDGE-01-v0.2"
+name: "oi-bridge-01-control-surface-phase-0-v0.2"
+status: CANDIDATE
+class: G
+date_registered: "2026-09-22"
+date_origin: "2026-09-22"
+session_registered: "S-092226-01-oi-bridge-spec"
+zone2_decision_window: 48h
+decision_required_by: "2026-09-24T22:00:00Z"
+principles_triggered: ["P1", "P13", "P21"]
+substrate: "Claude Haiku 4.5"
+tags: ["governance", "infrastructure", "communication", "authority-reference", "z-role-integration", "temporal-dissolution-guard", "tokenized-authority", "identity-provenance"]
+supersedes: "G-OI-BRIDGE-01-v0.1"
+related_incident: "IC-063"
+---
+```
+
+- **Specification Title:** OI-BRIDGE-01 Phase 0 Control Surface Specification (v0.2 Revision)
+- **Location:** `OI-BRIDGE-01_CONTROL_SURFACE_v0.2.md`
+- **Purpose:** v0.1 revision incorporating: (1) Temporal dissolution guard via tokenized authority (RATIFY_TOKEN, MEASURE_TOKEN, EVIDENCE_VALID_TOKEN, CLEARANCE_TOKEN replace time-based state transitions); (2) Identity provenance corrections (content_author, transport_principal, human_principal, cryptographic authority proof); (3) IC-063 incident mitigation (identity confusion, transport vs. speaker identity); (4) Split state fields (visibility_state, epistemic_standing, delivery_state separate overloaded SEALED field); (5) Append-only correction dispositions (SUPERSEDED, NARROWED, WITHDRAWN, UNRESOLVED); (6) Ed25519 cryptographic signatures for all authority-carrying communications; (7) Fixed Supabase RLS with principal mapping table; (8) Mark PR Manager as STUB/PARTIAL (not ACTIVE/REAL-TIME).
+- **Core Invariants (v0.2 additions):** I1-I9 from v0.1 unchanged; new I10: **TRANSPORT_IDENTITY_IS_NOT_SPEAKER_IDENTITY** — system must not infer authority from transport layer identity alone; authority effects require cryptographic proof of speaker identity (Ed25519 signature).
+- **Primary Falsifier (unchanged):** v0.2 fails if one registered AI node can cause another to perform consequential action solely via message content without valid, independently-issued, consumable authority token (Z2 RATIFY_TOKEN, Z3 machine capability, prior Z2 decision token).
+- **Secondary Falsifiers (v0.2 adds #11):** v0.1's falsifiers #1-10 plus new #11: **IDENTITY_CONFUSION** — system infers authority effect from transport_principal (GitHub account, email API sender) without cryptographic proof of Z2 speaker identity → v0.2 FAILS.
+- **Tokenized Authority Model (v0.2 new):** All state transitions that affect consequential action now require explicit, consumable tokens instead of time-based auto-expiry. (1) RATIFY_TOKEN: Z2 explicitly issues for each ratification (not auto-expiry after 48h). (2) MEASURE_TOKEN: Bridge issues for molt window opening; window closes when token expires or measurement completes. (3) EVIDENCE_VALID_TOKEN: Issued by validating node for successfully validated evidence (replaces timestamp-based validity). (4) CLEARANCE_TOKEN: Z2 issues to clear HUMAN_REQUIRED hold. Result: governance protocols do not decay over time; authority is strictly resource-constrained.
+- **Phase 0 Specification Includes (v0.1 base plus v0.2 additions):** (1) Node identity schema (with public_key_ed25519); (2) Message envelope schema v0.2 (split transport/content author/human principal planes); (3) Authority token schema (NEW: type, token_id, issued_by, issued_to, consumed, consumed_at, signature, signature_over); (4) MESSAGE → DISPOSITION flow updated for token consumption; (5) Escalation contract (8 mandatory triggers unchanged); (6) SEALED/COMMONS state machine v0.2 (split visibility_state / epistemic_standing / delivery_state); (7) Threat model (v0.2 adds identity confusion, token reuse attacks); (8) Privacy & retention model (v0.2 specifies authority token retention); (9) RLS isolation CORRECTED (principal mapping table fixes auth.uid() ≠ sender_node_id type mismatch); (10) Adversarial test preregistration (v0.1's 6 tests plus T7: identity confusion attack).
+- **Incidents Addressed:** IC-063 (identity confusion: transport identity masking speaker identity); IC-062 (molt window temporal semantics—redesigned for token-based measurement boundaries).
+- **Defects Fixed (v0.2):** (1) CI analyzer starts at UNKNOWN (not PASS); (2) Authority token validation bridge-computed (not self-asserted valid: true); (3) Molt-tier computes observed from diff, uses max(claimed, observed), flags undershoot; (4) SMAG parser accepts flexible decimal precision; (5) Review metadata properly initialized; (6) check_immunity_memory return type fixed; (7) Primary falsifier includes PRIOR_Z2_DECISION alternative; (8) HMAC covers full canonical envelope (not body only); (9) Decision-window timestamp from actual filing (not hard-coded); (10) PR Manager marked STUB/PARTIAL; (11) New I10 invariant + T7 test; (12) Ed25519 signatures required for Z2 authority.
+- **Promotion Gate:** Z2 reviews v0.2 specification; accepts (ACCEPT), requests corrections (EDIT), or rejects (REJECT) within 48h decision window. If ACCEPT: moves to REGISTERED and supersedes v0.1. Falsifiers F1-F11 must be testable in Phase 1 implementation. Tokenized authority model must be enforced before Phase 1 PR Manager integration.
+- **Architectural Distinction:** Bridge = governed communication substrate with TOKENIZED AUTHORITY. No time-based governance decay; only explicit token consumption limits actions. Nodes cannot bypass authority. All consequential decisions route through independently-issued Z2 authority tokens or INTENT-OS machine capability tokens. Flow remains MESSAGE → DISPOSITION (Z2 issues RATIFY_TOKEN) → CONTINUE (node consumes token).
+- **Next Steps:** (1) Z2 ratification of v0.2 specification; (2) Phase 1 implementation (GitHub PR Manager + Bridge substrate with token tracking); (3) Phase 2 evidence layer + token-based Z2 ratification workflow; (4) Phase 3+ multi-node support + INTENT-OS machine capability token integration.
+- **Status:** CANDIDATE · Z1 filed 2026-09-22T22:00:00Z; awaiting Z2 ratification decision by 2026-09-24T22:00:00Z.
 
 ---
 
