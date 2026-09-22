@@ -228,23 +228,23 @@ jobs:
 
               title = f"[Code Quality] BLOCKER: {rule}"
               body = f"""## Issue Details
-- **Rule:** {rule}
-- **Component:** {component}
-- **Line:** {line}
-- **Severity:** BLOCKER
+          - **Rule:** {rule}
+          - **Component:** {component}
+          - **Line:** {line}
+          - **Severity:** BLOCKER
 
-## Description
-{message}
+          ## Description
+          {message}
 
-## Remediation
-- [ ] Review code
-- [ ] Implement fix
-- [ ] Run tests
-- [ ] Verify fix in SonarCloud
+          ## Remediation
+          - [ ] Review code
+          - [ ] Implement fix
+          - [ ] Run tests
+          - [ ] Verify fix in SonarCloud
 
-## SonarCloud Link
-[View in SonarCloud]({sonar_link})
-"""
+          ## SonarCloud Link
+          [View in SonarCloud]({sonar_link})
+          """
 
               # Check if issue already exists (simple check by title)
               existing = subprocess.run(
@@ -376,12 +376,12 @@ jobs:
           git add docs/METRICS_BASELINE.md
           git commit -m "chore(metrics): auto-update baseline from SonarCloud scan
 
-- Updated quality grades
-- Updated issue counts by severity
-- Updated coverage and duplication metrics
-- Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          - Updated quality grades
+          - Updated issue counts by severity
+          - Updated coverage and duplication metrics
+          - Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-Co-Authored-By: sonarcloud-baseline-bot <sonarcloud-baseline@github.com>"
+          Co-Authored-By: sonarcloud-baseline-bot <sonarcloud-baseline@github.com>"
 
           git push origin main
 
