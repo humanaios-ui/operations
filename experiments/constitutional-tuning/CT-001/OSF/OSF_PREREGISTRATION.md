@@ -1,11 +1,21 @@
-# OSF-ready preregistration — CT-001
+# OSF registration / prospective preregistration — CT-001
 
 **Registration title:** CT-001 — Constitutional Tuning Reconstruction Test  
 **Researcher:** Carly R. Anderson  
 **ORCID:** 0009-0003-7540-4245  
 **Repository:** humanaios-ui/operations  
 **Immutable Git preregistration:** d17b75d6b0f30e0d96607713ffeeddcb76eecda6  
-**Preregistration date:** 2026-09-22
+**Git preregistration date:** 2026-09-22
+
+## Temporal-status disclosure
+
+The hypothesis, design, falsifiers, and Pass-B/Pass-C plan were frozen in Git commit `d17b75d6b0f30e0d96607713ffeeddcb76eecda6` before Pass A was encoded.
+
+**Pass A has now been completed. Therefore an OSF submission created after Pass A must not be described as prospectively preregistering Pass A.**
+
+The OSF record should be characterized as:
+- a transparent registration of the full CT-001 study plan with an independently timestamped pre-Pass-A Git record; and
+- a **prospective preregistration of Pass B and Pass C**, provided OSF submission occurs before either Pass B or Pass C is run.
 
 ## Research question
 
@@ -17,28 +27,32 @@ H-CT-001: A typed multi-voice evidence graph can preserve materially different h
 
 ## Design
 
-Three-pass, preregistered reconstruction experiment.
+Three-pass reconstruction experiment.
 
-- Pass A: historical reconstruction of a frozen GitHub governance specimen.
-- Pass B: blind independent reconstruction from normalized graph inputs only.
-- Pass C: six one-at-a-time adversarial mutations testing authority provenance, duplicate-source independence inflation, tool-state sensitivity, dissent preservation, independence evidence, and normative applicability.
+- Pass A: frozen historical reconstruction. **Completed after the Git preregistration and before OSF submission.**
+- Pass B: blind independent reconstruction from normalized graph inputs only. **Not yet run; prospective at OSF submission.**
+- Pass C: six one-at-a-time adversarial mutations testing authority provenance, duplicate-source independence inflation, tool-state sensitivity, dissent preservation, independence evidence, and normative applicability. **Not yet run; prospective at OSF submission.**
 
 ## Specimen
 
-GitHub PR #451 at frozen head 4290d18ba5e067ea2d119b6adbcaf5238c978f62. Base repository state a6d78fb7e62457ab86059ecaa1017f786cfc2da1.
+GitHub PR #451 at frozen head `4290d18ba5e067ea2d119b6adbcaf5238c978f62`. Base repository state `a6d78fb7e62457ab86059ecaa1017f786cfc2da1`.
 
-## Primary outcome
+## Primary prospective outcome
 
 Whether an independent Pass-B reviewer can reconstruct the principal constitutional conflict and authority state from the normalized package without:
-- using majority agreement as warrant,
-- converting green CI to constitutional assurance,
-- promoting UNKNOWN independence,
-- inventing authority,
+- using majority agreement as warrant;
+- converting green CI to constitutional assurance;
+- promoting UNKNOWN independence;
+- inventing authority;
 - or erasing dissent/omissions.
 
-## Secondary outcomes
+## Secondary prospective outcomes
 
 Per-mutation Pass-C outcomes for six preregistered integrity attacks. No pooled score.
+
+## Pass-A status
+
+Pass A is reported separately as a completed historical reconstruction. Its outcome must not be represented as an OSF-preregistered result. The immutable Git commit above is the evidence that its hypothesis and falsifiers were fixed before Pass A.
 
 ## Exclusion / scope
 
@@ -63,8 +77,12 @@ Relationships are represented categorically (SUPPORTS, CONTRADICTS, NARROWS, EXT
 
 ## Data and materials
 
-All materials are stored in `experiments/constitutional-tuning/CT-001/` on branch `z1/ct-001-constitutional-tuning`. The Git preregistration commit predates all Pass-A result files.
+All materials are stored in `experiments/constitutional-tuning/CT-001/` on branch `z1/ct-001-constitutional-tuning`.
 
 ## Registration integrity note
 
-When registering on OSF, attach or link the immutable Git preregistration commit and do not edit the hypothesis/falsifiers to match Pass-A results. If OSF requires wording changes for form fields, preserve semantic equivalence and record any formatting-only translation.
+When registering on OSF:
+- disclose that Pass A is complete;
+- identify Git commit `d17b75d6...` as the pre-Pass-A preregistration record;
+- treat Pass B and Pass C as the prospective preregistered portion;
+- do not edit the hypothesis or falsifiers to match Pass-A results.
