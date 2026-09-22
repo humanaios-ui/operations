@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**78 candidates** — ⏳ awaiting Z2 69 · ✅ ratified 9 · **38 records**
+**79 candidates** — ⏳ awaiting Z2 70 · ✅ ratified 9 · **38 records**
 
-## Awaiting Z2 (69)
+## Awaiting Z2 (70)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -81,6 +81,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-23 | **Q-INTENT-GRAPH-01** | Shared intent substrate — typed graph for vision/mission/principles/objectives with a conflict validator | `z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md` |
 | 2026-09-23 | **Q-MOLT-TEMPORAL-PURITY-01** | Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01 | `z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md` |
 | 2026-09-23 | **Q-SEED-TRL-PROPAGATION-01** | Ratified TRL correction never reached SEED.md — identity anchor still states TRL 2–3 | `z1-inbox/2026-09-21/Q-SEED-TRL-PROPAGATION-01.md` |
+| 2026-09-24 | **Q-MESH-LOCAL-COORDINATION-01** | Local mesh coordination layer in operations/mesh/ for humanaios, website, grok-crossref | `z1-inbox/2026-09-22/Q-MESH-LOCAL-COORDINATION-01.md` |
 
 ## Decided (9)
 

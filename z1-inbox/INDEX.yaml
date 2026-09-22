@@ -814,7 +814,7 @@ candidates:
     \ grok-crossref"
   path: z1-inbox/2026-09-22/Q-MESH-LOCAL-COORDINATION-01.md
   submitted: '2026-09-22'
-  status: awaiting_ratification
+  status: awaiting_z2
   note: "Adds mesh/ as a local, unratified coordination surface. Requests D3 (is mesh/\
     \ inside operations an admissible locus?) and D4 (promote schema to schemas/ and\
     \ conformance scripts to tools/?). Does not resolve D1; widens it from two candidate\
