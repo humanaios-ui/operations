@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**81 candidates** — ⏳ awaiting Z2 72 · ✅ ratified 9 · **38 records**
+**82 candidates** — ⏳ awaiting Z2 73 · ✅ ratified 9 · **38 records**
 
-## Awaiting Z2 (72)
+## Awaiting Z2 (73)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -84,6 +84,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-24 | **Q-A11-ORDERING-INERT-01** | A11 still enforces a property no grade depends on | `z1-inbox/2026-09-22/Q-A11-ORDERING-INERT-01.md` |
 | 2026-09-24 | **Q-P19-GATE-INERT-01** | The principle-compliance gate reported green without opening a file | `z1-inbox/2026-09-22/Q-P19-GATE-INERT-01.md` |
 | 2026-09-24 | **Q-REFERENT-DECAY-01** | Five artifacts whose link to their referent died while the artifact stayed alive | `z1-inbox/2026-09-22/Q-REFERENT-DECAY-01.md` |
+| 2026-09-24 | **Q-Z2-BLOCK-UNFILLABLE-01** | The candidate template promises z2_decision is auto-filled; nothing fills it, and the signature makes filling it later impossible | `z1-inbox/2026-09-22/Q-Z2-BLOCK-UNFILLABLE-01.md` |
 
 ## Decided (9)
 
