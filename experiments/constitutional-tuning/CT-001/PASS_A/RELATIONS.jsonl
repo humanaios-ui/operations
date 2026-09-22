@@ -1,0 +1,8 @@
+{"relation_id":"R1","from":["CT001-A-001","CT001-A-002","CT001-A-003","CT001-I-001"],"to":"F-INDEPENDENCE-UNPROVEN","relation":"SUPPORTS","note":"Four substrate-distinct outputs materially converge on the same structural-independence gap; demonstrated blind independence remains unproven."}
+{"relation_id":"R2","from":["CT001-H-002"],"to":"F-INDEPENDENCE-UNPROVEN","relation":"SUPPORTS","note":"Owner explicitly separates agreement count from demonstrably independent observations."}
+{"relation_id":"R3","from":["CT001-T-001"],"to":"F-PR-CI-HEALTHY","relation":"SUPPORTS","note":"All observed workflows succeeded."}
+{"relation_id":"R4","from":["CT001-T-001"],"to":"F-INDEPENDENCE-UNPROVEN","relation":"UNRESOLVED_WITH","note":"Green CI does not establish the membrane property challenged by reviewers."}
+{"relation_id":"R5","from":["CT001-H-003"],"to":"F-PR451-AUTHORITY","relation":"NARROWS","note":"Issue #429 ratification is scoped to its Phase-0 architecture and conditions; it is not evidence that PR #451 is ratified."}
+{"relation_id":"R6","from":["CT001-H-002"],"to":"F-POOL-CONFLICT","relation":"NARROWS","note":"Owner design direction resolves the design direction: Arena should have separate pools, while formal PR #451 disposition remains unrecorded."}
+{"relation_id":"R7","from":["CT001-N-001"],"to":"F-SEED-STANDING","relation":"NARROWS","note":"The constitutional principle is a calibration reference, not binding authority in this specimen."}
+{"relation_id":"R8","from":["CT001-N-002"],"to":"F-EXTERNAL-NORM","relation":"NOT_APPLICABLE","note":"No external norm is used as support for Pass A warrant."}
