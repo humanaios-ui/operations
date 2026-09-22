@@ -70,6 +70,10 @@ class GitHubIntegration:
             "receipt_reconciliation": None,
         }
 
+        # Normalize null body to empty string (GitHub returns null for missing descriptions)
+        if body is None:
+            body = ""
+
         # Parse SMAG prediction: smag_p: 0.XX
         smag_match = re.search(r"smag_p:\s*(0\.\d{2})", body, re.IGNORECASE)
         if smag_match:
@@ -154,6 +158,10 @@ class GitHubIntegration:
 
     def estimate_molt_tier(self, files_changed: List[str], body: str) -> int:
         """Estimate molt tier from changed files and description."""
+        # Normalize null body
+        if body is None:
+            body = ""
+
         # First check if author claimed a tier
         metadata = self.parse_governance_metadata(body)
         if metadata.get("molt_tier_claimed") is not None:
@@ -274,12 +282,16 @@ class PRDataValidator:
     @staticmethod
     def check_immunity_memory(pr_data: GitHubPRData) -> tuple[bool, str]:
         """Check if PR registers findings in REGISTERED.md."""
-        # This would require parsing REGISTERED.md
-        # For now, just flag if description mentions IC/F/H
-        if "IC-" in pr_data.body or "F-" in pr_data.body or "H-" in pr_data.body:
+        # Normalize null body
+        body = pr_data.body or ""
+
+        # TODO: Wire to live REGISTERED.md fetch + receipt reconciliation
+        # For now, flag if description mentions IC/F/H as a signal
+        if "IC-" in body or "F-" in body or "H-" in body:
             return True, "Immunity memory referenced"
 
-        return True, "No immunity memory required (none triggered)"
+        # Return unknown state until REGISTERED.md validation is wired
+        return None, "Receipt validation not yet wired to REGISTERED.md (future phase)"
 
 
 if __name__ == "__main__":

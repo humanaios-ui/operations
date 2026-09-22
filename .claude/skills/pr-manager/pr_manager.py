@@ -129,7 +129,7 @@ class PRManager:
                 action = pr_status.next_actions[0]
                 output.append(f"   Action: {action}")
 
-            if pr_status.metadata.smag_prediction:
+            if pr_status.metadata.smag_prediction is not None:
                 output.append(f"   SMAG: {pr_status.metadata.smag_prediction:.2f} confidence")
 
             output.append(f"   Molt: Tier {pr_status.metadata.molt_tier_claimed.value}")
@@ -153,7 +153,7 @@ class PRManager:
         prs_with_blockers.sort(
             key=lambda p: (
                 severity_order.get(p.blockers[0].severity, 3),
-                -p.metadata.smag_prediction if p.metadata.smag_prediction else 0,
+                -(p.metadata.smag_prediction if p.metadata.smag_prediction is not None else 0.5),
             )
         )
 
@@ -268,7 +268,11 @@ class PRManager:
 
         # Filter by action type
         if action == "review":
-            prs = [p for p in prs if p.reviews_requested or p.blockers]
+            # Only include PRs with review-related blockers (not CI/conflict issues)
+            review_blocker_types = {BlockerType.REVIEW_PENDING, BlockerType.REVIEW_COMMENT}
+            prs = [p for p in prs if p.reviews_requested or any(
+                b.type in review_blocker_types for b in p.blockers
+            )]
         elif action == "merge":
             prs = [p for p in prs if not p.blockers and p.ci_status == "PASS"]
         elif action == "fix":
@@ -299,14 +303,28 @@ class PRManager:
     # Helper methods
 
     def _fetch_open_prs(self) -> List[PRStatus]:
-        """Fetch all open PRs and their status."""
-        # Placeholder: In real implementation, call GitHub API
-        # For now, return empty list
+        """Fetch all open PRs and their status.
+
+        TODO: Wire to GitHub MCP tools:
+          - mcp__github__list_pull_requests() to get all open PRs
+          - For each PR: get_check_runs(), get_reviews(), parse metadata
+          - Build PRStatus objects with blocker detection
+
+        Phase 1 implementation will use local caching of PR state.
+        """
+        # Placeholder: return empty list until GitHub integration wired
         return []
 
     def _fetch_pr_status(self, pr_number: int) -> Optional[PRStatus]:
-        """Fetch status for a specific PR."""
-        # Placeholder
+        """Fetch status for a specific PR.
+
+        TODO: Wire to GitHub MCP tools:
+          - mcp__github__pull_request_read(method='get') for PR metadata
+          - Check runs and review state from same call
+          - Parse governance metadata from PR body
+          - Return PRStatus with all blockers and recommendations
+        """
+        # Placeholder: return None until GitHub integration wired
         return None
 
     def _status_badge(self, pr: PRStatus) -> str:

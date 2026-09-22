@@ -94,7 +94,7 @@ Expected Outcome:
   - Time to merge: 24h (if Z2 approves within 24h window)
 
 Z2 Note:
-  Moth tier claimed: Tier 1
+  Molt tier claimed: Tier 1
   SMAG prediction: 0.75 (risky change)
   Receipt reconciliation: Awaiting findings-registry merge
 ```
