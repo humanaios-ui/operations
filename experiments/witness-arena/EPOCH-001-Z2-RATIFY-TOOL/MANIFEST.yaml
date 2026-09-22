@@ -1,0 +1,63 @@
+epoch_id: EPOCH-001-Z2-RATIFY-TOOL
+status: PRE_REGISTERED_DESIGN_CASE
+protocol: architecture/witness-arena/WITNESS_ARENA_PROTOCOL_V0_1.md
+authority_effect: NONE
+base_repository: humanaios-ui/operations
+base_commit: a6d78fb7e62457ab86059ecaa1017f786cfc2da1
+
+research_question: >-
+  Does the repository evidence establish independently verifiable human-granted
+  Zone-2 tool authority for .z1-control/ratify.py, or does it establish only a
+  recorded human-readable ratification claim whose independent enforcement
+  requires additional controls?
+
+artifact_under_test:
+  path: z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md
+  ref_commit: a6d78fb7e62457ab86059ecaa1017f786cfc2da1
+  recorded_decision: ".z1-control/ratify.py Zone 2 — RATIFIED"
+  recorded_ratifier: "Night (Z2 / Admiral)"
+  recorded_identifier: "z1-ratify-zone2-approved-20260913"
+
+supporting_evidence:
+  - path: .z1-control/ratify.py
+    ref_commit: a6d78fb7e62457ab86059ecaa1017f786cfc2da1
+  - path: .tool-control/validate.py
+    ref_commit: a6d78fb7e62457ab86059ecaa1017f786cfc2da1
+  - path: z1-inbox/2026-09-13/Q-GOVGATE-01.md
+    ref_commit: a6d78fb7e62457ab86059ecaa1017f786cfc2da1
+  - path: Z3_PROTOCOL.md
+    ref_commit: a6d78fb7e62457ab86059ecaa1017f786cfc2da1
+
+known_case_fact_from_ruling: >-
+  The ruling itself states that its hash is a human-readable slug rather than
+  a recomputable content-pinned signature and describes signature hardening as
+  still open.
+
+pool_architecture_reference:
+  path: architecture/THREE_POOLS_F1_SEED_V1_1.md
+  ref_commit: a6d78fb7e62457ab86059ecaa1017f786cfc2da1
+  status_note: >-
+    Do not infer ratification status from this manifest. The referenced file
+    contains conflicting status language about the v1.0→v1.1 transition; an
+    Arena implementation must resolve/pin the controlling architecture before
+    claiming canonical operation.
+
+contamination_controls:
+  prior_audits_visible_initially: false
+  prior_conclusions_visible_initially: false
+  commons_discussion_visible_initially: false
+  peer_passes_frozen_before_cross_examination: true
+  contaminated_pass_counts_as_independent: false
+
+verdict_pre_registered: false
+expected_finding_pre_registered: false
+expected_channel_pre_registered: false
+
+human_authority_boundary:
+  derive_from_current_governance: true
+  do_not_redefine_zone_semantics: true
+
+exit_condition: >-
+  Epoch may be executed only after the protocol and experiment design survive
+  independent review and the repository owner decides whether to ratify,
+  amend, defer, or reject the proposal.
