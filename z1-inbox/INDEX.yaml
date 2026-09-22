@@ -3,7 +3,7 @@ generated: '2026-09-20'
 decision_window_days: 2
 counts:
   candidates: 78
-  records: 37
+  records: 38
 ratifiers:
 - Night
 candidates:
@@ -966,4 +966,13 @@ records:
 - path: z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md
   title: "Z2 ruling \u2014 RESOURCE_UNITS.yaml header ratified; hash remains unsigned\
     \ by Z2"
+- path: z1-inbox/2026-09-22/MEASUREMENT-SCOPE-AUDIT.md
+  title: "Measurement Scope Audit \u2014 Blockchain Trading Pilot (Z-012)"
+  note: "Comprehensive audit of measurement gaps in the blockchain trading pilot molt.\
+    \ Documents what IS specified (Sharpe metric, 7-day window, threshold change 0.50\u2192\
+    0.55) and what IS MISSING (asset pairs, position sizes, trade frequency, baseline\
+    \ Sharpe at prior threshold, market conditions, rebalance frequency, slippage model,\
+    \ liquidity conditions). Proposes Z2 decision framework: require baseline Sharpe\
+    \ measurement (at threshold=0.50, same window) before ratifying 0.55 as \"better.\"\
+    \ Filed as F-MEASUREMENT-SCOPE-AUDIT-01 in REGISTERED.md; window close 2026-09-28."
 excluded: []
