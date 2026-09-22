@@ -1,0 +1,102 @@
+schema_version: "0.1"
+practice_id: humanaios
+aliases: []
+status: CANDIDATE
+
+zone: "Z-001"
+zone_source: "ZONE_REGISTRY.md — Active Zones, 100 units/cycle, Z3 executor TBD"
+
+authority:
+  grants_authority: false
+  z2_ratification: null
+  caps_source: "CLAUDE.md — Z1 full cap; ZONE_REGISTRY.md — 100 units/cycle"
+
+resolution:
+  class: AMBIGUOUS
+  class_source: "ledgers/PRACTICE_RESOLUTION_MAP.md — row `humanaios`, 4 tokens, 0 resolved"
+  candidate_targets:
+    - "repo humanaios-ui/humanaios"
+    - "empirica-practice-mesh practices/humanaios/ (scaffold only)"
+    - "operations mesh/practices/humanaios/ (added by this drop; not a resolver target)"
+  blocked_by: "D1"
+  z1_may_resolve: false
+
+purpose_filter:
+  - generates_data
+  - tests_hypothesis
+
+owns:
+  - "Core ACAT instrument development and the behavioral assessment corpus"
+  - "Behavioral assessment findings and their calibration series"
+  - "acat_corpus_updates consumed by other practices"
+  - "Publication coordination status for ACAT methodology claims"
+
+out_of_scope:
+  - "Stakeholder engagement and outreach messaging (empirica-outreach owns)"
+  - "Mesh orchestration and routing (empirica-mesh-support owns)"
+  - "Regulatory/publication positioning (empirica-outreach owns)"
+  - "Ratification of its own findings (Z2 sole authority)"
+
+consumes_from:
+  - practice: empirica-autonomy
+    what:
+      - "validated_behavioral_findings"
+    when_to_decline:
+      - "Request needs core autonomy orchestration expertise"
+
+forecast_tokens:
+  - token_id: "T-humanaios-01"
+    title: "Behavioral Alignment Framework .yaml+.md (behavior_spec + integrity_modes w/ molt_id)"
+    state: DATED
+    resolved: false
+    note: "Unresolvable while D1 is open; the two candidate targets return different verdicts."
+  - token_id: "T-humanaios-02"
+    title: "Trust Dynamics Model (LT-3 first reading)"
+    state: DATED
+    resolved: false
+  - token_id: "T-humanaios-03"
+    title: "Adaptive Engagement Strategies (technical-level dial per node)"
+    state: DATED
+    resolved: false
+  - token_id: "T-humanaios-04"
+    title: "Pedagogical Effectiveness Study (LT-6)"
+    state: DATED
+    resolved: false
+
+edges:
+  - ref: "humanaios-ui/operations#429"
+    relation: constrained_by
+    note: "Section 11 — an event is not an ACAT score; EVENT to assessment path is mediated by evidence standing."
+  - ref: "humanaios-ui/operations#452"
+    relation: evidences
+    note: "CT-001 Pass A — 4 substrate-distinct reviewers converge on the structural-independence gap."
+  - ref: "ledgers/PRACTICE_RESOLUTION_MAP.md"
+    relation: constrained_by
+    note: "D1 blocks resolution of all 4 tokens."
+
+unknowns:
+  - "Which of the two pre-existing candidate targets Z2 intends the resolver to read (D1)."
+  - "Whether repo humanaios-ui/humanaios holds any of the 4 pinned artifacts; the repo was not read in this session and is outside this session's repository scope."
+  - "Z3 executor assignment for Z-001 is TBD in ZONE_REGISTRY.md."
+
+trl_framing:
+  implementation_state: SPECIFIED
+  evidence_ref: "No in-tree evidence read in this session shows the 4 pinned artifacts in an OPERATED state."
+
+provenance:
+  derived_from:
+    - "ZONE_REGISTRY.md"
+    - "ledgers/PRACTICE_RESOLUTION_MAP.md"
+    - "ledgers/NF_LEDGER.jsonl"
+    - "ledgers/mesh_pins_090826.json"
+    - ".empirica/practice-spec.yaml (consumes_from stanza naming humanaios)"
+  pinned_sha: "44347b79b1d6351bd10bbb5fb6c45b9ead6bd42e"
+  temporal_class: HISTORICAL_RECORD
+  observed_at: "2026-09-22 (OBSERVATIONAL; carries no scheduling authority)"
+
+falsifier: >
+  This record is FALSE if repo humanaios-ui/humanaios is read at a pinned sha and holds an
+  artifact matching any of T-humanaios-01..04, since the record asserts the verdict is
+  undetermined rather than NO; or if ZONE_REGISTRY.md is found to assign Z-001 a cap other than
+  100 units/cycle; or if PRACTICE_RESOLUTION_MAP.md classifies `humanaios` as anything other
+  than AMBIGUOUS.
