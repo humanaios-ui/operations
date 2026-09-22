@@ -5350,3 +5350,112 @@ related_spec: "G-OI-BRIDGE-01-v0.3"
   - `1833cb1` Phase 1 workstreams 5-6
   - `490d6b1` Phase 1 workstream 7 (adversarial tests + orchestrator)
 
+
+---
+
+## Correction Events — Phase 1 Provenance & Implementation Standing
+
+### CR-OI-BRIDGE-01-RATIFICATION-PROVENANCE — Z2 Ratification Provenance Correction
+
+**Date:** 2026-09-22T23:01:50Z  
+**Finding Class:** IC-063 (Identity Confusion / Provenance Gap)  
+**Authority:** humanaios-ui (autonomous Z1 correction on blocking finding)
+
+**Original Standing:**
+- Z2 ratification claimed as ACCEPT v0.3
+- Status: G-OI-BRIDGE-01-v0.3 registered with Z2 decision
+
+**Observed Provenance Gap:**
+1. GitHub PR #455 comment `5785480905` from transport account `humanaios-ui` states "Z2 RATIFY: ACCEPT v0.3"
+2. Comment lacks explicit provenance envelope (content_author, transport_principal, human_principal)
+3. Comment contains no detached Ed25519 signature from Z2 (night-z2)
+4. Commit `8b5a500` recorded ratification but is signed by Claude's Git identity, not Z2
+5. REGISTERED.md entry for RATIFY_TOKEN contains no verifiable Z2 signature field/value
+
+**Assessment:**
+```
+transport_account_authenticated: YES (humanaios-ui verified)
+human_content_author_verified: NO (no explicit Z2 authorship proof)
+z2_signature_verified: NO (no detached cryptographic signature)
+ratification_provenance: AMBIGUOUS
+incident_class: IC-063 (exactly the three-plane separation gap this bridge prevents)
+```
+
+**Corrected Standing:**
+- RATIFY_TOKEN-v0.3-OI-BRIDGE-01 status: **PENDING_PROVENANCE_CONFIRMATION**
+- G-OI-BRIDGE-01-v0.3 status: REGISTERED (specification approved), but ratification authority: **PENDING_PROVENANCE_CONFIRMATION**
+- Reason: Comment may have been authored manually by Z2 (Carly), but bridge cannot infer that from transport identity or self-declared text alone per three-plane separation rule
+
+**Required Resolution:**
+- Explicit human-authorship event bound to Night/Z2 under approved principal model (e.g., Z2 manual signature, email confirmation), OR
+- Valid detached Ed25519 signature over canonical ratification payload
+
+**Action:** Do not erase original comment or commit. Append this correction event. Implementation may proceed under v0.3 spec, but authority standing remains PENDING until provenance is independently confirmed.
+
+---
+
+### CR-OI-BRIDGE-01-PHASE1-SCAFFOLD-DEMOTION — Phase 1 Implementation Standing Correction
+
+**Date:** 2026-09-22T23:01:50Z  
+**Finding Class:** LANGUAGE_IS_NOT_IMPLEMENTATION  
+**Authority:** humanaios-ui (autonomous Z1 correction on blocking finding)
+
+**Original Claim:**
+- M-OI-BRIDGE-01-PHASE-1-COMPLETE: "Phase 1 Implementation Complete"
+
+**Evidence Review:**
+- `ed25519_validator.py` line 109: "Phase 1: Stub validation (always pass for testing)"
+- `authority_token_validator.py`: Shape/issuer checks only; signature verification deferred
+- `bridge_github_transport.py`: Placeholder GitHub API calls (stub/mock data)
+- All adversarial tests (T1-T7) designed for test-only harness, not runtime bridge
+- Evidence validation: Simulated hash computation (Phase 2: real GitHub fetch)
+- NF_LEDGER: Implemented (ACID-safe writes confirmed)
+- Disposition engine: Implemented (routing logic confirmed)
+
+**Corrected Standing:**
+
+```
+Phase 1 Scaffolding:           COMPLETE (7/7 workstreams delivered)
+Phase 1 Stub Implementation:   COMPLETE (16 Python modules, ~4000 LOC)
+Phase 1 Runtime Integration:   PARTIAL (GitHub transport stub, mock data)
+Phase 1 Cryptographic Gate:    NOT ENFORCED (validators accept format, defer signature verification)
+Phase 1 Authority Enforcement: FAIL-OPEN (shaped fake tokens presently satisfy validator path)
+Phase 1 Adversarial Testing:   TEST-ONLY HARNESS (T1-T7 preregistered, not yet integrated into live bridge)
+Phase 1 Complete (per se):     FALSE
+```
+
+**Corrected Milestone Entry:**
+- Rename: M-OI-BRIDGE-01-PHASE-1-SCAFFOLDING (not COMPLETE)
+- Status: "Phase 1 scaffolding complete. Stubs and test harness ready for Phase 2 integration."
+- Authority enforcement: PENDING (real Ed25519 verification, token consumption gating, live GitHub transport)
+
+**Phase 1 vs. Phase 2 Boundary:**
+
+| Component | Phase 1 Status | Phase 2 Target |
+|-----------|---|---|
+| Message envelope parsing | Stub | Live GitHub comment parsing |
+| Ed25519 signature validation | Format check only | Real nacl.signing verification |
+| Authority token validation | Issuer/scope check | Signature verification + consumption gating |
+| GitHub API transport | Mock data, placeholder calls | Real PR fetch/post via mcp__github__ |
+| Evidence fetching | Simulated hashes | Real GitHub fetch + SHA256 |
+| NF_LEDGER | ✓ Implemented (ACID) | ✓ Inherit Phase 1 |
+| Disposition engine | ✓ Implemented (routing) | ✓ Inherit Phase 1 |
+| DISPOSITION state machine | ✓ Implemented | ✓ Inherit Phase 1 (add timeout/escalation integration) |
+| Supabase RLS | Code checks only | Real Supabase row-level policies |
+| INTENT-OS binding | Static node registry | Dynamic `/api/z2-authorized-machine-identities` queries |
+| Molt measurement | Stub (no window close) | Automatic revert if falsifier trips |
+| Adversarial tests (T1-T7) | Harness only (test fixtures) | Integrated into live bridge validation path |
+
+**Recommendation:** Phase 1 is production-ready for LOCAL VALIDATION and STAGING TESTS. Do not deploy to production or assume live authority enforcement until Phase 2 integration is complete and T1-T7 adversarial tests run against live bridge path.
+
+---
+
+### Appended Events Log
+
+```
+2026-09-22T23:01:50Z — Blocking findings (CR-OI-BRIDGE-01-RATIFICATION-PROVENANCE, CR-OI-BRIDGE-01-PHASE1-SCAFFOLD-DEMOTION) filed by humanaios-ui on PR #455
+2026-09-22T23:01:50Z — Z2 ratification standing downgraded to PENDING_PROVENANCE_CONFIRMATION (IC-063 / three-plane separation gap)
+2026-09-22T23:01:50Z — Phase 1 implementation standing corrected: SCAFFOLDING COMPLETE, not full implementation (authority enforcement PENDING Phase 2)
+2026-09-22T23:01:50Z — Bridge confirmed fail-open in cryptographic layer (Phase 1 validators accept format; real verification Phase 2)
+```
+
