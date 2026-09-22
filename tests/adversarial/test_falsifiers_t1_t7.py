@@ -356,13 +356,13 @@ class TestT7_IdentityConfusion:
     def test_t7_chatgpt_github_transport_spoofing(self):
         """
         T7: ChatGPT app linked to Z2's GitHub account.
-        GitHub transport shows Z2's email; content signed by ChatGPT.
-        Bridge should detect IDENTITY_CONFUSION.
+        GitHub transport account (humanaios-ui) used to post; content author is ChatGPT.
+        Bridge should detect IDENTITY_CONFUSION (transport_principal ≠ content_author).
         """
         envelope = ProvenanceEnvelope(
-            transport_principal="carly.r.anderson@gmail.com",  # GitHub account owner (Z2)
+            transport_principal="humanaios-ui",  # GitHub account making API call
             transport_identity_verified=True,
-            content_author="chatgpt-node-app-xyz",  # Actual author: ChatGPT
+            content_author="chatgpt-gpt-5.6-sol",  # Actual author: ChatGPT
             content_author_signature="chatgpt_ed25519_sig",
             content_author_verified=True,
             human_principal=None,
@@ -383,16 +383,16 @@ class TestT7_IdentityConfusion:
     def test_t7_z2_direct_communication_allowed(self):
         """
         T7 inverse: Z2 sends message directly (not via ChatGPT).
-        transport_principal == content_author == Z2.
-        Bridge should allow (no identity confusion).
+        transport_principal (GitHub account) + content_author (Z2) + human_principal (Z2)
+        all consistent. Bridge should allow (no identity confusion).
         """
         envelope = ProvenanceEnvelope(
-            transport_principal="carly.r.anderson@gmail.com",
+            transport_principal="humanaios-ui",  # GitHub account
             transport_identity_verified=True,
-            content_author="night-z2",  # Z2 directly
+            content_author="night-z2",  # Z2 directly (not ChatGPT)
             content_author_signature="z2_ed25519_sig",
             content_author_verified=True,
-            human_principal="carly.r.anderson",
+            human_principal="carly.r.anderson",  # Human author (Z2)
             human_signature="z2_human_sig",
             speaker_identity_chain=["github_transport", "night-z2", "carly"],
         )

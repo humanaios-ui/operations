@@ -330,9 +330,10 @@ One registered AI node can cause another registered AI node to perform a consequ
 **Step 5: EVIDENCE** (Nodes A & B validate)
 - Each node independently validates evidence references cited by the other.
 - Validation: fetch → verify hash → check timestamp → compare to local ground truth.
-- If validation succeeds: Validating node issues EVIDENCE_VALID_TOKEN.
+- If validation succeeds: Validating node issues EVIDENCE_VALID_TOKEN (cryptographic receipt signed by validating node).
+- Bridge receives and verifies the validation receipt; does not upgrade the receipt into authority judgment.
 - If evidence is invalid/stale/broken, node documents failure and escalates.
-- Bridge does not validate evidence itself; only records that each node attempted validation and issued tokens.
+- Bridge does not validate evidence itself; only records that each node attempted validation and issued signed receipts.
 - State: EVIDENCE_VALIDATED or EVIDENCE_VALIDATION_FAILED.
 
 **Step 6: DISPOSITION** (Z2 → Bridge, clarified)
@@ -481,7 +482,8 @@ DELIVERY: PENDING → DELIVERED → ACKNOWLEDGED (one-way)
 **Data Classification:**
 - **PUBLIC:** Message claim, evidence references (hashes, URLs, timestamps) — can be logged, audited, published.
 - **INTERNAL:** Node identity, Ed25519 signatures, HMAC — logged for audit, not published.
-- **SENSITIVE:** Z2 private key, INTENT-OS capability secret, session tokens — encrypted at rest, cleared after session close.
+- **SENSITIVE:** Z2 public key / key ID (bridge stores for signature verification), INTENT-OS capability secret, session tokens — encrypted at rest, cleared after session close.
+- **NEVER_BRIDGE:** Z2 private key (never enters bridge; Z2 maintains custody and signs RATIFY_TOKENs off-chain).
 
 **Retention:**
 - Message envelopes (SEALED/DELIVERED state): 7 days (or until Z2 RATIFY_TOKEN issued).
@@ -489,7 +491,7 @@ DELIVERY: PENDING → DELIVERED → ACKNOWLEDGED (one-way)
 - Escalation events: permanent (audit trail).
 - Authority tokens (consumed): permanent (NF_LEDGER); unused tokens: cleared when issued scope expires (Z2 decision).
 - Session tokens: cleared at session close.
-- Z2 private keys: cleared after Ed25519 signature validated.
+- Z2 public key: permanent (bridge stores for signature verification); revoked keys marked as superseded.
 
 **Node-to-Bridge Communication:**
 - Nodes can read their own messages only (RLS isolation per node_id).
@@ -696,6 +698,8 @@ Before Phase 1 implementation, the following adversarial tests are preregistered
 ## Z2 Decision Required
 
 **Proposed:** Ratify OI-BRIDGE-01 Phase 0 Control Surface v0.3 specification as Z1-registered, with temporal dissolution guard (tokenized authority), identity provenance corrections, clarified SPEC ONLY standing for T7, split disposition logic, and IC-063 incident mitigation.
+
+**Registry Class Note:** This specification currently references governance work as a candidate proposal. REGISTRY_SPEC.md supports classes: F (Finding), H (Hypothesis), IC (Incident), D (Decision), R (Result). On Z2 ratification, classify this specification candidate under an appropriate supported class or propose class extension (e.g., G for Governance Specification) with separate governance amendment.
 
 **Authority:** Z2 (carly.r.anderson@gmail.com or aioshuman@gmail.com, with Ed25519 signature proof).
 
