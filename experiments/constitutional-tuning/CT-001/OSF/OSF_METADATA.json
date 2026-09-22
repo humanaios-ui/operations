@@ -1,0 +1,21 @@
+{
+  "title": "CT-001 — Constitutional Tuning Reconstruction Test",
+  "description": "Preregistered three-pass experiment testing whether a typed multi-voice evidence graph can preserve human, AI, industry, tool, constitutional, and normative signals without collapsing agreement into authority.",
+  "contributors": [
+    {
+      "name": "Carly R. Anderson",
+      "orcid": "0009-0003-7540-4245"
+    }
+  ],
+  "subjects": [
+    "Artificial Intelligence",
+    "Human-Computer Interaction",
+    "Governance",
+    "Software Engineering",
+    "Open Science"
+  ],
+  "license_recommendation": "Choose the project license intentionally in OSF; do not infer one from this package.",
+  "git_preregistration_commit": "d17b75d6b0f30e0d96607713ffeeddcb76eecda6",
+  "repository": "https://github.com/humanaios-ui/operations",
+  "branch": "z1/ct-001-constitutional-tuning"
+}
