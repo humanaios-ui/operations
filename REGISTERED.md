@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** August 15, 2026 (S-081526-NN) — Addendum Wave 1: retroactive falsification_condition + evidence_class audits appended to F-20, F-21, F-22, F-29, F-35, F-43, F-48, F-55 (schema v2.1 ADDENDUM path; per-entry review, no front-matter edits)
+**Last updated:** September 20, 2026 (S-092026-01-red-team-audit) — Q-WITNESS-COMMONS-ASSURANCE-01 red-team audit; IC-035/IC-036/IC-037 filed (IC-035/IC-037 ids since corrected to IC-060/IC-061 — see document flow conventions above). This line was declared August 15, 2026 until 2026-09-21, when it was corrected on Q-GOVDRIFT-01 ask 3 ratification (Night) to match `date_registered` on the newest entries, per RFM-17.
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
