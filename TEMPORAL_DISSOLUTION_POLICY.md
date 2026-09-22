@@ -179,6 +179,9 @@ Initial active surfaces include:
 - `ZONE_REGISTRY.md`
 - `BOOT_PROCESS_MAP.md`
 - `REGISTERED.md`
+- `MOLT_STATE.md` *(added by Q-MOLT-TEMPORAL-PURITY-01 — PROPOSED. It decides
+  whether a ratified constant change is kept or reverted, which is control by any
+  reading; its omission is how window semantics survived the first pass.)*
 - `RESOURCE_UNITS.yaml`
 - `constants.json`
 - `.github/**`
