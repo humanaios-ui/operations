@@ -4952,15 +4952,16 @@ tags: ["molt", "temporal-dissolution", "measurement-window", "governance-gap"]
 ---
 id: "F-MEASUREMENT-SCOPE-AUDIT-01"
 name: "blockchain-trading-pilot-measurement-scope"
-status: AWAITING_RATIFICATION
+status: REGISTERED
 class: F
-date_filed: "2026-09-22"
+date_registered: "2026-09-22"
 date_origin: "2026-09-22"
-session_filed: "S-092226-01"
-zone2_ratification: null
-related_molt: "Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001"
+session_registered: "S-092226-01"
+principles_triggered: []
+substrate: "Blockchain trading pilot (Z-012, Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001)"
 related_file: "z1-inbox/2026-09-22/MEASUREMENT-SCOPE-AUDIT.md"
-tags: ["measurement", "falsifier", "baseline", "market-conditions", "pilot"]
+tags: ["measurement", "falsifier", "baseline", "market-conditions", "pilot", "volume-audit"]
+superseded_by: null
 ---
 ```
 
@@ -4983,7 +4984,7 @@ tags: ["measurement", "falsifier", "baseline", "market-conditions", "pilot"]
   2. **If baseline data is missing:** Quarantine result pending baseline retroactive measurement; do not KEEP threshold change until comparative proof exists
   3. **Alternative:** Extend measurement window to allow simultaneous baseline + proposed threshold measurement under identical market conditions
 
-- **Status:** AWAITING_RATIFICATION · Filed during pilot measurement phase; Z2 decision at 2026-09-28
+- **Status:** REGISTERED · Filed during pilot measurement phase; Z2 decision at 2026-09-28 window close. Decision framework: requires comparative baseline data (Sharpe at prior threshold 0.50) to distinguish genuine improvement from favorable market conditions.
 
 ---
 
