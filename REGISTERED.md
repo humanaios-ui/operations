@@ -122,7 +122,7 @@ superseded_by: null | "F-XX"
 |Phantom-reference            |1       |IC-043     |Named files referenced as real/pending across sessions; never drafted-and-committed together|
 |Purity-constraint-collapse   |1       |IC-044     |Consolidated constraint claimed complete; stale narrow constraint left active, silently restricting live inserts|
 |Marker-injection-dead-endpoint|1      |IC-045     |Builder-lint marker injection between assess() docstring and body; endpoint returned None; passed scanner; shipped green|
-|Molt-architecture-temporal-gap|1      |IC-046     |Molt measurement windows use calendar deadlines; Q-TEMPORAL-DISSOLUTION-01 gate intent conflicts with infrastructure design|
+|Molt-architecture-temporal-gap|1      |IC-062     |Molt measurement windows use calendar deadlines; Q-TEMPORAL-DISSOLUTION-01 gate intent conflicts with infrastructure design|
 |Maintained-headline-recurrence|2      |IC-cand    |Numeric/identity values manually maintained in CURRENT.md instead of pointing to live source; second occurrence of same root pattern|
 
 
@@ -4908,11 +4908,11 @@ tags: ["legal", "ethics", "irb", "regulatory", "human-subjects", "phase-1-gate"]
 
 ---
 
-### IC-046 — Molt Window Semantics Under Temporal Dissolution Gate
+### IC-062 — Molt Window Semantics Under Temporal Dissolution Gate
 
 ```yaml
 ---
-id: "IC-046"
+id: "IC-062"
 name: "molt-window-temporal-semantics"
 status: REGISTERED
 class: IC
