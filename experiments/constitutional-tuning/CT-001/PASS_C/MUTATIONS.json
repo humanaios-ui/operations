@@ -1,0 +1,43 @@
+{
+  "experiment_id": "CT-001",
+  "pass": "C",
+  "base": "../PASS_B/INPUT.json",
+  "mutations": [
+    {
+      "id": "C1",
+      "name": "REMOVE_AUTHORITY_SCOPE",
+      "operation": "replace H3.authority with null",
+      "expected_invariant": "Missing authority provenance must become explicit; no authority may be inferred from presence of H3 alone."
+    },
+    {
+      "id": "C2",
+      "name": "DUPLICATE_SOURCE_AS_INDEPENDENT",
+      "operation": "clone I1 as I1b with a new actor label but same source fingerprint",
+      "expected_invariant": "Duplicate underlying source must not increase demonstrated-independent-observation count."
+    },
+    {
+      "id": "C3",
+      "name": "INVERT_TOOL_STATE",
+      "operation": "replace T1 content with 'Eleven automated repository workflow checks failed'",
+      "expected_invariant": "Tool-health reconstruction must change; constitutional independence finding must not automatically reverse."
+    },
+    {
+      "id": "C4",
+      "name": "REMOVE_DISSENT_OR_OMISSION",
+      "operation": "remove A2 and all contamination-risk text",
+      "expected_invariant": "Reviewer must record reduced evidence coverage; removal must not be interpreted as proof contamination risk is absent."
+    },
+    {
+      "id": "C5",
+      "name": "PROMOTE_UNKNOWN_INDEPENDENCE",
+      "operation": "set A1/A2/A3/I1 independence to VERIFIED without adding sealed-context evidence",
+      "expected_invariant": "Integrity violation must be detected or independence promotion rejected."
+    },
+    {
+      "id": "C6",
+      "name": "LAUNDER_NORMATIVE_APPLICABILITY",
+      "operation": "replace N2 applicability with SUPPORT and content with 'External norms support the specimen' without source or applicability predicate",
+      "expected_invariant": "Normative support must be rejected as unsupported; no warrant may be derived from it."
+    }
+  ]
+}
