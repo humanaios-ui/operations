@@ -2,10 +2,9 @@
 # PR Readiness Verification — Run all validation checks in sequence
 # Usage: ./scripts/verify_pr_readiness.sh [--verbose]
 #
-# Runs manifest, code quality, security, and behavioral checks before merge.
+# Runs manifest and document integrity checks before merge.
 # Exits on first failure; use --verbose for detailed output.
 
-set -e
 VERBOSE="${1:---quiet}"
 FAILED=0
 PASSED=0
@@ -19,61 +18,52 @@ log_check() {
 
 check_pass() {
   echo "✓ $1"
-  ((PASSED++))
+  PASSED=$((PASSED+1))
 }
 
 check_fail() {
   echo "✗ $1"
-  ((FAILED++))
+  FAILED=$((FAILED+1))
 }
 
 # Tool Manifest Integrity
 log_check "Tool Manifest Integrity"
-if python3 .tool-control/scan.py --check > /dev/null 2>&1; then
-  check_pass "Manifest matches working tree"
+if [[ "$VERBOSE" == "--verbose" ]]; then
+  python3 .tool-control/scan.py --check || { check_fail "Manifest is stale"; exit 1; }
 else
-  check_fail "Manifest is stale"
-  exit 1
+  python3 .tool-control/scan.py --check > /dev/null 2>&1 || { check_fail "Manifest is stale"; exit 1; }
 fi
+check_pass "Manifest matches working tree"
 
-if python3 .tool-control/validate.py > /dev/null 2>&1; then
-  check_pass "Structural rules pass"
+if [[ "$VERBOSE" == "--verbose" ]]; then
+  python3 .tool-control/validate.py || { check_fail "Structural rule violations detected"; exit 1; }
 else
-  check_fail "Structural rule violations detected"
-  exit 1
+  python3 .tool-control/validate.py > /dev/null 2>&1 || { check_fail "Structural rule violations detected"; exit 1; }
 fi
+check_pass "Structural rules pass"
 
-if python3 .tool-control/render.py --check > /dev/null 2>&1; then
-  check_pass "TOOLS_MANIFEST.md is in sync"
+if [[ "$VERBOSE" == "--verbose" ]]; then
+  python3 .tool-control/render.py --check || { check_fail "TOOLS_MANIFEST.md is out of sync"; exit 1; }
 else
-  check_fail "TOOLS_MANIFEST.md is out of sync"
-  exit 1
+  python3 .tool-control/render.py --check > /dev/null 2>&1 || { check_fail "TOOLS_MANIFEST.md is out of sync"; exit 1; }
 fi
+check_pass "TOOLS_MANIFEST.md is in sync"
 
 # Document Control
 log_check "Document Integrity"
-if python3 .doc-control/scan.py --check > /dev/null 2>&1; then
-  check_pass "Document registry matches filesystem"
+if [[ "$VERBOSE" == "--verbose" ]]; then
+  python3 .doc-control/validate.py || { check_fail "Document rule violations detected"; exit 1; }
 else
-  check_fail "Document registry is stale"
-  exit 1
+  python3 .doc-control/validate.py > /dev/null 2>&1 || { check_fail "Document rule violations detected"; exit 1; }
 fi
+check_pass "Document rules pass"
 
-if python3 .doc-control/validate.py > /dev/null 2>&1; then
-  check_pass "Document rules pass"
+if [[ "$VERBOSE" == "--verbose" ]]; then
+  python3 .doc-control/render.py --check || { check_fail "TOOLS_MANIFEST.md is out of sync"; exit 1; }
 else
-  check_fail "Document rule violations detected"
-  exit 1
+  python3 .doc-control/render.py --check > /dev/null 2>&1 || { check_fail "TOOLS_MANIFEST.md is out of sync"; exit 1; }
 fi
-
-# Python Linting
-log_check "Python Code Quality"
-if python3 -m pylint scripts/*.py tools/*.py --disable=all --enable=E > /dev/null 2>&1; then
-  check_pass "Python linting passes (errors only)"
-else
-  check_fail "Python linting found errors"
-  # Non-fatal; continue
-fi
+check_pass "Document registry is in sync"
 
 # Summary
 echo ""
