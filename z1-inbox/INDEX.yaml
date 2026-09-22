@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 78
+  candidates: 79
   records: 37
 ratifiers:
 - Night
@@ -741,6 +741,24 @@ candidates:
     \ Also settles backfill (permitted, forced to BACKFILL_UNGRADED at weight 0)\
     \ and divergence (the only part carrying information under shared sources).\
     \ Retracts the independence claim in AGENT_GRAPH_COMPARISON.md."
+- q_id: Q-P19-GATE-INERT-01
+  title: "The principle-compliance gate reported green without opening a file"
+  path: z1-inbox/2026-09-22/Q-P19-GATE-INERT-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Tier 2, authorised by Night 2026-09-22. The workflow built its file list\
+    \ with git diff --name-only (newline-separated) and the bot split it on commas,\
+    \ so every multi-file change arrived as one unsplittable blob that did not end\
+    \ in .py - no file was ever opened and Check principles (P19) printed passed\
+    \ having inspected nothing. It only ran when a change touched exactly one .py\
+    \ file. Found by accident on PR #446. Second defect fixed with it because\
+    \ fixing either alone is worse: the scan read whole files for a bare substring,\
+    \ and 113 of 373 .py files contain always/never/impossible, so repairing only\
+    \ the plumbing would have failed ~30% of Python files for words the change did\
+    \ not write. Scan is now added-lines, word-boundary, self-exempting, and exits\
+    \ non-zero when the diff is unreadable. Smoke test 1 check -> 12. Leaves\
+    \ P-HUMILITY calibration to Z2: the working gate flags one added line on #446\
+    \ that is both absolute language and a correct invariant."
 - q_id: Q-DEFERRAL-RULE-01
   title: "A deferral needs an ending condition, not just a better home"
   path: z1-inbox/2026-09-21/Q-DEFERRAL-RULE-01.md

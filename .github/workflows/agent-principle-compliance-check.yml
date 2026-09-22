@@ -38,16 +38,23 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Get commit message and changed files
-          COMMIT_MSG=$(git log --format=%B -n 1)
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD || echo "")
+          # Q-P19-GATE-INERT-01. `git diff --name-only` emits one path per LINE.
+          # This was passed to a bot that split on commas, so every multi-file
+          # change arrived as a single unsplittable blob and no file was ever
+          # opened — the gate reported green having inspected nothing. The bot
+          # now accepts either separator; the list is comma-joined here so the
+          # contract between the two is explicit rather than incidental.
+          BASE="${{ github.event.pull_request.base.sha || 'HEAD~1' }}"
 
-          echo "Commit: $COMMIT_MSG"
+          COMMIT_MSG=$(git log --format=%B -n 1)
+          CHANGED_FILES=$(git diff --name-only "$BASE"...HEAD | paste -sd, -)
+
+          echo "Base:  $BASE"
           echo "Files: $CHANGED_FILES"
 
-          # Run compliance check
           python3 tools/agents/principle_compliance_bot_v1.py \
             --check-commit "$COMMIT_MSG" \
+            --base "$BASE" \
             --files "$CHANGED_FILES" || EXIT_CODE=$?
 
           exit ${EXIT_CODE:-0}
