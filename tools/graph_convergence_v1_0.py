@@ -74,6 +74,9 @@ VALIDATION RULES (all mechanical, all re-runnable)
   A10 a divergence row names at least one side
   A11 the two graphs have distinct `ordering` values
   A12 every source_lineage path resolves in the tree and the closure terminates
+  A13 corroboration grades against the most contaminating declared graph-to-graph
+      access. Swapping `ordering` may change who was earlier; it may not lower
+      exposure and buy independence
   W1  an EVIDENCE node with no source_map entry is reported. It cannot be
       graded above UNSOURCED, so an under-populated map costs coverage rather
       than inflating independence.
@@ -325,14 +328,18 @@ def grade_row(row: dict, left: dict, right: dict, later_access: str,
     return "INDEPENDENT", "disjoint sources; earlier graph unreachable"
 
 
-def _later_access(graphs: list[dict]) -> str:
-    """The access grade of the graph authored second, toward the first.
+def _effective_access(graphs: list[dict]) -> str:
+    """The most contaminating declared graph-to-graph access grade.
 
-    Only this direction can contaminate: the earlier author could not have read
-    an artifact that did not yet exist.
+    `ordering` is declared by the same alignment file that declares the access
+    grades. If a grader trusts ordering to decide which direction matters, an
+    author can swap "earlier" and "later" and buy INDEPENDENT off the genuinely
+    earlier graph's unavoidable `UNAVAILABLE`. The safe computation is monotone:
+    any declared exposure may only lower a grade, never raise it.
     """
-    ordered = sorted(graphs, key=lambda g: g.get("ordering", 0))
-    return ((ordered[-1].get("access") or {}).get("grade") or "READ")
+    rank = {"UNAVAILABLE": 0, "AVAILABLE_UNREAD_ASSERTED": 1, "READ": 2}
+    grades = [((g.get("access") or {}).get("grade") or "READ") for g in graphs]
+    return max(grades, key=lambda grade: rank.get(grade, rank["READ"]))
 
 
 # ---------------------------------------------------------------------------
@@ -404,7 +411,7 @@ def validate(align: dict, graphs: dict[str, dict], root: str = ROOT
             errors.append(f"A5: source_lineage row for {src!r} carries no basis")
         lineage.setdefault(src, []).extend(derives)
 
-    later = _later_access(list(declared.values()))
+    later = _effective_access(list(declared.values()))
     seen: set[tuple[str, str]] = set()
     graded: list[dict] = []
     mentioned: set[tuple[str, str]] = set()
@@ -696,16 +703,50 @@ def run_smoke_test() -> int:
           [k for k, v in GRADE_WEIGHT.items() if v == 1.0] == ["INDEPENDENT"])
 
     # -- access direction ----------------------------------------------------
-    later = _later_access([
+    later = _effective_access([
         {"ordering": 1, "access": {"grade": "UNAVAILABLE"}},
         {"ordering": 2, "access": {"grade": "READ"}},
     ])
-    check("the later-authored graph's access is the one that grades", later == "READ")
-    later = _later_access([
+    check("the most contaminating declared access is the one that grades", later == "READ")
+    later = _effective_access([
         {"ordering": 2, "access": {"grade": "READ"}},
         {"ordering": 1, "access": {"grade": "UNAVAILABLE"}},
     ])
-    check("ordering, not list order, picks the later graph", later == "READ")
+    check("list order cannot hide a contaminating access grade", later == "READ")
+    later = _effective_access([
+        {"ordering": 2, "access": {"grade": "UNAVAILABLE"}},
+        {"ordering": 1, "access": {"grade": "AVAILABLE_UNREAD_ASSERTED"}},
+    ])
+    check("an asserted-unread exposure outranks another side's unavailability",
+          later == "AVAILABLE_UNREAD_ASSERTED")
+
+    malicious_align = {
+        "graphs": [
+            {"id": "INTENT", "path": "INTENT_GRAPH.yaml", "ordering": 2,
+             "access": {"to": "EVIDENCE", "grade": "UNAVAILABLE", "basis": "forged chronology"}},
+            {"id": "EVIDENCE", "path": "EVIDENCE_GRAPH.json", "ordering": 1,
+             "access": {"to": "INTENT", "grade": "READ", "basis": "the later graph read the earlier one"}},
+        ],
+        "alignments": [{"intent": "I", "evidence": "E", "kind": "SAME_REFERENT",
+                        "basis": "ordering swap attempt"}],
+        "divergences": [],
+        "relations": [],
+        "source_lineage": [],
+    }
+    malicious_graphs = {
+        "INTENT": {"nodes": {"I": {"sources": ["CLAUDE.md"], "provenance": ""}}, "rels": set()},
+        "EVIDENCE": {"nodes": {"E": {"sources": ["CONTRIBUTING.md"], "provenance": "",
+                                         "declared_sources": True}}, "rels": set()},
+    }
+    errors, warnings, graded = validate(malicious_align, malicious_graphs, ROOT)
+    check("swapping ordering values cannot buy corroboration weight off another "
+          "side's unavoidable UNAVAILABLE",
+          not errors and warnings == ["W3: total corroboration weight is 0.0 — this comparison "
+                                      "found no independent agreement. Every aligned pair shares "
+                                      "a source, has unrecorded provenance, was read, or is a "
+                                      "declared false friend."]
+          and graded[0]["grade"] == "CONTAMINATED"
+          and graded[0]["weight"] == 0.0)
 
     # -- alias identity ------------------------------------------------------
     alias_l = {"sources": ["./CLAUDE.md"], "provenance": ""}
