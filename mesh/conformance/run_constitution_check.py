@@ -12,23 +12,50 @@ Usage:
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
-
-import yaml
 
 TOOL_NAME = "run_constitution_check"
 TOOL_VERSION = "0.1.0"
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "tools" / "agents" / "_shared"))
+sys.path.insert(0, str(REPO / ".doc-control"))
 
 from constitution_checker import ConstitutionChecker  # noqa: E402
+from strict_yaml import loads as strict_loads  # noqa: E402  - refuses duplicate keys
 
 
 def practice_records() -> list[dict]:
     root = REPO / "mesh" / "practices"
-    return [yaml.safe_load(p.read_text()) for p in sorted(root.glob("*/practice.yaml"))]
+    return [strict_loads(p.read_text()) for p in sorted(root.glob("*/practice.yaml"))]
+
+
+def git(*args: str) -> str:
+    return subprocess.check_output(["git", "-C", str(REPO), *args], text=True).strip()
+
+
+def branch_commits(base_ref: str = "origin/main") -> list[tuple[str, str, list[str]]]:
+    """The branch's ACTUAL commits, as (sha, subject, files).
+
+    An earlier version of this module carried a handwritten list of commit
+    messages and file arrays. P-COMMIT-DISCIPLINE would then have returned clean
+    against a fixture while the real history was oversized or carried files the
+    fixture omitted — the check would be true of nothing. It reads git now.
+
+    First-parent only, so a merge is one entry rather than the base branch's
+    whole history. A clean merge's own diff is empty, which is the honest file
+    count for a commit that resolved nothing.
+    """
+    base = git("merge-base", base_ref, "HEAD")
+    shas = git("log", "--first-parent", "--format=%H", f"{base}..HEAD").split()
+    out = []
+    for sha in reversed(shas):
+        subject = git("log", "-1", "--format=%s", sha)
+        files = [f for f in git("show", "--pretty=", "--name-only", sha).split("\n") if f]
+        out.append((sha, subject, files))
+    return out
 
 
 # The decision this drop records, stated as it actually is.
@@ -58,20 +85,6 @@ FINDING = {
     ),
     "impact": 5,
 }
-
-COMMITS = [
-    ("docs(mesh): local mesh coordination charter and record schema",
-     ["mesh/README.md", "mesh/MESH_LOCAL_CHARTER_V0_1.md", "mesh/practice_local.schema.json"]),
-    ("docs(mesh): practice records for humanaios, website, grok-crossref",
-     ["mesh/practices/humanaios/practice.yaml", "mesh/practices/humanaios/README.md",
-      "mesh/practices/website/practice.yaml", "mesh/practices/website/README.md",
-      "mesh/practices/grok-crossref/practice.yaml", "mesh/practices/grok-crossref/README.md"]),
-    ("docs(mesh): cross-reference register and conformance evidence",
-     ["mesh/CROSS_REFERENCE_REGISTER.md", "mesh/conformance/validate_mesh.py",
-      "mesh/conformance/run_constitution_check.py", "mesh/conformance/CONFORMANCE_RUN.md",
-      "z1-inbox/2026-09-22/Q-MESH-LOCAL-COORDINATION-01.md", "z1-inbox/INDEX.yaml"]),
-]
-
 
 def artifact_graph() -> list[dict]:
     """Artifacts this drop logs, typed per P-ARTIFACT-BREADTH."""
@@ -115,14 +128,28 @@ def main() -> int:
           f"{len(checker.principles)} principles)\n")
 
     print("== check_commit ==")
-    for msg, files in COMMITS:
-        violations = checker.check_commit(msg, files)
-        total += len(violations)
-        print(f"  [{len(files)} files] {msg}")
-        for v in violations:
-            print(f"      VIOLATION: {v}")
-        if not violations:
-            print("      clean")
+    try:
+        commits = branch_commits()
+    except subprocess.CalledProcessError as exc:
+        print(f"  UNAVAILABLE: git could not resolve the branch history ({exc})")
+        print("  This check is reported as not run rather than passed.")
+        commits = None
+
+    if commits is None:
+        total += 1
+    elif not commits:
+        print("  no commits ahead of origin/main — nothing to check")
+    else:
+        print(f"  {len(commits)} commit(s) ahead of origin/main (first-parent)")
+        for sha, subject, files in commits:
+            violations = checker.check_commit(subject, files)
+            total += len(violations)
+            note = " (merge; own diff empty)" if not files else ""
+            print(f"  [{len(files)} files]{note} {sha[:7]} {subject}")
+            for v in violations:
+                print(f"      VIOLATION: {v}")
+            if not violations:
+                print("      clean")
 
     print("\n== check_decision_log ==")
     violations = checker.check_decision_log(DECISION)

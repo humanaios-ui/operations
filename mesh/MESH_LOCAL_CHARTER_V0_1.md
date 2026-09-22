@@ -103,7 +103,7 @@ obligation here are omitted rather than listed for appearance.
 | P2 | Restored state exists | `REGISTERED.md` remains canonical; this layer never writes it |
 | P3 | No unverified claims | Every field traces to a readable in-tree source or is marked `UNKNOWN` |
 | P5 | Primary purpose filter | A practice states which of {data, hypothesis, revenue} its work serves |
-| P19 | Detection beats compliance | The schema is machine-checkable; conformance is run, not asserted |
+| P19 | Detection beats compliance | The schema is machine-checkable; conformance is run, not asserted, and every control is demonstrated to refuse |
 | P-T2 | Zone discipline governs | Zone and cap are read from `ZONE_REGISTRY.md`, never set here |
 | P-T10 | TRL framing | Records say "specified", not "operational", absent evidence of operation |
 | P-HUMILITY | Overconfidence flag | No confidence above 0.95 without counter-evidence |
@@ -150,12 +150,20 @@ observed:
 3. A field in any `practice.yaml` cannot be traced to a readable in-tree source and is not
    marked `UNKNOWN`.
 4. `mesh/practice_local.schema.json` validates a record containing a key the schema does not
-   declare (the `additionalProperties: false` control fails open).
+   declare (the `additionalProperties: false` control fails open), or validates a record whose
+   `status` is `RATIFIED` without a 64-hex `authority.z2_ratification`, or one missing `edges`
+   or `trl_framing`.
+4a. A record is parsed by a loader that accepts duplicate mapping keys. `yaml.safe_load` keeps
+   the last of a repeated key, so a duplicated `authority:` block would reach the schema with its
+   first copy already discarded — the schema control would hold on a document nobody read.
+   Records are parsed with `.doc-control/strict_yaml.py`, and the refusal is demonstrated.
 5. The local records and `ledgers/PRACTICE_RESOLUTION_MAP.md` disagree on a practice's
    resolution class, and the disagreement survives one maintenance pass.
 
 Falsifier 4 is the adversarial-hardening carry-over from PR #451 ("schema soft smuggling →
-`additionalProperties: false` on core objects").
+`additionalProperties: false` on core objects"). Falsifier 4a was added after review found that
+`additionalProperties: false` is only as good as the parser feeding it — the same class of defect
+one layer down.
 
 ---
 

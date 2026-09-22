@@ -3,7 +3,8 @@
 **Record:** [`practice.yaml`](./practice.yaml) · **Status:** Z1 CANDIDATE, no Z2 hash
 **Aliases:** "grock-cross-ref", "grok cross-ref" — operator prose only; the canonical token in
 `ledgers/NF_LEDGER.jsonl` is `grok-crossref` and is used in every machine-readable field.
-**Zone:** none — no row in `ZONE_REGISTRY.md`, no entry in `PLANNED_REPOS.md`
+**Zone:** none — no row in `ZONE_REGISTRY.md`, so no Zone ID and no resource cap. It **is** on the
+roadmap: `PLANNED_REPOS.md` line 39 lists it as PLANNED, Phase 3 (deferred).
 **Resolution class:** **UNAMBIGUOUS** — the one practice in this drop that is not blocked
 
 ## What it owns

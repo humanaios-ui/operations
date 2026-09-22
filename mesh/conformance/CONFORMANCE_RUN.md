@@ -1,7 +1,7 @@
 # Conformance Run — Q-MESH-LOCAL-COORDINATION-01
 
 **Status:** B.0 Empirical Verification evidence. Z1 candidate, no Z2 hash.
-**Pin (HISTORICAL_RECORD):** `operations` @ `44347b79b1d6351bd10bbb5fb6c45b9ead6bd42e`
+**Pin (HISTORICAL_RECORD):** derivation `44347b79b1d6351bd10bbb5fb6c45b9ead6bd42e`; this run taken on the branch ahead of `22a06f35fd10333eb85db7d69c057f5ec2a2ecdb`
 **Reproduce:**
 
 ```bash
@@ -11,8 +11,9 @@ python3 mesh/conformance/run_constitution_check.py
 
 Both were run before this file was written. The outputs below are pasted verbatim from
 that run, not transcribed. Neither script tunes its inputs toward a clean result: the
-validator asserts failure for eight mutations that must be refused, and the constitution
-run reports whatever `tools/agents/_shared/constitution_checker.py` returns.
+validator asserts failure for fourteen controls that must refuse, and the constitution run
+reads the branch's real commit history and reports whatever
+`tools/agents/_shared/constitution_checker.py` returns.
 
 ---
 
@@ -22,12 +23,15 @@ run reports whatever `tools/agents/_shared/constitution_checker.py` returns.
 validate_mesh v0.1.0
 schema: mesh/practice_local.schema.json
 
+parser control (runs before the schema):
+  PASS  duplicate mapping key — refused before the schema sees it
+
 positive cases (3 records on disk):
   PASS  mesh/practices/grok-crossref/practice.yaml
   PASS  mesh/practices/humanaios/practice.yaml
   PASS  mesh/practices/website/practice.yaml
 
-negative cases (8 controls demonstrated):
+negative cases (13 controls demonstrated):
   PASS  additionalProperties: false rejects an undeclared key — refused
   PASS  authority.grants_authority cannot be set true — refused
   PASS  resolution.class is a closed vocabulary — refused
@@ -36,15 +40,30 @@ negative cases (8 controls demonstrated):
   PASS  provenance.pinned_sha must be a 40-hex sha — refused
   PASS  temporal_class cannot be an internal work deadline — refused
   PASS  edges relation is a closed vocabulary — refused
+  PASS  a record cannot drop its graph edges (P-GRAPH) — refused
+  PASS  a record cannot drop its implementation state (P-T10) — refused
+  PASS  status RATIFIED cannot be claimed without a Z2 signature — refused
+  PASS  status RATIFIED cannot be claimed on a non-sha256 signature — refused
+  PASS  an unratified record cannot carry a Z2 signature — refused
 
 RESULT: PASS — all records valid; all controls demonstrated to refuse
 ```
 
 Exit code: 0.
 
-The eight negative cases are the P19 evidence — the schema controls are shown to refuse,
-not asserted to exist. Case 1 is falsifier 4 in `MESH_LOCAL_CHARTER_V0_1.md` §6, carried
-from the "schema soft smuggling" finding on PR #451.
+The one parser control and thirteen negative cases are the P19 evidence — the controls are
+shown to refuse, not asserted to exist. Schema case 1 is falsifier 4 in
+`MESH_LOCAL_CHARTER_V0_1.md` §6, carried from the "schema soft smuggling" finding on
+PR #451.
+
+### The parser control runs before the schema, and why
+
+Records are parsed with `.doc-control/strict_yaml.py`, not `yaml.safe_load`. `safe_load`
+silently keeps the **last** of a repeated mapping key, so a record carrying `authority:`
+twice would reach the schema with its first copy already discarded — `additionalProperties:
+false` would hold on a document the validator never really read. That defect is what left
+`z2_ratification_gate.yml` dead for 122 runs, per that module's own header. Reusing the
+repository loader rather than re-implementing it is the point of the module existing.
 
 ---
 
@@ -55,11 +74,18 @@ run_constitution_check v0.1.0
 constitution: HumanAIOS Constitution — 22 Principles (v1.0, 22 principles)
 
 == check_commit ==
-  [3 files] docs(mesh): local mesh coordination charter and record schema
+  6 commit(s) ahead of origin/main (first-parent)
+  [3 files] fb55519 docs(mesh): local mesh coordination charter and record schema
       clean
-  [6 files] docs(mesh): practice records for humanaios, website, grok-crossref
+  [6 files] 985a227 docs(mesh): practice records for humanaios, website, grok-crossref
       clean
-  [6 files] docs(mesh): cross-reference register and conformance evidence
+  [6 files] abf2d17 docs(mesh): cross-reference register, conformance evidence, Z1 candidate block
+      clean
+  [2 files] 4f18732 fix(z1-inbox): use the validator's status vocabulary and re-render the index
+      clean
+  [0 files] (merge; own diff empty) 0d54fa2 Merge origin/main into claude/epic-pascal-mi5335
+      clean
+  [1 files] 298d816 docs(mesh): refresh cross-reference register — #452 merged
       clean
 
 == check_decision_log ==
@@ -69,13 +95,27 @@ constitution: HumanAIOS Constitution — 22 Principles (v1.0, 22 principles)
   clean
 
 == check_artifact_graph ==
-  15 artifacts, types: assumption, dead_end, decision, finding, unknown
+  16 artifacts, types: assumption, dead_end, decision, finding, unknown
   clean
 
 RESULT: 0 violation(s)
 ```
 
 Exit code: 0.
+
+### Commit granularity is measured, not asserted
+
+P-COMMIT-DISCIPLINE refuses a commit touching more than 10 files. The commit list above is
+read from `git log --first-parent origin/main..HEAD`, not from a fixture. An earlier version
+of this module carried a handwritten list of commit messages and file arrays, which would
+have returned clean against invented input while the real history went unchecked — and its
+file counts were already drifting from the real ones. A check that is true of nothing is the
+failure mode this whole drop is about, so it reads git.
+
+First-parent, so a merge is one entry rather than the base branch's whole history. A clean
+merge's own diff is empty, which is the honest file count for a commit that resolved
+nothing. If git cannot resolve the history, the check reports UNAVAILABLE and counts as a
+violation rather than passing silently.
 
 ### What this run does and does not establish
 
@@ -92,9 +132,3 @@ overclaim P-T10 exists to catch.
 
 It also does not read the `/empirica-constitution` plugin text, which is not reachable from
 the session that produced this evidence. See `MESH_LOCAL_CHARTER_V0_1.md` §0.
-
-### Commit granularity
-
-P-COMMIT-DISCIPLINE refuses a commit touching more than 10 files. The three commits above
-carry 3, 6 and 6 files. The drop was split to satisfy the check rather than landed as one
-commit of 15.

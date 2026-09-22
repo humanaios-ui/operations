@@ -27,13 +27,21 @@ import json
 import sys
 from pathlib import Path
 
-import yaml
-
 try:
     import jsonschema
 except ImportError:  # pragma: no cover - reported, not worked around
     print("jsonschema is not installed; install it before running this validator")
     sys.exit(2)
+
+import yaml  # noqa: E402  - only for the exception type; parsing goes through strict_yaml
+
+# yaml.safe_load silently keeps the LAST of a repeated mapping key, so a record
+# carrying `authority:` twice would have the first copy discarded before the
+# schema saw anything — the schema-hardening claim would hold on a document the
+# validator never really read. The repository already ships a loader that
+# refuses duplicates, for this exact defect; reuse it rather than re-implement.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / ".doc-control"))
+from strict_yaml import loads as strict_loads  # noqa: E402
 
 TOOL_NAME = "validate_mesh"
 TOOL_VERSION = "0.1.0"
@@ -48,7 +56,7 @@ def load_schema() -> dict:
 
 
 def records() -> list[tuple[Path, dict]]:
-    return [(p, yaml.safe_load(p.read_text())) for p in sorted(PRACTICES.glob("*/practice.yaml"))]
+    return [(p, strict_loads(p.read_text())) for p in sorted(PRACTICES.glob("*/practice.yaml"))]
 
 
 def validate_positive(schema: dict) -> list[str]:
@@ -83,7 +91,41 @@ NEGATIVE_CASES = (
      lambda d: d["provenance"].update({"temporal_class": "INTERNAL_WORK_DEADLINE"}) or d),
     ("edges relation is a closed vocabulary",
      lambda d: d["edges"][0].update({"relation": "supersedes_z2"}) or d),
+    ("a record cannot drop its graph edges (P-GRAPH)",
+     lambda d: d.pop("edges") and d or d),
+    ("a record cannot drop its implementation state (P-T10)",
+     lambda d: d.pop("trl_framing") and d or d),
+    ("status RATIFIED cannot be claimed without a Z2 signature",
+     lambda d: d.update({"status": "RATIFIED"}) or d),
+    ("status RATIFIED cannot be claimed on a non-sha256 signature",
+     lambda d: (d.update({"status": "RATIFIED"}),
+                d["authority"].update({"z2_ratification": "ratified-by-night"}))[-1] or d),
+    ("an unratified record cannot carry a Z2 signature",
+     lambda d: d["authority"].update({"z2_ratification": "a" * 64}) or d),
 )
+
+
+DUPLICATE_KEY_FIXTURE = """
+practice_id: humanaios
+authority:
+  grants_authority: false
+authority:
+  grants_authority: true
+"""
+
+
+def validate_loader() -> list[str]:
+    """The parser must refuse a duplicate mapping key, not silently keep the last."""
+    failures = []
+    try:
+        strict_loads(DUPLICATE_KEY_FIXTURE)
+        failures.append(
+            "duplicate mapping key accepted by the loader — a repeated authority "
+            "block would reach the schema with only its last copy")
+        print("  FAIL  duplicate mapping key — accepted")
+    except yaml.YAMLError:
+        print("  PASS  duplicate mapping key — refused before the schema sees it")
+    return failures
 
 
 def validate_negative(schema: dict) -> list[str]:
@@ -106,8 +148,11 @@ def main() -> int:
     print(f"{TOOL_NAME} v{TOOL_VERSION}")
     print(f"schema: {SCHEMA_PATH.relative_to(ROOT.parent)}\n")
 
-    print(f"positive cases ({len(records())} records on disk):")
-    failures = validate_positive(schema)
+    print("parser control (runs before the schema):")
+    failures = validate_loader()
+
+    print(f"\npositive cases ({len(records())} records on disk):")
+    failures += validate_positive(schema)
 
     print(f"\nnegative cases ({len(NEGATIVE_CASES)} controls demonstrated):")
     failures += validate_negative(schema)
@@ -127,7 +172,8 @@ def run_smoke_test() -> bool:
         schema = load_schema()
         assert schema["additionalProperties"] is False
         assert len(records()) >= 1
-        print(f"✓ {TOOL_NAME} loaded ({len(records())} records, {len(NEGATIVE_CASES)} controls)")
+        print(f"✓ {TOOL_NAME} loaded ({len(records())} records, "
+              f"{len(NEGATIVE_CASES) + 1} controls)")
         return True
     except Exception as exc:  # pragma: no cover
         print(f"✗ Smoke test failed: {exc}")

@@ -29,13 +29,14 @@ owns:
   - "Core ACAT instrument development and the behavioral assessment corpus"
   - "Behavioral assessment findings and their calibration series"
   - "acat_corpus_updates consumed by other practices"
-  - "Publication coordination status for ACAT methodology claims"
+  - "The publication_coordination_status field that empirica-outreach consumes (an interface it provides, not ownership of the coordination itself)"
 
 out_of_scope:
   - "Stakeholder engagement and outreach messaging (empirica-outreach owns)"
   - "Mesh orchestration and routing (empirica-mesh-support owns)"
   - "Regulatory/publication positioning (empirica-outreach owns)"
   - "Ratification of its own findings (Z2 sole authority)"
+  - "Ownership of publication coordination across autonomy + humanaios + outreach — .empirica/practice-spec.yaml records that ownership as unclear, so no practice may claim it"
 
 consumes_from:
   - practice: empirica-autonomy
@@ -78,6 +79,7 @@ unknowns:
   - "Which of the two pre-existing candidate targets Z2 intends the resolver to read (D1)."
   - "Whether repo humanaios-ui/humanaios holds any of the 4 pinned artifacts; the repo was not read in this session and is outside this session's repository scope."
   - "Z3 executor assignment for Z-001 is TBD in ZONE_REGISTRY.md."
+  - "Which practice owns publication coordination across autonomy + humanaios + outreach. .empirica/practice-spec.yaml raises it as a blocking interview topic and records the answer as `(currently unclear)`; it is a Z2 decision, not a field this record may fill."
 
 trl_framing:
   implementation_state: SPECIFIED
@@ -99,4 +101,5 @@ falsifier: >
   artifact matching any of T-humanaios-01..04, since the record asserts the verdict is
   undetermined rather than NO; or if ZONE_REGISTRY.md is found to assign Z-001 a cap other than
   100 units/cycle; or if PRACTICE_RESOLUTION_MAP.md classifies `humanaios` as anything other
-  than AMBIGUOUS.
+  than AMBIGUOUS; or if a ratified source is found that assigns ownership of publication
+  coordination to any single practice, since this record holds that question open.

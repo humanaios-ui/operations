@@ -6,7 +6,7 @@ aliases:
 status: CANDIDATE
 
 zone: null
-zone_source: "No row in ZONE_REGISTRY.md and no entry in PLANNED_REPOS.md; the practice exists in ledgers/mesh_pins_090826.json and as a mesh scaffold directory only"
+zone_source: "No row in ZONE_REGISTRY.md, so no Zone ID and no resource cap. PLANNED_REPOS.md line 39 does list it: `grok-crossref | PLANNED | Night | Crossref API integration research | Phase 3 (deferred)`"
 
 authority:
   grants_authority: false
@@ -86,7 +86,7 @@ edges:
 unknowns:
   - "Whether the 3 PENDING_Z2_DATE tokens will receive Z2 dates or lapse. Not a Z1 decision."
   - "Whether any cross-reference run in this practice has ever been demonstrably blind, as opposed to substrate-distinct. PR #452 Pass A records this as unproven."
-  - "Whether this practice should hold a ZONE_REGISTRY.md row at all, given it names no repository."
+  - "Whether this practice should hold a ZONE_REGISTRY.md row at all. PLANNED_REPOS.md defers it to Phase 3, so the absence of a zone is the roadmap position rather than an oversight; what promotes a deferred planned repo to an active zone is a Z2 decision."
 
 trl_framing:
   implementation_state: SPECIFIED
@@ -94,6 +94,7 @@ trl_framing:
 
 provenance:
   derived_from:
+    - "PLANNED_REPOS.md"
     - "ledgers/PRACTICE_RESOLUTION_MAP.md"
     - "ledgers/NF_LEDGER.jsonl"
     - "ledgers/mesh_pins_090826.json"
@@ -104,7 +105,8 @@ provenance:
   observed_at: "2026-09-22 (OBSERVATIONAL; carries no scheduling authority)"
 
 falsifier: >
-  This record is FALSE if ledgers/NF_LEDGER.jsonl is read and shows a resolution count for
+  This record is FALSE if PLANNED_REPOS.md is read and does not carry grok-crossref as a
+  PLANNED repo at Phase 3; or if ledgers/NF_LEDGER.jsonl is read and shows a resolution count for
   `grok-crossref` other than 3 of 6; or if any of T-grok-crossref-04..06 is found in state DATED
   rather than PENDING_Z2_DATE; or if a cross-reference run in this practice is demonstrated to
   have been blind, since the record asserts blindness is unproven; or if PR #451 is shown to have
