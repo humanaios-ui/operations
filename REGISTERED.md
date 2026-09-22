@@ -4946,6 +4946,47 @@ tags: ["molt", "temporal-dissolution", "measurement-window", "governance-gap"]
 
 ---
 
+### F-MEASUREMENT-SCOPE-AUDIT-01 — Blockchain Trading Pilot Measurement Scope Gap
+
+```yaml
+---
+id: "F-MEASUREMENT-SCOPE-AUDIT-01"
+name: "blockchain-trading-pilot-measurement-scope"
+status: AWAITING_RATIFICATION
+class: F
+date_filed: "2026-09-22"
+date_origin: "2026-09-22"
+session_filed: "S-092226-01"
+zone2_ratification: null
+related_molt: "Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001"
+related_file: "z1-inbox/2026-09-22/MEASUREMENT-SCOPE-AUDIT.md"
+tags: ["measurement", "falsifier", "baseline", "market-conditions", "pilot"]
+---
+```
+
+- **Finding:** The blockchain trading pilot specifies a falsifier (Sharpe >= 0.80 AND drawdown <= 5%) but does **not document the volumes, market conditions, or trade frequencies being measured**. This creates risk of false positive (favorable window conditions producing high Sharpe by chance) or false negative (unfavorable conditions masking real effect).
+
+- **Critical gaps at window close (2026-09-28):**
+  1. **Asset pairs** — Not specified; Sharpe depends on asset correlation
+  2. **Position sizes** — Not specified; affects slippage and execution risk
+  3. **Trade frequency** — Not specified; affects statistical power of 7-day sample
+  4. **Baseline measurement** — What was Sharpe at prior threshold (0.50) during the same window?
+  5. **Market conditions** — Was 2026-09-21 to 2026-09-28 typical? Bull/bear? High/low volatility?
+  6. **Rebalance trigger frequency** — How many times did threshold 0.55 vs 0.50 produce different actions?
+
+- **Why this matters:** A "passing" measurement (Sharpe >= 0.80) cannot distinguish between "threshold 0.55 is genuinely better" vs. "we got lucky with favorable market conditions." Without baseline Sharpe at 0.50 for the same window, Z2's ratification decision (KEEP or REVERT) rests on incomplete data.
+
+- **Falsifier:** The pilot's measurement window closes 2026-09-28 00:00 UTC **without documented baseline volumes or market conditions**. At measurement close, if Sharpe >= 0.80 but no baseline Sharpe (at 0.50) was simultaneously measured, Z2 cannot verify whether the threshold change caused the result or coincidence did.
+
+- **Z2 decision required:** At 2026-09-28 window close:
+  1. **If baseline data is available:** Compare Sharpe(0.55) vs. Sharpe(0.50); if 0.55 is meaningfully better, ACCEPT threshold change
+  2. **If baseline data is missing:** Quarantine result pending baseline retroactive measurement; do not KEEP threshold change until comparative proof exists
+  3. **Alternative:** Extend measurement window to allow simultaneous baseline + proposed threshold measurement under identical market conditions
+
+- **Status:** AWAITING_RATIFICATION · Filed during pilot measurement phase; Z2 decision at 2026-09-28
+
+---
+
 ### H-WITNESS-READINESS-01 — Genesis Readiness Measurable Falsifiers
 
 ```yaml
