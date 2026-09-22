@@ -2,7 +2,8 @@
 
 **Status:** Z1 candidate — not ratified. No Z2 hash.
 **Owning practice:** `grok-crossref`
-**Pin (HISTORICAL_RECORD):** `operations` @ `44347b79b1d6351bd10bbb5fb6c45b9ead6bd42e`
+**Pin (HISTORICAL_RECORD):** first read at `operations` @ `44347b79b1d6351bd10bbb5fb6c45b9ead6bd42e`;
+artifact states refreshed at `22a06f35fd10333eb85db7d69c057f5ec2a2ecdb`
 **Read at:** 2026-09-22 (OBSERVATIONAL — carries no scheduling authority)
 
 This register binds the artifacts named in the coordination request to the three practices in
@@ -19,12 +20,22 @@ not that.** It is a specified artifact with no run hash, and it does not satisfy
 | # | artifact | state at read | type |
 |:--|:--|:--|:--|
 | [#454](https://github.com/humanaios-ui/operations/pull/454) | Z1 preregistration: independent OSF OAuth adversarial audit | OPEN, mergeable clean | preregistration |
-| [#452](https://github.com/humanaios-ui/operations/pull/452) | Z1 experiment: CT-001 constitutional tuning reconstruction | OPEN, mergeable clean | experiment |
+| [#452](https://github.com/humanaios-ui/operations/pull/452) | Z1 experiment: CT-001 constitutional tuning reconstruction | **MERGED** at `22a06f3` | experiment |
 | [#451](https://github.com/humanaios-ui/operations/pull/451) | Z1 proposal: Witness Arena v0.1.1 — adversarial hardening | OPEN, mergeable clean | design proposal |
 | [#389](https://github.com/humanaios-ui/operations/issues/389) | Add blind independent AI reviewer to pull-request governance | OPEN; PR [#390](https://github.com/humanaios-ui/operations/pull/390) open against it | governance task |
 | [#429](https://github.com/humanaios-ui/operations/issues/429) | Q-WITNESS-COMMONS-ASSURANCE-01 readiness audit | CLOSED (completed) via merged PR [#431](https://github.com/humanaios-ui/operations/pull/431) | architecture RFC |
 
 The coordination request listed #451 twice. It is registered once.
+
+**#452 merged while this register was in review.** Its body states "Do not merge or treat this
+experiment as constitutional ratification." Merging does not retire that disclaimer: the
+artifact is now on `main`, and its Pass A results are on the record, but H-CT-001 remains
+UNRESOLVED pending Pass B and the Seed Constitution remains a provisional calibration reference.
+The claim/disclaimer pairs below are unchanged by the merge.
+
+This row was corrected on a refresh, which is the maintenance rule in
+`MESH_LOCAL_CHARTER_V0_1.md` §7 applied to this register: a derived record that reads as current
+while its subject has moved is the failure mode, not the correction.
 
 ---
 
@@ -67,7 +78,7 @@ both fail to produce governance standing.
 |:--|:--|
 | 4 substrate-distinct reviewer outputs materially converge on the structural-independence gap | Demonstrably blind observations remain **unproven** in the frozen fixture |
 | 11/11 observed PR workflow runs succeeded | Tool health is kept separate from constitutional/design assurance |
-| Preregistered before result encoding at `d17b75d6b0f30e0d96607713ffeeddcb76eecda6` | H-CT-001 remains UNRESOLVED pending Pass B |
+| Preregistered before result encoding at `d17b75d6b0f30e0d96607713ffeeddcb76eecda6` | H-CT-001 remains UNRESOLVED pending Pass B — the merge does not resolve it |
 | — | Issue #429 authority is **not** transferred to PR #451 |
 | — | Seed Constitution v0.1 is a provisional calibration reference, **not binding authority** |
 | — | External regulatory/standards support is not asserted for this internal specimen |
