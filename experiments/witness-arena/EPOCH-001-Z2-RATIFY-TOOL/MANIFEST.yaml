@@ -48,14 +48,42 @@ contamination_controls:
   commons_discussion_visible_initially: false
   peer_passes_frozen_before_cross_examination: true
   contaminated_pass_counts_as_independent: false
+  public_preregistration_contamination: >-
+    This research question and known limitation were published in PR #451
+    before any blind epoch execution. Future auditors who read the PR carry
+    prior conclusions; record as known contamination source, not silent baseline.
 
 verdict_pre_registered: false
 expected_finding_pre_registered: false
 expected_channel_pre_registered: false
 
+# Authority pinning (adversarial fix: no unbound "current governance")
 human_authority_boundary:
   derive_from_current_governance: true
   do_not_redefine_zone_semantics: true
+  authority_pinned_at:
+    path: Z3_PROTOCOL.md
+    ref_commit: a6d78fb7e62457ab86059ecaa1017f786cfc2da1
+    note: >-
+      Pin is illustrative for Epoch 001 design; each live epoch MUST replace
+      path+ref_commit with the exact governing artifact under test.
+  membrane_authority: >-
+    Membrane PASS/HOLD/QUARANTINE/REFUSE decisions are auditable observation
+    records only. They are not a new authority tier. They do not grant,
+    revoke, or expand Z1/Z2/Z3 powers. Humans may override any membrane
+    decision; AI membrane writers cannot emit HUMAN_AUTHORITY_WRITE events.
+
+# Self-reference / override rule (adversarial fix)
+epoch_findings_effect:
+  may_override_existing_z2_decisions: false
+  may_file_f_or_ic_candidates: true
+  may_recommend_amendment_to_owner: true
+  enforcement_of_findings: >-
+    Arena findings are advisory evidence for the repository owner / Z2.
+    They do not themselves revoke .z1-control/ratify.py or any other
+    ratified authority. If findings contradict a prior Z2 ruling, the
+    path is: file candidate → owner/Z2 deliberates → possible new Z2 event.
+    The Arena is not a ratification authority.
 
 exit_condition: >-
   Epoch may be executed only after the protocol and experiment design survive
