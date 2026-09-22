@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 77
+  candidates: 78
   records: 37
 ratifiers:
 - Night
@@ -741,6 +741,22 @@ candidates:
     \ Also settles backfill (permitted, forced to BACKFILL_UNGRADED at weight 0)\
     \ and divergence (the only part carrying information under shared sources).\
     \ Retracts the independence claim in AGENT_GRAPH_COMPARISON.md."
+- q_id: Q-DEFERRAL-RULE-01
+  title: "A deferral needs an ending condition, not just a better home"
+  path: z1-inbox/2026-09-21/Q-DEFERRAL-RULE-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+  note: "Night asked for research before deciding whether a deferral must be\
+    \ defensible in the artifact rather than only in a PR reply. Research supports\
+    \ the direction and finds the form insufficient: an FSE 2025 study reports\
+    \ 50.8% of static-analysis suppressions affect no warning and that their\
+    \ number only grows, so an artifact-resident deferral is durable without being\
+    \ defensible. Proposes three legs - in the artifact, names what and why, names\
+    \ the observation that ends it - with leg 3 borrowing molt closure by pinned\
+    \ observation set because Q-TEMPORAL-DISSOLUTION-01 forbids periodic review.\
+    \ Recommends three legs or none. Evidence tier CLAIM+LINK: every PDF host was\
+    \ EGRESS_BLOCKED, so figures are as reported in search summaries, not as read.\
+    \ Research in audits/DEFERRAL_RULE_RESEARCH_S-092126.md."
 - q_id: Q-EXTERNAL-JESTER-01
   title: "The ratified Jester's independence rule is the wrong rule, and we can\
     \ now measure that"
