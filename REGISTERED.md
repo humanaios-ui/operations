@@ -5082,3 +5082,42 @@ tags: ["phase-1", "scope", "witness-ui", "human-enrollment", "governance"]
 
 
 
+
+
+---
+
+## Governance Infrastructure Registry
+
+### G-OI-BRIDGE-01-v0.1 — HAIOS Agent Bridge Control Surface Specification (Phase 0)
+
+```yaml
+---
+id: "G-OI-BRIDGE-01-v0.1"
+name: "oi-bridge-01-control-surface-phase-0"
+status: CANDIDATE
+class: G
+date_registered: "2026-09-22"
+date_origin: "2026-09-22"
+session_registered: "S-092226-01-oi-bridge-spec"
+zone2_decision_window: 48h
+decision_required_by: "2026-09-24T00:00:00Z"
+principles_triggered: ["P1", "P13", "P21"]
+substrate: "Claude Haiku 4.5"
+tags: ["governance", "infrastructure", "communication", "authority-reference", "z-role-integration"]
+---
+```
+
+- **Specification Title:** OI-BRIDGE-01 Phase 0 Control Surface Specification (v0.1)
+- **Location:** `OI-BRIDGE-01_CONTROL_SURFACE_v0.1.md`
+- **Purpose:** Define governance-aware asynchronous communication substrate for registered AI nodes (Z1 proposers, Z3 executors) to exchange messages, evidence references, and challenges while preserving provenance, independent judgment, and human authority. Substrate enforces authority-reference validation (no node can cause consequential action in another node via message content alone) and routes decisions through Z2 ratification.
+- **Core Invariants:** 9 critical rules enforced by bridge (BRIDGE_ENFORCES_AUTHORITY_REFERENCES_BUT_DOES_NOT_CREATE_AUTHORITY, MESSAGE_BODY_IS_UNTRUSTED_INPUT, OBSERVATION_IS_NOT_REGISTERED_FINDING, ESCALATION_IS_NOT_OPTIONAL, DISPOSITION_OVERRIDES_CONTINUE, NODE_IDENTITY_IS_IMMUTABLE_AND_VERIFIABLE, EVIDENCE_REFERENCES_ARE_VALIDATED_NOT_ASSUMED, SEALED_COMMONS_STATE_MACHINE_IS_ENFORCED, HUMAN_AUTHORITY_IS_IRREPLACEABLE).
+- **Primary Falsifier:** v0.1 fails if one registered AI node can cause another node to perform a consequential action solely because of message content without valid independently-resolved authority reference (Z2 hash, INTENT-OS capability, prior Z2 decision).
+- **Secondary Falsifiers:** 10 measurable falsification conditions (spoofing, tampering, escalation suppression, sealed observation action, skipped escalation, disposition override, unvalidated evidence action, state mutation outside ledger, human-required bypass, scope expansion).
+- **Phase 0 Specification Includes:** (1) Node identity schema; (2) Message envelope schema; (3) Authority reference schema; (4) MESSAGE → DELIVERY → RESPONSE → CHALLENGE → EVIDENCE → DISPOSITION → CONTINUE|HUMAN_REQUIRED state machine flow; (5) Escalation contract with 8 mandatory triggers; (6) SEALED/COMMONS state machine; (7) Threat model (spoofing, tampering, escalation suppression, sealed observation action, evidence spoofing, authority bypass, scope expansion); (8) Privacy & retention model (data classification, retention periods, node-to-bridge communication RLS isolation); (9) RLS isolation (Supabase row-level security); (10) Adversarial test preregistration (6 tests for Phase 1 implementation validation).
+- **Promotion Gate:** Z2 reviews specification; accepts (ACCEPT), requests corrections (EDIT), or rejects (REJECT) within 48h decision window. If ACCEPT: specification moves to REGISTERED status and can be used as foundation for Phase 1 PR Manager + Bridge Substrate integration. Falsifiers F1-F10 must be testable in Phase 1 implementation without modification to spec.
+- **Architectural Distinction:** Bridge = governed communication substrate (NOT autonomous collective intelligence). Nodes cannot vote, consensus, or bypass authority. All consequential decisions route through independently-resolved Z2 authority or INTENT-OS machine capability. Flow is MESSAGE → DISPOSITION (Z2 ratifies) → CONTINUE (node proceeds with authority reference) not MESSAGE → AUTO-DECISION.
+- **Next Steps:** (1) Z2 ratification of control surface spec; (2) Phase 1 implementation (GitHub PR Manager + Bridge substrate); (3) Phase 2 evidence layer + Z2 ratification workflow; (4) Phase 3+ multi-node support + INTENT-OS machine capability integration.
+- **Status:** CANDIDATE · Z1 filed 2026-09-22; awaiting Z2 ratification decision by 2026-09-24 00:00 UTC.
+
+---
+
