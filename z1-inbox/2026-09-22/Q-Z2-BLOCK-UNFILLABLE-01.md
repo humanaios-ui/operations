@@ -18,11 +18,34 @@ block has no reader today.
 **Predicted, not yet observed:** the contradiction between a candidate's own block
 and its index row. **It has never happened.** Of the 9 candidates at a terminal
 status, **0** carry an in-file `z2_decision` block, so no ratified candidate in the
-tree currently contradicts itself. Fourteen open candidates carried one when this
-was measured — fifteen once this file is indexed, since it carries one too.
-Ratifying any of them creates the first instance. This candidate is filed *before*
-the instance exists, which is the one thing `Q-REFERENT-DECAY-01` says the
-repository never manages to do.
+tree currently contradicts itself. Ratifying any open candidate that carries one
+creates the first instance. This candidate is filed *before* the instance exists,
+which is the one thing `Q-REFERENT-DECAY-01` says the repository never manages to
+do.
+
+The count of affected candidates is deliberately **not** written here as a
+constant. It moves, and it moved during this candidate's own review:
+
+```
+$ python3 - <<'PY'   # re-derives both numbers from the index
+import sys, os; sys.path.insert(0, '.z1-control')
+from validate import INDEX, ROOT, load_index
+idx = load_index(INDEX)
+has = lambda c: 'z2_decision' in open(os.path.join(ROOT, c['path']), encoding='utf-8').read()
+aw   = [c for c in idx['candidates'] if c.get('status') == 'awaiting_z2']
+term = [c for c in idx['candidates'] if c.get('status') != 'awaiting_z2']
+print(sum(map(has, aw)), 'awaiting carry it;', sum(map(has, term)), 'of', len(term), 'terminal do')
+PY
+```
+
+At filing it returned **14**. One merge later — `#457`, which added
+`Q-MESH-LOCAL-COORDINATION-01`, written by a different session and carrying the
+block — it returned **16**. Nobody decided that. The template emitted it.
+
+Writing `14` into this file and leaving it there is the failure this candidate is
+about, so the command is given instead of the number. That is option D of
+`Q-REFERENT-DECAY-01` applied to this file by its own author, and it is the only
+part of any of this that Z1 can adopt without a ruling.
 
 ## Leg 1 — the promise
 
@@ -96,7 +119,9 @@ differences, both of which matter for what to do about it.
 1. **It is generated, not left behind.** The other five were single artifacts that
    went stale. This one is emitted by a template, so it reproduces on every new
    candidate — including this one, written by an author who had just finished
-   measuring the problem.
+   measuring the problem, and including one authored by a different session while
+   this candidate sat in review. That is not an argument that it reproduces; it is
+   two more instances arriving during the time it took to write the claim down.
 2. **It is designed in, not accidental.** Every other instance could have been
    caught by someone re-reading. This one cannot be repaired by care, because the
    repair is the thing the mechanism forbids.
