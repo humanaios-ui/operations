@@ -1,0 +1,113 @@
+name: MOLT Window Close Measurement Trigger
+
+# Runs at midnight UTC daily to check for molt window closures
+# Extracts measurement data and updates molt outcome (KEEP/REVERT based on falsifier)
+# Triggers MOLT_STATE.md update to fire molt-notification-hook notifications
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC to catch window_end times
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-molt-window-closes:
+    name: Check for Molt Window Closures
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: pip install --quiet pyyaml
+
+      - name: Check for molt window closures and extract measurements
+        id: window-check
+        run: |
+          python3 - <<'PYTHON'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          molt_ledger_path = Path("molt_ledger.jsonl")
+          if not molt_ledger_path.exists():
+              print("⚠️  molt_ledger.jsonl not found")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("closed_molts=0\n")
+              sys.exit(0)
+
+          # Read molt ledger entries
+          molts = []
+          with open(molt_ledger_path) as f:
+              for line in f:
+                  if line.strip():
+                      molts.append(json.loads(line))
+
+          # Get current UTC time
+          now = datetime.now(timezone.utc)
+          today_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+          # Find molts with window_end matching today at 00:00 UTC
+          closed_molts = []
+          for molt in molts:
+              window_end_str = molt.get("window_end")
+              if not window_end_str:
+                  continue
+
+              try:
+                  window_end = datetime.fromisoformat(window_end_str.replace('Z', '+00:00'))
+                  if window_end.date() == today_midnight.date():
+                      # This molt window closes today at 00:00 UTC
+                      if molt.get("outcome") == "MEASURING":
+                          closed_molts.append({
+                              "molt_id": molt.get("molt_id"),
+                              "zone": molt.get("zone"),
+                              "constant": molt.get("constant"),
+                              "prediction": molt.get("prediction"),
+                              "window_end": window_end_str,
+                          })
+              except:
+                  pass
+
+          print(f"🔍 Molt Window Close Check ({now.isoformat()})")
+          print(f"   Molts closing today: {len(closed_molts)}")
+
+          for molt in closed_molts:
+              print(f"   - {molt['molt_id']} (Z-{molt['zone']})")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"closed_molts={len(closed_molts)}\n")
+              f.write(f"molts_json={json.dumps(closed_molts)}\n")
+
+          PYTHON
+
+      - name: Log molt closure detection
+        if: steps.window-check.outputs.closed_molts != '0'
+        run: |
+          echo "## MOLT Window Closures Detected"
+          echo ""
+          echo "**Molts Closing Today:** ${{ steps.window-check.outputs.closed_molts }}"
+          echo ""
+          echo "**Action:** Measurement data extraction and falsifier evaluation required"
+          echo "See MOLT_STATE.md for outcome update (KEEP/REVERT)"
+          echo ""
+          echo "_Automated MOLT Window Close Detection_"
+
+      - name: Alert on no measurement data system
+        if: steps.window-check.outputs.closed_molts != '0'
+        run: |
+          echo "⚠️  Window close detected but measurement data extraction not yet automated"
+          echo "   Manual step required: Extract Sharpe ratio from blockchain settlement data"
+          echo "   Then update molt_ledger.jsonl outcome field to KEEP or REVERT"
+          echo "   Then update MOLT_STATE.md to trigger molt-notification-hook"
