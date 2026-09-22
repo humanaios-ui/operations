@@ -15,7 +15,7 @@ justifying it.
 
 Usage:
   python3 tools/agents/principle_compliance_bot_v1.py --check-commit "msg" --files file1.py,file2.py [--base REF]
-  python3 tools/agents/01_principle_compliance_bot_v1.py --smoke-test
+  python3 tools/agents/principle_compliance_bot_v1.py --smoke-test
 """
 
 import sys
@@ -83,8 +83,20 @@ def added_lines(filepath: str, base: str) -> List[str]:
         ["git", "diff", "-U0", f"{base}...HEAD", "--", filepath],
         capture_output=True, text=True, check=True,
     ).stdout
-    return [ln[1:] for ln in out.splitlines()
-            if ln.startswith("+") and not ln.startswith("+++")]
+
+    # Track hunk state rather than filtering on the "+++" prefix. An added line
+    # whose CONTENT starts with "++" appears in the diff as "+++ ...", which a
+    # prefix test cannot distinguish from the "+++ b/path" header — so
+    # `++ never do this` was silently invisible to the scan. Verified against
+    # real `git diff` output, not reasoned about. Inside a hunk every "+" line
+    # is an addition; the headers all precede the first "@@".
+    added, in_hunk = [], False
+    for ln in out.splitlines():
+        if ln.startswith("@@"):
+            in_hunk = True
+        elif in_hunk and ln.startswith("+"):
+            added.append(ln[1:])
+    return added
 
 # Add tools/agents to path so we can import _shared
 sys.path.insert(0, str(Path(__file__).parent))
@@ -258,6 +270,60 @@ def run_smoke_test() -> bool:
     check("this module exempts itself, because a detector contains its pattern",
           __file__.endswith(SELF_EXEMPT[0].split("/")[-1])
           and bot.check_code_file(SELF_EXEMPT[0]) is True)
+
+    # --- a SUCCESSFUL scan. Copilot, PR #448: every other check here covers
+    # splitting, matching, self-exemption or a bad ref, so a regression that
+    # returned [] for every valid diff would pass all of them and rebuild the
+    # inert gate this module exists to have fixed. Tested against a real git
+    # repository in a temp directory, because a mocked diff would be testing
+    # the mock. -----------------------------------------------------------
+    import tempfile, os, shutil
+    tmp = tempfile.mkdtemp(prefix="p19_smoke_")
+    cwd = os.getcwd()
+    try:
+        os.chdir(tmp)
+        env = ["-c", "user.email=smoke@test", "-c", "user.name=smoke"]
+        subprocess.run(["git", "init", "-q", "."], check=True)
+        open("f.py", "w").write("x = 1\n")
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(["git", *env, "commit", "-qm", "base"], check=True)
+        open("f.py", "w").write(
+            "x = 1\n"
+            "# this never happens\n"
+            "++ never inside a plus-prefixed line\n"
+            "y = 2\n")
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(["git", *env, "commit", "-qm", "change"], check=True)
+
+        got = added_lines("f.py", "HEAD~1")
+        check("a valid diff returns the lines it added", len(got) == 3)
+        check("a context line is not reported as added", "x = 1" not in got)
+        check("an added line is matched by the rule",
+              any(ABSOLUTE_LANGUAGE.search(l) for l in got))
+        check("an added line whose content starts with ++ is not lost",
+              any(l.startswith("++") and ABSOLUTE_LANGUAGE.search(l) for l in got))
+        check("an added line with no absolute word is not flagged",
+              ABSOLUTE_LANGUAGE.search("y = 2") is None)
+
+        probe = PrincipleComplianceBot.__new__(PrincipleComplianceBot)
+        probe.violations_found = []
+        check("check_code_file reports the added violations",
+              probe.check_code_file("f.py", "HEAD~1") is False
+              and len(probe.violations_found) == 2)
+
+        # removing an absolute word must not be reported as adding one
+        open("f.py", "w").write("x = 1\ny = 2\n")
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(["git", *env, "commit", "-qm", "remove"], check=True)
+        clean = PrincipleComplianceBot.__new__(PrincipleComplianceBot)
+        clean.violations_found = []
+        check("deleting an absolute word is not a violation",
+              clean.check_code_file("f.py", "HEAD~1") is True)
+    except Exception as exc:  # pragma: no cover - environment without git
+        check(f"the successful-diff fixture ran ({exc})", False)
+    finally:
+        os.chdir(cwd)
+        shutil.rmtree(tmp, ignore_errors=True)
 
     # --- an unreadable diff must raise, never return empty -----------------
     try:

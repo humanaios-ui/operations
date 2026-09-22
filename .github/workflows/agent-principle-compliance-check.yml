@@ -35,16 +35,37 @@ jobs:
       - name: Run Principle Compliance Bot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Q-P19-GATE-INERT-01. Same range handling, and the same reasoning, as
+          # .github/workflows/z2_ratification_gate.yml already uses: a push can
+          # contain many commits, and diffing only HEAD~1..HEAD lets a change in
+          # an earlier commit of the same push slip by whenever the final commit
+          # touches something else. Use the event's own range — the base for a
+          # pull request, the before-SHA for a push.
+          BASE_SHA: ${{ github.event_name == 'pull_request'
+                        && github.event.pull_request.base.sha
+                        || github.event.before }}
         run: |
           set -euo pipefail
 
-          # Q-P19-GATE-INERT-01. `git diff --name-only` emits one path per LINE.
-          # This was passed to a bot that split on commas, so every multi-file
-          # change arrived as a single unsplittable blob and no file was ever
-          # opened — the gate reported green having inspected nothing. The bot
+          # `git diff --name-only` emits one path per LINE. This was passed to a
+          # bot that split on COMMAS, so every multi-file change arrived as a
+          # single unsplittable blob that did not end in .py — no file was ever
+          # opened and the gate reported green having inspected nothing. The bot
           # now accepts either separator; the list is comma-joined here so the
           # contract between the two is explicit rather than incidental.
-          BASE="${{ github.event.pull_request.base.sha || 'HEAD~1' }}"
+          if [ -n "${BASE_SHA:-}" ] \
+             && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ] \
+             && git rev-parse --verify -q "$BASE_SHA^{commit}" >/dev/null; then
+            BASE="$BASE_SHA"
+          elif git rev-parse --verify -q HEAD~1 >/dev/null; then
+            # Branch creation, a force-push past the old tip, or a manual run.
+            BASE="HEAD~1"
+          else
+            # A root commit has no range to diff. Say so rather than scanning
+            # nothing and reporting success — that is the defect this repairs.
+            echo "::error::no usable base to diff against; refusing to report a pass"
+            exit 1
+          fi
 
           COMMIT_MSG=$(git log --format=%B -n 1)
           CHANGED_FILES=$(git diff --name-only "$BASE"...HEAD | paste -sd, -)
