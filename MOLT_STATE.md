@@ -508,7 +508,7 @@ Score = impact + Σ(impact of items this unblocks)
 ## Ratified Molt: Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001
 
 **Z2 Ratification:** 2026-09-21T00:00:00Z | by=carly.r.anderson@gmail.com | decision=ACCEPT  
-**Ratification Hash:** `sha256(Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001|Z-012|rebalance_threshold|0.50→0.55|Sharpe>=0.80|7-day|by=carly.r.anderson@gmail.com|at=2026-09-21T00:00:00Z)`
+**Ratification Hash:** `363d91aa296cffda3086160d0bf22db92a34de0f2ca4c2e19b5bcb81ca5bc937`
 
 ```json
 {
@@ -525,10 +525,10 @@ Score = impact + Σ(impact of items this unblocks)
   },
   "z2_ratified_at": "2026-09-21T00:00:00Z",
   "z2_ratifier": "carly.r.anderson@gmail.com",
-  "ratification_hash": "sha256(Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001|Z-012|rebalance_threshold|0.50→0.55|Sharpe>=0.80|7-day|by=carly.r.anderson@gmail.com|at=2026-09-21T00:00:00Z)",
+  "ratification_hash": "363d91aa296cffda3086160d0bf22db92a34de0f2ca4c2e19b5bcb81ca5bc937",
   "window_start": "2026-09-21T00:00:00Z",
   "window_end": "2026-09-28T00:00:00Z",
-  "outcome": "APPLIED"
+  "outcome": "MEASURING"
 }
 ```
 

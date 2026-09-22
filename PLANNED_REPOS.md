@@ -12,8 +12,8 @@
 This document tracks **19 planned, aspirational, or archived repositories** that are NOT currently active in the humanaios-ui GitHub organization. These repos were either planned at the time the original ZONE_REGISTRY header claimed "31 repos," archived/deleted, or remain unaccounted for pending broader ecosystem audit.
 
 **Current counts:**
-- **Active repos (ZONE_REGISTRY.md):** 12
-- **Planned repos (this file):** 13 (claimed in original registry)
+- **Active repos (ZONE_REGISTRY.md):** 13 (includes Z-012 blockchain-trading, ratified 2026-09-21)
+- **Planned repos (this file):** 12 (claimed in original registry, minus blockchain-trading)
 - **Unaccounted repos:** 6 (from Phase 0 audit, require broader org investigation)
 - **Total aspirational scope:** 31 repos (original header claim)
 
