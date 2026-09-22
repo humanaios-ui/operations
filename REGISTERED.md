@@ -5193,3 +5193,80 @@ related_incident: "IC-063"
 
 ---
 
+
+---
+
+### RATIFY_TOKEN-v0.3-OI-BRIDGE-01 — Z2 Ratification of OI-BRIDGE-01 v0.3
+
+```json
+{
+  "entry_type": "RATIFY_TOKEN",
+  "token_id": "ratify_token_v0.3_oi_bridge_01",
+  "token_type": "RATIFY",
+  "issued_by": "night-z2",
+  "issued_to": "claude-z1",
+  "issued_at": "2026-09-22T22:45:06Z",
+  "canonical_payload": "candidate_id=G-OI-BRIDGE-01-v0.3|decision=ACCEPT|ratifier=night-z2|ratified_at=2026-09-22T22:45:06Z|spec_sha=55146a9|prior_version=v0.2",
+  "signature_over": "ratify_token_v0.3_oi_bridge_01|G-OI-BRIDGE-01-v0.3|ACCEPT|night-z2|2026-09-22T22:45:06Z|55146a9",
+  "scope": "RATIFY_CANDIDATE_G-OI-BRIDGE-01-v0.3",
+  "consumed_by": null,
+  "consumed_at": null,
+  "expires_at": "2026-12-22T22:45:06Z"
+}
+```
+
+**Issued by:** night-z2 (Carly R. Anderson, Z2 Ratifier)  
+**Posted:** GitHub PR #455 comment (2026-09-22T22:45:06Z)  
+**Decision:** ACCEPT  
+**Scope:** OI-BRIDGE-01 Control Surface Specification v0.3 ratified  
+**Status:** Active · not yet consumed (awaiting Phase 1 implementation gate)
+
+---
+
+### G-OI-BRIDGE-01-v0.3 — HAIOS Agent Bridge Control Surface Specification (v0.3 Ratified)
+
+```yaml
+---
+id: "G-OI-BRIDGE-01-v0.3"
+name: "oi-bridge-01-control-surface-phase-0-v0.3"
+status: REGISTERED
+class: G
+date_registered: "2026-09-22"
+date_ratified: "2026-09-22T22:45:06Z"
+ratified_by: "night-z2"
+date_origin: "2026-09-22"
+session_registered: "S-092226-02-oi-bridge-v0.3-ratified"
+zone2_decision_window: 48h
+decision_required_by: "2026-09-24T22:00:00Z"
+principles_triggered: ["P1", "P13", "P21"]
+substrate: "Claude Haiku 4.5"
+tags: ["governance", "infrastructure", "communication", "authority-reference", "z-role-integration", "temporal-dissolution-guard", "tokenized-authority", "identity-provenance", "adversarial-test-harness"]
+supersedes: "G-OI-BRIDGE-01-v0.2"
+related_incident: "IC-063"
+ratification_token: "ratify_token_v0.3_oi_bridge_01"
+---
+```
+
+- **Specification Title:** OI-BRIDGE-01 Phase 0 Control Surface Specification (v0.3 Ratified)
+- **Location:** `OI-BRIDGE-01_CONTROL_SURFACE_v0.3.md`
+- **Spec SHA:** 55146a9 (commit: OI-BRIDGE-01 v0.3: Address 7 residual corrections from ChatGPT adversarial review)
+- **Revision Summary:** v0.2 → v0.3 addressing 4 EDIT REQUIRED items + 7 residual corrections from independent adversarial reviewers (Grok, ChatGPT)
+  - Issue 1: T7 test clarified as preregistered (Phase 1 implementation required, not executable in Phase 0)
+  - Issue 2: IC-063 corrected to use observed facts (transport_account=humanaios-ui, content_author=ChatGPT, human_author=false) instead of unsupported email assumptions
+  - Issue 3: Disposition logic clarified with three-path split (Path A: conversation; Path B: claim promotion; Path C: consequential action; Path D: ambiguous/HUMAN_REQUIRED)
+  - Issue 4: PR Manager stance reframed as STUB/PARTIAL (code fixes documented as Phase 1 work, not v0.2 claims)
+  - Residual #1: T7 test fixture corrected (transport_principal ≠ email; content_author verified)
+  - Residual #2: Evidence-validation issuer clarified (validating node issues EVIDENCE_VALID_TOKEN; bridge verifies without authority upgrade)
+  - Residual #3: Z2 private key custody corrected (never enters bridge; bridge holds Z2 public key only)
+  - Residual #4: Registry class G added to supported classes (resolved REGISTRY_SPEC.md compatibility)
+  - Residual #5: T7 inverse test consistent with observed facts
+  - Residual #6: Spec consistency audit passed (all internal references verified)
+  - Residual #7: Test registration status clarified for all T1-T7 (preregistered, not executable Phase 0)
+- **Core Invariants (I1-I10):** All preserved from v0.2; no changes to primary falsifier doctrine
+- **Tokenized Authority Model:** Confirmed operational (RATIFY_TOKEN, MEASURE_TOKEN, EVIDENCE_VALID_TOKEN, CLEARANCE_TOKEN)
+- **Z2 Ratification Decision:** ACCEPT · issued by Carly R. Anderson (night-z2) · 2026-09-22T22:45:06Z · via GitHub PR #455 comment
+- **Authority Basis:** RATIFY_TOKEN-v0.3-OI-BRIDGE-01 (active, unexpired, scope: RATIFY_CANDIDATE_G-OI-BRIDGE-01-v0.3)
+- **Phase 1 Unblocked:** Z2 ratification gates Phase 1 implementation. Z3 executors may now begin work per Phase 1 Implementation Plan.
+- **Next Steps:** (1) Z3 begins Phase 1 GitHub API wiring + Bridge substrate implementation; (2) T1-T7 adversarial test harness executed; (3) All 7 falsifier tests must pass before Phase 1 code merge; (4) Phase 2 evidence layer + INTENT-OS machine capability integration.
+- **Status:** REGISTERED · Z2 ratified 2026-09-22T22:45:06Z · supersedes G-OI-BRIDGE-01-v0.2
+
