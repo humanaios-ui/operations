@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 82
+  candidates: 83
   records: 38
 ratifiers:
 - Night
@@ -886,6 +886,16 @@ candidates:
     \ template's claim first, then renaming the field to the request it actually\
     \ is. Not edited: the template is controlled and the 14 affected candidates\
     \ are about to be signed."
+- q_id: Q-MESH-LOCAL-COORDINATION-01
+  title: "Local mesh coordination layer in operations/mesh/ for humanaios, website,\
+    \ grok-crossref"
+  path: z1-inbox/2026-09-22/Q-MESH-LOCAL-COORDINATION-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Adds mesh/ as a local, unratified coordination surface. Requests D3 (is mesh/\
+    \ inside operations an admissible locus?) and D4 (promote schema to schemas/ and\
+    \ conformance scripts to tools/?). Does not resolve D1; widens it from two candidate\
+    \ resolution targets to three. Writes no REGISTERED.md or NF_LEDGER.jsonl row."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
