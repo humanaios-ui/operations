@@ -25,6 +25,9 @@ from dataclasses import dataclass, asdict
 
 TOOL_NAME = "workflow_dependency_analyzer"
 TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "diagnostic_tool"
+TOOL_ZONE = "humanaios-ui/operations"
+TOOL_SESSION = "https://claude.ai/code/session_01CePrSjPSB8Epbpq3Lj8oKj"
 
 @dataclass
 class WorkflowInfo:
@@ -41,7 +44,7 @@ class WorkflowAnalyzer:
     CRITICAL_GATES = {
         'findings-registry', 'quality-baseline',
         'security-gates', 'z2_ratification_gate', 'temporal-dissolution-gate',
-        'builder-lint', 'workflow-lint'
+        'builder-lint', 'workflow-lint', 'tool-manifest'
     }
 
     AUDIT_KEYWORDS = {'schedule', 'audit', 'monitor', 'drift', 'standing', 'harmonizer'}
