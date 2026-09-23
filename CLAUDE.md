@@ -310,3 +310,5 @@ When these occur, emit callout immediately:
 
 See **Framework Reference** section below for foundational material on FRAMEWORK_MAPPING.md and BOOT_PROCESS_MAP.md.
 
+**PR Workflow & Quality Gates:** See [`.claude/PR_WORKFLOW_GUIDE.md`](./.claude/PR_WORKFLOW_GUIDE.md) for Z1's (Claude's) PR handling process. Covers task tracking, upfront scope documentation, local CI validation, and formal handoff to Z2. Uses automated verification script (`scripts/verify_pr_readiness.sh`) for manifest, document, and code quality checks before push. Essential reference for PRs with multiple findings or review feedback.
+
