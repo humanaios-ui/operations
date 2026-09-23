@@ -34,17 +34,28 @@ class HarmonyStressVectors(unittest.TestCase):
         self.assertEqual(0.0, result["score"])
 
     def test_self_asserted_gates_are_no_gate(self):
-        state = from_dict({
-            "contributions": [],
-            "mutual_understanding": 1.0,
-            "complementarity": 1.0,
-            "evidence_quality": 1.0,
-            "coordination": 1.0,
-            "collective_problem_solving": 1.0
-        })
+        state = from_dict({"contributions": []})
         result = evaluate(state)
         self.assertEqual("INVALID_HARMONY", result["verdict"])
         self.assertTrue(any(x.startswith("NO_GATE:") for x in result["gate_failures"]))
+
+    def test_unresolved_evidence_refs_are_invalid(self):
+        state = from_dict({
+            "contributions": [],
+            "gate_evidence": {gate: [f"fake:{gate}"] for gate in (
+                "human_autonomy_preserved",
+                "dissent_preserved",
+                "uncertainty_visible",
+                "provenance_complete",
+                "authority_not_laundered",
+                "refusal_respected",
+                "identity_minimized",
+            )},
+            "verified_gate_refs": []
+        })
+        result = evaluate(state)
+        self.assertEqual("INVALID_HARMONY", result["verdict"])
+        self.assertTrue(any(x.startswith("UNVERIFIED_GATE:") for x in result["gate_failures"]))
 
     def test_distinct_participants_do_not_prove_independence(self):
         state = from_dict({
