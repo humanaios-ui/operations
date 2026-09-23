@@ -1,8 +1,8 @@
 version: 1
-generated: '2026-09-20'
+generated: '2026-09-23'
 decision_window_days: 2
 counts:
-  candidates: 83
+  candidates: 84
   records: 38
 ratifiers:
 - Night
@@ -902,6 +902,20 @@ candidates:
     \ inside operations an admissible locus?) and D4 (promote schema to schemas/ and\
     \ conformance scripts to tools/?). Does not resolve D1; widens it from two candidate\
     \ resolution targets to three. Writes no REGISTERED.md or NF_LEDGER.jsonl row."
+- q_id: Q-BUZZ-COLLAB-EVAL-01
+  title: "Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance\
+    \ on self-hosted Nostr relay)"
+  path: z1-inbox/2026-09-23/Q-BUZZ-COLLAB-EVAL-01.md
+  submitted: '2026-09-23'
+  status: awaiting_z2
+  falsifier: "Buzz cannot run HumanAIOS governance in-product if (1) it lacks support\
+    \ for cryptographic confirmation of Z2 decisions (check: Nostr event signatures\
+    \ native), or (2) it cannot integrate with GitHub's `git push` authorization gate\
+    \ (check: REST webhooks + Buzz CLI JSON interface achievable)"
+  note: "Phase 0 evaluation complete. Companion document BUZZ_INTEGRATION_SPEC.md provides\
+    \ detailed technical mapping (Section 1-5) and feasibility assessment (Section\
+    \ 6-8). Falsifier conditions checked; both preliminary findings suggest achievement.\
+    \ Phase 1 pilot roadmap outlined (3 weeks). Awaits Z2 RATIFY to proceed."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)

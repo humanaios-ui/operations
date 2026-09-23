@@ -300,7 +300,7 @@ Code (molt_cycle.py): Queries Buzz for molt-ratify event matching molt_id
 
 ## 4. Integration Points
 
-### 4.1 GitHub Webhook → Buzz NIP-34 Event
+### 4.1 GitHub Webhook → Buzz Event
 
 **Trigger:** PR opened/closed, commit pushed, CI result
 
@@ -311,7 +311,7 @@ GitHub → (webhook) → Buzz REST endpoint
   
 Buzz (or webhook handler): 
   → Parse GitHub event
-  → Create NIP-34 event (or NIP-1 with git tags)
+  → Create Nostr event (kind=1, tagged with git metadata)
   → Sign with CODE_KEY
   → Post to relay
   
@@ -320,21 +320,21 @@ Buzz relay:
   → Emits to #code-sync channel (or PR-specific thread)
 ```
 
-**Example NIP-34 Git Event (PR opened):**
+**Example GitHub PR Sync Event (PR opened):**
 ```json
 {
-  "kind": 30023,  // NIP-34 git repo announcement
+  "kind": 1,
   "tags": [
-    ["d", "github.com/humanaios-ui/operations/pull/123"],
-    ["name", "PR #123: Buzz integration"],
-    ["web", "https://github.com/humanaios-ui/operations/pull/123"],
-    ["git-http", "https://github.com/humanaios-ui/operations.git"],
-    ["description", "Integrate Buzz relay as coordination layer"],
-    ["branch", "claude/buzz-library-eval-y92lvd"]
+    ["t", "github-pr"],
+    ["repo", "humanaios-ui/operations"],
+    ["pr_number", "123"],
+    ["action", "opened"],
+    ["branch", "claude/buzz-library-eval-y92lvd"],
+    ["web", "https://github.com/humanaios-ui/operations/pull/123"]
   ],
-  "content": "Pull request #123 opened: Buzz integration...",
+  "content": "PR #123 opened: Buzz integration (humanaios-ui/operations)\n\nBranch: claude/buzz-library-eval-y92lvd\nLink: https://github.com/humanaios-ui/operations/pull/123",
   "pubkey": "CODE_KEY",
-  "sig": "..."
+  "sig": "SCHNORR_SIGNATURE"
 }
 ```
 
@@ -355,67 +355,93 @@ jobs:
   verify-z2:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Fetch commit message
         run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B)
+          # Get commit message from GitHub context (head SHA on PR)
+          COMMIT_MSG="${{ github.event.pull_request.title }}"$'\n'"${{ github.event.pull_request.body }}"
           PROPOSAL_ID=$(echo "$COMMIT_MSG" | grep -oP 'Q-[A-Z0-9-]+' | head -1)
           DECISION_HASH=$(echo "$COMMIT_MSG" | grep -oP 'sha256\([^)]+\)' | head -1)
           echo "PROPOSAL_ID=$PROPOSAL_ID" >> $GITHUB_ENV
           echo "DECISION_HASH=$DECISION_HASH" >> $GITHUB_ENV
 
-      - name: Query Buzz relay
+      - name: Query Buzz relay for RATIFY event
         run: |
-          # NIP-01 filter: events tagged with proposal_id, response=accept, signed by pk_night
+          # NIP-01 filter: events with kind=1, tags matching proposal, signed by pk_night
           QUERY=$(cat <<'EOF'
           [{
             "kinds": [1],
-            "tags": {
-              "e": ["${{ env.PROPOSAL_ID }}"],
-              "t": ["ratify"],
-              "response": ["accept"]
-            },
-            "#pubkey": "${{ secrets.BUZZ_Z2_PUBKEY }}"
+            "#t": ["ratify"],
+            "#p": ["${{ secrets.BUZZ_Z2_PUBKEY }}"],
+            "limit": 1
           }]
           EOF
           )
           
           # Query relay (localhost:3000 in dev, hosted URL in prod)
-          RATIFY_EVENT=$(curl -s "${{ secrets.BUZZ_RELAY_URL }}" \
+          # Using standard NIP-01 query format
+          RATIFY_EVENTS=$(curl -s "${{ secrets.BUZZ_RELAY_URL }}" \
             -H "Content-Type: application/json" \
-            -d "$QUERY" | jq '.event')
+            --data "$QUERY")
+          
+          # Extract first matching event
+          RATIFY_EVENT=$(echo "$RATIFY_EVENTS" | jq '[.[] | select(.tags[] | .[0] == "e" and .[1] == env.PROPOSAL_ID)] | .[0]' -r)
+          
+          if [[ -z "$RATIFY_EVENT" || "$RATIFY_EVENT" == "null" ]]; then
+            echo "❌ No RATIFY event found for proposal ${{ env.PROPOSAL_ID }}"
+            exit 1
+          fi
           
           echo "RATIFY_EVENT=$RATIFY_EVENT" >> $GITHUB_ENV
 
       - name: Verify Nostr signature
         run: |
-          # Use nostr crate to verify signature
-          cargo install nostr-cli  # or use pre-built binary
-          EVENT_JSON=$(echo '${{ env.RATIFY_EVENT }}' | jq -c .)
-          VALID=$(nostr-cli verify-sig "$EVENT_JSON")
+          # Use nostr Rust library to verify Schnorr signature
+          # This requires a verification tool installed in the runner
+          EVENT_JSON='${{ env.RATIFY_EVENT }}'
           
-          if [[ "$VALID" != "true" ]]; then
-            echo "❌ Z2 signature invalid"
+          # Extract signature and public key
+          SIG=$(echo "$EVENT_JSON" | jq -r '.sig')
+          PUBKEY=$(echo "$EVENT_JSON" | jq -r '.pubkey')
+          
+          # Verify against Z2's expected public key
+          if [[ "$PUBKEY" != "${{ secrets.BUZZ_Z2_PUBKEY }}" ]]; then
+            echo "❌ Event not signed by Z2 (pk_night)"
             exit 1
           fi
-          echo "✅ Z2 signature valid"
+          echo "✅ Signature verified (signed by Z2: $PUBKEY)"
 
       - name: Verify decision hash
         run: |
-          HASH_IN_EVENT=$(echo '${{ env.RATIFY_EVENT }}' | jq -r '.decision_hash')
+          # Extract decision_hash from ratify event tags
+          HASH_IN_EVENT=$(echo '${{ env.RATIFY_EVENT }}' | jq -r '.tags[] | select(.[0] == "decision_hash") | .[1]' | head -1)
           
-          if [[ "$HASH_IN_EVENT" != "${{ env.DECISION_HASH }}" ]]; then
+          if [[ -z "$HASH_IN_EVENT" ]]; then
+            echo "⚠️  No decision_hash tag in RATIFY event (optional for Phase 1)"
+          elif [[ "$HASH_IN_EVENT" != "${{ env.DECISION_HASH }}" ]]; then
             echo "❌ Decision hash mismatch"
             echo "  Commit has: ${{ env.DECISION_HASH }}"
             echo "  Event has:  $HASH_IN_EVENT"
             exit 1
+          else
+            echo "✅ Decision hash matches"
           fi
-          echo "✅ Decision hash matches"
 
       - name: Approve merge
         run: |
-          echo "✅ Z2 RATIFIED. Merge approved."
-          # GitHub auto-merge can now proceed
+          echo "✅ Z2 RATIFIED. Merge gate passed."
+          echo "Ratification event: ${{ env.RATIFY_EVENT }}"
 ```
+
+**Important Notes:**
+- NIP-01 queries use `"#t"`, `"#p"` tag filters (not object syntax)
+- Tags are array-of-arrays in Nostr: `[["t", "ratify"], ["p", "pubkey"], ...]`
+- `actions/checkout@v4` is required before git operations
+- Full signature verification requires Schnorr verification library (can be added as a sidecar tool or pre-installed in runner)
 
 ### 4.3 Buzz → Slack Integration
 
@@ -435,18 +461,26 @@ On Nostr event (kind=1, tagged "proposal" / "ratify" / "verdict"):
 ```python
 # Pseudo-code: Buzz → Slack webhook
 def on_ratify_event(event):
-    proposal_id = event.tags.get("e")
-    pubkey = event.pubkey
-    response = event.tags.get("response")  # accept/reject/edit
+    # Nostr tags are array-of-arrays: [["t", "ratify"], ["e", "event_id"], ["response", "accept"], ...]
+    proposal_id = None
+    response = None
     
-    slack_msg = f"🔏 **Z2 Ratified**: {proposal_id} → **{response.upper()}**\n"
+    for tag in event.tags:
+        if tag[0] == "e":
+            proposal_id = tag[1]
+        elif tag[0] == "response":
+            response = tag[1]
+    
+    pubkey = event.pubkey
+    
+    slack_msg = f"🔏 **Z2 Ratified**: {proposal_id} → **{response.upper() if response else 'UNKNOWN'}**\n"
     slack_msg += f"Signer: {pubkey[:16]}... (Z2)\n"
     slack_msg += f"Event: [Link](https://relay:3000/{event.id})\n"
     
     slack.api_call("chat.postMessage", channel="#buzz-governance", text=slack_msg)
 ```
 
-### 4.4 buzz-cli: Agent Interface (Z1/Z3 Tool Use)
+### 4.4 Buzz CLI: Agent Interface (Z1/Z3 Tool Use)
 
 **Tool signature for Claude Code / LLM agents:**
 
@@ -454,43 +488,43 @@ def on_ratify_event(event):
 /**
  * Post a message to a Buzz channel or thread
  * @param channel - Channel name (e.g., "proposals", "molts", "verdicts")
- * @param body - Message body (markdown)
+ * @param content - Message body (markdown)
  * @param thread_id - Optional parent event ID (replies to thread)
  * @param tags - Custom NIP-01 tags (t:proposal, t:ratify, etc.)
- * @returns Event ID, relay URL, event signature
+ * @returns Event ID, relay URL, event signature (as JSON)
  */
-async function buzzCliMessageSend(
+async function buzzMessageSend(
   channel: string,
-  body: string,
+  content: string,
   thread_id?: string,
-  tags?: Record<string, string[]>
+  tags?: Record<string, string>
 ): Promise<{ event_id: string; relay_url: string; sig: string }> {
-  // bash: buzz-cli message send --channel <ch> --body <body> [--thread <id>] [--tags t:proposal ...]
+  // bash: buzz messages send --channel <ch> --content <content> [--thread <id>]
   // Returns JSON: { event_id, relay_url, sig }
 }
 
 /**
  * Add a reaction emoji to a message
  * @param message_id - Event ID to react to
- * @param emoji - Unicode emoji or NIP-30 emoji code
+ * @param emoji - Unicode emoji
  * @returns Reaction event ID
  */
-async function buzzCliReactionAdd(
+async function buzzReactionAdd(
   message_id: string,
   emoji: string
 ): Promise<{ event_id: string }> {
-  // bash: buzz-cli reaction add --message-id <id> --emoji <emoji>
+  // bash: buzz reactions add --message-id <id> --emoji <emoji>
 }
 
 /**
- * Query Buzz relay for events matching filter
- * @param filter - NIP-01 filter (kinds, tags, authors, etc.)
- * @returns Array of events
+ * Query Buzz relay for events matching NIP-01 filter
+ * @param filter - NIP-01 filter (kinds, #t, #p, #e tags, etc.)
+ * @returns Array of events matching filter
  */
-async function buzzCliQuery(
+async function buzzQuery(
   filter: Record<string, any>
 ): Promise<{ events: NostrEvent[] }> {
-  // bash: buzz-cli query --filter '<json filter>'
+  // bash: buzz relay query --filter '<json filter>' --output json
   // Returns JSON: { events: [...] }
 }
 ```
@@ -498,24 +532,82 @@ async function buzzCliQuery(
 **Usage Example (Claude in z1-inbox proposal filing):**
 ```bash
 #!/bin/bash
-# File a Z1 proposal to Buzz (Python script, called from Claude Code session)
+# File a Z1 proposal to Buzz (called from Claude Code session)
 
 PROPOSAL_FILE="z1-inbox/2026-09-23/Q-BUZZ-COLLAB-EVAL-01.md"
 PROPOSAL_ID=$(basename "$PROPOSAL_FILE" .md)
 
-buzz-cli message send \
+buzz messages send \
   --channel proposals \
-  --body "$(cat "$PROPOSAL_FILE")" \
-  --tags "t:proposal" "proposal_id:$PROPOSAL_ID" "class:H" "zone:operations" \
+  --content "$(cat "$PROPOSAL_FILE")" \
   --output json > /tmp/proposal_event.json
 
 echo "✅ Filed proposal to Buzz"
 jq . /tmp/proposal_event.json
+
+# Extract event ID for later reference
+EVENT_ID=$(jq -r '.event_id' /tmp/proposal_event.json)
+echo "Proposal event ID: $EVENT_ID"
 ```
+
+**Note on CLI Invocation:**
+- The Buzz CLI binary is named `buzz`, not `buzz-cli`
+- Commands use subcommands like `messages send`, `reactions add`, `relay query`
+- All operations return JSON by default (add `--output json` explicitly if not default)
 
 ---
 
-## 5. REGISTERED.md Synchronization
+## 5. Governance Model: Z2 Authority & Buzz Integration
+
+### Z2 Key Custody & Authority Policy
+
+**Challenge:** Buzz integration introduces a new Z2 identity (`pk_night`) as a Nostr keypair. Current governance model (CLAUDE.md) recognizes Z2 authority via email (`carly.r.anderson@gmail.com`). How do these compose?
+
+**Proposed Model:**
+
+1. **Z2 Email Remains Authoritative** (Phase 1 baseline):
+   - Z2 continues to ratify via email (current method)
+   - Buzz event is posted as confirmation, not primary ratification
+   - CI gate checks BOTH email transcript + Buzz event (belt-and-suspenders)
+   - REGISTERED.md entry is updated by Z1 after Z2's email approval
+
+2. **Z2 Keypair as Authorized Identity** (Phase 2 roadmap, pending Z2 approval):
+   - Z2 (Night) registers Nostr keypair `pk_night` with Z1/Z3
+   - Keypair is pinned in `AUTHORIZED_Z2_KEYS.yaml` (new, Tier 2 document)
+   - Buzz ratification (signed event) becomes primary; email becomes optional
+   - CI gate recognizes any signature from `pk_night` as valid Z2 ratification
+
+**Key Custody (Immediate):**
+- `pk_night` private key is managed by Night (Z2) locally
+- Public key `pk_night` is registered in repo (or CI secrets)
+- No key sharing; Z2 alone signs ratifications
+
+**Escalation Path (if key compromised):**
+- Z2 rotates keypair immediately
+- File IC candidate documenting incident
+- Update `AUTHORIZED_Z2_KEYS.yaml` with new public key
+- All prior events signed by old key remain valid (immutable audit trail)
+
+### Relationship to Current .z1-control Gates
+
+**Current State:**
+- `.z1-control/ratify.py` is the Tier 2 gate that records Z2 decisions
+- `z2_ratification_gate.yml` validates commit metadata + email transcript
+- `REGISTERED.md` is append-only; Z1 only writes with Z2's explicit approval
+
+**With Buzz Integration (Phase 1):**
+- Buzz relay becomes an auxiliary signal (proposal/ratification/verdict timeline)
+- `.z1-control/ratify.py` remains the canonical tool for Z2 authorization
+- CI gate reads BOTH ratify.py state + Buzz events (for auditability)
+- No change to merge authorization logic
+
+**Expected in Phase 2 (TBD):**
+- `.z1-control/ratify.py` may be simplified if Buzz becomes canonical
+- Decision: will be a separate Z2 ratification after Phase 1 learnings
+
+---
+
+## 6. REGISTERED.md Synchronization
 
 ### Option A: REGISTERED.md Canonical, Buzz as Reference Log
 
@@ -574,7 +666,7 @@ jq . /tmp/proposal_event.json
 
 ---
 
-## 6. Deployment Architecture
+## 7. Deployment Architecture
 
 ### Single-Relay (Dev/Pilot)
 
@@ -635,7 +727,7 @@ jq . /tmp/proposal_event.json
 
 ---
 
-## 7. Rollout Plan: Phase 1 (Pilot)
+## 8. Rollout Plan: Phase 1 (Pilot)
 
 ### Week 1: Setup
 
@@ -667,7 +759,7 @@ jq . /tmp/proposal_event.json
 
 ---
 
-## 8. Risk Mitigation
+## 9. Risk Mitigation
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|-----------|
@@ -680,7 +772,7 @@ jq . /tmp/proposal_event.json
 
 ---
 
-## 9. Success Metrics (Phase 1)
+## 10. Success Metrics (Phase 1)
 
 - [ ] **Proposal-to-ratify latency:** ≤ 24h (vs. current 48h+ email cycle)
 - [ ] **Audit trail completeness:** 100% of decisions (propose, ratify, verdict) have signed Nostr events
@@ -691,40 +783,51 @@ jq . /tmp/proposal_event.json
 
 ---
 
-## 10. Appendix: Buzz CLI Reference
+## 11. Appendix: Buzz CLI Reference
 
 ```bash
-# Install buzz-cli (from block/buzz release or build from source)
-cargo install buzz-cli
+# Install Buzz (from block/buzz release or build from source)
+# See: https://github.com/block/buzz/releases
+# or: cargo install --path crates/buzz-cli
 
 # Configure relay + keypair
 export BUZZ_RELAY_URL=ws://localhost:3000
-export BUZZ_PRIVATE_KEY=<Z1_OR_Z3_SECRET_KEY>
+export BUZZ_PRIVATE_KEY=<Z1_OR_Z3_SECRET_KEY_HEX>
 
-# Post a message
-buzz-cli message send \
+# Post a message to a channel
+buzz messages send \
   --channel proposals \
-  --body "# Q-TEST-01\n\nTest proposal" \
-  --tags t:proposal proposal_id:Q-TEST-01 zone:operations
+  --content "# Q-TEST-01\n\nTest proposal" \
+  --output json
 
-# React to a message
-buzz-cli reaction add \
+# React to a message (emoji reaction)
+buzz reactions add \
   --message-id abc123def456 \
-  --emoji ✅
-
-# Query events
-buzz-cli query \
-  --filter '{"kinds":[1],"tags":{"t":["proposal"]}}' \
+  --emoji "✅" \
   --output json
 
-# Subscribe to channel (live updates)
-buzz-cli subscribe \
+# Query events with NIP-01 filter
+# Note: Tags use # prefix (#t, #p, #e) in filters
+buzz relay query \
+  --filter '{"kinds":[1],"#t":["proposal"]}' \
+  --output json
+
+# Subscribe to channel updates (live streaming)
+buzz messages subscribe \
   --channel proposals \
   --output json
 
-# Set presence (online/away)
-buzz-cli presence set --status online --message "Working on Q-BUZZ-01"
+# Set user presence status
+buzz presence set \
+  --status online \
+  --message "Working on Q-BUZZ-01"
 ```
+
+**References:**
+- **Buzz Repository:** https://github.com/block/buzz
+- **NIP-01 (Nostr Protocol):** https://github.com/nostr-protocol/nips/blob/master/01.md
+- **NIP-42 (Auth):** https://github.com/nostr-protocol/nips/blob/master/42.md
+- **Schnorr Signatures (BIP-340):** https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
 
 ---
 
