@@ -8,6 +8,9 @@ Design rule: gate first, score second.
 A run cannot earn a high "harmony" score by suppressing dissent, laundering
 authority, overriding refusal, erasing provenance, or increasing identity
 resolution without necessity.
+
+v0.1.1 stress correction:
+Passing gates require evidence references. Self-asserted booleans are NO_GATE.
 """
 
 from dataclasses import dataclass, field
@@ -43,6 +46,8 @@ class Contribution:
 @dataclass
 class RunState:
     contributions: List[Contribution]
+
+    # Gate claims are observations to be checked, not self-authenticating truth.
     human_autonomy_preserved: bool = True
     dissent_preserved: bool = True
     uncertainty_visible: bool = True
@@ -50,6 +55,10 @@ class RunState:
     authority_not_laundered: bool = True
     refusal_respected: bool = True
     identity_minimized: bool = True
+
+    # Each passing gate must cite at least one external/event/trace reference.
+    # Example: {"dissent_preserved": ["event:dissent:12", "packet:final:7"]}
+    gate_evidence: Dict[str, List[str]] = field(default_factory=dict)
 
     mutual_understanding: float = 0.0
     complementarity: float = 0.0
@@ -71,7 +80,13 @@ def gate_failures(state: RunState) -> List[str]:
     failures = []
     for gate in HARD_GATES:
         if not bool(getattr(state, gate)):
-            failures.append(gate)
+            failures.append(f"FAIL:{gate}")
+            continue
+
+        refs = state.gate_evidence.get(gate, [])
+        if not refs:
+            failures.append(f"NO_GATE:{gate}")
+
     return failures
 
 
@@ -87,6 +102,7 @@ def disagreement_retention(state: RunState) -> Dict[str, Any]:
         "reported_disagreements": total,
         "distinct_disagreements": len(distinct),
         "retained": state.dissent_preserved,
+        "evidence_refs": state.gate_evidence.get("dissent_preserved", []),
     }
 
 
@@ -103,11 +119,7 @@ def independence_signal(state: RunState) -> Dict[str, Any]:
 
 
 def identity_efficiency(state: RunState) -> float:
-    """Semantic gain per unit of identity gain; higher is better.
-
-    Identity gain of zero is treated as maximally privacy-efficient when semantic
-    gain is positive.
-    """
+    """Semantic gain per unit of identity gain; higher is better."""
     semantic = max(0.0, state.semantic_information_gain)
     identity = max(0.0, state.identity_information_gain)
     if semantic == 0:
@@ -145,6 +157,7 @@ def evaluate(state: RunState) -> Dict[str, Any]:
         "score": round(score, 4),
         "dimensions": dimensions,
         "gate_failures": [],
+        "gate_evidence": state.gate_evidence,
         "disagreement": disagreement_retention(state),
         "independence": independence_signal(state),
         "identity_efficiency": identity_efficiency(state),
