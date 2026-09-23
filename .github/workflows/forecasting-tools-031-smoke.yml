@@ -1,0 +1,98 @@
+name: forecasting-tools-0.3.1-compat-smoke
+
+on:
+  push:
+    branches:
+      - chatgpt/verify-forecasting-tools-0.3.1
+
+permissions:
+  contents: read
+
+jobs:
+  install-import:
+    name: install + import smoke (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Metaculus requirements
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r tools/Metaculus/requirements.txt
+
+      - name: Verify resolved forecasting-tools version
+        run: |
+          python - <<'PY'
+          import importlib.metadata as md
+          v = md.version("forecasting-tools")
+          print("forecasting-tools", v)
+          major_minor = tuple(int(x) for x in v.split(".")[:2])
+          assert major_minor == (0, 3), f"expected 0.3.x, got {v}"
+          PY
+
+      - name: Import exact API surface used by main.py
+        run: |
+          python - <<'PY'
+          from forecasting_tools import (
+              AskNewsSearcher,
+              BinaryPrediction,
+              BinaryQuestion,
+              ConditionalPrediction,
+              ConditionalQuestion,
+              DatePercentile,
+              DateQuestion,
+              ForecastBot,
+              GeneralLlm,
+              MetaculusClient,
+              MetaculusQuestion,
+              MultipleChoiceQuestion,
+              NumericDistribution,
+              NumericQuestion,
+              Percentile,
+              PredictedOptionList,
+              PredictionAffirmed,
+              PredictionTypes,
+              ReasonedPrediction,
+              SmartSearcher,
+              clean_indents,
+              structure_output,
+          )
+          assert hasattr(MetaculusClient, "post_question_comment")
+          required_ids = {
+              "CURRENT_AI_COMPETITION_ID": getattr(MetaculusClient, "CURRENT_AI_COMPETITION_ID", None),
+              "CURRENT_MINIBENCH_ID": getattr(MetaculusClient, "CURRENT_MINIBENCH_ID", None),
+              "CURRENT_METACULUS_CUP_ID": getattr(MetaculusClient, "CURRENT_METACULUS_CUP_ID", None),
+          }
+          print("forecasting_tools API imports: PASS")
+          print("MetaculusClient.post_question_comment: present")
+          for key, value in required_ids.items():
+              print(f"{key}={value!r}")
+          assert required_ids["CURRENT_AI_COMPETITION_ID"] is not None
+          assert required_ids["CURRENT_MINIBENCH_ID"] is not None
+          PY
+
+      - name: Import HumanAIOS Metaculus bot module
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          path = Path("tools/Metaculus/main.py")
+          spec = importlib.util.spec_from_file_location("humanaios_metaculus_smoke", path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec and spec.loader
+          spec.loader.exec_module(module)
+
+          assert module.TOOL_NAME == "main"
+          assert hasattr(module, "_resolve_post_id")
+          assert hasattr(module, "_build_p3_comment")
+          print("tools/Metaculus/main.py import: PASS")
+          PY
