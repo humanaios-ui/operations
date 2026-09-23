@@ -123,7 +123,7 @@ If Night takes >5s to find the next candidate to ratify:
 
 ## Resource Cost (Z3 Builder Side)
 
-**Est. 53 Z3-hours + 110 CI-minutes over 4 weeks** (see COCKPIT_V1_IMPLEMENTATION_ROADMAP.md for detail)
+**Est. 73 Z3-hours + 600 CI-minutes over 4 weeks** (see COCKPIT_V1_IMPLEMENTATION_ROADMAP.md for detail)
 
 Assumes 1 FTE builder; adjust if split across team.
 
@@ -152,7 +152,7 @@ Assumes 1 FTE builder; adjust if split across team.
 
 ## Approval Needed
 
-**On or before 2026-09-29**, please confirm:
+**Upon Z1 ratification of candidates in REGISTERED.md**, please confirm:
 
 1. ✅ **Time available?** Can you commit ~11 hours over 4 weeks to testing/decision-making?
 2. ✅ **Scope approved?** The 5 RQs capture the right governance use cases?

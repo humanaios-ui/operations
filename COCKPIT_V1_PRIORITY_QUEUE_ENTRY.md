@@ -18,12 +18,11 @@ impact: 7/10
 blocking: 0
 dependencies: []
 resource_cost:
-  RAT-min: 0
+  RAT-min: 660
   Z1-ktok: 4
   Z3-hr: 73
   CI-min: 600
   RUN-day: 1
-  Z2_ratification_overhead: 11 hours (tracked separately; does not consume RBE-OPS numeraire)
 benefit_score: 7/10 (high impact, non-blocking)
 priority: HIGH (pending Z2 ratification)
 state: BLOCKED (awaiting Z2 approval per Q-TEMPORAL-DISSOLUTION-01 gate)
@@ -66,13 +65,13 @@ The cockpit unifies 4 governance streams:
 ### RUN-day (continuous synthetic monitoring, Week 3): 1 day
 - Automated probes for latency, uptime, memory (no human intervention needed; runs continuously)
 
-### Z2 Ratification Overhead (not part of RBE-OPS numeraire): 11 hours
-- Week 1: 2.5 hours (testing + review + decision)
-- Week 2: 2.5 hours (testing + review + decision + potential re-test)
-- Week 3: 2 hours (monitoring + review + decision)
-- Week 4: 4 hours (smoke test + findings review + ratification signature)
+### RAT-min (Z2 ratification labor): 660 minutes (11 hours)
+- Week 1: 150 min (testing + review + decision)
+- Week 2: 150 min (testing + review + decision + potential re-test)
+- Week 3: 120 min (monitoring + review + decision)
+- Week 4: 240 min (smoke test + findings review + ratification signature)
 
-*Note: Z2 involvement is a gate constraint (CLAUDE.md §B gate requirement), not a consumable resource in RBE-OPS model. Tracked separately per PRIORITY_QUEUE.md governance.*
+*Note: RAT-min is the registered RBE-OPS unit for Z2 ratification labor (CLAUDE.md §B gate requirement, PRIORITY_QUEUE.md governance). Tracked in resource_cost as consumable commitment; Z2 availability is a gate constraint, not a resource.*
 
 ---
 
