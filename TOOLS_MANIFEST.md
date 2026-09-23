@@ -149,7 +149,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-182 | intent_graph | `tools/intent_graph_v1_0.py` | 1.0.0 | 1 | draft | — | intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it. |
 | HAIOS-TOOL-183 | receipt_reconciliation | `tools/receipt_reconciliation.py` | 1.0.0 | 1 | draft | — | Receipt Reconciliation Script — Validates claims against NF_LEDGER |
 
-## Infrastructure — `infrastructure_tool` (21)
+## Infrastructure — `infrastructure_tool` (22)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -174,6 +174,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-147 | tool_manifest_renderer | `.tool-control/render.py` | 1.0.0 | 1 | draft | no-builder-markers | Render TOOLS_MANIFEST.md from tools-manifest.yaml. |
 | HAIOS-TOOL-148 | tool_manifest_scanner | `.tool-control/scan.py` | 1.1.0 | 1 | draft | no-builder-markers | Walks the registered tool roots, extracts each tool's declared metadata, and |
 | HAIOS-TOOL-177 | nonprofit_dashboard_api_v1_0 | `tools/nonprofit_dashboard_api_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Nonprofit Dashboard API v1.0 |
+| HAIOS-TOOL-185 | install_git_hooks | `scripts/install_git_hooks.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Install git hooks for this repository |
 
 ## Monitoring — `monitoring_tool` (4)
 
@@ -253,7 +254,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 | HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
-## Validation — `validation_tool` (23)
+## Validation — `validation_tool` (24)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -280,6 +281,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-175 | grant_match_verifier_v1_0 | `tools/grant_match_verifier_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Pre-Award Match Verifier v1.0 |
 | HAIOS-TOOL-178 | nonprofit_profile_v1_0 | `tools/nonprofit_profile_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Nonprofit Profile Model & Validation |
 | HAIOS-TOOL-184 | verified_receipts | `tools/verified_receipts.py` | 0.1.0 | 1 | draft | — | Verified Receipt Resolver — v0.1 |
+| HAIOS-TOOL-186 | verify_pr_readiness | `scripts/verify_pr_readiness.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | PR Readiness Verification — Run all validation checks in sequence |
 
 ## MCP servers (2)
 
@@ -316,7 +318,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 15 |
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 15 |
-| `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 21 |
+| `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 4 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 4 |
@@ -324,7 +326,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 9 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 23 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 24 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 
