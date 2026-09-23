@@ -166,6 +166,23 @@
 4. Constant reverted twice in a row → frozen (Z2 Tier-2 ruling to reopen)
 5. Molt candidates ranked by Priority Queue score (no bypassing)
 
+### **Z2 Ratification: PR Merge as Signature (Relay-Managed Board-Ruling Blocks)**
+
+**For relay-managed board-ruling blocks only** (status: DECIDED, filed as Z1 proposals merged via relay), Z2 ratifies by merging the PR to main. The merge action is the authoritative Z2 signature; the git commit SHA is the evidence.
+
+**Workflow:**
+1. Z1 files candidate block in z1-inbox/<date>/ and opens PR
+2. Z2 reviews the PR (may request changes via EDIT, reject via REJECT, or prepare to merge)
+3. Z2 merges PR to main branch (this action = Z2 ratification)
+4. Merge commit SHA is the evidence of Z2 signature
+5. Git commit message records the Z2 decision (ACCEPT/EDIT/REJECT) or references the candidate
+
+**CI Gate Behavior:**
+The "Verify Z2 Ratification Requirements" check (z2_ratification_gate.yml) fails before Z2 merges on relay-managed blocks. This is intentional: the gate prevents accidental merge without Z2 review. When Z2 merges despite the gate failure, that merge action proves Z2 reviewed and approved. The gate failure is NOT a blocker — it is verification.
+
+**Note on Standard Candidates:**
+Standard candidate blocks (proposals, findings, hypothesis blocks) continue to require explicit Z2 signature via `.z1-control/ratify.py`. These produce z2_hash (sha256 signature) and z2_ruling (link to REGISTERED.md entry), recorded in z1-inbox/<date>/Z2_RULINGS_*.md. Relay-managed board-ruling blocks skip this step; the PR merge replaces it.
+
 ---
 
 ## Governance Files & CI/CD Integration
