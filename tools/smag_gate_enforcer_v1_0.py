@@ -12,7 +12,7 @@ Usage:
     --profile-path calibration_profiles/BASELINE_S092126.json \
     --ledger-path audits/smag_pilot_ledger.jsonl \
     --substrate "human:humanaios-ui" \
-    --window-days 30
+    --lookback-periods 30
 
 Returns:
   0 if all gates pass (review_bar met, gap_rate below threshold)
@@ -204,10 +204,10 @@ def main():
         help="Substrate to enforce (e.g., human:humanaios-ui)",
     )
     parser.add_argument(
-        "--window-days",
+        "--lookback-periods",
         type=int,
         default=30,
-        help="Rolling window size (days) for gap_rate computation",
+        help="Rolling measurement period size (days) for gap_rate computation",
     )
     parser.add_argument(
         "--dry-run",
@@ -245,8 +245,8 @@ def main():
     print()
 
     # Compute gap_rate
-    gap_rate = compute_gap_rate(args.ledger_path, args.window_days)
-    print(f"📈 Gap Rate (last {args.window_days} days): {gap_rate:.2%}")
+    gap_rate = compute_gap_rate(args.ledger_path, args.lookback_periods)
+    print(f"📈 Gap Rate (last {args.lookback_periods} days): {gap_rate:.2%}")
     print()
 
     # Check gate
