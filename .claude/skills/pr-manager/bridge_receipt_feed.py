@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Optional
 import hashlib
 
-from ed25519_validator import ValidationResult
+from ed25519_validator import Ed25519Validator
 from tools.verified_receipts import (
     ALLOWED_VERIFICATION_METHODS,
     STRENGTH_RANK,
@@ -32,8 +32,13 @@ def canonical_interrogation_approval_payload(
 
 
 class BridgeReceiptFeed:
-    def __init__(self, ledger_path: str):
+    def __init__(
+        self,
+        ledger_path: str,
+        authority_verifier: Optional[Ed25519Validator] = None,
+    ):
         self.ledger_path = ledger_path
+        self.authority_verifier = authority_verifier
 
     def consume_receipt(
         self,
@@ -131,24 +136,31 @@ class BridgeReceiptFeed:
         receipt_id: str,
         question_id: str,
         approved: bool,
-        verification_result: ValidationResult,
+        signature_hex: str,
         issuer: str = "human-z2",
     ) -> str:
+        if self.authority_verifier is None:
+            raise ValueError("AUTHORITY_VERIFIER_REQUIRED")
+
         payload = canonical_interrogation_approval_payload(
             question_id, approved, issuer
         )
-        expected_digest = hashlib.sha256(payload).hexdigest()
+        verification_result = self.authority_verifier.validate_message_signature(
+            issuer,
+            payload,
+            signature_hex,
+        )
 
         if not verification_result.valid:
-            raise ValueError("cryptographic verification did not pass")
+            raise ValueError(
+                f"ED25519_VERIFICATION_FAILED:{verification_result.reason or 'UNKNOWN'}"
+            )
         if verification_result.verification_method != "ED25519":
             raise ValueError("approval proof must come from Ed25519 verifier")
         if verification_result.verification_strength != "CRYPTO_VERIFIED":
             raise ValueError("approval proof is not CRYPTO_VERIFIED")
         if verification_result.signer_id != issuer:
             raise ValueError("approval proof signer does not match issuer")
-        if verification_result.message_sha256 != expected_digest:
-            raise ValueError("approval proof is not bound to this question/decision")
         if not verification_result.key_id or not verification_result.signature_fingerprint:
             raise ValueError("approval proof lacks key/fingerprint provenance")
 
@@ -165,8 +177,8 @@ class BridgeReceiptFeed:
             scope=f"interrogation:{question_id}",
             issuer=issuer,
             authority_scope="Z2_RATIFIER",
-            verification_method="ED25519",
-            verification_strength="CRYPTO_VERIFIED",
+            verification_method=verification_result.verification_method,
+            verification_strength=verification_result.verification_strength,
             evidence_ref=evidence_ref,
             one_time=True,
         )
