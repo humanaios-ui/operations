@@ -36,8 +36,7 @@ def attach_valid_gate_receipts(payload):
 
     events, head = build_receipt_chain_for_testing(raw_events)
     payload["receipt_events"] = events
-    payload["receipt_head_hash"] = head
-    return payload
+    return payload, head
 
 
 class HarmonyStressVectors(unittest.TestCase):
@@ -50,8 +49,16 @@ class HarmonyStressVectors(unittest.TestCase):
             with self.subTest(vector=vector["id"]):
                 payload = vector["state"]
                 if vector["id"] == "CH-01-HEALTHY-DISSENT":
-                    payload = attach_valid_gate_receipts(payload)
-                result = evaluate(from_dict(payload))
+                    payload, trusted_head = attach_valid_gate_receipts(payload)
+                    result = evaluate(
+                        from_dict(payload),
+                        trusted_receipt_head_hash=trusted_head,
+                    )
+                else:
+                    result = evaluate(
+            from_dict(payload),
+            trusted_receipt_head_hash=trusted_head,
+        )
                 self.assertEqual(vector["expected_verdict"], result["verdict"])
 
     def test_perfect_scores_cannot_override_gate_failure(self):
@@ -78,19 +85,36 @@ class HarmonyStressVectors(unittest.TestCase):
         self.assertEqual("INVALID_HARMONY", result["verdict"])
         self.assertTrue(any("NO_RECEIPT_FEED" in x for x in result["gate_failures"]))
 
+
+    def test_payload_cannot_self_pin_receipt_head(self):
+        payload, real_head = attach_valid_gate_receipts({
+            "contributions": [],
+            "run_id": "self-pin",
+            "gate_evidence": {gate: [f"r:{gate}"] for gate in HARD_GATES},
+        })
+        # An untrusted caller may include a plausible head field, but from_dict()
+        # has no RunState field for it and evaluate() receives no trusted head.
+        payload["receipt_head_hash"] = real_head
+        result = evaluate(from_dict(payload))
+        self.assertEqual("INVALID_HARMONY", result["verdict"])
+        self.assertTrue(any("NO_RECEIPT_FEED" in x for x in result["gate_failures"]))
+
     def test_tampered_receipt_chain_fails(self):
-        payload = attach_valid_gate_receipts({
+        payload, trusted_head = attach_valid_gate_receipts({
             "contributions": [],
             "run_id": "tamper",
             "gate_evidence": {gate: [f"r:{gate}"] for gate in HARD_GATES},
         })
         payload["receipt_events"][0]["subject"] = "tampered"
-        result = evaluate(from_dict(payload))
+        result = evaluate(
+            from_dict(payload),
+            trusted_receipt_head_hash=trusted_head,
+        )
         self.assertEqual("INVALID_HARMONY", result["verdict"])
         self.assertTrue(any("CHAIN_INVALID" in x for x in result["gate_failures"]))
 
     def test_wrong_scope_receipt_fails(self):
-        payload = attach_valid_gate_receipts({
+        payload, trusted_head = attach_valid_gate_receipts({
             "contributions": [],
             "run_id": "expected",
             "gate_evidence": {gate: [f"r:{gate}"] for gate in HARD_GATES},
@@ -104,14 +128,17 @@ class HarmonyStressVectors(unittest.TestCase):
             raw.append(body)
         events, head = build_receipt_chain_for_testing(raw)
         payload["receipt_events"] = events
-        payload["receipt_head_hash"] = head
+        trusted_head = head
 
-        result = evaluate(from_dict(payload))
+        result = evaluate(
+            from_dict(payload),
+            trusted_receipt_head_hash=trusted_head,
+        )
         self.assertEqual("INVALID_HARMONY", result["verdict"])
         self.assertTrue(any("SCOPE_MISMATCH" in x for x in result["gate_failures"]))
 
     def test_simulated_receipt_method_fails(self):
-        payload = attach_valid_gate_receipts({
+        payload, trusted_head = attach_valid_gate_receipts({
             "contributions": [],
             "run_id": "simulated",
             "gate_evidence": {gate: [f"r:{gate}"] for gate in HARD_GATES},
@@ -124,11 +151,14 @@ class HarmonyStressVectors(unittest.TestCase):
             raw.append(body)
         events, head = build_receipt_chain_for_testing(raw)
         payload["receipt_events"] = events
-        payload["receipt_head_hash"] = head
+        trusted_head = head
 
-        result = evaluate(from_dict(payload))
+        result = evaluate(
+            from_dict(payload),
+            trusted_receipt_head_hash=trusted_head,
+        )
         self.assertEqual("INVALID_HARMONY", result["verdict"])
-        self.assertTrue(any("DISALLOWED_VERIFICATION_METHOD" in x for x in result["gate_failures"]))
+        self.assertTrue(any("UNSUPPORTED_VERIFICATION_METHOD" in x for x in result["gate_failures"]))
 
     def test_distinct_participants_do_not_prove_independence(self):
         state = from_dict({
