@@ -36,10 +36,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: set
+by: Night
+at: 2026-09-18T01:21:54Z
+status: PENDING
+block_hash: 83d05c28f1437ac26345dcec08a35ee00faf16eccdb24dbec3851e1104eef432
+body_hash: 4cf3b5c5cebc35c7722f9315fbd1fb89222f94f23500ff1c77a351b04c3050cf
+
+```
+RULING d3
+  by: Night (tagline)
+  project: HumanAIOS
+  question: z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate?
+  choice: set
+  note: 
+  at: 2026-09-18T01:21:54Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 

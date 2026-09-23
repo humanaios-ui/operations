@@ -36,10 +36,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: bypass + IC
+by: Night
+at: 2026-09-18T01:22:01Z
+status: PENDING
+block_hash: ffc9e4dd430f525415d42e258fce48d049cf312d37ff820c0738f5be174d8c32
+body_hash: 5d11fae0def95f0c80a2e97a591058efe99760bc9f5a592c033f85759ae7b90b
+
+```
+RULING d7
+  by: Night (tagline)
+  project: HumanAIOS
+  question: Branch protection — turn off admin bypass on main, or keep it and register every bypass as an IC event?
+  choice: bypass + IC
+  note: 
+  at: 2026-09-18T01:22:01Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 

@@ -14,8 +14,8 @@ on its own.
 Tiers (docs/INTENT_OS_TEST_PATHWAY.md):
   T0  self-tests          every tool proves its own classifications fire (--self-test / --smoke-test)
   T1  governance          live integrity: inbox, signatures, manifests, document control, board seals
-  T2  board + relay       board script parses; relay answers a signed /decide → /ratify over a socket;
-                          a browser keeps taps across reload
+  T2  board + relay       board script parses; relay answers a signed /decide over a socket, the merge is
+                          simulated and the reconcile tool signs it; a browser keeps taps across reload
   T3  ci gates            the unit suites and type-check CI runs (skipped here when a dep is absent)
   T4  cross-repo          zone registry, planned repos, and the repository index name real paths
 
@@ -39,9 +39,11 @@ from __future__ import annotations
 import argparse
 import contextlib
 import datetime as _dt
+import glob
 import hashlib
 import hmac
 import importlib
+import importlib.util
 import io
 import json
 import os
@@ -66,6 +68,7 @@ BOARD = os.path.join("ui", "intent-os-humanaios-v3_3.html")
 DASHBOARD = os.path.join("ui", "intent-os-test-dashboard-v1_0.html")
 CHECKER = os.path.join("tools", "intent_os_board_check_v1_0.py")
 RELAY = os.path.join("tools", "decision_relay.py")
+RECONCILE = os.path.join("tools", "intent_os_reconcile_v1_0.py")
 REQUESTS = os.path.join("tools", "intent_os_requests_v1_0.py")
 RECEIPT = os.path.join("outputs", "intent_os_test_results.json")
 SCHEMA = "intentos/test_results_v1"
@@ -74,7 +77,7 @@ BAD = {"FAIL", "TIMEOUT", "ERROR"}
 TIERS = [
     ("T0", "self-tests", "every tool proves its own classifications fire"),
     ("T1", "governance integrity", "inbox, signatures, manifests, document control, board seals — live"),
-    ("T2", "board + relay", "script parses; signed /decide → /ratify over a socket; taps survive reload"),
+    ("T2", "board + relay", "script parses; signed /decide over a socket → simulated merge → reconcile → signature verifies; taps survive reload"),
     ("T3", "ci gates", "the unit suites, lint and type-check the workflows block on"),
     ("T4", "cross-repo", "zone registry, planned repos, repository index name real paths"),
     ("T5", "manifest smoke", "every tool the manifest says has a smoke test, run with the flag its source carries — the manifest's claim, measured"),
@@ -125,6 +128,9 @@ def registry(root: str = ROOT) -> list[dict]:
 
     # T1 — governance integrity (live)
     add("t1-board-holds", "T1", "board", "board seals HOLD against the tree", _py(CHECKER), proves=["W1", "W8"])
+    add("t1-pages-fresh", "T1", "board", "the four section pages are what the board generates (intent_os_pages --check)",
+        _py("tools/intent_os_pages_v1_0.py", "--check"), proves=["W1"],
+        note="a board change without a regeneration turns this row RED on the dashboard and in the refresh job's report")
     add("t1-z1-inbox", "T1", "governance", "z1-inbox/INDEX.yaml integrity (z2 gate ERROR step)", _py(".z1-control/validate.py"), proves=["Z1", "G1", "W6"])
     add("t1-z1-render-sync", "T1", "governance", "Z1_INBOX_INDEX.md in sync (z2 gate ERROR step)", _py(".z1-control/render.py", "--check"), proves=["W6"])
     add("t1-requests", "T1", "bus", "every REQ- record in the inbox verifies (hash, ask, id, Fulfilment order, indexed)", _py(REQUESTS, "--check"), proves=["W6"])
@@ -147,7 +153,7 @@ def registry(root: str = ROOT) -> list[dict]:
     # T2 — board + relay end to end
     add("t2-board-script", "T2", "board", "board <script> parses (node --check)", kind="node_check", needs_cmd=["node"], proves=["W1"])
     add("t2-dashboard-script", "T2", "board", "dashboard <script> parses (node --check)", kind="node_check_dashboard", needs_cmd=["node"], proves=["W1"])
-    add("t2-relay-roundtrip", "T2", "relay", "signed /decide → PENDING hash → /ratify → signature, and /task → REQ record, over HTTP (DRY_RUN)", kind="relay_roundtrip", timeout=60,
+    add("t2-relay-roundtrip", "T2", "relay", "signed /decide → DECIDED one-file landing → (merge) → reconcile signs it → ratify.py --verify; /ratify retired; /task → REQ record — over HTTP (DRY_RUN)", kind="relay_roundtrip", timeout=60,
         proves=["W2", "W3", "W4", "W5", "W6", "Z3"])
     add("t2-browser-persist", "T2", "board", "headless Chromium: board renders; a tap survives reload (localStorage)", kind="browser", timeout=90,
         requires=["playwright"], proves=["W1"])
@@ -177,8 +183,11 @@ def registry(root: str = ROOT) -> list[dict]:
                 "tools/tests/test_nf_ledger_cli.py", "tools/tests/test_ci_predict.py",
                 "tools/tests/test_lifecycle_predict.py", "tools/tests/test_dimension_attribution.py",
                 "tools/tests/test_tool_trace_hook.py", "tools/tests/test_tool_trace_reader.py",
-                "tools/tests/test_copilot_acat_scanner.py", "tools/tests/test_holographic_integration.py",
+                "tools/tests/test_copilot_acat_scanner.py",
+                "tools/tests/test_grant_match_verifier.py", "tools/tests/test_grant_matching_engine.py",
+                "tools/tests/test_holographic_integration.py",
                 "tools/tests/test_holographic_orchestrator.py", "tools/tests/test_holographic_phase3_live.py",
+                "tools/tests/test_industry_telemetry.py", "tools/tests/test_nonprofit_dashboard.py",
                 "acat/tests/test_tool_trace_schema.py"]
     pyt = ["-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider"]
     add("t3-pytest-baseline", "T3", "ci", "pytest baseline suites (quality-baseline blocking step)", _py(*pyt, *baseline), timeout=600,
@@ -354,8 +363,10 @@ MIN_CAND = ("# Ruling request Q-BOARD-RULING-06\n\n## Question\n\nbatch source?\
 
 def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
     """Start the real relay (DRY_RUN) on a loopback port over a fixture inbox and drive the board's
-    exact request shapes through the socket: preflight, bad signature, /decide, replay, wrong hash,
-    /ratify, second /ratify. Then verify the signature with .z1-control/ratify.py --verify."""
+    exact request shapes through the socket: preflight, bad signature, /decide, replay, a re-sent
+    /decide, the retired /ratify. Then stand in for the merge (the ratification, Z2 2026-09-18) with an
+    injected pull-request lookup, run tools/intent_os_reconcile_v1_0.py over the landed copy, and verify
+    the signature it wrote with .z1-control/ratify.py --verify."""
     td = tempfile.mkdtemp(prefix="intentos_relay_rt_")
     lines, ok, proc = [], True, None
     try:
@@ -420,36 +431,53 @@ def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
         code, _, j = req("POST", "/decide", d, sig="00")
         ok &= _ok(lines, code == 401 and j.get("status") == "REFUSED", f"POST /decide bad X-Sig → {code} {j.get('status')}")
         code, _, j = req("POST", "/decide", d)
-        ok &= _ok(lines, code == 200 and j.get("status") == "PENDING" and re.fullmatch(r"[0-9a-f]{64}", j.get("hash", "") or ""),
+        ok &= _ok(lines, code == 200 and j.get("status") == "DECIDED" and re.fullmatch(r"[0-9a-f]{64}", j.get("hash", "") or ""),
                   f"POST /decide signed → {code} {j.get('status')} · hash {str(j.get('hash', ''))[:16]}")
         pend = j
         code, _, j = req("POST", "/decide", d)
         ok &= _ok(lines, code == 409, f"replay of the same nonce → {code} {j.get('status')}")
-        landed = os.path.join(td, "relay_out", pend.get("path", ""))
-        ok &= _ok(lines, os.path.isfile(landed) and "status: PENDING" in open(landed, encoding="utf-8").read(),
-                  f"choice written into {pend.get('path')} as PENDING (local copy, repo untouched)")
-        ok &= _ok(lines, not os.path.exists(os.path.join(root, "relay_out")), "no relay_out/ created under the repository")
-
-        r = {**d, "expected_hash": pend.get("hash"), "branch": pend.get("branch"), "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex(), "hash": "deadbeef"}
-        code, _, j = req("POST", "/ratify", r)
-        ok &= _ok(lines, j.get("status") == "REFUSED", f"POST /ratify wrong hash → {j.get('status')}")
-        r = {**r, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex(), "hash": pend.get("hash")}
-        code, _, j = req("POST", "/ratify", r)
-        ok &= _ok(lines, code == 200 and j.get("status") == "RATIFIED" and re.fullmatch(r"[0-9a-f]{64}", j.get("signature", "") or ""),
-                  f"POST /ratify echoed hash → {j.get('status')} · signature {str(j.get('signature', ''))[:16]}")
-        rat = j
         out = os.path.join(td, "relay_out")
+        landed = os.path.join(out, pend.get("path", ""))
+        ok &= _ok(lines, os.path.isfile(landed) and "status: DECIDED" in open(landed, encoding="utf-8").read(),
+                  f"choice written into {pend.get('path')} as DECIDED (local copy, repo untouched)")
+        ok &= _ok(lines, not os.path.exists(os.path.join(root, "relay_out")), "no relay_out/ created under the repository")
+        ok &= _ok(lines, not os.path.isfile(os.path.join(out, "Z1_INBOX_INDEX.md")) and not glob.glob(os.path.join(out, "z1-inbox", "*", "Z2_RULINGS_*.md")),
+                  "the relay signed nothing: no ruling file, no rendered index on the landed copy")
+        code, _, j = req("POST", "/decide", {**d, "choice": "partner", "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()})
+        text = open(landed, encoding="utf-8").read()
+        ok &= _ok(lines, j.get("status") == "DECIDED" and j.get("hash") != pend.get("hash") and text.count("## Ruling") == 1 and "choice: partner" in text,
+                  "re-sent /decide with another choice → the one Ruling section is rewritten, new hash")
+        pend = j
+        r = {**d, "expected_hash": pend.get("hash"), "branch": pend.get("branch"), "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex(), "hash": pend.get("hash")}
+        code, _, j = req("POST", "/ratify", r)
+        ok &= _ok(lines, code == 404 and j.get("why") == "unknown path", f"POST /ratify (retired: the merge is the ratification) → {code} {j.get('why')}")
+        # the merge, stood in for: the reconcile tool with an injected lookup that says a ratifier merged the file's PR
+        for rel in ("tools/decision_relay.py",):
+            os.makedirs(os.path.dirname(os.path.join(out, rel)), exist_ok=True)
+            shutil.copy(os.path.join(td, rel), os.path.join(out, rel))
+        if not os.path.isdir(os.path.join(out, ".z1-control")):
+            shutil.copytree(os.path.join(td, ".z1-control"), os.path.join(out, ".z1-control"))
+        spec = importlib.util.spec_from_file_location("intent_os_reconcile", os.path.join(root, RECONCILE))
+        rc = importlib.util.module_from_spec(spec); spec.loader.exec_module(rc)
+        pr = {"number": 401, "html_url": "https://example.test/pull/401", "sha": "0" * 40, "merged_by": "humanaios-ui", "merged_at": "2026-09-18T02:30:00Z", "author": "humanaios-ui", "approvers": []}
+        plan = rc.plan(out, lambda root_, rel: pr)
+        row = plan["rows"][0] if plan["rows"] else {}
+        ok &= _ok(lines, plan["outcome"] == "RECONCILE" and row.get("by") == "Night" and row.get("at") == "2026-09-18" and row.get("override") is True,
+                  f"reconcile plan over the landed copy → {plan['outcome']} · {row.get('q_id')} by {row.get('by')} at {row.get('at')} (single-member override)")
+        written = rc.apply(out, plan)
+        rat = row
         idx = open(os.path.join(out, "z1-inbox", "INDEX.yaml"), encoding="utf-8").read() if os.path.isfile(os.path.join(out, "z1-inbox", "INDEX.yaml")) else ""
         ruling_p = os.path.join(out, rat.get("ruling", "") or "x")
         ruling = open(ruling_p, encoding="utf-8").read() if os.path.isfile(ruling_p) else ""
         ok &= _ok(lines, "status: ratified" in idx and rat.get("signature", "") in idx, "INDEX.yaml: candidate ratified, signature recorded")
-        ok &= _ok(lines, rat.get("signature", "") in ruling, f"{rat.get('ruling')}: signature appended")
+        ok &= _ok(lines, rat.get("signature", "") in ruling and "#401" in ruling, f"{rat.get('ruling')}: signature appended, names the merged pull request")
         ok &= _ok(lines, os.path.isfile(os.path.join(out, "Z1_INBOX_INDEX.md")), "Z1_INBOX_INDEX.md regenerated")
+        ok &= _ok(lines, open(landed, encoding="utf-8").read() == text, "the candidate file is untouched by the reconcile — the merged bytes are the signed bytes")
         # the same verifier the z2 gate runs, over the landed copy
-        if not os.path.isdir(os.path.join(out, ".z1-control")):
-            shutil.copytree(os.path.join(td, ".z1-control"), os.path.join(out, ".z1-control"))
         v = subprocess.run(_py(os.path.join(out, ".z1-control", "ratify.py"), "--verify"), cwd=out, capture_output=True, text=True, timeout=30)
         ok &= _ok(lines, v.returncode == 0, f".z1-control/ratify.py --verify on the landed copy → {(v.stdout + v.stderr).strip().splitlines()[-1][:60] if (v.stdout + v.stderr).strip() else 'rc ' + str(v.returncode)}")
+        plan2 = rc.plan(out, lambda root_, rel: pr)
+        ok &= _ok(lines, plan2["outcome"] == "NOTHING" and rc.apply(out, plan2) == [], "a second reconcile finds nothing awaiting, writes nothing")
         r = {**r, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
         # /task — the agent bus: a signed request becomes a record, indexed and rendered, nothing signed
         t = {"title": 'Re-read the "ACAT" benchmark map: rows 1–12', "ask": "Compare the 12 rows to the 09-08 read.", "wants": "pr", "lane": "acat",
@@ -482,9 +510,9 @@ def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
                     s[os.path.relpath(fp, out)] = open(fp, "rb").read()
             return s
         before = snapshot()
-        code, _, j = req("POST", "/ratify", r)
+        code, _, j = req("POST", "/decide", {**d, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()})
         after = snapshot()
-        ok &= _ok(lines, j.get("status") == "REFUSED" and before == after, f"second /ratify → {j.get('status')}, {len(after)} landed files byte-identical")
+        ok &= _ok(lines, code == 500 and "not awaiting_z2" in str(j.get("why")) and before == after, f"/decide on the ratified candidate → {j.get('status')} ({str(j.get('why'))[:40]}…), {len(after)} landed files byte-identical")
     except Exception as e:  # noqa: BLE001
         ok = False
         lines.append(f"  exception: {type(e).__name__}: {e}")

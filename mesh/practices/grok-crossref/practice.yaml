@@ -1,0 +1,113 @@
+schema_version: "0.1"
+practice_id: grok-crossref
+aliases:
+  - "grock-cross-ref"
+  - "grok cross-ref"
+status: CANDIDATE
+
+zone: null
+zone_source: "No row in ZONE_REGISTRY.md, so no Zone ID and no resource cap. PLANNED_REPOS.md line 39 does list it: `grok-crossref | PLANNED | Night | Crossref API integration research | Phase 3 (deferred)`"
+
+authority:
+  grants_authority: false
+  z2_ratification: null
+  caps_source: "No cap published. An unzoned practice has no resource cap."
+
+resolution:
+  class: UNAMBIGUOUS
+  class_source: "ledgers/PRACTICE_RESOLUTION_MAP.md — row `grok-crossref`, 6 tokens, 3 resolved"
+  candidate_targets:
+    - "empirica-practice-mesh practices/grok-crossref/ (scaffold only)"
+  blocked_by: null
+  z1_may_resolve: true
+
+purpose_filter:
+  - tests_hypothesis
+  - generates_data
+
+owns:
+  - "Cross-reference runs binding a claim to the artifacts that carry it"
+  - "Adversarial cross-examination of Z1 proposals authored by a different substrate"
+  - "The register at mesh/CROSS_REFERENCE_REGISTER.md"
+
+out_of_scope:
+  - "Ratifying the proposals it cross-examines (Z2 sole authority)"
+  - "Merging or approving any pull request it reviews"
+  - "Treating substrate diversity as independence; PR #452 Pass A records that demonstrably blind observations remain unproven in the frozen fixture"
+
+consumes_from:
+  - practice: humanaios
+    what:
+      - "behavioral_assessment_findings"
+    when_to_decline:
+      - "A finding with no hash back to a canonical source is not cross-referenceable"
+
+forecast_tokens:
+  - token_id: "T-grok-crossref-01"
+    title: "Recovery restart"
+    state: DATED
+    resolved: true
+    note: "Among the 3 resolutions written 2026-09-16; all fell in UNAMBIGUOUS rows."
+  - token_id: "T-grok-crossref-02"
+    title: "Validation run"
+    state: DATED
+    resolved: true
+  - token_id: "T-grok-crossref-03"
+    title: "Sign-off = validated crossref run with hash"
+    state: DATED
+    resolved: true
+  - token_id: "T-grok-crossref-04"
+    title: "KG optimization"
+    state: PENDING_Z2_DATE
+    resolved: false
+    note: "date_source is Z1_PROPOSED; Z2 has not dated this token."
+  - token_id: "T-grok-crossref-05"
+    title: "Accuracy benchmark"
+    state: PENDING_Z2_DATE
+    resolved: false
+  - token_id: "T-grok-crossref-06"
+    title: "Theme detection"
+    state: PENDING_Z2_DATE
+    resolved: false
+
+edges:
+  - ref: "humanaios-ui/operations#451"
+    relation: reviewed_by
+    note: "v0.1.1 was revised by Grok integrating adversarial reviews; the PR body records 7 findings and their resolutions."
+  - ref: "humanaios-ui/operations#452"
+    relation: evidences
+    note: "CT-001 Pass A — cross-substrate convergence observed; blindness unproven. Pass B is specified to be run by a reviewer who inspects neither #451 nor Pass A."
+  - ref: "humanaios-ui/operations#389"
+    relation: cross_references
+    note: "Blind independent AI reviewer workflow — the governance mechanism this practice's work product feeds."
+  - ref: "mesh/CROSS_REFERENCE_REGISTER.md"
+    relation: evidences
+
+unknowns:
+  - "Whether the 3 PENDING_Z2_DATE tokens will receive Z2 dates or lapse. Not a Z1 decision."
+  - "Whether any cross-reference run in this practice has ever been demonstrably blind, as opposed to substrate-distinct. PR #452 Pass A records this as unproven."
+  - "Whether this practice should hold a ZONE_REGISTRY.md row at all. PLANNED_REPOS.md defers it to Phase 3, so the absence of a zone is the roadmap position rather than an oversight; what promotes a deferred planned repo to an active zone is a Z2 decision."
+
+trl_framing:
+  implementation_state: SPECIFIED
+  evidence_ref: "3 of 6 tokens carry resolutions; the register in this drop is a specified artifact, not an executed crossref run with a hash per T-grok-crossref-03."
+
+provenance:
+  derived_from:
+    - "PLANNED_REPOS.md"
+    - "ledgers/PRACTICE_RESOLUTION_MAP.md"
+    - "ledgers/NF_LEDGER.jsonl"
+    - "ledgers/mesh_pins_090826.json"
+    - "humanaios-ui/operations#451 pull request body"
+    - "humanaios-ui/operations#452 pull request body"
+  pinned_sha: "44347b79b1d6351bd10bbb5fb6c45b9ead6bd42e"
+  temporal_class: HISTORICAL_RECORD
+  observed_at: "2026-09-22 (OBSERVATIONAL; carries no scheduling authority)"
+
+falsifier: >
+  This record is FALSE if PLANNED_REPOS.md is read and does not carry grok-crossref as a
+  PLANNED repo at Phase 3; or if ledgers/NF_LEDGER.jsonl is read and shows a resolution count for
+  `grok-crossref` other than 3 of 6; or if any of T-grok-crossref-04..06 is found in state DATED
+  rather than PENDING_Z2_DATE; or if a cross-reference run in this practice is demonstrated to
+  have been blind, since the record asserts blindness is unproven; or if PR #451 is shown to have
+  been revised by a substrate other than the one its body names.
