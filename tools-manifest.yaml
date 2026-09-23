@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 171
+  tools: 172
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 137
+  builder_markers_present: 138
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2180,6 +2180,19 @@ tools:
   builder_markers: true
   purpose: graph_convergence_v1_0.py — grade convergence between two agent-authored graphs.
   session: S-092126-graph-convergence
+- tool_id: HAIOS-TOOL-184
+  name: verified_receipts
+  path: tools/verified_receipts.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Verified Receipt Resolver — v0.1
+  session: H-COLLAB-HARMONY-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
