@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/witness-arena/WITNESS_ARENA_GRAPH_SCHEMA_V0_1.json",
+  "title": "HumanAIOS Witness Arena Graph Event",
+  "description": "Z1 design candidate v0.1.1. Common envelope for Arena evidence-graph events. Does not grant authority. Core objects reject unknown fields; optional extensions only under extensions namespace (ignored by significance/escalation logic).",
+  "type": "object",
+  "required": ["node_id", "node_type", "epoch_id", "created_at", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "node_id": { "type": "string", "minLength": 1 },
+    "node_type": {
+      "enum": [
+        "EPOCH", "ACTOR", "ARTIFACT_VERSION", "RATIFICATION", "AUDIT_CONTEXT",
+        "AUDIT_PASS", "FINDING", "EVIDENCE_ITEM", "CONVERGENCE_CLUSTER",
+        "DIVERGENCE_CLUSTER", "OMISSION", "ANOMALY", "CHANNEL_EVENT",
+        "MEMBRANE_EVENT", "COMMONS_MESSAGE", "CHALLENGE", "RESOLUTION",
+        "HUMAN_DELIBERATION", "AMENDMENT", "HARMONIC_EVENT"
+      ]
+    },
+    "epoch_id": { "type": "string", "minLength": 1 },
+    "created_at": {
+      "type": "string",
+      "description": "Observed timestamp from implementation source; schema does not invent clocks."
+    },
+    "actor": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": { "type": "string" },
+        "actor_kind": { "enum": ["AI", "HUMAN", "SYSTEM"] },
+        "provider": { "type": ["string", "null"] },
+        "model_version": { "type": ["string", "null"] },
+        "human_role": { "type": ["string", "null"] }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_ref"],
+      "properties": {
+        "source_ref": { "type": "string", "minLength": 1 },
+        "content_hash": { "type": ["string", "null"] },
+        "prior_findings_visible": { "type": ["boolean", "null"] },
+        "prior_conclusions_visible": { "type": ["boolean", "null"] },
+        "protocol_version": { "type": ["string", "null"] }
+      }
+    },
+    "finding": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "finding_class": {
+          "enum": ["SUPPORT", "CONTRADICT", "NARROW", "OMISSION", "ANOMALY", "UNRESOLVED", "ABSTAIN"]
+        },
+        "severity": {
+          "enum": ["BLOCKER", "HIGH", "HARDENING", "OBSERVATION", "NONE"]
+        },
+        "claim_under_test": { "type": "string" },
+        "evidence_refs": { "type": "array", "items": { "type": "string" } },
+        "falsifier_or_change_condition": { "type": ["string", "null"] },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+    "channel": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "channel_type": {
+          "enum": ["CONVERGENCE", "DIVERGENCE", "OMISSION", "ANOMALY"]
+        },
+        "n_agree": { "type": "integer", "minimum": 0 },
+        "n_eligible": { "type": "integer", "minimum": 0 },
+        "n_independent_substrates": { "type": "integer", "minimum": 0 },
+        "n_model_families": { "type": "integer", "minimum": 0 },
+        "n_human_reviewers": { "type": "integer", "minimum": 0 },
+        "correlation_risk": { "enum": ["LOW", "MEDIUM", "HIGH", "UNKNOWN"] },
+        "significance": {
+          "enum": ["POOL2_ONLY", "WATCH", "HUMAN_AUTHORITY_AGENDA"]
+        }
+      }
+    },
+    "membrane": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": ["SEALED", "ONE_WAY_READ", "FILTERED", "OPEN_CROSS_EXAM", "HUMAN_AUTHORITY_WRITE"]
+        },
+        "direction": {
+          "enum": ["AI_TO_AI", "AI_TO_HUMAN", "HUMAN_TO_AI", "HUMAN_TO_HUMAN"]
+        },
+        "decision": { "enum": ["PASS", "HOLD", "QUARANTINE", "REFUSE"] },
+        "reason_code": { "type": "string" },
+        "policy_ref": { "type": "string" },
+        "prev_membrane_event_hash": { "type": ["string", "null"] },
+        "signature_or_commit_ref": { "type": ["string", "null"] }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["relationship", "target"],
+        "properties": {
+          "relationship": {
+            "enum": [
+              "ONBOARDED_IN", "AUDITS", "EVIDENCED_BY", "SUPPORTS", "CONTRADICTS",
+              "NARROWS", "CONVERGES_WITH", "DIVERGES_FROM", "OMITS", "CHALLENGES",
+              "RESPONDS_TO", "DERIVED_FROM", "PASSES_MEMBRANE", "REFUSED_BY_MEMBRANE",
+              "ESCALATED_TO", "DELIBERATED_BY", "RATIFIES", "AMENDS", "SUPERSEDES",
+              "WITHDRAWS", "RESOLVES", "CAUSES_NEXT_EPOCH", "SONIFIES"
+            ]
+          },
+          "target": { "type": "string" }
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Optional namespaced extras. MUST be ignored by significance, escalation, and convergence counting logic.",
+      "additionalProperties": true
+    }
+  }
+}
