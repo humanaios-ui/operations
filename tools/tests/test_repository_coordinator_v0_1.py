@@ -149,7 +149,7 @@ def test_domain_deadline_outside_control_surface_does_not_trigger_gate():
         title="Entitlement navigator",
         body=f"Track an external application {temporal_term} as evidence only.",
         files=["humanaios-funding-pipeline/app.py"],
-        patch=f"+ due_at = record.get('{temporal_term}')",
+        patch=f"+ observed_field = record.get('{temporal_term}')",
     )
     pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource state\n**State:** `GATING`\n"
     idx = run([p], pq=pq)
