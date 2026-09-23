@@ -28,6 +28,15 @@
           "authority_effect": "NONE"
         }
       ],
+      "gate_evidence": {
+        "human_autonomy_preserved": ["packet:human-comprehension:1"],
+        "dissent_preserved": ["event:dissent:ai-a:1", "event:dissent:ai-b:1"],
+        "uncertainty_visible": ["packet:uncertainty:1"],
+        "provenance_complete": ["trace:contribution-chain:1"],
+        "authority_not_laundered": ["trace:authority:none:1"],
+        "refusal_respected": ["trace:refusal-policy:1"],
+        "identity_minimized": ["trace:identity:pseudonymous:1"]
+      },
       "mutual_understanding": 0.85,
       "complementarity": 0.9,
       "evidence_quality": 0.8,
@@ -118,6 +127,26 @@
       "contributions": [],
       "human_autonomy_preserved": false,
       "mutual_understanding": 0.2
+    }
+  },
+  {
+    "id": "CH-09-SELF-CERTIFIED-HARMONY",
+    "description": "All hard-gate booleans are true but no evidence supports them.",
+    "expected_verdict": "INVALID_HARMONY",
+    "state": {
+      "contributions": [],
+      "human_autonomy_preserved": true,
+      "dissent_preserved": true,
+      "uncertainty_visible": true,
+      "provenance_complete": true,
+      "authority_not_laundered": true,
+      "refusal_respected": true,
+      "identity_minimized": true,
+      "mutual_understanding": 1.0,
+      "complementarity": 1.0,
+      "evidence_quality": 1.0,
+      "coordination": 1.0,
+      "collective_problem_solving": 1.0
     }
   }
 ]
