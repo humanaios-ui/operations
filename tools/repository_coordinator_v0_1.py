@@ -187,11 +187,32 @@ def _competition(prs: list[dict[str, Any]]) -> dict[int, list[int]]:
 
 
 def _temporal_control_signal(pr: dict[str, Any]) -> bool:
+    """Detect time-driven *control* semantics, not examples or domain dates.
+
+    PR prose is useful because authors describe the behavior they intend. Diff
+    evidence is restricted to workflow/canonical-control surfaces: scanning
+    every Python/test fixture produced a false positive on this coordinator's
+    own adversarial string ("30-day rolling window blocks merge").
+    """
     body = pr.get("body") or ""
-    patches = "\n".join(
-        str(f.get("patch") or "") for f in pr.get("file_details") or []
-    )
-    text = body + "\n" + patches
+    control_paths = {
+        "PRIORITY_QUEUE.md", "MOLT_STATE.md", "constants.json",
+        "RESOURCE_UNITS.yaml", "CANDIDATE_BLOCK_TEMPLATE.md",
+        "INTENT_GRAPH.yaml", "TEMPORAL_DISSOLUTION_POLICY.md",
+    }
+    patch_parts = []
+    for f in pr.get("file_details") or []:
+        path = str(f.get("filename") or f.get("path") or "")
+        if path.startswith(".github/workflows/") or path in control_paths:
+            patch = str(f.get("patch") or "")
+            # Deleted/context lines are evidence of history, not newly proposed
+            # control. Keep only added lines (excluding the +++ diff header).
+            added = "\n".join(
+                line[1:] for line in patch.splitlines()
+                if line.startswith("+") and not line.startswith("+++")
+            )
+            patch_parts.append(added)
+    text = body + "\n" + "\n".join(patch_parts)
     return bool(TIME_CONTROL_TERMS.search(text) and CONTROL_TERMS.search(text))
 
 
