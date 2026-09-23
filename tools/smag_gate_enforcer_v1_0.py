@@ -10,7 +10,7 @@ enforces review_bar and merge_pause_threshold before merge approval.
 Usage:
   python3 tools/smag_gate_enforcer_v1_0.py \
     --profile-path calibration_profiles/BASELINE_S092126.json \
-    --ledger-path ledgers/NF_LEDGER.jsonl \
+    --ledger-path audits/smag_pilot_ledger.jsonl \
     --substrate "human:humanaios-ui" \
     --window-days 30
 
@@ -23,6 +23,8 @@ Returns:
 TOOL_NAME = "smag_gate_enforcer"
 TOOL_VERSION = "1.0.0"
 TOOL_CATEGORY = "security_gate_tool"
+TOOL_SESSION = "S-092126"
+TOOL_ZONE = 1
 
 import json
 import sys
@@ -74,11 +76,12 @@ def is_profile_ratified(profile: dict) -> bool:
 
 def compute_gap_rate(ledger_path: str, window_days: int) -> float:
     """
-    Compute gap_rate from NF_LEDGER.jsonl over rolling window.
+    Compute gap_rate from smag_pilot_ledger.jsonl over rolling window.
 
-    Gap rate = failed_checks / total_checks over last N days
+    Gap rate = rows_with_failing_checks / total_rows over last N days
 
-    For initial implementation: count all VERDICT events marked as failed.
+    Each row in smag_pilot_ledger.jsonl represents a PR measurement.
+    Failing rows have a non-empty failing_checks list.
     """
     if not Path(ledger_path).exists():
         print(f"⚠️  Ledger not found: {ledger_path} (no data yet)")
@@ -88,8 +91,8 @@ def compute_gap_rate(ledger_path: str, window_days: int) -> float:
     now = datetime.now(timezone.utc)
     window_start = now - timedelta(days=window_days)
 
-    total_checks = 0
-    failed_checks = 0
+    total_rows = 0
+    failed_rows = 0
 
     try:
         with open(ledger_path) as f:
@@ -99,40 +102,38 @@ def compute_gap_rate(ledger_path: str, window_days: int) -> float:
                     continue
 
                 try:
-                    event = json.loads(line)
+                    row = json.loads(line)
                 except json.JSONDecodeError:
                     continue
 
-                # Filter by window and type
-                if event.get("type") != "VERDICT":
-                    continue
-
-                event_at = event.get("at")
-                if not event_at:
+                # Extract timestamp
+                timestamp_str = row.get("timestamp")
+                if not timestamp_str:
                     continue
 
                 try:
-                    event_date = datetime.fromisoformat(event_at.replace("Z", "+00:00"))
-                    if event_date < window_start:
+                    row_date = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                    if row_date < window_start:
                         continue
                 except ValueError:
                     continue
 
-                # Count check
-                total_checks += 1
+                # Count row
+                total_rows += 1
 
-                # Count as failed if marked failing_check: true
-                if event.get("failing_check"):
-                    failed_checks += 1
+                # Count as failed if failing_checks is non-empty
+                failing_checks = row.get("failing_checks", [])
+                if failing_checks and len(failing_checks) > 0:
+                    failed_rows += 1
 
     except IOError as e:
         print(f"⚠️  Error reading ledger: {e}")
         return 0.0
 
-    if total_checks == 0:
+    if total_rows == 0:
         return 0.0
 
-    gap_rate = failed_checks / total_checks
+    gap_rate = failed_rows / total_rows
     return gap_rate
 
 
@@ -155,7 +156,7 @@ def run_smoke_test() -> bool:
     """Smoke test: verify gate loads profile and computes gap_rate."""
     try:
         test_profile_path = "calibration_profiles/BASELINE_S092126.json"
-        test_ledger_path = "ledgers/NF_LEDGER.jsonl"
+        test_ledger_path = "audits/smag_pilot_ledger.jsonl"
 
         if not Path(test_profile_path).exists():
             print(f"SMOKE_TEST: SKIP (profile not found at {test_profile_path})")
@@ -194,8 +195,8 @@ def main():
     )
     parser.add_argument(
         "--ledger-path",
-        default="ledgers/NF_LEDGER.jsonl",
-        help="Path to NF_LEDGER.jsonl",
+        default="audits/smag_pilot_ledger.jsonl",
+        help="Path to smag_pilot_ledger.jsonl",
     )
     parser.add_argument(
         "--substrate",

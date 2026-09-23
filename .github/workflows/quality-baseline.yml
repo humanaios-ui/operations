@@ -29,7 +29,7 @@ jobs:
           # Rolling 30-day window for gap_rate measurement; telemetry-only, no scheduling authority
           python3 tools/smag_gate_enforcer_v1_0.py \
             --profile-path calibration_profiles/BASELINE_S092126.json \
-            --ledger-path ledgers/NF_LEDGER.jsonl \
+            --ledger-path audits/smag_pilot_ledger.jsonl \
             --substrate "human:humanaios-ui" \
             --window-days 30
           echo "✓ SMAG Calibration Gate passed (gap_rate verified, review_bar enforced)"

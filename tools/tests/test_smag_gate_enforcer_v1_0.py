@@ -97,13 +97,13 @@ def test_compute_gap_rate_empty_ledger():
         Path(f.name).unlink()
 
 
-def test_compute_gap_rate_no_verdicts():
-    """Test gap_rate with ledger containing no VERDICT events."""
+def test_compute_gap_rate_no_failing_checks():
+    """Test gap_rate with ledger containing no failing checks."""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as f:
-        # Write non-VERDICT events
+        # Write rows with empty failing_checks
         now = datetime.now(timezone.utc).isoformat()
-        f.write(json.dumps({"type": "TOKEN", "at": now}) + "\n")
-        f.write(json.dumps({"type": "PIN", "at": now}) + "\n")
+        for i in range(10):
+            f.write(json.dumps({"timestamp": now, "failing_checks": []}) + "\n")
         f.flush()
 
         gap_rate = compute_gap_rate(f.name, 30)
@@ -113,12 +113,12 @@ def test_compute_gap_rate_no_verdicts():
 
 
 def test_compute_gap_rate_all_passing():
-    """Test gap_rate when all checks pass."""
+    """Test gap_rate when all checks pass (no failing_checks)."""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as f:
         now = datetime.now(timezone.utc).isoformat()
-        # Write passing verdicts (failing_check: false or absent)
+        # Write passing rows (empty failing_checks)
         for i in range(10):
-            f.write(json.dumps({"type": "VERDICT", "at": now, "failing_check": False}) + "\n")
+            f.write(json.dumps({"timestamp": now, "failing_checks": []}) + "\n")
         f.flush()
 
         gap_rate = compute_gap_rate(f.name, 30)
@@ -131,9 +131,9 @@ def test_compute_gap_rate_all_failing():
     """Test gap_rate when all checks fail."""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as f:
         now = datetime.now(timezone.utc).isoformat()
-        # Write failing verdicts
+        # Write failing rows (non-empty failing_checks)
         for i in range(10):
-            f.write(json.dumps({"type": "VERDICT", "at": now, "failing_check": True}) + "\n")
+            f.write(json.dumps({"timestamp": now, "failing_checks": ["check1"]}) + "\n")
         f.flush()
 
         gap_rate = compute_gap_rate(f.name, 30)
@@ -143,14 +143,14 @@ def test_compute_gap_rate_all_failing():
 
 
 def test_compute_gap_rate_mixed():
-    """Test gap_rate with mix of passing and failing checks."""
+    """Test gap_rate with mix of passing and failing rows."""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as f:
         now = datetime.now(timezone.utc).isoformat()
         # 7 passing, 3 failing
         for i in range(7):
-            f.write(json.dumps({"type": "VERDICT", "at": now, "failing_check": False}) + "\n")
+            f.write(json.dumps({"timestamp": now, "failing_checks": []}) + "\n")
         for i in range(3):
-            f.write(json.dumps({"type": "VERDICT", "at": now, "failing_check": True}) + "\n")
+            f.write(json.dumps({"timestamp": now, "failing_checks": ["check1"]}) + "\n")
         f.flush()
 
         gap_rate = compute_gap_rate(f.name, 30)
@@ -164,20 +164,20 @@ def test_compute_gap_rate_window_boundary():
     with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as f:
         now = datetime.now(timezone.utc)
 
-        # Old event (outside window) - should be ignored
+        # Old row (outside window) - should be ignored
         old_date = (now - timedelta(days=35)).isoformat()
-        f.write(json.dumps({"type": "VERDICT", "at": old_date, "failing_check": True}) + "\n")
+        f.write(json.dumps({"timestamp": old_date, "failing_checks": ["check1"]}) + "\n")
 
-        # Recent events (inside 30-day window)
+        # Recent rows (inside 30-day window)
         recent_date = (now - timedelta(days=5)).isoformat()
         for i in range(10):
-            f.write(json.dumps({"type": "VERDICT", "at": recent_date, "failing_check": False}) + "\n")
+            f.write(json.dumps({"timestamp": recent_date, "failing_checks": []}) + "\n")
 
         f.flush()
 
         gap_rate = compute_gap_rate(f.name, 30)
-        # Should count only the 10 recent passing events, not the old failing one
-        assert gap_rate == 0.0, f"Expected 0.0 (old event outside window), got {gap_rate}"
+        # Should count only the 10 recent passing rows, not the old failing one
+        assert gap_rate == 0.0, f"Expected 0.0 (old row outside window), got {gap_rate}"
 
         Path(f.name).unlink()
 
@@ -188,37 +188,37 @@ def test_compute_gap_rate_malformed_timestamp():
         now = datetime.now(timezone.utc).isoformat()
 
         # Malformed timestamp
-        f.write(json.dumps({"type": "VERDICT", "at": "invalid-date", "failing_check": True}) + "\n")
+        f.write(json.dumps({"timestamp": "invalid-date", "failing_checks": ["check1"]}) + "\n")
 
         # Valid timestamps
         for i in range(5):
-            f.write(json.dumps({"type": "VERDICT", "at": now, "failing_check": False}) + "\n")
+            f.write(json.dumps({"timestamp": now, "failing_checks": []}) + "\n")
 
         f.flush()
 
         gap_rate = compute_gap_rate(f.name, 30)
-        # Should skip the malformed event and count only the 5 valid ones
+        # Should skip the malformed row and count only the 5 valid ones
         assert gap_rate == 0.0, f"Expected 0.0 (malformed skipped), got {gap_rate}"
 
         Path(f.name).unlink()
 
 
 def test_compute_gap_rate_missing_timestamp():
-    """Test gap_rate handling of events with missing timestamp."""
+    """Test gap_rate handling of rows with missing timestamp."""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as f:
         now = datetime.now(timezone.utc).isoformat()
 
-        # Event with no timestamp
-        f.write(json.dumps({"type": "VERDICT", "failing_check": True}) + "\n")
+        # Row with no timestamp
+        f.write(json.dumps({"failing_checks": ["check1"]}) + "\n")
 
-        # Valid events
+        # Valid rows
         for i in range(5):
-            f.write(json.dumps({"type": "VERDICT", "at": now, "failing_check": False}) + "\n")
+            f.write(json.dumps({"timestamp": now, "failing_checks": []}) + "\n")
 
         f.flush()
 
         gap_rate = compute_gap_rate(f.name, 30)
-        # Should skip the no-timestamp event and count only the 5 valid ones
+        # Should skip the no-timestamp row and count only the 5 valid ones
         assert gap_rate == 0.0, f"Expected 0.0 (no-timestamp skipped), got {gap_rate}"
 
         Path(f.name).unlink()
@@ -232,9 +232,9 @@ def test_compute_gap_rate_malformed_json():
         # Malformed JSON
         f.write("{ invalid json }\n")
 
-        # Valid events
+        # Valid rows
         for i in range(5):
-            f.write(json.dumps({"type": "VERDICT", "at": now, "failing_check": False}) + "\n")
+            f.write(json.dumps({"timestamp": now, "failing_checks": []}) + "\n")
 
         f.flush()
 
@@ -247,15 +247,15 @@ def test_compute_gap_rate_malformed_json():
 
 def test_compute_gap_rate_threshold_equality():
     """Test that threshold comparison works correctly at equality."""
-    # This verifies the gate uses > (not >=) for threshold check
-    # A gap_rate equal to threshold should NOT block
+    # This verifies gap_rate computation returns exactly 0.25
+    # The gate uses > (not >=) for threshold check
     with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as f:
         now = datetime.now(timezone.utc).isoformat()
 
         # Create 25% failing rate (1 failing out of 4 total)
-        f.write(json.dumps({"type": "VERDICT", "at": now, "failing_check": True}) + "\n")
+        f.write(json.dumps({"timestamp": now, "failing_checks": ["check1"]}) + "\n")
         for i in range(3):
-            f.write(json.dumps({"type": "VERDICT", "at": now, "failing_check": False}) + "\n")
+            f.write(json.dumps({"timestamp": now, "failing_checks": []}) + "\n")
 
         f.flush()
 
