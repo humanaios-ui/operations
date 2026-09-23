@@ -63,9 +63,10 @@ class RunState:
     # Each gate cites one or more receipt IDs.
     gate_evidence: Dict[str, List[str]] = field(default_factory=dict)
 
-    # Fed by the Bridge / Evidence Graph.
+    # Fed by the Bridge / Evidence Graph. The trusted head is deliberately
+    # NOT part of RunState; it must enter evaluate() through a separate trust
+    # boundary.
     receipt_events: List[Dict[str, Any]] = field(default_factory=list)
-    receipt_head_hash: Optional[str] = None
 
     mutual_understanding: float = 0.0
     complementarity: float = 0.0
@@ -83,15 +84,21 @@ def _bounded(v: float) -> float:
     return max(0.0, min(1.0, float(v)))
 
 
-def _resolver(state: RunState) -> Optional[VerifiedReceiptResolver]:
-    if not state.receipt_events or not state.receipt_head_hash:
+def _resolver(
+    state: RunState,
+    trusted_receipt_head_hash: Optional[str],
+) -> Optional[VerifiedReceiptResolver]:
+    if not state.receipt_events or not trusted_receipt_head_hash:
         return None
-    return VerifiedReceiptResolver(state.receipt_events, state.receipt_head_hash)
+    return VerifiedReceiptResolver(state.receipt_events, trusted_receipt_head_hash)
 
 
-def gate_failures(state: RunState) -> List[str]:
+def gate_failures(
+    state: RunState,
+    trusted_receipt_head_hash: Optional[str],
+) -> List[str]:
     failures: List[str] = []
-    resolver = _resolver(state)
+    resolver = _resolver(state, trusted_receipt_head_hash)
 
     for gate in HARD_GATES:
         if not bool(getattr(state, gate)):
@@ -169,15 +176,20 @@ def identity_efficiency(state: RunState) -> float:
     return _bounded(semantic / (semantic + identity))
 
 
-def evaluate(state: RunState) -> Dict[str, Any]:
-    failures = gate_failures(state)
+def evaluate(
+    state: RunState,
+    *,
+    trusted_receipt_head_hash: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Evaluate collaboration state against an independently supplied receipt head."""
+    failures = gate_failures(state, trusted_receipt_head_hash)
 
     if failures:
         return {
             "verdict": "INVALID_HARMONY",
             "score": 0.0,
             "gate_failures": failures,
-            "receipt_head_hash": state.receipt_head_hash,
+            "receipt_head_hash": trusted_receipt_head_hash,
             "disagreement": disagreement_retention(state),
             "independence": independence_signal(state),
             "identity_efficiency": identity_efficiency(state),
@@ -199,7 +211,7 @@ def evaluate(state: RunState) -> Dict[str, Any]:
         "dimensions": dimensions,
         "gate_failures": [],
         "gate_evidence": state.gate_evidence,
-        "receipt_head_hash": state.receipt_head_hash,
+        "receipt_head_hash": trusted_receipt_head_hash,
         "disagreement": disagreement_retention(state),
         "independence": independence_signal(state),
         "identity_efficiency": identity_efficiency(state),
