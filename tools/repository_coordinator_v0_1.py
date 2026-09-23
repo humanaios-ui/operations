@@ -186,4 +186,162 @@ def _competition(prs: list[dict[str, Any]]) -> dict[int, list[int]]:
     return result
 
 
-def _temporal_control_signa
+def _temporal_control_signal(pr: dict[str, Any]) -> bool:
+    body = pr.get("body") or ""
+    patches = "\n".join(
+        str(f.get("patch") or "") for f in pr.get("file_details") or []
+    )
+    text = body + "\n" + patches
+    return bool(TIME_CONTROL_TERMS.search(text) and CONTROL_TERMS.search(text))
+
+
+def classify(
+    pr: dict[str, Any],
+    *,
+    competition: dict[int, list[int]],
+    main_paths: set[str],
+    referenced_prs: dict[str, dict[str, Any]],
+    active_gates: list[str],
+) -> dict[str, Any]:
+    number = int(pr["number"])
+    body = pr.get("body") or ""
+    files = set(pr.get("files") or [])
+    findings: list[Finding] = []
+
+    zero_diff = len(files) == 0
+    if zero_diff:
+        findings.append(Finding(
+            "ZERO_DIFF", "HIGH",
+            "GitHub reports no changed files; there is no remaining merge delta."
+        ))
+
+    missing = _missing_refs(body, main_paths, files)
+    for path in missing[:12]:
+        findings.append(Finding(
+            "MISSING_REFERENCED_ARTIFACT", "HIGH",
+            f"PR body references `{path}`, which is absent from current main and this PR's own changed files."
+        ))
+
+    dead_refs = _referenced_pr_failures(pr, referenced_prs)
+    for evidence in dead_refs[:12]:
+        findings.append(Finding("CLOSED_UNMERGED_REFERENCE", "HIGH", evidence))
+
+    review_states = _latest_review_states(pr.get("reviews") or [])
+    blockers = sorted(u for u, state in review_states.items() if state == "CHANGES_REQUESTED")
+    if blockers:
+        findings.append(Finding(
+            "CHANGES_REQUESTED", "HIGH",
+            "Latest decisive review state requests changes from: " + ", ".join(blockers)
+        ))
+
+    required = _required_authority(pr)
+    claimed = _claimed_zones(body)
+    if required == "Z2" and "Z2" not in claimed:
+        findings.append(Finding(
+            "AUTHORITY_CLAIM_MISMATCH", "HIGH",
+            "Diff touches a workflow/canonical control surface but the PR body does not claim Z2 review."
+        ))
+
+    gate_hits: list[str] = []
+    if active_gates and _temporal_control_signal(pr):
+        # v0.1 only has a mechanical detector for the global temporal gate.
+        temporal = [g for g in active_gates if "TEMPORAL" in g]
+        if temporal:
+            gate_hits.extend(temporal)
+            findings.append(Finding(
+                "ACTIVE_GATE_REVIEW_REQUIRED", "HIGH",
+                "PR contains time-based control language while the canonical temporal-dissolution gate is active: "
+                + ", ".join(temporal)
+            ))
+
+    competitors = sorted(competition.get(number) or [])
+    if competitors:
+        findings.append(Finding(
+            "COMPETING_IMPLEMENTATION", "MEDIUM",
+            "Substantial file + objective overlap with open PR(s): "
+            + ", ".join(f"#{n}" for n in competitors)
+        ))
+
+    mergeable_state = str(pr.get("mergeable_state") or "").lower()
+    if mergeable_state in {"dirty", "behind"}:
+        findings.append(Finding(
+            "BASE_OR_CONFLICT_DRIFT", "MEDIUM",
+            f"GitHub mergeable_state is `{mergeable_state}`; refresh against current main before merge."
+        ))
+
+    high_codes = {f.code for f in findings if f.severity == "HIGH"}
+    if zero_diff:
+        action = "CLOSE_PRESERVE"
+        next_action = "Preserve the PR as evidence/history; do not treat it as an active merge unit."
+    elif high_codes:
+        action = "REEXAMINE"
+        next_action = "Resolve the listed warrant/evidence/authority conflicts before investing in merge repair."
+    elif competitors:
+        action = "COMPARE_CONSOLIDATE"
+        next_action = "Compare the overlapping implementations, preserve unique contributions, and choose or extract one merge unit."
+    elif mergeable_state in {"dirty", "behind"}:
+        action = "REBASE_RETEST"
+        next_action = "Refresh against current main and rerun the relevant test suite."
+    else:
+        action = "ADVANCE"
+        next_action = "Proceed to ordinary review/testing; no coordinator-level blocker was detected."
+
+    if zero_diff:
+        objective = "HISTORICAL"
+    else:
+        objective = "LIVE"
+
+    state_alignment = "CURRENT"
+    if high_codes:
+        state_alignment = "REVALIDATION_REQUIRED"
+    elif mergeable_state in {"dirty", "behind"}:
+        state_alignment = "DRIFTED"
+
+    evidence_status = "CURRENT"
+    if {"MISSING_REFERENCED_ARTIFACT", "CLOSED_UNMERGED_REFERENCE", "CHANGES_REQUESTED"} & high_codes:
+        evidence_status = "STALE_OR_CONTESTED"
+
+    dependency_status = "SATISFIED"
+    if dead_refs or missing:
+        dependency_status = "INVALIDATED_OR_MISSING"
+    elif competitors:
+        dependency_status = "COMPETING"
+
+    return {
+        "number": number,
+        "title": pr.get("title") or "",
+        "url": pr.get("html_url") or pr.get("url"),
+        "objective": objective,
+        "state_alignment": state_alignment,
+        "dependency": {
+            "status": dependency_status,
+            "competing_prs": competitors,
+        },
+        "authority": {
+            "required": required,
+            "claimed": sorted(claimed),
+            "status": "MISMATCH" if "AUTHORITY_CLAIM_MISMATCH" in high_codes else "ALIGNED_OR_UNCLAIMED",
+        },
+        "canonical_gates": {
+            "status": "REVIEW_REQUIRED" if gate_hits else "CLEAR",
+            "blockers": gate_hits,
+        },
+        "evidence": {"status": evidence_status},
+        "merge_surface": {
+            "zero_diff": zero_diff,
+            "changed_files": len(files),
+            "mergeable_state": mergeable_state or "unknown",
+        },
+        "guidance": {
+            "action": action,
+            "next_action": next_action,
+        },
+        "findings": [asdict(f) for f in findings],
+    }
+
+
+def analyze(snapshot: dict[str, Any], priority_queue_text: str) -> dict[str, Any]:
+    prs = list(snapshot.get("pull_requests") or [])
+    competitions = _competition(prs)
+    main_paths = set(snapshot.get("main_paths") or [])
+    referenced = snapshot.get("referenced_pu
