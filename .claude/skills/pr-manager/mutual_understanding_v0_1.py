@@ -120,12 +120,16 @@ class InterrogationGate:
         self,
         receipt_events: Optional[List[Dict[str, Any]]] = None,
         receipt_head_hash: Optional[str] = None,
+        receipt_feed=None,
     ):
         self.questions: dict[str, InterrogationQuestion] = {}
         self.approvals: dict[str, ApprovalDecision] = {}
         self.answers: dict[str, PseudonymousAnswer] = {}
         self.receipt_events = receipt_events or []
         self.receipt_head_hash = receipt_head_hash
+        self.receipt_feed = receipt_feed
+        if self.receipt_feed is not None:
+            self._refresh_from_feed()
 
     def set_receipt_feed(
         self,
@@ -135,7 +139,16 @@ class InterrogationGate:
         self.receipt_events = receipt_events
         self.receipt_head_hash = receipt_head_hash
 
+    def _refresh_from_feed(self) -> None:
+        if self.receipt_feed is None:
+            return
+        events, head = self.receipt_feed.snapshot()
+        self.receipt_events = events
+        self.receipt_head_hash = head
+
     def _resolver(self) -> VerifiedReceiptResolver:
+        if self.receipt_feed is not None:
+            self._refresh_from_feed()
         if not self.receipt_events or not self.receipt_head_hash:
             raise ValueError("APPROVAL_RECEIPT_FEED_REQUIRED")
         return VerifiedReceiptResolver(self.receipt_events, self.receipt_head_hash)
@@ -201,6 +214,15 @@ class InterrogationGate:
             )
 
         receipt = resolution.receipt or {}
+        if receipt.get("one_time"):
+            if self.receipt_feed is None:
+                raise ValueError("ONE_TIME_APPROVAL_REQUIRES_WRITABLE_RECEIPT_FEED")
+            self.receipt_feed.consume_receipt(
+                receipt_id=approval_receipt_id,
+                consumed_by="interrogation-gate",
+                subject=question_id,
+            )
+            self._refresh_from_feed()
         decision = ApprovalDecision(
             question_id=question_id,
             approved=approved,
