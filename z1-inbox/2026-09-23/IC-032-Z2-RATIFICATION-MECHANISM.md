@@ -11,19 +11,19 @@
 
 ## Problem Statement
 
-The Z2 ratification mechanism is not explicitly documented. Specifically:
+The Z2 ratification mechanism for relay-managed board-ruling blocks is not explicitly documented. Specifically:
 
-1. **Z2's PR merge constitutes the ratification signature** — but this is not stated in CLAUDE.md, governance docs, or workflow guidance
+1. **For relay-managed `status: DECIDED` blocks, Z2's PR merge constitutes the ratification signature** — but this is not stated in CLAUDE.md, governance docs, or workflow guidance
 2. **The Z2 ratification CI gate is designed to fail before merge** — but this is counterintuitive and undocumented, causing confusion that it's a blocker
 3. **New Z1/Z2/Z3 participants cannot distinguish between:**
    - A genuine CI failure blocking merge
-   - An intentional verification gate requiring Z2 override
+   - An intentional verification gate requiring Z2 override (for relay-managed blocks only)
 
 ### Evidence
 
-- CLAUDE.md documents Z2 decision routing but does not state: "Z2's PR merge is the signature"
-- z2_ratification_gate.yml workflow file does not explain its purpose: "Prevent accidental merge without Z2 review"
-- When Z2 observes gate "failure" before merge, nothing in the docs explains why failing before merge is correct behavior
+- CLAUDE.md documents Z2 decision routing but does not state: "For relay-managed blocks, Z2's PR merge is the signature"
+- z2_ratification_gate.yml workflow file does not explain its purpose: "Prevent accidental merge without Z2 review (for relay-managed board-ruling blocks)"
+- When Z2 observes gate "failure" before merge on relay-managed blocks, nothing in the docs explains why failing before merge is correct behavior
 - Q-BUZZ-COLLAB-EVAL-01 PR #468 exemplified this: gate failed, Z2 merged anyway, but no participant (except Z2) understood that the gate failure was intentional
 
 ## Current Workflow (Implicit)
@@ -47,15 +47,15 @@ The documented workflow does not match the implemented workflow.
 **This issue is resolved when:**
 
 1. **CLAUDE.md § Decision Routing explicitly states:**
-   > "Z2 ratification occurs when Z2 merges the PR to main. The PR merge action by Z2 is the authoritative signature; the git commit SHA is the evidence."
+   > "For relay-managed board-ruling blocks (`status: DECIDED`), Z2 ratification occurs when Z2 merges the PR to main. The PR merge action by Z2 is the authoritative signature; the git commit SHA is the evidence. Standard candidate blocks (proposals, findings) continue to require explicit Z2 signature via `.z1-control/ratify.py`."
 
 2. **z2_ratification_gate.yml or its documentation states:**
-   > "The 'Verify Z2 Ratification Requirements' gate is designed to fail before Z2 merges. The gate ensures Z2 cannot accidentally merge without review. When Z2 merges despite the gate failure, that merge action is Z2's explicit ratification signature. This is intentional and correct."
+   > "The 'Verify Z2 Ratification Requirements' gate is designed to fail before Z2 merges (on relay-managed blocks only). The gate ensures Z2 cannot accidentally merge without review. When Z2 merges despite the gate failure, that merge action is Z2's explicit ratification signature. This is intentional and correct."
 
 3. **New governance onboarding docs (GOVERNANCE.md or Z1_INBOX_README.md) include:**
-   > "Z2 Ratification Workflow: Z1 proposes (files candidate to z1-inbox/) → Z2 reviews PR → Z2 merges (override Z2 gate) → Merge commit is the ratification signature → Z3 executes with hash from commit message."
+   > "Z2 Ratification Workflow (relay-managed blocks): Z1 files decision block → Z2 reviews PR → Z2 merges (override Z2 gate) → Merge commit is the ratification signature → Z3 executes. For standard candidates: Z2 signs with `.z1-control/ratify.py` creating z2_hash and z2_ruling."
 
-**Falsifier condition:** Issue is FALSE if Z1 proposers and new Z2 ratifiers can read one source and understand that PR merge by Z2 = ratification without confusion about the gate failure.
+**Falsifier condition:** Issue is FALSE if Z1 proposers and new Z2 ratifiers can read one source and understand (1) that PR merge by Z2 = ratification for relay-managed blocks, and (2) that standard candidates require explicit Z2 signature, without confusion about the gate failure.
 
 ---
 

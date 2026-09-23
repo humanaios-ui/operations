@@ -914,7 +914,7 @@ candidates:
     \ OSF, IONOS, Hubstaff, Greenlight, RevBy, FreeCodeCamp). Cockpit access layer\
     \ with cross-service activity feed and Z2-governed delegation to AI agents/Z3\
     \ executors. Phase 1 (source of truth) 8-12 hours + 100k tokens, completes this\
-    \ week."
+    \ week. Awaits Z2 signature via .z1-control/ratify.py (standard candidate process)."
 - q_id: Q-BUZZ-COLLAB-EVAL-01
   title: "Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance\
     \ on self-hosted Nostr relay)"
