@@ -3,7 +3,7 @@ generated: '2026-09-23'
 decision_window_days: 2
 counts:
   candidates: 84
-  records: 38
+  records: 39
 ratifiers:
 - Night
 candidates:
@@ -1082,4 +1082,7 @@ records:
     \ liquidity conditions). Proposes Z2 decision framework: require baseline Sharpe\
     \ measurement (at threshold=0.50, same window) before ratifying 0.55 as \"better.\"\
     \ Filed as F-MEASUREMENT-SCOPE-AUDIT-01 in REGISTERED.md; window close 2026-09-28."
+- path: z1-inbox/2026-09-23/BUZZ_INTEGRATION_SPEC.md
+  title: "Buzz Integration Specification \u2014 Technical mapping of HumanAIOS Z1/Z2/Z3 governance to Buzz affordances"
+  note: "Companion document to Q-BUZZ-COLLAB-EVAL-01, providing detailed technical specification: event schemas (Nostr NIP-01/NIP-34), GitHub webhook integration, CI/CD gate verification, Z3 execution flow, Z2 authority model, deployment architecture, and rollout plan. Sections 1\u20135 map governance workflows; sections 6\u20138 assess feasibility. A record: no Z2 decision requested."
 excluded: []
