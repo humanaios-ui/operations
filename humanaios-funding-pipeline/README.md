@@ -309,6 +309,32 @@ This pipeline is calibrated for the following founder profile. The `native_eligi
 
 ---
 
+## Entitlement Navigator — evidence + eligibility layer
+
+The funding pipeline now has an integration target at `entitlement-navigator/`: a local-first investigation service that consumes this pipeline's canonical `data/sources.json` without duplicating or overwriting the opportunity database.
+
+It adds:
+
+- general intake → adaptive interrogation rather than a Cherokee-specific front door;
+- separate applicant nodes for individuals, households, businesses, nonprofits, estates/heirs, property, and ancestral chains;
+- deterministic `RULE_MATCH`, `CONDITIONAL_MATCH`, `INVESTIGATE`, `INELIGIBLE`, `CLOSED_HISTORICAL`, and `GENERAL_OPPORTUNITY` classifications;
+- a genealogy/GEDCOM evidence module that can route Dawes → allotment → title → probate → IIM research without treating a clue as proof;
+- a local adapter over `data/sources.json`, plus SAM.gov Assistance Listings and Grants.gov research tasks;
+- explicit evidence provenance and a git-ignored private case boundary.
+
+Run locally:
+
+```bash
+cd humanaios-funding-pipeline/entitlement-navigator
+python3 -m unittest discover -s tests -v
+python3 app.py
+# open http://127.0.0.1:8765
+```
+
+Raw genealogy, identity documents, case files, generated case skills, and case-specific manifests belong under `entitlement-navigator/private/` and are excluded from source control. See `entitlement-navigator/README.md` for the evidence model, APIs, and installation details.
+
+---
+
 ## Governance note
 
 This tool is **Zone 1 infrastructure** (Unit Zero executes). The data it produces is informational. All decisions about which opportunities to pursue require **Zone 2 ratification** per HumanAIOS governance (`humanaios-ui/operations` → `GOVERNANCE.md`). No opportunity is applied for, committed to, or distributed based solely on this pipeline without operator (Night) review.

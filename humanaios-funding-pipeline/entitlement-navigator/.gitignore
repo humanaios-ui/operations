@@ -1,0 +1,6 @@
+private/
+*.ged
+*.gedcom
+__pycache__/
+*.py[cod]
+.pytest_cache/
