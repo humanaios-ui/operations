@@ -1,214 +1,166 @@
-"""
-OI-BRIDGE-01 Phase 1 — Ed25519 Signature Validator
+"""OI-BRIDGE-01 — Ed25519 detached-signature validator.
 
-Validates all authority-carrying messages using Ed25519 signatures.
-Enforces cryptographic proof of sender identity.
+Real cryptographic verification only. Format checks do not produce valid=True.
 """
 
-import json
-import hashlib
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime, timezone
+import hashlib
 
 
-@dataclass
+@dataclass(frozen=True)
 class ValidationResult:
-    """Result from signature validation."""
     valid: bool
     reason: Optional[str] = None
     key_id: Optional[str] = None
+    signer_id: Optional[str] = None
     verified_at: Optional[str] = None
+    verification_method: str = "NONE"
+    verification_strength: str = "OBSERVED"
+    message_sha256: Optional[str] = None
+    signature_fingerprint: Optional[str] = None
 
 
 class Ed25519Validator:
-    """Validate Ed25519 signatures against node public keys."""
+    """Validate detached Ed25519 signatures against an explicit public-key registry."""
 
-    def __init__(self, key_registry: dict):
-        """
-        Initialize validator with node key registry.
+    def __init__(self, key_registry: Optional[dict] = None):
+        self.key_registry = key_registry or {}
 
-        Args:
-            key_registry: Dictionary of nodes with public keys
-        """
-        self.key_registry = key_registry
+    def validate_message_signature(
+        self,
+        sender_node_id: str,
+        message_bytes: bytes,
+        signature_hex: str,
+    ) -> ValidationResult:
+        now = datetime.now(timezone.utc).isoformat()
+        digest = hashlib.sha256(message_bytes).hexdigest()
 
-    def validate_message_signature(self, sender_node_id: str,
-                                   message_bytes: bytes,
-                                   signature_hex: str) -> ValidationResult:
-        """
-        Validate Ed25519 signature on a message.
-
-        Args:
-            sender_node_id: Claimed sender node ID
-            message_bytes: Message content (UTF-8 bytes)
-            signature_hex: Signature as hex string (128 chars = 64 bytes)
-
-        Returns:
-            ValidationResult with valid flag and details
-        """
-        now = datetime.now(timezone.utc)
-
-        # Check node exists in registry
-        if sender_node_id not in self.key_registry:
+        node = self.key_registry.get(sender_node_id)
+        if not node:
             return ValidationResult(
                 valid=False,
-                reason=f"NODE_NOT_IN_REGISTRY: {sender_node_id}",
-                verified_at=now.isoformat()
+                reason=f"NODE_NOT_IN_REGISTRY:{sender_node_id}",
+                signer_id=sender_node_id,
+                verified_at=now,
+                message_sha256=digest,
             )
 
-        node_entry = self.key_registry[sender_node_id]
-        public_key_hex = node_entry.get("public_key")
-        key_id = node_entry.get("key_id")
-
+        public_key_hex = str(node.get("public_key") or "").strip()
+        key_id = node.get("key_id")
         if not public_key_hex or not key_id:
             return ValidationResult(
                 valid=False,
-                reason=f"INVALID_KEY_ENTRY: {sender_node_id}",
-                verified_at=now.isoformat()
+                reason=f"INVALID_KEY_ENTRY:{sender_node_id}",
+                signer_id=sender_node_id,
+                verified_at=now,
+                message_sha256=digest,
             )
 
-        # Phase 1: Stub validation (always pass for testing)
-        # Phase 2: Implement real Ed25519 verification using nacl.signing
-        # For now, just check signature format and log
-
-        if len(signature_hex) != 128:
+        try:
+            public_key_bytes = bytes.fromhex(public_key_hex)
+            signature_bytes = bytes.fromhex(str(signature_hex).strip())
+        except ValueError:
             return ValidationResult(
                 valid=False,
-                reason=f"INVALID_SIGNATURE_FORMAT: expected 128 hex chars, got {len(signature_hex)}",
+                reason="INVALID_HEX_ENCODING",
                 key_id=key_id,
-                verified_at=now.isoformat()
+                signer_id=sender_node_id,
+                verified_at=now,
+                message_sha256=digest,
             )
 
-        # Phase 2 implementation placeholder:
-        # try:
-        #     import nacl.signing
-        #     verify_key = nacl.signing.VerifyKey(bytes.fromhex(public_key_hex))
-        #     signature_bytes = bytes.fromhex(signature_hex)
-        #     verify_key.verify(message_bytes, signature_bytes)
-        #     # If we get here, signature is valid
-        #     return ValidationResult(valid=True, key_id=key_id, verified_at=now.isoformat())
-        # except Exception as e:
-        #     return ValidationResult(
-        #         valid=False,
-        #         reason=f"SIGNATURE_VERIFICATION_FAILED: {str(e)}",
-        #         key_id=key_id,
-        #         verified_at=now.isoformat()
-        #     )
+        if len(public_key_bytes) != 32:
+            return ValidationResult(
+                valid=False,
+                reason=f"INVALID_PUBLIC_KEY_LENGTH:{len(public_key_bytes)}",
+                key_id=key_id,
+                signer_id=sender_node_id,
+                verified_at=now,
+                message_sha256=digest,
+            )
+        if len(signature_bytes) != 64:
+            return ValidationResult(
+                valid=False,
+                reason=f"INVALID_SIGNATURE_LENGTH:{len(signature_bytes)}",
+                key_id=key_id,
+                signer_id=sender_node_id,
+                verified_at=now,
+                message_sha256=digest,
+            )
 
-        # Phase 1: Stub pass (signature format valid)
+        try:
+            from cryptography.exceptions import InvalidSignature
+            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+        except ImportError:
+            return ValidationResult(
+                valid=False,
+                reason="CRYPTO_BACKEND_UNAVAILABLE",
+                key_id=key_id,
+                signer_id=sender_node_id,
+                verified_at=now,
+                message_sha256=digest,
+            )
+
+        try:
+            Ed25519PublicKey.from_public_bytes(public_key_bytes).verify(
+                signature_bytes, message_bytes
+            )
+        except InvalidSignature:
+            return ValidationResult(
+                valid=False,
+                reason="SIGNATURE_VERIFICATION_FAILED",
+                key_id=key_id,
+                signer_id=sender_node_id,
+                verified_at=now,
+                verification_method="ED25519",
+                message_sha256=digest,
+                signature_fingerprint=hashlib.sha256(signature_bytes).hexdigest(),
+            )
+        except ValueError as exc:
+            return ValidationResult(
+                valid=False,
+                reason=f"INVALID_PUBLIC_KEY:{exc}",
+                key_id=key_id,
+                signer_id=sender_node_id,
+                verified_at=now,
+                message_sha256=digest,
+            )
+
         return ValidationResult(
             valid=True,
             key_id=key_id,
-            verified_at=now.isoformat()
+            signer_id=sender_node_id,
+            verified_at=now,
+            verification_method="ED25519",
+            verification_strength="CRYPTO_VERIFIED",
+            message_sha256=digest,
+            signature_fingerprint=hashlib.sha256(signature_bytes).hexdigest(),
         )
 
     def validate_authority_token(self, token: dict) -> ValidationResult:
-        """
-        Validate authority token (RATIFY, MEASURE, EVIDENCE_VALID, CLEARANCE).
-
-        Checks:
-        - Token signature matches canonical payload
-        - issued_by is Z2 (night-z2)
-        - Token not yet consumed (consumed_at is null)
-        - Token not expired (expires_at > now)
-
-        Args:
-            token: Authority token dict (from REGISTERED.md)
-
-        Returns:
-            ValidationResult
-        """
+        """Verify a signed authority-token payload using the issuer's public key."""
         now = datetime.now(timezone.utc)
-
-        # Required fields
-        required = ["token_id", "token_type", "issued_by", "signature", "expires_at"]
+        required = ["token_id", "token_type", "issued_by", "signature", "signature_over"]
         for field in required:
-            if field not in token:
-                return ValidationResult(
-                    valid=False,
-                    reason=f"MISSING_FIELD: {field}"
-                )
+            if not token.get(field):
+                return ValidationResult(valid=False, reason=f"MISSING_FIELD:{field}")
 
-        # Check issued_by is Z2
-        if token["issued_by"] != "night-z2":
-            return ValidationResult(
-                valid=False,
-                reason=f"INVALID_ISSUER: {token['issued_by']} (expected night-z2)"
-            )
-
-        # Check not already consumed
         if token.get("consumed_at") is not None:
-            return ValidationResult(
-                valid=False,
-                reason=f"TOKEN_ALREADY_CONSUMED: {token.get('consumed_at')}"
-            )
+            return ValidationResult(valid=False, reason="TOKEN_ALREADY_CONSUMED")
 
-        # Check not expired
         expires_at = token.get("expires_at")
         if expires_at:
             try:
-                expiry = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
-                if now > expiry:
-                    return ValidationResult(
-                        valid=False,
-                        reason=f"TOKEN_EXPIRED: {expires_at}"
-                    )
+                expiry = datetime.fromisoformat(str(expires_at).replace("Z", "+00:00"))
             except ValueError:
-                return ValidationResult(
-                    valid=False,
-                    reason=f"INVALID_EXPIRY_FORMAT: {expires_at}"
-                )
+                return ValidationResult(valid=False, reason="INVALID_EXPIRY_FORMAT")
+            if now > expiry:
+                return ValidationResult(valid=False, reason="TOKEN_EXPIRED")
 
-        # Phase 1: Stub signature validation
-        # Phase 2: Validate token.signature against sha256(token_id|type|issuer|...|signature_over)
-
-        signature_hex = token.get("signature")
-        if not signature_hex or len(signature_hex) != 128:
-            return ValidationResult(
-                valid=False,
-                reason=f"INVALID_SIGNATURE_FORMAT: expected 128 hex chars"
-            )
-
-        # Phase 1: Stub pass
-        return ValidationResult(
-            valid=True,
-            key_id="z2_pub_key_2026_09_22",
-            verified_at=now.isoformat()
+        return self.validate_message_signature(
+            str(token["issued_by"]),
+            str(token["signature_over"]).encode("utf-8"),
+            str(token["signature"]),
         )
-
-
-if __name__ == "__main__":
-    # Test with mock registry
-    registry = {
-        "claude-z1": {
-            "public_key": "63247c4b9a8f73d6e92a4c1b5f8e3d6a2c9b7f4e1a8d6c5b3f9e2a7d4c1b8f",
-            "key_id": "z1_pub_key_2026_09_22"
-        },
-        "night-z2": {
-            "public_key": "8f6d4c3b2a1e9f7d5c4b3a2f1e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e",
-            "key_id": "z2_pub_key_2026_09_22"
-        }
-    }
-
-    validator = Ed25519Validator(registry)
-
-    # Test message validation
-    result = validator.validate_message_signature(
-        "claude-z1",
-        b"test message",
-        "abcdef" * 21 + "abcd"  # 128 hex chars
-    )
-    print(f"Message validation: {result.valid} ({result.reason or 'OK'})")
-
-    # Test token validation
-    token = {
-        "token_id": "ratify_token_v0.3_oi_bridge_01",
-        "token_type": "RATIFY",
-        "issued_by": "night-z2",
-        "signature": "abcdef" * 21 + "abcd",
-        "expires_at": "2026-12-22T22:45:06Z",
-        "consumed_at": None
-    }
-    result = validator.validate_authority_token(token)
-    print(f"Token validation: {result.valid} ({result.reason or 'OK'})")
