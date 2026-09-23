@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-SMAG Calibration Gate Enforcer v1.0
+Builder v1.7 compliant
+smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up)
+HumanAIOS · security_gate_tool · S-092126
 
 Implements s1 CI gate wire-up: loads calibration profile, computes gap_rate,
 enforces review_bar and merge_pause_threshold before merge approval.
@@ -18,10 +20,13 @@ Returns:
   2 if configuration error
 """
 
+TOOL_NAME = "smag_gate_enforcer"
+TOOL_VERSION = "1.0.0"
+
 import json
 import sys
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -48,6 +53,24 @@ def get_substrate_profile(profile: dict, substrate: str) -> dict:
     return substrates[substrate]
 
 
+def is_profile_ratified(profile: dict) -> bool:
+    """
+    Check if profile has Z2 ratification signature.
+
+    Returns True if ratified (safe to enforce), False if pending.
+    """
+    ratified_by = profile.get("ratified_by_z2", "")
+    ratification_hash = profile.get("ratification_hash", "")
+
+    # Check if both fields have TBD values (awaiting signature)
+    if not ratified_by or ratified_by.startswith("TBD_"):
+        return False
+    if not ratification_hash or ratification_hash.startswith("TBD_"):
+        return False
+
+    return True
+
+
 def compute_gap_rate(ledger_path: str, window_days: int) -> float:
     """
     Compute gap_rate from NF_LEDGER.jsonl over rolling window.
@@ -61,7 +84,7 @@ def compute_gap_rate(ledger_path: str, window_days: int) -> float:
         print(f"   Defaulting gap_rate = 0.0 (clean slate)")
         return 0.0
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     window_start = now - timedelta(days=window_days)
 
     total_checks = 0
@@ -74,7 +97,10 @@ def compute_gap_rate(ledger_path: str, window_days: int) -> float:
                 if not line:
                     continue
 
-                event = json.loads(line)
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
 
                 # Filter by window and type
                 if event.get("type") != "VERDICT":
@@ -124,9 +150,41 @@ def enforce_review_bar(substrate_profile: dict) -> bool:
     return True
 
 
+def run_smoke_test() -> bool:
+    """Smoke test: verify gate loads profile and computes gap_rate."""
+    try:
+        test_profile_path = "calibration_profiles/BASELINE_S092126.json"
+        test_ledger_path = "ledgers/NF_LEDGER.jsonl"
+
+        if not Path(test_profile_path).exists():
+            print(f"SMOKE_TEST: SKIP (profile not found at {test_profile_path})")
+            return True
+
+        profile = load_profile(test_profile_path)
+        if "profile_id" not in profile:
+            print("SMOKE_TEST: FAIL (profile missing profile_id)")
+            return False
+
+        gap_rate = compute_gap_rate(test_ledger_path, 30)
+        if not isinstance(gap_rate, float) or gap_rate < 0.0 or gap_rate > 1.0:
+            print(f"SMOKE_TEST: FAIL (invalid gap_rate: {gap_rate})")
+            return False
+
+        print(f"SMOKE_TEST: PASS (profile={profile.get('profile_id')}, gap_rate={gap_rate:.2%})")
+        return True
+    except Exception as e:
+        print(f"SMOKE_TEST: FAIL ({e})")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="SMAG Calibration Gate Enforcer (s1 CI gate wire-up)"
+    )
+    parser.add_argument(
+        "--smoke-test",
+        action="store_true",
+        help="Run smoke test and exit",
     )
     parser.add_argument(
         "--profile-path",
@@ -156,6 +214,9 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.smoke_test:
+        sys.exit(0 if run_smoke_test() else 1)
 
     # Load profile
     profile = load_profile(args.profile_path)

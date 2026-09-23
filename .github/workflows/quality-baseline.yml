@@ -85,5 +85,6 @@ jobs:
             tools/tests/test_holographic_phase3_live.py \
             tools/tests/test_industry_telemetry.py \
             tools/tests/test_nonprofit_dashboard.py \
+            tools/tests/test_smag_gate_enforcer_v1_0.py \
             acat/tests/test_tool_trace_schema.py \
             -q
