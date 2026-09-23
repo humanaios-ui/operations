@@ -185,6 +185,9 @@ class InterrogationGate:
         """
         if question_id not in self.questions:
             raise ValueError(f"Question {question_id} not found")
+        question = self.questions[question_id]
+        if question.status != QuestionStatus.PENDING_APPROVAL:
+            raise ValueError(f"QUESTION_NOT_PENDING:{question.status.value}")
         if not approval_receipt_id:
             raise ValueError("APPROVAL_RECEIPT_REQUIRED")
 
@@ -211,6 +214,8 @@ class InterrogationGate:
                 raise ValueError("ONE_TIME_APPROVAL_REQUIRES_WRITABLE_RECEIPT_FEED")
             self.receipt_feed.consume_receipt(
                 receipt_id=approval_receipt_id,
+                requirement=requirement,
+                expected_head_hash=resolution.chain_head or "",
                 consumed_by="interrogation-gate",
                 subject=question_id,
             )
@@ -225,7 +230,6 @@ class InterrogationGate:
             verification_strength=str(receipt.get("verification_strength", "")),
         )
 
-        question = self.questions[question_id]
         question.status = QuestionStatus.APPROVED if approved else QuestionStatus.REJECTED
         question.approval_reason = reason
         question.approved_by = "human-z2"
