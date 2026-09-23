@@ -28,11 +28,14 @@ and from nothing else, so a dashboard opened without a run says so in red.
 
 | tier | what it proves | how | passes when |
 |---|---|---|---|
-| **T0 self-tests** | every tool can tell a plant from a pass | `--self-test` / `--smoke-test` on 17 tools (board checker, relay, the three control layers, lints, gates) | each exits 0 |
-| **T1 governance integrity** | the tree is internally consistent *right now* | the z2 gate's ERROR steps, signature re-verification, manifest/doc-control `--check`s, YAML parses, graph endpoints, board seals HOLD, fail-closed refusals | each exits as expected (`ic_scope_check` must exit 2) |
-| **T2 board + relay** | a Z2 session can open, tap, land and ratify | `node --check` on both pages; the real relay on a loopback port answering a signed `/decide` → PENDING hash → `/ratify` → signature that `.z1-control/ratify.py --verify` accepts; headless Chromium keeps a tap across reload | every step OK; nothing written under the repo |
+| **T0 self-tests** | every tool can tell a plant from a pass | `--self-test` / `--smoke-test` on 19 tools (board checker and re-sealer, relay, the agent-request reader, the three control layers, lints, gates) | each exits 0 |
+| **T1 governance integrity** | the tree is internally consistent *right now* | the z2 gate's ERROR steps, signature re-verification, manifest/doc-control `--check`s, YAML parses, graph endpoints, board seals HOLD, every `REQ-` record on the bus verifies, fail-closed refusals | each exits as expected (`ic_scope_check` must exit 2) |
+| **T2 board + relay** | a Z2 session can open, tap, land, and the merge ratifies | `node --check` on both pages; the real relay on a loopback port answering a signed `/decide` → DECIDED one-file landing, a re-send, the retired `/ratify` (404); then the merge stood in for and `tools/intent_os_reconcile_v1_0.py` writing the signature that `.z1-control/ratify.py --verify` accepts; headless Chromium keeps a tap across reload | every step OK; nothing written under the repo |
 | **T3 ci gates** | what `quality-baseline.yml` blocks on, plus the suites it does not run | its exact pytest list, its Ruff step (`--select=E9,F63,F7,F82` over `src/`, `acat/api/services`, `tools/tests`, `tests`), its mypy step; and `tests/`, `tools/tests/`, `acat/tests/` in full | each exits 0; SKIP (never green) when pytest, mypy or ruff is absent locally |
 | **T4 cross-repo** | the scale-out surface is real | `ZONE_REGISTRY.md` tables populated and `operations` ACTIVE; `PLANNED_REPOS.md` present; every path `REPOSITORY_STRUCTURE.md` names exists | each check OK |
+| **T5 manifest smoke** | the manifest's `smoke_test: true` claims hold | one row per manifest tool that claims a smoke test, run with the flag its source carries (`--smoke-test`, else `--self-test`); a tool whose source has neither is listed as SKIP (the manifest sets that field from a text match), an archived tool is SKIP, T0's curated rows are not repeated. Every row is **tree-guarded**: a smoke test that changes the git-visible tree (a tracked file modified, an untracked non-ignored file created) FAILS even with exit 0, and its writes are rolled back; gitignored paths such as `outputs/` are not seen and are the sanctioned scratch area. The first run measured the claim: 141 claimed · 106 pass · 17 fail · 18 no flag, and one passing smoke test that wrote three files at the repo root | each exits 0 and writes nothing into the tree; SKIP rows are listed, never green |
+| **T6 service boot** | a service actually starts | `acat.api.app` under FastAPI's `TestClient`; `/`, `/health`, `/api/v1/acat/health` answer 200 `ok` | exit 0; SKIP when `fastapi`/`httpx` are absent |
+| **T7 live provider** | the relay's `/assist` reaches a real model | one small call through `--input` with `DRY_RUN` removed; the answer must carry the navigator-grammar fields | exit 0 only with `ANTHROPIC_API_KEY` in the environment; otherwise SKIP — listed, never green |
 
 A tier is GREEN only if it has at least one PASS and no FAIL/TIMEOUT/ERROR. A SKIP is listed and never
 counted. The whole run is GREEN only if every tier that ran is GREEN.
@@ -49,7 +52,8 @@ counted. The whole run is GREEN only if every tier that ran is GREEN.
 ## 3. Session order (extends SESSION_RITUALS §A / §B)
 
 Between sessions, `.github/workflows/intent-os-refresh.yml` runs the same three commands on every
-push to `main` (and daily), publishes the receipt as a run artifact, and — once d23
+push to `main` (event-driven only — no clock schedule; a merge is the resource event that can drift a
+seal), publishes the receipt as a run artifact, and — once d23
 enables it — re-seals mechanical drift by PR and files an `intent-os-stale` issue for anything a
 human has to re-read. A session opens by checking whether that issue exists.
 
@@ -109,8 +113,9 @@ its own ruling.
 
 | file | role |
 |---|---|
-| `tools/intent_os_test_harness_v1_0.py` | registry + runner + receipt + `--render` + `--self-test` |
-| `ui/intent-os-test-dashboard-v1_0.html` | four panels: ruling workflow · Z1/Z2/Z3 gates · test matrix · live board/queue/zones — renders from the embedded receipt only |
+| `tools/intent_os_test_harness_v1_0.py` | registry (T0–T4 curated; T5 generated from `tools-manifest.yaml`; T6 service boot; T7 key-gated live call) + runner + receipt + `--render` + `--self-test` |
+| `ui/intent-os-test-dashboard-v1_0.html` | five panels: ruling workflow · Z1/Z2/Z3 gates · test matrix · live board/queue/zones · agent requests — renders from the embedded receipt; § 5's live fetch is on click only and re-hashes each record in the browser |
+| `tools/intent_os_requests_v1_0.py` | the agent-bus reader: every `REQ-` record, hashes recomputed, stage from Fulfilment (`requested → taken → pr → merged`); `--check` for T1, `--json` for the receipt, `--self-test` |
 | `outputs/intent_os_test_results.json` | the last receipt on this machine (schema `intentos/test_results_v1`); gitignored — the copy in the tree is the one embedded in the dashboard (d21) |
 | `docs/INTENT_OS_BOARD_RUNBOOK.md` | open · read · rule · land · re-check the board itself |
 | `REPOSITORY_STRUCTURE.md` | the index T4 verifies |

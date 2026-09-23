@@ -1,9 +1,18 @@
 # NF_LEDGER Schema — v1.0 (Unified Calibration Ledger)
 
-**Location:** `operations/NF_LEDGER.jsonl` (canonical)  
-**Status:** SPECIFICATION (Phase 1, Q-NF-SCHEMA-01)  
+**Location (in force):** `ledgers/NF_LEDGER.jsonl` — the path instruments actually write  
+**Status:** SPECIFICATION (Phase 1, Q-NF-SCHEMA-01) — forward design, **not** the format in force  
+**Format in force:** see [`ledgers/NF_EVENT_SCHEMA.md`](./ledgers/NF_EVENT_SCHEMA.md)  
 **Authority:** Z2 (Night) — ratifies schema changes  
-**Enforcement:** CI gate validates hash chain, append-only, no overwrites
+**Enforcement:** see "CI validation" below — read that section's status note before relying on it
+
+> **Path correction (2026-09-21):** this header read
+> `**Location:** operations/NF_LEDGER.jsonl (canonical)`. No such file exists: the
+> repository root *is* `operations`, and the ledger lives at `ledgers/NF_LEDGER.jsonl`.
+> The wrong path propagated into the draft `z2_ratification_gate.yml` at the repo root,
+> whose `paths:` filter watched `operations/NF_LEDGER.jsonl` — a path that cannot match,
+> so the filter selected nothing. That draft is a duplicate of the live workflow name and
+> has never run; see the note at the top of `.github/workflows/z2_ratification_gate.yml`.
 
 > **Note (2026-09-13):** `PRIORITY_QUEUE.md`'s `Q-NF-SCHEMA-01` row (provenance
 > 2026-09-09, fresh clone of main) narrowed this to a smaller, immediately
@@ -206,11 +215,19 @@ where:
 
 ## Append-Only & Hash Chain
 
-**CI validation (z2_ratification_gate.yml):**
+**CI validation — NOT IN FORCE (2026-09-21).** The YAML below is the *design* for
+hash-chain enforcement. It describes the draft `z2_ratification_gate.yml` at the
+repository root, which has never executed: it is a name-duplicate of the live
+`.github/workflows/z2_ratification_gate.yml`, and the live workflow of that name
+checks z1-inbox and seed-constitution rules — not the hash chain, not append-only,
+not the anti-cascade rules. Treat the chain as unenforced until a workflow that
+actually runs performs these checks. Stating otherwise here is the
+`audit-false-pass` genus (IC-041).
 
 ```yaml
+# DESIGN — no workflow currently runs this.
 nf_ledger_hash_chain:
-  - Read NF_LEDGER.jsonl up to prior_hash
+  - Read ledgers/NF_LEDGER.jsonl up to prior_hash
   - Extract last record: get its hash
   - New entry's prior_hash must == last record's hash
   - Compute hash of new entry, verify it matches hash field
@@ -295,7 +312,11 @@ When Phase 1 launches, initialize NF_LEDGER.jsonl:
 
 - ✅ NF_LEDGER_SCHEMA_v1.md published in operations/
 - ✅ Unified schema resolves all 4 format incompatibilities
-- ✅ CI gate (z2_ratification_gate.yml) validates hash chain
+- ⬜ CI gate validates hash chain — **NOT MET.** No workflow that runs performs this
+  check; see "CI validation — NOT IN FORCE" above. *(History: this line read ✅ from
+  the document's creation until 2026-09-21, when the claim was checked against the
+  live workflows and found to be unsupported. The criterion itself has never been
+  met — only the reporting of it changed.)*
 - ✅ molt_cycle.py reads/writes NF_LEDGER correctly
 - ✅ Brier calculation implemented and tested
 - ✅ Genesis record committed to main

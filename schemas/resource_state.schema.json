@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/resource_state.schema.json",
+  "title": "HumanAIOS Resource State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["work_id", "state"],
+  "properties": {
+    "work_id": {"type": "string", "minLength": 1},
+    "state": {
+      "type": "string",
+      "enum": [
+        "CANDIDATE",
+        "RESOURCE_REQUESTED",
+        "ELIGIBLE",
+        "ADMITTED",
+        "RESOURCES_RESERVED",
+        "RUNNING",
+        "VERIFYING",
+        "COMPLETE",
+        "RESOURCES_RELEASED",
+        "BLOCKED_RESOURCE",
+        "BLOCKED_DEPENDENCY",
+        "BLOCKED_AUTHORITY",
+        "BLOCKED_EVIDENCE",
+        "BLOCKED_SAFETY",
+        "YIELDED",
+        "RESOURCE_EXHAUSTED",
+        "REWORK_REQUIRED"
+      ]
+    },
+    "blocking_resource": {"type": ["string", "null"]},
+    "transition_evidence": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Observational timestamp only; carries no scheduling authority."
+    }
+  }
+}
