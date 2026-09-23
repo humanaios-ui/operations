@@ -1,8 +1,8 @@
 # COCKPIT v1.0 Implementation Roadmap
 
-**Timeline:** 4 weeks (Weeks 1–4) + 1 week production rollout (Week 5)  
-**Start date:** 2026-09-30 (proposed; subject to Z2 approval)  
-**Tech stack:** React 18 + TypeScript + Supabase (PostgRES) + WebSocket (Socket.io) + Tailwind CSS  
+**Timeline:** 4 sprints (Weeks 1–4) of development + 1 sprint production rollout (Week 5)  
+**Resource gate:** Admission to queue subject to Q-TEMPORAL-DISSOLUTION-01 gate exit (PRIORITY_QUEUE.md:39-40)  
+**Tech stack:** React 18 + TypeScript + Node.js BFF + Supabase (PostgreSQL) + WebSocket (Socket.io) + Tailwind CSS  
 **Deployment target:** humanaios-ui/operations repo + staging.humanaios-ui.com  
 
 ---
@@ -10,25 +10,33 @@
 ## High-Level Architecture
 
 ```
-┌────────────────────────────────────────────────────────┐
-│ Cockpit Frontend (React + TypeScript)                  │
-│ • REGISTERED.md live feed (Findings section)           │
-│ • PRIORITY_QUEUE.md viewer (Queue section)             │
-│ • Molt cycle tracker (Molts section)                   │
-│ • Audit log (Audit section)                            │
-└────────────────┬─────────────────────────────────────┘
-                 │
-        ┌────────┴────────┐
-        │                 │
-┌───────v──────┐  ┌──────v────────┐
-│ Supabase DB  │  │ WebSocket API  │
-│ (audit_log,  │  │ (live updates) │
-│  molt_state, │  │                │
-│  constants)  │  └────────────────┘
-└──────────────┘
-        │
-        └──────── Reads from GitHub (REGISTERED.md, PRIORITY_QUEUE.md)
-                  via GitHub API + local cache
+┌───────────────────────────────────────────────────────────┐
+│ GitHub (source of truth)                                  │
+│ • REGISTERED.md (findings)                                │
+│ • PRIORITY_QUEUE.md (queue)                               │
+│ • MOLT_STATE.md (molt cycles)                             │
+└──────────────┬────────────────────────────────────────────┘
+               │ (webhook on push)
+               ▼
+┌───────────────────────────────────────────────────────────┐
+│ GitHub Action: Sync to Supabase                           │
+│ • Fetch REGISTERED.md, parse YAML, upsert to DB          │
+│ • Fetch PRIORITY_QUEUE.md, parse, upsert to DB           │
+│ • Publish change event to WebSocket                       │
+└──────────────┬────────────────────────────────────────────┘
+               │
+       ┌───────┴────────┐
+       │                │
+┌──────v──────┐  ┌──────v────────┐
+│ Supabase DB │  │ WebSocket API  │
+│ (audit_log, │  │ (live updates) │
+│  cache,     │  │ to all clients) │
+│  molt_state)│  └────────────────┘
+└──────┬──────┘         ▲
+       │                │
+       └────────────────┘
+Cockpit Frontend (React)
+watches WebSocket for changes
 ```
 
 ---
@@ -38,10 +46,10 @@
 ### **Week 1: Authentication + Auth UX Testing**
 
 **Goals:**
-- ✅ Supabase Auth setup (OAuth PKCE flow)
-- ✅ httpOnly cookie session storage
-- ✅ Login/logout flow UI
-- ✅ Pass RQ-Auth-01 & RQ-Auth-02 falsifiers
+- ✅ Node.js BFF (backend-for-frontend) with Supabase Auth OAuth callback handler
+- ✅ PKCE flow + secure httpOnly cookie storage (server-side, not JavaScript)
+- ✅ Login/logout flow UI (React client)
+- ✅ Pass RQ-Auth-01 & RQ-Auth-02 falsifiers (token security from XSS)
 
 **Tasks:**
 
@@ -99,7 +107,8 @@ CREATE TABLE IF NOT EXISTS cockpit_cache (
   content JSONB NOT NULL,
   fetched_at TIMESTAMP DEFAULT NOW(),
   expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '1 hour',
-  github_sha TEXT
+  github_sha TEXT NOT NULL, -- IC-030 compliance: pinned SHA for verification at read time
+  content_hash TEXT -- sha256(content); enables fail-closed verification if SHA trust fails
 );
 
 CREATE TABLE IF NOT EXISTS cockpit_search_index (
@@ -144,16 +153,31 @@ CREATE TABLE IF NOT EXISTS cockpit_search_index (
 ```sql
 CREATE TABLE IF NOT EXISTS audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  actor TEXT NOT NULL, -- 'Z2:Night', 'Z3:Claude', etc.
-  action TEXT NOT NULL, -- 'ACCEPTED', 'REJECTED', 'EDITED', 'EXECUTED'
-  resource_type TEXT NOT NULL, -- 'REGISTERED', 'PRIORITY_QUEUE', 'MOLT', 'CONFIG'
-  resource_id TEXT NOT NULL, -- F-XX, Q-CANDIDATE-XX, etc.
+  actor TEXT NOT NULL,
+  action TEXT NOT NULL,
+  resource_type TEXT NOT NULL,
+  resource_id TEXT NOT NULL,
   decision_rationale TEXT,
   changed_fields JSONB,
-  created_at TIMESTAMP DEFAULT NOW(),
-  INDEX idx_resource (resource_type, resource_id),
-  INDEX idx_actor_date (actor, created_at)
+  prior_id UUID REFERENCES audit_log(id), -- for forward pointers (immutability)
+  created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX idx_audit_resource ON audit_log(resource_type, resource_id);
+CREATE INDEX idx_audit_actor_date ON audit_log(actor, created_at);
+
+-- Immutability enforcement: create audit_log_append role (insert-only, no update/delete)
+CREATE ROLE audit_log_append NOLOGIN;
+GRANT SELECT ON audit_log TO audit_log_append;
+GRANT INSERT ON audit_log TO audit_log_append;
+-- No UPDATE, DELETE, or TRUNCATE permissions
+
+-- RLS policies: only Z2 and assigned Z3 can read/write
+ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY audit_log_read ON audit_log FOR SELECT
+  USING (auth.jwt()->>'user_id' IN (SELECT id FROM auth.users WHERE email IN ('carly.r.anderson@gmail.com', 'aioshuman@gmail.com')));
+CREATE POLICY audit_log_write ON audit_log FOR INSERT
+  WITH CHECK (auth.jwt()->>'user_id' IN (SELECT id FROM auth.users WHERE email IN ('carly.r.anderson@gmail.com', 'aioshuman@gmail.com')));
 
 CREATE TABLE IF NOT EXISTS molt_state (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -234,15 +258,16 @@ CREATE TABLE IF NOT EXISTS websocket_metrics (
 - **Tailwind CSS** for styling
 - **Socket.io client** for WebSocket
 - **TanStack Query** for data fetching + caching
-- **Octokit** for GitHub API (REGISTERED.md, PRIORITY_QUEUE.md)
 - **date-fns** for time formatting
 - **Zod** for schema validation
+- *Note: GitHub API (REGISTERED.md, PRIORITY_QUEUE.md) accessed via BFF only; frontend never touches GitHub tokens*
 
 ### Backend
-- **Supabase** (managed PostgreSQL)
-- **Node.js + Express** (if custom auth/WebSocket needed)
+- **Supabase** (managed PostgreSQL + Auth)
+- **Node.js + Express** (BFF: OAuth callback handler, GitHub API proxy, WebSocket upgrade)
 - **Socket.io** for WebSocket server
 - **GitHub Actions** for CI/CD
+- **Octokit** (server-side only; GitHub App auth tokens, never user session tokens)
 
 ### Database
 - PostgreSQL (Supabase)

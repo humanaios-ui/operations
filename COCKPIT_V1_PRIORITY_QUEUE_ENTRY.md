@@ -20,13 +20,13 @@ dependencies: []
 resource_cost:
   RAT-min: 0
   Z1-ktok: 4
-  Z3-hr: 53
-  CI-min: 110
+  Z3-hr: 73
+  CI-min: 600
   RUN-day: 1
-  Z2-hr: 11
-benefit_score: (impact=7 + 0 unblocked = 7; density = 7/60 RBE units = 0.116)
-priority: HIGH (pending Z2 decision)
-state: ELIGIBLE (pending Z2 approval)
+  Z2_ratification_overhead: 11 hours (tracked separately; does not consume RBE-OPS numeraire)
+benefit_score: 7/10 (high impact, non-blocking)
+priority: HIGH (pending Z2 ratification)
+state: BLOCKED (awaiting Z2 approval per Q-TEMPORAL-DISSOLUTION-01 gate)
 gate_blockers: []
 ```
 
@@ -54,23 +54,25 @@ The cockpit unifies 4 governance streams:
 - Week 1: File protocol candidate + BEST_PRACTICES_PROTOCOL.md (1 token)
 - Weeks 2–4: File weekly findings (F/IC entries) + roadmap updates (1 token/week × 3 weeks)
 
-### Z3-hr (agent build + testing + fixes): 53 hours
-- Week 1 (Auth): 15 hours (Supabase setup, PKCE, login UI, token refresh)
-- Week 2 (UX): 15 hours (dashboard layout, Findings/Queue/Molts feeds, search)
-- Week 3 (Real-time): 15 hours (audit log, WebSocket, monitoring)
-- Week 4 (Freeze): 8 hours (security review, perf audit, Z2 sign-off, integration)
+### Z3-hr (agent build + testing + fixes): 73 hours
+- Week 1 (Auth): 17 hours (Supabase setup, PKCE, login UI, token refresh, RQ tests)
+- Week 2 (UX): 20 hours (dashboard layout, Findings/Queue/Molts/search, RQ tests)
+- Week 3 (Real-time): 24 hours (audit log schema, WebSocket server/client, monitoring, fixes)
+- Week 4 (Freeze): 12 hours (security review, perf audit, bug fixes, findings integration)
 
-### CI-min (test, build, deploy): 110 minutes
-- ~20–30 min per day for 4 weeks (compile, test, lint, deploy to staging)
+### CI-min (test, build, deploy): 600 minutes (~10 hours)
+- ~20–30 min per day × 20 working days (compile, test, lint, deploy to staging; includes retries)
 
 ### RUN-day (continuous synthetic monitoring, Week 3): 1 day
 - Automated probes for latency, uptime, memory (no human intervention needed; runs continuously)
 
-### Z2-hr (ratification + testing + decision-making): 11 hours
+### Z2 Ratification Overhead (not part of RBE-OPS numeraire): 11 hours
 - Week 1: 2.5 hours (testing + review + decision)
 - Week 2: 2.5 hours (testing + review + decision + potential re-test)
 - Week 3: 2 hours (monitoring + review + decision)
 - Week 4: 4 hours (smoke test + findings review + ratification signature)
+
+*Note: Z2 involvement is a gate constraint (CLAUDE.md §B gate requirement), not a consumable resource in RBE-OPS model. Tracked separately per PRIORITY_QUEUE.md governance.*
 
 ---
 
