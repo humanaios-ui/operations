@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 173
+  tools: 175
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 139
@@ -2206,6 +2206,30 @@ tools:
   builder_markers: true
   purpose: smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up)
   session: S-092126
+- tool_id: HAIOS-TOOL-186
+  name: install_git_hooks
+  path: scripts/install_git_hooks.sh
+  version: unversioned
+  category: infrastructure_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: bash
+  smoke_test: false
+  builder_markers: false
+  purpose: Install git hooks for this repository
+- tool_id: HAIOS-TOOL-187
+  name: verify_pr_readiness
+  path: scripts/verify_pr_readiness.sh
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: bash
+  smoke_test: false
+  builder_markers: false
+  purpose: PR Readiness Verification — Run all validation checks in sequence
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
