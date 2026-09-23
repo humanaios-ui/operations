@@ -2193,6 +2193,19 @@ tools:
   builder_markers: true
   purpose: Verified Receipt Resolver — v0.1
   session: H-COLLAB-HARMONY-01
+- tool_id: HAIOS-TOOL-185
+  name: smag_gate_enforcer
+  path: tools/smag_gate_enforcer_v1_0.py
+  version: 1.0.0
+  category: security_gate_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'SMAG Calibration Gate Enforcer (s1 CI gate wire-up) — Loads calibration profiles, computes gap_rate from ledger, enforces merge constraints'
+  session: S-092126-smag-s1-gate
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

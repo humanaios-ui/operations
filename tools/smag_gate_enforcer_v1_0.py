@@ -5,6 +5,10 @@ SMAG Calibration Gate Enforcer v1.0
 Implements s1 CI gate wire-up: loads calibration profile, computes gap_rate,
 enforces review_bar and merge_pause_threshold before merge approval.
 
+Profile ratification validation: Gate operates in two modes:
+- ENFORCING: Profile has Z2 ratification hash (blocks on threshold)
+- ADVISORY: Profile pending ratification (logs status but permits merges)
+
 Usage:
   python3 tools/smag_gate_enforcer_v1_0.py \
     --profile-path calibration_profiles/BASELINE_S092126.json \
@@ -13,15 +17,15 @@ Usage:
     --window-days 30
 
 Returns:
-  0 if all gates pass (review_bar met, gap_rate below threshold)
-  1 if gate blocked (review_bar not met or gap_rate exceeds threshold)
-  2 if configuration error
+  0 if gate permits merges (ratified + threshold OK, or pending ratification)
+  1 if gate blocks (ratified + threshold exceeded)
+  2 if configuration error (missing profile, invalid substrate, etc.)
 """
 
 import json
 import sys
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -36,6 +40,24 @@ def load_profile(profile_path: str) -> dict:
     except json.JSONDecodeError:
         print(f"❌ Invalid JSON in calibration profile: {profile_path}")
         sys.exit(2)
+
+
+def is_profile_ratified(profile: dict) -> bool:
+    """
+    Check if profile has Z2 ratification signature.
+
+    Returns True if ratified (safe to enforce), False if pending.
+    """
+    ratified_by = profile.get("ratified_by_z2", "")
+    ratification_hash = profile.get("ratification_hash", "")
+
+    # Check if both fields have TBD values (awaiting signature)
+    if not ratified_by or ratified_by.startswith("TBD_"):
+        return False
+    if not ratification_hash or ratification_hash.startswith("TBD_"):
+        return False
+
+    return True
 
 
 def get_substrate_profile(profile: dict, substrate: str) -> dict:
@@ -54,14 +76,15 @@ def compute_gap_rate(ledger_path: str, window_days: int) -> float:
 
     Gap rate = failed_checks / total_checks over last N days
 
-    For initial implementation: count all VERDICT events marked as failed.
+    Counts VERDICT events marked as failing_check: true.
+    Handles malformed timestamps gracefully (skips unparseable events).
     """
     if not Path(ledger_path).exists():
         print(f"⚠️  Ledger not found: {ledger_path} (no data yet)")
         print(f"   Defaulting gap_rate = 0.0 (clean slate)")
         return 0.0
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     window_start = now - timedelta(days=window_days)
 
     total_checks = 0
@@ -74,9 +97,12 @@ def compute_gap_rate(ledger_path: str, window_days: int) -> float:
                 if not line:
                     continue
 
-                event = json.loads(line)
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
 
-                # Filter by window and type
+                # Filter by type (only count VERDICT events)
                 if event.get("type") != "VERDICT":
                     continue
 
@@ -84,11 +110,12 @@ def compute_gap_rate(ledger_path: str, window_days: int) -> float:
                 if not event_at:
                     continue
 
+                # Parse timestamp and filter by window
                 try:
                     event_date = datetime.fromisoformat(event_at.replace("Z", "+00:00"))
                     if event_date < window_start:
                         continue
-                except ValueError:
+                except (ValueError, TypeError):
                     continue
 
                 # Count check
@@ -116,7 +143,7 @@ def enforce_review_bar(substrate_profile: dict) -> bool:
     For Phase 1 s1, this is advisory: we log the requirement but don't block.
     Full enforcement requires ACAT review metadata (not yet in CI).
 
-    Returns True if constraint can be verified, False if blocked.
+    Returns True (constraint logged, never blocks in Phase 1).
     """
     review_bar = substrate_profile.get("review_bar", "standard")
     print(f"📋 Review bar requirement: {review_bar}")
@@ -165,6 +192,22 @@ def main():
     print(f"✓ Substrate: {args.substrate}")
     print()
 
+    # Check ratification status
+    is_ratified = is_profile_ratified(profile)
+    ratified_by = profile.get("ratified_by_z2", "PENDING")
+    ratification_hash = profile.get("ratification_hash", "TBD_AWAITING_Z2_SIGNATURE")
+
+    if is_ratified:
+        print(f"🔐 Profile RATIFIED by Z2")
+        print(f"   Ratifier: {ratified_by}")
+        print(f"   Hash: {ratification_hash[:16]}...")
+        print(f"   Mode: ENFORCING (gate will block on threshold)")
+    else:
+        print(f"⏳ Profile AWAITING Z2 RATIFICATION")
+        print(f"   Status: {ratified_by}")
+        print(f"   Mode: ADVISORY (gate will not block merges)")
+    print()
+
     # Extract thresholds
     review_bar = substrate_profile.get("review_bar", "standard")
     merge_pause_threshold = substrate_profile.get("merge_pause_threshold", 0.25)
@@ -186,12 +229,17 @@ def main():
     print(f"📈 Gap Rate (last {args.window_days} days): {gap_rate:.2%}")
     print()
 
-    # Check gate
+    # Check gate (only enforces if ratified)
     if gap_rate > merge_pause_threshold:
-        print(f"🚫 GATE BLOCKED: gap_rate {gap_rate:.2%} exceeds threshold {merge_pause_threshold:.2%}")
-        print(f"   Action: Auto-pause merges; file IC candidate in Priority Queue")
-        if not args.dry_run:
-            sys.exit(1)
+        if is_ratified:
+            print(f"🚫 GATE BLOCKED: gap_rate {gap_rate:.2%} exceeds threshold {merge_pause_threshold:.2%}")
+            print(f"   Action: Auto-pause merges; file IC candidate in Priority Queue")
+            if not args.dry_run:
+                sys.exit(1)
+        else:
+            print(f"⚠️  Gap rate {gap_rate:.2%} exceeds threshold {merge_pause_threshold:.2%}")
+            print(f"   Status: ADVISORY (profile not yet ratified)")
+            print(f"   Once ratified: merges will auto-pause at this threshold")
     else:
         print(f"✓ GATE OPEN: gap_rate {gap_rate:.2%} within threshold {merge_pause_threshold:.2%}")
         print(f"   Merges permitted for substrate: {args.substrate}")
