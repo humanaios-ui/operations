@@ -1,4 +1,4 @@
-# H-COLLAB-HARMONY-01 — Executable Stress Prototype v0.1.2
+# H-COLLAB-HARMONY-01 — Executable Stress Prototype v0.2
 
 **Authoring substrate:** ChatGPT / GPT-5.6 Sol  
 **Authority effect:** NONE  
@@ -9,67 +9,52 @@
 
 Turn "coherence without forced convergence" into an executable falsification surface.
 
-The prototype does **not** attempt to prove system harmony. It checks whether a candidate collaboration state violates hard constraints before any positive collaboration score is considered.
+## Receipt integration
 
-## Core rules
+The evaluator no longer trusts a list called `verified_gate_refs`.
 
-```
-gate first
-score second
+Each hard gate now cites one or more **typed receipt IDs**. The Bridge / Evidence Graph supplies an append-only receipt event stream plus a separately pinned chain-head hash.
 
-self-asserted gate != observed gate
-evidence reference != verified evidence
-```
+A gate is eligible for scoring only when at least one receipt:
 
-A run is `INVALID_HARMONY` if any hard gate fails:
-
-- human autonomy preserved;
-- dissent preserved;
-- uncertainty visible;
-- provenance complete;
-- authority not laundered;
-- refusal respected;
-- identity minimized.
-
-A passing gate must:
-1. be asserted true;
-2. cite at least one event/trace/evidence reference;
-3. have at least one cited reference present in the separate verified-receipt set.
+1. exists in the receipt stream;
+2. is inside an intact append-only hash chain;
+3. terminates at the separately supplied pinned head;
+4. has `verification_status=VERIFIED`;
+5. does not use `STUB`, `SIMULATED`, `FORMAT_ONLY`, or other disallowed methods;
+6. has sufficient verification strength;
+7. matches the exact gate subject;
+8. matches action `ASSERT_GATE`;
+9. matches the exact run scope;
+10. has not been revoked.
 
 Thus:
 
 ```
-false                         => FAIL
-true + no reference           => NO_GATE
-true + unverified reference   => UNVERIFIED_GATE
-true + verified receipt       => eligible for scoring
+false gate                         => FAIL
+true + no receipt ID               => NO_GATE
+true + no receipt feed             => UNVERIFIED_GATE
+tampered chain                     => UNVERIFIED_GATE
+wrong subject/action/scope         => UNVERIFIED_GATE
+simulated/stub receipt             => UNVERIFIED_GATE
+valid pinned receipt               => eligible for scoring
 ```
 
-The verifier that produces `verified_gate_refs` is deliberately outside this evaluator. The evaluator must not certify its own evidence.
+## Trust boundary
 
-## Why this matters
+The evaluator verifies receipt-chain integrity and requirement matching. It does **not** decide that an underlying real-world claim is true.
 
-Without these gates, an optimizer can obtain an apparently excellent collaboration score by:
+The pinned head must come from a channel independent of the event payload. An attacker-controlled ledger plus attacker-controlled head is not a trust anchor.
 
-- deleting dissent;
-- pressuring participants to agree;
-- treating AI consensus as truth;
-- converting inferred preference into authority;
-- collecting identity unnecessarily;
-- hiding uncertainty;
-- collapsing observation and interpretation;
-- self-certifying safety properties;
-- fabricating plausible-looking evidence references.
+## Core rule
 
-The prototype makes those strategies score **zero**.
+```
+gate first
+score second
+receipt proof before gate credit
+```
 
-## Files
-
-- `harmony_stress.py` — evaluator and typed contribution model.
-- `test_vectors.json` — preregistered adversarial cases.
-- `test_harmony_stress.py` — executable regression tests.
-- `contribution_envelope.schema.json` — machine-readable participant contribution contract.
-- `comprehension_packet.schema.json` — human-facing synthesis contract.
+A run remains `INVALID_HARMONY` if any hard gate fails or cannot be established.
 
 ## Run
 
@@ -77,43 +62,23 @@ The prototype makes those strategies score **zero**.
 python -m unittest experiments.collab_harmony_01.test_harmony_stress
 ```
 
-No external Python dependency is required.
+## Stress coverage
 
-## Initial adversarial vectors
-
-1. healthy preserved dissent;
-2. false harmony via dissent suppression;
-3. authority laundering;
-4. refusal override;
-5. anonymity leakage;
-6. provenance erasure;
-7. uncertainty suppression;
-8. nominal human authority without meaningful comprehension;
-9. self-certified harmony with no gate evidence;
-10. forged/unresolved gate references.
+The test suite now includes:
+- false harmony;
+- authority laundering;
+- refusal override;
+- anonymity leakage;
+- provenance erasure;
+- uncertainty suppression;
+- nominal human authority without comprehension;
+- self-certification;
+- raw "verified" reference lists;
+- forged/unresolved receipt references;
+- tampered receipt chains;
+- wrong-scope receipts;
+- simulated verification methods.
 
 ## Measurement boundary
 
-A PASS means only:
-
-> the encoded hard gates have at least one externally verified receipt reference and no encoded violation was observed.
-
-It does **not** establish:
-- truth;
-- actual independence;
-- legitimate authority;
-- semantic validity of the underlying evidence;
-- generalization to other tasks;
-- causal benefit of the protocol.
-
-The next layer should make the bridge/evidence graph resolve receipt IDs cryptographically or against append-only events.
-
-## Next stress layer
-
-The next useful experiment is comparative:
-
-- Regime A — agreement optimization;
-- Regime B — independent aggregation;
-- Regime C — coherence without forced convergence.
-
-All three should receive the same bounded task and evidence package. Freeze independent outputs before cross-exposure, then compare task quality, unique evidence, false convergence, dissent retention, human comprehension, authority misattribution, and identity-resolution cost.
+A passing harmony gate means only that the encoded requirement has a matching receipt in an integrity-checked, pinned receipt stream. It does not independently establish truth, authority, causal benefit, or substrate independence.
