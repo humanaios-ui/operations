@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Intent-OS — Accounts Hub (Panel Mockup v3.3.1)</title>
+<style>
+:root{
+  --board:#101418; --panel:#171d23; --line:#2a333c; --ink:#dce6ee; --dim:#7f8c98;
+  --done:#37c26b; --progress:#e0a63a; --waiting:#e2574d; --gold:#c9a86b; --steel:#5aa0d8;
+  --mono:"Cascadia Code","Fira Code",Menlo,Consolas,monospace;
+  --sans:"Avenir Next","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--board);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+.wrap{max-width:1200px;margin:0 auto;padding:26px 18px 80px}
+header{margin-bottom:26px}
+h1{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.02em}
+h1 .rev{color:var(--gold);font-weight:400}
+.readline{color:var(--dim);font-size:13px;margin-top:6px}
+.pages{display:flex;gap:6px 14px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;margin:-10px 0 18px}
+.pages a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--line)}
+.pages a:hover{color:var(--ink)} .pages a.here{color:var(--gold);border-bottom-color:var(--gold)}
+h2{font-size:13px;font-family:var(--mono);font-weight:600;color:var(--dim);margin:34px 0 4px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.familiar{font-size:12px;color:var(--dim);margin-bottom:12px;font-style:italic}
+
+/* Account cards grid */
+.accounts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-bottom:20px}
+.account-card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;transition:all .15s;cursor:pointer}
+.account-card:hover{border-color:var(--steel);box-shadow:0 0 12px rgba(90,160,216,0.1)}
+.account-card.active{border-left:4px solid var(--done)}
+.account-card.inactive{border-left:4px solid var(--waiting);opacity:0.7}
+.account-card.syncing{border-left:4px solid var(--progress)}
+
+.account-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.account-name{font-weight:600;color:var(--ink)}
+.account-service{font-family:var(--mono);font-size:11px;color:var(--dim);background:rgba(0,0,0,0.2);padding:2px 6px;border-radius:3px}
+.account-status{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 6px;border-radius:3px}
+.account-status.active{background:rgba(55,194,107,0.15);color:var(--done)}
+.account-status.inactive{background:rgba(226,87,77,0.15);color:var(--waiting)}
+.account-status.syncing{background:rgba(224,166,58,0.15);color:var(--progress)}
+
+.account-purpose{font-size:13px;color:var(--dim);margin-bottom:10px;line-height:1.4}
+.account-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--dim);margin-bottom:10px;padding-top:10px;border-top:1px solid var(--line)}
+.account-meta-item{display:flex;gap:4px}
+.account-meta-item .icon{font-family:var(--mono)}
+
+.account-activity{background:#0b0f13;border:1px solid var(--line);border-radius:4px;padding:8px;font-size:12px;color:var(--dim);margin-bottom:10px;max-height:60px;overflow-y:auto}
+.account-activity-row{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-family:var(--mono)}
+.account-activity-row span.event{color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis}
+.account-activity-row span.time{color:var(--dim);font-size:10px;white-space:nowrap}
+
+.account-actions{display:flex;gap:6px;flex-wrap:wrap}
+button.action{font-family:var(--mono);font-size:11px;background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:4px;padding:4px 8px;cursor:pointer;transition:all .15s}
+button.action:hover{border-color:var(--steel);color:var(--steel)}
+button.action.primary{border-color:var(--steel);color:var(--steel)}
+button.action.danger{border-color:var(--waiting);color:var(--waiting)}
+
+/* Quick stats row */
+.account-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0}
+.stat{background:#0b0f13;border:1px solid var(--line);border-radius:4px;padding:8px;text-align:center;font-size:12px}
+.stat-label{color:var(--dim);font-size:11px;margin-bottom:3px}
+.stat-value{color:var(--steel);font-family:var(--mono);font-weight:600;font-size:14px}
+
+/* Activity feed (unified) */
+.activity-feed{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:20px}
+.feed-header{font-size:13px;font-weight:600;margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.feed-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:12px}
+.filter-chip{background:transparent;border:1px solid var(--line);color:var(--dim);padding:3px 8px;border-radius:3px;cursor:pointer}
+.filter-chip.active{border-color:var(--steel);color:var(--steel)}
+
+.feed-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #1d242c;align-items:flex-start}
+.feed-row:last-child{border-bottom:none}
+.feed-icon{font-family:var(--mono);font-size:14px;color:var(--steel);min-width:20px;text-align:center}
+.feed-content{flex:1}
+.feed-event{font-size:13px;color:var(--ink);margin-bottom:2px}
+.feed-event b{color:var(--gold);font-weight:600}
+.feed-service{font-size:11px;color:var(--dim);display:inline-block;margin-right:8px}
+.feed-time{font-size:11px;color:var(--dim)}
+
+/* Sync controls */
+.sync-panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:20px}
+.sync-header{font-size:13px;font-weight:600;margin-bottom:12px}
+.sync-row{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#0b0f13;border-radius:4px;margin-bottom:6px;font-size:12px}
+.sync-row.syncing{border-left:3px solid var(--progress)}
+.sync-row.waiting{border-left:3px solid var(--waiting)}
+.sync-row.ok{border-left:3px solid var(--done)}
+.sync-name{font-family:var(--mono);font-weight:600;color:var(--ink);flex:0 0 140px}
+.sync-status{color:var(--dim);font-size:11px;flex:1;text-align:center}
+.sync-action{display:flex;gap:4px}
+.sync-action button{font-family:var(--mono);font-size:10px;padding:2px 6px;background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:3px;cursor:pointer}
+.sync-action button:hover{border-color:var(--steel);color:var(--steel)}
+
+/* Summary stats */
+.summary-stats{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.summary-stat{border:1px solid var(--line);border-radius:4px;padding:12px;text-align:center}
+.summary-stat-label{font-size:11px;color:var(--dim);margin-bottom:6px}
+.summary-stat-value{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--steel)}
+
+.note{font-size:12px;color:var(--dim);margin-top:8px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Intent-OS <span class="rev">Accounts Hub</span></h1>
+  <div class="readline">NEW: Accounts panel mockup (Phase 1–2 deliverable). Shows 16 accounts, sync status, cross-service activity feed.</div>
+</header>
+
+<nav class="pages">
+  <a href="intent-os-humanaios-v3_3.html">Board</a>
+  <a href="#">Decisions</a>
+  <a href="#">Commitments</a>
+  <a href="#">Records</a>
+  <a href="#">Arena</a>
+  <a href="#" class="here">Accounts ← NEW</a>
+</nav>
+
+<section>
+<h2>Accounts — All HumanAIOS services in one view</h2>
+<div class="familiar">Like a dashboard for your accounts, but with API sync. Each card shows last activity, sync status, and quick actions. Activity feed merges events from all services chronologically.</div>
+
+<h3 style="font-size:13px;color:var(--dim);margin-top:20px;margin-bottom:8px">Summary Stats</h3>
+<div class="summary-stats">
+  <div class="summary-stat">
+    <div class="summary-stat-label">Total Accounts</div>
+    <div class="summary-stat-value">16</div>
+  </div>
+  <div class="summary-stat">
+    <div class="summary-stat-label">Syncing Now</div>
+    <div class="summary-stat-value">11</div>
+  </div>
+  <div class="summary-stat">
+    <div class="summary-stat-label">Last Sync (All)</div>
+    <div class="summary-stat-value">2m ago</div>
+  </div>
+  <div class="summary-stat">
+    <div class="summary-stat-label">Credential Expiry</div>
+    <div class="summary-stat-value">23d</div>
+  </div>
+</div>
+
+<h3 style="font-size:13px;color:var(--dim);margin-top:20px;margin-bottom:8px">Account Status Grid</h3>
+<div class="accounts-grid">
+  <!-- GitHub -->
+  <div class="account-card active">
+    <div class="account-header">
+      <div class="account-name">GitHub</div>
+      <div class="account-service">VCS</div>
+    </div>
+    <div class="account-status active">ACTIVE</div>
+    <div class="account-purpose">Primary org for 31 repos</div>
+    <div class="account-meta">
+      <div class="account-meta-item"><span class="icon">📊</span> 47 repos</div>
+      <div class="account-meta-item"><span class="icon">⏰</span> now</div>
+    </div>
+    <div class="account-activity">
+      <div class="account-activity-row">
+        <span class="event">e03053e Live corpus verification</span>
+        <span class="time">10m ago</span>
+      </div>
+      <div class="account-activity-row">
+        <span class="event">cbae826 Gate the derived artifacts</span>
+        <span class="time">1h ago</span>
+      </div>
+    </div>
+    <div class="account-stats">
+      <div class="stat"><div class="stat-label">Commits</div><div class="stat-value">127</div></div>
+      <div class="stat"><div class="stat-label">PRs Open</div><div class="stat-value">3</div></div>
+    </div>
+    <div class="account-actions">
+      <button class="action primary">🔄 Sync Now</button>
+      <button class="action">📖 Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Gmail -->
+  <div class="account-card active">
+    <div class="account-header">
+      <div class="account-name">Gmail (aioshuman@)</div>
+      <div class="account-service">EMAIL</div>
+    </div>
+    <div class="account-status active">ACTIVE</div>
+    <div class="account-purpose">Business communications</div>
+    <div class="account-meta">
+      <div class="account-meta-item"><span class="icon">✉️</span> 12 labels</div>
+      <div class="account-meta-item"><span class="icon">⏰</span> 3m ago</span>
+    </div>
+    <div class="account-activity">
+      <div class="account-activity-row">
+        <span class="event">Z2 ratification: Account Hub</span>
+        <span class="time">14m ago</span>
+      </div>
+      <div class="account-activity-row">
+        <span class="event">Phase 2 integration status</span>
+        <span class="time">3h ago</span>
+      </div>
+    </div>
+    <div class="account-stats">
+      <div class="stat"><div class="stat-label">Unread</div><div class="stat-value">2</div></div>
+      <div class="stat"><div class="stat-label">Today</div><div class="stat-value">8</div></div>
+    </div>
+    <div class="account-actions">
+      <button class="action primary">🔄 Sync Now</button>
+      <button class="action">📖 Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Supabase -->
+  <div class="account-card active syncing">
+    <div class="account-header">
+      <div class="account-name">Supabase</div>
+      <div class="account-service">DATABASE</div>
+    </div>
+    <div class="account-status syncing">SYNCING</div>
+    <div class="account-purpose">Production PostgreSQL</div>
+    <div class="account-meta">
+      <div class="account-meta-item"><span class="icon">🗄️</span> 8 tables</div>
+      <div class="account-meta-item"><span class="icon">⏰</span> syncing...</span>
+    </div>
+    <div class="account-activity">
+      <div class="account-activity-row">
+        <span class="event">Query: users table (1.2MB)</span>
+        <span class="time">5s ago</span>
+      </div>
+      <div class="account-activity-row">
+        <span class="event">API call successful</span>
+        <span class="time">8s ago</span>
+      </div>
+    </div>
+    <div class="account-stats">
+      <div class="stat"><div class="stat-label">Storage</div><div class="stat-value">2.3 GB</div></div>
+      <div class="stat"><div class="stat-label">API Calls</div><div class="stat-value">847</div></div>
+    </div>
+    <div class="account-actions">
+      <button class="action" disabled>⏳ Syncing...</button>
+      <button class="action">📖 Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Cloudflare -->
+  <div class="account-card active">
+    <div class="account-header">
+      <div class="account-name">Cloudflare</div>
+      <div class="account-service">HOSTING</div>
+    </div>
+    <div class="account-status active">ACTIVE</div>
+    <div class="account-purpose">DNS + CDN + infrastructure</div>
+    <div class="account-meta">
+      <div class="account-meta-item"><span class="icon">🌐</span> 4 zones</div>
+      <div class="account-meta-item"><span class="icon">⏰</span> 6m ago</span>
+    </div>
+    <div class="account-activity">
+      <div class="account-activity-row">
+        <span class="event">DNS update: empirica.com</span>
+        <span class="time">2h ago</span>
+      </div>
+      <div class="account-activity-row">
+        <span class="event">Cache cleared</span>
+        <span class="time">4h ago</span>
+      </div>
+    </div>
+    <div class="account-stats">
+      <div class="stat"><div class="stat-label">Requests/Day</div><div class="stat-value">2.1M</div></div>
+      <div class="stat"><div class="stat-label">Cached</div><div class="stat-value">94%</div></div>
+    </div>
+    <div class="account-actions">
+      <button class="action primary">🔄 Sync Now</button>
+      <button class="action">📖 Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Railway -->
+  <div class="account-card active">
+    <div class="account-header">
+      <div class="account-name">Railway</div>
+      <div class="account-service">HOSTING</div>
+    </div>
+    <div class="account-status active">ACTIVE</div>
+    <div class="account-purpose">Cloud deployments</div>
+    <div class="account-meta">
+      <div class="account-meta-item"><span class="icon">🚀</span> 3 services</div>
+      <div class="account-meta-item"><span class="icon">⏰</span> 2m ago</span>
+    </div>
+    <div class="account-activity">
+      <div class="account-activity-row">
+        <span class="event">Deployment: v2.1.0 → prod</span>
+        <span class="time">28m ago</span>
+      </div>
+      <div class="account-activity-row">
+        <span class="event">Build successful (3m 42s)</span>
+        <span class="time">31m ago</span>
+      </div>
+    </div>
+    <div class="account-stats">
+      <div class="stat"><div class="stat-label">Status</div><div class="stat-value">✓ Up</div></div>
+      <div class="stat"><div class="stat-label">CPU Usage</div><div class="stat-value">24%</div></div>
+    </div>
+    <div class="account-actions">
+      <button class="action primary">🔄 Sync Now</button>
+      <button class="action">📖 Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Hugging Face -->
+  <div class="account-card active">
+    <div class="account-header">
+      <div class="account-name">Hugging Face</div>
+      <div class="account-service">AI PLATFORM</div>
+    </div>
+    <div class="account-status active">ACTIVE</div>
+    <div class="account-purpose">Models, datasets, spaces</div>
+    <div class="account-meta">
+      <div class="account-meta-item"><span class="icon">🤖</span> 7 models</div>
+      <div class="account-meta-item"><span class="icon">⏰</span> 1h ago</span>
+    </div>
+    <div class="account-activity">
+      <div class="account-activity-row">
+        <span class="event">Model: humanaios-gpt4-v2</span>
+        <span class="time">2d ago</span>
+      </div>
+      <div class="account-activity-row">
+        <span class="event">Dataset: intents-corpus-2026</span>
+        <span class="time">5d ago</span>
+      </div>
+    </div>
+    <div class="account-stats">
+      <div class="stat"><div class="stat-label">Models</div><div class="stat-value">7</div></div>
+      <div class="stat"><div class="stat-label">Downloads</div><div class="stat-value">1.2K</div></div>
+    </div>
+    <div class="account-actions">
+      <button class="action primary">🔄 Sync Now</button>
+      <button class="action">📖 Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Substack (no API) -->
+  <div class="account-card active">
+    <div class="account-header">
+      <div class="account-name">Substack</div>
+      <div class="account-service">CONTENT</div>
+    </div>
+    <div class="account-status active">ACTIVE</div>
+    <div class="account-purpose">Newsletter + thought leadership</div>
+    <div class="account-meta">
+      <div class="account-meta-item"><span class="icon">📬</span> No API</div>
+      <div class="account-meta-item"><span class="icon">⏰</span> manual</span>
+    </div>
+    <div class="account-activity">
+      <div class="account-activity-row">
+        <span class="event">Published: "Intent-OS Deep Dive"</span>
+        <span class="time">3d ago</span>
+      </div>
+      <div class="account-activity-row">
+        <span class="event">Subscribers: 342</span>
+        <span class="time">weekly</span>
+      </div>
+    </div>
+    <div class="account-stats">
+      <div class="stat"><div class="stat-label">Posts</div><div class="stat-value">18</div></div>
+      <div class="stat"><div class="stat-label">Subscribers</div><div class="stat-value">342</div></div>
+    </div>
+    <div class="account-actions">
+      <button class="action">📖 Dashboard</button>
+      <button class="action" disabled>No API</button>
+    </div>
+  </div>
+</div>
+
+<h3 style="font-size:13px;color:var(--dim);margin-top:20px;margin-bottom:8px">Sync Status & Health</h3>
+<div class="sync-panel">
+  <div class="sync-header">Last sync across all accounts</div>
+  <div class="sync-row ok">
+    <div class="sync-name">GitHub</div>
+    <div class="sync-status">✓ Synced 10m ago · 47 repos queried</div>
+    <div class="sync-action">
+      <button>🔄 Now</button>
+      <button>⚙️ Config</button>
+    </div>
+  </div>
+  <div class="sync-row ok">
+    <div class="sync-name">Gmail</div>
+    <div class="sync-status">✓ Synced 3m ago · 247 recent</div>
+    <div class="sync-action">
+      <button>🔄 Now</button>
+      <button>⚙️ Config</button>
+    </div>
+  </div>
+  <div class="sync-row syncing">
+    <div class="sync-name">Supabase</div>
+    <div class="sync-status">⏳ Syncing now · 8 tables querying</div>
+    <div class="sync-action">
+      <button disabled>⏳ Syncing</button>
+      <button>⚙️ Config</button>
+    </div>
+  </div>
+  <div class="sync-row ok">
+    <div class="sync-name">Cloudflare</div>
+    <div class="sync-status">✓ Synced 6m ago · 4 zones</div>
+    <div class="sync-action">
+      <button>🔄 Now</button>
+      <button>⚙️ Config</button>
+    </div>
+  </div>
+  <div class="sync-row ok">
+    <div class="sync-name">Railway</div>
+    <div class="sync-status">✓ Synced 2m ago · 3 services</div>
+    <div class="sync-action">
+      <button>🔄 Now</button>
+      <button>⚙️ Config</button>
+    </div>
+  </div>
+  <div class="sync-row ok">
+    <div class="sync-name">Hugging Face</div>
+    <div class="sync-status">✓ Synced 1h ago · 7 models</div>
+    <div class="sync-action">
+      <button>🔄 Now</button>
+      <button>⚙️ Config</button>
+    </div>
+  </div>
+  <div class="sync-row waiting">
+    <div class="sync-name">Hubstaff</div>
+    <div class="sync-status">⚠️ Not yet synced (Phase 2)</div>
+    <div class="sync-action">
+      <button disabled>Coming Soon</button>
+      <button>📖 Learn</button>
+    </div>
+  </div>
+  <div class="sync-row waiting">
+    <div class="sync-name">Substack</div>
+    <div class="sync-status">⚠️ Manual review only (no API)</div>
+    <div class="sync-action">
+      <button disabled>Manual</button>
+      <button>📖 Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<h3 style="font-size:13px;color:var(--dim);margin-top:20px;margin-bottom:8px">Unified Activity Feed — All Services</h3>
+<div class="activity-feed">
+  <div class="feed-header">Latest activity across all 16 accounts (last 48 hours)</div>
+  <div class="feed-filter">
+    <div class="filter-chip active">All</div>
+    <div class="filter-chip">GitHub</div>
+    <div class="filter-chip">Supabase</div>
+    <div class="filter-chip">Railway</div>
+    <div class="filter-chip">Gmail</div>
+    <div class="filter-chip">API Activity</div>
+  </div>
+
+  <div class="feed-row">
+    <div class="feed-icon">⭐</div>
+    <div class="feed-content">
+      <div class="feed-event">Live corpus verification (falsifier tripped) <b>#440</b></div>
+      <div class="feed-service">GitHub / operations</div>
+      <div class="feed-time">10m ago</div>
+    </div>
+  </div>
+
+  <div class="feed-row">
+    <div class="feed-icon">📊</div>
+    <div class="feed-content">
+      <div class="feed-event">Supabase query: users table synced <b>1.2 MB</b></div>
+      <div class="feed-service">Supabase / API</div>
+      <div class="feed-time">5s ago</div>
+    </div>
+  </div>
+
+  <div class="feed-row">
+    <div class="feed-icon">✉️</div>
+    <div class="feed-content">
+      <div class="feed-event">Z2 ratification: Account Hub proposal approved</div>
+      <div class="feed-service">Gmail / inbox</div>
+      <div class="feed-time">14m ago</div>
+    </div>
+  </div>
+
+  <div class="feed-row">
+    <div class="feed-icon">🚀</div>
+    <div class="feed-content">
+      <div class="feed-event">Deployment: v2.1.0 → production <b>SUCCESS</b></div>
+      <div class="feed-service">Railway / prod</div>
+      <div class="feed-time">28m ago</div>
+    </div>
+  </div>
+
+  <div class="feed-row">
+    <div class="feed-icon">💾</div>
+    <div class="feed-content">
+      <div class="feed-event">Gate the derived artifacts that drifted <b>#438</b></div>
+      <div class="feed-service">GitHub / operations</div>
+      <div class="feed-time">1h ago</div>
+    </div>
+  </div>
+
+  <div class="feed-row">
+    <div class="feed-icon">📝</div>
+    <div class="feed-content">
+      <div class="feed-event">Published: "Intent-OS Deep Dive"</div>
+      <div class="feed-service">Substack / humanaios</div>
+      <div class="feed-time">3d ago</div>
+    </div>
+  </div>
+
+  <div class="feed-row">
+    <div class="feed-icon">🤖</div>
+    <div class="feed-content">
+      <div class="feed-event">Model: humanaios-gpt4-v2 (updated)</div>
+      <div class="feed-service">Hugging Face / models</div>
+      <div class="feed-time">2d ago</div>
+    </div>
+  </div>
+</div>
+
+<p class="note">📌 <b>Phase 1 Status:</b> Registry + Schema complete. Phase 2 (API integrations) begins after Z2 RATIFY. UI shown here is mockup; actual Accounts tab will be integrated into Intent-OS board (intent-os-humanaios-v3_3.html).</p>
+<p class="note">📌 <b>Credential Notice:</b> No credentials, API keys, or tokens displayed here or stored in browser. All queries use password-manager-supplied credentials, logged in audit trail, never exposed.</p>
+
+</section>
+
+</div>
+</body>
+</html>
