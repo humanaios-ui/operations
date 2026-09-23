@@ -177,6 +177,7 @@ def registry(root: str = ROOT) -> list[dict]:
                 "test_specimen_intake_evaluator.py",
                 "test_specimen_intake_nf_ledger.py", "tools/tests/test_molt_cycle_nf_read.py",
                 "test_resource_economics.py", "tools/tests/test_builder_compliance_scanner.py",
+                "tools/tests/test_collaboration_harmony_evaluator.py",
                 "tools/tests/test_molt_tier_classifier.py",
                 "tools/tests/test_ratify_index_write.py",
                 "tools/tests/test_smag_predict_lint.py", "tools/tests/test_smag_feedback.py",
