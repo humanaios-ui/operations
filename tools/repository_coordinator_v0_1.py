@@ -344,4 +344,89 @@ def analyze(snapshot: dict[str, Any], priority_queue_text: str) -> dict[str, Any
     prs = list(snapshot.get("pull_requests") or [])
     competitions = _competition(prs)
     main_paths = set(snapshot.get("main_paths") or [])
-    referenced = snapshot.get("referenced_pu
+    referenced = snapshot.get("referenced_pull_requests") or {}
+    gates = _active_gates(priority_queue_text)
+
+    items = [
+        classify(
+            pr,
+            competition=competitions,
+            main_paths=main_paths,
+            referenced_prs=referenced,
+            active_gates=gates,
+        )
+        for pr in prs
+    ]
+    items.sort(key=lambda x: (ACTION_ORDER[x["guidance"]["action"]], x["number"]))
+
+    counts: dict[str, int] = {}
+    for item in items:
+        action = item["guidance"]["action"]
+        counts[action] = counts.get(action, 0) + 1
+
+    return {
+        "schema_version": "0.1",
+        "advisory_only": True,
+        "repository": snapshot.get("repository"),
+        "main_sha": snapshot.get("main_sha"),
+        "active_canonical_gates": gates,
+        "invariants": [
+            "OPEN_IS_NOT_RELEVANT",
+            "RELEVANT_IS_NOT_WARRANTED",
+            "MERGEABLE_IS_NOT_CURRENT",
+            "AGE_IS_NOT_STALENESS",
+            "GUIDANCE_REQUIRES_EVIDENCE",
+        ],
+        "counts": counts,
+        "items": items,
+    }
+
+
+def render_markdown(index: dict[str, Any]) -> str:
+    lines = [
+        "<!-- repository-coordinator -->",
+        "## Repository Coordinator — advisory index",
+        "",
+        f"Main: `{str(index.get('main_sha') or 'unknown')[:12]}` · "
+        f"Open PRs indexed: **{len(index.get('items') or [])}** · "
+        "**No authority effect**",
+        "",
+        "> Guidance is evidence-bounded and state-based. PR age is intentionally not a signal.",
+        "",
+    ]
+    gates = index.get("active_canonical_gates") or []
+    if gates:
+        lines.append("Active canonical gate(s): " + ", ".join(f"`{g}`" for g in gates))
+        lines.append("")
+
+    groups = [
+        ("REEXAMINE", "Reexamine before repair/merge"),
+        ("COMPARE_CONSOLIDATE", "Competing work — compare/consolidate"),
+        ("REBASE_RETEST", "Refresh and retest"),
+        ("ADVANCE", "Advance through ordinary review"),
+        ("CLOSE_PRESERVE", "Preserve/close as non-merge work"),
+    ]
+    by_action: dict[str, list[dict[str, Any]]] = {}
+    for item in index.get("items") or []:
+        by_action.setdefault(item["guidance"]["action"], []).append(item)
+
+    for action, heading in groups:
+        rows = by_action.get(action) or []
+        if not rows:
+            continue
+        lines += [f"### {heading}", "", "| PR | Why | Next action |", "|---|---|---|"]
+        for item in rows:
+            findings = item.get("findings") or []
+            why = "; ".join(f["evidence"] for f in findings[:3]) or "No coordinator-level blocker detected."
+            why = why.replace("|", "\\|").replace("\n", " ")
+            nxt = item["guidance"]["next_action"].replace("|", "\\|")
+            lines.append(
+                f"| [#{item['number']}]({item.get('url') or '#'}) {item['title']} | {why} | {nxt} |"
+            )
+        lines.append("")
+
+    lines += [
+        "---",
+        "`OPEN_IS_NOT_RELEVANT · RELEVANT_IS_NOT_WARRANTED · MERGEABLE_IS_NOT_CURRENT`",
+    ]
+    ret
