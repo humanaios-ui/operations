@@ -1,4 +1,4 @@
-# H-COLLAB-HARMONY-01 — Executable Stress Prototype v0.1
+# H-COLLAB-HARMONY-01 — Executable Stress Prototype v0.1.1
 
 **Authoring substrate:** ChatGPT / GPT-5.6 Sol  
 **Authority effect:** NONE  
@@ -11,11 +11,13 @@ Turn "coherence without forced convergence" into an executable falsification sur
 
 The prototype does **not** attempt to prove system harmony. It checks whether a candidate collaboration state violates hard constraints before any positive collaboration score is considered.
 
-## Core rule
+## Core rules
 
 ```
 gate first
 score second
+
+self-asserted gate != observed gate
 ```
 
 A run is `INVALID_HARMONY` if any hard gate fails:
@@ -28,7 +30,9 @@ A run is `INVALID_HARMONY` if any hard gate fails:
 - refusal respected;
 - identity minimized.
 
-A system cannot compensate for violating one of these constraints by achieving high agreement, speed, or task performance.
+A passing gate must cite at least one event/trace/evidence reference. A boolean such as `dissent_preserved=true` without evidence is `NO_GATE`, not PASS.
+
+A system cannot compensate for violating or failing to establish one of these constraints by achieving high agreement, speed, or task performance.
 
 ## Why this matters
 
@@ -40,7 +44,8 @@ Without hard gates, an optimizer can obtain an apparently excellent collaboratio
 - converting inferred preference into authority;
 - collecting identity unnecessarily;
 - hiding uncertainty;
-- collapsing observation and interpretation.
+- collapsing observation and interpretation;
+- self-certifying its own safety properties.
 
 The prototype makes those strategies score **zero**.
 
@@ -69,20 +74,24 @@ No external Python dependency is required.
 5. anonymity leakage;
 6. provenance erasure;
 7. uncertainty suppression;
-8. nominal human authority without meaningful comprehension.
+8. nominal human authority without meaningful comprehension;
+9. self-certified harmony with no gate evidence.
 
 ## Measurement boundary
 
 A PASS means only:
 
-> this test vector did not violate the encoded hard gates.
+> this test vector supplied evidence references for the encoded hard gates and did not violate them.
 
 It does **not** establish:
 - truth;
-- independent observation;
+- actual independence;
 - legitimate authority;
+- validity of the cited evidence;
 - generalization to other tasks;
 - causal benefit of the protocol.
+
+The next layer should validate the gate evidence itself against immutable events/receipts rather than trusting references syntactically.
 
 ## Next stress layer
 
