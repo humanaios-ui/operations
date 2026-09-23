@@ -2,8 +2,8 @@ version: 1
 generated: '2026-09-23'
 decision_window_days: 2
 counts:
-  candidates: 86
-  records: 39
+  candidates: 88
+  records: 40
 ratifiers:
 - Night
 candidates:
@@ -668,20 +668,6 @@ candidates:
   note: "Witness ledger architecture; human-machine decision attribution ledger;\
     \ enables scalable Z3 executor onboarding. Phase 1\u20133 roadmap. Per CLAUDE.md,\
     \ approved 2026-09-19 19:00 UTC pending formal INDEX entry."
-records:
-- q_id: Q-PHASE-2-BOARD-MOLT-01
-  title: "Z2 Board Decisions & Molt Events Ingestion"
-  path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
-  submitted: '2026-09-19'
-  status: awaiting_z2
-- q_id: Q-INTENT-OS-WITNESS-LEDGER-01
-  title: "Intent-OS witness ledger \u2014 human-machine decision attribution ledger"
-  path: z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md
-  submitted: '2026-09-19'
-  status: awaiting_z2
-  note: "Witness ledger architecture; human-machine decision attribution ledger;\
-    \ enables scalable Z3 executor onboarding. Phase 1\u20133 roadmap. Per CLAUDE.md,\
-    \ approved 2026-09-19 19:00 UTC pending formal INDEX entry."
 - q_id: Q-MOLT-TEMPORAL-PURITY-01
   title: "Molt closure is a state predicate, not a clock \u2014 MOLT_STATE.md window\
     \ semantics vs Q-TEMPORAL-DISSOLUTION-01"
@@ -957,6 +943,16 @@ records:
     \ cannot distinguish this intentional gate from a genuine blocker. Remediation:\
     \ update CLAUDE.md § Decision Routing to document Z2 ratification workflow and gate\
     \ behavior. Discovered during Q-BUZZ-COLLAB-EVAL-01 review."
+- q_id: Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01
+  title: "Calibration profile data violates WITNESS_STATE_V0_1 schema contract"
+  path: z1-inbox/2026-09-21/Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+- q_id: Q-SMAG-Z3-TASK-SEQUENCING-01
+  title: "Z3 executor task sequencing and dependency graph undefined for s1/s2/s3"
+  path: z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
@@ -1126,4 +1122,7 @@ records:
 - path: z1-inbox/2026-09-23/BUZZ_INTEGRATION_SPEC.md
   title: "Buzz Integration Specification \u2014 Technical mapping of HumanAIOS Z1/Z2/Z3 governance to Buzz affordances"
   note: "Companion document to Q-BUZZ-COLLAB-EVAL-01, providing detailed technical specification: event schemas (Nostr NIP-01/NIP-34), GitHub webhook integration, CI/CD gate verification, Z3 execution flow, Z2 authority model, deployment architecture, and rollout plan. Sections 1\u20135 map governance workflows; sections 6\u20138 assess feasibility. A record: no Z2 decision requested."
+- path: z1-inbox/2026-09-21/Z2_RATIFY_SMAG_BLOCKERS.md
+  title: "Z2 Ratification: SMAG Calibration & Sequencing Blockers"
+  note: "Z2 decision record: ratified Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01 (ACCEPT Option A) and Q-SMAG-Z3-TASK-SEQUENCING-01 (ACCEPT with allocations). Z3 executor sequencing and Intent-OS Phase 1 binding guidance provided."
 excluded: []
