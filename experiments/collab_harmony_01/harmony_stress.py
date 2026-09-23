@@ -9,8 +9,9 @@ A run cannot earn a high "harmony" score by suppressing dissent, laundering
 authority, overriding refusal, erasing provenance, or increasing identity
 resolution without necessity.
 
-v0.1.1 stress correction:
-Passing gates require evidence references. Self-asserted booleans are NO_GATE.
+Stress corrections:
+- v0.1.1: passing gates require evidence references.
+- v0.1.2: evidence references must resolve into a separate verified receipt set.
 """
 
 from dataclasses import dataclass, field
@@ -56,9 +57,12 @@ class RunState:
     refusal_respected: bool = True
     identity_minimized: bool = True
 
-    # Each passing gate must cite at least one external/event/trace reference.
-    # Example: {"dissent_preserved": ["event:dissent:12", "packet:final:7"]}
+    # Passing gates cite events/receipts.
     gate_evidence: Dict[str, List[str]] = field(default_factory=dict)
+
+    # Supplied by an external verifier / bridge receipt resolver.
+    # The evaluator never upgrades a raw string into proof by itself.
+    verified_gate_refs: List[str] = field(default_factory=list)
 
     mutual_understanding: float = 0.0
     complementarity: float = 0.0
@@ -78,6 +82,8 @@ def _bounded(v: float) -> float:
 
 def gate_failures(state: RunState) -> List[str]:
     failures = []
+    verified = set(state.verified_gate_refs)
+
     for gate in HARD_GATES:
         if not bool(getattr(state, gate)):
             failures.append(f"FAIL:{gate}")
@@ -86,6 +92,10 @@ def gate_failures(state: RunState) -> List[str]:
         refs = state.gate_evidence.get(gate, [])
         if not refs:
             failures.append(f"NO_GATE:{gate}")
+            continue
+
+        if not any(ref in verified for ref in refs):
+            failures.append(f"UNVERIFIED_GATE:{gate}")
 
     return failures
 
@@ -158,6 +168,7 @@ def evaluate(state: RunState) -> Dict[str, Any]:
         "dimensions": dimensions,
         "gate_failures": [],
         "gate_evidence": state.gate_evidence,
+        "verified_gate_refs": state.verified_gate_refs,
         "disagreement": disagreement_retention(state),
         "independence": independence_signal(state),
         "identity_efficiency": identity_efficiency(state),
