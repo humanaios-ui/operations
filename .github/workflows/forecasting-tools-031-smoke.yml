@@ -66,8 +66,17 @@ jobs:
               structure_output,
           )
           assert hasattr(MetaculusClient, "post_question_comment")
+          required_ids = {
+              "CURRENT_AI_COMPETITION_ID": getattr(MetaculusClient, "CURRENT_AI_COMPETITION_ID", None),
+              "CURRENT_MINIBENCH_ID": getattr(MetaculusClient, "CURRENT_MINIBENCH_ID", None),
+              "CURRENT_METACULUS_CUP_ID": getattr(MetaculusClient, "CURRENT_METACULUS_CUP_ID", None),
+          }
           print("forecasting_tools API imports: PASS")
           print("MetaculusClient.post_question_comment: present")
+          for key, value in required_ids.items():
+              print(f"{key}={value!r}")
+          assert required_ids["CURRENT_AI_COMPETITION_ID"] is not None
+          assert required_ids["CURRENT_MINIBENCH_ID"] is not None
           PY
 
       - name: Import HumanAIOS Metaculus bot module
