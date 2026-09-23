@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 82
+  candidates: 83
   records: 38
 ratifiers:
 - Night
@@ -862,6 +862,36 @@ candidates:
     \ are born gated; (4) settle whether the 64-hex signature in REGISTRY_SPEC.md\
     \ or the merge-is-ratification ruling governs (RFM-15 — AMBIGUITY). Falsifier\
     \ per ask; all counts tool-produced."
+- q_id: Q-Z2-BLOCK-UNFILLABLE-01
+  title: "The candidate template promises z2_decision is auto-filled; nothing\
+    \ fills it, and the signature makes filling it later impossible"
+  path: z1-inbox/2026-09-22/Q-Z2-BLOCK-UNFILLABLE-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Surfaced while preparing the twelve ratification commands, not by a gate.\
+    \ CANDIDATE_BLOCK_TEMPLATE.md:340 states z2_decision is \\\"Auto-filled by\
+    \ Z2\\\". Nothing fills it: ratify.py writes only the dated ruling file and\
+    \ INDEX.yaml and opens the candidate read-only (435, 447), and no live code,\
+    \ workflow or validator reads the block. Because a candidate's digest is over\
+    \ raw bytes (447) and --verify recomputes over current bytes (279), filling\
+    \ the block after ratification breaks the signature of the thing just signed -\
+    \ demonstrated, two different digests over one file. Filling it before hashing\
+    \ fails too: the block carries ratification_hash, and ratify.py:38-40 already\
+    \ records why a hash cannot cover its own field. Stated separately from what\
+    \ is only predicted: the contradiction has NEVER occurred - no terminal-status\
+    \ candidate carries the block. Open candidates that do are counted by a command\
+    \ the candidate publishes rather than a number written down here; the count\
+    \ rose by one during review when #457 merged another from a different session.\
+    \ Ratifying any of them creates the first instance. The command's first\
+    \ published form was wrong twice - a substring that also matched\
+    \ z2_decision_timestamp, and status != awaiting_z2 treated as terminal where\
+    \ validate.py puts withdrawn and superseded in OPEN - both caught by Copilot\
+    \ and recorded in the candidate rather than quietly fixed. First member of the Q-REFERENT-DECAY-01\
+    \ class that is generated rather than left behind, and the only one where\
+    \ care is provably not the fix. Four options; Z1 recommends correcting the\
+    \ template's claim first, then renaming the field to the request it actually\
+    \ is. Not edited: the template is controlled and the 14 affected candidates\
+    \ are about to be signed."
 - q_id: Q-MESH-LOCAL-COORDINATION-01
   title: "Local mesh coordination layer in operations/mesh/ for humanaios, website,\
     \ grok-crossref"
