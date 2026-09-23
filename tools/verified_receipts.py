@@ -297,3 +297,17 @@ def build_receipt_chain_for_testing(events: List[Dict[str, Any]]) -> tuple[List[
         chained.append(body)
         prev = body["hash"]
     return chained, prev
+
+
+def read_receipt_events(path: str) -> tuple[List[Dict[str, Any]], Optional[str]]:
+    """Read a receipt ledger and return (events, head_hash).
+
+    Reading does not itself make the head trusted. Callers must compare the
+    returned head with a head pinned through an independent channel.
+    """
+    p = Path(path)
+    if not p.exists():
+        return [], None
+    events = [json.loads(line) for line in p.read_text().splitlines() if line.strip()]
+    head = events[-1].get("hash") if events else None
+    return events, head
