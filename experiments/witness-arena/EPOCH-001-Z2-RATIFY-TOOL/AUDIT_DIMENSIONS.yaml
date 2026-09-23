@@ -1,0 +1,48 @@
+epoch_id: EPOCH-001-Z2-RATIFY-TOOL
+status: PRE_REGISTERED_AUDIT_DIMENSIONS
+note: >-
+  These dimensions define what independent auditors inspect. They do not
+  prescribe expected answers.
+
+dimensions:
+  - id: AUTHORITY
+    question: Is the human governance decision unambiguously present and attributable?
+  - id: CONTENT_BINDING
+    question: Is the decision cryptographically or otherwise reproducibly bound to the exact artifact/version it governs?
+  - id: ENFORCEMENT
+    question: Can a proposer manufacture an apparently valid authority record under current controls?
+  - id: INDEPENDENT_REVIEW
+    question: Is an independent reviewer mechanically required, or merely documented/expected?
+  - id: EXECUTION_SCOPE
+    question: Does the authorized tool act only within the authority described by the ruling?
+  - id: REVOCATION
+    question: Can authority be revoked or superseded without deleting historical evidence?
+  - id: PROVENANCE
+    question: Can an external auditor reproduce the authority chain from repository evidence?
+  - id: ZONE_SEMANTICS
+    question: Does the proposed Arena preserve the current Z1/Z2/Z3 authority model rather than redefining it?
+  - id: POOL_COMPATIBILITY
+    question: Is the Source/Luminarium/Commons mapping compatible with the controlling Three Pools architecture?
+  - id: MEMBRANE_INDEPENDENCE
+    question: Can blind-review independence be enforced structurally rather than by prompt instruction alone?
+
+required_output:
+  finding_class:
+    - SUPPORT
+    - CONTRADICT
+    - NARROW
+    - OMISSION
+    - ANOMALY
+    - UNRESOLVED
+    - ABSTAIN
+  severity:
+    - BLOCKER
+    - HIGH
+    - HARDENING
+    - OBSERVATION
+    - NONE
+  fields:
+    - evidence_refs
+    - falsifier_or_change_condition
+    - unknowns
+    - omissions_noted

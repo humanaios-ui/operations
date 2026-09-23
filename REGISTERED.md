@@ -4731,6 +4731,7 @@ superseded_by: null
 
 ---
 
+<<<<<<< HEAD
 ## Z2 Ratification — ACCEPTED 2026-09-19
 
 **Candidate ID:** Q-GRANT-BROKER-PHASE-2B-01  
@@ -4796,6 +4797,62 @@ superseded_by: null
 - [x] Deployment feasible? (Night can execute 6-step guide) ✓
 
 **Status:** RATIFIED · Merged to main (commit 260e85a) · Ready for Z3 execution · Phase 2 infrastructure deployment next (per PHASE_2_SETUP_GUIDE.md, 6-step process)
+
+---
+
+## H-01 — Investment Diligence Framework (Governance Integration)
+
+---
+id: "H-01"
+name: "Investment Diligence Framework"
+status: CANDIDATE
+class: H
+date_registered: "2026-09-19"
+date_origin: "2026-09-19"
+session_registered: "S-091926-NN-investment-diligence"
+principles_triggered: ["P-Governance", "P-Evidence", "P-Falsification"]
+substrate: "HumanAIOS Z-governance model (Z1/Z2/Z3)"
+tags: ["governance", "diligence", "decision-support", "risk-assessment", "evidence-based"]
+superseded_by: null
+---
+
+**Title:** Investment Diligence Framework — Integration with HumanAIOS Governance
+
+**Hypothesis:** Five classical investment diligence methodologies (MECE, Issue Trees, Hypothesis-Driven Diligence, GE-McKinsey Nine-Box, Three Horizons) can be systematically integrated into HumanAIOS Z-governance model to improve decision quality for both internal governance assessment and external partner/investment evaluation.
+
+**Evidence Basis:**
+- INVESTMENT_DILIGENCE_FRAMEWORK.md (proof-of-concept reference material, 367 lines)
+- Mappings to REGISTERED.md, PRIORITY_QUEUE.md, ZONE_REGISTRY.md governance artifacts
+- CI/CD gate proposals (diligence_gate.yml pseudocode for Phase 2 integration)
+- Five concepts mapped to Z1/Z2/Z3 roles with concrete governance control points
+
+**Core Claims:**
+1. **MECE risk surface mapping** reduces governance blind spots by enforcing complete + non-overlapping risk categories
+2. **Issue trees decompose broad concerns** into specific, data-answerable questions that can be falsified
+3. **Hypothesis-driven attacks** (testing strongest claims with falsifiers) improve evidence quality vs. assertion-based governance
+4. **Nine-box resource allocation** (market attractiveness vs. competitive position) improves zone prioritization and cap decisions
+5. **Three-horizon sustainability analysis** ensures governance doesn't depend entirely on core-business stability
+
+**Falsifiers (conditions that invalidate hypothesis):**
+1. Framework applied to governance decision; decision quality does not improve (confidence pre/post decision unaffected)
+2. Issue tree decomposes to "unanswerable" leaf questions (no data, document, or fact can answer them)
+3. Falsifier designed for strongest claim but attack succeeds (claim breaks under pressure)
+4. Nine-box placement conflicts with resource allocation decision made independently (framework provides no new insight)
+5. Horizon 1 health assessment misses active stability risk later revealed in operations
+
+**Application Scope:**
+- **Internal:** Governance framework health checks (Z1/Z2/Z3 authority, REGISTERED.md coherence, PRIORITY_QUEUE.md scoring)
+- **External:** Partner/investment evaluation (market attractiveness, competitive position, growth sustainability)
+- **Proof-of-Concept:** Reference material + pilot phase (not yet operational control surface)
+
+**Next Steps (Z2 Ratification Path):**
+1. Z2 reviews framework document (INVESTMENT_DILIGENCE_FRAMEWORK.md)
+2. Z2 ratifies as H-01 (approve or propose edits)
+3. Pilot application on next major decision (zone roadmap, partner evaluation, or grant strategy pivot)
+4. Measure decision-confidence improvement pre/post framework application
+5. If pilot successful: promote to ACTIVE; if not: file IC candidate (evidence gap) and iterate
+
+**Commit:** 948d662 | Session: S-091926-NN | Branch: claude/investment-diligence-framework-8ia4bw
 
 ---
 
