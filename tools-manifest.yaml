@@ -2205,6 +2205,7 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up)
+  session: S-092126
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
