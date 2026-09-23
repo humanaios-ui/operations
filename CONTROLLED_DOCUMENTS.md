@@ -3,7 +3,7 @@
 > Rendered from `document-registry.yaml` (SSOT) by `.doc-control/render.py`.
 > **Do not hand-edit — edit the registry.** CI blocks when the two disagree.
 
-**46 controlled documents** · 37 excluded · 5 content-accuracy holds
+**48 controlled documents** · 37 excluded · 5 content-accuracy holds
 
 **Status:** `draft` = Z1 draft, not yet submitted · `review` = seeded, pending owner verification · `approved` = owner-verified (human gate) · `superseded`/`retired` = obsolete (retained).
 
@@ -13,8 +13,8 @@ Approval is the owner's act and is never automated — no self-grant.
 
 | metric | value |
 |---|---|
-| Controlled documents | 46 |
-| — status `draft` | 6 |
+| Controlled documents | 48 |
+| — status `draft` | 8 |
 | — status `review` | 34 |
 | — status `approved` | 6 |
 | Needing reconciliation | 5 |
@@ -36,6 +36,21 @@ Approval is the owner's act and is never automated — no self-grant.
 | HAIOS-OPS-009 | Area Classification Rules Collection (A4 Input) | operations | `AREA_RULES_COLLECTION.md` | draft | — |
 | HAIOS-OPS-010 | Area Rules Collection Status Tracker | operations | `RULES_COLLECTION_STATUS.md` | draft | — |
 | HAIOS-OPS-011 | Document lifecycle — Filing · Processing · Consumption · Production | operations | `docs/DOC_LIFECYCLE.md` | draft | — |
+
+## Research — `RES` (10)
+
+| doc_id | title | repo | canonical path | status | flags |
+|---|---|---|---|---|---|
+| HAIOS-RES-001 | ACAT_PROMPT_V5_0.txt | lasting-light-ai | `ACAT_PROMPT_V5_0.txt` | review | — |
+| HAIOS-RES-002 | METHODS.md | lasting-light-ai | `METHODS.md` | review | needs-reconcile |
+| HAIOS-RES-003 | openai-activity.html | lasting-light-ai | `openai-activity.html` | review | — |
+| HAIOS-RES-004 | methodology.html | lasting-light-ai | `public/methodology.html` | review | — |
+| HAIOS-RES-005 | REGISTERED.md | operations | `REGISTERED.md` | review | — |
+| HAIOS-RES-006 | SEED.md | operations | `SEED.md` | review | — |
+| HAIOS-RES-007 | Specimen Intake Design & Implementation | operations | `specimen-intake-design_and_doc_updates.md` | draft | — |
+| HAIOS-RES-008 | Red-Team Audit — specimen-intake landing (commit c08f86c) | operations | `specimen-intake_redteam_090826.md` | draft | — |
+| HAIOS-RES-009 | The Instrument Turned Inward: Reflexive Behavioral Calibration for Human-AI Research Systems | operations | `docs/REFLEXIVE_CALIBRATION_PAPER_V1_0.md` | draft | — |
+| HAIOS-RES-010 | REGISTERED.md Failure-Mode Map | operations | `REGISTERED_FAILURE_MODES.md` | draft | — |
 
 ## Site Pages — `WEB` (10)
 
@@ -66,20 +81,6 @@ Approval is the owner's act and is never automated — no self-grant.
 | HAIOS-COLLAB-008 | RAH_OPERATIONAL_RECORD_S-051426-02.html | humanaios-internal | `collaborators/RAH_OPERATIONAL_RECORD_S-051426-02.html` | review | — |
 | HAIOS-COLLAB-009 | SYDAN_JOINT_REPORT_S-051426-02.html | humanaios-internal | `collaborators/SYDAN_JOINT_REPORT_S-051426-02.html` | review | — |
 
-## Research — `RES` (9)
-
-| doc_id | title | repo | canonical path | status | flags |
-|---|---|---|---|---|---|
-| HAIOS-RES-001 | ACAT_PROMPT_V5_0.txt | lasting-light-ai | `ACAT_PROMPT_V5_0.txt` | review | — |
-| HAIOS-RES-002 | METHODS.md | lasting-light-ai | `METHODS.md` | review | needs-reconcile |
-| HAIOS-RES-003 | openai-activity.html | lasting-light-ai | `openai-activity.html` | review | — |
-| HAIOS-RES-004 | methodology.html | lasting-light-ai | `public/methodology.html` | review | — |
-| HAIOS-RES-005 | REGISTERED.md | operations | `REGISTERED.md` | review | — |
-| HAIOS-RES-006 | SEED.md | operations | `SEED.md` | review | — |
-| HAIOS-RES-007 | Specimen Intake Design & Implementation | operations | `specimen-intake-design_and_doc_updates.md` | draft | — |
-| HAIOS-RES-008 | Red-Team Audit — specimen-intake landing (commit c08f86c) | operations | `specimen-intake_redteam_090826.md` | draft | — |
-| HAIOS-RES-009 | The Instrument Turned Inward: Reflexive Behavioral Calibration for Human-AI Research Systems | operations | `docs/REFLEXIVE_CALIBRATION_PAPER_V1_0.md` | draft | — |
-
 ## Process / Runbooks — `PROC` (5)
 
 | doc_id | title | repo | canonical path | status | flags |
@@ -90,12 +91,13 @@ Approval is the owner's act and is never automated — no self-grant.
 | HAIOS-PROC-004 | SESSION_RITUALS.md | operations | `SESSION_RITUALS.md` | review | — |
 | HAIOS-PROC-005 | A4 Intake Pipeline Specification | operations | `A4_INTAKE_PIPELINE_SPEC.md` | approved | — |
 
-## Governance — `GOV` (2)
+## Governance — `GOV` (3)
 
 | doc_id | title | repo | canonical path | status | flags |
 |---|---|---|---|---|---|
 | HAIOS-GOV-001 | GOVERNANCE.md | operations | `GOVERNANCE.md` | review | — |
 | HAIOS-GOV-002 | External Link Lifecycle Policy | operations | `EXTERNAL_LINK_POLICY.md` | approved | — |
+| HAIOS-GOV-003 | Governance File Registry (rendered from .gov-control SSOT) | operations | `GOVERNANCE_FILES.md` | draft | — |
 
 ## Reconciliation queue (5)
 
@@ -109,7 +111,7 @@ Documents whose inbox copy diverged from the repo copy and need a merge decision
 | HAIOS-WEB-004 | `public/lumina_tide_pool_v2.html` | inbox copy larger/additive — diff vs repo, merge additive content into repo canonical, then approve |
 | HAIOS-WEB-010 | `the-source.html` | inbox copy larger/additive — diff vs repo, merge additive content into repo canonical, then approve |
 
-## Review schedule (41)
+## Review schedule (43)
 
 Earliest due first. Anything dated before today is overdue — `.doc-control/validate.py` flags those on every run. The review itself is the owner's act.
 
@@ -144,6 +146,8 @@ Earliest due first. Anything dated before today is overdue — `.doc-control/val
 | 2026-08-01 | HAIOS-WEB-009 | `submit.html` | review |
 | 2026-08-01 | HAIOS-WEB-010 | `the-source.html` | review |
 | 2026-10-12 | HAIOS-RES-009 | `docs/REFLEXIVE_CALIBRATION_PAPER_V1_0.md` | draft |
+| 2026-10-21 | HAIOS-GOV-003 | `GOVERNANCE_FILES.md` | draft |
+| 2026-10-21 | HAIOS-RES-010 | `REGISTERED_FAILURE_MODES.md` | draft |
 | 2026-12-01 | HAIOS-RES-006 | `SEED.md` | review |
 | 2026-12-06 | HAIOS-RES-005 | `REGISTERED.md` | review |
 | 2026-12-13 | HAIOS-OPS-004 | `SUBSTRATE_CAPABILITY_REGISTRY.md` | review |

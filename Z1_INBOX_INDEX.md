@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**46 candidates** — ⏳ awaiting Z2 39 · ✅ ratified 7 · **27 records**
+**88 candidates** — ⏳ awaiting Z2 79 · ✅ ratified 9 · **40 records**
 
-## Awaiting Z2 (39)
+## Awaiting Z2 (79)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -33,7 +33,6 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-15 | **Q-TOOLCONTROL-01** | Tool manifest & document-control registry | `z1-inbox/2026-09-13/Q-TOOLCONTROL-01.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-02** | Tool category vocabulary & backlog clearance | `z1-inbox/2026-09-13/Q-TOOLCONTROL-02.md` |
 | 2026-09-15 | **Q-TOOLCONTROL-03** | Turning the gate on itself — every blocking rule must be able to fail | `z1-inbox/2026-09-13/Q-TOOLCONTROL-03.md` |
-| 2026-09-16 | **Q-BOARD-RULING-02** | Board ruling d2 — TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate? | `z1-inbox/2026-09-14/Q-BOARD-RULING-02.md` |
 | 2026-09-16 | **Q-BOARD-RULING-03** | Board ruling d3 — z2_budget_p2 — set the Phase 2 envelope, or drop it as a gate? | `z1-inbox/2026-09-14/Q-BOARD-RULING-03.md` |
 | 2026-09-16 | **Q-BOARD-RULING-05** | Board ruling d5 — GRBS ↔ Empirica — what is the formal relationship? | `z1-inbox/2026-09-14/Q-BOARD-RULING-05.md` |
 | 2026-09-16 | **Q-BOARD-RULING-06** | Board ruling d6 — First job-posting batch — where does it come from? | `z1-inbox/2026-09-14/Q-BOARD-RULING-06.md` |
@@ -44,15 +43,56 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-16 | **Q-BOARD-RULING-11** | Board ruling d11 — Option A — file the 'orthogonal gap layer' positioning as DRAFT.md until Option B data exists? | `z1-inbox/2026-09-14/Q-BOARD-RULING-11.md` |
 | 2026-09-16 | **Q-BOARD-RULING-12** | Board ruling d12 — H-CAL-01 — queue the mechanism study as a Molt candidate (8-week window) parallel to Option B? | `z1-inbox/2026-09-14/Q-BOARD-RULING-12.md` |
 | 2026-09-16 | **Q-BOARD-RULING-13** | Board ruling d13 — Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions? | `z1-inbox/2026-09-14/Q-BOARD-RULING-13.md` |
-| 2026-09-16 | **Q-BOARD-RULING-14** | Board ruling d14 — LPCS — independent check (a), convergence specimen (b), destination (c), or none? | `z1-inbox/2026-09-14/Q-BOARD-RULING-14.md` |
 | 2026-09-16 | **Q-BOARD-RULING-15** | Board ruling d15 — FALS-43 — batch ruling on the 43 hypotheses without written falsifiers? | `z1-inbox/2026-09-14/Q-BOARD-RULING-15.md` |
 | 2026-09-16 | **Q-BOARD-RULING-16** | Board ruling d16 — docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold? | `z1-inbox/2026-09-14/Q-BOARD-RULING-16.md` |
 | 2026-09-16 | **Q-BOOT-FINDINGS-SCAN-01** | Registry candidate block — post-merge findings scan over Q-BOOT-STATE-MACHINE-01, cross-walked against a live REGISTERED.md fetch | `z1-inbox/2026-09-14/Q-BOOT-FINDINGS-SCAN-01.md` |
 | 2026-09-16 | **Q-BOOT-STATE-MACHINE-01** | Adversarial review of the boot state machine prototype — 17 findings mapped to the 12 ACAT dimensions, plus a corrected implementation | `z1-inbox/2026-09-14/Q-BOOT-STATE-MACHINE-01-ADVERSARIAL-REVIEW.md` |
 | 2026-09-16 | **Q-IC-BOARD-SEALS-01** | IC candidate — the Intent-OS board's seals outlived the commits the 09-10 history reset removed (IC-030 class) | `z1-inbox/2026-09-14/IC-CAND-BOARD-STALE-SEALS.md` |
+| 2026-09-19 | **Q-INTENTOS-BUS-01** | Agent bus policy — d27 model endpoint none/local/hosted · d28 issue mirror · d29 smoke contract in the manifest · d30 squash-merge read pointer | `z1-inbox/2026-09-17/Q-INTENTOS-BUS-01.md` |
 | 2026-09-19 | **Q-INTENTOS-REFRESH-01** | Automated Intent-OS refresh — re-seal what a job may, file what a human must; d23 enable · d24 rev by job · d25 local copies · KNOWN_RED list | `z1-inbox/2026-09-17/Q-INTENTOS-REFRESH-01.md` |
+| 2026-09-20 | **Q-BOARD-PUBLISH-01** | Board ruling d31 — board surface — serve the board from a login-gated Cloudflare Worker (Access, allow-listed identities), replacing d17's local-only? | `z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md` |
+| 2026-09-20 | **Q-IC-RATIFY-BYPASS-01** | IC candidate — a by-hand signature path (ratify.py --apply) stayed executable for board rulings after the merge-is-ratification ruling; guarded in #409 (a Tier 2 gate change) | `z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md` |
+| 2026-09-21 | **Q-BOARD-RULING-20** | Board ruling d20 — Test harness as §A step 3 | `z1-inbox/2026-09-19/Q-BOARD-RULING-20.md` |
+| 2026-09-21 | **Q-BOARD-RULING-21** | Board ruling d21 — Dashboard: commit the rendered receipt | `z1-inbox/2026-09-19/Q-BOARD-RULING-21.md` |
+| 2026-09-21 | **Q-BOARD-RULING-22** | Board ruling d22 — Scale-out order for the test surface | `z1-inbox/2026-09-19/Q-BOARD-RULING-22.md` |
+| 2026-09-21 | **Q-BOARD-RULING-23** | Board ruling d23 — Refresh job: enable the PR/issue half | `z1-inbox/2026-09-19/Q-BOARD-RULING-23.md` |
+| 2026-09-21 | **Q-BOARD-RULING-24** | Board ruling d24 — May a job advance the board's rev? | `z1-inbox/2026-09-19/Q-BOARD-RULING-24.md` |
+| 2026-09-21 | **Q-BOARD-RULING-25** | Board ruling d25 — Local copies: re-download or a release asset | `z1-inbox/2026-09-19/Q-BOARD-RULING-25.md` |
+| 2026-09-21 | **Q-BOARD-RULING-26** | Board ruling d26 — Resource-based grounding of the refresh job | `z1-inbox/2026-09-19/Q-BOARD-RULING-26.md` |
+| 2026-09-21 | **Q-BOARD-RULING-27** | Board ruling d27 — Model endpoint policy for the bus | `z1-inbox/2026-09-19/Q-BOARD-RULING-27.md` |
+| 2026-09-21 | **Q-BOARD-RULING-28** | Board ruling d28 — Issue mirror for REQ- records | `z1-inbox/2026-09-19/Q-BOARD-RULING-28.md` |
+| 2026-09-21 | **Q-BOARD-RULING-29** | Board ruling d29 — The smoke contract in the manifest | `z1-inbox/2026-09-19/Q-BOARD-RULING-29.md` |
+| 2026-09-21 | **Q-BOARD-RULING-30** | Board ruling d30 — Squash-merge read pointer | `z1-inbox/2026-09-19/Q-BOARD-RULING-30.md` |
+| 2026-09-21 | **Q-BOARD-RULING-32** | Board ruling d32 — KNOWN_RED list in the refresh job | `z1-inbox/2026-09-19/Q-BOARD-RULING-32.md` |
+| 2026-09-21 | **Q-BOARD-RULING-33** | Board ruling d33 — board filename: rename to intent-os-board.html with a redirect from the old path (successor to d19's freeze), keep the frozen path, or later | `z1-inbox/2026-09-19/Q-BOARD-RULING-33.md` |
+| 2026-09-21 | **Q-INTENT-OS-WITNESS-LEDGER-01** | Intent-OS witness ledger — human-machine decision attribution ledger | `z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md` |
+| 2026-09-21 | **Q-INTENTOS-PAGES-GATE-01** | Gates for the board's page set — intent_os_pages --check as a pre-merge step (G1), the d33 rename-hold test pre-merge (G2), the runbook card sealed or not (G3): a Tier 2 proposal | `z1-inbox/2026-09-19/Q-INTENTOS-PAGES-GATE-01.md` |
+| 2026-09-21 | **Q-PHASE-2-BOARD-MOLT-01** | Z2 Board Decisions & Molt Events Ingestion | `z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md` |
+| 2026-09-21 | **Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01** | Research→Governance→Operations Loop + Automated Repository Auditor — three tools: research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt) | `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md` |
+| 2026-09-22 | **Q-TOOL-MANIFEST-DRIFT-PREVENTION-01** | Tool manifest drift prevention — validation gate (Tier 0 infrastructure) | `z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md` |
+| 2026-09-23 | **Q-AGENT-CHECKIN-CALIBRATION-01** | Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review comparison | `z1-inbox/2026-09-21/Q-AGENT-CHECKIN-CALIBRATION-01.md` |
+| 2026-09-23 | **Q-CORPUS-STATS-RECONCILE-01** | July corpus audit still unresolved — SEED.md publishes figures the audit found unreproducible | `z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md` |
+| 2026-09-23 | **Q-DATA-SSOT-REGENERATION-01** | Regenerate the data SSOT — contaminated v0.1 corpus retained as lesson artifact, not corrected figures | `z1-inbox/2026-09-21/Q-DATA-SSOT-REGENERATION-01.md` |
+| 2026-09-23 | **Q-DEFERRAL-RULE-01** | A deferral needs an ending condition, not just a better home | `z1-inbox/2026-09-21/Q-DEFERRAL-RULE-01.md` |
+| 2026-09-23 | **Q-EXTERNAL-JESTER-01** | The ratified Jester's independence rule is the wrong rule, and we can now measure that | `z1-inbox/2026-09-21/Q-EXTERNAL-JESTER-01.md` |
+| 2026-09-23 | **Q-GATE-PATHS-TEST-LOGIC-01** | A gate's logic measures Tier 0 while its workflow wrapper measures Tier 2 | `z1-inbox/2026-09-21/Q-GATE-PATHS-TEST-LOGIC-01.md` |
+| 2026-09-23 | **Q-GOVDRIFT-01** | Derived-artifact convention, and four items only Z2 can close | `z1-inbox/2026-09-21/Q-GOVDRIFT-01.md` |
+| 2026-09-23 | **Q-GRAPH-CONVERGENCE-01** | Grade agreement between agent-authored graphs by source disjointness, not similarity | `z1-inbox/2026-09-21/Q-GRAPH-CONVERGENCE-01.md` |
+| 2026-09-23 | **Q-INTENT-GRAPH-01** | Shared intent substrate — typed graph for vision/mission/principles/objectives with a conflict validator | `z1-inbox/2026-09-21/Q-INTENT-GRAPH-01.md` |
+| 2026-09-23 | **Q-MOLT-TEMPORAL-PURITY-01** | Molt closure is a state predicate, not a clock — MOLT_STATE.md window semantics vs Q-TEMPORAL-DISSOLUTION-01 | `z1-inbox/2026-09-21/Q-MOLT-TEMPORAL-PURITY-01.md` |
+| 2026-09-23 | **Q-SEED-TRL-PROPAGATION-01** | Ratified TRL correction never reached SEED.md — identity anchor still states TRL 2–3 | `z1-inbox/2026-09-21/Q-SEED-TRL-PROPAGATION-01.md` |
+| 2026-09-23 | **Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01** | Calibration profile data violates WITNESS_STATE_V0_1 schema contract | `z1-inbox/2026-09-21/Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01.md` |
+| 2026-09-23 | **Q-SMAG-Z3-TASK-SEQUENCING-01** | Z3 executor task sequencing and dependency graph undefined for s1/s2/s3 | `z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md` |
+| 2026-09-24 | **Q-A11-ORDERING-INERT-01** | A11 still enforces a property no grade depends on | `z1-inbox/2026-09-22/Q-A11-ORDERING-INERT-01.md` |
+| 2026-09-24 | **Q-ACCOUNT-HUB-01** | HumanAIOS Account Hub & Project Manager Cockpit | `z1-inbox/2026-09-22/ACCOUNT-HUB-PROPOSAL.md` |
+| 2026-09-24 | **Q-MESH-LOCAL-COORDINATION-01** | Local mesh coordination layer in operations/mesh/ for humanaios, website, grok-crossref | `z1-inbox/2026-09-22/Q-MESH-LOCAL-COORDINATION-01.md` |
+| 2026-09-24 | **Q-P19-GATE-INERT-01** | The principle-compliance gate reported green without opening a file | `z1-inbox/2026-09-22/Q-P19-GATE-INERT-01.md` |
+| 2026-09-24 | **Q-REFERENT-DECAY-01** | Five artifacts whose link to their referent died while the artifact stayed alive | `z1-inbox/2026-09-22/Q-REFERENT-DECAY-01.md` |
+| 2026-09-24 | **Q-Z2-BLOCK-UNFILLABLE-01** | The candidate template promises z2_decision is auto-filled; nothing fills it, and the signature makes filling it later impossible | `z1-inbox/2026-09-22/Q-Z2-BLOCK-UNFILLABLE-01.md` |
+| 2026-09-25 | **Q-BUZZ-COLLAB-EVAL-01** | Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance on self-hosted Nostr relay) | `z1-inbox/2026-09-23/Q-BUZZ-COLLAB-EVAL-01.md` |
+| 2026-09-25 | **Q-Z2RATIF-MECH-32** | Z2 Ratification Mechanism Undocumented — governance workflow clarity gap | `z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md` |
 
-## Decided (7)
+## Decided (9)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -63,6 +103,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-INTENTOS-TEST-01** | Night | 2026-09-16 | `z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md`<br>`eb568ab4a65efbae21927c646b18be459a0c8de8353d59fe8b4cc451f3ed36ae` |
 | ✅ ratified | **Q-MERGE-SCOPE-01** | Night | 2026-09-16 | `z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md`<br>`f04b05d31dad3138c47b3875b2104776b3f4a80a65c5d1a376ec50f867dac53a` |
 | ✅ ratified | **Q-MOLT-LEDGER-SCAN-01** | Night | 2026-09-16 | `z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md`<br>`44276df7c921d87cc388922155eace549f1f57b71134f65422d9be1770859eb2` |
+| ✅ ratified | **Q-BOARD-RULING-02** | Night | 2026-09-18 | `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md`<br>`b80131eba24815480dfd83630cfbdd69672fb017bf4e264e081a9a05326f3c6a` |
+| ✅ ratified | **Q-BOARD-RULING-14** | Night | 2026-09-18 | `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md`<br>`27c98b653cefe16826fe3b2b76fcfdc822cb87b00a5ce81dc7c256112a7f51eb` |
 
 ## ⚠️ Falsifier waivers (1) — open for Z2
 
@@ -72,7 +114,7 @@ A candidate with no falsifier. The waiver is the candidate's own claim that it p
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
 
-## Open questions for Z2 (90)
+## Open questions for Z2 (137)
 
 Every unticked item from the `## Z2 Review Checklist` of each candidate still awaiting a decision. Answer them in the block itself — ticking a box here does nothing, because this file is generated.
 
@@ -89,11 +131,14 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Registrable item 1 is routed with priority — it concerns the authority map's accuracy
 - [ ] Out-of-scope boundary on `score_transcript()` is accepted
 
-### Q-BOARD-RULING-02 (1)
+### Q-BOARD-PUBLISH-01 (4)
 
-`z1-inbox/2026-09-14/Q-BOARD-RULING-02.md`
+`z1-inbox/2026-09-18/Q-BOARD-PUBLISH-01.md`
 
-- [ ] TLA_TOOLS_SHA256 — set the repository variable, or drop it as a gate? — options: set, drop gate, later
+- [ ] Board surface — serve the board from a login-gated Cloudflare Worker, replacing d17's local-only? — options: serve behind login, stay local, later
+- [ ] The allow-list is identities (email / GitHub login), one per member — no shared password — and it is enforced twice: by the Access policy in front, and by the Worker itself (`ACCESS_ALLOWED_EMAILS`), so a policy widened by mistake still gets `403` from the Worker
+- [ ] The Access policy is receipted in the tree (`z1-inbox/<date>/ACCESS_POLICY_RECEIPT_<date>.md`, runbook §5): application, AUD, rule type, identity count and the hash of the list — so a later widening is detectable without publishing addresses
+- [ ] The relay's own gate and HMAC stay as they are; the Worker adds a login in front of the page, not a new path into the relay
 
 ### Q-BOARD-RULING-03 (1)
 
@@ -155,12 +200,6 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 
 - [ ] Option C — require an evidence-tier tag on every public ACAT claim for the six unmapped dimensions? — options: require, later
 
-### Q-BOARD-RULING-14 (1)
-
-`z1-inbox/2026-09-14/Q-BOARD-RULING-14.md`
-
-- [ ] LPCS — independent check (a), convergence specimen (b), destination (c), or none? — options: (a) check, (b) specimen, (c) destination, none, later
-
 ### Q-BOARD-RULING-15 (1)
 
 `z1-inbox/2026-09-14/Q-BOARD-RULING-15.md`
@@ -172,6 +211,98 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 `z1-inbox/2026-09-14/Q-BOARD-RULING-16.md`
 
 - [ ] docs/ triage — rule by hash over DOC_TRIAGE_2026-09-08.md: archive the 53 as listed, edit the list, or hold? — options: archive as listed, edit list, later
+
+### Q-BOARD-RULING-20 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-20.md`
+
+- [ ] Test harness as §A step 3 — options: adopt as §A step 3, keep advisory, later
+- [ ] The parent block `Q-INTENTOS-TEST-01` keeps its own status; this block records the choice for d20 only
+
+### Q-BOARD-RULING-21 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-21.md`
+
+- [ ] Dashboard: commit the rendered receipt — options: commit the rendered dashboard, render locally per session, later
+- [ ] The parent block `Q-INTENTOS-TEST-01` keeps its own status; this block records the choice for d21 only
+
+### Q-BOARD-RULING-22 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-22.md`
+
+- [ ] Scale-out order for the test surface — options: registry order (Z-001 first), name the first repo, later
+- [ ] The parent block `Q-INTENTOS-TEST-01` keeps its own status; this block records the choice for d22 only
+
+### Q-BOARD-RULING-23 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-23.md`
+
+- [ ] Refresh job: enable the PR/issue half — options: enable auto-PR, report-only, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d23 only
+
+### Q-BOARD-RULING-24 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-24.md`
+
+- [ ] May a job advance the board's rev? — options: a job may advance rev, reserve rev for human re-reads, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d24 only
+
+### Q-BOARD-RULING-25 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-25.md`
+
+- [ ] Local copies: re-download or a release asset — options: re-download from the repository, rolling release asset, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d25 only
+
+### Q-BOARD-RULING-26 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-26.md`
+
+- [ ] Resource-based grounding of the refresh job — options: confirm the reading, name a regulatory time-frame, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d26 only
+
+### Q-BOARD-RULING-27 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-27.md`
+
+- [ ] Model endpoint policy for the bus — options: none, local, hosted, later
+- [ ] The parent block `Q-INTENTOS-BUS-01` keeps its own status; this block records the choice for d27 only
+
+### Q-BOARD-RULING-28 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-28.md`
+
+- [ ] Issue mirror for REQ- records — options: mirror to issues, git-only, later
+- [ ] The parent block `Q-INTENTOS-BUS-01` keeps its own status; this block records the choice for d28 only
+
+### Q-BOARD-RULING-29 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-29.md`
+
+- [ ] The smoke contract in the manifest — options: flag means carries, keep the text match, later
+- [ ] The parent block `Q-INTENTOS-BUS-01` keeps its own status; this block records the choice for d29 only
+
+### Q-BOARD-RULING-30 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-30.md`
+
+- [ ] Squash-merge read pointer — options: mechanical pointer move, keep NEEDS-HUMAN, later
+- [ ] The parent block `Q-INTENTOS-BUS-01` keeps its own status; this block records the choice for d30 only
+
+### Q-BOARD-RULING-32 (2)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-32.md`
+
+- [ ] KNOWN_RED list in the refresh job — options: accept the list, require empty, later
+- [ ] The parent block `Q-INTENTOS-REFRESH-01` keeps its own status; this block records the choice for d32 only
+
+### Q-BOARD-RULING-33 (3)
+
+`z1-inbox/2026-09-19/Q-BOARD-RULING-33.md`
+
+- [ ] Board filename — rename to `intent-os-board.html` with a redirect from the old path, keep the frozen path, or later
+- [ ] The move is one commit: rename, every reference, the Worker redirect, the runbook, the re-seal — nothing lands piecemeal
+- [ ] Conditioned on d31: the executing PR opens only after d31's ruling PR has merged, and carries the Worker redirect exactly when d31 ruled `serve behind login`; it stays held while d31 is `later`
 
 ### Q-CGBG-BASELINE-01 (6)
 
@@ -234,6 +365,14 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Accept, edit or reject prevention (1): an advisory `board-check` CI job on pushes to main touching sealed paths
 - [ ] Accept, edit or reject prevention (2): the checker as a §A session-open line in CLAUDE.md
 
+### Q-IC-RATIFY-BYPASS-01 (3)
+
+`z1-inbox/2026-09-18/IC-CAND-RATIFY-MANUAL-BYPASS.md`
+
+- [ ] Register IC-RATIFY-BYPASS-01 as stated (or edit the class / duration)
+- [ ] Accept the guard as the correction — a Tier 2 gate change carried in #409 — or ask instead for the alternative the review named: a Z2 ruling that keeps a by-hand exception and says how its review and provenance requirement is met
+- [ ] Accept, edit or refuse the prevention (a cross-tool self-test case)
+
 ### Q-NF-ADAPTER-01 (5)
 
 `z1-inbox/2026-09-13/Q-NF-ADAPTER-01.md`
@@ -254,6 +393,31 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Brier calculation is mathematically sound (review formula)
 - [ ] Schema extends without breaking existing records (review migration path)
 - [ ] Molt Cycle integration is viable (review pseudocode in schema)
+
+### Q-PHASE-2-BOARD-MOLT-01 (6)
+
+`z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md`
+
+- [ ] **Falsifier acceptable?** (data persistence + 5-min SLA)
+- [ ] **Molt tier matches claim?** (0 claimed = 0 measured, no constants changed)
+- [ ] **Governance compliance?** (Temporal dissolution, RLS, audit trail)
+- [ ] **Risk acceptable?** (mitigations sufficient?)
+- [ ] **Deployment feasible?** (Night can execute 6-step guide?)
+- [ ] **Ready to ratify?** (Sign with sha256 hash)
+
+### Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01 (9)
+
+`z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md`
+
+- [ ] Research findings currently stall; this loop solves a real bottleneck
+- [ ] The three tools are well-specified and non-overlapping in purpose
+- [ ] findings-manifest.yaml format is clear enough for reliable encoding of operations
+- [ ] Gate conditions are strong enough to prevent bad implementations from merging
+- [ ] Falsifiers are mechanical, testable, not subjective (all event-based)
+- [ ] Predictions are pre-registered and falsifiable within 90 days
+- [ ] The auditor sources (GitHub, arXiv, OSPO) are trustworthy; filtering logic won't spam the board
+- [ ] This is a genuine Tier 2 molt (changes how work flows; requires validation cycle and ratification)
+- [ ] Once adopted, the system scales: every research finding and external best practice feeds into governance automatically
 
 ### Q-TOOLCONTROL-01 (8)
 
@@ -291,7 +455,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (27)
+## Records (40)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -322,8 +486,21 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-16/HANDOFF.md` | Handoff — 2026-09-16 (two sessions: Intent-OS test surface · Z2 queue at close of S-091626-01) |
 | `z1-inbox/2026-09-16/HOLOGRAPHIC_HYPOTHESIS_PROTOCOL.md` | Holographic self-representation hypothesis testing protocol (Phase 2 integration mocks, Phase 3 live services, Phase 4 verdict analysis) |
 | `z1-inbox/2026-09-16/PHASE2_HANDOFF.md` | Phase 2 Handoff — Holographic integration tests complete, CI green, ready for Z2 review and Phase 3 authorization |
+| `z1-inbox/2026-09-16/PHASE3_EXECUTION_CHECKLIST.md` | Phase 3 execution checklist (infrastructure complete; awaiting credential deployment) |
+| `z1-inbox/2026-09-16/PHASE3_LAUNCH.md` | Phase 3 launch — holographic live service testing (Z2 authorization received; awaiting credential configuration) |
 | `z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md` | Z2 rulings — 2026-09-16 (six): PR #343 ACCEPT, Q-MOLT-LEDGER-SCAN-01 ACCEPT, SESSION_RITUALS v6.4.2 bump ACCEPT (applied), Section F.1 ACCEPT reading (a), ledger → resource-based DIRECTION_GIVEN, ratify.py 1.2.0 awaiting Z2 (Night, 2026-09-16) |
 | `z1-inbox/2026-09-17/HANDOFF.md` | Handoff — 2026-09-17 (Intent-OS refresh: the mechanism for automated updates) |
+| `z1-inbox/2026-09-17/REQ-20260917-01.md` | Agent request REQ-20260917-01 — Wire the decision relay live so the board can rule and request from a browser |
+| `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md` | Z2 rulings 2026-09-18 — signatures issued by .z1-control/ratify.py and tools/intent_os_reconcile_v1_0.py |
+| `z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md` | Z2 ruling — the merge is the ratification: the hash echo is retired, a ruling's PR changes one file, the merger and the merge date sign it, a job on main records it (Night, 2026-09-18) |
+| `z1-inbox/2026-09-19/BROKER-TRACK-STATUS-2026-09-19.md` | Broker Track status report (2026-09-19) |
+| `z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md` | Phase 1 implementation status report (2026-09-19) |
+| `z1-inbox/2026-09-19/PHASE-1B-GRANT-MATCHING-SPEC.md` | Phase 1B Grant Matching Engine specification |
+| `z1-inbox/2026-09-19/PHASE-1B-IMPLEMENTATION-STATUS.md` | Phase 1B implementation status report |
+| `z1-inbox/2026-09-19/PHASE-2B-SPECIFICATION.md` | Phase 2B specification |
+| `z1-inbox/2026-09-21/Z2_RATIFY_SMAG_BLOCKERS.md` | Z2 Ratification: SMAG Calibration & Sequencing Blockers |
+| `z1-inbox/2026-09-22/MEASUREMENT-SCOPE-AUDIT.md` | Measurement Scope Audit — Blockchain Trading Pilot (Z-012) |
+| `z1-inbox/2026-09-23/BUZZ_INTEGRATION_SPEC.md` | Buzz Integration Specification — Technical mapping of HumanAIOS Z1/Z2/Z3 governance to Buzz affordances |
 
 ---
 

@@ -14,8 +14,8 @@ on its own.
 Tiers (docs/INTENT_OS_TEST_PATHWAY.md):
   T0  self-tests          every tool proves its own classifications fire (--self-test / --smoke-test)
   T1  governance          live integrity: inbox, signatures, manifests, document control, board seals
-  T2  board + relay       board script parses; relay answers a signed /decide → /ratify over a socket;
-                          a browser keeps taps across reload
+  T2  board + relay       board script parses; relay answers a signed /decide over a socket, the merge is
+                          simulated and the reconcile tool signs it; a browser keeps taps across reload
   T3  ci gates            the unit suites and type-check CI runs (skipped here when a dep is absent)
   T4  cross-repo          zone registry, planned repos, and the repository index name real paths
 
@@ -39,9 +39,11 @@ from __future__ import annotations
 import argparse
 import contextlib
 import datetime as _dt
+import glob
 import hashlib
 import hmac
 import importlib
+import importlib.util
 import io
 import json
 import os
@@ -56,7 +58,7 @@ import urllib.error
 import urllib.request
 
 TOOL_NAME = "intent_os_test_harness"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"  # 1.1: tiers T5 (manifest smoke, generated), T6 (service boot), T7 (key-gated live provider); requests snapshot
 TOOL_CATEGORY = "validation_tool"
 TOOL_SESSION = "S-091626-01"
 TOOL_ZONE = 1  # 1=execute, 2=ratify, 3=night
@@ -66,6 +68,8 @@ BOARD = os.path.join("ui", "intent-os-humanaios-v3_3.html")
 DASHBOARD = os.path.join("ui", "intent-os-test-dashboard-v1_0.html")
 CHECKER = os.path.join("tools", "intent_os_board_check_v1_0.py")
 RELAY = os.path.join("tools", "decision_relay.py")
+RECONCILE = os.path.join("tools", "intent_os_reconcile_v1_0.py")
+REQUESTS = os.path.join("tools", "intent_os_requests_v1_0.py")
 RECEIPT = os.path.join("outputs", "intent_os_test_results.json")
 SCHEMA = "intentos/test_results_v1"
 BAD = {"FAIL", "TIMEOUT", "ERROR"}
@@ -73,10 +77,14 @@ BAD = {"FAIL", "TIMEOUT", "ERROR"}
 TIERS = [
     ("T0", "self-tests", "every tool proves its own classifications fire"),
     ("T1", "governance integrity", "inbox, signatures, manifests, document control, board seals — live"),
-    ("T2", "board + relay", "script parses; signed /decide → /ratify over a socket; taps survive reload"),
+    ("T2", "board + relay", "script parses; signed /decide over a socket → simulated merge → reconcile → signature verifies; taps survive reload"),
     ("T3", "ci gates", "the unit suites, lint and type-check the workflows block on"),
     ("T4", "cross-repo", "zone registry, planned repos, repository index name real paths"),
+    ("T5", "manifest smoke", "every tool the manifest says has a smoke test, run with the flag its source carries — the manifest's claim, measured"),
+    ("T6", "service boot", "the ACAT API boots in-process and answers its health routes"),
+    ("T7", "live provider", "a real model call through the relay's /assist — key-gated; SKIP without a key, never green by default"),
 ]
+MANIFEST = "tools-manifest.yaml"
 
 PY = sys.executable or "python3"
 
@@ -88,19 +96,20 @@ def _py(*args: str) -> list[str]:
 # ---------------------------------------------------------------------------------------------------
 # registry — every entry is a command or a native check; `proves` names diagram nodes on the dashboard
 # ---------------------------------------------------------------------------------------------------
-def registry() -> list[dict]:
+def registry(root: str = ROOT) -> list[dict]:
     T = []
 
-    def add(id, tier, area, name, cmd=None, *, expect=0, timeout=120, requires=(), needs_cmd=(),
-            env=None, kind="cmd", proves=(), note=""):
+    def add(id, tier, area, name, cmd=None, *, expect=0, timeout=120, requires=(), needs_cmd=(), needs_env=(),
+            env=None, kind="cmd", proves=(), note="", skip_reason="", guard_tree=False):
         T.append(dict(id=id, tier=tier, area=area, name=name, cmd=cmd, expect=expect, timeout=timeout,
-                      requires=list(requires), needs_cmd=list(needs_cmd), env=env or {}, kind=kind,
-                      proves=list(proves), note=note))
+                      requires=list(requires), needs_cmd=list(needs_cmd), needs_env=list(needs_env), env=env or {}, kind=kind,
+                      proves=list(proves), note=note, skip_reason=skip_reason, guard_tree=guard_tree))
 
     # T0 — self-tests
     add("t0-board-check", "T0", "board", "board seal checker self-test", _py(CHECKER, "--self-test"), proves=["W1", "W8"])
     add("t0-board-reseal", "T0", "board", "board re-seal self-test (mechanical drift re-hashed; a changed tool refused)", _py("tools/intent_os_board_reseal_v1_0.py", "--self-test"), proves=["W8"])
     add("t0-relay", "T0", "relay", "decision relay self-test (DRY_RUN)", _py(RELAY, "--self-test"), env={"DRY_RUN": "1"}, proves=["W2", "W4", "Z3"])
+    add("t0-requests", "T0", "bus", "agent-request reader self-test (fixtures from the relay's own writer; every classification fires)", _py(REQUESTS, "--self-test"))
     add("t0-z1-validate", "T0", "governance", ".z1-control/validate.py smoke", _py(".z1-control/validate.py", "--smoke-test"), proves=["G1"])
     add("t0-z1-render", "T0", "governance", ".z1-control/render.py smoke", _py(".z1-control/render.py", "--smoke-test"), proves=["W6"])
     add("t0-z1-ratify", "T0", "governance", ".z1-control/ratify.py smoke", _py(".z1-control/ratify.py", "--smoke-test"), proves=["G2", "W5"])
@@ -119,8 +128,12 @@ def registry() -> list[dict]:
 
     # T1 — governance integrity (live)
     add("t1-board-holds", "T1", "board", "board seals HOLD against the tree", _py(CHECKER), proves=["W1", "W8"])
+    add("t1-pages-fresh", "T1", "board", "the four section pages are what the board generates (intent_os_pages --check)",
+        _py("tools/intent_os_pages_v1_0.py", "--check"), proves=["W1"],
+        note="a board change without a regeneration turns this row RED on the dashboard and in the refresh job's report")
     add("t1-z1-inbox", "T1", "governance", "z1-inbox/INDEX.yaml integrity (z2 gate ERROR step)", _py(".z1-control/validate.py"), proves=["Z1", "G1", "W6"])
     add("t1-z1-render-sync", "T1", "governance", "Z1_INBOX_INDEX.md in sync (z2 gate ERROR step)", _py(".z1-control/render.py", "--check"), proves=["W6"])
+    add("t1-requests", "T1", "bus", "every REQ- record in the inbox verifies (hash, ask, id, Fulfilment order, indexed)", _py(REQUESTS, "--check"), proves=["W6"])
     add("t1-signatures", "T1", "governance", "recorded Z2 signatures still match their candidates", _py(".z1-control/ratify.py", "--verify"), proves=["Z2", "G2", "W5"])
     add("t1-manifest-fresh", "T1", "tools", "tool manifest up to date", _py(".tool-control/scan.py", "--check"), proves=["G3"])
     add("t1-manifest-valid", "T1", "tools", "tool manifest rules hold", _py(".tool-control/validate.py"), proves=["G3"])
@@ -140,7 +153,7 @@ def registry() -> list[dict]:
     # T2 — board + relay end to end
     add("t2-board-script", "T2", "board", "board <script> parses (node --check)", kind="node_check", needs_cmd=["node"], proves=["W1"])
     add("t2-dashboard-script", "T2", "board", "dashboard <script> parses (node --check)", kind="node_check_dashboard", needs_cmd=["node"], proves=["W1"])
-    add("t2-relay-roundtrip", "T2", "relay", "signed /decide → PENDING hash → /ratify → signature, over HTTP (DRY_RUN)", kind="relay_roundtrip", timeout=60,
+    add("t2-relay-roundtrip", "T2", "relay", "signed /decide → DECIDED one-file landing → (merge) → reconcile signs it → ratify.py --verify; /ratify retired; /task → REQ record — over HTTP (DRY_RUN)", kind="relay_roundtrip", timeout=60,
         proves=["W2", "W3", "W4", "W5", "W6", "Z3"])
     add("t2-browser-persist", "T2", "board", "headless Chromium: board renders; a tap survives reload (localStorage)", kind="browser", timeout=90,
         requires=["playwright"], proves=["W1"])
@@ -170,8 +183,11 @@ def registry() -> list[dict]:
                 "tools/tests/test_nf_ledger_cli.py", "tools/tests/test_ci_predict.py",
                 "tools/tests/test_lifecycle_predict.py", "tools/tests/test_dimension_attribution.py",
                 "tools/tests/test_tool_trace_hook.py", "tools/tests/test_tool_trace_reader.py",
-                "tools/tests/test_copilot_acat_scanner.py", "tools/tests/test_holographic_integration.py",
+                "tools/tests/test_copilot_acat_scanner.py",
+                "tools/tests/test_grant_match_verifier.py", "tools/tests/test_grant_matching_engine.py",
+                "tools/tests/test_holographic_integration.py",
                 "tools/tests/test_holographic_orchestrator.py", "tools/tests/test_holographic_phase3_live.py",
+                "tools/tests/test_industry_telemetry.py", "tools/tests/test_nonprofit_dashboard.py",
                 "acat/tests/test_tool_trace_schema.py"]
     pyt = ["-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider"]
     add("t3-pytest-baseline", "T3", "ci", "pytest baseline suites (quality-baseline blocking step)", _py(*pyt, *baseline), timeout=600,
@@ -191,7 +207,88 @@ def registry() -> list[dict]:
     add("t4-zone-registry", "T4", "registry", "ZONE_REGISTRY.md: tables populated; operations registered ACTIVE", kind="zones", proves=["R1"])
     add("t4-planned-repos", "T4", "registry", "PLANNED_REPOS.md present with ≥1 planned row", kind="planned", proves=["R1"])
     add("t4-repo-index", "T4", "registry", "REPOSITORY_STRUCTURE.md: every path it names exists", kind="repo_index", proves=["R2"])
+
+    # T5 — the manifest's smoke_test claims, every one of them (T0's curated rows are not repeated)
+    covered = {os.path.relpath(t["cmd"][1], root).replace(os.sep, "/") if os.path.isabs(t["cmd"][1]) else t["cmd"][1]
+               for t in T if t["tier"] == "T0" and t.get("cmd") and len(t["cmd"]) > 1}
+    for row in manifest_smoke_rows(root, covered):
+        add(**row)
+
+    # T6 — a service boots: the ACAT API in-process, both health routes answer
+    add("t6-acat-boot", "T6", "service", "acat.api.app boots under FastAPI's TestClient; / , /health and /api/v1/acat/health answer 200 ok",
+        _py("-c", "from fastapi.testclient import TestClient; from acat.api.app import app; c=TestClient(app); "
+                  "rs=[c.get(p) for p in ('/','/health','/api/v1/acat/health')]; print([(r.status_code, r.json().get('status')) for r in rs]); "
+                  "import sys; sys.exit(0 if all(r.status_code==200 and r.json().get('status')=='ok' for r in rs) else 1)"),
+        timeout=120, requires=["fastapi", "httpx"], proves=["G4"])  # the app import is the test, run from the root
+
+    # T7 — a live model call through the relay; without a key this row is listed and SKIPPED, never green
+    add("t7-live-assist", "T7", "relay", "relay /assist answers with a real model reading (ANTHROPIC_API_KEY; costs one small call)",
+        kind="live_assist", timeout=90, needs_env=["ANTHROPIC_API_KEY"],
+        note="never green by default: a key in the environment is the only thing that turns this row on; the answer is checked for the navigator-grammar fields, not for its content")
     return T
+
+
+SMOKE_FLAGS = ("--smoke-test", "--self-test")
+
+
+def manifest_smoke_rows(root: str, covered: set[str]) -> list[dict]:
+    """One row per manifest tool that claims `smoke_test: true`, run with the flag its source actually carries.
+    The manifest sets that field from a text match ('smoke test' anywhere in the file), so the claim is exactly
+    what this tier measures: a tool with no `--smoke-test`/`--self-test` in its source is listed as SKIP (never
+    green); an archived tool is SKIP; a tool already run by a T0 row is not repeated. Order: the manifest's."""
+    import yaml  # noqa: E402
+    try:
+        m = yaml.safe_load(open(os.path.join(root, MANIFEST), encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return []
+    tools = m.get("tools", []) if isinstance(m, dict) else (m or [])
+    rows, seen = [], set()
+    for t in tools:
+        if not isinstance(t, dict) or not t.get("smoke_test") or t.get("lang", "python") != "python":
+            continue
+        p = str(t.get("path", "")).replace(os.sep, "/")
+        if not p or p in covered:
+            continue
+        stem = re.sub(r"^tools/", "", os.path.splitext(p)[0])  # tools/Metaculus/main.py → metaculus-main; .doc-control/x.py → doc-control-x
+        rid = "t5-" + re.sub(r"[^a-z0-9]+", "-", stem.lower()).strip("-")
+        while rid in seen:
+            rid += "-x"
+        seen.add(rid)
+        base = dict(id=rid, tier="T5", area="manifest", timeout=60, env={"DRY_RUN": "1"}, guard_tree=True)
+        if str(t.get("status", "")).lower() == "archived":
+            rows.append(dict(base, name=f"{p} — archived in the manifest", kind="skip", skip_reason="archived: not run"))
+            continue
+        try:
+            src = open(os.path.join(root, p), encoding="utf-8", errors="replace").read()
+        except OSError:
+            rows.append(dict(base, name=f"{p} — named by the manifest, not on disk", kind="skip", skip_reason="file missing"))
+            continue
+        flag = next((f for f in SMOKE_FLAGS if f in src), None)
+        if flag is None:
+            rows.append(dict(base, name=f"{p} — manifest says smoke_test, source has no {' / '.join(SMOKE_FLAGS)}", kind="skip",
+                             skip_reason="manifest smoke_test is a text match; no smoke flag in the source"))
+            continue
+        rows.append(dict(base, name=f"{p} {flag} (manifest {t.get('tool_id', '?')})", cmd=_py(p, flag)))
+    return rows
+
+
+def live_assist(root: str, timeout: int) -> tuple[bool, str]:
+    """A real /assist call through the relay's --input path (no server, no GitHub): the answer must carry the
+    navigator-grammar fields the prompt asks for. DRY_RUN is removed from the environment for this one call."""
+    env = {k: v for k, v in os.environ.items() if k != "DRY_RUN"}
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+        json.dump({"path": "/assist", "q": "Does the Intent-OS test harness prove what the board claims?",
+                   "opts": ["yes, the receipts are the proof", "no, it proves only its own rows"],
+                   "s": "harness receipt embedded in the dashboard; board seals HOLD"}, fh)
+        path = fh.name
+    try:
+        r = subprocess.run(_py(RELAY, "--input", path), cwd=root, env=env, capture_output=True, text=True, timeout=timeout)
+    finally:
+        os.unlink(path)
+    out = r.stdout + r.stderr
+    low = out.lower()
+    good = r.returncode == 0 and "position" in low and "dry-run" not in low and "no model key" not in low
+    return good, out[-1500:]
 
 
 # ---------------------------------------------------------------------------------------------------
@@ -256,18 +353,20 @@ def _free_port() -> int:
         return s.getsockname()[1]
 
 
-MIN_INDEX = ('---\nversion: 1\ngenerated: "2026-09-14"\ndecision_window_days: 2\ncounts: {candidates: 1, records: 0}\n'
-             'ratifiers: [Night]\n\ncandidates:\n  - q_id: Q-BOARD-RULING-06\n    title: "Board ruling d6"\n'
-             '    path: "z1-inbox/2026-09-14/Q-BOARD-RULING-06.md"\n    submitted: "2026-09-14"\n    status: awaiting_z2\n'
-             '    falsifier_waiver: "question"\n\nrecords:\nexcluded: []\n')
+# the index in the shape ratify.py 1.2.0 writes it (items at column 0, counts as a block) — the shape the relay meets on main
+MIN_INDEX = ('version: 1\ngenerated: \'2026-09-16\'\ndecision_window_days: 2\ncounts:\n  candidates: 1\n  records: 0\nratifiers:\n- Night\n'
+             'candidates:\n- q_id: Q-BOARD-RULING-06\n  title: Board ruling d6\n  path: z1-inbox/2026-09-14/Q-BOARD-RULING-06.md\n'
+             '  submitted: \'2026-09-14\'\n  status: awaiting_z2\n  falsifier_waiver: question\nrecords:\nexcluded: []\n')
 MIN_CAND = ("# Ruling request Q-BOARD-RULING-06\n\n## Question\n\nbatch source?\n\n## Ruling\n\nchoice:\nby:\nat:\n"
             "status: OPEN\n\n## Z2 Review Checklist\n\n- [ ] batch source?\n")
 
 
 def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
     """Start the real relay (DRY_RUN) on a loopback port over a fixture inbox and drive the board's
-    exact request shapes through the socket: preflight, bad signature, /decide, replay, wrong hash,
-    /ratify, second /ratify. Then verify the signature with .z1-control/ratify.py --verify."""
+    exact request shapes through the socket: preflight, bad signature, /decide, replay, a re-sent
+    /decide, the retired /ratify. Then stand in for the merge (the ratification, Z2 2026-09-18) with an
+    injected pull-request lookup, run tools/intent_os_reconcile_v1_0.py over the landed copy, and verify
+    the signature it wrote with .z1-control/ratify.py --verify."""
     td = tempfile.mkdtemp(prefix="intentos_relay_rt_")
     lines, ok, proc = [], True, None
     try:
@@ -332,37 +431,75 @@ def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
         code, _, j = req("POST", "/decide", d, sig="00")
         ok &= _ok(lines, code == 401 and j.get("status") == "REFUSED", f"POST /decide bad X-Sig → {code} {j.get('status')}")
         code, _, j = req("POST", "/decide", d)
-        ok &= _ok(lines, code == 200 and j.get("status") == "PENDING" and re.fullmatch(r"[0-9a-f]{64}", j.get("hash", "") or ""),
+        ok &= _ok(lines, code == 200 and j.get("status") == "DECIDED" and re.fullmatch(r"[0-9a-f]{64}", j.get("hash", "") or ""),
                   f"POST /decide signed → {code} {j.get('status')} · hash {str(j.get('hash', ''))[:16]}")
         pend = j
         code, _, j = req("POST", "/decide", d)
         ok &= _ok(lines, code == 409, f"replay of the same nonce → {code} {j.get('status')}")
-        landed = os.path.join(td, "relay_out", pend.get("path", ""))
-        ok &= _ok(lines, os.path.isfile(landed) and "status: PENDING" in open(landed, encoding="utf-8").read(),
-                  f"choice written into {pend.get('path')} as PENDING (local copy, repo untouched)")
-        ok &= _ok(lines, not os.path.exists(os.path.join(root, "relay_out")), "no relay_out/ created under the repository")
-
-        r = {**d, "expected_hash": pend.get("hash"), "branch": pend.get("branch"), "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex(), "hash": "deadbeef"}
-        code, _, j = req("POST", "/ratify", r)
-        ok &= _ok(lines, j.get("status") == "REFUSED", f"POST /ratify wrong hash → {j.get('status')}")
-        r = {**r, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex(), "hash": pend.get("hash")}
-        code, _, j = req("POST", "/ratify", r)
-        ok &= _ok(lines, code == 200 and j.get("status") == "RATIFIED" and re.fullmatch(r"[0-9a-f]{64}", j.get("signature", "") or ""),
-                  f"POST /ratify echoed hash → {j.get('status')} · signature {str(j.get('signature', ''))[:16]}")
-        rat = j
         out = os.path.join(td, "relay_out")
+        landed = os.path.join(out, pend.get("path", ""))
+        ok &= _ok(lines, os.path.isfile(landed) and "status: DECIDED" in open(landed, encoding="utf-8").read(),
+                  f"choice written into {pend.get('path')} as DECIDED (local copy, repo untouched)")
+        ok &= _ok(lines, not os.path.exists(os.path.join(root, "relay_out")), "no relay_out/ created under the repository")
+        ok &= _ok(lines, not os.path.isfile(os.path.join(out, "Z1_INBOX_INDEX.md")) and not glob.glob(os.path.join(out, "z1-inbox", "*", "Z2_RULINGS_*.md")),
+                  "the relay signed nothing: no ruling file, no rendered index on the landed copy")
+        code, _, j = req("POST", "/decide", {**d, "choice": "partner", "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()})
+        text = open(landed, encoding="utf-8").read()
+        ok &= _ok(lines, j.get("status") == "DECIDED" and j.get("hash") != pend.get("hash") and text.count("## Ruling") == 1 and "choice: partner" in text,
+                  "re-sent /decide with another choice → the one Ruling section is rewritten, new hash")
+        pend = j
+        r = {**d, "expected_hash": pend.get("hash"), "branch": pend.get("branch"), "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex(), "hash": pend.get("hash")}
+        code, _, j = req("POST", "/ratify", r)
+        ok &= _ok(lines, code == 404 and j.get("why") == "unknown path", f"POST /ratify (retired: the merge is the ratification) → {code} {j.get('why')}")
+        # the merge, stood in for: the reconcile tool with an injected lookup that says a ratifier merged the file's PR
+        for rel in ("tools/decision_relay.py",):
+            os.makedirs(os.path.dirname(os.path.join(out, rel)), exist_ok=True)
+            shutil.copy(os.path.join(td, rel), os.path.join(out, rel))
+        if not os.path.isdir(os.path.join(out, ".z1-control")):
+            shutil.copytree(os.path.join(td, ".z1-control"), os.path.join(out, ".z1-control"))
+        spec = importlib.util.spec_from_file_location("intent_os_reconcile", os.path.join(root, RECONCILE))
+        rc = importlib.util.module_from_spec(spec); spec.loader.exec_module(rc)
+        pr = {"number": 401, "html_url": "https://example.test/pull/401", "sha": "0" * 40, "merged_by": "humanaios-ui", "merged_at": "2026-09-18T02:30:00Z", "author": "humanaios-ui", "approvers": []}
+        plan = rc.plan(out, lambda root_, rel: pr)
+        row = plan["rows"][0] if plan["rows"] else {}
+        ok &= _ok(lines, plan["outcome"] == "RECONCILE" and row.get("by") == "Night" and row.get("at") == "2026-09-18" and row.get("override") is True,
+                  f"reconcile plan over the landed copy → {plan['outcome']} · {row.get('q_id')} by {row.get('by')} at {row.get('at')} (single-member override)")
+        written = rc.apply(out, plan)
+        rat = row
         idx = open(os.path.join(out, "z1-inbox", "INDEX.yaml"), encoding="utf-8").read() if os.path.isfile(os.path.join(out, "z1-inbox", "INDEX.yaml")) else ""
         ruling_p = os.path.join(out, rat.get("ruling", "") or "x")
         ruling = open(ruling_p, encoding="utf-8").read() if os.path.isfile(ruling_p) else ""
         ok &= _ok(lines, "status: ratified" in idx and rat.get("signature", "") in idx, "INDEX.yaml: candidate ratified, signature recorded")
-        ok &= _ok(lines, rat.get("signature", "") in ruling, f"{rat.get('ruling')}: signature appended")
+        ok &= _ok(lines, rat.get("signature", "") in ruling and "#401" in ruling, f"{rat.get('ruling')}: signature appended, names the merged pull request")
         ok &= _ok(lines, os.path.isfile(os.path.join(out, "Z1_INBOX_INDEX.md")), "Z1_INBOX_INDEX.md regenerated")
+        ok &= _ok(lines, open(landed, encoding="utf-8").read() == text, "the candidate file is untouched by the reconcile — the merged bytes are the signed bytes")
         # the same verifier the z2 gate runs, over the landed copy
-        if not os.path.isdir(os.path.join(out, ".z1-control")):
-            shutil.copytree(os.path.join(td, ".z1-control"), os.path.join(out, ".z1-control"))
         v = subprocess.run(_py(os.path.join(out, ".z1-control", "ratify.py"), "--verify"), cwd=out, capture_output=True, text=True, timeout=30)
         ok &= _ok(lines, v.returncode == 0, f".z1-control/ratify.py --verify on the landed copy → {(v.stdout + v.stderr).strip().splitlines()[-1][:60] if (v.stdout + v.stderr).strip() else 'rc ' + str(v.returncode)}")
+        plan2 = rc.plan(out, lambda root_, rel: pr)
+        ok &= _ok(lines, plan2["outcome"] == "NOTHING" and rc.apply(out, plan2) == [], "a second reconcile finds nothing awaiting, writes nothing")
         r = {**r, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
+        # /task — the agent bus: a signed request becomes a record, indexed and rendered, nothing signed
+        t = {"title": 'Re-read the "ACAT" benchmark map: rows 1–12', "ask": "Compare the 12 rows to the 09-08 read.", "wants": "pr", "lane": "acat",
+             "tagline": "Night", "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()}
+        code, _, j = req("POST", "/task", t)
+        ok &= _ok(lines, code == 200 and j.get("status") == "OPEN" and re.fullmatch(r"REQ-\d{8}-\d{2}", j.get("id", "") or "") is not None,
+                  f"POST /task signed → {code} {j.get('status')} · {j.get('id')} · hash {str(j.get('hash', ''))[:16]}")
+        rec_p = os.path.join(out, j.get("path", "") or "x")
+        rec = open(rec_p, encoding="utf-8").read() if os.path.isfile(rec_p) else ""
+        idx = open(os.path.join(out, "z1-inbox", "INDEX.yaml"), encoding="utf-8").read()
+        rendered = open(os.path.join(out, "Z1_INBOX_INDEX.md"), encoding="utf-8").read() if os.path.isfile(os.path.join(out, "Z1_INBOX_INDEX.md")) else ""
+        ok &= _ok(lines, f"hash: `{j.get('hash')}`" in rec and "## Fulfilment" in rec and "**Status:** OPEN" in rec, f"{j.get('path')}: request block hashed, Fulfilment empty, OPEN")
+        blk_m = re.search(r"```\n(REQUEST .*?)```", rec, re.S); ask_m = re.search(r"## Ask\n\n(.*?)\n\n## Request block", rec, re.S)
+        ok &= _ok(lines, bool(blk_m and ask_m) and hashlib.sha256(blk_m.group(1).encode()).hexdigest() == j.get("hash")
+                  and f"ask_sha256: {hashlib.sha256(ask_m.group(1).encode()).hexdigest()}" in blk_m.group(1),
+                  "hash recomputes from the record; ask_sha256 inside it recomputes from ## Ask")
+        ok &= _ok(lines, (j.get("path") or "x") in idx and str(j.get("id")) in rendered, "INDEX.yaml records: entry + rendered index carry the request")
+        ok &= _ok(lines, "z2_hash" not in rec and "status: RATIFIED" not in rec and "**Status:** OPEN" in rec, "nothing signed: no z2_hash, no RATIFIED status in the record")
+        code, _, j2 = req("POST", "/task", {**t, "nonce": "n-" + os.urandom(6).hex(), "epoch": time.time()})
+        ok &= _ok(lines, j2.get("id", "").endswith("-02"), f"second /task the same day → {j2.get('id')}")
+        code, _, j3 = req("POST", "/task", {**t, "title": "", "nonce": "n-" + os.urandom(6).hex(), "epoch": time.time()})
+        ok &= _ok(lines, code == 500 and j3.get("status") == "ERROR", f"POST /task with an empty title → {code} {j3.get('status')}")
 
         def snapshot() -> dict[str, bytes]:
             """Every file under the landed copy, so a refusal that touches anything is caught."""
@@ -373,9 +510,9 @@ def relay_roundtrip(root: str, timeout: int) -> tuple[bool, str]:
                     s[os.path.relpath(fp, out)] = open(fp, "rb").read()
             return s
         before = snapshot()
-        code, _, j = req("POST", "/ratify", r)
+        code, _, j = req("POST", "/decide", {**d, "epoch": time.time(), "nonce": "n-" + os.urandom(6).hex()})
         after = snapshot()
-        ok &= _ok(lines, j.get("status") == "REFUSED" and before == after, f"second /ratify → {j.get('status')}, {len(after)} landed files byte-identical")
+        ok &= _ok(lines, code == 500 and "not awaiting_z2" in str(j.get("why")) and before == after, f"/decide on the ratified candidate → {j.get('status')} ({str(j.get('why'))[:40]}…), {len(after)} landed files byte-identical")
     except Exception as e:  # noqa: BLE001
         ok = False
         lines.append(f"  exception: {type(e).__name__}: {e}")
@@ -534,16 +671,26 @@ def _have_module(name: str) -> bool:
 def run_one(t: dict, root: str) -> dict:
     res = {k: t[k] for k in ("id", "tier", "area", "name", "expect", "kind", "proves", "note")}
     res["cmd"] = " ".join(t["cmd"]) if t.get("cmd") else f"<native:{t['kind']}>"
-    missing = [m for m in t["requires"] if not _have_module(m)] + [c for c in t["needs_cmd"] if not shutil.which(c)]
+    if t["kind"] == "skip":
+        res.update(status="SKIP", rc=None, duration_s=0.0, tail="", reason=t.get("skip_reason") or "listed, not run")
+        return res
+    missing = [m for m in t["requires"] if not _have_module(m)] + [c for c in t["needs_cmd"] if not shutil.which(c)] \
+        + [f"${v}" for v in t.get("needs_env", []) if not os.environ.get(v)]
     if missing:
         res.update(status="SKIP", rc=None, duration_s=0.0, tail="", reason="requires " + ", ".join(missing))
         return res
     t0 = time.time()
+    before = tree_state(root) if t.get("guard_tree") else None
     try:
         if t["kind"] == "cmd":
             r = subprocess.run(t["cmd"], cwd=root, env={**os.environ, **t["env"]}, capture_output=True, text=True, timeout=t["timeout"])
             rc, out = r.returncode, (r.stdout + r.stderr)
             status = "PASS" if rc == t["expect"] else "FAIL"
+            if before is not None:
+                wrote = tree_writes(root, before)
+                if wrote:
+                    status, out = "FAIL", out + "\n\nwrote into the tree (a smoke test must leave the git-visible tree as it found it — tracked files unchanged, no new untracked files; gitignored paths are not seen; rolled back): " + ", ".join(wrote)
+                    tree_restore(root, wrote)
         else:
             fn = {"yaml": lambda: check_yaml(root), "graph": lambda: check_graph(root),
                   "findings": lambda: check_findings(root, t["timeout"]),
@@ -551,6 +698,7 @@ def run_one(t: dict, root: str) -> dict:
                   "node_check_dashboard": lambda: check_node(root, DASHBOARD, t["timeout"]),
                   "relay_roundtrip": lambda: relay_roundtrip(root, t["timeout"]),
                   "browser": lambda: browser_persist(root, t["timeout"]),
+                  "live_assist": lambda: live_assist(root, t["timeout"]),
                   "zones": lambda: check_zones(root), "planned": lambda: check_planned(root),
                   "repo_index": lambda: check_repo_index(root)}[t["kind"]]
             good, out = fn()
@@ -564,6 +712,33 @@ def run_one(t: dict, root: str) -> dict:
     tail = "\n".join(out.strip().splitlines()[-12:])
     res.update(status=status, rc=rc, duration_s=round(time.time() - t0, 2), tail=tail[-2400:], reason="")
     return res
+
+
+def tree_state(root: str) -> dict[str, str]:
+    """`git status --porcelain` as {path: XY} — what is already dirty or untracked before a guarded row runs."""
+    r = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all", "-z"], cwd=root, capture_output=True, text=True, check=False)
+    out: dict[str, str] = {}
+    for item in r.stdout.split("\0"):
+        if len(item) > 3:
+            out[item[3:]] = item[:2]
+    return out
+
+
+def tree_writes(root: str, before: dict[str, str]) -> list[str]:
+    """Paths a guarded row left changed that were not already dirty/untracked before it ran (gitignored paths never show)."""
+    after = tree_state(root)
+    return sorted(p for p, xy in after.items() if before.get(p) != xy)
+
+
+def tree_restore(root: str, paths: list[str]) -> None:
+    """Undo a guarded row's writes: tracked files back to the index, untracked files removed. Only the paths it wrote."""
+    for p in paths:
+        full = os.path.join(root, p)
+        tracked = subprocess.run(["git", "ls-files", "--error-unmatch", "--", p], cwd=root, capture_output=True, check=False).returncode == 0
+        if tracked:
+            subprocess.run(["git", "checkout", "--", p], cwd=root, capture_output=True, check=False)
+        elif os.path.isfile(full):
+            os.remove(full)
 
 
 def worktree_tree_hash(root: str) -> str | None:
@@ -637,10 +812,23 @@ def queue_snapshot(root: str) -> dict:
     try:
         r = subprocess.run(_py(".z1-control/validate.py", "--report"), cwd=root, capture_output=True, text=True, timeout=60)
         rep = json.loads(r.stdout)
-        od = rep.get("overdue", [])
+        # temporal_class: OBSERVATIONAL — the validator reports how many candidates fall outside its decision window;
+        # the harness carries that count as a measurement (Ruling 5, 2026-09-16, retires the window as a rule). It
+        # reorders nothing and sets no due date; the receipt shows it so the number is visible, not enforced.
+        flagged = rep.get("overdue", [])
         return {"candidates": rep.get("candidates"), "records": rep.get("records"), "awaiting_z2": rep.get("awaiting_z2"),
-                "overdue": len(od), "overdue_top": [{k: x.get(k) for k in ("q_id", "title", "submitted", "overdue_days")} for x in od[:8]],
+                "window_flagged": len(flagged), "window_flagged_top": [{k: x.get(k) for k in ("q_id", "title", "submitted")} for x in flagged[:8]],
                 "decision_window_days": rep.get("decision_window_days")}
+    except Exception as e:  # noqa: BLE001
+        return {"error": f"{type(e).__name__}: {e}"}
+
+
+def requests_snapshot(root: str) -> dict:
+    """The agent bus as the reader tool sees it (schema intentos/requests_v1). The tool is taken from this
+    harness's own tree and pointed at `root`, so a temp root in the self-test still has a reader."""
+    try:
+        r = subprocess.run(_py(os.path.join(ROOT, REQUESTS), "--json", "--root", root), cwd=root, capture_output=True, text=True, timeout=60)
+        return json.loads(r.stdout)
     except Exception as e:  # noqa: BLE001
         return {"error": f"{type(e).__name__}: {e}"}
 
@@ -660,7 +848,7 @@ def zones_snapshot(root: str) -> dict:
 
 
 def run_all(root: str, tiers: list[str] | None = None, only: list[str] | None = None, with_snapshots: bool = True) -> dict:
-    reg = [t for t in registry() if (not tiers or t["tier"] in tiers) and (not only or t["id"] in only)]
+    reg = [t for t in registry(root) if (not tiers or t["tier"] in tiers) and (not only or t["id"] in only)]
     results = [run_one(t, root) for t in reg]
     return assemble(results, root, with_snapshots)
 
@@ -690,6 +878,7 @@ def assemble(results: list[dict], root: str, with_snapshots: bool = True) -> dic
         rep["board"] = board_snapshot(root)
         rep["queue"] = queue_snapshot(root)
         rep["zones"] = zones_snapshot(root)
+        rep["requests"] = requests_snapshot(root)
     return rep
 
 
@@ -710,7 +899,11 @@ def print_table(rep: dict) -> None:
         print(f"board: {b.get('verdict')} · seals {b.get('counts')} · read {b.get('read_date')} · rulings {len(b.get('rulings', []))} · predictions {len(b.get('predictions', []))}")
     if rep.get("queue") and "candidates" in rep["queue"]:
         q = rep["queue"]
-        print(f"queue: {q['candidates']} candidates · {q['awaiting_z2']} awaiting Z2 · {q['overdue']} past the {q['decision_window_days']}d window")
+        # temporal_class: OBSERVATIONAL — a count the validator measured, printed; not a deadline and not a ranking input
+        print(f"queue: {q['candidates']} candidates · {q['awaiting_z2']} awaiting Z2 · validator counts {q['window_flagged']} outside its {q['decision_window_days']}d window (a measurement it reports; Ruling 5 retires the rule)")
+    if rep.get("requests") and "total" in rep["requests"]:
+        rq = rep["requests"]
+        print(f"requests: {rq['total']} on the bus · " + " · ".join(f"{k} {v}" for k, v in rq["counts"].items()) + f" · {rq['verified']} verify · {rq['verdict']}")
     print("counts:", ", ".join(f"{k}={v}" for k, v in sorted(rep["counts"].items())))
     print("verdict:", rep["verdict"])
 
@@ -737,19 +930,43 @@ def run_smoke_test() -> bool:
     with tempfile.TemporaryDirectory() as td:
         subprocess.run(["git", "init", "-q", td], check=True)
         subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "seed"], check=True)
+        def row(**kw):
+            base = dict(expect=0, timeout=10, requires=[], needs_cmd=[], needs_env=[], env={}, kind="cmd", proves=[], note="", skip_reason="", cmd=None, guard_tree=False)
+            return {**base, **kw}
         planted = [
-            dict(id="p-pass", tier="T0", area="x", name="pass", cmd=[PY, "-c", "print('ok')"], expect=0, timeout=10, requires=[], needs_cmd=[], env={}, kind="cmd", proves=["W1"], note=""),
-            dict(id="p-fail", tier="T0", area="x", name="fail", cmd=[PY, "-c", "import sys;print('boom');sys.exit(1)"], expect=0, timeout=10, requires=[], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-expect2", tier="T1", area="x", name="expected nonzero", cmd=[PY, "-c", "import sys;sys.exit(2)"], expect=2, timeout=10, requires=[], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-timeout", tier="T1", area="x", name="timeout", cmd=[PY, "-c", "import time;time.sleep(5)"], expect=0, timeout=1, requires=[], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-skip", tier="T2", area="x", name="skip", cmd=[PY, "-c", "print(1)"], expect=0, timeout=10, requires=["no_such_module_xyz_123"], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-skipcmd", tier="T2", area="x", name="skip cmd", cmd=["no-such-binary-xyz"], expect=0, timeout=10, requires=[], needs_cmd=["no-such-binary-xyz"], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-error", tier="T3", area="x", name="error", cmd=["/nonexistent/binary/xyz"], expect=0, timeout=10, requires=[], needs_cmd=[], env={}, kind="cmd", proves=[], note=""),
-            dict(id="p-env", tier="T3", area="x", name="env passed", cmd=[PY, "-c", "import os,sys;sys.exit(0 if os.environ.get('HARNESS_X')=='1' else 1)"], expect=0, timeout=10, requires=[], needs_cmd=[], env={"HARNESS_X": "1"}, kind="cmd", proves=[], note=""),
+            row(id="p-pass", tier="T0", area="x", name="pass", cmd=[PY, "-c", "print('ok')"], proves=["W1"]),
+            row(id="p-fail", tier="T0", area="x", name="fail", cmd=[PY, "-c", "import sys;print('boom');sys.exit(1)"]),
+            row(id="p-expect2", tier="T1", area="x", name="expected nonzero", cmd=[PY, "-c", "import sys;sys.exit(2)"], expect=2),
+            row(id="p-timeout", tier="T1", area="x", name="timeout", cmd=[PY, "-c", "import time;time.sleep(5)"], timeout=1),
+            row(id="p-skip", tier="T2", area="x", name="skip", cmd=[PY, "-c", "print(1)"], requires=["no_such_module_xyz_123"]),
+            row(id="p-skipcmd", tier="T2", area="x", name="skip cmd", cmd=["no-such-binary-xyz"], needs_cmd=["no-such-binary-xyz"]),
+            row(id="p-error", tier="T3", area="x", name="error", cmd=["/nonexistent/binary/xyz"]),
+            row(id="p-env", tier="T3", area="x", name="env passed", cmd=[PY, "-c", "import os,sys;sys.exit(0 if os.environ.get('HARNESS_X')=='1' else 1)"], env={"HARNESS_X": "1"}),
+            row(id="p-needs-env", tier="T3", area="x", name="needs an env var", cmd=[PY, "-c", "print(1)"], needs_env=["HARNESS_NO_SUCH_KEY_XYZ"]),
+            row(id="p-listed", tier="T3", area="x", name="listed, not run", kind="skip", skip_reason="planted reason"),
         ]
         res = [run_one(t, td) for t in planted]
         got = {r["id"]: r["status"] for r in res}
-        want = {"p-pass": "PASS", "p-fail": "FAIL", "p-expect2": "PASS", "p-timeout": "TIMEOUT", "p-skip": "SKIP", "p-skipcmd": "SKIP", "p-error": "ERROR", "p-env": "PASS"}
+        want = {"p-pass": "PASS", "p-fail": "FAIL", "p-expect2": "PASS", "p-timeout": "TIMEOUT", "p-skip": "SKIP", "p-skipcmd": "SKIP", "p-error": "ERROR", "p-env": "PASS",
+                "p-needs-env": "SKIP", "p-listed": "SKIP"}
+        ok &= next(r for r in res if r["id"] == "p-needs-env")["reason"] == "requires $HARNESS_NO_SUCH_KEY_XYZ"
+        ok &= next(r for r in res if r["id"] == "p-listed")["reason"] == "planted reason"
+        # tree guard: a guarded row that writes into the repository FAILS even with rc 0, and its writes are rolled back;
+        # a file that was already dirty before the row is not blamed on it
+        open(os.path.join(td, "tracked.txt"), "w").write("v1\n")
+        subprocess.run(["git", "-C", td, "add", "tracked.txt"], check=True)
+        subprocess.run(["git", "-C", td, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "tracked"], check=True)
+        open(os.path.join(td, "already_dirty.txt"), "w").write("pre-existing untracked\n")
+        g = run_one(row(id="p-writer", tier="T5", area="x", name="writes", guard_tree=True,
+                        cmd=[PY, "-c", "open('tracked.txt','w').write('changed\\n'); open('side_effect.json','w').write('{}')"]), td)
+        ok &= g["status"] == "FAIL" and "wrote into the tree" in g["tail"] and "side_effect.json" in g["tail"] and "tracked.txt" in g["tail"] \
+            and "already_dirty.txt" not in g["tail"] and not os.path.exists(os.path.join(td, "side_effect.json")) \
+            and open(os.path.join(td, "tracked.txt")).read() == "v1\n" and os.path.exists(os.path.join(td, "already_dirty.txt"))
+        print("  tree guard: rc 0 but wrote tracked + untracked files → FAIL, both rolled back, pre-existing dirt not blamed:", "OK" if g["status"] == "FAIL" and not os.path.exists(os.path.join(td, "side_effect.json")) else "FAIL")
+        c = run_one(row(id="p-clean", tier="T5", area="x", name="clean", guard_tree=True, cmd=[PY, "-c", "print('no writes')"]), td)
+        ok &= c["status"] == "PASS"
+        print("  tree guard: a clean guarded row → PASS:", "OK" if c["status"] == "PASS" else "FAIL")
+        os.remove(os.path.join(td, "already_dirty.txt"))
         for k, v in want.items():
             print(f"  {k:<12} → {got.get(k):<8} {'OK' if got.get(k) == v else 'FAIL'}")
             ok &= got.get(k) == v
@@ -759,8 +976,32 @@ def run_smoke_test() -> bool:
         ok &= rep["verdict"] == "RED" and set(rep["bad"]) == {"p-fail", "p-timeout", "p-error"}
         print("  mixed run → RED, bad = fail+timeout+error:", "OK" if rep["verdict"] == "RED" else "FAIL")
         tv = {t["id"]: t["verdict"] for t in rep["tiers"]}
-        ok &= tv == {"T0": "RED", "T1": "RED", "T2": "RED", "T3": "RED", "T4": "EMPTY"}
-        print("  tier verdicts (T2 all-SKIP → RED, T4 → EMPTY):", tv)
+        ok &= tv == {"T0": "RED", "T1": "RED", "T2": "RED", "T3": "RED", "T4": "EMPTY", "T5": "EMPTY", "T6": "EMPTY", "T7": "EMPTY"}
+        print("  tier verdicts (T2 all-SKIP → RED, T4–T7 → EMPTY):", tv)
+        # T5 generator: a planted manifest — a runnable smoke flag, a self-test flag, a text-only claim, an archived tool,
+        # a missing file, a T0-covered path (omitted) — yields exactly the rows the tier promises
+        os.makedirs(os.path.join(td, "tools"), exist_ok=True)
+        open(os.path.join(td, "tools", "a.py"), "w").write("import sys\n# smoke test\nif '--smoke-test' in sys.argv: sys.exit(0)\nsys.exit(3)\n")
+        open(os.path.join(td, "tools", "b.py"), "w").write("import sys\n# smoke test lives under --self-test\nsys.exit(0 if '--self-test' in sys.argv else 4)\n")
+        open(os.path.join(td, "tools", "c.py"), "w").write("# this file mentions a smoke test but takes no flag\nprint('hi')\n")
+        open(os.path.join(td, "tools", "d.py"), "w").write("# smoke test\n")
+        open(os.path.join(td, "tools", "e.py"), "w").write("import sys\n# smoke test\nsys.exit(0)\n")
+        open(os.path.join(td, MANIFEST), "w").write(
+            "tools:\n- {tool_id: HAIOS-TOOL-001, path: tools/a.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-002, path: tools/b.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-003, path: tools/c.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-004, path: tools/d.py, smoke_test: true, status: archived, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-005, path: tools/gone.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-006, path: tools/e.py, smoke_test: true, status: draft, lang: python}\n"
+            "- {tool_id: HAIOS-TOOL-007, path: tools/f.py, smoke_test: false, status: draft, lang: python}\n")
+        t5 = manifest_smoke_rows(td, covered={"tools/e.py"})
+        full = [row(**dict(r, cmd=r.get("cmd"))) for r in t5]
+        r5 = {r["id"]: r for r in (run_one(t, td) for t in full)}
+        ok &= [r["id"] for r in t5] == ["t5-a", "t5-b", "t5-c", "t5-d", "t5-gone"] and r5["t5-a"]["status"] == "PASS" and r5["t5-b"]["status"] == "PASS" \
+            and r5["t5-c"]["status"] == "SKIP" and "text match" in r5["t5-c"]["reason"] and r5["t5-d"]["status"] == "SKIP" and "archived" in r5["t5-d"]["reason"] \
+            and r5["t5-gone"]["status"] == "SKIP" and "missing" in r5["t5-gone"]["reason"] and "--self-test" in r5["t5-b"]["cmd"]
+        print("  T5 rows from a planted manifest: flag detected per source, text-only claim / archived / missing → SKIP, T0-covered omitted, smoke_test:false omitted:",
+              "OK" if [r["id"] for r in t5] == ["t5-a", "t5-b", "t5-c", "t5-d", "t5-gone"] else f"FAIL {[r['id'] for r in t5]}")
         clean = assemble([r for r in res if r["status"] == "PASS"], td, with_snapshots=False)
         ok &= clean["verdict"] == "GREEN"
         print("  all-PASS run → GREEN:", "OK" if clean["verdict"] == "GREEN" else "FAIL")
@@ -801,6 +1042,10 @@ def run_smoke_test() -> bool:
                and snap["predictions"][0]["confidence"] == 0.7 and snap["rulings"][0]["ruled"] and not snap["rulings"][1]["ruled"]
                and snap["rulings"][1]["qid"] == "Q-BOARD-RULING-02" and snap["gauges"][0]["base"] == 7.5 and snap["rev"] == "2026-09-16")
         print("  board snapshot: blocks/predictions/rulings/gauges/rev parsed from the HUMANAIOS block:", "OK" if ok else "FAIL")
+        # requests snapshot: the reader is taken from this tree and pointed at the temp root — empty bus, OK verdict
+        rq = requests_snapshot(td)
+        ok &= rq.get("schema") == "intentos/requests_v1" and rq.get("total") == 0 and rq.get("verdict") == "OK"
+        print("  requests snapshot: reader runs against another root; empty bus → total 0, OK:", "OK" if rq.get("total") == 0 else "FAIL")
         # repo index check: a named path that does not exist must FAIL — with or without an extension
         os.makedirs(os.path.join(td, ".github"))
         open(os.path.join(td, ".github", "CODEOWNERS"), "w").write("* @x\n")
@@ -847,7 +1092,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--root", "--input", dest="root", default=ROOT,
                     help="repository root to test (--input is the tools/README.md alias)")
-    ap.add_argument("--tier", nargs="*", help="run only these tiers (T0..T4)")
+    ap.add_argument("--tier", nargs="*", help="run only these tiers (T0..T7)")
     ap.add_argument("--only", nargs="*", help="run only these check ids")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--json", action="store_true")
@@ -858,7 +1103,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.self_test:
         return 0 if run_smoke_test() else 2
     if a.list:
-        for t in registry():
+        for t in registry(a.root):
             print(f"{t['tier']} {t['id']:<27} {t['name']:<70} {' '.join(t['cmd']) if t['cmd'] else '<native:' + t['kind'] + '>'}")
         return 0
     rep = run_all(a.root, a.tier, a.only)

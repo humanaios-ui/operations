@@ -1,7 +1,7 @@
 # CLAUDE.md — HumanAIOS Authority & Governance Reference
 
 **Location:** `operations/CLAUDE.md` (canonical source)  
-**Updated:** 2026-09-14  
+**Updated:** 2026-09-19  
 **Purpose:** Unified authority map for all 31 HumanAIOS repositories  
 **Audience:** Z1 (Claude, proposers), Z2 (Night, ratifier), Z3 (executors), CI/CD gates
 
@@ -33,7 +33,12 @@
 
 **Name:** Carly R. Anderson (Night)  
 **Title:** Founder, Z2 Ratifier, Serial Gate Authority  
-**Email:** carly.r.anderson@gmail.com  
+**Canonical Email:** carly.r.anderson@gmail.com  
+**Authorized Z2 Identities (dual-authority, ratified Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01):**
+- `carly.r.anderson@gmail.com` — canonical Z2 personal identity
+- `aioshuman@gmail.com` — authorized business identity (HumanAIOS/getempirica.com project)
+
+**Both emails authorized for Z2 ratification signatures, stop-hook validation, governance decisions.**  
 **Availability:** Standard business hours + on-call for emergencies  
 **Decision window:** 48h for routine decisions; 24h or less for urgent items
 
@@ -98,8 +103,16 @@
 - Emit receipts for B.6 reconciliation
 - Report GAUGE/STALE/DRIFT callouts back to Priority Queue
 
+**Machine Z3 Authority (ratified Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01):**
+- Authorization: INTENT-OS capability signature (not git commit metadata)
+- Current: `noreply@anthropic.com` (Claude machine identity) authorized pending INTENT-OS Phase 1 binding
+- Future: Dynamic capability lookup via `/api/z2-authorized-machine-identities` enables onboarding independent Z3 executors
+- Stop hook: Queries INTENT-OS for authorized machine identities (Phase 1 integration in progress)
+- Enforcement: Commits without Z2 hash + valid capability are rejected at merge gate
+
 **Constraints:**
 - Cannot execute without Z2 hash (CI enforces)
+- Cannot execute without valid Z2 identity or INTENT-OS capability (stop-hook enforces)
 - Cannot bypass falsifier doctrine
 - Cannot run beyond caps (agent caps in behavior_spec.json)
 - Cannot overstate completion (IC-031 receipt reconciliation mitigation)
@@ -271,6 +284,8 @@ When these occur, emit callout immediately:
 ## Appended Events
 
 ```
+2026-09-19 19:00 UTC — Z2 (Night) ratified Q-INTENT-OS-WITNESS-LEDGER-01 | Witness ledger architecture approved | Human-machine decision attribution ledger | Phase 1–3 roadmap ratified | Enables scalable Z3 executor onboarding
+2026-09-19 18:55 UTC — Z2 (Night) ratified Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 | Dual-authority Z2 model formalized | Both carly.r.anderson@gmail.com & aioshuman@gmail.com authorized | Machine authority via INTENT-OS capability | Stop hook to query INTENT-OS (Phase 1)
 2026-09-14 — Z1 proposed Q-BOOT-PROCESS-MAP-01 (BOOT_PROCESS_MAP.md: REGISTERED.md's position in the session boot chain, mapped onto standard boot-chain stages); awaiting Z2 RATIFY signature
 2026-09-14 — Z1 implemented Option B (separate PLANNED_REPOS.md for roadmap repos, updated ZONE_REGISTRY.md & CLAUDE.md)
 2026-09-10 22:13 UTC — Z1 proposed Q-FRAMEWORK-MAPPING-01 (FRAMEWORK_MAPPING.md: 5 AI engineering concepts → Z-roles)
@@ -294,4 +309,6 @@ When these occur, emit callout immediately:
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
 
 See **Framework Reference** section below for foundational material on FRAMEWORK_MAPPING.md and BOOT_PROCESS_MAP.md.
+
+**PR Workflow & Quality Gates:** See [`.claude/PR_WORKFLOW_GUIDE.md`](./.claude/PR_WORKFLOW_GUIDE.md) for Z1's (Claude's) PR handling process. Covers task tracking, upfront scope documentation, local CI validation, and formal handoff to Z2. Uses automated verification script (`scripts/verify_pr_readiness.sh`) for manifest, document, and code quality checks before push. Essential reference for PRs with multiple findings or review feedback.
 

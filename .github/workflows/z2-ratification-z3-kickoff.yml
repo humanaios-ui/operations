@@ -1,0 +1,186 @@
+name: Z2 Ratification → Z3 Executor Kickoff
+
+# Automatically triggers Z3 executor assignment when Z2 ratifies proposals in REGISTERED.md
+# Watches for status changes: CANDIDATE → REGISTERED, PENDING_ZONE2 → ACTIVE
+# Emits Z3 assignment notifications to Priority Queue
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'REGISTERED.md'
+      - 'PRIORITY_QUEUE.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  detect-z2-ratification:
+    name: Detect Z2 Ratification & Queue Z3 Work
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install deps
+        run: pip install --quiet pyyaml gitpython
+
+      - name: Detect Z2 ratifications and emit Z3 kickoff
+        id: z3-kickoff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, sys, json, subprocess, re
+          from datetime import datetime
+          from pathlib import Path
+
+          def run_git(cmd):
+              """Run git command safely."""
+              result = subprocess.run(
+                  f"git {cmd}", shell=True, capture_output=True, text=True, cwd="/home/user/operations"
+              )
+              return result.stdout.strip()
+
+          def parse_yaml_front_matter(content, id_filter=None):
+              """Extract YAML front matter from REGISTERED.md entries."""
+              entries = {}
+              current = None
+              in_yaml = False
+              yaml_block = []
+
+              for line in content.split('\n'):
+                  if line.strip() == '---':
+                      if not in_yaml:
+                          in_yaml = True
+                      else:
+                          if yaml_block and current:
+                              yaml_text = '\n'.join(yaml_block)
+                              try:
+                                  import yaml
+                                  entry = yaml.safe_load(yaml_text)
+                                  if entry and entry.get('id'):
+                                      if not id_filter or entry['id'].startswith(id_filter):
+                                          entries[entry['id']] = entry
+                              except:
+                                  pass
+                          in_yaml = False
+                          yaml_block = []
+                          current = None
+                  elif in_yaml:
+                      yaml_block.append(line)
+
+              return entries
+
+          # Get current REGISTERED.md
+          registered_md = Path('/home/user/operations/REGISTERED.md').read_text()
+          entries = parse_yaml_front_matter(registered_md, id_filter='Q-')
+
+          # Detect WITNESS phase proposals (the blocking ones from PR #431)
+          witness_proposals = {
+              'Q-WITNESS-PHASE-0-ARTIFACT-INVENTORY-01',
+              'Q-WITNESS-PHASE-0-EVIDENCE-GRAPH-01',
+              'Q-WITNESS-PHASE-0-GENESIS-READINESS-01',
+              'Q-WITNESS-PHASE-0-WITNESS-STATE-SCHEMA-01',
+              'Q-WITNESS-PHASE-0-PARTICIPATION-CONTRACT-SCHEMA-01',
+              'Q-WITNESS-PHASE-0-SERVICE-CONTRACT-01',
+          }
+
+          ratified_proposals = []
+          for id_, entry in entries.items():
+              if id_ in witness_proposals:
+                  status = entry.get('status', 'UNKNOWN')
+                  if status in ('REGISTERED', 'ACTIVE'):
+                      ratified_proposals.append({
+                          'id': id_,
+                          'status': status,
+                          'date': entry.get('date_registered', 'unknown'),
+                      })
+
+          if ratified_proposals:
+              print(f"✅ Found {len(ratified_proposals)} Z2-ratified proposals:")
+              for prop in ratified_proposals:
+                  print(f"  - {prop['id']} (status: {prop['status']})")
+
+          # Check if all 6 WITNESS proposals are now ratified
+          all_ratified = all(id_ in [p['id'] for p in ratified_proposals]
+                            for id_ in witness_proposals)
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"ratified_count={len(ratified_proposals)}\n")
+              f.write(f"all_ratified={'true' if all_ratified else 'false'}\n")
+              f.write(f"proposals_json={json.dumps([p['id'] for p in ratified_proposals])}\n")
+          PYTHON
+
+      - name: Queue Z3 executor assignments (when all 6 proposals ratified)
+        if: steps.z3-kickoff.outputs.all_ratified == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > /tmp/z3_kickoff_body.md <<'EOF'
+          ## Phase 0 Witness Implementation Ready for Z3 Assignment
+
+          **Trigger:** All 6 Z2-ratified Phase 0 proposals now ready for executor assignment
+
+          **Ratified Proposals:**
+          - Q-WITNESS-PHASE-0-ARTIFACT-INVENTORY-01
+          - Q-WITNESS-PHASE-0-EVIDENCE-GRAPH-01
+          - Q-WITNESS-PHASE-0-GENESIS-READINESS-01
+          - Q-WITNESS-PHASE-0-WITNESS-STATE-SCHEMA-01
+          - Q-WITNESS-PHASE-0-PARTICIPATION-CONTRACT-SCHEMA-01
+          - Q-WITNESS-PHASE-0-SERVICE-CONTRACT-01
+
+          **Next Steps:**
+          1. Z2 (Night) assigns Z3 executors to each proposal
+          2. Update ZONE_REGISTRY.md with executor assignments
+          3. Trigger implementation phase per critical path
+
+          **Critical Path:** 12 weeks (A→B→C→E serialized; D+F parallel weeks 1–4)
+          **Total Resource Cost:** 91 Z1-ktok, 156 Z3-hr, 61 CI-min, 49 SPEC-hr
+
+          **Target Window:** Executor assignments expected within 48h per Z2 ratification SLA
+
+          _Generated by Z2→Z3 Kickoff Automation_
+          EOF
+
+          # Post to PR #431 if it's still open
+          gh pr comment 431 -F /tmp/z3_kickoff_body.md || echo "ℹ PR #431 closed or unavailable; assignment notification skipped"
+
+      - name: Update Priority Queue with Z3 assignment status
+        if: steps.z3-kickoff.outputs.ratified_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create issue comment in priority queue tracking issue (#378)
+          cat > /tmp/pq_update.md <<'EOF'
+          ## Z3 Executor Assignment Trigger Fired
+
+          **Ratified:** ${{ steps.z3-kickoff.outputs.ratified_count }}/6 WITNESS Phase 0 proposals now Z2-ready
+
+          **Proposals Ready for Assignment:**
+          ${{ steps.z3-kickoff.outputs.proposals_json }}
+
+          **Action Required:** Z2 (Night) to assign Z3 executors and update ZONE_REGISTRY.md
+
+          **Blocking Resolution:** PR #431 implementation phase begins post-assignment
+
+          _Automated Z2→Z3 transition signal_
+          EOF
+
+          gh issue comment 378 -F /tmp/pq_update.md || echo "ℹ Could not post to Priority Queue issue"
+
+      - name: Report kickoff status
+        run: |
+          echo "✅ Z2→Z3 Kickoff Detection Complete"
+          echo "   Ratified proposals: ${{ steps.z3-kickoff.outputs.ratified_count }}/6"
+          echo "   All WITNESS proposals ready: ${{ steps.z3-kickoff.outputs.all_ratified }}"
