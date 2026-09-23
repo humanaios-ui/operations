@@ -127,9 +127,10 @@ class InterrogationGate:
         self.answers: dict[str, PseudonymousAnswer] = {}
         self.receipt_events = receipt_events or []
         self.receipt_head_hash = receipt_head_hash
+        # receipt_feed is write-only from this gate's trust perspective.
+        # It may append RECEIPT_CONSUMED, but it is NOT trusted to supply the
+        # verification head. receipt_head_hash must be pinned independently.
         self.receipt_feed = receipt_feed
-        if self.receipt_feed is not None:
-            self._refresh_from_feed()
 
     def set_receipt_feed(
         self,
@@ -139,16 +140,7 @@ class InterrogationGate:
         self.receipt_events = receipt_events
         self.receipt_head_hash = receipt_head_hash
 
-    def _refresh_from_feed(self) -> None:
-        if self.receipt_feed is None:
-            return
-        events, head = self.receipt_feed.snapshot()
-        self.receipt_events = events
-        self.receipt_head_hash = head
-
     def _resolver(self) -> VerifiedReceiptResolver:
-        if self.receipt_feed is not None:
-            self._refresh_from_feed()
         if not self.receipt_events or not self.receipt_head_hash:
             raise ValueError("APPROVAL_RECEIPT_FEED_REQUIRED")
         return VerifiedReceiptResolver(self.receipt_events, self.receipt_head_hash)
@@ -222,7 +214,6 @@ class InterrogationGate:
                 consumed_by="interrogation-gate",
                 subject=question_id,
             )
-            self._refresh_from_feed()
         decision = ApprovalDecision(
             question_id=question_id,
             approved=approved,
