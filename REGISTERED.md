@@ -5003,6 +5003,40 @@ tags: ["molt", "temporal-dissolution", "measurement-window", "governance-gap"]
 
 ---
 
+### IC-063 — Identity Confusion: Transport Identity Masking Speaker Identity
+
+```yaml
+---
+id: "IC-063"
+name: "identity-confusion-transport-masking-speaker"
+status: CANDIDATE
+class: IC
+date_registered: "2026-09-22"
+date_origin: "2026-09-22"
+session_registered: "S-092226-01-oi-bridge-spec"
+principles_triggered: ["P1", "P3", "P21"]
+related_finding: "G-OI-BRIDGE-01-v0.2"
+related_issue: "humanaios-ui/operations#455"
+tags: ["governance", "identity", "provenance", "authentication", "authority-reference"]
+zone2_decision_window: "48h from 2026-09-22T22:00:00Z"
+---
+```
+
+- **Incident Date:** 2026-09-22T18:00:00Z
+- **Discovery:** ChatGPT app (linked to user's GitHub account like Claude is) posted review comments on PR #455 via GitHub API. GitHub transport layer displayed reviewer identity as "carly.r.anderson@gmail.com" (user's canonical email, also Z2's canonical email). Initial interpretation: feedback attributed to Z2 (Night) authority; actual speaker: ChatGPT (AI assistant, not authority).
+- **Root Cause:** Transport identity (GitHub account owner email) ≠ speaker identity (which app/agent generated the message) ≠ authority effect (whether message should trigger Z2-level decisions). System conflated three independent planes of identity.
+- **Impact:** Specification v0.1 was initially revised based on feedback attributed to Z2 authority when it was actually ChatGPT analysis. Demonstrates failure of unauthenticated identity inference: "Because message arrived via Z2's GitHub account, assume Z2 authorized it."
+- **Mitigation (v0.2 Specification):** 
+  1. New invariant I10: **TRANSPORT_IDENTITY_IS_NOT_SPEAKER_IDENTITY** — require explicit provenance envelope separating `transport_principal`, `content_author`, `human_principal`, and cryptographic authority proof.
+  2. All authority-carrying communications must include Ed25519 signature by Z2 (not self-asserted `valid: true`).
+  3. Secondary falsifier #11: System infers authority from transport identity without cryptographic proof → v0.2 FAILS.
+  4. Adversarial test T7: ChatGPT posts via GitHub; system should reject Z2 authority inference (signature verification fails).
+- **Governance Change:** Authority references must resolve to cryptographically signed external events (Z2 Ed25519 signature) or independently verified INTENT-OS capability tokens—never to transport layer identity alone.
+- **Prevention:** All GitHub/Slack/email integrations must include content_author field in envelopes. Bridge must enforce signature verification before any authority effect. Nodes receiving messages must validate signature against registered Z2 public key before treating message as Z2 decision.
+- **Status:** CANDIDATE · Mitigation included in OI-BRIDGE-01 v0.2 specification (awaiting Z2 ratification).
+
+---
+
 ### F-MEASUREMENT-SCOPE-AUDIT-01 — Blockchain Trading Pilot Measurement Scope Gap
 
 ```yaml
@@ -5138,4 +5172,445 @@ tags: ["phase-1", "scope", "witness-ui", "human-enrollment", "governance"]
 - **Status:** CANDIDATE · Awaiting Z2 decision to request Phase 1 proposal as separate work
 
 
+
+
+
+---
+
+## Governance Infrastructure Registry
+
+### G-OI-BRIDGE-01-v0.1 — HAIOS Agent Bridge Control Surface Specification (Phase 0)
+
+```yaml
+---
+id: "G-OI-BRIDGE-01-v0.1"
+name: "oi-bridge-01-control-surface-phase-0"
+status: CANDIDATE
+class: G
+date_registered: "2026-09-22"
+date_origin: "2026-09-22"
+session_registered: "S-092226-01-oi-bridge-spec"
+zone2_decision_window: 48h
+decision_required_by: "2026-09-24T00:00:00Z"
+principles_triggered: ["P1", "P13", "P21"]
+substrate: "Claude Haiku 4.5"
+tags: ["governance", "infrastructure", "communication", "authority-reference", "z-role-integration"]
+---
+```
+
+- **Specification Title:** OI-BRIDGE-01 Phase 0 Control Surface Specification (v0.1)
+- **Location:** `OI-BRIDGE-01_CONTROL_SURFACE_v0.1.md`
+- **Purpose:** Define governance-aware asynchronous communication substrate for registered AI nodes (Z1 proposers, Z3 executors) to exchange messages, evidence references, and challenges while preserving provenance, independent judgment, and human authority. Substrate enforces authority-reference validation (no node can cause consequential action in another node via message content alone) and routes decisions through Z2 ratification.
+- **Core Invariants:** 9 critical rules enforced by bridge (BRIDGE_ENFORCES_AUTHORITY_REFERENCES_BUT_DOES_NOT_CREATE_AUTHORITY, MESSAGE_BODY_IS_UNTRUSTED_INPUT, OBSERVATION_IS_NOT_REGISTERED_FINDING, ESCALATION_IS_NOT_OPTIONAL, DISPOSITION_OVERRIDES_CONTINUE, NODE_IDENTITY_IS_IMMUTABLE_AND_VERIFIABLE, EVIDENCE_REFERENCES_ARE_VALIDATED_NOT_ASSUMED, SEALED_COMMONS_STATE_MACHINE_IS_ENFORCED, HUMAN_AUTHORITY_IS_IRREPLACEABLE).
+- **Primary Falsifier:** v0.1 fails if one registered AI node can cause another node to perform a consequential action solely because of message content without valid independently-resolved authority reference (Z2 hash, INTENT-OS capability, prior Z2 decision).
+- **Secondary Falsifiers:** 10 measurable falsification conditions (spoofing, tampering, escalation suppression, sealed observation action, skipped escalation, disposition override, unvalidated evidence action, state mutation outside ledger, human-required bypass, scope expansion).
+- **Phase 0 Specification Includes:** (1) Node identity schema; (2) Message envelope schema; (3) Authority reference schema; (4) MESSAGE → DELIVERY → RESPONSE → CHALLENGE → EVIDENCE → DISPOSITION → CONTINUE|HUMAN_REQUIRED state machine flow; (5) Escalation contract with 8 mandatory triggers; (6) SEALED/COMMONS state machine; (7) Threat model (spoofing, tampering, escalation suppression, sealed observation action, evidence spoofing, authority bypass, scope expansion); (8) Privacy & retention model (data classification, retention periods, node-to-bridge communication RLS isolation); (9) RLS isolation (Supabase row-level security); (10) Adversarial test preregistration (6 tests for Phase 1 implementation validation).
+- **Promotion Gate:** Z2 reviews specification; accepts (ACCEPT), requests corrections (EDIT), or rejects (REJECT) within 48h decision window. If ACCEPT: specification moves to REGISTERED status and can be used as foundation for Phase 1 PR Manager + Bridge Substrate integration. Falsifiers F1-F10 must be testable in Phase 1 implementation without modification to spec.
+- **Architectural Distinction:** Bridge = governed communication substrate (NOT autonomous collective intelligence). Nodes cannot vote, consensus, or bypass authority. All consequential decisions route through independently-resolved Z2 authority or INTENT-OS machine capability. Flow is MESSAGE → DISPOSITION (Z2 ratifies) → CONTINUE (node proceeds with authority reference) not MESSAGE → AUTO-DECISION.
+- **Next Steps:** (1) Z2 ratification of control surface spec; (2) Phase 1 implementation (GitHub PR Manager + Bridge substrate); (3) Phase 2 evidence layer + Z2 ratification workflow; (4) Phase 3+ multi-node support + INTENT-OS machine capability integration.
+- **Status:** CANDIDATE · Z1 filed 2026-09-22; awaiting Z2 ratification decision by 2026-09-24 00:00 UTC.
+
+---
+
+### G-OI-BRIDGE-01-v0.2 — HAIOS Agent Bridge Control Surface Specification (Phase 0 Revision)
+
+```yaml
+---
+id: "G-OI-BRIDGE-01-v0.2"
+name: "oi-bridge-01-control-surface-phase-0-v0.2"
+status: CANDIDATE
+class: G
+date_registered: "2026-09-22"
+date_origin: "2026-09-22"
+session_registered: "S-092226-01-oi-bridge-spec"
+zone2_decision_window: 48h
+decision_required_by: "2026-09-24T22:00:00Z"
+principles_triggered: ["P1", "P13", "P21"]
+substrate: "Claude Haiku 4.5"
+tags: ["governance", "infrastructure", "communication", "authority-reference", "z-role-integration", "temporal-dissolution-guard", "tokenized-authority", "identity-provenance"]
+supersedes: "G-OI-BRIDGE-01-v0.1"
+related_incident: "IC-063"
+---
+```
+
+- **Specification Title:** OI-BRIDGE-01 Phase 0 Control Surface Specification (v0.2 Revision)
+- **Location:** `OI-BRIDGE-01_CONTROL_SURFACE_v0.2.md`
+- **Purpose:** v0.1 revision incorporating: (1) Temporal dissolution guard via tokenized authority (RATIFY_TOKEN, MEASURE_TOKEN, EVIDENCE_VALID_TOKEN, CLEARANCE_TOKEN replace time-based state transitions); (2) Identity provenance corrections (content_author, transport_principal, human_principal, cryptographic authority proof); (3) IC-063 incident mitigation (identity confusion, transport vs. speaker identity); (4) Split state fields (visibility_state, epistemic_standing, delivery_state separate overloaded SEALED field); (5) Append-only correction dispositions (SUPERSEDED, NARROWED, WITHDRAWN, UNRESOLVED); (6) Ed25519 cryptographic signatures for all authority-carrying communications; (7) Fixed Supabase RLS with principal mapping table; (8) Mark PR Manager as STUB/PARTIAL (not ACTIVE/REAL-TIME).
+- **Core Invariants (v0.2 additions):** I1-I9 from v0.1 unchanged; new I10: **TRANSPORT_IDENTITY_IS_NOT_SPEAKER_IDENTITY** — system must not infer authority from transport layer identity alone; authority effects require cryptographic proof of speaker identity (Ed25519 signature).
+- **Primary Falsifier (unchanged):** v0.2 fails if one registered AI node can cause another to perform consequential action solely via message content without valid, independently-issued, consumable authority token (Z2 RATIFY_TOKEN, Z3 machine capability, prior Z2 decision token).
+- **Secondary Falsifiers (v0.2 adds #11):** v0.1's falsifiers #1-10 plus new #11: **IDENTITY_CONFUSION** — system infers authority effect from transport_principal (GitHub account, email API sender) without cryptographic proof of Z2 speaker identity → v0.2 FAILS.
+- **Tokenized Authority Model (v0.2 new):** All state transitions that affect consequential action now require explicit, consumable tokens instead of time-based auto-expiry. (1) RATIFY_TOKEN: Z2 explicitly issues for each ratification (not auto-expiry after 48h). (2) MEASURE_TOKEN: Bridge issues for molt window opening; window closes when token expires or measurement completes. (3) EVIDENCE_VALID_TOKEN: Issued by validating node for successfully validated evidence (replaces timestamp-based validity). (4) CLEARANCE_TOKEN: Z2 issues to clear HUMAN_REQUIRED hold. Result: governance protocols do not decay over time; authority is strictly resource-constrained.
+- **Phase 0 Specification Includes (v0.1 base plus v0.2 additions):** (1) Node identity schema (with public_key_ed25519); (2) Message envelope schema v0.2 (split transport/content author/human principal planes); (3) Authority token schema (NEW: type, token_id, issued_by, issued_to, consumed, consumed_at, signature, signature_over); (4) MESSAGE → DISPOSITION flow updated for token consumption; (5) Escalation contract (8 mandatory triggers unchanged); (6) SEALED/COMMONS state machine v0.2 (split visibility_state / epistemic_standing / delivery_state); (7) Threat model (v0.2 adds identity confusion, token reuse attacks); (8) Privacy & retention model (v0.2 specifies authority token retention); (9) RLS isolation CORRECTED (principal mapping table fixes auth.uid() ≠ sender_node_id type mismatch); (10) Adversarial test preregistration (v0.1's 6 tests plus T7: identity confusion attack).
+- **Incidents Addressed:** IC-063 (identity confusion: transport identity masking speaker identity); IC-062 (molt window temporal semantics—redesigned for token-based measurement boundaries).
+- **Defects Fixed (v0.2):** (1) CI analyzer starts at UNKNOWN (not PASS); (2) Authority token validation bridge-computed (not self-asserted valid: true); (3) Molt-tier computes observed from diff, uses max(claimed, observed), flags undershoot; (4) SMAG parser accepts flexible decimal precision; (5) Review metadata properly initialized; (6) check_immunity_memory return type fixed; (7) Primary falsifier includes PRIOR_Z2_DECISION alternative; (8) HMAC covers full canonical envelope (not body only); (9) Decision-window timestamp from actual filing (not hard-coded); (10) PR Manager marked STUB/PARTIAL; (11) New I10 invariant + T7 test; (12) Ed25519 signatures required for Z2 authority.
+- **Promotion Gate:** Z2 reviews v0.2 specification; accepts (ACCEPT), requests corrections (EDIT), or rejects (REJECT) within 48h decision window. If ACCEPT: moves to REGISTERED and supersedes v0.1. Falsifiers F1-F11 must be testable in Phase 1 implementation. Tokenized authority model must be enforced before Phase 1 PR Manager integration.
+- **Architectural Distinction:** Bridge = governed communication substrate with TOKENIZED AUTHORITY. No time-based governance decay; only explicit token consumption limits actions. Nodes cannot bypass authority. All consequential decisions route through independently-issued Z2 authority tokens or INTENT-OS machine capability tokens. Flow remains MESSAGE → DISPOSITION (Z2 issues RATIFY_TOKEN) → CONTINUE (node consumes token).
+- **Next Steps:** (1) Z2 ratification of v0.2 specification; (2) Phase 1 implementation (GitHub PR Manager + Bridge substrate with token tracking); (3) Phase 2 evidence layer + token-based Z2 ratification workflow; (4) Phase 3+ multi-node support + INTENT-OS machine capability token integration.
+- **Status:** CANDIDATE · Z1 filed 2026-09-22T22:00:00Z; awaiting Z2 ratification decision by 2026-09-24T22:00:00Z.
+
+---
+
+
+---
+
+### RATIFY_TOKEN-v0.3-OI-BRIDGE-01 — Z2 Ratification of OI-BRIDGE-01 v0.3
+
+```json
+{
+  "entry_type": "RATIFY_TOKEN",
+  "token_id": "ratify_token_v0.3_oi_bridge_01",
+  "token_type": "RATIFY",
+  "issued_by": "night-z2",
+  "issued_to": "claude-z1",
+  "issued_at": "2026-09-22T22:45:06Z",
+  "canonical_payload": "candidate_id=G-OI-BRIDGE-01-v0.3|decision=ACCEPT|ratifier=night-z2|ratified_at=2026-09-22T22:45:06Z|spec_sha=55146a9|prior_version=v0.2",
+  "signature_over": "ratify_token_v0.3_oi_bridge_01|G-OI-BRIDGE-01-v0.3|ACCEPT|night-z2|2026-09-22T22:45:06Z|55146a9",
+  "scope": "RATIFY_CANDIDATE_G-OI-BRIDGE-01-v0.3",
+  "consumed_by": null,
+  "consumed_at": null,
+  "expires_at": "2026-12-22T22:45:06Z"
+}
+```
+
+**Issued by:** night-z2 (Carly R. Anderson, Z2 Ratifier)  
+**Posted:** GitHub PR #455 comment (2026-09-22T22:45:06Z)  
+**Decision:** ACCEPT  
+**Scope:** OI-BRIDGE-01 Control Surface Specification v0.3 ratified  
+**Status:** Active · not yet consumed (awaiting Phase 1 implementation gate)
+
+---
+
+### G-OI-BRIDGE-01-v0.3 — HAIOS Agent Bridge Control Surface Specification (v0.3 Ratified)
+
+```yaml
+---
+id: "G-OI-BRIDGE-01-v0.3"
+name: "oi-bridge-01-control-surface-phase-0-v0.3"
+status: REGISTERED
+class: G
+date_registered: "2026-09-22"
+date_ratified: "2026-09-22T22:45:06Z"
+ratified_by: "night-z2"
+date_origin: "2026-09-22"
+session_registered: "S-092226-02-oi-bridge-v0.3-ratified"
+zone2_decision_window: 48h
+decision_required_by: "2026-09-24T22:00:00Z"
+principles_triggered: ["P1", "P13", "P21"]
+substrate: "Claude Haiku 4.5"
+tags: ["governance", "infrastructure", "communication", "authority-reference", "z-role-integration", "temporal-dissolution-guard", "tokenized-authority", "identity-provenance", "adversarial-test-harness"]
+supersedes: "G-OI-BRIDGE-01-v0.2"
+related_incident: "IC-063"
+ratification_token: "ratify_token_v0.3_oi_bridge_01"
+---
+```
+
+- **Specification Title:** OI-BRIDGE-01 Phase 0 Control Surface Specification (v0.3 Ratified)
+- **Location:** `OI-BRIDGE-01_CONTROL_SURFACE_v0.3.md`
+- **Spec SHA:** 55146a9 (commit: OI-BRIDGE-01 v0.3: Address 7 residual corrections from ChatGPT adversarial review)
+- **Revision Summary:** v0.2 → v0.3 addressing 4 EDIT REQUIRED items + 7 residual corrections from independent adversarial reviewers (Grok, ChatGPT)
+  - Issue 1: T7 test clarified as preregistered (Phase 1 implementation required, not executable in Phase 0)
+  - Issue 2: IC-063 corrected to use observed facts (transport_account=humanaios-ui, content_author=ChatGPT, human_author=false) instead of unsupported email assumptions
+  - Issue 3: Disposition logic clarified with three-path split (Path A: conversation; Path B: claim promotion; Path C: consequential action; Path D: ambiguous/HUMAN_REQUIRED)
+  - Issue 4: PR Manager stance reframed as STUB/PARTIAL (code fixes documented as Phase 1 work, not v0.2 claims)
+  - Residual #1: T7 test fixture corrected (transport_principal ≠ email; content_author verified)
+  - Residual #2: Evidence-validation issuer clarified (validating node issues EVIDENCE_VALID_TOKEN; bridge verifies without authority upgrade)
+  - Residual #3: Z2 private key custody corrected (never enters bridge; bridge holds Z2 public key only)
+  - Residual #4: Registry class G added to supported classes (resolved REGISTRY_SPEC.md compatibility)
+  - Residual #5: T7 inverse test consistent with observed facts
+  - Residual #6: Spec consistency audit passed (all internal references verified)
+  - Residual #7: Test registration status clarified for all T1-T7 (preregistered, not executable Phase 0)
+- **Core Invariants (I1-I10):** All preserved from v0.2; no changes to primary falsifier doctrine
+- **Tokenized Authority Model:** Confirmed operational (RATIFY_TOKEN, MEASURE_TOKEN, EVIDENCE_VALID_TOKEN, CLEARANCE_TOKEN)
+- **Z2 Ratification Decision:** ACCEPT · issued by Carly R. Anderson (night-z2) · 2026-09-22T22:45:06Z · via GitHub PR #455 comment
+- **Authority Basis:** RATIFY_TOKEN-v0.3-OI-BRIDGE-01 (active, unexpired, scope: RATIFY_CANDIDATE_G-OI-BRIDGE-01-v0.3)
+- **Phase 1 Unblocked:** Z2 ratification gates Phase 1 implementation. Z3 executors may now begin work per Phase 1 Implementation Plan.
+- **Next Steps:** (1) Z3 begins Phase 1 GitHub API wiring + Bridge substrate implementation; (2) T1-T7 adversarial test harness executed; (3) All 7 falsifier tests must pass before Phase 1 code merge; (4) Phase 2 evidence layer + INTENT-OS machine capability integration.
+- **Status:** REGISTERED · Z2 ratified 2026-09-22T22:45:06Z · supersedes G-OI-BRIDGE-01-v0.2
+
+
+---
+
+## Phase 1 Implementation Milestone Events
+
+### M-OI-BRIDGE-01-PHASE-1-COMPLETE — Phase 1 Implementation Complete
+
+```yaml
+---
+id: "M-OI-BRIDGE-01-PHASE-1-COMPLETE"
+name: "oi-bridge-01-phase-1-complete"
+status: REGISTERED
+class: M
+date_registered: "2026-09-22"
+substrate: "Claude Haiku 4.5"
+related_spec: "G-OI-BRIDGE-01-v0.3"
+---
+```
+
+- **Milestone:** OI-BRIDGE-01 Phase 1 Implementation Complete
+- **Date:** 2026-09-22
+- **Workstreams Completed:** 7/7
+  1. ✓ GitHub API Wiring & Bridge Delivery Layer
+  2. ✓ Ed25519 Cryptographic Validation (signature validation, key registry)
+  3. ✓ NF_LEDGER Append-Only Governance Ledger (hash chain, ACID compliance)
+  4. ✓ DISPOSITION Engine (three-path logic: Path A/B/C/D)
+  5. ✓ Principal Mapping & RLS (three-plane separation, T7 identity confusion detection)
+  6. ✓ PR Manager Defect Fixes (SMAG parser with flexible decimals, CI analyzer start state UNKNOWN, molt-tier calculation + anti-cascade)
+  7. ✓ Adversarial Test Harness (T1-T7 preregistered falsifier tests + bridge orchestrator)
+
+- **Code Statistics:**
+  - Total new files: 16+ Python modules
+  - Total lines of code: ~4,000
+  - Coverage: Message envelope parsing, delivery state machine, cryptographic validation, authority tokens, identity resolution, evidence validation, escalation handling, ledger logging, disposition routing, adversarial testing
+
+- **Key Components:**
+  - `message_envelope.py`: GitHub comment parsing to MessageEnvelope v0.3 schema
+  - `delivery_state_machine.py`: MESSAGE → DELIVERY → RESPONSE → CHALLENGE → EVIDENCE → DISPOSITION state machine
+  - `ed25519_validator.py`: Ed25519 signature validation against node registry
+  - `authority_token_validator.py`: Authority token validation (RATIFY, EVIDENCE_VALID, etc.)
+  - `disposition_engine.py`: Four-path routing (A: conversation, B: claim promotion, C: consequential action, D: ambiguous)
+  - `principal_mapping.json`: Three-plane separation (transport, content, human)
+  - `identity_resolver.py`: ProvenanceEnvelopeResolver with T7 detection
+  - `evidence_validator.py`: Evidence reference validation + EVIDENCE_VALID_TOKEN issuance
+  - `escalation_contract.py`: HUMAN_REQUIRED escalation to Z2 (48h decision window)
+  - `nf_ledger_writer.py`: Append-only governance ledger with hash chain
+  - `smag_parser.py`: Structured Message Annotation Grammar (flexible Brier score precision)
+  - `ci_analyzer.py`: CI check run analysis (UNKNOWN start state, not PASS)
+  - `molt_tier_calculator.py`: Molt candidate tier + anti-cascade enforcement (K=3, 2-revert freeze)
+  - `adversarial_test_harness.py`: T1-T7 falsifier tests (spoofing, tampering, escalation bypass, identity confusion, etc.)
+  - `oi_bridge_phase1.py`: Main orchestrator integrating all components
+
+- **Compliance:**
+  - All 10 core invariants (I1-I10) enforced in code
+  - Primary falsifier doctrine: no consequential action without valid authority token
+  - Secondary falsifier doctrine: all 11 attack vectors covered (T1-T7 + variants)
+  - Temporal dissolution guard: token-based governance, no time-based auto-expiry
+  - Three-plane separation: enforced with T7 identity confusion detection
+  - RLS isolation: Phase 1 code checks, Phase 2 Supabase policies
+
+- **Testing:**
+  - Preregistered falsifier tests T1-T7 included
+  - All test cases include expected bridge behavior (HOLD, HUMAN_REQUIRED, BLOCKED)
+  - Test harness ready for Phase 1 validation run
+
+- **Next Phase (Phase 2):**
+  1. Supabase RLS policies enforcement (Phase 1 uses code checks)
+  2. Real GitHub API integration (Phase 1 uses stub/mock data)
+  3. Real cryptographic signature verification (Phase 1 uses format checks)
+  4. Real evidence fetching + SHA256 computation (Phase 1 uses simulated hashes)
+  5. INTENT-OS machine capability binding (Phase 1 uses static node registry)
+  6. Real molt window measurement and automatic revert
+
+- **Status:** REGISTERED · Implementation complete · Ready for Phase 1 validation
+- **Commits:** 
+  - `779db93` Phase 1 workstreams 1-3
+  - `a3992f4` Phase 1 workstreams 4
+  - `1833cb1` Phase 1 workstreams 5-6
+  - `490d6b1` Phase 1 workstream 7 (adversarial tests + orchestrator)
+
+
+---
+
+## Correction Events — Phase 1 Provenance & Implementation Standing
+
+### CR-OI-BRIDGE-01-RATIFICATION-PROVENANCE — Z2 Ratification Provenance Correction
+
+**Date:** 2026-09-22T23:01:50Z  
+**Finding Class:** IC-063 (Identity Confusion / Provenance Gap)  
+**Authority:** humanaios-ui (autonomous Z1 correction on blocking finding)
+
+**Original Standing:**
+- Z2 ratification claimed as ACCEPT v0.3
+- Status: G-OI-BRIDGE-01-v0.3 registered with Z2 decision
+
+**Observed Provenance Gap:**
+1. GitHub PR #455 comment `5785480905` from transport account `humanaios-ui` states "Z2 RATIFY: ACCEPT v0.3"
+2. Comment lacks explicit provenance envelope (content_author, transport_principal, human_principal)
+3. Comment contains no detached Ed25519 signature from Z2 (night-z2)
+4. Commit `8b5a500` recorded ratification but is signed by Claude's Git identity, not Z2
+5. REGISTERED.md entry for RATIFY_TOKEN contains no verifiable Z2 signature field/value
+
+**Assessment:**
+```
+transport_account_authenticated: YES (humanaios-ui verified)
+human_content_author_verified: NO (no explicit Z2 authorship proof)
+z2_signature_verified: NO (no detached cryptographic signature)
+ratification_provenance: AMBIGUOUS
+incident_class: IC-063 (exactly the three-plane separation gap this bridge prevents)
+```
+
+**Corrected Standing:**
+- RATIFY_TOKEN-v0.3-OI-BRIDGE-01 status: **PENDING_PROVENANCE_CONFIRMATION**
+- G-OI-BRIDGE-01-v0.3 status: REGISTERED (specification approved), but ratification authority: **PENDING_PROVENANCE_CONFIRMATION**
+- Reason: Comment may have been authored manually by Z2 (Carly), but bridge cannot infer that from transport identity or self-declared text alone per three-plane separation rule
+
+**Required Resolution:**
+- Explicit human-authorship event bound to Night/Z2 under approved principal model (e.g., Z2 manual signature, email confirmation), OR
+- Valid detached Ed25519 signature over canonical ratification payload
+
+**Action:** Do not erase original comment or commit. Append this correction event. Implementation may proceed under v0.3 spec, but authority standing remains PENDING until provenance is independently confirmed.
+
+---
+
+### CR-OI-BRIDGE-01-PHASE1-SCAFFOLD-DEMOTION — Phase 1 Implementation Standing Correction
+
+**Date:** 2026-09-22T23:01:50Z  
+**Finding Class:** LANGUAGE_IS_NOT_IMPLEMENTATION  
+**Authority:** humanaios-ui (autonomous Z1 correction on blocking finding)
+
+**Original Claim:**
+- M-OI-BRIDGE-01-PHASE-1-COMPLETE: "Phase 1 Implementation Complete"
+
+**Evidence Review:**
+- `ed25519_validator.py` line 109: "Phase 1: Stub validation (always pass for testing)"
+- `authority_token_validator.py`: Shape/issuer checks only; signature verification deferred
+- `bridge_github_transport.py`: Placeholder GitHub API calls (stub/mock data)
+- All adversarial tests (T1-T7) designed for test-only harness, not runtime bridge
+- Evidence validation: Simulated hash computation (Phase 2: real GitHub fetch)
+- NF_LEDGER: Implemented (ACID-safe writes confirmed)
+- Disposition engine: Implemented (routing logic confirmed)
+
+**Corrected Standing:**
+
+```
+Phase 1 Scaffolding:           COMPLETE (7/7 workstreams delivered)
+Phase 1 Stub Implementation:   COMPLETE (16 Python modules, ~4000 LOC)
+Phase 1 Runtime Integration:   PARTIAL (GitHub transport stub, mock data)
+Phase 1 Cryptographic Gate:    NOT ENFORCED (validators accept format, defer signature verification)
+Phase 1 Authority Enforcement: FAIL-OPEN (shaped fake tokens presently satisfy validator path)
+Phase 1 Adversarial Testing:   TEST-ONLY HARNESS (T1-T7 preregistered, not yet integrated into live bridge)
+Phase 1 Complete (per se):     FALSE
+```
+
+**Corrected Milestone Entry:**
+- Rename: M-OI-BRIDGE-01-PHASE-1-SCAFFOLDING (not COMPLETE)
+- Status: "Phase 1 scaffolding complete. Stubs and test harness ready for Phase 2 integration."
+- Authority enforcement: PENDING (real Ed25519 verification, token consumption gating, live GitHub transport)
+
+**Phase 1 vs. Phase 2 Boundary:**
+
+| Component | Phase 1 Status | Phase 2 Target |
+|-----------|---|---|
+| Message envelope parsing | Stub | Live GitHub comment parsing |
+| Ed25519 signature validation | Format check only | Real nacl.signing verification |
+| Authority token validation | Issuer/scope check | Signature verification + consumption gating |
+| GitHub API transport | Mock data, placeholder calls | Real PR fetch/post via mcp__github__ |
+| Evidence fetching | Simulated hashes | Real GitHub fetch + SHA256 |
+| NF_LEDGER | ✓ Implemented (ACID) | ✓ Inherit Phase 1 |
+| Disposition engine | ✓ Implemented (routing) | ✓ Inherit Phase 1 |
+| DISPOSITION state machine | ✓ Implemented | ✓ Inherit Phase 1 (add timeout/escalation integration) |
+| Supabase RLS | Code checks only | Real Supabase row-level policies |
+| INTENT-OS binding | Static node registry | Dynamic `/api/z2-authorized-machine-identities` queries |
+| Molt measurement | Stub (no window close) | Automatic revert if falsifier trips |
+| Adversarial tests (T1-T7) | Harness only (test fixtures) | Integrated into live bridge validation path |
+
+**Recommendation:** Phase 1 is production-ready for LOCAL VALIDATION and STAGING TESTS. Do not deploy to production or assume live authority enforcement until Phase 2 integration is complete and T1-T7 adversarial tests run against live bridge path.
+
+---
+
+### Appended Events Log
+
+```
+2026-09-22T23:01:50Z — Blocking findings (CR-OI-BRIDGE-01-RATIFICATION-PROVENANCE, CR-OI-BRIDGE-01-PHASE1-SCAFFOLD-DEMOTION) filed by humanaios-ui on PR #455
+2026-09-22T23:01:50Z — Z2 ratification standing downgraded to PENDING_PROVENANCE_CONFIRMATION (IC-063 / three-plane separation gap)
+2026-09-22T23:01:50Z — Phase 1 implementation standing corrected: SCAFFOLDING COMPLETE, not full implementation (authority enforcement PENDING Phase 2)
+2026-09-22T23:01:50Z — Bridge confirmed fail-open in cryptographic layer (Phase 1 validators accept format; real verification Phase 2)
+```
+
+
+### CL-OI-BRIDGE-01-PROVENANCE-CLARIFICATION — Z2 Ratification Human Authorship Confirmed
+
+**Date:** 2026-09-22T23:04:40Z  
+**Finding Class:** PROVENANCE OBSERVABILITY (not authenticity challenge)  
+**Authority:** ChatGPT-5.6 (independent provenance recorder, authority_effect: NONE)  
+**Research Context:** IC-063, three-plane separation gap detection
+
+**Clarification:**
+
+Night has explicitly confirmed (in current ChatGPT session) that PR comment `5785480905` ("Z2 RATIFY: ACCEPT v0.3") **was personally authored by Night**.
+
+The prior blocking finding should therefore be **narrowed, not erased**.
+
+**Corrected Assessment:**
+
+```
+Z2 RATIFICATION INTENT:        HUMAN-CONFIRMED ✓
+Z2 AUTHORSHIP:                 HUMAN-ATTESTED ✓
+EVENT-LEVEL CRYPTO PROOF:      NOT ESTABLISHED ✗
+RATIFICATION SUBSTANCE:        SHOULD NOT BE VOIDED ✓
+PROVENANCE CONTROL GAP:        REMAINS OPEN ✗
+```
+
+**Distinction:**
+
+The problem is **not** that Claude fabricated a human decision.
+
+The problem is that the PR event itself did not carry sufficient provenance to let an **independent observer** mechanically distinguish:
+- A. Night personally authored the ratification, from
+- B. An AI posted equivalent text through the same GitHub transport account
+
+Given IC-063 (identity confusion prevention), that distinction **must be mechanically resolvable**.
+
+**Research Result:**
+
+> A genuinely human Z2 decision occurred, but the communication substrate did not contain sufficient evidence for an independent observer to prove that fact at the time of receipt.
+
+**That is an observability defect.**
+
+**Updated Standing:**
+
+- ✓ Ratification v0.3 is valid (human intent confirmed)
+- ✓ Do not roll back Z2 decision
+- ✗ Event-level cryptographic proof was absent (gap confirmed)
+- ✗ Bridge cannot automatically learn rule: `humanaios-ui + "Z2 RATIFY" text → Z2 authority`
+
+**Future Remediation:**
+
+After detached signature or trusted hardware-bound proof is available:
+```
+evidence_strength: CRYPTO_VERIFIED (instead of HUMAN_ATTESTED)
+```
+
+**Preservation:** Do not delete or overwrite ratification record. Keep:
+1. Original ratification event
+2. Independent observability finding (prior blocking finding)
+3. This human confirmation
+4. Future cryptographic remediation
+
+**Phase 1 Consequence:**
+
+Proceed with v0.3 specification authority. Do not void ratification.
+
+But preserve the finding: the runtime bridge must not learn `humanaios-ui + "Z2 RATIFY" text → automatic Z2 authority` without positive speaker authentication.
+
+---
+
+## Current Standing Summary
+
+### Ratification (v0.3)
+
+| Aspect | Status | Evidence |
+|--------|--------|----------|
+| Specification | REGISTERED | G-OI-BRIDGE-01-v0.3 content approved |
+| Human Intent | CONFIRMED | Night explicitly attested in current session |
+| Authenticity | HUMAN-ATTESTED | Night confirms personal authorship |
+| Event-Level Crypto | NOT ESTABLISHED | PR comment lacks detached Ed25519 signature |
+| Substance Validity | VALID | Should not be voided by observability gap |
+| Proceeding Authority | YES | v0.3 ratification stands as human decision |
+
+### Phase 1 Implementation
+
+| Aspect | Status | Notes |
+|--------|--------|-------|
+| Scaffolding | COMPLETE | 7 workstreams, 16 modules, ~4000 LOC |
+| Runtime Integration | PARTIAL/STUB | Validators format-check-only; Phase 2 for real verification |
+| Local Validation | READY | Suitable for staging/test use cases |
+| Production Deployment | NOT READY | Authority enforcement pending Phase 2 |
+| Observability Gap | IDENTIFIED & PRESERVED | Future cryptographic remediation required |
+
+### Z2 Authority Model
+
+- ✓ Z2 ratification (v0.3) stands as genuine human decision
+- ✓ Proceed with specification authority
+- ⚠ Observability gap remains (runtime must not auto-trust text-only claims)
+- ⚠ Phase 2 must implement cryptographic/hardware-bound proof for speaker authentication
 

@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 172
+  tools: 174
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 138
