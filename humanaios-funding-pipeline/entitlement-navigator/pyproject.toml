@@ -1,0 +1,7 @@
+[project]
+name = "entitlement-navigator"
+version = "0.2.0"
+description = "Local-first evidence-bearing entitlement, asset, genealogy, trust, and funding discovery engine."
+requires-python = ">=3.10"
+dependencies = []
+

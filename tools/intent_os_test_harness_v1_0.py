@@ -172,6 +172,7 @@ def registry(root: str = ROOT) -> list[dict]:
                 "tools/tests/test_intake_schema_v0_2.py",
                 "tools/tests/test_orchestrator_molt.py",
                 "tools/tests/test_pre_push_gate.py",
+                "tools/tests/test_repository_coordinator_v0_1.py",
                 "tools/tests/test_registry_site_generator.py",
                 "tools/tests/test_tool_gap_scaffolds.py",
                 "test_specimen_intake_evaluator.py",

@@ -1,0 +1,236 @@
+name: repository-coordinator
+
+# Advisory repository-level coordination index.
+#
+# This workflow never merges, closes, labels, or mutates canonical queue state.
+# It recomputes guidance when repository state changes. Age is not a signal.
+#
+# Security split:
+#   index   — checks out PR-head code with read-only permissions.
+#   comment — has write permission but checks out/runs no PR code.
+#
+# The comment job can only write an advisory comment to the triggering PR.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: repository-coordinator-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  index:
+    name: Build repository coordination index (ADVISORY)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      report_b64: ${{ steps.report.outputs.report_b64 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Collect live repository snapshot
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+
+            const branch = await github.rest.repos.getBranch({
+              owner, repo, branch: "main"
+            });
+            const mainSha = branch.data.commit.sha;
+
+            const gitCommit = await github.rest.git.getCommit({
+              owner, repo, commit_sha: mainSha
+            });
+            const tree = await github.rest.git.getTree({
+              owner, repo, tree_sha: gitCommit.data.tree.sha, recursive: "true"
+            });
+            const mainPaths = (tree.data.tree || [])
+              .filter(x => x.type === "blob" && x.path)
+              .map(x => x.path);
+
+            const open = await github.paginate(
+              github.rest.pulls.list,
+              { owner, repo, state: "open", per_page: 100 }
+            );
+
+            const pullRequests = [];
+            const referencedNumbers = new Set();
+
+            for (const brief of open) {
+              const pr = (await github.rest.pulls.get({
+                owner, repo, pull_number: brief.number
+              })).data;
+
+              const files = await github.paginate(
+                github.rest.pulls.listFiles,
+                { owner, repo, pull_number: pr.number, per_page: 100 }
+              );
+              const reviews = await github.paginate(
+                github.rest.pulls.listReviews,
+                { owner, repo, pull_number: pr.number, per_page: 100 }
+              );
+
+              const body = pr.body || "";
+              for (const match of body.matchAll(/(^|[^\w])#(\d{1,6})\b/g)) {
+                referencedNumbers.add(Number(match[2]));
+              }
+
+              pullRequests.push({
+                number: pr.number,
+                title: pr.title,
+                body,
+                html_url: pr.html_url,
+                state: pr.state,
+                draft: pr.draft,
+                mergeable: pr.mergeable,
+                mergeable_state: pr.mergeable_state,
+                head_sha: pr.head.sha,
+                base_sha: pr.base.sha,
+                created_at: pr.created_at,
+                updated_at: pr.updated_at,
+                files: files.map(f => f.filename),
+                file_details: files.map(f => ({
+                  filename: f.filename,
+                  status: f.status,
+                  patch: f.patch || ""
+                })),
+                reviews: reviews.map(r => ({
+                  user: { login: r.user && r.user.login ? r.user.login : "unknown" },
+                  state: r.state,
+                  submitted_at: r.submitted_at
+                }))
+              });
+            }
+
+            const referenced = {};
+            for (const number of referencedNumbers) {
+              try {
+                const r = (await github.rest.pulls.get({
+                  owner, repo, pull_number: number
+                })).data;
+                referenced[String(number)] = {
+                  state: r.state,
+                  merged: Boolean(r.merged_at),
+                  html_url: r.html_url,
+                  title: r.title
+                };
+              } catch (err) {
+                // Most #NNN references are issues rather than PRs. Ignore 404s.
+                if (!err || err.status !== 404) throw err;
+              }
+            }
+
+            const snapshot = {
+              schema_version: "0.1",
+              repository: `${owner}/${repo}`,
+              main_sha: mainSha,
+              main_paths: mainPaths,
+              referenced_pull_requests: referenced,
+              pull_requests: pullRequests
+            };
+
+            fs.mkdirSync(".repo-coordinator", { recursive: true });
+            fs.writeFileSync(
+              ".repo-coordinator/snapshot.json",
+              JSON.stringify(snapshot, null, 2)
+            );
+
+      - name: Self-test coordinator
+        run: python3 tools/repository_coordinator_v0_1.py --smoke-test
+
+      - name: Run coordinator regression tests
+        run: |
+          python -m pip install --quiet pytest
+          python -m pytest tools/tests/test_repository_coordinator_v0_1.py -q
+
+      - name: Build advisory index
+        run: |
+          python3 tools/repository_coordinator_v0_1.py \
+            --snapshot .repo-coordinator/snapshot.json \
+            --output .repo-coordinator/index.json \
+            --markdown .repo-coordinator/index.md
+          cat .repo-coordinator/index.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Prepare safe comment payload
+        id: report
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          text = Path(".repo-coordinator/index.md").read_text(encoding="utf-8")
+          encoded = base64.b64encode(text.encode()).decode()
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"report_b64={encoded}\n")
+          PY
+
+      - name: Upload coordination index
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-coordinator-index
+          path: |
+            .repo-coordinator/snapshot.json
+            .repo-coordinator/index.json
+            .repo-coordinator/index.md
+          retention-days: 30
+
+  comment:
+    name: Publish advisory index on triggering PR
+    if: github.event_name == 'pull_request'
+    needs: index
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      # Deliberately no checkout and no PR-head execution in this write-capable job.
+      - uses: actions/github-script@v7
+        env:
+          REPORT_B64: ${{ needs.index.outputs.report_b64 }}
+        with:
+          script: |
+            const marker = "<!-- repository-coordinator -->";
+            let body = Buffer.from(process.env.REPORT_B64 || "", "base64")
+              .toString("utf8");
+            if (!body.includes(marker)) {
+              body = marker + "\n## Repository Coordinator\n\nInvalid report marker; advisory output withheld.";
+            }
+            if (body.length > 60000) {
+              body = body.slice(0, 59500) + "\n\n_Report truncated; see workflow artifact._";
+            }
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number, per_page: 100 }
+            );
+            const existing = comments.find(c =>
+              c.user && c.user.type === "Bot" &&
+              typeof c.body === "string" &&
+              c.body.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body
+              });
+            }
