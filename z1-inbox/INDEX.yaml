@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-09-20'
+generated: '2026-09-23'
 decision_window_days: 2
 counts:
-  candidates: 83
-  records: 38
+  candidates: 88
+  records: 40
 ratifiers:
 - Night
 candidates:
@@ -645,16 +645,16 @@ candidates:
     \ 30 days, 1+ PR merged within 60 days, <4-hour implementation time, no tool failures\
     \ in 90 days."
 - q_id: Q-TOOL-MANIFEST-DRIFT-PREVENTION-01
-  title: "Tool manifest drift prevention \u2014 .github/workflows/tool-sync-gate.yml\
-    \ (Tier 0 infrastructure)"
+  title: "Tool manifest drift prevention \u2014 validation gate (Tier 0 infrastructure)"
   path: z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md
   submitted: '2026-09-20'
   status: awaiting_z2
   tier: 0
-  note: "Root cause analysis of tool manifest CI failures in PR #425. Proposes automated\
-    \ tool-sync-gate workflow to prevent drift between tools-manifest.yaml and TOOLS_MANIFEST.md.\
-    \ Reduces technical friction by ~80% (eliminates 3 manual steps per tool change).\
-    \ Falsifiers and test cases included."
+  note: "Root cause analysis of tool manifest CI failures in PR #425. Consolidated\
+    \ into existing tool-manifest.yml gate (eliminates duplicate validation). Prevents\
+    \ drift by validating scan.py --check and render.py --check on all manifest\
+    \ input paths. Informally approved 2026-09-21 by Z2 (Night); awaiting formal\
+    \ Z2 signature."
 - q_id: Q-PHASE-2-BOARD-MOLT-01
   title: "Z2 Board Decisions & Molt Events Ingestion"
   path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
@@ -902,6 +902,57 @@ candidates:
     \ inside operations an admissible locus?) and D4 (promote schema to schemas/ and\
     \ conformance scripts to tools/?). Does not resolve D1; widens it from two candidate\
     \ resolution targets to three. Writes no REGISTERED.md or NF_LEDGER.jsonl row."
+- q_id: Q-ACCOUNT-HUB-01
+  title: "HumanAIOS Account Hub & Project Manager Cockpit"
+  path: z1-inbox/2026-09-22/ACCOUNT-HUB-PROPOSAL.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  falsifier: "All 16 accounts listed + metadata verified + 11 API-enabled accounts\
+    \ syncing + activity feed live + zero credential breaches."
+  note: "Proposed unified source-of-truth registry for 16 services (GitHub, Gmail,\
+    \ Cloudflare, Supabase, Railway, Hugging Face, Substack, LinkedIn, ORCID, arXiv,\
+    \ OSF, IONOS, Hubstaff, Greenlight, RevBy, FreeCodeCamp). Cockpit access layer\
+    \ with cross-service activity feed and Z2-governed delegation to AI agents/Z3\
+    \ executors. Phase 1 (source of truth) 8-12 hours + 100k tokens, completes this\
+    \ week. Awaits Z2 signature via .z1-control/ratify.py (standard candidate process)."
+- q_id: Q-BUZZ-COLLAB-EVAL-01
+  title: "Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance\
+    \ on self-hosted Nostr relay)"
+  path: z1-inbox/2026-09-23/Q-BUZZ-COLLAB-EVAL-01.md
+  submitted: '2026-09-23'
+  status: awaiting_z2
+  falsifier: "Buzz cannot run HumanAIOS governance in-product if (1) it lacks support\
+    \ for cryptographic confirmation of Z2 decisions (check: Nostr event signatures\
+    \ native), or (2) it cannot integrate with GitHub's `git push` authorization gate\
+    \ (check: REST webhooks + Buzz CLI JSON interface achievable)"
+  note: "Phase 0 evaluation complete. Companion document BUZZ_INTEGRATION_SPEC.md provides\
+    \ detailed technical mapping (Section 1-5) and feasibility assessment (Section\
+    \ 6-8). Falsifier conditions checked; both preliminary findings suggest achievement.\
+    \ Phase 1 pilot roadmap outlined (3 weeks). Awaits Z2 RATIFY to proceed."
+- q_id: Q-Z2RATIF-MECH-32
+  title: "Z2 Ratification Mechanism Undocumented — governance workflow clarity gap"
+  path: z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md
+  submitted: '2026-09-23'
+  status: awaiting_z2
+  falsifier: "Issue is FALSE if Z1 proposers and new Z2 ratifiers can read one source\
+    \ and understand that PR merge by Z2 = ratification without confusion about the\
+    \ gate failure."
+  note: "Internal consistency issue: Z2's PR merge is the ratification signature,\
+    \ but this is undocumented. The Z2 ratification CI gate fails before merge by design\
+    \ (prevents accidental merge), but this is counterintuitive. New Z1/Z2/Z3 participants\
+    \ cannot distinguish this intentional gate from a genuine blocker. Remediation:\
+    \ update CLAUDE.md § Decision Routing to document Z2 ratification workflow and gate\
+    \ behavior. Discovered during Q-BUZZ-COLLAB-EVAL-01 review."
+- q_id: Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01
+  title: "Calibration profile data violates WITNESS_STATE_V0_1 schema contract"
+  path: z1-inbox/2026-09-21/Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
+- q_id: Q-SMAG-Z3-TASK-SEQUENCING-01
+  title: "Z3 executor task sequencing and dependency graph undefined for s1/s2/s3"
+  path: z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md
+  submitted: '2026-09-21'
+  status: awaiting_z2
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
@@ -1068,4 +1119,10 @@ records:
     \ liquidity conditions). Proposes Z2 decision framework: require baseline Sharpe\
     \ measurement (at threshold=0.50, same window) before ratifying 0.55 as \"better.\"\
     \ Filed as F-MEASUREMENT-SCOPE-AUDIT-01 in REGISTERED.md; window close 2026-09-28."
+- path: z1-inbox/2026-09-23/BUZZ_INTEGRATION_SPEC.md
+  title: "Buzz Integration Specification \u2014 Technical mapping of HumanAIOS Z1/Z2/Z3 governance to Buzz affordances"
+  note: "Companion document to Q-BUZZ-COLLAB-EVAL-01, providing detailed technical specification: event schemas (Nostr NIP-01/NIP-34), GitHub webhook integration, CI/CD gate verification, Z3 execution flow, Z2 authority model, deployment architecture, and rollout plan. Sections 1\u20135 map governance workflows; sections 6\u20138 assess feasibility. A record: no Z2 decision requested."
+- path: z1-inbox/2026-09-21/Z2_RATIFY_SMAG_BLOCKERS.md
+  title: "Z2 Ratification: SMAG Calibration & Sequencing Blockers"
+  note: "Z2 decision record: ratified Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01 (ACCEPT Option A) and Q-SMAG-Z3-TASK-SEQUENCING-01 (ACCEPT with allocations). Z3 executor sequencing and Intent-OS Phase 1 binding guidance provided."
 excluded: []
