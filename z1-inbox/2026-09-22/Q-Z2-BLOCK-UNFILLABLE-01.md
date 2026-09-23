@@ -28,24 +28,47 @@ constant. It moves, and it moved during this candidate's own review:
 
 ```
 $ python3 - <<'PY'   # re-derives both numbers from the index
-import sys, os; sys.path.insert(0, '.z1-control')
-from validate import INDEX, ROOT, load_index
+import sys, os, re; sys.path.insert(0, '.z1-control')
+from validate import INDEX, ROOT, TERMINAL, load_index
 idx = load_index(INDEX)
-has = lambda c: 'z2_decision' in open(os.path.join(ROOT, c['path']), encoding='utf-8').read()
-aw   = [c for c in idx['candidates'] if c.get('status') == 'awaiting_z2']
-term = [c for c in idx['candidates'] if c.get('status') != 'awaiting_z2']
-print(sum(map(has, aw)), 'awaiting carry it;', sum(map(has, term)), 'of', len(term), 'terminal do')
+KEY = re.compile(r'^z2_decision:', re.MULTILINE)   # the key, not the substring
+def has(c):
+    p = os.path.join(ROOT, str(c['path']))
+    return os.path.isfile(p) and bool(KEY.search(open(p, encoding='utf-8').read()))
+op = [c for c in idx['candidates'] if c.get('status') not in TERMINAL]
+tm = [c for c in idx['candidates'] if c.get('status') in TERMINAL]
+print(f"{sum(map(has,op))} open carry it; {sum(map(has,tm))} of {len(tm)} terminal do")
 PY
 ```
 
-At filing it returned **14**. One merge later — `#457`, which added
-`Q-MESH-LOCAL-COORDINATION-01`, written by a different session and carrying the
-block — it returned **16**. Nobody decided that. The template emitted it.
+Run at this candidate's filing commit it returns **14 open**; run after `#457`
+merged `Q-MESH-LOCAL-COORDINATION-01` — written by a different session, which
+never saw this finding, and carrying the block — **15**. Nobody decided that. The
+template emitted it.
 
-Writing `14` into this file and leaving it there is the failure this candidate is
-about, so the command is given instead of the number. That is option D of
+Writing a number into this file and leaving it there is the failure this candidate
+is about, so the command is given instead. That is option D of
 `Q-REFERENT-DECAY-01` applied to this file by its own author, and it is the only
 part of any of this that Z1 can adopt without a ruling.
+
+### The first version of this command was wrong, and that is part of the record
+
+As published, it tested `'z2_decision' in text` and partitioned
+`status != 'awaiting_z2'` as terminal. Copilot caught both on review.
+
+- The substring matched `z2_decision_timestamp` in
+  `z1-inbox/2026-09-10/Q-NF-SCHEMA-01-CANDIDATE.md` (lines 44 and 105), a file
+  carrying no block at all. The published figure was one too high.
+- `validate.py:115-117` defines `TERMINAL = {ratified, edit_requested, rejected}`
+  and puts `withdrawn` and `superseded` in `OPEN`. Treating everything that is not
+  `awaiting_z2` as decided is wrong, and **silently** wrong today only because no
+  candidate currently holds either status — the `0 of 9` was accidentally right.
+
+Both are this candidate's own thesis committed inside its evidence: an assertion
+about a source, written without executing against the source precisely enough.
+Recorded rather than quietly corrected, because a measurement that needed a
+reviewer to fix is evidence about how far care alone gets, which is the question
+the class turns on.
 
 ## Leg 1 — the promise
 
@@ -140,7 +163,8 @@ gate, removes the false promise, and leaves the block harmlessly accurate.
 **Option C — rename the block to what it actually is.** `z2_request:`, carrying
 what is being asked of Z2 and nothing that a decision would later change. Then
 nothing about it can decay, because it describes the ask. Cost: touches the
-template and the fourteen open candidates, and `z2_notes` loses its in-file home
+template and every open candidate carrying the block — count it with the command
+above rather than reading a number here — and `z2_notes` loses its in-file home
 (it has no reader today, so this is a loss of intent rather than of function).
 
 **Option A — delete the block.** Honest: no reader, no filler, no future. Cost: the
@@ -159,7 +183,7 @@ D and C compose: correct the claim now, rename later if the field should survive
 ## What Z1 is not doing
 
 Not editing `CANDIDATE_BLOCK_TEMPLATE.md`. It is a controlled document, the choice
-between D and C is Z2's, and the fourteen affected candidates are all awaiting a
+between D and C is Z2's, and every affected candidate is still awaiting a
 decision — editing their bytes now would change what Z2 is about to sign.
 
 ## Falsifier
