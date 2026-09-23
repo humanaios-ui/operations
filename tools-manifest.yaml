@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 174
+  tools: 175
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 138
+  builder_markers_present: 139
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2217,6 +2217,18 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: PR Readiness Verification — Run all validation checks in sequence
+- tool_id: HAIOS-TOOL-187
+  name: repository_coordinator
+  path: tools/repository_coordinator_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: repository_coordinator_v0_1.py — evidence-bounded repository coordination index.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
