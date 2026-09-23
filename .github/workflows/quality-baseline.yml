@@ -25,13 +25,13 @@ jobs:
 
       - name: SMAG Calibration Gate (s1 merge enforcement, blocking)
         env:
-          SMAG_WINDOW_DAYS: "30"
+          SCAN_DURATION: "30"
         run: |
           python3 tools/smag_gate_enforcer_v1_0.py \
             --profile-path calibration_profiles/BASELINE_S092126.json \
             --ledger-path audits/smag_pilot_ledger.jsonl \
             --substrate "human:humanaios-ui" \
-            --window-days "$SMAG_WINDOW_DAYS"
+            --window-days "$SCAN_DURATION"
           echo "✓ SMAG Calibration Gate passed (gap_rate verified, review_bar enforced)"
 
       - name: Repository health baseline (blocking)
