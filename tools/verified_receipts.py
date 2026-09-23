@@ -16,12 +16,16 @@ Usage:
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
+import argparse
+import fcntl
 import hashlib
 import json
-import argparse
+import os
+import re
 import sys
 
 
@@ -39,14 +43,23 @@ STRENGTH_RANK = {
     "CRYPTO_VERIFIED": 3,
 }
 
-DISALLOWED_METHODS = {
-    "STUB",
-    "SIMULATED",
-    "FORMAT_ONLY",
-    "SIMULATED_FETCH_HASH",
-    "MOCK",
-    "NONE",
+ALLOWED_VERIFICATION_METHODS = {
+    "BRIDGE_EVENT_HASH_CHAIN",
+    "ED25519",
+    "EXTERNAL_SHA256",
+    "HARDWARE_ATTESTATION",
 }
+
+_RECEIPT_ID_RE = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
+
+
+def canonical_verification_method(value: Any) -> str:
+    """Canonicalize a verification-method token before policy checks."""
+    return str(value or "").strip().upper()
+
+
+def valid_receipt_id(value: Any) -> bool:
+    return isinstance(value, str) and bool(_RECEIPT_ID_RE.fullmatch(value))
 
 
 def _canon(obj: Dict[str, Any]) -> bytes:
@@ -163,7 +176,7 @@ class VerifiedReceiptResolver:
                 valid=False,
                 receipt_id=receipt_id,
                 reason="RECEIPT_REVOKED",
-                receipt=receipt,
+                receipt=dict(receipt),
                 chain_head=self.pinned_head_hash,
             )
 
@@ -172,7 +185,7 @@ class VerifiedReceiptResolver:
                 valid=False,
                 receipt_id=receipt_id,
                 reason="RECEIPT_ALREADY_CONSUMED",
-                receipt=receipt,
+                receipt=dict(receipt),
                 chain_head=self.pinned_head_hash,
             )
 
@@ -181,28 +194,37 @@ class VerifiedReceiptResolver:
                 valid=False,
                 receipt_id=receipt_id,
                 reason="VERIFICATION_STATUS_NOT_VERIFIED",
-                receipt=receipt,
+                receipt=dict(receipt),
                 chain_head=self.pinned_head_hash,
             )
 
-        method = str(receipt.get("verification_method", "")).upper()
-        if not method or method in DISALLOWED_METHODS:
+        if not valid_receipt_id(receipt_id):
             return ReceiptResolution(
                 valid=False,
                 receipt_id=receipt_id,
-                reason=f"DISALLOWED_VERIFICATION_METHOD:{method or 'EMPTY'}",
-                receipt=receipt,
+                reason="INVALID_RECEIPT_ID",
+                receipt=dict(receipt),
                 chain_head=self.pinned_head_hash,
             )
 
-        strength = str(receipt.get("verification_strength", "")).upper()
-        minimum = requirement.min_strength.upper()
+        method = canonical_verification_method(receipt.get("verification_method"))
+        if method not in ALLOWED_VERIFICATION_METHODS:
+            return ReceiptResolution(
+                valid=False,
+                receipt_id=receipt_id,
+                reason=f"UNSUPPORTED_VERIFICATION_METHOD:{method or 'EMPTY'}",
+                receipt=dict(receipt),
+                chain_head=self.pinned_head_hash,
+            )
+
+        strength = str(receipt.get("verification_strength", "")).strip().upper()
+        minimum = requirement.min_strength.strip().upper()
         if strength not in STRENGTH_RANK or minimum not in STRENGTH_RANK:
             return ReceiptResolution(
                 valid=False,
                 receipt_id=receipt_id,
                 reason="UNKNOWN_VERIFICATION_STRENGTH",
-                receipt=receipt,
+                receipt=dict(receipt),
                 chain_head=self.pinned_head_hash,
             )
         if STRENGTH_RANK[strength] < STRENGTH_RANK[minimum]:
@@ -210,7 +232,7 @@ class VerifiedReceiptResolver:
                 valid=False,
                 receipt_id=receipt_id,
                 reason=f"INSUFFICIENT_STRENGTH:{strength}<{minimum}",
-                receipt=receipt,
+                receipt=dict(receipt),
                 chain_head=self.pinned_head_hash,
             )
 
@@ -226,7 +248,7 @@ class VerifiedReceiptResolver:
                     valid=False,
                     receipt_id=receipt_id,
                     reason=f"{field.upper()}_MISMATCH",
-                    receipt=receipt,
+                    receipt=dict(receipt),
                     chain_head=self.pinned_head_hash,
                 )
 
@@ -235,7 +257,7 @@ class VerifiedReceiptResolver:
                 valid=False,
                 receipt_id=receipt_id,
                 reason="ISSUER_MISMATCH",
-                receipt=receipt,
+                receipt=dict(receipt),
                 chain_head=self.pinned_head_hash,
             )
 
@@ -247,34 +269,53 @@ class VerifiedReceiptResolver:
                 valid=False,
                 receipt_id=receipt_id,
                 reason="AUTHORITY_SCOPE_MISMATCH",
-                receipt=receipt,
+                receipt=dict(receipt),
                 chain_head=self.pinned_head_hash,
             )
 
         return ReceiptResolution(
             valid=True,
             receipt_id=receipt_id,
-            receipt=receipt,
+            receipt=dict(receipt),
             chain_head=self.pinned_head_hash,
         )
 
 
-def append_receipt_event(path: str, event: Dict[str, Any]) -> str:
-    """Append one receipt event using the NF-style hash-chain format.
-
-    This function preserves integrity only. It does not decide whether a claimed
-    verification is substantively true.
-    """
+@contextmanager
+def ledger_lock(path: str, *, exclusive: bool = True):
+    """Serialize ledger access with a sidecar advisory lock."""
     p = Path(path)
-    events: List[Dict[str, Any]] = []
-    if p.exists():
-        events = [json.loads(line) for line in p.read_text().splitlines() if line.strip()]
-        if events:
-            existing_head = events[-1].get("hash")
-            resolver = VerifiedReceiptResolver(events, existing_head)
-            if resolver.chain_error is not None:
-                raise ValueError(f"existing receipt ledger invalid: {resolver.chain_error}")
+    lock_path = p.with_suffix(p.suffix + ".lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(lock_path, "a+", encoding="utf-8") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
 
+
+def _read_events_unlocked(p: Path) -> List[Dict[str, Any]]:
+    if not p.exists():
+        return []
+    return [json.loads(line) for line in p.read_text().splitlines() if line.strip()]
+
+
+def _verify_existing_chain(events: List[Dict[str, Any]]) -> Optional[str]:
+    if not events:
+        return None
+    head = events[-1].get("hash")
+    resolver = VerifiedReceiptResolver(events, head)
+    if resolver.chain_error is not None:
+        raise ValueError(f"existing receipt ledger invalid: {resolver.chain_error}")
+    return head
+
+
+def _append_event_unlocked(
+    p: Path,
+    events: List[Dict[str, Any]],
+    event: Dict[str, Any],
+) -> str:
     prev = events[-1]["hash"] if events else ZERO_HASH
     seq = events[-1]["seq"] + 1 if events else 1
 
@@ -284,11 +325,66 @@ def append_receipt_event(path: str, event: Dict[str, Any]) -> str:
     body["hash"] = event_hash({k: v for k, v in body.items() if k != "hash"})
 
     p.parent.mkdir(parents=True, exist_ok=True)
-    with p.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(body, sort_keys=True) + "\n")
-
+    with p.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(body, sort_keys=True) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
     return body["hash"]
 
+
+def append_receipt_event(path: str, event: Dict[str, Any]) -> str:
+    """Atomically append one event to the NF-style receipt hash chain."""
+    p = Path(path)
+    with ledger_lock(path, exclusive=True):
+        events = _read_events_unlocked(p)
+        _verify_existing_chain(events)
+        return _append_event_unlocked(p, events, event)
+
+
+def consume_receipt_atomic(
+    path: str,
+    *,
+    receipt_id: str,
+    requirement: ReceiptRequirement,
+    expected_head_hash: str,
+    consumed_by: str,
+    subject: str,
+) -> str:
+    """Compare-and-consume a receipt while holding the ledger writer lock.
+
+    The independently pinned expected head must still equal the ledger head at
+    the instant of consumption. A concurrent append therefore causes a stale
+    head failure instead of allowing replay or double-spend.
+    """
+    p = Path(path)
+    with ledger_lock(path, exclusive=True):
+        events = _read_events_unlocked(p)
+        current_head = _verify_existing_chain(events)
+        if current_head != expected_head_hash:
+            raise ValueError("STALE_RECEIPT_HEAD")
+
+        resolution = VerifiedReceiptResolver(events, expected_head_hash).resolve(
+            receipt_id, requirement
+        )
+        if not resolution.valid:
+            raise ValueError(
+                f"RECEIPT_NOT_CONSUMABLE:{resolution.reason or 'UNKNOWN'}"
+            )
+
+        receipt = resolution.receipt or {}
+        if not receipt.get("one_time"):
+            raise ValueError("RECEIPT_NOT_ONE_TIME")
+
+        return _append_event_unlocked(
+            p,
+            events,
+            {
+                "type": "RECEIPT_CONSUMED",
+                "by": consumed_by,
+                "receipt_id": receipt_id,
+                "subject": subject,
+            },
+        )
 
 def build_receipt_chain_for_testing(events: List[Dict[str, Any]]) -> tuple[List[Dict[str, Any]], str]:
     """Testing helper: hash-chain supplied receipt event bodies."""
@@ -305,17 +401,15 @@ def build_receipt_chain_for_testing(events: List[Dict[str, Any]]) -> tuple[List[
 
 
 def read_receipt_events(path: str) -> tuple[List[Dict[str, Any]], Optional[str]]:
-    """Read a receipt ledger and return (events, head_hash).
+    """Read a receipt ledger under a shared lock and return its local head.
 
-    Reading does not itself make the head trusted. Callers must compare the
-    returned head with a head pinned through an independent channel.
+    The returned head is an observation, not an independent trust anchor.
     """
     p = Path(path)
-    if not p.exists():
-        return [], None
-    events = [json.loads(line) for line in p.read_text().splitlines() if line.strip()]
-    head = events[-1].get("hash") if events else None
-    return events, head
+    with ledger_lock(path, exclusive=False):
+        events = _read_events_unlocked(p)
+        head = events[-1].get("hash") if events else None
+        return events, head
 
 
 # ── Builder v1.7 smoke test / entry point ────────────────────────────────────
