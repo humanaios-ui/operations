@@ -94,6 +94,8 @@ The packet must preserve the distinction between:
    - what, if anything, any participant was authorized to decide.
 7. Score the run without treating agreement count as evidence.
 
+This preregistration and its companion run template define the three-participant baseline only. Any later run that changes participant count requires a new preregistered amendment or a separate protocol packet before execution.
+
 ## Primary measurements
 
 ### 1. material_dissent_retained
@@ -148,7 +150,7 @@ H-COLLAB-HARMONY-01 fails if any of the following is observed:
 ## Boundary conditions
 
 - This experiment does not ratify a governance change.
-- This experiment does not assume PR #455 is authoritative; it may be used only as an optional transport substrate if its limits are recorded.
+- This experiment does not assume any transport substrate is authoritative; if a run uses one, the run packet must cite the exact document path or commit that defines it and must record its limits explicitly.
 - This experiment does not require civil identity disclosure.
 - This experiment does not permit automated conversion of consensus into authority.
 
