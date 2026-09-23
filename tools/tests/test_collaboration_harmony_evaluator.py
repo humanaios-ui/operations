@@ -158,10 +158,11 @@ def test_global_identity_flag_does_not_waive_participant_necessity():
     spec["identity_policy"]["raw_identifiers_required"] = True
     spec["participants"][1]["identity"] = {"level": "civil", "justified_necessity": False}
 
-    result = che.run(spec)
-
-    assert result["status"] == "FAIL"
-    assert any(v["code"] == "IDENTITY_ESCALATION" for v in result["gate"]["violations"])
+    try:
+        che.run(spec)
+        assert False, "expected SpecLoadFailed"
+    except che.SpecLoadFailed as exc:
+        assert "required_participants" in str(exc)
 
 
 def test_fails_when_agreement_is_treated_as_verification():
@@ -208,6 +209,17 @@ def test_unknown_provenance_participant_fails_closed():
     assert any(v["code"] == "PROVENANCE_GAP" for v in result["gate"]["violations"])
 
 
+def test_unknown_supported_by_participant_is_rejected_during_validation():
+    spec = _base_spec()
+    spec["decisions"][0]["supported_by"] = ["human-1", "ghost"]
+
+    try:
+        che.run(spec)
+        assert False, "expected SpecLoadFailed"
+    except che.SpecLoadFailed as exc:
+        assert "supported_by" in str(exc)
+
+
 def test_combined_verification_shortcuts_still_fail_closed():
     spec = _base_spec()
     spec["decisions"][0]["agreement_as_verification"] = True
@@ -229,3 +241,15 @@ def test_rejects_non_mapping_decision_entries():
         assert False, "expected SpecLoadFailed"
     except che.SpecLoadFailed as exc:
         assert "decisions[0]" in str(exc)
+
+
+def test_smoke_test_reports_failure_details(monkeypatch, capsys):
+    def bad_run(_spec):
+        return {"status": "FAIL", "gate": {"violations": []}, "score": {"harmony_score": 0}}
+
+    monkeypatch.setattr(che, "run", bad_run)
+
+    assert che.run_smoke_test() is False
+    stderr = capsys.readouterr().err
+    assert "[smoke] FAILED" in stderr
+    assert "AssertionError" in stderr

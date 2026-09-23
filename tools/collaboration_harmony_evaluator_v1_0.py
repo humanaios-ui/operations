@@ -23,6 +23,7 @@ import argparse
 import json
 import os
 import sys
+import traceback
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -142,11 +143,23 @@ def validate_spec(spec: dict[str, Any]) -> None:
     _require(isinstance(final_output, dict), "final_output must be an object")
     identity_policy = spec.get("identity_policy", {})
     _require(isinstance(identity_policy, dict), "identity_policy must be an object")
+    raw_identifiers_required = bool(identity_policy.get("raw_identifiers_required", False))
     required_participants = identity_policy.get("required_participants")
+    if raw_identifiers_required:
+        _require(required_participants, "identity_policy.raw_identifiers_required requires non-empty required_participants")
     if required_participants is not None:
         _require(isinstance(required_participants, list), "identity_policy.required_participants must be a list")
         for index, participant_id in enumerate(required_participants):
             _require(isinstance(participant_id, str) and participant_id in seen_ids, f"identity_policy.required_participants[{index}] unknown: {participant_id!r}")
+    for index, decision in enumerate(decisions):
+        supported_by = decision.get("supported_by")
+        if supported_by is not None:
+            _require(isinstance(supported_by, list), f"decisions[{index}].supported_by must be a list")
+            for ref_index, participant_id in enumerate(supported_by):
+                _require(isinstance(participant_id, str) and participant_id in seen_ids, f"decisions[{index}].supported_by[{ref_index}] unknown: {participant_id!r}")
+        authorizer = decision.get("authorizer")
+        if authorizer is not None:
+            _require(isinstance(authorizer, str) and authorizer in seen_ids, f"decisions[{index}].authorizer unknown: {authorizer!r}")
 
 
 def _participant_map(spec: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -244,8 +257,6 @@ def evaluate_gate(spec: dict[str, Any]) -> tuple[list[GateViolation], list[str]]
     identity_policy = spec.get("identity_policy", {})
     raw_identifiers_required = bool(identity_policy.get("raw_identifiers_required", False))
     required_identity_participants = set(_as_list(identity_policy.get("required_participants"), "identity_policy.required_participants"))
-    if raw_identifiers_required and not required_identity_participants:
-        warnings.append("identity_policy.raw_identifiers_required declared without required_participants scope")
     unjustified_identity_increase = [
         participant["id"]
         for participant in participants.values()
@@ -304,10 +315,13 @@ def evaluate_gate(spec: dict[str, Any]) -> tuple[list[GateViolation], list[str]]
             break
         unknown_participants = sorted({
             participant_id
-            for field_name in required_refs
+            for field_name in (*required_refs, "supported_by")
             for participant_id in _as_list(decision.get(field_name), f"decision[{index}].{field_name}")
             if participant_id not in participants
         })
+        authorizer = decision.get("authorizer")
+        if authorizer and authorizer not in participants:
+            unknown_participants.append(authorizer)
         if unknown_participants:
             violations.append(GateViolation(
                 "PROVENANCE_GAP",
@@ -572,8 +586,15 @@ def run_smoke_test() -> bool:
         assert any(v["code"] == "REFUSAL_OVERRIDDEN" for v in bad_result["gate"]["violations"]), bad_result
         print("[smoke] PASSED", file=sys.stderr)
         return True
-    except Exception as exc:  # noqa: BLE001
+    except AssertionError as exc:
+        traceback.print_exc(file=sys.stderr)
         print(f"[smoke] FAILED: {exc}", file=sys.stderr)
+        return False
+    except SpecLoadFailed:
+        traceback.print_exc(file=sys.stderr)
+        return False
+    except Exception:  # noqa: BLE001
+        traceback.print_exc(file=sys.stderr)
         return False
 
 
