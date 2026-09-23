@@ -648,13 +648,13 @@ candidates:
   title: "Tool manifest drift prevention \u2014 validation gate (Tier 0 infrastructure)"
   path: z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md
   submitted: '2026-09-20'
-  status: ratified
+  status: awaiting_z2
   tier: 0
-  ratified_at: '2026-09-21T00:00:00Z'
   note: "Root cause analysis of tool manifest CI failures in PR #425. Consolidated\
     \ into existing tool-manifest.yml gate (eliminates duplicate validation). Prevents\
     \ drift by validating scan.py --check and render.py --check on all manifest\
-    \ input paths. Ratified 2026-09-21 by Z2 (Night)."
+    \ input paths. Informally approved 2026-09-21 by Z2 (Night); awaiting formal\
+    \ Z2 signature."
 - q_id: Q-PHASE-2-BOARD-MOLT-01
   title: "Z2 Board Decisions & Molt Events Ingestion"
   path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md

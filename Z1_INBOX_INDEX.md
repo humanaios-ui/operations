@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**88 candidates** — ⏳ awaiting Z2 78 · ✅ ratified 10 · **40 records**
+**88 candidates** — ⏳ awaiting Z2 79 · ✅ ratified 9 · **40 records**
 
-## Awaiting Z2 (78)
+## Awaiting Z2 (79)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -69,6 +69,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-21 | **Q-INTENTOS-PAGES-GATE-01** | Gates for the board's page set — intent_os_pages --check as a pre-merge step (G1), the d33 rename-hold test pre-merge (G2), the runbook card sealed or not (G3): a Tier 2 proposal | `z1-inbox/2026-09-19/Q-INTENTOS-PAGES-GATE-01.md` |
 | 2026-09-21 | **Q-PHASE-2-BOARD-MOLT-01** | Z2 Board Decisions & Molt Events Ingestion | `z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md` |
 | 2026-09-21 | **Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01** | Research→Governance→Operations Loop + Automated Repository Auditor — three tools: research_to_candidates.py, apply_findings.py, repository_auditor.py (Tier 2 molt) | `z1-inbox/2026-09-19/Q-RESEARCH-OPS-LOOP-AND-AUDITOR-01.md` |
+| 2026-09-22 | **Q-TOOL-MANIFEST-DRIFT-PREVENTION-01** | Tool manifest drift prevention — validation gate (Tier 0 infrastructure) | `z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md` |
 | 2026-09-23 | **Q-AGENT-CHECKIN-CALIBRATION-01** | Calibration at check-in (H-ACAT gap) + Copilot/Claude graph and review comparison | `z1-inbox/2026-09-21/Q-AGENT-CHECKIN-CALIBRATION-01.md` |
 | 2026-09-23 | **Q-CORPUS-STATS-RECONCILE-01** | July corpus audit still unresolved — SEED.md publishes figures the audit found unreproducible | `z1-inbox/2026-09-21/Q-CORPUS-STATS-RECONCILE-01.md` |
 | 2026-09-23 | **Q-DATA-SSOT-REGENERATION-01** | Regenerate the data SSOT — contaminated v0.1 corpus retained as lesson artifact, not corrected figures | `z1-inbox/2026-09-21/Q-DATA-SSOT-REGENERATION-01.md` |
@@ -91,7 +92,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-25 | **Q-BUZZ-COLLAB-EVAL-01** | Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance on self-hosted Nostr relay) | `z1-inbox/2026-09-23/Q-BUZZ-COLLAB-EVAL-01.md` |
 | 2026-09-25 | **Q-Z2RATIF-MECH-32** | Z2 Ratification Mechanism Undocumented — governance workflow clarity gap | `z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md` |
 
-## Decided (10)
+## Decided (9)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -104,7 +105,6 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-MOLT-LEDGER-SCAN-01** | Night | 2026-09-16 | `z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md`<br>`44276df7c921d87cc388922155eace549f1f57b71134f65422d9be1770859eb2` |
 | ✅ ratified | **Q-BOARD-RULING-02** | Night | 2026-09-18 | `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md`<br>`b80131eba24815480dfd83630cfbdd69672fb017bf4e264e081a9a05326f3c6a` |
 | ✅ ratified | **Q-BOARD-RULING-14** | Night | 2026-09-18 | `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md`<br>`27c98b653cefe16826fe3b2b76fcfdc822cb87b00a5ce81dc7c256112a7f51eb` |
-| ✅ ratified | **Q-TOOL-MANIFEST-DRIFT-PREVENTION-01** | — | 2026-09-21T00:00:00Z | — |
 
 ## ⚠️ Falsifier waivers (1) — open for Z2
 
