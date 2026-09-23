@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**84 candidates** — ⏳ awaiting Z2 75 · ✅ ratified 9 · **39 records**
+**85 candidates** — ⏳ awaiting Z2 76 · ✅ ratified 9 · **39 records**
 
-## Awaiting Z2 (75)
+## Awaiting Z2 (76)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -87,6 +87,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-24 | **Q-REFERENT-DECAY-01** | Five artifacts whose link to their referent died while the artifact stayed alive | `z1-inbox/2026-09-22/Q-REFERENT-DECAY-01.md` |
 | 2026-09-24 | **Q-Z2-BLOCK-UNFILLABLE-01** | The candidate template promises z2_decision is auto-filled; nothing fills it, and the signature makes filling it later impossible | `z1-inbox/2026-09-22/Q-Z2-BLOCK-UNFILLABLE-01.md` |
 | 2026-09-25 | **Q-BUZZ-COLLAB-EVAL-01** | Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance on self-hosted Nostr relay) | `z1-inbox/2026-09-23/Q-BUZZ-COLLAB-EVAL-01.md` |
+| 2026-09-25 | **Q-Z2RATIF-MECH-32** | Z2 Ratification Mechanism Undocumented — governance workflow clarity gap | `z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md` |
 
 ## Decided (9)
 

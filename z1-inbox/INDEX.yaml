@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-23'
 decision_window_days: 2
 counts:
-  candidates: 84
+  candidates: 85
   records: 39
 ratifiers:
 - Night
@@ -916,6 +916,20 @@ candidates:
     \ detailed technical mapping (Section 1-5) and feasibility assessment (Section\
     \ 6-8). Falsifier conditions checked; both preliminary findings suggest achievement.\
     \ Phase 1 pilot roadmap outlined (3 weeks). Awaits Z2 RATIFY to proceed."
+- q_id: Q-Z2RATIF-MECH-32
+  title: "Z2 Ratification Mechanism Undocumented — governance workflow clarity gap"
+  path: z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md
+  submitted: '2026-09-23'
+  status: awaiting_z2
+  falsifier: "Issue is FALSE if Z1 proposers and new Z2 ratifiers can read one source\
+    \ and understand that PR merge by Z2 = ratification without confusion about the\
+    \ gate failure."
+  note: "Internal consistency issue: Z2's PR merge is the ratification signature,\
+    \ but this is undocumented. The Z2 ratification CI gate fails before merge by design\
+    \ (prevents accidental merge), but this is counterintuitive. New Z1/Z2/Z3 participants\
+    \ cannot distinguish this intentional gate from a genuine blocker. Remediation:\
+    \ update CLAUDE.md § Decision Routing to document Z2 ratification workflow and gate\
+    \ behavior. Discovered during Q-BUZZ-COLLAB-EVAL-01 review."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
