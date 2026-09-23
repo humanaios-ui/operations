@@ -74,7 +74,7 @@ def is_profile_ratified(profile: dict) -> bool:
     return True
 
 
-def compute_gap_rate(ledger_path: str, window_days: int) -> float:
+def compute_gap_rate(ledger_path: str, lookback_periods: int) -> float:
     """
     Compute gap_rate from smag_pilot_ledger.jsonl over rolling window.
 
@@ -89,7 +89,7 @@ def compute_gap_rate(ledger_path: str, window_days: int) -> float:
         return 0.0
 
     now = datetime.now(timezone.utc)
-    window_start = now - timedelta(days=window_days)
+    window_start = now - timedelta(days=lookback_periods)
 
     total_rows = 0
     failed_rows = 0
@@ -127,8 +127,8 @@ def compute_gap_rate(ledger_path: str, window_days: int) -> float:
                     failed_rows += 1
 
     except IOError as e:
-        print(f"⚠️  Error reading ledger: {e}")
-        return 0.0
+        print(f"❌ Error reading ledger: {e} (cannot verify gap_rate; blocking merge)")
+        sys.exit(2)
 
     if total_rows == 0:
         return 0.0
@@ -226,6 +226,14 @@ def main():
 
     print(f"✓ Loaded calibration profile: {profile.get('profile_id', 'UNKNOWN')}")
     print(f"✓ Substrate: {args.substrate}")
+
+    # Check Z2 ratification (Phase 1: advisory; Phase 2: blocking)
+    if not is_profile_ratified(profile):
+        print(f"⚠️  Profile awaiting Z2 ratification signature (Phase 1: advisory)")
+        print()
+    else:
+        print(f"✓ Profile ratified by Z2")
+        print()
     print()
 
     # Extract thresholds

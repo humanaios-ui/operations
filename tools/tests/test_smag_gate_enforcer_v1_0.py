@@ -274,7 +274,7 @@ if __name__ == "__main__":
         test_is_profile_ratified_no,
         test_compute_gap_rate_missing_ledger,
         test_compute_gap_rate_empty_ledger,
-        test_compute_gap_rate_no_verdicts,
+        test_compute_gap_rate_no_failing_checks,
         test_compute_gap_rate_all_passing,
         test_compute_gap_rate_all_failing,
         test_compute_gap_rate_mixed,
