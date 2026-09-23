@@ -25,7 +25,7 @@ jobs:
 
       - name: SMAG Calibration Gate (s1 merge enforcement, blocking)
         run: |
-          # temporal_class: OBSERVATIONAL
+          # temporal-class: OBSERVATIONAL
           # Rolling 30-day window for gap_rate measurement; telemetry-only, no scheduling authority
           python3 tools/smag_gate_enforcer_v1_0.py \
             --profile-path calibration_profiles/BASELINE_S092126.json \
