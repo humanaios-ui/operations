@@ -129,6 +129,31 @@ def test_old_timestamp_alone_does_not_make_work_stale():
     assert item(idx, 1)["guidance"]["action"] == "ADVANCE"
 
 
+
+def test_temporal_example_inside_noncontrol_tool_does_not_trigger_gate():
+    p = pr(
+        1,
+        body="- [x] **Z1**",
+        files=["tools/example_analyzer.py"],
+        patch='+ fixture = "30-day rolling window blocks merge"',
+    )
+    pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource state\n**State:** `GATING`\n"
+    idx = run([p], pq=pq)
+    assert item(idx, 1)["guidance"]["action"] == "ADVANCE"
+
+
+def test_domain_deadline_outside_control_surface_does_not_trigger_gate():
+    p = pr(
+        1,
+        title="Entitlement navigator",
+        body="Track an external application deadline as evidence only.",
+        files=["humanaios-funding-pipeline/app.py"],
+        patch="+ due_at = record.get('deadline')",
+    )
+    pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource state\n**State:** `GATING`\n"
+    idx = run([p], pq=pq)
+    assert item(idx, 1)["guidance"]["action"] == "ADVANCE"
+
 def run_smoke_test():
     test_clean_live_work_advances()
     test_zero_diff_is_preserve_close_not_merge_work()
