@@ -105,4 +105,31 @@ def test_workflow_change_without_z2_claim_is_authority_mismatch():
     idx = run([p])
     got = item(idx, 1)
     assert got["guidance"]["action"] == "REEXAMINE"
-    assert got["aut
+    assert got["authority"]["status"] == "MISMATCH"
+
+
+def test_latest_changes_requested_is_evidence_not_age():
+    reviews = [{
+        "user": {"login": "reviewer"},
+        "state": "CHANGES_REQUESTED",
+        "submitted_at": "2026-01-01T00:00:00Z",
+    }]
+    p = pr(1, reviews=reviews)
+    p["created_at"] = "1999-01-01T00:00:00Z"
+    idx = run([p])
+    got = item(idx, 1)
+    assert got["guidance"]["action"] == "REEXAMINE"
+    assert "AGE_IS_NOT_STALENESS" in idx["invariants"]
+
+
+def test_old_timestamp_alone_does_not_make_work_stale():
+    p = pr(1)
+    p["created_at"] = "1999-01-01T00:00:00Z"
+    idx = run([p])
+    assert item(idx, 1)["guidance"]["action"] == "ADVANCE"
+
+
+def run_smoke_test():
+    test_clean_live_work_advances()
+    test_zero_diff_is_preserve_close_not_merge_work()
+    return True
