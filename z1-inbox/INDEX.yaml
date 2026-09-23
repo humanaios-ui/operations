@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-09-20'
+generated: '2026-09-23'
 decision_window_days: 2
 counts:
-  candidates: 83
-  records: 38
+  candidates: 84
+  records: 39
 ratifiers:
 - Night
 candidates:
@@ -645,16 +645,30 @@ candidates:
     \ 30 days, 1+ PR merged within 60 days, <4-hour implementation time, no tool failures\
     \ in 90 days."
 - q_id: Q-TOOL-MANIFEST-DRIFT-PREVENTION-01
-  title: "Tool manifest drift prevention \u2014 .github/workflows/tool-sync-gate.yml\
-    \ (Tier 0 infrastructure)"
+  title: "Tool manifest drift prevention \u2014 validation gate (Tier 0 infrastructure)"
   path: z1-inbox/2026-09-20/Q-TOOL-MANIFEST-DRIFT-PREVENTION-01.md
   submitted: '2026-09-20'
-  status: awaiting_z2
+  status: ratified
   tier: 0
-  note: "Root cause analysis of tool manifest CI failures in PR #425. Proposes automated\
-    \ tool-sync-gate workflow to prevent drift between tools-manifest.yaml and TOOLS_MANIFEST.md.\
-    \ Reduces technical friction by ~80% (eliminates 3 manual steps per tool change).\
-    \ Falsifiers and test cases included."
+  ratified_at: '2026-09-21T00:00:00Z'
+  note: "Root cause analysis of tool manifest CI failures in PR #425. Consolidated\
+    \ into existing tool-manifest.yml gate (eliminates duplicate validation). Prevents\
+    \ drift by validating scan.py --check and render.py --check on all manifest\
+    \ input paths. Ratified 2026-09-21 by Z2 (Night)."
+- q_id: Q-PHASE-2-BOARD-MOLT-01
+  title: "Z2 Board Decisions & Molt Events Ingestion"
+  path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+- q_id: Q-INTENT-OS-WITNESS-LEDGER-01
+  title: "Intent-OS witness ledger \u2014 human-machine decision attribution ledger"
+  path: z1-inbox/2026-09-19/Q-INTENT-OS-WITNESS-LEDGER-01.md
+  submitted: '2026-09-19'
+  status: awaiting_z2
+  note: "Witness ledger architecture; human-machine decision attribution ledger;\
+    \ enables scalable Z3 executor onboarding. Phase 1\u20133 roadmap. Per CLAUDE.md,\
+    \ approved 2026-09-19 19:00 UTC pending formal INDEX entry."
+records:
 - q_id: Q-PHASE-2-BOARD-MOLT-01
   title: "Z2 Board Decisions & Molt Events Ingestion"
   path: z1-inbox/2026-09-19/Q-PHASE-2-BOARD-MOLT-01.md
@@ -902,6 +916,20 @@ candidates:
     \ inside operations an admissible locus?) and D4 (promote schema to schemas/ and\
     \ conformance scripts to tools/?). Does not resolve D1; widens it from two candidate\
     \ resolution targets to three. Writes no REGISTERED.md or NF_LEDGER.jsonl row."
+- q_id: Q-BUZZ-COLLAB-EVAL-01
+  title: "Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance\
+    \ on self-hosted Nostr relay)"
+  path: z1-inbox/2026-09-23/Q-BUZZ-COLLAB-EVAL-01.md
+  submitted: '2026-09-23'
+  status: awaiting_z2
+  falsifier: "Buzz cannot run HumanAIOS governance in-product if (1) it lacks support\
+    \ for cryptographic confirmation of Z2 decisions (check: Nostr event signatures\
+    \ native), or (2) it cannot integrate with GitHub's `git push` authorization gate\
+    \ (check: REST webhooks + Buzz CLI JSON interface achievable)"
+  note: "Phase 0 evaluation complete. Companion document BUZZ_INTEGRATION_SPEC.md provides\
+    \ detailed technical mapping (Section 1-5) and feasibility assessment (Section\
+    \ 6-8). Falsifier conditions checked; both preliminary findings suggest achievement.\
+    \ Phase 1 pilot roadmap outlined (3 weeks). Awaits Z2 RATIFY to proceed."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
@@ -1068,4 +1096,7 @@ records:
     \ liquidity conditions). Proposes Z2 decision framework: require baseline Sharpe\
     \ measurement (at threshold=0.50, same window) before ratifying 0.55 as \"better.\"\
     \ Filed as F-MEASUREMENT-SCOPE-AUDIT-01 in REGISTERED.md; window close 2026-09-28."
+- path: z1-inbox/2026-09-23/BUZZ_INTEGRATION_SPEC.md
+  title: "Buzz Integration Specification \u2014 Technical mapping of HumanAIOS Z1/Z2/Z3 governance to Buzz affordances"
+  note: "Companion document to Q-BUZZ-COLLAB-EVAL-01, providing detailed technical specification: event schemas (Nostr NIP-01/NIP-34), GitHub webhook integration, CI/CD gate verification, Z3 execution flow, Z2 authority model, deployment architecture, and rollout plan. Sections 1\u20135 map governance workflows; sections 6\u20138 assess feasibility. A record: no Z2 decision requested."
 excluded: []
