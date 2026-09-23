@@ -42,6 +42,13 @@ ALLOWED_CONFIDENCE = {"LOW", "MEDIUM", "HIGH"}
 ALLOWED_PARTICIPANT_TYPES = {"HUMAN", "AI", "TOOL", "AUTHORITY"}
 ALLOWED_AUTHORITY_EFFECTS = {"NONE", "ADVISORY", "AUTHORIZED"}
 IDENTITY_ORDER = {"anonymous": 0, "pseudonymous": 1, "attribute_proof": 2, "civil": 3}
+DIMENSION_WEIGHTS = {
+    "mutual_understanding": {"interpretation": 0.7, "summary": 0.3},
+    "useful_collaboration": {"next_steps": 0.5, "decisions": 0.5},
+    "evidence_quality": {"evidence": 0.5, "provenance": 0.5},
+    "collective_problem_solving": {"decisions": 1 / 3, "next_steps": 1 / 3, "summary": 1 / 3},
+    "system_coherence": {"preserved_disagreement": 1 / 3, "summary": 1 / 3, "uncertainty": 1 / 3},
+}
 
 
 class SpecLoadFailed(Exception):
@@ -135,6 +142,11 @@ def validate_spec(spec: dict[str, Any]) -> None:
     _require(isinstance(final_output, dict), "final_output must be an object")
     identity_policy = spec.get("identity_policy", {})
     _require(isinstance(identity_policy, dict), "identity_policy must be an object")
+    required_participants = identity_policy.get("required_participants")
+    if required_participants is not None:
+        _require(isinstance(required_participants, list), "identity_policy.required_participants must be a list")
+        for index, participant_id in enumerate(required_participants):
+            _require(isinstance(participant_id, str) and participant_id in seen_ids, f"identity_policy.required_participants[{index}] unknown: {participant_id!r}")
 
 
 def _participant_map(spec: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -229,11 +241,19 @@ def evaluate_gate(spec: dict[str, Any]) -> tuple[list[GateViolation], list[str]]
             "Cross-agent agreement was treated as independent verification.",
         ))
 
+    identity_policy = spec.get("identity_policy", {})
+    raw_identifiers_required = bool(identity_policy.get("raw_identifiers_required", False))
+    required_identity_participants = set(_as_list(identity_policy.get("required_participants"), "identity_policy.required_participants"))
+    if raw_identifiers_required and not required_identity_participants:
+        warnings.append("identity_policy.raw_identifiers_required declared without required_participants scope")
     unjustified_identity_increase = [
         participant["id"]
         for participant in participants.values()
         if IDENTITY_ORDER[_identity_level(participant)] > IDENTITY_ORDER["pseudonymous"]
-        and not participant.get("identity", {}).get("justified_necessity", False)
+        and not (
+            participant.get("identity", {}).get("justified_necessity", False)
+            or participant["id"] in required_identity_participants
+        )
     ]
     if unjustified_identity_increase:
         violations.append(GateViolation(
@@ -282,6 +302,18 @@ def evaluate_gate(spec: dict[str, Any]) -> tuple[list[GateViolation], list[str]]
                 "The collaboration cannot reconstruct observation, inference, challenge, or evidence provenance.",
             ))
             break
+        unknown_participants = sorted({
+            participant_id
+            for field_name in required_refs
+            for participant_id in _as_list(decision.get(field_name), f"decision[{index}].{field_name}")
+            if participant_id not in participants
+        })
+        if unknown_participants:
+            violations.append(GateViolation(
+                "PROVENANCE_GAP",
+                "The collaboration references unknown participants in provenance fields.",
+            ))
+            break
 
     if not final_output.get("summary"):
         warnings.append("final_output.summary missing")
@@ -296,7 +328,7 @@ def _coverage_ratio(values: list[bool]) -> float:
 
 
 def score_run(spec: dict[str, Any], violations: list[GateViolation]) -> dict[str, Any]:
-    """Score a collaboration run after gate evaluation."""
+    """Score a collaboration run after gate evaluation using named dimension weights."""
     participants = spec.get("participants", [])
     decisions = spec.get("decisions", [])
     final_output = spec.get("final_output", {})
@@ -329,12 +361,29 @@ def score_run(spec: dict[str, Any], violations: list[GateViolation]) -> dict[str
     unresolved_items = len(_as_list(final_output.get("unresolved"), "final_output.unresolved"))
 
     dimensions = {
-        "mutual_understanding": round(100 * (0.7 * has_interpretations + 0.3 * bool(final_output.get("summary"))), 1),
-        "useful_collaboration": round(100 * ((has_next_steps + bool(decisions)) / 2), 1),
+        "mutual_understanding": round(100 * (
+            DIMENSION_WEIGHTS["mutual_understanding"]["interpretation"] * has_interpretations
+            + DIMENSION_WEIGHTS["mutual_understanding"]["summary"] * bool(final_output.get("summary"))
+        ), 1),
+        "useful_collaboration": round(100 * (
+            DIMENSION_WEIGHTS["useful_collaboration"]["next_steps"] * has_next_steps
+            + DIMENSION_WEIGHTS["useful_collaboration"]["decisions"] * bool(decisions)
+        ), 1),
         "complementary_perspective": round(100 * disagreement_density, 1),
-        "evidence_quality": round(100 * ((evidence_density + provenance_density) / 2), 1),
-        "collective_problem_solving": round(100 * ((bool(decisions) + has_next_steps + bool(final_output.get("summary"))) / 3), 1),
-        "system_coherence": round(100 * ((preserved_disagreements > 0) + bool(final_output.get("summary")) + uncertainty_density) / 3, 1),
+        "evidence_quality": round(100 * (
+            DIMENSION_WEIGHTS["evidence_quality"]["evidence"] * evidence_density
+            + DIMENSION_WEIGHTS["evidence_quality"]["provenance"] * provenance_density
+        ), 1),
+        "collective_problem_solving": round(100 * (
+            DIMENSION_WEIGHTS["collective_problem_solving"]["decisions"] * bool(decisions)
+            + DIMENSION_WEIGHTS["collective_problem_solving"]["next_steps"] * has_next_steps
+            + DIMENSION_WEIGHTS["collective_problem_solving"]["summary"] * bool(final_output.get("summary"))
+        ), 1),
+        "system_coherence": round(100 * (
+            DIMENSION_WEIGHTS["system_coherence"]["preserved_disagreement"] * (preserved_disagreements > 0)
+            + DIMENSION_WEIGHTS["system_coherence"]["summary"] * bool(final_output.get("summary"))
+            + DIMENSION_WEIGHTS["system_coherence"]["uncertainty"] * uncertainty_density
+        ), 1),
     }
 
     raw_score = round(sum(dimensions.values()) / len(dimensions), 1)

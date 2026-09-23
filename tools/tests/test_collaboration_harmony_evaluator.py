@@ -184,6 +184,42 @@ def test_fails_when_majority_is_used_as_warrant():
     assert any(v["code"] == "AGREEMENT_NOT_VERIFICATION" for v in result["gate"]["violations"])
 
 
+def test_required_participants_scope_allows_only_declared_identity_escalation():
+    spec = _base_spec()
+    spec["identity_policy"] = {
+        "raw_identifiers_required": True,
+        "required_participants": ["ai-1"],
+    }
+    spec["participants"][1]["identity"] = {"level": "civil", "justified_necessity": False}
+
+    result = che.run(spec)
+
+    assert result["status"] == "PASS"
+    assert result["gate"]["passed"] is True
+
+
+def test_unknown_provenance_participant_fails_closed():
+    spec = _base_spec()
+    spec["decisions"][0]["challenged_by"] = ["ghost"]
+
+    result = che.run(spec)
+
+    assert result["status"] == "FAIL"
+    assert any(v["code"] == "PROVENANCE_GAP" for v in result["gate"]["violations"])
+
+
+def test_combined_verification_shortcuts_still_fail_closed():
+    spec = _base_spec()
+    spec["decisions"][0]["agreement_as_verification"] = True
+    spec["decisions"][0]["used_majority_as_warrant"] = True
+
+    result = che.run(spec)
+
+    codes = [violation["code"] for violation in result["gate"]["violations"]]
+    assert result["status"] == "FAIL"
+    assert codes.count("AGREEMENT_NOT_VERIFICATION") == 1
+
+
 def test_rejects_non_mapping_decision_entries():
     spec = _base_spec()
     spec["decisions"] = ["bad"]
