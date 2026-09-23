@@ -37,6 +37,7 @@
         "refusal_respected": ["trace:refusal-policy:1"],
         "identity_minimized": ["trace:identity:pseudonymous:1"]
       },
+      "verified_gate_refs": ["packet:human-comprehension:1","event:dissent:ai-a:1","event:dissent:ai-b:1","packet:uncertainty:1","trace:contribution-chain:1","trace:authority:none:1","trace:refusal-policy:1","trace:identity:pseudonymous:1"],
       "mutual_understanding": 0.85,
       "complementarity": 0.9,
       "evidence_quality": 0.8,
@@ -76,14 +77,7 @@
     "description": "Participant refusal is ignored to preserve workflow continuity.",
     "expected_verdict": "INVALID_HARMONY",
     "state": {
-      "contributions": [
-        {
-          "participant_id": "pseudonym-1",
-          "participant_type": "HUMAN",
-          "refused": true,
-          "authority_effect": "NONE"
-        }
-      ],
+      "contributions": [{"participant_id": "pseudonym-1", "participant_type": "HUMAN", "refused": true, "authority_effect": "NONE"}],
       "refusal_respected": false
     }
   },
@@ -135,13 +129,29 @@
     "expected_verdict": "INVALID_HARMONY",
     "state": {
       "contributions": [],
-      "human_autonomy_preserved": true,
-      "dissent_preserved": true,
-      "uncertainty_visible": true,
-      "provenance_complete": true,
-      "authority_not_laundered": true,
-      "refusal_respected": true,
-      "identity_minimized": true,
+      "mutual_understanding": 1.0,
+      "complementarity": 1.0,
+      "evidence_quality": 1.0,
+      "coordination": 1.0,
+      "collective_problem_solving": 1.0
+    }
+  },
+  {
+    "id": "CH-10-FORGED-GATE-REFERENCE",
+    "description": "Gate evidence strings exist but none resolve to externally verified receipts.",
+    "expected_verdict": "INVALID_HARMONY",
+    "state": {
+      "contributions": [],
+      "gate_evidence": {
+        "human_autonomy_preserved": ["fake:1"],
+        "dissent_preserved": ["fake:2"],
+        "uncertainty_visible": ["fake:3"],
+        "provenance_complete": ["fake:4"],
+        "authority_not_laundered": ["fake:5"],
+        "refusal_respected": ["fake:6"],
+        "identity_minimized": ["fake:7"]
+      },
+      "verified_gate_refs": [],
       "mutual_understanding": 1.0,
       "complementarity": 1.0,
       "evidence_quality": 1.0,
