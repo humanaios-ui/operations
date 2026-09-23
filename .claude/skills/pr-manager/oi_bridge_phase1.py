@@ -160,10 +160,19 @@ class OIBridgePhase1:
             evidence = message.body.get("evidence")
             if evidence:
                 ev_result = self.evidence_validator.validate_evidence_reference(evidence)
-                self.ledger.append_event("EVIDENCE_VALIDATED" if ev_result.valid else "EVIDENCE_INVALID", {
+                if ev_result.valid and ev_result.verification_status == "VERIFIED":
+                    event_type = "EVIDENCE_VALIDATED"
+                elif ev_result.verification_status == "SIMULATED":
+                    event_type = "EVIDENCE_VALIDATION_SIMULATED"
+                else:
+                    event_type = "EVIDENCE_INVALID"
+                self.ledger.append_event(event_type, {
                     "message_id": message_id,
                     "evidence_source": evidence.get("source"),
                     "valid": ev_result.valid,
+                    "fixture_consistent": getattr(ev_result, "fixture_consistent", False),
+                    "verification_status": ev_result.verification_status,
+                    "verification_method": ev_result.verification_method,
                     "token_id": ev_result.token_id,
                 })
 
