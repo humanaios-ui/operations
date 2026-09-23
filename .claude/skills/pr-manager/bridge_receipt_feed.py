@@ -14,12 +14,40 @@ from tools.verified_receipts import (
     DISALLOWED_METHODS,
     STRENGTH_RANK,
     append_receipt_event,
+    read_receipt_events,
 )
 
 
 class BridgeReceiptFeed:
     def __init__(self, ledger_path: str):
         self.ledger_path = ledger_path
+
+    def snapshot(self):
+        """Return current receipt events and head.
+
+        The returned head is a local observation; callers must compare/pin it
+        through an independent channel before treating it as a trust anchor.
+        """
+        return read_receipt_events(self.ledger_path)
+
+    def consume_receipt(
+        self,
+        *,
+        receipt_id: str,
+        consumed_by: str,
+        subject: str,
+        at: Optional[str] = None,
+    ) -> str:
+        return append_receipt_event(
+            self.ledger_path,
+            {
+                "type": "RECEIPT_CONSUMED",
+                "at": at or datetime.now(timezone.utc).isoformat(),
+                "by": consumed_by,
+                "receipt_id": receipt_id,
+                "subject": subject,
+            },
+        )
 
     def emit_verified_receipt(
         self,
