@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 172
+  tools: 174
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 138
@@ -2193,6 +2193,30 @@ tools:
   builder_markers: true
   purpose: Verified Receipt Resolver — v0.1
   session: H-COLLAB-HARMONY-01
+- tool_id: HAIOS-TOOL-185
+  name: install_git_hooks
+  path: scripts/install_git_hooks.sh
+  version: unversioned
+  category: infrastructure_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: bash
+  smoke_test: false
+  builder_markers: false
+  purpose: Install git hooks for this repository
+- tool_id: HAIOS-TOOL-186
+  name: verify_pr_readiness
+  path: scripts/verify_pr_readiness.sh
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: script
+  lang: bash
+  smoke_test: false
+  builder_markers: false
+  purpose: PR Readiness Verification — Run all validation checks in sequence
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
