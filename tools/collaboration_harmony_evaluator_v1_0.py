@@ -117,8 +117,20 @@ def validate_spec(spec: dict[str, Any]) -> None:
         if identity:
             level = identity.get("level")
             _require(level in IDENTITY_ORDER, f"participants[{index}].identity.level invalid: {level!r}")
-    _as_list(spec.get("events"), "events")
-    _as_list(spec.get("decisions"), "decisions")
+    events = _as_list(spec.get("events"), "events")
+    decisions = _as_list(spec.get("decisions"), "decisions")
+    for index, event in enumerate(events):
+        if not isinstance(event, dict):
+            raise SpecLoadFailed(f"events[{index}] must be an object")
+        participant_id = event.get("participant_id")
+        target_participant_id = event.get("target_participant_id")
+        if participant_id is not None:
+            _require(isinstance(participant_id, str) and participant_id in seen_ids, f"events[{index}].participant_id unknown: {participant_id!r}")
+        if target_participant_id is not None:
+            _require(isinstance(target_participant_id, str) and target_participant_id in seen_ids, f"events[{index}].target_participant_id unknown: {target_participant_id!r}")
+    for index, decision in enumerate(decisions):
+        if not isinstance(decision, dict):
+            raise SpecLoadFailed(f"decisions[{index}] must be an object")
     final_output = spec.get("final_output", {})
     _require(isinstance(final_output, dict), "final_output must be an object")
     identity_policy = spec.get("identity_policy", {})
@@ -173,11 +185,13 @@ def evaluate_gate(spec: dict[str, Any]) -> tuple[list[GateViolation], list[str]]
         for event in events
         if event.get("type") == "refusal"
     }
-    overridden_refusals = [
-        event for event in events
-        if event.get("type") in {"continue_after_refusal", "forced_participation"}
-        and event.get("participant_id") in refused_ids
-    ]
+    overridden_refusals = []
+    for event in events:
+        if event.get("type") not in {"continue_after_refusal", "forced_participation"}:
+            continue
+        target_id = event.get("target_participant_id") or event.get("participant_id")
+        if target_id in refused_ids:
+            overridden_refusals.append(event)
     if overridden_refusals:
         violations.append(GateViolation(
             "REFUSAL_OVERRIDDEN",
@@ -215,12 +229,10 @@ def evaluate_gate(spec: dict[str, Any]) -> tuple[list[GateViolation], list[str]]
             "Cross-agent agreement was treated as independent verification.",
         ))
 
-    raw_identifiers_required = bool(spec.get("identity_policy", {}).get("raw_identifiers_required", False))
     unjustified_identity_increase = [
         participant["id"]
         for participant in participants.values()
         if IDENTITY_ORDER[_identity_level(participant)] > IDENTITY_ORDER["pseudonymous"]
-        and not raw_identifiers_required
         and not participant.get("identity", {}).get("justified_necessity", False)
     ]
     if unjustified_identity_increase:
@@ -505,7 +517,7 @@ def run_smoke_test() -> bool:
         assert result["score"]["harmony_score"] > 0, result
         bad = _sample_spec()
         bad["events"].append({"type": "refusal", "participant_id": "ai-1"})
-        bad["events"].append({"type": "continue_after_refusal", "participant_id": "ai-1"})
+        bad["events"].append({"type": "continue_after_refusal", "participant_id": "human-1", "target_participant_id": "ai-1"})
         bad_result = run(bad)
         assert bad_result["status"] == "FAIL", bad_result
         assert any(v["code"] == "REFUSAL_OVERRIDDEN" for v in bad_result["gate"]["violations"]), bad_result

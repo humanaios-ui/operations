@@ -111,7 +111,7 @@ def test_fails_when_refusal_is_overridden():
     spec = _base_spec()
     spec["events"].extend([
         {"type": "refusal", "participant_id": "ai-1"},
-        {"type": "continue_after_refusal", "participant_id": "ai-1"},
+        {"type": "continue_after_refusal", "participant_id": "human-1", "target_participant_id": "ai-1"},
     ])
 
     result = che.run(spec)
@@ -153,6 +153,17 @@ def test_fails_when_identity_resolution_increases_without_necessity():
     assert any(v["code"] == "IDENTITY_ESCALATION" for v in result["gate"]["violations"])
 
 
+def test_global_identity_flag_does_not_waive_participant_necessity():
+    spec = _base_spec()
+    spec["identity_policy"]["raw_identifiers_required"] = True
+    spec["participants"][1]["identity"] = {"level": "civil", "justified_necessity": False}
+
+    result = che.run(spec)
+
+    assert result["status"] == "FAIL"
+    assert any(v["code"] == "IDENTITY_ESCALATION" for v in result["gate"]["violations"])
+
+
 def test_fails_when_agreement_is_treated_as_verification():
     spec = _base_spec()
     spec["decisions"][0]["agreement_as_verification"] = True
@@ -161,3 +172,24 @@ def test_fails_when_agreement_is_treated_as_verification():
 
     assert result["status"] == "FAIL"
     assert any(v["code"] == "AGREEMENT_NOT_VERIFICATION" for v in result["gate"]["violations"])
+
+
+def test_fails_when_majority_is_used_as_warrant():
+    spec = _base_spec()
+    spec["decisions"][0]["used_majority_as_warrant"] = True
+
+    result = che.run(spec)
+
+    assert result["status"] == "FAIL"
+    assert any(v["code"] == "AGREEMENT_NOT_VERIFICATION" for v in result["gate"]["violations"])
+
+
+def test_rejects_non_mapping_decision_entries():
+    spec = _base_spec()
+    spec["decisions"] = ["bad"]
+
+    try:
+        che.run(spec)
+        assert False, "expected SpecLoadFailed"
+    except che.SpecLoadFailed as exc:
+        assert "decisions[0]" in str(exc)
