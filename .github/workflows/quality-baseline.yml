@@ -24,6 +24,7 @@ jobs:
           python3 -m pip install --quiet cryptography pyyaml pytest mypy ruff jsonschema
 
       - name: SMAG Calibration Gate (s1 merge enforcement, blocking)
+        # temporal_class: OBSERVATIONAL — rolling 30-day window for gap_rate measurement
         run: |
           python3 tools/smag_gate_enforcer_v1_0.py \
             --profile-path calibration_profiles/BASELINE_S092126.json \
