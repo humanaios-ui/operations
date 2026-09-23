@@ -429,4 +429,81 @@ def render_markdown(index: dict[str, Any]) -> str:
         "---",
         "`OPEN_IS_NOT_RELEVANT · RELEVANT_IS_NOT_WARRANTED · MERGEABLE_IS_NOT_CURRENT`",
     ]
-    ret
+    return "\n".join(lines) + "\n"
+
+
+def run_smoke_test() -> bool:
+    snapshot = {
+        "repository": "example/repo",
+        "main_sha": "abc123",
+        "main_paths": ["PRIORITY_QUEUE.md", ".github/workflows/base.yml"],
+        "referenced_pull_requests": {"9": {"state": "closed", "merged": False}},
+        "pull_requests": [
+            {
+                "number": 1,
+                "title": "SMAG gate wire-up",
+                "body": "- [x] **Z1**\nDepends on #9\n30-day rolling window blocks merge",
+                "files": [".github/workflows/smag.yml", "tools/smag.py"],
+                "file_details": [{"patch": "+ enforce 30-day rolling window before merge"}],
+                "reviews": [],
+                "mergeable_state": "dirty",
+            },
+            {
+                "number": 2,
+                "title": "SMAG gate enforcement",
+                "body": "- [x] **Z2**",
+                "files": [".github/workflows/smag.yml", "tools/smag.py"],
+                "file_details": [],
+                "reviews": [],
+                "mergeable_state": "clean",
+            },
+        ],
+    }
+    pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource-state scheduling gate\n**State:** `GATING`\n"
+    index = analyze(snapshot, pq)
+    one = next(x for x in index["items"] if x["number"] == 1)
+    assert one["guidance"]["action"] == "REEXAMINE"
+    codes = {f["code"] for f in one["findings"]}
+    assert "ACTIVE_GATE_REVIEW_REQUIRED" in codes
+    assert "AUTHORITY_CLAIM_MISMATCH" in codes
+    assert "CLOSED_UNMERGED_REFERENCE" in codes
+    assert "COMPETING_IMPLEMENTATION" in codes
+    assert "AGE_IS_NOT_STALENESS" in index["invariants"]
+    return True
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--snapshot", type=Path)
+    parser.add_argument("--priority-queue", type=Path, default=ROOT / "PRIORITY_QUEUE.md")
+    parser.add_argument("--output", type=Path)
+    parser.add_argument("--markdown", type=Path)
+    parser.add_argument("--smoke-test", action="store_true")
+    args = parser.parse_args(argv)
+
+    if args.smoke_test:
+        print("PASS" if run_smoke_test() else "FAIL")
+        return 0
+
+    if not args.snapshot:
+        parser.error("--snapshot is required unless --smoke-test is used")
+
+    snapshot = json.loads(args.snapshot.read_text(encoding="utf-8"))
+    pq = args.priority_queue.read_text(encoding="utf-8", errors="replace") if args.priority_queue.exists() else ""
+    index = analyze(snapshot, pq)
+    payload = json.dumps(index, indent=2, sort_keys=True) + "\n"
+    markdown = render_markdown(index)
+
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(payload, encoding="utf-8")
+    else:
+        print(payload, end="")
+
+    if args.markdown:
+        args.markdown.parent.mkdir(parents=True, exist_ok=True)
+        args.markdown.write_text(markdown, encoding="utf-8")
+    return 0
+
+
+if __name__ == "__mai
