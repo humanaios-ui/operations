@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 170
+  tools: 172
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 136
+  builder_markers_present: 138
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2140,9 +2140,10 @@ tools:
   builder_markers: true
   purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance
     tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines
+  session: https://claude.ai/code/session_01CePrSjPSB8Epbpq3Lj8oKj
 - tool_id: HAIOS-TOOL-181
-  name: receipt_reconciliation
-  path: tools/receipt_reconciliation.py
+  name: graph_convergence
+  path: tools/graph_convergence_v1_0.py
   version: 1.0.0
   category: governance_tool
   zone: 1
@@ -2151,9 +2152,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: §B.6 Receipt Reconciliation — Auto-validates claims against NF_LEDGER.jsonl, files IC-CANDIDATE
-    gaps for Z2 ratification
-  session: S-092126-receipt-reconciliation
+  purpose: graph_convergence_v1_0.py — grade convergence between two agent-authored graphs.
+  session: S-092126-graph-convergence
 - tool_id: HAIOS-TOOL-182
   name: intent_graph
   path: tools/intent_graph_v1_0.py
@@ -2167,6 +2167,32 @@ tools:
   builder_markers: true
   purpose: intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it.
   session: S-092126-intent-graph
+- tool_id: HAIOS-TOOL-183
+  name: receipt_reconciliation
+  path: tools/receipt_reconciliation.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Receipt Reconciliation Script — Validates claims against NF_LEDGER
+  session: S-092126-receipt-reconciliation
+- tool_id: HAIOS-TOOL-184
+  name: verified_receipts
+  path: tools/verified_receipts.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Verified Receipt Resolver — v0.1
+  session: H-COLLAB-HARMONY-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

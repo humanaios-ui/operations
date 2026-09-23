@@ -256,3 +256,64 @@ This analysis is FALSE if:
 
 Condition 3 is the one to watch, and it is measurable from the next PR onward
 without any new instrumentation.
+
+---
+
+## Correction, 2026-09-21: this document overstated independence
+
+Night's objection — *"having Copilot is still having a contaminated agent
+providing red team, because Copilot lives inside the vault"* — is correct, and
+the correction is larger than a word choice. Everything above that reads
+"independent" was checked against the wrong condition.
+
+The falsifier's condition 1 asks whether PR #436's author had read PR #431's
+graph. That is graph-to-graph exposure, and it is the *weaker* of the two things
+that have to hold. The stronger one is source disjointness: two readers of one
+document agreeing is transcription, not corroboration, no matter how carefully
+each was kept from seeing the other's notes.
+
+`tools/graph_convergence_v1_0.py` now grades that mechanically. Run against these
+two graphs it returns **6 aligned pairs, 0 graded INDEPENDENT, total corroboration
+weight 0.0** — three pairs share a source, two have unrecorded provenance, one is
+a declared false friend. `GRAPH_CONVERGENCE.md` carries the table.
+
+So the four items under "Convergence" above stand as *observations* and fall as
+*evidence*. Read them as: this is what the repository forces on any competent
+reader. Not as: two methods found the same thing separately.
+
+Three specific overstatements, corrected:
+
+1. **"The naturally occurring pair is the only uncontaminated sample this
+   repository will ever get."** Wrong in both halves. It was never uncontaminated
+   — both agents read the same tree. And it is not the only sample available,
+   because a witness outside the vault would produce a genuinely disjoint one.
+   That is `Q-EXTERNAL-JESTER-01`.
+
+2. **Item 2's hedge was the right instinct applied too narrowly.** "Plausibly
+   repo-induced" is true of item 2 and equally true of items 3 and 4, which were
+   not hedged. `P-SERIAL-GATE ↔ CT1` and `P-FALSIFIER ↔ FS1` both grade
+   SHARED_SOURCE via declared lineage: the witness contract takes its
+   non-authority and falsifier language from CLAUDE.md. Item 4 is two readings of
+   one doctrine.
+
+3. **A source overlap neither the document nor the tool can see.** Both agents
+   are language models with overlapping training corpora. "Reach for a typed
+   graph with claims, controls and tests" is a widely published pattern, so even
+   item 1 — the convergence least attributable to this repository — may be two
+   draws from one prior. The tool grades declared, path-resolvable sources; a
+   shared prior has no path, so it cannot be declared and cannot be graded. It is
+   recorded here because an unmeasurable confound named is worth more than one
+   silently excluded, and because it is the decisive argument for an external
+   witness: no amount of care inside the vault produces disjointness from it.
+
+What survives unchanged: the **divergence** analysis, and the finding that
+Copilot catches an artifact disagreeing with itself while Claude catches
+artifacts disagreeing with each other. Those are claims about coverage, not about
+corroboration, and none of them depended on the graphs being independent. Under
+shared sources the divergences are in fact the *only* part carrying information —
+agreement was the expected outcome and told us nothing.
+
+Falsifier condition 1 is superseded: it tested graph-to-graph exposure and
+should have tested source disjointness. The replacement lives in
+`GRAPH_ALIGNMENT.yaml`, where it is data rather than prose, and in rule A6, which
+refuses any backfilled row claiming independence.

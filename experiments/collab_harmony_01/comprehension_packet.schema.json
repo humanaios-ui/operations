@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Human Comprehension Packet",
+  "type": "object",
+  "required": [
+    "plain_language_summary",
+    "observed_state",
+    "interpretation",
+    "uncertainty",
+    "disagreements",
+    "options_and_consequences",
+    "evidence_refs"
+  ],
+  "properties": {
+    "plain_language_summary": {"type": "string", "minLength": 1},
+    "significance": {"type": "string"},
+    "observed_state": {"type": "array", "items": {"type": "string"}},
+    "interpretation": {"type": "array", "items": {"type": "string"}},
+    "uncertainty": {"type": "array", "items": {"type": "string"}},
+    "disagreements": {"type": "array", "items": {"type": "string"}},
+    "options_and_consequences": {"type": "array", "items": {"type": "string"}},
+    "attention_points": {"type": "array", "items": {"type": "string"}},
+    "human_decision_required": {"type": ["string", "null"]},
+    "autonomous_continuation_allowed": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+    "confidence": {"enum": ["LOW", "MEDIUM", "HIGH"]}
+  }
+}
