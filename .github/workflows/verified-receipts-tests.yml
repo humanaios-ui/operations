@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
+      - name: Install receipt crypto dependency
+        run: python3 -m pip install --quiet "cryptography>=45,<51"
       - name: Resolver smoke test
         run: python3 tools/verified_receipts.py --smoke-test
       - name: Generic receipt resolver tests
