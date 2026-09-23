@@ -23,15 +23,15 @@ jobs:
         run: |
           python3 -m pip install --quiet cryptography pyyaml pytest mypy ruff jsonschema
 
-      # temporal_class: OBSERVATIONAL
       - name: SMAG Calibration Gate (s1 merge enforcement, blocking)
+        env:
+          SMAG_WINDOW_DAYS: "30"
         run: |
-          # Rolling 30-day window for gap_rate measurement; telemetry-only, no scheduling authority
           python3 tools/smag_gate_enforcer_v1_0.py \
             --profile-path calibration_profiles/BASELINE_S092126.json \
             --ledger-path audits/smag_pilot_ledger.jsonl \
             --substrate "human:humanaios-ui" \
-            --window-days 30
+            --window-days "$SMAG_WINDOW_DAYS"
           echo "✓ SMAG Calibration Gate passed (gap_rate verified, review_bar enforced)"
 
       - name: Repository health baseline (blocking)
