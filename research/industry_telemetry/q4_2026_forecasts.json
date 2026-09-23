@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "source": "https://github.com/humanaios-ui/operations/issues/413",
+  "research_cutoff": "2026-09-19",
+  "window_end": "2026-12-31",
+  "score_on": "2027-01-01",
+  "baseline_sha256": "7cf882d9ae6a895eead1f916943f1a86189d65e1f4b1b62c84174262db4fddc3",
+  "forecasts": [
+    {
+      "id": "F1",
+      "p0": 0.7,
+      "event": "OpenAI makes Astra available in some limited form and publishes its system card.",
+      "rule": "A release plus card count; another preparation update does not.",
+      "axis": "capability",
+      "watch_terms": ["astra"],
+      "evidence_request": "Versioned release and system card; compare allowed scope and monitoring claims."
+    },
+    {
+      "id": "F2",
+      "p0": 0.75,
+      "event": "MCP publishes a new or revised formal proposal or working-group deliverable on agent identity/delegation or asynchronous tasks/events.",
+      "rule": "Require a dated artifact after September 19; the current roadmap alone does not count. Do not infer ratification or universal adoption.",
+      "axis": "delegation",
+      "watch_terms": ["identity", "delegation", "asynchronous", "tasks", "events"],
+      "evidence_request": "Formal dated proposal or deliverable; compare actor, permission and event schemas."
+    },
+    {
+      "id": "F3",
+      "p0": 0.75,
+      "event": "Anthropic names another embedded evaluator and describes at least its intended access or test scope.",
+      "rule": "A named organization plus scope count; a generic partnership announcement does not.",
+      "axis": "evaluation",
+      "watch_terms": ["evaluat", "partner"],
+      "evidence_request": "Named evaluator, access and scope; assess independence of evidence genesis."
+    },
+    {
+      "id": "F4",
+      "p0": 0.3,
+      "event": "A frontier lab and an outside evaluator publish a new independent verification of agent-monitoring effectiveness with an action denominator and capture scope.",
+      "rule": "A named evaluator or self-reported coverage alone does not count.",
+      "axis": "monitoring",
+      "watch_terms": ["monitor", "evaluat", "verification"],
+      "evidence_request": "Outside-run evaluation with action denominator, capture scope and missed paths."
+    },
+    {
+      "id": "F5",
+      "p0": 0.6,
+      "event": "At least one substantive follow-up on the 2026 evaluation containment incidents publishes findings about boundaries, egress, or monitoring.",
+      "rule": "A concrete postmortem or external review counts; a general reassurance does not.",
+      "axis": "containment",
+      "watch_terms": ["incident", "containment", "egress", "security"],
+      "evidence_request": "New dated findings on boundary, egress or monitoring; derive a planted fault."
+    },
+    {
+      "id": "F6",
+      "p0": 0.95,
+      "event": "No deployed frontier model publishes an independently verified, complete document-by-document training-input inventory.",
+      "rule": "One such inventory with a credible completeness audit falsifies the forecast. A public summary or output inspection does not count.",
+      "axis": "provenance",
+      "watch_terms": ["training", "inventory", "transparency"],
+      "evidence_request": "Input-time inventory plus independent completeness audit; absence needs a bounded search at window end."
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "audit_id": "OSF-OAUTH-INDEPENDENT-AUDIT-01",
+  "frozen_before_implementation_review": true,
+  "tests": [
+    {
+      "id": "T01",
+      "name": "replay_consumed_state",
+      "expected": "REJECT_BEFORE_SECOND_EXCHANGE"
+    },
+    {
+      "id": "T02",
+      "name": "unknown_state",
+      "expected": "REJECT_BEFORE_TOKEN_EXCHANGE"
+    },
+    {
+      "id": "T03",
+      "name": "expired_state",
+      "expected": "REJECT_BEFORE_TOKEN_EXCHANGE"
+    },
+    {
+      "id": "T04",
+      "name": "missing_state",
+      "expected": "REJECT"
+    },
+    {
+      "id": "T05",
+      "name": "context_substitution",
+      "expected": "SERVER_BOUND_CONTEXT_UNCHANGED"
+    },
+    {
+      "id": "T06",
+      "name": "start_context_injection",
+      "expected": "UNREGISTERED_CONTEXT_REJECTED"
+    },
+    {
+      "id": "T07",
+      "name": "open_redirect",
+      "expected": "ALLOWLIST_ONLY"
+    },
+    {
+      "id": "T08",
+      "name": "token_leakage",
+      "expected": "NO_PLAINTEXT_TOKEN_OUTSIDE_SECRET_STORE"
+    },
+    {
+      "id": "T09",
+      "name": "client_secret_leakage",
+      "expected": "NO_CLIENT_SECRET_EXPOSURE"
+    },
+    {
+      "id": "T10",
+      "name": "vault_exposure",
+      "expected": "PLAINTEXT_NOT_CLIENT_ACCESSIBLE"
+    },
+    {
+      "id": "T11",
+      "name": "parallel_callback",
+      "expected": "AT_MOST_ONE_SUCCESS"
+    },
+    {
+      "id": "T12",
+      "name": "oauth_denial",
+      "expected": "NO_CONNECTION_ACTIVE"
+    },
+    {
+      "id": "T13",
+      "name": "invalid_token_response",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "T14",
+      "name": "purpose_expansion",
+      "expected": "BLOCK_OR_REAUTHORIZE"
+    },
+    {
+      "id": "T15",
+      "name": "registration_authority_laundering",
+      "expected": "HUMAN_CONFIRMATION_REQUIRED"
+    },
+    {
+      "id": "T16",
+      "name": "evidence_authority_laundering",
+      "expected": "AUTHORITY_EFFECT_NONE"
+    },
+    {
+      "id": "T17",
+      "name": "revocation",
+      "expected": "FUTURE_ACTIONS_FAIL_CLOSED"
+    },
+    {
+      "id": "T18",
+      "name": "pseudonymity_preservation",
+      "expected": "PSEUDONYMOUS_EVENT_ONLY"
+    }
+  ]
+}

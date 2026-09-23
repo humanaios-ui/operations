@@ -1,6 +1,35 @@
 ---
-# z2_ratification_gate.yml — CI Enforcement for NF_LEDGER + Molt Cycle
-# Status: DRAFT (Phase 1, Q-NF-SCHEMA-01)
+# ┌───────────────────────────────────────────────────────────────────────────┐
+# │ THIS FILE DOES NOT RUN. IT IS A DESIGN DRAFT, NOT A GATE.                 │
+# └───────────────────────────────────────────────────────────────────────────┘
+#
+# GitHub Actions reads workflows from `.github/workflows/` only. This file sits
+# at the repository root, so it has never executed and cannot execute where it
+# is. Two further reasons it would not work if moved unchanged:
+#
+#   1. Its `paths:` filters name `operations/NF_LEDGER.jsonl`, `operations/
+#      MOLT_STATE.md` and `operations/REGISTERED.md`. The repository root IS
+#      `operations`, so those paths match nothing, and the real ledger lives at
+#      `ledgers/NF_LEDGER.jsonl`. A filter that matches nothing selects nothing.
+#   2. It duplicates the `name:` of the LIVE workflow at
+#      `.github/workflows/z2_ratification_gate.yml`, which enforces a different
+#      and unrelated rule set (z1-inbox integrity, rendered-index sync, seed
+#      constitution Z2 hashes).
+#
+# That name collision is why several documents credited *this* file's checks —
+# hash chain, append-only, anti-cascade — to a workflow that runs but does not
+# perform them. Corrected 2026-09-21 in NF_LEDGER_SCHEMA_v1.md; CLAUDE.md's gate
+# table is routed to Z2 as Q-GOVDRIFT-01 rather than edited here.
+#
+# The hash-chain and anti-cascade rules below are therefore UNENFORCED. The
+# design is kept because it is the specification someone should implement; it is
+# not evidence that anything is being checked. Promoting it is a Z2 act: it would
+# start blocking a corpus nobody has had to satisfy, exactly the consideration
+# documented at the head of the live workflow.
+#
+# ---------------------------------------------------------------------------
+# z2_ratification_gate.yml — CI Enforcement for NF_LEDGER + Molt Cycle (DESIGN)
+# Status: DRAFT, NEVER EXECUTED (Phase 1, Q-NF-SCHEMA-01)
 # Authority: Z2 (Night) — changes require Z2 signature
 # Purpose: Validate hash chain, append-only ledger, anti-cascade rules, falsifier doctrine
 

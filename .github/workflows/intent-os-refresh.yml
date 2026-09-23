@@ -17,8 +17,11 @@
 #        NEEDS-HUMAN → open (or update) one issue labelled intent-os-stale naming the rows
 #
 # Runs on every push to main (the seal set changes as the board is re-read, so no path filter
-# can be trusted to stay complete) and daily. The job is pinned to main: a workflow_dispatch
-# against any other ref is skipped, so modified code never runs with this job's write token.
+# can be trusted to stay complete) and by hand. Event-driven only: there is no clock schedule.
+# This project is resource-based (RESOURCE_UNITS.yaml; Ruling 5, 2026-09-16) — a merge is the
+# resource event that can drift a seal, so a merge is what runs the job; a daily poll would be
+# a time-frame with nothing behind it. The job is pinned to main: a workflow_dispatch against
+# any other ref is skipped, so modified code never runs with this job's write token.
 # Step outputs derived from the checkout are passed to shell through env and quoted as data.
 # It never signs, never touches z1-inbox/, never publishes the board (d17: local only — run
 # artifacts are repository-scoped and expire). Uses the standard GITHUB_TOKEN.
@@ -27,8 +30,6 @@ name: intent-os-refresh
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "41 5 * * *"   # daily 05:41 UTC
   workflow_dispatch: {}
 
 permissions:

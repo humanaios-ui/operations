@@ -4,21 +4,44 @@ name: findings-registry
 # safe. Runs the validator WITHOUT --strict on purpose: --strict escalates the
 # benign REG_UNCOMMITTED_CANDIDATE warnings (findings legitimately marked
 # CANDIDATE, awaiting Z2 ratification) into failures, which would block every PR
-# touching REGISTERED.md. Non-strict blocks on the real hard classes only
-# (ID collisions, date-format, invalid status, missing fields, append violations)
-# and tolerates candidate warnings. Mirrors the document-control.yml pattern.
-# Acceptance: a PR reintroducing a real ID collision fails CI; a clean one passes.
+# touching REGISTERED.md. Non-strict blocks on the real hard failures only:
+# ID collisions, date-format violations, invalid status, missing required fields,
+# and append violations. Candidate entries are tolerated (warnings only).
+# Mirrors the document-control.yml pattern.
+# Acceptance: a PR reintroducing a real ID collision or missing field fails CI;
+# a clean one passes. Missing fields are hard failures and block the gate.
+#
+# This unified workflow consolidates prior separate gate validation, and captures
+# validation reports as artifacts for audit/governance records (S-070726).
 
+# Path filters must cover every file a job here checks, or the check protects
+# nothing on a PR that touches only that file — the IC-041 shape ("CI check
+# targets a path absent from the repo; reports PASS by construction"). The
+# failure-mode map and its scanner are listed for exactly that reason: a PR
+# editing only the map must re-run the verifier that guards it.
 on:
+#
+# PRIORITY_QUEUE.md is listed because `run_scan` reads it and feeds it to RFM-14
+# (cross-artifact ratification desync) — see the tool's run_scan(). Without it a
+# PR that touches only the queue could change this gate's verdict without ever
+# running the gate.
   pull_request:
     paths:
       - "REGISTERED.md"
+      - "REGISTERED_FAILURE_MODES.md"
+      - "PRIORITY_QUEUE.md"
       - "tools/registered_findings_validator_v1_0.py"
+      - "tools/registered_failure_mode_scan_v0_1.py"
+      - ".github/workflows/findings-registry.yml"
   push:
     branches: [main]
     paths:
       - "REGISTERED.md"
+      - "REGISTERED_FAILURE_MODES.md"
+      - "PRIORITY_QUEUE.md"
       - "tools/registered_findings_validator_v1_0.py"
+      - "tools/registered_failure_mode_scan_v0_1.py"
+      - ".github/workflows/findings-registry.yml"
   workflow_dispatch:
 
 permissions:
@@ -33,4 +56,29 @@ jobs:
         with:
           python-version: "3.x"
       - name: Findings registry integrity (BLOCKING — hard failures fail the build)
-        run: python3 tools/registered_findings_validator_v1_0.py --input REGISTERED.md
+        run: python3 tools/registered_findings_validator_v1_0.py --input REGISTERED.md --output /tmp/registry-report
+
+      # REGISTERED_FAILURE_MODES.md restates the registry's own defect counts. The
+      # scanner has supported --verify-doc since it was written, but nothing ran it,
+      # so the map sat at "4,093 lines, 142 entries" while the registry grew to 4,992
+      # and 154 — a document whose thesis is that hand-copied counts drift, drifting.
+      # RFM-11 is the named failure mode; this step is what makes the map's own claim
+      # about itself ("verified against it by scan --verify-doc") true.
+      #
+      # `if: always()` because these two checks are independent, and a step that
+      # only runs when an unrelated one passes is not a gate. The validator above
+      # is currently red on main for the IC-035/IC-037 collisions (routed to Z2 as
+      # Q-GOVDRIFT-01), and with the default `success()` condition this step would
+      # be silently skipped for as long as that stands — a verifier wired in but
+      # never executed, which is the exact defect it was added to close. Each step
+      # reports its own verdict; the job still fails if either does.
+      - name: Failure-mode map matches the registry (BLOCKING)
+        if: always()
+        run: python3 tools/registered_failure_mode_scan_v0_1.py scan --verify-doc REGISTERED_FAILURE_MODES.md
+      - name: Upload registry validation report (audit S-070726)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: findings-registry-report
+          path: /tmp/registry-report
+          retention-days: 30

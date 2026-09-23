@@ -36,10 +36,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: queue
+by: Night
+at: 2026-09-18T01:22:12Z
+status: PENDING
+block_hash: e8e054dfaf8bcea6cec74ce5042878b92b35ef363b21d20e4f13363ed44749d8
+body_hash: 9d2fa8129c411a4f534d3c1e39a7ce8b588e350bf859117b7e3eedec90b51ecd
+
+```
+RULING d12
+  by: Night (tagline)
+  project: HumanAIOS
+  question: H-CAL-01 — queue the mechanism study as a Molt candidate (8-week window) parallel to Option B?
+  choice: queue
+  note: 
+  at: 2026-09-18T01:22:12Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 

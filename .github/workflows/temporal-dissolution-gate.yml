@@ -1,0 +1,28 @@
+name: temporal-dissolution-gate
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  temporal-dissolution:
+    name: Reject unauthorized internal deadline semantics
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Test policy and scan PR diff
+        env:
+          TEMPORAL_SCAN_ENFORCE: "1"
+        run: python -m unittest tests.test_temporal_dissolution_gate

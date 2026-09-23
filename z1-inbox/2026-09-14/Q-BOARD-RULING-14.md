@@ -38,10 +38,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: later
+by: Night
+at: 2026-09-18T01:00:56Z
+status: PENDING
+block_hash: a04583f5b839958ee1bd970ac216803be9469f7f06b47d8b1f342edf720ada1b
+body_hash: 4c7837727a3b199b2c2701388cf22a57cfcea8f936df8f27b7fa8771d01bd61b
+
+```
+RULING d14
+  by: Night (tagline)
+  project: HumanAIOS
+  question: LPCS — independent check (a), convergence specimen (b), destination (c), or none?
+  choice: later
+  note: 
+  at: 2026-09-18T01:00:56Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 
