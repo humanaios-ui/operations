@@ -11,7 +11,7 @@ generated: "2026-07-02"
 seed_source: "humanaios/_audit_S070126 reconciliation (71 diverged pairs)"
 id_scheme: "HAIOS-<AREA>-<nnn>"
 areas: {GOV: governance, PROC: process/runbooks, OPS: operations/state, RES: research, COLLAB: collaborator-reports, ENG: engagement/external, WEB: site-pages, DOC: uncategorized}
-counts: {documents: 46, excluded: 37, needs_reconcile: 5}
+counts: {documents: 48, excluded: 37, needs_reconcile: 5}
 
 # Days between reviews, by status. A document may override with its own
 # `review_interval_days`. `superseded` and `retired` are off the cadence.
@@ -50,6 +50,8 @@ review_baseline:
   HAIOS-COLLAB-009: "2026-08-01"
   HAIOS-GOV-001: "2026-08-01"
   HAIOS-GOV-002: "2026-12-31"
+  HAIOS-GOV-003: "2026-10-21"
+  HAIOS-RES-010: "2026-10-21"
   HAIOS-OPS-001: "2026-08-01"
   HAIOS-OPS-002: "2026-08-01"
   HAIOS-OPS-003: "2026-08-01"
@@ -462,6 +464,35 @@ documents:
     approved_by: "carly"
     approved_date: "2026-07-29"
     review_due: "2026-12-31"
+  # Added 2026-09-21. Both files below restate state held elsewhere, and both had
+  # gone stale unnoticed: GOVERNANCE_FILES.md marked eight present files MISSING,
+  # REGISTERED_FAILURE_MODES.md carried counts from a 4,093-line registry that is
+  # now 4,992. Neither appeared in this registry, so no review cadence ever
+  # applied to them. That omission is the mechanism, not a coincidence — the two
+  # documents that drifted were the two no control plane owned. Status stays
+  # `draft`: approval is the owner's act and is never automated.
+  - doc_id: HAIOS-GOV-003
+    title: "Governance File Registry (rendered from .gov-control SSOT)"
+    area: GOV
+    canonical_repo: "operations"
+    canonical_path: "GOVERNANCE_FILES.md"
+    canonical: true
+    status: draft
+    recommendation: >-
+      Rendered view; hand-edits are blocked by governance-files.yml. Review the
+      SSOT at .gov-control/governance-files.yaml, not this file.
+    review_due: "2026-10-21"
+  - doc_id: HAIOS-RES-010
+    title: "REGISTERED.md Failure-Mode Map"
+    area: RES
+    canonical_repo: "operations"
+    canonical_path: "REGISTERED_FAILURE_MODES.md"
+    canonical: true
+    status: draft
+    recommendation: >-
+      Counts are tool-produced and gated by findings-registry.yml
+      (scan --verify-doc). Z2 ratification of the RFM taxonomy still pending.
+    review_due: "2026-10-21"
   - doc_id: HAIOS-OPS-005
     title: "Document Control Activation Brief (A1-A3 Complete)"
     area: OPS

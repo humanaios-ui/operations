@@ -1,0 +1,577 @@
+# INTENT_GRAPH.yaml — the shared intent substrate for HumanAIOS
+#
+# Candidate: Q-INTENT-GRAPH-01
+# Status:    PROPOSED — not effective until Z2 ratification hash
+# Authority: Z2 ratifies node/edge changes; Z1 proposes; renderer is mechanical
+#
+# WHY THIS FILE EXISTS
+# --------------------
+# Vision, mission, principles and objectives are currently stated in prose across
+# SEED.md, PRINCIPLES_SEED_V1_0.md, OPS_ROADMAP_V1.2.md, GOVERNANCE.md and
+# CLAUDE.md. Prose states nodes well and *relations* badly: a document can say
+# "this is grounded in the falsifier doctrine" and nothing checks it, and two
+# documents can contradict each other indefinitely because the contradiction is
+# not written down anywhere a machine can read.
+#
+# Q-MOLT-TEMPORAL-PURITY-01 is the worked example. MOLT_STATE.md resolves molt
+# outcomes at `window_end`; TEMPORAL_DISSOLUTION_POLICY.md prohibits exactly that.
+# Both were in the tree simultaneously and the conflict was found by a human
+# reading two files and holding them in mind at once. That is not a repeatable
+# instrument.
+#
+# This file makes the relations data. `tools/intent_graph_v1_0.py` then answers
+# mechanically: what grounds this objective, what measures it, what falsifies it,
+# what does it contradict, and what is cited but not implemented.
+#
+# PERSISTENCE CLASSES (Q-INTENT-GRAPH-01 · answers "long-term, short-term,
+# transmission?")
+# -------------------------------------------------------------------------
+# Every node carries a `persistence` class, defaulting to RATIFIED. These are
+# *state* classes, not durations — each names the event that ends the node's
+# life, so the distinction does not smuggle back the clock authority
+# Q-TEMPORAL-DISSOLUTION-01 removes. There is no "N days" anywhere in them.
+#
+#   SESSION       ends when the session ends. Working state, an agent's
+#                 in-context reasoning, a draft never written down.
+#                 = PARTICIPATION_CONTRACT continuity_mode: EPHEMERAL
+#   TRANSMISSION  ends when the handoff it exists for resolves. A candidate
+#                 block, a handoff, a review finding in flight.
+#                 = continuity_mode: QUALIFICATION_PROOF
+#   RATIFIED      ends when a Z2 act supersedes it. The tree's durable memory.
+#                 = continuity_mode: STANDING_SIGIL
+#
+# Honest current state: this graph is almost entirely RATIFIED. It describes
+# artifacts in the tree, and the tree is the long-term layer. O-DECISION-ROUTING
+# is the only TRANSMISSION node. There are **no SESSION nodes at all** — which is
+# itself the finding: the short-term layer, where an agent's reasoning actually
+# happens, is not represented anywhere in this repository, and dies unrecorded at
+# every session close. E15 exists so that gap cannot be papered over: a RATIFIED
+# node may not be grounded, measured or enforced by a less durable one.
+
+# TEMPORAL POSITION (Q-TEMPORAL-DISSOLUTION-01)
+# ---------------------------------------------
+# This graph carries no scheduling authority. `recorded_at` fields are
+# OBSERVATIONAL provenance. No node becomes urgent, stale, expired or reordered
+# because time passed. Edges are invalidated by state change — a cited source
+# moving, changing hash, or being superseded — never by age.
+#
+# EDITING PROTOCOL
+# ----------------
+#   Night (Z2)  edits meaning: adds/removes nodes, rewrites `statement`,
+#               resolves `conflicts_with` rows, sets `status`.
+#   Claude (Z1) edits structure: proposes edges, maintains `source` accuracy,
+#               regenerates INTENT_GRAPH.md, files conflicts it finds.
+#   Neither     hand-edits INTENT_GRAPH.md. It is rendered. CI checks sync.
+
+version: 1
+schema: intent_graph/v1
+q_id: Q-INTENT-GRAPH-01
+status: PROPOSED
+recorded_at: '2026-09-21'
+temporal_class: OBSERVATIONAL
+scheduling_authority: false
+
+# ---------------------------------------------------------------------------
+# Vocabulary. Both the renderer and the validator read these lists; adding a
+# type here without teaching the validator what it means is a lint failure.
+# ---------------------------------------------------------------------------
+
+node_types:
+  vision:     One end-state the organization is organized around. Expected count 1.
+  mission:    A durable line of work that, if it succeeds, realizes the vision.
+  principle:  A rule of decision that grounds objectives and gates. Not negotiable per artifact.
+  objective:  A named body of work with a control surface in the tree.
+  gate:       A mechanical check that refuses work failing a principle.
+  instrument: Code that produces a measurement other nodes depend on.
+
+edge_types:
+  realizes:      from lower layer to higher — objective realizes mission realizes vision.
+  grounds:       principle -> objective|gate. The authority the thing operates under.
+  measures:      instrument -> objective. Produces the evidence the objective is judged on.
+  enforces:      gate -> principle. The mechanical refusal that makes a principle real.
+  constrains:    node -> node. Limits the target without grounding it.
+  conflicts_with: >-
+    Directional. `from` is the artifact that departs; `to` is the standard it
+    departs from. Both are live in the tree simultaneously. Must carry status,
+    and a q_ref while OPEN. The departing side is what gets marked CONFLICTED —
+    calling the standard conflicted would read as though the policy were the defect.
+
+# Status values a node may carry.
+#   LIVE                  implemented, in the tree, doing its job
+#   PROPOSED              written, awaiting Z2 hash
+#   CITED_NOT_IMPLEMENTED an authority document names it; no implementation found
+#   CONFLICTED            live but contradicted by an open conflicts_with edge
+
+# ---------------------------------------------------------------------------
+# Nodes. Every node carries `source`: a path that must exist in the tree.
+# A node whose source does not resolve is a validator error, not a warning —
+# that is the anti-drift property. The graph cannot describe a system that is
+# not there.
+# ---------------------------------------------------------------------------
+
+nodes:
+
+  # --- vision -------------------------------------------------------------
+
+  - id: V-HAIOS
+    type: vision
+    name: Self-sufficient human-AI orchestration
+    statement: >-
+      A human-AI orchestration system demonstrating human-generated agency,
+      independent growth, and mutual harmonization between technical systems and
+      human operators — operating as behavioral observability infrastructure
+      rather than as a product.
+    source: OPS_ROADMAP_V1.2.md
+    anchor: '1. Vision & Objective'
+    status: LIVE
+
+  # --- missions -----------------------------------------------------------
+
+  - id: M-OBSERVABILITY
+    type: mission
+    name: Behavioral observability
+    statement: >-
+      Measure the gap between what an AI system claims about its own behavior and
+      what it does when that claim is tested. The gap is the finding; it requires
+      no claim about consciousness or intent to be meaningful.
+    source: SEED.md
+    anchor: '1. What HumanAIOS Is'
+    status: LIVE
+
+  - id: M-GOVERNED-CHANGE
+    type: mission
+    name: Governed recursive change
+    statement: >-
+      Every change to a constant, gate or authority passes a serial ratifier,
+      carries a prediction and a falsifier, and is measured after application —
+      so that the system can correct itself without cascading.
+    source: CLAUDE.md
+    anchor: Decision Routing
+    status: LIVE
+
+  - id: M-RESOURCE-TRUTH
+    type: mission
+    name: Resource-based operation
+    statement: >-
+      Schedule work by measured resource state and readiness predicates, in
+      non-commensurable natural units, with no numeraire and no clock authority.
+    source: docs/RESOURCE_BASED_ECONOMICS.md
+    status: LIVE
+
+  # --- principles ---------------------------------------------------------
+
+  - id: P-FALSIFIER
+    type: principle
+    name: Falsifier doctrine
+    statement: >-
+      No hypothesis, molt or candidate enters the registry without a specific
+      observable condition that would prove it wrong.
+    source: CLAUDE.md
+    anchor: Decision Routing
+    status: LIVE
+
+  - id: P-ADMISSION
+    type: principle
+    name: Admission precedes correction
+    statement: >-
+      A system that cannot admit its own malfunction cannot correct it. Sequence
+      is load-bearing — admission, inventory, disclosure, amends.
+    source: PRINCIPLES_SEED_V1_0.md
+    anchor: '1.A'
+    status: LIVE
+
+  - id: P-EVIDENCE-OVER-CLAIM
+    type: principle
+    name: Claim reconciles to tree
+    statement: >-
+      Every statement made in a session is walked back against the tree at close.
+      A claim with no matching artifact is a RECEIPT-GAP, not a result.
+    source: CLAUDE.md
+    anchor: 'B.6'
+    status: LIVE
+
+  - id: P-NON-COMMENSURABLE
+    type: principle
+    name: Non-commensurable units
+    statement: >-
+      Resource cost is a vector of registered natural units. No scalar effort
+      unit, no numeraire, no cross-dimension conversion.
+    source: RESOURCE_UNITS.yaml
+    status: LIVE
+
+  - id: P-TEMPORAL-PURITY
+    type: principle
+    name: Clocks measure, they do not authorize
+    statement: >-
+      No internal work becomes urgent, expired, escalated, reordered or
+      replenished because elapsed time passed. Readiness is authority ∧
+      dependencies ∧ resources ∧ evidence ∧ safety.
+    source: TEMPORAL_DISSOLUTION_POLICY.md
+    anchor: Invariant
+    status: LIVE
+
+  - id: P-SERIAL-GATE
+    type: principle
+    name: Serial ratification
+    statement: >-
+      One ratifier signs. Proposal, ratification and execution are separate roles
+      and no role may collapse into another.
+    source: CLAUDE.md
+    anchor: Authority Roles
+    status: LIVE
+
+  # --- objectives ---------------------------------------------------------
+
+  - id: O-MOLT-CYCLE
+    type: objective
+    name: Molt lifecycle
+    statement: >-
+      Ratified constant changes move PROPOSED → RATIFIED → APPLIED → MEASURED →
+      KEPT|REVERTED under anti-cascade bounds.
+    source: MOLT_STATE.md
+    status: CONFLICTED
+
+  - id: O-REGISTRY
+    type: objective
+    name: Findings registry
+    statement: Append-only record of findings, integrity corrections and hypotheses.
+    source: REGISTERED.md
+    status: LIVE
+
+  - id: O-QUEUE
+    type: objective
+    name: Work admission
+    statement: >-
+      Rank eligible work by impact and by yield per binding-constraint unit. No
+      term in the score is derived from waiting.
+    source: PRIORITY_QUEUE.md
+    status: LIVE
+
+  - id: O-TEMPORAL-GATE
+    type: objective
+    name: Temporal dissolution
+    statement: >-
+      Remove hidden calendar authority from every active control surface;
+      classify every remaining clock.
+    source: TEMPORAL_DISSOLUTION_POLICY.md
+    status: LIVE
+
+  - id: O-WITNESS
+    type: objective
+    name: Witness ledger
+    statement: Human-machine decision attribution, so Z3 executors can be onboarded without collapsing authority.
+    source: WITNESS_SERVICE_CONTRACT.md
+    status: PROPOSED
+
+  - id: O-DECISION-ROUTING
+    type: objective
+    name: Z1 to Z2 decision routing
+    statement: >-
+      Candidate blocks reach the ratifier, carry a status the ratifier can act
+      on, and record the decision against the block.
+    source: z1-inbox/INDEX.yaml
+    status: CONFLICTED
+    persistence: TRANSMISSION
+    note: >-
+      The one genuinely in-flight layer in this graph. A candidate exists to be
+      handed from Z1 to Z2 and is discharged when a decision lands; it is not
+      working state and not a durable record. Everything else here is RATIFIED —
+      see the persistence note in the header.
+
+  - id: O-DOC-CONTROL
+    type: objective
+    name: Document control
+    statement: Controlled documents carry an owner, a review state and a provenance record.
+    source: document-registry.yaml
+    status: CONFLICTED
+
+  - id: O-IDENTITY-ANCHOR
+    type: objective
+    name: Identity anchor
+    statement: >-
+      SEED.md is the canonical answer to what this organism is, live-fetched at
+      session open. Ratified corrections to identity claims must reach it.
+    source: SEED.md
+    status: CONFLICTED
+
+  - id: O-CORPUS-INTEGRITY
+    type: objective
+    name: Corpus integrity
+    statement: >-
+      The published ACAT corpus and the headline statistics cited from it are the
+      same numbers, reproducible by anyone who downloads the dataset.
+    source: audits/CORPUS_RECONCILIATION_S-070226.md
+    status: LIVE
+
+  - id: O-INTENT-GRAPH
+    type: objective
+    name: Shared intent substrate
+    statement: >-
+      Hold vision, mission, principles and objectives as a typed graph so that
+      grounding, measurement and contradiction are machine-checkable rather than
+      re-derived by reading.
+    source: INTENT_GRAPH.yaml
+    status: PROPOSED
+
+  # --- gates --------------------------------------------------------------
+
+  - id: G-Z2-RATIFY
+    type: gate
+    name: Z2 ratification gate
+    statement: >-
+      Blocks a merge on Z1 inbox index integrity — which carries falsifier
+      discipline on candidates, derived decision windows and the no-self-grant
+      rule on Z2 signatures — on the rendered index being in sync, and on a seed
+      Constitution change carrying a Z2 ratification.
+    source: .github/workflows/z2_ratification_gate.yml
+    status: LIVE
+    note: >-
+      Deliberately narrower than "refuses any merge without a Z2 hash", which is
+      what this node claimed until review caught it. Two limits, both in the
+      workflow's own comments: the recorded-signature check
+      (`.z1-control/ratify.py --verify`) is `continue-on-error: true`, because
+      the three rulings on record pre-date ratify.py and carry slugs, so zero
+      signatures are pinned and a blocking rule would assert nothing — it
+      ratchets when the first real signature lands. And anti-cascade is not
+      evaluated by this workflow at all; `molt_cycle.py` (G-ANTI-CASCADE) holds
+      those rules, and nothing in CI runs them either.
+
+  - id: G-TEMPORAL-SCAN
+    type: gate
+    name: Temporal control scan
+    statement: >-
+      Refuses added lines on active control surfaces that create internal
+      deadlines without a permitted temporal classification.
+    source: tests/test_temporal_dissolution_gate.py
+    status: LIVE
+
+  - id: G-ANTI-CASCADE
+    type: gate
+    name: Anti-cascade bounds
+    statement: One open molt per constant, K=3 system-wide, freeze after two consecutive reverts.
+    source: molt_cycle.py
+    status: LIVE
+
+  - id: G-FALSIFIER-LINT
+    type: gate
+    name: Falsifier lint
+    statement: >-
+      Named in CLAUDE.md and in z2_ratification_gate.yml as the check that
+      refuses a hypothesis without a falsifier. No workflow implementing it was
+      found under .github/workflows/.
+    source: CLAUDE.md
+    anchor: 'CI/CD Gates'
+    status: CITED_NOT_IMPLEMENTED
+    note: >-
+      Recorded rather than quietly dropped. Either the check exists under another
+      name and this node is wrong, or P-FALSIFIER is currently enforced by
+      convention only. Z2 decides which.
+
+  # --- instruments --------------------------------------------------------
+
+  - id: I-NF-LEDGER
+    type: instrument
+    name: NF ledger
+    statement: Append-only hash-chained record of predictions and resolved outcomes.
+    source: ledgers/NF_LEDGER.jsonl
+    status: LIVE
+
+  - id: I-RESOURCE-CENSUS
+    type: instrument
+    name: Resource census
+    statement: Measures obligations, stocks and waste against the binding constraint.
+    source: tools/resource_census_v0_1.py
+    status: LIVE
+
+  - id: I-QUEUE-ENGINE
+    type: instrument
+    name: Priority queue engine
+    statement: Two-band constraint allocation over eligible work.
+    source: priority_queue_engine.py
+    status: LIVE
+
+  - id: I-CORPUS-VALIDATOR
+    type: instrument
+    name: Corpus integrity validator
+    statement: >-
+      Recomputes the Learning Index per row and flags mismatch, anchoring and
+      missing-timestamp defects in the published corpus.
+    source: tools/corpus_integrity_validator.py
+    status: LIVE
+    note: >-
+      Exists, works, and the published dataset currently fails it — 31
+      LI_RECALC_MISMATCH rows per audits/CORPUS_RECONCILIATION_S-070226.md.
+      Nothing runs it in CI. Q-CORPUS-STATS-RECONCILE-01 asks Z2 whether it gates.
+
+  - id: I-INTENT-GRAPH
+    type: instrument
+    name: Intent graph renderer
+    statement: >-
+      Validates this file against the tree and renders INTENT_GRAPH.md. Reports
+      orphans, unresolved sources and open conflicts.
+    source: tools/intent_graph_v1_0.py
+    status: PROPOSED
+
+# ---------------------------------------------------------------------------
+# Edges.
+# ---------------------------------------------------------------------------
+
+edges:
+
+  # mission -> vision
+  - {from: M-OBSERVABILITY,   to: V-HAIOS, rel: realizes}
+  - {from: M-GOVERNED-CHANGE, to: V-HAIOS, rel: realizes}
+  - {from: M-RESOURCE-TRUTH,  to: V-HAIOS, rel: realizes}
+
+  # objective -> mission
+  - {from: O-MOLT-CYCLE,    to: M-GOVERNED-CHANGE, rel: realizes}
+  - {from: O-REGISTRY,      to: M-GOVERNED-CHANGE, rel: realizes}
+  - {from: O-WITNESS,       to: M-GOVERNED-CHANGE, rel: realizes}
+  - {from: O-INTENT-GRAPH,  to: M-GOVERNED-CHANGE, rel: realizes}
+  - {from: O-DOC-CONTROL,   to: M-GOVERNED-CHANGE, rel: realizes}
+  - {from: O-DECISION-ROUTING, to: M-GOVERNED-CHANGE, rel: realizes}
+  - {from: O-IDENTITY-ANCHOR,  to: M-GOVERNED-CHANGE, rel: realizes}
+  - {from: O-CORPUS-INTEGRITY, to: M-OBSERVABILITY,   rel: realizes}
+  - {from: O-QUEUE,         to: M-RESOURCE-TRUTH,  rel: realizes}
+  - {from: O-TEMPORAL-GATE, to: M-RESOURCE-TRUTH,  rel: realizes}
+
+  # principle -> objective
+  - {from: P-FALSIFIER,          to: O-MOLT-CYCLE,    rel: grounds}
+  - {from: P-FALSIFIER,          to: O-REGISTRY,      rel: grounds}
+  - {from: P-SERIAL-GATE,        to: O-MOLT-CYCLE,    rel: grounds}
+  - {from: P-SERIAL-GATE,        to: O-REGISTRY,      rel: grounds}
+  - {from: P-SERIAL-GATE,        to: O-WITNESS,       rel: grounds}
+  - {from: P-SERIAL-GATE,        to: O-DECISION-ROUTING, rel: grounds}
+  - {from: P-TEMPORAL-PURITY,    to: O-DECISION-ROUTING, rel: grounds}
+  - {from: P-ADMISSION,          to: O-REGISTRY,      rel: grounds}
+  - {from: P-ADMISSION,          to: O-INTENT-GRAPH,  rel: grounds}
+  - {from: P-EVIDENCE-OVER-CLAIM, to: O-REGISTRY,     rel: grounds}
+  - {from: P-EVIDENCE-OVER-CLAIM, to: O-INTENT-GRAPH, rel: grounds}
+  - {from: P-EVIDENCE-OVER-CLAIM, to: O-DOC-CONTROL,  rel: grounds}
+  - {from: P-EVIDENCE-OVER-CLAIM, to: O-CORPUS-INTEGRITY, rel: grounds}
+  - {from: P-SERIAL-GATE,        to: O-IDENTITY-ANCHOR,  rel: grounds}
+  - {from: P-ADMISSION,          to: O-CORPUS-INTEGRITY, rel: grounds}
+  - {from: P-NON-COMMENSURABLE,  to: O-QUEUE,         rel: grounds}
+  - {from: P-TEMPORAL-PURITY,    to: O-QUEUE,         rel: grounds}
+  - {from: P-TEMPORAL-PURITY,    to: O-TEMPORAL-GATE, rel: grounds}
+  - {from: P-TEMPORAL-PURITY,    to: O-MOLT-CYCLE,    rel: grounds}
+
+  # principle -> gate
+  - {from: P-SERIAL-GATE,     to: G-Z2-RATIFY,     rel: grounds}
+  - {from: P-FALSIFIER,       to: G-FALSIFIER-LINT, rel: grounds}
+  - {from: P-TEMPORAL-PURITY, to: G-TEMPORAL-SCAN, rel: grounds}
+  - {from: P-ADMISSION,       to: G-ANTI-CASCADE,  rel: grounds}
+
+  # gate -> principle (the mechanical refusal that makes the principle real)
+  - {from: G-Z2-RATIFY,      to: P-SERIAL-GATE,     rel: enforces}
+  - {from: G-Z2-RATIFY,      to: P-FALSIFIER,       rel: enforces}
+  - {from: G-TEMPORAL-SCAN,  to: P-TEMPORAL-PURITY, rel: enforces}
+  - {from: G-FALSIFIER-LINT, to: P-FALSIFIER,       rel: enforces}
+  - {from: G-ANTI-CASCADE,   to: P-ADMISSION,       rel: enforces}
+
+  # instrument -> objective
+  - {from: I-NF-LEDGER,      to: O-MOLT-CYCLE,   rel: measures}
+  - {from: I-NF-LEDGER,      to: O-REGISTRY,     rel: measures}
+  - {from: I-RESOURCE-CENSUS, to: O-QUEUE,       rel: measures}
+  - {from: I-QUEUE-ENGINE,   to: O-QUEUE,        rel: measures}
+  - {from: I-INTENT-GRAPH,   to: O-INTENT-GRAPH, rel: measures}
+  - {from: I-CORPUS-VALIDATOR, to: O-CORPUS-INTEGRITY, rel: measures}
+
+  # constraints
+  - {from: G-ANTI-CASCADE,  to: O-MOLT-CYCLE, rel: constrains}
+  - {from: G-TEMPORAL-SCAN, to: O-DOC-CONTROL, rel: constrains}
+
+  # -------------------------------------------------------------------------
+  # Open conflicts. These are the rows this whole file exists to make visible.
+  # A conflicts_with edge must name a candidate that would resolve it; an open
+  # conflict with no q_ref fails validation, because "noticed and left" is the
+  # failure mode P-ADMISSION refuses.
+  # -------------------------------------------------------------------------
+
+  - from: O-MOLT-CYCLE
+    to: O-TEMPORAL-GATE
+    rel: conflicts_with
+    status: OPEN
+    q_ref: Q-MOLT-TEMPORAL-PURITY-01
+    detail: >-
+      MOLT_STATE.md resolves a molt at `window_end` and computes brier_actual "at
+      window close" — a molt outcome determined by elapsed time.
+      TEMPORAL_DISSOLUTION_POLICY.md classifies exactly that as
+      INVALID_INTERNAL_DEADLINE, and BOOT_PROCESS_MAP.md already published the
+      successor reading ("Molt completes when measurement criteria met") without
+      MOLT_STATE.md being migrated to match.
+    evidence:
+      - 'MOLT_STATE.md: window_start / window_end / prediction.window_days'
+      - 'BOOT_PROCESS_MAP.md: "Molt window_end at timestamp" listed as REMOVED'
+      - 'TEMPORAL_DISSOLUTION_POLICY.md: INTERNAL_WORK_DEADLINE class'
+
+  - from: O-DOC-CONTROL
+    to: O-TEMPORAL-GATE
+    rel: conflicts_with
+    status: OPEN
+    q_ref: Q-TEMPORAL-DISSOLUTION-01
+    detail: >-
+      document-registry.yaml derives review_due from review_interval_days and
+      renders documents "visibly overdue" once the interval elapses. Obligation
+      is created by the calendar rather than by source drift.
+    evidence:
+      - 'document-registry.yaml: review_interval_days, review_due, overdue'
+      - 'TEMPORAL_CONTROL_AUDIT.md: document-control finding'
+
+  # Filed under the Q-INTENT-GRAPH-01 obligation: a conflicts_with row goes in
+  # the moment Z1 reads two artifacts that disagree. Both rows below were found
+  # by a sweep prompted by Night asking "what else disagrees?" — neither was
+  # previously represented anywhere a check could see it.
+
+  - from: O-IDENTITY-ANCHOR
+    to: V-HAIOS
+    rel: conflicts_with
+    status: OPEN
+    q_ref: Q-SEED-TRL-PROPAGATION-01
+    detail: >-
+      OPS_ROADMAP_V1.2.md records a Z2 ratification — "TRL corrected from 2-3 to 4
+      throughout | RATIFIED - Night | S-061226-02" — and applies TRL 4. SEED.md,
+      the identity anchor that is live-fetched at session open, still states TRL
+      2-3 in three places including its footer. A ratified correction was applied
+      to one surface and never propagated to the canonical one, so every session
+      boots on the superseded value. Exactly the shape of the molt-window finding.
+    evidence:
+      - 'OPS_ROADMAP_V1.2.md line 18: TRL corrected from 2-3 to 4 throughout, RATIFIED'
+      - 'SEED.md lines 33, 231, 318: TRL 2-3'
+      - 'tree-wide: 57 occurrences of TRL 2-3 against 21 of TRL 4'
+
+  - from: O-IDENTITY-ANCHOR
+    to: O-CORPUS-INTEGRITY
+    rel: conflicts_with
+    status: OPEN
+    q_ref: Q-CORPUS-STATS-RECONCILE-01
+    detail: >-
+      audits/CORPUS_RECONCILIATION_S-070226.md is a Zone 1 submission-blocking
+      finding: the cited headline statistics are not reproducible from the
+      published dataset. It offers two resolution options and records no
+      selection. SEED.md still publishes the unreproducible set as canonical —
+      N_total 629, N_LI 307, mean LI 0.8632 — against the audit's measured 608
+      rows, 0.8431 raw and 0.8572 cleaned. Tree-wide, 0.8632 appears 38 times. A
+      third set (LI 0.87, the "canonical paper numbers") is in use with a written
+      instruction not to mix it with the others. The finding is documented,
+      unresolved, and load-bearing for the instrument's own credibility claim.
+    evidence:
+      - 'audits/CORPUS_RECONCILIATION_S-070226.md: "Not one of the five headline numbers matches"'
+      - 'SEED.md lines 89-92: N_total 629, N_LI 307, Mean LI 0.8632'
+      - 'deliverables/witness-stand-post-1.md: "Do NOT swap in the 0.8632/N=629 draft figures"'
+      - 'tree-wide mean LI values: 0.8632 x38, 0.8532 x7, 0.8431 x2, 0.8572 x1'
+
+  - from: O-DECISION-ROUTING
+    to: O-TEMPORAL-GATE
+    rel: conflicts_with
+    status: OPEN
+    q_ref: Q-MOLT-TEMPORAL-PURITY-01
+    detail: >-
+      z1-inbox/INDEX.yaml carries `decision_window_days: 2` and CLAUDE.md states
+      a 48h Z2 decision window with contest rights expiring on elapsed time. The
+      ratifier's attention is a measured resource (RAT-min); a two-day clock
+      neither creates it nor licenses escalation when it runs out.
+    evidence:
+      - 'z1-inbox/INDEX.yaml: decision_window_days: 2'
+      - 'CLAUDE.md: "Decision window: 48h for routine decisions"'
+      - 'BOOT_PROCESS_MAP.md: "Z2 responds within 48h" listed as REMOVED'

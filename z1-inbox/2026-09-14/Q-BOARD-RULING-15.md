@@ -35,10 +35,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: rule now
+by: Night
+at: 2026-09-18T01:22:29Z
+status: PENDING
+block_hash: 15c6142f58a4e44f65eede81180dbae1df2b1267b659af8f42e5e6dd6f24e627
+body_hash: 63f72d7ef801326f2ecbcc0b24d34bf9567bb128f0138fe6fc558b99121eb046
+
+```
+RULING d15
+  by: Night (tagline)
+  project: HumanAIOS
+  question: FALS-43 — batch ruling on the 43 hypotheses without written falsifiers?
+  choice: rule now
+  note: 
+  at: 2026-09-18T01:22:29Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 

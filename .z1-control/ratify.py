@@ -49,6 +49,30 @@ Usage:
 
 Without --apply it prints what it would do and writes nothing.
 
+1.2.0 — THE INDEX WRITE, WHICH HAD NEVER RUN
+---------------------------------------------
+The docstring above says this tool "updates z1-inbox/INDEX.yaml". Until 1.2.0
+it did not. The splice looked for `^  - q_id:` and wrote four-space keys, while
+the file has always carried sequence items at column 0 with two-space keys, so
+the pattern could not match any candidate and every `--apply` ended at
+"index NOT updated; fix by hand". The index fields on every ratified candidate
+to date were written by a human; the failure was silent because the fallback
+message reads like an edge case rather than the only path.
+
+Three things changed with the fix, each of which had its own failure:
+
+* The index edit is computed in full before the ruling file is written. The
+  splice is the step that can fail and it used to fail after the ruling was
+  already on disk, leaving a ruling nothing referenced.
+* `records:` gains the ruling file in the same act. A ruling under z1-inbox/
+  that the index does not list fails `validate.py` rules 3 and 6, and
+  `validate.py` is a blocking step in `z2_ratification_gate.yml` — so the
+  manual steps were not paperwork, they were a red gate.
+* `counts:` is recomputed from the parsed document, never incremented. An
+  increment is not idempotent across two signatures on one day, and when two
+  branches each add an entry and each write `+1`, git merges the two identical
+  lines into one bump and keeps both entries.
+
 Deps: PyYAML. No network.
 """
 from __future__ import annotations
@@ -73,11 +97,67 @@ from validate import (  # noqa: E402
 )
 
 TOOL_NAME = "z1_ratify"
-TOOL_VERSION = "1.1.0"
+TOOL_VERSION = "1.2.0"
 TOOL_CATEGORY = "governance_tool"
 TOOL_ZONE = 2  # records a Z2 act; run by the ratifier
 
 DECISIONS = {"ACCEPT": "ratified", "EDIT": "edit_requested", "REJECT": "rejected"}
+
+
+def index_add_record(text: str, ruling_rel: str, at: str) -> str:
+    """Insert a `records:` entry for a ruling file, idempotently.
+
+    Two candidates ratified on the same day share one ruling file, so the second
+    signature must not add a duplicate row — the `records:` block is a set of
+    paths, and `validate.py` rule 3 refuses a path claimed by two entries.
+
+    Spliced as text rather than round-tripped through yaml.safe_dump on purpose:
+    INDEX.yaml carries hand-written comments, escaped unicode and a specific key
+    order, and a dump would reflow all of it, making every signature read as a
+    wholesale rewrite in review.
+    """
+    # Column 0, matching the sequence shape in this file. Written as `^  - path:`
+    # first time round, which is the same off-by-two that made the candidate
+    # splice dead — and it silently produced a DUPLICATE record row on the second
+    # signature of a day rather than failing loudly. Caught only by signing twice.
+    if re.search(rf"^- path: {re.escape(ruling_rel)}\s*$", text, re.MULTILINE):
+        return text  # already indexed by an earlier signature the same day
+    entry = (f"- path: {ruling_rel}\n"
+             f"  title: \"Z2 rulings — {at} (signed via .z1-control/ratify.py)\"\n"
+             f"  note: \"Written by ratify.py --apply. One file per decision date; each\\\n"
+             f"    \\ signature appends a section carrying its own sha256.\"\n")
+    # `records:` may be a block sequence (the live index), an explicit empty
+    # `records: []` (a z1-control freshly stood up in a sibling repo, before any
+    # ruling), or absent. Only the first of those ever occurs here, which is why
+    # the empty case shipped broken: matching `^records:\n` alone, `records: []`
+    # fell to the append branch and produced a SECOND `records` key, an index
+    # that no longer parses. Found by a test, not by a signature.
+    m = re.search(r"^records:[ \t]*(\[[ \t]*\])?[ \t]*\n", text, re.MULTILINE)
+    if not m:
+        return text.rstrip("\n") + "\nrecords:\n" + entry
+    return text[:m.start()] + "records:\n" + entry + text[m.end():]
+
+
+def index_sync_counts(text: str) -> tuple[str, str]:
+    """Rewrite `counts:` from what the document actually contains.
+
+    RECOMPUTED, never incremented. An increment is wrong in two ways that have
+    both bitten this index: it is not idempotent when a same-day ruling is
+    already recorded, and when two branches each add an entry and each bump the
+    counter, git auto-merges the two identical `+1` lines into a single +1 while
+    keeping both entries — a conflict that does not conflict, leaving the header
+    lying about a file that validates on each side alone.
+
+    Returns (text, summary) so the caller can report what it wrote.
+    """
+    doc = yaml.load(text, StrictLoader)
+    n_cand = len(doc.get("candidates") or [])
+    n_rec = len(doc.get("records") or [])
+    text = re.sub(r"^(counts:\n(?:.*\n)*?  candidates: )\d+", rf"\g<1>{n_cand}",
+                  text, count=1, flags=re.MULTILINE)
+    text = re.sub(r"^(counts:\n(?:.*\n)*?  records: )\d+", rf"\g<1>{n_rec}",
+                  text, count=1, flags=re.MULTILINE)
+    return text, f"candidates: {n_cand}, records: {n_rec}"
 
 
 def signature(candidate_bytes: bytes, by: str, at: str, decision: str) -> str:
@@ -324,6 +404,16 @@ def cmd_verify_artifact(path: str) -> int:
     return 1
 
 
+BOARD_RULING_RE = re.compile(rb"^## Ruling\s*\n(?:.*\n)*?choice:", re.M)
+
+
+def is_board_ruling(candidate_bytes: bytes) -> bool:
+    """A board ruling block: a `## Ruling` section followed by a `choice:` line — the shape
+    tools/decision_relay.py writes and tools/intent_os_reconcile_v1_0.py signs. Such a block is
+    ratified only by merging its ruling PR (Z2, 2026-09-18), never by this tool."""
+    return bool(BOARD_RULING_RE.search(candidate_bytes))
+
+
 def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> int:
     if by not in KNOWN_RATIFIERS:
         print(f"::error::'{by}' is not a ratifier. Allowed: {sorted(KNOWN_RATIFIERS)}")
@@ -341,6 +431,16 @@ def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> i
     full = os.path.join(ROOT, path)
     if not os.path.isfile(full):
         print(f"::error::{q_id}: {path} does not resolve")
+        return 1
+    if is_board_ruling(open(full, "rb").read()):
+        # Z2, 2026-09-18 (z1-inbox/2026-09-18/Z2_RULING_MERGE_IS_RATIFICATION.md): a board ruling is
+        # ratified by MERGING its ruling PR; the merger and the merge date sign it, and
+        # tools/intent_os_reconcile_v1_0.py records the signature on main. This tool signing such a
+        # block by hand would be a second, unreviewed act of ratification for the same decision.
+        print(f"::error::{q_id} is a board ruling (its file carries a `## Ruling` section with a "
+              f"`choice:` line). Board rulings are ratified by merging their ruling pull request "
+              f"(Z2, 2026-09-18); the reconcile job on main records the signature. This tool does "
+              f"not sign them.")
         return 1
 
     at = datetime.date.today().isoformat()
@@ -368,6 +468,55 @@ def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> i
         print("\nDry run — nothing written. Re-run with --apply to record it.")
         return 0
 
+    # Compute the whole index edit BEFORE writing anything. The splice is the
+    # only step that can fail, and it used to fail AFTER the ruling file was
+    # already on disk — leaving a ruling nothing referenced and an index nothing
+    # had updated, recoverable only by hand. Nothing is written until every edit
+    # is known good.
+    text = open(INDEX, encoding="utf-8").read()
+    # Sequence items sit at column 0 and their keys at two spaces — the shape
+    # yaml.safe_dump produces with default indent and what render.py round-trips.
+    # This pattern previously expected `^  - q_id:` and wrote four-space keys,
+    # neither of which has ever existed in this file, so the splice could not
+    # match and every --apply fell through to "index NOT updated; fix by hand".
+    # The index fields on every ratified candidate to date were written by hand.
+    block = re.search(rf"(^- q_id: {re.escape(q_id)}\n)(.*?)(?=^- q_id: |^records:|\Z)",
+                      text, re.MULTILINE | re.DOTALL)
+    if not block:
+        print(f"::error::could not locate {q_id}'s block in INDEX.yaml. Nothing written — "
+              f"neither the ruling nor the index was touched.")
+        return 1
+    head, body = block.group(1), block.group(2)
+    body = re.sub(r"^  status: .*\n", f"  status: {status}\n", body,
+                  count=1, flags=re.MULTILINE)
+    add = (f'  ratified_by: {by}\n'
+           f'  ratified_at: "{at}"\n'
+           f'  z2_ruling: "{ruling_rel}"\n'
+           f'  z2_hash: "{digest}"\n')
+    trailing = ""
+    while body.endswith("\n\n"):
+        body, trailing = body[:-1], "\n"
+    body = body + add + trailing
+    new_text = text[:block.start()] + head + body + text[block.end():]
+
+    # The ruling file is about to exist under z1-inbox/, so it must be covered by
+    # the index in the same act. Without this the tool left the tree failing
+    # validate.py rule 3 (a file on disk and not in the index is refused) and
+    # rule 6 (z2_ruling must be indexed under records:) — and validate.py is a
+    # BLOCKING step in z2_ratification_gate.yml, so the gap was not paperwork,
+    # it was a red gate between --apply and a human finishing the job by hand.
+    # index_sync_counts parses, so a malformed splice surfaces here rather than
+    # at the check below. Both are inside the same guard: a splice that produces
+    # unparseable YAML is a refusal to write, not a traceback that reads like the
+    # index on disk is already broken.
+    try:
+        new_text = index_add_record(new_text, ruling_rel, at)
+        new_text, counts = index_sync_counts(new_text)
+        yaml.load(new_text, StrictLoader)
+    except yaml.YAMLError as exc:
+        print(f"::error::the edited index would not parse ({exc}). Nothing written.")
+        return 1
+
     os.makedirs(os.path.dirname(ruling_abs), exist_ok=True)
     if not os.path.exists(ruling_abs):
         with open(ruling_abs, "w", encoding="utf-8") as fh:
@@ -378,34 +527,13 @@ def cmd_ratify(index: dict, q_id: str, decision: str, by: str, apply: bool) -> i
                      f"candidate afterwards breaks `ratify.py --verify`.\n")
     with open(ruling_abs, "a", encoding="utf-8") as fh:
         fh.write(entry)
+    open(INDEX, "w", encoding="utf-8").write(new_text)
 
-    text = open(INDEX, encoding="utf-8").read()
-    block = re.search(rf"(^  - q_id: {re.escape(q_id)}\n)(.*?)(?=^  - q_id: |^records:|\Z)",
-                      text, re.MULTILINE | re.DOTALL)
-    if not block:
-        print(f"::error::could not locate {q_id}'s block in INDEX.yaml — ruling written, "
-              f"index NOT updated; fix by hand")
-        return 1
-    head, body = block.group(1), block.group(2)
-    body = re.sub(r"^    status: .*\n", f"    status: {status}\n", body,
-                  count=1, flags=re.MULTILINE)
-    add = (f'    ratified_by: {by}\n'
-           f'    ratified_at: "{at}"\n'
-           f'    z2_ruling: "{ruling_rel}"\n'
-           f'    z2_hash: "{digest}"\n')
-    trailing = ""
-    while body.endswith("\n\n"):
-        body, trailing = body[:-1], "\n"
-    body = body + add + trailing
-    open(INDEX, "w", encoding="utf-8").write(text[:block.start()] + head + body
-                                             + text[block.end():])
-
-    print(f"\nRecorded. Next:")
-    print(f"  1. add the ruling to INDEX.yaml under records: -> {ruling_rel}")
-    print(f"  2. bump counts.records")
-    print(f"  3. python3 .z1-control/render.py")
-    print(f"  4. python3 .z1-control/validate.py")
-    print(f"  5. commit — the commit author is the signature's provenance")
+    print(f"\nRecorded — ruling written, candidate signed, record indexed, counts {counts}.")
+    print(f"Next:")
+    print(f"  1. python3 .z1-control/render.py")
+    print(f"  2. python3 .z1-control/validate.py")
+    print(f"  3. commit — the commit author is the signature's provenance")
     return 0
 
 

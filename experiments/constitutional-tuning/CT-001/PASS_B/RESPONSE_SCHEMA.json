@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CT-001 Pass B response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "claimed",
+    "observed",
+    "authority",
+    "disagreements",
+    "omissions_unknowns",
+    "unresolved",
+    "warrant",
+    "tensions",
+    "flags",
+    "aggregation_checks",
+    "invented_authority"
+  ],
+  "properties": {
+    "claimed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "observed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "authority": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "disagreements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "omissions_unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warrant": {
+      "type": "string"
+    },
+    "tensions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "aggregation_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "used_majority_as_warrant",
+        "used_tool_health_as_assurance",
+        "promoted_unknown_independence"
+      ],
+      "properties": {
+        "used_majority_as_warrant": {
+          "type": "boolean"
+        },
+        "used_tool_health_as_assurance": {
+          "type": "boolean"
+        },
+        "promoted_unknown_independence": {
+          "type": "boolean"
+        }
+      }
+    },
+    "invented_authority": {
+      "type": "boolean"
+    }
+  }
+}

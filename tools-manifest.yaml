@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 157
+  tools: 172
   mcp_servers: 2
-  excluded: 0
-  builder_markers_present: 126
+  excluded: 4
+  builder_markers_present: 138
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -625,7 +625,7 @@ tools:
 - tool_id: HAIOS-TOOL-051
   name: decision_relay
   path: tools/decision_relay.py
-  version: 0.3.1
+  version: 0.5.0
   category: governance_tool
   zone: 1
   status: draft
@@ -1114,7 +1114,7 @@ tools:
 - tool_id: HAIOS-TOOL-091
   name: molting_protocol_diff
   path: tools/molting_protocol_diff_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: audit_tool
   zone: 1
   status: draft
@@ -1122,7 +1122,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Compares `SESSION_RITUALS.md` versions, classifies additive patching vs clean-layer replacement.
+  purpose: Classifies a molt's tier (0/1/2) from the filepaths its diff touches, and measures the gap
+    against the author's claimed tier.
   session: S-060126-01
 - tool_id: HAIOS-TOOL-092
   name: multi_provider_elicitation_client
@@ -1421,7 +1422,7 @@ tools:
 - tool_id: HAIOS-TOOL-117
   name: smag_consolidate
   path: tools/smag_consolidate_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -1836,7 +1837,7 @@ tools:
 - tool_id: HAIOS-TOOL-153
   name: z1_ratify
   path: .z1-control/ratify.py
-  version: 1.1.0
+  version: 1.2.0
   category: governance_tool
   zone: 2
   status: draft
@@ -1974,29 +1975,224 @@ tools:
   purpose: smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy.
   session: S-091526-meta
 - tool_id: HAIOS-TOOL-164
-  name: install_git_hooks
-  path: scripts/install_git_hooks.sh
-  version: unversioned
-  category: infrastructure_tool
+  name: intent_os_test_harness
+  path: tools/intent_os_test_harness_v1_0.py
+  version: 1.1.0
+  category: validation_tool
   zone: 1
   status: draft
-  interface: script
-  lang: bash
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_os_test_harness — run every check the Intent-OS control surface rests on, and say which
+    held.
+  session: S-091626-01
+- tool_id: HAIOS-TOOL-165
+  name: holographic_orchestrator
+  path: tools/holographic_orchestrator.py
+  version: 0.1.0
+  category: orchestrator_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'Orchestrates holographic person representation via external services:'
+  session: S-091626-01
+- tool_id: HAIOS-TOOL-166
+  name: intent_os_board_reseal
+  path: tools/intent_os_board_reseal_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse
+    the rest.
+  session: S-091726-01
+- tool_id: HAIOS-TOOL-167
+  name: intent_os_requests
+  path: tools/intent_os_requests_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: 'intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage.'
+  session: S-091726-01
+- tool_id: HAIOS-TOOL-168
+  name: intent_os_reconcile
+  path: tools/intent_os_reconcile_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_os_reconcile — after a decided candidate merges, record the ratification the merge was.
+  session: S-091826-01
+- tool_id: HAIOS-TOOL-169
+  name: intent_os_pages
+  path: tools/intent_os_pages_v1_0.py
+  version: 1.0.0
+  category: template_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board.
+  session: S-091926-01
+- tool_id: HAIOS-TOOL-174
+  name: grant_data_loader_v1_0
+  path: tools/grant_data_loader_v1_0.py
+  version: unversioned
+  category: connector_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
   smoke_test: false
   builder_markers: false
-  purpose: Install git hooks for this repository
-- tool_id: HAIOS-TOOL-165
-  name: verify_pr_readiness
-  path: scripts/verify_pr_readiness.sh
+  purpose: Grant Data Loader v1.0
+- tool_id: HAIOS-TOOL-175
+  name: grant_match_verifier_v1_0
+  path: tools/grant_match_verifier_v1_0.py
   version: unversioned
   category: validation_tool
   zone: 1
   status: draft
-  interface: script
-  lang: bash
+  interface: module
+  lang: python
   smoke_test: false
   builder_markers: false
-  purpose: PR Readiness Verification — Run all validation checks in sequence
+  purpose: Grant Pre-Award Match Verifier v1.0
+- tool_id: HAIOS-TOOL-176
+  name: grant_matching_engine_v1_0
+  path: tools/grant_matching_engine_v1_0.py
+  version: unversioned
+  category: analytics_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Grant Matching Engine v1.0
+- tool_id: HAIOS-TOOL-177
+  name: nonprofit_dashboard_api_v1_0
+  path: tools/nonprofit_dashboard_api_v1_0.py
+  version: unversioned
+  category: infrastructure_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Nonprofit Dashboard API v1.0
+- tool_id: HAIOS-TOOL-178
+  name: nonprofit_profile_v1_0
+  path: tools/nonprofit_profile_v1_0.py
+  version: unversioned
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Nonprofit Profile Model & Validation
+- tool_id: HAIOS-TOOL-179
+  name: industry_telemetry
+  path: tools/industry_telemetry_v0_1.py
+  version: 0.1.0
+  category: monitoring_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Bounded Q4 2026 industry telemetry and human triage pilot
+  session: S-091926
+- tool_id: HAIOS-TOOL-180
+  name: workflow_dependency_analyzer
+  path: tools/workflow_dependency_analyzer_v1_0.py
+  version: 1.0.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance
+    tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines
+- tool_id: HAIOS-TOOL-181
+  name: receipt_reconciliation
+  path: tools/receipt_reconciliation.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: §B.6 Receipt Reconciliation — Auto-validates claims against NF_LEDGER.jsonl, files IC-CANDIDATE
+    gaps for Z2 ratification
+  session: S-092126-receipt-reconciliation
+- tool_id: HAIOS-TOOL-182
+  name: intent_graph
+  path: tools/intent_graph_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it.
+  session: S-092126-intent-graph
+- tool_id: HAIOS-TOOL-183
+  name: graph_convergence
+  path: tools/graph_convergence_v1_0.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: graph_convergence_v1_0.py — grade convergence between two agent-authored graphs.
+  session: S-092126-graph-convergence
+- tool_id: HAIOS-TOOL-184
+  name: verified_receipts
+  path: tools/verified_receipts.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Verified Receipt Resolver — v0.1
+  session: H-COLLAB-HARMONY-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
@@ -2016,4 +2212,12 @@ mcp_servers:
   data_classification: UNCLASSIFIED — set before approval
   scope: unscoped — set before approval
   notes: ''
-excluded: []
+excluded:
+- path: tools/board-decisions-backfill.js
+  reason: draft tool archived 2026-09-20
+- path: tools/board-decisions-ingestion.js
+  reason: draft tool archived 2026-09-20
+- path: tools/governance-rulings-backfill.js
+  reason: draft tool archived 2026-09-20
+- path: tools/governance-rulings-ingestion.js
+  reason: draft tool archived 2026-09-20

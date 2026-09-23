@@ -49,7 +49,7 @@ haios --mode check
 |`registered_failure_mode_scan_v0_1.py`|`audit_tool`  |Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level first-pass yield / DPMO. Advisory unless `--enforce`.|
 |`governance_mapper_v1_0.py`    |`governance_tool`   |Maps governance principles to structural roles across documents.                                                |
 |`principle_harmonizer_v1_0.py` |`governance_tool`   |Harmonizes the principle layer across governance files, surfaces drift.                                         |
-|`molting_protocol_diff_v1_0.py`|`audit_tool`        |Compares `SESSION_RITUALS.md` versions, classifies additive patching vs clean-layer replacement.                |
+|`molting_protocol_diff_v1_0.py`|`audit_tool`        |Classifies a molt's tier (0/1/2) from the filepaths its diff touches; measures the gap against the claimed tier. |
 |`mhr_question_trace_v1_0.py`   |`audit_tool`        |Traces question-source → method-design → data-output chain for Market-Harmonic Research auditability.           |
 |`aa_principle_audit_v1_0.py`   |`audit_tool`        |Evaluates protocol artifacts against honesty, humility, and service operational markers (AA frame).             |
 
