@@ -17,6 +17,7 @@ spec = importlib.util.spec_from_file_location(
     PR_MANAGER / "mutual_understanding_v0_1.py",
 )
 mutual = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = mutual
 spec.loader.exec_module(mutual)
 
 
