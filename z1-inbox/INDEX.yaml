@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-23'
 decision_window_days: 2
 counts:
-  candidates: 85
+  candidates: 86
   records: 39
 ratifiers:
 - Night
@@ -902,6 +902,19 @@ candidates:
     \ inside operations an admissible locus?) and D4 (promote schema to schemas/ and\
     \ conformance scripts to tools/?). Does not resolve D1; widens it from two candidate\
     \ resolution targets to three. Writes no REGISTERED.md or NF_LEDGER.jsonl row."
+- q_id: Q-ACCOUNT-HUB-01
+  title: "HumanAIOS Account Hub & Project Manager Cockpit"
+  path: z1-inbox/2026-09-22/ACCOUNT-HUB-PROPOSAL.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  falsifier: "All 16 accounts listed + metadata verified + 11 API-enabled accounts\
+    \ syncing + activity feed live + zero credential breaches."
+  note: "Proposed unified source-of-truth registry for 16 services (GitHub, Gmail,\
+    \ Cloudflare, Supabase, Railway, Hugging Face, Substack, LinkedIn, ORCID, arXiv,\
+    \ OSF, IONOS, Hubstaff, Greenlight, RevBy, FreeCodeCamp). Cockpit access layer\
+    \ with cross-service activity feed and Z2-governed delegation to AI agents/Z3\
+    \ executors. Phase 1 (source of truth) 8-12 hours + 100k tokens, completes this\
+    \ week."
 - q_id: Q-BUZZ-COLLAB-EVAL-01
   title: "Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance\
     \ on self-hosted Nostr relay)"
