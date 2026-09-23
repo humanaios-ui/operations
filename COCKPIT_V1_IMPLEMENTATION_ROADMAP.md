@@ -20,7 +20,8 @@
                ▼
 ┌───────────────────────────────────────────────────────────┐
 │ GitHub Action: Sync to Supabase                           │
-│ • Fetch REGISTERED.md, parse YAML, upsert to DB          │
+│ • Fetch REGISTERED.md, extract YAML front-matter blocks   │
+│   (per-entry front-matter + body, not file-level YAML)    │
 │ • Fetch PRIORITY_QUEUE.md, parse, upsert to DB           │
 │ • Publish change event to WebSocket                       │
 └──────────────┬────────────────────────────────────────────┘
@@ -165,25 +166,50 @@ CREATE TABLE IF NOT EXISTS audit_log (
   resource_id TEXT NOT NULL,
   decision_rationale TEXT,
   changed_fields JSONB,
-  prior_id UUID REFERENCES audit_log(id), -- for forward pointers (immutability)
+  prior_id UUID REFERENCES audit_log(id), -- reference to preceding audit entry (immutable chain)
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX idx_audit_resource ON audit_log(resource_type, resource_id);
 CREATE INDEX idx_audit_actor_date ON audit_log(actor, created_at);
 
--- Immutability enforcement: create audit_log_append role (insert-only, no update/delete)
+-- Immutability enforcement: append-only via deny policies + audit_log_append role
 CREATE ROLE audit_log_append NOLOGIN;
 GRANT SELECT ON audit_log TO audit_log_append;
 GRANT INSERT ON audit_log TO audit_log_append;
 -- No UPDATE, DELETE, or TRUNCATE permissions
 
--- RLS policies: only Z2 and assigned Z3 can read/write
+-- RLS policies: Z2 (via auth.uid mapping) + assigned Z3 can read/write
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+
+-- Deny UPDATE/DELETE to all roles (enforces append-only even for privileged roles)
+CREATE POLICY audit_log_deny_update ON audit_log FOR UPDATE USING (FALSE);
+CREATE POLICY audit_log_deny_delete ON audit_log FOR DELETE USING (FALSE);
+
+-- Allow SELECT for Z2 and Z3 (both use Supabase auth.uid, mapped via metadata or app config)
 CREATE POLICY audit_log_read ON audit_log FOR SELECT
-  USING (auth.jwt()->>'user_id' IN (SELECT id FROM auth.users WHERE email IN ('carly.r.anderson@gmail.com', 'aioshuman@gmail.com')));
+  USING (auth.uid()::text IN (SELECT id FROM auth.users WHERE email IN ('carly.r.anderson@gmail.com', 'aioshuman@gmail.com'))
+         OR (current_setting('app.z3_assigned_id', true) = auth.uid()::text));
+
+-- Allow INSERT for Z2 and Z3
 CREATE POLICY audit_log_write ON audit_log FOR INSERT
-  WITH CHECK (auth.jwt()->>'user_id' IN (SELECT id FROM auth.users WHERE email IN ('carly.r.anderson@gmail.com', 'aioshuman@gmail.com')));
+  WITH CHECK (auth.uid()::text IN (SELECT id FROM auth.users WHERE email IN ('carly.r.anderson@gmail.com', 'aioshuman@gmail.com'))
+              OR (current_setting('app.z3_assigned_id', true) = auth.uid()::text));
+
+-- Append-only trigger: prevent direct UPDATE/DELETE at database level
+CREATE FUNCTION audit_log_immutable() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP IN ('UPDATE', 'DELETE', 'TRUNCATE') THEN
+    RAISE EXCEPTION 'audit_log is append-only; UPDATE/DELETE not permitted';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER audit_log_immutable_trigger
+BEFORE UPDATE OR DELETE OR TRUNCATE ON audit_log
+FOR EACH STATEMENT
+EXECUTE FUNCTION audit_log_immutable();
 
 CREATE TABLE IF NOT EXISTS molt_state (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
