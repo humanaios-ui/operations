@@ -149,6 +149,12 @@ CREATE TABLE IF NOT EXISTS cockpit_search_index (
 
 **Output:** Audit log visible, all 4 sections update in real-time via WebSocket, polling fallback works.
 
+**IC-030 Compliance Note (Cache Verification):**
+- Cockpit caches REGISTERED.md, PRIORITY_QUEUE.md, MOLT_STATE.md with SHA pinning
+- At read time: fetch current SHA from GitHub API; if SHA matches cached entry → use cache; otherwise → invalidate and re-fetch
+- Fail-closed: If SHA verification fails, cockpit refetches from GitHub (cache is not authoritative)
+- WebSocket reconnect: Exponential backoff 1s→2s→4s→8s; explicit reconnect request on network change (e.g., user resumes browser tab)
+
 **SQL schema (Week 3):**
 ```sql
 CREATE TABLE IF NOT EXISTS audit_log (
