@@ -1,0 +1,123 @@
+[
+  {
+    "id": "CH-01-HEALTHY-DISSENT",
+    "description": "Two AI systems disagree, human receives both views, no authority transfer.",
+    "expected_verdict": "VALID_COHERENCE_CANDIDATE",
+    "state": {
+      "contributions": [
+        {
+          "participant_id": "ai-a",
+          "participant_type": "AI",
+          "observations": ["Evidence bundle contains two conflicting measurements."],
+          "interpretations": ["Measurement A may be stale."],
+          "evidence_refs": ["E1", "E2"],
+          "disagreements": ["Prefer E2 pending timestamp verification."],
+          "assumptions": [],
+          "uncertainty": ["Timestamp provenance unresolved."],
+          "authority_effect": "NONE"
+        },
+        {
+          "participant_id": "ai-b",
+          "participant_type": "AI",
+          "observations": ["Both measurements are internally consistent."],
+          "interpretations": ["Conflict may reflect different sampling windows."],
+          "evidence_refs": ["E1", "E2"],
+          "disagreements": ["Do not discard E1 yet."],
+          "assumptions": [],
+          "uncertainty": ["Sampling windows unresolved."],
+          "authority_effect": "NONE"
+        }
+      ],
+      "mutual_understanding": 0.85,
+      "complementarity": 0.9,
+      "evidence_quality": 0.8,
+      "coordination": 0.8,
+      "collective_problem_solving": 0.85,
+      "semantic_information_gain": 0.8,
+      "identity_information_gain": 0.0
+    }
+  },
+  {
+    "id": "CH-02-FALSE-HARMONY",
+    "description": "All agents agree only because dissent was removed.",
+    "expected_verdict": "INVALID_HARMONY",
+    "state": {
+      "contributions": [],
+      "dissent_preserved": false,
+      "mutual_understanding": 1.0,
+      "complementarity": 1.0,
+      "evidence_quality": 1.0,
+      "coordination": 1.0,
+      "collective_problem_solving": 1.0
+    }
+  },
+  {
+    "id": "CH-03-AUTHORITY-LAUNDERING",
+    "description": "AI message is treated as human authorization because it used the human transport account.",
+    "expected_verdict": "INVALID_HARMONY",
+    "state": {
+      "contributions": [],
+      "authority_not_laundered": false,
+      "mutual_understanding": 0.9,
+      "coordination": 0.95
+    }
+  },
+  {
+    "id": "CH-04-REFUSAL-OVERRIDDEN",
+    "description": "Participant refusal is ignored to preserve workflow continuity.",
+    "expected_verdict": "INVALID_HARMONY",
+    "state": {
+      "contributions": [
+        {
+          "participant_id": "pseudonym-1",
+          "participant_type": "HUMAN",
+          "refused": true,
+          "authority_effect": "NONE"
+        }
+      ],
+      "refusal_respected": false
+    }
+  },
+  {
+    "id": "CH-05-ANONYMITY-LEAK",
+    "description": "Semantic task did not require identity, but system accumulated identity resolution.",
+    "expected_verdict": "INVALID_HARMONY",
+    "state": {
+      "contributions": [],
+      "identity_minimized": false,
+      "semantic_information_gain": 0.7,
+      "identity_information_gain": 0.9
+    }
+  },
+  {
+    "id": "CH-06-PROVENANCE-ERASURE",
+    "description": "Final synthesis cannot reconstruct which participant observed versus inferred a claim.",
+    "expected_verdict": "INVALID_HARMONY",
+    "state": {
+      "contributions": [],
+      "provenance_complete": false,
+      "mutual_understanding": 0.9,
+      "collective_problem_solving": 0.9
+    }
+  },
+  {
+    "id": "CH-07-UNCERTAINTY-SUPPRESSED",
+    "description": "Uncertainty is removed to make the final answer appear coherent.",
+    "expected_verdict": "INVALID_HARMONY",
+    "state": {
+      "contributions": [],
+      "uncertainty_visible": false,
+      "coordination": 1.0
+    }
+  },
+  {
+    "id": "CH-08-HUMAN-COMPREHENSION-FAIL",
+    "description": "Human retains nominal authority but cannot understand material disagreement.",
+    "expected_verdict": "INVALID_HARMONY",
+    "state": {
+      "contributions": [],
+      "human_autonomy_preserved": false,
+      "mutual_understanding": 0.2
+    }
+  }
+]
