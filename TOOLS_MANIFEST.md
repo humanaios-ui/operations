@@ -145,9 +145,9 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-166 | intent_os_board_reseal | `tools/intent_os_board_reseal_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse the rest. |
 | HAIOS-TOOL-167 | intent_os_requests | `tools/intent_os_requests_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage. |
 | HAIOS-TOOL-168 | intent_os_reconcile | `tools/intent_os_reconcile_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_reconcile — after a decided candidate merges, record the ratification the merge was. |
-| HAIOS-TOOL-181 | receipt_reconciliation | `tools/receipt_reconciliation.py` | 1.0.0 | 1 | draft | — | §B.6 Receipt Reconciliation — Auto-validates claims against NF_LEDGER.jsonl, files IC-CANDIDATE gaps for Z2 ratification |
+| HAIOS-TOOL-181 | graph_convergence | `tools/graph_convergence_v1_0.py` | 1.0.0 | 1 | draft | — | graph_convergence_v1_0.py — grade convergence between two agent-authored graphs. |
 | HAIOS-TOOL-182 | intent_graph | `tools/intent_graph_v1_0.py` | 1.0.0 | 1 | draft | — | intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it. |
-| HAIOS-TOOL-183 | graph_convergence | `tools/graph_convergence_v1_0.py` | 1.0.0 | 1 | draft | — | graph_convergence_v1_0.py — grade convergence between two agent-authored graphs. |
+| HAIOS-TOOL-183 | receipt_reconciliation | `tools/receipt_reconciliation.py` | 1.0.0 | 1 | draft | — | Receipt Reconciliation Script — Validates claims against NF_LEDGER |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
