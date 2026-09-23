@@ -35,10 +35,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: rule now
+by: Night
+at: 2026-09-18T01:21:51Z
+status: PENDING
+block_hash: e5511344a426f0086396ad3f4151c8e5441d65e6416474dc61e24dad06bb72af
+body_hash: 4dc3376a060cffe051c7260a2f42519e132513731cd18e4024e0273d7fa3d399
+
+```
+RULING d5
+  by: Night (tagline)
+  project: HumanAIOS
+  question: GRBS ↔ Empirica — what is the formal relationship?
+  choice: rule now
+  note: 
+  at: 2026-09-18T01:21:51Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 

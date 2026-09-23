@@ -128,6 +128,9 @@ def registry(root: str = ROOT) -> list[dict]:
 
     # T1 — governance integrity (live)
     add("t1-board-holds", "T1", "board", "board seals HOLD against the tree", _py(CHECKER), proves=["W1", "W8"])
+    add("t1-pages-fresh", "T1", "board", "the four section pages are what the board generates (intent_os_pages --check)",
+        _py("tools/intent_os_pages_v1_0.py", "--check"), proves=["W1"],
+        note="a board change without a regeneration turns this row RED on the dashboard and in the refresh job's report")
     add("t1-z1-inbox", "T1", "governance", "z1-inbox/INDEX.yaml integrity (z2 gate ERROR step)", _py(".z1-control/validate.py"), proves=["Z1", "G1", "W6"])
     add("t1-z1-render-sync", "T1", "governance", "Z1_INBOX_INDEX.md in sync (z2 gate ERROR step)", _py(".z1-control/render.py", "--check"), proves=["W6"])
     add("t1-requests", "T1", "bus", "every REQ- record in the inbox verifies (hash, ask, id, Fulfilment order, indexed)", _py(REQUESTS, "--check"), proves=["W6"])
@@ -180,8 +183,11 @@ def registry(root: str = ROOT) -> list[dict]:
                 "tools/tests/test_nf_ledger_cli.py", "tools/tests/test_ci_predict.py",
                 "tools/tests/test_lifecycle_predict.py", "tools/tests/test_dimension_attribution.py",
                 "tools/tests/test_tool_trace_hook.py", "tools/tests/test_tool_trace_reader.py",
-                "tools/tests/test_copilot_acat_scanner.py", "tools/tests/test_holographic_integration.py",
+                "tools/tests/test_copilot_acat_scanner.py",
+                "tools/tests/test_grant_match_verifier.py", "tools/tests/test_grant_matching_engine.py",
+                "tools/tests/test_holographic_integration.py",
                 "tools/tests/test_holographic_orchestrator.py", "tools/tests/test_holographic_phase3_live.py",
+                "tools/tests/test_industry_telemetry.py", "tools/tests/test_nonprofit_dashboard.py",
                 "acat/tests/test_tool_trace_schema.py"]
     pyt = ["-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider"]
     add("t3-pytest-baseline", "T3", "ci", "pytest baseline suites (quality-baseline blocking step)", _py(*pyt, *baseline), timeout=600,

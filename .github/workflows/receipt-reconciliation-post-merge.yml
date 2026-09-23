@@ -1,0 +1,110 @@
+name: Post-Merge Receipt Reconciliation
+
+# Runs after each merge to main to verify claims against NF_LEDGER
+# §B.6 Automation: Receipt walk-back and RECEIPT-GAP candidate filing
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: write
+
+jobs:
+  reconcile-receipts:
+    name: Reconcile Claims vs. Ledger
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 10  # Last 10 commits for context
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install deps
+        run: |
+          pip install --quiet pyyaml gitpython
+
+      - name: Run receipt reconciliation on HEAD
+        id: reconcile
+        run: |
+          python3 tools/receipt_reconciliation.py --verbose
+
+      - name: Report reconciliation results
+        if: always()
+        run: |
+          echo "## Receipt Reconciliation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Gaps Found:** ${{ steps.reconcile.outputs.gaps_found }}" >> $GITHUB_STEP_SUMMARY
+          echo "**IC Candidates Filed:** ${{ steps.reconcile.outputs.candidates_filed }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.reconcile.outputs.gaps_found }}" -gt 0 ]; then
+            echo "⚠️ **Action Required:** Review receipt gaps in z1-inbox/" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Status:** Ledger matches all claims" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Commit IC candidates to z1-inbox
+        if: steps.reconcile.outputs.candidates_filed != '0'
+        run: |
+          git config user.name "Claude Receipt Reconciliation"
+          git config user.email "noreply@anthropic.com"
+
+          # Only commit if there are new files in z1-inbox/
+          if git status z1-inbox/ --porcelain | grep -q "^??"; then
+            git add z1-inbox/receipt-gap-*.md
+            git commit -m "Auto-file receipt gaps from reconciliation
+
+          §B.6 Receipt Walk-Back: Auto-filed IC-CAND from post-merge ledger reconciliation.
+
+          Generated IC candidates:
+          - Claim references without ledger entries
+          - Pattern: receipt-content-inaccuracy (P3 violation)
+          - Action: Z2 to verify and ratify
+
+          Post-merge reconciliation triggered by: ${{ github.event_name }}
+          Commit: ${{ github.sha }}
+
+          Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_01U7UTEEY9AbvnFmq66XAWSq" || true
+          else
+            echo "ℹ No new IC candidates to commit"
+          fi
+
+      - name: Push IC candidates (if any)
+        if: steps.reconcile.outputs.candidates_filed != '0'
+        run: |
+          # Try to push, but don't fail the job if it fails (another push may be in flight)
+          git push origin main || echo "⚠️ Could not push (likely concurrent push); skipping"
+
+      - name: Emit RECEIPT-RECONCILIATION event to tracking issue
+        if: steps.reconcile.outputs.gaps_found != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > /tmp/receipt_event.md <<'EOF'
+          ## RECEIPT-RECONCILIATION Event — Post-Merge Audit
+
+          **Timestamp:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          **Commit:** ${{ github.sha }}
+
+          **Results:**
+          - Gaps Found: ${{ steps.reconcile.outputs.gaps_found }}
+          - IC Candidates Filed: ${{ steps.reconcile.outputs.candidates_filed }}
+
+          **Gap Details:** See z1-inbox/receipt-gap-*.md
+
+          **Next Steps:** Z2 reviews and ratifies IC candidates
+
+          _Automated Post-Merge Receipt Reconciliation_
+          EOF
+
+          gh issue comment 378 -F /tmp/receipt_event.md || echo "ℹ Could not post to Priority Queue issue"

@@ -1,0 +1,228 @@
+name: MOLT State Tracking & Falsifier Notifications
+
+# Monitors MOLT_STATE.md for falsifier-trip events and anti-cascade violations
+# Emits MOLT, REVERT, and DRIFT notifications to Priority Queue
+# Enforces anti-cascade rule K=3 (max 3 molts open system-wide)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'MOLT_STATE.md'
+      - '.molt-control/**'
+  pull_request:
+    paths:
+      - 'MOLT_STATE.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  molt-state-check:
+    name: Check MOLT State & Falsifier Trips
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install deps
+        run: pip install --quiet pyyaml
+
+      - name: Parse MOLT_STATE.md and detect state changes
+        id: molt-check
+        run: |
+          python3 - <<'PYTHON'
+          import os, json, re, sys
+          from pathlib import Path
+          from datetime import datetime
+
+          molt_state_file = Path("MOLT_STATE.md")
+          if not molt_state_file.exists():
+              print("⚠️  MOLT_STATE.md not found")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("molt_events=0\n")
+              sys.exit(0)
+
+          content = molt_state_file.read_text()
+
+          # Parse MOLT_STATE.md for active molts and falsifier trips
+          molt_pattern = r'\|\s*(\d+)\s*\|\s*(Q-MOLT-[^\s|]+)\s*\|\s*([^\s|]+)\s*\|\s*([^\s|]+)\s*\|\s*(OPEN|CLOSED|REVERTED)\s*\|'
+          molts = re.findall(molt_pattern, content)
+
+          # Check for falsifier trips (REVERT events)
+          falsifier_pattern = r'## Falsifier Trip.*?(?=##|$)'
+          falsifier_trips = re.findall(falsifier_pattern, content, re.DOTALL)
+
+          # Check anti-cascade: K=3 rule (max 3 molts open)
+          open_molts = [m for m in molts if m[4] == 'OPEN']
+
+          events = []
+
+          # Detect falsifier trips
+          if falsifier_trips:
+              for trip in falsifier_trips:
+                  # Extract molt ID and reason
+                  molt_id_match = re.search(r'molt_id:\s*(Q-MOLT-[^\s\n]+)', trip)
+                  reason_match = re.search(r'reason:\s*([^\n]+)', trip)
+
+                  if molt_id_match:
+                      events.append({
+                          'type': 'REVERT',
+                          'molt_id': molt_id_match.group(1),
+                          'reason': reason_match.group(1) if reason_match else 'unspecified',
+                      })
+
+          # Detect anti-cascade K=3 violation
+          if len(open_molts) > 3:
+              events.append({
+                  'type': 'ANTI_CASCADE_VIOLATION',
+                  'open_count': len(open_molts),
+                  'limit': 3,
+              })
+
+          # Detect molt state changes (compare to previous commit if push event)
+          if os.environ.get('GITHUB_EVENT_NAME') == 'push':
+              try:
+                  import subprocess
+                  prev_content = subprocess.check_output(
+                      ['git', 'show', 'HEAD~1:MOLT_STATE.md'],
+                      text=True,
+                      stderr=subprocess.DEVNULL
+                  ).strip()
+                  prev_molts = re.findall(molt_pattern, prev_content)
+
+                  # Detect new molts
+                  new_molts = [m for m in molts if m not in prev_molts]
+                  if new_molts:
+                      events.append({
+                          'type': 'NEW_MOLT_PROPOSED',
+                          'count': len(new_molts),
+                          'molts': [m[1] for m in new_molts],
+                      })
+              except:
+                  pass  # Previous commit may not exist
+
+          # Output summary
+          print(f"🔍 MOLT State Analysis:")
+          print(f"   Total molts: {len(molts)}")
+          print(f"   Open molts: {len(open_molts)}")
+          print(f"   Events detected: {len(events)}")
+
+          for event in events:
+              print(f"   - {event['type']}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"molt_events={len(events)}\n")
+              f.write(f"events_json={json.dumps(events)}\n")
+              f.write(f"open_molts={len(open_molts)}\n")
+
+          PYTHON
+
+      - name: Emit MOLT notifications to Priority Queue
+        if: steps.molt-check.outputs.molt_events != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENTS: ${{ steps.molt-check.outputs.events_json }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, json, subprocess
+
+          events = json.loads(os.environ.get("EVENTS", "[]"))
+
+          for event in events:
+              event_type = event.get('type')
+
+              if event_type == 'REVERT':
+                  body = f"""## MOLT REVERT Event
+
+          **Molt ID:** `{event['molt_id']}`
+          **Reason:** {event['reason']}
+
+          **Action Required:**
+          1. File F/IC candidate for root cause analysis
+          2. Enqueue anti-cascade remediation to Priority Queue
+          3. Review constant value — may need retirement or revision
+
+          **Consequence:** Constant reverted. Anti-cascade counter incremented.
+          If second consecutive revert: freeze until Z2 Tier-2 ruling.
+
+          _Automated MOLT Falsifier Trip Detection_
+          """
+
+              elif event_type == 'ANTI_CASCADE_VIOLATION':
+                  body = f"""## Anti-Cascade Violation Detected
+
+          **Status:** {event['open_count']} molts open (limit: {event['limit']})
+
+          **Enforcement:** BLOCKED
+          - No new molt candidates can be proposed
+          - Open molts must reach decision (K or F) before new proposals
+
+          **Resolution Path:**
+          1. Measure open molt predictions at window close
+          2. Apply K (keep) or trigger F (falsify)
+          3. Auto-emit IC candidates for F cases
+          4. Re-enable proposals once under K=3
+
+          _Automated K=3 Anti-Cascade Enforcement_
+          """
+
+              elif event_type == 'NEW_MOLT_PROPOSED':
+                  body = f"""## New MOLT Candidate Proposed
+
+          **Count:** {event['count']} new molt(s)
+          **Molts:** {', '.join(event['molts'])}
+
+          **Next Steps:**
+          1. Z2 evaluates molt predictions + falsifier + window
+          2. Z2 ratifies molt candidate
+          3. Code schedules measurement at window close
+          4. Code applies prediction → measurement → decision (K/F)
+
+          _Automated MOLT Proposal Detection_
+          """
+
+              else:
+                  continue
+
+              try:
+                  # Post to Priority Queue issue (#378)
+                  result = subprocess.run(
+                      ["gh", "issue", "comment", "378", "-b", body],
+                      capture_output=True,
+                      text=True
+                  )
+                  if result.returncode == 0:
+                      print(f"✅ Posted {event_type} notification to issue #378")
+                  else:
+                      print(f"⚠️  Could not post {event_type} to issue: {result.stderr}")
+              except Exception as e:
+                  print(f"⚠️  Failed to post {event_type}: {e}")
+
+          PYTHON
+
+      - name: Validate anti-cascade compliance
+        if: always()
+        run: |
+          echo "## MOLT State Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Open Molts:** ${{ steps.molt-check.outputs.open_molts }}/3" >> $GITHUB_STEP_SUMMARY
+          echo "**Events Detected:** ${{ steps.molt-check.outputs.molt_events }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.molt-check.outputs.open_molts }}" -gt 3 ]; then
+            echo "❌ **Anti-Cascade Violation:** Exceeded K=3 limit" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ **Anti-Cascade:** In compliance" >> $GITHUB_STEP_SUMMARY
+          fi

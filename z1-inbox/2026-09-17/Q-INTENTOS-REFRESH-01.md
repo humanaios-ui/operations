@@ -76,20 +76,27 @@ python3 tools/intent_os_board_reseal_v1_0.py --apply     → MECHANICAL · writt
 That is the whole design in one session: the job would have re-hashed three rows and stopped on the
 fourth with an issue; the fourth took a human sentence.
 
-## What Z2 is asked to decide
+## What Z2 is asked to decide — decomposed (2026-09-19)
 
-| id | question | Z1 reading (no preference encoded) |
-|---|---|---|
-| **d23** | Enable the PR/issue half: set repository variable `INTENT_OS_REFRESH_AUTOPR=true`, or keep the job report-only (summary + artifacts, nothing opened)? | Report-only already ends the silence — every merge produces a summary line reading HOLDS / MECHANICAL / NEEDS-HUMAN. Enabling adds one bot PR per drift that a human still merges, and one issue that a human still closes. Nothing is signed either way. |
-| **d24** | An automated re-seal advances `rev`, so a copy of the board open in a browser is superseded by the new data on its next restore (taps kept, as the board's own rule says). Accept that a *job's* read may supersede an open copy, or reserve `rev` advances for human re-reads? | If reserved, an open copy keeps showing hashes the tree no longer has until a session re-reads; if accepted, an open copy's narrative fields (readline, gauges) can age while its hashes stay true — which the re-sealed descriptions say out loud. |
-| **d25** | Local copies (e.g. one in `~/Downloads`): coordinate by re-downloading `ui/intent-os-humanaios-v3_3.html` from the repository after each refresh (no new surface), or publish a rolling release asset `intent-os-latest` on this repository so a copy has one stable URL to refresh from? | d17 ruled *local only, no `site/`, no Pages*. A release asset is repository-scoped (the same access as the file) but it is a new surface; Z2's read whether it is inside d17. Path freeze (d19) already makes the filename stable, so the localStorage key, and the taps, survive a replace either way. |
-| **KNOWN_RED** | The job carries `INTENT_OS_KNOWN_RED: t3-pytest-acat` so the registered F-CAND does not open a STALE issue on every run. Accept that list as the place a registered-but-unfixed red row is named, or require the list to be empty (every red row files)? | The list is in the workflow file, so adding to it is a reviewed change; it is not a way to hide a row (the row stays RED on the dashboard and in the receipt). |
-| **d26** | Resource-based grounding (Z2, 2026-09-17: *no AI-imposed time-frames; time-frames only where a regulatory authority requires them; if the resources are available, we process*). The job is now event-driven only (the daily cron is removed in this block's PR); the relay's request ids carry no daily quota; this block's falsifiers and predictions are stated in merges and events. Confirm that reading, or name a regulatory time-frame that applies. | Three time-framed things remain that are not Z1's to change: `.z1-control/validate.py`'s `decision_window_days: 2` (Ruling 5's mechanism is unspecified), the board's dated *Deadlines* and *we'll know by* columns, and the ratified `Q-INTENTOS-TEST-01`'s dated falsifier (editing a ratified candidate breaks its signature; a resource-based restatement would be a new candidate or Z2's edit). |
+**Decomposed into:** `Q-BOARD-RULING-23` · `Q-BOARD-RULING-24` · `Q-BOARD-RULING-25` · `Q-BOARD-RULING-32` · `Q-BOARD-RULING-26`
 
-Also on the table, from `Q-INTENTOS-TEST-01`'s ACCEPT: **d20 · d21 · d22** were accepted as asked but
-no choice is recorded in a ruling file. This block assumes the status quo for d21 (the dashboard
-carries the receipt; nothing standalone in the tree) — the refresh PR commits only the board and the
-dashboard.
+This block no longer carries a decision. The five calls it asked on 2026-09-17 — d23 (enable the PR/issue
+half), d24 (a job's read may advance `rev`), d25 (local copies), KNOWN_RED (d32, the known-red list) and d26
+(resource-based grounding) — each live in their own board-ruling block under `z1-inbox/2026-09-19/`, with the
+question, the context and the readings moved there verbatim, ruled from the board by tap → PR → merge. A
+red-team read of #410 (ChatGPT, 2026-09-19) found that keeping the questions here as well left two decision
+objects for one call: `.z1-control/ratify.py --apply` on this block would have looked like a ruling on them.
+
+What ratifying **this** block means, and only this: the mechanism as built — `tools/intent_os_board_reseal_v1_0.py`,
+`.github/workflows/intent-os-refresh.yml` (report-only), the runbook and pathway text — is accepted as the
+refresh path. It resolves none of d23–d26 or d32; those stay OPEN until their own ruling PRs merge, whatever
+this block's status. `tests/test_decision_decomposition.py` checks that every child named above exists in
+the index as a board-ruling block and that no `dNN` decision row remains in this file.
+
+From `Q-INTENTOS-TEST-01`'s ACCEPT: **d20 · d21 · d22** were accepted as asked but no choice was recorded;
+they are `Q-BOARD-RULING-20…22`, filed the same day. This block assumes the status quo for d21 (the
+dashboard carries the receipt; nothing standalone in the tree) — the refresh PR commits only the board and
+the dashboard.
 
 ## Predictions (pre-registered)
 

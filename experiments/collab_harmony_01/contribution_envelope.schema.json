@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "H-COLLAB-HARMONY-01 Contribution Envelope",
+  "type": "object",
+  "required": ["participant", "intent", "interpretation", "contribution", "boundaries"],
+  "properties": {
+    "participant": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": {"enum": ["HUMAN", "AI", "TOOL", "AUTHORITY"]},
+        "id": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "intent": {
+      "type": "object",
+      "required": ["goal"],
+      "properties": {
+        "goal": {"type": "string"},
+        "constraints": {"type": "array", "items": {"type": "string"}},
+        "success_criteria": {"type": "array", "items": {"type": "string"}},
+        "unresolved_intent": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "interpretation": {
+      "type": "object",
+      "required": ["what_i_think_the_problem_is", "confidence"],
+      "properties": {
+        "what_i_think_the_problem_is": {"type": "string"},
+        "assumptions": {"type": "array", "items": {"type": "string"}},
+        "uncertainty": {"type": "array", "items": {"type": "string"}},
+        "confidence": {"enum": ["LOW", "MEDIUM", "HIGH"]}
+      }
+    },
+    "contribution": {
+      "type": "object",
+      "properties": {
+        "observations": {"type": "array", "items": {"type": "string"}},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "interpretations": {"type": "array", "items": {"type": "string"}},
+        "disagreements": {"type": "array", "items": {"type": "string"}},
+        "proposed_next_step": {"type": ["string", "null"]}
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "required": ["may_refuse", "authority_effect"],
+      "properties": {
+        "may_refuse": {"const": true},
+        "authority_effect": {"enum": ["NONE", "ADVISORY", "AUTHORIZED"]}
+      }
+    }
+  }
+}

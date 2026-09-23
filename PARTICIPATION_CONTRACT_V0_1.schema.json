@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/PARTICIPATION_CONTRACT_V0_1.schema.json",
+  "title": "Participation Contract v0.1",
+  "description": "Purpose-specific participation contract for Witness check-in. Participation metadata is not effective authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "contract_id",
+    "issued_at",
+    "subject_ref",
+    "observation_level",
+    "research_role",
+    "governance_role_claim",
+    "continuity_mode",
+    "purposes",
+    "modality_permissions",
+    "retention_policy",
+    "authority_resolution_ref",
+    "acknowledgements",
+    "revocations"
+  ],
+  "properties": {
+    "contract_version": {"const": "0.1.0"},
+    "contract_id": {"type": "string", "minLength": 1},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "subject_ref": {"type": "string", "minLength": 1},
+    "contract_revision": {"type": "integer", "minimum": 0},
+    "supersedes_revision": {"type": ["integer", "null"], "minimum": 0},
+    "observation_level": {"type": "string", "enum": ["O0_PUBLIC", "O1_RESEARCH_OBSERVER", "O2_GOVERNANCE_OBSERVER", "O3_ASSURANCE_OBSERVER"]},
+    "research_role": {"type": "string", "enum": ["R0_NONE", "R1_OBSERVER", "R2_PARTICIPANT", "R3_CONTRIBUTOR"]},
+    "governance_role_claim": {"type": "string", "enum": ["G0_NONE", "G1_OBSERVER", "G2_CHALLENGER", "G3_PROPOSER", "G4_REVIEWER", "G5_RATIFIER"]},
+    "continuity_mode": {"type": "string", "enum": ["EPHEMERAL", "STANDING_SIGIL", "QUALIFICATION_PROOF", "REGULATED_EXTERNAL_IDENTITY"]},
+    "purposes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["C0_EXPERIENCE", "C1_RESEARCH", "C2_WHITE_BOX_LEARNING", "C3_GENERATIVE_MODEL_TRAINING"],
+      "properties": {
+        "C0_EXPERIENCE": {"type": "boolean"},
+        "C1_RESEARCH": {"type": "boolean"},
+        "C2_WHITE_BOX_LEARNING": {"type": "boolean"},
+        "C3_GENERATIVE_MODEL_TRAINING": {"type": "boolean"}
+      }
+    },
+    "modality_permissions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/modalityPermission"},
+      "minItems": 1
+    },
+    "retention_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ttl_days", "delete_supported"],
+      "properties": {
+        "ttl_days": {"type": "integer", "minimum": 0},
+        "delete_supported": {"type": "boolean"}
+      }
+    },
+    "authority_resolution_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to independent governance authority resolution record."
+    },
+    "acknowledgements": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/acknowledgement"}
+    },
+    "revocations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/revocation"}
+    }
+  },
+  "not": {
+    "anyOf": [
+      {"required": ["effective_authority"]},
+      {"required": ["authority_granted"]},
+      {"required": ["ratifier_signature"]}
+    ]
+  },
+  "$defs": {
+    "modalityPermission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signal", "enabled", "purposes"],
+      "properties": {
+        "signal": {
+          "type": "string",
+          "enum": [
+            "TEXT",
+            "POINTER",
+            "VOICE",
+            "GAZE",
+            "AUDIO_SONIFICATION",
+            "STANDING_SIGIL",
+            "RESOURCE_TRANSACTION_RESEARCH",
+            "WHITE_BOX_MODEL_LEARNING",
+            "GENERATIVE_MODEL_TRAINING"
+          ]
+        },
+        "enabled": {"type": "boolean"},
+        "purposes": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["C0_EXPERIENCE", "C1_RESEARCH", "C2_WHITE_BOX_LEARNING", "C3_GENERATIVE_MODEL_TRAINING"]},
+          "uniqueItems": true
+        }
+      }
+    },
+    "acknowledgement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_seq", "kind", "recorded_at"],
+      "properties": {
+        "event_seq": {"type": "integer", "minimum": 0},
+        "kind": {"type": "string", "minLength": 1},
+        "recorded_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "revocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_seq", "signal", "effective_after_event_seq", "recorded_at"],
+      "properties": {
+        "event_seq": {"type": "integer", "minimum": 0},
+        "signal": {"type": "string", "minLength": 1},
+        "effective_after_event_seq": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Collection/use is invalid for events with seq strictly greater than this boundary."
+        },
+        "recorded_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}
