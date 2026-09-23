@@ -1,0 +1,94 @@
+{
+  "experiment_id": "CT-001",
+  "pass": "B",
+  "specimen_alias": "SPECIMEN-451",
+  "constitutional_reference": {
+    "id": "CONST-P4",
+    "text": "Evidence Before Authority",
+    "standing": "PROVISIONAL_REFERENCE_NOT_BINDING"
+  },
+  "voice_events": [
+    {
+      "id": "H1",
+      "voice": "HUMAN",
+      "standing": "OBSERVED",
+      "content": "Owner checkpoint records recurring concerns about membrane integrity, authority pinning, schema strictness, and pool ambiguity; checkpoint is explicitly non-final."
+    },
+    {
+      "id": "H2",
+      "voice": "HUMAN",
+      "standing": "OBSERVED",
+      "content": "Owner states that agreeing-model count must be distinguished from demonstrably independent observations and directs that Arena use its own pools rather than redesign existing pools.",
+      "authority": "DESIGN_DIRECTION_NOT_FORMAL_SPECIMEN_RATIFICATION"
+    },
+    {
+      "id": "H3",
+      "voice": "HUMAN",
+      "standing": "OBSERVED",
+      "content": "A separate umbrella architecture record was ratified for a bounded Phase-0 scope subject to conditions.",
+      "authority": "SCOPED_TO_SEPARATE_UMBRELLA_RECORD"
+    },
+    {
+      "id": "A1",
+      "voice": "AI",
+      "standing": "REPORTED",
+      "content": "Reviewer reports that membrane receipts do not prove structural blindness, authority source is unpinned, and harmonic mapping may encode valence.",
+      "independence": "UNPROVEN"
+    },
+    {
+      "id": "A2",
+      "voice": "AI",
+      "standing": "REPORTED",
+      "content": "Reviewer reports process-level rather than structural independence, unpinned authority, harmonic valence, and pre-exposure contamination risk.",
+      "independence": "UNPROVEN"
+    },
+    {
+      "id": "A3",
+      "voice": "AI",
+      "standing": "REPORTED",
+      "content": "Reviewer reports unproven structural blindness, need for immutable authority pinning and non-retroactivity, plus schema and contamination gaps.",
+      "independence": "UNPROVEN"
+    },
+    {
+      "id": "I1",
+      "voice": "INDUSTRY",
+      "standing": "OBSERVED",
+      "content": "Production code-review system reports high-severity gaps in blindness receipts, schema payload constraints, and membrane receipts, plus authority-pinning and transition gaps.",
+      "independence": "UNPROVEN"
+    },
+    {
+      "id": "T1",
+      "voice": "TOOL",
+      "standing": "OBSERVED",
+      "content": "Eleven automated repository workflow checks completed successfully.",
+      "scope": "CHECK_HEALTH_ONLY"
+    },
+    {
+      "id": "T2",
+      "voice": "TOOL",
+      "standing": "OBSERVED",
+      "content": "Specimen is open, mechanically mergeable, and not merged.",
+      "scope": "REPOSITORY_STATE_ONLY"
+    },
+    {
+      "id": "N1",
+      "voice": "NORMATIVE",
+      "standing": "DECLARED",
+      "content": "Constitutional reference says Evidence Before Authority but explicitly describes itself as provisional and non-binding.",
+      "applicability": "REFERENCE_ONLY"
+    },
+    {
+      "id": "N2",
+      "voice": "NORMATIVE",
+      "standing": "UNKNOWN",
+      "content": "No external legal or standards provision is asserted in this package as necessary to resolve the specimen.",
+      "applicability": "UNKNOWN_NOT_USED_FOR_WARRANT"
+    }
+  ],
+  "independence_rule": "Agreement count and demonstrated independent observations are separate fields. None of A1/A2/A3/I1 has sealed-context verification in this fixture.",
+  "prohibited_aggregation": [
+    "majority=>truth",
+    "CI_pass=>constitutional_approval",
+    "umbrella_ratification=>specimen_ratification"
+  ]
+}
