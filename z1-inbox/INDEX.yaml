@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 78
+  candidates: 83
   records: 38
 ratifiers:
 - Night
@@ -741,6 +741,59 @@ candidates:
     \ Also settles backfill (permitted, forced to BACKFILL_UNGRADED at weight 0)\
     \ and divergence (the only part carrying information under shared sources).\
     \ Retracts the independence claim in AGENT_GRAPH_COMPARISON.md."
+- q_id: Q-REFERENT-DECAY-01
+  title: "Five artifacts whose link to their referent died while the artifact\
+    \ stayed alive"
+  path: z1-inbox/2026-09-22/Q-REFERENT-DECAY-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Reframes four open candidates as one class. A11 protecting a property\
+    \ A13 made irrelevant; a claim that molt closure was already solved when\
+    \ MOLT_STATE.md says PROPOSED; 0.8632 copied 38 times from a corpus that\
+    \ stopped reproducing it; Check principles (P19) reporting green without\
+    \ opening a file; the stop hook flagging a squash-merge as unshipped work.\
+    \ None was false when written. The repository checks assertions and checks\
+    \ sources and has nothing that checks the edge between them - a diagnosis\
+    \ already written in AGENT_GRAPH_COMPARISON.md before four of the five\
+    \ instances occurred. Names the asymmetry that makes an inert gate worst:\
+    \ wrong prose is neutral evidence, a green check is positive evidence.\
+    \ Five options ranked, none built; the falsifier concedes no single option\
+    \ catches all five and invites Z2 to split the class if that is too loose."
+- q_id: Q-A11-ORDERING-INERT-01
+  title: "A11 still enforces a property no grade depends on"
+  path: z1-inbox/2026-09-22/Q-A11-ORDERING-INERT-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Residue of A13, merged in PR #446. Before it, ordering picked which\
+    \ access grade counted and A11 protected that by requiring distinct values.\
+    \ A13 takes the most contaminating access regardless of order, so ordering\
+    \ no longer reaches any grade - verified against the merged tool, whose only\
+    \ live readers are A11's own test and the rendered provenance table. A11 now\
+    \ refuses alignments for a violation that would change no grade, and passes\
+    \ either way, so nobody would notice. Not fixed deliberately: the rule set is\
+    \ awaiting ratification under Q-GRAPH-CONVERGENCE-01, and it is the cleanest\
+    \ live specimen of Q-REFERENT-DECAY-01. Three options; Z1 recommends keeping\
+    \ A11 with its purpose restated, weakly, and says why the recommendation is\
+    \ weak. Not a defect in A13 - the lesson is that a fix should say which\
+    \ guards it retires."
+- q_id: Q-P19-GATE-INERT-01
+  title: "The principle-compliance gate reported green without opening a file"
+  path: z1-inbox/2026-09-22/Q-P19-GATE-INERT-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Tier 2, authorised by Night 2026-09-22. The workflow built its file list\
+    \ with git diff --name-only (newline-separated) and the bot split it on commas,\
+    \ so every multi-file change arrived as one unsplittable blob that did not end\
+    \ in .py - no file was ever opened and Check principles (P19) printed passed\
+    \ having inspected nothing. It only ran when a change touched exactly one .py\
+    \ file. Found by accident on PR #446. Second defect fixed with it because\
+    \ fixing either alone is worse: the scan read whole files for a bare substring,\
+    \ and 113 of 373 .py files contain always/never/impossible, so repairing only\
+    \ the plumbing would have failed ~30% of Python files for words the change did\
+    \ not write. Scan is now added-lines, word-boundary, self-exempting, and exits\
+    \ non-zero when the diff is unreadable. Smoke test 1 check -> 12. Leaves\
+    \ P-HUMILITY calibration to Z2: the working gate flags one added line on #446\
+    \ that is both absolute language and a correct invariant."
 - q_id: Q-DEFERRAL-RULE-01
   title: "A deferral needs an ending condition, not just a better home"
   path: z1-inbox/2026-09-21/Q-DEFERRAL-RULE-01.md
@@ -809,6 +862,46 @@ candidates:
     \ are born gated; (4) settle whether the 64-hex signature in REGISTRY_SPEC.md\
     \ or the merge-is-ratification ruling governs (RFM-15 — AMBIGUITY). Falsifier\
     \ per ask; all counts tool-produced."
+- q_id: Q-Z2-BLOCK-UNFILLABLE-01
+  title: "The candidate template promises z2_decision is auto-filled; nothing\
+    \ fills it, and the signature makes filling it later impossible"
+  path: z1-inbox/2026-09-22/Q-Z2-BLOCK-UNFILLABLE-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Surfaced while preparing the twelve ratification commands, not by a gate.\
+    \ CANDIDATE_BLOCK_TEMPLATE.md:340 states z2_decision is \\\"Auto-filled by\
+    \ Z2\\\". Nothing fills it: ratify.py writes only the dated ruling file and\
+    \ INDEX.yaml and opens the candidate read-only (435, 447), and no live code,\
+    \ workflow or validator reads the block. Because a candidate's digest is over\
+    \ raw bytes (447) and --verify recomputes over current bytes (279), filling\
+    \ the block after ratification breaks the signature of the thing just signed -\
+    \ demonstrated, two different digests over one file. Filling it before hashing\
+    \ fails too: the block carries ratification_hash, and ratify.py:38-40 already\
+    \ records why a hash cannot cover its own field. Stated separately from what\
+    \ is only predicted: the contradiction has NEVER occurred - no terminal-status\
+    \ candidate carries the block. Open candidates that do are counted by a command\
+    \ the candidate publishes rather than a number written down here; the count\
+    \ rose by one during review when #457 merged another from a different session.\
+    \ Ratifying any of them creates the first instance. The command's first\
+    \ published form was wrong twice - a substring that also matched\
+    \ z2_decision_timestamp, and status != awaiting_z2 treated as terminal where\
+    \ validate.py puts withdrawn and superseded in OPEN - both caught by Copilot\
+    \ and recorded in the candidate rather than quietly fixed. First member of the Q-REFERENT-DECAY-01\
+    \ class that is generated rather than left behind, and the only one where\
+    \ care is provably not the fix. Four options; Z1 recommends correcting the\
+    \ template's claim first, then renaming the field to the request it actually\
+    \ is. Not edited: the template is controlled and the 14 affected candidates\
+    \ are about to be signed."
+- q_id: Q-MESH-LOCAL-COORDINATION-01
+  title: "Local mesh coordination layer in operations/mesh/ for humanaios, website,\
+    \ grok-crossref"
+  path: z1-inbox/2026-09-22/Q-MESH-LOCAL-COORDINATION-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Adds mesh/ as a local, unratified coordination surface. Requests D3 (is mesh/\
+    \ inside operations an admissible locus?) and D4 (promote schema to schemas/ and\
+    \ conformance scripts to tools/?). Does not resolve D1; widens it from two candidate\
+    \ resolution targets to three. Writes no REGISTERED.md or NF_LEDGER.jsonl row."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)

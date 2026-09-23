@@ -1,0 +1,368 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://humanaios.ai/schemas/practice_local/0.1",
+  "title": "Local Mesh Practice Record v0.1",
+  "description": "Z1 candidate schema. A local coordination record for one Empirica practice held inside the operations repository. Confers no authority. Not ratified; no Z2 hash.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "practice_id",
+    "status",
+    "authority",
+    "resolution",
+    "purpose_filter",
+    "owns",
+    "out_of_scope",
+    "edges",
+    "trl_framing",
+    "provenance",
+    "falsifier"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "practice_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Canonical practice token as it appears in ledgers/NF_LEDGER.jsonl."
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Non-canonical spellings seen in operator prose. Never used in machine-readable fields."
+    },
+    "status": {
+      "enum": [
+        "CANDIDATE",
+        "RATIFIED",
+        "SUPERSEDED",
+        "WITHDRAWN"
+      ],
+      "description": "RATIFIED requires a Z2 hash in authority.z2_ratification."
+    },
+    "zone": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Zone ID from ZONE_REGISTRY.md, or null if the practice is not zoned. Read, never set here."
+    },
+    "zone_source": {
+      "type": "string",
+      "description": "File the zone field was read from."
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grants_authority",
+        "z2_ratification"
+      ],
+      "properties": {
+        "grants_authority": {
+          "const": false,
+          "description": "Invariant PARTICIPATION_IN_THE_LOCAL_MESH_IS_NOT_AUTHORITY. Always false."
+        },
+        "z2_ratification": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Z2 sha256 signature, or null when unratified. Constrained by the root allOf: required and 64-hex when status is RATIFIED, and null for every other status."
+        },
+        "caps_source": {
+          "type": "string",
+          "description": "File the practice's proposal/resource cap is read from."
+        }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "class_source"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "UNAMBIGUOUS",
+            "AMBIGUOUS",
+            "UNRESOLVABLE"
+          ],
+          "description": "Read from ledgers/PRACTICE_RESOLUTION_MAP.md. Never independently restated."
+        },
+        "class_source": {
+          "type": "string"
+        },
+        "candidate_targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Every target a resolver could read. A local record adds one; it does not remove others."
+        },
+        "blocked_by": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Open Z2 decision that prevents resolution, e.g. D1."
+        },
+        "z1_may_resolve": {
+          "type": "boolean"
+        }
+      }
+    },
+    "purpose_filter": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "generates_data",
+          "tests_hypothesis",
+          "generates_revenue"
+        ]
+      },
+      "description": "P5 primary purpose filter. Work outside these is out of scope."
+    },
+    "owns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "out_of_scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "consumes_from": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "practice",
+          "what"
+        ],
+        "properties": {
+          "practice": {
+            "type": "string"
+          },
+          "what": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "when_to_decline": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "forecast_tokens": {
+      "type": "array",
+      "description": "Standing pins from ledgers/NF_LEDGER.jsonl. Mirrored for coordination; the ledger remains authoritative.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "token_id",
+          "title",
+          "state"
+        ],
+        "properties": {
+          "token_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "DATED",
+              "PENDING_Z2_DATE",
+              "RESOLVED",
+              "STRUCK",
+              "VOID"
+            ]
+          },
+          "resolved": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "minItems": 1,
+      "description": "P-GRAPH: a record with no edge is an orphan.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "relation"
+        ],
+        "properties": {
+          "ref": {
+            "type": "string"
+          },
+          "relation": {
+            "enum": [
+              "cross_references",
+              "depends_on",
+              "evidences",
+              "constrained_by",
+              "reviewed_by"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "description": "P-ARTIFACT-BREADTH: unknowns are logged as unknowns, not dressed as findings.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "trl_framing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementation_state"
+      ],
+      "properties": {
+        "implementation_state": {
+          "enum": [
+            "SPECIFIED",
+            "CODED",
+            "TESTED",
+            "OPERATED",
+            "VERIFIED"
+          ],
+          "description": "Vocabulary from issue #429 section 19. P-T10: claim no state above the evidence."
+        },
+        "evidence_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "derived_from",
+        "pinned_sha",
+        "temporal_class"
+      ],
+      "properties": {
+        "derived_from": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pinned_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "temporal_class": {
+          "enum": [
+            "OBSERVATIONAL",
+            "TECHNICAL_SAFETY",
+            "REGULATORY_EXTERNAL",
+            "HISTORICAL_RECORD"
+          ],
+          "description": "INTERNAL_WORK_DEADLINE is prohibited by Q-TEMPORAL-DISSOLUTION-01."
+        },
+        "observed_at": {
+          "type": "string"
+        }
+      }
+    },
+    "falsifier": {
+      "type": "string",
+      "minLength": 40,
+      "description": "Required. A concrete observable condition under which this record is wrong."
+    }
+  },
+  "allOf": [
+    {
+      "title": "RATIFIED requires a Z2 sha256 signature",
+      "if": {
+        "properties": {
+          "status": {
+            "const": "RATIFIED"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "authority": {
+            "required": [
+              "z2_ratification"
+            ],
+            "properties": {
+              "z2_ratification": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "An unratified status cannot carry a Z2 signature",
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "CANDIDATE",
+              "SUPERSEDED",
+              "WITHDRAWN"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "authority": {
+            "properties": {
+              "z2_ratification": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
