@@ -76,12 +76,16 @@ The falsifiers make sure we're not just hoping — we're measuring.
 
 ## What "Success" Looks Like (End of Week 4)
 
-- ✅ You can ratify REGISTERED.md candidates 2–3x faster than via spreadsheet
-- ✅ You can track molt windows without manually checking 3 files
-- ✅ The audit log lets you reconstruct past decisions in <1 minute
-- ✅ You feel informed, not surveilled (audit log is transparent but not intrusive)
-- ✅ All 5 RQs pass their falsifiers (or tradeoffs are explicitly ratified)
-- ✅ Code is secure, performant, and production-ready
+**All 5 RQs pass their falsifiers** (or tradeoffs are explicitly ratified):
+- **Auth-01:** Token secure from XSS, SUS >70, login <15s, refresh <500ms
+- **Auth-02:** Refresh token secure, re-auth abandon <50%, detect compromise <5min
+- **UX-01:** Find "next action" <5s, <50% scrolling interactions
+- **UX-02:** Reconstruct audit decision <1 min, event noise <10/action
+- **UX-03:** WebSocket latency <30s, uptime >99.9%, UI lag <100ms
+
+Plus:
+- ✅ Code is secure (RLS policies, no leaked secrets), performant (render <500ms), no memory leaks
+- ✅ Z2 smoke test passes all tasks
 - ✅ Z2 signs off → ready for staging deployment Week 5
 
 ---

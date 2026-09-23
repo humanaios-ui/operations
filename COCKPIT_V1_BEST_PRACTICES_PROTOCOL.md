@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This document defines how HumanAIOS will **research and validate best practices for Z2 governance cockpit design** during a 4-week reverse-waterfall build (test during build, not after). Five research questions (RQs) with 15 falsifiers guide weekly validation gates. Each gate must pass to proceed to next week; if a falsifier trips, the team iterates same week or escalates to Z2.
+This document defines how HumanAIOS will **research and validate best practices for Z2 governance cockpit design** during a 4-week reverse-waterfall build (test during build, not after). Five research questions (RQs) with 22 falsifiers guide weekly validation gates. Each gate must pass to proceed to next week; if a falsifier trips, the team iterates same week or escalates to Z2.
 
 **Key constraint:** All work must be observable, measurable, and falsifiable. Vague goals ("users like it") are not acceptable. Falsifiers are conditions under which we declare the hypothesis *wrong* and iterate.
 
@@ -17,9 +17,9 @@ This document defines how HumanAIOS will **research and validate best practices 
 
 ## Research Questions & Hypotheses
 
-### **RQ-Auth-01: Does PKCE + Supabase OAuth + httpOnly cookies = secure + frictionless auth?**
+### **RQ-Auth-01: Does PKCE + Supabase OAuth + httpOnly cookies = secure token storage + frictionless auth?**
 
-**Hypothesis:** Using PKCE + Supabase authentication + httpOnly cookies for session storage enables both security (resistant to phishing) and UX fluency (minimal friction, <15s login flow).
+**Hypothesis:** Using PKCE + Supabase authentication + server-side httpOnly cookies for session storage (via BFF/middleware) enables both security (tokens cannot be stolen by script injection) and UX fluency (minimal friction, <15s login flow).
 
 **Design:** 
 - OAuth 2.0 PKCE flow (no client secret in browser)
@@ -29,7 +29,7 @@ This document defines how HumanAIOS will **research and validate best practices 
 - Silent token refresh in background; re-auth triggered at 4h
 
 **Falsifiers (any one triggers iteration):**
-1. **Phishing fall rate >10%** — If >10% of test subjects fall for simulated phishing attack, auth design is not phishing-resistant
+1. **Token stored in JavaScript memory** — If token accessible to JavaScript XSS payload, storage is not secure
 2. **SUS score <70** — System Usability Scale below 70 = unacceptable UX (below industry standard)
 3. **Login takes >15 seconds** — Timed flow shows login >15s = friction too high
 4. **Token refresh causes visible UI block** — Silent refresh causes >500ms UI freeze = UX failure
@@ -52,9 +52,9 @@ This document defines how HumanAIOS will **research and validate best practices 
 - Timeout: Absolute session timeout at 8h regardless of refresh (hard boundary)
 
 **Falsifiers (any one triggers iteration):**
-1. **Token compromise takes >15 min to detect** — If attacker keeps token >15 min without detection = window too long
+1. **Refresh token stored in JavaScript accessible** — If refresh token reachable by XSS = window too long
 2. **Re-auth abandonment >50%** — If >50% abandon at 4h forced re-auth = window too aggressive
-3. **Refresh token leaked in logs or traces** — If refresh token appears in plaintext in network trace = security failure
+3. **Access token compromise detection takes >5 min** — If server cannot detect stolen access token within 5 min = window too long
 4. **Silent refresh failure rate >5%** — If >5% of refreshes fail in field = reliability risk
 
 **Test subjects:** Night + 1 test user  
