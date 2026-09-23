@@ -47,7 +47,7 @@ class HarmonyStressVectors(unittest.TestCase):
     def test_all_preregistered_vectors(self):
         for vector in self.vectors:
             with self.subTest(vector=vector["id"]):
-                payload = vector["state"]
+                payload = copy.deepcopy(vector["state"])
                 if vector["id"] == "CH-01-HEALTHY-DISSENT":
                     payload, trusted_head = attach_valid_gate_receipts(payload)
                     result = evaluate(
@@ -55,10 +55,7 @@ class HarmonyStressVectors(unittest.TestCase):
                         trusted_receipt_head_hash=trusted_head,
                     )
                 else:
-                    result = evaluate(
-            from_dict(payload),
-            trusted_receipt_head_hash=trusted_head,
-        )
+                    result = evaluate(from_dict(payload))
                 self.assertEqual(vector["expected_verdict"], result["verdict"])
 
     def test_perfect_scores_cannot_override_gate_failure(self):
@@ -85,15 +82,12 @@ class HarmonyStressVectors(unittest.TestCase):
         self.assertEqual("INVALID_HARMONY", result["verdict"])
         self.assertTrue(any("NO_RECEIPT_FEED" in x for x in result["gate_failures"]))
 
-
     def test_payload_cannot_self_pin_receipt_head(self):
         payload, real_head = attach_valid_gate_receipts({
             "contributions": [],
             "run_id": "self-pin",
             "gate_evidence": {gate: [f"r:{gate}"] for gate in HARD_GATES},
         })
-        # An untrusted caller may include a plausible head field, but from_dict()
-        # has no RunState field for it and evaluate() receives no trusted head.
         payload["receipt_head_hash"] = real_head
         result = evaluate(from_dict(payload))
         self.assertEqual("INVALID_HARMONY", result["verdict"])
@@ -114,21 +108,19 @@ class HarmonyStressVectors(unittest.TestCase):
         self.assertTrue(any("CHAIN_INVALID" in x for x in result["gate_failures"]))
 
     def test_wrong_scope_receipt_fails(self):
-        payload, trusted_head = attach_valid_gate_receipts({
+        payload, _ = attach_valid_gate_receipts({
             "contributions": [],
             "run_id": "expected",
             "gate_evidence": {gate: [f"r:{gate}"] for gate in HARD_GATES},
         })
-        # Rebuild a valid chain after intentionally changing one receipt's scope.
         raw = []
         for event in payload["receipt_events"]:
             body = {k: v for k, v in event.items() if k not in {"seq", "prev_hash", "hash"}}
             if body["subject"] == "human_autonomy_preserved":
                 body["scope"] = "run:other"
             raw.append(body)
-        events, head = build_receipt_chain_for_testing(raw)
+        events, trusted_head = build_receipt_chain_for_testing(raw)
         payload["receipt_events"] = events
-        trusted_head = head
 
         result = evaluate(
             from_dict(payload),
@@ -138,7 +130,7 @@ class HarmonyStressVectors(unittest.TestCase):
         self.assertTrue(any("SCOPE_MISMATCH" in x for x in result["gate_failures"]))
 
     def test_simulated_receipt_method_fails(self):
-        payload, trusted_head = attach_valid_gate_receipts({
+        payload, _ = attach_valid_gate_receipts({
             "contributions": [],
             "run_id": "simulated",
             "gate_evidence": {gate: [f"r:{gate}"] for gate in HARD_GATES},
@@ -149,9 +141,8 @@ class HarmonyStressVectors(unittest.TestCase):
             if body["subject"] == "provenance_complete":
                 body["verification_method"] = "SIMULATED"
             raw.append(body)
-        events, head = build_receipt_chain_for_testing(raw)
+        events, trusted_head = build_receipt_chain_for_testing(raw)
         payload["receipt_events"] = events
-        trusted_head = head
 
         result = evaluate(
             from_dict(payload),
