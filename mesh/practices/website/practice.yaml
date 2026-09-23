@@ -1,0 +1,101 @@
+schema_version: "0.1"
+practice_id: website
+aliases: []
+status: CANDIDATE
+
+zone: null
+zone_source: "PLANNED_REPOS.md line 55 — `website` is PLANNED (Phase 1 infrastructure), owner Night; it holds no Zone ID in ZONE_REGISTRY.md"
+
+authority:
+  grants_authority: false
+  z2_ratification: null
+  caps_source: "No cap published. A planned repo has no ZONE_REGISTRY.md row and therefore no resource cap."
+
+resolution:
+  class: AMBIGUOUS
+  class_source: "ledgers/PRACTICE_RESOLUTION_MAP.md — row `website`, 4 tokens, 0 resolved; mesh dir vendors `operations-repo`"
+  candidate_targets:
+    - "empirica-practice-mesh practices/website/ (vendors a copy of another repo under operations-repo/)"
+    - "the vendored operations-repo/ copy inside that mesh directory"
+    - "operations mesh/practices/website/ (added by this drop; not a resolver target)"
+  blocked_by: "D1"
+  z1_may_resolve: false
+
+purpose_filter:
+  - generates_data
+
+owns:
+  - "Public presentation surface for HumanAIOS research output"
+  - "Registry-generated practice profiles rendered as hashed claims only"
+  - "Public-facing analytics on that surface"
+
+out_of_scope:
+  - "Governance ratification of any claim it renders (Z2 sole authority)"
+  - "Promotional framing — P8 constrains this practice to attraction, URL only, no calls to action"
+  - "Behavioral assessment scoring (humanaios owns)"
+  - "Converting a rendered claim into project fact; issue #429 requires canonical source, derived rendering, and generated explanation to stay distinguishable"
+
+consumes_from:
+  - practice: humanaios
+    what:
+      - "acat_corpus_updates"
+      - "behavioral_assessment_findings"
+    when_to_decline:
+      - "Rendering a finding that carries no hash back to a canonical source"
+
+forecast_tokens:
+  - token_id: "T-website-01"
+    title: "14 practice profiles (registry-generated, hashed claims only)"
+    state: DATED
+    resolved: false
+    note: "The local mesh layer covers 3 practices, not 14; this drop does not satisfy this token."
+  - token_id: "T-website-02"
+    title: "Analytics Dashboard"
+    state: DATED
+    resolved: false
+  - token_id: "T-website-03"
+    title: "SEO Audit"
+    state: DATED
+    resolved: false
+  - token_id: "T-website-04"
+    title: "Community Engagement Model"
+    state: DATED
+    resolved: false
+
+edges:
+  - ref: "humanaios-ui/operations#429"
+    relation: constrained_by
+    note: "Sections 2-3 — the service contract and ADAPTATION_SERVES_COMPREHENSION_NOT_COMPLIANCE bind any public projection surface."
+  - ref: "PLANNED_REPOS.md"
+    relation: depends_on
+    note: "The practice has no zone until the planned repo is created and Z2 ratifies a ZONE_REGISTRY.md row."
+  - ref: "site/"
+    relation: cross_references
+    note: "An in-tree `site/` directory exists in operations (index.html, assets/, findings/). Whether it is this practice's artifact is UNKNOWN."
+
+unknowns:
+  - "Whether in-tree `site/` is the website practice's artifact, a separate operations asset, or a vendored copy. Not determined in this session."
+  - "Which of the pre-existing candidate targets the resolver reads (D1)."
+  - "Whether the 14 practice profiles in T-website-01 refer to the 15-row pin spec minus one, or to a different census. The pin spec names 15 practices; the token says 14."
+
+trl_framing:
+  implementation_state: SPECIFIED
+  evidence_ref: "No evidence read in this session shows any of T-website-01..04 in a CODED or OPERATED state."
+
+provenance:
+  derived_from:
+    - "PLANNED_REPOS.md"
+    - "ledgers/PRACTICE_RESOLUTION_MAP.md"
+    - "ledgers/NF_LEDGER.jsonl"
+    - "ledgers/mesh_pins_090826.json"
+    - "constitution.json (P8)"
+  pinned_sha: "44347b79b1d6351bd10bbb5fb6c45b9ead6bd42e"
+  temporal_class: HISTORICAL_RECORD
+  observed_at: "2026-09-22 (OBSERVATIONAL; carries no scheduling authority)"
+
+falsifier: >
+  This record is FALSE if ZONE_REGISTRY.md is found to carry a Zone ID row for `website`, since
+  the record asserts it is planned-only; or if the mesh directory practices/website/ is read at a
+  pinned sha and holds an artifact matching any of T-website-01..04, since the record asserts the
+  verdict is undetermined rather than NO; or if in-tree `site/` is confirmed to be this
+  practice's artifact, since the record lists that relationship as UNKNOWN.

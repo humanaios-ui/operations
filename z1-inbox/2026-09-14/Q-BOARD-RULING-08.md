@@ -36,10 +36,23 @@ A choice of `later` is a ruling too: it is recorded with a date and the question
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: accept
+by: Night
+at: 2026-09-18T01:22:08Z
+status: PENDING
+block_hash: 9a7400146d0e290327c7c58691650cb25723f0f9e54185f5a5f1aa66f0bdcbf6
+body_hash: 0250b622e3f39fa942aad27acb80964be031e60d8f2f9281d551c75b06caf6fd
+
+```
+RULING d8
+  by: Night (tagline)
+  project: HumanAIOS
+  question: c08f86c history — accept that the PII literals stay in history, or rewrite history?
+  choice: accept
+  note: 
+  at: 2026-09-18T01:22:08Z
+  status: PENDING
+```
 
 ## Z2 Review Checklist
 

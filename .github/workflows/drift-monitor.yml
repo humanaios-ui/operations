@@ -63,25 +63,25 @@ jobs:
             if (novelIssues.length > 0) {
               const title = `Document control: ${novelIssues.length} drift issues detected`;
               const body = `
-## Drift Monitor Detected ${novelIssues.length} New Issues
+            ## Drift Monitor Detected ${novelIssues.length} New Issues
 
-**Run timestamp:** ${report.timestamp}
+            **Run timestamp:** ${report.timestamp}
 
-### Issues Found:
-${novelIssues.map((i, idx) => `
-**${idx+1}. ${i.doc_id}** — ${i.type}
-- **Doc:** ${i.title}
-- **Severity:** ${i.severity}
-- **Recommendation:** ${i.recommendation}
-`).join('\n')}
+            ### Issues Found:
+            ${novelIssues.map((i, idx) => `
+            **${idx+1}. ${i.doc_id}** — ${i.type}
+            - **Doc:** ${i.title}
+            - **Severity:** ${i.severity}
+            - **Recommendation:** ${i.recommendation}
+            `).join('\n')}
 
-### What to do:
-1. Review each issue above
-2. Take recommended action (fix link, re-approve, restore file, etc.)
-3. Comment on this issue when resolved
-4. Next monitor run will detect resolution
+            ### What to do:
+            1. Review each issue above
+            2. Take recommended action (fix link, re-approve, restore file, etc.)
+            3. Comment on this issue when resolved
+            4. Next monitor run will detect resolution
 
-See \`A6_DRIFT_MONITOR_SPEC.md\` runbook for response workflow.
+            See \`A6_DRIFT_MONITOR_SPEC.md\` runbook for response workflow.
               `;
 
               // Create issue
