@@ -35,7 +35,7 @@ counts:
   excluded: 4
   builder_markers_present: 139
   missing_from_tree: 0
-  unclassified: 1
+  unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
@@ -52,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2198,7 +2197,7 @@ tools:
   name: smag_gate_enforcer
   path: tools/smag_gate_enforcer_v1_0.py
   version: 1.0.0
-  category: unclassified
+  category: security_gate_tool
   zone: 1
   status: draft
   interface: cli

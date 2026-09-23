@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Builder v1.7 compliant
+Builder v1.7 compliant · security_gate_tool
 smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up)
-HumanAIOS · security_gate_tool · S-092126
+HumanAIOS · S-092126
 
 Implements s1 CI gate wire-up: loads calibration profile, computes gap_rate,
 enforces review_bar and merge_pause_threshold before merge approval.
@@ -22,6 +22,7 @@ Returns:
 
 TOOL_NAME = "smag_gate_enforcer"
 TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "security_gate_tool"
 
 import json
 import sys
