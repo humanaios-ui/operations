@@ -1,20 +1,17 @@
-"""Verified receipt resolver shared by HumanAIOS prototype consumers.
+#!/usr/bin/env python3
+"""
+Verified Receipt Resolver — v0.1
+Builder v1.7 compliant · validation_tool
+HumanAIOS · H-COLLAB-HARMONY-01
 
-Authority effect: NONE.
-Standing: Z1 prototype.
+Resolve typed receipts from a separately pinned append-only hash chain.
+The tool checks integrity, status, verification strength, and exact
+subject/action/scope matching. It does not establish the underlying
+real-world truth of a receipt.
 
-Security model:
-- Consumers never trust their own booleans or raw receipt IDs.
-- Receipt events must form an intact append-only hash chain.
-- The chain head must match a separately pinned head hash.
-- Receipt fields must match the exact consumer requirement.
-- Stub/simulated/format-only verification methods are refused.
-- Revoked receipts are refused.
-- One-time receipts are refused after consumption.
-
-Important: a pinned head must come from an independent/trusted channel. Supplying
-an attacker-controlled event list and attacker-controlled head together does not
-create trust.
+Usage:
+  python3 tools/verified_receipts.py --smoke-test
+  python3 tools/verified_receipts.py --help
 """
 
 from __future__ import annotations
@@ -24,7 +21,15 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 import hashlib
 import json
+import argparse
+import sys
 
+
+TOOL_NAME = "verified_receipts"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "validation_tool"
+TOOL_SESSION = "H-COLLAB-HARMONY-01"
+TOOL_ZONE = 1
 
 ZERO_HASH = "0" * 64
 
@@ -311,3 +316,59 @@ def read_receipt_events(path: str) -> tuple[List[Dict[str, Any]], Optional[str]]
     events = [json.loads(line) for line in p.read_text().splitlines() if line.strip()]
     head = events[-1].get("hash") if events else None
     return events, head
+
+
+# ── Builder v1.7 smoke test / entry point ────────────────────────────────────
+
+def run_smoke_test() -> bool:
+    """Exercise one valid and one invalid receipt resolution."""
+    try:
+        raw = [{
+            "type": "RECEIPT_VERIFIED",
+            "receipt_id": "smoke-r1",
+            "receipt_type": "HARMONY_GATE",
+            "subject": "dissent_preserved",
+            "action": "ASSERT_GATE",
+            "scope": "run:smoke",
+            "issuer": "bridge-evidence-graph",
+            "authority_scope": "NONE",
+            "verification_status": "VERIFIED",
+            "verification_strength": "OBSERVED",
+            "verification_method": "BRIDGE_EVENT_HASH_CHAIN",
+            "evidence_ref": "smoke:evidence",
+            "one_time": False,
+        }]
+        events, head = build_receipt_chain_for_testing(raw)
+        requirement = ReceiptRequirement(
+            receipt_type="HARMONY_GATE",
+            subject="dissent_preserved",
+            action="ASSERT_GATE",
+            scope="run:smoke",
+            min_strength="OBSERVED",
+        )
+        good = VerifiedReceiptResolver(events, head).resolve("smoke-r1", requirement)
+        assert good.valid, good
+
+        bad = VerifiedReceiptResolver(events, ZERO_HASH).resolve("smoke-r1", requirement)
+        assert not bad.valid and "PINNED_HEAD_MISMATCH" in (bad.reason or ""), bad
+
+        print("smoke-test OK — pinned receipt resolution and mismatch refusal verified.")
+        return True
+    except Exception as exc:
+        print(f"smoke-test FAIL — {exc}", file=sys.stderr)
+        return False
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Resolve HumanAIOS typed receipts from a pinned append-only receipt chain."
+    )
+    parser.add_argument("--smoke-test", action="store_true", help="run self-test and exit")
+    args = parser.parse_args()
+    if args.smoke_test:
+        raise SystemExit(0 if run_smoke_test() else 1)
+    parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
