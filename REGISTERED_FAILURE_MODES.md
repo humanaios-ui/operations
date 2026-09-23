@@ -1,8 +1,8 @@
 # REGISTERED.md Failure-Mode Map
 ## Registry Failure Modes → Standing Orders → Industrial Failure Modes
 
-**Source:** `REGISTERED.md` @ HEAD (4,992 lines, 154 entries)
-**Mapping Date:** 2026-09-13 · **Counts re-measured:** 2026-09-21
+**Source:** `REGISTERED.md` @ HEAD (5,090 lines, 156 entries)
+**Mapping Date:** 2026-09-13 · **Counts re-measured:** 2026-09-22
 **Authority:** Z2 (Night) ratification pending
 **Status:** Z1 candidate for REGISTERED.md
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED_FAILURE_MODES.md`
@@ -28,10 +28,10 @@ This document does that, in three columns:
 
 **Headline findings:**
 
-1. The registry scores **80.7% first-pass yield / 193,182 DPMO / ~2.4σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
+1. The registry scores **80.4% first-pass yield / 195,513 DPMO / ~2.4σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
 2. Of 19 failure modes, **before this scan 17 had no detector at all**. The dominant failure mode of the registry is not any single defect — it is the absence of instrumentation.
 3. **Four instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports **130** entries; `tools/repo_health.py` reports **126** immune entries; this scanner reported **131** before review, **135** after first correction, and **137** after Phase 2 parser fix (correction-to discovery + F-24 variant regex + ordering violation counting). No single instrument can be cited as authoritative. Routed to Z2 as a measurement-system finding — its resolution is a Z2 decision about which census should govern RFM-06 scoring and downstream action items.
-4. The value recorded as **Ratification Hash** at `REGISTERED.md:3925` is `e8a501f` — a 7-character git commit SHA, where `CLAUDE.md` Decision Routing step 6 and `NF_LEDGER_SCHEMA_v1.md` both specify `sha256(candidate | by=Night | at=timestamp | decision=ACCEPT)`. A commit SHA proves *when code landed*, not *what was approved*.
+4. The value recorded as **Ratification Hash** at `REGISTERED.md:4074` is `e8a501f` — a 7-character git commit SHA, where `CLAUDE.md` Decision Routing step 6 and `NF_LEDGER_SCHEMA_v1.md` both specify `sha256(candidate | by=Night | at=timestamp | decision=ACCEPT)`. A commit SHA proves *when code landed*, not *what was approved*.
 
 ---
 
@@ -39,21 +39,21 @@ This document does that, in three columns:
 
 Reproduce with `python3 tools/registered_failure_mode_scan_v0_1.py scan`.
 
-**Entry-level conformance** (154 entries × 4 checks = 616 opportunities):
+**Entry-level conformance** (156 entries × 4 checks = 624 opportunities):
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|
-| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 41/154 | 73.4% |
-| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 67/154 | 56.5% |
-| Front-matter fence form | RFM-07 | 8/154 | 94.8% |
-| Quote hygiene | RFM-08 | 3/154 | 98.1% |
+| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 43/156 | 72.4% |
+| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 68/156 | 56.4% |
+| Front-matter fence form | RFM-07 | 8/156 | 94.9% |
+| Quote hygiene | RFM-08 | 3/156 | 98.1% |
 
-**119 defects / 616 opportunities → 80.7% first-pass yield → 193,182 DPMO → ~2.4σ**
+**122 defects / 624 opportunities → 80.4% first-pass yield → 195,513 DPMO → ~2.4σ**
 
 `RFM-06` scores the **full** schema at `REGISTERED.md:16-32`, all ten declared fields. The registry says entries
 *"must open with"* that block, so the whole list is the contract; scoring a convenient subset would let the
 measurement flatter the registry. For triage the core five (`name`, `status`, `class`, `date_registered`,
-`session_registered`) are at **14/154 — 90.9% conforming**. The gap between 90.9% and 56.5% is `substrate` (58
+`session_registered`) are at **14/156 — 90.4% conforming**. The gap between 90.4% and 56.4% is `substrate` (58
 absent), `tags` (45), `superseded_by` (45) and `date_origin` (33): fields declared but never adopted. Whether that
 is schema erosion or an over-declared schema is Z2's call, not the scanner's — it reports both numbers and picks
 the declared one as the headline.
@@ -64,11 +64,11 @@ Same methodology and 1.5-shift convention as `audits/T1_DEFECT_BASELINE_S070726.
 
 | Check | RFM | Result |
 |:---|:---|:---|
-| F quick-index desync | RFM-11 | 9 of 48 F-entries absent from index (81.2% coverage) |
-| Post-terminal append | RFM-10 | 43 entries after the `## Changelog` boundary (by line position, so a later terminal section cannot hide one) |
+| F quick-index desync | RFM-11 | 10 of 49 F-entries absent from index (79.6% coverage) |
+| Post-terminal append | RFM-10 | 45 entries after the `## Changelog` boundary (by line position, so a later terminal section cannot hide one) |
 | Orphan roll-up row | RFM-12 | 0 — PASS (the IC-036 orphan recorded at the 2026-09-13 baseline has since been resolved) |
 | Ratified-class starvation | RFM-16 | 3 of 6 — D, R, GD defined, zero entries |
-| Header staleness | RFM-17 | declared 2026-08-15; newest content 2026-09-20 |
+| Header staleness | RFM-17 | 1 — declared 2026-09-20, newest content 2026-09-22 (drift introduced by new entries from 2026-09-21/2026-09-22 added after header frozen) |
 | Ratification-hash form | RFM-15 | 8 — git SHAs and unterminated `sha256(...)` expressions where 64 hex chars are specified |
 | Cross-artifact ratification | RFM-14 | 0 — PASS |
 
@@ -94,9 +94,9 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 |:---|:---|:---|:---|:---|
 | **RFM-04** | **Under-registration** — a registrable item surfaces in-session and is never registered | `tools/skills/humanaios-findings-scan/SKILL.md:29` | UNMEASURED | 5 — skill exists, manually invoked |
 | **RFM-05** | **Over-registration / receipt overstatement** — asserting registry state that does not exist | IC-031 | UNMEASURED | 5 — §B.6, `receipt_reconciliation.py` |
-| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **67 / 154** full schema · 14 / 154 core | 10 — see note below |
-| **RFM-07** | **Front-matter fence loss** — the entry carries no machine-readable front matter, so a fence-based parser cannot see it. Two forms: `id:` rendered as a markdown heading (F-52…F-55), and legacy `### ID — Title` entries with bold-prose fields or none at all (H-ELICIT-01 at `:2302`, plus H-1 / H-42 / H-LE-02) | F-52…F-55; H-1, H-42, H-LE-02, H-ELICIT-01 | **8 / 154** | 10 → 5 with this scanner |
-| **RFM-08** | **Quote contamination** — curly quotes break straight-quote string parsing. Checked across every declared field, not just `id`/`name`/`status`/`class` | F-52, F-53, H-AICASCADE-01, (2 additional found in Phase 2 review) | **3 / 154** | 10 → 5 with this scanner |
+| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **68 / 156** full schema · 14 / 156 core | 10 — see note below |
+| **RFM-07** | **Front-matter fence loss** — the entry carries no machine-readable front matter, so a fence-based parser cannot see it. Two forms: `id:` rendered as a markdown heading (F-52…F-55), and legacy `### ID — Title` entries with bold-prose fields or none at all (H-ELICIT-01 at `:2302`, plus H-1 / H-42 / H-LE-02) | F-52…F-55; H-1, H-42, H-LE-02, H-ELICIT-01 | **8 / 156** | 10 → 5 with this scanner |
+| **RFM-08** | **Quote contamination** — curly quotes break straight-quote string parsing. Checked across every declared field, not just `id`/`name`/`status`/`class` | F-52, F-53, H-AICASCADE-01, (2 additional found in Phase 2 review) | **3 / 156** | 10 → 5 with this scanner |
 
 > **Note on RFM-06 detection.** `.github/workflows/findings-registry.yml` runs `tools/registered_findings_validator_v1_0.py` as a blocking gate and its documented hard classes include *missing fields*. Run against the live registry it returns **Verdict: WARN, exit 0** with `✓ F-class ✓ H-class ✓ IC-class`, and does not surface the 8 entries missing required fields. A check that is nominally blocking and empirically silent is the IC-041 *audit-false-pass* genus. Scored 10, not 1, because detection is scored on observed behaviour rather than declared intent. **Routed to Z2 as an IC-candidate; not self-registered.**
 
@@ -104,9 +104,9 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 
 | ID | Failure mode | Evidence | Occurrence | Detection today |
 |:---|:---|:---|:---|:---|
-| **RFM-09** | **Append-ordering decay** — entry outside the class block `REGISTRY_SPEC.md:114` declares, *and* the class blocks themselves out of F→IC→H order | Z2-ASSESS-01, IC-044/045 in the H block; 25 more past the Changelog; F-31/IC-041 discovered via correction-to field | **41 / 154** | 10 → 5 |
-| **RFM-10** | **Post-terminal append** — entries land after the `## Changelog` boundary, forming a shadow zone the declared structure does not describe | L3246–3917 | **43** | 10 → 5 |
-| **RFM-11** | **Index desync** — the hand-maintained quick index stops tracking the body | F-24, F-56…F-61, 3× `F-CAND-*` | **9 / 48 F** | 10 → 5 |
+| **RFM-09** | **Append-ordering decay** — entry outside the class block `REGISTRY_SPEC.md:114` declares, *and* the class blocks themselves out of F→IC→H order | Z2-ASSESS-01, IC-044/045 in the H block; 27 more past the Changelog; F-31/IC-041 discovered via correction-to field | **43 / 156** | 10 → 5 |
+| **RFM-10** | **Post-terminal append** — entries land after the `## Changelog` boundary, forming a shadow zone the declared structure does not describe | L3246–5060 | **45** | 10 → 5 |
+| **RFM-11** | **Index desync** — the hand-maintained quick index stops tracking the body | F-24, F-56…F-61, F-MEASUREMENT-SCOPE-AUDIT-01, 3× `F-CAND-*` | **10 / 49 F** | 10 → 5 |
 | **RFM-12** | **Orphan roll-up row** — the IC Pareto cites an ID with no entry; the row still reports healthy | IC-036 @ `REGISTERED.md:118` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
 | **RFM-13** | **Semantic duplicate numbering** — two IDs for one defect. Invisible to any validator that detects only *literal* ID collisions | IC-052 / IC-053, both "drift validator missing D-OVERCLAIM" | **1 known** | 10 — no detector possible without semantic comparison |
 
@@ -114,10 +114,10 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 
 | ID | Failure mode | Evidence | Occurrence | Detection today |
 |:---|:---|:---|:---|:---|
-| **RFM-14** | **Cross-artifact ratification desync** — an artifact's ratification state contradicts itself or the registry | `PRIORITY_QUEUE.md:11` says *"pending Z2 signature"*; that same file's `## Appended Events` says *"PRIORITY_QUEUE.md v1_1 ratified"*; `REGISTERED.md:3925` lists it ratified at `e8a501f` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
-| **RFM-15** | **Ratification-hash substitution** — a git commit SHA recorded where a decision signature is specified | `REGISTERED.md:3925` = `e8a501f` (7 hex); plus a 63-char near-miss and six unterminated `sha256(Q-…` labels; spec requires exactly 64 hex | **8** | 10 → 5 |
+| **RFM-14** | **Cross-artifact ratification desync** — an artifact's ratification state contradicts itself or the registry | 2026-09-13 baseline evidence (no longer current — `PRIORITY_QUEUE.md` has since been rewritten and no longer contains the cited text): `PRIORITY_QUEUE.md:11` said *"pending Z2 signature"*; that same file's `## Appended Events` said *"PRIORITY_QUEUE.md v1_1 ratified"*; `REGISTERED.md:3925` listed it ratified at `e8a501f` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
+| **RFM-15** | **Ratification-hash substitution** — a git commit SHA recorded where a decision signature is specified | `REGISTERED.md:4074` = `e8a501f` (7 hex); plus a 63-char near-miss and six unterminated `sha256(Q-…` labels; spec requires exactly 64 hex | **8** | 10 → 5 |
 | **RFM-16** | **Ratified-class starvation** — a class `REGISTRY_SPEC.md` ratifies has zero entries. Indistinguishable from a healthy unused channel without a proof test | D-class (`REGISTRY_SPEC.md:16`), R, GD | **3 / 6 classes** | 10 → 5 |
-| **RFM-17** | **Header staleness** — `Last updated` drifts behind the newest dated content | header 2026-08-15 vs content 2026-09-20 | **1** | 10 → 5 |
+| **RFM-17** | **Header staleness** — `Last updated` drifts behind the newest dated content | header frozen at 2026-09-20; new content added 2026-09-21 (molt, IC-062) and 2026-09-22 (MEASUREMENT-SCOPE-AUDIT) | **1** — drift re-introduced by session-generated entries post-header-freeze | 10 → 5 |
 
 ### GOVERN — the doctrine around the file
 
@@ -263,16 +263,16 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 | RFM-03 | UNSCORED | UNMEASURED | 10 | — |
 | RFM-04 | UNSCORED | UNMEASURED | 5 | — |
 | RFM-05 | UNSCORED — IC-031 gives $150–730, but no ratified mapping turns a dollar range into a 1–10 severity | UNMEASURED | 5 | — |
-| RFM-06 | UNSCORED | 58 / 137 | 10 | — |
-| RFM-07 | UNSCORED | 8 / 137 | 5 | — |
-| RFM-08 | UNSCORED | 5 / 137 | 5 | — |
-| RFM-09 | UNSCORED | 30 / 137 | 5 | — |
-| RFM-10 | UNSCORED | 25 | 5 | — |
-| RFM-11 | UNSCORED | 10 / 45 | 5 | — |
-| RFM-12 | UNSCORED | 1 | 5 | — |
+| RFM-06 | UNSCORED | 68 / 156 | 10 | — |
+| RFM-07 | UNSCORED | 8 / 156 | 5 | — |
+| RFM-08 | UNSCORED | 3 / 156 | 5 | — |
+| RFM-09 | UNSCORED | 43 / 156 | 5 | — |
+| RFM-10 | UNSCORED | 45 | 5 | — |
+| RFM-11 | UNSCORED | 10 / 49 | 5 | — |
+| RFM-12 | UNSCORED | 0 | 5 | — |
 | RFM-13 | UNSCORED | 1 known | 10 | — |
-| RFM-14 | UNSCORED | 2 | 5 | — |
-| RFM-15 | UNSCORED | 1 | 5 | — |
+| RFM-14 | UNSCORED | 0 | 5 | — |
+| RFM-15 | UNSCORED | 8 | 5 | — |
 | RFM-16 | UNSCORED | 3 / 6 | 5 | — |
 | RFM-17 | UNSCORED | 1 | 5 | — |
 | RFM-18 | UNSCORED | 1 of 43 IC cost-classed | 10 | — |
@@ -343,8 +343,8 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 
 | Candidate | Claim | Evidence |
 |:---|:---|:---|
-| **IC-CAND-A** | Ratification hash is a commit SHA where a decision signature is specified | `REGISTERED.md:3925` = `e8a501f` (7 hex, spec requires 64) |
-| **IC-CAND-B** | `PRIORITY_QUEUE.md` contradicts itself on its own ratification state | `PRIORITY_QUEUE.md:11` vs its `## Appended Events` |
+| **IC-CAND-A** | Ratification hash is a commit SHA where a decision signature is specified | `REGISTERED.md:4074` = `e8a501f` (7 hex, spec requires 64) |
+| **IC-CAND-B** | *(no longer current)* `PRIORITY_QUEUE.md` contradicted itself on its own ratification state, 2026-09-13 baseline | `PRIORITY_QUEUE.md:11` vs its `## Appended Events`, as of the baseline — the file has since been rewritten and no longer contains this text; matches RFM-14's resolution above |
 | **IC-CAND-C** | IC roll-up cites IC-036, which has no body entry | `REGISTERED.md:118` |
 | **IC-CAND-D** | IC-052 and IC-053 number the same defect twice | both "drift validator missing D-OVERCLAIM" |
 

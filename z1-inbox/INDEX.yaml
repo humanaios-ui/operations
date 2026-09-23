@@ -2,8 +2,8 @@ version: 1
 generated: '2026-09-20'
 decision_window_days: 2
 counts:
-  candidates: 78
-  records: 37
+  candidates: 82
+  records: 38
 ratifiers:
 - Night
 candidates:
@@ -741,6 +741,59 @@ candidates:
     \ Also settles backfill (permitted, forced to BACKFILL_UNGRADED at weight 0)\
     \ and divergence (the only part carrying information under shared sources).\
     \ Retracts the independence claim in AGENT_GRAPH_COMPARISON.md."
+- q_id: Q-REFERENT-DECAY-01
+  title: "Five artifacts whose link to their referent died while the artifact\
+    \ stayed alive"
+  path: z1-inbox/2026-09-22/Q-REFERENT-DECAY-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Reframes four open candidates as one class. A11 protecting a property\
+    \ A13 made irrelevant; a claim that molt closure was already solved when\
+    \ MOLT_STATE.md says PROPOSED; 0.8632 copied 38 times from a corpus that\
+    \ stopped reproducing it; Check principles (P19) reporting green without\
+    \ opening a file; the stop hook flagging a squash-merge as unshipped work.\
+    \ None was false when written. The repository checks assertions and checks\
+    \ sources and has nothing that checks the edge between them - a diagnosis\
+    \ already written in AGENT_GRAPH_COMPARISON.md before four of the five\
+    \ instances occurred. Names the asymmetry that makes an inert gate worst:\
+    \ wrong prose is neutral evidence, a green check is positive evidence.\
+    \ Five options ranked, none built; the falsifier concedes no single option\
+    \ catches all five and invites Z2 to split the class if that is too loose."
+- q_id: Q-A11-ORDERING-INERT-01
+  title: "A11 still enforces a property no grade depends on"
+  path: z1-inbox/2026-09-22/Q-A11-ORDERING-INERT-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Residue of A13, merged in PR #446. Before it, ordering picked which\
+    \ access grade counted and A11 protected that by requiring distinct values.\
+    \ A13 takes the most contaminating access regardless of order, so ordering\
+    \ no longer reaches any grade - verified against the merged tool, whose only\
+    \ live readers are A11's own test and the rendered provenance table. A11 now\
+    \ refuses alignments for a violation that would change no grade, and passes\
+    \ either way, so nobody would notice. Not fixed deliberately: the rule set is\
+    \ awaiting ratification under Q-GRAPH-CONVERGENCE-01, and it is the cleanest\
+    \ live specimen of Q-REFERENT-DECAY-01. Three options; Z1 recommends keeping\
+    \ A11 with its purpose restated, weakly, and says why the recommendation is\
+    \ weak. Not a defect in A13 - the lesson is that a fix should say which\
+    \ guards it retires."
+- q_id: Q-P19-GATE-INERT-01
+  title: "The principle-compliance gate reported green without opening a file"
+  path: z1-inbox/2026-09-22/Q-P19-GATE-INERT-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Tier 2, authorised by Night 2026-09-22. The workflow built its file list\
+    \ with git diff --name-only (newline-separated) and the bot split it on commas,\
+    \ so every multi-file change arrived as one unsplittable blob that did not end\
+    \ in .py - no file was ever opened and Check principles (P19) printed passed\
+    \ having inspected nothing. It only ran when a change touched exactly one .py\
+    \ file. Found by accident on PR #446. Second defect fixed with it because\
+    \ fixing either alone is worse: the scan read whole files for a bare substring,\
+    \ and 113 of 373 .py files contain always/never/impossible, so repairing only\
+    \ the plumbing would have failed ~30% of Python files for words the change did\
+    \ not write. Scan is now added-lines, word-boundary, self-exempting, and exits\
+    \ non-zero when the diff is unreadable. Smoke test 1 check -> 12. Leaves\
+    \ P-HUMILITY calibration to Z2: the working gate flags one added line on #446\
+    \ that is both absolute language and a correct invariant."
 - q_id: Q-DEFERRAL-RULE-01
   title: "A deferral needs an ending condition, not just a better home"
   path: z1-inbox/2026-09-21/Q-DEFERRAL-RULE-01.md
@@ -800,13 +853,25 @@ candidates:
   submitted: '2026-09-21'
   status: awaiting_z2
   tier: 1
-  note: "Four asks; ask 2 RATIFIED 2026-09-21 (Night, in-session) and EXECUTED —\
-    \ IC-035/IC-037 collisions corrected to IC-060/IC-061, findings-registry.yml\
-    \ validator now WARN not FAIL. Asks 1, 3, 4 still open: (1) ratify a\
-    \ derived-artifact rule in REGISTRY_SPEC.md so summarizing documents are born\
-    \ gated; (3) refresh the REGISTERED.md header (RFM-17); (4) settle whether the\
-    \ 64-hex signature in REGISTRY_SPEC.md or the merge-is-ratification ruling\
-    \ governs (RFM-15 — AMBIGUITY). Falsifier per ask; all counts tool-produced."
+  note: "Four asks; asks 2 and 3 RATIFIED 2026-09-21 (Night, in-session) and\
+    \ EXECUTED — IC-035/IC-037 collisions corrected to IC-060/IC-061 (ask 2);\
+    \ REGISTERED.md header refreshed to 2026-09-20, RFM-17 now PASS (ask 3), which\
+    \ also surfaced and closed a fourth stale table in REGISTERED_FAILURE_MODES.md\
+    \ invisible to verify_doc's bold-row pattern. Asks 1 and 4 still open: (1)\
+    \ ratify a derived-artifact rule in REGISTRY_SPEC.md so summarizing documents\
+    \ are born gated; (4) settle whether the 64-hex signature in REGISTRY_SPEC.md\
+    \ or the merge-is-ratification ruling governs (RFM-15 — AMBIGUITY). Falsifier\
+    \ per ask; all counts tool-produced."
+- q_id: Q-MESH-LOCAL-COORDINATION-01
+  title: "Local mesh coordination layer in operations/mesh/ for humanaios, website,\
+    \ grok-crossref"
+  path: z1-inbox/2026-09-22/Q-MESH-LOCAL-COORDINATION-01.md
+  submitted: '2026-09-22'
+  status: awaiting_z2
+  note: "Adds mesh/ as a local, unratified coordination surface. Requests D3 (is mesh/\
+    \ inside operations an admissible locus?) and D4 (promote schema to schemas/ and\
+    \ conformance scripts to tools/?). Does not resolve D1; widens it from two candidate\
+    \ resolution targets to three. Writes no REGISTERED.md or NF_LEDGER.jsonl row."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
@@ -964,4 +1029,13 @@ records:
 - path: z1-inbox/2026-09-13/Z2_RULING_RESOURCE_UNITS_HEADER.md
   title: "Z2 ruling \u2014 RESOURCE_UNITS.yaml header ratified; hash remains unsigned\
     \ by Z2"
+- path: z1-inbox/2026-09-22/MEASUREMENT-SCOPE-AUDIT.md
+  title: "Measurement Scope Audit \u2014 Blockchain Trading Pilot (Z-012)"
+  note: "Comprehensive audit of measurement gaps in the blockchain trading pilot molt.\
+    \ Documents what IS specified (Sharpe metric, 7-day window, threshold change 0.50\u2192\
+    0.55) and what IS MISSING (asset pairs, position sizes, trade frequency, baseline\
+    \ Sharpe at prior threshold, market conditions, rebalance frequency, slippage model,\
+    \ liquidity conditions). Proposes Z2 decision framework: require baseline Sharpe\
+    \ measurement (at threshold=0.50, same window) before ratifying 0.55 as \"better.\"\
+    \ Filed as F-MEASUREMENT-SCOPE-AUDIT-01 in REGISTERED.md; window close 2026-09-28."
 excluded: []

@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
 **Status:** LIVE (append-only)
-**Last updated:** August 15, 2026 (S-081526-NN) — Addendum Wave 1: retroactive falsification_condition + evidence_class audits appended to F-20, F-21, F-22, F-29, F-35, F-43, F-48, F-55 (schema v2.1 ADDENDUM path; per-entry review, no front-matter edits)
+**Last updated:** September 20, 2026 (S-092026-01-red-team-audit) — Q-WITNESS-COMMONS-ASSURANCE-01 red-team audit; IC-035/IC-036/IC-037 filed (IC-035/IC-037 ids since corrected to IC-060/IC-061 — see document flow conventions above). This line was declared August 15, 2026 until 2026-09-21, when it was corrected on Q-GOVDRIFT-01 ask 3 ratification (Night) to match `date_registered` on the newest entries, per RFM-17.
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
@@ -122,6 +122,7 @@ superseded_by: null | "F-XX"
 |Phantom-reference            |1       |IC-043     |Named files referenced as real/pending across sessions; never drafted-and-committed together|
 |Purity-constraint-collapse   |1       |IC-044     |Consolidated constraint claimed complete; stale narrow constraint left active, silently restricting live inserts|
 |Marker-injection-dead-endpoint|1      |IC-045     |Builder-lint marker injection between assess() docstring and body; endpoint returned None; passed scanner; shipped green|
+|Molt-architecture-temporal-gap|1      |IC-062     |Molt measurement windows use calendar deadlines; Q-TEMPORAL-DISSOLUTION-01 gate intent conflicts with infrastructure design|
 |Maintained-headline-recurrence|2      |IC-cand    |Numeric/identity values manually maintained in CURRENT.md instead of pointing to live source; second occurrence of same root pattern|
 
 
@@ -4904,6 +4905,86 @@ tags: ["legal", "ethics", "irb", "regulatory", "human-subjects", "phase-1-gate"]
 - **Correction:** Z2 should commission preliminary legal/ethics assessment letter (external counsel, ~4 weeks) before Phase 1 planning. Assessment scope: (1) IRB review threshold for standing human behavioral research; (2) privacy implications of persistent pseudonymous records; (3) model-learning data-deletion obligations; (4) regulatory compliance for US/EU participants.
 - **Gate:** Phase 1 human enrollment is blocked until legal/ethics assessment is complete and approval is obtained.
 - **Status:** CANDIDATE · Awaiting Z2 decision to engage counsel
+
+---
+
+### IC-062 — Molt Window Semantics Under Temporal Dissolution Gate
+
+```yaml
+---
+id: "IC-062"
+name: "molt-window-temporal-semantics"
+status: REGISTERED
+class: IC
+date_registered: "2026-09-21"
+date_origin: "2026-09-21"
+session_registered: "S-092126-01-blockchain-pilot"
+principles_triggered: ["P-governance", "Q-TEMPORAL-DISSOLUTION-01"]
+related_finding: "Q-TEMPORAL-DISSOLUTION-01"
+related_issue: "humanaios-ui/operations#435"
+tags: ["molt", "temporal-dissolution", "measurement-window", "governance-gap"]
+---
+```
+
+- **Issue:** MOLT_STATE.md defines molt measurement via calendar-based window_start/window_end timestamps. The falsifier test executes "at window_end," making the window boundary a decision trigger (e.g., "on 2026-09-28, measure Sharpe ratio and decide KEEP/REVERT"). Q-TEMPORAL-DISSOLUTION-01 classifies this as OBSERVATIONAL (timestamp for provenance), but the architecture depends on the calendar deadline to trigger the measurement decision and state transition.
+
+- **Design tension:** 
+  - **Observational allowed:** PRIORITY_QUEUE.md permits OBSERVATIONAL temporal data (timestamps for audit trail, not scheduling)
+  - **Architecture reality:** Molt cycle code (molt_cycle.py) uses window_end as a boundary condition: `if now >= window_end then test_falsifier()`. This is a deadline, not provenance-only timestamp.
+  - **Temporal dissolution intent:** Q-TEMPORAL-DISSOLUTION-01 seeks to eliminate internal calendar-based scheduling from work orchestration. Molt windows predate the gate, but using them for future molts may conflict with the gate's final policy.
+
+- **Current state:** Blockchain trading pilot (Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001, PR #435, merged) uses 7-day calendar window. Molt infrastructure already uses windows, so this pilot does NOT introduce new temporal semantics. However, the pilot EXPOSES the question: should molt measurement windows be redesigned for resource/event-driven boundaries (block height, on-chain event count, resource spend) instead of calendar deadlines?
+
+- **Correction:** Z2 decision required after blockchain pilot measurement phase (2026-09-28):
+  1. **Accept:** Molt windows are acceptable as OBSERVATIONAL + measurement boundaries (no redesign needed)
+  2. **Reject:** Molt infrastructure must migrate to event-driven measurement windows before Phase 2 molts
+  3. **Conditional:** Future molts may use calendar windows, but only when explicitly marked as REGULATORY_EXTERNAL or gated by temporal dissolution completion
+
+- **Gate:** New molt proposals after Q-TEMPORAL-DISSOLUTION-01 completion should reference this IC to justify their temporal semantics. Existing molts using calendar windows are grandfathered but flagged for audit.
+
+- **Status:** REGISTERED · Awaiting Z2 decision on molt window redesign scope
+
+---
+
+### F-MEASUREMENT-SCOPE-AUDIT-01 — Blockchain Trading Pilot Measurement Scope Gap
+
+```yaml
+---
+id: "F-MEASUREMENT-SCOPE-AUDIT-01"
+name: "blockchain-trading-pilot-measurement-scope"
+status: REGISTERED
+class: F
+date_registered: "2026-09-22"
+date_origin: "2026-09-22"
+session_registered: "S-092226-01"
+principles_triggered: []
+substrate: "Blockchain trading pilot (Z-012, Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001)"
+related_file: "z1-inbox/2026-09-22/MEASUREMENT-SCOPE-AUDIT.md"
+tags: ["measurement", "falsifier", "baseline", "market-conditions", "pilot", "volume-audit"]
+superseded_by: null
+---
+```
+
+- **Finding:** The blockchain trading pilot specifies a falsifier (Sharpe >= 0.80 AND drawdown <= 5%) but does **not document the volumes, market conditions, or trade frequencies being measured**. This creates risk of false positive (favorable window conditions producing high Sharpe by chance) or false negative (unfavorable conditions masking real effect).
+
+- **Critical gaps at window close (2026-09-28):**
+  1. **Asset pairs** — Not specified; Sharpe depends on asset correlation
+  2. **Position sizes** — Not specified; affects slippage and execution risk
+  3. **Trade frequency** — Not specified; affects statistical power of 7-day sample
+  4. **Baseline measurement** — What was Sharpe at prior threshold (0.50) during the same window?
+  5. **Market conditions** — Was 2026-09-21 to 2026-09-28 typical? Bull/bear? High/low volatility?
+  6. **Rebalance trigger frequency** — How many times did threshold 0.55 vs 0.50 produce different actions?
+
+- **Why this matters:** A "passing" measurement (Sharpe >= 0.80) cannot distinguish between "threshold 0.55 is genuinely better" vs. "we got lucky with favorable market conditions." Without baseline Sharpe at 0.50 for the same window, Z2's ratification decision (KEEP or REVERT) rests on incomplete data.
+
+- **Falsifier:** The pilot's measurement window closes 2026-09-28 00:00 UTC **without documented baseline volumes or market conditions**. At measurement close, if Sharpe >= 0.80 but no baseline Sharpe (at 0.50) was simultaneously measured, Z2 cannot verify whether the threshold change caused the result or coincidence did.
+
+- **Z2 decision required:** At 2026-09-28 window close:
+  1. **If baseline data is available:** Compare Sharpe(0.55) vs. Sharpe(0.50); if 0.55 is meaningfully better, ACCEPT threshold change
+  2. **If baseline data is missing:** Quarantine result pending baseline retroactive measurement; do not KEEP threshold change until comparative proof exists
+  3. **Alternative:** Extend measurement window to allow simultaneous baseline + proposed threshold measurement under identical market conditions
+
+- **Status:** REGISTERED · Filed during pilot measurement phase; Z2 decision at 2026-09-28 window close. Decision framework: requires comparative baseline data (Sharpe at prior threshold 0.50) to distinguish genuine improvement from favorable market conditions.
 
 ---
 

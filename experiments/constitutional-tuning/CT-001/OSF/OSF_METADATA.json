@@ -1,0 +1,27 @@
+{
+  "title": "CT-001 — Constitutional Tuning Reconstruction Test",
+  "description": "Transparent registration of CT-001 with a pre-Pass-A Git preregistration record; prospective OSF preregistration applies to Pass B and Pass C only because Pass A was completed before OSF submission.",
+  "contributors": [
+    {
+      "name": "Carly R. Anderson",
+      "orcid": "0009-0003-7540-4245"
+    }
+  ],
+  "subjects": [
+    "Artificial Intelligence",
+    "Human-Computer Interaction",
+    "Governance",
+    "Software Engineering",
+    "Open Science"
+  ],
+  "temporal_status": {
+    "git_preregistration": "PRE_PASS_A",
+    "pass_a": "COMPLETED_BEFORE_OSF_SUBMISSION",
+    "pass_b": "NOT_RUN_PROSPECTIVE",
+    "pass_c": "NOT_RUN_PROSPECTIVE"
+  },
+  "license_recommendation": "Choose the project license intentionally in OSF; do not infer one from this package.",
+  "git_preregistration_commit": "d17b75d6b0f30e0d96607713ffeeddcb76eecda6",
+  "repository": "https://github.com/humanaios-ui/operations",
+  "branch": "z1/ct-001-constitutional-tuning"
+}
