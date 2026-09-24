@@ -1,9 +1,11 @@
 name: repository-coordinator
 
-# Advisory repository-level coordination index.
+# Repository-level coordination, admission, and backpressure index.
 #
 # This workflow never merges, closes, labels, or mutates canonical queue state.
-# It recomputes guidance when repository state changes. Age is not a signal.
+# It separates repository work from operator-attention work and blocks a
+# ready non-maintenance PR from claiming active standing without admission.
+# Age is not a signal.
 #
 # Security split:
 #   index   — checks out PR-head code with read-only permissions.
@@ -31,8 +33,12 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      issues: read
     outputs:
       report_b64: ${{ steps.report.outputs.report_b64 }}
+      admission_gate: ${{ steps.admission.outputs.admission_gate }}
+      admission_reason: ${{ steps.admission.outputs.admission_reason }}
+      admission_lane: ${{ steps.admission.outputs.admission_lane }}
     steps:
       - uses: actions/checkout@v4
 
@@ -93,6 +99,8 @@ jobs:
                 number: pr.number,
                 title: pr.title,
                 body,
+                author: pr.user && pr.user.login ? pr.user.login : "unknown",
+                labels: (pr.labels || []).map(x => x.name),
                 html_url: pr.html_url,
                 state: pr.state,
                 draft: pr.draft,
@@ -117,7 +125,26 @@ jobs:
             }
 
             const referenced = {};
+            const referencedItems = {};
             for (const number of referencedNumbers) {
+              try {
+                const issue = (await github.rest.issues.get({
+                  owner, repo, issue_number: number
+                })).data;
+                referencedItems[String(number)] = {
+                  state: issue.state,
+                  html_url: issue.html_url,
+                  title: issue.title,
+                  body: issue.body || "",
+                  labels: (issue.labels || []).map(x =>
+                    typeof x === "string" ? x : x.name
+                  ).filter(Boolean),
+                  is_pull_request: Boolean(issue.pull_request)
+                };
+              } catch (err) {
+                if (!err || err.status !== 404) throw err;
+              }
+
               try {
                 const r = (await github.rest.pulls.get({
                   owner, repo, pull_number: number
@@ -135,11 +162,12 @@ jobs:
             }
 
             const snapshot = {
-              schema_version: "0.1",
+              schema_version: "0.2",
               repository: `${owner}/${repo}`,
               main_sha: mainSha,
               main_paths: mainPaths,
               referenced_pull_requests: referenced,
+              referenced_items: referencedItems,
               pull_requests: pullRequests
             };
 
@@ -161,9 +189,32 @@ jobs:
         run: |
           python3 tools/repository_coordinator_v0_1.py \
             --snapshot .repo-coordinator/snapshot.json \
+            --policy REPOSITORY_COORDINATOR_POLICY.json \
             --output .repo-coordinator/index.json \
             --markdown .repo-coordinator/index.md
           cat .repo-coordinator/index.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Resolve triggering PR admission state
+        id: admission
+        if: github.event_name == 'pull_request'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          index = json.loads(Path(".repo-coordinator/index.json").read_text())
+          number = int(os.environ["PR_NUMBER"])
+          item = next(x for x in index["items"] if x["number"] == number)
+          gate = item["admission"]["gate"]
+          reason = item["admission"]["gate_reason"].replace("\n", " ")
+          lane = item["lane"]
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"admission_gate={gate}\n")
+              out.write(f"admission_lane={lane}\n")
+              out.write(f"admission_reason={reason}\n")
+          PY
 
       - name: Prepare safe comment payload
         id: report
@@ -187,6 +238,27 @@ jobs:
             .repo-coordinator/index.json
             .repo-coordinator/index.md
           retention-days: 30
+
+  admission-gate:
+    name: Repository admission/backpressure gate
+    if: github.event_name == 'pull_request'
+    needs: index
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Enforce admission standing
+        env:
+          GATE: ${{ needs.index.outputs.admission_gate }}
+          LANE: ${{ needs.index.outputs.admission_lane }}
+          REASON: ${{ needs.index.outputs.admission_reason }}
+        run: |
+          echo "lane=$LANE"
+          echo "admission_gate=$GATE"
+          echo "reason=$REASON"
+          if [ "$GATE" = "FAIL" ]; then
+            echo "::error::Repository Coordinator backpressure: $REASON"
+            exit 1
+          fi
 
   comment:
     name: Publish advisory index on triggering PR
