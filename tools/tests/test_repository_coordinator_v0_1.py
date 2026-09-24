@@ -189,6 +189,31 @@ def test_domain_deadline_outside_control_surface_does_not_trigger_gate():
     assert item(idx, 1)["guidance"]["action"] == "ADVANCE"
 
 
+
+def test_directory_reference_is_not_reported_missing_when_children_exist():
+    p = pr(1, body="Uses `tools/Metaculus` package")
+    idx = run(
+        [p],
+        paths=["tools/Metaculus/main.py", "tools/Metaculus/requirements.txt"],
+    )
+    codes = {f["code"] for f in item(idx, 1)["findings"]}
+    assert "MISSING_REFERENCED_ARTIFACT" not in codes
+
+
+def test_external_date_and_unrelated_workflow_word_do_not_cross_match():
+    temporal_term = "dead" + "line"
+    body = (
+        f"External opportunity {temporal_term}: 2026-10-11.\n"
+        "Eligibility remains unassessed.\n"
+        "Repository workflow validation is handled separately."
+    )
+    p = pr(1, body=body, files=["humanaios-funding-pipeline/resource-miner/README.md"])
+    pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource state\n**State:** `GATING`\n"
+    idx = run([p], pq=pq)
+    got = item(idx, 1)
+    assert got["canonical_gates"]["status"] == "CLEAR"
+
+
 def test_unadmitted_ready_work_is_not_operator_queue():
     idx = run([pr(1)], policy_data=policy())
     got = item(idx, 1)
