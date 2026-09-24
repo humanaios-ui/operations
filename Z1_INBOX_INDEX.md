@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**89 candidates** — ⏳ awaiting Z2 80 · ✅ ratified 9 · **40 records**
+**91 candidates** — ⏳ awaiting Z2 81 · ✅ ratified 10 · **43 records**
 
-## Awaiting Z2 (80)
+## Awaiting Z2 (81)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -90,10 +90,11 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-24 | **Q-REFERENT-DECAY-01** | Five artifacts whose link to their referent died while the artifact stayed alive | `z1-inbox/2026-09-22/Q-REFERENT-DECAY-01.md` |
 | 2026-09-24 | **Q-Z2-BLOCK-UNFILLABLE-01** | The candidate template promises z2_decision is auto-filled; nothing fills it, and the signature makes filling it later impossible | `z1-inbox/2026-09-22/Q-Z2-BLOCK-UNFILLABLE-01.md` |
 | 2026-09-25 | **Q-BUZZ-COLLAB-EVAL-01** | Buzz as HumanAIOS Coordination Layer — Phase 0 evaluation (Z1/Z2/Z3 governance on self-hosted Nostr relay) | `z1-inbox/2026-09-23/Q-BUZZ-COLLAB-EVAL-01.md` |
+| 2026-09-25 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** ⚠️ falsifier waived | Falsifiable Self-Assessment Window — Design E + A | `z1-inbox/2026-09-23/falsifiable_self_assessment.md` |
+| 2026-09-25 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** ⚠️ falsifier waived | Phase 2a interrogation approvals + Design E/A ratification record awaiting canonical signature | `z1-inbox/2026-09-23/interrogation_approvals.md` |
 | 2026-09-25 | **Q-Z2RATIF-MECH-32** | Z2 Ratification Mechanism Undocumented — governance workflow clarity gap | `z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md` |
-| 2026-09-26 | **Q-MAIL-EVIDENCE-LEDGER-01** | Pseudonymous Git-backed Mail Evidence Ledger — private evidence, deterministic privacy projection, public engineering receipts | `z1-inbox/2026-09-24/Q-MAIL-EVIDENCE-LEDGER-01.md` |
 
-## Decided (9)
+## Decided (10)
 
 | decision | candidate | signed by | on | ruling |
 |---|---|---|---|---|
@@ -106,14 +107,17 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | ✅ ratified | **Q-MOLT-LEDGER-SCAN-01** | Night | 2026-09-16 | `z1-inbox/2026-09-16/Z2_RULINGS_2026-09-16.md`<br>`44276df7c921d87cc388922155eace549f1f57b71134f65422d9be1770859eb2` |
 | ✅ ratified | **Q-BOARD-RULING-02** | Night | 2026-09-18 | `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md`<br>`b80131eba24815480dfd83630cfbdd69672fb017bf4e264e081a9a05326f3c6a` |
 | ✅ ratified | **Q-BOARD-RULING-14** | Night | 2026-09-18 | `z1-inbox/2026-09-18/Z2_RULINGS_2026-09-18.md`<br>`27c98b653cefe16826fe3b2b76fcfdc822cb87b00a5ce81dc7c256112a7f51eb` |
+| ✅ ratified | **Q-MAIL-EVIDENCE-LEDGER-01** | Night | 2026-09-24 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md`<br>`d52a583d659c4230b1456042193748e2c4ec1d32c3aaf395e000aabfe6f40f78` |
 
-## ⚠️ Falsifier waivers (1) — open for Z2
+## ⚠️ Falsifier waivers (3) — open for Z2
 
 A candidate with no falsifier. The waiver is the candidate's own claim that it predicts nothing, recorded so it cannot pass silently. Accepting or refusing it is Z2's act.
 
 | candidate | stated reason |
 |---|---|
 | **Q-FRAMEWORK-MAPPING-01** | the block declares itself Type H, 'no falsifier required — reference architecture'. Recorded as the candidate's own claim, not as an accepted exemption: Z2 accepts or refuses it. |
+| **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** | As filed, this candidate makes falsifiable claims but contains no explicit ## Falsifier or falsifier: field. Indexed to expose the omission; Z2 must either require an explicit falsifier or consciously accept the waiver before ratification. |
+| **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** | As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone. |
 
 ## Open questions for Z2 (137)
 
@@ -456,7 +460,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (40)
+## Records (43)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -500,8 +504,11 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-19/PHASE-1B-IMPLEMENTATION-STATUS.md` | Phase 1B implementation status report |
 | `z1-inbox/2026-09-19/PHASE-2B-SPECIFICATION.md` | Phase 2B specification |
 | `z1-inbox/2026-09-21/Z2_RATIFY_SMAG_BLOCKERS.md` | Z2 Ratification: SMAG Calibration & Sequencing Blockers |
+| `z1-inbox/2026-09-22/HANDOFF.md` | Session Close Handoff — OI-BRIDGE-01 v0.2 Specification & IC-063 Mitigation |
 | `z1-inbox/2026-09-22/MEASUREMENT-SCOPE-AUDIT.md` | Measurement Scope Audit — Blockchain Trading Pilot (Z-012) |
 | `z1-inbox/2026-09-23/BUZZ_INTEGRATION_SPEC.md` | Buzz Integration Specification — Technical mapping of HumanAIOS Z1/Z2/Z3 governance to Buzz affordances |
+| `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md` | Z2 rulings 2026-09-24 — recovered Q-MAIL merge-is-ratification receipt |
+| `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
 
