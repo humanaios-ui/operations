@@ -73,10 +73,23 @@ The AI reviews are evidence about the design/implementation. Night's Z2 decision
 
 ## Ruling
 
-choice:
-by:
-at:
-status: OPEN
+choice: accept dual-ledger pseudonymous mail evidence architecture
+by: Night
+at: 2026-09-24T15:55:23Z
+status: DECIDED
+block_hash: 5ebf5a8399230302cd741a85561e703136fa2d1de085dcea1f3be844598ff652
+body_hash: 133696933a180f65e821ca7f3fd73d557fe364d0daabfbd403f34bdc801d864e
+
+```
+RULING Q-MAIL-EVIDENCE-LEDGER-01
+  by: Night (tagline)
+  project: HumanAIOS Engineering + Resource Protocol
+  question: Adopt private mail evidence with deterministic privacy-projected Git receipts?
+  choice: accept dual-ledger pseudonymous mail evidence architecture
+  note: Night explicitly instructed ratification after reviewing all updated protocol threads.
+  at: 2026-09-24T15:55:23Z
+  status: DECIDED
+```
 
 ## Falsifier
 
