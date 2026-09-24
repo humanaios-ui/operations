@@ -262,7 +262,15 @@ def _base_lane(
 
 def _missing_refs(body: str, main_paths: set[str], own_files: set[str]) -> list[str]:
     refs = set(PATH_REF_RE.findall(body or ""))
-    return sorted(p for p in refs if p not in main_paths and p not in own_files)
+    known = main_paths | own_files
+
+    def exists(ref: str) -> bool:
+        if ref in known:
+            return True
+        prefix = ref.rstrip("/") + "/"
+        return any(path.startswith(prefix) for path in known)
+
+    return sorted(p for p in refs if not exists(p))
 
 
 def _referenced_pr_failures(
@@ -305,12 +313,11 @@ def _competition(prs: list[dict[str, Any]]) -> dict[int, list[int]]:
 
 
 def _temporal_control_signal(pr: dict[str, Any]) -> bool:
-    """Detect time-driven *control* semantics, not examples or domain dates.
+    """Detect local temporal-control coupling, not unrelated terms far apart.
 
-    PR prose is useful because authors describe the behavior they intend. Diff
-    evidence is restricted to workflow/canonical-control surfaces: scanning
-    every Python/test fixture produced a false positive on this coordinator's
-    own adversarial string ("30-day rolling window blocks merge").
+    A prior whole-document boolean cross-match could combine an external
+    opportunity date in one section with an unrelated word such as "workflow"
+    elsewhere and falsely classify the PR as internal scheduling logic.
     """
     body = pr.get("body") or ""
     control_paths = {
@@ -318,20 +325,27 @@ def _temporal_control_signal(pr: dict[str, Any]) -> bool:
         "RESOURCE_UNITS.yaml", "CANDIDATE_BLOCK_TEMPLATE.md",
         "INTENT_GRAPH.yaml", "TEMPORAL_DISSOLUTION_POLICY.md",
     }
-    patch_parts = []
+
+    evidence_parts = [body]
     for f in pr.get("file_details") or []:
         path = str(f.get("filename") or f.get("path") or "")
         if path.startswith(".github/workflows/") or path in control_paths:
             patch = str(f.get("patch") or "")
-            # Deleted/context lines are evidence of history, not newly proposed
-            # control. Keep only added lines (excluding the +++ diff header).
             added = "\n".join(
                 line[1:] for line in patch.splitlines()
                 if line.startswith("+") and not line.startswith("+++")
             )
-            patch_parts.append(added)
-    text = body + "\n" + "\n".join(patch_parts)
-    return bool(TIME_CONTROL_TERMS.search(text) and CONTROL_TERMS.search(text))
+            evidence_parts.append(added)
+
+    for text in evidence_parts:
+        lines = text.splitlines()
+        for i, line in enumerate(lines):
+            if not TIME_CONTROL_TERMS.search(line):
+                continue
+            local = "\n".join(lines[max(0, i - 1): min(len(lines), i + 2)])
+            if CONTROL_TERMS.search(local):
+                return True
+    return False
 
 
 def classify(
