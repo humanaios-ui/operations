@@ -41,7 +41,46 @@ You never merge your own PRs, push directly to `main`, force-push, delete, or
 rewrite history on any branch. Every PR needs human review (`.github/CODEOWNERS`
 covers every path) — your job ends at a mergeable, green PR.
 
-## 2. `copilot/*` PRs target `main` — never another `copilot/*` branch
+## 2. Repository Coordinator admission and backpressure
+
+Issue assignment is permission to investigate; it is **not** admission to the
+operator queue.
+
+Before treating implementation as active work:
+
+1. Read `REPOSITORY_COORDINATOR_POLICY.json`.
+2. Check whether the referenced issue or PR is explicitly admitted there.
+3. Check the Repository Coordinator result for the current branch.
+4. Respect the lane:
+   - `WORKBENCH`: keep the PR draft; research and implementation may continue,
+     but do not mark it ready for review or represent it as operator-priority work.
+   - `ADMISSION_REVIEW`: stop before ready-for-review standing and request
+     admission; do not self-add an admission record.
+   - `ACTIVE`: implementation may proceed through ordinary review.
+   - `CAPACITY_CONTENTION`: stop expansion. The coordinator deliberately does
+     not choose which admitted objective wins.
+   - `MAINTENANCE`: remain in the maintenance cohort and do not consume an
+     operator active-work slot.
+   - `CONTROL_PLANE`: admission recursion is exempt, but ordinary Z2 review and
+     all repository gates still apply.
+
+Do not create a second active implementation for an objective that already has
+an open implementation PR. Preserve alternative analysis in the issue, review
+thread, or evidence artifact instead.
+
+Core distinctions:
+
+```
+ISSUE_IS_NOT_ADMITTED_WORK
+ASSIGNMENT_IS_NOT_PR_ADMISSION
+DRAFT_IS_NOT_OPERATOR_QUEUE
+ADMISSION_IS_NOT_MERGE_AUTHORITY
+```
+
+Admission is working-set routing only. It never substitutes for Z2 ratification,
+CODEOWNERS review, CI, or merge authority.
+
+## 3. `copilot/*` PRs target `main` — never another `copilot/*` branch
 
 Targeting a bot branch stacks a fix on a fix — this produced a five-deep,
 zero-diff merge chain (PR #250) untangled by hand. `copilot-base-guard.yml`
@@ -49,7 +88,7 @@ retargets a misdirected PR automatically (its explanatory comment is
 best-effort and can fail silently), but that's a safety net, not a plan —
 open against `main` yourself.
 
-## 3. File payloads go on a pushed branch, never in an issue/PR body
+## 4. File payloads go on a pushed branch, never in an issue/PR body
 
 If an issue hands you file contents to land verbatim, they must exist as
 commits on a real, pushed, named branch — not a fenced code block in the
@@ -59,7 +98,7 @@ rendering; the PR trying to execute it stalled and closed as a blocker
 (PR #198). If the named branch doesn't exist or fetch, say so and stop —
 don't reconstruct files from a corrupted paste.
 
-## 4. Some files are append-only or byte-frozen
+## 5. Some files are append-only or byte-frozen
 
 - **`REGISTERED.md`** is append-only — never edit or delete an entry, only
   add new ones where an issue specifies, following the schema at the top.
@@ -77,7 +116,7 @@ don't reconstruct files from a corrupted paste.
   preserving only its own CURATED fields across each re-scan — not a plain
   hand-edited file the same way `document-registry.yaml` is.
 
-## 5. Adding or changing a tool (`tools/`, `scripts/`, `bin/`)
+## 6. Adding or changing a tool (`tools/`, `scripts/`, `bin/`)
 
 The Builder v1.7 checklist below is Python-specific and CI-enforced
 (`builder_compliance_scanner_v1.0.py` via `builder-lint.yml`) only for
@@ -165,7 +204,7 @@ gate, and a tool can't self-declare its own waiver. One pre-existing entry
 `validate.py` — a closed, one-time list a new tool cannot add itself to;
 setting the flag on a new entry is rejected as a self-granted waiver.
 
-## 6. Adding or changing a controlled document
+## 7. Adding or changing a controlled document
 
 **"Controlled" is decided by `document-registry.yaml`, not by frontmatter** —
 check the registry, not the file. Some registered docs (`OPERATOR_RUNBOOK.md`,
@@ -191,7 +230,7 @@ doesn't touch it, and `validate.py` blocks merge if it's stale. Then run
 genuinely free-form and need neither — confirm via the registry, not subject
 matter.
 
-## 7. Before you open or update a PR, run what CI runs
+## 8. Before you open or update a PR, run what CI runs
 
 (This is exactly what §1's Zone 1 carve-out covers — read it first if you
 haven't.)
@@ -240,7 +279,7 @@ what actually catches that.
 If a check fails because a generated file is stale, re-run the tool that
 generates it (§5/§6) — don't hand-edit the generated file.
 
-## 8. Commit and PR hygiene
+## 9. Commit and PR hygiene
 
 - Small, coherent commits; conventional prefixes welcome.
 - Fill in the PR template's Zone checkbox honestly.
