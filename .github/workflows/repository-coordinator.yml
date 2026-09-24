@@ -76,88 +76,120 @@ jobs:
             const pullRequests = [];
             const referencedNumbers = new Set();
 
-            for (const brief of open) {
-              const pr = (await github.rest.pulls.get({
-                owner, repo, pull_number: brief.number
-              })).data;
+            // Bound concurrency: large queues should increase data volume, not
+            // linearly multiply network latency or create an API stampede.
+            const chunk = (xs, size) => {
+              const out = [];
+              for (let i = 0; i < xs.length; i += size) out.push(xs.slice(i, i + size));
+              return out;
+            };
 
-              const files = await github.paginate(
-                github.rest.pulls.listFiles,
-                { owner, repo, pull_number: pr.number, per_page: 100 }
-              );
-              const reviews = await github.paginate(
-                github.rest.pulls.listReviews,
-                { owner, repo, pull_number: pr.number, per_page: 100 }
-              );
+            for (const batch of chunk(open, 6)) {
+              const rows = await Promise.all(batch.map(async brief => {
+                const pr = (await github.rest.pulls.get({
+                  owner, repo, pull_number: brief.number
+                })).data;
 
-              const body = pr.body || "";
-              for (const match of body.matchAll(/(^|[^\w])#(\d{1,6})\b/g)) {
-                referencedNumbers.add(Number(match[2]));
+                const [files, reviews] = await Promise.all([
+                  github.paginate(
+                    github.rest.pulls.listFiles,
+                    { owner, repo, pull_number: pr.number, per_page: 100 }
+                  ),
+                  github.paginate(
+                    github.rest.pulls.listReviews,
+                    { owner, repo, pull_number: pr.number, per_page: 100 }
+                  )
+                ]);
+
+                const body = pr.body || "";
+                return {
+                  refs: [...body.matchAll(/(^|[^\w])#(\d{1,6})\b/g)]
+                    .map(match => Number(match[2])),
+                  row: {
+                    number: pr.number,
+                    title: pr.title,
+                    body,
+                    author: pr.user && pr.user.login ? pr.user.login : "unknown",
+                    labels: (pr.labels || []).map(x => x.name),
+                    html_url: pr.html_url,
+                    state: pr.state,
+                    draft: pr.draft,
+                    mergeable: pr.mergeable,
+                    mergeable_state: pr.mergeable_state,
+                    head_sha: pr.head.sha,
+                    base_sha: pr.base.sha,
+                    created_at: pr.created_at,
+                    updated_at: pr.updated_at,
+                    files: files.map(f => f.filename),
+                    file_details: files.map(f => ({
+                      filename: f.filename,
+                      status: f.status,
+                      patch: f.patch || ""
+                    })),
+                    reviews: reviews.map(r => ({
+                      user: { login: r.user && r.user.login ? r.user.login : "unknown" },
+                      state: r.state,
+                      submitted_at: r.submitted_at
+                    }))
+                  }
+                };
+              }));
+
+              for (const result of rows) {
+                pullRequests.push(result.row);
+                for (const number of result.refs) referencedNumbers.add(number);
               }
-
-              pullRequests.push({
-                number: pr.number,
-                title: pr.title,
-                body,
-                author: pr.user && pr.user.login ? pr.user.login : "unknown",
-                labels: (pr.labels || []).map(x => x.name),
-                html_url: pr.html_url,
-                state: pr.state,
-                draft: pr.draft,
-                mergeable: pr.mergeable,
-                mergeable_state: pr.mergeable_state,
-                head_sha: pr.head.sha,
-                base_sha: pr.base.sha,
-                created_at: pr.created_at,
-                updated_at: pr.updated_at,
-                files: files.map(f => f.filename),
-                file_details: files.map(f => ({
-                  filename: f.filename,
-                  status: f.status,
-                  patch: f.patch || ""
-                })),
-                reviews: reviews.map(r => ({
-                  user: { login: r.user && r.user.login ? r.user.login : "unknown" },
-                  state: r.state,
-                  submitted_at: r.submitted_at
-                }))
-              });
             }
 
             const referenced = {};
             const referencedItems = {};
-            for (const number of referencedNumbers) {
-              try {
-                const issue = (await github.rest.issues.get({
-                  owner, repo, issue_number: number
-                })).data;
-                referencedItems[String(number)] = {
-                  state: issue.state,
-                  html_url: issue.html_url,
-                  title: issue.title,
-                  body: issue.body || "",
-                  labels: (issue.labels || []).map(x =>
-                    typeof x === "string" ? x : x.name
-                  ).filter(Boolean),
-                  is_pull_request: Boolean(issue.pull_request)
-                };
-              } catch (err) {
-                if (!err || err.status !== 404) throw err;
-              }
+            const refs = [...referencedNumbers];
 
-              try {
-                const r = (await github.rest.pulls.get({
-                  owner, repo, pull_number: number
-                })).data;
-                referenced[String(number)] = {
-                  state: r.state,
-                  merged: Boolean(r.merged_at),
-                  html_url: r.html_url,
-                  title: r.title
-                };
-              } catch (err) {
-                // Most #NNN references are issues rather than PRs. Ignore 404s.
-                if (!err || err.status !== 404) throw err;
+            for (const batch of chunk(refs, 8)) {
+              const rows = await Promise.all(batch.map(async number => {
+                let issue = null;
+                let pull = null;
+
+                try {
+                  issue = (await github.rest.issues.get({
+                    owner, repo, issue_number: number
+                  })).data;
+                } catch (err) {
+                  if (!err || err.status !== 404) throw err;
+                }
+
+                try {
+                  pull = (await github.rest.pulls.get({
+                    owner, repo, pull_number: number
+                  })).data;
+                } catch (err) {
+                  if (!err || err.status !== 404) throw err;
+                }
+
+                return { number, issue, pull };
+              }));
+
+              for (const { number, issue, pull } of rows) {
+                if (issue) {
+                  referencedItems[String(number)] = {
+                    state: issue.state,
+                    html_url: issue.html_url,
+                    title: issue.title,
+                    body: issue.body || "",
+                    labels: (issue.labels || []).map(x =>
+                      typeof x === "string" ? x : x.name
+                    ).filter(Boolean),
+                    is_pull_request: Boolean(issue.pull_request)
+                  };
+                }
+                if (pull) {
+                  referenced[String(number)] = {
+                    state: pull.state,
+                    merged: Boolean(pull.merged_at),
+                    html_url: pull.html_url,
+                    title: pull.title
+                  };
+                }
               }
             }
 
