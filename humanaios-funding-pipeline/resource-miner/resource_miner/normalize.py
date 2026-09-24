@@ -4,7 +4,7 @@ import hashlib
 import re
 from datetime import datetime, timezone
 from typing import Any
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from .models import EvidenceRef, ResourceCandidate
 
@@ -14,6 +14,7 @@ DATE_RE = re.compile(
     r"(\d{1,2})(?:st|nd|rd|th)?,?\s+(20\d{2})\b",
     re.I,
 )
+TRACKING_QUERY_KEYS = {"tracking", "gclid", "dclid", "fbclid", "msclkid", "mc_cid", "mc_eid"}
 
 TYPE_RULES: list[tuple[str, tuple[str, ...]]] = [
     ("competition", ("challenge", "contest", "hackathon", "competition", "prize")),
@@ -36,12 +37,24 @@ def utcnow_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _is_tracking_key(key: str) -> bool:
+    lowered = key.lower()
+    return lowered.startswith("utm_") or lowered in TRACKING_QUERY_KEYS
+
+
 def canonicalize_url(url: str) -> str:
+    """Normalize transport noise without collapsing semantic query identity."""
     parts = urlsplit(url.strip())
     scheme = (parts.scheme or "https").lower()
     netloc = parts.netloc.lower()
     path = parts.path.rstrip("/") or "/"
-    return urlunsplit((scheme, netloc, path, "", ""))
+    query_pairs = [
+        (key, value)
+        for key, value in parse_qsl(parts.query, keep_blank_values=True)
+        if not _is_tracking_key(key)
+    ]
+    query = urlencode(sorted(query_pairs), doseq=True)
+    return urlunsplit((scheme, netloc, path, query, ""))
 
 
 def stable_resource_id(url: str) -> str:
