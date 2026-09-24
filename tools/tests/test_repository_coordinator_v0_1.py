@@ -16,10 +16,22 @@ sys.path.insert(0, str(TOOLS))
 from repository_coordinator_v0_1 import analyze
 
 TOOL_NAME = "test_repository_coordinator"
-TOOL_VERSION = "0.1.0"
+TOOL_VERSION = "0.2.0"
 
 
-def pr(n, title="Work item", body="", files=None, patch="", reviews=None, mergeable_state="clean"):
+def pr(
+    n,
+    title="Work item",
+    body="",
+    files=None,
+    patch="",
+    reviews=None,
+    mergeable_state="clean",
+    *,
+    author="builder",
+    draft=False,
+    labels=None,
+):
     files = ["x.py"] if files is None else files
     return {
         "number": n,
@@ -30,17 +42,38 @@ def pr(n, title="Work item", body="", files=None, patch="", reviews=None, mergea
         "reviews": reviews or [],
         "mergeable_state": mergeable_state,
         "html_url": f"https://example.test/pull/{n}",
+        "author": author,
+        "draft": draft,
+        "labels": labels or [],
     }
 
 
-def run(prs, *, refs=None, paths=None, pq=""):
+def policy(*, limit=4, issues=None, prs=None, control_paths=None):
+    return {
+        "capacity": {"active_operator_queue": limit},
+        "admission": {
+            "issue_numbers": issues or [],
+            "pull_request_numbers": prs or [],
+        },
+        "maintenance": {
+            "authors": ["dependabot[bot]"],
+            "labels": ["dependencies"],
+        },
+        "control_plane": {
+            "paths": control_paths or ["REPOSITORY_COORDINATOR_POLICY.json"],
+        },
+    }
+
+
+def run(prs, *, refs=None, items=None, paths=None, pq="", policy_data=None):
     return analyze({
         "repository": "example/repo",
         "main_sha": "abc",
         "main_paths": paths or [],
         "referenced_pull_requests": refs or {},
+        "referenced_items": items or {},
         "pull_requests": prs,
-    }, pq)
+    }, pq, policy_data)
 
 
 def item(index, n):
@@ -154,6 +187,109 @@ def test_domain_deadline_outside_control_surface_does_not_trigger_gate():
     pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource state\n**State:** `GATING`\n"
     idx = run([p], pq=pq)
     assert item(idx, 1)["guidance"]["action"] == "ADVANCE"
+
+
+def test_unadmitted_ready_work_is_not_operator_queue():
+    idx = run([pr(1)], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["gate"] == "FAIL"
+    assert got["guidance"]["action"] == "ADVANCE"
+
+
+def test_draft_agent_work_is_workbench_not_operator_queue():
+    idx = run([pr(1, draft=True)], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "WORKBENCH"
+    assert got["admission"]["gate"] == "PASS"
+    assert idx["counts"]["lanes"]["WORKBENCH"] == 1
+
+
+def test_dependabot_routes_to_maintenance_cohort():
+    p = pr(
+        1,
+        title="build(deps): bump actions/checkout",
+        files=[".github/workflows/x.yml"],
+        author="dependabot[bot]",
+        labels=["dependencies", "ci"],
+    )
+    idx = run([p], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "MAINTENANCE"
+    assert got["admission"]["cohort"] == "github-actions"
+    assert got["admission"]["gate"] == "PASS"
+
+
+def test_referenced_admitted_issue_enters_active_lane():
+    p = pr(1, body="Fixes #77")
+    referenced = {
+        "77": {
+            "state": "open",
+            "is_pull_request": False,
+            "labels": [],
+            "title": "Approved objective",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy(issues=[77]))
+    got = item(idx, 1)
+    assert got["lane"] == "ACTIVE"
+    assert got["admission"]["admitted"] is True
+    assert got["admission"]["gate"] == "PASS"
+
+
+def test_issue_assignment_without_admission_stays_workbench_when_draft():
+    p = pr(1, body="Fixes #77", draft=True)
+    referenced = {
+        "77": {
+            "state": "open",
+            "is_pull_request": False,
+            "labels": [],
+            "title": "Assigned but not admitted",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "WORKBENCH"
+    assert got["admission"]["admitted"] is False
+
+
+def test_capacity_contention_does_not_choose_winners():
+    referenced = {
+        str(n): {
+            "state": "open",
+            "is_pull_request": False,
+            "labels": [],
+            "title": f"Objective {n}",
+        }
+        for n in (71, 72, 73)
+    }
+    prs = [
+        pr(1, body="Fixes #71"),
+        pr(2, body="Fixes #72"),
+        pr(3, body="Fixes #73"),
+    ]
+    idx = run(
+        prs,
+        items=referenced,
+        policy_data=policy(limit=2, issues=[71, 72, 73]),
+    )
+    assert idx["capacity"]["contention"] is True
+    assert all(x["lane"] == "CAPACITY_CONTENTION" for x in idx["items"])
+    assert all(x["admission"]["gate"] == "FAIL" for x in idx["items"])
+
+
+def test_control_plane_change_is_exempt_from_recursive_admission():
+    p = pr(
+        1,
+        body="- [x] **Z2**",
+        files=["REPOSITORY_COORDINATOR_POLICY.json"],
+    )
+    idx = run([p], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "CONTROL_PLANE"
+    assert got["admission"]["gate"] == "PASS"
+    assert got["authority"]["required"] == "Z2"
+
 
 def run_smoke_test():
     test_clean_live_work_advances()
