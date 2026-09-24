@@ -42,7 +42,7 @@ class ActualOutcome:
     """What actually happened"""
     outcome_id: str
     description: str
-    succeeded: bool
+    succeeded: Optional[bool]  # None when data not captured
     data: dict  # Raw measurement data
 
 
@@ -54,7 +54,7 @@ class ClaimEvaluation:
     stated_confidence: float
     verification_status: VerificationStatus
     actual_outcome: str
-    calibration_score: float  # How well-calibrated was the confidence?
+    calibration_score: Optional[float]  # None when data not captured
     evidence: str  # What data supports this evaluation
     z2_gate: Literal["PASS", "FAIL", "ADVISORY"]
 
@@ -71,7 +71,7 @@ class ComparisonReport:
     falsified_count: int
     partial_count: int
     unknown_count: int
-    calibration_metric: float  # Mean |stated_conf - actual_accuracy|
+    calibration_metric: Optional[float]  # Mean |stated_conf - actual_accuracy|; None if no measurable claims
     z2_recommendation: Literal["ACCEPT", "REQUIRE_RERUN", "INVESTIGATE"]
     claims: list[ClaimEvaluation]
 
@@ -114,43 +114,68 @@ def _evaluate_build_success(
     claim: Claim,
     outcomes: list[ActualOutcome],
 ) -> ClaimEvaluation:
-    """Verify: 'Build Success Rate 0% → 100% (first attempt after merge)'"""
+    """Verify: 'Build Success Rate 0% → 100% (first attempt after merge)'
 
-    # Find build outcome
-    build_outcome = next((o for o in outcomes if "build" in o.outcome_id.lower()), None)
+    PR #465 claims BOTH intent-os-relay and operations build successfully.
+    We need Railway/Nixpacks evidence, not just CI gates passing.
+    """
 
-    if not build_outcome:
+    # Find build outcomes for BOTH services
+    required_services = {"intent-os-relay", "operations"}
+    build_outcomes = {
+        o.outcome_id: o
+        for o in outcomes
+        if any(svc in o.outcome_id.lower() for svc in required_services)
+    }
+
+    if not build_outcomes:
         return ClaimEvaluation(
             claim_id=claim.claim_id,
             statement=claim.statement,
             stated_confidence=claim.stated_confidence,
             verification_status=VerificationStatus.UNKNOWN,
-            actual_outcome="No build outcome data found",
-            calibration_score=0.0,
-            evidence="Build logs not captured",
+            actual_outcome="No Railway build outcome data found for either service",
+            calibration_score=None,
+            evidence="Nix/Railpack build logs not captured; CI gates passing ≠ service build success",
             z2_gate="ADVISORY",
         )
 
-    # Claim: "0% → 100% (first attempt)"
-    # Reality: Did merge + first commit build successfully?
-    succeeded = build_outcome.succeeded
-    actual_success_rate = 1.0 if succeeded else 0.0
+    # Claim: "Both services build on first attempt"
+    # Reality: Check both intent-os-relay AND operations
+    # If any outcome is None (unverified), return UNKNOWN
+    if any(o.succeeded is None for o in build_outcomes.values()):
+        return ClaimEvaluation(
+            claim_id=claim.claim_id,
+            statement=claim.statement,
+            stated_confidence=claim.stated_confidence,
+            verification_status=VerificationStatus.UNKNOWN,
+            actual_outcome="Build status unknown (data not captured for one or more services)",
+            calibration_score=None,
+            evidence="Railway/Nixpacks build logs not accessible",
+            z2_gate="ADVISORY",
+        )
 
-    # Claimed confidence: ~90% (high confidence in the fix)
-    # Actual outcome: binary (worked or didn't)
-    calibration = abs(claim.stated_confidence - actual_success_rate)
+    all_succeeded = all(o.succeeded for o in build_outcomes.values())
+    actual_success_rate = 1.0 if all_succeeded else 0.0
 
-    status = VerificationStatus.VERIFIED if succeeded else VerificationStatus.FALSIFIED
-    z2_gate = "PASS" if succeeded else "FAIL"
+    calibration = abs(claim.stated_confidence - actual_success_rate) if build_outcomes else None
+
+    status = VerificationStatus.VERIFIED if all_succeeded else VerificationStatus.FALSIFIED
+    z2_gate = "PASS" if all_succeeded else "FAIL"
+
+    services_status = ", ".join(
+        f"{svc.split('-')[0]}: {'✅' if outcome.succeeded else '❌'}"
+        for svc, outcome in build_outcomes.items()
+    )
 
     return ClaimEvaluation(
         claim_id=claim.claim_id,
         statement=claim.statement,
         stated_confidence=claim.stated_confidence,
         verification_status=status,
-        actual_outcome=f"Build {'succeeded' if succeeded else 'failed'}",
+        actual_outcome=f"Build status: {services_status}",
         calibration_score=calibration,
-        evidence=build_outcome.data.get("message", ""),
+        evidence=f"Checked {len(build_outcomes)} service(s); all succeeded: {all_succeeded}",
         z2_gate=z2_gate,
     )
 
@@ -177,8 +202,21 @@ def _evaluate_services_online(
 
     # Claimed: 3 of 3 services online
     # Reality: Check actual service count
-    services_online = services_outcome.data.get("online_count", 0)
+    services_online = services_outcome.data.get("online_count")
     total_services = services_outcome.data.get("total_count", 3)
+
+    # If online_count is None, data not captured
+    if services_online is None:
+        return ClaimEvaluation(
+            claim_id=claim.claim_id,
+            statement=claim.statement,
+            stated_confidence=claim.stated_confidence,
+            verification_status=VerificationStatus.UNKNOWN,
+            actual_outcome="Service online count not captured",
+            calibration_score=None,
+            evidence="Railway deployment status not captured",
+            z2_gate="ADVISORY",
+        )
 
     target = 3
     actual_accuracy = 1.0 if (services_online == target) else 0.0
@@ -220,7 +258,20 @@ def _evaluate_deployment_time(
         )
 
     # Claimed: ~5 min (300 seconds, ±2 min acceptable)
-    actual_seconds = time_outcome.data.get("seconds", 0)
+    actual_seconds = time_outcome.data.get("seconds")
+
+    if actual_seconds is None:
+        return ClaimEvaluation(
+            claim_id=claim.claim_id,
+            statement=claim.statement,
+            stated_confidence=claim.stated_confidence,
+            verification_status=VerificationStatus.UNKNOWN,
+            actual_outcome="Deployment timing data not captured",
+            calibration_score=None,
+            evidence="Online timestamp missing; cannot calculate deployment time",
+            z2_gate="ADVISORY",
+        )
+
     tolerance = 120  # ±2 minutes
     target = 300  # 5 minutes
 
@@ -255,9 +306,17 @@ def generate_report(
     partial = sum(1 for c in claims if c.verification_status == VerificationStatus.PARTIAL)
     unknown = sum(1 for c in claims if c.verification_status == VerificationStatus.UNKNOWN)
 
-    # Calibration metric: mean absolute error between stated and actual
-    calibrations = [c.calibration_score for c in claims]
-    mean_calibration = sum(calibrations) / len(calibrations) if calibrations else 0.0
+    # Calibration metric: mean absolute error (only measured/verified claims)
+    # Exclude UNKNOWN outcomes and None scores (unverifiable claims don't contribute)
+    measurable_calibrations = [
+        c.calibration_score for c in claims
+        if c.calibration_score is not None
+        and c.verification_status != VerificationStatus.UNKNOWN
+    ]
+    mean_calibration = (
+        sum(measurable_calibrations) / len(measurable_calibrations)
+        if measurable_calibrations else None
+    )
 
     # Z2 recommendation
     if falsified > 0:
@@ -325,46 +384,118 @@ def get_pr465_outcomes() -> list[ActualOutcome]:
     """
     Reconstructed outcomes from PR #465 post-merge evidence.
 
+    CRITICAL GAP: We have CI gate evidence (GitHub Actions), NOT Railway/Nix build evidence.
+    CI gates passing does NOT prove services built successfully.
+
     Data sources:
     - PR merged: 2026-09-23T20:19:54Z
-    - CI checks: All passed
-    - GitHub Actions: 18 check runs, all SUCCESS or SKIPPED
+    - CI checks: All 18 passed (quality/security/governance gates only)
+    - Railway builds: NOT CAPTURED (this is the data gap)
+    - Service health: NOT CAPTURED
     """
     return [
         ActualOutcome(
-            outcome_id="build_success",
-            description="CI/CD build execution after merge",
+            outcome_id="ci_gates_passed",
+            description="GitHub Actions CI gates (not Railway builds)",
             succeeded=True,  # All checks passed
             data={
-                "message": "All 18 GitHub Actions checks completed without failure",
+                "message": "All 18 GitHub Actions checks completed",
+                "note": "CI gates ≠ Railway service builds. Need Nix/Railpack logs.",
                 "checks_passed": 18,
                 "checks_failed": 0,
                 "merge_time": "2026-09-23T20:19:54Z",
             },
         ),
         ActualOutcome(
+            outcome_id="intent-os-relay_build",
+            description="intent-os-relay Railway build status",
+            succeeded=None,  # UNKNOWN - not captured
+            data={
+                "service": "intent-os-relay",
+                "status": "UNKNOWN",
+                "note": "Railpack build logs not accessible",
+            },
+        ),
+        ActualOutcome(
+            outcome_id="operations_build",
+            description="operations Railway build status",
+            succeeded=None,  # UNKNOWN - not captured
+            data={
+                "service": "operations",
+                "status": "UNKNOWN",
+                "note": "Nixpacks build logs not accessible",
+            },
+        ),
+        ActualOutcome(
             outcome_id="services_status",
             description="Service online status post-deployment",
-            succeeded=False,  # Unknown without Railway logs
+            succeeded=None,  # Unknown without Railway logs
             data={
-                "online_count": 0,  # Unknown
+                "online_count": None,
                 "total_count": 3,
                 "services": ["intent-os-relay", "operations", "scintillating-playfulness"],
-                "note": "Railway deployment status not captured in this PR data",
+                "note": "Railway deployment status not captured",
             },
         ),
         ActualOutcome(
             outcome_id="deployment_time",
             description="Time from merge to production",
-            succeeded=False,  # Unknown without Railway logs
+            succeeded=None,  # Unknown without Railway logs
             data={
                 "merge_time": "2026-09-23T20:19:54Z",
                 "online_time": None,
-                "seconds": 0,
-                "note": "Deployment timing not captured; requires Railway API or logs",
+                "seconds": None,
+                "note": "Deployment timing not captured",
             },
         ),
     ]
+
+
+# ============================================================================
+# MARKDOWN RENDERING
+# ============================================================================
+
+def render_markdown_report(report: ComparisonReport) -> str:
+    """Render ComparisonReport as markdown (Z2 review format)"""
+    lines = [
+        "# Z2 Review: PR #465 Decision Log vs. Deployment Outcomes",
+        f"**Generated by Comparison Engine v1.0**",
+        f"**Audit ID:** {report.audit_id}",
+        f"**Date:** {report.timestamp}",
+        "",
+        "## Executive Summary",
+        "",
+        f"| Metric | Result |",
+        f"|--------|--------|",
+        f"| Claims Verified | {report.verified_count} of {report.total_claims} |",
+        f"| Claims Falsified | {report.falsified_count} of {report.total_claims} |",
+        f"| Claims Partial | {report.partial_count} of {report.total_claims} |",
+        f"| Claims Unknown | {report.unknown_count} of {report.total_claims} |",
+        f"| Calibration (MAE) | {report.calibration_metric:.2f if report.calibration_metric is not None else 'N/A'} |",
+        f"| **Z2 Recommendation** | **{report.z2_recommendation}** |",
+        "",
+        "## Detailed Claim Analysis",
+        "",
+    ]
+
+    for claim in report.claims:
+        status_icon = "✅" if claim.verification_status == VerificationStatus.VERIFIED else \
+                      "❌" if claim.verification_status == VerificationStatus.FALSIFIED else \
+                      "⚠️" if claim.verification_status == VerificationStatus.PARTIAL else "❓"
+
+        lines.extend([
+            f"### {status_icon} {claim.claim_id}: {claim.verification_status.value}",
+            "",
+            f"**Statement:** {claim.statement}",
+            f"**Stated Confidence:** {claim.stated_confidence:.0%}",
+            f"**Actual Outcome:** {claim.actual_outcome}",
+            f"**Calibration Score:** {claim.calibration_score:.2f if claim.calibration_score is not None else 'N/A'}",
+            f"**Evidence:** {claim.evidence}",
+            f"**Z2 Gate:** {claim.z2_gate}",
+            "",
+        ])
+
+    return "\n".join(lines)
 
 
 # ============================================================================
@@ -389,6 +520,11 @@ def main():
 
     # Output as JSON
     print(json.dumps(asdict(report), indent=2, default=str))
+
+    # Also generate markdown report (for reproducibility)
+    markdown = render_markdown_report(report)
+    with open("Z2_REVIEW_PR465_COMPARISON.md", "w") as f:
+        f.write(markdown)
 
     return 0
 
