@@ -93,7 +93,7 @@ jobs:
             2>&1 || true
 
       - name: Upload audit result
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mesh-standard-files-audit
           path: /tmp/audit_result.json

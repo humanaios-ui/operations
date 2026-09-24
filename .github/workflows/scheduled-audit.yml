@@ -51,7 +51,7 @@ jobs:
           fi
       - name: Upload audit report artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: scheduled-audit-report
           path: |

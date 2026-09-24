@@ -130,7 +130,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish receipt, board report and rendered pages as run artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: intent-os-${{ github.sha }}
           path: |

@@ -209,7 +209,7 @@ jobs:
           PYEOF
 
       - name: Upload SMAG pilot row as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: smag-pilot-row-${{ github.sha }}
           path: /tmp/behav_smag/smag_pilot_row.json
