@@ -1,8 +1,8 @@
 version: 1
-generated: '2026-09-23'
+generated: '2026-09-24'
 decision_window_days: 2
 counts:
-  candidates: 88
+  candidates: 89
   records: 40
 ratifiers:
 - Night
@@ -953,6 +953,12 @@ candidates:
   path: z1-inbox/2026-09-21/Q-SMAG-Z3-TASK-SEQUENCING-01.md
   submitted: '2026-09-21'
   status: awaiting_z2
+- q_id: Q-MAIL-EVIDENCE-LEDGER-01
+  title: "Pseudonymous Git-backed Mail Evidence Ledger — private evidence, deterministic privacy projection, public engineering receipts"
+  path: z1-inbox/2026-09-24/Q-MAIL-EVIDENCE-LEDGER-01.md
+  submitted: '2026-09-24'
+  status: awaiting_z2
+  note: "Night explicitly instructed ratification after HARC Trial 001 correction, Grok blind Trial 002, and the email/resource protocol review. Ratifies the dual-ledger privacy/evidence architecture only; HARC v0.1 enforcement and Resource Miner PR #500 remain unratified implementation work."
 records:
 - path: z1-inbox/2026-09-19/PHASE-1-IMPLEMENTATION-STATUS.md
   title: Phase 1 implementation status report (2026-09-19)
