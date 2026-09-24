@@ -156,6 +156,8 @@ def _required_authority(pr: dict[str, Any]) -> str:
     if files & {
         "REGISTERED.md", "PRIORITY_QUEUE.md", "MOLT_STATE.md",
         "REPOSITORY_COORDINATOR_POLICY.json",
+        ".github/dependabot.yml", ".github/copilot-instructions.md",
+        ".github/CODEOWNERS",
     }:
         return "Z2"
     return "Z1"
