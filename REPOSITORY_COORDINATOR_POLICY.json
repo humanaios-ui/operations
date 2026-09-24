@@ -1,7 +1,7 @@
 {
   "schema_version": "0.2",
   "status": "candidate_control_policy",
-  "authority_effect": "NONE_UNTIL_MERGED_AND_RATIFIED",
+  "authority_effect": "ADMISSION_ROUTING_ONLY_WHEN_ON_MAIN",
   "purpose": "Bound repository working-set growth by separating admission, workbench, maintenance, and operator-attention lanes.",
   "invariants": [
     "ISSUE_IS_NOT_ADMITTED_WORK",
@@ -30,7 +30,8 @@
       "tools/tests/test_repository_coordinator_v0_1.py",
       ".github/workflows/repository-coordinator.yml",
       ".github/dependabot.yml",
-      ".github/copilot-instructions.md"
+      ".github/copilot-instructions.md",
+      ".github/CODEOWNERS"
     ]
   },
   "notes": [
