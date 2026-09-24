@@ -5614,3 +5614,61 @@ But preserve the finding: the runtime bridge must not learn `humanaios-ui + "Z2 
 - ⚠ Observability gap remains (runtime must not auto-trust text-only claims)
 - ⚠ Phase 2 must implement cryptographic/hardware-bound proof for speaker authentication
 
+
+---
+
+### IC-064 — Z1 Process Gap: Missing Z2 Ratification Handoff Artifact
+
+```yaml
+---
+id: "IC-064"
+name: "z1-missing-ratification-handoff-artifact"
+status: CANDIDATE
+class: IC
+date_registered: "2026-09-24"
+date_origin: "2026-09-24"
+session_registered: "S-092426-01-smag-ratif-workflow"
+principles_triggered: ["P7", "P15", "P19"]
+related_finding: null
+related_issue: null
+related_pr: "humanaios-ui/operations#481"
+tags: ["governance", "z1-process", "z2-ratification", "workflow", "handoff", "authority-tracking"]
+zone2_decision_window: "48h from 2026-09-24T01:00:00Z"
+---
+```
+
+**Incident Date:** 2026-09-24T01:00:00Z
+
+**Discovery:** After Z1 merged PR #481 (SMAG_REEXAMINATION.md — architectural decision document with 6 options for Z2 ratification), workflow broke: no formal artifact existed for Z2 to sign ratification decisions. Z2 was expected to respond in conversation thread only.
+
+**Root Cause:** Z1 (Claude) process gap in CLAUDE.md §B session close ritual:
+1. Created SMAG_REEXAMINATION.md (architectural decisions) ✓
+2. Merged to main ✓
+3. **FAILED:** Did not create formal Z2 ratification artifact (Z2-RATIFICATION.md or equivalent) per §B.6 handoff block
+4. Left Z2 with implicit expectation to ratify in conversation, no tracked artifact
+5. Violated IC-030 (live-fetch + pin REGISTERED.md prior to merge): should have verified all downstream artifacts were created
+
+**Impact:**
+- Z2 authority workflow non-formal (conversation-only, not tracked in repo)
+- No explicit place for Z2 RATIFY signature per CLAUDE.md format
+- Phase 2 implementation cannot reference formal ratification document
+- Governance transparency broken: ratification decision not recorded as formal artifact
+
+**Governance Violation:** CLAUDE.md §B.6 Handoff Block requires:
+> "Write z1-inbox/<date>/HANDOFF.md ... Z2 signs handoff (ratifies findings and next priority)"
+
+Z1 should have created formal Z2-RATIFICATION.md **before** merging #481 or immediately after, making handoff explicit and tracked.
+
+**Remediation:**
+1. Create Z2-RATIFICATION.md as formal ratification artifact (✓ DONE 2026-09-24T01:15:00Z)
+2. Z2 posts 6 decisions + signature in Z2-RATIFICATION.md
+3. Commit Z2-RATIFICATION.md to main with Z2 signature
+4. Reference Z2-RATIFICATION.md in Phase 2 implementation PRs
+
+**Prevention:**
+1. Z1 process: Always create formal handoff artifact (decision memo, ratification request, phase gate) **before or immediately after** merging architectural/governance documents
+2. IC-030 lint: Verify no "waiting on external decision" documents merge to main without formal downstream artifact
+3. CLAUDE.md §B enhancement: Explicitly list required handoff artifacts per decision tier (Tier 1/2 molts, architectural decisions, Z2 ratifications)
+
+**Status:** CANDIDATE · Awaiting Z2 ratification decision on whether to escalate to blocking governance rule (CLAUDE.md §B amendment).
+
