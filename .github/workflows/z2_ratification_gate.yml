@@ -110,7 +110,7 @@ jobs:
             exit 0  # Advisory only — allows other ratification mechanisms to proceed
           fi
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
@@ -229,7 +229,7 @@ jobs:
 
       # This job imports yaml too; the install in z2-gate does not carry over.
       # It only ever passed by relying on whatever the runner image preinstalls.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
       - name: Install deps

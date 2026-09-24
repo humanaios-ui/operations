@@ -69,7 +69,7 @@ jobs:
 
       - name: Set up Python for metrics capture
         if: steps.guard.outputs.configured == 'true' && steps.scan-status.outputs.completed == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
