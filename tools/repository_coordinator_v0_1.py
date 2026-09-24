@@ -382,7 +382,7 @@ def classify(
             "Admitted ready work exceeds the active operator-queue capacity; coordinator refuses to select winners."
         ))
 
-    zero_diff = len(files) == 0
+    zero_diff = bool(pr.get("files_complete", True)) and len(files) == 0
     if zero_diff:
         findings.append(Finding(
             "ZERO_DIFF", "HIGH",
@@ -525,6 +525,7 @@ def classify(
         "merge_surface": {
             "zero_diff": zero_diff,
             "changed_files": len(files),
+            "files_complete": bool(pr.get("files_complete", True)),
             "mergeable_state": mergeable_state or "unknown",
         },
         "guidance": {
