@@ -1,0 +1,67 @@
+version: 1
+updated_at: '2026-09-24'
+status: active_hypotheses
+hypotheses:
+  - id: GAP-H1
+    title: Claim/evidence/warrant/authority separation may still be under-served.
+    unsolved_job: Inspect a consequential action without collapsing evidence, reasoning, and approval into one trace.
+    strongest_comparator: microsoft_foundry_control_plane
+    evidence_basis:
+      - comparator_registry:microsoft_foundry_control_plane
+      - capability_matrix:models_claims_separately_from_traces
+    falsifier: A strongest comparator demonstrates the same separation at adequate quality for the same workflow.
+    current_status: open
+  - id: GAP-H2
+    title: Disagreement preservation may still be under-served.
+    unsolved_job: Preserve VERIFIED / INFERRED / DISPUTED / UNKNOWN / DEFEATED states instead of forcing a single verdict.
+    strongest_comparator: patronus_ai
+    evidence_basis:
+      - comparator_registry:patronus_ai
+      - capability_matrix:preserves_unresolved_disagreement
+    falsifier: A comparator preserves unresolved disagreement in a way that external users find sufficient.
+    current_status: open
+  - id: GAP-H3
+    title: Cross-substrate epistemic testing may still be under-served.
+    unsolved_job: Compare what independent systems notice, miss, and correct after contradictory evidence.
+    strongest_comparator: langsmith
+    evidence_basis:
+      - comparator_registry:langsmith
+      - comparator_registry:arize_phoenix
+    falsifier: Existing observability/evaluation tooling already supports the same comparison workflow at adequate quality.
+    current_status: open
+  - id: GAP-H4
+    title: Explicit warrant layers may still be under-served.
+    unsolved_job: Show the bridge between evidence and action instead of only a trace plus policy summary.
+    strongest_comparator: ibm_watsonx_governance
+    evidence_basis:
+      - comparator_registry:ibm_watsonx_governance
+      - comparator_registry:credo_ai_platform
+    falsifier: Governance tooling already exposes warrant and authority as separate inspectable objects.
+    current_status: open
+  - id: GAP-H5
+    title: Authority-bound execution receipts may still be under-served.
+    unsolved_job: Expose role, authority, preconditions, reversibility, and receipt for a proposed action.
+    strongest_comparator: microsoft_foundry_control_plane
+    evidence_basis:
+      - comparator_registry:microsoft_foundry_control_plane
+      - comparator_registry:ibm_watsonx_governance
+    falsifier: Existing control-plane or governance systems already expose the same execution contract at adequate quality.
+    current_status: open
+  - id: GAP-H6
+    title: Provenance-topology analysis may still be under-served.
+    unsolved_job: Detect shared upstream evidence, hidden communication, or common-mode dependencies that make witnesses only appear independent.
+    strongest_comparator: arize_phoenix
+    evidence_basis:
+      - comparator_registry:arize_phoenix
+      - comparator_registry:patronus_ai
+    falsifier: Existing observability/security systems already surface shared-source and authority-laundering risks adequately.
+    current_status: open
+  - id: GAP-H7
+    title: Public “Show Me Why” verification may still be under-served.
+    unsolved_job: Let non-sensitive public users inspect evidence, authority, uncertainty, and challenge state.
+    strongest_comparator: microsoft_foundry_control_plane
+    evidence_basis:
+      - comparator_registry:microsoft_foundry_control_plane
+      - comparator_registry:ibm_watsonx_governance
+    falsifier: Existing products already provide public, verifiable inspection interfaces that satisfy the same job.
+    current_status: open
