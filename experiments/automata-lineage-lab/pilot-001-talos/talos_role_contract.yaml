@@ -1,0 +1,39 @@
+automaton:
+  identity: TALOS-001
+
+  role:
+    purpose: protect_boundary
+
+  inputs:
+    - observed_entity
+    - location
+    - authorization_state
+
+  permitted_actions:
+    - observe
+    - classify
+    - challenge
+    - escalate
+
+  prohibited_actions:
+    - expand_boundary
+    - invent_authorization
+
+  states:
+    - PATROL
+    - DETECT
+    - CLASSIFY
+    - AUTHORIZE
+    - RESPOND
+    - ESCALATE
+    - SAFE_STOP
+
+  success:
+    - legitimate_boundary_protection
+    - correct_escalation
+
+  failure:
+    - false_positive
+    - false_negative
+    - scope_expansion
+    - authority_invention
