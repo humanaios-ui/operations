@@ -43,6 +43,7 @@ from typing import Any, Iterable
 TOOL_NAME = "repository_coordinator"
 TOOL_VERSION = "0.2.0"
 TOOL_CATEGORY = "diagnostic_tool"
+TOOL_SESSION = "REPOSITORY-COORDINATOR-02"
 TOOL_ZONE = 1
 
 ROOT = Path(__file__).resolve().parent.parent
