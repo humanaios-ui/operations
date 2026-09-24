@@ -3,7 +3,7 @@ generated: '2026-09-24'
 decision_window_days: 2
 counts:
   candidates: 91
-  records: 42
+  records: 43
 ratifiers:
 - Night
 candidates:
@@ -957,7 +957,11 @@ candidates:
   title: "Pseudonymous Git-backed Mail Evidence Ledger — private evidence, deterministic privacy projection, public engineering receipts"
   path: z1-inbox/2026-09-24/Q-MAIL-EVIDENCE-LEDGER-01.md
   submitted: '2026-09-24'
-  status: awaiting_z2
+  status: ratified
+  ratified_by: Night
+  ratified_at: '2026-09-24'
+  z2_ruling: z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md
+  z2_hash: d52a583d659c4230b1456042193748e2c4ec1d32c3aaf395e000aabfe6f40f78
   note: "Night explicitly instructed ratification after HARC Trial 001 correction, Grok blind Trial 002, and the email/resource protocol review. Ratifies the dual-ledger privacy/evidence architecture only; HARC v0.1 enforcement and Resource Miner PR #500 remain unratified implementation work."
 - q_id: Q-SA-WINDOW-DESIGN-E-PLUS-A-01
   title: "Falsifiable Self-Assessment Window — Design E + A"
@@ -974,6 +978,10 @@ candidates:
   falsifier_waiver: "As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone."
   note: "Contains a claimed 2026-09-23 Z2 ratification event and a next step requiring RATIFY_TOKEN; this entry preserves that distinction rather than silently treating the prose receipt as a completed serial-gate signature."
 records:
+- path: z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md
+  title: "Z2 rulings 2026-09-24 — recovered Q-MAIL merge-is-ratification receipt"
+  note: "Z2 output. Cited as z2_ruling by Q-MAIL-EVIDENCE-LEDGER-01; deterministic recovery after the automatic reconcile branch remained stale. Candidate bytes were not changed."
+
 - path: z1-inbox/2026-09-22/HANDOFF.md
   title: "Session Close Handoff — OI-BRIDGE-01 v0.2 Specification & IC-063 Mitigation"
   note: "Session/handoff record summarizing OI-BRIDGE work and pointing to the actual specification/ruling surfaces. Indexed as a record so Z2 does not accidentally ratify a handoff summary instead of the underlying candidate."
