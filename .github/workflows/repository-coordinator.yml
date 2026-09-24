@@ -330,13 +330,6 @@ jobs:
           fetch-depth: 0
 
       - name: Enforce local admission standing
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          PR_DRAFT: ${{ github.event.pull_request.draft }}
-          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
         run: |
           python3 - <<'PY'
           import json
@@ -346,11 +339,17 @@ jobs:
           from pathlib import Path
 
           policy = json.loads(Path("REPOSITORY_COORDINATOR_POLICY.json").read_text())
-          number = int(os.environ["PR_NUMBER"])
-          body = os.environ.get("PR_BODY") or ""
-          author = os.environ.get("PR_AUTHOR") or ""
-          draft = (os.environ.get("PR_DRAFT") or "").lower() == "true"
-          labels = set(json.loads(os.environ.get("PR_LABELS_JSON") or "[]"))
+          event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
+          pr = event["pull_request"]
+          number = int(event["number"])
+          body = pr.get("body") or ""
+          author = (pr.get("user") or {}).get("login") or ""
+          draft = bool(pr.get("draft"))
+          labels = {
+              item.get("name")
+              for item in (pr.get("labels") or [])
+              if isinstance(item, dict) and item.get("name")
+          }
 
           maintenance = policy.get("maintenance") or {}
           is_maintenance = (
@@ -358,7 +357,7 @@ jobs:
               or bool(labels & set(maintenance.get("labels") or []))
           )
 
-          base_sha = os.environ.get("BASE_SHA") or ""
+          base_sha = ((pr.get("base") or {}).get("sha") or "")
           changed = set()
           if base_sha:
               proc = subprocess.run(
