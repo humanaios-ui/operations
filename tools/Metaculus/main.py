@@ -1205,7 +1205,7 @@ if __name__ == "__main__":
             ),
             "parser": "openai/gpt-4o-mini",
             "researcher": GeneralLlm(
-                model="together_ai/mistralai/Mistral-7B-Instruct-v0.2",  # Free serverless
+                model="groq/mixtral-8x7b-32768",  # Free serverless
                 temperature=0.3, timeout=60, allowed_tries=2,
             ),
             "summarizer": "openai/gpt-4o-mini",
