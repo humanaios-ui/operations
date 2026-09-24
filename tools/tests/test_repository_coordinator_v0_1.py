@@ -230,6 +230,23 @@ def test_draft_agent_work_is_workbench_not_operator_queue():
     assert idx["counts"]["lanes"]["WORKBENCH"] == 1
 
 
+
+def test_summary_only_maintenance_is_not_mistaken_for_zero_diff():
+    p = pr(
+        1,
+        title="build(deps): update package",
+        files=[],
+        author="dependabot[bot]",
+        labels=["dependencies"],
+    )
+    p["files_complete"] = False
+    idx = run([p], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "MAINTENANCE"
+    assert got["guidance"]["action"] != "CLOSE_PRESERVE"
+    assert got["merge_surface"]["files_complete"] is False
+
+
 def test_dependabot_routes_to_maintenance_cohort():
     p = pr(
         1,
