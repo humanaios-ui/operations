@@ -2,7 +2,7 @@
 """
 repository_coordinator_v0_1.py — evidence-bounded repository coordination index.
 Builder v1.7 compliant
-HumanAIOS — PR-RELEVANCE-01
+HumanAIOS — REPOSITORY-COORDINATOR-02
 
 Builds a read-only coordination view over live pull requests and canonical
 repository constraints. It answers "what should the operator inspect next?"
@@ -14,6 +14,12 @@ Core invariants:
   MERGEABLE_IS_NOT_CURRENT
   AGE_IS_NOT_STALENESS
   GUIDANCE_REQUIRES_EVIDENCE
+  ISSUE_IS_NOT_ADMITTED_WORK
+  ASSIGNMENT_IS_NOT_PR_ADMISSION
+  DRAFT_IS_NOT_OPERATOR_QUEUE
+  AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY
+  ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS
+  ADMISSION_IS_NOT_MERGE_AUTHORITY
 
 Inputs are an offline JSON snapshot collected by the GitHub workflow plus the
 checked-out canonical PRIORITY_QUEUE.md. The tool does not call GitHub itself.
@@ -21,7 +27,7 @@ checked-out canonical PRIORITY_QUEUE.md. The tool does not call GitHub itself.
 Usage:
   python3 tools/repository_coordinator_v0_1.py --snapshot snapshot.json
   python3 tools/repository_coordinator_v0_1.py --snapshot snapshot.json \
-      --output index.json --markdown index.md
+      --output index.json --markdown index.md --policy REPOSITORY_COORDINATOR_POLICY.json
   python3 tools/repository_coordinator_v0_1.py --smoke-test
 """
 from __future__ import annotations
@@ -35,7 +41,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 TOOL_NAME = "repository_coordinator"
-TOOL_VERSION = "0.1.0"
+TOOL_VERSION = "0.2.0"
 TOOL_CATEGORY = "diagnostic_tool"
 TOOL_ZONE = 1
 
@@ -75,6 +81,15 @@ ACTION_ORDER = {
     "COMPARE_CONSOLIDATE": 2,
     "REBASE_RETEST": 3,
     "ADVANCE": 4,
+}
+
+LANE_ORDER = {
+    "CAPACITY_CONTENTION": 0,
+    "CONTROL_PLANE": 1,
+    "ACTIVE": 2,
+    "ADMISSION_REVIEW": 3,
+    "WORKBENCH": 4,
+    "MAINTENANCE": 5,
 }
 
 
@@ -137,9 +152,109 @@ def _required_authority(pr: dict[str, Any]) -> str:
     files = set(pr.get("files") or [])
     if any(path.startswith(".github/workflows/") for path in files):
         return "Z2"
-    if files & {"REGISTERED.md", "PRIORITY_QUEUE.md", "MOLT_STATE.md"}:
+    if files & {
+        "REGISTERED.md", "PRIORITY_QUEUE.md", "MOLT_STATE.md",
+        "REPOSITORY_COORDINATOR_POLICY.json",
+    }:
         return "Z2"
     return "Z1"
+
+
+def _labels(value: Any) -> set[str]:
+    labels: set[str] = set()
+    for raw in value or []:
+        if isinstance(raw, dict):
+            name = raw.get("name")
+        else:
+            name = raw
+        if name:
+            labels.add(str(name))
+    return labels
+
+
+def _maintenance(pr: dict[str, Any], policy: dict[str, Any]) -> bool:
+    cfg = policy.get("maintenance") or {}
+    authors = set(cfg.get("authors") or [])
+    labels = set(cfg.get("labels") or [])
+    author = str(pr.get("author") or "")
+    return author in authors or bool(_labels(pr.get("labels")) & labels)
+
+
+def _maintenance_cohort(pr: dict[str, Any]) -> str:
+    title = (pr.get("title") or "").lower()
+    files = pr.get("files") or []
+    if "actions/" in title or any(p.startswith(".github/workflows/") for p in files):
+        return "github-actions"
+    if "docker" in title or any("docker" in p.lower() for p in files):
+        return "docker"
+    if "depend" in title or any(
+        p.endswith(("requirements.txt", "pyproject.toml", "poetry.lock"))
+        for p in files
+    ):
+        return "python-dependencies"
+    return "maintenance-other"
+
+
+def _control_plane(pr: dict[str, Any], policy: dict[str, Any]) -> bool:
+    paths = set((policy.get("control_plane") or {}).get("paths") or [])
+    return bool(set(pr.get("files") or []) & paths)
+
+
+def _admission_evidence(
+    pr: dict[str, Any],
+    policy: dict[str, Any],
+    referenced_items: dict[str, dict[str, Any]],
+) -> tuple[bool, list[str]]:
+    cfg = policy.get("admission") or {}
+    admitted_prs = {int(x) for x in cfg.get("pull_request_numbers") or []}
+    admitted_issues = {int(x) for x in cfg.get("issue_numbers") or []}
+    evidence: list[str] = []
+
+    number = int(pr.get("number") or 0)
+    if number in admitted_prs:
+        evidence.append(f"policy explicitly admits PR #{number}")
+
+    for raw in PR_REF_RE.findall(pr.get("body") or ""):
+        ref = int(raw)
+        item = referenced_items.get(str(ref)) or referenced_items.get(ref)
+        if not item or item.get("is_pull_request"):
+            continue
+        if ref in admitted_issues:
+            evidence.append(f"policy admits referenced issue #{ref}")
+
+    return bool(evidence), evidence
+
+
+def _base_lane(
+    pr: dict[str, Any],
+    *,
+    policy: dict[str, Any],
+    referenced_items: dict[str, dict[str, Any]],
+) -> tuple[str, dict[str, Any]]:
+    admitted, evidence = _admission_evidence(pr, policy, referenced_items)
+    maintenance = _maintenance(pr, policy)
+    control_plane = _control_plane(pr, policy)
+    draft = bool(pr.get("draft"))
+
+    if maintenance:
+        lane = "MAINTENANCE"
+    elif control_plane:
+        lane = "CONTROL_PLANE"
+    elif draft:
+        lane = "WORKBENCH"
+    elif admitted:
+        lane = "ACTIVE"
+    else:
+        lane = "ADMISSION_REVIEW"
+
+    return lane, {
+        "admitted": admitted,
+        "evidence": evidence,
+        "maintenance": maintenance,
+        "control_plane": control_plane,
+        "draft": draft,
+        "cohort": _maintenance_cohort(pr) if maintenance else None,
+    }
 
 
 def _missing_refs(body: str, main_paths: set[str], own_files: set[str]) -> list[str]:
