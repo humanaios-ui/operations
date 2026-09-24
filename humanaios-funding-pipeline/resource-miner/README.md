@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1
+# HumanAIOS Resource Miner v0.1.1
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -32,6 +32,18 @@ The Miner does **not** emit `YOU QUALIFY`, `APPLY_NOW`, or a funding commitment.
 - **Generic RSS/Atom** — accepts feed URLs for additional contest, rebate, research, program, and opportunity sources.
 
 The adapter boundary is intentionally small so Devpost, HackerEarth, utility rebates, startup/cloud credits, tribal programs, procurement portals, and open-source bounty networks can be added without changing the resource schema.
+
+## Adversarial hardening in v0.1.1
+
+Cross-substrate review of the v0.1 branch found three concrete implementation defects. v0.1.1 fixes those defects without changing the Z2-sensitive routing threshold:
+
+- the package initializer is valid Python source;
+- URL canonicalization removes known tracking parameters but **preserves and stably sorts semantic query parameters**, so distinct resource identifiers such as `?id=1` and `?id=2` do not collapse;
+- RSS/Atom input is capped at 2 MiB and rejects DTD/entity declarations before `xml.etree.ElementTree` parsing.
+
+Regression tests plant tracking-vs-semantic query cases, an oversized feed, and a DTD/entity payload. The `VERIFY_NOW` threshold remains `0.55`; changing that value changes prioritization policy and is outside this hardening patch.
+
+Redirect aliases are still not resolved before hashing. That is a documented identity limitation rather than a silently claimed capability; adding redirect resolution requires a bounded policy for hops, timeouts, and cross-host redirects.
 
 ## Need Graph
 
