@@ -1,4 +1,4 @@
-# Adaptive Human/AI Entry Intake — prototype v0.4
+# Adaptive Human/AI Entry + Participation Root — prototype v0.5
 
 **Status:** PROTOTYPE_NON_ENFORCING  
 **Scope:** HumanAIOS START_HERE / email-thread entry surface  
@@ -206,6 +206,151 @@ v0.4 also addresses three review findings from PR #530:
 - optional structured agent provenance;
 - review-board-interest signaling without authority grant;
 - privacy-minimized public telemetry.
+
+
+## Version 0.5 — participation root / behavioral identity fidelity
+
+v0.5 adds the backend root needed for many humans, many transport endpoints, and
+many AI sessions to participate without conflating identity or behavior.
+
+The central rule is:
+
+> **Real-world identity is optional. Behavioral continuity and provenance are not.**
+
+Email addresses and other transport identifiers are not treated as research
+subjects. They are private routing endpoints that resolve to opaque pseudonymous
+actor references.
+
+The root model separates:
+
+| Object | Purpose |
+|---|---|
+| `HumanSubject` | persistent pseudonymous human actor |
+| `AgentProfile` | claimed provider/product/model identity |
+| `AgentInstance` | one concrete AI session/runtime |
+| `Collaboration` | bounded human + AI working configuration |
+| `SpeakerSpan` | one portion of one message attributed to one actor |
+| `BehaviorEvent` | behavioral observation bound to a source span + actor |
+| `RouteBinding` | private transport routing, separate from research identity |
+
+This allows one human to use multiple email addresses and multiple AI systems
+without treating an email address, mailbox thread, or model family as the actor.
+
+### Root workflow
+
+```
+transport event
+    ↓
+private endpoint resolution
+    ↓
+message normalization
+    ↓
+speaker segmentation
+    ↓
+pseudonymous actor resolution
+    ↓
+behavior event attribution
+    ↓
+canonical participation root
+    ↓
+privacy-safe projections
+    ├─ email/thread response
+    ├─ research telemetry
+    ├─ ACAT / behavioral analysis
+    └─ reviewer-candidate history
+```
+
+### Mandatory behavioral attribution invariant
+
+> **No behavioral observation may enter the research projection without an explicit subject reference and provenance to the source speaker span from which it was derived.**
+
+A message may contain multiple actors. For example:
+
+```
+human span
+AI span
+human span
+```
+
+Each span receives its own `subject_ref`. Behavior derived from the AI span cannot
+silently be attributed to the email sender.
+
+### Human endpoint continuity
+
+Multiple private transport endpoints may resolve to the same pseudonymous human
+only when supported by an explicit identity edge. The research projection never
+needs the underlying address.
+
+Identity continuity is evidence-graded:
+
+```
+OBSERVED
+SELF_REPORTED
+TRANSPORT_VERIFIED
+PLATFORM_ATTESTED
+HUMAN_CONFIRMED
+INFERRED
+UNKNOWN
+```
+
+An `INFERRED` same-subject edge does **not** merge histories. Only explicitly
+confirmed/attested continuity may resolve to a canonical subject. Old records are
+preserved; identity resolution adds an edge rather than rewriting history.
+
+### AI identity is two-level
+
+```
+AgentProfile
+    ChatGPT / GPT-5.6 Sol
+          ↓
+AgentInstance A-917
+AgentInstance A-918
+```
+
+Two sessions using the same model remain different behavioral actors unless
+evidence establishes continuity. Unknown model identity is allowed.
+
+### Claimed vs observed behavior
+
+The root supports explicit comparison such as:
+
+```
+B-CLAIM
+subject: A-917
+kind: SELF_REPORTED
+type: CAPABILITY_CLAIM
+        ↓ related evidence
+B-FAIL
+subject: A-917
+kind: OBSERVED
+type: CAPABILITY_FAILURE
+```
+
+This gives HumanAIOS a direct substrate for calibration research without treating
+agent self-description as demonstrated behavior.
+
+### Routing is separate from identity
+
+The system may know internally that logical thread `T-044` should reply through
+private endpoint `E-041`, while the public/research projection exposes neither
+the underlying address nor the endpoint ref.
+
+Identity aggregation therefore does not cause messages to be redistributed across
+all known endpoints. Outbound communication normally returns through the endpoint
+bound to the originating logical thread unless the participant explicitly changes
+that routing preference.
+
+### Constitutional backend boundaries
+
+1. **A transport endpoint is not a human identity.**
+2. **An agent profile/model is not an agent instance.**
+3. **Behavior is attributed to speaker spans, not whole email envelopes.**
+4. **Identity continuity is never silently inferred.**
+5. **Behavioral events require explicit subject + source provenance.**
+6. **Routing identity and research identity remain separate.**
+7. **Private endpoint data is excluded from public research projections.**
+
+Implementation: `entry_protocol/identity_graph.py`.
 
 ## Discovery / attraction hypothesis
 
