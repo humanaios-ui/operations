@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**176 registered tools** · 2 MCP servers · 4 excluded · 140 carrying Builder v1.7 markers
+**177 registered tools** · 2 MCP servers · 4 excluded · 140 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,11 +13,11 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 176 |
-| — status `draft` | 175 |
+| Registered tools | 177 |
+| — status `draft` | 176 |
 | — status `archived` | 1 |
 | Builder v1.7 markers present | 140 |
-| Uncategorized | 0 |
+| Uncategorized | 1 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -198,7 +198,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-128 | system_audit | `tools/system_audit_v1_0.py` | 1.1.0 | 1 | draft | — | ⚠️ SUPERSEDED — Do NOT use this version |
 | HAIOS-TOOL-165 | holographic_orchestrator | `tools/holographic_orchestrator.py` | 0.1.0 | 1 | draft | — | Orchestrates holographic person representation via external services: |
 
-## Pipelines — `pipeline_tool` (4)
+## Pipelines — `pipeline_tool` (5)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -206,6 +206,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-019 | acat_pipeline | `tools/acat_pipeline_v0_1.py` | 1.0.0 | 1 | draft | — | acat_pipeline_v0_1.py |
 | HAIOS-TOOL-073 | haios_doc_ingestor | `tools/haios_doc_ingestor_v1_0.py` | 1.0.0 | 1 | draft | — | Document ingestion pipeline for HumanAIOS surfaces. |
 | HAIOS-TOOL-105 | registry_issue_compiler | `tools/registry_issue_compiler_v1_0.py` | 1.0.0 | 1 | draft | — | Registry Issue Compiler - v1.0 |
+| HAIOS-TOOL-189 | build_oracle_state | `scripts/build_oracle_state.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Build a thin Oracle state artifact for the Oracle + Actualizer MVP. |
 
 ## Reporting — `reporting_tool` (5)
 
@@ -322,7 +323,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 4 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
-| `pipeline_tool` | Multi-stage processing of a corpus or record set. | 4 |
+| `pipeline_tool` | Multi-stage processing of a corpus or record set. | 5 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 5 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 9 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
