@@ -272,7 +272,7 @@ def main() -> None:
     parser.add_argument(
         "--advisory-only",
         action="store_true",
-        help="Always exit 0 after reporting state",
+        help="Exit 0 after reporting state, regardless of gate result",
     )
 
     args = parser.parse_args()
