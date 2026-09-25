@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.2",
+  "status": "candidate_control_policy",
+  "authority_effect": "ADMISSION_ROUTING_ONLY_FROM_DEFAULT_BRANCH",
+  "purpose": "Bound repository working-set growth by separating admission, workbench, maintenance, and operator-attention lanes.",
+  "invariants": [
+    "ISSUE_IS_NOT_ADMITTED_WORK",
+    "ASSIGNMENT_IS_NOT_PR_ADMISSION",
+    "DRAFT_IS_NOT_OPERATOR_QUEUE",
+    "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
+    "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
+    "ADMISSION_IS_NOT_MERGE_AUTHORITY"
+  ],
+  "capacity": {
+    "active_operator_queue": 4
+  },
+  "admission": {
+    "issue_numbers": [
+      378
+    ],
+    "pull_request_numbers": [
+      514
+    ],
+    "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
+  },
+  "maintenance": {
+    "authors": [
+      "dependabot[bot]"
+    ],
+    "labels": [
+      "dependencies"
+    ],
+    "cohort_by": "ecosystem",
+    "standing": "author identity only; labels refine cohorts and never grant maintenance standing"
+  },
+  "control_plane": {
+    "paths": [
+      "REPOSITORY_COORDINATOR_POLICY.json",
+      "tools/repository_coordinator_v0_1.py",
+      "tools/tests/test_repository_coordinator_v0_1.py",
+      ".github/workflows/repository-coordinator.yml",
+      ".github/workflows/repository-admission-gate.yml",
+      ".github/dependabot.yml",
+      ".github/copilot-instructions.md",
+      ".github/CODEOWNERS"
+    ],
+    "exemption": "only when every changed file is a control-plane path; mixed changes require admission"
+  },
+  "notes": [
+    "Issue 378 is seeded because PRIORITY_QUEUE.md already marks Q-TEMPORAL-DISSOLUTION-01 as the global GATING architectural repair.",
+    "Admission determines working-set standing only. It does not ratify governance, approve code, or authorize merge.",
+    "When admitted ready-for-review work exceeds capacity, the coordinator does not choose winners; it reports capacity contention for operator resolution.",
+    "The gate reads this file from the default branch (pull_request_target). A PR cannot admit itself by editing this file, and touching a control-plane file alongside feature work does not exempt the feature work.",
+    "Two ready PRs linking the same admitted objective are both held (DUPLICATE_ACTIVE_IMPLEMENTATION); the coordinator does not choose a winner.",
+    "PR #514 is admitted explicitly (Z2 instruction, 2026-09-25): it carries the coordinator control plane together with regenerated tool-manifest files, so it is a mixed change under the control-plane rule and needs an explicit admission record rather than an exemption."
+  ]
+}
