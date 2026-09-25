@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://humanaios.ai/schemas/intent_os_operator_check_v1.schema.json",
   "title": "INTENT-OS RNOLA Operator Check v1",
+  "$comment": "HARD CONSTRAINT: This record is advisory evidence only. It cannot approve a PR, satisfy required review, sign a ruling, ratify a candidate, change a merge gate, authorize deployment, or substitute for CI, test evidence, or repository provenance. Treating an operator-check as authorization violates RNOLA semantics and INTENT-OS governance.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -22,10 +23,12 @@
       "const": "intentos/operator_check_v1"
     },
     "advisory_only": {
-      "const": true
+      "const": true,
+      "$comment": "REQUIRED: This record must always be advisory only. Never change this to false."
     },
     "can_authorize": {
-      "const": false
+      "const": false,
+      "$comment": "REQUIRED: This record cannot authorize any action. Never change this to true."
     },
     "subject": {
       "type": "object",
@@ -50,7 +53,9 @@
         },
         "ref": {
           "type": "string",
-          "minLength": 1
+          "minLength": 7,
+          "pattern": "^[0-9a-f]{7,40}$",
+          "$comment": "REQUIRED: Must be a commit SHA (hex string, 7–40 chars). Branch names are not acceptable refs. Use git rev-parse to get the exact SHA."
         },
         "identifier": {
           "type": "string",
@@ -102,11 +107,14 @@
           },
           "locator": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "pattern": "(#|:)",
+            "$comment": "REQUIRED: Must cite exact location in repository artifact. Must include at least one specificity marker: '#' for comments/issues or ':' for line numbers. Examples: 'PR-534#comment-123', 'tests/test_*.py:42', 'commit:abc123def456', 'workflows/ci.yml:L15'. Generic 'PR-534' alone is insufficient."
           },
           "observation": {
             "type": "string",
-            "minLength": 1
+            "minLength": 10,
+            "$comment": "REQUIRED: Describe what was actually observed at the locator, not a generic claim. Minimum 10 characters to discourage placeholder entries."
           }
         }
       }
@@ -132,7 +140,8 @@
     },
     "authority_consequence": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "$comment": "Document what would change if the subject were merged/approved. This is NOT authorization. The operator-check cannot satisfy required review, sign a ratification, or change a merge gate."
     },
     "next_learning_object": {
       "type": "string"
