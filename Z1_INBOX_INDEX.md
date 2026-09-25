@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**91 candidates** — ⏳ awaiting Z2 81 · ✅ ratified 10 · **43 records**
+**92 candidates** — ⏳ awaiting Z2 82 · ✅ ratified 10 · **43 records**
 
-## Awaiting Z2 (81)
+## Awaiting Z2 (82)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -93,6 +93,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-25 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** ⚠️ falsifier waived | Falsifiable Self-Assessment Window — Design E + A | `z1-inbox/2026-09-23/falsifiable_self_assessment.md` |
 | 2026-09-25 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** ⚠️ falsifier waived | Phase 2a interrogation approvals + Design E/A ratification record awaiting canonical signature | `z1-inbox/2026-09-23/interrogation_approvals.md` |
 | 2026-09-25 | **Q-Z2RATIF-MECH-32** | Z2 Ratification Mechanism Undocumented — governance workflow clarity gap | `z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md` |
+| 2026-09-27 | **Q-CRB-COMPILE-01** | Computational Review Board — portable adjudication institution | `z1-inbox/2026-09-25/COMPUTATIONAL_REVIEW_BOARD_PROPOSAL.md` |
 
 ## Decided (10)
 
