@@ -23,6 +23,10 @@ If any required fact, transformation, reviewer instruction, threshold, exception
 
 This is the primary falsifier.
 
+## Falsifier
+
+The institutional claim is falsified for a given package if a clean external runtime cannot reconstruct, verify, and adjudicate that package without a HumanAIOS-only dependency, undocumented operator interpretation, or non-replaceable reviewer. A persistent failure after correction attempts is `PORTABILITY_FAILURE`, not a reason to relax the test.
+
 ---
 
 ## 2. Institutional object
@@ -112,6 +116,7 @@ prp/
 ├── runs/
 │   └── <run_id>/
 │       ├── provenance.json
+│       ├── events.jsonl
 │       ├── first_pass/
 │       ├── cross_exam/
 │       ├── seat_verdicts/
@@ -121,6 +126,9 @@ prp/
 │   ├── gate_rule.json
 │   ├── gate_result.json
 │   └── gate_receipt.json
+├── attestations/
+│   ├── seat_verdicts/
+│   └── run_attestation.json
 ├── replay/
 │   ├── README.md
 │   ├── environment.lock
@@ -129,6 +137,12 @@ prp/
     ├── package.sha256
     └── dependency_report.json
 ```
+
+### Canonical package digest scope
+
+`receipts/package.sha256` is **not** the hash of the archive bytes and is never included in its own digest. The package root is SHA-256 over a canonical JSON inventory of every regular file path, byte length, and file SHA-256 **except** `receipts/package.sha256`, sorted lexicographically by normalized relative path. Symlinks are refused. The inventory itself is reproducible from package contents, so writing the root digest cannot change the bytes that define the root.
+
+Signatures/attestations may cover this package root. A verifier MUST recompute the inventory and root before trusting any attestation.
 
 ### manifest.json minimum fields
 
@@ -145,7 +159,7 @@ prp/
   "gate_rule_hash": "sha256:...",
   "humanaios_required_for_replay": false,
   "external_dependencies": [],
-  "classification": "internal-machine-independent|externally-reproduced|third-party"
+  "classification": "SELF_REVIEW|INTERNAL_MACHINE_INDEPENDENT|EXTERNALLY_REPLAYED|THIRD_PARTY_REVIEWED"
 }
 ```
 
@@ -190,6 +204,25 @@ RID is a vector, not a single marketing score:
 
 A package may publish the vector but MUST NOT call itself "independent" without specifying which dimensions are independent.
 
+Each RID dimension is mechanically encoded as `0|1|2`:
+
+- **S:** 0 same model/runtime lineage; 1 materially different model or provider; 2 distinct provider + model lineage.
+- **C:** 0 peer output visible before first-pass freeze; 1 isolation exists but reviewers share a synthesized intermediary; 2 blind first pass over the same frozen raw-evidence bundle with no peer findings visible.
+- **T:** 0 reviewer trusts the same opaque derived computation; 1 deterministic toolchain is rerun independently; 2 at least one material deterministic result is cross-checked by an independently implemented toolchain.
+- **O:** 0 same operator/organization controls execution; 1 separately controlled runtime inside the same organization; 2 independent operator/organization controls execution.
+- **D:** 0 HumanAIOS summary/derived-only data path; 1 frozen raw evidence is supplied directly; 2 material source evidence is independently fetched or separately verified against its origin.
+
+The package preregisters one independence profile. `independence_policy == SATISFIED` iff every threshold below is met **and** no disqualifier is present:
+
+| Profile | S | C | T | O | D | Additional condition |
+|---|---:|---:|---:|---:|---:|---|
+| SELF_REVIEW | 0 | 0 | 0 | 0 | 0 | label must remain SELF_REVIEW |
+| INTERNAL_MACHINE_INDEPENDENT | ≥1 | 2 | ≥1 | ≥0 | ≥1 | HumanAIOS may control execution |
+| EXTERNALLY_REPLAYED | ≥1 | 2 | ≥1 | 2 | ≥1 | external operator performs replay |
+| THIRD_PARTY_REVIEWED | ≥1 | 2 | ≥1 | 2 | 2 | third party controls reviewer selection and publication |
+
+Automatic disqualifiers: first-pass context leakage, evidence-bundle hash mismatch, review-contract mutation after a seat starts, hidden shared summary, or undeclared operator substitution.
+
 ---
 
 ## 6. Review state machine
@@ -221,7 +254,7 @@ UNRESOLVED_CRITICAL_CHALLENGE
 PORTABILITY_FAILURE
 ```
 
-Every state transition emits an append-only event.
+Every state transition emits one record to `runs/<run_id>/events.jsonl`. Each record contains `seq`, `event_type`, `artifact_refs`, `prev_event_hash`, and `event_hash`; `event_hash` is computed over canonical JSON with the hash field omitted. Sequence starts at 1 and the first `prev_event_hash` is null. A missing sequence, broken predecessor link, or recomputation mismatch invalidates process integrity.
 
 ---
 
@@ -249,6 +282,12 @@ required_corrections[]
 verdict
 confidence_basis
 report_hash
+signer_identity
+signature_algorithm
+key_id_or_identity_ref
+trust_root_ref
+signed_at
+signature_or_attestation_ref
 ```
 
 "Confidence" may describe evidence quality or uncertainty but is never allowed to override the gate rule.
@@ -271,10 +310,10 @@ ADVANCE =
 All other outcomes resolve to:
 
 ```
-HOLD_MOLT_RETEST
+HOLD_REVISE_RETEST
 ```
 
-The gate code must be short, deterministic, testable, and model-free.
+The gate code must be short, deterministic, testable, and model-free. Signed seat verdicts authenticate the producer; a bare content hash is integrity evidence but is not identity evidence. The portable contract therefore separates content digest, signer identity, signature/attestation mechanism, and trust-root reference.
 
 A future governance decision may define additional gate profiles, but a profile must be selected before the evidence is reviewed.
 
