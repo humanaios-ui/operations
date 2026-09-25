@@ -1,0 +1,219 @@
+name: repository-admission-gate
+
+# Required check: "Repository admission/backpressure gate".
+#
+# Fail-closed enforcement of REPOSITORY_COORDINATOR_POLICY.json for the
+# triggering PR. This workflow runs on pull_request_target so that the workflow
+# definition, the policy, the coordinator tool, and PRIORITY_QUEUE.md all come
+# from the trusted default branch. It never checks out or executes PR-head
+# code: PR state is read through the GitHub API with a read-only token.
+#
+# Why this matters (red-team findings on the v0.2 candidate gate):
+#   - The previous gate read the policy from the PR checkout, so a PR could
+#     admit itself by editing the policy it was judged against.
+#   - Any PR touching one control-plane file was fully exempt from admission.
+#   - Capacity contention was reported but never enforced.
+#   - The issue-reference regex was double-escaped and never matched, so
+#     legitimately admitted work was rejected.
+#
+# Decision rules (see tools/repository_coordinator_v0_1.py):
+#   ACTIVE / MAINTENANCE / WORKBENCH / CONTROL_PLANE  -> PASS
+#   ADMISSION_REVIEW / CAPACITY_CONTENTION / duplicate objective -> FAIL
+#   snapshot or policy unavailable, PR not found                 -> FAIL
+#
+# Admission is working-set routing only. It never merges, approves, labels,
+# or mutates canonical queue state, and it is not merge authority.
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+      - edited
+
+permissions: {}
+
+concurrency:
+  group: repository-admission-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Repository admission/backpressure gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      # Trusted source of truth: the default branch. Never the PR head.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Collect gate snapshot through the API (no PR code executed)
+        uses: actions/github-script@v9
+        env:
+          TARGET_PR: ${{ github.event.pull_request.number }}
+        with:
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+            const target = Number(process.env.TARGET_PR);
+
+            const policy = JSON.parse(
+              fs.readFileSync("REPOSITORY_COORDINATOR_POLICY.json", "utf8")
+            );
+            const maintenanceAuthors = new Set(
+              (((policy || {}).maintenance || {}).authors || []).map(String)
+            );
+            const admittedIssueNumbers = [
+              ...new Set((((policy || {}).admission || {}).issue_numbers || []).map(Number))
+            ];
+
+            const open = await github.paginate(
+              github.rest.pulls.list,
+              { owner, repo, state: "open", per_page: 100 }
+            );
+
+            // The triggering payload carries the freshest body/draft state for
+            // the target PR (an `edited` event may not be visible in the list yet).
+            const payloadPr = context.payload.pull_request;
+            const byNumber = new Map(open.map(p => [p.number, p]));
+            if (payloadPr && payloadPr.state === "open") {
+              byNumber.set(payloadPr.number, payloadPr);
+            }
+            if (!byNumber.has(target)) {
+              core.setFailed(`PR #${target} is not open; refusing to evaluate admission.`);
+              return;
+            }
+
+            const listFiles = async number => github.paginate(
+              github.rest.pulls.listFiles,
+              { owner, repo, pull_number: number, per_page: 100 }
+            );
+
+            const chunk = (xs, size) => {
+              const out = [];
+              for (let i = 0; i < xs.length; i += size) out.push(xs.slice(i, i + size));
+              return out;
+            };
+
+            const pullRequests = [];
+            for (const batch of chunk([...byNumber.values()], 6)) {
+              const rows = await Promise.all(batch.map(async brief => {
+                const author = brief.user && brief.user.login ? brief.user.login : "unknown";
+                const isDraft = Boolean(brief.draft);
+                const isMaintenance = maintenanceAuthors.has(author);
+                // Files are needed for control-plane and zero-diff decisions on
+                // the target PR and for every ready non-maintenance PR that could
+                // occupy operator capacity. Drafts and maintenance never do.
+                const needFiles = brief.number === target || (!isDraft && !isMaintenance);
+                let files = [];
+                let filesComplete = false;
+                if (needFiles) {
+                  files = await listFiles(brief.number);
+                  filesComplete = true;
+                }
+                return {
+                  number: brief.number,
+                  title: brief.title || "",
+                  body: brief.body || "",
+                  author,
+                  labels: (brief.labels || []).map(x => (typeof x === "string" ? x : x.name)).filter(Boolean),
+                  html_url: brief.html_url,
+                  state: brief.state,
+                  draft: isDraft,
+                  mergeable_state: "unknown",
+                  files_complete: filesComplete,
+                  files: files.map(f => f.filename),
+                  file_details: [],
+                  reviews: []
+                };
+              }));
+              pullRequests.push(...rows);
+            }
+
+            const referencedItems = {};
+            for (const batch of chunk(admittedIssueNumbers, 6)) {
+              const rows = await Promise.all(batch.map(async number => {
+                try {
+                  const issue = (await github.rest.issues.get({
+                    owner, repo, issue_number: number
+                  })).data;
+                  return { number, issue };
+                } catch (err) {
+                  if (!err || err.status !== 404) throw err;
+                  return { number, issue: null };
+                }
+              }));
+              for (const { number, issue } of rows) {
+                if (!issue) continue;
+                referencedItems[String(number)] = {
+                  state: issue.state,
+                  html_url: issue.html_url,
+                  title: issue.title,
+                  is_pull_request: Boolean(issue.pull_request)
+                };
+              }
+            }
+
+            const snapshot = {
+              schema_version: "0.2",
+              purpose: "admission-gate",
+              repository: `${owner}/${repo}`,
+              main_sha: context.sha,
+              main_paths: [],
+              referenced_pull_requests: {},
+              referenced_items: referencedItems,
+              pull_requests: pullRequests
+            };
+            fs.mkdirSync(".repo-coordinator", { recursive: true });
+            fs.writeFileSync(
+              ".repo-coordinator/gate-snapshot.json",
+              JSON.stringify(snapshot, null, 2)
+            );
+            core.info(`Gate snapshot: ${pullRequests.length} open PR(s); target #${target}.`);
+
+      - name: Enforce admission standing (fail closed)
+        env:
+          TARGET_PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          test -f .repo-coordinator/gate-snapshot.json || {
+            echo "::error::gate snapshot missing; failing closed"; exit 1; }
+          python3 tools/repository_coordinator_v0_1.py \
+            --snapshot .repo-coordinator/gate-snapshot.json \
+            --policy REPOSITORY_COORDINATOR_POLICY.json \
+            --priority-queue PRIORITY_QUEUE.md \
+            --gate "$TARGET_PR" \
+            --output .repo-coordinator/gate.json | tee .repo-coordinator/gate.log
+          {
+            echo "## Repository admission/backpressure gate"
+            echo
+            echo '```json'
+            cat .repo-coordinator/gate.json
+            echo '```'
+            echo
+            echo "_Evaluated from the default branch; the PR cannot alter the policy it is judged against. Admission is not merge authority._"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload gate evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: repository-admission-gate-${{ github.event.pull_request.number }}
+          path: |
+            .repo-coordinator/gate-snapshot.json
+            .repo-coordinator/gate.json
+            .repo-coordinator/gate.log
+          retention-days: 30
+          if-no-files-found: ignore
