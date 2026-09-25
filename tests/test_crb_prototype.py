@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from crb.gate import ADVANCE, HOLD, compute_gate, evaluate_independence
 from crb.graph_bridge import build_projection, validate
@@ -140,6 +141,71 @@ class GraphBridgeTests(unittest.TestCase):
         }
         self.assertIn(("CRB-PRP", "HEP-PRP", "specializes_as"), edges)
         self.assertIn(("HEP-AUTH", "CRB-EXT", "reconstructable_by"), edges)
+
+    def test_validate_rejects_missing_change_hierarchy_baseline(self):
+        original = Path("crb/morphogenesis.json").read_text(encoding="utf-8")
+        mutated = json.loads(original)
+        mutated["change_hierarchy"] = mutated["change_hierarchy"][1:]
+
+        def fake_load_json(path):
+            if path == "crb/morphogenesis.json":
+                return mutated
+            return json.loads(Path(path).read_text(encoding="utf-8"))
+
+        with patch("crb.graph_bridge.load_json", side_effect=fake_load_json):
+            result = validate()
+
+        self.assertFalse(result["valid"])
+        self.assertIn(
+            "change hierarchy must include CHANGE-L0..CHANGE-L4 with matching levels",
+            result["errors"],
+        )
+
+    def test_validate_rejects_missing_graph_delta_lifecycle_event(self):
+        original = Path("crb/morphogenesis.json").read_text(encoding="utf-8")
+        mutated = json.loads(original)
+        mutated["event_types"] = [
+            entry
+            for entry in mutated["event_types"]
+            if entry["id"] != "GRAPH_DELTA_AUTHORIZATION"
+        ]
+
+        def fake_load_json(path):
+            if path == "crb/morphogenesis.json":
+                return mutated
+            return json.loads(Path(path).read_text(encoding="utf-8"))
+
+        with patch("crb.graph_bridge.load_json", side_effect=fake_load_json):
+            result = validate()
+
+        self.assertFalse(result["valid"])
+        self.assertIn(
+            "graph delta event types must include the governed review lifecycle",
+            result["errors"],
+        )
+
+    def test_validate_rejects_incomplete_review_requirements(self):
+        original = Path("crb/morphogenesis.json").read_text(encoding="utf-8")
+        mutated = json.loads(original)
+        mutated["review_requirements"] = [
+            field
+            for field in mutated["review_requirements"]
+            if field != "rollback_plan"
+        ]
+
+        def fake_load_json(path):
+            if path == "crb/morphogenesis.json":
+                return mutated
+            return json.loads(Path(path).read_text(encoding="utf-8"))
+
+        with patch("crb.graph_bridge.load_json", side_effect=fake_load_json):
+            result = validate()
+
+        self.assertFalse(result["valid"])
+        self.assertIn(
+            "graph delta review requirements are incomplete",
+            result["errors"],
+        )
 
 
 if __name__ == "__main__":

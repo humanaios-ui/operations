@@ -55,12 +55,18 @@ def validate() -> dict[str, Any]:
                 warnings.append(f"unresolved existing_ref: {label}")
 
     change_hierarchy = morphogenesis.get("change_hierarchy") or []
-    hierarchy_pairs = [
-        (entry.get("id"), entry.get("level")) for entry in change_hierarchy
-    ]
+    hierarchy_by_id = {entry.get("id"): entry.get("level") for entry in change_hierarchy}
     expected_hierarchy = [(f"CHANGE-L{level}", level) for level in range(5)]
-    if hierarchy_pairs != expected_hierarchy:
-        errors.append("change hierarchy must be exactly CHANGE-L0..CHANGE-L4 in order")
+    if any(hierarchy_by_id.get(entry_id) != level for entry_id, level in expected_hierarchy):
+        errors.append("change hierarchy must include CHANGE-L0..CHANGE-L4 with matching levels")
+    hierarchy_positions = {
+        entry.get("id"): index for index, entry in enumerate(change_hierarchy)
+    }
+    if any(
+        hierarchy_positions.get(left_id, -1) >= hierarchy_positions.get(right_id, -1)
+        for (left_id, _), (right_id, _) in zip(expected_hierarchy, expected_hierarchy[1:])
+    ):
+        errors.append("change hierarchy baseline must remain ordered from CHANGE-L0 to CHANGE-L4")
 
     expected_event_ids = [
         "MORPHOGENIC_SIGNAL",
@@ -72,8 +78,15 @@ def validate() -> dict[str, Any]:
     ]
     event_types = morphogenesis.get("event_types") or []
     event_ids = [entry.get("id") for entry in event_types]
-    if event_ids != expected_event_ids:
-        errors.append("graph delta event types must follow the governed review lifecycle")
+    if any(event_id not in event_ids for event_id in expected_event_ids):
+        errors.append("graph delta event types must include the governed review lifecycle")
+    else:
+        event_positions = {event_id: event_ids.index(event_id) for event_id in expected_event_ids}
+        if any(
+            event_positions[left_id] >= event_positions[right_id]
+            for left_id, right_id in zip(expected_event_ids, expected_event_ids[1:])
+        ):
+            errors.append("graph delta event types must preserve the governed review lifecycle order")
 
     projection_types = morphogenesis.get("projection_types") or []
     projection_ids = {entry.get("id") for entry in projection_types}
