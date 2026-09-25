@@ -174,7 +174,8 @@ def twofold_gaze(kan: Callable[[], Any], ken: Callable[[], Any]) -> tuple[Any, A
 
 def as_a_rock(config: Mapping[str, Any]) -> Mapping[str, Any]:
     """Being as a rock: a configuration nothing can move."""
-    return MappingProxyType(dict(config))
+    from copy import deepcopy
+    return MappingProxyType(deepcopy(dict(config)))
 
 
 def grip(
@@ -345,13 +346,18 @@ def tai_no_sen(
 def tai_tai_no_sen(a: Callable[[], Any], b: Callable[[], Any], timeout: float = 5.0) -> Any:
     """Meet the attack with an attack: both approaches run at once, the first to land wins."""
     last: BaseException | None = None
-    with ThreadPoolExecutor(max_workers=2) as pool:
+    pool = ThreadPoolExecutor(max_workers=2)
+    try:
         futures = [pool.submit(a), pool.submit(b)]
         for future in as_completed(futures, timeout=timeout):
             try:
                 return future.result()
             except Exception as exc:  # noqa: BLE001
                 last = exc
+    except TimeoutError as exc:
+        raise RuntimeError("tai_tai_no_sen: neither attack landed within timeout") from exc
+    finally:
+        pool.shutdown(wait=False)
     raise RuntimeError("tai_tai_no_sen: neither attack landed") from last
 
 
@@ -401,7 +407,12 @@ def injure_the_corners(
 
 
 def release_four_hands(strategies: Sequence[Callable[[], Any]], budget: float) -> Any:
-    """Locked in stalemate, abandon the approach: each strategy gets `budget` seconds, then the next."""
+    """Locked in stalemate, abandon the approach: each strategy gets `budget` seconds, then the next.
+
+    Note: abandoned strategies continue running in background threads and Python's interpreter
+    shutdown waits for non-daemon threads; use cooperative cancellation or subprocess isolation
+    for hard timeouts on untrusted or blocking code.
+    """
     pool = ThreadPoolExecutor(max_workers=max(1, len(strategies)))
     try:
         for strategy in strategies:
