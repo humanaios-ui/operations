@@ -1,3 +1,23 @@
+"""
+Test suite for INTENT-OS operator-check schema validation.
+
+Validates that operator-check records enforce authority boundaries:
+- advisory_only=true (never false)
+- can_authorize=false (never true)
+- Prevents operator-check misuse as merge authorization
+- Enforces evidence specificity and observation quality
+
+**P5 Purpose (Governance Test Data):** These 13 tests generate evidence that
+Z2/Z3 authority boundaries are properly enforced. They verify that the
+governance infrastructure cannot be bypassed through schema loopholes or
+operator-check misuse. Coverage includes boundary violations, invalid schemas,
+and correct usage patterns.
+
+**Falsifier:** Any operator-check with can_authorize=true or advisory_only=false
+passing validation indicates boundary enforcement failure. Test data verifies
+that such records are properly rejected by schema and CI gate validation.
+"""
+
 import json
 from pathlib import Path
 
