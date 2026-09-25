@@ -77,7 +77,7 @@
 
 ### Corrective Fix (PR #542)
 - **molt_tier:** 1 (minor operational fix)
-- **Status:** AWAITING Z2 RATIFICATION
+- **Status:** ✅ MERGED (commit ec544e5, now in main)
 - **Urgency:** HIGH (corrects Phase 1 correctness issue)
 
 ---
@@ -100,24 +100,23 @@
    - governance-files.yml: Added path filters
    - Handoff documentation created
 
-### Correction in Progress
+### Correction Applied
 2. **ec544e5** (Fix commit): Corrected quality-baseline.yml path filter
    - Replaced `pyproject.toml` with `requirements.txt`
-   - Now awaiting Z2 ratification (PR #542)
+   - ✅ Merged to main (PR #542)
 
 ---
 
-## Next Steps for Z2 (Admiral/Night)
+## Z2 Actions Completed
 
-### Immediate (Block for PR #542)
-1. Review corrective fix: quality-baseline.yml path filter now uses `requirements.txt` instead of non-existent `pyproject.toml`
-2. Assess: Whether handoff verification claims should have caught this (process improvement)
-3. Ratify: Sign Z2 hash for PR #542 to apply correction
-4. Decision: Merge to main after ratification
+### Phase 1 & Corrective Fix
+✅ Reviewed corrective fix: quality-baseline.yml path filter now uses `requirements.txt` instead of non-existent `pyproject.toml`  
+✅ Approved: PR #541 (Phase 1) and PR #542 (Corrective fix) both merged to main  
+✅ Integrity issue documented: IC-032-PHASE-1-CLAIM-TREE filed for governance review  
 
-### Follow-up (Phase 2 Planning)
+### Recommended Follow-up (Phase 2 Planning)
 1. Process audit: Improve pre-merge verification checklist to include "all path filter files exist in repo"
-2. Documentation: Update PHASE-1-CI-CONSOLIDATION-HANDOFF.md after Z2 decision (if applicable)
+2. Documentation: Review PHASE-1-CI-CONSOLIDATION-HANDOFF.md handoff accuracy claims in future sessions
 
 ---
 
@@ -134,19 +133,21 @@
 ✅ Path filters deployed on quality-baseline.yml and governance-files.yml  
 ✅ Deployment frequency reduced (runs only on relevant file changes)  
 ✅ Receipt reconciliation completed; claim-vs-tree mismatch identified  
-✅ Corrective fix created (PR #542, awaiting Z2 ratification)  
+✅ Corrective fix merged to main (PR #542, commit ec544e5)  
+✅ Integrity issue documented (IC-032-PHASE-1-CLAIM-TREE)  
 
 ### Risks Mitigated
 - Claim-vs-tree mismatch caught at session close before affecting downstream work
-- Corrective fix deployed immediately (doesn't wait for formal retro)
-- Z2 notified of integrity issue for process improvement
+- Corrective fix deployed immediately to main (preventing undefined workflow behavior)
+- Z2 ratified both changes (Phase 1 + corrective fix)
+- Integrity governance candidate filed for future process improvement
 
-### Remaining Work
-- Z2 ratification of corrective fix (PR #542)
-- Optional: Process improvement on pre-merge verification
+### Session Complete
+All work items completed and merged. Phase 1 CI consolidation now operational with correct path filters.
 
 ---
 
-**Status:** READY FOR Z2 CLOSURE REVIEW  
-**Awaiting:** Admiral/Night (Carly R. Anderson) Z2 decision on PR #542  
-**Next Wake:** On PR #542 CI results or Z2 review event
+**Status:** ✅ SESSION COMPLETE  
+**Final SHA:** e11d212 (SESSION-CLOSURE-HANDOFF merged to main)  
+**All PRs merged:** #541 (Phase 1) and #542 (Corrective fix)  
+**Next Actions:** Z2 governance review of IC-032 for process improvement
