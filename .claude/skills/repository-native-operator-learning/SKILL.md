@@ -1,12 +1,3 @@
----
-skill-kind: reference
-skill-title: Repository-Native Operator Learning
-skill-description: Redirect to canonical implementation
-skill-type: governance
-skill-status: active
-skill-entry-point: tools/skills/repository_native_operator_learning/SKILL.md
----
-
 # SKILL: repository_native_operator_learning
 
 This is a redirect to the canonical skill implementation.
