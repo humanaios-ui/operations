@@ -48,9 +48,13 @@ operator queue.
 
 Before treating implementation as active work:
 
-1. Read `REPOSITORY_COORDINATOR_POLICY.json`.
+1. Read `REPOSITORY_COORDINATOR_POLICY.json` **on `main`**. The gate is
+   evaluated from the default branch, so editing the policy in your own PR
+   changes nothing about your admission.
 2. Check whether the referenced issue or PR is explicitly admitted there.
-3. Check the Repository Coordinator result for the current branch.
+   Admission evidence is a closing-keyword link (`Fixes #N`, `Closes #N`,
+   `Resolves #N`) to an admitted issue. Mentioning the number is not evidence.
+3. Check the `Repository admission/backpressure gate` check on your PR.
 4. Respect the lane:
    - `WORKBENCH`: keep the PR draft; research and implementation may continue,
      but do not mark it ready for review or represent it as operator-priority work.
@@ -61,12 +65,18 @@ Before treating implementation as active work:
      not choose which admitted objective wins.
    - `MAINTENANCE`: remain in the maintenance cohort and do not consume an
      operator active-work slot.
-   - `CONTROL_PLANE`: admission recursion is exempt, but ordinary Z2 review and
-     all repository gates still apply.
+   - `CONTROL_PLANE`: admission recursion is exempt **only when every changed
+     file is a control-plane path**. Touching `CODEOWNERS` or the policy inside
+     a feature PR does not exempt the feature work. Ordinary Z2 review and all
+     repository gates still apply.
 
 Do not create a second active implementation for an objective that already has
-an open implementation PR. Preserve alternative analysis in the issue, review
-thread, or evidence artifact instead.
+an open implementation PR. Two ready PRs linking the same admitted issue are
+both held by the gate; the coordinator never picks a winner. Preserve
+alternative analysis in the issue, review thread, or evidence artifact instead.
+
+Applying the `dependencies` label to your own PR does not make it maintenance
+work; maintenance standing comes from the automated author identity only.
 
 Core distinctions:
 

@@ -24,10 +24,21 @@ Core invariants:
 Inputs are an offline JSON snapshot collected by the GitHub workflow plus the
 checked-out canonical PRIORITY_QUEUE.md. The tool does not call GitHub itself.
 
+Trust boundary: the policy, this tool, and PRIORITY_QUEUE.md must be read from
+the trusted base branch, not from a candidate PR checkout. A PR must not be
+able to admit itself by editing the policy it is judged against.
+
+Admission evidence is an explicit closing-keyword link ("Fixes #N") to an
+admitted issue, or an explicit PR number in the policy. Incidental mentions
+are not admission. Maintenance standing comes from the automated author
+identity, not from a self-assignable label. Control-plane exemption applies
+only when every changed file is a control-plane path.
+
 Usage:
   python3 tools/repository_coordinator_v0_1.py --snapshot snapshot.json
   python3 tools/repository_coordinator_v0_1.py --snapshot snapshot.json \
       --output index.json --markdown index.md --policy REPOSITORY_COORDINATOR_POLICY.json
+  python3 tools/repository_coordinator_v0_1.py --snapshot snapshot.json --gate 123
   python3 tools/repository_coordinator_v0_1.py --smoke-test
 """
 from __future__ import annotations
@@ -41,7 +52,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 TOOL_NAME = "repository_coordinator"
-TOOL_VERSION = "0.2.0"
+TOOL_VERSION = "0.2.1"
 TOOL_CATEGORY = "diagnostic_tool"
 TOOL_SESSION = "REPOSITORY-COORDINATOR-02"
 TOOL_ZONE = 1
@@ -71,6 +82,13 @@ PATH_REF_RE = re.compile(
     r")"
 )
 PR_REF_RE = re.compile(r"(?<![\w])#(\d{1,6})\b")
+# Admission evidence must be an explicit closing-keyword link (GitHub linking
+# semantics), not an incidental mention such as "unrelated to #378".
+ADMISSION_LINK_RE = re.compile(
+    r"\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*"
+    r"(?:[\w.-]+/[\w.-]+)?#(\d{1,6})\b",
+    re.I,
+)
 ACTIVE_GATE_RE = re.compile(
     r"^###\s+(Q-[A-Z0-9-]+).*?\n(?:.*\n){0,8}?\*\*State:\*\*\s*`?([A-Z_]+)`?",
     re.M,
@@ -176,11 +194,15 @@ def _labels(value: Any) -> set[str]:
 
 
 def _maintenance(pr: dict[str, Any], policy: dict[str, Any]) -> bool:
+    """Maintenance standing is granted by the automated author identity only.
+
+    Labels are self-assignable by anyone with triage access, so a label alone
+    must not move a PR out of admission review. Labels still refine cohorts.
+    """
     cfg = policy.get("maintenance") or {}
     authors = set(cfg.get("authors") or [])
-    labels = set(cfg.get("labels") or [])
     author = str(pr.get("author") or "")
-    return author in authors or bool(_labels(pr.get("labels")) & labels)
+    return author in authors
 
 
 def _maintenance_cohort(pr: dict[str, Any]) -> str:
@@ -199,33 +221,49 @@ def _maintenance_cohort(pr: dict[str, Any]) -> str:
 
 
 def _control_plane(pr: dict[str, Any], policy: dict[str, Any]) -> bool:
+    """A PR is control-plane only when *every* changed file is a control path.
+
+    Touching one control-plane file alongside feature work must not exempt the
+    feature work from admission; that would make a whitespace edit to
+    CODEOWNERS a universal admission bypass.
+    """
     paths = set((policy.get("control_plane") or {}).get("paths") or [])
-    return bool(set(pr.get("files") or []) & paths)
+    files = set(pr.get("files") or [])
+    return bool(files) and bool(pr.get("files_complete", True)) and files <= paths
+
+
+def _zero_diff(pr: dict[str, Any]) -> bool:
+    return bool(pr.get("files_complete", True)) and not (pr.get("files") or [])
 
 
 def _admission_evidence(
     pr: dict[str, Any],
     policy: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
-) -> tuple[bool, list[str]]:
+) -> tuple[bool, list[str], list[int]]:
     cfg = policy.get("admission") or {}
     admitted_prs = {int(x) for x in cfg.get("pull_request_numbers") or []}
     admitted_issues = {int(x) for x in cfg.get("issue_numbers") or []}
     evidence: list[str] = []
+    objectives: list[int] = []
 
     number = int(pr.get("number") or 0)
     if number in admitted_prs:
         evidence.append(f"policy explicitly admits PR #{number}")
+        objectives.append(-number)
 
-    for raw in PR_REF_RE.findall(pr.get("body") or ""):
+    for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
         ref = int(raw)
+        if ref not in admitted_issues:
+            continue
         item = referenced_items.get(str(ref)) or referenced_items.get(ref)
         if not item or item.get("is_pull_request"):
             continue
-        if ref in admitted_issues:
-            evidence.append(f"policy admits referenced issue #{ref}")
+        if ref not in objectives:
+            evidence.append(f"policy admits linked issue #{ref}")
+            objectives.append(ref)
 
-    return bool(evidence), evidence
+    return bool(evidence), evidence, objectives
 
 
 def _base_lane(
@@ -234,7 +272,7 @@ def _base_lane(
     policy: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
 ) -> tuple[str, dict[str, Any]]:
-    admitted, evidence = _admission_evidence(pr, policy, referenced_items)
+    admitted, evidence, objectives = _admission_evidence(pr, policy, referenced_items)
     maintenance = _maintenance(pr, policy)
     control_plane = _control_plane(pr, policy)
     draft = bool(pr.get("draft"))
@@ -253,6 +291,7 @@ def _base_lane(
     return lane, {
         "admitted": admitted,
         "evidence": evidence,
+        "objectives": objectives,
         "maintenance": maintenance,
         "control_plane": control_plane,
         "draft": draft,
@@ -358,6 +397,7 @@ def classify(
     active_gates: list[str],
     policy: dict[str, Any],
     capacity_contention: bool,
+    duplicate_objectives: dict[int, list[int]] | None = None,
 ) -> dict[str, Any]:
     number = int(pr["number"])
     body = pr.get("body") or ""
@@ -382,7 +422,18 @@ def classify(
             "Admitted ready work exceeds the active operator-queue capacity; coordinator refuses to select winners."
         ))
 
-    zero_diff = bool(pr.get("files_complete", True)) and len(files) == 0
+    duplicates = sorted(
+        n for n in (duplicate_objectives or {}).get(number) or [] if n != number
+    )
+    if duplicates and base_lane == "ACTIVE":
+        findings.append(Finding(
+            "DUPLICATE_ACTIVE_IMPLEMENTATION", "HIGH",
+            "Another ready PR claims the same admitted objective: "
+            + ", ".join(f"#{n}" for n in duplicates)
+            + "; coordinator refuses to select a winner."
+        ))
+
+    zero_diff = _zero_diff(pr)
     if zero_diff:
         findings.append(Finding(
             "ZERO_DIFF", "HIGH",
@@ -443,13 +494,14 @@ def classify(
         ))
 
     high_codes = {f.code for f in findings if f.severity == "HIGH"}
+    routing_codes = {"CAPACITY_BACKPRESSURE", "DUPLICATE_ACTIVE_IMPLEMENTATION"}
     if zero_diff:
         action = "CLOSE_PRESERVE"
         next_action = "Preserve the PR as evidence/history; do not treat it as an active merge unit."
-    elif high_codes - {"CAPACITY_BACKPRESSURE"}:
+    elif high_codes - routing_codes:
         action = "REEXAMINE"
         next_action = "Resolve the listed warrant/evidence/authority conflicts before investing in merge repair."
-    elif competitors:
+    elif competitors or duplicates:
         action = "COMPARE_CONSOLIDATE"
         next_action = "Compare the overlapping implementations, preserve unique contributions, and choose or extract one merge unit."
     elif mergeable_state in {"dirty", "behind"}:
@@ -462,7 +514,7 @@ def classify(
     objective = "HISTORICAL" if zero_diff else "LIVE"
 
     state_alignment = "CURRENT"
-    if high_codes - {"CAPACITY_BACKPRESSURE"}:
+    if high_codes - routing_codes:
         state_alignment = "REVALIDATION_REQUIRED"
     elif mergeable_state in {"dirty", "behind"}:
         state_alignment = "DRIFTED"
@@ -474,7 +526,7 @@ def classify(
     dependency_status = "SATISFIED"
     if dead_refs or missing:
         dependency_status = "INVALIDATED_OR_MISSING"
-    elif competitors:
+    elif competitors or duplicates:
         dependency_status = "COMPETING"
 
     admission_gate = "PASS"
@@ -485,6 +537,9 @@ def classify(
     elif lane == "CAPACITY_CONTENTION":
         admission_gate = "FAIL"
         admission_reason = "active admitted work exceeds configured operator capacity"
+    elif duplicates and lane == "ACTIVE":
+        admission_gate = "FAIL"
+        admission_reason = "multiple ready implementations claim one admitted objective; operator must consolidate"
     elif lane == "WORKBENCH":
         admission_reason = "draft work is isolated from the operator queue"
     elif lane == "MAINTENANCE":
@@ -511,6 +566,7 @@ def classify(
         "dependency": {
             "status": dependency_status,
             "competing_prs": competitors,
+            "duplicate_objective_prs": duplicates,
         },
         "authority": {
             "required": required,
@@ -559,15 +615,30 @@ def analyze(
             pr,
             policy=policy,
             referenced_items=referenced_items,
-        )[0]
+        )
         for pr in prs
     }
+    # Zero-diff PRs are historical, not merge units; they must not consume
+    # operator capacity or trigger contention.
     ready_admitted = [
-        n for n, lane in base_lanes.items()
-        if lane == "ACTIVE"
+        n for n, (lane, _) in base_lanes.items()
+        if lane == "ACTIVE" and not _zero_diff(next(p for p in prs if int(p["number"]) == n))
     ]
     active_limit = int((policy.get("capacity") or {}).get("active_operator_queue") or 0)
     capacity_contention = active_limit >= 0 and len(ready_admitted) > active_limit
+
+    # ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS:
+    # two ready PRs claiming the same admitted objective are both held.
+    by_objective: dict[int, list[int]] = {}
+    for n in ready_admitted:
+        for objective in base_lanes[n][1].get("objectives") or []:
+            by_objective.setdefault(int(objective), []).append(n)
+    duplicate_objectives: dict[int, list[int]] = {}
+    for owners in by_objective.values():
+        if len(owners) > 1:
+            for n in owners:
+                duplicate_objectives.setdefault(n, [])
+                duplicate_objectives[n] = sorted(set(duplicate_objectives[n]) | set(owners))
 
     items = [
         classify(
@@ -579,6 +650,7 @@ def analyze(
             active_gates=gates,
             policy=policy,
             capacity_contention=capacity_contention,
+            duplicate_objectives=duplicate_objectives,
         )
         for pr in prs
     ]
@@ -613,6 +685,7 @@ def analyze(
             "active_operator_queue_limit": active_limit,
             "admitted_ready_count": len(ready_admitted),
             "contention": capacity_contention,
+            "duplicate_objective_prs": sorted(duplicate_objectives),
         },
         "invariants": [
             "OPEN_IS_NOT_RELEVANT",
@@ -654,7 +727,9 @@ def render_markdown(index: dict[str, Any]) -> str:
     lanes = (index.get("counts") or {}).get("lanes") or {}
     capacity = index.get("capacity") or {}
     active_limit = capacity.get("active_operator_queue_limit", 0)
-    operator_count = lanes.get("ACTIVE", 0) + lanes.get("CONTROL_PLANE", 0)
+    # The capacity numerator is what analyze() actually counts against the
+    # limit; control-plane attention is reported separately.
+    operator_count = capacity.get("admitted_ready_count", lanes.get("ACTIVE", 0))
 
     lines = [
         "<!-- repository-coordinator -->",
@@ -662,7 +737,8 @@ def render_markdown(index: dict[str, Any]) -> str:
         "",
         f"Main: `{str(index.get('main_sha') or 'unknown')[:12]}` · "
         f"Repository PRs: **{len(items)}** · "
-        f"Operator queue: **{operator_count}/{active_limit}**",
+        f"Operator queue: **{operator_count}/{active_limit}** · "
+        f"Control plane: **{lanes.get('CONTROL_PLANE', 0)}**",
         "",
         "> Repository work may exist without entering the operator queue. "
         "Admission controls working-set standing only; it is not merge or governance authority.",
@@ -688,6 +764,16 @@ def render_markdown(index: dict[str, Any]) -> str:
             "### Backpressure engaged",
             "",
             "Admitted ready work exceeds configured capacity. The coordinator refuses to choose which objective should win; operator selection or de-admission is required.",
+            "",
+        ]
+
+    if capacity.get("duplicate_objective_prs"):
+        lines += [
+            "### Duplicate implementations",
+            "",
+            "More than one ready PR claims the same admitted objective: "
+            + ", ".join(f"#{n}" for n in capacity["duplicate_objective_prs"])
+            + ". All are held pending operator consolidation.",
             "",
         ]
 
@@ -723,6 +809,34 @@ def render_markdown(index: dict[str, Any]) -> str:
         "DRAFT_IS_NOT_OPERATOR_QUEUE · ADMISSION_IS_NOT_MERGE_AUTHORITY`",
     ]
     return "\n".join(lines) + "\n"
+
+
+def gate_decision(index: dict[str, Any], number: int) -> dict[str, Any]:
+    """Fail-closed admission decision for one PR from a computed index.
+
+    Returns {"gate": "PASS"|"FAIL", "lane": ..., "reason": ...}. A PR that is
+    absent from the index is a FAIL: the gate does not pass on missing evidence.
+    """
+    for item in index.get("items") or []:
+        if int(item.get("number") or 0) == int(number):
+            admission = item.get("admission") or {}
+            gate = "PASS" if admission.get("gate") == "PASS" else "FAIL"
+            return {
+                "number": int(number),
+                "gate": gate,
+                "lane": item.get("lane"),
+                "reason": admission.get("gate_reason") or "no admission reason recorded",
+                "evidence": admission.get("evidence") or [],
+                "capacity": index.get("capacity") or {},
+            }
+    return {
+        "number": int(number),
+        "gate": "FAIL",
+        "lane": None,
+        "reason": "target PR is absent from the repository snapshot; refusing to pass on missing evidence",
+        "evidence": [],
+        "capacity": index.get("capacity") or {},
+    }
 
 
 def run_smoke_test() -> bool:
@@ -779,6 +893,8 @@ def run_smoke_test() -> bool:
     assert one["guidance"]["action"] == "REEXAMINE"
     assert two["lane"] == "ACTIVE"
     assert two["admission"]["gate"] == "PASS"
+    assert gate_decision(index, 2)["gate"] == "PASS"
+    assert gate_decision(index, 404)["gate"] == "FAIL"
     codes = {f["code"] for f in one["findings"]}
     assert "ACTIVE_GATE_REVIEW_REQUIRED" in codes
     assert "AUTHORITY_CLAIM_MISMATCH" in codes
@@ -796,6 +912,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--markdown", type=Path)
     parser.add_argument("--smoke-test", action="store_true")
+    parser.add_argument(
+        "--gate", type=int, metavar="PR_NUMBER",
+        help="Emit the fail-closed admission decision for one PR; exit 1 unless it is PASS.",
+    )
     args = parser.parse_args(argv)
 
     if args.smoke_test:
@@ -805,10 +925,24 @@ def main(argv: list[str] | None = None) -> int:
     if not args.snapshot:
         parser.error("--snapshot is required unless --smoke-test is used")
 
+    if args.gate is not None and not args.policy.exists():
+        print(f"gate=FAIL reason=policy file missing: {args.policy}")
+        return 1
+
     snapshot = json.loads(args.snapshot.read_text(encoding="utf-8"))
     pq = args.priority_queue.read_text(encoding="utf-8", errors="replace") if args.priority_queue.exists() else ""
     policy = json.loads(args.policy.read_text(encoding="utf-8")) if args.policy.exists() else {}
     index = analyze(snapshot, pq, policy)
+
+    if args.gate is not None:
+        decision = gate_decision(index, args.gate)
+        print(json.dumps(decision, indent=2, sort_keys=True))
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(json.dumps(decision, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(f"Repository admission/backpressure gate: {decision['gate']} ({decision['lane']}) — {decision['reason']}")
+        return 0 if decision["gate"] == "PASS" else 1
+
     payload = json.dumps(index, indent=2, sort_keys=True) + "\n"
     markdown = render_markdown(index)
 

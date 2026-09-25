@@ -13,10 +13,10 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 
-from repository_coordinator_v0_1 import analyze
+from repository_coordinator_v0_1 import analyze, gate_decision, render_markdown
 
 TOOL_NAME = "test_repository_coordinator"
-TOOL_VERSION = "0.2.0"
+TOOL_VERSION = "0.2.1"
 
 
 def pr(
@@ -333,7 +333,126 @@ def test_control_plane_change_is_exempt_from_recursive_admission():
     assert got["authority"]["required"] == "Z2"
 
 
+def _admitted_item(n, title="Admitted objective"):
+    return {str(n): {"state": "open", "is_pull_request": False, "labels": [], "title": title}}
+
+
+# --- red-team regression cases (REPOSITORY-COORDINATOR-02 audit) ---------
+
+
+def test_mixed_control_plane_and_feature_change_is_not_exempt():
+    """A whitespace touch to a control-plane file must not admit feature work."""
+    p = pr(1, body="- [x] **Z2**", files=[".github/CODEOWNERS", "src/feature.py"])
+    idx = run([p], policy_data=policy(control_paths=[".github/CODEOWNERS"]))
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["gate"] == "FAIL"
+
+
+def test_pure_control_plane_change_remains_exempt():
+    p = pr(1, body="- [x] **Z2**", files=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"])
+    idx = run([p], policy_data=policy(control_paths=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"]))
+    assert item(idx, 1)["lane"] == "CONTROL_PLANE"
+
+
+def test_incidental_mention_of_admitted_issue_is_not_admission():
+    p = pr(1, body="This is unrelated to #77 but see it for context.")
+    idx = run([p], items=_admitted_item(77), policy_data=policy(issues=[77]))
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["admitted"] is False
+
+
+def test_closing_keyword_link_to_admitted_issue_is_admission():
+    for body in ("Fixes #77", "Closes: #77", "resolves humanaios-ui/operations#77"):
+        p = pr(1, body=body)
+        idx = run([p], items=_admitted_item(77), policy_data=policy(issues=[77]))
+        assert item(idx, 1)["lane"] == "ACTIVE", body
+
+
+def test_self_applied_dependencies_label_is_not_maintenance():
+    p = pr(1, title="build(deps): totally routine", author="human", labels=["dependencies"])
+    idx = run([p], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["maintenance"] is False
+
+
+def test_duplicate_implementations_of_one_objective_are_both_held():
+    prs = [pr(1, body="Fixes #77", files=["a.py"]), pr(2, body="Fixes #77", files=["b.py"])]
+    idx = run(prs, items=_admitted_item(77), policy_data=policy(issues=[77]))
+    for n in (1, 2):
+        got = item(idx, n)
+        assert got["admission"]["gate"] == "FAIL"
+        assert got["guidance"]["action"] == "COMPARE_CONSOLIDATE"
+        assert "DUPLICATE_ACTIVE_IMPLEMENTATION" in {f["code"] for f in got["findings"]}
+    assert idx["capacity"]["duplicate_objective_prs"] == [1, 2]
+    assert gate_decision(idx, 1)["gate"] == "FAIL"
+
+
+def test_zero_diff_admitted_pr_does_not_consume_capacity():
+    prs = [
+        pr(1, body="Fixes #71", files=[]),
+        pr(2, body="Fixes #72"),
+        pr(3, body="Fixes #73"),
+    ]
+    referenced = {**_admitted_item(71), **_admitted_item(72), **_admitted_item(73)}
+    idx = run(prs, items=referenced, policy_data=policy(limit=2, issues=[71, 72, 73]))
+    assert idx["capacity"]["contention"] is False
+    assert idx["capacity"]["admitted_ready_count"] == 2
+    assert item(idx, 1)["guidance"]["action"] == "CLOSE_PRESERVE"
+    assert item(idx, 2)["lane"] == "ACTIVE"
+
+
+def test_markdown_operator_queue_counts_only_admitted_ready_work():
+    prs = [
+        pr(1, body="- [x] **Z2**", files=["REPOSITORY_COORDINATOR_POLICY.json"]),
+        pr(2, body="Fixes #77"),
+    ]
+    idx = run(prs, items=_admitted_item(77), policy_data=policy(issues=[77]))
+    md = render_markdown(idx)
+    assert "Operator queue: **1/4**" in md
+    assert "Control plane: **1**" in md
+
+
+def test_gate_decision_fails_closed_for_unknown_pr():
+    idx = run([pr(1)], policy_data=policy())
+    assert gate_decision(idx, 999)["gate"] == "FAIL"
+
+
+def test_gate_cli_exit_code_is_fail_closed(tmp_path):
+    import json
+    import subprocess
+
+    snapshot = {
+        "repository": "example/repo",
+        "main_sha": "abc",
+        "main_paths": [],
+        "referenced_pull_requests": {},
+        "referenced_items": _admitted_item(77),
+        "pull_requests": [pr(1, body="Fixes #77"), pr(2, body="unadmitted")],
+    }
+    snap = tmp_path / "snapshot.json"
+    snap.write_text(json.dumps(snapshot))
+    pol = tmp_path / "policy.json"
+    pol.write_text(json.dumps(policy(issues=[77])))
+    tool = TOOLS / "repository_coordinator_v0_1.py"
+
+    def gate(n, policy_path=pol):
+        return subprocess.run(
+            [sys.executable, str(tool), "--snapshot", str(snap), "--policy", str(policy_path),
+             "--priority-queue", str(tmp_path / "missing.md"), "--gate", str(n)],
+            capture_output=True, text=True,
+        ).returncode
+
+    assert gate(1) == 0
+    assert gate(2) == 1
+    assert gate(3) == 1
+    assert gate(1, tmp_path / "absent-policy.json") == 1
+
+
 def run_smoke_test():
     test_clean_live_work_advances()
     test_zero_diff_is_preserve_close_not_merge_work()
+    test_mixed_control_plane_and_feature_change_is_not_exempt()
     return True

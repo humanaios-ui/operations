@@ -2233,8 +2233,7 @@ tools:
 - tool_id: HAIOS-TOOL-188
   name: repository_coordinator
   path: tools/repository_coordinator_v0_1.py
-  version: 0.2.0
-  session: REPOSITORY-COORDINATOR-02
+  version: 0.2.1
   category: diagnostic_tool
   zone: 1
   status: draft
@@ -2242,7 +2241,9 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure.
+  purpose: Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity
+    backpressure.
+  session: REPOSITORY-COORDINATOR-02
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
