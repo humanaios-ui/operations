@@ -60,6 +60,8 @@ TOOLS_MANIFEST.md @humanaios-ui
 REPOSITORY_COORDINATOR_POLICY.json @humanaios-ui
 tools/repository_coordinator_v0_1.py @humanaios-ui
 .github/workflows/repository-coordinator.yml @humanaios-ui
+.github/workflows/repository-admission-gate.yml @humanaios-ui
+tools/tests/test_repository_coordinator_v0_1.py @humanaios-ui
 
 # Workflows require Admiral review (security-sensitive)
 .github/workflows/mesh-sync-batch.yml @humanaios-ui
