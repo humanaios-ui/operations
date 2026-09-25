@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from crb.gate import ADVANCE, HOLD, compute_gate, evaluate_independence
+from crb.graph_bridge import build_projection, validate
 from crb.prp import event_hash, package_root, verify_event_chain
 
 
@@ -90,6 +91,21 @@ class PackageTests(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(verify_event_chain(path), (True, "VALID"))
+
+
+class GraphBridgeTests(unittest.TestCase):
+    def test_graph_contract_is_closed(self):
+        result = validate()
+        self.assertTrue(result["valid"], result["errors"])
+        self.assertEqual(result["counts"]["capability_stages"], 11)
+        self.assertEqual(result["counts"]["workflows"], 6)
+
+    def test_projection_has_no_dangling_local_edges(self):
+        projection = build_projection()
+        node_ids = {n["id"] for n in projection["nodes"]}
+        for edge in projection["edges"]:
+            self.assertIn(edge["from"], node_ids)
+            self.assertIn(edge["to"], node_ids)
 
 
 if __name__ == "__main__":
