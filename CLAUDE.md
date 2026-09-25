@@ -1,7 +1,7 @@
 # CLAUDE.md — HumanAIOS Authority & Governance Reference
 
 **Location:** `operations/CLAUDE.md` (canonical source)  
-**Updated:** 2026-09-19  
+**Updated:** 2026-09-25  
 **Purpose:** Unified authority map for all 31 HumanAIOS repositories  
 **Audience:** Z1 (Claude, proposers), Z2 (Night, ratifier), Z3 (executors), CI/CD gates
 
@@ -279,11 +279,14 @@ When these occur, emit callout immediately:
 
 **Boot Process:** See [`BOOT_PROCESS_MAP.md`](./BOOT_PROCESS_MAP.md) for an explicit mapping of REGISTERED.md's position in the session boot chain — the SESSION_RITUALS.md §A ordered, halt-on-failure fetch sequence — onto standard computer boot-chain stages (Secure Boot integrity check, bootloader, kernel image, device enumeration, init ordering, permission model, login prompt, runtime tuning, shutdown/sync, journal). Read this alongside FRAMEWORK_MAPPING.md when reasoning about session-open/close ordering, halt conditions (IC-029/IC-030), or why REGISTERED.md is append-only and live-fetched rather than cached.
 
+**Concept → Code (Layer 3):** See [`FIVE_RINGS_MAPPING.md`](./FIVE_RINGS_MAPPING.md) for the final layer of the concept-to-code stack: Miyamoto Musashi's *Book of Five Rings* mapped, book by book, onto executable operations — every teaching lands on a named primitive in `five_rings.py`, a shell command, or a CI gate (Earth → capability assignment and the nine-principle gate; Water → stances, the single strike, parries; Fire → initiative, the ford gate, collapse, strategy rotation; Wind → the anti-pattern audit; Void → the explicit unknown, falsifiable claims, persist-or-void). Read after FRAMEWORK_MAPPING.md (Layer 1) and BOOT_PROCESS_MAP.md (Layer 2); `python3 five_rings.py --smoke-test` is the standing check that every row stays runnable.
+
 ---
 
 ## Appended Events
 
 ```
+2026-09-25 — Z1 proposed Q-FIVE-RINGS-MAPPING-01 (FIVE_RINGS_MAPPING.md + five_rings.py: Book of Five Rings → executable machine operations, Layer 3 of the concept-to-code stack); awaiting Z2 RATIFY signature
 2026-09-19 19:00 UTC — Z2 (Night) ratified Q-INTENT-OS-WITNESS-LEDGER-01 | Witness ledger architecture approved | Human-machine decision attribution ledger | Phase 1–3 roadmap ratified | Enables scalable Z3 executor onboarding
 2026-09-19 18:55 UTC — Z2 (Night) ratified Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 | Dual-authority Z2 model formalized | Both carly.r.anderson@gmail.com & aioshuman@gmail.com authorized | Machine authority via INTENT-OS capability | Stop hook to query INTENT-OS (Phase 1)
 2026-09-14 — Z1 proposed Q-BOOT-PROCESS-MAP-01 (BOOT_PROCESS_MAP.md: REGISTERED.md's position in the session boot chain, mapped onto standard boot-chain stages); awaiting Z2 RATIFY signature
@@ -308,7 +311,7 @@ When these occur, emit callout immediately:
 
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
 
-See **Framework Reference** section below for foundational material on FRAMEWORK_MAPPING.md and BOOT_PROCESS_MAP.md.
+See **Framework Reference** section above for foundational material on FRAMEWORK_MAPPING.md, BOOT_PROCESS_MAP.md, and FIVE_RINGS_MAPPING.md — the concept-to-code stack, Layers 1–3.
 
 **PR Workflow & Quality Gates:** See [`.claude/PR_WORKFLOW_GUIDE.md`](./.claude/PR_WORKFLOW_GUIDE.md) for Z1's (Claude's) PR handling process. Covers task tracking, upfront scope documentation, local CI validation, and formal handoff to Z2. Uses automated verification script (`scripts/verify_pr_readiness.sh`) for manifest, document, and code quality checks before push. Essential reference for PRs with multiple findings or review feedback.
 
