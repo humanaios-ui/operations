@@ -67,6 +67,7 @@ jobs:
             test_specimen_intake_nf_ledger.py \
             tools/tests/test_molt_cycle_nf_read.py \
             test_resource_economics.py \
+            test_five_rings_tier1.py \
             tools/tests/test_builder_compliance_scanner.py \
             tools/tests/test_molt_tier_classifier.py \
             tools/tests/test_ratify_index_write.py \
