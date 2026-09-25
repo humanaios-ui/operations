@@ -110,7 +110,8 @@ def validate() -> dict[str, Any]:
     if review_fields != required_review_fields:
         errors.append("graph delta review requirements must match the expected contract")
 
-    morph_node_ids = node_ids | set(event_ids) | projection_ids
+    change_level_ids = {entry_id for entry_id, _ in expected_hierarchy}
+    morph_node_ids = node_ids | change_level_ids | set(event_ids) | projection_ids
     for edge in morphogenesis.get("edges") or []:
         if edge.get("from") not in morph_node_ids or edge.get("to") not in morph_node_ids:
             errors.append(f"dangling morphogenesis edge: {edge}")
@@ -215,9 +216,6 @@ def build_projection() -> dict[str, Any]:
             node["minimum_fields"] = entry["minimum_fields"]
         nodes[entry["id"]] = node
 
-    edges.append(
-        {"from": "GRAPH_DELTA_CANDIDATE", "to": "CHANGE-L3", "rel": "classified_as"}
-    )
     for edge in morphogenesis.get("edges") or []:
         edges.append(dict(edge))
 

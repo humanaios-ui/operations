@@ -150,6 +150,11 @@
     },
     {
       "from": "GRAPH_DELTA_CANDIDATE",
+      "to": "CHANGE-L3",
+      "rel": "classified_as"
+    },
+    {
+      "from": "GRAPH_DELTA_CANDIDATE",
       "to": "GRAPH_DELTA_REVIEW",
       "rel": "reviewed_by"
     },
