@@ -3,7 +3,7 @@ generated: '2026-09-24'
 decision_window_days: 2
 counts:
   candidates: 91
-  records: 44
+  records: 43
 ratifiers:
 - Night
 candidates:
@@ -978,9 +978,6 @@ candidates:
   falsifier_waiver: "As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone."
   note: "Contains a claimed 2026-09-23 Z2 ratification event and a next step requiring RATIFY_TOKEN; this entry preserves that distinction rather than silently treating the prose receipt as a completed serial-gate signature."
 records:
-- path: z1-inbox/2026-09-25/RED-TEAM-PR514-AUDIT.md
-  title: "Red-team audit \u2014 PR #514 REPOSITORY-COORDINATOR-02 admission gate"
-  note: "Z1 adversarial audit of the v0.2 admission/backpressure gate with reproduced bypasses and the fixes carried by PR #526. No Z2 decision requested; a record, not a candidate. Falsifier stated in the document."
 - path: z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md
   title: "Z2 rulings 2026-09-24 — recovered Q-MAIL merge-is-ratification receipt"
   note: "Z2 output. Cited as z2_ruling by Q-MAIL-EVIDENCE-LEDGER-01; deterministic recovery after the automatic reconcile branch remained stale. Candidate bytes were not changed."
