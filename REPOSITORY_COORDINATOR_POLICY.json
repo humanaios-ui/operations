@@ -19,7 +19,9 @@
       378
     ],
     "pull_request_numbers": [
-      514
+      514,
+      507,
+      508
     ],
     "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
   },
@@ -52,6 +54,7 @@
     "When admitted ready-for-review work exceeds capacity, the coordinator does not choose winners; it reports capacity contention for operator resolution.",
     "The gate reads this file from the default branch (pull_request_target). A PR cannot admit itself by editing this file, and touching a control-plane file alongside feature work does not exempt the feature work.",
     "Two ready PRs linking the same admitted objective are both held (DUPLICATE_ACTIVE_IMPLEMENTATION); the coordinator does not choose a winner.",
-    "PR #514 is admitted explicitly (Z2 instruction, 2026-09-25): it carries the coordinator control plane together with regenerated tool-manifest files, so it is a mixed change under the control-plane rule and needs an explicit admission record rather than an exemption."
+    "PR #514 is admitted explicitly (Z2 instruction, 2026-09-25): it carries the coordinator control plane together with regenerated tool-manifest files, so it is a mixed change under the control-plane rule and needs an explicit admission record rather than an exemption.",
+    "PRs #507 (SMAG gate enforcer refactor) and #508 (Oracle + Actualizer MVP) admitted explicitly by Z2 instruction, 2026-09-25, after #514 landed and their manifest and P19 checks went green."
   ]
 }
