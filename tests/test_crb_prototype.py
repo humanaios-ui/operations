@@ -203,7 +203,28 @@ class GraphBridgeTests(unittest.TestCase):
 
         self.assertFalse(result["valid"])
         self.assertIn(
-            "graph delta review requirements are incomplete",
+            "graph delta review requirements must match the expected contract",
+            result["errors"],
+        )
+
+    def test_validate_rejects_unknown_review_requirements(self):
+        original = Path("crb/morphogenesis.json").read_text(encoding="utf-8")
+        mutated = json.loads(original)
+        mutated["review_requirements"] = list(mutated["review_requirements"]) + [
+            "unsupported_field"
+        ]
+
+        def fake_load_json(path):
+            if path == "crb/morphogenesis.json":
+                return mutated
+            return json.loads(Path(path).read_text(encoding="utf-8"))
+
+        with patch("crb.graph_bridge.load_json", side_effect=fake_load_json):
+            result = validate()
+
+        self.assertFalse(result["valid"])
+        self.assertIn(
+            "graph delta review requirements must match the expected contract",
             result["errors"],
         )
 

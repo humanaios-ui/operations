@@ -107,8 +107,8 @@ def validate() -> dict[str, Any]:
         "falsifier",
     }
     review_fields = set(morphogenesis.get("review_requirements") or [])
-    if not required_review_fields.issubset(review_fields):
-        errors.append("graph delta review requirements are incomplete")
+    if review_fields != required_review_fields:
+        errors.append("graph delta review requirements must match the expected contract")
 
     morph_node_ids = node_ids | set(event_ids) | projection_ids
     for edge in morphogenesis.get("edges") or []:
