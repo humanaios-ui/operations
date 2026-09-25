@@ -18,12 +18,7 @@
     "issue_numbers": [
       378
     ],
-    "pull_request_numbers": [
-      514,
-      507,
-      508,
-      532
-    ],
+    "pull_request_numbers": [],
     "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
   },
   "maintenance": {
