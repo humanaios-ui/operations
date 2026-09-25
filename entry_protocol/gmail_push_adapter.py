@@ -77,6 +77,7 @@ class GmailClient(Protocol):
         *,
         topic_name: str,
         label_ids: Sequence[str] = ("INBOX",),
+        acknowledge_resync_gap: bool = False,
     ) -> Mapping[str, Any]:
         ...
 
@@ -290,7 +291,10 @@ def parse_gmail_message(message: Mapping[str, Any]) -> ParsedGmailMessage:
 
 
 def is_relevant_subject(subject: str) -> bool:
-    return bool(_DIGEST_SUBJECT_RE.match(subject or "") or _THREAD_SUBJECT_RE.match(subject or ""))
+    # The root Daily Digest is data, never a command. Only a reply to it is
+    # command-eligible. THREAD roots are allowed, but adapter-generated roots
+    # are separately rejected by the automation header.
+    return bool(_DIGEST_REPLY_RE.match(subject or "") or _THREAD_SUBJECT_RE.match(subject or ""))
 
 
 def extract_subject_target(subject: str) -> tuple[str | None, str | None]:
@@ -704,6 +708,14 @@ class GmailInboundAdapter:
         topic_name: str,
         label_ids: Sequence[str] = ("INBOX",),
     ) -> Mapping[str, Any]:
+        if (
+            self.store.get_state("gmail_resync_required") == "1"
+            and not acknowledge_resync_gap
+        ):
+            raise GmailTransportError(
+                "resync gap is unresolved; rerun watch registration only after "
+                "manual gap review with acknowledge_resync_gap=True"
+            )
         response = self.gmail.register_watch(
             topic_name=topic_name,
             label_ids=label_ids,
@@ -738,7 +750,10 @@ class GmailInboundAdapter:
             if str(raw.get("id", "")) == current_message_id:
                 continue
             candidate = parse_gmail_message(raw)
-            if not _DIGEST_SUBJECT_RE.match(candidate.subject):
+            if (
+                not _DIGEST_SUBJECT_RE.match(candidate.subject)
+                or candidate.subject.lower().startswith("re:")
+            ):
                 continue
             catalog = extract_item_catalog(candidate.body_text)
             if catalog:
@@ -746,10 +761,16 @@ class GmailInboundAdapter:
         return {}
 
     def _transport_actor(self, parsed: ParsedGmailMessage) -> tuple[ActorKind, str]:
+        # Initial Phase B authority is deliberately narrow: an actionable human
+        # command must be present as a Gmail SENT copy from a configured endpoint.
+        # A matching From: header without SENT is not sufficient proof of control.
+        if (
+            parsed.from_address in self.config.command_endpoints
+            and "SENT" in parsed.label_ids
+        ):
+            return ActorKind.HUMAN, "CONFIGURED_ENDPOINT_SENT_COPY"
         if parsed.from_address in self.config.command_endpoints:
-            if "SENT" in parsed.label_ids:
-                return ActorKind.HUMAN, "CONFIGURED_ENDPOINT_SENT_COPY"
-            return ActorKind.HUMAN, "CONFIGURED_ENDPOINT"
+            return ActorKind.UNKNOWN, "CONFIGURED_ENDPOINT_UNATTESTED"
         return ActorKind.UNKNOWN, "UNRECOGNIZED_ENDPOINT"
 
     def _send_mail(
@@ -919,6 +940,16 @@ class GmailInboundAdapter:
 
     def handle_push(self, notification_history_id: str) -> PushBatchResult:
         start = self.store.get_state("gmail_history_id")
+        if self.store.get_state("gmail_resync_required") == "1":
+            return PushBatchResult(
+                status="RESYNC_REQUIRED",
+                start_history_id=start,
+                end_history_id=None,
+                processed=0,
+                ignored=0,
+                replays=0,
+                held=0,
+            )
         if not start:
             # Correct deployment seeds this through register_watch(). Fail closed:
             # establish a baseline but do not claim the triggering message was read.
@@ -991,6 +1022,11 @@ def main() -> int:
         default=os.environ.get("GMAIL_PUBSUB_TOPIC", ""),
         help="projects/<project>/topics/<topic>",
     )
+    watch.add_argument(
+        "--acknowledge-resync-gap",
+        action="store_true",
+        help="explicitly establish a new baseline after manual review of a known gap",
+    )
 
     status = sub.add_parser("status", help="Print private adapter state summary")
 
@@ -1000,7 +1036,10 @@ def main() -> int:
     if args.command == "watch":
         if not args.topic:
             parser.error("--topic or GMAIL_PUBSUB_TOPIC is required")
-        response = adapter.register_watch(topic_name=args.topic)
+        response = adapter.register_watch(
+            topic_name=args.topic,
+            acknowledge_resync_gap=args.acknowledge_resync_gap,
+        )
         print(
             json.dumps(
                 {
