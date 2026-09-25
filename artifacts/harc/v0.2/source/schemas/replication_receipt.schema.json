@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HARC v0.2 Replication Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["capsule_id", "capsule_version", "capsule_sha256", "substrate_id", "replication_status", "implemented_components", "tests", "test_evidence", "divergences", "limitations"],
+  "properties": {
+    "capsule_id": {"type": "string", "minLength": 1},
+    "capsule_version": {"type": "string", "minLength": 1},
+    "capsule_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "substrate_id": {"type": "string", "minLength": 1},
+    "environment": {"type": "object"},
+    "prior_review_exposure": {"enum": ["NONE", "PARTIAL", "FULL"]},
+    "return_capability": {"enum": ["INLINE_EMAIL", "RETURN_BLOCK_ONLY", "INLINE_ONLY", "OTHER"]},
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit_sha"],
+      "properties": {
+        "repository": {"type": "string", "minLength": 1},
+        "commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "component": {"type": "string", "minLength": 1}
+      }
+    },
+    "replication_status": {"enum": ["REPLICATED", "PARTIAL", "FAILED"]},
+    "implemented_components": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "failed", "not_run"],
+      "properties": {
+        "passed": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0},
+        "not_run": {"type": "integer", "minimum": 0}
+      }
+    },
+    "test_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "evidence_ref"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "status": {"enum": ["PASS", "FAIL", "NOT_RUN"]},
+          "evidence_ref": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "divergences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["component", "reason"],
+        "properties": {
+          "component": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "warrant": {"type": "string"}
+  }
+}
