@@ -37,6 +37,10 @@ def load_schema():
 
 
 def check_rnola_records_exist(strict=False):
+    return json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+
+
+def check_rnola_records_exist():
     """
     Check any operator-check records in outputs/rnola/ for misuse patterns.
     Returns True if all checks pass; False if violations found.
@@ -207,6 +211,12 @@ def main():
             print(f"WARNING: Could not read PR event: {e}")
 
     if not check_pr_reviews_for_operator_check_misuse(pr_body):
+    if not check_rnola_records_exist():
+        all_pass = False
+
+    # Check 3: PR body doesn't suggest operator-check as authorization
+    # (In CI, this would be passed from GitHub event payload)
+    if not check_pr_reviews_for_operator_check_misuse():
         all_pass = False
 
     if all_pass:

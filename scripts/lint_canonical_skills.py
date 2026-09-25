@@ -9,6 +9,7 @@ Exit 0 if all stubs conform; exit 1 if drift detected.
 """
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -42,6 +43,7 @@ def check_canonical_exists():
 
 
 def check_substrate_stubs(strict=False):
+def check_substrate_stubs():
     """Verify substrate stubs are thin redirects, not divergent implementations."""
     all_good = True
     canonical_content = CANONICAL_RNOLA.read_text(encoding="utf-8")
@@ -50,6 +52,7 @@ def check_substrate_stubs(strict=False):
         if not stub_path.exists():
             print(f"ERROR: Substrate stub not found (required): {stub_path}")
             all_good = False
+            print(f"WARNING: Substrate stub not found (expected): {stub_path}")
             continue
 
         stub_content = stub_path.read_text(encoding="utf-8")
@@ -70,6 +73,8 @@ def check_substrate_stubs(strict=False):
         if len(lines) > 15:  # Stubs should be thin — ~11 lines
             print(f"ERROR: Substrate stub is longer than expected ({len(lines)} lines): {stub_path}")
             print(f"       Stubs should be thin redirects; detected divergence.")
+            print(f"WARNING: Substrate stub is longer than expected ({len(lines)} lines): {stub_path}")
+            print(f"         Stubs should be thin redirects; suspect divergence.")
             all_good = False
 
     return all_good
@@ -106,6 +111,7 @@ def main():
         sys.exit(1)
 
     if not check_substrate_stubs(strict=args.strict):
+    if not check_substrate_stubs():
         sys.exit(1)
 
     print("✓ All canonical skill entry points conform.")

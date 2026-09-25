@@ -29,6 +29,7 @@ def scan_record_for_checkbox_pattern(record, path):
 
     Indicators:
     - evidence_inspected is empty
+    - evidence_inspected is empty or has <2 items
     - observation fields are generic/placeholder
     - calibration.demonstrated is empty
     """
@@ -37,6 +38,8 @@ def scan_record_for_checkbox_pattern(record, path):
     evidence = record.get("evidence_inspected", [])
     if not evidence:
         violations.append("CHECKBOX: evidence_inspected is empty (no artifacts inspected)")
+    if not evidence or len(evidence) < 2:
+        violations.append("CHECKBOX: evidence_inspected has <2 items (too few artifacts inspected)")
 
     for i, ev in enumerate(evidence):
         observation = ev.get("observation", "").lower()
@@ -63,6 +66,7 @@ def scan_record_for_authorization_pattern(record, path):
     Indicators:
     - advisory_only or can_authorize are not hard-coded values
     - authority_consequence uses affirmative authorization language (not negated)
+    - authority_consequence uses permissive language
     """
     violations = []
 
@@ -85,6 +89,10 @@ def scan_record_for_authorization_pattern(record, path):
             violations.append(
                 f"AUTHORIZATION: authority_consequence claims approval ('{phrase}')"
             )
+    dangerous_words = ["approve", "permit", "authorize", "enable merge", "ready to merge"]
+    for word in dangerous_words:
+        if word in consequence:
+            violations.append(f"AUTHORIZATION: authority_consequence uses dangerous word '{word}'")
 
     return violations
 
@@ -145,6 +153,10 @@ def scan_record_freshness(record, path):
             )
     except (TypeError, ValueError) as e:
         violations.append(f"FRESHNESS: Could not compute age: {e}")
+    # Check if created_at is more than 7 days in the past
+    age = datetime.now(created.tzinfo) - created
+    if age > timedelta(days=7):
+        violations.append(f"FRESHNESS WARNING: operator-check is {age.days} days old (post-hoc evidence?)")
 
     return violations
 

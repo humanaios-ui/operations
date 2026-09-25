@@ -39,6 +39,7 @@ When RNOLA stops working as designed, it's usually because one of these patterns
 - Require observation fields to cite specific line numbers or commits (pattern: `#` or `:`)
 - Require calibration.demonstrated to be non-empty and specific
 - CI gate `.github/workflows/rnola-governance-validation.yml` runs `scripts/scan_rnola_misuse.py` to flag checkbox patterns (blocks merge)
+- Run `scripts/scan_rnola_misuse.py` in CI to flag checkbox patterns
 - Add a team review rule: "Operator-check must show evidence of learning, not just approval"
 
 ---
@@ -127,6 +128,7 @@ When RNOLA stops working as designed, it's usually because one of these patterns
 **Pattern:** As Claude (Z3) uses RNOLA to understand PRs before merging, the operator-checks begin to influence which PRs Claude merges, creating a hidden authority channel.
 
 **Why it's a failure:** RNOLA is advisory learning for Z2 and operators. It is designed not to influence Z3 (merge/execution) decisions directly. If Claude's merge decisions correlate with operator-checks, RNOLA has become a merge authority mechanism.
+**Why it's a failure:** RNOLA is advisory learning for Z2 and operators. It should never influence Z3 (merge/execution) decisions directly. If Claude's merge decisions correlate with operator-checks, RNOLA has become a merge authority mechanism.
 
 **Detection:**
 - Claude merges PRs that have operator-checks, skips PRs that don't

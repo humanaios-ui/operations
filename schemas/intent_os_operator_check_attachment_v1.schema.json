@@ -63,6 +63,8 @@
         }
       ],
       "$comment": "The operator-check record being attached. Must conform to intent_os_operator_check_v1.schema.json via $ref validation."
+      "type": "object",
+      "$comment": "The operator-check record being attached. Must conform to intent_os_operator_check_v1.schema.json."
     },
     "attachment_reason": {
       "type": "string",
