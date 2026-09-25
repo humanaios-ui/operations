@@ -1,0 +1,250 @@
+{
+  "version": "0.1",
+  "status": "PROTOTYPE_NON_ENFORCING",
+  "note": "Represents governed topology adaptation and bounded evidence projection. It does not authorize autonomous graph mutation and does not modify canonical graphs.",
+  "change_hierarchy": [
+    {
+      "id": "CHANGE-L0",
+      "level": 0,
+      "name": "state_change",
+      "label": "State change",
+      "example": "measurement or telemetry value changes"
+    },
+    {
+      "id": "CHANGE-L1",
+      "level": 1,
+      "name": "parameter_adaptation",
+      "label": "Parameter adaptation",
+      "example": "threshold, weight, or calibration constant changes"
+    },
+    {
+      "id": "CHANGE-L2",
+      "level": 2,
+      "name": "molt",
+      "label": "Molt",
+      "example": "component, rule, or policy changes"
+    },
+    {
+      "id": "CHANGE-L3",
+      "level": 3,
+      "name": "morphogenesis",
+      "label": "Morphogenesis",
+      "example": "node, edge, or topology changes"
+    },
+    {
+      "id": "CHANGE-L4",
+      "level": 4,
+      "name": "constitutional_change",
+      "label": "Constitutional change",
+      "example": "rules governing permissible topology changes"
+    }
+  ],
+  "event_types": [
+    {
+      "id": "MORPHOGENIC_SIGNAL",
+      "type": "morphogenic_signal",
+      "label": "Morphogenetic signal",
+      "description": "Observed pressure detected in telemetry or graph reconciliation. It may trigger review but cannot mutate topology directly."
+    },
+    {
+      "id": "GRAPH_DELTA_CANDIDATE",
+      "type": "graph_delta_event",
+      "label": "Graph delta candidate",
+      "description": "Proposed topology change derived from evidence, calibration state, and authority constraints."
+    },
+    {
+      "id": "GRAPH_DELTA_REVIEW",
+      "type": "graph_delta_event",
+      "label": "Graph delta review",
+      "description": "CRB review record for a proposed graph delta."
+    },
+    {
+      "id": "GRAPH_DELTA_AUTHORIZATION",
+      "type": "graph_delta_event",
+      "label": "Graph delta authorization",
+      "description": "Explicit warrant/authorization outcome for a proposed graph delta."
+    },
+    {
+      "id": "GRAPH_DELTA_APPLIED",
+      "type": "graph_delta_event",
+      "label": "Graph delta applied",
+      "description": "Recorded application of an authorized graph delta."
+    },
+    {
+      "id": "GRAPH_DELTA_REVERTED",
+      "type": "graph_delta_event",
+      "label": "Graph delta reverted",
+      "description": "Recorded rollback or refusal path for a graph delta."
+    }
+  ],
+  "signals": [
+    "prediction_error",
+    "evidence_conflict",
+    "authorization_failure",
+    "behavioral_drift",
+    "repeated_workflow_failure",
+    "graph_contradiction",
+    "falsifier_activation"
+  ],
+  "projection_types": [
+    {
+      "id": "HEP",
+      "type": "projection_family",
+      "label": "Holographic Evidence Projection",
+      "definition": "A bounded, portable projection sufficient to reconstruct a consequential decision after HumanAIOS is removed."
+    },
+    {
+      "id": "HEP-PRP",
+      "type": "projection",
+      "label": "Portable Review Package",
+      "specializes": "HEP",
+      "minimum_fields": [
+        "claim",
+        "evidence",
+        "methods",
+        "provenance",
+        "reviewer_contract",
+        "independent_reports",
+        "dissent",
+        "gate_rule",
+        "verdict",
+        "replay_instructions"
+      ]
+    },
+    {
+      "id": "HEP-AUTH",
+      "type": "projection",
+      "label": "Authorization projection",
+      "specializes": "HEP",
+      "minimum_fields": [
+        "intent",
+        "capability",
+        "authority",
+        "evidence",
+        "calibration",
+        "review",
+        "warrant",
+        "gate",
+        "action",
+        "consequence",
+        "provenance_root"
+      ]
+    }
+  ],
+  "review_requirements": [
+    "delta_id",
+    "target_layers",
+    "current_path",
+    "proposed_delta",
+    "evidence_refs",
+    "authority_path",
+    "capability_reachability_diff",
+    "rollback_plan",
+    "falsifier"
+  ],
+  "edges": [
+    {
+      "from": "MORPHOGENIC_SIGNAL",
+      "to": "GRAPH_DELTA_CANDIDATE",
+      "rel": "triggers_candidate"
+    },
+    {
+      "from": "GRAPH_DELTA_CANDIDATE",
+      "to": "CHANGE-L3",
+      "rel": "classified_as"
+    },
+    {
+      "from": "GRAPH_DELTA_CANDIDATE",
+      "to": "GRAPH_DELTA_REVIEW",
+      "rel": "reviewed_by"
+    },
+    {
+      "from": "GRAPH_DELTA_REVIEW",
+      "to": "GRAPH_DELTA_AUTHORIZATION",
+      "rel": "warrants"
+    },
+    {
+      "from": "GRAPH_DELTA_AUTHORIZATION",
+      "to": "GRAPH_DELTA_APPLIED",
+      "rel": "authorizes"
+    },
+    {
+      "from": "GRAPH_DELTA_AUTHORIZATION",
+      "to": "GRAPH_DELTA_REVERTED",
+      "rel": "reverts"
+    },
+    {
+      "from": "GRAPH_DELTA_AUTHORIZATION",
+      "to": "HEP-AUTH",
+      "rel": "projects"
+    },
+    {
+      "from": "CRB-PRP",
+      "to": "HEP-PRP",
+      "rel": "specializes_as"
+    },
+    {
+      "from": "HEP-AUTH",
+      "to": "CRB-EXT",
+      "rel": "reconstructable_by"
+    }
+  ],
+  "molt_tier_mapping": {
+    "status": "RECORDED_NON_ENFORCING",
+    "recorded_by": "Z2 instruction, 2026-09-25 (before Phase B)",
+    "classifier": "tools/molting_protocol_diff_v1_0.py",
+    "rule": "The classifier measures a molt tier from touched paths (Tier 0 none, Tier 1 CONSTANTS_PATHS, Tier 2 GATE_PATHS). A change level is the semantic class of the edit and is the maximum over touched paths. Authority owed is the greater of the two; where the classifier measures below the level's authority, the gap is recorded here for Z2 rather than enforced.",
+    "levels": [
+      {
+        "level": "CHANGE-L0",
+        "measured_tier": 0,
+        "authority": "append-only ledger and hash-chain rules only",
+        "path_basis": [
+          "NF_LEDGER.jsonl",
+          "ledgers/",
+          "outputs/"
+        ],
+        "gap": null
+      },
+      {
+        "level": "CHANGE-L1",
+        "measured_tier": 1,
+        "authority": "Tier 1 molt: molt_id + pinned prediction + window + falsifier",
+        "path_basis": "CONSTANTS_PATHS",
+        "gap": null,
+        "note": "The repository's existing Molt operator is the L1 operator. The hierarchy label 'molt' at L2 names component, rule, or policy change, not this operator."
+      },
+      {
+        "level": "CHANGE-L2",
+        "measured_tier": 0,
+        "authority": "Z2 review through CODEOWNERS; no mechanical tier gate today",
+        "path_basis": "tools/, scripts/, protocols/, schemas/ and similar paths in neither CONSTANTS_PATHS nor GATE_PATHS",
+        "gap": "classifier measures Tier 0, so L2 is under-gated relative to its semantic weight"
+      },
+      {
+        "level": "CHANGE-L3",
+        "measured_tier": 2,
+        "authority": "Tier 2: registry entry + ADV run before KEEP",
+        "path_basis": "GATE_PATHS minus the constitutional subset listed under CHANGE-L4",
+        "gap": null
+      },
+      {
+        "level": "CHANGE-L4",
+        "measured_tier": 2,
+        "authority": "Tier 2 plus a Z2 ratification hash (CLAUDE.md, files that require Z2 signature)",
+        "path_basis": [
+          "tools/molting_protocol_diff_v1_0.py",
+          ".z1-control/ratify.py",
+          ".z1-control/validate.py",
+          ".z1-control/render.py",
+          "z2_ratification_gate.yml",
+          "GOVERNANCE.md",
+          "CLAUDE.md",
+          "SEED.md",
+          "PRINCIPLES_SEED_V1_0.md"
+        ],
+        "gap": "classifier cannot separate L3 from L4, and the governance documents in this list measure Tier 0"
+      }
+    ]
+  }
+}

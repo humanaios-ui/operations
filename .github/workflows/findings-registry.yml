@@ -51,8 +51,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
       - name: Findings registry integrity (BLOCKING — hard failures fail the build)
@@ -77,7 +77,7 @@ jobs:
         run: python3 tools/registered_failure_mode_scan_v0_1.py scan --verify-doc REGISTERED_FAILURE_MODES.md
       - name: Upload registry validation report (audit S-070726)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: findings-registry-report
           path: /tmp/registry-report
