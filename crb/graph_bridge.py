@@ -110,6 +110,14 @@ def validate() -> dict[str, Any]:
     if review_fields != required_review_fields:
         errors.append("graph delta review requirements must match the expected contract")
 
+    mapping = morphogenesis.get("molt_tier_mapping") or {}
+    mapped_levels = [entry.get("level") for entry in mapping.get("levels") or []]
+    if mapped_levels != [entry_id for entry_id, _ in expected_hierarchy]:
+        errors.append("molt tier mapping must cover CHANGE-L0..CHANGE-L4 exactly once, in order")
+    for entry in mapping.get("levels") or []:
+        if entry.get("measured_tier") not in (0, 1, 2):
+            errors.append(f"molt tier mapping: {entry.get('level')} has no legal measured_tier")
+
     change_level_ids = {entry_id for entry_id, _ in expected_hierarchy}
     morph_node_ids = node_ids | change_level_ids | set(event_ids) | projection_ids
     for edge in morphogenesis.get("edges") or []:
@@ -139,6 +147,7 @@ def validate() -> dict[str, Any]:
             "crb_nodes": len(node_ids),
             "graph_delta_events": len(event_ids),
             "projection_types": len(projection_ids),
+            "tier_mapped_levels": len(mapped_levels),
             "workflows": len(wf_ids),
         },
     }
