@@ -25,13 +25,13 @@ Inputs are an offline JSON snapshot collected by the GitHub workflow plus the
 checked-out canonical PRIORITY_QUEUE.md. The tool does not call GitHub itself.
 
 Trust boundary: the policy, this tool, and PRIORITY_QUEUE.md must be read from
-the trusted base branch, never from a candidate PR checkout. A PR must not be
+the trusted base branch, not from a candidate PR checkout. A PR must not be
 able to admit itself by editing the policy it is judged against.
 
 Admission evidence is an explicit closing-keyword link ("Fixes #N") to an
 admitted issue, or an explicit PR number in the policy. Incidental mentions
 are not admission. Maintenance standing comes from the automated author
-identity, never from a self-assignable label. Control-plane exemption applies
+identity, not from a self-assignable label. Control-plane exemption applies
 only when every changed file is a control-plane path.
 
 Usage:
@@ -815,7 +815,7 @@ def gate_decision(index: dict[str, Any], number: int) -> dict[str, Any]:
     """Fail-closed admission decision for one PR from a computed index.
 
     Returns {"gate": "PASS"|"FAIL", "lane": ..., "reason": ...}. A PR that is
-    absent from the index is a FAIL: the gate never passes on missing evidence.
+    absent from the index is a FAIL: the gate does not pass on missing evidence.
     """
     for item in index.get("items") or []:
         if int(item.get("number") or 0) == int(number):

@@ -79,13 +79,25 @@ jobs:
             );
 
             // Trusted policy: default branch, not the candidate checkout.
-            const policyResp = await github.rest.repos.getContent({
-              owner, repo, path: "REPOSITORY_COORDINATOR_POLICY.json", ref: "main"
-            });
-            const policyText = Buffer.from(policyResp.data.content, "base64").toString("utf8");
+            // Bootstrap only: while the policy does not yet exist on main, the
+            // advisory index falls back to the checkout and records that it did.
+            let policyText;
+            let policySource = "main";
+            try {
+              const policyResp = await github.rest.repos.getContent({
+                owner, repo, path: "REPOSITORY_COORDINATOR_POLICY.json", ref: "main"
+              });
+              policyText = Buffer.from(policyResp.data.content, "base64").toString("utf8");
+            } catch (err) {
+              if (!err || err.status !== 404) throw err;
+              policyText = fs.readFileSync("REPOSITORY_COORDINATOR_POLICY.json", "utf8");
+              policySource = "checkout (policy absent on main; bootstrap)";
+              core.warning("REPOSITORY_COORDINATOR_POLICY.json is absent on main; advisory index is using the checkout copy.");
+            }
             const policy = JSON.parse(policyText);
             fs.mkdirSync(".repo-coordinator", { recursive: true });
             fs.writeFileSync(".repo-coordinator/policy.main.json", policyText);
+            fs.writeFileSync(".repo-coordinator/policy.source", policySource);
             const admittedIssueNumbers = new Set(
               (((policy || {}).admission || {}).issue_numbers || []).map(Number)
             );
@@ -251,6 +263,7 @@ jobs:
               schema_version: "0.2",
               repository: `${owner}/${repo}`,
               main_sha: mainSha,
+              policy_source: policySource,
               main_paths: mainPaths,
               referenced_pull_requests: referenced,
               referenced_items: referencedItems,
