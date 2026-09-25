@@ -31,6 +31,13 @@
         "schema failure",
         "symlink",
         "unresolved source reference"
+      ],
+      "capability_stages": [
+        "CAP-01",
+        "CAP-04",
+        "CAP-06",
+        "CAP-08",
+        "CAP-11"
       ]
     },
     {
@@ -50,6 +57,15 @@
         "context leak",
         "evidence bundle mismatch",
         "review contract mutation"
+      ],
+      "capability_stages": [
+        "CAP-02",
+        "CAP-03",
+        "CAP-04",
+        "CAP-05",
+        "CAP-06",
+        "CAP-07",
+        "CAP-11"
       ]
     },
     {
@@ -66,6 +82,13 @@
         "challenge set",
         "seat verdicts",
         "dissent artifacts"
+      ],
+      "capability_stages": [
+        "CAP-02",
+        "CAP-06",
+        "CAP-07",
+        "CAP-10",
+        "CAP-11"
       ]
     },
     {
@@ -76,7 +99,13 @@
       "outputs": [
         "ADVANCE|HOLD_REVISE_RETEST"
       ],
-      "model_calls": 0
+      "model_calls": 0,
+      "capability_stages": [
+        "CAP-01",
+        "CAP-06",
+        "CAP-10",
+        "CAP-11"
+      ]
     },
     {
       "id": "CRB-WF-05",
@@ -92,6 +121,14 @@
       ],
       "outputs": [
         "CONVERGED|CONFLICT|UNRESOLVED|PORTABILITY_FAILURE"
+      ],
+      "capability_stages": [
+        "CAP-03",
+        "CAP-04",
+        "CAP-06",
+        "CAP-09",
+        "CAP-10",
+        "CAP-11"
       ]
     },
     {
@@ -107,6 +144,13 @@
         "graph delta",
         "coverage gaps",
         "candidate corrections"
+      ],
+      "capability_stages": [
+        "CAP-06",
+        "CAP-07",
+        "CAP-08",
+        "CAP-10",
+        "CAP-11"
       ]
     }
   ]
