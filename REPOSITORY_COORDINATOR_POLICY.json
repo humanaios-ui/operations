@@ -52,6 +52,7 @@
     "Two ready PRs linking the same admitted objective are both held (DUPLICATE_ACTIVE_IMPLEMENTATION); the coordinator does not choose a winner.",
     "PR #514 is admitted explicitly (Z2 instruction, 2026-09-25): it carries the coordinator control plane together with regenerated tool-manifest files, so it is a mixed change under the control-plane rule and needs an explicit admission record rather than an exemption.",
     "PRs #507 (SMAG gate enforcer refactor) and #508 (Oracle + Actualizer MVP) admitted explicitly by Z2 instruction, 2026-09-25, after #514 landed and their manifest and P19 checks went green.",
-    "PR #532 (admissions for #507/#508 plus the molt-tier to change-level mapping) admitted explicitly by Z2 instruction, 2026-09-25, recorded directly on main so the gate evaluates it."
+    "PR #532 (admissions for #507/#508 plus the molt-tier to change-level mapping) admitted explicitly by Z2 instruction, 2026-09-25, recorded directly on main so the gate evaluates it.",
+    "PR #538 (RNOLA governance infrastructure: 7 critical findings fixed, merge conflict resolved) is admitted explicitly (Z2 instruction, 2026-09-25): mixed control-plane change (.github/workflows/rnola-governance-validation.yml) with governance/feature files (scripts/, schemas/, docs/, tests/) requiring explicit admission under the control-plane rule."
   ]
 }
