@@ -5646,7 +5646,7 @@ zone2_decision_window: "48h from 2026-09-24T01:00:00Z"
 2. Merged to main ✓
 3. **FAILED:** Did not create formal Z2 ratification artifact (Z2-RATIFICATION.md or equivalent) per §B.6 handoff block
 4. Left Z2 with implicit expectation to ratify in conversation, no tracked artifact
-5. Violated IC-030 (live-fetch + pin REGISTERED.md prior to merge): should have verified all downstream artifacts were created
+5. Did not complete the formal §B.6 handoff artifact before closing the session
 
 **Impact:**
 - Z2 authority workflow non-formal (conversation-only, not tracked in repo)
