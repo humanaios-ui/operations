@@ -8,6 +8,7 @@ from the canonical implementation in tools/skills/.
 Exit 0 if all stubs conform; exit 1 if drift detected.
 """
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -41,13 +42,15 @@ def check_canonical_exists():
     return True
 
 
-def check_substrate_stubs():
+def check_substrate_stubs(strict=False):
     """Verify substrate stubs are thin redirects, not divergent implementations."""
     all_good = True
     canonical_content = CANONICAL_RNOLA.read_text(encoding="utf-8")
 
     for stub_path in SUBSTRATE_PATHS:
         if not stub_path.exists():
+            print(f"ERROR: Substrate stub not found (required): {stub_path}")
+            all_good = False
             print(f"WARNING: Substrate stub not found (expected): {stub_path}")
             continue
 
@@ -67,6 +70,8 @@ def check_substrate_stubs():
         # Stub must not redefine sections beyond the redirect
         lines = stub_content.strip().split("\n")
         if len(lines) > 15:  # Stubs should be thin — ~11 lines
+            print(f"ERROR: Substrate stub is longer than expected ({len(lines)} lines): {stub_path}")
+            print(f"       Stubs should be thin redirects; detected divergence.")
             print(f"WARNING: Substrate stub is longer than expected ({len(lines)} lines): {stub_path}")
             print(f"         Stubs should be thin redirects; suspect divergence.")
             all_good = False
@@ -76,12 +81,35 @@ def check_substrate_stubs():
 
 def main():
     """Run all linting checks."""
+    parser = argparse.ArgumentParser(
+        description="Lint canonical skill entry points for substrate drift."
+    )
+    parser.add_argument(
+        "--root",
+        type=str,
+        default=str(ROOT),
+        help="Repository root directory",
+    )
+    parser.add_argument(
+        "--substrate-dirs",
+        type=str,
+        nargs="*",
+        help="Additional substrate directories to check",
+    )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail on warnings as well as errors",
+    )
+
+    args = parser.parse_args()
+
     print("Linting canonical skill entry points...")
 
     if not check_canonical_exists():
         sys.exit(1)
 
-    if not check_substrate_stubs():
+    if not check_substrate_stubs(strict=args.strict):
         sys.exit(1)
 
     print("✓ All canonical skill entry points conform.")

@@ -1,5 +1,6 @@
 # SKILL: repository_native_operator_learning
 
+**For theory and governance context:** See [`docs/INTENT_OS_RNOLA_INTEGRATION.md`](../../../docs/INTENT_OS_RNOLA_INTEGRATION.md). This skill is the operational guide; the integration doc is the canonical architecture and authority reference.
 **For theory and governance context:** See [`docs/INTENT_OS_RNOLA_INTEGRATION.md`](../../docs/INTENT_OS_RNOLA_INTEGRATION.md). This skill is the operational guide; the integration doc is the canonical architecture and authority reference.
 
 ## 1. Purpose
@@ -8,6 +9,9 @@ Repository-Native Operator Learning Audit (RNOLA) turns the live HumanAIOS repos
 
 RNOLA is an advisory Zone 1 learning and calibration layer over INTENT-OS. It teaches from the exact repository artifact under review and works outward only as needed.
 
+It is not designed to merge, ratify, deploy, sign, change credentials, or grant permissions.
+
+Key boundary: RNOLA is advisory Zone 1 learning/calibration only. It does not merge, ratify, sign, deploy, grant permissions, or treat an operator-check record as authorization.
 It has no authority to merge, ratify, deploy, sign, change credentials, or grant permissions.
 
 Key boundary: RNOLA is advisory Zone 1 learning/calibration only. It cannot merge, ratify, sign, deploy, grant permissions, or treat an operator-check record as authorization.
@@ -170,6 +174,7 @@ When a teach-back is captured, emit an operator-check object conforming to:
 
 schemas/intent_os_operator_check_v1.schema.json
 
+The operator check is advisory evidence only. It is not designed to:
 The operator check is advisory evidence only. It cannot:
 
 - approve a PR;
