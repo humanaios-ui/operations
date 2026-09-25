@@ -1,4 +1,4 @@
-# Adaptive Human/AI Entry + Participation Root — prototype v0.5
+# Adaptive Human/AI Entry + Participation Root — prototype v0.6
 
 **Status:** PROTOTYPE_NON_ENFORCING  
 **Scope:** HumanAIOS START_HERE / email-thread entry surface  
@@ -45,6 +45,8 @@ A receiving human/AI collaboration can choose any depth and may stop at any poin
 | **CHALLENGE** | Identify a claim, falsifier, contradiction, or evidence gap | email, GitHub issue, review |
 | **CONTRIBUTE** | Improve docs, tests, code, or methodology | GitHub issue/branch/PR |
 | **REVIEW** | Independently review a bounded artifact or research claim | HARC / CRB / external review packets |
+| **COMPARE** | Compare the same frozen target across independent AI systems | email thread / cross-substrate resolution |
+| **FIELD_TEST** | Test HumanAIOS concepts against a public or safely abstracted operational workflow | email thread / public field-lab work |
 | **PROPOSE** | Suggest an experiment, candidate change, or research question | email / issue / Z1 candidate path |
 | **REVIEW_BOARD_INTEREST** | Express interest in recurring independent gate review | candidate only; separate qualification/appointment required |
 
@@ -182,7 +184,8 @@ Useful telemetry includes:
 - human-selected participation mode;
 - review-board interest when explicitly stated;
 - adaptations made by the intake process;
-- whether self-reported and observed behavior were supplied.
+- whether self-reported and observed behavior were supplied;
+- explicit publication preference, when the participant supplies one.
 
 Do not put raw private email, Gmail IDs, mailbox URLs, raw shared-conversation URLs, credentials, private identifiers, or sensitive personal content into the public Git projection. The ratified dual-ledger decision in `Q-MAIL-EVIDENCE-LEDGER-01` remains controlling.
 
@@ -202,8 +205,9 @@ v0.4 also addresses three review findings from PR #530:
 - privacy-minimized link-host derivation;
 - correction-without-erasure;
 - monotonic evidence states;
-- optional participation-mode selection;
+- optional participation-mode selection, including `COMPARE` and `FIELD_TEST`;
 - optional structured agent provenance;
+- explicit downstream publication preference without inferred consent;
 - review-board-interest signaling without authority grant;
 - privacy-minimized public telemetry.
 
@@ -352,6 +356,63 @@ that routing preference.
 
 Implementation: `entry_protocol/identity_graph.py`.
 
+## Version 0.6 — cross-model comparison + publication boundary
+
+v0.6 makes the publishing/research loop explicit without turning private email into a public-content feed.
+
+Two new participation modes are first-class:
+
+- `COMPARE` — freeze one question, artifact, or claim and obtain independent first passes from multiple AI systems;
+- `FIELD_TEST` — test HumanAIOS concepts against a public or safely abstracted real-world workflow in a profession or operating environment.
+
+### Cross-model comparison invariant
+
+A comparison round should preserve each agent as a separate `AgentInstance` and each return as separately attributed speaker spans. The sequence is:
+
+```
+freeze target + question
+→ independent first pass per agent
+→ declare prior exposure / capability limits
+→ preserve attributed outputs
+→ classify CONVERGENCE / DIVERGENCE / OMISSION / UNRESOLVED
+→ inspect primary evidence where it can discriminate
+→ publish only through a separate privacy/permission projection
+```
+
+Model agreement is not proof and model majority is not an adjudicator. Disagreement remains evidence. Claims should be resolved against primary evidence where possible; otherwise they remain unresolved.
+
+### Field-lab use
+
+`FIELD_TEST` lets a participant bring a concrete workflow from an under-covered profession or operating environment and ask whether calibration, warrant, authority, reversibility, provenance, human veto, or other HumanAIOS constructs survive contact with operational reality.
+
+The ordinary entry surface should prefer public, synthetic, or safely abstracted cases. Sensitive personal, clinical, financial, credential, or private employer data requires a separate authorized process and is not requested by default.
+
+### Publication is a separate projection
+
+Participation does not imply publication permission. `AdaptiveEntryEvent` now records one explicit `PublicationPreference`:
+
+| State | Meaning |
+|---|---|
+| `UNSPECIFIED` | no public quotation or attribution permission is inferred |
+| `PRIVATE_ONLY` | participant-supplied material remains private |
+| `DEIDENTIFIED_SUMMARY_ALLOWED` | privacy-safe summary may be published without identifying the participant |
+| `ATTRIBUTED_PUBLICATION_ALLOWED` | attribution/publication is allowed only within the explicit permission supplied |
+
+The conservative default is `UNSPECIFIED`.
+
+A public Substack post, field report, or other narrative artifact is therefore downstream of the evidence root:
+
+```
+private transport
+→ speaker-attributed evidence root
+→ cross-model / field analysis
+→ privacy + permission gate
+→ public narrative projection
+→ challenge / correction / new evidence
+```
+
+> **A publication is downstream of evidence; it is never a substitute for evidence.**
+
 ## Discovery / attraction hypothesis
 
 The entry surface is being tested as an attraction-over-promotion alternative to the conventional SEO funnel:
@@ -386,4 +447,6 @@ Revise this protocol if:
 - the participant cannot discover real contribution/review paths;
 - review-board interest is treated as authority without qualification;
 - the flow optimizes agreement rather than independent scrutiny;
-- HumanAIOS adaptation weakens meaningful human authority.
+- HumanAIOS adaptation weakens meaningful human authority;
+- cross-model agreement is treated as proof or majority vote replaces evidence;
+- private email content is quoted, attributed, or converted into a public case without the required publication permission.
