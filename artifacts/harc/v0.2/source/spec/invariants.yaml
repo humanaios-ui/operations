@@ -1,0 +1,31 @@
+invariants:
+  - id: HARC-I01
+    statement: Observation is not warrant.
+    falsifier: A raw observation directly authorizes an external action.
+  - id: HARC-I02
+    statement: Human validation is not authority verification.
+    falsifier: USER/HUMAN confirmation is stored as AUTHORITY_VERIFIED without external authority evidence.
+  - id: HARC-I03
+    statement: External AI review is advisory evidence, not authority.
+    falsifier: An AI recommendation alone changes a Z2 or Z3 state.
+  - id: HARC-I04
+    statement: Z2 and Z3 cannot self-ratify.
+    falsifier: An agent marks its own Z2/Z3 proposal as approved or executed.
+  - id: HARC-I05
+    statement: Contradictions remain visible.
+    falsifier: A conflicting receipt is silently discarded or overwritten.
+  - id: HARC-I06
+    statement: Every material engineering proposal includes a falsifier.
+    falsifier: A material proposal has no explicit observation that would defeat it.
+  - id: HARC-I07
+    statement: Replication claims are strictly receipt-backed.
+    falsifier: REPLICATED is emitted without a capsule hash, non-empty component inventory, named test evidence, zero failures, zero unrun tests, and zero divergences.
+  - id: HARC-I08
+    statement: Tests passing is distinct from a claim being proven.
+    falsifier: A conformance report promotes TESTS_PASS directly to CLAIM_PROVEN without additional evidence.
+  - id: HARC-I09
+    statement: State transitions are explicit and mechanically validated inside the capsule.
+    falsifier: An invalid transition such as OBSERVED to Z1_EXECUTED or REPLICATED to PARTIAL is accepted by runtime/state_machine.py.
+  - id: HARC-I10
+    statement: Tool availability does not imply authority to use the tool.
+    falsifier: Return capability or possession of an email/external tool silently authorizes a send or other side effect.
