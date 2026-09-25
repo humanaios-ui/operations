@@ -1,0 +1,157 @@
+{
+  "version": "0.1",
+  "status": "PROTOTYPE_NON_ENFORCING",
+  "note": "Workflow definitions for implementation planning. These are not GitHub Actions and do not change merge authority.",
+  "workflows": [
+    {
+      "id": "CRB-WF-01",
+      "name": "Compile Portable Review Package",
+      "trigger": "explicit review request",
+      "inputs": [
+        "claim",
+        "scope",
+        "preregistration",
+        "raw evidence",
+        "methods",
+        "selected independence profile"
+      ],
+      "steps": [
+        "validate intake",
+        "inventory raw evidence",
+        "freeze hashes",
+        "create run event chain",
+        "emit package root"
+      ],
+      "outputs": [
+        "unsigned PRP skeleton",
+        "integrity receipt"
+      ],
+      "blocks_on": [
+        "missing evidence",
+        "schema failure",
+        "symlink",
+        "unresolved source reference"
+      ],
+      "capability_stages": [
+        "CAP-01",
+        "CAP-04",
+        "CAP-06",
+        "CAP-08",
+        "CAP-11"
+      ]
+    },
+    {
+      "id": "CRB-WF-02",
+      "name": "Blind First Pass",
+      "trigger": "EVIDENCE_FROZEN",
+      "fan_out": [
+        "Evaluation Auditor",
+        "Measurement Auditor",
+        "Adversarial Auditor"
+      ],
+      "isolation": "no peer findings visible until all three first-pass hashes are frozen",
+      "outputs": [
+        "three signed-or-attested first-pass reports"
+      ],
+      "blocks_on": [
+        "context leak",
+        "evidence bundle mismatch",
+        "review contract mutation"
+      ],
+      "capability_stages": [
+        "CAP-02",
+        "CAP-03",
+        "CAP-04",
+        "CAP-05",
+        "CAP-06",
+        "CAP-07",
+        "CAP-11"
+      ]
+    },
+    {
+      "id": "CRB-WF-03",
+      "name": "Cross Examination",
+      "trigger": "FIRST_PASS_FROZEN",
+      "steps": [
+        "release peer reports",
+        "emit challenges",
+        "preserve original reports",
+        "record dissent"
+      ],
+      "outputs": [
+        "challenge set",
+        "seat verdicts",
+        "dissent artifacts"
+      ],
+      "capability_stages": [
+        "CAP-02",
+        "CAP-06",
+        "CAP-07",
+        "CAP-10",
+        "CAP-11"
+      ]
+    },
+    {
+      "id": "CRB-WF-04",
+      "name": "Mechanical Gate",
+      "trigger": "VERDICTS_FROZEN",
+      "implementation": "crb/gate.py",
+      "outputs": [
+        "ADVANCE|HOLD_REVISE_RETEST"
+      ],
+      "model_calls": 0,
+      "capability_stages": [
+        "CAP-01",
+        "CAP-06",
+        "CAP-10",
+        "CAP-11"
+      ]
+    },
+    {
+      "id": "CRB-WF-05",
+      "name": "Removal Replay",
+      "trigger": "PACKAGE_EXPORTED",
+      "steps": [
+        "block HumanAIOS-only dependencies",
+        "recompute package root",
+        "verify event chain",
+        "replace voting reviewers",
+        "recompute gate",
+        "compare adjudications"
+      ],
+      "outputs": [
+        "CONVERGED|CONFLICT|UNRESOLVED|PORTABILITY_FAILURE"
+      ],
+      "capability_stages": [
+        "CAP-03",
+        "CAP-04",
+        "CAP-06",
+        "CAP-09",
+        "CAP-10",
+        "CAP-11"
+      ]
+    },
+    {
+      "id": "CRB-WF-06",
+      "name": "Graph Reconciliation",
+      "trigger": "completed review or replay",
+      "steps": [
+        "map claim→evidence→review→warrant→authorization→consequence",
+        "compare intent/evidence/capability graphs",
+        "emit uncovered nodes/edges"
+      ],
+      "outputs": [
+        "graph delta",
+        "coverage gaps",
+        "candidate corrections"
+      ],
+      "capability_stages": [
+        "CAP-06",
+        "CAP-07",
+        "CAP-08",
+        "CAP-10",
+        "CAP-11"
+      ]
+    }
+  ]
+}
