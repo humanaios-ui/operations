@@ -77,6 +77,35 @@ flowchart TB
 | **Understand how it operates** (governance, rituals, findings) | 🦴 **[operations](https://github.com/humanaios-ui/operations)** — the canonical operating process |
 | **Understand how the AI is measured** | ⚙️ **[empirica](https://getempirica.com)** — the epistemic measurement engine running in every session |
 
+## ✉️ Open a HumanAIOS thread
+
+HumanAIOS is testing an entry surface that works with the collaboration you already have rather than requiring you to learn a HumanAIOS-specific return format first.
+
+You may reply as a human, give the entry message to an AI system you already use, or do both. A valid return may be a question, observation, challenge, pasted AI output, shared AI-conversation link, file, or another natural response.
+
+The receiving AI is invited to inspect two things independently:
+
+1. **HumanAIOS** — what it can actually observe, verify, challenge, or falsify.
+2. **Its own participation capability** — what it can access, execute, verify, or not inspect, and what forms of participation it can safely support.
+
+The human decides whether and how to continue.
+
+HumanAIOS should adapt its collection method to that collaboration and record the adaptation as protocol telemetry. It should not reject a useful return merely because it lacks HumanAIOS-specific labels.
+
+Shared AI links use distinct evidence states:
+
+```
+LINK_RECEIVED
+    ↓
+CONTENT_CAPTURED
+    ↓
+CONTENT_VERIFIED
+```
+
+A follow-up message may correct or complete an earlier message without erasing it.
+
+Prototype implementation: [`entry_protocol/`](entry_protocol/README.md)
+
 ## 🧭 The operating anatomy (biological model)
 
 The system is designed as a living organism. Each "organ" is a real document you can open:
