@@ -116,8 +116,27 @@ class GraphBridgeTests(unittest.TestCase):
         self.assertEqual(by_level["CHANGE-L3"]["measured_tier"], 2)
         self.assertEqual(by_level["CHANGE-L4"]["measured_tier"], 2)
         # The two places the path classifier under-measures are named, not hidden.
-        self.assertIsNotNone(by_level["CHANGE-L2"]["gap"])
-        self.assertIsNotNone(by_level["CHANGE-L4"]["gap"])
+        self.assertEqual(
+            by_level["CHANGE-L2"]["gap"],
+            "classifier measures Tier 0, so L2 is under-gated relative to its semantic weight",
+        )
+        self.assertEqual(
+            by_level["CHANGE-L4"]["gap"],
+            "classifier cannot separate L3 from L4, and the governance documents in this list measure Tier 0",
+        )
+        for level in ("CHANGE-L0", "CHANGE-L1", "CHANGE-L3"):
+            self.assertIsNone(by_level[level]["gap"])
+
+    def test_molt_tier_mapping_rejects_boolean_or_missing_tiers(self):
+        morphogenesis = json.loads(
+            (Path(__file__).resolve().parents[1] / "crb" / "morphogenesis.json").read_text()
+        )
+        broken = json.loads(json.dumps(morphogenesis))
+        broken["molt_tier_mapping"]["levels"][1]["measured_tier"] = True
+        with patch("crb.graph_bridge.load_json", side_effect=lambda p: broken if p.endswith("morphogenesis.json") else json.loads((Path(__file__).resolve().parents[1] / p).read_text())):
+            result = validate()
+        self.assertFalse(result["valid"])
+        self.assertTrue(any("no legal measured_tier" in e for e in result["errors"]))
 
     def test_projection_has_no_dangling_local_edges(self):
         projection = build_projection()
