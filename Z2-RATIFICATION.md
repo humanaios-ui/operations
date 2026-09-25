@@ -84,7 +84,7 @@ Once decisions are finalized, Z2 signs:
 RATIFIED_BY: carly.r.anderson@gmail.com
 RATIFIED_AT: <ISO8601 timestamp>
 DECISIONS: D1: <choice>, D2: <choice>, D3: <choice>, D4: <choice>, D5: <choice>, D6: <choice>
-SIGNATURE: sha256(decisions | by=Night | at=<timestamp>)
+SIGNATURE: sha256(<exact candidate bytes before this signature block> | by=Night | at=<timestamp> | decision=ACCEPT)
 ```
 
 ---
