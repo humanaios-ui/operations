@@ -51,12 +51,46 @@ ACTION / CONSEQUENCE
     ↺ telemetry back to evidence
 ```
 
+## Morphogenetic control + HEP prototype
+
+Issue #525 adds a second non-canonical prototype layer in `morphogenesis.json`:
+
+- **Morphogenetic Control Graph (MCG)** captures governed topology adaptation as a reviewable graph-delta lifecycle rather than an autonomous rewrite path.
+- **Holographic Evidence Projection (HEP)** is the generic portable projection family for reconstructable decisions.
+- **Portable Review Package (PRP)** is represented as a specialized HEP rather than a separate truth surface.
+
+The prototype is intentionally limited to representation:
+
+- it names the Level 0–4 change hierarchy;
+- it defines the governed graph-delta event types;
+- it records minimum review fields for independently reviewable topology changes;
+- it exports HEP projections for review and authorization.
+
+It does **not** alter `system_graph.json`, mutate canonical topology, or grant new authority to any model or workflow.
+
+### Molt tier to change level (recorded before Phase B)
+
+`morphogenesis.json` also records how the Level 0–4 hierarchy lines up with the
+path-based molt tiers measured by `tools/molting_protocol_diff_v1_0.py`:
+
+| Level | Measured tier | Authority owed | Gap recorded |
+|---|---:|---|---|
+| L0 state change | 0 | append-only ledger rules | none |
+| L1 parameter adaptation | 1 | molt_id + pinned prediction + window + falsifier (the existing Molt operator) | none |
+| L2 component / rule / policy | 0 | Z2 review via CODEOWNERS | under-gated by the classifier |
+| L3 morphogenesis (topology) | 2 | registry entry + ADV run | none |
+| L4 constitutional | 2 | Tier 2 plus Z2 ratification hash | classifier cannot separate L3 from L4; governance documents measure Tier 0 |
+
+The mapping is `RECORDED_NON_ENFORCING`. It exists so that Phase B candidate
+deltas can state which authority they owe; closing the two gaps is a Z2 decision.
+
 ## Prototype code
 
 - `gate.py` — deterministic RID policy + three-seat gate.
 - `prp.py` — non-self-referential package-root calculation + append-only run-event verification.
 - `workflows.json` — six non-enforcing workflow definitions.
 - `capability_graph.json` — roadmap-to-HumanAIOS capability graph.
+- `morphogenesis.json` — governed graph-delta + HEP prototype surface.
 - `../tests/test_crb_prototype.py` — falsification-oriented unit tests.
 
 No GitHub Actions workflow is added in this change. That is deliberate: the repository already treats workflow/gate changes as an authority-bearing surface. The next executable step after Z2 ratification is to wrap these pure functions in an **advisory** workflow, observe them, then separately decide whether any result becomes blocking.

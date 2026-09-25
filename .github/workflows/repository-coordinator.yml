@@ -43,16 +43,16 @@ jobs:
     outputs:
       report_b64: ${{ steps.report.outputs.report_b64 }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
       - name: Collect live repository snapshot
         id: snapshot
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require("fs");
@@ -331,7 +331,7 @@ jobs:
           PY
 
       - name: Upload coordination index
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: repository-coordinator-index
           path: |
@@ -351,7 +351,7 @@ jobs:
       issues: write
     steps:
       # Deliberately no checkout and no PR-head execution in this write-capable job.
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@v9
         env:
           REPORT_B64: ${{ needs.index.outputs.report_b64 }}
         with:
