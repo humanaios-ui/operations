@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout operations repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Seed each satellite repo
         env:
