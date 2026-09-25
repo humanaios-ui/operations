@@ -86,13 +86,13 @@ An operator-check is a structured learning record that documents:
 ```
 
 **Key properties:**
-- `ref`: Git SHA of the artifact under review (never a branch)
+- `ref`: Git SHA of the artifact under review (not a branch name)
 - `subject`: What the operator learned about (PR/issue/commit)
 - `evidence_inspected`: Exact, line-specific references to evidence
 - `observation`: What was learned (free text, ≥10 chars, no placeholders)
 - `calibration`: Evidence-based assessment of operator understanding
-- `advisory_only`: Always true; never authorization
-- `can_authorize`: Always false; never satisfies merge gates
+- `advisory_only`: is constrained to true by schema validation; not treated as authorization
+- `can_authorize`: is constrained to false by schema validation; does not satisfy merge gates
 
 ### What Operator-Checks Are NOT
 
