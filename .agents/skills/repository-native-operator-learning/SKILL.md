@@ -1,3 +1,8 @@
+---
+name: repository-native-operator-learning
+description: Repository-Native Operator Learning Audit (RNOLA) — advisory Zone 1 learning and calibration layer. Does not merge, ratify, sign, deploy, grant permissions, or treat operator-check records as authorization. Redirect to canonical implementation at tools/skills/repository_native_operator_learning/SKILL.md.
+---
+
 # SKILL: repository_native_operator_learning
 
 This is a redirect to the canonical skill implementation.
