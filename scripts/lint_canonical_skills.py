@@ -43,7 +43,6 @@ def check_canonical_exists():
 
 
 def check_substrate_stubs(strict=False):
-def check_substrate_stubs():
     """Verify substrate stubs are thin redirects, not divergent implementations."""
     all_good = True
     canonical_content = CANONICAL_RNOLA.read_text(encoding="utf-8")
@@ -111,7 +110,6 @@ def main():
         sys.exit(1)
 
     if not check_substrate_stubs(strict=args.strict):
-    if not check_substrate_stubs():
         sys.exit(1)
 
     print("✓ All canonical skill entry points conform.")
