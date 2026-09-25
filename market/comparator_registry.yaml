@@ -1,0 +1,101 @@
+version: 1
+updated_at: '2026-09-24'
+selection_rule: strongest-comparator
+protocol: /protocols/PUBLIC_UTILITY_VALIDATION_PROTOCOL_v1.md
+comparators:
+  - id: microsoft_foundry_control_plane
+    comparator_class: AI_CONTROL_PLANE
+    vendor: Microsoft
+    product: Foundry Control Plane / Observability
+    strongest_for: [H5, H7]
+    evidence_class: VENDOR_CLAIM
+    actor_targets: [enterprises, developers, security_teams]
+    problem_claim: Centralized AI fleet governance, observability, runtime controls, evaluations, and compliance visibility.
+    source_backing:
+      - label: PUBLIC_DOCUMENTATION
+        url: https://learn.microsoft.com/en-us/azure/foundry/control-plane/overview
+      - label: PUBLIC_DOCUMENTATION
+        url: https://learn.microsoft.com/en-us/azure/foundry/control-plane/monitoring-across-fleet
+      - label: PUBLIC_DOCUMENTATION
+        url: https://learn.microsoft.com/en-us/azure/foundry/concepts/observability
+    last_verified: '2026-09-24'
+    notes: Public docs currently claim tracing, guardrails, evaluations, RBAC, and fleet monitoring. No reviewed public source yet showed first-class claim→evidence→warrant→authority objects or preserved disagreement states.
+  - id: ibm_watsonx_governance
+    comparator_class: AI_GOVERNANCE
+    vendor: IBM
+    product: watsonx.governance
+    strongest_for: [H4, H5]
+    evidence_class: VENDOR_CLAIM
+    actor_targets: [enterprises, auditors, regulators]
+    problem_claim: Enterprise AI governance, model risk, compliance, lifecycle oversight, and monitoring.
+    source_backing:
+      - label: PUBLIC_DOCUMENTATION
+        url: https://www.ibm.com/products/watsonx-governance
+      - label: PUBLIC_DOCUMENTATION
+        url: https://www.ibm.com/docs/en/watsonx/saas?topic=ai-planning-governance
+      - label: PUBLIC_DOCUMENTATION
+        url: https://www.ibm.com/docs/en/watsonx/saas?topic=ai-managing-risk-compliance-governance-console
+    last_verified: '2026-09-24'
+    notes: Public docs claim factsheets, risk/compliance management, governance console, and OpenScale monitoring. Public evidence reviewed so far does not show unresolved disagreement or independent re-observation as first-class workflow objects.
+  - id: credo_ai_platform
+    comparator_class: POLICY_AS_CODE
+    vendor: Credo AI
+    product: Credo AI Governance Platform
+    strongest_for: [H4, H5]
+    evidence_class: VENDOR_CLAIM
+    actor_targets: [enterprises, auditors, regulators]
+    problem_claim: Translate regulation and policy into operational AI governance controls, discovery, and audit-ready reporting.
+    source_backing:
+      - label: PUBLIC_DOCUMENTATION
+        url: https://www.credo.ai/
+      - label: PUBLIC_DOCUMENTATION
+        url: https://www.credo.ai/policy-intelligence
+    last_verified: '2026-09-24'
+    notes: Public materials claim policy intelligence, controls, registry/discovery, and compliance automation. The reviewed sources do not yet show public evidence-chain viewing or preserved challenge state.
+  - id: langsmith
+    comparator_class: AGENT_OBSERVABILITY
+    vendor: LangChain
+    product: LangSmith
+    strongest_for: [H1, H3]
+    evidence_class: VENDOR_CLAIM
+    actor_targets: [developers, researchers]
+    problem_claim: Trace, debug, evaluate, monitor, and improve LLM and agent applications.
+    source_backing:
+      - label: PUBLIC_DOCUMENTATION
+        url: https://docs.langchain.com/langsmith/observability
+      - label: PUBLIC_DOCUMENTATION
+        url: https://www.langchain.com/langsmith/observability
+      - label: PUBLIC_DOCUMENTATION
+        url: https://www.langchain.com/langsmith-platform
+    last_verified: '2026-09-24'
+    notes: Public docs claim detailed traces, evaluations, dashboards, alerting, and collaboration. No reviewed public source yet showed separate warrant/authority objects or disagreement-preserving status classes.
+  - id: arize_phoenix
+    comparator_class: AGENT_OBSERVABILITY
+    vendor: Arize
+    product: Phoenix
+    strongest_for: [H1, H3]
+    evidence_class: VENDOR_CLAIM
+    actor_targets: [developers, researchers, security_teams]
+    problem_claim: Open tracing, evaluation, and monitoring for LLM and agent systems.
+    source_backing:
+      - label: PUBLIC_DOCUMENTATION
+        url: https://arize.com/phoenix/
+      - label: PUBLIC_DOCUMENTATION
+        url: https://github.com/Arize-ai/phoenix
+    last_verified: '2026-09-24'
+    notes: Public docs claim OpenTelemetry-based tracing, evaluations, datasets, and monitoring. Reviewed public material does not yet show authority-bound execution or public disagreement preservation.
+  - id: patronus_ai
+    comparator_class: AGENT_EVALUATION
+    vendor: Patronus AI
+    product: Patronus AI Platform / Protect
+    strongest_for: [H2, H3]
+    evidence_class: VENDOR_CLAIM
+    actor_targets: [developers, enterprises, security_teams]
+    problem_claim: AI evaluation, guardrails, monitoring, trace analysis, and security governance for generative and agentic systems.
+    source_backing:
+      - label: PUBLIC_DOCUMENTATION
+        url: https://patronus.ai/products
+      - label: PUBLIC_DOCUMENTATION
+        url: https://docs.patronus.ai/docs
+    last_verified: '2026-09-24'
+    notes: Public docs claim evaluation models, trace analysis, monitoring, and Protect/guardrail features. Public materials reviewed so far do not establish public verifiability, independent challenge, or warrant-versus-authority separation.
