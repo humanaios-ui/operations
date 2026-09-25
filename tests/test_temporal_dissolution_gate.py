@@ -11,7 +11,7 @@ import re
 import subprocess
 import unittest
 from dataclasses import dataclass
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Callable, Iterable
 
 
@@ -316,6 +316,31 @@ class TemporalDissolutionGateTests(unittest.TestCase):
             f"{v.path}:{v.line_no}: {v.reason}: {v.text.strip()}" for v in violations
         )
         self.assertEqual(violations, [], f"Unauthorized temporal controls:\n{detail}")
+
+    def test_resource_request_schema_uses_cost_vector(self):
+        schema = Path("schemas/resource_request.schema.json").read_text(encoding="utf-8")
+        self.assertIn('"resource_units_ref"', schema)
+        self.assertIn('"cost"', schema)
+        self.assertNotIn("estimated_effort_units", schema)
+
+    def test_candidate_template_uses_external_constraint_contract(self):
+        template = Path("CANDIDATE_BLOCK_TEMPLATE.md").read_text(encoding="utf-8")
+        self.assertIn("external_constraint:", template)
+        self.assertNotIn("regulatory_deadline:", template)
+        self.assertNotIn("estimated_effort_units", template)
+
+    def test_intent_os_ui_uses_external_constraint_framing(self):
+        pages = (
+            "ui/intent-os-humanaios-v3_3.html",
+            "ui/intent-os-decisions.html",
+            "ui/intent-os-commitments.html",
+            "ui/intent-os-records.html",
+            "ui/intent-os-arena.html",
+        )
+        for page in pages:
+            text = Path(page).read_text(encoding="utf-8")
+            self.assertIn("External constraints — validated time gates only", text)
+            self.assertNotIn("Deadlines — moves that die on a date", text)
 
 
 if __name__ == "__main__":

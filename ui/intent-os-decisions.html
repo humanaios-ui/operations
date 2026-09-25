@@ -199,8 +199,8 @@ a.xref:hover{color:var(--ink)}
 </section>
 
 <section class="sec sec-deadlines">
-<h2>Deadlines — moves that die on a date</h2>
-<div class="familiar">Like calendar deadlines — only things with a real closing window belong here.</div>
+<h2>External constraints — validated time gates only</h2>
+<div class="familiar">Only validated external constraints belong here. Internal work timing has no scheduling authority.</div>
 <div id="departures"></div>
 </section>
 
@@ -815,7 +815,7 @@ function stateWord(st){return st==="done"?"verified":st==="progress"?"in progres
    writes the pages from the board. A step's blockedOn names decisions (d7, d23 …) — each becomes a link to its row on
    the Decisions page; each decision row lists the steps whose blockedOn names it, linking back to the step's card. */
 const PAGES=[
-  {view:"board", file:"intent-os-humanaios-v3_3.html", name:"Board", desc:"pipeline · metrics · deadlines"},
+  {view:"board", file:"intent-os-humanaios-v3_3.html", name:"Board", desc:"pipeline · metrics · external constraints"},
   {view:"decisions", file:"intent-os-decisions.html", name:"Decisions", desc:"calls only the owner makes"},
   {view:"commitments", file:"intent-os-commitments.html", name:"Commitments", desc:"predictions before results"},
   {view:"records", file:"intent-os-records.html", name:"Verified records", desc:"the receipts"},
@@ -955,7 +955,7 @@ function render(){
       h+="<tr><td>"+esc(x.move)+'</td><td class="mono">'+esc(x.entity)+'</td><td class="mono'+(x.hot?" deadline":"")+'">'+esc(x.closes)+"</td><td>"+esc(x.action)+"</td></tr>";
     });
     dep.innerHTML=h+"</table></div></div>";
-  } else dep.innerHTML='<div class="empty">No fixed deadlines. When something has a date it dies on, it belongs here.</div>';
+  } else dep.innerHTML='<div class="empty">No external constraints recorded. Internal work remains resource/state scheduled.</div>';
 
   const g=document.getElementById("gauges"); g.innerHTML="";
   (project.gauges||[]).forEach(x=>{
@@ -1169,7 +1169,7 @@ window.addEventListener("hashchange", jumpToHash);
   var HOME = 'https://humanaios.ai/';
   var NAV_GROUPS = [
     { label: null, items: [
-      { id: 'board', href: 'intent-os-humanaios-v3_3.html', name: 'Board', desc: 'Pipeline · metrics · deadlines', icon: '◌' }
+      { id: 'board', href: 'intent-os-humanaios-v3_3.html', name: 'Board', desc: 'Pipeline · metrics · external constraints', icon: '◌' }
     ]},
     { label: 'DECIDE', items: [
       { id: 'decisions', href: 'intent-os-decisions.html', name: 'Decisions', desc: 'Calls only the owner makes · tap → PR → merge', icon: '⬡' }
