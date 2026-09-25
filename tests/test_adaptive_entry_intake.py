@@ -7,6 +7,7 @@ from entry_protocol.adaptive_intake import (
     EvidenceState,
     ExposureLevel,
     ParticipationMode,
+    PublicationPreference,
     ReturnForm,
     build_event,
     observe_return,
@@ -129,6 +130,29 @@ class AdaptiveEntryIntakeTests(unittest.TestCase):
         self.assertIn(
             "ENRICH_AGENT_PROVENANCE_FOR_RESEARCH",
             telemetry["adaptations"],
+        )
+
+    def test_compare_and_field_test_are_first_class_participation_modes(self):
+        event = build_event("ENTRY-006A", [observe_return("Compare these systems.")])
+        event.set_participation_modes(
+            [ParticipationMode.COMPARE, ParticipationMode.FIELD_TEST]
+        )
+        telemetry = event.telemetry()
+        self.assertIn(ParticipationMode.COMPARE.value, telemetry["participation_modes"])
+        self.assertIn(ParticipationMode.FIELD_TEST.value, telemetry["participation_modes"])
+
+    def test_publication_is_not_inferred_and_requires_explicit_preference(self):
+        event = build_event("ENTRY-006B", [observe_return("Useful result.")])
+        self.assertEqual(
+            event.telemetry()["publication_preference"],
+            PublicationPreference.UNSPECIFIED.value,
+        )
+        event.set_publication_preference(
+            PublicationPreference.DEIDENTIFIED_SUMMARY_ALLOWED
+        )
+        self.assertEqual(
+            event.telemetry()["publication_preference"],
+            PublicationPreference.DEIDENTIFIED_SUMMARY_ALLOWED.value,
         )
 
     def test_agent_label_rejects_email_or_url(self):
