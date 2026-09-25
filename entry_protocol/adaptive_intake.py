@@ -1,4 +1,4 @@
-"""Adaptive START_HERE intake primitives — prototype v0.4.
+"""Adaptive START_HERE intake primitives — prototype v0.6.
 
 The intake accepts natural human/AI returns, then progressively enriches only
 returns that may become research evidence. It does not require a fixed response
@@ -47,6 +47,8 @@ class ParticipationMode(str, Enum):
     CHALLENGE = "CHALLENGE"
     CONTRIBUTE = "CONTRIBUTE"
     REVIEW = "REVIEW"
+    COMPARE = "COMPARE"
+    FIELD_TEST = "FIELD_TEST"
     PROPOSE = "PROPOSE"
     REVIEW_BOARD_INTEREST = "REVIEW_BOARD_INTEREST"
 
@@ -56,6 +58,19 @@ class ExposureLevel(str, Enum):
     PARTIAL = "PARTIAL"
     FULL = "FULL"
     UNKNOWN = "UNKNOWN"
+
+
+class PublicationPreference(str, Enum):
+    """Explicit permission state for downstream public projection.
+
+    UNSPECIFIED is treated as no permission to quote or attribute participant-
+    supplied private-thread content publicly.
+    """
+
+    UNSPECIFIED = "UNSPECIFIED"
+    PRIVATE_ONLY = "PRIVATE_ONLY"
+    DEIDENTIFIED_SUMMARY_ALLOWED = "DEIDENTIFIED_SUMMARY_ALLOWED"
+    ATTRIBUTED_PUBLICATION_ALLOWED = "ATTRIBUTED_PUBLICATION_ALLOWED"
 
 
 class AgentCapability(str, Enum):
@@ -185,6 +200,7 @@ class AdaptiveEntryEvent:
     evidence_states: list[str] = field(default_factory=list)
     adaptations: list[str] = field(default_factory=list)
     participation_modes: list[str] = field(default_factory=list)
+    publication_preference: str = PublicationPreference.UNSPECIFIED.value
     agent_profile: AgentParticipationProfile | None = None
 
     def append(self, observation: IntakeObservation) -> None:
@@ -213,6 +229,15 @@ class AdaptiveEntryEvent:
         self.agent_profile = profile
         if "ENRICH_AGENT_PROVENANCE_FOR_RESEARCH" not in self.adaptations:
             self.adaptations.append("ENRICH_AGENT_PROVENANCE_FOR_RESEARCH")
+
+    def set_publication_preference(self, preference: PublicationPreference) -> None:
+        """Record explicit downstream publication permission without inferring it."""
+        if not isinstance(preference, PublicationPreference):
+            raise TypeError("preference must be PublicationPreference")
+        self.publication_preference = preference.value
+        adaptation = f"SET_PUBLICATION_PREFERENCE:{preference.value}"
+        if adaptation not in self.adaptations:
+            self.adaptations.append(adaptation)
 
     def mark_evidence(self, state: EvidenceState) -> None:
         """Advance evidence state monotonically; repeated current state is idempotent."""
@@ -267,6 +292,7 @@ class AdaptiveEntryEvent:
             "evidence_states": list(self.evidence_states),
             "adaptations": list(self.adaptations),
             "participation_modes": list(self.participation_modes),
+            "publication_preference": self.publication_preference,
             "agent_profile": (
                 self.agent_profile.public_projection() if self.agent_profile else None
             ),
