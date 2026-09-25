@@ -1,0 +1,84 @@
+name: rnola-governance-validation
+
+# BLOCKING gate for RNOLA governance boundaries and validation.
+#
+# This workflow runs three validation checks:
+#
+#   enforce_z2_z3_boundary.py  — blocks operator-checks with authority overreach
+#                                (advisory_only=false or can_authorize=true)
+#   lint_canonical_skills.py   — validates SKILL.md canonical implementations
+#                                and detects drift in substrate stubs
+#   scan_rnola_misuse.py       — detects falsifier violations in operator-checks:
+#                                checkbox patterns, undefined artifacts,
+#                                stale records, placeholder observations
+#
+# All three are ERROR gates: violations block merge.
+#
+# Philosophy:
+# RNOLA is an advisory Zone 1 learning layer. These gates ensure it remains
+# advisory and cannot be misused to bypass Z2/Z3 authority boundaries or
+# become a hidden merge authorization mechanism.
+
+on:
+  pull_request:
+    paths:
+      - "schemas/intent_os_operator_check*.json"
+      - "scripts/enforce_z2_z3_boundary.py"
+      - "scripts/lint_canonical_skills.py"
+      - "scripts/scan_rnola_misuse.py"
+      - "tools/skills/**"
+      - ".claude/**"
+      - ".agents/**"
+      - "outputs/rnola/**"
+      - ".github/workflows/rnola-governance-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "schemas/intent_os_operator_check*.json"
+      - "scripts/enforce_z2_z3_boundary.py"
+      - "scripts/lint_canonical_skills.py"
+      - "scripts/scan_rnola_misuse.py"
+      - "tools/skills/**"
+      - ".claude/**"
+      - ".agents/**"
+      - "outputs/rnola/**"
+      - ".github/workflows/rnola-governance-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: RNOLA governance boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Install deps
+        run: pip install --quiet pyyaml jsonschema
+
+      - name: Z2/Z3 boundary enforcement (ERROR — blocks merge)
+        run: |
+          python3 scripts/enforce_z2_z3_boundary.py \
+            --check-schemas schemas/intent_os_operator_check*.json \
+            --pr-event "${{ github.event.pull_request.number }}" \
+            --strict
+
+      - name: Canonical skill validation (ERROR — blocks merge)
+        run: |
+          python3 scripts/lint_canonical_skills.py \
+            --root tools/skills/ \
+            --substrate-dirs .claude .agents \
+            --strict
+
+      - name: RNOLA misuse scan (ERROR — blocks merge)
+        run: |
+          python3 scripts/scan_rnola_misuse.py \
+            --check-dir outputs/rnola \
+            --pr-event "${{ github.event.pull_request.number }}" \
+            --falsifier-mode strict

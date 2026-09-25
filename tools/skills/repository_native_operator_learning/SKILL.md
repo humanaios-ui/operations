@@ -1,6 +1,6 @@
 # SKILL: repository_native_operator_learning
 
-**For theory and governance context:** See [`docs/INTENT_OS_RNOLA_INTEGRATION.md`](../../docs/INTENT_OS_RNOLA_INTEGRATION.md). This skill is the operational guide; the integration doc is the canonical architecture and authority reference.
+**For theory and governance context:** See [`docs/INTENT_OS_RNOLA_INTEGRATION.md`](../../../docs/INTENT_OS_RNOLA_INTEGRATION.md). This skill is the operational guide; the integration doc is the canonical architecture and authority reference.
 
 ## 1. Purpose
 

@@ -54,8 +54,15 @@
       }
     },
     "operator_check": {
-      "type": "object",
-      "$comment": "The operator-check record being attached. Must conform to intent_os_operator_check_v1.schema.json."
+      "allOf": [
+        {
+          "type": "object"
+        },
+        {
+          "$ref": "intent_os_operator_check_v1.schema.json"
+        }
+      ],
+      "$comment": "The operator-check record being attached. Must conform to intent_os_operator_check_v1.schema.json via $ref validation."
     },
     "attachment_reason": {
       "type": "string",

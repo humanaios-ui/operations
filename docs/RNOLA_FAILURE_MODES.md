@@ -38,7 +38,7 @@ When RNOLA stops working as designed, it's usually because one of these patterns
 - Require minimum evidence count (≥2 items) before operator-check is valid
 - Require observation fields to cite specific line numbers or commits (pattern: `#` or `:`)
 - Require calibration.demonstrated to be non-empty and specific
-- Run `scripts/scan_rnola_misuse.py` in CI to flag checkbox patterns
+- CI gate `.github/workflows/rnola-governance-validation.yml` runs `scripts/scan_rnola_misuse.py` to flag checkbox patterns (blocks merge)
 - Add a team review rule: "Operator-check must show evidence of learning, not just approval"
 
 ---
