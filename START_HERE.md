@@ -158,6 +158,22 @@ CONTENT_VERIFIED
 
 A follow-up message may correct or complete an earlier message without erasing it.
 
+### Backend fidelity
+
+HumanAIOS treats the email address or transport account as a routing endpoint, **not** as the behavioral identity.
+
+The backend participation root separates pseudonymous humans, AI model profiles, individual AI sessions, collaborations, message speaker spans, and behavioral events. A single email may contain human text, AI output, and human commentary; each span can therefore be attributed separately.
+
+No real-world name is required for research continuity. The system instead preserves opaque actor references and evidence-graded identity links. Inferred identity continuity does not silently merge histories.
+
+Every research-grade behavioral observation must point to:
+- the pseudonymous actor or AI instance;
+- the source message;
+- the exact speaker span;
+- whether the behavior was self-reported, observed, or inferred.
+
+Outbound routing remains private and separate from the research identity graph.
+
 Prototype implementation: [`entry_protocol/`](entry_protocol/README.md)
 
 ## 🧭 The operating anatomy (biological model)
