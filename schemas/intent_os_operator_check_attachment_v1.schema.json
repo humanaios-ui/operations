@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/intent_os_operator_check_attachment_v1.schema.json",
+  "title": "INTENT-OS RNOLA Operator Check Attachment v1",
+  "$comment": "Durable record attaching an operator-check to a PR review or issue comment. This record links learning evidence to the artifact without modifying the artifact's authority. The operator-check itself remains advisory only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "kind",
+    "subject",
+    "operator_check",
+    "attached_at",
+    "attached_by"
+  ],
+  "properties": {
+    "version": {
+      "const": "intentos/operator_check_attachment_v1"
+    },
+    "kind": {
+      "enum": [
+        "pull_request_review_comment",
+        "issue_comment",
+        "pr_description_block",
+        "review_thread"
+      ],
+      "$comment": "Where the operator-check is attached. pull_request_review_comment: attached to a PR review. issue_comment: attached to an issue comment. pr_description_block: embedded in PR description. review_thread: part of a review thread."
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "type", "identifier"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9-]+/[a-z0-9-]+$",
+          "$comment": "Repository in owner/name format (e.g., humanaios-ui/operations)"
+        },
+        "type": {
+          "enum": ["pull_request", "issue"],
+          "$comment": "What kind of artifact this attachment is linked to"
+        },
+        "identifier": {
+          "type": "string",
+          "minLength": 1,
+          "$comment": "PR number or issue number (e.g., '534' for PR-534)"
+        },
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "$comment": "GitHub comment ID (for comment-level attachments)"
+        }
+      }
+    },
+    "operator_check": {
+      "type": "object",
+      "$comment": "The operator-check record being attached. Must conform to intent_os_operator_check_v1.schema.json."
+    },
+    "attachment_reason": {
+      "type": "string",
+      "minLength": 10,
+      "$comment": "Why this operator-check is being attached. E.g., 'Z2 read this evidence before ratification' or 'Operator learning pass for review'."
+    },
+    "attached_at": {
+      "type": "string",
+      "format": "date-time",
+      "$comment": "ISO 8601 timestamp when the record was created"
+    },
+    "attached_by": {
+      "type": "string",
+      "minLength": 1,
+      "$comment": "User or agent identity that attached this record (e.g., 'claude', 'Night', GitHub username)"
+    },
+    "linked_to_witness_ledger": {
+      "type": "boolean",
+      "default": false,
+      "$comment": "If true, this record has been linked into the INTENT-OS Witness Ledger. The ledger linkage is a separate governance decision and does not happen by default."
+    }
+  }
+}
