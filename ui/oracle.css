@@ -1,0 +1,81 @@
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --border: #30363d;
+  --text: #c9d1d9;
+  --muted: #8b949e;
+  --verified: #238636;
+  --partially: #d29922;
+  --inferred: #1f6feb;
+  --disputed: #010409;
+  --unknown: #6e7681;
+  --defeated: #da3633;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px;
+}
+h1, h2, h3 { margin: 0 0 12px 0; }
+section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.muted { color: var(--muted); }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.claim, .action, .attention, .unknown {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 5px 9px;
+}
+.badge[data-status="VERIFIED"] { background: var(--verified); }
+.badge[data-status="PARTIALLY_SUPPORTED"] { background: var(--partially); color: #111; }
+.badge[data-status="INFERRED"], .badge[data-status="OBSERVED"] { background: var(--inferred); }
+.badge[data-status="DISPUTED"] { background: var(--disputed); }
+.badge[data-status="UNKNOWN"] { background: var(--unknown); }
+.badge[data-status="DEFEATED"] { background: var(--defeated); }
+
+.action[data-color="green"] { border-left: 4px solid var(--verified); }
+.action[data-color="yellow"] { border-left: 4px solid var(--partially); }
+.action[data-color="blue"] { border-left: 4px solid var(--inferred); }
+.action[data-color="black"] { border-left: 4px solid #ffffff; }
+.action[data-color="gray"] { border-left: 4px solid var(--unknown); }
+.action[data-color="red"] { border-left: 4px solid var(--defeated); }
+
+.controls { display: flex; gap: 8px; margin-bottom: 12px; }
+button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+button.active { border-color: var(--inferred); }
+[data-view="summary"] .details-only { display: none; }
+small.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--muted);
+}
