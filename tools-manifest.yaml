@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 177
+  tools: 180
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 140
@@ -2256,6 +2256,45 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Build a thin Oracle state artifact for the Oracle + Actualizer MVP.
+- tool_id: HAIOS-TOOL-190
+  name: enforce_z2_z3_boundary
+  path: scripts/enforce_z2_z3_boundary.py
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Enforce Z2/Z3 authority boundaries for operator-checks. CI gate to prevent misuse of RNOLA
+    advisory records as merge authority.
+- tool_id: HAIOS-TOOL-191
+  name: lint_canonical_skills
+  path: scripts/lint_canonical_skills.py
+  version: unversioned
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Lint canonical skill entry points to detect substrate drift. CI gate to ensure substrate stubs
+    are thin redirects, not divergent implementations.
+- tool_id: HAIOS-TOOL-192
+  name: scan_rnola_misuse
+  path: scripts/scan_rnola_misuse.py
+  version: unversioned
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox
+    patterns, authorization misuse, undefined artifacts, and stale evidence.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

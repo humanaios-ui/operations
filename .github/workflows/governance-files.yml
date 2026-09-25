@@ -76,3 +76,36 @@ jobs:
 
       - name: GOVERNANCE_FILES.md is in sync (ERROR — blocks merge)
         run: python3 .gov-control/render.py --check
+
+      - name: Emit Workflow Telemetry (Phase 2B)
+        if: always()
+        run: |
+          python3 << 'TELEMETRY_EOF'
+          import json
+          from datetime import datetime
+
+          telemetry = {
+              "timestamp": datetime.utcnow().isoformat() + "Z",
+              "workflow": "governance-files",
+              "trigger_reason": "${{ github.event_name }}",
+              "path_filter_active": True,
+              "path_filter_hit": True,
+              "validation_result": "${{ job.status }}"
+          }
+
+          # Add PR context if available
+          if "${{ github.event_name }}" == "pull_request":
+              telemetry["pr_number"] = "${{ github.event.pull_request.number }}"
+              telemetry["pr_title"] = "${{ github.event.pull_request.title }}"
+
+          with open("telemetry.json", "w") as f:
+              json.dump(telemetry, f, indent=2)
+          TELEMETRY_EOF
+
+      - name: Upload Telemetry Artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: workflow-telemetry-governance-files
+          path: telemetry.json
+          retention-days: 30
