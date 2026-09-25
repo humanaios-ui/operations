@@ -77,7 +77,6 @@ class GmailClient(Protocol):
         *,
         topic_name: str,
         label_ids: Sequence[str] = ("INBOX",),
-        acknowledge_resync_gap: bool = False,
     ) -> Mapping[str, Any]:
         ...
 
@@ -707,6 +706,7 @@ class GmailInboundAdapter:
         *,
         topic_name: str,
         label_ids: Sequence[str] = ("INBOX",),
+        acknowledge_resync_gap: bool = False,
     ) -> Mapping[str, Any]:
         if (
             self.store.get_state("gmail_resync_required") == "1"
