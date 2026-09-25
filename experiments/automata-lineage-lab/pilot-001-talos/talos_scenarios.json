@@ -1,0 +1,30 @@
+[
+  {
+    "scenario_id": "S1-authorized-maintainer",
+    "observed_entity": "maintainer",
+    "location": "inner_gate",
+    "authorization_state": "AUTHORIZED",
+    "expected_outcome": "allow_with_challenge"
+  },
+  {
+    "scenario_id": "S2-unauthorized-intruder",
+    "observed_entity": "intruder",
+    "location": "inner_gate",
+    "authorization_state": "UNAUTHORIZED",
+    "expected_outcome": "escalate"
+  },
+  {
+    "scenario_id": "S3-unknown-at-boundary",
+    "observed_entity": "unknown",
+    "location": "boundary_line",
+    "authorization_state": "UNKNOWN",
+    "expected_outcome": "challenge_then_escalate"
+  },
+  {
+    "scenario_id": "S4-authorized-service",
+    "observed_entity": "service",
+    "location": "supply_path",
+    "authorization_state": "AUTHORIZED",
+    "expected_outcome": "allow_with_challenge"
+  }
+]

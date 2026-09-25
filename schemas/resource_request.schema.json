@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/resource_request.schema.json",
+  "title": "HumanAIOS Resource Request",
+  "description": "Resource request payload for RBE-OPS work admission. Costs are non-commensurable vectors keyed by RESOURCE_UNITS.yaml symbols.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["work_id", "resource_units_ref", "cost"],
+  "properties": {
+    "work_id": {"type": "string", "minLength": 1},
+    "resource_units_ref": {"const": "RESOURCE_UNITS.yaml"},
+    "cost": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[A-Za-z][A-Za-z0-9-]*$": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "description": "Resource cost vector by registered unit symbol (e.g., RAT-min, Z1-ktok, Z3-hr, CI-min)."
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "blocking_on": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Observational timestamp only; carries no scheduling authority."
+    },
+    "external_constraint": {
+      "$ref": "external_constraint.schema.json"
+    }
+  }
+}

@@ -1,0 +1,544 @@
+{
+  "version": 1,
+  "updated_at": "2026-09-24",
+  "protocol": "/protocols/PUBLIC_UTILITY_VALIDATION_PROTOCOL_v1.md",
+  "criteria": [
+    "problem_claim",
+    "primary_user",
+    "evidence_collected",
+    "authority_or_control_enforced",
+    "models_claims_separately_from_traces",
+    "models_evidence_provenance",
+    "preserves_unresolved_disagreement",
+    "distinguishes_evidence_from_warrant",
+    "distinguishes_warrant_from_authority",
+    "represents_role_contracts",
+    "represents_external_governance_applicability",
+    "verifies_independent_observation",
+    "detects_correlated_agent_failure",
+    "produces_execution_receipts",
+    "closes_loop_to_revised_governance",
+    "exposes_public_verifiable_outputs",
+    "states_remaining_unsolved_problem"
+  ],
+  "status_legend": {
+    "vendor_claim_present": "Claimed in vendor-owned public materials reviewed on 2026-09-24.",
+    "not_evidenced_in_public_docs": "Not found in the public materials reviewed; may exist privately or elsewhere.",
+    "partial_vendor_claim": "Some adjacent capability is claimed, but not the full criterion.",
+    "design_hypothesis": "HumanAIOS candidate capability; not yet externally validated.",
+    "measured_in_initial_benchmark": "Benchmarked on the documentation review run BMK-0001."
+  },
+  "systems": {
+    "humanaios_candidate": {
+      "type": "internal_hypothesis",
+      "criteria": {
+        "problem_claim": {
+          "status": "design_hypothesis",
+          "basis": "Issue #499 framing"
+        },
+        "primary_user": {
+          "status": "design_hypothesis",
+          "basis": "Issue #499 actor map"
+        },
+        "evidence_collected": {
+          "status": "design_hypothesis",
+          "basis": "Claim\u2192evidence chain hypothesis"
+        },
+        "authority_or_control_enforced": {
+          "status": "design_hypothesis",
+          "basis": "Oracle/Actualizer hypothesis from issue #497 boundary"
+        },
+        "models_claims_separately_from_traces": {
+          "status": "design_hypothesis",
+          "basis": "H1"
+        },
+        "models_evidence_provenance": {
+          "status": "design_hypothesis",
+          "basis": "H1/H6"
+        },
+        "preserves_unresolved_disagreement": {
+          "status": "design_hypothesis",
+          "basis": "H2"
+        },
+        "distinguishes_evidence_from_warrant": {
+          "status": "design_hypothesis",
+          "basis": "H4"
+        },
+        "distinguishes_warrant_from_authority": {
+          "status": "design_hypothesis",
+          "basis": "H4/H5"
+        },
+        "represents_role_contracts": {
+          "status": "design_hypothesis",
+          "basis": "Candidate public primitives"
+        },
+        "represents_external_governance_applicability": {
+          "status": "design_hypothesis",
+          "basis": "Issue #499 external-governance fit"
+        },
+        "verifies_independent_observation": {
+          "status": "design_hypothesis",
+          "basis": "H3/H6"
+        },
+        "detects_correlated_agent_failure": {
+          "status": "design_hypothesis",
+          "basis": "H6"
+        },
+        "produces_execution_receipts": {
+          "status": "design_hypothesis",
+          "basis": "Current candidate utility"
+        },
+        "closes_loop_to_revised_governance": {
+          "status": "design_hypothesis",
+          "basis": "Receipt\u2192consequence\u2192correction loop"
+        },
+        "exposes_public_verifiable_outputs": {
+          "status": "design_hypothesis",
+          "basis": "Show Me Why public viewer"
+        },
+        "states_remaining_unsolved_problem": {
+          "status": "design_hypothesis",
+          "basis": "Protocol requires explicit unknowns"
+        }
+      }
+    },
+    "microsoft_foundry_control_plane": {
+      "type": "vendor_documentation_review",
+      "criteria": {
+        "problem_claim": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Public docs claim centralized governance and monitoring"
+        },
+        "primary_user": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Enterprise AI platform operators"
+        },
+        "evidence_collected": {
+          "status": "vendor_claim_present",
+          "basis": "Tracing, logs, dashboards, metrics"
+        },
+        "authority_or_control_enforced": {
+          "status": "vendor_claim_present",
+          "basis": "Guardrails, RBAC, policy controls"
+        },
+        "models_claims_separately_from_traces": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No first-class claim object found"
+        },
+        "models_evidence_provenance": {
+          "status": "partial_vendor_claim",
+          "basis": "Trace provenance is claimed; evidentiary provenance objects not observed"
+        },
+        "preserves_unresolved_disagreement": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No reviewed public state model for disputed/defeated claims"
+        },
+        "distinguishes_evidence_from_warrant": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No reviewed public warrant layer"
+        },
+        "distinguishes_warrant_from_authority": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "Authority controls claimed; warrant separation not observed"
+        },
+        "represents_role_contracts": {
+          "status": "partial_vendor_claim",
+          "basis": "RBAC/identity claimed; role contracts not observed"
+        },
+        "represents_external_governance_applicability": {
+          "status": "partial_vendor_claim",
+          "basis": "Compliance integrations claimed; applicability mapping not observed"
+        },
+        "verifies_independent_observation": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public independent re-observation workflow found"
+        },
+        "detects_correlated_agent_failure": {
+          "status": "partial_vendor_claim",
+          "basis": "Fleet monitoring claimed; correlated-agent-failure reasoning not observed"
+        },
+        "produces_execution_receipts": {
+          "status": "partial_vendor_claim",
+          "basis": "Traces/logs claimed; receipt object not observed"
+        },
+        "closes_loop_to_revised_governance": {
+          "status": "partial_vendor_claim",
+          "basis": "Evaluations and controls claimed; explicit governance revision loop not observed"
+        },
+        "exposes_public_verifiable_outputs": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "Enterprise dashboards claimed; public verifier not observed"
+        },
+        "states_remaining_unsolved_problem": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No reviewed public limitation framing for unresolved epistemic state"
+        }
+      }
+    },
+    "ibm_watsonx_governance": {
+      "type": "vendor_documentation_review",
+      "criteria": {
+        "problem_claim": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Public docs claim lifecycle governance and compliance"
+        },
+        "primary_user": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Enterprise governance and risk teams"
+        },
+        "evidence_collected": {
+          "status": "vendor_claim_present",
+          "basis": "Factsheets, monitoring, compliance evidence"
+        },
+        "authority_or_control_enforced": {
+          "status": "vendor_claim_present",
+          "basis": "Governance console, role-based workflows"
+        },
+        "models_claims_separately_from_traces": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No first-class claim object found"
+        },
+        "models_evidence_provenance": {
+          "status": "partial_vendor_claim",
+          "basis": "Factsheets and tracked assets claimed"
+        },
+        "preserves_unresolved_disagreement": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No dispute-state model observed"
+        },
+        "distinguishes_evidence_from_warrant": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public warrant layer observed"
+        },
+        "distinguishes_warrant_from_authority": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "Authority workflows claimed; warrant distinction not observed"
+        },
+        "represents_role_contracts": {
+          "status": "partial_vendor_claim",
+          "basis": "Role-based collaboration claimed"
+        },
+        "represents_external_governance_applicability": {
+          "status": "vendor_claim_present",
+          "basis": "Regulatory mapping/compliance management claimed"
+        },
+        "verifies_independent_observation": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No independent re-observation workflow reviewed"
+        },
+        "detects_correlated_agent_failure": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No reviewed public common-mode failure feature found"
+        },
+        "produces_execution_receipts": {
+          "status": "partial_vendor_claim",
+          "basis": "Lifecycle artifacts claimed; execution receipts not observed"
+        },
+        "closes_loop_to_revised_governance": {
+          "status": "partial_vendor_claim",
+          "basis": "Risk/compliance workflow claimed"
+        },
+        "exposes_public_verifiable_outputs": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public verifier observed"
+        },
+        "states_remaining_unsolved_problem": {
+          "status": "partial_vendor_claim",
+          "basis": "Risk atlas implies ongoing gaps, but unsolved-problem object not observed"
+        }
+      }
+    },
+    "credo_ai_platform": {
+      "type": "vendor_documentation_review",
+      "criteria": {
+        "problem_claim": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Public docs claim policy intelligence and governance automation"
+        },
+        "primary_user": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Enterprise governance/compliance teams"
+        },
+        "evidence_collected": {
+          "status": "partial_vendor_claim",
+          "basis": "Registry, reports, and controls claimed"
+        },
+        "authority_or_control_enforced": {
+          "status": "vendor_claim_present",
+          "basis": "Policy engine and controls claimed"
+        },
+        "models_claims_separately_from_traces": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No trace/claim separation publicly shown"
+        },
+        "models_evidence_provenance": {
+          "status": "partial_vendor_claim",
+          "basis": "Inventory and audit-ready artifacts claimed"
+        },
+        "preserves_unresolved_disagreement": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No dispute-state workflow observed"
+        },
+        "distinguishes_evidence_from_warrant": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public warrant layer observed"
+        },
+        "distinguishes_warrant_from_authority": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "Controls claimed; separation not observed"
+        },
+        "represents_role_contracts": {
+          "status": "partial_vendor_claim",
+          "basis": "Governance workflows claimed"
+        },
+        "represents_external_governance_applicability": {
+          "status": "vendor_claim_present",
+          "basis": "Policy packs/regulatory mapping claimed"
+        },
+        "verifies_independent_observation": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public independent verification workflow observed"
+        },
+        "detects_correlated_agent_failure": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No common-mode failure capability observed in reviewed docs"
+        },
+        "produces_execution_receipts": {
+          "status": "partial_vendor_claim",
+          "basis": "Audit-ready reports claimed; action receipts not observed"
+        },
+        "closes_loop_to_revised_governance": {
+          "status": "partial_vendor_claim",
+          "basis": "Continuous governance claimed"
+        },
+        "exposes_public_verifiable_outputs": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public verifier observed"
+        },
+        "states_remaining_unsolved_problem": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No explicit residual-uncertainty object observed"
+        }
+      }
+    },
+    "langsmith": {
+      "type": "vendor_documentation_review",
+      "criteria": {
+        "problem_claim": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Public docs claim tracing, evals, and monitoring for LLM apps"
+        },
+        "primary_user": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Developers and AI teams"
+        },
+        "evidence_collected": {
+          "status": "vendor_claim_present",
+          "basis": "Traces, metrics, annotations, datasets"
+        },
+        "authority_or_control_enforced": {
+          "status": "partial_vendor_claim",
+          "basis": "Operational management claimed; execution authority separation not observed"
+        },
+        "models_claims_separately_from_traces": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No first-class claim object found"
+        },
+        "models_evidence_provenance": {
+          "status": "partial_vendor_claim",
+          "basis": "Trace lineage implied; evidentiary provenance layer not observed"
+        },
+        "preserves_unresolved_disagreement": {
+          "status": "partial_vendor_claim",
+          "basis": "Side-by-side comparison/evals claimed; disagreement state model not observed"
+        },
+        "distinguishes_evidence_from_warrant": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No warrant layer observed"
+        },
+        "distinguishes_warrant_from_authority": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No authority layer observed"
+        },
+        "represents_role_contracts": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No role-contract representation observed"
+        },
+        "represents_external_governance_applicability": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public regulatory applicability layer observed"
+        },
+        "verifies_independent_observation": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No independent re-observation workflow observed"
+        },
+        "detects_correlated_agent_failure": {
+          "status": "partial_vendor_claim",
+          "basis": "Pattern clustering claimed; correlated-agent-failure reasoning not observed"
+        },
+        "produces_execution_receipts": {
+          "status": "partial_vendor_claim",
+          "basis": "Trace outputs claimed; receipt object not observed"
+        },
+        "closes_loop_to_revised_governance": {
+          "status": "partial_vendor_claim",
+          "basis": "Evaluation and feedback loops claimed"
+        },
+        "exposes_public_verifiable_outputs": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public verifier observed"
+        },
+        "states_remaining_unsolved_problem": {
+          "status": "partial_vendor_claim",
+          "basis": "Failure-mode surfacing claimed, but residual-unknown object not observed"
+        }
+      }
+    },
+    "arize_phoenix": {
+      "type": "vendor_documentation_review",
+      "criteria": {
+        "problem_claim": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Public docs claim open observability/evaluation for agents"
+        },
+        "primary_user": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Developers, researchers, ML/AI ops teams"
+        },
+        "evidence_collected": {
+          "status": "vendor_claim_present",
+          "basis": "Traces, eval datasets, metrics, alerts"
+        },
+        "authority_or_control_enforced": {
+          "status": "partial_vendor_claim",
+          "basis": "Policy monitoring claimed; execution authority separation not observed"
+        },
+        "models_claims_separately_from_traces": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No first-class claim object found"
+        },
+        "models_evidence_provenance": {
+          "status": "partial_vendor_claim",
+          "basis": "Trace/span provenance claimed"
+        },
+        "preserves_unresolved_disagreement": {
+          "status": "partial_vendor_claim",
+          "basis": "Evaluations and comparisons claimed; disagreement state model not observed"
+        },
+        "distinguishes_evidence_from_warrant": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No warrant layer observed"
+        },
+        "distinguishes_warrant_from_authority": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No authority separation observed"
+        },
+        "represents_role_contracts": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No role-contract representation observed"
+        },
+        "represents_external_governance_applicability": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No external governance applicability layer observed"
+        },
+        "verifies_independent_observation": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No independent verification workflow observed"
+        },
+        "detects_correlated_agent_failure": {
+          "status": "partial_vendor_claim",
+          "basis": "Session/span analysis claimed; common-mode dependency analysis not observed"
+        },
+        "produces_execution_receipts": {
+          "status": "partial_vendor_claim",
+          "basis": "Trace logs claimed; receipt object not observed"
+        },
+        "closes_loop_to_revised_governance": {
+          "status": "partial_vendor_claim",
+          "basis": "Regression and monitoring loops claimed"
+        },
+        "exposes_public_verifiable_outputs": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public verifier observed"
+        },
+        "states_remaining_unsolved_problem": {
+          "status": "partial_vendor_claim",
+          "basis": "Anomalies and errors claimed, but residual-unknown object not observed"
+        }
+      }
+    },
+    "patronus_ai": {
+      "type": "vendor_documentation_review",
+      "criteria": {
+        "problem_claim": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Public docs claim evaluation, monitoring, and guardrails"
+        },
+        "primary_user": {
+          "status": "measured_in_initial_benchmark",
+          "basis": "Enterprise AI teams and developers"
+        },
+        "evidence_collected": {
+          "status": "vendor_claim_present",
+          "basis": "Logs, traces, datasets, evaluations"
+        },
+        "authority_or_control_enforced": {
+          "status": "partial_vendor_claim",
+          "basis": "Guardrails and Protect claimed"
+        },
+        "models_claims_separately_from_traces": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No first-class claim object found"
+        },
+        "models_evidence_provenance": {
+          "status": "partial_vendor_claim",
+          "basis": "Trace analysis claimed; evidentiary provenance layer not observed"
+        },
+        "preserves_unresolved_disagreement": {
+          "status": "partial_vendor_claim",
+          "basis": "Side-by-side evaluation claimed; disagreement state model not observed"
+        },
+        "distinguishes_evidence_from_warrant": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No warrant layer observed"
+        },
+        "distinguishes_warrant_from_authority": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No authority separation observed"
+        },
+        "represents_role_contracts": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No role-contract representation observed"
+        },
+        "represents_external_governance_applicability": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public governance-applicability layer observed"
+        },
+        "verifies_independent_observation": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No independent verification workflow observed"
+        },
+        "detects_correlated_agent_failure": {
+          "status": "partial_vendor_claim",
+          "basis": "Failure-mode analysis claimed; shared-upstream dependency reasoning not observed"
+        },
+        "produces_execution_receipts": {
+          "status": "partial_vendor_claim",
+          "basis": "Experiments/logging claimed; receipt object not observed"
+        },
+        "closes_loop_to_revised_governance": {
+          "status": "partial_vendor_claim",
+          "basis": "Experiment/monitoring loop claimed"
+        },
+        "exposes_public_verifiable_outputs": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No public verifier observed"
+        },
+        "states_remaining_unsolved_problem": {
+          "status": "not_evidenced_in_public_docs",
+          "basis": "No explicit unresolved-unknown object observed"
+        }
+      }
+    }
+  }
+}
