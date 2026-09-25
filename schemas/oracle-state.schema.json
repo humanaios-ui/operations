@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/oracle-state.schema.json",
+  "title": "HumanAIOS Oracle State",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "policy",
+    "system_state",
+    "constitutional_state",
+    "agents",
+    "claims",
+    "evidence",
+    "warrants",
+    "challenges",
+    "unknowns",
+    "experiments",
+    "precedents",
+    "amendments",
+    "actions",
+    "execution_receipts",
+    "human_attention"
+  ],
+  "properties": {
+    "policy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "epistemic_status_required",
+        "badge_visibility_rule",
+        "actualizer_action_color",
+        "execution_consequence_quarantine_hours",
+        "living_constitution_status"
+      ],
+      "properties": {
+        "epistemic_status_required": { "const": true },
+        "badge_visibility_rule": { "const": "every_rendered_claim" },
+        "actualizer_action_color": { "const": "minimum_warrant_status" },
+        "execution_consequence_quarantine_hours": { "type": "integer", "minimum": 48 },
+        "living_constitution_status": { "const": "EXPERIMENTAL_FALSIFIABLE" }
+      }
+    },
+    "system_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "generated_at", "posture"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "branch": { "type": ["string", "null"] },
+        "commit": { "type": "string", "minLength": 7 },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "posture": { "type": "string", "minLength": 1 }
+      }
+    },
+    "constitutional_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "foundational_principles",
+        "authorization_grants",
+        "trust_boundaries",
+        "delegation_grants",
+        "safe_stop_policies"
+      ],
+      "properties": {
+        "foundational_principles": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "authorization_grants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["authorization_id", "grantor", "grantee_role", "assets", "permitted_actions", "prohibited_actions", "delegation_allowed", "evidence_ref"],
+            "properties": {
+              "authorization_id": { "type": "string", "minLength": 1 },
+              "grantor": { "type": "string", "minLength": 1 },
+              "grantee_role": { "type": "string", "minLength": 1 },
+              "assets": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+              "permitted_actions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+              "prohibited_actions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+              "valid_from": { "type": ["string", "null"] },
+              "valid_until": { "type": ["string", "null"] },
+              "delegation_allowed": { "type": "boolean" },
+              "evidence_ref": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "trust_boundaries": { "type": "array", "items": { "type": "object" } },
+        "delegation_grants": { "type": "array", "items": { "type": "object" } },
+        "safe_stop_policies": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["agent_id", "role", "authority_scope"],
+        "properties": {
+          "agent_id": { "type": "string", "minLength": 1 },
+          "role": {
+            "type": "string",
+            "enum": [
+              "WITNESS",
+              "JESTER",
+              "ORACLE",
+              "ACTUALIZER",
+              "PROVENANCE_TOPOLOGY_AGENT",
+              "HUMAN_OPERATOR"
+            ]
+          },
+          "authority_scope": { "type": "string", "minLength": 1 }
+        }
+      },
+      "minItems": 1
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim_id", "statement", "epistemic_status", "provenance_refs"],
+        "properties": {
+          "claim_id": { "type": "string", "minLength": 1 },
+          "statement": { "type": "string", "minLength": 1 },
+          "epistemic_status": {
+            "type": "string",
+            "enum": [
+              "OBSERVED",
+              "VERIFIED",
+              "PARTIALLY_SUPPORTED",
+              "INFERRED",
+              "DISPUTED",
+              "UNKNOWN",
+              "DEFEATED"
+            ]
+          },
+          "provenance_refs": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "evidence": { "type": "array", "items": { "type": "object" } },
+    "warrants": { "type": "array", "items": { "type": "object" } },
+    "challenges": { "type": "array", "items": { "type": "object" } },
+    "unknowns": { "type": "array", "items": { "type": "object" } },
+    "experiments": { "type": "array", "items": { "type": "object" } },
+    "precedents": { "type": "array", "items": { "type": "object" } },
+    "amendments": { "type": "array", "items": { "type": "object" } },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "action_id",
+          "goal",
+          "warrant",
+          "lowest_warrant_status",
+          "ui_color",
+          "falsifier",
+          "human_approval_required",
+          "status"
+        ],
+        "properties": {
+          "action_id": { "type": "string", "minLength": 1 },
+          "goal": { "type": "string", "minLength": 1 },
+          "warrant": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "lowest_warrant_status": {
+            "type": "string",
+            "enum": [
+              "OBSERVED",
+              "VERIFIED",
+              "PARTIALLY_SUPPORTED",
+              "INFERRED",
+              "DISPUTED",
+              "UNKNOWN",
+              "DEFEATED"
+            ]
+          },
+          "ui_color": { "type": "string" },
+          "falsifier": { "type": "string", "minLength": 1 },
+          "human_approval_required": { "type": "boolean" },
+          "status": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "execution_receipts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "receipt_id",
+          "action_id",
+          "executed_at",
+          "consequence_status",
+          "quarantine_until",
+          "independent_verification"
+        ],
+        "properties": {
+          "receipt_id": { "type": "string", "minLength": 1 },
+          "action_id": { "type": "string", "minLength": 1 },
+          "executed_at": { "type": "string", "format": "date-time" },
+          "consequence_status": {
+            "type": "string",
+            "enum": [
+              "EXECUTION_CONSEQUENCE_UNVERIFIED",
+              "EXECUTION_CONSEQUENCE_VERIFIED"
+            ]
+          },
+          "quarantine_until": { "type": "string", "format": "date-time" },
+          "independent_verification": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["status", "evidence_refs"],
+            "properties": {
+              "status": { "type": "string", "enum": ["PENDING", "VERIFIED", "FAILED"] },
+              "evidence_refs": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "human_attention": { "type": "array", "items": { "type": "object" } }
+  }
+}

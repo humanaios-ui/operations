@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/actualizer-action.schema.json",
+  "title": "HumanAIOS Actualizer Action",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action_id",
+    "proposed_action",
+    "goal",
+    "authority_basis",
+    "warrant",
+    "warrant_premise_statuses",
+    "lowest_warrant_status",
+    "ui_color",
+    "required_preconditions",
+    "affected_artifacts",
+    "execution_plan",
+    "reversible",
+    "expected_observation",
+    "success_condition",
+    "falsifier",
+    "human_approval_required",
+    "status"
+  ],
+  "properties": {
+    "action_id": { "type": "string", "minLength": 1 },
+    "proposed_action": { "type": "string", "minLength": 1 },
+    "goal": { "type": "string", "minLength": 1 },
+    "authority_basis": { "type": "string", "minLength": 1 },
+    "warrant": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "warrant_premise_statuses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "OBSERVED",
+          "VERIFIED",
+          "PARTIALLY_SUPPORTED",
+          "INFERRED",
+          "DISPUTED",
+          "UNKNOWN",
+          "DEFEATED"
+        ]
+      },
+      "minItems": 1
+    },
+    "lowest_warrant_status": {
+      "type": "string",
+      "enum": [
+        "OBSERVED",
+        "VERIFIED",
+        "PARTIALLY_SUPPORTED",
+        "INFERRED",
+        "DISPUTED",
+        "UNKNOWN",
+        "DEFEATED"
+      ]
+    },
+    "ui_color": {
+      "type": "string",
+      "enum": ["green", "yellow", "blue", "black", "gray", "red"]
+    },
+    "required_preconditions": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "affected_artifacts": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "execution_plan": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "reversible": { "type": "boolean" },
+    "expected_observation": { "type": "string", "minLength": 1 },
+    "success_condition": { "type": "string", "minLength": 1 },
+    "falsifier": { "type": "string", "minLength": 1 },
+    "human_approval_required": { "type": "boolean" },
+    "status": {
+      "type": "string",
+      "enum": [
+        "READY_TO_EXECUTE",
+        "READY_FOR_HUMAN_AUTHORIZATION",
+        "BLOCKED_PENDING_OVERRIDE",
+        "BLOCKED_PENDING_EVIDENCE"
+      ]
+    },
+    "execution_receipt": { "type": ["string", "null"] }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "warrant_premise_statuses": {
+            "contains": { "enum": ["UNKNOWN", "DISPUTED", "DEFEATED"] }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "human_approval_required": { "const": true },
+          "status": {
+            "enum": [
+              "READY_FOR_HUMAN_AUTHORIZATION",
+              "BLOCKED_PENDING_OVERRIDE",
+              "BLOCKED_PENDING_EVIDENCE"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
