@@ -1,0 +1,107 @@
+version: 1
+updated_at: '2026-09-24'
+status: draft
+protocol: /protocols/PUBLIC_UTILITY_VALIDATION_PROTOCOL_v1.md
+actors:
+  - actor: developers
+    candidate_utility:
+      - Reconstruct multi-step agent behavior and boundary failures faster than trace-only tooling.
+    primary_questions:
+      - Can an independent developer identify claim, evidence, warrant, authority, action, and receipt without privileged context?
+    success_criteria:
+      - metric: reconstruction_time_minutes
+        target: <= 10
+      - metric: unknowns_explicit
+        target: true
+    failure_criteria:
+      - Reconstruction still depends on hidden context or oral explanation.
+  - actor: enterprises
+    candidate_utility:
+      - Distinguish evidence, warrant, authority, and execution for governed autonomous actions.
+    primary_questions:
+      - Can the organization prove why a consequential action was allowed?
+    success_criteria:
+      - metric: authority_boundary_misread_rate
+        target: < 10%
+    failure_criteria:
+      - Users still treat policy text, evidence, and approval authority as one object.
+  - actor: auditors
+    candidate_utility:
+      - Inspect evidence-backed receipts without relying on vendor summaries.
+    primary_questions:
+      - Can an auditor independently verify the basis for a decision?
+    success_criteria:
+      - metric: independent_reconstruction_pass
+        target: true
+    failure_criteria:
+      - Auditor must trust a narrative summary instead of inspectable artifacts.
+  - actor: insurers
+    candidate_utility:
+      - Review incident provenance and control evidence for underwriting or claims review.
+    primary_questions:
+      - Does the record separate executed action from claimed policy intent?
+    success_criteria:
+      - metric: provenance_gap_count
+        target: 0
+    failure_criteria:
+      - Missing receipts or authority records make incident reconstruction ambiguous.
+  - actor: researchers
+    candidate_utility:
+      - Compare cross-model disagreement, correction, and provenance structure on reproducible fixtures.
+    primary_questions:
+      - Can the protocol surface disagreement rather than collapsing it into a single score?
+    success_criteria:
+      - metric: disagreement_preserved
+        target: true
+    failure_criteria:
+      - Results collapse disagreement into a single verdict without reversible evidence.
+  - actor: regulators
+    candidate_utility:
+      - Inspect applicability, evidence, and authority boundaries for high-consequence systems.
+    primary_questions:
+      - Can a regulator map a control claim to concrete evidence and role ownership?
+    success_criteria:
+      - metric: applicability_mapping_complete
+        target: true
+    failure_criteria:
+      - Governance applicability still depends on bespoke interpretation.
+  - actor: open_source_maintainers
+    candidate_utility:
+      - Track repository changes, delegated authority, and receipts for AI-mediated coordination.
+    primary_questions:
+      - Does the system clarify who could approve, execute, and challenge a change?
+    success_criteria:
+      - metric: approval_path_identifiable
+        target: true
+    failure_criteria:
+      - Maintainers cannot tell whether an action was authorized or merely suggested.
+  - actor: security_teams
+    candidate_utility:
+      - Inspect safe-stop evidence, delegation boundaries, and common-mode dependency risks.
+    primary_questions:
+      - Can a reviewer see where authority laundering or correlated-agent failure could occur?
+    success_criteria:
+      - metric: trust_boundary_findings_detected
+        target: true
+    failure_criteria:
+      - The tooling provides traces but not boundary reasoning.
+  - actor: biomedical_institutions
+    candidate_utility:
+      - Map external approvals, research governance, and role contracts to AI actions.
+    primary_questions:
+      - Can protocol or ethics requirements be linked to actual execution receipts?
+    success_criteria:
+      - metric: approval_linkage_complete
+        target: true
+    failure_criteria:
+      - Approvals remain detached from what the system actually did.
+  - actor: general_public
+    candidate_utility:
+      - Use a plain-language “Show Me Why” view to inspect non-sensitive consequential actions.
+    primary_questions:
+      - Can a non-specialist locate evidence, uncertainty, and challenge state without training?
+    success_criteria:
+      - metric: show_me_why_comprehension_pass
+        target: true
+    failure_criteria:
+      - The interface adds explanation theater instead of inspectable understanding.
