@@ -127,16 +127,34 @@ class GraphBridgeTests(unittest.TestCase):
         for level in ("CHANGE-L0", "CHANGE-L1", "CHANGE-L3"):
             self.assertIsNone(by_level[level]["gap"])
 
-    def test_molt_tier_mapping_rejects_boolean_or_missing_tiers(self):
-        morphogenesis = json.loads(
-            (Path(__file__).resolve().parents[1] / "crb" / "morphogenesis.json").read_text()
-        )
+    def _validate_with_mapping_mutation(self, mutate):
+        root = Path(__file__).resolve().parents[1]
+        morphogenesis = json.loads((root / "crb" / "morphogenesis.json").read_text())
         broken = json.loads(json.dumps(morphogenesis))
-        broken["molt_tier_mapping"]["levels"][1]["measured_tier"] = True
-        with patch("crb.graph_bridge.load_json", side_effect=lambda p: broken if p.endswith("morphogenesis.json") else json.loads((Path(__file__).resolve().parents[1] / p).read_text())):
-            result = validate()
-        self.assertFalse(result["valid"])
-        self.assertTrue(any("no legal measured_tier" in e for e in result["errors"]))
+        mutate(broken["molt_tier_mapping"]["levels"][1])
+        with patch(
+            "crb.graph_bridge.load_json",
+            side_effect=lambda p: broken if p.endswith("morphogenesis.json")
+            else json.loads((root / p).read_text()),
+        ):
+            return validate()
+
+    def test_molt_tier_mapping_rejects_illegal_tiers(self):
+        cases = {
+            "boolean": lambda e: e.__setitem__("measured_tier", True),
+            "float": lambda e: e.__setitem__("measured_tier", 1.0),
+            "string": lambda e: e.__setitem__("measured_tier", "1"),
+            "out_of_range": lambda e: e.__setitem__("measured_tier", 3),
+            "missing": lambda e: e.pop("measured_tier"),
+        }
+        for name, mutate in cases.items():
+            with self.subTest(case=name):
+                result = self._validate_with_mapping_mutation(mutate)
+                self.assertFalse(result["valid"])
+                self.assertTrue(
+                    any("no legal measured_tier" in e for e in result["errors"]),
+                    result["errors"],
+                )
 
     def test_projection_has_no_dangling_local_edges(self):
         projection = build_projection()

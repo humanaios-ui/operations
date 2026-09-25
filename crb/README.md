@@ -76,7 +76,7 @@ path-based molt tiers measured by `tools/molting_protocol_diff_v1_0.py`:
 | Level | Measured tier | Authority owed | Gap recorded |
 |---|---:|---|---|
 | L0 state change | 0 | append-only ledger rules | none |
-| L1 parameter adaptation | 1 | molt_id + prediction + window (the existing Molt operator) | none |
+| L1 parameter adaptation | 1 | molt_id + pinned prediction + window + falsifier (the existing Molt operator) | none |
 | L2 component / rule / policy | 0 | Z2 review via CODEOWNERS | under-gated by the classifier |
 | L3 morphogenesis (topology) | 2 | registry entry + ADV run | none |
 | L4 constitutional | 2 | Tier 2 plus Z2 ratification hash | classifier cannot separate L3 from L4; governance documents measure Tier 0 |
