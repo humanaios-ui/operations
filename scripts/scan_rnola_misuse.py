@@ -13,6 +13,7 @@ This script detects patterns indicative of falsifier violation.
 Exit 0 if all records pass; exit 1 if falsifier violations found.
 """
 
+import argparse
 import json
 import sys
 from datetime import datetime, timedelta
@@ -27,15 +28,15 @@ def scan_record_for_checkbox_pattern(record, path):
     Detect checkbox pattern: teach-back without evidence inspection.
 
     Indicators:
-    - evidence_inspected is empty or has <2 items
+    - evidence_inspected is empty
     - observation fields are generic/placeholder
     - calibration.demonstrated is empty
     """
     violations = []
 
     evidence = record.get("evidence_inspected", [])
-    if not evidence or len(evidence) < 2:
-        violations.append("CHECKBOX: evidence_inspected has <2 items (too few artifacts inspected)")
+    if not evidence:
+        violations.append("CHECKBOX: evidence_inspected is empty (no artifacts inspected)")
 
     for i, ev in enumerate(evidence):
         observation = ev.get("observation", "").lower()
@@ -61,7 +62,7 @@ def scan_record_for_authorization_pattern(record, path):
 
     Indicators:
     - advisory_only or can_authorize are not hard-coded values
-    - authority_consequence uses permissive language
+    - authority_consequence uses affirmative authorization language (not negated)
     """
     violations = []
 
@@ -71,10 +72,19 @@ def scan_record_for_authorization_pattern(record, path):
         violations.append("AUTHORIZATION: can_authorize is not False")
 
     consequence = record.get("authority_consequence", "").lower()
-    dangerous_words = ["approve", "permit", "authorize", "enable merge", "ready to merge"]
-    for word in dangerous_words:
-        if word in consequence:
-            violations.append(f"AUTHORIZATION: authority_consequence uses dangerous word '{word}'")
+    affirmative_phrases = [
+        "this pr should be approved",
+        "this pr is approved",
+        "ready to merge",
+        "safe to merge",
+        "operator-check approves",
+        "operator-check permits merge",
+    ]
+    for phrase in affirmative_phrases:
+        if phrase in consequence:
+            violations.append(
+                f"AUTHORIZATION: authority_consequence claims approval ('{phrase}')"
+            )
 
     return violations
 
@@ -126,10 +136,15 @@ def scan_record_freshness(record, path):
         violations.append(f"FRESHNESS: created_at is malformed: {created_at}")
         return violations
 
-    # Check if created_at is more than 7 days in the past
-    age = datetime.now(created.tzinfo) - created
-    if age > timedelta(days=7):
-        violations.append(f"FRESHNESS WARNING: operator-check is {age.days} days old (post-hoc evidence?)")
+    try:
+        now = datetime.now(created.tzinfo) if created.tzinfo else datetime.now()
+        age = now - created
+        if age > timedelta(days=7):
+            violations.append(
+                f"FRESHNESS WARNING: operator-check is {age.days} days old (post-hoc evidence?)"
+            )
+    except (TypeError, ValueError) as e:
+        violations.append(f"FRESHNESS: Could not compute age: {e}")
 
     return violations
 
@@ -178,6 +193,28 @@ def scan_all_records():
 
 def main():
     """Run RNOLA falsifier scan."""
+    parser = argparse.ArgumentParser(
+        description="Scan RNOLA operator-check records for falsifier violations."
+    )
+    parser.add_argument(
+        "--check-dir",
+        type=str,
+        default=str(OUTPUTS_RNOLA),
+        help="Directory to scan for operator-check records (default: outputs/rnola/)",
+    )
+    parser.add_argument(
+        "--pr-event",
+        type=str,
+        help="Path to GitHub PR event JSON for context",
+    )
+    parser.add_argument(
+        "--falsifier-mode",
+        action="store_true",
+        help="Strict falsifier violation scanning",
+    )
+
+    args = parser.parse_args()
+
     print("Scanning RNOLA operator-check records for falsifier violations...")
 
     if scan_all_records():

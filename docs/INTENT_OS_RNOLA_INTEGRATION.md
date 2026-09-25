@@ -1,6 +1,6 @@
 # INTENT-OS RNOLA Integration: Theory and Governance
 
-**Status:** Ratified (Q-INTENT-OS-RNOLA-INTEGRATION-01)  
+**Status:** Pending Z2 Review (Q-INTENT-OS-RNOLA-INTEGRATION-01)  
 **Last Updated:** 2026-09-25  
 **Audience:** Z1 (proposers), Z2 (ratifiers), Z3 (executors), operators using RNOLA  
 **Related:** `tools/skills/repository_native_operator_learning/SKILL.md`, `docs/RNOLA_FAILURE_MODES.md`
@@ -65,34 +65,51 @@ An operator-check is a structured learning record that documents:
 
 ```json
 {
-  "version": "intentos/operator_check_v1",
-  "ref": "64c26cb058cf20eb5145c5ccfb9d4cc9c929871f",
-  "subject": "humanaios-ui/operations#538",
+  "schema": "intentos/operator_check_v1",
+  "advisory_only": true,
+  "can_authorize": false,
+  "subject": {
+    "type": "pull_request",
+    "repository": "humanaios-ui/operations",
+    "ref": "64c26cb058cf20eb5145c5ccfb9d4cc9c929871f",
+    "identifier": "PR-538",
+    "artifact_paths": ["schemas/intent_os_operator_check_v1.schema.json"]
+  },
+  "intent": "Teach the operator how schema constraints enforce authority boundaries.",
+  "question": "What prevents an operator-check from being misused as authorization?",
+  "operator_response": "The schema hard-codes advisory_only=true and can_authorize=false using const validation. This ensures the record cannot be passed to a merge gate or treated as a ratification signature.",
   "evidence_inspected": [
-    "PR-538#comment-123456",
-    "commit:64c26cb058cf20eb5145c5ccfb9d4cc9c929871f",
-    "file:schemas/intent_os_operator_check_v1.schema.json:line:42"
+    {
+      "kind": "source",
+      "locator": "schemas/intent_os_operator_check_v1.schema.json:25-31",
+      "observation": "Lines 25-31 define const constraints on advisory_only and can_authorize fields, enforced by JSON Schema validator."
+    },
+    {
+      "kind": "test",
+      "locator": "tests/test_intent_os_operator_check_schema.py:79-88",
+      "observation": "Test suite confirms that attempting to set can_authorize=true raises ValidationError. Boundary enforcement verified."
+    }
   ],
-  "observation": "Schema validation includes const constraints on advisory_only=true, can_authorize=false, ensuring operator-checks cannot be misused as merge authorization.",
   "calibration": {
     "demonstrated": ["understands schema hard constraints", "can identify boundary violations"],
-    "partial": ["schema composition patterns"],
+    "partial": ["schema composition patterns (allOf, $ref)"],
     "not_tested": [],
     "unknown": []
   },
-  "by": "claude",
-  "at": "2026-09-25T18:00:00Z"
+  "authority_consequence": "If this PR is merged, the repository gains schema validation for operator-checks. This does not authorize any deployment or change any merge gates; it only makes the advisory boundary explicit and enforced.",
+  "next_learning_object": "Inspect the CI gate (enforce_z2_z3_boundary.py) that validates this schema in production.",
+  "created_at": "2026-09-25T18:00:00Z"
 }
 ```
 
 **Key properties:**
-- `ref`: Git SHA of the artifact under review (not a branch name)
-- `subject`: What the operator learned about (PR/issue/commit)
-- `evidence_inspected`: Exact, line-specific references to evidence
-- `observation`: What was learned (free text, ≥10 chars, no placeholders)
-- `calibration`: Evidence-based assessment of operator understanding
-- `advisory_only`: is constrained to true by schema validation; not treated as authorization
-- `can_authorize`: is constrained to false by schema validation; does not satisfy merge gates
+- `schema`: Version identifier (must be "intentos/operator_check_v1")
+- `ref`: Git SHA of the artifact under review (7–40 hex chars; branch names rejected)
+- `subject`: Object with type, repository, ref (SHA), identifier, optional artifact_paths
+- `evidence_inspected`: Array of objects with kind, locator (must include # or :), observation (min 10 chars)
+- `calibration`: Evidence-based assessment with demonstrated, partial, not_tested, unknown arrays
+- `advisory_only`: Hard-coded to true by schema validation; not treated as authorization
+- `can_authorize`: Hard-coded to false by schema validation; cannot satisfy merge gates
 
 ### What Operator-Checks Are NOT
 
