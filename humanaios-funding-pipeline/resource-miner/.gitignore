@@ -1,0 +1,4 @@
+data/resources.jsonl
+__pycache__/
+*.py[cod]
+.pytest_cache/
