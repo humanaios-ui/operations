@@ -102,7 +102,22 @@ class GraphBridgeTests(unittest.TestCase):
         self.assertEqual(result["counts"]["change_levels"], 5)
         self.assertEqual(result["counts"]["graph_delta_events"], 6)
         self.assertEqual(result["counts"]["projection_types"], 3)
+        self.assertEqual(result["counts"]["tier_mapped_levels"], 5)
         self.assertEqual(result["counts"]["workflows"], 6)
+
+    def test_molt_tier_mapping_is_recorded_not_enforced(self):
+        morphogenesis = json.loads(
+            (Path(__file__).resolve().parents[1] / "crb" / "morphogenesis.json").read_text()
+        )
+        mapping = morphogenesis["molt_tier_mapping"]
+        self.assertEqual(mapping["status"], "RECORDED_NON_ENFORCING")
+        by_level = {entry["level"]: entry for entry in mapping["levels"]}
+        self.assertEqual(by_level["CHANGE-L1"]["measured_tier"], 1)
+        self.assertEqual(by_level["CHANGE-L3"]["measured_tier"], 2)
+        self.assertEqual(by_level["CHANGE-L4"]["measured_tier"], 2)
+        # The two places the path classifier under-measures are named, not hidden.
+        self.assertIsNotNone(by_level["CHANGE-L2"]["gap"])
+        self.assertIsNotNone(by_level["CHANGE-L4"]["gap"])
 
     def test_projection_has_no_dangling_local_edges(self):
         projection = build_projection()
