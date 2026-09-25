@@ -2,8 +2,28 @@ name: quality-baseline
 
 on:
   pull_request:
+    paths:
+      - 'src/**'
+      - 'tools/**'
+      - 'acat/**'
+      - 'tests/**'
+      - 'calibration_profiles/**'
+      - 'audits/**'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - '.github/workflows/quality-baseline.yml'
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'tools/**'
+      - 'acat/**'
+      - 'tests/**'
+      - 'calibration_profiles/**'
+      - 'audits/**'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - '.github/workflows/quality-baseline.yml'
   workflow_dispatch:
 
 permissions:
