@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oracle — HumanAIOS</title>
+  <link rel="stylesheet" href="oracle.css" />
+</head>
+<body data-view="summary">
+<main>
+  <header>
+    <h1>Oracle + Actualizer (MVP)</h1>
+    <p class="muted">A one-page evidence-bearing view. Oracle can currently warrant claims from evidence under protocol; it is not authority.</p>
+  </header>
+
+  <section>
+    <div class="controls" aria-label="view toggle">
+      <button id="summaryBtn" class="active" type="button">Summary view</button>
+      <button id="detailBtn" type="button">Detail view</button>
+    </div>
+    <p class="muted">Badge visibility is preserved in both views.</p>
+    <div id="state"></div>
+  </section>
+
+  <section>
+    <h2>Claims (epistemic badges required)</h2>
+    <div id="claims" class="grid"></div>
+  </section>
+
+  <section>
+    <h2>Unknowns</h2>
+    <div id="unknowns" class="grid"></div>
+  </section>
+
+  <section>
+    <h2>Actualizer actions</h2>
+    <p class="muted">Color reflects the lowest warrant premise status.</p>
+    <div id="actions" class="grid"></div>
+  </section>
+
+  <section>
+    <h2>Human attention queue</h2>
+    <div id="attention" class="grid"></div>
+  </section>
+</main>
+
+<script>
+const BADGE = {
+  VERIFIED: { icon: "🟢", label: "VERIFIED" },
+  PARTIALLY_SUPPORTED: { icon: "🟡", label: "PARTIALLY_SUPPORTED" },
+  INFERRED: { icon: "🔵", label: "INFERRED" },
+  OBSERVED: { icon: "🔵", label: "OBSERVED" },
+  DISPUTED: { icon: "⚫", label: "DISPUTED" },
+  UNKNOWN: { icon: "❓", label: "UNKNOWN" },
+  DEFEATED: { icon: "🔴", label: "DEFEATED" }
+};
+
+const badge = (status) => {
+  const meta = BADGE[status] || { icon: "❓", label: status };
+  return `<span class="badge" data-status="${status}">${meta.icon} ${meta.label}</span>`;
+};
+
+function setView(view) {
+  document.body.dataset.view = view;
+  document.getElementById("summaryBtn").classList.toggle("active", view === "summary");
+  document.getElementById("detailBtn").classList.toggle("active", view === "detail");
+}
+
+document.getElementById("summaryBtn").addEventListener("click", () => setView("summary"));
+document.getElementById("detailBtn").addEventListener("click", () => setView("detail"));
+
+async function render() {
+  const res = await fetch("../oracle_state.json", { cache: "no-store" });
+  const data = await res.json();
+
+  document.getElementById("state").innerHTML = `
+    <div class="claim">
+      <div><strong>${data.system_state.repository}</strong> <small class="code">${data.system_state.commit}</small></div>
+      <div class="muted">Generated: ${data.system_state.generated_at}</div>
+      <div class="details-only muted">Policy: ${data.policy.living_constitution_status}; badge rule: ${data.policy.badge_visibility_rule}</div>
+    </div>`;
+
+  document.getElementById("claims").innerHTML = data.claims.map((claim) => `
+    <article class="claim">
+      <div>${badge(claim.epistemic_status)}</div>
+      <h3>${claim.claim_id}</h3>
+      <p>${claim.statement}</p>
+      <p class="details-only muted">Provenance: ${claim.provenance_refs.join(", ")}</p>
+    </article>`).join("");
+
+  document.getElementById("unknowns").innerHTML = data.unknowns.map((item) => `
+    <article class="unknown">
+      ${badge("UNKNOWN")}
+      <h3>${item.unknown_id}</h3>
+      <p>${item.question}</p>
+      <p class="details-only muted">Needed observation: ${item.needed_observation}</p>
+    </article>`).join("");
+
+  document.getElementById("actions").innerHTML = data.actions.map((action) => `
+    <article class="action" data-color="${action.ui_color}">
+      <div>${badge(action.lowest_warrant_status)}</div>
+      <h3>${action.action_id}</h3>
+      <p><strong>Goal:</strong> ${action.goal}</p>
+      <p><strong>Status:</strong> ${action.status}</p>
+      <p class="details-only"><strong>Authority basis:</strong> ${action.authority_basis}</p>
+      <p class="details-only"><strong>Falsifier:</strong> ${action.falsifier}</p>
+    </article>`).join("");
+
+  document.getElementById("attention").innerHTML = data.human_attention.map((item) => `
+    <article class="attention">
+      <h3>${item.attention_id}</h3>
+      <p>${item.summary}</p>
+    </article>`).join("");
+}
+
+render().catch((error) => {
+  document.getElementById("state").innerHTML = `<p>Failed to load oracle_state.json: ${error.message}</p>`;
+});
+</script>
+</body>
+</html>
