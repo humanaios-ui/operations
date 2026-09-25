@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 175
+  tools: 177
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 139
+  builder_markers_present: 140
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2230,10 +2230,10 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: PR Readiness Verification — Run all validation checks in sequence
-- tool_id: HAIOS-TOOL-187
+- tool_id: HAIOS-TOOL-188
   name: repository_coordinator
   path: tools/repository_coordinator_v0_1.py
-  version: 0.1.0
+  version: 0.2.1
   category: diagnostic_tool
   zone: 1
   status: draft
@@ -2241,7 +2241,21 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: repository_coordinator_v0_1.py — evidence-bounded repository coordination index.
+  purpose: Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity
+    backpressure.
+  session: REPOSITORY-COORDINATOR-02
+- tool_id: HAIOS-TOOL-189
+  name: build_oracle_state
+  path: scripts/build_oracle_state.py
+  version: unversioned
+  category: pipeline_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Build a thin Oracle state artifact for the Oracle + Actualizer MVP.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

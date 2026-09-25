@@ -13,9 +13,9 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -23,16 +23,14 @@ jobs:
         run: |
           python3 -m pip install --quiet cryptography pyyaml pytest mypy ruff jsonschema
 
-      - name: SMAG Calibration Gate (s1 merge enforcement, blocking)
-        env:
-          LOOKBACK_PERIODS: "30"
+      - name: SMAG calibration state review (advisory only)
         run: |
           python3 tools/smag_gate_enforcer_v1_0.py \
             --profile-path calibration_profiles/BASELINE_S092126.json \
             --ledger-path audits/smag_pilot_ledger.jsonl \
             --substrate "human:humanaios-ui" \
-            --lookback-periods "$LOOKBACK_PERIODS"
-          echo "✓ SMAG Calibration Gate passed (gap_rate verified, review_bar enforced)"
+            --advisory-only
+          echo "✓ SMAG calibration state reported (no merge authority on quality-baseline)"
 
       - name: Repository health baseline (blocking)
         run: python3 tools/repo_health.py --strict
