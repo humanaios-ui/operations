@@ -98,6 +98,9 @@ class GraphBridgeTests(unittest.TestCase):
         result = validate()
         self.assertTrue(result["valid"], result["errors"])
         self.assertEqual(result["counts"]["capability_stages"], 11)
+        self.assertEqual(result["counts"]["change_levels"], 5)
+        self.assertEqual(result["counts"]["graph_delta_events"], 6)
+        self.assertEqual(result["counts"]["projection_types"], 3)
         self.assertEqual(result["counts"]["workflows"], 6)
 
     def test_projection_has_no_dangling_local_edges(self):
@@ -106,6 +109,37 @@ class GraphBridgeTests(unittest.TestCase):
         for edge in projection["edges"]:
             self.assertIn(edge["from"], node_ids)
             self.assertIn(edge["to"], node_ids)
+
+    def test_projection_contains_governed_graph_delta_lifecycle(self):
+        projection = build_projection()
+        edges = {
+            (edge["from"], edge["to"], edge["rel"])
+            for edge in projection["edges"]
+        }
+        self.assertIn(
+            ("MORPHOGENIC_SIGNAL", "GRAPH_DELTA_CANDIDATE", "triggers_candidate"),
+            edges,
+        )
+        self.assertIn(
+            ("GRAPH_DELTA_REVIEW", "GRAPH_DELTA_AUTHORIZATION", "warrants"),
+            edges,
+        )
+        self.assertIn(
+            ("GRAPH_DELTA_CANDIDATE", "CHANGE-L3", "classified_as"),
+            edges,
+        )
+
+    def test_projection_exposes_hep_specializations(self):
+        projection = build_projection()
+        nodes = {node["id"]: node for node in projection["nodes"]}
+        self.assertEqual(nodes["HEP-PRP"]["specializes"], "HEP")
+        self.assertEqual(nodes["HEP-AUTH"]["specializes"], "HEP")
+        edges = {
+            (edge["from"], edge["to"], edge["rel"])
+            for edge in projection["edges"]
+        }
+        self.assertIn(("CRB-PRP", "HEP-PRP", "specializes_as"), edges)
+        self.assertIn(("HEP-AUTH", "CRB-EXT", "reconstructable_by"), edges)
 
 
 if __name__ == "__main__":

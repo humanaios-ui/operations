@@ -51,12 +51,30 @@ ACTION / CONSEQUENCE
     ↺ telemetry back to evidence
 ```
 
+## Morphogenetic control + HEP prototype
+
+Issue #525 adds a second non-canonical prototype layer in `morphogenesis.json`:
+
+- **Morphogenetic Control Graph (MCG)** captures governed topology adaptation as a reviewable graph-delta lifecycle rather than an autonomous rewrite path.
+- **Holographic Evidence Projection (HEP)** is the generic portable projection family for reconstructable decisions.
+- **Portable Review Package (PRP)** is represented as a specialized HEP rather than a separate truth surface.
+
+The prototype is intentionally limited to representation:
+
+- it names the Level 0–4 change hierarchy;
+- it defines the governed graph-delta event types;
+- it records minimum review fields for independently reviewable topology changes;
+- it exports HEP projections for review and authorization.
+
+It does **not** alter `system_graph.json`, mutate canonical topology, or grant new authority to any model or workflow.
+
 ## Prototype code
 
 - `gate.py` — deterministic RID policy + three-seat gate.
 - `prp.py` — non-self-referential package-root calculation + append-only run-event verification.
 - `workflows.json` — six non-enforcing workflow definitions.
 - `capability_graph.json` — roadmap-to-HumanAIOS capability graph.
+- `morphogenesis.json` — governed graph-delta + HEP prototype surface.
 - `../tests/test_crb_prototype.py` — falsification-oriented unit tests.
 
 No GitHub Actions workflow is added in this change. That is deliberate: the repository already treats workflow/gate changes as an authority-bearing surface. The next executable step after Z2 ratification is to wrap these pure functions in an **advisory** workflow, observe them, then separately decide whether any result becomes blocking.
