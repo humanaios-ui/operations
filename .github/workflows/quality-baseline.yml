@@ -9,7 +9,7 @@ on:
       - 'tests/**'
       - 'calibration_profiles/**'
       - 'audits/**'
-      - 'pyproject.toml'
+      - 'requirements.txt'
       - 'setup.py'
       - '.github/workflows/quality-baseline.yml'
   push:
@@ -21,7 +21,7 @@ on:
       - 'tests/**'
       - 'calibration_profiles/**'
       - 'audits/**'
-      - 'pyproject.toml'
+      - 'requirements.txt'
       - 'setup.py'
       - '.github/workflows/quality-baseline.yml'
   workflow_dispatch:
