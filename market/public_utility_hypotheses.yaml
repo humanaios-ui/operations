@@ -1,0 +1,92 @@
+version: 1
+updated_at: '2026-09-24'
+status: candidate
+layer_evaluation:
+  public_commons:
+    artifacts:
+      - claim/evidence schema
+      - warrant schema
+      - authority and role primitives
+      - execution-receipt format
+      - benchmark methodology
+      - Show Me Why viewer pattern
+    current_question: Which parts remain legible and useful when they are public, non-sensitive, and independently reviewable?
+  institutional_product:
+    artifacts:
+      - private evidence graphs
+      - retained telemetry
+      - enterprise integrations
+      - policy/control mappings
+      - audit or insurer interfaces
+      - deployment support
+    current_question: Which parts require private infrastructure or operator context that a public commons cannot provide?
+  shared_dependencies:
+    artifacts:
+      - comparator methodology
+      - role contract vocabulary
+      - provenance topology checks
+    current_question: Which artifacts can serve both layers without creating confusion or leakage?
+hypotheses:
+  - id: H1
+    class: evidence_bearing_claims
+    candidate_layer: shared_dependency
+    feature_presence_question: Do strongest comparators expose claim, evidence, warrant, and authority as distinct inspectable objects?
+    external_value_question: Does that separation materially improve reconstruction quality for the tested stakeholder?
+    benchmark_metric: reconstruction_time_minutes
+    falsifier:
+      - A strongest comparator already exposes the same decomposition at adequate quality.
+      - Users do not perform better with the decomposition than with ordinary observability artifacts.
+  - id: H2
+    class: disagreement_as_state
+    candidate_layer: public_commons
+    feature_presence_question: Do strongest comparators preserve unresolved disagreement as first-class state?
+    external_value_question: Does preserving disagreement improve trust calibration or correction quality?
+    benchmark_metric: trust_calibration_delta
+    falsifier:
+      - Strongest comparators already preserve disagreement adequately.
+      - Users prefer a simpler verdict view and make no better decisions with disagreement state.
+  - id: H3
+    class: cross_substrate_epistemic_testing
+    candidate_layer: shared_dependency
+    feature_presence_question: Do strongest comparators compare what independent systems notice, miss, or correct after contradictory evidence?
+    external_value_question: Does cross-substrate comparison reveal actionable failure modes that single-system scoring misses?
+    benchmark_metric: actionable_disagreement_findings
+    falsifier:
+      - Existing evaluation tooling already supports the same workflow.
+      - The comparison adds complexity without finding materially new issues.
+  - id: H4
+    class: warrant_layer
+    candidate_layer: shared_dependency
+    feature_presence_question: Do strongest comparators distinguish evidence from warrant and warrant from authority?
+    external_value_question: Does the warrant layer improve auditability or approval quality?
+    benchmark_metric: authority_boundary_misread_rate
+    falsifier:
+      - Existing governance tooling already exposes the same distinctions.
+      - Users still cannot explain why an action was authorized.
+  - id: H5
+    class: authority_bound_execution
+    candidate_layer: institutional_product
+    feature_presence_question: Do strongest comparators expose authority-bound execution contracts with receipts?
+    external_value_question: Do those contracts improve scope compliance or reversibility handling?
+    benchmark_metric: scope_violation_detection_rate
+    falsifier:
+      - Existing control planes already provide the same contract.
+      - Execution receipts do not improve operator behavior or post-hoc reconstruction.
+  - id: H6
+    class: provenance_topology
+    candidate_layer: shared_dependency
+    feature_presence_question: Do strongest comparators detect shared-source, hidden-communication, or authority-laundering risks?
+    external_value_question: Does that topology materially improve trust-boundary review?
+    benchmark_metric: hidden_dependency_findings
+    falsifier:
+      - Existing systems already detect the same dependency failures adequately.
+      - Reviewers do not change their conclusions when topology is shown.
+  - id: H7
+    class: public_accountability
+    candidate_layer: public_commons
+    feature_presence_question: Do strongest comparators already expose public or independently verifiable outputs for consequential actions?
+    external_value_question: Does “Show Me Why” improve public understanding over ordinary explanations?
+    benchmark_metric: show_me_why_comprehension_pass
+    falsifier:
+      - Existing systems already provide equivalent public verification.
+      - Public users do not understand or benefit from the display.

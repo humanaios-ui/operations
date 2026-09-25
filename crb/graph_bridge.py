@@ -115,7 +115,9 @@ def validate() -> dict[str, Any]:
     if mapped_levels != [entry_id for entry_id, _ in expected_hierarchy]:
         errors.append("molt tier mapping must cover CHANGE-L0..CHANGE-L4 exactly once, in order")
     for entry in mapping.get("levels") or []:
-        if entry.get("measured_tier") not in (0, 1, 2):
+        tier = entry.get("measured_tier")
+        # Exact int only: bool is an int subclass and 1.0 == 1 in Python.
+        if type(tier) is not int or tier not in (0, 1, 2):
             errors.append(f"molt tier mapping: {entry.get('level')} has no legal measured_tier")
 
     change_level_ids = {entry_id for entry_id, _ in expected_hierarchy}
