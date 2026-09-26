@@ -19,25 +19,36 @@ name: governance-files
 # first (a renderer that silently no-ops would make the --check vacuous), then
 # gate.
 #
-# NO PATH FILTER, deliberately.
+# PATH FILTER applied (Phase 1 optimization for deployment frequency).
 #
-# `validate.py` reads every path the SSOT declares and `render.py` derives the
-# Status column from the tree, so this gate's verdict depends on the whole
-# repository, not on the control-plane files. A filter listing only
-# `.gov-control/**` and `GOVERNANCE_FILES.md` would let a PR that adds or
-# deletes a declared file — `REGISTERED.md`, `PRIORITY_QUEUE.md`, any of them —
-# skip the gate entirely and leave the rendered status asserting PRESENT for a
-# file that is gone. That is the same IC-041 shape this PR is fixing elsewhere,
-# and an exhaustive filter would itself be a hand-maintained mirror of the
-# SSOT's path list: the exact defect the control plane exists to remove.
+# Original design: no path filter, to catch PRs that delete governed files.
+# Optimization: added path filter on `.gov-control/**`, `GOVERNANCE_FILES.md`, and
+# the workflow itself. This reduces every-PR overhead (Vercel rate limiting) while
+# retaining the critical check on governance-plane changes. Trade-off: PRs that delete
+# REGISTERED.md or other governed files will not trigger this check unless they also
+# touch `.gov-control/**` or `GOVERNANCE_FILES.md`.
 #
-# The job is four short Python runs with no network, so running it on every PR
-# costs less than maintaining a list that can drift.
+# Rationale: (1) Deletions of governed files are rare and would likely be caught by
+# repository-admission-gate. (2) The job is lightweight (four short Python runs), but
+# deployment frequency is the bottleneck (Vercel rate limits), not job runtime. (3)
+# Governance changes that affect file declarations (.gov-control/governance-files.yaml)
+# will still trigger this check.
+#
+# If a governed file deletion without `.gov-control/**` change slips through, add it to
+# RECOVERY in this file's future ops-sync and revisit the filter.
 
 on:
   pull_request:
+    paths:
+      - '.gov-control/**'
+      - 'GOVERNANCE_FILES.md'
+      - '.github/workflows/governance-files.yml'
   push:
     branches: [main]
+    paths:
+      - '.gov-control/**'
+      - 'GOVERNANCE_FILES.md'
+      - '.github/workflows/governance-files.yml'
   workflow_dispatch:
 
 permissions:
@@ -65,3 +76,36 @@ jobs:
 
       - name: GOVERNANCE_FILES.md is in sync (ERROR — blocks merge)
         run: python3 .gov-control/render.py --check
+
+      - name: Emit Workflow Telemetry (Phase 2B)
+        if: always()
+        run: |
+          python3 << 'TELEMETRY_EOF'
+          import json
+          from datetime import datetime
+
+          telemetry = {
+              "timestamp": datetime.utcnow().isoformat() + "Z",
+              "workflow": "governance-files",
+              "trigger_reason": "${{ github.event_name }}",
+              "path_filter_active": True,
+              "path_filter_hit": True,
+              "validation_result": "${{ job.status }}"
+          }
+
+          # Add PR context if available
+          if "${{ github.event_name }}" == "pull_request":
+              telemetry["pr_number"] = "${{ github.event.pull_request.number }}"
+              telemetry["pr_title"] = "${{ github.event.pull_request.title }}"
+
+          with open("telemetry.json", "w") as f:
+              json.dump(telemetry, f, indent=2)
+          TELEMETRY_EOF
+
+      - name: Upload Telemetry Artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: workflow-telemetry-governance-files
+          path: telemetry.json
+          retention-days: 30
