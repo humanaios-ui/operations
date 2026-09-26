@@ -10,9 +10,12 @@ from entry_protocol.gmail_push_adapter import (
     AUTOMATION_HEADER_VALUE,
     GmailAdapterConfig,
     GmailInboundAdapter,
+    GmailTransportError,
     HistoryExpired,
     PrivateMailLedger,
     decode_pubsub_notification,
+    extract_item_catalog,
+    is_relevant_subject,
 )
 
 
@@ -133,6 +136,63 @@ class GmailAdapterTests(unittest.TestCase):
         self.assertEqual(
             self.store.get_state("gmail_watch_expiration_ms"), "999999"
         )
+
+
+    def test_root_digest_is_not_command_eligible(self):
+        self.assertFalse(
+            is_relevant_subject(
+                "HumanAIOS Daily Digest — 2026-09-26 | 0 decisions | 0 blockers"
+            )
+        )
+        self.assertTrue(
+            is_relevant_subject(
+                "Re: HumanAIOS Daily Digest — 2026-09-26 | 0 decisions | 0 blockers"
+            )
+        )
+
+    def test_multiline_digest_item_catalog_prefers_task_label(self):
+        catalog = extract_item_catalog(
+            "I. RESOURCE MINER\n"
+            "ITEM_ID: RM-20260926-03\n"
+            "STATE: NEW\n"
+            "TASK: Run the first real Resource Miner intake cycle\n"
+            "AUTHORITY: Z1\n"
+        )
+        self.assertEqual(
+            catalog["RM-20260926-03"],
+            "Run the first real Resource Miner intake cycle",
+        )
+
+    def test_matching_from_without_sent_is_not_human_authority(self):
+        self._seed_digest_reply("Begin thread RM-20260926-03.")
+        self.gmail.messages["reply-1"] = gmail_message(
+            "reply-1",
+            "thread-digest",
+            subject="Re: HumanAIOS Daily Digest — 2026-09-26 | 0 decisions | 0 blockers",
+            body="Begin thread RM-20260926-03.",
+            from_addr="aioshuman@gmail.com",
+            labels=("INBOX",),
+        )
+        result = self.adapter.handle_push("101")
+        self.assertEqual(
+            result.results[0].disposition,
+            "OBSERVATION_ONLY_NON_HUMAN",
+        )
+        self.assertEqual(
+            self.store.thread_states()["RM-20260926-03"].value,
+            "NEW",
+        )
+
+    def test_resync_gap_blocks_watch_reset_without_explicit_ack(self):
+        self.store.set_state("gmail_resync_required", "1")
+        with self.assertRaises(GmailTransportError):
+            self.adapter.register_watch(topic_name="projects/p/topics/mail")
+        response = self.adapter.register_watch(
+            topic_name="projects/p/topics/mail",
+            acknowledge_resync_gap=True,
+        )
+        self.assertEqual(response["historyId"], "100")
+        self.assertEqual(self.store.get_state("gmail_resync_required"), "0")
 
     def _seed_digest_reply(self, command):
         digest = gmail_message(
