@@ -110,7 +110,7 @@ If:
 
 the adapter **does not guess what was missed**. It sets `gmail_resync_required=1` and returns a resync-required state.
 
-A separate reviewed resync procedure must establish a new baseline and decide whether any gap requires manual reconstruction.
+A separate reviewed resync procedure must establish a new baseline and decide whether any gap requires manual reconstruction. The watch-registration CLI refuses to clear this condition unless the operator explicitly uses `--acknowledge-resync-gap` after that review.
 
 ## Watch renewal
 
@@ -122,9 +122,11 @@ The CLI records Gmail's returned expiration timestamp. A deployment scheduler ma
 
 `HUMAN_COMMAND_ENDPOINTS` is a **transport allow-list**, not a claim of real-world identity.
 
-- configured endpoint + Gmail `SENT` label → `CONFIGURED_ENDPOINT_SENT_COPY`;
-- configured endpoint without `SENT` → `CONFIGURED_ENDPOINT`;
-- anything else → `UNKNOWN` actor and no human control transition.
+- configured endpoint + Gmail `SENT` label → `CONFIGURED_ENDPOINT_SENT_COPY` and may be treated as the human command span for this prototype;
+- configured endpoint without `SENT` → `CONFIGURED_ENDPOINT_UNATTESTED`, actor remains `UNKNOWN`, and no human control transition occurs;
+- anything else → `UNRECOGNIZED_ENDPOINT`, actor remains `UNKNOWN`.
+
+A matching `From:` address alone is therefore insufficient authority. This is intentionally conservative until a stronger private endpoint-attestation mechanism is reviewed.
 
 This does not collapse multiple endpoints into one research subject. PR #530's identity graph remains controlling for research attribution.
 
@@ -178,7 +180,7 @@ GMAIL_ACK_TO=<private destination>
 GMAIL_SEND_ENABLED=0
 ```
 
-The OAuth grant must already contain the Gmail scopes used by the adapter. Code cannot elevate a refresh token's authorization.
+The adapter requests least-privilege Gmail scopes for this design: `gmail.readonly` plus `gmail.send`. The OAuth grant must already contain the required scopes; code cannot elevate a refresh token's authorization. If outbound acknowledgement remains disabled, a deployment may further restrict credentials to read-only and omit the send capability entirely.
 
 ## Google Cloud / Gmail setup required before activation
 
