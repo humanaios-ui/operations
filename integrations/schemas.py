@@ -35,6 +35,14 @@ class EventType(Enum):
     PAPER = "paper"
     PREPRINT = "preprint"
 
+    # Career-gradient events (Guiding Light)
+    OPPORTUNITY_DISCOVERED = "opportunity_discovered"
+    OPPORTUNITY_MAPPED = "opportunity_mapped"
+    CAREER_DELTA = "career_delta"
+    LEARNING_SIGNAL = "learning_signal"
+    EVIDENCE_UPDATE = "evidence_update"
+    APPLICATION_OUTCOME = "application_outcome"
+
     # Administrative events
     SYNC = "sync"
     HEALTH_CHECK = "health_check"
