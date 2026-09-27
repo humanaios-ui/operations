@@ -5,4 +5,4 @@ nixPkgs = ["python311"]
 cmds = []
 
 [start]
-cmd = "python3 app.py --host 0.0.0.0 --port $PORT"
+cmd = "cd resource-miner && python3 app.py --host 0.0.0.0 --port $PORT"
