@@ -1,5 +1,8 @@
 name: Resource Miner Scan
 
+# temporal_class: OBSERVATIONAL — the daily clock samples public funding/opportunity
+# sources into a snapshot file. A tick grants no internal priority, authority, or
+# obligation to act; it is not a deadline, review cadence, or governance control.
 on:
   schedule:
     # Daily at 06:15 UTC — offset from weekly-profile-sync (09:00 Mon) and
