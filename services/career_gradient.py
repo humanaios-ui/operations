@@ -23,7 +23,8 @@ from services.guiding_light import (
     score_target,
 )
 
-ACTION_FOR_GAP = INTERVENTION_FOR_GAP
+ACTION_FOR_GAP = dict(INTERVENTION_FOR_GAP)
+ACTION_FOR_GAP["blocker"] = "BLOCKER"
 
 
 @dataclass(frozen=True)
@@ -86,7 +87,9 @@ def learning_priorities(opportunities: Iterable[dict[str, Any]]) -> list[dict[st
         {
             "capability": row["requirement"],
             "gap_type": row["gap_type"],
-            "action": row["action"],
+            "action": (
+                ACTION_FOR_GAP.get(row["gap_type"], row["action"])
+            ),
             "priority": row["priority"],
             "roles": row["targets"],
             "artifact_targets": row.get("artifact_targets", []),
