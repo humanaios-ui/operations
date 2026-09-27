@@ -4,9 +4,6 @@ nixPkgs = ["python311"]
 [phases.install]
 cmds = ["python3 -m venv --copies /opt/venv", "/opt/venv/bin/pip install -r requirements.txt"]
 
-[phases.runtime]
-nixPkgs = ["python311"]
-
 [start]
 cmd = "exec /opt/venv/bin/python3 tools/decision_relay.py"
 
