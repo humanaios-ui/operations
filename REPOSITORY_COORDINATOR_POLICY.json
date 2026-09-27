@@ -25,7 +25,8 @@
       552,
       555,
       557,
-      561
+      561,
+      563
     ],
     "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
   },
@@ -67,6 +68,7 @@
     "PR #552 (railway-app[bot]: force venv Python with exec and runtime phase in nixpacks.toml, fixing tools/decision_relay.py crashing with 'No module named uvicorn') admitted explicitly by Z2 instruction, 2026-09-27, given for a one-line production-deployment fix to the Z2 board relay itself.",
     "PR #555 (remove duplicate nixPkgs from nixpacks.toml [phases.runtime]) admitted explicitly by Z2 instruction, 2026-09-27: #552's own fix broke the Nixpacks build (a Nix profile conflict on libpython3.so from declaring python311 twice), confirmed against Railway build logs on deployment 66a93702; this PR restores buildability while keeping #552's exec fix.",
     "PR #557 (use /opt/venv/bin/python3 in railway.toml startCommand for the operations/ACAT service) admitted explicitly by Z2 instruction, 2026-09-27: a separate, pre-existing crash-loop on api.humanaios.ai (bare python3 resolving to /root/.nix-profile/bin/python3 instead of the venv Railpack actually installed uvicorn into), unrelated to and predating #552/#555 -- this service runs on RAILPACK, not NIXPACKS, so nixpacks.toml never governed it.",
-    "PR #561 (add nixpacks.toml for humanaios-funding-pipeline/entitlement-navigator, migrating it off a broken Vercel deploy target with no valid build to a Railway service) admitted explicitly by Z2 instruction, 2026-09-27: infra-only config addition, same category as #552/#555/#557."
+    "PR #561 (add nixpacks.toml for humanaios-funding-pipeline/entitlement-navigator, migrating it off a broken Vercel deploy target with no valid build to a Railway service) admitted explicitly by Z2 instruction, 2026-09-27: infra-only config addition, same category as #552/#555/#557.",
+    "PR #563 (resource-miner app.py + nixpacks.toml + resource-miner-scan.yml, turning resource-miner from a CLI-only tool with no deployable web app into a real Railway HTTP service) admitted explicitly by Z2 instruction, 2026-09-27."
   ]
 }
