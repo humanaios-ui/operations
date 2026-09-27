@@ -1,0 +1,48 @@
+name: Resource Miner Scan
+
+on:
+  schedule:
+    # Daily at 06:15 UTC — offset from weekly-profile-sync (09:00 Mon) and
+    # weekly-funding-rescore (09:30 Mon) so these jobs don't land on the same
+    # runner minute.
+    - cron: '15 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Run resource-miner regression tests
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Scan for resource candidates
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 -m resource_miner.cli scan --out data/resources.snapshot.jsonl
+
+      - name: Commit updated resource snapshot
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "HumanAIOS Bot"
+
+          if git diff --quiet humanaios-funding-pipeline/resource-miner/data/resources.snapshot.jsonl; then
+            echo "No changes to resource snapshot, skipping commit"
+          else
+            git add humanaios-funding-pipeline/resource-miner/data/resources.snapshot.jsonl
+            git commit -m "chore: auto-refresh resource-miner scan snapshot ($(date -u +'%Y-%m-%d'))"
+            git push
+          fi
