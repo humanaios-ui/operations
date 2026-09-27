@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/guiding-light-evidence-state-v0.1.schema.json",
+  "title": "Guiding Light Evidence State Profile",
+  "type": "object",
+  "required": ["schema_version", "subject", "intent", "claims"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "subject": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "type": {
+          "enum": ["person", "organization", "project", "system", "program", "community", "vendor", "custom"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "intent": {
+      "type": "object",
+      "properties": {
+        "declared_goal_source": {"type": "string"},
+        "desired_outcomes": {"type": "array", "items": {"type": "string"}},
+        "constraints": {"type": "array", "items": {"type": "string"}},
+        "preferences": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "kind", "verification_state", "temporal_state"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "label": {"type": "string", "minLength": 1},
+          "kind": {
+            "enum": [
+              "capability",
+              "experience",
+              "education",
+              "credential",
+              "artifact",
+              "outcome",
+              "authority",
+              "resource",
+              "relationship",
+              "constraint",
+              "preference",
+              "custom"
+            ]
+          },
+          "verification_state": {
+            "enum": ["VERIFIED", "SUPPORTED", "SELF_ATTESTED", "UNKNOWN", "CONTRADICTED"]
+          },
+          "temporal_state": {
+            "enum": ["PAST", "CURRENT", "IN_PROGRESS", "PLANNED", "UNKNOWN"]
+          },
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source_ref": {"type": "string"},
+                "claim_ref": {"type": "string"},
+                "observed_at": {"type": "string"}
+              },
+              "additionalProperties": true
+            }
+          },
+          "evidence_refs": {"type": "array", "items": {"type": "string"}},
+          "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+          "metadata": {"type": "object"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "omissions": {"type": "array", "items": {"type": "string"}},
+    "uncertainty": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}

@@ -5,6 +5,8 @@
 **Authority:** the human user remains the final decision boundary  
 **Witness invariant:** `WITNESS_IS_NOT_THE_AUTHORITY`
 
+> **v0.2 architecture note:** Career is now an adapter over the domain-neutral Guiding Light engine in `services/guiding_light.py`. The general contract and cross-domain boundaries are defined in `docs/GUIDING_LIGHT_GENERAL_GRADIENT_ENGINE.md`. This document preserves the career-specific UX and HARVEST vocabulary.
+
 ## Purpose
 
 Guiding Light turns career matching into a closed evidence-to-opportunity progression loop.
