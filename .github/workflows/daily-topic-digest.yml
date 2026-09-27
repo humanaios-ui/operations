@@ -51,7 +51,54 @@ jobs:
         run: |
           echo "Analyzing research and coverage gaps..."
           python3 scripts/gap-detector.py 2>&1 | tee /tmp/gaps-output.json
+          gap_report=$(python3 scripts/gap-detector.py | jq -r .gap_report // 'gap-report.json')
+          cp /tmp/gaps-output.json gap-report.json
           echo "Gap analysis complete"
+
+      - name: Run AI-EO indexer
+        id: indexer
+        run: |
+          echo "Generating AI-EO index from signals and gaps..."
+          python3 scripts/ai-eo-indexer.py 2>&1 | tee /tmp/indexer-output.json
+          echo "AI-EO indexing complete"
+
+      - name: Generate pages from AI-EO index
+        id: page_generator
+        run: |
+          echo "Generating discoverable pages from AI-EO index..."
+          python3 - << 'EOF'
+          import json
+          import os
+          from pathlib import Path
+
+          # Load AI-EO index
+          index_entries = []
+          if os.path.exists('data/ai-eo-index.jsonl'):
+              with open('data/ai-eo-index.jsonl', 'r') as f:
+                  for line in f:
+                      if line.strip():
+                          index_entries.append(json.loads(line))
+
+          print(f"Loaded {len(index_entries)} page entries from AI-EO index")
+
+          # Create research-velocity directory structure
+          target_dir = Path('lasting-light-ai/src/pages/research-velocity')
+          target_dir.mkdir(parents=True, exist_ok=True)
+
+          # Create topics directory
+          topics_dir = Path('lasting-light-ai/src/pages/topics')
+          topics_dir.mkdir(parents=True, exist_ok=True)
+
+          # Export index as JSON for React consumption
+          index_output = Path('lasting-light-ai/public/api/ai-eo-index.json')
+          index_output.parent.mkdir(parents=True, exist_ok=True)
+          with open(index_output, 'w') as f:
+              json.dump(index_entries, f, indent=2)
+
+          print(f"✓ Exported AI-EO index to {index_output}")
+          print(f"✓ Index ready for React components to consume")
+          print(f"✓ Page generation complete: {len(index_entries)} pages indexed")
+          EOF
 
       - name: Generate HTML "How We Address X Crisis" components
         run: |
@@ -117,18 +164,33 @@ jobs:
 
       - name: Commit changes to operations repo
         run: |
-          cd /home/user/operations
           git config user.name "Claude Code (Topic Monitor)"
           git config user.email "noreply@anthropic.com"
 
           # Check if there are changes to commit
           if [ -n "$(git status --porcelain)" ]; then
-            git add data/public-discourse-signals.jsonl docs/TOPIC_RESPONSE_MATRIX.md
-            git commit -m "chore: update public discourse signals and response matrix (daily digest run)"
+            git add data/public-discourse-signals.jsonl data/ai-eo-index.jsonl docs/TOPIC_RESPONSE_MATRIX.md gap-report.json
+            git commit -m "chore: update signals, ai-eo index, and gap report (daily digest run)"
             git push origin main
             echo "Changes pushed to operations repo"
           else
-            echo "No changes to commit"
+            echo "No changes to commit in operations repo"
+          fi
+
+      - name: Commit index changes to lasting-light-ai repo
+        run: |
+          cd lasting-light-ai
+          git config user.name "Claude Code (Topic Monitor)"
+          git config user.email "noreply@anthropic.com"
+
+          # Check if there are changes to commit
+          if [ -n "$(git status --porcelain)" ]; then
+            git add public/api/ai-eo-index.json
+            git commit -m "chore: update ai-eo index for research velocity dashboard (daily digest run)"
+            git push origin main
+            echo "Changes pushed to lasting-light-ai repo"
+          else
+            echo "No changes to commit in lasting-light-ai repo"
           fi
 
       - name: Generate summary for CI context
@@ -143,12 +205,19 @@ jobs:
           echo "✓ Platform signals collected" >> /tmp/digest-summary.txt
           echo "✓ Topic-to-mitigation mapping generated" >> /tmp/digest-summary.txt
           echo "✓ Gap analysis completed" >> /tmp/digest-summary.txt
+          echo "✓ AI-EO index generated from signals + gaps" >> /tmp/digest-summary.txt
+          echo "✓ Discoverable pages indexed for research velocity dashboard" >> /tmp/digest-summary.txt
           echo "✓ Public-facing HTML snippets generated" >> /tmp/digest-summary.txt
+          echo "" >> /tmp/digest-summary.txt
+          echo "AI-EO Pipeline Output:" >> /tmp/digest-summary.txt
+          echo "- data/ai-eo-index.jsonl: Knowledge graph + behavioral graph index" >> /tmp/digest-summary.txt
+          echo "- lasting-light-ai/public/api/ai-eo-index.json: JSON API for React components" >> /tmp/digest-summary.txt
+          echo "- lasting-light-ai/src/pages/research-velocity: Dashboard pages" >> /tmp/digest-summary.txt
           echo "" >> /tmp/digest-summary.txt
           echo "Next steps:" >> /tmp/digest-summary.txt
           echo "1. Review TOPIC_RESPONSE_MATRIX.md for comprehensive mappings" >> /tmp/digest-summary.txt
-          echo "2. Integrate crisis-response snippets into lasting-light-ai pages" >> /tmp/digest-summary.txt
-          echo "3. Run gap-detector analysis to identify research priorities" >> /tmp/digest-summary.txt
+          echo "2. Review AI-EO index in operations/data/ai-eo-index.jsonl" >> /tmp/digest-summary.txt
+          echo "3. Visit /research-velocity in browser to see live indexed pages" >> /tmp/digest-summary.txt
 
           cat /tmp/digest-summary.txt
 
@@ -160,6 +229,9 @@ jobs:
           path: |
             docs/TOPIC_RESPONSE_MATRIX.md
             data/public-discourse-signals.jsonl
+            data/ai-eo-index.jsonl
+            gap-report.json
+            lasting-light-ai/public/api/ai-eo-index.json
             /tmp/digest-summary.txt
           retention-days: 30
 
