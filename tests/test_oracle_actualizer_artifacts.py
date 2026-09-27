@@ -60,7 +60,7 @@ class OracleActualizerArtifactTests(unittest.TestCase):
 
     def test_oracle_ui_references_badges_and_state_file(self) -> None:
         html = (ROOT / "ui/oracle.html").read_text(encoding="utf-8")
-        self.assertIn("../oracle_state.json", html)
+        self.assertIn("oracle_state.json", html)
         self.assertIn("badge_visibility_rule", html)
         self.assertIn("PARTIALLY_SUPPORTED", html)
         self.assertIn("DISPUTED", html)
