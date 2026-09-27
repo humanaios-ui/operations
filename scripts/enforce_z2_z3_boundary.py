@@ -10,9 +10,12 @@ Prevents operator-checks from being misused as:
 Run during CI to catch boundary violations before merge.
 """
 
+import argparse
 import json
 import sys
 from pathlib import Path
+
+from jsonschema import Draft202012Validator, ValidationError
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = ROOT / "schemas" / "intent_os_operator_check_v1.schema.json"
@@ -24,7 +27,13 @@ def load_schema():
     if not SCHEMA_PATH.exists():
         print(f"ERROR: Schema not found: {SCHEMA_PATH}")
         return None
-    return json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    try:
+        schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(schema)
+        return schema
+    except Exception as e:
+        print(f"ERROR: Failed to load or validate schema: {e}")
+        return None
 
 
 def check_rnola_records_exist():
@@ -36,6 +45,11 @@ def check_rnola_records_exist():
         # No RNOLA records yet — pass
         return True
 
+    schema = load_schema()
+    if not schema:
+        return False
+
+    validator = Draft202012Validator(schema)
     violations = []
 
     for record_file in OUTPUTS_RNOLA.glob("*.json"):
@@ -44,6 +58,13 @@ def check_rnola_records_exist():
         except json.JSONDecodeError as e:
             print(f"ERROR: Invalid JSON in {record_file}: {e}")
             return False
+
+        # Validate against schema
+        try:
+            validator.validate(record)
+        except ValidationError as e:
+            violations.append(f"{record_file}: Schema validation failed: {e.message}")
+            continue
 
         # Check 1: advisory_only and can_authorize are hard-coded
         if record.get("advisory_only") is not True:
@@ -142,6 +163,27 @@ def check_schema_hard_constraints():
 
 def main():
     """Run all boundary enforcement checks."""
+    parser = argparse.ArgumentParser(
+        description="Enforce Z2/Z3 authority boundaries for RNOLA operator-checks."
+    )
+    parser.add_argument(
+        "--check-schemas",
+        action="store_true",
+        help="Validate schema hard constraints (default: enabled)",
+    )
+    parser.add_argument(
+        "--pr-event",
+        type=str,
+        help="Path to GitHub PR event JSON for boundary checks in PR body",
+    )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail on warnings; default allows warnings",
+    )
+
+    args = parser.parse_args()
+
     print("Enforcing Z2/Z3 authority boundaries for RNOLA operator-checks...")
 
     all_pass = True
@@ -155,8 +197,16 @@ def main():
         all_pass = False
 
     # Check 3: PR body doesn't suggest operator-check as authorization
-    # (In CI, this would be passed from GitHub event payload)
-    if not check_pr_reviews_for_operator_check_misuse():
+    pr_body = None
+    if args.pr_event:
+        try:
+            with open(args.pr_event, encoding="utf-8") as f:
+                event = json.load(f)
+                pr_body = event.get("pull_request", {}).get("body", "")
+        except (json.JSONDecodeError, FileNotFoundError) as e:
+            print(f"WARNING: Could not read PR event: {e}")
+
+    if not check_pr_reviews_for_operator_check_misuse(pr_body):
         all_pass = False
 
     if all_pass:

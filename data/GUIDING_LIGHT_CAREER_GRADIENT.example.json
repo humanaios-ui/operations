@@ -1,0 +1,58 @@
+{
+  "schema_version": "0.1.0",
+  "profile_id": "pilot-local",
+  "as_of": "2026-09-27",
+  "declared_goal_source": "user",
+  "selected_target": "opp-ai-governance",
+  "source_refs": ["local evidence profile", "normalized opportunity records"],
+  "omissions": ["live employer verification not included in this static example"],
+  "uncertainty": ["enterprise-scale authority and software-delivery depth require interrogation"],
+  "opportunities": [
+    {
+      "id": "opp-ops",
+      "title": "Operations & Implementation Lead",
+      "opportunity_value": 0.65,
+      "gradient_axes": {"compensation": 0.45, "scope": 0.55, "authority": 0.45, "technical": 0.45, "strategy": 0.40, "evidence_gain": 0.60, "portability": 0.65},
+      "requirements": [
+        {"id": "r1", "capability": "Operations execution", "weight": 1.0, "mandatory": true, "mapping_state": "DOCUMENTED", "gap_type": "evidence"},
+        {"id": "r2", "capability": "Cross-functional project ownership", "weight": 1.0, "mandatory": true, "mapping_state": "DOCUMENTED", "gap_type": "evidence"},
+        {"id": "r3", "capability": "Client-domain experience", "weight": 0.5, "mandatory": false, "mapping_state": "UNKNOWN", "gap_type": "unknown"}
+      ]
+    },
+    {
+      "id": "opp-data-program",
+      "title": "Senior AI / Data Program Operations",
+      "opportunity_value": 0.90,
+      "gradient_axes": {"compensation": 0.80, "scope": 0.80, "authority": 0.65, "technical": 0.75, "strategy": 0.70, "evidence_gain": 0.90, "portability": 0.85},
+      "requirements": [
+        {"id": "r1", "capability": "Data quality and provenance", "weight": 1.0, "mandatory": true, "mapping_state": "DOCUMENTED", "gap_type": "evidence"},
+        {"id": "r2", "capability": "AI evaluation operations", "weight": 1.0, "mandatory": true, "mapping_state": "DOCUMENTED", "gap_type": "evidence"},
+        {"id": "r3", "capability": "Vendor / external workforce management", "weight": 0.8, "mandatory": false, "mapping_state": "UNKNOWN", "gap_type": "unknown", "artifact_target": "vendor decision and performance register"},
+        {"id": "r4", "capability": "Model-to-data requirement translation", "weight": 0.9, "mandatory": true, "mapping_state": "PARTIAL", "gap_type": "evidence", "artifact_target": "data requirement traceability matrix"}
+      ]
+    },
+    {
+      "id": "opp-ai-governance",
+      "title": "Responsible AI / AI Governance Program Lead",
+      "opportunity_value": 0.95,
+      "gradient_axes": {"compensation": 0.82, "scope": 0.86, "authority": 0.82, "technical": 0.68, "strategy": 0.92, "evidence_gain": 0.92, "portability": 0.90},
+      "requirements": [
+        {"id": "r1", "capability": "Regulated quality and risk", "weight": 1.0, "mandatory": true, "mapping_state": "DOCUMENTED", "gap_type": "evidence"},
+        {"id": "r2", "capability": "AI governance lifecycle", "weight": 1.0, "mandatory": true, "mapping_state": "PARTIAL", "gap_type": "evidence", "artifact_target": "AI inventory + risk tier + control register"},
+        {"id": "r3", "capability": "Executive governance reporting", "weight": 0.9, "mandatory": true, "mapping_state": "TRANSFERABLE", "gap_type": "evidence", "artifact_target": "executive AI governance packet"},
+        {"id": "r4", "capability": "Formal AI governance credential", "weight": 0.45, "mandatory": false, "mapping_state": "NOT_HELD", "gap_type": "credential", "artifact_target": "credential decision record"}
+      ]
+    },
+    {
+      "id": "opp-staff-tpm",
+      "title": "Staff Technical Program Manager — AI",
+      "opportunity_value": 0.95,
+      "gradient_axes": {"compensation": 0.95, "scope": 0.92, "authority": 0.82, "technical": 1.0, "strategy": 0.86, "evidence_gain": 0.96, "portability": 0.94},
+      "requirements": [
+        {"id": "r1", "capability": "Multi-year software TPM experience", "weight": 1.0, "mandatory": true, "mapping_state": "PARTIAL", "gap_type": "experience", "artifact_target": "production delivery portfolio"},
+        {"id": "r2", "capability": "Architecture tradeoff participation", "weight": 0.9, "mandatory": true, "mapping_state": "PARTIAL", "gap_type": "evidence", "artifact_target": "architecture decision records"},
+        {"id": "r3", "capability": "Production launch ownership", "weight": 1.0, "mandatory": true, "mapping_state": "UNKNOWN", "gap_type": "experience", "artifact_target": "release + observability evidence"}
+      ]
+    }
+  ]
+}

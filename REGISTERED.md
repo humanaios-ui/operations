@@ -4731,7 +4731,6 @@ superseded_by: null
 
 ---
 
-<<<<<<< HEAD
 ## Z2 Ratification — ACCEPTED 2026-09-19
 
 **Candidate ID:** Q-GRANT-BROKER-PHASE-2B-01  
