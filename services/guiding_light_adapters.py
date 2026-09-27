@@ -68,8 +68,11 @@ def resource_candidate_to_target(candidate: dict[str, Any]) -> dict[str, Any]:
         if isinstance(match, dict)
     ]
     value_axes = {}
-    if need_scores:
-        value_axes["need_alignment"] = max(0.0, min(1.0, max(need_scores)))
+    normalized_need_alignment = (
+        max(0.0, min(1.0, max(need_scores))) if need_scores else None
+    )
+    if normalized_need_alignment is not None:
+        value_axes["need_alignment"] = normalized_need_alignment
 
     eligibility_assessed = bool(candidate.get("eligibility_assessed"))
     eligibility_state = "PARTIAL" if eligibility_assessed else "UNKNOWN"
@@ -79,7 +82,7 @@ def resource_candidate_to_target(candidate: dict[str, Any]) -> dict[str, Any]:
         "title": str(candidate.get("title", "Untitled resource")),
         "domain": "resource",
         "target_type": "external_resource",
-        "target_value": max(need_scores) if need_scores else 0.5,
+        "target_value": normalized_need_alignment if normalized_need_alignment is not None else 0.5,
         "value_axes": value_axes,
         "requirements": [
             {
