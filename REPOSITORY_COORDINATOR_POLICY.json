@@ -21,7 +21,8 @@
     "pull_request_numbers": [
       538,
       548,
-      549
+      549,
+      552
     ],
     "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
   },
@@ -59,6 +60,7 @@
     "PR #532 (admissions for #507/#508 plus the molt-tier to change-level mapping) admitted explicitly by Z2 instruction, 2026-09-25, recorded directly on main so the gate evaluates it.",
     "PR #538 (RNOLA governance infrastructure: 7 critical findings fixed, merge conflict resolved) is admitted explicitly (Z2 instruction, 2026-09-25): mixed control-plane change (.github/workflows/rnola-governance-validation.yml) with governance/feature files (scripts/, schemas/, docs/, tests/) requiring explicit admission under the control-plane rule.",
     "PR #549 (AUTHORIZATION_EVIDENCE_MAPPING.md + authorization_evidence.py: authorization & evidence assurance questions -> executable checks, Layer 4 of the concept-to-code stack) admitted explicitly by Z2 instruction, 2026-09-27.",
-    "PR #548 (Guiding Light v0.2 general evidence-to-target gradient engine) admitted explicitly by Z2 instruction, 2026-09-27, after CI admission/backpressure gate correctly held ready non-maintenance work lacking an admission record."
+    "PR #548 (Guiding Light v0.2 general evidence-to-target gradient engine) admitted explicitly by Z2 instruction, 2026-09-27, after CI admission/backpressure gate correctly held ready non-maintenance work lacking an admission record.",
+    "PR #552 (railway-app[bot]: force venv Python with exec and runtime phase in nixpacks.toml, fixing tools/decision_relay.py crashing with 'No module named uvicorn') admitted explicitly by Z2 instruction, 2026-09-27, given for a one-line production-deployment fix to the Z2 board relay itself."
   ]
 }
