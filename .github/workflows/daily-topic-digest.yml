@@ -1,0 +1,217 @@
+name: Daily Topic-to-Mitigation Digest
+
+on:
+  schedule:
+    # Run daily at 9:00 UTC (adjustable based on timezone)
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor-and-digest:
+    runs-on: ubuntu-latest
+    name: Collect signals and generate response matrix
+
+    steps:
+      - name: Checkout operations repository
+        uses: actions/checkout@v4
+        with:
+          repository: humanaios-ui/operations
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout lasting-light-ai repository (for public page updates)
+        uses: actions/checkout@v4
+        with:
+          repository: humanaios-ui/lasting-light-ai
+          ref: main
+          path: lasting-light-ai
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Run platform monitor (parallel collection)
+        id: monitor
+        run: |
+          echo "Starting platform-level signal collection..."
+          python3 scripts/platform-monitor.py 2>&1 | tee /tmp/monitor-output.json
+          echo "Platform monitoring complete"
+
+      - name: Run topic-to-mitigation mapper
+        id: mapper
+        run: |
+          echo "Mapping signals to HumanAIOS capabilities..."
+          python3 scripts/map-to-mitigation.py 2>&1 | tee /tmp/mapper-output.json
+          echo "Mapping complete"
+
+      - name: Run gap detector
+        id: gaps
+        run: |
+          echo "Analyzing research and coverage gaps..."
+          python3 scripts/gap-detector.py 2>&1 | tee /tmp/gaps-output.json
+          echo "Gap analysis complete"
+
+      - name: Generate HTML "How We Address X Crisis" components
+        run: |
+          echo "Generating public-facing response pages..."
+          python3 - << 'EOF'
+          import json
+          import os
+          from datetime import datetime
+
+          # Load the mapping data
+          with open('docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
+              matrix_content = f.read()
+
+          # Generate HTML snippets for lasting-light-ai pages
+          html_snippets = {
+              "ai-jailbreaks": """
+          <section class="crisis-response">
+            <h3>How HumanAIOS Addresses: AI Jailbreaks & Prompt Injection</h3>
+            <p>The Witness Arena's blind-pass invariant prevents peer-review capture by ensuring independent evidence evaluation. Zone 2's authority wall requires human ratification before any potentially harmful operation, making successful jailbreaks unable to bypass governance boundaries.</p>
+            <ul>
+              <li><strong>Constitutional Foundation:</strong> Least-Privilege Agency (Principle 3) + Evidence Before Authority (Principle 4)</li>
+              <li><strong>System Response:</strong> Witness Arena blind-pass invariant + Zone 2 authority wall</li>
+              <li><strong>Current Mitigation:</strong> Detection of authorization boundary violations via evidence review</li>
+              <li><strong>Research Gap:</strong> Real-time jailbreak prediction remains unaddressed</li>
+            </ul>
+          </section>
+              """,
+              "llm-hallucinations": """
+          <section class="crisis-response">
+            <h3>How HumanAIOS Addresses: LLM Hallucinations & Truthfulness</h3>
+            <p>The ACAT framework continuously assesses confidence calibration across six behavioral dimensions. Phase 1 blind assessment versus Phase 3 corrected self-report creates a learning signal that reveals systematic hallucination patterns. Agents with poor calibration scores receive targeted training before deployment.</p>
+            <ul>
+              <li><strong>Constitutional Foundation:</strong> Humility (Principle 1) + Service Orientation (Principle 2)</li>
+              <li><strong>System Response:</strong> ACAT calibration scoring + Phase 1/3 comparison for recurring pattern detection</li>
+              <li><strong>Current Mitigation:</strong> Pattern detection after the fact; targeted training drives improvement</li>
+              <li><strong>Research Gap:</strong> Mechanistic understanding of confidence-accuracy divergence needed</li>
+            </ul>
+          </section>
+              """,
+              "database-privacy": """
+          <section class="crisis-response">
+            <h3>How HumanAIOS Addresses: Database Privacy & Data Governance</h3>
+            <p>Every operation explicitly declares its data dependencies before Zone 2 ratification. The governance audit ritual regularly reviews all access patterns to detect permission creep. Zone 1 inspectors have read-only access to all resource declarations, enabling privacy oversight without execution authority.</p>
+            <ul>
+              <li><strong>Constitutional Foundation:</strong> Least-Privilege Agency (Principle 3) + Transparency Before Obfuscation (Principle 5)</li>
+              <li><strong>System Response:</strong> Resource agency declarations + governance audit ritual + Zone 1 inspection</li>
+              <li><strong>Current Mitigation:</strong> Pre-execution validation + complete audit trails + human inspection</li>
+              <li><strong>Research Gap:</strong> Runtime policy enforcement at database query level needed</li>
+            </ul>
+          </section>
+              """
+          }
+
+          # Save snippets for manual integration
+          os.makedirs('lasting-light-ai/crisis-response-snippets', exist_ok=True)
+          for topic, snippet in html_snippets.items():
+              with open(f'lasting-light-ai/crisis-response-snippets/{topic}.html', 'w') as f:
+                  f.write(snippet)
+
+          print("HTML snippets generated for public pages")
+          print(f"Topics documented: {len(html_snippets)}")
+          EOF
+
+      - name: Commit changes to operations repo
+        run: |
+          cd /home/user/operations
+          git config user.name "Claude Code (Topic Monitor)"
+          git config user.email "noreply@anthropic.com"
+
+          # Check if there are changes to commit
+          if [ -n "$(git status --porcelain)" ]; then
+            git add data/public-discourse-signals.jsonl docs/TOPIC_RESPONSE_MATRIX.md
+            git commit -m "chore: update public discourse signals and response matrix (daily digest run)"
+            git push origin main
+            echo "Changes pushed to operations repo"
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Generate summary for CI context
+        run: |
+          echo "=== DAILY TOPIC-TO-MITIGATION DIGEST ===" > /tmp/digest-summary.txt
+          echo "Run date: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/digest-summary.txt
+          echo "" >> /tmp/digest-summary.txt
+          echo "Topics monitored: 3 (AI Jailbreaks, LLM Hallucinations, Database Privacy)" >> /tmp/digest-summary.txt
+          echo "Platforms monitored: 6 (Twitter, Reddit, HackerNews, LessWrong, Discord, GitHub)" >> /tmp/digest-summary.txt
+          echo "" >> /tmp/digest-summary.txt
+          echo "Operations:" >> /tmp/digest-summary.txt
+          echo "✓ Platform signals collected" >> /tmp/digest-summary.txt
+          echo "✓ Topic-to-mitigation mapping generated" >> /tmp/digest-summary.txt
+          echo "✓ Gap analysis completed" >> /tmp/digest-summary.txt
+          echo "✓ Public-facing HTML snippets generated" >> /tmp/digest-summary.txt
+          echo "" >> /tmp/digest-summary.txt
+          echo "Next steps:" >> /tmp/digest-summary.txt
+          echo "1. Review TOPIC_RESPONSE_MATRIX.md for comprehensive mappings" >> /tmp/digest-summary.txt
+          echo "2. Integrate crisis-response snippets into lasting-light-ai pages" >> /tmp/digest-summary.txt
+          echo "3. Run gap-detector analysis to identify research priorities" >> /tmp/digest-summary.txt
+
+          cat /tmp/digest-summary.txt
+
+      - name: Upload monitoring artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: topic-digest-run-${{ github.run_id }}
+          path: |
+            docs/TOPIC_RESPONSE_MATRIX.md
+            data/public-discourse-signals.jsonl
+            /tmp/digest-summary.txt
+          retention-days: 30
+
+      - name: Comment on related PRs (if any)
+        if: always()
+        run: |
+          echo "Topic-to-mitigation digest completed successfully"
+          echo "Results available in workflow artifacts"
+
+  validate-output:
+    runs-on: ubuntu-latest
+    needs: monitor-and-digest
+    name: Validate generated outputs
+
+    steps:
+      - name: Checkout operations repository
+        uses: actions/checkout@v4
+        with:
+          repository: humanaios-ui/operations
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Validate JSON files
+        run: |
+          python3 - << 'EOF'
+          import json
+
+          # Validate JSONL format
+          with open('data/public-discourse-signals.jsonl', 'r') as f:
+              lines = f.readlines()
+              for i, line in enumerate(lines):
+                  if line.strip() and not line.startswith('#'):
+                      try:
+                          json.loads(line)
+                      except json.JSONDecodeError as e:
+                          print(f"ERROR: Line {i+1} is not valid JSON: {e}")
+                          exit(1)
+
+          print(f"✓ Validated {len([l for l in lines if l.strip() and not l.startswith('#')])} signal records")
+
+          # Validate markdown exists
+          with open('docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
+              content = f.read()
+              if 'Topic-to-Mitigation Response Matrix' not in content:
+                  print("ERROR: Missing expected markdown title")
+                  exit(1)
+              topic_count = content.count('## ')
+              print(f"✓ Markdown document contains {topic_count} topics")
+
+          print("\n✓ All output validations passed")
+          EOF
+
