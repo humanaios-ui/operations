@@ -30,6 +30,10 @@ This finding surfaced as a byproduct of evaluating whether an external distribut
 - **detection:** caught incidentally while answering an unrelated question (distribution strategy), not by any existing gate — mirrors the detection gap noted in IC-CAND-BOARD-STALE-SEALS: nothing in the standing rituals audits ceremony-to-product ratio or gate-executed-vs-gate-configured.
 - **why this matters here:** the source article's central warning is spending months on infrastructure/process around a thing instead of getting the thing in front of real users. This repo's governance layer is exactly that kind of infrastructure investment, and it is currently much larger than the product layer it exists to govern.
 
+## Falsifier
+
+The historical claims (file-count ratio, the 122-run silent gate failure) are already verified against the repository and git history, not predictions. The forward-looking part — item 2 below — is falsifiable: if the proposed periodic gate-execution check is implemented and, over the following quarter, finds no other CI gate named in CLAUDE.md's "Files That Require Z2 Signature" table silently failing to execute, the prevention measure holds as sufficient. If it finds another gate in the same silent-failure state, the underlying pattern generalizes beyond this one incident and should be escalated past a single F-finding.
+
 ## Proposed correction / prevention (Z2 to accept, edit, or reject)
 
 1. No retroactive cleanup proposed — the ceremony files are historical record, not proposed for deletion.

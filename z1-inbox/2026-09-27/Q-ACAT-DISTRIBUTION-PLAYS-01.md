@@ -36,6 +36,10 @@ ACAT already holds structured assessment data across AI models and behavioral di
 - Shareable-artifact/badge (Play 5) — needs an existing base of AI vendors motivated to display scores; premature pre-launch.
 - Buying an existing audience (Play 6) / affiliates (Play 7) — cost money or established relationships not yet in place pre-revenue.
 
+## Falsifier
+
+If, 60 days after both plays ship (free→paid funnel copy live on `/assess`; first 20 programmatic-SEO model×regulation pages published and indexed by Google), neither shows a measurable effect — no attributable increase in `/assess` completions or funnel click-through versus the pre-launch baseline, and the SEO pages register zero organic impressions in Search Console — the plays are falsified. In that case, drop them and select two of the five deferred plays instead rather than doubling down.
+
 ## Ratification Request
 
 1. Accept ACAT as the sole current target for external distribution work (no other repo qualifies today per evidence above).
