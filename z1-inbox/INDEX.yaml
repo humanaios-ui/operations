@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-25'
 decision_window_days: 2
 counts:
-  candidates: 95
+  candidates: 96
   records: 44
 ratifiers:
 - Night
@@ -1001,6 +1001,13 @@ candidates:
   submitted: '2026-09-27'
   status: awaiting_z2
   note: 'Observed directly on PR #553: merged with Repository admission/backpressure gate and Verify Z2 Ratification Requirements both failure at merge, no admission entry ever added, and no automatic record of the bypass exists anywhere in-repo. Proposes a capture workflow modeled on molt-tier-check.yml.'
+- q_id: Q-WITNESS-LEDGER-TIER0-EXTENSION-01
+  title: Extend the INTENT-OS witness ledger with a Tier 0 (anonymous public participant) actor class
+  path: z1-inbox/2026-09-27/Q-WITNESS-LEDGER-TIER0-EXTENSION-01.md
+  submitted: '2026-09-27'
+  status: awaiting_z2
+  tier: 2
+  note: 'Follow-up to Issue #559 (scaling Seed Constitution ratification): proposes extending the already-ratified Q-INTENT-OS-WITNESS-LEDGER-01 schema with a Tier0 actor_role and opaque actor_token, rather than building a second ledger, so the ledger becomes the traceable pool a sortition panel (Issue #559 Option C) draws from.'
 
 records:
 - path: z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md
