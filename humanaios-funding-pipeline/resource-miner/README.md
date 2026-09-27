@@ -106,6 +106,25 @@ python3 -m resource_miner.cli scan --source rss --rss 'https://example.org/oppor
 
 Without `--dry-run`, output defaults to `data/resources.jsonl`, which is git-ignored because live scans are observations, not curated source code.
 
+### Three `data/resources*.jsonl` files, not one
+
+- `data/resources.seed.jsonl` — curated fixture, hand-verified, checked in (see "First live specimen" above).
+- `data/resources.jsonl` — ephemeral local/live scan output, git-ignored (see above).
+- `data/resources.snapshot.jsonl` — durable scan output, checked in, refreshed daily by `.github/workflows/resource-miner-scan.yml`. This is what `app.py`'s `GET /api/resources` falls back to when no live scan has run yet in the current process, so results survive a Railway restart/redeploy without reversing the git-ignore decision above.
+
+## Run as an HTTP service
+
+`app.py` (repo root of this directory, sibling to the `resource_miner/` package) exposes the same discovery pipeline over stdlib HTTP, no third-party dependencies added:
+
+```bash
+python3 app.py --host 0.0.0.0 --port 8766
+```
+
+- `GET /api/health` — liveness.
+- `GET /api/needs` — the current Need Graph.
+- `GET /api/resources` — the most recent scan output: `data/resources.jsonl` if present, else `data/resources.snapshot.jsonl`.
+- `GET|POST /api/scan` — runs the same discovery -> `enrich()` pipeline as `python3 -m resource_miner.cli scan`, accepting the same `source`/`needs`/`funding_data`/`dev_tag`/`github_query`/`rss` fields as querystring params (GET) or a JSON body (POST). Read-only by default (`persist=false`); pass `persist=1` (or `"persist": true` in a POST body) to write `data/resources.jsonl`, matching this service's Z0/Z1 read-only-discovery framing — nothing here asserts applicant eligibility.
+
 ## ResourceCandidate contract
 
 Each candidate carries:
