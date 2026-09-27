@@ -138,3 +138,20 @@ The normalized resource record is the handoff. Entitlement Navigator (or a resol
 3. Add append-only discovery receipts rather than overwriting scan output.
 4. Feed repository constraints/open needs into the Need Graph automatically.
 5. Add outcome calibration: predicted relevance/effort/value -> actual result -> improved future routing.
+
+## Guiding Light handoff
+
+Guiding Light is the pathway-navigation layer downstream of discovery and upstream of a consequential human/authority decision.
+
+```text
+Resource Miner
+→ ResourceCandidate + provenance + need alignment
+→ services/guiding_light_adapters.py
+→ Guiding Light target
+→ mandatory eligibility remains UNKNOWN unless separately assessed
+→ VERIFY_AUTHORITY / domain resolver
+→ mapped target
+→ REACHABLE / BRIDGE / FRONTIER / HOLD
+```
+
+The adapter `resource_candidate_to_target()` may carry forward source URLs and Need Graph scores. It may **not** convert need alignment, route state, or `eligibility_assessed=false` into applicant eligibility. This is covered by `tests/test_guiding_light.py`.

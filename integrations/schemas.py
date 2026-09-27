@@ -35,6 +35,14 @@ class EventType(Enum):
     PAPER = "paper"
     PREPRINT = "preprint"
 
+    # Domain-neutral Guiding Light events
+    TARGET_DISCOVERED = "target_discovered"
+    TARGET_MAPPED = "target_mapped"
+    GRADIENT_DELTA = "gradient_delta"
+    INTERVENTION_SIGNAL = "intervention_signal"
+    STATE_UPDATE = "state_update"
+    TARGET_OUTCOME = "target_outcome"
+
     # Career-gradient events (Guiding Light)
     OPPORTUNITY_DISCOVERED = "opportunity_discovered"
     OPPORTUNITY_MAPPED = "opportunity_mapped"
