@@ -1180,6 +1180,9 @@ window.addEventListener("hashchange", jumpToHash);
     { label: 'EXPERIMENT', items: [
       { id: 'arena', href: 'intent-os-arena.html', name: 'ARENA', desc: 'Governance-versioned multi-agent runs', icon: '⬡' }
     ]},
+    { label: 'REFLEX', items: [
+      { id: 'guiding-light', href: 'intent-os-guiding-light.html', name: 'Guiding Light', desc: 'Career gradient · learning delta · Witness observation', icon: '✦' }
+    ]},
     { label: 'HUMANAIOS', items: [
       { id: 'home', href: HOME, name: 'The Witness', desc: 'humanaios.ai · the public site', icon: '◌' }
     ]}
@@ -1188,12 +1191,13 @@ window.addEventListener("hashchange", jumpToHash);
   var BOARD = 'intent-os-humanaios-v3_3.html';
   function hashView() { var m = /(?:^#|&)view=([a-z]+)/.exec(window.location.hash || ''); return m ? m[1] : null; }
   function currentPage() { return window.location.pathname.split('/').pop() || BOARD; }
-  function itemHref(item) {  // under file:// the board's views are hashes of the one board file (see the board's pageHref)
-    if (LOCAL && item.id !== 'dashboard' && item.id !== 'home') return BOARD + '#view=' + item.id;
+  var BOARD_VIEWS = ['board','decisions','commitments','records','arena'];
+  function itemHref(item) {  // under file:// only derived board views become hashes; standalone reflex pages keep their own href
+    if (LOCAL && BOARD_VIEWS.indexOf(item.id) !== -1) return BOARD + '#view=' + item.id;
     return item.href;
   }
   function isActive(item) {
-    if (LOCAL && currentPage() === BOARD && item.id !== 'dashboard' && item.id !== 'home') return item.id === (hashView() || 'board');
+    if (LOCAL && currentPage() === BOARD && BOARD_VIEWS.indexOf(item.id) !== -1) return item.id === (hashView() || 'board');
     return item.href === page;
   }
   function readStamp() {  // the board's read date on the board's pages; the harness run on the dashboard; a plain name otherwise
