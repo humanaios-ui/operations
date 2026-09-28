@@ -362,3 +362,24 @@ This tool is **Zone 1 infrastructure** (Unit Zero executes). The data it produce
 *Wado.*
 
 <!-- Last updated: 2026-06-02 -->
+
+## Guiding Light integration boundary
+
+The funding pipeline is a discovery and catalog surface. Guiding Light v0.2 can normalize its records into the general evidence-to-target gradient, but existing `eligibility_tags`, `native_eligible`, `ai_safety_relevant`, TRL tags, and heuristic fit scores are **not** treated as current authoritative applicant eligibility.
+
+`services/guiding_light_adapters.py::funding_source_to_target` therefore creates a funding target with a mandatory `UNKNOWN` eligibility requirement until a current authority/rule resolver establishes the applicant predicates.
+
+The intended route is:
+
+```text
+funding catalog / Resource Miner
+→ discovery candidate
+→ current-source verification
+→ applicant-specific eligibility mapping
+→ Guiding Light gradient
+→ human decision
+→ application / outcome receipt
+→ evidence-state update
+```
+
+The older `FundingFitScorer` remains useful as a heuristic discovery signal; it is not the authority layer for Guiding Light actionability.

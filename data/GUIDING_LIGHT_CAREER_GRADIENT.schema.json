@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/guiding-light-career-gradient-v0.1.schema.json",
+  "title": "Guiding Light Career Gradient Snapshot",
+  "type": "object",
+  "required": ["schema_version", "profile_id", "declared_goal_source", "opportunities"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "as_of": {"type": "string"},
+    "declared_goal_source": {"type": "string", "minLength": 1},
+    "selected_target": {"type": ["string", "null"]},
+    "source_refs": {"type": "array", "items": {"type": "string"}},
+    "omissions": {"type": "array", "items": {"type": "string"}},
+    "uncertainty": {"type": "array", "items": {"type": "string"}},
+    "opportunities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "requirements", "gradient_axes"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "title": {"type": "string", "minLength": 1},
+          "opportunity_value": {"type": "number", "minimum": 0, "maximum": 1},
+          "gradient_axes": {
+            "type": "object",
+            "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "capability", "mapping_state"],
+              "properties": {
+                "id": {"type": "string"},
+                "capability": {"type": "string"},
+                "weight": {"type": "number", "minimum": 0},
+                "mandatory": {"type": "boolean"},
+                "mapping_state": {
+                  "enum": ["DOCUMENTED", "USER_ATTESTED", "TRANSFERABLE", "PARTIAL", "PLANNED", "UNKNOWN", "NOT_HELD", "BLOCKED"]
+                },
+                "gap_type": {
+                  "enum": ["unknown", "knowledge", "evidence", "credential", "experience", "blocker"]
+                },
+                "evidence_refs": {"type": "array", "items": {"type": "string"}},
+                "artifact_target": {"type": ["string", "null"]}
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

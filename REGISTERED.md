@@ -4180,6 +4180,56 @@ superseded_by: null
 **Estimated effort:** Documentation only — no code or CI changes
 **Assigned executor (pending Z2 delegation):** N/A (documentation candidate; no Z3 execution required beyond the optional CLAUDE.md link)
 
+---
+
+### Q-AUTHORIZATION-EVIDENCE-MAPPING-01 — Authorization & Evidence Assurance Mapping (Layer 4)
+
+```yaml
+---
+id: "Q-AUTHORIZATION-EVIDENCE-MAPPING-01"
+name: "authorization-evidence-mapping"
+status: REGISTERED
+class: Q
+date_registered: "2026-09-28"
+date_origin: "2026-09-27"
+session_registered: "S-092826-Z1-authevidence"  # NOTE: same non-conforming session_registered pattern already flagged and accepted at Q-BOOT-PROCESS-MAP-01 (above, 2026-09-14 entry) — this repo has no visible mechanism for a session to learn its own canonical S-MMDDYY-NN short of Z2 assigning one, so the slug form is kept rather than fabricated.
+principles_triggered: ["P-governance", "P-framework"]
+substrate: "Claude Sonnet 5 (claude-code-remote) — Z1 proposer session"
+tags: ["governance", "authorization", "evidence", "ci-gates", "documentation", "reference-architecture"]
+related_finding: ["F-62", "F-63", "F-64", "H-CAND-GOVERNANCE-CAPTURE-SURFACE-01"]
+zone2_ratification: "Carly R. Anderson (Night) · 2026-09-28 · direct Z2 instruction, this session — see Z2 Ratification section below for hash"
+calibration_ref: null  # PENDING — no P30 interactive acat_document_analyzer_v1.1 pass run this session, same honest gap Q-BOOT-PROCESS-MAP-01 flagged for itself rather than fabricating a value; ratified anyway per direct, explicit Z2 instruction, which is Z2's prerogative to waive
+superseded_by: null
+---
+```
+
+- **Synopsis:** Creates `AUTHORIZATION_EVIDENCE_MAPPING.md` (Layer 4 of the concept-to-code stack, after `FRAMEWORK_MAPPING.md` → `BOOT_PROCESS_MAP.md` → `FIVE_RINGS_MAPPING.md`) and `authorization_evidence.py`. Maps a set of authorization-and-evidence assurance questions — is the system authorized to operate; does an actor have sufficient evidence and authority for an action right now; is it inside a safe envelope; is it sufficiently assured; can it detect unauthorized paths, skipped approvals, and protocol divergence; does it establish provenance/custody; does it render ACT/ABSTAIN/ESCALATE/ACQUIRE-EVIDENCE/REDUCE-SCOPE/MAKE-REVERSIBLE/SANDBOX/ROLL-BACK; does it prevent one model of reality from monopolizing the control loop — onto mechanisms the repo already has: the molt anti-cascade cycle, RNOLA's authority-boundary doctrine (`docs/INTENT_OS_RNOLA_INTEGRATION.md`), the CI gate registry, and findings F-62/F-63/F-64 and `H-CAND-GOVERNANCE-CAPTURE-SURFACE-01`. Each question is reported ANSWERED, PARTIAL, or GAP rather than uniformly resolved (9 answered, 5 partial with the specific open item named — e.g. IC-050, the advisory `z2_ratification_gate.yml` commit-authorship check — 1 genuine gap). The one gap — no existing artifact rendered the eight decision primitives — is closed by `authorization_evidence.py`'s `render_decision()`: a single stdlib function composing nine repo-native signals (Z-tier capability, anti-cascade envelope state, IC-030 evidence freshness, reversibility, RNOLA's consequential-agency boundary) into one of the eight primitives plus a reason. `python3 authorization_evidence.py --smoke-test` exercises all 8 branches (verified passing at merge).
+- **Landed:** PR #549 (mapping doc + module + `CLAUDE.md`/`FIVE_RINGS_MAPPING.md` stack links), merged 2026-09-27. PR #550 (explicit admission entry in `REPOSITORY_COORDINATOR_POLICY.json`, itself instructed directly by Z2 in-session after the repository admission/backpressure gate correctly refused #549 as an unadmitted, non-maintenance ready PR), merged 2026-09-27.
+- **Scope guard / flagged, not resolved:** This entry is filed as a REGISTERED.md Q-class candidate-and-ratification under direct, explicit Z2 instruction (this session, 2026-09-28), not via the z1-inbox/`ratify.py` candidate pipeline Q-RBE-01 and other governance-gate candidates used — no `z1-inbox/<date>/` file was created for this candidate, matching the precedent already set by `Q-FRAMEWORK-MAPPING-01` and `Q-FIVE-RINGS-MAPPING-01` (registered only via `CLAUDE.md`'s Appended Events, no REGISTERED.md entry of their own at all). `.z1-control/ratify.py --list` does not carry this q_id and was not run against it; the Ratification Hash below is computed with that script's own `signature()` function, applied directly to this candidate block's text rather than through its z1-inbox-backed CLI. `CLAUDE.md`'s own governance table calls REGISTERED.md "Z2 sole write" while its "Z1: Proposers" section lists candidate-block writes as Z1's output — this entry is filed by Z1 (this session) under real-time, explicit Z2 instruction to do so; the same live ambiguity `Q-BOOT-PROCESS-MAP-01` already named rather than resolved, and not adjudicated here either.
+- **Falsifier:** Any question row in `AUTHORIZATION_EVIDENCE_MAPPING.md` marked ANSWERED whose cited file does not actually exist or does not say what the row claims it says; or any of `render_decision()`'s eight branches unreachable by its own `--smoke-test`.
+
+**Priority:** Reference architecture (non-blocking).
+**Estimated effort:** Documentation + one stdlib module — no other code or CI changes.
+**Assigned executor:** N/A (documentation/reference candidate; no Z3 execution required).
+
+---
+
+## Z2 Ratification — 2026-09-28
+
+**Candidate ID:** Q-AUTHORIZATION-EVIDENCE-MAPPING-01
+**Z2 Authority:** Night (Carly R. Anderson)
+**Decision:** ACCEPT
+**Timestamp:** 2026-09-28T00:00:00Z
+**Ratification Hash:** d44b986feb44aab056480650886575f98f011db35689a10b8be86f1f7e0fa23a
+**Hash basis:** `sha256(candidate | by="Carly R. Anderson (Night)" | at="2026-09-28T00:00:00Z" | decision=ACCEPT)`, computed with `.z1-control/ratify.py`'s own `signature()` function directly over this candidate block's exact text (YAML frontmatter through the "Assigned executor" line above) — not run through that script's z1-inbox-backed CLI, since no z1-inbox candidate file exists for this q_id (see this candidate's own "Scope guard" note above for why). Independently reproducible: `python3 -c "import sys; sys.path.insert(0,'.z1-control'); from ratify import signature; print(signature(open('<this candidate block saved to a file>','rb').read(), 'Carly R. Anderson (Night)', '2026-09-28T00:00:00Z', 'ACCEPT'))"`.
+**Authority:** Admiral (Z2 Serial Gate) — direct instruction, this session
+
+**Ratified Scope:**
+- `AUTHORIZATION_EVIDENCE_MAPPING.md` + `authorization_evidence.py` as Layer 4 of the concept-to-code stack (already merged to `main` via PR #549, PR #550)
+- The document's own honest ANSWERED/PARTIAL/GAP disposition per question, including the open items it names (IC-050, `molt_cycle.py`'s `check_anti_cascade_rules()` stub, the advisory `z2_ratification_gate.yml` authorship check, `H-CAND-GOVERNANCE-CAPTURE-SURFACE-01` still CANDIDATE) — ratifying the mapping does not itself resolve any of those; they remain open on their own tracks
+- `calibration_ref: null` (no P30 pass run) accepted as-is per this Z2 instruction, not treated as a blocking gate
+
+**Status:** ACCEPTED · Layer 4 of the concept-to-code stack ratified; `CLAUDE.md` Appended Events updated to match
 
 ---
 
@@ -4731,7 +4781,6 @@ superseded_by: null
 
 ---
 
-<<<<<<< HEAD
 ## Z2 Ratification — ACCEPTED 2026-09-19
 
 **Candidate ID:** Q-GRANT-BROKER-PHASE-2B-01  

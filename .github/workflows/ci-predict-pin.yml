@@ -31,10 +31,10 @@ jobs:
       # inside ci_predict_pin_v1_0.py, never executed as code — see that
       # file's "WHY THIS NEVER CHECKS OUT THE PR BRANCH" for why this matters
       # given this job holds pull-requests: write.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 

@@ -1,0 +1,283 @@
+{
+  "policy": {
+    "epistemic_status_required": true,
+    "badge_visibility_rule": "every_rendered_claim",
+    "actualizer_action_color": "minimum_warrant_status",
+    "execution_consequence_quarantine_hours": 48,
+    "living_constitution_status": "EXPERIMENTAL_FALSIFIABLE"
+  },
+  "system_state": {
+    "repository": "humanaios-ui/operations",
+    "branch": "copilot/oracle-actualizer-test-living-constitution",
+    "commit": "d4d2dbb",
+    "generated_at": "2026-09-24T16:22:17Z",
+    "posture": "evidence-bound, contestable, human-authority-retained"
+  },
+  "constitutional_state": {
+    "foundational_principles": [
+      "Oracle is not ground truth",
+      "Agreement is not verification",
+      "Actualizer cannot self-authorize",
+      "Unknowns remain first-class"
+    ],
+    "authorization_grants": [
+      {
+        "authorization_id": "AUTH-001",
+        "grantor": "asset-owner",
+        "grantee_role": "SECURITY-EVALUATOR",
+        "assets": [
+          "sandbox-A"
+        ],
+        "permitted_actions": [
+          "security_testing"
+        ],
+        "prohibited_actions": [
+          "third_party_access"
+        ],
+        "valid_from": null,
+        "valid_until": null,
+        "delegation_allowed": false,
+        "evidence_ref": "scope-document-v1"
+      }
+    ],
+    "trust_boundaries": [
+      {
+        "boundary_id": "TB-001",
+        "description": "No third-party asset crossing without explicit grant."
+      }
+    ],
+    "delegation_grants": [
+      {
+        "delegation_id": "DG-001",
+        "delegation_allowed": false,
+        "evidence_ref": "scope-document-v1"
+      }
+    ],
+    "safe_stop_policies": [
+      {
+        "policy_id": "SSP-001",
+        "stop_condition": "authority unresolved",
+        "required_action": "halt_and_escalate"
+      }
+    ]
+  },
+  "agents": [
+    {
+      "agent_id": "witness-1",
+      "role": "WITNESS",
+      "authority_scope": "verification only"
+    },
+    {
+      "agent_id": "jester-1",
+      "role": "JESTER",
+      "authority_scope": "challenge only"
+    },
+    {
+      "agent_id": "oracle-1",
+      "role": "ORACLE",
+      "authority_scope": "state synthesis only"
+    },
+    {
+      "agent_id": "actualizer-1",
+      "role": "ACTUALIZER",
+      "authority_scope": "proposal only"
+    },
+    {
+      "agent_id": "topology-1",
+      "role": "PROVENANCE_TOPOLOGY_AGENT",
+      "authority_scope": "hidden-dependency and provenance-path detection"
+    },
+    {
+      "agent_id": "human-1",
+      "role": "HUMAN_OPERATOR",
+      "authority_scope": "consequential authorization"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "CR-117",
+      "statement": "Three active SMAG work items overlap in scope and expected outputs.",
+      "epistemic_status": "VERIFIED",
+      "provenance_refs": [
+        "issue:#497",
+        "issue:#507",
+        "audit:scope-overlap-v1"
+      ]
+    },
+    {
+      "claim_id": "CR-121",
+      "statement": "Consolidation can reduce operator queue load without dropping evidence history.",
+      "epistemic_status": "INFERRED",
+      "provenance_refs": [
+        "analysis:queue-comparison-v2"
+      ]
+    },
+    {
+      "claim_id": "CR-130",
+      "statement": "Consolidation has no hidden dependency on external registries.",
+      "epistemic_status": "UNKNOWN",
+      "provenance_refs": [
+        "challenge:topology-gap-01"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EV-001",
+      "type": "issue",
+      "source": "#497",
+      "observed_at": "2026-09-24T16:22:17Z"
+    },
+    {
+      "evidence_id": "EV-002",
+      "type": "audit",
+      "source": "scope-overlap-v1",
+      "observed_at": "2026-09-24T16:22:17Z"
+    }
+  ],
+  "warrants": [
+    {
+      "warrant_id": "WR-001",
+      "claim_ids": [
+        "CR-117",
+        "CR-121"
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "warrant_id": "WR-002",
+      "claim_ids": [
+        "CR-130"
+      ],
+      "status": "BLOCKED_UNKNOWN"
+    }
+  ],
+  "challenges": [
+    {
+      "challenge_id": "CH-001",
+      "target_claim_id": "CR-130",
+      "status": "UNRESOLVED",
+      "reason": "missing topology proof"
+    }
+  ],
+  "unknowns": [
+    {
+      "unknown_id": "UK-001",
+      "question": "Do any hidden dependencies make immediate closure unsafe?",
+      "current_evidence": [
+        "challenge:topology-gap-01"
+      ],
+      "needed_observation": "provenance topology scan",
+      "candidate_experiment": "compare dependency graph before/after dry-run"
+    }
+  ],
+  "experiments": [
+    {
+      "experiment_id": "PILOT-001",
+      "status": "BASELINE_PRESERVED",
+      "note": "No substrate optimization applied in baseline stage."
+    }
+  ],
+  "precedents": [
+    {
+      "precedent_id": "PR-001",
+      "note": "Precedent informs but does not override contradictory current evidence."
+    }
+  ],
+  "amendments": [
+    {
+      "amendment_id": "AM-001",
+      "status": "PROPOSED",
+      "note": "Epistemic badge enforcement under active test."
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "ACT-0042",
+      "proposed_action": "Consolidate three overlapping SMAG work items with preserved lineage.",
+      "goal": "Reduce duplicate operational work while preserving challenge/evidence links.",
+      "authority_basis": "human-approved repository coordination",
+      "warrant": [
+        "CR-117",
+        "CR-121"
+      ],
+      "warrant_premise_statuses": [
+        "VERIFIED",
+        "INFERRED"
+      ],
+      "lowest_warrant_status": "INFERRED",
+      "ui_color": "blue",
+      "required_preconditions": [
+        "all candidate issues are independently classified as overlapping",
+        "no unresolved blocker evidence is open"
+      ],
+      "affected_artifacts": [
+        "PRIORITY_QUEUE.md",
+        "REGISTERED.md"
+      ],
+      "execution_plan": [
+        "create one consolidated work item",
+        "cross-link predecessor issues",
+        "preserve prior evidence references",
+        "close predecessors only after verification"
+      ],
+      "reversible": true,
+      "expected_observation": "One active item replaces three redundant active items with preserved provenance.",
+      "success_condition": "Queue shows one active consolidated item and all predecessor evidence remains traceable.",
+      "falsifier": "New evidence shows materially independent scope across any predecessor item.",
+      "human_approval_required": true,
+      "status": "READY_FOR_HUMAN_AUTHORIZATION",
+      "execution_receipt": null
+    },
+    {
+      "action_id": "ACT-0043",
+      "proposed_action": "Close redundant issues immediately.",
+      "goal": "Reduce open issue count rapidly.",
+      "authority_basis": "none",
+      "warrant": [
+        "CR-130"
+      ],
+      "warrant_premise_statuses": [
+        "UNKNOWN"
+      ],
+      "lowest_warrant_status": "UNKNOWN",
+      "ui_color": "gray",
+      "required_preconditions": [
+        "independent topology review confirms no hidden dependency"
+      ],
+      "affected_artifacts": [
+        "issues"
+      ],
+      "execution_plan": [
+        "bulk-close candidate issues"
+      ],
+      "reversible": true,
+      "expected_observation": "Issue count drops with no regressions.",
+      "success_condition": "No impacted dependency is observed post-close.",
+      "falsifier": "Dependency breakage or missing authority appears in post-action observation.",
+      "human_approval_required": true,
+      "status": "BLOCKED_PENDING_OVERRIDE",
+      "execution_receipt": null
+    }
+  ],
+  "execution_receipts": [
+    {
+      "receipt_id": "RCPT-0001",
+      "action_id": "ACT-0042",
+      "executed_at": "2026-09-24T14:22:17Z",
+      "consequence_status": "EXECUTION_CONSEQUENCE_UNVERIFIED",
+      "quarantine_until": "2026-09-26T14:22:17Z",
+      "independent_verification": {
+        "status": "PENDING",
+        "evidence_refs": []
+      }
+    }
+  ],
+  "human_attention": [
+    {
+      "attention_id": "HA-001",
+      "type": "AUTHORITY_DECISION",
+      "summary": "Authorize ACT-0042 after reviewing unresolved challenges."
+    }
+  ]
+}

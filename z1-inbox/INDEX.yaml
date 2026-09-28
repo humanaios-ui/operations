@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-09-24'
+generated: '2026-09-25'
 decision_window_days: 2
 counts:
-  candidates: 91
-  records: 43
+  candidates: 96
+  records: 44
 ratifiers:
 - Night
 candidates:
@@ -977,6 +977,38 @@ candidates:
   status: awaiting_z2
   falsifier_waiver: "As filed, this document records a human Z2 decision and implementation authorization but contains no explicit ## Falsifier or falsifier: field. Indexed as awaiting canonical signature so the decision cannot be treated as mechanically ratified by prose alone."
   note: "Contains a claimed 2026-09-23 Z2 ratification event and a next step requiring RATIFY_TOKEN; this entry preserves that distinction rather than silently treating the prose receipt as a completed serial-gate signature."
+- q_id: Q-CRB-COMPILE-01
+  title: Computational Review Board — portable adjudication institution
+  path: z1-inbox/2026-09-25/COMPUTATIONAL_REVIEW_BOARD_PROPOSAL.md
+  submitted: '2026-09-25'
+  status: awaiting_z2
+  note: 'Compiles the external-review-board function into a portable review package, blind multi-substrate review, deterministic gate, and HumanAIOS-removal test. User direction on 2026-09-25 authorized continued implementation work, but this index entry does not mint a Z2 signature.'
+- q_id: Q-ACAT-DISTRIBUTION-PLAYS-01
+  title: ACAT distribution plays — applying an externally-sourced growth playbook
+  path: z1-inbox/2026-09-27/Q-ACAT-DISTRIBUTION-PLAYS-01.md
+  submitted: '2026-09-27'
+  status: awaiting_z2
+  note: 'Proposes two of seven plays from an external distribution-strategy article for ACAT specifically (free-tool funnel + programmatic SEO/AEO), identified as the only active repo both live and meant to face external users today.'
+- q_id: Q-PROCESS-PRODUCT-RATIO-01
+  title: Governance ceremony volume outweighs shipped product; z2_ratification_gate.yml silently no-op'd for 122 runs
+  path: z1-inbox/2026-09-27/F-CAND-PROCESS-VS-PRODUCT-RATIO-01.md
+  submitted: '2026-09-27'
+  status: awaiting_z2
+  note: 'Surfaced incidentally during the ACAT distribution review. 777 of 1,752 tracked files are Markdown vs. ~520 code files; z2_ratification_gate.yml was invalid YAML from its first commit and ran 122 times with zero executed steps before being fixed.'
+- q_id: Q-GATE-BYPASS-LEDGER-01
+  title: Merges through non-required-but-meaningful gates leave no in-repo trace
+  path: z1-inbox/2026-09-27/F-CAND-SILENT-GATE-BYPASS-01.md
+  submitted: '2026-09-27'
+  status: awaiting_z2
+  note: 'Observed directly on PR #553: merged with Repository admission/backpressure gate and Verify Z2 Ratification Requirements both failure at merge, no admission entry ever added, and no automatic record of the bypass exists anywhere in-repo. Proposes a capture workflow modeled on molt-tier-check.yml.'
+- q_id: Q-WITNESS-LEDGER-TIER0-EXTENSION-01
+  title: Extend the INTENT-OS witness ledger with a Tier 0 (anonymous public participant) actor class
+  path: z1-inbox/2026-09-27/Q-WITNESS-LEDGER-TIER0-EXTENSION-01.md
+  submitted: '2026-09-27'
+  status: awaiting_z2
+  tier: 2
+  note: 'Follow-up to Issue #559 (scaling Seed Constitution ratification): proposes extending the already-ratified Q-INTENT-OS-WITNESS-LEDGER-01 schema with a Tier0 actor_role and opaque actor_token, rather than building a second ledger, so the ledger becomes the traceable pool a sortition panel (Issue #559 Option C) draws from.'
+
 records:
 - path: z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md
   title: "Z2 rulings 2026-09-24 — recovered Q-MAIL merge-is-ratification receipt"
@@ -1160,4 +1192,9 @@ records:
 - path: z1-inbox/2026-09-21/Z2_RATIFY_SMAG_BLOCKERS.md
   title: "Z2 Ratification: SMAG Calibration & Sequencing Blockers"
   note: "Z2 decision record: ratified Q-SMAG-CALIBRATION-SCHEMA-CONFORMANCE-01 (ACCEPT Option A) and Q-SMAG-Z3-TASK-SEQUENCING-01 (ACCEPT with allocations). Z3 executor sequencing and Intent-OS Phase 1 binding guidance provided."
+
+- path: z1-inbox/2026-09-27/MOLT-MEASUREMENT-MANUAL-EXTRACTION.md
+  title: "MOLT Measurement Manual Extraction Procedure — Blockchain Trading Pilot (Z-012)"
+  note: "Step-by-step guide for Z2 to extract measurement data and evaluate falsifier for Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001. Window closes 2026-09-28 00:00 UTC. Covers data collection, Sharpe/drawdown calculation, falsifier evaluation (Sharpe < 0.80 OR drawdown > 5%), molt_ledger.jsonl update with hash regeneration, MOLT_STATE.md trigger, anti-cascade checking, and complete verification checklist. Includes KEEP and REVERT scenarios with JSON examples. Supporting infrastructure verified: workflow exists, molt entry configured, Z2 ratification recorded."
+
 excluded: []

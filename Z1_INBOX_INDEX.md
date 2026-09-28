@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**91 candidates** — ⏳ awaiting Z2 81 · ✅ ratified 10 · **43 records**
+**92 candidates** — ⏳ awaiting Z2 82 · ✅ ratified 10 · **44 records**
 
-## Awaiting Z2 (81)
+## Awaiting Z2 (82)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -93,6 +93,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-25 | **Q-SA-WINDOW-DESIGN-E-PLUS-A-01** ⚠️ falsifier waived | Falsifiable Self-Assessment Window — Design E + A | `z1-inbox/2026-09-23/falsifiable_self_assessment.md` |
 | 2026-09-25 | **Q-Z2-PHASE-2A-INTERROGATION-COMPLETE-01** ⚠️ falsifier waived | Phase 2a interrogation approvals + Design E/A ratification record awaiting canonical signature | `z1-inbox/2026-09-23/interrogation_approvals.md` |
 | 2026-09-25 | **Q-Z2RATIF-MECH-32** | Z2 Ratification Mechanism Undocumented — governance workflow clarity gap | `z1-inbox/2026-09-23/IC-032-Z2-RATIFICATION-MECHANISM.md` |
+| 2026-09-27 | **Q-CRB-COMPILE-01** | Computational Review Board — portable adjudication institution | `z1-inbox/2026-09-25/COMPUTATIONAL_REVIEW_BOARD_PROPOSAL.md` |
 
 ## Decided (10)
 
@@ -460,7 +461,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (43)
+## Records (44)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -508,6 +509,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-22/MEASUREMENT-SCOPE-AUDIT.md` | Measurement Scope Audit — Blockchain Trading Pilot (Z-012) |
 | `z1-inbox/2026-09-23/BUZZ_INTEGRATION_SPEC.md` | Buzz Integration Specification — Technical mapping of HumanAIOS Z1/Z2/Z3 governance to Buzz affordances |
 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md` | Z2 rulings 2026-09-24 — recovered Q-MAIL merge-is-ratification receipt |
+| `z1-inbox/2026-09-27/MOLT-MEASUREMENT-MANUAL-EXTRACTION.md` | MOLT Measurement Manual Extraction Procedure — Blockchain Trading Pilot (Z-012) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
