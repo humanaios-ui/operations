@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**97 candidates** — ⏳ awaiting Z2 87 · ✅ ratified 10 · **51 records**
+**97 candidates** — ⏳ awaiting Z2 87 · ✅ ratified 10 · **52 records**
 
 ## Awaiting Z2 (87)
 
@@ -467,7 +467,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (51)
+## Records (52)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -523,6 +523,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-25/PHASE-2B-PROCESS-IMPROVEMENT-IMPLEMENTATION.md` | Phase 2B: Process Improvement & Behavioral Data Capture — Implementation Plan |
 | `z1-inbox/2026-09-25/SESSION-CLOSURE-HANDOFF.md` | Z1 Session Closure Handoff — Phase 1 CI Consolidation & Corrective Fix |
 | `z1-inbox/2026-09-27/MOLT-MEASUREMENT-MANUAL-EXTRACTION.md` | MOLT Measurement Manual Extraction Procedure — Blockchain Trading Pilot (Z-012) |
+| `z1-inbox/2026-09-28/IC-065-EVIDENCE-LEDGER-GAP-PR465.md` | IC-065 — Evidence Ledger Gap (PR #465) |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
