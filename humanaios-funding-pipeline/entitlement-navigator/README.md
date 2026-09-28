@@ -190,6 +190,13 @@ skills/entitlement-evidence-research/SKILL.md
 ```
 
 
+## Upstream Resource Miner handoff
+
+`../resource-miner/` is the permissive discovery layer. Its candidates arrive as unassessed external resources with provenance, need mappings, and routing signals. Entitlement Navigator must independently verify current authoritative rules and applicant-specific predicates before converting a Miner candidate into a `RULE_MATCH`, `CONDITIONAL_MATCH`, `INVESTIGATE`, or actionable application path.
+
+A high Miner relevance score is evidence of **need alignment**, not eligibility or a recommendation to pursue.
+
+
 ## Integration with the HumanAIOS funding pipeline
 
 When this project lives at `operations/humanaios-funding-pipeline/entitlement-navigator/`, it automatically discovers the canonical funding dataset at `../data/sources.json`.

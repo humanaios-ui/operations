@@ -5,5 +5,5 @@ nixPkgs = ["python311"]
 cmds = ["python3 -m venv --copies /opt/venv", "/opt/venv/bin/pip install -r requirements.txt"]
 
 [start]
-cmd = "python3 tools/decision_relay.py"
+cmd = "/opt/venv/bin/python3 tools/decision_relay.py"
 

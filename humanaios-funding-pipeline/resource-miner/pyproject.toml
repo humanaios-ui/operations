@@ -1,0 +1,9 @@
+[project]
+name = "humanaios-resource-miner"
+version = "0.1.0"
+description = "Evidence-bearing resource discovery and needs mapping upstream of Entitlement Navigator."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+haios-resource-miner = "resource_miner.cli:main"
