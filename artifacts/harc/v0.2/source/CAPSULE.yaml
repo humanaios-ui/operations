@@ -1,0 +1,54 @@
+capsule:
+  id: humanaios-agent-replication-capsule
+  short_name: HARC
+  version: 0.2.0
+  purpose: >-
+    Allow an independent AI agent to reproduce a bounded HumanAIOS-style mechanism,
+    prove what it reproduced, and signal engineering changes without silently expanding authority.
+  posture: independent_replication
+  public_safe: true
+  standing: experimental_advisory_not_canonical_enforcement
+
+replication_contract:
+  required_outputs:
+    - replication_receipt.json
+    - conformance_result.json
+    - engineering_change_proposals.jsonl
+    - humility_receipt.md
+    - agent_summary.md
+  target_result:
+    required_when_target_provided: true
+    name_selected_by_trial: true
+  receipt_binding:
+    require_capsule_sha256: true
+    require_exact_git_sha_when_git_target_provided: true
+  language_rule: tests_pass_is_not_claim_proven
+  invariants:
+    - observation_is_not_warrant
+    - discovery_is_not_eligibility
+    - human_validation_is_not_authority_verification
+    - external_ai_review_is_not_authority
+    - disagreement_is_preserved
+    - no_external_side_effect_without_authorization
+    - z2_and_z3_are_not_self_ratifying
+    - replication_receipt_is_strictly_typed
+    - state_transitions_are_explicit
+
+zones:
+  Z1:
+    meaning: local reversible engineering and analysis
+    agent_may_execute: true
+  Z2:
+    meaning: semantic, policy, threshold, governance, or canonical interpretation change
+    agent_may_execute: false
+    agent_action: propose_only
+    requires: human_ratification
+  Z3:
+    meaning: credentialed, financial, deployment, submission, publication, merge, or external relationship action
+    agent_may_execute: false
+    agent_action: blocked_without_explicit_human_execution
+
+runtime_limit:
+  statement: >-
+    HARC can deny execution only when the host routes actions through runtime/authorize_action.py.
+    It does not interpose on host tools or credentials that bypass that guard.

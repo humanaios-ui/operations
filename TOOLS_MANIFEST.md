@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**175 registered tools** · 2 MCP servers · 4 excluded · 139 carrying Builder v1.7 markers
+**180 registered tools** · 2 MCP servers · 4 excluded · 140 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 175 |
-| — status `draft` | 174 |
+| Registered tools | 180 |
+| — status `draft` | 179 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 139 |
+| Builder v1.7 markers present | 140 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -35,7 +35,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-023 | acat_sdt_analytics | `tools/acat_sdt_analytics_v1_0.py` | 1.0.0 | 1 | draft | — | ACAT SDT Analytics — v1.0 |
 | HAIOS-TOOL-176 | grant_matching_engine_v1_0 | `tools/grant_matching_engine_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Matching Engine v1.0 |
 
-## Audit — `audit_tool` (20)
+## Audit — `audit_tool` (21)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -59,6 +59,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-115 | skill_compression_scanner_v1_0 | `tools/skill_compression_scanner_v1_0.js` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | — |
 | HAIOS-TOOL-143 | zone_boundary_audit | `tools/zone_boundary_audit_v1_0.py` | 1.0.0 | 1 | draft | — | Detects Zone 1/2/3 boundary violations in workflow artifacts and operator logs. |
 | HAIOS-TOOL-156 | registered_failure_mode_scan | `tools/registered_failure_mode_scan_v0_1.py` | 0.1.0 | 1 | draft | — | Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level first-pass yield / DPMO. Advisory unless `--enforce`. |
+| HAIOS-TOOL-192 | scan_rnola_misuse | `scripts/scan_rnola_misuse.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox patterns, authorization misuse, undefined artifacts, and stale evidence. |
 
 ## Calibration — `calibration_tool` (16)
 
@@ -128,9 +129,9 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-142 | z2_queue | `tools/z2_queue_v1_0.py` | 1.1.0 | 1 | draft | — | Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first, flags ≥3 sessions unresolved. |
 | HAIOS-TOOL-158 | resource_census | `tools/resource_census_v0_1.py` | 0.1.0 | 1 | draft | — | resource_census_v0_1.py — measure the resource state of the operations tree. |
 | HAIOS-TOOL-180 | workflow_dependency_analyzer | `tools/workflow_dependency_analyzer_v1_0.py` | 1.0.0 | 1 | draft | — | Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines |
-| HAIOS-TOOL-187 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.1.0 | 1 | draft | — | repository_coordinator_v0_1.py — evidence-bounded repository coordination index. |
+| HAIOS-TOOL-188 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.2.1 | 1 | draft | — | Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure. |
 
-## Governance — `governance_tool` (15)
+## Governance — `governance_tool` (17)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -149,6 +150,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-181 | graph_convergence | `tools/graph_convergence_v1_0.py` | 1.0.0 | 1 | draft | — | graph_convergence_v1_0.py — grade convergence between two agent-authored graphs. |
 | HAIOS-TOOL-182 | intent_graph | `tools/intent_graph_v1_0.py` | 1.0.0 | 1 | draft | — | intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it. |
 | HAIOS-TOOL-183 | receipt_reconciliation | `tools/receipt_reconciliation.py` | 1.0.0 | 1 | draft | — | Receipt Reconciliation Script — Validates claims against NF_LEDGER |
+| HAIOS-TOOL-190 | enforce_z2_z3_boundary | `scripts/enforce_z2_z3_boundary.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Enforce Z2/Z3 authority boundaries for operator-checks. CI gate to prevent misuse of RNOLA advisory records as merge authority. |
+| HAIOS-TOOL-191 | lint_canonical_skills | `scripts/lint_canonical_skills.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Lint canonical skill entry points to detect substrate drift. CI gate to ensure substrate stubs are thin redirects, not divergent implementations. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
@@ -198,7 +201,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-128 | system_audit | `tools/system_audit_v1_0.py` | 1.1.0 | 1 | draft | — | ⚠️ SUPERSEDED — Do NOT use this version |
 | HAIOS-TOOL-165 | holographic_orchestrator | `tools/holographic_orchestrator.py` | 0.1.0 | 1 | draft | — | Orchestrates holographic person representation via external services: |
 
-## Pipelines — `pipeline_tool` (4)
+## Pipelines — `pipeline_tool` (5)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -206,6 +209,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-019 | acat_pipeline | `tools/acat_pipeline_v0_1.py` | 1.0.0 | 1 | draft | — | acat_pipeline_v0_1.py |
 | HAIOS-TOOL-073 | haios_doc_ingestor | `tools/haios_doc_ingestor_v1_0.py` | 1.0.0 | 1 | draft | — | Document ingestion pipeline for HumanAIOS surfaces. |
 | HAIOS-TOOL-105 | registry_issue_compiler | `tools/registry_issue_compiler_v1_0.py` | 1.0.0 | 1 | draft | — | Registry Issue Compiler - v1.0 |
+| HAIOS-TOOL-189 | build_oracle_state | `scripts/build_oracle_state.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Build a thin Oracle state artifact for the Oracle + Actualizer MVP. |
 
 ## Reporting — `reporting_tool` (5)
 
@@ -313,16 +317,16 @@ A category says what a tool **does to the system**, not what subject it concerns
 | category | meaning | count |
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 2 |
-| `audit_tool` | Audits artifacts or state against rules and reports findings. | 20 |
+| `audit_tool` | Audits artifacts or state against rules and reports findings. | 21 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 16 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 15 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 17 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 4 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
-| `pipeline_tool` | Multi-stage processing of a corpus or record set. | 4 |
+| `pipeline_tool` | Multi-stage processing of a corpus or record set. | 5 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 5 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 9 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
