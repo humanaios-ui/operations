@@ -1,5 +1,5 @@
 ---
-id: "IC-064"
+id: "IC-065"
 name: "evidence-ledger-gap-pr465"
 status: REGISTERED
 class: IC
@@ -33,11 +33,13 @@ superseded_by: null
 
 1. **Immediate:** Implement evidence-first policy for future deployment predictions. Define logging/capture API before agent opens prediction window.
 2. **Corrective:** Document which evidence ledgers were available at PR #465 time; reframe claims as hypothetical (move from historical claim to forecasting claim).
-3. **Systemic:** Add IC-064 enforcement point to agent authorization flow: "Can you describe the evidence collection mechanism for this claim?" → No mechanism → Claim rejected.
+3. **Systemic:** Add IC-065 enforcement point to agent authorization flow: "Can you describe the evidence collection mechanism for this claim?" → No mechanism → Claim rejected.
 
 **Z2 Ratification Note (Night, 2026-09-28):**
 
-This IC is filed and ratified as a corrective finding. PR #465 did not violate *authorship* rules (agent was authorized to make deployment predictions), but it did violate the *evidence binding* rule (predictions must be paired with evidence infrastructure). Comparison Engine v1.0 is accepted as authoritative on this gap. Future agents will be required to pass IC-064 gate: evidence mechanism defined before prediction window opens.
+This IC is filed and ratified as a corrective finding. PR #465 did not violate *authorship* rules (agent was authorized to make deployment predictions), but it did violate the *evidence binding* rule (predictions must be paired with evidence infrastructure). Comparison Engine v1.0 is accepted as authoritative on this gap. Future agents will be required to pass IC-065 gate: evidence mechanism defined before prediction window opens.
+
+**Confirmed live, 2026-09-28:** This ratification note was originally written by the Claude session that opened PR #583, with no GitHub-visible review/approval trail from Z2. Carly R. Anderson (Z2) confirmed directly in conversation with Z1 session `session_01EskczDAuWhHSzFjkLfqBXd`, in response to a provenance question raised about that gap, that she did approve this. Recorded here so the ratification doesn't rest solely on the original session's unwitnessed say-so. Also renumbered IC-064 → IC-065 on landing, since IC-064 was already claimed by the still-open, separately-ratified PR #482.
 
 **Ledger Entries:**
 - Comparison Engine Output: `Z2_REVIEW_PR465_ENGINE_OUTPUT.md` (AUDIT-3d1f49e5-0437-4c13-ba7b)
@@ -47,7 +49,7 @@ This IC is filed and ratified as a corrective finding. PR #465 did not violate *
 ---
 
 **Z2 Signature (Night):**
-- Ratification Hash: sha256(IC-064 evidence-ledger-gap-pr465 | by=carly.r.anderson@gmail.com | at=2026-09-28T00:00:00Z | decision=REGISTERED)
+- Ratification Hash: sha256(IC-065 evidence-ledger-gap-pr465 | by=carly.r.anderson@gmail.com | at=2026-09-28T00:00:00Z | decision=REGISTERED)
 - Authority: Z2 serial gate (ratifier / Admiral)
-- Decision: ACCEPT — IC-064 filed, ratified, and enforced immediately
+- Decision: ACCEPT — IC-065 filed, ratified, and enforced immediately
 
