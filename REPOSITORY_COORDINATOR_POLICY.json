@@ -30,7 +30,9 @@
       563,
       565,
       567,
-      570
+      570,
+      579,
+      581
     ],
     "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
   },
@@ -77,6 +79,8 @@
     "PR #563 (resource-miner app.py + nixpacks.toml + resource-miner-scan.yml, turning resource-miner from a CLI-only tool with no deployable web app into a real Railway HTTP service) admitted explicitly by Z2 instruction, 2026-09-27.",
     "PR #565 (fix corrupted string literal in entitlement/genealogy_builder.py crashing entitlement-navigator's app.py on import) admitted explicitly by Z2 instruction, 2026-09-27: discovered mid-migration when the Railway deployment for PR #561 crash-looped on this pre-existing SyntaxError.",
     "PR #567 (move resource-miner's nixpacks.toml to humanaios-funding-pipeline/nixpacks.toml, widening the Railway build context so ../data/sources.json is actually present) admitted explicitly by Z2 instruction, 2026-09-27: discovered mid-migration when GET /api/scan?source=funding on the deployed PR #563 service returned FileNotFoundError.",
-    "PR #570 (ui/vercel.json build-copy step for oracle_state.json, plus the matching oracle.html fetch-path and test-string updates) admitted explicitly by Z2 instruction, 2026-09-27: mixed change touching ui/ and tests/, neither covered by control_plane.paths, fixing a live 'Unexpected token <' failure on the deployed Oracle + Actualizer page caused by the Vercel project's ui/ Root Directory excluding the repo-root oracle_state.json."
+    "PR #570 (ui/vercel.json build-copy step for oracle_state.json, plus the matching oracle.html fetch-path and test-string updates) admitted explicitly by Z2 instruction, 2026-09-27: mixed change touching ui/ and tests/, neither covered by control_plane.paths, fixing a live 'Unexpected token <' failure on the deployed Oracle + Actualizer page caused by the Vercel project's ui/ Root Directory excluding the repo-root oracle_state.json.",
+    "PR #579 (fix molt: implement check_anti_cascade_rules()) admitted 2026-09-28 to ship systematic improvements to molt governance enforcement.",
+    "PR #581 (Ship red-team audit improvements: Oracle+Actualizer MVP, SMAG calibration, policy pruning) admitted 2026-09-28 to consolidate parallel development work and governance updates."
   ]
 }
