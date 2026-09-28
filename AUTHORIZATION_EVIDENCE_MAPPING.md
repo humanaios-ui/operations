@@ -2,8 +2,8 @@
 ## Layer 4: Assurance Questions → Executable Checks
 
 **Mapping Date:** 2026-09-27
-**Authority:** Z2 (Night) ratification pending
-**Status:** Z1 candidate for REGISTERED.md (Q-AUTHORIZATION-EVIDENCE-MAPPING-01)
+**Authority:** Ratified by Z2 (Night), 2026-09-28 — see REGISTERED.md Q-AUTHORIZATION-EVIDENCE-MAPPING-01 for the ratification record and hash
+**Status:** RATIFIED (Q-AUTHORIZATION-EVIDENCE-MAPPING-01) — ratifying this map does not itself resolve the open items in Action Items #2–5 below; those remain on their own tracks per the REGISTERED.md ratification's own "Ratified Scope" note
 **Code:** [`authorization_evidence.py`](./authorization_evidence.py) (stdlib only, one function) · standing check: `python3 authorization_evidence.py --smoke-test`
 
 ---
@@ -246,7 +246,7 @@ A row above that cites a mechanism which does not actually run, or reports ANSWE
 
 ## Action Items for Z2 Ratification
 
-1. Ratify `AUTHORIZATION_EVIDENCE_MAPPING.md` as Layer 4 of the concept-to-code stack (Q-AUTHORIZATION-EVIDENCE-MAPPING-01).
+1. ~~Ratify `AUTHORIZATION_EVIDENCE_MAPPING.md` as Layer 4 of the concept-to-code stack (Q-AUTHORIZATION-EVIDENCE-MAPPING-01).~~ **Done** — ratified by Z2 (Night), 2026-09-28; see REGISTERED.md.
 2. Decide whether `render_decision()` runs advisory (posts its verdict, does not block) or blocking, and at which gate (candidate host: alongside `enforce_z2_z3_boundary.py` in `rnola-governance-validation.yml`, or a new step in `z2_ratification_gate.yml`).
 3. Decide whether the §1/§7 advisory authorship check in `z2_ratification_gate.yml` should be made blocking, given the documented 122-run silent-failure precedent this document cites in §1.
 4. Decide whether `molt_cycle.py`'s `check_anti_cascade_rules()` stub (§3) should be prioritized ahead of new envelope-consuming code such as `render_decision()`'s `in_envelope` signal, since the latter is only as honest as the former.
@@ -262,9 +262,11 @@ metadata:
   stack: ["FRAMEWORK_MAPPING.md", "BOOT_PROCESS_MAP.md", "FIVE_RINGS_MAPPING.md", "AUTHORIZATION_EVIDENCE_MAPPING.md"]
   code: "authorization_evidence.py (stdlib only, one function: render_decision)"
   exported_primitives: 8
-  authority: "Z2 (Night) ratifies this map"
+  authority: "Ratified by Z2 (Night), 2026-09-28"
   candidate_id: "Q-AUTHORIZATION-EVIDENCE-MAPPING-01"
+  ratification_hash: "d44b986feb44aab056480650886575f98f011db35689a10b8be86f1f7e0fa23a"
+  ratification_record: "REGISTERED.md, Q-AUTHORIZATION-EVIDENCE-MAPPING-01 / Z2 Ratification — 2026-09-28"
   cites_findings: ["F-62", "F-63", "F-64", "H-CAND-GOVERNANCE-CAPTURE-SURFACE-01"]
   cites_open_items: ["IC-050", "Q-MOLT-TEMPORAL-PURITY-01", "Q-INTENT-OS-WITNESS-LEDGER-01 (not yet ratified)"]
-  last_updated: "2026-09-27T00:00:00Z"
+  last_updated: "2026-09-28T00:00:00Z"
 ```
