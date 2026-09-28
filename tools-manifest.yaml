@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 180
+  tools: 188
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 140
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 8
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2263,7 +2264,7 @@ tools:
   category: governance_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
   smoke_test: false
   builder_markers: false
@@ -2276,7 +2277,7 @@ tools:
   category: governance_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
   smoke_test: false
   builder_markers: false
@@ -2289,12 +2290,108 @@ tools:
   category: audit_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
   smoke_test: false
   builder_markers: false
   purpose: Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox
     patterns, authorization misuse, undefined artifacts, and stale evidence.
+- tool_id: HAIOS-TOOL-193
+  name: ai-eo-incremental-indexer
+  path: scripts/ai-eo-incremental-indexer.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: AI-EO Incremental Indexer
+- tool_id: HAIOS-TOOL-194
+  name: ai-eo-indexer
+  path: scripts/ai-eo-indexer.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: AI-EO (AI-driven Ephemeris Optimization) Indexer
+- tool_id: HAIOS-TOOL-195
+  name: gap-detector
+  path: scripts/gap-detector.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Gap Detector
+- tool_id: HAIOS-TOOL-196
+  name: map-to-mitigation
+  path: scripts/map-to-mitigation.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Topic-to-Mitigation Mapper
+- tool_id: HAIOS-TOOL-197
+  name: platform-monitor
+  path: scripts/platform-monitor.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Public Discourse Signal Monitor
+- tool_id: HAIOS-TOOL-198
+  name: signal-threshold-monitor
+  path: scripts/signal-threshold-monitor.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Signal Threshold Monitor
+- tool_id: HAIOS-TOOL-199
+  name: workflow_path_validator
+  path: tools/workflow_path_validator.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Workflow Path Validator
+- tool_id: HAIOS-TOOL-200
+  name: workflow_telemetry_collector
+  path: tools/workflow_telemetry_collector.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Workflow Telemetry Collector
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
