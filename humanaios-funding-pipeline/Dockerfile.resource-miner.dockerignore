@@ -1,0 +1,21 @@
+# Scoped to `docker build -f Dockerfile.resource-miner` (BuildKit picks up
+# <dockerfile-name>.dockerignore automatically). The Dockerfile's own COPY lines
+# are an explicit allowlist already — this is defense in depth, keeping
+# unrelated and sensitive content out of the build context entirely rather
+# than trusting a dockerignore negation pattern to re-include the right subset.
+#
+# entitlement-navigator/ in particular: its gitignored private/ evidence
+# boundary (raw genealogy imports, when populated locally) must never be
+# reachable from a build context, even one that doesn't COPY it.
+entitlement-navigator/
+resource-miner/fixtures/
+resource-miner/tests/
+resource-miner/data/resources.jsonl
+reports/
+scripts/
+src/
+tests/
+.git/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
