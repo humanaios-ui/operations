@@ -306,34 +306,58 @@ def extract_subject_target(subject: str) -> tuple[str | None, str | None]:
 
 
 def extract_item_catalog(text: str) -> dict[str, str]:
-    """Extract visible digest item IDs and nearby human-readable labels."""
+    """Extract digest item IDs and the nearest explicit human-readable label.
+
+    Digest cards may be compact one-liners or multiline blocks. Prefer labeled
+    ACTION/TASK/QUESTION/WORKFLOW content over incidental STATE/AUTHORITY text.
+    """
     catalog: dict[str, str] = {}
     if not text:
         return catalog
 
-    for match in _ITEM_LINE_RE.finditer(text):
-        catalog[match.group(1).upper()] = match.group(2).strip()
-
     lines = text.splitlines()
+    label_re = re.compile(
+        r"(?i)\\b(?:TASK|ACTION|TESTABLE QUESTION|WORKFLOW)\\s*:\\s*(.+)$"
+    )
+
     for index, line in enumerate(lines):
         ids = _ITEM_ID_RE.findall(line)
-        for item_id in ids:
-            key = item_id.upper()
-            if key in catalog:
-                continue
-            cleaned = line
-            cleaned = re.sub(r"(?i)ITEM_ID\s*:\s*", "", cleaned)
-            cleaned = re.sub(re.escape(item_id), "", cleaned, flags=re.I)
-            cleaned = cleaned.strip(" -*—|:\t")
-            if cleaned:
-                catalog[key] = cleaned[:240]
-                continue
-            if index + 1 < len(lines):
-                next_line = lines[index + 1].strip(" -*—|:\t")
-                if next_line:
-                    catalog[key] = next_line[:240]
-    return catalog
+        if not ids:
+            continue
 
+        for raw_id in ids:
+            item_id = raw_id.upper()
+            if item_id in catalog:
+                continue
+
+            window = lines[index : min(len(lines), index + 6)]
+            title: str | None = None
+            for candidate in window:
+                match = label_re.search(candidate)
+                if match:
+                    title = match.group(1).strip(" -*—|:\\t")
+                    if title:
+                        break
+
+            if not title:
+                cleaned = re.sub(r"(?i)ITEM_ID\\s*:\\s*", "", line)
+                cleaned = re.sub(
+                    re.escape(raw_id),
+                    "",
+                    cleaned,
+                    flags=re.I,
+                )
+                cleaned = re.sub(
+                    r"(?i)\\b(?:STATE|AUTHORITY|EVIDENCE STATE)\\s*:[^|]+",
+                    "",
+                    cleaned,
+                )
+                cleaned = cleaned.strip(" -*—|:\\t")
+                if cleaned:
+                    title = cleaned[:240]
+
+            catalog[item_id] = (title or item_id)[:240]
+    return catalog
 
 def decode_pubsub_notification(envelope: Mapping[str, Any]) -> tuple[str, str, str | None]:
     message = envelope.get("message")
@@ -525,7 +549,7 @@ class GoogleGmailClient:
     """Thin Gmail API v1 client using an already-authorized OAuth refresh token."""
 
     SCOPES = (
-        "https://www.googleapis.com/auth/gmail.modify",
+        "https://www.googleapis.com/auth/gmail.readonly",
         "https://www.googleapis.com/auth/gmail.send",
     )
 

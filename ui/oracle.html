@@ -70,7 +70,7 @@ document.getElementById("summaryBtn").addEventListener("click", () => setView("s
 document.getElementById("detailBtn").addEventListener("click", () => setView("detail"));
 
 async function render() {
-  const res = await fetch("../oracle_state.json", { cache: "no-store" });
+  const res = await fetch("oracle_state.json", { cache: "no-store" });
   const data = await res.json();
 
   document.getElementById("state").innerHTML = `
