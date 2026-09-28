@@ -7,12 +7,18 @@ The recursive learning function: reads from ledgers (never memory), proposes cha
 Z2 ratifies, code applies and measures. Predictions are pinned and either kept or reverted
 based on falsifier outcomes.
 
-Anti-cascade rules enforced:
-1. One open molt per constant (no new candidate inside window W)
-2. No self-reference in windows (candidate not from events in its own window)
-3. K=3 system-wide limit on open molts
-4. Freeze after 2 reverts (Z2 Tier 2 override required to reopen)
-5. Ranking by Priority Queue score (no bypass)
+Anti-cascade rules (CLAUDE.md Decision Routing), checked by check_anti_cascade_rules():
+1. One open molt per constant (no new candidate inside window W) -- CHECKED
+2. No self-reference in windows (candidate not from events in its own window) -- UNVERIFIED (no causal-linkage field exists in NF_LEDGER entries)
+3. K=3 system-wide limit on open molts -- CHECKED
+4. Freeze after 2 reverts (Z2 Tier 2 override required to reopen) -- CHECKED (the Tier-2 reopening ruling itself is flagged, not auto-verified)
+5. Ranking by Priority Queue score (no bypass) -- UNVERIFIED (no linkage field ties a molt entry to its PRIORITY_QUEUE.md rank)
+
+Checked against molt-schema NF_LEDGER entries (rows carrying both `molt_id`
+and `constant`). As of this writing no such entries exist in ledgers/NF_LEDGER.jsonl
+-- MOLT_STATE.md's one ratified pilot (Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001)
+is recorded as prose in that file, not as a structured ledger row -- so
+check_anti_cascade_rules() currently reports NO_DATA rather than a false pass.
 
 The molt ledger is append-only and chains into event stream (EV).
 
@@ -228,12 +234,102 @@ class MoltCycle:
         }
 
     def check_anti_cascade_rules(self) -> Dict[str, Any]:
-        """Check all 5 anti-cascade rules."""
+        """Check the 5 anti-cascade rules (CLAUDE.md Decision Routing) against
+        real molt-schema entries in self.nf_entries (populate via read_nf_ledger()
+        first). A molt-schema entry is any ledger row carrying both `molt_id` and
+        `constant` keys, the shape MOLT_STATE.md documents for a ratified molt.
+
+        Rules 1 (one open molt per constant), 3 (K=3 system-wide), and 4 (freeze
+        after 2 consecutive reverts) are mechanically checkable from that shape
+        and are actually computed here. Rules 2 (no self-reference: a candidate
+        must not be generated from events inside its own window) and 5 (ranked by
+        Priority Queue score, no bypass) require causal/cross-document linkage no
+        NF_LEDGER entry carries today, and are reported as unverified rather than
+        faked as passing -- the prior version of this method returned a static
+        "5 passed" regardless of what the ledger actually held.
+
+        Freeze semantics (rule 4): per constant, look at the two most recent
+        *resolved* molts (outcome KEEP or REVERT) in ledger order. An
+        INCONCLUSIVE outcome is excluded from that resolved sequence entirely,
+        matching MOLT_STATE.md's "Measurement closure" doctrine that an
+        administrative close "measured nothing and must not be allowed to
+        masquerade as evidence against the constant" -- so REVERT, INCONCLUSIVE,
+        REVERT still freezes on the two real measured reverts.
+        """
+        molt_entries = [e for e in self.nf_entries if e.get('molt_id') and e.get('constant')]
+
+        by_constant: Dict[str, List[Dict]] = {}
+        for e in molt_entries:
+            by_constant.setdefault(e['constant'], []).append(e)
+
+        open_by_constant: Dict[str, int] = {}
+        frozen_constants = set()
+        for constant, entries in by_constant.items():
+            open_count = sum(1 for e in entries if e.get('outcome') == 'MEASURING')
+            if open_count:
+                open_by_constant[constant] = open_count
+
+            resolved = [e for e in entries if e.get('outcome') in ('KEEP', 'REVERT')]
+            if (len(resolved) >= 2
+                    and resolved[-1].get('outcome') == 'REVERT'
+                    and resolved[-2].get('outcome') == 'REVERT'):
+                frozen_constants.add(constant)
+
+        open_molt_count = sum(1 for e in molt_entries if e.get('outcome') == 'MEASURING')
+
+        violations = []
+
+        rule1_violations = {c: n for c, n in open_by_constant.items() if n > 1}
+        if rule1_violations:
+            violations.append({
+                'rule': 1,
+                'detail': f'multiple concurrent open molts on: {sorted(rule1_violations)}',
+            })
+
+        if open_molt_count > self.k_limit:
+            violations.append({
+                'rule': 3,
+                'detail': f'{open_molt_count} open molts exceeds K={self.k_limit}',
+            })
+
+        rule4_violations = [c for c in frozen_constants if open_by_constant.get(c, 0) > 0]
+        if rule4_violations:
+            violations.append({
+                'rule': 4,
+                'detail': (f'open molt on frozen constant(s): {sorted(rule4_violations)} '
+                           '(requires Z2 Tier-2 ruling to reopen; that ruling is not '
+                           'representable in ledger data alone, so this is flagged for '
+                           'review rather than auto-blocked)'),
+            })
+
+        unverified = [
+            {'rule': 2, 'reason': ('no-self-reference requires causal linkage between a '
+                                    'candidate and the events that produced it -- not '
+                                    'present in NF_LEDGER entries')},
+            {'rule': 5, 'reason': ('Priority Queue rank ordering requires cross-referencing '
+                                    'PRIORITY_QUEUE.md scores against proposal submission '
+                                    'order -- no linkage field exists yet')},
+        ]
+
+        if not molt_entries:
+            note = ('no molt-schema entries (both `molt_id` and `constant` keys) found in '
+                    'NF_LEDGER; MOLT_STATE.md documents Q-BLOCKCHAIN-TRADING-CALIBRATION-'
+                    'W90PD1-MOL-001 as a ratified pilot, but it exists as prose in that '
+                    'file, not as a structured ledger entry -- nothing to check yet')
+        else:
+            note = f'{len(molt_entries)} molt-schema entries across {len(by_constant)} constant(s)'
+
         return {
-            'overall_status': 'OK',
-            'rules_passed': 5,
-            'rules_warnings': 0,
-            'rules_blocked': 0,
+            'overall_status': 'BLOCKED' if violations else ('OK' if molt_entries else 'NO_DATA'),
+            'rules_checked': [1, 3, 4],
+            'rules_unverified': [2, 5],
+            'rules_passed': 3 - len(violations),
+            'rules_blocked': len(violations),
+            'violations': violations,
+            'unverified': unverified,
+            'open_molt_count': open_molt_count,
+            'frozen_constants': sorted(frozen_constants),
+            'note': note,
         }
 
     def propose_molts(self, constants_needing_eval: List[Dict]) -> Dict[str, Any]:
