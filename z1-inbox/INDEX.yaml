@@ -3,7 +3,7 @@ generated: '2026-09-25'
 decision_window_days: 2
 counts:
   candidates: 97
-  records: 51
+  records: 52
 ratifiers:
 - Night
 candidates:
@@ -1203,6 +1203,9 @@ records:
 - path: z1-inbox/2026-09-27/MOLT-MEASUREMENT-MANUAL-EXTRACTION.md
   title: "MOLT Measurement Manual Extraction Procedure — Blockchain Trading Pilot (Z-012)"
   note: "Step-by-step guide for Z2 to extract measurement data and evaluate falsifier for Q-BLOCKCHAIN-TRADING-CALIBRATION-W90PD1-MOL-001. Window closes 2026-09-28 00:00 UTC. Covers data collection, Sharpe/drawdown calculation, falsifier evaluation (Sharpe < 0.80 OR drawdown > 5%), molt_ledger.jsonl update with hash regeneration, MOLT_STATE.md trigger, anti-cascade checking, and complete verification checklist. Includes KEEP and REVERT scenarios with JSON examples. Supporting infrastructure verified: workflow exists, molt entry configured, Z2 ratification recorded."
+- path: z1-inbox/2026-09-28/IC-065-EVIDENCE-LEDGER-GAP-PR465.md
+  title: "IC-065 — Evidence Ledger Gap (PR #465)"
+  note: "Comparison Engine v1.0 finding: PR #465 filed deployment predictions with no evidence-collection infrastructure to falsify them. Z2 (Carly R. Anderson) ratified ACCEPT; confirmed live in conversation with Z1 session session_01EskczDAuWhHSzFjkLfqBXd after a provenance question about the PR's self-narrated ratification block (see REGISTERED.md IC-065's 'Confirmed live' note). Renumbered from IC-064 on landing — that id was already claimed by the still-open PR #482. A record: decision already made, not awaiting one."
 
 - path: z1-inbox/2026-09-25/DEPLOYMENT-FREQUENCY-VERIFICATION.md
   title: Deployment Frequency Improvement Verification Report
