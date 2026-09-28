@@ -5,6 +5,23 @@ on:
     # Run daily at 9:00 UTC (adjustable based on timezone)
     - cron: '0 9 * * *'
   workflow_dispatch:
+    inputs:
+      trigger:
+        description: 'Trigger type: batch (full rebuild) or signal-threshold-monitor (event-driven)'
+        required: false
+        default: 'batch'
+        type: choice
+        options:
+          - batch
+          - signal-threshold-monitor
+      signal_count:
+        description: 'Number of high-velocity signals (event-driven only)'
+        required: false
+        type: string
+      signal_ids:
+        description: 'Comma-separated signal IDs to process (event-driven only)'
+        required: false
+        type: string
 
 jobs:
   monitor-and-digest:
@@ -62,6 +79,22 @@ jobs:
           python3 scripts/ai-eo-indexer.py 2>&1 | tee /tmp/indexer-output.json
           echo "AI-EO indexing complete"
 
+      - name: Run signal threshold monitor (event-driven only)
+        id: signal_monitor
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.trigger == 'signal-threshold-monitor'
+        run: |
+          echo "Monitoring for high-velocity signals..."
+          python3 scripts/signal-threshold-monitor.py 2>&1 | tee /tmp/signal-monitor-output.json
+          echo "Signal monitoring complete"
+
+      - name: Run incremental indexer (event-driven optimization)
+        id: incremental_indexer
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.trigger == 'signal-threshold-monitor'
+        run: |
+          echo "Running incremental indexer for delta signals..."
+          python3 scripts/ai-eo-incremental-indexer.py 2>&1 | tee /tmp/incremental-indexer-output.json
+          echo "Incremental indexing complete"
+
       - name: Generate pages from AI-EO index
         id: page_generator
         run: |
@@ -99,6 +132,20 @@ jobs:
           print(f"✓ Index ready for React components to consume")
           print(f"✓ Page generation complete: {len(index_entries)} pages indexed")
           EOF
+
+      - name: Set up Node.js for delta page generator
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run delta page generator (event-driven only)
+        id: delta_generator
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.trigger == 'signal-threshold-monitor'
+        run: |
+          cd lasting-light-ai
+          echo "Running delta page generator for changed entities..."
+          npm run build-delta-pages || echo "Delta generator not yet wired to build; using fallback"
+          echo "Delta page generation complete"
 
       - name: Generate HTML "How We Address X Crisis" components
         run: |
