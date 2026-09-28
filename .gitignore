@@ -65,3 +65,6 @@ ledgers/*.lock
 
 # tools/decision_relay.py DRY_RUN=1 writes its local copy here
 relay_out/
+
+# comparison_engine.py generated output (engine output, not tracked evidence)
+Z2_REVIEW_*_ENGINE_OUTPUT.md

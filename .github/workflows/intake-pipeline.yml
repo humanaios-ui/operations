@@ -22,11 +22,11 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Full history for divergence detection
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
@@ -49,7 +49,7 @@ jobs:
 
       - name: Upload report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: intake-report
           path: intake_report.json
@@ -57,7 +57,7 @@ jobs:
 
       - name: Comment PR (if divergence)
         if: steps.check-divergence.outputs.divergence_found == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -84,7 +84,7 @@ jobs:
 
       - name: Create GitHub issue (new documents)
         if: steps.check-divergence.outputs.divergence_found == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');

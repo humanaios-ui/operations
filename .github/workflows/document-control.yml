@@ -30,8 +30,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
       - name: Install deps
@@ -55,7 +55,7 @@ jobs:
         run: python3 .doc-control/render.py --check
       - name: Markdown lint (ADVISORY — warns, does not block)
         continue-on-error: true
-        uses: DavidAnson/markdownlint-cli2-action@v16
+        uses: DavidAnson/markdownlint-cli2-action@v24
         with:
           globs: |
             **/*.md

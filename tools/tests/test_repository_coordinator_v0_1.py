@@ -13,13 +13,25 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 
-from repository_coordinator_v0_1 import analyze
+from repository_coordinator_v0_1 import analyze, gate_decision, render_markdown
 
 TOOL_NAME = "test_repository_coordinator"
-TOOL_VERSION = "0.1.0"
+TOOL_VERSION = "0.2.1"
 
 
-def pr(n, title="Work item", body="", files=None, patch="", reviews=None, mergeable_state="clean"):
+def pr(
+    n,
+    title="Work item",
+    body="",
+    files=None,
+    patch="",
+    reviews=None,
+    mergeable_state="clean",
+    *,
+    author="builder",
+    draft=False,
+    labels=None,
+):
     files = ["x.py"] if files is None else files
     return {
         "number": n,
@@ -30,17 +42,38 @@ def pr(n, title="Work item", body="", files=None, patch="", reviews=None, mergea
         "reviews": reviews or [],
         "mergeable_state": mergeable_state,
         "html_url": f"https://example.test/pull/{n}",
+        "author": author,
+        "draft": draft,
+        "labels": labels or [],
     }
 
 
-def run(prs, *, refs=None, paths=None, pq=""):
+def policy(*, limit=4, issues=None, prs=None, control_paths=None):
+    return {
+        "capacity": {"active_operator_queue": limit},
+        "admission": {
+            "issue_numbers": issues or [],
+            "pull_request_numbers": prs or [],
+        },
+        "maintenance": {
+            "authors": ["dependabot[bot]"],
+            "labels": ["dependencies"],
+        },
+        "control_plane": {
+            "paths": control_paths or ["REPOSITORY_COORDINATOR_POLICY.json"],
+        },
+    }
+
+
+def run(prs, *, refs=None, items=None, paths=None, pq="", policy_data=None):
     return analyze({
         "repository": "example/repo",
         "main_sha": "abc",
         "main_paths": paths or [],
         "referenced_pull_requests": refs or {},
+        "referenced_items": items or {},
         "pull_requests": prs,
-    }, pq)
+    }, pq, policy_data)
 
 
 def item(index, n):
@@ -155,7 +188,271 @@ def test_domain_deadline_outside_control_surface_does_not_trigger_gate():
     idx = run([p], pq=pq)
     assert item(idx, 1)["guidance"]["action"] == "ADVANCE"
 
+
+
+def test_directory_reference_is_not_reported_missing_when_children_exist():
+    p = pr(1, body="Uses `tools/Metaculus` package")
+    idx = run(
+        [p],
+        paths=["tools/Metaculus/main.py", "tools/Metaculus/requirements.txt"],
+    )
+    codes = {f["code"] for f in item(idx, 1)["findings"]}
+    assert "MISSING_REFERENCED_ARTIFACT" not in codes
+
+
+def test_external_date_and_unrelated_workflow_word_do_not_cross_match():
+    temporal_term = "dead" + "line"
+    body = (
+        f"External opportunity {temporal_term}: 2026-10-11.\n"
+        "Eligibility remains unassessed.\n"
+        "Repository workflow validation is handled separately."
+    )
+    p = pr(1, body=body, files=["humanaios-funding-pipeline/resource-miner/README.md"])
+    pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource state\n**State:** `GATING`\n"
+    idx = run([p], pq=pq)
+    got = item(idx, 1)
+    assert got["canonical_gates"]["status"] == "CLEAR"
+
+
+def test_unadmitted_ready_work_is_not_operator_queue():
+    idx = run([pr(1)], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["gate"] == "FAIL"
+    assert got["guidance"]["action"] == "ADVANCE"
+
+
+def test_draft_agent_work_is_workbench_not_operator_queue():
+    idx = run([pr(1, draft=True)], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "WORKBENCH"
+    assert got["admission"]["gate"] == "PASS"
+    assert idx["counts"]["lanes"]["WORKBENCH"] == 1
+
+
+
+def test_summary_only_maintenance_is_not_mistaken_for_zero_diff():
+    p = pr(
+        1,
+        title="build(deps): update package",
+        files=[],
+        author="dependabot[bot]",
+        labels=["dependencies"],
+    )
+    p["files_complete"] = False
+    idx = run([p], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "MAINTENANCE"
+    assert got["guidance"]["action"] != "CLOSE_PRESERVE"
+    assert got["merge_surface"]["files_complete"] is False
+
+
+def test_dependabot_routes_to_maintenance_cohort():
+    p = pr(
+        1,
+        title="build(deps): bump actions/checkout",
+        files=[".github/workflows/x.yml"],
+        author="dependabot[bot]",
+        labels=["dependencies", "ci"],
+    )
+    idx = run([p], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "MAINTENANCE"
+    assert got["admission"]["cohort"] == "github-actions"
+    assert got["admission"]["gate"] == "PASS"
+
+
+def test_referenced_admitted_issue_enters_active_lane():
+    p = pr(1, body="Fixes #77")
+    referenced = {
+        "77": {
+            "state": "open",
+            "is_pull_request": False,
+            "labels": [],
+            "title": "Approved objective",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy(issues=[77]))
+    got = item(idx, 1)
+    assert got["lane"] == "ACTIVE"
+    assert got["admission"]["admitted"] is True
+    assert got["admission"]["gate"] == "PASS"
+
+
+def test_issue_assignment_without_admission_stays_workbench_when_draft():
+    p = pr(1, body="Fixes #77", draft=True)
+    referenced = {
+        "77": {
+            "state": "open",
+            "is_pull_request": False,
+            "labels": [],
+            "title": "Assigned but not admitted",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "WORKBENCH"
+    assert got["admission"]["admitted"] is False
+
+
+def test_capacity_contention_does_not_choose_winners():
+    referenced = {
+        str(n): {
+            "state": "open",
+            "is_pull_request": False,
+            "labels": [],
+            "title": f"Objective {n}",
+        }
+        for n in (71, 72, 73)
+    }
+    prs = [
+        pr(1, body="Fixes #71"),
+        pr(2, body="Fixes #72"),
+        pr(3, body="Fixes #73"),
+    ]
+    idx = run(
+        prs,
+        items=referenced,
+        policy_data=policy(limit=2, issues=[71, 72, 73]),
+    )
+    assert idx["capacity"]["contention"] is True
+    assert all(x["lane"] == "CAPACITY_CONTENTION" for x in idx["items"])
+    assert all(x["admission"]["gate"] == "FAIL" for x in idx["items"])
+
+
+def test_control_plane_change_is_exempt_from_recursive_admission():
+    p = pr(
+        1,
+        body="- [x] **Z2**",
+        files=["REPOSITORY_COORDINATOR_POLICY.json"],
+    )
+    idx = run([p], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "CONTROL_PLANE"
+    assert got["admission"]["gate"] == "PASS"
+    assert got["authority"]["required"] == "Z2"
+
+
+def _admitted_item(n, title="Admitted objective"):
+    return {str(n): {"state": "open", "is_pull_request": False, "labels": [], "title": title}}
+
+
+# --- red-team regression cases (REPOSITORY-COORDINATOR-02 audit) ---------
+
+
+def test_mixed_control_plane_and_feature_change_is_not_exempt():
+    """A whitespace touch to a control-plane file must not admit feature work."""
+    p = pr(1, body="- [x] **Z2**", files=[".github/CODEOWNERS", "src/feature.py"])
+    idx = run([p], policy_data=policy(control_paths=[".github/CODEOWNERS"]))
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["gate"] == "FAIL"
+
+
+def test_pure_control_plane_change_remains_exempt():
+    p = pr(1, body="- [x] **Z2**", files=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"])
+    idx = run([p], policy_data=policy(control_paths=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"]))
+    assert item(idx, 1)["lane"] == "CONTROL_PLANE"
+
+
+def test_incidental_mention_of_admitted_issue_is_not_admission():
+    p = pr(1, body="This is unrelated to #77 but see it for context.")
+    idx = run([p], items=_admitted_item(77), policy_data=policy(issues=[77]))
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["admitted"] is False
+
+
+def test_closing_keyword_link_to_admitted_issue_is_admission():
+    for body in ("Fixes #77", "Closes: #77", "resolves humanaios-ui/operations#77"):
+        p = pr(1, body=body)
+        idx = run([p], items=_admitted_item(77), policy_data=policy(issues=[77]))
+        assert item(idx, 1)["lane"] == "ACTIVE", body
+
+
+def test_self_applied_dependencies_label_is_not_maintenance():
+    p = pr(1, title="build(deps): totally routine", author="human", labels=["dependencies"])
+    idx = run([p], policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["maintenance"] is False
+
+
+def test_duplicate_implementations_of_one_objective_are_both_held():
+    prs = [pr(1, body="Fixes #77", files=["a.py"]), pr(2, body="Fixes #77", files=["b.py"])]
+    idx = run(prs, items=_admitted_item(77), policy_data=policy(issues=[77]))
+    for n in (1, 2):
+        got = item(idx, n)
+        assert got["admission"]["gate"] == "FAIL"
+        assert got["guidance"]["action"] == "COMPARE_CONSOLIDATE"
+        assert "DUPLICATE_ACTIVE_IMPLEMENTATION" in {f["code"] for f in got["findings"]}
+    assert idx["capacity"]["duplicate_objective_prs"] == [1, 2]
+    assert gate_decision(idx, 1)["gate"] == "FAIL"
+
+
+def test_zero_diff_admitted_pr_does_not_consume_capacity():
+    prs = [
+        pr(1, body="Fixes #71", files=[]),
+        pr(2, body="Fixes #72"),
+        pr(3, body="Fixes #73"),
+    ]
+    referenced = {**_admitted_item(71), **_admitted_item(72), **_admitted_item(73)}
+    idx = run(prs, items=referenced, policy_data=policy(limit=2, issues=[71, 72, 73]))
+    assert idx["capacity"]["contention"] is False
+    assert idx["capacity"]["admitted_ready_count"] == 2
+    assert item(idx, 1)["guidance"]["action"] == "CLOSE_PRESERVE"
+    assert item(idx, 2)["lane"] == "ACTIVE"
+
+
+def test_markdown_operator_queue_counts_only_admitted_ready_work():
+    prs = [
+        pr(1, body="- [x] **Z2**", files=["REPOSITORY_COORDINATOR_POLICY.json"]),
+        pr(2, body="Fixes #77"),
+    ]
+    idx = run(prs, items=_admitted_item(77), policy_data=policy(issues=[77]))
+    md = render_markdown(idx)
+    assert "Operator queue: **1/4**" in md
+    assert "Control plane: **1**" in md
+
+
+def test_gate_decision_fails_closed_for_unknown_pr():
+    idx = run([pr(1)], policy_data=policy())
+    assert gate_decision(idx, 999)["gate"] == "FAIL"
+
+
+def test_gate_cli_exit_code_is_fail_closed(tmp_path):
+    import json
+    import subprocess
+
+    snapshot = {
+        "repository": "example/repo",
+        "main_sha": "abc",
+        "main_paths": [],
+        "referenced_pull_requests": {},
+        "referenced_items": _admitted_item(77),
+        "pull_requests": [pr(1, body="Fixes #77"), pr(2, body="unadmitted")],
+    }
+    snap = tmp_path / "snapshot.json"
+    snap.write_text(json.dumps(snapshot))
+    pol = tmp_path / "policy.json"
+    pol.write_text(json.dumps(policy(issues=[77])))
+    tool = TOOLS / "repository_coordinator_v0_1.py"
+
+    def gate(n, policy_path=pol):
+        return subprocess.run(
+            [sys.executable, str(tool), "--snapshot", str(snap), "--policy", str(policy_path),
+             "--priority-queue", str(tmp_path / "missing.md"), "--gate", str(n)],
+            capture_output=True, text=True,
+        ).returncode
+
+    assert gate(1) == 0
+    assert gate(2) == 1
+    assert gate(3) == 1
+    assert gate(1, tmp_path / "absent-policy.json") == 1
+
+
 def run_smoke_test():
     test_clean_live_work_advances()
     test_zero_diff_is_preserve_close_not_merge_work()
+    test_mixed_control_plane_and_feature_change_is_not_exempt()
     return True

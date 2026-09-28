@@ -190,6 +190,13 @@ skills/entitlement-evidence-research/SKILL.md
 ```
 
 
+## Upstream Resource Miner handoff
+
+`../resource-miner/` is the permissive discovery layer. Its candidates arrive as unassessed external resources with provenance, need mappings, and routing signals. Entitlement Navigator must independently verify current authoritative rules and applicant-specific predicates before converting a Miner candidate into a `RULE_MATCH`, `CONDITIONAL_MATCH`, `INVESTIGATE`, or actionable application path.
+
+A high Miner relevance score is evidence of **need alignment**, not eligibility or a recommendation to pursue.
+
+
 ## Integration with the HumanAIOS funding pipeline
 
 When this project lives at `operations/humanaios-funding-pipeline/entitlement-navigator/`, it automatically discovers the canonical funding dataset at `../data/sources.json`.
@@ -292,3 +299,20 @@ v0.2 currently includes regression tests for the original deterministic engine p
 ## Legal / operational boundary
 
 This is a screening, research orchestration, and evidence-management tool. It does not replace the administering tribe, BIA, BTFA, NARA, HUD, a lender, a probate judge, an attorney, an accountant, or any other authority that makes the underlying legal or eligibility determination.
+
+## Guiding Light pathway view
+
+Guiding Light can render an Entitlement Navigator `EvaluationResult` as a pathway without replacing the navigator's rule state.
+
+The adapter `services/guiding_light_adapters.py::entitlement_result_to_target` preserves the original:
+
+- `RULE_MATCH`, `CONDITIONAL_MATCH`, `INVESTIGATE`, `INELIGIBLE`, `CLOSED_HISTORICAL`, or `GENERAL_OPPORTUNITY` status;
+- required evidence;
+- next actions;
+- sources;
+- last-verified value;
+- legal/operational note.
+
+A predicate `PASS` becomes `USER_ATTESTED`, not `DOCUMENTED`, because an `EvaluationResult` alone does not prove that documentary evidence supported the applicant profile. `UNKNOWN` remains unknown and routes to `VERIFY_AUTHORITY`; `FAIL` becomes a blocker.
+
+Guiding Light's REACHABLE/BRIDGE/FRONTIER/HOLD classification is therefore a navigation view, not a legal or agency eligibility determination.

@@ -1,0 +1,51 @@
+[
+  {
+    "need_id": "external-validation",
+    "label": "Independent validation and benchmarking",
+    "description": "External environments that test, benchmark, replicate, or challenge AI evaluation and governance work.",
+    "resource_types": ["competition", "grant", "research_access"],
+    "signals": ["benchmark", "evaluation", "eval", "model testing", "replication", "challenge", "reasoning", "tool use"]
+  },
+  {
+    "need_id": "compute-infrastructure",
+    "label": "Compute and technical infrastructure",
+    "description": "Reduce compute, API, hosting, database, GPU, and platform constraints.",
+    "resource_types": ["compute_credit", "free_infrastructure", "grant", "research_access"],
+    "signals": ["compute", "gpu", "cloud", "api credit", "hosting", "database", "model access"]
+  },
+  {
+    "need_id": "revenue-capital",
+    "label": "Revenue and non-dilutive capital",
+    "description": "Cash, prizes, bounties, grants, paid work, financing, or other funding that can support operations.",
+    "resource_types": ["bounty", "competition", "fellowship", "financing", "grant", "paid_work", "procurement", "rebate"],
+    "signals": ["prize", "cash", "award", "grant", "bounty", "stipend", "funding", "paid", "contract"]
+  },
+  {
+    "need_id": "visibility-dissemination",
+    "label": "Visibility, publication, and dissemination",
+    "description": "Public artifacts, showcases, publications, awards, badges, and channels that expose validated work to outside observers.",
+    "resource_types": ["competition", "fellowship", "research_access"],
+    "signals": ["publish", "showcase", "winner", "badge", "demo", "conference", "community", "public"]
+  },
+  {
+    "need_id": "contracts-procurement",
+    "label": "Contracts and procurement",
+    "description": "RFPs, RFIs, vendor programs, procurement opportunities, and paid institutional engagements.",
+    "resource_types": ["procurement"],
+    "signals": ["rfp", "rfi", "procurement", "vendor", "contract", "solicitation", "bid"]
+  },
+  {
+    "need_id": "research-collaboration",
+    "label": "Research collaboration and access",
+    "description": "Datasets, labs, model access, collaborators, evaluation environments, and research partnerships.",
+    "resource_types": ["competition", "fellowship", "grant", "research_access"],
+    "signals": ["dataset", "research", "collaborator", "partner", "model access", "benchmark", "lab", "evaluation"]
+  },
+  {
+    "need_id": "training-credentials",
+    "label": "Training and credentials",
+    "description": "Training, certification, credential, mentorship, and accelerator resources.",
+    "resource_types": ["fellowship", "training"],
+    "signals": ["training", "credential", "certification", "mentor", "accelerator", "cohort"]
+  }
+]

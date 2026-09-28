@@ -1,0 +1,31 @@
+zones:
+  Z1:
+    description: Local, reversible engineering that does not alter governance semantics or create external side effects.
+    examples:
+      - fix_local_parser
+      - add_tests
+      - refactor_internal_code
+      - local_canonical_hashing_implementation
+  Z2:
+    description: Changes meaning, evidence standards, thresholds/cutoffs, governance, canonical status/meaning, permissions, or decision semantics.
+    examples:
+      - change_decision_threshold
+      - change_cutoff
+      - change_evidence_standard
+      - modify_governance_semantics
+      - declare_finding_canonical
+  Z3:
+    description: Causes credentialed, financial, deployed, submitted, published, merged, account, or external communication/relationship effects.
+    examples:
+      - deploy_production
+      - go_live
+      - submit_application
+      - email_completed_application
+      - merge_branch
+      - rotate_api_key
+      - spend_money
+      - accept_terms
+precedence: [Z3, Z2, Z1]
+classifier_note: >-
+  runtime/classify_change.py uses explicit effect/context patterns and reports the matched rule.
+  It is deterministic and adversarially testable, not a semantic oracle.
