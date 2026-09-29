@@ -63,13 +63,34 @@ def validate_workflow_paths(workflow_file: str) -> tuple[bool, list, list]:
             continue
 
         for path_pattern in paths:
-            # Handle glob patterns
+            # Extract base path from glob pattern for validation
+            base_path = path_pattern
+
+            # For patterns starting with "**", the root is always checked
+            if path_pattern.startswith("**/"):
+                # Pattern like **/*.md — can match files at any level
+                # Skip base path check for these (they're valid by design)
+                continue
+
+            # For patterns with inline wildcards (like seed-*.md), skip strict validation
+            if "*" in base_path or "?" in base_path:
+                # Pattern has wildcards — these are valid even if base directory doesn't exist yet
+                # Just warn if parent directory is missing
+                if "/" in base_path:
+                    parent = str(Path(base_path).parent)
+                    if parent != ".":
+                        full_path = repo_root / parent
+                        if not full_path.exists():
+                            warnings.append(
+                                f"Path '{path_pattern}' references directory '{parent}' which does not exist"
+                            )
+                continue
+
+            # Handle trailing globs
             if path_pattern.endswith("/**"):
                 base_path = path_pattern[:-3]
             elif path_pattern.endswith("/*"):
                 base_path = path_pattern[:-2]
-            else:
-                base_path = path_pattern
 
             # Check if path exists
             full_path = repo_root / base_path
