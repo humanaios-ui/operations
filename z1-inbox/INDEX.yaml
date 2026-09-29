@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-25'
 decision_window_days: 2
 counts:
-  candidates: 97
+  candidates: 98
   records: 52
 ratifiers:
 - Night
@@ -1015,6 +1015,12 @@ candidates:
   status: awaiting_z2
   falsifier_waiver: "As filed, this candidate presents four strategic options (A-D) for Z2 to prioritize rather than a single falsifiable prediction, and contains no explicit '## Falsifier' heading or falsifier: field. Recorded as the gap, not as an accepted exemption: Z2 accepts or refuses the waiver, or requires a falsifier scoped to whichever option(s) it selects."
   note: 'Self-declares this q_id in its own closing line ("Ready for: Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01 governance candidate"). Proposes four Phase 2 options after Phase 1 (path-filter deployment-frequency reduction, PRs #541/#542): A (monitoring), B (path-filter validator + telemetry, molt_tier 1+2), C (expand path filters to more workflows), D (Vercel account-level rate-limit review). Options A and B were actioned same-day per z1-inbox/2026-09-25/PHASE-2-EXECUTIVE-START.md ("user approval received") rather than through a REGISTERED.md Z2 hash; B has since shipped (tools/workflow_path_validator.py, tools/workflow_telemetry_collector.py both exist in tree; commits 9085233/45bfdaf), though the doc-referenced .github/workflows/workflow-validation.yml CI gate and .github/TELEMETRY.md spec were never created. Options C and D were never picked up — no matching commits found. Live governance question: was A/B properly ratified (informal in-session approval, not a REGISTERED.md entry — Q-Z2-CI-CONSOLIDATION-PHASE-1, which z1-inbox/2026-09-25/SESSION-CLOSURE-HANDOFF.md claims was added to REGISTERED.md, does not in fact exist there), and should C/D be picked up, deferred, or formally closed as not pursued.'
+- q_id: Q-LEDGER-GROUNDING-STUB-01
+  title: p34x LedgerProvider is a permanent no-op stub — every future date classifies ERROR regardless of ratification
+  path: z1-inbox/2026-09-29/F-CAND-LEDGER-GROUNDING-STUB-01.md
+  submitted: '2026-09-29'
+  status: awaiting_z2
+  note: 'Found via a systematic pytest-enabled backlog pass (same pass as PR #589''s CommitmentRecognizer contraction fix). p34x_temporal_extractor/evidence.py''s LedgerProvider._load_molt_windows()/resolve() are explicitly-marked "Phase 0" stubs that always return None, so no future date can ever ground against a ratified molt window; tests/test_p34x_metamorphic.py::TestCorpusBaseline::test_corpus_clean_examples reproduces this. Documentation-only filing, no code change proposed.'
 
 records:
 - path: z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md
