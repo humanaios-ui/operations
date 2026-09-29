@@ -33,7 +33,8 @@
       570,
       579,
       581,
-      586
+      586,
+      589
     ],
     "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
   },
@@ -83,6 +84,7 @@
     "PR #570 (ui/vercel.json build-copy step for oracle_state.json, plus the matching oracle.html fetch-path and test-string updates) admitted explicitly by Z2 instruction, 2026-09-27: mixed change touching ui/ and tests/, neither covered by control_plane.paths, fixing a live 'Unexpected token <' failure on the deployed Oracle + Actualizer page caused by the Vercel project's ui/ Root Directory excluding the repo-root oracle_state.json.",
     "PR #579 (fix molt: implement check_anti_cascade_rules()) admitted 2026-09-28 to ship systematic improvements to molt governance enforcement.",
     "PR #581 (Ship red-team audit improvements: Oracle+Actualizer MVP, SMAG calibration, policy pruning) admitted 2026-09-28 to consolidate parallel development work and governance updates.",
-    "PR #586 (fix entry_protocol/gmail_push_adapter.py: restore missing _DIGEST_REPLY_RE definition and un-double-escape extract_item_catalog()'s label/cleanup regexes) admitted 2026-09-28: found running the full test suite during a systematic backlog pass; entry_protocol/ is not covered by control_plane.paths, so this mixed test-fix change needs an explicit admission record."
+    "PR #586 (fix entry_protocol/gmail_push_adapter.py: restore missing _DIGEST_REPLY_RE definition and un-double-escape extract_item_catalog()'s label/cleanup regexes) admitted 2026-09-28: found running the full test suite during a systematic backlog pass; entry_protocol/ is not covered by control_plane.paths, so this mixed test-fix change needs an explicit admission record.",
+    "PR #589 (fix p34x_temporal_extractor/core.py CommitmentRecognizer: match \"I'll\" contractions, a day-one dead regex branch that silently let ungrounded commissives like \"I'll keep working on this\" pass with zero findings) admitted 2026-09-29: found and diagnosed via a dedicated read-only investigation during the same systematic backlog pass as #586; p34x_temporal_extractor/ is not covered by control_plane.paths."
   ]
 }
