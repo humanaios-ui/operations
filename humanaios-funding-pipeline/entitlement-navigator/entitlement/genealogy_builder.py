@@ -120,6 +120,4 @@ def draft_to_gedcom(draft: dict[str, Any]) -> str:
         if pair.get("mother") in ids: lines.append(f"1 WIFE {ids[pair['mother']]}")
         lines.append(f"1 CHIL {ids[child]}")
     lines.append("0 TRLR")
-    return "
-".join(lines) + "
-"
+    return "\n".join(lines) + "\n"

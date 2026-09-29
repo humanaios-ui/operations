@@ -11,13 +11,14 @@
 
 ## Executive Summary
 
-This is the last layer of the concept-to-code stack. Layer 1 mapped engineering concepts onto governance; Layer 2 mapped session rituals onto a boot chain; Layer 3 maps Musashi's five books onto operations a machine actually performs. Every row in this document ends in something that can be run: a named primitive in `five_rings.py`, a shell command, or a CI gate. A teaching with nothing runnable at the end of its row is prose, not a mapping, and does not belong here.
+Layer 1 mapped engineering concepts onto governance; Layer 2 mapped session rituals onto a boot chain; Layer 3 (this document) maps Musashi's five books onto operations a machine actually performs; Layer 4 (`AUTHORIZATION_EVIDENCE_MAPPING.md`) maps authorization-and-evidence assurance questions onto the same gates and ledgers, plus one new primitive set. Every row in this document ends in something that can be run: a named primitive in `five_rings.py`, a shell command, or a CI gate. A teaching with nothing runnable at the end of its row is prose, not a mapping, and does not belong here.
 
 | Layer | Document | Maps | Onto |
 |:---|:---|:---|:---|
 | 1 | `FRAMEWORK_MAPPING.md` | 5 AI engineering concepts | Z-roles, governance files, CI gates |
 | 2 | `BOOT_PROCESS_MAP.md` | Session rituals §A / §B | Boot-chain stages, resource states |
 | 3 | `FIVE_RINGS_MAPPING.md` (this) | Musashi's five books | Functions, commands, gates |
+| 4 | `AUTHORIZATION_EVIDENCE_MAPPING.md` | Authorization & evidence assurance questions | Gates, schemas, ledgers, `authorization_evidence.py` |
 
 | Book | Musashi's subject | Layer 1 concept | Primary role | `five_rings.py` family |
 |:---|:---|:---|:---|:---|
@@ -199,7 +200,7 @@ persist_or_void({"sha": base["sha"], "claim": claim.statement, "stands": claim.s
 ```yaml
 metadata:
   layer: 3
-  stack: ["FRAMEWORK_MAPPING.md", "BOOT_PROCESS_MAP.md", "FIVE_RINGS_MAPPING.md"]
+  stack: ["FRAMEWORK_MAPPING.md", "BOOT_PROCESS_MAP.md", "FIVE_RINGS_MAPPING.md", "AUTHORIZATION_EVIDENCE_MAPPING.md"]
   source: "Miyamoto Musashi, Go Rin no Sho (1645); teachings paraphrased"
   code: "five_rings.py (stdlib only), test_five_rings_tier1.py"
   exported_primitives: 50

@@ -67,8 +67,7 @@ class V02Tests(unittest.TestCase):
         ged = draft_to_gedcom(draft)
         self.assertIn("0 HEAD", ged)
         self.assertIn("1 NAME Test Person", ged)
-        self.assertTrue(ged.endswith("0 TRLR
-"))
+        self.assertTrue(ged.endswith("0 TRLR\n"))
 
     def test_unactivated_unknown_programs_not_in_case(self):
         profile = {

@@ -299,3 +299,20 @@ v0.2 currently includes regression tests for the original deterministic engine p
 ## Legal / operational boundary
 
 This is a screening, research orchestration, and evidence-management tool. It does not replace the administering tribe, BIA, BTFA, NARA, HUD, a lender, a probate judge, an attorney, an accountant, or any other authority that makes the underlying legal or eligibility determination.
+
+## Guiding Light pathway view
+
+Guiding Light can render an Entitlement Navigator `EvaluationResult` as a pathway without replacing the navigator's rule state.
+
+The adapter `services/guiding_light_adapters.py::entitlement_result_to_target` preserves the original:
+
+- `RULE_MATCH`, `CONDITIONAL_MATCH`, `INVESTIGATE`, `INELIGIBLE`, `CLOSED_HISTORICAL`, or `GENERAL_OPPORTUNITY` status;
+- required evidence;
+- next actions;
+- sources;
+- last-verified value;
+- legal/operational note.
+
+A predicate `PASS` becomes `USER_ATTESTED`, not `DOCUMENTED`, because an `EvaluationResult` alone does not prove that documentary evidence supported the applicant profile. `UNKNOWN` remains unknown and routes to `VERIFY_AUTHORITY`; `FAIL` becomes a blocker.
+
+Guiding Light's REACHABLE/BRIDGE/FRONTIER/HOLD classification is therefore a navigation view, not a legal or agency eligibility determination.
