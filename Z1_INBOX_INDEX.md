@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**97 candidates** — ⏳ awaiting Z2 87 · ✅ ratified 10 · **52 records**
+**98 candidates** — ⏳ awaiting Z2 88 · ✅ ratified 10 · **52 records**
 
-## Awaiting Z2 (87)
+## Awaiting Z2 (88)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -99,6 +99,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-29 | **Q-GATE-BYPASS-LEDGER-01** | Merges through non-required-but-meaningful gates leave no in-repo trace | `z1-inbox/2026-09-27/F-CAND-SILENT-GATE-BYPASS-01.md` |
 | 2026-09-29 | **Q-PROCESS-PRODUCT-RATIO-01** | Governance ceremony volume outweighs shipped product; z2_ratification_gate.yml silently no-op'd for 122 runs | `z1-inbox/2026-09-27/F-CAND-PROCESS-VS-PRODUCT-RATIO-01.md` |
 | 2026-09-29 | **Q-WITNESS-LEDGER-TIER0-EXTENSION-01** | Extend the INTENT-OS witness ledger with a Tier 0 (anonymous public participant) actor class | `z1-inbox/2026-09-27/Q-WITNESS-LEDGER-TIER0-EXTENSION-01.md` |
+| 2026-10-01 | **Q-LEDGER-GROUNDING-STUB-01** | p34x LedgerProvider is a permanent no-op stub — every future date classifies ERROR regardless of ratification | `z1-inbox/2026-09-29/F-CAND-LEDGER-GROUNDING-STUB-01.md` |
 
 ## Decided (10)
 
