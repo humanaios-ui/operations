@@ -34,7 +34,8 @@
       579,
       581,
       586,
-      578
+      578,
+      590
     ],
     "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
   },
@@ -85,6 +86,7 @@
     "PR #579 (fix molt: implement check_anti_cascade_rules()) admitted 2026-09-28 to ship systematic improvements to molt governance enforcement.",
     "PR #581 (Ship red-team audit improvements: Oracle+Actualizer MVP, SMAG calibration, policy pruning) admitted 2026-09-28 to consolidate parallel development work and governance updates.",
     "PR #586 (fix entry_protocol/gmail_push_adapter.py: restore missing _DIGEST_REPLY_RE definition and un-double-escape extract_item_catalog()'s label/cleanup regexes) admitted 2026-09-28: found running the full test suite during a systematic backlog pass; entry_protocol/ is not covered by control_plane.paths, so this mixed test-fix change needs an explicit admission record.",
-    "PR #578 (index the 8 unregistered z1-inbox/2026-09-25/* files: 7 as records, 1 as candidate Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01, fixing the Verify Z2 Ratification Requirements gate that has been failing on main since those files landed unindexed) admitted explicitly by Z2 instruction, 2026-09-28."
+    "PR #578 (index the 8 unregistered z1-inbox/2026-09-25/* files: 7 as records, 1 as candidate Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01, fixing the Verify Z2 Ratification Requirements gate that has been failing on main since those files landed unindexed) admitted explicitly by Z2 instruction, 2026-09-28.",
+    "PR #590 (file F-CAND-LEDGER-GROUNDING-STUB-01: p34x_temporal_extractor's LedgerProvider is a permanent Phase-0 no-op stub, so no future date can ever ground against a ratified molt window) admitted 2026-09-29: documentation-only candidate block under z1-inbox/, which is not covered by control_plane.paths; found via the same systematic pytest-enabled backlog pass as PR #589."
   ]
 }
