@@ -2,7 +2,7 @@ version: 1
 generated: '2026-09-25'
 decision_window_days: 2
 counts:
-  candidates: 99
+  candidates: 100
   records: 53
 ratifiers:
 - Night
@@ -1027,6 +1027,12 @@ candidates:
   submitted: '2026-09-30'
   status: awaiting_z2
   note: Formal Z2 ratification request for Tier 0/1/2 classification of 92 awaiting_z2 candidates. Decision window 48h (due 2026-10-02). Ratification will unblock resource-based allocation (RBE-OPS priority queue engine ranking and Z3 executor assignments).
+- q_id: Q-588-CONVERGENCE-MATRIX-01
+  title: 'Resource System Convergence Matrix — component landscape & composition framework'
+  path: z1-inbox/2026-09-30/Q-588-CONVERGENCE-MATRIX-01.md
+  submitted: '2026-09-30'
+  status: awaiting_z2
+  note: 'Empirical map of six Resource System components (Miner, Eligibility Resolver, Activity Graph, Resource Manager, PII Gateway, Replay) across main + candidate branches. Answers: (1) Where is each component? (2) Can it execute? (3) Has it been exercised? (4) What falsifies this classification? Outcome: Activity Graph missing entirely; Eligibility Resolver unmerged (#608); identifies #588 as dedicated substrate project. Answers Night''s convergence question before #611 implementation begins.'
 
 records:
 - path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
