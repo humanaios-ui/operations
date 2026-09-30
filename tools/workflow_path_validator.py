@@ -2,26 +2,33 @@
 """
 Workflow Path Validator
 
-Validates that all paths referenced in GitHub Actions workflow path filters
-actually exist in the repository. Prevents IC-032 class issues where path filters
-reference non-existent files.
+Category: CI/CD & Quality Gates
+Purpose: Validates that workflow path filters reference existing repository paths
+Prevention: Blocks IC-032 class issues (path filter referencing non-existent files)
 
 Usage:
   python3 workflow_path_validator.py .github/workflows/quality-baseline.yml
   python3 workflow_path_validator.py .github/workflows/*.yml
 
-Exit codes:
-  0: All paths valid
+Features:
+- Parses YAML workflow files (handles 'on' key as boolean True)
+- Validates both literal paths and glob patterns
+- Reports missing files with resolved paths
+- Warns about mismatched glob patterns (e.g., /** on file)
+
+Exit Codes:
+  0: All paths valid, no warnings
   1: One or more paths not found
-  2: File format error
+  2: File format error or usage error
 """
 
 import sys
+from typing import Tuple, List
 import yaml
 from pathlib import Path
 
 
-def validate_workflow_paths(workflow_file: str) -> tuple[bool, list, list]:
+def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[str]]:
     """
     Validate that all paths in a workflow's path filters exist in repository.
 
@@ -48,9 +55,9 @@ def validate_workflow_paths(workflow_file: str) -> tuple[bool, list, list]:
         return False, [f"{workflow_file} is empty"], []
 
     # Extract all path filters from workflow triggers
-    # Note: "on" is parsed as boolean True in YAML, so check for both forms
-    trigger_key = True if True in workflow else "on"
-    for trigger_name, trigger_config in workflow.get(trigger_key, {}).items():
+    # YAML parses "on" key as boolean True in the dict
+    trigger_config_dict = workflow.get(True, {}) if True in workflow else workflow.get("on", {})
+    for trigger_name, trigger_config in trigger_config_dict.items():
         if not isinstance(trigger_config, dict):
             continue
 
@@ -116,8 +123,8 @@ def main():
                 with open(workflow_file) as f:
                     workflow = yaml.safe_load(f)
                 path_count = 0
-                trigger_key = True if True in workflow else "on"
-                for trigger_config in workflow.get(trigger_key, {}).values():
+                trigger_config_dict = workflow.get(True, {}) if True in workflow else workflow.get("on", {})
+                for trigger_config in trigger_config_dict.values():
                     if isinstance(trigger_config, dict) and "paths" in trigger_config:
                         path_count += len(trigger_config["paths"])
                 print(f"✅ {workflow_file}: All paths valid ({path_count} files)")
