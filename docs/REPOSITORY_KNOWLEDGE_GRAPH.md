@@ -277,9 +277,8 @@ python3 tools/repository_knowledge_graph_v0_1.py method \
 
 External profiles are opt-in, content-hashed inputs. They do not mutate the
 target repository and their absolute filesystem location is not written into
-the graph. See `docs/REPOSITORY_GRAPH_METHOD.md` for the complete reusable
-method and `docs/REPOSITORY_GRAPH_HUMAN_REVIEW.md` for the human review
-contract.
+the graph. The complete reusable method, human review contract, and first
+cross-repository replication receipt appear below.
 
 ## Query
 
@@ -351,3 +350,244 @@ would be a separate governed change.
 These are intentional limits. v0.1 adds a reconstructable inference substrate
 without allowing inferred assertions to become authority, proof, or recursive
 premises.
+
+## Human review translation
+
+This file is the human-review entry point in the PR. The generated
+`human-review.md` is the primary decision aid for a specific run because its
+counts, warnings, hashes, and sampled assertions are derived from the exact
+graph under review.
+
+A human does not need to read thousands of nodes or edges. Review is divided by
+comparative advantage:
+
+| Machine review | Human review |
+|---|---|
+| Deterministic inventory | Whether the selected snapshot is the intended one |
+| Hash and manifest integrity | Whether the profile's curated meanings are fair |
+| Duplicate and dangling-edge checks | Whether important context or evidence is omitted |
+| Rule and premise reconstruction | Whether a material inference survives its falsifier |
+| Forbidden-conclusion enforcement | Whether the read model is useful for the stated purpose |
+| Two-build replay | Final disposition and rationale |
+
+### Translation key
+
+| Graph language | Human reading |
+|---|---|
+| `OBSERVED` | The compiler mechanically saw this relationship in source. It does not prove the underlying claim. |
+| `SPECIFIED` | A document, contract, graph, or curated profile says this relationship should exist. |
+| `CLAIMED` | A source asserts this; verification remains open. |
+| `TESTED` | A test relationship is represented; it does not mean the test ran or passed. |
+| `MODEL_INFERRED` | A bounded rule produced a review candidate from explicit premises. |
+| Confidence | Strength of the structural rule application, not probability of truth. |
+| Independence `NOT_ESTABLISHED` | Distinct sources may still share origin, method, or failure mode. |
+| Falsifier | The observation that would defeat the candidate interpretation. |
+| `authority_effect: NONE` | The graph cannot authorize, ratify, merge, deploy, or execute. |
+
+### Review order
+
+1. Open `human-review.md`.
+2. Confirm repository, commit, worktree state, profile hash, source-tree hash,
+   and graph hash.
+3. Review the profile's canonical artifacts, semantic mappings, exclusions,
+   rules, and views.
+4. Read every coverage warning. Missing data must remain visible.
+5. Trace material samples through `inferences.csv` to their premise edge IDs
+   and falsifiers.
+6. Use `graph.json` when the bounded files do not answer the review question.
+7. Record one disposition and rationale outside the generated artifact.
+
+The generated packet offers four non-authorizing dispositions:
+
+- `ACCEPT READ MODEL`
+- `REVISE PROFILE`
+- `REQUEST EVIDENCE`
+- `REJECT RUN`
+
+`ACCEPT READ MODEL` means only that, for the pinned snapshot and profile, the
+graph is a sufficiently faithful and bounded diagnostic representation for the
+stated review purpose. It does not mean the repository is safe, complete,
+effective, or production-ready; that claims are proven; that tests passed; that
+a declared control operated; that a profile is ratified; or that a PR should be
+merged. Those decisions require their own evidence and human authority.
+
+## Repository Evidence Graph Method v0.1
+
+The general method turns a frozen Git repository into a deterministic,
+provenance-bearing read model, bounded inference queue, and human review
+packet. Repository-specific meaning lives in a hash-pinned profile while the
+compiler, validation rules, and review contract remain stable.
+
+```mermaid
+flowchart TB
+    F["1. Freeze target"] --> P["2. Pin profile"]
+    P --> O["3. Observe repository"]
+    O --> S["4. Separate evidence states"]
+    S --> I["5. Emit bounded inferences"]
+    I --> R["6. Replay twice"]
+    R --> H["7. Translate for humans"]
+    H --> D["8. Record human disposition"]
+```
+
+### 1. Freeze target
+
+Pin the target to an exact commit and require a clean worktree by default. A
+dirty-tree run requires an explicit override and remains visibly marked
+`DIRTY`.
+
+### 2. Pin profile
+
+The profile declares repository and graph identity, exclusions, canonical
+artifacts, explicit semantic mappings, permitted rules, prohibited conclusions,
+and bounded views. An external profile requires `--allow-external-profile`; its
+content is SHA-256 pinned and labeled `EXTERNAL_METHOD_INPUT` without being
+copied into the target.
+
+### 3. Observe repository
+
+Inventory Git-visible artifacts and extract bounded mechanical relationships:
+content hashes, containment, headings, exact path references, Python and
+JavaScript/TypeScript imports, test relationships, workflows, schemas, and
+configured structured graphs. Static extraction does not establish runtime
+reachability, deployment, execution, or effectiveness.
+
+### 4. Separate evidence states
+
+Keep every source relationship in `CLAIMED`, `SPECIFIED`, `IMPLEMENTED`,
+`TESTED`, or `OBSERVED`. Reserve `MODEL_INFERRED` for assertion nodes rather
+than fact edges.
+
+### 5. Emit bounded inferences
+
+Inference is profile-declared, deterministic, one-pass, non-recursive,
+premise-bearing, falsifiable, and `UNREVIEWED`. Each assertion records rule and
+premise hashes, source events, assumptions, confidence scope, independence
+state, falsifier, and review requirement. Forbidden conclusions include
+authority, authorization, capability, eligibility, enforcement, execution,
+causality, proof, and test success.
+
+### 6. Replay twice
+
+Build twice in memory. Canonical graph objects and source-tree digests must
+match before the method emits a receipt.
+
+### 7. Translate for humans
+
+Emit `human-review.md` with four bounded questions: is this the intended
+snapshot, is the profile fair, are the gaps acceptable, and do material
+assertions survive inspection of their premises and falsifiers?
+
+### 8. Record human disposition
+
+A person records one non-authorizing disposition. Merge, deployment,
+ratification, and execution remain separate governed acts.
+
+### Method outputs
+
+| Output | Purpose |
+|---|---|
+| `human-review.md` | Primary human decision aid |
+| `method-receipt.json` | Target, profile, digests, validation, and replay result |
+| `summary.md` | Technical overview |
+| `graph.json` / `graph.json.gz` | Canonical machine read model |
+| `graph.graphml` | Graph interchange |
+| `nodes.csv` / `edges.csv` | Tabular inspection |
+| `inferences.csv` / `inferences.jsonl` | Complete inference review queue |
+| `views/*.json` | Bounded projections |
+| `manifest.json` | Hashes for every generated artifact |
+
+The method fails closed for a non-Git target, invalid or unapproved external
+profile, missing configured source, forbidden or recursive inference, invalid
+graph structure, divergent replay, or dirty target without explicit permission.
+Missing external metadata, unresolved path-like references, and parse failures
+remain visible warnings rather than silent passes.
+
+## Lasting Light AI replication pilot
+
+The method reproduced successfully against `humanaios-ui/lasting-light-ai`
+without modifying the target repository. This is method replication, not
+certification of Lasting Light AI or proof that its research, governance,
+tests, or workflows operate as described.
+
+### Reproducibility receipt
+
+| Field | Result |
+|---|---|
+| Method | `REPOSITORY_EVIDENCE_GRAPH_METHOD` v0.1.0 |
+| Target | `humanaios-ui/lasting-light-ai` |
+| Target commit | `f2cb8a60419f04d12d6f7f5ab97b272d65f41402` |
+| Worktree | `CLEAN` |
+| Profile scope | `EXTERNAL_METHOD_INPUT` |
+| Profile SHA-256 | `864fd1441ac073aed950375d9fe36ca203e851d59382b2b1656479bedaa2353e` |
+| Source-tree SHA-256 | `8b5f9eec74fe8b477c0958798efd04fc90f1241323511d26bffeeedaa373c245` |
+| Graph SHA-256 | `593983e59926befbcf1f8d83d0d11c62ab17021b79c9b6a30a2748fe073edbee` |
+| Structural validation | PASS |
+| Two-build canonical match | PASS |
+| Two-build source-tree match | PASS |
+| Target mutations | None |
+
+The replay emits the complete machine-readable receipt as
+`method-receipt.json`; the essential result is preserved here for PR review.
+
+### Graph snapshot
+
+| Measure | Count |
+|---|---:|
+| Nodes | 1,015 |
+| Edges | 1,752 |
+| Views | 5 |
+| Static local imports | 95 |
+| Test-to-implementation relationships | 3 |
+| Bounded inference assertions | 28 |
+| Output files | 16 |
+
+All 28 assertions came from `RGM-INF-LOCAL-DEPENDENCY-01`. They identify
+possible two-hop static dependency paths, including `src/App.tsx` to
+`src/lib/contamination.ts` and `src/pages/Experiment.tsx` to
+`src/lib/storage.ts`. These candidates do not establish runtime execution,
+causal influence, capability, deployment, or authority.
+
+### Material findings
+
+1. `.github/workflows/framework-audit.yml` contains a YAML document start at
+   line 1 and a second document separator after its opening comments. A
+   single-document workflow parser reports a second document at line 5. This
+   is source evidence about the file shape, not proof that it caused a
+   particular GitHub Actions result.
+2. Thirty-one path-like references do not resolve to current artifacts,
+   including `data/validation_phase1.csv`, `src/lib/EpistemicDJ.ts`,
+   `src/components/BehavioralNavigator.ts`, and
+   `src/acat2c/scoring/aggregation.py`. These require human classification as
+   examples, planned paths, archived components, or stale references.
+3. Nineteen labeled issue or PR references were extracted without live-state
+   hydration. They remain references rather than evidence about current state.
+4. The source graph contains three static `TESTS` relationships, but the
+   workflow rule emitted no `MAY_EXERCISE` assertions. The parser follows
+   explicit paths in `run:` steps and does not expand npm package scripts into
+   test files. This is a visible method limit rather than a failed test.
+
+The bounded Z1 recommendation is `ACCEPT READ MODEL` for diagnostic use,
+`REQUEST EVIDENCE` for the workflow parse finding and material unresolved
+paths, and no promotion of the 28 dependency assertions beyond
+`MODEL_INFERRED` without premise review. Only a human reviewer may record the
+disposition.
+
+- [ ] ACCEPT READ MODEL
+- [ ] REVISE PROFILE
+- [ ] REQUEST EVIDENCE
+- [ ] REJECT RUN
+
+Reviewer rationale: ________________________________________________
+
+Replay with:
+
+~~~bash
+python3 tools/repository_knowledge_graph_v0_1.py method \
+  --repo /path/to/lasting-light-ai \
+  --profile /path/to/operations/architecture/repository-knowledge-graph/profiles/lasting-light-ai.json \
+  --allow-external-profile \
+  --output /tmp/lasting-light-ai-graph
+~~~
+
+The pilot additionally verified every manifest hash, the gzip round trip,
+GraphML parsing, CSV row counts, and JSONL inference count.

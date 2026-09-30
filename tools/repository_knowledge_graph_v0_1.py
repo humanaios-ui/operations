@@ -11,7 +11,7 @@ namespaces, emits bounded deterministic inference assertions, and materializes
 bounded views plus a human review packet.
 
 The output is not a governance source, does not grant authority, does not
-mutate any imported graph, and never promotes a reference into evidence.
+mutate any imported graph, and does not promote a reference into evidence.
 
 Usage:
   python3 tools/repository_knowledge_graph_v0_1.py build
@@ -2969,7 +2969,7 @@ def _human_review_markdown(
         f"| Observed edges | {state_counts.get('OBSERVED', 0)} | Mechanically extracted relationships; not proof that a claim is true. |",
         f"| Specified edges | {state_counts.get('SPECIFIED', 0)} | Profile, contract, or source-declared structure. |",
         f"| Claimed edges | {state_counts.get('CLAIMED', 0)} | Assertions preserved without verification. |",
-        f"| Inference assertions | {len(assertions)} | Reviewable hypotheses emitted by bounded rules, never fact edges. |",
+        f"| Inference assertions | {len(assertions)} | Reviewable hypotheses emitted by bounded rules; separate from fact edges. |",
         "",
         "## Coverage gaps and findings",
         "",
