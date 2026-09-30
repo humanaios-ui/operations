@@ -1,21 +1,6 @@
-# HumanAIOS — Tool Manifest (Single Source of Truth)
-#
-# Companion to document-registry.yaml (documents) and SKILL_REGISTRY.md (skills).
-# Registers every executable tool in this repo plus the MCP servers the agent
-# may call. TOOLS_MANIFEST.md is RENDERED from this file — edit here, not there.
-#
-# Mechanical fields (version, interface, smoke_test, builder_markers, lang) are
-# refreshed by `.tool-control/scan.py` and must not be hand-edited.
-# Curated fields (status, owner, purpose, category, zone, review_due, notes)
-# are preserved across scans and are where human judgment lives.
-#
-# status: draft -> review -> approved | deprecated | archived
-#   `approved` is the OWNER's act and is never set by a scan (no self-grant),
-#   matching the document-control rule in document-registry.yaml.
----
 version: 1
 generated_by: tool_manifest_scanner v1.1.0
-id_scheme: HAIOS-TOOL-<nnn> (tools) · HAIOS-MCP-<nnn> (MCP servers)
+id_scheme: "HAIOS-TOOL-<nnn> (tools) \xB7 HAIOS-MCP-<nnn> (MCP servers)"
 scan_roots:
 - tools
 - scripts
@@ -66,7 +51,8 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: 'A6: Drift Monitor — Detect document divergence between registry and filesystem'
+  purpose: "A6: Drift Monitor \u2014 Detect document divergence between registry and\
+    \ filesystem"
 - tool_id: HAIOS-TOOL-002
   name: intake_pipeline
   path: scripts/intake_pipeline.py
@@ -90,7 +76,7 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: repurpose.py — one Witness Stand markdown post -> four channel drafts.
+  purpose: "repurpose.py \u2014 one Witness Stand markdown post -> four channel drafts."
 - tool_id: HAIOS-TOOL-004
   name: acat_conversational_keywords
   path: tools/ACAT_CONVERSATIONAL_KEYWORDS_V1_0_S072126-01.py
@@ -102,7 +88,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ACAT Conversational Register Keyword Set — v1.0
+  purpose: "ACAT Conversational Register Keyword Set \u2014 v1.0"
 - tool_id: HAIOS-TOOL-005
   name: main
   path: tools/Metaculus/main.py
@@ -126,8 +112,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Evaluates protocol artifacts against honesty, humility, and service operational markers (AA
-    frame).
+  purpose: Evaluates protocol artifacts against honesty, humility, and service operational
+    markers (AA frame).
   session: S-060126-01
 - tool_id: HAIOS-TOOL-007
   name: acat_adversarial_execution
@@ -140,7 +126,7 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: ACAT Adversarial Test Execution v1.0 — Execute against Live Scorer
+  purpose: "ACAT Adversarial Test Execution v1.0 \u2014 Execute against Live Scorer"
 - tool_id: HAIOS-TOOL-008
   name: acat_adversarial_suite
   path: tools/acat_adversarial_suite_v1.py
@@ -152,7 +138,7 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: ACAT Adversarial Test Suite v1.0 — Priority 6 EU AI Act Compliance
+  purpose: "ACAT Adversarial Test Suite v1.0 \u2014 Priority 6 EU AI Act Compliance"
 - tool_id: HAIOS-TOOL-009
   name: acat_dimension_scorer
   path: tools/acat_dimension_scorer.py
@@ -164,8 +150,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Scores ACAT dimensions from session records; Bayesian posterior intervals per dimension; D-COMP
-    probability.
+  purpose: Scores ACAT dimensions from session records; Bayesian posterior intervals
+    per dimension; D-COMP probability.
 - tool_id: HAIOS-TOOL-010
   name: acat_doc
   path: tools/acat_doc_v1.py
@@ -189,8 +175,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Keyword-vector scoring (TF-IDF surrogate) for dimensional evidence density; batch mode for
-    corpora.
+  purpose: Keyword-vector scoring (TF-IDF surrogate) for dimensional evidence density;
+    batch mode for corpora.
 - tool_id: HAIOS-TOOL-012
   name: acat_document_analyzer
   path: tools/acat_document_analyzer_v1_2_ARCHIVED_2026-07-16.py
@@ -202,7 +188,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: false
-  purpose: ⚠️  **DO NOT USE** — ARCHIVED (2026-07-16)
+  purpose: "\u26A0\uFE0F  **DO NOT USE** \u2014 ARCHIVED (2026-07-16)"
 - tool_id: HAIOS-TOOL-013
   name: acat_full_adversarial_suite_execution
   path: tools/acat_full_adversarial_suite_execution.py
@@ -226,7 +212,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ⚠️ SUPERSEDED — Do NOT use this version
+  purpose: "\u26A0\uFE0F SUPERSEDED \u2014 Do NOT use this version"
 - tool_id: HAIOS-TOOL-015
   name: acat_mcp_full_wrapper_v1_2_patched
   path: tools/acat_mcp_full_wrapper_v1_2_patched.py
@@ -250,7 +236,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ⚠️ SUPERSEDED — Do NOT use this version
+  purpose: "\u26A0\uFE0F SUPERSEDED \u2014 Do NOT use this version"
 - tool_id: HAIOS-TOOL-017
   name: acat_merkle_auditor
   path: tools/acat_merkle_auditor_v2_0.py
@@ -262,7 +248,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ACAT Merkle Auditor — v2.0
+  purpose: "ACAT Merkle Auditor \u2014 v2.0"
 - tool_id: HAIOS-TOOL-018
   name: acat_phase_shift_analyzer
   path: tools/acat_phase_shift_analyzer_v1_0.py
@@ -274,8 +260,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: 'Computes per-agent and per-provider phase shift metrics: LI distributions, stress-response
-    deltas.'
+  purpose: 'Computes per-agent and per-provider phase shift metrics: LI distributions,
+    stress-response deltas.'
   session: S-060126-01
 - tool_id: HAIOS-TOOL-019
   name: acat_pipeline
@@ -300,8 +286,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Audits session close posts against Section B protocol requirements (D-04, D-05, open/close
-    tag balance).
+  purpose: Audits session close posts against Section B protocol requirements (D-04,
+    D-05, open/close tag balance).
 - tool_id: HAIOS-TOOL-021
   name: acat_psychometric_validator
   path: tools/acat_psychometric_validator_v1_0.py
@@ -313,8 +299,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Recomputes reliability (α), PCA, and bi-factor metrics; produces reproducible method report
-    artifacts.
+  purpose: "Recomputes reliability (\u03B1), PCA, and bi-factor metrics; produces\
+    \ reproducible method report artifacts."
   session: S-060126-01
 - tool_id: HAIOS-TOOL-022
   name: acat_room_state_auditor
@@ -327,7 +313,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ACAT Room State Auditor — v1.0
+  purpose: "ACAT Room State Auditor \u2014 v1.0"
 - tool_id: HAIOS-TOOL-023
   name: acat_sdt_analytics
   path: tools/acat_sdt_analytics_v1_0.py
@@ -339,7 +325,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ACAT SDT Analytics — v1.0
+  purpose: "ACAT SDT Analytics \u2014 v1.0"
   session: S-052726-MKS
 - tool_id: HAIOS-TOOL-024
   name: acat_session_validator
@@ -352,7 +338,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Validates session record Phase 1/3 structure, D-COMP declarations, and Merkle chain integrity.
+  purpose: Validates session record Phase 1/3 structure, D-COMP declarations, and
+    Merkle chain integrity.
 - tool_id: HAIOS-TOOL-029
   name: api_monitoring_bot_v1
   path: tools/agents/api_monitoring_bot_v1.py
@@ -435,7 +422,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: App Mapping Tool — v0.1.4
+  purpose: "App Mapping Tool \u2014 v0.1.4"
   session: S-060726-06
 - tool_id: HAIOS-TOOL-036
   name: assess_router_Z2_assessment
@@ -448,7 +435,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: assess_router_Z2_assessment.py — FastAPI router for Z2 assessment endpoint.
+  purpose: "assess_router_Z2_assessment.py \u2014 FastAPI router for Z2 assessment\
+    \ endpoint."
 - tool_id: HAIOS-TOOL-037
   name: assess_router_new_z2_assess_01
   path: tools/assess_router_new_Z2-ASSESS-01.py
@@ -483,8 +471,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Extracts candidate behavioral-language pattern tokens from response corpora under perturbation
-    sets (H-BPL-01).
+  purpose: Extracts candidate behavioral-language pattern tokens from response corpora
+    under perturbation sets (H-BPL-01).
   session: S-060126-01
 - tool_id: HAIOS-TOOL-040
   name: builder_compliance_scanner
@@ -509,7 +497,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Reads WGS posts, counts sessions-carried per item, flags WARN at N>5 and ESCALATE at N>10.
+  purpose: Reads WGS posts, counts sessions-carried per item, flags WARN at N>5 and
+    ESCALATE at N>10.
   session: S-052326-03
 - tool_id: HAIOS-TOOL-042
   name: cascade_guard
@@ -522,7 +511,8 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: cascade_guard.py — the witch-hunt failure mode as two executable invariants.
+  purpose: "cascade_guard.py \u2014 the witch-hunt failure mode as two executable\
+    \ invariants."
 - tool_id: HAIOS-TOOL-043
   name: ci_predict_consolidate
   path: tools/ci_predict_consolidate_v1_0.py
@@ -570,7 +560,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Circuit Validator — v1.0
+  purpose: "Circuit Validator \u2014 v1.0"
   session: S-052726-MKS
 - tool_id: HAIOS-TOOL-047
   name: claim_verification_check
@@ -595,7 +585,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Clone Sync Health — v1.0
+  purpose: "Clone Sync Health \u2014 v1.0"
   session: S-070726
 - tool_id: HAIOS-TOOL-049
   name: corpus_delta_analyzer
@@ -608,8 +598,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Diffs two corpus CSV snapshots; surfaces LI regression, D-04 patterns, and population change
-    trajectories.
+  purpose: Diffs two corpus CSV snapshots; surfaces LI regression, D-04 patterns,
+    and population change trajectories.
 - tool_id: HAIOS-TOOL-050
   name: corpus_integrity_validator
   path: tools/corpus_integrity_validator.py
@@ -621,8 +611,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: 'Validates ACAT corpus CSV: missing fields, out-of-range scores, LI correctness, Phase pairing,
-    D-04 monotonicity.'
+  purpose: 'Validates ACAT corpus CSV: missing fields, out-of-range scores, LI correctness,
+    Phase pairing, D-04 monotonicity.'
 - tool_id: HAIOS-TOOL-051
   name: decision_relay
   path: tools/decision_relay.py
@@ -634,7 +624,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: decision_relay.py — routes Z2 decisions from the Intent-OS board to a GitHub PR, behind ngrok.
+  purpose: "decision_relay.py \u2014 routes Z2 decisions from the Intent-OS board\
+    \ to a GitHub PR, behind ngrok."
   session: S-091426-01
 - tool_id: HAIOS-TOOL-052
   name: dimension_attribution
@@ -659,7 +650,8 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: doc_lifecycle_lint.py — Filing / Processing / Consumption / Production (FPCP) for docs/.
+  purpose: "doc_lifecycle_lint.py \u2014 Filing / Processing / Consumption / Production\
+    \ (FPCP) for docs/."
 - tool_id: HAIOS-TOOL-054
   name: document_ingestor
   path: tools/document_ingestor_v1_0.py
@@ -695,7 +687,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Validates drift codes in close posts; cross-session frequency tracking for D-04 pattern clusters.
+  purpose: Validates drift codes in close posts; cross-session frequency tracking
+    for D-04 pattern clusters.
 - tool_id: HAIOS-TOOL-057
   name: echoes_copilot_acat_scanner
   path: tools/echoes_copilot_acat_scanner_v0_1.py
@@ -719,7 +712,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Elicitation Surface Scanner — v1.0
+  purpose: "Elicitation Surface Scanner \u2014 v1.0"
 - tool_id: HAIOS-TOOL-059
   name: errors_acat
   path: tools/errors_acat_V1.0.py
@@ -731,7 +724,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ACAT Error Taxonomy — v1.0
+  purpose: "ACAT Error Taxonomy \u2014 v1.0"
 - tool_id: HAIOS-TOOL-060
   name: failure_taxonomy_checklist
   path: tools/failure_taxonomy_checklist_v0_1.py
@@ -755,8 +748,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Tests whether corpus growth and variance patterns match or diverge from Fibonacci-like scaling
-    assumptions.
+  purpose: Tests whether corpus growth and variance patterns match or diverge from
+    Fibonacci-like scaling assumptions.
   session: S-060126-01
 - tool_id: HAIOS-TOOL-062
   name: finalize_archive_v1
@@ -769,7 +762,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ⚠️ SUPERSEDED — Do NOT use this version
+  purpose: "\u26A0\uFE0F SUPERSEDED \u2014 Do NOT use this version"
 - tool_id: HAIOS-TOOL-063
   name: finalize_archive_v2
   path: tools/finalize_archive_v2.py
@@ -781,7 +774,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: finalize_archive_v2 — ACAT archive finalizer v2 (2b honest amendment, S-070226)
+  purpose: "finalize_archive_v2 \u2014 ACAT archive finalizer v2 (2b honest amendment,\
+    \ S-070226)"
 - tool_id: HAIOS-TOOL-064
   name: git_push_gate
   path: tools/git_push_gate_v1_0.py
@@ -793,7 +787,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Zone 1 push authorization gate — enforces Zone 1/2/3 file rules before any commit per `Z3_PROTOCOL.md`.
+  purpose: "Zone 1 push authorization gate \u2014 enforces Zone 1/2/3 file rules before\
+    \ any commit per `Z3_PROTOCOL.md`."
   session: S-051726-02-molt-grow-kill
 - tool_id: HAIOS-TOOL-065
   name: governance_fetcher
@@ -819,7 +814,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Governance Mapper — v1.1 (Uber study edition, bugs fixed)
+  purpose: "Governance Mapper \u2014 v1.1 (Uber study edition, bugs fixed)"
   session: S-051826-01
 - tool_id: HAIOS-TOOL-067
   name: governance_mapper
@@ -845,7 +840,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ACAT Ground Truth Validator — v0.6
+  purpose: "ACAT Ground Truth Validator \u2014 v0.6"
 - tool_id: HAIOS-TOOL-069
   name: haios_agent_orchestrator_v1_0_patched
   path: tools/haios_agent_orchestrator_v1_0_patched.py
@@ -869,8 +864,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: 'Terminal CLI — query the full HumanAIOS system using live GitHub context + Claude API. Modes:
-    `ask` (default), `run`, `check`, `chat`.'
+  purpose: "Terminal CLI \u2014 query the full HumanAIOS system using live GitHub\
+    \ context + Claude API. Modes: `ask` (default), `run`, `check`, `chat`."
   session: S-051726-02-molt-grow-kill
 - tool_id: HAIOS-TOOL-071
   name: haios_collab_scanner
@@ -945,7 +940,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: HAIOS Notify Dispatcher — v1.0
+  purpose: "HAIOS Notify Dispatcher \u2014 v1.0"
 - tool_id: HAIOS-TOOL-077
   name: haios_pipeline
   path: tools/haios_pipeline_v1_0.py
@@ -957,7 +952,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: HAIOS Pipeline Coordinator — v1.0
+  purpose: "HAIOS Pipeline Coordinator \u2014 v1.0"
 - tool_id: HAIOS-TOOL-078
   name: haios_report_writer
   path: tools/haios_report_writer_v1_0.py
@@ -969,7 +964,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: HAIOS Report Writer — v1.0
+  purpose: "HAIOS Report Writer \u2014 v1.0"
 - tool_id: HAIOS-TOOL-079
   name: harm_independence_monitor
   path: tools/harm_independence_monitor_v1_0.py
@@ -981,7 +976,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Tracks PC2-linked Harm Independence Metric (HIM) signal independently of PC1 movement.
+  purpose: Tracks PC2-linked Harm Independence Metric (HIM) signal independently of
+    PC1 movement.
   session: S-060126-01
 - tool_id: HAIOS-TOOL-080
   name: hawkins_acat_mapper
@@ -994,8 +990,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Generates evidence-tagged crosswalk reports between ACAT dimensions and Hawkins calibration
-    levels.
+  purpose: Generates evidence-tagged crosswalk reports between ACAT dimensions and
+    Hawkins calibration levels.
   session: S-060126-01
 - tool_id: HAIOS-TOOL-081
   name: humility_audit_router
@@ -1008,7 +1004,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: humility_audit_router.py — FastAPI router for the humility audit endpoint.
+  purpose: "humility_audit_router.py \u2014 FastAPI router for the humility audit\
+    \ endpoint."
 - tool_id: HAIOS-TOOL-082
   name: humulity_audit_service
   path: tools/humulity_audit_service.py
@@ -1032,7 +1029,7 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: IC-SCOPE-05 gate — no tool touches a client system without a signed
+  purpose: "IC-SCOPE-05 gate \u2014 no tool touches a client system without a signed"
 - tool_id: HAIOS-TOOL-084
   name: intake_schema_v0_2
   path: tools/intake_schema_v0_2.py
@@ -1069,7 +1066,8 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: jester_invariants.py — JESTER-01..07 as executable invariants over the
+  purpose: "jester_invariants.py \u2014 JESTER-01..07 as executable invariants over\
+    \ the"
 - tool_id: HAIOS-TOOL-087
   name: lifecycle_predict
   path: tools/lifecycle_predict_v1_0.py
@@ -1094,9 +1092,9 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: Message calibration scoring tool.
-  notes: Self-declares TOOL_ZONE = 2 (ratify) with no Z2 ratification on record. Z1 cannot grant Zone
-    2; routed to Z2 as an open item. Resolve by either recording a `ratified_by` hash or correcting the
-    declaration to zone 1.
+  notes: Self-declares TOOL_ZONE = 2 (ratify) with no Z2 ratification on record. Z1
+    cannot grant Zone 2; routed to Z2 as an open item. Resolve by either recording
+    a `ratified_by` hash or correcting the declaration to zone 1.
   pending_ratification: true
   session: S-051726-02
 - tool_id: HAIOS-TOOL-089
@@ -1110,7 +1108,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Traces question-source → method-design → data-output chain for Market-Harmonic Research auditability.
+  purpose: "Traces question-source \u2192 method-design \u2192 data-output chain for\
+    \ Market-Harmonic Research auditability."
   session: S-060126-01
 - tool_id: HAIOS-TOOL-091
   name: molting_protocol_diff
@@ -1123,8 +1122,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Classifies a molt's tier (0/1/2) from the filepaths its diff touches, and measures the gap
-    against the author's claimed tier.
+  purpose: Classifies a molt's tier (0/1/2) from the filepaths its diff touches, and
+    measures the gap against the author's claimed tier.
   session: S-060126-01
 - tool_id: HAIOS-TOOL-092
   name: multi_provider_elicitation_client
@@ -1161,7 +1160,8 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: nf_ledger_v0_1.py — NF_LEDGER (calibration ledger, Brier) for the Phase 2 mesh pins.
+  purpose: "nf_ledger_v0_1.py \u2014 NF_LEDGER (calibration ledger, Brier) for the\
+    \ Phase 2 mesh pins."
 - tool_id: HAIOS-TOOL-095
   name: p3_record_generator
   path: tools/p3_record_generator_v1_0.py
@@ -1209,7 +1209,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Pre-Push Gate — v1.1
+  purpose: "Pre-Push Gate \u2014 v1.1"
   session: S-070726
 - tool_id: HAIOS-TOOL-100
   name: principle_analyzer
@@ -1222,7 +1222,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Principle Analyzer — v1.0
+  purpose: "Principle Analyzer \u2014 v1.0"
   session: S-051926-03
 - tool_id: HAIOS-TOOL-101
   name: principle_harmonizer
@@ -1248,7 +1248,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Principle Harmonizer — v1.2
+  purpose: "Principle Harmonizer \u2014 v1.2"
   session: S-052726-MKS
 - tool_id: HAIOS-TOOL-103
   name: red_team_runner
@@ -1261,7 +1261,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Red Team Runner — v1.0
+  purpose: "Red Team Runner \u2014 v1.0"
 - tool_id: HAIOS-TOOL-104
   name: registered_findings_validator
   path: tools/registered_findings_validator_v1_0.py
@@ -1273,7 +1273,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Registered Findings Validator — v1.0
+  purpose: "Registered Findings Validator \u2014 v1.0"
 - tool_id: HAIOS-TOOL-105
   name: registry_issue_compiler
   path: tools/registry_issue_compiler_v1_0.py
@@ -1322,7 +1322,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Repository discovery and mapping across humanaios-ui and LastingLightAI orgs.
+  purpose: Repository discovery and mapping across humanaios-ui and LastingLightAI
+    orgs.
   session: S-053126-repo-discovery
 - tool_id: HAIOS-TOOL-109
   name: repo_health
@@ -1335,7 +1336,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: repo_health.py — a basic, offline, deterministic self-diagnostic for a HumanAIOS repo.
+  purpose: "repo_health.py \u2014 a basic, offline, deterministic self-diagnostic\
+    \ for a HumanAIOS repo."
 - tool_id: HAIOS-TOOL-110
   name: run_acat_validation_suite
   path: tools/run_acat_validation_suite_v1.0.py
@@ -1347,7 +1349,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ACAT Validation Suite Orchestrator — v1.0
+  purpose: "ACAT Validation Suite Orchestrator \u2014 v1.0"
 - tool_id: HAIOS-TOOL-111
   name: scg_scorer
   path: tools/scg_scorer.py
@@ -1359,7 +1361,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: scg_scorer.py — Shadow Calibration Gap Scoring Tool
+  purpose: "scg_scorer.py \u2014 Shadow Calibration Gap Scoring Tool"
 - tool_id: HAIOS-TOOL-112
   name: scheduled_audit_runner
   path: tools/scheduled_audit_runner_v1_0.py
@@ -1371,7 +1373,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: scheduled_audit_runner_v1_0 — Measure+Issue automated audit loop orchestrator
+  purpose: "scheduled_audit_runner_v1_0 \u2014 Measure+Issue automated audit loop\
+    \ orchestrator"
 - tool_id: HAIOS-TOOL-113
   name: seed_org_defaults
   path: tools/seed_org_defaults.py
@@ -1383,7 +1386,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: seed_org_defaults.py — seed standard community-health files to mesh repos.
+  purpose: "seed_org_defaults.py \u2014 seed standard community-health files to mesh\
+    \ repos."
 - tool_id: HAIOS-TOOL-114
   name: server
   path: tools/server.py
@@ -1431,7 +1435,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: 'smag_consolidate — drain SMAG rows from the #103 tracking issue into the ledger.'
+  purpose: "smag_consolidate \u2014 drain SMAG rows from the #103 tracking issue into\
+    \ the ledger."
 - tool_id: HAIOS-TOOL-118
   name: smag_gap_analysis
   path: tools/smag_gap_analysis_v1_0.py
@@ -1443,7 +1448,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: smag_gap_analysis — the ANALYZE step of the recursive-learning loop.
+  purpose: "smag_gap_analysis \u2014 the ANALYZE step of the recursive-learning loop."
 - tool_id: HAIOS-TOOL-119
   name: smag_gap_analyzer
   path: tools/smag_gap_analyzer.py
@@ -1455,7 +1460,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: smag_gap_analyzer — LLM-enriched ACAT Core-6 gap classification and prediction.
+  purpose: "smag_gap_analyzer \u2014 LLM-enriched ACAT Core-6 gap classification and\
+    \ prediction."
 - tool_id: HAIOS-TOOL-120
   name: smag_pilot_capture
   path: tools/smag_pilot_capture_v1_0.py
@@ -1479,7 +1485,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: smag_pr_autocapture_v1_0 — auto-capture a SMAG pilot row from a merged PR
+  purpose: "smag_pr_autocapture_v1_0 \u2014 auto-capture a SMAG pilot row from a merged\
+    \ PR"
 - tool_id: HAIOS-TOOL-122
   name: smag_predict_lint
   path: tools/smag_predict_lint.py
@@ -1503,7 +1510,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: smag_resolve — fix SMAG capture timing by recording CI outcome AFTER checks resolve.
+  purpose: "smag_resolve \u2014 fix SMAG capture timing by recording CI outcome AFTER\
+    \ checks resolve."
 - tool_id: HAIOS-TOOL-124
   name: smag_to_empirica_connector
   path: tools/smag_to_empirica_connector.py
@@ -1515,7 +1523,8 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: smag_to_empirica_connector — wire SMAG rows to empirica CLI for trajectory generation.
+  purpose: "smag_to_empirica_connector \u2014 wire SMAG rows to empirica CLI for trajectory\
+    \ generation."
 - tool_id: HAIOS-TOOL-125
   name: smc_census_copilot_v0_1
   path: tools/smc_census_copilot_v0_1.py
@@ -1539,7 +1548,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Supabase Corpus Connector — v1.0
+  purpose: "Supabase Corpus Connector \u2014 v1.0"
 - tool_id: HAIOS-TOOL-127
   name: supabase_logger
   path: tools/supabase_logger.py
@@ -1564,7 +1573,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: ⚠️ SUPERSEDED — Do NOT use this version
+  purpose: "\u26A0\uFE0F SUPERSEDED \u2014 Do NOT use this version"
   session: S-052326-03
 - tool_id: HAIOS-TOOL-129
   name: system_audit
@@ -1577,7 +1586,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: System Audit — v1.1
+  purpose: "System Audit \u2014 v1.1"
   session: S-052726-MKS
 - tool_id: HAIOS-TOOL-132
   name: tier1_principles
@@ -1590,7 +1599,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: tier1_principles.py — HumanAIOS Tier 1 Principle Library
+  purpose: "tier1_principles.py \u2014 HumanAIOS Tier 1 Principle Library"
 - tool_id: HAIOS-TOOL-133
   name: tier1_principles_stub
   path: tools/tier1_principles_stub.py
@@ -1602,7 +1611,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: tier1_principles.py — stub for smoke test execution.
+  purpose: "tier1_principles.py \u2014 stub for smoke test execution."
 - tool_id: HAIOS-TOOL-134
   name: tier_b_activation_gate
   path: tools/tier_b_activation_gate.py
@@ -1711,8 +1720,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first, flags ≥3
-    sessions unresolved.
+  purpose: "Extracts Zone 2 pending items from WGS posts, deduplicates, surfaces oldest-first,\
+    \ flags \u22653 sessions unresolved."
   session: S-052326-03
 - tool_id: HAIOS-TOOL-143
   name: zone_boundary_audit
@@ -1725,7 +1734,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Detects Zone 1/2/3 boundary violations in workflow artifacts and operator logs.
+  purpose: Detects Zone 1/2/3 boundary violations in workflow artifacts and operator
+    logs.
   session: S-060126-01
 - tool_id: HAIOS-TOOL-144
   name: copilot_acat_scanner
@@ -1786,7 +1796,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: false
-  purpose: Walks the registered tool roots, extracts each tool's declared metadata, and
+  purpose: Walks the registered tool roots, extracts each tool's declared metadata,
+    and
 - tool_id: HAIOS-TOOL-149
   name: tool_control_selftest
   path: .tool-control/selftest.py
@@ -1798,7 +1809,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: false
-  purpose: 'Adversarial self-test for the tool-control gate: prove every rule can FAIL.'
+  purpose: 'Adversarial self-test for the tool-control gate: prove every rule can
+    FAIL.'
 - tool_id: HAIOS-TOOL-150
   name: tool_manifest_validator
   path: .tool-control/validate.py
@@ -1822,7 +1834,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: false
-  purpose: Document review scheduler — record a review, derive the next one, triage the backlog.
+  purpose: "Document review scheduler \u2014 record a review, derive the next one,\
+    \ triage the backlog."
 - tool_id: HAIOS-TOOL-152
   name: strict_yaml
   path: .doc-control/strict_yaml.py
@@ -1847,8 +1860,8 @@ tools:
   smoke_test: true
   builder_markers: false
   purpose: Record a Z2 decision on a candidate block. Run by Z2, not by Z1.
-  notes: Zone 2 ratified by Night 2026-09-13 — z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md. Records
-    a Z2 decision and is run by the ratifier.
+  notes: "Zone 2 ratified by Night 2026-09-13 \u2014 z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md.\
+    \ Records a Z2 decision and is run by the ratifier."
   ratified_by: z1-ratify-zone2-approved-20260913
   ratification_ruling: z1-inbox/2026-09-13/Z2_RULING_ZONE2_RATIFY_TOOL.md
 - tool_id: HAIOS-TOOL-154
@@ -1874,7 +1887,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: false
-  purpose: z1-inbox/ is where Z1 stages proposals for Z2. Until now nothing said which of
+  purpose: z1-inbox/ is where Z1 stages proposals for Z2. Until now nothing said which
+    of
 - tool_id: HAIOS-TOOL-156
   name: registered_failure_mode_scan
   path: tools/registered_failure_mode_scan_v0_1.py
@@ -1886,8 +1900,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level first-pass
-    yield / DPMO. Advisory unless `--enforce`.
+  purpose: Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level
+    first-pass yield / DPMO. Advisory unless `--enforce`.
   session: S-091326-01
 - tool_id: HAIOS-TOOL-157
   name: molt_cycle_tier0_v0_1
@@ -1900,7 +1914,8 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: molt_cycle_tier0_v0_1.py — READ + PROPOSE phases only (Tier 0). Never applies.
+  purpose: "molt_cycle_tier0_v0_1.py \u2014 READ + PROPOSE phases only (Tier 0). Never\
+    \ applies."
 - tool_id: HAIOS-TOOL-158
   name: resource_census
   path: tools/resource_census_v0_1.py
@@ -1912,7 +1927,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: resource_census_v0_1.py — measure the resource state of the operations tree.
+  purpose: "resource_census_v0_1.py \u2014 measure the resource state of the operations\
+    \ tree."
 - tool_id: HAIOS-TOOL-159
   name: resource_ledger
   path: tools/resource_ledger_v0_1.py
@@ -1924,7 +1940,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: resource_ledger_v0_1.py — append-only, hash-chained ledger of resource claims,
+  purpose: "resource_ledger_v0_1.py \u2014 append-only, hash-chained ledger of resource\
+    \ claims,"
 - tool_id: HAIOS-TOOL-160
   name: smag_feedback
   path: tools/smag_feedback_v1_0.py
@@ -1936,7 +1953,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: smag_feedback_v1_0 — the FEED BACK step of the recursive-learning loop.
+  purpose: "smag_feedback_v1_0 \u2014 the FEED BACK step of the recursive-learning\
+    \ loop."
 - tool_id: HAIOS-TOOL-161
   name: witness_framework
   path: tools/witness_framework.py
@@ -1948,7 +1966,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: 'Q-RFM-01: Witness Framework — verify that ratified fixes landed in cited artifacts'
+  purpose: "Q-RFM-01: Witness Framework \u2014 verify that ratified fixes landed in\
+    \ cited artifacts"
 - tool_id: HAIOS-TOOL-162
   name: intent_os_board_check
   path: tools/intent_os_board_check_v1_0.py
@@ -1960,7 +1979,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: intent_os_board_check — verify the Intent-OS board's "verified records" against the tree.
+  purpose: "intent_os_board_check \u2014 verify the Intent-OS board's \"verified records\"\
+    \ against the tree."
   session: S-091426-01
 - tool_id: HAIOS-TOOL-163
   name: smag_meta_feedback
@@ -1973,7 +1993,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: smag_meta_feedback_v1_0 — META FEED BACK; measure SMAG's own consolidation accuracy.
+  purpose: "smag_meta_feedback_v1_0 \u2014 META FEED BACK; measure SMAG's own consolidation\
+    \ accuracy."
   session: S-091526-meta
 - tool_id: HAIOS-TOOL-164
   name: intent_os_test_harness
@@ -1986,8 +2007,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: intent_os_test_harness — run every check the Intent-OS control surface rests on, and say which
-    held.
+  purpose: "intent_os_test_harness \u2014 run every check the Intent-OS control surface\
+    \ rests on, and say which held."
   session: S-091626-01
 - tool_id: HAIOS-TOOL-165
   name: holographic_orchestrator
@@ -2013,8 +2034,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: intent_os_board_reseal — re-seal the Intent-OS board's *mechanical* seals after a merge; refuse
-    the rest.
+  purpose: "intent_os_board_reseal \u2014 re-seal the Intent-OS board's *mechanical*\
+    \ seals after a merge; refuse the rest."
   session: S-091726-01
 - tool_id: HAIOS-TOOL-167
   name: intent_os_requests
@@ -2027,7 +2048,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: 'intent_os_requests — read the agent bus: every REQ- record in z1-inbox, its hash, its stage.'
+  purpose: "intent_os_requests \u2014 read the agent bus: every REQ- record in z1-inbox,\
+    \ its hash, its stage."
   session: S-091726-01
 - tool_id: HAIOS-TOOL-168
   name: intent_os_reconcile
@@ -2040,7 +2062,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: intent_os_reconcile — after a decided candidate merges, record the ratification the merge was.
+  purpose: "intent_os_reconcile \u2014 after a decided candidate merges, record the\
+    \ ratification the merge was."
   session: S-091826-01
 - tool_id: HAIOS-TOOL-169
   name: intent_os_pages
@@ -2053,7 +2076,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board.
+  purpose: "intent_os_pages_v1_0.py \u2014 the Intent-OS board's section pages, generated\
+    \ from the board."
   session: S-091926-01
 - tool_id: HAIOS-TOOL-174
   name: grant_data_loader_v1_0
@@ -2139,8 +2163,9 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance
-    tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines
+  purpose: Analyzes GitHub Actions workflows to build a dependency graph; classifies
+    gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration
+    pipelines
   session: https://claude.ai/code/session_01CePrSjPSB8Epbpq3Lj8oKj
 - tool_id: HAIOS-TOOL-181
   name: graph_convergence
@@ -2153,7 +2178,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: graph_convergence_v1_0.py — grade convergence between two agent-authored graphs.
+  purpose: "graph_convergence_v1_0.py \u2014 grade convergence between two agent-authored\
+    \ graphs."
   session: S-092126-graph-convergence
 - tool_id: HAIOS-TOOL-182
   name: intent_graph
@@ -2166,7 +2192,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: intent_graph_v1_0.py — validate INTENT_GRAPH.yaml against the tree and render it.
+  purpose: "intent_graph_v1_0.py \u2014 validate INTENT_GRAPH.yaml against the tree\
+    \ and render it."
   session: S-092126-intent-graph
 - tool_id: HAIOS-TOOL-183
   name: receipt_reconciliation
@@ -2179,7 +2206,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Receipt Reconciliation Script — Validates claims against NF_LEDGER
+  purpose: "Receipt Reconciliation Script \u2014 Validates claims against NF_LEDGER"
   session: S-092126-receipt-reconciliation
 - tool_id: HAIOS-TOOL-184
   name: verified_receipts
@@ -2192,7 +2219,7 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Verified Receipt Resolver — v0.1
+  purpose: "Verified Receipt Resolver \u2014 v0.1"
   session: H-COLLAB-HARMONY-01
 - tool_id: HAIOS-TOOL-185
   name: smag_gate_enforcer
@@ -2205,7 +2232,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up)
+  purpose: "smag_gate_enforcer_v1_0.py \u2014 SMAG Calibration Gate Enforcer (s1 CI\
+    \ gate wire-up)"
   session: S-092126
 - tool_id: HAIOS-TOOL-186
   name: install_git_hooks
@@ -2230,7 +2258,7 @@ tools:
   lang: bash
   smoke_test: false
   builder_markers: false
-  purpose: PR Readiness Verification — Run all validation checks in sequence
+  purpose: "PR Readiness Verification \u2014 Run all validation checks in sequence"
 - tool_id: HAIOS-TOOL-188
   name: repository_coordinator
   path: tools/repository_coordinator_v0_1.py
@@ -2242,8 +2270,8 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity
-    backpressure.
+  purpose: Repository coordination index with admission lanes, maintenance cohorts,
+    and operator-capacity backpressure.
   session: REPOSITORY-COORDINATOR-02
 - tool_id: HAIOS-TOOL-189
   name: build_oracle_state
@@ -2268,8 +2296,8 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: Enforce Z2/Z3 authority boundaries for operator-checks. CI gate to prevent misuse of RNOLA
-    advisory records as merge authority.
+  purpose: Enforce Z2/Z3 authority boundaries for operator-checks. CI gate to prevent
+    misuse of RNOLA advisory records as merge authority.
 - tool_id: HAIOS-TOOL-191
   name: lint_canonical_skills
   path: scripts/lint_canonical_skills.py
@@ -2281,8 +2309,8 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: Lint canonical skill entry points to detect substrate drift. CI gate to ensure substrate stubs
-    are thin redirects, not divergent implementations.
+  purpose: Lint canonical skill entry points to detect substrate drift. CI gate to
+    ensure substrate stubs are thin redirects, not divergent implementations.
 - tool_id: HAIOS-TOOL-192
   name: scan_rnola_misuse
   path: scripts/scan_rnola_misuse.py
@@ -2294,13 +2322,14 @@ tools:
   lang: python
   smoke_test: false
   builder_markers: false
-  purpose: Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox
-    patterns, authorization misuse, undefined artifacts, and stale evidence.
+  purpose: Scan RNOLA operator-check records for misuse patterns and falsifier violations.
+    Detects checkbox patterns, authorization misuse, undefined artifacts, and stale
+    evidence.
 - tool_id: HAIOS-TOOL-193
   name: ai-eo-incremental-indexer
   path: scripts/ai-eo-incremental-indexer.py
   version: unversioned
-  category: unclassified
+  category: pipeline_tool
   zone: 1
   status: draft
   interface: module
@@ -2312,7 +2341,7 @@ tools:
   name: ai-eo-indexer
   path: scripts/ai-eo-indexer.py
   version: unversioned
-  category: unclassified
+  category: pipeline_tool
   zone: 1
   status: draft
   interface: module
@@ -2324,7 +2353,7 @@ tools:
   name: gap-detector
   path: scripts/gap-detector.py
   version: unversioned
-  category: unclassified
+  category: research_tool
   zone: 1
   status: draft
   interface: module
@@ -2336,7 +2365,7 @@ tools:
   name: map-to-mitigation
   path: scripts/map-to-mitigation.py
   version: unversioned
-  category: unclassified
+  category: reporting_tool
   zone: 1
   status: draft
   interface: module
@@ -2348,7 +2377,7 @@ tools:
   name: platform-monitor
   path: scripts/platform-monitor.py
   version: unversioned
-  category: unclassified
+  category: monitoring_tool
   zone: 1
   status: draft
   interface: module
@@ -2360,7 +2389,7 @@ tools:
   name: signal-threshold-monitor
   path: scripts/signal-threshold-monitor.py
   version: unversioned
-  category: unclassified
+  category: monitoring_tool
   zone: 1
   status: draft
   interface: module
@@ -2372,7 +2401,7 @@ tools:
   name: workflow_path_validator
   path: tools/workflow_path_validator.py
   version: unversioned
-  category: unclassified
+  category: validation_tool
   zone: 1
   status: draft
   interface: module
@@ -2384,7 +2413,7 @@ tools:
   name: workflow_telemetry_collector
   path: tools/workflow_telemetry_collector.py
   version: unversioned
-  category: unclassified
+  category: analytics_tool
   zone: 1
   status: draft
   interface: module
@@ -2399,8 +2428,8 @@ mcp_servers:
   endpoint: npx -y rentahuman-mcp
   status: draft
   zone: 1
-  data_classification: UNCLASSIFIED — set before approval
-  scope: unscoped — set before approval
+  data_classification: "UNCLASSIFIED \u2014 set before approval"
+  scope: "unscoped \u2014 set before approval"
   notes: ''
 - server_id: HAIOS-MCP-002
   server: supabase
@@ -2408,8 +2437,8 @@ mcp_servers:
   endpoint: https://mcp.supabase.com/mcp?project_ref=ksinisdzgtnqzsymhfya
   status: draft
   zone: 1
-  data_classification: UNCLASSIFIED — set before approval
-  scope: unscoped — set before approval
+  data_classification: "UNCLASSIFIED \u2014 set before approval"
+  scope: "unscoped \u2014 set before approval"
   notes: ''
 excluded:
 - path: tools/board-decisions-backfill.js
