@@ -477,7 +477,8 @@ def print_summary(output: dict) -> None:
     dims = output.get("dimensions", [])
     if dims:
         print(f"\n  SDT Results per Dimension:")
-        print(f"  {'Dimension':12s}  {'d\'':>7}  {'β':>7}  {'HR':>6}  {'FAR':>6}  {'H-HML-01':10s}  Coercion")
+        d_prime = "d'"
+        print(f"  {'Dimension':12s}  {d_prime:>7}  {'β':>7}  {'HR':>6}  {'FAR':>6}  {'H-HML-01':10s}  Coercion")
         print(f"  {'-'*12}  {'-'*7}  {'-'*7}  {'-'*6}  {'-'*6}  {'-'*10}  --------")
         for d in dims:
             flag = "★ YES" if d["coercion_signature"] else "—"
