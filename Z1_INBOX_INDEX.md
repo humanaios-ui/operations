@@ -101,7 +101,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-29 | **Q-WITNESS-LEDGER-TIER0-EXTENSION-01** | Extend the INTENT-OS witness ledger with a Tier 0 (anonymous public participant) actor class | `z1-inbox/2026-09-27/Q-WITNESS-LEDGER-TIER0-EXTENSION-01.md` |
 | 2026-10-01 | **Q-LEDGER-GROUNDING-STUB-01** | p34x LedgerProvider is a permanent no-op stub — every future date classifies ERROR regardless of ratification | `z1-inbox/2026-09-29/F-CAND-LEDGER-GROUNDING-STUB-01.md` |
 | 2026-10-02 | **Q-588-CONVERGENCE-MATRIX-01** | Resource System Convergence Matrix — component landscape & composition framework | `z1-inbox/2026-09-30/Q-588-CONVERGENCE-MATRIX-01.md` |
-| 2026-10-02 | **Q-TIER-ASSIGNMENT-BATCH-01** | Tier assignment for 92 untiered governance candidates using resource-based allocation framework | `z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01.md` |
+| 2026-10-02 | **Q-TIER-ASSIGNMENT-BATCH-01** | Tier assignment for 90 awaiting_z2 governance candidates | `z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01-RESULT.md` |
 
 ## Decided (10)
 

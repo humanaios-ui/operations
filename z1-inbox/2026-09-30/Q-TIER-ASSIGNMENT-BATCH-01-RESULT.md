@@ -354,7 +354,23 @@ sha256(
 ---
 
 **Status:** RATIFIED  
-**Next Step:** Z2 signs this document; run RBE-OPS priority queue engine; emit Z3 executor assignments per ZONE_REGISTRY.md
+**Next Step:** Run RBE-OPS priority queue engine; emit Z3 executor assignments per ZONE_REGISTRY.md
+
+---
+
+## Falsifier
+
+**This decision will be proven wrong if:**
+1. A Tier 0 candidate is discovered to have zero infrastructure impact (not critical)
+2. A Tier 1 candidate requires Tier 0 infrastructure that is not completed first
+3. Tier 1 or Tier 2 candidates cannot execute due to missing Tier 0 prerequisites
+4. Resource capacity analysis shows Tier 0 candidates exceed RAT-min band A (zero-cost assumption violated)
+5. Z3 executor assignments cannot be mapped to any candidate in assigned tier due to dependency conflicts
+
+**Confirmation events:**
+- Each Tier 0 candidate executes successfully and unblocks at least one Tier 1/2 candidate
+- RBE-OPS priority queue engine ranks candidates within tiers without tier-migration conflicts
+- Z3 executor assignments execute in tier order without blocking on unmet dependencies
 
 ---
 

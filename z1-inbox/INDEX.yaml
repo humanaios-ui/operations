@@ -1149,14 +1149,12 @@ candidates:
     reproduces this. Documentation-only filing, no code change proposed.'
   tier: 2
 - q_id: Q-TIER-ASSIGNMENT-BATCH-01
-  title: Tier assignment for 92 untiered governance candidates using resource-based
-    allocation framework
-  path: z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01.md
+  title: Tier assignment for 90 awaiting_z2 governance candidates
+  path: z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01-RESULT.md
   submitted: '2026-09-30'
   status: awaiting_z2
-  note: Formal Z2 ratification request for Tier 0/1/2 classification of 92 awaiting_z2
-    candidates. Decision window 48h (due 2026-10-02). Ratification will unblock resource-based
-    allocation (RBE-OPS priority queue engine ranking and Z3 executor assignments).
+  note: 'Z2 ratification completed. Tier distribution: 14 Tier-0 (critical infrastructure),
+    46 Tier-1 (major features), 30 Tier-2 (refinement). Ratification signature: 8f81f95b2b765cc6f4ba6f98845a781674495fecb8de917e6491d8e0b052eb0d'
   tier: 2
 - q_id: Q-588-CONVERGENCE-MATRIX-01
   title: "Resource System Convergence Matrix \u2014 component landscape & composition\
