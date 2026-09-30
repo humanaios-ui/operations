@@ -71,6 +71,65 @@
       ],
       "pattern": "^[a-f0-9]{64}$"
     },
+    "artifact_reference": {
+      "type": "object",
+      "required": [
+        "reference_version",
+        "locator_type",
+        "repository",
+        "commit_sha",
+        "path",
+        "blob_sha",
+        "sha256",
+        "byte_length",
+        "media_type",
+        "immutable",
+        "transport_url"
+      ],
+      "properties": {
+        "reference_version": {
+          "const": "DHP-ARTIFACT-REF-1"
+        },
+        "locator_type": {
+          "const": "GITHUB_COMMIT_PINNED_RAW"
+        },
+        "repository": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+        },
+        "commit_sha": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "blob_sha": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "media_type": {
+          "const": "application/json"
+        },
+        "immutable": {
+          "const": true
+        },
+        "transport_url": {
+          "type": "string",
+          "pattern": "^https://raw\\\\.githubusercontent\\\\.com/"
+        }
+      },
+      "additionalProperties": true
+    },
     "verification_receipt": {
       "type": "object"
     },
