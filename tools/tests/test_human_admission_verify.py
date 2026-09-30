@@ -1,11 +1,18 @@
 """Tests for cryptographic human evaluation-admission receipts."""
 from __future__ import annotations
 
-import json
+import importlib.util
 import subprocess
 from pathlib import Path
 
-from human_admission_verify import canonical_payload, verify_snapshot
+ROOT = Path(__file__).resolve().parents[2]
+VERIFIER = ROOT / ".github" / "scripts" / "human_admission_verify.py"
+_spec = importlib.util.spec_from_file_location("human_admission_verify", VERIFIER)
+assert _spec and _spec.loader
+_module = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_module)
+canonical_payload = _module.canonical_payload
+verify_snapshot = _module.verify_snapshot
 
 
 def _keypair(tmp_path: Path) -> tuple[Path, str]:
