@@ -48,7 +48,9 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
+import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Iterable
@@ -268,6 +270,127 @@ def _admission_evidence(
 
     return bool(evidence), evidence, objectives
 
+
+
+HUMAN_RECEIPT_RE = re.compile(
+    r"^/admit-evaluation-signed\\s*\\n"
+    r"pr=(\\d+)\\s*\\n"
+    r"issue=(\\d+)\\s*\\n"
+    r"head=([0-9a-fA-F]{40})\\s*\\n"
+    r"(-----BEGIN SSH SIGNATURE-----\\n.*?\\n-----END SSH SIGNATURE-----)\\s*$",
+    re.S,
+)
+
+
+def human_admission_payload(repository: str, pr: int, issue: int, head: str) -> str:
+    return (
+        "HUMANAIOS_EVALUATION_ADMISSION_V1\\n"
+        f"repository={repository}\\n"
+        f"pr={pr}\\n"
+        f"issue={issue}\\n"
+        f"head={head.lower()}\\n"
+        "authority=EVALUATION_ONLY\\n"
+    )
+
+
+def _parse_human_receipt(body: str) -> dict[str, Any] | None:
+    m = HUMAN_RECEIPT_RE.match((body or "").strip())
+    if not m:
+        return None
+    return {
+        "pr": int(m.group(1)),
+        "issue": int(m.group(2)),
+        "head": m.group(3).lower(),
+        "signature": m.group(4) + "\\n",
+    }
+
+
+def _verify_ssh_receipt(
+    *, payload: str, signature: str, principal: str, public_key: str, namespace: str,
+) -> bool:
+    if not principal or not public_key:
+        return False
+    try:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            allowed = root / "allowed_signers"
+            sig = root / "receipt.sig"
+            allowed.write_text(f"{principal} {public_key.strip()}\\n", encoding="utf-8")
+            sig.write_text(signature, encoding="utf-8")
+            proc = subprocess.run(
+                [
+                    "ssh-keygen", "-Y", "verify",
+                    "-f", str(allowed),
+                    "-I", principal,
+                    "-n", namespace,
+                    "-s", str(sig),
+                ],
+                input=payload,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            return proc.returncode == 0
+    except (FileNotFoundError, OSError):
+        return False
+
+
+def verify_human_admission_receipts(
+    snapshot: dict[str, Any], policy: dict[str, Any],
+) -> dict[str, Any]:
+    """Attach only cryptographically verified human-origin receipts.
+
+    The carrier may be human or AI and may use the same GitHub account. Carrier
+    identity therefore has no authority effect. The signature is the authority
+    boundary and is bound to repository, PR, issue, exact head SHA and scope.
+    """
+    cfg = policy.get("human_attestation") or {}
+    namespace = str(cfg.get("namespace") or "humanaios-evaluation-admission-v1")
+    signers = cfg.get("authorized_signers") or []
+    repository = str(snapshot.get("repository") or "")
+
+    for pr in snapshot.get("pull_requests") or []:
+        number = int(pr.get("number") or 0)
+        head = str(pr.get("head_sha") or "").lower()
+        verified: list[dict[str, Any]] = []
+        for source_name in ("reviews", "comments"):
+            for item in pr.get(source_name) or []:
+                receipt = _parse_human_receipt(str(item.get("body") or ""))
+                if not receipt:
+                    continue
+                if receipt["pr"] != number or receipt["head"] != head:
+                    continue
+                payload = human_admission_payload(
+                    repository, number, receipt["issue"], head
+                )
+                carrier = str(
+                    (item.get("user") or {}).get("login")
+                    if isinstance(item.get("user"), dict)
+                    else item.get("user") or ""
+                )
+                for signer in signers:
+                    principal = str(signer.get("principal") or "")
+                    public_key = str(signer.get("public_key") or "")
+                    if _verify_ssh_receipt(
+                        payload=payload,
+                        signature=receipt["signature"],
+                        principal=principal,
+                        public_key=public_key,
+                        namespace=namespace,
+                    ):
+                        verified.append({
+                            "principal": principal,
+                            "issue": receipt["issue"],
+                            "pr": number,
+                            "head": head,
+                            "authority": "EVALUATION_ONLY",
+                            "carrier": carrier,
+                            "source": source_name,
+                        })
+                        break
+        pr["verified_admission_receipts"] = verified
+    return snapshot
 
 def _evaluation_admission_evidence(
     pr: dict[str, Any],
@@ -1018,6 +1141,7 @@ def main(argv: list[str] | None = None) -> int:
     snapshot = json.loads(args.snapshot.read_text(encoding="utf-8"))
     pq = args.priority_queue.read_text(encoding="utf-8", errors="replace") if args.priority_queue.exists() else ""
     policy = json.loads(args.policy.read_text(encoding="utf-8")) if args.policy.exists() else {}
+    snapshot = verify_human_admission_receipts(snapshot, policy)
     index = analyze(snapshot, pq, policy)
 
     if args.gate is not None:
