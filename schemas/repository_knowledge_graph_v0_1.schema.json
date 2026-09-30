@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/repository_knowledge_graph_v0_1.schema.json",
+  "title": "HumanAIOS Repository Knowledge Graph v0.1",
+  "description": "A derived, non-authoritative, provenance-bearing multiplex read model with bounded deterministic inference assertions over a repository and its declared graphs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "graph_id",
+    "graph_kind",
+    "authority_effect",
+    "source",
+    "invariants",
+    "ontology",
+    "nodes",
+    "edges",
+    "inference",
+    "views",
+    "validation",
+    "integrity"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "graph_id": {"type": "string", "minLength": 1},
+    "graph_kind": {"const": "DERIVED_READ_MODEL"},
+    "authority_effect": {"const": "NONE"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "head_commit",
+        "head_committed_at",
+        "worktree_state",
+        "source_tree_sha256",
+        "profile_path",
+        "profile_sha256"
+      ],
+      "properties": {
+        "repository": {"type": "string", "minLength": 1},
+        "head_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "head_committed_at": {"type": "string", "minLength": 1},
+        "worktree_state": {"enum": ["CLEAN", "DIRTY"]},
+        "source_tree_sha256": {"$ref": "#/$defs/sha256"},
+        "profile_path": {"type": "string", "minLength": 1},
+        "profile_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "ontology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_states", "epistemic_states", "node_types", "relations"],
+      "properties": {
+        "evidence_states": {
+          "type": "array",
+          "const": ["CLAIMED", "SPECIFIED", "IMPLEMENTED", "TESTED", "OBSERVED"]
+        },
+        "epistemic_states": {
+          "type": "array",
+          "const": ["MODEL_INFERRED"]
+        },
+        "node_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "relations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/node"}
+    },
+    "edges": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/edge"}
+    },
+    "inference": {"$ref": "#/$defs/inference"},
+    "views": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/view"}
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["valid", "errors", "warnings", "counts"],
+      "properties": {
+        "valid": {"type": "boolean"},
+        "errors": {"type": "array", "items": {"type": "string"}},
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "canonicalization", "sha256"],
+      "properties": {
+        "algorithm": {"const": "sha256"},
+        "canonicalization": {"const": "json-sort-keys-utf8"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_ref", "method", "confidence"],
+      "properties": {
+        "source_ref": {"type": "string", "minLength": 1},
+        "source_hash": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "locator": {"type": ["string", "null"]},
+        "method": {"type": "string", "minLength": 1},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "label", "layer", "properties", "provenance"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "type": {"type": "string", "minLength": 1},
+        "label": {"type": "string", "minLength": 1},
+        "layer": {"enum": ["source", "declared", "semantic", "external", "finding", "inferred"]},
+        "properties": {"type": "object"},
+        "provenance": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/provenance"}
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "from",
+        "to",
+        "relation",
+        "evidence_state",
+        "layer",
+        "authority_effect",
+        "properties",
+        "provenance"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "from": {"type": "string", "minLength": 1},
+        "to": {"type": "string", "minLength": 1},
+        "relation": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "evidence_state": {"enum": ["CLAIMED", "SPECIFIED", "IMPLEMENTED", "TESTED", "OBSERVED"]},
+        "layer": {"enum": ["source", "declared", "semantic", "external", "finding", "inferred"]},
+        "authority_effect": {"const": "NONE"},
+        "properties": {"type": "object"},
+        "provenance": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/provenance"}
+        }
+      }
+    },
+    "inferenceRuleReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "rule_sha256",
+        "kind",
+        "description",
+        "conclusion_relation",
+        "enabled",
+        "candidate_count",
+        "assertion_count",
+        "max_assertions",
+        "truncated"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "rule_sha256": {"$ref": "#/$defs/sha256"},
+        "kind": {"enum": ["two_edge_join", "shared_target", "opposing_inbound", "contested_dependency"]},
+        "description": {"type": "string", "minLength": 1},
+        "conclusion_relation": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "enabled": {"type": "boolean"},
+        "candidate_count": {"type": "integer", "minimum": 0},
+        "assertion_count": {"type": "integer", "minimum": 0},
+        "max_assertions": {"type": "integer", "minimum": 1},
+        "truncated": {"type": "boolean"}
+      }
+    },
+    "inference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "mode",
+        "epistemic_state",
+        "recursive",
+        "authority_effect",
+        "assertion_count",
+        "truncated",
+        "forbidden_conclusion_relations",
+        "rules"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "mode": {"enum": ["DISABLED", "DETERMINISTIC_BOUNDED"]},
+        "epistemic_state": {"const": "MODEL_INFERRED"},
+        "recursive": {"const": false},
+        "authority_effect": {"const": "NONE"},
+        "assertion_count": {"type": "integer", "minimum": 0},
+        "truncated": {"type": "boolean"},
+        "forbidden_conclusion_relations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+        },
+        "rules": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/inferenceRuleReport"}
+        }
+      }
+    },
+    "view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "description", "node_ids", "edge_ids", "counts"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"},
+        "title": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "node_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "edge_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["nodes", "edges"],
+          "properties": {
+            "nodes": {"type": "integer", "minimum": 0},
+            "edges": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    }
+  }
+}

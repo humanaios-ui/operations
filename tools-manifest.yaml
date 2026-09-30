@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 188
+  tools: 189
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 140
+  builder_markers_present: 141
   missing_from_tree: 0
   unclassified: 8
 categories:
@@ -2392,6 +2392,19 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
+- tool_id: HAIOS-TOOL-201
+  name: repository_knowledge_graph
+  path: tools/repository_knowledge_graph_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: repository_knowledge_graph_v0_1.py — HumanAIOS repository graph compiler.
+  session: REPOSITORY-KNOWLEDGE-GRAPH-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

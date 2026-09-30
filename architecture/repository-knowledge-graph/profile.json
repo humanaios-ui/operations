@@ -1,0 +1,443 @@
+{
+  "version": "0.1.0",
+  "graph_id": "humanaios-operations-repository-knowledge-graph",
+  "repository": "humanaios-ui/operations",
+  "status": "DERIVED_NON_CANONICAL",
+  "purpose": "Deterministic, provenance-bearing read model over the operations repository and its existing named graphs.",
+  "invariants": [
+    "GRAPH_IS_NOT_AUTHORITY",
+    "REFERENCE_IS_NOT_EVIDENCE",
+    "CLAIM_IS_NOT_IMPLEMENTATION",
+    "IMPLEMENTATION_IS_NOT_TEST",
+    "TEST_IS_NOT_OBSERVED_OUTCOME",
+    "TEST_ASSOCIATION_IS_NOT_TEST_PASS",
+    "INFERENCE_IS_NOT_OBSERVATION",
+    "INFERENCE_IS_NOT_WARRANT",
+    "INFERENCE_IS_NOT_AUTHORIZATION",
+    "INFERENCE_MUST_BE_RECONSTRUCTABLE_AND_FALSIFIABLE",
+    "MODEL_AGREEMENT_IS_NOT_PROOF",
+    "PARTICIPATION_IS_NOT_AUTHORITY",
+    "CALIBRATION_IS_NOT_WARRANT",
+    "WARRANT_IS_NOT_AUTHORIZATION",
+    "AUTHORIZATION_IS_NOT_EXECUTION",
+    "MULTIPLE_PROJECTIONS_ARE_NOT_MULTIPLE_TRUTHS",
+    "NO_AUTONOMOUS_GRAPH_MUTATION",
+    "NO_AUTONOMOUS_SELF_AUTHORIZATION"
+  ],
+  "exclude_paths": [
+    ".git/",
+    "node_modules/",
+    "outputs/",
+    "reports/",
+    ".pytest_cache/",
+    "__pycache__/"
+  ],
+  "content_scan_exclusions": [
+    ".env",
+    ".env.*",
+    "*Resume*",
+    "*resume*",
+    "*.db",
+    "*.zip",
+    "*.docx",
+    "*.jpg",
+    "*.jpeg",
+    "*.png",
+    "*.glb"
+  ],
+  "source_graphs": [
+    {
+      "id": "intent",
+      "path": "INTENT_GRAPH.yaml",
+      "adapter": "intent",
+      "declared_status": "PROPOSED",
+      "authority_effect": "NONE"
+    },
+    {
+      "id": "evidence",
+      "path": "EVIDENCE_GRAPH.json",
+      "adapter": "evidence",
+      "declared_status": "PHASE_0_SPECIFIED",
+      "authority_effect": "NONE"
+    },
+    {
+      "id": "system",
+      "path": "system_graph.json",
+      "adapter": "system",
+      "declared_status": "DECLARED_READ_MODEL",
+      "authority_effect": "NONE"
+    },
+    {
+      "id": "capability",
+      "path": "crb/capability_graph.json",
+      "adapter": "capability",
+      "declared_status": "PROTOTYPE",
+      "authority_effect": "NONE"
+    },
+    {
+      "id": "morphogenesis",
+      "path": "crb/morphogenesis.json",
+      "adapter": "morphogenesis",
+      "declared_status": "PROTOTYPE",
+      "authority_effect": "NONE"
+    },
+    {
+      "id": "crb_workflows",
+      "path": "crb/workflows.json",
+      "adapter": "workflows",
+      "declared_status": "PROTOTYPE",
+      "authority_effect": "NONE"
+    },
+    {
+      "id": "alignment",
+      "path": "GRAPH_ALIGNMENT.yaml",
+      "adapter": "alignment",
+      "declared_status": "PROPOSED",
+      "authority_effect": "NONE"
+    },
+    {
+      "id": "phase0_inventory",
+      "path": "ARTIFACT_INVENTORY.jsonl",
+      "adapter": "artifact_inventory",
+      "declared_status": "HISTORICAL_SNAPSHOT",
+      "authority_effect": "NONE"
+    }
+  ],
+  "canonical_artifacts": [
+    {
+      "path": "SEED.md",
+      "role": "identity_anchor",
+      "authority_class": "CLASS_0",
+      "note": "Repository-declared identity anchor; graph does not promote its claims."
+    },
+    {
+      "path": "PRINCIPLES_SEED_V1_0.md",
+      "role": "principles_anchor",
+      "authority_class": "CLASS_0B",
+      "note": "Current file declares pending Z2 ratification."
+    },
+    {
+      "path": "CURRENT.md",
+      "role": "operating_process",
+      "authority_class": "CLASS_2",
+      "note": "Session-open operating-process source."
+    },
+    {
+      "path": "REGISTERED.md",
+      "role": "findings_registry",
+      "authority_class": "CLASS_3",
+      "note": "Append-oriented findings, hypotheses, and correction record."
+    },
+    {
+      "path": "GOVERNANCE.md",
+      "role": "governance",
+      "authority_class": "CLASS_4",
+      "note": "Standing principles and authority hierarchy."
+    },
+    {
+      "path": "SESSION_RITUALS.md",
+      "role": "session_protocol",
+      "authority_class": "CLASS_5",
+      "note": "Cross-substrate session protocol."
+    },
+    {
+      "path": "PRIORITY_QUEUE.md",
+      "role": "work_admission_context",
+      "authority_class": "CONTROL_SURFACE",
+      "note": "Current global gate and resource-state queue; admission is not merge authority."
+    },
+    {
+      "path": "CLAUDE.md",
+      "role": "authority_map",
+      "authority_class": "CONTROL_SURFACE",
+      "note": "Repository-declared Z1/Z2/Z3 responsibility map."
+    }
+  ],
+  "semantic_nodes": [
+    {
+      "id": "role:z1",
+      "type": "authority_role",
+      "label": "Z1 — Proposer",
+      "source_ref": "CLAUDE.md",
+      "state": "SPECIFIED",
+      "properties": {"may": ["inspect", "analyze", "propose"], "may_not": ["ratify", "self_authorize"]}
+    },
+    {
+      "id": "role:z2",
+      "type": "authority_role",
+      "label": "Z2 — Ratifier",
+      "source_ref": "CLAUDE.md",
+      "state": "SPECIFIED",
+      "properties": {"may": ["accept", "edit", "reject", "ratify"], "may_not": ["collapse proposal and execution"]}
+    },
+    {
+      "id": "role:z3",
+      "type": "authority_role",
+      "label": "Z3 — Executor",
+      "source_ref": "CLAUDE.md",
+      "state": "SPECIFIED",
+      "properties": {"may": ["execute authorized change", "emit receipt"], "may_not": ["execute without authorization"]}
+    },
+    {
+      "id": "role:witness",
+      "type": "observational_role",
+      "label": "Witness — Observer",
+      "source_ref": "WITNESS_SERVICE_CONTRACT.md",
+      "state": "SPECIFIED",
+      "properties": {"may": ["observe", "record", "reconstruct"], "may_not": ["grant authority"]}
+    },
+    {
+      "id": "concept:intent",
+      "type": "control_concept",
+      "label": "Intent",
+      "source_ref": "INTENT_GRAPH.yaml",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:capability",
+      "type": "control_concept",
+      "label": "Capability",
+      "source_ref": "crb/capability_graph.json",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:evidence",
+      "type": "epistemic_concept",
+      "label": "Evidence",
+      "source_ref": "EVIDENCE_GRAPH.json",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:warrant",
+      "type": "epistemic_concept",
+      "label": "Warrant",
+      "source_ref": "crb/README.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:authorization",
+      "type": "control_concept",
+      "label": "Authorization",
+      "source_ref": "AUTHORIZATION_EVIDENCE_MAPPING.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:action",
+      "type": "execution_concept",
+      "label": "Action",
+      "source_ref": "artifacts/harc/v0.2/source/spec/behavior.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:consequence",
+      "type": "outcome_concept",
+      "label": "Consequence",
+      "source_ref": "artifacts/harc/v0.2/source/spec/behavior.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:observation",
+      "type": "evidence_concept",
+      "label": "Observation",
+      "source_ref": "artifacts/harc/v0.2/source/spec/behavior.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:correction",
+      "type": "learning_concept",
+      "label": "Correction",
+      "source_ref": "REGISTERED.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:proposal",
+      "type": "governance_concept",
+      "label": "Proposal",
+      "source_ref": "CLAUDE.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:ratification",
+      "type": "governance_concept",
+      "label": "Ratification",
+      "source_ref": "CLAUDE.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:execution",
+      "type": "execution_concept",
+      "label": "Execution",
+      "source_ref": "CLAUDE.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:receipt",
+      "type": "provenance_concept",
+      "label": "Receipt",
+      "source_ref": "receipt_reconciliation.py",
+      "state": "SPECIFIED"
+    }
+  ],
+  "semantic_edges": [
+    {"from": "role:z1", "to": "concept:proposal", "relation": "PROPOSES", "state": "SPECIFIED", "source_ref": "CLAUDE.md"},
+    {"from": "role:z2", "to": "concept:ratification", "relation": "RATIFIES", "state": "SPECIFIED", "source_ref": "CLAUDE.md"},
+    {"from": "role:z3", "to": "concept:execution", "relation": "EXECUTES", "state": "SPECIFIED", "source_ref": "CLAUDE.md"},
+    {"from": "role:witness", "to": "concept:observation", "relation": "OBSERVES", "state": "SPECIFIED", "source_ref": "WITNESS_SERVICE_CONTRACT.md"},
+    {"from": "concept:proposal", "to": "concept:ratification", "relation": "REQUIRES_INDEPENDENT_REVIEW", "state": "SPECIFIED", "source_ref": "CLAUDE.md"},
+    {"from": "concept:ratification", "to": "concept:execution", "relation": "PRECONDITION_FOR", "state": "SPECIFIED", "source_ref": "CLAUDE.md"},
+    {"from": "concept:execution", "to": "concept:receipt", "relation": "MUST_EMIT", "state": "SPECIFIED", "source_ref": "CLAUDE.md"},
+    {"from": "concept:intent", "to": "concept:capability", "relation": "CONSTRAINS_USE_OF", "state": "SPECIFIED", "source_ref": "crb/README.md"},
+    {"from": "concept:capability", "to": "concept:evidence", "relation": "REQUIRES_EVIDENCE_OF", "state": "SPECIFIED", "source_ref": "crb/README.md"},
+    {"from": "concept:evidence", "to": "concept:warrant", "relation": "INFORMS", "state": "SPECIFIED", "source_ref": "crb/README.md"},
+    {"from": "concept:warrant", "to": "concept:authorization", "relation": "INFORMS_BUT_DOES_NOT_GRANT", "state": "SPECIFIED", "source_ref": "crb/README.md"},
+    {"from": "concept:authorization", "to": "concept:action", "relation": "BOUNDS", "state": "SPECIFIED", "source_ref": "AUTHORIZATION_EVIDENCE_MAPPING.md"},
+    {"from": "concept:action", "to": "concept:consequence", "relation": "MAY_PRODUCE", "state": "SPECIFIED", "source_ref": "artifacts/harc/v0.2/source/spec/behavior.md"},
+    {"from": "concept:consequence", "to": "concept:observation", "relation": "GENERATES", "state": "SPECIFIED", "source_ref": "artifacts/harc/v0.2/source/spec/behavior.md"},
+    {"from": "concept:observation", "to": "concept:evidence", "relation": "MAY_SUPPORT", "state": "SPECIFIED", "source_ref": "artifacts/harc/v0.2/source/spec/behavior.md"},
+    {"from": "concept:observation", "to": "concept:correction", "relation": "MAY_TRIGGER", "state": "SPECIFIED", "source_ref": "REGISTERED.md"},
+    {"from": "concept:correction", "to": "concept:intent", "relation": "MAY_REVISE_INTERPRETATION_OF", "state": "SPECIFIED", "source_ref": "REGISTERED.md"}
+  ],
+  "inference": {
+    "enabled": true,
+    "mode": "DETERMINISTIC_BOUNDED",
+    "epistemic_state": "MODEL_INFERRED",
+    "recursive": false,
+    "max_assertions": 5000,
+    "forbidden_conclusion_relations": [
+      "AUTHORIZES",
+      "CAUSES",
+      "CLAIM_PROVEN",
+      "ELIGIBLE",
+      "ENFORCES",
+      "EXECUTED",
+      "GRANTS_AUTHORITY",
+      "HAS_CAPABILITY",
+      "IS_CAPABLE",
+      "PERMITS",
+      "PROVES",
+      "TESTS_PASS"
+    ],
+    "rules": [
+      {
+        "id": "RKG-INF-LOCAL-DEPENDENCY-01",
+        "kind": "two_edge_join",
+        "description": "A local artifact that imports another local artifact may depend on a second local artifact imported by that intermediate artifact.",
+        "left_relation": "IMPORTS",
+        "right_relation": "IMPORTS",
+        "right_direction": "out",
+        "subject_types": ["artifact"],
+        "intermediate_types": ["artifact"],
+        "object_types": ["artifact"],
+        "exclude_if_direct_relations": ["IMPORTS"],
+        "conclusion_relation": "MAY_DEPEND_ON_TRANSITIVELY",
+        "confidence": 0.8,
+        "independence": "NOT_APPLICABLE",
+        "max_assertions": 1500,
+        "human_review_required": true,
+        "assumptions": ["Static local import resolution approximates a reachable dependency path."],
+        "not_evidence_of": ["runtime execution", "causality", "capability", "authority"],
+        "falsifier": "Remove or disprove either local import premise, or show that runtime conditions make the inferred path unreachable."
+      },
+      {
+        "id": "RKG-INF-WORKFLOW-TEST-PATH-01",
+        "kind": "two_edge_join",
+        "description": "A workflow job that invokes a test artifact may exercise an implementation associated with that test artifact.",
+        "left_relation": "INVOKES",
+        "right_relation": "TESTS",
+        "right_direction": "out",
+        "subject_types": ["workflow_job"],
+        "intermediate_types": ["artifact"],
+        "object_types": ["artifact"],
+        "conclusion_relation": "MAY_EXERCISE",
+        "confidence": 0.75,
+        "independence": "NOT_ESTABLISHED",
+        "max_assertions": 1500,
+        "human_review_required": true,
+        "assumptions": ["The invoked test artifact follows the statically observed TESTS association."],
+        "not_evidence_of": ["workflow success", "test pass", "claim proof", "runtime coverage"],
+        "falsifier": "Show that the workflow does not execute the test path or that the test does not reach the associated implementation."
+      },
+      {
+        "id": "RKG-INF-DECLARED-SYSTEM-TEST-01",
+        "kind": "two_edge_join",
+        "description": "A declared system node whose claimed implementation has an associated test artifact has a candidate test trace, not a verified test outcome.",
+        "left_relation": "DECLARES_IMPLEMENTATION",
+        "right_relation": "TESTS",
+        "right_direction": "in",
+        "subject_types": ["process", "gate", "ledger", "ritual"],
+        "intermediate_types": ["artifact"],
+        "object_types": ["artifact"],
+        "conclusion_relation": "HAS_TEST_ARTIFACT_CANDIDATE",
+        "confidence": 0.65,
+        "independence": "NOT_ESTABLISHED",
+        "max_assertions": 500,
+        "human_review_required": true,
+        "assumptions": ["The declared implementation mapping and static TESTS association refer to the same implementation artifact."],
+        "not_evidence_of": ["implementation truth", "test execution", "test pass", "operational effectiveness"],
+        "falsifier": "Disprove the declared implementation mapping or the test-to-implementation association."
+      },
+      {
+        "id": "RKG-INF-CONVERGENCE-CANDIDATE-01",
+        "kind": "shared_target",
+        "description": "Two or more distinct support sources for one target create a convergence candidate whose independence remains unestablished.",
+        "premise_relation": "SUPPORTS",
+        "minimum_distinct_sources": 2,
+        "target_types": ["claim", "decision", "objective"],
+        "conclusion_relation": "HAS_CONVERGENCE_CANDIDATE",
+        "confidence": 0.55,
+        "independence": "NOT_ESTABLISHED",
+        "max_assertions": 500,
+        "human_review_required": true,
+        "assumptions": ["Distinct graph nodes may still share a source, method, or failure mode."],
+        "not_evidence_of": ["independent corroboration", "claim proof", "authority", "consensus"],
+        "falsifier": "Show that the support sources are dependent, duplicated, inapplicable, or do not materially support the target."
+      },
+      {
+        "id": "RKG-INF-EVIDENCE-CONFLICT-01",
+        "kind": "opposing_inbound",
+        "description": "A target with both supporting and contradicting inbound relations has an unresolved evidence-conflict candidate.",
+        "positive_relation": "SUPPORTS",
+        "negative_relation": "CONTRADICTS",
+        "target_types": ["claim", "decision", "objective"],
+        "conclusion_relation": "HAS_UNRESOLVED_EVIDENCE_CONFLICT",
+        "confidence": 0.95,
+        "independence": "NOT_ESTABLISHED",
+        "max_assertions": 500,
+        "human_review_required": true,
+        "assumptions": ["The imported SUPPORTS and CONTRADICTS relations address the same scoped target."],
+        "not_evidence_of": ["which side is correct", "claim defeat", "claim proof", "authorization"],
+        "falsifier": "Show that one relation is mis-scoped, withdrawn, superseded, or addresses a materially different interpretation."
+      },
+      {
+        "id": "RKG-INF-CONTESTED-DEPENDENCY-01",
+        "kind": "contested_dependency",
+        "description": "When a claim or evidence object is contradicted and another object depends on it, preserve that dependency as contested without deciding the underlying dispute.",
+        "negative_relations": ["CONTRADICTS", "INVALIDATES"],
+        "dependency_relations": ["GROUNDS", "INFORMS", "SUPPORTS"],
+        "evidence_types": ["claim", "evidence", "epistemic_concept"],
+        "dependent_types": ["claim", "decision", "objective", "epistemic_concept"],
+        "conclusion_relation": "HAS_CONTESTED_EVIDENCE_DEPENDENCY",
+        "confidence": 0.9,
+        "independence": "NOT_ESTABLISHED",
+        "max_assertions": 500,
+        "human_review_required": true,
+        "assumptions": ["The contradiction and dependency relations address the same scoped evidence object."],
+        "not_evidence_of": ["claim defeat", "warrant invalidity", "which side is correct", "authorization withdrawal"],
+        "falsifier": "Show that the contradiction is mis-scoped or that the dependent object does not materially rely on the contested evidence."
+      }
+    ]
+  },
+  "views": [
+    {"id": "repository", "title": "Repository topology", "description": "Tracked and untracked source artifacts, directories, symbols, workflows, schemas, and syntactic dependencies.", "node_types": ["repository", "directory", "artifact", "symbol", "workflow", "workflow_job", "schema", "module", "action_dependency"]},
+    {"id": "knowledge", "title": "Knowledge and intent", "description": "Vision, mission, principles, objectives, declared concepts, and explicit citations.", "origin_graphs": ["intent"], "id_prefixes": ["concept:"]},
+    {"id": "evidence", "title": "Evidence standing", "description": "Claims, evidence, controls, tests, failures, falsifiers, decisions, and their graded relationships.", "origin_graphs": ["evidence"], "node_types": ["claim", "evidence", "control", "test", "failure", "falsifier", "decision", "standard", "readiness_domain"]},
+    {"id": "inference", "title": "Bounded inference", "description": "Deterministic MODEL_INFERRED assertions with premises, confidence, independence state, falsifiers, and no authority effect.", "node_types": ["inference_assertion"], "include_incident_edges": true},
+    {"id": "governance", "title": "Governance and authority", "description": "Z1/Z2/Z3 role separation, gates, proposals, ratification, authorization, execution, and receipts.", "id_prefixes": ["role:", "concept:proposal", "concept:ratification", "concept:authorization", "concept:execution", "concept:receipt"], "node_types": ["gate", "authority_role", "governance_concept", "observational_role"]},
+    {"id": "accountability", "title": "Accountability", "description": "Who may propose, ratify, execute, observe, and receipt—with no authority inferred from participation.", "id_prefixes": ["role:", "concept:proposal", "concept:ratification", "concept:execution", "concept:receipt", "concept:observation"]},
+    {"id": "control", "title": "Action-centered control", "description": "Intent, capability, evidence, warrant, authorization, action, consequence, observation, and correction as distinct objects.", "id_prefixes": ["concept:"]},
+    {"id": "evolution", "title": "Graph evolution", "description": "Capability stages, morphogenetic signals, governed graph deltas, CRB workflows, and bounded projections.", "origin_graphs": ["capability", "morphogenesis", "crb_workflows"]},
+    {"id": "convergence", "title": "Convergence and divergence", "description": "Explicit cross-graph referent mappings, source dependence, divergences, and coverage gaps.", "origin_graphs": ["alignment"], "node_types": ["alignment", "divergence"]},
+    {"id": "risk", "title": "Risk and unresolved state", "description": "Contradictions, failures, falsifiers, parse failures, unresolved references, unverified external work items, and inferred evidence-conflict candidates.", "node_types": ["failure", "falsifier", "divergence", "parse_failure", "unresolved_reference", "github_item"], "inference_predicates": ["HAS_UNRESOLVED_EVIDENCE_CONFLICT", "HAS_CONTESTED_EVIDENCE_DEPENDENCY"], "include_incident_edges": true},
+    {"id": "provenance", "title": "Provenance", "description": "Source artifacts, citations, imported graph origins, hashes, and derivation edges.", "relations": ["CITES", "DERIVED_FROM", "DECLARES", "REFERENCES", "REFERENCES_WORK_ITEM", "REFERENCES_GITHUB_ITEM"]}
+  ]
+}
