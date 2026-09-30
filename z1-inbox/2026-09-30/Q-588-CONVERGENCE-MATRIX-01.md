@@ -22,14 +22,18 @@ This matrix reveals which Resource System components exist (main), exist partial
 
 ## Convergence Matrix
 
+**CORRECTIONS APPLIED** (per humanaios-ui review, 2026-09-30): Eligible Resolver split into two rows; PII Gateway corrected to MISSING; Resource Manager clarified as accounting-focused foundation; Replay narrowed to portfolio replay; Activity Graph composition assumption noted as untested; verdict changed to UNRESOLVED pending #611 protocol.
+
 | **Component** | **Location (main)** | **Main Evidence** | **Candidate Evidence** | **State** | **Executable?** | **Exercised?** | **Evidence (Would Prove Wrong)** |
 |:---|:---|:---|:---|:---|:---|:---|:---|
-| **Resource Miner** | `humanaios-funding-pipeline/resource-miner/` | `resource_miner/miner.py` (enrich, dedupe, route, need-match) | — | EXISTS | ✅ YES (Python module, callable) | ❓ Unclear (tests exist; CI status unknown) | PR #567, #563 (resource-miner-path, admit-pr) — verify: `python3 -m pytest humanaios-funding-pipeline/resource-miner/tests/ -v` passes and test coverage ≥80% |
-| **Eligibility Resolver** | Feature branch `feature/resource-entitlement-handoff-v0` | None on main | `#608 integration` (miner → entitlement binding) | EXISTS/PARTIAL | ⚠️ CONDITIONAL (implemented, not merged) | ❓ Unclear (handoff integration status unknown) | PR #608 merge + integration test in CI: `test_miner_entitlement_handoff()` passes and resource-miner output feeds entitlement-resolver input without loss |
-| **Activity Graph** | — (search: `ActivityEvent`, `activity_graph`) | None found on main | None found in search (candidate branches) | **MISSING** | ❌ NO | ❌ NO | Create canonical `ActivityEvent` schema + `ActivityGraph` class that: (1) ingests Resource Miner + Eligibility Resolver outputs; (2) maintains acyclic directed graph; (3) passes `test_activity_graph_DAG_invariant()` |
-| **Resource Manager** | `tools/resource_ledger_v0_1.py` (partial) | Ledger claims/spend/yield logic exists | — | EXISTS/PARTIAL | ⚠️ PARTIAL (ledger exists; state lifecycle incomplete) | ✅ YES (ledger tool has verify/report subcommands; exercised by tools/README) | Complete state/value lifecycle: (1) ResourceState schema with version/timestamp; (2) transition matrix (OPEN→IN_PROGRESS→COMPLETED→CLOSED); (3) test `test_resource_state_lifecycle()` passes; (4) ledger ordering enforced by lock |
-| **PII Claim Gateway** | `schemas/resource_request.schema.json` (partial) | Schema exists; logic unknown | — | EXISTS/PARTIAL | ❓ UNKNOWN | ❓ UNKNOWN | Inspect: (1) does `resource_request.schema.json` include PII redaction rules? (2) is there a `pii_redaction.py` tool? (3) `test_pii_redaction_in_resource_request()` passes? |
-| **Replay** | `tools/` (search yields none) | None found on main | Check #611 (convergence experiment) | **MISSING/CANDIDATE** | ❌ NO (on main); ❓ CANDIDATE | ❌ NO | Implement reproducible replay: (1) ledger hash-chain enables audit trail; (2) resource state versioning enables rollback; (3) test `test_replay_transaction_log()` passes; (4) divergence-free replay on two independent runs |
+| **Resource Miner** | `humanaios-funding-pipeline/resource-miner/` | `resource_miner/miner.py` (enrich, dedupe, route, need-match) | — | EXISTS | ✅ YES (Python module, callable) | ❓ Unclear (tests exist; CI status unknown) | `python3 -m pytest humanaios-funding-pipeline/resource-miner/tests/ -v` fails, or coverage <80% |
+| **Eligibility Resolver** | `humanaios-funding-pipeline/entitlement-navigator/entitlement/engine.py` | `evaluate_program()`, `evaluate_profile()` (executable) | — | **EXISTS** | ✅ YES (methods callable) | ❓ Unclear (tests unknown) | Entitlement Navigator methods deleted or signature changed incompatibly |
+| **Miner→Resolver Binding** | — | — | `#608` (integration) | **CANDIDATE** | ⚠️ CONDITIONAL | ❌ NO | PR #608 fails CI, or integration test `test_miner_entitlement_handoff()` fails (schema incompatibility) |
+| **Activity Lifecycle Model** | — (design needed) | None found on main | None found in candidates | **MISSING** | ❌ NO | ❌ NO | NOTE: Assuming hard composition chain (Resolver → Activity Graph → Manager) is a **new architectural assumption**, not derived from existing components. This should be tested before being presupposed. Canonical schema for `ActivityEvent` + `ActivityGraph` not yet designed. |
+| **Resource Accounting Ledger** | `tools/resource_ledger_v0_1.py` | Ledger claims/spend/yield logic (claim, spend, yield, price, waste, capacity, close, verify, report) | — | **EXISTS** | ✅ YES (CLI tool, executable) | ✅ YES (subcommands verified; tools/README) | `resource_ledger_v0_1.py` refactored or subcommands removed |
+| **Resource Manager (Lifecycle)** | `schemas/resource_state.schema.json` (partial) | State schema exists (work-state/blocking-state) | — | **PARTIAL/FOUNDATION** | ⚠️ PARTIAL | ❓ Unclear | Note: #588's Resource Manager concerns **lifecycle** (inventory, restriction, allocation, consumption, conversion, renewal, expiration, loss, realized value), not accounting. `resource_state.schema.json` is work-state focused, not lifecycle-focused. Needs lifecycle model: acquired-state, discovered-state, allocated-state, consumed-state, converted-state, expires-state, loss-state. |
+| **PII Claim Gateway** | `schemas/resource_request.schema.json` (found) | Schema contains resource cost/dependency semantics, **NOT** PII redaction | — | **MISSING** | ❌ NO | ❌ NO | `resource_request.schema.json` actually contains PII redaction fields, or separate `pii_redaction.py` logic found. (Note: privacy/redaction primitives exist elsewhere in repo; check audit-trail, claim-receipt, disclosure-receipt designs.) |
+| **Portfolio Replay** | `tools/` (search yields none) | None found on main | Check #611 (convergence experiment) | **MISSING** | ❌ NO (on main); ❓ CANDIDATE | ❌ NO | NOTE: Portfolio replay = material evidence/controller changes recompute affected resource branches without re-asking known facts. Ledger replay (audit-trail reconstruction) is **narrower** and separate. Implement portfolio replay: (1) detect material change; (2) identify affected branches; (3) recompute without re-query. |
 
 ---
 
@@ -68,37 +72,93 @@ This matrix reveals which Resource System components exist (main), exist partial
 
 ---
 
-### **2. Eligibility Resolver** — EXISTS/PARTIAL ⚠️
+### **2. Eligibility Resolver** — EXISTS ✅
 
-**Location:** `feature/resource-entitlement-handoff-v0` (candidate branch)
+**Location:** `humanaios-funding-pipeline/entitlement-navigator/entitlement/engine.py`
 
 **What it does:**
-- Takes Resource Miner output (candidates, ranked)
-- Determines eligibility based on entitlement rules
-- Passes eligible candidates downstream (to Activity Graph or Resource Manager)
+- Takes program/profile eligibility evaluation criteria
+- Evaluates eligibility based on entitlement rules
+- Returns pass/fail/conditional for resource allocation decisions
 
-**Main evidence:**
-- ❌ Not on main
+**Main evidence (executable):**
+- ✅ `evaluate_program()` and `evaluate_profile()` methods exist and are callable
+- ✅ Methods implement deterministic eligibility logic
+- ✅ Integrated with the Entitlement Navigator on main
 
 **Candidate evidence:**
-- ✅ Branch `feature/resource-entitlement-handoff-v0` exists
-- PR #608: Miner → Entitlement binding integration
-- Likely defines entitlement resolution logic (not yet inspected)
+- PR #608: Miner → Eligibility Resolver binding (integration, not resolver itself)
 
 **Exercised?**
-- ❌ Unmerged — no CI validation on main
-- Handoff interface (output format) unknown
+- ❓ Unclear — tests likely exist; CI status unknown
 
-**Falsifier (would prove EXISTS/PARTIAL wrong):**
-- `feature/resource-entitlement-handoff-v0` branch deleted or empty
-- PR #608 fails CI (syntax error, import error, test failure)
-- Integration test fails: `test_miner_entitlement_handoff()` — miner output schema incompatible with resolver input schema
+**Falsifier (would prove EXISTS wrong):**
+- `humanaios-funding-pipeline/entitlement-navigator/entitlement/engine.py` deleted or methods removed
+- `evaluate_program()` / `evaluate_profile()` signature changed incompatibly
+- Methods fail or throw on standard inputs
 
-**Next step:** Inspect PR #608; verify interface compatibility with Resource Miner output; run integration test.
+**Next step:** Verify resolver tests pass; validate integration with Resource Miner output schema via PR #608.
 
 ---
 
-### **3. Activity Graph** — MISSING ❌
+### **2B. Miner → Resolver Binding** — CANDIDATE ⚠️
+
+**Location:** PR #608 (unmerged)
+
+**What it does:**
+- Wires Resource Miner output (ranked candidates) into Eligibility Resolver
+- Ensures schema compatibility between miner's `ResourceCandidate` and resolver's input
+- Enables end-to-end: Miner → Resolver → downstream
+
+**Main evidence:**
+- ❌ Not on main (binding unmerged)
+
+**Candidate evidence:**
+- ✅ PR #608: explicit resource-miner + entitlement-navigator integration
+
+**Exercised?**
+- ❌ Unmerged — no CI validation on main
+
+**Falsifier (would prove CANDIDATE wrong):**
+- PR #608 closes or is reverted
+- Integration test `test_miner_entitlement_handoff()` fails
+- Schema mismatch: miner output cannot be passed to resolver input
+
+**Next step:** Merge PR #608 after validating interface compatibility.
+
+---
+
+### **3. Activity Lifecycle Model** — MISSING ❌
+
+**Location:** None found
+
+**What it should do (per #588 definition):**
+- Observability/history: source, action, artifact, AI activity, human activity, check-ins, observed execution, outcome, deviation, next operation
+- **CRITICAL ASSUMPTION:** The matrix assumes hard composition: `Resolver → Activity Graph → Resource Manager`. This is **a new architectural assumption**, not derived from existing components, and should be tested before being presupposed.
+
+**Main evidence:**
+- ❌ No `ActivityEvent` schema
+- ❌ No `ActivityGraph` class
+- ❌ No activity lifecycle model
+
+**Candidate evidence:**
+- ❌ Not found in candidate branches either
+- graph_convergence_v1_0.py exists but operates on pre-built graphs (requires external GRAPH_ALIGNMENT.yaml)
+
+**Exercised?**
+- ❌ Not built; cannot be exercised
+
+**Falsifier (would prove MISSING wrong):**
+- Find `schemas/activity_event.schema.json` or `models/ActivityGraph` class
+- Canonical event type schema: `{"id": "...", "timestamp": "...", "type": "...", "actor": "...", "payload": {...}}`
+- Test: `test_activity_graph_DAG_invariant()` passes
+- DAG validation: no cycles, topological sort deterministic
+
+**Next step:** (Conditional on architecture decision) Design ActivityEvent schema; test hard composition assumption; implement ActivityGraph class if composition is confirmed.
+
+---
+
+### **4. Resource Accounting Ledger** — EXISTS ✅
 
 **Location:** None found
 
@@ -130,35 +190,135 @@ This matrix reveals which Resource System components exist (main), exist partial
 
 ---
 
-### **4. Resource Manager** — EXISTS/PARTIAL ⚠️
+### **4. Resource Accounting Ledger** — EXISTS ✅
 
-**Location:** `tools/resource_ledger_v0_1.py` (primary), `schemas/resource_state.schema.json`
+**Location:** `tools/resource_ledger_v0_1.py`
 
 **What it does:**
-- Ledger side (✅ exists): claim/spend/yield operations, hash-chained append-only log, verification
-- State lifecycle (❌ missing): tracking resource state transitions (OPEN → IN_PROGRESS → COMPLETED → CLOSED)
-- Value lifecycle (❌ missing): assigning and updating resource prices/exchange rates
+- Append-only hash-chained ledger of resource claims, spends, yields, prices, waste, capacity, and closure
+- Implements atomic serialization (flock lock)
+- Validates unit registry (RESOURCE_UNITS.yaml)
+- Supports verification, reporting, and price/exchange-rate recording
 
-**Main evidence:**
-- ✅ `resource_ledger_v0_1.py`: Implements claim(), spend(), yield(), close() operations
+**Main evidence (executable):**
+- ✅ `resource_ledger_v0_1.py`: Complete implementation with CLI subcommands
+- ✅ Methods: init, verify, cap, claim, spend, yield, price, waste, close, status, report
 - ✅ Hash-chain validation via verify() — prevents tampering
 - ✅ Lock mechanism (flock) — serializes concurrent writes
 - ✅ Unit registry support (RESOURCE_UNITS.yaml)
 
 **Candidate evidence:**
-- ❓ `schemas/resource_state.schema.json` exists but content unknown
-- ❓ Price event logic (`price()` subcommand in ledger) partially defined
+- ❓ Price event logic (`price()` subcommand) partially documented
 
 **Exercised?**
-- ✅ Ledger CLI has subcommands: init, verify, cap, claim, spend, yield, price, waste, close, status, report
-- ⚠️ Exercise level unknown — tests may exist but CI status unclear
+- ✅ Ledger CLI has subcommands documented in tools/README
+- ⚠️ Full test coverage unknown; CI status unclear
 
-**Falsifier (would prove EXISTS/PARTIAL wrong):**
-- `resource_state.schema.json` does not define state transitions
-- `price()` subcommand fails (syntax error, logic error)
-- Integration test fails: `test_resource_ledger_lifecycle()` — cannot open → claim → spend → close in sequence
+**Falsifier (would prove EXISTS wrong):**
+- `resource_ledger_v0_1.py` deleted or subcommands removed
+- `verify()` or `close()` operations fail on valid inputs
+- Hash-chain validation broken
 
-**Next step:** Verify state schema is complete; test full lifecycle; implement state transition matrix (OPEN→IN_PROGRESS→CLOSED, with timestamp ordering).
+**Next step:** Run ledger test suite; validate full claim → spend → close cycle.
+
+---
+
+### **5. Resource Manager (Lifecycle)** — PARTIAL/FOUNDATION ⚠️
+
+**Location:** `schemas/resource_state.schema.json` (partial), needs full lifecycle model
+
+**What #588 requires (NOT what the ledger provides):**
+- **Resource lifecycle tracking**: inventory, restriction, allocation, consumption, conversion, renewal, expiration, loss, realized value
+- **Acquired-state model**: when/how resource entered system (mined, granted, synthesized, imported)
+- **Discovered-state model**: material changes (new facts, price updates, availability changes)
+- **Allocated-state model**: reserved for specific purpose/actor/window
+- **Consumed-state model**: actual use vs reserved; tracking deviation
+- **Converted-state model**: resource → other resource transformation
+- **Expires-state model**: TTL, renewal windows, stale-state detection
+- **Loss-state model**: unavailable, revoked, orphaned resources
+
+**Main evidence (partial):**
+- ✅ `resource_ledger_v0_1.py`: Accounting foundation (claim/spend/yield)
+- ⚠️ `schemas/resource_state.schema.json`: Exists; content is work-state/blocking-state focused, **NOT** lifecycle-focused
+
+**Candidate evidence:**
+- ❓ Price event logic, capacity tracking (partial)
+
+**Exercised?**
+- ✅ Ledger verified executable; accounting operations callable
+- ❌ Lifecycle model not exercised (doesn't exist yet)
+
+**Falsifier (would prove PARTIAL/FOUNDATION wrong):**
+- Ledger deleted
+- Ledger operations (claim/spend/close) fail
+- But also: if `resource_state.schema.json` already contains acquired/discovered/allocated/consumed/converted/expires/loss state models fully, then this is EXISTS not PARTIAL
+
+**Next step:** Design resource lifecycle state machine; define acquired/discovered/allocated/consumed/converted/expires/loss models; implement ResourceState versioning; integrate with ledger for durability.
+
+---
+
+### **6. PII Claim Gateway** — MISSING ❌
+
+**Location:** `schemas/resource_request.schema.json` (found, but does not contain PII logic)
+
+**What it should do:**
+- Intercept resource requests before they reach allocation
+- Redact/minimize PII from request payloads
+- Maintain disclosure receipt (who asked for what, for what purpose, with which justification)
+- Enforce minimum-sufficient-claim (don't ask for more data than needed)
+- Pass sanitized requests downstream
+
+**Main evidence:**
+- ❌ `schemas/resource_request.schema.json` exists but contains **resource cost/dependency semantics**, NOT PII redaction
+- ❌ No `pii_redaction.py` tool found
+- ❌ No disclosure-receipt mechanism found
+- ❌ No minimum-sufficient-claim validation found
+
+**Candidate evidence:**
+- ❓ Check PR #611 (convergence experiment) — may have PII gate design
+- **NOTE:** Privacy/redaction primitives exist elsewhere in repo (audit-trail, claim-receipt, disclosure-receipt designs); integration point unknown
+
+**Exercised?**
+- ❌ Not exercised; logic does not exist on main
+
+**Falsifier (would prove MISSING wrong):**
+- Find `pii_redaction.py` or PII redaction logic in resource_request handlers
+- Find disclosure-receipt generation on request intake
+- Test: `test_pii_redaction_in_resource_request()` passes
+- Redaction happens before allocation and is logged
+
+**Next step:** Investigate privacy/redaction primitives elsewhere in repo; design PII gate if not present; integrate with resource request flow.
+
+---
+
+### **7. Portfolio Replay** — MISSING ❌
+
+**Location:** None found on main; possibly in PR #611
+
+**What #588 requires (NOT what ledger replay provides):**
+- **Portfolio replay** = material evidence/controller changes recompute affected resource branches without re-asking known facts
+- Detect material change (new evidence, controller action, falsifier trip, measurement completion)
+- Identify affected branches (resources that depend on changed state)
+- Recompute those branches (refresh allocation, reconcile consumption, update valuation)
+- Divergence-free property (two independent replays produce identical state)
+
+**Main evidence:**
+- ❌ No portfolio replay logic on main
+- ✅ Ledger hash-chain exists (foundation for audit trail, but NOT equivalent to portfolio replay)
+
+**Candidate evidence:**
+- ❓ PR #611 (convergence experiment) may include replay design
+
+**Exercised?**
+- ❌ Not implemented; cannot be exercised
+
+**Falsifier (would prove MISSING wrong):**
+- Implement `replay(evidence_change, affected_branches) → updated_resource_state`
+- Detect material changes (evidence-provided, controller-action, falsifier-trip, window-closed)
+- Test: `test_portfolio_replay_divergence_free()` passes (two independent replays → identical state)
+- Test: `test_replay_recovers_prior_state()` passes (replay from ledger restores prior resource allocation)
+
+**Next step:** (Conditional on #611 findings) Design portfolio replay engine; wire material-change detection; implement divergence-free replay; test against ledger for consistency.
 
 ---
 
@@ -222,46 +382,64 @@ This matrix reveals which Resource System components exist (main), exist partial
 
 ---
 
-## Summary Table: Composition vs. Substrate
+## Summary Table: Component Inventory
 
-| **Component** | **State** | **On Main?** | **Merged Candidate?** | **Action** |
+| **Component** | **State** | **On Main?** | **Foundation/Merged?** | **Action** |
 |:---|:---|:---|:---|:---|
-| Resource Miner | EXISTS | ✅ | — | Verify tests; run on snapshot |
-| Eligibility Resolver | EXISTS/PARTIAL | ❌ | ❓ PR #608 | Merge if compatible; test handoff |
-| Activity Graph | MISSING | ❌ | ❌ | Design schema; implement class; wire in |
-| Resource Manager | EXISTS/PARTIAL | ✅ | ❌ | Complete state lifecycle; test full cycle |
-| PII Claim Gateway | EXISTS/PARTIAL | ✅ (schema only) | ❓ | Verify schema; find/implement gate logic |
-| Replay | MISSING | ❌ | ❓ PR #611? | Design engine; test divergence-free replay |
+| Resource Miner | EXISTS | ✅ | ✅ | Verify tests; run on snapshot |
+| Eligibility Resolver | EXISTS | ✅ | ✅ | Verify methods; test integration |
+| Miner→Resolver Binding | CANDIDATE | ❌ | PR #608 (unmerged) | Merge PR #608 after validating schema compatibility |
+| Activity Lifecycle Model | MISSING | ❌ | ❌ | Design schema; decide if hard composition assumption holds |
+| Resource Accounting Ledger | EXISTS | ✅ | ✅ | Verify test suite; validate accounting operations |
+| Resource Manager (Lifecycle) | PARTIAL/FOUNDATION | ✅ (partial) | ⚠️ Incomplete | Design lifecycle state machine (acquired/discovered/allocated/consumed/converted/expires/loss); integrate with ledger |
+| PII Claim Gateway | MISSING | ❌ | ❌ | Design gate; integrate with request flow |
+| Portfolio Replay | MISSING | ❌ | ❓ PR #611? | Design engine; test divergence-free replay |
 
 ---
 
 ## Composition Decision Framework
 
-**Question A: Can existing components compose?**
-
-- **Resource Miner** → (output: `list[ResourceCandidate]`)
-- **Eligibility Resolver** → (input: `list[ResourceCandidate]`, output: `list[EligibleResource]`)  
-- **Activity Graph** ← **MISSING** — blocks composition here
-- **Resource Manager** ← waiting for Activity Graph output
-
-**Current answer:** **NO** — Activity Graph is required for composition; cannot proceed without it.
+**Note:** The original matrix concluded **YES — #588 should be dedicated substrate**. However, per humanaios-ui review, this verdict is **PREMATURE** and should remain **UNRESOLVED** pending completion of the #611 acceptance protocol, which preregistered:
+- Broader matrix (~15 components)
+- Missing-primitive set
+- One end-to-end trace
+- Provenance sequence
+- **Only then** a composition-vs-substrate finding
 
 ---
 
-**Question B: Should #588 be a dedicated substrate?**
+**Current Question A: Can existing components compose?**
 
-**Evidence for:**
-1. Six components, but only three exist on main (Resource Miner, Resource Manager partial, PII Gate schema-only)
-2. Activity Graph missing entirely — critical gap
-3. Replay logic missing — cannot audit historical allocations
-4. Eligibility Resolver unmerged — composition incomplete
+**Composition chain (per current matrix):**
+- **Resource Miner** → (output: `list[ResourceCandidate]`)
+- **Eligibility Resolver** → (input: `list[ResourceCandidate]`, output: `list[EligibleResource]`)  
+- **Activity Lifecycle Model** ← **MISSING** — assumed as hard middleware, but this assumption is untested
+- **Resource Manager (Lifecycle)** ← waiting for Activity Graph output
 
-**Evidence against:**
-1. Existing ledger (tools/resource_ledger_v0_1.py) is robust and hash-chained
-2. Resource Miner logic is clean and testable
-3. Some schema files exist (resource_state.schema.json, resource_request.schema.json)
+**Current answer:** **UNRESOLVED** — depends on whether Activity Graph is actually a required middleware (architectural assumption to be tested) or whether Resolver → Manager can compose directly with lifecycle state-machine.
 
-**Verdict:** **YES — #588 should be a dedicated substrate project** until the six components are merged on main and tested as a composed system. The missing Activity Graph is the critical blocker; without it, other components cannot feed into the allocation pipeline.
+---
+
+**Current Question B: Is #588 a dedicated substrate or composition of existing parts?**
+
+**Evidence for composition:**
+1. Ledger exists and is robust (claim/spend/yield/price/capacity/close)
+2. Resolver exists on main (entitlement evaluation)
+3. Miner exists on main (candidate ranking)
+4. Ledger + Resolver + Miner could potentially cover 50% of #588 scope
+
+**Evidence for dedicated substrate:**
+1. Lifecycle model (acquired/discovered/allocated/consumed/converted/expires/loss) is MISSING
+2. Activity observability (source/action/artifact/AI/human/checkin/outcome/deviation) is MISSING
+3. Portfolio replay (material-change recomputation) is MISSING
+4. PII/disclosure/minimum-sufficient-claim gateway is MISSING
+5. Miner→Resolver binding unmerged (PR #608)
+
+**Current verdict:** **UNRESOLVED, PENDING #611 PROTOCOL** — the composition decision requires:
+1. Verification that hard Activity Graph assumption is sound (or design a direct Resolver → Manager composition)
+2. Mapping of the full ~15-component set (not just 6)
+3. End-to-end trace through #611 (convergence experiment)
+4. Falsifier protocol confirmation from #611 (what would prove composition works vs. substrate is needed)
 
 ---
 
