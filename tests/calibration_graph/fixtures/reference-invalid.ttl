@@ -1,0 +1,22 @@
+@prefix cal: <https://humanaios.ai/ns/calibration#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://humanaios.ai/fixtures/calibration/invalid/> .
+
+# Intentionally invalid:
+# - trial has no human trace
+# - resolution confidence is > 1.0
+# - design delta has no falsifier
+ex:trial-invalid a cal:CalibrationTrial ;
+  cal:hasStimulus ex:stim-invalid ;
+  cal:hasResolutionEvent ex:resolution-invalid ;
+  cal:traceFrozenAt "2026-09-30T12:10:00Z"^^xsd:dateTime .
+
+ex:stim-invalid a cal:Stimulus .
+
+ex:resolution-invalid a cal:ResolutionEvent ;
+  cal:resolutionState cal:Resolved ;
+  cal:participantConfidence "1.5"^^xsd:decimal .
+
+ex:delta-invalid a cal:DesignDelta ;
+  cal:warrantState cal:Provisional ;
+  cal:supportedByFrozenTrace ex:missing-trace .
