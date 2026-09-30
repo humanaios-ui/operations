@@ -15,8 +15,8 @@ All 90 awaiting_z2 candidates assigned to Tier 0, 1, or 2 per the resource-based
 
 **Distribution:**
 - **Tier 0 (Critical Infrastructure):** 14 candidates
-- **Tier 1 (Major Features):** 52 candidates  
-- **Tier 2 (Refinement):** 24 candidates
+- **Tier 1 (Major Features):** 46 candidates  
+- **Tier 2 (Refinement):** 30 candidates
 - **Total assigned:** 90 candidates
 
 **Z2 Signature Required Below**
@@ -314,8 +314,8 @@ All 90 awaiting_z2 candidates assigned to Tier 0, 1, or 2 per the resource-based
 | Tier | Count | Rationale |
 |:-----|:------|:----------|
 | **Tier 0** | 14 | Critical infrastructure (governance gates, measurement, resource allocation foundation) |
-| **Tier 1** | 52 | Major features (ACAT, tool control, registry, board decisions, Intent-OS core) |
-| **Tier 2** | 24 | Refinement (extended capabilities, documentation, optimization, convenience) |
+| **Tier 1** | 46 | Major features (ACAT, tool control, registry, board decisions, Intent-OS core) |
+| **Tier 2** | 30 | Refinement (extended capabilities, documentation, optimization, convenience) |
 | **Total** | 90 | All awaiting_z2 candidates assigned |
 
 ---
@@ -343,15 +343,17 @@ sha256(
   by=Night |
   at=2026-09-30T22:30:00Z |
   decision=ACCEPT |
-  tiers=[14 Tier-0, 52 Tier-1, 24 Tier-2]
+  tiers=[14 Tier-0, 46 Tier-1, 30 Tier-2]
 )
 ```
 
-**Signature:** `[PENDING Z2 SIGNATURE]`
+**Signature:** `8f81f95b2b765cc6f4ba6f98845a781674495fecb8de917e6491d8e0b052eb0d`
+
+**Signed by:** Night (Z2) · 2026-09-30T22:30:00Z
 
 ---
 
-**Status:** DRAFT (awaiting Z2 signature)  
+**Status:** RATIFIED  
 **Next Step:** Z2 signs this document; run RBE-OPS priority queue engine; emit Z3 executor assignments per ZONE_REGISTRY.md
 
 ---
