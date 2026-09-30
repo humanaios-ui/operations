@@ -211,3 +211,60 @@ LANDING VERIFICATION LANE
 
 Landing verification and dependency flags are initially PROVISIONAL design deltas. They become canonical only if validation/retest shows that they improve legibility, reduce execution ambiguity, or prevent false claims of completion without imposing excessive interaction cost.
 
+## Epistemic Attractor Lane
+
+An internal graph state may emit a bounded external discovery specification.
+
+```text
+GRAPH STATE
+ -> OMISSION / DEPENDENCY / CHALLENGE / VERSION / COMPRESSION SIGNAL
+ -> EPISTEMIC ATTRACTOR
+ -> MULTI-INTENT EXTERNAL RETRIEVAL
+ -> EXTERNAL CANDIDATE QUARANTINE
+ -> ABSORPTION ASSESSMENT
+ -> ABSORB | LINK | CHALLENGE | WATCH | REJECT
+ -> VALIDATION
+ -> GRAPH MUTATION
+```
+
+The attractor is not a relevance-only crawler. It carries explicit query intents such as support, contradiction, alternative explanation, prior art, dependency satisfaction, omission resolution, and compression-loss probing.
+
+### Omission boundary
+
+Absence alone MUST NOT create a factual negative.
+
+Omission signals require an expectation source:
+- SHACL/contract requirement;
+- declared research scope;
+- dependency requirement;
+- user/human task;
+- prior evidence/provenance;
+- compression receipt.
+
+Types:
+- `STRUCTURAL_OMISSION`
+- `EPISTEMIC_UNKNOWN`
+- `COVERAGE_GAP`
+- `COMPRESSION_INDUCED_OMISSION`
+
+### Compression residue
+
+Every material compression/summary SHOULD retain a reversible residue when omitted detail may affect execution, interpretation, challenge, provenance, or warrant.
+
+```text
+CompressionResidue
+  compressed_from
+  preservation_goal
+  omitted_aspect[]
+  compression_loss_risk
+  provenance / expansion path
+```
+
+Compression becomes an attractor trigger when omitted material may change an action, dependency state, warrant, or landing state.
+
+### Absorption invariant
+
+External retrieval never mutates the canonical graph directly. Every external concept enters as `ExternalCandidate`, retains source provenance, and requires an `AbsorptionAssessment`.
+
+The first controlled test is documented in `docs/research/EPISTEMIC_ATTRACTOR_TEST_001.md`.
+
