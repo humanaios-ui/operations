@@ -117,3 +117,58 @@ cal:ExternalSourceShape
 # In DISCOVERY mode, machine semantics MUST NOT be revealed before trace freeze.
 # SHACL validates persisted RDF graph structure; the application/controller
 # must enforce this temporal interaction rule mechanically.
+
+cal:LandingCheckShape
+  a sh:NodeShape ;
+  sh:targetClass cal:LandingCheck ;
+  sh:property [
+    sh:path cal:landingState ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in (
+      cal:LandingUnverified
+      cal:LandingConfirmed
+      cal:LandingClarified
+      cal:LandingMisunderstood
+      cal:LandingDeferred
+    )
+  ] ;
+  sh:property [
+    sh:path cal:triggerReason ;
+    sh:minCount 1
+  ] .
+
+cal:DependencyFlagShape
+  a sh:NodeShape ;
+  sh:targetClass cal:DependencyFlag ;
+  sh:property [
+    sh:path cal:dependencyType ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:dependencyState ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in (
+      cal:DependencySatisfied
+      cal:DependencyUnsatisfied
+      cal:DependencyUnverified
+      cal:DependencyDegraded
+      cal:DependencyVersionMismatch
+    )
+  ] ;
+  sh:property [
+    sh:path cal:requiredFor ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:blocksStage ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:boolean
+  ] ;
+  sh:property [
+    sh:path cal:plainLanguageNote ;
+    sh:minCount 1
+  ] .
+
