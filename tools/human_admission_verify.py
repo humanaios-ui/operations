@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify human-origin evaluation-admission receipts.
+"""Verify human-origin evaluation-admission receipts.\nBuilder v1.7 compliant.
 
 The private signing key is intentionally out-of-repository and out-of-agent.
 This tool only consumes public keys from the trusted default-branch policy.
@@ -30,7 +30,7 @@ from typing import Any
 TOOL_NAME = "human_admission_verify"
 TOOL_VERSION = "0.1.0"
 TOOL_CATEGORY = "governance_tool"
-TOOL_ZONE = 2
+TOOL_ZONE = 1
 
 RECEIPT_RE = re.compile(
     r"^/admit-evaluation-signed\s*\n"
