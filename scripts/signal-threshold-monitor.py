@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
 """
 Signal Threshold Monitor
-Detects emerging trends (velocity > 0.6, trending up) and emits events for event-driven indexing.
 
-Architecture:
+Category: Event-Driven Indexing
+Purpose: Detects emerging high-velocity signals and triggers incremental indexing
+SLA: 8-minute latency from detection to index update
+
+Detection Logic:
 - Loads latest AI-EO index
-- Scans for topics exceeding velocity threshold
-- Emits GitHub Actions workflow_dispatch events for incremental indexing
-- Targets: 8-minute latency from detection to index update
+- Scans entries for velocity > 0.6 AND trending (up_strong or up)
+- Emits GitHub Actions workflow_dispatch events for batch indexing
+- Collects multiple signals and processes together for efficiency
+
+Usage:
+  python3 signal-threshold-monitor.py
+
+Requirements:
+- GitHub CLI (gh) installed and authenticated
+- GITHUB_TOKEN environment variable set
+
+Outputs:
+  - logs/signal-threshold-monitor.log (event log)
+  - Triggers daily-topic-digest.yml workflow
 """
 
 import json
