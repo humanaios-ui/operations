@@ -172,3 +172,116 @@ cal:DependencyFlagShape
     sh:minCount 1
   ] .
 
+cal:EpistemicAttractorShape
+  a sh:NodeShape ;
+  sh:targetClass cal:EpistemicAttractor ;
+  sh:property [
+    sh:path cal:triggeredBy ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:targetNode ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:queryIntent ;
+    sh:minCount 1 ;
+    sh:in (
+      cal:SeekSupport
+      cal:SeekContradiction
+      cal:SeekAlternative
+      cal:SeekPriorArt
+      cal:SatisfyDependency
+      cal:ResolveOmission
+      cal:ProbeCompressionLoss
+    )
+  ] ;
+  sh:property [
+    sh:path cal:queryText ;
+    sh:minCount 1
+  ] .
+
+cal:ExternalCandidateShape
+  a sh:NodeShape ;
+  sh:targetClass cal:ExternalCandidate ;
+  sh:property [
+    sh:path cal:originatingAttractor ;
+    sh:minCount 1 ;
+    sh:class cal:EpistemicAttractor
+  ] ;
+  sh:property [
+    sh:path cal:sourceURI ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI
+  ] ;
+  sh:property [
+    sh:path cal:candidateClaim ;
+    sh:minCount 1
+  ] .
+
+cal:AbsorptionAssessmentShape
+  a sh:NodeShape ;
+  sh:targetClass cal:AbsorptionAssessment ;
+  sh:property [
+    sh:path cal:assessesCandidate ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cal:ExternalCandidate
+  ] ;
+  sh:property [
+    sh:path cal:disposition ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in (
+      cal:DispositionAbsorb
+      cal:DispositionLink
+      cal:DispositionChallenge
+      cal:DispositionWatch
+      cal:DispositionReject
+    )
+  ] ;
+  sh:property [
+    sh:path cal:alignmentNote ;
+    sh:minCount 1
+  ] .
+
+cal:OmissionSignalShape
+  a sh:NodeShape ;
+  sh:targetClass cal:OmissionSignal ;
+  sh:property [
+    sh:path cal:omissionType ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in (
+      cal:StructuralOmission
+      cal:EpistemicUnknown
+      cal:CoverageGap
+      cal:CompressionInducedOmission
+    )
+  ] ;
+  sh:property [
+    sh:path cal:expectedBy ;
+    sh:minCount 1
+  ] .
+
+cal:CompressionResidueShape
+  a sh:NodeShape ;
+  sh:targetClass cal:CompressionResidue ;
+  sh:property [
+    sh:path cal:compressedFrom ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:preservationGoal ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:omittedAspect ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:compressionLossRisk ;
+    sh:minCount 1
+  ] .
+
