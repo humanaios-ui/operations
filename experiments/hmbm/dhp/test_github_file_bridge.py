@@ -2,7 +2,7 @@
 import importlib.util, pathlib, unittest
 HERE=pathlib.Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location("bridge_mod",HERE/"github_file_bridge.py")
-m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+m=importlib.util.module_from_spec(spec)\nimport sys; sys.modules[spec.name]=m\nspec.loader.exec_module(m)
 
 SRC=m.GithubImmutableSource(
  repository="humanaios-ui/operations",
