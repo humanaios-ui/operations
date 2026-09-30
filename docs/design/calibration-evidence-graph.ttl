@@ -17,6 +17,8 @@ cal:Retest a rdfs:Class ; rdfs:subClassOf prov:Activity .
 cal:Warrant a rdfs:Class ; rdfs:subClassOf prov:Entity .
 cal:ExternalSource a rdfs:Class ; rdfs:subClassOf prov:Entity .
 cal:EvidenceRelation a rdfs:Class .
+cal:LandingCheck a rdfs:Class ; rdfs:subClassOf prov:Activity .
+cal:DependencyFlag a rdfs:Class ; rdfs:subClassOf prov:Entity .
 
 cal:hasStimulus a rdfs:Property .
 cal:hasHumanTrace a rdfs:Property .
@@ -48,6 +50,19 @@ cal:machineValue a rdfs:Property .
 cal:comparisonType a rdfs:Property .
 cal:sequenceIndex a rdfs:Property .
 cal:retestOutcome a rdfs:Property .
+cal:hasLandingCheck a rdfs:Property .
+cal:landingState a rdfs:Property .
+cal:understandingEvidence a rdfs:Property .
+cal:triggerReason a rdfs:Property .
+cal:clarificationText a rdfs:Property .
+cal:hasDependencyFlag a rdfs:Property .
+cal:dependencyType a rdfs:Property .
+cal:dependencyState a rdfs:Property .
+cal:requiredFor a rdfs:Property .
+cal:blocksStage a rdfs:Property .
+cal:plainLanguageNote a rdfs:Property .
+cal:resolutionAction a rdfs:Property .
+cal:fallback a rdfs:Property .
 
 cal:Resolved a skos:Concept ; skos:prefLabel "RESOLVED" .
 cal:Unresolved a skos:Concept ; skos:prefLabel "UNRESOLVED" .
@@ -63,6 +78,18 @@ cal:Provisional a skos:Concept ; skos:prefLabel "PROVISIONAL" .
 cal:Replicated a skos:Concept ; skos:prefLabel "REPLICATED" .
 cal:Warranted a skos:Concept ; skos:prefLabel "WARRANTED" .
 cal:Withdrawn a skos:Concept ; skos:prefLabel "WITHDRAWN" .
+
+cal:LandingUnverified a skos:Concept ; skos:prefLabel "UNVERIFIED" .
+cal:LandingConfirmed a skos:Concept ; skos:prefLabel "CONFIRMED" .
+cal:LandingClarified a skos:Concept ; skos:prefLabel "CLARIFIED" .
+cal:LandingMisunderstood a skos:Concept ; skos:prefLabel "MISUNDERSTOOD" .
+cal:LandingDeferred a skos:Concept ; skos:prefLabel "DEFERRED" .
+
+cal:DependencySatisfied a skos:Concept ; skos:prefLabel "SATISFIED" .
+cal:DependencyUnsatisfied a skos:Concept ; skos:prefLabel "UNSATISFIED" .
+cal:DependencyUnverified a skos:Concept ; skos:prefLabel "UNVERIFIED" .
+cal:DependencyDegraded a skos:Concept ; skos:prefLabel "DEGRADED" .
+cal:DependencyVersionMismatch a skos:Concept ; skos:prefLabel "VERSION_MISMATCH" .
 
 cal:ImplementsStandard a cal:EvidenceRelation ; rdfs:label "IMPLEMENTS_STANDARD" .
 cal:ConstrainedByStandard a cal:EvidenceRelation ; rdfs:label "CONSTRAINED_BY_STANDARD" .
