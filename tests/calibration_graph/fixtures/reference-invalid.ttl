@@ -34,3 +34,24 @@ ex:dependency-invalid a cal:DependencyFlag ;
   cal:dependencyState cal:DependencyUnsatisfied ;
   cal:blocksStage "yes" .
 
+# Attractor intentionally lacks query text
+ex:attractor-invalid a cal:EpistemicAttractor ;
+  cal:triggeredBy ex:dependency-invalid ;
+  cal:targetNode ex:dependency-invalid ;
+  cal:queryIntent cal:SatisfyDependency .
+
+# External candidate intentionally lacks source URI
+ex:candidate-invalid a cal:ExternalCandidate ;
+  cal:originatingAttractor ex:attractor-invalid ;
+  cal:candidateClaim "Unproven candidate." .
+
+# Omission signal intentionally lacks expectation source
+ex:omission-invalid a cal:OmissionSignal ;
+  cal:omissionType cal:EpistemicUnknown .
+
+# Compression residue intentionally lacks omittedAspect
+ex:compression-invalid a cal:CompressionResidue ;
+  cal:compressedFrom ex:dependency-invalid ;
+  cal:preservationGoal "Compress dependency explanation." ;
+  cal:compressionLossRisk "UNKNOWN" .
+
