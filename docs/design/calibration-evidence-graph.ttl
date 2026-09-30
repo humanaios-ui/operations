@@ -19,6 +19,11 @@ cal:ExternalSource a rdfs:Class ; rdfs:subClassOf prov:Entity .
 cal:EvidenceRelation a rdfs:Class .
 cal:LandingCheck a rdfs:Class ; rdfs:subClassOf prov:Activity .
 cal:DependencyFlag a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:EpistemicAttractor a rdfs:Class ; rdfs:subClassOf prov:Activity .
+cal:ExternalCandidate a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:AbsorptionAssessment a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:OmissionSignal a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:CompressionResidue a rdfs:Class ; rdfs:subClassOf prov:Entity .
 
 cal:hasStimulus a rdfs:Property .
 cal:hasHumanTrace a rdfs:Property .
@@ -63,6 +68,21 @@ cal:blocksStage a rdfs:Property .
 cal:plainLanguageNote a rdfs:Property .
 cal:resolutionAction a rdfs:Property .
 cal:fallback a rdfs:Property .
+cal:triggeredBy a rdfs:Property .
+cal:targetNode a rdfs:Property .
+cal:queryIntent a rdfs:Property .
+cal:queryText a rdfs:Property .
+cal:originatingAttractor a rdfs:Property .
+cal:candidateClaim a rdfs:Property .
+cal:assessesCandidate a rdfs:Property .
+cal:disposition a rdfs:Property .
+cal:alignmentNote a rdfs:Property .
+cal:omissionType a rdfs:Property .
+cal:expectedBy a rdfs:Property .
+cal:compressedFrom a rdfs:Property .
+cal:preservationGoal a rdfs:Property .
+cal:omittedAspect a rdfs:Property .
+cal:compressionLossRisk a rdfs:Property .
 
 cal:Resolved a skos:Concept ; skos:prefLabel "RESOLVED" .
 cal:Unresolved a skos:Concept ; skos:prefLabel "UNRESOLVED" .
@@ -90,6 +110,25 @@ cal:DependencyUnsatisfied a skos:Concept ; skos:prefLabel "UNSATISFIED" .
 cal:DependencyUnverified a skos:Concept ; skos:prefLabel "UNVERIFIED" .
 cal:DependencyDegraded a skos:Concept ; skos:prefLabel "DEGRADED" .
 cal:DependencyVersionMismatch a skos:Concept ; skos:prefLabel "VERSION_MISMATCH" .
+
+cal:SeekSupport a skos:Concept ; skos:prefLabel "SEEK_SUPPORT" .
+cal:SeekContradiction a skos:Concept ; skos:prefLabel "SEEK_CONTRADICTION" .
+cal:SeekAlternative a skos:Concept ; skos:prefLabel "SEEK_ALTERNATIVE_EXPLANATION" .
+cal:SeekPriorArt a skos:Concept ; skos:prefLabel "SEEK_PRIOR_ART" .
+cal:SatisfyDependency a skos:Concept ; skos:prefLabel "SATISFY_DEPENDENCY" .
+cal:ResolveOmission a skos:Concept ; skos:prefLabel "RESOLVE_OMISSION" .
+cal:ProbeCompressionLoss a skos:Concept ; skos:prefLabel "PROBE_COMPRESSION_LOSS" .
+
+cal:DispositionAbsorb a skos:Concept ; skos:prefLabel "ABSORB" .
+cal:DispositionLink a skos:Concept ; skos:prefLabel "LINK" .
+cal:DispositionChallenge a skos:Concept ; skos:prefLabel "CHALLENGE" .
+cal:DispositionWatch a skos:Concept ; skos:prefLabel "WATCH" .
+cal:DispositionReject a skos:Concept ; skos:prefLabel "REJECT" .
+
+cal:StructuralOmission a skos:Concept ; skos:prefLabel "STRUCTURAL_OMISSION" .
+cal:EpistemicUnknown a skos:Concept ; skos:prefLabel "EPISTEMIC_UNKNOWN" .
+cal:CoverageGap a skos:Concept ; skos:prefLabel "COVERAGE_GAP" .
+cal:CompressionInducedOmission a skos:Concept ; skos:prefLabel "COMPRESSION_INDUCED_OMISSION" .
 
 cal:ImplementsStandard a cal:EvidenceRelation ; rdfs:label "IMPLEMENTS_STANDARD" .
 cal:ConstrainedByStandard a cal:EvidenceRelation ; rdfs:label "CONSTRAINED_BY_STANDARD" .
