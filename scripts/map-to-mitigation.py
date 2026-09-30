@@ -1,8 +1,22 @@
 #!/usr/bin/env python3
 """
 Topic-to-Mitigation Mapper
-Maps high-volume discussion topics to HumanAIOS constitutional principles, systems, and findings.
-Generates human-readable response documentation and identifies gaps.
+
+Category: Response Documentation & Gap Analysis
+Purpose: Maps high-volume discussion topics to HumanAIOS constitutional principles, systems, and findings
+Output: Human-readable response matrix documenting how HumanAIOS addresses real-world concerns
+
+Usage:
+  python3 map-to-mitigation.py
+
+Outputs:
+  - docs/TOPIC_RESPONSE_MATRIX.md (markdown documentation)
+  - JSON mapping to stdout
+
+Coverage:
+- AI Jailbreaks & Prompt Injection
+- LLM Hallucinations & Truthfulness
+- Database Privacy & Data Governance
 """
 
 import json
