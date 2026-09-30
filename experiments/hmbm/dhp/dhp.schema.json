@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HumanAIOS Durable Handoff Protocol receipt",
+  "type": "object",
+  "required": [
+    "protocol",
+    "cycle",
+    "candidate_id",
+    "generation_id",
+    "predecessor_state_id",
+    "state",
+    "actor",
+    "authority",
+    "paper_only",
+    "artifact_sha256",
+    "verification_receipt"
+  ],
+  "properties": {
+    "protocol": {
+      "const": "DHP-1.0"
+    },
+    "cycle": {
+      "type": "string"
+    },
+    "candidate_id": {
+      "type": "string"
+    },
+    "generation_id": {
+      "type": "string"
+    },
+    "predecessor_state_id": {
+      "type": "string",
+      "pattern": "ACCEPTED"
+    },
+    "state": {
+      "enum": [
+        "ANALYSIS_COMPLETE",
+        "PERSISTED",
+        "QUEUED",
+        "COMMUNICATED",
+        "ACCEPTED",
+        "CANONICAL",
+        "PERSISTENCE_FAILED",
+        "COMMUNICATION_FAILED",
+        "ACCEPTANCE_FAILED",
+        "HOLD_PENDING_DOWNSTREAM",
+        "AUTHORITY_REQUIRED"
+      ]
+    },
+    "actor": {
+      "enum": [
+        "ANALYST",
+        "COURIER",
+        "WITNESS"
+      ]
+    },
+    "authority": {
+      "type": "string"
+    },
+    "paper_only": {
+      "const": true
+    },
+    "artifact_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "canonical_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "verification_receipt": {
+      "type": "object"
+    },
+    "failure_record": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}
