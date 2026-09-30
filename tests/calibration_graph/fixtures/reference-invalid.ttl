@@ -20,3 +20,17 @@ ex:resolution-invalid a cal:ResolutionEvent ;
 ex:delta-invalid a cal:DesignDelta ;
   cal:warrantState cal:Provisional ;
   cal:supportedByFrozenTrace ex:missing-trace .
+
+# Landing check intentionally missing landingState
+ex:landing-invalid a cal:LandingCheck ;
+  cal:triggerReason "Critical technical explanation requires confirmation." .
+
+# Dependency flag intentionally malformed:
+# - missing requiredFor
+# - missing plainLanguageNote
+# - blocksStage has the wrong datatype
+ex:dependency-invalid a cal:DependencyFlag ;
+  cal:dependencyType "PACKAGE" ;
+  cal:dependencyState cal:DependencyUnsatisfied ;
+  cal:blocksStage "yes" .
+
