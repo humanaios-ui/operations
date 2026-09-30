@@ -124,3 +124,21 @@ ex:delta-repl a cal:DesignDelta ;
   cal:supportedByFrozenTrace ex:trace-repl ;
   cal:falsifier "Independent fresh-baseline retest reverses the observed benefit." ;
   cal:retestOutcome "REPLICATED" .
+
+# 8. Landing verification
+ex:landing-pyshacl a cal:LandingCheck ;
+  cal:landingState cal:LandingClarified ;
+  cal:triggerReason "Technical phrase was not fully understood." ;
+  cal:understandingEvidence "Participant identified the ambiguity and accepted the plain-language explanation." ;
+  cal:clarificationText "Canonical SHACL validation still needs an environment that can install and run PySHACL." .
+
+# 9. Dependency flag
+ex:dependency-pyshacl a cal:DependencyFlag ;
+  cal:dependencyType "EXECUTION_ENVIRONMENT_PACKAGE" ;
+  cal:dependencyState cal:DependencyUnsatisfied ;
+  cal:requiredFor "canonical SHACL validation" ;
+  cal:blocksStage true ;
+  cal:plainLanguageNote "The canonical validator cannot run in the current session environment because PySHACL is not installed and package installation is unavailable." ;
+  cal:resolutionAction "Run the committed validator in GitHub Actions, a local Python environment, or another runtime that can install pyshacl==0.40.1." ;
+  cal:fallback "Continue fixture authoring and structural preflight without claiming canonical SHACL execution." .
+
