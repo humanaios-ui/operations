@@ -61,8 +61,7 @@
       ".github/workflows/repository-admission-gate.yml",
       ".github/dependabot.yml",
       ".github/copilot-instructions.md",
-      ".github/CODEOWNERS",
-      ".github/workflows/no-op-pr-guard.yml"
+      ".github/CODEOWNERS"
     ],
     "exemption": "only when every changed file is a control-plane path; mixed changes require admission"
   },
@@ -94,7 +93,7 @@
     "PR #590 (file F-CAND-LEDGER-GROUNDING-STUB-01: p34x_temporal_extractor's LedgerProvider is a permanent Phase-0 no-op stub, so no future date can ever ground against a ratified molt window) admitted 2026-09-29: documentation-only candidate block under z1-inbox/, which is not covered by control_plane.paths; found via the same systematic pytest-enabled backlog pass as PR #589.",
     "Issue #598 (issue-first admission and pre-PR CI) admitted explicitly by Z2 instruction, 2026-09-30, as the session graph for the control-plane implementation. Admission grants working-set standing only and does not authorize merge.",
     "PR #593 (repository knowledge graph with bounded inference) admitted explicitly by Z2 instruction, 2026-09-30, as a grandfathered work item created before the issue-first lifecycle was adopted. Admission does not resolve CI findings or authorize merge.",
-    "Evaluation admission may be derived from a native GitHub APPROVED review by an authorized actor when the PR closes an issue whose body explicitly declares ADMISSION_REQUESTED. This grants CI/evidence standing only; it does not consume operator capacity, accept implementation, or authorize merge."
+    "Evaluation admission may be derived from a native GitHub APPROVED review by an authorized actor when the PR closes an issue whose body explicitly declares ADMISSION_REQUESTED. This grants CI/evidence standing only; it does not consume operator capacity, accept implementation, or authorize merge. Zero-diff PR handling remains independently enforced by the no-op guard."
   ],
   "evaluation_admission": {
     "authorized_actors": [
