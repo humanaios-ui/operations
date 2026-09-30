@@ -1,10 +1,24 @@
 #!/usr/bin/env python3
 """
 Gap Detector
-Analyzes public discourse signals and topic-to-mitigation mappings to identify:
-1. Research gaps (topics we know about but can't yet address)
-2. Coverage gaps (emerging topics not in our monitoring)
-3. Effectiveness gaps (problems we claim to address but incidents still occur)
+
+Category: Research & Systems Analysis
+Purpose: Identifies research, coverage, and effectiveness gaps in HumanAIOS
+
+Analysis Dimensions:
+1. Research Gaps: Topics understood but lacking complete mitigation
+2. Coverage Gaps: Emerging topics not yet monitored
+3. Effectiveness Gaps: Claims vs. reality - systems not sufficiently robust
+
+Usage:
+  python3 gap-detector.py
+
+Outputs:
+  JSON report to stdout with:
+  - research_gaps: P0-P2 prioritized research needs
+  - coverage_gaps: Emerging topics requiring monitoring
+  - effectiveness_gaps: System weaknesses and mitigations
+  - recommendations: Prioritized action items
 """
 
 import json

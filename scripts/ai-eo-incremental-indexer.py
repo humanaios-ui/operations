@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 AI-EO Incremental Indexer
-Merges delta signals into existing knowledge graph without full rebuild.
+
+Category: Signal Processing & Knowledge Indexing
+Purpose: Merges delta signals into existing knowledge graph without full rebuild
+SLA: 10-minute latency for incremental merge
 
 Architecture:
 - Load checkpoint from previous index run (timestamp)
@@ -10,7 +13,17 @@ Architecture:
 - Update behavioral metrics for affected entities
 - Write updated index
 
-Targets: 10-minute latency for incremental merge
+Usage:
+  python3 ai-eo-incremental-indexer.py
+
+Inputs:
+  - indexer-checkpoint.json (last run timestamp)
+  - lasting-light-ai/public/api/ai-eo-index.json (current index)
+  - data/public-discourse-signals.jsonl (platform signals)
+
+Outputs:
+  - data/ai-eo-index.jsonl (updated index)
+  - data/latest-index.json (checkpoint)
 """
 
 import json
@@ -148,7 +161,7 @@ def merge_into_knowledge_graph(
     entries = existing_index.get('entries', [])
     entity_map = {e.get('entity_id'): e for e in entries}
 
-    log_event(f"Starting merge with {len(entities)} existing entities")
+    log_event(f"Starting merge with {len(entity_map)} existing entities")
 
     # Process each delta signal
     for signal in delta_signals:
@@ -219,8 +232,7 @@ def update_checkpoint() -> bool:
     """Update checkpoint to current time."""
     try:
         checkpoint = {
-            'last_index_time': datetime.utcnow().isoformat(),
-            'last_merge_count': 0
+            'last_index_time': datetime.utcnow().isoformat()
         }
 
         with open(CHECKPOINT_FILE, 'w') as f:
