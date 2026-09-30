@@ -38,6 +38,8 @@ Use precise relation types rather than a generic `SUPPORTED_BY` edge:
 | `ParticipantConfidence` | Subjective confidence attached to a trace/resolution | Metacognition measurement literature | METHOD_ANALOGUE | Confidence can be measured separately from first-order accuracy; preserve both rather than collapsing confidence into correctness. |
 | `UNRESOLVED` / `DELAYED` | Permit abstention/no-answer and later resolution | Reject-option / abstention literature; metacognitive “feeling of knowing” literature | METHOD_ANALOGUE | Supports treating non-response/abstention as valid information. Human delayed-resolution timing still requires its own empirical validation. |
 | `ContextObservation` | Record environmental/background context | Experimental control / provenance role | METHOD_ANALOGUE | Context can be preserved as evidence without converting temporal co-occurrence into causality. |
+| `LandingCheck` | Verify that critical meaning landed as intended before consequential continuation | AHRQ TeamSTEPPS check-back / teach-back | METHOD_ANALOGUE | Strong control-pattern analogue for closed-loop confirmation and understanding checks. Does not establish that HumanAIOS should check every message; trigger policy remains local and testable. |
+| `DependencyFlag` | Make execution prerequisites, blocked scope, and resolution path explicit | NIST SBOM / DevSecOps dependency and provenance practices | METHOD_ANALOGUE | External engineering practice supports explicit dependency relationships and provenance. HumanAIOS extends the idea beyond software packages to tools, permissions, networks, human inputs, and stage requirements. |
 | `TraceFreeze` | Freeze human report before revealing machine-side answer | HumanAIOS anti-contamination control | LOCAL_HYPOTHESIS | No external source located here is treated as an exact match. Keep as a local experimental invariant until independently tested. |
 | `Discovery != Training` | Separate observation from corrective teaching | Experimental contamination control | LOCAL_HYPOTHESIS / METHOD_ANALOGUE | Methodologically plausible, but exact protocol effectiveness remains to be tested. |
 | `DesignDelta` -> `Retest` -> `Warrant` | Convert observations into challengeable design changes | Iterative experimental / adaptive-control logic | METHOD_ANALOGUE | External methods motivate the loop, but HumanAIOS warrant semantics remain local and must be explicitly defined. |
@@ -83,6 +85,18 @@ https://pmc.ncbi.nlm.nih.gov/articles/PMC9932734/
 
 These sources distinguish subjective confidence from first-order task accuracy and describe sensitivity/bias constructs. This supports storing confidence as a separate graph property.
 
+### Closed-loop communication / understanding verification
+https://www.ahrq.gov/hai/cauti-tools/phys-championsgd/appa.html
+https://www.ahrq.gov/teamstepps-program/curriculum/communication/tools/teachback.html
+
+AHRQ describes check-back as closed-loop communication used to verify and validate information exchanged, and teach-back as a way to confirm understanding by having the receiver explain the information in their own words. HumanAIOS uses this as a methodological analogue for a selective landing-verification lane.
+
+### Dependency visibility / software supply chain
+https://csrc.nist.gov/glossary/term/software_bill_of_materials
+https://pages.nist.gov/nccoe-devsecops/appendix-b.html
+
+NIST materials define SBOMs as formal records of software components and supply-chain relationships and describe tooling that verifies software dependencies and provenance. HumanAIOS generalizes dependency flagging beyond software components, so the external mapping is methodological rather than exact.
+
 ### Reject option / abstention
 https://arxiv.org/abs/2304.04906
 
@@ -114,6 +128,8 @@ No external citation is allowed to upgrade a `LOCAL_HYPOTHESIS` to `WARRANTED` m
 8. Make `UNRESOLVED` and `DELAYED` first-class states without interpreting them as success/failure.
 9. Record challenge sources alongside supporting analogues.
 10. Preserve HumanAIOS-specific controls such as `TraceFreeze` as local hypotheses until directly tested.
+11. Add a selective `LandingCheck` lane so critical explanations have an explicit understanding state rather than assumed receipt.
+12. Add first-class `DependencyFlag` records with blocked scope, plain-language impact, and resolution path.
 
 ## Next validation target
 
