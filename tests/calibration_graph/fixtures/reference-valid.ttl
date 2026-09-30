@@ -142,3 +142,33 @@ ex:dependency-pyshacl a cal:DependencyFlag ;
   cal:resolutionAction "Run the committed validator in GitHub Actions, a local Python environment, or another runtime that can install pyshacl==0.40.1." ;
   cal:fallback "Continue fixture authoring and structural preflight without claiming canonical SHACL execution." .
 
+# 10. Epistemic attractor generated from an unsatisfied dependency
+ex:attractor-pyshacl a cal:EpistemicAttractor ;
+  cal:triggeredBy ex:dependency-pyshacl ;
+  cal:targetNode ex:dependency-pyshacl ;
+  cal:queryIntent cal:SatisfyDependency, cal:SeekContradiction, cal:ProbeCompressionLoss ;
+  cal:queryText "pySHACL 0.40.1 availability, Python requirements, installation path, incompatibilities, and hidden execution prerequisites" .
+
+# 11. External candidate retained before absorption
+ex:candidate-pypi-pyshacl a cal:ExternalCandidate ;
+  cal:originatingAttractor ex:attractor-pyshacl ;
+  cal:sourceURI <https://pypi.org/project/pyshacl/0.40.1/> ;
+  cal:candidateClaim "pyshacl 0.40.1 exists, requires Python >=3.9, and publishes a platform-independent Python wheel." .
+
+ex:assessment-pypi-pyshacl a cal:AbsorptionAssessment ;
+  cal:assessesCandidate ex:candidate-pypi-pyshacl ;
+  cal:disposition cal:DispositionAbsorb ;
+  cal:alignmentNote "Absorb bounded package/version/runtime-requirement facts; source does not prove current environment can install or execute PySHACL." .
+
+# 12. Omission signal distinguishes unknown from false
+ex:omission-validation-receipt a cal:OmissionSignal ;
+  cal:omissionType cal:StructuralOmission ;
+  cal:expectedBy "Stage S3 requires a canonical validator execution receipt." .
+
+# 13. Compression residue from vague dependency language
+ex:compression-dependency-capable a cal:CompressionResidue ;
+  cal:compressedFrom ex:dependency-pyshacl ;
+  cal:preservationGoal "Explain why canonical SHACL validation had not executed." ;
+  cal:omittedAspect "Python compatibility", "package availability", "install/network capability", "execution capability", "precise blocked stage" ;
+  cal:compressionLossRisk "HIGH: the compressed phrase did not fully land and obscured which subdependency was actually unsatisfied." .
+
