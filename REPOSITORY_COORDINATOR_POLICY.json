@@ -64,7 +64,8 @@
       ".github/dependabot.yml",
       ".github/copilot-instructions.md",
       ".github/CODEOWNERS",
-      "tools/human_admission_verify.py"
+      ".github/scripts/human_admission_verify.py",
+      "tools/tests/test_human_admission_verify.py"
     ],
     "exemption": "only when every changed file is a control-plane path; mixed changes require admission"
   },
