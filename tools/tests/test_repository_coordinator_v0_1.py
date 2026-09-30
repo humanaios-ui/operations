@@ -32,6 +32,7 @@ def pr(
     author="builder",
     draft=False,
     labels=None,
+    head_sha="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 ):
     files = ["x.py"] if files is None else files
     return {
@@ -47,6 +48,8 @@ def pr(
         "author": author,
         "draft": draft,
         "labels": labels or [],
+        "head_sha": head_sha,
+        "verified_admission_receipts": [],
     }
 
 
@@ -302,39 +305,56 @@ def test_issue_assignment_without_admission_stays_workbench_when_draft():
     assert got["admission"]["admitted"] is False
 
 
-def test_authorized_review_admits_requested_issue_to_evaluation_only():
+def test_raw_approved_review_is_not_human_origin_proof():
     reviews = [{
         "user": {"login": "humanaios-ui"},
         "state": "APPROVED",
         "submitted_at": "2026-09-30T19:43:58Z",
     }]
-    p = pr(1, body="Fixes #99", reviews=reviews, files=[])
+    p = pr(1, body="Fixes #99", reviews=reviews)
     referenced = {
         "99": {
             "state": "open",
             "is_pull_request": False,
             "title": "Session graph",
-            "body": "- **state:** `ADMISSION_REQUESTED`\n- **authority_required:** `Z2`",
+            "body": "**state:** `ADMISSION_REQUESTED`",
         }
     }
     idx = run([p], items=referenced, policy_data=policy())
-    got = item(idx, 1)
-    assert got["lane"] == "ADMITTED_TO_EVALUATION"
-    assert got["admission"]["gate"] == "PASS"
-    assert got["admission"]["evaluation_admitted"] is True
-    assert got["admission"]["working_set_admitted"] is False
-    assert got["guidance"]["action"] == "ADVANCE"
-    assert got["objective"] == "EVALUATION"
-    assert idx["capacity"]["admitted_ready_count"] == 0
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
 
 
-def test_authorized_command_admits_owner_authored_workspace_to_evaluation_only():
+def test_same_account_ai_command_is_not_human_origin_proof():
     comments = [{
         "user": {"login": "humanaios-ui"},
         "body": "/admit-evaluation",
-        "created_at": "2026-09-30T20:54:59Z",
+        "created_at": "2026-09-30T20:57:36Z",
     }]
     p = pr(1, body="Fixes #99", comments=comments)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_verified_human_receipt_admits_requested_issue_to_evaluation_only():
+    head = "a" * 40
+    p = pr(1, body="Fixes #99", head_sha=head)
+    p["verified_admission_receipts"] = [{
+        "principal": "human-authority",
+        "issue": 99,
+        "pr": 1,
+        "head": head,
+        "authority": "EVALUATION_ONLY",
+        "carrier": "humanaios-ui",
+        "source": "issue_comments",
+    }]
     referenced = {
         "99": {
             "state": "open",
@@ -348,18 +368,20 @@ def test_authorized_command_admits_owner_authored_workspace_to_evaluation_only()
     assert got["lane"] == "ADMITTED_TO_EVALUATION"
     assert got["admission"]["gate"] == "PASS"
     assert got["admission"]["evaluation_admitted"] is True
-    assert got["admission"]["evaluation_commanders"] == ["humanaios-ui"]
+    assert got["admission"]["evaluation_principals"] == ["human-authority"]
     assert got["admission"]["working_set_admitted"] is False
     assert idx["capacity"]["admitted_ready_count"] == 0
 
 
-def test_untrusted_command_cannot_admit_evaluation_workspace():
-    comments = [{
-        "user": {"login": "other-reviewer"},
-        "body": "/admit-evaluation",
-        "created_at": "2026-09-30T20:54:59Z",
+def test_verified_receipt_is_bound_to_exact_head():
+    p = pr(1, body="Fixes #99", head_sha="a" * 40)
+    p["verified_admission_receipts"] = [{
+        "principal": "human-authority",
+        "issue": 99,
+        "pr": 1,
+        "head": "b" * 40,
+        "authority": "EVALUATION_ONLY",
     }]
-    p = pr(1, body="Fixes #99", comments=comments)
     referenced = {
         "99": {
             "state": "open",
@@ -372,42 +394,33 @@ def test_untrusted_command_cannot_admit_evaluation_workspace():
     assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
 
 
-def test_near_match_command_cannot_admit_evaluation_workspace():
-    comments = [{
-        "user": {"login": "humanaios-ui"},
-        "body": "please /admit-evaluation",
-        "created_at": "2026-09-30T20:54:59Z",
+def test_verified_receipt_cannot_admit_unlinked_issue():
+    head = "a" * 40
+    p = pr(1, body="Fixes #98", head_sha=head)
+    p["verified_admission_receipts"] = [{
+        "principal": "human-authority",
+        "issue": 99,
+        "pr": 1,
+        "head": head,
+        "authority": "EVALUATION_ONLY",
     }]
-    p = pr(1, body="Fixes #99", comments=comments)
     referenced = {
-        "99": {
+        "98": {
             "state": "open",
             "is_pull_request": False,
-            "title": "Session graph",
+            "title": "Linked session",
             "body": "**state:** `ADMISSION_REQUESTED`",
-        }
-    }
-    idx = run([p], items=referenced, policy_data=policy())
-    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
-
-
-def test_authorized_command_cannot_admit_without_requested_issue_state():
-    comments = [{
-        "user": {"login": "humanaios-ui"},
-        "body": "/admit-evaluation",
-        "created_at": "2026-09-30T20:54:59Z",
-    }]
-    p = pr(1, body="Fixes #99", comments=comments)
-    referenced = {
+        },
         "99": {
             "state": "open",
             "is_pull_request": False,
-            "title": "Ordinary issue",
-            "body": "**state:** `DISCOVERY`",
-        }
+            "title": "Other session",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        },
     }
     idx = run([p], items=referenced, policy_data=policy())
     assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
 
 
 def test_untrusted_review_cannot_admit_evaluation_workspace():
