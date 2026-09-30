@@ -1,0 +1,35 @@
+{
+  "protocol": "DHP-1.0",
+  "cycle": "HMBM-CYCLE-003",
+  "failure_id": "C003-DHP-F002",
+  "system": "HMBM-CYCLE-003/DHP",
+  "actor": "ANALYST",
+  "capability": "STAGE_GMAIL_DRAFT",
+  "authority": "PAPER_ONLY_ANALYSIS_AND_PERSISTENCE; NO_SEND",
+  "state_before": "C003-H0-ACCEPTED",
+  "expected_transition": "ANALYSIS_COMPLETE -> PERSISTENCE_PENDING via Gmail draft",
+  "observed_transition": "STAGE_DRAFT_BLOCKED; no Gmail draft ID; canonical unchanged",
+  "failure_surface": "ANALYST_TO_GMAIL_TRANSPORT_BOUNDARY",
+  "evidence": {
+    "generation_id": "C003-H01-GEN-002",
+    "reported_candidate_sha256": "f41c6df102c85ceab71129ca0b2136f0b0c6c6718c2b3cf0460c83e5fb7f7629",
+    "reported_package_zip_sha256": "4e2dde3964ea0a57d71a1c5be8dcdec5c9642dabed264c229ec5a46742f872ff",
+    "gmail_draft_id": null
+  },
+  "provenance": "Analyst run result; hashes remain reported claims unless exact bytes are recovered and independently read-back verified.",
+  "known_omissions": [
+    "No durable artifact bytes recovered into DHP queue",
+    "No Gmail draft receipt"
+  ],
+  "unknown_coverage": [
+    "Exact GEN-002 bytes unavailable for independent verification"
+  ],
+  "blast_radius": "Persistence/communication handoff only; HMBM canonical state remains H0; no paper allocation/fills authorized",
+  "reversibility": "HIGH",
+  "correction_warrant": "Two Analyst->Gmail staging failures support separating durable persistence from communication transport.",
+  "correction": "Analyst persists immutable candidate to repository DHP queue with read-back hash verification. Courier alone may use Gmail.",
+  "state_after": "C003-H0-ACCEPTED",
+  "verification_receipt": null,
+  "residual_unknown": "Whether historical GEN-001/GEN-002 exact bytes can be recovered.",
+  "paper_only": true
+}
