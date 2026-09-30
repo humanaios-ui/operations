@@ -1,0 +1,22 @@
+name: HMBM DHP invariants
+on:
+  pull_request:
+    paths:
+      - 'experiments/hmbm/dhp/**'
+      - 'experiments/hmbm/cycle-003/dhp-*'
+  push:
+    paths:
+      - 'experiments/hmbm/dhp/**'
+      - 'experiments/hmbm/cycle-003/dhp-*'
+jobs:
+  invariant-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run DHP tests
+        run: python -m unittest experiments/hmbm/dhp/test_dhp.py
