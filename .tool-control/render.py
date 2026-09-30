@@ -276,6 +276,10 @@ def main() -> int:
         if current != out:
             print("::error::TOOLS_MANIFEST.md is out of sync with tools-manifest.yaml — "
                   "run `python3 .tool-control/render.py` and commit.")
+            print(
+                "EOF newline: current="
+                f"{current.endswith(chr(10))}, rendered={out.endswith(chr(10))}"
+            )
             for line in difflib.unified_diff(
                 current.splitlines(),
                 out.splitlines(),
