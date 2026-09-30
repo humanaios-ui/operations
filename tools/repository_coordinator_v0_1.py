@@ -852,6 +852,7 @@ def render_markdown(index: dict[str, Any]) -> str:
     sections = [
         (["CAPACITY_CONTENTION"], "Capacity contention"),
         (["CONTROL_PLANE", "ACTIVE"], "Active operator queue"),
+        (["ADMITTED_TO_EVALUATION"], "Evaluation admission — evidence workspace, not operator queue"),
         (["ADMISSION_REVIEW"], "Admission review"),
         (["WORKBENCH"], "Workbench — visible, not operator queue"),
     ]
@@ -878,7 +879,8 @@ def render_markdown(index: dict[str, Any]) -> str:
     lines += [
         "---",
         "`ISSUE_IS_NOT_ADMITTED_WORK · ASSIGNMENT_IS_NOT_PR_ADMISSION · "
-        "DRAFT_IS_NOT_OPERATOR_QUEUE · ADMISSION_IS_NOT_MERGE_AUTHORITY`",
+        "DRAFT_IS_NOT_OPERATOR_QUEUE · EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE · "
+        "ADMISSION_IS_NOT_MERGE_AUTHORITY`",
     ]
     return "\n".join(lines) + "\n"
 
