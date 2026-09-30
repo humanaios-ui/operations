@@ -43,6 +43,11 @@ cal:supportedByFrozenTrace a rdfs:Property .
 cal:follows a rdfs:Property .
 cal:contextFor a rdfs:Property .
 cal:salientDuring a rdfs:Property .
+cal:reportedValue a rdfs:Property .
+cal:machineValue a rdfs:Property .
+cal:comparisonType a rdfs:Property .
+cal:sequenceIndex a rdfs:Property .
+cal:retestOutcome a rdfs:Property .
 
 cal:Resolved a skos:Concept ; skos:prefLabel "RESOLVED" .
 cal:Unresolved a skos:Concept ; skos:prefLabel "UNRESOLVED" .
