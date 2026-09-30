@@ -118,4 +118,22 @@ External evidence edges MUST be typed as one of: `IMPLEMENTS_STANDARD`, `CONSTRA
 PROV-O is the provenance substrate. SHACL 1.0 is the normative graph-validation baseline. SHACL 1.2 Core remains a version-watch target while it is a Working Draft. Nanopublication structure is an optional claim-packaging pattern, not a dependency.
 
 Important separation: SHACL validates persisted graph structure; it does not enforce the temporal runtime rule that machine semantics remain hidden until trace freeze. That invariant belongs in the controller/application layer.
+## Validation-stage integration
+
+Validation staging is integrated at the **promotion boundary**, not inside the open human-trace loop.
+
+```text
+OBSERVATION
+ -> TRACE FREEZE
+ -> DESIGN DELTA (PROVISIONAL)
+ -> GRAPH ENCODE
+ -> STRUCTURAL VALIDATION
+ -> RETEST
+ -> REPLICATED | WITHDRAWN
+ -> WARRANT REVIEW
+```
+
+Rationale: the first fixture pass exposed missing graph primitives (`comparisonType`, values, sequence, and retest outcome) and required a negative fixture that rejects malformed evidence. This demonstrates process utility before claim validation. Structural validation is therefore required for evidence-graph/schema-affecting deltas before promotion, while remaining outside the stimulus -> human-trace path to avoid adding observational latency or contamination.
+
+Structural conformance is necessary for promotion but is never sufficient evidence that a cognitive interpretation is true.
 
