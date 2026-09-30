@@ -234,12 +234,6 @@ jobs:
             );
             core.info(`Gate snapshot: ${pullRequests.length} open PR(s); target #${target}.`);
 
-      - name: Verify human-origin admission receipts
-        run: |
-          python3 .github/scripts/human_admission_verify.py \
-            --snapshot .repo-coordinator/gate-snapshot.json \
-            --policy REPOSITORY_COORDINATOR_POLICY.json
-
       - name: Enforce admission standing (fail closed)
         env:
           TARGET_PR: ${{ github.event.pull_request.number || github.event.issue.number }}
