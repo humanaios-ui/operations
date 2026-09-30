@@ -20,6 +20,8 @@ Core invariants:
   AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY
   ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS
   ADMISSION_IS_NOT_MERGE_AUTHORITY
+  SAME_ACCOUNT_IDENTITY_IS_NOT_HUMAN_ORIGIN
+  AI_RELAY_IS_NOT_HUMAN_AUTHORITY
 
 Inputs are an offline JSON snapshot collected by the GitHub workflow plus the
 checked-out canonical PRIORITY_QUEUE.md. The tool does not call GitHub itself.
@@ -271,50 +273,38 @@ def _evaluation_admission_evidence(
     pr: dict[str, Any],
     policy: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
-) -> tuple[bool, list[str], list[int], list[str], list[str]]:
-    """Recognize explicit native GitHub evaluation-admission receipts.
+) -> tuple[bool, list[str], list[int], list[str]]:
+    """Recognize verified human-origin evaluation-admission receipts only.
 
-    A receipt may be either an APPROVED review from an authorized actor or an
-    exact admission command carried by a COMMENTED pull-request review from an
-    authorized actor. Ordinary issue comments are not admission receipts. Both grant only
-    evidence-producing evaluation standing; neither accepts implementation,
-    consumes operator capacity, or grants merge authority.
+    GitHub account identity and review/comment object type are insufficient
+    because an AI connector may act under the same account and create the same
+    API objects. Raw reviews and commands are therefore evidence only.
+
+    A verified receipt must be cryptographically bound to repository/PR/issue,
+    the exact PR head SHA, and EVALUATION_ONLY authority by the trusted
+    default-branch verifier before it reaches this classifier.
     """
     cfg = policy.get("evaluation_admission") or {}
-    authorized = {str(x) for x in cfg.get("authorized_actors") or []}
     required_state = str(cfg.get("required_issue_state") or "ADMISSION_REQUESTED")
-    command = str(cfg.get("command") or "/admit-evaluation").strip()
-    if not authorized:
-        return False, [], [], [], []
 
-    latest = _latest_review_states(pr.get("reviews") or [])
-    approvers = sorted(
-        user for user, state in latest.items()
-        if user in authorized and state == "APPROVED"
-    )
-
-    commanders: list[str] = []
-    for review in pr.get("reviews") or []:
-        user = str((review.get("user") or {}).get("login") or review.get("user") or "")
-        state = str(review.get("state") or "").upper()
-        body = str(review.get("body") or "")
-        machine_origin = "humanaios-origin: ai-agent" in body.lower()
-        if (
-            user in authorized
-            and state == "COMMENTED"
-            and body.strip() == command
-            and not machine_origin
-        ):
-            commanders.append(user)
-    commanders = sorted(set(commanders))
-
-    if not approvers and not commanders:
-        return False, [], [], [], []
+    verified = [
+        r for r in (pr.get("verified_admission_receipts") or [])
+        if str(r.get("authority") or "") == "EVALUATION_ONLY"
+        and int(r.get("pr") or 0) == int(pr.get("number") or 0)
+        and str(r.get("head") or "").lower() == str(pr.get("head_sha") or "").lower()
+    ]
+    if not verified:
+        return False, [], [], []
 
     evidence: list[str] = []
     objectives: list[int] = []
-    for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
-        ref = int(raw)
+    principals: list[str] = []
+
+    linked = {int(x) for x in ADMISSION_LINK_RE.findall(pr.get("body") or "")}
+    for receipt in verified:
+        ref = int(receipt.get("issue") or 0)
+        if ref not in linked:
+            continue
         item = referenced_items.get(str(ref)) or referenced_items.get(ref)
         if not item or item.get("is_pull_request"):
             continue
@@ -327,20 +317,17 @@ def _evaluation_admission_evidence(
         issue_state = state_match.group(1).upper() if state_match else ""
         if issue_state != required_state.upper():
             continue
-        if approvers:
-            evidence.append(
-                f"authorized human review by {', '.join('@' + x for x in approvers)} "
-                f"admits linked issue #{ref} to evaluation"
-            )
-        if commanders:
-            evidence.append(
-                f"authorized evaluation command {command} by "
-                f"{', '.join('@' + x for x in commanders)} admits linked issue #{ref} to evaluation"
-            )
+
+        principal = str(receipt.get("principal") or "unknown")
+        evidence.append(
+            f"verified human authority receipt by {principal} "
+            f"admits linked issue #{ref} to evaluation at head "
+            f"{str(receipt.get('head') or '')[:12]}"
+        )
         objectives.append(ref)
+        principals.append(principal)
 
-    return bool(evidence), evidence, objectives, approvers, commanders
-
+    return bool(evidence), evidence, objectives, sorted(set(principals))
 
 def _base_lane(
     pr: dict[str, Any],
@@ -349,7 +336,7 @@ def _base_lane(
     referenced_items: dict[str, dict[str, Any]],
 ) -> tuple[str, dict[str, Any]]:
     admitted, evidence, objectives = _admission_evidence(pr, policy, referenced_items)
-    eval_admitted, eval_evidence, eval_objectives, eval_approvers, eval_commanders = (
+    eval_admitted, eval_evidence, eval_objectives, eval_principals = (
         _evaluation_admission_evidence(pr, policy, referenced_items)
     )
     maintenance = _maintenance(pr, policy)
@@ -375,8 +362,7 @@ def _base_lane(
         "evaluation_admitted": eval_admitted,
         "evidence": evidence + eval_evidence,
         "objectives": list(dict.fromkeys(objectives + eval_objectives)),
-        "evaluation_approvers": eval_approvers,
-        "evaluation_commanders": eval_commanders,
+        "evaluation_principals": eval_principals,
         "maintenance": maintenance,
         "control_plane": control_plane,
         "draft": draft,
