@@ -26,6 +26,7 @@ def pr(
     files=None,
     patch="",
     reviews=None,
+    comments=None,
     mergeable_state="clean",
     *,
     author="builder",
@@ -40,6 +41,7 @@ def pr(
         "files": files,
         "file_details": [{"filename": f, "patch": patch if i == 0 else ""} for i, f in enumerate(files)],
         "reviews": reviews or [],
+        "comments": comments or [],
         "mergeable_state": mergeable_state,
         "html_url": f"https://example.test/pull/{n}",
         "author": author,
@@ -58,6 +60,7 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None):
         "evaluation_admission": {
             "authorized_actors": ["humanaios-ui"],
             "required_issue_state": "ADMISSION_REQUESTED",
+            "command": "/admit-evaluation",
         },
         "maintenance": {
             "authors": ["dependabot[bot]"],
@@ -323,6 +326,88 @@ def test_authorized_review_admits_requested_issue_to_evaluation_only():
     assert got["guidance"]["action"] == "ADVANCE"
     assert got["objective"] == "EVALUATION"
     assert idx["capacity"]["admitted_ready_count"] == 0
+
+
+def test_authorized_command_admits_owner_authored_workspace_to_evaluation_only():
+    comments = [{
+        "user": {"login": "humanaios-ui"},
+        "body": "/admit-evaluation",
+        "created_at": "2026-09-30T20:54:59Z",
+    }]
+    p = pr(1, body="Fixes #99", comments=comments)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "ADMITTED_TO_EVALUATION"
+    assert got["admission"]["gate"] == "PASS"
+    assert got["admission"]["evaluation_admitted"] is True
+    assert got["admission"]["evaluation_commanders"] == ["humanaios-ui"]
+    assert got["admission"]["working_set_admitted"] is False
+    assert idx["capacity"]["admitted_ready_count"] == 0
+
+
+def test_untrusted_command_cannot_admit_evaluation_workspace():
+    comments = [{
+        "user": {"login": "other-reviewer"},
+        "body": "/admit-evaluation",
+        "created_at": "2026-09-30T20:54:59Z",
+    }]
+    p = pr(1, body="Fixes #99", comments=comments)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_near_match_command_cannot_admit_evaluation_workspace():
+    comments = [{
+        "user": {"login": "humanaios-ui"},
+        "body": "please /admit-evaluation",
+        "created_at": "2026-09-30T20:54:59Z",
+    }]
+    p = pr(1, body="Fixes #99", comments=comments)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_authorized_command_cannot_admit_without_requested_issue_state():
+    comments = [{
+        "user": {"login": "humanaios-ui"},
+        "body": "/admit-evaluation",
+        "created_at": "2026-09-30T20:54:59Z",
+    }]
+    p = pr(1, body="Fixes #99", comments=comments)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Ordinary issue",
+            "body": "**state:** `DISCOVERY`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
 
 
 def test_untrusted_review_cannot_admit_evaluation_workspace():
