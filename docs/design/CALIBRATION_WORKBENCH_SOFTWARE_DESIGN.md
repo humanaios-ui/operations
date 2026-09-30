@@ -105,3 +105,17 @@ Subjective introspection is valid evidence of what the participant reports exper
 ## Immediate implementation boundary
 
 This document specifies the interface and evidence contract. It does not authorize psychological diagnosis, covert sensing, model training, or consequential external action. Any voice/gaze/pointer telemetry remains modality-specific opt-in and minimized to protocol need.
+## Evidence-graph implementation
+
+This PR now includes an executable graph schema and validation layer:
+
+- `docs/design/calibration-evidence-graph.ttl` — HumanAIOS calibration ontology using PROV-O-compatible provenance primitives.
+- `docs/design/calibration-evidence-graph.shacl.ttl` — SHACL constraints for persisted graph validation.
+- `docs/research/CALIBRATION_EVIDENCE_GRAPH_EXTERNAL_MAPPING.md` — node-by-node mapping to external standards/research, including relation type, scope, limitations, and version watch.
+
+External evidence edges MUST be typed as one of: `IMPLEMENTS_STANDARD`, `CONSTRAINED_BY_STANDARD`, `METHOD_ANALOGUE`, `COGNITIVE_ANALOGUE`, `EMPIRICALLY_MOTIVATED_BY`, `CHALLENGED_BY`, `LOCAL_HYPOTHESIS`, or `VERSION_WATCH`.
+
+PROV-O is the provenance substrate. SHACL 1.0 is the normative graph-validation baseline. SHACL 1.2 Core remains a version-watch target while it is a Working Draft. Nanopublication structure is an optional claim-packaging pattern, not a dependency.
+
+Important separation: SHACL validates persisted graph structure; it does not enforce the temporal runtime rule that machine semantics remain hidden until trace freeze. That invariant belongs in the controller/application layer.
+
