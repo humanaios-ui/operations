@@ -101,3 +101,38 @@ A “dependency-capable” environment could be a local computer, CI runner, Git
 
 This is an execution-environment limitation, not a known defect in the graph or validator.
 
+## Design delta: landing verification + dependency flags
+
+### Observation
+
+The phrase “dependency-capable run” did not fully land for the participant even though it was technically meaningful to the system.
+
+### Provisional interpretation
+
+Message delivery is not evidence of shared understanding. A critical dependency statement can be technically correct while remaining operationally ambiguous to the human.
+
+### Graph update
+
+Added:
+- `LandingCheck` with states `UNVERIFIED | CONFIRMED | CLARIFIED | MISUNDERSTOOD | DEFERRED`;
+- `DependencyFlag` with explicit dependency state, required stage, blocking scope, plain-language impact, resolution action, and fallback.
+
+The current PySHACL limitation is now the first concrete dependency-flag example.
+
+### Validation-stage result
+
+The new design delta was passed through the staging process rather than only documented:
+- ontology primitives added;
+- SHACL shapes added;
+- valid reference fixtures added;
+- intentionally invalid landing/dependency fixtures added;
+- machine-readable manifest expectations extended.
+
+Canonical PySHACL execution remains blocked by the already-declared PySHACL execution dependency, so these new shapes remain PROVISIONAL until that dependency is satisfied and the canonical validator is run.
+
+### Promotion test
+
+Promote the landing lane only if repeated use demonstrates that selective landing checks reduce misunderstanding or false assumptions of completion without materially increasing friction.
+
+Promote dependency flags if they reliably make blocked scope and resolution path clearer than free-form caveat language.
+
