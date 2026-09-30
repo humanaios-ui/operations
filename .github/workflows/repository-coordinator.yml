@@ -162,12 +162,15 @@ jobs:
                 }
 
                 const body = pr.body || brief.body || "";
-                const allRefs = [...body.matchAll(/(^|[^\w])#(\d{1,6})\b/g)]
-                  .map(match => Number(match[2]));
+                const closingRefs = [...body.matchAll(
+                  /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*(?:[\w.-]+\/[\w.-]+)?#(\d{1,6})\b/gi
+                )].map(match => Number(match[1]));
 
-                for (const number of allRefs) {
-                  if (admittedIssueNumbers.has(number)) admissionNumbers.add(number);
+                for (const number of closingRefs) {
+                  admissionNumbers.add(number);
                 }
+                // Static objectives remain available for legacy policy entries.
+                for (const number of admittedIssueNumbers) admissionNumbers.add(number);
                 for (const match of body.matchAll(/\b(?:PR|pull request)\s*#(\d{1,6})\b/gi)) {
                   referencedPullNumbers.add(Number(match[1]));
                 }
@@ -210,19 +213,24 @@ jobs:
             for (const batch of chunk([...admissionNumbers], 6)) {
               const rows = await Promise.all(batch.map(async number => {
                 try {
-                  const issue = (await github.rest.issues.get({
-                    owner, repo, issue_number: number
-                  })).data;
-                  return { number, issue };
+                  const [issueResponse, comments] = await Promise.all([
+                    github.rest.issues.get({ owner, repo, issue_number: number }),
+                    github.paginate(
+                      github.rest.issues.listComments,
+                      { owner, repo, issue_number: number, per_page: 100 }
+                    )
+                  ]);
+                  return { number, issue: issueResponse.data, comments };
                 } catch (err) {
                   if (!err || err.status !== 404) throw err;
-                  return { number, issue: null };
+                  return { number, issue: null, comments: [] };
                 }
               }));
 
-              for (const { number, issue } of rows) {
+              for (const { number, issue, comments } of rows) {
                 if (!issue) continue;
                 referencedItems[String(number)] = {
+                  number,
                   state: issue.state,
                   html_url: issue.html_url,
                   title: issue.title,
@@ -230,7 +238,17 @@ jobs:
                   labels: (issue.labels || []).map(x =>
                     typeof x === "string" ? x : x.name
                   ).filter(Boolean),
-                  is_pull_request: Boolean(issue.pull_request)
+                  is_pull_request: Boolean(issue.pull_request),
+                  comments: comments.map(comment => ({
+                    id: comment.id,
+                    body: comment.body || "",
+                    created_at: comment.created_at,
+                    updated_at: comment.updated_at,
+                    user: {
+                      login: comment.user && comment.user.login
+                        ? comment.user.login : "unknown"
+                    }
+                  }))
                 };
               }
             }
@@ -260,7 +278,7 @@ jobs:
             }
 
             const snapshot = {
-              schema_version: "0.2",
+              schema_version: "0.3",
               repository: `${owner}/${repo}`,
               main_sha: mainSha,
               policy_source: policySource,
@@ -299,7 +317,7 @@ jobs:
           mkdir -p .repo-coordinator
           cat > .repo-coordinator/index.json <<'JSON'
           {
-            "schema_version": "0.2",
+            "schema_version": "0.3",
             "degraded": true,
             "reason": "LIVE_REPOSITORY_SNAPSHOT_UNAVAILABLE",
             "authority_effect": "NONE"

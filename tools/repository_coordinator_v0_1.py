@@ -14,9 +14,12 @@ Core invariants:
   MERGEABLE_IS_NOT_CURRENT
   AGE_IS_NOT_STALENESS
   GUIDANCE_REQUIRES_EVIDENCE
-  ISSUE_IS_NOT_ADMITTED_WORK
+  SESSION_ISSUE_PRECEDES_IMPLEMENTATION
+  ISSUE_CREATION_IS_NOT_ADMISSION
+  ISSUE_IS_SESSION_GRAPH_NOT_EXECUTION
   ASSIGNMENT_IS_NOT_PR_ADMISSION
   DRAFT_IS_NOT_OPERATOR_QUEUE
+  PREFLIGHT_IS_NOT_PR_VALIDATION
   AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY
   ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS
   ADMISSION_IS_NOT_MERGE_AUTHORITY
@@ -29,16 +32,21 @@ the trusted base branch, not from a candidate PR checkout. A PR must not be
 able to admit itself by editing the policy it is judged against.
 
 Admission evidence is an explicit closing-keyword link ("Fixes #N") to an
-admitted issue, or an explicit PR number in the policy. Incidental mentions
-are not admission. Maintenance standing comes from the automated author
-identity, not from a self-assignable label. Control-plane exemption applies
-only when every changed file is a control-plane path.
+admitted issue, or a grandfathered explicit PR number in the policy. An issue
+is admitted either by the trusted default-branch policy or by the latest exact
+admission command from a policy-authorized actor. Issue body text, labels,
+assignment, and unauthorized comments cannot self-admit work. Maintenance
+standing comes from the automated author identity, not from a self-assignable
+label. Control-plane exemption applies only when every changed file is a
+control-plane path.
 
 Usage:
   python3 tools/repository_coordinator_v0_1.py --snapshot snapshot.json
   python3 tools/repository_coordinator_v0_1.py --snapshot snapshot.json \
       --output index.json --markdown index.md --policy REPOSITORY_COORDINATOR_POLICY.json
   python3 tools/repository_coordinator_v0_1.py --snapshot snapshot.json --gate 123
+  python3 tools/repository_coordinator_v0_1.py --issue-snapshot issue.json
+  python3 tools/repository_coordinator_v0_1.py --preflight-snapshot preflight.json
   python3 tools/repository_coordinator_v0_1.py --smoke-test
 """
 from __future__ import annotations
@@ -52,8 +60,8 @@ from pathlib import Path
 from typing import Any, Iterable
 
 TOOL_NAME = "repository_coordinator"
-TOOL_VERSION = "0.2.1"
-TOOL_CATEGORY = "diagnostic_tool"
+TOOL_VERSION = "0.3.0"
+TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "REPOSITORY-COORDINATOR-02"
 TOOL_ZONE = 1
 
@@ -93,6 +101,20 @@ ACTIVE_GATE_RE = re.compile(
     r"^###\s+(Q-[A-Z0-9-]+).*?\n(?:.*\n){0,8}?\*\*State:\*\*\s*`?([A-Z_]+)`?",
     re.M,
 )
+
+DEFAULT_SESSION_SECTIONS = [
+    "session identity",
+    "objective",
+    "scope",
+    "readiness predicates",
+    "acceptance criteria",
+    "falsifiers",
+    "decision log",
+]
+
+EMPTY_SECTION_VALUES = {
+    "", "n/a", "na", "none", "tbd", "todo", "unknown", "_no response_",
+}
 
 ACTION_ORDER = {
     "CLOSE_PRESERVE": 0,
@@ -193,6 +215,259 @@ def _labels(value: Any) -> set[str]:
     return labels
 
 
+def _normalized_heading(value: str) -> str:
+    """Normalize a Markdown heading without weakening its semantic identity."""
+    value = re.sub(r"[`*_]", "", value or "")
+    value = re.sub(r"\s+", " ", value).strip().lower()
+    return value.rstrip(":")
+
+
+def _markdown_sections(body: str) -> dict[str, str]:
+    """Return issue sections from hand-written H2 or Issue Form H3 headings."""
+    lines = (body or "").splitlines()
+    level = 2 if any(re.match(r"^##\s+", line) for line in lines) else 3
+    heading_re = re.compile(rf"^#{{{level}}}\s+(.+?)\s*$")
+    sections: dict[str, list[str]] = {}
+    current: str | None = None
+    for line in lines:
+        match = heading_re.match(line)
+        if match:
+            current = _normalized_heading(match.group(1))
+            sections.setdefault(current, [])
+        elif current is not None:
+            sections[current].append(line)
+    return {key: "\n".join(lines).strip() for key, lines in sections.items()}
+
+
+def _section_has_content(value: str) -> bool:
+    """Reject empty issue-form placeholders while allowing structured Markdown."""
+    stripped = re.sub(r"<!--.*?-->", "", value or "", flags=re.S).strip()
+    if stripped.lower() in EMPTY_SECTION_VALUES:
+        return False
+    # Empty checkboxes and headings are structure, not an answer.
+    stripped = re.sub(r"(?m)^\s*[-*]\s*\[\s*\]\s*.*$", "", stripped)
+    stripped = re.sub(r"(?m)^#{1,6}\s+.*$", "", stripped).strip()
+    return bool(stripped)
+
+
+def _issue_command_decision(
+    issue: dict[str, Any],
+    policy: dict[str, Any],
+) -> dict[str, Any]:
+    """Resolve the latest authorized issue command; labels never grant standing."""
+    cfg = policy.get("session_admission") or {}
+    authorized = {str(x).lower() for x in cfg.get("authorized_actors") or []}
+    commands = {
+        str(command).strip(): str(state).upper()
+        for state, command in (cfg.get("commands") or {}).items()
+        if str(command).strip()
+    }
+    candidates: list[tuple[str, int, str, str, str]] = []
+    for comment in issue.get("comments") or []:
+        user = comment.get("user") or {}
+        actor = str(
+            user.get("login") if isinstance(user, dict) else user
+            or comment.get("author")
+            or ""
+        )
+        if actor.lower() not in authorized:
+            continue
+        body = str(comment.get("body") or "").strip()
+        first_line = body.splitlines()[0].strip() if body else ""
+        state = commands.get(first_line)
+        if not state:
+            continue
+        created = str(comment.get("created_at") or comment.get("updated_at") or "")
+        comment_id = int(comment.get("id") or 0)
+        candidates.append((created, comment_id, state, actor, first_line))
+
+    if not candidates:
+        return {
+            "state": "ADMISSION_REVIEW",
+            "source": None,
+            "actor": None,
+            "comment_id": None,
+            "evidence": "no authorized admission command is present",
+        }
+
+    created, comment_id, state, actor, command = max(candidates)
+    return {
+        "state": state,
+        "source": "AUTHORIZED_ISSUE_COMMAND",
+        "actor": actor,
+        "comment_id": comment_id,
+        "created_at": created,
+        "command": command,
+        "evidence": f"{actor} issued {command} in issue comment {comment_id}",
+    }
+
+
+def evaluate_session_issue(
+    issue: dict[str, Any],
+    policy: dict[str, Any],
+) -> dict[str, Any]:
+    """Validate the issue as a session graph and report its admission state."""
+    cfg = policy.get("session_admission") or {}
+    required = [
+        _normalized_heading(str(x))
+        for x in cfg.get("required_sections") or DEFAULT_SESSION_SECTIONS
+    ]
+    sections = _markdown_sections(str(issue.get("body") or ""))
+    missing = [name for name in required if name not in sections]
+    empty = [
+        name for name in required
+        if name in sections and not _section_has_content(sections[name])
+    ]
+    structure_gate = "PASS" if not missing and not empty else "FAIL"
+
+    number = int(issue.get("number") or issue.get("issue_number") or 0)
+    static_issues = {
+        int(x) for x in (policy.get("admission") or {}).get("issue_numbers") or []
+    }
+    if number and number in static_issues:
+        decision = {
+            "state": "ADMITTED",
+            "source": "DEFAULT_BRANCH_POLICY",
+            "actor": "Z2",
+            "comment_id": None,
+            "evidence": f"default-branch policy explicitly admits issue #{number}",
+        }
+    else:
+        decision = _issue_command_decision(issue, policy)
+
+    preflight_eligible = (
+        structure_gate == "PASS"
+        and decision["state"] == "ADMITTED"
+        and str(issue.get("state") or "open").lower() == "open"
+    )
+    return {
+        "schema_version": "0.1",
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "issue_number": number,
+        "title": str(issue.get("title") or ""),
+        "issue_state": str(issue.get("state") or "open").lower(),
+        "structure_gate": structure_gate,
+        "missing_sections": missing,
+        "empty_sections": empty,
+        "admission": decision,
+        "preflight_eligible": preflight_eligible,
+        "invariants": [
+            "ISSUE_CREATION_IS_NOT_ADMISSION",
+            "ISSUE_IS_SESSION_GRAPH_NOT_EXECUTION",
+            "ADMISSION_IS_NOT_MERGE_AUTHORITY",
+        ],
+    }
+
+
+def evaluate_preflight(
+    snapshot: dict[str, Any],
+    policy: dict[str, Any],
+) -> dict[str, Any]:
+    """Fail-closed binding check for an exact branch commit before PR creation."""
+    issue = snapshot.get("issue") or {}
+    branch = snapshot.get("branch") or {}
+    issue_result = evaluate_session_issue(issue, policy)
+    number = int(issue_result.get("issue_number") or 0)
+    cfg = policy.get("session_admission") or {}
+    errors: list[str] = []
+    warnings: list[str] = []
+    checks: dict[str, str] = {}
+
+    def record(name: str, ok: bool, failure: str) -> None:
+        checks[name] = "PASS" if ok else "FAIL"
+        if not ok:
+            errors.append(failure)
+
+    record(
+        "session_graph_structure",
+        issue_result["structure_gate"] == "PASS",
+        "session issue is missing required, substantive sections",
+    )
+    record(
+        "admission_standing",
+        issue_result["admission"]["state"] == "ADMITTED",
+        "session issue has no current authorized admission decision",
+    )
+    record(
+        "issue_open",
+        issue_result["issue_state"] == "open",
+        "session issue is not open",
+    )
+
+    branch_name = str(branch.get("name") or "")
+    branch_pattern = str(
+        cfg.get("branch_pattern")
+        or r"^(?:[^/]+/)?issue-(?P<issue_number>[0-9]+)(?:[-/].*)?$"
+    )
+    branch_match = re.fullmatch(branch_pattern, branch_name)
+    bound_number = int(branch_match.group("issue_number")) if branch_match else 0
+    record(
+        "branch_issue_binding",
+        bool(branch_match) and bound_number == number,
+        f"branch `{branch_name}` is not bound to issue #{number}",
+    )
+
+    head_sha = str(branch.get("head_sha") or "")
+    base_sha = str(branch.get("base_sha") or "")
+    record(
+        "head_identity",
+        bool(re.fullmatch(r"[0-9a-f]{40}", head_sha)),
+        "branch head SHA is missing or malformed",
+    )
+    record(
+        "base_identity",
+        bool(re.fullmatch(r"[0-9a-f]{40}", base_sha)),
+        "base SHA is missing or malformed",
+    )
+
+    first_message = str(branch.get("first_commit_message") or "")
+    ref_pattern = str(
+        cfg.get("first_commit_reference_pattern")
+        or r"(?i)^(?:refs?|relates-to):[ ]*#(?P<issue_number>[0-9]+)$"
+    )
+    ref_match = re.search(ref_pattern, first_message, flags=re.M)
+    ref_number = int(ref_match.group("issue_number")) if ref_match else 0
+    record(
+        "first_commit_issue_reference",
+        bool(ref_match) and ref_number == number,
+        f"first implementation commit must contain `Refs: #{number}`",
+    )
+
+    files = [str(x) for x in branch.get("changed_files") or []]
+    record(
+        "implementation_delta",
+        bool(files) and bool(branch.get("files_complete", True)),
+        "branch comparison has no complete implementation delta",
+    )
+    open_prs = [int(x) for x in branch.get("open_pull_requests") or []]
+    if open_prs:
+        warnings.append(
+            "branch already has open PR(s) "
+            + ", ".join(f"#{x}" for x in open_prs)
+            + "; this is a revalidation, not a pre-PR run"
+        )
+
+    return {
+        "schema_version": "0.1",
+        "authority_effect": "PREFLIGHT_EVIDENCE_ONLY",
+        "gate": "PASS" if not errors else "FAIL",
+        "issue_number": number,
+        "branch": branch_name,
+        "head_sha": head_sha,
+        "base_sha": base_sha,
+        "changed_files": files,
+        "checks": checks,
+        "errors": errors,
+        "warnings": warnings,
+        "issue": issue_result,
+        "invariants": [
+            "SESSION_ISSUE_PRECEDES_IMPLEMENTATION",
+            "PREFLIGHT_IS_NOT_PR_VALIDATION",
+            "ADMISSION_IS_NOT_MERGE_AUTHORITY",
+        ],
+    }
+
+
 def _maintenance(pr: dict[str, Any], policy: dict[str, Any]) -> bool:
     """Maintenance standing is granted by the automated author identity only.
 
@@ -254,14 +529,28 @@ def _admission_evidence(
 
     for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
         ref = int(raw)
-        if ref not in admitted_issues:
-            continue
         item = referenced_items.get(str(ref)) or referenced_items.get(ref)
         if not item or item.get("is_pull_request"):
             continue
-        if ref not in objectives:
+        admitted_by_policy = ref in admitted_issues
+        session_result = evaluate_session_issue(item, policy)
+        admitted_by_command = (
+            session_result["structure_gate"] == "PASS"
+            and session_result["admission"]["state"] == "ADMITTED"
+            and session_result["issue_state"] == "open"
+        )
+        if (admitted_by_policy or admitted_by_command) and ref not in objectives:
             evidence.append(f"policy admits linked issue #{ref}")
+            if admitted_by_command and not admitted_by_policy:
+                evidence[-1] = session_result["admission"]["evidence"]
             objectives.append(ref)
+
+    linked_objectives = [x for x in objectives if x > 0]
+    if len(linked_objectives) > 1:
+        evidence.append(
+            "multiple admitted session issues are linked; exactly one objective is required"
+        )
+        return False, evidence, objectives
 
     return bool(evidence), evidence, objectives
 
@@ -675,7 +964,7 @@ def analyze(
             cohorts.setdefault(str(cohort), []).append(item["number"])
 
     return {
-        "schema_version": "0.2",
+        "schema_version": "0.3",
         "advisory_only": False,
         "authority_effect": "ADMISSION_ROUTING_ONLY",
         "repository": snapshot.get("repository"),
@@ -693,9 +982,12 @@ def analyze(
             "MERGEABLE_IS_NOT_CURRENT",
             "AGE_IS_NOT_STALENESS",
             "GUIDANCE_REQUIRES_EVIDENCE",
-            "ISSUE_IS_NOT_ADMITTED_WORK",
+            "SESSION_ISSUE_PRECEDES_IMPLEMENTATION",
+            "ISSUE_CREATION_IS_NOT_ADMISSION",
+            "ISSUE_IS_SESSION_GRAPH_NOT_EXECUTION",
             "ASSIGNMENT_IS_NOT_PR_ADMISSION",
             "DRAFT_IS_NOT_OPERATOR_QUEUE",
+            "PREFLIGHT_IS_NOT_PR_VALIDATION",
             "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
             "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
             "ADMISSION_IS_NOT_MERGE_AUTHORITY",
@@ -805,8 +1097,8 @@ def render_markdown(index: dict[str, Any]) -> str:
 
     lines += [
         "---",
-        "`ISSUE_IS_NOT_ADMITTED_WORK · ASSIGNMENT_IS_NOT_PR_ADMISSION · "
-        "DRAFT_IS_NOT_OPERATOR_QUEUE · ADMISSION_IS_NOT_MERGE_AUTHORITY`",
+        "`SESSION_ISSUE_PRECEDES_IMPLEMENTATION · ISSUE_CREATION_IS_NOT_ADMISSION · "
+        "PREFLIGHT_IS_NOT_PR_VALIDATION · ADMISSION_IS_NOT_MERGE_AUTHORITY`",
     ]
     return "\n".join(lines) + "\n"
 
@@ -883,6 +1175,17 @@ def run_smoke_test() -> bool:
     policy = {
         "capacity": {"active_operator_queue": 4},
         "admission": {"issue_numbers": [10], "pull_request_numbers": [1]},
+        "session_admission": {
+            "required_sections": DEFAULT_SESSION_SECTIONS,
+            "authorized_actors": ["operator"],
+            "commands": {
+                "ADMITTED": "/admit",
+                "DEFERRED": "/defer",
+                "REJECTED": "/reject",
+            },
+            "branch_pattern": r"^(?:[^/]+/)?issue-(?P<issue_number>[0-9]+)(?:[-/].*)?$",
+            "first_commit_reference_pattern": r"(?i)^(?:refs?|relates-to):[ ]*#(?P<issue_number>[0-9]+)$",
+        },
         "maintenance": {"authors": ["dependabot[bot]"], "labels": ["dependencies"]},
         "control_plane": {"paths": ["REPOSITORY_COORDINATOR_POLICY.json"]},
     }
@@ -901,12 +1204,50 @@ def run_smoke_test() -> bool:
     assert "CLOSED_UNMERGED_REFERENCE" in codes
     assert "AGE_IS_NOT_STALENESS" in index["invariants"]
     assert "ASSIGNMENT_IS_NOT_PR_ADMISSION" in index["invariants"]
+
+    section_text = "\n\n".join(
+        f"## {name.title()}\nSubstantive {name}." for name in DEFAULT_SESSION_SECTIONS
+    )
+    session_issue = {
+        "number": 11,
+        "title": "Session objective",
+        "body": section_text,
+        "state": "open",
+        "comments": [{
+            "id": 7,
+            "body": "/admit\n\nAuthorized for the working set.",
+            "created_at": "2026-09-30T00:00:00Z",
+            "user": {"login": "operator"},
+        }],
+    }
+    assert evaluate_session_issue(session_issue, policy)["preflight_eligible"] is True
+    preflight = evaluate_preflight({
+        "issue": session_issue,
+        "branch": {
+            "name": "codex/issue-11-session-objective",
+            "head_sha": "b" * 40,
+            "base_sha": "a" * 40,
+            "first_commit_message": "Implement objective\n\nRefs: #11",
+            "changed_files": ["src/work.py"],
+            "files_complete": True,
+            "open_pull_requests": [],
+        },
+    }, policy)
+    assert preflight["gate"] == "PASS"
     return True
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--snapshot", type=Path)
+    parser.add_argument(
+        "--issue-snapshot", type=Path,
+        help="Validate one issue as a session graph and report admission standing.",
+    )
+    parser.add_argument(
+        "--preflight-snapshot", type=Path,
+        help="Validate issue/branch/first-commit binding before PR creation.",
+    )
     parser.add_argument("--priority-queue", type=Path, default=ROOT / "PRIORITY_QUEUE.md")
     parser.add_argument("--policy", type=Path, default=ROOT / "REPOSITORY_COORDINATOR_POLICY.json")
     parser.add_argument("--output", type=Path)
@@ -922,16 +1263,46 @@ def main(argv: list[str] | None = None) -> int:
         print("PASS" if run_smoke_test() else "FAIL")
         return 0
 
-    if not args.snapshot:
-        parser.error("--snapshot is required unless --smoke-test is used")
+    selected = sum(bool(x) for x in (
+        args.snapshot, args.issue_snapshot, args.preflight_snapshot,
+    ))
+    if selected != 1:
+        parser.error(
+            "select exactly one of --snapshot, --issue-snapshot, or --preflight-snapshot"
+        )
 
-    if args.gate is not None and not args.policy.exists():
+    if not args.policy.exists():
         print(f"gate=FAIL reason=policy file missing: {args.policy}")
         return 1
 
+    policy = json.loads(args.policy.read_text(encoding="utf-8"))
+
+    if args.issue_snapshot:
+        raw = json.loads(args.issue_snapshot.read_text(encoding="utf-8"))
+        issue = raw.get("issue") or raw
+        result = evaluate_session_issue(issue, policy)
+        payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(payload, encoding="utf-8")
+        print(payload, end="")
+        # Admission review is a normal pending state. Only a malformed session
+        # graph makes issue-intake validation fail.
+        return 0 if result["structure_gate"] == "PASS" else 1
+
+    if args.preflight_snapshot:
+        raw = json.loads(args.preflight_snapshot.read_text(encoding="utf-8"))
+        result = evaluate_preflight(raw, policy)
+        payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(payload, encoding="utf-8")
+        print(payload, end="")
+        return 0 if result["gate"] == "PASS" else 1
+
+    assert args.snapshot is not None
     snapshot = json.loads(args.snapshot.read_text(encoding="utf-8"))
     pq = args.priority_queue.read_text(encoding="utf-8", errors="replace") if args.priority_queue.exists() else ""
-    policy = json.loads(args.policy.read_text(encoding="utf-8")) if args.policy.exists() else {}
     index = analyze(snapshot, pq, policy)
 
     if args.gate is not None:

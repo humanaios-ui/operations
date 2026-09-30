@@ -20,6 +20,28 @@ Authority is graduated (full detail in [GOVERNANCE.md](GOVERNANCE.md)):
 If a change needs Z2 ratification or Z3 execution, **say so in your PR** rather than
 assuming — mislabeling a Z3 action as Z1 is itself a finding.
 
+## Start substantive work with an issue
+
+For substantive non-maintenance work, the first durable repository write is a
+**session-graph issue**. Use the **Session graph / work admission** issue
+template before creating an implementation branch or PR. The issue holds the
+objective, scope, authority, readiness evidence, acceptance criteria,
+falsifiers, decisions, implementation edges, and outcome.
+
+- Reuse an existing issue when another session continues the same objective.
+- Issue creation, assignment, or labeling is not admission.
+- An authorized Z2 actor records `/admit`, `/defer`, or `/reject` on the issue.
+- An admitted branch uses `issue-<number>` in its name and its first commit
+  contains `Refs: #<number>`.
+- Request trusted branch validation with `/preflight <branch>` on the issue.
+- Open the PR only after applicable preflight checks pass, and include exactly
+  one `Closes #<number>` edge to the admitted objective.
+
+See [Issue-First Session Admission](docs/ISSUE_FIRST_SESSION_ADMISSION.md) for
+the human walkthrough and the boundary between issue, branch, PR, and merge
+evidence. Preflight is evidence for an exact SHA; it is not PR validation or
+merge authority.
+
 ## How changes land
 
 - **Read the map first.** [START_HERE.md](START_HERE.md) → [SEED.md](SEED.md)

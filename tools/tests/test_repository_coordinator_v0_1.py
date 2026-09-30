@@ -13,10 +13,16 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 
-from repository_coordinator_v0_1 import analyze, gate_decision, render_markdown
+from repository_coordinator_v0_1 import (
+    analyze,
+    evaluate_preflight,
+    evaluate_session_issue,
+    gate_decision,
+    render_markdown,
+)
 
 TOOL_NAME = "test_repository_coordinator"
-TOOL_VERSION = "0.2.1"
+TOOL_VERSION = "0.3.0"
 
 
 def pr(
@@ -48,12 +54,31 @@ def pr(
     }
 
 
-def policy(*, limit=4, issues=None, prs=None, control_paths=None):
+def policy(*, limit=4, issues=None, prs=None, control_paths=None, authorized=None):
     return {
         "capacity": {"active_operator_queue": limit},
         "admission": {
             "issue_numbers": issues or [],
             "pull_request_numbers": prs or [],
+        },
+        "session_admission": {
+            "required_sections": [
+                "session identity",
+                "objective",
+                "scope",
+                "readiness predicates",
+                "acceptance criteria",
+                "falsifiers",
+                "decision log",
+            ],
+            "authorized_actors": authorized or ["operator"],
+            "commands": {
+                "ADMITTED": "/admit",
+                "DEFERRED": "/defer",
+                "REJECTED": "/reject",
+            },
+            "branch_pattern": r"^(?:[^/]+/)?issue-(?P<issue_number>[0-9]+)(?:[-/].*)?$",
+            "first_commit_reference_pattern": r"(?i)^(?:refs?|relates-to):[ ]*#(?P<issue_number>[0-9]+)$",
         },
         "maintenance": {
             "authors": ["dependabot[bot]"],
@@ -62,6 +87,30 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None):
         "control_plane": {
             "paths": control_paths or ["REPOSITORY_COORDINATOR_POLICY.json"],
         },
+    }
+
+
+def session_body():
+    sections = [
+        "Session identity",
+        "Objective",
+        "Scope",
+        "Readiness predicates",
+        "Acceptance criteria",
+        "Falsifiers",
+        "Decision log",
+    ]
+    return "\n\n".join(f"## {name}\nSubstantive {name.lower()}." for name in sections)
+
+
+def session_issue(n=77, *, comments=None, body=None, state="open"):
+    return {
+        "number": n,
+        "title": "Session objective",
+        "body": session_body() if body is None else body,
+        "state": state,
+        "comments": comments or [],
+        "is_pull_request": False,
     }
 
 
@@ -368,6 +417,131 @@ def test_closing_keyword_link_to_admitted_issue_is_admission():
         p = pr(1, body=body)
         idx = run([p], items=_admitted_item(77), policy_data=policy(issues=[77]))
         assert item(idx, 1)["lane"] == "ACTIVE", body
+
+
+def test_issue_creation_is_valid_but_not_self_admitted():
+    result = evaluate_session_issue(session_issue(), policy())
+    assert result["structure_gate"] == "PASS"
+    assert result["admission"]["state"] == "ADMISSION_REVIEW"
+    assert result["preflight_eligible"] is False
+
+
+def test_github_issue_form_h3_sections_are_valid():
+    issue = session_issue(body=session_body().replace("## ", "### "))
+    result = evaluate_session_issue(issue, policy())
+    assert result["structure_gate"] == "PASS"
+
+
+def test_issue_body_and_label_cannot_self_admit():
+    issue = session_issue()
+    issue["body"] += "\n\n/admit"
+    issue["labels"] = ["admission:approved"]
+    result = evaluate_session_issue(issue, policy())
+    assert result["admission"]["state"] == "ADMISSION_REVIEW"
+
+
+def test_unauthorized_admission_command_is_ignored():
+    issue = session_issue(comments=[{
+        "id": 1,
+        "body": "/admit",
+        "created_at": "2026-09-30T00:00:00Z",
+        "user": {"login": "builder"},
+    }])
+    result = evaluate_session_issue(issue, policy(authorized=["operator"]))
+    assert result["admission"]["state"] == "ADMISSION_REVIEW"
+
+
+def test_latest_authorized_command_controls_issue_admission():
+    comments = [
+        {
+            "id": 1,
+            "body": "/admit\n\nInitial admission.",
+            "created_at": "2026-09-30T00:00:00Z",
+            "user": {"login": "operator"},
+        },
+        {
+            "id": 2,
+            "body": "/defer\n\nDependency changed.",
+            "created_at": "2026-09-30T01:00:00Z",
+            "user": {"login": "operator"},
+        },
+    ]
+    result = evaluate_session_issue(session_issue(comments=comments), policy())
+    assert result["admission"]["state"] == "DEFERRED"
+    assert result["admission"]["comment_id"] == 2
+
+
+def test_authorized_issue_command_admits_linked_pr():
+    issue = session_issue(comments=[{
+        "id": 7,
+        "body": "/admit",
+        "created_at": "2026-09-30T00:00:00Z",
+        "user": {"login": "operator"},
+    }])
+    idx = run(
+        [pr(1, body="Closes #77")],
+        items={"77": issue},
+        policy_data=policy(),
+    )
+    got = item(idx, 1)
+    assert got["lane"] == "ACTIVE"
+    assert got["admission"]["gate"] == "PASS"
+
+
+def test_multiple_admitted_session_links_fail_closed():
+    items = {
+        "77": session_issue(77),
+        "78": session_issue(78),
+    }
+    idx = run(
+        [pr(1, body="Closes #77\nCloses #78")],
+        items=items,
+        policy_data=policy(issues=[77, 78]),
+    )
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["gate"] == "FAIL"
+
+
+def test_preflight_binds_issue_branch_first_commit_and_exact_head():
+    issue = session_issue(comments=[{
+        "id": 7,
+        "body": "/admit",
+        "created_at": "2026-09-30T00:00:00Z",
+        "user": {"login": "operator"},
+    }])
+    result = evaluate_preflight({
+        "issue": issue,
+        "branch": {
+            "name": "codex/issue-77-session-objective",
+            "head_sha": "b" * 40,
+            "base_sha": "a" * 40,
+            "first_commit_message": "Implement session objective\n\nRefs: #77",
+            "changed_files": ["src/work.py"],
+            "files_complete": True,
+            "open_pull_requests": [],
+        },
+    }, policy())
+    assert result["gate"] == "PASS"
+    assert set(result["checks"].values()) == {"PASS"}
+
+
+def test_preflight_fails_wrong_branch_and_first_commit_reference():
+    issue = session_issue(77)
+    result = evaluate_preflight({
+        "issue": issue,
+        "branch": {
+            "name": "codex/issue-88-wrong-objective",
+            "head_sha": "b" * 40,
+            "base_sha": "a" * 40,
+            "first_commit_message": "Implement without a durable issue edge",
+            "changed_files": ["src/work.py"],
+            "files_complete": True,
+        },
+    }, policy(issues=[77]))
+    assert result["gate"] == "FAIL"
+    assert result["checks"]["branch_issue_binding"] == "FAIL"
+    assert result["checks"]["first_commit_issue_reference"] == "FAIL"
 
 
 def test_self_applied_dependencies_label_is_not_maintenance():

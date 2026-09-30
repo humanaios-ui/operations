@@ -1,5 +1,15 @@
 <!-- START_HERE.md has the map; CONTRIBUTING.md has the rules. This checklist keeps a PR honest. -->
 
+## Session graph
+
+<!-- Substantive non-maintenance work must close exactly one admitted session
+     issue. Replace N below. An incidental "Related to" mention does not carry
+     admission. Grandfathered and maintenance work should state its exception. -->
+
+Closes #N
+
+**Preflight commit:** `SHA or documented exception`
+
 ## What & why
 
 <!-- One or two sentences: what this changes and the reason. -->
@@ -57,6 +67,8 @@
 
 ## Checklist
 
+- [ ] **Issue first** — this PR closes exactly one admitted session-graph issue, or documents a policy-recognized exception
+- [ ] **Preflight identity** — applicable pre-PR checks ran against this exact head SHA; PR-only checks will still rerun
 - [ ] **Claim matches behavior** — the description reflects what the diff actually does
 - [ ] **Document control** — if this adds/changes a controlled document, `document-registry.yaml` and frontmatter are updated (the CI gate will check)
 - [ ] **Immune memory** — if this fixes or reveals a failure mode, it's registered in `REGISTERED.md` (F / H / IC) — link it: <!-- IC-000 -->

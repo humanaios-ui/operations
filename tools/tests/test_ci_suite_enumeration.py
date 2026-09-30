@@ -14,10 +14,10 @@ Measured before this guard existed: 7 of 21 files under `tools/tests/`, carrying
 hand, so nothing was broken — they were simply unguarded. A suite that could go
 red tomorrow while CI stays green is not coverage, it is the appearance of it.
 
-A second copy of the same list lives in `tools/intent_os_test_harness_v1_0.py`
-(`t3-pytest-baseline`), whose whole purpose is to reproduce what the workflows
-run. It had already drifted from the workflow. Two hand-maintained copies of one
-list drift by default; this asserts they agree.
+Copies of the same list live in `tools/intent_os_test_harness_v1_0.py`
+(`t3-pytest-baseline`) and the issue-first pre-PR workflow. Their purpose is to
+reproduce what quality CI runs. The harness had already drifted once; multiple
+hand-maintained copies drift by default, so this asserts all three agree.
 
 THIS FILE IS ON THE LIST IT CHECKS
 ----------------------------------
@@ -49,6 +49,7 @@ from collections import Counter
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 WORKFLOW = os.path.join(REPO, ".github", "workflows", "quality-baseline.yml")
+PREFLIGHT_WORKFLOW = os.path.join(REPO, ".github", "workflows", "session-admission.yml")
 HARNESS = os.path.join(REPO, "tools", "intent_os_test_harness_v1_0.py")
 SELF = "tools/tests/test_ci_suite_enumeration.py"
 
@@ -82,6 +83,20 @@ def harness_suites() -> list[str]:
     return re.findall(r'"([^"]+\.py)"', m.group(1)) if m else []
 
 
+def preflight_suites() -> list[str]:
+    """The pre-PR exact-SHA suite must mirror the PR quality baseline."""
+    text = open(PREFLIGHT_WORKFLOW, encoding="utf-8").read()
+    m = re.search(r"name: Test baseline.*?python3 -m pytest \\\n(.*?)^\s*-q\s*$", text, re.S | re.M)
+    if not m:
+        return []
+    out = []
+    for line in m.group(1).splitlines():
+        line = line.strip().rstrip("\\").strip()
+        if line and not line.startswith("#"):
+            out.append(line)
+    return out
+
+
 def tools_tests_on_disk() -> list[str]:
     paths = glob.glob(os.path.join(REPO, "tools", "tests", "test_*.py"))
     return sorted(os.path.relpath(p, REPO).replace(os.sep, "/") for p in paths)
@@ -108,7 +123,8 @@ def test_every_tools_test_file_is_enumerated() -> None:
         "test files under tools/tests/ that CI does not run:\n  "
         + "\n  ".join(missing)
         + "\n\nAdd each to the pytest step in .github/workflows/quality-baseline.yml "
-          "AND to the `baseline` list in tools/intent_os_test_harness_v1_0.py."
+          "AND to the `baseline` list in tools/intent_os_test_harness_v1_0.py "
+          "AND the Test baseline step in .github/workflows/session-admission.yml."
     )
 
 
@@ -147,6 +163,19 @@ def test_the_harness_copy_matches_the_workflow() -> None:
         f"  in the harness, not the workflow: {sorted((harness_counts - wf_counts).elements())}\n"
         "The harness exists to reproduce what CI runs; a harness that runs a "
         "different set reports a pass CI would not give."
+    )
+
+
+def test_preflight_copy_matches_the_workflow() -> None:
+    """Preflight cannot claim the quality baseline while silently running less."""
+    wf, preflight = workflow_suites(), preflight_suites()
+    assert preflight, "could not parse the pre-PR Test baseline suite"
+    wf_counts, preflight_counts = Counter(wf), Counter(preflight)
+    assert wf_counts == preflight_counts, (
+        "session-admission.yml's pre-PR suite has drifted from quality-baseline.yml.\n"
+        f"  in quality CI, not preflight: {sorted((wf_counts - preflight_counts).elements())}\n"
+        f"  in preflight, not quality CI: {sorted((preflight_counts - wf_counts).elements())}\n"
+        "Update both lists together; preflight evidence must name what it actually ran."
     )
 
 

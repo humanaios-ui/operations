@@ -78,6 +78,8 @@ jobs:
             const admittedIssueNumbers = [
               ...new Set((((policy || {}).admission || {}).issue_numbers || []).map(Number))
             ];
+            const linkedIssueNumbers = new Set(admittedIssueNumbers);
+            const admissionLinkRe = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*(?:[\w.-]+\/[\w.-]+)?#(\d{1,6})\b/gi;
 
             const open = await github.paginate(
               github.rest.pulls.list,
@@ -142,32 +144,60 @@ jobs:
               pullRequests.push(...rows);
             }
 
+            // Dynamic issue admission is still evaluated by trusted
+            // default-branch code. Collect only explicit closing-keyword
+            // objectives; incidental #mentions never enter the evidence set.
+            for (const pull of pullRequests) {
+              for (const match of (pull.body || "").matchAll(admissionLinkRe)) {
+                linkedIssueNumbers.add(Number(match[1]));
+              }
+            }
+
             const referencedItems = {};
-            for (const batch of chunk(admittedIssueNumbers, 6)) {
+            for (const batch of chunk([...linkedIssueNumbers], 6)) {
               const rows = await Promise.all(batch.map(async number => {
                 try {
-                  const issue = (await github.rest.issues.get({
-                    owner, repo, issue_number: number
-                  })).data;
-                  return { number, issue };
+                  const [issueResponse, comments] = await Promise.all([
+                    github.rest.issues.get({ owner, repo, issue_number: number }),
+                    github.paginate(
+                      github.rest.issues.listComments,
+                      { owner, repo, issue_number: number, per_page: 100 }
+                    )
+                  ]);
+                  return { number, issue: issueResponse.data, comments };
                 } catch (err) {
                   if (!err || err.status !== 404) throw err;
-                  return { number, issue: null };
+                  return { number, issue: null, comments: [] };
                 }
               }));
-              for (const { number, issue } of rows) {
+              for (const { number, issue, comments } of rows) {
                 if (!issue) continue;
                 referencedItems[String(number)] = {
+                  number,
                   state: issue.state,
                   html_url: issue.html_url,
                   title: issue.title,
-                  is_pull_request: Boolean(issue.pull_request)
+                  body: issue.body || "",
+                  labels: (issue.labels || []).map(x =>
+                    typeof x === "string" ? x : x.name
+                  ).filter(Boolean),
+                  is_pull_request: Boolean(issue.pull_request),
+                  comments: comments.map(comment => ({
+                    id: comment.id,
+                    body: comment.body || "",
+                    created_at: comment.created_at,
+                    updated_at: comment.updated_at,
+                    user: {
+                      login: comment.user && comment.user.login
+                        ? comment.user.login : "unknown"
+                    }
+                  }))
                 };
               }
             }
 
             const snapshot = {
-              schema_version: "0.2",
+              schema_version: "0.3",
               purpose: "admission-gate",
               repository: `${owner}/${repo}`,
               main_sha: context.sha,

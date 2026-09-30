@@ -1,12 +1,15 @@
 {
-  "schema_version": "0.2",
+  "schema_version": "0.3",
   "status": "candidate_control_policy",
   "authority_effect": "ADMISSION_ROUTING_ONLY_FROM_DEFAULT_BRANCH",
-  "purpose": "Bound repository working-set growth by separating admission, workbench, maintenance, and operator-attention lanes.",
+  "purpose": "Make a repository issue the first durable session graph, then bound working-set growth by separating admission, pre-PR validation, workbench, maintenance, and operator-attention lanes.",
   "invariants": [
-    "ISSUE_IS_NOT_ADMITTED_WORK",
+    "SESSION_ISSUE_PRECEDES_IMPLEMENTATION",
+    "ISSUE_CREATION_IS_NOT_ADMISSION",
+    "ISSUE_IS_SESSION_GRAPH_NOT_EXECUTION",
     "ASSIGNMENT_IS_NOT_PR_ADMISSION",
     "DRAFT_IS_NOT_OPERATOR_QUEUE",
+    "PREFLIGHT_IS_NOT_PR_VALIDATION",
     "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
     "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
     "ADMISSION_IS_NOT_MERGE_AUTHORITY"
@@ -16,8 +19,7 @@
   },
   "admission": {
     "issue_numbers": [
-      378,
-      598
+      378
     ],
     "pull_request_numbers": [
       538,
@@ -39,7 +41,53 @@
       590,
       593
     ],
-    "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
+    "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, where admission is either a default-branch issue_numbers entry or the latest exact command from an authorized actor; legacy PRs may use an explicit pull_request_numbers entry"
+  },
+  "session_admission": {
+    "mode": "ISSUE_FIRST",
+    "applies_to": "substantive non-maintenance work",
+    "first_durable_object": "repository_issue",
+    "required_sections": [
+      "session identity",
+      "objective",
+      "scope",
+      "readiness predicates",
+      "acceptance criteria",
+      "falsifiers",
+      "decision log"
+    ],
+    "authorized_actors": [
+      "humanaios-ui"
+    ],
+    "commands": {
+      "ADMITTED": "/admit",
+      "DEFERRED": "/defer",
+      "REJECTED": "/reject"
+    },
+    "command_rule": "The latest exact command in an issue comment from an authorized actor controls admission. Issue body text, assignment, labels, and unauthorized comments never grant admission.",
+    "branch_pattern": "^(?:[^/]+/)?issue-(?P<issue_number>[0-9]+)(?:[-/].*)?$",
+    "first_commit_reference_pattern": "(?i)^(?:refs?|relates-to):[ ]*#(?P<issue_number>[0-9]+)$",
+    "preflight_command": "/preflight <branch>",
+    "preflight_requirement": "Validate the exact branch head SHA from a trusted default-branch workflow before opening a PR.",
+    "pull_request_linkage": "A PR must use a closing-keyword link to exactly one admitted session issue.",
+    "ci_boundaries": {
+      "issue": [
+        "session graph completeness",
+        "authority and readiness claims",
+        "admission decision provenance"
+      ],
+      "branch_preflight": [
+        "issue and first-commit binding",
+        "integrity and quality suites",
+        "security scans that do not require PR context"
+      ],
+      "pull_request": [
+        "merge-base and changed-file semantics",
+        "review state and mergeability",
+        "capacity and duplicate active implementation",
+        "required check enforcement"
+      ]
+    }
   },
   "maintenance": {
     "authors": [
@@ -58,6 +106,11 @@
       "tools/tests/test_repository_coordinator_v0_1.py",
       ".github/workflows/repository-coordinator.yml",
       ".github/workflows/repository-admission-gate.yml",
+      ".github/workflows/session-admission.yml",
+      ".github/ISSUE_TEMPLATE/session-graph.yml",
+      ".github/PULL_REQUEST_TEMPLATE.md",
+      "CONTRIBUTING.md",
+      "docs/ISSUE_FIRST_SESSION_ADMISSION.md",
       ".github/dependabot.yml",
       ".github/copilot-instructions.md",
       ".github/CODEOWNERS"
@@ -70,6 +123,7 @@
     "When admitted ready-for-review work exceeds capacity, the coordinator does not choose winners; it reports capacity contention for operator resolution.",
     "The gate reads this file from the default branch (pull_request_target). A PR cannot admit itself by editing this file, and touching a control-plane file alongside feature work does not exempt the feature work.",
     "Two ready PRs linking the same admitted objective are both held (DUPLICATE_ACTIVE_IMPLEMENTATION); the coordinator does not choose a winner.",
+    "Issue-first lifecycle adopted by Z2 instruction, 2026-09-30, through issue #598. Substantive sessions begin with a session-graph issue; a trusted preflight may inspect an exact branch commit before PR creation, but PR-context checks and human merge authority remain separate.",
     "PR #514 is admitted explicitly (Z2 instruction, 2026-09-25): it carries the coordinator control plane together with regenerated tool-manifest files, so it is a mixed change under the control-plane rule and needs an explicit admission record rather than an exemption.",
     "PRs #507 (SMAG gate enforcer refactor) and #508 (Oracle + Actualizer MVP) admitted explicitly by Z2 instruction, 2026-09-25, after #514 landed and their manifest and P19 checks went green.",
     "PR #532 (admissions for #507/#508 plus the molt-tier to change-level mapping) admitted explicitly by Z2 instruction, 2026-09-25, recorded directly on main so the gate evaluates it.",
@@ -90,7 +144,7 @@
     "PR #586 (fix entry_protocol/gmail_push_adapter.py: restore missing _DIGEST_REPLY_RE definition and un-double-escape extract_item_catalog()'s label/cleanup regexes) admitted 2026-09-28: found running the full test suite during a systematic backlog pass; entry_protocol/ is not covered by control_plane.paths, so this mixed test-fix change needs an explicit admission record.",
     "PR #578 (index the 8 unregistered z1-inbox/2026-09-25/* files: 7 as records, 1 as candidate Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01, fixing the Verify Z2 Ratification Requirements gate that has been failing on main since those files landed unindexed) admitted explicitly by Z2 instruction, 2026-09-28.",
     "PR #590 (file F-CAND-LEDGER-GROUNDING-STUB-01: p34x_temporal_extractor's LedgerProvider is a permanent Phase-0 no-op stub, so no future date can ever ground against a ratified molt window) admitted 2026-09-29: documentation-only candidate block under z1-inbox/, which is not covered by control_plane.paths; found via the same systematic pytest-enabled backlog pass as PR #589.",
-    "Issue #598 (issue-first admission and pre-PR CI) admitted explicitly by Z2 instruction, 2026-09-30, as the session graph for the control-plane implementation. Admission grants working-set standing only and does not authorize merge.",
+    "Issue #598 (issue-first admission and pre-PR CI) admitted explicitly by Z2 instruction, 2026-09-30, through authorized /admit comment 5916133612; the temporary bootstrap issue_numbers entry may be removed when dynamic issue admission lands. Admission grants working-set standing only and does not authorize merge.",
     "PR #593 (repository knowledge graph with bounded inference) admitted explicitly by Z2 instruction, 2026-09-30, as a grandfathered work item created before the issue-first lifecycle was adopted. Admission does not resolve CI findings or authorize merge."
   ]
 }

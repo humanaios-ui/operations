@@ -1,0 +1,119 @@
+name: Session graph / work admission
+description: Start substantive work with intent, authority, evidence, and falsifiers before implementation.
+title: "[Session Graph] "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is the first durable object for a substantive work session.
+        Creating it does not grant admission. After review, an authorized Z2
+        actor may comment `/admit`, `/defer`, or `/reject`.
+
+  - type: input
+    id: session_identity
+    attributes:
+      label: Session identity
+      description: A stable, human-readable identifier for this work session.
+      placeholder: SESSION-SHORT-NAME-001
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: State one outcome. If there are several independent outcomes, create separate issues.
+      placeholder: What observable change should exist when this session is complete?
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Name what is included and explicitly excluded.
+      placeholder: |
+        Included:
+        - ...
+
+        Excluded:
+        - ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: authority
+    attributes:
+      label: Authority required
+      description: Select the highest authority the proposed work could require.
+      options:
+        - Z1 — analysis or reversible implementation
+        - Z2 — canonical policy, governance, or ratification
+        - Z3 — credentials, billing, deployment, or live execution
+    validations:
+      required: true
+
+  - type: textarea
+    id: readiness
+    attributes:
+      label: Readiness predicates
+      description: Address AUTHORITY, DEPENDENCIES, RESOURCES, EVIDENCE, SAFETY, and REVERSIBILITY.
+      placeholder: |
+        AUTHORITY: ...
+        DEPENDENCIES: ...
+        RESOURCES: ...
+        EVIDENCE: ...
+        SAFETY: ...
+        REVERSIBILITY: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List observable conditions that would make the outcome reviewable.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: falsifiers
+    attributes:
+      label: Falsifiers
+      description: State what evidence would reject, stop, or materially revise this work.
+      placeholder: Reject or revise this work if...
+    validations:
+      required: true
+
+  - type: textarea
+    id: related_work
+    attributes:
+      label: Related work
+      description: Link predecessor issues, PRs, artifacts, or dependencies. Incidental links do not grant admission.
+      placeholder: "Related to #..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: decision_log
+    attributes:
+      label: Decision log
+      description: Record the origin of the request and later append material decisions and outcome evidence.
+      placeholder: "Initial request — who requested what, and under which authority?"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Boundary acknowledgement
+      options:
+        - label: I understand issue creation is not admission.
+          required: true
+        - label: I understand preflight evidence is not PR validation or merge authority.
+          required: true
