@@ -2,8 +2,8 @@ version: 1
 generated: '2026-09-25'
 decision_window_days: 2
 counts:
-  candidates: 98
-  records: 52
+  candidates: 99
+  records: 53
 ratifiers:
 - Night
 candidates:
@@ -1021,8 +1021,17 @@ candidates:
   submitted: '2026-09-29'
   status: awaiting_z2
   note: 'Found via a systematic pytest-enabled backlog pass (same pass as PR #589''s CommitmentRecognizer contraction fix). p34x_temporal_extractor/evidence.py''s LedgerProvider._load_molt_windows()/resolve() are explicitly-marked "Phase 0" stubs that always return None, so no future date can ever ground against a ratified molt window; tests/test_p34x_metamorphic.py::TestCorpusBaseline::test_corpus_clean_examples reproduces this. Documentation-only filing, no code change proposed.'
+- q_id: Q-TIER-ASSIGNMENT-BATCH-01
+  title: Tier assignment for 92 untiered governance candidates using resource-based allocation framework
+  path: z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01.md
+  submitted: '2026-09-30'
+  status: awaiting_z2
+  note: Formal Z2 ratification request for Tier 0/1/2 classification of 92 awaiting_z2 candidates. Decision window 48h (due 2026-10-02). Ratification will unblock resource-based allocation (RBE-OPS priority queue engine ranking and Z3 executor assignments).
 
 records:
+- path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
+  title: Phase 3 credential deployment guide
+  note: Step-by-step guide (15-20 minutes) for deploying Replicate API key and Supabase credentials to GitHub Secrets and local environment. Accompanies Q-TIER-ASSIGNMENT-BATCH-01. No Z2 ratification requested; Z1 reference material for credential deployment workflow enabling Phase 3 live testing.
 - path: z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md
   title: "Z2 rulings 2026-09-24 — recovered Q-MAIL merge-is-ratification receipt"
   note: "Z2 output. Cited as z2_ruling by Q-MAIL-EVIDENCE-LEDGER-01; deterministic recovery after the automatic reconcile branch remained stale. Candidate bytes were not changed."
