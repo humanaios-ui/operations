@@ -74,7 +74,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 TOOL_NAME = "ci_predict_pin"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 DEFAULT_FILE = "ci_predictions/pr.json"
 
 # Marker wrapping the embedded JSON so resolve/consolidate can find it without
