@@ -4,16 +4,19 @@
 [allowlist]
 description = "Allow test-only credential patterns used for testing credential redaction"
 
-# Test files with synthetic credentials
+# Test files and documentation with synthetic credentials and API key format examples
 paths = [
     "tools/tests/test_holographic_integration\\.py$",
-    "tools/holographic_orchestrator\\.py$"
+    "tools/holographic_orchestrator\\.py$",
+    "z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE\\.md$"
 ]
 
-# Allow patterns like: sk_test_, sk_live_, service_key_, etc. in test files only
+# Allow patterns like: sk_test_, sk_live_, service_key_, r8_xxx (Replicate), eyJ (JWT) in test/doc files only
 regexes = [
     "sk_test_",
     "sk_live_",
     "sk_FAKETEST",
     "service_key_",
+    "r8_x+",
+    "eyJhbGc",
 ]
