@@ -86,3 +86,18 @@ Do NOT place structural validation between stimulus and human trace. That would 
 - Treat failure of structural validation as a reason to block promotion until repaired: YES.
 
 This integration remains falsifiable: if repeated use adds substantial review cost without catching defects, preserving provenance, or improving legibility, narrow or withdraw the gate.
+## Plain-language note: “dependency-capable run”
+
+This phrase means: run the committed validation script in a computer/environment that is allowed to install and execute the external Python package it depends on, `pyshacl==0.40.1`.
+
+The validation code itself is already written and committed. The current execution environment used during this session could inspect and structurally preflight the files, but it could not install PySHACL from the package index. Therefore:
+
+- the **test harness exists**;
+- the **test data exists**;
+- the **expected pass/fail behavior is defined**;
+- the **canonical PySHACL test has not yet been executed in this session environment**.
+
+A “dependency-capable” environment could be a local computer, CI runner, GitHub Actions job, or other runtime with Python package-install access. Once PySHACL is installed there, the committed command can execute the canonical SHACL validation.
+
+This is an execution-environment limitation, not a known defect in the graph or validator.
+
