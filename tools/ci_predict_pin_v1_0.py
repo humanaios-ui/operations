@@ -72,7 +72,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from smag_pr_autocapture_v1_0 import derive_substrate  # noqa: E402  (reuse, don't reinvent)
 
 TOOL_NAME = "ci_predict_pin"
 TOOL_VERSION = "1.0.0"
@@ -82,12 +81,102 @@ DEFAULT_FILE = "ci_predictions/pr.json"
 # scraping the human-readable text around it (same technique as smag_consolidate's
 # ```json fence, made check-specific so a PR can't collide with a SMAG row).
 PIN_MARKER = "<!-- ci-predict:pin -->"
+STATUS_MARKER = "<!-- ci-predict:status -->"
 _JSON_BLOCK = re.compile(r"```json\s*(.*?)\s*```", re.DOTALL)
 
 VALID_CONCLUSIONS = {
     "success", "failure", "neutral", "cancelled", "skipped",
     "timed_out", "action_required", "stale",
 }
+
+
+def derive_actor_provenance(pr: dict, commit: dict, declaration: dict | None = None) -> dict:
+    """Derive actor-origin provenance without treating account identity as human proof.
+
+    Positive AI/bot watermarks may establish known machine origin. Their absence
+    never establishes human origin. A declaration may carry an agent claim, but
+    that claim remains separate from verified origin evidence.
+    """
+    declaration = declaration or {}
+    login = str((pr.get("user") or {}).get("login") or "")
+    commit_meta = commit.get("commit") or {}
+    author = commit_meta.get("author") or {}
+    committer = commit_meta.get("committer") or {}
+    message = str(commit_meta.get("message") or "")
+    pr_body = str(pr.get("body") or "")
+    blob = "\n".join([
+        login,
+        str(author.get("name") or ""),
+        str(author.get("email") or ""),
+        str(committer.get("name") or ""),
+        str(committer.get("email") or ""),
+        message,
+        pr_body,
+    ])
+    low = blob.lower()
+    evidence: list[str] = []
+    origin_class = "SHARED_ACCOUNT_ORIGIN_UNKNOWN"
+    agent = None
+
+    low_login = login.lower()
+    if low_login.endswith("[bot]"):
+        origin_class = "KNOWN_BOT"
+        agent = login
+        evidence.append("github bot/app login")
+    if "copilot" in low_login or "copilot" in low:
+        origin_class = "KNOWN_AI"
+        agent = "Copilot"
+        evidence.append("Copilot watermark/login")
+    if (
+        "claude-session:" in low
+        or "generated with claude code" in low
+        or "noreply@anthropic.com" in low
+        or "co-authored-by: claude" in low
+        or "claude code" in low_login
+    ):
+        origin_class = "KNOWN_AI"
+        agent = "Claude Code"
+        evidence.append("Claude Code commit/PR watermark")
+    if "humanaios-origin: ai-agent" in low:
+        origin_class = "KNOWN_AI"
+        m = re.search(r"agent=([^;\n>]+)", blob, re.I)
+        agent = m.group(1).strip() if m else (agent or "AI agent")
+        evidence.append("explicit humanaios-origin ai-agent watermark")
+
+    claim = declaration.get("actor_origin_claim")
+    return {
+        "account_identity": login or "unknown",
+        "origin_class": origin_class,
+        "agent": agent,
+        "agent_claim": str(claim) if claim else None,
+        "evidence": evidence,
+    }
+
+
+def predictor_label(provenance: dict) -> str:
+    """Stable predictor label for the calibration ledger."""
+    cls = provenance.get("origin_class") or "SHARED_ACCOUNT_ORIGIN_UNKNOWN"
+    subject = provenance.get("agent") or provenance.get("account_identity") or "unknown"
+    return f"{cls}:{subject}"
+
+
+def render_status_comment(pr_number: str, head_sha: str, status: str,
+                          provenance: dict, detail: str) -> str:
+    payload = {
+        "schema": "ci_predict_status_v1",
+        "pr": str(pr_number),
+        "head_sha": head_sha,
+        "prediction_status": status,
+        "actor_provenance": provenance,
+        "detail": detail,
+    }
+    return (
+        f"{STATUS_MARKER}\n"
+        f"## CI prediction status — PR #{pr_number} @ `{head_sha[:12]}`\n\n"
+        f"**Prediction status: {status}**\n\n"
+        f"{detail}\n\n"
+        f"```json\n{json.dumps(payload, sort_keys=True)}\n```"
+    )
 
 
 class DeclarationError(ValueError):
@@ -137,7 +226,7 @@ def load_declaration(path: Path) -> dict:
 
 
 def build_payload(pr_number: str, head_sha: str, predictor: str, declaration: dict,
-                  committed_at: str = "") -> dict:
+                  committed_at: str = "", actor_provenance: dict | None = None) -> dict:
     """Pure: assemble the payload that goes into the pin comment. No I/O.
 
     `committed_at` should be the git commit timestamp that last touched the
@@ -151,6 +240,8 @@ def build_payload(pr_number: str, head_sha: str, predictor: str, declaration: di
         "pr": str(pr_number),
         "head_sha": head_sha,
         "predictor": predictor,
+        "actor_provenance": actor_provenance or {},
+        "prediction_status": "PINNED",
         "committed_at": committed_at,
         "checks": declaration["checks"],
         "note": declaration.get("note", ""),
@@ -165,6 +256,7 @@ def render_pin_comment(payload: dict) -> str:
     return (
         f"{PIN_MARKER}\n"
         f"## CI prediction — PR #{payload['pr']} @ `{payload['head_sha'][:12]}`\n\n"
+        f"**Prediction status: PINNED**\n\n"
         f"Committed before any of these checks resolved, at `{anchor}`. Predictor: "
         f"`{payload['predictor']}`.\n\n" + "\n".join(lines) +
         (f"\n\n_{payload['note']}_" if payload.get("note") else "") +
@@ -271,15 +363,23 @@ def run(repo: str, pr_number: str, declaration_file: str = DEFAULT_FILE) -> int:
         return 0  # a missing pin is a VOID later, never a workflow failure
     head_sha = (pr.get("head") or {}).get("sha", "")
 
+    commit = gh_json(f"repos/{repo}/commits/{head_sha}") or {}
     content = fetch_declaration_via_api(repo, head_sha, declaration_file)
     if content is None:
-        print(f"no {declaration_file} at {head_sha[:12]}; nothing to pin")
-        return 0
+        provenance = derive_actor_provenance(pr, commit, {})
+        detail = f"no {declaration_file} at {head_sha[:12]}; this head did not enter the prediction loop"
+        comment = render_status_comment(pr_number, head_sha, "ABSENT", provenance, detail)
+        print(comment)
+        return post_comment(repo, pr_number, comment)
     declaration = parse_declaration(content, f"PR #{pr_number} @ {declaration_file}")
 
-    predictor = derive_substrate((pr.get("user") or {}).get("login", ""))
+    provenance = derive_actor_provenance(pr, commit, declaration)
+    predictor = predictor_label(provenance)
     committed_at = commit_date_via_api(repo, head_sha)
-    payload = build_payload(pr_number, head_sha, predictor, declaration, committed_at)
+    payload = build_payload(
+        pr_number, head_sha, predictor, declaration, committed_at,
+        actor_provenance=provenance,
+    )
     comment = render_pin_comment(payload)
     print(comment)
     return post_comment(repo, pr_number, comment)
@@ -297,6 +397,33 @@ def run_smoke_test() -> bool:
     comment = render_pin_comment(payload)
     ok = ok and PIN_MARKER in comment and "```json" in comment
     ok = ok and "unknown — git log lookup failed" in comment
+
+    claude_pr = {"user": {"login": "humanaios-ui"}, "body": "Generated with Claude Code"}
+    claude_commit = {"commit": {"author": {"name": "Claude", "email": "noreply@anthropic.com"},
+                                  "committer": {"name": "Claude", "email": "noreply@anthropic.com"},
+                                  "message": "Claude-Session: https://claude.ai/code/session_x"}}
+    prov = derive_actor_provenance(claude_pr, claude_commit, {})
+    ok = ok and prov["origin_class"] == "KNOWN_AI"
+    ok = ok and prov["agent"] == "Claude Code"
+    ok = ok and predictor_label(prov) == "KNOWN_AI:Claude Code"
+
+    unknown = derive_actor_provenance(
+        {"user": {"login": "humanaios-ui"}, "body": ""},
+        {"commit": {"author": {"name": "humanaios-ui", "email": ""}, "message": ""}},
+        {},
+    )
+    ok = ok and unknown["origin_class"] == "SHARED_ACCOUNT_ORIGIN_UNKNOWN"
+
+    claimed = derive_actor_provenance(
+        {"user": {"login": "humanaios-ui"}, "body": ""},
+        {"commit": {"author": {"name": "humanaios-ui"}, "message": ""}},
+        {"actor_origin_claim": "ChatGPT"},
+    )
+    ok = ok and claimed["origin_class"] == "SHARED_ACCOUNT_ORIGIN_UNKNOWN"
+    ok = ok and claimed["agent_claim"] == "ChatGPT"
+
+    absent = render_status_comment("42", "a" * 40, "ABSENT", unknown, "no declaration")
+    ok = ok and STATUS_MARKER in absent and "Prediction status: ABSENT" in absent
 
     anchored = build_payload("42", "abc123def456", "Claude Code", declaration,
                              committed_at="2026-09-12T10:00:00Z")
