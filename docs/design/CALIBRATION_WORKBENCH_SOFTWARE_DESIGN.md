@@ -137,3 +137,77 @@ Rationale: the first fixture pass exposed missing graph primitives (`comparisonT
 
 Structural conformance is necessary for promotion but is never sufficient evidence that a cognitive interpretation is true.
 
+## Landing Verification Lane
+
+HumanAIOS now treats **understanding as a state that may require verification**, not as an assumption made from message delivery.
+
+The lane is separate from agreement and correctness:
+
+```text
+MESSAGE
+ -> RECEIVED
+ -> LANDING_CHECK
+ -> UNVERIFIED | CONFIRMED | CLARIFIED | MISUNDERSTOOD | DEFERRED
+ -> CONTINUE | REPHRASE | HALT
+```
+
+A landing check asks whether the intended meaning landed well enough for the next action. It does **not** require the person to agree with the content.
+
+Trigger the lane selectively when:
+- technical jargon or an unfamiliar term is introduced;
+- a dependency or limitation changes what can actually be executed;
+- the participant reports confusion or asks for clarification;
+- a consequential state transition is about to occur;
+- the next action depends on a specific interpretation.
+
+Do not insert a landing check after every conversational turn. That would create friction and may interfere with the open human-trace loop. In discovery mode, landing verification occurs only after the trace is frozen unless clarification is required to understand the stimulus itself.
+
+AHRQ TeamSTEPPS check-back and teach-back are external methodological analogues for this lane: closed-loop communication verifies that information was received as intended, and teach-back verifies understanding by asking the receiver to restate meaning in their own words. HumanAIOS adopts the control pattern, not the healthcare-specific context.
+
+## Dependency Flagging
+
+Dependencies are first-class execution evidence.
+
+```text
+DEPENDENCY FLAG
+dependency: <package/tool/permission/network/upstream artifact/human input/version/etc.>
+state: SATISFIED | UNSATISFIED | UNVERIFIED | DEGRADED | VERSION_MISMATCH
+required_for: <specific stage/action>
+blocks_stage: true | false
+impact_plain_language: <what cannot happen because of this>
+resolution_action: <what would satisfy it>
+fallback: <bounded alternative, if any>
+```
+
+The flag must name the blocked scope precisely. A missing dependency does not automatically mean the whole project is blocked.
+
+Example from this session:
+
+```text
+dependency: pyshacl==0.40.1
+state: UNSATISFIED in current session execution environment
+required_for: canonical SHACL validation
+blocks_stage: true for canonical SHACL execution
+does_not_block: fixture authoring, ontology design, structural preflight
+resolution_action: execute in an environment that can install/run PySHACL
+```
+
+This replaces vague phrases such as “needs a dependency-capable run” with an explicit machine- and human-readable dependency state.
+
+## Updated runtime model
+
+```text
+EXPERIMENT THREAD
+  -> TRACE FREEZE
+SYSTEM / DESIGN THREAD
+  -> DESIGN DELTA
+  -> DEPENDENCY CHECK
+  -> GRAPH VALIDATION
+LANDING VERIFICATION LANE
+  -> verify critical explanation / dependency meaning
+  -> clarify if needed
+  -> continue only with known landing state when consequential
+```
+
+Landing verification and dependency flags are initially PROVISIONAL design deltas. They become canonical only if validation/retest shows that they improve legibility, reduce execution ambiguity, or prevent false claims of completion without imposing excessive interaction cost.
+
