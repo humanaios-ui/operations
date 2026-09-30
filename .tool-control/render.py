@@ -15,6 +15,7 @@ Deps: PyYAML. No network; writes only TOOLS_MANIFEST.md.
 from __future__ import annotations
 
 import argparse
+import difflib
 import os
 import sys
 
@@ -275,6 +276,14 @@ def main() -> int:
         if current != out:
             print("::error::TOOLS_MANIFEST.md is out of sync with tools-manifest.yaml — "
                   "run `python3 .tool-control/render.py` and commit.")
+            for line in difflib.unified_diff(
+                current.splitlines(),
+                out.splitlines(),
+                fromfile="TOOLS_MANIFEST.md (current)",
+                tofile="TOOLS_MANIFEST.md (rendered)",
+                lineterm="",
+            ):
+                print(line)
             return 1
         print("TOOLS_MANIFEST.md: in sync with the manifest.")
         return 0
