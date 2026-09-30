@@ -1,27 +1,28 @@
 # Calibration Workbench — Software Design Delta
 
-Status: PROVISIONAL
+Status: PROVISIONAL / LIVE DESIGN SHADOW
 Date: 2026-09-30
 
 ## Role in HumanAIOS
 
 The Calibration Workbench extends Progressive Onboarding and the Witness/Gateway. It calibrates the collaboration interface, not the worth or capability of the human. It preserves HumanAIOS separations: observation != evidence != calibration != warrant != authorization != enforcement.
 
-## UI state machine
+## Dual runtime
 
 ```text
-PREFLIGHT
- -> BASELINE_CAPTURE
- -> STIMULUS_READY
- -> HUMAN_TRACE_OPEN
- -> TRACE_FROZEN
- -> MACHINE_TRACE_REVEALED
- -> COMPARED
- -> DESIGN_DELTA_RECORDED
- -> RETEST | CLOSE | HALT_RESET
+EXPERIMENT THREAD                          SYSTEM THREAD
+PREFLIGHT                                 (closed)
+BASELINE_CAPTURE                          (closed)
+STIMULUS_READY                            (closed)
+HUMAN_TRACE_OPEN                          (closed)
+TRACE_FROZEN ---------------------------> DESIGN_DELTA_CHECK
+MACHINE_TRACE_REVEALED                    DELTA_RECEIPT
+COMPARED --------------------------------> UPDATE_PROVISIONAL_MODEL
+RETEST <---------------------------------- RETEST_PROPOSAL
+CLOSE | HALT_RESET                        LEDGER_APPEND
 ```
 
-In DISCOVERY mode, `MACHINE_TRACE_REVEALED` is mechanically unavailable before `TRACE_FROZEN`.
+Hard invariant: the System Thread cannot reveal expected machine semantics while HUMAN_TRACE_OPEN.
 
 ## Core data model
 
@@ -35,33 +36,71 @@ CalibrationTrial
     internal_clarity
     participant_report
   stimulus
+  presentation_mode: STEPWISE | BUNDLED | EXTERNALIZED_STATE
   human_trace[]
+  resolution_state: RESOLVED | UNRESOLVED | DELAYED | NOT_CAPTURED
+  participant_confidence
+  active_focus:
+    symbol
+    value_if_reported
+    salience_label
   trace_frozen_at
   machine_trace[]
-  comparison: CONVERGENCE | DIVERGENCE | NOT_CAPTURED | INTERFERENCE
+  comparison: CONVERGENCE | DIVERGENCE | INTERFERENCE | INDETERMINATE
   corrections[]
+  delayed_resolutions[]
   design_deltas[]
   warrant_state: PROVISIONAL | REPLICATED | WARRANTED | WITHDRAWN
   provenance
 ```
 
+## Real-time Design Delta Ledger
+
+After each comparison, evaluate whether frozen evidence changes the software model. When it does, display a compact receipt:
+
+```text
+SYSTEM DELTA
+changed: <specific interface/model change>
+unchanged: <protected invariants>
+evidence: <trial ids / observations>
+status: PROVISIONAL | REPLICATED | WARRANTED | WITHDRAWN
+falsifier: <next observation that could defeat it>
+```
+
+This replaces retrospective “look back for updates” as the primary mechanism. Retrospective audit remains available for verification.
+
 ## UX contract
 
-Primary surfaces: BASELINE | STIMULUS | YOUR TRACE | MACHINE TRACE | COMPARE | CORRECTION | DESIGN DELTA.
+Primary surfaces: BASELINE | STIMULUS | YOUR TRACE | MACHINE TRACE | COMPARE | SYSTEM DELTA | CORRECTION | HISTORY.
 
 - Participant can halt/reset at any point.
 - Machine answer cues are hidden before trace freeze in discovery mode.
-- State history is append-only from the participant's perspective; corrections do not erase prior trace.
-- Versioned symbol display is available when mutation/overwrite is being taught or tested.
-- Environmental/interference events remain visible in the trial receipt.
+- State history is append-only; corrections and delayed answers do not erase prior trace.
+- UNRESOLVED is a valid first-class state.
+- Delayed resolution stores order/latency and confidence separately.
+- Active focus/“hero” is displayed separately from the full preserved state.
+- Externalized state can be tested as a presentation control rather than silently imposed.
+- Environmental/interference events remain visible in the trial receipt without causal attribution.
 - Training mode is visibly distinct from discovery mode.
-- Adaptation rules show their warrant state and supporting observations.
+- Adaptation rules show warrant state and supporting observations.
+- System-delta receipts appear only after trace freeze.
 
 ## Evidence-graph mapping
 
-`Stimulus -> HumanObservation -> HumanResolution -> TraceFreeze -> MachineEvaluation -> Comparison -> CalibrationState -> DesignDelta -> Retest -> Warrant`
+`Stimulus -> HumanObservation -> ResolutionState -> TraceFreeze -> MachineEvaluation -> Comparison -> CalibrationState -> DesignDelta -> Retest -> Warrant`
 
-Every inferred/adaptive edge should retain provenance, confidence/standing, assumptions, falsifier, and review state.
+Additional edges:
+`EnvironmentalObservation -[CONTEXT_FOR]-> Trial`
+`ActiveFocus -[SALIENT_DURING]-> HumanObservation`
+`DelayedResolution -[FOLLOWS]-> UnresolvedObservation`
+`DesignDelta -[SUPPORTED_BY]-> FrozenTrace`
+`DesignDelta -[CHALLENGED_BY]-> Retest`
+
+Every inferred/adaptive edge retains provenance, confidence/standing, assumptions, falsifier, and review state.
+
+## Epistemic boundary
+
+Subjective introspection is valid evidence of what the participant reports experiencing, not objective proof of the underlying cognitive mechanism. Controlled stimuli and machine semantics provide comparators. Repeated cross-condition evidence may support a cognitive clue/hypothesis. No single trial is promoted into a stable cognitive claim.
 
 ## Immediate implementation boundary
 
