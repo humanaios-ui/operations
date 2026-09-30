@@ -236,7 +236,7 @@ jobs:
 
       - name: Verify human-origin admission receipts
         run: |
-          python3 tools/human_admission_verify.py \
+          python3 .github/scripts/human_admission_verify.py \
             --snapshot .repo-coordinator/gate-snapshot.json \
             --policy REPOSITORY_COORDINATOR_POLICY.json
 
