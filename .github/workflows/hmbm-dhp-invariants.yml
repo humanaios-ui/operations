@@ -27,6 +27,6 @@ jobs:
         with:
           python-version: '3.12'
       - name: Run DHP unit tests
-        run: python -m unittest experiments/hmbm/dhp/test_dhp.py
+        run: python -m unittest discover -s experiments/hmbm/dhp -p 'test_*.py'
       - name: Validate repository queue transport references
         run: python experiments/hmbm/dhp/validate_queue.py
