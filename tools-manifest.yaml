@@ -2395,7 +2395,7 @@ tools:
 - tool_id: HAIOS-TOOL-201
   name: repository_knowledge_graph
   path: tools/repository_knowledge_graph_v0_1.py
-  version: 0.1.0
+  version: 0.2.0
   category: diagnostic_tool
   zone: 1
   status: draft

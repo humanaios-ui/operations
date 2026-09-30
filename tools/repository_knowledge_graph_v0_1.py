@@ -4,17 +4,20 @@ repository_knowledge_graph_v0_1.py — HumanAIOS repository graph compiler.
 Builder v1.7 compliant - diagnostic_tool
 HumanAIOS - REPOSITORY-KNOWLEDGE-GRAPH-01
 
-Builds a deterministic, provenance-bearing, read-only multiplex graph over the
-operations repository. The compiler inventories source artifacts, extracts
-syntactic relationships, imports the repository's existing named graphs under
-separate namespaces, emits bounded deterministic inference assertions, and
-materializes bounded views.
+Builds a deterministic, provenance-bearing, read-only multiplex graph over a
+Git repository. The compiler inventories source artifacts, extracts syntactic
+relationships, optionally imports configured named graphs under separate
+namespaces, emits bounded deterministic inference assertions, and materializes
+bounded views plus a human review packet.
 
 The output is not a governance source, does not grant authority, does not
 mutate any imported graph, and never promotes a reference into evidence.
 
 Usage:
   python3 tools/repository_knowledge_graph_v0_1.py build
+  python3 tools/repository_knowledge_graph_v0_1.py method \
+      --repo /path/to/repository --profile /path/to/profile.json \
+      --allow-external-profile --output /tmp/repository-graph
   python3 tools/repository_knowledge_graph_v0_1.py validate \
       --graph outputs/repository-knowledge-graph/graph.json
   python3 tools/repository_knowledge_graph_v0_1.py query \
@@ -33,6 +36,7 @@ import hashlib
 import html
 import json
 import os
+import posixpath
 import re
 import stat
 import subprocess
@@ -49,10 +53,11 @@ except ImportError:  # pragma: no cover - exercised by explicit error path
 
 
 TOOL_NAME = "repository_knowledge_graph"
-TOOL_VERSION = "0.1.0"
+TOOL_VERSION = "0.2.0"
 TOOL_CATEGORY = "diagnostic_tool"
 TOOL_SESSION = "REPOSITORY-KNOWLEDGE-GRAPH-01"
 TOOL_ZONE = 1
+METHOD_VERSION = "0.1.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_PROFILE = "architecture/repository-knowledge-graph/profile.json"
@@ -98,6 +103,7 @@ TEXT_SUFFIXES = {
     "",
     ".bicep",
     ".cfg",
+    ".cjs",
     ".css",
     ".csv",
     ".env",
@@ -113,6 +119,7 @@ TEXT_SUFFIXES = {
     ".md",
     ".mermaid",
     ".mjs",
+    ".mts",
     ".properties",
     ".py",
     ".sh",
@@ -121,21 +128,22 @@ TEXT_SUFFIXES = {
     ".toml",
     ".ts",
     ".tsx",
+    ".cts",
     ".txt",
     ".yaml",
     ".yml",
 }
 
 CODE_SUFFIXES = {
-    ".bicep", ".css", ".html", ".js", ".jsx", ".mjs", ".py", ".sh",
-    ".sql", ".ts", ".tsx",
+    ".bicep", ".cjs", ".css", ".cts", ".html", ".js", ".jsx", ".mjs",
+    ".mts", ".py", ".sh", ".sql", ".ts", ".tsx",
 }
 
 PATH_REF_RE = re.compile(
     r"(?<![A-Za-z0-9_])"
     r"((?:\.{0,2}/)?(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+"
-    r"\.(?:bicep|cfg|css|csv|html|js|json|jsonc|jsonl|jsx|md|mermaid|mjs|"
-    r"properties|py|sh|sql|toml|ts|tsx|txt|yaml|yml))"
+    r"\.(?:bicep|cfg|cjs|css|cts|csv|html|js|json|jsonc|jsonl|jsx|md|"
+    r"mermaid|mjs|mts|properties|py|sh|sql|toml|ts|tsx|txt|yaml|yml))"
 )
 WORK_ITEM_RE = re.compile(
     r"\b((?:Q|F|H|IC|MOLT|WF|CAP|CRB)-[A-Z0-9][A-Z0-9._-]*[A-Z0-9])\b"
@@ -143,6 +151,14 @@ WORK_ITEM_RE = re.compile(
 GITHUB_REF_RE = re.compile(r"(?<![\w])#(\d{1,6})\b")
 MARKDOWN_HEADING_RE = re.compile(r"^(#{1,2})\s+(.+?)\s*$")
 RELATION_CLEAN_RE = re.compile(r"[^A-Z0-9_]+")
+ECMASCRIPT_FROM_RE = re.compile(
+    r"\b(?:import|export)\s+(?:[^;]*?\s+from\s+)?[\"']([^\"']+)[\"']",
+    re.MULTILINE,
+)
+ECMASCRIPT_CALL_RE = re.compile(
+    r"\b(?:require|import)\s*\(\s*[\"']([^\"']+)[\"']\s*\)",
+    re.MULTILINE,
+)
 
 
 class SpecLoadFailed(Exception):
@@ -272,7 +288,13 @@ def _matches_any(path: str, patterns: Iterable[str]) -> bool:
 class GraphBuilder:
     """Build a namespaced repository graph without mutating any source."""
 
-    def __init__(self, repo: Path, profile_path: str | Path = DEFAULT_PROFILE):
+    def __init__(
+        self,
+        repo: Path,
+        profile_path: str | Path = DEFAULT_PROFILE,
+        *,
+        allow_external_profile: bool = False,
+    ):
         self.repo = repo.resolve()
         if not (self.repo / ".git").exists():
             raise SpecLoadFailed(f"not a git repository: {self.repo}")
@@ -282,8 +304,28 @@ class GraphBuilder:
         self.profile_path = self.profile_path.resolve()
         try:
             self.profile_rel = self.profile_path.relative_to(self.repo).as_posix()
+            self.profile_scope = "REPOSITORY"
         except ValueError as exc:
-            raise SpecLoadFailed("profile must be inside the repository") from exc
+            if not allow_external_profile:
+                raise SpecLoadFailed(
+                    "profile must be inside the repository unless "
+                    "--allow-external-profile is explicit"
+                ) from exc
+            if not self.profile_path.is_file():
+                raise SpecLoadFailed(
+                    f"external profile is not a readable file: {self.profile_path}"
+                ) from exc
+            self.profile_scope = "EXTERNAL_METHOD_INPUT"
+            profile_digest = _sha256_file(self.profile_path)
+            self.profile_rel = (
+                f"external-profile:{self.profile_path.name}@{profile_digest[:12]}"
+            )
+        try:
+            self.profile_sha256 = _sha256_file(self.profile_path)
+        except OSError as exc:
+            raise SpecLoadFailed(
+                f"cannot read graph profile {self.profile_path}: {exc}"
+            ) from exc
         profile = _load_structured(self.profile_path)
         if not isinstance(profile, dict):
             raise SpecLoadFailed("profile must be a JSON object")
@@ -324,6 +366,8 @@ class GraphBuilder:
 
     def _source_hash(self, source_ref: str) -> str | None:
         normalized = source_ref.split("#", 1)[0]
+        if normalized == self.profile_rel:
+            return self.profile_sha256
         return self.file_hashes.get(normalized)
 
     def provenance(
@@ -463,7 +507,10 @@ class GraphBuilder:
             if not _path_is_excluded(path, exclude)
             and (self.repo / path).exists()
         ]
-        if self.profile_rel not in self.scanned_paths:
+        if (
+            self.profile_scope == "REPOSITORY"
+            and self.profile_rel not in self.scanned_paths
+        ):
             raise SpecLoadFailed("profile is excluded from its own source inventory")
 
     def _read_artifact_bytes(self, rel: str) -> tuple[bytes, bool, str | None]:
@@ -776,7 +823,21 @@ class GraphBuilder:
                     ),
                 )
 
-            for number in GITHUB_REF_RE.findall(line):
+            for match in GITHUB_REF_RE.finditer(line):
+                number = match.group(1)
+                context = line[max(0, match.start() - 32):match.start()]
+                labeled = bool(
+                    re.search(
+                        r"(?:issue|pr|pull\s+request)\s*$",
+                        context,
+                        flags=re.IGNORECASE,
+                    )
+                )
+                document_like = PurePosixPath(rel).suffix.lower() in {
+                    ".md", ".mermaid", ".txt",
+                }
+                if not labeled and (not document_like or number.startswith("0")):
+                    continue
                 node_id = "github_item:" + number
                 self.add_node(
                     node_id,
@@ -835,6 +896,108 @@ class GraphBuilder:
             if len(hits) == 1:
                 return hits[0]
         return None
+
+    def _resolve_ecmascript_import(
+        self,
+        specifier: str,
+        *,
+        current_rel: str,
+    ) -> str | None:
+        """Resolve a bounded relative ECMAScript import to one repository file."""
+        clean = specifier.split("?", 1)[0].split("#", 1)[0]
+        if not clean.startswith("."):
+            return None
+        current_dir = PurePosixPath(current_rel).parent.as_posix()
+        normalized = posixpath.normpath(posixpath.join(current_dir, clean))
+        if normalized == ".." or normalized.startswith("../"):
+            return None
+
+        candidates = [normalized]
+        suffix = PurePosixPath(normalized).suffix.lower()
+        source_suffixes = (
+            ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs",
+        )
+        if suffix in source_suffixes:
+            stem = normalized[: -len(suffix)]
+            candidates.extend(
+                stem + candidate_suffix for candidate_suffix in source_suffixes
+            )
+        else:
+            candidates.extend(
+                normalized + candidate_suffix for candidate_suffix in source_suffixes
+            )
+            candidates.extend(
+                posixpath.join(normalized, "index" + candidate_suffix)
+                for candidate_suffix in source_suffixes
+            )
+        hits = sorted({
+            candidate for candidate in candidates if candidate in self.path_to_node
+        })
+        return hits[0] if len(hits) == 1 else None
+
+    def _scan_ecmascript(self, rel: str, text: str) -> None:
+        """Extract static JS/TS imports without claiming runtime reachability."""
+        artifact_id = self.path_to_node[rel]
+        matches = {
+            (match.start(), match.group(1))
+            for pattern in (ECMASCRIPT_FROM_RE, ECMASCRIPT_CALL_RE)
+            for match in pattern.finditer(text)
+        }
+        for start, specifier in sorted(matches):
+            line_number = text.count("\n", 0, start) + 1
+            resolved = self._resolve_ecmascript_import(
+                specifier,
+                current_rel=rel,
+            )
+            relation = "TESTS" if self.path_kinds.get(rel) == "test" else "IMPORTS"
+            if resolved:
+                self.add_edge(
+                    artifact_id,
+                    self.path_to_node[resolved],
+                    relation,
+                    "OBSERVED",
+                    "source",
+                    properties={
+                        "module": specifier,
+                        "resolution": "STATIC_RELATIVE_IMPORT",
+                    },
+                    provenance=self.provenance(
+                        rel,
+                        "ecmascript_static_import",
+                        locator=f"line:{line_number}",
+                    ),
+                )
+                continue
+
+            node_id = "module:" + specifier
+            self.add_node(
+                node_id,
+                "module",
+                specifier,
+                "external",
+                properties={"resolution": "EXTERNAL_OR_UNRESOLVED"},
+                provenance=self.provenance(
+                    rel,
+                    "ecmascript_static_import",
+                    locator=f"line:{line_number}",
+                ),
+            )
+            self.add_edge(
+                artifact_id,
+                node_id,
+                "IMPORTS",
+                "OBSERVED",
+                "external",
+                properties={
+                    "module": specifier,
+                    "resolution": "EXTERNAL_OR_UNRESOLVED",
+                },
+                provenance=self.provenance(
+                    rel,
+                    "ecmascript_static_import",
+                    locator=f"line:{line_number}",
+                ),
+            )
 
     def _scan_python(self, rel: str, text: str) -> None:
         artifact_id = self.path_to_node[rel]
@@ -1192,6 +1355,10 @@ class GraphBuilder:
             self._scan_text_references(rel, text)
             if suffix == ".py":
                 self._scan_python(rel, text)
+            if suffix in {
+                ".cjs", ".cts", ".js", ".jsx", ".mjs", ".mts", ".ts", ".tsx",
+            }:
+                self._scan_ecmascript(rel, text)
             if rel.startswith(".github/workflows/") and suffix in {".yaml", ".yml"}:
                 self._scan_workflow(rel, text)
             if self.path_kinds.get(rel) == "schema":
@@ -2243,7 +2410,8 @@ class GraphBuilder:
                 "worktree_state": self.worktree_state,
                 "source_tree_sha256": self.source_tree_sha256,
                 "profile_path": self.profile_rel,
-                "profile_sha256": self.file_hashes[self.profile_rel],
+                "profile_scope": self.profile_scope,
+                "profile_sha256": self.profile_sha256,
             },
             "invariants": sorted(set(self.profile.get("invariants") or [])),
             "ontology": {
@@ -2550,7 +2718,7 @@ def _summary_markdown(graph: dict[str, Any]) -> str:
     tick = chr(96)
     fence = tick * 3
     lines = [
-        "# HumanAIOS Operations Repository Knowledge Graph",
+        f"# {graph['source']['repository']} Repository Knowledge Graph",
         "",
         "> Derived read model. It is not a governance source, authorization, or proof that a declared control operates.",
         "",
@@ -2734,6 +2902,163 @@ def _summary_markdown(graph: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _markdown_cell(value: Any, limit: int = 180) -> str:
+    text = re.sub(r"\s+", " ", str(value)).strip().replace("|", "/")
+    return text if len(text) <= limit else text[: max(0, limit - 1)] + "…"
+
+
+def _human_review_markdown(
+    graph: dict[str, Any],
+    *,
+    determinism_verified: bool = False,
+) -> str:
+    """Render a bounded decision aid instead of exposing only raw graph data."""
+    nodes = graph["nodes"]
+    edges = graph["edges"]
+    repository = graph["source"]["repository"]
+    state_counts = Counter(edge["evidence_state"] for edge in edges)
+    finding_counts = Counter(
+        node["type"] for node in nodes if node["layer"] == "finding"
+    )
+    node_by_id = {node["id"]: node for node in nodes}
+    assertions = sorted(
+        (node for node in nodes if node["type"] == "inference_assertion"),
+        key=lambda item: item["id"],
+    )
+    tick = chr(96)
+    lines = [
+        f"# Human review packet — {repository}",
+        "",
+        "> Decision aid only. This packet does not certify the repository, prove a claim, grant authority, or record execution.",
+        "",
+        "## What the reviewer is deciding",
+        "",
+        "A reviewer is deciding whether this generated read model is a faithful, useful, and sufficiently bounded representation of the pinned repository snapshot. The reviewer is **not** being asked to approve every repository claim or infer that a control operated.",
+        "",
+        "The available dispositions are:",
+        "",
+        "- **ACCEPT READ MODEL** — the snapshot and profile are fit for diagnostic use.",
+        "- **REVISE PROFILE** — a curated mapping, canonical-artifact choice, exclusion, view, or rule needs correction.",
+        "- **REQUEST EVIDENCE** — one or more inferred assertions or source declarations need primary evidence.",
+        "- **REJECT RUN** — the snapshot, digest, validation, or method receipt is not trustworthy enough to review.",
+        "",
+        "None of these dispositions authorizes a merge, deployment, graph mutation, or operational action.",
+        "",
+        "## Snapshot identity",
+        "",
+        "| Field | Value |",
+        "|---|---|",
+        f"| Repository | {tick}{repository}{tick} |",
+        f"| Commit | {tick}{graph['source']['head_commit']}{tick} |",
+        f"| Worktree | **{graph['source']['worktree_state']}** |",
+        f"| Profile scope | {tick}{graph['source'].get('profile_scope', 'REPOSITORY')}{tick} |",
+        f"| Profile | {tick}{graph['source']['profile_path']}{tick} |",
+        f"| Profile SHA-256 | {tick}{graph['source']['profile_sha256']}{tick} |",
+        f"| Source-tree SHA-256 | {tick}{graph['source']['source_tree_sha256']}{tick} |",
+        f"| Graph SHA-256 | {tick}{graph['integrity']['sha256']}{tick} |",
+        f"| Structural validation | **{'PASS' if graph['validation']['valid'] else 'FAIL'}** |",
+        f"| Two-build determinism | **{'VERIFIED' if determinism_verified else 'NOT RUN BY THIS COMMAND'}** |",
+        "",
+        "## What the machine found",
+        "",
+        "| Class | Count | Human meaning |",
+        "|---|---:|---|",
+        f"| Nodes | {len(nodes)} | Distinct repository, declared, semantic, external, finding, and inferred objects. |",
+        f"| Edges | {len(edges)} | Relationships with provenance and no authority effect. |",
+        f"| Views | {len(graph['views'])} | Bounded projections over the same graph. |",
+        f"| Observed edges | {state_counts.get('OBSERVED', 0)} | Mechanically extracted relationships; not proof that a claim is true. |",
+        f"| Specified edges | {state_counts.get('SPECIFIED', 0)} | Profile, contract, or source-declared structure. |",
+        f"| Claimed edges | {state_counts.get('CLAIMED', 0)} | Assertions preserved without verification. |",
+        f"| Inference assertions | {len(assertions)} | Reviewable hypotheses emitted by bounded rules, never fact edges. |",
+        "",
+        "## Coverage gaps and findings",
+        "",
+    ]
+    if finding_counts:
+        lines.extend([
+            "| Finding type | Count |",
+            "|---|---:|",
+        ])
+        for finding_type, count in sorted(finding_counts.items()):
+            lines.append(f"| {_markdown_cell(finding_type)} | {count} |")
+        lines.append("")
+    for warning in graph["validation"]["warnings"] or ["No validation warnings."]:
+        lines.append(f"- {_markdown_cell(warning, 400)}")
+
+    lines.extend([
+        "",
+        "A gap remains a gap. Missing metadata, unresolved references, file presence, and declared test relationships are not promoted into successful operation or evidence sufficiency.",
+        "",
+        "## Bounded inference queue",
+        "",
+        f"All {len(assertions)} assertion(s) begin in {tick}UNREVIEWED{tick} state. Confidence measures the structural rule application, not truth.",
+        "",
+    ])
+    if assertions:
+        lines.extend([
+            "| Assertion | Candidate conclusion | Confidence | Premises | Falsifier |",
+            "|---|---|---:|---:|---|",
+        ])
+        for assertion in assertions[:20]:
+            properties = assertion["properties"]
+            conclusion = properties["conclusion"]
+            subject = node_by_id[conclusion["subject"]]["label"]
+            object_id = conclusion.get("object")
+            object_label = node_by_id[object_id]["label"] if object_id else "—"
+            candidate = (
+                f"{subject} {conclusion['predicate']} {object_label}"
+            )
+            lines.append(
+                f"| {tick}{assertion['id']}{tick} | {_markdown_cell(candidate)} | "
+                f"{properties['confidence']:.3f} | "
+                f"{len(properties['premise_edge_ids'])} | "
+                f"{_markdown_cell(properties['falsifier'])} |"
+            )
+        if len(assertions) > 20:
+            lines.extend([
+                "",
+                f"This packet samples 20 of {len(assertions)} assertions. Review the complete {tick}inferences.csv{tick} or {tick}inferences.jsonl{tick} queue before changing any review state.",
+            ])
+    else:
+        lines.append("No inference rule had sufficient premises in this snapshot.")
+
+    lines.extend([
+        "",
+        "## Human review sequence",
+        "",
+        "1. Confirm the repository, commit, worktree state, and hashes match the intended review target.",
+        "2. Inspect the profile first. Its canonical artifacts and semantic mappings are curated inputs, not machine discoveries.",
+        "3. Inspect validation warnings and finding nodes. Decide whether the omissions are acceptable for this use.",
+        "4. Sample observed edges back to their exact source references.",
+        "5. Review each material inference from its premises and falsifier; do not treat confidence as factual probability.",
+        "6. Record one disposition: ACCEPT READ MODEL, REVISE PROFILE, REQUEST EVIDENCE, or REJECT RUN.",
+        "7. Keep merge, deployment, ratification, and execution as separate human-authorized acts.",
+        "",
+        "## Reviewer checklist",
+        "",
+        "- [ ] Snapshot identity and hashes confirmed",
+        "- [ ] Profile mappings reviewed",
+        "- [ ] Privacy/content exclusions reviewed",
+        "- [ ] Coverage gaps understood",
+        "- [ ] Material inferred assertions traced to premises",
+        "- [ ] Contradictions and unknowns remain visible",
+        "- [ ] No inference was treated as authority, proof, execution, capability, causality, eligibility, or test success",
+        "- [ ] Disposition and rationale recorded outside this generated packet",
+        "",
+        "## Where to inspect next",
+        "",
+        f"- {tick}summary.md{tick} — technical overview and graph scale",
+        f"- {tick}views/risk.json{tick} — unresolved and risk-facing projection, when configured",
+        f"- {tick}views/inference.json{tick} — inference assertions with incident context",
+        f"- {tick}inferences.csv{tick} — compact human-sortable inference queue",
+        f"- {tick}graph.json{tick} — complete canonical read model",
+        f"- {tick}manifest.json{tick} — output hashes",
+        f"- {tick}method-receipt.json{tick} — two-build method receipt when the method command was used",
+        "",
+    ])
+    return "\n".join(lines)
+
+
 def write_report(output: dict[str, Any], output_dir: str | Path) -> str:
     """Write the primary JSON graph and return its path."""
     destination = Path(output_dir)
@@ -2746,7 +3071,12 @@ def write_report(output: dict[str, Any], output_dir: str | Path) -> str:
     return str(graph_path)
 
 
-def write_outputs(graph: dict[str, Any], output_dir: Path) -> dict[str, Any]:
+def write_outputs(
+    graph: dict[str, Any],
+    output_dir: Path,
+    *,
+    method_receipt: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     graph_path = Path(write_report(graph, output_dir))
     with (output_dir / "graph.json.gz").open("wb") as raw_handle:
@@ -2763,6 +3093,18 @@ def write_outputs(graph: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         _summary_markdown(graph),
         encoding="utf-8",
     )
+    (output_dir / "human-review.md").write_text(
+        _human_review_markdown(
+            graph,
+            determinism_verified=bool(method_receipt),
+        ),
+        encoding="utf-8",
+    )
+    if method_receipt is not None:
+        (output_dir / "method-receipt.json").write_text(
+            json.dumps(method_receipt, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     with (output_dir / "nodes.csv").open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow([
@@ -2892,6 +3234,12 @@ def write_outputs(graph: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     return {
         "graph": str(graph_path),
         "summary": str(output_dir / "summary.md"),
+        "human_review": str(output_dir / "human-review.md"),
+        "method_receipt": (
+            str(output_dir / "method-receipt.json")
+            if method_receipt is not None
+            else None
+        ),
         "manifest": str(output_dir / "manifest.json"),
         "files": len(generated) + 1,
     }
@@ -3091,7 +3439,11 @@ def _build_command(args: argparse.Namespace) -> int:
     output = Path(args.output)
     if not output.is_absolute():
         output = repo / output
-    graph = GraphBuilder(repo, args.profile).build()
+    graph = GraphBuilder(
+        repo,
+        args.profile,
+        allow_external_profile=args.allow_external_profile,
+    ).build()
     result = write_outputs(graph, output)
     print(json.dumps({
         "status": "PASS" if graph["validation"]["valid"] else "FAIL",
@@ -3106,6 +3458,72 @@ def _build_command(args: argparse.Namespace) -> int:
         "outputs": result,
     }, indent=2, sort_keys=True))
     return 0 if graph["validation"]["valid"] else 1
+
+
+def _method_command(args: argparse.Namespace) -> int:
+    repo = Path(args.repo).resolve()
+    output = Path(args.output)
+    if not output.is_absolute():
+        output = repo / output
+
+    first = GraphBuilder(
+        repo,
+        args.profile,
+        allow_external_profile=args.allow_external_profile,
+    ).build()
+    if first["source"]["worktree_state"] != "CLEAN" and not args.allow_dirty:
+        raise SpecLoadFailed(
+            "method runs require a clean target worktree unless --allow-dirty is explicit"
+        )
+    second = GraphBuilder(
+        repo,
+        args.profile,
+        allow_external_profile=args.allow_external_profile,
+    ).build()
+    graph_match = _canonical_bytes(first) == _canonical_bytes(second)
+    source_match = (
+        first["source"]["source_tree_sha256"]
+        == second["source"]["source_tree_sha256"]
+    )
+    if not graph_match or not source_match:
+        raise SpecLoadFailed("two-build determinism verification failed")
+
+    receipt = {
+        "method": "REPOSITORY_EVIDENCE_GRAPH_METHOD",
+        "method_version": METHOD_VERSION,
+        "status": "PASS" if first["validation"]["valid"] else "FAIL",
+        "repository": first["source"]["repository"],
+        "head_commit": first["source"]["head_commit"],
+        "worktree_state": first["source"]["worktree_state"],
+        "profile_scope": first["source"]["profile_scope"],
+        "profile_path": first["source"]["profile_path"],
+        "profile_sha256": first["source"]["profile_sha256"],
+        "source_tree_sha256": first["source"]["source_tree_sha256"],
+        "graph_sha256": first["integrity"]["sha256"],
+        "determinism": {
+            "build_count": 2,
+            "canonical_graph_match": graph_match,
+            "source_tree_match": source_match,
+        },
+        "validation": copy.deepcopy(first["validation"]),
+        "authority_effect": "NONE",
+        "human_review_required": True,
+    }
+    result = write_outputs(first, output, method_receipt=receipt)
+    print(json.dumps({
+        "status": receipt["status"],
+        "method": receipt["method"],
+        "method_version": receipt["method_version"],
+        "graph_id": first["graph_id"],
+        "graph_sha256": first["integrity"]["sha256"],
+        "source_tree_sha256": first["source"]["source_tree_sha256"],
+        "worktree_state": first["source"]["worktree_state"],
+        "determinism": receipt["determinism"],
+        "counts": first["validation"]["counts"],
+        "warnings": first["validation"]["warnings"],
+        "outputs": result,
+    }, indent=2, sort_keys=True))
+    return 0 if first["validation"]["valid"] else 1
 
 
 def _validate_command(args: argparse.Namespace) -> int:
@@ -3131,7 +3549,7 @@ def _query_command(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Build and inspect a derived HumanAIOS repository knowledge graph."
+        description="Build and inspect a derived repository knowledge graph."
     )
     parser.add_argument("--smoke-test", action="store_true")
     subparsers = parser.add_subparsers(dest="command")
@@ -3140,7 +3558,19 @@ def main(argv: list[str] | None = None) -> int:
     build_parser.add_argument("--repo", default=str(ROOT))
     build_parser.add_argument("--profile", default=DEFAULT_PROFILE)
     build_parser.add_argument("--output", default=DEFAULT_OUTPUT)
+    build_parser.add_argument("--allow-external-profile", action="store_true")
     build_parser.set_defaults(func=_build_command)
+
+    method_parser = subparsers.add_parser(
+        "method",
+        help="Run the reproducible two-build graph method and emit a human review packet",
+    )
+    method_parser.add_argument("--repo", default=str(ROOT))
+    method_parser.add_argument("--profile", default=DEFAULT_PROFILE)
+    method_parser.add_argument("--output", default=DEFAULT_OUTPUT)
+    method_parser.add_argument("--allow-external-profile", action="store_true")
+    method_parser.add_argument("--allow-dirty", action="store_true")
+    method_parser.set_defaults(func=_method_command)
 
     validate_parser = subparsers.add_parser("validate", help="Validate an existing graph")
     validate_parser.add_argument("--graph", required=True)

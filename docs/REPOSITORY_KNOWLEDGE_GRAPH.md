@@ -2,10 +2,10 @@
 
 ## Outcome
 
-The repository knowledge graph is a deterministic, read-only compiler over the
-HumanAIOS operations repository. It joins source topology and the repository's
-existing named graphs without converting the result into a new authority
-surface.
+The repository knowledge graph is a deterministic, read-only compiler over a
+Git repository. The operations profile joins source topology and this
+repository's existing named graphs without converting the result into a new
+authority surface. Other repositories can supply their own hash-pinned profile.
 
 The graph answers five different questions without collapsing them:
 
@@ -225,6 +225,7 @@ hand-maintained source:
 - edges.csv
 - inferences.jsonl
 - inferences.csv
+- human-review.md
 - summary.md
 - views/*.json
 - manifest.json
@@ -258,6 +259,27 @@ Validation rejects:
 
 Warnings preserve incomplete external metadata, unresolved path references, and
 parse failures as explicit coverage gaps.
+
+## Replicate the full method
+
+The `method` command runs the completed process as a reusable method: it
+requires a clean target by default, compiles the same snapshot twice, compares
+the canonical results, validates the graph, and emits both `human-review.md`
+and `method-receipt.json`.
+
+~~~bash
+python3 tools/repository_knowledge_graph_v0_1.py method \
+  --repo /path/to/target-repository \
+  --profile /path/to/profile.json \
+  --allow-external-profile \
+  --output /tmp/repository-graph
+~~~
+
+External profiles are opt-in, content-hashed inputs. They do not mutate the
+target repository and their absolute filesystem location is not written into
+the graph. See `docs/REPOSITORY_GRAPH_METHOD.md` for the complete reusable
+method and `docs/REPOSITORY_GRAPH_HUMAN_REVIEW.md` for the human review
+contract.
 
 ## Query
 
@@ -315,7 +337,8 @@ would be a separate governed change.
 ## Known v0.1 limits
 
 1. GitHub shorthand is not hydrated with live issue/PR metadata.
-2. Python analysis is syntactic and module-level; there is no call graph.
+2. Python and JavaScript/TypeScript analysis is syntactic and module-level;
+   there is no call graph or proof of runtime reachability.
 3. Test imports show a test relationship, not a passing test result.
 4. Markdown reference extraction can preserve unresolved examples as findings.
 5. No natural-language claim extraction is attempted.

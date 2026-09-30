@@ -258,6 +258,27 @@ def _fixture_repo(tmp_path: Path) -> Path:
         "from src.service import execute\n\ndef main():\n    return execute()\n",
         encoding="utf-8",
     )
+    (repo / "web").mkdir()
+    (repo / "web/core.ts").write_text(
+        "export function run(): boolean { return true; }\n",
+        encoding="utf-8",
+    )
+    (repo / "web/service.ts").write_text(
+        "import { run } from './core';\n"
+        "export function execute(): boolean { return run(); }\n",
+        encoding="utf-8",
+    )
+    (repo / "web/app.ts").write_text(
+        "import { execute } from './service.js';\n"
+        "const color = '#111111';\n"
+        "export function main(): boolean { return execute(); }\n",
+        encoding="utf-8",
+    )
+    (repo / "web/core.test.ts").write_text(
+        "import { run } from './core';\n"
+        "if (!run()) throw new Error('failed');\n",
+        encoding="utf-8",
+    )
     (repo / "test_engine.py").write_text(
         "from src.engine import run\n\ndef test_run():\n    assert run()\n",
         encoding="utf-8",
@@ -359,6 +380,33 @@ def test_extracts_source_dependencies_and_test_relationships(tmp_path):
         and edge["to"] == "artifact:src/engine.py"
         and edge["relation"] == "REFERENCES"
         for edge in edges
+    )
+
+
+def test_extracts_ecmascript_dependencies_and_test_relationships(tmp_path):
+    graph = GraphBuilder(_fixture_repo(tmp_path)).build()
+    edges = graph["edges"]
+    assert any(
+        edge["from"] == "artifact:web/service.ts"
+        and edge["to"] == "artifact:web/core.ts"
+        and edge["relation"] == "IMPORTS"
+        for edge in edges
+    )
+    assert any(
+        edge["from"] == "artifact:web/app.ts"
+        and edge["to"] == "artifact:web/service.ts"
+        and edge["relation"] == "IMPORTS"
+        for edge in edges
+    )
+    assert any(
+        edge["from"] == "artifact:web/core.test.ts"
+        and edge["to"] == "artifact:web/core.ts"
+        and edge["relation"] == "TESTS"
+        for edge in edges
+    )
+    assert not any(
+        node["id"] == "github_item:111111"
+        for node in graph["nodes"]
     )
 
 
@@ -498,9 +546,16 @@ def test_query_view_honors_limit(tmp_path):
 def test_outputs_include_graphml_views_and_hash_manifest(tmp_path):
     graph = GraphBuilder(_fixture_repo(tmp_path)).build()
     destination = tmp_path / "out"
-    result = write_outputs(graph, destination)
+    receipt = {
+        "method": "REPOSITORY_EVIDENCE_GRAPH_METHOD",
+        "method_version": "0.1.0",
+        "status": "PASS",
+    }
+    result = write_outputs(graph, destination, method_receipt=receipt)
     assert Path(result["graph"]).exists()
     assert (destination / "graph.graphml").exists()
+    assert (destination / "human-review.md").exists()
+    assert (destination / "method-receipt.json").exists()
     assert (destination / "views/control.json").exists()
     assert (destination / "views/inference.json").exists()
     assert (destination / "inferences.jsonl").exists()
@@ -518,6 +573,8 @@ def test_outputs_include_graphml_views_and_hash_manifest(tmp_path):
         "graph.graphml",
         "inferences.jsonl",
         "inferences.csv",
+        "human-review.md",
+        "method-receipt.json",
         "summary.md",
         "views/control.json",
         "views/inference.json",
@@ -527,6 +584,28 @@ def test_outputs_include_graphml_views_and_hash_manifest(tmp_path):
     assert (destination / "graph.json.gz").read_bytes() == (
         second_destination / "graph.json.gz"
     ).read_bytes()
+
+
+def test_external_profile_requires_explicit_opt_in_and_is_hash_pinned(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    internal = repo / "architecture/repository-knowledge-graph/profile.json"
+    outside = tmp_path / "lasting-light-ai.json"
+    outside.write_text(internal.read_text(encoding="utf-8"), encoding="utf-8")
+    try:
+        GraphBuilder(repo, outside)
+    except SpecLoadFailed as exc:
+        assert "--allow-external-profile" in str(exc)
+    else:
+        raise AssertionError("an external profile must require explicit opt-in")
+
+    graph = GraphBuilder(repo, outside, allow_external_profile=True).build()
+    assert graph["source"]["profile_scope"] == "EXTERNAL_METHOD_INPUT"
+    assert graph["source"]["profile_path"].startswith(
+        "external-profile:lasting-light-ai.json@"
+    )
+    assert len(graph["source"]["profile_sha256"]) == 64
+    assert str(tmp_path) not in graph["source"]["profile_path"]
+    assert validate_graph(graph)["valid"]
 
 
 def test_profile_must_remain_inside_repository(tmp_path):

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://humanaios.ai/schemas/repository_knowledge_graph_v0_1.schema.json",
-  "title": "HumanAIOS Repository Knowledge Graph v0.1",
-  "description": "A derived, non-authoritative, provenance-bearing multiplex read model with bounded deterministic inference assertions over a repository and its declared graphs.",
+  "title": "Repository Knowledge Graph v0.1",
+  "description": "A derived, non-authoritative, provenance-bearing multiplex read model with bounded deterministic inference assertions over a Git repository and its configured declared graphs.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -35,6 +35,7 @@
         "worktree_state",
         "source_tree_sha256",
         "profile_path",
+        "profile_scope",
         "profile_sha256"
       ],
       "properties": {
@@ -44,6 +45,7 @@
         "worktree_state": {"enum": ["CLEAN", "DIRTY"]},
         "source_tree_sha256": {"$ref": "#/$defs/sha256"},
         "profile_path": {"type": "string", "minLength": 1},
+        "profile_scope": {"enum": ["REPOSITORY", "EXTERNAL_METHOD_INPUT"]},
         "profile_sha256": {"$ref": "#/$defs/sha256"}
       }
     },
