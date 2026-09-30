@@ -18,7 +18,9 @@
         "DELAYED",
         "CONTEXT_EVENT",
         "WITHDRAWN_DELTA",
-        "REPLICATED_DELTA"
+        "REPLICATED_DELTA",
+        "LANDING_CHECK",
+        "DEPENDENCY_FLAG"
       ]
     },
     {
@@ -28,7 +30,11 @@
       "expected_violations": [
         "missing HumanTrace",
         "participantConfidence > 1.0",
-        "DesignDelta missing falsifier"
+        "DesignDelta missing falsifier",
+        "LandingCheck missing landingState",
+        "DependencyFlag missing requiredFor",
+        "DependencyFlag blocksStage wrong datatype",
+        "DependencyFlag missing plainLanguageNote"
       ]
     }
   ]
