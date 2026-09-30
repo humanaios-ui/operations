@@ -20,7 +20,12 @@
         "WITHDRAWN_DELTA",
         "REPLICATED_DELTA",
         "LANDING_CHECK",
-        "DEPENDENCY_FLAG"
+        "DEPENDENCY_FLAG",
+        "EPISTEMIC_ATTRACTOR",
+        "EXTERNAL_CANDIDATE",
+        "ABSORPTION_ASSESSMENT",
+        "OMISSION_SIGNAL",
+        "COMPRESSION_RESIDUE"
       ]
     },
     {
@@ -34,7 +39,11 @@
         "LandingCheck missing landingState",
         "DependencyFlag missing requiredFor",
         "DependencyFlag blocksStage wrong datatype",
-        "DependencyFlag missing plainLanguageNote"
+        "DependencyFlag missing plainLanguageNote",
+        "EpistemicAttractor missing queryText",
+        "ExternalCandidate missing sourceURI",
+        "OmissionSignal missing expectedBy",
+        "CompressionResidue missing omittedAspect"
       ]
     }
   ]
