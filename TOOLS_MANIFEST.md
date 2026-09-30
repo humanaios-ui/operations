@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**189 registered tools** · 2 MCP servers · 4 excluded · 141 carrying Builder v1.7 markers
+**188 registered tools** · 2 MCP servers · 4 excluded · 140 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 189 |
-| — status `draft` | 188 |
+| Registered tools | 188 |
+| — status `draft` | 187 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 141 |
+| Builder v1.7 markers present | 140 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -132,7 +132,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-180 | workflow_dependency_analyzer | `tools/workflow_dependency_analyzer_v1_0.py` | 1.0.0 | 1 | draft | — | Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines |
 | HAIOS-TOOL-188 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.2.1 | 1 | draft | — | Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure. |
 
-## Governance — `governance_tool` (18)
+## Governance — `governance_tool` (17)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -153,7 +153,6 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-183 | receipt_reconciliation | `tools/receipt_reconciliation.py` | 1.0.0 | 1 | draft | — | Receipt Reconciliation Script — Validates claims against NF_LEDGER |
 | HAIOS-TOOL-190 | enforce_z2_z3_boundary | `scripts/enforce_z2_z3_boundary.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Enforce Z2/Z3 authority boundaries for operator-checks. CI gate to prevent misuse of RNOLA advisory records as merge authority. |
 | HAIOS-TOOL-191 | lint_canonical_skills | `scripts/lint_canonical_skills.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Lint canonical skill entry points to detect substrate drift. CI gate to ensure substrate stubs are thin redirects, not divergent implementations. |
-| HAIOS-TOOL-201 | human_admission_verify | `tools/human_admission_verify.py` | 0.1.0 | 1 | draft | — | Verify human-origin evaluation-admission receipts. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
