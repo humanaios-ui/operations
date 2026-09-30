@@ -1,0 +1,26 @@
+{
+  "protocol": "DHP-1.0",
+  "experiment_id": "HMBM-CYCLE-003",
+  "evidence_id": "C003-DHP-ARTIFACT-REFERENCE-REMEDIATION-001",
+  "failure_id": "C003-DHP-F003",
+  "candidate_id": "C003-H01-CANDIDATE",
+  "generation_id": "C003-H01-GEN-003",
+  "predecessor_state_id": "C003-H0-ACCEPTED",
+  "correction": "Added additive immutable artifact-reference sidecar bound to the already-persisted GEN-003 bytes. Original candidate, manifest, and queued receipt were not rewritten.",
+  "verification": {
+    "commit_pinned_ref": "3fe388a911630b0f3f754fb363cf313e6c253550",
+    "resolved_blob_sha": "57bd97fab97d8a39d984234d0b4e31f22a0d9209",
+    "expected_file_sha256": "cc002071fa526b981ef3a864d15edca450d7a8addf7a2a6f718207da61095306",
+    "expected_byte_length": 808046,
+    "locator_resolution_verified": true,
+    "candidate_bytes_modified": false,
+    "original_manifest_modified": false,
+    "original_queued_receipt_modified": false
+  },
+  "state_before": "QUEUED",
+  "state_after": "QUEUED",
+  "next_authorized_node": "COURIER",
+  "next_transition": "QUEUED -> VERIFY_ARTIFACT -> GMAIL_COMMUNICATION -> COMMUNICATION_RECEIPT -> COMMUNICATED",
+  "canonical_state": "C003-H0-ACCEPTED",
+  "paper_only": true
+}
