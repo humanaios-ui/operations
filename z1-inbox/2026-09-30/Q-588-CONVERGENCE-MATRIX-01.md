@@ -2,7 +2,7 @@
 
 **Created:** 2026-09-30  
 **Purpose:** Map Resource System components (#588 convergence) across main + candidate branches  
-**Scope:** Six core components (Resource Miner, Eligibility Resolver, Activity Graph, Resource Manager, PII Claim Gateway, Replay)  
+**Scope:** Phase-A convergence matrix for #611. This revision corrects the initial six-component pass and records remaining unmapped components before any scaffold verdict.  
 **Converging PRs:** #588, #599, #608, #609, #611  
 
 ---
@@ -16,26 +16,33 @@ This matrix reveals which Resource System components exist (main), exist partial
 3. **Has it been exercised?** — CI pass, test harness, manual verification
 4. **What evidence would prove this classification wrong?** — falsifier for each row
 
-**Outcome:** Identifies whether to compose existing components or scaffold #588 as a dedicated substrate.
+**Outcome:** **UNRESOLVED.** This artifact is an evidence map, not yet the composition-vs-dedicated-scaffold finding required by #611.
 
 ---
 
 ## Convergence Matrix
 
-**CORRECTIONS APPLIED** (per humanaios-ui review, 2026-09-30): Eligible Resolver split into two rows; PII Gateway corrected to MISSING; Resource Manager clarified as accounting-focused foundation; Replay narrowed to portfolio replay; Activity Graph composition assumption noted as untested; verdict changed to UNRESOLVED pending #611 protocol.
+| **Component** | **Main Evidence** | **Candidate Evidence** | **State** | **Executable?** | **Exercised?** | **Key correction / falsifier** |
+|:---|:---|:---|:---|:---|:---|:---|
+| **Resource Miner** | `humanaios-funding-pipeline/resource-miner/`; callable `enrich()`; tests on main | — | EXISTS | ✅ YES | ⚠️ Tests exist; current experiment has not independently rerun them | Falsified if current main test suite or real snapshot run fails materially |
+| **Eligibility Resolver** | `entitlement-navigator/entitlement/engine.py`; executable `evaluate_program()` / `evaluate_profile()` | #608 adds Miner→Navigator handoff | EXISTS | ✅ YES | ✅ Existing deterministic engine; binding remains candidate | Resolver existence is separate from integration binding |
+| **Miner→Resolver Binding** | none on current main at P1 baseline | #608 typed handoff | CANDIDATE/PARTIAL | ⚠️ Candidate | ⚠️ Candidate tests exist on PR branch | Becomes EXISTS only after merged/current-main verification |
+| **Activity lifecycle model** | no canonical Resource-System ActivityEvent/ActivityGraph found | none established | MISSING | ❌ NO | ❌ NO | Do not assume it must be middleware; #588 specifies observability/history semantics first |
+| **Resource accounting ledger** | `tools/resource_ledger_v0_1.py` hash-chained claim/spend/yield/price/waste/capacity/close | — | EXISTS | ✅ YES | ✅ Tool is executable; separate from asset lifecycle manager | Must not be relabeled as full Resource Manager |
+| **Resource Manager** | `resource_state.schema.json` + ledger are reusable foundations, but neither models the full #588 acquired-resource lifecycle | — | PARTIAL/MISSING | ⚠️ Foundation only | ⚠️ No end-to-end asset lifecycle demonstrated | Needs inventory/restriction/allocation/consumption/conversion/renewal-expiry-loss/realized-value semantics |
+| **PII Claim Gateway** | no #588-equivalent gateway found; `resource_request.schema.json` contains cost/dependency semantics only | reusable privacy/redaction work exists elsewhere | MISSING | ❌ NO | ❌ NO | Presence of generic PII/redaction primitives does not equal minimum-sufficient-claim gateway |
+| **Portfolio Replay** | no material-evidence → affected-resource-branch recomputation mechanism found | ledger/event replay primitives may be reusable | MISSING | ❌ NO | ❌ NO | Ledger reconstruction is not equivalent to #588 portfolio replay |
+| **Progressive Onboarding** | not yet classified in this artifact | #599 contains design lineage | UNMAPPED | ? | ? | Must be resolved before final verdict |
+| **Evidence & Capability Graph** | not yet classified here | repository graph work exists | UNMAPPED | ? | ? | Must distinguish executable graph from architecture prose |
+| **Controller** | not yet classified here | multiple control primitives exist | UNMAPPED | ? | ? | Must map propagation/rescan/frontier-expansion/batch interrogation specifically |
+| **Warrant + Authorization** | repository-wide primitives exist | #606/#601 lineage | PARTIAL/EXISTS? | ? | ? | Requires Resource-System-specific composition evidence |
+| **Resource-specific execution artifacts** | prior specimens exist outside this matrix | — | UNMAPPED | ? | ? | Need traceable resource→evidence snapshot→artifact linkage evidence |
+| **Resource Graph** | graph primitives exist, Resource-System transformation graph not yet classified | — | UNMAPPED | ? | ? | Must verify resource→resource dependencies/convergence semantics |
+| **Persistent Runtime** | Resource Miner HTTP/runtime pieces exist | — | UNMAPPED | ? | ? | Need resource lifecycle monitoring, not mere service availability |
+| **UI/UX contract** | INTENT-OS/UI work exists | — | UNMAPPED | ? | ? | Must test #588 NOW/AVAILABLE/AI WORKING/RESOURCES/HISTORY semantics |
+| **Outcome → evidence update loop** | not yet classified | — | UNMAPPED | ? | ? | Required before composition verdict |
 
-| **Component** | **Location (main)** | **Main Evidence** | **Candidate Evidence** | **State** | **Executable?** | **Exercised?** | **Evidence (Would Prove Wrong)** |
-|:---|:---|:---|:---|:---|:---|:---|:---|
-| **Resource Miner** | `humanaios-funding-pipeline/resource-miner/` | `resource_miner/miner.py` (enrich, dedupe, route, need-match) | — | EXISTS | ✅ YES (Python module, callable) | ❓ Unclear (tests exist; CI status unknown) | `python3 -m pytest humanaios-funding-pipeline/resource-miner/tests/ -v` fails, or coverage <80% |
-| **Eligibility Resolver** | `humanaios-funding-pipeline/entitlement-navigator/entitlement/engine.py` | `evaluate_program()`, `evaluate_profile()` (executable) | — | **EXISTS** | ✅ YES (methods callable) | ❓ Unclear (tests unknown) | Entitlement Navigator methods deleted or signature changed incompatibly |
-| **Miner→Resolver Binding** | — | — | `#608` (integration) | **CANDIDATE** | ⚠️ CONDITIONAL | ❌ NO | PR #608 fails CI, or integration test `test_miner_entitlement_handoff()` fails (schema incompatibility) |
-| **Activity Lifecycle Model** | — (design needed) | None found on main | None found in candidates | **MISSING** | ❌ NO | ❌ NO | NOTE: Assuming hard composition chain (Resolver → Activity Graph → Manager) is a **new architectural assumption**, not derived from existing components. This should be tested before being presupposed. Canonical schema for `ActivityEvent` + `ActivityGraph` not yet designed. |
-| **Resource Accounting Ledger** | `tools/resource_ledger_v0_1.py` | Ledger claims/spend/yield logic (claim, spend, yield, price, waste, capacity, close, verify, report) | — | **EXISTS** | ✅ YES (CLI tool, executable) | ✅ YES (subcommands verified; tools/README) | `resource_ledger_v0_1.py` refactored or subcommands removed |
-| **Resource Manager (Lifecycle)** | `schemas/resource_state.schema.json` (partial) | State schema exists (work-state/blocking-state) | — | **PARTIAL/FOUNDATION** | ⚠️ PARTIAL | ❓ Unclear | Note: #588's Resource Manager concerns **lifecycle** (inventory, restriction, allocation, consumption, conversion, renewal, expiration, loss, realized value), not accounting. `resource_state.schema.json` is work-state focused, not lifecycle-focused. Needs lifecycle model: acquired-state, discovered-state, allocated-state, consumed-state, converted-state, expires-state, loss-state. |
-| **PII Claim Gateway** | `schemas/resource_request.schema.json` (found) | Schema contains resource cost/dependency semantics, **NOT** PII redaction | — | **MISSING** | ❌ NO | ❌ NO | `resource_request.schema.json` actually contains PII redaction fields, or separate `pii_redaction.py` logic found. (Note: privacy/redaction primitives exist elsewhere in repo; check audit-trail, claim-receipt, disclosure-receipt designs.) |
-| **Portfolio Replay** | `tools/` (search yields none) | None found on main | Check #611 (convergence experiment) | **MISSING** | ❌ NO (on main); ❓ CANDIDATE | ❌ NO | NOTE: Portfolio replay = material evidence/controller changes recompute affected resource branches without re-asking known facts. Ledger replay (audit-trail reconstruction) is **narrower** and separate. Implement portfolio replay: (1) detect material change; (2) identify affected branches; (3) recompute without re-query. |
-
----
+> **Rule:** `UNMAPPED` is not evidence of absence. It is an explicit abstention until executable evidence is inspected.
 
 ## Component-by-Component Analysis
 
@@ -322,9 +329,9 @@ This matrix reveals which Resource System components exist (main), exist partial
 
 ---
 
-### **5. PII Claim Gateway** — EXISTS/PARTIAL ⚠️ (INVESTIGATE)
+### **5. PII Claim Gateway** — MISSING ❌
 
-**Location:** `schemas/resource_request.schema.json` (found), `tools/` (search in progress)
+**Location:** No #588-equivalent gateway established on main.
 
 **What it should do:**
 - Intercept resource requests before they reach the Resource Manager
@@ -352,7 +359,7 @@ This matrix reveals which Resource System components exist (main), exist partial
 
 ---
 
-### **6. Replay** — MISSING/CANDIDATE ❌
+### **6. Portfolio Replay** — MISSING ❌
 
 **Location:** None found on main; possibly in PR #611
 
@@ -399,84 +406,40 @@ This matrix reveals which Resource System components exist (main), exist partial
 
 ## Composition Decision Framework
 
-**Note:** The original matrix concluded **YES — #588 should be dedicated substrate**. However, per humanaios-ui review, this verdict is **PREMATURE** and should remain **UNRESOLVED** pending completion of the #611 acceptance protocol, which preregistered:
-- Broader matrix (~15 components)
-- Missing-primitive set
-- One end-to-end trace
-- Provenance sequence
-- **Only then** a composition-vs-substrate finding
+### Current finding
 
----
+```
+COMPOSITION_VERDICT = UNRESOLVED
+DEDICATED_SCAFFOLD_VERDICT = UNRESOLVED
+```
 
-**Current Question A: Can existing components compose?**
+#611 preregistered a broader experiment than the original six-row matrix:
+- classify all required #588 components;
+- identify the genuinely missing primitive set;
+- run one end-to-end resource specimen;
+- add an actor/provenance trace;
+- only then compare composition against a dedicated scaffold.
 
-**Composition chain (per current matrix):**
-- **Resource Miner** → (output: `list[ResourceCandidate]`)
-- **Eligibility Resolver** → (input: `list[ResourceCandidate]`, output: `list[EligibleResource]`)  
-- **Activity Lifecycle Model** ← **MISSING** — assumed as hard middleware, but this assumption is untested
-- **Resource Manager (Lifecycle)** ← waiting for Activity Graph output
+The initial conclusion that Activity Graph is a mandatory middleware blocker and therefore #588 should become a dedicated substrate was **premature**.
 
-**Current answer:** **UNRESOLVED** — depends on whether Activity Graph is actually a required middleware (architectural assumption to be tested) or whether Resolver → Manager can compose directly with lifecycle state-machine.
+### Current supported statements
 
----
+1. Resource Miner exists.
+2. Entitlement Resolver exists.
+3. Their direct binding is candidate work in #608.
+4. Resource accounting exists but is not the full Resource Manager.
+5. PII Claim Gateway is not established.
+6. Portfolio replay is not established.
+7. Activity lifecycle observability is missing, but its required architectural position is not yet proven.
+8. Remaining #611 components must be mapped before the architecture verdict.
 
-**Current Question B: Is #588 a dedicated substrate or composition of existing parts?**
+### Next evidence required
 
-**Evidence for composition:**
-1. Ledger exists and is robust (claim/spend/yield/price/capacity/close)
-2. Resolver exists on main (entitlement evaluation)
-3. Miner exists on main (candidate ranking)
-4. Ledger + Resolver + Miner could potentially cover 50% of #588 scope
-
-**Evidence for dedicated substrate:**
-1. Lifecycle model (acquired/discovered/allocated/consumed/converted/expires/loss) is MISSING
-2. Activity observability (source/action/artifact/AI/human/checkin/outcome/deviation) is MISSING
-3. Portfolio replay (material-change recomputation) is MISSING
-4. PII/disclosure/minimum-sufficient-claim gateway is MISSING
-5. Miner→Resolver binding unmerged (PR #608)
-
-**Current verdict:** **UNRESOLVED, PENDING #611 PROTOCOL** — the composition decision requires:
-1. Verification that hard Activity Graph assumption is sound (or design a direct Resolver → Manager composition)
-2. Mapping of the full ~15-component set (not just 6)
-3. End-to-end trace through #611 (convergence experiment)
-4. Falsifier protocol confirmation from #611 (what would prove composition works vs. substrate is needed)
-
----
-
-## Immediate Next Steps (Priority Order)
-
-1. **Design Activity Graph** (blocking)
-   - Define `ActivityEvent` canonical schema
-   - Implement `ActivityGraph` class (DAG + topological sort)
-   - Integrate between Eligibility Resolver and Resource Manager
-   - Test DAG invariant
-
-2. **Merge Eligibility Resolver** (PR #608)
-   - Verify miner output schema compatibility
-   - Test end-to-end: miner → resolver → next component
-   - Merge if tests pass
-
-3. **Verify Resource Miner** (on main, needs validation)
-   - Run test suite: `pytest humanaios-funding-pipeline/resource-miner/tests/ -v`
-   - Verify coverage ≥80%
-   - Run on actual resource snapshot (resources.seed.jsonl)
-
-4. **Complete Resource Manager state lifecycle**
-   - Define state transition matrix (OPEN → IN_PROGRESS → COMPLETED → CLOSED)
-   - Implement versioned ResourceState schema
-   - Test full claim → spend → close cycle
-
-5. **Investigate PII Claim Gateway**
-   - Inspect `schemas/resource_request.schema.json`
-   - Search for redaction logic in all candidates
-   - Design/implement gate if missing
-
-6. **Design Replay engine** (last in composition chain)
-   - Leverage ledger hash-chain for audit trail
-   - Implement `replay()` function
-   - Test divergence-free property (two replays → identical state)
-
----
+1. Complete all `UNMAPPED` rows with executable evidence or explicit absence.
+2. Validate #608 separately as an integration candidate.
+3. Select one real resource specimen.
+4. Trace it through discovery → investigation → evidence → warrant → human authorization → activity → resource state → outcome → evidence update/replay.
+5. Only then issue the composition/scaffold finding.
 
 ## Falsifier for this Matrix
 
@@ -518,3 +481,48 @@ echo "Matrix validation: ALL PASS" || echo "Matrix validation: FAILED"
 
 ---
 _Generated by [Claude Code](https://claude.ai/code)_
+## Calibration trace — revision after independent review
+
+### P1 specimen (preserved, not rewritten)
+
+Original head: `2322047fe84ada25aed49a4382b707837eb27b6d`
+
+Original predictor provenance:
+- commit author/committer: Claude
+- PR watermark: Generated with Claude Code
+- Claude session URL present
+- PR-body `smag_p: 0.92`
+
+Original substantive claims included:
+- Eligibility Resolver = EXISTS/PARTIAL because it was thought to live only in #608;
+- PII Claim Gateway = EXISTS/PARTIAL from `resource_request.schema.json`;
+- Resource Manager = EXISTS/PARTIAL from the resource ledger/state schema;
+- Activity Graph = critical composition blocker;
+- #588 should become a dedicated substrate.
+
+### External grounding
+
+Independent review comment: PR #612 comment `5920644216`.
+
+Calibration-system review: PR #612 comment `5920659698`.
+
+Direct repository inspection showed:
+- resolver already executable on main;
+- PII gateway semantics absent from `resource_request.schema.json`;
+- resource accounting != full acquired-resource lifecycle manager;
+- portfolio replay != ledger replay;
+- Activity Graph middleware position was assumed rather than demonstrated;
+- final scaffold verdict preceded completion of #611 protocol.
+
+### Current revision status
+
+```
+P1 = PRESERVED
+EXTERNAL_GROUNDING = RECORDED
+P3_SAME_PREDICTOR = REQUIRED
+```
+
+This revised document incorporates externally grounded corrections but **must not be represented as Claude's P3 self-reassessment** unless the original predictor explicitly revises its own claims/confidence after exposure.
+
+No retroactive `ci_predictions/pr.json` is added to the original P1 head.
+
