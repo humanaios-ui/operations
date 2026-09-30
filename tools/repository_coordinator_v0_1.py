@@ -275,7 +275,8 @@ def _evaluation_admission_evidence(
     """Recognize explicit native GitHub evaluation-admission receipts.
 
     A receipt may be either an APPROVED review from an authorized actor or an
-    exact admission command comment from an authorized actor.  Both grant only
+    exact admission command carried by a COMMENTED pull-request review from an
+    authorized actor. Ordinary issue comments are not admission receipts. Both grant only
     evidence-producing evaluation standing; neither accepts implementation,
     consumes operator capacity, or grants merge authority.
     """
@@ -292,12 +293,20 @@ def _evaluation_admission_evidence(
         if user in authorized and state == "APPROVED"
     )
 
-    commanders = sorted({
-        str((comment.get("user") or {}).get("login") or comment.get("user") or "")
-        for comment in (pr.get("comments") or [])
-        if str(comment.get("body") or "").strip() == command
-        and str((comment.get("user") or {}).get("login") or comment.get("user") or "") in authorized
-    })
+    commanders: list[str] = []
+    for review in pr.get("reviews") or []:
+        user = str((review.get("user") or {}).get("login") or review.get("user") or "")
+        state = str(review.get("state") or "").upper()
+        body = str(review.get("body") or "")
+        machine_origin = "humanaios-origin: ai-agent" in body.lower()
+        if (
+            user in authorized
+            and state == "COMMENTED"
+            and body.strip() == command
+            and not machine_origin
+        ):
+            commanders.append(user)
+    commanders = sorted(set(commanders))
 
     if not approvers and not commanders:
         return False, [], [], [], []
