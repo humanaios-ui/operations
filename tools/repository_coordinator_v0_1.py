@@ -106,9 +106,10 @@ LANE_ORDER = {
     "CAPACITY_CONTENTION": 0,
     "CONTROL_PLANE": 1,
     "ACTIVE": 2,
-    "ADMISSION_REVIEW": 3,
-    "WORKBENCH": 4,
-    "MAINTENANCE": 5,
+    "ADMITTED_TO_EVALUATION": 3,
+    "ADMISSION_REVIEW": 4,
+    "WORKBENCH": 5,
+    "MAINTENANCE": 6,
 }
 
 
@@ -266,6 +267,56 @@ def _admission_evidence(
     return bool(evidence), evidence, objectives
 
 
+def _evaluation_admission_evidence(
+    pr: dict[str, Any],
+    policy: dict[str, Any],
+    referenced_items: dict[str, dict[str, Any]],
+) -> tuple[bool, list[str], list[int], list[str]]:
+    """Recognize a native GitHub human review as evaluation admission.
+
+    This is deliberately narrower than working-set admission.  It allows an
+    issue-bound agent workspace into evidence-producing CI without promoting
+    it into the ACTIVE operator queue or granting merge authority.
+    """
+    cfg = policy.get("evaluation_admission") or {}
+    authorized = {str(x) for x in cfg.get("authorized_actors") or []}
+    required_state = str(cfg.get("required_issue_state") or "ADMISSION_REQUESTED")
+    if not authorized:
+        return False, [], [], []
+
+    latest = _latest_review_states(pr.get("reviews") or [])
+    approvers = sorted(
+        user for user, state in latest.items()
+        if user in authorized and state == "APPROVED"
+    )
+    if not approvers:
+        return False, [], [], []
+
+    evidence: list[str] = []
+    objectives: list[int] = []
+    for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
+        ref = int(raw)
+        item = referenced_items.get(str(ref)) or referenced_items.get(ref)
+        if not item or item.get("is_pull_request"):
+            continue
+        issue_body = str(item.get("body") or "")
+        state_match = re.search(
+            r"\*\*state:\*\*\s*`?([A-Z_]+)`?",
+            issue_body,
+            re.I,
+        )
+        issue_state = state_match.group(1).upper() if state_match else ""
+        if issue_state != required_state.upper():
+            continue
+        evidence.append(
+            f"authorized human review by {', '.join('@' + x for x in approvers)} "
+            f"admits linked issue #{ref} to evaluation"
+        )
+        objectives.append(ref)
+
+    return bool(evidence), evidence, objectives, approvers
+
+
 def _base_lane(
     pr: dict[str, Any],
     *,
@@ -273,6 +324,9 @@ def _base_lane(
     referenced_items: dict[str, dict[str, Any]],
 ) -> tuple[str, dict[str, Any]]:
     admitted, evidence, objectives = _admission_evidence(pr, policy, referenced_items)
+    eval_admitted, eval_evidence, eval_objectives, eval_approvers = (
+        _evaluation_admission_evidence(pr, policy, referenced_items)
+    )
     maintenance = _maintenance(pr, policy)
     control_plane = _control_plane(pr, policy)
     draft = bool(pr.get("draft"))
@@ -285,13 +339,18 @@ def _base_lane(
         lane = "WORKBENCH"
     elif admitted:
         lane = "ACTIVE"
+    elif eval_admitted:
+        lane = "ADMITTED_TO_EVALUATION"
     else:
         lane = "ADMISSION_REVIEW"
 
     return lane, {
-        "admitted": admitted,
-        "evidence": evidence,
-        "objectives": objectives,
+        "admitted": admitted or eval_admitted,
+        "working_set_admitted": admitted,
+        "evaluation_admitted": eval_admitted,
+        "evidence": evidence + eval_evidence,
+        "objectives": list(dict.fromkeys(objectives + eval_objectives)),
+        "evaluation_approvers": eval_approvers,
         "maintenance": maintenance,
         "control_plane": control_plane,
         "draft": draft,
@@ -436,8 +495,13 @@ def classify(
     zero_diff = _zero_diff(pr)
     if zero_diff:
         findings.append(Finding(
-            "ZERO_DIFF", "HIGH",
-            "GitHub reports no changed files; there is no remaining merge delta."
+            "ZERO_DIFF",
+            "INFO" if lane == "ADMITTED_TO_EVALUATION" else "HIGH",
+            (
+                "GitHub reports no changed files; valid evaluation workspace has no implementation delta yet."
+                if lane == "ADMITTED_TO_EVALUATION"
+                else "GitHub reports no changed files; there is no remaining merge delta."
+            ),
         ))
 
     missing = _missing_refs(body, main_paths, files)
@@ -495,7 +559,7 @@ def classify(
 
     high_codes = {f.code for f in findings if f.severity == "HIGH"}
     routing_codes = {"CAPACITY_BACKPRESSURE", "DUPLICATE_ACTIVE_IMPLEMENTATION"}
-    if zero_diff:
+    if zero_diff and lane != "ADMITTED_TO_EVALUATION":
         action = "CLOSE_PRESERVE"
         next_action = "Preserve the PR as evidence/history; do not treat it as an active merge unit."
     elif high_codes - routing_codes:
@@ -511,7 +575,11 @@ def classify(
         action = "ADVANCE"
         next_action = "Proceed to ordinary review/testing; no coordinator-level technical blocker was detected."
 
-    objective = "HISTORICAL" if zero_diff else "LIVE"
+    objective = (
+        "EVALUATION"
+        if lane == "ADMITTED_TO_EVALUATION"
+        else ("HISTORICAL" if zero_diff else "LIVE")
+    )
 
     state_alignment = "CURRENT"
     if high_codes - routing_codes:
@@ -542,6 +610,8 @@ def classify(
         admission_reason = "multiple ready implementations claim one admitted objective; operator must consolidate"
     elif lane == "WORKBENCH":
         admission_reason = "draft work is isolated from the operator queue"
+    elif lane == "ADMITTED_TO_EVALUATION":
+        admission_reason = "authorized human review admits the issue-bound workspace to evidence-producing evaluation only"
     elif lane == "MAINTENANCE":
         admission_reason = "maintenance is routed to a cohort lane"
     elif lane == "CONTROL_PLANE":
@@ -696,6 +766,7 @@ def analyze(
             "ISSUE_IS_NOT_ADMITTED_WORK",
             "ASSIGNMENT_IS_NOT_PR_ADMISSION",
             "DRAFT_IS_NOT_OPERATOR_QUEUE",
+            "EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE",
             "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
             "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
             "ADMISSION_IS_NOT_MERGE_AUTHORITY",
@@ -746,6 +817,7 @@ def render_markdown(index: dict[str, Any]) -> str:
         "| Lane | Count | Meaning |",
         "|---|---:|---|",
         f"| ACTIVE | {lanes.get('ACTIVE', 0)} | Explicitly admitted, ready work within capacity |",
+        f"| ADMITTED_TO_EVALUATION | {lanes.get('ADMITTED_TO_EVALUATION', 0)} | Human-admitted evidence workspace; not operator queue or merge authority |",
         f"| CONTROL_PLANE | {lanes.get('CONTROL_PLANE', 0)} | Coordinator policy/control changes requiring ordinary review |",
         f"| ADMISSION_REVIEW | {lanes.get('ADMISSION_REVIEW', 0)} | Ready work not yet admitted |",
         f"| WORKBENCH | {lanes.get('WORKBENCH', 0)} | Draft/agent work; not operator queue |",
