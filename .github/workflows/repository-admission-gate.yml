@@ -37,15 +37,23 @@ on:
     types:
       - submitted
       - dismissed
+  issue_comment:
+    types:
+      - created
+      - edited
 
 permissions: {}
 
 concurrency:
-  group: repository-admission-gate-${{ github.event.pull_request.number }}
+  group: repository-admission-gate-${{ github.event.pull_request.number || github.event.issue.number }}
   cancel-in-progress: true
 
 jobs:
   gate:
+    if: >-
+      github.event_name != 'issue_comment' ||
+      (github.event.issue.pull_request &&
+       startsWith(github.event.comment.body, '/admit-evaluation-signed'))
     name: Repository admission/backpressure gate
     runs-on: ubuntu-latest
     permissions:
@@ -66,7 +74,7 @@ jobs:
       - name: Collect gate snapshot through the API (no PR code executed)
         uses: actions/github-script@v9
         env:
-          TARGET_PR: ${{ github.event.pull_request.number }}
+          TARGET_PR: ${{ github.event.pull_request.number || github.event.issue.number }}
         with:
           script: |
             const fs = require("fs");
@@ -124,8 +132,10 @@ jobs:
                 // occupy operator capacity. Drafts and maintenance never do.
                 const needFiles = brief.number === target || (!isDraft && !isMaintenance);
                 const needReviews = brief.number === target || (!isDraft && !isMaintenance);
+                const needComments = brief.number === target;
                 let files = [];
                 let reviews = [];
+                let comments = [];
                 let filesComplete = false;
                 if (needFiles) {
                   files = await listFiles(brief.number);
@@ -135,6 +145,12 @@ jobs:
                   reviews = await github.paginate(
                     github.rest.pulls.listReviews,
                     { owner, repo, pull_number: brief.number, per_page: 100 }
+                  );
+                }
+                if (needComments) {
+                  comments = await github.paginate(
+                    github.rest.issues.listComments,
+                    { owner, repo, issue_number: brief.number, per_page: 100 }
                   );
                 }
                 const body = brief.body || "";
@@ -158,8 +174,15 @@ jobs:
                   reviews: reviews.map(r => ({
                     user: { login: r.user && r.user.login ? r.user.login : "unknown" },
                     state: r.state,
+                    body: r.body || "",
                     submitted_at: r.submitted_at,
                     commit_id: r.commit_id || null
+                  })),
+                  comments: comments.map(c => ({
+                    user: { login: c.user && c.user.login ? c.user.login : "unknown" },
+                    body: c.body || "",
+                    created_at: c.created_at,
+                    id: c.id
                   }))
                 };
               }));
@@ -211,9 +234,15 @@ jobs:
             );
             core.info(`Gate snapshot: ${pullRequests.length} open PR(s); target #${target}.`);
 
+      - name: Verify human-origin admission receipts
+        run: |
+          python3 tools/human_admission_verify.py \
+            --snapshot .repo-coordinator/gate-snapshot.json \
+            --policy REPOSITORY_COORDINATOR_POLICY.json
+
       - name: Enforce admission standing (fail closed)
         env:
-          TARGET_PR: ${{ github.event.pull_request.number }}
+          TARGET_PR: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
           set -euo pipefail
           test -f .repo-coordinator/gate-snapshot.json || {
