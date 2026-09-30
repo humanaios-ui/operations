@@ -1,0 +1,103 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix cal: <https://humanaios.ai/ns/calibration#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cal:CalibrationTrialShape
+  a sh:NodeShape ;
+  sh:targetClass cal:CalibrationTrial ;
+  sh:property [
+    sh:path cal:hasStimulus ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:hasHumanTrace ;
+    sh:minCount 1 ;
+    sh:class cal:HumanTrace
+  ] ;
+  sh:property [
+    sh:path cal:traceFrozenAt ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:dateTime
+  ] ;
+  sh:property [
+    sh:path cal:hasContextObservation ;
+    sh:class cal:ContextObservation
+  ] ;
+  sh:property [
+    sh:path cal:hasResolutionEvent ;
+    sh:class cal:ResolutionEvent
+  ] .
+
+cal:ResolutionEventShape
+  a sh:NodeShape ;
+  sh:targetClass cal:ResolutionEvent ;
+  sh:property [
+    sh:path cal:resolutionState ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in ( cal:Resolved cal:Unresolved cal:Delayed cal:NotCaptured )
+  ] ;
+  sh:property [
+    sh:path cal:participantConfidence ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.0 ;
+    sh:maxInclusive 1.0
+  ] .
+
+cal:DesignDeltaShape
+  a sh:NodeShape ;
+  sh:targetClass cal:DesignDelta ;
+  sh:property [
+    sh:path cal:warrantState ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in ( cal:Provisional cal:Replicated cal:Warranted cal:Withdrawn )
+  ] ;
+  sh:property [
+    sh:path cal:supportedByFrozenTrace ;
+    sh:minCount 1 ;
+    sh:class cal:HumanTrace
+  ] ;
+  sh:property [
+    sh:path cal:falsifier ;
+    sh:minCount 1
+  ] .
+
+cal:ExternalSourceShape
+  a sh:NodeShape ;
+  sh:targetClass cal:ExternalSource ;
+  sh:property [
+    sh:path cal:sourceURI ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI
+  ] ;
+  sh:property [
+    sh:path cal:evidenceRelationType ;
+    sh:minCount 1 ;
+    sh:in (
+      cal:ImplementsStandard
+      cal:ConstrainedByStandard
+      cal:MethodAnalogue
+      cal:CognitiveAnalogue
+      cal:EmpiricallyMotivatedBy
+      cal:ChallengedBy
+      cal:LocalHypothesis
+      cal:VersionWatch
+    )
+  ] ;
+  sh:property [
+    sh:path cal:supportsNote ;
+    sh:minCount 1
+  ] ;
+  sh:property [
+    sh:path cal:doesNotSupportNote ;
+    sh:minCount 1
+  ] .
+
+# Runtime invariant intentionally NOT modeled as SHACL:
+# In DISCOVERY mode, machine semantics MUST NOT be revealed before trace freeze.
+# SHACL validates persisted RDF graph structure; the application/controller
+# must enforce this temporal interaction rule mechanically.
