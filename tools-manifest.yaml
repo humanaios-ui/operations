@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 189
+  tools: 188
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 141
+  builder_markers_present: 140
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2391,18 +2391,6 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
-- tool_id: HAIOS-TOOL-201
-  name: human_admission_verify
-  path: tools/human_admission_verify.py
-  version: 0.1.0
-  category: governance_tool
-  zone: 1
-  status: draft
-  interface: cli
-  lang: python
-  smoke_test: true
-  builder_markers: true
-  purpose: Verify human-origin evaluation-admission receipts.
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
