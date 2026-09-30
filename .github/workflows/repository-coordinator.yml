@@ -135,6 +135,7 @@ jobs:
                 let pr = brief;
                 let files = [];
                 let reviews = [];
+                let comments = [];
                 let filesComplete = false;
 
                 if (isMaintenance) {
@@ -149,7 +150,7 @@ jobs:
                   pr = (await github.rest.pulls.get({
                     owner, repo, pull_number: brief.number
                   })).data;
-                  [files, reviews] = await Promise.all([
+                  [files, reviews, comments] = await Promise.all([
                     github.paginate(
                       github.rest.pulls.listFiles,
                       { owner, repo, pull_number: pr.number, per_page: 100 }
@@ -157,6 +158,10 @@ jobs:
                     github.paginate(
                       github.rest.pulls.listReviews,
                       { owner, repo, pull_number: pr.number, per_page: 100 }
+                    ),
+                    github.paginate(
+                      github.rest.issues.listComments,
+                      { owner, repo, issue_number: pr.number, per_page: 100 }
                     )
                   ]);
                   filesComplete = true;
@@ -201,8 +206,15 @@ jobs:
                   reviews: reviews.map(r => ({
                     user: { login: r.user && r.user.login ? r.user.login : "unknown" },
                     state: r.state,
+                    body: r.body || "",
                     submitted_at: r.submitted_at,
                     commit_id: r.commit_id || null
+                  })),
+                  comments: comments.map(x => ({
+                    user: { login: x.user && x.user.login ? x.user.login : "unknown" },
+                    body: x.body || "",
+                    created_at: x.created_at,
+                    id: x.id
                   }))
                 };
               }));
@@ -279,6 +291,13 @@ jobs:
               ".repo-coordinator/snapshot.json",
               JSON.stringify(snapshot, null, 2)
             );
+
+      - name: Verify human-origin admission receipts
+        if: steps.snapshot.outcome == 'success'
+        run: |
+          python3 tools/human_admission_verify.py \
+            --snapshot .repo-coordinator/snapshot.json \
+            --policy .repo-coordinator/policy.main.json
 
       - name: Self-test coordinator
         run: python3 tools/repository_coordinator_v0_1.py --smoke-test
