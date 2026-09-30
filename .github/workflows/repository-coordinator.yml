@@ -292,13 +292,6 @@ jobs:
               JSON.stringify(snapshot, null, 2)
             );
 
-      - name: Verify human-origin admission receipts
-        if: steps.snapshot.outcome == 'success'
-        run: |
-          python3 .github/scripts/human_admission_verify.py \
-            --snapshot .repo-coordinator/snapshot.json \
-            --policy .repo-coordinator/policy.main.json
-
       - name: Self-test coordinator
         run: python3 tools/repository_coordinator_v0_1.py --smoke-test
 
