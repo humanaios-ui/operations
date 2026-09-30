@@ -271,26 +271,36 @@ def _evaluation_admission_evidence(
     pr: dict[str, Any],
     policy: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
-) -> tuple[bool, list[str], list[int], list[str]]:
-    """Recognize a native GitHub human review as evaluation admission.
+) -> tuple[bool, list[str], list[int], list[str], list[str]]:
+    """Recognize explicit native GitHub evaluation-admission receipts.
 
-    This is deliberately narrower than working-set admission.  It allows an
-    issue-bound agent workspace into evidence-producing CI without promoting
-    it into the ACTIVE operator queue or granting merge authority.
+    A receipt may be either an APPROVED review from an authorized actor or an
+    exact admission command comment from an authorized actor.  Both grant only
+    evidence-producing evaluation standing; neither accepts implementation,
+    consumes operator capacity, or grants merge authority.
     """
     cfg = policy.get("evaluation_admission") or {}
     authorized = {str(x) for x in cfg.get("authorized_actors") or []}
     required_state = str(cfg.get("required_issue_state") or "ADMISSION_REQUESTED")
+    command = str(cfg.get("command") or "/admit-evaluation").strip()
     if not authorized:
-        return False, [], [], []
+        return False, [], [], [], []
 
     latest = _latest_review_states(pr.get("reviews") or [])
     approvers = sorted(
         user for user, state in latest.items()
         if user in authorized and state == "APPROVED"
     )
-    if not approvers:
-        return False, [], [], []
+
+    commanders = sorted({
+        str((comment.get("user") or {}).get("login") or comment.get("user") or "")
+        for comment in (pr.get("comments") or [])
+        if str(comment.get("body") or "").strip() == command
+        and str((comment.get("user") or {}).get("login") or comment.get("user") or "") in authorized
+    })
+
+    if not approvers and not commanders:
+        return False, [], [], [], []
 
     evidence: list[str] = []
     objectives: list[int] = []
@@ -308,13 +318,19 @@ def _evaluation_admission_evidence(
         issue_state = state_match.group(1).upper() if state_match else ""
         if issue_state != required_state.upper():
             continue
-        evidence.append(
-            f"authorized human review by {', '.join('@' + x for x in approvers)} "
-            f"admits linked issue #{ref} to evaluation"
-        )
+        if approvers:
+            evidence.append(
+                f"authorized human review by {', '.join('@' + x for x in approvers)} "
+                f"admits linked issue #{ref} to evaluation"
+            )
+        if commanders:
+            evidence.append(
+                f"authorized evaluation command {command} by "
+                f"{', '.join('@' + x for x in commanders)} admits linked issue #{ref} to evaluation"
+            )
         objectives.append(ref)
 
-    return bool(evidence), evidence, objectives, approvers
+    return bool(evidence), evidence, objectives, approvers, commanders
 
 
 def _base_lane(
@@ -324,7 +340,7 @@ def _base_lane(
     referenced_items: dict[str, dict[str, Any]],
 ) -> tuple[str, dict[str, Any]]:
     admitted, evidence, objectives = _admission_evidence(pr, policy, referenced_items)
-    eval_admitted, eval_evidence, eval_objectives, eval_approvers = (
+    eval_admitted, eval_evidence, eval_objectives, eval_approvers, eval_commanders = (
         _evaluation_admission_evidence(pr, policy, referenced_items)
     )
     maintenance = _maintenance(pr, policy)
@@ -351,6 +367,7 @@ def _base_lane(
         "evidence": evidence + eval_evidence,
         "objectives": list(dict.fromkeys(objectives + eval_objectives)),
         "evaluation_approvers": eval_approvers,
+        "evaluation_commanders": eval_commanders,
         "maintenance": maintenance,
         "control_plane": control_plane,
         "draft": draft,
