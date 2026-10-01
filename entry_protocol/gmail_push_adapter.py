@@ -43,6 +43,9 @@ AUTOMATION_HEADER_VALUE = "digest-gmail-adapter-v1"
 _DIGEST_SUBJECT_RE = re.compile(
     r"^(?:re:\s*)?HumanAIOS Daily Digest\b", re.I
 )
+_DIGEST_REPLY_RE = re.compile(
+    r"^re:\s*HumanAIOS Daily Digest\b", re.I
+)
 _THREAD_SUBJECT_RE = re.compile(
     r"^(?:re:\s*)?THREAD\s+([A-Z0-9-]+)(?:\s+[—-]\s+(.+?))?(?:\s+[—-]\s+(?:NEW|ACTIVE|PAUSED|WAITING|BLOCKED|CLOSED))?\s*$",
     re.I,
@@ -317,7 +320,7 @@ def extract_item_catalog(text: str) -> dict[str, str]:
 
     lines = text.splitlines()
     label_re = re.compile(
-        r"(?i)\\b(?:TASK|ACTION|TESTABLE QUESTION|WORKFLOW)\\s*:\\s*(.+)$"
+        r"(?i)\b(?:TASK|ACTION|TESTABLE QUESTION|WORKFLOW)\s*:\s*(.+)$"
     )
 
     for index, line in enumerate(lines):
@@ -335,12 +338,12 @@ def extract_item_catalog(text: str) -> dict[str, str]:
             for candidate in window:
                 match = label_re.search(candidate)
                 if match:
-                    title = match.group(1).strip(" -*—|:\\t")
+                    title = match.group(1).strip(" -*—|:\t")
                     if title:
                         break
 
             if not title:
-                cleaned = re.sub(r"(?i)ITEM_ID\\s*:\\s*", "", line)
+                cleaned = re.sub(r"(?i)ITEM_ID\s*:\s*", "", line)
                 cleaned = re.sub(
                     re.escape(raw_id),
                     "",
@@ -348,11 +351,11 @@ def extract_item_catalog(text: str) -> dict[str, str]:
                     flags=re.I,
                 )
                 cleaned = re.sub(
-                    r"(?i)\\b(?:STATE|AUTHORITY|EVIDENCE STATE)\\s*:[^|]+",
+                    r"(?i)\b(?:STATE|AUTHORITY|EVIDENCE STATE)\s*:[^|]+",
                     "",
                     cleaned,
                 )
-                cleaned = cleaned.strip(" -*—|:\\t")
+                cleaned = cleaned.strip(" -*—|:\t")
                 if cleaned:
                     title = cleaned[:240]
 

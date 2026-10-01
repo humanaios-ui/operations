@@ -14,7 +14,12 @@ def test_root_lists_human_score_url():
     assert response.json()["human_score_url"] == "/api/v1/acat/human-score"
 
 
-def test_human_score_route_is_registered():
-    response = client.post("/api/v1/acat/human-score", json={})
+def test_human_score_route_is_registered(monkeypatch):
+    monkeypatch.setenv("ACAT_WRITE_TOKEN", "test-token")
+    response = client.post(
+        "/api/v1/acat/human-score",
+        json={},
+        headers={"X-ACAT-Write-Token": "test-token"},
+    )
 
     assert response.status_code == 422

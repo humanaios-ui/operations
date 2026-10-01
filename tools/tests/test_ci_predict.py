@@ -25,7 +25,20 @@ import ci_predict_consolidate_v1_0 as consolidate_tool  # noqa: E402
 import nf_ledger_v0_1 as engine  # noqa: E402
 
 TOOL_NAME = "test_ci_predict"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
+
+
+def bound_pin(pr="1", sha=None, predictor="Claude Code", checks=None, committed_at="2026-09-12T10:00:00Z"):
+    sha = sha or ("a" * 40)
+    return {
+        "schema": "ci_predict_pin_v2",
+        "pr": str(pr),
+        "head_sha": sha,
+        "predictor": predictor,
+        "committed_at": committed_at,
+        "declaration_binding": {"declared_pr": str(pr), "changed_from_base": True},
+        "checks": checks or {"x": {"conclusion": "success", "p": 0.8}},
+    }
 
 
 # --- pin ----------------------------------------------------------------
@@ -89,6 +102,32 @@ def test_parse_declaration_refuses_non_dict_top_level():
             pass
 
 
+def test_declaration_requires_explicit_current_pr_binding():
+    declaration = {"pr": 42, "checks": {"x": {"conclusion": "success", "p": 0.5}}}
+    assert pin_tool.declared_pr_matches(declaration, "42")
+    assert not pin_tool.declared_pr_matches({**declaration, "pr": 41}, "42")
+    assert not pin_tool.declared_pr_matches({"checks": declaration["checks"]}, "42")
+
+
+def test_binding_detects_inherited_bytes():
+    head = '{"pr":42,"checks":{"x":{"conclusion":"success","p":0.5}}}'
+    inherited = pin_tool.declaration_binding("42", "b" * 40, head, head)
+    changed = pin_tool.declaration_binding("42", "b" * 40, head, None)
+    assert inherited["changed_from_base"] is False
+    assert changed["changed_from_base"] is True
+    assert inherited["head_content_sha256"] == inherited["base_content_sha256"]
+
+
+def test_pin_payload_requires_v2_positive_binding():
+    declaration = {"pr": 42, "checks": {"x": {"conclusion": "success", "p": 0.5}}}
+    binding = pin_tool.declaration_binding("42", "b" * 40, json.dumps(declaration), None)
+    payload = pin_tool.build_payload("42", "a" * 40, "KNOWN_AI:ChatGPT", declaration, binding=binding)
+    assert pin_tool.pin_payload_is_pr_bound(payload, "42")
+    assert not pin_tool.pin_payload_is_pr_bound({**payload, "schema": "ci_predict_pin_v1"}, "42")
+    bad = {**payload, "declaration_binding": {"declared_pr": "41", "changed_from_base": True}}
+    assert not pin_tool.pin_payload_is_pr_bound(bad, "42")
+
+
 def test_fetch_declaration_via_api_decodes_base64_content(monkeypatch):
     import base64 as b64
 
@@ -104,13 +143,28 @@ def test_fetch_declaration_via_api_decodes_base64_content(monkeypatch):
     assert pin_tool.parse_declaration(content, "x")["checks"]["x"]["p"] == 0.5
 
 
-def test_fetch_declaration_via_api_returns_none_on_failure(monkeypatch):
+def test_fetch_declaration_via_api_returns_none_on_404(monkeypatch):
     class Fake:
         returncode = 1
         stdout = ""
+        stderr = "HTTP 404: Not Found"
 
     monkeypatch.setattr(pin_tool.subprocess, "run", lambda *a, **k: Fake())
     assert pin_tool.fetch_declaration_via_api("o/r", "sha") is None
+
+
+def test_fetch_declaration_via_api_fails_closed_on_non_404(monkeypatch):
+    class Fake:
+        returncode = 1
+        stdout = ""
+        stderr = "HTTP 500: upstream failure"
+
+    monkeypatch.setattr(pin_tool.subprocess, "run", lambda *a, **k: Fake())
+    try:
+        pin_tool.fetch_declaration_via_api("o/r", "sha")
+        raise AssertionError("expected DeclarationError")
+    except pin_tool.DeclarationError:
+        pass
 
 
 def test_commit_date_via_api_reads_committer_date(monkeypatch):
@@ -178,26 +232,36 @@ BOT = {"login": resolve_tool.TRUSTED_LOGIN}
 
 
 def test_stale_pin_never_selected_over_current_head():
-    old_payload = pin_tool.build_payload("1", "b" * 40, "human:x",
-                                         {"checks": {"q": {"conclusion": "success", "p": 0.5}}})
-    new_payload = pin_tool.build_payload("1", "a" * 40, "human:x",
-                                         {"checks": {"q": {"conclusion": "success", "p": 0.9}}})
+    binding = {"declared_pr": "1", "changed_from_base": True}
+    old_payload = pin_tool.build_payload(
+        "1", "b" * 40, "human:x",
+        {"pr": 1, "checks": {"q": {"conclusion": "success", "p": 0.5}}},
+        binding=binding,
+    )
+    new_payload = pin_tool.build_payload(
+        "1", "a" * 40, "human:x",
+        {"pr": 1, "checks": {"q": {"conclusion": "success", "p": 0.9}}},
+        binding=binding,
+    )
     comments = [
         {"body": pin_tool.render_pin_comment(old_payload), "created_at": "2026-01-01", "user": BOT},
         {"body": pin_tool.render_pin_comment(new_payload), "created_at": "2026-01-02", "user": BOT},
     ]
-    selected = resolve_tool.find_latest_pin(comments, "a" * 40)
+    selected = resolve_tool.find_latest_pin(comments, "a" * 40, expected_pr="1")
     assert selected is not None
     assert selected["checks"]["q"]["p"] == 0.9
-    assert resolve_tool.find_latest_pin(comments, "c" * 40) is None
+    assert resolve_tool.find_latest_pin(comments, "c" * 40, expected_pr="1") is None
 
 
 def test_untrusted_commenter_cannot_forge_a_pin():
-    payload = pin_tool.build_payload("1", "a" * 40, "human:x",
-                                     {"checks": {"q": {"conclusion": "success", "p": 0.99}}})
+    payload = pin_tool.build_payload(
+        "1", "a" * 40, "human:x",
+        {"pr": 1, "checks": {"q": {"conclusion": "success", "p": 0.99}}},
+        binding={"declared_pr": "1", "changed_from_base": True},
+    )
     forged = [{"body": pin_tool.render_pin_comment(payload), "created_at": "2026-01-01",
                "user": {"login": "some-collaborator"}}]
-    assert resolve_tool.find_latest_pin(forged, "a" * 40) is None
+    assert resolve_tool.find_latest_pin(forged, "a" * 40, expected_pr="1") is None
 
 
 def test_untrusted_commenter_cannot_suppress_a_resolution():
@@ -257,8 +321,7 @@ def test_extract_payload_ignores_wrong_marker():
 
 # --- consolidate ------------------------------------------------------------
 def test_build_events_orders_token_pin_resolve():
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     resolutions = {"x": {"outcome": "YES", "source": "u"}}
     events = consolidate_tool.build_events(pin, resolutions, existing_ids=set(),
                                            pushed_at_date="2026-09-12")
@@ -267,16 +330,14 @@ def test_build_events_orders_token_pin_resolve():
 
 
 def test_build_events_skips_unresolved_checks():
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     events = consolidate_tool.build_events(pin, resolutions={}, existing_ids=set(),
                                            pushed_at_date="2026-09-12")
     assert events == []
 
 
 def test_build_events_skips_existing_tokens():
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     resolutions = {"x": {"outcome": "YES", "source": "u"}}
     token_id = consolidate_tool.token_id_for("a" * 40, "x")
     events = consolidate_tool.build_events(pin, resolutions, existing_ids={token_id},
@@ -286,8 +347,7 @@ def test_build_events_skips_existing_tokens():
 
 def test_build_events_refuses_empty_anchor():
     """An unanchored prediction never enters the ledger, not even as PRACTICE."""
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     resolutions = {"x": {"outcome": "YES", "source": "u"}}
     events = consolidate_tool.build_events(pin, resolutions, existing_ids=set(),
                                            pushed_at_date="")
@@ -315,21 +375,53 @@ def test_collect_trusted_pins_ignores_untrusted_commenters():
 
 
 def test_collect_trusted_pins_keeps_latest_per_head_sha():
+    binding = {"declared_pr": "1", "changed_from_base": True}
     old = pin_tool.render_pin_comment(pin_tool.build_payload(
-        "1", "a" * 40, "Claude Code", {"checks": {"x": {"conclusion": "success", "p": 0.5}}}))
+        "1", "a" * 40, "Claude Code",
+        {"pr": 1, "checks": {"x": {"conclusion": "success", "p": 0.5}}},
+        binding=binding))
     new = pin_tool.render_pin_comment(pin_tool.build_payload(
-        "1", "a" * 40, "Claude Code", {"checks": {"x": {"conclusion": "success", "p": 0.9}}}))
+        "1", "a" * 40, "Claude Code",
+        {"pr": 1, "checks": {"x": {"conclusion": "success", "p": 0.9}}},
+        binding=binding))
     bot = {"login": resolve_tool.TRUSTED_LOGIN}
     comments = [{"body": old, "user": bot, "created_at": "2026-01-01"},
                 {"body": new, "user": bot, "created_at": "2026-01-02"}]
-    pins = consolidate_tool.collect_trusted_pins(comments)
+    pins = consolidate_tool.collect_trusted_pins(comments, expected_pr="1")
     assert pins["a" * 40]["checks"]["x"]["p"] == 0.9
+
+
+def test_resolver_rejects_legacy_and_wrong_pr_pins():
+    good = bound_pin(pr="42")
+    bot = {"login": resolve_tool.TRUSTED_LOGIN}
+
+    legacy = {**good, "schema": "ci_predict_pin_v1"}
+    legacy_body = f"{resolve_tool.PIN_MARKER}\n```json\n{json.dumps(legacy)}\n```"
+    assert resolve_tool.find_latest_pin(
+        [{"body": legacy_body, "created_at": "2026-01-01", "user": bot}],
+        "a" * 40, expected_pr="42",
+    ) is None
+
+    wrong = {**good, "declaration_binding": {"declared_pr": "41", "changed_from_base": True}}
+    wrong_body = f"{resolve_tool.PIN_MARKER}\n```json\n{json.dumps(wrong)}\n```"
+    assert resolve_tool.find_latest_pin(
+        [{"body": wrong_body, "created_at": "2026-01-01", "user": bot}],
+        "a" * 40, expected_pr="42",
+    ) is None
+
+
+def test_consolidator_refuses_unbound_pin_even_with_resolution():
+    pin = bound_pin()
+    resolution = {"x": {"outcome": "YES", "source": "u"}}
+    inherited = {**pin, "declaration_binding": {"declared_pr": "1", "changed_from_base": False}}
+    assert consolidate_tool.build_events(
+        inherited, resolution, set(), "2026-09-12"
+    ) == []
 
 
 def test_load_ledger_state_refuses_a_corrupt_ledger(tmp_path):
     ledger = tmp_path / "corrupt.jsonl"
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     events = consolidate_tool.build_events(
         pin, {"x": {"outcome": "YES", "source": "u"}}, set(), "2026-09-12"
     )
@@ -345,8 +437,7 @@ def test_load_ledger_state_refuses_a_corrupt_ledger(tmp_path):
 
 
 def test_build_events_refuses_bad_probability():
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 3.0}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 3.0}})
     resolutions = {"x": {"outcome": "YES", "source": "u"}}
     try:
         consolidate_tool.build_events(pin, resolutions, existing_ids=set(),
@@ -359,9 +450,10 @@ def test_build_events_refuses_bad_probability():
 def test_full_pipeline_verifies_and_scores(tmp_path):
     """Pin -> resolve -> consolidate -> the real engine's own verify and score."""
     ledger = tmp_path / "ci.jsonl"
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.9},
-                      "y": {"conclusion": "success", "p": 0.9}}}
+    pin = bound_pin(checks={
+        "x": {"conclusion": "success", "p": 0.9},
+        "y": {"conclusion": "success", "p": 0.9},
+    })
     runs = [
         {"name": "x", "status": "completed", "conclusion": "success", "html_url": "u1"},
         {"name": "y", "status": "completed", "conclusion": "failure", "html_url": "u2"},
@@ -383,8 +475,7 @@ def test_full_pipeline_verifies_and_scores(tmp_path):
 
 def test_tampering_a_consolidated_ledger_is_detected(tmp_path):
     ledger = tmp_path / "ci.jsonl"
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     events = consolidate_tool.build_events(
         pin, {"x": {"outcome": "YES", "source": "u"}}, set(), "2026-09-12"
     )

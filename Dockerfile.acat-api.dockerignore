@@ -1,0 +1,22 @@
+# Scoped to `docker build -f Dockerfile.acat-api` (BuildKit picks up
+# <dockerfile-name>.dockerignore automatically).
+#
+# Defense in depth, not the primary safety mechanism: Dockerfile.acat-api's own
+# COPY lines are an explicit allowlist (requirements.txt, acat/__init__.py,
+# acat/api/) and determine image content regardless of how this file resolves.
+# This one only limits what gets uploaded to the build daemon from an otherwise
+# huge, mixed-content repo root — internal planning docs, a resume, zip
+# archives, z1-inbox/, humanaios-funding-pipeline/entitlement-navigator/'s
+# gitignored private/ evidence boundary, none of it relevant to this build.
+#
+# Ignore everything, then re-allow exactly the three inputs Dockerfile.acat-api
+# COPYs. The directory must be re-allowed both as itself and as `dir/**` —
+# re-allowing only the latter does not surface the directory entry itself.
+*
+!requirements.txt
+!acat/
+!acat/__init__.py
+!acat/api/
+!acat/api/**
+**/__pycache__/
+**/*.py[cod]
