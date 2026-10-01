@@ -22,7 +22,9 @@ class TestAIContextGenerator(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Initialize generator."""
-        cls.generator = AIContextGenerator(Path.cwd().parent.parent)
+        # Derive repo root from test file location: tests/ -> tools/ -> repo root
+        repo_root = Path(__file__).parent.parent.parent
+        cls.generator = AIContextGenerator(repo_root)
 
     def test_smoke_context_for_issue(self):
         """Test generating context for issue (smoke test)."""

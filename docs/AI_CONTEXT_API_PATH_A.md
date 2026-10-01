@@ -387,13 +387,13 @@ AI immediately knows:
 Before editing a file:
 
 ```bash
-$ haios authority edit .github/workflows/workflow-path-validation.yml
+$ haios authority edit tools/my_custom_tool_v1.py
 
 {
-  "file": ".github/workflows/workflow-path-validation.yml",
+  "file": "tools/my_custom_tool_v1.py",
   "can_edit": true,
   "zone": "Z1",
-  "reason": "Editable by Z1; implementation file"
+  "reason": "Editable by Z1; within tools/ editable scope"
 }
 
 → AI proceeds to edit

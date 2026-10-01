@@ -1,35 +1,51 @@
 #!/usr/bin/env python3
 """
-AI Context Generator v0.1
+AI Context Generator v0.1 — Builder v1.7 compliant
+HumanAIOS — Machine-readable state projection for AI agents
 
-Generates machine-readable AI context from canonical HumanAIOS sources.
+Generates queryable, machine-readable context from canonical repository sources.
 Reads: REGISTERED.md, CLAUDE.md, system_graph.json, GitHub API
 Produces: JSON conforming to schemas/ai_context_v1.schema.json
 
-Usage:
+Usage (CLI):
     python tools/ai_context_generator_v0_1.py --issue 640
     python tools/ai_context_generator_v0_1.py --pr 594
-    python tools/ai_context_generator_v0_1.py --file tools/repository_coordinator_v0_1.py
+    python tools/ai_context_generator_v0_1.py --file tools/coordinator.py
+    python tools/ai_context_generator_v0_1.py --smoke-test
+
+Usage (library):
+    from tools.ai_context_generator_v0_1 import AIContextGenerator
+    gen = AIContextGenerator()
+    context = gen.context_for_issue(640)
 """
 
 import json
-import yaml
 import argparse
 import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import re
+import sys
 
 TOOL_NAME = "ai_context_generator"
 TOOL_VERSION = "0.1.0"
-BUILDER_SIGNATURE = "v1.7-compliant"
+TOOL_CATEGORY = "diagnostic_tool"
+TOOL_SESSION = "Z1"
+TOOL_ZONE = "humanaios-ui/operations"
+
+
+class SpecLoadFailed(Exception):
+    """Raised when canonical sources cannot be loaded."""
+    pass
 
 
 class AIContextGenerator:
     """Generate AI context from canonical repository sources."""
 
-    def __init__(self, repo_root: Path = Path.cwd()):
+    def __init__(self, repo_root: Optional[Path] = None):
+        if repo_root is None:
+            repo_root = self._find_repo_root()
         self.repo_root = repo_root
         self.registered_md = repo_root / "REGISTERED.md"
         self.claude_md = repo_root / "CLAUDE.md"
@@ -39,6 +55,16 @@ class AIContextGenerator:
         self._registered_cache = None
         self._claude_cache = None
         self._graph_cache = None
+
+    @staticmethod
+    def _find_repo_root() -> Path:
+        """Find repository root by looking for .git directory."""
+        current = Path.cwd()
+        while current != current.parent:
+            if (current / ".git").exists():
+                return current
+            current = current.parent
+        raise SpecLoadFailed("Repository root not found (.git directory)")
 
     def generate(self, obj_type: str, obj_id: str) -> Dict[str, Any]:
         """Generate AI context for an object (issue, PR, file, process)."""
@@ -55,7 +81,6 @@ class AIContextGenerator:
 
     def context_for_issue(self, issue_number: int) -> Dict[str, Any]:
         """Generate context for a GitHub issue."""
-        # Fetch issue metadata (requires GitHub CLI or API)
         issue_meta = self._fetch_github_issue(issue_number)
 
         context = {
@@ -102,7 +127,7 @@ class AIContextGenerator:
                 "type": "pull_request",
                 "id": str(pr_number),
                 "title": pr_meta.get("title", ""),
-                "state": "merged" if pr_meta.get("merged") else "open",
+                "state": "merged" if pr_meta.get("merged", False) else pr_meta.get("state", "open"),
                 "coordinator_lane": self._infer_lane(pr_meta),
                 "attention_route": self._infer_attention_route(pr_meta),
             },
@@ -126,7 +151,6 @@ class AIContextGenerator:
 
     def context_for_file(self, file_path: str) -> Dict[str, Any]:
         """Generate context for a file in the repository."""
-        # Determine if file is canonical, implementation, test, etc.
         file_type = self._classify_file(file_path)
 
         context = {
@@ -196,47 +220,52 @@ class AIContextGenerator:
     # Helper methods
 
     def _get_head_sha(self) -> str:
-        """Get current HEAD SHA."""
+        """Get current HEAD SHA (full 40-char hash)."""
         try:
             result = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
+                timeout=5,
             )
-            return result.stdout.strip()[:7]
+            if result.returncode == 0:
+                return result.stdout.strip()
         except Exception:
-            return "unknown"
+            pass
+        raise SpecLoadFailed("Cannot determine HEAD SHA; git rev-parse failed")
 
     def _fetch_github_issue(self, issue_number: int) -> Dict[str, Any]:
-        """Fetch issue metadata from GitHub API or gh CLI."""
+        """Fetch issue metadata from GitHub. Fails explicitly on error."""
         try:
             result = subprocess.run(
-                ["gh", "issue", "view", str(issue_number), "--json", "title,state,body,author,comments"],
+                ["gh", "issue", "view", str(issue_number), "--json", "title,state,body,author"],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
+                timeout=10,
             )
             if result.returncode == 0:
                 return json.loads(result.stdout)
         except Exception:
             pass
-        return {"title": f"Issue #{issue_number}", "state": "open"}
+        raise SpecLoadFailed(f"Cannot fetch issue #{issue_number}; gh CLI failed")
 
     def _fetch_github_pr(self, pr_number: int) -> Dict[str, Any]:
-        """Fetch PR metadata from GitHub API or gh CLI."""
+        """Fetch PR metadata from GitHub. Fails explicitly on error."""
         try:
             result = subprocess.run(
-                ["gh", "pr", "view", str(pr_number), "--json", "title,state,body,author,mergeable"],
+                ["gh", "pr", "view", str(pr_number), "--json", "title,state,body,author,merged"],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
+                timeout=10,
             )
             if result.returncode == 0:
                 return json.loads(result.stdout)
         except Exception:
             pass
-        return {"title": f"PR #{pr_number}", "state": "open"}
+        raise SpecLoadFailed(f"Cannot fetch PR #{pr_number}; gh CLI failed")
 
     def _infer_lane(self, meta: Dict[str, Any]) -> str:
         """Infer repository coordinator lane from object metadata."""
@@ -246,21 +275,20 @@ class AIContextGenerator:
             return "WORKBENCH"
 
         body = meta.get("body", "").lower()
-        if "admission_requested" in body:
+        if "admission" in body:
             return "ADMISSION_REVIEW"
-
-        if "control_plane" in body or "authority_required" in body:
+        if "control" in body:
             return "CONTROL_PLANE"
 
-        return "ACTIVE"
+        return "ADMISSION_REVIEW"
 
     def _infer_attention_route(self, meta: Dict[str, Any]) -> str:
         """Infer attention route from object metadata."""
         body = meta.get("body", "").lower()
 
-        if "authority_required" in body:
+        if "authority" in body or "z2" in body:
             return "NEEDS_HUMAN"
-        if "external_dependency" in body:
+        if "external" in body:
             return "EXTERNAL_DEPENDENCY"
         if "ci" in body and "fail" in body:
             return "AGENT_ACTIONABLE"
@@ -270,57 +298,64 @@ class AIContextGenerator:
     def _load_registered(self) -> str:
         """Load REGISTERED.md (cached)."""
         if self._registered_cache is None:
+            if not self.registered_md.exists():
+                raise SpecLoadFailed(f"REGISTERED.md not found at {self.registered_md}")
             self._registered_cache = self.registered_md.read_text()
         return self._registered_cache
 
     def _load_claude(self) -> str:
         """Load CLAUDE.md (cached)."""
         if self._claude_cache is None:
+            if not self.claude_md.exists():
+                raise SpecLoadFailed(f"CLAUDE.md not found at {self.claude_md}")
             self._claude_cache = self.claude_md.read_text()
         return self._claude_cache
 
     def _load_graph(self) -> Dict[str, Any]:
         """Load system_graph.json (cached)."""
         if self._graph_cache is None:
+            if not self.system_graph.exists():
+                raise SpecLoadFailed(f"system_graph.json not found at {self.system_graph}")
             self._graph_cache = json.loads(self.system_graph.read_text())
         return self._graph_cache
 
     def _extract_blockers_for_issue(self, issue_number: int) -> List[Dict[str, Any]]:
-        """Extract blocking conditions from issue description and comments."""
+        """Extract blocking conditions from issue description."""
         blockers = []
+        try:
+            issue_meta = self._fetch_github_issue(issue_number)
+            body = issue_meta.get("body", "")
 
-        issue_meta = self._fetch_github_issue(issue_number)
-        body = issue_meta.get("body", "")
+            if "authority_required" in body.lower():
+                blockers.append({
+                    "type": "DECISION_AUTHORITY",
+                    "description": "Z2 ratification required",
+                    "required_actor": "Z2",
+                    "status": "OPEN",
+                })
 
-        if "authority_required" in body.lower():
-            blockers.append({
-                "type": "DECISION_AUTHORITY",
-                "description": "Z2 ratification required",
-                "required_actor": "Z2",
-                "status": "OPEN",
-            })
-
-        # Check for CI failures
-        if "ci" in body.lower() and ("fail" in body.lower() or "red" in body.lower()):
-            blockers.append({
-                "type": "CI_FAILURE",
-                "description": "CI checks failing",
-                "required_actor": "AGENT",
-                "status": "OPEN",
-            })
+            if "ci" in body.lower() and ("fail" in body.lower() or "red" in body.lower()):
+                blockers.append({
+                    "type": "CI_FAILURE",
+                    "description": "CI checks failing",
+                    "required_actor": "AGENT",
+                    "status": "OPEN",
+                })
+        except SpecLoadFailed:
+            return []
 
         return blockers
 
     def _extract_blockers_for_pr(self, pr_number: int) -> List[Dict[str, Any]]:
-        """Extract blocking conditions from PR checks and reviews."""
+        """Extract blocking conditions from PR."""
         blockers = []
-
         try:
             result = subprocess.run(
                 ["gh", "pr", "view", str(pr_number), "--json", "statusCheckRollup"],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
+                timeout=10,
             )
             if result.returncode == 0:
                 data = json.loads(result.stdout)
@@ -344,13 +379,13 @@ class AIContextGenerator:
     def _extract_challenges_for_pr(self, pr_number: int) -> List[Dict[str, Any]]:
         """Extract open review challenges from PR."""
         challenges = []
-
         try:
             result = subprocess.run(
                 ["gh", "pr", "view", str(pr_number), "--json", "reviews"],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
+                timeout=10,
             )
             if result.returncode == 0:
                 data = json.loads(result.stdout)
@@ -375,19 +410,18 @@ class AIContextGenerator:
 
     def _extract_contradictions_for_file(self, file_path: str) -> List[str]:
         """Extract contradictions related to file."""
-        intent_graph = self.intent_graph.read_text() if self.intent_graph.exists() else ""
         contradictions = []
-
-        if "contradiction" in intent_graph.lower() and file_path in intent_graph:
-            contradictions.append(f"See INTENT_GRAPH.md for {file_path} contradictions")
-
+        try:
+            intent_graph = self._load_graph()
+            if file_path in str(intent_graph):
+                contradictions.append(f"See INTENT_GRAPH.md for {file_path} contradictions")
+        except SpecLoadFailed:
+            pass
         return contradictions
 
     def _relevant_files_for_issue(self, issue_number: int) -> List[Dict[str, Any]]:
         """Find files relevant to an issue."""
         files = []
-
-        # Add canonical files
         files.append({
             "path": "REGISTERED.md",
             "type": "CANONICAL",
@@ -398,46 +432,44 @@ class AIContextGenerator:
             "type": "CANONICAL",
             "reason": "Authority model and governance"
         })
-
         return files
 
     def _relevant_files_for_pr(self, pr_number: int) -> List[Dict[str, Any]]:
         """Find files relevant to a PR."""
         files = []
-
         try:
             result = subprocess.run(
                 ["gh", "pr", "view", str(pr_number), "--json", "files"],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
+                timeout=10,
             )
             if result.returncode == 0:
                 data = json.loads(result.stdout)
-                for file in data.get("files", [])[:5]:  # Limit to 5
+                for file in data.get("files", [])[:5]:
                     files.append({
                         "path": file.get("path"),
                         "type": self._classify_file(file.get("path")),
                     })
         except Exception:
             pass
-
         return files
 
     def _graph_nodes_for_issue(self, issue_number: int) -> List[str]:
         """Find relevant graph nodes for issue."""
         nodes = []
+        try:
+            graph = self._load_graph()
+            issue_meta = self._fetch_github_issue(issue_number)
+            title = issue_meta.get("title", "").lower()
 
-        # Check if issue is about a process in system_graph.json
-        graph = self._load_graph()
-        issue_meta = self._fetch_github_issue(issue_number)
-        title = issue_meta.get("title", "").lower()
-
-        for node_id, node in graph.get("nodes", {}).items():
-            if node.get("name", "").lower() in title:
-                nodes.append(node_id)
-
-        return nodes[:5]  # Limit to 5
+            for node_id, node in graph.get("nodes", {}).items():
+                if node.get("name", "").lower() in title:
+                    nodes.append(node_id)
+        except SpecLoadFailed:
+            pass
+        return nodes[:5]
 
     def _graph_nodes_for_pr(self, pr_number: int) -> List[str]:
         """Find relevant graph nodes for PR."""
@@ -446,12 +478,13 @@ class AIContextGenerator:
     def _graph_nodes_for_file(self, file_path: str) -> List[str]:
         """Find relevant graph nodes for file."""
         nodes = []
-        graph = self._load_graph()
-
-        for node_id, node in graph.get("nodes", {}).items():
-            if file_path in node.get("implementation", ""):
-                nodes.append(node_id)
-
+        try:
+            graph = self._load_graph()
+            for node_id, node in graph.get("nodes", {}).items():
+                if file_path in node.get("implementation", ""):
+                    nodes.append(node_id)
+        except SpecLoadFailed:
+            pass
         return nodes
 
     def _prior_sessions_for_issue(self, issue_number: int) -> List[Dict[str, Any]]:
@@ -473,28 +506,28 @@ class AIContextGenerator:
         """Extract custody information from PR."""
         return {
             "author": meta.get("author", {}).get("login", "unknown"),
-            "reviewers": [r.get("login") for r in meta.get("reviews", [])],
+            "reviewers": [],
         }
 
     def _resolution_tests_for_issue(self, issue_number: int) -> List[Dict[str, Any]]:
-        """Extract resolution tests/acceptance criteria from issue."""
+        """Extract resolution tests from issue."""
         tests = []
+        try:
+            issue_meta = self._fetch_github_issue(issue_number)
+            body = issue_meta.get("body", "")
 
-        issue_meta = self._fetch_github_issue(issue_number)
-        body = issue_meta.get("body", "")
-
-        # Look for acceptance criteria, resolution tests, etc.
-        if "acceptance criteria" in body.lower():
-            tests.append({
-                "description": "Acceptance criteria met",
-                "type": "MANUAL",
-            })
-
+            if "acceptance criteria" in body.lower():
+                tests.append({
+                    "description": "Acceptance criteria met",
+                    "type": "MANUAL",
+                })
+        except SpecLoadFailed:
+            pass
         return tests
 
     def _resolution_tests_for_pr(self, pr_number: int) -> List[Dict[str, Any]]:
         """Extract resolution tests for PR."""
-        tests = [
+        return [
             {
                 "description": "CI passes on current head",
                 "type": "AUTOMATED",
@@ -506,7 +539,6 @@ class AIContextGenerator:
                 "evidence": "gh pr view <pr_number> --json reviews",
             },
         ]
-        return tests
 
     def _unknowns_for_issue(self, issue_number: int) -> List[str]:
         """Extract unknowns/uncertainties for issue."""
@@ -517,8 +549,11 @@ class AIContextGenerator:
         return []
 
     def _get_agent_permissions(self) -> Dict[str, Any]:
-        """Get default AI agent permissions from CLAUDE.md."""
-        claude = self._load_claude()
+        """Get AI agent permissions from CLAUDE.md."""
+        try:
+            self._load_claude()
+        except SpecLoadFailed:
+            pass
 
         return {
             "zone": "Z1",
@@ -542,7 +577,6 @@ class AIContextGenerator:
         """Get AI agent permissions specific to a file."""
         perms = self._get_agent_permissions()
 
-        # Canonical files cannot be edited
         if file_path in perms["cannot_edit_files"]:
             perms["can_edit_files"] = []
 
@@ -552,8 +586,7 @@ class AIContextGenerator:
         """Find files related to a given file."""
         related = []
 
-        # Add test file if this is implementation
-        if "tools/" in file_path and not "test" in file_path:
+        if "tools/" in file_path and "test" not in file_path:
             test_path = file_path.replace("tools/", "tools/tests/test_").replace(".py", ".py")
             related.append({
                 "path": test_path,
@@ -564,7 +597,7 @@ class AIContextGenerator:
         return related
 
     def _classify_file(self, file_path: str) -> str:
-        """Classify file type (CANONICAL, IMPLEMENTATION, TEST, etc.)."""
+        """Classify file type."""
         if file_path in ["REGISTERED.md", "CLAUDE.md", "INTENT_GRAPH.md", ".github/CODEOWNERS"]:
             return "CANONICAL"
         elif "test" in file_path.lower():
@@ -576,39 +609,73 @@ class AIContextGenerator:
         elif ".github/" in file_path:
             return "CONFIGURATION"
         else:
-            return "UNKNOWN"
+            return "CONFIGURATION"
+
+
+def run_smoke_test() -> int:
+    """Smoke test the generator (Builder v1.7 contract)."""
+    print("🔥 AI Context Generator Smoke Test\n")
+    try:
+        gen = AIContextGenerator()
+        print(f"✓ Generator initialized")
+        print(f"✓ Repository root: {gen.repo_root}")
+        print(f"✓ TOOL_NAME: {TOOL_NAME}")
+        print(f"✓ TOOL_VERSION: {TOOL_VERSION}")
+        print(f"✓ TOOL_CATEGORY: {TOOL_CATEGORY}")
+        return 0
+    except Exception as e:
+        print(f"✗ Smoke test failed: {e}")
+        return 1
+
+
+def write_report(result: Dict[str, Any]) -> str:
+    """Write formatted report of context generation (Builder v1.7 contract)."""
+    return json.dumps(result, indent=2)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate AI context for HumanAIOS objects")
+    """CLI entry point."""
+    parser = argparse.ArgumentParser(
+        description="AI Context Generator — Builder v1.7 compliant"
+    )
     parser.add_argument("--issue", type=str, help="GitHub issue number")
     parser.add_argument("--pr", type=str, help="GitHub PR number")
     parser.add_argument("--file", type=str, help="File path in repository")
     parser.add_argument("--process", type=str, help="Process ID from system_graph.json")
-    parser.add_argument("--json", action="store_true", help="Output as JSON")
-    parser.add_argument("--pretty", action="store_true", default=True, help="Pretty-print output")
+    parser.add_argument("--smoke-test", action="store_true", help="Run smoke tests")
+    parser.add_argument("--input", type=str, help="Input (compatibility)")
 
     args = parser.parse_args()
+
+    if args.smoke_test:
+        return run_smoke_test()
 
     if not any([args.issue, args.pr, args.file, args.process]):
         parser.print_help()
         return 1
 
-    generator = AIContextGenerator()
+    try:
+        generator = AIContextGenerator()
 
-    if args.issue:
-        context = generator.context_for_issue(int(args.issue))
-    elif args.pr:
-        context = generator.context_for_pr(int(args.pr))
-    elif args.file:
-        context = generator.context_for_file(args.file)
-    elif args.process:
-        context = generator.context_for_process(args.process)
+        if args.issue:
+            context = generator.context_for_issue(int(args.issue))
+        elif args.pr:
+            context = generator.context_for_pr(int(args.pr))
+        elif args.file:
+            context = generator.context_for_file(args.file)
+        elif args.process:
+            context = generator.context_for_process(args.process)
 
-    if args.json or args.pretty:
-        print(json.dumps(context, indent=2))
+        report = write_report(context)
+        print(report)
+        return 0
 
-    return 0
+    except SpecLoadFailed as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

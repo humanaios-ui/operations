@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 180
+  tools: 184
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 140
+  builder_markers_present: 142
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 2
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2263,7 +2264,7 @@ tools:
   category: governance_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
   smoke_test: false
   builder_markers: false
@@ -2276,7 +2277,7 @@ tools:
   category: governance_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
   smoke_test: false
   builder_markers: false
@@ -2289,12 +2290,60 @@ tools:
   category: audit_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
   smoke_test: false
   builder_markers: false
   purpose: Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox
     patterns, authorization misuse, undefined artifacts, and stale evidence.
+- tool_id: HAIOS-TOOL-193
+  name: ai_context_generator
+  path: tools/ai_context_generator_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Generates queryable, machine-readable context from canonical repository sources.
+  session: Z1
+- tool_id: HAIOS-TOOL-194
+  name: haios
+  path: tools/haios
+  version: 0.1.0
+  category: orchestrator_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: other
+  smoke_test: true
+  builder_markers: true
+- tool_id: HAIOS-TOOL-195
+  name: workflow_path_validator
+  path: tools/workflow_path_validator.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Workflow Path Validator
+- tool_id: HAIOS-TOOL-196
+  name: workflow_telemetry_collector
+  path: tools/workflow_telemetry_collector.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Workflow Telemetry Collector
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

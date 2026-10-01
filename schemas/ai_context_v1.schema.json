@@ -203,7 +203,7 @@
               },
               "type": {
                 "type": "string",
-                "enum": ["CANONICAL", "IMPLEMENTATION", "TEST", "DOCUMENTATION", "CONFIGURATION"]
+                "enum": ["CANONICAL", "IMPLEMENTATION", "TEST", "DOCUMENTATION", "CONFIGURATION", "UNKNOWN"]
               }
             }
           }
