@@ -183,6 +183,7 @@ def registry(root: str = ROOT) -> list[dict]:
                 "tools/tests/test_smag_predict_lint.py", "tools/tests/test_smag_feedback.py",
                 "tools/tests/test_nf_ledger_cli.py", "tools/tests/test_ci_predict.py",
                 "tools/tests/test_control_plane_custody_observer_v0_1.py",
+                "tools/tests/test_control_plane_github_adapter_v0_1.py",
                 "tools/tests/test_lifecycle_predict.py", "tools/tests/test_dimension_attribution.py",
                 "tools/tests/test_tool_trace_hook.py", "tools/tests/test_tool_trace_reader.py",
                 "tools/tests/test_copilot_acat_scanner.py",
