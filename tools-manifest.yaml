@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 189
+  tools: 190
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 141
+  builder_markers_present: 142
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2404,6 +2404,19 @@ tools:
   builder_markers: true
   purpose: Read-only control-plane observation and execution/decision/information custody classification.
   session: CPC-001
+- tool_id: HAIOS-TOOL-203
+  name: control_plane_github_adapter
+  path: tools/control_plane_github_adapter_v0_1.py
+  version: 0.1.0
+  category: pipeline_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Transform exported GitHub evidence into authority-neutral raw custody observations.
+  session: CPC-002
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
