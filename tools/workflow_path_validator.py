@@ -82,10 +82,17 @@ def validate_workflow_paths(workflow_file: str) -> tuple[bool, list, list]:
                 # If pattern has wildcards, verify it has potential matches
                 if "*" in path_pattern or "?" in path_pattern:
                     if not matches:
-                        # Pattern matches nothing currently. Check if parent directory exists for future-proofing.
+                        # Pattern matches nothing currently. Check if it's future-facing.
                         if "/" in path_pattern:
                             parent = str(Path(path_pattern).parent)
-                            if parent != ".":
+
+                            # If parent contains wildcards, it's a future-facing pattern — allow with warning
+                            if "*" in parent or "?" in parent:
+                                warnings.append(
+                                    f"Path '{path_pattern}' is future-facing (directory name has wildcards); "
+                                    f"no matches currently"
+                                )
+                            elif parent != ".":
                                 full_path = repo_root / parent
                                 if not full_path.exists():
                                     errors.append(
@@ -97,6 +104,10 @@ def validate_workflow_paths(workflow_file: str) -> tuple[bool, list, list]:
                                     warnings.append(
                                         f"Path '{path_pattern}' matches no files (parent directory exists)"
                                     )
+                            else:
+                                errors.append(
+                                    f"Path '{path_pattern}' matches no files in repository"
+                                )
                         else:
                             errors.append(
                                 f"Path '{path_pattern}' matches no files in repository"
