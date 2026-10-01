@@ -33,7 +33,7 @@ counts:
   tools: 189
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 141
+  builder_markers_present: 142
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2370,14 +2370,14 @@ tools:
 - tool_id: HAIOS-TOOL-199
   name: workflow_path_validator
   path: tools/workflow_path_validator.py
-  version: unversioned
+  version: 1.0.0
   category: validation_tool
   zone: 1
   status: draft
-  interface: module
+  interface: cli
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: Workflow Path Validator
 - tool_id: HAIOS-TOOL-200
   name: workflow_telemetry_collector
