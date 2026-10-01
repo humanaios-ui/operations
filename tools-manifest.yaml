@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 188
+  tools: 189
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 140
+  builder_markers_present: 141
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2391,6 +2391,19 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
+- tool_id: HAIOS-TOOL-202
+  name: control_plane_custody_observer
+  path: tools/control_plane_custody_observer_v0_1.py
+  version: 0.1.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Read-only control-plane observation and execution/decision/information custody classification.
+  session: CPC-001
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
