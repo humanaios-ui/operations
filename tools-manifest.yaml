@@ -2391,6 +2391,19 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
+- tool_id: HAIOS-TOOL-201
+  name: repository_knowledge_graph
+  path: tools/repository_knowledge_graph_v0_1.py
+  version: 0.2.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Deterministic provenance-bearing repository graph compiler with bounded inference and human review outputs.
+  session: REPOSITORY-KNOWLEDGE-GRAPH-01
 - tool_id: HAIOS-TOOL-202
   name: control_plane_custody_observer
   path: tools/control_plane_custody_observer_v0_1.py

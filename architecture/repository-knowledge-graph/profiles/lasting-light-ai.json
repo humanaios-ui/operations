@@ -1,0 +1,334 @@
+{
+  "version": "0.1.0",
+  "graph_id": "lasting-light-ai-repository-knowledge-graph",
+  "repository": "humanaios-ui/lasting-light-ai",
+  "status": "DERIVED_TEST_PROFILE",
+  "purpose": "Reproducibility pilot for the repository evidence graph method against the Lasting Light AI research and public-site repository.",
+  "invariants": [
+    "GRAPH_IS_NOT_AUTHORITY",
+    "PROFILE_IS_CURATED_INPUT",
+    "REFERENCE_IS_NOT_EVIDENCE",
+    "CLAIM_IS_NOT_IMPLEMENTATION",
+    "IMPLEMENTATION_IS_NOT_TEST",
+    "TEST_IS_NOT_OBSERVED_OUTCOME",
+    "TEST_ASSOCIATION_IS_NOT_TEST_PASS",
+    "INFERENCE_IS_NOT_OBSERVATION",
+    "INFERENCE_IS_NOT_WARRANT",
+    "INFERENCE_IS_NOT_AUTHORIZATION",
+    "INFERENCE_MUST_BE_RECONSTRUCTABLE_AND_FALSIFIABLE",
+    "MODEL_AGREEMENT_IS_NOT_PROOF",
+    "WARRANT_IS_NOT_AUTHORIZATION",
+    "AUTHORIZATION_IS_NOT_EXECUTION",
+    "NO_AUTONOMOUS_GRAPH_MUTATION",
+    "NO_AUTONOMOUS_SELF_AUTHORIZATION"
+  ],
+  "exclude_paths": [
+    ".git/",
+    "node_modules/",
+    "dist/",
+    "coverage/",
+    "outputs/",
+    "playwright-report/",
+    "test-results/",
+    ".pytest_cache/",
+    "__pycache__/"
+  ],
+  "content_scan_exclusions": [
+    ".env",
+    ".env.*",
+    "*Resume*",
+    "*resume*",
+    "*.db",
+    "*.zip",
+    "*.docx",
+    "*.jpg",
+    "*.jpeg",
+    "*.png",
+    "*.gif",
+    "*.webp",
+    "*.glb"
+  ],
+  "source_graphs": [],
+  "canonical_artifacts": [
+    {
+      "path": "START_HERE.md",
+      "role": "repository_front_door",
+      "authority_class": "ORIENTATION",
+      "note": "Repository-declared system map and navigation surface; not operational proof."
+    },
+    {
+      "path": "README.md",
+      "role": "public_research_summary",
+      "authority_class": "PUBLIC_CLAIMS",
+      "note": "Public research status and claims that require evidence and version context."
+    },
+    {
+      "path": "METHODS.md",
+      "role": "research_method",
+      "authority_class": "DRAFT_METHOD",
+      "note": "Repository-declared methods and limitations; status remains DRAFT."
+    },
+    {
+      "path": "PROTOCOL_PHASE2_PREREGISTRATION.md",
+      "role": "preregistered_protocol",
+      "authority_class": "RESEARCH_PROTOCOL",
+      "note": "Protocol declaration; external registration and execution remain separate evidence."
+    },
+    {
+      "path": "VALIDATION_PLAN.md",
+      "role": "validation_plan",
+      "authority_class": "VALIDATION_SPECIFICATION",
+      "note": "Planned validation is not evidence that validation ran or passed."
+    },
+    {
+      "path": "GOVERNANCE_PHASE2.md",
+      "role": "research_governance",
+      "authority_class": "GOVERNANCE_SPECIFICATION",
+      "note": "Declared Phase 2 controls; graph presence does not establish enforcement."
+    },
+    {
+      "path": "docs/EVIDENCE-GRAPH.md",
+      "role": "evidence_graph_specification",
+      "authority_class": "ARCHITECTURE_SPECIFICATION",
+      "note": "Architecture specification, not evidence that an append-only graph operates."
+    },
+    {
+      "path": "docs/INTENT-TRANSDUCTION-ENGINE.md",
+      "role": "intent_translation_specification",
+      "authority_class": "ARCHITECTURE_SPECIFICATION",
+      "note": "Intent translation specification that explicitly preserves human authority."
+    }
+  ],
+  "semantic_nodes": [
+    {
+      "id": "concept:public_research_claim",
+      "type": "claim",
+      "label": "Public research claim",
+      "source_ref": "README.md",
+      "state": "CLAIMED"
+    },
+    {
+      "id": "concept:research_method",
+      "type": "research_method",
+      "label": "ACAT research method",
+      "source_ref": "METHODS.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:preregistered_protocol",
+      "type": "research_protocol",
+      "label": "Phase 2 preregistered protocol",
+      "source_ref": "PROTOCOL_PHASE2_PREREGISTRATION.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:evidence_model",
+      "type": "evidence_concept",
+      "label": "Evidence graph model",
+      "source_ref": "docs/EVIDENCE-GRAPH.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:validation",
+      "type": "validation_concept",
+      "label": "Independent validation",
+      "source_ref": "VALIDATION_PLAN.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:research_governance",
+      "type": "governance_concept",
+      "label": "Phase 2 research governance",
+      "source_ref": "GOVERNANCE_PHASE2.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:intent_interpretation",
+      "type": "intent_concept",
+      "label": "Inspectable intent interpretation",
+      "source_ref": "docs/INTENT-TRANSDUCTION-ENGINE.md",
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "concept:implementation_candidate",
+      "type": "implementation_concept",
+      "label": "Implementation candidate",
+      "source_ref": "docs/INTENT-TRANSDUCTION-ENGINE.md",
+      "state": "SPECIFIED"
+    }
+  ],
+  "semantic_edges": [
+    {
+      "from": "concept:research_method",
+      "to": "concept:public_research_claim",
+      "relation": "INFORMS_BUT_DOES_NOT_PROVE",
+      "state": "SPECIFIED",
+      "source_ref": "METHODS.md"
+    },
+    {
+      "from": "concept:preregistered_protocol",
+      "to": "concept:research_method",
+      "relation": "CONSTRAINS",
+      "state": "SPECIFIED",
+      "source_ref": "PROTOCOL_PHASE2_PREREGISTRATION.md"
+    },
+    {
+      "from": "concept:evidence_model",
+      "to": "concept:public_research_claim",
+      "relation": "INFORMS_BUT_DOES_NOT_PROVE",
+      "state": "SPECIFIED",
+      "source_ref": "docs/EVIDENCE-GRAPH.md"
+    },
+    {
+      "from": "concept:validation",
+      "to": "concept:public_research_claim",
+      "relation": "CHALLENGES",
+      "state": "SPECIFIED",
+      "source_ref": "VALIDATION_PLAN.md"
+    },
+    {
+      "from": "concept:research_governance",
+      "to": "concept:preregistered_protocol",
+      "relation": "GOVERNS",
+      "state": "SPECIFIED",
+      "source_ref": "GOVERNANCE_PHASE2.md"
+    },
+    {
+      "from": "concept:intent_interpretation",
+      "to": "concept:implementation_candidate",
+      "relation": "INFORMS_BUT_DOES_NOT_AUTHORIZE",
+      "state": "SPECIFIED",
+      "source_ref": "docs/INTENT-TRANSDUCTION-ENGINE.md"
+    }
+  ],
+  "inference": {
+    "enabled": true,
+    "mode": "DETERMINISTIC_BOUNDED",
+    "epistemic_state": "MODEL_INFERRED",
+    "recursive": false,
+    "max_assertions": 3000,
+    "forbidden_conclusion_relations": [
+      "AUTHORIZES",
+      "CAUSES",
+      "CLAIM_PROVEN",
+      "ELIGIBLE",
+      "ENFORCES",
+      "EXECUTED",
+      "GRANTS_AUTHORITY",
+      "HAS_CAPABILITY",
+      "IS_CAPABLE",
+      "PERMITS",
+      "PROVES",
+      "TESTS_PASS"
+    ],
+    "rules": [
+      {
+        "id": "RGM-INF-LOCAL-DEPENDENCY-01",
+        "kind": "two_edge_join",
+        "description": "A local artifact that imports another local artifact may depend on a second local artifact imported by that intermediate artifact.",
+        "left_relation": "IMPORTS",
+        "right_relation": "IMPORTS",
+        "right_direction": "out",
+        "subject_types": ["artifact"],
+        "intermediate_types": ["artifact"],
+        "object_types": ["artifact"],
+        "exclude_if_direct_relations": ["IMPORTS"],
+        "conclusion_relation": "MAY_DEPEND_ON_TRANSITIVELY",
+        "confidence": 0.8,
+        "independence": "NOT_APPLICABLE",
+        "max_assertions": 2000,
+        "human_review_required": true,
+        "assumptions": [
+          "Static local import resolution approximates a reachable dependency path."
+        ],
+        "not_evidence_of": [
+          "runtime execution",
+          "causality",
+          "capability",
+          "authority"
+        ],
+        "falsifier": "Remove or disprove either local import premise, or show that runtime conditions make the inferred path unreachable."
+      },
+      {
+        "id": "RGM-INF-WORKFLOW-TEST-PATH-01",
+        "kind": "two_edge_join",
+        "description": "A workflow job that invokes a test artifact may exercise an implementation associated with that test artifact.",
+        "left_relation": "INVOKES",
+        "right_relation": "TESTS",
+        "right_direction": "out",
+        "subject_types": ["workflow_job"],
+        "intermediate_types": ["artifact"],
+        "object_types": ["artifact"],
+        "conclusion_relation": "MAY_EXERCISE",
+        "confidence": 0.75,
+        "independence": "NOT_ESTABLISHED",
+        "max_assertions": 1000,
+        "human_review_required": true,
+        "assumptions": [
+          "The invoked test artifact follows the statically observed TESTS association."
+        ],
+        "not_evidence_of": [
+          "workflow success",
+          "test pass",
+          "claim proof",
+          "runtime coverage"
+        ],
+        "falsifier": "Show that the workflow does not execute the test path or that the test does not reach the associated implementation."
+      }
+    ]
+  },
+  "views": [
+    {
+      "id": "repository",
+      "title": "Repository topology",
+      "description": "Artifacts, directories, code, tests, workflows, schemas, references, and static dependencies.",
+      "node_types": [
+        "repository",
+        "directory",
+        "artifact",
+        "section",
+        "workflow",
+        "workflow_job",
+        "schema",
+        "module",
+        "action_dependency"
+      ]
+    },
+    {
+      "id": "research",
+      "title": "Research structure",
+      "description": "Curated research claims, method, protocol, evidence, validation, governance, and intent concepts.",
+      "id_prefixes": ["concept:"]
+    },
+    {
+      "id": "inference",
+      "title": "Bounded inference",
+      "description": "Deterministic MODEL_INFERRED assertions with premises, falsifiers, and no authority effect.",
+      "node_types": ["inference_assertion"],
+      "include_incident_edges": true
+    },
+    {
+      "id": "risk",
+      "title": "Risk and unresolved state",
+      "description": "Parse failures, unresolved references, and GitHub items whose live state was not ingested.",
+      "node_types": [
+        "parse_failure",
+        "unresolved_reference",
+        "github_item"
+      ],
+      "include_incident_edges": true
+    },
+    {
+      "id": "provenance",
+      "title": "Provenance",
+      "description": "Citations, declarations, references, repository identities, and derivation paths.",
+      "relations": [
+        "CITES",
+        "DECLARES",
+        "REFERENCES",
+        "REFERENCES_GITHUB_ITEM",
+        "REFERENCES_WORK_ITEM"
+      ]
+    }
+  ]
+}
