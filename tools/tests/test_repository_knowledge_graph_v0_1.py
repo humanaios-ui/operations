@@ -617,3 +617,113 @@ def test_profile_must_remain_inside_repository(tmp_path):
     except SpecLoadFailed:
         return
     raise AssertionError("an out-of-repository profile must be rejected")
+
+def test_hidden_path_exclusion_preserves_leading_dot(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    profile_path = repo / "architecture/repository-knowledge-graph/profile.json"
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    profile["exclude_paths"].append(".github/")
+    profile_path.write_text(json.dumps(profile), encoding="utf-8")
+    graph = GraphBuilder(repo).build()
+    ids = {node["id"] for node in graph["nodes"]}
+    assert "artifact:.github/workflows/test.yml" not in ids
+
+
+def test_tracked_broken_symlink_remains_in_snapshot_inventory(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    broken = repo / "broken-link.json"
+    os.symlink("missing-target.json", broken)
+    _run(repo, "git", "add", "broken-link.json")
+    _run(repo, "git", "commit", "-q", "-m", "track broken symlink")
+    graph = GraphBuilder(repo).build()
+    node = next(
+        node for node in graph["nodes"]
+        if node["id"] == "artifact:broken-link.json"
+    )
+    assert node["properties"]["symlink"] is True
+    assert node["properties"]["symlink_target"] == "missing-target.json"
+
+
+def test_source_graph_symlink_is_rejected(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    target = repo / "EVIDENCE_GRAPH.real.json"
+    original = repo / "EVIDENCE_GRAPH.json"
+    original.rename(target)
+    os.symlink("EVIDENCE_GRAPH.real.json", original)
+    try:
+        GraphBuilder(repo).build()
+    except SpecLoadFailed as exc:
+        assert "source graph may not be a symlink" in str(exc)
+        return
+    raise AssertionError("symlinked source graph must be rejected")
+
+
+def test_negative_per_rule_assertion_limit_is_rejected(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    profile_path = repo / "architecture/repository-knowledge-graph/profile.json"
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    profile["inference"]["rules"][0]["max_assertions"] = -1
+    profile_path.write_text(json.dumps(profile), encoding="utf-8")
+    try:
+        GraphBuilder(repo).build()
+    except SpecLoadFailed as exc:
+        assert "max_assertions must be at least 1" in str(exc)
+        return
+    raise AssertionError("negative per-rule max_assertions must be rejected")
+
+
+def test_validation_applies_published_json_schema(tmp_path):
+    graph = GraphBuilder(_fixture_repo(tmp_path)).build()
+    broken = copy.deepcopy(graph)
+    broken.pop("schema_version")
+    result = validate_graph(broken)
+    assert result["valid"] is False
+    assert any("schema:" in error and "schema_version" in error for error in result["errors"])
+
+
+def test_graphml_omits_missing_double_values(tmp_path):
+    graph = GraphBuilder(_fixture_repo(tmp_path)).build()
+    destination = tmp_path / "graphml"
+    write_outputs(graph, destination)
+    graphml = (destination / "graph.graphml").read_text(encoding="utf-8")
+    assert '<data key="n_confidence"></data>' not in graphml
+    assert '<data key="n_confidence">' in graphml
+
+
+def test_write_outputs_refuses_nonempty_destination(tmp_path):
+    graph = GraphBuilder(_fixture_repo(tmp_path)).build()
+    destination = tmp_path / "out"
+    destination.mkdir()
+    (destination / "stale.txt").write_text("stale", encoding="utf-8")
+    try:
+        write_outputs(graph, destination)
+    except SpecLoadFailed as exc:
+        assert "must be empty or absent" in str(exc)
+        return
+    raise AssertionError("nonempty output directory must be rejected")
+
+
+def test_method_output_inside_target_repository_is_rejected(tmp_path):
+    repo = _fixture_repo(tmp_path)
+    script = TOOLS / "repository_knowledge_graph_v0_1.py"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "method",
+            "--repo",
+            str(repo),
+            "--output",
+            str(repo / "outputs" / "method"),
+            "--allow-dirty",
+        ],
+        cwd=repo,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert "method output must resolve outside the target repository" in (
+        result.stderr + result.stdout
+    )
+
