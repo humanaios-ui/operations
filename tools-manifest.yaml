@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 188
+  tools: 189
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 140
+  builder_markers_present: 141
   missing_from_tree: 0
   unclassified: 8
 categories:
@@ -2392,6 +2392,22 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
+- tool_id: HAIOS-TOOL-201
+  name: graph_capture_lint
+  path: tools/graph_capture_lint_v1_0.py
+  version: 1.0.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Scores a graph file against the nine properties of a graph that cannot be
+    wrong from the inside; blocks on closed provenance, missing falsifier and missing
+    timestamp, advises on the other six. Multiplex-aware (--all) with a ratcheting
+    baseline (crb/graph_capture_baseline.json).
+  session: S-100126-graph-capture-lint
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

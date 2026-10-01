@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**180 registered tools** · 2 MCP servers · 4 excluded · 140 carrying Builder v1.7 markers
+**189 registered tools** · 2 MCP servers · 4 excluded · 141 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,11 +13,11 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 180 |
-| — status `draft` | 179 |
+| Registered tools | 189 |
+| — status `draft` | 188 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 140 |
-| Uncategorized | 0 |
+| Builder v1.7 markers present | 141 |
+| Uncategorized | 8 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -35,7 +35,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-023 | acat_sdt_analytics | `tools/acat_sdt_analytics_v1_0.py` | 1.0.0 | 1 | draft | — | ACAT SDT Analytics — v1.0 |
 | HAIOS-TOOL-176 | grant_matching_engine_v1_0 | `tools/grant_matching_engine_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Matching Engine v1.0 |
 
-## Audit — `audit_tool` (21)
+## Audit — `audit_tool` (22)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -60,6 +60,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-143 | zone_boundary_audit | `tools/zone_boundary_audit_v1_0.py` | 1.0.0 | 1 | draft | — | Detects Zone 1/2/3 boundary violations in workflow artifacts and operator logs. |
 | HAIOS-TOOL-156 | registered_failure_mode_scan | `tools/registered_failure_mode_scan_v0_1.py` | 0.1.0 | 1 | draft | — | Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level first-pass yield / DPMO. Advisory unless `--enforce`. |
 | HAIOS-TOOL-192 | scan_rnola_misuse | `scripts/scan_rnola_misuse.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox patterns, authorization misuse, undefined artifacts, and stale evidence. |
+| HAIOS-TOOL-201 | graph_capture_lint | `tools/graph_capture_lint_v1_0.py` | 1.0.0 | 1 | draft | — | Scores a graph file against the nine properties of a graph that cannot be wrong from the inside; blocks on closed provenance, missing falsifier and missing timestamp, advises on the other six. Multiplex-aware (--all) with a ratcheting baseline (crb/graph_capture_baseline.json). |
 
 ## Calibration — `calibration_tool` (16)
 
@@ -288,6 +289,19 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-184 | verified_receipts | `tools/verified_receipts.py` | 0.1.0 | 1 | draft | — | Verified Receipt Resolver — v0.1 |
 | HAIOS-TOOL-187 | verify_pr_readiness | `scripts/verify_pr_readiness.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | PR Readiness Verification — Run all validation checks in sequence |
 
+## Unclassified — blocks the gate — `unclassified` (8)
+
+| tool_id | tool | path | ver | zone | status | flags | purpose |
+|---|---|---|---|---|---|---|---|
+| HAIOS-TOOL-193 | ai-eo-incremental-indexer | `scripts/ai-eo-incremental-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO Incremental Indexer |
+| HAIOS-TOOL-194 | ai-eo-indexer | `scripts/ai-eo-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO (AI-driven Ephemeris Optimization) Indexer |
+| HAIOS-TOOL-195 | gap-detector | `scripts/gap-detector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Gap Detector |
+| HAIOS-TOOL-196 | map-to-mitigation | `scripts/map-to-mitigation.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Topic-to-Mitigation Mapper |
+| HAIOS-TOOL-197 | platform-monitor | `scripts/platform-monitor.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Public Discourse Signal Monitor |
+| HAIOS-TOOL-198 | signal-threshold-monitor | `scripts/signal-threshold-monitor.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Signal Threshold Monitor |
+| HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Path Validator |
+| HAIOS-TOOL-200 | workflow_telemetry_collector | `tools/workflow_telemetry_collector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Telemetry Collector |
+
 ## MCP servers (2)
 
 External tool surfaces the agent may call. Registered here because an MCP server is a tool with a network boundary: `scope` and `data_classification` must be set by an owner before a server can reach `approved`.
@@ -317,7 +331,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | category | meaning | count |
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 2 |
-| `audit_tool` | Audits artifacts or state against rules and reports findings. | 21 |
+| `audit_tool` | Audits artifacts or state against rules and reports findings. | 22 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
