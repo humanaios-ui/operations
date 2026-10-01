@@ -2,33 +2,26 @@
 """
 Workflow Path Validator
 
-Category: CI/CD & Quality Gates
-Purpose: Validates that workflow path filters reference existing repository paths
-Prevention: Blocks IC-032 class issues (path filter referencing non-existent files)
+Validates that all paths referenced in GitHub Actions workflow path filters
+actually exist in the repository. Prevents IC-032 class issues where path filters
+reference non-existent files.
 
 Usage:
   python3 workflow_path_validator.py .github/workflows/quality-baseline.yml
   python3 workflow_path_validator.py .github/workflows/*.yml
 
-Features:
-- Parses YAML workflow files (handles 'on' key as boolean True)
-- Validates both literal paths and glob patterns
-- Reports missing files with resolved paths
-- Warns about mismatched glob patterns (e.g., /** on file)
-
-Exit Codes:
-  0: All paths valid, no warnings
+Exit codes:
+  0: All paths valid
   1: One or more paths not found
-  2: File format error or usage error
+  2: File format error
 """
 
 import sys
-from typing import Tuple, List
 import yaml
 from pathlib import Path
 
 
-def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[str]]:
+def validate_workflow_paths(workflow_file: str) -> tuple[bool, list, list]:
     """
     Validate that all paths in a workflow's path filters exist in repository.
 
@@ -55,9 +48,9 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
         return False, [f"{workflow_file} is empty"], []
 
     # Extract all path filters from workflow triggers
-    # YAML parses "on" key as boolean True in the dict
-    trigger_config_dict = workflow.get(True, {}) if True in workflow else workflow.get("on", {})
-    for trigger_name, trigger_config in trigger_config_dict.items():
+    # Note: "on" is parsed as boolean True in YAML, so check for both forms
+    trigger_key = True if True in workflow else "on"
+    for trigger_name, trigger_config in workflow.get(trigger_key, {}).items():
         if not isinstance(trigger_config, dict):
             continue
 
@@ -70,13 +63,34 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
             continue
 
         for path_pattern in paths:
-            # Handle glob patterns
+            # Extract base path from glob pattern for validation
+            base_path = path_pattern
+
+            # For patterns starting with "**", the root is always checked
+            if path_pattern.startswith("**/"):
+                # Pattern like **/*.md — can match files at any level
+                # Skip base path check for these (they're valid by design)
+                continue
+
+            # For patterns with inline wildcards (like seed-*.md), skip strict validation
+            if "*" in base_path or "?" in base_path:
+                # Pattern has wildcards — these are valid even if base directory doesn't exist yet
+                # Just warn if parent directory is missing
+                if "/" in base_path:
+                    parent = str(Path(base_path).parent)
+                    if parent != ".":
+                        full_path = repo_root / parent
+                        if not full_path.exists():
+                            warnings.append(
+                                f"Path '{path_pattern}' references directory '{parent}' which does not exist"
+                            )
+                continue
+
+            # Handle trailing globs
             if path_pattern.endswith("/**"):
                 base_path = path_pattern[:-3]
             elif path_pattern.endswith("/*"):
                 base_path = path_pattern[:-2]
-            else:
-                base_path = path_pattern
 
             # Check if path exists
             full_path = repo_root / base_path
@@ -123,8 +137,8 @@ def main():
                 with open(workflow_file) as f:
                     workflow = yaml.safe_load(f)
                 path_count = 0
-                trigger_config_dict = workflow.get(True, {}) if True in workflow else workflow.get("on", {})
-                for trigger_config in trigger_config_dict.values():
+                trigger_key = True if True in workflow else "on"
+                for trigger_config in workflow.get(trigger_key, {}).values():
                     if isinstance(trigger_config, dict) and "paths" in trigger_config:
                         path_count += len(trigger_config["paths"])
                 print(f"✅ {workflow_file}: All paths valid ({path_count} files)")
