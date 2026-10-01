@@ -2,11 +2,22 @@ version: 1
 generated: '2026-10-01'
 decision_window_days: 2
 counts:
-  candidates: 102
-  records: 53
+  candidates: 104
+  records: 54
 ratifiers:
 - Night
 candidates:
+- q_id: Q-GRAPH-CAPTURE-LINT-01
+  title: graph_capture_lint — score every graph file against the nine properties of
+    a self-sealing graph; block on the three that make a graph unauditable
+  path: z1-inbox/2026-10-01/Q-GRAPH-CAPTURE-LINT-01.md
+  submitted: '2026-10-01'
+  status: awaiting_z2
+  tier: 2
+  note: 'PR #651. Adds tools/graph_capture_lint_v1_0.py (HAIOS-TOOL-205), a workflow
+    on the five canonical graph layers, and crb/graph_capture_baseline.json recording
+    the five blocking debts the canonical set carries today. No canonical graph is
+    edited; Z2 ratifies the gate and the baseline.'
 - q_id: Q-JESTER-CHECK-01
   title: Jester → External Check · registry candidate block
   path: z1-inbox/2026-09-07/JESTER_EXTERNAL_CHECK_BLOCK.md
@@ -1190,6 +1201,11 @@ candidates:
     PR #626 ready for merge. All 59 workflows validated (0 errors, 1 warning on future-facing
     pattern). Three workflows remediated for invalid path filters.'
 records:
+- path: z1-inbox/2026-10-01/HANDOFF.md
+  title: Z1 session handoff — Phase 2B salvage complete
+  note: 'Session handoff from the Phase 2B salvage session (PR #626), merged to main
+    without an index entry. Indexed here so the z2_ratification_gate z1-inbox
+    coverage rule holds; no Z2 ratification requested by the entry itself.'
 - path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
   title: Phase 3 credential deployment guide
   note: Step-by-step guide (15-20 minutes) for deploying Replicate API key and Supabase
