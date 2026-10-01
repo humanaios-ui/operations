@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**190 registered tools** · 2 MCP servers · 4 excluded · 142 carrying Builder v1.7 markers
+**189 registered tools** · 2 MCP servers · 4 excluded · 142 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -296,7 +296,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-178 | nonprofit_profile_v1_0 | `tools/nonprofit_profile_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Nonprofit Profile Model & Validation |
 | HAIOS-TOOL-184 | verified_receipts | `tools/verified_receipts.py` | 0.1.0 | 1 | draft | — | Verified Receipt Resolver — v0.1 |
 | HAIOS-TOOL-187 | verify_pr_readiness | `scripts/verify_pr_readiness.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | PR Readiness Verification — Run all validation checks in sequence |
-| HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Path Validator |
+| HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | 1.0.0 | 1 | draft | — | Workflow Path Validator |
 
 ## MCP servers (2)
 
