@@ -2300,7 +2300,7 @@ tools:
   name: ai-eo-incremental-indexer
   path: scripts/ai-eo-incremental-indexer.py
   version: unversioned
-  category: unclassified
+  category: pipeline_tool
   zone: 1
   status: draft
   interface: module
@@ -2312,7 +2312,7 @@ tools:
   name: ai-eo-indexer
   path: scripts/ai-eo-indexer.py
   version: unversioned
-  category: unclassified
+  category: pipeline_tool
   zone: 1
   status: draft
   interface: module
@@ -2324,7 +2324,7 @@ tools:
   name: gap-detector
   path: scripts/gap-detector.py
   version: unversioned
-  category: unclassified
+  category: research_tool
   zone: 1
   status: draft
   interface: module
@@ -2336,7 +2336,7 @@ tools:
   name: map-to-mitigation
   path: scripts/map-to-mitigation.py
   version: unversioned
-  category: unclassified
+  category: reporting_tool
   zone: 1
   status: draft
   interface: module
@@ -2348,7 +2348,7 @@ tools:
   name: platform-monitor
   path: scripts/platform-monitor.py
   version: unversioned
-  category: unclassified
+  category: monitoring_tool
   zone: 1
   status: draft
   interface: module
@@ -2360,7 +2360,7 @@ tools:
   name: signal-threshold-monitor
   path: scripts/signal-threshold-monitor.py
   version: unversioned
-  category: unclassified
+  category: monitoring_tool
   zone: 1
   status: draft
   interface: module
@@ -2372,7 +2372,7 @@ tools:
   name: workflow_path_validator
   path: tools/workflow_path_validator.py
   version: unversioned
-  category: unclassified
+  category: validation_tool
   zone: 1
   status: draft
   interface: module
@@ -2384,7 +2384,7 @@ tools:
   name: workflow_telemetry_collector
   path: tools/workflow_telemetry_collector.py
   version: unversioned
-  category: unclassified
+  category: analytics_tool
   zone: 1
   status: draft
   interface: module
