@@ -352,7 +352,7 @@ def run_smoke_test() -> bool:
     legacy = dict(pin_payload)
     legacy["schema"] = "ci_predict_pin_v1"
     legacy_comment = (
-        PIN_MARKER + "\n\`\`\`json\n" + json.dumps(legacy) + "\n\`\`\`"
+        PIN_MARKER + "\n```json\n" + json.dumps(legacy) + "\n```"
     )
     ok = ok and find_latest_pin(
         [{"body": legacy_comment, "created_at": "2026-01-03", "user": bot}],
@@ -362,7 +362,7 @@ def run_smoke_test() -> bool:
     wrong_pr = dict(pin_payload)
     wrong_pr["declaration_binding"] = {"declared_pr": "41", "changed_from_base": True}
     wrong_comment = (
-        PIN_MARKER + "\n\`\`\`json\n" + json.dumps(wrong_pr) + "\n\`\`\`"
+        PIN_MARKER + "\n```json\n" + json.dumps(wrong_pr) + "\n```"
     )
     ok = ok and find_latest_pin(
         [{"body": wrong_comment, "created_at": "2026-01-04", "user": bot}],
