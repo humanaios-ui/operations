@@ -94,7 +94,7 @@ def derive_actor_provenance(pr: dict, commit: dict, declaration: dict | None = N
     """Derive actor-origin provenance without treating account identity as human proof.
 
     Positive AI/bot watermarks may establish known machine origin. Their absence
-    never establishes human origin. A declaration may carry an agent claim, but
+    does not by itself establish human origin. A declaration may carry an agent claim, but
     that claim remains separate from verified origin evidence.
     """
     declaration = declaration or {}
@@ -305,7 +305,7 @@ def fetch_declaration_via_api(repo: str, ref: str, path: str = DEFAULT_FILE):
     with no declaration is simply not predicting anything).
     """
     proc = subprocess.run(
-        ["gh", "api", f"repos/{repo}/contents/{path}", "-f", f"ref={ref}"],
+        ["gh", "api", "--method", "GET", f"repos/{repo}/contents/{path}", "-f", f"ref={ref}"],
         capture_output=True, text=True, timeout=30,
     )
     if proc.returncode != 0:
@@ -487,11 +487,16 @@ def run_smoke_test() -> bool:
         stdout = ""
 
     orig_run = subprocess.run
-    subprocess.run = lambda *a, **k: FakeContentsResponse()
+    seen_argv = []
+    def fake_contents(*a, **k):
+        seen_argv.append(a[0])
+        return FakeContentsResponse()
+    subprocess.run = fake_contents
     try:
         content = fetch_declaration_via_api("owner/repo", "deadbeef")
         ok = ok and content is not None
         ok = ok and parse_declaration(content, "x")["checks"]["quality"]["p"] == 0.9
+        ok = ok and seen_argv and "--method" in seen_argv[0] and "GET" in seen_argv[0]
     finally:
         subprocess.run = orig_run
 
