@@ -201,11 +201,20 @@ A high Miner relevance score is evidence of **need alignment**, not eligibility 
 
 When this project lives at `operations/humanaios-funding-pipeline/entitlement-navigator/`, it automatically discovers the canonical funding dataset at `../data/sources.json`.
 
-`entitlement/funding_adapter.py` exposes that dataset as a discovery source without converting its existing tags into eligibility claims. The local API endpoint is:
+`entitlement/funding_adapter.py` exposes that dataset as a discovery source without converting its existing tags into eligibility claims. The local funding-search API endpoint is:
 
 ```text
 POST /api/funding/local/search
 ```
+
+Resource Miner now has a separate typed handoff path:
+
+```text
+GET  resource-miner:/api/entitlement/handoff?resource_id=<id>
+POST entitlement-navigator:/api/resource/intake
+```
+
+`/api/resource/intake` accepts only `humanaios.resource-entitlement-handoff.v1`. A valid handoff is normalized to `INVESTIGATE` with `eligibility_assessed=false`; any upstream handoff claiming that eligibility is already assessed is rejected.
 
 Example:
 
@@ -221,6 +230,14 @@ Example:
 Returned records are classified `GENERAL_OPPORTUNITY` with `eligibility_assessed=false` until authoritative program criteria are tested. The case research queue also includes `DISCOVERY-LOCAL-FUNDING` ahead of SAM.gov and Grants.gov discovery.
 
 ## API
+
+### `POST /api/resource/intake`
+
+```json
+{"handoff": {"schema": "humanaios.resource-entitlement-handoff.v1", "...": "..."}}
+```
+
+Accepts a Resource Miner discovery handoff and opens an `INVESTIGATE` record. Need alignment, Miner route, and resource value are not converted into eligibility.
 
 ### `POST /api/interrogate/next`
 
@@ -299,3 +316,20 @@ v0.2 currently includes regression tests for the original deterministic engine p
 ## Legal / operational boundary
 
 This is a screening, research orchestration, and evidence-management tool. It does not replace the administering tribe, BIA, BTFA, NARA, HUD, a lender, a probate judge, an attorney, an accountant, or any other authority that makes the underlying legal or eligibility determination.
+
+## Guiding Light pathway view
+
+Guiding Light can render an Entitlement Navigator `EvaluationResult` as a pathway without replacing the navigator's rule state.
+
+The adapter `services/guiding_light_adapters.py::entitlement_result_to_target` preserves the original:
+
+- `RULE_MATCH`, `CONDITIONAL_MATCH`, `INVESTIGATE`, `INELIGIBLE`, `CLOSED_HISTORICAL`, or `GENERAL_OPPORTUNITY` status;
+- required evidence;
+- next actions;
+- sources;
+- last-verified value;
+- legal/operational note.
+
+A predicate `PASS` becomes `USER_ATTESTED`, not `DOCUMENTED`, because an `EvaluationResult` alone does not prove that documentary evidence supported the applicant profile. `UNKNOWN` remains unknown and routes to `VERIFY_AUTHORITY`; `FAIL` becomes a blocker.
+
+Guiding Light's REACHABLE/BRIDGE/FRONTIER/HOLD classification is therefore a navigation view, not a legal or agency eligibility determination.

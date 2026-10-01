@@ -30,7 +30,7 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 184
+  tools: 190
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 142
@@ -526,7 +526,7 @@ tools:
 - tool_id: HAIOS-TOOL-043
   name: ci_predict_consolidate
   path: tools/ci_predict_consolidate_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -538,7 +538,7 @@ tools:
 - tool_id: HAIOS-TOOL-044
   name: ci_predict_pin
   path: tools/ci_predict_pin_v1_0.py
-  version: 1.0.0
+  version: 1.2.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -550,7 +550,7 @@ tools:
 - tool_id: HAIOS-TOOL-045
   name: ci_predict_resolve
   path: tools/ci_predict_resolve_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -2297,34 +2297,82 @@ tools:
   purpose: Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox
     patterns, authorization misuse, undefined artifacts, and stale evidence.
 - tool_id: HAIOS-TOOL-193
-  name: ai_context_generator
-  path: tools/ai_context_generator_v0_1.py
-  version: 0.1.0
-  category: diagnostic_tool
+  name: ai-eo-incremental-indexer
+  path: scripts/ai-eo-incremental-indexer.py
+  version: unversioned
+  category: pipeline_tool
   zone: 1
   status: draft
-  interface: cli
+  interface: module
   lang: python
-  smoke_test: true
-  builder_markers: true
-  purpose: Generates queryable, machine-readable context from canonical repository sources.
-  session: Z1
+  smoke_test: false
+  builder_markers: false
+  purpose: AI-EO Incremental Indexer
 - tool_id: HAIOS-TOOL-194
-  name: haios
-  path: tools/haios
-  version: 0.1.0
-  category: orchestrator_tool
+  name: ai-eo-indexer
+  path: scripts/ai-eo-indexer.py
+  version: unversioned
+  category: pipeline_tool
   zone: 1
   status: draft
-  interface: cli
-  lang: other
-  smoke_test: true
-  builder_markers: true
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: AI-EO (AI-driven Ephemeris Optimization) Indexer
 - tool_id: HAIOS-TOOL-195
+  name: gap-detector
+  path: scripts/gap-detector.py
+  version: unversioned
+  category: research_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Gap Detector
+- tool_id: HAIOS-TOOL-196
+  name: map-to-mitigation
+  path: scripts/map-to-mitigation.py
+  version: unversioned
+  category: reporting_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Topic-to-Mitigation Mapper
+- tool_id: HAIOS-TOOL-197
+  name: platform-monitor
+  path: scripts/platform-monitor.py
+  version: unversioned
+  category: monitoring_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Public Discourse Signal Monitor
+- tool_id: HAIOS-TOOL-198
+  name: signal-threshold-monitor
+  path: scripts/signal-threshold-monitor.py
+  version: unversioned
+  category: monitoring_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Signal Threshold Monitor
+- tool_id: HAIOS-TOOL-199
   name: workflow_path_validator
   path: tools/workflow_path_validator.py
   version: unversioned
-  category: unclassified
+  category: validation_tool
   zone: 1
   status: draft
   interface: module
@@ -2332,11 +2380,11 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Path Validator
-- tool_id: HAIOS-TOOL-196
+- tool_id: HAIOS-TOOL-200
   name: workflow_telemetry_collector
   path: tools/workflow_telemetry_collector.py
   version: unversioned
-  category: unclassified
+  category: analytics_tool
   zone: 1
   status: draft
   interface: module
@@ -2344,6 +2392,32 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
+- tool_id: HAIOS-TOOL-202
+  name: control_plane_custody_observer
+  path: tools/control_plane_custody_observer_v0_1.py
+  version: 0.1.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Read-only control-plane observation and execution/decision/information custody classification.
+  session: CPC-001
+- tool_id: HAIOS-TOOL-204
+  name: pr_challenge_dialogue_router
+  path: tools/pr_challenge_dialogue_router_v0_1.py
+  version: 0.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Finite idempotent routing of head-bound red-team challenge conversations without authority effects.
+  session: CHALLENGE-DIALOGUE-001
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

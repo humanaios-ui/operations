@@ -109,8 +109,9 @@ jobs:
             );
 
             const pullRequests = [];
-            const admissionNumbers = new Set();
+            const admissionNumbers = new Set(admittedIssueNumbers);
             const referencedPullNumbers = new Set();
+            const closingRefRe = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*(?:[\w.-]+\/[\w.-]+)?#(\d{1,6})\b/gi;
 
             // Progressive disclosure:
             // - maintenance: summary only
@@ -168,6 +169,9 @@ jobs:
                 for (const number of allRefs) {
                   if (admittedIssueNumbers.has(number)) admissionNumbers.add(number);
                 }
+                for (const match of body.matchAll(closingRefRe)) {
+                  admissionNumbers.add(Number(match[1]));
+                }
                 for (const match of body.matchAll(/\b(?:PR|pull request)\s*#(\d{1,6})\b/gi)) {
                   referencedPullNumbers.add(Number(match[1]));
                 }
@@ -197,7 +201,8 @@ jobs:
                   reviews: reviews.map(r => ({
                     user: { login: r.user && r.user.login ? r.user.login : "unknown" },
                     state: r.state,
-                    submitted_at: r.submitted_at
+                    submitted_at: r.submitted_at,
+                    commit_id: r.commit_id || null
                   }))
                 };
               }));

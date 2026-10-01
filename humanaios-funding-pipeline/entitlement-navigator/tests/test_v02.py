@@ -6,6 +6,7 @@ from entitlement.casefile import build_casefile
 from entitlement.genealogy import import_gedcom_bytes, profile_patch_from_genealogy
 from entitlement.genealogy_builder import new_draft, next_genealogy_question, apply_genealogy_answer, draft_to_gedcom
 from entitlement.interrogator import interrogation_state
+from entitlement.resource_handoff import intake_resource_handoff
 
 
 class V02Tests(unittest.TestCase):
@@ -29,6 +30,55 @@ class V02Tests(unittest.TestCase):
         task_ids = {x["task_id"] for x in case["research_queue"]}
         self.assertIn("DISCOVERY-ALN", task_ids)
         self.assertIn("DISCOVERY-GRANTS", task_ids)
+
+    def test_resource_handoff_enters_as_investigate_not_match(self):
+        handoff = {
+            "schema": "humanaios.resource-entitlement-handoff.v1",
+            "handoff_id": "rm:r-1",
+            "source_system": "resource-miner",
+            "target_system": "entitlement-navigator",
+            "requested_action": "VERIFY_ELIGIBILITY",
+            "authority_effect": "NONE",
+            "resource": {
+                "resource_id": "r-1",
+                "title": "External resource",
+                "canonical_url": "https://example.gov/resource",
+            },
+            "provenance": {
+                "source_name": "Example Authority",
+                "discovery_method": "test",
+                "discovered_at": "2026-09-30T00:00:00Z",
+                "evidence": [{"url": "https://example.gov/resource", "kind": "primary"}],
+            },
+            "need_alignment": [{"need_id": "revenue-capital", "score": 0.99}],
+            "routing": {"resource_miner_route": "VERIFY_NOW"},
+            "eligibility": {
+                "assessed": False,
+                "status": "UNASSESSED",
+                "claim": "NO_ELIGIBILITY_CLAIM",
+            },
+        }
+        result = intake_resource_handoff(handoff)
+        self.assertEqual(result["classification"], "INVESTIGATE")
+        self.assertFalse(result["eligibility_assessed"])
+        self.assertEqual(result["eligibility_status"], "UNASSESSED")
+        self.assertEqual(result["authority_effect"], "NONE")
+
+    def test_resource_handoff_rejects_claimed_upstream_eligibility(self):
+        handoff = {
+            "schema": "humanaios.resource-entitlement-handoff.v1",
+            "source_system": "resource-miner",
+            "target_system": "entitlement-navigator",
+            "requested_action": "VERIFY_ELIGIBILITY",
+            "resource": {"resource_id": "r-1"},
+            "eligibility": {
+                "assessed": True,
+                "status": "ELIGIBLE",
+                "claim": "ELIGIBLE",
+            },
+        }
+        with self.assertRaises(ValueError):
+            intake_resource_handoff(handoff)
 
     def test_genealogy_goal_activates_genealogy_interrogation(self):
         profile = {
@@ -67,8 +117,7 @@ class V02Tests(unittest.TestCase):
         ged = draft_to_gedcom(draft)
         self.assertIn("0 HEAD", ged)
         self.assertIn("1 NAME Test Person", ged)
-        self.assertTrue(ged.endswith("0 TRLR
-"))
+        self.assertTrue(ged.endswith("0 TRLR\n"))
 
     def test_unactivated_unknown_programs_not_in_case(self):
         profile = {

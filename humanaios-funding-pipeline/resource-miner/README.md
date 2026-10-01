@@ -106,6 +106,26 @@ python3 -m resource_miner.cli scan --source rss --rss 'https://example.org/oppor
 
 Without `--dry-run`, output defaults to `data/resources.jsonl`, which is git-ignored because live scans are observations, not curated source code.
 
+### Three `data/resources*.jsonl` files, not one
+
+- `data/resources.seed.jsonl` — curated fixture, hand-verified, checked in (see "First live specimen" above).
+- `data/resources.jsonl` — ephemeral local/live scan output, git-ignored (see above).
+- `data/resources.snapshot.jsonl` — durable scan output, checked in, refreshed daily by `.github/workflows/resource-miner-scan.yml`. This is what `app.py`'s `GET /api/resources` falls back to when no live scan has run yet in the current process, so results survive a Railway restart/redeploy without reversing the git-ignore decision above.
+
+## Run as an HTTP service
+
+`app.py` (repo root of this directory, sibling to the `resource_miner/` package) exposes the same discovery pipeline over stdlib HTTP, no third-party dependencies added:
+
+```bash
+python3 app.py --host 0.0.0.0 --port 8766
+```
+
+- `GET /api/health` — liveness.
+- `GET /api/needs` — the current Need Graph.
+- `GET /api/resources` — the most recent scan output: `data/resources.jsonl` if present, else `data/resources.snapshot.jsonl`.
+- `GET|POST /api/scan` — runs the same discovery -> `enrich()` pipeline as `python3 -m resource_miner.cli scan`, accepting the same `source`/`needs`/`funding_data`/`dev_tag`/`github_query`/`rss` fields as querystring params (GET) or a JSON body (POST). Read-only by default (`persist=false`); pass `persist=1` (or `"persist": true` in a POST body) to write `data/resources.jsonl`, matching this service's Z0/Z1 read-only-discovery framing — nothing here asserts applicant eligibility.
+- `GET /api/entitlement/handoff?resource_id=<id>` — emits a typed, provenance-bearing `humanaios.resource-entitlement-handoff.v1` object for a selected live/snapshot resource. The handoff is always `VERIFY_ELIGIBILITY` with `eligibility_assessed=false` and authority effect `NONE`.
+
 ## ResourceCandidate contract
 
 Each candidate carries:
@@ -123,7 +143,7 @@ Each candidate carries:
 
 ## Entitlement Navigator handoff
 
-The normalized resource record is the handoff. Entitlement Navigator (or a resolver between the two) should:
+The runtime handoff is now explicit: `resource_miner.entitlement_handoff.build_entitlement_handoff()` converts the normalized resource into `humanaios.resource-entitlement-handoff.v1`. Entitlement Navigator (or a resolver between the two) should:
 
 1. verify the primary/current source;
 2. identify legally permitted applicant types;
@@ -138,3 +158,20 @@ The normalized resource record is the handoff. Entitlement Navigator (or a resol
 3. Add append-only discovery receipts rather than overwriting scan output.
 4. Feed repository constraints/open needs into the Need Graph automatically.
 5. Add outcome calibration: predicted relevance/effort/value -> actual result -> improved future routing.
+
+## Guiding Light handoff
+
+Guiding Light is the pathway-navigation layer downstream of discovery and upstream of a consequential human/authority decision.
+
+```text
+Resource Miner
+→ ResourceCandidate + provenance + need alignment
+→ services/guiding_light_adapters.py
+→ Guiding Light target
+→ mandatory eligibility remains UNKNOWN unless separately assessed
+→ VERIFY_AUTHORITY / domain resolver
+→ mapped target
+→ REACHABLE / BRIDGE / FRONTIER / HOLD
+```
+
+The adapter `resource_candidate_to_target()` may carry forward source URLs and Need Graph scores. It may **not** convert need alignment, route state, or `eligibility_assessed=false` into applicant eligibility. This is covered by `tests/test_guiding_light.py`.

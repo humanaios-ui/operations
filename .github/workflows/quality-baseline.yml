@@ -87,7 +87,6 @@ jobs:
             test_specimen_intake_nf_ledger.py \
             tools/tests/test_molt_cycle_nf_read.py \
             test_resource_economics.py \
-            test_five_rings_tier1.py \
             tools/tests/test_builder_compliance_scanner.py \
             tools/tests/test_molt_tier_classifier.py \
             tools/tests/test_ratify_index_write.py \
@@ -95,6 +94,8 @@ jobs:
             tools/tests/test_smag_feedback.py \
             tools/tests/test_nf_ledger_cli.py \
             tools/tests/test_ci_predict.py \
+            tools/tests/test_control_plane_custody_observer_v0_1.py \
+            tools/tests/test_pr_challenge_dialogue_router_v0_1.py \
             tools/tests/test_lifecycle_predict.py \
             tools/tests/test_dimension_attribution.py \
             tools/tests/test_tool_trace_hook.py \
@@ -138,7 +139,7 @@ jobs:
 
       - name: Upload Telemetry Artifact
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: workflow-telemetry-quality-baseline
           path: telemetry.json

@@ -84,7 +84,7 @@ import nf_ledger_v0_1 as engine  # noqa: E402  (the ledger's own hashing/appendi
 import ci_predict_resolve_v1_0 as resolver  # noqa: E402  (trust filter + resolution logic)
 
 TOOL_NAME = "ci_predict_consolidate"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 DEFAULT_LEDGER = "ledgers/CI_PREDICT_LEDGER.jsonl"
 
 
@@ -92,7 +92,7 @@ class LedgerCorrupt(RuntimeError):
     """Raised when the existing ledger fails verification. Never appended to."""
 
 
-def collect_trusted_pins(comments: List[dict]) -> Dict[str, dict]:
+def collect_trusted_pins(comments: List[dict], expected_pr: str | None = None) -> Dict[str, dict]:
     """The latest trusted pin per distinct head_sha seen in these comments.
 
     Several pushes to the same PR each get their own pin; each is kept, keyed
@@ -104,7 +104,11 @@ def collect_trusted_pins(comments: List[dict]) -> Dict[str, dict]:
         if not resolver.is_trusted(comment):
             continue
         payload = resolver.extract_payload(comment.get("body", ""), resolver.PIN_MARKER)
-        if payload and payload.get("head_sha"):
+        if (
+            payload
+            and payload.get("head_sha")
+            and resolver.pin_payload_is_pr_bound(payload, expected_pr)
+        ):
             per_sha.setdefault(payload["head_sha"], []).append(
                 (comment.get("created_at", ""), payload)
             )
@@ -157,6 +161,8 @@ def build_events(pin: dict, resolutions: dict, existing_ids: set,
     not call (that closure is spec-file-shaped for the mesh use case).
     """
     if not pushed_at_date:
+        return []
+    if not resolver.pin_payload_is_pr_bound(pin, str(pin.get("pr") or "")):
         return []
 
     head_sha = pin["head_sha"]
@@ -218,7 +224,7 @@ def load_ledger_state(ledger_path: Path) -> tuple:
 
 def run(repo: str, pr_number: str, ledger_path: Path) -> int:
     comments = resolver.gh_json_paginated(f"repos/{repo}/issues/{pr_number}/comments")
-    pins = collect_trusted_pins(comments)
+    pins = collect_trusted_pins(comments, expected_pr=pr_number)
     if not pins:
         print(f"no trusted pin comments on PR {pr_number}; nothing to consolidate")
         return 0
@@ -265,8 +271,9 @@ def run_smoke_test() -> bool:
     ok = True
 
     pin = {
-        "schema": "ci_predict_pin_v1", "pr": "42", "head_sha": "a" * 40,
+        "schema": "ci_predict_pin_v2", "pr": "42", "head_sha": "a" * 40,
         "predictor": "Claude Code", "committed_at": "2026-09-12T10:00:00Z",
+        "declaration_binding": {"declared_pr": "42", "changed_from_base": True},
         "checks": {
             "quality": {"conclusion": "success", "p": 0.9},
             "guard": {"conclusion": "success", "p": 0.8},
@@ -285,6 +292,19 @@ def run_smoke_test() -> bool:
 
     # An empty anchor refuses the check entirely, never falls back to PRACTICE.
     ok = ok and build_events(pin, resolutions, set(), pushed_at_date="") == []
+
+    legacy_pin = dict(pin)
+    legacy_pin["schema"] = "ci_predict_pin_v1"
+    ok = ok and build_events(
+        legacy_pin, resolutions, set(), pushed_at_date="2026-09-12"
+    ) == []
+    inherited_pin = dict(pin)
+    inherited_pin["declaration_binding"] = {
+        "declared_pr": "42", "changed_from_base": False
+    }
+    ok = ok and build_events(
+        inherited_pin, resolutions, set(), pushed_at_date="2026-09-12"
+    ) == []
 
     ok = ok and commit_date_only("2026-09-12T10:00:00-07:00") == "2026-09-12"
     ok = ok and commit_date_only("") == ""
@@ -352,7 +372,8 @@ def run_smoke_test() -> bool:
     forged_body = "not a real pin, just text with the marker below\n" + \
         resolver.PIN_MARKER + '\n```json\n{"head_sha": "' + ("a" * 40) + '"}\n```'
     trusted_pins = collect_trusted_pins(
-        [{"body": forged_body, "user": {"login": "some-collaborator"}, "created_at": "x"}]
+        [{"body": forged_body, "user": {"login": "some-collaborator"}, "created_at": "x"}],
+        expected_pr="42",
     )
     ok = ok and trusted_pins == {}
 

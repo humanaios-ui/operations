@@ -227,13 +227,82 @@ class MoltCycle:
             'anti_cascade_check': rules_check,
         }
 
+    # Only these two constant-history events are terminal per MOLT_STATE.md's
+    # state diagram (APPLIED -> MEASURED -> KEPT/REVERTED). INCONCLUSIVE is
+    # PROPOSED (Q-MOLT-TEMPORAL-PURITY-01), not yet live, so it is
+    # deliberately not treated as terminal here.
+    _TERMINAL_MOLT_EVENTS = ("KEEP", "REVERT")
+
     def check_anti_cascade_rules(self) -> Dict[str, Any]:
-        """Check all 5 anti-cascade rules."""
+        """Check anti-cascade rules 1, 3, 4 mechanically from constants.json's
+        per-constant molt_id/molt_history fields (the live data read_constants()
+        already loads). A constant counts as having an open molt when it carries
+        a molt_id whose history has not yet reached a terminal KEEP/REVERT event.
+
+        Rules 2 (no self-reference in windows) and 5 (Priority Queue rank, no
+        bypass) are NOT mechanically checked here: rule 2 needs per-candidate
+        evidence-timestamp provenance this data source does not carry, and
+        rule 5 needs a live cross-reference against PRIORITY_QUEUE.md's actual
+        ranking. Both are reported as such rather than assumed to pass — a
+        check that cannot see a rule must not claim it holds.
+        """
+        if not self.constants:
+            self.read_constants()
+
+        open_constants = []
+        frozen_constants = []
+        at_risk_constants = []
+
+        for c in self.constants:
+            name = c.get('name')
+            history = c.get('molt_history') or []
+
+            if c.get('molt_id') and (not history or history[-1].get('event') not in self._TERMINAL_MOLT_EVENTS):
+                open_constants.append(name)
+
+            consecutive_reverts = 0
+            max_consecutive_reverts = 0
+            for entry in history:
+                event = entry.get('event')
+                if event == 'REVERT':
+                    consecutive_reverts += 1
+                    max_consecutive_reverts = max(max_consecutive_reverts, consecutive_reverts)
+                elif event in self._TERMINAL_MOLT_EVENTS:
+                    consecutive_reverts = 0
+            if max_consecutive_reverts >= 2:
+                frozen_constants.append(name)
+            elif max_consecutive_reverts == 1:
+                at_risk_constants.append(name)
+
+        k_blocked = len(open_constants) > self.k_limit
+
+        rules = {
+            1: {'name': 'one open molt per constant', 'status': 'PASS',
+                'note': 'structurally enforced — constants.json carries a single molt_id per constant, not a list'},
+            2: {'name': 'no self-reference in windows', 'status': 'NOT_MECHANICALLY_CHECKED',
+                'note': 'requires per-candidate evidence-timestamp provenance this data source does not carry'},
+            3: {'name': f'K={self.k_limit} system-wide limit', 'status': 'BLOCKED' if k_blocked else 'PASS',
+                'open_molt_count': len(open_constants), 'open_constants': open_constants},
+            4: {'name': 'freeze after 2 consecutive reverts', 'status': 'PASS',
+                'frozen_constants': frozen_constants, 'at_risk_constants': at_risk_constants},
+            5: {'name': 'ranked by Priority Queue score, no bypass', 'status': 'NOT_MECHANICALLY_CHECKED',
+                'note': 'requires a live cross-reference against PRIORITY_QUEUE.md rank; not available to this check'},
+        }
+
+        checked = [r for r in rules.values() if r['status'] in ('PASS', 'BLOCKED')]
+        blocked = [r for r in checked if r['status'] == 'BLOCKED']
+
         return {
-            'overall_status': 'OK',
-            'rules_passed': 5,
-            'rules_warnings': 0,
-            'rules_blocked': 0,
+            'overall_status': 'BLOCKED' if blocked else 'OK',
+            'rules_passed': len(checked) - len(blocked),
+            'rules_warnings': len(at_risk_constants),
+            'rules_blocked': len(blocked),
+            'rules_not_mechanically_checked': len(rules) - len(checked),
+            'open_molt_count': len(open_constants),
+            'open_constants': open_constants,
+            'frozen_constants': frozen_constants,
+            'at_risk_constants': at_risk_constants,
+            'rules': rules,
         }
 
     def propose_molts(self, constants_needing_eval: List[Dict]) -> Dict[str, Any]:

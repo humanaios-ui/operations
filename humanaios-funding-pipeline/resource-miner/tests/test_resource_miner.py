@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 
 from resource_miner.miner import enrich
+from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, map_to_needs
 from resource_miner.normalize import canonicalize_url, cash_mentions, normalize_generic, stable_resource_id
 from resource_miner.routing import route_candidate
@@ -54,6 +55,34 @@ class ResourceMinerTests(unittest.TestCase):
         route_candidate(candidate, today=date(2026, 9, 24))
         self.assertEqual(candidate.route, "VERIFY_NOW")
         self.assertFalse(candidate.eligibility_assessed)
+
+    def test_entitlement_handoff_preserves_unassessed_boundary(self):
+        candidate = normalize_generic(
+            title="Native business support program",
+            url="https://example.gov/support",
+            source_name="Example Authority",
+            discovery_method="test",
+            description="Support for eligible applicants.",
+        )
+        needs = load_needs(ROOT / "data" / "needs.seed.json")
+        candidate.need_matches = map_to_needs(candidate, needs)
+        route_candidate(candidate, today=date(2026, 9, 24))
+        handoff = build_entitlement_handoff(candidate)
+        self.assertEqual(handoff["requested_action"], "VERIFY_ELIGIBILITY")
+        self.assertEqual(handoff["eligibility"]["status"], "UNASSESSED")
+        self.assertFalse(handoff["eligibility"]["assessed"])
+        self.assertEqual(handoff["authority_effect"], "NONE")
+        self.assertEqual(handoff["resource"]["resource_id"], candidate.resource_id)
+
+    def test_entitlement_handoff_rejects_upstream_eligibility_claim(self):
+        candidate = normalize_generic(
+            title="Program", url="https://example.gov/program",
+            source_name="Example", discovery_method="test",
+        )
+        candidate.eligibility_assessed = True
+        candidate.eligibility_status = "ELIGIBLE"
+        with self.assertRaises(ValueError):
+            build_entitlement_handoff(candidate)
 
     def test_closed_candidate_archives(self):
         candidate = normalize_generic(
