@@ -585,6 +585,7 @@ def run_smoke_test() -> bool:
     class FakeFailure:
         returncode = 1
         stdout = ""
+        stderr = "HTTP 404: Not Found"
 
     orig_run = subprocess.run
     seen_argv = []
