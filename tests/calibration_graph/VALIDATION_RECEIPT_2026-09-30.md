@@ -1,6 +1,6 @@
 # Calibration Graph Validation Receipt — 2026-09-30
 
-Status: STAGE S2 COMPLETE; S3 PARTIAL
+Status: STAGE S2 COMPLETE; S3 COMPLETE
 
 ## Scope executed
 
@@ -45,7 +45,19 @@ Result: PASS (negative fixture was rejected by preflight)
 
 `tools/calibration_graph/validate_graph.py` uses PySHACL 0.40.1 and the machine-readable validation manifest.
 
-The execution environment used for this documentation pass did not have PySHACL installed and could not reach the package index, so canonical PySHACL execution is NOT claimed here. The harness and pinned dependency are committed for deterministic execution in an environment with dependency access.
+Canonical PySHACL execution has now been completed on the user's local Mac using an isolated virtual environment with PySHACL 0.40.1.
+
+Observed result:
+- `PASS reference-valid: conforms=True expected=True`
+- `PASS reference-invalid: conforms=False expected=False`
+- `Validation stage passed: all fixture expectations matched.`
+- validator exit code: `0`
+- SHA-256 of validation receipt: `329b650bb3a8d00008b5ac9147bd231efde1d944a48f9217544aa7cf90026b14`
+
+Local receipt path:
+`~/HumanAIOS-machine-scan/canonical-shacl-validation.txt`
+
+This closes the previously open execution-environment dependency for Stage S3.
 
 ## What validation staging discovered
 
@@ -95,7 +107,7 @@ The validation code itself is already written and committed. The current executi
 - the **test harness exists**;
 - the **test data exists**;
 - the **expected pass/fail behavior is defined**;
-- the **canonical PySHACL test has not yet been executed in this session environment**.
+- the **canonical PySHACL test has now been executed successfully on the user's local Mac**.
 
 A “dependency-capable” environment could be a local computer, CI runner, GitHub Actions job, or other runtime with Python package-install access. Once PySHACL is installed there, the committed command can execute the canonical SHACL validation.
 
@@ -136,3 +148,28 @@ Promote the landing lane only if repeated use demonstrates that selective landin
 
 Promote dependency flags if they reliably make blocked scope and resolution path clearer than free-form caveat language.
 
+
+
+## Canonical local execution closure
+
+The previously unresolved dependency-capable execution step is now CLOSED.
+
+Execution context:
+- macOS 12.7.6, Intel x86_64;
+- Python 3.14.7 in isolated venv;
+- pyshacl 0.40.1;
+- repository branch: `session/2026-09-30-bidirectional-calibration`.
+
+Result:
+```text
+PASS reference-valid: conforms=True expected=True
+PASS reference-invalid: conforms=False expected=False
+Validation stage passed: all fixture expectations matched.
+validator_exit_code=0
+```
+
+Receipt SHA-256:
+`329b650bb3a8d00008b5ac9147bd231efde1d944a48f9217544aa7cf90026b14`
+
+Important process finding:
+tool availability is execution-context dependent. The first canonical attempt failed only because a fresh shell no longer had the venv's `python` on PATH. Directly addressing the venv interpreter resolved the dependency. Machine capability records should therefore include execution context, not only installed-tool presence.
