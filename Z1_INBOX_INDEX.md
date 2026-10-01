@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**99 candidates** — ⏳ awaiting Z2 89 · ✅ ratified 10 · **53 records**
+**100 candidates** — ⏳ awaiting Z2 90 · ✅ ratified 10 · **53 records**
 
-## Awaiting Z2 (89)
+## Awaiting Z2 (90)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -100,7 +100,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-29 | **Q-PROCESS-PRODUCT-RATIO-01** | Governance ceremony volume outweighs shipped product; z2_ratification_gate.yml silently no-op'd for 122 runs | `z1-inbox/2026-09-27/F-CAND-PROCESS-VS-PRODUCT-RATIO-01.md` |
 | 2026-09-29 | **Q-WITNESS-LEDGER-TIER0-EXTENSION-01** | Extend the INTENT-OS witness ledger with a Tier 0 (anonymous public participant) actor class | `z1-inbox/2026-09-27/Q-WITNESS-LEDGER-TIER0-EXTENSION-01.md` |
 | 2026-10-01 | **Q-LEDGER-GROUNDING-STUB-01** | p34x LedgerProvider is a permanent no-op stub — every future date classifies ERROR regardless of ratification | `z1-inbox/2026-09-29/F-CAND-LEDGER-GROUNDING-STUB-01.md` |
-| 2026-10-02 | **Q-TIER-ASSIGNMENT-BATCH-01** | Tier assignment for 92 untiered governance candidates using resource-based allocation framework | `z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01.md` |
+| 2026-10-02 | **Q-588-CONVERGENCE-MATRIX-01** | Resource System Convergence Matrix — component landscape & composition framework | `z1-inbox/2026-09-30/Q-588-CONVERGENCE-MATRIX-01.md` |
+| 2026-10-02 | **Q-TIER-ASSIGNMENT-BATCH-01** | Tier assignment for 90 awaiting_z2 governance candidates | `z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01-RESULT.md` |
 
 ## Decided (10)
 
