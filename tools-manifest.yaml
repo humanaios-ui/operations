@@ -2417,6 +2417,19 @@ tools:
   builder_markers: true
   purpose: Read-only control-plane observation and execution/decision/information custody classification.
   session: CPC-001
+- tool_id: HAIOS-TOOL-204
+  name: pr_challenge_dialogue_router
+  path: tools/pr_challenge_dialogue_router_v0_1.py
+  version: 0.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Finite idempotent routing of head-bound red-team challenge conversations without authority effects.
+  session: CHALLENGE-DIALOGUE-001
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

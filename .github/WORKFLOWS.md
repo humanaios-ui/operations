@@ -116,7 +116,8 @@ Three intentionally separate workflows form a real-time prediction loop:
 
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
-| `auto-request-copilot-review.yml` | Request GitHub Copilot review on new PRs | PR create |
+| `.coderabbit.yaml` | CodeRabbit advisory review policy (requires installed GitHub App) | PR create/update via external app |
+| `auto-request-copilot-review.yml` | Legacy Copilot review provenance stub | Manual dispatch only |
 | `copilot-base-guard.yml` | Base branch protection with Copilot checks | PR to main |
 | `behavioral-compliance.yml` | Agent behavior compliance checking | Scheduled |
 | `agent-principle-compliance-check.yml` | Principle compliance validation | PR changes |

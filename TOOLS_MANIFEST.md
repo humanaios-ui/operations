@@ -134,7 +134,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-188 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.2.1 | 1 | draft | — | Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure. |
 | HAIOS-TOOL-201 | repository_knowledge_graph | `tools/repository_knowledge_graph_v0_1.py` | 0.2.0 | 1 | draft | — | Deterministic provenance-bearing repository graph compiler with bounded inference and human review outputs. |
 
-## Governance — `governance_tool` (17)
+## Governance — `governance_tool` (18)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -155,6 +155,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-183 | receipt_reconciliation | `tools/receipt_reconciliation.py` | 1.0.0 | 1 | draft | — | Receipt Reconciliation Script — Validates claims against NF_LEDGER |
 | HAIOS-TOOL-190 | enforce_z2_z3_boundary | `scripts/enforce_z2_z3_boundary.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Enforce Z2/Z3 authority boundaries for operator-checks. CI gate to prevent misuse of RNOLA advisory records as merge authority. |
 | HAIOS-TOOL-191 | lint_canonical_skills | `scripts/lint_canonical_skills.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Lint canonical skill entry points to detect substrate drift. CI gate to ensure substrate stubs are thin redirects, not divergent implementations. |
+| HAIOS-TOOL-204 | pr_challenge_dialogue_router | `tools/pr_challenge_dialogue_router_v0_1.py` | 0.1.0 | 1 | draft | — | Finite idempotent routing of head-bound red-team challenge conversations without authority effects. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
@@ -333,6 +334,8 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 17 |
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 17 |
+| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 16 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 18 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 6 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
