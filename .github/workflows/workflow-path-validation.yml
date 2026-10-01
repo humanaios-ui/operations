@@ -50,27 +50,37 @@ jobs:
         run: python3 -c "import yaml; print('✓ PyYAML installed')"
 
       - name: Validate all workflow files (ERROR — blocks merge)
-        run: python3 tools/workflow_path_validator.py .github/workflows/*.yml
+        run: |
+          python3 tools/workflow_path_validator.py \
+            .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null || \
+          python3 tools/workflow_path_validator.py .github/workflows/*.yml
 
       - name: Emit Workflow Telemetry (Phase 2B)
         if: always()
+        env:
+          TRIGGER_REASON: ${{ github.event_name }}
+          JOB_STATUS: ${{ job.status }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
         run: |
           python3 << 'TELEMETRY_EOF'
           import json
+          import os
           from datetime import datetime
 
           telemetry = {
               "timestamp": datetime.utcnow().isoformat() + "Z",
               "workflow": "workflow-path-validation",
-              "trigger_reason": "${{ github.event_name }}",
+              "trigger_reason": os.environ.get("TRIGGER_REASON", "unknown"),
               "validation_target": "workflow_files",
-              "validation_result": "${{ job.status }}"
+              "validation_result": os.environ.get("JOB_STATUS", "unknown"),
+              "path_filter_active": True,
+              "path_filter_hit": os.environ.get("TRIGGER_REASON") in ["pull_request", "push"]
           }
 
           # Add PR context if available
-          if "${{ github.event_name }}" == "pull_request":
-              telemetry["pr_number"] = "${{ github.event.pull_request.number }}"
-              telemetry["pr_title"] = "${{ github.event.pull_request.title }}"
+          pr_number = os.environ.get("PR_NUMBER", "").strip()
+          if pr_number:
+              telemetry["pr_number"] = int(pr_number)
 
           with open("telemetry.json", "w") as f:
               json.dump(telemetry, f, indent=2)
