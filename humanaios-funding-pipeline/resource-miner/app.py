@@ -9,6 +9,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from resource_miner.miner import enrich
+from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs
 from resource_miner.sources import devto, funding_pipeline, github, rss
 from resource_miner.store import write_jsonl
@@ -84,6 +85,17 @@ class Handler(BaseHTTPRequestHandler):
                 if not rows:
                     rows, src = _read_jsonl(SNAPSHOT_OUT), "snapshot"
                 return self._send_json({"source": src, "count": len(rows), "resources": rows})
+            if parsed.path == "/api/entitlement/handoff":
+                resource_id = (params.get("resource_id") or [""])[0].strip()
+                if not resource_id:
+                    return self._send_json({"error": "resource_id is required"}, HTTPStatus.BAD_REQUEST)
+                rows = _read_jsonl(DEFAULT_OUT)
+                if not rows:
+                    rows = _read_jsonl(SNAPSHOT_OUT)
+                match = next((row for row in rows if str(row.get("resource_id") or "") == resource_id), None)
+                if match is None:
+                    return self._send_json({"error": "resource_id not found"}, HTTPStatus.NOT_FOUND)
+                return self._send_json({"handoff": build_entitlement_handoff(match)})
             if parsed.path == "/api/scan":
                 resources = _run_scan(params)
                 persist = params.get("persist", ["0"])[0] in ("1", "true", "yes")
