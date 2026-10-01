@@ -29,7 +29,6 @@ on:
       - "tools/skills/**"
       - ".claude/**"
       - ".agents/**"
-      - "outputs/rnola/**"
       - ".github/workflows/rnola-governance-validation.yml"
   push:
     branches: [main]
@@ -41,7 +40,6 @@ on:
       - "tools/skills/**"
       - ".claude/**"
       - ".agents/**"
-      - "outputs/rnola/**"
       - ".github/workflows/rnola-governance-validation.yml"
   workflow_dispatch:
 
