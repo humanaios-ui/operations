@@ -33,6 +33,10 @@ on:
       - ready_for_review
       - converted_to_draft
       - edited
+  pull_request_review:
+    types:
+      - submitted
+      - dismissed
 
 permissions: {}
 
@@ -78,6 +82,8 @@ jobs:
             const admittedIssueNumbers = [
               ...new Set((((policy || {}).admission || {}).issue_numbers || []).map(Number))
             ];
+            const referencedIssueNumbers = new Set(admittedIssueNumbers);
+            const closingRefRe = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*(?:[\w.-]+\/[\w.-]+)?#(\d{1,6})\b/gi;
 
             const open = await github.paginate(
               github.rest.pulls.list,
@@ -117,33 +123,51 @@ jobs:
                 // the target PR and for every ready non-maintenance PR that could
                 // occupy operator capacity. Drafts and maintenance never do.
                 const needFiles = brief.number === target || (!isDraft && !isMaintenance);
+                const needReviews = brief.number === target || (!isDraft && !isMaintenance);
                 let files = [];
+                let reviews = [];
                 let filesComplete = false;
                 if (needFiles) {
                   files = await listFiles(brief.number);
                   filesComplete = true;
                 }
+                if (needReviews) {
+                  reviews = await github.paginate(
+                    github.rest.pulls.listReviews,
+                    { owner, repo, pull_number: brief.number, per_page: 100 }
+                  );
+                }
+                const body = brief.body || "";
+                for (const match of body.matchAll(closingRefRe)) {
+                  referencedIssueNumbers.add(Number(match[1]));
+                }
                 return {
                   number: brief.number,
                   title: brief.title || "",
-                  body: brief.body || "",
+                  body,
                   author,
                   labels: (brief.labels || []).map(x => (typeof x === "string" ? x : x.name)).filter(Boolean),
                   html_url: brief.html_url,
                   state: brief.state,
                   draft: isDraft,
+                  head_sha: brief.head && brief.head.sha ? brief.head.sha : "",
                   mergeable_state: "unknown",
                   files_complete: filesComplete,
                   files: files.map(f => f.filename),
                   file_details: [],
-                  reviews: []
+                  reviews: reviews.map(r => ({
+                    user: { login: r.user && r.user.login ? r.user.login : "unknown" },
+                    state: r.state,
+                    submitted_at: r.submitted_at,
+                    commit_id: r.commit_id || null
+                  }))
                 };
               }));
               pullRequests.push(...rows);
             }
 
             const referencedItems = {};
-            for (const batch of chunk(admittedIssueNumbers, 6)) {
+            for (const batch of chunk([...referencedIssueNumbers], 6)) {
               const rows = await Promise.all(batch.map(async number => {
                 try {
                   const issue = (await github.rest.issues.get({
@@ -161,6 +185,10 @@ jobs:
                   state: issue.state,
                   html_url: issue.html_url,
                   title: issue.title,
+                  body: issue.body || "",
+                  labels: (issue.labels || []).map(x =>
+                    typeof x === "string" ? x : x.name
+                  ).filter(Boolean),
                   is_pull_request: Boolean(issue.pull_request)
                 };
               }

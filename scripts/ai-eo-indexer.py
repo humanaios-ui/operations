@@ -1,8 +1,20 @@
 #!/usr/bin/env python3
 """
 AI-EO (AI-driven Ephemeris Optimization) Indexer
-Maps research signals to discoverable pages via knowledge and behavioral graphs.
-Transforms platform signals → IndexedSignal entities → Knowledge graph → Behavioral graph → Page index.
+
+Category: Signal Processing & Knowledge Indexing
+Purpose: Maps research signals to discoverable pages via knowledge and behavioral graphs
+Architecture: Platform signals → IndexedSignal entities → Knowledge graph → Behavioral graph → Page index
+
+Usage:
+  python3 ai-eo-indexer.py
+
+Inputs:
+  - data/public-discourse-signals.jsonl (platform signals from monitor)
+  - gap-report.json (gap detector output)
+
+Outputs:
+  - data/ai-eo-index.jsonl (page index entries)
 """
 
 import json
