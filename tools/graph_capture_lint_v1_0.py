@@ -35,18 +35,20 @@ callout's half-lives):
   P5  IRREVERSIBLE_MERGE     identity nodes are merged (same_as, aliases,
                              merged_from) with no recorded basis and no
                              split channel                             WARN
-  P6  SINGLE_ROLE_AUTHORITY  the same identity proposes, ratifies and
-                             executes                                  WARN
+  P6  SINGLE_ROLE_AUTHORITY  one identity holds every declared authority
+                             role (two or more of proposer, ratifier,
+                             executor)                                 WARN
   P7  REFLEXIVE_MEASUREMENT  self-loops, or a measure edge paired with an
                              act/feed edge between the same two nodes  WARN
   P8  OPAQUE_SCHEMA          dangling edge endpoints, relations outside the
-                             declared vocabulary, or a large ad hoc
-                             relation set with no vocabulary at all    WARN
+                             declared vocabulary, or five or more distinct
+                             relations with no vocabulary at all
+                             (AD_HOC_RELATION_THRESHOLD)              WARN
   P9  UNVERIFIED             no verification channel on any node or edge
                              (state, tests, validation_status, ...)    WARN
 
 TEMPORAL POSITION (Q-TEMPORAL-DISSOLUTION-01)
-P3 asks for an OBSERVATIONAL anchor or an explicit temporal_class, never a
+P3 asks for an OBSERVATIONAL anchor or an explicit temporal_class, not a
 deadline. A HISTORICAL_RECORD graph with `ordering` and no clock passes P3.
 This tool reads no clock of its own and nothing here ages.
 
@@ -165,7 +167,7 @@ def is_defeat_rel(rel: str) -> bool:
     return any(tok in DEFEAT_STEMS for tok in _norm(rel).split("_"))
 
 
-# Free-text labels that mention a revert/defeat path. Evidence, never a pass:
+# Free-text labels that mention a revert/defeat path. Evidence, not a pass:
 # a word in a label is not something a query can select on.
 DEFEAT_LABEL_RE = re.compile(
     r"\b(revert|reverted|falsif\w*|retract\w*|contradict\w*|supersede\w*|defeat\w*|refute\w*)\b",
@@ -182,13 +184,17 @@ DEFEAT_STATES = {
     "rejected", "contradicted", "withdrawn",
 }
 
+# Anchors only. A duration (half_life, a bare window length) says how long,
+# not when, and does not satisfy P3.
 TEMPORAL_KEYS = {
     "generated_at", "recorded_at", "as_of", "observed_at", "timestamp",
     "created_at", "updated_at", "last_updated", "date", "date_registered",
-    "date_origin", "half_life", "window", "window_end", "ordering",
+    "date_origin", "window_start", "window_end", "ordering",
     "temporal_class", "proposed_at", "ratified_at", "measured_at",
     "valid_from", "valid_until", "since",
 }
+# On an edge record these name endpoints, not provenance.
+ENDPOINT_KEYS = {"from", "to", "source", "target"}
 
 CONFIDENCE_KEYS = {
     "weight", "confidence", "probability", "p", "credence", "certainty",
@@ -466,8 +472,11 @@ def check_closed_provenance(g: Graph) -> Finding:
     ) or any(_outward_reference_in(v, 1) for v in g.top.values()
              if isinstance(v, (dict, list)))
     grounded = {nid for nid, n in g.nodes.items() if _externally_grounded(n)}
+    ext_edges = 0
     for e in g.edges:
-        if _externally_grounded(e.raw):
+        payload = {k: v for k, v in e.raw.items() if _norm(k) not in ENDPOINT_KEYS}
+        if _externally_grounded(payload):
+            ext_edges += 1
             grounded.add(e.src)
             grounded.add(e.dst)
 
@@ -507,8 +516,9 @@ def check_closed_provenance(g: Graph) -> Finding:
 
     total = len(g.nodes)
     ext_nodes = sum(1 for nid in g.nodes if nid in grounded and _externally_grounded(g.nodes[nid]))
-    fully_closed = total > 0 and ext_nodes == 0 and not top_external
+    fully_closed = total > 0 and ext_nodes == 0 and ext_edges == 0 and not top_external
     evidence = [f"nodes with an outward reference: {ext_nodes}/{total}",
+                f"edges with an outward reference: {ext_edges}/{len(g.edges)}",
                 f"top-level outward reference: {'yes' if top_external else 'no'}",
                 f"warrant edges: {len(warrant)}; ungrounded participants: {len(ungrounded)}"]
     if circular:
@@ -519,7 +529,7 @@ def check_closed_provenance(g: Graph) -> Finding:
                        "every lookup can only return another lookup", evidence)
     if circular:
         return Finding("P1", True,
-                       f"{len(circular)} node(s) sit in a support chain that never reaches an "
+                       f"{len(circular)} node(s) sit in a support chain that does not reach an "
                        "externally grounded node", evidence)
     return Finding("P1", False, "provenance reaches outside the graph", evidence)
 
@@ -572,8 +582,8 @@ def check_no_falsifier(g: Graph) -> Finding:
                        "claim", evidence)
     return Finding("P2", True,
                    "no relation, field, state or declared vocabulary can defeat, retract, "
-                   "contradict or supersede a claim; the graph can add truth and never "
-                   "remove it", evidence or ["no defeat channel found"])
+                   "contradict or supersede a claim; the graph can add truth but has no "
+                   "way to remove it", evidence or ["no defeat channel found"])
 
 
 # --- P3 ---------------------------------------------------------------------
@@ -596,7 +606,7 @@ def check_no_timestamp(g: Graph) -> Finding:
     return Finding("P3", True,
                    "no generated_at / recorded_at / as_of anywhere and no declared "
                    "temporal_class; a 2019 edge and a yesterday edge are indistinguishable "
-                   "and STALE can never fire", evidence)
+                   "and STALE has nothing to fire on", evidence)
 
 
 # --- P4 ---------------------------------------------------------------------
@@ -642,17 +652,20 @@ def check_collapsed_confidence(g: Graph) -> Finding:
 # --- P5 ---------------------------------------------------------------------
 
 def check_irreversible_merge(g: Graph) -> Finding:
+    # Only identity-typed nodes count. An alias on an artifact or a claim is
+    # a naming convenience, not a person being merged.
     identity_nodes = {nid for nid, n in g.nodes.items()
                       if _norm(n.get("type", "")) in IDENTITY_TYPES}
     merged: list[str] = []
     unbased: list[str] = []
-    for nid, n in g.nodes.items():
+    for nid in identity_nodes:
+        n = g.nodes[nid]
         if _has_any_key(n, MERGE_KEYS):
             merged.append(nid)
             if not _has_any_key(n, MERGE_BASIS_KEYS):
                 unbased.append(f"node:{nid}")
     for e in g.edges:
-        if e.rel in MERGE_RELS:
+        if e.rel in MERGE_RELS and (e.src in identity_nodes or e.dst in identity_nodes):
             merged.append(f"{e.src}->{e.dst}")
             if not _has_any_key(e.raw, MERGE_BASIS_KEYS):
                 unbased.append(f"edge:{e.src}-{e.rel}->{e.dst}")
@@ -668,11 +681,12 @@ def check_irreversible_merge(g: Graph) -> Finding:
         return Finding("P5", True,
                        f"{len(unbased)} identity merge(s) carry no basis and nothing in the "
                        "graph can split a merged identity again", evidence)
-    if merged and unbased:
-        return Finding("P5", True,
-                       f"{len(unbased)} identity merge(s) carry no recorded basis", evidence)
     if not merged:
         return Finding("P5", False, "no identity merges asserted", evidence)
+    if unbased:
+        return Finding("P5", False,
+                       f"{len(unbased)} identity merge(s) lack a recorded basis, but a split "
+                       "channel exists so the merge is reversible", evidence)
     return Finding("P5", False, "identity merges carry a basis", evidence)
 
 
@@ -701,14 +715,19 @@ def check_single_role_authority(g: Graph) -> Finding:
                 f"executor identities: {sorted(roles['executor']) or 'none'}"]
     if zones:
         evidence.append("zone distribution: " + ", ".join(f"{k}={v}" for k, v in sorted(zones.items())))
+    # Two declared roles are enough: a graph whose proposer is also its
+    # ratifier is self-ratifying whether or not it names an executor, and
+    # self-ratification is the capture surface this repo's Z1/Z2 split exists
+    # to prevent (H-CAND-GOVERNANCE-CAPTURE-SURFACE-01).
     populated = [s for s in roles.values() if s]
     if len(populated) >= 2:
         shared = set.intersection(*populated)
         if shared and all(len(s) == 1 for s in populated):
             return Finding("P6", True,
                            f"the same identity ({', '.join(sorted(shared))}) fills every "
-                           "declared role; the thing that proposes an edge, ratifies it and "
-                           "acts on it is one process", evidence)
+                           f"declared authority role ({len(populated)} of 3 declared); the "
+                           "thing that proposes an edge and the thing that ratifies it are "
+                           "one process", evidence)
     status = _norm(g.top.get("status", ""))
     if not roles["ratifier"] and status and any(m in status for m in UNRATIFIED_MARKERS):
         evidence.append(f"status={g.top.get('status')}: unratified, which is not self-ratified")
@@ -781,7 +800,7 @@ def check_opaque_schema(g: Graph) -> Finding:
     if not g.rel_vocab and len(rels) >= AD_HOC_RELATION_THRESHOLD:
         return Finding("P8", True,
                        f"{len(rels)} distinct relations and no declared vocabulary; the "
-                       "schema cannot be exported because it was never written down", evidence)
+                       "schema cannot be exported because it was not written down", evidence)
     return Finding("P8", False, "schema is enumerable", evidence)
 
 
@@ -817,7 +836,7 @@ def check_unverified(g: Graph) -> Finding:
     if carriers == 0:
         return Finding("P9", True,
                        "no node, edge or top-level field records whether anything was ever "
-                       "checked; the graph stores belief and never stores a test", evidence)
+                       "checked; the graph stores belief and no test", evidence)
     return Finding("P9", False, "a verification channel exists", evidence)
 
 
@@ -929,6 +948,11 @@ def load_baseline(path: str) -> dict:
         for prop, reason in props.items():
             if prop not in PROPERTY_NAMES:
                 raise GraphLoadError(f"baseline {path}: unknown property '{prop}' under '{graph_path}'")
+            if prop not in BLOCKING:
+                raise GraphLoadError(
+                    f"baseline {path}: '{graph_path}.{prop}' is advisory; the baseline accepts "
+                    f"blocking debt only ({', '.join(sorted(BLOCKING))}). Advisory findings are "
+                    f"reported, not accepted, so --strict keeps its meaning")
             if not isinstance(reason, str) or not reason.strip():
                 raise GraphLoadError(f"baseline {path}: '{graph_path}.{prop}' needs a non-empty reason")
     return accepted

@@ -99,6 +99,20 @@ def test_p1_fully_closed_provenance_blocks():
     assert "P1" in _failed(doc)
 
 
+def test_p1_edge_citation_counts_and_endpoint_alias_does_not():
+    doc = _clean()
+    for n in doc["nodes"]:
+        n.pop("source", None)
+        n["label"] = "claim"
+    doc.pop("ratified_by")
+    # source/target as endpoint aliases are not provenance
+    doc["edges"] = [{"source": e["from"], "target": e["to"], "rel": e["rel"], "state": e["state"]}
+                    for e in doc["edges"]]
+    assert "P1" in _failed(doc)
+    doc["edges"][0]["citation"] = "WITNESS_SERVICE_CONTRACT.md"
+    assert "P1" not in _failed(doc)
+
+
 def test_p1_circular_warrant_blocks_even_with_some_grounding():
     doc = _clean()
     doc["nodes"] += [{"id": "X", "type": "claim", "label": "x", "falsifier": "f"},
@@ -175,6 +189,18 @@ def test_p3_no_temporal_anchor_blocks():
     assert "P3" in _failed(doc)
 
 
+def test_p3_duration_only_keys_do_not_satisfy():
+    doc = _clean()
+    doc.pop("recorded_at")
+    doc.pop("temporal_class")
+    doc["nodes"][3].pop("observed_at")
+    doc["half_life"] = 30
+    doc["nodes"][1]["window"] = 14
+    assert "P3" in _failed(doc)
+    doc["nodes"][1]["window_end"] = "2026-10-15"
+    assert "P3" not in _failed(doc)
+
+
 def test_p3_historical_record_with_ordering_passes():
     doc = _clean()
     doc.pop("recorded_at")
@@ -209,6 +235,25 @@ def test_p5_unbased_merge_without_split_channel_warns():
     assert "P5" not in _failed(doc)
 
 
+def test_p5_split_channel_makes_unbased_merge_reversible():
+    doc = _clean()
+    doc["node_types"].append("person")
+    doc["nodes"].append({"id": "P1", "type": "person", "label": "J. Doe",
+                         "merged_from": ["P7", "P9"], "source": "crm export",
+                         "split_rule": "any later identity signal below 0.5"})
+    rep = _lint(doc)
+    p5 = next(f for f in rep.findings if f.prop == "P5")
+    assert not p5.failed and "split channel" in p5.message
+
+
+def test_p5_ignores_aliases_on_non_identity_nodes():
+    doc = _clean()
+    doc["nodes"][0]["aliases"] = ["WSC", "witness contract"]
+    doc["edge_types"].append("same_as")
+    doc["edges"].append({"from": "C1", "to": "C2", "rel": "same_as"})
+    assert "P5" not in _failed(doc)
+
+
 def test_p6_same_identity_in_every_role_warns():
     doc = _clean()
     doc["author"] = doc["ratified_by"] = doc["executor"] = "oracle"
@@ -216,10 +261,21 @@ def test_p6_same_identity_in_every_role_warns():
 
 
 def test_p6_two_roles_sharing_identity_is_enough():
+    """Proposer == ratifier is self-ratification whether or not an executor is
+    named; that is the capture surface the Z1/Z2 split exists to prevent."""
     doc = _clean()
     doc.pop("executor")
     doc["author"] = doc["ratified_by"] = "Night"
-    assert "P6" in _failed(doc)
+    rep = _lint(doc)
+    p6 = next(f for f in rep.findings if f.prop == "P6")
+    assert p6.failed and "2 of 3 declared" in p6.message
+
+
+def test_p6_single_declared_role_is_not_enough():
+    doc = _clean()
+    doc.pop("executor")
+    doc.pop("ratified_by")
+    assert "P6" not in _failed(doc)
 
 
 def test_p7_self_loop_and_measure_act_cycle_warn():
@@ -333,6 +389,14 @@ def test_load_baseline_refuses_malformed(tmp_path):
         gcl.load_baseline(str(bad))
     bad.write_text(json.dumps({"nope": 1}))
     with pytest.raises(gcl.GraphLoadError):
+        gcl.load_baseline(str(bad))
+
+
+def test_load_baseline_refuses_advisory_properties(tmp_path):
+    """Accepting P4-P9 would silently defeat --strict; only blocking debt is baselinable."""
+    bad = tmp_path / "b.json"
+    bad.write_text(json.dumps({"accepted": {"g.json": {"P9": "we like it unverified"}}}))
+    with pytest.raises(gcl.GraphLoadError, match="advisory"):
         gcl.load_baseline(str(bad))
 
 

@@ -120,9 +120,9 @@ The reason for keeping the graphs as separate layers is that no single graph can
 | P3 | NO_TIMESTAMP | no temporal anchor and no declared `temporal_class` | block |
 | P4 | COLLAPSED_CONFIDENCE | every weight is the same maximum, or causal edges carry no uncertainty | advise |
 | P5 | IRREVERSIBLE_MERGE | identity merges with no basis and no split channel | advise |
-| P6 | SINGLE_ROLE_AUTHORITY | one identity proposes, ratifies and executes | advise |
+| P6 | SINGLE_ROLE_AUTHORITY | one identity holds every declared authority role (two or more of proposer, ratifier, executor) | advise |
 | P7 | REFLEXIVE_MEASUREMENT | self-loops, or a measure edge paired with a feed edge | advise |
-| P8 | OPAQUE_SCHEMA | dangling endpoints, undeclared relations, or no vocabulary at all | advise |
+| P8 | OPAQUE_SCHEMA | dangling endpoints, relations outside a declared vocabulary, or five or more distinct relations with no vocabulary declared (smaller ad hoc sets pass) | advise |
 | P9 | UNVERIFIED | no node or edge records whether anything was checked | advise |
 
 ```bash
