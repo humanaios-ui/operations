@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-01'
 decision_window_days: 2
 counts:
-  candidates: 101
+  candidates: 102
   records: 53
 ratifiers:
 - Night
@@ -1169,6 +1169,16 @@ candidates:
   note: 'Z1 allocation proposal: rank all 90 tier-assigned candidates by benefit/cost
     density within Tier 0/1/2. Prerequisite: Q-TIER-ASSIGNMENT-BATCH-01 (Z2-ratified
     2026-09-30).'
+- q_id: Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01
+  title: Z3 executor assignments and execution plan for 90 tier-assigned candidates
+  path: z1-inbox/2026-10-01/Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01.md
+  submitted: '2026-10-01'
+  status: awaiting_z2
+  tier: 1
+  note: 'Z1 allocation proposal: Claude AI (noreply@anthropic.com) as Z3 executor
+    for all active zones. Execution sequence from Q-RBE-OPS-TIER-RANKING-01 (Tier
+    0 first, then Tier 1/2 by density). Resource allocation with per-zone cap constraints.
+    Estimated 450–1800 units across 2–4 cycles.'
 records:
 - path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
   title: Phase 3 credential deployment guide
