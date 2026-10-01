@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 188
+  tools: 189
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 140
+  builder_markers_present: 141
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -525,7 +525,7 @@ tools:
 - tool_id: HAIOS-TOOL-043
   name: ci_predict_consolidate
   path: tools/ci_predict_consolidate_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -537,7 +537,7 @@ tools:
 - tool_id: HAIOS-TOOL-044
   name: ci_predict_pin
   path: tools/ci_predict_pin_v1_0.py
-  version: 1.1.0
+  version: 1.2.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -549,7 +549,7 @@ tools:
 - tool_id: HAIOS-TOOL-045
   name: ci_predict_resolve
   path: tools/ci_predict_resolve_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -2391,6 +2391,19 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
+- tool_id: HAIOS-TOOL-202
+  name: control_plane_custody_observer
+  path: tools/control_plane_custody_observer_v0_1.py
+  version: 0.1.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Read-only control-plane observation and execution/decision/information custody classification.
+  session: CPC-001
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

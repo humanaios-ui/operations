@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**188 registered tools** · 2 MCP servers · 4 excluded · 140 carrying Builder v1.7 markers
+**189 registered tools** · 2 MCP servers · 4 excluded · 141 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 188 |
-| — status `draft` | 187 |
+| Registered tools | 189 |
+| — status `draft` | 188 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 140 |
+| Builder v1.7 markers present | 141 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -36,7 +36,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-176 | grant_matching_engine_v1_0 | `tools/grant_matching_engine_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Matching Engine v1.0 |
 | HAIOS-TOOL-200 | workflow_telemetry_collector | `tools/workflow_telemetry_collector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Telemetry Collector |
 
-## Audit — `audit_tool` (21)
+## Audit — `audit_tool` (22)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -61,14 +61,15 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-143 | zone_boundary_audit | `tools/zone_boundary_audit_v1_0.py` | 1.0.0 | 1 | draft | — | Detects Zone 1/2/3 boundary violations in workflow artifacts and operator logs. |
 | HAIOS-TOOL-156 | registered_failure_mode_scan | `tools/registered_failure_mode_scan_v0_1.py` | 0.1.0 | 1 | draft | — | Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level first-pass yield / DPMO. Advisory unless `--enforce`. |
 | HAIOS-TOOL-192 | scan_rnola_misuse | `scripts/scan_rnola_misuse.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox patterns, authorization misuse, undefined artifacts, and stale evidence. |
+| HAIOS-TOOL-202 | control_plane_custody_observer | `tools/control_plane_custody_observer_v0_1.py` | 0.1.0 | 1 | draft | — | Read-only control-plane observation and execution/decision/information custody classification. |
 
 ## Calibration — `calibration_tool` (16)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
-| HAIOS-TOOL-043 | ci_predict_consolidate | `tools/ci_predict_consolidate_v1_0.py` | 1.0.0 | 1 | draft | — | ci_predict_consolidate_v1_0.py |
-| HAIOS-TOOL-044 | ci_predict_pin | `tools/ci_predict_pin_v1_0.py` | 1.1.0 | 1 | draft | — | ci_predict_pin_v1_0.py |
-| HAIOS-TOOL-045 | ci_predict_resolve | `tools/ci_predict_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | ci_predict_resolve_v1_0.py |
+| HAIOS-TOOL-043 | ci_predict_consolidate | `tools/ci_predict_consolidate_v1_0.py` | 1.1.0 | 1 | draft | — | ci_predict_consolidate_v1_0.py |
+| HAIOS-TOOL-044 | ci_predict_pin | `tools/ci_predict_pin_v1_0.py` | 1.2.0 | 1 | draft | — | ci_predict_pin_v1_0.py |
+| HAIOS-TOOL-045 | ci_predict_resolve | `tools/ci_predict_resolve_v1_0.py` | 1.1.0 | 1 | draft | — | ci_predict_resolve_v1_0.py |
 | HAIOS-TOOL-052 | dimension_attribution | `tools/dimension_attribution_v1_0.py` | 1.0.0 | 1 | draft | — | dimension_attribution_v1_0.py |
 | HAIOS-TOOL-057 | echoes_copilot_acat_scanner | `tools/echoes_copilot_acat_scanner_v0_1.py` | 1.0.0 | 1 | draft | — | echoes_copilot_acat_scanner_v0_1.py |
 | HAIOS-TOOL-087 | lifecycle_predict | `tools/lifecycle_predict_v1_0.py` | 1.0.0 | 1 | draft | — | lifecycle_predict_v1_0.py |
@@ -325,7 +326,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | category | meaning | count |
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 3 |
-| `audit_tool` | Audits artifacts or state against rules and reports findings. | 21 |
+| `audit_tool` | Audits artifacts or state against rules and reports findings. | 22 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
