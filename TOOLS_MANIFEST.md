@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**189 registered tools** · 2 MCP servers · 4 excluded · 141 carrying Builder v1.7 markers
+**190 registered tools** · 2 MCP servers · 4 excluded · 142 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 189 |
-| — status `draft` | 188 |
+| Registered tools | 190 |
+| — status `draft` | 189 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 141 |
+| Builder v1.7 markers present | 142 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -61,6 +61,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-143 | zone_boundary_audit | `tools/zone_boundary_audit_v1_0.py` | 1.0.0 | 1 | draft | — | Detects Zone 1/2/3 boundary violations in workflow artifacts and operator logs. |
 | HAIOS-TOOL-156 | registered_failure_mode_scan | `tools/registered_failure_mode_scan_v0_1.py` | 0.1.0 | 1 | draft | — | Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level first-pass yield / DPMO. Advisory unless `--enforce`. |
 | HAIOS-TOOL-192 | scan_rnola_misuse | `scripts/scan_rnola_misuse.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox patterns, authorization misuse, undefined artifacts, and stale evidence. |
+| HAIOS-TOOL-201 | repository_knowledge_graph | `tools/repository_knowledge_graph_v0_1.py` | 0.2.0 | 1 | draft | — | Deterministic provenance-bearing repository graph compiler with bounded inference and human review outputs. |
 | HAIOS-TOOL-202 | control_plane_custody_observer | `tools/control_plane_custody_observer_v0_1.py` | 0.1.0 | 1 | draft | — | Read-only control-plane observation and execution/decision/information custody classification. |
 
 ## Calibration — `calibration_tool` (16)
@@ -112,7 +113,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-133 | tier1_principles_stub | `tools/tier1_principles_stub.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — stub for smoke test execution. |
 | HAIOS-TOOL-152 | strict_yaml | `.doc-control/strict_yaml.py` | unversioned | 1 | draft | no-builder-markers | A YAML loader that refuses duplicate mapping keys, for registry consumers. |
 
-## Diagnostics — `diagnostic_tool` (16)
+## Diagnostics — `diagnostic_tool` (17)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -330,7 +331,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
-| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 16 |
+| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 17 |
 | `governance_tool` | Operates the governance machinery: registries, molts, routing. | 17 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 6 |
