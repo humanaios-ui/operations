@@ -4,7 +4,9 @@
 **Authority:** Z1 (Claude) allocation proposal — awaiting Z2 ratification  
 **Scope:** Rank all 90 tier-assigned candidates by benefit/cost density within Tier 0/1/2  
 **Framework:** Resource-based allocation model (RBE-OPS) per PRIORITY_QUEUE.md + priority_queue_engine.py  
-**Prerequisite:** Q-TIER-ASSIGNMENT-BATCH-01 (Z2-ratified 2026-09-30)
+**Prerequisites:** 
+1. Q-TIER-ASSIGNMENT-BATCH-01 (tier assignments for all 90 candidates; Z2 ratification pending as of 2026-10-01)
+2. PRIORITY_QUEUE.md molt_id f7a49f667c09f1f6 resource envelope (Phase 2 budget allocation)
 
 ---
 
@@ -23,6 +25,34 @@ Q-TIER-ASSIGNMENT-BATCH-01 established tier membership for all 90 awaiting_z2 ca
 - **Tier 1 (Band A + B):** 46 candidates, Band A by benefit, Band B by density
 - **Tier 2 (Band A + B):** 30 candidates, Band A by benefit, Band B by density
 - **Total:** 90 ranked candidates
+
+---
+
+## Numeric Benefit/Cost Derivation
+
+Q-TIER-ASSIGNMENT-BATCH-01 provides qualitative benefit/cost classifications. This section documents the conversion to numeric scores used in density ranking.
+
+**Methodology:**
+
+1. **Benefit Score (range 6–10):** Assigned based on tier membership and infrastructure criticality
+   - Tier 0 candidates (critical infrastructure): Benefit 7–10 (system unblocks)
+   - Tier 1 candidates (major features): Benefit 6–8 (feature capability)
+   - Tier 2 candidates (refinement): Benefit 5–7 (quality/optimization)
+   - Within each tier, candidates scoring higher impact (unblocking multiple downstream items, control-plane precedence) receive higher benefit scores
+
+2. **Cost Score (range 0–10, RAT-min units):** Extracted from qualitative burden descriptors
+   - Band A (zero-cost): Cost = 0 (no implementation burden)
+   - Band B (low cost): Cost = 2–3 (documentation, review, light refactoring)
+   - Band B (moderate cost): Cost = 5–7 (feature implementation, integration work)
+   - Band B (high cost): Cost = 8–10 (redesign, ecosystem changes, major framework work)
+   - Specific cost values calibrated to Priority Queue's molt_id f7a49f667c09f1f6 resource envelope (Phase 2 budget allocation)
+
+3. **Density Calculation:** density = benefit ÷ cost (high density first)
+   - Band A items render density as ∞ (cost=0)
+   - Band B items ranked by computed density within their category
+   - Candidates with equivalent density ordered by submission date (earliest first) for stable sort
+
+**Reproducibility:** This mapping links qualitative Q-TIER-ASSIGNMENT-BATCH-01 descriptors to numeric inputs for priority_queue_engine.py. Z2 can verify density scores by re-applying this methodology to the same source document. Machine-readable priority_queue_engine.py input (QueueItem batch) is available on demand.
 
 ---
 
@@ -250,7 +280,7 @@ For rapid execution under capacity constraints, these highest-density items shou
 
 **Status:** AWAITING Z2 RATIFICATION  
 **Authority:** Z1 (Claude) allocation proposal  
-**Ratification Target:** 2026-10-02 00:15 UTC (24h window)
+**Ratification Target:** 2026-10-03 00:15 UTC (2-day decision window per CLAUDE.md §B.1)
 
 ---
 

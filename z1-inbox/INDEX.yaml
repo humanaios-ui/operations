@@ -1144,8 +1144,8 @@ candidates:
   path: z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01-RESULT.md
   submitted: '2026-09-30'
   status: awaiting_z2
-  note: 'Z2 ratification completed. Tier distribution: 14 Tier-0 (critical infrastructure),
-    46 Tier-1 (major features), 30 Tier-2 (refinement). Ratification signature: 8f81f95b2b765cc6f4ba6f98845a781674495fecb8de917e6491d8e0b052eb0d'
+  note: 'Tier distribution: 14 Tier-0 (critical infrastructure), 46 Tier-1 (major
+    features), 30 Tier-2 (refinement). Z2 ratification decision pending.'
   tier: 2
 - q_id: Q-588-CONVERGENCE-MATRIX-01
   title: Resource System Convergence Matrix — component landscape & composition framework
