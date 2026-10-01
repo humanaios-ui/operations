@@ -475,8 +475,7 @@ def test_full_pipeline_verifies_and_scores(tmp_path):
 
 def test_tampering_a_consolidated_ledger_is_detected(tmp_path):
     ledger = tmp_path / "ci.jsonl"
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     events = consolidate_tool.build_events(
         pin, {"x": {"outcome": "YES", "source": "u"}}, set(), "2026-09-12"
     )
