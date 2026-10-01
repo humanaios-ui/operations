@@ -12,7 +12,7 @@ The adapter is intentionally conservative:
 - decision custody defaults to UNKNOWN;
 - authority evidence defaults to UNKNOWN;
 - boundary state defaults to UNKNOWN unless mechanically supplied;
-- authority_effect is always NONE.
+- emitted observations set authority_effect=NONE; downstream schema validation enforces the receipt contract.
 
 Usage:
   python3 tools/control_plane_github_adapter_v0_1.py --input evidence.json
