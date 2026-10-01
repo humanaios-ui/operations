@@ -330,16 +330,14 @@ def test_build_events_orders_token_pin_resolve():
 
 
 def test_build_events_skips_unresolved_checks():
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     events = consolidate_tool.build_events(pin, resolutions={}, existing_ids=set(),
                                            pushed_at_date="2026-09-12")
     assert events == []
 
 
 def test_build_events_skips_existing_tokens():
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     resolutions = {"x": {"outcome": "YES", "source": "u"}}
     token_id = consolidate_tool.token_id_for("a" * 40, "x")
     events = consolidate_tool.build_events(pin, resolutions, existing_ids={token_id},
@@ -349,8 +347,7 @@ def test_build_events_skips_existing_tokens():
 
 def test_build_events_refuses_empty_anchor():
     """An unanchored prediction never enters the ledger, not even as PRACTICE."""
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     resolutions = {"x": {"outcome": "YES", "source": "u"}}
     events = consolidate_tool.build_events(pin, resolutions, existing_ids=set(),
                                            pushed_at_date="")
@@ -424,8 +421,7 @@ def test_consolidator_refuses_unbound_pin_even_with_resolution():
 
 def test_load_ledger_state_refuses_a_corrupt_ledger(tmp_path):
     ledger = tmp_path / "corrupt.jsonl"
-    pin = {"head_sha": "a" * 40, "predictor": "Claude Code",
-           "checks": {"x": {"conclusion": "success", "p": 0.8}}}
+    pin = bound_pin(checks={"x": {"conclusion": "success", "p": 0.8}})
     events = consolidate_tool.build_events(
         pin, {"x": {"outcome": "YES", "source": "u"}}, set(), "2026-09-12"
     )
