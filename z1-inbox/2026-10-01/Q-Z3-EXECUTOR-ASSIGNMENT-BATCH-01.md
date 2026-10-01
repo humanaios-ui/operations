@@ -4,17 +4,17 @@
 **Authority:** Z1 (Claude) allocation proposal — awaiting Z2 ratification  
 **Scope:** Assign Z3 executors to active zones and establish execution sequence for all 90 tier-assigned candidates  
 **Prerequisites:**
-1. Q-RBE-OPS-TIER-RANKING-01 (Z2-ratified 2026-10-01) — tier/density ranking within Tier 0/1/2
-2. Q-TIER-ASSIGNMENT-BATCH-01 (awaiting Z2 ratification) — tier membership for all 90 candidates
+1. Q-RBE-OPS-TIER-RANKING-01 (Z2-ratified per PR #615) — tier/density ranking within Tier 0/1/2
+2. Q-TIER-ASSIGNMENT-BATCH-01 (awaiting Z2 ratification) — tier membership for all 90 candidates; this proposal is contingent on that ratification
 3. ZONE_REGISTRY.md (Z2-ratified per-zone resource caps)
 
 ---
 
 ## Executive Summary
 
-With Q-RBE-OPS-TIER-RANKING-01 now ratified, execution order is determined. Z3 executor assignments are currently all TBD per ZONE_REGISTRY.md. This candidate proposes:
+With Q-RBE-OPS-TIER-RANKING-01 now ratified, execution order is determined. This proposal is contingent on Z2 ratification of Q-TIER-ASSIGNMENT-BATCH-01 (currently awaiting). Z3 executor assignments are currently all TBD per ZONE_REGISTRY.md. This candidate proposes:
 
-1. **Z3 Executor Assignment:** Claude AI agent (noreply@anthropic.com, authorized per Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01) designated as primary Z3 executor for Tier 0/1 work across all zones
+1. **Z3 Executor Assignment:** Claude AI agent (noreply@anthropic.com, authorized per Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01) designated as primary Z3 executor for Tier 0/1/2 work across all zones
 2. **Execution Sequence:** Follow tier/density ranking (Tier 0 first, then Tier 1 by density, then Tier 2 by density)
 3. **Resource Allocation Strategy:** Tier 0 candidates (14 total, all zero-cost) execute in benefit order; Tier 1/2 execute by density within resource cap constraints
 4. **Handoff Schedule:** VERDICT events emitted per candidate completion; cycle reports every 5 candidates or zone cap saturation
@@ -66,7 +66,7 @@ Candidates execute in order specified by Q-RBE-OPS-TIER-RANKING-01:
 13. Q-GATE-PATHS-TEST-LOGIC-01 (benefit 7)
 14. Q-WITNESS-LEDGER-TIER0-EXTENSION-01 (benefit 7)
 
-**Execution note:** Tier 0 is unblocked and has zero resource cost. Execute in benefit order (1–5 first for system control plane setup, then 6–14 in parallel where dependencies permit). Estimated consumption: 0 units (all Band A).
+**Execution note:** Tier 0 is unblocked and has zero ranking cost (RAT-min). Execute in benefit order (1–5 first for system control plane setup, then 6–14 in parallel where dependencies permit). Zone unit consumption: Estimated 14 × (5–50 execution + 1–3 reporting) = 84–756 zone units total across all zones for Tier 0 execution.
 
 ### Tier 1 (Major Features) — 46 candidates, Band A (3 items) then Band B (43 items) by density
 
@@ -86,12 +86,13 @@ Candidates execute in order specified by Q-RBE-OPS-TIER-RANKING-01:
 ### Tier 2 (Refinement) — 30 candidates, Band A (1 item) then Band B (29 items) by density
 
 **Tier 2, Band A (zero-cost):**
-- Q-IC-BOARD-SEALS-01 (benefit ≤7, cost 0)
+- Q-GOVDRIFT-01 (benefit 6, cost 0) — Governance drift detection
 
-**Tier 2, Band B (density-ranked):**
-- Q-LEDGER-GROUNDING-STUB-01 (density 4.0)
+**Tier 2, Band B (density-ranked, highest first):**
 - Q-BOARD-RULING-33 (density 4.0)
-- [... 27 more candidates by density ...]
+- Q-LEDGER-GROUNDING-STUB-01 (density 4.0)
+- Q-BOARD-RULING-03 (density 3.50)
+- [... 26 more candidates by density ...]
 
 **Resource budget:** Tier 2 total estimated 40–80 units (refinement work, lower priority).
 
@@ -102,20 +103,23 @@ Candidates execute in order specified by Q-RBE-OPS-TIER-RANKING-01:
 ### Zone Cap Management
 
 Each zone has a per-cycle resource budget (ZONE_REGISTRY.md):
-- Z-000 (operations): 80 units/cycle
-- Z-001 (humanaios): 100 units/cycle
-- Z-002–Z-012: 20–70 units/cycle
-- **Total available:** ~760 units/cycle
+- Z-000 through Z-007, Z-012 (9 full-cap zones): 600 units/cycle combined
+- Z-008 through Z-010 (3 limited-cap zones): 75 units/cycle combined
+- **Total available:** 675 units/cycle
 
 ### Consumption Model
 
-Per candidate execution:
-- Z1 proposal creation: 1–5 units (already consumed in prior phase)
-- Z2 ratification: 1–2 units (already consumed in prior phase)
-- Z3 agent execution: 5–50 units (new consumption for this phase)
-- Z3 VERDICT/cycle reporting: 1–3 units (emitted on completion)
+Per candidate execution (all costs in zone units, per ZONE_REGISTRY.md resource caps):
+- Z1 proposal creation: 1–5 units (already consumed in prior phase, not counted here)
+- Z2 ratification: 1–2 units (already consumed in prior phase, not counted here)
+- Z3 agent execution: 5–50 units per candidate (new consumption for this phase; varies by complexity)
+- Z3 VERDICT/cycle reporting: 1–3 units per candidate (emitted on completion)
 
-**Estimated total for 90 candidates:** 450–1800 units (includes execution + measurement + reporting). Likely requires 2–4 cycles at current zone caps.
+**Resource calculation:** Assuming 90 candidates across 675 units/cycle:
+- Lower bound: 90 candidates × 5 units execution + 1 unit reporting = 540 units
+- Upper bound: 90 candidates × 50 units execution + 3 units reporting = 4,530 units
+- Realistic estimate (mixed complexity): 90 × 15 avg execution + 2 reporting = 1,530 units total
+- **Estimated cycles:** At 675 units/cycle available, realistic estimate requires ~2–3 cycles (1,530 ÷ 675 ≈ 2.3 cycles)
 
 ### Execution Halting Rules
 
@@ -132,10 +136,10 @@ When a zone reaches its per-cycle cap:
 **This assignment will be proven wrong if:**
 
 1. Z3 executor (Claude AI) cannot be authenticated to INTENT-OS within 48h (Phase 1 binding unavailable)
-2. Zone resource caps insufficient to complete Tier 0 work (Tier 0 total > 0 RAT-min would violate Band A assumption)
+2. Zone resource caps insufficient to complete Tier 0 work (zone cap saturated before Tier 0 completion despite available cycles)
 3. Execution order from tier/density ranking produces deadlocks (cross-candidate dependencies unresolved)
-4. A Tier 1/2 candidate's actual cost exceeds estimate by >5 units (confidence collapse)
-5. Z3 executor assignment fails to emit VERDICT events for ≥90% of executed candidates (measurement loss)
+4. A Tier 1/2 candidate's actual cost exceeds estimate by >5 zone units (confidence collapse in cost model)
+5. Z3 executor assignment fails to emit VERDICT event for any executed candidate (per-candidate measurement mandatory)
 6. Resource consumption across all zones exceeds total budget by >20% (capacity model miscalibrated)
 
 **Confirmation events:**
@@ -159,7 +163,7 @@ When a zone reaches its per-cycle cap:
 
 **Status:** AWAITING Z2 RATIFICATION  
 **Authority:** Z1 (Claude) allocation proposal  
-**Ratification Target:** 2026-10-03 03:00 UTC (2-day decision window per CLAUDE.md §B.1)
+**Ratification Target:** 2026-10-03 03:00 UTC (2-day decision window per CLAUDE.md "Routine Decisions (Z1 → Z2)" section)
 
 ---
 
