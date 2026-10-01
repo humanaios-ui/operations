@@ -44,6 +44,8 @@ DECLARATION FILE
 -----------------
 `ci_predictions/pr.json`, committed by the PR author before push:
   {
+    "pr": 123,
+    "actor_origin_claim": "optional agent/model claim",
     "checks": {
       "quality": {"conclusion": "success", "p": 0.9},
       "guard": {"conclusion": "success", "p": 0.85}
@@ -66,6 +68,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import hashlib
 import re
 import subprocess
 import sys
@@ -74,7 +77,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 TOOL_NAME = "ci_predict_pin"
-TOOL_VERSION = "1.1.0"
+TOOL_VERSION = "1.2.0"
 DEFAULT_FILE = "ci_predictions/pr.json"
 
 # Marker wrapping the embedded JSON so resolve/consolidate can find it without
@@ -213,6 +216,45 @@ def parse_declaration(content: str, label: str) -> dict:
     return data
 
 
+def declared_pr_matches(declaration: dict, pr_number: str) -> bool:
+    """True only when the declaration explicitly targets this PR."""
+    target = declaration.get("pr")
+    if target is None or isinstance(target, bool):
+        return False
+    return str(target) == str(pr_number)
+
+
+def declaration_binding(pr_number: str, base_sha: str, head_content: str,
+                        base_content: str | None) -> dict:
+    """Evidence that this declaration is PR-specific, not inherited from base."""
+    return {
+        "declared_pr": str(pr_number),
+        "base_sha": base_sha,
+        "head_content_sha256": hashlib.sha256(head_content.encode("utf-8")).hexdigest(),
+        "base_content_sha256": (
+            hashlib.sha256(base_content.encode("utf-8")).hexdigest()
+            if base_content is not None else None
+        ),
+        "changed_from_base": base_content != head_content,
+    }
+
+
+def pin_payload_is_pr_bound(payload: dict, expected_pr: str | None = None) -> bool:
+    """Accept only v2 pins carrying a positive PR-binding receipt."""
+    if payload.get("schema") != "ci_predict_pin_v2":
+        return False
+    binding = payload.get("declaration_binding")
+    if not isinstance(binding, dict) or binding.get("changed_from_base") is not True:
+        return False
+    declared = str(binding.get("declared_pr") or "")
+    payload_pr = str(payload.get("pr") or "")
+    if not declared or declared != payload_pr:
+        return False
+    if expected_pr is not None and payload_pr != str(expected_pr):
+        return False
+    return True
+
+
 def load_declaration(path: Path) -> dict:
     """Read and validate a predictions file from a local checkout.
 
@@ -226,7 +268,8 @@ def load_declaration(path: Path) -> dict:
 
 
 def build_payload(pr_number: str, head_sha: str, predictor: str, declaration: dict,
-                  committed_at: str = "", actor_provenance: dict | None = None) -> dict:
+                  committed_at: str = "", actor_provenance: dict | None = None,
+                  binding: dict | None = None) -> dict:
     """Pure: assemble the payload that goes into the pin comment. No I/O.
 
     `committed_at` should be the git commit timestamp that last touched the
@@ -236,11 +279,12 @@ def build_payload(pr_number: str, head_sha: str, predictor: str, declaration: di
     caller cannot determine it.
     """
     return {
-        "schema": "ci_predict_pin_v1",
+        "schema": "ci_predict_pin_v2",
         "pr": str(pr_number),
         "head_sha": head_sha,
         "predictor": predictor,
         "actor_provenance": actor_provenance or {},
+        "declaration_binding": binding or {},
         "prediction_status": "PINNED",
         "committed_at": committed_at,
         "checks": declaration["checks"],
@@ -309,12 +353,17 @@ def fetch_declaration_via_api(repo: str, ref: str, path: str = DEFAULT_FILE):
         capture_output=True, text=True, timeout=30,
     )
     if proc.returncode != 0:
-        return None
+        err = (getattr(proc, "stderr", "") or "") + "\n" + (proc.stdout or "")
+        if "404" in err or "Not Found" in err:
+            return None
+        raise DeclarationError(
+            f"{repo}@{ref}:{path}: contents API failed: {err.strip() or 'unknown error'}"
+        )
     try:
         payload = json.loads(proc.stdout)
         return base64.b64decode(payload["content"]).decode("utf-8")
-    except (json.JSONDecodeError, KeyError, ValueError):
-        return None
+    except (json.JSONDecodeError, KeyError, ValueError) as exc:
+        raise DeclarationError(f"{repo}@{ref}:{path}: malformed contents response") from exc
 
 
 def commit_date_via_api(repo: str, sha: str) -> str:
@@ -362,23 +411,57 @@ def run(repo: str, pr_number: str, declaration_file: str = DEFAULT_FILE) -> int:
         print(f"::warning::could not fetch PR {pr_number}; skipping pin", file=sys.stderr)
         return 0  # a missing pin is a VOID later, never a workflow failure
     head_sha = (pr.get("head") or {}).get("sha", "")
+    base_sha = (pr.get("base") or {}).get("sha", "")
 
     commit = gh_json(f"repos/{repo}/commits/{head_sha}") or {}
-    content = fetch_declaration_via_api(repo, head_sha, declaration_file)
+    try:
+        content = fetch_declaration_via_api(repo, head_sha, declaration_file)
+    except DeclarationError as exc:
+        print(f"::error::{exc}", file=sys.stderr)
+        return 1
     if content is None:
         provenance = derive_actor_provenance(pr, commit, {})
         detail = f"no {declaration_file} at {head_sha[:12]}; this head did not enter the prediction loop"
         comment = render_status_comment(pr_number, head_sha, "ABSENT", provenance, detail)
         print(comment)
         return post_comment(repo, pr_number, comment)
-    declaration = parse_declaration(content, f"PR #{pr_number} @ {declaration_file}")
 
+    try:
+        base_content = (
+            fetch_declaration_via_api(repo, base_sha, declaration_file)
+            if base_sha else None
+        )
+    except DeclarationError as exc:
+        print(f"::error::{exc}", file=sys.stderr)
+        return 1
+
+    if base_content == content:
+        provenance = derive_actor_provenance(pr, commit, {})
+        detail = (
+            f"{declaration_file} at {head_sha[:12]} is byte-identical to base "
+            f"{base_sha[:12]}; refusing inherited prediction"
+        )
+        comment = render_status_comment(pr_number, head_sha, "INHERITED", provenance, detail)
+        print(comment)
+        return post_comment(repo, pr_number, comment)
+
+    declaration = parse_declaration(content, f"PR #{pr_number} @ {declaration_file}")
     provenance = derive_actor_provenance(pr, commit, declaration)
+    if not declared_pr_matches(declaration, pr_number):
+        detail = (
+            f"declaration targets PR {declaration.get('pr')!r}, not current PR "
+            f"{pr_number}; refusing mismatched prediction"
+        )
+        comment = render_status_comment(pr_number, head_sha, "MISMATCHED", provenance, detail)
+        print(comment)
+        return post_comment(repo, pr_number, comment)
+
     predictor = predictor_label(provenance)
     committed_at = commit_date_via_api(repo, head_sha)
+    binding = declaration_binding(pr_number, base_sha, content, base_content)
     payload = build_payload(
         pr_number, head_sha, predictor, declaration, committed_at,
-        actor_provenance=provenance,
+        actor_provenance=provenance, binding=binding,
     )
     comment = render_pin_comment(payload)
     print(comment)
@@ -388,11 +471,16 @@ def run(repo: str, pr_number: str, declaration_file: str = DEFAULT_FILE) -> int:
 def run_smoke_test() -> bool:
     """Pure-logic smoke test. No network, matches house convention."""
     ok = True
-    declaration = {"checks": {"quality": {"conclusion": "success", "p": 0.9},
+    declaration = {"pr": 42,
+                   "checks": {"quality": {"conclusion": "success", "p": 0.9},
                               "guard": {"conclusion": "success", "p": 0.7}},
                    "note": "example"}
-    payload = build_payload("42", "abc123def456", "Claude Code", declaration)
+    bind = declaration_binding("42", "b" * 40, json.dumps(declaration), None)
+    payload = build_payload("42", "abc123def456", "Claude Code", declaration, binding=bind)
     ok = ok and payload["pr"] == "42" and payload["predictor"] == "Claude Code"
+    ok = ok and pin_payload_is_pr_bound(payload, "42")
+    ok = ok and declared_pr_matches(declaration, "42")
+    ok = ok and not declared_pr_matches({**declaration, "pr": 41}, "42")
     ok = ok and payload["committed_at"] == ""  # no anchor supplied: empty, not guessed
     comment = render_pin_comment(payload)
     ok = ok and PIN_MARKER in comment and "```json" in comment
@@ -426,12 +514,24 @@ def run_smoke_test() -> bool:
     ok = ok and STATUS_MARKER in absent and "Prediction status: ABSENT" in absent
 
     anchored = build_payload("42", "abc123def456", "Claude Code", declaration,
-                             committed_at="2026-09-12T10:00:00Z")
+                             committed_at="2026-09-12T10:00:00Z", binding=bind)
     ok = ok and "2026-09-12T10:00:00Z" in render_pin_comment(anchored)
     match = _JSON_BLOCK.search(comment)
     ok = ok and match is not None
     round_tripped = json.loads(match.group(1)) if match else {}
     ok = ok and round_tripped == payload
+
+    inherited_bind = declaration_binding(
+        "42", "b" * 40, json.dumps(declaration), json.dumps(declaration)
+    )
+    inherited_payload = build_payload(
+        "42", "abc123def456", "Claude Code", declaration, binding=inherited_bind
+    )
+    ok = ok and inherited_bind["changed_from_base"] is False
+    ok = ok and not pin_payload_is_pr_bound(inherited_payload, "42")
+    legacy_payload = dict(payload)
+    legacy_payload["schema"] = "ci_predict_pin_v1"
+    ok = ok and not pin_payload_is_pr_bound(legacy_payload, "42")
 
     # A bad probability is refused at declaration time, not silently accepted.
     import tempfile
