@@ -201,11 +201,20 @@ A high Miner relevance score is evidence of **need alignment**, not eligibility 
 
 When this project lives at `operations/humanaios-funding-pipeline/entitlement-navigator/`, it automatically discovers the canonical funding dataset at `../data/sources.json`.
 
-`entitlement/funding_adapter.py` exposes that dataset as a discovery source without converting its existing tags into eligibility claims. The local API endpoint is:
+`entitlement/funding_adapter.py` exposes that dataset as a discovery source without converting its existing tags into eligibility claims. The local funding-search API endpoint is:
 
 ```text
 POST /api/funding/local/search
 ```
+
+Resource Miner now has a separate typed handoff path:
+
+```text
+GET  resource-miner:/api/entitlement/handoff?resource_id=<id>
+POST entitlement-navigator:/api/resource/intake
+```
+
+`/api/resource/intake` accepts only `humanaios.resource-entitlement-handoff.v1`. A valid handoff is normalized to `INVESTIGATE` with `eligibility_assessed=false`; any upstream handoff claiming that eligibility is already assessed is rejected.
 
 Example:
 
@@ -221,6 +230,14 @@ Example:
 Returned records are classified `GENERAL_OPPORTUNITY` with `eligibility_assessed=false` until authoritative program criteria are tested. The case research queue also includes `DISCOVERY-LOCAL-FUNDING` ahead of SAM.gov and Grants.gov discovery.
 
 ## API
+
+### `POST /api/resource/intake`
+
+```json
+{"handoff": {"schema": "humanaios.resource-entitlement-handoff.v1", "...": "..."}}
+```
+
+Accepts a Resource Miner discovery handoff and opens an `INVESTIGATE` record. Need alignment, Miner route, and resource value are not converted into eligibility.
 
 ### `POST /api/interrogate/next`
 
