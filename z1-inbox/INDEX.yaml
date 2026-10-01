@@ -2,8 +2,8 @@ version: 1
 generated: '2026-10-01'
 decision_window_days: 2
 counts:
-  candidates: 102
-  records: 53
+  candidates: 103
+  records: 55
 ratifiers:
 - Night
 candidates:
@@ -1452,5 +1452,18 @@ records:
     entry'' -- that ID does not exist in REGISTERED.md as of 2026-09-28; a claim-vs-tree
     mismatch in a document about catching claim-vs-tree mismatches, flagged here rather
     than silently indexed as if the claim were true. Indexed as a record, not a live
+    candidate.'
+- path: z1-inbox/2026-09-25/HANDOFF-PHASE-2B-TELEMETRY.md
+  title: 'Session Handoff — Phase 2B Telemetry Implementation Complete'
+  note: 'Session handoff for Phase 2B telemetry implementation (PR #538 merged). Telemetry
+    added to quality-baseline.yml and governance-files.yml workflows. Path validator
+    and telemetry collector tools deployed. Phase 2A monitoring window established
+    (2026-09-25 to 2026-10-02). Indexed as a record, not a live candidate.'
+- path: z1-inbox/2026-10-01/HANDOFF.md
+  title: 'Z1 Session Handoff — Phase 2B Salvage Complete'
+  note: 'Session handoff documenting Phase 2B deliverables completion: workflow path
+    validator (59 workflows, 0 errors), telemetry infrastructure, and governance candidate
+    filed as Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01. Receipt reconciliation: 10/10
+    claims verified in tree with zero receipt gaps. Indexed as a record, not a live
     candidate.'
 excluded: []

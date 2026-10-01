@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**103 candidates** — ⏳ awaiting Z2 93 · ✅ ratified 10 · **53 records**
+**103 candidates** — ⏳ awaiting Z2 93 · ✅ ratified 10 · **55 records**
 
 ## Awaiting Z2 (93)
 
@@ -473,7 +473,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (53)
+## Records (55)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -523,6 +523,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md` | Z2 rulings 2026-09-24 — recovered Q-MAIL merge-is-ratification receipt |
 | `z1-inbox/2026-09-25/DEPLOYMENT-FREQUENCY-VERIFICATION.md` | Deployment Frequency Improvement Verification Report |
 | `z1-inbox/2026-09-25/HANDOFF-PHASE-1-CI-CONSOLIDATION.md` | Z1 Handoff: Phase 1 CI/CD Consolidation (PR #538) |
+| `z1-inbox/2026-09-25/HANDOFF-PHASE-2B-TELEMETRY.md` | Session Handoff — Phase 2B Telemetry Implementation Complete |
 | `z1-inbox/2026-09-25/PHASE-1-CI-CONSOLIDATION-HANDOFF.md` | Z1 Handoff: Phase 1 CI/CD Consolidation (isolated branch) |
 | `z1-inbox/2026-09-25/PHASE-2-EXECUTIVE-START.md` | Phase 2: Executive Start — Options A & B Immediate Launch |
 | `z1-inbox/2026-09-25/PHASE-2A-MONITORING-IMPLEMENTATION.md` | Phase 2A: Monitoring & Validation — Implementation Plan |
@@ -531,6 +532,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-27/MOLT-MEASUREMENT-MANUAL-EXTRACTION.md` | MOLT Measurement Manual Extraction Procedure — Blockchain Trading Pilot (Z-012) |
 | `z1-inbox/2026-09-28/IC-065-EVIDENCE-LEDGER-GAP-PR465.md` | IC-065 — Evidence Ledger Gap (PR #465) |
 | `z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md` | Phase 3 credential deployment guide |
+| `z1-inbox/2026-10-01/HANDOFF.md` | Z1 Session Handoff — Phase 2B Salvage Complete |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---
