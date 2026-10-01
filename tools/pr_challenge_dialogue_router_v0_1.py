@@ -299,7 +299,7 @@ def route(*, event: dict[str, Any], changed_files: set[str],
     if str(event.get("action") or "") not in {"created", "edited"}:
         return {"should_reply": False, "reason": "unsupported_action"}
     issue = event.get("issue") or {}
-    if not issue.get("pull_request"):
+    if "pull_request" not in issue:
         return {"should_reply": False, "reason": "not_pull_request"}
     pr = int(issue.get("number") or 0)
     if pr != pilot_pr:
