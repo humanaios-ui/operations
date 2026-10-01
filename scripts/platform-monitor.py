@@ -1,9 +1,29 @@
 #!/usr/bin/env python3
 """
 Public Discourse Signal Monitor
-Scrapes high-volume discussion topics from multiple platforms and logs observations.
-Topics: AI Jailbreaks, LLM Hallucinations, Database Privacy
-Platforms: Twitter/X, Reddit, HackerNews, LessWrong, Discord, GitHub Discussions
+
+Category: Monitoring & Signal Detection
+Purpose: Collects high-volume discussion signals from multiple platforms
+Output: JSONL signal log for AI-EO indexing pipeline
+
+Monitored Topics:
+- AI Jailbreaks & Prompt Injection Attacks
+- LLM Hallucinations & Truthfulness Calibration
+- Database Privacy & Data Governance
+
+Monitored Platforms:
+- Twitter/X
+- Reddit (MachineLearning, LanguageModels, EffectiveAltruism subreddits)
+- HackerNews
+- LessWrong / Alignment Forum
+- GitHub Discussions
+
+Usage:
+  python3 platform-monitor.py
+
+Outputs:
+  - data/public-discourse-signals.jsonl (appended signal records)
+  - JSON summary to stdout
 """
 
 import json

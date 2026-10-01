@@ -1,13 +1,37 @@
 from __future__ import annotations
 
+import time
+
 from fastapi.testclient import TestClient
 
 from acat.api.app import app
 
 client = TestClient(app)
 
+_WRITE_TOKEN = "test-token"
+_WRITE_HEADERS = {"X-ACAT-Write-Token": _WRITE_TOKEN}
+
+
+def _poll_until_done(job_id: str, timeout_seconds: float = 2.0) -> dict:
+    """Poll GET /assess/{job_id} until the background job leaves 'running'.
+
+    /assess is asynchronous: POST returns a job_id immediately and the
+    actual assessment (or its failure) is only visible via polling.
+    """
+    deadline = time.monotonic() + timeout_seconds
+    result = {"status": "running"}
+    while time.monotonic() < deadline:
+        response = client.get(f"/api/v1/acat/assess/{job_id}")
+        result = response.json()
+        if result["status"] != "running":
+            return result
+        time.sleep(0.01)
+    raise AssertionError(f"job {job_id} still running after {timeout_seconds}s")
+
 
 def test_assess_endpoint_happy_path(monkeypatch):
+    monkeypatch.setenv("ACAT_WRITE_TOKEN", _WRITE_TOKEN)
+
     def fake_run_assessment(payload: dict) -> dict:
         assert payload["agent_name"] == "Claude"
         assert payload["provider"] == "anthropic"
@@ -69,10 +93,14 @@ def test_assess_endpoint_happy_path(monkeypatch):
             "mode": "two_stage",
             "wait_seconds": 65,
         },
+        headers=_WRITE_HEADERS,
     )
 
     assert response.status_code == 200
-    body = response.json()
+    assert response.json()["status"] == "running"
+    job_id = response.json()["job_id"]
+
+    body = _poll_until_done(job_id)
 
     assert body["status"] == "completed"
     assert body["assessment_id"] == "acat-test-001"
@@ -84,15 +112,11 @@ def test_assess_endpoint_happy_path(monkeypatch):
 
 
 def test_assess_endpoint_returns_422_for_validation_error(monkeypatch):
-    from acat.api.services.ingest_service import IntakeValidationError
-
-    def fake_run_assessment(payload: dict) -> dict:
-        raise IntakeValidationError("provider must be 'anthropic'")
-
-    monkeypatch.setattr(
-        "acat.api.routes.assess_router.run_assessment",
-        fake_run_assessment,
-    )
+    # Schema validation (assess_router's synchronous call to
+    # validate_assess_request) runs before the background job is even
+    # queued, so an invalid provider is rejected on the POST itself --
+    # no run_assessment mock needed or reachable here.
+    monkeypatch.setenv("ACAT_WRITE_TOKEN", _WRITE_TOKEN)
 
     response = client.post(
         "/api/v1/acat/assess",
@@ -102,14 +126,21 @@ def test_assess_endpoint_returns_422_for_validation_error(monkeypatch):
             "api_key": "sk-test",
             "model": "bad-model",
         },
+        headers=_WRITE_HEADERS,
     )
 
     assert response.status_code == 422
-    assert "provider must be 'anthropic'" in response.json()["detail"]
+    assert "provider" in response.json()["detail"]
 
 
-def test_assess_endpoint_returns_502_for_provider_error(monkeypatch):
+def test_assess_endpoint_reports_provider_error_via_poll(monkeypatch):
+    # run_assessment only runs in the background job thread, so a provider
+    # error can no longer surface as an HTTP 502 on the POST itself (there
+    # is nothing left listening for the exception at that point) -- it
+    # lands in the polled job record as status "failed" instead.
     from acat.api.services.provider_clients.anthropic_client import AnthropicClientError
+
+    monkeypatch.setenv("ACAT_WRITE_TOKEN", _WRITE_TOKEN)
 
     def fake_run_assessment(payload: dict) -> dict:
         raise AnthropicClientError("Anthropic request failed")
@@ -127,7 +158,13 @@ def test_assess_endpoint_returns_502_for_provider_error(monkeypatch):
             "api_key": "sk-ant-test",
             "model": "claude-3-7-sonnet",
         },
+        headers=_WRITE_HEADERS,
     )
 
-    assert response.status_code == 502
-    assert "Anthropic request failed" in response.json()["detail"]
+    assert response.status_code == 200
+    job_id = response.json()["job_id"]
+
+    body = _poll_until_done(job_id)
+
+    assert body["status"] == "failed"
+    assert "Anthropic request failed" in body["error"]

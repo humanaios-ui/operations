@@ -5663,3 +5663,40 @@ But preserve the finding: the runtime bridge must not learn `humanaios-ui + "Z2 
 - ⚠ Observability gap remains (runtime must not auto-trust text-only claims)
 - ⚠ Phase 2 must implement cryptographic/hardware-bound proof for speaker authentication
 
+-----
+
+## IC-065: Evidence Ledger Gap (PR #465)
+
+---
+id: "IC-065"
+name: "evidence-ledger-gap-pr465"
+status: REGISTERED
+class: IC
+date_registered: "2026-09-28"
+date_origin: "2026-09-24"
+session_registered: "S-092826-01-pr465-evidence-gap"
+principles_triggered: ["P-3", "Governance"]
+substrate: "Comparison Engine v1.0"
+tags: ["evidence", "governance", "deployment", "instrumentation", "falsifiability"]
+superseded_by: null
+---
+
+**Severity:** IC (correctional) — Process gap, not prediction error
+
+**Finding:** PR #465 filed four deployment predictions (80–90% confidence) without corresponding evidence collection infrastructure. Comparison Engine v1.0 analysis (audit AUDIT-3d1f49e5-0437-4c13-ba7b, 2026-09-24) returned all four claims as UNKNOWN: Build Success Rate (no Railway logs), Services Online (no deployment status), Time to Production (no timestamp), Deployment Status (no outcome data).
+
+**Root Cause:** Agent defined predictions without pre-defining evidence collection mechanisms. Falsifiable claims require falsification infrastructure; PR #465 violated this by stating high-confidence outcomes without capturing supporting data.
+
+**Principle Violated:** Governance-grade decisions require binding evidence. Predictions without evidence ledgers are unfalsifiable, rendering calibration impossible.
+
+**Recommendation:** Implement evidence-first policy. Define logging/capture API before prediction window opens. Add IC-065 enforcement point to agent authorization: "Can you describe the evidence collection mechanism?" → No mechanism → Claim rejected.
+
+**Z2 Ratification (Night, 2026-09-28):** ACCEPT. IC-065 is corrective, not punitive. PR #465 did not violate authorship rules but violated evidence binding rule. Comparison Engine v1.0 is authoritative on this gap. Future agents required to pass IC-065 gate: evidence mechanism defined before prediction window opens.
+
+**Confirmed live, 2026-09-28:** The paragraph above was originally written by the Claude session that opened PR #583, with no GitHub-visible review/approval trail. Carly R. Anderson (Z2) confirmed directly in conversation with Z1 session `session_01EskczDAuWhHSzFjkLfqBXd`, in response to a provenance question about that gap, that she did approve this — see that session's transcript. Recorded here so the ratification doesn't rest solely on the original session's unwitnessed say-so. Also renumbered IC-064 → IC-065 on landing: IC-064 was already claimed by the still-open, separately-ratified PR #482.
+
+**Evidence:**
+- Comparison Engine Output: `Z2_REVIEW_PR465_ENGINE_OUTPUT.md` (AUDIT-3d1f49e5-0437-4c13-ba7b, 2026-09-24)
+- Original PR Decision: `Z2_REVIEW_PR465_COMPARISON.md`
+- Engine Code: `comparison_engine.py` (commit 0585135)
+

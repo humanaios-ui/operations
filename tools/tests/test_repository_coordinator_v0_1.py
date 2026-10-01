@@ -55,6 +55,10 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None):
             "issue_numbers": issues or [],
             "pull_request_numbers": prs or [],
         },
+        "evaluation_admission": {
+            "authorized_actors": ["humanaios-ui"],
+            "required_issue_state": "ADMISSION_REQUESTED",
+        },
         "maintenance": {
             "authors": ["dependabot[bot]"],
             "labels": ["dependencies"],
@@ -293,6 +297,72 @@ def test_issue_assignment_without_admission_stays_workbench_when_draft():
     got = item(idx, 1)
     assert got["lane"] == "WORKBENCH"
     assert got["admission"]["admitted"] is False
+
+
+def test_authorized_review_admits_requested_issue_to_evaluation_only():
+    reviews = [{
+        "user": {"login": "humanaios-ui"},
+        "state": "APPROVED",
+        "submitted_at": "2026-09-30T19:43:58Z",
+    }]
+    p = pr(1, body="Fixes #99", reviews=reviews, files=[])
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "- **state:** `ADMISSION_REQUESTED`\n- **authority_required:** `Z2`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "ADMITTED_TO_EVALUATION"
+    assert got["admission"]["gate"] == "PASS"
+    assert got["admission"]["evaluation_admitted"] is True
+    assert got["admission"]["working_set_admitted"] is False
+    assert got["guidance"]["action"] == "ADVANCE"
+    assert got["objective"] == "EVALUATION"
+    assert idx["capacity"]["admitted_ready_count"] == 0
+
+
+def test_untrusted_review_cannot_admit_evaluation_workspace():
+    reviews = [{
+        "user": {"login": "other-reviewer"},
+        "state": "APPROVED",
+        "submitted_at": "2026-09-30T19:43:58Z",
+    }]
+    p = pr(1, body="Fixes #99", reviews=reviews)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "- **state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["gate"] == "FAIL"
+
+
+def test_authorized_review_does_not_admit_issue_without_requested_state():
+    reviews = [{
+        "user": {"login": "humanaios-ui"},
+        "state": "APPROVED",
+        "submitted_at": "2026-09-30T19:43:58Z",
+    }]
+    p = pr(1, body="Fixes #99", reviews=reviews)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Ordinary issue",
+            "body": "- **state:** `DISCOVERY`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
 
 
 def test_capacity_contention_does_not_choose_winners():
