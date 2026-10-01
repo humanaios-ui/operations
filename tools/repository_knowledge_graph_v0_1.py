@@ -46,6 +46,8 @@ from collections import Counter, defaultdict
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
+from jsonschema import Draft202012Validator
+
 try:
     import yaml
 except ImportError:  # pragma: no cover - exercised by explicit error path
@@ -63,6 +65,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_PROFILE = "architecture/repository-knowledge-graph/profile.json"
 DEFAULT_OUTPUT = "outputs/repository-knowledge-graph"
 SCHEMA_VERSION = "0.1.0"
+SCHEMA_PATH = ROOT / "schemas" / "repository_knowledge_graph_v0_1.schema.json"
 
 EVIDENCE_STATES = (
     "CLAIMED",
@@ -273,7 +276,7 @@ def _artifact_kind(path: str) -> str:
 
 
 def _path_is_excluded(path: str, prefixes: Iterable[str]) -> bool:
-    normalized = path.lstrip("./")
+    normalized = path[2:] if path.startswith("./") else path
     return any(
         normalized == prefix.rstrip("/") or normalized.startswith(prefix.rstrip("/") + "/")
         for prefix in prefixes
@@ -505,7 +508,7 @@ class GraphBuilder:
             path
             for path in candidates
             if not _path_is_excluded(path, exclude)
-            and (self.repo / path).exists()
+            and ((self.repo / path).exists() or (self.repo / path).is_symlink())
         ]
         if (
             self.profile_scope == "REPOSITORY"
@@ -689,7 +692,7 @@ class GraphBuilder:
         rel: str,
         line_number: int,
     ) -> None:
-        candidate = token.lstrip("./")
+        candidate = token[2:] if token.startswith("./") else token
         root = candidate.split("/", 1)[0]
         if "/" not in candidate or root not in self.top_level_roots:
             return
@@ -1827,6 +1830,11 @@ class GraphBuilder:
                 raise SpecLoadFailed(f"unknown source graph adapter: {adapter_name}")
             if path not in self.path_to_node:
                 raise SpecLoadFailed(f"source graph missing from repository: {path}")
+            source_path = self.repo / path
+            if source_path.is_symlink():
+                raise SpecLoadFailed(
+                    f"source graph may not be a symlink: {path}"
+                )
             artifact_id = self.path_to_node[path]
             self.annotate_node(
                 artifact_id,
@@ -2288,6 +2296,10 @@ class GraphBuilder:
                         f"unknown inference rule kind {kind}: {rule_id}"
                     )
             rule_limit = int(rule.get("max_assertions", total_limit))
+            if rule_limit < 1:
+                raise SpecLoadFailed(
+                    f"inference rule {rule_id} max_assertions must be at least 1"
+                )
             remaining = max(total_limit - assertion_count, 0)
             emit_limit = min(rule_limit, remaining)
             selected = candidates[:emit_limit]
@@ -2442,12 +2454,38 @@ def _graph_digest(graph: dict[str, Any]) -> str:
     return _sha256_bytes(_canonical_bytes(candidate))
 
 
+def _schema_errors(graph: dict[str, Any], *, verify_integrity: bool) -> list[str]:
+    """Return JSON Schema errors without mutating the supplied graph."""
+    try:
+        schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"schema unavailable or invalid: {exc}"]
+
+    candidate = copy.deepcopy(graph)
+    if not verify_integrity:
+        integrity = candidate.get("integrity")
+        if isinstance(integrity, dict) and integrity.get("sha256") is None:
+            integrity["sha256"] = "0" * 64
+
+    validator = Draft202012Validator(schema)
+    errors = sorted(
+        validator.iter_errors(candidate),
+        key=lambda error: [str(part) for part in error.absolute_path],
+    )
+    return [
+        "schema: "
+        + (".".join(str(part) for part in error.absolute_path) or "<root>")
+        + f": {error.message}"
+        for error in errors
+    ]
+
+
 def validate_graph(
     graph: dict[str, Any],
     *,
     verify_integrity: bool = True,
 ) -> dict[str, Any]:
-    errors: list[str] = []
+    errors: list[str] = _schema_errors(graph, verify_integrity=verify_integrity)
     warnings: list[str] = []
     nodes = graph.get("nodes") or []
     edges = graph.get("edges") or []
@@ -2677,11 +2715,20 @@ def _write_graphml(graph: dict[str, Any], path: Path) -> None:
             f"      <data key=\"n_type\">{html.escape(node['type'])}</data>",
             f"      <data key=\"n_label\">{html.escape(node['label'])}</data>",
             f"      <data key=\"n_layer\">{html.escape(node['layer'])}</data>",
-            f"      <data key=\"n_epistemic\">{html.escape(str(properties.get('epistemic_state', '')))}</data>",
-            f"      <data key=\"n_rule\">{html.escape(str(properties.get('rule_id', '')))}</data>",
-            f"      <data key=\"n_confidence\">{html.escape(str(properties.get('confidence', '')))}</data>",
-            "    </node>",
         ])
+        if properties.get("epistemic_state") is not None:
+            lines.append(
+                f"      <data key=\"n_epistemic\">{html.escape(str(properties['epistemic_state']))}</data>"
+            )
+        if properties.get("rule_id") is not None:
+            lines.append(
+                f"      <data key=\"n_rule\">{html.escape(str(properties['rule_id']))}</data>"
+            )
+        if properties.get("confidence") is not None:
+            lines.append(
+                f"      <data key=\"n_confidence\">{html.escape(str(properties['confidence']))}</data>"
+            )
+        lines.append("    </node>")
     for edge in graph["edges"]:
         lines.extend([
             (
@@ -3077,6 +3124,10 @@ def write_outputs(
     *,
     method_receipt: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    if output_dir.exists() and any(output_dir.iterdir()):
+        raise SpecLoadFailed(
+            f"output directory must be empty or absent: {output_dir}"
+        )
     output_dir.mkdir(parents=True, exist_ok=True)
     graph_path = Path(write_report(graph, output_dir))
     with (output_dir / "graph.json.gz").open("wb") as raw_handle:
@@ -3464,7 +3515,17 @@ def _method_command(args: argparse.Namespace) -> int:
     repo = Path(args.repo).resolve()
     output = Path(args.output)
     if not output.is_absolute():
-        output = repo / output
+        output = (Path.cwd() / output).resolve()
+    else:
+        output = output.resolve()
+    try:
+        output.relative_to(repo)
+    except ValueError:
+        pass
+    else:
+        raise SpecLoadFailed(
+            "method output must resolve outside the target repository"
+        )
 
     first = GraphBuilder(
         repo,
