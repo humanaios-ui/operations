@@ -2409,6 +2409,11 @@ tools:
   path: tools/control_plane_github_adapter_v0_1.py
   version: 0.1.0
   category: pipeline_tool
+- tool_id: HAIOS-TOOL-204
+  name: pr_challenge_dialogue_router
+  path: tools/pr_challenge_dialogue_router_v0_1.py
+  version: 0.1.0
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
@@ -2417,6 +2422,8 @@ tools:
   builder_markers: true
   purpose: Transform exported GitHub evidence into authority-neutral raw custody observations.
   session: CPC-002
+  purpose: Finite idempotent routing of head-bound red-team challenge conversations without authority effects.
+  session: CHALLENGE-DIALOGUE-001
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
