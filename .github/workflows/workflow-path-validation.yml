@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload Telemetry Artifact
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: workflow-telemetry-path-validation
           path: telemetry.json
