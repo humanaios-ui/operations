@@ -1,0 +1,113 @@
+{
+  "schema": "HMBM-CONTROL-PLANE-OBSERVATION-v1",
+  "experiment_id": "HMBM-CYCLE-003",
+  "observation_id": "C003-CP-OBS-001",
+  "observed_at": "2026-09-30T22:47:00-05:00",
+  "mode": "PAPER_ONLY_NO_REAL_CAPITAL",
+  "authority": "CONTROL_PLANE_OBSERVATION_ONLY",
+  "canonical_state": "C003-H0-ACCEPTED",
+  "unresolved_successor": {
+    "candidate_id": "C003-H01-CANDIDATE",
+    "generation_id": "C003-H01-GEN-003",
+    "state": "QUEUED",
+    "predecessor_state_id": "C003-H0-ACCEPTED",
+    "artifact_sha256": "cc002071fa526b981ef3a864d15edca450d7a8addf7a2a6f718207da61095306",
+    "canonical_sha256": "031af00cdc9b60e6a30ad3d02f22c30ebdc291cdaa4d3ad8be174be41b513205"
+  },
+  "gmail_control_plane": {
+    "staging_draft": {
+      "present": true,
+      "draft_id": "r7998310983741457366",
+      "message_id": "1a0f3f432cad0614",
+      "thread_id": "1a0f3f432cad0614",
+      "subject": "[DHP FILE-HANDLE STAGING — DO NOT SEND] C003-H01-GEN-003",
+      "recipient": "aioshuman@gmail.com",
+      "has_attachment": true,
+      "labels": [
+        "DRAFT"
+      ],
+      "email_ts": "2026-09-30T16:14:22-04:00"
+    },
+    "gen003_sent_messages_found": 0,
+    "gen003_accept_commands_found": 0,
+    "gen003_reject_commands_found": 0,
+    "communication_state": "NOT_COMMUNICATED",
+    "disposition_state": "UNRESOLVED"
+  },
+  "repository_control_plane": {
+    "pr": 597,
+    "state": "open",
+    "draft": false,
+    "merged": false,
+    "head_sha": "59b0bba3e173e64f0801f442ba56911d7ca1fbf8",
+    "title": "[EXPERIMENT IN PROGRESS — DO NOT MERGE] HMBM Cycle-003 DHP project output",
+    "queued_receipt_verified": true
+  },
+  "backlog_observation": {
+    "h0_window_start": "2026-09-30T06:09:08-05:00",
+    "observation_elapsed_minutes": 998,
+    "frozen_intervals_minutes": {
+      "S01": 60,
+      "S02": 90,
+      "S03": 120,
+      "S04": 180,
+      "S05": 240,
+      "S06": 360,
+      "S07": 480,
+      "S08": 720,
+      "S09": 1440
+    },
+    "total_due_epochs_by_schedule": {
+      "S01": 16,
+      "S02": 11,
+      "S03": 8,
+      "S04": 5,
+      "S05": 4,
+      "S06": 2,
+      "S07": 2,
+      "S08": 1,
+      "S09": 0
+    },
+    "total_due_epochs": 49,
+    "epochs_already_materialized_in_gen003_by_schedule": {
+      "S01": 5,
+      "S02": 3,
+      "S03": 2,
+      "S04": 1,
+      "S05": 1,
+      "S06": 0,
+      "S07": 0,
+      "S08": 0,
+      "S09": 0
+    },
+    "epochs_already_materialized_in_gen003": 12,
+    "blocked_due_epochs_by_schedule": {
+      "S01": 11,
+      "S02": 8,
+      "S03": 6,
+      "S04": 4,
+      "S05": 3,
+      "S06": 2,
+      "S07": 2,
+      "S08": 1,
+      "S09": 0
+    },
+    "blocked_due_epochs": 37,
+    "frozen_universe_size": 100,
+    "would_be_records_blocked": 3700,
+    "generated_under_hold": 0,
+    "interpretation": "Backlog is custody/backpressure debt, not authorized Analyst work. No historical records generated while successor remains unresolved."
+  },
+  "custody_assertions": {
+    "analyst_recomputed_gen003": false,
+    "gen004_created": false,
+    "gmail_sent_by_analyst": false,
+    "communication_receipt_created": false,
+    "witness_action_performed": false,
+    "canonical_advanced": false,
+    "hold_pending_downstream": true
+  },
+  "next_authorized_transition": "COURIER_OR_HUMAN_COMMUNICATION_RESOLUTION",
+  "analyst_state": "HOLD_PENDING_DOWNSTREAM",
+  "paper_only": true
+}
