@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 190
+  tools: 191
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 142
+  builder_markers_present: 144
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2370,14 +2370,14 @@ tools:
 - tool_id: HAIOS-TOOL-199
   name: workflow_path_validator
   path: tools/workflow_path_validator.py
-  version: unversioned
+  version: 1.0.0
   category: validation_tool
   zone: 1
   status: draft
   interface: module
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: Workflow Path Validator
 - tool_id: HAIOS-TOOL-200
   name: workflow_telemetry_collector
@@ -2415,8 +2415,25 @@ tools:
   lang: python
   smoke_test: true
   builder_markers: true
-  purpose: Finite idempotent routing of head-bound red-team challenge conversations without authority effects.
+  purpose: Finite idempotent routing of head-bound red-team challenge conversations without authority
+    effects.
   session: CHALLENGE-DIALOGUE-001
+- tool_id: HAIOS-TOOL-205
+  name: graph_capture_lint
+  path: tools/graph_capture_lint_v1_0.py
+  version: 1.0.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Scores a graph file against the nine properties of a graph that cannot be
+    wrong from the inside; blocks on closed provenance, missing falsifier and missing
+    timestamp, advises on the other six. Multiplex-aware (--all) with a ratcheting
+    baseline (crb/graph_capture_baseline.json).
+  session: S-100126-graph-capture-lint
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
