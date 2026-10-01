@@ -17,7 +17,7 @@ TOOL_NAME = "pr_challenge_dialogue_router"
 TOOL_VERSION = "0.1.0"
 TOOL_CATEGORY = "governance_tool"
 TOOL_SESSION = "CHALLENGE-DIALOGUE-001"
-TOOL_ZONE = 2
+TOOL_ZONE = 1
 
 ROUTER_MARKER = "humanaios-challenge-router"
 TURN_ORDER = {
