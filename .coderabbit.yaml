@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "en-US"
+early_access: false
+
+tone_instructions: >-
+  Be concise, evidence-focused, and adversarial without being stylistic.
+  Prioritize correctness, security, authority-boundary violations, provenance gaps,
+  scope drift, broken invariants, and claims that are not supported by the diff or CI.
+  Distinguish observed defects from uncertainty. Do not treat review findings as merge authority.
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  commit_status: false
+  poem: false
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_instructions:
+    - path: ".github/workflows/**"
+      instructions: >-
+        Treat workflow changes as control-plane changes. Check least privilege,
+        trusted-base vs candidate-code execution, event semantics, fail-open/fail-closed
+        behavior, and whether a PR can influence the policy used to judge itself.
+    - path: "REPOSITORY_COORDINATOR_POLICY.json"
+      instructions: >-
+        Check that admission, evaluation, implementation acceptance, operator-queue
+        standing, and merge authority remain separate. Flag authority inflation.
+    - path: "tools/repository_coordinator_v0_1.py"
+      instructions: >-
+        Check lane classification, evidence provenance, capacity accounting,
+        zero-diff behavior, and agent-agnostic semantics. Flag any path that allows
+        review or calibration signals to become authorization.
+    - path: "acat/**"
+      instructions: >-
+        Preserve ACAT's stated scope: self-description/behavioral calibration,
+        not capability or consciousness. For PR-grounded calibration, require
+        commit-before-outcome P1 and external/provenance-bearing P3 evidence.
+    - path: "humanaios-funding-pipeline/**"
+      instructions: >-
+        Treat discovered resources as candidates, not eligibility findings or
+        recommendations. Preserve provenance, uncertainty, and verification boundaries.
+
+chat:
+  auto_reply: true

@@ -2,18 +2,25 @@
 """
 Workflow Telemetry Collector
 
-Aggregates workflow behavioral telemetry emitted by GitHub Actions workflows
-(quality-baseline.yml, governance-files.yml) to understand:
-- When workflows trigger/skip
-- PR intent vs. actual workflow execution
-- Patterns in deployment frequency
-- Edge cases and unexpected behavior
+Category: CI/CD Analytics & Observability
+Purpose: Aggregates and analyzes GitHub Actions workflow behavioral telemetry
+Insight: Correlates PR intent with workflow execution patterns
+
+Analysis Dimensions:
+- Workflow triggering patterns (path filters, trigger reasons)
+- Success/failure rates and correlations
+- PR classification (code-only, governance-only, mixed, docs-only, etc.)
+- Event-driven indexing effectiveness
 
 Usage:
   python3 workflow_telemetry_collector.py <artifact_dir> [output_file]
 
 Example:
   python3 workflow_telemetry_collector.py ./workflow_telemetry workflow_analysis.json
+
+Outputs:
+  - Human-readable report to stdout
+  - JSON analysis to specified output file (if provided)
 """
 
 import json
@@ -131,7 +138,7 @@ def classify_pr_intent(files_changed: List[str], patterns: Dict[str, int]):
     """
     has_code = any(f.startswith(("src/", "tools/", "acat/", "tests/")) for f in files_changed)
     has_governance = any(f.startswith(".gov-control/") or f == "GOVERNANCE_FILES.md" for f in files_changed)
-    has_docs = any(f.endswith(".md") and not f == "GOVERNANCE_FILES.md" for f in files_changed)
+    has_docs = any(f.endswith(".md") and f != "GOVERNANCE_FILES.md" for f in files_changed)
     has_dependencies = any(f in ("requirements.txt", "setup.py", "pyproject.toml") for f in files_changed)
 
     if has_code and not has_governance and not has_docs and not has_dependencies:
