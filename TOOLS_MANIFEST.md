@@ -66,9 +66,9 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
-| HAIOS-TOOL-043 | ci_predict_consolidate | `tools/ci_predict_consolidate_v1_0.py` | 1.0.0 | 1 | draft | — | ci_predict_consolidate_v1_0.py |
-| HAIOS-TOOL-044 | ci_predict_pin | `tools/ci_predict_pin_v1_0.py` | 1.1.0 | 1 | draft | — | ci_predict_pin_v1_0.py |
-| HAIOS-TOOL-045 | ci_predict_resolve | `tools/ci_predict_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | ci_predict_resolve_v1_0.py |
+| HAIOS-TOOL-043 | ci_predict_consolidate | `tools/ci_predict_consolidate_v1_0.py` | 1.1.0 | 1 | draft | — | ci_predict_consolidate_v1_0.py |
+| HAIOS-TOOL-044 | ci_predict_pin | `tools/ci_predict_pin_v1_0.py` | 1.2.0 | 1 | draft | — | ci_predict_pin_v1_0.py |
+| HAIOS-TOOL-045 | ci_predict_resolve | `tools/ci_predict_resolve_v1_0.py` | 1.1.0 | 1 | draft | — | ci_predict_resolve_v1_0.py |
 | HAIOS-TOOL-052 | dimension_attribution | `tools/dimension_attribution_v1_0.py` | 1.0.0 | 1 | draft | — | dimension_attribution_v1_0.py |
 | HAIOS-TOOL-057 | echoes_copilot_acat_scanner | `tools/echoes_copilot_acat_scanner_v0_1.py` | 1.0.0 | 1 | draft | — | echoes_copilot_acat_scanner_v0_1.py |
 | HAIOS-TOOL-087 | lifecycle_predict | `tools/lifecycle_predict_v1_0.py` | 1.0.0 | 1 | draft | — | lifecycle_predict_v1_0.py |
