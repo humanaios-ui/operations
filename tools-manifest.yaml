@@ -2409,7 +2409,7 @@ tools:
   path: tools/pr_challenge_dialogue_router_v0_1.py
   version: 0.1.0
   category: governance_tool
-  zone: 2
+  zone: 1
   status: draft
   interface: cli
   lang: python
