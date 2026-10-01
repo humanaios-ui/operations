@@ -20,6 +20,11 @@ from typing import List, Tuple
 
 import yaml
 
+# Builder v1.7 contract
+TOOL_NAME = "workflow_path_validator"
+TOOL_VERSION = "1.0.0"
+BUILDER_SIGNATURE = "HumanAIOS"
+
 
 TOOL_NAME = "workflow_path_validator"
 TOOL_VERSION = "1.0.0"
@@ -59,10 +64,15 @@ def validate_workflow_paths(workflow_file: str) -> Tuple[bool, List[str], List[s
         if not isinstance(trigger_config, dict) or "paths" not in trigger_config:
             continue
 
-        paths = trigger_config["paths"]
-        if not isinstance(paths, list):
-            errors.append(f"Trigger '{trigger_name}': paths must be a list")
-            continue
+            paths = trigger_config[filter_key]
+            if not isinstance(paths, list):
+                errors.append(f"Trigger '{trigger_name}': {filter_key} must be a list")
+                continue
+
+            for path_pattern in paths:
+                # Patterns starting with "**/" can match at any level — always valid syntactically
+                if path_pattern.startswith("**/"):
+                    continue
 
         for path_pattern in paths:
             if not isinstance(path_pattern, str) or not path_pattern.strip():
