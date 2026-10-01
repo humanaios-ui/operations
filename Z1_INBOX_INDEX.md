@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**100 candidates** — ⏳ awaiting Z2 90 · ✅ ratified 10 · **53 records**
+**101 candidates** — ⏳ awaiting Z2 91 · ✅ ratified 10 · **53 records**
 
-## Awaiting Z2 (90)
+## Awaiting Z2 (91)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -102,6 +102,7 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-01 | **Q-LEDGER-GROUNDING-STUB-01** | p34x LedgerProvider is a permanent no-op stub — every future date classifies ERROR regardless of ratification | `z1-inbox/2026-09-29/F-CAND-LEDGER-GROUNDING-STUB-01.md` |
 | 2026-10-02 | **Q-588-CONVERGENCE-MATRIX-01** | Resource System Convergence Matrix — component landscape & composition framework | `z1-inbox/2026-09-30/Q-588-CONVERGENCE-MATRIX-01.md` |
 | 2026-10-02 | **Q-TIER-ASSIGNMENT-BATCH-01** | Tier assignment for 90 awaiting_z2 governance candidates | `z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01-RESULT.md` |
+| 2026-10-03 | **Q-RBE-OPS-TIER-RANKING-01** | RBE-OPS Tier Ranking - Benefit/Cost Density Within Tiers | `z1-inbox/2026-10-01/Q-RBE-OPS-TIER-RANKING-01.md` |
 
 ## Decided (10)
 
