@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 189
+  tools: 190
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 141
+  builder_markers_present: 142
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2391,6 +2391,18 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
+- tool_id: HAIOS-TOOL-201
+  name: repository_knowledge_graph
+  path: tools/repository_knowledge_graph_v0_1.py
+  version: 0.2.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Deterministic provenance-bearing repository graph compiler with bounded inference and human review outputs.
 - tool_id: HAIOS-TOOL-202
   name: control_plane_custody_observer
   path: tools/control_plane_custody_observer_v0_1.py
