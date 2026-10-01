@@ -525,7 +525,7 @@ tools:
 - tool_id: HAIOS-TOOL-043
   name: ci_predict_consolidate
   path: tools/ci_predict_consolidate_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -537,7 +537,7 @@ tools:
 - tool_id: HAIOS-TOOL-044
   name: ci_predict_pin
   path: tools/ci_predict_pin_v1_0.py
-  version: 1.1.0
+  version: 1.2.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -549,7 +549,7 @@ tools:
 - tool_id: HAIOS-TOOL-045
   name: ci_predict_resolve
   path: tools/ci_predict_resolve_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
