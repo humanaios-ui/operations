@@ -1,0 +1,27 @@
+{
+  "pr": 593,
+  "actor_origin_claim": "ChatGPT",
+  "checks": {
+    "Tool manifest integrity": {
+      "conclusion": "success",
+      "p": 0.9,
+      "note": "Current main already classifies HAIOS-TOOL-193..200; restack merged HAIOS-TOOL-201 without reverting current control metadata."
+    },
+    "quality": {
+      "conclusion": "success",
+      "p": 0.9,
+      "note": "Graph test suite and quality-baseline enrollment were preserved on top of current main."
+    },
+    "Builder v1.7 compliance": {
+      "conclusion": "success",
+      "p": 0.9,
+      "note": "repository_knowledge_graph_v0_1.py previously reported Builder v1.7 compliance and was carried unchanged through the restack."
+    },
+    "Behavioral compliance (IC-045 gate)": {
+      "conclusion": "success",
+      "p": 0.85,
+      "note": "The graph remains read-only/advisory and does not claim execution or merge authority."
+    }
+  },
+  "note": "PR #593 post-restack P1. Semantic claims to ground independently on this exact head: (1) same frozen target + same profile produces deterministic canonical graph; (2) OBSERVED_FACT remains distinct from MODEL_INFERRED; (3) bounded inference remains declared and non-recursive; (4) graph build does not mutate the target repository; (5) warnings/unresolved references/parse failures are not promoted to causal proof."
+}
