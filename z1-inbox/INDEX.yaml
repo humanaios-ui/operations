@@ -1179,6 +1179,16 @@ candidates:
     for all active zones. Execution sequence from Q-RBE-OPS-TIER-RANKING-01 (Tier
     0 first, then Tier 1/2 by density). Resource allocation with per-zone cap constraints.
     Estimated 450–1800 units across 2–4 cycles.'
+- q_id: Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01
+  title: Phase 2B telemetry & workflow path validator — dual-layer IC-032 prevention
+  path: z1-inbox/2026-10-01/Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01.md
+  submitted: '2026-10-01'
+  status: awaiting_z2
+  tier: 2
+  note: 'Tier 1 (operational): workflow_path_validator.py CI gate prevents non-existent
+    path filters. Tier 2 (control surface): telemetry collection & Phase 2A monitoring.
+    PR #626 ready for merge. All 59 workflows validated (0 errors, 1 warning on future-facing
+    pattern). Three workflows remediated for invalid path filters.'
 records:
 - path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
   title: Phase 3 credential deployment guide
