@@ -9,6 +9,7 @@
     "DRAFT_IS_NOT_OPERATOR_QUEUE",
     "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
     "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
+    "EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE",
     "ADMISSION_IS_NOT_MERGE_AUTHORITY"
   ],
   "capacity": {
@@ -16,7 +17,8 @@
   },
   "admission": {
     "issue_numbers": [
-      378
+      378,
+      598
     ],
     "pull_request_numbers": [
       538,
@@ -25,11 +27,18 @@
       552,
       555,
       557,
+      560,
       561,
       563,
       565,
       567,
-      570
+      570,
+      579,
+      581,
+      586,
+      578,
+      590,
+      593
     ],
     "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
   },
@@ -71,10 +80,29 @@
     "PR #552 (railway-app[bot]: force venv Python with exec and runtime phase in nixpacks.toml, fixing tools/decision_relay.py crashing with 'No module named uvicorn') admitted explicitly by Z2 instruction, 2026-09-27, given for a one-line production-deployment fix to the Z2 board relay itself.",
     "PR #555 (remove duplicate nixPkgs from nixpacks.toml [phases.runtime]) admitted explicitly by Z2 instruction, 2026-09-27: #552's own fix broke the Nixpacks build (a Nix profile conflict on libpython3.so from declaring python311 twice), confirmed against Railway build logs on deployment 66a93702; this PR restores buildability while keeping #552's exec fix.",
     "PR #557 (use /opt/venv/bin/python3 in railway.toml startCommand for the operations/ACAT service) admitted explicitly by Z2 instruction, 2026-09-27: a separate, pre-existing crash-loop on api.humanaios.ai (bare python3 resolving to /root/.nix-profile/bin/python3 instead of the venv Railpack actually installed uvicorn into), unrelated to and predating #552/#555 -- this service runs on RAILPACK, not NIXPACKS, so nixpacks.toml never governed it.",
+    "PR #560 (Z1 candidate filings for silent gate-bypass capture and witness-ledger Tier 0 extension) admitted explicitly by Z2 instruction, 2026-09-28. Admission grants working-set standing only; the candidate proposals remain subject to their own ACCEPT/EDIT/REJECT and implementation authority boundaries.",
     "PR #561 (add nixpacks.toml for humanaios-funding-pipeline/entitlement-navigator, migrating it off a broken Vercel deploy target with no valid build to a Railway service) admitted explicitly by Z2 instruction, 2026-09-27: infra-only config addition, same category as #552/#555/#557.",
     "PR #563 (resource-miner app.py + nixpacks.toml + resource-miner-scan.yml, turning resource-miner from a CLI-only tool with no deployable web app into a real Railway HTTP service) admitted explicitly by Z2 instruction, 2026-09-27.",
     "PR #565 (fix corrupted string literal in entitlement/genealogy_builder.py crashing entitlement-navigator's app.py on import) admitted explicitly by Z2 instruction, 2026-09-27: discovered mid-migration when the Railway deployment for PR #561 crash-looped on this pre-existing SyntaxError.",
     "PR #567 (move resource-miner's nixpacks.toml to humanaios-funding-pipeline/nixpacks.toml, widening the Railway build context so ../data/sources.json is actually present) admitted explicitly by Z2 instruction, 2026-09-27: discovered mid-migration when GET /api/scan?source=funding on the deployed PR #563 service returned FileNotFoundError.",
-    "PR #570 (ui/vercel.json build-copy step for oracle_state.json, plus the matching oracle.html fetch-path and test-string updates) admitted explicitly by Z2 instruction, 2026-09-27: mixed change touching ui/ and tests/, neither covered by control_plane.paths, fixing a live 'Unexpected token <' failure on the deployed Oracle + Actualizer page caused by the Vercel project's ui/ Root Directory excluding the repo-root oracle_state.json."
-  ]
+    "PR #570 (ui/vercel.json build-copy step for oracle_state.json, plus the matching oracle.html fetch-path and test-string updates) admitted explicitly by Z2 instruction, 2026-09-27: mixed change touching ui/ and tests/, neither covered by control_plane.paths, fixing a live 'Unexpected token <' failure on the deployed Oracle + Actualizer page caused by the Vercel project's ui/ Root Directory excluding the repo-root oracle_state.json.",
+    "PR #579 (fix molt: implement check_anti_cascade_rules()) admitted 2026-09-28 to ship systematic improvements to molt governance enforcement.",
+    "PR #581 (Ship red-team audit improvements: Oracle+Actualizer MVP, SMAG calibration, policy pruning) admitted 2026-09-28 to consolidate parallel development work and governance updates.",
+    "PR #586 (fix entry_protocol/gmail_push_adapter.py: restore missing _DIGEST_REPLY_RE definition and un-double-escape extract_item_catalog()'s label/cleanup regexes) admitted 2026-09-28: found running the full test suite during a systematic backlog pass; entry_protocol/ is not covered by control_plane.paths, so this mixed test-fix change needs an explicit admission record.",
+    "PR #578 (index the 8 unregistered z1-inbox/2026-09-25/* files: 7 as records, 1 as candidate Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01, fixing the Verify Z2 Ratification Requirements gate that has been failing on main since those files landed unindexed) admitted explicitly by Z2 instruction, 2026-09-28.",
+    "PR #590 (file F-CAND-LEDGER-GROUNDING-STUB-01: p34x_temporal_extractor's LedgerProvider is a permanent Phase-0 no-op stub, so no future date can ever ground against a ratified molt window) admitted 2026-09-29: documentation-only candidate block under z1-inbox/, which is not covered by control_plane.paths; found via the same systematic pytest-enabled backlog pass as PR #589.",
+    "Issue #598 (issue-first admission and pre-PR CI) admitted explicitly by Z2 instruction, 2026-09-30, as the session graph for the control-plane implementation. Admission grants working-set standing only and does not authorize merge.",
+    "PR #593 (repository knowledge graph with bounded inference) admitted explicitly by Z2 instruction, 2026-09-30, as a grandfathered work item created before the issue-first lifecycle was adopted. Admission does not resolve CI findings or authorize merge.",
+    "Evaluation admission may be derived from a native GitHub APPROVED review by an authorized actor when the PR closes an issue whose body explicitly declares ADMISSION_REQUESTED. This grants CI/evidence standing only; it does not consume operator capacity, accept implementation, or authorize merge. Zero-diff PR handling remains independently enforced by the no-op guard."
+  ],
+  "evaluation_admission": {
+    "authorized_actors": [
+      "humanaios-ui"
+    ],
+    "required_issue_state": "ADMISSION_REQUESTED",
+    "authority_effect": "EVALUATION_ONLY",
+    "evidence": "closing-keyword link to an issue whose body declares ADMISSION_REQUESTED plus latest APPROVED review by an authorized actor",
+    "operator_queue_effect": "none",
+    "merge_authority": false
+  }
 }

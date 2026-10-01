@@ -39,8 +39,10 @@ import subprocess
 import sys
 from typing import Any, Dict, List, Optional
 
+from ci_predict_pin_v1_0 import pin_payload_is_pr_bound
+
 TOOL_NAME = "ci_predict_resolve"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 
 PIN_MARKER = "<!-- ci-predict:pin -->"
 RESOLVE_MARKER = "<!-- ci-predict:resolve -->"
@@ -87,7 +89,7 @@ def extract_payload(comment_body: str, marker: str) -> Optional[dict]:
         return None
 
 
-def find_latest_pin(comments: List[dict], head_sha: str) -> Optional[dict]:
+def find_latest_pin(comments: List[dict], head_sha: str, expected_pr: str | None = None) -> Optional[dict]:
     """The most recent, trusted pin comment for this exact head SHA, or None.
 
     Keyed on head_sha, not just presence, so a stale pin from a prior push on the
@@ -99,7 +101,11 @@ def find_latest_pin(comments: List[dict], head_sha: str) -> Optional[dict]:
         if not is_trusted(comment):
             continue
         payload = extract_payload(comment.get("body", ""), PIN_MARKER)
-        if payload and payload.get("head_sha") == head_sha:
+        if (
+            payload
+            and payload.get("head_sha") == head_sha
+            and pin_payload_is_pr_bound(payload, expected_pr)
+        ):
             candidates.append((comment.get("created_at", ""), payload))
     if not candidates:
         return None
@@ -256,7 +262,7 @@ def run(repo: str, pr_number: str, sha: str = "") -> int:
         head_sha = (pr.get("head") or {}).get("sha", "")
     comments = gh_json_paginated(f"repos/{repo}/issues/{pr_number}/comments")
 
-    pin_payload = find_latest_pin(comments, head_sha)
+    pin_payload = find_latest_pin(comments, head_sha, expected_pr=pr_number)
     if pin_payload is None:
         print(f"no pin found for {head_sha[:12]}; nothing to resolve")
         return 0
@@ -280,8 +286,9 @@ def run_smoke_test() -> bool:
     """Pure-logic smoke test against fixture data. No network."""
     ok = True
     pin_payload = {
-        "schema": "ci_predict_pin_v1", "pr": "42", "head_sha": "a" * 40,
+        "schema": "ci_predict_pin_v2", "pr": "42", "head_sha": "a" * 40,
         "predictor": "Claude Code",
+        "declaration_binding": {"declared_pr": "42", "changed_from_base": True},
         "checks": {
             "quality": {"conclusion": "success", "p": 0.9},
             "guard": {"conclusion": "success", "p": 0.8},
@@ -321,14 +328,15 @@ def run_smoke_test() -> bool:
     # never be selected once a pin for the current head SHA exists.
     from ci_predict_pin_v1_0 import build_payload, render_pin_comment
     bot = {"login": TRUSTED_LOGIN}
+    binding = {"declared_pr": "42", "changed_from_base": True}
     stale_pin = render_pin_comment(build_payload("42", "b" * 40, "Claude Code", {
-        "checks": {"quality": {"conclusion": "success", "p": 0.5}}}))
+        "pr": 42, "checks": {"quality": {"conclusion": "success", "p": 0.5}}}, binding=binding))
     current_pin = render_pin_comment(build_payload("42", "a" * 40, "Claude Code", {
-        "checks": {"quality": {"conclusion": "success", "p": 0.9}}}))
+        "pr": 42, "checks": {"quality": {"conclusion": "success", "p": 0.9}}}, binding=binding))
     latest = find_latest_pin(
         [{"body": stale_pin, "created_at": "2026-01-01", "user": bot},
          {"body": current_pin, "created_at": "2026-01-02", "user": bot}],
-        "a" * 40,
+        "a" * 40, expected_pr="42",
     )
     ok = ok and latest is not None and latest["head_sha"] == "a" * 40
     ok = ok and latest["checks"]["quality"]["p"] == 0.9  # the current push's stated p, not the stale one's
@@ -337,9 +345,29 @@ def run_smoke_test() -> bool:
     # for the exact current head SHA and even with the latest timestamp.
     forged = find_latest_pin(
         [{"body": current_pin, "created_at": "2026-01-02", "user": {"login": "some-user"}}],
-        "a" * 40,
+        "a" * 40, expected_pr="42",
     )
     ok = ok and forged is None
+
+    legacy = dict(pin_payload)
+    legacy["schema"] = "ci_predict_pin_v1"
+    legacy_comment = (
+        PIN_MARKER + "\n```json\n" + json.dumps(legacy) + "\n```"
+    )
+    ok = ok and find_latest_pin(
+        [{"body": legacy_comment, "created_at": "2026-01-03", "user": bot}],
+        "a" * 40, expected_pr="42",
+    ) is None
+
+    wrong_pr = dict(pin_payload)
+    wrong_pr["declaration_binding"] = {"declared_pr": "41", "changed_from_base": True}
+    wrong_comment = (
+        PIN_MARKER + "\n```json\n" + json.dumps(wrong_pr) + "\n```"
+    )
+    ok = ok and find_latest_pin(
+        [{"body": wrong_comment, "created_at": "2026-01-04", "user": bot}],
+        "a" * 40, expected_pr="42",
+    ) is None
 
     # The same trust boundary applies to already_resolved_checks.
     resolve_comment = render_resolve_comment("42", "a" * 40, resolutions)

@@ -288,7 +288,8 @@ When these occur, emit callout immediately:
 ## Appended Events
 
 ```
-2026-09-27 — Z1 proposed Q-AUTHORIZATION-EVIDENCE-MAPPING-01 (AUTHORIZATION_EVIDENCE_MAPPING.md + authorization_evidence.py: authorization & evidence assurance questions → executable checks, Layer 4 of the concept-to-code stack); awaiting Z2 RATIFY signature
+2026-09-28 — Z2 (Night) ratified Q-AUTHORIZATION-EVIDENCE-MAPPING-01 | AUTHORIZATION_EVIDENCE_MAPPING.md + authorization_evidence.py accepted | Layer 4 of the concept-to-code stack | Ratification Hash d44b986feb44aab056480650886575f98f011db35689a10b8be86f1f7e0fa23a (full record in REGISTERED.md) | Direct Z2 instruction, this session
+2026-09-27 — Z1 proposed Q-AUTHORIZATION-EVIDENCE-MAPPING-01 (AUTHORIZATION_EVIDENCE_MAPPING.md + authorization_evidence.py: authorization & evidence assurance questions → executable checks, Layer 4 of the concept-to-code stack); ratified 2026-09-28 (see line above)
 2026-09-25 — Z1 proposed Q-FIVE-RINGS-MAPPING-01 (FIVE_RINGS_MAPPING.md + five_rings.py: Book of Five Rings → executable machine operations, Layer 3 of the concept-to-code stack); awaiting Z2 RATIFY signature
 2026-09-19 19:00 UTC — Z2 (Night) ratified Q-INTENT-OS-WITNESS-LEDGER-01 | Witness ledger architecture approved | Human-machine decision attribution ledger | Phase 1–3 roadmap ratified | Enables scalable Z3 executor onboarding
 2026-09-19 18:55 UTC — Z2 (Night) ratified Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 | Dual-authority Z2 model formalized | Both carly.r.anderson@gmail.com & aioshuman@gmail.com authorized | Machine authority via INTENT-OS capability | Stop hook to query INTENT-OS (Phase 1)

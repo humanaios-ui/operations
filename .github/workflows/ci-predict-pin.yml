@@ -6,10 +6,10 @@
 # itself, fetched via the API. See tools/ci_predict_pin_v1_0.py for the full
 # design, including why this never checks out PR-branch content as code.
 #
-# No `paths:` filter: a synchronize push that leaves the declaration file
-# untouched still needs a pin for its own head SHA (an unchanged declaration
-# still applies to the new commit), so every push is checked; the script's
-# own "no declaration at this ref" case is a clean no-op, not a failure.
+# No `paths:` filter: every push is checked, but a declaration that is
+# byte-identical to the PR base is classified INHERITED and refused. A valid
+# declaration must be changed on this PR and explicitly bind itself to this
+# PR number. ABSENT / INHERITED / MISMATCHED are status receipts, not pins.
 #
 # Read-only against GitHub except the one comment it posts. Standard GITHUB_TOKEN.
 name: ci-predict-pin
