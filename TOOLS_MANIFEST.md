@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**189 registered tools** · 2 MCP servers · 4 excluded · 141 carrying Builder v1.7 markers
+**190 registered tools** · 2 MCP servers · 4 excluded · 142 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 189 |
-| — status `draft` | 188 |
+| Registered tools | 190 |
+| — status `draft` | 189 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 141 |
+| Builder v1.7 markers present | 142 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -205,7 +205,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-128 | system_audit | `tools/system_audit_v1_0.py` | 1.1.0 | 1 | draft | — | ⚠️ SUPERSEDED — Do NOT use this version |
 | HAIOS-TOOL-165 | holographic_orchestrator | `tools/holographic_orchestrator.py` | 0.1.0 | 1 | draft | — | Orchestrates holographic person representation via external services: |
 
-## Pipelines — `pipeline_tool` (7)
+## Pipelines — `pipeline_tool` (8)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -216,6 +216,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-189 | build_oracle_state | `scripts/build_oracle_state.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Build a thin Oracle state artifact for the Oracle + Actualizer MVP. |
 | HAIOS-TOOL-193 | ai-eo-incremental-indexer | `scripts/ai-eo-incremental-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO Incremental Indexer |
 | HAIOS-TOOL-194 | ai-eo-indexer | `scripts/ai-eo-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO (AI-driven Ephemeris Optimization) Indexer |
+| HAIOS-TOOL-203 | control_plane_github_adapter | `tools/control_plane_github_adapter_v0_1.py` | 0.1.0 | 1 | draft | — | Transform exported GitHub evidence into authority-neutral raw custody observations. |
 
 ## Reporting — `reporting_tool` (6)
 
@@ -335,7 +336,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 6 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
-| `pipeline_tool` | Multi-stage processing of a corpus or record set. | 7 |
+| `pipeline_tool` | Multi-stage processing of a corpus or record set. | 8 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 6 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
