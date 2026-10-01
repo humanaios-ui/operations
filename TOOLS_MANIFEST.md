@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**190 registered tools** · 2 MCP servers · 4 excluded · 142 carrying Builder v1.7 markers
+**191 registered tools** · 2 MCP servers · 4 excluded · 144 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 190 |
-| — status `draft` | 189 |
+| Registered tools | 191 |
+| — status `draft` | 190 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 142 |
+| Builder v1.7 markers present | 144 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -36,7 +36,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-176 | grant_matching_engine_v1_0 | `tools/grant_matching_engine_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Matching Engine v1.0 |
 | HAIOS-TOOL-200 | workflow_telemetry_collector | `tools/workflow_telemetry_collector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Telemetry Collector |
 
-## Audit — `audit_tool` (22)
+## Audit — `audit_tool` (23)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -62,6 +62,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-156 | registered_failure_mode_scan | `tools/registered_failure_mode_scan_v0_1.py` | 0.1.0 | 1 | draft | — | Audits `REGISTERED.md` against the RFM failure-mode taxonomy; reports entry-level first-pass yield / DPMO. Advisory unless `--enforce`. |
 | HAIOS-TOOL-192 | scan_rnola_misuse | `scripts/scan_rnola_misuse.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Scan RNOLA operator-check records for misuse patterns and falsifier violations. Detects checkbox patterns, authorization misuse, undefined artifacts, and stale evidence. |
 | HAIOS-TOOL-202 | control_plane_custody_observer | `tools/control_plane_custody_observer_v0_1.py` | 0.1.0 | 1 | draft | — | Read-only control-plane observation and execution/decision/information custody classification. |
+| HAIOS-TOOL-205 | graph_capture_lint | `tools/graph_capture_lint_v1_0.py` | 1.0.0 | 1 | draft | — | Scores a graph file against the nine properties of a graph that cannot be wrong from the inside; blocks on closed provenance, missing falsifier and missing timestamp, advises on the other six. Multiplex-aware (--all) with a ratcheting baseline (crb/graph_capture_baseline.json). |
 
 ## Calibration — `calibration_tool` (16)
 
@@ -297,7 +298,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-178 | nonprofit_profile_v1_0 | `tools/nonprofit_profile_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Nonprofit Profile Model & Validation |
 | HAIOS-TOOL-184 | verified_receipts | `tools/verified_receipts.py` | 0.1.0 | 1 | draft | — | Verified Receipt Resolver — v0.1 |
 | HAIOS-TOOL-187 | verify_pr_readiness | `scripts/verify_pr_readiness.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | PR Readiness Verification — Run all validation checks in sequence |
-| HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Workflow Path Validator |
+| HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | 1.0.0 | 1 | draft | — | Workflow Path Validator |
 
 ## MCP servers (2)
 
@@ -328,7 +329,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | category | meaning | count |
 |---|---|---|
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 3 |
-| `audit_tool` | Audits artifacts or state against rules and reports findings. | 22 |
+| `audit_tool` | Audits artifacts or state against rules and reports findings. | 23 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
