@@ -141,11 +141,11 @@ notes:
 - Option A: real-time ledger entries eliminate freshness falsifier
 - Keep weekly consolidation for reporting/analytics (unchanged)
 
-**Implementation Timeline:**
-- Phase 1 (Oct 9–15): Modify capture script; run dual-write test
-- Phase 2 (Oct 16–22): Deploy parallel write; validate consistency
-- Phase 3 (Oct 23–29): Cutover to ledger-primary; keep #103 as reporting
-- Phase 4 (Oct 30+): Deploy merge-gate.yml; all new PRs gate evaluated
+**Implementation Resource-State Transitions (per Q-TEMPORAL-DISSOLUTION-01):**
+- Transition 1: Modify capture script; run dual-write test (RESOURCES_RELEASED trigger)
+- Transition 2: Deploy parallel write; validate consistency (measurement freshness OBSERVATIONAL: <7 days)
+- Transition 3: Cutover to ledger-primary; keep #103 as reporting (RESOURCES_RESERVED state)
+- Transition 4: Deploy merge-gate.yml; all new PRs gate evaluated (state-triggered, not calendar-driven)
 
 **Implementation Responsibility:** Z3 (Copilot) during Stage 5
 
@@ -200,7 +200,7 @@ notes:
    - PUBLIC_UTILITY_VALIDATION_PROTOCOL_v1.md in repository
    - Pre-registered comparator list (public_utility_comparators.md)
    - Research protocol document (locked version)
-   - Phase 1–4 research execution (Oct–Feb)
+   - Phase 1–4 research execution (resource-state transitions; see PUBLIC_UTILITY_IMPLEMENTATION_SPEC.md for phase gates)
    - Phase 4 market validation survey
 
 **Precondition:** All four PRs merged with Z2 hash references (this session)
@@ -235,15 +235,15 @@ notes:
 
 2. Z2 (Night) reviews PRs; merges with approval
 
-**Within 1 Week:**
-1. Z3 (Copilot) begins Stage 5 implementation
-2. Priority 1: SMAG conflict resolution (Phase 1–4)
-3. Priority 2: Merge-gate.yml deployment (waits for Phase 3)
-4. Priority 3: Oracle/Molt integration
-5. Priority 4: Lineage protocol + Benchmark setup
-6. Priority 5: Public Utility research execution (Phase 1 Oct 9–15)
+**Z3 Implementation Sequence (resource-state driven; per Q-TEMPORAL-DISSOLUTION-01):**
+1. Z3 (Copilot) begins Stage 5 implementation once branch merged
+2. Priority 1: SMAG conflict resolution (Transitions 1–4; resource-state gated)
+3. Priority 2: Merge-gate.yml deployment (waits for Transition 3 RESOURCES_RESERVED)
+4. Priority 3: Oracle/Molt integration (Transition 3–4)
+5. Priority 4: Lineage protocol + Benchmark setup (Transition 4–5)
+6. Priority 5: Public Utility research execution (Phase 1 resource-state transition; see spec for gates)
 
-**Timeline:** Stage 5 (Oct 2–Nov 30), Stage 6 (Dec 1–31), Stage 6 Callout (Jan 1+)
+**Execution Flow:** Z3 proceeds through resource-state transitions and phase gates, not calendar deadlines. All implementation phases gated by resource availability and success criteria (per phase specifications).
 
 ---
 
