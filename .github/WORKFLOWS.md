@@ -112,7 +112,7 @@ Three intentionally separate workflows form a real-time prediction loop:
 
 ---
 
-## Infrastructure & Maintenance (13 workflows)
+## Infrastructure & Maintenance (15 workflows)
 
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
@@ -130,6 +130,7 @@ Three intentionally separate workflows form a real-time prediction loop:
 | `haios-harmonizer-pulse.yml` | System pulse monitoring | Every 8 hours |
 | `intent-os-refresh.yml` | INTENT-OS state refresh | Scheduled + dispatch |
 | `industry-telemetry.yml` | Industry telemetry capture (Q4 2026 forecasts) | Mon 09:30 UTC |
+| `deploy-acat-api-azure.yml` | Deploy ACAT API to Azure Container Apps — Microsoft for Startups M3 proof-of-concept; builds/lints on every PR touching Dockerfile.acat-api/bicep/acat/api paths, deploys only on manual dispatch behind an environment gate | PR/push (build-validate only); manual dispatch (deploy) |
 
 ---
 
