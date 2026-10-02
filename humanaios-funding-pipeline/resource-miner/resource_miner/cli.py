@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .hackerone_policy_screen import screen_program_policies
 from .hackerone_portfolio import scan_portfolio
 from .investigation_queue import build_ranked_queue
 from .miner import enrich
@@ -50,6 +51,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Fetch HackerOne program policy, structured scopes, and scope exclusions only",
     )
     h1_scope.add_argument("--handle", required=True)
+
+    h1_policy_screen = sub.add_parser(
+        "hackerone-policy-screen",
+        help="Screen account-visible HackerOne program policy metadata for explicit passive/Data Protection language",
+    )
+    h1_policy_screen.add_argument("--page-size", type=int, default=100)
+    h1_policy_screen.add_argument("--max-programs", type=int)
+    h1_policy_screen.add_argument("--out", required=True, help="Local JSON evidence packet destination")
 
     h1_portfolio = sub.add_parser(
         "hackerone-portfolio",
@@ -116,6 +125,24 @@ def main() -> None:
     if args.command == "hackerone-scope":
         graph = fetch_scope_graph(hackerone.HackerOneClient(), args.handle)
         print(json.dumps(graph.to_dict(), indent=2, ensure_ascii=False))
+        return
+
+    if args.command == "hackerone-policy-screen":
+        result = screen_program_policies(
+            hackerone.HackerOneClient(),
+            page_size=args.page_size,
+            max_programs=args.max_programs,
+        )
+        payload = result.to_dict()
+        out_path = Path(args.out).expanduser()
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        summary = payload["summary"]
+        print(f"wrote HackerOne policy screen to {out_path}")
+        print(f"programs_observed={summary['programs_observed']}")
+        print(f"explicit_dpp_passive_matches={summary['explicit_dpp_passive_matches']}")
+        print(f"other_passive_policy_signals={summary['other_passive_policy_signals']}")
+        print("execution_capability=NONE")
         return
 
     if args.command == "hackerone-adjudicate":
