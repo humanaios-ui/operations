@@ -139,6 +139,9 @@ class SecurityAuthorizationGateTests(unittest.TestCase):
             policy_reviewed=True,
             method_allowed=True,
             human_authorized=True,
+            program_currentness_evidence_ref="hackerone:program:acme@2026-10-02",
+            policy_evidence_ref="scope-graph:acme:policy",
+            human_authorization_ref="issue:680#human-authorization",
         )
         data.update(overrides)
         return SecurityAuthorizationRequest(**data)
@@ -149,6 +152,33 @@ class SecurityAuthorizationGateTests(unittest.TestCase):
         self.assertTrue(decision.authorized)
         self.assertEqual(decision.execution_capability, "NONE")
         self.assertEqual(decision.authority_effect, "NONE")
+
+    def test_wildcard_scope_matches_concrete_hostname_conservatively(self):
+        wildcard_scopes = [
+            {
+                "id": "59",
+                "type": "structured-scope",
+                "attributes": {
+                    "asset_identifier": "*.example.org",
+                    "asset_type": "URL",
+                    "eligible_for_bounty": True,
+                    "eligible_for_submission": True,
+                    "instruction": None,
+                    "max_severity": "critical",
+                },
+            }
+        ]
+        graph = build_scope_graph(PROGRAM, wildcard_scopes, EXCLUSIONS)
+        decision = authorize_security_action(
+            graph,
+            self.request(asset_identifier="api.example.org"),
+        )
+        self.assertEqual(decision.state, AuthorizationState.MANUAL_TESTING)
+        near_miss = authorize_security_action(
+            graph,
+            self.request(asset_identifier="evilexample.org"),
+        )
+        self.assertEqual(near_miss.state, AuthorizationState.SCOPE_CLARIFICATION_REQUIRED)
 
     def test_unknown_asset_fails_closed_to_scope_clarification(self):
         decision = authorize_security_action(
@@ -169,7 +199,17 @@ class SecurityAuthorizationGateTests(unittest.TestCase):
         self.assertEqual(decision.state, AuthorizationState.SCOPE_CLARIFICATION_REQUIRED)
 
     def test_missing_human_authorization_is_denied(self):
-        decision = authorize_security_action(self.graph, self.request(human_authorized=False))
+        decision = authorize_security_action(
+            self.graph,
+            self.request(human_authorized=False, human_authorization_ref=None),
+        )
+        self.assertEqual(decision.state, AuthorizationState.NOT_AUTHORIZED)
+
+    def test_boolean_authorization_without_evidence_ref_is_denied(self):
+        decision = authorize_security_action(
+            self.graph,
+            self.request(human_authorized=True, human_authorization_ref=None),
+        )
         self.assertEqual(decision.state, AuthorizationState.NOT_AUTHORIZED)
 
     def test_prohibited_actions_override_other_permissions(self):
@@ -188,7 +228,7 @@ class SecurityAuthorizationGateTests(unittest.TestCase):
     def test_stale_program_state_requires_clarification(self):
         decision = authorize_security_action(
             self.graph,
-            self.request(program_current_verified=False),
+            self.request(program_current_verified=False, program_currentness_evidence_ref=None),
         )
         self.assertEqual(decision.state, AuthorizationState.SCOPE_CLARIFICATION_REQUIRED)
 
