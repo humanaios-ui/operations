@@ -4,8 +4,11 @@ import argparse
 import json
 from pathlib import Path
 
+from .hackerone_portfolio import scan_portfolio
+from .investigation_queue import build_ranked_queue
 from .miner import enrich
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
+from .security_capability import profile_from_machine_graph, unknown_capability_profile
 from .security_scope import fetch_scope_graph
 from .store import write_jsonl
 from .sources import devto, funding_pipeline, github, hackerone, rss
@@ -46,6 +49,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     h1_scope.add_argument("--handle", required=True)
 
+    h1_portfolio = sub.add_parser(
+        "hackerone-portfolio",
+        help="Build a metadata-only HackerOne portfolio and ranked review queue",
+    )
+    h1_portfolio.add_argument("--handle", action="append", default=[])
+    h1_portfolio.add_argument("--page-size", type=int, default=100)
+    h1_portfolio.add_argument("--max-programs", type=int)
+    h1_portfolio.add_argument(
+        "--machine-graph",
+        help="Path to a HumanAIOS machine-substrate JSON snapshot; omitted means capability UNKNOWN",
+    )
+    h1_portfolio.add_argument("--out", help="Optional JSON output path")
+    h1_portfolio.add_argument("--exclude-blocked", action="store_true")
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -75,6 +92,43 @@ def main() -> None:
     if args.command == "hackerone-scope":
         graph = fetch_scope_graph(hackerone.HackerOneClient(), args.handle)
         print(json.dumps(graph.to_dict(), indent=2, ensure_ascii=False))
+        return
+
+    if args.command == "hackerone-portfolio":
+        client = hackerone.HackerOneClient()
+        portfolio = scan_portfolio(
+            client,
+            handles=args.handle or None,
+            page_size=args.page_size,
+            max_programs=args.max_programs,
+        )
+        if args.machine_graph:
+            machine_path = Path(args.machine_graph).expanduser()
+            machine_graph = json.loads(machine_path.read_text(encoding="utf-8"))
+            capability_profile = profile_from_machine_graph(
+                machine_graph,
+                source=str(machine_path),
+            )
+        else:
+            capability_profile = unknown_capability_profile()
+        queue = build_ranked_queue(
+            portfolio,
+            capability_profile,
+            include_blocked=not args.exclude_blocked,
+        )
+        payload = {
+            "portfolio": portfolio.to_dict(),
+            "capability_profile": capability_profile.to_dict(),
+            "ranked_queue": queue.to_dict(),
+        }
+        rendered = json.dumps(payload, indent=2, ensure_ascii=False)
+        if args.out:
+            out_path = Path(args.out).expanduser()
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(rendered + "\n", encoding="utf-8")
+            print(f"wrote HackerOne portfolio queue to {out_path}")
+        else:
+            print(rendered)
         return
 
     sources = args.source or ["funding", "devto"]
