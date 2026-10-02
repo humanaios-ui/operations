@@ -1,0 +1,51 @@
+{
+  "experiment_id": "EXP-CAREER-EVIDENCE-001",
+  "title": "Project Evidence Record gap recovery via public job-description signals",
+  "date_opened": "2026-10-02",
+  "status": "ACTIVE_INTERROGATION",
+  "objective": "Test whether current public job descriptions can expose under-documented but potentially real professional experience without allowing market language to become an unsupported resume claim.",
+  "hypothesis": "Cross-referencing Project Evidence Records against recurring job-requirement signals will identify high-value UNKNOWN or PARTIAL evidence fields that can be resolved by targeted human interrogation and supporting evidence.",
+  "null_hypothesis": "The cross-reference produces mostly generic questions, creates no material new verified career evidence, or encourages unsupported relabeling of prior work.",
+  "inputs": [
+    "Current resume evidence already encoded in seven Project Evidence Records",
+    "Current public job-description sample across AI/technical program management, quality systems, research operations, and clinical/quality leadership",
+    "Twelve JRS job-requirement signals"
+  ],
+  "method": [
+    "Preserve source-supported claims in PERs",
+    "Compare PER evidence coverage with recurring market requirement signals",
+    "Mark absent or under-specified fields UNKNOWN or PARTIAL rather than negative",
+    "Generate targeted interrogation prompts",
+    "Require human attestation and/or evidence before promoting a response into a durable career claim",
+    "Reuse newly verified evidence across future role-specific applications"
+  ],
+  "guardrails": [
+    "JOB_REQUIREMENT_SIGNAL != CANDIDATE_EXPERIENCE",
+    "MISSING_FROM_RESUME != ABSENT_FROM_HISTORY",
+    "TRANSFERABLE_CAPABILITY != VERIFIED_ROLE_SPECIFIC_EXPERIENCE",
+    "INFERENCE != RESUME_CLAIM",
+    "ESTIMATE must be labeled ESTIMATE",
+    "UNKNOWN may remain UNKNOWN without penalty"
+  ],
+  "initial_outputs": {
+    "project_evidence_records": 7,
+    "job_requirement_signals": 12,
+    "interrogation_frontier_questions": 21,
+    "broken_graph_references": 0
+  },
+  "success_criteria": [
+    "At least one material previously undocumented claim is recovered and evidenced without fabrication",
+    "Each promoted claim retains source provenance and confidence state",
+    "Question burden is reduced by reusing answers across multiple applications",
+    "Role-specific resumes can distinguish supported, partial, and unresolved requirements"
+  ],
+  "falsifiers": [
+    "Questions are too generic to recover distinct evidence",
+    "User cannot distinguish recollection from documented fact",
+    "Market terminology systematically induces inflated claims",
+    "Recovered claims do not improve application evidence coverage",
+    "The same evidence cannot be reused reliably across role families"
+  ],
+  "next_action": "Human completes the Career Evidence Interrogation Frontier; responses are then classified as SOURCE_SUPPORTED, HUMAN_ATTESTED, INFERRED, or UNVERIFIED and reconciled into PERs.",
+  "authority_effect": "NONE"
+}
