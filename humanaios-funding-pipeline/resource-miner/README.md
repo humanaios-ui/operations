@@ -89,9 +89,14 @@ NEED != RESOURCE
 CAPABILITY != RESOURCE
 RESOURCE_REQUIREMENT != RESOURCE
 CONTROLLED_RESOURCE != ADEQUATE_SUBSTITUTE
+RESOURCE_MECHANISM != RESOURCE_AFFORDANCE
+RESOURCE_AFFORDANCE != BENEFICIARY
+NOMINAL_CASH != SPENDABLE_FOR_REQUIREMENT
 RESOURCE_GAP != AUTHORIZATION
 RESOURCE_DISCOVERY != ELIGIBILITY
 ```
+
+Each normalized candidate now carries both `resource_types` (the mechanism, such as `grant`, `fellowship`, `compute_credit`, or `paid_work`) and `resource_affordances` (what that mechanism can potentially provide, such as `project_funding`, `self_labor_support`, `compute_capacity`, or `api_capacity`). Explicit Resource Requirement Objects may specify acceptable affordances; when they do, affordance mismatch is a semantic gate rather than an extra relevance score. Program restrictions, beneficiary rules, and exact use-of-funds remain downstream verification questions.
 
 ## Routing
 
