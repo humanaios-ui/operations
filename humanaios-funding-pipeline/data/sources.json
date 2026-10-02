@@ -935,5 +935,98 @@
     "url_ok": null,
     "notes": "LLM eval + tracing. Complements Langfuse.",
     "source": "phoenix.arize.com"
+  },
+  {
+    "name": "Mercor Analytical Chemist",
+    "category": "paid_work",
+    "sponsor": "Mercor",
+    "url": "https://work.mercor.com/jobs/list_AAABoKHdST6cTipsJcxHCZ-r/analytical-chemist",
+    "eligibility_tags": [
+      "remote",
+      "chemistry",
+      "analytical_chemistry",
+      "ai_evaluation"
+    ],
+    "award_size": "$65-$75 per task",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "any",
+    "status": "active",
+    "last_checked": "2026-10-02",
+    "url_ok": true,
+    "notes": "Frontier-model chemistry red-teaming. Write benign/dual-use/adversarial prompts, evaluate responses against policy, and write reference answers. Analytical chemistry background and technical writing are directly relevant.",
+    "source": "work.mercor.com"
+  },
+  {
+    "name": "DataAnnotation Chemist",
+    "category": "paid_work",
+    "sponsor": "DataAnnotation",
+    "url": "https://www.dataannotation.tech/job-board/chemist",
+    "eligibility_tags": [
+      "remote",
+      "chemistry",
+      "ai_training",
+      "flexible"
+    ],
+    "award_size": "$40-$125+/hr",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": false,
+    "trl_fit": "any",
+    "status": "active",
+    "last_checked": "2026-10-02",
+    "url_ok": true,
+    "notes": "Independent-contractor AI training role. Evaluate chemical reasoning, unsafe/impossible procedures, analytical interpretation, and write corrected answers. Flexible hours; weekly payouts.",
+    "source": "dataannotation.tech"
+  },
+  {
+    "name": "GovAI Entrepreneur-in-Residence",
+    "category": "paid_work",
+    "sponsor": "GovAI",
+    "url": "https://www.governance.ai/post/eir",
+    "eligibility_tags": [
+      "ai_governance",
+      "founder",
+      "entrepreneur",
+      "research",
+      "project_builder"
+    ],
+    "award_size": "12-month salary + approximately $150k seed funding via partner funders",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "early",
+    "status": "active",
+    "last_checked": "2026-10-02",
+    "url_ok": true,
+    "notes": "One-year salaried role to identify, test, and launch a new AI governance/safety organization or ambitious project. Rolling expressions of interest; short written application followed by max-2-page pitch.",
+    "source": "governance.ai"
+  },
+  {
+    "name": "BlueDot Career Transition Grants",
+    "category": "fellowship",
+    "sponsor": "BlueDot Impact",
+    "url": "https://bluedot.org/grants/career-transition",
+    "eligibility_tags": [
+      "ai_safety",
+      "biosecurity",
+      "full_time_transition",
+      "individual"
+    ],
+    "award_size": "$20,000-$200,000 typical program range; up to $200,000",
+    "deadline": null,
+    "deadline_cadence": "rolling",
+    "native_eligible": true,
+    "ai_safety_relevant": true,
+    "trl_fit": "early",
+    "status": "active",
+    "last_checked": "2026-10-02",
+    "url_ok": true,
+    "notes": "Fellowship grant for a defined full-time personal transition into impactful AI safety or biosecurity work. Requires recent evidence, work samples, milestones, theory of change, and simple budget. Cannot be done alongside a full- or part-time role.",
+    "source": "bluedot.org"
   }
 ]
