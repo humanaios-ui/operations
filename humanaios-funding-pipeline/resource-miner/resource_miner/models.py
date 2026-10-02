@@ -21,6 +21,15 @@ class NeedMatch:
 
 
 @dataclass
+class RequirementMatch:
+    requirement_id: str
+    label: str
+    gap_status: str
+    score: float
+    signals: list[str] = field(default_factory=list)
+
+
+@dataclass
 class ResourceCandidate:
     resource_id: str
     title: str
@@ -43,6 +52,7 @@ class ResourceCandidate:
     primary_source_url: str | None = None
     evidence: list[EvidenceRef] = field(default_factory=list)
     need_matches: list[NeedMatch] = field(default_factory=list)
+    requirement_matches: list[RequirementMatch] = field(default_factory=list)
     route: str = "VERIFY_NOW"
     status: str = "UNKNOWN"
     eligibility_assessed: bool = False
