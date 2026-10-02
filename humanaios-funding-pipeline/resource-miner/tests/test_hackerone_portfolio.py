@@ -104,12 +104,17 @@ class CapabilityProfileTests(unittest.TestCase):
 class FakeClient:
     def __init__(self):
         self.get_program_calls = 0
+        self.find_program_calls = 0
 
     def list_programs(self, page_size=100):
         return [program_fixture()]
 
     def get_program(self, handle):
         self.get_program_calls += 1
+        return program_fixture()
+
+    def find_program(self, handle, page_size=100):
+        self.find_program_calls += 1
         return program_fixture()
 
     def get_structured_scopes(self, handle, page_size=100):
@@ -134,10 +139,11 @@ class PortfolioTests(unittest.TestCase):
         self.assertEqual(snapshot.execution_capability, "NONE")
         self.assertEqual(snapshot.authority_effect, "NONE")
 
-    def test_explicit_handle_uses_program_detail_lookup(self):
+    def test_explicit_handle_resolves_from_authenticated_portfolio_list(self):
         client = FakeClient()
         snapshot = scan_portfolio(client, handles=["fixture"])
-        self.assertEqual(client.get_program_calls, 1)
+        self.assertEqual(client.get_program_calls, 0)
+        self.assertEqual(client.find_program_calls, 1)
         self.assertEqual(snapshot.programs[0].state, "OBSERVED")
 
     def test_portfolio_failure_preserves_hydration_stage(self):
