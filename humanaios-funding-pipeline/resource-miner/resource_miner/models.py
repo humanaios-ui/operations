@@ -58,6 +58,7 @@ class ResourceCandidate:
     status: str = "UNKNOWN"
     resource_state: str = "CANDIDATE"
     next_operation: str = "VERIFY"
+    user_disposition: str = "UNSET"
     state_receipt_ids: list[str] = field(default_factory=list)
     eligibility_assessed: bool = False
     eligibility_status: str = "UNASSESSED"
