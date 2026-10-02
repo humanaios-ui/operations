@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-ALLOWED_OBSERVATION_TYPES = {"CURRENTNESS", "OWNERSHIP"}
+ALLOWED_OBSERVATION_TYPES = {"CURRENTNESS", "OWNERSHIP", "USER_DISPOSITION"}
 ALLOWED_SOURCE_KINDS = {
     "PRIMARY_SOURCE",
     "HUMAN_ATTESTED",
@@ -63,6 +63,12 @@ def validate_receipt(receipt: dict[str, Any]) -> None:
         if str(receipt.get("to_resource_state") or "").upper() != "ALREADY_ACQUIRED":
             raise ValueError("OWNERSHIP receipt must establish ALREADY_ACQUIRED")
 
+    if observation_type == "USER_DISPOSITION":
+        if source_kind != "HUMAN_ATTESTED":
+            raise ValueError("USER_DISPOSITION requires HUMAN_ATTESTED evidence")
+        if str(receipt.get("to_disposition") or "").upper() not in {"PASS", "PURSUE"}:
+            raise ValueError("USER_DISPOSITION must be PASS or PURSUE")
+
 
 def _append_receipt(row: dict[str, Any], receipt_id: str) -> None:
     ids = list(row.get("state_receipt_ids") or [])
@@ -105,9 +111,13 @@ def apply_receipt(row: dict[str, Any], receipt: dict[str, Any]) -> dict[str, Any
             out["route"] = "WATCH"
             out["next_operation"] = "MONITOR"
         else:
-            # Currentness may reopen a candidate, but it cannot establish
-            # eligibility or authorization. Preserve existing match routing.
-            out["next_operation"] = "VERIFY_ELIGIBILITY"
+            # Currentness may reopen a candidate, but it cannot override an
+            # explicit human PASS disposition or establish eligibility/authority.
+            if str(out.get("user_disposition") or "UNSET").upper() == "PASS":
+                out["route"] = "ARCHIVE"
+                out["next_operation"] = "NONE"
+            else:
+                out["next_operation"] = "VERIFY_ELIGIBILITY"
 
     elif observation_type == "OWNERSHIP":
         out["resource_state"] = "ALREADY_ACQUIRED"
@@ -120,6 +130,21 @@ def apply_receipt(row: dict[str, Any], receipt: dict[str, Any]) -> dict[str, Any
                 str(out.get("last_verified_at") or ""),
                 str(receipt["observed_at"]),
             )
+
+    elif observation_type == "USER_DISPOSITION":
+        disposition = str(receipt.get("to_disposition") or "").upper()
+        out["user_disposition"] = disposition
+        if disposition == "PASS":
+            # Human preference is neither ineligibility nor stale currentness.
+            # Preserve source status/eligibility while removing this resource
+            # from the active pursuit frontier.
+            out["route"] = "ARCHIVE"
+            out["next_operation"] = "NONE"
+        elif disposition == "PURSUE":
+            # Re-admit to the controller without claiming eligibility. The next
+            # scan/routing pass may refine priority from current need evidence.
+            out["route"] = "VERIFY_NOW"
+            out["next_operation"] = "VERIFY_ELIGIBILITY"
 
     _append_receipt(out, receipt_id)
     return out
