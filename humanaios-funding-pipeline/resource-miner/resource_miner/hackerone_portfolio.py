@@ -81,25 +81,51 @@ def scan_portfolio(
             continue
         try:
             program = client.get_program(handle)
-            scopes = client.get_structured_scopes(handle, page_size=page_size)
-            exclusions = client.get_scope_exclusions(handle)
-            graph = build_scope_graph(program, scopes, exclusions, observed_at=observed_at)
-            snapshot.programs.append(
-                PortfolioProgramObservation(
-                    handle=handle,
-                    state="OBSERVED",
-                    graph=graph,
-                )
-            )
         except Exception as exc:
             snapshot.programs.append(
                 PortfolioProgramObservation(
                     handle=handle,
                     state="OBSERVATION_FAILED",
                     error_type=type(exc).__name__,
-                    error_detail=str(exc)[:240],
+                    error_detail=f"stage=get_program; {str(exc)[:210]}",
                 )
             )
+            continue
+
+        try:
+            scopes = client.get_structured_scopes(handle, page_size=page_size)
+        except Exception as exc:
+            snapshot.programs.append(
+                PortfolioProgramObservation(
+                    handle=handle,
+                    state="OBSERVATION_FAILED",
+                    error_type=type(exc).__name__,
+                    error_detail=f"stage=structured_scopes; {str(exc)[:200]}",
+                )
+            )
+            continue
+
+        try:
+            exclusions = client.get_scope_exclusions(handle)
+        except Exception as exc:
+            snapshot.programs.append(
+                PortfolioProgramObservation(
+                    handle=handle,
+                    state="OBSERVATION_FAILED",
+                    error_type=type(exc).__name__,
+                    error_detail=f"stage=scope_exclusions; {str(exc)[:200]}",
+                )
+            )
+            continue
+
+        graph = build_scope_graph(program, scopes, exclusions, observed_at=observed_at)
+        snapshot.programs.append(
+            PortfolioProgramObservation(
+                handle=handle,
+                state="OBSERVED",
+                graph=graph,
+            )
+        )
 
     snapshot.programs.sort(key=lambda row: row.handle.casefold())
     return snapshot
