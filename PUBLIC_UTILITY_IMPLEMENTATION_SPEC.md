@@ -29,7 +29,7 @@
 
 **Authority:** Night (Z2) ratified Q-PUBLIC-UTILITY-MARKET-VALIDATION-01  
 **Effective Date:** 2026-09-28  
-**Project Lifespan:** Phase 1–4 (Oct 2026–Feb 2027), subject to go/no-go gates
+**Project Lifespan:** Phase 1–4 resource-state transitions, each gated by success criteria; measurement windows per phase specification; not calendar-driven deadlines (Q-TEMPORAL-DISSOLUTION-01 compliance)
 
 ---
 
@@ -44,10 +44,10 @@
 
 | Phase | Gate | Success Criterion | Failure Action |
 |-------|------|---|---|
-| **Phase 1 (Oct)** | Problem validation | ≥2 stakeholder classes identify audit decision challenge | STOP; pivot or close |
-| **Phase 2 (Oct–Nov)** | Hypothesis operationalization | All H1–H7 measurable with <20% ambiguity in success threshold | STOP; revise hypotheses |
-| **Phase 3 (Dec–Jan)** | Prototype validation | Layer prototype >80% feature parity with requirement spec | STOP; respec or close |
-| **Phase 4 (Feb)** | Market adoption | ≥5% institutional willingness-to-adopt (threshold 4d) | Report findings; plan Phase 5 |
+| **Phase 1** | Problem validation | ≥2 stakeholder classes identify audit decision challenge | STOP; pivot or close |
+| **Phase 2** | Hypothesis operationalization | All H1–H7 measurable with <20% ambiguity in success threshold | STOP; revise hypotheses |
+| **Phase 3** | Prototype validation | Layer prototype >80% feature parity with requirement spec | STOP; respec or close |
+| **Phase 4** | Market adoption | ≥5% institutional willingness-to-adopt (threshold 4d) | Report findings; plan Phase 5 |
 
 **Rationale:** Prevents sunk-cost fallacy and post-hoc rationalization. Project must validate each phase or halt.
 
@@ -216,12 +216,12 @@ Project targets ONE use case: institutional auditor verification of AI system sa
 
 | Stage | Gate | Metric | Success Threshold | Failure → Action |
 |-------|------|--------|---|---|
-| **Phase 1 (Oct)** | Problem Validation | Stakeholder identification | ≥2 classes express audit decision challenge | STOP: pivot or close |
+| **Phase 1** | Problem Validation | Stakeholder identification | ≥2 classes express audit decision challenge | STOP: pivot or close |
 | **Phase 2a** | Gap Assessment | Gap vs. Baseline | Gap in auditor task time ≥15% vs. summary-score baseline | PROCEED Phase 2b; if gap <15%, proceed with limited scope |
 | **Phase 2b** | Hypothesis Operationalization | Measurability score | All H1–H7 thresholds <20% ambiguity | STOP: revise; resubmit |
-| **Phase 3 (Dec–Jan)** | Prototype Completion | Feature implementation | ≥80% feature parity with spec | STOP: respec or defer |
+| **Phase 3** | Prototype Completion | Feature implementation | ≥80% feature parity with spec | STOP: respec or defer |
 | **Phase 3** | Prototype Validation | User testing | ≥70% institutional users can complete auditor task correctly | STOP: UX redesign |
-| **Phase 4 (Feb)** | Market Adoption (Institutional) | Willingness-to-adopt survey | ≥5% of institutional cohort willing to pilot | REPORT findings; conditional Phase 5 |
+| **Phase 4** | Market Adoption (Institutional) | Willingness-to-adopt survey | ≥5% of institutional cohort willing to pilot | REPORT findings; conditional Phase 5 |
 | **Phase 4** | Market Adoption (Public) | Willingness-to-adopt survey | ≥5% of public cohort willing to use | REPORT findings; conditional Phase 5 |
 
 **Enforcement:** Z2 reviews gate results; approves/rejects phase advancement; gates are not negotiable.
@@ -412,13 +412,13 @@ If critical conflict found (e.g., Z2 signatures required for all claims but publ
 
 ## § 9: Timeline & Ownership
 
-| Phase | Timeframe | Owner | Gate | Decision |
+| Phase | Resource Transition | Owner | Gate | Decision |
 |-------|---|---|---|---|
-| Phase 1 | Oct 1–15 | Z1 (Claude) | Problem validation | Z2 approves; proceed to Phase 2 |
-| Phase 2a | Oct 15–Nov 1 | Z1 (Claude) | Gap assessment | Z2 approves; scale prototyping |
-| Phase 2b | Nov 1–15 | Z1 (Claude) | Hypothesis operationalization | Z2 approves; proceed to Phase 3 |
-| Phase 3 | Dec 1–Jan 15 | Z3 (Copilot) | Prototype validation | Z2 approves; proceed to Phase 4 |
-| Phase 4 | Feb 1–28 | Z3 (Copilot) | Market adoption | Z2 approves roadmap for Phase 5 |
+| Phase 1 | Upon eligible resources allocated | Z1 (Claude) | Problem validation | Z2 approves; proceed to Phase 2 |
+| Phase 2a | Phase 1 RESOURCES_RELEASED | Z1 (Claude) | Gap assessment | Z2 approves; scale prototyping |
+| Phase 2b | Phase 2a RESOURCES_RELEASED | Z1 (Claude) | Hypothesis operationalization | Z2 approves; proceed to Phase 3 |
+| Phase 3 | Phase 2b RESOURCES_RELEASED | Z3 (Copilot) | Prototype validation | Z2 approves; proceed to Phase 4 |
+| Phase 4 | Phase 3 RESOURCES_RELEASED | Z3 (Copilot) | Market adoption | Z2 approves roadmap for Phase 5 |
 
 **Phase 5 (if approved):** Full public+institutional build-out; begins only if all prior gates pass.
 
@@ -581,10 +581,10 @@ jobs:
    - PUBLIC_UTILITY_VALIDATION_PROTOCOL_v1.md in repository
    - Pre-registered comparator list (public_utility_comparators.md)
    - Research protocol document (locked version)
-   - Phase 1 problem validation (Oct)
-   - Phase 2a/2b hypothesis operationalization (Oct–Nov)
-   - Phase 3 layer prototype (Dec–Jan, concurrent with #477–498 implementation)
-   - Phase 4 market validation & adoption survey (Feb)
+   - Phase 1 problem validation (resource-state transition; measurement window per phase specification)
+   - Phase 2a/2b hypothesis operationalization (resource-state transition; measurement window per phase specification)
+   - Phase 3 layer prototype (resource-state transition; concurrent with #477–498 implementation; measurement window per phase specification)
+   - Phase 4 market validation & adoption survey (resource-state transition; measurement window per phase specification)
 4. **Process review (4 weeks out per phase):** Measure whether pre-registration prevents post-hoc rationalization; whether hard gates are respected; whether market findings remain separate from governance
 
 ---

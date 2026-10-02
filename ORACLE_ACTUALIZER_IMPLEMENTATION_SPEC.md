@@ -142,7 +142,7 @@
     {
       "experiment_id": "EXP-001",
       "hypothesis": "SMAG calibration review required reduces unauthorized merges by ≥5%",
-      "phase": "Phase 1 Oct",
+      "phase": "Phase 1 (implementation stage; not calendar-driven)",
       "status": "PROPOSED | RUNNING | COMPLETED | REVERTED",
       "measurement_window": "30 days",
       "expected_observation": "gap_rate distribution over baseline",
