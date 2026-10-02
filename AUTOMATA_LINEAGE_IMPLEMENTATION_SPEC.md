@@ -314,11 +314,11 @@ Does the historical record suggest conceptual lineage from mythological automata
 5. Mechanical Turk (18th-century automaton)
 6. Babbage Analytical Engine (19th-century computing)
 
-## Dual Formalization Timeline
-- Week 1–2: Researcher A formalization (TALOS-001 through TALOS-006)
-- Week 3–4: Researcher B independent formalization (same archetypes)
-- Week 5: Inter-rater agreement calculation (Cohen's κ)
-- Week 6: Dispute resolution if κ < 0.70
+## Dual Formalization State Sequence
+- State 1: Researcher A formalization complete (TALOS-001 through TALOS-006; state = FORMALIZATION_A_COMPLETE)
+- State 2: Researcher B independent formalization complete (same archetypes; state = FORMALIZATION_B_COMPLETE)
+- State 3: Inter-rater agreement calculation (Cohen's κ; state = AGREEMENT_CALCULATED)
+- State 4: Dispute resolution if κ < 0.70 (state = AGREEMENT_VERIFIED or DISPUTE_RESOLVED)
 
 ## Novelty Classification (Pre-Registered)
 Example: Talos exhibits "redundancy with majority voting" (new boundary)
