@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 193
+  tools: 196
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 146
+  builder_markers_present: 149
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2472,6 +2472,32 @@ tools:
   builder_markers: true
   purpose: Deterministic CLI query interface over ai_context_generator (context, authority, blockers,
     completion-evidence, unknown subcommands).
+- tool_id: HAIOS-TOOL-208
+  name: machine_graph_collect_macos
+  path: tools/machine_graph/collect_macos.py
+  version: 0.1.0
+  category: pipeline_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Metadata-first and local-only by design. It does not read user document contents.
+  session: '#596'
+- tool_id: HAIOS-TOOL-209
+  name: machine_graph_validate_snapshot
+  path: tools/machine_graph/validate_snapshot.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies.
+  session: '#596'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
