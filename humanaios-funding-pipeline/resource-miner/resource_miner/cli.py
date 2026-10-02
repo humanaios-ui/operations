@@ -8,6 +8,8 @@ from .hackerone_portfolio import scan_portfolio
 from .investigation_queue import build_ranked_queue
 from .miner import enrich
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
+from .policy_adjudication import adjudicate_ranked_candidate
+from .security_authorization import TestingMode
 from .security_capability import profile_from_machine_graph, unknown_capability_profile
 from .security_scope import fetch_scope_graph
 from .store import write_jsonl
@@ -63,6 +65,28 @@ def build_parser() -> argparse.ArgumentParser:
     h1_portfolio.add_argument("--out", help="Optional JSON output path")
     h1_portfolio.add_argument("--exclude-blocked", action="store_true")
 
+    h1_adjudicate = sub.add_parser(
+        "hackerone-adjudicate",
+        help="Refresh policy/scope evidence for one ranked candidate and run the fail-closed authorization gate",
+    )
+    h1_adjudicate.add_argument("--portfolio", required=True, help="Path to a ranked HackerOne portfolio JSON")
+    h1_adjudicate.add_argument("--rank", type=int, default=1, help="1-based rank among READY_FOR_POLICY_AND_METHOD_REVIEW entries")
+    h1_adjudicate.add_argument(
+        "--mode",
+        choices=[mode.value for mode in TestingMode],
+        default=TestingMode.PASSIVE_RECON.value,
+    )
+    h1_adjudicate.add_argument(
+        "--method-allowed",
+        choices=["unknown", "yes", "no"],
+        default="unknown",
+        help="Explicit reviewed-policy result; unknown fails closed",
+    )
+    h1_adjudicate.add_argument("--finding-category")
+    h1_adjudicate.add_argument("--human-authorization-ref")
+    h1_adjudicate.add_argument("--page-size", type=int, default=100)
+    h1_adjudicate.add_argument("--out", required=True, help="Local JSON evidence packet destination")
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -92,6 +116,31 @@ def main() -> None:
     if args.command == "hackerone-scope":
         graph = fetch_scope_graph(hackerone.HackerOneClient(), args.handle)
         print(json.dumps(graph.to_dict(), indent=2, ensure_ascii=False))
+        return
+
+    if args.command == "hackerone-adjudicate":
+        payload_path = Path(args.portfolio).expanduser()
+        payload = json.loads(payload_path.read_text(encoding="utf-8"))
+        method_allowed = {"unknown": None, "yes": True, "no": False}[args.method_allowed]
+        result = adjudicate_ranked_candidate(
+            hackerone.HackerOneClient(),
+            payload,
+            rank=args.rank,
+            mode=TestingMode(args.mode),
+            method_allowed=method_allowed,
+            requested_finding_category=args.finding_category,
+            human_authorization_ref=args.human_authorization_ref,
+            page_size=args.page_size,
+        )
+        out_path = Path(args.out).expanduser()
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        decision = result["authorization_decision"]
+        binding = result["scope_binding"]
+        print(f"wrote HackerOne adjudication packet to {out_path}")
+        print(f"scope_binding_valid={binding['valid']}")
+        print(f"authorization_state={decision['state']}")
+        print("execution_capability=NONE")
         return
 
     if args.command == "hackerone-portfolio":
