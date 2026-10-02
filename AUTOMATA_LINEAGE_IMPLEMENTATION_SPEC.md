@@ -3,7 +3,7 @@
 **Z2 Ratified Decisions:** 3a–3f (See PHASE_1_RATIFICATION_PACKAGE.md)  
 **Authority:** Night (carly.r.anderson@gmail.com)  
 **Status:** ✅ RATIFIED (2026-10-02)  
-**Z2 Ratification Hash:** `4e65f25dbb97dc2e8efa51e1ab5a04710c52d406611815405256d64ecb0ab4aa`  
+**Z2 Ratification Hash:** `sha256(Q-AUTOMATA-LINEAGE-LAB-01|decisions_3a-3f|by=Night|at=2026-10-02T00:00:00Z|decision=RATIFY)`  
 **Stage:** 4 (Z2 Ratification) ✅ → 5 (Z3 Implementation)
 
 ---
