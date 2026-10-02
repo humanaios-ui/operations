@@ -14,6 +14,7 @@ The predecessor graph is useful for navigation but its assertions were synthesiz
 
 - `source/humanaios_cross_chat_knowledge_graph.v0.1.json` — frozen predecessor.
 - `evidence/github_hydration_2026-10-02.json` — first live source-observation overlay.
+- `evidence/private_source_roots.json` — privacy-preserving descriptors for connected private corpora; raw private inventories/content are not published.
 - `build_longitudinal_graph.py` — deterministic stdlib compiler/validator.
 - `schema/longitudinal_graph.schema.json` — structural contract.
 - `HYDRATION_RECEIPT_2026-10-02.json` — receipt from the verified first build.
@@ -50,12 +51,14 @@ python3 chat_graph/build_longitudinal_graph.py --check
 python3 chat_graph/build_longitudinal_graph.py
 ```
 
-Expected first-build counts:
+Current build counts after admitting the private Drive corpus root:
 - entities: 195
 - assertions: 444
-- sources: 40
-- events: 40
+- sources: 41
+- events: 41
 - source-hydrated entities: 30
+
+The connected Drive corpus remains metadata-only at the public graph boundary. Its private file inventory and raw content are hydrated only through the connected source when explicitly bound to a claim or allowlisted for analysis.
 
 ## Relationship to existing graph infrastructure
 
