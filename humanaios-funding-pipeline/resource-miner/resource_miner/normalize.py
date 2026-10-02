@@ -16,6 +16,20 @@ DATE_RE = re.compile(
 )
 TRACKING_QUERY_KEYS = {"tracking", "gclid", "dclid", "fbclid", "msclkid", "mc_cid", "mc_eid"}
 
+# Source categories describe the resource mechanism. They must be translated
+# explicitly rather than left as opaque tags. Domain tags such as ai_safety or
+# native intentionally have no alias here because they describe scope, not type.
+SOURCE_CATEGORY_TYPE_ALIASES: dict[str, str] = {
+    "contest": "competition",
+    "research_grant": "grant",
+    "compute_credit": "compute_credit",
+    "free_infra": "free_infrastructure",
+    "free_api": "api_access",
+    "paid_work": "paid_work",
+    "publishing": "dissemination_access",
+    "fellowship": "fellowship",
+}
+
 TYPE_RULES: list[tuple[str, tuple[str, ...]]] = [
     ("competition", ("challenge", "contest", "hackathon", "competition", "prize")),
     ("bounty", ("bounty", "bug bounty")),
@@ -25,11 +39,14 @@ TYPE_RULES: list[tuple[str, tuple[str, ...]]] = [
     ("rebate", ("rebate", "incentive", "tax credit")),
     ("financing", ("loan", "line of credit", "capital access", "financing")),
     ("compute_credit", ("cloud credit", "compute credit", "gpu credit", "api credit")),
-    ("free_infrastructure", ("free infrastructure", "free tier", "hosting credit", "database credit")),
+    ("free_infrastructure", ("free infrastructure", "free infra", "free tier", "hosting credit", "database credit")),
+    ("api_access", ("free api", "api access", "model api", "api tier")),
+    ("hardware_access", ("hardware access", "hardware discount", "equipment access", "robotics access")),
     ("paid_work", ("paid work", "consulting", "paid study", "paid project")),
     ("procurement", ("rfp", "request for proposal", "procurement", "contract opportunity", "solicitation")),
     ("training", ("training", "certification", "credential")),
     ("research_access", ("dataset", "research access", "lab access", "model access")),
+    ("dissemination_access", ("publishing", "publication support", "publication access")),
 ]
 
 
@@ -78,7 +95,7 @@ def extract_dates(text: str) -> list[str]:
     out: list[str] = []
     for month, day, year in DATE_RE.findall(text or ""):
         try:
-            parsed = datetime.strptime(f"{month} {day} {year}", "%B %d %Y").date().isoformat()
+            parsed = datetime.strptime(f"{month} {day} {year}", "%B %d %Y).date().isoformat()
         except ValueError:
             continue
         if parsed not in out:
@@ -113,9 +130,29 @@ def extract_deadline(text: str) -> str | None:
     return candidates[0][1]
 
 
-def classify_types(text: str, tags: list[str] | None = None) -> list[str]:
-    haystack = " ".join([text or "", " ".join(tags or [])]).lower()
+def _taxonomy_text(value: str) -> str:
+    return re.sub(r"[_-]+", " ", value.lower()).strip()
+
+
+def _source_category_key(value: str) -> str:
+    return re.sub(r"[\s-]+", "_", value.lower()).strip("_")
+
+
+def classify_types(
+    text: str,
+    tags: list[str] | None = None,
+    source_category: str | None = None,
+) -> list[str]:
+    haystack = " ".join(
+        [text or "", *(_taxonomy_text(str(tag)) for tag in (tags or []))]
+    ).lower()
     out = [kind for kind, needles in TYPE_RULES if any(n in haystack for n in needles)]
+
+    if source_category:
+        explicit = SOURCE_CATEGORY_TYPE_ALIASES.get(_source_category_key(source_category))
+        if explicit and explicit not in out:
+            out.insert(0, explicit)
+
     return out or ["general_resource"]
 
 
@@ -133,6 +170,7 @@ def normalize_generic(
     primary_source_url: str | None = None,
     observed_at: str | None = None,
     raw: dict[str, Any] | None = None,
+    source_category: str | None = None,
 ) -> ResourceCandidate:
     observed_at = observed_at or utcnow_iso()
     canonical = canonicalize_url(url)
@@ -150,7 +188,7 @@ def normalize_generic(
         sponsor=sponsor.strip(),
         published_at=published_at,
         deadline=deadline,
-        resource_types=classify_types(combined, tags),
+        resource_types=classify_types(combined, tags, source_category),
         tags=sorted({str(x).lower() for x in (tags or []) if str(x).strip()}),
         value_text="; ".join(m.group(0) for m in MONEY_RE.finditer(combined)),
         cash_mentions_usd=cash_mentions(combined),
