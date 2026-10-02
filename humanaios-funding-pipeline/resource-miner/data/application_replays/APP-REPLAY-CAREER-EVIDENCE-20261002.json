@@ -114,7 +114,16 @@
       "BlueDot Career Transition Grants -> VERIFY_NOW / ACTIVE",
       "GovAI Fellowship -> WATCH / NOT_CURRENTLY_OPEN",
       "Microsoft for Startups -> WATCH / ALREADY_ACQUIRED / MANAGE"
-    ]
+    ],
+    "final_typing_repair": {
+      "finding": "Canonical source category must remain the authoritative resource mechanism; descriptive text can mention downstream benefits without changing the mechanism.",
+      "examples": [
+        "BlueDot Career Transition Grants now types as fellowship only, with self_labor_support + research_access; it no longer inherits project_funding merely because the page calls it a fellowship grant.",
+        "DataAnnotation Chemist now types as paid_work only; 'AI training' no longer turns the job into a training resource.",
+        "GovAI EIR remains paid_work but explicitly carries project_funding and research_access as bundled affordances because the official role includes salary, seed funding, and GovAI network/research support."
+      ],
+      "final_snapshot_count": 49
+    }
   },
   "authority_effect": "NONE"
 }
