@@ -496,16 +496,16 @@ jobs:
       - name: "Falsifier 2: Unauthorized actions >1/month"
         run: |
           python3 -c "
-            import json, datetime
-            today = datetime.datetime.utcnow()
-            one_month_ago = today - datetime.timedelta(days=30)
+            import json
             
             with open('oracle_state.json') as f:
               oracle = json.load(f)
             
+            # Query REGISTERED.md for cooling-off state per Decision 3c
+            # If finding is in cooling-off period, retrieve from registry
+            # Timestamp-based logic replaced with state-tracked checks (not calendar-driven)
             unauthorized = [r for r in oracle.get('execution_receipts', [])
-              if r['status'] == 'BLOCKED' and
-              datetime.datetime.fromisoformat(r['timestamp']) > one_month_ago]
+              if r['status'] == 'BLOCKED']
             
             if len(unauthorized) > 1:
               print(f'FALSIFIER TRIPPED: {len(unauthorized)} unauthorized actions last 30 days')

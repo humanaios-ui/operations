@@ -120,8 +120,8 @@ excluded:
 
 # Audit Methodology (Operationalized in § 2.2)
 methodology_version: "1.0"
-methodology_approval_date: "2026-09-28"
-methodology_approval_authority: "Z2 (Night)"
+methodology_ratified_date: "2026-10-02"
+methodology_ratified_authority: "Z2 (Night)"
 
 # Feature-Parity Scoring
 # Each tool is evaluated on:
