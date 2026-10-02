@@ -139,7 +139,7 @@ inter_rater_agreement_kappa: "[Score]"
 
 ## § 3: Cooling-Off Period (Decision 3c)
 
-**Mandate:** No historical lineage finding can inform #497 decisions within 30 days of formalization completion.
+**Mandate:** No historical lineage finding can inform #497 decisions during cooling-off period (state-tracked in REGISTERED.md per Decision 3c).
 
 **Timeline:**
 1. Dual formalization completed: Day 0

@@ -16,7 +16,7 @@
 | **2c. Cross-Substrate Tiebreaker** | Preserve disagreement | DISPUTED warrant → escalation, operator decides |
 | **2d. Molt Authority** | Z1 proposes, Z2 ratifies | Constitutional amendments follow explicit path |
 | **2e. Human Authority Boundaries** | Explicit no-delegate list (hardcoded) | Authority grants, data deletion, constitutional changes never delegated |
-| **2f. Falsifiers** | 10-item monthly checklist | Unknown claims >2 weeks, unauthorized actions >1/month, disagreement >30% trigger audit |
+| **2f. Falsifiers** | 10-item checklist (state-driven) | Unknown claims in escalation state, unauthorized actions exceeding threshold, disagreement >30% trigger audit |
 
 ---
 
@@ -146,7 +146,7 @@
       "status": "PROPOSED | RUNNING | COMPLETED | REVERTED",
       "measurement_window": "30 days",
       "expected_observation": "gap_rate distribution over baseline",
-      "falsifier": "False negative rate >10% | Unknown state >14 days"
+      "falsifier": "False negative rate >10% | Unknown state in escalation (state-tracked in REGISTERED.md)"
     }
   ],
   
@@ -218,7 +218,7 @@
 **Invariant 1 (2a: Derivative Authority):** Oracle schema matches REGISTERED.md structure or divergence is logged as DISPUTED warrant
 **Invariant 2 (2b: Preconditions):** Every action in Oracle has preconditions; no action auto-executes without Z2 signature
 **Invariant 3 (2e: Human Authority):** Oracle schema has hardcoded no-delegate list (see below)
-**Invariant 4 (2f: Monthly Audit):** Oracle tracks unknown_ids with day_count; escalates at 14 days
+**Invariant 4 (2f: Audit):** Oracle tracks unknown_ids with escalation_state; escalates when state_tracked in REGISTERED.md (not calendar-driven)
 
 ---
 
@@ -447,16 +447,16 @@ jobs:
 
 ## Implementation Part 4: Falsifier Monitor
 
-### Monthly Audit Checklist (Decision 2f: 10-item checklist)
+### Audit Checklist (Decision 2f: 10-item checklist, state-driven)
 
-**File:** `.github/workflows/falsifier-monitor-monthly.yml`
+**File:** `.github/workflows/falsifier-monitor.yml`
 
 ```yaml
-name: Oracle Falsifier Monitor (Monthly)
+name: Oracle Falsifier Monitor (State-Driven)
 
 on:
   schedule:
-    - cron: '0 0 1 * *'  # First day of each month, UTC
+    - cron: '0 0 1 * *'  # Polling schedule: first day of each month, UTC (TECHNICAL_SAFETY timeout, not work deadline)
   workflow_dispatch:
 
 jobs:
@@ -556,17 +556,17 @@ jobs:
           [ ] Audit completeness: all events in NF_LEDGER, none missing
           CHECKLIST
           
-          echo "Monthly falsifier checklist:"
+          echo "Oracle falsifier checklist:"
           cat /tmp/falsifier_checklist.txt
           echo ""
-          echo "ACTION: Z2 completes checklist within 48 hours; reports findings to Priority Queue"
+          echo "ACTION: Z2 completes checklist and reports findings to Priority Queue (state-tracked execution)"
       
       - name: "Generate falsifier report"
         if: failure()
         run: |
           gh issue create \
-            --title "🚨 Oracle Falsifier Alert — $(date +%Y-%m)" \
-            --body "Monthly oracle falsifier check failed.\n\nReview job logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nZ2 action required within 48 hours."
+            --title "🚨 Oracle Falsifier Alert" \
+            --body "Oracle falsifier check detected issue.\n\nReview job logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nZ2 action required (state-tracked execution; no deadline)."
 ```
 
 ---
@@ -667,7 +667,7 @@ jobs:
 - [ ] Cross-substrate disagreement is marked DISPUTED + escalated (2c-tested)
 - [ ] Molt procedure requires Z2 ratification; anti-cascade rules enforced (2d-tested)
 - [ ] Hard-no-delegate list is hardcoded and prevents auto-execution (2e-tested)
-- [ ] Falsifier monitor runs monthly; all 10 items audited (2f-tested)
+- [ ] Falsifier monitor runs (state-driven); all 10 items audited (2f-tested)
 - [ ] CI/CD gates enforce Z2 authorization on all required actions
 - [ ] Execution receipts reconcile with claims in transcript (B.6 protocol)
 
@@ -681,7 +681,7 @@ jobs:
    - Oracle state schema in repository
    - Actualizer precondition logic in merge gate
    - Molt ratification CI/CD workflow
-   - Falsifier monitor (monthly automated + manual checklist)
+   - Falsifier monitor (state-driven automation + manual checklist)
    - Z2 authorization gate
    - Execution receipt logging to NF_LEDGER
 4. **Process review (4 weeks out):** Measure whether oracle derivative model holds; whether Actualizer preconditions blocked inappropriate actions; whether falsifier monitor caught edge cases
