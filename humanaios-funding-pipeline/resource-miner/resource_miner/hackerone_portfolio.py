@@ -67,6 +67,8 @@ def scan_portfolio(
 
     snapshot = HackerOnePortfolioSnapshot(observed_at=observed_at)
 
+    explicit_handles = bool(handles)
+
     for seed in seeds:
         handle = _handle(seed)
         if not handle:
@@ -79,18 +81,26 @@ def scan_portfolio(
                 )
             )
             continue
-        try:
-            program = client.get_program(handle)
-        except Exception as exc:
-            snapshot.programs.append(
-                PortfolioProgramObservation(
-                    handle=handle,
-                    state="OBSERVATION_FAILED",
-                    error_type=type(exc).__name__,
-                    error_detail=f"stage=get_program; {str(exc)[:210]}",
+
+        # GET /hackers/programs already returns full program resources. Reuse
+        # those observations for account-wide portfolio scans instead of adding
+        # a redundant per-program detail request. Explicit --handle scans still
+        # require a detail lookup because no list seed exists for them.
+        if explicit_handles:
+            try:
+                program = client.get_program(handle)
+            except Exception as exc:
+                snapshot.programs.append(
+                    PortfolioProgramObservation(
+                        handle=handle,
+                        state="OBSERVATION_FAILED",
+                        error_type=type(exc).__name__,
+                        error_detail=f"stage=get_program; {str(exc)[:210]}",
+                    )
                 )
-            )
-            continue
+                continue
+        else:
+            program = seed
 
         try:
             scopes = client.get_structured_scopes(handle, page_size=page_size)
