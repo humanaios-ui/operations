@@ -206,6 +206,24 @@
 *.md                                       @humanaios-ui/doc-control
 ```
 
+### **Commit Discipline (P19 Principles)**
+
+**Scope:** Authored commits only. Merge commits (git merge) exempt.
+
+**Authored Commit Cap:** K ≤ 13 files per authored commit
+- Rationale: Reviewability. Small, focused changes.
+- Exception: Constants/schema/manifest bulk updates (ratified via molt) may exceed K with Z2 signature. Otherwise no override.
+
+**Merge Commits (git merge, rebase-merge, squash-merge):** Exempt
+- Rationale: Merge commits are structural; not authored work.
+- No file count cap applies.
+- Advisory flag on P19 is informational only (✓ pass, no merge block).
+
+**Enforcement:**
+- Workflow identifies merge vs. authored via git-log ancestry
+- Reports both types; marks merged exempt; flags authored overage
+- Breaches flagged in CI (advisory only; does not block merge)
+
 ---
 
 ## Session Rituals (§A / §B)
