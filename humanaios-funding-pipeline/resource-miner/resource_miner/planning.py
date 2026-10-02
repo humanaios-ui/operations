@@ -178,6 +178,7 @@ def miner_requirements_from_plan(plan: dict[str, Any]) -> list[dict[str, Any]]:
                 "label": requirement.get("label") or requirement["requirement_id"],
                 "objective": requirement.get("objective", ""),
                 "resource_types": requirement.get("resource_types", []),
+                "affordances": requirement.get("affordances", []),
                 "signals": requirement.get("signals", []),
                 "satisfied_when": requirement.get("satisfied_when", ""),
                 "authority_effect": "NONE",
