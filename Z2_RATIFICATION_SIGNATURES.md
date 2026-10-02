@@ -137,9 +137,9 @@ notes:
 
 **Rationale:** 
 - Proposed merge-gate.yml depends on fresh measurement data (<7 days CLAUDE_CODE, <3 days COPILOT)
-- Existing weekly consolidation introduces 7-day staleness → false-positive escalations
+- Existing consolidation process (TECHNICAL_SAFETY schedule) introduces measurement staleness → false-positive escalations
 - Option A: real-time ledger entries eliminate freshness falsifier
-- Keep weekly consolidation for reporting/analytics (unchanged)
+- Keep consolidation process for reporting/analytics infrastructure (unchanged)
 
 **Implementation Resource-State Transitions (per Q-TEMPORAL-DISSOLUTION-01):**
 - Transition 1: Modify capture script; run dual-write test (RESOURCES_RELEASED trigger)
