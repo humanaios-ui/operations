@@ -211,6 +211,73 @@ The HackerOne source is deliberately **not exposed through the unauthenticated R
 service**. A HackerOne account can expose private-program metadata; publishing that through the
 existing service would cross the current privacy boundary.
 
+
+## HackerOne portfolio → capability match → ranked review queue
+
+The portfolio layer extends metadata-only HackerOne discovery without adding target execution:
+
+```text
+HackerOne programs
+  -> program policy + structured scopes + exclusions
+  -> Machine Substrate Graph capability evidence
+  -> per-asset capability match
+  -> deterministic readiness score
+  -> ranked review queue
+  -> downstream policy/method review
+  -> Security Authorization Gate
+```
+
+The rank is **investigation readiness**, not exploit value and not authorization. It is driven primarily by
+explicitly observed capability coverage and current scope state. Bounty eligibility contributes only a
+small signal; severity is preserved as scope metadata but does not increase rank.
+
+Capability evidence is derived from `tools/machine_graph` observation states. Missing tools remain
+`UNKNOWN` or `OBSERVED_UNAVAILABLE`; the matcher never converts absence of evidence into capability.
+
+To refresh the local capability snapshot on macOS:
+
+```bash
+python3 tools/machine_graph/collect_macos.py \
+  --root "$HOME/HumanAIOS-machine-scan" \
+  --venv "$HOME/HumanAIOS-machine-scan/shacl-test/venv" \
+  --output "$HOME/HumanAIOS-machine-scan/machine-graph/machine-substrate.json"
+```
+
+Then build the authenticated HackerOne portfolio queue:
+
+```bash
+export HACKERONE_API_USERNAME='YOUR_HACKERONE_API_IDENTIFIER'
+export HACKERONE_API_TOKEN='YOUR_HACKERONE_API_TOKEN'
+
+python3 -m resource_miner.cli hackerone-portfolio \
+  --machine-graph "$HOME/HumanAIOS-machine-scan/machine-graph/machine-substrate.json" \
+  --out "$HOME/HumanAIOS-machine-scan/hackerone/ranked-portfolio.json"
+```
+
+The output intentionally lives outside the repository in this example because an authenticated HackerOne
+account may expose private-program metadata.
+
+Each queue entry includes:
+- program and scope identity;
+- asset class;
+- submission/bounty eligibility;
+- candidate review mode;
+- required capability and evidence references;
+- missing capability evidence;
+- effort class;
+- readiness score and rationale;
+- `authorization_state=NOT_EVALUATED`.
+
+Core invariants:
+
+```text
+PORTFOLIO_VISIBILITY != AUTHORIZATION
+CAPABILITY_CLAIM != CAPABILITY_EVIDENCE
+CAPABILITY_MATCH != METHOD_PERMISSION
+RANK != AUTHORIZATION
+QUEUE_ENTRY != EXECUTION
+```
+
 ## ResourceCandidate contract
 
 Each candidate carries:
