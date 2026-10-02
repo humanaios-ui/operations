@@ -156,7 +156,7 @@
       "decision": "Review-escalating gate (Decision 1b)",
       "ratification_date": "2026-09-28",
       "applies_to": ["CLAUDE_CODE", "COPILOT"],
-      "next_review_date": "2026-12-28"
+      "next_review_trigger": "Upon completion of 3-month measurement cycle (state-gated, not calendar-driven)"
     }
   ],
   

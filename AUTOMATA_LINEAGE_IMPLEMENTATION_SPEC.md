@@ -299,9 +299,9 @@ Study halts if any of these occur:
 # Talos Lineage Study: Plan & Design
 
 **Principal Researchers:** [Two named researchers, TBD]  
-**Start Date:** 2026-10-XX  
-**Target Completion:** 2026-12-15  
-**Cooling-Off Conclusion:** 2027-01-15
+**Start Trigger:** Resource allocation approved (state-gated, not calendar-driven)  
+**Success Criterion:** Dual independent formalization complete with κ ≥ 0.70  
+**Cooling-Off Period:** 30 days from completion (state-tracked in REGISTERED.md per Decision 3c)
 
 ## Research Question
 Does the historical record suggest conceptual lineage from mythological automata → mechanical → programmable → adaptive → agentic control?
@@ -352,8 +352,8 @@ Per archetype, identify ≥1 failed variant:
 # Talos Benchmark: Contemporary Comparison
 
 **Principal Researchers:** [Two named researchers, TBD]  
-**Start Date:** 2026-10-XX  
-**Target Completion:** 2026-12-01
+**Start Trigger:** Resource allocation approved (state-gated, not calendar-driven)  
+**Success Criterion:** Benchmark protocol complete and peer-reviewed formalization ready
 
 ## Research Question
 Do three agent architectures (rule-based, ML, LLM) exhibit measurable behavioral differences on a fixed control task?

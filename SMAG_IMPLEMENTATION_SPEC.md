@@ -267,7 +267,7 @@ log_fields:
 
 # Review Cycle
 review_cycle_months: 3
-next_review_date: 2026-12-28
+next_review_trigger: "Upon completion of each 3-measurement cycle (state-gated, not calendar-driven)"
 review_checklist:
   - [ ] Gap rate data quality stable?
   - [ ] Substrate filtering rules still appropriate?
