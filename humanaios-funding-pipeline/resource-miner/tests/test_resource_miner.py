@@ -62,6 +62,9 @@ class ResourceMinerTests(unittest.TestCase):
         self.assertIn("compute_credit", compute.resource_types)
         self.assertIn("api_access", api.resource_types)
         self.assertIn("free_infrastructure", infra.resource_types)
+        self.assertIn("compute_capacity", compute.resource_affordances)
+        self.assertIn("api_capacity", api.resource_affordances)
+        self.assertIn("infrastructure_capacity", infra.resource_affordances)
 
     def test_canonical_funding_pipeline_preserves_resource_mechanism(self):
         resources = list(funding_pipeline.discover(ROOT.parent / "data" / "sources.json"))
@@ -69,6 +72,9 @@ class ResourceMinerTests(unittest.TestCase):
         self.assertIn("compute_credit", by_title["Microsoft for Startups Founders Hub"].resource_types)
         self.assertIn("free_infrastructure", by_title["Kaggle Notebooks"].resource_types)
         self.assertIn("api_access", by_title["Cerebras Free API"].resource_types)
+        self.assertIn("project_funding", by_title["BlueDot Rapid Grants"].resource_affordances)
+        self.assertIn("self_labor_support", by_title["GovAI Fellowship"].resource_affordances)
+        self.assertIn("earned_income", by_title["Mercor Red-Teamer"].resource_affordances)
 
     def test_confirmed_requirement_can_route_verify_now(self):
         candidate = normalize_generic(
@@ -132,7 +138,8 @@ class ResourceMinerTests(unittest.TestCase):
             for requirement in resolved["resource_requirements"]
         }
         self.assertEqual(states["RR-WITNESS-INDEPENDENT-VALIDATION-001"], "CONFIRMED")
-        self.assertEqual(states["RR-WITNESS-HUMAN-EXPERT-LABOR-001"], "CONFIRMED")
+        self.assertEqual(states["RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001"], "CONFIRMED")
+        self.assertEqual(states["RR-WITNESS-FOUNDER-RESEARCH-TIME-001"], "CONFIRMED")
         self.assertEqual(states["RR-WITNESS-LOCAL-COMPUTE-001"], "CONDITIONAL")
         self.assertEqual(states["RR-WITNESS-PHYSICAL-EXPERIMENT-001"], "CONDITIONAL")
         self.assertEqual(states["RR-WITNESS-EVIDENCE-ACCESS-001"], "PARTIAL")
@@ -143,13 +150,46 @@ class ResourceMinerTests(unittest.TestCase):
         exported = miner_requirements_from_plan(plan)
         by_id = {row["requirement_id"]: row for row in exported}
         self.assertIn("RR-WITNESS-INDEPENDENT-VALIDATION-001", by_id)
-        self.assertIn("RR-WITNESS-HUMAN-EXPERT-LABOR-001", by_id)
+        self.assertIn("RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001", by_id)
+        self.assertIn("RR-WITNESS-FOUNDER-RESEARCH-TIME-001", by_id)
         self.assertIn("RR-WITNESS-LOCAL-COMPUTE-001", by_id)
         self.assertIn("RR-WITNESS-PHYSICAL-EXPERIMENT-001", by_id)
         self.assertIn("RR-WITNESS-AGENT-RUNTIME-001", by_id)
         self.assertNotIn("RR-WITNESS-AUTHORITY-STATE-001", by_id)
         self.assertNotIn("RR-WITNESS-EVIDENCE-ACCESS-001", by_id)
         self.assertTrue(all(row["authority_effect"] == "NONE" for row in exported))
+
+    def test_affordance_gate_blocks_wrong_cash_substitute(self):
+        candidate = normalize_generic(
+            title="Paid AI red-team contract",
+            url="https://example.com/paid-work",
+            source_name="Example",
+            discovery_method="test",
+            description="Paid expert contract for the participant.",
+            source_category="paid_work",
+        )
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        requirements = miner_requirements_from_plan(plan)
+        candidate.requirement_matches = map_to_requirements(candidate, requirements)
+        ids = {match.requirement_id for match in candidate.requirement_matches}
+        self.assertNotIn("RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001", ids)
+        self.assertNotIn("RR-WITNESS-FOUNDER-RESEARCH-TIME-001", ids)
+
+    def test_affordance_gate_keeps_project_funding_candidate(self):
+        candidate = normalize_generic(
+            title="AI safety research grant",
+            url="https://example.com/research-grant",
+            source_name="Example",
+            discovery_method="test",
+            description="Grant funding for research and evaluation.",
+            source_category="research_grant",
+        )
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        requirements = miner_requirements_from_plan(plan)
+        candidate.requirement_matches = map_to_requirements(candidate, requirements)
+        ids = {match.requirement_id for match in candidate.requirement_matches}
+        self.assertIn("RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001", ids)
+        self.assertIn("RR-WITNESS-FOUNDER-RESEARCH-TIME-001", ids)
 
     def test_resource_plan_rejects_unknown_graph_reference(self):
         plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
