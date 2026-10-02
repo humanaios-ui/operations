@@ -18,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build synthetic public-safe event
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         shell: python
         run: |
           import json, os
