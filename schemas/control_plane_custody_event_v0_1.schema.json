@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/control_plane_custody_event_v0_1.schema.json",
+  "title": "HumanAIOS Control-Plane Custody Observation Receipt v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "event_id",
+    "observed_at",
+    "repository",
+    "object",
+    "action",
+    "outcome",
+    "carrier_account",
+    "actor_origin",
+    "authority_evidence",
+    "boundary",
+    "custody",
+    "custody_state",
+    "evidence_refs",
+    "uncertainty",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": { "const": "humanaios.control-plane-custody-event.v0.1" },
+    "event_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "observed_at": {
+      "oneOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ]
+    },
+    "repository": { "type": "string", "minLength": 1 },
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "url", "immutable_ref"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "id": { "type": "string", "minLength": 1 },
+        "url": { "type": ["string", "null"] },
+        "immutable_ref": { "type": ["string", "null"] }
+      }
+    },
+    "action": { "type": "string", "minLength": 1 },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "summary"],
+      "properties": {
+        "state": {
+          "enum": ["SUCCEEDED", "REFUSED", "FAILED", "OBSERVED", "UNKNOWN"]
+        },
+        "summary": { "type": "string", "minLength": 1 },
+        "consequence_ref": { "type": ["string", "null"] }
+      }
+    },
+    "carrier_account": { "type": ["string", "null"] },
+    "actor_origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_class", "agent", "evidence"],
+      "properties": {
+        "origin_class": {
+          "enum": [
+            "VERIFIED_HUMAN_AUTHORITY",
+            "KNOWN_HUMAN",
+            "KNOWN_AI",
+            "KNOWN_BOT",
+            "SHARED_ACCOUNT_ORIGIN_UNKNOWN",
+            "EXTERNAL_ACTOR",
+            "UNKNOWN"
+          ]
+        },
+        "agent": { "type": ["string", "null"] },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "authority_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "scope", "refs"],
+      "properties": {
+        "state": { "enum": ["VERIFIED", "CLAIMED", "NONE", "UNKNOWN"] },
+        "scope": { "type": ["string", "null"] },
+        "refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "mechanism", "evidence_refs"],
+      "properties": {
+        "state": { "enum": ["MECHANICAL", "PROCEDURAL", "ABSENT", "UNKNOWN"] },
+        "mechanism": { "type": ["string", "null"] },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "custody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["execution", "decision", "information"],
+      "properties": {
+        "execution": { "type": "string", "minLength": 1 },
+        "decision": { "type": "string", "minLength": 1 },
+        "information": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "custody_state": { "enum": ["SEPARATED", "MIXED", "COLLAPSED", "UNKNOWN"] },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "uncertainty": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "authority_effect": { "const": "NONE" }
+  }
+}

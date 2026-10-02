@@ -1,0 +1,50 @@
+      "recommended_mitigation": "Use divergence to retrain calibration model; surface retraining gaps",
+      "priority": "P0"
+    },
+    {
+      "system": "Evidence Promotion Queue",
+      "potential_failure_mode": "Subtle false evidence passes auditor checks; requires domain expertise to detect",
+      "detection_indicator": "False evidence later refuted by external sources",
+      "current_detection_capability": "Limited - auditors are generalists, not domain experts",
+      "recommended_mitigation": "Add expert-review stage for domain-sensitive claims",
+      "priority": "P2"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "P0",
+      "timeframe": "THIS_QUARTER",
+      "action": "Implement real-time jailbreak detection + confidence calibration research",
+      "rationale": "These are the top two discussion topics with highest signal strength",
+      "success_metric": "50% reduction in hallucination false positives + 70% jailbreak early detection"
+    },
+    {
+      "priority": "P0",
+      "timeframe": "THIS_QUARTER",
+      "action": "Establish collaboration with mechanistic interpretability research team",
+      "rationale": "Understanding confidence-accuracy divergence is foundational",
+      "success_metric": "First interpretability findings published + integrated into ACAT"
+    },
+    {
+      "priority": "P1",
+      "timeframe": "NEXT_QUARTER",
+      "action": "Add multimodal jailbreak monitoring to platform-monitor.py",
+      "rationale": "Emerging threat with clear HumanAIOS relevance",
+      "success_metric": "5+ multimodal attack attempts detected and documented"
+    },
+    {
+      "priority": "P1",
+      "timeframe": "NEXT_QUARTER",
+      "action": "Implement behavioral anomaly detection for auditor decision patterns",
+      "rationale": "Addresses collusion risk in Witness Arena blind-pass invariant",
+      "success_metric": "100% of suspicious correlation patterns flagged for review"
+    },
+    {
+      "priority": "P2",
+      "timeframe": "LATER",
+      "action": "Design supply chain attack detection framework",
+      "rationale": "Prevention requires early signal detection; currently unmonitored",
+      "success_metric": "Framework documented + pilot deployment in 2 partner systems"
+    }
+  ]
+}

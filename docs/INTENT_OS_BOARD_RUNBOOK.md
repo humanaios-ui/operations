@@ -60,6 +60,36 @@ A re-read is a Z1 act. It touches no governance file, so it needs no Z2 hash —
 it writes must come from a command run in that session, and the `read.against` commit must be
 the fetched HEAD.
 
+## 3b. Learn from the exact artifact (RNOLA — advisory)
+
+RNOLA is the repository-native learning layer described in
+`docs/INTENT_OS_RNOLA_INTEGRATION.md` and implemented as the agent skill
+`tools/skills/repository_native_operator_learning/SKILL.md`.
+
+Use it when Z2 wants to understand a live artifact before an authority-bearing decision, especially
+a pull request, workflow, test receipt, candidate, request, or reconciliation result.
+
+For a pull request, pin the exact head SHA and walk this sequence:
+
+1. intent — what outcome was requested;
+2. diff — what state is actually proposed;
+3. code behavior — what the changed artifact can do;
+4. tests / evidence — what was actually checked, and the limits of that evidence;
+5. CI / workflow — which automated path ran and what did not run;
+6. dependencies / side effects — what else can be reached or changed;
+7. authority consequence — what becomes authoritative if the PR is merged;
+8. teach-back — Z2 explains the consequence in their own words;
+9. operator check — optional advisory evidence conforming to
+   `schemas/intent_os_operator_check_v1.schema.json`.
+
+The operator check is deliberately non-authorizing. It cannot satisfy required review, make a red
+check green, sign a ruling, ratify a candidate, authorize deployment, or substitute for the merge
+act. Its schema hard-codes `advisory_only: true` and `can_authorize: false`.
+
+A transient record may live under `outputs/rnola/`; a durable advisory record may be attached to
+the relevant PR/review. Linking learning evidence into the proposed INTENT-OS Witness Ledger is a
+separate governance decision; this runbook does not ratify that candidate.
+
 ## 4. Rule on something (Z2)
 
 Tap an option under **Decisions**. The tap is saved locally. **A tap is not a ratification;

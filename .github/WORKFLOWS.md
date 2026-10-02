@@ -112,11 +112,13 @@ Three intentionally separate workflows form a real-time prediction loop:
 
 ---
 
-## Infrastructure & Maintenance (12 workflows)
+## Infrastructure & Maintenance (13 workflows)
 
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
-| `auto-request-copilot-review.yml` | Request GitHub Copilot review on new PRs | PR create |
+| `graph-capture-lint.yml` | Score the five canonical graph layers (INTENT, system, EVIDENCE, capability, morphogenesis) against the nine self-sealing properties; exits non-zero on a P1–P3 failure not listed in `crb/graph_capture_baseline.json` or on a stale baseline entry. Not a required check until Z2 adds it (Q-GRAPH-CAPTURE-LINT-01) | PR/push touching a canonical graph, the baseline, the tool or its tests |
+| `.coderabbit.yaml` | CodeRabbit advisory review policy (requires installed GitHub App) | PR create/update via external app |
+| `auto-request-copilot-review.yml` | Legacy Copilot review provenance stub | Manual dispatch only |
 | `copilot-base-guard.yml` | Base branch protection with Copilot checks | PR to main |
 | `behavioral-compliance.yml` | Agent behavior compliance checking | Scheduled |
 | `agent-principle-compliance-check.yml` | Principle compliance validation | PR changes |

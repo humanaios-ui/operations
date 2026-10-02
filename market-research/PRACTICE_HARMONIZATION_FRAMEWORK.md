@@ -52,22 +52,25 @@ The market research from five practices converges on **one unified business syst
 - **Owner Practice:** humanaios (overall), autonomy (orchestration platform)
 - **Revenue potential:** Foundation grants + social impact funding
 
-### Finding Set 2: Competitive Landscape Shows Zero Direct Competitors
+### Finding Set 2: Competitive Landscape Hypothesis (superseded by issue #499 validation track)
 
-**ACAT is uniquely positioned:**
-- Hugging Face leaderboards ✗ (capability benchmarks, not behavioral calibration)
-- Stanford HELM ✗ (same — performance only)
-- NIST benchmarks ✗ (same — performance only)
-- Arize/Evidently ✗ (ML Ops tools, not LLM-behavioral)
-- LangSmith ✗ (developer tracing, not compliance audit)
-- Anthropic internal evals ✗ (proprietary, not multi-provider)
-- OpenAI internal evals ✗ (proprietary, not multi-provider)
+**Status note (2026-09-24):** The “zero direct competitors” / “uniquely positioned” framing below is no longer a usable evidence claim on its own. Public Utility + Market Validation now requires strongest-comparator review, source-backed comparator registration, and explicit falsifiers before any differentiation claim can be promoted. See:
 
-**ACAT gaps filled:**
-1. First reproducible, multi-provider behavioral calibration protocol
-2. Published open methodology (defensible moat via publication)
-3. 630+ assessment corpus proving robustness across providers
-4. Regulatory alignment (EU AI Act, NIST RMF) built in
+- `/protocols/PUBLIC_UTILITY_VALIDATION_PROTOCOL_v1.md`
+- `/market/comparator_registry.yaml`
+- `/market/capability_matrix.json`
+- `/market/product_molt_log.md`
+
+What remains useful here is the narrower hypothesis that ACAT may still differ from adjacent products if a benchmark shows added value beyond ordinary observability, evaluation, or governance tooling.
+
+**Historical comparison set (retain as research lead, not conclusion):**
+- Hugging Face leaderboards (capability benchmarks, not behavioral calibration)
+- Stanford HELM (same — performance oriented)
+- NIST benchmarks (same — benchmark and framework reference, not itself proof of product gap)
+- Arize/Evidently (adjacent observability / MLOps category)
+- LangSmith (adjacent developer tracing / evaluation category)
+- Anthropic internal evals (proprietary internal evaluation category)
+- OpenAI internal evals (proprietary internal evaluation category)
 
 ### Finding Set 3: Regulatory Tailwinds Are Urgent
 
@@ -81,7 +84,7 @@ The market research from five practices converges on **one unified business syst
 - ACAT maps directly to NIST RMF dimensions
 - Federal agencies + regulated industries mandating adoption
 
-**Both create 12-18 month window:** first publisher of the open standard owns the category
+**Both create a 12-18 month window for investigation:** category timing does not by itself prove differentiation, demand capture, or ownership of a category.
 
 ### Finding Set 4: Recovery Community Market Has Unique Access
 

@@ -309,6 +309,24 @@ This pipeline is calibrated for the following founder profile. The `native_eligi
 
 ---
 
+## Resource Miner — upstream discovery layer
+
+`resource-miner/` broadens the funding pipeline from a curated opportunity list into a needs-directed resource discovery system. It mines the existing funding catalog plus public DEV challenge announcements, GitHub bounty/prize issues, and configurable RSS/Atom feeds, normalizes candidates, maps them to a candidate Needs Graph, and routes them as `VERIFY_NOW`, `WATCH`, or `ARCHIVE`.
+
+Resource Miner does **not** assert applicant eligibility. Every discovered record defaults to `eligibility_assessed=false` and must pass through Entitlement Navigator (or another evidence-bearing resolver) before becoming an actionable application or work item.
+
+Run locally:
+
+```bash
+cd humanaios-funding-pipeline/resource-miner
+python3 -m unittest discover -s tests -v
+python3 -m resource_miner.cli scan --dry-run
+```
+
+The first live regression specimen is the September 2026 DEV/Kaggle Benchmarking Challenge, used to test mapping of contests/prizes into validation, research, revenue, and dissemination needs.
+
+---
+
 ## Entitlement Navigator — evidence + eligibility layer
 
 The funding pipeline now has an integration target at `entitlement-navigator/`: a local-first investigation service that consumes this pipeline's canonical `data/sources.json` without duplicating or overwriting the opportunity database.
@@ -344,3 +362,24 @@ This tool is **Zone 1 infrastructure** (Unit Zero executes). The data it produce
 *Wado.*
 
 <!-- Last updated: 2026-06-02 -->
+
+## Guiding Light integration boundary
+
+The funding pipeline is a discovery and catalog surface. Guiding Light v0.2 can normalize its records into the general evidence-to-target gradient, but existing `eligibility_tags`, `native_eligible`, `ai_safety_relevant`, TRL tags, and heuristic fit scores are **not** treated as current authoritative applicant eligibility.
+
+`services/guiding_light_adapters.py::funding_source_to_target` therefore creates a funding target with a mandatory `UNKNOWN` eligibility requirement until a current authority/rule resolver establishes the applicant predicates.
+
+The intended route is:
+
+```text
+funding catalog / Resource Miner
+→ discovery candidate
+→ current-source verification
+→ applicant-specific eligibility mapping
+→ Guiding Light gradient
+→ human decision
+→ application / outcome receipt
+→ evidence-state update
+```
+
+The older `FundingFitScorer` remains useful as a heuristic discovery signal; it is not the authority layer for Guiding Light actionability.

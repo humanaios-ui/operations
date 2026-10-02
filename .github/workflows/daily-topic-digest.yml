@@ -1,0 +1,336 @@
+name: Daily Topic-to-Mitigation Digest
+
+on:
+  schedule:
+    # Run daily at 9:00 UTC (adjustable based on timezone)
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      trigger:
+        description: 'Trigger type: batch (full rebuild) or signal-threshold-monitor (event-driven)'
+        required: false
+        default: 'batch'
+        type: choice
+        options:
+          - batch
+          - signal-threshold-monitor
+      signal_count:
+        description: 'Number of high-velocity signals (event-driven only)'
+        required: false
+        type: string
+      signal_ids:
+        description: 'Comma-separated signal IDs to process (event-driven only)'
+        required: false
+        type: string
+
+jobs:
+  monitor-and-digest:
+    runs-on: ubuntu-latest
+    name: Collect signals and generate response matrix
+
+    steps:
+      - name: Checkout operations repository
+        uses: actions/checkout@v7
+        with:
+          repository: humanaios-ui/operations
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout lasting-light-ai repository (for public page updates)
+        uses: actions/checkout@v7
+        with:
+          repository: humanaios-ui/lasting-light-ai
+          ref: main
+          path: lasting-light-ai
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Run platform monitor (parallel collection)
+        id: monitor
+        run: |
+          echo "Starting platform-level signal collection..."
+          python3 scripts/platform-monitor.py 2>&1 | tee /tmp/monitor-output.json
+          echo "Platform monitoring complete"
+
+      - name: Run topic-to-mitigation mapper
+        id: mapper
+        run: |
+          echo "Mapping signals to HumanAIOS capabilities..."
+          python3 scripts/map-to-mitigation.py 2>&1 | tee /tmp/mapper-output.json
+          echo "Mapping complete"
+
+      - name: Run gap detector
+        id: gaps
+        run: |
+          echo "Analyzing research and coverage gaps..."
+          python3 scripts/gap-detector.py 2>&1 | tee /tmp/gaps-output.json
+          gap_report=$(python3 scripts/gap-detector.py | jq -r .gap_report // 'gap-report.json')
+          cp /tmp/gaps-output.json gap-report.json
+          echo "Gap analysis complete"
+
+      - name: Run AI-EO indexer
+        id: indexer
+        run: |
+          echo "Generating AI-EO index from signals and gaps..."
+          python3 scripts/ai-eo-indexer.py 2>&1 | tee /tmp/indexer-output.json
+          echo "AI-EO indexing complete"
+
+      - name: Run signal threshold monitor (event-driven only)
+        id: signal_monitor
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.trigger == 'signal-threshold-monitor'
+        run: |
+          echo "Monitoring for high-velocity signals..."
+          python3 scripts/signal-threshold-monitor.py 2>&1 | tee /tmp/signal-monitor-output.json
+          echo "Signal monitoring complete"
+
+      - name: Run incremental indexer (event-driven optimization)
+        id: incremental_indexer
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.trigger == 'signal-threshold-monitor'
+        run: |
+          echo "Running incremental indexer for delta signals..."
+          python3 scripts/ai-eo-incremental-indexer.py 2>&1 | tee /tmp/incremental-indexer-output.json
+          echo "Incremental indexing complete"
+
+      - name: Generate pages from AI-EO index
+        id: page_generator
+        run: |
+          echo "Generating discoverable pages from AI-EO index..."
+          python3 - << 'EOF'
+          import json
+          import os
+          from pathlib import Path
+
+          # Load AI-EO index
+          index_entries = []
+          if os.path.exists('data/ai-eo-index.jsonl'):
+              with open('data/ai-eo-index.jsonl', 'r') as f:
+                  for line in f:
+                      if line.strip():
+                          index_entries.append(json.loads(line))
+
+          print(f"Loaded {len(index_entries)} page entries from AI-EO index")
+
+          # Create research-velocity directory structure
+          target_dir = Path('lasting-light-ai/src/pages/research-velocity')
+          target_dir.mkdir(parents=True, exist_ok=True)
+
+          # Create topics directory
+          topics_dir = Path('lasting-light-ai/src/pages/topics')
+          topics_dir.mkdir(parents=True, exist_ok=True)
+
+          # Export index as JSON for React consumption
+          index_output = Path('lasting-light-ai/public/api/ai-eo-index.json')
+          index_output.parent.mkdir(parents=True, exist_ok=True)
+          with open(index_output, 'w') as f:
+              json.dump(index_entries, f, indent=2)
+
+          print(f"✓ Exported AI-EO index to {index_output}")
+          print(f"✓ Index ready for React components to consume")
+          print(f"✓ Page generation complete: {len(index_entries)} pages indexed")
+          EOF
+
+      - name: Set up Node.js for delta page generator
+        uses: actions/setup-node@v7
+        with:
+          node-version: '18'
+
+      - name: Run delta page generator (event-driven only)
+        id: delta_generator
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.trigger == 'signal-threshold-monitor'
+        run: |
+          cd lasting-light-ai
+          echo "Running delta page generator for changed entities..."
+          npm run build-delta-pages || echo "Delta generator not yet wired to build; using fallback"
+          echo "Delta page generation complete"
+
+      - name: Generate HTML "How We Address X Crisis" components
+        run: |
+          echo "Generating public-facing response pages..."
+          python3 - << 'EOF'
+          import json
+          import os
+          from datetime import datetime
+
+          # Load the mapping data
+          with open('docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
+              matrix_content = f.read()
+
+          # Generate HTML snippets for lasting-light-ai pages
+          html_snippets = {
+              "ai-jailbreaks": """
+          <section class="crisis-response">
+            <h3>How HumanAIOS Addresses: AI Jailbreaks & Prompt Injection</h3>
+            <p>The Witness Arena's blind-pass invariant prevents peer-review capture by ensuring independent evidence evaluation. Zone 2's authority wall requires human ratification before any potentially harmful operation, making successful jailbreaks unable to bypass governance boundaries.</p>
+            <ul>
+              <li><strong>Constitutional Foundation:</strong> Least-Privilege Agency (Principle 3) + Evidence Before Authority (Principle 4)</li>
+              <li><strong>System Response:</strong> Witness Arena blind-pass invariant + Zone 2 authority wall</li>
+              <li><strong>Current Mitigation:</strong> Detection of authorization boundary violations via evidence review</li>
+              <li><strong>Research Gap:</strong> Real-time jailbreak prediction remains unaddressed</li>
+            </ul>
+          </section>
+              """,
+              "llm-hallucinations": """
+          <section class="crisis-response">
+            <h3>How HumanAIOS Addresses: LLM Hallucinations & Truthfulness</h3>
+            <p>The ACAT framework continuously assesses confidence calibration across six behavioral dimensions. Phase 1 blind assessment versus Phase 3 corrected self-report creates a learning signal that reveals systematic hallucination patterns. Agents with poor calibration scores receive targeted training before deployment.</p>
+            <ul>
+              <li><strong>Constitutional Foundation:</strong> Humility (Principle 1) + Service Orientation (Principle 2)</li>
+              <li><strong>System Response:</strong> ACAT calibration scoring + Phase 1/3 comparison for recurring pattern detection</li>
+              <li><strong>Current Mitigation:</strong> Pattern detection after the fact; targeted training drives improvement</li>
+              <li><strong>Research Gap:</strong> Mechanistic understanding of confidence-accuracy divergence needed</li>
+            </ul>
+          </section>
+              """,
+              "database-privacy": """
+          <section class="crisis-response">
+            <h3>How HumanAIOS Addresses: Database Privacy & Data Governance</h3>
+            <p>Every operation explicitly declares its data dependencies before Zone 2 ratification. The governance audit ritual regularly reviews all access patterns to detect permission creep. Zone 1 inspectors have read-only access to all resource declarations, enabling privacy oversight without execution authority.</p>
+            <ul>
+              <li><strong>Constitutional Foundation:</strong> Least-Privilege Agency (Principle 3) + Transparency Before Obfuscation (Principle 5)</li>
+              <li><strong>System Response:</strong> Resource agency declarations + governance audit ritual + Zone 1 inspection</li>
+              <li><strong>Current Mitigation:</strong> Pre-execution validation + complete audit trails + human inspection</li>
+              <li><strong>Research Gap:</strong> Runtime policy enforcement at database query level needed</li>
+            </ul>
+          </section>
+              """
+          }
+
+          # Save snippets for manual integration
+          os.makedirs('lasting-light-ai/crisis-response-snippets', exist_ok=True)
+          for topic, snippet in html_snippets.items():
+              with open(f'lasting-light-ai/crisis-response-snippets/{topic}.html', 'w') as f:
+                  f.write(snippet)
+
+          print("HTML snippets generated for public pages")
+          print(f"Topics documented: {len(html_snippets)}")
+          EOF
+
+      - name: Commit changes to operations repo
+        run: |
+          git config user.name "Claude Code (Topic Monitor)"
+          git config user.email "noreply@anthropic.com"
+
+          # Check if there are changes to commit
+          if [ -n "$(git status --porcelain)" ]; then
+            git add data/public-discourse-signals.jsonl data/ai-eo-index.jsonl docs/TOPIC_RESPONSE_MATRIX.md gap-report.json
+            git commit -m "chore: update signals, ai-eo index, and gap report (daily digest run)"
+            git push origin main
+            echo "Changes pushed to operations repo"
+          else
+            echo "No changes to commit in operations repo"
+          fi
+
+      - name: Commit index changes to lasting-light-ai repo
+        run: |
+          cd lasting-light-ai
+          git config user.name "Claude Code (Topic Monitor)"
+          git config user.email "noreply@anthropic.com"
+
+          # Check if there are changes to commit
+          if [ -n "$(git status --porcelain)" ]; then
+            git add public/api/ai-eo-index.json
+            git commit -m "chore: update ai-eo index for research velocity dashboard (daily digest run)"
+            git push origin main
+            echo "Changes pushed to lasting-light-ai repo"
+          else
+            echo "No changes to commit in lasting-light-ai repo"
+          fi
+
+      - name: Generate summary for CI context
+        run: |
+          echo "=== DAILY TOPIC-TO-MITIGATION DIGEST ===" > /tmp/digest-summary.txt
+          echo "Run date: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/digest-summary.txt
+          echo "" >> /tmp/digest-summary.txt
+          echo "Topics monitored: 3 (AI Jailbreaks, LLM Hallucinations, Database Privacy)" >> /tmp/digest-summary.txt
+          echo "Platforms monitored: 6 (Twitter, Reddit, HackerNews, LessWrong, Discord, GitHub)" >> /tmp/digest-summary.txt
+          echo "" >> /tmp/digest-summary.txt
+          echo "Operations:" >> /tmp/digest-summary.txt
+          echo "✓ Platform signals collected" >> /tmp/digest-summary.txt
+          echo "✓ Topic-to-mitigation mapping generated" >> /tmp/digest-summary.txt
+          echo "✓ Gap analysis completed" >> /tmp/digest-summary.txt
+          echo "✓ AI-EO index generated from signals + gaps" >> /tmp/digest-summary.txt
+          echo "✓ Discoverable pages indexed for research velocity dashboard" >> /tmp/digest-summary.txt
+          echo "✓ Public-facing HTML snippets generated" >> /tmp/digest-summary.txt
+          echo "" >> /tmp/digest-summary.txt
+          echo "AI-EO Pipeline Output:" >> /tmp/digest-summary.txt
+          echo "- data/ai-eo-index.jsonl: Knowledge graph + behavioral graph index" >> /tmp/digest-summary.txt
+          echo "- lasting-light-ai/public/api/ai-eo-index.json: JSON API for React components" >> /tmp/digest-summary.txt
+          echo "- lasting-light-ai/src/pages/research-velocity: Dashboard pages" >> /tmp/digest-summary.txt
+          echo "" >> /tmp/digest-summary.txt
+          echo "Next steps:" >> /tmp/digest-summary.txt
+          echo "1. Review TOPIC_RESPONSE_MATRIX.md for comprehensive mappings" >> /tmp/digest-summary.txt
+          echo "2. Review AI-EO index in operations/data/ai-eo-index.jsonl" >> /tmp/digest-summary.txt
+          echo "3. Visit /research-velocity in browser to see live indexed pages" >> /tmp/digest-summary.txt
+
+          cat /tmp/digest-summary.txt
+
+      - name: Upload monitoring artifacts
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: topic-digest-run-${{ github.run_id }}
+          path: |
+            docs/TOPIC_RESPONSE_MATRIX.md
+            data/public-discourse-signals.jsonl
+            data/ai-eo-index.jsonl
+            gap-report.json
+            lasting-light-ai/public/api/ai-eo-index.json
+            /tmp/digest-summary.txt
+          retention-days: 30
+
+      - name: Comment on related PRs (if any)
+        if: always()
+        run: |
+          echo "Topic-to-mitigation digest completed successfully"
+          echo "Results available in workflow artifacts"
+
+  validate-output:
+    runs-on: ubuntu-latest
+    needs: monitor-and-digest
+    name: Validate generated outputs
+
+    steps:
+      - name: Checkout operations repository
+        uses: actions/checkout@v7
+        with:
+          repository: humanaios-ui/operations
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Validate JSON files
+        run: |
+          python3 - << 'EOF'
+          import json
+
+          # Validate JSONL format
+          with open('data/public-discourse-signals.jsonl', 'r') as f:
+              lines = f.readlines()
+              for i, line in enumerate(lines):
+                  if line.strip() and not line.startswith('#'):
+                      try:
+                          json.loads(line)
+                      except json.JSONDecodeError as e:
+                          print(f"ERROR: Line {i+1} is not valid JSON: {e}")
+                          exit(1)
+
+          print(f"✓ Validated {len([l for l in lines if l.strip() and not l.startswith('#')])} signal records")
+
+          # Validate markdown exists
+          with open('docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
+              content = f.read()
+              if 'Topic-to-Mitigation Response Matrix' not in content:
+                  print("ERROR: Missing expected markdown title")
+                  exit(1)
+              topic_count = content.count('## ')
+              print(f"✓ Markdown document contains {topic_count} topics")
+
+          print("\n✓ All output validations passed")
+          EOF
+

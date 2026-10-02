@@ -81,9 +81,9 @@ jobs:
       evidence: ${{ steps.classify.outputs.evidence }}
       row:      ${{ steps.classify.outputs.row }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
@@ -92,7 +92,7 @@ jobs:
       # origin/main is not necessarily fetched, which is how that form silently
       # reports an empty diff — and an empty diff measures Tier 0.
       - name: Collect changed files
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const files = await github.paginate(
@@ -158,7 +158,7 @@ jobs:
       # smag-consolidate.yml drains weekly into a ledger. This took the goal and
       # invented a different mechanism, pointed at a place with no reader.
       - name: Retain gap row for this run (debug copy, not the series)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: molt-tier-gap-${{ github.event.pull_request.number }}
           path: molt_tier_gap.json
@@ -198,7 +198,7 @@ jobs:
       # No checkout, no Python, no classifier. This job holds a write token and
       # runs nothing from any branch.
       - name: Copy the open-time snapshot to the tracking issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           TRACKING_ISSUE: ${{ env.MOLT_TIER_TRACKING_ISSUE }}
         with:
@@ -276,7 +276,7 @@ jobs:
       # script below, so nothing from the PR head is ever executed here.
       - name: Upsert the tier comment
         continue-on-error: true   # a fork PR gets a read-only token; not a failure
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           MEASURED: ${{ needs.classify.outputs.measured }}
           CLAIMED: ${{ needs.classify.outputs.claimed }}

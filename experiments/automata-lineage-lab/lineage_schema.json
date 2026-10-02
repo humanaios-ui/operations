@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/automata-lineage-edge-v1.json",
+  "title": "Automata Lineage Edge v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "from",
+    "to",
+    "source",
+    "period",
+    "relation_type",
+    "evidence_refs",
+    "confidence",
+    "contested",
+    "direct_lineage_claim"
+  ],
+  "properties": {
+    "from": {"type": "string", "minLength": 1},
+    "to": {"type": "string", "minLength": 1},
+    "source": {"type": "string", "minLength": 1},
+    "period": {"type": "string", "minLength": 1},
+    "relation_type": {
+      "type": "string",
+      "enum": [
+        "FORESHADOWS",
+        "RESEMBLES",
+        "MECHANICALLY_IMPLEMENTED_BY",
+        "FORMALIZED_BY",
+        "DIRECTLY_INFLUENCED",
+        "INDEPENDENTLY_REINVENTED",
+        "TECHNOLOGICALLY_DESCENDED_FROM",
+        "DISPUTED_LINEAGE",
+        "NO_DIRECT_LINEAGE_ESTABLISHED"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "contested": {"type": "boolean"},
+    "direct_lineage_claim": {"type": "boolean"},
+    "notes": {"type": ["string", "null"]}
+  }
+}

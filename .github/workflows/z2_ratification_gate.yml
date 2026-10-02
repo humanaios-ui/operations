@@ -61,7 +61,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # The seed-constitution step diffs a commit RANGE. actions/checkout
           # defaults to depth 1, where even HEAD~1 does not exist, so that diff
@@ -110,7 +110,7 @@ jobs:
             exit 0  # Advisory only — allows other ratification mechanisms to proceed
           fi
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
@@ -225,11 +225,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # This job imports yaml too; the install in z2-gate does not carry over.
       # It only ever passed by relying on whatever the runner image preinstalls.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
       - name: Install deps
