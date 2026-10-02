@@ -684,7 +684,7 @@ jobs:
    - Falsifier monitor (state-driven automation + manual checklist)
    - Z2 authorization gate
    - Execution receipt logging to NF_LEDGER
-4. **Process review (4 weeks out):** Measure whether oracle derivative model holds; whether Actualizer preconditions blocked inappropriate actions; whether falsifier monitor caught edge cases
+4. **Process review (post-merge):** Measure whether oracle derivative model holds; whether Actualizer preconditions blocked inappropriate actions; whether falsifier monitor caught edge cases
 
 ---
 

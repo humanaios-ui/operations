@@ -141,15 +141,15 @@ inter_rater_agreement_kappa: "[Score]"
 
 **Mandate:** No historical lineage finding can inform #497 decisions during cooling-off period (state-tracked in REGISTERED.md per Decision 3c).
 
-**Timeline:**
-1. Dual formalization completed: Day 0
-2. Inter-rater agreement ≥70%: Day 0 (recorded)
-3. 30-day holding period: Days 0–30
-4. Earliest citation in #497 design: Day 31+
+**State Sequence:**
+1. Dual formalization completed: state = FORMALIZATION_COMPLETE
+2. Inter-rater agreement ≥70%: state = VERIFIED_AGREEMENT (recorded)
+3. 30-day cooling-off period: state = COOLING_OFF (OBSERVATIONAL measurement window)
+4. Earliest citation in #497 design: state = COOLED_OFF (tracked in REGISTERED.md)
 
 **Tracking:**
-- REGISTERED.md records: `LINEAGE_FINDING_<id> | completed_date=<D0> | cooling_off_until=<D30>`
-- Automated gate: CI rejects PR citing lineage claim before Day 31
+- REGISTERED.md records: `LINEAGE_FINDING_<id> | completed_state=FORMALIZATION_COMPLETE | cooling_off_state=COOLING_OFF`
+- Automated gate: CI rejects PR citing lineage claim if cooling_off_state != COOLED_OFF
 
 **Rationale:** Prevents authority leakage (historical analogy masquerading as empirical warrant in governance decisions).
 
@@ -268,7 +268,7 @@ Before any Pilot 001 lineage claim can inform #497 decisions:
 - [ ] Inter-rater agreement κ ≥ 0.70
 - [ ] Novelty classification agrees (κ > 0.70) or resolved via Z2 judgment
 - [ ] ≥1 negative case cited per positive mapping
-- [ ] 30-day cooling-off period elapsed (REGISTERED.md shows Day 30+)
+- [ ] Cooling-off period complete (REGISTERED.md shows cooling_off_state=COOLED_OFF)
 - [ ] Publication includes disclaimer template (§ 6)
 - [ ] External links to governance workflow documented
 - [ ] Falsifier audit trail recorded (all disconfirming evidence documented)
@@ -285,7 +285,7 @@ Study halts if any of these occur:
 | Negative case missing | Cannot cite failed archetype for mapping | Finding marked DISPUTED; publication delayed |
 | Pre-1800 source found | Mechanism already exists in historical record | Novelty claim revoked; reinterpret as variant |
 | Mechanism does not manifest in analog | Historical mechanism absent in contemporary | Mapping falsified; alternative explanation required |
-| Cooling-off period violated | Governance decision cites <30-day-old finding | Decision marked DISPUTED; Z2 re-reviews |
+| Cooling-off period violated | Governance decision cites finding in COOLING_OFF state | Decision marked DISPUTED; Z2 re-reviews |
 | Disclaimer omitted | Publication lacks required caveat | Pre-publication gate blocks release |
 ```
 
@@ -495,7 +495,7 @@ jobs:
 
 - [ ] Dual-formalization protocol followed; inter-rater κ ≥ 70% achieved
 - [ ] Novelty classifications cite structural rule; speed/scale changes not classified as novel
-- [ ] 30-day cooling-off periods tracked in REGISTERED.md with completion dates
+- [ ] Cooling-off periods tracked in REGISTERED.md with state transitions (COOLING_OFF → COOLED_OFF)
 - [ ] Talos Lineage and Talos Benchmark published as separate reports with explicit separation note
 - [ ] Every positive mapping includes negative-case evidence
 - [ ] All external publications carry disclaimer template (§ 6)

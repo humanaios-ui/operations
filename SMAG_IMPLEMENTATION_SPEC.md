@@ -266,8 +266,8 @@ log_fields:
   - timestamp
 
 # Review Cycle
-review_cycle_months: 3
-next_review_trigger: "Upon completion of each 3-measurement cycle (state-gated, not calendar-driven)"
+review_trigger_state: "measurement_cycle_complete"
+next_review_trigger: "Upon completion of measurement cycle (resource-state tracked in REGISTERED.md)"
 review_checklist:
   - [ ] Gap rate data quality stable?
   - [ ] Substrate filtering rules still appropriate?
@@ -433,7 +433,7 @@ jobs:
 - [ ] SMAG calibration decisions (1a–1f) are operationalized as executable pseudocode
 - [ ] Profile ratification is Z2-signed and recorded in REGISTERED.md with hash
 - [ ] Repository Coordinator prevents duplicate SMAG gate PRs at submission time
-- [ ] Merge gate logs all invocations to NF_LEDGER for Z2 monthly audit
+- [ ] Merge gate logs all invocations to NF_LEDGER for Z2 state-driven audit
 - [ ] Substrate filtering rules are per-substrate (not all-or-nothing)
 - [ ] Falsifier precedence matrix handles all known combinations; unknowns escalate to Z2
 - [ ] Reviewer override is possible for review-escalating gate (1b)
