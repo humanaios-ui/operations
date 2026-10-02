@@ -7,14 +7,14 @@
 # (resource-miner, Metaculus bot, grant-search-dashboard, apps/api).
 #
 # Two jobs, deliberately split:
-#   build-validate — runs on every push touching these paths AND on manual
-#     dispatch. Needs NO Azure credentials: builds the image locally and
-#     lints the Bicep file. Exists so breakage is caught long before anyone
-#     has Azure credentials wired up, and keeps failing on every push after
-#     they are.
-#   deploy — runs ONLY on workflow_dispatch (never automatically on push).
-#     A first production deploy should be a deliberate click, not a side
-#     effect of merging an unrelated change to acat/api/.
+#   build-validate — runs on every PR and every push touching these paths,
+#     plus manual dispatch. Needs NO Azure credentials: builds the image
+#     locally and lints the Bicep file. Exists so breakage is caught on the
+#     PR itself, long before anyone has Azure credentials wired up, and
+#     keeps failing on every push after they are.
+#   deploy — runs ONLY on workflow_dispatch (never automatically on push or
+#     PR). A first production deploy should be a deliberate click, not a
+#     side effect of merging an unrelated change to acat/api/.
 #
 # ---------------------------------------------------------------------------
 # One-time Azure + GitHub setup required before `deploy` can run (none of
@@ -79,9 +79,8 @@
 name: Deploy ACAT API to Azure Container Apps
 
 on:
-  push:
-    branches: [main]
-    paths:
+  pull_request:
+    paths: &acat_api_paths
       - 'Dockerfile.acat-api'
       - 'Dockerfile.acat-api.dockerignore'
       - 'acat/api/**'
@@ -89,6 +88,9 @@ on:
       - 'requirements.txt'
       - 'infra/acat-api-containerapp.bicep'
       - '.github/workflows/deploy-acat-api-azure.yml'
+  push:
+    branches: [main]
+    paths: *acat_api_paths
   workflow_dispatch:
     inputs:
       image_tag:
