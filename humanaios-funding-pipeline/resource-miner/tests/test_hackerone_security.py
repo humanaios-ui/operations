@@ -7,7 +7,7 @@ from resource_miner.security_authorization import (
     authorize_security_action,
 )
 from resource_miner.security_scope import build_scope_graph
-from resource_miner.sources.hackerone import HackerOneClient, discover
+from resource_miner.sources.hackerone import HackerOneAPIError, HackerOneClient, discover
 
 
 PROGRAM = {
@@ -84,6 +84,23 @@ class HackerOneAdapterTests(unittest.TestCase):
         self.assertEqual([row["id"] for row in rows], ["9"])
         self.assertEqual(len(calls), 2)
         self.assertTrue(all("api.hackerone.com" in url for url in calls))
+
+    def test_rejects_cross_host_pagination_before_sending_credentials(self):
+        calls = []
+
+        def transport(url, headers):
+            calls.append(url)
+            if len(calls) == 1:
+                return {
+                    "data": [PROGRAM],
+                    "links": {"next": "https://evil.example/steal"},
+                }
+            self.fail("cross-host pagination URL should never reach transport")
+
+        client = HackerOneClient(username="token-id", token="secret", transport=transport)
+        with self.assertRaises(HackerOneAPIError):
+            client.list_programs(page_size=1)
+        self.assertEqual(len(calls), 1)
 
     def test_discover_marks_actual_bounty_program_as_bounty(self):
         class FakeClient:
