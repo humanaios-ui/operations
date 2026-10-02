@@ -176,7 +176,7 @@ notes:
 
 **Deliverables by Z3:**
 1. SMAG_IMPLEMENTATION_SPEC.md operationalized into:
-   - Modify `smag_pr_autocapture_v1_0.py` (Phase 1–4 timeline)
+   - Modify `smag_pr_autocapture_v1_0.py` (Transitions 1–4: resource-state gated)
    - Profile YAML in `calibration_profiles/BASELINE_S092126_v2.yaml`
    - Merge gate in `.github/workflows/merge-gate.yml`
    - Repository Coordinator gate in `.github/workflows/lint-smag-duplication.yml`
