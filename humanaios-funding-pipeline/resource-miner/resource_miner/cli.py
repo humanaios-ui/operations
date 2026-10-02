@@ -60,6 +60,16 @@ def build_parser() -> argparse.ArgumentParser:
     h1_policy_screen.add_argument("--max-programs", type=int)
     h1_policy_screen.add_argument("--out", required=True, help="Local JSON evidence packet destination")
 
+    h1_policy_hydrate = sub.add_parser(
+        "hackerone-policy-hydrate",
+        help="Hydrate structured scopes only for one matched program from a policy-screen packet",
+    )
+    h1_policy_hydrate.add_argument("--policy-screen", required=True)
+    h1_policy_hydrate.add_argument("--candidate-index", type=int, default=1)
+    h1_policy_hydrate.add_argument("--machine-graph")
+    h1_policy_hydrate.add_argument("--page-size", type=int, default=100)
+    h1_policy_hydrate.add_argument("--out", required=True)
+
     h1_portfolio = sub.add_parser(
         "hackerone-portfolio",
         help="Build a metadata-only HackerOne portfolio and ranked review queue",
@@ -142,6 +152,62 @@ def main() -> None:
         print(f"programs_observed={summary['programs_observed']}")
         print(f"explicit_dpp_passive_matches={summary['explicit_dpp_passive_matches']}")
         print(f"other_passive_policy_signals={summary['other_passive_policy_signals']}")
+        print("execution_capability=NONE")
+        return
+
+    if args.command == "hackerone-policy-hydrate":
+        screen_path = Path(args.policy_screen).expanduser()
+        screen_payload = json.loads(screen_path.read_text(encoding="utf-8"))
+        matches = list(screen_payload.get("matches") or [])
+        selected = [
+            item for item in matches
+            if int(item.get("candidate_index") or 0) == args.candidate_index
+        ]
+        if len(selected) != 1:
+            raise ValueError(
+                f"candidate index {args.candidate_index} is not uniquely present in policy screen"
+            )
+        handle = str(selected[0].get("program_handle") or "").strip()
+        if not handle:
+            raise ValueError("selected policy match is missing program_handle")
+
+        client = hackerone.HackerOneClient()
+        portfolio = scan_portfolio(
+            client,
+            handles=[handle],
+            page_size=args.page_size,
+        )
+        if args.machine_graph:
+            machine_path = Path(args.machine_graph).expanduser()
+            machine_graph = json.loads(machine_path.read_text(encoding="utf-8"))
+            capability_profile = profile_from_machine_graph(
+                machine_graph,
+                source=str(machine_path),
+            )
+        else:
+            capability_profile = unknown_capability_profile()
+
+        queue = build_ranked_queue(portfolio, capability_profile)
+        payload = {
+            "policy_match": {
+                "candidate_index": args.candidate_index,
+                "classification": selected[0].get("classification"),
+                "matched_phrases": selected[0].get("matched_phrases") or [],
+            },
+            "portfolio": portfolio.to_dict(),
+            "capability_profile": capability_profile.to_dict(),
+            "ranked_queue": queue.to_dict(),
+        }
+        out_path = Path(args.out).expanduser()
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+        summary = payload["ranked_queue"]["summary"]
+        print(f"wrote targeted HackerOne policy-match hydration to {out_path}")
+        print(f"programs_hydrated={len(payload['portfolio']['programs'])}")
+        print(f"queue_entries={summary['entry_count']}")
+        print(f"review_states={json.dumps(summary['review_state_counts'], sort_keys=True)}")
+        print("authority_effect=NONE")
         print("execution_capability=NONE")
         return
 
