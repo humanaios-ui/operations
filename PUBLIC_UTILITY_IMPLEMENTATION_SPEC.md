@@ -16,7 +16,7 @@
 | **4c. "Show Me Why" Scope** | Auditor verification use case | Narrower scope aligns with #497 Witness/Oracle design |
 | **4d. Validation Gates** | Hard gates with numeric thresholds | Stop Stage 2 if unvalidated; Stage 3 if gap small; Stage 4/5 conditional |
 | **4e. Hypothesis Operationalization** | Measurable per H1–H7 | Specific success thresholds for each hypothesis |
-| **4f. Public/Institutional Split** | Prototype first (3 weeks) | Test coexistence before full build-out |
+| **4f. Public/Institutional Split** | Prototype first (resource-state gated) | Test coexistence before full build-out |
 
 ---
 
@@ -206,7 +206,7 @@ Project targets ONE use case: institutional auditor verification of AI system sa
 
 **Rationale:** Narrower scope = cheaper, faster, auditable. Aligns with #497 Witness/Oracle architecture (evidence-bearing claims for auditor review).
 
-**Cost Estimate:** Phase 1 prototype = 3-week effort (Decision 4f).
+**Resource Requirement (Decision 4f):** Phase 1 prototype requires resource allocation and state-gated transitions (see Phase Specification Gates below for success criteria).
 
 ---
 
@@ -335,25 +335,25 @@ Project targets ONE use case: institutional auditor verification of AI system sa
 
 ## § 6: Layer Prototype Design (Decision 4f)
 
-### 3-Week Prototype Scope
+### Prototype Scope (Phase 3 Resource-State Transition)
 
 **Objective:** Determine whether public and institutional layers can coexist without feature conflict.
 
-**Phase 3 Prototype (3-week effort):**
+**Phase 3 Prototype (resource-state gated):**
 
-1. **Minimal Public Commons (Week 1)**
+1. **Minimal Public Commons (Transition segment 1)**
    - Claim schema (with evidence pointers)
    - Evidence template (observation records)
    - Publication-ready report format
    - No authentication; read-only access
    
-2. **Minimal Institutional Layer (Week 1–2)**
+2. **Minimal Institutional Layer (Transition segment 2)**
    - Private graph integration (#497 Witness/Oracle)
    - Audit trail (append-only NF_LEDGER)
    - Warrant ratification (Z2 signatures)
    - Operator approval gates (2e hard-no-delegate)
 
-3. **Integration Testing (Week 2–3)**
+3. **Integration Testing (Transition segment 3)**
    - Can public claim reference private evidence? (Confidentiality boundary test)
    - Does institutional audit trail sync with public report? (Data consistency)
    - Feature conflicts? (e.g., Z2 ratification required but public users cannot sign)
@@ -585,7 +585,7 @@ jobs:
    - Phase 2a/2b hypothesis operationalization (resource-state transition; measurement window per phase specification)
    - Phase 3 layer prototype (resource-state transition; concurrent with #477–498 implementation; measurement window per phase specification)
    - Phase 4 market validation & adoption survey (resource-state transition; measurement window per phase specification)
-4. **Process review (4 weeks out per phase):** Measure whether pre-registration prevents post-hoc rationalization; whether hard gates are respected; whether market findings remain separate from governance
+4. **Process review (post-phase measurement):** Measure whether pre-registration prevents post-hoc rationalization; whether hard gates are respected; whether market findings remain separate from governance (measurement window per phase specification)
 
 ---
 

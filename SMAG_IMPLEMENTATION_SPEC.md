@@ -449,7 +449,7 @@ jobs:
    - Profile document in calibration_profiles/
    - Lint rule in workflows/
    - Audit logging to NF_LEDGER
-4. **Process review (4 weeks out):** Measure whether adversarial findings from #477 manifested
+4. **Process review (post-merge):** Measure whether adversarial findings from #477 manifested (measurement window per phase specification)
 
 ---
 
