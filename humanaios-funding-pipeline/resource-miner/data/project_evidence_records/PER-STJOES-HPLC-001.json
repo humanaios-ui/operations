@@ -1,0 +1,160 @@
+{
+  "project_id": "PER-STJOES-HPLC-001",
+  "title": "Biochemical Genetics HPLC Laboratory Build & LC/MS Research Lab Launch",
+  "organization": "St. Joseph's Hospital and Medical Center / Barrow's Neurological Institute",
+  "source_role": "Biochemical Genetics Technologist / Junior Research Technician",
+  "time_window": "2004-2011",
+  "mandate": "Build and standardize biochemical-genetics analytical capability and help launch proteomics research infrastructure.",
+  "objective": "Establish a CAP-recognized biochemical-genetics HPLC section with controlled methods, reporting, training, quality systems, and research extension.",
+  "scope": [
+    "HPLC body-fluid amino-acid analysis",
+    "biochemical genetics",
+    "SOP development",
+    "LIS integration",
+    "training/competency",
+    "QA/proficiency testing",
+    "document control",
+    "budget/purchasing",
+    "clinical trials",
+    "LC/MS proteomics research"
+  ],
+  "stakeholders": [
+    "pediatric geneticist",
+    "neurologist/research leadership",
+    "laboratory staff",
+    "CAP",
+    "clinical users",
+    "vendors/suppliers"
+  ],
+  "constraints": [
+    "inherited nonfunctional project",
+    "capital-intensive laboratory build",
+    "technical/regulatory environment"
+  ],
+  "resources_controlled": [
+    "HPLC instrumentation/reagents",
+    "section budget and purchasing",
+    "LIS/reporting workflow",
+    "training/competency documentation"
+  ],
+  "risks_dependencies": [
+    "equipment procurement",
+    "method readiness",
+    "staffing",
+    "capital approval",
+    "vendor dependencies"
+  ],
+  "execution": [
+    "developed HPLC amino-acid analyzer into standardized biochemical-genetics section",
+    "authored SOPs for instrumentation/LIS/specimen processing",
+    "established training and skill-evaluation documentation",
+    "validated and maintained QA/proficiency/document control",
+    "integrated LIS reporting",
+    "managed budget/purchasing",
+    "established clinical-trial/research extensions",
+    "co-launched LC/MS proteomics research laboratory"
+  ],
+  "deliverables": [
+    "CAP-recognized biochemical-genetics section",
+    "controlled SOP set",
+    "training/competency system",
+    "QA/proficiency program",
+    "LIS reporting workflow",
+    "clinical/research extensions",
+    "LC/MS proteomics research laboratory"
+  ],
+  "validation": [
+    "recurrent CAP inspection requirements",
+    "QA/proficiency policies and procedures",
+    "controlled documentation",
+    "peer-reviewed MALDI-TOF publication for related research activity"
+  ],
+  "outcomes": [
+    "standardized biochemical-genetics analytical section established",
+    "research capability expanded into LC/MS proteomics"
+  ],
+  "metrics": [],
+  "capability_tags": [
+    "LAB_BUILDOUT",
+    "HPLC",
+    "BIOCHEMICAL_GENETICS",
+    "SOP_DEVELOPMENT",
+    "LIS",
+    "QUALITY_SYSTEMS",
+    "CAP",
+    "BUDGETING",
+    "PROCUREMENT",
+    "CLINICAL_RESEARCH",
+    "LCMS",
+    "BUILD_FROM_ZERO"
+  ],
+  "evidence": [
+    {
+      "claim": "Human attests capital requests exceeding $1,000,000 associated with the St. Joseph's research/laboratory work.",
+      "claim_state": "HUMAN_ATTESTED",
+      "source_type": "HUMAN",
+      "locator": "EXP-CAREER-EVIDENCE-001 Q0.1"
+    },
+    {
+      "claim": "Human identifies the HPLC laboratory as build-from-zero work and an inherited recovery project.",
+      "claim_state": "HUMAN_ATTESTED",
+      "source_type": "HUMAN",
+      "locator": "EXP-CAREER-EVIDENCE-001 Q8.3/Q8.4"
+    },
+    {
+      "claim": "Worked at St. Joseph's Hospital and Medical Center in Phoenix from June 2004 to August 2011 as a Biochemical Genetics Technologist.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "Google Drive: Resume UTD 2024.docx / St. Joseph's Hospital and Medical Center"
+    },
+    {
+      "claim": "Developed a body-fluid amino-acid HPLC analyzer into a standardized biochemical-genetics section recognized by CAP.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "Google Drive: Resume UTD 2024.docx / St. Joseph's Hospital and Medical Center"
+    },
+    {
+      "claim": "Authored SOPs for instrumentation, LIS, and specimen processing; established training and skill-evaluation documentation; maintained QA, proficiency policies, and document control.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "Google Drive: Resume UTD 2024.docx / St. Joseph's Hospital and Medical Center"
+    },
+    {
+      "claim": "Integrated LIS reporting, managed budget and purchasing, and extended the laboratory into clinical-trial/research applications.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "Google Drive: Resume UTD 2024.docx / St. Joseph's Hospital and Medical Center"
+    },
+    {
+      "claim": "Co-launched an LC/MS proteomics research laboratory at Barrow's Neurological Institute.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "Google Drive: Resume UTD 2024.docx / Barrow's Neurological Institute"
+    },
+    {
+      "claim": "Coauthored a peer-reviewed 2009 MALDI-TOF mass-spectrometry paper.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "PUBLICATION",
+      "locator": "PubMed PMID 19940340"
+    }
+  ],
+  "unknowns": [
+    {
+      "field": "capital_request_amount",
+      "reason": "Historical resume supports budget/purchasing responsibility but not the >$1,000,000 capital-request amount supplied in the interrogation.",
+      "interrogation_prompt": "Locate capital request/purchase records before using the amount externally.",
+      "market_signal_ids": [
+        "JRS-BUDGET-001"
+      ]
+    },
+    {
+      "field": "quantified_operational_outcome",
+      "reason": "Historical resume supports section standardization and recurrent inspection success, but does not quantify test volume, turnaround time, cost savings, staffing, or go-live performance.",
+      "interrogation_prompt": "Use historical QA/CAP/project records if a target role needs numeric outcomes.",
+      "market_signal_ids": [
+        "JRS-METRICS-001"
+      ]
+    }
+  ],
+  "authority_effect": "NONE"
+}

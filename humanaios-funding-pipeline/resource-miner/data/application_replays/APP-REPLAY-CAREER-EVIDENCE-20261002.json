@@ -1,0 +1,201 @@
+{
+  "replay_id": "APP-REPLAY-CAREER-EVIDENCE-20261002",
+  "observed_at": "2026-10-02T17:30:00-05:00",
+  "basis": {
+    "per_snapshot": "project_evidence_records.seed.json after evidence promotion",
+    "resource_snapshot": "resources.snapshot.jsonl after 49-resource rerun",
+    "currentness_sources": [
+      "https://www.governance.ai/post/eir",
+      "https://bluedot.org/grants/career-transition",
+      "https://jobs.lever.co/convergentresearch/7b0506c1-caf2-4e92-9a44-d062c7a9b988",
+      "https://jobs.ashbyhq.com/Deepgram/681c5324-1234-4222-b783-a8a7a9440005"
+    ]
+  },
+  "invariants": [
+    "RESOURCE_DISCOVERY != APPLICANT_ELIGIBILITY",
+    "SOURCE_SUPPORTED != INDEPENDENT_THIRD_PARTY_VERIFIED",
+    "APPLICATION_EVIDENCE_COVERAGE != HIRING_OR_FUNDING_DECISION",
+    "HUMAN_ATTESTED claims are not required when source-supported evidence already satisfies the application requirement",
+    "USER_PASS != INELIGIBLE",
+    "USER_PASS != CLOSED",
+    "USER_PASS is a preference disposition and must not alter capability evidence",
+    "Replacement candidates are discovered/routed independently from the reason a prior candidate was passed"
+  ],
+  "applications": [
+    {
+      "resource_id": "RES-1C9FBF03A141E032",
+      "title": "GovAI Entrepreneur-in-Residence",
+      "currentness": "ACTIVE_ROLLING_VERIFIED_2026-10-02",
+      "resource_route": "VERIFY_NOW",
+      "human_authorization": "PREPARED_FOR_SUBMISSION",
+      "evidence_coverage": "SUPPORTED",
+      "primary_source_facts": [
+        "One-year salaried EIR role for launching a new AI-governance/safety organization or ambitious project.",
+        "Expressions of interest are reviewed on a rolling basis.",
+        "GovAI offers approximately $150,000 in seed funding via partner funders plus team/network support.",
+        "No educational requirement is stated; selection emphasizes having built/led/shipped, judgment under uncertainty, AI-governance/safety context, communication, collaboration, rigor, and impact reasoning."
+      ],
+      "supported_by": [
+        "PER-HUMANAIOS-ACAT-001: founder/PI record, shipped open research infrastructure, AI safety/governance context",
+        "PER-HUMANAIOS-BOT-001: technical project shipping and external-platform deployment",
+        "PER-PIONEERS-EMR-001 and PER-VALLEYVIEW-SAFETY-001: judgment, governance, risk, cross-functional implementation",
+        "PER-STJOES-HPLC-001: build-from-zero technical program evidence",
+        "PER-WAFFLE-OPS-001: operational leadership and P&L accountability"
+      ],
+      "project_boundary": "HumanAIOS Control Graph + Witness Assurance Layer",
+      "unresolved_or_boundary": [
+        "GovAI states it cannot sponsor a visa for this role; work-authorization/visa facts must be answered by the applicant and are not inferred here.",
+        "Location is case-by-case and should be answered directly in the application.",
+        "Reference identities/contact verification remain private and should be bound through the reference-resource process when requested.",
+        "Evidence coverage does not establish selection."
+      ],
+      "next_operation": "SUBMIT EXPRESSION OF INTEREST + MAX-2-PAGE PITCH WHEN EXTERNAL FORM EXECUTION IS AVAILABLE"
+    },
+    {
+      "resource_id": "RES-7989E71F74E9CDFF",
+      "title": "BlueDot Career Transition Grants",
+      "currentness": "ACTIVE_APPLICATION_PATH_VERIFIED_2026-10-02",
+      "resource_route": "VERIFY_NOW",
+      "human_authorization": "PREPARED_FOR_SUBMISSION",
+      "evidence_coverage": "SUPPORTED_WITH_BUDGET_INPUT_PENDING",
+      "primary_source_facts": [
+        "Career Transition Grants support a defined period of full-time personal transition into AI safety or biosecurity.",
+        "Applications are open to everyone; prior BlueDot participation is not required.",
+        "The application asks for recent evidence, work samples, milestones, theory of change, and a simple budget.",
+        "The grant is not intended to run alongside a full- or part-time role.",
+        "If circumstances change and a full-time role is secured, remaining funds are expected to be returned."
+      ],
+      "supported_by": [
+        "PER-HUMANAIOS-ACAT-001: recent AI-safety/governance work and accessible public work samples",
+        "PER-HUMANAIOS-BOT-001: recent technical experimentation and external deployment",
+        "PER-STJOES-HPLC-001 and regulated-quality PERs: analogous evidence for disciplined execution, validation, and adaptation under uncertainty"
+      ],
+      "transition_duration_months": 12,
+      "personal_runway_usd_per_month": 6000,
+      "base_runway_usd": 72000,
+      "unresolved_or_boundary": [
+        "The $2,400 health-insurance/tax-reserve/required-cost figure still needs a time basis: monthly versus total/annual.",
+        "If a full-time role is accepted while the grant is active, replay this branch because the program requires full-time transition focus.",
+        "Program fit does not establish funding approval."
+      ],
+      "next_operation": "RESOLVE $2,400 TIME BASIS; THEN SUBMIT"
+    },
+    {
+      "resource_id": "RES-46C09D5556C9A413",
+      "title": "Mercor Analytical Chemist",
+      "currentness": "ACTIVE",
+      "resource_route": "ARCHIVE",
+      "human_authorization": "PASS_BY_USER_PREFERENCE",
+      "user_disposition": "PASS",
+      "disposition_basis": "User preference only",
+      "evidence_coverage": "NOT_REEVALUATED",
+      "unresolved_or_boundary": [
+        "This PASS is not an eligibility, capability, compensation, or currentness judgment.",
+        "Do not infer a general preference against Mercor, chemistry, technical work, contracting, or AI evaluation."
+      ],
+      "next_operation": "NONE"
+    },
+    {
+      "resource_id": "RES-51AFAED9DEC24A74",
+      "title": "DataAnnotation Chemist",
+      "currentness": "ACTIVE",
+      "resource_route": "ARCHIVE",
+      "human_authorization": "PASS_BY_USER_PREFERENCE",
+      "user_disposition": "PASS",
+      "disposition_basis": "User preference only",
+      "evidence_coverage": "NOT_REEVALUATED",
+      "unresolved_or_boundary": [
+        "This PASS is not an eligibility, capability, compensation, or currentness judgment.",
+        "Do not infer a general preference against DataAnnotation, chemistry, technical work, contracting, or AI evaluation."
+      ],
+      "next_operation": "NONE"
+    },
+    {
+      "resource_id": "RES-26D48CDE47BB2BB0",
+      "title": "Convergent Research Program Launch Manager",
+      "currentness": "ACTIVE_VERIFIED_2026-10-02",
+      "resource_route": "VERIFY_NOW",
+      "human_authorization": "NOT_YET_AUTHORIZED_TO_APPLY",
+      "evidence_coverage": "SUPPORTED_WITH_APPLICATION_FIELDS_PENDING",
+      "primary_source_facts": [
+        "Current full-time remote Program Launch Manager opening for East Coast US.",
+        "Role owns scientific-organization launches, founder programs, dependency/risk tracking, launch meetings, operational handoffs, playbooks, and cross-functional coordination.",
+        "Requires 5+ years in project/program/operations/implementation or related work, complex cross-functional coordination, senior-stakeholder work, and process/playbook building.",
+        "Nice-to-haves include launching/scaling a research organization or lab, supporting scientific teams, vendor/partner management, and AI-enabled workflow tools."
+      ],
+      "supported_by": [
+        "PER-HUMANAIOS-ACAT-001: founder/PI, project controls, automation, research operations, open-source operating systems",
+        "PER-STJOES-HPLC-001: build-from-zero scientific laboratory capability, SOP/QA/LIS/budgeting and research infrastructure",
+        "PER-PIONEERS-EMR-001: cross-functional quality/risk systems and transformation-program implementation",
+        "PER-LABCORP-QUALITY-001: multi-site quality/regulatory coordination and process improvement",
+        "PER-VALLEYVIEW-SAFETY-001: committee/governance coordination and senior-management advising"
+      ],
+      "unresolved_or_boundary": [
+        "The application asks whether the candidate is in the Northeast Corridor or can primarily collaborate during Eastern Time hours; answer directly rather than infer from account/location context.",
+        "US work authorization question must be answered by the applicant.",
+        "International operating experience is listed as nice-to-have and is not presently source-supported."
+      ],
+      "next_operation": "ELIGIBILITY/APPLICATION-FIELD REVIEW; THEN HUMAN AUTHORIZATION TO APPLY"
+    },
+    {
+      "resource_id": "RES-F6915EA87AD51B54",
+      "title": "Deepgram Senior Program Manager, Data Operations",
+      "currentness": "ACTIVE_VERIFIED_2026-10-02",
+      "resource_route": "VERIFY_NOW",
+      "human_authorization": "NOT_YET_AUTHORIZED_TO_APPLY",
+      "evidence_coverage": "SUPPORTED_WITH_DOMAIN_NICE_TO_HAVE_GAP",
+      "primary_source_facts": [
+        "Current USA-remote full-time Senior Program Manager, Data Operations opening.",
+        "Role owns end-to-end AI data workflows, labeling specifications, tooling/automation, provenance/evaluation, QA, vendor performance, throughput/quality/cost metrics, and Research/Engineering/Product coordination.",
+        "Core criteria emphasize data/ML/operations program ownership, technical-team fluency, systems thinking, prioritization under constraint, scalable process design, and shipping.",
+        "Direct speech/audio/ASR/TTS exposure is listed as a nice-to-have rather than a core requirement."
+      ],
+      "supported_by": [
+        "PER-HUMANAIOS-ACAT-001: AI evaluation datasets, quality flags, validation, provenance, automation, research operations",
+        "PER-HUMANAIOS-BOT-001: API/model integration, Supabase behavioral logging, automation and external deployment",
+        "PER-PIONEERS-EMR-001: data integrity, analytics, system change, cross-functional implementation",
+        "PER-LABCORP-QUALITY-001: compliance-metrics data systems, validation and multi-site process improvement",
+        "PER-STJOES-HPLC-001: controlled data/reporting workflows and technical quality systems"
+      ],
+      "unresolved_or_boundary": [
+        "No source-supported direct speech/audio, ASR, or TTS data-program experience is currently in the PER graph.",
+        "The role includes managing data vendors/freelancers; vendor-management evidence exists in the broader career graph but some detailed vendor claims remain human-attested.",
+        "Evidence coverage does not establish hiring eligibility or selection."
+      ],
+      "next_operation": "ELIGIBILITY/APPLICATION-FIELD REVIEW; THEN HUMAN AUTHORIZATION TO APPLY"
+    }
+  ],
+  "resource_miner_replay": {
+    "reload_reason": [
+      "User explicitly passed on the two chemistry-specific positions strictly by preference.",
+      "GovAI EIR and BlueDot Career Transition Grants were reverified against current primary sources.",
+      "The controller was reloaded with durable USER_DISPOSITION receipts so passed resources remain current in source truth but leave the active pursuit frontier.",
+      "Next active work candidates were surfaced without interpreting the chemistry PASS as a broader career preference."
+    ],
+    "snapshot_count": 49,
+    "verified_active": [
+      "GovAI Entrepreneur-in-Residence",
+      "BlueDot Career Transition Grants",
+      "Convergent Research Program Launch Manager",
+      "Deepgram Senior Program Manager, Data Operations"
+    ],
+    "preference_passed": [
+      "Mercor Analytical Chemist",
+      "DataAnnotation Chemist"
+    ],
+    "replacement_work_frontier": [
+      "Convergent Research Program Launch Manager",
+      "Deepgram Senior Program Manager, Data Operations"
+    ],
+    "durable_state_rule": "A USER_DISPOSITION=PASS receipt archives a candidate from the pursuit frontier while preserving currentness, eligibility evidence, and capability evidence independently.",
+    "result": [
+      "GovAI EIR -> VERIFY_NOW / ACTIVE / CURRENTNESS VERIFIED",
+      "BlueDot Career Transition Grants -> VERIFY_NOW / ACTIVE / CURRENTNESS VERIFIED",
+      "Convergent Research Program Launch Manager -> VERIFY_NOW / ACTIVE / REPLACEMENT",
+      "Deepgram Senior Program Manager, Data Operations -> VERIFY_NOW / ACTIVE / REPLACEMENT",
+      "Mercor Analytical Chemist -> ARCHIVE / USER PASS / preference only",
+      "DataAnnotation Chemist -> ARCHIVE / USER PASS / preference only"
+    ]
+  },
+  "authority_effect": "NONE"
+}
