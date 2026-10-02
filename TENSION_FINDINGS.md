@@ -209,6 +209,124 @@ Z1 stops wasting effort on Z2-only decisions. Gate failures become unambiguous r
 
 ---
 
+### TENSION-20261002-003
+
+**ID:** TENSION-20261002-003
+**Date:** 2026-10-02
+**PR:** #623 (introduced), #663 (fixed)
+**Category:** Process Bottleneck
+**Severity:** High
+
+**What happened:**
+Resolving a `tools-manifest.yaml`/`TOOLS_MANIFEST.md` merge conflict, the manifest files were staged with `git add` *before* re-running `.tool-control/scan.py`. The commit that was actually pushed and merged into `main` therefore carried the pre-regeneration content, silently dropping two tool registrations (`HAIOS-TOOL-206`/`207`, added by a concurrently-merged PR) even though both tool files were present on disk in the same tree. CI's "Tool manifest integrity" check had passed on an *earlier* commit in the same PR (a single-file fix, correctly regenerated); a re-run against the final merge commit *did* independently detect the regression (`scan.py --check` reported `collect_macos.py` on disk but absent from the manifest) — but that detection completed around the same time as, or after, the merge decision, and was never consulted before merging. A general "`mergeable_state: unstable` is usually non-blocking" heuristic (true for *other* checks failing all session, e.g. gitleaks, admission gate) was applied without separately polling the specific named gate's completion status for the exact final SHA. **Correction (2026-10-02, via Copilot PR review on #670):** the original wording of this entry said the regression was "not caught by CI" — that overstated it. CI did detect it; the gap is that detection wasn't checked before merging, not that detection never happened.
+
+**Where it lives:**
+- Any workflow resolving a conflict in a `.tool-control/`-rendered file (`tools-manifest.yaml`, `TOOLS_MANIFEST.md`, and the equivalent `z1-inbox/INDEX.yaml` / `Z1_INBOX_INDEX.md` pair)
+- The merge decision step, which read aggregate `mergeable_state` instead of waiting for and reading the specific "Tool manifest integrity" check-run result
+
+**Root cause:**
+Two independent gaps compounded: (1) staging a rendered/generated file before the generator re-runs is a silent trap — the index holds stale content and `git commit` captures it verbatim; (2) a coarse mergeable_state heuristic was trusted in place of waiting for and reading the specific gate check's result for the exact final SHA, right after a conflict resolution that touched the very mechanism that gate validates.
+
+**Proposed fix:**
+1. Document the safe sequence for manifest/rendered-file conflict resolution explicitly (e.g. in `tools-manifest.yaml`'s own header comment or a CONTRIBUTING note): merge → regenerate (`scan.py` → `validate.py` → `render.py`) → verify output → *then* `git add` → commit. Never add before regenerating.
+2. Adopt a standing rule: after any push that resolves a merge conflict, wait for and read check-run results filtered to the specific gate(s) touched by that conflict — not just the aggregate `mergeable_state` — before merging.
+
+**Impact:**
+Any Z1 resolving a manifest/rendered-file conflict is at risk of this exact silent regression reaching `main` despite CI detecting it, because the detection wasn't consulted before merging. Affects every PR that touches tool registration during a conflict.
+
+**Proposer:** Z1 (Claude)
+**Status:** Fixed
+**Resolution:** PR #663 (merged) — re-ran `scan.py`/`validate.py`/`render.py` against current `main`; manifest resynced with 0 violations and no `HAIOS-TOOL-*` ID collisions.
+
+---
+
+### TENSION-20261002-004
+
+**ID:** TENSION-20261002-004
+**Date:** 2026-10-02
+**PR:** #623, #642, #653 (this session); earlier IC-064/IC-065 (prior session)
+**Category:** Process Bottleneck
+**Severity:** Medium
+
+**What happened:**
+Third occurrence of the same class of bug this project has now hit at least three times: concurrent Z1 branches each compute "next free `HAIOS-TOOL-NNN`" by reading `main`'s current manifest and incrementing, with no reservation or locking. This session alone: PR #642's branch and PR #653's branch independently claimed `HAIOS-TOOL-206`/`207` for two entirely different tool pairs; PR #623 separately had a related field-placement bug that looked like (but technically wasn't) a numeric collision with the #651 lineage. The earlier IC-064/IC-065 incident (prior session) was the same pattern.
+
+**Where it lives:**
+`.tool-control/scan.py`'s tool-ID assignment logic; any two tool-adding branches opened against a similar `main` snapshot.
+
+**Root cause:**
+Sequential integer ID allocation reads a point-in-time snapshot with no claim-staking mechanism. Any two branches forked close together will independently compute the same "next" ID, and **each branch's own tree is individually valid** — `.tool-control/validate.py` (lines ~194-207) already hard-fails on a duplicate `tool_id` *within one tree*, and `.github/workflows/tool-manifest.yml` already runs that as a blocking, ERROR-level gate. Neither branch trips it alone. The collision only becomes real once both merge into the same `main`, and is caught only if whichever branch merges second happens to be checked by hand during conflict resolution. **Correction (2026-10-02, via Copilot PR review on #670):** the original wording said duplicate-ID detection "is only caught by a Z1 manually running `git grep`... not by a standing gate" — that's wrong; a standing, blocking gate for *within-tree* duplicates already exists and works. The real, narrower gap is specifically *cross-branch reservation* — two independently-valid branches racing for the same ID — which no single branch's own validation can see.
+
+**Proposed fix:**
+Move to content-addressed or branch-qualified provisional IDs that `.tool-control/render.py` renumbers deterministically at merge time, so two branches can never land on the same final ID regardless of what either one claims locally. The existing `validate.py` duplicate check stays as the backstop it already is — this fix addresses the cross-branch race specifically, not a missing structural check.
+
+**Impact:**
+Every pair of concurrently open tool-adding PRs is at risk of the cross-branch race specifically; manual collision-hunting cost real review time on three separate occasions this session, each one only surfaced at merge time, after each branch had already individually passed the existing within-tree gate.
+
+**Proposer:** Z1 (Claude)
+**Status:** Open
+**Resolution:** None yet; proposed fix above awaits Z2 prioritization.
+
+---
+
+### TENSION-20261002-005
+
+**ID:** TENSION-20261002-005
+**Date:** 2026-10-02
+**PR:** Ad-hoc / repo-wide CI infrastructure (observed on #623, #644, #653, #594, #663, and likely every other open PR)
+**Category:** Gate Confusion
+**Severity:** Medium
+
+**What happened:**
+"Secret scanning (gitleaks)" intermittently fails across this session's PRs, including single-line dependency bumps with no secret-scanning surface at all. Job-log root cause on the failing runs: `gitleaks/gitleaks-action@v3`'s org-eligibility check hit "API rate limit exceeded for installation," and per the action's own documented breaking-change announcement, without that check succeeding it falls back to hard-requiring a `GITLEAKS_LICENSE` secret, which is not configured in this repository. **Correction (2026-10-02, via Copilot PR review on #670):** the original wording said this fails "on every PR," framing it as a permanent requirement. It is not — a later run on PR #594 (11:47 UTC) succeeded without `GITLEAKS_LICENSE`, logging that `humanaios-ui` is an individual-account installation for which no license is required. This is an intermittent eligibility-lookup failure (rate-limit-sensitive), not a standing license gate.
+
+**Where it lives:**
+Whichever `.github/workflows/*.yml` invokes `gitleaks/gitleaks-action@v3` (grep the workflow directory for `gitleaks-action` to locate the exact file).
+
+**Root cause:**
+The action's org/account-eligibility lookup against the GitHub API is rate-limit-sensitive; when it succeeds, it correctly determines no license is required for this individual-account installation and passes; when the lookup itself gets rate-limited, the action fails closed into requiring a license it doesn't actually need here.
+
+**Proposed fix:**
+No repo-side fix needed if the lookup is simply transient-rate-limit-sensitive — the correct outcome does land when the API call succeeds. Z2 may still want to pin a `GITLEAKS_LICENSE` secret or a version less sensitive to this lookup if the intermittent red checks are costing reviewer attention regardless of whether they're "real."
+
+**Impact:**
+Intermittent red "Secret scanning" checks regardless of content, on an unpredictable subset of runs, degrading the signal value of CI status at a glance. Has not blocked any merge so far (not a required check), but habituates reviewers to ignoring red checks, which is its own risk.
+
+**Proposer:** Z1 (Claude)
+**Status:** Open
+**Resolution:** None yet; awaiting Z2 decision (secret vs. workflow change).
+
+---
+
+### TENSION-20261002-006
+
+**ID:** TENSION-20261002-006
+**Date:** 2026-10-02
+**PR:** #623, #594 (both observed this session)
+**Category:** Gate Confusion
+**Severity:** Low
+
+**What happened:**
+`principle_compliance_bot_v1.py --check-commit` ("Check principles (P19)") flagged `P-COMMIT-DISCIPLINE: Oversized commit (N files)` on merge-from-main commits that bring in a large multi-file PR. **Correction (2026-10-02, via Copilot PR review on #670):** the original wording of this entry blamed a stale, cached `BASE_SHA`. Verified directly against PR #594's own job log: `BASE_SHA` was passed in fresh (`376fbf8468b9...`), exactly matched the PR's actual current base at check-run time, and the 17 files in the diff were *all* genuinely part of that PR's own content — nothing unrelated. The stale-`BASE_SHA` theory does not hold for that instance; it was simply wrong.
+
+**Where it lives:**
+`tools/agents/principle_compliance_bot_v1.py`'s file-count logic, invoked from the "Check principles (P19)" CI step; `BASE_SHA` itself is computed correctly.
+
+**Root cause:**
+The check runs `git diff --name-only "$BASE"...HEAD` against the *merge commit* and counts every file in that aggregate diff as if it were one authored commit's own change set. When `HEAD` is a merge bringing in a legitimately large, multi-file PR, the full PR-lifetime file count is attributed to "this commit," tripping the oversized-commit threshold. `CLAUDE.md`'s own P19 section (and this file's TENSION-20260925-001) already establishes that merge commits should be exempt from the K-file cap "structural, not authored work" — this check does not implement that exemption; it treats a merge commit's accumulated diff exactly like an authored one.
+
+**Proposed fix:**
+Detect merge commits (e.g. `git rev-list --min-parents=2 -n1 HEAD` matching `HEAD`, or checking the commit message for the `Merge ... into ...` pattern already visible in this check's own log output) and apply the existing, already-documented merge-commit exemption instead of counting the full incorporated diff.
+
+**Impact:**
+False "commit discipline" findings on exactly the ordinary, correct-process merge-from-main commits this repo's own conventions ask for. The same check also attempts to auto-file a tracking GitHub issue for the violation and fails that step too (separate permissions/scope issue), turning a soft advisory into a hard job failure rather than a graceful warning.
+
+**Proposer:** Z1 (Claude)
+**Status:** Open
+**Resolution:** None yet; proposed fix above awaits Z2/maintainer prioritization.
+
+---
+
 ## How Z2 Uses This Log
 
 1. **During PR review:** If Z1 mentions a friction point, check if it's already logged here.
