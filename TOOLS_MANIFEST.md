@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**191 registered tools** · 2 MCP servers · 4 excluded · 144 carrying Builder v1.7 markers
+**192 registered tools** · 2 MCP servers · 4 excluded · 145 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 191 |
-| — status `draft` | 190 |
+| Registered tools | 192 |
+| — status `draft` | 191 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 144 |
+| Builder v1.7 markers present | 145 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
