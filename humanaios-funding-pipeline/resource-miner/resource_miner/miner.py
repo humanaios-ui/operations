@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 from .models import ResourceCandidate
 from .needs import load_needs, load_requirements, map_to_needs, map_to_requirements
@@ -23,9 +23,11 @@ def enrich(
     resources: Iterable[ResourceCandidate],
     needs_path: str | Path,
     requirements_path: str | Path | None = None,
+    extra_requirements: list[dict[str, Any]] | None = None,
 ) -> list[ResourceCandidate]:
     needs = load_needs(needs_path)
     requirements = load_requirements(requirements_path) if requirements_path else []
+    requirements.extend(extra_requirements or [])
     items = dedupe(resources)
     for resource in items:
         resource.need_matches = map_to_needs(resource, needs)
