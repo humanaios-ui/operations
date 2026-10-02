@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 193
+  tools: 192
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 146
+  builder_markers_present: 145
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2404,6 +2404,19 @@ tools:
   builder_markers: true
   purpose: Read-only control-plane observation and execution/decision/information custody classification.
   session: CPC-001
+- tool_id: HAIOS-TOOL-203
+  name: control_plane_github_adapter
+  path: tools/control_plane_github_adapter_v0_1.py
+  version: 0.1.0
+  category: pipeline_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Transform exported GitHub evidence into authority-neutral raw custody observations.
+  session: CPC-002
 - tool_id: HAIOS-TOOL-204
   name: pr_challenge_dialogue_router
   path: tools/pr_challenge_dialogue_router_v0_1.py
@@ -2433,34 +2446,6 @@ tools:
     blocks on closed provenance, missing falsifier and missing timestamp, advises on the other six. Multiplex-aware
     (--all) with a ratcheting baseline (crb/graph_capture_baseline.json).
   session: S-100126-graph-capture-lint
-- tool_id: HAIOS-TOOL-206
-  name: machine_graph_collect_macos
-  path: tools/machine_graph/collect_macos.py
-  version: 0.1.0
-  category: pipeline_tool
-  zone: 1
-  status: draft
-  interface: cli
-  lang: python
-  smoke_test: true
-  builder_markers: true
-  purpose: Builds a metadata-first local Machine Substrate Graph on macOS (host, volumes, apps, tools,
-    execution context, launch agents, opted-in repos/venvs) without reading user document contents.
-  session: '#596'
-- tool_id: HAIOS-TOOL-207
-  name: machine_graph_validate_snapshot
-  path: tools/machine_graph/validate_snapshot.py
-  version: 0.1.0
-  category: validation_tool
-  zone: 1
-  status: draft
-  interface: cli
-  lang: python
-  smoke_test: true
-  builder_markers: true
-  purpose: Validates a Machine Substrate Graph snapshot's structural integrity and recorded hash with
-    no external dependencies.
-  session: '#596'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
