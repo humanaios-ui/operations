@@ -226,14 +226,14 @@ notes:
 
 ## NEXT STEPS
 
-**Immediate (This Session):**
+**PR Filing & Z2 Review (Current State Transition):**
 1. Z1 (Claude) files four PRs to `claude/adversarial-review-issue-497-dit9n6`:
    - PR #477-impl: SMAG_IMPLEMENTATION_SPEC.md + Z2 hash reference
    - PR #497-impl: ORACLE_ACTUALIZER_IMPLEMENTATION_SPEC.md + Z2 hash reference
    - PR #498-impl: AUTOMATA_LINEAGE_IMPLEMENTATION_SPEC.md + Z2 hash reference
    - PR #499-impl: PUBLIC_UTILITY_IMPLEMENTATION_SPEC.md + Z2 hash reference
 
-2. Z2 (Night) reviews PRs; merges with approval
+2. Z2 (Night) reviews PRs; merges with approval (state transition: RATIFICATION_COMPLETE → READY_FOR_MERGE)
 
 **Z3 Implementation Sequence (resource-state driven; per Q-TEMPORAL-DISSOLUTION-01):**
 1. Z3 (Copilot) begins Stage 5 implementation once branch merged
