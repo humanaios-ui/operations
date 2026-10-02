@@ -42,6 +42,8 @@ class ProgramScopeGraph:
     gold_standard_safe_harbor: bool | None
     assets: list[ScopeAsset] = field(default_factory=list)
     exclusions: list[ScopeExclusion] = field(default_factory=list)
+    exclusions_state: str = "OBSERVED"
+    exclusions_error: str | None = None
     authority_effect: str = "NONE"
 
     def to_dict(self) -> dict[str, Any]:
@@ -54,6 +56,8 @@ def build_scope_graph(
     scope_exclusions: list[dict[str, Any]],
     *,
     observed_at: str | None = None,
+    exclusions_state: str = "OBSERVED",
+    exclusions_error: str | None = None,
 ) -> ProgramScopeGraph:
     attrs = program.get("attributes") or {}
     handle = str(attrs.get("handle") or "").strip()
@@ -113,6 +117,8 @@ def build_scope_graph(
         ),
         assets=assets,
         exclusions=exclusions,
+        exclusions_state=exclusions_state,
+        exclusions_error=exclusions_error,
     )
 
 
