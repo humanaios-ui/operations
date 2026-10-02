@@ -161,19 +161,27 @@ jobs:
 
       - name: Set image tag
         id: tag
+        env:
+          IMAGE_TAG_INPUT: ${{ inputs.image_tag }}
         run: |
-          TAG="${{ inputs.image_tag }}"
+          TAG="$IMAGE_TAG_INPUT"
           if [ -z "$TAG" ]; then TAG="${GITHUB_SHA:0:12}"; fi
+          if ! [[ "$TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]; then
+            echo "::error::Invalid image tag '$TAG' — must match Docker's tag grammar ([a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127})"
+            exit 1
+          fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Build and push image via ACR Tasks
         uses: azure/cli@v2
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
         with:
           inlineScript: |
             az acr build \
               --registry "$ACR_NAME" \
               --resource-group "$RESOURCE_GROUP" \
-              --image "$IMAGE_NAME:${{ steps.tag.outputs.tag }}" \
+              --image "$IMAGE_NAME:$IMAGE_TAG" \
               --file Dockerfile.acat-api \
               .
 
@@ -191,26 +199,51 @@ jobs:
       - name: Deploy Container App
         id: deploy
         uses: azure/cli@v2
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+          REGISTRY_USERNAME: ${{ steps.acr-creds.outputs.username }}
+          REGISTRY_PASSWORD: ${{ steps.acr-creds.outputs.password }}
+          WRITE_TOKEN: ${{ secrets.ACAT_WRITE_TOKEN }}
         with:
           inlineScript: |
             URL=$(az deployment group create \
               --resource-group "$RESOURCE_GROUP" \
               --template-file infra/acat-api-containerapp.bicep \
               --parameters \
-                containerImage="${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${{ steps.tag.outputs.tag }}" \
+                containerImage="${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}" \
                 registryServer="${ACR_NAME}.azurecr.io" \
-                registryUsername="${{ steps.acr-creds.outputs.username }}" \
-                registryPassword="${{ steps.acr-creds.outputs.password }}" \
-                acatWriteToken="${{ secrets.ACAT_WRITE_TOKEN }}" \
+                registryUsername="$REGISTRY_USERNAME" \
+                registryPassword="$REGISTRY_PASSWORD" \
+                acatWriteToken="$WRITE_TOKEN" \
               --query 'properties.outputs.acatApiUrl.value' -o tsv)
             echo "acatApiUrl=$URL" >> "$GITHUB_OUTPUT"
 
+      - name: Verify deployment is healthy
+        env:
+          ACAT_API_URL: ${{ steps.deploy.outputs.acatApiUrl }}
+        run: |
+          echo "Polling ${ACAT_API_URL}/health (bounded: 10 attempts, 10s apart)..."
+          for i in $(seq 1 10); do
+            if curl --fail --silent --show-error --max-time 10 "${ACAT_API_URL}/health" > /dev/null; then
+              echo "Healthy after attempt $i."
+              exit 0
+            fi
+            echo "Attempt $i/10: not healthy yet, retrying in 10s..."
+            sleep 10
+          done
+          echo "::error::${ACAT_API_URL}/health did not become healthy within the timeout — the ARM deployment succeeded but the app is not serving traffic (image pull, startup, or probe failure)."
+          exit 1
+
       - name: Summary
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+          ACAT_API_URL: ${{ steps.deploy.outputs.acatApiUrl }}
         run: |
           {
             echo "### ACAT API deployed to Azure Container Apps"
-            echo "- Image: \`${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${{ steps.tag.outputs.tag }}\`"
-            echo "- URL: ${{ steps.deploy.outputs.acatApiUrl }}"
+            echo "- Image: \`${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}\`"
+            echo "- URL: ${ACAT_API_URL}"
+            echo "- Health check: passed (polled \`/health\` with bounded retries before this summary ran)"
             echo ""
             echo "Existing Railway deployment (api.humanaios.ai) is untouched — this is a second, independent deployment target, not a cutover."
           } >> "$GITHUB_STEP_SUMMARY"
