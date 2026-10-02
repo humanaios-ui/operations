@@ -6,8 +6,9 @@ from pathlib import Path
 
 from .miner import enrich
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
+from .security_scope import fetch_scope_graph
 from .store import write_jsonl
-from .sources import devto, funding_pipeline, github, rss
+from .sources import devto, funding_pipeline, github, hackerone, rss
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
@@ -21,7 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     scan = sub.add_parser("scan", help="Discover, normalize, map, and route resource candidates")
-    scan.add_argument("--source", action="append", choices=["funding", "devto", "github", "rss"], default=[])
+    scan.add_argument("--source", action="append", choices=["funding", "devto", "github", "hackerone", "rss"], default=[])
     scan.add_argument("--needs", default=str(DEFAULT_NEEDS))
     scan.add_argument("--requirements", default=str(DEFAULT_REQUIREMENTS))
     scan.add_argument(
@@ -34,8 +35,16 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--funding-data", default=str(DEFAULT_FUNDING))
     scan.add_argument("--dev-tag", action="append", default=[])
     scan.add_argument("--github-query", action="append", default=[])
+    scan.add_argument("--hackerone-handle", action="append", default=[])
+    scan.add_argument("--hackerone-page-size", type=int, default=100)
     scan.add_argument("--rss", action="append", default=[])
     scan.add_argument("--dry-run", action="store_true")
+
+    h1_scope = sub.add_parser(
+        "hackerone-scope",
+        help="Fetch HackerOne program policy, structured scopes, and scope exclusions only",
+    )
+    h1_scope.add_argument("--handle", required=True)
 
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
@@ -63,6 +72,11 @@ def main() -> None:
         print(json.dumps(data, indent=2, ensure_ascii=False))
         return
 
+    if args.command == "hackerone-scope":
+        graph = fetch_scope_graph(hackerone.HackerOneClient(), args.handle)
+        print(json.dumps(graph.to_dict(), indent=2, ensure_ascii=False))
+        return
+
     sources = args.source or ["funding", "devto"]
     discovered = []
     if "funding" in sources:
@@ -72,6 +86,13 @@ def main() -> None:
     if "github" in sources:
         queries = args.github_query or ["is:issue is:open label:bounty", 'is:issue is:open "cash prize"']
         discovered.extend(github.discover(queries))
+    if "hackerone" in sources:
+        discovered.extend(
+            hackerone.discover(
+                args.hackerone_handle or None,
+                page_size=args.hackerone_page_size,
+            )
+        )
     if "rss" in sources:
         discovered.extend(rss.discover(args.rss))
 
