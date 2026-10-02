@@ -111,12 +111,12 @@ class TestAIContextSchema(unittest.TestCase):
 
     def test_schema_file_exists(self):
         """Test schema file exists."""
-        schema_path = Path.cwd().parent.parent / "schemas" / "ai_context_v1.schema.json"
+        schema_path = Path.cwd() / "schemas" / "ai_context_v1.schema.json"
         self.assertTrue(schema_path.exists(), f"Schema not found at {schema_path}")
 
     def test_schema_is_valid_json(self):
         """Test schema is valid JSON."""
-        schema_path = Path.cwd().parent.parent / "schemas" / "ai_context_v1.schema.json"
+        schema_path = Path.cwd() / "schemas" / "ai_context_v1.schema.json"
         with open(schema_path) as f:
             schema = json.load(f)
 
