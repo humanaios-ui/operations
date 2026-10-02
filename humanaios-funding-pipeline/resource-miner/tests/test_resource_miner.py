@@ -346,6 +346,59 @@ class ResourceMinerTests(unittest.TestCase):
         self.assertEqual(reconciled[0]["resource_id"], "RES-OPEN")
         self.assertEqual(reconciled[1]["route"], "WATCH")
 
+    def test_user_pass_archives_without_claiming_ineligibility(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "VERIFY_NOW",
+            "next_operation": "VERIFY_ELIGIBILITY",
+            "user_disposition": "UNSET",
+            "eligibility_assessed": False,
+            "eligibility_status": "UNASSESSED",
+        }
+        receipt = {
+            "receipt_id": "R-PASS",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T16:45:30-05:00",
+            "observation_type": "USER_DISPOSITION",
+            "source_kind": "HUMAN_ATTESTED",
+            "claim": "User passes on this resource based on preference.",
+            "to_disposition": "PASS",
+            "authority_effect": "NONE",
+        }
+        out = apply_receipt(row, receipt)
+        self.assertEqual(out["user_disposition"], "PASS")
+        self.assertEqual(out["route"], "ARCHIVE")
+        self.assertEqual(out["next_operation"], "NONE")
+        self.assertEqual(out["status"], "ACTIVE")
+        self.assertFalse(out["eligibility_assessed"])
+        self.assertEqual(out["eligibility_status"], "UNASSESSED")
+
+    def test_primary_currentness_cannot_reopen_user_pass(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "ARCHIVE",
+            "next_operation": "NONE",
+            "user_disposition": "PASS",
+        }
+        receipt = {
+            "receipt_id": "R-CURRENT",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T16:45:30-05:00",
+            "observation_type": "CURRENTNESS",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/current",
+            "to_status": "ACTIVE",
+            "authority_effect": "NONE",
+        }
+        out = apply_receipt(row, receipt)
+        self.assertEqual(out["status"], "ACTIVE")
+        self.assertEqual(out["route"], "ARCHIVE")
+        self.assertEqual(out["next_operation"], "NONE")
+
     def test_winner_announcement_date_is_not_deadline(self):
         candidate = normalize_generic(
             title="Challenge", url="https://example.com/dates", source_name="Example",
