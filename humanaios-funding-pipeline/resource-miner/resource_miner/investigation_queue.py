@@ -183,7 +183,7 @@ def build_ranked_queue(
                 capability_evidence_refs=list(evidence.evidence_refs),
                 evidence_gaps=sorted(set(gaps)),
                 review_state=review_state,
-                # Ranking can never self-upgrade into permission.
+                # Ranking output is informational.
                 authorization_state="NOT_EVALUATED",
                 effort_class=effort,
                 readiness_score=score,
