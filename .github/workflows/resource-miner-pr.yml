@@ -1,0 +1,25 @@
+name: Resource Miner PR
+
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/**'
+      - '.github/workflows/resource-miner-pr.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Run Resource Miner regression tests
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          HACKERONE_API_USERNAME: ''
+          HACKERONE_API_TOKEN: ''
+        run: python3 -m unittest discover -s tests -v
