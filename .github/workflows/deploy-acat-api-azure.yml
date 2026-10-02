@@ -1,0 +1,214 @@
+# Deploys the ACAT API (acat/api/app.py) to Azure Container Apps, alongside
+# its existing Railway deployment at api.humanaios.ai (railway.toml at repo
+# root). This is the proof-of-concept for Microsoft for Startups Milestone 3
+# ("5+ distinct Azure workloads, sustained ~60 days" — see PR #584's body):
+# prove the Dockerfile.acat-api / infra/acat-api-containerapp.bicep mechanism
+# works end-to-end on ONE workload before replicating it to the others
+# (resource-miner, Metaculus bot, grant-search-dashboard, apps/api).
+#
+# Two jobs, deliberately split:
+#   build-validate — runs on every push touching these paths AND on manual
+#     dispatch. Needs NO Azure credentials: builds the image locally and
+#     lints the Bicep file. Exists so breakage is caught long before anyone
+#     has Azure credentials wired up, and keeps failing on every push after
+#     they are.
+#   deploy — runs ONLY on workflow_dispatch (never automatically on push).
+#     A first production deploy should be a deliberate click, not a side
+#     effect of merging an unrelated change to acat/api/.
+#
+# ---------------------------------------------------------------------------
+# One-time Azure + GitHub setup required before `deploy` can run (none of
+# this is achievable from this session — no Azure connector/credentials
+# exist here; this is what Carly needs to do):
+#
+# 1. Confirm the Azure subscription tied to the Microsoft for Startups grant
+#    (the output of M2's business-entity verification).
+#
+# 2. Create an App Registration for GitHub OIDC login (no client secret —
+#    federated credential only):
+#      az ad app create --display-name humanaios-acat-api-deploy
+#      az ad sp create --id <appId-from-above>
+#
+# 3. Add a federated credential on that App Registration, subject MUST match
+#    this workflow's `deploy` job environment exactly:
+#      az ad app federated-credential create --id <appId> --parameters '{
+#        "name": "github-acat-api-deploy",
+#        "issuer": "https://token.actions.githubusercontent.com",
+#        "subject": "repo:humanaios-ui/operations:environment:azure-acat-api",
+#        "audiences": ["api://AzureADTokenExchange"]
+#      }'
+#
+# 4. Grant that service principal Contributor on the target subscription (or
+#    at minimum on the resource group named below, if you create it
+#    yourself ahead of time instead of letting this workflow create it).
+#
+# 5. In GitHub: Settings -> Environments -> New environment -> name it
+#    EXACTLY `azure-acat-api` (must match the federated credential subject
+#    above). Strongly recommended: add yourself as a required reviewer here,
+#    so every deploy needs a manual approval click, not just dispatch access.
+#
+# 6. Add these secrets (repo-level or, tighter, scoped to the
+#    `azure-acat-api` environment created in step 5):
+#      AZURE_CLIENT_ID        — appId from step 2
+#      AZURE_TENANT_ID        — your Azure AD tenant ID
+#      AZURE_SUBSCRIPTION_ID  — the subscription from step 1
+#      ACAT_WRITE_TOKEN       — a new token you choose; gates every mutating
+#                                ACAT API route (acat/api/security.py). If
+#                                unset, the deployed API fails closed with
+#                                503 on all writes — by design, not a bug.
+#
+#    Optional — only needed if you want this deploy to reach the same
+#    Postgres/Supabase/Qdrant backing stores the Railway deployment uses
+#    (every route degrades gracefully without them, per the param
+#    descriptions in infra/acat-api-containerapp.bicep):
+#      DATABASE_URL, SUPABASE_URL, SUPABASE_KEY, SUPABASE_ANON_KEY,
+#      SUPABASE_SERVICE_ROLE_KEY, QDRANT_URL, ORIGINSTAMP_API_KEY
+#    (not wired into this workflow yet — add them as secrets AND add the
+#    matching --parameters lines in the `deploy` step below if/when needed).
+#
+#    Optional repo VARIABLES (vars.*, not secrets) to override the defaults
+#    baked in below — in particular AZURE_ACAT_ACR_NAME, since ACR names
+#    must be globally unique and the default here will likely collide:
+#      AZURE_ACAT_RESOURCE_GROUP, AZURE_ACAT_ACR_NAME, AZURE_ACAT_LOCATION
+#
+# Until all of the above exists, `build-validate` still runs and still
+# proves the Dockerfile and Bicep are valid — only the actual `az` calls in
+# `deploy` require it.
+# ---------------------------------------------------------------------------
+
+name: Deploy ACAT API to Azure Container Apps
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile.acat-api'
+      - 'Dockerfile.acat-api.dockerignore'
+      - 'acat/api/**'
+      - 'acat/__init__.py'
+      - 'requirements.txt'
+      - 'infra/acat-api-containerapp.bicep'
+      - '.github/workflows/deploy-acat-api-azure.yml'
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to build and deploy (defaults to the short commit SHA)'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-acat-api-azure
+  cancel-in-progress: false  # never cancel a live `az deployment group create` mid-flight
+
+permissions:
+  contents: read
+  id-token: write  # required for azure/login's OIDC federated-credential exchange
+
+env:
+  RESOURCE_GROUP: ${{ vars.AZURE_ACAT_RESOURCE_GROUP || 'humanaios-acat-rg' }}
+  ACR_NAME: ${{ vars.AZURE_ACAT_ACR_NAME || 'humanaiosacatacr' }}
+  LOCATION: ${{ vars.AZURE_ACAT_LOCATION || 'eastus' }}
+  IMAGE_NAME: acat-api
+
+jobs:
+  build-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build image (no push)
+        run: docker build -f Dockerfile.acat-api -t acat-api:ci-check .
+
+      - name: Lint Bicep
+        uses: azure/cli@v2
+        with:
+          inlineScript: az bicep build --file infra/acat-api-containerapp.bicep --stdout > /dev/null
+
+  deploy:
+    needs: build-validate
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: azure-acat-api
+      url: ${{ steps.deploy.outputs.acatApiUrl }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Ensure resource group exists
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az group show --name "$RESOURCE_GROUP" --output none 2>/dev/null || \
+            az group create --name "$RESOURCE_GROUP" --location "$LOCATION" --output none
+
+      - name: Ensure container registry exists
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az acr show --name "$ACR_NAME" --resource-group "$RESOURCE_GROUP" --output none 2>/dev/null || \
+            az acr create --name "$ACR_NAME" --resource-group "$RESOURCE_GROUP" --location "$LOCATION" --sku Basic --admin-enabled true --output none
+
+      - name: Set image tag
+        id: tag
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          if [ -z "$TAG" ]; then TAG="${GITHUB_SHA:0:12}"; fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push image via ACR Tasks
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az acr build \
+              --registry "$ACR_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --image "$IMAGE_NAME:${{ steps.tag.outputs.tag }}" \
+              --file Dockerfile.acat-api \
+              .
+
+      - name: Fetch ACR admin credentials
+        id: acr-creds
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az acr update --name "$ACR_NAME" --admin-enabled true --output none
+            echo "username=$(az acr credential show --name "$ACR_NAME" --query username -o tsv)" >> "$GITHUB_OUTPUT"
+            PW=$(az acr credential show --name "$ACR_NAME" --query 'passwords[0].value' -o tsv)
+            echo "::add-mask::$PW"
+            echo "password=$PW" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy Container App
+        id: deploy
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            URL=$(az deployment group create \
+              --resource-group "$RESOURCE_GROUP" \
+              --template-file infra/acat-api-containerapp.bicep \
+              --parameters \
+                containerImage="${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${{ steps.tag.outputs.tag }}" \
+                registryServer="${ACR_NAME}.azurecr.io" \
+                registryUsername="${{ steps.acr-creds.outputs.username }}" \
+                registryPassword="${{ steps.acr-creds.outputs.password }}" \
+                acatWriteToken="${{ secrets.ACAT_WRITE_TOKEN }}" \
+              --query 'properties.outputs.acatApiUrl.value' -o tsv)
+            echo "acatApiUrl=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        run: |
+          {
+            echo "### ACAT API deployed to Azure Container Apps"
+            echo "- Image: \`${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${{ steps.tag.outputs.tag }}\`"
+            echo "- URL: ${{ steps.deploy.outputs.acatApiUrl }}"
+            echo ""
+            echo "Existing Railway deployment (api.humanaios.ai) is untouched — this is a second, independent deployment target, not a cutover."
+          } >> "$GITHUB_STEP_SUMMARY"
