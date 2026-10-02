@@ -142,6 +142,8 @@ def build_ranked_queue(
             capability_id, mode, effort = capability_for_asset_type(asset.asset_type)
             evidence = capability_profile.get(capability_id)
             gaps = list(evidence.missing_tools)
+            if graph.exclusions_state != "OBSERVED":
+                gaps.append(f"scope_exclusions:{graph.exclusions_state}")
             if not evidence.evidence_refs:
                 gaps.append(f"no_evidence_ref:{capability_id}")
             if evidence.state != OBSERVED_AVAILABLE:
