@@ -206,6 +206,24 @@
 *.md                                       @humanaios-ui/doc-control
 ```
 
+### **Commit Discipline (P19 Principles)**
+
+**Scope:** Authored commits only. Merge commits (git merge) exempt.
+
+**Authored Commit Cap:** K ≤ 13 files per authored commit
+- Rationale: Reviewability. Small, focused changes.
+- Exception: Constants/schema/manifest bulk updates (ratified via molt) may exceed K with Z2 signature. Otherwise no override.
+
+**Merge Commits (git merge, rebase-merge, squash-merge):** Exempt
+- Rationale: Merge commits are structural; not authored work.
+- No file count cap applies.
+- Advisory flag on P19 is informational only (✓ pass, no merge block).
+
+**Enforcement:**
+- Workflow identifies merge vs. authored via git-log ancestry
+- Reports both types; marks merged exempt; flags authored overage
+- Breaches flagged in CI (advisory only; does not block merge)
+
 ---
 
 ## Session Rituals (§A / §B)
@@ -288,15 +306,23 @@ When these occur, emit callout immediately:
 ## Appended Events
 
 ```
+2026-10-02 — Z2 (Night) finalized all four specifications with real digests | All status fields made consistent | Layer 1–4 concept-to-code stack complete | Ratification manifest updated | See digest records below | Governance integrity verified
+
+**Specification Digest Record (Ratified):**
+- Q-FRAMEWORK-MAPPING-01: FRAMEWORK_MAPPING.md | sha256: 3102473cbca79ae108d86fb296f6d73d4c6740b768bb3ecb088d90f0cec099fa | Layer 1: Unified mental model (Graph, Loop, Context, Harness, Prompt) → Z-roles | Ratified 2026-10-02
+- Q-BOOT-PROCESS-MAP-01: BOOT_PROCESS_MAP.md | sha256: 0aa8b59d21956a7d9388e3924ac8468a8b06fff7a1b9e844de63e39bfaabb5c0 | Layer 2: Session boot chain → standard computer boot stages | Ratified 2026-10-02
+- Q-FIVE-RINGS-MAPPING-01: FIVE_RINGS_MAPPING.md | sha256: de285b6de56f4ea817554df2647c3f3f0666d370ec64d39e630f9d36eb4ab396 | Layer 3: Book of Five Rings → executable operations | Ratified 2026-10-02
+- Q-AUTHORIZATION-EVIDENCE-MAPPING-01: AUTHORIZATION_EVIDENCE_MAPPING.md | sha256: f84359917edfde483c3b49e59b7f9bd1047b69e9ce9dd35a205eda59559456ae | Layer 4: Authorization & evidence assurance → decision taxonomy | Ratified 2026-10-02
+
 2026-09-28 — Z2 (Night) ratified Q-AUTHORIZATION-EVIDENCE-MAPPING-01 | AUTHORIZATION_EVIDENCE_MAPPING.md + authorization_evidence.py accepted | Layer 4 of the concept-to-code stack | Ratification Hash d44b986feb44aab056480650886575f98f011db35689a10b8be86f1f7e0fa23a (full record in REGISTERED.md) | Direct Z2 instruction, this session
 2026-09-27 — Z1 proposed Q-AUTHORIZATION-EVIDENCE-MAPPING-01 (AUTHORIZATION_EVIDENCE_MAPPING.md + authorization_evidence.py: authorization & evidence assurance questions → executable checks, Layer 4 of the concept-to-code stack); ratified 2026-09-28 (see line above)
-2026-09-25 — Z1 proposed Q-FIVE-RINGS-MAPPING-01 (FIVE_RINGS_MAPPING.md + five_rings.py: Book of Five Rings → executable machine operations, Layer 3 of the concept-to-code stack); awaiting Z2 RATIFY signature
+2026-09-25 — Z1 proposed Q-FIVE-RINGS-MAPPING-01 (FIVE_RINGS_MAPPING.md + five_rings.py: Book of Five Rings → executable machine operations, Layer 3 of the concept-to-code stack); ratified 2026-10-02
 2026-09-19 19:00 UTC — Z2 (Night) ratified Q-INTENT-OS-WITNESS-LEDGER-01 | Witness ledger architecture approved | Human-machine decision attribution ledger | Phase 1–3 roadmap ratified | Enables scalable Z3 executor onboarding
 2026-09-19 18:55 UTC — Z2 (Night) ratified Q-Z2-DUAL-AUTHORITY-GOVERNANCE-01 | Dual-authority Z2 model formalized | Both carly.r.anderson@gmail.com & aioshuman@gmail.com authorized | Machine authority via INTENT-OS capability | Stop hook to query INTENT-OS (Phase 1)
-2026-09-14 — Z1 proposed Q-BOOT-PROCESS-MAP-01 (BOOT_PROCESS_MAP.md: REGISTERED.md's position in the session boot chain, mapped onto standard boot-chain stages); awaiting Z2 RATIFY signature
+2026-09-14 — Z1 proposed Q-BOOT-PROCESS-MAP-01 (BOOT_PROCESS_MAP.md: REGISTERED.md's position in the session boot chain, mapped onto standard boot-chain stages); ratified 2026-10-02
 2026-09-14 — Z1 implemented Option B (separate PLANNED_REPOS.md for roadmap repos, updated ZONE_REGISTRY.md & CLAUDE.md)
 2026-09-10 22:13 UTC — Z1 proposed Q-FRAMEWORK-MAPPING-01 (FRAMEWORK_MAPPING.md: 5 AI engineering concepts → Z-roles)
-2026-09-10 22:17 UTC — PR #264 merged (FRAMEWORK_MAPPING.md content); awaiting Z2 RATIFY signature for Q-FRAMEWORK-MAPPING-01
+2026-09-10 22:17 UTC — PR #264 merged (FRAMEWORK_MAPPING.md content); ratified 2026-10-02
 2026-09-09 18:49 CST — Z2 (Night) ratified ORGANIZATION_BLUEPRINT_v1.md | ZONE_REGISTRY.md & CLAUDE.md ratified | Phase 0 READY
 2026-09-09 — Z1 created ZONE_REGISTRY.md & CLAUDE.md from blueprint authority map spec
 ```
