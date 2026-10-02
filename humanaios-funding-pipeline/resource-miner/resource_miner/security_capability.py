@@ -95,6 +95,29 @@ def _tool_states(machine_graph: dict[str, Any]) -> dict[str, str]:
     return states
 
 
+def _capability_receipts(machine_graph: dict[str, Any]) -> dict[str, CapabilityEvidence]:
+    receipts: dict[str, CapabilityEvidence] = {}
+    for node in machine_graph.get("nodes", []):
+        if not isinstance(node, dict) or node.get("type") != "CapabilityReceipt":
+            continue
+        observed = node.get("observed") or {}
+        capability_id = str(observed.get("capability_id") or "").strip()
+        if not capability_id:
+            continue
+        state = str(node.get("state") or UNKNOWN)
+        receipts[capability_id] = CapabilityEvidence(
+            capability_id=capability_id,
+            state=state,
+            required_tools=[],
+            observed_tools=[],
+            evidence_refs=[str(node.get("id") or f"machine-graph:capability:{capability_id}")],
+            missing_tools=[],
+            coverage=1.0 if state == OBSERVED_AVAILABLE else 0.0,
+            note="explicit capability receipt from machine graph",
+        )
+    return receipts
+
+
 def _derive_capability(
     capability_id: str,
     required_tools: tuple[str, ...],
@@ -160,14 +183,21 @@ def profile_from_machine_graph(machine_graph: dict[str, Any], *, source: str = "
     if not isinstance(machine_graph, dict):
         raise ValueError("machine graph must be a JSON object")
     states = _tool_states(machine_graph)
+    receipts = _capability_receipts(machine_graph)
     profile = SecurityCapabilityProfile(
         source=source,
         observed_at=str(machine_graph.get("observed_at") or "") or None,
         omissions=list(machine_graph.get("omissions") or []),
     )
     for capability_id, required in CAPABILITY_REQUIREMENTS.items():
-        profile.capabilities[capability_id] = _derive_capability(capability_id, required, states)
+        profile.capabilities[capability_id] = receipts.get(
+            capability_id,
+            _derive_capability(capability_id, required, states),
+        )
     for capability_id in REQUIRES_DEDICATED_RECEIPT:
+        if capability_id in receipts:
+            profile.capabilities[capability_id] = receipts[capability_id]
+            continue
         profile.capabilities[capability_id] = CapabilityEvidence(
             capability_id=capability_id,
             state=UNKNOWN,
