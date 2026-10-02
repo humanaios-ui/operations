@@ -6,6 +6,7 @@ Smoke tests verify the generator produces valid output conforming to schema.
 """
 
 import json
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -14,6 +15,15 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ai_context_generator_v0_1 import AIContextGenerator
+
+
+def has_gh_cli():
+    """Check if GitHub CLI is available and authenticated."""
+    try:
+        result = subprocess.run(["gh", "--version"], capture_output=True, timeout=5)
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
 
 
 class TestAIContextGenerator(unittest.TestCase):
@@ -26,6 +36,7 @@ class TestAIContextGenerator(unittest.TestCase):
         repo_root = Path(__file__).parent.parent.parent
         cls.generator = AIContextGenerator(repo_root)
 
+    @unittest.skipUnless(has_gh_cli(), "GitHub CLI not available")
     def test_smoke_context_for_issue(self):
         """Test generating context for issue (smoke test)."""
         context = self.generator.context_for_issue(640)
@@ -39,6 +50,7 @@ class TestAIContextGenerator(unittest.TestCase):
         self.assertIn("agent_permissions", context)
         self.assertIn("evidence", context)
 
+    @unittest.skipUnless(has_gh_cli(), "GitHub CLI not available")
     def test_smoke_context_for_pr(self):
         """Test generating context for PR (smoke test)."""
         context = self.generator.context_for_pr(594)
@@ -93,6 +105,7 @@ class TestAIContextGenerator(unittest.TestCase):
         context = self.generator.context_for_file("CLAUDE.md")
         self.assertEmpty(context["agent_permissions"]["can_edit_files"])
 
+    @unittest.skipUnless(has_gh_cli(), "GitHub CLI not available")
     def test_output_is_valid_json(self):
         """Test output is valid JSON."""
         context = self.generator.generate("issue", "640")
