@@ -259,8 +259,10 @@ def collect_apps(graph: dict[str, Any], host_id: str) -> None:
 def tool_version(name: str, path: str) -> dict[str, Any]:
     if name == "java":
         r = run([path, "-version"])
-    elif name == "brew":
-        r = run([path, "--version"])
+    elif name == "xcodebuild":
+        r = run([path, "-version"])
+    elif name == "openssl":
+        r = run([path, "version"])
     else:
         r = run([path, "--version"])
 
