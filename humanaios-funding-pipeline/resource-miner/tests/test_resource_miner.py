@@ -8,6 +8,7 @@ from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements, map_to_needs, map_to_requirements
 from resource_miner.normalize import canonicalize_url, cash_mentions, normalize_generic, stable_resource_id
 from resource_miner.planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan, validate_resource_plan
+from resource_miner.reconcile import apply_receipt, reconcile_rows, validate_receipt
 from resource_miner.routing import route_candidate
 from resource_miner.sources import funding_pipeline
 from resource_miner.sources.rss import FeedRejected, MAX_FEED_BYTES, _parse_feed
@@ -204,6 +205,90 @@ class ResourceMinerTests(unittest.TestCase):
         broken["authority_effect"] = "AUTHORIZE"
         with self.assertRaises(ValueError):
             validate_resource_plan(broken)
+
+    def test_primary_currentness_closes_candidate_durably(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "VERIFY_NOW",
+            "next_operation": "VERIFY_ELIGIBILITY",
+            "last_verified_at": None,
+        }
+        receipt = {
+            "receipt_id": "R-1",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "CURRENTNESS",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/program",
+            "to_status": "CLOSED",
+            "authority_effect": "NONE",
+        }
+        out = apply_receipt(row, receipt)
+        self.assertEqual(out["status"], "CLOSED")
+        self.assertEqual(out["route"], "ARCHIVE")
+        self.assertEqual(out["next_operation"], "NONE")
+        self.assertIn("R-1", out["state_receipt_ids"])
+
+    def test_owned_candidate_hands_off_to_management(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "VERIFY_NOW",
+            "next_operation": "VERIFY_ELIGIBILITY",
+        }
+        receipt = {
+            "receipt_id": "R-2",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "OWNERSHIP",
+            "source_kind": "REPOSITORY_EVIDENCE",
+            "source_url": "https://example.com/receipt",
+            "to_resource_state": "ALREADY_ACQUIRED",
+            "authority_effect": "NONE",
+        }
+        out = apply_receipt(row, receipt)
+        self.assertEqual(out["resource_state"], "ALREADY_ACQUIRED")
+        self.assertEqual(out["route"], "WATCH")
+        self.assertEqual(out["next_operation"], "MANAGE")
+
+    def test_public_source_cannot_assert_user_ownership(self):
+        receipt = {
+            "receipt_id": "R-3",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "OWNERSHIP",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/program",
+            "to_resource_state": "ALREADY_ACQUIRED",
+            "authority_effect": "NONE",
+        }
+        with self.assertRaises(ValueError):
+            validate_receipt(receipt)
+
+    def test_reconciliation_is_idempotent(self):
+        row = {
+            "resource_id": "RES-X",
+            "status": "ACTIVE",
+            "resource_state": "CANDIDATE",
+            "route": "VERIFY_NOW",
+            "next_operation": "VERIFY_ELIGIBILITY",
+        }
+        receipt = {
+            "receipt_id": "R-4",
+            "resource_id": "RES-X",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "CURRENTNESS",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/program",
+            "to_status": "NOT_CURRENTLY_OPEN",
+            "authority_effect": "NONE",
+        }
+        first, _ = reconcile_rows([row], [receipt])
+        second, _ = reconcile_rows(first, [receipt])
+        self.assertEqual(first, second)
 
     def test_winner_announcement_date_is_not_deadline(self):
         candidate = normalize_generic(
