@@ -65,12 +65,12 @@ class SecurityCapabilityProfile:
 CAPABILITY_REQUIREMENTS: dict[str, tuple[str, ...]] = {
     "web_http_review": ("python3", "curl"),
     "source_code_review": ("git", "python3"),
-    "ai_model_review": ("python3",),
+    "ai_model_review": ("python3", "ollama"),
     "android_app_review": ("adb", "java"),
     "ios_app_review": ("xcodebuild",),
-    "network_scope_review": ("python3", "openssl"),
-    "local_executable_review": ("python3", "codesign"),
-    "windows_app_review": ("python3",),
+    "network_scope_review": ("dedicated_receipt",),
+    "local_executable_review": ("dedicated_receipt",),
+    "windows_app_review": ("dedicated_receipt",),
 }
 
 # Capabilities that must remain UNKNOWN unless separately evidenced by a future,
