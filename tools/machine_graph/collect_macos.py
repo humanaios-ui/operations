@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 """HumanAIOS macOS Machine Substrate Graph collector.
+Builder v1.7 compliant · pipeline_tool
+HumanAIOS · #596
 
 Metadata-first and local-only by design. It does not read user document contents.
 Standard library only.
+
+Usage:
+  python3 tools/machine_graph/collect_macos.py --root ~/code --venv ~/venv
+  python3 tools/machine_graph/collect_macos.py --smoke-test
 """
 
 from __future__ import annotations
@@ -20,6 +26,12 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+
+TOOL_NAME = "machine_graph_collect_macos"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "pipeline_tool"
+TOOL_SESSION = "#596"
+TOOL_ZONE = 1
 
 COLLECTOR_VERSION = "0.1.0"
 
@@ -499,13 +511,38 @@ def graph_integrity(graph: dict[str, Any]) -> list[str]:
     return errors
 
 
+def smoke_test() -> int:
+    """Exercises the platform-independent graph-building logic without any macOS
+    subprocess calls, so it runs the same on every CI runner this collector itself
+    cannot execute fully on (darwin-only collection stays untested here by design).
+    """
+    graph: dict[str, Any] = {"nodes": [], "edges": [], "omissions": []}
+    host_id = add_node(graph, {"id": "urn:humanaios:machine:host:local", "type": "Machine"})
+    tool_id = add_node(graph, {"id": stable_id("tool", "git"), "type": "Tool"})
+    add_edge(graph, host_id, "HAS_TOOL", tool_id)
+    assert graph_integrity(graph) == []
+
+    dangling = {"nodes": [{"id": "a"}], "edges": [{"source": "a", "relation": "X", "target": "missing"}]}
+    assert graph_integrity(dangling) == ["edge target missing: missing"]
+
+    assert stable_id("tool", "git") == stable_id("tool", "git")
+    assert stable_id("tool", "git") != stable_id("tool", "node")
+
+    print("smoke-test OK — graph integrity and stable_id are deterministic; full collection is darwin-only.")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Build a metadata-first local Machine Substrate Graph on macOS.")
     ap.add_argument("--root", action="append", default=[], help="Explicit root to scan for local Git repositories. Repeatable.")
     ap.add_argument("--venv", action="append", default=[], help="Explicit Python virtual environment to inspect. Repeatable.")
     ap.add_argument("--max-depth", type=int, default=5, help="Maximum repository-discovery depth below each --root.")
     ap.add_argument("--output", default=str(Path.home() / "HumanAIOS-machine-scan" / "machine-graph" / "machine-substrate.json"))
+    ap.add_argument("--smoke-test", action="store_true", help="Run the platform-independent self-test and exit.")
     args = ap.parse_args()
+
+    if args.smoke_test:
+        return smoke_test()
 
     if sys.platform != "darwin":
         print("ERROR: this collector currently supports macOS only.", file=sys.stderr)

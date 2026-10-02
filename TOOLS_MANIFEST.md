@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**191 registered tools** · 2 MCP servers · 4 excluded · 144 carrying Builder v1.7 markers
+**193 registered tools** · 2 MCP servers · 4 excluded · 146 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 191 |
-| — status `draft` | 190 |
+| Registered tools | 193 |
+| — status `draft` | 192 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 144 |
+| Builder v1.7 markers present | 146 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -207,7 +207,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-128 | system_audit | `tools/system_audit_v1_0.py` | 1.1.0 | 1 | draft | — | ⚠️ SUPERSEDED — Do NOT use this version |
 | HAIOS-TOOL-165 | holographic_orchestrator | `tools/holographic_orchestrator.py` | 0.1.0 | 1 | draft | — | Orchestrates holographic person representation via external services: |
 
-## Pipelines — `pipeline_tool` (7)
+## Pipelines — `pipeline_tool` (8)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -218,6 +218,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-189 | build_oracle_state | `scripts/build_oracle_state.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Build a thin Oracle state artifact for the Oracle + Actualizer MVP. |
 | HAIOS-TOOL-193 | ai-eo-incremental-indexer | `scripts/ai-eo-incremental-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO Incremental Indexer |
 | HAIOS-TOOL-194 | ai-eo-indexer | `scripts/ai-eo-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO (AI-driven Ephemeris Optimization) Indexer |
+| HAIOS-TOOL-206 | machine_graph_collect_macos | `tools/machine_graph/collect_macos.py` | 0.1.0 | 1 | draft | — | Builds a metadata-first local Machine Substrate Graph on macOS (host, volumes, apps, tools, execution context, launch agents, opted-in repos/venvs) without reading user document contents. |
 
 ## Reporting — `reporting_tool` (6)
 
@@ -269,7 +270,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-136 | tool_template | `tools/tool_template.py` | 1.1.0 | 1 | draft | — | Single Python module with two entrypoints: |
 | HAIOS-TOOL-169 | intent_os_pages | `tools/intent_os_pages_v1_0.py` | 1.0.0 | 1 | draft | — | intent_os_pages_v1_0.py — the Intent-OS board's section pages, generated from the board. |
 
-## Validation — `validation_tool` (25)
+## Validation — `validation_tool` (26)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -298,6 +299,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-184 | verified_receipts | `tools/verified_receipts.py` | 0.1.0 | 1 | draft | — | Verified Receipt Resolver — v0.1 |
 | HAIOS-TOOL-187 | verify_pr_readiness | `scripts/verify_pr_readiness.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | PR Readiness Verification — Run all validation checks in sequence |
 | HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | 1.0.0 | 1 | draft | — | Workflow Path Validator |
+| HAIOS-TOOL-207 | machine_graph_validate_snapshot | `tools/machine_graph/validate_snapshot.py` | 0.1.0 | 1 | draft | — | Validates a Machine Substrate Graph snapshot's structural integrity and recorded hash with no external dependencies. |
 
 ## MCP servers (2)
 
@@ -337,12 +339,12 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 6 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 7 |
-| `pipeline_tool` | Multi-stage processing of a corpus or record set. | 7 |
+| `pipeline_tool` | Multi-stage processing of a corpus or record set. | 8 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 6 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
-| `validation_tool` | Validates the structure or content of an input; pass/fail. | 25 |
+| `validation_tool` | Validates the structure or content of an input; pass/fail. | 26 |
 
 **Builder v1.7 markers** is a cheap presence heuristic (header, `TOOL_NAME`, `TOOL_VERSION`, main guard, smoke test) computed over every registered tool, including the `.js`/`.sh` and `scripts/`/`bin/` files. It is **not** the compliance verdict: the authoritative check is `tools/builder_compliance_scanner_v1.0.py`, gated by `.github/workflows/builder-lint.yml` over its own corpus (`tools/**`, excluding tests, archived and private modules). Where the two differ, the scanner is right.
 
