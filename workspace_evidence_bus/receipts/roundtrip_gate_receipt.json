@@ -1,0 +1,41 @@
+{
+  "artifact_type": "WORKSPACE_ROUNDTRIP_GATE_RECEIPT",
+  "session_id": "SESSION-WORKSPACE-EVIDENCE-BUS-001",
+  "issue": 681,
+  "pr": 685,
+  "workflow_run_id": 37068072958,
+  "workflow_attempts": 2,
+  "event_id": "EVT-gha-37068072958",
+  "event_type": "ROUNDTRIP_TEST",
+  "artifact_sha256": "6d7b84979269482c11f90343552c53736a837d55380ed1fc37ea9f90b73a12ba",
+  "payload_hash": "51ad230adcd1482a1ae3b2395254012c51711d54bbf405faff72e5a11753a31e",
+  "first_attempt": {
+    "status": "PASS",
+    "replayed": false
+  },
+  "replay_attempt": {
+    "status": "PASS",
+    "replayed": true
+  },
+  "secrets_present_check": "PASS",
+  "apps_script_post": "PASS",
+  "drive_write_readback_hash": "PASS",
+  "idempotent_replay": "PASS",
+  "authority_effect": "NONE",
+  "hmbm_effect": {
+    "cycle_002": "PRESERVE",
+    "cycle_003_substrate_gate": "PASS",
+    "cycle_003_state": "H0_FREEZE_ALLOWED",
+    "prediction_authorized": false
+  },
+  "drive_receipts": [
+    {
+      "opaque_id": "16FfeMMRbLkJBB9Rw2g35-q3944AXYSE9",
+      "role": "workspace_roundtrip_gate"
+    },
+    {
+      "opaque_id": "1OpT0emSnSll04mepiq1yO5RcDGmvp8ib",
+      "role": "hmbm_cycle_003_substrate_gate"
+    }
+  ]
+}
