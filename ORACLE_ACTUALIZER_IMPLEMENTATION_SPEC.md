@@ -456,7 +456,7 @@ name: Oracle Falsifier Monitor (State-Driven)
 
 on:
   schedule:
-    - cron: '0 0 1 * *'  # Polling schedule: first day of each month, UTC (TECHNICAL_SAFETY timeout, not work deadline)
+    - cron: '0 0 1 * *'  # TECHNICAL_SAFETY polling timeout; state-driven enforcement in REGISTERED.md
   workflow_dispatch:
 
 jobs:

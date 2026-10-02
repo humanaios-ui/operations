@@ -514,7 +514,7 @@ jobs:
    - Talos Benchmark Study Plan (concurrent implementation comparison)
    - CI/CD gate enforcing preconditions
    - REGISTERED.md tracking cooling-off periods
-4. **Process review (8 weeks out):** Measure whether dual-formalization rigor detected methodological issues; whether cooling-off period prevents authority leakage; whether negative-case hunting produced robust mappings
+4. **Process review (state-triggered):** Measure whether dual-formalization rigor detected methodological issues; whether cooling-off period prevents authority leakage; whether negative-case hunting produced robust mappings (review triggered upon both formalizations COMPLETE)
 
 ---
 

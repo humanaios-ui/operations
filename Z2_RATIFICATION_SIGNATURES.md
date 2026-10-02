@@ -186,7 +186,7 @@ notes:
    - Oracle state schema in `oracle_state.json`
    - Actualizer precondition logic
    - Molt ratification workflow
-   - Falsifier monitor (monthly automated + manual checklist)
+   - Falsifier monitor (state-driven enforcement with manual checklist audit)
    - Z2 authorization gate
 
 3. AUTOMATA_LINEAGE_IMPLEMENTATION_SPEC.md operationalized into:
