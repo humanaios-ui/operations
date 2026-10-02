@@ -7,6 +7,7 @@ from resource_miner.miner import enrich
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.needs import load_needs, load_requirements, map_to_needs, map_to_requirements
 from resource_miner.normalize import canonicalize_url, cash_mentions, normalize_generic, stable_resource_id
+from resource_miner.planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan, validate_resource_plan
 from resource_miner.routing import route_candidate
 from resource_miner.sources import funding_pipeline
 from resource_miner.sources.rss import FeedRejected, MAX_FEED_BYTES, _parse_feed
@@ -122,6 +123,47 @@ class ResourceMinerTests(unittest.TestCase):
         )
         ids = {match.requirement_id for match in rows[0].requirement_matches}
         self.assertIn("RR-INDEPENDENT-VALIDATION-001", ids)
+
+    def test_witness_resource_plan_resolves_expected_gap_states(self):
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        resolved = resolve_resource_plan(plan)
+        states = {
+            requirement["requirement_id"]: requirement["gap_status"]
+            for requirement in resolved["resource_requirements"]
+        }
+        self.assertEqual(states["RR-WITNESS-INDEPENDENT-VALIDATION-001"], "CONFIRMED")
+        self.assertEqual(states["RR-WITNESS-HUMAN-EXPERT-LABOR-001"], "CONFIRMED")
+        self.assertEqual(states["RR-WITNESS-LOCAL-COMPUTE-001"], "CONDITIONAL")
+        self.assertEqual(states["RR-WITNESS-PHYSICAL-EXPERIMENT-001"], "CONDITIONAL")
+        self.assertEqual(states["RR-WITNESS-EVIDENCE-ACCESS-001"], "PARTIAL")
+        self.assertEqual(states["RR-WITNESS-AGENT-RUNTIME-001"], "UNKNOWN")
+
+    def test_witness_plan_exports_only_external_miner_requirements(self):
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        exported = miner_requirements_from_plan(plan)
+        by_id = {row["requirement_id"]: row for row in exported}
+        self.assertIn("RR-WITNESS-INDEPENDENT-VALIDATION-001", by_id)
+        self.assertIn("RR-WITNESS-HUMAN-EXPERT-LABOR-001", by_id)
+        self.assertIn("RR-WITNESS-LOCAL-COMPUTE-001", by_id)
+        self.assertIn("RR-WITNESS-PHYSICAL-EXPERIMENT-001", by_id)
+        self.assertIn("RR-WITNESS-AGENT-RUNTIME-001", by_id)
+        self.assertNotIn("RR-WITNESS-AUTHORITY-STATE-001", by_id)
+        self.assertNotIn("RR-WITNESS-EVIDENCE-ACCESS-001", by_id)
+        self.assertTrue(all(row["authority_effect"] == "NONE" for row in exported))
+
+    def test_resource_plan_rejects_unknown_graph_reference(self):
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        broken = json.loads(json.dumps(plan))
+        broken["resource_requirements"][0]["work_package_ids"] = ["WP-NOT-REAL"]
+        with self.assertRaises(ValueError):
+            validate_resource_plan(broken)
+
+    def test_resource_plan_cannot_grant_authority(self):
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        broken = json.loads(json.dumps(plan))
+        broken["authority_effect"] = "AUTHORIZE"
+        with self.assertRaises(ValueError):
+            validate_resource_plan(broken)
 
     def test_winner_announcement_date_is_not_deadline(self):
         candidate = normalize_generic(
