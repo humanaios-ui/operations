@@ -59,6 +59,45 @@ Redirect aliases are still not resolved before hashing. That is a documented ide
 
 Each mapping stores both its score and the exact type/text signals that caused it.
 
+## Explicit resource deficits and resource plans
+
+Resource Miner now separates broad `Need Graph` affinity from explicit `Resource Requirement Objects`.
+
+`data/resource_requirements.seed.json` contains the first gap-derived requirements. A confirmed requirement may contribute to `VERIFY_NOW` ranking; a conditional requirement is retained as information but cannot create work until its activation condition is established. Requirement matching still asserts neither applicant eligibility nor authority.
+
+The resource-plan layer in `resource_miner/planning.py` generalizes this into a typed graph:
+
+```text
+NEED
+-> CAPABILITY
+-> WORK PACKAGE
+-> RESOURCE REQUIREMENT
+-> CONTROLLED RESOURCE
+-> SUBSTITUTION ASSESSMENT
+-> RESOURCE GAP
+-> externally mineable requirement
+```
+
+A plan preserves `UNKNOWN`, `PARTIAL`, `CONDITIONAL`, and internal-composition gaps rather than treating every desired capability as an external funding need.
+
+The first non-production specimen is `data/resource_plans/witness.seed.json`, which maps the proposed Internal HumanAIOS Agent — The Witness into needs, capabilities, bounded work packages, controlled resources, substitution assessments, and externally mineable deficits. It does **not** implement or authorize the Witness runtime.
+
+Core invariants:
+
+```text
+NEED != RESOURCE
+CAPABILITY != RESOURCE
+RESOURCE_REQUIREMENT != RESOURCE
+CONTROLLED_RESOURCE != ADEQUATE_SUBSTITUTE
+RESOURCE_MECHANISM != RESOURCE_AFFORDANCE
+RESOURCE_AFFORDANCE != BENEFICIARY
+NOMINAL_CASH != SPENDABLE_FOR_REQUIREMENT
+RESOURCE_GAP != AUTHORIZATION
+RESOURCE_DISCOVERY != ELIGIBILITY
+```
+
+Each normalized candidate now carries both `resource_types` (the mechanism, such as `grant`, `fellowship`, `compute_credit`, or `paid_work`) and `resource_affordances` (what that mechanism can potentially provide, such as `project_funding`, `self_labor_support`, `compute_capacity`, or `api_capacity`). Explicit Resource Requirement Objects may specify acceptable affordances; when they do, affordance mismatch is a semantic gate rather than an extra relevance score. Program restrictions, beneficiary rules, and exact use-of-funds remain downstream verification questions.
+
 ## Routing
 
 The Miner uses only three routing states:
@@ -122,6 +161,7 @@ python3 app.py --host 0.0.0.0 --port 8766
 
 - `GET /api/health` — liveness.
 - `GET /api/needs` — the current Need Graph.
+- `GET /api/requirements` — explicit Resource Requirement Objects used for deficit-aware matching.
 - `GET /api/resources` — the most recent scan output: `data/resources.jsonl` if present, else `data/resources.snapshot.jsonl`.
 - `GET|POST /api/scan` — runs the same discovery -> `enrich()` pipeline as `python3 -m resource_miner.cli scan`, accepting the same `source`/`needs`/`funding_data`/`dev_tag`/`github_query`/`rss` fields as querystring params (GET) or a JSON body (POST). Read-only by default (`persist=false`); pass `persist=1` (or `"persist": true` in a POST body) to write `data/resources.jsonl`, matching this service's Z0/Z1 read-only-discovery framing — nothing here asserts applicant eligibility.
 - `GET /api/entitlement/handoff?resource_id=<id>` — emits a typed, provenance-bearing `humanaios.resource-entitlement-handoff.v1` object for a selected live/snapshot resource. The handoff is always `VERIFY_ELIGIBILITY` with `eligibility_assessed=false` and authority effect `NONE`.
