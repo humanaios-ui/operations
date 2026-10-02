@@ -45,7 +45,7 @@ decision_2b: operator_authorization_with_guardrails (no auto-exec on DISPUTED/UN
 decision_2c: preserve_disagreement (DISPUTED warrant → escalation)
 decision_2d: z1_proposes_z2_ratifies (molt procedure)
 decision_2e: explicit_no_delegate_list (7 categories; hardcoded)
-decision_2f: 10_item_monthly_falsifier_checklist
+decision_2f: 10_item_falsifier_checklist (state-tracked audits)
 
 ratification_hash: sha256(Q-ORACLE-ACTUALIZER-01|decisions_2a-2f|by=Night|at=2026-10-02T00:00:00Z|decision=RATIFY)
 ratification_date: 2026-10-02T00:00:00Z
@@ -58,7 +58,7 @@ notes:
   - Actualizer preconditions: VERIFIED status required; DISPUTED/UNKNOWN blocks execution
   - Molt procedure: Z2 ratifies constitutional amendments; anti-cascade rules enforced
   - Z2 authorization gate: CI/CD verifies Z2 signature on all hard-no-delegate actions
-  - Falsifier monitor runs monthly; all 10 items audited
+  - Falsifier monitor enforces state-driven audit; all 10 items tracked in REGISTERED.md
 ```
 
 **Specification Document:** ORACLE_ACTUALIZER_IMPLEMENTATION_SPEC.md  
@@ -72,7 +72,7 @@ notes:
 RATIFY Q-AUTOMATA-LINEAGE-LAB-01
 decision_3a: dual_independent_formalization (Cohen's κ ≥ 0.70)
 decision_3b: structural_novelty_rule (new mechanism OR failure mode OR boundary)
-decision_3c: 30_day_cooling_off_period (prevents authority leakage)
+decision_3c: cooling_off_period_state_tracked (prevents authority leakage; state tracked in REGISTERED.md)
 decision_3d: both_separately_documented (Talos Lineage + Talos Benchmark orthogonal)
 decision_3e: negative_case_requirement (≥1 per mapping)
 decision_3f: publication_with_disclaimer (governance authority disavowal)
@@ -86,7 +86,7 @@ status: RATIFIED
 notes:
   - Dual formalization protocol locked; κ ≥ 0.70 enforced before publication
   - Novelty classification rule pre-registered; no post-hoc scoring
-  - 30-day cooling-off period tracked in REGISTERED.md; falsifier on early citation
+  - Cooling-off period (state-tracked in REGISTERED.md); falsifier on early citation while cooling_off_state != COOLED_OFF
   - Talos Lineage (historical) and Talos Benchmark (contemporary) published separately
   - Negative-case hunting mandatory; absence triggers DISPUTED warrant
   - Publication disclaimer on all external outputs
