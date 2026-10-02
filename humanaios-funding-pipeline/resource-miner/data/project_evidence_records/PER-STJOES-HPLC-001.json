@@ -1,16 +1,22 @@
 {
   "project_id": "PER-STJOES-HPLC-001",
   "title": "HPLC Laboratory Build / Recovery",
-  "organization": "St. Joseph's Research (exact entity pending verification)",
-  "source_role": "Laboratory/research role (exact title pending verification)",
-  "time_window": "Historical; exact dates pending verification",
-  "mandate": "Recover and establish an HPLC laboratory capability from a nonfunctional inherited project.",
-  "objective": "Build a functioning laboratory capability with capital/resource planning and technical setup.",
+  "organization": "St. Joseph's Hospital and Medical Center — Phoenix, AZ",
+  "source_role": "Biochemical Genetics Technologist — Diagnostics Division",
+  "time_window": "June 2004 – August 2011",
+  "mandate": "Develop and standardize a body-fluid amino-acid HPLC capability into a CAP-recognized biochemical genetics section.",
+  "objective": "Establish a functioning clinical biochemical-genetics section with validated methods, SOPs, quality assurance, proficiency testing, LIS reporting, training, document control, budget/purchasing, and research extension.",
   "scope": [
-    "HPLC laboratory setup",
-    "capital planning",
-    "laboratory workflow buildout",
-    "research operations"
+    "HPLC body-fluid amino-acid analysis",
+    "biochemical genetics section development",
+    "SOP development",
+    "LIS integration and data reporting",
+    "training and competency documentation",
+    "quality assurance and CAP proficiency",
+    "document control",
+    "budget and purchasing",
+    "instrument/reagent management",
+    "clinical research extension"
   ],
   "stakeholders": [
     "research leadership",
@@ -23,8 +29,12 @@
     "technical/regulatory environment"
   ],
   "resources_controlled": [
-    "capital requests exceeding $1,000,000 (human-attested)",
-    "laboratory setup responsibilities"
+    "HPLC instrumentation and reagents",
+    "section documentation and SOPs",
+    "training/competency procedures",
+    "LIS reporting workflow",
+    "budget and purchasing responsibilities",
+    "capital requests exceeding $1,000,000 (human-attested; amount not independently documented)"
   ],
   "risks_dependencies": [
     "equipment procurement",
@@ -34,16 +44,29 @@
     "vendor dependencies"
   ],
   "execution": [
-    "Human attests building/recovering the HPLC laboratory from an unusable state."
+    "Cultivated a body-fluid amino-acid HPLC analyzer into a standardized biochemical-genetics section recognized by CAP.",
+    "Authored SOPs for instrumentation, LIS, and specimen processing.",
+    "Established training procedures, guidelines, and skill-evaluation documentation.",
+    "Validated and maintained quality assurance; developed CAP proficiency policies and recurring inspection-readiness processes.",
+    "Implemented document control and integrated/launched LIS data reporting.",
+    "Managed budget and purchasing, instrumentation, reagents, and specimen analysis.",
+    "Established clinical trials and designed/presented research applications extending the laboratory.",
+    "Human additionally characterizes the inherited project as initially nonfunctional/dead-on-arrival."
   ],
   "deliverables": [
-    "Operational HPLC laboratory capability (human-attested)."
+    "Standardized CAP-recognized biochemical-genetics section",
+    "HPLC amino-acid testing capability",
+    "controlled SOP/documentation set",
+    "training and competency system",
+    "CAP proficiency/inspection process",
+    "LIS-integrated reporting workflow"
   ],
   "validation": [
-    "Project records and institutional evidence pending retrieval."
+    "Historical resume documents recurring CAP inspection/proficiency requirements and quality-assurance maintenance.",
+    "Public 2009 MALDI-TOF publication independently confirms related St. Joseph's/Barrow mass-spectrometry research authorship, but not the HPLC section build itself."
   ],
   "outcomes": [
-    "Human identifies the HPLC laboratory as a legacy build-from-zero achievement."
+    "Historical resume documents conversion of the HPLC capability into a standardized biochemical-genetics section recognized by CAP."
   ],
   "metrics": [
     "Capital requests exceeding $1,000,000 (human-attested)"
@@ -58,7 +81,25 @@
   ],
   "evidence": [
     {
-      "claim": "Human attests capital requests exceeding $1,000,000 associated with St. Joseph's Research.",
+      "claim": "Served as Biochemical Genetics Technologist — Diagnostics Division at St. Joseph's Hospital and Medical Center, Phoenix, June 2004–August 2011.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Resume UTD 2024.docx — St. Joseph's section"
+    },
+    {
+      "claim": "Developed a body-fluid amino-acid HPLC analyzer into a standardized biochemical-genetics section recognized by CAP.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Resume UTD 2024.docx — St. Joseph's section"
+    },
+    {
+      "claim": "Authored SOPs, training/competency procedures, QA/CAP proficiency processes, document control, LIS reporting, and managed budget/purchasing and instrumentation/reagents.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "RESUME",
+      "locator": "PRIVATE_DRIVE: Resume UTD 2024.docx — St. Joseph's section"
+    },
+    {
+      "claim": "Human attests capital requests exceeding $1,000,000 associated with the St. Joseph's research/laboratory work.",
       "claim_state": "HUMAN_ATTESTED",
       "source_type": "HUMAN",
       "locator": "EXP-CAREER-EVIDENCE-001 Q0.1"
@@ -70,28 +111,27 @@
       "locator": "EXP-CAREER-EVIDENCE-001 Q8.3/Q8.4"
     },
     {
-      "claim": "A peer-reviewed 2009 MALDI-TOF publication confirms related mass-spectrometry research authorship but not the HPLC buildout itself.",
+      "claim": "Peer-reviewed 2009 MALDI-TOF publication independently confirms Carly R. Anderson as a coauthor in related St. Joseph's/Barrow mass-spectrometry research.",
       "claim_state": "SOURCE_SUPPORTED",
       "source_type": "PUBLICATION",
-      "locator": "PubMed PMID 19940340"
+      "locator": "PubMed PMID 19940340; DOI 10.1255/ejms.1030"
     }
   ],
   "unknowns": [
     {
-      "field": "institution_and_title",
-      "reason": "Exact legal institution, department, title, and dates remain unverified.",
-      "interrogation_prompt": "Resolve from historical records only if needed for external use.",
+      "field": "capital_request_amount",
+      "reason": "Historical resume supports budget and purchasing responsibility but does not document the human-attested >$1,000,000 capital-request amount.",
+      "interrogation_prompt": "Retrieve capital request, purchasing, grant, or institutional records only if the amount is needed externally.",
       "market_signal_ids": [
-        "JRS-IMPLEMENTATION-SCALE-001"
+        "JRS-BUDGET-001",
+        "JRS-METRICS-001"
       ]
     },
     {
-      "field": "buildout_scope_and_outcome",
-      "reason": "Equipment list, validation scope, go-live state, staffing, and quantified outcomes are not yet evidenced.",
-      "interrogation_prompt": "Retrieve project records before detailed external use.",
+      "field": "dead_on_arrival_condition",
+      "reason": "The inherited nonfunctional/dead-on-arrival condition is human-attested and not independently described in the historical resume.",
+      "interrogation_prompt": "Use only as human-attested project-recovery context unless documentary evidence is found.",
       "market_signal_ids": [
-        "JRS-BUDGET-001",
-        "JRS-TECHNICAL-PLATFORM-001",
         "JRS-METRICS-001"
       ]
     }
