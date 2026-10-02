@@ -10,6 +10,7 @@ from .sources import devto, funding_pipeline, github, rss
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
+DEFAULT_REQUIREMENTS = ROOT / "data" / "resource_requirements.seed.json"
 DEFAULT_OUT = ROOT / "data" / "resources.jsonl"
 DEFAULT_FUNDING = ROOT.parent / "data" / "sources.json"
 
@@ -20,6 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     scan = sub.add_parser("scan", help="Discover, normalize, map, and route resource candidates")
     scan.add_argument("--source", action="append", choices=["funding", "devto", "github", "rss"], default=[])
     scan.add_argument("--needs", default=str(DEFAULT_NEEDS))
+    scan.add_argument("--requirements", default=str(DEFAULT_REQUIREMENTS))
     scan.add_argument("--out", default=str(DEFAULT_OUT))
     scan.add_argument("--funding-data", default=str(DEFAULT_FUNDING))
     scan.add_argument("--dev-tag", action="append", default=[])
@@ -44,7 +46,7 @@ def main() -> None:
         discovered.extend(github.discover(queries))
     if "rss" in sources:
         discovered.extend(rss.discover(args.rss))
-    resources = enrich(discovered, args.needs)
+    resources = enrich(discovered, args.needs, args.requirements)
     if args.dry_run:
         print(json.dumps([x.to_dict() for x in resources], indent=2, ensure_ascii=False))
     else:
