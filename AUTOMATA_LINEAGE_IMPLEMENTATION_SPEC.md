@@ -13,7 +13,7 @@
 |----------|---|---|
 | **3a. Reconstruction Rigor** | Dual independent formalization | Two researchers; inter-rater κ ≥70%; prevents single-researcher bias |
 | **3b. Novelty Classification** | Structural rule | New mechanism = new failure mode OR boundary (not speed/scale) |
-| **3c. Cooling-Off Period** | 30-day holding period | Historical findings sit 30 days before informing #497 decisions |
+| **3c. Cooling-Off Period** | State-tracked cooling off | Historical findings tracked in REGISTERED.md (cooling_off_state predicate) before informing #497 decisions |
 | **3d. Pilot 001 Scope** | Both separately documented | Talos Lineage (historical) AND Talos Benchmark (contemporary) with explicit separation |
 | **3e. Negative Case Requirement** | Required ≥1 per mapping | Every positive claim cites failed/dead-end archetype |
 | **3f. Publication Policy** | Published with disclaimer | Disclaimer on all external publication |
@@ -244,7 +244,7 @@ are reported in [Methods Section Y].
 
 This research does not constitute evidence for governance decisions about SMAG 
 calibration, Oracle authority, or any other policy. It is offered as background 
-context only, subject to 30-day cooling-off period before citation in governance 
+context only, subject to cooling-off period state predicate (tracked in REGISTERED.md) before citation in governance 
 decisions (Decision 3c).
 
 ---
