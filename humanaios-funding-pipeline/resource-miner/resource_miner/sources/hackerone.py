@@ -45,10 +45,16 @@ def _auth_headers(username: str, token: str) -> dict[str, str]:
     }
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
 def _default_transport(url: str, headers: dict[str, str]) -> dict[str, Any]:
     request = urllib.request.Request(url, headers=headers, method="GET")
+    opener = urllib.request.build_opener(_NoRedirect())
     try:
-        with urllib.request.urlopen(request, timeout=20) as response:
+        with opener.open(request, timeout=20) as response:
             payload = json.loads(response.read().decode("utf-8"))
     except Exception as exc:
         # Deliberately do not include request headers: they contain the API token.
@@ -77,6 +83,9 @@ class HackerOneClient:
         if params:
             separator = "&" if "?" in url else "?"
             url = f"{url}{separator}{urllib.parse.urlencode(params)}"
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme != "https" or parsed.hostname != "api.hackerone.com":
+            raise HackerOneAPIError("Refusing HackerOne API request outside https://api.hackerone.com")
         return self.transport(url, self._headers())
 
     def _iter_paginated(
