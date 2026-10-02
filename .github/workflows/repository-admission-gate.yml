@@ -8,6 +8,14 @@ name: repository-admission-gate
 # from the trusted default branch. It never checks out or executes PR-head
 # code: PR state is read through the GitHub API with a read-only token.
 #
+# Auto-triggering: This gate runs on all PR state changes including:
+#   - opened, reopened, ready_for_review, converted_to_draft
+#   - synchronize (new commits pushed)
+#   - edited (title/body edited, labels changed)
+#   - reviews submitted/dismissed
+# When you edit a PR description (e.g., fix file references), the gate
+# automatically re-runs and updates the check result. No manual trigger needed.
+#
 # Why this matters (red-team findings on the v0.2 candidate gate):
 #   - The previous gate read the policy from the PR checkout, so a PR could
 #     admit itself by editing the policy it was judged against.

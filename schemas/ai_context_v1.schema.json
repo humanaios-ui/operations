@@ -1,0 +1,292 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HumanAIOS AI Context Schema v1.0",
+  "description": "Machine-readable state projection for AI agents working on HumanAIOS repositories",
+  "type": "object",
+  "required": [
+    "schema",
+    "repository",
+    "head_sha",
+    "timestamp",
+    "object",
+    "agent_permissions"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "enum": ["humanaios.ai-context.v1"],
+      "description": "Schema version identifier"
+    },
+    "repository": {
+      "type": "string",
+      "description": "Repository owner/name"
+    },
+    "head_sha": {
+      "type": "string",
+      "description": "Current HEAD SHA at time of context generation"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When context was generated (UTC)"
+    },
+    "object": {
+      "type": "object",
+      "description": "The work object this context describes",
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["issue", "pull_request", "file", "process"],
+          "description": "Type of work object"
+        },
+        "id": {
+          "type": "string",
+          "description": "GitHub issue/PR number or file path or process ID"
+        },
+        "title": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string",
+          "enum": ["open", "closed", "merged"]
+        },
+        "coordinator_lane": {
+          "type": "string",
+          "enum": ["ACTIVE", "ADMITTED_TO_EVALUATION", "CONTROL_PLANE", "ADMISSION_REVIEW", "WORKBENCH", "MAINTENANCE", "CAPACITY_CONTENTION"],
+          "description": "Repository coordinator lane (from repository_coordinator_v0_1.py)"
+        },
+        "attention_route": {
+          "type": "string",
+          "enum": ["NEEDS_HUMAN", "AGENT_ACTIONABLE", "EXTERNAL_DEPENDENCY", "WAITING", "INFORMATIONAL"],
+          "description": "Signal router classification (from issue #640)"
+        }
+      }
+    },
+    "current_state": {
+      "type": "object",
+      "description": "State of the work object",
+      "properties": {
+        "blocking_conditions": {
+          "type": "array",
+          "description": "What currently blocks this work",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["CI_FAILURE", "DECISION_AUTHORITY", "EXTERNAL_DEPENDENCY", "REVIEW_CHALLENGE", "MERGE_CONFLICT"],
+                "description": "Type of blocker"
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable description"
+              },
+              "required_actor": {
+                "type": "string",
+                "enum": ["AGENT", "DEVELOPER", "REVIEWER", "Z1", "Z2", "Z3", "REPOSITORY_OWNER", "EXTERNAL", "UNKNOWN"]
+              },
+              "sla": {
+                "type": "object",
+                "properties": {
+                  "expires_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "hours_remaining": {
+                    "type": "number"
+                  }
+                }
+              },
+              "status": {
+                "type": "string",
+                "enum": ["OPEN", "IN_PROGRESS", "WAITING", "RESOLVED"],
+                "description": "Current status of blocker"
+              }
+            }
+          }
+        },
+        "open_challenges": {
+          "type": "array",
+          "description": "Contested or unresolved aspects",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "raised_by": {
+                "type": "string"
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "contradictions": {
+          "type": "array",
+          "description": "Known contradictions or conflicts",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "agent_permissions": {
+      "type": "object",
+      "description": "Authority and constraints for AI agent",
+      "required": ["zone", "can_merge"],
+      "properties": {
+        "zone": {
+          "type": "string",
+          "enum": ["Z1", "Z2", "Z3"],
+          "description": "HumanAIOS zone authority"
+        },
+        "can_edit_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns of editable files"
+        },
+        "cannot_edit_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Canonical/frozen files that cannot be edited"
+        },
+        "can_merge": {
+          "type": "boolean"
+        },
+        "requires_authority": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Z2", "Z3", "CODE_REVIEW", "CI_PASS"]
+          },
+          "description": "What gates must pass before action"
+        },
+        "capacity": {
+          "type": "object",
+          "description": "Resource constraints",
+          "properties": {
+            "max_files_per_pr": {
+              "type": "integer"
+            },
+            "max_lines_per_commit": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Evidence and references",
+      "properties": {
+        "relevant_files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Why this file is relevant"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["CANONICAL", "IMPLEMENTATION", "TEST", "DOCUMENTATION", "CONFIGURATION", "UNKNOWN"]
+              }
+            }
+          }
+        },
+        "graph_nodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Relevant nodes from system_graph.json"
+        },
+        "prior_sessions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string"
+              },
+              "actor": {
+                "type": "string"
+              },
+              "outcome": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "custody": {
+          "type": "object",
+          "description": "Who did/decided/saw what",
+          "properties": {
+            "author": {
+              "type": "string"
+            },
+            "observers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "authority_holders": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "reviewers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "resolution_tests": {
+      "type": "array",
+      "description": "What proves this work is complete",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["AUTOMATED", "MANUAL", "AUTHORITY_RECEIPT"]
+          },
+          "evidence": {
+            "type": "string",
+            "description": "How to verify (command, check name, receipt type)"
+          }
+        }
+      }
+    },
+    "unknown": {
+      "type": "array",
+      "description": "Explicit unresolved facts or unknowns",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
