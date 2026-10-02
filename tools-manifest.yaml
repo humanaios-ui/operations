@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 192
+  tools: 194
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 145
+  builder_markers_present: 147
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2446,6 +2446,32 @@ tools:
     blocks on closed provenance, missing falsifier and missing timestamp, advises on the other six. Multiplex-aware
     (--all) with a ratcheting baseline (crb/graph_capture_baseline.json).
   session: S-100126-graph-capture-lint
+- tool_id: HAIOS-TOOL-206
+  name: machine_graph_collect_macos
+  path: tools/machine_graph/collect_macos.py
+  version: 0.1.0
+  category: pipeline_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Metadata-first and local-only by design. It does not read user document contents.
+  session: '#596'
+- tool_id: HAIOS-TOOL-207
+  name: machine_graph_validate_snapshot
+  path: tools/machine_graph/validate_snapshot.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies.
+  session: '#596'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
