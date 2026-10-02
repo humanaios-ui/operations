@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
@@ -56,6 +57,12 @@ def _default_transport(url: str, headers: dict[str, str]) -> dict[str, Any]:
     try:
         with opener.open(request, timeout=20) as response:
             payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        # Do not include request headers or response bodies: either may contain
+        # sensitive material. Status code + endpoint are sufficient diagnostics.
+        raise HackerOneAPIError(
+            f"HackerOne GET failed for {url}: HTTP {exc.code}"
+        ) from exc
     except Exception as exc:
         # Deliberately do not include request headers: they contain the API token.
         raise HackerOneAPIError(f"HackerOne GET failed for {url}: {type(exc).__name__}") from exc
