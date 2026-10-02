@@ -38,6 +38,7 @@ COLLECTOR_VERSION = "0.1.0"
 DEFAULT_TOOLS = [
     "git", "python3", "pip3", "brew", "docker", "node", "npm",
     "java", "osqueryi", "ollama", "code",
+    "curl", "openssl", "jq", "gh", "xcodebuild", "adb", "swift", "codesign",
 ]
 
 EXCLUDED_DIR_NAMES = {
