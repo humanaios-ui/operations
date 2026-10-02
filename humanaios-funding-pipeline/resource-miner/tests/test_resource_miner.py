@@ -290,6 +290,41 @@ class ResourceMinerTests(unittest.TestCase):
         second, _ = reconcile_rows(first, [receipt])
         self.assertEqual(first, second)
 
+    def test_reconciliation_resorts_after_route_change(self):
+        rows = [
+            {
+                "resource_id": "RES-CLOSED",
+                "title": "Previously high priority",
+                "route": "VERIFY_NOW",
+                "status": "ACTIVE",
+                "next_operation": "VERIFY",
+                "need_matches": [{"score": 1.0}],
+                "requirement_matches": [],
+            },
+            {
+                "resource_id": "RES-OPEN",
+                "title": "Still actionable",
+                "route": "VERIFY_NOW",
+                "status": "ACTIVE",
+                "next_operation": "VERIFY",
+                "need_matches": [{"score": 0.6}],
+                "requirement_matches": [],
+            },
+        ]
+        receipt = {
+            "receipt_id": "R-ORDER",
+            "resource_id": "RES-CLOSED",
+            "observed_at": "2026-10-02T10:00:00Z",
+            "observation_type": "CURRENTNESS",
+            "source_kind": "PRIMARY_SOURCE",
+            "source_url": "https://example.com/program",
+            "to_status": "NOT_CURRENTLY_OPEN",
+            "authority_effect": "NONE",
+        }
+        reconciled, _ = reconcile_rows(rows, [receipt])
+        self.assertEqual(reconciled[0]["resource_id"], "RES-OPEN")
+        self.assertEqual(reconciled[1]["route"], "WATCH")
+
     def test_winner_announcement_date_is_not_deadline(self):
         candidate = normalize_generic(
             title="Challenge", url="https://example.com/dates", source_name="Example",
