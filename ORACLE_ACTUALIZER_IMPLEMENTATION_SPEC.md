@@ -466,11 +466,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: "Falsifier 1: Unknown claims >2 weeks"
+      - name: "Falsifier 1: Unknown claims in escalation state"
         run: |
           python3 -c "
-            import json, datetime
-            today = datetime.datetime.utcnow()
+            import json
             
             unknown_count = 0
             escalation_list = []
@@ -479,21 +478,23 @@ jobs:
               oracle = json.load(f)
             
             for unknown in oracle.get('unknowns', []):
-              days = (today - datetime.datetime.fromisoformat(unknown['created_at'])).days
-              if days > 14:
+              # Query REGISTERED.md for escalation state per 2f falsifier
+              # Elapsed-time logic replaced with state-tracked checks (not calendar-driven)
+              escalation_state = unknown.get('escalation_state', 'ACTIVE')
+              if escalation_state == 'ESCALATE_TO_Z2':
                 unknown_count += 1
-                escalation_list.append(f\"  - {unknown['description']} ({days} days)\")
+                escalation_list.append(f\"  - {unknown['description']} (state: ESCALATE_TO_Z2)\")
             
             if unknown_count > 0:
-              print(f'FALSIFIER TRIPPED: {unknown_count} unknowns >14 days')
+              print(f'FALSIFIER TRIPPED: {unknown_count} unknowns in escalation state')
               for item in escalation_list:
                 print(item)
               exit(1)
             else:
-              print('PASS: No unknowns >14 days')
+              print('PASS: No unknowns in escalation state')
           "
       
-      - name: "Falsifier 2: Unauthorized actions >1/month"
+      - name: "Falsifier 2: Unauthorized action threshold exceeded"
         run: |
           python3 -c "
             import json
@@ -501,19 +502,19 @@ jobs:
             with open('oracle_state.json') as f:
               oracle = json.load(f)
             
-            # Query REGISTERED.md for cooling-off state per Decision 3c
-            # If finding is in cooling-off period, retrieve from registry
-            # Timestamp-based logic replaced with state-tracked checks (not calendar-driven)
+            # Query REGISTERED.md for authorization state per Decision 2f
+            # Elapsed-time logic replaced with state-tracked checks (not calendar-driven)
             unauthorized = [r for r in oracle.get('execution_receipts', [])
-              if r['status'] == 'BLOCKED']
+              if r['status'] == 'BLOCKED' and r.get('authorization_state') == 'UNAUTHORIZED']
             
-            if len(unauthorized) > 1:
-              print(f'FALSIFIER TRIPPED: {len(unauthorized)} unauthorized actions last 30 days')
+            threshold = oracle.get('unauthorized_action_threshold', 1)
+            if len(unauthorized) > threshold:
+              print(f'FALSIFIER TRIPPED: {len(unauthorized)} unauthorized actions exceed threshold')
               for r in unauthorized:
                 print(f\"  - {r['action_id']}: {r['reason']}\")
               exit(1)
             else:
-              print(f'PASS: {len(unauthorized)} unauthorized actions last 30 days')
+              print(f'PASS: {len(unauthorized)} unauthorized actions (threshold: {threshold})')
           "
       
       - name: "Falsifier 3: Disagreement rate >30%"

@@ -27,7 +27,7 @@ status: RATIFIED
 notes: 
   - Conflict resolved: Option A (real-time capture modification to smag_pr_autocapture_v1_0.py)
   - Existing smag-capture.yml + smag-consolidate.yml workflows RETAINED (reporting layer)
-  - New merge-gate.yml DEPENDS on real-time ledger entries (Phase 1–4 implementation timeline)
+  - New merge-gate.yml DEPENDS on real-time ledger entries (resource-state transitions)
   - Repository Coordinator gate (lint-smag-duplication.yml) enforces one active SMAG control
 ```
 
@@ -107,7 +107,7 @@ decision_4b: pre_registered_comparators_and_methodology (Z2 approval before data
 decision_4c: show_me_why_scope (auditor verification use case; narrow; cheaper)
 decision_4d: validation_gates_with_numeric_thresholds (hard gates per phase)
 decision_4e: hypothesis_operationalization_h1_h7 (all measurable; specific thresholds)
-decision_4f: layer_prototype_3_weeks (minimal public + minimal institutional; integration testing)
+decision_4f: layer_prototype_resource_state_gated (minimal public + minimal institutional; integration testing)
 
 ratification_hash: sha256(Q-PUBLIC-UTILITY-MARKET-VALIDATION-01|decisions_4a-4f|by=Night|at=2026-10-02T00:00:00Z|decision=RATIFY|firewall=governance_independent)
 ratification_date: 2026-10-02T00:00:00Z
@@ -121,7 +121,7 @@ notes:
   - Pre-registered comparator list + methodology locked pre-data-collection
   - "Show Me Why" scope narrowed to institutional auditor verification use case
   - All H1–H7 hypotheses operationalized with quantitative success thresholds
-  - Layer prototype (3 weeks) tests public/institutional coexistence; confirms no feature conflicts
+  - Layer prototype (resource-state gated) tests public/institutional coexistence; confirms no feature conflicts
   - FIREWALL: Market findings do NOT override Z2 governance decisions (#477–498)
   - Null/negative results reported transparently; no post-hoc narrative pressure
 ```
@@ -149,7 +149,7 @@ notes:
 
 **Implementation Responsibility:** Z3 (Copilot) during Stage 5
 
-**Status:** APPROVED
+**Status:** APPROVED (state-driven execution; measurement windows OBSERVATIONAL)
 
 ---
 

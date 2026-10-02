@@ -440,29 +440,29 @@ jobs:
             exit 1
           fi
       
-      - name: "Check cooling-off period"
+      - name: "Check cooling-off period state"
         run: |
           python3 << 'PYTHON'
-          import datetime, re
+          import re
           
-          # Read REGISTERED.md to find lineage completion date
+          # Query REGISTERED.md for cooling-off state per Decision 3c
+          # Elapsed-time logic replaced with state-tracked checks (not calendar-driven)
           with open('REGISTERED.md') as f:
               content = f.read()
           
-          match = re.search(r'LINEAGE_FINDING.*completed_date=(\d{4}-\d{2}-\d{2})', content)
+          match = re.search(r'LINEAGE_FINDING.*cooling_off_state=(\S+)', content)
           if not match:
               print("INFO: No lineage findings in REGISTERED.md yet (pre-study)")
           else:
-              completed = datetime.datetime.strptime(match.group(1), '%Y-%m-%d')
-              cooling_off_end = completed + datetime.timedelta(days=30)
-              today = datetime.datetime.now()
+              cooling_off_state = match.group(1)
               
-              if today >= cooling_off_end:
-                  print(f"✓ Cooling-off period elapsed ({cooling_off_end.date()})")
-              else:
-                  days_remaining = (cooling_off_end - today).days
-                  print(f"⚠ Cooling-off period active ({days_remaining} days remaining)")
+              if cooling_off_state == 'EXPIRED':
+                  print(f"✓ Cooling-off period expired (state-tracked in REGISTERED.md)")
+              elif cooling_off_state == 'ACTIVE':
+                  print(f"⚠ Cooling-off period active (state-tracked in REGISTERED.md)")
                   # Non-blocking warning; can cite after period expires
+              else:
+                  print(f"INFO: Unknown cooling-off state: {cooling_off_state}")
           PYTHON
       
       - name: "Verify no conflation (separate reports)"
