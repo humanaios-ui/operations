@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-This repository already runs six graph-shaped structures. None of them spans repositories, and none of them carries cost. That is the actual gap — not "we need graphs," which we have in abundance, but "we need the layer that aggregates them across the 31-repo enterprise and prices what they cost to advance."
+This repository already runs six graph-shaped structures. None of them spans repositories, and only one — the Resource/RBE-OPS Economy — carries cost at all, and only at the individual work-order level, never aggregated across an initiative. That is the actual gap — not "we need graphs," which we have in abundance, and not "we need cost accounting," which already exists and is ratified, but "we need the layer that aggregates work *and* its already-tracked cost across the 31-repo enterprise, at the granularity of a named initiative rather than one PR at a time." *(Correction, 2026-10-02, via Copilot PR review on #671: the original wording here said "none of them carries cost," which directly contradicted Part 1 §6 below — fixed.)*
 
 | Layer | Status today | What it answers | Primary file(s) |
 |:---|:---|:---|:---|
@@ -76,30 +76,43 @@ Two findings fall directly out of doing this exercise, neither assumed going in:
 1. **A missing Objective, not just a missing Program.** The INTENT-OS Attention Control Plane Program has no existing Objective to realize. That is itself exactly the kind of gap `INTENT_GRAPH.yaml`'s validator is built to surface (it already reports 7 non-blocking warnings of this shape). This document does not resolve that gap — adding `O-ATTENTION-ROUTING` as an eleventh Objective is a Z2 call, listed in Action Items below, not decided here.
 2. **Three graphs, one week, zero shared primitive.** `system_graph.json` uses `{id, type, status, zone}`; the Machine Substrate Graph uses `{nodes, edges, omissions}` with a closed observation-state vocabulary; the Calibration Evidence Graph is RDF/Turtle validated against a formal PROV-O/SHACL ontology — a different graph technology altogether. A Program node that tracks "the Knowledge/Substrate Graphs Program" as a single entity would have surfaced this immediately. A single-repo, single-PR view structurally cannot.
 
-**What a Program node carries**, as a proposed addition to `INTENT_GRAPH.yaml`'s schema, in the same shape its existing node kinds already use:
+**What a Program node carries**, as a proposed addition to `INTENT_GRAPH.yaml`'s actual schema — verified directly against `tools/intent_graph_v1_0.py` rather than assumed, after the first draft of this section got the field names wrong (see note below the example):
 
 ```yaml
+# In the file's `nodes:` list:
 - id: PROGRAM-CUSTODY-PROVENANCE-01
-  kind: program                      # new node kind, alongside vision/mission/principle/objective/gate/instrument
+  type: program                       # new node type, alongside vision/mission/principle/objective/gate/instrument
   name: "Custody & Provenance Chain"
   statement: "Attribute decisions and actions to their true origin — human, AI, or
     shared-account-unknown — without treating GitHub account identity as proof of
     either, so Z3 executor onboarding does not collapse authority."
-  state: in_progress                  # live | proposed | conflicted | in_progress | done
-  realizes: [O-WITNESS]               # existing Objective(s) this Program advances — required, not optional
+  status: LIVE                        # one of NODE_STATUSES: LIVE | PROPOSED | CONFLICTED | CITED_NOT_IMPLEMENTED
+  persistence: RATIFIED               # default; a Program is tracked until closed, not ephemeral session state
+  source: "PROGRAM_GRAPH_MAPPING.md"  # this document, at its actual repo-root path
   constituent_nodes:
     - {repo: operations, type: issue, ref: 620}
     - {repo: operations, type: issue, ref: 621}
     - {repo: operations, type: pr, ref: 623, state: merged}
     - {repo: operations, type: pr, ref: 606, state: open}
     - {repo: operations, type: pr, ref: 630, state: open}
-  source: "z1-inbox/2026-10-02/PROGRAM_GRAPH_MAPPING.md"   # this document, per the Intent Graph's own sourcing discipline
-  persists_until: "Z2 supersedes"
+
+# In the file's separate, top-level `edges:` list — not nested inside the node:
+- {from: PROGRAM-CUSTODY-PROVENANCE-01, to: O-WITNESS, rel: realizes}
 ```
 
-This is deliberately the *same shape* `INTENT_GRAPH.yaml` already uses for every other node kind (`id`, `name`/`statement`, `source`, `state`, `persists_until`), plus one new required edge type, `realizes`, pointing at an existing Objective — exactly parallel to how `Objective` nodes already `realize` a `Mission`. A Program with no `realizes` target is not silently allowed; it is flagged, the same way the validator already flags objectives with no instrument.
+*Correction (2026-10-02, via Copilot PR review on #671): the first draft of this example used `kind:` (the real field, confirmed at `tools/intent_graph_v1_0.py:303`, is `type:`), an inline `realizes: [...]` list inside the node (edges are a separate top-level list keyed by `from`/`to`/`rel`, confirmed at lines 353-362), a lowercase, invented `state: in_progress` (the real enum, `NODE_STATUSES` at line 116, is `{LIVE, PROPOSED, CONFLICTED, CITED_NOT_IMPLEMENTED}` — none of which means "done"; see open question below), and a `source:` path (`z1-inbox/2026-10-02/...`) that doesn't exist — this document lives at the repo root. All four are fixed above, verified against the cited lines rather than re-guessed.*
 
-`cost_to_date` and `benefit_to_date` are deliberately *not* shown in the YAML above — they live in `program_graph.py`'s output (Part 4), not in `INTENT_GRAPH.yaml` itself, because `INTENT_GRAPH.yaml`'s own stated job is grounding and contradiction, not arithmetic. Keeping the resource rollup in a separate tool mirrors the existing, working separation between `system_graph.json` (what exists) and `RESOURCE_UNITS.yaml`/`PRIORITY_QUEUE.md` (what it costs) — this document does not collapse that separation, it extends the pattern one level up.
+**Schema changes this actually requires** (not yet made — proposed here, decided in Action Items):
+
+1. `INTENT_GRAPH.yaml`'s own `node_types:` vocabulary block (line 79) gets one new entry, in the same style as its five existing ones: `program: A named, time-bound, multi-repo initiative that realizes one or more objectives and carries tracked resource cost.`
+2. `tools/intent_graph_v1_0.py`'s `KNOWN_NODE_TYPES` (line 319) gets `"program"` added to the set.
+3. `tools/intent_graph_v1_0.py`'s `EDGE_DOMAINS["realizes"]` (line 128) is currently `({"objective", "mission"}, {"mission", "vision"})` — it does not permit `objective` as a target at all today, only `mission`/`vision`. It needs to become `({"objective", "mission", "program"}, {"mission", "vision", "objective"})` so `program → objective` validates, while the existing `objective → mission` and `mission → vision` edges keep working unchanged.
+
+**Open question this surfaces, not resolved here:** `NODE_STATUSES` has no value for "a Program finished successfully and is now closed." Objectives never need one — they're standing commitments that persist until superseded, not initiatives that complete. A Program is explicitly time-bound, so this is a real, new case, not an oversight to route around quietly. Whether that's a fifth status value (e.g. `COMPLETE`) or a `persistence` transition out of `RATIFIED` is a Z2 design call, listed in Action Items.
+
+A Program with no `realizes` edge at all is not silently allowed under this design — the validator already flags objectives with no instrument the same way (W2 warnings); a Program should get the equivalent treatment, specified at implementation time, not invented here.
+
+`cost_to_date` and `benefit_to_date` are deliberately *not* part of the node shape above — they live in `program_graph.py`'s output (Part 4), not in `INTENT_GRAPH.yaml` itself, because `INTENT_GRAPH.yaml`'s own stated job is grounding and contradiction, not arithmetic. Keeping the resource rollup in a separate tool mirrors the existing, working separation between `system_graph.json` (what exists) and `RESOURCE_UNITS.yaml`/`PRIORITY_QUEUE.md` (what it costs) — this document does not collapse that separation, it extends the pattern one level up.
 
 ---
 
@@ -139,23 +152,23 @@ Concretely, this adds one line to #640's own worked example, free of charge once
 This document does not attempt that conversion, does not invent a shortcut around it, and treats both constraints as binding:
 
 1. **Every cost figure in this proposal stays a vector.** `{Z1-ktok: 340, Z3-hr: 2, CI-min: 85}` is never summed into one number. If Z2 ever wants a blended cross-unit Program score, that requires the same `PRICE event` mechanism `RESOURCE_UNITS.yaml` already defines — paired observations, a named constraint, a minimum sample size — not a convenience formula invented by this document.
-2. **`UNPRICED_ROW_POLICY = REFUSED_TO_START` governs individual `PRIORITY_QUEUE.md` rows, not Programs.** A Program's own aggregate cost showing `UNMEASURED` (because no `program_id` tag exists yet on `RESOURCE_LEDGER.jsonl` rows) is a reporting gap to close, not a bypass of admission discipline. No individual work item skips pricing or starts unpriced because it is tagged to a Program — every constituent issue/PR still clears `O-QUEUE`'s existing Band A/B/UNPRICED gate exactly as today. Programs aggregate *after* pricing, never instead of it.
+2. **`UNPRICED_ROW_POLICY = REFUSED_TO_START` governs individual `PRIORITY_QUEUE.md` rows, not Programs.** A Program's own aggregate cost showing `UNMEASURED` (because no Program mapping exists yet for its work orders) is a reporting gap to close, not a bypass of admission discipline. No individual work item skips pricing or starts unpriced because it is tagged to a Program — every constituent issue/PR still clears `O-QUEUE`'s existing Band A/B/UNPRICED gate exactly as today. Programs aggregate *after* pricing, never instead of it.
 
-**The mechanism, respecting both constraints:**
+**The mechanism, respecting both constraints — and a third:** `RESOURCE_LEDGER.jsonl` is append-only and hash-chained; `docs/RESOURCE_UNITS.md` states plainly that "any edited prior line" breaks `verify`. A `program_id` field cannot be retrofitted onto *existing* `SPEND` rows, and the real `SPEND` event shape (`tools/resource_ledger_v0_1.py`) has no generic tag field at all — it carries `{type, at, by, order_id, unit, qty, source, obligation_class}`, nothing more. *(Correction, 2026-10-02, via Copilot PR review on #671: the original wording here proposed tagging existing ledger rows in place — not possible without breaking chain verification. Fixed below.)*
 
-1. `RESOURCE_LEDGER.jsonl` `SPEND` rows already carry (or trivially could carry) the work-order they were drawn against.
-2. Each work-order (issue/PR) gets an optional `program_id`, mirroring the `zone`/`session` fields tool entries in `tools-manifest.yaml` already carry.
-3. `program_graph.py` sums `SPEND` rows by `program_id`, per unit, **as a vector, never collapsed**: `{Z1-ktok: 340, Z3-hr: 2, CI-min: 85}`.
+1. A new, separate, append-only mapping file (e.g. `program_orders.jsonl`) records `{order_id, program_id, assigned_at, assigned_by}` rows — it maps work orders to Programs without touching `RESOURCE_LEDGER.jsonl`'s own rows at all, historical or future. Assigning (or reassigning) an order to a Program is itself just a new line appended to *this* file, never an edit to the ledger.
+2. `program_graph.py` reads `RESOURCE_LEDGER.jsonl` `SPEND` rows (keyed by `order_id`, quantity in `qty`) and joins them against the mapping file to attribute cost per Program — a read-only join, not a ledger mutation.
+3. Sums are kept by `program_id`, per unit, **as a vector, never collapsed**: `{Z1-ktok: 340, Z3-hr: 2, CI-min: 85}`.
 4. Benefit is counted exactly as `PRIORITY_QUEUE.md` already counts it — `impact` of ratified work plus impact of work it unblocked — summed per Program instead of per row.
-5. Density is computed per unit, using `PRIORITY_QUEUE.md`'s own existing formula unchanged, one level up: `density[unit] = benefit / cost[unit]`.
+5. Density is computed per unit, using `PRIORITY_QUEUE.md`'s own existing Band A/B logic unchanged, one level up: an explicit zero cost ranks by raw benefit (Band A — no density computed, matching `cost[RAT-min] == 0` today); a positive cost computes `density[unit] = benefit / cost[unit]` (Band B); no cost recorded for that unit at all is `UNMEASURED`, distinct from both — mirroring `priority_queue_engine.py`'s own documented rule that "a missing key is 'nobody costed this,' which is not the same claim as 'this costs nothing.'"
 
-**Worked illustration** (numbers below are illustrative placeholders for the *shape* of the output, explicitly not real measurements — real ones require wiring step 1–2, which this document proposes but does not implement):
+**Worked illustration** (numbers below are illustrative placeholders for the *shape* of the output, explicitly not real measurements — real ones require wiring steps 1–2, which this document proposes but does not implement):
 
 | Program | Z1-ktok spent (illustrative) | Ratified capabilities delivered | density (capabilities / 100 Z1-ktok) |
 |:---|---:|---:|---:|
-| Custody & Provenance Chain | ~340 | 1 (PR #623) | 0.29 |
-| Concept-to-Code Stack | ~900 | 4 (Layers 1–4 ratified) | 0.44 |
-| INTENT-OS Attention Control Plane | 0 | 0 (spec only, no PR yet) | undefined — no cost incurred, nothing to rank by density |
+| Custody & Provenance Chain | ~340 | 1 (PR #623) | 0.29 (Band B) |
+| Concept-to-Code Stack | ~900 | 4 (Layers 1–4 ratified) | 0.44 (Band B) |
+| INTENT-OS Attention Control Plane | — | 0 (spec only, no PR yet) | `UNMEASURED` — no `SPEND` rows exist for this Program at all, distinct from a Program that spent zero on purpose |
 
 This is the literal answer to "drilling down to tokenized utility": Z2 gets a `density` column per unit, in the same non-commensurable-vector spirit `RESOURCE_UNITS.yaml` already ratifies, at the granularity that actually matches a continue/stop decision — not "should I merge this PR" (the existing queue already answers that) but "is this multi-week initiative worth the AI-compute it is drawing, relative to the others competing for the same 100-Z1-ktok/session cap."
 
@@ -180,7 +193,7 @@ This is the literal answer to "drilling down to tokenized utility": Z2 gets a `d
 
 ## Part 6 — Minimal executable companion
 
-`program_graph.py` implements only the rollup arithmetic from Part 4 — reading `Program` nodes (the `kind: program` extension proposed in Part 2) and `RESOURCE_LEDGER.jsonl` `SPEND` rows, computing cost vectors and density. It does not implement GitHub API wiring, ledger-tagging, or UI, and it does not duplicate `tools/intent_graph_v1_0.py`'s grounding/contradiction validation — that stays exactly where it is.
+`program_graph.py` implements only the rollup arithmetic from Part 4 — reading `Program` nodes (the `type: program` extension proposed in Part 2), an order-to-program mapping, and `RESOURCE_LEDGER.jsonl` `SPEND` rows, computing cost vectors and density. It does not implement GitHub API wiring, ledger-tagging, or UI, and it does not duplicate `tools/intent_graph_v1_0.py`'s grounding/contradiction validation — that stays exactly where it is.
 
 ```python
 TOOL_NAME = "program_graph"
@@ -200,7 +213,9 @@ TOOL_CATEGORY = "governance_tool"
 ## Action Items for Z2 Ratification
 
 - [ ] Ratify this mapping as reference architecture (Layer 5 of the concept-to-code stack)
-- [ ] Decide: add `kind: program` as a new node type to `INTENT_GRAPH.yaml`'s schema (extending `tools/intent_graph_v1_0.py`'s validator), vs. a fully separate file
+- [ ] Decide: add `type: program` as a new node type to `INTENT_GRAPH.yaml`'s schema — concretely, the `node_types:` vocabulary entry, `KNOWN_NODE_TYPES`, and the `EDGE_DOMAINS["realizes"]` extension specified in Part 2 — vs. a fully separate file
+- [ ] Decide: the open status-vocabulary question from Part 2 (does a completed Program need a new `NODE_STATUSES` value, or a `persistence` transition?)
+- [ ] Decide: `program_orders.jsonl` (the append-only order-to-program mapping proposed in Part 4) as a new file, including who may append to it
 - [ ] Decide: should `O-ATTENTION-ROUTING` be added as an eleventh Objective, so the INTENT-OS Attention Control Plane Program (issue #640) has something to `realize`? Today it has none — a real gap this document surfaces but does not resolve
 - [ ] Decide: `program_id` as a native GitHub issue/PR custom field vs. a repo-internal convention field
 - [ ] Decide: GitHub Projects (v2) as the Program board surface — requires org-level, not just repo-level, Project creation
