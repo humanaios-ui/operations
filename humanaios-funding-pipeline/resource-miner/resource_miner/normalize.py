@@ -95,7 +95,7 @@ def extract_dates(text: str) -> list[str]:
     out: list[str] = []
     for month, day, year in DATE_RE.findall(text or ""):
         try:
-            parsed = datetime.strptime(f"{month} {day} {year}", "%B %d %Y).date().isoformat()
+            parsed = datetime.strptime(f"{month} {day} {year}", "%B %d %Y").date().isoformat()
         except ValueError:
             continue
         if parsed not in out:
