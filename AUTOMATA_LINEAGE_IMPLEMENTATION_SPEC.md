@@ -2,8 +2,9 @@
 
 **Z2 Ratified Decisions:** 3a–3f (See PHASE_1_RATIFICATION_PACKAGE.md)  
 **Authority:** Night (carly.r.anderson@gmail.com)  
-**Status:** DRAFT — Ready for Z2 Signature + Z3 Implementation  
-**Stage:** 4 (Z2 Ratification) → 5 (Z3 Implementation)
+**Status:** ✅ RATIFIED (2026-10-02)  
+**Z2 Ratification Hash:** `4e65f25dbb97dc2e8efa51e1ab5a04710c52d406611815405256d64ecb0ab4aa`  
+**Stage:** 4 (Z2 Ratification) ✅ → 5 (Z3 Implementation)
 
 ---
 

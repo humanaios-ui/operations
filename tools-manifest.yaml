@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 194
+  tools: 196
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 147
+  builder_markers_present: 149
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2447,6 +2447,32 @@ tools:
     (--all) with a ratcheting baseline (crb/graph_capture_baseline.json).
   session: S-100126-graph-capture-lint
 - tool_id: HAIOS-TOOL-206
+  name: ai_context_generator
+  path: tools/ai_context_generator_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Generates queryable, machine-readable context from canonical repository sources.
+  session: Z1
+- tool_id: HAIOS-TOOL-207
+  name: haios
+  path: tools/haios
+  version: 0.1.0
+  category: orchestrator_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: other
+  smoke_test: true
+  builder_markers: true
+  purpose: Deterministic CLI query interface over ai_context_generator (context, authority, blockers,
+    completion-evidence, unknown subcommands).
+- tool_id: HAIOS-TOOL-208
   name: machine_graph_collect_macos
   path: tools/machine_graph/collect_macos.py
   version: 0.1.0
@@ -2459,7 +2485,7 @@ tools:
   builder_markers: true
   purpose: Metadata-first and local-only by design. It does not read user document contents.
   session: '#596'
-- tool_id: HAIOS-TOOL-207
+- tool_id: HAIOS-TOOL-209
   name: machine_graph_validate_snapshot
   path: tools/machine_graph/validate_snapshot.py
   version: 0.1.0

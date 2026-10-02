@@ -1,0 +1,245 @@
+#!/usr/bin/env python3
+"""
+HumanAIOS AI Context CLI — Builder v1.7 compliant
+HumanAIOS — Query interface for AI context API.
+
+Usage:
+    haios context issue 640
+    haios context pr 594
+    haios context file tools/repository_coordinator_v0_1.py
+    haios context process Q
+
+    haios authority edit .github/workflows/foo.yml
+    haios authority merge
+
+    haios blockers pr 594
+    haios blockers issue 640
+
+    haios attention --route AGENT_ACTIONABLE
+
+    haios completion-evidence issue 640
+
+    haios unknown pr 594
+"""
+
+import sys
+import json
+import argparse
+from pathlib import Path
+
+TOOL_NAME = "haios"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "orchestrator_tool"
+
+# Add tools directory to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from ai_context_generator_v0_1 import AIContextGenerator
+
+
+def cmd_context(args):
+    """haios context <type> <id>"""
+    generator = AIContextGenerator()
+
+    if not args.type or not args.id:
+        print("Error: context requires <type> <id>")
+        print("  Types: issue, pr, file, process")
+        return 1
+
+    try:
+        context = generator.generate(args.type, args.id)
+        print(json.dumps(context, indent=2))
+        return 0
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_authority(args):
+    """haios authority <action> [file]"""
+    generator = AIContextGenerator()
+
+    if args.action == "edit" and args.file:
+        context = generator.context_for_file(args.file)
+        perms = context["agent_permissions"]
+
+        can_edit = False
+        for pattern in perms.get("can_edit_files", []):
+            if "*" in pattern:
+                import fnmatch
+                if fnmatch.fnmatch(args.file, pattern):
+                    can_edit = True
+                    break
+            elif args.file == pattern:
+                can_edit = True
+                break
+
+        if args.file in perms.get("cannot_edit_files", []):
+            can_edit = False
+
+        print(json.dumps({
+            "file": args.file,
+            "can_edit": can_edit,
+            "zone": perms["zone"],
+            "reason": "CANONICAL file" if not can_edit else "Editable by Z1",
+        }, indent=2))
+
+        return 0 if can_edit else 1
+
+    elif args.action == "merge":
+        perms = generator._get_agent_permissions()
+        print(json.dumps({
+            "can_merge": perms["can_merge"],
+            "requires_authority": perms["requires_authority"],
+            "reason": "Z1 cannot merge; requires Z2 ratification",
+        }, indent=2))
+        return 0
+
+    else:
+        print("Error: authority requires <action> [file]")
+        print("  Actions: edit <file>, merge")
+        return 1
+
+
+def cmd_blockers(args):
+    """haios blockers <type> <id>"""
+    generator = AIContextGenerator()
+
+    try:
+        context = generator.generate(args.type, args.id)
+        blockers = context["current_state"]["blocking_conditions"]
+
+        if not blockers:
+            print(f"✅ No blockers for {args.type} {args.id}")
+            return 0
+
+        print(f"🔴 {len(blockers)} blocker(s) for {args.type} {args.id}:\n")
+
+        for i, blocker in enumerate(blockers, 1):
+            print(f"  {i}. {blocker.get('type')}")
+            print(f"     Description: {blocker.get('description')}")
+            print(f"     Required actor: {blocker.get('required_actor')}")
+            print(f"     Status: {blocker.get('status')}")
+            if blocker.get("sla"):
+                print(f"     Expires: {blocker['sla'].get('expires_at')}")
+            print()
+
+        return 0
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_completion_evidence(args):
+    """haios completion-evidence <type> <id>"""
+    generator = AIContextGenerator()
+
+    try:
+        context = generator.generate(args.type, args.id)
+        tests = context["resolution_tests"]
+
+        if not tests:
+            print(f"No completion evidence defined for {args.type} {args.id}")
+            return 0
+
+        print(f"✅ Completion evidence for {args.type} {args.id}:\n")
+
+        for i, test in enumerate(tests, 1):
+            print(f"  {i}. {test.get('description')}")
+            print(f"     Type: {test.get('type')}")
+            if test.get("evidence"):
+                print(f"     Evidence: {test['evidence']}")
+            print()
+
+        return 0
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_unknown(args):
+    """haios unknown <type> <id>"""
+    generator = AIContextGenerator()
+
+    try:
+        context = generator.generate(args.type, args.id)
+        unknowns = context["unknown"]
+
+        if not unknowns:
+            print(f"✅ No unresolved unknowns for {args.type} {args.id}")
+            return 0
+
+        print(f"❓ {len(unknowns)} unknown(s) for {args.type} {args.id}:\n")
+        for unknown in unknowns:
+            print(f"  • {unknown}")
+        print()
+
+        return 0
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def run_smoke_test():
+    """Smoke test: verify CLI loads and basic commands work."""
+    try:
+        gen = AIContextGenerator()
+        if gen is None:
+            print("✗ Failed to initialize AIContextGenerator")
+            return False
+        print("✓ Smoke test PASSED")
+        return True
+    except Exception as e:
+        print(f"✗ Smoke test FAILED: {e}")
+        return False
+
+
+def main():
+    parser = argparse.ArgumentParser(description="HumanAIOS AI Context CLI")
+    parser.add_argument("--smoke-test", action="store_true", help="Run smoke test and exit")
+    subparsers = parser.add_subparsers(dest="command", help="Command")
+
+    # context command
+    context_parser = subparsers.add_parser("context", help="Get AI context for object")
+    context_parser.add_argument("type", nargs="?", help="Object type: issue, pr, file, process")
+    context_parser.add_argument("id", nargs="?", help="Object ID")
+    context_parser.set_defaults(func=cmd_context)
+
+    # authority command
+    authority_parser = subparsers.add_parser("authority", help="Check AI authority")
+    authority_parser.add_argument("action", nargs="?", help="Action: edit, merge")
+    authority_parser.add_argument("file", nargs="?", help="File path (for edit action)")
+    authority_parser.set_defaults(func=cmd_authority)
+
+    # blockers command
+    blockers_parser = subparsers.add_parser("blockers", help="List blockers")
+    blockers_parser.add_argument("type", nargs="?", help="Object type: issue, pr")
+    blockers_parser.add_argument("id", nargs="?", help="Object ID")
+    blockers_parser.set_defaults(func=cmd_blockers)
+
+    # completion-evidence command
+    completion_parser = subparsers.add_parser("completion-evidence", help="Show completion evidence")
+    completion_parser.add_argument("type", nargs="?", help="Object type: issue, pr")
+    completion_parser.add_argument("id", nargs="?", help="Object ID")
+    completion_parser.set_defaults(func=cmd_completion_evidence)
+
+    # unknown command
+    unknown_parser = subparsers.add_parser("unknown", help="Show unknowns")
+    unknown_parser.add_argument("type", nargs="?", help="Object type: issue, pr")
+    unknown_parser.add_argument("id", nargs="?", help="Object ID")
+    unknown_parser.set_defaults(func=cmd_unknown)
+
+    args = parser.parse_args()
+
+    if args.smoke_test:
+        return 0 if run_smoke_test() else 1
+
+    if not args.command:
+        parser.print_help()
+        return 0
+
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    exit(main())
