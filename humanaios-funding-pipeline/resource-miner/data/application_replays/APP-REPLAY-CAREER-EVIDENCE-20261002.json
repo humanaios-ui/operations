@@ -1,0 +1,120 @@
+{
+  "replay_id": "APP-REPLAY-CAREER-EVIDENCE-20261002",
+  "observed_at": "2026-10-02",
+  "basis": {
+    "per_snapshot": "project_evidence_records.seed.json after evidence promotion",
+    "resource_snapshot": "resources.snapshot.jsonl after 49-resource rerun",
+    "currentness_sources": [
+      "https://work.mercor.com/jobs/list_AAABoKHdST6cTipsJcxHCZ-r/analytical-chemist",
+      "https://www.dataannotation.tech/job-board/chemist",
+      "https://www.governance.ai/post/eir",
+      "https://bluedot.org/grants/career-transition"
+    ]
+  },
+  "invariants": [
+    "RESOURCE_DISCOVERY != APPLICANT_ELIGIBILITY",
+    "SOURCE_SUPPORTED != INDEPENDENT_THIRD_PARTY_VERIFIED",
+    "APPLICATION_EVIDENCE_COVERAGE != HIRING_OR_FUNDING_DECISION",
+    "HUMAN_ATTESTED claims are not required when source-supported evidence already satisfies the application requirement"
+  ],
+  "applications": [
+    {
+      "resource_id": "RES-46C09D5556C9A413",
+      "title": "Mercor Analytical Chemist",
+      "currentness": "ACTIVE",
+      "resource_route": "VERIFY_NOW",
+      "human_authorization": "AUTHORIZED_TO_APPLY",
+      "evidence_coverage": "PARTIAL_SUPPORTED",
+      "supported_by": [
+        "PER-LABCORP-QUALITY-001: analytical method validation, mass-spectrometry QC, regulatory quality",
+        "PER-STJOES-HPLC-001: HPLC analytical buildout, LC/MS proteomics, SOP/QA/CAP systems",
+        "PER-HUMANAIOS-ACAT-001: AI evaluation, calibration, quality/provenance workflows"
+      ],
+      "unresolved_or_boundary": [
+        "Mercor specifically emphasizes hazardous-compound / trace-level detection experience; that specialization is not source-supported in the current PERs.",
+        "Do not convert general analytical chemistry experience into hazardous-compound expertise."
+      ],
+      "next_operation": "USE UPDATED MASTER/PER EVIDENCE IN AUTHORIZED APPLICATION; preserve specialization boundary in resume/interview"
+    },
+    {
+      "resource_id": "RES-51AFAED9DEC24A74",
+      "title": "DataAnnotation Chemist",
+      "currentness": "ACTIVE",
+      "resource_route": "VERIFY_NOW",
+      "human_authorization": "AUTHORIZED_TO_APPLY",
+      "evidence_coverage": "SUPPORTED_WITH_ROLE_ASSESSMENT_PENDING",
+      "supported_by": [
+        "B.S. Chemistry plus extensive source-supported laboratory experience",
+        "PER-STJOES-HPLC-001: HPLC biochemical-genetics analytical work, SOP/QA/training systems, LC/MS research",
+        "PER-LABCORP-QUALITY-001: analytical method validation and mass-spectrometry/immunoassay QC",
+        "PER-HUMANAIOS-ACAT-001: AI output evaluation, calibration, corrections-ledger and quality methods"
+      ],
+      "unresolved_or_boundary": [
+        "Application/qualification assessment still determines whether the platform accepts the candidate.",
+        "Do not overstate synthetic/process chemistry where direct evidence is limited."
+      ],
+      "next_operation": "PROCEED_TO AUTHORIZED SIGNUP/QUALIFICATION USING UPDATED EVIDENCE"
+    },
+    {
+      "resource_id": "RES-1C9FBF03A141E032",
+      "title": "GovAI Entrepreneur-in-Residence",
+      "currentness": "ACTIVE_ROLLING",
+      "resource_route": "VERIFY_NOW",
+      "human_authorization": "PREPARED_FOR_SUBMISSION",
+      "evidence_coverage": "SUPPORTED",
+      "supported_by": [
+        "PER-HUMANAIOS-ACAT-001: founder/PI record, shipped open research infrastructure, AI safety/governance context",
+        "PER-HUMANAIOS-BOT-001: technical project shipping and external-platform deployment",
+        "PER-PIONEERS-EMR-001 and PER-VALLEYVIEW-SAFETY-001: judgment, governance, risk, cross-functional implementation",
+        "PER-STJOES-HPLC-001: build-from-zero technical program evidence",
+        "PER-WAFFLE-OPS-001: operational leadership and P&L accountability"
+      ],
+      "project_boundary": "HumanAIOS Control Graph + Witness Assurance Layer",
+      "unresolved_or_boundary": [
+        "Reference identities/contact verification remain outside the public repository and should be bound through the reference-resource process when needed.",
+        "Final selection is GovAI's decision; evidence coverage does not establish acceptance."
+      ],
+      "next_operation": "SUBMIT EXPRESSION OF INTEREST + MAX-2-PAGE PITCH WHEN EXTERNAL FORM EXECUTION IS AVAILABLE"
+    },
+    {
+      "resource_id": "RES-7989E71F74E9CDFF",
+      "title": "BlueDot Career Transition Grants",
+      "currentness": "ACTIVE",
+      "resource_route": "VERIFY_NOW",
+      "human_authorization": "PREPARED_FOR_SUBMISSION",
+      "evidence_coverage": "SUPPORTED_WITH_BUDGET_INPUT_PENDING",
+      "supported_by": [
+        "PER-HUMANAIOS-ACAT-001: recent AI-safety/governance work and accessible public work samples",
+        "PER-HUMANAIOS-BOT-001: recent technical experimentation and external deployment",
+        "PER-STJOES-HPLC-001 / regulated-quality PERs: analogous evidence for disciplined execution, validation, and adaptation under uncertainty"
+      ],
+      "transition_duration_months": 12,
+      "personal_runway_usd_per_month": 6000,
+      "base_runway_usd": 72000,
+      "unresolved_or_boundary": [
+        "The $2,400 health-insurance/tax-reserve/required-cost figure still needs a time basis: monthly versus total/annual.",
+        "If a full-time role is accepted while the grant is active, the BlueDot branch must be replayed because the program requires full-time transition focus."
+      ],
+      "next_operation": "RESOLVE $2,400 TIME BASIS; THEN SUBMIT"
+    }
+  ],
+  "resource_miner_replay": {
+    "before_snapshot_count": 45,
+    "after_snapshot_count": 49,
+    "rerun_required": true,
+    "reason": [
+      "Four verified resources had been added to canonical sources but were absent from the 45-resource snapshot.",
+      "Canonical type/affordance repairs needed to be reflected across the snapshot.",
+      "Durable currentness/ownership receipts needed to be reapplied after discovery."
+    ],
+    "result": [
+      "Mercor Analytical Chemist -> VERIFY_NOW / ACTIVE",
+      "DataAnnotation Chemist -> VERIFY_NOW / ACTIVE",
+      "GovAI EIR -> VERIFY_NOW / ACTIVE",
+      "BlueDot Career Transition Grants -> VERIFY_NOW / ACTIVE",
+      "GovAI Fellowship -> WATCH / NOT_CURRENTLY_OPEN",
+      "Microsoft for Startups -> WATCH / ALREADY_ACQUIRED / MANAGE"
+    ]
+  },
+  "authority_effect": "NONE"
+}
