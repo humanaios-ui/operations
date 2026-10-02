@@ -1,0 +1,62 @@
+name: Workspace Evidence Bus Roundtrip
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  roundtrip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build synthetic public-safe event
+        shell: python
+        run: |
+          import json, os
+          from datetime import datetime, timezone
+          from workspace_evidence_bus.tools.workspace_event import build_event, validate_event
+          event = build_event(
+              event_id=f"EVT-gha-{os.environ['GITHUB_RUN_ID']}",
+              event_type="ROUNDTRIP_TEST",
+              subject_ref="SESSION-WORKSPACE-EVIDENCE-BUS-001",
+              actor_ref="SYSTEM-GITHUB-ACTIONS",
+              source_system="GITHUB",
+              source_ref=f"run:{os.environ['GITHUB_RUN_ID']}",
+              observed_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+              idempotency_key=f"workspace-roundtrip:{os.environ['GITHUB_RUN_ID']}",
+              state_version=0,
+              payload={"paper_only": True, "purpose": "workspace-write-read-hash"},
+          )
+          errors = validate_event(event)
+          if errors:
+              raise SystemExit("; ".join(errors))
+          open("event.json", "w", encoding="utf-8").write(json.dumps(event, sort_keys=True, separators=(",", ":")))
+
+      - name: Require relay secrets
+        env:
+          WORKSPACE_RELAY_URL: ${{ secrets.WORKSPACE_RELAY_URL }}
+          WORKSPACE_RELAY_TOKEN: ${{ secrets.WORKSPACE_RELAY_TOKEN }}
+        run: |
+          test -n "$WORKSPACE_RELAY_URL" || { echo 'WORKSPACE_RELAY_URL not configured'; exit 2; }
+          test -n "$WORKSPACE_RELAY_TOKEN" || { echo 'WORKSPACE_RELAY_TOKEN not configured'; exit 2; }
+
+      - name: POST and verify receipt
+        env:
+          WORKSPACE_RELAY_URL: ${{ secrets.WORKSPACE_RELAY_URL }}
+          WORKSPACE_RELAY_TOKEN: ${{ secrets.WORKSPACE_RELAY_TOKEN }}
+        shell: python
+        run: |
+          import json, os, urllib.request
+          event = json.load(open("event.json", encoding="utf-8"))
+          body = json.dumps({"action":"persist_event", "relay_token":os.environ["WORKSPACE_RELAY_TOKEN"], "event":event}).encode()
+          req = urllib.request.Request(os.environ["WORKSPACE_RELAY_URL"], data=body, headers={"Content-Type":"application/json"}, method="POST")
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              receipt = json.loads(resp.read().decode())
+          if not receipt.get("ok"):
+              raise SystemExit(receipt)
+          if receipt.get("event_id") != event["event_id"]:
+              raise SystemExit("receipt event_id mismatch")
+          print(json.dumps({k: receipt.get(k) for k in ["ok","event_id","artifact_sha256","payload_hash","replayed"]}, indent=2))
