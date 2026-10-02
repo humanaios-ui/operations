@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "planning_surface": "https://github.com/humanaios-ui/operations/issues/677",
   "predecessor_sha256": "b36d387e844ccea1ca56c993300a152bea550123a5229e5fc9fc7d12a2ed46d9",
-  "verified_local_build_output_sha256": "92027daa5781f5f3f4b5df64fda0e5d74b84b3bf86d888986ebe452ea203a48f",
+  "verified_local_build_output_sha256": "1afdaf2a53b39f9951b5b919123a30857cac99b594221b12dc7813c292bfbfde",
   "entity_count": 195,
   "assertion_count": 444,
   "source_count": 40,
@@ -12,5 +12,6 @@
   "chat_derived_entity_count": 165,
   "correction_event_count": 3,
   "validation": "PASS",
-  "note": "Receipt from deterministic local build of frozen predecessor plus committed GitHub hydration overlay. Derived output is rebuildable and non-canonical."
+  "source_copy_byte_equivalent": true,
+  "note": "Receipt from deterministic build of the frozen predecessor plus the committed GitHub hydration overlay. Derived output is rebuildable and non-canonical."
 }
