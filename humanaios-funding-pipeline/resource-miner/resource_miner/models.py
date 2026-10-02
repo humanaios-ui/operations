@@ -44,6 +44,7 @@ class ResourceCandidate:
     opens_at: str | None = None
     deadline: str | None = None
     resource_types: list[str] = field(default_factory=list)
+    resource_affordances: list[str] = field(default_factory=list)
     applicant_types: list[str] = field(default_factory=list)
     geography: list[str] = field(default_factory=list)
     tags: list[str] = field(default_factory=list)
