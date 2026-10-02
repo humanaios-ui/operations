@@ -73,6 +73,7 @@ jobs:
       - name: Pytest baseline suites (blocking)
         run: |
           python3 -m pytest \
+            tools/tests/test_ai_context_generator_v0_1.py \
             tools/tests/test_assess_router_structure.py \
             tools/tests/test_behavioral_compliance_gate.py \
             tools/tests/test_ci_suite_enumeration.py \

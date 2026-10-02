@@ -165,7 +165,8 @@ def registry(root: str = ROOT) -> list[dict]:
     # pass CI would not have given. tools/tests/test_ci_suite_enumeration.py
     # now asserts the two agree, and that every file under tools/tests/ is on
     # them; add to both places or that guard goes red.
-    baseline = ["tools/tests/test_assess_router_structure.py",
+    baseline = ["tools/tests/test_ai_context_generator_v0_1.py",
+                "tools/tests/test_assess_router_structure.py",
                 "tools/tests/test_behavioral_compliance_gate.py",
                 "tools/tests/test_ci_suite_enumeration.py",
                 "tools/tests/test_clone_sync_health.py",
