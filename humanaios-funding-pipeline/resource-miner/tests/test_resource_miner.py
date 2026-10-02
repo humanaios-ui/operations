@@ -77,6 +77,27 @@ class ResourceMinerTests(unittest.TestCase):
         self.assertIn("self_labor_support", by_title["GovAI Fellowship"].resource_affordances)
         self.assertIn("earned_income", by_title["Mercor Red-Teamer"].resource_affordances)
 
+    def test_canonical_category_blocks_text_mechanism_pollution(self):
+        candidate = normalize_generic(
+            title="Chemist AI training role",
+            url="https://example.com/chemist",
+            source_name="Example",
+            discovery_method="test",
+            description="Paid AI training work with grant-adjacent research exposure.",
+            source_category="paid_work",
+        )
+        self.assertEqual(candidate.resource_types, ["paid_work"])
+        self.assertEqual(candidate.resource_affordances, ["earned_income"])
+
+    def test_funding_pipeline_can_add_explicit_bundled_affordances(self):
+        resources = list(funding_pipeline.discover(ROOT.parent / "data" / "sources.json"))
+        by_title = {resource.title: resource for resource in resources}
+        eir = by_title["GovAI Entrepreneur-in-Residence"]
+        self.assertEqual(eir.resource_types, ["paid_work"])
+        self.assertIn("earned_income", eir.resource_affordances)
+        self.assertIn("project_funding", eir.resource_affordances)
+        self.assertIn("research_access", eir.resource_affordances)
+
     def test_confirmed_requirement_can_route_verify_now(self):
         candidate = normalize_generic(
             title="Independent replication review",
