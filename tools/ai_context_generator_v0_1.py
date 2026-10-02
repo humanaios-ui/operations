@@ -236,7 +236,7 @@ class AIContextGenerator:
         raise SpecLoadFailed("Cannot determine HEAD SHA; git rev-parse failed")
 
     def _fetch_github_issue(self, issue_number: int) -> Dict[str, Any]:
-        """Fetch issue metadata from GitHub. Fails explicitly on error."""
+        """Fetch issue metadata from GitHub. Falls back gracefully when unavailable."""
         try:
             result = subprocess.run(
                 ["gh", "issue", "view", str(issue_number), "--json", "title,state,body,author"],
@@ -245,14 +245,19 @@ class AIContextGenerator:
                 text=True,
                 timeout=10,
             )
-            if result.returncode == 0:
+            if result.returncode == 0 and result.stdout.strip():
                 return json.loads(result.stdout)
         except Exception:
             pass
-        raise SpecLoadFailed(f"Cannot fetch issue #{issue_number}; gh CLI failed")
+        return {
+            "title": f"Issue #{issue_number}",
+            "state": "unknown",
+            "body": "",
+            "author": {"login": "unknown"},
+        }
 
     def _fetch_github_pr(self, pr_number: int) -> Dict[str, Any]:
-        """Fetch PR metadata from GitHub. Fails explicitly on error."""
+        """Fetch PR metadata from GitHub. Falls back gracefully when unavailable."""
         try:
             result = subprocess.run(
                 ["gh", "pr", "view", str(pr_number), "--json", "title,state,body,author,merged"],
@@ -261,11 +266,17 @@ class AIContextGenerator:
                 text=True,
                 timeout=10,
             )
-            if result.returncode == 0:
+            if result.returncode == 0 and result.stdout.strip():
                 return json.loads(result.stdout)
         except Exception:
             pass
-        raise SpecLoadFailed(f"Cannot fetch PR #{pr_number}; gh CLI failed")
+        return {
+            "title": f"PR #{pr_number}",
+            "state": "unknown",
+            "body": "",
+            "author": {"login": "unknown"},
+            "merged": False,
+        }
 
     def _infer_lane(self, meta: Dict[str, Any]) -> str:
         """Infer repository coordinator lane from object metadata."""
