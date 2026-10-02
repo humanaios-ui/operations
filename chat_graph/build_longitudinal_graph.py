@@ -28,7 +28,7 @@ def sha256(data: bytes) -> str:
 def sid(meta: dict, number: int) -> str:
     return f"source:github:{meta['kind']}:{number}"
 
-def build(source: dict, overlay: dict, predecessor_hash: str) -> dict:
+def build(source: dict, overlay: dict, predecessor_hash: str, private_roots: dict | None = None) -> dict:
     items = {int(k): v for k, v in overlay["work_items"].items()}
     bindings = {k: [int(x) for x in v] for k, v in overlay["node_bindings"].items()}
     observed_on = overlay["observed_on"]
@@ -69,6 +69,10 @@ def build(source: dict, overlay: dict, predecessor_hash: str) -> dict:
             "evidence_class": "PLANNING_SURFACE",
             "authority_effect": "NONE",
         })
+
+    private_roots = private_roots or {}
+    for private_source in private_roots.get("sources", []):
+        sources.append(private_source)
 
     entities, assertions, events = [], [], []
     for idx, node in enumerate(source["nodes"], 1):
@@ -149,6 +153,15 @@ def build(source: dict, overlay: dict, predecessor_hash: str) -> dict:
             "result": "BOUND_AS_PLANNING_SURFACE",
             "authority_effect": "NONE",
         })
+    for private_source in private_roots.get("sources", []):
+        events.append({
+            "id": f"event:private-source:{private_source['id']}:{observed_on}",
+            "type": "private_source_admission",
+            "source_ref": private_source["id"],
+            "observed_on": observed_on,
+            "result": private_source.get("evidence_class", "SOURCE_LOCATED"),
+            "authority_effect": "NONE",
+        })
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -209,6 +222,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", default="chat_graph/source/humanaios_cross_chat_knowledge_graph.v0.1.json")
     ap.add_argument("--evidence", default="chat_graph/evidence/github_hydration_2026-10-02.json")
+    ap.add_argument("--private-sources", default="chat_graph/evidence/private_source_roots.json")
     ap.add_argument("--out", default="chat_graph/generated/humanaios_chat_longitudinal_graph.v0.2.json")
     ap.add_argument("--receipt", default="chat_graph/generated/humanaios_chat_longitudinal_graph.receipt.json")
     ap.add_argument("--check", action="store_true")
@@ -216,7 +230,9 @@ def main() -> int:
     raw = Path(args.source).read_bytes()
     source = json.loads(raw)
     overlay = json.loads(Path(args.evidence).read_text())
-    graph = build(source, overlay, sha256(raw))
+    private_path = Path(args.private_sources)
+    private_roots = json.loads(private_path.read_text()) if private_path.exists() else {}
+    graph = build(source, overlay, sha256(raw), private_roots)
     errors = validate(graph)
     if errors:
         raise SystemExit("\n".join(errors))
