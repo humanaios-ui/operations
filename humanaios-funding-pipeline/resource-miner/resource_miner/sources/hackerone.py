@@ -6,7 +6,8 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from typing import Any, Callable, Iterator
 
 from ..normalize import normalize_generic, utcnow_iso
@@ -76,6 +77,8 @@ class HackerOneClient:
     username: str | None = None
     token: str | None = None
     transport: Transport = _default_transport
+    structured_scope_min_interval_seconds: float = 1.25
+    _last_structured_scope_request: float = field(default=0.0, init=False, repr=False)
 
     def _headers(self) -> dict[str, str]:
         username, token = _credentials(self.username, self.token)
@@ -95,17 +98,30 @@ class HackerOneClient:
             raise HackerOneAPIError("Refusing HackerOne API request outside https://api.hackerone.com")
         return self.transport(url, self._headers())
 
+    def _pace_structured_scope_request(self) -> None:
+        minimum = max(float(self.structured_scope_min_interval_seconds), 0.0)
+        if minimum <= 0:
+            return
+        now = time.monotonic()
+        elapsed = now - self._last_structured_scope_request
+        if self._last_structured_scope_request and elapsed < minimum:
+            time.sleep(minimum - elapsed)
+        self._last_structured_scope_request = time.monotonic()
+
     def _iter_paginated(
         self,
         path: str,
         *,
         page_size: int = DEFAULT_PAGE_SIZE,
         max_pages: int = 1000,
+        before_request: Callable[[], None] | None = None,
     ) -> Iterator[dict[str, Any]]:
         size = min(max(int(page_size), 1), 100)
         page = 1
         next_url: str | None = None
         while page <= max_pages:
+            if before_request is not None:
+                before_request()
             payload = self._get(
                 next_url or path,
                 None if next_url else {"page[number]": page, "page[size]": size},
@@ -148,6 +164,7 @@ class HackerOneClient:
             self._iter_paginated(
                 f"/programs/{urllib.parse.quote(handle, safe='')}/structured_scopes",
                 page_size=page_size,
+                before_request=self._pace_structured_scope_request,
             )
         )
 
