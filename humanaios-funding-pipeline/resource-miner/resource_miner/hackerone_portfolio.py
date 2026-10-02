@@ -105,20 +105,16 @@ def scan_portfolio(
             )
             continue
 
-        try:
-            exclusions = client.get_scope_exclusions(handle)
-        except Exception as exc:
-            snapshot.programs.append(
-                PortfolioProgramObservation(
-                    handle=handle,
-                    state="OBSERVATION_FAILED",
-                    error_type=type(exc).__name__,
-                    error_detail=f"stage=scope_exclusions; {str(exc)[:200]}",
-                )
-            )
-            continue
-
-        graph = build_scope_graph(program, scopes, exclusions, observed_at=observed_at)
+        # Exclusions are authorization-stage evidence. Portfolio ranking does not
+        # require them, so defer this request rather than making it a fatal
+        # dependency for initial scope hydration.
+        graph = build_scope_graph(
+            program,
+            scopes,
+            [],
+            observed_at=observed_at,
+            exclusions_state="DEFERRED_FOR_POLICY_REVIEW",
+        )
         snapshot.programs.append(
             PortfolioProgramObservation(
                 handle=handle,
