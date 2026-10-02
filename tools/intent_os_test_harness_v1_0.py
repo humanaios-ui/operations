@@ -57,6 +57,8 @@ import time
 import urllib.error
 import urllib.request
 
+import yaml
+
 TOOL_NAME = "intent_os_test_harness"
 TOOL_VERSION = "1.1.0"  # 1.1: tiers T5 (manifest smoke, generated), T6 (service boot), T7 (key-gated live provider); requests snapshot
 TOOL_CATEGORY = "validation_tool"
@@ -162,40 +164,12 @@ def registry(root: str = ROOT) -> list[dict]:
     # MUST match the pytest step in .github/workflows/quality-baseline.yml, in
     # content if not in order. This list had already drifted from it once —
     # missing both suites added by PR #343 — which made the harness report a
-    # pass CI would not have given. tools/tests/test_ci_suite_enumeration.py
-    # now asserts the two agree, and that every file under tools/tests/ is on
-    # them; add to both places or that guard goes red.
-    baseline = ["tools/tests/test_ai_context_generator_v0_1.py",
-                "tools/tests/test_assess_router_structure.py",
-                "tools/tests/test_behavioral_compliance_gate.py",
-                "tools/tests/test_ci_suite_enumeration.py",
-                "tools/tests/test_clone_sync_health.py",
-                "tools/tests/test_intake_schema_v0_2.py",
-                "tools/tests/test_orchestrator_molt.py",
-                "tools/tests/test_pre_push_gate.py",
-                "tools/tests/test_repository_coordinator_v0_1.py",
-                "tools/tests/test_registry_site_generator.py",
-                "tools/tests/test_tool_gap_scaffolds.py",
-                "test_specimen_intake_evaluator.py",
-                "test_specimen_intake_nf_ledger.py", "tools/tests/test_molt_cycle_nf_read.py",
-                "test_resource_economics.py", "tools/tests/test_builder_compliance_scanner.py",
-                "tools/tests/test_molt_tier_classifier.py",
-                "tools/tests/test_ratify_index_write.py",
-                "tools/tests/test_smag_predict_lint.py", "tools/tests/test_smag_feedback.py",
-                "tools/tests/test_nf_ledger_cli.py", "tools/tests/test_ci_predict.py",
-                "tools/tests/test_control_plane_custody_observer_v0_1.py",
-                "tools/tests/test_control_plane_github_adapter_v0_1.py",
-                "tools/tests/test_pr_challenge_dialogue_router_v0_1.py",
-                "tools/tests/test_lifecycle_predict.py", "tools/tests/test_dimension_attribution.py",
-                "tools/tests/test_tool_trace_hook.py", "tools/tests/test_tool_trace_reader.py",
-                "tools/tests/test_copilot_acat_scanner.py",
-                "tools/tests/test_grant_match_verifier.py", "tools/tests/test_grant_matching_engine.py",
-                "tools/tests/test_holographic_integration.py",
-                "tools/tests/test_holographic_orchestrator.py", "tools/tests/test_holographic_phase3_live.py",
-                "tools/tests/test_industry_telemetry.py", "tools/tests/test_nonprofit_dashboard.py",
-                "tools/tests/test_smag_gate_enforcer_v1_0.py",
-                "tools/tests/test_graph_capture_lint.py",
-                "acat/tests/test_tool_trace_schema.py"]
+    # Load baseline tests from single source of truth (.tool-control/baseline_tests.yaml)
+    # tools/tests/test_ci_suite_enumeration.py asserts the YAML, workflow, and this list
+    # all agree; add to YAML or that guard goes red.
+    with open(str(root / ".tool-control" / "baseline_tests.yaml")) as f:
+        baseline_cfg = yaml.safe_load(f)
+    baseline = [t['path'] for t in baseline_cfg['baseline_tests']]
     pyt = ["-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider"]
     add("t3-pytest-baseline", "T3", "ci", "pytest baseline suites (quality-baseline blocking step)", _py(*pyt, *baseline), timeout=600,
         requires=["pytest", "cryptography.hazmat.primitives.hashes"], proves=["G4"])

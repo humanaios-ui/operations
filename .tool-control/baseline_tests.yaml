@@ -1,0 +1,169 @@
+# Baseline test enumeration — single source of truth
+# Used by: .github/workflows/quality-baseline.yml + tools/intent_os_test_harness_v1_0.py
+# Sync: If you add/remove a test here, both consumer locations update automatically
+#
+# schema:
+#   path: test file path (relative to repo root)
+#   requires: list of external capabilities (empty list = no external deps)
+#            [gh_cli] = GitHub CLI must be available and authenticated
+
+baseline_tests:
+  - path: tools/tests/test_ai_context_generator_v0_1.py
+    requires: [gh_cli]
+    description: AI Context Generator smoke tests (skips if GitHub CLI unavailable)
+
+  - path: tools/tests/test_assess_router_structure.py
+    requires: []
+    description: Assessment router structure validation
+
+  - path: tools/tests/test_behavioral_compliance_gate.py
+    requires: []
+    description: Behavioral compliance gate tests
+
+  - path: tools/tests/test_ci_suite_enumeration.py
+    requires: []
+    description: CI suite enumeration and consistency checks
+
+  - path: tools/tests/test_clone_sync_health.py
+    requires: []
+    description: Clone sync health checks
+
+  - path: tools/tests/test_intake_schema_v0_2.py
+    requires: []
+    description: Intake schema validation
+
+  - path: tools/tests/test_orchestrator_molt.py
+    requires: []
+    description: Orchestrator molt tests
+
+  - path: tools/tests/test_pre_push_gate.py
+    requires: []
+    description: Pre-push gate validation
+
+  - path: tools/tests/test_repository_coordinator_v0_1.py
+    requires: []
+    description: Repository coordinator tests
+
+  - path: tools/tests/test_registry_site_generator.py
+    requires: []
+    description: Registry site generator tests
+
+  - path: tools/tests/test_tool_gap_scaffolds.py
+    requires: []
+    description: Tool gap scaffolding tests
+
+  - path: test_specimen_intake_evaluator.py
+    requires: []
+    description: Specimen intake evaluator tests
+
+  - path: test_specimen_intake_nf_ledger.py
+    requires: []
+    description: Specimen intake NF ledger tests
+
+  - path: tools/tests/test_molt_cycle_nf_read.py
+    requires: []
+    description: Molt cycle NF ledger read tests
+
+  - path: test_resource_economics.py
+    requires: []
+    description: Resource economics tests
+
+  - path: tools/tests/test_builder_compliance_scanner.py
+    requires: []
+    description: Builder compliance scanner tests
+
+  - path: tools/tests/test_molt_tier_classifier.py
+    requires: []
+    description: Molt tier classifier tests
+
+  - path: tools/tests/test_ratify_index_write.py
+    requires: []
+    description: Ratify index write tests
+
+  - path: tools/tests/test_smag_predict_lint.py
+    requires: []
+    description: SMAG prediction linting tests
+
+  - path: tools/tests/test_smag_feedback.py
+    requires: []
+    description: SMAG feedback tests
+
+  - path: tools/tests/test_nf_ledger_cli.py
+    requires: []
+    description: NF ledger CLI tests
+
+  - path: tools/tests/test_ci_predict.py
+    requires: []
+    description: CI prediction tests
+
+  - path: tools/tests/test_control_plane_custody_observer_v0_1.py
+    requires: []
+    description: Control plane custody observer tests
+
+  - path: tools/tests/test_control_plane_github_adapter_v0_1.py
+    requires: []
+    description: Control plane GitHub adapter tests
+
+  - path: tools/tests/test_pr_challenge_dialogue_router_v0_1.py
+    requires: []
+    description: PR challenge dialogue router tests
+
+  - path: tools/tests/test_lifecycle_predict.py
+    requires: []
+    description: Lifecycle prediction tests
+
+  - path: tools/tests/test_dimension_attribution.py
+    requires: []
+    description: Dimension attribution tests
+
+  - path: tools/tests/test_tool_trace_hook.py
+    requires: []
+    description: Tool trace hook tests
+
+  - path: tools/tests/test_tool_trace_reader.py
+    requires: []
+    description: Tool trace reader tests
+
+  - path: tools/tests/test_copilot_acat_scanner.py
+    requires: []
+    description: Copilot ACAT scanner tests
+
+  - path: tools/tests/test_grant_match_verifier.py
+    requires: []
+    description: Grant match verifier tests
+
+  - path: tools/tests/test_grant_matching_engine.py
+    requires: []
+    description: Grant matching engine tests
+
+  - path: tools/tests/test_holographic_integration.py
+    requires: []
+    description: Holographic integration tests
+
+  - path: tools/tests/test_holographic_orchestrator.py
+    requires: []
+    description: Holographic orchestrator tests
+
+  - path: tools/tests/test_holographic_phase3_live.py
+    requires: []
+    description: Holographic Phase 3 live tests
+
+  - path: tools/tests/test_industry_telemetry.py
+    requires: []
+    description: Industry telemetry tests
+
+  - path: tools/tests/test_nonprofit_dashboard.py
+    requires: []
+    description: Nonprofit dashboard tests
+
+  - path: tools/tests/test_smag_gate_enforcer_v1_0.py
+    requires: []
+    description: SMAG gate enforcer tests
+
+  - path: tools/tests/test_graph_capture_lint.py
+    requires: []
+    description: Graph capture lint tests
+
+  - path: acat/tests/test_tool_trace_schema.py
+    requires: []
+    description: Tool trace schema validation (ACAT)
