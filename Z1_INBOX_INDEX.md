@@ -4,7 +4,7 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**104 candidates** — ⏳ awaiting Z2 94 · ✅ ratified 10 · **55 records**
+**104 candidates** — ⏳ awaiting Z2 94 · ✅ ratified 10 · **56 records**
 
 ## Awaiting Z2 (94)
 
@@ -474,7 +474,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (55)
+## Records (56)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -534,6 +534,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-28/IC-065-EVIDENCE-LEDGER-GAP-PR465.md` | IC-065 — Evidence Ledger Gap (PR #465) |
 | `z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md` | Phase 3 credential deployment guide |
 | `z1-inbox/2026-10-01/HANDOFF.md` | Z1 Session Handoff — Phase 2B Salvage Complete |
+| `z1-inbox/2026-10-02/SESSION_FINDINGS.md` | Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---

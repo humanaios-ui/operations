@@ -1,9 +1,9 @@
 version: 1
-generated: '2026-10-01'
+generated: '2026-10-02'
 decision_window_days: 2
 counts:
   candidates: 104
-  records: 55
+  records: 56
 ratifiers:
 - Night
 candidates:
@@ -1477,4 +1477,15 @@ records:
     filed as Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01. Receipt reconciliation: 10/10
     claims verified in tree with zero receipt gaps. Indexed as a record, not a live
     candidate.'
+- path: z1-inbox/2026-10-02/SESSION_FINDINGS.md
+  title: 'Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop'
+  note: 'Session close handoff for five friction point implementations and establishment
+    of TENSION_FINDINGS.md governance feedback mechanism. Completed: all five friction
+    points coded, governance integrity issue fixed (real digests recorded in CLAUDE.md),
+    and feedback loop created for continuous guidance improvement. Receipt reconciliation:
+    all claims verified against ledger with zero gaps. Also created root-level TENSION_FINDINGS.md
+    artifact with template and backfilled findings from this and prior sessions. No
+    Z2 ratification requested; Z1 reference handoff documenting completed work and
+    filing Z2 governance decisions needed for PR #642 admission. Indexed as a record,
+    not a live candidate.'
 excluded: []
