@@ -56,6 +56,9 @@ class ResourceCandidate:
     requirement_matches: list[RequirementMatch] = field(default_factory=list)
     route: str = "VERIFY_NOW"
     status: str = "UNKNOWN"
+    resource_state: str = "CANDIDATE"
+    next_operation: str = "VERIFY"
+    state_receipt_ids: list[str] = field(default_factory=list)
     eligibility_assessed: bool = False
     eligibility_status: str = "UNASSESSED"
     last_verified_at: str | None = None
