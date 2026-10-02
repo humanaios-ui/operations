@@ -1,0 +1,491 @@
+{
+  "plan_id": "RP-WITNESS-001",
+  "title": "Internal HumanAIOS Agent — The Witness — resource planning specimen",
+  "status": "EXPERIMENTAL_FIXTURE",
+  "authority_effect": "NONE",
+  "source_refs": [
+    "https://github.com/humanaios-ui/operations/issues/429",
+    "https://github.com/humanaios-ui/operations/issues/611",
+    "https://github.com/humanaios-ui/operations/issues/665"
+  ],
+  "needs": [
+    {
+      "need_id": "NEED-WITNESS-001",
+      "label": "Epistemically-aware human/system interaction",
+      "statement": "Reduce the burden of understanding and acting on HumanAIOS state while preserving human agency, evidence visibility, uncertainty, revocation, and authority boundaries.",
+      "source_ref": "https://github.com/humanaios-ui/operations/issues/429"
+    }
+  ],
+  "capabilities": [
+    {
+      "capability_id": "CAP-WITNESS-ORIENT-001",
+      "label": "Bounded orientation",
+      "description": "Present relevant system state, capabilities, limitations, unknowns, and evidence without presenting synthesis as canonical fact.",
+      "satisfies_need_ids": [
+        "NEED-WITNESS-001"
+      ]
+    },
+    {
+      "capability_id": "CAP-WITNESS-PROJECT-001",
+      "label": "Evidence-bearing projection",
+      "description": "Project relevant canonical resources through an observation-bounded context while preserving provenance and omission states.",
+      "satisfies_need_ids": [
+        "NEED-WITNESS-001"
+      ]
+    },
+    {
+      "capability_id": "CAP-WITNESS-AUTHORITY-001",
+      "label": "Authority transparency",
+      "description": "Expose warrant, authorization, consent, interruption, and revocation state without creating authority.",
+      "satisfies_need_ids": [
+        "NEED-WITNESS-001"
+      ]
+    },
+    {
+      "capability_id": "CAP-WITNESS-TRACE-001",
+      "label": "Reconstructable explanation",
+      "description": "Emit provenance-bearing receipts sufficient to reconstruct what evidence and constraints were available to the Witness.",
+      "satisfies_need_ids": [
+        "NEED-WITNESS-001"
+      ]
+    },
+    {
+      "capability_id": "CAP-WITNESS-VALIDATE-001",
+      "label": "Validated service effect",
+      "description": "Demonstrate that the Witness reduces comprehension burden without covertly increasing system authority or compliance pressure.",
+      "satisfies_need_ids": [
+        "NEED-WITNESS-001"
+      ]
+    }
+  ],
+  "work_packages": [
+    {
+      "work_package_id": "WP-WITNESS-CORE-001",
+      "label": "Witness bounded projection runtime",
+      "enables_capability_ids": [
+        "CAP-WITNESS-ORIENT-001",
+        "CAP-WITNESS-PROJECT-001",
+        "CAP-WITNESS-TRACE-001"
+      ]
+    },
+    {
+      "work_package_id": "WP-WITNESS-GOVERNANCE-001",
+      "label": "Witness authority and interruption boundary",
+      "enables_capability_ids": [
+        "CAP-WITNESS-AUTHORITY-001",
+        "CAP-WITNESS-TRACE-001"
+      ]
+    },
+    {
+      "work_package_id": "WP-WITNESS-VALIDATION-001",
+      "label": "Independent Witness validation study",
+      "enables_capability_ids": [
+        "CAP-WITNESS-VALIDATE-001"
+      ]
+    }
+  ],
+  "controlled_resources": [
+    {
+      "resource_id": "CR-WITNESS-REPO-CONTROLS-001",
+      "label": "Existing HumanAIOS evidence, warrant, authorization, provenance, and Witness design primitives",
+      "resource_types": [
+        "evidence",
+        "governance_primitive",
+        "software_asset"
+      ],
+      "state": "AVAILABLE_PARTIAL",
+      "restrictions": [
+        "repository primitives are not a deployed Witness runtime"
+      ],
+      "evidence_refs": [
+        "https://github.com/humanaios-ui/operations/issues/429",
+        "https://github.com/humanaios-ui/operations/issues/665"
+      ]
+    },
+    {
+      "resource_id": "CR-WITNESS-AI-CAPACITY-001",
+      "label": "Existing AI analysis, coding, and review capacity",
+      "resource_types": [
+        "ai_labor",
+        "software_engineering",
+        "analysis"
+      ],
+      "state": "AVAILABLE",
+      "restrictions": [
+        "not independent human validation",
+        "not a substitute for paid human knowledge-set expertise where that is the requirement"
+      ],
+      "evidence_refs": [
+        "https://github.com/humanaios-ui/operations/blob/main/.codex/AGENTS.md"
+      ]
+    },
+    {
+      "resource_id": "CR-WITNESS-AZURE-001",
+      "label": "Acquired Microsoft startup cloud credit resource",
+      "resource_types": [
+        "compute_credit",
+        "cloud_compute"
+      ],
+      "state": "ACQUIRED_REPORTED_IN_REPOSITORY",
+      "restrictions": [
+        "non-cash",
+        "cloud-only",
+        "expiry-bearing",
+        "workload fit must be measured"
+      ],
+      "evidence_refs": [
+        "https://github.com/humanaios-ui/operations/issues/588"
+      ]
+    },
+    {
+      "resource_id": "CR-WITNESS-FOUNDER-LABOR-001",
+      "label": "Existing founder/research labor capacity",
+      "resource_types": [
+        "human_labor"
+      ],
+      "resource_affordances": [
+        "self_labor"
+      ],
+      "state": "AVAILABLE_CONSTRAINED",
+      "restrictions": [
+        "uncompensated capacity is not equivalent to protected funded research time"
+      ],
+      "evidence_refs": [
+        "https://github.com/humanaios-ui/operations/issues/611"
+      ]
+    }
+  ],
+  "resource_requirements": [
+    {
+      "requirement_id": "RR-WITNESS-AGENT-RUNTIME-001",
+      "label": "Bounded model/runtime compute",
+      "objective": "Provide model inference and runtime compute sufficient for a bounded Witness prototype.",
+      "work_package_ids": [
+        "WP-WITNESS-CORE-001"
+      ],
+      "capability_ids": [
+        "CAP-WITNESS-ORIENT-001",
+        "CAP-WITNESS-PROJECT-001"
+      ],
+      "resource_types": [
+        "compute_credit",
+        "api_access",
+        "cloud_compute"
+      ],
+      "signals": [
+        "compute",
+        "model access",
+        "api access",
+        "inference",
+        "runtime"
+      ],
+      "resolution_mode": "HYBRID",
+      "activation_state": "ACTIVE",
+      "mine_external": true,
+      "satisfied_when": "A bounded Witness workload runs with measured capacity, cost, latency, and availability.",
+      "affordances": [
+        "compute_capacity",
+        "api_capacity",
+        "infrastructure_capacity"
+      ]
+    },
+    {
+      "requirement_id": "RR-WITNESS-EVIDENCE-ACCESS-001",
+      "label": "Evidence/provenance graph access",
+      "objective": "Provide typed read access to provenance-bearing evidence, omissions, and canonical source references.",
+      "work_package_ids": [
+        "WP-WITNESS-CORE-001"
+      ],
+      "capability_ids": [
+        "CAP-WITNESS-PROJECT-001",
+        "CAP-WITNESS-TRACE-001"
+      ],
+      "resource_types": [
+        "evidence",
+        "software_asset",
+        "data_access"
+      ],
+      "signals": [
+        "evidence graph",
+        "provenance",
+        "audit log",
+        "knowledge graph"
+      ],
+      "resolution_mode": "COMPOSE_INTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": false,
+      "satisfied_when": "The Witness can reconstruct a bounded projection from source receipts without inventing missing evidence."
+    },
+    {
+      "requirement_id": "RR-WITNESS-AUTHORITY-STATE-001",
+      "label": "Warrant/authorization/consent state",
+      "objective": "Expose current authority and consent boundaries to the Witness without allowing the Witness to self-authorize.",
+      "work_package_ids": [
+        "WP-WITNESS-GOVERNANCE-001"
+      ],
+      "capability_ids": [
+        "CAP-WITNESS-AUTHORITY-001",
+        "CAP-WITNESS-TRACE-001"
+      ],
+      "resource_types": [
+        "governance_primitive",
+        "authorization_state"
+      ],
+      "signals": [
+        "warrant",
+        "authorization",
+        "consent",
+        "revocation",
+        "interruption"
+      ],
+      "resolution_mode": "COMPOSE_INTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": false,
+      "satisfied_when": "Authority state is inspectable and provenance-bound, and no Witness operation can increase its own authority."
+    },
+    {
+      "requirement_id": "RR-WITNESS-SECURITY-001",
+      "label": "Isolation and permission enforcement",
+      "objective": "Enforce bounded data access, permission scope, interruption, and revocation for the Witness runtime.",
+      "work_package_ids": [
+        "WP-WITNESS-GOVERNANCE-001"
+      ],
+      "capability_ids": [
+        "CAP-WITNESS-AUTHORITY-001"
+      ],
+      "resource_types": [
+        "security_control",
+        "software_asset",
+        "infrastructure"
+      ],
+      "signals": [
+        "permissions",
+        "isolation",
+        "sandbox",
+        "revocation",
+        "security"
+      ],
+      "resolution_mode": "COMPOSE_INTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": false,
+      "satisfied_when": "Mechanical controls prevent unauthorized observation or action and produce an auditable receipt."
+    },
+    {
+      "requirement_id": "RR-WITNESS-INDEPENDENT-VALIDATION-001",
+      "label": "Independent human validation",
+      "objective": "Acquire independent human methodological, usability, governance, and adversarial evaluation of the bounded Witness prototype.",
+      "work_package_ids": [
+        "WP-WITNESS-VALIDATION-001"
+      ],
+      "capability_ids": [
+        "CAP-WITNESS-VALIDATE-001"
+      ],
+      "resource_types": [
+        "grant",
+        "research_access",
+        "competition"
+      ],
+      "signals": [
+        "independent",
+        "validation",
+        "review",
+        "researcher",
+        "evaluation",
+        "usability",
+        "adversarial",
+        "human factors"
+      ],
+      "resolution_mode": "ACQUIRE_EXTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": true,
+      "satisfied_when": "At least one sufficiently independent human reviewer or study produces a provenance-bearing evaluation against preregistered criteria.",
+      "affordances": [
+        "project_funding",
+        "research_access",
+        "competition_access"
+      ]
+    },
+    {
+      "requirement_id": "RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001",
+      "label": "External paid knowledge-set expertise",
+      "objective": "Acquire project funding or research access that can provide independent external human research, engineering, human-factors, governance, security, or evaluation expertise for the Witness.",
+      "work_package_ids": [
+        "WP-WITNESS-CORE-001",
+        "WP-WITNESS-GOVERNANCE-001",
+        "WP-WITNESS-VALIDATION-001"
+      ],
+      "capability_ids": [
+        "CAP-WITNESS-ORIENT-001",
+        "CAP-WITNESS-AUTHORITY-001",
+        "CAP-WITNESS-VALIDATE-001"
+      ],
+      "resource_types": [
+        "grant",
+        "research_access"
+      ],
+      "affordances": [
+        "project_funding",
+        "research_access"
+      ],
+      "signals": [
+        "researcher",
+        "engineer",
+        "human factors",
+        "security",
+        "governance",
+        "expert",
+        "review",
+        "evaluation"
+      ],
+      "resolution_mode": "ACQUIRE_EXTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": true,
+      "satisfied_when": "Qualified external human expertise is available under a bounded scope, compensation/support basis, independence role, and deliverable receipt."
+    },
+    {
+      "requirement_id": "RR-WITNESS-FOUNDER-RESEARCH-TIME-001",
+      "label": "Protected founder/research time",
+      "objective": "Acquire project funding or fellowship support that can convert constrained uncompensated founder labor into protected research/build time for the bounded Witness work package.",
+      "work_package_ids": [
+        "WP-WITNESS-CORE-001",
+        "WP-WITNESS-GOVERNANCE-001"
+      ],
+      "capability_ids": [
+        "CAP-WITNESS-ORIENT-001",
+        "CAP-WITNESS-PROJECT-001",
+        "CAP-WITNESS-AUTHORITY-001"
+      ],
+      "resource_types": [
+        "grant",
+        "fellowship"
+      ],
+      "affordances": [
+        "project_funding",
+        "self_labor_support"
+      ],
+      "signals": [
+        "researcher",
+        "fellowship",
+        "stipend",
+        "research",
+        "funding"
+      ],
+      "resolution_mode": "ACQUIRE_EXTERNAL",
+      "activation_state": "ACTIVE",
+      "mine_external": true,
+      "satisfied_when": "A bounded period of founder/research work is explicitly supportable without treating unrelated earned income as project funding."
+    },
+    {
+      "requirement_id": "RR-WITNESS-LOCAL-COMPUTE-001",
+      "label": "Dedicated local/edge compute",
+      "objective": "Acquire local CPU/GPU only if a Witness experiment proves that cloud/API compute is an inadequate substitute.",
+      "work_package_ids": [
+        "WP-WITNESS-CORE-001"
+      ],
+      "capability_ids": [
+        "CAP-WITNESS-ORIENT-001",
+        "CAP-WITNESS-PROJECT-001"
+      ],
+      "resource_types": [
+        "hardware_access",
+        "compute_credit",
+        "free_infrastructure"
+      ],
+      "signals": [
+        "local compute",
+        "gpu",
+        "workstation",
+        "edge",
+        "hardware"
+      ],
+      "resolution_mode": "ACQUIRE_EXTERNAL",
+      "activation_state": "CONDITIONAL",
+      "mine_external": true,
+      "satisfied_when": "A measured local/edge workload requirement is met without unnecessary duplicate infrastructure.",
+      "affordances": [
+        "compute_capacity",
+        "infrastructure_capacity",
+        "hardware_access"
+      ]
+    },
+    {
+      "requirement_id": "RR-WITNESS-PHYSICAL-EXPERIMENT-001",
+      "label": "Physical actuation/sensing platform",
+      "objective": "Acquire sensors, edge devices, or robotics only if a later Witness experiment requires physical observation or actuation that simulation cannot validate.",
+      "work_package_ids": [
+        "WP-WITNESS-GOVERNANCE-001"
+      ],
+      "capability_ids": [
+        "CAP-WITNESS-AUTHORITY-001",
+        "CAP-WITNESS-TRACE-001"
+      ],
+      "resource_types": [
+        "hardware_access",
+        "grant",
+        "research_access"
+      ],
+      "signals": [
+        "robotics",
+        "robot",
+        "sensor",
+        "physical",
+        "actuation",
+        "edge device",
+        "equipment"
+      ],
+      "resolution_mode": "ACQUIRE_EXTERNAL",
+      "activation_state": "CONDITIONAL",
+      "mine_external": true,
+      "satisfied_when": "A preregistered physical-control experiment has the minimum platform needed to observe authority, interruption, rollback, and consequence.",
+      "affordances": [
+        "hardware_access",
+        "project_funding",
+        "research_access"
+      ]
+    }
+  ],
+  "substitution_assessments": [
+    {
+      "requirement_id": "RR-WITNESS-AGENT-RUNTIME-001",
+      "controlled_resource_id": "CR-WITNESS-AZURE-001",
+      "status": "UNKNOWN",
+      "rationale": "Azure is an acquired compute resource, but no bounded Witness workload/cost/latency benchmark has established adequacy."
+    },
+    {
+      "requirement_id": "RR-WITNESS-EVIDENCE-ACCESS-001",
+      "controlled_resource_id": "CR-WITNESS-REPO-CONTROLS-001",
+      "status": "PARTIAL",
+      "rationale": "Evidence and provenance primitives exist, but no admitted Witness projection runtime currently binds them into this capability."
+    },
+    {
+      "requirement_id": "RR-WITNESS-AUTHORITY-STATE-001",
+      "controlled_resource_id": "CR-WITNESS-REPO-CONTROLS-001",
+      "status": "PARTIAL",
+      "rationale": "Warrant/authorization concepts exist, but the Witness-specific mechanical read boundary has not been demonstrated."
+    },
+    {
+      "requirement_id": "RR-WITNESS-SECURITY-001",
+      "controlled_resource_id": "CR-WITNESS-REPO-CONTROLS-001",
+      "status": "PARTIAL",
+      "rationale": "Repository governance boundaries exist; a Witness runtime sandbox/permission path has not been demonstrated."
+    },
+    {
+      "requirement_id": "RR-WITNESS-INDEPENDENT-VALIDATION-001",
+      "controlled_resource_id": "CR-WITNESS-AI-CAPACITY-001",
+      "status": "INADEQUATE",
+      "rationale": "AI/internal review cannot establish independent human validation."
+    },
+    {
+      "requirement_id": "RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001",
+      "controlled_resource_id": "CR-WITNESS-AI-CAPACITY-001",
+      "status": "INADEQUATE",
+      "rationale": "AI capacity can reduce implementation effort but cannot substitute for a requirement explicitly scoped to independent external human expertise."
+    },
+    {
+      "requirement_id": "RR-WITNESS-FOUNDER-RESEARCH-TIME-001",
+      "controlled_resource_id": "CR-WITNESS-FOUNDER-LABOR-001",
+      "status": "INADEQUATE",
+      "rationale": "Founder labor exists, but the requirement is protected funded research time; constrained uncompensated capacity does not satisfy that requirement."
+    }
+  ]
+}

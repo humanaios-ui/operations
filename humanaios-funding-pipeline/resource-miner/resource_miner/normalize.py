@@ -16,6 +16,36 @@ DATE_RE = re.compile(
 )
 TRACKING_QUERY_KEYS = {"tracking", "gclid", "dclid", "fbclid", "msclkid", "mc_cid", "mc_eid"}
 
+SOURCE_CATEGORY_TYPE_ALIASES: dict[str, str] = {
+    "contest": "competition",
+    "research_grant": "grant",
+    "compute_credit": "compute_credit",
+    "free_infra": "free_infrastructure",
+    "free_api": "api_access",
+    "paid_work": "paid_work",
+    "publishing": "dissemination_access",
+    "fellowship": "fellowship",
+}
+
+TYPE_AFFORDANCES: dict[str, tuple[str, ...]] = {
+    "competition": ("competition_access",),
+    "bounty": ("bounty_income",),
+    "grant": ("project_funding",),
+    "fellowship": ("self_labor_support", "research_access"),
+    "scholarship": ("education_funding",),
+    "rebate": ("cost_recovery",),
+    "financing": ("borrowed_capital",),
+    "compute_credit": ("compute_capacity",),
+    "free_infrastructure": ("infrastructure_capacity",),
+    "api_access": ("api_capacity",),
+    "hardware_access": ("hardware_access",),
+    "paid_work": ("earned_income",),
+    "procurement": ("contract_revenue",),
+    "training": ("skill_development",),
+    "research_access": ("research_access",),
+    "dissemination_access": ("dissemination_access",),
+}
+
 TYPE_RULES: list[tuple[str, tuple[str, ...]]] = [
     ("competition", ("challenge", "contest", "hackathon", "competition", "prize")),
     ("bounty", ("bounty", "bug bounty")),
@@ -25,11 +55,14 @@ TYPE_RULES: list[tuple[str, tuple[str, ...]]] = [
     ("rebate", ("rebate", "incentive", "tax credit")),
     ("financing", ("loan", "line of credit", "capital access", "financing")),
     ("compute_credit", ("cloud credit", "compute credit", "gpu credit", "api credit")),
-    ("free_infrastructure", ("free infrastructure", "free tier", "hosting credit", "database credit")),
+    ("free_infrastructure", ("free infrastructure", "free infra", "free tier", "hosting credit", "database credit")),
+    ("api_access", ("free api", "api access", "model api", "api tier")),
+    ("hardware_access", ("hardware access", "hardware discount", "equipment access", "robotics access")),
     ("paid_work", ("paid work", "consulting", "paid study", "paid project")),
     ("procurement", ("rfp", "request for proposal", "procurement", "contract opportunity", "solicitation")),
     ("training", ("training", "certification", "credential")),
     ("research_access", ("dataset", "research access", "lab access", "model access")),
+    ("dissemination_access", ("publishing", "publication support", "publication access")),
 ]
 
 
@@ -113,10 +146,37 @@ def extract_deadline(text: str) -> str | None:
     return candidates[0][1]
 
 
-def classify_types(text: str, tags: list[str] | None = None) -> list[str]:
-    haystack = " ".join([text or "", " ".join(tags or [])]).lower()
+def _taxonomy_text(value: str) -> str:
+    return re.sub(r"[_-]+", " ", value.lower()).strip()
+
+
+def _source_category_key(value: str) -> str:
+    return re.sub(r"[\s-]+", "_", value.lower()).strip("_")
+
+
+def classify_types(
+    text: str,
+    tags: list[str] | None = None,
+    source_category: str | None = None,
+) -> list[str]:
+    haystack = " ".join(
+        [text or "", *(_taxonomy_text(str(tag)) for tag in (tags or []))]
+    ).lower()
     out = [kind for kind, needles in TYPE_RULES if any(n in haystack for n in needles)]
+
+    if source_category:
+        explicit = SOURCE_CATEGORY_TYPE_ALIASES.get(_source_category_key(source_category))
+        if explicit and explicit not in out:
+            out.insert(0, explicit)
+
     return out or ["general_resource"]
+
+
+def classify_affordances(resource_types: list[str]) -> list[str]:
+    affordances: set[str] = set()
+    for resource_type in resource_types:
+        affordances.update(TYPE_AFFORDANCES.get(resource_type, ()))
+    return sorted(affordances)
 
 
 def normalize_generic(
@@ -133,11 +193,13 @@ def normalize_generic(
     primary_source_url: str | None = None,
     observed_at: str | None = None,
     raw: dict[str, Any] | None = None,
+    source_category: str | None = None,
 ) -> ResourceCandidate:
     observed_at = observed_at or utcnow_iso()
     canonical = canonicalize_url(url)
     combined = "\n".join([title, description, body_text])
     deadline = extract_deadline(combined)
+    resource_types = classify_types(combined, tags, source_category)
     return ResourceCandidate(
         resource_id=stable_resource_id(canonical),
         title=title.strip(),
@@ -150,7 +212,8 @@ def normalize_generic(
         sponsor=sponsor.strip(),
         published_at=published_at,
         deadline=deadline,
-        resource_types=classify_types(combined, tags),
+        resource_types=resource_types,
+        resource_affordances=classify_affordances(resource_types),
         tags=sorted({str(x).lower() for x in (tags or []) if str(x).strip()}),
         value_text="; ".join(m.group(0) for m in MONEY_RE.finditer(combined)),
         cash_mentions_usd=cash_mentions(combined),
