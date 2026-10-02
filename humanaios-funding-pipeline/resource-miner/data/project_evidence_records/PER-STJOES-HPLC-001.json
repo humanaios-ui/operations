@@ -1,0 +1,100 @@
+{
+  "project_id": "PER-STJOES-HPLC-001",
+  "title": "HPLC Laboratory Build / Recovery",
+  "organization": "St. Joseph's Research (exact entity pending verification)",
+  "source_role": "Laboratory/research role (exact title pending verification)",
+  "time_window": "Historical; exact dates pending verification",
+  "mandate": "Recover and establish an HPLC laboratory capability from a nonfunctional inherited project.",
+  "objective": "Build a functioning laboratory capability with capital/resource planning and technical setup.",
+  "scope": [
+    "HPLC laboratory setup",
+    "capital planning",
+    "laboratory workflow buildout",
+    "research operations"
+  ],
+  "stakeholders": [
+    "research leadership",
+    "laboratory personnel",
+    "vendors/suppliers"
+  ],
+  "constraints": [
+    "inherited nonfunctional project",
+    "capital-intensive laboratory build",
+    "technical/regulatory environment"
+  ],
+  "resources_controlled": [
+    "capital requests exceeding $1,000,000 (human-attested)",
+    "laboratory setup responsibilities"
+  ],
+  "risks_dependencies": [
+    "equipment procurement",
+    "method readiness",
+    "staffing",
+    "capital approval",
+    "vendor dependencies"
+  ],
+  "execution": [
+    "Human attests building/recovering the HPLC laboratory from an unusable state."
+  ],
+  "deliverables": [
+    "Operational HPLC laboratory capability (human-attested)."
+  ],
+  "validation": [
+    "Project records and institutional evidence pending retrieval."
+  ],
+  "outcomes": [
+    "Human identifies the HPLC laboratory as a legacy build-from-zero achievement."
+  ],
+  "metrics": [
+    "Capital requests exceeding $1,000,000 (human-attested)"
+  ],
+  "capability_tags": [
+    "LAB_BUILDOUT",
+    "HPLC",
+    "CAPITAL_PLANNING",
+    "PROJECT_RECOVERY",
+    "RESEARCH_OPERATIONS",
+    "BUILD_FROM_ZERO"
+  ],
+  "evidence": [
+    {
+      "claim": "Human attests capital requests exceeding $1,000,000 associated with St. Joseph's Research.",
+      "claim_state": "HUMAN_ATTESTED",
+      "source_type": "HUMAN",
+      "locator": "EXP-CAREER-EVIDENCE-001 Q0.1"
+    },
+    {
+      "claim": "Human identifies the HPLC laboratory as build-from-zero work and an inherited recovery project.",
+      "claim_state": "HUMAN_ATTESTED",
+      "source_type": "HUMAN",
+      "locator": "EXP-CAREER-EVIDENCE-001 Q8.3/Q8.4"
+    },
+    {
+      "claim": "A peer-reviewed 2009 MALDI-TOF publication confirms related mass-spectrometry research authorship but not the HPLC buildout itself.",
+      "claim_state": "SOURCE_SUPPORTED",
+      "source_type": "PUBLICATION",
+      "locator": "PubMed PMID 19940340"
+    }
+  ],
+  "unknowns": [
+    {
+      "field": "institution_and_title",
+      "reason": "Exact legal institution, department, title, and dates remain unverified.",
+      "interrogation_prompt": "Resolve from historical records only if needed for external use.",
+      "market_signal_ids": [
+        "JRS-IMPLEMENTATION-SCALE-001"
+      ]
+    },
+    {
+      "field": "buildout_scope_and_outcome",
+      "reason": "Equipment list, validation scope, go-live state, staffing, and quantified outcomes are not yet evidenced.",
+      "interrogation_prompt": "Retrieve project records before detailed external use.",
+      "market_signal_ids": [
+        "JRS-BUDGET-001",
+        "JRS-TECHNICAL-PLATFORM-001",
+        "JRS-METRICS-001"
+      ]
+    }
+  ],
+  "authority_effect": "NONE"
+}
