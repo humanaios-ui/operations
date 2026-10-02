@@ -48,7 +48,17 @@ class RankedInvestigationQueue:
     execution_capability: str = "NONE"
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        data = asdict(self)
+        counts: dict[str, int] = {}
+        for entry in self.entries:
+            counts[entry.review_state] = counts.get(entry.review_state, 0) + 1
+        data["summary"] = {
+            "entry_count": len(self.entries),
+            "observation_failure_count": len(self.observation_failures),
+            "review_state_counts": counts,
+            "authorized_entry_count": 0,
+        }
+        return data
 
 
 def _score(
@@ -66,8 +76,17 @@ def _score(
     rationale: list[str] = []
 
     # Readiness dominates the score. Reward eligibility is only a small signal.
-    score += 50.0 * max(0.0, min(capability_coverage, 1.0))
-    rationale.append(f"capability coverage contributes {50.0 * capability_coverage:.1f}/50")
+    bounded_coverage = max(0.0, min(capability_coverage, 1.0))
+    if capability_state == OBSERVED_AVAILABLE:
+        capability_points = 50.0 * bounded_coverage
+        rationale.append(f"evidenced capability contributes {capability_points:.1f}/50")
+    elif capability_state == OBSERVED_UNAVAILABLE:
+        capability_points = 10.0 * bounded_coverage
+        rationale.append(f"partial prerequisites contribute {capability_points:.1f}/10; capability is unavailable")
+    else:
+        capability_points = 20.0 * bounded_coverage
+        rationale.append(f"partial prerequisites contribute {capability_points:.1f}/20; capability remains unknown")
+    score += capability_points
 
     if program_open:
         score += 20.0
