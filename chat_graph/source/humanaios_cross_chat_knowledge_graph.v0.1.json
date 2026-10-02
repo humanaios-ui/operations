@@ -497,7 +497,8 @@
       "first_seen": null,
       "properties": {},
       "source_basis": "cross-chat synthesis"
-    },    {
+    },
+    {
       "id": "ARCH_GRAPH_EVOLUTION",
       "label": "Graph Evolution System",
       "type": "Architecture",
@@ -996,7 +997,8 @@
       "label": "RNOLA",
       "type": "Learning Program",
       "domain": "learning",
-      "status": "established-in-chat",      "description": "Repository-native operator learning architecture mapped to INTENT-OS.",
+      "status": "established-in-chat",
+      "description": "Repository-native operator learning architecture mapped to INTENT-OS.",
       "first_seen": null,
       "properties": {},
       "source_basis": "cross-chat synthesis"
@@ -1495,7 +1497,8 @@
       "first_seen": null,
       "properties": {},
       "source_basis": "mentioned/observed in prior chats"
-    },    {
+    },
+    {
       "id": "PR_651",
       "label": "PR #651",
       "type": "PR",
@@ -1994,7 +1997,8 @@
       "id": "COMP_OBSERVATORY",
       "label": "Observatory",
       "type": "System Component",
-      "domain": "governance",      "status": "established-in-chat",
+      "domain": "governance",
+      "status": "established-in-chat",
       "description": "",
       "first_seen": null,
       "properties": {},
@@ -2493,7 +2497,8 @@
       "source": "PRIM_RECEIPT",
       "target": "PRIM_EXECUTION",
       "relation": "RECORDS",
-      "description": "",      "status": "asserted-in-chat",
+      "description": "",
+      "status": "asserted-in-chat",
       "source_basis": "cross-chat synthesis"
     },
     {
@@ -2992,7 +2997,8 @@
       "status": "asserted-in-chat",
       "source_basis": "cross-chat synthesis"
     },
-    {      "source": "PROG_AUTOMATA",
+    {
+      "source": "PROG_AUTOMATA",
       "target": "ARCH_GRAPH_EVOLUTION",
       "relation": "RESEARCHES",
       "description": "",
@@ -3491,7 +3497,8 @@
       "source": "PROG_HMBM",
       "target": "HMBM_CYCLE3",
       "relation": "HAS_CYCLE",
-      "description": "",      "status": "asserted-in-chat",
+      "description": "",
+      "status": "asserted-in-chat",
       "source_basis": "cross-chat synthesis"
     },
     {
