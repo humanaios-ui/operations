@@ -125,6 +125,29 @@ def apply_receipt(row: dict[str, Any], receipt: dict[str, Any]) -> dict[str, Any
     return out
 
 
+def _priority_score(row: dict[str, Any]) -> float:
+    scores = [
+        float(match.get("score") or 0.0)
+        for match in row.get("need_matches", []) or []
+    ]
+    scores.extend(
+        float(match.get("score") or 0.0)
+        for match in row.get("requirement_matches", []) or []
+        if str(match.get("gap_status") or "").upper() == "CONFIRMED"
+    )
+    return max(scores, default=0.0)
+
+
+def _priority_key(row: dict[str, Any]) -> tuple[Any, ...]:
+    route_order = {"VERIFY_NOW": 0, "WATCH": 1, "ARCHIVE": 2}
+    return (
+        route_order.get(str(row.get("route") or ""), 3),
+        -_priority_score(row),
+        str(row.get("deadline") or "9999-12-31"),
+        str(row.get("title") or "").lower(),
+    )
+
+
 def reconcile_rows(
     rows: list[dict[str, Any]],
     receipts: list[dict[str, Any]],
@@ -166,8 +189,11 @@ def reconcile_rows(
             "after": after,
         })
 
-    # Preserve original ordering to keep snapshot diffs reviewable.
+    # State transitions can change pursuit priority. Re-sort after reconciliation
+    # so WATCH/ARCHIVE candidates do not remain ahead of VERIFY_NOW work merely
+    # because they were ranked before currentness/ownership evidence arrived.
     reconciled = [by_id[str(row.get("resource_id") or "")] for row in rows]
+    reconciled.sort(key=_priority_key)
     return reconciled, audit
 
 
