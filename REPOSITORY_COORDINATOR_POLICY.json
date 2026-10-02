@@ -10,7 +10,9 @@
     "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
     "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
     "EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE",
-    "ADMISSION_IS_NOT_MERGE_AUTHORITY"
+    "ADMISSION_IS_NOT_MERGE_AUTHORITY",
+    "SAME_ACCOUNT_IDENTITY_IS_NOT_HUMAN_ORIGIN",
+    "AI_RELAY_IS_NOT_HUMAN_AUTHORITY"
   ],
   "capacity": {
     "active_operator_queue": 4
@@ -93,16 +95,22 @@
     "PR #590 (file F-CAND-LEDGER-GROUNDING-STUB-01: p34x_temporal_extractor's LedgerProvider is a permanent Phase-0 no-op stub, so no future date can ever ground against a ratified molt window) admitted 2026-09-29: documentation-only candidate block under z1-inbox/, which is not covered by control_plane.paths; found via the same systematic pytest-enabled backlog pass as PR #589.",
     "Issue #598 (issue-first admission and pre-PR CI) admitted explicitly by Z2 instruction, 2026-09-30, as the session graph for the control-plane implementation. Admission grants working-set standing only and does not authorize merge.",
     "PR #593 (repository knowledge graph with bounded inference) admitted explicitly by Z2 instruction, 2026-09-30, as a grandfathered work item created before the issue-first lifecycle was adopted. Admission does not resolve CI findings or authorize merge.",
-    "Evaluation admission may be derived from a native GitHub APPROVED review by an authorized actor when the PR closes an issue whose body explicitly declares ADMISSION_REQUESTED. This grants CI/evidence standing only; it does not consume operator capacity, accept implementation, or authorize merge. Zero-diff PR handling remains independently enforced by the no-op guard."
+    "Evaluation admission may be derived from a native GitHub APPROVED review by an authorized actor when the PR closes an issue whose body explicitly declares ADMISSION_REQUESTED. This grants CI/evidence standing only; it does not consume operator capacity, accept implementation, or authorize merge. Zero-diff PR handling remains independently enforced by the no-op guard.",
+    "GitHub identity, APPROVED review state, COMMENTED review state, triggering_actor, and /admit-evaluation text are not human-origin proof because connected AI tools may act under the same GitHub account. Evaluation admission therefore requires a cryptographic receipt from a separately held human signing key."
   ],
   "evaluation_admission": {
-    "authorized_actors": [
-      "humanaios-ui"
-    ],
     "required_issue_state": "ADMISSION_REQUESTED",
     "authority_effect": "EVALUATION_ONLY",
-    "evidence": "closing-keyword link to an issue whose body declares ADMISSION_REQUESTED plus latest APPROVED review by an authorized actor",
+    "evidence": "verified cryptographic human-attestation receipt bound to repository, PR, linked issue, exact head SHA, and EVALUATION_ONLY scope",
     "operator_queue_effect": "none",
     "merge_authority": false
+  },
+  "human_attestation": {
+    "scheme": "SSH_SIGNATURE_V1",
+    "namespace": "humanaios-evaluation-admission-v1",
+    "canonical_scope": "repository + PR number + linked issue + exact head SHA + EVALUATION_ONLY",
+    "authorized_signers": [],
+    "bootstrap_state": "LOCKED_UNTIL_HUMAN_PUBLIC_KEY_REGISTERED",
+    "private_key_rule": "private signing key must remain outside repository, GitHub Actions, connected AI tools, and agent-accessible storage"
   }
 }

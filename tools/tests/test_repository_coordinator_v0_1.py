@@ -7,13 +7,14 @@ state drift from elapsed time and keeps separate signals separate.
 """
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 
-from repository_coordinator_v0_1 import analyze, gate_decision, render_markdown
+from repository_coordinator_v0_1 import (\n    analyze, gate_decision, render_markdown,\n    human_admission_payload, verify_human_admission_receipts,\n)
 
 TOOL_NAME = "test_repository_coordinator"
 TOOL_VERSION = "0.2.1"
@@ -26,11 +27,13 @@ def pr(
     files=None,
     patch="",
     reviews=None,
+    comments=None,
     mergeable_state="clean",
     *,
     author="builder",
     draft=False,
     labels=None,
+    head_sha="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 ):
     files = ["x.py"] if files is None else files
     return {
@@ -40,11 +43,14 @@ def pr(
         "files": files,
         "file_details": [{"filename": f, "patch": patch if i == 0 else ""} for i, f in enumerate(files)],
         "reviews": reviews or [],
+        "comments": comments or [],
         "mergeable_state": mergeable_state,
         "html_url": f"https://example.test/pull/{n}",
         "author": author,
         "draft": draft,
         "labels": labels or [],
+        "head_sha": head_sha,
+        "verified_admission_receipts": [],
     }
 
 
@@ -58,6 +64,7 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None):
         "evaluation_admission": {
             "authorized_actors": ["humanaios-ui"],
             "required_issue_state": "ADMISSION_REQUESTED",
+            "command": "/admit-evaluation",
         },
         "maintenance": {
             "authors": ["dependabot[bot]"],
@@ -299,19 +306,62 @@ def test_issue_assignment_without_admission_stays_workbench_when_draft():
     assert got["admission"]["admitted"] is False
 
 
-def test_authorized_review_admits_requested_issue_to_evaluation_only():
+def test_raw_approved_review_is_not_human_origin_proof():
     reviews = [{
         "user": {"login": "humanaios-ui"},
         "state": "APPROVED",
         "submitted_at": "2026-09-30T19:43:58Z",
     }]
-    p = pr(1, body="Fixes #99", reviews=reviews, files=[])
+    p = pr(1, body="Fixes #99", reviews=reviews)
     referenced = {
         "99": {
             "state": "open",
             "is_pull_request": False,
             "title": "Session graph",
-            "body": "- **state:** `ADMISSION_REQUESTED`\n- **authority_required:** `Z2`",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_same_account_ai_command_is_not_human_origin_proof():
+    comments = [{
+        "user": {"login": "humanaios-ui"},
+        "body": "/admit-evaluation",
+        "created_at": "2026-09-30T20:57:36Z",
+    }]
+    p = pr(1, body="Fixes #99", comments=comments)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_verified_human_receipt_admits_requested_issue_to_evaluation_only():
+    head = "a" * 40
+    p = pr(1, body="Fixes #99", head_sha=head)
+    p["verified_admission_receipts"] = [{
+        "principal": "human-authority",
+        "issue": 99,
+        "pr": 1,
+        "head": head,
+        "authority": "EVALUATION_ONLY",
+        "carrier": "humanaios-ui",
+        "source": "issue_comments",
+    }]
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
         }
     }
     idx = run([p], items=referenced, policy_data=policy())
@@ -319,10 +369,59 @@ def test_authorized_review_admits_requested_issue_to_evaluation_only():
     assert got["lane"] == "ADMITTED_TO_EVALUATION"
     assert got["admission"]["gate"] == "PASS"
     assert got["admission"]["evaluation_admitted"] is True
+    assert got["admission"]["evaluation_principals"] == ["human-authority"]
     assert got["admission"]["working_set_admitted"] is False
-    assert got["guidance"]["action"] == "ADVANCE"
-    assert got["objective"] == "EVALUATION"
     assert idx["capacity"]["admitted_ready_count"] == 0
+
+
+def test_verified_receipt_is_bound_to_exact_head():
+    p = pr(1, body="Fixes #99", head_sha="a" * 40)
+    p["verified_admission_receipts"] = [{
+        "principal": "human-authority",
+        "issue": 99,
+        "pr": 1,
+        "head": "b" * 40,
+        "authority": "EVALUATION_ONLY",
+    }]
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_verified_receipt_cannot_admit_unlinked_issue():
+    head = "a" * 40
+    p = pr(1, body="Fixes #98", head_sha=head)
+    p["verified_admission_receipts"] = [{
+        "principal": "human-authority",
+        "issue": 99,
+        "pr": 1,
+        "head": head,
+        "authority": "EVALUATION_ONLY",
+    }]
+    referenced = {
+        "98": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Linked session",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        },
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Other session",
+            "body": "**state:** `ADMISSION_REQUESTED`",
+        },
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
 
 
 def test_untrusted_review_cannot_admit_evaluation_workspace():
@@ -526,3 +625,135 @@ def run_smoke_test():
     test_zero_diff_is_preserve_close_not_merge_work()
     test_mixed_control_plane_and_feature_change_is_not_exempt()
     return True
+
+
+def _human_test_keypair(tmp_path):
+    private = tmp_path / "human_admission_test"
+    subprocess.run(
+        ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(private)],
+        check=True,
+    )
+    public = private.with_suffix(".pub").read_text(encoding="utf-8").strip()
+    return private, public
+
+
+def _human_signed_receipt(tmp_path, private, *, repo, pr_number, issue, head):
+    payload = human_admission_payload(repo, pr_number, issue, head)
+    payload_file = tmp_path / "payload.txt"
+    payload_file.write_text(payload, encoding="utf-8")
+    subprocess.run(
+        [
+            "ssh-keygen", "-Y", "sign",
+            "-f", str(private),
+            "-n", "humanaios-evaluation-admission-v1",
+            str(payload_file),
+        ],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    signature = (tmp_path / "payload.txt.sig").read_text(encoding="utf-8").strip()
+    return (
+        "/admit-evaluation-signed\n"
+        f"pr={pr_number}\n"
+        f"issue={issue}\n"
+        f"head={head}\n"
+        f"{signature}"
+    )
+
+
+def test_crypto_receipt_allows_authority_origin_to_diverge_from_carrier(tmp_path):
+    private, public = _human_test_keypair(tmp_path)
+    head = "a" * 40
+    body = _human_signed_receipt(
+        tmp_path, private,
+        repo="humanaios-ui/operations", pr_number=603, issue=602, head=head,
+    )
+    snapshot = {
+        "repository": "humanaios-ui/operations",
+        "pull_requests": [{
+            "number": 603,
+            "head_sha": head,
+            "comments": [{
+                "user": {"login": "humanaios-ui"},
+                "body": body,
+            }],
+            "reviews": [],
+        }],
+    }
+    policy_data = {
+        "human_attestation": {
+            "namespace": "humanaios-evaluation-admission-v1",
+            "authorized_signers": [{
+                "principal": "human-authority",
+                "public_key": public,
+            }],
+        },
+    }
+    got = verify_human_admission_receipts(snapshot, policy_data)
+    receipt = got["pull_requests"][0]["verified_admission_receipts"][0]
+    assert receipt["principal"] == "human-authority"
+    assert receipt["carrier"] == "humanaios-ui"
+    assert receipt["authority"] == "EVALUATION_ONLY"
+
+
+def test_same_account_ai_without_human_key_cannot_create_receipt(tmp_path):
+    _, public = _human_test_keypair(tmp_path)
+    head = "a" * 40
+    snapshot = {
+        "repository": "humanaios-ui/operations",
+        "pull_requests": [{
+            "number": 603,
+            "head_sha": head,
+            "comments": [{
+                "user": {"login": "humanaios-ui"},
+                "body": "/admit-evaluation",
+            }],
+            "reviews": [{
+                "user": {"login": "humanaios-ui"},
+                "state": "APPROVED",
+                "body": "",
+            }],
+        }],
+    }
+    policy_data = {
+        "human_attestation": {
+            "namespace": "humanaios-evaluation-admission-v1",
+            "authorized_signers": [{
+                "principal": "human-authority",
+                "public_key": public,
+            }],
+        },
+    }
+    got = verify_human_admission_receipts(snapshot, policy_data)
+    assert got["pull_requests"][0]["verified_admission_receipts"] == []
+
+
+def test_signed_receipt_cannot_be_replayed_after_head_change(tmp_path):
+    private, public = _human_test_keypair(tmp_path)
+    signed_head = "a" * 40
+    body = _human_signed_receipt(
+        tmp_path, private,
+        repo="humanaios-ui/operations", pr_number=603, issue=602, head=signed_head,
+    )
+    snapshot = {
+        "repository": "humanaios-ui/operations",
+        "pull_requests": [{
+            "number": 603,
+            "head_sha": "b" * 40,
+            "comments": [{"user": {"login": "humanaios-ui"}, "body": body}],
+            "reviews": [],
+        }],
+    }
+    policy_data = {
+        "human_attestation": {
+            "namespace": "humanaios-evaluation-admission-v1",
+            "authorized_signers": [{
+                "principal": "human-authority",
+                "public_key": public,
+            }],
+        },
+    }
+    got = verify_human_admission_receipts(snapshot, policy_data)
+    assert got["pull_requests"][0]["verified_admission_receipts"] == []
