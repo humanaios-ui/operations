@@ -83,19 +83,19 @@ def scan_portfolio(
             continue
 
         # GET /hackers/programs already returns full program resources. Reuse
-        # those observations for account-wide portfolio scans instead of adding
-        # a redundant per-program detail request. Explicit --handle scans still
-        # require a detail lookup because no list seed exists for them.
+        # those observations for account-wide portfolio scans. Explicit --handle
+        # scans resolve the requested program from that same authenticated list,
+        # avoiding reliance on a separate detail response shape.
         if explicit_handles:
             try:
-                program = client.get_program(handle)
+                program = client.find_program(handle, page_size=page_size)
             except Exception as exc:
                 snapshot.programs.append(
                     PortfolioProgramObservation(
                         handle=handle,
                         state="OBSERVATION_FAILED",
                         error_type=type(exc).__name__,
-                        error_detail=f"stage=get_program; {str(exc)[:210]}",
+                        error_detail=f"stage=find_program; {str(exc)[:210]}",
                     )
                 )
                 continue
