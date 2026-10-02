@@ -1,0 +1,145 @@
+@prefix cal: <https://humanaios.ai/ns/calibration#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+cal:CalibrationTrial a rdfs:Class .
+cal:Stimulus a rdfs:Class .
+cal:HumanTrace a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:MachineTrace a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:Comparison a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:ContextObservation a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:ResolutionEvent a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:ActiveFocus a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:DesignDelta a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:Retest a rdfs:Class ; rdfs:subClassOf prov:Activity .
+cal:Warrant a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:ExternalSource a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:EvidenceRelation a rdfs:Class .
+cal:LandingCheck a rdfs:Class ; rdfs:subClassOf prov:Activity .
+cal:DependencyFlag a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:EpistemicAttractor a rdfs:Class ; rdfs:subClassOf prov:Activity .
+cal:ExternalCandidate a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:AbsorptionAssessment a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:OmissionSignal a rdfs:Class ; rdfs:subClassOf prov:Entity .
+cal:CompressionResidue a rdfs:Class ; rdfs:subClassOf prov:Entity .
+
+cal:hasStimulus a rdfs:Property .
+cal:hasHumanTrace a rdfs:Property .
+cal:hasMachineTrace a rdfs:Property .
+cal:hasComparison a rdfs:Property .
+cal:hasContextObservation a rdfs:Property .
+cal:hasResolutionEvent a rdfs:Property .
+cal:hasActiveFocus a rdfs:Property .
+cal:generatedDesignDelta a rdfs:Property .
+cal:challengedBy a rdfs:Property .
+cal:hasWarrant a rdfs:Property .
+cal:traceFrozenAt a rdfs:Property .
+cal:participantConfidence a rdfs:Property .
+cal:resolutionState a rdfs:Property .
+cal:warrantState a rdfs:Property .
+cal:evidenceRelationType a rdfs:Property .
+cal:sourceURI a rdfs:Property .
+cal:sourceVersion a rdfs:Property .
+cal:scopeNote a rdfs:Property .
+cal:supportsNote a rdfs:Property .
+cal:doesNotSupportNote a rdfs:Property .
+cal:falsifier a rdfs:Property .
+cal:supportedByFrozenTrace a rdfs:Property .
+cal:follows a rdfs:Property .
+cal:contextFor a rdfs:Property .
+cal:salientDuring a rdfs:Property .
+cal:reportedValue a rdfs:Property .
+cal:machineValue a rdfs:Property .
+cal:comparisonType a rdfs:Property .
+cal:sequenceIndex a rdfs:Property .
+cal:retestOutcome a rdfs:Property .
+cal:hasLandingCheck a rdfs:Property .
+cal:landingState a rdfs:Property .
+cal:understandingEvidence a rdfs:Property .
+cal:triggerReason a rdfs:Property .
+cal:clarificationText a rdfs:Property .
+cal:hasDependencyFlag a rdfs:Property .
+cal:dependencyType a rdfs:Property .
+cal:dependencyState a rdfs:Property .
+cal:requiredFor a rdfs:Property .
+cal:blocksStage a rdfs:Property .
+cal:plainLanguageNote a rdfs:Property .
+cal:resolutionAction a rdfs:Property .
+cal:fallback a rdfs:Property .
+cal:triggeredBy a rdfs:Property .
+cal:targetNode a rdfs:Property .
+cal:queryIntent a rdfs:Property .
+cal:queryText a rdfs:Property .
+cal:originatingAttractor a rdfs:Property .
+cal:candidateClaim a rdfs:Property .
+cal:assessesCandidate a rdfs:Property .
+cal:disposition a rdfs:Property .
+cal:alignmentNote a rdfs:Property .
+cal:omissionType a rdfs:Property .
+cal:expectedBy a rdfs:Property .
+cal:compressedFrom a rdfs:Property .
+cal:preservationGoal a rdfs:Property .
+cal:omittedAspect a rdfs:Property .
+cal:compressionLossRisk a rdfs:Property .
+
+cal:Resolved a skos:Concept ; skos:prefLabel "RESOLVED" .
+cal:Unresolved a skos:Concept ; skos:prefLabel "UNRESOLVED" .
+cal:Delayed a skos:Concept ; skos:prefLabel "DELAYED" .
+cal:NotCaptured a skos:Concept ; skos:prefLabel "NOT_CAPTURED" .
+
+cal:Convergence a skos:Concept ; skos:prefLabel "CONVERGENCE" .
+cal:Divergence a skos:Concept ; skos:prefLabel "DIVERGENCE" .
+cal:Interference a skos:Concept ; skos:prefLabel "INTERFERENCE" .
+cal:Indeterminate a skos:Concept ; skos:prefLabel "INDETERMINATE" .
+
+cal:Provisional a skos:Concept ; skos:prefLabel "PROVISIONAL" .
+cal:Replicated a skos:Concept ; skos:prefLabel "REPLICATED" .
+cal:Warranted a skos:Concept ; skos:prefLabel "WARRANTED" .
+cal:Withdrawn a skos:Concept ; skos:prefLabel "WITHDRAWN" .
+
+cal:LandingUnverified a skos:Concept ; skos:prefLabel "UNVERIFIED" .
+cal:LandingConfirmed a skos:Concept ; skos:prefLabel "CONFIRMED" .
+cal:LandingClarified a skos:Concept ; skos:prefLabel "CLARIFIED" .
+cal:LandingMisunderstood a skos:Concept ; skos:prefLabel "MISUNDERSTOOD" .
+cal:LandingDeferred a skos:Concept ; skos:prefLabel "DEFERRED" .
+
+cal:DependencySatisfied a skos:Concept ; skos:prefLabel "SATISFIED" .
+cal:DependencyUnsatisfied a skos:Concept ; skos:prefLabel "UNSATISFIED" .
+cal:DependencyUnverified a skos:Concept ; skos:prefLabel "UNVERIFIED" .
+cal:DependencyDegraded a skos:Concept ; skos:prefLabel "DEGRADED" .
+cal:DependencyVersionMismatch a skos:Concept ; skos:prefLabel "VERSION_MISMATCH" .
+
+cal:SeekSupport a skos:Concept ; skos:prefLabel "SEEK_SUPPORT" .
+cal:SeekContradiction a skos:Concept ; skos:prefLabel "SEEK_CONTRADICTION" .
+cal:SeekAlternative a skos:Concept ; skos:prefLabel "SEEK_ALTERNATIVE_EXPLANATION" .
+cal:SeekPriorArt a skos:Concept ; skos:prefLabel "SEEK_PRIOR_ART" .
+cal:SatisfyDependency a skos:Concept ; skos:prefLabel "SATISFY_DEPENDENCY" .
+cal:ResolveOmission a skos:Concept ; skos:prefLabel "RESOLVE_OMISSION" .
+cal:ProbeCompressionLoss a skos:Concept ; skos:prefLabel "PROBE_COMPRESSION_LOSS" .
+
+cal:DispositionAbsorb a skos:Concept ; skos:prefLabel "ABSORB" .
+cal:DispositionLink a skos:Concept ; skos:prefLabel "LINK" .
+cal:DispositionChallenge a skos:Concept ; skos:prefLabel "CHALLENGE" .
+cal:DispositionWatch a skos:Concept ; skos:prefLabel "WATCH" .
+cal:DispositionReject a skos:Concept ; skos:prefLabel "REJECT" .
+
+cal:StructuralOmission a skos:Concept ; skos:prefLabel "STRUCTURAL_OMISSION" .
+cal:EpistemicUnknown a skos:Concept ; skos:prefLabel "EPISTEMIC_UNKNOWN" .
+cal:CoverageGap a skos:Concept ; skos:prefLabel "COVERAGE_GAP" .
+cal:CompressionInducedOmission a skos:Concept ; skos:prefLabel "COMPRESSION_INDUCED_OMISSION" .
+
+cal:ImplementsStandard a cal:EvidenceRelation ; rdfs:label "IMPLEMENTS_STANDARD" .
+cal:ConstrainedByStandard a cal:EvidenceRelation ; rdfs:label "CONSTRAINED_BY_STANDARD" .
+cal:MethodAnalogue a cal:EvidenceRelation ; rdfs:label "METHOD_ANALOGUE" .
+cal:CognitiveAnalogue a cal:EvidenceRelation ; rdfs:label "COGNITIVE_ANALOGUE" .
+cal:EmpiricallyMotivatedBy a cal:EvidenceRelation ; rdfs:label "EMPIRICALLY_MOTIVATED_BY" .
+cal:ChallengedBy a cal:EvidenceRelation ; rdfs:label "CHALLENGED_BY" .
+cal:LocalHypothesis a cal:EvidenceRelation ; rdfs:label "LOCAL_HYPOTHESIS" .
+cal:VersionWatch a cal:EvidenceRelation ; rdfs:label "VERSION_WATCH" .
+
+# Provenance policy:
+# Prefer PROV-O relations (prov:wasGeneratedBy, prov:wasDerivedFrom,
+# prov:wasAttributedTo, prov:generatedAtTime) for provenance semantics.
+# Domain-specific cal:* properties should specialize rather than duplicate them.

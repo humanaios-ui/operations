@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 196
+  tools: 197
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 149
+  builder_markers_present: 150
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2498,6 +2498,19 @@ tools:
   builder_markers: true
   purpose: Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies.
   session: '#596'
+- tool_id: HAIOS-TOOL-210
+  name: calibration_graph_validate
+  path: tools/calibration_graph/validate_graph.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Validate HumanAIOS calibration evidence-graph reference fixtures.
+  session: '#595'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
