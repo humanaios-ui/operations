@@ -97,9 +97,9 @@
     "Issue #598 (issue-first admission and pre-PR CI) admitted explicitly by Z2 instruction, 2026-09-30, as the session graph for the control-plane implementation. Admission grants working-set standing only and does not authorize merge.",
     "PR #593 (repository knowledge graph with bounded inference) admitted explicitly by Z2 instruction, 2026-09-30, as a grandfathered work item created before the issue-first lifecycle was adopted. Admission does not resolve CI findings or authorize merge.",
     "PR #672 (Azure Container Apps deploy workflow for the ACAT API — Microsoft for Startups Milestone 3 proof-of-concept) admitted explicitly by Z2 instruction, 2026-10-02, via GitHub review on the PR after it moved from draft to ready-for-review and the admission gate correctly held it as ready non-maintenance work lacking an admission record.",
-    "PR #671 (Add Azure Container Apps deploy workflow for ACAT API (M3 proof-of-concept)",
+    "PR #671 (PROGRAM_GRAPH_MAPPING.md + program_graph.py: Programs as Layer 5 of the concept-to-code stack) admitted explicitly by Z2 instruction, 2026-10-02, via the same admission-gate hold pattern as #672 — ready non-maintenance work lacking an admission record.",
+    "PR #673 (fix(resource-miner): type resources against explicit deficits) admitted explicitly by Z2 instruction, 2026-10-02.",
     "Evaluation admission may be derived from a native GitHub APPROVED review by an authorized actor when the PR closes an issue whose body explicitly declares ADMISSION_REQUESTED. This grants CI/evidence standing only; it does not consume operator capacity, accept implementation, or authorize merge. Zero-diff PR handling remains independently enforced by the no-op guard."
-    "PR #673 (fix(resource-miner): type resources against explicit deficits)",
   ],
   "evaluation_admission": {
     "authorized_actors": [
