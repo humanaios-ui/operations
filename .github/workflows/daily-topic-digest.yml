@@ -30,14 +30,14 @@ jobs:
 
     steps:
       - name: Checkout operations repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: humanaios-ui/operations
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout lasting-light-ai repository (for public page updates)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: humanaios-ui/lasting-light-ai
           ref: main
@@ -45,7 +45,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -134,7 +134,7 @@ jobs:
           EOF
 
       - name: Set up Node.js for delta page generator
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '18'
 
@@ -269,7 +269,7 @@ jobs:
           cat /tmp/digest-summary.txt
 
       - name: Upload monitoring artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: topic-digest-run-${{ github.run_id }}
@@ -295,12 +295,12 @@ jobs:
 
     steps:
       - name: Checkout operations repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: humanaios-ui/operations
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
