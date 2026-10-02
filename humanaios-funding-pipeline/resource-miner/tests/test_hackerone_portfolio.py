@@ -115,6 +115,11 @@ class FakeClient:
         return []
 
 
+class FailingScopeClient(FakeClient):
+    def get_structured_scopes(self, handle, page_size=100):
+        raise RuntimeError("HTTP 429")
+
+
 class PortfolioTests(unittest.TestCase):
     def test_portfolio_hydration_has_no_execution_authority(self):
         snapshot = scan_portfolio(FakeClient())
@@ -122,6 +127,14 @@ class PortfolioTests(unittest.TestCase):
         self.assertEqual(snapshot.programs[0].state, "OBSERVED")
         self.assertEqual(snapshot.execution_capability, "NONE")
         self.assertEqual(snapshot.authority_effect, "NONE")
+
+    def test_portfolio_failure_preserves_hydration_stage(self):
+        snapshot = scan_portfolio(FailingScopeClient())
+        self.assertEqual(len(snapshot.programs), 1)
+        row = snapshot.programs[0]
+        self.assertEqual(row.state, "OBSERVATION_FAILED")
+        self.assertIn("stage=structured_scopes", row.error_detail or "")
+        self.assertIn("HTTP 429", row.error_detail or "")
 
     def test_rank_prefers_evidenced_review_readiness(self):
         graph = build_scope_graph(program_fixture(), scope_fixture(), [])
