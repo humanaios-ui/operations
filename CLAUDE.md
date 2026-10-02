@@ -301,11 +301,14 @@ When these occur, emit callout immediately:
 
 **Authorization & Evidence (Layer 4):** See [`AUTHORIZATION_EVIDENCE_MAPPING.md`](./AUTHORIZATION_EVIDENCE_MAPPING.md) for the final layer of the concept-to-code stack: a set of authorization-and-evidence assurance questions (is the system authorized to operate; does this actor have sufficient evidence and authority for this action now; is it inside a safe envelope; is it sufficiently assured; can it detect unauthorized paths, skipped approvals, and protocol divergence; does it render ACT/ABSTAIN/ESCALATE/ACQUIRE-EVIDENCE/REDUCE-SCOPE/MAKE-REVERSIBLE/SANDBOX/ROLL-BACK) mapped one-for-one onto existing gates, ledgers, and findings (F-62, F-63, F-64, `H-CAND-GOVERNANCE-CAPTURE-SURFACE-01`), with the one genuine gap — the eight-way decision taxonomy — closed by `authorization_evidence.py`. Read after FIVE_RINGS_MAPPING.md (Layer 3); `python3 authorization_evidence.py --smoke-test` is the standing check.
 
+**Programs (Layer 5):** See [`PROGRAM_GRAPH_MAPPING.md`](./PROGRAM_GRAPH_MAPPING.md) for the layer connecting `INTENT_GRAPH.yaml`'s Objective nodes to in-flight, cross-repo work and its resource cost: a proposed `type: program` node (Objective → realized-by-Program → constituent issues/PRs, each Program tagged with a `RESOURCE_UNITS.yaml`-vector cost rollup, never collapsed across units per the ratified `P-NON-COMMENSURABLE` principle) that composes with the Attention Router (issue #640) as a third routing axis and with `PRIORITY_QUEUE.md`'s existing `density = benefit / cost` formula, applied one level up from individual work orders to whole initiatives. Read after AUTHORIZATION_EVIDENCE_MAPPING.md (Layer 4); `python3 program_graph.py --smoke-test` is the standing check.
+
 ---
 
 ## Appended Events
 
 ```
+2026-10-02 — Z1 proposed Q-PROGRAM-GRAPH-MAPPING-01 (PROGRAM_GRAPH_MAPPING.md + program_graph.py: Programs as the graph layer connecting INTENT_GRAPH.yaml Objectives to cross-repo work and RESOURCE_UNITS.yaml cost, Layer 5 of the concept-to-code stack); awaiting Z2 RATIFY signature
 2026-10-02 — Z2 (Night) finalized all four specifications with real digests | All status fields made consistent | Layer 1–4 concept-to-code stack complete | Ratification manifest updated | See digest records below | Governance integrity verified
 
 **Specification Digest Record (Ratified):**
@@ -341,7 +344,7 @@ When these occur, emit callout immediately:
 
 **Per-repo CLAUDE.md files** should link to this document as authoritative and state repo-specific constraints (zone, proposer cap, executor assignment, escalation).
 
-See **Framework Reference** section above for foundational material on FRAMEWORK_MAPPING.md, BOOT_PROCESS_MAP.md, FIVE_RINGS_MAPPING.md, and AUTHORIZATION_EVIDENCE_MAPPING.md — the concept-to-code stack, Layers 1–4.
+See **Framework Reference** section above for foundational material on FRAMEWORK_MAPPING.md, BOOT_PROCESS_MAP.md, FIVE_RINGS_MAPPING.md, AUTHORIZATION_EVIDENCE_MAPPING.md, and PROGRAM_GRAPH_MAPPING.md — the concept-to-code stack, Layers 1–5.
 
 **PR Workflow & Quality Gates:** See [`.claude/PR_WORKFLOW_GUIDE.md`](./.claude/PR_WORKFLOW_GUIDE.md) for Z1's (Claude's) PR handling process. Covers task tracking, upfront scope documentation, local CI validation, and formal handoff to Z2. Uses automated verification script (`scripts/verify_pr_readiness.sh`) for manifest, document, and code quality checks before push. Essential reference for PRs with multiple findings or review feedback.
 
