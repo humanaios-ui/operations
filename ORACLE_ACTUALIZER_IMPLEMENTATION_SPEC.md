@@ -132,9 +132,9 @@
       "unknown_id": "UNK-001",
       "description": "Actual gap_rate distribution under COPILOT substrate",
       "relevant_to_claims": ["CLM-001"],
-      "days_unknown": 0,
-      "falsifier_threshold": 14,
-      "escalation_required_at": "ISO8601_timestamp (day 14)"
+      "escalation_state": "ACTIVE",
+      "escalation_criteria": "tracked in REGISTERED.md per 2f falsifier (state-driven, not elapsed-time)",
+      "escalation_state_notes": "ACTIVE | ESCALATE_TO_Z2 (determined by state, not day count)"
     }
   ],
   
@@ -243,10 +243,10 @@ def ACTUALIZER_CAN_EXECUTE(action: dict, state: dict) -> tuple[bool, str]:
     
     # Precondition 2: No execute on UNKNOWN warrant
     if action['warrant']['epistemic_status'] == 'UNKNOWN':
-        # Check if unknown >14 days (2f falsifier)
-        days_unknown = (NOW - action['warrant']['unknown_since']).days
-        if days_unknown > 14:
-            return (False, "UNKNOWN >14 days; escalate to Z2; no auto-execute")
+        # Check escalation state in REGISTERED.md per 2f falsifier (state-tracked, not calendar-driven)
+        escalation_state = action['warrant'].get('escalation_state', 'ACTIVE')
+        if escalation_state == 'ESCALATE_TO_Z2':
+            return (False, "UNKNOWN in escalation state; escalate to Z2; no auto-execute")
         else:
             return (False, "UNKNOWN warrant; operator decides; no auto-execute")
     
