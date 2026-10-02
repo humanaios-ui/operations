@@ -126,8 +126,8 @@ inter_rater_agreement_kappa: "[Score]"
 **Falsifier:** If two researchers disagree on novelty classification:
 1. Present evidence at inter-rater conference
 2. If κ < 0.70 on novelty, finding marked as DISPUTED
-3. Cooling-off period extends by 14 days pending Z2 judgment
-4. Original claim cannot inform #497 decisions until resolved
+3. Cooling-off state transitions to DISPUTE_EXTENDED (Z2 judgment required; state tracked in REGISTERED.md)
+4. Original claim cannot inform #497 decisions until state transitions to COOLED_OFF
 
 **Examples (Pre-Registered):**
 - ✓ NOVEL: Self-modifying agent (new authority boundary)
@@ -460,7 +460,7 @@ jobs:
                   print(f"✓ Cooling-off period expired (state-tracked in REGISTERED.md)")
               elif cooling_off_state == 'ACTIVE':
                   print(f"⚠ Cooling-off period active (state-tracked in REGISTERED.md)")
-                  # Non-blocking warning; can cite after period expires
+                  # Non-blocking warning; can cite when cooling_off_state == 'COOLED_OFF'
               else:
                   print(f"INFO: Unknown cooling-off state: {cooling_off_state}")
           PYTHON
