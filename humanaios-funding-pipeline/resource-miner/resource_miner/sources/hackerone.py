@@ -158,6 +158,17 @@ class HackerOneClient:
             raise HackerOneAPIError("HackerOne program response missing data object")
         return row
 
+    def find_program(self, handle: str, page_size: int = DEFAULT_PAGE_SIZE) -> dict[str, Any]:
+        """Resolve a current program resource from the authenticated portfolio list."""
+        wanted = handle.strip().casefold()
+        if not wanted:
+            raise ValueError("HackerOne program handle is required")
+        for row in self._iter_paginated("/programs", page_size=page_size):
+            attrs = row.get("attributes") or {}
+            if str(attrs.get("handle") or "").strip().casefold() == wanted:
+                return row
+        raise HackerOneAPIError("HackerOne program is not present in the authenticated portfolio")
+
     def get_structured_scopes(self, handle: str, page_size: int = DEFAULT_PAGE_SIZE) -> list[dict[str, Any]]:
         handle = handle.strip()
         return list(
