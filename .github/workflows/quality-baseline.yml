@@ -95,6 +95,7 @@ jobs:
             tools/tests/test_nf_ledger_cli.py \
             tools/tests/test_ci_predict.py \
             tools/tests/test_control_plane_custody_observer_v0_1.py \
+            tools/tests/test_control_plane_github_adapter_v0_1.py \
             tools/tests/test_pr_challenge_dialogue_router_v0_1.py \
             tools/tests/test_lifecycle_predict.py \
             tools/tests/test_dimension_attribution.py \
@@ -109,6 +110,7 @@ jobs:
             tools/tests/test_industry_telemetry.py \
             tools/tests/test_nonprofit_dashboard.py \
             tools/tests/test_smag_gate_enforcer_v1_0.py \
+            tools/tests/test_graph_capture_lint.py \
             acat/tests/test_tool_trace_schema.py \
             -q
 
