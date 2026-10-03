@@ -127,7 +127,7 @@ class PropositionReconciliationTests(unittest.TestCase):
             proposition_type="CURRENTLY_AVAILABLE",
             predicate="currently_available",
             object_value=False,
-            extracted_at="2026-10-03T18:00:00Z",
+            extracted_at="2026-10-03T10:00:00Z",
         )
         prs = reconcile_propositions([a, b])[0]
         self.assertEqual(prs.state, "CONTESTED")
