@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.9
+# HumanAIOS Resource Miner v0.1.10
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -386,6 +386,22 @@ PRP-* -> PRS-* -> PAD-* -> VFY-*
 Every PAD/VFY object remains non-authoritative: `truth_state=NOT_DETERMINED`, `eligibility_state=NOT_EVALUATED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, and `authority_effect=NONE`.
 
 See `docs/EVIDENCE_ADJUDICATION.md`.
+
+### Verification work queue
+
+Open `VFY-*` evidence gaps are compiled into deterministic `VWK-*` epistemic work items.
+
+```text
+PAD-* -> VFY-* -> VWK-*
+```
+
+Operations are `DISCOVER_PRIMARY_SOURCE`, `SEEK_DIRECT_EVIDENCE`, `RESOLVE_CONFLICT`, `ASSESS_SOURCE_STANDING`, or `DISAMBIGUATE_RELATION`.
+
+Every work item is planning-only: `planning_state=PLANNED`, `execution_state=NOT_AUTHORIZED`, and `authority_effect=NONE`. A queue entry does not authorize browsing, contacting, submitting, purchasing, testing, or any consequential external action.
+
+Because the queue is derived from the current verification frontier, a work item disappears automatically when new evidence closes its originating `VFY-*` gap on replay.
+
+The scheduled Mine workflow persists `data/verification-work-queue.snapshot.jsonl`. See `docs/VERIFICATION_WORK_QUEUE.md`.
 
 ### Reconstructable Claim state machine
 
