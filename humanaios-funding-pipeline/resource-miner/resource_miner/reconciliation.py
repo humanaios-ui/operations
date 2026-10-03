@@ -46,6 +46,8 @@ class PropositionResolutionSet:
     member_opportunity_ids: list[str]
     source_mine_ids: list[str]
     distinct_source_count: int
+    source_origin_keys: list[str]
+    distinct_origin_count: int
     object_variants: list[Any]
     canonical_object_value: Any | None
     relations: list[PropositionRelation] = field(default_factory=list)
@@ -140,8 +142,20 @@ def _pair_relations(prs_id: str, a: PropositionCandidate, b: PropositionCandidat
     av, bv = _norm(a.object_value), _norm(b.object_value)
     if av == bv:
         out = [_relation(prs_id, "SAME_AS", a, b, "same subject, proposition type, predicate, and normalized object")]
-        if a.mine_id and b.mine_id and a.mine_id != b.mine_id:
-            out.append(_relation(prs_id, "SUPPORTS", a, b, "independent Mines asserted the same normalized proposition"))
+        if (
+            a.source_origin_key
+            and b.source_origin_key
+            and a.source_origin_key != b.source_origin_key
+        ):
+            out.append(
+                _relation(
+                    prs_id,
+                    "SUPPORTS",
+                    a,
+                    b,
+                    "independent evidence origins asserted the same normalized proposition",
+                )
+            )
         return out
 
     if a.proposition_type in BOOLEAN_EXCLUSIVE_TYPES and isinstance(a.object_value, bool) and isinstance(b.object_value, bool):
@@ -164,7 +178,7 @@ def _pair_relations(prs_id: str, a: PropositionCandidate, b: PropositionCandidat
 
     return [_relation(prs_id, "UNRESOLVED", a, b, "same reconciliation scope and predicate but relation is not safely inferable")]
 
-def _derive_state(relations: list[PropositionRelation], distinct_source_count: int, object_variant_count: int) -> str:
+def _derive_state(relations: list[PropositionRelation], distinct_origin_count: int, object_variant_count: int) -> str:
     kinds = {row.relation_type for row in relations}
     if "CONTRADICTS" in kinds:
         return "CONTESTED"
@@ -174,7 +188,7 @@ def _derive_state(relations: list[PropositionRelation], distinct_source_count: i
         return "SUPERSEDED"
     if object_variant_count > 1 and kinds <= {"CONTEXT_FOR", "QUALIFIES"}:
         return "QUALIFIED"
-    if distinct_source_count >= 2 and object_variant_count == 1:
+    if distinct_origin_count >= 2 and object_variant_count == 1:
         return "CORROBORATED"
     return "SINGLE_SOURCE"
 
@@ -209,9 +223,12 @@ def reconcile_propositions(propositions: Iterable[PropositionCandidate | dict[st
             variants.setdefault(_norm(member.object_value), member.object_value)
         object_variants = [variants[k] for k in sorted(variants)]
         source_mines = sorted({row.mine_id for row in members if row.mine_id})
+        source_origins = sorted(
+            {row.source_origin_key for row in members if row.source_origin_key}
+        )
         times = sorted(row.extracted_at for row in members if row.extracted_at)
         unresolved = sorted({row.basis for row in relations if row.relation_type == "UNRESOLVED"})
-        state = _derive_state(relations, len(source_mines), len(object_variants))
+        state = _derive_state(relations, len(source_origins), len(object_variants))
 
         output.append(PropositionResolutionSet(
             schema="humanaios.proposition-resolution-set.v1",
@@ -226,6 +243,8 @@ def reconcile_propositions(propositions: Iterable[PropositionCandidate | dict[st
             member_opportunity_ids=sorted({row.opportunity_id for row in members}),
             source_mine_ids=source_mines,
             distinct_source_count=len(source_mines),
+            source_origin_keys=source_origins,
+            distinct_origin_count=len(source_origins),
             object_variants=object_variants,
             canonical_object_value=object_variants[0] if len(object_variants) == 1 else None,
             relations=relations,
