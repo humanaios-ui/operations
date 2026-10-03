@@ -64,8 +64,7 @@ jobs:
           )
 
           if git diff --quiet -- "${SNAPSHOTS[@]}" && \
-             git ls-files --error-unmatch "${SNAPSHOTS[1]}" "${SNAPSHOTS[2]}" "${SNAPSHOTS[3]}" >/dev/null 2>&1 && \
-             { git ls-files --error-unmatch "${SNAPSHOTS[4]}" >/dev/null 2>&1 || true; }; then
+             git ls-files --error-unmatch "${SNAPSHOTS[1]}" "${SNAPSHOTS[2]}" "${SNAPSHOTS[3]}" "${SNAPSHOTS[4]}" >/dev/null 2>&1; then
             echo "No Resource Miner snapshot changes, skipping commit"
           else
             git add "${SNAPSHOTS[@]}"
