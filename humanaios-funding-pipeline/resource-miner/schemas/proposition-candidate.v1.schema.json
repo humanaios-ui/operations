@@ -24,7 +24,8 @@
     "source_url",
     "mine_id",
     "mine_name",
-    "authority_effect"
+    "authority_effect",
+    "resolution_subject_key"
   ],
   "properties": {
     "schema": {
@@ -120,6 +121,10 @@
     },
     "authority_effect": {
       "const": "NONE"
+    },
+    "resolution_subject_key": {
+      "type": "string",
+      "minLength": 1
     }
   }
 }
