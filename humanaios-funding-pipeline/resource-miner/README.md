@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.6
+# HumanAIOS Resource Miner v0.1.7
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
