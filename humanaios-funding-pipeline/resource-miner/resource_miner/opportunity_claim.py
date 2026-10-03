@@ -219,8 +219,14 @@ def build_opportunity_claim(
             raise ValueError("proposition must reference candidate opportunity_id")
         if proposition.opportunity_token != candidate.opportunity_token:
             raise ValueError("proposition must reference candidate opportunity_token")
+    claim_type = (
+        "OPPORTUNITY_PROPOSITION"
+        if proposition is not None
+        else "RESOURCE_OPPORTUNITY"
+    )
     claim_id = stable_claim_id(
         candidate.opportunity_id,
+        claim_type=claim_type,
         proposition_id=(proposition.proposition_id if proposition else None),
     )
 
@@ -323,7 +329,7 @@ def build_opportunity_claim(
         schema="humanaios.opportunity-claim.v1",
         claim_id=claim_id,
         claim_token=claim_token(claim_id),
-        claim_type="RESOURCE_OPPORTUNITY",
+        claim_type=claim_type,
         opportunity_id=candidate.opportunity_id,
         opportunity_token=candidate.opportunity_token,
         claim_text=(
