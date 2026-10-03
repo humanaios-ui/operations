@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .claim_state_machine import reconcile_claim_event_ledger
 from .miner import enrich
 from .mines import load_mines, receipts_to_jsonl, resolve_mines
 from .opportunity_claim import claims_from_candidates, write_claims_jsonl
@@ -20,6 +21,7 @@ DEFAULT_MINES = ROOT / "data" / "mines.seed.json"
 DEFAULT_OPPORTUNITIES = ROOT / "data" / "opportunities.jsonl"
 DEFAULT_MINE_RECEIPTS = ROOT / "data" / "mine-resolution.jsonl"
 DEFAULT_OPPORTUNITY_CLAIMS = ROOT / "data" / "opportunity-claims.jsonl"
+DEFAULT_CLAIM_EVENTS = ROOT / "data" / "opportunity-claim-events.jsonl"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -54,6 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--out", default=str(DEFAULT_OPPORTUNITIES))
     resolve.add_argument("--receipts-out", default=str(DEFAULT_MINE_RECEIPTS))
     resolve.add_argument("--claims-out", default=str(DEFAULT_OPPORTUNITY_CLAIMS))
+    resolve.add_argument("--events-ledger", default=str(DEFAULT_CLAIM_EVENTS))
     resolve.add_argument("--dry-run", action="store_true")
 
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
@@ -109,10 +112,17 @@ def main() -> None:
             receipt_path.parent.mkdir(parents=True, exist_ok=True)
             receipt_path.write_text(receipts_to_jsonl(receipts), encoding="utf-8")
             write_claims_jsonl(args.claims_out, claims)
+            appended_events = reconcile_claim_event_ledger(
+                args.events_ledger,
+                claims,
+                actor_id="resource-miner",
+                method="scheduled_mine_resolution",
+            )
             print(
                 f"resolved {len(mines)} mines -> {len(resources)} opportunities "
-                f"and {len(claims)} claims; wrote {args.out}, "
-                f"{args.receipts_out}, and {args.claims_out}"
+                f"and {len(claims)} claims; appended {len(appended_events)} claim events; "
+                f"wrote {args.out}, {args.receipts_out}, {args.claims_out}, "
+                f"and reconciled {args.events_ledger}"
             )
         return
 
