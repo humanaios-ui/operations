@@ -136,7 +136,10 @@ def _facet_map(claim: OpportunityClaim) -> dict[str, ClaimFacet]:
     return {facet.name: facet for facet in claim.facets}
 
 
-def _overall_state(facets: list[ClaimFacet]) -> str:
+def derive_overall_state(
+    facets: list[ClaimFacet],
+    proposition_type: str = "",
+) -> str:
     states = {facet.name: facet.state for facet in facets}
     if states.get("EXISTENCE") == "FALSIFIED":
         return "FALSIFIED"
@@ -144,7 +147,35 @@ def _overall_state(facets: list[ClaimFacet]) -> str:
         return "RETIRED"
     if "CONTRADICTED" in states.values() or states.get("TERMS") == "FALSIFIED":
         return "CONTESTED"
-    if states.get("EXISTENCE") == "SUPPORTED" and states.get("CURRENTNESS") == "SUPPORTED":
+
+    if proposition_type == "OPPORTUNITY_EXISTS":
+        return (
+            "SUPPORTED"
+            if states.get("EXISTENCE") == "SUPPORTED"
+            else "UNVERIFIED"
+        )
+
+    if proposition_type == "CURRENTLY_AVAILABLE":
+        if states.get("CURRENTNESS") == "SUPPORTED":
+            return "SUPPORTED"
+        if states.get("EXISTENCE") == "SUPPORTED":
+            return "OBSERVED"
+        return "UNVERIFIED"
+
+    if proposition_type:
+        if states.get("TERMS") == "SUPPORTED":
+            return "SUPPORTED"
+        if (
+            states.get("EXISTENCE") == "SUPPORTED"
+            or states.get("CURRENTNESS") == "SUPPORTED"
+        ):
+            return "OBSERVED"
+        return "UNVERIFIED"
+
+    if (
+        states.get("EXISTENCE") == "SUPPORTED"
+        and states.get("CURRENTNESS") == "SUPPORTED"
+    ):
         return "SUPPORTED"
     if states.get("EXISTENCE") == "SUPPORTED":
         return "OBSERVED"
@@ -269,6 +300,7 @@ def build_opportunity_claim(
             bool(candidate.resource_types),
         ]
     )
+    terms_state = "UNKNOWN"
     if proposition is not None:
         if proposition.proposition_type == "OPPORTUNITY_EXISTS":
             existence_state = "SUPPORTED" if proposition.evidence else existence_state
@@ -368,7 +400,10 @@ def build_opportunity_claim(
         proposition_type=(proposition.proposition_type if proposition else ""),
         proposition_semantic_key=(proposition.semantic_key if proposition else ""),
     )
-    claim.overall_state = _overall_state(claim.facets)
+    claim.overall_state = derive_overall_state(
+        claim.facets,
+        claim.proposition_type,
+    )
     return claim
 
 
@@ -420,7 +455,7 @@ def record_falsifier_evaluation(
     else:
         spec.state = "INCONCLUSIVE"
 
-    updated.overall_state = _overall_state(updated.facets)
+    updated.overall_state = derive_overall_state(updated.facets, updated.proposition_type)
     return updated
 
 
@@ -466,7 +501,7 @@ def add_claim_evidence(
     elif relation == "SUPPORTS" and facet not in {"ELIGIBILITY", "ATTAINABILITY"}:
         target.state = "SUPPORTED"
 
-    updated.overall_state = _overall_state(updated.facets)
+    updated.overall_state = derive_overall_state(updated.facets, updated.proposition_type)
     return updated
 
 
