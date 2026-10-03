@@ -1,4 +1,6 @@
+import json
 import unittest
+from pathlib import Path
 
 from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.mines import bind_opportunity
@@ -10,6 +12,9 @@ from resource_miner.opportunity_claim import (
     record_falsifier_evaluation,
     stable_claim_id,
 )
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def candidate(
@@ -50,6 +55,17 @@ def candidate(
 
 
 class OpportunityClaimTests(unittest.TestCase):
+    def test_schema_is_valid_json_and_requires_epistemic_boundaries(self):
+        schema = json.loads(
+            (ROOT / "schemas" / "opportunity-claim.v1.schema.json").read_text()
+        )
+        required = set(schema["required"])
+        self.assertIn("falsifiers", required)
+        self.assertIn("warrant_state", required)
+        self.assertIn("authorization_state", required)
+        self.assertIn("actionability_state", required)
+        self.assertEqual(schema["properties"]["authority_effect"]["const"], "NONE")
+
     def test_claim_identity_is_stable_across_title_changes(self):
         first = build_opportunity_claim(candidate(title="Old wording"))
         second = build_opportunity_claim(candidate(title="New wording"))
@@ -85,6 +101,12 @@ class OpportunityClaimTests(unittest.TestCase):
         facets = {facet.name: facet for facet in claim.facets}
         self.assertEqual(facets["CURRENTNESS"].state, "SUPPORTED")
         self.assertEqual(claim.overall_state, "SUPPORTED")
+
+    def test_supported_currentness_has_currentness_evidence(self):
+        claim = build_opportunity_claim(candidate())
+        current = next(f for f in claim.facets if f.name == "CURRENTNESS")
+        self.assertEqual(current.state, "SUPPORTED")
+        self.assertTrue(current.evidence_ids)
 
     def test_observation_failure_is_unknown_not_falsified(self):
         claim = build_opportunity_claim(
