@@ -124,9 +124,9 @@ def _parse_time(value: str) -> datetime | None:
         return None
 
 
-def _same_day(a: PropositionCandidate, b: PropositionCandidate) -> bool:
+def _same_observation_time(a: PropositionCandidate, b: PropositionCandidate) -> bool:
     ta, tb = _parse_time(a.extracted_at), _parse_time(b.extracted_at)
-    return bool(ta and tb and ta.date() == tb.date())
+    return bool(ta and tb and ta == tb)
 
 
 def _later_pair(a: PropositionCandidate, b: PropositionCandidate) -> tuple[PropositionCandidate, PropositionCandidate] | None:
@@ -145,8 +145,8 @@ def _pair_relations(prs_id: str, a: PropositionCandidate, b: PropositionCandidat
         return out
 
     if a.proposition_type in BOOLEAN_EXCLUSIVE_TYPES and isinstance(a.object_value, bool) and isinstance(b.object_value, bool):
-        if a.object_value != b.object_value and _same_day(a, b):
-            return [_relation(prs_id, "CONTRADICTS", a, b, "exclusive boolean assertions conflict within the same observation day")]
+        if a.object_value != b.object_value and _same_observation_time(a, b):
+            return [_relation(prs_id, "CONTRADICTS", a, b, "exclusive boolean assertions conflict at the same observation time")]
         if a.mine_id and a.mine_id == b.mine_id:
             later = _later_pair(a, b)
             if later:
