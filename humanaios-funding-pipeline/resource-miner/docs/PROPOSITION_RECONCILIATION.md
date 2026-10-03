@@ -53,14 +53,14 @@ UNRESOLVED
 
 None of these states means `SUPPORTED` truth.
 
-A corroborated set means only that multiple independent Mines made the same normalized assertion.
+A corroborated set means only that multiple independent evidence origins made the same normalized assertion. Different Mines can still share one origin, such as a Gmail message and an API record emitted by the same organization.
 
 ## First-pass deterministic rules
 
 1. Same scope + same predicate + same normalized object:
    - `SAME_AS`;
-   - plus `SUPPORTS` when the Mines differ.
-2. Exclusive boolean assertions observed on the same day with opposite values:
+   - plus `SUPPORTS` only when the evidence-origin keys differ.
+2. Exclusive boolean assertions observed at the same observation time with opposite values:
    - `CONTRADICTS`.
 3. Later temporal value from the same Mine:
    - `SUPERSEDES`.
@@ -86,6 +86,7 @@ Therefore:
 ```text
 MULTIPLE_SOURCES != AUTOMATIC_TRUTH
 SOURCE_COUNT != CONFIDENCE
+SOURCE_TRANSPORT_COUNT != INDEPENDENT_ORIGIN_COUNT
 CORROBORATED != SUPPORTED
 CONTESTED != FALSE
 SUPERSEDED != DELETE_HISTORY
