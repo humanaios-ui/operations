@@ -60,6 +60,7 @@ class PropositionMiningTests(unittest.TestCase):
         self.assertEqual(schema["properties"]["authority_effect"]["const"], "NONE")
         self.assertIn("semantic_key", schema["required"])
         self.assertIn("epistemic_role", schema["required"])
+        self.assertIn("resolution_subject_key", schema["required"])
 
     def test_one_record_mines_many_propositions(self):
         props = propositions_from_candidate(specimen())
@@ -73,6 +74,24 @@ class PropositionMiningTests(unittest.TestCase):
         self.assertIn("APPLICANT_TYPE", kinds)
         self.assertGreater(len(props), 5)
         self.assertEqual(len({row.proposition_id for row in props}), len(props))
+
+    def test_resolution_subject_key_is_stable_across_mines_for_shared_identity(self):
+        first = specimen()
+        second = specimen()
+        first.mine_id = "MINE-A"
+        first.mine_name = "A"
+        second.mine_id = "MINE-B"
+        second.mine_name = "B"
+        first_props = propositions_from_candidate(first)
+        second_props = propositions_from_candidate(second)
+        self.assertEqual(
+            {p.semantic_key: p.resolution_subject_key for p in first_props},
+            {p.semantic_key: p.resolution_subject_key for p in second_props},
+        )
+        self.assertNotEqual(
+            {p.semantic_key: p.proposition_id for p in first_props},
+            {p.semantic_key: p.proposition_id for p in second_props},
+        )
 
     def test_proposition_identity_is_semantic_not_title_based(self):
         row = specimen()
