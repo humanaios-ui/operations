@@ -194,6 +194,14 @@ def normalize_generic(
     observed_at: str | None = None,
     raw: dict[str, Any] | None = None,
     source_category: str | None = None,
+    mine_id: str = "",
+    mine_name: str = "",
+    mine_url: str | None = None,
+    opportunity_identity: str = "",
+    opportunity_id: str = "",
+    opportunity_token: str = "",
+    opportunity_kind: str = "",
+    opportunity_source_kind: str = "",
 ) -> ResourceCandidate:
     observed_at = observed_at or utcnow_iso()
     canonical = canonicalize_url(url)
@@ -219,5 +227,13 @@ def normalize_generic(
         cash_mentions_usd=cash_mentions(combined),
         primary_source_url=primary_source_url,
         evidence=[EvidenceRef(url=url, kind="discovery", observed_at=observed_at, claim="Resource candidate discovered")],
+        mine_id=mine_id.strip(),
+        mine_name=mine_name.strip(),
+        mine_url=mine_url,
+        opportunity_identity=opportunity_identity.strip(),
+        opportunity_id=opportunity_id.strip(),
+        opportunity_token=opportunity_token.strip(),
+        opportunity_kind=opportunity_kind.strip(),
+        opportunity_source_kind=opportunity_source_kind.strip(),
         raw=raw or {},
     )

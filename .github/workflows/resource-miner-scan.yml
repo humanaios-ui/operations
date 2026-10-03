@@ -32,6 +32,20 @@ jobs:
         working-directory: humanaios-funding-pipeline/resource-miner
         run: python3 -m unittest discover -s tests -v
 
+      - name: Resolve persistent Resource Mines
+        working-directory: humanaios-funding-pipeline/resource-miner
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          HACKERONE_API_USERNAME: ${{ secrets.HACKERONE_API_USERNAME }}
+          HACKERONE_API_TOKEN: ${{ secrets.HACKERONE_API_TOKEN }}
+        run: |
+          python3 -m resource_miner.cli resolve-mines \
+            --out data/opportunities.snapshot.jsonl \
+            --receipts-out data/mine-resolution.snapshot.jsonl \
+            --propositions-out data/propositions.snapshot.jsonl \
+            --claims-out data/opportunity-claims.snapshot.jsonl \
+            --events-ledger data/opportunity-claim-events.jsonl
+
       - name: Scan for resource candidates
         working-directory: humanaios-funding-pipeline/resource-miner
         run: |
@@ -42,10 +56,20 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "HumanAIOS Bot"
 
-          if git diff --quiet humanaios-funding-pipeline/resource-miner/data/resources.snapshot.jsonl; then
-            echo "No changes to resource snapshot, skipping commit"
+          SNAPSHOTS=(
+            humanaios-funding-pipeline/resource-miner/data/resources.snapshot.jsonl
+            humanaios-funding-pipeline/resource-miner/data/opportunities.snapshot.jsonl
+            humanaios-funding-pipeline/resource-miner/data/mine-resolution.snapshot.jsonl
+            humanaios-funding-pipeline/resource-miner/data/propositions.snapshot.jsonl
+            humanaios-funding-pipeline/resource-miner/data/opportunity-claims.snapshot.jsonl
+            humanaios-funding-pipeline/resource-miner/data/opportunity-claim-events.jsonl
+          )
+
+          if git diff --quiet -- "${SNAPSHOTS[@]}" && \
+             git ls-files --error-unmatch "${SNAPSHOTS[1]}" "${SNAPSHOTS[2]}" "${SNAPSHOTS[3]}" "${SNAPSHOTS[4]}" "${SNAPSHOTS[5]}" >/dev/null 2>&1; then
+            echo "No Resource Miner snapshot changes, skipping commit"
           else
-            git add humanaios-funding-pipeline/resource-miner/data/resources.snapshot.jsonl
-            git commit -m "chore: auto-refresh resource-miner scan snapshot ($(date -u +'%Y-%m-%d'))"
+            git add "${SNAPSHOTS[@]}"
+            git commit -m "chore: auto-refresh resource-mine snapshots ($(date -u +'%Y-%m-%d'))"
             git push
           fi
