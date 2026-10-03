@@ -53,6 +53,7 @@ jobs:
           resolutions = payload["resolutions"]
           adjudications = payload["adjudications"]
           verification_frontier = payload["verification_frontier"]
+          verification_work_queue = payload["verification_work_queue"]
           claims = payload["claims"]
           assert any(row["mine_name"] == "Microsoft for Startups" for row in opportunities)
           assert all(row["opportunity_id"].startswith("OPP-") for row in opportunities)
@@ -80,6 +81,11 @@ jobs:
           assert all(row["verification_id"].startswith("VFY-") for row in verification_frontier)
           assert all(row["state"] == "OPEN" for row in verification_frontier)
           assert all(row["authority_effect"] == "NONE" for row in verification_frontier)
+          assert len(verification_work_queue) == len(verification_frontier)
+          assert all(row["work_id"].startswith("VWK-") for row in verification_work_queue)
+          assert all(row["planning_state"] == "PLANNED" for row in verification_work_queue)
+          assert all(row["execution_state"] == "NOT_AUTHORIZED" for row in verification_work_queue)
+          assert all(row["authority_effect"] == "NONE" for row in verification_work_queue)
           assert all(row["claim_id"].startswith("CLM-") for row in claims)
           assert all(row["claim_token"].startswith("urn:humanaios:opportunity-claim:") for row in claims)
           assert all(row["authorization_state"] == "NOT_REQUESTED" for row in claims)
