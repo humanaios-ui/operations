@@ -110,6 +110,7 @@ class PrivateGmailMineTests(unittest.TestCase):
             "tags": ["remote", "ai-evaluation"],
             "evidence_kind": "private_mail_projection",
             "evidence_claim": "Private mailbox source represented a remote paid-work contract.",
+            "resolution_subject_key": "external-opportunity:micro1:ai-evaluator",
         }
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "projection.jsonl"
@@ -132,6 +133,12 @@ class PrivateGmailMineTests(unittest.TestCase):
         props = propositions_from_candidates(opportunities)
         self.assertGreaterEqual(len(props), 2)
         self.assertTrue(all(p.authority_effect == "NONE" for p in props))
+        self.assertTrue(
+            all(
+                p.resolution_subject_key == "external-opportunity:micro1:ai-evaluator"
+                for p in props
+            )
+        )
 
 
 if __name__ == "__main__":
