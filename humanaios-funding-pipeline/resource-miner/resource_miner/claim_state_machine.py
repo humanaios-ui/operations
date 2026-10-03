@@ -13,6 +13,7 @@ from .opportunity_claim import (
     FalsifierSpec,
     OpportunityClaim,
     add_claim_evidence,
+    derive_overall_state,
     record_falsifier_evaluation,
 )
 
@@ -355,21 +356,10 @@ def _resolved_claim(
     )
     target = next(row for row in updated.facets if row.name == facet)
     target.state = state
-    # Recompute overall state using the public mutation path by adding context
-    # to another copy would be wasteful; mirror the Opportunity Claim rules.
-    states = {row.name: row.state for row in updated.facets}
-    if states.get("EXISTENCE") == "FALSIFIED":
-        updated.overall_state = "FALSIFIED"
-    elif states.get("CURRENTNESS") == "FALSIFIED":
-        updated.overall_state = "RETIRED"
-    elif "CONTRADICTED" in states.values() or states.get("TERMS") == "FALSIFIED":
-        updated.overall_state = "CONTESTED"
-    elif states.get("EXISTENCE") == "SUPPORTED" and states.get("CURRENTNESS") == "SUPPORTED":
-        updated.overall_state = "SUPPORTED"
-    elif states.get("EXISTENCE") == "SUPPORTED":
-        updated.overall_state = "OBSERVED"
-    else:
-        updated.overall_state = "UNVERIFIED"
+    updated.overall_state = derive_overall_state(
+        updated.facets,
+        updated.proposition_type,
+    )
     return updated
 
 
