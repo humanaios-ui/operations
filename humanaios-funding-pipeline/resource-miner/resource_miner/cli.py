@@ -230,6 +230,11 @@ def main() -> None:
         summary = rendered["summary"]
         print(f"wrote DPP asset binding packet to {out_path}")
         print(f"ready_entries={summary['ready_entries']}")
+        print(f"dpp_policy_present={summary['dpp_policy_present']}")
+        print(f"asset_tiers_heading_present={summary['asset_tiers_heading_present']}")
+        print(f"scope_exclusions_heading_present={summary['scope_exclusions_heading_present']}")
+        print(f"asset_tier_section_length={summary['asset_tier_section_length']}")
+        print(f"extraction_state={summary['extraction_state']}")
         print(f"policy_asset_pattern_count={summary['policy_asset_pattern_count']}")
         print(f"dpp_asset_bound_entries={summary['dpp_asset_bound_entries']}")
         print(f"candidate_ready_ranks={summary['candidate_ready_ranks']}")
