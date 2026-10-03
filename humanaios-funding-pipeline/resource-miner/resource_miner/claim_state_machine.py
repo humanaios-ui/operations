@@ -425,6 +425,12 @@ def facet_resolved_event(
 
 
 def _validate_event_integrity(event: ClaimEvaluationEvent) -> None:
+    if event.event_type not in EVENT_TYPES:
+        raise ValueError(f"unsupported event_type: {event.event_type}")
+    if event.actor_type not in ACTOR_TYPES:
+        raise ValueError(f"unsupported actor_type: {event.actor_type}")
+    if event.confidence is not None and not (0.0 <= event.confidence <= 1.0):
+        raise ValueError("confidence must be in [0, 1]")
     expected = stable_event_id(event.to_dict())
     if expected != event.event_id:
         raise ValueError(
