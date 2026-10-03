@@ -215,3 +215,54 @@ Resource Miner
 ```
 
 The adapter `resource_candidate_to_target()` may carry forward source URLs and Need Graph scores. It may **not** convert need alignment, route state, or `eligibility_assessed=false` into applicant eligibility. This is covered by `tests/test_guiding_light.py`.
+
+## Resource mine → opportunity → controlled resource
+
+Resource Miner now distinguishes the **mine** from the value extracted from it:
+
+```text
+RESOURCE MINE
+→ RESOURCE OPPORTUNITY
+→ ACQUISITION / CLAIM / WORK
+→ CONTROLLED RESOURCE
+→ RESOURCE AFFORDANCE
+→ OUTCOME
+```
+
+Examples:
+
+- **Microsoft for Startups** is a resource mine. An eligible Azure startup-credit offer is a resource opportunity. The credit balance actually awarded to the startup is the controlled resource. Compute/API/storage/AI capacity are affordances of that resource.
+- **HackerOne** is a resource mine. A specific bounty-bearing program plus its in-scope asset/reward rule is a resource opportunity. A bounty actually awarded after a valid report is a controlled monetary resource; reputation or credential evidence should be represented separately rather than silently merged into cash value.
+
+This extends, rather than replaces, the existing invariants:
+
+```text
+MINE != OPPORTUNITY
+OPPORTUNITY != CONTROLLED_RESOURCE
+CONTROLLED_RESOURCE != RESOURCE_AFFORDANCE
+RESOURCE_DISCOVERY != ELIGIBILITY
+```
+
+### Demand observations
+
+`resource_miner.demand` adds a read-only demand-evidence layer. Demand may be observed against four distinct subjects:
+
+- `MINE` — platform/program awareness, such as `HackerOne`;
+- `OPPORTUNITY` — a claimable/earnable offer, such as `Azure startup credits`;
+- `RESOURCE_CLASS` — the kind of value sought, such as `cloud credits for startups` or `bug bounty payout`;
+- `NEED` — the underlying problem expressed by a searcher.
+
+Query records also carry an intent class: `NAME | RESOURCE | PROBLEM | ELIGIBILITY | ACTION`.
+
+Provider semantics are deliberately non-interchangeable:
+
+- **Google Trends** CSV ingestion records normalized relative-interest indexes (0–100). These are not absolute search counts and not unique-user counts.
+- **Bing Keyword Research** CSV ingestion records search volume/impression observations. These remain query/search-event observations, not deduplicated unique people.
+
+Demand evidence is attached as `DemandSnapshot` records and does **not** alter `VERIFY_NOW | WATCH | ARCHIVE`, applicant eligibility, warrant, or authorization in this increment.
+
+The parsers accept exported CSV evidence so observations can be receipted without scraping provider interfaces. Run the full regression suite with:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
