@@ -85,3 +85,81 @@ def stable_resolution_set_id(key: str) -> str:
 
 def resolution_token(resolution_set_id: str) -> str:
     return f"urn:humanaios:proposition-resolution:{resolution_set_id}"
+
+def stable_relation_id(resolution_set_id: str, relation_type: str, source_id: str, target_id: str, basis: str) -> str:
+    relation_type = relation_type.strip().upper()
+    if relation_type not in RELATION_TYPES:
+        raise ValueError(f"unsupported relation_type: {relation_type}")
+    source = source_id.strip().upper()
+    target = target_id.strip().upper()
+    if relation_type in SYMMETRIC_RELATIONS and target < source:
+        source, target = target, source
+    payload = "\0".join([resolution_set_id.strip().upper(), relation_type, source, target, " ".join(basis.split())])
+    return "REL-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16].upper()
+
+
+def _relation(resolution_set_id: str, relation_type: str, source: PropositionCandidate, target: PropositionCandidate, basis: str) -> PropositionRelation:
+    relation_type = relation_type.upper()
+    source_id = source.proposition_id
+    target_id = target.proposition_id
+    symmetric = relation_type in SYMMETRIC_RELATIONS
+    if symmetric and target_id < source_id:
+        source_id, target_id = target_id, source_id
+    return PropositionRelation(
+        schema="humanaios.proposition-relation.v1",
+        relation_id=stable_relation_id(resolution_set_id, relation_type, source_id, target_id, basis),
+        resolution_set_id=resolution_set_id,
+        relation_type=relation_type,
+        source_proposition_id=source_id,
+        target_proposition_id=target_id,
+        basis=basis,
+        symmetric=symmetric,
+    )
+
+
+def _parse_time(value: str) -> datetime | None:
+    try:
+        return datetime.fromisoformat((value or "").strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _same_day(a: PropositionCandidate, b: PropositionCandidate) -> bool:
+    ta, tb = _parse_time(a.extracted_at), _parse_time(b.extracted_at)
+    return bool(ta and tb and ta.date() == tb.date())
+
+
+def _later_pair(a: PropositionCandidate, b: PropositionCandidate) -> tuple[PropositionCandidate, PropositionCandidate] | None:
+    ta, tb = _parse_time(a.extracted_at), _parse_time(b.extracted_at)
+    if not ta or not tb or ta == tb:
+        return None
+    return (a, b) if ta > tb else (b, a)
+
+
+def _pair_relations(prs_id: str, a: PropositionCandidate, b: PropositionCandidate) -> list[PropositionRelation]:
+    av, bv = _norm(a.object_value), _norm(b.object_value)
+    if av == bv:
+        out = [_relation(prs_id, "SAME_AS", a, b, "same subject, proposition type, predicate, and normalized object")]
+        if a.mine_id and b.mine_id and a.mine_id != b.mine_id:
+            out.append(_relation(prs_id, "SUPPORTS", a, b, "independent Mines asserted the same normalized proposition"))
+        return out
+
+    if a.proposition_type in BOOLEAN_EXCLUSIVE_TYPES and isinstance(a.object_value, bool) and isinstance(b.object_value, bool):
+        if a.object_value != b.object_value and _same_day(a, b):
+            return [_relation(prs_id, "CONTRADICTS", a, b, "exclusive boolean assertions conflict within the same observation day")]
+        if a.mine_id and a.mine_id == b.mine_id:
+            later = _later_pair(a, b)
+            if later:
+                newer, older = later
+                return [_relation(prs_id, "SUPERSEDES", newer, older, "same Mine emitted a later exclusive state observation")]
+
+    if a.proposition_type in {"STATUS", "DEADLINE"} and a.mine_id and a.mine_id == b.mine_id:
+        later = _later_pair(a, b)
+        if later:
+            newer, older = later
+            return [_relation(prs_id, "SUPERSEDES", newer, older, "same Mine emitted a later value for the same temporal predicate")]
+
+    if a.proposition_type in ADDITIVE_TYPES:
+        return [_relation(prs_id, "CONTEXT_FOR", a, b, "predicate is multi-valued; distinct objects may coexist")]
+
+    return [_relation(prs_id, "UNRESOLVED", a, b, "same reconciliation scope and predicate but relation is not safely inferable")]
