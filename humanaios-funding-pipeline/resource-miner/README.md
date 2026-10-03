@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.10
+# HumanAIOS Resource Miner v0.1.11
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -402,6 +402,22 @@ Every work item is planning-only: `planning_state=PLANNED`, `execution_state=NOT
 Because the queue is derived from the current verification frontier, a work item disappears automatically when new evidence closes its originating `VFY-*` gap on replay.
 
 The scheduled Mine workflow persists `data/verification-work-queue.snapshot.jsonl`. See `docs/VERIFICATION_WORK_QUEUE.md`.
+
+### Verification routing
+
+Planned `VWK-*` epistemic work is now compiled into deterministic `VRT-*` capability routes.
+
+```text
+VFY-* -> VWK-* -> VRT-*
+```
+
+Routes distinguish `EXISTING_MINE_REOBSERVE`, `KNOWN_ORIGIN_REVIEW`, `DISCOVERY_REQUIRED`, `RESOLVER_REQUIRED`, and `SOURCE_STANDING_REVIEW`.
+
+Persistent Mines may declare privacy-safe `evidence_origins` in configuration so the router can recognize that an existing Mine is capable of observing a requested origin. Capability binding does not change source standing and does not grant execution authority.
+
+Every route retains `execution_state=NOT_AUTHORIZED` and `authority_effect=NONE`, including routes whose `capability_state=AVAILABLE`.
+
+The scheduled Mine workflow persists `data/verification-routes.snapshot.jsonl`. See `docs/VERIFICATION_ROUTING.md`.
 
 ### Reconstructable Claim state machine
 
