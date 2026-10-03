@@ -25,30 +25,44 @@ jobs:
         shell: bash
         run: rm -f .github/workflows/taar-research-guardian-687.yml
 
-      - name: Run TAAR Workflow Guardian
-        uses: IAmSoThirsty/TAAR@7b51966317f64c7b1fe277e0db0935c5e460704c
-        with:
-          category: all
-          fail-on-critical: "false"
+      - name: Install pinned TAAR
+        shell: bash
+        run: python -m pip install --quiet "https://github.com/IAmSoThirsty/TAAR/archive/7b51966317f64c7b1fe277e0db0935c5e460704c.zip"
 
-      - name: Produce governed TAAR evidence
-        if: always()
+      - name: Initialize TAAR registry locally
+        shell: bash
+        run: taar init
+
+      - name: Run TAAR Workflow Guardian
         shell: bash
         run: |
-          taar init || true
-          taar workflows evidence || true
-          echo "=== TAAR status ==="
-          taar status || true
-          echo "=== TAAR quarantine ==="
-          taar quarantine || true
-          echo "=== Evidence files ==="
-          find .project-ai -maxdepth 6 -type f -print 2>/dev/null | sort || true
+          mkdir -p taar-output
+          set +e
+          taar workflows explain 2>&1 | tee taar-output/explain.txt
+          echo ${PIPESTATUS[0]} > taar-output/explain.exit
+          taar workflows classify 2>&1 | tee taar-output/classify.txt
+          echo ${PIPESTATUS[0]} > taar-output/classify.exit
+          taar workflows scan --category all 2>&1 | tee taar-output/scan.txt
+          echo ${PIPESTATUS[0]} > taar-output/scan.exit
+          taar workflows harden 2>&1 | tee taar-output/harden.txt
+          echo ${PIPESTATUS[0]} > taar-output/harden.exit
+          exit 0
+
+      - name: Produce governed TAAR evidence
+        shell: bash
+        run: |
+          set +e
+          taar workflows evidence 2>&1 | tee taar-output/evidence-run.txt
+          echo ${PIPESTATUS[0]} > taar-output/evidence-run.exit
+          taar status 2>&1 | tee taar-output/status.txt
+          taar quarantine 2>&1 | tee taar-output/quarantine.txt
+          find .project-ai -maxdepth 6 -type f -print 2>/dev/null | sort | tee taar-output/evidence-files.txt
+          tar -czf taar-humanaios-issue-687.tgz .project-ai taar-output
 
       - name: Upload TAAR evidence bundle
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: taar-humanaios-issue-687
-          path: .project-ai/
-          if-no-files-found: warn
+          path: taar-humanaios-issue-687.tgz
+          if-no-files-found: error
           retention-days: 30
