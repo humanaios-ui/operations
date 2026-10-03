@@ -5,6 +5,10 @@ import json
 from dataclasses import asdict
 from typing import Any
 
+from .dpp_action_contract import (
+    DPPActionContract,
+    evaluate_dpp_action_contract,
+)
 from .security_authorization import (
     SecurityAuthorizationRequest,
     TestingMode,
@@ -50,6 +54,7 @@ def adjudicate_ranked_candidate(
     rank: int = 1,
     mode: TestingMode = TestingMode.PASSIVE_RECON,
     method_allowed: bool | None = None,
+    dpp_action_contract: DPPActionContract | None = None,
     requested_finding_category: str | None = None,
     human_authorization_ref: str | None = None,
     page_size: int = 100,
@@ -100,16 +105,27 @@ def adjudicate_ranked_candidate(
     program_current_ref = f"hackerone:program-current:sha256:{_digest({'program': program, 'scopes': scopes})}"
     policy_ref = f"hackerone:policy-review:sha256:{_digest(policy_packet)}"
 
-    # Fresh policy + exclusions are reviewed as evidence, but no method permission
-    # is inferred from silence. method_allowed remains None unless explicitly set.
+    # Fresh policy + exclusions are reviewed as evidence. For the DPP path,
+    # method permission can be derived only from an explicit action contract
+    # evaluated against this fresh graph. Otherwise silence remains ambiguous.
     policy_evidence_complete = bool(graph.policy.strip()) and graph.exclusions_state == "OBSERVED"
+
+    contract_review = None
+    effective_method_allowed = method_allowed
+    if dpp_action_contract is not None:
+        contract_review = evaluate_dpp_action_contract(
+            entry,
+            graph,
+            dpp_action_contract,
+        )
+        effective_method_allowed = bool(contract_review["method_allowed"])
 
     request = SecurityAuthorizationRequest(
         asset_identifier=str(entry.get("asset_identifier") or ""),
         mode=mode,
         program_current_verified=binding_valid,
         policy_reviewed=policy_evidence_complete,
-        method_allowed=method_allowed,
+        method_allowed=effective_method_allowed,
         human_authorized=bool(human_authorization_ref),
         program_currentness_evidence_ref=program_current_ref if binding_valid else None,
         policy_evidence_ref=policy_ref if policy_evidence_complete else None,
@@ -130,9 +146,14 @@ def adjudicate_ranked_candidate(
         },
         "method_review": {
             "mode": mode.value,
-            "method_allowed": method_allowed,
-            "permission_inference": "NONE",
-            "note": "method permission is explicit-only; silence remains ambiguous",
+            "method_allowed": effective_method_allowed,
+            "permission_inference": "ACTION_CONTRACT" if contract_review is not None else "NONE",
+            "note": (
+                "method permission derived from fresh-policy DPP action-contract review"
+                if contract_review is not None
+                else "method permission is explicit-only; silence remains ambiguous"
+            ),
+            "action_contract_review": contract_review,
         },
         "authorization_request": {
             **asdict(request),
