@@ -6,7 +6,7 @@ import urllib.parse
 import urllib.request
 from typing import Any, Callable
 
-from ..models import ResourceMine
+from ..models import EvidenceRef, ResourceMine
 from ..normalize import normalize_generic, utcnow_iso
 
 Transport = Callable[[str, dict[str, str]], Any]
@@ -153,6 +153,14 @@ def discover(
                     "updated_at": issue.get("updated_at"),
                     "state": issue.get("state"),
                 },
+            )
+            candidate.evidence.append(
+                EvidenceRef(
+                    url=html_url,
+                    kind="repository_issue",
+                    observed_at=observed,
+                    claim="Open repository opportunity issue observed.",
+                )
             )
             yield candidate
 
