@@ -36,6 +36,13 @@ class VerificationRoutingTests(unittest.TestCase):
     def setUp(self):
         self.mines = load_mines(ROOT / "data" / "mines.seed.json")
 
+    def test_gmail_transport_is_not_declared_as_evidence_origin(self):
+        gmail = next(
+            mine for mine in self.mines
+            if mine.name == "aioshuman@gmail.com — Private Gmail"
+        )
+        self.assertEqual(gmail.config.get("evidence_origins") or [], [])
+
     def test_schema_preserves_execution_boundary(self):
         schema = json.loads(
             (ROOT / "schemas" / "verification-route.v1.schema.json").read_text()
