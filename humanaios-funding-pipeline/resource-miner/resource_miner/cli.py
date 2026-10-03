@@ -20,6 +20,10 @@ from .work_queue import (
     compile_verification_work_queue,
     write_verification_work_queue_jsonl,
 )
+from .verification_routing import (
+    compile_verification_routes,
+    write_verification_routes_jsonl,
+)
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
 from .store import write_jsonl
 from .sources import devto, funding_pipeline, github, rss
@@ -40,6 +44,7 @@ DEFAULT_SOURCE_STANDING = ROOT / "data" / "source-standing.seed.json"
 DEFAULT_ADJUDICATIONS = ROOT / "data" / "proposition-adjudications.jsonl"
 DEFAULT_VERIFICATION_FRONTIER = ROOT / "data" / "verification-frontier.jsonl"
 DEFAULT_VERIFICATION_WORK_QUEUE = ROOT / "data" / "verification-work-queue.jsonl"
+DEFAULT_VERIFICATION_ROUTES = ROOT / "data" / "verification-routes.jsonl"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -80,6 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--adjudications-out", default=str(DEFAULT_ADJUDICATIONS))
     resolve.add_argument("--verification-frontier-out", default=str(DEFAULT_VERIFICATION_FRONTIER))
     resolve.add_argument("--verification-work-queue-out", default=str(DEFAULT_VERIFICATION_WORK_QUEUE))
+    resolve.add_argument("--verification-routes-out", default=str(DEFAULT_VERIFICATION_ROUTES))
     resolve.add_argument("--events-ledger", default=str(DEFAULT_CLAIM_EVENTS))
     resolve.add_argument("--dry-run", action="store_true")
 
@@ -125,6 +131,10 @@ def main() -> None:
             standing_profiles,
         )
         verification_work_queue = compile_verification_work_queue(adjudications)
+        verification_routes = compile_verification_routes(
+            verification_work_queue,
+            mines,
+        )
         claims = claims_from_propositions(resources, propositions)
         if args.dry_run:
             print(
@@ -142,6 +152,9 @@ def main() -> None:
                         ],
                         "verification_work_queue": [
                             row.to_dict() for row in verification_work_queue
+                        ],
+                        "verification_routes": [
+                            row.to_dict() for row in verification_routes
                         ],
                         "claims": [claim.to_dict() for claim in claims],
                         "receipts": [receipt.to_dict() for receipt in receipts],
@@ -166,6 +179,10 @@ def main() -> None:
                 args.verification_work_queue_out,
                 verification_work_queue,
             )
+            write_verification_routes_jsonl(
+                args.verification_routes_out,
+                verification_routes,
+            )
             write_claims_jsonl(args.claims_out, claims)
             appended_events = reconcile_claim_event_ledger(
                 args.events_ledger,
@@ -180,7 +197,8 @@ def main() -> None:
                 f"appended {len(appended_events)} claim events; wrote {args.out}, "
                 f"{args.receipts_out}, {args.propositions_out}, {args.resolutions_out}, "
                 f"{args.adjudications_out}, {args.verification_frontier_out}, "
-                f"{args.verification_work_queue_out}, {args.claims_out}, "
+                f"{args.verification_work_queue_out}, {args.verification_routes_out}, "
+                f"{args.claims_out}, "
                 f"and reconciled {args.events_ledger}"
             )
         return
