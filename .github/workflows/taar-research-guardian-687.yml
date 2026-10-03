@@ -25,9 +25,67 @@ jobs:
         shell: bash
         run: rm -f .github/workflows/taar-research-guardian-687.yml
 
-      - name: Install pinned TAAR
+      - name: Install test dependencies and pinned TAAR
         shell: bash
-        run: python -m pip install --quiet "https://github.com/IAmSoThirsty/TAAR/archive/7b51966317f64c7b1fe277e0db0935c5e460704c.zip"
+        run: |
+          python -m pip install --quiet pyyaml pytest jsonschema
+          python -m pip install --quiet "https://github.com/IAmSoThirsty/TAAR/archive/7b51966317f64c7b1fe277e0db0935c5e460704c.zip"
+
+      - name: Run HumanAIOS native control pass
+        shell: bash
+        run: |
+          mkdir -p humanaios-output
+          set +e
+
+          python3 - <<'PY' 2>&1 | tee humanaios-output/workflow-parse.txt
+          import glob, yaml
+          class Strict(yaml.SafeLoader):
+              pass
+          def no_dup(loader, node, deep=False):
+              out = {}
+              for k, v in node.value:
+                  key = loader.construct_object(k, deep=deep)
+                  if key in out:
+                      raise ValueError(f"duplicate key {key!r}")
+                  out[key] = loader.construct_object(v, deep=deep)
+              return out
+          Strict.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, no_dup)
+          files = sorted(glob.glob(".github/workflows/*.yml") + glob.glob(".github/workflows/*.yaml"))
+          bad = []
+          for path in files:
+              try:
+                  doc = yaml.load(open(path, encoding="utf-8"), Strict)
+              except Exception as exc:
+                  bad.append((path, str(exc).split("\n")[0].strip()))
+                  continue
+              if not isinstance(doc, dict):
+                  bad.append((path, "top level is not a mapping"))
+              elif True not in doc and "on" not in doc:
+                  bad.append((path, "no on trigger"))
+          print(f"workflow-lint-equivalent: {len(files)-len(bad)}/{len(files)} parse cleanly")
+          for row in bad:
+              print("DEFECT", *row)
+          PY
+          echo ${PIPESTATUS[0]} > humanaios-output/workflow-parse.exit
+
+          python3 tools/repository_coordinator_v0_1.py --smoke-test 2>&1 | tee humanaios-output/coordinator-smoke.txt
+          echo ${PIPESTATUS[0]} > humanaios-output/coordinator-smoke.exit
+
+          python3 .gov-control/validate.py --smoke-test 2>&1 | tee humanaios-output/governance-validator-smoke.txt
+          echo ${PIPESTATUS[0]} > humanaios-output/governance-validator-smoke.exit
+          python3 .gov-control/validate.py 2>&1 | tee humanaios-output/governance-validator.txt
+          echo ${PIPESTATUS[0]} > humanaios-output/governance-validator.exit
+
+          python3 .gov-control/render.py --smoke-test 2>&1 | tee humanaios-output/governance-render-smoke.txt
+          echo ${PIPESTATUS[0]} > humanaios-output/governance-render-smoke.exit
+          python3 .gov-control/render.py --check 2>&1 | tee humanaios-output/governance-render-check.txt
+          echo ${PIPESTATUS[0]} > humanaios-output/governance-render-check.exit
+
+          python3 tools/graph_capture_lint_v1_0.py --smoke-test 2>&1 | tee humanaios-output/graph-capture-smoke.txt
+          echo ${PIPESTATUS[0]} > humanaios-output/graph-capture-smoke.exit
+          python3 tools/graph_capture_lint_v1_0.py --all --baseline crb/graph_capture_baseline.json 2>&1 | tee humanaios-output/graph-capture-baseline.txt
+          echo ${PIPESTATUS[0]} > humanaios-output/graph-capture-baseline.exit
+          exit 0
 
       - name: Initialize TAAR registry locally
         shell: bash
@@ -57,9 +115,9 @@ jobs:
           taar status 2>&1 | tee taar-output/status.txt
           taar quarantine 2>&1 | tee taar-output/quarantine.txt
           find .project-ai -maxdepth 6 -type f -print 2>/dev/null | sort | tee taar-output/evidence-files.txt
-          tar -czf taar-humanaios-issue-687.tgz .project-ai taar-output
+          tar -czf taar-humanaios-issue-687.tgz .project-ai taar-output humanaios-output
 
-      - name: Upload TAAR evidence bundle
+      - name: Upload combined evidence bundle
         uses: actions/upload-artifact@v4
         with:
           name: taar-humanaios-issue-687
