@@ -25,7 +25,8 @@
     "mine_id",
     "mine_name",
     "authority_effect",
-    "resolution_subject_key"
+    "resolution_subject_key",
+    "source_origin_key"
   ],
   "properties": {
     "schema": {
@@ -123,6 +124,10 @@
       "const": "NONE"
     },
     "resolution_subject_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_origin_key": {
       "type": "string",
       "minLength": 1
     }
