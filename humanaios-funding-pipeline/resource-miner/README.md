@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.3
+# HumanAIOS Resource Miner v0.1.4
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -279,16 +279,43 @@ python3 -m resource_miner.cli resolve-mines --dry-run
 
 python3 -m resource_miner.cli resolve-mines \
   --out data/opportunities.snapshot.jsonl \
-  --receipts-out data/mine-resolution.snapshot.jsonl
+  --receipts-out data/mine-resolution.snapshot.jsonl \
+  --claims-out data/opportunity-claims.snapshot.jsonl
 ```
 
 The scheduled `.github/workflows/resource-miner-scan.yml` executes this resolution before the broad Resource Miner scan. Durable outputs are:
 
 - `data/opportunities.snapshot.jsonl` — latest tokenized Mine-derived Resource Opportunities;
 - `data/mine-resolution.snapshot.jsonl` — per-Mine observation state and emitted opportunity IDs;
+- `data/opportunity-claims.snapshot.jsonl` — evidence-bearing `CLM-*` Opportunity Claims for the current `OPP-*` set;
 - `data/resources.snapshot.jsonl` — existing broad-discovery snapshot.
 
 Resolution receipts never grant eligibility, warrant, authorization, or execution permission. Observation failure preserves a configured opportunity identity but does not establish currentness.
+
+### Opportunity Claim
+
+Each tokenized Mine-derived opportunity now produces a separate `humanaios.opportunity-claim.v1` object. The opportunity is the stable bounded object; the claim is the revisable epistemic assertion about it.
+
+```text
+OPP-* Resource Opportunity
+  -> CLM-* Opportunity Claim
+       |- EXISTENCE
+       |- CURRENTNESS
+       |- TERMS
+       |- ELIGIBILITY
+       |- ATTAINABILITY
+       |- evidence
+       |- falsifiers
+       |- unknowns / constraints
+       |- warrant state
+       |- authorization state
+```
+
+Falsification is facet-local: a closed opportunity falsifies `CURRENTNESS` and retires the claim without erasing historical `EXISTENCE`; materially wrong terms make the claim `CONTESTED`; only an existential falsifier makes the whole claim `FALSIFIED`.
+
+Resource Miner never self-promotes applicant eligibility or authority. New claims start with `ELIGIBILITY=UNASSESSED`, `ATTAINABILITY=UNASSESSED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, `actionability_state=NOT_ACTIONABLE`, and `authority_effect=NONE`.
+
+See `docs/OPPORTUNITY_CLAIM.md` and `schemas/opportunity-claim.v1.schema.json`.
 
 ### Demand observations
 
