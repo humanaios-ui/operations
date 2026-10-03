@@ -365,7 +365,7 @@ Each proposition carries a `resolution_subject_key`, allowing independent Mines 
 
 Deterministic relations are `SAME_AS | SUPPORTS | CONTRADICTS | QUALIFIES | SUPERSEDES | CONTEXT_FOR | UNRESOLVED`. Resolution states are `SINGLE_SOURCE | CORROBORATED | CONTESTED | QUALIFIED | SUPERSEDED | UNRESOLVED`.
 
-`CORROBORATED` means independent Mines made the same normalized assertion. It does **not** mean the assertion has been promoted to truth. Every resolution set retains `truth_state=NOT_DETERMINED`, `eligibility_state=NOT_EVALUATED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, and `authority_effect=NONE`.
+`CORROBORATED` means independent evidence origins made the same normalized assertion. Multiple Mines from the same origin do not count as independent corroboration. It does **not** mean the assertion has been promoted to truth. Every resolution set retains `truth_state=NOT_DETERMINED`, `eligibility_state=NOT_EVALUATED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, and `authority_effect=NONE`.
 
 The scheduled Mine workflow persists `data/proposition-resolutions.snapshot.jsonl` between the PRP and CLM layers. See `docs/PROPOSITION_RECONCILIATION.md`.
 
