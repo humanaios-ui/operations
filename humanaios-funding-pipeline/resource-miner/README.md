@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.4
+# HumanAIOS Resource Miner v0.1.5
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -280,7 +280,8 @@ python3 -m resource_miner.cli resolve-mines --dry-run
 python3 -m resource_miner.cli resolve-mines \
   --out data/opportunities.snapshot.jsonl \
   --receipts-out data/mine-resolution.snapshot.jsonl \
-  --claims-out data/opportunity-claims.snapshot.jsonl
+  --claims-out data/opportunity-claims.snapshot.jsonl \
+  --events-ledger data/opportunity-claim-events.jsonl
 ```
 
 The scheduled `.github/workflows/resource-miner-scan.yml` executes this resolution before the broad Resource Miner scan. Durable outputs are:
@@ -288,6 +289,7 @@ The scheduled `.github/workflows/resource-miner-scan.yml` executes this resoluti
 - `data/opportunities.snapshot.jsonl` — latest tokenized Mine-derived Resource Opportunities;
 - `data/mine-resolution.snapshot.jsonl` — per-Mine observation state and emitted opportunity IDs;
 - `data/opportunity-claims.snapshot.jsonl` — evidence-bearing `CLM-*` Opportunity Claims for the current `OPP-*` set;
+- `data/opportunity-claim-events.jsonl` — append-only, hash-chained Claim Evaluation Event ledger from which CLM state can be replayed;
 - `data/resources.snapshot.jsonl` — existing broad-discovery snapshot.
 
 Resolution receipts never grant eligibility, warrant, authorization, or execution permission. Observation failure preserves a configured opportunity identity but does not establish currentness.
@@ -316,6 +318,27 @@ Falsification is facet-local: a closed opportunity falsifies `CURRENTNESS` and r
 Resource Miner never self-promotes applicant eligibility or authority. New claims start with `ELIGIBILITY=UNASSESSED`, `ATTAINABILITY=UNASSESSED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, `actionability_state=NOT_ACTIONABLE`, and `authority_effect=NONE`.
 
 See `docs/OPPORTUNITY_CLAIM.md` and `schemas/opportunity-claim.v1.schema.json`.
+
+### Reconstructable Claim state machine
+
+`OpportunityClaim` is now a replayed projection of an append-only `humanaios.claim-evaluation-event.v1` history rather than the sole historical record.
+
+```text
+CLAIM_ASSERTED
+  -> EVIDENCE_RECORDED*
+  -> FALSIFIER_EVALUATED*
+  -> FACET_RESOLVED*
+  -> deterministic replay
+  -> current CLM-* state
+```
+
+Each event is hash-addressed and chained through `previous_event_id`, and records actor, method, affected facet, prior/resulting state, evidence, uncertainty, and `authority_effect=NONE`. Replay rejects hash tampering, broken chains, and prior/resulting-state mismatches.
+
+The durable ledger is `data/opportunity-claim-events.jsonl`. Scheduled Mine resolution appends genesis events for new claims and novel evidence events for existing claims while preserving the prior file prefix. `data/opportunity-claims.snapshot.jsonl` is a current-state projection/cache.
+
+The state machine is regression-tested against the `Top Free Online Certifications` concept in `docs/FREE_ONLINE_CERTIFICATION_REPLAY.md`, demonstrating supported, retired, and contested claims without flattening free training, badges, paid exams, and certificates into one boolean.
+
+See `docs/OPPORTUNITY_CLAIM_STATE_MACHINE.md` and `schemas/claim-evaluation-event.v1.schema.json`.
 
 ### Demand observations
 
