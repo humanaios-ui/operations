@@ -23,20 +23,60 @@
     "authority_effect"
   ],
   "properties": {
-    "schema": {"const": "humanaios.opportunity-claim.v1"},
-    "claim_id": {"type": "string", "pattern": "^CLM-[A-F0-9]{16}$"},
-    "claim_token": {"type": "string", "pattern": "^urn:humanaios:opportunity-claim:CLM-[A-F0-9]{16}$"},
-    "claim_type": {"const": "RESOURCE_OPPORTUNITY"},
-    "opportunity_id": {"type": "string", "pattern": "^OPP-[A-F0-9]{16}$"},
-    "opportunity_token": {"type": "string", "pattern": "^urn:humanaios:resource-opportunity:OPP-[A-F0-9]{16}$"},
-    "claim_text": {"type": "string", "minLength": 1},
-    "asserted_at": {"type": "string", "minLength": 1},
-    "mine_id": {"type": "string"},
-    "mine_name": {"type": "string"},
-    "canonical_url": {"type": "string"},
-    "opportunity_kind": {"type": "string"},
+    "schema": {
+      "const": "humanaios.opportunity-claim.v1"
+    },
+    "claim_id": {
+      "type": "string",
+      "pattern": "^CLM-[A-F0-9]{16}$"
+    },
+    "claim_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:opportunity-claim:CLM-[A-F0-9]{16}$"
+    },
+    "claim_type": {
+      "enum": [
+        "RESOURCE_OPPORTUNITY",
+        "OPPORTUNITY_PROPOSITION"
+      ]
+    },
+    "opportunity_id": {
+      "type": "string",
+      "pattern": "^OPP-[A-F0-9]{16}$"
+    },
+    "opportunity_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:resource-opportunity:OPP-[A-F0-9]{16}$"
+    },
+    "claim_text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "asserted_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mine_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "canonical_url": {
+      "type": "string"
+    },
+    "opportunity_kind": {
+      "type": "string"
+    },
     "overall_state": {
-      "enum": ["UNVERIFIED", "OBSERVED", "SUPPORTED", "CONTESTED", "RETIRED", "FALSIFIED"]
+      "enum": [
+        "UNVERIFIED",
+        "OBSERVED",
+        "SUPPORTED",
+        "CONTESTED",
+        "RETIRED",
+        "FALSIFIED"
+      ]
     },
     "facets": {
       "type": "array",
@@ -44,13 +84,48 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "state", "statement", "evidence_ids", "updated_at"],
+        "required": [
+          "name",
+          "state",
+          "statement",
+          "evidence_ids",
+          "updated_at"
+        ],
         "properties": {
-          "name": {"enum": ["EXISTENCE", "CURRENTNESS", "TERMS", "ELIGIBILITY", "ATTAINABILITY"]},
-          "state": {"enum": ["UNKNOWN", "UNASSESSED", "SUPPORTED", "CONTRADICTED", "FALSIFIED", "NOT_APPLICABLE"]},
-          "statement": {"type": "string"},
-          "evidence_ids": {"type": "array", "items": {"type": "string"}},
-          "updated_at": {"type": ["string", "null"]}
+          "name": {
+            "enum": [
+              "EXISTENCE",
+              "CURRENTNESS",
+              "TERMS",
+              "ELIGIBILITY",
+              "ATTAINABILITY"
+            ]
+          },
+          "state": {
+            "enum": [
+              "UNKNOWN",
+              "UNASSESSED",
+              "SUPPORTED",
+              "CONTRADICTED",
+              "FALSIFIED",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "statement": {
+            "type": "string"
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       }
     },
@@ -59,15 +134,49 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["evidence_id", "relation", "facet", "url", "kind", "observed_at", "claim"],
+        "required": [
+          "evidence_id",
+          "relation",
+          "facet",
+          "url",
+          "kind",
+          "observed_at",
+          "claim"
+        ],
         "properties": {
-          "evidence_id": {"type": "string", "pattern": "^EVD-[A-F0-9]{16}$"},
-          "relation": {"enum": ["SUPPORTS", "CONTRADICTS", "FALSIFIES", "CONTEXT"]},
-          "facet": {"enum": ["EXISTENCE", "CURRENTNESS", "TERMS", "ELIGIBILITY", "ATTAINABILITY"]},
-          "url": {"type": "string"},
-          "kind": {"type": "string"},
-          "observed_at": {"type": "string"},
-          "claim": {"type": "string"}
+          "evidence_id": {
+            "type": "string",
+            "pattern": "^EVD-[A-F0-9]{16}$"
+          },
+          "relation": {
+            "enum": [
+              "SUPPORTS",
+              "CONTRADICTS",
+              "FALSIFIES",
+              "CONTEXT"
+            ]
+          },
+          "facet": {
+            "enum": [
+              "EXISTENCE",
+              "CURRENTNESS",
+              "TERMS",
+              "ELIGIBILITY",
+              "ATTAINABILITY"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "observed_at": {
+            "type": "string"
+          },
+          "claim": {
+            "type": "string"
+          }
         }
       }
     },
@@ -77,26 +186,147 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["falsifier_id", "facet", "condition", "observation_surface", "effect", "state", "evidence_ids", "evaluated_at"],
+        "required": [
+          "falsifier_id",
+          "facet",
+          "condition",
+          "observation_surface",
+          "effect",
+          "state",
+          "evidence_ids",
+          "evaluated_at"
+        ],
         "properties": {
-          "falsifier_id": {"type": "string", "pattern": "^FAL-[A-F0-9]{16}$"},
-          "facet": {"enum": ["EXISTENCE", "CURRENTNESS", "TERMS", "ELIGIBILITY", "ATTAINABILITY"]},
-          "condition": {"type": "string", "minLength": 1},
-          "observation_surface": {"type": "string", "minLength": 1},
-          "effect": {"const": "FALSIFY_FACET"},
-          "state": {"enum": ["UNTESTED", "NOT_OBSERVED", "OBSERVED", "INCONCLUSIVE"]},
-          "evidence_ids": {"type": "array", "items": {"type": "string"}},
-          "evaluated_at": {"type": ["string", "null"]}
+          "falsifier_id": {
+            "type": "string",
+            "pattern": "^FAL-[A-F0-9]{16}$"
+          },
+          "facet": {
+            "enum": [
+              "EXISTENCE",
+              "CURRENTNESS",
+              "TERMS",
+              "ELIGIBILITY",
+              "ATTAINABILITY"
+            ]
+          },
+          "condition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observation_surface": {
+            "type": "string",
+            "minLength": 1
+          },
+          "effect": {
+            "const": "FALSIFY_FACET"
+          },
+          "state": {
+            "enum": [
+              "UNTESTED",
+              "NOT_OBSERVED",
+              "OBSERVED",
+              "INCONCLUSIVE"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "evaluated_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       }
     },
-    "unknowns": {"type": "array", "items": {"type": "string"}},
-    "constraints": {"type": "array", "items": {"type": "string"}},
-    "required_capabilities": {"type": "array", "items": {"type": "string"}},
-    "required_resources": {"type": "array", "items": {"type": "string"}},
-    "warrant_state": {"enum": ["NOT_EVALUATED", "INSUFFICIENT", "SUPPORTED", "REJECTED"]},
-    "authorization_state": {"enum": ["NOT_REQUESTED", "PENDING", "AUTHORIZED", "DENIED"]},
-    "actionability_state": {"enum": ["NOT_ACTIONABLE", "VERIFY", "READY_FOR_AUTHORIZATION", "AUTHORIZED"]},
-    "authority_effect": {"const": "NONE"}
-  }
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_resources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warrant_state": {
+      "enum": [
+        "NOT_EVALUATED",
+        "INSUFFICIENT",
+        "SUPPORTED",
+        "REJECTED"
+      ]
+    },
+    "authorization_state": {
+      "enum": [
+        "NOT_REQUESTED",
+        "PENDING",
+        "AUTHORIZED",
+        "DENIED"
+      ]
+    },
+    "actionability_state": {
+      "enum": [
+        "NOT_ACTIONABLE",
+        "VERIFY",
+        "READY_FOR_AUTHORIZATION",
+        "AUTHORIZED"
+      ]
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "proposition_id": {
+      "type": "string",
+      "pattern": "^PRP-[A-F0-9]{16}$"
+    },
+    "proposition_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:proposition:PRP-[A-F0-9]{16}$"
+    },
+    "proposition_type": {
+      "type": "string"
+    },
+    "proposition_semantic_key": {
+      "type": "string"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "claim_type": {
+            "const": "OPPORTUNITY_PROPOSITION"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "proposition_id",
+          "proposition_token",
+          "proposition_type",
+          "proposition_semantic_key"
+        ]
+      }
+    }
+  ]
 }
