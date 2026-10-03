@@ -54,29 +54,50 @@ def discover(
         observation: dict[str, Any] = {}
         evidence: list[EvidenceRef] = []
         if row.get("observe_url", True):
-            result = transport(url)
-            body = result.get("body") or b""
-            if not isinstance(body, (bytes, bytearray)):
-                raise ValueError("configured mine transport body must be bytes")
-            digest = hashlib.sha256(bytes(body)).hexdigest()
-            observation = {
-                "http_status": result.get("status"),
-                "final_url": result.get("final_url"),
-                "content_type": result.get("content_type"),
-                "content_sha256": digest,
-                "observed_bytes": len(body),
-            }
-            evidence.append(
-                EvidenceRef(
-                    url=url,
-                    kind="mine_observation",
-                    observed_at=observed,
-                    claim=(
-                        "Configured opportunity endpoint observed; "
-                        f"content_sha256={digest}"
-                    ),
+            try:
+                result = transport(url)
+                body = result.get("body") or b""
+                if not isinstance(body, (bytes, bytearray)):
+                    raise ValueError("configured mine transport body must be bytes")
+                digest = hashlib.sha256(bytes(body)).hexdigest()
+                observation = {
+                    "state": "OBSERVED",
+                    "http_status": result.get("status"),
+                    "final_url": result.get("final_url"),
+                    "content_type": result.get("content_type"),
+                    "content_sha256": digest,
+                    "observed_bytes": len(body),
+                }
+                evidence.append(
+                    EvidenceRef(
+                        url=url,
+                        kind="mine_observation",
+                        observed_at=observed,
+                        claim=(
+                            "Configured opportunity endpoint observed; "
+                            f"content_sha256={digest}"
+                        ),
+                    )
                 )
-            )
+            except Exception as exc:
+                # A transient observation failure must not mint a new identity or
+                # erase a previously known configured opportunity. Preserve the
+                # token candidate while marking currentness as unverified.
+                observation = {
+                    "state": "OBSERVATION_FAILED",
+                    "error_type": type(exc).__name__,
+                }
+                evidence.append(
+                    EvidenceRef(
+                        url=url,
+                        kind="mine_observation_failed",
+                        observed_at=observed,
+                        claim=(
+                            "Configured opportunity identity preserved; "
+                            f"live observation failed with {type(exc).__name__}"
+                        ),
+                    )
+                )
 
         candidate = normalize_generic(
             title=title,
