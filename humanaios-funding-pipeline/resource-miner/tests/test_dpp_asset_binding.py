@@ -74,12 +74,51 @@ def payload():
 
 class DPPAssetBindingTests(unittest.TestCase):
     def test_extracts_asset_tier_patterns(self):
-        patterns = extract_dpp_asset_patterns(POLICY)
+        patterns, diagnostics = extract_dpp_asset_patterns(POLICY)
+        self.assertEqual(diagnostics["extraction_state"], "PATTERNS_EXTRACTED")
         self.assertIn("*.example.com", patterns)
         self.assertIn("api.example.net", patterns)
         self.assertIn("123456789", patterns)
         self.assertIn("com.example.app", patterns)
         self.assertIn("https://mcp.example.org/mcp", patterns)
+
+    def test_extracts_markdown_and_htmlish_asset_lists(self):
+        policy = """
+Data Protection Program
+This program is focused on passive monitoring and recon.
+
+## Asset Tiers
+- **Tier 1**
+- `*.example.com`
+<li>api.example.net</li>
+- [MCP](https://mcp.example.org/mcp)
+- com.example.app (Android)
+- 123456789 (iOS)
+
+## Scope exclusions
+"""
+        patterns, diagnostics = extract_dpp_asset_patterns(policy)
+        self.assertEqual(diagnostics["extraction_state"], "PATTERNS_EXTRACTED")
+        self.assertIn("*.example.com", patterns)
+        self.assertIn("api.example.net", patterns)
+        self.assertIn("https://mcp.example.org/mcp", patterns)
+        self.assertIn("com.example.app", patterns)
+        self.assertIn("123456789", patterns)
+
+    def test_zero_pattern_state_is_distinct_from_no_asset_tiers(self):
+        policy = """
+Data Protection Program
+Asset Tiers
+Tier 1
+No assets currently listed.
+Scope exclusions
+"""
+        patterns, diagnostics = extract_dpp_asset_patterns(policy)
+        self.assertEqual(patterns, [])
+        self.assertEqual(
+            diagnostics["extraction_state"],
+            "ASSET_TIERS_PRESENT_ZERO_PATTERNS",
+        )
 
     def test_wildcard_matches_subdomain_not_root(self):
         self.assertEqual(
