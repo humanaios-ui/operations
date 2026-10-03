@@ -218,8 +218,10 @@ class ClaimStateMachineTests(unittest.TestCase):
             first = reconcile_claim_event_ledger(path, [claim])
             self.assertEqual(len(first), 1)
             self.assertEqual(first[0].event_type, "CLAIM_ASSERTED")
+            prefix = path.read_bytes()
             second = reconcile_claim_event_ledger(path, [claim])
             self.assertEqual(second, [])
+            self.assertEqual(path.read_bytes(), prefix)
 
             replayed = replay_claim_events(
                 [
@@ -247,6 +249,7 @@ class ClaimStateMachineTests(unittest.TestCase):
             appended = reconcile_claim_event_ledger(path, [later])
             self.assertEqual(len(appended), 1)
             self.assertEqual(appended[0].sequence, 1)
+            self.assertTrue(path.read_bytes().startswith(prefix))
             rows = [
                 json.loads(line)
                 for line in path.read_text().splitlines()
