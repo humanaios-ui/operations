@@ -6,7 +6,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Iterable
 
-from .models import MineResolutionReceipt, ResourceCandidate, ResourceMine
+from .models import EvidenceRef, MineResolutionReceipt, ResourceCandidate, ResourceMine
 from .normalize import canonicalize_url, utcnow_iso
 
 MINE_KINDS = {
@@ -175,6 +175,17 @@ def _resolve_hackerone(mine: ResourceMine) -> list[ResourceCandidate]:
                     "authority_effect": "NONE",
                     "execution_capability": "NONE",
                 },
+            )
+            candidate.evidence.append(
+                EvidenceRef(
+                    url=actual_url,
+                    kind="hackerone_scope",
+                    observed_at=snapshot.observed_at,
+                    claim=(
+                        "Authenticated HackerOne scope observation: "
+                        f"scope_id={asset.scope_id}; eligible_for_bounty=true"
+                    ),
+                )
             )
             if "bounty" not in candidate.resource_types:
                 candidate.resource_types.append("bounty")
