@@ -163,3 +163,80 @@ def _pair_relations(prs_id: str, a: PropositionCandidate, b: PropositionCandidat
         return [_relation(prs_id, "CONTEXT_FOR", a, b, "predicate is multi-valued; distinct objects may coexist")]
 
     return [_relation(prs_id, "UNRESOLVED", a, b, "same reconciliation scope and predicate but relation is not safely inferable")]
+
+def _derive_state(relations: list[PropositionRelation], distinct_source_count: int, object_variant_count: int) -> str:
+    kinds = {row.relation_type for row in relations}
+    if "CONTRADICTS" in kinds:
+        return "CONTESTED"
+    if "UNRESOLVED" in kinds:
+        return "UNRESOLVED"
+    if "SUPERSEDES" in kinds:
+        return "SUPERSEDED"
+    if object_variant_count > 1 and kinds <= {"CONTEXT_FOR", "QUALIFIES"}:
+        return "QUALIFIED"
+    if distinct_source_count >= 2 and object_variant_count == 1:
+        return "CORROBORATED"
+    return "SINGLE_SOURCE"
+
+
+def proposition_from_dict(data: dict[str, Any]) -> PropositionCandidate:
+    payload = dict(data)
+    payload["evidence"] = [row if isinstance(row, EvidenceRef) else EvidenceRef(**row) for row in payload.get("evidence") or []]
+    return PropositionCandidate(**payload)
+
+
+def reconcile_propositions(propositions: Iterable[PropositionCandidate | dict[str, Any]]) -> list[PropositionResolutionSet]:
+    rows = [row if isinstance(row, PropositionCandidate) else proposition_from_dict(row) for row in propositions]
+    groups: dict[str, list[PropositionCandidate]] = {}
+    for row in rows:
+        groups.setdefault(resolution_key(row), []).append(row)
+
+    output: list[PropositionResolutionSet] = []
+    for key in sorted(groups):
+        members = sorted(groups[key], key=lambda row: row.proposition_id)
+        first = members[0]
+        prs_id = stable_resolution_set_id(key)
+        relations: list[PropositionRelation] = []
+        for i, left in enumerate(members):
+            for right in members[i + 1:]:
+                relations.extend(_pair_relations(prs_id, left, right))
+
+        rel_map = {row.relation_id: row for row in relations}
+        relations = [rel_map[rid] for rid in sorted(rel_map)]
+
+        variants: dict[str, Any] = {}
+        for member in members:
+            variants.setdefault(_norm(member.object_value), member.object_value)
+        object_variants = [variants[k] for k in sorted(variants)]
+        source_mines = sorted({row.mine_id for row in members if row.mine_id})
+        times = sorted(row.extracted_at for row in members if row.extracted_at)
+        unresolved = sorted({row.basis for row in relations if row.relation_type == "UNRESOLVED"})
+        state = _derive_state(relations, len(source_mines), len(object_variants))
+
+        output.append(PropositionResolutionSet(
+            schema="humanaios.proposition-resolution-set.v1",
+            resolution_set_id=prs_id,
+            resolution_token=resolution_token(prs_id),
+            resolution_key=key,
+            subject_key=first.resolution_subject_key,
+            proposition_type=first.proposition_type,
+            predicate=first.predicate,
+            state=state,
+            member_proposition_ids=[row.proposition_id for row in members],
+            member_opportunity_ids=sorted({row.opportunity_id for row in members}),
+            source_mine_ids=source_mines,
+            distinct_source_count=len(source_mines),
+            object_variants=object_variants,
+            canonical_object_value=object_variants[0] if len(object_variants) == 1 else None,
+            relations=relations,
+            unresolved_reasons=unresolved,
+            observed_from=times[0] if times else "",
+            observed_through=times[-1] if times else "",
+        ))
+    return output
+
+
+def write_resolution_sets_jsonl(path: str | Path, resolution_sets: Iterable[PropositionResolutionSet]) -> None:
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("".join(json.dumps(row.to_dict(), ensure_ascii=False, sort_keys=True) + "\n" for row in resolution_sets), encoding="utf-8")
