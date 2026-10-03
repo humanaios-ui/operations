@@ -47,6 +47,7 @@ jobs:
           assert states["humanaios-ui/humanaios"] == "ROLE_ONLY"
           assert states["humanaios-ui/lasting-light-ai"] == "ROLE_ONLY"
           assert states["HackerOne"] in {"DEPENDENCY_PENDING", "OBSERVATION_FAILED", "RESOLVED"}
+          assert states["aioshuman@gmail.com — Private Gmail"] == "DEPENDENCY_PENDING"
           opportunities = payload["opportunities"]
           propositions = payload["propositions"]
           claims = payload["claims"]
