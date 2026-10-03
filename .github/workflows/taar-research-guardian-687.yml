@@ -1,0 +1,54 @@
+name: TAAR Research Guardian 687
+
+on:
+  push:
+    branches:
+      - research/taar-guardian-687
+
+permissions:
+  contents: read
+
+jobs:
+  taar-workflow-guardian:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout HumanAIOS operations
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Remove experiment harness from scan surface
+        shell: bash
+        run: rm -f .github/workflows/taar-research-guardian-687.yml
+
+      - name: Run TAAR Workflow Guardian
+        uses: IAmSoThirsty/TAAR@7b51966317f64c7b1fe277e0db0935c5e460704c
+        with:
+          category: all
+          fail-on-critical: "false"
+
+      - name: Produce governed TAAR evidence
+        if: always()
+        shell: bash
+        run: |
+          taar init || true
+          taar workflows evidence || true
+          echo "=== TAAR status ==="
+          taar status || true
+          echo "=== TAAR quarantine ==="
+          taar quarantine || true
+          echo "=== Evidence files ==="
+          find .project-ai -maxdepth 6 -type f -print 2>/dev/null | sort || true
+
+      - name: Upload TAAR evidence bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: taar-humanaios-issue-687
+          path: .project-ai/
+          if-no-files-found: warn
+          retention-days: 30
