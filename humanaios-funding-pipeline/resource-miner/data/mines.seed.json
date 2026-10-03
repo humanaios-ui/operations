@@ -6,7 +6,10 @@
     "resolver": "configured_mine",
     "enabled": true,
     "cadence": "daily",
-    "roles": ["OPPORTUNITY_SOURCE", "EVIDENCE_SOURCE"],
+    "roles": [
+      "OPPORTUNITY_SOURCE",
+      "EVIDENCE_SOURCE"
+    ],
     "config": {
       "opportunities": [
         {
@@ -15,7 +18,11 @@
           "opportunity_kind": "startup_credit_entry",
           "source_category": "compute_credit",
           "sponsor": "Microsoft",
-          "tags": ["startup", "azure", "startup-credit"],
+          "tags": [
+            "startup",
+            "azure",
+            "startup-credit"
+          ],
           "description": "Current Microsoft for Startups entry credit path. Treat published credit amounts and eligibility as observations to re-verify, not as entitlement.",
           "observe_url": true
         },
@@ -25,7 +32,12 @@
           "opportunity_kind": "startup_credit_progression",
           "source_category": "compute_credit",
           "sponsor": "Microsoft",
-          "tags": ["startup", "azure", "startup-credit", "progression"],
+          "tags": [
+            "startup",
+            "azure",
+            "startup-credit",
+            "progression"
+          ],
           "description": "Current progression path for additional Startup credits based on verified progress, service adoption, and sustained Azure usage.",
           "observe_url": true
         },
@@ -34,7 +46,12 @@
           "url": "https://learn.microsoft.com/en-us/startups/microsoft-for-startups/overview",
           "opportunity_kind": "go_to_market_access",
           "sponsor": "Microsoft",
-          "tags": ["startup", "marketplace", "co-sell", "go-to-market"],
+          "tags": [
+            "startup",
+            "marketplace",
+            "co-sell",
+            "go-to-market"
+          ],
           "description": "Program access path to Microsoft Marketplace and co-sell opportunities. Eligibility and activation remain downstream verification.",
           "observe_url": true
         }
@@ -48,10 +65,19 @@
     "resolver": "hackerone_api",
     "enabled": true,
     "cadence": "daily",
-    "roles": ["OPPORTUNITY_SOURCE", "EVIDENCE_SOURCE"],
+    "roles": [
+      "OPPORTUNITY_SOURCE",
+      "EVIDENCE_SOURCE"
+    ],
     "config": {
-      "dependency_issues": [680, 683],
-      "dependency_prs": [682, 684],
+      "dependency_issues": [
+        680,
+        683
+      ],
+      "dependency_prs": [
+        682,
+        684
+      ],
       "resolution_unit": "program_x_bounty_eligible_scope_asset",
       "authority_effect": "NONE"
     }
@@ -63,8 +89,13 @@
     "resolver": "github_repository",
     "enabled": true,
     "cadence": "daily",
-    "roles": ["EVIDENCE_SOURCE", "GOVERNED_SYSTEM"],
-    "config": {"repository": "humanaios-ui/operations"}
+    "roles": [
+      "EVIDENCE_SOURCE",
+      "GOVERNED_SYSTEM"
+    ],
+    "config": {
+      "repository": "humanaios-ui/operations"
+    }
   },
   {
     "name": "humanaios-ui/humanaios",
@@ -73,8 +104,13 @@
     "resolver": "github_repository",
     "enabled": true,
     "cadence": "daily",
-    "roles": ["EVIDENCE_SOURCE", "GOVERNED_SYSTEM"],
-    "config": {"repository": "humanaios-ui/humanaios"}
+    "roles": [
+      "EVIDENCE_SOURCE",
+      "GOVERNED_SYSTEM"
+    ],
+    "config": {
+      "repository": "humanaios-ui/humanaios"
+    }
   },
   {
     "name": "humanaios-ui/lasting-light-ai",
@@ -83,7 +119,38 @@
     "resolver": "github_repository",
     "enabled": true,
     "cadence": "daily",
-    "roles": ["EVIDENCE_SOURCE", "GOVERNED_SYSTEM"],
-    "config": {"repository": "humanaios-ui/lasting-light-ai"}
+    "roles": [
+      "EVIDENCE_SOURCE",
+      "GOVERNED_SYSTEM"
+    ],
+    "config": {
+      "repository": "humanaios-ui/lasting-light-ai"
+    }
+  },
+  {
+    "name": "aioshuman@gmail.com — Private Gmail",
+    "mine_kind": "MAILBOX",
+    "canonical_url": "gmail://aioshuman@gmail.com/",
+    "resolver": "private_gmail_connector",
+    "enabled": true,
+    "cadence": "event_driven",
+    "roles": [
+      "OPPORTUNITY_SOURCE",
+      "EVIDENCE_SOURCE"
+    ],
+    "config": {
+      "provider": "gmail",
+      "mailbox": "aioshuman@gmail.com",
+      "transport": "entry_protocol/gmail_push_adapter.py",
+      "projection_env": "HUMANAIOS_GMAIL_MINE_SNAPSHOT",
+      "query": "-in:spam -in:trash",
+      "content_trust": "UNTRUSTED_EVIDENCE",
+      "instruction_authority": "NONE",
+      "authority_effect": "NONE",
+      "raw_mail_storage": "PRIVATE_LEDGER_ONLY",
+      "public_projection": "PRIVACY_MINIMIZED_PROPOSITIONS_ONLY",
+      "command_processing": "SEPARATE_AUTHORITY_PATH",
+      "dependency_doc": "docs/DAILY_DIGEST_GMAIL_ADAPTER_PHASE_B.md"
+    }
   }
 ]
