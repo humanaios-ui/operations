@@ -15,6 +15,7 @@ MINE_KINDS = {
     "REGISTRY",
     "GITHUB_REPOSITORY",
     "FEED",
+    "MAILBOX",
 }
 MINE_ROLES = {
     "OPPORTUNITY_SOURCE",
@@ -119,6 +120,12 @@ def _resolve_github_repository(mine: ResourceMine) -> list[ResourceCandidate]:
     return list(discover(mine))
 
 
+def _resolve_private_gmail(mine: ResourceMine) -> list[ResourceCandidate]:
+    from .sources.private_gmail import discover
+
+    return list(discover(mine))
+
+
 def _resolve_hackerone(mine: ResourceMine) -> list[ResourceCandidate]:
     # Require scope-hydrated portfolio support from #680/#683. Program-level
     # discovery alone is intentionally insufficient: the bounded opportunity is
@@ -206,6 +213,7 @@ def resolve_mines(
         "configured_mine": _resolve_configured,
         "github_repository": _resolve_github_repository,
         "hackerone_api": _resolve_hackerone,
+        "private_gmail_connector": _resolve_private_gmail,
     }
 
     for mine in mines:
