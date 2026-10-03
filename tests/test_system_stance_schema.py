@@ -1,5 +1,4 @@
 import json
-from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -76,27 +75,11 @@ def test_act_requires_every_pre_action_check_verified(validator, valid_stance):
 
 
 def test_golden_invalid_records_are_rejected(validator):
-    base_record = load_json(FIXTURES_PATH / "valid_advisory.json")
     cases = load_json(FIXTURES_PATH / "invalid_cases.json")
 
-    assert cases["base_record"] == "valid_advisory.json"
-    validator.validate(base_record)
-
     for case in cases["cases"]:
-        record = deepcopy(base_record)
-        for replacement in case["replacements"]:
-            path = replacement["path"].strip("/").split("/")
-            target = record
-            for part in path[:-1]:
-                target = target[int(part)] if isinstance(target, list) else target[part]
-            key = path[-1]
-            if isinstance(target, list):
-                target[int(key)] = replacement["value"]
-            else:
-                target[key] = replacement["value"]
-
         with pytest.raises(ValidationError):
-            validator.validate(record)
+            validator.validate(case["record"])
 
 
 @pytest.mark.parametrize(

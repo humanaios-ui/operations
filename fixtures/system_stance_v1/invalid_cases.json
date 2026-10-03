@@ -1,46 +1,173 @@
 {
-  "format": "json-pointer-replacements",
-  "base_record": "valid_advisory.json",
+  "format": "humanaios/system_stance_v1-fixtures",
   "cases": [
     {
       "id": "act_with_open_requirement",
       "description": "ACT is invalid while any pre-action requirement is OPEN.",
-      "replacements": [
-        {
-          "path": "/overall_stance",
-          "value": "ACT"
-        }
-      ]
+      "record": {
+        "schema": "humanaios/system_stance_v1",
+        "advisory_only": true,
+        "can_authorize": false,
+        "authority_effect": "NONE",
+        "subject": {
+          "repository": "humanaios-ui/operations",
+          "ref": "64c26cb058cf20eb5145c5ccfb9d4cc9c929871f",
+          "scope": "Advisory fixture"
+        },
+        "overall_stance": "ACT",
+        "stance_rationale": "An open pre-action requirement remains.",
+        "certainty": {
+          "level": "MODERATE",
+          "basis": "This fixture tests the ACT precondition.",
+          "limitations": []
+        },
+        "opportunity_scan": {
+          "status": "COMPLETE",
+          "scope": "Fixture",
+          "limitations": [],
+          "opportunities": []
+        },
+        "pre_action_requirements": [
+          {
+            "check": "Verify current evidence.",
+            "status": "OPEN",
+            "verification": "Inspect the current evidence.",
+            "evidence": []
+          }
+        ],
+        "not_established": [],
+        "created_at": "2026-10-03T16:00:00Z"
+      }
     },
     {
       "id": "not_started_with_opportunity",
       "description": "A NOT_STARTED opportunity scan cannot report opportunities.",
-      "replacements": [
-        {
-          "path": "/opportunity_scan/status",
-          "value": "NOT_STARTED"
-        }
-      ]
+      "record": {
+        "schema": "humanaios/system_stance_v1",
+        "advisory_only": true,
+        "can_authorize": false,
+        "authority_effect": "NONE",
+        "subject": {
+          "repository": "humanaios-ui/operations",
+          "ref": "64c26cb058cf20eb5145c5ccfb9d4cc9c929871f",
+          "scope": "Advisory fixture"
+        },
+        "overall_stance": "ACQUIRE_EVIDENCE",
+        "stance_rationale": "The scan is marked as not started.",
+        "certainty": {
+          "level": "MODERATE",
+          "basis": "This fixture tests opportunity scan consistency.",
+          "limitations": []
+        },
+        "opportunity_scan": {
+          "status": "NOT_STARTED",
+          "scope": "Fixture",
+          "limitations": [],
+          "opportunities": [
+            {
+              "id": "OP-1",
+              "description": "A reported opportunity.",
+              "propositions": [
+                {
+                  "claim": "The opportunity may be useful.",
+                  "evidence": [],
+                  "certainty": {
+                    "level": "UNKNOWN",
+                    "basis": "No evidence was assessed.",
+                    "limitations": []
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pre_action_requirements": [
+          {
+            "check": "Verify current evidence.",
+            "status": "OPEN",
+            "verification": "Inspect the current evidence.",
+            "evidence": []
+          }
+        ],
+        "not_established": [],
+        "created_at": "2026-10-03T16:00:00Z"
+      }
     },
     {
       "id": "verified_without_evidence",
       "description": "A VERIFIED pre-action requirement must include evidence.",
-      "replacements": [
-        {
-          "path": "/pre_action_requirements/1/evidence",
-          "value": []
-        }
-      ]
+      "record": {
+        "schema": "humanaios/system_stance_v1",
+        "advisory_only": true,
+        "can_authorize": false,
+        "authority_effect": "NONE",
+        "subject": {
+          "repository": "humanaios-ui/operations",
+          "ref": "64c26cb058cf20eb5145c5ccfb9d4cc9c929871f",
+          "scope": "Advisory fixture"
+        },
+        "overall_stance": "ACQUIRE_EVIDENCE",
+        "stance_rationale": "A verified check lacks evidence.",
+        "certainty": {
+          "level": "MODERATE",
+          "basis": "This fixture tests evidence requirements.",
+          "limitations": []
+        },
+        "opportunity_scan": {
+          "status": "COMPLETE",
+          "scope": "Fixture",
+          "limitations": [],
+          "opportunities": []
+        },
+        "pre_action_requirements": [
+          {
+            "check": "Verify current evidence.",
+            "status": "VERIFIED",
+            "verification": "Inspect the current evidence.",
+            "evidence": []
+          }
+        ],
+        "not_established": [],
+        "created_at": "2026-10-03T16:00:00Z"
+      }
     },
     {
       "id": "non_hex_commit_ref",
       "description": "The subject ref must be a commit-shaped hexadecimal string.",
-      "replacements": [
-        {
-          "path": "/subject/ref",
-          "value": "not-a-commit"
-        }
-      ]
+      "record": {
+        "schema": "humanaios/system_stance_v1",
+        "advisory_only": true,
+        "can_authorize": false,
+        "authority_effect": "NONE",
+        "subject": {
+          "repository": "humanaios-ui/operations",
+          "ref": "not-a-commit",
+          "scope": "Advisory fixture"
+        },
+        "overall_stance": "ACQUIRE_EVIDENCE",
+        "stance_rationale": "The subject ref does not identify a commit.",
+        "certainty": {
+          "level": "MODERATE",
+          "basis": "This fixture tests commit ref validation.",
+          "limitations": []
+        },
+        "opportunity_scan": {
+          "status": "COMPLETE",
+          "scope": "Fixture",
+          "limitations": [],
+          "opportunities": []
+        },
+        "pre_action_requirements": [
+          {
+            "check": "Verify current evidence.",
+            "status": "OPEN",
+            "verification": "Inspect the current evidence.",
+            "evidence": []
+          }
+        ],
+        "not_established": [],
+        "created_at": "2026-10-03T16:00:00Z"
+      }
     }
   ]
 }
