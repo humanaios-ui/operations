@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.1
+# HumanAIOS Resource Miner v0.1.2
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -6,7 +6,7 @@ It asks:
 
 > What externally available resources could reduce a currently modeled need, and what should be verified next?
 
-A resource may be a contest, hackathon, grant, bounty, rebate, credit, fellowship, procurement call, training program, research-access offer, dataset, or other externally available capability.
+At discovery time, a `ResourceCandidate` is best read as a **candidate resource opportunity**: a bounded external path to value that still requires currentness, eligibility, and acquisition resolution. A mine/platform is not itself the controlled resource, and an opportunity is not yet value under the user's control.
 
 ## Boundary
 
@@ -218,7 +218,7 @@ The adapter `resource_candidate_to_target()` may carry forward source URLs and N
 
 ## Resource mine → opportunity → controlled resource
 
-Resource Miner now distinguishes the **mine** from the value extracted from it:
+Resource Miner now distinguishes the **mine** from the value extracted from it. Existing source catalogs may still contain coarse mine-level or bundled records; source-specific resolvers should decompose those records into bounded opportunities before they are treated as acquisition targets:
 
 ```text
 RESOURCE MINE
