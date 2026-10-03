@@ -27,7 +27,9 @@
     "eligibility_state",
     "warrant_state",
     "authorization_state",
-    "authority_effect"
+    "authority_effect",
+    "source_origin_keys",
+    "distinct_origin_count"
   ],
   "properties": {
     "schema": {
@@ -133,6 +135,18 @@
     },
     "authority_effect": {
       "const": "NONE"
+    },
+    "source_origin_keys": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "distinct_origin_count": {
+      "type": "integer",
+      "minimum": 0
     }
   }
 }
