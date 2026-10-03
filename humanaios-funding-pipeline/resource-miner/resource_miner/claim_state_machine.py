@@ -81,6 +81,10 @@ def opportunity_claim_from_dict(data: dict[str, Any]) -> OpportunityClaim:
         authorization_state=str(data.get("authorization_state") or "NOT_REQUESTED"),
         actionability_state=str(data.get("actionability_state") or "NOT_ACTIONABLE"),
         authority_effect=str(data.get("authority_effect") or "NONE"),
+        proposition_id=str(data.get("proposition_id") or ""),
+        proposition_token=str(data.get("proposition_token") or ""),
+        proposition_type=str(data.get("proposition_type") or ""),
+        proposition_semantic_key=str(data.get("proposition_semantic_key") or ""),
     )
 
 
