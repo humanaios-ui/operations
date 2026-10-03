@@ -236,6 +236,12 @@ def build_snapshot(
     if subject_kind not in SUBJECT_KINDS:
         raise ValueError(f"unsupported subject_kind: {subject_kind}")
     cluster = validate_query_cluster(query_cluster)
+    mismatched = [item.query for item in cluster if item.subject_kind != subject_kind]
+    if mismatched:
+        raise ValueError(
+            "snapshot subject_kind must match every query subject_kind; "
+            f"mismatched queries: {mismatched}"
+        )
     return DemandSnapshot(
         subject_kind=subject_kind,
         query_cluster=cluster,
