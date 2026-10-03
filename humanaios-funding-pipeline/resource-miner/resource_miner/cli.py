@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .miner import enrich
 from .mines import load_mines, receipts_to_jsonl, resolve_mines
+from .opportunity_claim import claims_from_candidates, write_claims_jsonl
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
 from .store import write_jsonl
 from .sources import devto, funding_pipeline, github, rss
@@ -18,6 +19,7 @@ DEFAULT_FUNDING = ROOT.parent / "data" / "sources.json"
 DEFAULT_MINES = ROOT / "data" / "mines.seed.json"
 DEFAULT_OPPORTUNITIES = ROOT / "data" / "opportunities.jsonl"
 DEFAULT_MINE_RECEIPTS = ROOT / "data" / "mine-resolution.jsonl"
+DEFAULT_OPPORTUNITY_CLAIMS = ROOT / "data" / "opportunity-claims.jsonl"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -51,6 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--requirements", default=str(DEFAULT_REQUIREMENTS))
     resolve.add_argument("--out", default=str(DEFAULT_OPPORTUNITIES))
     resolve.add_argument("--receipts-out", default=str(DEFAULT_MINE_RECEIPTS))
+    resolve.add_argument("--claims-out", default=str(DEFAULT_OPPORTUNITY_CLAIMS))
     resolve.add_argument("--dry-run", action="store_true")
 
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
@@ -86,12 +89,14 @@ def main() -> None:
             mines = [mine for mine in mines if mine.mine_id in wanted]
         discovered, receipts = resolve_mines(mines)
         resources = enrich(discovered, args.needs, args.requirements)
+        claims = claims_from_candidates(resources)
         if args.dry_run:
             print(
                 json.dumps(
                     {
                         "mines": [mine.to_dict() for mine in mines],
                         "opportunities": [row.to_dict() for row in resources],
+                        "claims": [claim.to_dict() for claim in claims],
                         "receipts": [receipt.to_dict() for receipt in receipts],
                     },
                     indent=2,
@@ -103,9 +108,11 @@ def main() -> None:
             receipt_path = Path(args.receipts_out)
             receipt_path.parent.mkdir(parents=True, exist_ok=True)
             receipt_path.write_text(receipts_to_jsonl(receipts), encoding="utf-8")
+            write_claims_jsonl(args.claims_out, claims)
             print(
-                f"resolved {len(mines)} mines -> {len(resources)} opportunities; "
-                f"wrote {args.out} and {args.receipts_out}"
+                f"resolved {len(mines)} mines -> {len(resources)} opportunities "
+                f"and {len(claims)} claims; wrote {args.out}, "
+                f"{args.receipts_out}, and {args.claims_out}"
             )
         return
 
