@@ -78,10 +78,32 @@ class PropositionMiningTests(unittest.TestCase):
     def test_resolution_subject_key_is_stable_across_mines_for_shared_identity(self):
         first = specimen()
         second = specimen()
-        first.mine_id = "MINE-A"
-        first.mine_name = "A"
-        second.mine_id = "MINE-B"
-        second.mine_name = "B"
+        mine_a = ResourceMine(
+            mine_id="MINE-A",
+            name="A",
+            mine_kind="PROGRAM_PLATFORM",
+            canonical_url="https://a.example.test",
+            resolver="fixture",
+            roles=["OPPORTUNITY_SOURCE"],
+        )
+        mine_b = ResourceMine(
+            mine_id="MINE-B",
+            name="B",
+            mine_kind="PROGRAM_PLATFORM",
+            canonical_url="https://b.example.test",
+            resolver="fixture",
+            roles=["OPPORTUNITY_SOURCE"],
+        )
+        first = bind_opportunity(
+            mine_a,
+            first,
+            opportunity_source_kind="configured_endpoint",
+        )
+        second = bind_opportunity(
+            mine_b,
+            second,
+            opportunity_source_kind="configured_endpoint",
+        )
         first_props = propositions_from_candidate(first)
         second_props = propositions_from_candidate(second)
         self.assertEqual(
