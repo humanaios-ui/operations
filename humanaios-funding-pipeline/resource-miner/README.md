@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.7
+# HumanAIOS Resource Miner v0.1.8
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -350,6 +350,24 @@ One opportunity may emit many stable `PRP-*` Proposition Candidates. Proposition
 Direct observations may support observation propositions. Normalizer classifications and text extractions produce testable propositions but do **not** self-validate their external truth. A proposition-bound claim uses `claim_type=OPPORTUNITY_PROPOSITION`; parent opportunity existence/currentness cannot promote an unrelated proposition to `SUPPORTED`.
 
 The scheduled Mine workflow persists `data/propositions.snapshot.jsonl` between the OPP and CLM layers. See `docs/PROPOSITION_MINING.md` and `schemas/proposition-candidate.v1.schema.json`.
+
+### Cross-Mine proposition reconciliation
+
+Resource Miner now relates independent `PRP-*` observations through a separate non-authoritative `PRS-*` layer.
+
+```text
+Mine A -> OPP-A -> PRP-A --\
+                         -> PRS-*
+Mine B -> OPP-B -> PRP-B --/
+```
+
+Each proposition carries a `resolution_subject_key`, allowing independent Mines to refer to the same bounded real-world subject without merging their local `OPP-*` or `PRP-*` identities.
+
+Deterministic relations are `SAME_AS | SUPPORTS | CONTRADICTS | QUALIFIES | SUPERSEDES | CONTEXT_FOR | UNRESOLVED`. Resolution states are `SINGLE_SOURCE | CORROBORATED | CONTESTED | QUALIFIED | SUPERSEDED | UNRESOLVED`.
+
+`CORROBORATED` means independent Mines made the same normalized assertion. It does **not** mean the assertion has been promoted to truth. Every resolution set retains `truth_state=NOT_DETERMINED`, `eligibility_state=NOT_EVALUATED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, and `authority_effect=NONE`.
+
+The scheduled Mine workflow persists `data/proposition-resolutions.snapshot.jsonl` between the PRP and CLM layers. See `docs/PROPOSITION_RECONCILIATION.md`.
 
 ### Reconstructable Claim state machine
 
