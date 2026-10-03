@@ -33,6 +33,8 @@ class ClaimEvaluationEvent:
     claim_id: str
     claim_token: str
     opportunity_id: str
+    proposition_id: str
+    proposition_token: str
     sequence: int
     previous_event_id: str | None
     event_type: str
@@ -95,6 +97,8 @@ def event_from_dict(data: dict[str, Any]) -> ClaimEvaluationEvent:
         claim_id=str(data["claim_id"]),
         claim_token=str(data["claim_token"]),
         opportunity_id=str(data["opportunity_id"]),
+        proposition_id=str(data.get("proposition_id") or ""),
+        proposition_token=str(data.get("proposition_token") or ""),
         sequence=int(data["sequence"]),
         previous_event_id=data.get("previous_event_id"),
         event_type=str(data["event_type"]),
@@ -167,6 +171,8 @@ def claim_asserted_event(
         claim_id=claim.claim_id,
         claim_token=claim.claim_token,
         opportunity_id=claim.opportunity_id,
+        proposition_id=claim.proposition_id,
+        proposition_token=claim.proposition_token,
         sequence=0,
         previous_event_id=None,
         event_type="CLAIM_ASSERTED",
@@ -233,6 +239,8 @@ def evidence_recorded_event(
         claim_id=claim.claim_id,
         claim_token=claim.claim_token,
         opportunity_id=claim.opportunity_id,
+        proposition_id=claim.proposition_id,
+        proposition_token=claim.proposition_token,
         sequence=sequence,
         previous_event_id=previous,
         event_type="EVIDENCE_RECORDED",
@@ -298,6 +306,8 @@ def falsifier_evaluated_event(
         claim_id=claim.claim_id,
         claim_token=claim.claim_token,
         opportunity_id=claim.opportunity_id,
+        proposition_id=claim.proposition_id,
+        proposition_token=claim.proposition_token,
         sequence=sequence,
         previous_event_id=previous,
         event_type="FALSIFIER_EVALUATED",
@@ -404,6 +414,8 @@ def facet_resolved_event(
         claim_id=claim.claim_id,
         claim_token=claim.claim_token,
         opportunity_id=claim.opportunity_id,
+        proposition_id=claim.proposition_id,
+        proposition_token=claim.proposition_token,
         sequence=sequence,
         previous_event_id=previous,
         event_type="FACET_RESOLVED",
@@ -466,6 +478,10 @@ def replay_claim_events(
     claim = opportunity_claim_from_dict(seed)
     if claim.claim_id != first.claim_id or claim.opportunity_id != first.opportunity_id:
         raise ValueError("CLAIM_ASSERTED identity mismatch")
+    if claim.proposition_id != first.proposition_id:
+        raise ValueError("CLAIM_ASSERTED proposition_id mismatch")
+    if claim.proposition_token != first.proposition_token:
+        raise ValueError("CLAIM_ASSERTED proposition_token mismatch")
     if claim.overall_state != first.resulting_overall_state:
         raise ValueError("CLAIM_ASSERTED resulting state mismatch")
 
@@ -476,6 +492,10 @@ def replay_claim_events(
             raise ValueError("event claim_id mismatch")
         if event.opportunity_id != claim.opportunity_id:
             raise ValueError("event opportunity_id mismatch")
+        if event.proposition_id != claim.proposition_id:
+            raise ValueError("event proposition_id mismatch")
+        if event.proposition_token != claim.proposition_token:
+            raise ValueError("event proposition_token mismatch")
         if event.sequence != expected_sequence:
             raise ValueError("event sequence is not contiguous")
         if event.previous_event_id != previous.event_id:
