@@ -55,6 +55,10 @@
           "description": "Program access path to Microsoft Marketplace and co-sell opportunities. Eligibility and activation remain downstream verification.",
           "observe_url": true
         }
+      ],
+      "evidence_origins": [
+        "learn.microsoft.com",
+        "www.microsoft.com"
       ]
     }
   },
@@ -79,7 +83,10 @@
         684
       ],
       "resolution_unit": "program_x_bounty_eligible_scope_asset",
-      "authority_effect": "NONE"
+      "authority_effect": "NONE",
+      "evidence_origins": [
+        "hackerone.com"
+      ]
     }
   },
   {
