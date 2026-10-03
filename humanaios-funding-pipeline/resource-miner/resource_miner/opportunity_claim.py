@@ -145,7 +145,9 @@ def _evidence_facet(item: EvidenceRef) -> tuple[str, str]:
         return "CURRENTNESS", "SUPPORTS"
     if kind == "mine_observation_failed":
         return "CURRENTNESS", "CONTEXT"
-    if kind in {"discovery", "repository_issue", "hackerone_scope"}:
+    if kind in {"repository_issue", "hackerone_scope"}:
+        return "CURRENTNESS", "SUPPORTS"
+    if kind == "discovery":
         return "EXISTENCE", "SUPPORTS"
     return "EXISTENCE", "SUPPORTS"
 
@@ -219,14 +221,10 @@ def build_opportunity_claim(candidate: ResourceCandidate) -> OpportunityClaim:
             )
         )
         evidence_by_facet[facet].append(evidence_id)
-        if item.kind.casefold() == "mine_observation":
+        if item.kind.casefold() in {"mine_observation", "repository_issue", "hackerone_scope"}:
             has_current_observation = True
         elif item.kind.casefold() == "mine_observation_failed":
             has_current_failure = True
-
-    # GitHub and HackerOne resolvers are themselves current read observations.
-    if candidate.opportunity_source_kind in {"github_issue", "hackerone_scope_asset"}:
-        has_current_observation = True
 
     existence_state = "SUPPORTED" if candidate.evidence else "UNKNOWN"
     currentness_state = "SUPPORTED" if has_current_observation else "UNKNOWN"
