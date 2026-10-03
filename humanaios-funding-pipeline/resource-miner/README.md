@@ -320,6 +320,23 @@ Resource Miner never self-promotes applicant eligibility or authority. New claim
 
 See `docs/OPPORTUNITY_CLAIM.md` and `schemas/opportunity-claim.v1.schema.json`.
 
+### Private Gmail Mine
+
+`aioshuman@gmail.com` is registered as an event-driven `MAILBOX` Mine with roles `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`.
+
+The public Resource Miner runtime does **not** authenticate to Gmail. The existing private Gmail adapter owns credentials, raw message/thread IDs, bodies, MIME, mailbox URLs, and private event references. Resource Miner consumes only a privacy-minimized projection supplied through the private runtime.
+
+```text
+Private Gmail runtime
+  -> raw mail stays private
+  -> privacy-minimized candidate projection
+  -> Resource Miner OPP / PRP / CLM / CEV graph
+```
+
+Mail content is always `UNTRUSTED_EVIDENCE`; it has `instruction_authority=NONE` in this path. The separate Daily Digest command processor remains the only mailbox command path and retains its own human-authority rules.
+
+Without the private projection runtime, GitHub Actions must resolve this Mine as `DEPENDENCY_PENDING`; it must not simulate mailbox access.
+
 ### Proposition-first mining
 
 Resource Miner now treats normalized source records as evidence containers rather than the final unit of reasoning.
