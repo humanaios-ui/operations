@@ -1,5 +1,6 @@
 import unittest
 
+from resource_miner.dpp_action_contract import default_dpp_action_contract
 from resource_miner.policy_adjudication import adjudicate_ranked_candidate
 from resource_miner.security_authorization import AuthorizationState, TestingMode
 
@@ -73,6 +74,32 @@ class FakeClient:
         return EXCLUSIONS
 
 
+
+
+DPP_PROGRAM = {
+    **PROGRAM,
+    "attributes": {
+        **PROGRAM["attributes"],
+        "policy": """
+## Data Protection Program
+This program is focused on passive monitoring and recon of our data and does not permit active hunting.
+### What is allowed (Data Protection Program):
+Observing publicly accessible data exposure.
+Monitoring websites/apps for exposed information.
+Scanning for exposed configuration files, API keys, or access tokens.
+### What is not allowed (Data Protection Program):
+Active exploitation or vulnerability testing on external systems.
+Any actions beyond read-only verification of Eternal data exposure.
+""",
+    },
+}
+
+
+class DPPClient(FakeClient):
+    def find_program(self, handle, page_size=100):
+        return DPP_PROGRAM
+
+
 class PolicyAdjudicationTests(unittest.TestCase):
     def test_unknown_method_fails_closed_after_fresh_evidence(self):
         result = adjudicate_ranked_candidate(FakeClient(), PORTFOLIO)
@@ -98,6 +125,33 @@ class PolicyAdjudicationTests(unittest.TestCase):
         self.assertEqual(
             result["authorization_decision"]["state"],
             AuthorizationState.NOT_AUTHORIZED.value,
+        )
+
+    def test_dpp_action_contract_derives_method_permission_from_fresh_evidence(self):
+        result = adjudicate_ranked_candidate(
+            DPPClient(),
+            PORTFOLIO,
+            dpp_action_contract=default_dpp_action_contract(),
+            mode=TestingMode.PASSIVE_RECON,
+        )
+        self.assertTrue(result["scope_binding"]["valid"])
+        self.assertTrue(result["method_review"]["method_allowed"])
+        self.assertEqual(
+            result["method_review"]["permission_inference"],
+            "ACTION_CONTRACT",
+        )
+        self.assertEqual(
+            result["method_review"]["action_contract_review"]["state"],
+            "METHOD_ALLOWED",
+        )
+        # Method permission is not execution authorization; human evidence is absent.
+        self.assertEqual(
+            result["authorization_decision"]["state"],
+            AuthorizationState.NOT_AUTHORIZED.value,
+        )
+        self.assertIn(
+            "human_authorization_evidence_absent",
+            result["authorization_decision"]["reasons"],
         )
 
     def test_stale_scope_binding_forces_clarification(self):
