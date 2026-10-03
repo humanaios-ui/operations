@@ -42,7 +42,8 @@ jobs:
           python3 -m resource_miner.cli resolve-mines \
             --out data/opportunities.snapshot.jsonl \
             --receipts-out data/mine-resolution.snapshot.jsonl \
-            --claims-out data/opportunity-claims.snapshot.jsonl
+            --claims-out data/opportunity-claims.snapshot.jsonl \
+            --events-ledger data/opportunity-claim-events.jsonl
 
       - name: Scan for resource candidates
         working-directory: humanaios-funding-pipeline/resource-miner
@@ -59,10 +60,12 @@ jobs:
             humanaios-funding-pipeline/resource-miner/data/opportunities.snapshot.jsonl
             humanaios-funding-pipeline/resource-miner/data/mine-resolution.snapshot.jsonl
             humanaios-funding-pipeline/resource-miner/data/opportunity-claims.snapshot.jsonl
+            humanaios-funding-pipeline/resource-miner/data/opportunity-claim-events.jsonl
           )
 
           if git diff --quiet -- "${SNAPSHOTS[@]}" && \
-             git ls-files --error-unmatch "${SNAPSHOTS[1]}" "${SNAPSHOTS[2]}" "${SNAPSHOTS[3]}" >/dev/null 2>&1; then
+             git ls-files --error-unmatch "${SNAPSHOTS[1]}" "${SNAPSHOTS[2]}" "${SNAPSHOTS[3]}" >/dev/null 2>&1 && \
+             { git ls-files --error-unmatch "${SNAPSHOTS[4]}" >/dev/null 2>&1 || true; }; then
             echo "No Resource Miner snapshot changes, skipping commit"
           else
             git add "${SNAPSHOTS[@]}"
