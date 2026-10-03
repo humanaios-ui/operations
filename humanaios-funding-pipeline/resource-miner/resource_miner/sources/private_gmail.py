@@ -103,6 +103,9 @@ def discover(mine: ResourceMine) -> Iterable[ResourceCandidate]:
                 "content_trust": "UNTRUSTED_EVIDENCE",
                 "instruction_authority": "NONE",
                 "authority_effect": "NONE",
+                "resolution_subject_key": str(
+                    row.get("resolution_subject_key") or ""
+                ).strip(),
             },
         )
         candidate.evidence.append(
