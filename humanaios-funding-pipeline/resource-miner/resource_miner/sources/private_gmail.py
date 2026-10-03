@@ -106,6 +106,9 @@ def discover(mine: ResourceMine) -> Iterable[ResourceCandidate]:
                 "resolution_subject_key": str(
                     row.get("resolution_subject_key") or ""
                 ).strip(),
+                "source_origin_key": str(
+                    row.get("source_origin_key") or ""
+                ).strip(),
             },
         )
         candidate.evidence.append(
