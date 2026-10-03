@@ -9,6 +9,7 @@ from typing import Any, Iterable
 
 from .models import EvidenceRef, ResourceCandidate
 from .normalize import utcnow_iso
+from .proposition import PropositionCandidate, propositions_from_candidate
 
 FACETS = {"EXISTENCE", "CURRENTNESS", "TERMS", "ELIGIBILITY", "ATTAINABILITY"}
 FACET_STATES = {
@@ -84,16 +85,27 @@ class OpportunityClaim:
     authorization_state: str = "NOT_REQUESTED"
     actionability_state: str = "NOT_ACTIONABLE"
     authority_effect: str = "NONE"
+    proposition_id: str = ""
+    proposition_token: str = ""
+    proposition_type: str = ""
+    proposition_semantic_key: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
-def stable_claim_id(opportunity_id: str, claim_type: str = "RESOURCE_OPPORTUNITY") -> str:
+def stable_claim_id(
+    opportunity_id: str,
+    claim_type: str = "RESOURCE_OPPORTUNITY",
+    proposition_id: str | None = None,
+) -> str:
     opportunity_id = opportunity_id.strip().upper()
     if not opportunity_id:
         raise ValueError("opportunity_id is required")
-    payload = "\0".join([opportunity_id, claim_type.strip().upper()])
+    parts = [opportunity_id, claim_type.strip().upper()]
+    if proposition_id:
+        parts.append(proposition_id.strip().upper())
+    payload = "\0".join(parts)
     return "CLM-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16].upper()
 
 
@@ -192,14 +204,25 @@ def _default_falsifiers(
     ]
 
 
-def build_opportunity_claim(candidate: ResourceCandidate) -> OpportunityClaim:
+def build_opportunity_claim(
+    candidate: ResourceCandidate,
+    proposition: PropositionCandidate | None = None,
+) -> OpportunityClaim:
     if not candidate.opportunity_id:
         raise ValueError("Opportunity Claim requires a tokenized opportunity_id")
     if not candidate.opportunity_token:
         raise ValueError("Opportunity Claim requires opportunity_token")
 
     asserted_at = candidate.discovered_at or utcnow_iso()
-    claim_id = stable_claim_id(candidate.opportunity_id)
+    if proposition is not None:
+        if proposition.opportunity_id != candidate.opportunity_id:
+            raise ValueError("proposition must reference candidate opportunity_id")
+        if proposition.opportunity_token != candidate.opportunity_token:
+            raise ValueError("proposition must reference candidate opportunity_token")
+    claim_id = stable_claim_id(
+        candidate.opportunity_id,
+        proposition_id=(proposition.proposition_id if proposition else None),
+    )
 
     evidence: list[ClaimEvidence] = []
     evidence_by_facet: dict[str, list[str]] = {facet: [] for facet in FACETS}
@@ -240,7 +263,20 @@ def build_opportunity_claim(candidate: ResourceCandidate) -> OpportunityClaim:
             bool(candidate.resource_types),
         ]
     )
-    terms_state = "SUPPORTED" if material_terms_present and existence_state == "SUPPORTED" else "UNKNOWN"
+    if proposition is not None:
+        if proposition.proposition_type == "OPPORTUNITY_EXISTS":
+            existence_state = "SUPPORTED" if proposition.evidence else existence_state
+        elif proposition.proposition_type == "CURRENTLY_AVAILABLE":
+            currentness_state = "SUPPORTED" if proposition.evidence else currentness_state
+        else:
+            # Extraction/classification creates a testable proposition, not truth.
+            terms_state = "UNKNOWN"
+    else:
+        terms_state = (
+            "SUPPORTED"
+            if material_terms_present and existence_state == "SUPPORTED"
+            else "UNKNOWN"
+        )
 
     facets = [
         ClaimFacet(
@@ -291,9 +327,13 @@ def build_opportunity_claim(candidate: ResourceCandidate) -> OpportunityClaim:
         opportunity_id=candidate.opportunity_id,
         opportunity_token=candidate.opportunity_token,
         claim_text=(
-            f"A bounded resource opportunity '{candidate.title}' is represented by "
-            f"{candidate.opportunity_token}; discovery does not establish applicant "
-            "eligibility, attainability, warrant, or authorization."
+            proposition.statement
+            if proposition is not None
+            else (
+                f"A bounded resource opportunity '{candidate.title}' is represented by "
+                f"{candidate.opportunity_token}; discovery does not establish applicant "
+                "eligibility, attainability, warrant, or authorization."
+            )
         ),
         asserted_at=asserted_at,
         mine_id=candidate.mine_id,
@@ -308,7 +348,19 @@ def build_opportunity_claim(candidate: ResourceCandidate) -> OpportunityClaim:
             canonical_url=candidate.canonical_url,
             opportunity_kind=candidate.opportunity_kind,
         ),
-        unknowns=unknowns,
+        unknowns=(
+            unknowns + (
+                ["proposition_truth"]
+                if proposition is not None
+                and proposition.proposition_type
+                not in {"OPPORTUNITY_EXISTS", "CURRENTLY_AVAILABLE"}
+                else []
+            )
+        ),
+        proposition_id=(proposition.proposition_id if proposition else ""),
+        proposition_token=(proposition.proposition_token if proposition else ""),
+        proposition_type=(proposition.proposition_type if proposition else ""),
+        proposition_semantic_key=(proposition.semantic_key if proposition else ""),
     )
     claim.overall_state = _overall_state(claim.facets)
     return claim
@@ -415,7 +467,17 @@ def add_claim_evidence(
 def claims_from_candidates(
     candidates: Iterable[ResourceCandidate],
 ) -> list[OpportunityClaim]:
-    return [build_opportunity_claim(candidate) for candidate in candidates]
+    claims: list[OpportunityClaim] = []
+    for candidate in candidates:
+        propositions = propositions_from_candidate(candidate)
+        if not propositions:
+            claims.append(build_opportunity_claim(candidate))
+            continue
+        claims.extend(
+            build_opportunity_claim(candidate, proposition)
+            for proposition in propositions
+        )
+    return claims
 
 
 def write_claims_jsonl(
