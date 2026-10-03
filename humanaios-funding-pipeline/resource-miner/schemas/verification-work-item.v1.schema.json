@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/verification-work-item.v1.schema.json",
+  "title": "HumanAIOS Verification Work Item v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "work_id",
+    "verification_id",
+    "adjudication_id",
+    "resolution_set_id",
+    "subject_key",
+    "operation_class",
+    "requested_source_class",
+    "candidate_origin_keys",
+    "closure_condition",
+    "planning_state",
+    "execution_state",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.verification-work-item.v1"
+    },
+    "work_id": {
+      "type": "string",
+      "pattern": "^VWK-[A-F0-9]{16}$"
+    },
+    "verification_id": {
+      "type": "string",
+      "pattern": "^VFY-[A-F0-9]{16}$"
+    },
+    "adjudication_id": {
+      "type": "string",
+      "pattern": "^PAD-[A-F0-9]{16}$"
+    },
+    "resolution_set_id": {
+      "type": "string",
+      "pattern": "^PRS-[A-F0-9]{16}$"
+    },
+    "subject_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operation_class": {
+      "enum": [
+        "DISCOVER_PRIMARY_SOURCE",
+        "SEEK_DIRECT_EVIDENCE",
+        "RESOLVE_CONFLICT",
+        "ASSESS_SOURCE_STANDING",
+        "DISAMBIGUATE_RELATION"
+      ]
+    },
+    "requested_source_class": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_origin_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "closure_condition": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planning_state": {
+      "const": "PLANNED"
+    },
+    "execution_state": {
+      "const": "NOT_AUTHORIZED"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  }
+}
