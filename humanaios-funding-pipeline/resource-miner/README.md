@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.8
+# HumanAIOS Resource Miner v0.1.9
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -368,6 +368,24 @@ Deterministic relations are `SAME_AS | SUPPORTS | CONTRADICTS | QUALIFIES | SUPE
 `CORROBORATED` means independent evidence origins made the same normalized assertion. Multiple Mines from the same origin do not count as independent corroboration. It does **not** mean the assertion has been promoted to truth. Every resolution set retains `truth_state=NOT_DETERMINED`, `eligibility_state=NOT_EVALUATED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, and `authority_effect=NONE`.
 
 The scheduled Mine workflow persists `data/proposition-resolutions.snapshot.jsonl` between the PRP and CLM layers. See `docs/PROPOSITION_RECONCILIATION.md`.
+
+### Evidence adjudication and verification frontier
+
+After cross-Mine reconciliation, Resource Miner now evaluates the *standing of evidence* without converting source count or source prestige into truth.
+
+```text
+PRP-* -> PRS-* -> PAD-* -> VFY-*
+```
+
+`SourceStandingProfile` records are scoped by evidence origin and proposition type/predicate. A source can be primary for its own program status while still having no standing for a HumanAIOS machine classification derived from that page.
+
+`PAD-*` states include `PRIMARY_SOURCE_PRESENT`, `MULTI_ORIGIN_NO_PRIMARY`, `NONPRIMARY_SOURCE_ONLY`, `DERIVED_ONLY`, `CONTESTED`, `UNRESOLVED`, and `SOURCE_STANDING_UNKNOWN`.
+
+`VFY-*` frontier items identify missing evidence such as `PRIMARY_SOURCE_MISSING`, `DIRECT_EVIDENCE_MISSING`, `CONFLICT_REQUIRES_RESOLUTION`, `SOURCE_STANDING_UNKNOWN`, or `RELATION_UNRESOLVED`.
+
+Every PAD/VFY object remains non-authoritative: `truth_state=NOT_DETERMINED`, `eligibility_state=NOT_EVALUATED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, and `authority_effect=NONE`.
+
+See `docs/EVIDENCE_ADJUDICATION.md`.
 
 ### Reconstructable Claim state machine
 
