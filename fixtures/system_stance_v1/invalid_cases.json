@@ -1,0 +1,46 @@
+{
+  "format": "json-pointer-replacements",
+  "base_record": "valid_advisory.json",
+  "cases": [
+    {
+      "id": "act_with_open_requirement",
+      "description": "ACT is invalid while any pre-action requirement is OPEN.",
+      "replacements": [
+        {
+          "path": "/overall_stance",
+          "value": "ACT"
+        }
+      ]
+    },
+    {
+      "id": "not_started_with_opportunity",
+      "description": "A NOT_STARTED opportunity scan cannot report opportunities.",
+      "replacements": [
+        {
+          "path": "/opportunity_scan/status",
+          "value": "NOT_STARTED"
+        }
+      ]
+    },
+    {
+      "id": "verified_without_evidence",
+      "description": "A VERIFIED pre-action requirement must include evidence.",
+      "replacements": [
+        {
+          "path": "/pre_action_requirements/1/evidence",
+          "value": []
+        }
+      ]
+    },
+    {
+      "id": "non_hex_commit_ref",
+      "description": "The subject ref must be a commit-shaped hexadecimal string.",
+      "replacements": [
+        {
+          "path": "/subject/ref",
+          "value": "not-a-commit"
+        }
+      ]
+    }
+  ]
+}
