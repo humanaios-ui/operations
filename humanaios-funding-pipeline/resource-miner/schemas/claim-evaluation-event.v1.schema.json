@@ -26,7 +26,9 @@
     "payload",
     "uncertainty",
     "confidence",
-    "authority_effect"
+    "authority_effect",
+    "proposition_id",
+    "proposition_token"
   ],
   "properties": {
     "schema": {
@@ -151,6 +153,14 @@
     },
     "authority_effect": {
       "const": "NONE"
+    },
+    "proposition_id": {
+      "type": "string",
+      "pattern": "^(|PRP-[A-F0-9]{16})$"
+    },
+    "proposition_token": {
+      "type": "string",
+      "pattern": "^(|urn:humanaios:proposition:PRP-[A-F0-9]{16})$"
     }
   }
 }
