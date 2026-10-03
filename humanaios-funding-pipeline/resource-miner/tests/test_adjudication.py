@@ -258,6 +258,95 @@ class EvidenceAdjudicationTests(unittest.TestCase):
             {row.gap_type for row in pad.verification_frontier},
         )
 
+    def test_primary_source_arrival_closes_primary_source_gap(self):
+        secondary = prop(
+            opportunity_id="OPP-1000000000000011",
+            origin="secondary.example",
+            mine_id="MINE-S",
+            subject_key="program:alpha",
+            proposition_type="STATUS",
+            predicate="represented_status",
+            object_value="open",
+        )
+        official = prop(
+            opportunity_id="OPP-1000000000000012",
+            origin="official.example",
+            mine_id="MINE-O",
+            subject_key="program:alpha",
+            proposition_type="STATUS",
+            predicate="represented_status",
+            object_value="open",
+        )
+        profiles = [
+            standing("secondary.example", "SECONDARY_REPORT", ["STATUS"]),
+            standing("official.example", "OFFICIAL_PRIMARY", ["STATUS"]),
+        ]
+        before = adjudicate_resolution_sets(
+            reconcile_propositions([secondary]),
+            [secondary],
+            profiles,
+        )[0]
+        self.assertIn(
+            "PRIMARY_SOURCE_MISSING",
+            {row.gap_type for row in before.verification_frontier},
+        )
+
+        after = adjudicate_resolution_sets(
+            reconcile_propositions([secondary, official]),
+            [secondary, official],
+            profiles,
+        )[0]
+        self.assertEqual(after.posture, "PRIMARY_SOURCE_PRESENT")
+        self.assertNotIn(
+            "PRIMARY_SOURCE_MISSING",
+            {row.gap_type for row in after.verification_frontier},
+        )
+
+    def test_direct_assertion_arrival_closes_derived_only_gap(self):
+        derived = prop(
+            opportunity_id="OPP-1000000000000013",
+            origin="official.example",
+            mine_id="MINE-O",
+            subject_key="program:alpha",
+            proposition_type="RESOURCE_TYPE",
+            predicate="resource_type",
+            object_value="grant",
+            epistemic_role="CLASSIFICATION",
+        )
+        direct = prop(
+            opportunity_id="OPP-1000000000000014",
+            origin="official.example",
+            mine_id="MINE-O",
+            subject_key="program:alpha",
+            proposition_type="RESOURCE_TYPE",
+            predicate="resource_type",
+            object_value="grant",
+            epistemic_role="SOURCE_ASSERTION",
+        )
+        profiles = [
+            standing("official.example", "OFFICIAL_PRIMARY", ["RESOURCE_TYPE"])
+        ]
+        before = adjudicate_resolution_sets(
+            reconcile_propositions([derived]),
+            [derived],
+            profiles,
+        )[0]
+        self.assertIn(
+            "DIRECT_EVIDENCE_MISSING",
+            {row.gap_type for row in before.verification_frontier},
+        )
+
+        after = adjudicate_resolution_sets(
+            reconcile_propositions([derived, direct]),
+            [derived, direct],
+            profiles,
+        )[0]
+        self.assertEqual(after.posture, "PRIMARY_SOURCE_PRESENT")
+        self.assertNotIn(
+            "DIRECT_EVIDENCE_MISSING",
+            {row.gap_type for row in after.verification_frontier},
+        )
+
     def test_verification_frontier_is_order_independent(self):
         a = prop(
             opportunity_id="OPP-1000000000000009",
