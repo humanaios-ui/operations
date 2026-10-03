@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from .dpp_asset_binding import bind_ready_assets_to_dpp_policy
+from .dpp_method_suitability import evaluate_dpp_method_suitability
 from .hackerone_policy_screen import screen_program_policies
 from .hackerone_portfolio import scan_portfolio
 from .investigation_queue import build_ranked_queue
@@ -77,6 +78,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     h1_dpp_bind.add_argument("--portfolio", required=True)
     h1_dpp_bind.add_argument("--out", required=True)
+
+    h1_dpp_method = sub.add_parser(
+        "hackerone-dpp-method-suitability",
+        help="Evaluate READY assets for the bounded DPP passive data-exposure method",
+    )
+    h1_dpp_method.add_argument("--portfolio", required=True)
+    h1_dpp_method.add_argument("--out", required=True)
 
     h1_portfolio = sub.add_parser(
         "hackerone-portfolio",
@@ -237,6 +245,24 @@ def main() -> None:
         print(f"extraction_state={summary['extraction_state']}")
         print(f"policy_asset_pattern_count={summary['policy_asset_pattern_count']}")
         print(f"dpp_asset_bound_entries={summary['dpp_asset_bound_entries']}")
+        print(f"candidate_ready_ranks={summary['candidate_ready_ranks']}")
+        print("authority_effect=NONE")
+        print("execution_capability=NONE")
+        return
+
+    if args.command == "hackerone-dpp-method-suitability":
+        payload_path = Path(args.portfolio).expanduser()
+        payload = json.loads(payload_path.read_text(encoding="utf-8"))
+        result = evaluate_dpp_method_suitability(payload)
+        rendered = result.to_dict()
+        out_path = Path(args.out).expanduser()
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(rendered, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        summary = rendered["summary"]
+        print(f"wrote DPP method suitability packet to {out_path}")
+        print(f"ready_entries_evaluated={summary['ready_entries_evaluated']}")
+        print(f"policy_support_present={summary['policy_support_present']}")
+        print(f"suitability_state_counts={json.dumps(summary['suitability_state_counts'], sort_keys=True)}")
         print(f"candidate_ready_ranks={summary['candidate_ready_ranks']}")
         print("authority_effect=NONE")
         print("execution_capability=NONE")
