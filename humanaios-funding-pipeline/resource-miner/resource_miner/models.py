@@ -60,6 +60,37 @@ class DemandSnapshot:
 
 
 @dataclass
+class ResourceMine:
+    mine_id: str
+    name: str
+    mine_kind: str
+    canonical_url: str
+    resolver: str
+    enabled: bool = True
+    cadence: str = "daily"
+    roles: list[str] = field(default_factory=list)
+    config: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class MineResolutionReceipt:
+    mine_id: str
+    mine_name: str
+    resolver: str
+    observed_at: str
+    state: str
+    opportunity_count: int = 0
+    opportunity_ids: list[str] = field(default_factory=list)
+    error_type: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
 class ResourceCandidate:
     resource_id: str
     title: str
@@ -89,9 +120,14 @@ class ResourceCandidate:
     eligibility_assessed: bool = False
     eligibility_status: str = "UNASSESSED"
     last_verified_at: str | None = None
+    mine_id: str = ""
     mine_name: str = ""
     mine_url: str | None = None
+    opportunity_identity: str = ""
+    opportunity_id: str = ""
+    opportunity_token: str = ""
     opportunity_kind: str = ""
+    opportunity_source_kind: str = ""
     demand_snapshots: list[DemandSnapshot] = field(default_factory=list)
     raw: dict[str, Any] = field(default_factory=dict)
 
