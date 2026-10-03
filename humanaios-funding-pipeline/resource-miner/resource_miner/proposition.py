@@ -42,6 +42,7 @@ class PropositionCandidate:
     object_value: Any
     statement: str
     semantic_key: str
+    resolution_subject_key: str
     extracted_at: str
     extraction_method: str
     extraction_confidence: float | None = None
@@ -73,6 +74,17 @@ def proposition_semantic_key(
             _norm(object_value),
         ]
     )
+
+
+def resolution_subject_key(resource: ResourceCandidate) -> str:
+    explicit = str(resource.raw.get("resolution_subject_key") or "").strip()
+    if explicit:
+        return _norm(explicit)
+    identity = str(resource.opportunity_identity or resource.canonical_url or "").strip()
+    kind = str(resource.opportunity_kind or "").strip().lower()
+    if not identity:
+        return ""
+    return "::".join([kind, _norm(identity)])
 
 
 def stable_proposition_id(opportunity_id: str, semantic_key: str) -> str:
@@ -126,6 +138,7 @@ def _candidate(
         object_value=object_value,
         statement=statement,
         semantic_key=key,
+        resolution_subject_key=resolution_subject_key(resource),
         extracted_at=resource.discovered_at or utcnow_iso(),
         extraction_method=extraction_method,
         extraction_confidence=extraction_confidence,
