@@ -21,6 +21,7 @@ def prop(
     predicate,
     object_value,
     extracted_at="2026-10-03T12:00:00Z",
+    source_origin_key=None,
 ):
     key = proposition_semantic_key(proposition_type, predicate, object_value)
     pid = stable_proposition_id(opportunity_id, key)
@@ -38,6 +39,7 @@ def prop(
         statement=f"{predicate} = {object_value}",
         semantic_key=key,
         resolution_subject_key=subject_key,
+        source_origin_key=source_origin_key or mine_id.casefold(),
         extracted_at=extracted_at,
         extraction_method="NORMALIZER_EXTRACTION",
         extraction_confidence=None,
@@ -84,6 +86,7 @@ class PropositionReconciliationTests(unittest.TestCase):
         prs = result[0]
         self.assertEqual(prs.state, "CORROBORATED")
         self.assertEqual(prs.distinct_source_count, 2)
+        self.assertEqual(prs.distinct_origin_count, 2)
         self.assertEqual(prs.truth_state, "NOT_DETERMINED")
         self.assertEqual(prs.authority_effect, "NONE")
         kinds = {r.relation_type for r in prs.relations}
@@ -204,6 +207,31 @@ class PropositionReconciliationTests(unittest.TestCase):
         self.assertEqual(prs.state, "QUALIFIED")
         self.assertEqual({r.relation_type for r in prs.relations}, {"CONTEXT_FOR"})
         self.assertNotIn("CONTRADICTS", {r.relation_type for r in prs.relations})
+
+    def test_different_mines_same_origin_are_not_independent_corroboration(self):
+        a = prop(
+            opportunity_id="OPP-0000000000000057",
+            mine_id="MINE-GMAIL",
+            subject_key="program:alpha",
+            proposition_type="STATUS",
+            predicate="represented_status",
+            object_value="open",
+            source_origin_key="hackerone.com",
+        )
+        b = prop(
+            opportunity_id="OPP-0000000000000058",
+            mine_id="MINE-HACKERONE",
+            subject_key="program:alpha",
+            proposition_type="STATUS",
+            predicate="represented_status",
+            object_value="open",
+            source_origin_key="hackerone.com",
+        )
+        prs = reconcile_propositions([a, b])[0]
+        self.assertEqual(prs.distinct_source_count, 2)
+        self.assertEqual(prs.distinct_origin_count, 1)
+        self.assertEqual(prs.state, "SINGLE_SOURCE")
+        self.assertNotIn("SUPPORTS", {r.relation_type for r in prs.relations})
 
     def test_same_source_repetition_is_not_independent_corroboration(self):
         a = prop(
