@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.5
+# HumanAIOS Resource Miner v0.1.6
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -288,6 +288,7 @@ The scheduled `.github/workflows/resource-miner-scan.yml` executes this resoluti
 
 - `data/opportunities.snapshot.jsonl` — latest tokenized Mine-derived Resource Opportunities;
 - `data/mine-resolution.snapshot.jsonl` — per-Mine observation state and emitted opportunity IDs;
+- `data/propositions.snapshot.jsonl` — deterministic `PRP-*` candidate propositions mined from current opportunities;
 - `data/opportunity-claims.snapshot.jsonl` — evidence-bearing `CLM-*` Opportunity Claims for the current `OPP-*` set;
 - `data/opportunity-claim-events.jsonl` — append-only, hash-chained Claim Evaluation Event ledger from which CLM state can be replayed;
 - `data/resources.snapshot.jsonl` — existing broad-discovery snapshot.
@@ -318,6 +319,20 @@ Falsification is facet-local: a closed opportunity falsifies `CURRENTNESS` and r
 Resource Miner never self-promotes applicant eligibility or authority. New claims start with `ELIGIBILITY=UNASSESSED`, `ATTAINABILITY=UNASSESSED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, `actionability_state=NOT_ACTIONABLE`, and `authority_effect=NONE`.
 
 See `docs/OPPORTUNITY_CLAIM.md` and `schemas/opportunity-claim.v1.schema.json`.
+
+### Proposition-first mining
+
+Resource Miner now treats normalized source records as evidence containers rather than the final unit of reasoning.
+
+```text
+Mine -> record/observation -> OPP-* -> PRP-* -> CLM-* -> CEV-*
+```
+
+One opportunity may emit many stable `PRP-*` Proposition Candidates. Proposition identity is semantic (`opportunity + proposition type + predicate + object`), so display-title changes do not change identity while different object values remain distinct.
+
+Direct observations may support observation propositions. Normalizer classifications and text extractions produce testable propositions but do **not** self-validate their external truth. A proposition-bound claim uses `claim_type=OPPORTUNITY_PROPOSITION`; parent opportunity existence/currentness cannot promote an unrelated proposition to `SUPPORTED`.
+
+The scheduled Mine workflow persists `data/propositions.snapshot.jsonl` between the OPP and CLM layers. See `docs/PROPOSITION_MINING.md` and `schemas/proposition-candidate.v1.schema.json`.
 
 ### Reconstructable Claim state machine
 
