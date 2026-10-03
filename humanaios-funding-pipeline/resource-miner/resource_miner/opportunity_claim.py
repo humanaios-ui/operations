@@ -464,19 +464,40 @@ def add_claim_evidence(
     return updated
 
 
+def claims_from_propositions(
+    candidates: Iterable[ResourceCandidate],
+    propositions: Iterable[PropositionCandidate],
+) -> list[OpportunityClaim]:
+    by_opportunity = {
+        candidate.opportunity_id: candidate
+        for candidate in candidates
+        if candidate.opportunity_id
+    }
+    claims: list[OpportunityClaim] = []
+    for proposition in propositions:
+        candidate = by_opportunity.get(proposition.opportunity_id)
+        if candidate is None:
+            raise ValueError(
+                f"proposition references unknown opportunity_id: {proposition.opportunity_id}"
+            )
+        claims.append(build_opportunity_claim(candidate, proposition))
+    return claims
+
+
 def claims_from_candidates(
     candidates: Iterable[ResourceCandidate],
 ) -> list[OpportunityClaim]:
-    claims: list[OpportunityClaim] = []
-    for candidate in candidates:
-        propositions = propositions_from_candidate(candidate)
-        if not propositions:
-            claims.append(build_opportunity_claim(candidate))
-            continue
-        claims.extend(
-            build_opportunity_claim(candidate, proposition)
-            for proposition in propositions
-        )
+    rows = list(candidates)
+    propositions: list[PropositionCandidate] = []
+    fallback: list[ResourceCandidate] = []
+    for candidate in rows:
+        mined = propositions_from_candidate(candidate)
+        if mined:
+            propositions.extend(mined)
+        else:
+            fallback.append(candidate)
+    claims = claims_from_propositions(rows, propositions)
+    claims.extend(build_opportunity_claim(candidate) for candidate in fallback)
     return claims
 
 
