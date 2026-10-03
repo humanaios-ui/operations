@@ -30,6 +30,36 @@ class RequirementMatch:
 
 
 @dataclass
+class DemandQuery:
+    query: str
+    subject_kind: str
+    intent_class: str
+
+
+@dataclass
+class DemandMetric:
+    provider: str
+    query: str
+    metric: str
+    unit: str
+    observed_at: str
+    value: float | None = None
+    raw_value: str = ""
+    geography: str = ""
+    period: str = ""
+    censored_below: float | None = None
+
+
+@dataclass
+class DemandSnapshot:
+    subject_kind: str
+    query_cluster: list[DemandQuery]
+    provider_metrics: list[DemandMetric]
+    observed_at: str
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
 class ResourceCandidate:
     resource_id: str
     title: str
@@ -59,6 +89,10 @@ class ResourceCandidate:
     eligibility_assessed: bool = False
     eligibility_status: str = "UNASSESSED"
     last_verified_at: str | None = None
+    mine_name: str = ""
+    mine_url: str | None = None
+    opportunity_kind: str = ""
+    demand_snapshots: list[DemandSnapshot] = field(default_factory=list)
     raw: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self, include_raw: bool = False) -> dict[str, Any]:
