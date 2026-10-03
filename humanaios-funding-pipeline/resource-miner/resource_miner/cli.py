@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .dpp_action_contract import default_dpp_action_contract
 from .dpp_asset_binding import bind_ready_assets_to_dpp_policy
 from .dpp_method_suitability import evaluate_dpp_method_suitability
 from .hackerone_policy_screen import screen_program_policies
@@ -116,6 +117,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["unknown", "yes", "no"],
         default="unknown",
         help="Explicit reviewed-policy result; unknown fails closed",
+    )
+    h1_adjudicate.add_argument(
+        "--dpp-action-contract",
+        action="store_true",
+        help="Derive method permission from the built-in passive/read-only DPP action contract against fresh evidence",
     )
     h1_adjudicate.add_argument("--finding-category")
     h1_adjudicate.add_argument("--human-authorization-ref")
@@ -272,12 +278,19 @@ def main() -> None:
         payload_path = Path(args.portfolio).expanduser()
         payload = json.loads(payload_path.read_text(encoding="utf-8"))
         method_allowed = {"unknown": None, "yes": True, "no": False}[args.method_allowed]
+        if args.dpp_action_contract and args.method_allowed != "unknown":
+            raise ValueError("--dpp-action-contract cannot be combined with an explicit --method-allowed value")
         result = adjudicate_ranked_candidate(
             hackerone.HackerOneClient(),
             payload,
             rank=args.rank,
             mode=TestingMode(args.mode),
             method_allowed=method_allowed,
+            dpp_action_contract=(
+                default_dpp_action_contract()
+                if args.dpp_action_contract
+                else None
+            ),
             requested_finding_category=args.finding_category,
             human_authorization_ref=args.human_authorization_ref,
             page_size=args.page_size,
