@@ -8,6 +8,7 @@ from resource_miner.demand import (
     validate_query_cluster,
 )
 from resource_miner.models import DemandQuery, ResourceCandidate
+from resource_miner.normalize import normalize_generic
 
 
 class DemandTests(unittest.TestCase):
@@ -76,6 +77,32 @@ HackerOne bug bounty,3400,2026-09-20
             [q.subject_kind for q in cluster],
             ["MINE", "OPPORTUNITY", "RESOURCE_CLASS", "NEED"],
         )
+
+    def test_snapshot_rejects_mixed_subject_kinds(self):
+        with self.assertRaises(ValueError):
+            build_snapshot(
+                subject_kind="OPPORTUNITY",
+                query_cluster=[
+                    DemandQuery("Azure startup credits", "OPPORTUNITY", "RESOURCE"),
+                    DemandQuery("Microsoft for Startups", "MINE", "NAME"),
+                ],
+                provider_metrics=[],
+                observed_at="2026-10-03T08:00:00-05:00",
+            )
+
+    def test_normalizer_can_bind_mine_to_opportunity(self):
+        candidate = normalize_generic(
+            title="Azure startup credit offer",
+            url="https://example.test/azure-credit",
+            source_name="Microsoft",
+            discovery_method="test",
+            mine_name="Microsoft for Startups",
+            mine_url="https://www.microsoft.com/en-us/startups",
+            opportunity_kind="startup_cloud_credit",
+        )
+        self.assertEqual(candidate.mine_name, "Microsoft for Startups")
+        self.assertEqual(candidate.opportunity_kind, "startup_cloud_credit")
+        self.assertNotEqual(candidate.title, candidate.mine_name)
 
     def test_demand_attachment_cannot_change_routing_or_eligibility(self):
         candidate = ResourceCandidate(
