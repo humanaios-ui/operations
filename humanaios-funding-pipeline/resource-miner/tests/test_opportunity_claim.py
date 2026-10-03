@@ -1,5 +1,6 @@
 import unittest
 
+from resource_miner.entitlement_handoff import build_entitlement_handoff
 from resource_miner.mines import bind_opportunity
 from resource_miner.models import EvidenceRef, ResourceMine
 from resource_miner.normalize import normalize_generic
@@ -179,6 +180,35 @@ class OpportunityClaimTests(unittest.TestCase):
             ),
         )
         self.assertEqual(updated.overall_state, "FALSIFIED")
+
+    def test_entitlement_handoff_carries_claim_without_upgrading_eligibility(self):
+        row = candidate()
+        claim = build_opportunity_claim(row)
+        handoff = build_entitlement_handoff(row, claim)
+        self.assertEqual(handoff["opportunity_claim"]["claim_id"], claim.claim_id)
+        self.assertEqual(handoff["opportunity_claim"]["overall_state"], claim.overall_state)
+        self.assertEqual(handoff["eligibility"]["status"], "UNASSESSED")
+        self.assertEqual(handoff["authority_effect"], "NONE")
+
+    def test_entitlement_handoff_rejects_claim_for_different_opportunity(self):
+        row = candidate()
+        other = candidate(title="Other")
+        other.opportunity_identity = "credit:other"
+        other = bind_opportunity(
+            ResourceMine(
+                mine_id="MINE-TEST",
+                name="Microsoft for Startups",
+                mine_kind="PROGRAM_PLATFORM",
+                canonical_url="https://www.microsoft.com/en-us/startups",
+                resolver="configured_mine",
+                roles=["OPPORTUNITY_SOURCE"],
+            ),
+            other,
+            opportunity_source_kind="configured_endpoint",
+        )
+        claim = build_opportunity_claim(other)
+        with self.assertRaises(ValueError):
+            build_entitlement_handoff(row, claim)
 
     def test_claim_id_derives_from_opportunity_not_resource_id(self):
         row = candidate()
