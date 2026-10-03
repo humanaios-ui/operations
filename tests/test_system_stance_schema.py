@@ -95,7 +95,7 @@ def test_golden_invalid_records_are_rejected(validator):
             else:
                 target[key] = replacement["value"]
 
-        with pytest.raises(ValidationError, match="."):
+        with pytest.raises(ValidationError):
             validator.validate(record)
 
 
