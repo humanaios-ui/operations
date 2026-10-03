@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.2
+# HumanAIOS Resource Miner v0.1.3
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -242,6 +242,53 @@ OPPORTUNITY != CONTROLLED_RESOURCE
 CONTROLLED_RESOURCE != RESOURCE_AFFORDANCE
 RESOURCE_DISCOVERY != ELIGIBILITY
 ```
+
+### Persistent Mine registry and tokenized Opportunity resolution
+
+`data/mines.seed.json` is the persistent Mine registry. A Mine is a durable source/ecosystem, not the value extracted from it.
+
+```text
+ResourceMine
+  -> repeated read-only observation
+  -> ResourceCandidate (candidate Resource Opportunity)
+  -> stable OPP-* identity
+  -> urn:humanaios:resource-opportunity:OPP-...
+```
+
+Opportunity identity is derived from `mine_id + opportunity_identity + opportunity_kind`. The display title, published value, evidence, and status may change without minting a new token when the underlying bounded opportunity is still the same.
+
+Mine roles are explicit and non-exclusive:
+
+- `OPPORTUNITY_SOURCE` — may emit bounded external Resource Opportunities;
+- `EVIDENCE_SOURCE` — can supply provenance/capability/currentness evidence;
+- `GOVERNED_SYSTEM` — preserves proposed/accepted state, review, CI, and history;
+- `CONTROLLED_RESOURCE_SOURCE` — reserved for cases where reusable code/data/tooling is itself a controlled capability.
+
+A GitHub repository is therefore **not automatically a Resource Opportunity**. The repository resolver only emits open issues that satisfy explicit high-signal opportunity selectors (for example bounty/reward/prize/paid-work labels). Text inference is disabled by default. Repositories registered only as `EVIDENCE_SOURCE | GOVERNED_SYSTEM` produce a `ROLE_ONLY` resolution receipt and no Resource Opportunities.
+
+The initial registry includes:
+
+- Microsoft for Startups — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; bounded program endpoints are re-observed daily.
+- HackerOne — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; the intended resolution unit is `Program x bounty-eligible ScopeAsset`. It remains dependency-gated until the scope-hydrated #680/#683 implementation is present.
+- the HumanAIOS repositories — `EVIDENCE_SOURCE | GOVERNED_SYSTEM`; ordinary issues are not promoted into resources.
+
+Run a Mine resolution manually:
+
+```bash
+python3 -m resource_miner.cli resolve-mines --dry-run
+
+python3 -m resource_miner.cli resolve-mines \
+  --out data/opportunities.snapshot.jsonl \
+  --receipts-out data/mine-resolution.snapshot.jsonl
+```
+
+The scheduled `.github/workflows/resource-miner-scan.yml` executes this resolution before the broad Resource Miner scan. Durable outputs are:
+
+- `data/opportunities.snapshot.jsonl` — latest tokenized Mine-derived Resource Opportunities;
+- `data/mine-resolution.snapshot.jsonl` — per-Mine observation state and emitted opportunity IDs;
+- `data/resources.snapshot.jsonl` — existing broad-discovery snapshot.
+
+Resolution receipts never grant eligibility, warrant, authorization, or execution permission. Observation failure preserves a configured opportunity identity but does not establish currentness.
 
 ### Demand observations
 
