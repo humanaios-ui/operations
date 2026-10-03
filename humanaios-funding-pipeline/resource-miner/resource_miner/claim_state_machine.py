@@ -596,5 +596,13 @@ def reconcile_claim_event_ledger(
             appended.append(event)
             known_evidence.add(item.evidence_id)
 
-    write_event_jsonl(path, existing)
+    if appended:
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("a", encoding="utf-8") as handle:
+            for event in appended:
+                handle.write(
+                    json.dumps(event.to_dict(), ensure_ascii=False, sort_keys=True)
+                    + "\n"
+                )
     return appended
