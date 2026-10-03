@@ -3,9 +3,11 @@ from __future__ import annotations
 import base64
 import json
 import os
+import urllib.error
 import urllib.parse
 import urllib.request
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from typing import Any, Callable, Iterator
 
 from ..normalize import normalize_generic, utcnow_iso
@@ -56,6 +58,12 @@ def _default_transport(url: str, headers: dict[str, str]) -> dict[str, Any]:
     try:
         with opener.open(request, timeout=20) as response:
             payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        # Do not include request headers or response bodies: either may contain
+        # sensitive material. Status code + endpoint are sufficient diagnostics.
+        raise HackerOneAPIError(
+            f"HackerOne GET failed for {url}: HTTP {exc.code}"
+        ) from exc
     except Exception as exc:
         # Deliberately do not include request headers: they contain the API token.
         raise HackerOneAPIError(f"HackerOne GET failed for {url}: {type(exc).__name__}") from exc
@@ -69,6 +77,8 @@ class HackerOneClient:
     username: str | None = None
     token: str | None = None
     transport: Transport = _default_transport
+    structured_scope_min_interval_seconds: float = 1.25
+    _last_structured_scope_request: float = field(default=0.0, init=False, repr=False)
 
     def _headers(self) -> dict[str, str]:
         username, token = _credentials(self.username, self.token)
@@ -88,17 +98,30 @@ class HackerOneClient:
             raise HackerOneAPIError("Refusing HackerOne API request outside https://api.hackerone.com")
         return self.transport(url, self._headers())
 
+    def _pace_structured_scope_request(self) -> None:
+        minimum = max(float(self.structured_scope_min_interval_seconds), 0.0)
+        if minimum <= 0:
+            return
+        now = time.monotonic()
+        elapsed = now - self._last_structured_scope_request
+        if self._last_structured_scope_request and elapsed < minimum:
+            time.sleep(minimum - elapsed)
+        self._last_structured_scope_request = time.monotonic()
+
     def _iter_paginated(
         self,
         path: str,
         *,
         page_size: int = DEFAULT_PAGE_SIZE,
         max_pages: int = 1000,
+        before_request: Callable[[], None] | None = None,
     ) -> Iterator[dict[str, Any]]:
         size = min(max(int(page_size), 1), 100)
         page = 1
         next_url: str | None = None
         while page <= max_pages:
+            if before_request is not None:
+                before_request()
             payload = self._get(
                 next_url or path,
                 None if next_url else {"page[number]": page, "page[size]": size},
@@ -135,12 +158,24 @@ class HackerOneClient:
             raise HackerOneAPIError("HackerOne program response missing data object")
         return row
 
+    def find_program(self, handle: str, page_size: int = DEFAULT_PAGE_SIZE) -> dict[str, Any]:
+        """Resolve a current program resource from the authenticated portfolio list."""
+        wanted = handle.strip().casefold()
+        if not wanted:
+            raise ValueError("HackerOne program handle is required")
+        for row in self._iter_paginated("/programs", page_size=page_size):
+            attrs = row.get("attributes") or {}
+            if str(attrs.get("handle") or "").strip().casefold() == wanted:
+                return row
+        raise HackerOneAPIError("HackerOne program is not present in the authenticated portfolio")
+
     def get_structured_scopes(self, handle: str, page_size: int = DEFAULT_PAGE_SIZE) -> list[dict[str, Any]]:
         handle = handle.strip()
         return list(
             self._iter_paginated(
                 f"/programs/{urllib.parse.quote(handle, safe='')}/structured_scopes",
                 page_size=page_size,
+                before_request=self._pace_structured_scope_request,
             )
         )
 
