@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Repository Coordinator state ledger + deterministic projection.
+Builder v1.7 compliant
+HumanAIOS — REPOSITORY-COORDINATOR-STATE-01
 
 The state branch is evidence/state, not policy and never merge authority.
 
@@ -19,6 +21,12 @@ import json
 import re
 from pathlib import Path
 from typing import Any
+
+TOOL_NAME = "repository_coordinator_state"
+TOOL_VERSION = "1.0.0"
+TOOL_CATEGORY = "governance_tool"
+TOOL_ZONE = 1
+TOOL_SESSION = "REPOSITORY-COORDINATOR-STATE-01"
 
 EVENT_SCHEMA = "humanaios.repository-coordinator-event.v1"
 STATE_SCHEMA = "humanaios.repository-coordinator-state.v1"
@@ -332,9 +340,31 @@ def append_event(
     return {"event": event, "state": state, "prior_ledger_sha256": sha256_text(old_text)}
 
 
+def run_smoke_test() -> bool:
+    first = make_event(
+        decision="ADMIT",
+        subject_kind="ISSUE",
+        subject_number=1,
+        objective_issue_number=1,
+        actor="smoke",
+        evidence=["smoke-test admission"],
+        recorded_at="2026-01-01T00:00:00Z",
+        source_policy_sha="a" * 40,
+        supersedes_event_id=None,
+    )
+    text = canonical_json(first) + "\n"
+    events = parse_ledger(text)
+    state = replay_events(events, ledger_text=text)
+    assert state["admitted_issue_numbers"] == [1]
+    assert state["merge_authority"] is False
+    assert state["authority_effect"] == AUTHORITY_EFFECT
+    return True
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    sub = parser.add_subparsers(dest="command", required=True)
+    parser.add_argument("--smoke-test", action="store_true")
+    sub = parser.add_subparsers(dest="command")
 
     verify = sub.add_parser("verify")
     verify.add_argument("--ledger", type=Path, required=True)
@@ -360,6 +390,12 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.smoke_test:
+        print("PASS" if run_smoke_test() else "FAIL")
+        return 0
+    if not args.command:
+        print("coordinator-state=FAIL reason=command required")
+        return 2
     try:
         if args.command == "verify":
             state = verify_projection(args.ledger, args.state)
