@@ -52,7 +52,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 TOOL_NAME = "repository_coordinator"
-TOOL_VERSION = "0.2.1"
+TOOL_VERSION = "0.3.0"
 TOOL_CATEGORY = "diagnostic_tool"
 TOOL_SESSION = "REPOSITORY-COORDINATOR-02"
 TOOL_ZONE = 1
