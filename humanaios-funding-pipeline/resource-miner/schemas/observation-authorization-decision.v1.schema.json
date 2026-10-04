@@ -122,7 +122,7 @@
     },
     "target_origin_keys": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 0,
       "uniqueItems": true,
       "items": {
         "type": "string"
@@ -130,7 +130,7 @@
     },
     "allowed_query_fields": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 0,
       "uniqueItems": true,
       "items": {
         "type": "string"
@@ -233,6 +233,25 @@
         "properties": {
           "authority_effect": {
             "const": "NONE"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "ALLOW_OBSERVATION"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "target_origin_keys": {
+            "minItems": 1
+          },
+          "allowed_query_fields": {
+            "minItems": 1
           }
         }
       }
