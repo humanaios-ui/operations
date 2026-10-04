@@ -41,6 +41,7 @@ jobs:
           assert payload["mines"], "mine registry unexpectedly empty"
           assert any(m["name"] == "Microsoft for Startups" for m in payload["mines"])
           assert any(m["name"] == "HackerOne" for m in payload["mines"])
+          assert any(m["name"] == "Colorado Great Colorado Payback" for m in payload["mines"])
           states = {r["mine_name"]: r["state"] for r in payload["receipts"]}
           assert states["Microsoft for Startups"] == "RESOLVED"
           assert states["humanaios-ui/operations"] == "ROLE_ONLY"
@@ -48,6 +49,7 @@ jobs:
           assert states["humanaios-ui/lasting-light-ai"] == "ROLE_ONLY"
           assert states["HackerOne"] in {"DEPENDENCY_PENDING", "OBSERVATION_FAILED", "RESOLVED"}
           assert states["aioshuman@gmail.com — Private Gmail"] == "DEPENDENCY_PENDING"
+          assert states["Colorado Great Colorado Payback"] == "RESOLVED"
           opportunities = payload["opportunities"]
           propositions = payload["propositions"]
           resolutions = payload["resolutions"]
@@ -57,6 +59,14 @@ jobs:
           verification_routes = payload["verification_routes"]
           claims = payload["claims"]
           assert any(row["mine_name"] == "Microsoft for Startups" for row in opportunities)
+          colorado = [
+              row for row in opportunities
+              if row["mine_name"] == "Colorado Great Colorado Payback"
+          ]
+          assert len(colorado) == 1
+          assert colorado[0]["opportunity_kind"] == "unclaimed_property_recovery_pathway"
+          assert colorado[0]["eligibility_assessed"] is False
+          assert colorado[0]["eligibility_status"] == "UNASSESSED"
           assert all(row["opportunity_id"].startswith("OPP-") for row in opportunities)
           assert all(row["opportunity_token"].startswith("urn:humanaios:resource-opportunity:") for row in opportunities)
           assert len(propositions) >= len(opportunities)
