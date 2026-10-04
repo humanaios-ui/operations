@@ -90,9 +90,19 @@ class CapabilityPackage:
 
 
 def _coverage_for_assessments(rows: list[SuitabilityAssessment]) -> str:
+    # Capability coverage is distinct from package/resource screening conditions.
+    # A resource may cover every required affordance while remaining conditional
+    # because its screen requires review (credentials, target-touching behavior,
+    # commercial terms, etc.). CPK records that capability as covered and lets
+    # the composition screen carry the control condition.
+    for row in rows:
+        if (
+            row.matched_affordances
+            and not row.missing_affordances
+            and row.screen_state in {"PASS", "PASS_WITH_CONDITIONS"}
+        ):
+            return "ADEQUATE"
     states = {row.suitability_state for row in rows}
-    if "ADEQUATE" in states:
-        return "ADEQUATE"
     if "PARTIAL" in states:
         return "PARTIAL"
     if "UNKNOWN" in states:
