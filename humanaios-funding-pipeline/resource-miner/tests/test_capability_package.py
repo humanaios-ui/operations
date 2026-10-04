@@ -89,6 +89,11 @@ class CapabilityPackageTests(unittest.TestCase):
                 "method_permission_state": "PERMITTED",
                 "target_scope_state": "IN_SCOPE",
                 "external_state_change_allowed": False,
+                "allowed_network_behaviors": [
+                    "READ_ONLY",
+                    "PASSIVE_PUBLIC_SOURCE",
+                    "THIRD_PARTY_API_READ_ONLY",
+                ],
             },
         )
         self.requirements = compile_broker_requirements(
@@ -446,6 +451,68 @@ class CapabilityPackageTests(unittest.TestCase):
         self.assertEqual(set(snapshot), expected)
         self.assertTrue(all(row["scope_effect"] == "NONE" for row in snapshot.values()))
         self.assertTrue(all(row["authorization_effect"] == "NONE" for row in snapshot.values()))
+
+
+    def test_passive_only_package_policy_blocks_target_active_mode(self):
+        active_resource = normalize_generic(
+            title="Active Discovery Variant",
+            url="https://github.com/example/active-discovery",
+            source_name="GitHub",
+            discovery_method="synthetic-test",
+            source_category="open_source_tool",
+        )
+        active_resource.resource_types = ["open_source_tool"]
+        active_resource.resource_affordances = ["passive_observation"]
+        active_resource.operational_mode = "ACTIVE"
+        active_resource.evidence = list(self.evidence)
+        active_screen = screen_resource(
+            active_resource,
+            provenance_state="VERIFIED",
+            license_state="ALLOWABLE",
+            permissions_state="MINIMAL",
+            network_behavior="TARGET_ACTIVE",
+            credential_requirement="NONE",
+            external_state_change=False,
+            auditability="ADEQUATE",
+            least_privilege_compatible=True,
+        )
+        req_passive = self.by_dmr[self.demand_rows[0].demand_requirement_id]
+        active_assessment = assess_suitability(
+            opportunity=self.opportunity,
+            requirement=req_passive,
+            resource=active_resource,
+            provider_class="OPEN_SOURCE",
+            screen=active_screen,
+        )
+        package = compose_capability_package(
+            profile=self.profile,
+            broker_requirements=self.requirements,
+            resources=[active_resource, self.resource_a, self.resource_b],
+            assessments=[
+                active_assessment,
+                self.b_evidence,
+                self.a_auth,
+            ],
+            resource_screens=[
+                active_screen,
+                self.screen_a,
+                self.screen_b,
+            ],
+            selected_assessment_ids=[
+                active_assessment.assessment_id,
+                self.b_evidence.assessment_id,
+                self.a_auth.assessment_id,
+            ],
+            service_surface_map=self.surface_map,
+        )
+        self.assertEqual(package.required_coverage_state, "COMPLETE")
+        self.assertEqual(package.composition_screen_state, "FAIL")
+        self.assertTrue(
+            any(
+                finding.startswith("NETWORK_BEHAVIOR_POLICY_CONFLICT:")
+                for finding in package.composition_findings
+            )
+        )
 
     def test_surface_classification_does_not_establish_scope_or_permission(self):
         package = self.compose(
