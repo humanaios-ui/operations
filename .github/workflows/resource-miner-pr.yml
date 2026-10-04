@@ -97,6 +97,113 @@ jobs:
           assert forbidden.isdisjoint(payload)
           PY
 
+      - name: Exercise exact-RQY observation authorization
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          from resource_miner.mines import load_mines, stable_opportunity_id
+
+          mines = load_mines("data/mines.seed.json")
+          colorado = next(
+              mine for mine in mines
+              if mine.name == "Colorado Great Colorado Payback"
+          )
+          configured = colorado.config["opportunities"][0]
+          pathway_id = stable_opportunity_id(
+              colorado.mine_id,
+              configured.get("opportunity_identity") or configured["url"],
+              configured["opportunity_kind"],
+          )
+
+          rqy_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "plan-registry-query",
+              "--mine-id",
+              colorado.mine_id,
+              "--pathway-opportunity-id",
+              pathway_id,
+              "--subject-ref",
+              "SUBJ-AAAAAAAAAAAAAAAA",
+              "--subject-kind",
+              "NATURAL_PERSON",
+              "--query-field",
+              "owner_name",
+              "--query-field",
+              "last_known_location",
+              "--explicit-subject-request",
+          ]
+          rqy = json.loads(subprocess.check_output(rqy_cmd, text=True))
+          rqy_path = Path("/tmp/rqy.json")
+          rqy_path.write_text(json.dumps(rqy, sort_keys=True), encoding="utf-8")
+
+          allow_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "authorize-registry-observation",
+              "--query-plan",
+              str(rqy_path),
+          ]
+          allow = json.loads(subprocess.check_output(allow_cmd, text=True))
+          assert allow["authorization_id"].startswith("OAG-")
+          assert allow["query_id"] == rqy["query_id"]
+          assert allow["query_plan_sha256"]
+          assert allow["decision"] == "ALLOW_OBSERVATION"
+          assert allow["authority_effect"] == "OBSERVATION_ONLY"
+          assert allow["execution_state"] == "NOT_EXECUTED"
+          assert allow["consumption_state"] == "UNUSED"
+          assert allow["one_shot"] is True
+          assert allow["max_executions"] == 1
+          assert allow["consequence_ceiling"] == "EVIDENCE_ONLY"
+          assert allow["consequential_actions_permitted"] is False
+          assert allow["claim_submission_permitted"] is False
+          assert allow["private_subject_binding_required"] is True
+          assert allow["private_query_values_exposed"] is False
+          assert allow["external_state_change"] is False
+          assert allow["query_value_persistence"] == "PRIVATE_RUNTIME_ONLY"
+          assert "SUBMIT_CLAIM" in allow["prohibited_actions"]
+          assert "UPLOAD_DOCUMENT" in allow["prohibited_actions"]
+
+          deny_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "authorize-registry-observation",
+              "--query-plan",
+              str(rqy_path),
+              "--requested-operation",
+              "SUBMIT_CLAIM",
+          ]
+          deny = json.loads(subprocess.check_output(deny_cmd, text=True))
+          assert deny["decision"] == "DENY"
+          assert deny["authority_effect"] == "NONE"
+          assert deny["consumption_state"] == "NOT_APPLICABLE"
+          assert deny["execution_state"] == "NOT_EXECUTED"
+
+          forbidden = {
+              "query_values",
+              "raw_query_values",
+              "owner_name_value",
+              "business_name_value",
+              "last_known_location_value",
+              "date_of_birth",
+              "ssn",
+              "tax_id",
+              "email",
+              "phone",
+              "claim_id",
+          }
+          assert forbidden.isdisjoint(allow)
+          assert forbidden.isdisjoint(deny)
+          PY
+
       - name: Exercise persistent Mine resolver contract
         working-directory: humanaios-funding-pipeline/resource-miner
         env:
