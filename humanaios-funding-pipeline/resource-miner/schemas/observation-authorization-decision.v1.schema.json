@@ -36,7 +36,10 @@
     "consumption_state",
     "execution_state",
     "authority_effect",
-    "policy_receipt_sha256"
+    "policy_receipt_sha256",
+    "consequential_actions_permitted",
+    "claim_submission_permitted",
+    "private_subject_binding_required"
   ],
   "properties": {
     "schema": {
@@ -195,6 +198,15 @@
     "policy_receipt_sha256": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
+    },
+    "consequential_actions_permitted": {
+      "const": false
+    },
+    "claim_submission_permitted": {
+      "const": false
+    },
+    "private_subject_binding_required": {
+      "const": true
     }
   },
   "allOf": [
