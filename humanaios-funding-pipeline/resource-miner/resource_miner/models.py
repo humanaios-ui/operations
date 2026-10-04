@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import copy
+import hashlib
+
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -138,3 +141,19 @@ class ResourceCandidate:
         if not include_raw:
             data.pop("raw", None)
         return data
+
+
+def bind_resource_operational_mode(
+    resource: ResourceCandidate,
+    operational_mode: str,
+) -> ResourceCandidate:
+    mode = operational_mode.strip().upper()
+    if not mode:
+        raise ValueError("operational_mode is required")
+    variant = copy.deepcopy(resource)
+    base_resource_id = resource.resource_id
+    variant.operational_mode = mode
+    variant.resource_id = "RES-" + hashlib.sha256(
+        f"{base_resource_id}\0{mode}".encode("utf-8")
+    ).hexdigest()[:16].upper()
+    return variant
