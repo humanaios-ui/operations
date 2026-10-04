@@ -80,6 +80,7 @@ jobs:
           git rev-parse HEAD > .repo-coordinator/policy.sha
 
       - name: Collect exact state branch and live PR snapshot
+        id: collect
         uses: actions/github-script@v9
         env:
           TARGET_PR: ${{ github.event.pull_request.number }}
@@ -98,41 +99,58 @@ jobs:
             const stateBranch = String(stateCfg.branch || "");
             const ledgerPath = String(stateCfg.ledger_path || "");
             const projectionPath = String(stateCfg.projection_path || "");
-            if (!stateBranch || !ledgerPath || !projectionPath) {
-              core.setFailed("policy state-branch contract is incomplete; failing closed");
-              return;
-            }
 
-            const branch = await github.rest.repos.getBranch({
-              owner, repo, branch: stateBranch
-            });
-            const stateSha = branch.data.commit.sha;
+            let stateMode = "v0.3";
+            let stateSha = null;
+            let ledgerText = "";
+            let projectionText = "";
+            let admittedIssueNumbers = [];
 
-            const fetchText = async path => {
-              const response = await github.rest.repos.getContent({
-                owner, repo, path, ref: stateSha
+            if (stateBranch && ledgerPath && projectionPath) {
+              const branch = await github.rest.repos.getBranch({
+                owner, repo, branch: stateBranch
               });
-              if (Array.isArray(response.data) || response.data.type !== "file") {
-                throw new Error(`state path ${path} is not a file`);
+              stateSha = branch.data.commit.sha;
+
+              const fetchText = async path => {
+                const response = await github.rest.repos.getContent({
+                  owner, repo, path, ref: stateSha
+                });
+                if (Array.isArray(response.data) || response.data.type !== "file") {
+                  throw new Error(`state path ${path} is not a file`);
+                }
+                return Buffer.from(response.data.content, "base64").toString("utf8");
+              };
+
+              [ledgerText, projectionText] = await Promise.all([
+                fetchText(ledgerPath),
+                fetchText(projectionPath)
+              ]);
+              fs.writeFileSync(".repo-coordinator/ADMISSION_LEDGER.jsonl", ledgerText);
+              fs.writeFileSync(".repo-coordinator/COORDINATOR_STATE.json", projectionText);
+
+              const state = JSON.parse(projectionText);
+              if (state.merge_authority !== false) {
+                core.setFailed("coordinator state claims merge authority; failing closed");
+                return;
               }
-              return Buffer.from(response.data.content, "base64").toString("utf8");
-            };
-
-            const [ledgerText, projectionText] = await Promise.all([
-              fetchText(ledgerPath),
-              fetchText(projectionPath)
-            ]);
-            fs.writeFileSync(".repo-coordinator/ADMISSION_LEDGER.jsonl", ledgerText);
-            fs.writeFileSync(".repo-coordinator/COORDINATOR_STATE.json", projectionText);
-
-            const state = JSON.parse(projectionText);
-            if (state.merge_authority !== false) {
-              core.setFailed("coordinator state claims merge authority; failing closed");
-              return;
+              admittedIssueNumbers = [
+                ...new Set((state.admitted_issue_numbers || []).map(Number))
+              ];
+            } else {
+              // Bootstrap compatibility only: trusted main is still v0.2 while
+              // the migration PR is under review. Delegate enforcement to the
+              // trusted v0.2 policy/tool rather than trusting candidate code.
+              stateMode = "legacy-v0.2";
+              admittedIssueNumbers = [
+                ...new Set((((policy || {}).admission || {}).issue_numbers || []).map(Number))
+              ];
+              core.warning(
+                "Trusted main has no v0.3 state contract; using legacy v0.2 admission " +
+                "enforcement for this pre-merge run. No candidate policy/state is trusted."
+              );
             }
-            const admittedIssueNumbers = [
-              ...new Set((state.admitted_issue_numbers || []).map(Number))
-            ];
+            core.setOutput("mode", stateMode);
             const referencedIssueNumbers = new Set(admittedIssueNumbers);
 
             const maintenanceAuthors = new Set(
@@ -250,14 +268,15 @@ jobs:
             }
 
             const snapshot = {
-              schema_version: "0.3",
+              schema_version: stateMode === "v0.3" ? "0.3" : "0.2",
               purpose: "admission-gate",
+              state_mode: stateMode,
               repository: `${owner}/${repo}`,
               main_sha: policySha,
               policy_ref: defaultBranch,
               policy_sha: policySha,
-              state_branch: stateBranch,
-              state_sha: stateSha,
+              state_branch: stateMode === "v0.3" ? stateBranch : null,
+              state_sha: stateMode === "v0.3" ? stateSha : null,
               main_paths: [],
               referenced_pull_requests: {},
               referenced_items: referencedItems,
@@ -269,10 +288,12 @@ jobs:
             );
             core.info(
               `Gate snapshot: ${pullRequests.length} open PR(s); target #${target}; ` +
-              `policy ${policySha.slice(0, 12)}; state ${stateSha.slice(0, 12)}.`
+              `policy ${policySha.slice(0, 12)}; mode ${stateMode}; ` +
+              `state ${stateSha ? stateSha.slice(0, 12) : "n/a"}.`
             );
 
       - name: Verify state replay and bind content digests
+        if: steps.collect.outputs.mode == 'v0.3'
         run: |
           set -euo pipefail
           python3 tools/repository_coordinator_state_v1.py verify \
@@ -299,16 +320,30 @@ jobs:
           set -euo pipefail
           test -f .repo-coordinator/gate-snapshot.json || {
             echo "::error::gate snapshot missing; failing closed"; exit 1; }
-          test -f .repo-coordinator/COORDINATOR_STATE.json || {
-            echo "::error::coordinator state missing; failing closed"; exit 1; }
-
-          python3 tools/repository_coordinator_v0_1.py \
-            --snapshot .repo-coordinator/gate-snapshot.json \
-            --policy REPOSITORY_COORDINATOR_POLICY.json \
-            --state .repo-coordinator/COORDINATOR_STATE.json \
-            --priority-queue PRIORITY_QUEUE.md \
-            --gate "$TARGET_PR" \
-            --output .repo-coordinator/gate.json | tee .repo-coordinator/gate.log
+          STATE_MODE="${{ steps.collect.outputs.mode }}"
+          if [ "$STATE_MODE" = "v0.3" ]; then
+            test -f .repo-coordinator/COORDINATOR_STATE.json || {
+              echo "::error::coordinator state missing; failing closed"; exit 1; }
+            python3 tools/repository_coordinator_v0_1.py \
+              --snapshot .repo-coordinator/gate-snapshot.json \
+              --policy REPOSITORY_COORDINATOR_POLICY.json \
+              --state .repo-coordinator/COORDINATOR_STATE.json \
+              --priority-queue PRIORITY_QUEUE.md \
+              --gate "$TARGET_PR" \
+              --output .repo-coordinator/gate.json | tee .repo-coordinator/gate.log
+          elif [ "$STATE_MODE" = "legacy-v0.2" ]; then
+            # The checked-out tool/policy are trusted main v0.2. This path
+            # disappears automatically after the v0.3 policy lands on main.
+            python3 tools/repository_coordinator_v0_1.py \
+              --snapshot .repo-coordinator/gate-snapshot.json \
+              --policy REPOSITORY_COORDINATOR_POLICY.json \
+              --priority-queue PRIORITY_QUEUE.md \
+              --gate "$TARGET_PR" \
+              --output .repo-coordinator/gate.json | tee .repo-coordinator/gate.log
+          else
+            echo "::error::unknown coordinator state mode: $STATE_MODE"
+            exit 1
+          fi
 
           {
             echo "## Repository admission/backpressure gate"
