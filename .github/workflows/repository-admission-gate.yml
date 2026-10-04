@@ -46,7 +46,10 @@ on:
 permissions: {}
 
 concurrency:
-  group: repository-admission-gate-${{ github.event.pull_request.number }}
+  # PR evaluations supersede stale evaluations for the same PR. Manual state
+  # dispatches use a unique workflow-level group so they are not cancelled here;
+  # the mutate job below serializes them with cancel-in-progress=false.
+  group: repository-admission-gate-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
