@@ -1,8 +1,8 @@
 {
-  "schema_version": "0.2",
+  "schema_version": "0.3",
   "status": "candidate_control_policy",
   "authority_effect": "ADMISSION_ROUTING_ONLY_FROM_DEFAULT_BRANCH",
-  "purpose": "Bound repository working-set growth by separating admission, workbench, maintenance, and operator-attention lanes.",
+  "purpose": "Bound repository working-set growth while separating static control law from mutable admission state.",
   "invariants": [
     "ISSUE_IS_NOT_ADMITTED_WORK",
     "ASSIGNMENT_IS_NOT_PR_ADMISSION",
@@ -10,42 +10,27 @@
     "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
     "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
     "EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE",
-    "ADMISSION_IS_NOT_MERGE_AUTHORITY"
+    "ADMISSION_IS_NOT_MERGE_AUTHORITY",
+    "POLICY_IS_NOT_STATE",
+    "LEDGER_EVENT_IS_NOT_DERIVED_STATE",
+    "STATE_BRANCH_HEAD_IS_NOT_UNRECEIPTED_LATEST"
   ],
   "capacity": {
     "active_operator_queue": 4
   },
+  "state_source": {
+    "branch": "repository-coordinator-state",
+    "ledger_path": "ADMISSION_LEDGER.jsonl",
+    "projection_path": "COORDINATOR_STATE.json",
+    "ledger_schema": "humanaios.repository-coordinator-event.v1",
+    "projection_schema": "humanaios.repository-coordinator-state.v1",
+    "require_exact_commit_pin": true,
+    "require_replay_match": true,
+    "fail_closed": true,
+    "admission_source": "STATE_PROJECTION"
+  },
   "admission": {
-    "issue_numbers": [
-      378,
-      598
-    ],
-    "pull_request_numbers": [
-      538,
-      548,
-      549,
-      552,
-      555,
-      557,
-      560,
-      561,
-      563,
-      565,
-      567,
-      570,
-      579,
-      581,
-      586,
-      578,
-      590,
-      593,
-      672,
-      671,
-      673,
-      690,
-      707
-    ],
-    "evidence": "closing-keyword link (Fixes/Closes/Resolves #N) to an admitted issue, or explicit pull_request_numbers entry"
+    "evidence": "working-set admission is derived from the validated coordinator-state projection; a PR may also inherit working-set standing through a closing-keyword link to an admitted issue"
   },
   "maintenance": {
     "authors": [
@@ -70,41 +55,6 @@
     ],
     "exemption": "only when every changed file is a control-plane path; mixed changes require admission"
   },
-  "notes": [
-    "Issue 378 is seeded because PRIORITY_QUEUE.md already marks Q-TEMPORAL-DISSOLUTION-01 as the global GATING architectural repair.",
-    "Admission determines working-set standing only. It does not ratify governance, approve code, or authorize merge.",
-    "When admitted ready-for-review work exceeds capacity, the coordinator does not choose winners; it reports capacity contention for operator resolution.",
-    "The gate reads this file from the default branch (pull_request_target). A PR cannot admit itself by editing this file, and touching a control-plane file alongside feature work does not exempt the feature work.",
-    "Two ready PRs linking the same admitted objective are both held (DUPLICATE_ACTIVE_IMPLEMENTATION); the coordinator does not choose a winner.",
-    "PR #514 is admitted explicitly (Z2 instruction, 2026-09-25): it carries the coordinator control plane together with regenerated tool-manifest files, so it is a mixed change under the control-plane rule and needs an explicit admission record rather than an exemption.",
-    "PRs #507 (SMAG gate enforcer refactor) and #508 (Oracle + Actualizer MVP) admitted explicitly by Z2 instruction, 2026-09-25, after #514 landed and their manifest and P19 checks went green.",
-    "PR #532 (admissions for #507/#508 plus the molt-tier to change-level mapping) admitted explicitly by Z2 instruction, 2026-09-25, recorded directly on main so the gate evaluates it.",
-    "PR #538 (RNOLA governance infrastructure: 7 critical findings fixed, merge conflict resolved) is admitted explicitly (Z2 instruction, 2026-09-25): mixed control-plane change (.github/workflows/rnola-governance-validation.yml) with governance/feature files (scripts/, schemas/, docs/, tests/) requiring explicit admission under the control-plane rule.",
-    "PR #549 (AUTHORIZATION_EVIDENCE_MAPPING.md + authorization_evidence.py: authorization & evidence assurance questions -> executable checks, Layer 4 of the concept-to-code stack) admitted explicitly by Z2 instruction, 2026-09-27.",
-    "PR #548 (Guiding Light v0.2 general evidence-to-target gradient engine) admitted explicitly by Z2 instruction, 2026-09-27, after CI admission/backpressure gate correctly held ready non-maintenance work lacking an admission record.",
-    "PR #552 (railway-app[bot]: force venv Python with exec and runtime phase in nixpacks.toml, fixing tools/decision_relay.py crashing with 'No module named uvicorn') admitted explicitly by Z2 instruction, 2026-09-27, given for a one-line production-deployment fix to the Z2 board relay itself.",
-    "PR #555 (remove duplicate nixPkgs from nixpacks.toml [phases.runtime]) admitted explicitly by Z2 instruction, 2026-09-27: #552's own fix broke the Nixpacks build (a Nix profile conflict on libpython3.so from declaring python311 twice), confirmed against Railway build logs on deployment 66a93702; this PR restores buildability while keeping #552's exec fix.",
-    "PR #557 (use /opt/venv/bin/python3 in railway.toml startCommand for the operations/ACAT service) admitted explicitly by Z2 instruction, 2026-09-27: a separate, pre-existing crash-loop on api.humanaios.ai (bare python3 resolving to /root/.nix-profile/bin/python3 instead of the venv Railpack actually installed uvicorn into), unrelated to and predating #552/#555 -- this service runs on RAILPACK, not NIXPACKS, so nixpacks.toml never governed it.",
-    "PR #560 (Z1 candidate filings for silent gate-bypass capture and witness-ledger Tier 0 extension) admitted explicitly by Z2 instruction, 2026-09-28. Admission grants working-set standing only; the candidate proposals remain subject to their own ACCEPT/EDIT/REJECT and implementation authority boundaries.",
-    "PR #561 (add nixpacks.toml for humanaios-funding-pipeline/entitlement-navigator, migrating it off a broken Vercel deploy target with no valid build to a Railway service) admitted explicitly by Z2 instruction, 2026-09-27: infra-only config addition, same category as #552/#555/#557.",
-    "PR #563 (resource-miner app.py + nixpacks.toml + resource-miner-scan.yml, turning resource-miner from a CLI-only tool with no deployable web app into a real Railway HTTP service) admitted explicitly by Z2 instruction, 2026-09-27.",
-    "PR #565 (fix corrupted string literal in entitlement/genealogy_builder.py crashing entitlement-navigator's app.py on import) admitted explicitly by Z2 instruction, 2026-09-27: discovered mid-migration when the Railway deployment for PR #561 crash-looped on this pre-existing SyntaxError.",
-    "PR #567 (move resource-miner's nixpacks.toml to humanaios-funding-pipeline/nixpacks.toml, widening the Railway build context so ../data/sources.json is actually present) admitted explicitly by Z2 instruction, 2026-09-27: discovered mid-migration when GET /api/scan?source=funding on the deployed PR #563 service returned FileNotFoundError.",
-    "PR #570 (ui/vercel.json build-copy step for oracle_state.json, plus the matching oracle.html fetch-path and test-string updates) admitted explicitly by Z2 instruction, 2026-09-27: mixed change touching ui/ and tests/, neither covered by control_plane.paths, fixing a live 'Unexpected token <' failure on the deployed Oracle + Actualizer page caused by the Vercel project's ui/ Root Directory excluding the repo-root oracle_state.json.",
-    "PR #579 (fix molt: implement check_anti_cascade_rules()) admitted 2026-09-28 to ship systematic improvements to molt governance enforcement.",
-    "PR #581 (Ship red-team audit improvements: Oracle+Actualizer MVP, SMAG calibration, policy pruning) admitted 2026-09-28 to consolidate parallel development work and governance updates.",
-    "PR #586 (fix entry_protocol/gmail_push_adapter.py: restore missing _DIGEST_REPLY_RE definition and un-double-escape extract_item_catalog()'s label/cleanup regexes) admitted 2026-09-28: found running the full test suite during a systematic backlog pass; entry_protocol/ is not covered by control_plane.paths, so this mixed test-fix change needs an explicit admission record.",
-    "PR #578 (index the 8 unregistered z1-inbox/2026-09-25/* files: 7 as records, 1 as candidate Q-PHASE-2-CI-CONSOLIDATION-ROADMAP-01, fixing the Verify Z2 Ratification Requirements gate that has been failing on main since those files landed unindexed) admitted explicitly by Z2 instruction, 2026-09-28.",
-    "PR #590 (file F-CAND-LEDGER-GROUNDING-STUB-01: p34x_temporal_extractor's LedgerProvider is a permanent Phase-0 no-op stub, so no future date can ever ground against a ratified molt window) admitted 2026-09-29: documentation-only candidate block under z1-inbox/, which is not covered by control_plane.paths; found via the same systematic pytest-enabled backlog pass as PR #589.",
-    "Issue #598 (issue-first admission and pre-PR CI) admitted explicitly by Z2 instruction, 2026-09-30, as the session graph for the control-plane implementation. Admission grants working-set standing only and does not authorize merge.",
-    "PR #593 (repository knowledge graph with bounded inference) admitted explicitly by Z2 instruction, 2026-09-30, as a grandfathered work item created before the issue-first lifecycle was adopted. Admission does not resolve CI findings or authorize merge.",
-    "PR #672 (Azure Container Apps deploy workflow for the ACAT API — Microsoft for Startups Milestone 3 proof-of-concept) admitted explicitly by Z2 instruction, 2026-10-02, via GitHub review on the PR after it moved from draft to ready-for-review and the admission gate correctly held it as ready non-maintenance work lacking an admission record.",
-    "PR #671 (PROGRAM_GRAPH_MAPPING.md + program_graph.py: Programs as Layer 5 of the concept-to-code stack) admitted explicitly by Z2 instruction, 2026-10-02, via the same admission-gate hold pattern as #672 — ready non-maintenance work lacking an admission record.",
-    "PR #673 (fix(resource-miner): type resources against explicit deficits) admitted explicitly by Z2 instruction, 2026-10-02.",
-    "PR #690 (Add advisory system stance schema) admitted manually by Night",
-    "PR #707 (Resource Miner: add one-shot QRC query execution receipts) admitted manually by Night",
-    "Evaluation admission may be derived from a native GitHub APPROVED review by an authorized actor when the PR closes an issue whose body explicitly declares ADMISSION_REQUESTED. This grants CI/evidence standing only; it does not consume operator capacity, accept implementation, or authorize merge. Zero-diff PR handling remains independently enforced by the no-op guard."
-  ],
   "evaluation_admission": {
     "authorized_actors": [
       "humanaios-ui"
@@ -114,5 +64,12 @@
     "evidence": "closing-keyword link to an issue whose body declares ADMISSION_REQUESTED plus latest APPROVED review by an authorized actor",
     "operator_queue_effect": "none",
     "merge_authority": false
-  }
+  },
+  "notes": [
+    "Static policy remains on the default branch; mutable explicit admissions are stored on the persistent coordinator-state branch.",
+    "Admission determines working-set standing only. It does not ratify governance, approve code, or authorize merge.",
+    "The gate must resolve and receipt the exact coordinator-state commit used for each decision.",
+    "The gate fails closed when the ledger or materialized projection is missing, malformed, unsupported, or divergent.",
+    "Evaluation admission remains a separate evidence-producing lane and does not consume operator capacity."
+  ]
 }
