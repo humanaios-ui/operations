@@ -129,6 +129,8 @@ class ResourceCandidate:
     opportunity_kind: str = ""
     opportunity_source_kind: str = ""
     demand_snapshots: list[DemandSnapshot] = field(default_factory=list)
+    operational_mode: str = ""
+    composition_conflicts: list[str] = field(default_factory=list)
     raw: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self, include_raw: bool = False) -> dict[str, Any]:
