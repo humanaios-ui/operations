@@ -5,8 +5,14 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from .mines import stable_opportunity_id
 from .models import ResourceMine
-from .registry_query import RegistryQueryPlan
+from .registry_query import (
+    RegistryQueryPlan,
+    SUBJECT_REF_RE,
+    registry_query_token,
+    stable_registry_query_id,
+)
 
 POLICY_ID = "humanaios.oag.registry-observation.v1"
 POLICY_VERSION = "1.0"
@@ -132,6 +138,24 @@ def _policy_reasons(
     if operation != OBSERVATION_OPERATION:
         return "DENY", [f"operation {operation or '<empty>'} is not authorized by registry observation policy"]
 
+    if query.schema != "humanaios.registry-query-plan.v1":
+        reasons.append("RQY schema is not humanaios.registry-query-plan.v1")
+    expected_query_id = stable_registry_query_id(
+        registry_mine_id=query.registry_mine_id,
+        pathway_opportunity_id=query.pathway_opportunity_id,
+        query_class=query.query_class,
+        subject_ref=query.subject_ref,
+        subject_kind=query.subject_kind,
+        query_fields=query.query_fields,
+        purpose=query.purpose,
+    )
+    if query.query_id != expected_query_id:
+        reasons.append("RQY identity does not match canonical query content")
+    if query.query_token != registry_query_token(query.query_id):
+        reasons.append("RQY token does not match query_id")
+    if not SUBJECT_REF_RE.fullmatch(query.subject_ref):
+        reasons.append("RQY subject_ref is not a privacy-safe SUBJ-* token")
+
     if query.execution_state != "NOT_AUTHORIZED":
         reasons.append("RQY input must still be NOT_AUTHORIZED")
     if query.authority_effect != "NONE":
@@ -147,6 +171,25 @@ def _policy_reasons(
 
     if mine.mine_id != query.registry_mine_id:
         reasons.append("RQY Mine binding does not match evaluated Mine")
+    registered_pathways: set[str] = set()
+    for row in mine.config.get("opportunities") or []:
+        if not isinstance(row, dict):
+            continue
+        identity = str(
+            row.get("opportunity_identity") or row.get("url") or ""
+        ).strip()
+        kind = str(
+            row.get("opportunity_kind") or "configured_opportunity"
+        ).strip()
+        if identity:
+            registered_pathways.add(
+                stable_opportunity_id(mine.mine_id, identity, kind)
+            )
+    if (
+        registered_pathways
+        and query.pathway_opportunity_id not in registered_pathways
+    ):
+        reasons.append("RQY pathway opportunity is not registered under evaluated Mine")
     if mine.mine_kind != "REGISTRY":
         reasons.append("target Mine is not REGISTRY")
     if not mine.enabled:
