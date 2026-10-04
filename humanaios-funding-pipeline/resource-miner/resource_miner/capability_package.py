@@ -108,10 +108,9 @@ def _resource_conflicts(
     findings: list[str] = []
     for resource_id in selected_resource_ids:
         resource = resources[resource_id]
-        raw = resource.raw if isinstance(resource.raw, dict) else {}
         conflicts = {
             str(value).strip()
-            for value in (raw.get("conflicts_with_resource_ids") or [])
+            for value in (resource.composition_conflicts or [])
             if str(value).strip()
         }
         for other in sorted(conflicts & selected):
@@ -183,9 +182,14 @@ def _screen_package(
             unknown = True
             findings.append(f"PERMISSIONS_UNKNOWN:{resource_id}")
 
-        if screen.network_behavior == "ACTIVE":
+        if screen.network_behavior in {"ACTIVE", "TARGET_ACTIVE", "MIXED"}:
             conditional = True
-            findings.append(f"ACTIVE_NETWORK_BEHAVIOR:{resource_id}")
+            findings.append(f"TARGET_ACTIVE_OR_MIXED:{resource_id}")
+        elif screen.network_behavior == "TARGET_READ_ONLY":
+            conditional = True
+            findings.append(f"TARGET_READ_ONLY_INTERACTION:{resource_id}")
+        elif screen.network_behavior == "THIRD_PARTY_API_READ_ONLY":
+            findings.append(f"THIRD_PARTY_API_READ_ONLY:{resource_id}")
         elif screen.network_behavior == "UNKNOWN":
             unknown = True
             findings.append(f"NETWORK_BEHAVIOR_UNKNOWN:{resource_id}")
