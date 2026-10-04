@@ -19,15 +19,24 @@ from .observation_authorization import (
     authorization_token,
     stable_authorization_id,
 )
-from .registry_query import RegistryQueryPlan
+from .registry_query import RegistryQueryPlan, SUBJECT_REF_RE, registry_query_token
 
 RESULT_STATES = {
     "ZERO_MATCHES_OBSERVED",
     "MATCHES_OBSERVED",
     "OBSERVATION_FAILED",
 }
+QRC_SCHEMA = "humanaios.query-execution-receipt.v1"
+QRC_QUERY_FIELDS = {"owner_name", "business_name", "last_known_location"}
 PSB_RE = re.compile(r"^PSB-[A-F0-9]{16}$")
 EXE_RE = re.compile(r"^EXE-[A-F0-9]{16}$")
+QRC_RE = re.compile(r"^QRC-[A-F0-9]{16}$")
+OAG_RE = re.compile(r"^OAG-[A-F0-9]{16}$")
+RQY_RE = re.compile(r"^RQY-[A-F0-9]{16}$")
+MINE_RE = re.compile(r"^MINE-[A-F0-9]{16}$")
+OPP_RE = re.compile(r"^OPP-[A-F0-9]{16}$")
+CON_RE = re.compile(r"^CON-[A-F0-9]{16}$")
+HASH_RE = re.compile(r"^[a-f0-9]{64}$")
 
 
 @dataclass(frozen=True)
@@ -115,7 +124,9 @@ def receipt_token(receipt_id: str) -> str:
 
 
 def _parse_time(value: str) -> datetime:
-    text = str(value or "").strip()
+    if not isinstance(value, str):
+        raise ValueError("execution timestamp must be a string")
+    text = value.strip()
     if not text:
         raise ValueError("execution timestamp is required")
     try:
@@ -128,9 +139,16 @@ def _validate_result_state(
     result_state: str,
     observed_record_count: int | None,
 ) -> tuple[str, int | None]:
+    if not isinstance(result_state, str):
+        raise ValueError("result_state must be a string")
     state = result_state.strip().upper()
     if state not in RESULT_STATES:
         raise ValueError(f"unsupported result_state: {state}")
+
+    if observed_record_count is not None and type(observed_record_count) is not int:
+        raise ValueError("observed_record_count must be an integer or null")
+    if isinstance(observed_record_count, int) and observed_record_count < 0:
+        raise ValueError("observed_record_count cannot be negative")
 
     if state == "ZERO_MATCHES_OBSERVED":
         if observed_record_count != 0:
@@ -142,6 +160,16 @@ def _validate_result_state(
         if observed_record_count is not None:
             raise ValueError("OBSERVATION_FAILED requires observed_record_count=null")
     return state, observed_record_count
+
+
+def _normalized_fields(values: Iterable[str]) -> list[str]:
+    return sorted(
+        {
+            str(value).strip().casefold()
+            for value in values
+            if str(value).strip()
+        }
+    )
 
 
 def _authorization_is_executable(
@@ -216,15 +244,52 @@ def _authorization_is_executable(
     return reasons
 
 
+def _validate_authorization_query_lineage(
+    authorization: ObservationAuthorizationDecision,
+    query: RegistryQueryPlan,
+) -> None:
+    comparisons = {
+        "query_id": (authorization.query_id, query.query_id),
+        "query_token": (authorization.query_token, query.query_token),
+        "registry_mine_id": (
+            authorization.registry_mine_id,
+            query.registry_mine_id,
+        ),
+        "pathway_opportunity_id": (
+            authorization.pathway_opportunity_id,
+            query.pathway_opportunity_id,
+        ),
+        "subject_ref": (authorization.subject_ref, query.subject_ref),
+        "query_class": (authorization.query_class, query.query_class),
+        "expected_response_class": (
+            authorization.expected_response_class,
+            query.expected_response_class,
+        ),
+    }
+    mismatches = [
+        name
+        for name, (authorized, planned) in comparisons.items()
+        if authorized != planned
+    ]
+    if _normalized_fields(authorization.query_fields) != _normalized_fields(
+        query.query_fields
+    ):
+        mismatches.append("query_fields")
+    if mismatches:
+        raise PermissionError(
+            "OAG/RQY duplicated lineage mismatch: " + ", ".join(sorted(mismatches))
+        )
+    if not SUBJECT_REF_RE.fullmatch(query.subject_ref):
+        raise PermissionError("RQY subject_ref is not a privacy-safe SUBJ-* token")
+
+
 def _prior_receipts(
     rows: Iterable[QueryExecutionReceipt | dict[str, Any]],
 ) -> list[QueryExecutionReceipt]:
     out: list[QueryExecutionReceipt] = []
     for row in rows:
-        if isinstance(row, QueryExecutionReceipt):
-            out.append(row)
-        else:
-            out.append(query_execution_receipt_from_dict(row))
+        payload = row.to_dict() if isinstance(row, QueryExecutionReceipt) else row
+        out.append(query_execution_receipt_from_dict(payload))
     return out
 
 
@@ -247,8 +312,7 @@ def mint_query_execution_receipt(
         raise PermissionError("; ".join(sorted(reasons)))
     if not authorization_covers_query(authorization, query):
         raise PermissionError("OAG does not cover the exact supplied RQY")
-    if authorization.query_id != query.query_id:
-        raise PermissionError("OAG/RQY query identity mismatch")
+    _validate_authorization_query_lineage(authorization, query)
     if authorization.query_plan_sha256 != hashlib.sha256(
         json.dumps(
             query.to_dict(),
@@ -268,16 +332,8 @@ def mint_query_execution_receipt(
     if not EXE_RE.fullmatch(nonce):
         raise ValueError("execution_nonce must be opaque EXE-* token")
 
-    fields = sorted(
-        {
-            str(value).strip().casefold()
-            for value in executed_query_fields
-            if str(value).strip()
-        }
-    )
-    authorized_fields = sorted(
-        {str(value).strip().casefold() for value in query.query_fields}
-    )
+    fields = _normalized_fields(executed_query_fields)
+    authorized_fields = _normalized_fields(query.query_fields)
     if fields != authorized_fields:
         raise PermissionError(
             "executed semantic query fields do not exactly match authorized RQY fields"
@@ -315,19 +371,19 @@ def mint_query_execution_receipt(
     authorization_digest = canonical_authorization_sha256(authorization)
 
     payload = {
-        "schema": "humanaios.query-execution-receipt.v1",
+        "schema": QRC_SCHEMA,
         "receipt_id": receipt_id,
         "receipt_token": receipt_token(receipt_id),
         "authorization_id": authorization.authorization_id,
         "authorization_token": authorization.authorization_token,
         "authorization_decision_sha256": authorization_digest,
-        "query_id": authorization.query_id,
-        "query_token": authorization.query_token,
+        "query_id": query.query_id,
+        "query_token": query.query_token,
         "query_plan_sha256": authorization.query_plan_sha256,
         "policy_receipt_sha256": authorization.policy_receipt_sha256,
-        "registry_mine_id": authorization.registry_mine_id,
-        "pathway_opportunity_id": authorization.pathway_opportunity_id,
-        "subject_ref": authorization.subject_ref,
+        "registry_mine_id": query.registry_mine_id,
+        "pathway_opportunity_id": query.pathway_opportunity_id,
+        "subject_ref": query.subject_ref,
         "private_subject_binding_attestation_id": psb,
         "private_subject_binding_attested": True,
         "executed_operation": OBSERVATION_OPERATION,
@@ -338,7 +394,7 @@ def mint_query_execution_receipt(
         "finished_at": finished_at,
         "result_state": state,
         "observed_record_count": count,
-        "expected_response_class": authorization.expected_response_class,
+        "expected_response_class": query.expected_response_class,
         "zero_result_semantics": "NO_MATCH_OBSERVED_NOT_NO_ENTITLEMENT",
         "match_result_semantics": "CANDIDATE_RECORD_NOT_OWNERSHIP",
         "query_value_persistence": "PRIVATE_RUNTIME_ONLY",
@@ -368,6 +424,121 @@ def mint_query_execution_receipt(
         **payload,
         receipt_sha256=receipt_sha256,
     )
+
+
+def _validate_receipt_semantics(data: dict[str, Any]) -> None:
+    patterns = {
+        "receipt_id": QRC_RE,
+        "authorization_id": OAG_RE,
+        "query_id": RQY_RE,
+        "registry_mine_id": MINE_RE,
+        "pathway_opportunity_id": OPP_RE,
+        "subject_ref": SUBJECT_REF_RE,
+        "private_subject_binding_attestation_id": PSB_RE,
+        "execution_nonce": EXE_RE,
+        "consumption_key": CON_RE,
+    }
+    for field, pattern in patterns.items():
+        value = data.get(field)
+        if not isinstance(value, str) or not pattern.fullmatch(value):
+            raise ValueError(f"query execution receipt has invalid {field}")
+
+    for field in (
+        "authorization_decision_sha256",
+        "query_plan_sha256",
+        "policy_receipt_sha256",
+        "receipt_sha256",
+    ):
+        value = data.get(field)
+        if not isinstance(value, str) or not HASH_RE.fullmatch(value):
+            raise ValueError(f"query execution receipt has invalid {field}")
+
+    fixed = {
+        "schema": QRC_SCHEMA,
+        "private_subject_binding_attested": True,
+        "executed_operation": OBSERVATION_OPERATION,
+        "expected_response_class": "ZERO_OR_MORE_CANDIDATE_RECORDS",
+        "zero_result_semantics": "NO_MATCH_OBSERVED_NOT_NO_ENTITLEMENT",
+        "match_result_semantics": "CANDIDATE_RECORD_NOT_OWNERSHIP",
+        "query_value_persistence": "PRIVATE_RUNTIME_ONLY",
+        "private_query_values_exposed": False,
+        "raw_request_exposed": False,
+        "raw_response_exposed": False,
+        "external_state_change": False,
+        "consequential_actions_permitted": False,
+        "claim_submission_permitted": False,
+        "prohibited_action_executed": False,
+        "authorization_consumed": True,
+        "authorization_consumption_ordinal": 1,
+        "consequence_ceiling": "EVIDENCE_ONLY",
+        "evidence_effect": "OBSERVATION_RECEIPT_ONLY",
+        "authority_effect": "NONE",
+    }
+    for field, expected in fixed.items():
+        actual = data.get(field)
+        if isinstance(expected, bool):
+            if actual is not expected:
+                raise ValueError(
+                    f"query execution receipt requires {field}={expected!r}"
+                )
+        elif field == "authorization_consumption_ordinal":
+            if type(actual) is not int or actual != expected:
+                raise ValueError(
+                    "query execution receipt requires "
+                    "authorization_consumption_ordinal=1"
+                )
+        elif actual != expected:
+            raise ValueError(
+                f"query execution receipt requires {field}={expected!r}"
+            )
+
+    fields = data.get("executed_query_fields")
+    if not isinstance(fields, list) or not fields:
+        raise ValueError("executed_query_fields must be a non-empty list")
+    if not all(isinstance(field, str) for field in fields):
+        raise ValueError("executed_query_fields must contain strings")
+    normalized_fields = _normalized_fields(fields)
+    if fields != normalized_fields:
+        raise ValueError("executed_query_fields must be canonical and unique")
+    if not set(fields).issubset(QRC_QUERY_FIELDS):
+        raise ValueError("executed_query_fields contain unsupported v1 fields")
+
+    origin = data.get("observed_origin_key")
+    if (
+        not isinstance(origin, str)
+        or not origin
+        or origin != origin.strip().casefold()
+    ):
+        raise ValueError("observed_origin_key must be a canonical non-empty string")
+
+    start = _parse_time(data.get("started_at"))
+    finish = _parse_time(data.get("finished_at"))
+    if finish < start:
+        raise ValueError("finished_at precedes started_at")
+
+    state, count = _validate_result_state(
+        data.get("result_state"),
+        data.get("observed_record_count"),
+    )
+    if state != data.get("result_state") or count != data.get("observed_record_count"):
+        raise ValueError("result state/count are not canonical")
+
+    authorization_id = data["authorization_id"]
+    execution_nonce = data["execution_nonce"]
+    expected_receipt_id = stable_query_execution_receipt_id(
+        authorization_id=authorization_id,
+        execution_nonce=execution_nonce,
+    )
+    if data["receipt_id"] != expected_receipt_id:
+        raise ValueError("receipt_id does not match authorization_id/execution_nonce")
+    if data.get("receipt_token") != receipt_token(expected_receipt_id):
+        raise ValueError("receipt_token does not match receipt_id")
+    if data.get("authorization_token") != authorization_token(authorization_id):
+        raise ValueError("authorization_token does not match authorization_id")
+    if data.get("query_token") != registry_query_token(data["query_id"]):
+        raise ValueError("query_token does not match query_id")
+    if data["consumption_key"] != stable_consumption_key(authorization_id):
+        raise ValueError("consumption_key does not match authorization_id")
 
 
 def query_execution_receipt_from_dict(
@@ -423,19 +594,31 @@ def query_execution_receipt_from_dict(
         raise ValueError(
             f"query execution receipt shape mismatch; missing={missing}; extra={extra}"
         )
-    payload = dict(data)
-    receipt_hash = str(payload.pop("receipt_sha256") or "")
+
+    detached = json.loads(
+        json.dumps(
+            data,
+            ensure_ascii=False,
+            sort_keys=True,
+            allow_nan=False,
+        )
+    )
+    _validate_receipt_semantics(detached)
+
+    payload = dict(detached)
+    receipt_hash = payload.pop("receipt_sha256")
     expected_hash = hashlib.sha256(
         json.dumps(
             payload,
             ensure_ascii=False,
             sort_keys=True,
             separators=(",", ":"),
+            allow_nan=False,
         ).encode("utf-8")
     ).hexdigest()
     if receipt_hash != expected_hash:
         raise ValueError("query execution receipt hash mismatch")
-    return QueryExecutionReceipt(**data)
+    return QueryExecutionReceipt(**detached)
 
 
 def load_query_execution_receipts(
@@ -456,6 +639,8 @@ def append_query_execution_receipt(
     path: str | Path,
     receipt: QueryExecutionReceipt,
 ) -> None:
+    validated_receipt = query_execution_receipt_from_dict(receipt.to_dict())
+
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     with target.open("a+", encoding="utf-8") as handle:
@@ -470,8 +655,8 @@ def append_query_execution_receipt(
                     query_execution_receipt_from_dict(json.loads(line))
                 )
             if any(
-                row.authorization_id == receipt.authorization_id
-                or row.consumption_key == receipt.consumption_key
+                row.authorization_id == validated_receipt.authorization_id
+                or row.consumption_key == validated_receipt.consumption_key
                 for row in existing
             ):
                 raise PermissionError(
@@ -480,9 +665,10 @@ def append_query_execution_receipt(
             handle.seek(0, os.SEEK_END)
             handle.write(
                 json.dumps(
-                    receipt.to_dict(),
+                    validated_receipt.to_dict(),
                     ensure_ascii=False,
                     sort_keys=True,
+                    allow_nan=False,
                 )
                 + "\n"
             )
