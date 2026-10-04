@@ -1,0 +1,57 @@
+@prefix cal: <https://humanaios.ai/ns/calibration#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://humanaios.ai/fixtures/calibration/invalid/> .
+
+# Intentionally invalid:
+# - trial has no human trace
+# - resolution confidence is > 1.0
+# - design delta has no falsifier
+ex:trial-invalid a cal:CalibrationTrial ;
+  cal:hasStimulus ex:stim-invalid ;
+  cal:hasResolutionEvent ex:resolution-invalid ;
+  cal:traceFrozenAt "2026-09-30T12:10:00Z"^^xsd:dateTime .
+
+ex:stim-invalid a cal:Stimulus .
+
+ex:resolution-invalid a cal:ResolutionEvent ;
+  cal:resolutionState cal:Resolved ;
+  cal:participantConfidence "1.5"^^xsd:decimal .
+
+ex:delta-invalid a cal:DesignDelta ;
+  cal:warrantState cal:Provisional ;
+  cal:supportedByFrozenTrace ex:missing-trace .
+
+# Landing check intentionally missing landingState
+ex:landing-invalid a cal:LandingCheck ;
+  cal:triggerReason "Critical technical explanation requires confirmation." .
+
+# Dependency flag intentionally malformed:
+# - missing requiredFor
+# - missing plainLanguageNote
+# - blocksStage has the wrong datatype
+ex:dependency-invalid a cal:DependencyFlag ;
+  cal:dependencyType "PACKAGE" ;
+  cal:dependencyState cal:DependencyUnsatisfied ;
+  cal:blocksStage "yes" .
+
+# Attractor intentionally lacks query text
+ex:attractor-invalid a cal:EpistemicAttractor ;
+  cal:triggeredBy ex:dependency-invalid ;
+  cal:targetNode ex:dependency-invalid ;
+  cal:queryIntent cal:SatisfyDependency .
+
+# External candidate intentionally lacks source URI
+ex:candidate-invalid a cal:ExternalCandidate ;
+  cal:originatingAttractor ex:attractor-invalid ;
+  cal:candidateClaim "Unproven candidate." .
+
+# Omission signal intentionally lacks expectation source
+ex:omission-invalid a cal:OmissionSignal ;
+  cal:omissionType cal:EpistemicUnknown .
+
+# Compression residue intentionally lacks omittedAspect
+ex:compression-invalid a cal:CompressionResidue ;
+  cal:compressedFrom ex:dependency-invalid ;
+  cal:preservationGoal "Compress dependency explanation." ;
+  cal:compressionLossRisk "UNKNOWN" .
+
