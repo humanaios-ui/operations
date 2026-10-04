@@ -25,6 +25,78 @@ jobs:
           HACKERONE_API_TOKEN: ''
         run: python3 -m unittest discover -s tests -v
 
+      - name: Exercise subject-scoped registry query planning
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+
+          from resource_miner.mines import load_mines, stable_opportunity_id
+
+          mines = load_mines("data/mines.seed.json")
+          colorado = next(
+              mine for mine in mines
+              if mine.name == "Colorado Great Colorado Payback"
+          )
+          configured = colorado.config["opportunities"][0]
+          pathway_id = stable_opportunity_id(
+              colorado.mine_id,
+              configured.get("opportunity_identity") or configured["url"],
+              configured["opportunity_kind"],
+          )
+
+          cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "plan-registry-query",
+              "--mine-id",
+              colorado.mine_id,
+              "--pathway-opportunity-id",
+              pathway_id,
+              "--subject-ref",
+              "SUBJ-AAAAAAAAAAAAAAAA",
+              "--subject-kind",
+              "NATURAL_PERSON",
+              "--query-field",
+              "owner_name",
+              "--query-field",
+              "last_known_location",
+              "--explicit-subject-request",
+          ]
+          payload = json.loads(subprocess.check_output(cmd, text=True))
+          assert payload["query_id"].startswith("RQY-")
+          assert payload["query_token"].startswith("urn:humanaios:registry-query:RQY-")
+          assert payload["registry_mine_id"] == colorado.mine_id
+          assert payload["pathway_opportunity_id"] == pathway_id
+          assert payload["subject_ref"] == "SUBJ-AAAAAAAAAAAAAAAA"
+          assert payload["query_fields"] == ["last_known_location", "owner_name"]
+          assert payload["privacy_classification"] == "SENSITIVE_QUERY_INPUT"
+          assert payload["query_value_persistence"] == "PRIVATE_RUNTIME_ONLY"
+          assert payload["expected_response_class"] == "ZERO_OR_MORE_CANDIDATE_RECORDS"
+          assert payload["zero_result_semantics"] == "NO_MATCH_OBSERVED_NOT_NO_ENTITLEMENT"
+          assert payload["match_result_semantics"] == "CANDIDATE_RECORD_NOT_OWNERSHIP"
+          assert payload["explicit_subject_request"] is True
+          assert payload["external_state_change"] is False
+          assert payload["planning_state"] == "PLANNED"
+          assert payload["execution_state"] == "NOT_AUTHORIZED"
+          assert payload["authority_effect"] == "NONE"
+
+          forbidden = {
+              "query_values",
+              "raw_query_values",
+              "name",
+              "date_of_birth",
+              "ssn",
+              "tax_id",
+              "email",
+              "phone",
+          }
+          assert forbidden.isdisjoint(payload)
+          PY
+
       - name: Exercise persistent Mine resolver contract
         working-directory: humanaios-funding-pipeline/resource-miner
         env:
