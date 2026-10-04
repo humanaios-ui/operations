@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.14
+# HumanAIOS Resource Miner v0.1.15
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -474,6 +474,40 @@ No claimant/search values, raw request, raw response, cookies, tokens, or privat
 Result semantics remain bounded: `ZERO_MATCHES_OBSERVED != NO_ENTITLEMENT` and `MATCHES_OBSERVED != OWNERSHIP | ELIGIBILITY | CLAIM_AUTHORIZED | FUNDS_RECOVERED`.
 
 Use `python3 -m resource_miner.cli record-registry-query-execution ...` only to record an observation already completed by a private runtime. The command has no registry transport. See `docs/QUERY_EXECUTION_RECEIPT.md`.
+
+### Evidence-bearing resource brokerage
+
+Resource Miner now includes a generic broker/control substrate:
+
+```text
+OPPORTUNITY
+→ REQUIREMENT
+→ RESOURCE
+→ SUITABILITY
+→ AUTHORIZATION
+→ OUTCOME
+```
+
+The broker is independent of HumanAIOS-local capabilities. Provider classes include `HUMANAIOS_INTERNAL`, `LOCAL_MACHINE`, `OPEN_SOURCE`, `EXTERNAL_SERVICE`, `DATASET`, `HUMAN_EXPERT`, and `OTHER`.
+
+A resource can be capability-adequate without being authorized for use. Suitability records capability coverage and a constitutional/resource screen; authorization separately evaluates requested action, method permission, target scope, and explicit human authorization where external consequence is possible.
+
+Initial broker actions are `REVIEW_RESOURCE_METADATA`, `COMPOSE_CAPABILITY_PACKAGE`, `INSTALL_LOCAL_RESOURCE`, `EXECUTE_EXTERNAL_TOOL`, and `SUBMIT_FINDING`. The broker implements decisions and receipts only; it has no executor.
+
+Core invariants:
+
+```text
+RESOURCE_AVAILABILITY != CAPABILITY_EVIDENCE
+CAPABILITY_MATCH != METHOD_PERMISSION
+SUITABILITY != AUTHORIZATION
+AUTHORIZATION != EXECUTION
+OUTCOME_SUCCESS != AUTHORITY_EXPANSION
+OPEN_SOURCE_AVAILABILITY != AUTHORIZATION
+BROKER_MATCH != WARRANT
+BROKER_MATCH != EXECUTION
+```
+
+See `docs/BROKER_CONTROL_SUBSTRATE.md`.
 
 ### Reconstructable Claim state machine
 
