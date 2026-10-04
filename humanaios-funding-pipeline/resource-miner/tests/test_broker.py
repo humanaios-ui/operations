@@ -278,6 +278,7 @@ class BrokerControlSubstrateTests(unittest.TestCase):
         )
         bare.resource_types = ["open_source_tool"]
         bare.resource_affordances = ["passive_observation", "evidence_capture"]
+        bare.evidence = []
         screen = screen_resource(
             bare,
             provenance_state="UNKNOWN",
