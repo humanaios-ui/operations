@@ -5,6 +5,7 @@ from pathlib import Path
 from resource_miner.mines import load_mines, stable_opportunity_id
 from resource_miner.registry_query import (
     plan_registry_query,
+    registry_query_from_dict,
     stable_registry_query_id,
 )
 
@@ -69,6 +70,20 @@ class RegistryQueryPlanTests(unittest.TestCase):
         self.assertNotIn("dob", data)
         self.assertNotIn("ssn", data)
         self.assertNotIn("email", data)
+
+    def test_public_rqy_deserializer_rejects_private_query_values(self):
+        plan = plan_registry_query(
+            mine=self.colorado,
+            pathway_opportunity_id=self.pathway_opportunity_id,
+            subject_ref="SUBJ-AAAAAAAAAAAAAAAA",
+            subject_kind="NATURAL_PERSON",
+            query_fields=["owner_name"],
+            explicit_subject_request=True,
+        )
+        payload = plan.to_dict()
+        payload["query_values"] = {"owner_name": "private runtime value"}
+        with self.assertRaises(ValueError):
+            registry_query_from_dict(payload)
 
     def test_business_subject_can_use_business_name_only(self):
         plan = plan_registry_query(
