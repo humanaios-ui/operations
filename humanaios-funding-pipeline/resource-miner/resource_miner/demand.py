@@ -460,7 +460,25 @@ def build_demand_profile(
         if req.authority_effect != "NONE":
             raise ValueError("demand requirements cannot grant authority")
 
-    payload = {
+    serialized_requirements = [row.to_dict() for row in reqs]
+    normalized_constraints = sorted(
+        {str(x).strip() for x in constraints if str(x).strip()}
+    )
+    normalized_eligibility = sorted(
+        {str(x).strip() for x in eligibility_predicates if str(x).strip()}
+    )
+    normalized_prohibitions = sorted(
+        {str(x).strip() for x in prohibitions if str(x).strip()}
+    )
+    normalized_deliverables = sorted(
+        {str(x).strip() for x in deliverables if str(x).strip()}
+    )
+    normalized_value_signals = sorted(
+        {str(x).strip() for x in value_signals if str(x).strip()}
+    )
+    criteria = list(evaluation_criteria)
+    metadata = dict(source_metadata or {})
+    identity_payload = {
         "schema": "humanaios.demand-profile.v1",
         "opportunity_id": opportunity.opportunity_id,
         "source_kind": source_kind.strip().upper(),
@@ -468,23 +486,37 @@ def build_demand_profile(
         "source_url": source_url.strip(),
         "objective": objective.strip(),
         "deadline": deadline,
-        "requirements": [row.to_dict() for row in reqs],
-        "constraints": sorted({str(x).strip() for x in constraints if str(x).strip()}),
-        "eligibility_predicates": sorted(
-            {str(x).strip() for x in eligibility_predicates if str(x).strip()}
-        ),
-        "prohibitions": sorted({str(x).strip() for x in prohibitions if str(x).strip()}),
-        "deliverables": sorted({str(x).strip() for x in deliverables if str(x).strip()}),
-        "evaluation_criteria": list(evaluation_criteria),
-        "value_signals": sorted({str(x).strip() for x in value_signals if str(x).strip()}),
+        "requirements": serialized_requirements,
+        "constraints": normalized_constraints,
+        "eligibility_predicates": normalized_eligibility,
+        "prohibitions": normalized_prohibitions,
+        "deliverables": normalized_deliverables,
+        "evaluation_criteria": criteria,
+        "value_signals": normalized_value_signals,
         "submission_surface": submission_surface.strip(),
-        "source_metadata": dict(source_metadata or {}),
+        "source_metadata": metadata,
         "evidence": rows,
     }
     return DemandProfile(
-        profile_id=_demand_stable_id("DMD", payload),
+        schema="humanaios.demand-profile.v1",
+        profile_id=_demand_stable_id("DMD", identity_payload),
+        opportunity_id=opportunity.opportunity_id,
+        source_kind=source_kind.strip().upper(),
+        source_identity=source_identity.strip(),
+        source_url=source_url.strip(),
+        objective=objective.strip(),
+        deadline=deadline,
+        requirements=reqs,
+        constraints=normalized_constraints,
+        eligibility_predicates=normalized_eligibility,
+        prohibitions=normalized_prohibitions,
+        deliverables=normalized_deliverables,
+        evaluation_criteria=criteria,
+        value_signals=normalized_value_signals,
+        submission_surface=submission_surface.strip(),
+        source_metadata=metadata,
+        evidence=rows,
         authority_effect="NONE",
-        **payload,
     )
 
 
