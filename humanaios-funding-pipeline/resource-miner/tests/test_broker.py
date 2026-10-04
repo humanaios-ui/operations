@@ -81,6 +81,16 @@ class BrokerControlSubstrateTests(unittest.TestCase):
             screen=self.screen,
         )
 
+    def test_open_source_source_category_is_first_class_resource_type(self):
+        candidate = normalize_generic(
+            title="Open-source inspection utility",
+            url="https://github.com/example/tool",
+            source_name="GitHub",
+            discovery_method="synthetic-test",
+            source_category="open_source_tool",
+        )
+        self.assertIn("open_source_tool", candidate.resource_types)
+
     def test_open_source_resource_can_satisfy_without_humanaios_capability(self):
         self.assertEqual(self.assessment.provider_class, "OPEN_SOURCE")
         self.assertEqual(self.assessment.suitability_state, "ADEQUATE")
