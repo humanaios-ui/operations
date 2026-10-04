@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
+import os
 import re
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -455,22 +457,36 @@ def append_query_execution_receipt(
     receipt: QueryExecutionReceipt,
 ) -> None:
     target = Path(path)
-    existing = load_query_execution_receipts(target)
-    if any(
-        row.authorization_id == receipt.authorization_id
-        or row.consumption_key == receipt.consumption_key
-        for row in existing
-    ):
-        raise PermissionError(
-            "one-shot observation authorization has already been consumed"
-        )
     target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open("a", encoding="utf-8") as handle:
-        handle.write(
-            json.dumps(
-                receipt.to_dict(),
-                ensure_ascii=False,
-                sort_keys=True,
+    with target.open("a+", encoding="utf-8") as handle:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        try:
+            handle.seek(0)
+            existing: list[QueryExecutionReceipt] = []
+            for line in handle.read().splitlines():
+                if not line.strip():
+                    continue
+                existing.append(
+                    query_execution_receipt_from_dict(json.loads(line))
+                )
+            if any(
+                row.authorization_id == receipt.authorization_id
+                or row.consumption_key == receipt.consumption_key
+                for row in existing
+            ):
+                raise PermissionError(
+                    "one-shot observation authorization has already been consumed"
+                )
+            handle.seek(0, os.SEEK_END)
+            handle.write(
+                json.dumps(
+                    receipt.to_dict(),
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+                + "\n"
             )
-            + "\n"
-        )
+            handle.flush()
+            os.fsync(handle.fileno())
+        finally:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
