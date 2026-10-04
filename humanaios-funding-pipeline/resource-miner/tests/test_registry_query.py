@@ -136,6 +136,17 @@ class RegistryQueryPlanTests(unittest.TestCase):
                 explicit_subject_request=True,
             )
 
+    def test_foreign_pathway_opportunity_is_rejected(self):
+        with self.assertRaises(ValueError):
+            plan_registry_query(
+                mine=self.colorado,
+                pathway_opportunity_id="OPP-1111111111111111",
+                subject_ref="SUBJ-AAAAAAAAAAAAAAAA",
+                subject_kind="NATURAL_PERSON",
+                query_fields=["owner_name"],
+                explicit_subject_request=True,
+            )
+
     def test_query_identity_is_order_independent(self):
         a = plan_registry_query(
             mine=self.colorado,
