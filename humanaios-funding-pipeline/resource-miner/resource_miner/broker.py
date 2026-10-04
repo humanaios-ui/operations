@@ -63,6 +63,9 @@ class BrokerOpportunity:
     source_url: str
     sponsor: str
     evidence: list[dict[str, Any]]
+    demand_requirement_id: str = ""
+    demand_mode: str = ""
+    demand_semantic_class: str = ""
     authority_effect: str = "NONE"
 
     def to_dict(self) -> dict[str, Any]:
@@ -206,6 +209,9 @@ def build_requirement(
     target_scope_state: str,
     external_state_change_allowed: bool,
     evidence: Iterable[EvidenceRef],
+    demand_requirement_id: str = "",
+    demand_mode: str = "",
+    demand_semantic_class: str = "",
 ) -> BrokerRequirement:
     affordances = sorted({str(x).strip() for x in required_affordances if str(x).strip()})
     resource_types = sorted({str(x).strip() for x in allowed_resource_types if str(x).strip()})
@@ -230,6 +236,9 @@ def build_requirement(
         "target_scope_state": scope,
         "external_state_change_allowed": bool(external_state_change_allowed),
         "evidence": rows,
+        "demand_requirement_id": demand_requirement_id.strip(),
+        "demand_mode": demand_mode.strip().upper(),
+        "demand_semantic_class": demand_semantic_class.strip().upper(),
     }
     return BrokerRequirement(
         requirement_id=_stable_id("BRQ", payload),
@@ -242,6 +251,9 @@ def build_requirement(
         target_scope_state=scope,
         external_state_change_allowed=bool(external_state_change_allowed),
         evidence=rows,
+        demand_requirement_id=payload["demand_requirement_id"],
+        demand_mode=payload["demand_mode"],
+        demand_semantic_class=payload["demand_semantic_class"],
     )
 
 
