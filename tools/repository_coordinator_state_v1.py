@@ -3,7 +3,7 @@
 Builder v1.7 compliant
 HumanAIOS — REPOSITORY-COORDINATOR-STATE-01
 
-The state branch is evidence/state, not policy and never merge authority.
+The state branch is evidence/state, not policy, with merge authority fixed to false.
 
 Canonical branch contract:
   repository-coordinator-state/
