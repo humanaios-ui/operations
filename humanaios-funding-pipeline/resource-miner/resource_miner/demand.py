@@ -584,6 +584,9 @@ def compile_broker_requirements(
                 target_scope_state=target_scope,
                 external_state_change_allowed=external_state_change,
                 evidence=_evidence_from_dict(row.evidence),
+                demand_requirement_id=row.demand_requirement_id,
+                demand_mode=row.mode,
+                demand_semantic_class=row.semantic_class,
             )
         )
     return out
