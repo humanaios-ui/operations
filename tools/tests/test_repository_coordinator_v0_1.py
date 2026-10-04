@@ -48,13 +48,20 @@ def pr(
     }
 
 
+def state(*, issues=None, prs=None):
+    return {
+        "schema": "humanaios.repository-coordinator-state.v1",
+        "admitted_issue_numbers": issues or [],
+        "admitted_pull_request_numbers": prs or [],
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
+    }
+
+
 def policy(*, limit=4, issues=None, prs=None, control_paths=None):
     return {
+        "_test_state": state(issues=issues, prs=prs),
         "capacity": {"active_operator_queue": limit},
-        "admission": {
-            "issue_numbers": issues or [],
-            "pull_request_numbers": prs or [],
-        },
         "evaluation_admission": {
             "authorized_actors": ["humanaios-ui"],
             "required_issue_state": "ADMISSION_REQUESTED",
@@ -69,15 +76,26 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None):
     }
 
 
-def run(prs, *, refs=None, items=None, paths=None, pq="", policy_data=None):
+def run(prs, *, refs=None, items=None, paths=None, pq="", policy_data=None, state_data=None):
+    if policy_data and "_test_state" in policy_data:
+        policy_data = dict(policy_data)
+        embedded = policy_data.pop("_test_state")
+        if state_data is None:
+            state_data = embedded
     return analyze({
         "repository": "example/repo",
         "main_sha": "abc",
+        "policy_ref": "main",
+        "policy_sha": "abc",
+        "state_branch": "repository-coordinator-state",
+        "state_sha": "def",
+        "ledger_sha256": "1" * 64,
+        "projection_sha256": "2" * 64,
         "main_paths": paths or [],
         "referenced_pull_requests": refs or {},
         "referenced_items": items or {},
         "pull_requests": prs,
-    }, pq, policy_data)
+    }, pq, policy_data, state_data)
 
 
 def item(index, n):
@@ -490,6 +508,21 @@ def test_gate_decision_fails_closed_for_unknown_pr():
     assert gate_decision(idx, 999)["gate"] == "FAIL"
 
 
+def test_gate_decision_receipts_policy_and_state_heads():
+    idx = run([pr(1, body="Fixes #77")], items=_admitted_item(77), policy_data=policy(issues=[77]))
+    decision = gate_decision(idx, 1)
+    assert decision["gate"] == "PASS"
+    assert decision["state_receipt"] == {
+        "policy_ref": "main",
+        "policy_sha": "abc",
+        "state_branch": "repository-coordinator-state",
+        "state_sha": "def",
+        "ledger_sha256": "1" * 64,
+        "projection_sha256": "2" * 64,
+    }
+    assert decision["merge_authority"] is False
+
+
 def test_gate_cli_exit_code_is_fail_closed(tmp_path):
     import json
     import subprocess
@@ -505,12 +538,17 @@ def test_gate_cli_exit_code_is_fail_closed(tmp_path):
     snap = tmp_path / "snapshot.json"
     snap.write_text(json.dumps(snapshot))
     pol = tmp_path / "policy.json"
-    pol.write_text(json.dumps(policy(issues=[77])))
+    policy_payload = policy(issues=[77])
+    state_payload = policy_payload.pop("_test_state")
+    pol.write_text(json.dumps(policy_payload))
+    state_file = tmp_path / "state.json"
+    state_file.write_text(json.dumps(state_payload))
     tool = TOOLS / "repository_coordinator_v0_1.py"
 
-    def gate(n, policy_path=pol):
+    def gate(n, policy_path=pol, state_path=state_file):
         return subprocess.run(
             [sys.executable, str(tool), "--snapshot", str(snap), "--policy", str(policy_path),
+             "--state", str(state_path),
              "--priority-queue", str(tmp_path / "missing.md"), "--gate", str(n)],
             capture_output=True, text=True,
         ).returncode
@@ -519,6 +557,7 @@ def test_gate_cli_exit_code_is_fail_closed(tmp_path):
     assert gate(2) == 1
     assert gate(3) == 1
     assert gate(1, tmp_path / "absent-policy.json") == 1
+    assert gate(1, pol, tmp_path / "absent-state.json") == 1
 
 
 def run_smoke_test():
