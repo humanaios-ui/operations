@@ -1,3 +1,4 @@
+import hashlib
 import json
 import tempfile
 import unittest
@@ -62,6 +63,20 @@ class QueryExecutionReceiptTests(unittest.TestCase):
         args.update(overrides)
         return mint_query_execution_receipt(**args)
 
+    def rehash(self, payload):
+        out = dict(payload)
+        out.pop("receipt_sha256", None)
+        out["receipt_sha256"] = hashlib.sha256(
+            json.dumps(
+                out,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+                allow_nan=False,
+            ).encode("utf-8")
+        ).hexdigest()
+        return out
+
     def test_schema_preserves_privacy_and_non_authority_boundary(self):
         schema = json.loads(
             (ROOT / "schemas" / "query-execution-receipt.v1.schema.json").read_text()
@@ -103,6 +118,22 @@ class QueryExecutionReceiptTests(unittest.TestCase):
                 result_state="MATCHES_OBSERVED",
                 observed_record_count=0,
             )
+
+    def test_result_count_rejects_non_integer_types(self):
+        cases = [
+            ("ZERO_MATCHES_OBSERVED", False),
+            ("MATCHES_OBSERVED", True),
+            ("MATCHES_OBSERVED", 1.5),
+            ("MATCHES_OBSERVED", float("nan")),
+        ]
+        for state, count in cases:
+            with self.subTest(state=state, count=count):
+                with self.assertRaises(ValueError):
+                    self.receipt(
+                        execution_nonce="EXE-ABABABABABABABAB",
+                        result_state=state,
+                        observed_record_count=count,
+                    )
 
     def test_failed_observation_requires_null_count(self):
         receipt = self.receipt(
@@ -176,6 +207,22 @@ class QueryExecutionReceiptTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             self.receipt(query=other_query)
 
+    def test_oag_duplicated_lineage_must_match_exact_rqy(self):
+        substitutions = {
+            "subject_ref": "Jane Doe",
+            "query_token": "urn:humanaios:registry-query:RQY-FFFFFFFFFFFFFFFF",
+            "registry_mine_id": "MINE-FFFFFFFFFFFFFFFF",
+            "pathway_opportunity_id": "OPP-FFFFFFFFFFFFFFFF",
+            "query_class": "OTHER_QUERY",
+            "query_fields": ["owner_name"],
+            "expected_response_class": "OTHER_RESPONSE",
+        }
+        for field, value in substitutions.items():
+            with self.subTest(field=field):
+                forged = replace(self.authorization, **{field: value})
+                with self.assertRaises(PermissionError):
+                    self.receipt(authorization=forged)
+
     def test_forged_oag_policy_receipt_is_rejected(self):
         forged = replace(
             self.authorization,
@@ -217,6 +264,58 @@ class QueryExecutionReceiptTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             query_execution_receipt_from_dict(tampered)
 
+    def test_rehashed_contract_invalid_receipts_are_rejected(self):
+        base = self.receipt().to_dict()
+        mutations = [
+            {"executed_operation": "SUBMIT_CLAIM"},
+            {"prohibited_action_executed": True},
+            {"authority_effect": "OBSERVATION_ONLY"},
+            {
+                "result_state": "ZERO_MATCHES_OBSERVED",
+                "observed_record_count": 1,
+            },
+        ]
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                forged = dict(base)
+                forged.update(mutation)
+                forged = self.rehash(forged)
+                with self.assertRaises(ValueError):
+                    query_execution_receipt_from_dict(forged)
+
+    def test_rehashed_derived_identifier_tampering_is_rejected(self):
+        base = self.receipt().to_dict()
+        mutations = [
+            {
+                "receipt_id": "QRC-FFFFFFFFFFFFFFFF",
+                "receipt_token": (
+                    "urn:humanaios:query-execution-receipt:"
+                    "QRC-FFFFFFFFFFFFFFFF"
+                ),
+            },
+            {"consumption_key": "CON-FFFFFFFFFFFFFFFF"},
+            {
+                "query_token": (
+                    "urn:humanaios:registry-query:"
+                    "RQY-FFFFFFFFFFFFFFFF"
+                )
+            },
+        ]
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                forged = dict(base)
+                forged.update(mutation)
+                forged = self.rehash(forged)
+                with self.assertRaises(ValueError):
+                    query_execution_receipt_from_dict(forged)
+
+    def test_rehashed_privacy_unsafe_subject_ref_is_rejected(self):
+        forged = self.receipt().to_dict()
+        forged["subject_ref"] = "Jane Doe"
+        forged = self.rehash(forged)
+        with self.assertRaises(ValueError):
+            query_execution_receipt_from_dict(forged)
+
     def test_append_only_ledger_rejects_second_consumption(self):
         receipt = self.receipt()
         with tempfile.TemporaryDirectory() as tmp:
@@ -229,6 +328,19 @@ class QueryExecutionReceiptTests(unittest.TestCase):
             duplicate = self.receipt(execution_nonce="EXE-3333333333333333")
             with self.assertRaises(PermissionError):
                 append_query_execution_receipt(ledger, duplicate)
+
+    def test_append_revalidates_detached_snapshot_before_persisting(self):
+        receipt = self.receipt()
+        receipt.executed_query_fields[:] = [
+            "business_name",
+            "last_known_location",
+            "owner_name",
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger = Path(tmp) / "qrc.jsonl"
+            with self.assertRaises(ValueError):
+                append_query_execution_receipt(ledger, receipt)
+            self.assertFalse(ledger.exists())
 
     def test_finished_time_cannot_precede_start(self):
         with self.assertRaises(ValueError):
