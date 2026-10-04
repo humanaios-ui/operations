@@ -196,7 +196,24 @@
           "description": "Official Colorado unclaimed-property recovery pathway. This bounded opportunity represents access to the state recovery mechanism only; it does not establish that any specific claimant has property, owns a listed property, is eligible to claim, or has recovered funds.",
           "observe_url": true
         }
-      ]
+      ],
+      "query_contract": {
+        "queryable": true,
+        "query_class": "UNCLAIMED_PROPERTY_OWNER_SEARCH",
+        "semantic_query_fields": [
+          "owner_name",
+          "business_name",
+          "last_known_location"
+        ],
+        "transport_field_mapping": "PRIVATE_ADAPTER_ONLY",
+        "query_value_persistence": "PRIVATE_RUNTIME_ONLY",
+        "expected_response_class": "ZERO_OR_MORE_CANDIDATE_RECORDS",
+        "zero_result_semantics": "NO_MATCH_OBSERVED_NOT_NO_ENTITLEMENT",
+        "match_result_semantics": "CANDIDATE_RECORD_NOT_OWNERSHIP",
+        "explicit_subject_request_required": true,
+        "external_state_change": false,
+        "authority_effect": "NONE"
+      }
     }
   }
 ]
