@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.11
+# HumanAIOS Resource Miner v0.1.12
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -418,6 +418,24 @@ Persistent Mines may declare privacy-safe `evidence_origins` in configuration so
 Every route retains `execution_state=NOT_AUTHORIZED` and `authority_effect=NONE`, including routes whose `capability_state=AVAILABLE`.
 
 The scheduled Mine workflow persists `data/verification-routes.snapshot.jsonl`. See `docs/VERIFICATION_ROUTING.md`.
+
+### Subject-scoped registry query plans
+
+Queryable registry Mines now have a planning-only `RQY-*` layer between capability routing and any observation-authorization decision.
+
+```text
+REGISTRY MINE -> PATHWAY OPP -> RQY-* -> OAG-*
+```
+
+`RQY-*` stores only a privacy-safe `SUBJ-*` reference and semantic query-field names. Actual claimant/search values are `PRIVATE_RUNTIME_ONLY` and are not accepted by the public query-plan API.
+
+The Colorado Great Colorado Payback Mine declares the reusable `UNCLAIMED_PROPERTY_OWNER_SEARCH` query class with semantic fields `owner_name`, `business_name`, and `last_known_location`. Transport-specific field mapping remains private/adapter-owned.
+
+Every query plan requires an explicit subject request, must bind to an opportunity actually registered under the target REGISTRY Mine, and remains `planning_state=PLANNED`, `execution_state=NOT_AUTHORIZED`, `external_state_change=false`, `authority_effect=NONE`.
+
+Result semantics are deliberately bounded: `NO_MATCH_OBSERVED != NO_ENTITLEMENT` and `MATCH_OBSERVED != OWNERSHIP | ELIGIBILITY | CLAIM_AUTHORIZED | FUNDS_RECOVERED`.
+
+Use `python3 -m resource_miner.cli plan-registry-query ...` to create the plan object. The command does not perform a registry search. See `docs/SUBJECT_SCOPED_REGISTRY_QUERY.md`.
 
 ### Reconstructable Claim state machine
 
