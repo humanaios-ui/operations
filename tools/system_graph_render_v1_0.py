@@ -227,6 +227,13 @@ def main(argv=None) -> int:
         print(f"{args.check}: in sync with {os.path.relpath(args.input, ROOT)}")
         return 0
     if args.out:
+        # Reject identical real paths to prevent source destruction
+        real_input = os.path.realpath(args.input)
+        real_output = os.path.realpath(args.out)
+        if real_input == real_output:
+            print(f"error: --out and --input resolve to the same file ({real_output}); "
+                  "refusing to overwrite source JSON with Markdown", file=sys.stderr)
+            return 2
         with open(args.out, "w", encoding="utf-8") as fh:
             fh.write(md + "\n")
         print(f"wrote {args.out}")
