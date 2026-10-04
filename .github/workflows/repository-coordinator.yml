@@ -25,15 +25,18 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  issue_comment:
+    types: [created]
 
 permissions: {}
 
 concurrency:
-  group: repository-coordinator-${{ github.event.pull_request.number || github.ref }}
+  group: repository-coordinator-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   index:
+    if: github.event_name != 'issue_comment'
     name: Build repository coordination index (ADVISORY)
     runs-on: ubuntu-latest
     permissions:
@@ -446,3 +449,229 @@ jobs:
                 owner, repo, issue_number, body
               });
             }
+
+  state_mutation:
+    name: Apply authorized issue admission event
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request == null
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Prepare authorized issue-route event
+        id: prepare
+        uses: actions/github-script@v9
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_ACTOR: ${{ github.event.comment.user.login }}
+          COMMENT_CREATED_AT: ${{ github.event.comment.created_at }}
+        with:
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+            const policyText = fs.readFileSync("REPOSITORY_COORDINATOR_POLICY.json", "utf8");
+            const policy = JSON.parse(policyText);
+            const cfg = policy.state_mutation || {};
+            const commands = cfg.commands || {};
+            const body = String(process.env.COMMENT_BODY || "").trim();
+            const actor = String(process.env.COMMENT_ACTOR || "");
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const commentId = String(process.env.COMMENT_ID || "");
+            const action =
+              body === String(commands.admit || "") ? "ADMIT" :
+              body === String(commands.revoke || "") ? "REVOKE" :
+              null;
+
+            if (!action) {
+              core.notice("Issue comment is not a coordinator state command; no mutation.");
+              core.setOutput("should_run", "false");
+              return;
+            }
+
+            const authorized = new Set((cfg.authorized_actors || []).map(String));
+            if (!authorized.has(actor)) {
+              core.setFailed(`@${actor} is not authorized to mutate coordinator state.`);
+              return;
+            }
+            if (cfg.subject_kind !== "ISSUE" || cfg.merge_authority !== false) {
+              core.setFailed("Unsupported or unsafe state_mutation policy.");
+              return;
+            }
+
+            const stateCfg = policy.state_source || {};
+            const stateBranch = String(stateCfg.branch || "");
+            const ledgerPath = String(stateCfg.ledger_path || "");
+            const projectionPath = String(stateCfg.projection_path || "");
+            if (!stateBranch || !ledgerPath || !projectionPath) {
+              core.setFailed("Coordinator state source is incomplete.");
+              return;
+            }
+
+            const branchResp = await github.rest.repos.getBranch({
+              owner, repo, branch: stateBranch
+            });
+            const oldHead = branchResp.data.commit.sha;
+
+            const readAt = async path => {
+              const response = await github.rest.repos.getContent({
+                owner, repo, path, ref: oldHead
+              });
+              if (Array.isArray(response.data) || !response.data.content) {
+                throw new Error(`expected file at ${path}@${oldHead}`);
+              }
+              return Buffer.from(response.data.content, "base64").toString("utf8");
+            };
+
+            const [ledgerText, stateText] = await Promise.all([
+              readAt(ledgerPath),
+              readAt(projectionPath)
+            ]);
+            const state = JSON.parse(stateText);
+            const key = `ISSUE#${issueNumber}`;
+            const activeEvent = (state.active_event_ids || {})[key] || null;
+
+            if (action === "ADMIT" && activeEvent) {
+              core.notice(`Issue #${issueNumber} is already admitted by ${activeEvent}; no-op.`);
+              core.setOutput("should_run", "false");
+              return;
+            }
+            if (action === "REVOKE" && !activeEvent) {
+              core.notice(`Issue #${issueNumber} is not currently admitted; no-op.`);
+              core.setOutput("should_run", "false");
+              return;
+            }
+
+            const event = {
+              actor,
+              authority_effect: "ADMISSION_ROUTING_ONLY",
+              decision: action,
+              event_id: `RCSEVT-COMMENT-${commentId}`,
+              evidence: [
+                `Authorized issue comment command ${body} on issue #${issueNumber}.`,
+                `GitHub issue comment id ${commentId} by @${actor}.`
+              ],
+              lane: "WORKING_SET",
+              merge_authority: false,
+              objective_issue_number: issueNumber,
+              recorded_at: String(process.env.COMMENT_CREATED_AT || ""),
+              schema: "humanaios.repository-coordinator-event.v1",
+              source_policy_sha: context.sha,
+              subject_kind: "ISSUE",
+              subject_number: issueNumber,
+              supersedes_event_id: action === "REVOKE" ? activeEvent : null
+            };
+
+            fs.mkdirSync(".repo-coordinator", { recursive: true });
+            fs.writeFileSync(".repo-coordinator/ADMISSION_LEDGER.jsonl", ledgerText);
+            fs.writeFileSync(".repo-coordinator/COORDINATOR_STATE.json", stateText);
+            fs.writeFileSync(
+              ".repo-coordinator/event.json",
+              JSON.stringify(event, null, 2) + "\n"
+            );
+
+            core.setOutput("should_run", "true");
+            core.setOutput("old_head", oldHead);
+            core.setOutput("state_branch", stateBranch);
+            core.setOutput("ledger_path", ledgerPath);
+            core.setOutput("projection_path", projectionPath);
+            core.setOutput("action", action);
+            core.setOutput("issue_number", String(issueNumber));
+
+      - name: Replay ledger and materialize new state
+        if: steps.prepare.outputs.should_run == 'true'
+        run: |
+          set -euo pipefail
+          python3 tools/repository_coordinator_v0_1.py \
+            --ledger .repo-coordinator/ADMISSION_LEDGER.jsonl \
+            --state .repo-coordinator/COORDINATOR_STATE.json \
+            --append-event-json .repo-coordinator/event.json \
+            > .repo-coordinator/mutation-result.json
+
+      - name: Atomically advance coordinator-state branch
+        if: steps.prepare.outputs.should_run == 'true'
+        uses: actions/github-script@v9
+        env:
+          OLD_HEAD: ${{ steps.prepare.outputs.old_head }}
+          STATE_BRANCH: ${{ steps.prepare.outputs.state_branch }}
+          LEDGER_PATH: ${{ steps.prepare.outputs.ledger_path }}
+          PROJECTION_PATH: ${{ steps.prepare.outputs.projection_path }}
+          ACTION: ${{ steps.prepare.outputs.action }}
+          ISSUE_NUMBER: ${{ steps.prepare.outputs.issue_number }}
+        with:
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+            const oldHead = String(process.env.OLD_HEAD);
+            const stateBranch = String(process.env.STATE_BRANCH);
+            const ledgerPath = String(process.env.LEDGER_PATH);
+            const projectionPath = String(process.env.PROJECTION_PATH);
+            const ledgerText = fs.readFileSync(".repo-coordinator/ADMISSION_LEDGER.jsonl", "utf8");
+            const stateText = fs.readFileSync(".repo-coordinator/COORDINATOR_STATE.json", "utf8");
+
+            // Re-read the branch immediately before constructing the commit.
+            // A mismatch is a lease failure; never overwrite concurrent state.
+            const live = await github.rest.repos.getBranch({
+              owner, repo, branch: stateBranch
+            });
+            if (live.data.commit.sha !== oldHead) {
+              core.setFailed(
+                `coordinator state advanced from ${oldHead} to ${live.data.commit.sha}; retry command`
+              );
+              return;
+            }
+
+            const parent = await github.rest.git.getCommit({
+              owner, repo, commit_sha: oldHead
+            });
+            const [ledgerBlob, stateBlob] = await Promise.all([
+              github.rest.git.createBlob({
+                owner, repo, content: ledgerText, encoding: "utf-8"
+              }),
+              github.rest.git.createBlob({
+                owner, repo, content: stateText, encoding: "utf-8"
+              })
+            ]);
+            const tree = await github.rest.git.createTree({
+              owner,
+              repo,
+              base_tree: parent.data.tree.sha,
+              tree: [
+                { path: ledgerPath, mode: "100644", type: "blob", sha: ledgerBlob.data.sha },
+                { path: projectionPath, mode: "100644", type: "blob", sha: stateBlob.data.sha }
+              ]
+            });
+            const commit = await github.rest.git.createCommit({
+              owner,
+              repo,
+              message: `coordinator-state: ${process.env.ACTION} issue #${process.env.ISSUE_NUMBER}`,
+              tree: tree.data.sha,
+              parents: [oldHead]
+            });
+
+            // force=false makes a concurrent branch advance reject this update
+            // rather than overwrite history.
+            await github.rest.git.updateRef({
+              owner,
+              repo,
+              ref: `heads/${stateBranch}`,
+              sha: commit.data.sha,
+              force: false
+            });
+            core.summary
+              .addHeading("Repository Coordinator state mutation")
+              .addRaw(`Issue #${process.env.ISSUE_NUMBER}: ${process.env.ACTION}\n\n`)
+              .addRaw(`State branch: ${stateBranch}\n\n`)
+              .addRaw(`Previous head: ${oldHead}\n\n`)
+              .addRaw(`New head: ${commit.data.sha}\n`)
+              .write();
