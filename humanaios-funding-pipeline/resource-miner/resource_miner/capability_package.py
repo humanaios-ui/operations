@@ -129,6 +129,7 @@ def _screen_package(
     resources: dict[str, ResourceCandidate],
     resource_screens: dict[str, ResourceScreen],
     required_coverage_state: str,
+    allowed_network_behaviors: set[str] | None = None,
 ) -> tuple[str, list[str]]:
     findings: list[str] = []
     hard_fail = required_coverage_state != "COMPLETE"
@@ -181,6 +182,15 @@ def _screen_package(
         elif screen.permissions_state == "UNKNOWN":
             unknown = True
             findings.append(f"PERMISSIONS_UNKNOWN:{resource_id}")
+
+        if (
+            allowed_network_behaviors is not None
+            and screen.network_behavior not in allowed_network_behaviors
+        ):
+            hard_fail = True
+            findings.append(
+                f"NETWORK_BEHAVIOR_POLICY_CONFLICT:{resource_id}:{screen.network_behavior}"
+            )
 
         if screen.network_behavior in {"ACTIVE", "TARGET_ACTIVE", "MIXED"}:
             conditional = True
@@ -380,11 +390,24 @@ def compose_capability_package(
     )
 
     selected_resource_ids = sorted({row.resource_id for row in selected})
+    allowed_network_behaviors_raw = profile.source_metadata.get(
+        "allowed_network_behaviors"
+    )
+    allowed_network_behaviors = (
+        {
+            str(value).strip().upper()
+            for value in allowed_network_behaviors_raw
+            if str(value).strip()
+        }
+        if isinstance(allowed_network_behaviors_raw, list)
+        else None
+    )
     screen_state, findings = _screen_package(
         selected_resource_ids=selected_resource_ids,
         resources=resource_by_id,
         resource_screens=screen_by_resource,
         required_coverage_state=required_coverage_state,
+        allowed_network_behaviors=allowed_network_behaviors,
     )
     suitability_ids = sorted({row.assessment_id for row in selected})
     evidence = _dedupe_evidence(
