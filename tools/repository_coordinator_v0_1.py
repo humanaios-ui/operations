@@ -572,6 +572,7 @@ def classify(
     referenced_items: dict[str, dict[str, Any]],
     active_gates: list[str],
     policy: dict[str, Any],
+    state: dict[str, Any] | None,
     capacity_contention: bool,
     duplicate_objectives: dict[int, list[int]] | None = None,
 ) -> dict[str, Any]:
@@ -584,6 +585,7 @@ def classify(
         pr,
         policy=policy,
         referenced_items=referenced_items,
+        state=state,
     )
     lane = "CAPACITY_CONTENTION" if capacity_contention and base_lane == "ACTIVE" else base_lane
 
@@ -839,6 +841,7 @@ def analyze(
             referenced_items=referenced_items,
             active_gates=gates,
             policy=policy,
+            state=state,
             capacity_contention=capacity_contention,
             duplicate_objectives=duplicate_objectives,
         )
