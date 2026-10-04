@@ -4,7 +4,7 @@
   "checks": {
     "agent-principle-compliance-check": {
       "conclusion": "success",
-      "p": 0.96
+      "p": 0.98
     },
     "builder-lint": {
       "conclusion": "success",
@@ -12,7 +12,7 @@
     },
     "document-control": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.99
     },
     "manifest-sync-gate": {
       "conclusion": "success",
@@ -20,19 +20,23 @@
     },
     "No-op PR guard": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.99
     },
     "quality-baseline": {
       "conclusion": "success",
-      "p": 0.96
+      "p": 0.98
+    },
+    "repository-admission-gate": {
+      "conclusion": "success",
+      "p": 0.97
     },
     "repository-coordinator": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.99
     },
     "security-gates": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.99
     },
     "tool-manifest": {
       "conclusion": "success",
@@ -44,8 +48,8 @@
     },
     "workflow-path-validation": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.99
     }
   },
-  "note": "Final prediction-bearing head after consolidating state tests below the P19 atomic-diff threshold. Repository admission is excluded because it is control-plane routing state rather than implementation correctness."
+  "note": "Final prediction-bearing head after authorized-mutator enforcement, target-head receipts, workflow inventory documentation, atomic test consolidation, and dual-mode trusted bootstrap enforcement. State mutations remain serialized and non-merge-authoritative."
 }
