@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.13
+# HumanAIOS Resource Miner v0.1.14
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -454,6 +454,26 @@ The OAG object never contains raw claimant/search values. It records only the op
 Claim creation/submission/update, document upload, private claim-status access, account or credential mutation, messaging, payment, purchase, and fund transfer are hard-denied. `claim_submission_permitted=false` and `consequential_actions_permitted=false` are schema invariants.
 
 Use `python3 -m resource_miner.cli authorize-registry-observation --query-plan <rqy.json>` to evaluate the gate. The command does not execute the registry query. See `docs/OBSERVATION_AUTHORIZATION_GATE.md`.
+
+### One-shot query execution receipts
+
+`QRC-*` records one completed private registry observation after an exact `OAG-*` authorization has been consumed.
+
+```text
+RQY-* -> OAG-* -> private runtime -> QRC-* -> later RMO-*
+```
+
+A QRC does not perform the registry query. It records lineage and scope after the private runtime has executed the observation. Minting requires both the exact public `RQY-*` and its covering `OAG-*`.
+
+The receipt requires an opaque `PSB-*` private subject-binding attestation, exact authorized semantic fields, an authorized origin, a one-shot `EXE-*` execution nonce, timestamps, and a bounded result state: `ZERO_MATCHES_OBSERVED`, `MATCHES_OBSERVED`, or `OBSERVATION_FAILED`.
+
+The runtime QRC ledger is append-only and git-ignored. A second receipt for the same `OAG-*` / consumption key is rejected under an exclusive file lock, so the historical OAG remains immutable while the ledger proves one-shot consumption.
+
+No claimant/search values, raw request, raw response, cookies, tokens, or private claim identifiers are accepted into the public receipt. `authority_effect=NONE`: QRC is evidence that observation authority was consumed, not new authority.
+
+Result semantics remain bounded: `ZERO_MATCHES_OBSERVED != NO_ENTITLEMENT` and `MATCHES_OBSERVED != OWNERSHIP | ELIGIBILITY | CLAIM_AUTHORIZED | FUNDS_RECOVERED`.
+
+Use `python3 -m resource_miner.cli record-registry-query-execution ...` only to record an observation already completed by a private runtime. The command has no registry transport. See `docs/QUERY_EXECUTION_RECEIPT.md`.
 
 ### Reconstructable Claim state machine
 
