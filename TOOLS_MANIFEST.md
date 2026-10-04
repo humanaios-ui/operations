@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**196 registered tools** · 2 MCP servers · 4 excluded · 149 carrying Builder v1.7 markers
+**197 registered tools** · 2 MCP servers · 4 excluded · 150 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 196 |
-| — status `draft` | 195 |
+| Registered tools | 197 |
+| — status `draft` | 196 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 149 |
+| Builder v1.7 markers present | 150 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -223,7 +223,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-203 | control_plane_github_adapter | `tools/control_plane_github_adapter_v0_1.py` | 0.1.0 | 1 | draft | — | Transform exported GitHub evidence into authority-neutral raw custody observations. |
 | HAIOS-TOOL-208 | machine_graph_collect_macos | `tools/machine_graph/collect_macos.py` | 0.1.0 | 1 | draft | — | Metadata-first and local-only by design. It does not read user document contents. |
 
-## Reporting — `reporting_tool` (6)
+## Reporting — `reporting_tool` (7)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -233,6 +233,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-078 | haios_report_writer | `tools/haios_report_writer_v1_0.py` | 1.0.0 | 1 | draft | — | HAIOS Report Writer — v1.0 |
 | HAIOS-TOOL-107 | registry_site_generator | `tools/registry_site_generator_v1_0.py` | 1.0.0 | 1 | draft | — | Reads REGISTERED.md, parses F-class / IC-class / H-class entries, |
 | HAIOS-TOOL-196 | map-to-mitigation | `scripts/map-to-mitigation.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Topic-to-Mitigation Mapper |
+| HAIOS-TOOL-210 | system_graph_render | `tools/system_graph_render_v1_0.py` | 1.0.0 | 1 | draft | — | Renders system_graph.json to Markdown with a provenance header (source sha256, source generated_at, rendering commit) so prose copies of the system graph, including the Google Drive mirror, point back at the file they came from; --check detects drift of a rendered copy. |
 
 ## Research — `research_tool` (10)
 
@@ -343,7 +344,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 6 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
-| `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 6 |
+| `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 7 |
 | `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
