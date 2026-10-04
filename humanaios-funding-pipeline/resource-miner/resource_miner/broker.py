@@ -18,6 +18,8 @@ PROVIDER_CLASSES = {
 }
 SUITABILITY_STATES = {"ADEQUATE", "PARTIAL", "INADEQUATE", "UNKNOWN"}
 SCREEN_STATES = {"PASS", "PASS_WITH_CONDITIONS", "FAIL", "UNKNOWN"}
+LICENSE_STATES = {"ALLOWABLE", "RESTRICTED", "TERMS_REVIEW_REQUIRED", "UNKNOWN"}
+CREDENTIAL_REQUIREMENT_STATES = {"NONE", "OPTIONAL", "REQUIRED", "UNKNOWN"}
 NETWORK_BEHAVIOR_STATES = {
     "NONE",
     "READ_ONLY",
@@ -281,16 +283,24 @@ def screen_resource(
     least_privilege_compatible: bool | None,
 ) -> ResourceScreen:
     normalized_network_behavior = network_behavior.strip().upper()
+    normalized_license_state = license_state.strip().upper()
+    normalized_credential_requirement = credential_requirement.strip().upper()
+    if normalized_license_state not in LICENSE_STATES:
+        raise ValueError(f"unsupported license_state: {normalized_license_state}")
+    if normalized_credential_requirement not in CREDENTIAL_REQUIREMENT_STATES:
+        raise ValueError(
+            f"unsupported credential_requirement: {normalized_credential_requirement}"
+        )
     if normalized_network_behavior not in NETWORK_BEHAVIOR_STATES:
         raise ValueError(
             f"unsupported network_behavior: {normalized_network_behavior}"
         )
     values = {
         "provenance_state": provenance_state.strip().upper(),
-        "license_state": license_state.strip().upper(),
+        "license_state": normalized_license_state,
         "permissions_state": permissions_state.strip().upper(),
         "network_behavior": normalized_network_behavior,
-        "credential_requirement": credential_requirement.strip().upper(),
+        "credential_requirement": normalized_credential_requirement,
         "auditability": auditability.strip().upper(),
     }
     findings: list[str] = []
