@@ -663,3 +663,66 @@ def test_gate_cli_requires_state_when_policy_declares_state_source(tmp_path):
     )
     assert result.returncode == 1
     assert "coordinator state or ledger missing" in result.stdout
+
+
+def test_append_event_cli_updates_ledger_and_projection(tmp_path):
+    import json
+    import subprocess
+
+    ledger = _ledger(_event("E1", "ADMIT", "ISSUE", 77))
+    state = replay_admission_ledger(ledger)
+    ledger_path = tmp_path / "ADMISSION_LEDGER.jsonl"
+    state_path = tmp_path / "COORDINATOR_STATE.json"
+    event_path = tmp_path / "event.json"
+    ledger_path.write_text(ledger)
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+    event_path.write_text(json.dumps(
+        _event("E2", "REVOKE", "ISSUE", 77, supersedes="E1"),
+        indent=2,
+    ) + "\n")
+
+    tool = TOOLS / "repository_coordinator_v0_1.py"
+    result = subprocess.run(
+        [
+            sys.executable, str(tool),
+            "--ledger", str(ledger_path),
+            "--state", str(state_path),
+            "--append-event-json", str(event_path),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    updated = json.loads(state_path.read_text())
+    assert updated["admitted_issue_numbers"] == []
+    assert updated["ledger_event_count"] == 2
+    assert validate_coordinator_state(ledger_path.read_text(), updated) == updated
+
+
+def test_append_event_cli_refuses_stale_projection(tmp_path):
+    import json
+    import subprocess
+
+    ledger = _ledger(_event("E1", "ADMIT", "ISSUE", 77))
+    state = replay_admission_ledger(ledger)
+    state["admitted_issue_numbers"] = []
+    ledger_path = tmp_path / "ADMISSION_LEDGER.jsonl"
+    state_path = tmp_path / "COORDINATOR_STATE.json"
+    event_path = tmp_path / "event.json"
+    ledger_path.write_text(ledger)
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+    event_path.write_text(json.dumps(_event("E2", "ADMIT", "ISSUE", 88)) + "\n")
+
+    tool = TOOLS / "repository_coordinator_v0_1.py"
+    result = subprocess.run(
+        [
+            sys.executable, str(tool),
+            "--ledger", str(ledger_path),
+            "--state", str(state_path),
+            "--append-event-json", str(event_path),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+    assert "state mutation refused" in result.stdout
