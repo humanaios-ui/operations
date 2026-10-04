@@ -18,6 +18,30 @@ on:
     types:
       - submitted
       - dismissed
+  workflow_dispatch:
+    inputs:
+      decision:
+        description: Admission-state decision
+        required: true
+        type: choice
+        options: [ADMIT, REVOKE]
+      subject_kind:
+        description: Subject type
+        required: true
+        type: choice
+        options: [ISSUE, PULL_REQUEST]
+      subject_number:
+        description: Issue or PR number
+        required: true
+        type: string
+      objective_issue_number:
+        description: Optional objective issue number
+        required: false
+        type: string
+      evidence:
+        description: Human-readable evidence for this state event
+        required: true
+        type: string
 
 permissions: {}
 
@@ -27,6 +51,7 @@ concurrency:
 
 jobs:
   gate:
+    if: github.event_name != 'workflow_dispatch'
     name: Repository admission/backpressure gate
     runs-on: ubuntu-latest
     permissions:
@@ -306,3 +331,122 @@ jobs:
             .repo-coordinator/policy.sha
           retention-days: 30
           if-no-files-found: ignore
+
+
+  mutate:
+    name: Append coordinator state event
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: repository-coordinator-state-mutation
+      cancel-in-progress: false
+    steps:
+      - name: Checkout trusted control law from main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: trusted-main
+          persist-credentials: false
+
+      - name: Authorize state mutator
+        env:
+          ACTOR: ${{ github.actor }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          policy = json.loads(
+              Path("trusted-main/REPOSITORY_COORDINATOR_POLICY.json").read_text(encoding="utf-8")
+          )
+          allowed = set((policy.get("state") or {}).get("authorized_mutators") or [])
+          actor = os.environ["ACTOR"]
+          if actor not in allowed:
+              raise SystemExit(f"actor {actor!r} is not authorized to mutate coordinator state")
+          print(f"authorized_mutator={actor}")
+          PY
+
+      - name: Checkout coordinator state branch
+        uses: actions/checkout@v7
+        with:
+          ref: repository-coordinator-state
+          path: coordinator-state
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Verify current state before mutation
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Append one event and replay projection
+        env:
+          DECISION: ${{ inputs.decision }}
+          SUBJECT_KIND: ${{ inputs.subject_kind }}
+          SUBJECT_NUMBER: ${{ inputs.subject_number }}
+          OBJECTIVE_ISSUE_NUMBER: ${{ inputs.objective_issue_number }}
+          EVIDENCE: ${{ inputs.evidence }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
+          RECORDED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          args=(
+            append
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl
+            --state coordinator-state/COORDINATOR_STATE.json
+            --decision "$DECISION"
+            --subject-kind "$SUBJECT_KIND"
+            --subject-number "$SUBJECT_NUMBER"
+            --actor "$ACTOR"
+            --evidence "$EVIDENCE"
+            --recorded-at "$RECORDED_AT"
+            --source-policy-sha "$POLICY_SHA"
+          )
+          if [ -n "$OBJECTIVE_ISSUE_NUMBER" ]; then
+            args+=(--objective-issue-number "$OBJECTIVE_ISSUE_NUMBER")
+          fi
+          python3 trusted-main/tools/repository_coordinator_state_v1.py "${args[@]}" \
+            | tee coordinator-state/.state-event-result.json
+
+      - name: Verify replay after mutation
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Commit ledger and projection together
+        env:
+          DECISION: ${{ inputs.decision }}
+          SUBJECT_KIND: ${{ inputs.subject_kind }}
+          SUBJECT_NUMBER: ${{ inputs.subject_number }}
+        run: |
+          set -euo pipefail
+          cd coordinator-state
+          git config user.name "repository-coordinator-state[bot]"
+          git config user.email "repository-coordinator-state@users.noreply.github.com"
+          git add ADMISSION_LEDGER.jsonl COORDINATOR_STATE.json
+          git diff --cached --quiet && {
+            echo "::error::state mutation produced no ledger/projection change"
+            exit 1
+          }
+          git commit -m "coordinator-state: $DECISION $SUBJECT_KIND #$SUBJECT_NUMBER"
+          git push origin HEAD:repository-coordinator-state
+          {
+            echo "## Repository Coordinator state mutation"
+            echo
+            echo "- Decision: `$DECISION`"
+            echo "- Subject: `$SUBJECT_KIND#$SUBJECT_NUMBER`"
+            echo "- State commit: `$(git rev-parse HEAD)`"
+            echo
+            echo "Admission routing only; this event does not authorize merge."
+          } >> "$GITHUB_STEP_SUMMARY"
