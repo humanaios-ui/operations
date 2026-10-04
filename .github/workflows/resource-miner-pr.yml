@@ -204,6 +204,157 @@ jobs:
           assert forbidden.isdisjoint(deny)
           PY
 
+      - name: Exercise one-shot QRC receipt consumption
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          from resource_miner.mines import load_mines, stable_opportunity_id
+
+          mines = load_mines("data/mines.seed.json")
+          colorado = next(
+              mine for mine in mines
+              if mine.name == "Colorado Great Colorado Payback"
+          )
+          configured = colorado.config["opportunities"][0]
+          pathway_id = stable_opportunity_id(
+              colorado.mine_id,
+              configured.get("opportunity_identity") or configured["url"],
+              configured["opportunity_kind"],
+          )
+
+          rqy_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "plan-registry-query",
+              "--mine-id",
+              colorado.mine_id,
+              "--pathway-opportunity-id",
+              pathway_id,
+              "--subject-ref",
+              "SUBJ-AAAAAAAAAAAAAAAA",
+              "--subject-kind",
+              "NATURAL_PERSON",
+              "--query-field",
+              "owner_name",
+              "--query-field",
+              "last_known_location",
+              "--explicit-subject-request",
+          ]
+          rqy = json.loads(subprocess.check_output(rqy_cmd, text=True))
+          rqy_path = Path("/tmp/qrc-rqy.json")
+          rqy_path.write_text(json.dumps(rqy, sort_keys=True), encoding="utf-8")
+
+          oag_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "authorize-registry-observation",
+              "--query-plan",
+              str(rqy_path),
+          ]
+          oag = json.loads(subprocess.check_output(oag_cmd, text=True))
+          assert oag["decision"] == "ALLOW_OBSERVATION"
+          oag_path = Path("/tmp/qrc-oag.json")
+          oag_path.write_text(json.dumps(oag, sort_keys=True), encoding="utf-8")
+
+          ledger = Path("/tmp/qrc-ledger.jsonl")
+          if ledger.exists():
+              ledger.unlink()
+
+          receipt_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "record-registry-query-execution",
+              "--query-plan",
+              str(rqy_path),
+              "--authorization",
+              str(oag_path),
+              "--private-subject-binding-attestation-id",
+              "PSB-BBBBBBBBBBBBBBBB",
+              "--query-field",
+              "owner_name",
+              "--query-field",
+              "last_known_location",
+              "--observed-origin-key",
+              "unclaimedproperty.colorado.gov",
+              "--execution-nonce",
+              "EXE-CCCCCCCCCCCCCCCC",
+              "--started-at",
+              "2026-10-04T09:00:00Z",
+              "--finished-at",
+              "2026-10-04T09:00:01Z",
+              "--result-state",
+              "ZERO_MATCHES_OBSERVED",
+              "--observed-record-count",
+              "0",
+              "--ledger",
+              str(ledger),
+          ]
+          receipt = json.loads(subprocess.check_output(receipt_cmd, text=True))
+          assert receipt["receipt_id"].startswith("QRC-")
+          assert receipt["authorization_id"] == oag["authorization_id"]
+          assert receipt["query_id"] == rqy["query_id"]
+          assert receipt["private_subject_binding_attested"] is True
+          assert receipt["result_state"] == "ZERO_MATCHES_OBSERVED"
+          assert receipt["observed_record_count"] == 0
+          assert receipt["authorization_consumed"] is True
+          assert receipt["authorization_consumption_ordinal"] == 1
+          assert receipt["evidence_effect"] == "OBSERVATION_RECEIPT_ONLY"
+          assert receipt["authority_effect"] == "NONE"
+          assert receipt["private_query_values_exposed"] is False
+          assert receipt["raw_request_exposed"] is False
+          assert receipt["raw_response_exposed"] is False
+          assert receipt["external_state_change"] is False
+          assert receipt["claim_submission_permitted"] is False
+          assert receipt["prohibited_action_executed"] is False
+          assert len(receipt["receipt_sha256"]) == 64
+
+          lines = [
+              line for line in ledger.read_text(encoding="utf-8").splitlines()
+              if line.strip()
+          ]
+          assert len(lines) == 1
+
+          duplicate = list(receipt_cmd)
+          duplicate[duplicate.index("EXE-CCCCCCCCCCCCCCCC")] = (
+              "EXE-DDDDDDDDDDDDDDDD"
+          )
+          duplicate_run = subprocess.run(
+              duplicate,
+              text=True,
+              capture_output=True,
+          )
+          assert duplicate_run.returncode != 0
+          assert "already been consumed" in (
+              duplicate_run.stdout + duplicate_run.stderr
+          )
+
+          forbidden = {
+              "query_values",
+              "raw_query_values",
+              "owner_name_value",
+              "business_name_value",
+              "last_known_location_value",
+              "date_of_birth",
+              "ssn",
+              "tax_id",
+              "email",
+              "phone",
+              "address",
+              "claim_id",
+              "cookie",
+              "session_token",
+          }
+          assert forbidden.isdisjoint(receipt)
+          PY
+
       - name: Exercise persistent Mine resolver contract
         working-directory: humanaios-funding-pipeline/resource-miner
         env:
