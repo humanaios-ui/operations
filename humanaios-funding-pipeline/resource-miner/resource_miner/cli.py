@@ -15,6 +15,7 @@ from .mines import load_mines, receipts_to_jsonl, resolve_mines
 from .observation_authorization import (
     OBSERVATION_OPERATION,
     evaluate_observation_authorization,
+    observation_authorization_from_dict,
 )
 from .opportunity_claim import claims_from_propositions, write_claims_jsonl
 from .proposition import propositions_from_candidates, write_propositions_jsonl
@@ -29,6 +30,11 @@ from .verification_routing import (
     write_verification_routes_jsonl,
 )
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
+from .query_execution_receipt import (
+    append_query_execution_receipt,
+    load_query_execution_receipts,
+    mint_query_execution_receipt,
+)
 from .registry_query import plan_registry_query, registry_query_from_dict
 from .store import write_jsonl
 from .sources import devto, funding_pipeline, github, rss
@@ -94,6 +100,33 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--events-ledger", default=str(DEFAULT_CLAIM_EVENTS))
     resolve.add_argument("--dry-run", action="store_true")
 
+    qrc = sub.add_parser(
+        "record-registry-query-execution",
+        help="Record a completed private registry observation as a one-shot QRC receipt",
+    )
+    qrc.add_argument("--query-plan", required=True)
+    qrc.add_argument("--authorization", required=True)
+    qrc.add_argument("--private-subject-binding-attestation-id", required=True)
+    qrc.add_argument("--query-field", action="append", required=True)
+    qrc.add_argument("--observed-origin-key", required=True)
+    qrc.add_argument("--execution-nonce", required=True)
+    qrc.add_argument("--started-at", required=True)
+    qrc.add_argument("--finished-at", required=True)
+    qrc.add_argument(
+        "--result-state",
+        required=True,
+        choices=[
+            "ZERO_MATCHES_OBSERVED",
+            "MATCHES_OBSERVED",
+            "OBSERVATION_FAILED",
+        ],
+    )
+    qrc.add_argument("--observed-record-count", type=int)
+    qrc.add_argument(
+        "--ledger",
+        default=str(ROOT / "data" / "query-execution-receipts.jsonl"),
+    )
+
     observation_gate = sub.add_parser(
         "authorize-registry-observation",
         help="Evaluate one exact RQY plan for bounded observation authority",
@@ -144,6 +177,40 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    if args.command == "record-registry-query-execution":
+        query_payload = json.loads(
+            Path(args.query_plan).read_text(encoding="utf-8")
+        )
+        authorization_payload = json.loads(
+            Path(args.authorization).read_text(encoding="utf-8")
+        )
+        query_plan = registry_query_from_dict(query_payload)
+        authorization = observation_authorization_from_dict(
+            authorization_payload
+        )
+        prior_receipts = load_query_execution_receipts(args.ledger)
+        count = args.observed_record_count
+        if args.result_state == "OBSERVATION_FAILED":
+            count = None
+        receipt = mint_query_execution_receipt(
+            authorization=authorization,
+            query=query_plan,
+            private_subject_binding_attestation_id=(
+                args.private_subject_binding_attestation_id
+            ),
+            executed_query_fields=args.query_field,
+            observed_origin_key=args.observed_origin_key,
+            execution_nonce=args.execution_nonce,
+            started_at=args.started_at,
+            finished_at=args.finished_at,
+            result_state=args.result_state,
+            observed_record_count=count,
+            prior_receipts=prior_receipts,
+        )
+        append_query_execution_receipt(args.ledger, receipt)
+        print(json.dumps(receipt.to_dict(), indent=2, ensure_ascii=False))
+        return
 
     if args.command == "authorize-registry-observation":
         payload = json.loads(Path(args.query_plan).read_text(encoding="utf-8"))
