@@ -18,6 +18,17 @@ PROVIDER_CLASSES = {
 }
 SUITABILITY_STATES = {"ADEQUATE", "PARTIAL", "INADEQUATE", "UNKNOWN"}
 SCREEN_STATES = {"PASS", "PASS_WITH_CONDITIONS", "FAIL", "UNKNOWN"}
+NETWORK_BEHAVIOR_STATES = {
+    "NONE",
+    "READ_ONLY",
+    "ACTIVE",
+    "PASSIVE_PUBLIC_SOURCE",
+    "THIRD_PARTY_API_READ_ONLY",
+    "TARGET_READ_ONLY",
+    "TARGET_ACTIVE",
+    "MIXED",
+    "UNKNOWN",
+}
 ACTIONS = {
     "REVIEW_RESOURCE_METADATA",
     "COMPOSE_CAPABILITY_PACKAGE",
@@ -269,11 +280,16 @@ def screen_resource(
     auditability: str,
     least_privilege_compatible: bool | None,
 ) -> ResourceScreen:
+    normalized_network_behavior = network_behavior.strip().upper()
+    if normalized_network_behavior not in NETWORK_BEHAVIOR_STATES:
+        raise ValueError(
+            f"unsupported network_behavior: {normalized_network_behavior}"
+        )
     values = {
         "provenance_state": provenance_state.strip().upper(),
         "license_state": license_state.strip().upper(),
         "permissions_state": permissions_state.strip().upper(),
-        "network_behavior": network_behavior.strip().upper(),
+        "network_behavior": normalized_network_behavior,
         "credential_requirement": credential_requirement.strip().upper(),
         "auditability": auditability.strip().upper(),
     }
@@ -316,7 +332,15 @@ def screen_resource(
         findings.append(f"license_state={values['license_state']}")
     if values["permissions_state"] != "MINIMAL":
         findings.append(f"permissions_state={values['permissions_state']}")
-    if values["network_behavior"] not in {"READ_ONLY", "NONE"}:
+    if values["network_behavior"] in {"THIRD_PARTY_API_READ_ONLY"}:
+        findings.append(
+            f"third_party_api_interaction={values['network_behavior']}"
+        )
+    elif values["network_behavior"] not in {
+        "READ_ONLY",
+        "NONE",
+        "PASSIVE_PUBLIC_SOURCE",
+    }:
         findings.append(f"network_behavior={values['network_behavior']}")
     if values["credential_requirement"] != "NONE":
         findings.append(f"credential_requirement={values['credential_requirement']}")
