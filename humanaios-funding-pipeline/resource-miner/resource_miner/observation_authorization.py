@@ -330,6 +330,57 @@ def evaluate_observation_authorization(
     )
 
 
+
+def observation_authorization_from_dict(
+    data: dict[str, Any],
+) -> ObservationAuthorizationDecision:
+    expected = {
+        "schema",
+        "authorization_id",
+        "authorization_token",
+        "query_id",
+        "query_token",
+        "query_plan_sha256",
+        "registry_mine_id",
+        "pathway_opportunity_id",
+        "subject_ref",
+        "query_class",
+        "query_fields",
+        "observation_class",
+        "requested_operation",
+        "decision",
+        "decision_reasons",
+        "policy_id",
+        "policy_version",
+        "authority_source",
+        "target_origin_keys",
+        "allowed_query_fields",
+        "expected_response_class",
+        "query_value_persistence",
+        "private_query_values_exposed",
+        "external_state_change",
+        "consequence_ceiling",
+        "consequential_actions_permitted",
+        "claim_submission_permitted",
+        "private_subject_binding_required",
+        "prohibited_actions",
+        "one_shot",
+        "max_executions",
+        "consumption_state",
+        "execution_state",
+        "authority_effect",
+        "policy_receipt_sha256",
+    }
+    keys = set(data)
+    if keys != expected:
+        missing = sorted(expected - keys)
+        extra = sorted(keys - expected)
+        raise ValueError(
+            f"observation authorization shape mismatch; missing={missing}; extra={extra}"
+        )
+    return ObservationAuthorizationDecision(**data)
+
+
 def authorization_covers_query(
     decision: ObservationAuthorizationDecision,
     query: RegistryQueryPlan,
