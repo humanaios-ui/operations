@@ -188,7 +188,9 @@ class DemandAdapterValidationTests(unittest.TestCase):
         )
         broker = compile_broker_requirements(profile=profile, opportunity=opportunity)
         self.assertEqual(len(broker), 2)
-        self.assertTrue(all("submission_artifact" in r.query_fields if hasattr(r, "query_fields") else True for r in broker))
+        self.assertTrue(
+            all("submission_artifact" in r.required_affordances for r in broker)
+        )
 
     def test_05_compliance_adapter_preserves_normative_operators(self):
         record = {
