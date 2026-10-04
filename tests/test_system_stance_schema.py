@@ -7,6 +7,7 @@ from jsonschema import Draft202012Validator, ValidationError
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = ROOT / "schemas" / "system_stance_v1.schema.json"
+FIXTURES_DIR = ROOT / "fixtures" / "system_stance_v1"
 
 
 @pytest.fixture(scope="module")
@@ -112,6 +113,12 @@ def test_unstarted_scan_cannot_claim_opportunities(validator, valid_stance):
         validator.validate(valid_stance)
 
 
+def test_subject_ref_must_be_lowercase_hex_commit_sha(validator, valid_stance):
+    valid_stance["subject"]["ref"] = "main"
+    with pytest.raises(ValidationError):
+        validator.validate(valid_stance)
+
+
 def test_proposition_requires_explicit_certainty(validator, valid_stance):
     del valid_stance["opportunity_scan"]["opportunities"][0]["propositions"][0]["certainty"]
     with pytest.raises(ValidationError):
@@ -150,3 +157,25 @@ def test_stance_cannot_grant_authority(validator, valid_stance, field, value):
     valid_stance[field] = value
     with pytest.raises(ValidationError):
         validator.validate(valid_stance)
+
+
+def test_golden_valid_fixture_passes(validator):
+    payload = json.loads(
+        (FIXTURES_DIR / "valid_acquire_evidence.json").read_text(encoding="utf-8")
+    )
+    validator.validate(payload)
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "invalid_act_with_open.json",
+        "invalid_not_started_with_opportunity.json",
+        "invalid_verified_without_evidence.json",
+        "invalid_non_hex_subject_ref.json",
+    ],
+)
+def test_golden_invalid_fixtures_fail(validator, filename):
+    payload = json.loads((FIXTURES_DIR / filename).read_text(encoding="utf-8"))
+    with pytest.raises(ValidationError):
+        validator.validate(payload)
