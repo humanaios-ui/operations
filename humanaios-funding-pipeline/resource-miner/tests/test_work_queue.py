@@ -11,7 +11,14 @@ from resource_miner.work_queue import compile_verification_work_queue
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def adjudication(gap_type, *, known=None, primary=None, verification_id="VFY-1111111111111111"):
+def adjudication(
+    gap_type,
+    *,
+    known=None,
+    primary=None,
+    unknown=None,
+    verification_id="VFY-1111111111111111",
+):
     pad_id = "PAD-2222222222222222"
     prs_id = "PRS-3333333333333333"
     vfy = VerificationFrontierItem(
@@ -39,7 +46,7 @@ def adjudication(gap_type, *, known=None, primary=None, verification_id="VFY-111
         known_origin_keys=list(known or []),
         primary_origin_keys=list(primary or []),
         nonprimary_origin_keys=[],
-        unknown_origin_keys=[],
+        unknown_origin_keys=list(unknown or []),
         standing_profile_ids=[],
         derived_only=False,
         verification_frontier=[vfy],
@@ -106,6 +113,15 @@ class VerificationWorkQueueTests(unittest.TestCase):
             item.candidate_origin_keys,
             ["official-a.example", "official-b.example"],
         )
+
+    def test_source_standing_review_preserves_unknown_origin(self):
+        pad = adjudication(
+            "SOURCE_STANDING_UNKNOWN",
+            unknown=["registry.example"],
+        )
+        item = compile_verification_work_queue([pad])[0]
+        self.assertEqual(item.operation_class, "ASSESS_SOURCE_STANDING")
+        self.assertEqual(item.candidate_origin_keys, ["registry.example"])
 
     def test_queue_is_order_independent(self):
         a = adjudication(
