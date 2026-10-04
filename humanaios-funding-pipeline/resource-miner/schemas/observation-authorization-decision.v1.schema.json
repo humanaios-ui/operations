@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/observation-authorization-decision.v1.schema.json",
+  "title": "HumanAIOS Observation Authorization Decision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authorization_id",
+    "authorization_token",
+    "query_id",
+    "query_token",
+    "query_plan_sha256",
+    "registry_mine_id",
+    "pathway_opportunity_id",
+    "subject_ref",
+    "query_class",
+    "query_fields",
+    "observation_class",
+    "requested_operation",
+    "decision",
+    "decision_reasons",
+    "policy_id",
+    "policy_version",
+    "authority_source",
+    "target_origin_keys",
+    "allowed_query_fields",
+    "expected_response_class",
+    "query_value_persistence",
+    "private_query_values_exposed",
+    "external_state_change",
+    "consequence_ceiling",
+    "prohibited_actions",
+    "one_shot",
+    "max_executions",
+    "consumption_state",
+    "execution_state",
+    "authority_effect",
+    "policy_receipt_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.observation-authorization-decision.v1"
+    },
+    "authorization_id": {
+      "type": "string",
+      "pattern": "^OAG-[A-F0-9]{16}$"
+    },
+    "authorization_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:observation-authorization:OAG-[A-F0-9]{16}$"
+    },
+    "query_id": {
+      "type": "string",
+      "pattern": "^RQY-[A-F0-9]{16}$"
+    },
+    "query_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:registry-query:RQY-[A-F0-9]{16}$"
+    },
+    "query_plan_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "registry_mine_id": {
+      "type": "string",
+      "pattern": "^MINE-[A-F0-9]{16}$"
+    },
+    "pathway_opportunity_id": {
+      "type": "string",
+      "pattern": "^OPP-[A-F0-9]{16}$"
+    },
+    "subject_ref": {
+      "type": "string",
+      "pattern": "^SUBJ-[A-F0-9]{16}$"
+    },
+    "query_class": {
+      "const": "UNCLAIMED_PROPERTY_OWNER_SEARCH"
+    },
+    "query_fields": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "owner_name",
+          "business_name",
+          "last_known_location"
+        ]
+      }
+    },
+    "observation_class": {
+      "const": "PUBLIC_REGISTRY_QUERY"
+    },
+    "requested_operation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decision": {
+      "enum": [
+        "ALLOW_OBSERVATION",
+        "REQUIRE_HUMAN",
+        "DENY",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "decision_reasons": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "policy_id": {
+      "const": "humanaios.oag.registry-observation.v1"
+    },
+    "policy_version": {
+      "const": "1.0"
+    },
+    "authority_source": {
+      "const": "EXPLICIT_SUBJECT_REQUEST_PLUS_POLICY"
+    },
+    "target_origin_keys": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowed_query_fields": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "expected_response_class": {
+      "const": "ZERO_OR_MORE_CANDIDATE_RECORDS"
+    },
+    "query_value_persistence": {
+      "const": "PRIVATE_RUNTIME_ONLY"
+    },
+    "private_query_values_exposed": {
+      "const": false
+    },
+    "external_state_change": {
+      "const": false
+    },
+    "consequence_ceiling": {
+      "const": "EVIDENCE_ONLY"
+    },
+    "prohibited_actions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "CREATE_CLAIM",
+          "SUBMIT_CLAIM",
+          "UPDATE_CLAIM",
+          "UPLOAD_DOCUMENT",
+          "LOOKUP_PRIVATE_CLAIM_STATUS",
+          "CREATE_ACCOUNT",
+          "MUTATE_CREDENTIALS",
+          "SEND_MESSAGE",
+          "MAKE_PAYMENT",
+          "PURCHASE",
+          "TRANSFER_FUNDS"
+        ]
+      }
+    },
+    "one_shot": {
+      "const": true
+    },
+    "max_executions": {
+      "const": 1
+    },
+    "consumption_state": {
+      "enum": [
+        "UNUSED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "execution_state": {
+      "const": "NOT_EXECUTED"
+    },
+    "authority_effect": {
+      "enum": [
+        "OBSERVATION_ONLY",
+        "NONE"
+      ]
+    },
+    "policy_receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "ALLOW_OBSERVATION"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "authority_effect": {
+            "const": "OBSERVATION_ONLY"
+          },
+          "consumption_state": {
+            "const": "UNUSED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "enum": [
+              "DENY",
+              "REQUIRE_HUMAN",
+              "NOT_APPLICABLE"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "authority_effect": {
+            "const": "NONE"
+          }
+        }
+      }
+    }
+  ]
+}
