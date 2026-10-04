@@ -133,6 +133,7 @@ class ResourceCandidate:
     opportunity_source_kind: str = ""
     demand_snapshots: list[DemandSnapshot] = field(default_factory=list)
     operational_mode: str = ""
+    service_surface_classes: list[str] = field(default_factory=list)
     composition_conflicts: list[str] = field(default_factory=list)
     raw: dict[str, Any] = field(default_factory=dict)
 
