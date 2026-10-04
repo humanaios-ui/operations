@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 196
+  tools: 197
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 149
+  builder_markers_present: 150
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2498,6 +2498,22 @@ tools:
   builder_markers: true
   purpose: Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies.
   session: '#596'
+- tool_id: HAIOS-TOOL-210
+  name: system_graph_render
+  path: tools/system_graph_render_v1_0.py
+  version: 1.0.0
+  category: reporting_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Renders system_graph.json to Markdown with a provenance header (source
+    sha256, source generated_at, rendering commit) so prose copies of the system graph,
+    including the Google Drive mirror, point back at the file they came from; --check
+    detects drift of a rendered copy.
+  session: S-100426-drive-graph-sync
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
