@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
+from .mines import stable_opportunity_id
 from .models import ResourceMine
 
 SUBJECT_REF_RE = re.compile(r"^SUBJ-[A-F0-9]{16}$")
@@ -69,6 +70,18 @@ def registry_query_token(query_id: str) -> str:
     return f"urn:humanaios:registry-query:{query_id}"
 
 
+def _registered_pathway_ids(mine: ResourceMine) -> set[str]:
+    ids: set[str] = set()
+    for row in mine.config.get("opportunities") or []:
+        if not isinstance(row, dict):
+            continue
+        identity = str(row.get("opportunity_identity") or row.get("url") or "").strip()
+        kind = str(row.get("opportunity_kind") or "configured_opportunity").strip()
+        if identity:
+            ids.add(stable_opportunity_id(mine.mine_id, identity, kind))
+    return ids
+
+
 def _query_contract(mine: ResourceMine) -> dict[str, Any]:
     contract = mine.config.get("query_contract") or {}
     if not isinstance(contract, dict) or not contract.get("queryable"):
@@ -97,6 +110,13 @@ def plan_registry_query(
     subject_kind = subject_kind.strip().upper()
     if subject_kind not in SUBJECT_KINDS:
         raise ValueError(f"unsupported subject_kind: {subject_kind}")
+
+    pathway_opportunity_id = pathway_opportunity_id.strip().upper()
+    if not re.fullmatch(r"OPP-[A-F0-9]{16}", pathway_opportunity_id):
+        raise ValueError("pathway_opportunity_id must be an OPP-* token")
+    registered_pathways = _registered_pathway_ids(mine)
+    if registered_pathways and pathway_opportunity_id not in registered_pathways:
+        raise ValueError("pathway opportunity is not registered under this Mine")
 
     contract = _query_contract(mine)
     query_class = str(contract.get("query_class") or "").strip().upper()
@@ -139,7 +159,7 @@ def plan_registry_query(
         query_id=query_id,
         query_token=registry_query_token(query_id),
         registry_mine_id=mine.mine_id,
-        pathway_opportunity_id=pathway_opportunity_id.strip().upper(),
+        pathway_opportunity_id=pathway_opportunity_id,
         query_class=query_class,
         subject_ref=subject_ref.strip().upper(),
         subject_kind=subject_kind,
