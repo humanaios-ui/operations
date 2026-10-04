@@ -86,9 +86,7 @@ class CapabilityPackage:
     package_sha256: str
 
     def to_dict(self) -> dict[str, Any]:
-        payload = asdict(self)
-        payload["bindings"] = [binding.to_dict() for binding in self.bindings]
-        return payload
+        return asdict(self)
 
 
 def _coverage_for_assessments(rows: list[SuitabilityAssessment]) -> str:
@@ -392,17 +390,18 @@ def compose_capability_package(
         ]
     )
 
+    serialized_bindings = [row.to_dict() for row in bindings]
     identity_payload = {
         "schema": "humanaios.capability-package.v1",
         "opportunity_id": profile.opportunity_id,
         "demand_profile_id": profile.profile_id,
-        "bindings": [row.to_dict() for row in bindings],
+        "bindings": serialized_bindings,
         "resource_ids": selected_resource_ids,
         "suitability_ids": suitability_ids,
         "service_surface_classes": sorted(all_surface_classes),
     }
     package_id = _stable_id("CPK", identity_payload)
-    payload = {
+    serialized_payload = {
         **identity_payload,
         "package_id": package_id,
         "required_coverage_state": required_coverage_state,
@@ -422,8 +421,30 @@ def compose_capability_package(
         "authority_effect": "NONE",
     }
     return CapabilityPackage(
-        **payload,
-        package_sha256=_canonical_sha256(payload),
+        schema="humanaios.capability-package.v1",
+        package_id=package_id,
+        opportunity_id=profile.opportunity_id,
+        demand_profile_id=profile.profile_id,
+        bindings=bindings,
+        resource_ids=selected_resource_ids,
+        suitability_ids=suitability_ids,
+        service_surface_classes=sorted(all_surface_classes),
+        required_coverage_state=required_coverage_state,
+        required_requirement_count=required_total,
+        required_adequately_covered_count=required_adequate,
+        nonrequired_requirement_count=nonrequired_total,
+        nonrequired_covered_count=nonrequired_covered,
+        uncovered_required_requirement_ids=sorted(set(uncovered_required)),
+        partial_required_requirement_ids=sorted(set(partial_required)),
+        uncovered_nonrequired_requirement_ids=sorted(set(uncovered_nonrequired)),
+        composition_screen_state=screen_state,
+        composition_findings=findings,
+        authorization_state="NOT_REQUESTED",
+        target_scope_state="NOT_ESTABLISHED",
+        method_permission_state="NOT_ESTABLISHED",
+        evidence=evidence,
+        authority_effect="NONE",
+        package_sha256=_canonical_sha256(serialized_payload),
     )
 
 
