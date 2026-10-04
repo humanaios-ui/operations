@@ -78,6 +78,9 @@ class ObservationAuthorizationGateTests(unittest.TestCase):
         self.assertTrue(decision.one_shot)
         self.assertEqual(decision.max_executions, 1)
         self.assertEqual(decision.consequence_ceiling, "EVIDENCE_ONLY")
+        self.assertFalse(decision.consequential_actions_permitted)
+        self.assertFalse(decision.claim_submission_permitted)
+        self.assertTrue(decision.private_subject_binding_required)
         self.assertFalse(decision.external_state_change)
         self.assertFalse(decision.private_query_values_exposed)
         self.assertEqual(
@@ -129,6 +132,37 @@ class ObservationAuthorizationGateTests(unittest.TestCase):
         self.assertNotEqual(
             decision.authorization_id,
             mutated_decision.authorization_id,
+        )
+
+    def test_forged_rqy_identity_or_token_is_denied(self):
+        query = self.query()
+        forged_id = replace(query, query_id="RQY-1111111111111111")
+        forged_token = replace(
+            query,
+            query_token="urn:humanaios:registry-query:RQY-1111111111111111",
+        )
+        for forged in [forged_id, forged_token]:
+            decision = evaluate_observation_authorization(
+                query=forged,
+                mine=self.colorado,
+            )
+            self.assertEqual(decision.decision, "DENY")
+            self.assertEqual(decision.authority_effect, "NONE")
+
+    def test_foreign_pathway_rqy_is_denied_even_if_shape_is_valid(self):
+        query = self.query()
+        forged = replace(
+            query,
+            pathway_opportunity_id="OPP-1111111111111111",
+        )
+        decision = evaluate_observation_authorization(
+            query=forged,
+            mine=self.colorado,
+        )
+        self.assertEqual(decision.decision, "DENY")
+        self.assertIn(
+            "RQY pathway opportunity is not registered under evaluated Mine",
+            decision.decision_reasons,
         )
 
     def test_all_claim_submission_and_mutation_operations_are_denied(self):
