@@ -35,7 +35,6 @@
       ".github/copilot-instructions.md",
       ".github/dependabot.yml",
       ".github/workflows/repository-admission-gate.yml",
-      ".github/workflows/repository-coordinator-state.yml",
       ".github/workflows/repository-coordinator.yml",
       "REPOSITORY_COORDINATOR_POLICY.json",
       "tools/repository_coordinator_state_v1.py",
@@ -69,6 +68,9 @@
     "fail_closed": true,
     "authority_effect": "ADMISSION_ROUTING_ONLY",
     "merge_authority": false,
-    "mutation_model": "append event -> deterministic replay -> commit ledger and projection together"
+    "mutation_model": "append event -> deterministic replay -> commit ledger and projection together",
+    "authorized_mutators": [
+      "humanaios-ui"
+    ]
   }
 }
