@@ -257,3 +257,301 @@ def attach_snapshot(resource: ResourceCandidate, snapshot: DemandSnapshot) -> Re
     This does not change route, status, eligibility, warrant, or authorization.
     """
     return replace(resource, demand_snapshots=[*resource.demand_snapshots, snapshot])
+
+
+# ---------------------------------------------------------------------------
+# Opportunity-demand normalization (DMD-*)
+# ---------------------------------------------------------------------------
+
+import hashlib
+import json
+from dataclasses import asdict, dataclass
+from typing import Any, Iterable
+
+from .broker import BrokerOpportunity, BrokerRequirement, build_requirement
+from .models import EvidenceRef
+
+REQUIREMENT_MODES = {
+    "REQUIRED",
+    "OPTIONAL",
+    "PREFERRED",
+    "PROHIBITED",
+    "CONDITIONAL",
+    "SCORED",
+}
+SEMANTIC_CLASSES = {
+    "CAPABILITY",
+    "ELIGIBILITY",
+    "CONSTRAINT",
+    "PROHIBITION",
+    "DELIVERABLE",
+    "EVALUATION",
+    "COMPLIANCE_CONTROL",
+}
+
+
+def _demand_canonical_sha256(value: Any) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _demand_stable_id(prefix: str, payload: Any) -> str:
+    return f"{prefix}-" + _demand_canonical_sha256(payload)[:16].upper()
+
+
+def _evidence_to_dict(rows: Iterable[EvidenceRef]) -> list[dict[str, Any]]:
+    return [asdict(row) for row in rows]
+
+
+def _evidence_from_dict(rows: Iterable[dict[str, Any]]) -> list[EvidenceRef]:
+    return [EvidenceRef(**row) for row in rows]
+
+
+@dataclass(frozen=True)
+class DemandRequirementRecord:
+    demand_requirement_id: str
+    label: str
+    mode: str
+    semantic_class: str
+    statement: str
+    required_affordances: list[str]
+    allowed_resource_types: list[str]
+    condition: str
+    score_weight: float | None
+    brokerable: bool
+    source_locator: str
+    evidence: list[dict[str, Any]]
+    authority_effect: str = "NONE"
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class DemandProfile:
+    schema: str
+    profile_id: str
+    opportunity_id: str
+    source_kind: str
+    source_identity: str
+    source_url: str
+    objective: str
+    deadline: str | None
+    requirements: list[DemandRequirementRecord]
+    constraints: list[str]
+    eligibility_predicates: list[str]
+    prohibitions: list[str]
+    deliverables: list[str]
+    evaluation_criteria: list[dict[str, Any]]
+    value_signals: list[str]
+    submission_surface: str
+    source_metadata: dict[str, Any]
+    evidence: list[dict[str, Any]]
+    authority_effect: str = "NONE"
+
+    def to_dict(self) -> dict[str, Any]:
+        payload = asdict(self)
+        payload["requirements"] = [row.to_dict() for row in self.requirements]
+        return payload
+
+
+def make_demand_requirement(
+    *,
+    label: str,
+    mode: str,
+    semantic_class: str,
+    statement: str,
+    evidence: Iterable[EvidenceRef],
+    required_affordances: Iterable[str] = (),
+    allowed_resource_types: Iterable[str] = (),
+    condition: str = "",
+    score_weight: float | None = None,
+    brokerable: bool | None = None,
+    source_locator: str = "",
+) -> DemandRequirementRecord:
+    normalized_mode = mode.strip().upper()
+    normalized_class = semantic_class.strip().upper()
+    if normalized_mode not in REQUIREMENT_MODES:
+        raise ValueError(f"unsupported demand requirement mode: {normalized_mode}")
+    if normalized_class not in SEMANTIC_CLASSES:
+        raise ValueError(f"unsupported demand semantic class: {normalized_class}")
+    rows = _evidence_to_dict(evidence)
+    if not rows:
+        raise ValueError("demand requirement requires evidence")
+    if score_weight is not None and score_weight < 0:
+        raise ValueError("score_weight cannot be negative")
+    if normalized_mode == "SCORED" and score_weight is None:
+        raise ValueError("SCORED demand requirement requires score_weight")
+    if normalized_mode != "SCORED" and score_weight is not None:
+        raise ValueError("score_weight is only valid for SCORED requirements")
+
+    affordances = sorted({str(x).strip() for x in required_affordances if str(x).strip()})
+    resource_types = sorted({str(x).strip() for x in allowed_resource_types if str(x).strip()})
+    if brokerable is None:
+        brokerable = normalized_class in {
+            "CAPABILITY",
+            "DELIVERABLE",
+            "COMPLIANCE_CONTROL",
+        } and normalized_mode != "PROHIBITED"
+    if brokerable and not affordances:
+        raise ValueError("brokerable demand requirement requires affordances")
+
+    payload = {
+        "label": label.strip(),
+        "mode": normalized_mode,
+        "semantic_class": normalized_class,
+        "statement": statement.strip(),
+        "required_affordances": affordances,
+        "allowed_resource_types": resource_types,
+        "condition": condition.strip(),
+        "score_weight": score_weight,
+        "brokerable": bool(brokerable),
+        "source_locator": source_locator.strip(),
+        "evidence": rows,
+    }
+    return DemandRequirementRecord(
+        demand_requirement_id=_demand_stable_id("DMR", payload),
+        label=payload["label"],
+        mode=normalized_mode,
+        semantic_class=normalized_class,
+        statement=payload["statement"],
+        required_affordances=affordances,
+        allowed_resource_types=resource_types,
+        condition=payload["condition"],
+        score_weight=score_weight,
+        brokerable=bool(brokerable),
+        source_locator=payload["source_locator"],
+        evidence=rows,
+    )
+
+
+def build_demand_profile(
+    *,
+    opportunity: BrokerOpportunity,
+    source_kind: str,
+    source_identity: str,
+    source_url: str,
+    objective: str,
+    requirements: Iterable[DemandRequirementRecord],
+    evidence: Iterable[EvidenceRef],
+    deadline: str | None = None,
+    constraints: Iterable[str] = (),
+    eligibility_predicates: Iterable[str] = (),
+    prohibitions: Iterable[str] = (),
+    deliverables: Iterable[str] = (),
+    evaluation_criteria: Iterable[dict[str, Any]] = (),
+    value_signals: Iterable[str] = (),
+    submission_surface: str = "",
+    source_metadata: dict[str, Any] | None = None,
+) -> DemandProfile:
+    reqs = list(requirements)
+    rows = _evidence_to_dict(evidence)
+    if not reqs:
+        raise ValueError("demand profile requires at least one requirement")
+    if not rows:
+        raise ValueError("demand profile requires evidence")
+    for req in reqs:
+        if req.authority_effect != "NONE":
+            raise ValueError("demand requirements cannot grant authority")
+
+    payload = {
+        "schema": "humanaios.demand-profile.v1",
+        "opportunity_id": opportunity.opportunity_id,
+        "source_kind": source_kind.strip().upper(),
+        "source_identity": source_identity.strip(),
+        "source_url": source_url.strip(),
+        "objective": objective.strip(),
+        "deadline": deadline,
+        "requirements": [row.to_dict() for row in reqs],
+        "constraints": sorted({str(x).strip() for x in constraints if str(x).strip()}),
+        "eligibility_predicates": sorted(
+            {str(x).strip() for x in eligibility_predicates if str(x).strip()}
+        ),
+        "prohibitions": sorted({str(x).strip() for x in prohibitions if str(x).strip()}),
+        "deliverables": sorted({str(x).strip() for x in deliverables if str(x).strip()}),
+        "evaluation_criteria": list(evaluation_criteria),
+        "value_signals": sorted({str(x).strip() for x in value_signals if str(x).strip()}),
+        "submission_surface": submission_surface.strip(),
+        "source_metadata": dict(source_metadata or {}),
+        "evidence": rows,
+    }
+    return DemandProfile(
+        profile_id=_demand_stable_id("DMD", payload),
+        authority_effect="NONE",
+        **payload,
+    )
+
+
+def validate_demand_profile(profile: DemandProfile) -> None:
+    if profile.schema != "humanaios.demand-profile.v1":
+        raise ValueError("unsupported demand profile schema")
+    if profile.authority_effect != "NONE":
+        raise ValueError("demand profile cannot grant authority")
+    if not profile.requirements:
+        raise ValueError("demand profile requires requirements")
+    requirement_ids = [row.demand_requirement_id for row in profile.requirements]
+    if len(requirement_ids) != len(set(requirement_ids)):
+        raise ValueError("demand requirement IDs must be unique")
+    for row in profile.requirements:
+        if row.mode not in REQUIREMENT_MODES:
+            raise ValueError("invalid requirement mode")
+        if row.semantic_class not in SEMANTIC_CLASSES:
+            raise ValueError("invalid semantic class")
+        if row.semantic_class == "ELIGIBILITY" and row.brokerable:
+            raise ValueError("eligibility predicates cannot become broker capability requirements")
+        if row.mode == "PROHIBITED" and row.brokerable:
+            raise ValueError("prohibited requirements cannot be brokered as capabilities")
+
+
+def compile_broker_requirements(
+    *,
+    profile: DemandProfile,
+    opportunity: BrokerOpportunity,
+) -> list[BrokerRequirement]:
+    validate_demand_profile(profile)
+    if profile.opportunity_id != opportunity.opportunity_id:
+        raise ValueError("demand profile is not bound to supplied opportunity")
+
+    out: list[BrokerRequirement] = []
+    for row in profile.requirements:
+        if not row.brokerable:
+            continue
+        if row.semantic_class == "ELIGIBILITY":
+            raise ValueError("eligibility predicate cannot compile into broker requirement")
+        if row.mode == "PROHIBITED":
+            raise ValueError("prohibited demand cannot compile into broker requirement")
+
+        method_permission = "UNKNOWN"
+        target_scope = "NOT_APPLICABLE"
+        external_state_change = False
+        if profile.source_kind in {"BUG_BOUNTY", "SECURITY_PROGRAM"}:
+            method_permission = str(
+                profile.source_metadata.get("method_permission_state") or "UNKNOWN"
+            ).upper()
+            target_scope = str(
+                profile.source_metadata.get("target_scope_state") or "UNKNOWN"
+            ).upper()
+            external_state_change = bool(
+                profile.source_metadata.get("external_state_change_allowed", False)
+            )
+
+        out.append(
+            build_requirement(
+                opportunity=opportunity,
+                label=row.label,
+                objective=row.statement,
+                required_affordances=row.required_affordances,
+                allowed_resource_types=row.allowed_resource_types,
+                method_permission_state=method_permission,
+                target_scope_state=target_scope,
+                external_state_change_allowed=external_state_change,
+                evidence=_evidence_from_dict(row.evidence),
+            )
+        )
+    return out
