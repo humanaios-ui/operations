@@ -320,6 +320,7 @@ def compose_capability_package(
         resource = resource_by_id.get(assessment.resource_id)
         if resource is None:
             raise ValueError("selected suitability assessment references missing resource")
+        normalize_surface_classes(list(resource.service_surface_classes or []))
         if assessment.opportunity_id != profile.opportunity_id:
             raise ValueError("selected suitability assessment opportunity mismatch")
         if assessment.resource_sha256 != _canonical_sha256(resource.to_dict()):
