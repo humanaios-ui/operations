@@ -25,6 +25,7 @@ from .verification_routing import (
     write_verification_routes_jsonl,
 )
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
+from .registry_query import plan_registry_query
 from .store import write_jsonl
 from .sources import devto, funding_pipeline, github, rss
 
@@ -89,6 +90,26 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--events-ledger", default=str(DEFAULT_CLAIM_EVENTS))
     resolve.add_argument("--dry-run", action="store_true")
 
+    registry_query = sub.add_parser(
+        "plan-registry-query",
+        help="Create a planning-only subject-scoped registry query object",
+    )
+    registry_query.add_argument("--mine-id", required=True)
+    registry_query.add_argument("--pathway-opportunity-id", required=True)
+    registry_query.add_argument("--subject-ref", required=True)
+    registry_query.add_argument(
+        "--subject-kind",
+        required=True,
+        choices=["NATURAL_PERSON", "ORGANIZATION", "UNKNOWN"],
+    )
+    registry_query.add_argument("--query-field", action="append", required=True)
+    registry_query.add_argument(
+        "--explicit-subject-request",
+        action="store_true",
+        required=True,
+    )
+    registry_query.add_argument("--mines", default=str(DEFAULT_MINES))
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -108,6 +129,22 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    if args.command == "plan-registry-query":
+        mines = load_mines(args.mines)
+        mine = next((row for row in mines if row.mine_id == args.mine_id), None)
+        if mine is None:
+            raise SystemExit(f"unknown Mine: {args.mine_id}")
+        query_plan = plan_registry_query(
+            mine=mine,
+            pathway_opportunity_id=args.pathway_opportunity_id,
+            subject_ref=args.subject_ref,
+            subject_kind=args.subject_kind,
+            query_fields=args.query_field,
+            explicit_subject_request=args.explicit_subject_request,
+        )
+        print(json.dumps(query_plan.to_dict(), indent=2, ensure_ascii=False))
+        return
 
     if args.command == "plan":
         plan = load_resource_plan(args.file)
