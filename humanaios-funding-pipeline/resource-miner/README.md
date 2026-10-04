@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.15
+# HumanAIOS Resource Miner v0.1.16
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -508,6 +508,53 @@ BROKER_MATCH != EXECUTION
 ```
 
 See `docs/BROKER_CONTROL_SUBSTRATE.md`.
+
+### Semantic opportunity-demand adapters
+
+Resource Miner now normalizes radically different demand sources through a common `DMD-*` Demand Profile:
+
+```text
+BOP-* Opportunity
+→ DMD-* Demand Profile
+→ DMR-* semantic requirements
+→ BRQ-* brokerable capability requirements
+→ resources / suitability / authorization / outcome
+```
+
+The DMD layer preserves six requirement modes:
+
+```text
+REQUIRED
+OPTIONAL
+PREFERRED
+PROHIBITED
+CONDITIONAL
+SCORED
+```
+
+and keeps capability/deliverable demand separate from eligibility, constraints, prohibitions, evaluation criteria, and compliance controls.
+
+Initial adapters:
+
+1. GitHub Issue — preserves acceptance criteria, labels/milestones, and closing relationships without creating work authority.
+2. Grants.gov — preserves applicant types as eligibility predicates, cost sharing, funding instruments/activities, award signals, and deliverables. Eligibility does not compile into broker capability demand.
+3. SAM.gov procurement — preserves mandatory requirements, set-aside eligibility, NAICS/place constraints, deliverables, and prohibitions. Missing mandatory requirements are not averageable away.
+4. Federal challenge/prize — preserves eligibility, deliverables, scored judging criteria, prizes, IP/rules, and submission surfaces. Challenge.gov itself was sunset on 2026-03-30; current discovery is modeled as USA.gov or agency-hosted.
+5. Compliance/control sets — preserves normative operators: MUST/SHALL→REQUIRED, MUST NOT/SHALL NOT→PROHIBITED, SHOULD→PREFERRED, MAY→OPTIONAL, IF/WHEN→CONDITIONAL, and weighted controls→SCORED.
+
+Core invariants:
+
+```text
+ISSUE_EXISTS != WORK_AUTHORIZED
+CAPABILITY_FIT != APPLICANT_ELIGIBILITY
+ALLOWABLE_ACTIVITY != RESOURCE_AVAILABILITY
+CONTROL_MATCH != COMPLIANCE_VERIFIED
+PROHIBITED_REQUIREMENT != RESOURCE_DEMAND
+ELIGIBILITY_PREDICATE != CAPABILITY_REQUIREMENT
+DMD != AUTHORIZATION
+```
+
+See `schemas/demand-profile.v1.schema.json` and issue #713.
 
 ### Reconstructable Claim state machine
 
