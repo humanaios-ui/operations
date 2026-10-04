@@ -13,10 +13,16 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 
-from repository_coordinator_v0_1 import analyze, gate_decision, render_markdown
+from repository_coordinator_v0_1 import (
+    analyze,
+    gate_decision,
+    render_markdown,
+    replay_admission_ledger,
+    validate_coordinator_state,
+)
 
 TOOL_NAME = "test_repository_coordinator"
-TOOL_VERSION = "0.2.1"
+TOOL_VERSION = "0.3.0"
 
 
 def pr(
@@ -69,7 +75,7 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None):
     }
 
 
-def run(prs, *, refs=None, items=None, paths=None, pq="", policy_data=None):
+def run(prs, *, refs=None, items=None, paths=None, pq="", policy_data=None, state_data=None):
     return analyze({
         "repository": "example/repo",
         "main_sha": "abc",
@@ -77,7 +83,7 @@ def run(prs, *, refs=None, items=None, paths=None, pq="", policy_data=None):
         "referenced_pull_requests": refs or {},
         "referenced_items": items or {},
         "pull_requests": prs,
-    }, pq, policy_data)
+    }, pq, policy_data, state_data)
 
 
 def item(index, n):
@@ -526,3 +532,134 @@ def run_smoke_test():
     test_zero_diff_is_preserve_close_not_merge_work()
     test_mixed_control_plane_and_feature_change_is_not_exempt()
     return True
+
+def _event(event_id, decision, kind, number, *, supersedes=None):
+    return {
+        "actor": "humanaios-ui",
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "decision": decision,
+        "event_id": event_id,
+        "evidence": ["test fixture"],
+        "lane": "WORKING_SET",
+        "merge_authority": False,
+        "objective_issue_number": number if kind == "ISSUE" else None,
+        "recorded_at": "2026-10-04T20:16:22Z",
+        "schema": "humanaios.repository-coordinator-event.v1",
+        "source_policy_sha": "abc123",
+        "subject_kind": kind,
+        "subject_number": number,
+        "supersedes_event_id": supersedes,
+    }
+
+
+def _ledger(*events):
+    import json
+    return "".join(json.dumps(e, sort_keys=True, separators=(",", ":")) + "\n" for e in events)
+
+
+def test_state_replay_materializes_admissions_deterministically():
+    ledger = _ledger(
+        _event("E1", "ADMIT", "ISSUE", 77),
+        _event("E2", "ADMIT", "PULL_REQUEST", 88),
+    )
+    state = replay_admission_ledger(ledger)
+    assert state["admitted_issue_numbers"] == [77]
+    assert state["admitted_pull_request_numbers"] == [88]
+    assert state["active_event_ids"] == {
+        "ISSUE#77": "E1",
+        "PULL_REQUEST#88": "E2",
+    }
+    assert validate_coordinator_state(ledger, state) == state
+
+
+def test_state_revocation_removes_subject_from_projection():
+    ledger = _ledger(
+        _event("E1", "ADMIT", "ISSUE", 77),
+        _event("E2", "REVOKE", "ISSUE", 77, supersedes="E1"),
+    )
+    state = replay_admission_ledger(ledger)
+    assert state["admitted_issue_numbers"] == []
+    assert state["active_event_ids"] == {}
+
+
+def test_state_projection_divergence_fails_closed():
+    ledger = _ledger(_event("E1", "ADMIT", "ISSUE", 77))
+    state = replay_admission_ledger(ledger)
+    state["admitted_issue_numbers"] = []
+    import pytest
+    with pytest.raises(ValueError):
+        validate_coordinator_state(ledger, state)
+
+
+def test_validated_state_is_admission_source_not_policy_arrays():
+    p = pr(1, body="Fixes #77")
+    referenced = {
+        "77": {
+            "state": "open",
+            "is_pull_request": False,
+            "labels": [],
+            "title": "State-admitted objective",
+        }
+    }
+    state = replay_admission_ledger(_ledger(_event("E1", "ADMIT", "ISSUE", 77)))
+    idx = run(
+        [p],
+        items=referenced,
+        policy_data=policy(issues=[]),
+        state_data=state,
+    )
+    got = item(idx, 1)
+    assert got["lane"] == "ACTIVE"
+    assert got["admission"]["working_set_admitted"] is True
+    assert any("coordinator state admits linked issue #77" in x for x in got["admission"]["evidence"])
+
+
+def test_state_overrides_legacy_policy_admission_arrays():
+    p = pr(1, body="Fixes #77")
+    referenced = _admitted_item(77)
+    empty_state = replay_admission_ledger("")
+    idx = run(
+        [p],
+        items=referenced,
+        policy_data=policy(issues=[77]),
+        state_data=empty_state,
+    )
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
+def test_gate_cli_requires_state_when_policy_declares_state_source(tmp_path):
+    import json
+    import subprocess
+
+    snapshot = {
+        "repository": "example/repo",
+        "main_sha": "abc",
+        "main_paths": [],
+        "referenced_pull_requests": {},
+        "referenced_items": {},
+        "pull_requests": [pr(1)],
+    }
+    snap = tmp_path / "snapshot.json"
+    snap.write_text(json.dumps(snapshot))
+    pol = tmp_path / "policy.json"
+    data = policy()
+    data["state_source"] = {
+        "branch": "repository-coordinator-state",
+        "ledger_path": "ADMISSION_LEDGER.jsonl",
+        "projection_path": "COORDINATOR_STATE.json",
+    }
+    pol.write_text(json.dumps(data))
+    tool = TOOLS / "repository_coordinator_v0_1.py"
+    result = subprocess.run(
+        [
+            sys.executable, str(tool),
+            "--snapshot", str(snap),
+            "--policy", str(pol),
+            "--priority-queue", str(tmp_path / "missing.md"),
+            "--gate", "1",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+    assert "coordinator state or ledger missing" in result.stdout
