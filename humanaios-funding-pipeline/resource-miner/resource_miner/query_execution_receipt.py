@@ -10,8 +10,12 @@ from typing import Any, Iterable
 
 from .observation_authorization import (
     OBSERVATION_OPERATION,
+    POLICY_ID,
+    POLICY_VERSION,
     ObservationAuthorizationDecision,
     authorization_covers_query,
+    authorization_token,
+    stable_authorization_id,
 )
 from .registry_query import RegistryQueryPlan
 
@@ -142,6 +146,43 @@ def _authorization_is_executable(
     authorization: ObservationAuthorizationDecision,
 ) -> list[str]:
     reasons: list[str] = []
+    if authorization.policy_id != POLICY_ID or authorization.policy_version != POLICY_VERSION:
+        reasons.append("OAG policy identity/version is unsupported")
+    expected_authorization_id = stable_authorization_id(
+        query_plan_sha256=authorization.query_plan_sha256,
+        requested_operation=authorization.requested_operation,
+        policy_id=authorization.policy_id,
+        policy_version=authorization.policy_version,
+    )
+    if authorization.authorization_id != expected_authorization_id:
+        reasons.append("OAG authorization_id does not match canonical policy input")
+    if authorization.authorization_token != authorization_token(
+        authorization.authorization_id
+    ):
+        reasons.append("OAG authorization_token does not match authorization_id")
+    receipt_payload = {
+        "authorization_id": authorization.authorization_id,
+        "query_plan_sha256": authorization.query_plan_sha256,
+        "requested_operation": authorization.requested_operation,
+        "decision": authorization.decision,
+        "decision_reasons": authorization.decision_reasons,
+        "policy_id": authorization.policy_id,
+        "policy_version": authorization.policy_version,
+        "target_origin_keys": authorization.target_origin_keys,
+        "allowed_query_fields": authorization.allowed_query_fields,
+        "consequence_ceiling": authorization.consequence_ceiling,
+        "max_executions": authorization.max_executions,
+    }
+    expected_policy_receipt = hashlib.sha256(
+        json.dumps(
+            receipt_payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+    if authorization.policy_receipt_sha256 != expected_policy_receipt:
+        reasons.append("OAG policy receipt hash mismatch")
     if authorization.schema != "humanaios.observation-authorization-decision.v1":
         reasons.append("authorization schema is invalid")
     if authorization.decision != "ALLOW_OBSERVATION":
