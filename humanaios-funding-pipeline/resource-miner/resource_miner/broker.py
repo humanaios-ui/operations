@@ -321,8 +321,10 @@ def screen_resource(
     )
     conditional = (
         values["permissions_state"] == "ELEVATED"
-        or values["network_behavior"] == "ACTIVE"
+        or values["network_behavior"]
+        in {"ACTIVE", "TARGET_ACTIVE", "TARGET_READ_ONLY", "MIXED"}
         or values["credential_requirement"] == "REQUIRED"
+        or values["license_state"] == "TERMS_REVIEW_REQUIRED"
         or external_state_change is True
         or values["auditability"] == "PARTIAL"
     )
