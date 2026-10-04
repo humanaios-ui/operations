@@ -291,8 +291,29 @@ class CapabilityPackageTests(unittest.TestCase):
     def test_individually_pass_resources_can_conflict_in_composition(self):
         self.assertEqual(self.screen_a.state, "PASS")
         self.assertEqual(self.screen_b.state, "PASS")
-        self.resource_a.raw["conflicts_with_resource_ids"] = [
+        self.resource_a.composition_conflicts = [
             self.resource_b.resource_id
+        ]
+        self.a_passive = assess_suitability(
+            opportunity=self.opportunity,
+            requirement=self.by_dmr[self.demand_rows[0].demand_requirement_id],
+            resource=self.resource_a,
+            provider_class="OPEN_SOURCE",
+            screen=self.screen_a,
+        )
+        self.a_auth = assess_suitability(
+            opportunity=self.opportunity,
+            requirement=self.by_dmr[self.demand_rows[2].demand_requirement_id],
+            resource=self.resource_a,
+            provider_class="OPEN_SOURCE",
+            screen=self.screen_a,
+        )
+        self.assessments = [
+            self.a_passive,
+            self.b_passive,
+            self.b_evidence,
+            self.a_auth,
+            self.a_optional,
         ]
         package = self.compose(
             [
@@ -308,6 +329,52 @@ class CapabilityPackageTests(unittest.TestCase):
                 finding.startswith("DECLARED_RESOURCE_CONFLICT:")
                 for finding in package.composition_findings
             )
+        )
+
+
+    def test_conflict_mutation_after_assessment_invalidates_lineage(self):
+        self.resource_a.composition_conflicts = [
+            self.resource_b.resource_id
+        ]
+        with self.assertRaises(ValueError):
+            self.compose(
+                [
+                    self.a_passive.assessment_id,
+                    self.b_evidence.assessment_id,
+                    self.a_auth.assessment_id,
+                ]
+            )
+
+    def test_third_party_index_query_differs_from_target_touching(self):
+        third_party_screen = screen_resource(
+            self.resource_a,
+            provenance_state="VERIFIED",
+            license_state="ALLOWABLE",
+            permissions_state="MINIMAL",
+            network_behavior="THIRD_PARTY_API_READ_ONLY",
+            credential_requirement="REQUIRED",
+            external_state_change=False,
+            auditability="ADEQUATE",
+            least_privilege_compatible=True,
+        )
+        target_screen = screen_resource(
+            self.resource_b,
+            provenance_state="VERIFIED",
+            license_state="ALLOWABLE",
+            permissions_state="MINIMAL",
+            network_behavior="TARGET_ACTIVE",
+            credential_requirement="NONE",
+            external_state_change=False,
+            auditability="ADEQUATE",
+            least_privilege_compatible=True,
+        )
+        self.assertEqual(third_party_screen.state, "PASS_WITH_CONDITIONS")
+        self.assertEqual(target_screen.state, "PASS_WITH_CONDITIONS")
+        self.assertTrue(
+            any("third_party_api_interaction" in x for x in third_party_screen.findings)
+        )
+        self.assertTrue(
+            any("network_behavior=TARGET_ACTIVE" in x for x in target_screen.findings)
         )
 
     def test_credential_propagation_is_package_condition(self):
