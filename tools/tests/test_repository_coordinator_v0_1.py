@@ -523,9 +523,13 @@ def test_gate_decision_fails_closed_for_unknown_pr():
 
 
 def test_gate_decision_receipts_policy_and_state_heads():
-    idx = run([pr(1, body="Fixes #77")], items=_admitted_item(77), policy_data=policy(issues=[77]))
+    target = pr(1, body="Fixes #77")
+    target["head_sha"] = "head-1"
+    idx = run([target], items=_admitted_item(77), policy_data=policy(issues=[77]))
     decision = gate_decision(idx, 1)
     assert decision["gate"] == "PASS"
+    assert decision["target_pr"] == 1
+    assert decision["target_head_sha"] == "head-1"
     assert decision["state_receipt"] == {
         "policy_ref": "main",
         "policy_sha": "abc",
