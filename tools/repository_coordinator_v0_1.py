@@ -1129,6 +1129,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--policy", type=Path, default=ROOT / "REPOSITORY_COORDINATOR_POLICY.json")
     parser.add_argument("--state", type=Path)
     parser.add_argument("--ledger", type=Path)
+    parser.add_argument("--append-event-json", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--markdown", type=Path)
     parser.add_argument("--smoke-test", action="store_true")
@@ -1142,8 +1143,44 @@ def main(argv: list[str] | None = None) -> int:
         print("PASS" if run_smoke_test() else "FAIL")
         return 0
 
+    if args.append_event_json is not None:
+        if not args.state or not args.ledger:
+            parser.error("--append-event-json requires --state and --ledger")
+        try:
+            current_state = json.loads(args.state.read_text(encoding="utf-8"))
+            ledger_text = args.ledger.read_text(encoding="utf-8")
+            validated = validate_coordinator_state(
+                ledger_text,
+                current_state,
+                expected_branch=str(current_state.get("state_branch") or "repository-coordinator-state"),
+                expected_ledger_path=str(current_state.get("source_ledger") or "ADMISSION_LEDGER.jsonl"),
+            )
+            event = json.loads(args.append_event_json.read_text(encoding="utf-8"))
+            if not isinstance(event, dict):
+                raise ValueError("append event must be a JSON object")
+            canonical_event = json.dumps(
+                event, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+            )
+            new_ledger = ledger_text
+            if new_ledger and not new_ledger.endswith("\n"):
+                new_ledger += "\n"
+            new_ledger += canonical_event + "\n"
+            new_state = replay_admission_ledger(new_ledger)
+            new_state["state_branch"] = validated["state_branch"]
+            new_state["source_ledger"] = validated["source_ledger"]
+            args.ledger.write_text(new_ledger, encoding="utf-8")
+            args.state.write_text(
+                json.dumps(new_state, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            print(json.dumps(new_state, indent=2, sort_keys=True))
+            return 0
+        except (ValueError, json.JSONDecodeError) as exc:
+            print(f"state mutation refused: {exc}")
+            return 1
+
     if not args.snapshot:
-        parser.error("--snapshot is required unless --smoke-test is used")
+        parser.error("--snapshot is required unless --smoke-test or --append-event-json is used")
 
     if args.gate is not None and not args.policy.exists():
         print(f"gate=FAIL reason=policy file missing: {args.policy}")
