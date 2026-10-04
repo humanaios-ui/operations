@@ -300,6 +300,13 @@ def compose_capability_package(
             raise ValueError("selected suitability assessment references missing resource")
         if assessment.opportunity_id != profile.opportunity_id:
             raise ValueError("selected suitability assessment opportunity mismatch")
+        if assessment.resource_sha256 != _canonical_sha256(resource.to_dict()):
+            raise ValueError("selected suitability assessment resource digest is stale")
+        screen = screen_by_resource.get(assessment.resource_id)
+        if screen is None:
+            raise ValueError("selected suitability assessment lacks current resource screen")
+        if assessment.screen_id != screen.screen_id:
+            raise ValueError("selected suitability assessment screen lineage is stale")
         selected.append(assessment)
 
     bindings: list[PackageRequirementBinding] = []
