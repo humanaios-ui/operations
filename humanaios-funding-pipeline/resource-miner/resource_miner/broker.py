@@ -63,9 +63,6 @@ class BrokerOpportunity:
     source_url: str
     sponsor: str
     evidence: list[dict[str, Any]]
-    demand_requirement_id: str = ""
-    demand_mode: str = ""
-    demand_semantic_class: str = ""
     authority_effect: str = "NONE"
 
     def to_dict(self) -> dict[str, Any]:
@@ -84,6 +81,9 @@ class BrokerRequirement:
     target_scope_state: str
     external_state_change_allowed: bool
     evidence: list[dict[str, Any]]
+    demand_requirement_id: str = ""
+    demand_mode: str = ""
+    demand_semantic_class: str = ""
     authority_effect: str = "NONE"
 
     def to_dict(self) -> dict[str, Any]:
