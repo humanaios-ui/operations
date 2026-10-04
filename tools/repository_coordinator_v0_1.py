@@ -624,6 +624,7 @@ def classify(
     return {
         "number": number,
         "title": pr.get("title") or "",
+        "head_sha": pr.get("head_sha") or "",
         "url": pr.get("html_url") or pr.get("url"),
         "author": pr.get("author"),
         "draft": bool(pr.get("draft")),
@@ -919,6 +920,8 @@ def gate_decision(index: dict[str, Any], number: int) -> dict[str, Any]:
             gate = "PASS" if admission.get("gate") == "PASS" else "FAIL"
             return {
                 "number": int(number),
+                "target_pr": int(number),
+                "target_head_sha": item.get("head_sha") or "",
                 "gate": gate,
                 "lane": item.get("lane"),
                 "reason": admission.get("gate_reason") or "no admission reason recorded",
@@ -930,6 +933,8 @@ def gate_decision(index: dict[str, Any], number: int) -> dict[str, Any]:
             }
     return {
         "number": int(number),
+        "target_pr": int(number),
+        "target_head_sha": None,
         "gate": "FAIL",
         "lane": None,
         "reason": "target PR is absent from the repository snapshot; refusing to pass on missing evidence",
