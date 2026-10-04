@@ -159,5 +159,44 @@
       "command_processing": "SEPARATE_AUTHORITY_PATH",
       "dependency_doc": "docs/DAILY_DIGEST_GMAIL_ADAPTER_PHASE_B.md"
     }
+  },
+  {
+    "name": "Colorado Great Colorado Payback",
+    "mine_kind": "REGISTRY",
+    "canonical_url": "https://unclaimedproperty.colorado.gov/",
+    "resolver": "configured_mine",
+    "enabled": true,
+    "cadence": "weekly",
+    "roles": [
+      "OPPORTUNITY_SOURCE",
+      "EVIDENCE_SOURCE"
+    ],
+    "config": {
+      "evidence_origins": [
+        "unclaimedproperty.colorado.gov"
+      ],
+      "authority_effect": "NONE",
+      "observation_scope": "PUBLIC_LANDING_PATHWAY_ONLY",
+      "claimant_search_policy": "REQUIRE_EXPLICIT_CLAIMANT_REQUEST",
+      "claim_submission_policy": "PROHIBITED_IN_MINE_TEST",
+      "private_claim_status_policy": "PROHIBITED_IN_MINE_TEST",
+      "opportunities": [
+        {
+          "title": "Colorado Great Colorado Payback — claimant asset-recovery pathway",
+          "url": "https://unclaimedproperty.colorado.gov/",
+          "opportunity_kind": "unclaimed_property_recovery_pathway",
+          "source_category": "asset_recovery",
+          "sponsor": "Colorado State Treasurer — Unclaimed Property Division",
+          "tags": [
+            "colorado",
+            "unclaimed-property",
+            "asset-recovery",
+            "claimant-recovery"
+          ],
+          "description": "Official Colorado unclaimed-property recovery pathway. This bounded opportunity represents access to the state recovery mechanism only; it does not establish that any specific claimant has property, owns a listed property, is eligible to claim, or has recovered funds.",
+          "observe_url": true
+        }
+      ]
+    }
   }
 ]
