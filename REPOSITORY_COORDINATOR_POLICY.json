@@ -71,5 +71,20 @@
     "The gate must resolve and receipt the exact coordinator-state commit used for each decision.",
     "The gate fails closed when the ledger or materialized projection is missing, malformed, unsupported, or divergent.",
     "Evaluation admission remains a separate evidence-producing lane and does not consume operator capacity."
-  ]
+  ],
+  "state_mutation": {
+    "route": "ISSUE_COMMENT_COMMAND",
+    "authorized_actors": [
+      "humanaios-ui"
+    ],
+    "commands": {
+      "admit": "/coordinator admit",
+      "revoke": "/coordinator revoke"
+    },
+    "subject_kind": "ISSUE",
+    "authority_effect": "ADMISSION_ROUTING_ONLY",
+    "merge_authority": false,
+    "atomic_update_required": true,
+    "expected_head_lease_required": true
+  }
 }
