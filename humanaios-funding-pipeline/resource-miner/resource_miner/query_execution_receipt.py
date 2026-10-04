@@ -11,7 +11,9 @@ from typing import Any, Iterable
 from .observation_authorization import (
     OBSERVATION_OPERATION,
     ObservationAuthorizationDecision,
+    authorization_covers_query,
 )
+from .registry_query import RegistryQueryPlan
 
 RESULT_STATES = {
     "ZERO_MATCHES_OBSERVED",
@@ -186,6 +188,7 @@ def _prior_receipts(
 def mint_query_execution_receipt(
     *,
     authorization: ObservationAuthorizationDecision,
+    query: RegistryQueryPlan,
     private_subject_binding_attestation_id: str,
     executed_query_fields: Iterable[str],
     observed_origin_key: str,
@@ -199,6 +202,19 @@ def mint_query_execution_receipt(
     reasons = _authorization_is_executable(authorization)
     if reasons:
         raise PermissionError("; ".join(sorted(reasons)))
+    if not authorization_covers_query(authorization, query):
+        raise PermissionError("OAG does not cover the exact supplied RQY")
+    if authorization.query_id != query.query_id:
+        raise PermissionError("OAG/RQY query identity mismatch")
+    if authorization.query_plan_sha256 != hashlib.sha256(
+        json.dumps(
+            query.to_dict(),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest():
+        raise PermissionError("OAG/RQY query digest mismatch")
 
     psb = private_subject_binding_attestation_id.strip().upper()
     if not PSB_RE.fullmatch(psb):
@@ -217,7 +233,7 @@ def mint_query_execution_receipt(
         }
     )
     authorized_fields = sorted(
-        {str(value).strip().casefold() for value in authorization.query_fields}
+        {str(value).strip().casefold() for value in query.query_fields}
     )
     if fields != authorized_fields:
         raise PermissionError(
