@@ -25,7 +25,7 @@ USAGE
   --input <path>    a system graph other than system_graph.json
   --smoke-test      render an in-memory fixture; writes nothing
 
-Direction rule this tool encodes: GitHub renders to Drive, never the reverse,
+Direction rule this tool encodes: GitHub renders to Drive, not the reverse,
 for anything the repo generates. Edit system_graph_generator.py or its inputs,
 regenerate system_graph.json, re-render, then replace the Drive copy.
 """
