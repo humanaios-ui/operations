@@ -186,6 +186,86 @@ authorization_state = NOT_REQUESTED
 authority_effect = NONE
 ```
 
+
+
+## Operational modes and interaction classes
+
+A resource project and a resource operational mode are not the same evidence object.
+
+Examples:
+
+```text
+Amass / PASSIVE
+!=
+Amass / ACTIVE
+
+Shodan / INDEX_QUERY
+!=
+Shodan / SCAN_REQUEST
+
+Censys / INDEX_QUERY
+!=
+Censys / LIVE_RESCAN
+```
+
+Resource Miner therefore supports mode-bound resource variants. The operational mode contributes to the canonical resource representation and produces a distinct `RES-*` identity.
+
+Canonical resource composition fields include:
+
+```text
+operational_mode
+service_surface_classes
+composition_conflicts
+```
+
+These fields participate in `ResourceCandidate.to_dict()` and therefore in the BSA resource digest used by CPK freshness checks.
+
+The interaction vocabulary distinguishes:
+
+```text
+NONE
+PASSIVE_PUBLIC_SOURCE
+THIRD_PARTY_API_READ_ONLY
+TARGET_READ_ONLY
+TARGET_ACTIVE
+MIXED
+UNKNOWN
+```
+
+Legacy `READ_ONLY` and `ACTIVE` remain accepted for compatibility.
+
+This distinction prevents index-query services from being mislabeled as target-touching:
+
+```text
+Shodan/Censys indexed search
+→ THIRD_PARTY_API_READ_ONLY
+
+direct target interaction
+→ TARGET_READ_ONLY | TARGET_ACTIVE
+```
+
+Credentials, licensing/terms, network behavior, and external-state-change capability remain separate screening dimensions.
+
+A demand profile may also constrain `allowed_network_behaviors`. A capability-complete package still fails the package screen when a selected operational mode violates that interaction policy.
+
+```text
+CAPABILITY_COMPLETE
+!=
+INTERACTION_POLICY_COMPLIANT
+```
+
+## Verified candidate profiles
+
+The regression corpus includes descriptive, non-executing profiles for:
+
+- Subfinder passive discovery;
+- OWASP Amass passive and active variants;
+- Shodan indexed search;
+- Censys indexed search;
+- Assetnote continuous attack-surface management.
+
+These fixtures validate metadata, surface classification, interaction class, credentials/terms conditions, and mode separation only. They do not authorize or execute the tools.
+
 ## Integrity
 
 `CPK-*` identity is derived from the selected bindings/resources/suitability records/service-surface classes.
