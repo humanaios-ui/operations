@@ -95,7 +95,31 @@ jobs:
               policySource = "checkout (policy absent on main; bootstrap)";
               core.warning("REPOSITORY_COORDINATOR_POLICY.json is absent on main; advisory index is using the checkout copy.");
             }
-            const policy = JSON.parse(policyText);
+            let policy = JSON.parse(policyText);
+            let policyRef = "main";
+            let policyReceiptSha = mainSha;
+
+            // Read-only bootstrap validation for the PR that introduces the
+            // state split. Production enforcement never uses this fallback:
+            // repository-admission-gate.yml executes from the default branch.
+            if (!(policy.state || {}).branch && context.eventName === "pull_request") {
+              const candidateText = fs.readFileSync(
+                "REPOSITORY_COORDINATOR_POLICY.json", "utf8"
+              );
+              const candidate = JSON.parse(candidateText);
+              if ((candidate.state || {}).branch) {
+                policyText = candidateText;
+                policy = candidate;
+                policySource = "PR checkout bootstrap validation; main lacks state contract";
+                policyRef = context.payload.pull_request.head.ref;
+                policyReceiptSha = context.payload.pull_request.head.sha;
+                core.notice(
+                  "Using PR policy only for read-only bootstrap validation. " +
+                  "Required admission enforcement remains default-branch-only."
+                );
+              }
+            }
+
             fs.mkdirSync(".repo-coordinator", { recursive: true });
             fs.writeFileSync(".repo-coordinator/policy.main.json", policyText);
             fs.writeFileSync(".repo-coordinator/policy.source", policySource);
@@ -301,8 +325,8 @@ jobs:
               schema_version: "0.3",
               repository: `${owner}/${repo}`,
               main_sha: mainSha,
-              policy_ref: "main",
-              policy_sha: mainSha,
+              policy_ref: policyRef,
+              policy_sha: policyReceiptSha,
               policy_source: policySource,
               state_branch: stateBranch,
               state_sha: stateSha,
