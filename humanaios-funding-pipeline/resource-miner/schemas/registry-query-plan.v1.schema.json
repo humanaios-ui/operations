@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/registry-query-plan.v1.schema.json",
+  "title": "HumanAIOS Registry Query Plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "query_id",
+    "query_token",
+    "registry_mine_id",
+    "pathway_opportunity_id",
+    "query_class",
+    "subject_ref",
+    "subject_kind",
+    "query_fields",
+    "privacy_classification",
+    "query_value_persistence",
+    "purpose",
+    "expected_response_class",
+    "zero_result_semantics",
+    "match_result_semantics",
+    "explicit_subject_request",
+    "external_state_change",
+    "planning_state",
+    "execution_state",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.registry-query-plan.v1"
+    },
+    "query_id": {
+      "type": "string",
+      "pattern": "^RQY-[A-F0-9]{16}$"
+    },
+    "query_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:registry-query:RQY-[A-F0-9]{16}$"
+    },
+    "registry_mine_id": {
+      "type": "string",
+      "pattern": "^MINE-[A-F0-9]{16}$"
+    },
+    "pathway_opportunity_id": {
+      "type": "string",
+      "pattern": "^OPP-[A-F0-9]{16}$"
+    },
+    "query_class": {
+      "const": "UNCLAIMED_PROPERTY_OWNER_SEARCH"
+    },
+    "subject_ref": {
+      "type": "string",
+      "pattern": "^SUBJ-[A-F0-9]{16}$"
+    },
+    "subject_kind": {
+      "enum": [
+        "NATURAL_PERSON",
+        "ORGANIZATION",
+        "UNKNOWN"
+      ]
+    },
+    "query_fields": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "owner_name",
+          "business_name",
+          "last_known_location"
+        ]
+      }
+    },
+    "privacy_classification": {
+      "const": "SENSITIVE_QUERY_INPUT"
+    },
+    "query_value_persistence": {
+      "const": "PRIVATE_RUNTIME_ONLY"
+    },
+    "purpose": {
+      "const": "DISCOVER_CANDIDATE_UNCLAIMED_PROPERTY_RECORDS"
+    },
+    "expected_response_class": {
+      "const": "ZERO_OR_MORE_CANDIDATE_RECORDS"
+    },
+    "zero_result_semantics": {
+      "const": "NO_MATCH_OBSERVED_NOT_NO_ENTITLEMENT"
+    },
+    "match_result_semantics": {
+      "const": "CANDIDATE_RECORD_NOT_OWNERSHIP"
+    },
+    "explicit_subject_request": {
+      "const": true
+    },
+    "external_state_change": {
+      "const": false
+    },
+    "planning_state": {
+      "const": "PLANNED"
+    },
+    "execution_state": {
+      "const": "NOT_AUTHORIZED"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  }
+}
