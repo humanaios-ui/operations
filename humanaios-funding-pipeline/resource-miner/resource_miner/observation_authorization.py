@@ -75,6 +75,9 @@ class ObservationAuthorizationDecision:
     private_query_values_exposed: bool
     external_state_change: bool
     consequence_ceiling: str
+    consequential_actions_permitted: bool
+    claim_submission_permitted: bool
+    private_subject_binding_required: bool
     prohibited_actions: list[str]
     one_shot: bool
     max_executions: int
@@ -314,6 +317,9 @@ def evaluate_observation_authorization(
         private_query_values_exposed=False,
         external_state_change=False,
         consequence_ceiling="EVIDENCE_ONLY",
+        consequential_actions_permitted=False,
+        claim_submission_permitted=False,
+        private_subject_binding_required=True,
         prohibited_actions=list(PROHIBITED_ACTIONS),
         one_shot=True,
         max_executions=1,
