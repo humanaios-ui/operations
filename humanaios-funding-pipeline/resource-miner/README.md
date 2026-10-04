@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.12
+# HumanAIOS Resource Miner v0.1.13
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -436,6 +436,24 @@ Every query plan requires an explicit subject request, must bind to an opportuni
 Result semantics are deliberately bounded: `NO_MATCH_OBSERVED != NO_ENTITLEMENT` and `MATCH_OBSERVED != OWNERSHIP | ELIGIBILITY | CLAIM_AUTHORIZED | FUNDS_RECOVERED`.
 
 Use `python3 -m resource_miner.cli plan-registry-query ...` to create the plan object. The command does not perform a registry search. See `docs/SUBJECT_SCOPED_REGISTRY_QUERY.md`.
+
+### Exact-query observation authorization
+
+Resource Miner now includes an `OAG-*` Observation Authorization Gate that evaluates one exact `RQY-*` plan without seeing private runtime query values.
+
+```text
+RQY-* -> OAG-* -> later QRC-* execution receipt
+```
+
+The gate recomputes the RQY identity, verifies the registered Mine/pathway binding, checks the Mine query contract, and binds authorization to the SHA-256 of the canonical public RQY object.
+
+A successful decision is one-shot and observation-only: `decision=ALLOW_OBSERVATION`, `authority_effect=OBSERVATION_ONLY`, `execution_state=NOT_EXECUTED`, `max_executions=1`, `consequence_ceiling=EVIDENCE_ONLY`, and `external_state_change=false`.
+
+The OAG object never contains raw claimant/search values. It records only the opaque `SUBJ-*`, semantic query fields, public query-plan digest, and policy receipt. Private runtime values remain `PRIVATE_RUNTIME_ONLY`, and later execution must attest that those values resolve to the authorized subject binding.
+
+Claim creation/submission/update, document upload, private claim-status access, account or credential mutation, messaging, payment, purchase, and fund transfer are hard-denied. `claim_submission_permitted=false` and `consequential_actions_permitted=false` are schema invariants.
+
+Use `python3 -m resource_miner.cli authorize-registry-observation --query-plan <rqy.json>` to evaluate the gate. The command does not execute the registry query. See `docs/OBSERVATION_AUTHORIZATION_GATE.md`.
 
 ### Reconstructable Claim state machine
 
