@@ -311,8 +311,18 @@ class CapabilityPackageTests(unittest.TestCase):
         )
 
     def test_credential_propagation_is_package_condition(self):
+        resource_c = normalize_generic(
+            title="Credentialed Browser Helper",
+            url="https://github.com/example/credentialed-browser-helper",
+            source_name="GitHub",
+            discovery_method="synthetic-test",
+            source_category="open_source_tool",
+        )
+        resource_c.resource_types = ["open_source_tool"]
+        resource_c.resource_affordances = ["browser_analysis"]
+        resource_c.evidence = list(self.evidence)
         credential_screen = screen_resource(
-            self.resource_a,
+            resource_c,
             provenance_state="VERIFIED",
             license_state="ALLOWABLE",
             permissions_state="MINIMAL",
@@ -322,31 +332,25 @@ class CapabilityPackageTests(unittest.TestCase):
             auditability="ADEQUATE",
             least_privilege_compatible=True,
         )
-        a_passive = assess_suitability(
+        c_optional = assess_suitability(
             opportunity=self.opportunity,
-            requirement=self.by_dmr[self.demand_rows[0].demand_requirement_id],
-            resource=self.resource_a,
-            provider_class="OPEN_SOURCE",
-            screen=credential_screen,
-        )
-        a_auth = assess_suitability(
-            opportunity=self.opportunity,
-            requirement=self.by_dmr[self.demand_rows[2].demand_requirement_id],
-            resource=self.resource_a,
+            requirement=self.by_dmr[self.demand_rows[3].demand_requirement_id],
+            resource=resource_c,
             provider_class="OPEN_SOURCE",
             screen=credential_screen,
         )
         assessments = [
-            a_passive,
+            self.a_passive,
             self.b_evidence,
-            a_auth,
+            self.a_auth,
+            c_optional,
         ]
         package = compose_capability_package(
             profile=self.profile,
             broker_requirements=self.requirements,
-            resources=[self.resource_a, self.resource_b],
+            resources=[self.resource_a, self.resource_b, resource_c],
             assessments=assessments,
-            resource_screens=[credential_screen, self.screen_b],
+            resource_screens=[self.screen_a, self.screen_b, credential_screen],
             selected_assessment_ids=[row.assessment_id for row in assessments],
             service_surface_map=self.surface_map,
         )
