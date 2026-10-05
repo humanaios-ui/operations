@@ -21,6 +21,7 @@ from repository_coordinator_state_v1 import (
     AUTHORITY_EFFECT,
     StateError,
     append_event,
+    apply_issue_command,
     canonical_json,
     make_event,
     parse_ledger,
@@ -760,3 +761,160 @@ def test_state_event_cannot_grant_merge_authority():
     row["merge_authority"] = True
     with pytest.raises(StateError):
         parse_ledger(canonical_json(row) + "\n")
+
+
+def _write_issue_route_policy(tmp_path, *, authorized=None):
+    path = tmp_path / "policy.json"
+    payload = {
+        "state": {
+            "authorized_mutators": authorized or ["humanaios-ui"],
+            "issue_route": {
+                "enabled": True,
+                "subject_kind": "ISSUE",
+                "commands": {
+                    "admit": "/coordinator admit",
+                    "revoke": "/coordinator revoke",
+                },
+                "required_admit_issue_state": "ADMISSION_REQUESTED",
+                "authority_effect": "ADMISSION_ROUTING_ONLY",
+                "merge_authority": False,
+            },
+        }
+    }
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def test_issue_route_authorized_admit_appends_issue_event(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, _ = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    result = apply_issue_command(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state,
+        issue_number=722,
+        issue_body="## State\n\n**State:** ADMISSION_REQUESTED\n",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="12345",
+        recorded_at="2026-10-05T05:30:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is True
+    assert result["decision"] == "ADMIT"
+    verified = verify_projection(ledger, state)
+    assert verified["admitted_issue_numbers"] == [1, 722]
+    assert verified["merge_authority"] is False
+
+
+def test_issue_route_unauthorized_actor_fails_closed(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, _ = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    with pytest.raises(StateError, match="not authorized"):
+        apply_issue_command(
+            policy_path=policy_path,
+            ledger_path=ledger,
+            state_path=state,
+            issue_number=722,
+            issue_body="**State:** ADMISSION_REQUESTED",
+            comment_body="/coordinator admit",
+            actor="other-user",
+            comment_id="12346",
+            recorded_at="2026-10-05T05:31:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+
+
+def test_issue_route_admit_requires_admission_requested(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, _ = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    with pytest.raises(StateError, match="ADMISSION_REQUESTED"):
+        apply_issue_command(
+            policy_path=policy_path,
+            ledger_path=ledger,
+            state_path=state,
+            issue_number=722,
+            issue_body="**State:** DISCOVERY",
+            comment_body="/coordinator admit",
+            actor="humanaios-ui",
+            comment_id="12347",
+            recorded_at="2026-10-05T05:32:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+
+
+def test_issue_route_repeat_admit_is_noop(tmp_path):
+    seed = state_event(kind="ISSUE", number=722, objective=722)
+    ledger, state, before = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+    before_ledger = ledger.read_text(encoding="utf-8")
+
+    result = apply_issue_command(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state,
+        issue_number=722,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="12348",
+        recorded_at="2026-10-05T05:33:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is False
+    assert result["reason"] == "ALREADY_ADMITTED"
+    assert ledger.read_text(encoding="utf-8") == before_ledger
+    assert verify_projection(ledger, state) == before
+
+
+def test_issue_route_revoke_removes_issue_standing(tmp_path):
+    seed = state_event(kind="ISSUE", number=722, objective=722)
+    ledger, state, _ = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    result = apply_issue_command(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state,
+        issue_number=722,
+        issue_body="**State:** ACTIVE",
+        comment_body="/coordinator revoke",
+        actor="humanaios-ui",
+        comment_id="12349",
+        recorded_at="2026-10-05T05:34:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is True
+    assert result["decision"] == "REVOKE"
+    verified = verify_projection(ledger, state)
+    assert 722 not in verified["admitted_issue_numbers"]
+
+
+def test_issue_route_non_command_is_noop(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, before = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+    before_ledger = ledger.read_text(encoding="utf-8")
+
+    result = apply_issue_command(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state,
+        issue_number=722,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="looks good",
+        actor="humanaios-ui",
+        comment_id="12350",
+        recorded_at="2026-10-05T05:35:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is False
+    assert result["reason"] == "NOT_COORDINATOR_COMMAND"
+    assert ledger.read_text(encoding="utf-8") == before_ledger
+    assert verify_projection(ledger, state) == before
