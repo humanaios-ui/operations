@@ -71,6 +71,17 @@
     "mutation_model": "append event -> deterministic replay -> commit ledger and projection together",
     "authorized_mutators": [
       "humanaios-ui"
-    ]
+    ],
+    "issue_route": {
+      "enabled": true,
+      "subject_kind": "ISSUE",
+      "commands": {
+        "admit": "/coordinator admit",
+        "revoke": "/coordinator revoke"
+      },
+      "required_admit_issue_state": "ADMISSION_REQUESTED",
+      "authority_effect": "ADMISSION_ROUTING_ONLY",
+      "merge_authority": false
+    }
   }
 }
