@@ -1,6 +1,6 @@
 {
-  "pr": 718,
-  "actor_origin_claim": "GPT-5.6 Sol via ChatGPT, implementing user-approved Repository Coordinator vNext",
+  "pr": 723,
+  "actor_origin_claim": "GPT-5.6 Sol via ChatGPT, implementing user-authorized Repository Coordinator issue route",
   "checks": {
     "agent-principle-compliance-check": {
       "conclusion": "success",
@@ -8,15 +8,15 @@
     },
     "builder-lint": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.98
     },
     "document-control": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.98
     },
     "manifest-sync-gate": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.98
     },
     "No-op PR guard": {
       "conclusion": "success",
@@ -24,7 +24,7 @@
     },
     "quality-baseline": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.96
     },
     "repository-admission-gate": {
       "conclusion": "success",
@@ -44,12 +44,12 @@
     },
     "workflow-lint": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.97
     },
     "workflow-path-validation": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.98
     }
   },
-  "note": "Final prediction-bearing head after authorized-mutator enforcement, target-head receipts, workflow inventory documentation, atomic test consolidation, and dual-mode trusted bootstrap enforcement. State mutations remain serialized and non-merge-authoritative."
+  "note": "Prediction-bearing head for the issue-command admission route. The route is issue-only, authorized-actor gated, ADMISSION_REQUESTED-gated for admit, replay-verified, stale-head checked, non-force, and non-merge-authoritative."
 }
