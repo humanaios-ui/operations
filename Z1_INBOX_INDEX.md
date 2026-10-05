@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**98 candidates** — ⏳ awaiting Z2 88 · ✅ ratified 10 · **52 records**
+**104 candidates** — ⏳ awaiting Z2 94 · ✅ ratified 10 · **56 records**
 
-## Awaiting Z2 (88)
+## Awaiting Z2 (94)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -100,6 +100,12 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-09-29 | **Q-PROCESS-PRODUCT-RATIO-01** | Governance ceremony volume outweighs shipped product; z2_ratification_gate.yml silently no-op'd for 122 runs | `z1-inbox/2026-09-27/F-CAND-PROCESS-VS-PRODUCT-RATIO-01.md` |
 | 2026-09-29 | **Q-WITNESS-LEDGER-TIER0-EXTENSION-01** | Extend the INTENT-OS witness ledger with a Tier 0 (anonymous public participant) actor class | `z1-inbox/2026-09-27/Q-WITNESS-LEDGER-TIER0-EXTENSION-01.md` |
 | 2026-10-01 | **Q-LEDGER-GROUNDING-STUB-01** | p34x LedgerProvider is a permanent no-op stub — every future date classifies ERROR regardless of ratification | `z1-inbox/2026-09-29/F-CAND-LEDGER-GROUNDING-STUB-01.md` |
+| 2026-10-02 | **Q-588-CONVERGENCE-MATRIX-01** | Resource System Convergence Matrix — component landscape & composition framework | `z1-inbox/2026-09-30/Q-588-CONVERGENCE-MATRIX-01.md` |
+| 2026-10-02 | **Q-TIER-ASSIGNMENT-BATCH-01** | Tier assignment for 90 awaiting_z2 governance candidates | `z1-inbox/2026-09-30/Q-TIER-ASSIGNMENT-BATCH-01-RESULT.md` |
+| 2026-10-03 | **Q-GRAPH-CAPTURE-LINT-01** | graph_capture_lint — score every graph file against the nine properties of a self-sealing graph; block on the three that make a graph unauditable | `z1-inbox/2026-10-01/Q-GRAPH-CAPTURE-LINT-01.md` |
+| 2026-10-03 | **Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01** | Phase 2B telemetry & workflow path validator — dual-layer IC-032 prevention | `z1-inbox/2026-10-01/Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01.md` |
+| 2026-10-03 | **Q-RBE-OPS-TIER-RANKING-01** | RBE-OPS Tier Ranking - Benefit/Cost Density Within Tiers | `z1-inbox/2026-10-01/Q-RBE-OPS-TIER-RANKING-01.md` |
+| 2026-10-03 | **Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01** | Z3 executor assignments and execution plan for 90 tier-assigned candidates | `z1-inbox/2026-10-01/Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01.md` |
 
 ## Decided (10)
 
@@ -468,7 +474,7 @@ Every unticked item from the `## Z2 Review Checklist` of each candidate still aw
 - [ ] Document-control's per-condition coverage is accepted as named follow-up, not silently owed
 - [ ] The three open items from Q-TOOLCONTROL-01 (Zone 2 claim, MCP scope, overdue reviews) and the status/owner queue are unaffected by this pass
 
-## Records (52)
+## Records (56)
 
 No decision requested. Listed so the coverage rule cannot be satisfied by silence.
 
@@ -518,6 +524,7 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-24/Z2_RULINGS_2026-09-24.md` | Z2 rulings 2026-09-24 — recovered Q-MAIL merge-is-ratification receipt |
 | `z1-inbox/2026-09-25/DEPLOYMENT-FREQUENCY-VERIFICATION.md` | Deployment Frequency Improvement Verification Report |
 | `z1-inbox/2026-09-25/HANDOFF-PHASE-1-CI-CONSOLIDATION.md` | Z1 Handoff: Phase 1 CI/CD Consolidation (PR #538) |
+| `z1-inbox/2026-09-25/HANDOFF-PHASE-2B-TELEMETRY.md` | Session Handoff — Phase 2B Telemetry Implementation Complete |
 | `z1-inbox/2026-09-25/PHASE-1-CI-CONSOLIDATION-HANDOFF.md` | Z1 Handoff: Phase 1 CI/CD Consolidation (isolated branch) |
 | `z1-inbox/2026-09-25/PHASE-2-EXECUTIVE-START.md` | Phase 2: Executive Start — Options A & B Immediate Launch |
 | `z1-inbox/2026-09-25/PHASE-2A-MONITORING-IMPLEMENTATION.md` | Phase 2A: Monitoring & Validation — Implementation Plan |
@@ -525,6 +532,9 @@ No decision requested. Listed so the coverage rule cannot be satisfied by silenc
 | `z1-inbox/2026-09-25/SESSION-CLOSURE-HANDOFF.md` | Z1 Session Closure Handoff — Phase 1 CI Consolidation & Corrective Fix |
 | `z1-inbox/2026-09-27/MOLT-MEASUREMENT-MANUAL-EXTRACTION.md` | MOLT Measurement Manual Extraction Procedure — Blockchain Trading Pilot (Z-012) |
 | `z1-inbox/2026-09-28/IC-065-EVIDENCE-LEDGER-GAP-PR465.md` | IC-065 — Evidence Ledger Gap (PR #465) |
+| `z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md` | Phase 3 credential deployment guide |
+| `z1-inbox/2026-10-01/HANDOFF.md` | Z1 Session Handoff — Phase 2B Salvage Complete |
+| `z1-inbox/2026-10-02/SESSION_FINDINGS.md` | Z1 Session Handoff — Five Friction Points & TENSION_FINDINGS Feedback Loop |
 | `z1-inbox/PHASE-2-IMPLEMENTATION-PLAN.md` | Phase 2 Account Hub API Integrations & Cockpit Enhancement — implementation plan |
 
 ---

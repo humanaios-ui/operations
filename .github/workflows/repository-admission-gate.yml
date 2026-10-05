@@ -1,28 +1,9 @@
 name: repository-admission-gate
 
-# Required check: "Repository admission/backpressure gate".
-#
-# Fail-closed enforcement of REPOSITORY_COORDINATOR_POLICY.json for the
-# triggering PR. This workflow runs on pull_request_target so that the workflow
-# definition, the policy, the coordinator tool, and PRIORITY_QUEUE.md all come
-# from the trusted default branch. It never checks out or executes PR-head
-# code: PR state is read through the GitHub API with a read-only token.
-#
-# Why this matters (red-team findings on the v0.2 candidate gate):
-#   - The previous gate read the policy from the PR checkout, so a PR could
-#     admit itself by editing the policy it was judged against.
-#   - Any PR touching one control-plane file was fully exempt from admission.
-#   - Capacity contention was reported but never enforced.
-#   - The issue-reference regex was double-escaped and never matched, so
-#     legitimately admitted work was rejected.
-#
-# Decision rules (see tools/repository_coordinator_v0_1.py):
-#   ACTIVE / MAINTENANCE / WORKBENCH / CONTROL_PLANE  -> PASS
-#   ADMISSION_REVIEW / CAPACITY_CONTENTION / duplicate objective -> FAIL
-#   snapshot or policy unavailable, PR not found                 -> FAIL
-#
-# Admission is working-set routing only. It never merges, approves, labels,
-# or mutates canonical queue state, and it is not merge authority.
+# Required check: Repository admission/backpressure gate.
+# Trusted control law comes from the default branch. Mutable working-set
+# admission state comes from an exact, receipted repository-coordinator-state
+# commit. Admission is routing only and never merge authority.
 
 on:
   pull_request_target:
@@ -33,24 +14,57 @@ on:
       - ready_for_review
       - converted_to_draft
       - edited
+  pull_request_review:
+    types:
+      - submitted
+      - dismissed
+  workflow_dispatch:
+    inputs:
+      decision:
+        description: Admission-state decision
+        required: true
+        type: choice
+        options: [ADMIT, REVOKE]
+      subject_kind:
+        description: Subject type
+        required: true
+        type: choice
+        options: [ISSUE, PULL_REQUEST]
+      subject_number:
+        description: Issue or PR number
+        required: true
+        type: string
+      objective_issue_number:
+        description: Optional objective issue number
+        required: false
+        type: string
+      evidence:
+        description: Human-readable evidence for this state event
+        required: true
+        type: string
 
 permissions: {}
 
 concurrency:
-  group: repository-admission-gate-${{ github.event.pull_request.number }}
+  # PR evaluations supersede stale evaluations for the same PR. Manual state
+  # dispatches use a unique workflow-level group so they are not cancelled here;
+  # the mutate job below serializes them with cancel-in-progress=false.
+  group: repository-admission-gate-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   gate:
+    if: github.event_name != 'workflow_dispatch'
     name: Repository admission/backpressure gate
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
       issues: read
+
     steps:
-      # Trusted source of truth: the default branch. Never the PR head.
-      - uses: actions/checkout@v7
+      - name: Checkout trusted default-branch control law
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
@@ -59,7 +73,14 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Collect gate snapshot through the API (no PR code executed)
+      - name: Pin checked-out policy commit
+        run: |
+          set -euo pipefail
+          mkdir -p .repo-coordinator
+          git rev-parse HEAD > .repo-coordinator/policy.sha
+
+      - name: Collect exact state branch and live PR snapshot
+        id: collect
         uses: actions/github-script@v9
         env:
           TARGET_PR: ${{ github.event.pull_request.number }}
@@ -68,24 +89,80 @@ jobs:
             const fs = require("fs");
             const { owner, repo } = context.repo;
             const target = Number(process.env.TARGET_PR);
+            const defaultBranch = context.payload.repository.default_branch;
+            const policySha = fs.readFileSync(".repo-coordinator/policy.sha", "utf8").trim();
 
             const policy = JSON.parse(
               fs.readFileSync("REPOSITORY_COORDINATOR_POLICY.json", "utf8")
             );
+            const stateCfg = policy.state || {};
+            const stateBranch = String(stateCfg.branch || "");
+            const ledgerPath = String(stateCfg.ledger_path || "");
+            const projectionPath = String(stateCfg.projection_path || "");
+
+            let stateMode = "v0.3";
+            let stateSha = null;
+            let ledgerText = "";
+            let projectionText = "";
+            let admittedIssueNumbers = [];
+
+            if (stateBranch && ledgerPath && projectionPath) {
+              const branch = await github.rest.repos.getBranch({
+                owner, repo, branch: stateBranch
+              });
+              stateSha = branch.data.commit.sha;
+
+              const fetchText = async path => {
+                const response = await github.rest.repos.getContent({
+                  owner, repo, path, ref: stateSha
+                });
+                if (Array.isArray(response.data) || response.data.type !== "file") {
+                  throw new Error(`state path ${path} is not a file`);
+                }
+                return Buffer.from(response.data.content, "base64").toString("utf8");
+              };
+
+              [ledgerText, projectionText] = await Promise.all([
+                fetchText(ledgerPath),
+                fetchText(projectionPath)
+              ]);
+              fs.writeFileSync(".repo-coordinator/ADMISSION_LEDGER.jsonl", ledgerText);
+              fs.writeFileSync(".repo-coordinator/COORDINATOR_STATE.json", projectionText);
+
+              const state = JSON.parse(projectionText);
+              if (state.merge_authority !== false) {
+                core.setFailed("coordinator state claims merge authority; failing closed");
+                return;
+              }
+              admittedIssueNumbers = [
+                ...new Set((state.admitted_issue_numbers || []).map(Number))
+              ];
+            } else {
+              // Bootstrap compatibility only: trusted main is still v0.2 while
+              // the migration PR is under review. Delegate enforcement to the
+              // trusted v0.2 policy/tool rather than trusting candidate code.
+              stateMode = "legacy-v0.2";
+              admittedIssueNumbers = [
+                ...new Set((((policy || {}).admission || {}).issue_numbers || []).map(Number))
+              ];
+              core.warning(
+                "Trusted main has no v0.3 state contract; using legacy v0.2 admission " +
+                "enforcement for this pre-merge run. No candidate policy/state is trusted."
+              );
+            }
+            core.setOutput("mode", stateMode);
+            const referencedIssueNumbers = new Set(admittedIssueNumbers);
+
             const maintenanceAuthors = new Set(
               (((policy || {}).maintenance || {}).authors || []).map(String)
             );
-            const admittedIssueNumbers = [
-              ...new Set((((policy || {}).admission || {}).issue_numbers || []).map(Number))
-            ];
+            const closingRefRe = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*(?:[\w.-]+\/[\w.-]+)?#(\d{1,6})\b/gi;
 
             const open = await github.paginate(
               github.rest.pulls.list,
               { owner, repo, state: "open", per_page: 100 }
             );
 
-            // The triggering payload carries the freshest body/draft state for
-            // the target PR (an `edited` event may not be visible in the list yet).
             const payloadPr = context.payload.pull_request;
             const byNumber = new Map(open.map(p => [p.number, p]));
             if (payloadPr && payloadPr.state === "open") {
@@ -100,7 +177,6 @@ jobs:
               github.rest.pulls.listFiles,
               { owner, repo, pull_number: number, per_page: 100 }
             );
-
             const chunk = (xs, size) => {
               const out = [];
               for (let i = 0; i < xs.length; i += size) out.push(xs.slice(i, i + size));
@@ -113,37 +189,58 @@ jobs:
                 const author = brief.user && brief.user.login ? brief.user.login : "unknown";
                 const isDraft = Boolean(brief.draft);
                 const isMaintenance = maintenanceAuthors.has(author);
-                // Files are needed for control-plane and zero-diff decisions on
-                // the target PR and for every ready non-maintenance PR that could
-                // occupy operator capacity. Drafts and maintenance never do.
                 const needFiles = brief.number === target || (!isDraft && !isMaintenance);
+                const needReviews = brief.number === target || (!isDraft && !isMaintenance);
                 let files = [];
+                let reviews = [];
                 let filesComplete = false;
+
                 if (needFiles) {
                   files = await listFiles(brief.number);
                   filesComplete = true;
                 }
+                if (needReviews) {
+                  reviews = await github.paginate(
+                    github.rest.pulls.listReviews,
+                    { owner, repo, pull_number: brief.number, per_page: 100 }
+                  );
+                }
+
+                const body = brief.body || "";
+                for (const match of body.matchAll(closingRefRe)) {
+                  referencedIssueNumbers.add(Number(match[1]));
+                }
                 return {
                   number: brief.number,
                   title: brief.title || "",
-                  body: brief.body || "",
+                  body,
                   author,
-                  labels: (brief.labels || []).map(x => (typeof x === "string" ? x : x.name)).filter(Boolean),
+                  labels: (brief.labels || []).map(x => (
+                    typeof x === "string" ? x : x.name
+                  )).filter(Boolean),
                   html_url: brief.html_url,
                   state: brief.state,
                   draft: isDraft,
+                  head_sha: brief.head && brief.head.sha ? brief.head.sha : "",
                   mergeable_state: "unknown",
                   files_complete: filesComplete,
                   files: files.map(f => f.filename),
                   file_details: [],
-                  reviews: []
+                  reviews: reviews.map(r => ({
+                    user: {
+                      login: r.user && r.user.login ? r.user.login : "unknown"
+                    },
+                    state: r.state,
+                    submitted_at: r.submitted_at,
+                    commit_id: r.commit_id || null
+                  }))
                 };
               }));
               pullRequests.push(...rows);
             }
 
             const referencedItems = {};
-            for (const batch of chunk(admittedIssueNumbers, 6)) {
+            for (const batch of chunk([...referencedIssueNumbers], 6)) {
               const rows = await Promise.all(batch.map(async number => {
                 try {
                   const issue = (await github.rest.issues.get({
@@ -161,27 +258,60 @@ jobs:
                   state: issue.state,
                   html_url: issue.html_url,
                   title: issue.title,
+                  body: issue.body || "",
+                  labels: (issue.labels || []).map(x =>
+                    typeof x === "string" ? x : x.name
+                  ).filter(Boolean),
                   is_pull_request: Boolean(issue.pull_request)
                 };
               }
             }
 
             const snapshot = {
-              schema_version: "0.2",
+              schema_version: stateMode === "v0.3" ? "0.3" : "0.2",
               purpose: "admission-gate",
+              state_mode: stateMode,
               repository: `${owner}/${repo}`,
-              main_sha: context.sha,
+              main_sha: policySha,
+              policy_ref: defaultBranch,
+              policy_sha: policySha,
+              state_branch: stateMode === "v0.3" ? stateBranch : null,
+              state_sha: stateMode === "v0.3" ? stateSha : null,
               main_paths: [],
               referenced_pull_requests: {},
               referenced_items: referencedItems,
               pull_requests: pullRequests
             };
-            fs.mkdirSync(".repo-coordinator", { recursive: true });
             fs.writeFileSync(
               ".repo-coordinator/gate-snapshot.json",
               JSON.stringify(snapshot, null, 2)
             );
-            core.info(`Gate snapshot: ${pullRequests.length} open PR(s); target #${target}.`);
+            core.info(
+              `Gate snapshot: ${pullRequests.length} open PR(s); target #${target}; ` +
+              `policy ${policySha.slice(0, 12)}; mode ${stateMode}; ` +
+              `state ${stateSha ? stateSha.slice(0, 12) : "n/a"}.`
+            );
+
+      - name: Verify state replay and bind content digests
+        if: steps.collect.outputs.mode == 'v0.3'
+        run: |
+          set -euo pipefail
+          python3 tools/repository_coordinator_state_v1.py verify \
+            --ledger .repo-coordinator/ADMISSION_LEDGER.jsonl \
+            --state .repo-coordinator/COORDINATOR_STATE.json
+
+          LEDGER_SHA="$(sha256sum .repo-coordinator/ADMISSION_LEDGER.jsonl | awk '{print $1}')"
+          PROJECTION_SHA="$(sha256sum .repo-coordinator/COORDINATOR_STATE.json | awk '{print $1}')"
+          python3 - "$LEDGER_SHA" "$PROJECTION_SHA" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          path = Path(".repo-coordinator/gate-snapshot.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          data["ledger_sha256"] = sys.argv[1]
+          data["projection_sha256"] = sys.argv[2]
+          path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
 
       - name: Enforce admission standing (fail closed)
         env:
@@ -190,20 +320,39 @@ jobs:
           set -euo pipefail
           test -f .repo-coordinator/gate-snapshot.json || {
             echo "::error::gate snapshot missing; failing closed"; exit 1; }
-          python3 tools/repository_coordinator_v0_1.py \
-            --snapshot .repo-coordinator/gate-snapshot.json \
-            --policy REPOSITORY_COORDINATOR_POLICY.json \
-            --priority-queue PRIORITY_QUEUE.md \
-            --gate "$TARGET_PR" \
-            --output .repo-coordinator/gate.json | tee .repo-coordinator/gate.log
+          STATE_MODE="${{ steps.collect.outputs.mode }}"
+          if [ "$STATE_MODE" = "v0.3" ]; then
+            test -f .repo-coordinator/COORDINATOR_STATE.json || {
+              echo "::error::coordinator state missing; failing closed"; exit 1; }
+            python3 tools/repository_coordinator_v0_1.py \
+              --snapshot .repo-coordinator/gate-snapshot.json \
+              --policy REPOSITORY_COORDINATOR_POLICY.json \
+              --state .repo-coordinator/COORDINATOR_STATE.json \
+              --priority-queue PRIORITY_QUEUE.md \
+              --gate "$TARGET_PR" \
+              --output .repo-coordinator/gate.json | tee .repo-coordinator/gate.log
+          elif [ "$STATE_MODE" = "legacy-v0.2" ]; then
+            # The checked-out tool/policy are trusted main v0.2. This path
+            # disappears automatically after the v0.3 policy lands on main.
+            python3 tools/repository_coordinator_v0_1.py \
+              --snapshot .repo-coordinator/gate-snapshot.json \
+              --policy REPOSITORY_COORDINATOR_POLICY.json \
+              --priority-queue PRIORITY_QUEUE.md \
+              --gate "$TARGET_PR" \
+              --output .repo-coordinator/gate.json | tee .repo-coordinator/gate.log
+          else
+            echo "::error::unknown coordinator state mode: $STATE_MODE"
+            exit 1
+          fi
+
           {
             echo "## Repository admission/backpressure gate"
             echo
-            echo '```json'
+            echo "~~~json"
             cat .repo-coordinator/gate.json
-            echo '```'
+            echo "~~~"
             echo
-            echo "_Evaluated from the default branch; the PR cannot alter the policy it is judged against. Admission is not merge authority._"
+            echo "_Policy and state are independently pinned. Admission is not merge authority._"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload gate evidence
@@ -215,5 +364,127 @@ jobs:
             .repo-coordinator/gate-snapshot.json
             .repo-coordinator/gate.json
             .repo-coordinator/gate.log
+            .repo-coordinator/ADMISSION_LEDGER.jsonl
+            .repo-coordinator/COORDINATOR_STATE.json
+            .repo-coordinator/policy.sha
           retention-days: 30
           if-no-files-found: ignore
+
+
+  mutate:
+    name: Append coordinator state event
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: repository-coordinator-state-mutation
+      cancel-in-progress: false
+    steps:
+      - name: Checkout trusted control law from main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: trusted-main
+          persist-credentials: false
+
+      - name: Authorize state mutator
+        env:
+          ACTOR: ${{ github.actor }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          policy = json.loads(
+              Path("trusted-main/REPOSITORY_COORDINATOR_POLICY.json").read_text(encoding="utf-8")
+          )
+          allowed = set((policy.get("state") or {}).get("authorized_mutators") or [])
+          actor = os.environ["ACTOR"]
+          if actor not in allowed:
+              raise SystemExit(f"actor {actor!r} is not authorized to mutate coordinator state")
+          print(f"authorized_mutator={actor}")
+          PY
+
+      - name: Checkout coordinator state branch
+        uses: actions/checkout@v7
+        with:
+          ref: repository-coordinator-state
+          path: coordinator-state
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Verify current state before mutation
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Append one event and replay projection
+        env:
+          DECISION: ${{ inputs.decision }}
+          SUBJECT_KIND: ${{ inputs.subject_kind }}
+          SUBJECT_NUMBER: ${{ inputs.subject_number }}
+          OBJECTIVE_ISSUE_NUMBER: ${{ inputs.objective_issue_number }}
+          EVIDENCE: ${{ inputs.evidence }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
+          RECORDED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          args=(
+            append
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl
+            --state coordinator-state/COORDINATOR_STATE.json
+            --decision "$DECISION"
+            --subject-kind "$SUBJECT_KIND"
+            --subject-number "$SUBJECT_NUMBER"
+            --actor "$ACTOR"
+            --evidence "$EVIDENCE"
+            --recorded-at "$RECORDED_AT"
+            --source-policy-sha "$POLICY_SHA"
+          )
+          if [ -n "$OBJECTIVE_ISSUE_NUMBER" ]; then
+            args+=(--objective-issue-number "$OBJECTIVE_ISSUE_NUMBER")
+          fi
+          python3 trusted-main/tools/repository_coordinator_state_v1.py "${args[@]}" \
+            | tee coordinator-state/.state-event-result.json
+
+      - name: Verify replay after mutation
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Commit ledger and projection together
+        env:
+          DECISION: ${{ inputs.decision }}
+          SUBJECT_KIND: ${{ inputs.subject_kind }}
+          SUBJECT_NUMBER: ${{ inputs.subject_number }}
+        run: |
+          set -euo pipefail
+          cd coordinator-state
+          git config user.name "repository-coordinator-state[bot]"
+          git config user.email "repository-coordinator-state@users.noreply.github.com"
+          git add ADMISSION_LEDGER.jsonl COORDINATOR_STATE.json
+          git diff --cached --quiet && {
+            echo "::error::state mutation produced no ledger/projection change"
+            exit 1
+          }
+          git commit -m "coordinator-state: $DECISION $SUBJECT_KIND #$SUBJECT_NUMBER"
+          git push origin HEAD:repository-coordinator-state
+          {
+            echo "## Repository Coordinator state mutation"
+            echo
+            echo "- Decision: `$DECISION`"
+            echo "- Subject: `$SUBJECT_KIND#$SUBJECT_NUMBER`"
+            echo "- State commit: `$(git rev-parse HEAD)`"
+            echo
+            echo "Admission routing only; this event does not authorize merge."
+          } >> "$GITHUB_STEP_SUMMARY"

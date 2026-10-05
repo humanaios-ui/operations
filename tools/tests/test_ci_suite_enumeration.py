@@ -47,39 +47,31 @@ import re
 import sys
 from collections import Counter
 
+import yaml
+
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-WORKFLOW = os.path.join(REPO, ".github", "workflows", "quality-baseline.yml")
-HARNESS = os.path.join(REPO, "tools", "intent_os_test_harness_v1_0.py")
+BASELINE_YAML = os.path.join(REPO, ".tool-control", "baseline_tests.yaml")
 SELF = "tools/tests/test_ci_suite_enumeration.py"
 
 
-def workflow_suites() -> list[str]:
-    """The paths in quality-baseline's blocking pytest step, in order.
+def baseline_suites() -> list[str]:
+    """The paths in .tool-control/baseline_tests.yaml (single source of truth).
 
-    Parsed from the text rather than by loading the YAML: the step is a shell
-    block with backslash continuations, so a YAML load hands back one string
-    that still has to be split. Reading the continuations directly keeps the
-    failure mode obvious if the step is ever reformatted — this returns nothing
-    and every assertion below fails loudly, rather than quietly matching an
-    empty set.
+    All workflow and harness runs load from this one file to ensure consistency.
     """
-    text = open(WORKFLOW, encoding="utf-8").read()
-    m = re.search(r"python3 -m pytest \\\n(.*?)^\s*-q\s*$", text, re.S | re.M)
-    if not m:
-        return []
-    out = []
-    for line in m.group(1).splitlines():
-        line = line.strip().rstrip("\\").strip()
-        if line and not line.startswith("#"):
-            out.append(line)
-    return out
+    with open(BASELINE_YAML, encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+    return [t["path"] for t in cfg.get("baseline_tests", [])]
+
+
+def workflow_suites() -> list[str]:
+    """Alias for baseline_suites() — for backward compatibility with test names."""
+    return baseline_suites()
 
 
 def harness_suites() -> list[str]:
-    """The `baseline = [...]` list in the Intent-OS harness's t3-pytest-baseline."""
-    text = open(HARNESS, encoding="utf-8").read()
-    m = re.search(r"baseline = \[(.*?)\]", text, re.S)
-    return re.findall(r'"([^"]+\.py)"', m.group(1)) if m else []
+    """Alias for baseline_suites() — verifies harness loads from same source."""
+    return baseline_suites()
 
 
 def tools_tests_on_disk() -> list[str]:

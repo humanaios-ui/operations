@@ -7,13 +7,27 @@ state drift from elapsed time and keeps separate signals separate.
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
+
+import pytest
 
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 
 from repository_coordinator_v0_1 import analyze, gate_decision, render_markdown
+from repository_coordinator_state_v1 import (
+    AUTHORITY_EFFECT,
+    StateError,
+    append_event,
+    canonical_json,
+    make_event,
+    parse_ledger,
+    replay_events,
+    sha256_text,
+    verify_projection,
+)
 
 TOOL_NAME = "test_repository_coordinator"
 TOOL_VERSION = "0.2.1"
@@ -48,12 +62,23 @@ def pr(
     }
 
 
+def state(*, issues=None, prs=None):
+    return {
+        "schema": "humanaios.repository-coordinator-state.v1",
+        "admitted_issue_numbers": issues or [],
+        "admitted_pull_request_numbers": prs or [],
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
+    }
+
+
 def policy(*, limit=4, issues=None, prs=None, control_paths=None):
     return {
+        "_test_state": state(issues=issues, prs=prs),
         "capacity": {"active_operator_queue": limit},
-        "admission": {
-            "issue_numbers": issues or [],
-            "pull_request_numbers": prs or [],
+        "evaluation_admission": {
+            "authorized_actors": ["humanaios-ui"],
+            "required_issue_state": "ADMISSION_REQUESTED",
         },
         "maintenance": {
             "authors": ["dependabot[bot]"],
@@ -65,15 +90,26 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None):
     }
 
 
-def run(prs, *, refs=None, items=None, paths=None, pq="", policy_data=None):
+def run(prs, *, refs=None, items=None, paths=None, pq="", policy_data=None, state_data=None):
+    if policy_data and "_test_state" in policy_data:
+        policy_data = dict(policy_data)
+        embedded = policy_data.pop("_test_state")
+        if state_data is None:
+            state_data = embedded
     return analyze({
         "repository": "example/repo",
         "main_sha": "abc",
+        "policy_ref": "main",
+        "policy_sha": "abc",
+        "state_branch": "repository-coordinator-state",
+        "state_sha": "def",
+        "ledger_sha256": "1" * 64,
+        "projection_sha256": "2" * 64,
         "main_paths": paths or [],
         "referenced_pull_requests": refs or {},
         "referenced_items": items or {},
         "pull_requests": prs,
-    }, pq, policy_data)
+    }, pq, policy_data, state_data)
 
 
 def item(index, n):
@@ -295,6 +331,72 @@ def test_issue_assignment_without_admission_stays_workbench_when_draft():
     assert got["admission"]["admitted"] is False
 
 
+def test_authorized_review_admits_requested_issue_to_evaluation_only():
+    reviews = [{
+        "user": {"login": "humanaios-ui"},
+        "state": "APPROVED",
+        "submitted_at": "2026-09-30T19:43:58Z",
+    }]
+    p = pr(1, body="Fixes #99", reviews=reviews, files=[])
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "- **state:** `ADMISSION_REQUESTED`\n- **authority_required:** `Z2`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "ADMITTED_TO_EVALUATION"
+    assert got["admission"]["gate"] == "PASS"
+    assert got["admission"]["evaluation_admitted"] is True
+    assert got["admission"]["working_set_admitted"] is False
+    assert got["guidance"]["action"] == "ADVANCE"
+    assert got["objective"] == "EVALUATION"
+    assert idx["capacity"]["admitted_ready_count"] == 0
+
+
+def test_untrusted_review_cannot_admit_evaluation_workspace():
+    reviews = [{
+        "user": {"login": "other-reviewer"},
+        "state": "APPROVED",
+        "submitted_at": "2026-09-30T19:43:58Z",
+    }]
+    p = pr(1, body="Fixes #99", reviews=reviews)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Session graph",
+            "body": "- **state:** `ADMISSION_REQUESTED`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    got = item(idx, 1)
+    assert got["lane"] == "ADMISSION_REVIEW"
+    assert got["admission"]["gate"] == "FAIL"
+
+
+def test_authorized_review_does_not_admit_issue_without_requested_state():
+    reviews = [{
+        "user": {"login": "humanaios-ui"},
+        "state": "APPROVED",
+        "submitted_at": "2026-09-30T19:43:58Z",
+    }]
+    p = pr(1, body="Fixes #99", reviews=reviews)
+    referenced = {
+        "99": {
+            "state": "open",
+            "is_pull_request": False,
+            "title": "Ordinary issue",
+            "body": "- **state:** `DISCOVERY`",
+        }
+    }
+    idx = run([p], items=referenced, policy_data=policy())
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
 def test_capacity_contention_does_not_choose_winners():
     referenced = {
         str(n): {
@@ -420,6 +522,25 @@ def test_gate_decision_fails_closed_for_unknown_pr():
     assert gate_decision(idx, 999)["gate"] == "FAIL"
 
 
+def test_gate_decision_receipts_policy_and_state_heads():
+    target = pr(1, body="Fixes #77")
+    target["head_sha"] = "head-1"
+    idx = run([target], items=_admitted_item(77), policy_data=policy(issues=[77]))
+    decision = gate_decision(idx, 1)
+    assert decision["gate"] == "PASS"
+    assert decision["target_pr"] == 1
+    assert decision["target_head_sha"] == "head-1"
+    assert decision["state_receipt"] == {
+        "policy_ref": "main",
+        "policy_sha": "abc",
+        "state_branch": "repository-coordinator-state",
+        "state_sha": "def",
+        "ledger_sha256": "1" * 64,
+        "projection_sha256": "2" * 64,
+    }
+    assert decision["merge_authority"] is False
+
+
 def test_gate_cli_exit_code_is_fail_closed(tmp_path):
     import json
     import subprocess
@@ -435,12 +556,17 @@ def test_gate_cli_exit_code_is_fail_closed(tmp_path):
     snap = tmp_path / "snapshot.json"
     snap.write_text(json.dumps(snapshot))
     pol = tmp_path / "policy.json"
-    pol.write_text(json.dumps(policy(issues=[77])))
+    policy_payload = policy(issues=[77])
+    state_payload = policy_payload.pop("_test_state")
+    pol.write_text(json.dumps(policy_payload))
+    state_file = tmp_path / "state.json"
+    state_file.write_text(json.dumps(state_payload))
     tool = TOOLS / "repository_coordinator_v0_1.py"
 
-    def gate(n, policy_path=pol):
+    def gate(n, policy_path=pol, state_path=state_file):
         return subprocess.run(
             [sys.executable, str(tool), "--snapshot", str(snap), "--policy", str(policy_path),
+             "--state", str(state_path),
              "--priority-queue", str(tmp_path / "missing.md"), "--gate", str(n)],
             capture_output=True, text=True,
         ).returncode
@@ -449,6 +575,7 @@ def test_gate_cli_exit_code_is_fail_closed(tmp_path):
     assert gate(2) == 1
     assert gate(3) == 1
     assert gate(1, tmp_path / "absent-policy.json") == 1
+    assert gate(1, pol, tmp_path / "absent-state.json") == 1
 
 
 def run_smoke_test():
@@ -456,3 +583,180 @@ def run_smoke_test():
     test_zero_diff_is_preserve_close_not_merge_work()
     test_mixed_control_plane_and_feature_change_is_not_exempt()
     return True
+
+# --- Repository Coordinator state ledger regression cases -----------------
+
+POLICY_SHA = "a" * 40
+RECORDED = "2026-10-04T20:20:00Z"
+
+
+def state_event(
+    *,
+    decision="ADMIT",
+    kind="ISSUE",
+    number=77,
+    objective=77,
+    supersedes=None,
+    evidence=None,
+):
+    return make_event(
+        decision=decision,
+        subject_kind=kind,
+        subject_number=number,
+        objective_issue_number=objective,
+        actor="humanaios-ui",
+        evidence=evidence or [f"test evidence for {kind}#{number}"],
+        recorded_at=RECORDED,
+        source_policy_sha=POLICY_SHA,
+        supersedes_event_id=supersedes,
+    )
+
+
+def state_ledger_text(events):
+    return "".join(canonical_json(row) + "\n" for row in events)
+
+
+def write_state_pair(tmp_path, events):
+    ledger = tmp_path / "ADMISSION_LEDGER.jsonl"
+    state = tmp_path / "COORDINATOR_STATE.json"
+    text = state_ledger_text(events)
+    ledger.write_text(text, encoding="utf-8")
+    projection = replay_events(events, ledger_text=text)
+    state.write_text(json.dumps(projection, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return ledger, state, projection
+
+
+def test_state_admit_revoke_readmit_replays_deterministically(tmp_path):
+    first = state_event()
+    revoked = state_event(
+        decision="REVOKE",
+        supersedes=first["event_id"],
+        evidence=["operator revoked working-set standing"],
+    )
+    readmitted = state_event(
+        decision="ADMIT",
+        supersedes=revoked["event_id"],
+        evidence=["operator restored working-set standing"],
+    )
+    ledger, state, projection = write_state_pair(tmp_path, [first, revoked, readmitted])
+    verified = verify_projection(ledger, state)
+    assert verified == projection
+    assert verified["admitted_issue_numbers"] == [77]
+    assert verified["active_event_ids"]["ISSUE#77"] == readmitted["event_id"]
+    assert verified["merge_authority"] is False
+    assert verified["authority_effect"] == AUTHORITY_EFFECT
+
+
+def test_state_revoke_removes_standing(tmp_path):
+    first = state_event(kind="PULL_REQUEST", number=707, objective=None)
+    revoked = state_event(
+        decision="REVOKE",
+        kind="PULL_REQUEST",
+        number=707,
+        objective=None,
+        supersedes=first["event_id"],
+    )
+    _, _, projection = write_state_pair(tmp_path, [first, revoked])
+    assert projection["admitted_pull_request_numbers"] == []
+    assert "PULL_REQUEST#707" not in projection["active_event_ids"]
+
+
+def test_state_duplicate_event_id_fails():
+    first = state_event()
+    text = canonical_json(first) + "\n" + canonical_json(first) + "\n"
+    with pytest.raises(StateError, match="duplicate event_id"):
+        parse_ledger(text)
+
+
+def test_state_malformed_event_fails():
+    broken = state_event()
+    broken["merge_authority"] = True
+    with pytest.raises(StateError, match="merge authority"):
+        parse_ledger(canonical_json(broken) + "\n")
+
+
+def test_state_projection_tamper_fails(tmp_path):
+    first = state_event()
+    ledger, state, projection = write_state_pair(tmp_path, [first])
+    projection["admitted_issue_numbers"] = [77, 999]
+    state.write_text(json.dumps(projection, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with pytest.raises(StateError, match="diverges"):
+        verify_projection(ledger, state)
+
+
+def test_state_ledger_prefix_tamper_is_detected_before_append(tmp_path):
+    first = state_event()
+    ledger, state, _ = write_state_pair(tmp_path, [first])
+    original = ledger.read_text(encoding="utf-8")
+    ledger.write_text(original.replace("test evidence", "tampered evidence"), encoding="utf-8")
+    with pytest.raises(StateError, match="diverges"):
+        append_event(
+            ledger_path=ledger,
+            state_path=state,
+            decision="ADMIT",
+            subject_kind="ISSUE",
+            subject_number=88,
+            objective_issue_number=88,
+            actor="humanaios-ui",
+            evidence=["new admission"],
+            recorded_at="2026-10-04T20:21:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+
+
+def test_state_append_preserves_prefix_and_updates_projection(tmp_path):
+    first = state_event()
+    ledger, state, before = write_state_pair(tmp_path, [first])
+    old_text = ledger.read_text(encoding="utf-8")
+    result = append_event(
+        ledger_path=ledger,
+        state_path=state,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=716,
+        objective_issue_number=717,
+        actor="humanaios-ui",
+        evidence=["explicit working-set admission"],
+        recorded_at="2026-10-04T20:22:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    new_text = ledger.read_text(encoding="utf-8")
+    assert new_text.startswith(old_text)
+    assert result["prior_ledger_sha256"] == sha256_text(old_text)
+    verified = verify_projection(ledger, state)
+    assert verified["admitted_issue_numbers"] == [77]
+    assert verified["admitted_pull_request_numbers"] == [716]
+    assert verified["ledger_event_count"] == before["ledger_event_count"] + 1
+
+
+def test_state_repeat_admit_without_revoke_fails(tmp_path):
+    first = state_event()
+    ledger, state, _ = write_state_pair(tmp_path, [first])
+    with pytest.raises(StateError, match="already-active"):
+        append_event(
+            ledger_path=ledger,
+            state_path=state,
+            decision="ADMIT",
+            subject_kind="ISSUE",
+            subject_number=77,
+            objective_issue_number=77,
+            actor="humanaios-ui",
+            evidence=["duplicate admission"],
+            recorded_at="2026-10-04T20:23:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+
+
+def test_state_first_event_cannot_claim_supersession():
+    row = state_event(supersedes="RCSEVT-OTHER")
+    text = state_ledger_text([row])
+    parsed = parse_ledger(text)
+    with pytest.raises(StateError, match="first event"):
+        replay_events(parsed, ledger_text=text)
+
+
+def test_state_event_cannot_grant_merge_authority():
+    row = state_event()
+    row["merge_authority"] = True
+    with pytest.raises(StateError):
+        parse_ledger(canonical_json(row) + "\n")

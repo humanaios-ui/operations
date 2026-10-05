@@ -23,6 +23,7 @@ from entitlement.grants import GrantsGovError, normalized_hits, search as grants
 from entitlement.funding_adapter import search_sources as local_funding_search
 from entitlement.interrogator import interrogation_state
 from entitlement.questionnaire import QUESTIONS  # legacy schema endpoint
+from entitlement.resource_handoff import intake_resource_handoff
 from entitlement.skillgen import generate_case_skill
 
 ROOT = Path(__file__).resolve().parent
@@ -145,6 +146,11 @@ class Handler(BaseHTTPRequestHandler):
                 if not isinstance(casefile, dict):
                     raise ValueError("casefile is required")
                 return self._send_json({"filename": f"{casefile.get('case_id','case')}-SKILL.md", "skill": generate_case_skill(casefile)})
+            if path == "/api/resource/intake":
+                handoff = data.get("handoff")
+                if not isinstance(handoff, dict):
+                    raise ValueError("handoff is required")
+                return self._send_json({"investigation": intake_resource_handoff(handoff)})
             if path == "/api/funding/local/search":
                 keyword = str(data.get("keyword", "")).strip()
                 categories = data.get("categories") or []

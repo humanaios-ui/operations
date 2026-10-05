@@ -1,0 +1,20 @@
+{
+  "tool": "tools/graph_capture_lint_v1_0.py",
+  "candidate": "Q-GRAPH-CAPTURE-LINT-01",
+  "note": "Accepted debt for the canonical graph set. Each entry is a blocking property (P1-P3) that a canonical graph failed when the lint landed. A listed failure is reported and does not block; an unlisted blocking failure blocks; a listed property that now passes is a stale entry and blocks until removed. The baseline only ratchets down. Removing an entry is a Z1 proposal that the underlying graph has been fixed; adding one is a Z2 decision, not a Z1 convenience.",
+  "accepted": {
+    "system_graph.json": {
+      "P2": "REVERT / falsifier appear only as words in edge labels and node descriptions. system_graph_generator.py emits edge_type in {control_flow, data_flow, callout} and no typed defeat relation, so nothing can query what reverts a constant. Fix belongs in the generator (emit a typed `reverts` / `falsified_by` relation), which is Z2 via blueprint."
+    },
+    "EVIDENCE_GRAPH.json": {
+      "P3": "No generated_at / recorded_at and no temporal_class. The edge_state_enum (CLAIMED..OBSERVED) is a verification ladder, not a time anchor. Needs a recorded_at or an explicit temporal_class: OBSERVATIONAL per Q-TEMPORAL-DISSOLUTION-01."
+    },
+    "crb/capability_graph.json": {
+      "P2": "Relations are emits_*, freezes, seals, votes, replayed_by, supplies_raw_evidence. The principle text promises a challenge/correction stage but no relation, field or state can record a capability claim being defeated.",
+      "P3": "No temporal anchor and no temporal_class. PROTOTYPE status is a lifecycle marker, not a time."
+    },
+    "crb/morphogenesis.json": {
+      "P3": "No temporal anchor and no temporal_class. molt_tier_mapping.recorded_by carries a date inside prose, which a query cannot select on."
+    }
+  }
+}

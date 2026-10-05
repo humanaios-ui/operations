@@ -1,0 +1,46 @@
+[
+  {
+    "requirement_id": "RR-INDEPENDENT-VALIDATION-001",
+    "gap_status": "CONFIRMED",
+    "label": "Independent external validation",
+    "objective": "Acquire genuinely independent human replication, methodological/statistical review, adversarial review, or external evaluation of HumanAIOS/Lasting Light AI claims.",
+    "resource_types": ["grant", "research_access", "competition"],
+    "affordances": ["project_funding", "research_access", "competition_access"],
+    "signals": ["independent", "validation", "benchmark", "evaluation", "eval", "replication", "research", "review", "reviewer", "audit", "red team", "red-team", "testing", "challenge"],
+    "satisfied_when": "A sufficiently independent human/domain reviewer or replication team completes a provenance-bearing review or replication artifact against a bounded claim set.",
+    "authority_effect": "NONE"
+  },
+  {
+    "requirement_id": "RR-HUMAN-EXPERT-LABOR-001",
+    "gap_status": "CONFIRMED",
+    "label": "Paid human work capacity",
+    "objective": "Acquire project funding, fellowship support, or research access that can support bounded human research, engineering, review, evaluation, or founder/research labor where program rules permit.",
+    "resource_types": ["grant", "fellowship", "research_access"],
+    "affordances": ["project_funding", "self_labor_support", "research_access"],
+    "signals": ["research", "researcher", "fellowship", "stipend", "collaborator", "partner", "lab", "evaluation", "engineering", "developer", "expert"],
+    "satisfied_when": "Qualified human effort is fundable or accessible for a defined work package with scope, role, budget/support basis, and an output receipt.",
+    "authority_effect": "NONE"
+  },
+  {
+    "requirement_id": "RR-LOCAL-COMPUTE-001",
+    "gap_status": "CONDITIONAL",
+    "label": "Dedicated local or edge compute",
+    "objective": "Acquire CPU/GPU or dedicated local/edge compute only when an admitted workload cannot be adequately substituted by existing Azure/cloud/API resources.",
+    "resource_types": ["compute_credit", "free_infrastructure", "api_access", "hardware_access", "grant", "research_access"],
+    "affordances": ["compute_capacity", "infrastructure_capacity", "api_capacity", "hardware_access", "project_funding", "research_access"],
+    "signals": ["compute", "gpu", "hardware", "local compute", "cloud", "api credit", "api access", "model access", "infrastructure", "workstation", "edge"],
+    "activation_condition": "A bounded workload demonstrates cloud/API substitution failure, a privacy/locality requirement, hardware-I/O requirement, or materially inadequate capacity/cost.",
+    "authority_effect": "NONE"
+  },
+  {
+    "requirement_id": "RR-PHYSICAL-EXPERIMENT-001",
+    "gap_status": "CONDITIONAL",
+    "label": "Physical experimental equipment",
+    "objective": "Acquire project-specific computers, sensors, edge devices, robotics, or actuation hardware only for an admitted experiment whose physical behavior cannot be validated in software/cloud simulation alone.",
+    "resource_types": ["hardware_access", "grant", "research_access"],
+    "affordances": ["hardware_access", "project_funding", "research_access"],
+    "signals": ["hardware", "robot", "robotics", "sensor", "equipment", "device", "physical", "edge", "lab", "local compute", "infrastructure"],
+    "activation_condition": "An admitted physical-control experiment identifies a non-substitutable physical observation or actuation requirement.",
+    "authority_effect": "NONE"
+  }
+]

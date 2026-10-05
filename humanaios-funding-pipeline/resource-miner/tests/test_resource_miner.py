@@ -4,9 +4,12 @@ from datetime import date
 from pathlib import Path
 
 from resource_miner.miner import enrich
-from resource_miner.needs import load_needs, map_to_needs
+from resource_miner.entitlement_handoff import build_entitlement_handoff
+from resource_miner.needs import load_needs, load_requirements, map_to_needs, map_to_requirements
 from resource_miner.normalize import canonicalize_url, cash_mentions, normalize_generic, stable_resource_id
+from resource_miner.planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan, validate_resource_plan
 from resource_miner.routing import route_candidate
+from resource_miner.sources import funding_pipeline
 from resource_miner.sources.rss import FeedRejected, MAX_FEED_BYTES, _parse_feed
 from resource_miner.store import dedupe
 
@@ -34,6 +37,174 @@ class ResourceMinerTests(unittest.TestCase):
         self.assertIn(2500.0, candidate.cash_mentions_usd)
         self.assertEqual(candidate.deadline, "2026-10-11")
 
+    def test_source_category_maps_to_canonical_resource_type(self):
+        compute = normalize_generic(
+            title="Startup cloud benefit",
+            url="https://example.com/compute",
+            source_name="Example",
+            discovery_method="test",
+            source_category="compute_credit",
+        )
+        api = normalize_generic(
+            title="Free inference tier",
+            url="https://example.com/api",
+            source_name="Example",
+            discovery_method="test",
+            source_category="free_api",
+        )
+        infra = normalize_generic(
+            title="Free database",
+            url="https://example.com/infra",
+            source_name="Example",
+            discovery_method="test",
+            source_category="free_infra",
+        )
+        self.assertIn("compute_credit", compute.resource_types)
+        self.assertIn("api_access", api.resource_types)
+        self.assertIn("free_infrastructure", infra.resource_types)
+        self.assertIn("compute_capacity", compute.resource_affordances)
+        self.assertIn("api_capacity", api.resource_affordances)
+        self.assertIn("infrastructure_capacity", infra.resource_affordances)
+
+    def test_canonical_funding_pipeline_preserves_resource_mechanism(self):
+        resources = list(funding_pipeline.discover(ROOT.parent / "data" / "sources.json"))
+        by_title = {resource.title: resource for resource in resources}
+        self.assertIn("compute_credit", by_title["Microsoft for Startups Founders Hub"].resource_types)
+        self.assertIn("free_infrastructure", by_title["Kaggle Notebooks"].resource_types)
+        self.assertIn("api_access", by_title["Cerebras Free API"].resource_types)
+        self.assertIn("project_funding", by_title["BlueDot Rapid Grants"].resource_affordances)
+        self.assertIn("self_labor_support", by_title["GovAI Fellowship"].resource_affordances)
+        self.assertIn("earned_income", by_title["Mercor Red-Teamer"].resource_affordances)
+
+    def test_confirmed_requirement_can_route_verify_now(self):
+        candidate = normalize_generic(
+            title="Independent replication review",
+            url="https://example.com/review",
+            source_name="Example",
+            discovery_method="test",
+            description="Independent research replication and evaluation support.",
+            source_category="research_grant",
+        )
+        requirements = load_requirements(ROOT / "data" / "resource_requirements.seed.json")
+        candidate.requirement_matches = map_to_requirements(candidate, requirements)
+        ids = {match.requirement_id for match in candidate.requirement_matches}
+        self.assertIn("RR-INDEPENDENT-VALIDATION-001", ids)
+        route_candidate(candidate, today=date(2026, 10, 2))
+        self.assertEqual(candidate.route, "VERIFY_NOW")
+        self.assertFalse(candidate.eligibility_assessed)
+
+    def test_conditional_requirement_does_not_create_work(self):
+        candidate = normalize_generic(
+            title="Dedicated local GPU resource",
+            url="https://example.com/gpu",
+            source_name="Example",
+            discovery_method="test",
+            description="Local compute GPU edge hardware access.",
+            source_category="compute_credit",
+        )
+        requirements = load_requirements(ROOT / "data" / "resource_requirements.seed.json")
+        candidate.requirement_matches = map_to_requirements(candidate, requirements)
+        local = next(
+            match for match in candidate.requirement_matches
+            if match.requirement_id == "RR-LOCAL-COMPUTE-001"
+        )
+        self.assertGreaterEqual(local.score, 0.55)
+        self.assertEqual(local.gap_status, "CONDITIONAL")
+        route_candidate(candidate, today=date(2026, 10, 2))
+        self.assertEqual(candidate.route, "WATCH")
+
+    def test_enrich_records_requirement_matches(self):
+        candidate = normalize_generic(
+            title="Independent AI evaluation grant",
+            url="https://example.com/independent-eval",
+            source_name="Example",
+            discovery_method="test",
+            description="Funding for independent benchmark evaluation and replication research.",
+            source_category="research_grant",
+        )
+        rows = enrich(
+            [candidate],
+            ROOT / "data" / "needs.seed.json",
+            ROOT / "data" / "resource_requirements.seed.json",
+        )
+        ids = {match.requirement_id for match in rows[0].requirement_matches}
+        self.assertIn("RR-INDEPENDENT-VALIDATION-001", ids)
+
+    def test_witness_resource_plan_resolves_expected_gap_states(self):
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        resolved = resolve_resource_plan(plan)
+        states = {
+            requirement["requirement_id"]: requirement["gap_status"]
+            for requirement in resolved["resource_requirements"]
+        }
+        self.assertEqual(states["RR-WITNESS-INDEPENDENT-VALIDATION-001"], "CONFIRMED")
+        self.assertEqual(states["RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001"], "CONFIRMED")
+        self.assertEqual(states["RR-WITNESS-FOUNDER-RESEARCH-TIME-001"], "CONFIRMED")
+        self.assertEqual(states["RR-WITNESS-LOCAL-COMPUTE-001"], "CONDITIONAL")
+        self.assertEqual(states["RR-WITNESS-PHYSICAL-EXPERIMENT-001"], "CONDITIONAL")
+        self.assertEqual(states["RR-WITNESS-EVIDENCE-ACCESS-001"], "PARTIAL")
+        self.assertEqual(states["RR-WITNESS-AGENT-RUNTIME-001"], "UNKNOWN")
+
+    def test_witness_plan_exports_only_external_miner_requirements(self):
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        exported = miner_requirements_from_plan(plan)
+        by_id = {row["requirement_id"]: row for row in exported}
+        self.assertIn("RR-WITNESS-INDEPENDENT-VALIDATION-001", by_id)
+        self.assertIn("RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001", by_id)
+        self.assertIn("RR-WITNESS-FOUNDER-RESEARCH-TIME-001", by_id)
+        self.assertIn("RR-WITNESS-LOCAL-COMPUTE-001", by_id)
+        self.assertIn("RR-WITNESS-PHYSICAL-EXPERIMENT-001", by_id)
+        self.assertIn("RR-WITNESS-AGENT-RUNTIME-001", by_id)
+        self.assertNotIn("RR-WITNESS-AUTHORITY-STATE-001", by_id)
+        self.assertNotIn("RR-WITNESS-EVIDENCE-ACCESS-001", by_id)
+        self.assertTrue(all(row["authority_effect"] == "NONE" for row in exported))
+
+    def test_affordance_gate_blocks_wrong_cash_substitute(self):
+        candidate = normalize_generic(
+            title="Paid AI red-team contract",
+            url="https://example.com/paid-work",
+            source_name="Example",
+            discovery_method="test",
+            description="Paid expert contract for the participant.",
+            source_category="paid_work",
+        )
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        requirements = miner_requirements_from_plan(plan)
+        candidate.requirement_matches = map_to_requirements(candidate, requirements)
+        ids = {match.requirement_id for match in candidate.requirement_matches}
+        self.assertNotIn("RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001", ids)
+        self.assertNotIn("RR-WITNESS-FOUNDER-RESEARCH-TIME-001", ids)
+
+    def test_affordance_gate_keeps_project_funding_candidate(self):
+        candidate = normalize_generic(
+            title="AI safety research grant",
+            url="https://example.com/research-grant",
+            source_name="Example",
+            discovery_method="test",
+            description="Grant funding for research and evaluation.",
+            source_category="research_grant",
+        )
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        requirements = miner_requirements_from_plan(plan)
+        candidate.requirement_matches = map_to_requirements(candidate, requirements)
+        ids = {match.requirement_id for match in candidate.requirement_matches}
+        self.assertIn("RR-WITNESS-EXTERNAL-HUMAN-EXPERT-001", ids)
+        self.assertIn("RR-WITNESS-FOUNDER-RESEARCH-TIME-001", ids)
+
+    def test_resource_plan_rejects_unknown_graph_reference(self):
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        broken = json.loads(json.dumps(plan))
+        broken["resource_requirements"][0]["work_package_ids"] = ["WP-NOT-REAL"]
+        with self.assertRaises(ValueError):
+            validate_resource_plan(broken)
+
+    def test_resource_plan_cannot_grant_authority(self):
+        plan = load_resource_plan(ROOT / "data" / "resource_plans" / "witness.seed.json")
+        broken = json.loads(json.dumps(plan))
+        broken["authority_effect"] = "AUTHORIZE"
+        with self.assertRaises(ValueError):
+            validate_resource_plan(broken)
+
     def test_winner_announcement_date_is_not_deadline(self):
         candidate = normalize_generic(
             title="Challenge", url="https://example.com/dates", source_name="Example",
@@ -54,6 +225,34 @@ class ResourceMinerTests(unittest.TestCase):
         route_candidate(candidate, today=date(2026, 9, 24))
         self.assertEqual(candidate.route, "VERIFY_NOW")
         self.assertFalse(candidate.eligibility_assessed)
+
+    def test_entitlement_handoff_preserves_unassessed_boundary(self):
+        candidate = normalize_generic(
+            title="Native business support program",
+            url="https://example.gov/support",
+            source_name="Example Authority",
+            discovery_method="test",
+            description="Support for eligible applicants.",
+        )
+        needs = load_needs(ROOT / "data" / "needs.seed.json")
+        candidate.need_matches = map_to_needs(candidate, needs)
+        route_candidate(candidate, today=date(2026, 9, 24))
+        handoff = build_entitlement_handoff(candidate)
+        self.assertEqual(handoff["requested_action"], "VERIFY_ELIGIBILITY")
+        self.assertEqual(handoff["eligibility"]["status"], "UNASSESSED")
+        self.assertFalse(handoff["eligibility"]["assessed"])
+        self.assertEqual(handoff["authority_effect"], "NONE")
+        self.assertEqual(handoff["resource"]["resource_id"], candidate.resource_id)
+
+    def test_entitlement_handoff_rejects_upstream_eligibility_claim(self):
+        candidate = normalize_generic(
+            title="Program", url="https://example.gov/program",
+            source_name="Example", discovery_method="test",
+        )
+        candidate.eligibility_assessed = True
+        candidate.eligibility_status = "ELIGIBLE"
+        with self.assertRaises(ValueError):
+            build_entitlement_handoff(candidate)
 
     def test_closed_candidate_archives(self):
         candidate = normalize_generic(

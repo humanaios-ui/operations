@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 188
+  tools: 197
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 140
+  builder_markers_present: 150
   missing_from_tree: 0
-  unclassified: 8
+  unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
@@ -52,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -526,7 +525,7 @@ tools:
 - tool_id: HAIOS-TOOL-043
   name: ci_predict_consolidate
   path: tools/ci_predict_consolidate_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -538,7 +537,7 @@ tools:
 - tool_id: HAIOS-TOOL-044
   name: ci_predict_pin
   path: tools/ci_predict_pin_v1_0.py
-  version: 1.0.0
+  version: 1.2.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -550,7 +549,7 @@ tools:
 - tool_id: HAIOS-TOOL-045
   name: ci_predict_resolve
   path: tools/ci_predict_resolve_v1_0.py
-  version: 1.0.0
+  version: 1.1.0
   category: calibration_tool
   zone: 1
   status: draft
@@ -2234,7 +2233,7 @@ tools:
 - tool_id: HAIOS-TOOL-188
   name: repository_coordinator
   path: tools/repository_coordinator_v0_1.py
-  version: 0.2.1
+  version: 0.3.0
   category: diagnostic_tool
   zone: 1
   status: draft
@@ -2300,7 +2299,7 @@ tools:
   name: ai-eo-incremental-indexer
   path: scripts/ai-eo-incremental-indexer.py
   version: unversioned
-  category: unclassified
+  category: pipeline_tool
   zone: 1
   status: draft
   interface: module
@@ -2312,7 +2311,7 @@ tools:
   name: ai-eo-indexer
   path: scripts/ai-eo-indexer.py
   version: unversioned
-  category: unclassified
+  category: pipeline_tool
   zone: 1
   status: draft
   interface: module
@@ -2324,7 +2323,7 @@ tools:
   name: gap-detector
   path: scripts/gap-detector.py
   version: unversioned
-  category: unclassified
+  category: research_tool
   zone: 1
   status: draft
   interface: module
@@ -2336,7 +2335,7 @@ tools:
   name: map-to-mitigation
   path: scripts/map-to-mitigation.py
   version: unversioned
-  category: unclassified
+  category: reporting_tool
   zone: 1
   status: draft
   interface: module
@@ -2348,7 +2347,7 @@ tools:
   name: platform-monitor
   path: scripts/platform-monitor.py
   version: unversioned
-  category: unclassified
+  category: monitoring_tool
   zone: 1
   status: draft
   interface: module
@@ -2360,7 +2359,7 @@ tools:
   name: signal-threshold-monitor
   path: scripts/signal-threshold-monitor.py
   version: unversioned
-  category: unclassified
+  category: monitoring_tool
   zone: 1
   status: draft
   interface: module
@@ -2371,20 +2370,20 @@ tools:
 - tool_id: HAIOS-TOOL-199
   name: workflow_path_validator
   path: tools/workflow_path_validator.py
-  version: unversioned
-  category: unclassified
+  version: 1.0.0
+  category: validation_tool
   zone: 1
   status: draft
   interface: module
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: Workflow Path Validator
 - tool_id: HAIOS-TOOL-200
   name: workflow_telemetry_collector
   path: tools/workflow_telemetry_collector.py
   version: unversioned
-  category: unclassified
+  category: analytics_tool
   zone: 1
   status: draft
   interface: module
@@ -2392,6 +2391,126 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: Workflow Telemetry Collector
+- tool_id: HAIOS-TOOL-202
+  name: control_plane_custody_observer
+  path: tools/control_plane_custody_observer_v0_1.py
+  version: 0.1.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Read-only control-plane observation and execution/decision/information custody classification.
+  session: CPC-001
+- tool_id: HAIOS-TOOL-203
+  name: control_plane_github_adapter
+  path: tools/control_plane_github_adapter_v0_1.py
+  version: 0.1.0
+  category: pipeline_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Transform exported GitHub evidence into authority-neutral raw custody observations.
+  session: CPC-002
+- tool_id: HAIOS-TOOL-204
+  name: pr_challenge_dialogue_router
+  path: tools/pr_challenge_dialogue_router_v0_1.py
+  version: 0.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Finite idempotent routing of head-bound red-team challenge conversations without authority
+    effects.
+  session: CHALLENGE-DIALOGUE-001
+- tool_id: HAIOS-TOOL-205
+  name: graph_capture_lint
+  path: tools/graph_capture_lint_v1_0.py
+  version: 1.0.0
+  category: audit_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Scores a graph file against the nine properties of a graph that cannot be wrong from the inside;
+    blocks on closed provenance, missing falsifier and missing timestamp, advises on the other six. Multiplex-aware
+    (--all) with a ratcheting baseline (crb/graph_capture_baseline.json).
+  session: S-100126-graph-capture-lint
+- tool_id: HAIOS-TOOL-206
+  name: ai_context_generator
+  path: tools/ai_context_generator_v0_1.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Generates queryable, machine-readable context from canonical repository sources.
+  session: Z1
+- tool_id: HAIOS-TOOL-207
+  name: haios
+  path: tools/haios
+  version: 0.1.0
+  category: orchestrator_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: other
+  smoke_test: true
+  builder_markers: true
+  purpose: Deterministic CLI query interface over ai_context_generator (context, authority, blockers,
+    completion-evidence, unknown subcommands).
+- tool_id: HAIOS-TOOL-208
+  name: machine_graph_collect_macos
+  path: tools/machine_graph/collect_macos.py
+  version: 0.1.0
+  category: pipeline_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Metadata-first and local-only by design. It does not read user document contents.
+  session: '#596'
+- tool_id: HAIOS-TOOL-209
+  name: machine_graph_validate_snapshot
+  path: tools/machine_graph/validate_snapshot.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies.
+  session: '#596'
+- tool_id: HAIOS-TOOL-210
+  name: repository_coordinator_state
+  path: tools/repository_coordinator_state_v1.py
+  version: 1.0.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Repository Coordinator state ledger + deterministic projection.
+  session: REPOSITORY-COORDINATOR-STATE-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

@@ -1,0 +1,71 @@
+{
+  "graph_id": "SEAM",
+  "status": "PROPOSED",
+  "recorded_at": "2026-10-01T00:00:00Z",
+  "temporal_class": "OBSERVATIONAL",
+  "author": "Z1 (Claude)",
+  "ratified_by": "Night",
+  "executor": "Z3 (per ZONE_REGISTRY.md)",
+  "node_types": [
+    "claim",
+    "artifact",
+    "measurement"
+  ],
+  "edge_types": [
+    "implements",
+    "measures",
+    "conflicts_with"
+  ],
+  "nodes": [
+    {
+      "id": "A1",
+      "type": "artifact",
+      "label": "WITNESS_SERVICE_CONTRACT.md",
+      "source": "WITNESS_SERVICE_CONTRACT.md"
+    },
+    {
+      "id": "C1",
+      "type": "claim",
+      "label": "Participation is not authority",
+      "falsifier": "a participant gains a ratification right without a Z2 hash",
+      "confidence": 0.7,
+      "state": "SPECIFIED"
+    },
+    {
+      "id": "C2",
+      "type": "claim",
+      "label": "Molts resolve at window_end",
+      "falsifier": "a molt resolves before its window closes",
+      "confidence": 0.4,
+      "state": "CLAIMED"
+    },
+    {
+      "id": "M1",
+      "type": "measurement",
+      "label": "NF_LEDGER.jsonl Brier row",
+      "source": "NF_LEDGER.jsonl",
+      "observed_at": "2026-09-28",
+      "state": "OBSERVED"
+    }
+  ],
+  "edges": [
+    {
+      "from": "A1",
+      "to": "C1",
+      "rel": "implements",
+      "state": "SPECIFIED"
+    },
+    {
+      "from": "M1",
+      "to": "C2",
+      "rel": "measures",
+      "state": "OBSERVED"
+    },
+    {
+      "from": "C2",
+      "to": "C1",
+      "rel": "conflicts_with",
+      "state": "CLAIMED"
+    }
+  ]
+}

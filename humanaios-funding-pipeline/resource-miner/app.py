@@ -9,14 +9,16 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from resource_miner.miner import enrich
-from resource_miner.needs import load_needs
+from resource_miner.entitlement_handoff import build_entitlement_handoff
+from resource_miner.needs import load_needs, load_requirements
 from resource_miner.sources import devto, funding_pipeline, github, rss
 from resource_miner.store import write_jsonl
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_NEEDS = ROOT / "data" / "needs.seed.json"
-DEFAULT_OUT = ROOT / "data" / "resources.jsonl"            # ephemeral, git-ignored (matches cli.py)
-SNAPSHOT_OUT = ROOT / "data" / "resources.snapshot.jsonl"  # durable, committed by the scheduled workflow
+DEFAULT_REQUIREMENTS = ROOT / "data" / "resource_requirements.seed.json"
+DEFAULT_OUT = ROOT / "data" / "resources.jsonl"
+SNAPSHOT_OUT = ROOT / "data" / "resources.snapshot.jsonl"
 DEFAULT_FUNDING = ROOT.parent / "data" / "sources.json"
 
 
@@ -47,11 +49,12 @@ def _run_scan(params: dict[str, list[str]]) -> list[Any]:
     if "rss" in sources:
         discovered.extend(rss.discover(params.get("rss") or []))
     needs_path = (params.get("needs") or [str(DEFAULT_NEEDS)])[0]
-    return enrich(discovered, needs_path)
+    requirements_path = (params.get("requirements") or [str(DEFAULT_REQUIREMENTS)])[0]
+    return enrich(discovered, needs_path, requirements_path)
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "ResourceMiner/0.1"
+    server_version = "ResourceMiner/0.2"
 
     def _headers(self, status: int, content_type: str, length: int) -> None:
         self.send_response(status)
@@ -74,16 +77,29 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/api/health":
                 return self._send_json({
                     "ok": True,
-                    "version": "0.1.0",
+                    "version": "0.2.0",
                     "role": "Z0/Z1 read-only discovery; asserts no applicant eligibility",
                 })
             if parsed.path == "/api/needs":
                 return self._send_json({"needs": load_needs(DEFAULT_NEEDS)})
+            if parsed.path == "/api/requirements":
+                return self._send_json({"requirements": load_requirements(DEFAULT_REQUIREMENTS)})
             if parsed.path == "/api/resources":
                 rows, src = _read_jsonl(DEFAULT_OUT), "live"
                 if not rows:
                     rows, src = _read_jsonl(SNAPSHOT_OUT), "snapshot"
                 return self._send_json({"source": src, "count": len(rows), "resources": rows})
+            if parsed.path == "/api/entitlement/handoff":
+                resource_id = (params.get("resource_id") or [""])[0].strip()
+                if not resource_id:
+                    return self._send_json({"error": "resource_id is required"}, HTTPStatus.BAD_REQUEST)
+                rows = _read_jsonl(DEFAULT_OUT)
+                if not rows:
+                    rows = _read_jsonl(SNAPSHOT_OUT)
+                match = next((row for row in rows if str(row.get("resource_id") or "") == resource_id), None)
+                if match is None:
+                    return self._send_json({"error": "resource_id not found"}, HTTPStatus.NOT_FOUND)
+                return self._send_json({"handoff": build_entitlement_handoff(match)})
             if parsed.path == "/api/scan":
                 resources = _run_scan(params)
                 persist = params.get("persist", ["0"])[0] in ("1", "true", "yes")
@@ -102,8 +118,6 @@ class Handler(BaseHTTPRequestHandler):
             )
 
     def do_POST(self) -> None:
-        # POST /api/scan accepts the same fields as the querystring, as a JSON body,
-        # so a caller can pass repeated fields (e.g. multiple --rss URLs) cleanly.
         if urlparse(self.path).path != "/api/scan":
             return self._send_json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
         try:
