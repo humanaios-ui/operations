@@ -2501,7 +2501,7 @@ tools:
 - tool_id: HAIOS-TOOL-210
   name: repository_coordinator_state
   path: tools/repository_coordinator_state_v1.py
-  version: 1.0.0
+  version: 1.1.0
   category: governance_tool
   zone: 1
   status: draft
