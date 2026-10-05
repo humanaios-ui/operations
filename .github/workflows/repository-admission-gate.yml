@@ -18,6 +18,9 @@ on:
     types:
       - submitted
       - dismissed
+  issue_comment:
+    types:
+      - created
   workflow_dispatch:
     inputs:
       decision:
@@ -54,7 +57,7 @@ concurrency:
 
 jobs:
   gate:
-    if: github.event_name != 'workflow_dispatch'
+    if: github.event_name == 'pull_request_target' || github.event_name == 'pull_request_review'
     name: Repository admission/backpressure gate
     runs-on: ubuntu-latest
     permissions:
@@ -488,3 +491,157 @@ jobs:
             echo
             echo "Admission routing only; this event does not authorize merge."
           } >> "$GITHUB_STEP_SUMMARY"
+
+
+  issue_mutate:
+    name: Apply authorized issue coordinator command
+    if: >-
+      github.event_name == 'issue_comment' &&
+      !github.event.issue.pull_request &&
+      (github.event.comment.body == '/coordinator admit' ||
+       github.event.comment.body == '/coordinator revoke')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    concurrency:
+      group: repository-coordinator-state-mutation
+      cancel-in-progress: false
+    steps:
+      - name: Checkout trusted control law from main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: trusted-main
+          persist-credentials: false
+
+      - name: Checkout coordinator state branch
+        uses: actions/checkout@v7
+        with:
+          ref: repository-coordinator-state
+          path: coordinator-state
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Verify current state before issue command
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Apply policy-bound issue command locally
+        id: command
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_ACTOR: ${{ github.event.comment.user.login }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          COMMENT_CREATED_AT: ${{ github.event.comment.created_at }}
+        run: |
+          set -euo pipefail
+          POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
+          PRIOR_STATE_SHA="$(git -C coordinator-state rev-parse HEAD)"
+          printf '%s' "$ISSUE_BODY" > coordinator-state/.issue-body.md
+
+          python3 trusted-main/tools/repository_coordinator_state_v1.py issue-command \
+            --policy trusted-main/REPOSITORY_COORDINATOR_POLICY.json \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json \
+            --issue-number "$ISSUE_NUMBER" \
+            --issue-body-file coordinator-state/.issue-body.md \
+            --comment-body "$COMMENT_BODY" \
+            --actor "$COMMENT_ACTOR" \
+            --comment-id "$COMMENT_ID" \
+            --recorded-at "$COMMENT_CREATED_AT" \
+            --source-policy-sha "$POLICY_SHA" \
+            | tee coordinator-state/.issue-command-result.json
+
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          result = json.loads(
+              Path("coordinator-state/.issue-command-result.json").read_text(encoding="utf-8")
+          )
+          print("should_mutate=" + ("true" if result.get("should_mutate") else "false"))
+          print("reason=" + str(result.get("reason") or "UNKNOWN"))
+          print("decision=" + str(result.get("decision") or "NONE"))
+          PY
+          echo "prior_state_sha=$PRIOR_STATE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Verify post-command replay
+        if: steps.command.outputs.should_mutate == 'true'
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Recheck state-head lease and commit mutation
+        id: commit
+        if: steps.command.outputs.should_mutate == 'true'
+        env:
+          PRIOR_STATE_SHA: ${{ steps.command.outputs.prior_state_sha }}
+          DECISION: ${{ steps.command.outputs.decision }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          git -C coordinator-state fetch origin repository-coordinator-state
+          REMOTE_STATE_SHA="$(git -C coordinator-state rev-parse FETCH_HEAD)"
+          test "$REMOTE_STATE_SHA" = "$PRIOR_STATE_SHA" || {
+            echo "::error::coordinator state head changed during mutation; refusing stale write"
+            exit 1
+          }
+
+          cd coordinator-state
+          rm -f .issue-body.md .issue-command-result.json
+          git config user.name "repository-coordinator-state[bot]"
+          git config user.email "repository-coordinator-state@users.noreply.github.com"
+          git add ADMISSION_LEDGER.jsonl COORDINATOR_STATE.json
+          git diff --cached --quiet && {
+            echo "::error::issue command reported mutation but produced no state diff"
+            exit 1
+          }
+          git commit -m "coordinator-state: $DECISION ISSUE #$ISSUE_NUMBER"
+          NEW_STATE_SHA="$(git rev-parse HEAD)"
+          git push origin HEAD:repository-coordinator-state
+          echo "new_state_sha=$NEW_STATE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Publish issue-route receipt
+        uses: actions/github-script@v9
+        env:
+          SHOULD_MUTATE: ${{ steps.command.outputs.should_mutate }}
+          REASON: ${{ steps.command.outputs.reason }}
+          DECISION: ${{ steps.command.outputs.decision }}
+          PRIOR_STATE_SHA: ${{ steps.command.outputs.prior_state_sha }}
+          NEW_STATE_SHA: ${{ steps.commit.outputs.new_state_sha }}
+        with:
+          script: |
+            const shouldMutate = process.env.SHOULD_MUTATE === "true";
+            const prior = process.env.PRIOR_STATE_SHA || "unknown";
+            const next = process.env.NEW_STATE_SHA || prior;
+            const decision = process.env.DECISION || "NONE";
+            const reason = process.env.REASON || "UNKNOWN";
+            const body = [
+              "<!-- repository-coordinator:issue-route -->",
+              "## Repository Coordinator issue route",
+              "",
+              "- Command decision: `" + decision + "`",
+              "- Result: `" + (shouldMutate ? "STATE_EVENT_COMMITTED" : "NO_OP") + "`",
+              "- Reason: `" + reason + "`",
+              "- Prior state: `" + prior + "`",
+              "- Resulting state: `" + next + "`",
+              "- Authority effect: `ADMISSION_ROUTING_ONLY`",
+              "- Merge authority: `false`",
+            ].join("\n");
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
