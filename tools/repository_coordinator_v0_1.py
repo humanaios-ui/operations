@@ -44,7 +44,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import sys
@@ -55,7 +54,7 @@ from typing import Any, Iterable
 TOOL_NAME = "repository_coordinator"
 TOOL_VERSION = "0.3.0"
 TOOL_CATEGORY = "diagnostic_tool"
-TOOL_SESSION = "REPOSITORY-COORDINATOR-03"
+TOOL_SESSION = "REPOSITORY-COORDINATOR-02"
 TOOL_ZONE = 1
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -119,108 +118,6 @@ class Finding:
     code: str
     severity: str
     evidence: str
-
-
-def _sha256_text(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
-def replay_admission_ledger(ledger_text: str) -> dict[str, Any]:
-    """Replay append-only coordinator admission events into deterministic state."""
-    active: dict[str, str] = {}
-    event_ids: set[str] = set()
-    events: list[dict[str, Any]] = []
-    source_policy_sha = ""
-
-    for line_number, raw in enumerate(ledger_text.splitlines(), start=1):
-        if not raw.strip():
-            continue
-        try:
-            event = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            raise ValueError(f"ledger line {line_number}: invalid JSON: {exc}") from exc
-        if not isinstance(event, dict):
-            raise ValueError(f"ledger line {line_number}: event must be an object")
-        if event.get("schema") != "humanaios.repository-coordinator-event.v1":
-            raise ValueError(f"ledger line {line_number}: unsupported event schema")
-        event_id = str(event.get("event_id") or "")
-        if not event_id or event_id in event_ids:
-            raise ValueError(f"ledger line {line_number}: event_id missing or duplicated")
-        event_ids.add(event_id)
-
-        subject_kind = str(event.get("subject_kind") or "").upper()
-        if subject_kind not in {"ISSUE", "PULL_REQUEST"}:
-            raise ValueError(f"ledger line {line_number}: invalid subject_kind")
-        subject_number = int(event.get("subject_number") or 0)
-        if subject_number <= 0:
-            raise ValueError(f"ledger line {line_number}: invalid subject_number")
-        decision = str(event.get("decision") or "").upper()
-        if decision not in {"ADMIT", "REVOKE"}:
-            raise ValueError(f"ledger line {line_number}: invalid decision")
-        if event.get("merge_authority") is not False:
-            raise ValueError(f"ledger line {line_number}: merge_authority must be false")
-        if event.get("authority_effect") != "ADMISSION_ROUTING_ONLY":
-            raise ValueError(f"ledger line {line_number}: authority_effect mismatch")
-
-        key = f"{subject_kind}#{subject_number}"
-        current_event = active.get(key)
-        supersedes = event.get("supersedes_event_id")
-        if decision == "ADMIT":
-            if current_event is not None and supersedes != current_event:
-                raise ValueError(
-                    f"ledger line {line_number}: re-admission must supersede active event {current_event}"
-                )
-            active[key] = event_id
-        else:
-            if current_event is None:
-                raise ValueError(f"ledger line {line_number}: cannot revoke inactive subject {key}")
-            if supersedes != current_event:
-                raise ValueError(
-                    f"ledger line {line_number}: revocation must supersede active event {current_event}"
-                )
-            del active[key]
-
-        source_policy_sha = str(event.get("source_policy_sha") or source_policy_sha)
-        events.append(event)
-
-    issue_numbers = sorted(
-        int(key.split("#", 1)[1]) for key in active if key.startswith("ISSUE#")
-    )
-    pr_numbers = sorted(
-        int(key.split("#", 1)[1]) for key in active if key.startswith("PULL_REQUEST#")
-    )
-    return {
-        "schema": "humanaios.repository-coordinator-state.v1",
-        "state_branch": "repository-coordinator-state",
-        "source_ledger": "ADMISSION_LEDGER.jsonl",
-        "ledger_event_count": len(events),
-        "ledger_sha256": _sha256_text(ledger_text),
-        "last_event_id": events[-1]["event_id"] if events else None,
-        "active_event_ids": dict(sorted(active.items())),
-        "admitted_issue_numbers": issue_numbers,
-        "admitted_pull_request_numbers": pr_numbers,
-        "authority_effect": "ADMISSION_ROUTING_ONLY",
-        "merge_authority": False,
-        "source_policy_sha": source_policy_sha,
-    }
-
-
-def validate_coordinator_state(
-    ledger_text: str,
-    state: dict[str, Any],
-    *,
-    expected_branch: str = "repository-coordinator-state",
-    expected_ledger_path: str = "ADMISSION_LEDGER.jsonl",
-) -> dict[str, Any]:
-    """Fail closed unless materialized state is exactly the ledger replay."""
-    if not isinstance(state, dict):
-        raise ValueError("coordinator state must be a JSON object")
-    expected = replay_admission_ledger(ledger_text)
-    expected["state_branch"] = expected_branch
-    expected["source_ledger"] = expected_ledger_path
-    if state != expected:
-        raise ValueError("materialized coordinator state diverges from ledger replay")
-    return expected
 
 
 def _tokens(title: str) -> set[str]:
@@ -342,27 +239,17 @@ def _zero_diff(pr: dict[str, Any]) -> bool:
 
 def _admission_evidence(
     pr: dict[str, Any],
-    policy: dict[str, Any],
+    state: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
-    state: dict[str, Any] | None = None,
 ) -> tuple[bool, list[str], list[int]]:
-    cfg = policy.get("admission") or {}
-    if state is not None:
-        admitted_prs = {int(x) for x in state.get("admitted_pull_request_numbers") or []}
-        admitted_issues = {int(x) for x in state.get("admitted_issue_numbers") or []}
-    else:
-        # Backward-compatible test/bootstrap path only. v0.3 main policy does
-        # not contain mutable admission arrays.
-        admitted_prs = {int(x) for x in cfg.get("pull_request_numbers") or []}
-        admitted_issues = {int(x) for x in cfg.get("issue_numbers") or []}
+    admitted_prs = {int(x) for x in state.get("admitted_pull_request_numbers") or []}
+    admitted_issues = {int(x) for x in state.get("admitted_issue_numbers") or []}
     evidence: list[str] = []
     objectives: list[int] = []
 
     number = int(pr.get("number") or 0)
     if number in admitted_prs:
-        evidence.append(
-            f"{'coordinator state' if state is not None else 'policy'} explicitly admits PR #{number}"
-        )
+        evidence.append(f"coordinator state explicitly admits PR #{number}")
         objectives.append(-number)
 
     for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
@@ -373,9 +260,7 @@ def _admission_evidence(
         if not item or item.get("is_pull_request"):
             continue
         if ref not in objectives:
-            evidence.append(
-                f"{'coordinator state' if state is not None else 'policy'} admits linked issue #{ref}"
-            )
+            evidence.append(f"coordinator state admits linked issue #{ref}")
             objectives.append(ref)
 
     return bool(evidence), evidence, objectives
@@ -435,12 +320,10 @@ def _base_lane(
     pr: dict[str, Any],
     *,
     policy: dict[str, Any],
+    state: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
-    state: dict[str, Any] | None = None,
 ) -> tuple[str, dict[str, Any]]:
-    admitted, evidence, objectives = _admission_evidence(
-        pr, policy, referenced_items, state
-    )
+    admitted, evidence, objectives = _admission_evidence(pr, state, referenced_items)
     eval_admitted, eval_evidence, eval_objectives, eval_approvers = (
         _evaluation_admission_evidence(pr, policy, referenced_items)
     )
@@ -572,7 +455,7 @@ def classify(
     referenced_items: dict[str, dict[str, Any]],
     active_gates: list[str],
     policy: dict[str, Any],
-    state: dict[str, Any] | None,
+    state: dict[str, Any],
     capacity_contention: bool,
     duplicate_objectives: dict[int, list[int]] | None = None,
 ) -> dict[str, Any]:
@@ -584,8 +467,8 @@ def classify(
     base_lane, admission = _base_lane(
         pr,
         policy=policy,
-        referenced_items=referenced_items,
         state=state,
+        referenced_items=referenced_items,
     )
     lane = "CAPACITY_CONTENTION" if capacity_contention and base_lane == "ACTIVE" else base_lane
 
@@ -740,8 +623,8 @@ def classify(
 
     return {
         "number": number,
-        "head_sha": pr.get("head_sha") or "",
         "title": pr.get("title") or "",
+        "head_sha": pr.get("head_sha") or "",
         "url": pr.get("html_url") or pr.get("url"),
         "author": pr.get("author"),
         "draft": bool(pr.get("draft")),
@@ -790,9 +673,14 @@ def analyze(
 ) -> dict[str, Any]:
     policy = policy or {
         "capacity": {"active_operator_queue": 4},
-        "admission": {"issue_numbers": [], "pull_request_numbers": []},
         "maintenance": {"authors": ["dependabot[bot]"], "labels": ["dependencies"]},
         "control_plane": {"paths": []},
+    }
+    state = state or {
+        "admitted_issue_numbers": [],
+        "admitted_pull_request_numbers": [],
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
     }
     prs = list(snapshot.get("pull_requests") or [])
     competitions = _competition(prs)
@@ -805,8 +693,8 @@ def analyze(
         int(pr["number"]): _base_lane(
             pr,
             policy=policy,
-            referenced_items=referenced_items,
             state=state,
+            referenced_items=referenced_items,
         )
         for pr in prs
     }
@@ -873,13 +761,13 @@ def analyze(
         "authority_effect": "ADMISSION_ROUTING_ONLY",
         "repository": snapshot.get("repository"),
         "main_sha": snapshot.get("main_sha"),
-        "coordinator_state": {
-            "branch": snapshot.get("state_branch"),
-            "commit_sha": snapshot.get("state_commit_sha"),
-            "ledger_sha256": (state or {}).get("ledger_sha256"),
-            "projection_sha256": snapshot.get("state_projection_sha256"),
-            "policy_sha256": snapshot.get("policy_sha256"),
-            "policy_blob_sha": snapshot.get("policy_blob_sha"),
+        "state_receipt": {
+            "policy_ref": snapshot.get("policy_ref") or "main",
+            "policy_sha": snapshot.get("policy_sha") or snapshot.get("main_sha"),
+            "state_branch": snapshot.get("state_branch"),
+            "state_sha": snapshot.get("state_sha"),
+            "ledger_sha256": snapshot.get("ledger_sha256"),
+            "projection_sha256": snapshot.get("projection_sha256"),
         },
         "active_canonical_gates": gates,
         "capacity": {
@@ -900,6 +788,10 @@ def analyze(
             "EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE",
             "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
             "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
+            "POLICY_IS_NOT_STATE",
+            "STATE_EVENT_IS_NOT_MERGE_AUTHORITY",
+            "STATE_HEAD_MUST_BE_RECEIPTED",
+            "PROJECTION_MUST_EQUAL_LEDGER_REPLAY",
             "ADMISSION_IS_NOT_MERGE_AUTHORITY",
         ],
         "counts": {
@@ -1028,35 +920,29 @@ def gate_decision(index: dict[str, Any], number: int) -> dict[str, Any]:
             gate = "PASS" if admission.get("gate") == "PASS" else "FAIL"
             return {
                 "number": int(number),
+                "target_pr": int(number),
+                "target_head_sha": item.get("head_sha") or "",
                 "gate": gate,
                 "lane": item.get("lane"),
                 "reason": admission.get("gate_reason") or "no admission reason recorded",
                 "evidence": admission.get("evidence") or [],
                 "capacity": index.get("capacity") or {},
-                "receipt": {
-                    **(index.get("coordinator_state") or {}),
-                    "repository": index.get("repository"),
-                    "target_pr_number": int(number),
-                    "target_pr_head_sha": item.get("head_sha") or "",
-                    "policy_commit_sha": index.get("main_sha"),
-                    "authority_effect": "ADMISSION_ROUTING_ONLY",
-                },
+                "state_receipt": index.get("state_receipt") or {},
+                "authority_effect": "ADMISSION_ROUTING_ONLY",
+                "merge_authority": False,
             }
     return {
         "number": int(number),
+        "target_pr": int(number),
+        "target_head_sha": None,
         "gate": "FAIL",
         "lane": None,
         "reason": "target PR is absent from the repository snapshot; refusing to pass on missing evidence",
         "evidence": [],
         "capacity": index.get("capacity") or {},
-        "receipt": {
-            **(index.get("coordinator_state") or {}),
-            "repository": index.get("repository"),
-            "target_pr_number": int(number),
-            "target_pr_head_sha": "",
-            "policy_commit_sha": index.get("main_sha"),
-            "authority_effect": "ADMISSION_ROUTING_ONLY",
-        },
+        "state_receipt": index.get("state_receipt") or {},
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
     }
 
 
@@ -1103,12 +989,17 @@ def run_smoke_test() -> bool:
     }
     policy = {
         "capacity": {"active_operator_queue": 4},
-        "admission": {"issue_numbers": [10], "pull_request_numbers": [1]},
         "maintenance": {"authors": ["dependabot[bot]"], "labels": ["dependencies"]},
         "control_plane": {"paths": ["REPOSITORY_COORDINATOR_POLICY.json"]},
     }
+    state = {
+        "admitted_issue_numbers": [10],
+        "admitted_pull_request_numbers": [1],
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
+    }
     pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource-state scheduling gate\n**State:** `GATING`\n"
-    index = analyze(snapshot, pq, policy)
+    index = analyze(snapshot, pq, policy, state)
     one = next(x for x in index["items"] if x["number"] == 1)
     two = next(x for x in index["items"] if x["number"] == 2)
     assert one["guidance"]["action"] == "REEXAMINE"
@@ -1131,8 +1022,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--priority-queue", type=Path, default=ROOT / "PRIORITY_QUEUE.md")
     parser.add_argument("--policy", type=Path, default=ROOT / "REPOSITORY_COORDINATOR_POLICY.json")
     parser.add_argument("--state", type=Path)
-    parser.add_argument("--ledger", type=Path)
-    parser.add_argument("--append-event-json", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--markdown", type=Path)
     parser.add_argument("--smoke-test", action="store_true")
@@ -1146,72 +1035,24 @@ def main(argv: list[str] | None = None) -> int:
         print("PASS" if run_smoke_test() else "FAIL")
         return 0
 
-    if args.append_event_json is not None:
-        if not args.state or not args.ledger:
-            parser.error("--append-event-json requires --state and --ledger")
-        try:
-            current_state = json.loads(args.state.read_text(encoding="utf-8"))
-            ledger_text = args.ledger.read_text(encoding="utf-8")
-            validated = validate_coordinator_state(
-                ledger_text,
-                current_state,
-                expected_branch=str(current_state.get("state_branch") or "repository-coordinator-state"),
-                expected_ledger_path=str(current_state.get("source_ledger") or "ADMISSION_LEDGER.jsonl"),
-            )
-            event = json.loads(args.append_event_json.read_text(encoding="utf-8"))
-            if not isinstance(event, dict):
-                raise ValueError("append event must be a JSON object")
-            canonical_event = json.dumps(
-                event, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-            )
-            new_ledger = ledger_text
-            if new_ledger and not new_ledger.endswith("\n"):
-                new_ledger += "\n"
-            new_ledger += canonical_event + "\n"
-            new_state = replay_admission_ledger(new_ledger)
-            new_state["state_branch"] = validated["state_branch"]
-            new_state["source_ledger"] = validated["source_ledger"]
-            args.ledger.write_text(new_ledger, encoding="utf-8")
-            args.state.write_text(
-                json.dumps(new_state, indent=2, sort_keys=True) + "\n",
-                encoding="utf-8",
-            )
-            print(json.dumps(new_state, indent=2, sort_keys=True))
-            return 0
-        except (ValueError, json.JSONDecodeError) as exc:
-            print(f"state mutation refused: {exc}")
-            return 1
-
     if not args.snapshot:
-        parser.error("--snapshot is required unless --smoke-test or --append-event-json is used")
+        parser.error("--snapshot is required unless --smoke-test is used")
 
     if args.gate is not None and not args.policy.exists():
         print(f"gate=FAIL reason=policy file missing: {args.policy}")
+        return 1
+    if args.gate is not None and (args.state is None or not args.state.exists()):
+        print(f"gate=FAIL reason=coordinator state file missing: {args.state}")
         return 1
 
     snapshot = json.loads(args.snapshot.read_text(encoding="utf-8"))
     pq = args.priority_queue.read_text(encoding="utf-8", errors="replace") if args.priority_queue.exists() else ""
     policy = json.loads(args.policy.read_text(encoding="utf-8")) if args.policy.exists() else {}
-
-    state = None
-    state_cfg = policy.get("state_source") or {}
-    if state_cfg:
-        if not args.state or not args.ledger or not args.state.exists() or not args.ledger.exists():
-            print("gate=FAIL reason=coordinator state or ledger missing; failing closed")
-            return 1
-        try:
-            state_payload = json.loads(args.state.read_text(encoding="utf-8"))
-            ledger_text = args.ledger.read_text(encoding="utf-8")
-            state = validate_coordinator_state(
-                ledger_text,
-                state_payload,
-                expected_branch=str(state_cfg.get("branch") or "repository-coordinator-state"),
-                expected_ledger_path=str(state_cfg.get("ledger_path") or "ADMISSION_LEDGER.jsonl"),
-            )
-        except (ValueError, json.JSONDecodeError) as exc:
-            print(f"gate=FAIL reason=invalid coordinator state: {exc}")
-            return 1
-
+    state = (
+        json.loads(args.state.read_text(encoding="utf-8"))
+        if args.state is not None and args.state.exists()
+        else {}
+    )
     index = analyze(snapshot, pq, policy, state)
 
     if args.gate is not None:

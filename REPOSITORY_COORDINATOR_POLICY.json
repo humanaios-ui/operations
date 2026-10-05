@@ -1,8 +1,8 @@
 {
   "schema_version": "0.3",
-  "status": "candidate_control_policy",
+  "status": "candidate_control_policy_state_split",
   "authority_effect": "ADMISSION_ROUTING_ONLY_FROM_DEFAULT_BRANCH",
-  "purpose": "Bound repository working-set growth while separating static control law from mutable admission state.",
+  "purpose": "Define repository admission/control law while keeping mutable working-set admissions in a separately replayable state branch.",
   "invariants": [
     "ISSUE_IS_NOT_ADMITTED_WORK",
     "ASSIGNMENT_IS_NOT_PR_ADMISSION",
@@ -12,25 +12,12 @@
     "EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE",
     "ADMISSION_IS_NOT_MERGE_AUTHORITY",
     "POLICY_IS_NOT_STATE",
-    "LEDGER_EVENT_IS_NOT_DERIVED_STATE",
-    "STATE_BRANCH_HEAD_IS_NOT_UNRECEIPTED_LATEST"
+    "STATE_EVENT_IS_NOT_MERGE_AUTHORITY",
+    "STATE_HEAD_MUST_BE_RECEIPTED",
+    "PROJECTION_MUST_EQUAL_LEDGER_REPLAY"
   ],
   "capacity": {
     "active_operator_queue": 4
-  },
-  "state_source": {
-    "branch": "repository-coordinator-state",
-    "ledger_path": "ADMISSION_LEDGER.jsonl",
-    "projection_path": "COORDINATOR_STATE.json",
-    "ledger_schema": "humanaios.repository-coordinator-event.v1",
-    "projection_schema": "humanaios.repository-coordinator-state.v1",
-    "require_exact_commit_pin": true,
-    "require_replay_match": true,
-    "fail_closed": true,
-    "admission_source": "STATE_PROJECTION"
-  },
-  "admission": {
-    "evidence": "working-set admission is derived from the validated coordinator-state projection; a PR may also inherit working-set standing through a closing-keyword link to an admitted issue"
   },
   "maintenance": {
     "authors": [
@@ -44,17 +31,25 @@
   },
   "control_plane": {
     "paths": [
-      "REPOSITORY_COORDINATOR_POLICY.json",
-      "tools/repository_coordinator_v0_1.py",
-      "tools/tests/test_repository_coordinator_v0_1.py",
-      ".github/workflows/repository-coordinator.yml",
-      ".github/workflows/repository-admission-gate.yml",
-      ".github/dependabot.yml",
+      ".github/CODEOWNERS",
       ".github/copilot-instructions.md",
-      ".github/CODEOWNERS"
+      ".github/dependabot.yml",
+      ".github/workflows/repository-admission-gate.yml",
+      ".github/workflows/repository-coordinator.yml",
+      "REPOSITORY_COORDINATOR_POLICY.json",
+      "tools/repository_coordinator_state_v1.py",
+      "tools/repository_coordinator_v0_1.py",
+      "tools/tests/test_repository_coordinator_v0_1.py"
     ],
     "exemption": "only when every changed file is a control-plane path; mixed changes require admission"
   },
+  "notes": [
+    "Policy defines routing law and configuration only; mutable working-set admissions live on the repository-coordinator-state branch.",
+    "Admission determines working-set standing only. It does not ratify governance, approve code, or authorize merge.",
+    "When admitted ready-for-review work exceeds capacity, the coordinator does not choose winners; it reports capacity contention for operator resolution.",
+    "The required gate executes trusted default-branch code, validates the exact state-branch head it consumes, and receipts both policy/default-branch SHA and state SHA.",
+    "Evaluation admission remains derived from an ADMISSION_REQUESTED issue plus an APPROVED review by an authorized actor; it grants evidence/CI standing only and does not consume operator capacity."
+  ],
   "evaluation_admission": {
     "authorized_actors": [
       "humanaios-ui"
@@ -65,26 +60,17 @@
     "operator_queue_effect": "none",
     "merge_authority": false
   },
-  "notes": [
-    "Static policy remains on the default branch; mutable explicit admissions are stored on the persistent coordinator-state branch.",
-    "Admission determines working-set standing only. It does not ratify governance, approve code, or authorize merge.",
-    "The gate must resolve and receipt the exact coordinator-state commit used for each decision.",
-    "The gate fails closed when the ledger or materialized projection is missing, malformed, unsupported, or divergent.",
-    "Evaluation admission remains a separate evidence-producing lane and does not consume operator capacity."
-  ],
-  "state_mutation": {
-    "route": "ISSUE_COMMENT_COMMAND",
-    "authorized_actors": [
-      "humanaios-ui"
-    ],
-    "commands": {
-      "admit": "/coordinator admit",
-      "revoke": "/coordinator revoke"
-    },
-    "subject_kind": "ISSUE",
+  "state": {
+    "branch": "repository-coordinator-state",
+    "ledger_path": "ADMISSION_LEDGER.jsonl",
+    "projection_path": "COORDINATOR_STATE.json",
+    "schema": "humanaios.repository-coordinator-state.v1",
+    "fail_closed": true,
     "authority_effect": "ADMISSION_ROUTING_ONLY",
     "merge_authority": false,
-    "atomic_update_required": true,
-    "expected_head_lease_required": true
+    "mutation_model": "append event -> deterministic replay -> commit ledger and projection together",
+    "authorized_mutators": [
+      "humanaios-ui"
+    ]
   }
 }
