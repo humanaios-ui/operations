@@ -52,7 +52,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 TOOL_NAME = "repository_coordinator"
-TOOL_VERSION = "0.2.1"
+TOOL_VERSION = "0.3.0"
 TOOL_CATEGORY = "diagnostic_tool"
 TOOL_SESSION = "REPOSITORY-COORDINATOR-02"
 TOOL_ZONE = 1
@@ -239,18 +239,17 @@ def _zero_diff(pr: dict[str, Any]) -> bool:
 
 def _admission_evidence(
     pr: dict[str, Any],
-    policy: dict[str, Any],
+    state: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
 ) -> tuple[bool, list[str], list[int]]:
-    cfg = policy.get("admission") or {}
-    admitted_prs = {int(x) for x in cfg.get("pull_request_numbers") or []}
-    admitted_issues = {int(x) for x in cfg.get("issue_numbers") or []}
+    admitted_prs = {int(x) for x in state.get("admitted_pull_request_numbers") or []}
+    admitted_issues = {int(x) for x in state.get("admitted_issue_numbers") or []}
     evidence: list[str] = []
     objectives: list[int] = []
 
     number = int(pr.get("number") or 0)
     if number in admitted_prs:
-        evidence.append(f"policy explicitly admits PR #{number}")
+        evidence.append(f"coordinator state explicitly admits PR #{number}")
         objectives.append(-number)
 
     for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
@@ -261,7 +260,7 @@ def _admission_evidence(
         if not item or item.get("is_pull_request"):
             continue
         if ref not in objectives:
-            evidence.append(f"policy admits linked issue #{ref}")
+            evidence.append(f"coordinator state admits linked issue #{ref}")
             objectives.append(ref)
 
     return bool(evidence), evidence, objectives
@@ -321,9 +320,10 @@ def _base_lane(
     pr: dict[str, Any],
     *,
     policy: dict[str, Any],
+    state: dict[str, Any],
     referenced_items: dict[str, dict[str, Any]],
 ) -> tuple[str, dict[str, Any]]:
-    admitted, evidence, objectives = _admission_evidence(pr, policy, referenced_items)
+    admitted, evidence, objectives = _admission_evidence(pr, state, referenced_items)
     eval_admitted, eval_evidence, eval_objectives, eval_approvers = (
         _evaluation_admission_evidence(pr, policy, referenced_items)
     )
@@ -455,6 +455,7 @@ def classify(
     referenced_items: dict[str, dict[str, Any]],
     active_gates: list[str],
     policy: dict[str, Any],
+    state: dict[str, Any],
     capacity_contention: bool,
     duplicate_objectives: dict[int, list[int]] | None = None,
 ) -> dict[str, Any]:
@@ -466,6 +467,7 @@ def classify(
     base_lane, admission = _base_lane(
         pr,
         policy=policy,
+        state=state,
         referenced_items=referenced_items,
     )
     lane = "CAPACITY_CONTENTION" if capacity_contention and base_lane == "ACTIVE" else base_lane
@@ -622,6 +624,7 @@ def classify(
     return {
         "number": number,
         "title": pr.get("title") or "",
+        "head_sha": pr.get("head_sha") or "",
         "url": pr.get("html_url") or pr.get("url"),
         "author": pr.get("author"),
         "draft": bool(pr.get("draft")),
@@ -666,12 +669,18 @@ def analyze(
     snapshot: dict[str, Any],
     priority_queue_text: str,
     policy: dict[str, Any] | None = None,
+    state: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     policy = policy or {
         "capacity": {"active_operator_queue": 4},
-        "admission": {"issue_numbers": [], "pull_request_numbers": []},
         "maintenance": {"authors": ["dependabot[bot]"], "labels": ["dependencies"]},
         "control_plane": {"paths": []},
+    }
+    state = state or {
+        "admitted_issue_numbers": [],
+        "admitted_pull_request_numbers": [],
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
     }
     prs = list(snapshot.get("pull_requests") or [])
     competitions = _competition(prs)
@@ -684,6 +693,7 @@ def analyze(
         int(pr["number"]): _base_lane(
             pr,
             policy=policy,
+            state=state,
             referenced_items=referenced_items,
         )
         for pr in prs
@@ -719,6 +729,7 @@ def analyze(
             referenced_items=referenced_items,
             active_gates=gates,
             policy=policy,
+            state=state,
             capacity_contention=capacity_contention,
             duplicate_objectives=duplicate_objectives,
         )
@@ -750,6 +761,14 @@ def analyze(
         "authority_effect": "ADMISSION_ROUTING_ONLY",
         "repository": snapshot.get("repository"),
         "main_sha": snapshot.get("main_sha"),
+        "state_receipt": {
+            "policy_ref": snapshot.get("policy_ref") or "main",
+            "policy_sha": snapshot.get("policy_sha") or snapshot.get("main_sha"),
+            "state_branch": snapshot.get("state_branch"),
+            "state_sha": snapshot.get("state_sha"),
+            "ledger_sha256": snapshot.get("ledger_sha256"),
+            "projection_sha256": snapshot.get("projection_sha256"),
+        },
         "active_canonical_gates": gates,
         "capacity": {
             "active_operator_queue_limit": active_limit,
@@ -769,6 +788,10 @@ def analyze(
             "EVALUATION_ADMISSION_IS_NOT_IMPLEMENTATION_ACCEPTANCE",
             "AUTONOMOUS_PRODUCTION_CANNOT_OUTRUN_REVIEW_CAPACITY",
             "ONE_OBJECTIVE_SHOULD_NOT_CREATE_MULTIPLE_ACTIVE_IMPLEMENTATIONS",
+            "POLICY_IS_NOT_STATE",
+            "STATE_EVENT_IS_NOT_MERGE_AUTHORITY",
+            "STATE_HEAD_MUST_BE_RECEIPTED",
+            "PROJECTION_MUST_EQUAL_LEDGER_REPLAY",
             "ADMISSION_IS_NOT_MERGE_AUTHORITY",
         ],
         "counts": {
@@ -897,19 +920,29 @@ def gate_decision(index: dict[str, Any], number: int) -> dict[str, Any]:
             gate = "PASS" if admission.get("gate") == "PASS" else "FAIL"
             return {
                 "number": int(number),
+                "target_pr": int(number),
+                "target_head_sha": item.get("head_sha") or "",
                 "gate": gate,
                 "lane": item.get("lane"),
                 "reason": admission.get("gate_reason") or "no admission reason recorded",
                 "evidence": admission.get("evidence") or [],
                 "capacity": index.get("capacity") or {},
+                "state_receipt": index.get("state_receipt") or {},
+                "authority_effect": "ADMISSION_ROUTING_ONLY",
+                "merge_authority": False,
             }
     return {
         "number": int(number),
+        "target_pr": int(number),
+        "target_head_sha": None,
         "gate": "FAIL",
         "lane": None,
         "reason": "target PR is absent from the repository snapshot; refusing to pass on missing evidence",
         "evidence": [],
         "capacity": index.get("capacity") or {},
+        "state_receipt": index.get("state_receipt") or {},
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
     }
 
 
@@ -956,12 +989,17 @@ def run_smoke_test() -> bool:
     }
     policy = {
         "capacity": {"active_operator_queue": 4},
-        "admission": {"issue_numbers": [10], "pull_request_numbers": [1]},
         "maintenance": {"authors": ["dependabot[bot]"], "labels": ["dependencies"]},
         "control_plane": {"paths": ["REPOSITORY_COORDINATOR_POLICY.json"]},
     }
+    state = {
+        "admitted_issue_numbers": [10],
+        "admitted_pull_request_numbers": [1],
+        "authority_effect": "ADMISSION_ROUTING_ONLY",
+        "merge_authority": False,
+    }
     pq = "### Q-TEMPORAL-DISSOLUTION-01 — Resource-state scheduling gate\n**State:** `GATING`\n"
-    index = analyze(snapshot, pq, policy)
+    index = analyze(snapshot, pq, policy, state)
     one = next(x for x in index["items"] if x["number"] == 1)
     two = next(x for x in index["items"] if x["number"] == 2)
     assert one["guidance"]["action"] == "REEXAMINE"
@@ -983,6 +1021,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--snapshot", type=Path)
     parser.add_argument("--priority-queue", type=Path, default=ROOT / "PRIORITY_QUEUE.md")
     parser.add_argument("--policy", type=Path, default=ROOT / "REPOSITORY_COORDINATOR_POLICY.json")
+    parser.add_argument("--state", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--markdown", type=Path)
     parser.add_argument("--smoke-test", action="store_true")
@@ -1002,11 +1041,19 @@ def main(argv: list[str] | None = None) -> int:
     if args.gate is not None and not args.policy.exists():
         print(f"gate=FAIL reason=policy file missing: {args.policy}")
         return 1
+    if args.gate is not None and (args.state is None or not args.state.exists()):
+        print(f"gate=FAIL reason=coordinator state file missing: {args.state}")
+        return 1
 
     snapshot = json.loads(args.snapshot.read_text(encoding="utf-8"))
     pq = args.priority_queue.read_text(encoding="utf-8", errors="replace") if args.priority_queue.exists() else ""
     policy = json.loads(args.policy.read_text(encoding="utf-8")) if args.policy.exists() else {}
-    index = analyze(snapshot, pq, policy)
+    state = (
+        json.loads(args.state.read_text(encoding="utf-8"))
+        if args.state is not None and args.state.exists()
+        else {}
+    )
+    index = analyze(snapshot, pq, policy, state)
 
     if args.gate is not None:
         decision = gate_decision(index, args.gate)
