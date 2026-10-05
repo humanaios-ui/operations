@@ -367,7 +367,7 @@ def apply_issue_command(
 ) -> dict[str, Any]:
     """Apply an authorized exact issue-route command to local state files.
 
-    This function never pushes Git refs. It verifies the current materialized
+    This function does not push Git refs. It verifies the current materialized
     projection, validates the policy-declared issue route, performs no-op
     detection, then delegates the actual append/replay to append_event().
     """
