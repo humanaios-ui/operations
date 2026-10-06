@@ -50,10 +50,11 @@ on:
 permissions: {}
 
 concurrency:
-  # PR evaluations supersede stale evaluations for the same PR. Manual state
-  # dispatches use a unique workflow-level group so they are not cancelled here;
-  # the mutate job below serializes them with cancel-in-progress=false.
-  group: repository-admission-gate-${{ github.event.pull_request.number || github.run_id }}
+  # Ordinary PR evaluations supersede stale evaluations for the same PR.
+  # Closed events get a unique run-bound group so lifecycle reconciliation is
+  # not cancelled by a later reopen/edit event. State writes are serialized
+  # separately by the shared mutation queue.
+  group: repository-admission-gate-${{ github.event.action == 'closed' && format('closed-{0}', github.run_id) || github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -489,6 +490,7 @@ jobs:
             --state coordinator-state/COORDINATOR_STATE.json
 
       - name: Append one event and replay projection
+        id: manual_event
         env:
           DECISION: ${{ inputs.decision }}
           SUBJECT_KIND: ${{ inputs.subject_kind }}
@@ -526,6 +528,14 @@ jobs:
           python3 trusted-main/tools/repository_coordinator_state_v1_1.py "${args[@]}" \
             | tee coordinator-state/.state-event-result.json
 
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          result = json.loads(Path("coordinator-state/.state-event-result.json").read_text())
+          print("should_mutate=" + ("true" if result.get("should_mutate", True) else "false"))
+          print("reason=" + str(result.get("reason") or "EVENT_APPENDED"))
+          PY
+
       - name: Verify replay after mutation
         run: |
           set -euo pipefail
@@ -534,6 +544,7 @@ jobs:
             --state coordinator-state/COORDINATOR_STATE.json
 
       - name: Commit ledger and projection together
+        if: steps.manual_event.outputs.should_mutate == 'true'
         env:
           DECISION: ${{ inputs.decision }}
           SUBJECT_KIND: ${{ inputs.subject_kind }}
@@ -758,6 +769,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_MERGED: ${{ github.event.pull_request.merged }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_CLOSED_AT: ${{ github.event.pull_request.closed_at }}
         run: |
           set -euo pipefail
           POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
@@ -774,7 +786,7 @@ jobs:
             --state coordinator-state/COORDINATOR_STATE.json \
             --pr-number "$PR_NUMBER" \
             --terminal-state "$TERMINAL_STATE" \
-            --command-ref "RCC-GITHUB-PR-LIFECYCLE-$PR_NUMBER-$PR_HEAD_SHA-$TERMINAL_STATE" \
+            --command-ref "RCC-GITHUB-PR-LIFECYCLE-$PR_NUMBER-$PR_HEAD_SHA-$PR_CLOSED_AT-$TERMINAL_STATE" \
             --source-locator "github:${{ github.repository }}:pull:$PR_NUMBER:closed" \
             --actor "github-actions[bot]" \
             --recorded-at "${{ github.event.pull_request.closed_at }}" \
