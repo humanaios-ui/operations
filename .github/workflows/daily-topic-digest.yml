@@ -91,22 +91,16 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.trigger == 'signal-threshold-monitor'
         run: |
           set -euo pipefail
-          echo "This run consumes a previously dispatched signal set; it must not dispatch itself."
-          if [ -z "${{ github.event.inputs.signal_ids }}" ]; then
-            echo "IMPLEMENTATION_STATE=INVALID_INPUT"
-            echo "signal_ids is required for an event-driven run."
-            exit 1
-          fi
-          node - <<'NODE'
-          const fs = require('fs');
-          const pkg = JSON.parse(fs.readFileSync('lasting-light-ai/package.json', 'utf8'));
-          if (!pkg.scripts || !pkg.scripts['build-delta-pages']) {
-            console.error('IMPLEMENTATION_STATE=NOT_IMPLEMENTED');
-            console.error('lasting-light-ai package.json has no build-delta-pages script; refusing to report event-driven publication success.');
-            process.exit(1);
-          }
-          console.log('IMPLEMENTATION_STATE=IMPLEMENTED');
-          NODE
+          {
+            echo "mode=signal-threshold-monitor"
+            echo "implementation_state=NOT_IMPLEMENTED"
+            echo "authority_effect=NONE"
+            echo "reason=incremental contract is not wired end-to-end"
+            echo "required_before_enablement=signal_ids input binding; checkout path alignment; topic_id/entity_id mapping; delta-page implementation"
+          } > /tmp/event-driven-state.txt
+          echo "IMPLEMENTATION_STATE=NOT_IMPLEMENTED"
+          echo "Event-driven execution remains fail-closed until signal_ids are consumed end-to-end, the indexer uses the checked-out lasting-light-ai path, topic_id/entity_id mapping is explicit, and delta-page generation exists."
+          exit 1
 
       - name: Run incremental indexer (event-driven optimization)
         id: incremental_indexer
@@ -277,8 +271,10 @@ jobs:
 
           cp /tmp/operations-candidate-state.txt "$ROOT/receipts/"
           cp /tmp/lasting-light-ai-candidate-state.txt "$ROOT/receipts/"
+          [ ! -f /tmp/event-driven-state.txt ] || cp /tmp/event-driven-state.txt "$ROOT/receipts/"
 
-      - name: Generate summary for CI context
+      - name: Generate batch summary for CI context
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.trigger != 'signal-threshold-monitor'
         run: |
           echo "=== DAILY TOPIC-TO-MITIGATION DIGEST ===" > /tmp/digest-summary.txt
           echo "Run date: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/digest-summary.txt
