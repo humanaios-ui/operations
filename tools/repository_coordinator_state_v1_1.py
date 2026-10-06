@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Repository Coordinator state v1.1 hardening.
+Builder v1.7 compliant
+HumanAIOS — REPOSITORY-COORDINATOR-STATE-02
 
 Extends the v1 bootstrap ledger without rewriting it. Existing v1 ledgers and
 projections remain valid until the first v2 event is appended. New v2 events
@@ -641,8 +643,37 @@ def decision_receipt(
     return {"receipt_id": "RCD-" + digest[:16].upper(), **payload, "receipt_sha256": digest}
 
 
+def run_smoke_test() -> bool:
+    """Exercise the authority boundary and deterministic receipt primitives."""
+    assert command_ref("GITHUB-COMMENT", "123") == "RCC-GITHUB-COMMENT-123"
+    receipt = decision_receipt(
+        gate_decision={
+            "target_pr": 1,
+            "target_head_sha": "b" * 40,
+            "gate": "PASS",
+            "lane": "CONTROL_PLANE",
+            "reason": "smoke",
+            "state_receipt": {
+                "policy_ref": "main",
+                "policy_sha": "a" * 40,
+                "state_branch": STATE_BRANCH,
+                "state_sha": "c" * 40,
+                "ledger_sha256": "1" * 64,
+                "projection_sha256": "2" * 64,
+            },
+        },
+        created_at="2026-01-01T00:00:00Z",
+        source_run_id="smoke",
+    )
+    assert receipt["receipt_id"].startswith("RCD-")
+    assert receipt["authority_effect"] == AUTHORITY_EFFECT
+    assert receipt["merge_authority"] is False
+    return True
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--smoke-test", action="store_true")
     sub = parser.add_subparsers(dest="command")
 
     verify = sub.add_parser("verify")
@@ -692,6 +723,9 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.smoke_test:
+        print("PASS" if run_smoke_test() else "FAIL")
+        return 0
     if not args.command:
         print("coordinator-state-v1.1=FAIL reason=command required")
         return 2
