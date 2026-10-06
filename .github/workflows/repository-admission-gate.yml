@@ -540,6 +540,13 @@ jobs:
           SUBJECT_NUMBER: ${{ inputs.subject_number }}
         run: |
           set -euo pipefail
+          PRIOR_STATE_SHA="$(git -C coordinator-state rev-parse HEAD)"
+          git -C coordinator-state fetch origin repository-coordinator-state
+          REMOTE_STATE_SHA="$(git -C coordinator-state rev-parse FETCH_HEAD)"
+          test "$REMOTE_STATE_SHA" = "$PRIOR_STATE_SHA" || {
+            echo "::error::coordinator state head changed during manual mutation; refusing stale write"
+            exit 1
+          }
           cd coordinator-state
           git config user.name "repository-coordinator-state[bot]"
           git config user.email "repository-coordinator-state@users.noreply.github.com"
