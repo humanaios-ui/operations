@@ -1,0 +1,112 @@
+name: coordinator-issue-route
+
+# Process `/coordinator admit` and `/coordinator revoke` commands in PR/issue comments.
+# These commands trigger the admission-gate workflow's mutation job to append state events
+# to the admission ledger on the repository-coordinator-state branch.
+#
+# This workflow parses comment bodies, validates the command, and dispatches to the
+# mutate job in repository-admission-gate.yml with the appropriate decision and subject.
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  # One dispatch at a time; later commands cancel earlier ones for the same subject.
+  group: coordinator-issue-route-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  route:
+    name: Apply authorized issue coordinator command
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Parse coordinator command
+        id: parse
+        uses: actions/github-script@v9
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ACTOR: ${{ github.actor }}
+        with:
+          script: |
+            const fs = require("fs");
+            const body = process.env.COMMENT_BODY || "";
+            const issue = Number(process.env.ISSUE_NUMBER);
+            const actor = process.env.ACTOR;
+
+            // Parse command: /coordinator admit [evidence]
+            // or: /coordinator revoke [evidence]
+            const match = body.match(/^\/coordinator\s+(admit|revoke)(?:\s+(.+?))?$/im);
+            if (!match) {
+              core.info("No coordinator command found in comment");
+              core.setOutput("command", "none");
+              return;
+            }
+
+            const decision = match[1].toUpperCase();
+            const evidence = (match[2] || "").trim() || `${decision} via comment from @${actor}`;
+
+            core.info(`Parsed command: decision=${decision}, evidence="${evidence}"`);
+            core.setOutput("command", "dispatch");
+            core.setOutput("decision", decision);
+            core.setOutput("evidence", evidence);
+
+      - name: Dispatch to admission-gate mutate job
+        if: steps.parse.outputs.command == 'dispatch'
+        uses: actions/github-script@v9
+        env:
+          DECISION: ${{ steps.parse.outputs.decision }}
+          EVIDENCE: ${{ steps.parse.outputs.evidence }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          IS_PULL_REQUEST: ${{ github.event.issue.pull_request != null }}
+        with:
+          script: |
+            const fs = require("fs");
+            const decision = process.env.DECISION;
+            const evidence = process.env.EVIDENCE;
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const isPullRequest = process.env.IS_PULL_REQUEST === "true";
+
+            const { owner, repo } = context.repo;
+
+            // Determine subject kind and number
+            const subjectKind = isPullRequest ? "PULL_REQUEST" : "ISSUE";
+            const subjectNumber = String(issueNumber);
+
+            core.info(`Dispatching: decision=${decision}, subject=${subjectKind}#${subjectNumber}, evidence="${evidence}"`);
+
+            try {
+              const response = await github.rest.actions.createWorkflowDispatch({
+                owner,
+                repo,
+                workflow_id: "repository-admission-gate.yml",
+                ref: "main",
+                inputs: {
+                  decision,
+                  subject_kind: subjectKind,
+                  subject_number: subjectNumber,
+                  objective_issue_number: "",
+                  evidence
+                }
+              });
+
+              core.info(`Workflow dispatch initiated: ${response.status}`);
+              core.setOutput("dispatch_status", "success");
+            } catch (err) {
+              core.setFailed(`Failed to dispatch workflow: ${err.message}`);
+            }
