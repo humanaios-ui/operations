@@ -15,6 +15,7 @@ permissions:
   contents: read
   issues: read
   pull-requests: read
+  actions: write
 
 concurrency:
   # One dispatch at a time; later commands cancel earlier ones for the same subject.
