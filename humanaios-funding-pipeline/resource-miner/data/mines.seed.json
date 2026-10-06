@@ -159,5 +159,61 @@
       "command_processing": "SEPARATE_AUTHORITY_PATH",
       "dependency_doc": "docs/DAILY_DIGEST_GMAIL_ADAPTER_PHASE_B.md"
     }
+  },
+  {
+    "name": "Colorado Great Colorado Payback",
+    "mine_kind": "REGISTRY",
+    "canonical_url": "https://unclaimedproperty.colorado.gov/",
+    "resolver": "configured_mine",
+    "enabled": true,
+    "cadence": "weekly",
+    "roles": [
+      "OPPORTUNITY_SOURCE",
+      "EVIDENCE_SOURCE"
+    ],
+    "config": {
+      "evidence_origins": [
+        "unclaimedproperty.colorado.gov"
+      ],
+      "authority_effect": "NONE",
+      "observation_scope": "PUBLIC_LANDING_PATHWAY_ONLY",
+      "claimant_search_policy": "REQUIRE_EXPLICIT_CLAIMANT_REQUEST",
+      "claim_submission_policy": "PROHIBITED_IN_MINE_TEST",
+      "private_claim_status_policy": "PROHIBITED_IN_MINE_TEST",
+      "opportunities": [
+        {
+          "title": "Colorado Great Colorado Payback — claimant asset-recovery pathway",
+          "url": "https://unclaimedproperty.colorado.gov/",
+          "opportunity_kind": "unclaimed_property_recovery_pathway",
+          "source_category": "asset_recovery",
+          "sponsor": "Colorado State Treasurer — Unclaimed Property Division",
+          "tags": [
+            "colorado",
+            "unclaimed-property",
+            "asset-recovery",
+            "claimant-recovery"
+          ],
+          "description": "Official Colorado unclaimed-property recovery pathway. This bounded opportunity represents access to the state recovery mechanism only; it does not establish that any specific claimant has property, owns a listed property, is eligible to claim, or has recovered funds.",
+          "observe_url": true
+        }
+      ],
+      "query_contract": {
+        "queryable": true,
+        "query_class": "UNCLAIMED_PROPERTY_OWNER_SEARCH",
+        "semantic_query_fields": [
+          "owner_name",
+          "business_name",
+          "last_known_location"
+        ],
+        "transport_field_mapping": "PRIVATE_ADAPTER_ONLY",
+        "query_value_persistence": "PRIVATE_RUNTIME_ONLY",
+        "expected_response_class": "ZERO_OR_MORE_CANDIDATE_RECORDS",
+        "zero_result_semantics": "NO_MATCH_OBSERVED_NOT_NO_ENTITLEMENT",
+        "match_result_semantics": "CANDIDATE_RECORD_NOT_OWNERSHIP",
+        "explicit_subject_request_required": true,
+        "external_state_change": false,
+        "authority_effect": "NONE"
+      }
+    }
   }
 ]
