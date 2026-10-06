@@ -48,7 +48,7 @@ These 10 workflows must pass before a PR can merge to main:
 | `temporal-dissolution-gate.yml` | Policy enforcement: reject unauthorized internal deadline semantics (audit-critical, S-070726) | PR to main | Policy |
 | `builder-lint.yml` | Lint builders and infrastructure-as-code | PR to main | Linting |
 | `workflow-lint.yml` | Lint GitHub Actions workflows themselves | PR to main | Linting |
-| `repository-admission-gate.yml` | Fail-closed admission/backpressure routing from trusted default-branch policy plus exact replayed coordinator state; manual dispatch appends authorized ADMIT/REVOKE state events | PR/review events; manual dispatch from main for authorized state mutators | Governance |
+| `repository-admission-gate.yml` | Fail-closed admission/backpressure routing from trusted default-branch policy plus exact replayed coordinator state; manual dispatch and authorized exact issue commands append ADMIT/REVOKE state events | PR/review events; authorized issue comments; manual dispatch from main for authorized state mutators | Governance |
 
 **Why this stays small:** These gates cover the critical path (code quality, security, governance, policy). Additional audits run on schedule or event-trigger but do not block merges—by design, to prevent audit overhead from becoming a merge blocker.
 
