@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .miner import enrich
 from .planning import load_resource_plan, miner_requirements_from_plan, resolve_resource_plan
+from .reconcile import reconcile_snapshot
 from .store import write_jsonl
 from .sources import devto, funding_pipeline, github, rss
 
@@ -37,6 +38,12 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--rss", action="append", default=[])
     scan.add_argument("--dry-run", action="store_true")
 
+    reconcile = sub.add_parser("reconcile", help="Apply provenance-bearing state receipts to a resource snapshot")
+    reconcile.add_argument("--snapshot", required=True)
+    reconcile.add_argument("--receipts", required=True)
+    reconcile.add_argument("--out")
+    reconcile.add_argument("--audit-out")
+
     plan = sub.add_parser("plan", help="Validate and resolve a Resource Plan graph")
     plan.add_argument("--file", required=True)
     plan.add_argument(
@@ -56,6 +63,11 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    if args.command == "reconcile":
+        audit = reconcile_snapshot(args.snapshot, args.receipts, args.out, args.audit_out)
+        print(json.dumps(audit, indent=2, ensure_ascii=False))
+        return
 
     if args.command == "plan":
         plan = load_resource_plan(args.file)
