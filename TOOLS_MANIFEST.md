@@ -340,7 +340,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 17 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 19 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 20 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 6 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
