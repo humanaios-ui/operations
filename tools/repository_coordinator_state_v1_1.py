@@ -31,7 +31,14 @@ AUTHORITY_EFFECT = legacy.AUTHORITY_EFFECT
 STATE_BRANCH = legacy.STATE_BRANCH
 SOURCE_LEDGER = legacy.SOURCE_LEDGER
 
-DECISIONS = {"ADMIT", "REVOKE", "TERMINATE_MERGED", "TERMINATE_CLOSED"}
+DECISIONS = {
+    "ADMIT",
+    "REVOKE",
+    "TERMINATE_MERGED",
+    "TERMINATE_CLOSED",
+    "ACK_ALREADY_ADMITTED",
+    "ACK_ALREADY_REVOKED",
+}
 TERMINAL_DECISIONS = {"TERMINATE_MERGED", "TERMINATE_CLOSED"}
 SUBJECT_KINDS = legacy.SUBJECT_KINDS
 
@@ -269,6 +276,10 @@ def _replay_context(events: list[dict[str, Any]]) -> dict[str, Any]:
                 ),
                 "command_ref": event.get("command_ref"),
             }
+        elif decision == "ACK_ALREADY_ADMITTED":
+            _require(key in active, f"line {index}: ACK_ALREADY_ADMITTED requires active {key}")
+        elif decision == "ACK_ALREADY_REVOKED":
+            _require(key not in active, f"line {index}: ACK_ALREADY_REVOKED requires inactive {key}")
         else:
             _require(key in active, f"line {index}: cannot {decision} inactive subject {key}")
             active.pop(key)
@@ -408,15 +419,24 @@ def append_event(
     verified = verify_projection(ledger_path, state_path)
     ctx = _replay_context(old_events)
 
-    _require(
-        command_ref_value not in ctx["commands"],
-        f"command_ref already consumed: {command_ref_value}",
-    )
+    if command_ref_value in ctx["commands"]:
+        return {
+            "should_mutate": False,
+            "reason": "DUPLICATE_COMMAND",
+            "command_ref": command_ref_value,
+            "state": verified,
+            "authority_effect": AUTHORITY_EFFECT,
+            "merge_authority": False,
+        }
     key = f"{subject_kind.upper()}#{int(subject_number)}"
     decision = decision.upper()
     active = ctx["active"]
     if decision == "ADMIT":
         _require(key not in active, f"cannot ADMIT already-active subject {key}")
+    elif decision == "ACK_ALREADY_ADMITTED":
+        _require(key in active, f"ACK_ALREADY_ADMITTED requires active subject {key}")
+    elif decision == "ACK_ALREADY_REVOKED":
+        _require(key not in active, f"ACK_ALREADY_REVOKED requires inactive subject {key}")
     else:
         _require(key in active, f"cannot {decision} inactive subject {key}")
     if decision in TERMINAL_DECISIONS:
@@ -425,7 +445,10 @@ def append_event(
             "terminal lifecycle event must target PULL_REQUEST",
         )
 
-    if decision != "ADMIT" and not admission_scope.strip():
+    if (
+        decision not in {"ADMIT", "ACK_ALREADY_REVOKED"}
+        and not admission_scope.strip()
+    ):
         admission_scope = str(active[key]["admission_scope"])
 
     event = make_event(
@@ -451,6 +474,8 @@ def append_event(
     ledger_path.write_text(new_text, encoding="utf-8")
     state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return {
+        "should_mutate": True,
+        "reason": "EVENT_APPENDED",
         "event": event,
         "state": state,
         "prior_ledger_sha256": verified["ledger_sha256"],
@@ -514,23 +539,9 @@ def apply_issue_command(
         observed = legacy._issue_state(issue_body)
         _require(observed == required, f"issue state must be {required}; observed {observed or 'UNSET'}")
         if active:
-            return {
-                "should_mutate": False,
-                "reason": "ALREADY_ADMITTED",
-                "decision": decision,
-                "command_ref": rcc,
-                "authority_effect": AUTHORITY_EFFECT,
-                "merge_authority": False,
-            }
+            decision = "ACK_ALREADY_ADMITTED"
     elif not active:
-        return {
-            "should_mutate": False,
-            "reason": "ALREADY_REVOKED_OR_NEVER_ADMITTED",
-            "decision": decision,
-            "command_ref": rcc,
-            "authority_effect": AUTHORITY_EFFECT,
-            "merge_authority": False,
-        }
+        decision = "ACK_ALREADY_REVOKED"
 
     locator = f"github:{repository}:issue:{int(issue_number)}:comment:{comment_id}"
     result = append_event(
@@ -553,7 +564,11 @@ def apply_issue_command(
     )
     return {
         "should_mutate": True,
-        "reason": "EVENT_APPENDED",
+        "reason": (
+            "COMMAND_ACKNOWLEDGED_NO_STATE_CHANGE"
+            if decision.startswith("ACK_")
+            else "EVENT_APPENDED"
+        ),
         "decision": decision,
         "command_ref": rcc,
         "event": result["event"],
