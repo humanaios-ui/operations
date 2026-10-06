@@ -1,4 +1,162 @@
 {
+  "active_admissions": {
+    "ISSUE#378": {
+      "admission_scope": "objective:ISSUE#378",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-ISSUE-000378",
+      "objective_issue_number": 378
+    },
+    "ISSUE#598": {
+      "admission_scope": "objective:ISSUE#598",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-ISSUE-000598",
+      "objective_issue_number": 598
+    },
+    "PULL_REQUEST#538": {
+      "admission_scope": "subject:PULL_REQUEST#538",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000538",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#548": {
+      "admission_scope": "subject:PULL_REQUEST#548",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000548",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#549": {
+      "admission_scope": "subject:PULL_REQUEST#549",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000549",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#552": {
+      "admission_scope": "subject:PULL_REQUEST#552",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000552",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#555": {
+      "admission_scope": "subject:PULL_REQUEST#555",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000555",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#557": {
+      "admission_scope": "subject:PULL_REQUEST#557",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000557",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#560": {
+      "admission_scope": "subject:PULL_REQUEST#560",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000560",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#561": {
+      "admission_scope": "subject:PULL_REQUEST#561",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000561",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#563": {
+      "admission_scope": "subject:PULL_REQUEST#563",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000563",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#565": {
+      "admission_scope": "subject:PULL_REQUEST#565",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000565",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#567": {
+      "admission_scope": "subject:PULL_REQUEST#567",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000567",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#570": {
+      "admission_scope": "subject:PULL_REQUEST#570",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000570",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#578": {
+      "admission_scope": "subject:PULL_REQUEST#578",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000578",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#579": {
+      "admission_scope": "subject:PULL_REQUEST#579",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000579",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#581": {
+      "admission_scope": "subject:PULL_REQUEST#581",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000581",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#586": {
+      "admission_scope": "subject:PULL_REQUEST#586",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000586",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#590": {
+      "admission_scope": "subject:PULL_REQUEST#590",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000590",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#593": {
+      "admission_scope": "subject:PULL_REQUEST#593",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000593",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#671": {
+      "admission_scope": "subject:PULL_REQUEST#671",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000671",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#672": {
+      "admission_scope": "subject:PULL_REQUEST#672",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000672",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#673": {
+      "admission_scope": "subject:PULL_REQUEST#673",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000673",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#678": {
+      "admission_scope": "subject:PULL_REQUEST#678",
+      "command_ref": "RCC-GITHUB-ACTIONS-37423251093",
+      "event_id": "RCSEVT-4581FC1D6DA7B072",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#690": {
+      "admission_scope": "subject:PULL_REQUEST#690",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000690",
+      "objective_issue_number": null
+    },
+    "PULL_REQUEST#707": {
+      "admission_scope": "subject:PULL_REQUEST#707",
+      "command_ref": null,
+      "event_id": "RCSEVT-BOOTSTRAP-PR-000707",
+      "objective_issue_number": null
+    }
+  },
   "active_event_ids": {
     "ISSUE#378": "RCSEVT-BOOTSTRAP-ISSUE-000378",
     "ISSUE#598": "RCSEVT-BOOTSTRAP-ISSUE-000598",
@@ -23,6 +181,7 @@
     "PULL_REQUEST#671": "RCSEVT-BOOTSTRAP-PR-000671",
     "PULL_REQUEST#672": "RCSEVT-BOOTSTRAP-PR-000672",
     "PULL_REQUEST#673": "RCSEVT-BOOTSTRAP-PR-000673",
+    "PULL_REQUEST#678": "RCSEVT-4581FC1D6DA7B072",
     "PULL_REQUEST#690": "RCSEVT-BOOTSTRAP-PR-000690",
     "PULL_REQUEST#707": "RCSEVT-BOOTSTRAP-PR-000707"
   },
@@ -52,16 +211,22 @@
     671,
     672,
     673,
+    678,
     690,
     707
   ],
   "authority_effect": "ADMISSION_ROUTING_ONLY",
-  "last_event_id": "RCSEVT-BOOTSTRAP-PR-000707",
-  "ledger_event_count": 25,
-  "ledger_sha256": "605894b82cf78d50734df69b641097fd53af6f82c2f493b1be472cef81105bf4",
+  "consumed_command_refs": [
+    "RCC-GITHUB-ACTIONS-37423251093"
+  ],
+  "last_event_hash": "4581fc1d6da7b072cfc8ac28db36107a9e21eac3388a310fe1c67d04c9f5124a",
+  "last_event_id": "RCSEVT-4581FC1D6DA7B072",
+  "last_sequence": 26,
+  "ledger_event_count": 26,
+  "ledger_sha256": "341b0b2325f5281fd0b02113fa530cb6605c415088d860320245e8fbbd4c1ba0",
   "merge_authority": false,
-  "schema": "humanaios.repository-coordinator-state.v1",
+  "schema": "humanaios.repository-coordinator-state.v1.1",
   "source_ledger": "ADMISSION_LEDGER.jsonl",
-  "source_policy_sha": "b097f2029a82e2fd3ff4bdccafb0416596daf4e4",
+  "source_policy_sha": "08380d67c780523ccb000108461be03ac76cf5ca",
   "state_branch": "repository-coordinator-state"
 }
