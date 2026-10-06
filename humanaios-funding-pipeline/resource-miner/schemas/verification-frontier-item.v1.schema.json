@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/verification-frontier-item.v1.schema.json",
+  "title": "HumanAIOS Verification Frontier Item v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "verification_id",
+    "resolution_set_id",
+    "adjudication_id",
+    "gap_type",
+    "requested_source_class",
+    "proposition_type",
+    "predicate",
+    "subject_key",
+    "reason",
+    "state",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.verification-frontier-item.v1"
+    },
+    "verification_id": {
+      "type": "string",
+      "pattern": "^VFY-[A-F0-9]{16}$"
+    },
+    "resolution_set_id": {
+      "type": "string",
+      "pattern": "^PRS-[A-F0-9]{16}$"
+    },
+    "adjudication_id": {
+      "type": "string",
+      "pattern": "^PAD-[A-F0-9]{16}$"
+    },
+    "gap_type": {
+      "enum": [
+        "PRIMARY_SOURCE_MISSING",
+        "DIRECT_EVIDENCE_MISSING",
+        "CONFLICT_REQUIRES_RESOLUTION",
+        "SOURCE_STANDING_UNKNOWN",
+        "RELATION_UNRESOLVED"
+      ]
+    },
+    "requested_source_class": {
+      "type": "string",
+      "minLength": 1
+    },
+    "proposition_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "predicate": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "const": "OPEN"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  }
+}

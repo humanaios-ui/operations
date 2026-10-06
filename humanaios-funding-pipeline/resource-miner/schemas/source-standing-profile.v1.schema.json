@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/source-standing-profile.v1.schema.json",
+  "title": "HumanAIOS Source Standing Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile_id",
+    "origin_key",
+    "source_class",
+    "standing_for_types",
+    "standing_for_predicates",
+    "independence_group",
+    "notes",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.source-standing-profile.v1"
+    },
+    "profile_id": {
+      "type": "string",
+      "pattern": "^SSP-[A-F0-9]{16}$"
+    },
+    "origin_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_class": {
+      "enum": [
+        "OFFICIAL_PRIMARY",
+        "FIRST_PARTY_OPERATIONAL",
+        "DIRECT_SOURCE",
+        "SECONDARY_REPORT",
+        "AGGREGATOR",
+        "UNKNOWN"
+      ]
+    },
+    "standing_for_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "standing_for_predicates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "independence_group": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  }
+}

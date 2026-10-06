@@ -7,3 +7,6 @@ data/mine-resolution.jsonl
 data/opportunity-claims.jsonl
 data/propositions.jsonl
 data/proposition-resolutions.jsonl
+data/proposition-adjudications.jsonl
+data/verification-frontier.jsonl
+data/verification-work-queue.jsonl

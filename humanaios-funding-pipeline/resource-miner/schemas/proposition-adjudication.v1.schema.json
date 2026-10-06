@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/proposition-adjudication.v1.schema.json",
+  "title": "HumanAIOS Proposition Adjudication v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "adjudication_id",
+    "adjudication_token",
+    "resolution_set_id",
+    "resolution_token",
+    "posture",
+    "member_proposition_ids",
+    "known_origin_keys",
+    "primary_origin_keys",
+    "nonprimary_origin_keys",
+    "unknown_origin_keys",
+    "standing_profile_ids",
+    "derived_only",
+    "verification_frontier",
+    "truth_state",
+    "eligibility_state",
+    "warrant_state",
+    "authorization_state",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.proposition-adjudication.v1"
+    },
+    "adjudication_id": {
+      "type": "string",
+      "pattern": "^PAD-[A-F0-9]{16}$"
+    },
+    "adjudication_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:proposition-adjudication:PAD-[A-F0-9]{16}$"
+    },
+    "resolution_set_id": {
+      "type": "string",
+      "pattern": "^PRS-[A-F0-9]{16}$"
+    },
+    "resolution_token": {
+      "type": "string",
+      "pattern": "^urn:humanaios:proposition-resolution:PRS-[A-F0-9]{16}$"
+    },
+    "posture": {
+      "enum": [
+        "PRIMARY_SOURCE_PRESENT",
+        "MULTI_ORIGIN_NO_PRIMARY",
+        "NONPRIMARY_SOURCE_ONLY",
+        "DERIVED_ONLY",
+        "CONTESTED",
+        "UNRESOLVED",
+        "SOURCE_STANDING_UNKNOWN"
+      ]
+    },
+    "member_proposition_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^PRP-[A-F0-9]{16}$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "known_origin_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "primary_origin_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "nonprimary_origin_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "unknown_origin_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "standing_profile_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^SSP-[A-F0-9]{16}$"
+      },
+      "uniqueItems": true
+    },
+    "derived_only": {
+      "type": "boolean"
+    },
+    "verification_frontier": {
+      "type": "array",
+      "items": {
+        "$ref": "verification-frontier-item.v1.schema.json"
+      }
+    },
+    "truth_state": {
+      "const": "NOT_DETERMINED"
+    },
+    "eligibility_state": {
+      "const": "NOT_EVALUATED"
+    },
+    "warrant_state": {
+      "const": "NOT_EVALUATED"
+    },
+    "authorization_state": {
+      "const": "NOT_REQUESTED"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  }
+}
