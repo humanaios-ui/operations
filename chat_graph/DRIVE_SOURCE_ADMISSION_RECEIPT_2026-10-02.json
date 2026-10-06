@@ -1,0 +1,26 @@
+{
+  "receipt_type": "PRIVATE_SOURCE_ADMISSION",
+  "source_id": "source:google-drive:private-corpus-001",
+  "provider": "google_drive",
+  "observed_on": "2026-10-02",
+  "locator_sha256": "70b39cc88fba803776a5a5768b2a7253c3df46c1556f641a8ddf76204144bba2",
+  "source_visibility": "NOT_SHARED",
+  "admitted_state": "SOURCE_LOCATED",
+  "authority_effect": "NONE",
+  "safe_observation": {
+    "top_level_items_returned": 100,
+    "top_level_pagination_exhausted": true,
+    "top_level_folders": 5,
+    "top_level_files": 95,
+    "historical_knowledge_graph_snapshot_located": true,
+    "claude_chat_exports_located": 8,
+    "restricted_raw_export_area_located": true
+  },
+  "privacy_boundary": {
+    "raw_folder_url_published": false,
+    "private_file_inventory_published": false,
+    "private_file_contents_published": false,
+    "automatic_secret_risk_hydration": false
+  },
+  "validation": "PASS"
+}
