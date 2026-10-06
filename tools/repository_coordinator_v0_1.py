@@ -222,15 +222,21 @@ def _maintenance_cohort(pr: dict[str, Any]) -> str:
 
 
 def _control_plane(pr: dict[str, Any], policy: dict[str, Any]) -> bool:
-    """A PR is control-plane only when *every* changed file is a control path.
+    """Recognize bounded control-plane changes without making support files self-admitting.
 
-    Touching one control-plane file alongside feature work must not exempt the
-    feature work from admission; that would make a whitespace edit to
-    CODEOWNERS a universal admission bypass.
+    A PR is exempt when every changed file is a core control path, or when it
+    changes at least one core control path and every other changed file is an
+    explicitly declared support artifact. A support-only PR is never exempt.
     """
-    paths = set((policy.get("control_plane") or {}).get("paths") or [])
+    cfg = policy.get("control_plane") or {}
+    core_paths = set(cfg.get("paths") or [])
+    support_paths = set(cfg.get("support_paths") or [])
     files = set(pr.get("files") or [])
-    return bool(files) and bool(pr.get("files_complete", True)) and files <= paths
+    if not files or not bool(pr.get("files_complete", True)):
+        return False
+    if files <= core_paths:
+        return True
+    return bool(files & core_paths) and files <= (core_paths | support_paths)
 
 
 def _zero_diff(pr: dict[str, Any]) -> bool:
