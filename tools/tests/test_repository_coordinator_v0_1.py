@@ -1272,6 +1272,39 @@ def test_v11_terminal_lifecycle_removes_active_pr(tmp_path):
     assert 707 not in verified["admitted_pull_request_numbers"]
 
 
+def test_v11_terminal_transition_preserves_original_admission_scope(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    append_event_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=708,
+        objective_issue_number=726,
+        admission_scope="objective:ISSUE#726",
+        command_ref_value="RCC-GITHUB-ACTIONS-admit-708",
+        source_locator="github:run:admit-708",
+        actor="humanaios-ui",
+        evidence=["explicit admission for objective #726"],
+        recorded_at="2026-10-06T03:31:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    result = reconcile_pr_lifecycle_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        pr_number=708,
+        terminal_state="CLOSED",
+        command_ref_value="RCC-GITHUB-PR-LIFECYCLE-708-close-1",
+        source_locator="github:pull:708:closed",
+        actor="github-actions[bot]",
+        recorded_at="2026-10-06T03:32:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["event"]["admission_scope"] == "objective:ISSUE#726"
+    assert result["event"]["objective_issue_number"] == 726
+    assert 708 not in verify_projection(ledger, state_file)["admitted_pull_request_numbers"]
+
+
 def test_v11_decision_receipt_binds_exact_policy_state_and_target():
     receipt = decision_receipt_v2(
         gate_decision={
