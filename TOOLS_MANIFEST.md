@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**197 registered tools** · 2 MCP servers · 4 excluded · 150 carrying Builder v1.7 markers
+**198 registered tools** · 2 MCP servers · 4 excluded · 151 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 197 |
-| — status `draft` | 196 |
+| Registered tools | 198 |
+| — status `draft` | 197 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 150 |
+| Builder v1.7 markers present | 151 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -135,7 +135,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-188 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.3.0 | 1 | draft | — | Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure. |
 | HAIOS-TOOL-206 | ai_context_generator | `tools/ai_context_generator_v0_1.py` | 0.1.0 | 1 | draft | — | Generates queryable, machine-readable context from canonical repository sources. |
 
-## Governance — `governance_tool` (19)
+## Governance — `governance_tool` (20)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -158,7 +158,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-191 | lint_canonical_skills | `scripts/lint_canonical_skills.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Lint canonical skill entry points to detect substrate drift. CI gate to ensure substrate stubs are thin redirects, not divergent implementations. |
 | HAIOS-TOOL-204 | pr_challenge_dialogue_router | `tools/pr_challenge_dialogue_router_v0_1.py` | 0.1.0 | 1 | draft | — | Finite idempotent routing of head-bound red-team challenge conversations without authority effects. |
 | HAIOS-TOOL-210 | repository_coordinator_state | `tools/repository_coordinator_state_v1.py` | 1.1.0 | 1 | draft | — | Repository Coordinator state ledger + deterministic projection. |
-| HAIOS-TOOL-211 | repository_coordinator_state_v1_1 | `tools/repository_coordinator_state_v1_1.py` | 1.1.0 | 1 | draft | no-smoke-test | Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation, and durable RCD receipt primitives. |
+| HAIOS-TOOL-211 | repository_coordinator_state_v1_1 | `tools/repository_coordinator_state_v1_1.py` | 1.1.0 | 1 | draft | — | Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation, and durable RCD receipt primitives. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
