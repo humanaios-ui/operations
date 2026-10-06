@@ -226,7 +226,7 @@ def _control_plane(pr: dict[str, Any], policy: dict[str, Any]) -> bool:
 
     A PR is exempt when every changed file is a core control path, or when it
     changes at least one core control path and every other changed file is an
-    explicitly declared support artifact. A support-only PR is never exempt.
+    explicitly declared support artifact. A support-only PR is not exempt.
     """
     cfg = policy.get("control_plane") or {}
     core_paths = set(cfg.get("paths") or [])
