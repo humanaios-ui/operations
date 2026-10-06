@@ -14,6 +14,7 @@ on:
       - ready_for_review
       - converted_to_draft
       - edited
+      - closed
   pull_request_review:
     types:
       - submitted
@@ -57,13 +58,15 @@ concurrency:
 
 jobs:
   gate:
-    if: github.event_name == 'pull_request_target' || github.event_name == 'pull_request_review'
+    if: >-
+      (github.event_name == 'pull_request_target' && github.event.action != 'closed') ||
+      github.event_name == 'pull_request_review'
     name: Repository admission/backpressure gate
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
-      issues: read
+      issues: write
 
     steps:
       - name: Checkout trusted default-branch control law
@@ -299,7 +302,7 @@ jobs:
         if: steps.collect.outputs.mode == 'v0.3'
         run: |
           set -euo pipefail
-          python3 tools/repository_coordinator_state_v1.py verify \
+          python3 tools/repository_coordinator_state_v1_1.py verify \
             --ledger .repo-coordinator/ADMISSION_LEDGER.jsonl \
             --state .repo-coordinator/COORDINATOR_STATE.json
 
@@ -357,6 +360,63 @@ jobs:
             echo
             echo "_Policy and state are independently pinned. Admission is not merge authority._"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish durable coordinator decision receipt
+        if: always()
+        uses: actions/github-script@v9
+        env:
+          TARGET_PR: ${{ github.event.pull_request.number }}
+          RUN_ID: ${{ github.run_id }}
+        with:
+          script: |
+            const fs = require("fs");
+            const crypto = require("crypto");
+            const gatePath = ".repo-coordinator/gate.json";
+            const snapPath = ".repo-coordinator/gate-snapshot.json";
+            if (!fs.existsSync(gatePath) || !fs.existsSync(snapPath)) {
+              core.warning("gate decision receipt unavailable because gate evidence files are missing");
+              return;
+            }
+            const gate = JSON.parse(fs.readFileSync(gatePath, "utf8"));
+            const snap = JSON.parse(fs.readFileSync(snapPath, "utf8"));
+            const receipt = {
+              schema: "humanaios.repository-coordinator-decision-receipt.v1",
+              target_pr: Number(process.env.TARGET_PR),
+              target_head_sha: gate.target_head_sha || null,
+              policy_ref: snap.policy_ref || "main",
+              policy_sha: snap.policy_sha || snap.main_sha || null,
+              state_branch: snap.state_branch || null,
+              state_sha: snap.state_sha || null,
+              ledger_sha256: snap.ledger_sha256 || null,
+              projection_sha256: snap.projection_sha256 || null,
+              decision: gate.gate || "FAIL",
+              lane: gate.lane || null,
+              reason: gate.reason || "UNKNOWN",
+              authority_effect: "ADMISSION_ROUTING_ONLY",
+              merge_authority: false,
+              source_run_id: String(process.env.RUN_ID),
+              created_at: new Date().toISOString()
+            };
+            const canonical = JSON.stringify(receipt, Object.keys(receipt).sort());
+            const digest = crypto.createHash("sha256").update(canonical).digest("hex");
+            receipt.receipt_id = "RCD-" + digest.slice(0, 16).toUpperCase();
+            receipt.receipt_sha256 = digest;
+            const body = [
+              "<!-- repository-coordinator:decision-receipt -->",
+              "## Repository Coordinator decision receipt",
+              "",
+              "~~~json",
+              JSON.stringify(receipt, null, 2),
+              "~~~",
+              "",
+              "_Admission routing only; this receipt does not authorize merge._"
+            ].join("\n");
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.TARGET_PR),
+              body
+            });
 
       - name: Upload gate evidence
         if: always()
@@ -424,7 +484,7 @@ jobs:
       - name: Verify current state before mutation
         run: |
           set -euo pipefail
-          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
             --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
             --state coordinator-state/COORDINATOR_STATE.json
 
@@ -440,6 +500,11 @@ jobs:
           set -euo pipefail
           POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
           RECORDED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          if [ -n "$OBJECTIVE_ISSUE_NUMBER" ]; then
+            ADMISSION_SCOPE="objective:ISSUE#$OBJECTIVE_ISSUE_NUMBER"
+          else
+            ADMISSION_SCOPE="subject:$SUBJECT_KIND#$SUBJECT_NUMBER"
+          fi
           args=(
             append
             --ledger coordinator-state/ADMISSION_LEDGER.jsonl
@@ -447,6 +512,9 @@ jobs:
             --decision "$DECISION"
             --subject-kind "$SUBJECT_KIND"
             --subject-number "$SUBJECT_NUMBER"
+            --admission-scope "$ADMISSION_SCOPE"
+            --command-ref "RCC-GITHUB-ACTIONS-${{ github.run_id }}"
+            --source-locator "github:${{ github.repository }}:actions-run:${{ github.run_id }}"
             --actor "$ACTOR"
             --evidence "$EVIDENCE"
             --recorded-at "$RECORDED_AT"
@@ -455,13 +523,13 @@ jobs:
           if [ -n "$OBJECTIVE_ISSUE_NUMBER" ]; then
             args+=(--objective-issue-number "$OBJECTIVE_ISSUE_NUMBER")
           fi
-          python3 trusted-main/tools/repository_coordinator_state_v1.py "${args[@]}" \
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py "${args[@]}" \
             | tee coordinator-state/.state-event-result.json
 
       - name: Verify replay after mutation
         run: |
           set -euo pipefail
-          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
             --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
             --state coordinator-state/COORDINATOR_STATE.json
 
@@ -530,7 +598,7 @@ jobs:
       - name: Verify current state before issue command
         run: |
           set -euo pipefail
-          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
             --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
             --state coordinator-state/COORDINATOR_STATE.json
 
@@ -549,7 +617,7 @@ jobs:
           PRIOR_STATE_SHA="$(git -C coordinator-state rev-parse HEAD)"
           printf '%s' "$ISSUE_BODY" > coordinator-state/.issue-body.md
 
-          python3 trusted-main/tools/repository_coordinator_state_v1.py issue-command \
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py issue-command \
             --policy trusted-main/REPOSITORY_COORDINATOR_POLICY.json \
             --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
             --state coordinator-state/COORDINATOR_STATE.json \
@@ -558,6 +626,7 @@ jobs:
             --comment-body "$COMMENT_BODY" \
             --actor "$COMMENT_ACTOR" \
             --comment-id "$COMMENT_ID" \
+            --repository "${{ github.repository }}" \
             --recorded-at "$COMMENT_CREATED_AT" \
             --source-policy-sha "$POLICY_SHA" \
             | tee coordinator-state/.issue-command-result.json
@@ -578,7 +647,7 @@ jobs:
         if: steps.command.outputs.should_mutate == 'true'
         run: |
           set -euo pipefail
-          python3 trusted-main/tools/repository_coordinator_state_v1.py verify \
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
             --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
             --state coordinator-state/COORDINATOR_STATE.json
 
@@ -645,3 +714,97 @@ jobs:
               issue_number: context.issue.number,
               body,
             });
+
+
+  lifecycle_mutate:
+    name: Reconcile terminal PR admission lifecycle
+    if: github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: repository-coordinator-state-mutation
+      queue: max
+    steps:
+      - name: Checkout trusted control law from main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: trusted-main
+          persist-credentials: false
+
+      - name: Checkout coordinator state branch
+        uses: actions/checkout@v7
+        with:
+          ref: repository-coordinator-state
+          path: coordinator-state
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Reconcile closed PR against active coordinator state
+        id: lifecycle
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
+          PRIOR_STATE_SHA="$(git -C coordinator-state rev-parse HEAD)"
+          TERMINAL_STATE="CLOSED"
+          [ "$PR_MERGED" = "true" ] && TERMINAL_STATE="MERGED"
+
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py reconcile-pr \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json \
+            --pr-number "$PR_NUMBER" \
+            --terminal-state "$TERMINAL_STATE" \
+            --command-ref "RCC-GITHUB-PR-LIFECYCLE-$PR_NUMBER-$PR_HEAD_SHA-$TERMINAL_STATE" \
+            --source-locator "github:${{ github.repository }}:pull:$PR_NUMBER:closed" \
+            --actor "github-actions[bot]" \
+            --recorded-at "${{ github.event.pull_request.closed_at }}" \
+            --source-policy-sha "$POLICY_SHA" \
+            | tee coordinator-state/.lifecycle-result.json
+
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          result = json.loads(Path("coordinator-state/.lifecycle-result.json").read_text())
+          print("should_mutate=" + ("true" if result.get("should_mutate") else "false"))
+          print("reason=" + str(result.get("reason") or "UNKNOWN"))
+          PY
+          echo "prior_state_sha=$PRIOR_STATE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Verify and commit lifecycle transition
+        if: steps.lifecycle.outputs.should_mutate == 'true'
+        env:
+          PRIOR_STATE_SHA: ${{ steps.lifecycle.outputs.prior_state_sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+          git -C coordinator-state fetch origin repository-coordinator-state
+          REMOTE_STATE_SHA="$(git -C coordinator-state rev-parse FETCH_HEAD)"
+          test "$REMOTE_STATE_SHA" = "$PRIOR_STATE_SHA" || {
+            echo "::error::coordinator state head changed during lifecycle reconciliation"
+            exit 1
+          }
+
+          cd coordinator-state
+          rm -f .lifecycle-result.json
+          git config user.name "repository-coordinator-state[bot]"
+          git config user.email "repository-coordinator-state@users.noreply.github.com"
+          git add ADMISSION_LEDGER.jsonl COORDINATOR_STATE.json
+          git commit -m "coordinator-state: TERMINATE PULL_REQUEST #$PR_NUMBER"
+          git push origin HEAD:repository-coordinator-state
