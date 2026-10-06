@@ -256,7 +256,9 @@ def _admission_evidence(
     number = int(pr.get("number") or 0)
     if number in admitted_prs:
         evidence.append(f"coordinator state explicitly admits PR #{number}")
-        objectives.append(-number)
+        metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
+        objective = metadata.get("objective_issue_number")
+        objectives.append(int(objective) if objective else -number)
 
     for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
         ref = int(raw)
@@ -270,6 +272,31 @@ def _admission_evidence(
             objectives.append(ref)
 
     return bool(evidence), evidence, objectives
+
+
+def _admission_scope_drift(
+    pr: dict[str, Any],
+    state: dict[str, Any],
+) -> str | None:
+    """Return evidence when a v1.1 direct PR admission no longer matches its objective.
+
+    Legacy admissions without active_admissions metadata remain grandfathered;
+    commit-SHA changes alone do not constitute scope drift.
+    """
+    number = int(pr.get("number") or 0)
+    metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
+    objective = metadata.get("objective_issue_number")
+    scope = str(metadata.get("admission_scope") or "")
+    if not objective:
+        return None
+    refs = {int(raw) for raw in ADMISSION_LINK_RE.findall(pr.get("body") or "")}
+    if int(objective) in refs:
+        return None
+    return (
+        f"PR #{number} was admitted for objective issue #{int(objective)} "
+        f"with scope {scope or 'UNSPECIFIED'}, but the current PR body no longer "
+        "declares that objective through a closing-keyword link."
+    )
 
 
 def _evaluation_admission_evidence(
@@ -477,6 +504,12 @@ def classify(
         referenced_items=referenced_items,
     )
     lane = "CAPACITY_CONTENTION" if capacity_contention and base_lane == "ACTIVE" else base_lane
+
+    scope_drift = _admission_scope_drift(pr, state)
+    if scope_drift:
+        findings.append(Finding(
+            "ADMISSION_SCOPE_DRIFT", "HIGH", scope_drift
+        ))
 
     if lane == "ADMISSION_REVIEW":
         findings.append(Finding(
