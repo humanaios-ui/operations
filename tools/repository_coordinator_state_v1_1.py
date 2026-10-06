@@ -445,11 +445,10 @@ def append_event(
             "terminal lifecycle event must target PULL_REQUEST",
         )
 
-    if (
-        decision not in {"ADMIT", "ACK_ALREADY_REVOKED"}
-        and not admission_scope.strip()
-    ):
+    if decision not in {"ADMIT", "ACK_ALREADY_REVOKED"}:
         admission_scope = str(active[key]["admission_scope"])
+        if objective_issue_number is None:
+            objective_issue_number = active[key].get("objective_issue_number")
 
     event = make_event(
         decision=decision,
