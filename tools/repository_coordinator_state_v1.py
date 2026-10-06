@@ -391,7 +391,7 @@ def apply_issue_command(
     _require(actor in authorized, f"actor {actor!r} is not authorized to mutate coordinator state")
 
     commands = route.get("commands") or {}
-    command = (comment_body or "").strip()
+    command = comment_body or ""
     if command == str(commands.get("admit") or ""):
         decision = "ADMIT"
     elif command == str(commands.get("revoke") or ""):
