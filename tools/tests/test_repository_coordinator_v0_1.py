@@ -582,6 +582,7 @@ def test_v1_1_direct_pr_admission_detects_objective_scope_drift():
     got = item(idx, 726)
     assert "ADMISSION_SCOPE_DRIFT" in {f["code"] for f in got["findings"]}
     assert got["guidance"]["action"] == "REEXAMINE"
+    assert gate_decision(idx, 726)["gate"] == "FAIL"
 
 
 def test_gate_decision_fails_closed_for_unknown_pr():
@@ -1086,8 +1087,11 @@ def test_v11_duplicate_rcc_delivery_is_rejected(tmp_path):
     )
     append_event_v2(**kwargs)
     kwargs.update(decision="REVOKE")
-    with pytest.raises(Exception, match="command_ref already consumed"):
-        append_event_v2(**kwargs)
+    duplicate = append_event_v2(**kwargs)
+    assert duplicate["should_mutate"] is False
+    assert duplicate["reason"] == "DUPLICATE_COMMAND"
+    verified = verify_projection(ledger, state_file)
+    assert 726 in verified["admitted_pull_request_numbers"]
 
 
 def test_v11_issue_comment_command_is_idempotent(tmp_path):
@@ -1112,6 +1116,115 @@ def test_v11_issue_comment_command_is_idempotent(tmp_path):
     assert duplicate["should_mutate"] is False
     assert duplicate["reason"] == "DUPLICATE_COMMAND"
     assert duplicate["command_ref"] == command_ref_v2("GITHUB-COMMENT", "98765")
+
+
+def test_v11_already_admitted_command_is_consumed_before_later_revoke(tmp_path):
+    seed = state_event(kind="ISSUE", number=726, objective=726)
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    admitted = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="already-admitted",
+        recorded_at="2026-10-06T03:23:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert admitted["should_mutate"] is True
+    assert admitted["decision"] == "ACK_ALREADY_ADMITTED"
+
+    revoked = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ACTIVE",
+        comment_body="/coordinator revoke",
+        actor="humanaios-ui",
+        comment_id="later-revoke",
+        recorded_at="2026-10-06T03:24:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert revoked["should_mutate"] is True
+    assert 726 not in verify_projection(ledger, state_file)["admitted_issue_numbers"]
+
+    replay = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="already-admitted",
+        recorded_at="2026-10-06T03:25:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert replay["should_mutate"] is False
+    assert replay["reason"] == "DUPLICATE_COMMAND"
+    assert 726 not in verify_projection(ledger, state_file)["admitted_issue_numbers"]
+
+
+def test_v11_already_revoked_command_is_consumed_before_later_admit(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    revoked = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ACTIVE",
+        comment_body="/coordinator revoke",
+        actor="humanaios-ui",
+        comment_id="already-revoked",
+        recorded_at="2026-10-06T03:26:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert revoked["should_mutate"] is True
+    assert revoked["decision"] == "ACK_ALREADY_REVOKED"
+
+    admitted = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="later-admit",
+        recorded_at="2026-10-06T03:27:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert admitted["should_mutate"] is True
+    assert 726 in verify_projection(ledger, state_file)["admitted_issue_numbers"]
+
+    replay = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ACTIVE",
+        comment_body="/coordinator revoke",
+        actor="humanaios-ui",
+        comment_id="already-revoked",
+        recorded_at="2026-10-06T03:28:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert replay["should_mutate"] is False
+    assert replay["reason"] == "DUPLICATE_COMMAND"
+    assert 726 in verify_projection(ledger, state_file)["admitted_issue_numbers"]
 
 
 def test_v11_global_chain_detects_reorder(tmp_path):
