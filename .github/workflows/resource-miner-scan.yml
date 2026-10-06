@@ -47,6 +47,7 @@ jobs:
             --adjudications-out data/proposition-adjudications.snapshot.jsonl \
             --verification-frontier-out data/verification-frontier.snapshot.jsonl \
             --verification-work-queue-out data/verification-work-queue.snapshot.jsonl \
+            --verification-routes-out data/verification-routes.snapshot.jsonl \
             --claims-out data/opportunity-claims.snapshot.jsonl \
             --events-ledger data/opportunity-claim-events.jsonl
 
@@ -69,12 +70,13 @@ jobs:
             humanaios-funding-pipeline/resource-miner/data/proposition-adjudications.snapshot.jsonl
             humanaios-funding-pipeline/resource-miner/data/verification-frontier.snapshot.jsonl
             humanaios-funding-pipeline/resource-miner/data/verification-work-queue.snapshot.jsonl
+            humanaios-funding-pipeline/resource-miner/data/verification-routes.snapshot.jsonl
             humanaios-funding-pipeline/resource-miner/data/opportunity-claims.snapshot.jsonl
             humanaios-funding-pipeline/resource-miner/data/opportunity-claim-events.jsonl
           )
 
           if git diff --quiet -- "${SNAPSHOTS[@]}" && \
-             git ls-files --error-unmatch "${SNAPSHOTS[1]}" "${SNAPSHOTS[2]}" "${SNAPSHOTS[3]}" "${SNAPSHOTS[4]}" "${SNAPSHOTS[5]}" "${SNAPSHOTS[6]}" "${SNAPSHOTS[7]}" "${SNAPSHOTS[8]}" "${SNAPSHOTS[9]}" >/dev/null 2>&1; then
+             git ls-files --error-unmatch "${SNAPSHOTS[1]}" "${SNAPSHOTS[2]}" "${SNAPSHOTS[3]}" "${SNAPSHOTS[4]}" "${SNAPSHOTS[5]}" "${SNAPSHOTS[6]}" "${SNAPSHOTS[7]}" "${SNAPSHOTS[8]}" "${SNAPSHOTS[9]}" "${SNAPSHOTS[10]}" >/dev/null 2>&1; then
             echo "No Resource Miner snapshot changes, skipping commit"
           else
             git add "${SNAPSHOTS[@]}"

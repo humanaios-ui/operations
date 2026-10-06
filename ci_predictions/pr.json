@@ -1,0 +1,35 @@
+{
+  "pr": 716,
+  "actor_origin_claim": "GPT-5.6 Sol via ChatGPT, implementing user-approved CPK review fixes",
+  "checks": {
+    "Resource Miner PR": {
+      "conclusion": "success",
+      "p": 0.99
+    },
+    "security-gates": {
+      "conclusion": "success",
+      "p": 0.98
+    },
+    "document-control": {
+      "conclusion": "success",
+      "p": 0.97
+    },
+    "repository-coordinator": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "No-op PR guard": {
+      "conclusion": "success",
+      "p": 0.98
+    },
+    "SonarCloud Baseline Auto-Capture": {
+      "conclusion": "success",
+      "p": 0.95
+    },
+    "molt-tier-check": {
+      "conclusion": "success",
+      "p": 0.99
+    }
+  },
+  "note": "Prediction declared before CI outcomes on the final review-fix head. Repository admission is intentionally excluded because it is separate control-plane state, not implementation correctness."
+}

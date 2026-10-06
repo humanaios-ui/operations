@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.10
+# HumanAIOS Resource Miner v0.1.17
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -402,6 +402,185 @@ Every work item is planning-only: `planning_state=PLANNED`, `execution_state=NOT
 Because the queue is derived from the current verification frontier, a work item disappears automatically when new evidence closes its originating `VFY-*` gap on replay.
 
 The scheduled Mine workflow persists `data/verification-work-queue.snapshot.jsonl`. See `docs/VERIFICATION_WORK_QUEUE.md`.
+
+### Verification routing
+
+Planned `VWK-*` epistemic work is now compiled into deterministic `VRT-*` capability routes.
+
+```text
+VFY-* -> VWK-* -> VRT-*
+```
+
+Routes distinguish `EXISTING_MINE_REOBSERVE`, `KNOWN_ORIGIN_REVIEW`, `DISCOVERY_REQUIRED`, `RESOLVER_REQUIRED`, and `SOURCE_STANDING_REVIEW`.
+
+Persistent Mines may declare privacy-safe `evidence_origins` in configuration so the router can recognize that an existing Mine is capable of observing a requested origin. Capability binding does not change source standing and does not grant execution authority.
+
+Every route retains `execution_state=NOT_AUTHORIZED` and `authority_effect=NONE`, including routes whose `capability_state=AVAILABLE`.
+
+The scheduled Mine workflow persists `data/verification-routes.snapshot.jsonl`. See `docs/VERIFICATION_ROUTING.md`.
+
+### Subject-scoped registry query plans
+
+Queryable registry Mines now have a planning-only `RQY-*` layer between capability routing and any observation-authorization decision.
+
+```text
+REGISTRY MINE -> PATHWAY OPP -> RQY-* -> OAG-*
+```
+
+`RQY-*` stores only a privacy-safe `SUBJ-*` reference and semantic query-field names. Actual claimant/search values are `PRIVATE_RUNTIME_ONLY` and are not accepted by the public query-plan API.
+
+The Colorado Great Colorado Payback Mine declares the reusable `UNCLAIMED_PROPERTY_OWNER_SEARCH` query class with semantic fields `owner_name`, `business_name`, and `last_known_location`. Transport-specific field mapping remains private/adapter-owned.
+
+Every query plan requires an explicit subject request, must bind to an opportunity actually registered under the target REGISTRY Mine, and remains `planning_state=PLANNED`, `execution_state=NOT_AUTHORIZED`, `external_state_change=false`, `authority_effect=NONE`.
+
+Result semantics are deliberately bounded: `NO_MATCH_OBSERVED != NO_ENTITLEMENT` and `MATCH_OBSERVED != OWNERSHIP | ELIGIBILITY | CLAIM_AUTHORIZED | FUNDS_RECOVERED`.
+
+Use `python3 -m resource_miner.cli plan-registry-query ...` to create the plan object. The command does not perform a registry search. See `docs/SUBJECT_SCOPED_REGISTRY_QUERY.md`.
+
+### Exact-query observation authorization
+
+Resource Miner now includes an `OAG-*` Observation Authorization Gate that evaluates one exact `RQY-*` plan without seeing private runtime query values.
+
+```text
+RQY-* -> OAG-* -> later QRC-* execution receipt
+```
+
+The gate recomputes the RQY identity, verifies the registered Mine/pathway binding, checks the Mine query contract, and binds authorization to the SHA-256 of the canonical public RQY object.
+
+A successful decision is one-shot and observation-only: `decision=ALLOW_OBSERVATION`, `authority_effect=OBSERVATION_ONLY`, `execution_state=NOT_EXECUTED`, `max_executions=1`, `consequence_ceiling=EVIDENCE_ONLY`, and `external_state_change=false`.
+
+The OAG object never contains raw claimant/search values. It records only the opaque `SUBJ-*`, semantic query fields, public query-plan digest, and policy receipt. Private runtime values remain `PRIVATE_RUNTIME_ONLY`, and later execution must attest that those values resolve to the authorized subject binding.
+
+Claim creation/submission/update, document upload, private claim-status access, account or credential mutation, messaging, payment, purchase, and fund transfer are hard-denied. `claim_submission_permitted=false` and `consequential_actions_permitted=false` are schema invariants.
+
+Use `python3 -m resource_miner.cli authorize-registry-observation --query-plan <rqy.json>` to evaluate the gate. The command does not execute the registry query. See `docs/OBSERVATION_AUTHORIZATION_GATE.md`.
+
+### One-shot query execution receipts
+
+`QRC-*` records one completed private registry observation after an exact `OAG-*` authorization has been consumed.
+
+```text
+RQY-* -> OAG-* -> private runtime -> QRC-* -> later RMO-*
+```
+
+A QRC does not perform the registry query. It records lineage and scope after the private runtime has executed the observation. Minting requires both the exact public `RQY-*` and its covering `OAG-*`.
+
+The receipt requires an opaque `PSB-*` private subject-binding attestation, exact authorized semantic fields, an authorized origin, a one-shot `EXE-*` execution nonce, timestamps, and a bounded result state: `ZERO_MATCHES_OBSERVED`, `MATCHES_OBSERVED`, or `OBSERVATION_FAILED`.
+
+The runtime QRC ledger is append-only and git-ignored. A second receipt for the same `OAG-*` / consumption key is rejected under an exclusive file lock, so the historical OAG remains immutable while the ledger proves one-shot consumption.
+
+No claimant/search values, raw request, raw response, cookies, tokens, or private claim identifiers are accepted into the public receipt. `authority_effect=NONE`: QRC is evidence that observation authority was consumed, not new authority.
+
+Result semantics remain bounded: `ZERO_MATCHES_OBSERVED != NO_ENTITLEMENT` and `MATCHES_OBSERVED != OWNERSHIP | ELIGIBILITY | CLAIM_AUTHORIZED | FUNDS_RECOVERED`.
+
+Use `python3 -m resource_miner.cli record-registry-query-execution ...` only to record an observation already completed by a private runtime. The command has no registry transport. See `docs/QUERY_EXECUTION_RECEIPT.md`.
+
+### Evidence-bearing resource brokerage
+
+Resource Miner now includes a generic broker/control substrate:
+
+```text
+OPPORTUNITY
+→ REQUIREMENT
+→ RESOURCE
+→ SUITABILITY
+→ AUTHORIZATION
+→ OUTCOME
+```
+
+The broker is independent of HumanAIOS-local capabilities. Provider classes include `HUMANAIOS_INTERNAL`, `LOCAL_MACHINE`, `OPEN_SOURCE`, `EXTERNAL_SERVICE`, `DATASET`, `HUMAN_EXPERT`, and `OTHER`.
+
+A resource can be capability-adequate without being authorized for use. Suitability records capability coverage and a constitutional/resource screen; authorization separately evaluates requested action, method permission, target scope, and explicit human authorization where external consequence is possible.
+
+Initial broker actions are `REVIEW_RESOURCE_METADATA`, `COMPOSE_CAPABILITY_PACKAGE`, `INSTALL_LOCAL_RESOURCE`, `EXECUTE_EXTERNAL_TOOL`, and `SUBMIT_FINDING`. The broker implements decisions and receipts only; it has no executor.
+
+Core invariants:
+
+```text
+RESOURCE_AVAILABILITY != CAPABILITY_EVIDENCE
+CAPABILITY_MATCH != METHOD_PERMISSION
+SUITABILITY != AUTHORIZATION
+AUTHORIZATION != EXECUTION
+OUTCOME_SUCCESS != AUTHORITY_EXPANSION
+OPEN_SOURCE_AVAILABILITY != AUTHORIZATION
+BROKER_MATCH != WARRANT
+BROKER_MATCH != EXECUTION
+```
+
+See `docs/BROKER_CONTROL_SUBSTRATE.md`.
+
+### Semantic opportunity-demand adapters
+
+Resource Miner now normalizes radically different demand sources through a common `DMD-*` Demand Profile:
+
+```text
+BOP-* Opportunity
+→ DMD-* Demand Profile
+→ DMR-* semantic requirements
+→ BRQ-* brokerable capability requirements
+→ resources / suitability / authorization / outcome
+```
+
+The DMD layer preserves six requirement modes:
+
+```text
+REQUIRED
+OPTIONAL
+PREFERRED
+PROHIBITED
+CONDITIONAL
+SCORED
+```
+
+and keeps capability/deliverable demand separate from eligibility, constraints, prohibitions, evaluation criteria, and compliance controls.
+
+Initial adapters:
+
+1. GitHub Issue — preserves acceptance criteria, labels/milestones, and closing relationships without creating work authority.
+2. Grants.gov — preserves applicant types as eligibility predicates, cost sharing, funding instruments/activities, award signals, and deliverables. Eligibility does not compile into broker capability demand.
+3. SAM.gov procurement — preserves mandatory requirements, set-aside eligibility, NAICS/place constraints, deliverables, and prohibitions. Missing mandatory requirements are not averageable away.
+4. Federal challenge/prize — preserves eligibility, deliverables, scored judging criteria, prizes, IP/rules, and submission surfaces. Challenge.gov itself was sunset on 2026-03-30; current discovery is modeled as USA.gov or agency-hosted.
+5. Compliance/control sets — preserves normative operators: MUST/SHALL→REQUIRED, MUST NOT/SHALL NOT→PROHIBITED, SHOULD→PREFERRED, MAY→OPTIONAL, IF/WHEN→CONDITIONAL, and weighted controls→SCORED.
+
+Core invariants:
+
+```text
+ISSUE_EXISTS != WORK_AUTHORIZED
+CAPABILITY_FIT != APPLICANT_ELIGIBILITY
+ALLOWABLE_ACTIVITY != RESOURCE_AVAILABILITY
+CONTROL_MATCH != COMPLIANCE_VERIFIED
+PROHIBITED_REQUIREMENT != RESOURCE_DEMAND
+ELIGIBILITY_PREDICATE != CAPABILITY_REQUIREMENT
+DMD != AUTHORIZATION
+```
+
+See `schemas/demand-profile.v1.schema.json` and issue #713.
+
+### Capability packages (CPK-*)
+
+`CPK-*` composes many brokerable requirements across many resources while preserving exact demand/resource lineage:
+
+```text
+DMD-* → DMR-* → BRQ-* → BSA-* → RES-* → CPK-*
+```
+
+A package records required vs nonrequired coverage, selected resources and suitability assessments, service-surface classifications, package-level composition findings, and a deterministic integrity hash.
+
+The package screen evaluates risks that may only appear in composition: credential propagation, active network behavior, elevated permissions, external state-change capability, auditability gaps, least-privilege failures, license/provenance problems, declared resource conflicts, and missing REQUIRED coverage.
+
+The ten service-surface classes are `NETWORK_TRANSPORT`, `WEB_APPLICATION`, `API_SERVICE`, `REALTIME_EVENT`, `AUTH_IDENTITY`, `DISCOVERY_METADATA`, `CLIENT_BROWSER`, `STORAGE_CLOUD`, `ADMIN_OPS_MANAGEMENT`, and `THIRD_PARTY_EMBEDDED`.
+
+Service-surface classification is descriptive only:
+
+```text
+SERVICE_SURFACE != TARGET_SCOPE
+TARGET_SCOPE != METHOD_PERMISSION
+METHOD_PERMISSION != AUTHORIZATION
+```
+
+Every CPK records `authorization_state=NOT_REQUESTED`, `target_scope_state=NOT_ESTABLISHED`, `method_permission_state=NOT_ESTABLISHED`, and `authority_effect=NONE`.
+
+See `docs/CAPABILITY_PACKAGE.md` and `schemas/capability-package.v1.schema.json`.
 
 ### Reconstructable Claim state machine
 

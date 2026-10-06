@@ -62,9 +62,15 @@ def _work_item(
         candidate_origins = sorted(
             set(adjudication.primary_origin_keys or adjudication.known_origin_keys)
         )
+    elif verification.gap_type == "SOURCE_STANDING_UNKNOWN":
+        candidate_origins = sorted(set(adjudication.unknown_origin_keys))
     else:
         candidate_origins = sorted(
-            set(adjudication.primary_origin_keys + adjudication.known_origin_keys)
+            set(
+                adjudication.primary_origin_keys
+                + adjudication.known_origin_keys
+                + adjudication.unknown_origin_keys
+            )
         )
     return VerificationWorkItem(
         schema="humanaios.verification-work-item.v1",

@@ -34,5 +34,22 @@
       "Official HackerOne platform origin; scope records and program messages may evidence HackerOne program state but do not authorize testing."
     ],
     "authority_effect": "NONE"
+  },
+  {
+    "schema": "humanaios.source-standing-profile.v1",
+    "origin_key": "unclaimedproperty.colorado.gov",
+    "source_class": "OFFICIAL_PRIMARY",
+    "standing_for_types": [
+      "OPPORTUNITY_EXISTS",
+      "CURRENTLY_AVAILABLE",
+      "STATUS"
+    ],
+    "standing_for_predicates": [],
+    "independence_group": "colorado-state-treasurer-unclaimed-property",
+    "notes": [
+      "Official Colorado unclaimed-property program origin for existence/currentness/status of the state recovery pathway.",
+      "Standing does not extend to HumanAIOS resource classifications, claimant-specific property ownership, claimant eligibility, or recovery outcomes."
+    ],
+    "authority_effect": "NONE"
   }
 ]

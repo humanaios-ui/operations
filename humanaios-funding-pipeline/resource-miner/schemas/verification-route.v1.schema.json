@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/verification-route.v1.schema.json",
+  "title": "HumanAIOS Verification Route v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "route_id",
+    "work_id",
+    "verification_id",
+    "adjudication_id",
+    "resolution_set_id",
+    "subject_key",
+    "route_type",
+    "target_mine_ids",
+    "target_origin_keys",
+    "capability_state",
+    "execution_state",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.verification-route.v1"
+    },
+    "route_id": {
+      "type": "string",
+      "pattern": "^VRT-[A-F0-9]{16}$"
+    },
+    "work_id": {
+      "type": "string",
+      "pattern": "^VWK-[A-F0-9]{16}$"
+    },
+    "verification_id": {
+      "type": "string",
+      "pattern": "^VFY-[A-F0-9]{16}$"
+    },
+    "adjudication_id": {
+      "type": "string",
+      "pattern": "^PAD-[A-F0-9]{16}$"
+    },
+    "resolution_set_id": {
+      "type": "string",
+      "pattern": "^PRS-[A-F0-9]{16}$"
+    },
+    "subject_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "route_type": {
+      "enum": [
+        "EXISTING_MINE_REOBSERVE",
+        "KNOWN_ORIGIN_REVIEW",
+        "DISCOVERY_REQUIRED",
+        "RESOLVER_REQUIRED",
+        "SOURCE_STANDING_REVIEW"
+      ]
+    },
+    "target_mine_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "target_origin_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "capability_state": {
+      "enum": [
+        "AVAILABLE",
+        "UNBOUND",
+        "DISCOVERY_REQUIRED",
+        "RESOLVER_REQUIRED",
+        "REVIEW_REQUIRED"
+      ]
+    },
+    "execution_state": {
+      "const": "NOT_AUTHORIZED"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/capability-package.v1.schema.json",
+  "title": "HumanAIOS Capability Package v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "package_id",
+    "opportunity_id",
+    "demand_profile_id",
+    "bindings",
+    "resource_ids",
+    "suitability_ids",
+    "service_surface_classes",
+    "required_coverage_state",
+    "required_requirement_count",
+    "required_adequately_covered_count",
+    "nonrequired_requirement_count",
+    "nonrequired_covered_count",
+    "uncovered_required_requirement_ids",
+    "partial_required_requirement_ids",
+    "uncovered_nonrequired_requirement_ids",
+    "composition_screen_state",
+    "composition_findings",
+    "authorization_state",
+    "target_scope_state",
+    "method_permission_state",
+    "evidence",
+    "authority_effect",
+    "package_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.capability-package.v1"
+    },
+    "package_id": {
+      "type": "string",
+      "pattern": "^CPK-[A-F0-9]{16}$"
+    },
+    "opportunity_id": {
+      "type": "string",
+      "pattern": "^BOP-[A-F0-9]{16}$"
+    },
+    "demand_profile_id": {
+      "type": "string",
+      "pattern": "^DMD-[A-F0-9]{16}$"
+    },
+    "bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "demand_requirement_id",
+          "broker_requirement_id",
+          "demand_mode",
+          "demand_semantic_class",
+          "selected_assessment_ids",
+          "selected_resource_ids",
+          "coverage_state",
+          "service_surface_classes",
+          "evidence",
+          "authority_effect"
+        ],
+        "properties": {
+          "demand_requirement_id": {
+            "type": "string",
+            "pattern": "^DMR-[A-F0-9]{16}$"
+          },
+          "broker_requirement_id": {
+            "type": "string",
+            "pattern": "^BRQ-[A-F0-9]{16}$"
+          },
+          "demand_mode": {
+            "enum": [
+              "REQUIRED",
+              "OPTIONAL",
+              "PREFERRED",
+              "CONDITIONAL",
+              "SCORED"
+            ]
+          },
+          "demand_semantic_class": {
+            "enum": [
+              "CAPABILITY",
+              "DELIVERABLE",
+              "COMPLIANCE_CONTROL"
+            ]
+          },
+          "selected_assessment_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^BSA-[A-F0-9]{16}$"
+            }
+          },
+          "selected_resource_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^RES-[A-F0-9]{16}$"
+            }
+          },
+          "coverage_state": {
+            "enum": [
+              "ADEQUATE",
+              "PARTIAL",
+              "UNKNOWN",
+              "UNRESOLVED"
+            ]
+          },
+          "service_surface_classes": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "NETWORK_TRANSPORT",
+                "WEB_APPLICATION",
+                "API_SERVICE",
+                "REALTIME_EVENT",
+                "AUTH_IDENTITY",
+                "DISCOVERY_METADATA",
+                "CLIENT_BROWSER",
+                "STORAGE_CLOUD",
+                "ADMIN_OPS_MANAGEMENT",
+                "THIRD_PARTY_EMBEDDED"
+              ]
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object"
+            }
+          },
+          "authority_effect": {
+            "const": "NONE"
+          }
+        }
+      }
+    },
+    "resource_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^RES-[A-F0-9]{16}$"
+      }
+    },
+    "suitability_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^BSA-[A-F0-9]{16}$"
+      }
+    },
+    "service_surface_classes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "NETWORK_TRANSPORT",
+          "WEB_APPLICATION",
+          "API_SERVICE",
+          "REALTIME_EVENT",
+          "AUTH_IDENTITY",
+          "DISCOVERY_METADATA",
+          "CLIENT_BROWSER",
+          "STORAGE_CLOUD",
+          "ADMIN_OPS_MANAGEMENT",
+          "THIRD_PARTY_EMBEDDED"
+        ]
+      }
+    },
+    "required_coverage_state": {
+      "enum": [
+        "COMPLETE",
+        "INCOMPLETE"
+      ]
+    },
+    "required_requirement_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "required_adequately_covered_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "nonrequired_requirement_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "nonrequired_covered_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "uncovered_required_requirement_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^DMR-[A-F0-9]{16}$"
+      }
+    },
+    "partial_required_requirement_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^DMR-[A-F0-9]{16}$"
+      }
+    },
+    "uncovered_nonrequired_requirement_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^DMR-[A-F0-9]{16}$"
+      }
+    },
+    "composition_screen_state": {
+      "enum": [
+        "PASS",
+        "PASS_WITH_CONDITIONS",
+        "FAIL",
+        "UNKNOWN"
+      ]
+    },
+    "composition_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "authorization_state": {
+      "const": "NOT_REQUESTED"
+    },
+    "target_scope_state": {
+      "const": "NOT_ESTABLISHED"
+    },
+    "method_permission_state": {
+      "const": "NOT_ESTABLISHED"
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "authority_effect": {
+      "const": "NONE"
+    },
+    "package_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}
