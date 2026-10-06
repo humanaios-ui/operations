@@ -222,15 +222,21 @@ def _maintenance_cohort(pr: dict[str, Any]) -> str:
 
 
 def _control_plane(pr: dict[str, Any], policy: dict[str, Any]) -> bool:
-    """A PR is control-plane only when *every* changed file is a control path.
+    """Recognize bounded control-plane changes without making support files self-admitting.
 
-    Touching one control-plane file alongside feature work must not exempt the
-    feature work from admission; that would make a whitespace edit to
-    CODEOWNERS a universal admission bypass.
+    A PR is exempt when every changed file is a core control path, or when it
+    changes at least one core control path and every other changed file is an
+    explicitly declared support artifact. A support-only PR is not exempt.
     """
-    paths = set((policy.get("control_plane") or {}).get("paths") or [])
+    cfg = policy.get("control_plane") or {}
+    core_paths = set(cfg.get("paths") or [])
+    support_paths = set(cfg.get("support_paths") or [])
     files = set(pr.get("files") or [])
-    return bool(files) and bool(pr.get("files_complete", True)) and files <= paths
+    if not files or not bool(pr.get("files_complete", True)):
+        return False
+    if files <= core_paths:
+        return True
+    return bool(files & core_paths) and files <= (core_paths | support_paths)
 
 
 def _zero_diff(pr: dict[str, Any]) -> bool:
@@ -250,7 +256,9 @@ def _admission_evidence(
     number = int(pr.get("number") or 0)
     if number in admitted_prs:
         evidence.append(f"coordinator state explicitly admits PR #{number}")
-        objectives.append(-number)
+        metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
+        objective = metadata.get("objective_issue_number")
+        objectives.append(int(objective) if objective else -number)
 
     for raw in ADMISSION_LINK_RE.findall(pr.get("body") or ""):
         ref = int(raw)
@@ -264,6 +272,31 @@ def _admission_evidence(
             objectives.append(ref)
 
     return bool(evidence), evidence, objectives
+
+
+def _admission_scope_drift(
+    pr: dict[str, Any],
+    state: dict[str, Any],
+) -> str | None:
+    """Return evidence when a v1.1 direct PR admission no longer matches its objective.
+
+    Legacy admissions without active_admissions metadata remain grandfathered;
+    commit-SHA changes alone do not constitute scope drift.
+    """
+    number = int(pr.get("number") or 0)
+    metadata = (state.get("active_admissions") or {}).get(f"PULL_REQUEST#{number}") or {}
+    objective = metadata.get("objective_issue_number")
+    scope = str(metadata.get("admission_scope") or "")
+    if not objective:
+        return None
+    refs = {int(raw) for raw in ADMISSION_LINK_RE.findall(pr.get("body") or "")}
+    if int(objective) in refs:
+        return None
+    return (
+        f"PR #{number} was admitted for objective issue #{int(objective)} "
+        f"with scope {scope or 'UNSPECIFIED'}, but the current PR body no longer "
+        "declares that objective through a closing-keyword link."
+    )
 
 
 def _evaluation_admission_evidence(
@@ -472,6 +505,12 @@ def classify(
     )
     lane = "CAPACITY_CONTENTION" if capacity_contention and base_lane == "ACTIVE" else base_lane
 
+    scope_drift = _admission_scope_drift(pr, state)
+    if scope_drift:
+        findings.append(Finding(
+            "ADMISSION_SCOPE_DRIFT", "HIGH", scope_drift
+        ))
+
     if lane == "ADMISSION_REVIEW":
         findings.append(Finding(
             "ADMISSION_REQUIRED", "MEDIUM",
@@ -601,7 +640,12 @@ def classify(
 
     admission_gate = "PASS"
     admission_reason = "lane does not require additional admission evidence"
-    if lane == "ADMISSION_REVIEW":
+    if scope_drift:
+        admission_gate = "FAIL"
+        admission_reason = (
+            "admitted PR objective/scope no longer matches the current PR declaration"
+        )
+    elif lane == "ADMISSION_REVIEW":
         admission_gate = "FAIL"
         admission_reason = "ready non-maintenance work has no explicit admission record"
     elif lane == "CAPACITY_CONTENTION":

@@ -1,22 +1,22 @@
 {
-  "pr": 718,
-  "actor_origin_claim": "GPT-5.6 Sol via ChatGPT, implementing user-approved Repository Coordinator vNext",
+  "pr": 727,
+  "actor_origin_claim": "GPT-5.6 Sol via ChatGPT, implementing user-authorized Repository Coordinator State Architecture v1.1",
   "checks": {
     "agent-principle-compliance-check": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.97
     },
     "builder-lint": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.95
     },
     "document-control": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.96
     },
     "manifest-sync-gate": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.97
     },
     "No-op PR guard": {
       "conclusion": "success",
@@ -24,32 +24,32 @@
     },
     "quality-baseline": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.92
     },
     "repository-admission-gate": {
       "conclusion": "success",
-      "p": 0.97
+      "p": 0.94
     },
     "repository-coordinator": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.97
     },
     "security-gates": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.98
     },
     "tool-manifest": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.93
     },
     "workflow-lint": {
       "conclusion": "success",
-      "p": 0.98
+      "p": 0.92
     },
     "workflow-path-validation": {
       "conclusion": "success",
-      "p": 0.99
+      "p": 0.96
     }
   },
-  "note": "Final prediction-bearing head after authorized-mutator enforcement, target-head receipts, workflow inventory documentation, atomic test consolidation, and dual-mode trusted bootstrap enforcement. State mutations remain serialized and non-merge-authoritative."
+  "note": "Prediction-bearing v1.1 head. Expected risk is workflow/schema integration around chained state migration, terminal lifecycle routing, durable RCD comments, and new tool-manifest registration. No merge authority is introduced."
 }
