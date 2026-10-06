@@ -640,7 +640,12 @@ def classify(
 
     admission_gate = "PASS"
     admission_reason = "lane does not require additional admission evidence"
-    if lane == "ADMISSION_REVIEW":
+    if scope_drift:
+        admission_gate = "FAIL"
+        admission_reason = (
+            "admitted PR objective/scope no longer matches the current PR declaration"
+        )
+    elif lane == "ADMISSION_REVIEW":
         admission_gate = "FAIL"
         admission_reason = "ready non-maintenance work has no explicit admission record"
     elif lane == "CAPACITY_CONTENTION":
