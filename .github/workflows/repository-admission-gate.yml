@@ -382,7 +382,7 @@ jobs:
       contents: write
     concurrency:
       group: repository-coordinator-state-mutation
-      cancel-in-progress: false
+      queue: max
     steps:
       - name: Checkout trusted control law from main
         uses: actions/checkout@v7
@@ -506,7 +506,7 @@ jobs:
       issues: write
     concurrency:
       group: repository-coordinator-state-mutation
-      cancel-in-progress: false
+      queue: max
     steps:
       - name: Checkout trusted control law from main
         uses: actions/checkout@v7
