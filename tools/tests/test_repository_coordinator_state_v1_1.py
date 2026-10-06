@@ -104,7 +104,7 @@ def test_first_v2_event_chains_from_last_legacy_event(tmp_path):
     event = result["event"]
     assert event["schema"] == EVENT_SCHEMA
     assert event["sequence"] == 2
-    assert event["previous_event_hash"] == legacy_event_hash(first)
+    assert event["previous_event_hash"] == legacy.sha256_text(canonical_json(first) + "\n")
     assert event["event_hash"] == event_hash(event)
     verified = verify_projection(ledger, state)
     assert verified["schema"] == STATE_SCHEMA
