@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.16
+# HumanAIOS Resource Miner v0.1.17
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -555,6 +555,32 @@ DMD != AUTHORIZATION
 ```
 
 See `schemas/demand-profile.v1.schema.json` and issue #713.
+
+### Capability packages (CPK-*)
+
+`CPK-*` composes many brokerable requirements across many resources while preserving exact demand/resource lineage:
+
+```text
+DMD-* → DMR-* → BRQ-* → BSA-* → RES-* → CPK-*
+```
+
+A package records required vs nonrequired coverage, selected resources and suitability assessments, service-surface classifications, package-level composition findings, and a deterministic integrity hash.
+
+The package screen evaluates risks that may only appear in composition: credential propagation, active network behavior, elevated permissions, external state-change capability, auditability gaps, least-privilege failures, license/provenance problems, declared resource conflicts, and missing REQUIRED coverage.
+
+The ten service-surface classes are `NETWORK_TRANSPORT`, `WEB_APPLICATION`, `API_SERVICE`, `REALTIME_EVENT`, `AUTH_IDENTITY`, `DISCOVERY_METADATA`, `CLIENT_BROWSER`, `STORAGE_CLOUD`, `ADMIN_OPS_MANAGEMENT`, and `THIRD_PARTY_EMBEDDED`.
+
+Service-surface classification is descriptive only:
+
+```text
+SERVICE_SURFACE != TARGET_SCOPE
+TARGET_SCOPE != METHOD_PERMISSION
+METHOD_PERMISSION != AUTHORIZATION
+```
+
+Every CPK records `authorization_state=NOT_REQUESTED`, `target_scope_state=NOT_ESTABLISHED`, `method_permission_state=NOT_ESTABLISHED`, and `authority_effect=NONE`.
+
+See `docs/CAPABILITY_PACKAGE.md` and `schemas/capability-package.v1.schema.json`.
 
 ### Reconstructable Claim state machine
 
