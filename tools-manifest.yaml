@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 197
+  tools: 198
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 150
+  builder_markers_present: 151
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2501,7 +2501,7 @@ tools:
 - tool_id: HAIOS-TOOL-210
   name: repository_coordinator_state
   path: tools/repository_coordinator_state_v1.py
-  version: 1.0.0
+  version: 1.1.0
   category: governance_tool
   zone: 1
   status: draft
@@ -2511,6 +2511,19 @@ tools:
   builder_markers: true
   purpose: Repository Coordinator state ledger + deterministic projection.
   session: REPOSITORY-COORDINATOR-STATE-01
+- tool_id: HAIOS-TOOL-211
+  name: repository_coordinator_state_v1_1
+  path: tools/repository_coordinator_state_v1_1.py
+  version: 1.1.0
+  category: governance_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation, and durable RCD receipt primitives.
+  session: REPOSITORY-COORDINATOR-STATE-02
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
