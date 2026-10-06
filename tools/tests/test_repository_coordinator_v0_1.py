@@ -547,6 +547,43 @@ def test_markdown_operator_queue_counts_only_admitted_ready_work():
     assert "Control plane: **1**" in md
 
 
+def test_v1_1_direct_pr_admission_scope_match_is_stable_across_sha_changes():
+    target = pr(726, body="Fixes #726")
+    target["head_sha"] = "old-head"
+    scoped_state = state(prs=[726])
+    scoped_state["active_admissions"] = {
+        "PULL_REQUEST#726": {
+            "event_id": "RCSEVT-TEST",
+            "objective_issue_number": 726,
+            "admission_scope": "objective:ISSUE#726",
+            "command_ref": "RCC-TEST",
+        }
+    }
+    idx = run([target], items=_admitted_item(726), state_data=scoped_state, policy_data=policy())
+    got = item(idx, 726)
+    assert "ADMISSION_SCOPE_DRIFT" not in {f["code"] for f in got["findings"]}
+    target["head_sha"] = "new-head"
+    idx2 = run([target], items=_admitted_item(726), state_data=scoped_state, policy_data=policy())
+    assert "ADMISSION_SCOPE_DRIFT" not in {f["code"] for f in item(idx2, 726)["findings"]}
+
+
+def test_v1_1_direct_pr_admission_detects_objective_scope_drift():
+    target = pr(726, body="Fixes #999")
+    scoped_state = state(prs=[726])
+    scoped_state["active_admissions"] = {
+        "PULL_REQUEST#726": {
+            "event_id": "RCSEVT-TEST",
+            "objective_issue_number": 726,
+            "admission_scope": "objective:ISSUE#726",
+            "command_ref": "RCC-TEST",
+        }
+    }
+    idx = run([target], items={**_admitted_item(726), **_admitted_item(999)}, state_data=scoped_state, policy_data=policy())
+    got = item(idx, 726)
+    assert "ADMISSION_SCOPE_DRIFT" in {f["code"] for f in got["findings"]}
+    assert got["guidance"]["action"] == "REEXAMINE"
+
+
 def test_gate_decision_fails_closed_for_unknown_pr():
     idx = run([pr(1)], policy_data=policy())
     assert gate_decision(idx, 999)["gate"] == "FAIL"
