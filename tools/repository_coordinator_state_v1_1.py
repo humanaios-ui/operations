@@ -209,16 +209,22 @@ def _replay_context(events: list[dict[str, Any]]) -> dict[str, Any]:
     commands: set[str] = set()
     previous_hash: str | None = None
     seen_v2 = False
+    legacy_prefix_lines: list[str] = []
 
     for index, event in enumerate(events, start=1):
         schema = event["schema"]
         if schema == EVENT_SCHEMA:
+            expected_previous = (
+                sha256_text("".join(legacy_prefix_lines))
+                if not seen_v2 and legacy_prefix_lines
+                else previous_hash
+            )
             seen_v2 = True
             validate_v2_event(event, line_number=index)
             _require(event["sequence"] == index, f"line {index}: sequence must equal {index}")
             _require(
-                event["previous_event_hash"] == previous_hash,
-                f"line {index}: previous_event_hash does not match ledger predecessor",
+                event["previous_event_hash"] == expected_previous,
+                f"line {index}: previous_event_hash does not match ledger predecessor/legacy anchor",
             )
             cref = str(event["command_ref"])
             _require(cref not in commands, f"line {index}: duplicate command_ref {cref}")
@@ -226,6 +232,7 @@ def _replay_context(events: list[dict[str, Any]]) -> dict[str, Any]:
         else:
             _require(not seen_v2, f"line {index}: legacy event cannot follow v2 event")
             legacy.validate_event(event, line_number=index)
+            legacy_prefix_lines.append(canonical_json(event) + "\n")
 
         kind = str(event["subject_kind"])
         number = int(event["subject_number"])
@@ -265,6 +272,9 @@ def _replay_context(events: list[dict[str, Any]]) -> dict[str, Any]:
             active.pop(key)
         last_by_subject[key] = eid
         previous_hash = event_hash(event)
+
+    if not seen_v2 and legacy_prefix_lines:
+        previous_hash = sha256_text("".join(legacy_prefix_lines))
 
     return {
         "active": active,
