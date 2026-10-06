@@ -230,6 +230,10 @@ def load_and_replay(ledger_path: Path) -> tuple[str, list[dict[str, Any]], dict[
 
 
 def verify_projection(ledger_path: Path, state_path: Path) -> dict[str, Any]:
+    ledger_text = ledger_path.read_text(encoding="utf-8")
+    if "humanaios.repository-coordinator-event.v2" in ledger_text:
+        from repository_coordinator_state_v1_1 import verify_projection as verify_v1_1
+        return verify_v1_1(ledger_path, state_path)
     _, _, expected = load_and_replay(ledger_path)
     try:
         actual = json.loads(state_path.read_text(encoding="utf-8"))
