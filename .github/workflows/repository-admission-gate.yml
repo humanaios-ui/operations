@@ -303,7 +303,9 @@ jobs:
         if: steps.collect.outputs.mode == 'v0.3'
         run: |
           set -euo pipefail
-          python3 tools/repository_coordinator_state_v1_1.py verify \
+          # Bootstrap-safe canonical verifier: current main handles v1 state;
+          # after this change lands, the same path delegates to v1.1 for v2 ledgers.
+          python3 tools/repository_coordinator_state_v1.py verify \
             --ledger .repo-coordinator/ADMISSION_LEDGER.jsonl \
             --state .repo-coordinator/COORDINATOR_STATE.json
 
