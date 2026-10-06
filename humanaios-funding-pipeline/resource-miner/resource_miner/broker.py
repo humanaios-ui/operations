@@ -18,6 +18,19 @@ PROVIDER_CLASSES = {
 }
 SUITABILITY_STATES = {"ADEQUATE", "PARTIAL", "INADEQUATE", "UNKNOWN"}
 SCREEN_STATES = {"PASS", "PASS_WITH_CONDITIONS", "FAIL", "UNKNOWN"}
+LICENSE_STATES = {"ALLOWABLE", "RESTRICTED", "TERMS_REVIEW_REQUIRED", "UNKNOWN"}
+CREDENTIAL_REQUIREMENT_STATES = {"NONE", "OPTIONAL", "REQUIRED", "UNKNOWN"}
+NETWORK_BEHAVIOR_STATES = {
+    "NONE",
+    "READ_ONLY",
+    "ACTIVE",
+    "PASSIVE_PUBLIC_SOURCE",
+    "THIRD_PARTY_API_READ_ONLY",
+    "TARGET_READ_ONLY",
+    "TARGET_ACTIVE",
+    "MIXED",
+    "UNKNOWN",
+}
 ACTIONS = {
     "REVIEW_RESOURCE_METADATA",
     "COMPOSE_CAPABILITY_PACKAGE",
@@ -81,6 +94,9 @@ class BrokerRequirement:
     target_scope_state: str
     external_state_change_allowed: bool
     evidence: list[dict[str, Any]]
+    demand_requirement_id: str = ""
+    demand_mode: str = ""
+    demand_semantic_class: str = ""
     authority_effect: str = "NONE"
 
     def to_dict(self) -> dict[str, Any]:
@@ -206,6 +222,9 @@ def build_requirement(
     target_scope_state: str,
     external_state_change_allowed: bool,
     evidence: Iterable[EvidenceRef],
+    demand_requirement_id: str = "",
+    demand_mode: str = "",
+    demand_semantic_class: str = "",
 ) -> BrokerRequirement:
     affordances = sorted({str(x).strip() for x in required_affordances if str(x).strip()})
     resource_types = sorted({str(x).strip() for x in allowed_resource_types if str(x).strip()})
@@ -230,6 +249,9 @@ def build_requirement(
         "target_scope_state": scope,
         "external_state_change_allowed": bool(external_state_change_allowed),
         "evidence": rows,
+        "demand_requirement_id": demand_requirement_id.strip(),
+        "demand_mode": demand_mode.strip().upper(),
+        "demand_semantic_class": demand_semantic_class.strip().upper(),
     }
     return BrokerRequirement(
         requirement_id=_stable_id("BRQ", payload),
@@ -242,6 +264,9 @@ def build_requirement(
         target_scope_state=scope,
         external_state_change_allowed=bool(external_state_change_allowed),
         evidence=rows,
+        demand_requirement_id=payload["demand_requirement_id"],
+        demand_mode=payload["demand_mode"],
+        demand_semantic_class=payload["demand_semantic_class"],
     )
 
 
@@ -257,12 +282,25 @@ def screen_resource(
     auditability: str,
     least_privilege_compatible: bool | None,
 ) -> ResourceScreen:
+    normalized_network_behavior = network_behavior.strip().upper()
+    normalized_license_state = license_state.strip().upper()
+    normalized_credential_requirement = credential_requirement.strip().upper()
+    if normalized_license_state not in LICENSE_STATES:
+        raise ValueError(f"unsupported license_state: {normalized_license_state}")
+    if normalized_credential_requirement not in CREDENTIAL_REQUIREMENT_STATES:
+        raise ValueError(
+            f"unsupported credential_requirement: {normalized_credential_requirement}"
+        )
+    if normalized_network_behavior not in NETWORK_BEHAVIOR_STATES:
+        raise ValueError(
+            f"unsupported network_behavior: {normalized_network_behavior}"
+        )
     values = {
         "provenance_state": provenance_state.strip().upper(),
-        "license_state": license_state.strip().upper(),
+        "license_state": normalized_license_state,
         "permissions_state": permissions_state.strip().upper(),
-        "network_behavior": network_behavior.strip().upper(),
-        "credential_requirement": credential_requirement.strip().upper(),
+        "network_behavior": normalized_network_behavior,
+        "credential_requirement": normalized_credential_requirement,
         "auditability": auditability.strip().upper(),
     }
     findings: list[str] = []
@@ -283,8 +321,10 @@ def screen_resource(
     )
     conditional = (
         values["permissions_state"] == "ELEVATED"
-        or values["network_behavior"] == "ACTIVE"
+        or values["network_behavior"]
+        in {"ACTIVE", "TARGET_ACTIVE", "TARGET_READ_ONLY", "MIXED"}
         or values["credential_requirement"] == "REQUIRED"
+        or values["license_state"] == "TERMS_REVIEW_REQUIRED"
         or external_state_change is True
         or values["auditability"] == "PARTIAL"
     )
@@ -304,7 +344,15 @@ def screen_resource(
         findings.append(f"license_state={values['license_state']}")
     if values["permissions_state"] != "MINIMAL":
         findings.append(f"permissions_state={values['permissions_state']}")
-    if values["network_behavior"] not in {"READ_ONLY", "NONE"}:
+    if values["network_behavior"] in {"THIRD_PARTY_API_READ_ONLY"}:
+        findings.append(
+            f"third_party_api_interaction={values['network_behavior']}"
+        )
+    elif values["network_behavior"] not in {
+        "READ_ONLY",
+        "NONE",
+        "PASSIVE_PUBLIC_SOURCE",
+    }:
         findings.append(f"network_behavior={values['network_behavior']}")
     if values["credential_requirement"] != "NONE":
         findings.append(f"credential_requirement={values['credential_requirement']}")
