@@ -73,7 +73,7 @@ def state(*, issues=None, prs=None):
     }
 
 
-def policy(*, limit=4, issues=None, prs=None, control_paths=None):
+def policy(*, limit=4, issues=None, prs=None, control_paths=None, support_paths=None):
     return {
         "_test_state": state(issues=issues, prs=prs),
         "capacity": {"active_operator_queue": limit},
@@ -87,6 +87,7 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None):
         },
         "control_plane": {
             "paths": control_paths or ["REPOSITORY_COORDINATOR_POLICY.json"],
+            "support_paths": support_paths or [],
         },
     }
 
@@ -456,6 +457,34 @@ def test_pure_control_plane_change_remains_exempt():
     p = pr(1, body="- [x] **Z2**", files=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"])
     idx = run([p], policy_data=policy(control_paths=[".github/CODEOWNERS", "REPOSITORY_COORDINATOR_POLICY.json"]))
     assert item(idx, 1)["lane"] == "CONTROL_PLANE"
+
+
+def test_control_plane_support_artifact_is_exempt_only_with_core_change():
+    p = pr(
+        1,
+        body="- [x] **Z2**",
+        files=["REPOSITORY_COORDINATOR_POLICY.json", "ci_predictions/pr.json"],
+    )
+    idx = run(
+        [p],
+        policy_data=policy(
+            control_paths=["REPOSITORY_COORDINATOR_POLICY.json"],
+            support_paths=["ci_predictions/pr.json"],
+        ),
+    )
+    assert item(idx, 1)["lane"] == "CONTROL_PLANE"
+
+
+def test_support_only_change_is_not_control_plane_exempt():
+    p = pr(1, files=["ci_predictions/pr.json"])
+    idx = run(
+        [p],
+        policy_data=policy(
+            control_paths=["REPOSITORY_COORDINATOR_POLICY.json"],
+            support_paths=["ci_predictions/pr.json"],
+        ),
+    )
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
 
 
 def test_incidental_mention_of_admitted_issue_is_not_admission():
@@ -894,6 +923,32 @@ def test_issue_route_revoke_removes_issue_standing(tmp_path):
     assert result["decision"] == "REVOKE"
     verified = verify_projection(ledger, state)
     assert 722 not in verified["admitted_issue_numbers"]
+
+
+def test_issue_route_whitespace_variant_is_not_exact_command(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, before = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+    before_ledger = ledger.read_text(encoding="utf-8")
+
+    for body in (" /coordinator admit", "/coordinator admit ", "\n/coordinator admit"):
+        result = apply_issue_command(
+            policy_path=policy_path,
+            ledger_path=ledger,
+            state_path=state,
+            issue_number=722,
+            issue_body="**State:** ADMISSION_REQUESTED",
+            comment_body=body,
+            actor="humanaios-ui",
+            comment_id="whitespace-case",
+            recorded_at="2026-10-05T05:35:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+        assert result["should_mutate"] is False
+        assert result["reason"] == "NOT_COORDINATOR_COMMAND"
+
+    assert ledger.read_text(encoding="utf-8") == before_ledger
+    assert verify_projection(ledger, state) == before
 
 
 def test_issue_route_non_command_is_noop(tmp_path):
