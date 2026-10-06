@@ -173,7 +173,7 @@ jobs:
           from datetime import datetime
 
           # Load the mapping data
-          with open('artifact/operations/docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
+          with open('docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
               matrix_content = f.read()
 
           # Generate HTML snippets for lasting-light-ai pages
@@ -361,7 +361,7 @@ jobs:
           print(f"✓ Validated {len([l for l in lines if l.strip() and not l.startswith('#')])} signal records")
 
           # Validate markdown exists
-          with open('docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
+          with open('artifact/operations/docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
               content = f.read()
               if 'Topic-to-Mitigation Response Matrix' not in content:
                   print("ERROR: Missing expected markdown title")
