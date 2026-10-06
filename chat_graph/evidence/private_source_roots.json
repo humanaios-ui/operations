@@ -1,0 +1,33 @@
+{
+  "version": "0.1.0",
+  "observed_on": "2026-10-02",
+  "sources": [
+    {
+      "id": "source:google-drive:private-corpus-001",
+      "type": "connected_private_corpus",
+      "provider": "google_drive",
+      "locator_policy": "PRIVATE_CONNECTOR_ONLY",
+      "locator_sha256": "70b39cc88fba803776a5a5768b2a7253c3df46c1556f641a8ddf76204144bba2",
+      "source_visibility": "NOT_SHARED",
+      "evidence_class": "SOURCE_LOCATED",
+      "authority_effect": "NONE",
+      "metadata_observation": {
+        "top_level_items_returned": 100,
+        "top_level_pagination_exhausted": true,
+        "top_level_folders": 5,
+        "top_level_files": 95,
+        "historical_knowledge_graph_snapshot_located": true,
+        "claude_chat_exports_located": 8,
+        "restricted_raw_export_area_located": true
+      },
+      "content_ingestion_policy": {
+        "default": "METADATA_ONLY",
+        "public_repository_inventory": "PROHIBITED_BY_DEFAULT",
+        "file_content_requires": "EXPLICIT_ALLOWLIST_OR_CLAIM_BINDING",
+        "secret_risk_paths": "EXCLUDE_FROM_AUTOMATIC_HYDRATION",
+        "chat_exports": "ELIGIBLE_FOR_PRIVATE_CONTENT_HYDRATION",
+        "historical_graph_snapshots": "ADMIT_AS_SYNTHESIS_LINEAGE_NOT_INDEPENDENT_PROOF"
+      }
+    }
+  ]
+}
