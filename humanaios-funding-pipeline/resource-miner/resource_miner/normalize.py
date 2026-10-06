@@ -25,6 +25,8 @@ SOURCE_CATEGORY_TYPE_ALIASES: dict[str, str] = {
     "paid_work": "paid_work",
     "publishing": "dissemination_access",
     "fellowship": "fellowship",
+    "open_source_tool": "open_source_tool",
+    "external_service": "external_service",
 }
 
 TYPE_AFFORDANCES: dict[str, tuple[str, ...]] = {
@@ -44,6 +46,8 @@ TYPE_AFFORDANCES: dict[str, tuple[str, ...]] = {
     "training": ("skill_development",),
     "research_access": ("research_access",),
     "dissemination_access": ("dissemination_access",),
+    "open_source_tool": (),
+    "external_service": (),
 }
 
 TYPE_RULES: list[tuple[str, tuple[str, ...]]] = [
@@ -63,6 +67,7 @@ TYPE_RULES: list[tuple[str, tuple[str, ...]]] = [
     ("training", ("training", "certification", "credential")),
     ("research_access", ("dataset", "research access", "lab access", "model access")),
     ("dissemination_access", ("publishing", "publication support", "publication access")),
+    ("open_source_tool", ("open source tool", "open-source tool", "github project")),
 ]
 
 

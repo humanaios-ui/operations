@@ -184,6 +184,38 @@ def plan_registry_query(
     )
 
 
+
+def registry_query_from_dict(data: dict[str, Any]) -> RegistryQueryPlan:
+    expected = {
+        "schema",
+        "query_id",
+        "query_token",
+        "registry_mine_id",
+        "pathway_opportunity_id",
+        "query_class",
+        "subject_ref",
+        "subject_kind",
+        "query_fields",
+        "privacy_classification",
+        "query_value_persistence",
+        "purpose",
+        "expected_response_class",
+        "zero_result_semantics",
+        "match_result_semantics",
+        "explicit_subject_request",
+        "external_state_change",
+        "planning_state",
+        "execution_state",
+        "authority_effect",
+    }
+    keys = set(data)
+    if keys != expected:
+        missing = sorted(expected - keys)
+        extra = sorted(keys - expected)
+        raise ValueError(f"registry query plan shape mismatch; missing={missing}; extra={extra}")
+    return RegistryQueryPlan(**data)
+
+
 def write_registry_query_plans_jsonl(
     path: str | Path,
     plans: Iterable[RegistryQueryPlan],

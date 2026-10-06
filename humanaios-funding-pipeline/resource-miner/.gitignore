@@ -11,3 +11,4 @@ data/proposition-adjudications.jsonl
 data/verification-frontier.jsonl
 data/verification-work-queue.jsonl
 data/verification-routes.jsonl
+data/query-execution-receipts.jsonl
