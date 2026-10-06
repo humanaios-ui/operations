@@ -1010,3 +1010,177 @@ def test_issue_route_non_command_is_noop(tmp_path):
     assert result["reason"] == "NOT_COORDINATOR_COMMAND"
     assert ledger.read_text(encoding="utf-8") == before_ledger
     assert verify_projection(ledger, state) == before
+
+
+# --- Repository Coordinator state v1.1 hardening regression cases ----------
+
+import repository_coordinator_state_v1 as legacy_state
+from repository_coordinator_state_v1_1 import (
+    EVENT_SCHEMA as EVENT_SCHEMA_V2,
+    STATE_SCHEMA as STATE_SCHEMA_V1_1,
+    append_event as append_event_v2,
+    apply_issue_command as apply_issue_command_v2,
+    command_ref as command_ref_v2,
+    decision_receipt as decision_receipt_v2,
+    reconcile_pr_lifecycle as reconcile_pr_lifecycle_v2,
+)
+
+
+def _write_legacy_pair_v11(tmp_path, events):
+    ledger = tmp_path / "V11_ADMISSION_LEDGER.jsonl"
+    state_file = tmp_path / "V11_COORDINATOR_STATE.json"
+    text = "".join(canonical_json(row) + "\n" for row in events)
+    ledger.write_text(text, encoding="utf-8")
+    projection = legacy_state.replay_events(events, ledger_text=text)
+    state_file.write_text(
+        json.dumps(projection, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return ledger, state_file, projection
+
+
+def test_v11_first_event_anchors_complete_legacy_ledger(tmp_path):
+    first = state_event()
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [first])
+    result = append_event_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=726,
+        objective_issue_number=726,
+        admission_scope="objective:ISSUE#726",
+        command_ref_value="RCC-GITHUB-ACTIONS-100",
+        source_locator="github:run:100",
+        actor="humanaios-ui",
+        evidence=["explicit admission"],
+        recorded_at="2026-10-06T03:20:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    event = result["event"]
+    assert event["schema"] == EVENT_SCHEMA_V2
+    assert event["sequence"] == 2
+    assert event["previous_event_hash"] == sha256_text(canonical_json(first) + "\n")
+    verified = json.loads(state_file.read_text(encoding="utf-8"))
+    assert verified["schema"] == STATE_SCHEMA_V1_1
+    assert verified["last_sequence"] == 2
+    assert 726 in verified["admitted_pull_request_numbers"]
+
+
+def test_v11_duplicate_rcc_delivery_is_rejected(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    kwargs = dict(
+        ledger_path=ledger,
+        state_path=state_file,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=726,
+        objective_issue_number=726,
+        admission_scope="objective:ISSUE#726",
+        command_ref_value="RCC-GITHUB-ACTIONS-101",
+        source_locator="github:run:101",
+        actor="humanaios-ui",
+        evidence=["explicit admission"],
+        recorded_at="2026-10-06T03:21:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    append_event_v2(**kwargs)
+    kwargs.update(decision="REVOKE")
+    with pytest.raises(Exception, match="command_ref already consumed"):
+        append_event_v2(**kwargs)
+
+
+def test_v11_issue_comment_command_is_idempotent(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    policy_path = _write_issue_route_policy(tmp_path)
+    args = dict(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="98765",
+        recorded_at="2026-10-06T03:22:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    first = apply_issue_command_v2(**args)
+    assert first["should_mutate"] is True
+    duplicate = apply_issue_command_v2(**args)
+    assert duplicate["should_mutate"] is False
+    assert duplicate["reason"] == "DUPLICATE_COMMAND"
+    assert duplicate["command_ref"] == command_ref_v2("GITHUB-COMMENT", "98765")
+
+
+def test_v11_global_chain_detects_reorder(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    for n in (726, 727):
+        append_event_v2(
+            ledger_path=ledger,
+            state_path=state_file,
+            decision="ADMIT",
+            subject_kind="PULL_REQUEST",
+            subject_number=n,
+            objective_issue_number=n,
+            admission_scope=f"objective:ISSUE#{n}",
+            command_ref_value=f"RCC-GITHUB-ACTIONS-{n}",
+            source_locator=f"github:run:{n}",
+            actor="humanaios-ui",
+            evidence=["explicit admission"],
+            recorded_at=f"2026-10-06T03:{n-700:02d}:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+    rows = [json.loads(x) for x in ledger.read_text(encoding="utf-8").splitlines()]
+    tampered = [rows[0], rows[2], rows[1]]
+    tampered_text = "".join(canonical_json(x) + "\n" for x in tampered)
+    with pytest.raises(Exception):
+        from repository_coordinator_state_v1_1 import replay_events as replay_v11
+        replay_v11(tampered, ledger_text=tampered_text)
+
+
+def test_v11_terminal_lifecycle_removes_active_pr(tmp_path):
+    seed = state_event(kind="PULL_REQUEST", number=707, objective=None)
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [seed])
+    result = reconcile_pr_lifecycle_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        pr_number=707,
+        terminal_state="MERGED",
+        command_ref_value="RCC-GITHUB-PR-LIFECYCLE-707-merged",
+        source_locator="github:pull:707:closed",
+        actor="github-actions[bot]",
+        recorded_at="2026-10-06T03:30:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is True
+    verified = json.loads(state_file.read_text(encoding="utf-8"))
+    assert 707 not in verified["admitted_pull_request_numbers"]
+
+
+def test_v11_decision_receipt_binds_exact_policy_state_and_target():
+    receipt = decision_receipt_v2(
+        gate_decision={
+            "target_pr": 726,
+            "target_head_sha": "b" * 40,
+            "gate": "PASS",
+            "lane": "CONTROL_PLANE",
+            "reason": "bounded control-plane change",
+            "state_receipt": {
+                "policy_ref": "main",
+                "policy_sha": "a" * 40,
+                "state_branch": "repository-coordinator-state",
+                "state_sha": "c" * 40,
+                "ledger_sha256": "1" * 64,
+                "projection_sha256": "2" * 64,
+            },
+        },
+        created_at="2026-10-06T03:40:00Z",
+        source_run_id="1234",
+    )
+    assert receipt["receipt_id"].startswith("RCD-")
+    assert receipt["target_pr"] == 726
+    assert receipt["policy_sha"] == "a" * 40
+    assert receipt["state_sha"] == "c" * 40
+    assert receipt["merge_authority"] is False
