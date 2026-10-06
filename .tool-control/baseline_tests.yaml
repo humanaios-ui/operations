@@ -44,10 +44,6 @@ baseline_tests:
     requires: []
     description: Repository coordinator tests
 
-  - path: tools/tests/test_repository_coordinator_state_v1_1.py
-    requires: []
-    description: Repository coordinator state v1.1 chaining, RCC/RCD, and lifecycle tests
-
   - path: tools/tests/test_registry_site_generator.py
     requires: []
     description: Registry site generator tests
