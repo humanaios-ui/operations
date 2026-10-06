@@ -23,6 +23,9 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   monitor-and-digest:
     runs-on: ubuntu-latest
@@ -51,6 +54,7 @@ jobs:
 
       - name: Run platform monitor (parallel collection)
         id: monitor
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.trigger != 'signal-threshold-monitor'
         run: |
           echo "Starting platform-level signal collection..."
           python3 scripts/platform-monitor.py 2>&1 | tee /tmp/monitor-output.json
@@ -58,6 +62,7 @@ jobs:
 
       - name: Run topic-to-mitigation mapper
         id: mapper
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.trigger != 'signal-threshold-monitor'
         run: |
           echo "Mapping signals to HumanAIOS capabilities..."
           python3 scripts/map-to-mitigation.py 2>&1 | tee /tmp/mapper-output.json
@@ -65,6 +70,7 @@ jobs:
 
       - name: Run gap detector
         id: gaps
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.trigger != 'signal-threshold-monitor'
         run: |
           echo "Analyzing research and coverage gaps..."
           python3 scripts/gap-detector.py 2>&1 | tee /tmp/gaps-output.json
@@ -74,18 +80,27 @@ jobs:
 
       - name: Run AI-EO indexer
         id: indexer
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.trigger != 'signal-threshold-monitor'
         run: |
           echo "Generating AI-EO index from signals and gaps..."
           python3 scripts/ai-eo-indexer.py 2>&1 | tee /tmp/indexer-output.json
           echo "AI-EO indexing complete"
 
-      - name: Run signal threshold monitor (event-driven only)
-        id: signal_monitor
+      - name: Validate event-driven implementation boundary
+        id: event_preflight
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.trigger == 'signal-threshold-monitor'
         run: |
-          echo "Monitoring for high-velocity signals..."
-          python3 scripts/signal-threshold-monitor.py 2>&1 | tee /tmp/signal-monitor-output.json
-          echo "Signal monitoring complete"
+          set -euo pipefail
+          {
+            echo "mode=signal-threshold-monitor"
+            echo "implementation_state=NOT_IMPLEMENTED"
+            echo "authority_effect=NONE"
+            echo "reason=incremental contract is not wired end-to-end"
+            echo "required_before_enablement=signal_ids input binding; checkout path alignment; topic_id/entity_id mapping; delta-page implementation"
+          } > /tmp/event-driven-state.txt
+          echo "IMPLEMENTATION_STATE=NOT_IMPLEMENTED"
+          echo "Event-driven execution remains fail-closed until signal_ids are consumed end-to-end, the indexer uses the checked-out lasting-light-ai path, topic_id/entity_id mapping is explicit, and delta-page generation exists."
+          exit 1
 
       - name: Run incremental indexer (event-driven optimization)
         id: incremental_indexer
@@ -97,6 +112,7 @@ jobs:
 
       - name: Generate pages from AI-EO index
         id: page_generator
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.trigger != 'signal-threshold-monitor'
         run: |
           echo "Generating discoverable pages from AI-EO index..."
           python3 - << 'EOF'
@@ -144,10 +160,11 @@ jobs:
         run: |
           cd lasting-light-ai
           echo "Running delta page generator for changed entities..."
-          npm run build-delta-pages || echo "Delta generator not yet wired to build; using fallback"
+          npm run build-delta-pages
           echo "Delta page generation complete"
 
       - name: Generate HTML "How We Address X Crisis" components
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.trigger != 'signal-threshold-monitor'
         run: |
           echo "Generating public-facing response pages..."
           python3 - << 'EOF'
@@ -209,38 +226,55 @@ jobs:
           print(f"Topics documented: {len(html_snippets)}")
           EOF
 
-      - name: Commit changes to operations repo
+      - name: Record repository mutation boundary
+        if: always()
         run: |
-          git config user.name "Claude Code (Topic Monitor)"
-          git config user.email "noreply@anthropic.com"
+          set -euo pipefail
+          {
+            echo "repository=humanaios-ui/operations"
+            echo "base_ref=main"
+            echo "base_sha=$(git rev-parse HEAD)"
+            echo "authority_effect=NONE"
+            echo "promotion_state=NOT_ADMITTED"
+            echo "working_tree_changes:"
+            git status --porcelain=v1
+          } > /tmp/operations-candidate-state.txt
 
-          # Check if there are changes to commit
-          if [ -n "$(git status --porcelain)" ]; then
-            git add data/public-discourse-signals.jsonl data/ai-eo-index.jsonl docs/TOPIC_RESPONSE_MATRIX.md gap-report.json
-            git commit -m "chore: update signals, ai-eo index, and gap report (daily digest run)"
-            git push origin main
-            echo "Changes pushed to operations repo"
-          else
-            echo "No changes to commit in operations repo"
+          {
+            echo "repository=humanaios-ui/lasting-light-ai"
+            echo "base_ref=main"
+            echo "base_sha=$(git -C lasting-light-ai rev-parse HEAD)"
+            echo "authority_effect=NONE"
+            echo "promotion_state=NOT_ADMITTED"
+            echo "working_tree_changes:"
+            git -C lasting-light-ai status --porcelain=v1
+          } > /tmp/lasting-light-ai-candidate-state.txt
+
+          echo "Generated outputs remain workflow artifacts only."
+          echo "This workflow does not commit, push, merge, deploy, or otherwise promote repository state."
+
+      - name: Prepare immutable candidate artifact
+        if: always()
+        run: |
+          set -euo pipefail
+          ROOT=/tmp/topic-digest-artifact
+          mkdir -p "$ROOT/operations/data" "$ROOT/operations/docs" "$ROOT/lasting-light-ai/public/api" "$ROOT/lasting-light-ai/crisis-response-snippets" "$ROOT/receipts"
+
+          for f in data/public-discourse-signals.jsonl data/ai-eo-index.jsonl gap-report.json; do
+            [ ! -f "$f" ] || cp "$f" "$ROOT/operations/${f}"
+          done
+          [ ! -f docs/TOPIC_RESPONSE_MATRIX.md ] || cp docs/TOPIC_RESPONSE_MATRIX.md "$ROOT/operations/docs/TOPIC_RESPONSE_MATRIX.md"
+          [ ! -f lasting-light-ai/public/api/ai-eo-index.json ] || cp lasting-light-ai/public/api/ai-eo-index.json "$ROOT/lasting-light-ai/public/api/ai-eo-index.json"
+          if [ -d lasting-light-ai/crisis-response-snippets ]; then
+            cp -R lasting-light-ai/crisis-response-snippets/. "$ROOT/lasting-light-ai/crisis-response-snippets/"
           fi
 
-      - name: Commit index changes to lasting-light-ai repo
-        run: |
-          cd lasting-light-ai
-          git config user.name "Claude Code (Topic Monitor)"
-          git config user.email "noreply@anthropic.com"
+          cp /tmp/operations-candidate-state.txt "$ROOT/receipts/"
+          cp /tmp/lasting-light-ai-candidate-state.txt "$ROOT/receipts/"
+          [ ! -f /tmp/event-driven-state.txt ] || cp /tmp/event-driven-state.txt "$ROOT/receipts/"
 
-          # Check if there are changes to commit
-          if [ -n "$(git status --porcelain)" ]; then
-            git add public/api/ai-eo-index.json
-            git commit -m "chore: update ai-eo index for research velocity dashboard (daily digest run)"
-            git push origin main
-            echo "Changes pushed to lasting-light-ai repo"
-          else
-            echo "No changes to commit in lasting-light-ai repo"
-          fi
-
-      - name: Generate summary for CI context
+      - name: Generate batch summary for CI context
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.trigger != 'signal-threshold-monitor'
         run: |
           echo "=== DAILY TOPIC-TO-MITIGATION DIGEST ===" > /tmp/digest-summary.txt
           echo "Run date: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/digest-summary.txt
@@ -253,8 +287,9 @@ jobs:
           echo "✓ Topic-to-mitigation mapping generated" >> /tmp/digest-summary.txt
           echo "✓ Gap analysis completed" >> /tmp/digest-summary.txt
           echo "✓ AI-EO index generated from signals + gaps" >> /tmp/digest-summary.txt
-          echo "✓ Discoverable pages indexed for research velocity dashboard" >> /tmp/digest-summary.txt
-          echo "✓ Public-facing HTML snippets generated" >> /tmp/digest-summary.txt
+          echo "✓ Candidate discoverable-page artifacts generated (not published)" >> /tmp/digest-summary.txt
+          echo "✓ Candidate HTML snippets generated (not published)" >> /tmp/digest-summary.txt
+          echo "✓ Repository authority effect: NONE; promotion state: NOT_ADMITTED" >> /tmp/digest-summary.txt
           echo "" >> /tmp/digest-summary.txt
           echo "AI-EO Pipeline Output:" >> /tmp/digest-summary.txt
           echo "- data/ai-eo-index.jsonl: Knowledge graph + behavioral graph index" >> /tmp/digest-summary.txt
@@ -264,29 +299,31 @@ jobs:
           echo "Next steps:" >> /tmp/digest-summary.txt
           echo "1. Review TOPIC_RESPONSE_MATRIX.md for comprehensive mappings" >> /tmp/digest-summary.txt
           echo "2. Review AI-EO index in operations/data/ai-eo-index.jsonl" >> /tmp/digest-summary.txt
-          echo "3. Visit /research-velocity in browser to see live indexed pages" >> /tmp/digest-summary.txt
+          echo "3. Review the workflow artifact; publication requires a separate admitted promotion action" >> /tmp/digest-summary.txt
 
           cat /tmp/digest-summary.txt
+
+      - name: Finalize artifact receipt
+        if: always()
+        run: |
+          mkdir -p /tmp/topic-digest-artifact/receipts
+          [ ! -f /tmp/digest-summary.txt ] || cp /tmp/digest-summary.txt /tmp/topic-digest-artifact/receipts/digest-summary.txt
 
       - name: Upload monitoring artifacts
         uses: actions/upload-artifact@v7
         if: always()
         with:
           name: topic-digest-run-${{ github.run_id }}
-          path: |
-            docs/TOPIC_RESPONSE_MATRIX.md
-            data/public-discourse-signals.jsonl
-            data/ai-eo-index.jsonl
-            gap-report.json
-            lasting-light-ai/public/api/ai-eo-index.json
-            /tmp/digest-summary.txt
+          path: /tmp/topic-digest-artifact
           retention-days: 30
+          if-no-files-found: error
 
       - name: Comment on related PRs (if any)
         if: always()
         run: |
-          echo "Topic-to-mitigation digest completed successfully"
-          echo "Results available in workflow artifacts"
+          echo "Topic-to-mitigation digest execution complete"
+          echo "Candidate results are available in workflow artifacts"
+          echo "No repository state was promoted by this workflow"
 
   validate-output:
     runs-on: ubuntu-latest
@@ -294,10 +331,11 @@ jobs:
     name: Validate generated outputs
 
     steps:
-      - name: Checkout operations repository
-        uses: actions/checkout@v7
+      - name: Download exact generated artifact
+        uses: actions/download-artifact@v7
         with:
-          repository: humanaios-ui/operations
+          name: topic-digest-run-${{ github.run_id }}
+          path: artifact
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -310,7 +348,7 @@ jobs:
           import json
 
           # Validate JSONL format
-          with open('data/public-discourse-signals.jsonl', 'r') as f:
+          with open('artifact/operations/data/public-discourse-signals.jsonl', 'r') as f:
               lines = f.readlines()
               for i, line in enumerate(lines):
                   if line.strip() and not line.startswith('#'):
@@ -323,7 +361,7 @@ jobs:
           print(f"✓ Validated {len([l for l in lines if l.strip() and not l.startswith('#')])} signal records")
 
           # Validate markdown exists
-          with open('docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
+          with open('artifact/operations/docs/TOPIC_RESPONSE_MATRIX.md', 'r') as f:
               content = f.read()
               if 'Topic-to-Mitigation Response Matrix' not in content:
                   print("ERROR: Missing expected markdown title")
