@@ -28,7 +28,7 @@ on:
         description: Admission-state decision
         required: true
         type: choice
-        options: [ADMIT, REVOKE]
+        options: [ADMIT, REVOKE, TERMINATE_MERGED, TERMINATE_CLOSED]
       subject_kind:
         description: Subject type
         required: true
