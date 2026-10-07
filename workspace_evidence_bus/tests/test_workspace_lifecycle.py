@@ -46,6 +46,18 @@ class WorkspaceLifecycleTests(unittest.TestCase):
         self.assertEqual(state["authority_effect"], "NONE")
         self.assertEqual(state["historical_snapshots"][0]["current_status"], "SUPERSEDED_AS_CURRENT_STATE")
 
+    def test_committed_current_state_matches_projection(self):
+        repo_root = Path(__file__).resolve().parents[2]
+        receipt = repo_root / "workspace_evidence_bus/receipts/roundtrip_gate_receipt.json"
+        committed = repo_root / "workspace_evidence_bus/state/current_state.json"
+        projected = project_current_state(
+            receipt,
+            receipt_locator="workspace_evidence_bus/receipts/roundtrip_gate_receipt.json",
+            historical_drive_file_id="11EgHtelUYGFGA5uYHZPzn6wIf1q717tg",
+            historical_recorded_at="2026-10-02T20:52:00Z",
+        )
+        self.assertEqual(json.loads(committed.read_text(encoding="utf-8")), projected)
+
     def test_missing_required_pass_field_rejected(self):
         receipt = valid_receipt()
         receipt["drive_write_readback_hash"] = "FAIL"
