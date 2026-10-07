@@ -50,9 +50,19 @@ Reproduce the projection:
 ```bash
 python3 workspace_evidence_bus/tools/workspace_lifecycle.py \
   --receipt workspace_evidence_bus/receipts/roundtrip_gate_receipt.json \
+  --receipt-locator workspace_evidence_bus/receipts/roundtrip_gate_receipt.json \
   --historical-drive-file-id 11EgHtelUYGFGA5uYHZPzn6wIf1q717tg \
   --historical-recorded-at 2026-10-02T20:52:00Z \
   --out workspace_evidence_bus/state/current_state.json
+
+# Verify the committed projection has not drifted:
+python3 workspace_evidence_bus/tools/workspace_lifecycle.py \
+  --receipt workspace_evidence_bus/receipts/roundtrip_gate_receipt.json \
+  --receipt-locator workspace_evidence_bus/receipts/roundtrip_gate_receipt.json \
+  --historical-drive-file-id 11EgHtelUYGFGA5uYHZPzn6wIf1q717tg \
+  --historical-recorded-at 2026-10-02T20:52:00Z \
+  --out workspace_evidence_bus/state/current_state.json \
+  --check
 ```
 
 The next lifecycle gate is `BIND_PRIVATE_REFERENCES`. A receipt can advance this projection only when
