@@ -2475,7 +2475,7 @@ tools:
 - tool_id: HAIOS-TOOL-208
   name: machine_graph_collect_macos
   path: tools/machine_graph/collect_macos.py
-  version: 0.1.0
+  version: 0.1.1
   category: pipeline_tool
   zone: 1
   status: draft

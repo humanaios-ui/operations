@@ -29,6 +29,7 @@ The Miner does **not** emit `YOU QUALIFY`, `APPLY_NOW`, or a funding commitment.
 - **Existing HumanAIOS funding pipeline** — imports canonical `../data/sources.json`.
 - **DEV Community public Articles API** — scans challenge announcements through `#devchallenge`; public article listing requires no API key.
 - **GitHub issue search** — supports open bounty/prize queries; optional `GITHUB_TOKEN` only increases rate limits.
+- **HackerOne Hacker API** — read-only program discovery plus structured scope/exclusion metadata. Credentials are read only from `HACKERONE_API_USERNAME` and `HACKERONE_API_TOKEN`; the adapter never contacts program assets.
 - **Generic RSS/Atom** — accepts feed URLs for additional contest, rebate, research, program, and opportunity sources.
 
 The adapter boundary is intentionally small so Devpost, HackerEarth, utility rebates, startup/cloud credits, tribal programs, procurement portals, and open-source bounty networks can be added without changing the resource schema.
@@ -139,6 +140,14 @@ python3 -m resource_miner.cli scan --source devto --dev-tag devchallenge --dry-r
 # GitHub bounties/prizes
 python3 -m resource_miner.cli scan --source github --github-query 'is:issue is:open label:bounty' --dry-run
 
+# HackerOne: enumerate programs visible to the authenticated Hacker API account.
+# Do not put API credentials on the command line; set HACKERONE_API_USERNAME
+# and HACKERONE_API_TOKEN in the environment.
+python3 -m resource_miner.cli scan --source hackerone --dry-run
+
+# One HackerOne program's metadata-only scope graph.
+python3 -m resource_miner.cli hackerone-scope --handle eternal
+
 # Arbitrary RSS/Atom feeds
 python3 -m resource_miner.cli scan --source rss --rss 'https://example.org/opportunities.xml' --dry-run
 ```
@@ -165,6 +174,109 @@ python3 app.py --host 0.0.0.0 --port 8766
 - `GET /api/resources` — the most recent scan output: `data/resources.jsonl` if present, else `data/resources.snapshot.jsonl`.
 - `GET|POST /api/scan` — runs the same discovery -> `enrich()` pipeline as `python3 -m resource_miner.cli scan`, accepting the same `source`/`needs`/`funding_data`/`dev_tag`/`github_query`/`rss` fields as querystring params (GET) or a JSON body (POST). Read-only by default (`persist=false`); pass `persist=1` (or `"persist": true` in a POST body) to write `data/resources.jsonl`, matching this service's Z0/Z1 read-only-discovery framing — nothing here asserts applicant eligibility.
 - `GET /api/entitlement/handoff?resource_id=<id>` — emits a typed, provenance-bearing `humanaios.resource-entitlement-handoff.v1` object for a selected live/snapshot resource. The handoff is always `VERIFY_ELIGIBILITY` with `eligibility_assessed=false` and authority effect `NONE`.
+
+
+## HackerOne scope and authorization boundary
+
+The HackerOne adapter is intentionally split into three layers:
+
+```text
+HackerOne Hacker API
+  -> ResourceCandidate discovery
+  -> ProgramScopeGraph (program -> structured asset -> exclusion)
+  -> authorize_security_action()
+  -> PASSIVE_RECON | MANUAL_TESTING | BOUNDED_AUTOMATION
+     | NOT_AUTHORIZED | SCOPE_CLARIFICATION_REQUIRED
+```
+
+The first two layers read **HackerOne metadata only**. They do not contact a program asset.
+
+The authorization gate in `resource_miner/security_authorization.py` is a pure decision function. It has
+`execution_capability=NONE` and requires explicit inputs for program currentness, policy review,
+method permission, and human authorization. Missing/ambiguous scope information fails closed.
+Destructive action, denial of service, social engineering, credential attacks, and bulk data access
+are denied by the gate.
+
+Core invariants:
+
+```text
+SCOPE_LISTING != AUTHORIZATION
+IN_SCOPE_ASSET != ALL_METHODS_ALLOWED
+PROGRAM_POLICY != HUMAN_AUTHORIZATION
+AUTHORIZATION_DECISION != EXECUTION
+AMBIGUITY => FAIL_CLOSED
+```
+
+The HackerOne source is deliberately **not exposed through the unauthenticated Resource Miner HTTP
+service**. A HackerOne account can expose private-program metadata; publishing that through the
+existing service would cross the current privacy boundary.
+
+
+## HackerOne portfolio → capability match → ranked review queue
+
+The portfolio layer extends metadata-only HackerOne discovery without adding target execution:
+
+```text
+HackerOne programs
+  -> program policy + structured scopes + exclusions
+  -> Machine Substrate Graph capability evidence
+  -> per-asset capability match
+  -> deterministic readiness score
+  -> ranked review queue
+  -> downstream policy/method review
+  -> Security Authorization Gate
+```
+
+The rank is **investigation readiness**, not exploit value and not authorization. It is driven primarily by
+explicitly observed capability coverage and current scope state. Bounty eligibility contributes only a
+small signal; severity is preserved as scope metadata but does not increase rank.
+
+Capability evidence is derived from `tools/machine_graph` observation states. Missing tools remain
+`UNKNOWN` or `OBSERVED_UNAVAILABLE`; the matcher never converts absence of evidence into capability.
+
+To refresh the local capability snapshot on macOS:
+
+```bash
+python3 tools/machine_graph/collect_macos.py \
+  --root "$HOME/HumanAIOS-machine-scan" \
+  --venv "$HOME/HumanAIOS-machine-scan/shacl-test/venv" \
+  --output "$HOME/HumanAIOS-machine-scan/machine-graph/machine-substrate.json"
+```
+
+Then build the authenticated HackerOne portfolio queue:
+
+```bash
+export HACKERONE_API_USERNAME='YOUR_HACKERONE_API_IDENTIFIER'
+export HACKERONE_API_TOKEN='YOUR_HACKERONE_API_TOKEN'
+
+python3 -m resource_miner.cli hackerone-portfolio \
+  --machine-graph "$HOME/HumanAIOS-machine-scan/machine-graph/machine-substrate.json" \
+  --out "$HOME/HumanAIOS-machine-scan/hackerone/ranked-portfolio.json"
+```
+
+The output intentionally lives outside the repository in this example because an authenticated HackerOne
+account may expose private-program metadata.
+
+Each queue entry includes:
+- program and scope identity;
+- asset class;
+- submission/bounty eligibility;
+- candidate review mode;
+- required capability and evidence references;
+- missing capability evidence;
+- effort class;
+- readiness score and rationale;
+- `authorization_state=NOT_EVALUATED`.
+
+Core invariants:
+
+```text
+PORTFOLIO_VISIBILITY != AUTHORIZATION
+CAPABILITY_CLAIM != CAPABILITY_EVIDENCE
+CAPABILITY_MATCH != METHOD_PERMISSION
+RANK != AUTHORIZATION
+QUEUE_ENTRY != EXECUTION
+```
 
 ## ResourceCandidate contract
 

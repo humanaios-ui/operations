@@ -223,7 +223,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-193 | ai-eo-incremental-indexer | `scripts/ai-eo-incremental-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO Incremental Indexer |
 | HAIOS-TOOL-194 | ai-eo-indexer | `scripts/ai-eo-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO (AI-driven Ephemeris Optimization) Indexer |
 | HAIOS-TOOL-203 | control_plane_github_adapter | `tools/control_plane_github_adapter_v0_1.py` | 0.1.0 | 1 | draft | — | Transform exported GitHub evidence into authority-neutral raw custody observations. |
-| HAIOS-TOOL-208 | machine_graph_collect_macos | `tools/machine_graph/collect_macos.py` | 0.1.0 | 1 | draft | — | Metadata-first and local-only by design. It does not read user document contents. |
+| HAIOS-TOOL-208 | machine_graph_collect_macos | `tools/machine_graph/collect_macos.py` | 0.1.1 | 1 | draft | — | Metadata-first and local-only by design. It does not read user document contents. |
 
 ## Reporting — `reporting_tool` (6)
 
