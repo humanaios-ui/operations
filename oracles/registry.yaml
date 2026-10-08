@@ -39,8 +39,22 @@ classes:
     description: Federate validated domain deltas without becoming a domain authority.
     instances:
       - id: ORACLE-GLOBAL-001
-        manifest: federation/global_oracle.yaml
-        state: LAID
+        state: PROVISIONAL
+        responsibilities:
+          - reconcile_entity_identity_candidates
+          - detect_cross_domain_dependencies
+          - preserve_contradictions
+          - detect_missing_evidence
+          - detect_stale_observations
+          - federate_validated_graph_deltas
+          - emit_candidate_change_for_coordinator_evaluation
+        prohibited:
+          - silently_resolve_conflict
+          - authorize_act
+          - ratify
+          - commit
+          - merge
+          - bypass_repository_coordinator
 
 contracts:
   observation_schema: schemas/oracle_observation_v1.schema.json
