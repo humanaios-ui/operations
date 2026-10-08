@@ -207,6 +207,10 @@ def parse_bing_keyword_csv(
             value, below = _parse_numeric(raw)
             if value is None and below is None:
                 continue
+            if value is not None and not 0 <= value < float("inf"):
+                raise ValueError(f"invalid Bing {metric_name}: {raw}")
+            if below is not None and not 0 < below < float("inf"):
+                raise ValueError(f"invalid Bing {metric_name} censor bound: {raw}")
             metrics.append(
                 DemandMetric(
                     provider="bing_keyword_research",
