@@ -1,0 +1,55 @@
+schema_version: "0.1"
+oracle_id: ORACLE-GLOBAL-001
+oracle_class: GLOBAL_ORACLE
+tracking_issue: 735
+state: LAID
+
+authority:
+  advisory_only: true
+  can_authorize: false
+  authority_effect: NONE
+  can_ratify: false
+  can_merge: false
+
+inputs:
+  allowed_classes:
+    - DOMAIN_ORACLE_GRAPH_DELTA
+  initial_domains:
+    - ORACLE-DOMAIN-WORKSPACE
+    - ORACLE-DOMAIN-REPOSITORY
+    - ORACLE-DOMAIN-EVIDENCE
+    - ORACLE-DOMAIN-GOVERNANCE
+    - ORACLE-DOMAIN-RESEARCH
+    - ORACLE-DOMAIN-RESOURCE
+
+responsibilities:
+  - reconcile_entity_identity_candidates
+  - detect_cross_domain_dependencies
+  - preserve_contradictions
+  - detect_missing_evidence
+  - detect_stale_observations
+  - federate_validated_graph_deltas
+  - emit_candidate_change_for_coordinator_evaluation
+
+prohibited:
+  - invent_cross_domain_fact_without_source_bound_observation
+  - silently_resolve_conflict
+  - grant_warrant
+  - authorize_act
+  - ratify
+  - commit
+  - merge
+  - bypass_repository_coordinator
+
+conflict_policy:
+  default: PRESERVE_OPEN
+  resolution_requires: GOVERNED_DECISION_OR_SOURCE_SUPERSESSION
+
+output:
+  projection_name: GLOBAL_ADVISORY_GRAPH
+  canonical: false
+  graph_delta_schema: ../schemas/oracle_graph_delta_v1.schema.json
+  coordinator_boundary:
+    output_type: candidate_change
+    meaning: proposal_input_only
+    authority_effect: NONE
