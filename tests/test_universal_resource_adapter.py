@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 import unittest
 
-MODULE = Path(__file__).resolve().parents[2] / "humanaios-funding-pipeline" / "resource-miner" / "resource_miner" / "universal_adapter.py"
+MODULE = Path(__file__).resolve().parents[1] / "humanaios-funding-pipeline" / "resource-miner" / "resource_miner" / "universal_adapter.py"
 spec = importlib.util.spec_from_file_location("universal_adapter", MODULE)
 ura = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = ura
