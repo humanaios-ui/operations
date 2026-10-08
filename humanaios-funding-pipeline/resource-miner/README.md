@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.1
+# HumanAIOS Resource Miner v0.1.7
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -6,7 +6,7 @@ It asks:
 
 > What externally available resources could reduce a currently modeled need, and what should be verified next?
 
-A resource may be a contest, hackathon, grant, bounty, rebate, credit, fellowship, procurement call, training program, research-access offer, dataset, or other externally available capability.
+At discovery time, a `ResourceCandidate` is best read as a **candidate resource opportunity**: a bounded external path to value that still requires currentness, eligibility, and acquisition resolution. A mine/platform is not itself the controlled resource, and an opportunity is not yet value under the user's control.
 
 ## Boundary
 
@@ -327,3 +327,183 @@ Resource Miner
 ```
 
 The adapter `resource_candidate_to_target()` may carry forward source URLs and Need Graph scores. It may **not** convert need alignment, route state, or `eligibility_assessed=false` into applicant eligibility. This is covered by `tests/test_guiding_light.py`.
+
+## Resource mine → opportunity → controlled resource
+
+Resource Miner now distinguishes the **mine** from the value extracted from it. Existing source catalogs may still contain coarse mine-level or bundled records; source-specific resolvers should decompose those records into bounded opportunities before they are treated as acquisition targets:
+
+```text
+RESOURCE MINE
+→ RESOURCE OPPORTUNITY
+→ ACQUISITION / CLAIM / WORK
+→ CONTROLLED RESOURCE
+→ RESOURCE AFFORDANCE
+→ OUTCOME
+```
+
+Examples:
+
+- **Microsoft for Startups** is a resource mine. An eligible Azure startup-credit offer is a resource opportunity. The credit balance actually awarded to the startup is the controlled resource. Compute/API/storage/AI capacity are affordances of that resource.
+- **HackerOne** is a resource mine. A specific bounty-bearing program plus its in-scope asset/reward rule is a resource opportunity. A bounty actually awarded after a valid report is a controlled monetary resource; reputation or credential evidence should be represented separately rather than silently merged into cash value.
+
+This extends, rather than replaces, the existing invariants:
+
+```text
+MINE != OPPORTUNITY
+OPPORTUNITY != CONTROLLED_RESOURCE
+CONTROLLED_RESOURCE != RESOURCE_AFFORDANCE
+RESOURCE_DISCOVERY != ELIGIBILITY
+```
+
+### Persistent Mine registry and tokenized Opportunity resolution
+
+`data/mines.seed.json` is the persistent Mine registry. A Mine is a durable source/ecosystem, not the value extracted from it.
+
+```text
+ResourceMine
+  -> repeated read-only observation
+  -> ResourceCandidate (candidate Resource Opportunity)
+  -> stable OPP-* identity
+  -> urn:humanaios:resource-opportunity:OPP-...
+```
+
+Opportunity identity is derived from `mine_id + opportunity_identity + opportunity_kind`. The display title, published value, evidence, and status may change without minting a new token when the underlying bounded opportunity is still the same.
+
+Mine roles are explicit and non-exclusive:
+
+- `OPPORTUNITY_SOURCE` — may emit bounded external Resource Opportunities;
+- `EVIDENCE_SOURCE` — can supply provenance/capability/currentness evidence;
+- `GOVERNED_SYSTEM` — preserves proposed/accepted state, review, CI, and history;
+- `CONTROLLED_RESOURCE_SOURCE` — reserved for cases where reusable code/data/tooling is itself a controlled capability.
+
+A GitHub repository is therefore **not automatically a Resource Opportunity**. The repository resolver only emits open issues that satisfy explicit high-signal opportunity selectors (for example bounty/reward/prize/paid-work labels). Text inference is disabled by default. Repositories registered only as `EVIDENCE_SOURCE | GOVERNED_SYSTEM` produce a `ROLE_ONLY` resolution receipt and no Resource Opportunities.
+
+The initial registry includes:
+
+- Microsoft for Startups — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; bounded program endpoints are re-observed daily.
+- HackerOne — `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`; the intended resolution unit is `Program x bounty-eligible ScopeAsset`. It remains dependency-gated until the scope-hydrated #680/#683 implementation is present.
+- the HumanAIOS repositories — `EVIDENCE_SOURCE | GOVERNED_SYSTEM`; ordinary issues are not promoted into resources.
+
+Run a Mine resolution manually:
+
+```bash
+python3 -m resource_miner.cli resolve-mines --dry-run
+
+python3 -m resource_miner.cli resolve-mines \
+  --out data/opportunities.snapshot.jsonl \
+  --receipts-out data/mine-resolution.snapshot.jsonl \
+  --claims-out data/opportunity-claims.snapshot.jsonl \
+  --events-ledger data/opportunity-claim-events.jsonl
+```
+
+The scheduled `.github/workflows/resource-miner-scan.yml` executes this resolution before the broad Resource Miner scan. Durable outputs are:
+
+- `data/opportunities.snapshot.jsonl` — latest tokenized Mine-derived Resource Opportunities;
+- `data/mine-resolution.snapshot.jsonl` — per-Mine observation state and emitted opportunity IDs;
+- `data/propositions.snapshot.jsonl` — deterministic `PRP-*` candidate propositions mined from current opportunities;
+- `data/opportunity-claims.snapshot.jsonl` — evidence-bearing `CLM-*` Opportunity Claims for the current `OPP-*` set;
+- `data/opportunity-claim-events.jsonl` — append-only, hash-chained Claim Evaluation Event ledger from which CLM state can be replayed;
+- `data/resources.snapshot.jsonl` — existing broad-discovery snapshot.
+
+Resolution receipts never grant eligibility, warrant, authorization, or execution permission. Observation failure preserves a configured opportunity identity but does not establish currentness.
+
+### Opportunity Claim
+
+Each tokenized Mine-derived opportunity now produces a separate `humanaios.opportunity-claim.v1` object. The opportunity is the stable bounded object; the claim is the revisable epistemic assertion about it.
+
+```text
+OPP-* Resource Opportunity
+  -> CLM-* Opportunity Claim
+       |- EXISTENCE
+       |- CURRENTNESS
+       |- TERMS
+       |- ELIGIBILITY
+       |- ATTAINABILITY
+       |- evidence
+       |- falsifiers
+       |- unknowns / constraints
+       |- warrant state
+       |- authorization state
+```
+
+Falsification is facet-local: a closed opportunity falsifies `CURRENTNESS` and retires the claim without erasing historical `EXISTENCE`; materially wrong terms make the claim `CONTESTED`; only an existential falsifier makes the whole claim `FALSIFIED`.
+
+Resource Miner never self-promotes applicant eligibility or authority. New claims start with `ELIGIBILITY=UNASSESSED`, `ATTAINABILITY=UNASSESSED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, `actionability_state=NOT_ACTIONABLE`, and `authority_effect=NONE`.
+
+See `docs/OPPORTUNITY_CLAIM.md` and `schemas/opportunity-claim.v1.schema.json`.
+
+### Private Gmail Mine
+
+`aioshuman@gmail.com` is registered as an event-driven `MAILBOX` Mine with roles `OPPORTUNITY_SOURCE | EVIDENCE_SOURCE`.
+
+The public Resource Miner runtime does **not** authenticate to Gmail. The existing private Gmail adapter owns credentials, raw message/thread IDs, bodies, MIME, mailbox URLs, and private event references. Resource Miner consumes only a privacy-minimized projection supplied through the private runtime.
+
+```text
+Private Gmail runtime
+  -> raw mail stays private
+  -> privacy-minimized candidate projection
+  -> Resource Miner OPP / PRP / CLM / CEV graph
+```
+
+Mail content is always `UNTRUSTED_EVIDENCE`; it has `instruction_authority=NONE` in this path. The separate Daily Digest command processor remains the only mailbox command path and retains its own human-authority rules.
+
+Without the private projection runtime, GitHub Actions must resolve this Mine as `DEPENDENCY_PENDING`; it must not simulate mailbox access.
+
+### Proposition-first mining
+
+Resource Miner now treats normalized source records as evidence containers rather than the final unit of reasoning.
+
+```text
+Mine -> record/observation -> OPP-* -> PRP-* -> CLM-* -> CEV-*
+```
+
+One opportunity may emit many stable `PRP-*` Proposition Candidates. Proposition identity is semantic (`opportunity + proposition type + predicate + object`), so display-title changes do not change identity while different object values remain distinct.
+
+Direct observations may support observation propositions. Normalizer classifications and text extractions produce testable propositions but do **not** self-validate their external truth. A proposition-bound claim uses `claim_type=OPPORTUNITY_PROPOSITION`; parent opportunity existence/currentness cannot promote an unrelated proposition to `SUPPORTED`.
+
+The scheduled Mine workflow persists `data/propositions.snapshot.jsonl` between the OPP and CLM layers. See `docs/PROPOSITION_MINING.md` and `schemas/proposition-candidate.v1.schema.json`.
+
+### Reconstructable Claim state machine
+
+`OpportunityClaim` is now a replayed projection of an append-only `humanaios.claim-evaluation-event.v1` history rather than the sole historical record.
+
+```text
+CLAIM_ASSERTED
+  -> EVIDENCE_RECORDED*
+  -> FALSIFIER_EVALUATED*
+  -> FACET_RESOLVED*
+  -> deterministic replay
+  -> current CLM-* state
+```
+
+Each event is hash-addressed and chained through `previous_event_id`, and records actor, method, affected facet, prior/resulting state, evidence, uncertainty, and `authority_effect=NONE`. Replay rejects hash tampering, broken chains, and prior/resulting-state mismatches.
+
+The durable ledger is `data/opportunity-claim-events.jsonl`. Scheduled Mine resolution appends genesis events for new claims and novel evidence events for existing claims while preserving the prior file prefix. `data/opportunity-claims.snapshot.jsonl` is a current-state projection/cache.
+
+The state machine is regression-tested against the `Top Free Online Certifications` concept in `docs/FREE_ONLINE_CERTIFICATION_REPLAY.md`, demonstrating supported, retired, and contested claims without flattening free training, badges, paid exams, and certificates into one boolean.
+
+See `docs/OPPORTUNITY_CLAIM_STATE_MACHINE.md` and `schemas/claim-evaluation-event.v1.schema.json`.
+
+### Demand observations
+
+`resource_miner.demand` adds a read-only demand-evidence layer. Demand may be observed against four distinct subjects:
+
+- `MINE` — platform/program awareness, such as `HackerOne`;
+- `OPPORTUNITY` — a claimable/earnable offer, such as `Azure startup credits`;
+- `RESOURCE_CLASS` — the kind of value sought, such as `cloud credits for startups` or `bug bounty payout`;
+- `NEED` — the underlying problem expressed by a searcher.
+
+Query records also carry an intent class: `NAME | RESOURCE | PROBLEM | ELIGIBILITY | ACTION`.
+
+Provider semantics are deliberately non-interchangeable:
+
+- **Google Trends** CSV ingestion records normalized relative-interest indexes (0–100). These are not absolute search counts and not unique-user counts.
+- **Bing Keyword Research** CSV ingestion records search volume/impression observations. These remain query/search-event observations, not deduplicated unique people.
+
+Demand evidence is attached as `DemandSnapshot` records and does **not** alter `VERIFY_NOW | WATCH | ARCHIVE`, applicant eligibility, warrant, or authorization in this increment.
+
+The parsers accept exported CSV evidence so observations can be receipted without scraping provider interfaces. Run the full regression suite with:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
