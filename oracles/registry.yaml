@@ -26,14 +26,6 @@ classes:
         manifest: domains/workspace.yaml
       - id: ORACLE-DOMAIN-REPOSITORY
         manifest: domains/repository.yaml
-      - id: ORACLE-DOMAIN-EVIDENCE
-        manifest: domains/evidence.yaml
-      - id: ORACLE-DOMAIN-GOVERNANCE
-        manifest: domains/governance.yaml
-      - id: ORACLE-DOMAIN-RESEARCH
-        manifest: domains/research.yaml
-      - id: ORACLE-DOMAIN-RESOURCE
-        manifest: domains/resource.yaml
 
   global:
     description: Federate validated domain deltas without becoming a domain authority.
@@ -74,3 +66,9 @@ federated_projection:
   canonical_name: GLOBAL_ADVISORY_GRAPH
   canonical: false
   authority_effect: NONE
+
+planned_domain_profiles:
+  - ORACLE-DOMAIN-EVIDENCE
+  - ORACLE-DOMAIN-GOVERNANCE
+  - ORACLE-DOMAIN-RESEARCH
+  - ORACLE-DOMAIN-RESOURCE
