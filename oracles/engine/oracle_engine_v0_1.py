@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -333,6 +334,7 @@ class CoordinatorAdapter:
         if spec is None or spec.loader is None:
             raise RuntimeError("Cannot load repository coordinator")
         module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
         spec.loader.exec_module(module)
 
         policy = json.loads(
