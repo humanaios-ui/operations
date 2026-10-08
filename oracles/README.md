@@ -77,7 +77,7 @@ Do not name the advisory projection `SSOT`. Global does not mean canonical, inte
 
 ## Phase 1 pilot
 
-Implemented in `engine/oracle_engine_v0_1.py` with a replayable Drive observation fixture under `fixtures/`.
+Implemented in `engine/oracle_engine_v0_1.py`. The live-derived Drive observation vector is embedded in the already-enumerated Repository Coordinator regression suite so the blocking quality baseline exercises the pilot.
 
 The pilot:
 1. Projects the existing Google Drive HumanAIOS graph through the Workspace Oracle.
