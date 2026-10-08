@@ -1,0 +1,62 @@
+schema_version: "0.1"
+tracking_issue: 735
+
+authority:
+  advisory_only: true
+  can_authorize: false
+  authority_effect: NONE
+  can_ratify: false
+  can_merge: false
+
+classes:
+  source:
+    description: Observe one substrate and emit provenance-bearing source observations.
+    instances:
+      - id: ORACLE-SOURCE-DRIVE
+        substrate: google_drive
+        state: LAID
+      - id: ORACLE-SOURCE-GITHUB
+        substrate: github
+        state: LAID
+
+  domain:
+    description: Maintain a bounded semantic projection using admitted source observations.
+    instances:
+      - id: ORACLE-DOMAIN-WORKSPACE
+        manifest: domains/workspace.yaml
+      - id: ORACLE-DOMAIN-REPOSITORY
+        manifest: domains/repository.yaml
+      - id: ORACLE-DOMAIN-EVIDENCE
+        manifest: domains/evidence.yaml
+      - id: ORACLE-DOMAIN-GOVERNANCE
+        manifest: domains/governance.yaml
+      - id: ORACLE-DOMAIN-RESEARCH
+        manifest: domains/research.yaml
+      - id: ORACLE-DOMAIN-RESOURCE
+        manifest: domains/resource.yaml
+
+  global:
+    description: Federate validated domain deltas without becoming a domain authority.
+    instances:
+      - id: ORACLE-GLOBAL-001
+        manifest: federation/global_oracle.yaml
+        state: LAID
+
+contracts:
+  observation_schema: schemas/oracle_observation_v1.schema.json
+  graph_delta_schema: schemas/oracle_graph_delta_v1.schema.json
+
+dependencies:
+  - issue: 677
+    role: longitudinal_graph_and_source_semantics
+  - issue: 708
+    role: advisory_stance_and_receipt_boundary
+  - path: schemas/system_stance_v1.schema.json
+    role: advisory_constants
+  - path: tools/graph_capture_lint_v1_0.py
+    role: provenance_retraction_temporal_lint
+
+federated_projection:
+  canonical_name: GLOBAL_ADVISORY_GRAPH
+  canonical: false
+  authority_effect: NONE
