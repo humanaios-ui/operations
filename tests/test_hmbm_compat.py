@@ -36,7 +36,7 @@ class TestHMBMURA(unittest.TestCase):
             "authorization_effect": "NONE",
         }
 
-    def run_projection(self, updates=None, resource_updates=None):
+    def run_projection(self, updates=None, resource_updates=None, verifier=None):
         obs = dict(self.observation)
         obs.update(updates or {})
         resource = dict(self.resource)
@@ -45,16 +45,46 @@ class TestHMBMURA(unittest.TestCase):
             resource, obs, cutoff=CUTOFF,
             frozen_assets=frozenset([ASSET]),
             registered_providers=frozenset(["TRIAL_SYNTHETIC"]),
+            verify_availability=verifier,
         )
 
     def test_cutoff_eligible_not_prediction(self):
-        result = self.run_projection()
+        result = self.run_projection(verifier=lambda **binding: binding == {
+            "provider_id": "TRIAL_SYNTHETIC", "asset_id": ASSET,
+            "source_reference": URL, "content_hash": HASH,
+            "available_at": compat._utc(self.observation["available_at"]),
+            "cutoff": compat._utc(CUTOFF),
+        })
         self.assertEqual(result["evaluation_state"], "ELIGIBLE_FOR_HMBM_EVALUATION")
         self.assertEqual(result["prediction_authority"], "NONE")
         self.assertEqual(result["dhp_state_effect"], "NONE")
 
     def test_unverified_availability_abstains(self):
         self.assertEqual(self.run_projection({"availability_verification": "CLAIM_ONLY"})["evaluation_state"], "MISSING_DATA")
+        self.assertEqual(self.run_projection()["evaluation_state"], "MISSING_DATA")
+
+    def test_forged_independent_flag_without_verifier_abstains(self):
+        result = self.run_projection({"availability_verification": "INDEPENDENTLY_VERIFIED"})
+        self.assertEqual(result["evaluation_state"], "MISSING_DATA")
+        self.assertEqual(result["availability_verification"], "NOT_VERIFIED")
+
+    def test_untrusted_verifier_result_abstains(self):
+        for result in ("True", 1, False, None):
+            with self.subTest(result=result):
+                self.assertEqual(self.run_projection(verifier=lambda **_: result)["evaluation_state"], "MISSING_DATA")
+
+    def test_verifier_exception_abstains(self):
+        def unavailable(**_):
+            raise RuntimeError("proof backend unavailable")
+        self.assertEqual(self.run_projection(verifier=unavailable)["evaluation_state"], "MISSING_DATA")
+
+    def test_verifier_binding_mismatch_abstains(self):
+        expected_digest = HASH
+        self.assertEqual(self.run_projection(
+            updates={"content_hash": "b" * 64},
+            resource_updates={"evidence": [{"url": URL, "claim": "digest:sha256:" + "b" * 64}]},
+            verifier=lambda **binding: binding["content_hash"] == expected_digest,
+        )["evaluation_state"], "MISSING_DATA")
 
     def test_late_availability_abstains(self):
         self.assertEqual(self.run_projection({"available_at": "2026-09-30T08:00:00-05:00"})["evaluation_state"], "MISSING_DATA")
