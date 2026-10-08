@@ -1,0 +1,3945 @@
+{
+  "graph_name": "HumanAIOS Cross-Chat Knowledge Graph",
+  "scope": "Synthesis of retrievable conversation history and persistent cross-chat context; not a complete transcript export.",
+  "generated_date": "2026-10-02",
+  "ontology": {
+    "node_types": [
+      "AI Collaborator",
+      "AI Reviewer",
+      "Actor",
+      "Agent Concept",
+      "Architecture",
+      "Architecture/Program",
+      "Architecture/Role",
+      "Audit Method",
+      "Audit Step",
+      "Authority/State Zone",
+      "Capability",
+      "Conceptual Model",
+      "Control Plane",
+      "Decision State",
+      "Experiment Cycle",
+      "Experiment Series",
+      "External Domain",
+      "Framework",
+      "Governance Artifact",
+      "Governance Mechanism",
+      "Governance Model",
+      "Graph",
+      "Hypothesis",
+      "Invariant",
+      "Issue",
+      "Knowledge Graph",
+      "Learning Program",
+      "Method",
+      "Method/Artifact",
+      "Null Hypothesis",
+      "Organization/Recovery Cooperative",
+      "Organization/Research Program",
+      "Organization/System",
+      "PR",
+      "PR Group",
+      "Portfolio",
+      "Primitive",
+      "Principle",
+      "Program",
+      "Program Concept",
+      "Program/Work Item",
+      "Proposed Voice",
+      "Protocol/Research Program",
+      "Repository",
+      "Research Artifact",
+      "Research Instrument",
+      "Research Method",
+      "Research Program",
+      "Research Thread",
+      "Research Track",
+      "Resource",
+      "Software/Workflow",
+      "Strategy",
+      "Strategy Constraint",
+      "System Component",
+      "Tension",
+      "Voice",
+      "Workflow",
+      "Workflow/Research Node",
+      "Zone"
+    ],
+    "edge_semantics": "Directed typed relations. Edge status indicates whether a relation was asserted/proposed in chat rather than externally re-verified in this generation.",
+    "provenance_rule": "Chat-derived claims are not treated as equivalent to repository/file/external verification."
+  },
+  "nodes": [
+    {
+      "id": "PORTFOLIO_TRINITY",
+      "label": "Trinity Initiative",
+      "type": "Portfolio",
+      "domain": "portfolio",
+      "status": "established-in-chat",
+      "description": "Body/Mind/Heart framing connecting HumanAIOS, Lasting Light AI, and Lasting Light Recovery.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ORG_HUMANAIOS",
+      "label": "HumanAIOS",
+      "type": "Organization/System",
+      "domain": "portfolio",
+      "status": "established-in-chat",
+      "description": "Human\u2013AI Operating System / evidence-and-control architecture.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ORG_LLAI",
+      "label": "Lasting Light AI",
+      "type": "Organization/Research Program",
+      "domain": "portfolio",
+      "status": "established-in-chat",
+      "description": "Research/governance arm; home of ACAT and related calibration research.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ORG_LLR",
+      "label": "Lasting Light Recovery",
+      "type": "Organization/Recovery Cooperative",
+      "domain": "portfolio",
+      "status": "established-in-chat",
+      "description": "Recovery cooperative/nonprofit concept; Heart of Trinity.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRINCIPLE_ATTRACTION",
+      "label": "Attraction, not promotion",
+      "type": "Principle",
+      "domain": "portfolio",
+      "status": "established-in-chat",
+      "description": "Standing positioning language for recovery/public engagement.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "REPO_OPERATIONS",
+      "label": "humanaios-ui/operations",
+      "type": "Repository",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Primary operations/governance repository and archaeological record.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "REPO_HUMANAIOS",
+      "label": "humanaios-ui/humanaios",
+      "type": "Repository",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "HumanAIOS product/system repository.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "REPO_LLAI",
+      "label": "humanaios-ui/lasting-light-ai",
+      "type": "Repository",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Lasting Light AI research repository.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "REPO_GRAPH_EVOLUTION",
+      "label": "Graph Evolution repository (planned)",
+      "type": "Repository",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Proposed clean-room/generalized repository for graph evolution and behavioral-calibration programming models.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_REALITY",
+      "label": "Reality",
+      "type": "Primitive",
+      "domain": "epistemic",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_OBSERVATION",
+      "label": "Observation",
+      "type": "Primitive",
+      "domain": "epistemic",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_EVIDENCE",
+      "label": "Evidence",
+      "type": "Primitive",
+      "domain": "epistemic",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_PROVENANCE",
+      "label": "Evidence Provenance",
+      "type": "Primitive",
+      "domain": "epistemic",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_INTERPRETATION",
+      "label": "Interpretation",
+      "type": "Primitive",
+      "domain": "epistemic",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_CLAIM",
+      "label": "Claim",
+      "type": "Primitive",
+      "domain": "epistemic",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_UNCERTAINTY",
+      "label": "Uncertainty",
+      "type": "Primitive",
+      "domain": "epistemic",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_CALIBRATION",
+      "label": "Calibration State / Gauge",
+      "type": "Primitive",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_WARRANT",
+      "label": "Warrant",
+      "type": "Primitive",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_AUTHORITY",
+      "label": "Authority",
+      "type": "Primitive",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_CAPABILITY",
+      "label": "Capability",
+      "type": "Primitive",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_AUTHORIZATION",
+      "label": "Authorization",
+      "type": "Primitive",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_ACTION",
+      "label": "Action",
+      "type": "Primitive",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_EXECUTION",
+      "label": "Observed Execution",
+      "type": "Primitive",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_CONSEQUENCE",
+      "label": "Consequence / Outcome",
+      "type": "Primitive",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_DEVIATION",
+      "label": "Deviation",
+      "type": "Primitive",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_CHALLENGE",
+      "label": "Challenge",
+      "type": "Primitive",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_CORRECTION",
+      "label": "Correction / Molt",
+      "type": "Primitive",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_REVISED_WARRANT",
+      "label": "Revised Warrant",
+      "type": "Primitive",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_REVERSIBILITY",
+      "label": "Reversibility",
+      "type": "Primitive",
+      "domain": "risk",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_RISK",
+      "label": "Risk / Consequence",
+      "type": "Primitive",
+      "domain": "risk",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_HARD_CONSTRAINT",
+      "label": "Hard Constraint",
+      "type": "Primitive",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_HUMAN_AUTHORITY",
+      "label": "Human Authority Boundary",
+      "type": "Primitive",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_RECEIPT",
+      "label": "Execution / Experience Receipt",
+      "type": "Primitive",
+      "domain": "provenance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_OMISSION",
+      "label": "Omission",
+      "type": "Primitive",
+      "domain": "epistemic",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PRIM_FALSIFIER",
+      "label": "Falsifier",
+      "type": "Primitive",
+      "domain": "research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_AEC",
+      "label": "Adaptive Epistemic Control",
+      "type": "Architecture",
+      "domain": "architecture",
+      "status": "established-in-chat",
+      "description": "Evidence-bearing adaptive behavioral control architecture for autonomous computation.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_ACTION_CONTROL",
+      "label": "Action-Centered Control Model",
+      "type": "Architecture",
+      "domain": "architecture",
+      "status": "established-in-chat",
+      "description": "Common control representation across safety, runtime assurance, cybersecurity authorization, model-risk, provenance, process mining, adaptive management, and digital thread.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_EVIDENCE_GRAPH",
+      "label": "Evidence Graph",
+      "type": "Graph",
+      "domain": "architecture",
+      "status": "established-in-chat",
+      "description": "Links events, claims, omissions, tests, warrants, decisions, actions, consequences, and corrections.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_INTENT_OS",
+      "label": "INTENT-OS",
+      "type": "Architecture",
+      "domain": "architecture",
+      "status": "established-in-chat",
+      "description": "Intent/request \u2192 artifact \u2192 execution/evidence \u2192 CI \u2192 human authority \u2192 reconciliation; personalized intent-action-outcome graph.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_GRAPH_EVOLUTION",
+      "label": "Graph Evolution System",
+      "type": "Architecture",
+      "domain": "architecture",
+      "status": "established-in-chat",
+      "description": "Canonical evidence substrate \u2192 graph \u2192 challenge/mutation \u2192 outcome \u2192 calibration \u2192 evolution.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_WITNESS",
+      "label": "Witness",
+      "type": "Architecture/Role",
+      "domain": "architecture",
+      "status": "established-in-chat",
+      "description": "Observation/provenance role; should not grant authority.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_HARNESS",
+      "label": "Governance Harness",
+      "type": "Architecture",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "Permission, constraint, isolation, interruption, rollback, veto.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_GAUGE",
+      "label": "Calibration Gauge",
+      "type": "Architecture",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "Multidimensional calibration estimate with uncertainty/currentness/trend/error.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_BEAM",
+      "label": "BEAM Observation Boundary",
+      "type": "Architecture",
+      "domain": "architecture",
+      "status": "established-in-chat",
+      "description": "Actor observation-boundary primitive derived from Root/Keyhole/Soul model; ACTOR, OBSERVATION_BOUNDARY, OBSERVATION, ACTOR_CONTEXT, BELIEF_STATE, EXPERIENCE_RECEIPT.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_ROOT_KEYHOLE_SOUL",
+      "label": "Root\u2013Keyhole\u2013Soul Model",
+      "type": "Conceptual Model",
+      "domain": "architecture",
+      "status": "established-in-chat",
+      "description": "Root omniscience vs bounded Keyhole projections vs local Soul experience; provenance-preserving bounded agency.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_RECURSIVE_LOOP",
+      "label": "Recursive Epistemic Loop",
+      "type": "Conceptual Model",
+      "domain": "architecture",
+      "status": "established-in-chat",
+      "description": "Reality\u2192Observation\u2192Evidence\u2192Interpretation\u2192Warrant\u2192Action\u2192Consequence\u2192Challenge\u2192Correction\u2192revised warrant/action.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_CONTROL_THEORY",
+      "label": "Observability / Controllability Mapping",
+      "type": "Framework",
+      "domain": "control",
+      "status": "established-in-chat",
+      "description": "Maps HumanAIOS to control-theory concepts and staged authority.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_STAGED_AUTHORITY",
+      "label": "Staged Authority",
+      "type": "Framework",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "Replay \u2192 Shadow \u2192 Sandbox \u2192 Limited \u2192 Expanded.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ARCH_CUSTODY",
+      "label": "Custody Separation",
+      "type": "Framework",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "Separates execution, decision, and information custody.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INV_CLOCK_AUTH",
+      "label": "CLOCK \u2260 AUTHORITY",
+      "type": "Invariant",
+      "domain": "invariants",
+      "status": "established-in-chat",
+      "description": "Time is environmental/contextual, not an authorization or throttling primitive.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INV_FLAG_TASK",
+      "label": "FLAG \u2260 TASK",
+      "type": "Invariant",
+      "domain": "invariants",
+      "status": "established-in-chat",
+      "description": "CI/telemetry flags must be routed to queues; they are not automatically work items.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INV_CONTEXT_AUTH",
+      "label": "AI_CONTEXT \u2260 CANONICAL_AUTHORITY",
+      "type": "Invariant",
+      "domain": "invariants",
+      "status": "established-in-chat",
+      "description": "AI context is a derived projection, not canonical authority.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INV_CAL_WARRANT_AUTH",
+      "label": "Calibration \u2260 Warrant \u2260 Authorization \u2260 Enforcement",
+      "type": "Invariant",
+      "domain": "invariants",
+      "status": "established-in-chat",
+      "description": "Core separation of epistemic estimate, decision boundary, permission, and mechanism.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INV_WITNESS_NO_AUTH",
+      "label": "Witness does not grant authority",
+      "type": "Invariant",
+      "domain": "invariants",
+      "status": "established-in-chat",
+      "description": "Witness remains observational/provenance-bearing.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INV_NO_SELF_AUTH",
+      "label": "No canonical self-authorization",
+      "type": "Invariant",
+      "domain": "invariants",
+      "status": "established-in-chat",
+      "description": "Mutation/self-authorization disabled without human authority.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INV_UNKNOWN",
+      "label": "UNKNOWN / Abstention is valid",
+      "type": "Invariant",
+      "domain": "invariants",
+      "status": "established-in-chat",
+      "description": "System must preserve unresolved state instead of silently completing intent.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INV_HISTORY",
+      "label": "Preserve history",
+      "type": "Invariant",
+      "domain": "invariants",
+      "status": "established-in-chat",
+      "description": "Operations is archaeological record; corrections supersede rather than erase.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INV_TIME_PURITY",
+      "label": "Temporal purity",
+      "type": "Invariant",
+      "domain": "invariants",
+      "status": "established-in-chat",
+      "description": "Deadlines/time may not silently become internal authorization semantics.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "MODEL_SEVEN_VOICES",
+      "label": "Seven Voices",
+      "type": "Governance Model",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "Multi-perspective model feeding evidence/warrant without collapsing roles.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "VOICE_TOOL",
+      "label": "Tool Voice / Navigator",
+      "type": "Voice",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "VOICE_HUMAN",
+      "label": "Human Voice / Sponsor-Seeker",
+      "type": "Voice",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "VOICE_AUTHORITY",
+      "label": "Authority Voice",
+      "type": "Voice",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "VOICE_NORMATIVE",
+      "label": "Normative Voice",
+      "type": "Voice",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "VOICE_INDUSTRY",
+      "label": "Industry Voice",
+      "type": "Voice",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "VOICE_EVIDENCE",
+      "label": "Evidence Graph Voice",
+      "type": "Voice",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "VOICE_CAL_OBSERVER",
+      "label": "Calibration Observer",
+      "type": "Voice",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "VOICE_AI_WITNESS",
+      "label": "AI Witness Voice",
+      "type": "Proposed Voice",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INST_ACAT",
+      "label": "ACAT",
+      "type": "Research Instrument",
+      "domain": "calibration",
+      "status": "established-in-chat",
+      "description": "AI Calibrated Assessment Tool; Phase 1 blind self-report, Phase 2 calibration exposure, Phase 3 corrected self-report; measures self-description calibration, not capability.",
+      "first_seen": null,
+      "properties": {
+        "dimensions": [
+          "Truthfulness",
+          "Service",
+          "Harm Awareness",
+          "Autonomy Respect",
+          "Value Alignment",
+          "Humility"
+        ],
+        "total_range": "0\u2013600",
+        "LI": "P3/P1",
+        "SAG": "P1-P3",
+        "latest_public_stats_in_chat": {
+          "assessments": 598,
+          "systems": 57,
+          "complete_LI_records": 148,
+          "mean_P1": 478.6,
+          "mean_P3": 450.1,
+          "mean_LI": 0.942
+        },
+        "TRL": "2\u20133"
+      },
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "INST_HCAT",
+      "label": "hCAT",
+      "type": "Research Instrument",
+      "domain": "calibration",
+      "status": "established-in-chat",
+      "description": "Human adaptation of ACAT on 1\u20135 scale / 6\u201330 total; hLI=P3/P1.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "RESEARCH_ACAT_PAPER",
+      "label": "ACAT arXiv Paper v5.1",
+      "type": "Research Artifact",
+      "domain": "calibration",
+      "status": "established-in-chat",
+      "description": "\u2018ACAT: Benchmarking Self-Description Calibration in Large Language Models\u2019 as discussed in chats.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "RESEARCH_H1",
+      "label": "Cross-Domain Primitive Compatibility H1",
+      "type": "Hypothesis",
+      "domain": "research",
+      "status": "established-in-chat",
+      "description": "Safety engineering, runtime assurance, cybersecurity authorization, model-risk, provenance, process mining, adaptive management, and digital-thread primitives can share an action-centered representation without material semantic loss.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "RESEARCH_H0",
+      "label": "Loose Relabeling H0",
+      "type": "Null Hypothesis",
+      "domain": "research",
+      "status": "established-in-chat",
+      "description": "Combining domains is only relabeling and creates no measurable operational advantage.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "RESEARCH_BIDIR_CAL",
+      "label": "Bidirectional Calibration",
+      "type": "Research Track",
+      "domain": "calibration",
+      "status": "established-in-chat",
+      "description": "Calibration work referenced in repository PR queue.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "RESEARCH_OPEN_ARENA",
+      "label": "Open Arena",
+      "type": "Research Program",
+      "domain": "research",
+      "status": "established-in-chat",
+      "description": "Source Echo, Supported Dissent, Goal Keeper rooms preserving evidence lineage, disagreements, unknowns, and revisions.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "RESEARCH_TELEMETRY",
+      "label": "Telemetry Guidance Method",
+      "type": "Research Method",
+      "domain": "research",
+      "status": "established-in-chat",
+      "description": "Three clocks, append-only ledgers, forecast states, and bounded outputs.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_HARC",
+      "label": "HARC",
+      "type": "Protocol/Research Program",
+      "domain": "email",
+      "status": "established-in-chat",
+      "description": "Human/AI review-board trial and evidence-return protocol.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_RESOURCE_MINER",
+      "label": "Resource Miner",
+      "type": "Program",
+      "domain": "resources",
+      "status": "established-in-chat",
+      "description": "Mines internal/external resources; distinguishes need alignment from eligibility.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_RESOURCE_SYSTEM",
+      "label": "Resource System",
+      "type": "Architecture/Program",
+      "domain": "resources",
+      "status": "established-in-chat",
+      "description": "Extends Resource Miner with PII Vault, Claim Gateway, Evidence & Capability Graph, resolvers, controller, warrant/authorization, Activity/Resource Graph and runtime.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_DAILY_DIGEST",
+      "label": "HumanAIOS Daily Digest",
+      "type": "Workflow/Research Node",
+      "domain": "operations",
+      "status": "established-in-chat",
+      "description": "Daily operating brief + PR #530-style research node + human index/message board + longitudinal systems-research instrument.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_EMAIL_PLATFORM",
+      "label": "Email-as-Platform Protocol",
+      "type": "Workflow",
+      "domain": "email",
+      "status": "established-in-chat",
+      "description": "Email thread as protocol surface; inbound replies become evidence, questions, observations, files, links, or commands.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_INBOUND_PROCESSOR",
+      "label": "Inbound Email Command Processor",
+      "type": "Software/Workflow",
+      "domain": "email",
+      "status": "established-in-chat",
+      "description": "Non-enforcing parser with attribution, replay protection, authority holds.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_GMAIL_ADAPTER",
+      "label": "Private Gmail Adapter",
+      "type": "Software/Workflow",
+      "domain": "email",
+      "status": "established-in-chat",
+      "description": "Push/history-delta adapter and private ledger invoking inbound processor.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_RNOLA",
+      "label": "RNOLA",
+      "type": "Learning Program",
+      "domain": "learning",
+      "status": "established-in-chat",
+      "description": "Repository-native operator learning architecture mapped to INTENT-OS.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_CAREER_GRADIENT",
+      "label": "Guiding Light Career Gradient Pathway",
+      "type": "Program",
+      "domain": "career",
+      "status": "established-in-chat",
+      "description": "Evidence-based career pathway mapping current capability, gaps, learning, projects, artifacts and recomputation.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_CHEROKEE_NAV",
+      "label": "Cherokee Citizen Entitlement Navigator",
+      "type": "Program",
+      "domain": "entitlement",
+      "status": "established-in-chat",
+      "description": "Evidence-chain/decision system for benefits, trust assets, settlements, allotment/probate pathways; abstains via INVESTIGATE.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_HMBM",
+      "label": "HMBM",
+      "type": "Experiment Series",
+      "domain": "behavioral-market",
+      "status": "established-in-chat",
+      "description": "Behavioral market experiment with cycles, canonical manifests, persistence, predictions and receipts.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_MACHINE_GRAPH",
+      "label": "Local Machine Graph",
+      "type": "Program",
+      "domain": "machine",
+      "status": "established-in-chat",
+      "description": "Broader graph of local machine substrate, capabilities, tools, validations and receipts.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_SHACL",
+      "label": "Local SHACL Validation Capability",
+      "type": "Capability",
+      "domain": "machine",
+      "status": "established-in-chat",
+      "description": "PySHACL-backed local validation capability with canonical receipt.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_5S",
+      "label": "5S / Six Sigma System Optimizer",
+      "type": "Program Concept",
+      "domain": "machine",
+      "status": "established-in-chat",
+      "description": "Proposed codeable real-time computer analysis/optimization system.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_JOB_UI",
+      "label": "Job Application Closed Loop",
+      "type": "Program",
+      "domain": "career",
+      "status": "established-in-chat",
+      "description": "Job description treated as project; interface interrogates evidence gaps and builds execution plan.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_ORACLE",
+      "label": "Oracle / Living Constitution Interface",
+      "type": "Program Concept",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "Public/interactive interface for Living Constitution concepts.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_ACTUALIZER",
+      "label": "Actualizer Agent",
+      "type": "Agent Concept",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "Agent concept connected to Oracle/Living Constitution work.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_SMAG",
+      "label": "SMAG",
+      "type": "Program/Work Item",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "Consolidated work item spanning earlier PRs #471/#473/#474.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_AUTOMATA",
+      "label": "Automata Lineage Lab",
+      "type": "Research Program",
+      "domain": "research",
+      "status": "established-in-chat",
+      "description": "Lineage/evolution research track.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_PUBLIC_UTILITY",
+      "label": "Public Utility / Market Validation",
+      "type": "Program",
+      "domain": "market",
+      "status": "established-in-chat",
+      "description": "External utility and product/market validation track.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "PROG_GENETIC_MEMORY",
+      "label": "Genetic Memory Computing",
+      "type": "Research Thread",
+      "domain": "research",
+      "status": "established-in-chat",
+      "description": "Thread connecting graph lineage, courier/witness, and repository experimentation.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "METHOD_LAWSON",
+      "label": "Lawson Diagnostic Audit",
+      "type": "Audit Method",
+      "domain": "audit",
+      "status": "established-in-chat",
+      "description": "Consequence\u2192Authority\u2192Boundary\u2192Custody\u2192Behavior\u2192Capability\u2192Mechanism diagnostic sequence.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "LAW_CONSEQUENCE",
+      "label": "Lawson: Consequence",
+      "type": "Audit Step",
+      "domain": "audit",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "LAW_AUTHORITY",
+      "label": "Lawson: Authority",
+      "type": "Audit Step",
+      "domain": "audit",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "LAW_BOUNDARY",
+      "label": "Lawson: Boundary",
+      "type": "Audit Step",
+      "domain": "audit",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "LAW_CUSTODY",
+      "label": "Lawson: Custody",
+      "type": "Audit Step",
+      "domain": "audit",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "LAW_BEHAVIOR",
+      "label": "Lawson: Behavior",
+      "type": "Audit Step",
+      "domain": "audit",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "LAW_CAPABILITY",
+      "label": "Lawson: Capability",
+      "type": "Audit Step",
+      "domain": "audit",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "LAW_MECHANISM",
+      "label": "Lawson: Mechanism",
+      "type": "Audit Step",
+      "domain": "audit",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ISSUE_358",
+      "label": "Issue #358",
+      "type": "Issue",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Resolve independently; historical cleanup item.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "ISSUE_429",
+      "label": "Issue #429",
+      "type": "Issue",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Constitution / critical tensions; umbrella audit anchor.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "ISSUE_525",
+      "label": "Issue #525",
+      "type": "Issue",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Led to mutation/capability graph work.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "ISSUE_529",
+      "label": "Issue #529",
+      "type": "Issue",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "RNOLA anchor.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "ISSUE_560",
+      "label": "Issue #560",
+      "type": "Issue",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Admissions process / backpressure layer.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "ISSUE_641",
+      "label": "Issue #641",
+      "type": "Issue",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Repository AI-work improvement: evidence graph/context compiler\u2192bounded AI work packet/session receipt.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "ISSUE_665",
+      "label": "Issue #665",
+      "type": "Issue",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "BEAM observation-boundary admission request.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_408_412",
+      "label": "PRs #408\u2013#412",
+      "type": "PR Group",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Adversarial/red-team review series.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_451",
+      "label": "PR #451",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "EPOCH-000 design audit.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_455",
+      "label": "PR #455",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "SPEC ONLY/STUB provenance mismatch audit.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_471_474",
+      "label": "PRs #471/#473/#474",
+      "type": "PR Group",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Consolidated into SMAG work item.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_472",
+      "label": "PR #472",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Witness-linked work referenced by Career Gradient.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_500",
+      "label": "PR #500",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Merged Resource Miner baseline.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_524",
+      "label": "PR #524",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "CRB/Capability Graph/workflow/portable-review integrity merged.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_527",
+      "label": "PR #527",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "MCG/HEP and graph-delta lifecycle.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_530",
+      "label": "PR #530",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Daily research process integrated into Daily Digest.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_534",
+      "label": "PR #534",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "RNOLA implementation; reported unmerged at time of discussion.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_539",
+      "label": "PR #539",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Inbound email command processor.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_547",
+      "label": "PR #547",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Guiding Light Career Gradient draft implementation.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_593",
+      "label": "PR #593",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Repository knowledge graph with bounded inference; later closed/unmerged in chat history.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_597",
+      "label": "PR #597",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "HMBM Cycle-003 reference in later queue.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_603",
+      "label": "PR #603",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "CodeRabbit review-loading issue.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_630",
+      "label": "PR #630",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Repository knowledge graph / Claude discussion thread in later work.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_633",
+      "label": "PR #633",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Merged; context around automated Claude conversation.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_651",
+      "label": "PR #651",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "graph_capture_lint scoring self-sealing properties.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_671",
+      "label": "PR #671",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Programs as Layer 5 of concept-to-code stack.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_672",
+      "label": "PR #672",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Azure Container Apps deployment for ACAT API M3 proof-of-concept.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_673",
+      "label": "PR #673",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Resource Miner explicit deficit typing.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_675",
+      "label": "PR #675",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Repository coordinator policy update.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "PR_676",
+      "label": "PR #676",
+      "type": "PR",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Repair of REPOSITORY_COORDINATOR_POLICY.json.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "mentioned/observed in prior chats"
+    },
+    {
+      "id": "METHOD_REPO_KG",
+      "label": "Repository Knowledge Graph Method",
+      "type": "Method",
+      "domain": "graph",
+      "status": "established-in-chat",
+      "description": "Inventory/freeze repository \u2192 extract nodes/edges \u2192 bounded inference \u2192 validate \u2192 replay \u2192 human review packet \u2192 disposition.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "GRAPH_OPERATIONS",
+      "label": "Operations Repository Knowledge Graph",
+      "type": "Knowledge Graph",
+      "domain": "graph",
+      "status": "established-in-chat",
+      "description": "Repository graph work with bounded inference and human-review packet.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "GRAPH_LLAI",
+      "label": "Lasting Light AI Repository Knowledge Graph",
+      "type": "Knowledge Graph",
+      "domain": "graph",
+      "status": "established-in-chat",
+      "description": "Replication test against frozen Lasting Light AI repository snapshot; 1,015 nodes, 1,752 edges and 28 bounded dependency assertions were reported in the chat.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "METHOD_PRIMITIVE_MATRIX",
+      "label": "Foundational Primitive Extraction Matrix",
+      "type": "Method/Artifact",
+      "domain": "graph",
+      "status": "established-in-chat",
+      "description": "Extraction method for separating reusable primitives from repository-specific contamination.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "METHOD_INVENTORY_FIRST",
+      "label": "Inventory-First Archaeology",
+      "type": "Method",
+      "domain": "graph",
+      "status": "established-in-chat",
+      "description": "Preserve operations history; inventory artifacts/claims/controls/tests/evidence before extraction.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "SYS_REPO_COORD",
+      "label": "Repository Coordinator",
+      "type": "Control Plane",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Indexes/coordinates repository work and distinguishes admission, evaluation, implementation, merge authority.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "SYS_ADMISSION",
+      "label": "Repository Admission Gate",
+      "type": "Governance Mechanism",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Pre-PR / PR admission policy and queue/backpressure mechanism.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "SYS_CI_ROUTING",
+      "label": "CI Signal\u2192Attention Routing",
+      "type": "Architecture",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Issue #640 concept: parse CI flags into correct queues; FLAG\u2260TASK.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "SYS_CONTEXT_COMPILER",
+      "label": "AI Context Compiler / Work Packet",
+      "type": "Architecture",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "Issue #641: derive bounded context packet and session receipt from canonical graph.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "SYS_SESSION_GRAPH",
+      "label": "Issue-as-Session Graph",
+      "type": "Workflow",
+      "domain": "repository",
+      "status": "established-in-chat",
+      "description": "First commit is repository issue; issue becomes session graph and CI checks before PR creation.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "RES_AZURE_CREDITS",
+      "label": "Azure Startup Milestone 2 Credits",
+      "type": "Resource",
+      "domain": "resources",
+      "status": "established-in-chat",
+      "description": "$5K startup milestone resource discussed as restricted infrastructure value, not cash/revenue.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "RES_GH_AZURE",
+      "label": "GitHub/Azure Enterprise Trial",
+      "type": "Resource",
+      "domain": "resources",
+      "status": "established-in-chat",
+      "description": "30-day enterprise connection referenced in chat.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "RES_LOCAL_MAC",
+      "label": "Local MacBook Substrate",
+      "type": "Resource",
+      "domain": "machine",
+      "status": "established-in-chat",
+      "description": "MacBook environment used for local machine graph and validation work.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ENT_RULE",
+      "label": "RULE_MATCH",
+      "type": "Decision State",
+      "domain": "entitlement",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ENT_COND",
+      "label": "CONDITIONAL_MATCH",
+      "type": "Decision State",
+      "domain": "entitlement",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ENT_INV",
+      "label": "INVESTIGATE",
+      "type": "Decision State",
+      "domain": "entitlement",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ENT_NOT",
+      "label": "NOT_ESTABLISHED",
+      "type": "Decision State",
+      "domain": "entitlement",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ENT_GEN",
+      "label": "GENERAL_OPPORTUNITY",
+      "type": "Decision State",
+      "domain": "entitlement",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ENT_Z011",
+      "label": "Z-011 Cherokee Recovery",
+      "type": "Zone",
+      "domain": "entitlement",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "HMBM_CYCLE1",
+      "label": "HMBM Cycle 001",
+      "type": "Experiment Cycle",
+      "domain": "behavioral-market",
+      "status": "established-in-chat",
+      "description": "Preserved exactly including failure; used to derive initialization invariant.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "HMBM_CYCLE2",
+      "label": "HMBM Cycle 002",
+      "type": "Experiment Cycle",
+      "domain": "behavioral-market",
+      "status": "established-in-chat",
+      "description": "Required authenticated H0 state via canonical manifest and persistence read-back before predictions.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "HMBM_CYCLE3",
+      "label": "HMBM Cycle 003",
+      "type": "Experiment Cycle",
+      "domain": "behavioral-market",
+      "status": "established-in-chat",
+      "description": "Referenced later via PR #597.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ACTOR_HUMAN",
+      "label": "Human Operator / Merge Authority",
+      "type": "Actor",
+      "domain": "actors",
+      "status": "established-in-chat",
+      "description": "Human retains merge/ratification authority.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ACTOR_CHATGPT",
+      "label": "ChatGPT",
+      "type": "AI Collaborator",
+      "domain": "actors",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ACTOR_CLAUDE",
+      "label": "Claude / Claude Code",
+      "type": "AI Collaborator",
+      "domain": "actors",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ACTOR_COPILOT",
+      "label": "GitHub Copilot",
+      "type": "AI Collaborator",
+      "domain": "actors",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ACTOR_CODERABBIT",
+      "label": "CodeRabbit",
+      "type": "AI Reviewer",
+      "domain": "actors",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ACTOR_GROK",
+      "label": "Grok",
+      "type": "AI Collaborator",
+      "domain": "actors",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_RTA",
+      "label": "Runtime Assurance",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_STPA",
+      "label": "STPA / System-Theoretic Process Analysis",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_ASSURANCE",
+      "label": "Assurance Cases",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_ABAC",
+      "label": "Attribute-Based Access Control",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_MODEL_RISK",
+      "label": "Model-Risk Management",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_PROCESS_MINING",
+      "label": "Process Mining",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_ADAPTIVE_MGMT",
+      "label": "Adaptive Management",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_DIGITAL_THREAD",
+      "label": "Digital Thread",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_FORENSIC_PROV",
+      "label": "Forensic Provenance",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "DOMAIN_CYBER_AUTH",
+      "label": "Cybersecurity Authorization",
+      "type": "External Domain",
+      "domain": "comparative-research",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "COMP_PARTICIPATION",
+      "label": "Participation Contract",
+      "type": "Governance Artifact",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "COMP_OBSERVATORY",
+      "label": "Observatory",
+      "type": "System Component",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "COMP_COMMONS",
+      "label": "Commons",
+      "type": "System Component",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "COMP_GOVERNANCE",
+      "label": "Governance",
+      "type": "System Component",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "COMP_PII_VAULT",
+      "label": "PII Vault",
+      "type": "System Component",
+      "domain": "resources",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "COMP_CLAIM_GATEWAY",
+      "label": "Claim Gateway",
+      "type": "System Component",
+      "domain": "resources",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "COMP_ACTIVITY_GRAPH",
+      "label": "Activity Graph",
+      "type": "Graph",
+      "domain": "resources",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "COMP_RESOURCE_GRAPH",
+      "label": "Resource Graph",
+      "type": "Graph",
+      "domain": "resources",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ZONE_Z1",
+      "label": "Z1",
+      "type": "Authority/State Zone",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ZONE_Z2",
+      "label": "Z2",
+      "type": "Authority/State Zone",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ZONE_Z3",
+      "label": "Z3",
+      "type": "Authority/State Zone",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ZONE_AUDIT",
+      "label": "Z-AUDIT",
+      "type": "Authority/State Zone",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "ZONE_WITNESS",
+      "label": "Z-WITNESS",
+      "type": "Authority/State Zone",
+      "domain": "governance",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "TENSION_AUTONOMY",
+      "label": "Autonomy vs Human Authority",
+      "type": "Tension",
+      "domain": "tensions",
+      "status": "established-in-chat",
+      "description": "Desire for autonomous/adaptive operation bounded by explicit human authority and no self-authorization.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "TENSION_RESEARCH_PRODUCT",
+      "label": "Research vs Productization",
+      "type": "Tension",
+      "domain": "tensions",
+      "status": "established-in-chat",
+      "description": "Research exploration and public/product utility must not outrun evidence.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "TENSION_COMPLEXITY",
+      "label": "Repository Complexity / Onboarding Drift",
+      "type": "Tension",
+      "domain": "tensions",
+      "status": "established-in-chat",
+      "description": "Large repository and overlapping graphs/workflows can overwhelm operator attention.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "TENSION_EMAIL_CANON",
+      "label": "Email Surface vs Canonical Ledger",
+      "type": "Tension",
+      "domain": "tensions",
+      "status": "established-in-chat",
+      "description": "Email is the platform surface, but canonical machine-readable evidence requires a controlled ledger.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "TENSION_GRAPH_LOOP",
+      "label": "Control Loop vs Provenance DAG",
+      "type": "Tension",
+      "domain": "tensions",
+      "status": "established-in-chat",
+      "description": "Operational control can be cyclic while provenance history must remain append-only and non-circular.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "TENSION_INFERENCE",
+      "label": "Inference vs Authority",
+      "type": "Tension",
+      "domain": "tensions",
+      "status": "established-in-chat",
+      "description": "Graph inference can suggest dependencies but must not silently authorize action.",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "STRAT_NO_VC",
+      "label": "No VC for Lasting Light AI",
+      "type": "Strategy Constraint",
+      "domain": "strategy",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "STRAT_B2B_INDEPENDENCE",
+      "label": "Avoid B2B Revenue Dependency",
+      "type": "Strategy Constraint",
+      "domain": "strategy",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "STRAT_BUILD_FREEZE",
+      "label": "Build Freeze Until Funding/Revenue > $0",
+      "type": "Strategy Constraint",
+      "domain": "strategy",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "id": "STRAT_PUBLIC_PRIVATE",
+      "label": "Public Utility + Private Evidence Boundary",
+      "type": "Strategy",
+      "domain": "strategy",
+      "status": "established-in-chat",
+      "description": "",
+      "first_seen": null,
+      "properties": {},
+      "source_basis": "cross-chat synthesis"
+    }
+  ],
+  "edges": [
+    {
+      "source": "PORTFOLIO_TRINITY",
+      "target": "ORG_HUMANAIOS",
+      "relation": "HAS_BODY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PORTFOLIO_TRINITY",
+      "target": "ORG_LLAI",
+      "relation": "HAS_MIND",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PORTFOLIO_TRINITY",
+      "target": "ORG_LLR",
+      "relation": "HAS_HEART",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "ORG_LLR",
+      "relation": "FUNDS_MISSION",
+      "description": "Mission commitment discussed: profits support recovery programs.",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_LLR",
+      "target": "PRINCIPLE_ATTRACTION",
+      "relation": "USES_PRINCIPLE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "REPO_OPERATIONS",
+      "relation": "OWNS_OR_USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "REPO_HUMANAIOS",
+      "relation": "OWNS_OR_USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_LLAI",
+      "target": "REPO_LLAI",
+      "relation": "OWNS_OR_USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "REPO_GRAPH_EVOLUTION",
+      "relation": "PROPOSED_EXTRACTION_TO",
+      "description": "",
+      "status": "proposed-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_REALITY",
+      "target": "PRIM_OBSERVATION",
+      "relation": "PRODUCES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_OBSERVATION",
+      "target": "PRIM_EVIDENCE",
+      "relation": "CAPTURED_AS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_EVIDENCE",
+      "target": "PRIM_INTERPRETATION",
+      "relation": "SUPPORTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_INTERPRETATION",
+      "target": "PRIM_WARRANT",
+      "relation": "CONTRIBUTES_TO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_WARRANT",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "BOUNDS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_AUTHORIZATION",
+      "target": "PRIM_ACTION",
+      "relation": "PERMITS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_ACTION",
+      "target": "PRIM_EXECUTION",
+      "relation": "REALIZED_AS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_EXECUTION",
+      "target": "PRIM_CONSEQUENCE",
+      "relation": "CAUSES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_CONSEQUENCE",
+      "target": "PRIM_OBSERVATION",
+      "relation": "GENERATES_NEW",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_OBSERVATION",
+      "target": "PRIM_CHALLENGE",
+      "relation": "MAY_TRIGGER",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_CHALLENGE",
+      "target": "PRIM_CORRECTION",
+      "relation": "MAY_CAUSE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_CORRECTION",
+      "target": "PRIM_REVISED_WARRANT",
+      "relation": "UPDATES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_REVISED_WARRANT",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "RECOMPUTES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_EVIDENCE",
+      "target": "PRIM_PROVENANCE",
+      "relation": "MUST_HAVE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_CALIBRATION",
+      "target": "PRIM_WARRANT",
+      "relation": "INFORMS_NOT_EQUALS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_WARRANT",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "INFORMS_NOT_EQUALS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_AUTHORIZATION",
+      "target": "PRIM_EXECUTION",
+      "relation": "DOES_NOT_EQUAL",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_AUTHORITY",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "REQUIRED_FOR",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_CAPABILITY",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "CONSTRAINS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_RISK",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "CONSTRAINS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_REVERSIBILITY",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "CONSTRAINS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_HARD_CONSTRAINT",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "CAN_BLOCK",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_HUMAN_AUTHORITY",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "ULTIMATE_BOUNDARY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_RECEIPT",
+      "target": "PRIM_EXECUTION",
+      "relation": "RECORDS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PRIM_FALSIFIER",
+      "target": "PRIM_CLAIM",
+      "relation": "TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "ARCH_AEC",
+      "relation": "DEVELOPS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_AEC",
+      "target": "ARCH_HARNESS",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_AEC",
+      "target": "ARCH_GAUGE",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_AEC",
+      "target": "PRIM_WARRANT",
+      "relation": "DECIDES_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_AEC",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "CONTROLS_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_AEC",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "REQUIRES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_AEC",
+      "target": "ARCH_WITNESS",
+      "relation": "REQUIRES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_INTENT_OS",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "DERIVES_FROM",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_GRAPH_EVOLUTION",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "GENERALIZES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_GRAPH_EVOLUTION",
+      "target": "ARCH_AEC",
+      "relation": "GENERALIZES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_ROOT_KEYHOLE_SOUL",
+      "target": "ARCH_BEAM",
+      "relation": "OPERATIONALIZED_AS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_BEAM",
+      "target": "ARCH_INTENT_OS",
+      "relation": "BRIDGES_TO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_BEAM",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "BRIDGES_TO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_RECURSIVE_LOOP",
+      "target": "ARCH_AEC",
+      "relation": "DESCRIBES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_CONTROL_THEORY",
+      "target": "ARCH_AEC",
+      "relation": "EVALUATES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_STAGED_AUTHORITY",
+      "target": "ARCH_AEC",
+      "relation": "BOUNDS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_CUSTODY",
+      "target": "ARCH_HARNESS",
+      "relation": "INFORMS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "INV_CLOCK_AUTH",
+      "relation": "ADOPTS_OR_TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "INV_FLAG_TASK",
+      "relation": "ADOPTS_OR_TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "INV_CONTEXT_AUTH",
+      "relation": "ADOPTS_OR_TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "INV_CAL_WARRANT_AUTH",
+      "relation": "ADOPTS_OR_TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "INV_WITNESS_NO_AUTH",
+      "relation": "ADOPTS_OR_TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "INV_NO_SELF_AUTH",
+      "relation": "ADOPTS_OR_TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "INV_UNKNOWN",
+      "relation": "ADOPTS_OR_TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "INV_HISTORY",
+      "relation": "ADOPTS_OR_TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "INV_TIME_PURITY",
+      "relation": "ADOPTS_OR_TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "MODEL_SEVEN_VOICES",
+      "target": "VOICE_TOOL",
+      "relation": "HAS_VOICE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "MODEL_SEVEN_VOICES",
+      "target": "VOICE_HUMAN",
+      "relation": "HAS_VOICE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "MODEL_SEVEN_VOICES",
+      "target": "VOICE_AUTHORITY",
+      "relation": "HAS_VOICE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "MODEL_SEVEN_VOICES",
+      "target": "VOICE_NORMATIVE",
+      "relation": "HAS_VOICE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "MODEL_SEVEN_VOICES",
+      "target": "VOICE_INDUSTRY",
+      "relation": "HAS_VOICE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "MODEL_SEVEN_VOICES",
+      "target": "VOICE_EVIDENCE",
+      "relation": "HAS_VOICE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "MODEL_SEVEN_VOICES",
+      "target": "VOICE_CAL_OBSERVER",
+      "relation": "HAS_VOICE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "MODEL_SEVEN_VOICES",
+      "target": "VOICE_AI_WITNESS",
+      "relation": "HAS_VOICE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "VOICE_CAL_OBSERVER",
+      "target": "PRIM_AUTHORIZATION",
+      "relation": "MUST_NOT_GRANT",
+      "description": "Flags only.",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "VOICE_AI_WITNESS",
+      "target": "ARCH_WITNESS",
+      "relation": "EXTENDS",
+      "description": "",
+      "status": "proposed-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_LLAI",
+      "target": "INST_ACAT",
+      "relation": "DEVELOPS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "INST_ACAT",
+      "target": "INST_HCAT",
+      "relation": "ADAPTED_TO_HUMANS_AS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "INST_ACAT",
+      "target": "RESEARCH_ACAT_PAPER",
+      "relation": "DOCUMENTED_BY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "RESEARCH_H1",
+      "relation": "TESTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "RESEARCH_H1",
+      "target": "RESEARCH_H0",
+      "relation": "COMPETES_WITH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_ACTION_CONTROL",
+      "target": "RESEARCH_H1",
+      "relation": "OPERATIONALIZES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "RESEARCH_OPEN_ARENA",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "RESEARCH_TELEMETRY",
+      "target": "ARCH_AEC",
+      "relation": "INFORMS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "INST_ACAT",
+      "target": "PRIM_CALIBRATION",
+      "relation": "ESTIMATES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "PROG_HARC",
+      "relation": "RUNS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_HARC",
+      "target": "PROG_EMAIL_PLATFORM",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_EMAIL_PLATFORM",
+      "target": "PROG_INBOUND_PROCESSOR",
+      "relation": "INGESTED_BY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_INBOUND_PROCESSOR",
+      "target": "PROG_GMAIL_ADAPTER",
+      "relation": "INVOKED_BY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_DAILY_DIGEST",
+      "target": "PROG_EMAIL_PLATFORM",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_DAILY_DIGEST",
+      "target": "RESEARCH_TELEMETRY",
+      "relation": "IMPLEMENTS_RESEARCH_NODE_STYLE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "PROG_RESOURCE_MINER",
+      "relation": "RUNS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_RESOURCE_MINER",
+      "target": "PROG_RESOURCE_SYSTEM",
+      "relation": "EXTENDED_BY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_RESOURCE_SYSTEM",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_RNOLA",
+      "target": "ARCH_INTENT_OS",
+      "relation": "INTEGRATES_WITH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_CAREER_GRADIENT",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_CHEROKEE_NAV",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_HMBM",
+      "target": "PRIM_RECEIPT",
+      "relation": "REQUIRES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_MACHINE_GRAPH",
+      "target": "PROG_SHACL",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_ORACLE",
+      "target": "MODEL_SEVEN_VOICES",
+      "relation": "SURFACES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_ACTUALIZER",
+      "target": "PROG_ORACLE",
+      "relation": "ASSOCIATED_WITH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_AUTOMATA",
+      "target": "ARCH_GRAPH_EVOLUTION",
+      "relation": "RESEARCHES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_PUBLIC_UTILITY",
+      "target": "PROG_RESOURCE_MINER",
+      "relation": "EXTENDS_EXTERNAL_UTILITY_OF",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_LAWSON",
+      "target": "LAW_CONSEQUENCE",
+      "relation": "HAS_STEP",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_LAWSON",
+      "target": "LAW_AUTHORITY",
+      "relation": "HAS_STEP",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_LAWSON",
+      "target": "LAW_BOUNDARY",
+      "relation": "HAS_STEP",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_LAWSON",
+      "target": "LAW_CUSTODY",
+      "relation": "HAS_STEP",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_LAWSON",
+      "target": "LAW_BEHAVIOR",
+      "relation": "HAS_STEP",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_LAWSON",
+      "target": "LAW_CAPABILITY",
+      "relation": "HAS_STEP",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_LAWSON",
+      "target": "LAW_MECHANISM",
+      "relation": "HAS_STEP",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "LAW_AUTHORITY",
+      "target": "PRIM_AUTHORITY",
+      "relation": "INSPECTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "LAW_CUSTODY",
+      "target": "ARCH_CUSTODY",
+      "relation": "INSPECTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "LAW_CAPABILITY",
+      "target": "PRIM_CAPABILITY",
+      "relation": "INSPECTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ISSUE_429",
+      "target": "ARCH_AEC",
+      "relation": "GOVERNS_FOUNDATIONS_OF",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ISSUE_429",
+      "target": "ARCH_WITNESS",
+      "relation": "AUDITS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ISSUE_529",
+      "target": "PROG_RNOLA",
+      "relation": "ANCHORS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ISSUE_560",
+      "target": "ARCH_INTENT_OS",
+      "relation": "ADMISSION_LAYER_FOR",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ISSUE_641",
+      "target": "ARCH_INTENT_OS",
+      "relation": "IMPROVES_AI_WORK_FOR",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ISSUE_665",
+      "target": "ARCH_BEAM",
+      "relation": "SPECIFIES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_471_474",
+      "target": "PROG_SMAG",
+      "relation": "CONSOLIDATED_INTO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_500",
+      "target": "PROG_RESOURCE_MINER",
+      "relation": "IMPLEMENTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_530",
+      "target": "PROG_DAILY_DIGEST",
+      "relation": "METHOD_INTEGRATED_INTO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_534",
+      "target": "PROG_RNOLA",
+      "relation": "IMPLEMENTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_539",
+      "target": "PROG_INBOUND_PROCESSOR",
+      "relation": "IMPLEMENTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_547",
+      "target": "PROG_CAREER_GRADIENT",
+      "relation": "IMPLEMENTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_593",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "IMPLEMENTS_REPOSITORY_GRAPH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_597",
+      "target": "PROG_HMBM",
+      "relation": "IMPLEMENTS_CYCLE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_651",
+      "target": "ARCH_GRAPH_EVOLUTION",
+      "relation": "TESTS_GRAPH_CAPTURE_PROPERTIES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_672",
+      "target": "INST_ACAT",
+      "relation": "DEPLOYS_API_FOR",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_673",
+      "target": "PROG_RESOURCE_MINER",
+      "relation": "TYPES_DEFICITS_FOR",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_671",
+      "target": "ARCH_INTENT_OS",
+      "relation": "ADDS_PROGRAM_LAYER_TO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_675",
+      "target": "REPO_OPERATIONS",
+      "relation": "COORDINATES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_676",
+      "target": "REPO_OPERATIONS",
+      "relation": "COORDINATES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_INVENTORY_FIRST",
+      "target": "METHOD_PRIMITIVE_MATRIX",
+      "relation": "PRECEDES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_PRIMITIVE_MATRIX",
+      "target": "ARCH_GRAPH_EVOLUTION",
+      "relation": "FEEDS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_REPO_KG",
+      "target": "GRAPH_OPERATIONS",
+      "relation": "APPLIED_TO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "METHOD_REPO_KG",
+      "target": "GRAPH_LLAI",
+      "relation": "REPLICATED_AS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "GRAPH_OPERATIONS",
+      "target": "REPO_OPERATIONS",
+      "relation": "MODELS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "GRAPH_LLAI",
+      "target": "REPO_LLAI",
+      "relation": "MODELS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PR_593",
+      "target": "GRAPH_OPERATIONS",
+      "relation": "IMPLEMENTED",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ARCH_GRAPH_EVOLUTION",
+      "target": "METHOD_REPO_KG",
+      "relation": "GENERALIZES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "SYS_REPO_COORD",
+      "target": "SYS_ADMISSION",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "SYS_REPO_COORD",
+      "target": "SYS_CI_ROUTING",
+      "relation": "USES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "SYS_CONTEXT_COMPILER",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "DERIVES_FROM",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "SYS_CONTEXT_COMPILER",
+      "target": "INV_CONTEXT_AUTH",
+      "relation": "ENFORCES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "SYS_CI_ROUTING",
+      "target": "INV_FLAG_TASK",
+      "relation": "ENFORCES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "SYS_SESSION_GRAPH",
+      "target": "SYS_ADMISSION",
+      "relation": "PRECEDES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "SYS_SESSION_GRAPH",
+      "target": "ARCH_INTENT_OS",
+      "relation": "EXTENDS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ISSUE_641",
+      "target": "SYS_CONTEXT_COMPILER",
+      "relation": "SPECIFIES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_RESOURCE_MINER",
+      "target": "RES_AZURE_CREDITS",
+      "relation": "DISCOVERS_OR_TYPES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_RESOURCE_SYSTEM",
+      "target": "RES_AZURE_CREDITS",
+      "relation": "REPRESENTS_AS_RESTRICTED_VALUE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "RES_AZURE_CREDITS",
+      "target": "PR_672",
+      "relation": "FUNDS_OR_ENABLES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_MACHINE_GRAPH",
+      "target": "RES_LOCAL_MAC",
+      "relation": "MODELS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_SHACL",
+      "target": "RES_LOCAL_MAC",
+      "relation": "RUNS_ON",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_CHEROKEE_NAV",
+      "target": "ENT_RULE",
+      "relation": "CAN_OUTPUT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_CHEROKEE_NAV",
+      "target": "ENT_COND",
+      "relation": "CAN_OUTPUT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_CHEROKEE_NAV",
+      "target": "ENT_INV",
+      "relation": "CAN_OUTPUT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_CHEROKEE_NAV",
+      "target": "ENT_NOT",
+      "relation": "CAN_OUTPUT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_CHEROKEE_NAV",
+      "target": "ENT_GEN",
+      "relation": "CAN_OUTPUT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_CHEROKEE_NAV",
+      "target": "ENT_Z011",
+      "relation": "USES_ZONE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ENT_INV",
+      "target": "INV_UNKNOWN",
+      "relation": "EMBODIES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_HMBM",
+      "target": "HMBM_CYCLE1",
+      "relation": "HAS_CYCLE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_HMBM",
+      "target": "HMBM_CYCLE2",
+      "relation": "HAS_CYCLE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_HMBM",
+      "target": "HMBM_CYCLE3",
+      "relation": "HAS_CYCLE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "HMBM_CYCLE1",
+      "target": "HMBM_CYCLE2",
+      "relation": "INFORMS_INITIALIZATION_INVARIANT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "HMBM_CYCLE2",
+      "target": "PRIM_RECEIPT",
+      "relation": "REQUIRES_READBACK",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "HMBM_CYCLE3",
+      "target": "PR_597",
+      "relation": "IMPLEMENTED_BY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_CHATGPT",
+      "target": "ACTOR_HUMAN",
+      "relation": "SUBORDINATE_TO_HUMAN_AUTHORITY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_CLAUDE",
+      "target": "ACTOR_HUMAN",
+      "relation": "SUBORDINATE_TO_HUMAN_AUTHORITY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_COPILOT",
+      "target": "ACTOR_HUMAN",
+      "relation": "SUBORDINATE_TO_HUMAN_AUTHORITY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_CODERABBIT",
+      "target": "ACTOR_HUMAN",
+      "relation": "SUBORDINATE_TO_HUMAN_AUTHORITY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_GROK",
+      "target": "ACTOR_HUMAN",
+      "relation": "SUBORDINATE_TO_HUMAN_AUTHORITY",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_HUMAN",
+      "target": "PRIM_HUMAN_AUTHORITY",
+      "relation": "HOLDS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_CHATGPT",
+      "target": "REPO_OPERATIONS",
+      "relation": "CONTRIBUTES_ANALYSIS_TO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_CLAUDE",
+      "target": "REPO_OPERATIONS",
+      "relation": "CONTRIBUTES_REVIEW_TO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_COPILOT",
+      "target": "REPO_OPERATIONS",
+      "relation": "CONTRIBUTES_CODE_OR_REVIEW_TO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_CODERABBIT",
+      "target": "REPO_OPERATIONS",
+      "relation": "CONTRIBUTES_REVIEW_TO",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ACTOR_GROK",
+      "target": "PROG_EMAIL_PLATFORM",
+      "relation": "PARTICIPATES_IN",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_RTA",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_STPA",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_ASSURANCE",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_ABAC",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_MODEL_RISK",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_PROCESS_MINING",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_ADAPTIVE_MGMT",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_DIGITAL_THREAD",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_FORENSIC_PROV",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "DOMAIN_CYBER_AUTH",
+      "target": "ARCH_ACTION_CONTROL",
+      "relation": "COMPARED_THROUGH",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "COMP_PARTICIPATION",
+      "relation": "HAS_COMPONENT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "COMP_OBSERVATORY",
+      "relation": "HAS_COMPONENT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "COMP_COMMONS",
+      "relation": "HAS_COMPONENT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "COMP_GOVERNANCE",
+      "relation": "HAS_COMPONENT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "HAS_COMPONENT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_RESOURCE_SYSTEM",
+      "target": "COMP_PII_VAULT",
+      "relation": "HAS_COMPONENT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_RESOURCE_SYSTEM",
+      "target": "COMP_CLAIM_GATEWAY",
+      "relation": "HAS_COMPONENT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_RESOURCE_SYSTEM",
+      "target": "COMP_ACTIVITY_GRAPH",
+      "relation": "HAS_COMPONENT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_RESOURCE_SYSTEM",
+      "target": "COMP_RESOURCE_GRAPH",
+      "relation": "HAS_COMPONENT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "COMP_PARTICIPATION",
+      "target": "PRIM_AUTHORITY",
+      "relation": "DOES_NOT_EQUAL",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "COMP_OBSERVATORY",
+      "target": "ARCH_WITNESS",
+      "relation": "SUPPORTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "COMP_GOVERNANCE",
+      "target": "ARCH_HARNESS",
+      "relation": "IMPLEMENTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "ZONE_Z1",
+      "relation": "USES_ZONE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "ZONE_Z2",
+      "relation": "USES_ZONE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "ZONE_Z3",
+      "relation": "USES_ZONE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "ZONE_AUDIT",
+      "relation": "USES_ZONE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "ZONE_WITNESS",
+      "relation": "USES_ZONE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_INBOUND_PROCESSOR",
+      "target": "ZONE_Z2",
+      "relation": "CAN_HOLD_AT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "PROG_INBOUND_PROCESSOR",
+      "target": "ZONE_Z3",
+      "relation": "CAN_HOLD_AT",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "TENSION_AUTONOMY",
+      "relation": "MUST_MANAGE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "TENSION_RESEARCH_PRODUCT",
+      "relation": "MUST_MANAGE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "TENSION_COMPLEXITY",
+      "relation": "MUST_MANAGE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "TENSION_EMAIL_CANON",
+      "relation": "MUST_MANAGE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "TENSION_GRAPH_LOOP",
+      "relation": "MUST_MANAGE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "TENSION_INFERENCE",
+      "relation": "MUST_MANAGE",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "TENSION_GRAPH_LOOP",
+      "target": "ARCH_EVIDENCE_GRAPH",
+      "relation": "SHAPES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "TENSION_INFERENCE",
+      "target": "METHOD_REPO_KG",
+      "relation": "SHAPES",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_LLAI",
+      "target": "STRAT_NO_VC",
+      "relation": "ADOPTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "STRAT_B2B_INDEPENDENCE",
+      "relation": "ADOPTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "STRAT_BUILD_FREEZE",
+      "relation": "ADOPTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    },
+    {
+      "source": "ORG_HUMANAIOS",
+      "target": "STRAT_PUBLIC_PRIVATE",
+      "relation": "ADOPTS",
+      "description": "",
+      "status": "asserted-in-chat",
+      "source_basis": "cross-chat synthesis"
+    }
+  ]
+}

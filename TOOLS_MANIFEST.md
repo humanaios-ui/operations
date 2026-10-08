@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**197 registered tools** · 2 MCP servers · 4 excluded · 150 carrying Builder v1.7 markers
+**198 registered tools** · 2 MCP servers · 4 excluded · 151 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 197 |
-| — status `draft` | 196 |
+| Registered tools | 198 |
+| — status `draft` | 197 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 150 |
+| Builder v1.7 markers present | 151 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -135,7 +135,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-188 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.3.0 | 1 | draft | — | Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure. |
 | HAIOS-TOOL-206 | ai_context_generator | `tools/ai_context_generator_v0_1.py` | 0.1.0 | 1 | draft | — | Generates queryable, machine-readable context from canonical repository sources. |
 
-## Governance — `governance_tool` (19)
+## Governance — `governance_tool` (20)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -157,7 +157,8 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-190 | enforce_z2_z3_boundary | `scripts/enforce_z2_z3_boundary.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Enforce Z2/Z3 authority boundaries for operator-checks. CI gate to prevent misuse of RNOLA advisory records as merge authority. |
 | HAIOS-TOOL-191 | lint_canonical_skills | `scripts/lint_canonical_skills.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Lint canonical skill entry points to detect substrate drift. CI gate to ensure substrate stubs are thin redirects, not divergent implementations. |
 | HAIOS-TOOL-204 | pr_challenge_dialogue_router | `tools/pr_challenge_dialogue_router_v0_1.py` | 0.1.0 | 1 | draft | — | Finite idempotent routing of head-bound red-team challenge conversations without authority effects. |
-| HAIOS-TOOL-210 | repository_coordinator_state | `tools/repository_coordinator_state_v1.py` | 1.0.0 | 1 | draft | — | Repository Coordinator state ledger + deterministic projection. |
+| HAIOS-TOOL-210 | repository_coordinator_state | `tools/repository_coordinator_state_v1.py` | 1.1.0 | 1 | draft | — | Repository Coordinator state ledger + deterministic projection. |
+| HAIOS-TOOL-211 | repository_coordinator_state_v1_1 | `tools/repository_coordinator_state_v1_1.py` | 1.1.0 | 1 | draft | — | Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation, and durable RCD receipt primitives. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
@@ -222,7 +223,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-193 | ai-eo-incremental-indexer | `scripts/ai-eo-incremental-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO Incremental Indexer |
 | HAIOS-TOOL-194 | ai-eo-indexer | `scripts/ai-eo-indexer.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | AI-EO (AI-driven Ephemeris Optimization) Indexer |
 | HAIOS-TOOL-203 | control_plane_github_adapter | `tools/control_plane_github_adapter_v0_1.py` | 0.1.0 | 1 | draft | — | Transform exported GitHub evidence into authority-neutral raw custody observations. |
-| HAIOS-TOOL-208 | machine_graph_collect_macos | `tools/machine_graph/collect_macos.py` | 0.1.0 | 1 | draft | — | Metadata-first and local-only by design. It does not read user document contents. |
+| HAIOS-TOOL-208 | machine_graph_collect_macos | `tools/machine_graph/collect_macos.py` | 0.1.1 | 1 | draft | — | Metadata-first and local-only by design. It does not read user document contents. |
 
 ## Reporting — `reporting_tool` (6)
 
@@ -339,7 +340,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 17 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 19 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 20 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
 | `monitoring_tool` | Watches a surface over time and raises alerts. | 6 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |

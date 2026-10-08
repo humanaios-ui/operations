@@ -51,6 +51,13 @@ jobs:
         run: |
           python3 -m resource_miner.cli scan --out data/resources.snapshot.jsonl
 
+      - name: Reconcile verified durable resource state
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 -m resource_miner.cli reconcile \
+            --snapshot data/resources.snapshot.jsonl \
+            --receipts data/resource_state.receipts.jsonl
+
       - name: Commit updated resource snapshot
         run: |
           git config --local user.email "action@github.com"

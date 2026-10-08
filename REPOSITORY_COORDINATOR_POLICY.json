@@ -1,6 +1,6 @@
 {
   "schema_version": "0.3",
-  "status": "candidate_control_policy_state_split",
+  "status": "candidate_control_policy_state_v1_1",
   "authority_effect": "ADMISSION_ROUTING_ONLY_FROM_DEFAULT_BRANCH",
   "purpose": "Define repository admission/control law while keeping mutable working-set admissions in a separately replayable state branch.",
   "invariants": [
@@ -14,7 +14,12 @@
     "POLICY_IS_NOT_STATE",
     "STATE_EVENT_IS_NOT_MERGE_AUTHORITY",
     "STATE_HEAD_MUST_BE_RECEIPTED",
-    "PROJECTION_MUST_EQUAL_LEDGER_REPLAY"
+    "PROJECTION_MUST_EQUAL_LEDGER_REPLAY",
+    "COMMAND_IS_NOT_STATE_EVENT",
+    "WORKFLOW_DELIVERY_IS_NOT_DURABLE_COMMAND",
+    "TERMINAL_PR_IS_NOT_ACTIVE_WORKING_SET",
+    "ADMITTED_PR_IS_NOT_PERMANENTLY_ADMITTED_OBJECTIVE",
+    "DECISION_ARTIFACT_RETENTION_IS_NOT_DURABLE_PROVENANCE"
   ],
   "capacity": {
     "active_operator_queue": 4
@@ -39,16 +44,27 @@
       "REPOSITORY_COORDINATOR_POLICY.json",
       "tools/repository_coordinator_state_v1.py",
       "tools/repository_coordinator_v0_1.py",
-      "tools/tests/test_repository_coordinator_v0_1.py"
+      "tools/tests/test_repository_coordinator_v0_1.py",
+      "tools/repository_coordinator_state_v1_1.py",
+      "tools/tests/test_repository_coordinator_state_v1_1.py"
     ],
-    "exemption": "only when every changed file is a control-plane path; mixed changes require admission"
+    "exemption": "only when every changed file is a control-plane path; mixed changes require admission",
+    "support_paths": [
+      ".github/WORKFLOWS.md",
+      "TOOLS_MANIFEST.md",
+      "ci_predictions/pr.json",
+      "tools-manifest.yaml"
+    ],
+    "support_rule": "Support paths are control-plane-exempt only when at least one core control-plane path is changed and every changed file is either a core control-plane path or a declared support path."
   },
   "notes": [
     "Policy defines routing law and configuration only; mutable working-set admissions live on the repository-coordinator-state branch.",
     "Admission determines working-set standing only. It does not ratify governance, approve code, or authorize merge.",
     "When admitted ready-for-review work exceeds capacity, the coordinator does not choose winners; it reports capacity contention for operator resolution.",
     "The required gate executes trusted default-branch code, validates the exact state-branch head it consumes, and receipts both policy/default-branch SHA and state SHA.",
-    "Evaluation admission remains derived from an ADMISSION_REQUESTED issue plus an APPROVED review by an authorized actor; it grants evidence/CI standing only and does not consume operator capacity."
+    "Evaluation admission remains derived from an ADMISSION_REQUESTED issue plus an APPROVED review by an authorized actor; it grants evidence/CI standing only and does not consume operator capacity.",
+    "v1.1 preserves the v1 bootstrap ledger without rewrite; the first v2 event begins the global sequence/hash chain from the last legacy-event hash.",
+    "State-branch write restriction to a dedicated app/workflow identity remains a repository-setting hardening item; this policy does not claim it is configured."
   ],
   "evaluation_admission": {
     "authorized_actors": [
@@ -64,13 +80,54 @@
     "branch": "repository-coordinator-state",
     "ledger_path": "ADMISSION_LEDGER.jsonl",
     "projection_path": "COORDINATOR_STATE.json",
-    "schema": "humanaios.repository-coordinator-state.v1",
+    "schema": "humanaios.repository-coordinator-state.v1.1",
     "fail_closed": true,
     "authority_effect": "ADMISSION_ROUTING_ONLY",
     "merge_authority": false,
     "mutation_model": "append event -> deterministic replay -> commit ledger and projection together",
     "authorized_mutators": [
       "humanaios-ui"
-    ]
+    ],
+    "issue_route": {
+      "enabled": true,
+      "subject_kind": "ISSUE",
+      "commands": {
+        "admit": "/coordinator admit",
+        "revoke": "/coordinator revoke"
+      },
+      "required_admit_issue_state": "ADMISSION_REQUESTED",
+      "authority_effect": "ADMISSION_ROUTING_ONLY",
+      "merge_authority": false
+    },
+    "event_schema": "humanaios.repository-coordinator-event.v2",
+    "command_receipt_schema": "RCC-*",
+    "decision_receipt_schema": "RCD-*",
+    "lifecycle": {
+      "terminal_pr_events": [
+        "TERMINATE_MERGED",
+        "TERMINATE_CLOSED"
+      ],
+      "authority_effect": "ADMISSION_ROUTING_ONLY",
+      "merge_authority": false
+    },
+    "mutation_authority": {
+      "workflow_actor_check": true,
+      "repository_ruleset_write_restriction": "NOT_VERIFIED",
+      "note": "Trusted workflows authorize mutators and state events fail closed on replay. Repository rules currently prevent deletion/non-fast-forward rewrites, but dedicated state-branch fast-forward writer restriction is not claimed."
+    },
+    "command_delivery": {
+      "concurrency_group": "repository-coordinator-state-mutation",
+      "queue": "max",
+      "rcc_idempotency": true,
+      "note": "GitHub source events are durable command sources; RCC identity is consumed exactly once by state replay."
+    },
+    "decision_receipts": {
+      "surface": "pull_request_comment",
+      "append_oriented": true,
+      "artifact_retention_days": 30,
+      "durable_comment_required": true,
+      "authority_effect": "ADMISSION_ROUTING_ONLY",
+      "merge_authority": false
+    }
   }
 }

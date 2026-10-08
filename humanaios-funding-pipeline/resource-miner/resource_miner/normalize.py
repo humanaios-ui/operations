@@ -162,13 +162,18 @@ def classify_types(
     haystack = " ".join(
         [text or "", *(_taxonomy_text(str(tag)) for tag in (tags or []))]
     ).lower()
+    explicit = (
+        SOURCE_CATEGORY_TYPE_ALIASES.get(_source_category_key(source_category))
+        if source_category
+        else None
+    )
+    # A canonical source category names the resource mechanism and is
+    # authoritative. Descriptive text may mention training, grants, compute,
+    # or other downstream benefits without changing what the resource *is*.
+    if explicit:
+        return [explicit]
+
     out = [kind for kind, needles in TYPE_RULES if any(n in haystack for n in needles)]
-
-    if source_category:
-        explicit = SOURCE_CATEGORY_TYPE_ALIASES.get(_source_category_key(source_category))
-        if explicit and explicit not in out:
-            out.insert(0, explicit)
-
     return out or ["general_resource"]
 
 

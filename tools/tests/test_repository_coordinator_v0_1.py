@@ -21,6 +21,7 @@ from repository_coordinator_state_v1 import (
     AUTHORITY_EFFECT,
     StateError,
     append_event,
+    apply_issue_command,
     canonical_json,
     make_event,
     parse_ledger,
@@ -72,7 +73,7 @@ def state(*, issues=None, prs=None):
     }
 
 
-def policy(*, limit=4, issues=None, prs=None, control_paths=None):
+def policy(*, limit=4, issues=None, prs=None, control_paths=None, support_paths=None):
     return {
         "_test_state": state(issues=issues, prs=prs),
         "capacity": {"active_operator_queue": limit},
@@ -86,6 +87,7 @@ def policy(*, limit=4, issues=None, prs=None, control_paths=None):
         },
         "control_plane": {
             "paths": control_paths or ["REPOSITORY_COORDINATOR_POLICY.json"],
+            "support_paths": support_paths or [],
         },
     }
 
@@ -457,6 +459,34 @@ def test_pure_control_plane_change_remains_exempt():
     assert item(idx, 1)["lane"] == "CONTROL_PLANE"
 
 
+def test_control_plane_support_artifact_is_exempt_only_with_core_change():
+    p = pr(
+        1,
+        body="- [x] **Z2**",
+        files=["REPOSITORY_COORDINATOR_POLICY.json", "ci_predictions/pr.json"],
+    )
+    idx = run(
+        [p],
+        policy_data=policy(
+            control_paths=["REPOSITORY_COORDINATOR_POLICY.json"],
+            support_paths=["ci_predictions/pr.json"],
+        ),
+    )
+    assert item(idx, 1)["lane"] == "CONTROL_PLANE"
+
+
+def test_support_only_change_is_not_control_plane_exempt():
+    p = pr(1, files=["ci_predictions/pr.json"])
+    idx = run(
+        [p],
+        policy_data=policy(
+            control_paths=["REPOSITORY_COORDINATOR_POLICY.json"],
+            support_paths=["ci_predictions/pr.json"],
+        ),
+    )
+    assert item(idx, 1)["lane"] == "ADMISSION_REVIEW"
+
+
 def test_incidental_mention_of_admitted_issue_is_not_admission():
     p = pr(1, body="This is unrelated to #77 but see it for context.")
     idx = run([p], items=_admitted_item(77), policy_data=policy(issues=[77]))
@@ -515,6 +545,44 @@ def test_markdown_operator_queue_counts_only_admitted_ready_work():
     md = render_markdown(idx)
     assert "Operator queue: **1/4**" in md
     assert "Control plane: **1**" in md
+
+
+def test_v1_1_direct_pr_admission_scope_match_is_stable_across_sha_changes():
+    target = pr(726, body="Fixes #726")
+    target["head_sha"] = "old-head"
+    scoped_state = state(prs=[726])
+    scoped_state["active_admissions"] = {
+        "PULL_REQUEST#726": {
+            "event_id": "RCSEVT-TEST",
+            "objective_issue_number": 726,
+            "admission_scope": "objective:ISSUE#726",
+            "command_ref": "RCC-TEST",
+        }
+    }
+    idx = run([target], items=_admitted_item(726), state_data=scoped_state, policy_data=policy())
+    got = item(idx, 726)
+    assert "ADMISSION_SCOPE_DRIFT" not in {f["code"] for f in got["findings"]}
+    target["head_sha"] = "new-head"
+    idx2 = run([target], items=_admitted_item(726), state_data=scoped_state, policy_data=policy())
+    assert "ADMISSION_SCOPE_DRIFT" not in {f["code"] for f in item(idx2, 726)["findings"]}
+
+
+def test_v1_1_direct_pr_admission_detects_objective_scope_drift():
+    target = pr(726, body="Fixes #999")
+    scoped_state = state(prs=[726])
+    scoped_state["active_admissions"] = {
+        "PULL_REQUEST#726": {
+            "event_id": "RCSEVT-TEST",
+            "objective_issue_number": 726,
+            "admission_scope": "objective:ISSUE#726",
+            "command_ref": "RCC-TEST",
+        }
+    }
+    idx = run([target], items={**_admitted_item(726), **_admitted_item(999)}, state_data=scoped_state, policy_data=policy())
+    got = item(idx, 726)
+    assert "ADMISSION_SCOPE_DRIFT" in {f["code"] for f in got["findings"]}
+    assert got["guidance"]["action"] == "REEXAMINE"
+    assert gate_decision(idx, 726)["gate"] == "FAIL"
 
 
 def test_gate_decision_fails_closed_for_unknown_pr():
@@ -760,3 +828,684 @@ def test_state_event_cannot_grant_merge_authority():
     row["merge_authority"] = True
     with pytest.raises(StateError):
         parse_ledger(canonical_json(row) + "\n")
+
+
+def _write_issue_route_policy(tmp_path, *, authorized=None):
+    path = tmp_path / "policy.json"
+    payload = {
+        "state": {
+            "authorized_mutators": authorized or ["humanaios-ui"],
+            "issue_route": {
+                "enabled": True,
+                "subject_kind": "ISSUE",
+                "commands": {
+                    "admit": "/coordinator admit",
+                    "revoke": "/coordinator revoke",
+                },
+                "required_admit_issue_state": "ADMISSION_REQUESTED",
+                "authority_effect": "ADMISSION_ROUTING_ONLY",
+                "merge_authority": False,
+            },
+        }
+    }
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def test_issue_route_authorized_admit_appends_issue_event(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, _ = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    result = apply_issue_command(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state,
+        issue_number=722,
+        issue_body="## State\n\n**State:** ADMISSION_REQUESTED\n",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="12345",
+        recorded_at="2026-10-05T05:30:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is True
+    assert result["decision"] == "ADMIT"
+    verified = verify_projection(ledger, state)
+    assert verified["admitted_issue_numbers"] == [1, 722]
+    assert verified["merge_authority"] is False
+
+
+def test_issue_route_unauthorized_actor_fails_closed(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, _ = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    with pytest.raises(StateError, match="not authorized"):
+        apply_issue_command(
+            policy_path=policy_path,
+            ledger_path=ledger,
+            state_path=state,
+            issue_number=722,
+            issue_body="**State:** ADMISSION_REQUESTED",
+            comment_body="/coordinator admit",
+            actor="other-user",
+            comment_id="12346",
+            recorded_at="2026-10-05T05:31:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+
+
+def test_issue_route_admit_requires_admission_requested(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, _ = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    with pytest.raises(StateError, match="ADMISSION_REQUESTED"):
+        apply_issue_command(
+            policy_path=policy_path,
+            ledger_path=ledger,
+            state_path=state,
+            issue_number=722,
+            issue_body="**State:** DISCOVERY",
+            comment_body="/coordinator admit",
+            actor="humanaios-ui",
+            comment_id="12347",
+            recorded_at="2026-10-05T05:32:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+
+
+def test_issue_route_repeat_admit_is_noop(tmp_path):
+    seed = state_event(kind="ISSUE", number=722, objective=722)
+    ledger, state, before = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+    before_ledger = ledger.read_text(encoding="utf-8")
+
+    result = apply_issue_command(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state,
+        issue_number=722,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="12348",
+        recorded_at="2026-10-05T05:33:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is False
+    assert result["reason"] == "ALREADY_ADMITTED"
+    assert ledger.read_text(encoding="utf-8") == before_ledger
+    assert verify_projection(ledger, state) == before
+
+
+def test_issue_route_revoke_removes_issue_standing(tmp_path):
+    seed = state_event(kind="ISSUE", number=722, objective=722)
+    ledger, state, _ = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    result = apply_issue_command(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state,
+        issue_number=722,
+        issue_body="**State:** ACTIVE",
+        comment_body="/coordinator revoke",
+        actor="humanaios-ui",
+        comment_id="12349",
+        recorded_at="2026-10-05T05:34:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is True
+    assert result["decision"] == "REVOKE"
+    verified = verify_projection(ledger, state)
+    assert 722 not in verified["admitted_issue_numbers"]
+
+
+def test_issue_route_whitespace_variant_is_not_exact_command(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, before = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+    before_ledger = ledger.read_text(encoding="utf-8")
+
+    for body in (" /coordinator admit", "/coordinator admit ", "\n/coordinator admit"):
+        result = apply_issue_command(
+            policy_path=policy_path,
+            ledger_path=ledger,
+            state_path=state,
+            issue_number=722,
+            issue_body="**State:** ADMISSION_REQUESTED",
+            comment_body=body,
+            actor="humanaios-ui",
+            comment_id="whitespace-case",
+            recorded_at="2026-10-05T05:35:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+        assert result["should_mutate"] is False
+        assert result["reason"] == "NOT_COORDINATOR_COMMAND"
+
+    assert ledger.read_text(encoding="utf-8") == before_ledger
+    assert verify_projection(ledger, state) == before
+
+
+def test_issue_route_non_command_is_noop(tmp_path):
+    seed = state_event(kind="ISSUE", number=1, objective=1)
+    ledger, state, before = write_state_pair(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+    before_ledger = ledger.read_text(encoding="utf-8")
+
+    result = apply_issue_command(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state,
+        issue_number=722,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="looks good",
+        actor="humanaios-ui",
+        comment_id="12350",
+        recorded_at="2026-10-05T05:35:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is False
+    assert result["reason"] == "NOT_COORDINATOR_COMMAND"
+    assert ledger.read_text(encoding="utf-8") == before_ledger
+    assert verify_projection(ledger, state) == before
+
+
+# --- Repository Coordinator state v1.1 hardening regression cases ----------
+
+import repository_coordinator_state_v1 as legacy_state
+from repository_coordinator_state_v1_1 import (
+    EVENT_SCHEMA as EVENT_SCHEMA_V2,
+    STATE_SCHEMA as STATE_SCHEMA_V1_1,
+    append_event as append_event_v2,
+    apply_issue_command as apply_issue_command_v2,
+    command_ref as command_ref_v2,
+    decision_receipt as decision_receipt_v2,
+    reconcile_pr_lifecycle as reconcile_pr_lifecycle_v2,
+)
+
+
+def _write_legacy_pair_v11(tmp_path, events):
+    ledger = tmp_path / "V11_ADMISSION_LEDGER.jsonl"
+    state_file = tmp_path / "V11_COORDINATOR_STATE.json"
+    text = "".join(canonical_json(row) + "\n" for row in events)
+    ledger.write_text(text, encoding="utf-8")
+    projection = legacy_state.replay_events(events, ledger_text=text)
+    state_file.write_text(
+        json.dumps(projection, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return ledger, state_file, projection
+
+
+def test_v11_first_event_anchors_complete_legacy_ledger(tmp_path):
+    first = state_event()
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [first])
+    result = append_event_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=726,
+        objective_issue_number=726,
+        admission_scope="objective:ISSUE#726",
+        command_ref_value="RCC-GITHUB-ACTIONS-100",
+        source_locator="github:run:100",
+        actor="humanaios-ui",
+        evidence=["explicit admission"],
+        recorded_at="2026-10-06T03:20:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    event = result["event"]
+    assert event["schema"] == EVENT_SCHEMA_V2
+    assert event["sequence"] == 2
+    assert event["previous_event_hash"] == sha256_text(canonical_json(first) + "\n")
+    verified = json.loads(state_file.read_text(encoding="utf-8"))
+    assert verified["schema"] == STATE_SCHEMA_V1_1
+    assert verified["last_sequence"] == 2
+    assert 726 in verified["admitted_pull_request_numbers"]
+
+
+def test_v11_duplicate_rcc_delivery_is_rejected(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    kwargs = dict(
+        ledger_path=ledger,
+        state_path=state_file,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=726,
+        objective_issue_number=726,
+        admission_scope="objective:ISSUE#726",
+        command_ref_value="RCC-GITHUB-ACTIONS-101",
+        source_locator="github:run:101",
+        actor="humanaios-ui",
+        evidence=["explicit admission"],
+        recorded_at="2026-10-06T03:21:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    append_event_v2(**kwargs)
+    kwargs.update(decision="REVOKE")
+    duplicate = append_event_v2(**kwargs)
+    assert duplicate["should_mutate"] is False
+    assert duplicate["reason"] == "DUPLICATE_COMMAND"
+    verified = verify_projection(ledger, state_file)
+    assert 726 in verified["admitted_pull_request_numbers"]
+
+
+def test_v11_issue_comment_command_is_idempotent(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    policy_path = _write_issue_route_policy(tmp_path)
+    args = dict(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="98765",
+        recorded_at="2026-10-06T03:22:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    first = apply_issue_command_v2(**args)
+    assert first["should_mutate"] is True
+    duplicate = apply_issue_command_v2(**args)
+    assert duplicate["should_mutate"] is False
+    assert duplicate["reason"] == "DUPLICATE_COMMAND"
+    assert duplicate["command_ref"] == command_ref_v2("GITHUB-COMMENT", "98765")
+
+
+def test_v11_already_admitted_command_is_consumed_before_later_revoke(tmp_path):
+    seed = state_event(kind="ISSUE", number=726, objective=726)
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [seed])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    admitted = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="already-admitted",
+        recorded_at="2026-10-06T03:23:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert admitted["should_mutate"] is True
+    assert admitted["decision"] == "ACK_ALREADY_ADMITTED"
+
+    revoked = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ACTIVE",
+        comment_body="/coordinator revoke",
+        actor="humanaios-ui",
+        comment_id="later-revoke",
+        recorded_at="2026-10-06T03:24:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert revoked["should_mutate"] is True
+    assert 726 not in verify_projection(ledger, state_file)["admitted_issue_numbers"]
+
+    replay = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="already-admitted",
+        recorded_at="2026-10-06T03:25:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert replay["should_mutate"] is False
+    assert replay["reason"] == "DUPLICATE_COMMAND"
+    assert 726 not in verify_projection(ledger, state_file)["admitted_issue_numbers"]
+
+
+def test_v11_already_revoked_command_is_consumed_before_later_admit(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    policy_path = _write_issue_route_policy(tmp_path)
+
+    revoked = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ACTIVE",
+        comment_body="/coordinator revoke",
+        actor="humanaios-ui",
+        comment_id="already-revoked",
+        recorded_at="2026-10-06T03:26:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert revoked["should_mutate"] is True
+    assert revoked["decision"] == "ACK_ALREADY_REVOKED"
+
+    admitted = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ADMISSION_REQUESTED",
+        comment_body="/coordinator admit",
+        actor="humanaios-ui",
+        comment_id="later-admit",
+        recorded_at="2026-10-06T03:27:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert admitted["should_mutate"] is True
+    assert 726 in verify_projection(ledger, state_file)["admitted_issue_numbers"]
+
+    replay = apply_issue_command_v2(
+        policy_path=policy_path,
+        ledger_path=ledger,
+        state_path=state_file,
+        issue_number=726,
+        issue_body="**State:** ACTIVE",
+        comment_body="/coordinator revoke",
+        actor="humanaios-ui",
+        comment_id="already-revoked",
+        recorded_at="2026-10-06T03:28:00Z",
+        source_policy_sha=POLICY_SHA,
+        repository="humanaios-ui/operations",
+    )
+    assert replay["should_mutate"] is False
+    assert replay["reason"] == "DUPLICATE_COMMAND"
+    assert 726 in verify_projection(ledger, state_file)["admitted_issue_numbers"]
+
+
+def test_v11_global_chain_detects_reorder(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    for n in (726, 727):
+        append_event_v2(
+            ledger_path=ledger,
+            state_path=state_file,
+            decision="ADMIT",
+            subject_kind="PULL_REQUEST",
+            subject_number=n,
+            objective_issue_number=n,
+            admission_scope=f"objective:ISSUE#{n}",
+            command_ref_value=f"RCC-GITHUB-ACTIONS-{n}",
+            source_locator=f"github:run:{n}",
+            actor="humanaios-ui",
+            evidence=["explicit admission"],
+            recorded_at=f"2026-10-06T03:{n-700:02d}:00Z",
+            source_policy_sha=POLICY_SHA,
+        )
+    rows = [json.loads(x) for x in ledger.read_text(encoding="utf-8").splitlines()]
+    tampered = [rows[0], rows[2], rows[1]]
+    tampered_text = "".join(canonical_json(x) + "\n" for x in tampered)
+    with pytest.raises(Exception):
+        from repository_coordinator_state_v1_1 import replay_events as replay_v11
+        replay_v11(tampered, ledger_text=tampered_text)
+
+
+def test_v11_terminal_lifecycle_removes_active_pr(tmp_path):
+    seed = state_event(kind="PULL_REQUEST", number=707, objective=None)
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [seed])
+    result = reconcile_pr_lifecycle_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        pr_number=707,
+        terminal_state="MERGED",
+        command_ref_value="RCC-GITHUB-PR-LIFECYCLE-707-merged",
+        source_locator="github:pull:707:closed",
+        actor="github-actions[bot]",
+        recorded_at="2026-10-06T03:30:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["should_mutate"] is True
+    verified = json.loads(state_file.read_text(encoding="utf-8"))
+    assert 707 not in verified["admitted_pull_request_numbers"]
+
+
+def test_v11_terminal_transition_preserves_original_admission_scope(tmp_path):
+    ledger, state_file, _ = _write_legacy_pair_v11(tmp_path, [state_event()])
+    append_event_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        decision="ADMIT",
+        subject_kind="PULL_REQUEST",
+        subject_number=708,
+        objective_issue_number=726,
+        admission_scope="objective:ISSUE#726",
+        command_ref_value="RCC-GITHUB-ACTIONS-admit-708",
+        source_locator="github:run:admit-708",
+        actor="humanaios-ui",
+        evidence=["explicit admission for objective #726"],
+        recorded_at="2026-10-06T03:31:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    result = reconcile_pr_lifecycle_v2(
+        ledger_path=ledger,
+        state_path=state_file,
+        pr_number=708,
+        terminal_state="CLOSED",
+        command_ref_value="RCC-GITHUB-PR-LIFECYCLE-708-close-1",
+        source_locator="github:pull:708:closed",
+        actor="github-actions[bot]",
+        recorded_at="2026-10-06T03:32:00Z",
+        source_policy_sha=POLICY_SHA,
+    )
+    assert result["event"]["admission_scope"] == "objective:ISSUE#726"
+    assert result["event"]["objective_issue_number"] == 726
+    assert 708 not in verify_projection(ledger, state_file)["admitted_pull_request_numbers"]
+
+
+def test_v11_decision_receipt_binds_exact_policy_state_and_target():
+    receipt = decision_receipt_v2(
+        gate_decision={
+            "target_pr": 726,
+            "target_head_sha": "b" * 40,
+            "gate": "PASS",
+            "lane": "CONTROL_PLANE",
+            "reason": "bounded control-plane change",
+            "state_receipt": {
+                "policy_ref": "main",
+                "policy_sha": "a" * 40,
+                "state_branch": "repository-coordinator-state",
+                "state_sha": "c" * 40,
+                "ledger_sha256": "1" * 64,
+                "projection_sha256": "2" * 64,
+            },
+        },
+        created_at="2026-10-06T03:40:00Z",
+        source_run_id="1234",
+    )
+    assert receipt["receipt_id"].startswith("RCD-")
+    assert receipt["target_pr"] == 726
+    assert receipt["policy_sha"] == "a" * 40
+    assert receipt["state_sha"] == "c" * 40
+    assert receipt["merge_authority"] is False
+
+
+# --- Federated Oracle pilot regression cases (#735) ------------------------
+
+import importlib.util as _oracle_importlib_util
+
+_ORACLE_ENGINE = Path(__file__).resolve().parents[2] / "oracles" / "engine" / "oracle_engine_v0_1.py"
+_oracle_spec = _oracle_importlib_util.spec_from_file_location("oracle_engine_v0_1", _ORACLE_ENGINE)
+assert _oracle_spec and _oracle_spec.loader
+oracle_engine = _oracle_importlib_util.module_from_spec(_oracle_spec)
+_oracle_spec.loader.exec_module(oracle_engine)
+
+# Live-derived Drive observation captured through the connected Google Drive
+# source on 2026-10-07 America/Chicago. The source documents are intentionally
+# represented as bounded claims rather than copied wholesale.
+_ORACLE_DRIVE_SNAPSHOT = {
+    "schema": "humanaios.oracle-source-snapshot.drive.v1",
+    "observed_at": "2026-10-08T02:23:00Z",
+    "source": {
+        "substrate": "google_drive",
+        "root_name": "HumanAIOS Knowledge Graph",
+        "authority_effect": "NONE",
+    },
+    "authority": {
+        "advisory_only": True,
+        "can_authorize": False,
+        "authority_effect": "NONE",
+    },
+    "artifacts": [
+        {
+            "id": "1c1ImGD9-YItzdbJRKtY61W7ilewaqQVL",
+            "title": "system_graph.rendered.md",
+            "projection_role": "current_generated_view",
+            "canonical_ref": oracle_engine.SYSTEM_GRAPH_REF,
+            "identity_basis": (
+                "Drive rendered view explicitly states it is generated from "
+                "operations/system_graph.json"
+            ),
+            "as_of": "2026-09-13T15:12:28.926529Z",
+            "claims": [
+                {
+                    "predicate": "node_count",
+                    "value": 22,
+                    "observation": "Rendered current system graph reports Nodes: 22.",
+                },
+                {
+                    "predicate": "edge_count",
+                    "value": 53,
+                    "observation": "Rendered current system graph reports Edges: 53.",
+                },
+                {
+                    "predicate": "generated_at",
+                    "value": "2026-09-13T15:12:28.926529",
+                    "observation": "Rendered view identifies the source generated_at timestamp.",
+                },
+                {
+                    "predicate": "source_sha256",
+                    "value": "7715372d8c3027bc492f716ddee9e3c129853a95db4ec087bada21ee527f5ec6",
+                    "observation": "Rendered view records the source system_graph.json SHA-256.",
+                },
+            ],
+        },
+        {
+            "id": "1vpm6s6yjVLhClzhC5qlBBCgw8PF0BoiIQPQGapns1o0",
+            "title": "knowledge_graph.md",
+            "projection_role": "historical_compiled_view",
+            "canonical_ref": oracle_engine.SYSTEM_GRAPH_REF,
+            "identity_basis": "Section XI labels its embedded summary System Graph v0.2.",
+            "as_of": "2026-10-02T00:00:00Z",
+            "claims": [
+                {
+                    "predicate": "node_count",
+                    "value": 19,
+                    "observation": "Section XI states System Graph v0.2 has 19 nodes.",
+                },
+                {
+                    "predicate": "edge_count",
+                    "value": 44,
+                    "observation": "Section XI states System Graph v0.2 has 44 edges.",
+                },
+            ],
+        },
+        {
+            "id": "1HGBT6m5byF1b_zbLAQawLdZmZ_-dOqOnqwOk2Juicfc",
+            "title": "HumanAIOS Knowledge Graph — Advisory Evidence Index",
+            "projection_role": "advisory_index",
+            "claims": [
+                {
+                    "subject_ref": "drive:HumanAIOS-Knowledge-Graph",
+                    "predicate": "authority_effect",
+                    "value": "NONE",
+                    "observation": "Index states Drive index state has authority_effect=NONE.",
+                },
+                {
+                    "subject_ref": "drive:HumanAIOS-Knowledge-Graph",
+                    "predicate": "current_generated_view",
+                    "value": "system_graph.rendered.md",
+                    "observation": (
+                        "Index names system_graph.rendered.md as the current "
+                        "generated advisory view."
+                    ),
+                },
+            ],
+        },
+    ],
+}
+
+
+def test_oracle_workspace_preserves_live_drive_contradiction():
+    graph = oracle_engine.WorkspaceOracle().project(_ORACLE_DRIVE_SNAPSHOT)
+    pairs = {
+        (c["predicate"], tuple(sorted(map(str, c["observed_values"]))))
+        for c in graph["conflicts"]
+    }
+    assert ("node_count", ("19", "22")) in pairs
+    assert ("edge_count", ("44", "53")) in pairs
+    assert all(c["resolution_state"] == "OPEN" for c in graph["conflicts"])
+    assert graph["authority"]["authority_effect"] == "NONE"
+
+
+def test_oracle_repository_reads_operations_system_graph():
+    root = Path(__file__).resolve().parents[2]
+    graph = oracle_engine.RepositoryOracle().project_operations(
+        root, observed_at=_ORACLE_DRIVE_SNAPSHOT["observed_at"]
+    )
+    values = {
+        a["predicate"]: a["value"]
+        for a in graph["assertions"]
+        if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
+    }
+    assert values["node_count"] == 22
+    assert values["edge_count"] == 53
+    assert values["generated_at"] == "2026-09-13T15:12:28.926529"
+    assert graph["authority"]["authority_effect"] == "NONE"
+
+
+def test_oracle_global_reconciles_identity_and_retains_both_values():
+    root = Path(__file__).resolve().parents[2]
+    workspace = oracle_engine.WorkspaceOracle().project(_ORACLE_DRIVE_SNAPSHOT)
+    repository = oracle_engine.RepositoryOracle().project_operations(
+        root, observed_at=_ORACLE_DRIVE_SNAPSHOT["observed_at"]
+    )
+    graph = oracle_engine.GlobalOracle().federate(workspace, repository)
+
+    reconciled = {x["canonical_ref"] for x in graph["identity_reconciliations"]}
+    assert oracle_engine.SYSTEM_GRAPH_REF in reconciled
+
+    node_values = {
+        a["value"]
+        for a in graph["assertions"]
+        if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
+        and a["predicate"] == "node_count"
+    }
+    assert node_values == {19, 22}
+    assert len(graph["conflicts"]) >= 2
+
+
+def test_oracle_candidate_routes_into_existing_coordinator_as_workbench():
+    root = Path(__file__).resolve().parents[2]
+    result = oracle_engine.run_pilot(root, _ORACLE_DRIVE_SNAPSHOT)
+    assert len(result["global"]["candidate_changes"]) >= 2
+
+    for candidate, route in zip(
+        result["global"]["candidate_changes"],
+        result["coordinator_routes"],
+    ):
+        assert candidate["authority_effect"] == "NONE"
+        assert candidate["can_authorize"] is False
+        assert candidate["coordinator_input_only"] is True
+        assert route["lane"] == "WORKBENCH"
+        assert route["details"]["admitted"] is False
+        assert route["authority"]["authority_effect"] == "NONE"
+
+
+def test_oracle_rejects_authority_inflation():
+    bad = json.loads(json.dumps(_ORACLE_DRIVE_SNAPSHOT))
+    bad["authority"]["can_authorize"] = True
+    with pytest.raises(ValueError, match="can_authorize"):
+        oracle_engine.WorkspaceOracle().project(bad)
