@@ -7,7 +7,7 @@ Implements the bounded Phase 1 pilot from issue #735:
 - Global Oracle federation with identity reconciliation and contradiction retention.
 - Candidate-change adapter into the existing Repository Coordinator.
 
-This module never calls Google Drive or GitHub. Source connectors produce snapshots;
+This module does not call Google Drive or GitHub. Source connectors produce snapshots;
 the engine deterministically projects them. All outputs remain advisory-only.
 """
 from __future__ import annotations
@@ -289,7 +289,7 @@ class GlobalOracle:
 class CoordinatorAdapter:
     """Translate an Oracle candidate into the existing coordinator's PR vocabulary.
 
-    The adapter always emits a draft/workbench-shaped object. It cannot create a
+    In this pilot the adapter emits a draft/workbench-shaped object. It cannot create a
     repository-coordinator admission record and therefore cannot self-admit work.
     """
 
