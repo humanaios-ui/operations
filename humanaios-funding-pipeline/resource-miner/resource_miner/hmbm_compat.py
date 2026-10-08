@@ -20,11 +20,13 @@ def _utc(value):
     return timestamp.astimezone(timezone.utc)
 
 
-def project(resource, observation, *, cutoff, frozen_assets, registered_providers):
+def project(resource, observation, *, cutoff, frozen_assets, registered_providers, verify_availability=None):
     """Project a normalized URA record into HMBM eligibility, never authorization.
 
-    Caller must independently validate the referenced availability proof.
-    Merely supplying a string in that field is NOT historical verification.
+    The optional verifier is a trusted, separately configured boundary, not
+    observation metadata. Without it, eligibility always abstains. A verifier
+    must validate historical source evidence and bind the asset, digest,
+    provider, source and cutoff; a self-declared flag never counts.
     """
     if any((
         resource.get("authority_effect") != "NONE",
@@ -63,8 +65,18 @@ def project(resource, observation, *, cutoff, frozen_assets, registered_provider
         raise CompatibilityDenied("inverted timestamps")
     # Eligibility is intentionally conservative. An externally verified receipt
     # must be bound to this digest, source, asset and cutoff.
-    verified = observation.get("availability_verification") == "INDEPENDENTLY_VERIFIED"
-    eligible = verified and available <= due and observation["coverage_state"] == "OBSERVED"
+    verified = False
+    if available <= due and observation["coverage_state"] == "OBSERVED" and verify_availability is not None:
+        try:
+            verified = verify_availability(
+                provider_id=provider, asset_id=observation["asset_id"],
+                source_reference=source, content_hash=digest,
+                available_at=available, cutoff=due,
+            ) is True
+        except Exception:
+            # A failed/unavailable validator is not evidence of availability.
+            verified = False
+    eligible = verified
     return {
         "projection_version": "HMBM-URA-COMPAT-v0.1",
         "provider_id": provider,
@@ -80,5 +92,5 @@ def project(resource, observation, *, cutoff, frozen_assets, registered_provider
         "prediction_authority": "NONE",
         "execution": "NOT_AVAILABLE",
         "dhp_state_effect": "NONE",
-        "availability_verification": "CLAIM_ONLY_NOT_VERIFIED_BY_PROJECTION",
+        "availability_verification": "TRUSTED_VERIFIER_PASS" if verified else "NOT_VERIFIED",
     }
