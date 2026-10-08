@@ -179,13 +179,18 @@ class HackerOneClient:
             )
         )
 
-    def get_scope_exclusions(self, handle: str) -> list[dict[str, Any]]:
+    def get_scope_exclusions(
+        self,
+        handle: str,
+        page_size: int = DEFAULT_PAGE_SIZE,
+    ) -> list[dict[str, Any]]:
         handle = handle.strip()
-        payload = self._get(f"/programs/{urllib.parse.quote(handle, safe='')}/scope_exclusions")
-        rows = payload.get("data", [])
-        if not isinstance(rows, list):
-            raise HackerOneAPIError("HackerOne scope exclusions response data must be a list")
-        return [row for row in rows if isinstance(row, dict)]
+        return list(
+            self._iter_paginated(
+                f"/programs/{urllib.parse.quote(handle, safe='')}/scope_exclusions",
+                page_size=page_size,
+            )
+        )
 
 
 def _program_candidate(program: dict[str, Any], observed: str):
