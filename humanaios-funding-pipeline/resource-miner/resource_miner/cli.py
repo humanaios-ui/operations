@@ -148,6 +148,11 @@ def _plan_requirements(paths: list[str]) -> list[dict]:
 def main() -> None:
     args = build_parser().parse_args()
 
+    if args.command == "reconcile":
+        audit = reconcile_snapshot(args.snapshot, args.receipts, args.out, args.audit_out)
+        print(json.dumps(audit, indent=2, ensure_ascii=False))
+        return
+
     if args.command == "plan":
         plan = load_resource_plan(args.file)
         data = miner_requirements_from_plan(plan) if args.miner_requirements else resolve_resource_plan(plan)
