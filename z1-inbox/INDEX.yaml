@@ -1,8 +1,8 @@
 version: 1
-generated: '2026-10-02'
+generated: '2026-10-08'
 decision_window_days: 2
 counts:
-  candidates: 104
+  candidates: 105
   records: 56
 ratifiers:
 - Night
@@ -1200,6 +1200,20 @@ candidates:
     path filters. Tier 2 (control surface): telemetry collection & Phase 2A monitoring.
     PR #626 ready for merge. All 59 workflows validated (0 errors, 1 warning on future-facing
     pattern). Three workflows remediated for invalid path filters.'
+- q_id: Q-SYSTEM-GRAPH-TEMPORAL-01
+  title: Temporal sequencing for system_graph.json schema
+  path: z1-inbox/2026-10-08/SYSTEM_GRAPH_TEMPORAL_SCHEMA_PROPOSAL.md
+  submitted: '2026-10-08'
+  status: awaiting_z2
+  tier: 0
+  note: 'Schema v0.2 contains 16 detected cycles (all intentional feedback loops per
+    CLAUDE.md molt design). Proposes v0.3 with temporal sequencing (generation fields
+    on nodes, generation_rules on edges, feedback_loops manifest) to distinguish safe
+    cycles from accidental ones. All 16 cycles classified against anti-cascade rules
+    (K=3 max concurrent, 2-revert freeze, priority ranking, no self-reference, one
+    per constant). Non-breaking Phase 1; annotation Phase 2; enforcement Phase 3.
+    Timeline: ~10 days pending Z2 ratification. Registered in REGISTERED.md with full
+    candidate entry Q-SYSTEM-GRAPH-TEMPORAL-01.'
 records:
 - path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
   title: Phase 3 credential deployment guide

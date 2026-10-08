@@ -408,4 +408,23 @@ Generation 3+ (blocked):
 
 ---
 
+## Falsifier
+
+This proposal fails (and Z2 should REJECT) if any of the following occur:
+
+1. **Schema breaking change:** The v0.3 schema change breaks existing tooling — validation fails on v0.2 graphs, or renderer cannot parse v0.3 format
+2. **Cycle annotation gap:** Any of the 16 cycles cannot be annotated with a valid anti-cascade rule justification from CLAUDE.md § Molt Decisions
+3. **Validator correctness failure:** Updated validator (a) rejects a known safe cycle, OR (b) accepts an unmarked cycle without a feedback_loops entry
+4. **Regeneration failure:** `system_graph.rendered.md` still shows "Cycle detected" error after schema and validator updates
+5. **Deadline miss:** Implementation not complete by 2026-10-18 (10 calendar days from proposal date)
+
+**Falsifier is satisfied if:**
+- Schema migration is non-breaking (Phase 1 runs; old tools still work)
+- All 16 cycles successfully annotated with valid anti-cascade rules
+- Validator correctly allows marked cycles, rejects unmarked ones
+- `system_graph.rendered.md` regenerates without cycle errors
+- All three phases complete within 10 days
+
+---
+
 **Next Step:** Awaiting Z2 (Night) ratification via REGISTERED.md entry.
