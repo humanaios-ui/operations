@@ -3,7 +3,7 @@ import importlib.util
 from pathlib import Path
 import unittest
 
-MOD = Path(__file__).resolve().parents[1] / "outlier_public_adapter_v0_1.py"
+MOD = Path(__file__).resolve().parents[2] / "src" / "resource_miner" / "outlier_public_adapter_v0_1.py"
 spec = importlib.util.spec_from_file_location("outlier_public_adapter_v0_1", MOD)
 adapter = importlib.util.module_from_spec(spec)
 import sys
