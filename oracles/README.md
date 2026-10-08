@@ -1,6 +1,6 @@
 # HumanAIOS Federated Oracle Architecture
 
-Status: **Phase 0 scaffold / advisory-only**
+Status: **Phase 1 pilot implemented / advisory-only**
 
 Tracking issue: #735  
 Dependencies: #677, #708
@@ -75,12 +75,16 @@ The federated advisory projection is named `GLOBAL_ADVISORY_GRAPH`.
 
 Do not name the advisory projection `SSOT`. Global does not mean canonical, integrated does not mean true, and observed does not mean authorized.
 
-## Phase 0
+## Phase 1 pilot
 
-This directory defines contracts only. It does **not** implement autonomous crawling, repository mutation, candidate execution, or Coordinator admission.
+Implemented in `engine/oracle_engine_v0_1.py` with a replayable Drive observation fixture under `fixtures/`.
 
-Next pilots after review:
-1. Workspace Oracle over the existing Drive graph corpus.
-2. Repository Oracle over `humanaios-ui/operations`.
-3. Global Oracle federation over those two projections only.
-4. Explicit `candidate_change` adapter into Repository Coordinator admission.
+The pilot:
+1. Projects the existing Google Drive HumanAIOS graph through the Workspace Oracle.
+2. Reads `humanaios-ui/operations/system_graph.json` through the Repository Oracle.
+3. Reconciles explicit canonical identities in the Global Oracle.
+4. Preserves conflicting Drive assertions rather than overwriting them.
+5. Emits advisory `candidate_change` objects.
+6. Routes those candidates into the existing Repository Coordinator vocabulary as **draft WORKBENCH** items only.
+
+It still does **not** implement autonomous source crawling, repository mutation, admission-state mutation, candidate execution, or Z2 promotion.
