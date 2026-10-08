@@ -68,10 +68,13 @@ def _normalized(value: str | None) -> str:
     return " ".join((value or "").casefold().split())
 
 
-def _host(value: str) -> str:
+def _host(value: str) -> str | None:
     value = value.strip().casefold()
-    parsed = urlparse(value if "://" in value else f"//{value}")
-    return (parsed.hostname or value).rstrip(".")
+    try:
+        parsed = urlparse(value if "://" in value else f"//{value}")
+    except ValueError:
+        return None
+    return parsed.hostname.rstrip(".") if parsed.hostname else None
 
 
 def _asset_matches(asset: ScopeAsset, identifier: str) -> bool:
@@ -82,7 +85,7 @@ def _asset_matches(asset: ScopeAsset, identifier: str) -> bool:
     if scope.startswith("*.") and "/" not in scope:
         suffix = scope[1:]
         target_host = _host(identifier)
-        return target_host.endswith(suffix) and target_host != scope[2:]
+        return target_host is not None and target_host.endswith(suffix) and target_host != scope[2:]
     return False
 
 
