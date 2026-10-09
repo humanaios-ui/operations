@@ -33,6 +33,8 @@ class CapabilityQueryTests(unittest.TestCase):
                 "state": "OBSERVED_AVAILABLE",
                 "observed": {
                     "path": "/tmp/operations-pr594",
+                    "repository_full_name": "humanaios-ui/operations",
+                    "repository_identity_verified": True,
                     "branch": "machine-graph-local",
                     "working_tree_dirty": False,
                 },
@@ -59,10 +61,22 @@ class CapabilityQueryTests(unittest.TestCase):
             self.assertEqual(result["authorization"], "NONE")
             self.assertFalse(result["can_authorize_external_action"])
 
-    def test_missing_runtime_is_unsatisfied(self):
+    def test_missing_runtime_is_unverified(self):
         with tempfile.TemporaryDirectory() as td:
             result = mod.evaluate(self.graph(pyshacl=False), self.receipt(td, True))
-            self.assertEqual(result["state"], "UNSATISFIED")
+            self.assertEqual(result["state"], "UNVERIFIED")
+
+    def test_explicitly_absent_pyshacl_is_unsatisfied(self):
+        with tempfile.TemporaryDirectory() as td:
+            graph = self.graph()
+            graph["nodes"][0]["observed"]["pyshacl_present"] = False
+            self.assertEqual(mod.evaluate(graph, self.receipt(td))["state"], "UNSATISFIED")
+
+    def test_unverified_repository_identity_is_not_satisfied(self):
+        with tempfile.TemporaryDirectory() as td:
+            graph = self.graph()
+            graph["nodes"][1]["observed"]["repository_identity_verified"] = False
+            self.assertEqual(mod.evaluate(graph, self.receipt(td))["state"], "UNVERIFIED")
 
     def test_no_receipt_is_unverified(self):
         result = mod.evaluate(self.graph(), None)
