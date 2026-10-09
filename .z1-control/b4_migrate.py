@@ -110,6 +110,19 @@ def _folded_from_total(db: str) -> int:
         return 0
 
 
+def _survivor_session(sdb: str) -> tuple[str, str]:
+    """A real (session_id, project_id) from the survivor's OWN sessions table. log-artifacts
+    needs these to resolve context; EMPIRICA_SESSION_DB only sets which file it writes to."""
+    try:
+        con = sqlite3.connect(f"file:{sdb}?mode=ro", uri=True)
+        row = con.execute("SELECT session_id, project_id FROM sessions WHERE project_id IS NOT NULL "
+                          "ORDER BY created_at DESC LIMIT 1").fetchone()
+        con.close()
+        return (row[0], row[1]) if row and row[0] and row[1] else ("", "")
+    except sqlite3.Error:
+        return ("", "")
+
+
 def export_seat(seat: str) -> tuple[list, dict]:
     db = os.path.join(PRACTICES_ROOT, seat, ".empirica", "sessions", "sessions.db")
     nodes, counts = [], {}
@@ -185,16 +198,20 @@ def migrate(seat: str, apply: bool) -> int:
     summary = ", ".join(f"{k}:{v}" for k, v in sorted(counts.items()) if v)
     print(f"  {seat} → {survivor}: {len(nodes)} live nodes ({summary})")
 
+    sid, pid = _survivor_session(sdb)
+    if not sid or not pid:
+        print(f"::error::{seat}: no resolvable session in {survivor}'s store — cannot import")
+        return 1
     if not apply:
         print(f"    [dry-run] import into {survivor}'s OWN store:")
-        print(f"      EMPIRICA_SESSION_DB={sdb} empirica log-artifacts - < {bpath}")
+        print(f"      EMPIRICA_SESSION_DB={sdb} empirica log-artifacts --session-id {sid} --project-id {pid} - < {bpath}")
         print(f"      → then verify {want_findings} findings in that file + embed")
         return 0
 
     env = {**os.environ, "EMPIRICA_SESSION_DB": sdb}
     with open(bpath, encoding="utf-8") as fh:
-        r = subprocess.run(["empirica", "log-artifacts", "-"], stdin=fh, env=env,
-                           capture_output=True, text=True)
+        r = subprocess.run(["empirica", "log-artifacts", "--session-id", sid, "--project-id", pid, "-"],
+                           stdin=fh, env=env, capture_output=True, text=True)
     if r.returncode != 0:
         print(f"::error::{seat}: import failed — {r.stderr.strip()[:300]}")
         print(f"    (bundle at {bpath}; source untouched; marker NOT updated)")
