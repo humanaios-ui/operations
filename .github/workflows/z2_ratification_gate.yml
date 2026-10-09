@@ -104,6 +104,12 @@ jobs:
         # windows, and the no-self-grant rule on Z2 signatures.
         run: python3 .z1-control/validate.py
 
+      - name: Candidate-bundle schema self-test
+        # B3 (Substrate Map): a candidate-bundle/v1 doc maps deterministically to an
+        # Empirica log-artifacts bundle using only valid node types + relations. The
+        # self-test asserts that mapping against empirica's contract, so drift fails here.
+        run: python3 .z1-control/candidate_bundle.py --smoke-test
+
       - name: Z1_INBOX_INDEX.md is in sync (ERROR — blocks merge)
         run: python3 .z1-control/render.py --check
 
