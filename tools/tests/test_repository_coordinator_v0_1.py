@@ -1330,3 +1330,182 @@ def test_v11_decision_receipt_binds_exact_policy_state_and_target():
     assert receipt["policy_sha"] == "a" * 40
     assert receipt["state_sha"] == "c" * 40
     assert receipt["merge_authority"] is False
+
+
+# --- Federated Oracle pilot regression cases (#735) ------------------------
+
+import importlib.util as _oracle_importlib_util
+
+_ORACLE_ENGINE = Path(__file__).resolve().parents[2] / "oracles" / "engine" / "oracle_engine_v0_1.py"
+_oracle_spec = _oracle_importlib_util.spec_from_file_location("oracle_engine_v0_1", _ORACLE_ENGINE)
+assert _oracle_spec and _oracle_spec.loader
+oracle_engine = _oracle_importlib_util.module_from_spec(_oracle_spec)
+_oracle_spec.loader.exec_module(oracle_engine)
+
+# Live-derived Drive observation captured through the connected Google Drive
+# source on 2026-10-07 America/Chicago. The source documents are intentionally
+# represented as bounded claims rather than copied wholesale.
+_ORACLE_DRIVE_SNAPSHOT = {
+    "schema": "humanaios.oracle-source-snapshot.drive.v1",
+    "observed_at": "2026-10-08T02:23:00Z",
+    "source": {
+        "substrate": "google_drive",
+        "root_name": "HumanAIOS Knowledge Graph",
+        "authority_effect": "NONE",
+    },
+    "authority": {
+        "advisory_only": True,
+        "can_authorize": False,
+        "authority_effect": "NONE",
+    },
+    "artifacts": [
+        {
+            "id": "1c1ImGD9-YItzdbJRKtY61W7ilewaqQVL",
+            "title": "system_graph.rendered.md",
+            "projection_role": "current_generated_view",
+            "canonical_ref": oracle_engine.SYSTEM_GRAPH_REF,
+            "identity_basis": (
+                "Drive rendered view explicitly states it is generated from "
+                "operations/system_graph.json"
+            ),
+            "as_of": "2026-09-13T15:12:28.926529Z",
+            "claims": [
+                {
+                    "predicate": "node_count",
+                    "value": 22,
+                    "observation": "Rendered current system graph reports Nodes: 22.",
+                },
+                {
+                    "predicate": "edge_count",
+                    "value": 53,
+                    "observation": "Rendered current system graph reports Edges: 53.",
+                },
+                {
+                    "predicate": "generated_at",
+                    "value": "2026-09-13T15:12:28.926529",
+                    "observation": "Rendered view identifies the source generated_at timestamp.",
+                },
+                {
+                    "predicate": "source_sha256",
+                    "value": "7715372d8c3027bc492f716ddee9e3c129853a95db4ec087bada21ee527f5ec6",
+                    "observation": "Rendered view records the source system_graph.json SHA-256.",
+                },
+            ],
+        },
+        {
+            "id": "1vpm6s6yjVLhClzhC5qlBBCgw8PF0BoiIQPQGapns1o0",
+            "title": "knowledge_graph.md",
+            "projection_role": "historical_compiled_view",
+            "canonical_ref": oracle_engine.SYSTEM_GRAPH_REF,
+            "identity_basis": "Section XI labels its embedded summary System Graph v0.2.",
+            "as_of": "2026-10-02T00:00:00Z",
+            "claims": [
+                {
+                    "predicate": "node_count",
+                    "value": 19,
+                    "observation": "Section XI states System Graph v0.2 has 19 nodes.",
+                },
+                {
+                    "predicate": "edge_count",
+                    "value": 44,
+                    "observation": "Section XI states System Graph v0.2 has 44 edges.",
+                },
+            ],
+        },
+        {
+            "id": "1HGBT6m5byF1b_zbLAQawLdZmZ_-dOqOnqwOk2Juicfc",
+            "title": "HumanAIOS Knowledge Graph — Advisory Evidence Index",
+            "projection_role": "advisory_index",
+            "claims": [
+                {
+                    "subject_ref": "drive:HumanAIOS-Knowledge-Graph",
+                    "predicate": "authority_effect",
+                    "value": "NONE",
+                    "observation": "Index states Drive index state has authority_effect=NONE.",
+                },
+                {
+                    "subject_ref": "drive:HumanAIOS-Knowledge-Graph",
+                    "predicate": "current_generated_view",
+                    "value": "system_graph.rendered.md",
+                    "observation": (
+                        "Index names system_graph.rendered.md as the current "
+                        "generated advisory view."
+                    ),
+                },
+            ],
+        },
+    ],
+}
+
+
+def test_oracle_workspace_preserves_live_drive_contradiction():
+    graph = oracle_engine.WorkspaceOracle().project(_ORACLE_DRIVE_SNAPSHOT)
+    pairs = {
+        (c["predicate"], tuple(sorted(map(str, c["observed_values"]))))
+        for c in graph["conflicts"]
+    }
+    assert ("node_count", ("19", "22")) in pairs
+    assert ("edge_count", ("44", "53")) in pairs
+    assert all(c["resolution_state"] == "OPEN" for c in graph["conflicts"])
+    assert graph["authority"]["authority_effect"] == "NONE"
+
+
+def test_oracle_repository_reads_operations_system_graph():
+    root = Path(__file__).resolve().parents[2]
+    graph = oracle_engine.RepositoryOracle().project_operations(
+        root, observed_at=_ORACLE_DRIVE_SNAPSHOT["observed_at"]
+    )
+    values = {
+        a["predicate"]: a["value"]
+        for a in graph["assertions"]
+        if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
+    }
+    assert values["node_count"] == 22
+    assert values["edge_count"] == 53
+    assert values["generated_at"] == "2026-09-13T15:12:28.926529"
+    assert graph["authority"]["authority_effect"] == "NONE"
+
+
+def test_oracle_global_reconciles_identity_and_retains_both_values():
+    root = Path(__file__).resolve().parents[2]
+    workspace = oracle_engine.WorkspaceOracle().project(_ORACLE_DRIVE_SNAPSHOT)
+    repository = oracle_engine.RepositoryOracle().project_operations(
+        root, observed_at=_ORACLE_DRIVE_SNAPSHOT["observed_at"]
+    )
+    graph = oracle_engine.GlobalOracle().federate(workspace, repository)
+
+    reconciled = {x["canonical_ref"] for x in graph["identity_reconciliations"]}
+    assert oracle_engine.SYSTEM_GRAPH_REF in reconciled
+
+    node_values = {
+        a["value"]
+        for a in graph["assertions"]
+        if a["subject_ref"] == oracle_engine.SYSTEM_GRAPH_REF
+        and a["predicate"] == "node_count"
+    }
+    assert node_values == {19, 22}
+    assert len(graph["conflicts"]) >= 2
+
+
+def test_oracle_candidate_routes_into_existing_coordinator_as_workbench():
+    root = Path(__file__).resolve().parents[2]
+    result = oracle_engine.run_pilot(root, _ORACLE_DRIVE_SNAPSHOT)
+    assert len(result["global"]["candidate_changes"]) >= 2
+
+    for candidate, route in zip(
+        result["global"]["candidate_changes"],
+        result["coordinator_routes"],
+    ):
+        assert candidate["authority_effect"] == "NONE"
+        assert candidate["can_authorize"] is False
+        assert candidate["coordinator_input_only"] is True
+        assert route["lane"] == "WORKBENCH"
+        assert route["details"]["admitted"] is False
+        assert route["authority"]["authority_effect"] == "NONE"
+
+
+def test_oracle_rejects_authority_inflation():
+    bad = json.loads(json.dumps(_ORACLE_DRIVE_SNAPSHOT))
+    bad["authority"]["can_authorize"] = True
+    with pytest.raises(ValueError, match="can_authorize"):
+        oracle_engine.WorkspaceOracle().project(bad)
