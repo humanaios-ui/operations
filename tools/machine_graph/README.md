@@ -82,3 +82,34 @@ Use the resulting graph to answer a bounded attractor question from local eviden
 > Can this machine execute the canonical HumanAIOS SHACL validation, and what exact execution context satisfies it?
 
 The answer should be derived from the machine graph rather than from conversational memory.
+
+## Capability query
+
+After producing and validating a snapshot, evaluate the first bounded local capability directly from machine evidence:
+
+```bash
+python3 tools/machine_graph/evaluate_capability.py \
+  --graph "$HOME/HumanAIOS-machine-scan/machine-graph/machine-substrate.json" \
+  --validation-receipt "$HOME/HumanAIOS-machine-scan/canonical-shacl-validation.txt" \
+  --output "$HOME/HumanAIOS-machine-scan/machine-graph/capability-shacl.json"
+```
+
+A fully evidenced result should report:
+
+```json
+{
+  "capability": "canonical-shacl-validation",
+  "state": "SATISFIED",
+  "authorization": "NONE",
+  "can_authorize_external_action": false
+}
+```
+
+This query is intentionally capability-only. `SATISFIED` means the graph contains an observed PySHACL runtime, an observed local operations repository, and a canonical validation receipt whose required PASS markers are present. It does not authorize any follow-on action.
+
+Run the unit tests with:
+
+```bash
+python3 -m unittest tests/machine_graph/test_capability_query.py
+```
+
