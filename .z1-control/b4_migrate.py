@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
-"""b4_migrate.py — B4: migrate a folded seat's artifacts into its survivor. One gated command per seat.
+"""b4_migrate.py (v2) — gated per-seat content migration into a survivor's OWN store.
 
-Completes the second layer of the fold: b4_fold_execute wrote the FOLDED_INTO markers (topology);
-this moves the epistemic CONTENT. Reads a folded seat's live artifacts from its sessions.db and
-emits (or applies) an `empirica log-artifacts --project-id <survivor>` import, tagged with
-provenance back to the folded seat.
+v1 trusted `--project-id` to route and trusted the exit code — so all 12 seats' artifacts
+landed in ONE store (opportunity-aggregator) and the tool reported success. A probe
+established empirica's model: PER-FILE. The CLI reads/writes ONE sessions.db resolved from
+context (EMPIRICA_SESSION_DB / CWD); `--project-id` only tags. v2 fixes all of that:
 
-Gated and safe:
-  - Requires BOTH the signed RATIFY row (via b4_fold_execute.ratified) AND the seat's FOLDED_INTO
-    marker. Refuses otherwise.
-  - LIVE artifacts only — resolved findings/unknowns and invalidated mistakes/dead-ends stay in the
-    read-only source store (their closure is history, not live knowledge to re-home).
-  - Non-destructive: the source store is never modified. Idempotent — records `migrated: true`
-    in the marker and skips a second run.
-  - Safe-by-default: writes the bundle + prints the import command. --apply runs the import.
+  - ROUTE BY CONTEXT: import with EMPIRICA_SESSION_DB set to the SURVIVOR's own sessions.db.
+  - POST-WRITE VERIFY: after import, count the folded-from rows IN THE SURVIVOR'S OWN FILE;
+    fail + don't stamp if they're not there. (The guard v1 lacked — it would have caught v1.)
+  - EMBED: run project-embed so migrated artifacts are retrievable (project-search returned
+    empty on un-embedded rows).
+  - ROLLBACK: --rollback restores opportunity-aggregator's store from the pre-migration
+    snapshot (clean + certain; the no-provenance tables make surgical SQL deletion unsafe)
+    and resets the markers, so the whole migration can be redone correctly.
+
+Gated: both the signed RATIFY row (fold.ratified) and the seat's FOLDED_INTO marker.
+Non-destructive to sources; idempotent; dry-run by default.
 
 Commands:
-  --seat <name> [--apply]   migrate one folded seat (dry-run default)
+  --rollback [--apply]      restore opportunity's store from snapshot + reset markers
+  --seat <name> [--apply]   migrate one folded seat into its survivor's OWN store
   --all [--apply]           every folded, not-yet-migrated seat
   --smoke-test
 """
@@ -26,17 +30,22 @@ import argparse
 import datetime
 import json
 import os
+import shutil
 import sqlite3
 import subprocess
 import sys
+import tarfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import b4_fold_execute as fold  # reuse the ratification gate + PRACTICES_ROOT
+import b4_fold_execute as fold
 
 PRACTICES_ROOT = fold.PRACTICES_ROOT
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "b4_migration_bundles")
+SNAPSHOT = os.path.expanduser("~/practices-snapshot-2026-10-09-sweep.tgz")
+MIS_STORE = "opportunity-aggregator"   # where v1 mis-routed everything
+MARKER_MIGRATE_KEYS = ("migrated:", "migrated_nodes:", "migrated_into_file:",
+                       "verified_findings:", "migrated_at:", "embed:")
 
-# table → (node type, {node_data_field: db_column}, live-filter SQL). Defensive: columns checked at read.
 EXPORTERS = {
     "project_findings":  ("finding",   {"finding": "finding", "impact": "impact"},            "is_resolved = 0"),
     "decisions":         ("decision",  {"choice": "choice", "rationale": "rationale",
@@ -49,19 +58,22 @@ EXPORTERS = {
 }
 
 
+def survivor_db(survivor: str) -> str:
+    return os.path.join(PRACTICES_ROOT, survivor, ".empirica", "sessions", "sessions.db")
+
+
 def marker_path(seat: str) -> str:
     return os.path.join(PRACTICES_ROOT, seat, ".empirica", "FOLDED_INTO.yaml")
 
 
 def read_marker(seat: str) -> dict:
     p = marker_path(seat)
-    if not os.path.isfile(p):
-        return {}
     out = {}
-    for line in open(p, encoding="utf-8"):
-        if ":" in line and not line.lstrip().startswith("#"):
-            k, _, v = line.partition(":")
-            out[k.strip()] = v.strip()
+    if os.path.isfile(p):
+        for line in open(p, encoding="utf-8"):
+            if ":" in line and not line.lstrip().startswith("#"):
+                k, _, v = line.partition(":")
+                out[k.strip()] = v.strip()
     return out
 
 
@@ -72,8 +84,33 @@ def _cols(cur, table: str) -> set:
         return set()
 
 
+def _filter_cols(clause: str) -> list:
+    return [t for t in ("is_resolved", "is_invalidated", "resolution_finding_id") if t in clause]
+
+
+def _count_in_db(db: str, seat: str) -> int:
+    """folded-from:<seat> findings present in THIS db file (the post-write verify)."""
+    try:
+        con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+        n = con.execute("SELECT count(*) FROM project_findings WHERE subject = ?",
+                        (f"folded-from:{seat}",)).fetchone()[0]
+        con.close()
+        return n
+    except sqlite3.Error:
+        return 0
+
+
+def _folded_from_total(db: str) -> int:
+    try:
+        con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+        n = con.execute("SELECT count(*) FROM project_findings WHERE subject LIKE 'folded-from:%'").fetchone()[0]
+        con.close()
+        return n
+    except sqlite3.Error:
+        return 0
+
+
 def export_seat(seat: str) -> tuple[list, dict]:
-    """Return (nodes, counts). Live artifacts only, tagged with provenance to the seat."""
     db = os.path.join(PRACTICES_ROOT, seat, ".empirica", "sessions", "sessions.db")
     nodes, counts = [], {}
     if not os.path.isfile(db):
@@ -106,7 +143,6 @@ def export_seat(seat: str) -> tuple[list, dict]:
                     except (TypeError, ValueError):
                         continue
                 data[dst] = v
-            # require the primary text field
             primary = next(iter(fieldmap))
             if primary not in data or not str(data[primary]).strip():
                 continue
@@ -119,10 +155,6 @@ def export_seat(seat: str) -> tuple[list, dict]:
     return nodes, counts
 
 
-def _filter_cols(clause: str) -> list:
-    return [tok for tok in ("is_resolved", "is_invalidated", "resolution_finding_id") if tok in clause]
-
-
 # ---------------------------------------------------------------------------
 def migrate(seat: str, apply: bool) -> int:
     ok, msg = fold.ratified()
@@ -130,43 +162,56 @@ def migrate(seat: str, apply: bool) -> int:
         print(f"::error::REFUSING {seat} — not ratified: {msg}")
         return 1
     marker = read_marker(seat)
-    if not marker or marker.get("folded_into") in (None, ""):
+    if not marker.get("folded_into"):
         print(f"::error::REFUSING {seat} — no FOLDED_INTO marker (run b4_fold_execute first)")
         return 1
     if marker.get("migrated") == "true":
-        print(f"  {seat}: already migrated (marker says migrated:true) — skipping (idempotent)")
+        print(f"  {seat}: already migrated — skipping (idempotent)")
         return 0
     survivor = marker["folded_into"]
+    sdb = survivor_db(survivor)
+    if not os.path.isfile(sdb):
+        print(f"::error::{seat}: survivor store not found: {sdb}")
+        return 1
 
     nodes, counts = export_seat(seat)
     if not nodes:
-        print(f"  {seat}: no live artifacts to migrate → {survivor} (resolved/invalidated stay in source)")
+        print(f"  {seat}: no live artifacts → {survivor}")
         return 0
-    bundle = {"nodes": nodes}
     os.makedirs(OUT_DIR, exist_ok=True)
     bpath = os.path.join(OUT_DIR, f"{seat}.json")
-    with open(bpath, "w", encoding="utf-8") as fh:
-        json.dump(bundle, fh, indent=2, default=str)
+    json.dump({"nodes": nodes}, open(bpath, "w", encoding="utf-8"), indent=2, default=str)
+    want_findings = sum(1 for n in nodes if n["type"] == "finding")
     summary = ", ".join(f"{k}:{v}" for k, v in sorted(counts.items()) if v)
     print(f"  {seat} → {survivor}: {len(nodes)} live nodes ({summary})")
-    print(f"    bundle: {bpath}")
 
-    cmd = f"empirica log-artifacts --project-id {survivor} - < {bpath}"
     if not apply:
-        print(f"    [dry-run] import with:  {cmd}")
-        print("    (re-run with --apply to import + mark the seat migrated)")
+        print(f"    [dry-run] import into {survivor}'s OWN store:")
+        print(f"      EMPIRICA_SESSION_DB={sdb} empirica log-artifacts - < {bpath}")
+        print(f"      → then verify {want_findings} findings in that file + embed")
         return 0
 
-    r = subprocess.run(["bash", "-lc", cmd], capture_output=True, text=True)
+    env = {**os.environ, "EMPIRICA_SESSION_DB": sdb}
+    with open(bpath, encoding="utf-8") as fh:
+        r = subprocess.run(["empirica", "log-artifacts", "-"], stdin=fh, env=env,
+                           capture_output=True, text=True)
     if r.returncode != 0:
         print(f"::error::{seat}: import failed — {r.stderr.strip()[:300]}")
-        print(f"    (bundle preserved at {bpath}; source store untouched; marker NOT updated)")
+        print(f"    (bundle at {bpath}; source untouched; marker NOT updated)")
         return 1
-    # idempotency stamp on the marker (append-only addition; store still not deleted)
+    # POST-WRITE VERIFY — in the SURVIVOR'S OWN file (the guard v1 lacked)
+    got = _count_in_db(sdb, seat)
+    if got < want_findings:
+        print(f"::error::{seat}: POST-WRITE VERIFY FAILED — {got}/{want_findings} folded-from "
+              f"findings in {survivor}'s file. NOT stamping; investigate before retry.")
+        return 1
+    emb = subprocess.run(["empirica", "project-embed"], env=env, capture_output=True, text=True)
+    emb_note = "embedded" if emb.returncode == 0 else f"embed-deferred({emb.stderr.strip()[:50]})"
     with open(marker_path(seat), "a", encoding="utf-8") as fh:
-        fh.write(f"migrated: true\nmigrated_nodes: {len(nodes)}\n"
+        fh.write(f"migrated: true\nmigrated_nodes: {len(nodes)}\nmigrated_into_file: {sdb}\n"
+                 f"verified_findings: {got}\nembed: {emb_note}\n"
                  f"migrated_at: {datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')}\n")
-    print(f"  ✓ {seat}: {len(nodes)} artifacts imported into {survivor}; marker stamped migrated:true")
+    print(f"  ✓ {seat}: {len(nodes)} into {survivor}'s OWN file; verified {got}/{want_findings} findings; {emb_note}")
     return 0
 
 
@@ -178,6 +223,52 @@ def cmd_all(apply: bool) -> int:
 
 
 # ---------------------------------------------------------------------------
+def cmd_rollback(apply: bool) -> int:
+    """Restore the mis-routed store (opportunity-aggregator) from the pre-migration snapshot
+    and reset the 12 markers. Clean + certain — the no-provenance tables (decisions/assumptions/
+    mistakes) make surgical SQL deletion unsafe, so we revert the whole file to its floor."""
+    oppdb = survivor_db(MIS_STORE)
+    member = f"practices/{MIS_STORE}/.empirica/sessions/sessions.db"
+    before = _folded_from_total(oppdb)
+    if not os.path.isfile(SNAPSHOT):
+        print(f"::error::snapshot not found: {SNAPSHOT}")
+        return 1
+    with tarfile.open(SNAPSHOT) as tf:
+        has = member in tf.getnames()
+    print(f"rollback: restore {MIS_STORE} store from snapshot + reset {len(fold.FOLDS)} markers")
+    print(f"  snapshot contains the store file: {has}")
+    print(f"  folded-from findings currently in {MIS_STORE}: {before}")
+    if not apply:
+        print("  [dry-run] --apply to: back up current db → restore snapshot copy → reset markers")
+        return 0
+    if not has:
+        print("::error::snapshot lacks the store file — aborting (no safe restore)")
+        return 1
+    bak = oppdb + f".bak-{datetime.datetime.now():%Y%m%d-%H%M%S}"
+    shutil.copy2(oppdb, bak)
+    tmp = os.path.join("/tmp", "b4rollback")
+    with tarfile.open(SNAPSHOT) as tf:
+        try:
+            tf.extract(member, path=tmp, filter="data")   # py3.12+ safe extraction
+        except TypeError:
+            tf.extract(member, path=tmp)
+    shutil.copy2(os.path.join(tmp, member), oppdb)
+    reset = 0
+    for seat in fold.FOLDS:
+        mp = marker_path(seat)
+        if os.path.isfile(mp):
+            lines = [l for l in open(mp, encoding="utf-8")
+                     if not l.startswith(MARKER_MIGRATE_KEYS)]
+            open(mp, "w", encoding="utf-8").writelines(lines)
+            reset += 1
+    after = _folded_from_total(oppdb)
+    print(f"  ✓ restored {MIS_STORE} (backup: {bak})")
+    print(f"    folded-from findings: {before} → {after}   markers reset: {reset}/{len(fold.FOLDS)}")
+    print("    now re-run:  b4_migrate.py --all --apply   (routes each seat to its own survivor file)")
+    return 0
+
+
+# ---------------------------------------------------------------------------
 def cmd_smoke() -> int:
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
@@ -186,52 +277,51 @@ def cmd_smoke() -> int:
         os.makedirs(emp)
         db = os.path.join(emp, "sessions.db")
         con = sqlite3.connect(db)
-        con.execute("CREATE TABLE project_findings (id INT, finding TEXT, impact REAL, is_resolved INT)")
-        con.execute("INSERT INTO project_findings VALUES (1,'live finding',0.7,0),(2,'closed',0.3,1)")
+        con.execute("CREATE TABLE project_findings (id INT, finding TEXT, impact REAL, is_resolved INT, subject TEXT)")
+        con.execute("INSERT INTO project_findings VALUES (1,'live',0.7,0,NULL),(2,'closed',0.3,1,NULL)")
         con.execute("CREATE TABLE decisions (id INT, choice TEXT, rationale TEXT, reversibility TEXT)")
         con.execute("INSERT INTO decisions VALUES (1,'a choice','because','committal')")
         con.commit(); con.close()
-
-        orig_root = fold.PRACTICES_ROOT
+        orig = fold.PRACTICES_ROOT
         global PRACTICES_ROOT
-        fold.PRACTICES_ROOT = tmp
-        PRACTICES_ROOT = tmp
+        fold.PRACTICES_ROOT = tmp; PRACTICES_ROOT = tmp
         try:
             nodes, counts = export_seat(seat)
-            # the resolved finding is excluded; the live one + the decision are kept
-            assert counts.get("finding") == 1, f"live-only filter: {counts}"
-            assert counts.get("decision") == 1, counts
-            types = {n["type"] for n in nodes}
-            assert types == {"finding", "decision"}, types
-            assert all(n["data"].get("subject") == f"folded-from:{seat}" for n in nodes), "provenance tag missing"
-            assert all(n["type"] in {"finding", "unknown", "dead_end", "mistake", "assumption", "decision", "source"}
-                       for n in nodes), "invalid node type for log-artifacts"
-            # gate: unratified → refuse (temp empty ledger)
+            assert counts.get("finding") == 1 and counts.get("decision") == 1, counts
+            assert all(n["data"]["subject"] == f"folded-from:{seat}" for n in nodes)
+            assert all(n["type"] in {"finding","unknown","dead_end","mistake","assumption","decision","source"}
+                       for n in nodes)
+            # post-write verify counts folded-from in a given db
+            con = sqlite3.connect(db)
+            con.execute("INSERT INTO project_findings VALUES (3,'x',0.1,0,'folded-from:demo-seat')")
+            con.commit(); con.close()
+            assert _count_in_db(db, seat) == 1, "verify helper must count folded-from"
             import ratify_eco
-            orig_led = ratify_eco.LEDGER
-            ratify_eco.LEDGER = os.path.join(tmp, "empty.jsonl")
+            ol = ratify_eco.LEDGER; ratify_eco.LEDGER = os.path.join(tmp, "empty.jsonl")
             try:
                 assert migrate(seat, apply=False) == 1, "must refuse when not ratified"
             finally:
-                ratify_eco.LEDGER = orig_led
+                ratify_eco.LEDGER = ol
         finally:
-            fold.PRACTICES_ROOT = orig_root
-            PRACTICES_ROOT = orig_root
-    print("✓ smoke-test passed: live-only export (resolved excluded), provenance tag, valid node "
-          "types, refuses when unratified")
+            fold.PRACTICES_ROOT = orig; PRACTICES_ROOT = orig
+    print("✓ smoke-test passed: live-only export, provenance, valid types, post-write-verify helper, "
+          "refuses unratified")
     return 0
 
 
 def main(argv=None) -> int:
-    p = argparse.ArgumentParser(prog="b4_migrate.py", description="B4 — migrate a folded seat's artifacts into its survivor (gated).")
+    p = argparse.ArgumentParser(prog="b4_migrate.py", description="B4 v2 — per-seat migration into the survivor's own store (gated, verified).")
     g = p.add_mutually_exclusive_group()
-    g.add_argument("--seat", help="one folded seat to migrate")
-    g.add_argument("--all", action="store_true", help="every folded, not-yet-migrated seat")
+    g.add_argument("--rollback", action="store_true", help="restore opportunity's store from snapshot + reset markers")
+    g.add_argument("--seat", help="one folded seat")
+    g.add_argument("--all", action="store_true")
     g.add_argument("--smoke-test", action="store_true")
-    p.add_argument("--apply", action="store_true", help="actually run the import (default: dry-run)")
+    p.add_argument("--apply", action="store_true", help="act (default: dry-run)")
     args = p.parse_args(argv)
     if args.smoke_test:
         return cmd_smoke()
+    if args.rollback:
+        return cmd_rollback(args.apply)
     if args.all:
         return cmd_all(args.apply)
     if args.seat:
