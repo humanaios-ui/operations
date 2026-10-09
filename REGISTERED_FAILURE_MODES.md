@@ -28,7 +28,7 @@ This document does that, in three columns:
 
 **Headline findings:**
 
-1. The registry scores **80.3% first-pass yield / 196,875 DPMO / ~2.4σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
+1. The registry scores **80.3% first-pass yield / 197,205 DPMO / ~2.4σ** at entry level. `audits/T1_DEFECT_BASELINE_S070726.md` designated `operations` the *"clean reference bar (0/7)."* Measured at entry level, it is not clean.
 2. Of 19 failure modes, **before this scan 17 had no detector at all**. The dominant failure mode of the registry is not any single defect — it is the absence of instrumentation.
 3. **Four instruments disagree about the registry's own census.** `tools/registered_findings_validator_v1_0.py` reports **130** entries; `tools/repo_health.py` reports **126** immune entries; this scanner reported **131** before review, **135** after first correction, and **137** after Phase 2 parser fix (correction-to discovery + F-24 variant regex + ordering violation counting). No single instrument can be cited as authoritative. Routed to Z2 as a measurement-system finding — its resolution is a Z2 decision about which census should govern RFM-06 scoring and downstream action items.
 4. The value recorded as **Ratification Hash** at `REGISTERED.md:4074` is `e8a501f` — a 7-character git commit SHA, where `CLAUDE.md` Decision Routing step 6 and `NF_LEDGER_SCHEMA_v1.md` both specify `sha256(candidate | by=Night | at=timestamp | decision=ACCEPT)`. A commit SHA proves *when code landed*, not *what was approved*.
@@ -94,9 +94,9 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 |:---|:---|:---|:---|:---|
 | **RFM-04** | **Under-registration** — a registrable item surfaces in-session and is never registered | `tools/skills/humanaios-findings-scan/SKILL.md:29` | UNMEASURED | 5 — skill exists, manually invoked |
 | **RFM-05** | **Over-registration / receipt overstatement** — asserting registry state that does not exist | IC-031 | UNMEASURED | 5 — §B.6, `receipt_reconciliation.py` |
-| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **70 / 160** full schema · 14 / 160 core | 10 — see note below |
-| **RFM-07** | **Front-matter fence loss** — the entry carries no machine-readable front matter, so a fence-based parser cannot see it. Two forms: `id:` rendered as a markdown heading (F-52…F-55), and legacy `### ID — Title` entries with bold-prose fields or none at all (H-ELICIT-01 at `:2302`, plus H-1 / H-42 / H-LE-02) | F-52…F-55; H-1, H-42, H-LE-02, H-ELICIT-01 | **8 / 160** | 10 → 5 with this scanner |
-| **RFM-08** | **Quote contamination** — curly quotes break straight-quote string parsing. Checked across every declared field, not just `id`/`name`/`status`/`class` | F-52, F-53, H-AICASCADE-01, (2 additional found in Phase 2 review) | **3 / 160** | 10 → 5 with this scanner |
+| **RFM-06** | **Schema erosion** — a field the schema declares is absent | `REGISTERED.md:16-32` | **70 / 161** full schema · 14 / 161 core | 10 — see note below |
+| **RFM-07** | **Front-matter fence loss** — the entry carries no machine-readable front matter, so a fence-based parser cannot see it. Two forms: `id:` rendered as a markdown heading (F-52…F-55), and legacy `### ID — Title` entries with bold-prose fields or none at all (H-ELICIT-01 at `:2302`, plus H-1 / H-42 / H-LE-02) | F-52…F-55; H-1, H-42, H-LE-02, H-ELICIT-01 | **8 / 161** | 10 → 5 with this scanner |
+| **RFM-08** | **Quote contamination** — curly quotes break straight-quote string parsing. Checked across every declared field, not just `id`/`name`/`status`/`class` | F-52, F-53, H-AICASCADE-01, (2 additional found in Phase 2 review) | **3 / 161** | 10 → 5 with this scanner |
 
 > **Note on RFM-06 detection.** `.github/workflows/findings-registry.yml` runs `tools/registered_findings_validator_v1_0.py` as a blocking gate and its documented hard classes include *missing fields*. Run against the live registry it returns **Verdict: WARN, exit 0** with `✓ F-class ✓ H-class ✓ IC-class`, and does not surface the 8 entries missing required fields. A check that is nominally blocking and empirically silent is the IC-041 *audit-false-pass* genus. Scored 10, not 1, because detection is scored on observed behaviour rather than declared intent. **Routed to Z2 as an IC-candidate; not self-registered.**
 
@@ -104,8 +104,8 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 
 | ID | Failure mode | Evidence | Occurrence | Detection today |
 |:---|:---|:---|:---|:---|
-| **RFM-09** | **Append-ordering decay** — entry outside the class block `REGISTRY_SPEC.md:114` declares, *and* the class blocks themselves out of F→IC→H order | Z2-ASSESS-01, IC-044/045 in the H block; 30 more past the Changelog; F-31/IC-041 discovered via correction-to field | **45 / 160** | 10 → 5 |
-| **RFM-10** | **Post-terminal append** — entries land after the `## Changelog` boundary, forming a shadow zone the declared structure does not describe | L3246–5060 | **49** | 10 → 5 |
+| **RFM-09** | **Append-ordering decay** — entry outside the class block `REGISTRY_SPEC.md:114` declares, *and* the class blocks themselves out of F→IC→H order | Z2-ASSESS-01, IC-044/045 in the H block; 30 more past the Changelog; F-31/IC-041 discovered via correction-to field | **46 / 161** | 10 → 5 |
+| **RFM-10** | **Post-terminal append** — entries land after the `## Changelog` boundary, forming a shadow zone the declared structure does not describe | L3246–5060 | **50** | 10 → 5 |
 | **RFM-11** | **Index desync** — the hand-maintained quick index stops tracking the body | F-24, F-56…F-61, F-MEASUREMENT-SCOPE-AUDIT-01, 3× `F-CAND-*` | **10 / 49 F** | 10 → 5 |
 | **RFM-12** | **Orphan roll-up row** — the IC Pareto cites an ID with no entry; the row still reports healthy | IC-036 @ `REGISTERED.md:118` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
 | **RFM-13** | **Semantic duplicate numbering** — two IDs for one defect. Invisible to any validator that detects only *literal* ID collisions | IC-052 / IC-053, both "drift validator missing D-OVERCLAIM" | **1 known** | 10 — no detector possible without semantic comparison |
