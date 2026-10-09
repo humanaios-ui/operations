@@ -1,9 +1,6 @@
-name: URA HMBM Daily Regression (read-only)
+name: URA HMBM State-Triggered Regression (read-only)
 
 on:
-  schedule:
-    # 13:17 UTC = 08:17 CDT / 07:17 CST; GitHub schedules use UTC.
-    - cron: '17 13 * * *'
   workflow_dispatch:
   pull_request:
     paths:
