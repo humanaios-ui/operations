@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**198 registered tools** · 2 MCP servers · 4 excluded · 151 carrying Builder v1.7 markers
+**205 registered tools** · 2 MCP servers · 4 excluded · 152 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,11 +13,11 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 198 |
-| — status `draft` | 198 |
+| Registered tools | 205 |
+| — status `draft` | 204 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 151 |
-| Uncategorized | 0 |
+| Builder v1.7 markers present | 152 |
+| Uncategorized | 6 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -306,6 +306,17 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-187 | verify_pr_readiness | `scripts/verify_pr_readiness.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | PR Readiness Verification — Run all validation checks in sequence |
 | HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | 1.0.0 | 1 | draft | — | Workflow Path Validator |
 | HAIOS-TOOL-209 | machine_graph_validate_snapshot | `tools/machine_graph/validate_snapshot.py` | 0.1.0 | 1 | draft | — | Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies. |
+
+## Unclassified — blocks the gate — `unclassified` (6)
+
+| tool_id | tool | path | ver | zone | status | flags | purpose |
+|---|---|---|---|---|---|---|---|
+| HAIOS-TOOL-213 | b4_fold_execute | `.z1-control/b4_fold_execute.py` | unversioned | 1 | draft | no-builder-markers | b4_fold_execute.py — B4: execute the non-destructive practice fold, gated on ratification. |
+| HAIOS-TOOL-214 | b4_migrate | `.z1-control/b4_migrate.py` | unversioned | 1 | draft | no-builder-markers | b4_migrate.py (v2) — gated per-seat content migration into a survivor's OWN store. |
+| HAIOS-TOOL-215 | board_monitor | `.z1-control/board_monitor.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Mesh build-board monitor — surfaces board status changes at end of turn. |
+| HAIOS-TOOL-216 | candidate_bundle | `.z1-control/candidate_bundle.py` | unversioned | 1 | draft | no-builder-markers | candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle. |
+| HAIOS-TOOL-217 | leak_guard | `.z1-control/leak_guard.py` | unversioned | 1 | draft | no-builder-markers | leak_guard.py — B6: bound the two Empirica session leaks. |
+| HAIOS-TOOL-218 | ratify_eco | `.z1-control/ratify_eco.py` | unversioned | 1 | draft | no-builder-markers | ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact. |
 
 ## MCP servers (2)
 
