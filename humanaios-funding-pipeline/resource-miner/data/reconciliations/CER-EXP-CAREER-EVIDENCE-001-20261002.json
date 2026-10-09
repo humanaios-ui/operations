@@ -1,0 +1,113 @@
+{
+  "reconciliation_id": "CER-EXP-CAREER-EVIDENCE-001-20261002",
+  "experiment_id": "EXP-CAREER-EVIDENCE-001",
+  "source": "completed interrogation PDF",
+  "claim_state_default": "HUMAN_ATTESTED",
+  "external_use_authorized": false,
+  "project_updates": [
+    {
+      "project_id": "PER-HUMANAIOS-ACAT-001",
+      "claims": [
+        "Personal operating expense approximately $350/month over the prior six months.",
+        "Uses formal project controls including milestones, work plans, schedules, dependency maps, risk registers, issue/decision/change logs, status reports, steering committees, acceptance criteria, go-live checklists, retrospectives, and postmortems.",
+        "Repository is identified by the human as primary evidence for roadmap/governance mechanics."
+      ],
+      "unresolved": [
+        "HumanAIOS-specific participant counts remain unquantified."
+      ]
+    },
+    {
+      "project_id": "PER-PIONEERS-EMR-001",
+      "claims": [
+        "AthenaHealth-to-Epic and AthenaHealth-to-Cerner conversion experience; Epic role described as Quality/Risk/Laboratory team lead and Cerner role as patient safety specialist.",
+        "Implementation scope ranged from roughly 10 to more than 100 users with multiple interfaces including LIS and quality platforms.",
+        "Responsibilities included scheduling, testing windows, data-validation plans, cutover, go-live readiness, issue triage, downtime planning, and post-go-live stabilization.",
+        "Direct vendor communication during implementation."
+      ],
+      "unresolved": [
+        "Exact employer/project attribution for Epic versus Cerner conversion should be verified before external use.",
+        "No quantified migration outcome was supplied."
+      ]
+    },
+    {
+      "project_id": "PER-BENEWAH-LAB-001",
+      "claims": [
+        "Implemented, validated, replaced, troubleshot, and/or oversaw Siemens Atellica, Beckman Coulter hematology, and Abbott point-of-care platforms.",
+        "Attests ownership of laboratory budget/procurement/vendor functions named in the questionnaire.",
+        "Attests responsibility across listed laboratory performance metrics."
+      ],
+      "unresolved": [
+        "Quantified laboratory metric baselines/improvements remain unresolved."
+      ]
+    },
+    {
+      "project_id": "PER-LABCORP-QUALITY-001",
+      "claims": [
+        "Formal work included CAPA, deviations, nonconformances, SOP drafting/revision, document control, training records, competency records, change control, and effectiveness checks.",
+        "Cross-functional scope included laboratory operations, medical directors, QA, regulatory, IT/LIS, vendors, finance, HR, safety, regional leadership, and corporate teams.",
+        "Attests contribution to ISO 15189 certification achievement for the Houston laboratory, with defects prevented/corrected and audit findings closed.",
+        "Cost-savings analysis was standard in audit work; dashboard tracked cycle time, staffing, uptime, adoption, turnaround time, error rate, compliance, training completion, incident reduction, and delivery timing."
+      ],
+      "unresolved": [
+        "Audit/site/finding counts remain unquantified."
+      ]
+    },
+    {
+      "project_id": "PER-WAFFLE-OPS-001",
+      "claims": [
+        "Unit averaged more than $6,000/day in sales and exceeded $1,000,000 in annual income/revenue scale.",
+        "Profit increased by more than 3% for two consecutive quarters.",
+        "Direct responsibility for hiring, interviewing, onboarding, training, coaching, discipline, promotion, performance reviews, attendance management, and termination.",
+        "Supply-chain work included ordering, shortage management, delivery coordination, substitutions, equipment/service calls, and escalation; vendor establishment and returns were excluded."
+      ],
+      "unresolved": []
+    },
+    {
+      "project_id": "PER-VALLEYVIEW-SAFETY-001",
+      "claims": [
+        "Processed or coordinated hundreds of patient-safety events, RCAs, action plans, serious events, committee cases, or follow-ups.",
+        "Quality and Patient Safety, Falls, and Hospital Transformation Program committees met monthly; Incident Review and Executive Review committees met weekly.",
+        "Patient-safety education typically involved groups of 10-20 staff.",
+        "Reported to governing boards and coordinated operations, safety/quality, laboratory, EMR conversion, and direct-government Medicaid Hospital Transformation stakeholders."
+      ],
+      "unresolved": []
+    },
+    {
+      "project_id": "PER-HUMANAIOS-BOT-001",
+      "claims": [
+        "Attests use of version control, release tags, deployment checks, monitoring, alerts, issue logs, rollback, postmortems, and change approval."
+      ],
+      "unresolved": [
+        "Performance results explicitly redirected to repository ground truth; do not re-interrogate."
+      ]
+    }
+  ],
+  "latent_project_candidates": [
+    {
+      "proposed_project_id": "PER-STJOES-HPLC-001",
+      "title": "HPLC Laboratory Build / Recovery",
+      "claims": [
+        "More than $1,000,000 in capital requests associated with St. Joseph's Research.",
+        "HPLC laboratory identified as build-from-zero work.",
+        "Project was inherited in a 'dead on arrival' state and recovered/built into a legacy achievement."
+      ],
+      "verification_needed": [
+        "exact institution/entity",
+        "exact title and dates",
+        "equipment/validation scope",
+        "capital request records",
+        "operational outcome"
+      ]
+    }
+  ],
+  "cross_project_claims": [
+    "Vendor/supplier experience includes Cardinal Health, US Foods, Abbott, Labcorp, Quest Laboratories, and McKesson.",
+    "General incident/corrective-action approach uses PDSA; experience also includes 5S and Lean.",
+    "Systems/platform exposure includes HPLC, mass spectrometry, Epic, Cerner, MEDITECH, AthenaHealth, LIS, and laboratory-specific hardware/software."
+  ],
+  "guardrails": [
+    "HUMAN_ATTESTED != SOURCE_SUPPORTED",
+    "Broad 'all' answers require narrower claim boundaries before external use where ambiguity matters.",
+    "No claim from this reconciliation is authorized for external application use solely by this file."
+  ]
+}
