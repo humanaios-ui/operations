@@ -112,6 +112,8 @@ jobs:
           python3 .z1-control/ratify_eco.py --smoke-test
           python3 .z1-control/candidate_bundle.py --smoke-test
           python3 .z1-control/leak_guard.py --smoke-test
+          python3 .z1-control/b4_fold_execute.py --smoke-test
+          python3 .z1-control/b4_migrate.py --smoke-test
 
       - name: Recorded ECO ratifications still match their candidates
         # Content-pin + hash-chain over eco_ratify_ledger.jsonl. Advisory until the first
