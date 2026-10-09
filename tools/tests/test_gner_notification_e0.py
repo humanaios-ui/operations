@@ -79,7 +79,7 @@ class GNERNotificationE0Tests(unittest.TestCase):
             self.assertIsNone(result, f"Malformed/unsafe URL must redact to None: {url}")
 
     def test_correlation_authority_never_promoted(self):
-        """Caller-provided 'verified' fields never promote to CANONICAL_VERIFIED."""
+        """Caller-provided 'verified' fields do not promote to CANONICAL_VERIFIED."""
         # Caller tries to inject a trusted=true field
         fake_receipt = {"run_id": 999, "verified": True, "trust_level": "CANONICAL"}
         leads = [
@@ -87,7 +87,7 @@ class GNERNotificationE0Tests(unittest.TestCase):
              "run_id": 999, "kind": "NOTIFICATION_LEAD", "authority": "NONE"}
         ]
         result = gner.correlate(leads, [fake_receipt])
-        self.assertEqual(result["authority"], "NONE", "Authority never promoted by caller input")
+        self.assertEqual(result["authority"], "NONE", "Authority not promoted by caller input")
         self.assertEqual(result["canonical_verified_count"], 0, "No caller receipts promote verification")
         self.assertEqual(result["results"][0]["state"], "AWAITING_CANONICAL_VERIFICATION",
                          "Lead still awaits independent GitHub verification")
@@ -123,8 +123,8 @@ class GNERNotificationE0Tests(unittest.TestCase):
              "pr": 123, "run_id": 999, "kind": "NOTIFICATION_LEAD", "authority": "NONE"}
         ]
         correlate_result = gner.correlate(leads, [])
-        self.assertEqual(correlate_result["execution"], "DISABLED", "Execution always disabled")
-        self.assertEqual(correlate_result["authority"], "NONE", "Authority always NONE")
+        self.assertEqual(correlate_result["execution"], "DISABLED", "Execution is disabled")
+        self.assertEqual(correlate_result["authority"], "NONE", "Authority is NONE")
 
 
 if __name__ == "__main__":
