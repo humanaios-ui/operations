@@ -1,0 +1,85 @@
+# Governance Ledger — Empirica-backed
+
+**Generated from artifact graph; do not edit**  
+*Last updated: 2026-10-09T18:04:50.450628Z*  
+*Total candidates: 3*  
+
+---
+
+## Z-Ratified Candidates
+
+### Z1-510: Generate REGISTERED.md from graph via B2.1 query + B2.2 renderer
+**Ratified:** 2026-10-09 by Z2-night  
+**Status:** ❓ UNTESTED | Brier: 0.55  
+
+#### Evidence (F)
+- B2.1 query design complete (Option A: flat graph with artifact_edges) *(impact: 0.70)*
+- B2.2 renderer implemented and tested (109 lines Python, sample output working) *(impact: 0.70)*
+
+#### Verdict
+- Claims: 0 held · 0 refuted · 2 untested
+- Reversibility: exploratory
+
+#### Rationale
+Stop hand-maintaining ledger. Query fetches ratified candidates from empirica graph; renderer transforms to markdown. Regenerated on every graph update.
+
+---
+
+### Z1-973: Adopt empirica-only governance (single source of truth)
+**Ratified:** 2026-10-09 by Z2-night  
+**Status:** ✅ HELD | Brier: 0.78  
+
+#### Evidence (F)
+- REGISTERED.md manually maintained with 5,141 lines causing version drift *(impact: 0.95)*
+- Three identity planes (practice, git, empirica) have decoupled in 19 practices *(impact: 0.92)*
+
+#### Assumptions & Falsifier (H)
+- Cortex Qdrant can serve as authoritative store for empirica graph *(confidence: 0.82)*
+- **Falsifier:** If Qdrant shards are lost, single source of truth fails catastrophically *(confidence: 0.15)*
+
+#### Verdict
+- Claims: 2 held · 0 refuted · 0 untested
+- Reversibility: committal
+
+#### Rationale
+Hand-maintained REGISTERED.md (5,141 lines) creates calibration drift. Empirica graph becomes canonical; REGISTERED.md becomes read-only projection.
+
+---
+
+### Z1-599: Complete mesh audit phase 0-1 (establish remotes, de-duplicate)
+**Ratified:** 2026-10-09 by Z2-night  
+**Status:** ✅ HELD | Brier: 0.92  
+
+#### Evidence (F)
+- 11 practices at risk of permanent data loss (no remote or dead /tmp remote) *(impact: 0.99)*
+- 69 stashes parked (58 on evaluator, 11 on humanaios) — mostly pre-compaction noise *(impact: 0.40)*
+
+#### Assumptions & Falsifier (H)
+- GitHub remotes are more reliable than getempirica.com for this session *(confidence: 0.85)*
+
+#### Verdict
+- Claims: 3 held · 0 refuted · 0 untested
+- Reversibility: committal
+
+#### Rationale
+Stop data loss risk (Phase 0) and resolve git topology collisions (Phase 1) before integrating governance. Foundation for 1:1:1 mapping.
+
+---
+
+
+## Flagged for Review
+
+- Z1-510: Generate REGISTERED.md from graph via B2.1 query + B2.2 renderer — UNTESTED
+
+---
+
+## Summary
+| Metric | Value |
+|--------|-------|
+| Total candidates | 3 |
+| Claims held | 5 |
+| Claims refuted | 0 |
+| Avg Brier | 0.75 |
+
+*Generated from Empirica artifact graph. Edit via empirica CLI + Z2 ECO gate.*
+
