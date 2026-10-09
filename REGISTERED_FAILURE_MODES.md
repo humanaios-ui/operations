@@ -117,7 +117,7 @@ Grouped by registry lifecycle. **Detection today** is scored `1` = blocking CI g
 | **RFM-14** | **Cross-artifact ratification desync** — an artifact's ratification state contradicts itself or the registry | 2026-09-13 baseline evidence (no longer current — `PRIORITY_QUEUE.md` has since been rewritten and no longer contains the cited text): `PRIORITY_QUEUE.md:11` said *"pending Z2 signature"*; that same file's `## Appended Events` said *"PRIORITY_QUEUE.md v1_1 ratified"*; `REGISTERED.md:3925` listed it ratified at `e8a501f` | **0** — resolved since the 2026-09-13 baseline | 10 → 5 |
 | **RFM-15** | **Ratification-hash substitution** — a git commit SHA recorded where a decision signature is specified | `REGISTERED.md:4074` = `e8a501f` (7 hex); plus a 63-char near-miss and six unterminated `sha256(Q-…` labels; spec requires exactly 64 hex | **8** | 10 → 5 |
 | **RFM-16** | **Ratified-class starvation** — a class `REGISTRY_SPEC.md` ratifies has zero entries. Indistinguishable from a healthy unused channel without a proof test | D-class (`REGISTRY_SPEC.md:16`), R, GD | **3 / 6 classes** | 10 → 5 |
-| **RFM-17** | **Header staleness** — `Last updated` drifts behind the newest dated content | header frozen at 2026-09-20; new content added 2026-09-21 (molt, IC-062) and 2026-09-22 (MEASUREMENT-SCOPE-AUDIT) | **1** — drift re-introduced by session-generated entries post-header-freeze | 10 → 5 |
+| **RFM-17** | **Header staleness** — `Last updated` drifts behind the newest dated content | resolved 2026-10-09; header updated to match newest content date | **0** — PASS | 10 → 5 |
 
 ### GOVERN — the doctrine around the file
 
@@ -263,18 +263,18 @@ The drift catalog at `SESSION_RITUALS.md:57` (*"Predict 3-8 failure modes you ma
 | RFM-03 | UNSCORED | UNMEASURED | 10 | — |
 | RFM-04 | UNSCORED | UNMEASURED | 5 | — |
 | RFM-05 | UNSCORED — IC-031 gives $150–730, but no ratified mapping turns a dollar range into a 1–10 severity | UNMEASURED | 5 | — |
-| RFM-06 | UNSCORED | 70 / 160 | 10 | — |
-| RFM-07 | UNSCORED | 8 / 160 | 5 | — |
-| RFM-08 | UNSCORED | 3 / 160 | 5 | — |
-| RFM-09 | UNSCORED | 45 / 160 | 5 | — |
-| RFM-10 | UNSCORED | 49 | 5 | — |
+| RFM-06 | UNSCORED | 70 / 161 | 10 | — |
+| RFM-07 | UNSCORED | 8 / 161 | 5 | — |
+| RFM-08 | UNSCORED | 3 / 161 | 5 | — |
+| RFM-09 | UNSCORED | 46 / 161 | 5 | — |
+| RFM-10 | UNSCORED | 50 | 5 | — |
 | RFM-11 | UNSCORED | 10 / 49 | 5 | — |
 | RFM-12 | UNSCORED | 0 | 5 | — |
 | RFM-13 | UNSCORED | 1 known | 10 | — |
 | RFM-14 | UNSCORED | 0 | 5 | — |
 | RFM-15 | UNSCORED | 8 | 5 | — |
 | RFM-16 | UNSCORED | 3 / 6 | 5 | — |
-| RFM-17 | UNSCORED | 1 | 5 | — |
+| RFM-17 | UNSCORED | 0 | 5 | — |
 | RFM-18 | UNSCORED | 1 of 43 IC cost-classed | 10 | — |
 | RFM-19 | UNSCORED | n/a | 10 | — |
 
