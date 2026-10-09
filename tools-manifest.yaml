@@ -35,7 +35,7 @@ counts:
   excluded: 4
   builder_markers_present: 152
   missing_from_tree: 0
-  unclassified: 6
+  unclassified: 0
 categories:
 - analytics_tool
 - audit_tool
@@ -52,7 +52,6 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
-- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2542,7 +2541,7 @@ tools:
   name: b4_fold_execute
   path: .z1-control/b4_fold_execute.py
   version: unversioned
-  category: unclassified
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
@@ -2554,7 +2553,7 @@ tools:
   name: b4_migrate
   path: .z1-control/b4_migrate.py
   version: unversioned
-  category: unclassified
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
@@ -2566,7 +2565,7 @@ tools:
   name: board_monitor
   path: .z1-control/board_monitor.py
   version: unversioned
-  category: unclassified
+  category: monitoring_tool
   zone: 1
   status: draft
   interface: module
@@ -2578,7 +2577,7 @@ tools:
   name: candidate_bundle
   path: .z1-control/candidate_bundle.py
   version: unversioned
-  category: unclassified
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
@@ -2590,7 +2589,7 @@ tools:
   name: leak_guard
   path: .z1-control/leak_guard.py
   version: unversioned
-  category: unclassified
+  category: security_gate_tool
   zone: 1
   status: draft
   interface: cli
@@ -2602,7 +2601,7 @@ tools:
   name: ratify_eco
   path: .z1-control/ratify_eco.py
   version: unversioned
-  category: unclassified
+  category: governance_tool
   zone: 1
   status: draft
   interface: cli
