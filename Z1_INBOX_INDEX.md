@@ -4,9 +4,9 @@ Rendered from `z1-inbox/INDEX.yaml` (SSOT). **Do not hand-edit — edit the inde
 
 A **candidate** asks Z2 for a decision. A **record** reports, receipts or hands off and asks for nothing. Z2's routine window is **2 days** from submission (CLAUDE.md); `decision_due` is derived from that, not hand-set. Signing is **Night** — `.z1-control/validate.py` refuses any other signature.
 
-**104 candidates** — ⏳ awaiting Z2 94 · ✅ ratified 10 · **56 records**
+**106 candidates** — ⏳ awaiting Z2 96 · ✅ ratified 10 · **56 records**
 
-## Awaiting Z2 (94)
+## Awaiting Z2 (96)
 
 Earliest due first. Anything dated before today is past the window — `.z1-control/validate.py` flags those on every run, and CLAUDE.md routes a closed window to Admiral re-read.
 
@@ -106,6 +106,8 @@ Earliest due first. Anything dated before today is past the window — `.z1-cont
 | 2026-10-03 | **Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01** | Phase 2B telemetry & workflow path validator — dual-layer IC-032 prevention | `z1-inbox/2026-10-01/Q-PHASE-2B-TELEMETRY-IC-032-PREVENTION-01.md` |
 | 2026-10-03 | **Q-RBE-OPS-TIER-RANKING-01** | RBE-OPS Tier Ranking - Benefit/Cost Density Within Tiers | `z1-inbox/2026-10-01/Q-RBE-OPS-TIER-RANKING-01.md` |
 | 2026-10-03 | **Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01** | Z3 executor assignments and execution plan for 90 tier-assigned candidates | `z1-inbox/2026-10-01/Q-Z3-EXECUTOR-ASSIGNMENT-BATCH-01.md` |
+| 2026-10-10 | **Q-SYSTEM-GRAPH-TEMPORAL-01** | Temporal sequencing for system_graph.json schema | `z1-inbox/2026-10-08/SYSTEM_GRAPH_TEMPORAL_SCHEMA_PROPOSAL.md` |
+| 2026-10-11 | **Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01** | Governance registry structural repair — 162 entries, 127 defects | `z1-inbox/2026-10-09/REGISTRY_STRUCTURAL_REPAIR_PLAN.md` |
 
 ## Decided (10)
 
