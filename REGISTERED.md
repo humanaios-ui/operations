@@ -1,7 +1,7 @@
 # HumanAIOS Registered Findings & IC Corrections — REGISTERED
 
-**Status:** LIVE (append-only)
-**Last updated:** September 20, 2026 (S-092026-01-red-team-audit) — Q-WITNESS-COMMONS-ASSURANCE-01 red-team audit; IC-035/IC-036/IC-037 filed (IC-035/IC-037 ids since corrected to IC-060/IC-061 — see document flow conventions above). This line was declared August 15, 2026 until 2026-09-21, when it was corrected on Q-GOVDRIFT-01 ask 3 ratification (Night) to match `date_registered` on the newest entries, per RFM-17.
+**Status:** LIVE (append-only) | **STRUCTURAL REPAIR PENDING**
+**Last updated:** October 9, 2026 (Registry structural audit; 162 entries, 127 defects identified; repair proposal Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01 filed) — See RFM-06/RFM-09/RFM-10/RFM-15/RFM-17 closure tasks in parallel governance channel.
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED.md`
 **Rule:** This file is append-only. Findings are not deleted; they are superseded with a forward pointer.
 
