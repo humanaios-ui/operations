@@ -79,7 +79,9 @@ def ratified() -> tuple[bool, str]:
         if r.get("prev_hash") != prev or ratify_eco._row_hash(r) != r.get("record_hash"):
             return False, f"ledger chain broken at row {i} — refusing to act on a tampered ledger"
         prev = r.get("record_hash", ratify_eco.GENESIS)
-    hit = [r for r in rows if r.get("candidate_id") == RATIFY_CANDIDATE and r.get("decision") == "ACCEPT"]
+    def _norm(c: str) -> str:  # tolerate a filename-derived id (…-01.yaml) vs the bare candidate_id
+        return str(c or "").removesuffix(".yaml").removesuffix(".yml")
+    hit = [r for r in rows if _norm(r.get("candidate_id")) == RATIFY_CANDIDATE and r.get("decision") == "ACCEPT"]
     if not hit:
         return False, f"no signed ACCEPT row for {RATIFY_CANDIDATE} — ratify via ratify_eco.py first"
     return True, hit[-1]["signature"]

@@ -136,7 +136,7 @@ def cmd_ratify(candidate: str, by: str, decision: str, eco_id: str | None,
 
     doc = load_doc(candidate)
     at = at or datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
-    cand_id = eco_id or doc.get("id") or doc.get("q_id") or (
+    cand_id = eco_id or doc.get("candidate_id") or doc.get("id") or doc.get("q_id") or (
         os.path.basename(candidate) if candidate != "-" else "stdin")
 
     sig = artifact_signature(doc, by, at, decision)
