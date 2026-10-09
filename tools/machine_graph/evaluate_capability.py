@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Evaluate bounded local capabilities from a Machine Substrate Graph snapshot.
+"""HumanAIOS
+Builder v1.7 compliant
+
+Evaluate bounded local capabilities from a Machine Substrate Graph snapshot.
 
 Current capability:
   canonical-shacl-validation
 
 The evaluator is evidence-driven: it reads the graph snapshot and an optional
 local validation receipt. It does not use conversational memory.
+
+Usage:
+  python3 tools/machine_graph/evaluate_capability.py --smoke-test
 """
 
 from __future__ import annotations
@@ -16,6 +22,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+
+TOOL_NAME = "machine_graph_evaluate_capability"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "diagnostic_tool"
+TOOL_ZONE = 1
+TOOL_SESSION = "#596"
 
 SATISFIED = "SATISFIED"
 UNSATISFIED = "UNSATISFIED"
@@ -142,12 +154,52 @@ def evaluate(graph: dict[str, Any], receipt: Path | None) -> dict[str, Any]:
     }
 
 
+def run_smoke_test() -> int:
+    """Builder smoke test: capability evaluation fails closed without a receipt."""
+    probe = {
+        "nodes": [
+            {
+                "id": "runtime-smoke",
+                "type": "PythonEnvironment",
+                "state": "OBSERVED_AVAILABLE",
+                "observed": {
+                    "path": "/tmp/venv",
+                    "python": "Python 3.x",
+                    "pyshacl_present": True,
+                },
+            },
+            {
+                "id": "repo-smoke",
+                "type": "LocalRepository",
+                "state": "OBSERVED_AVAILABLE",
+                "observed": {
+                    "path": "/tmp/operations",
+                    "branch": "smoke",
+                    "working_tree_dirty": False,
+                },
+            },
+        ]
+    }
+    result = evaluate(probe, None)
+    assert result["state"] == UNVERIFIED, result
+    assert result["authorization"] == "NONE", result
+    assert result["can_authorize_external_action"] is False, result
+    print("smoke-test OK — capability evaluator fails closed without receipt evidence.")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--graph", required=True, help="Machine substrate JSON snapshot")
+    ap.add_argument("--smoke-test", action="store_true")
+    ap.add_argument("--graph", help="Machine substrate JSON snapshot")
     ap.add_argument("--validation-receipt", help="Canonical SHACL validation output receipt")
     ap.add_argument("--output", help="Optional JSON capability receipt output")
     args = ap.parse_args()
+
+    if args.smoke_test:
+        return run_smoke_test()
+    if not args.graph:
+        ap.error("--graph is required unless --smoke-test is used")
 
     graph_path = Path(args.graph).expanduser()
     receipt = Path(args.validation_receipt).expanduser() if args.validation_receipt else None
