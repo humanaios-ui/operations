@@ -2614,7 +2614,7 @@ tools:
   name: independent_execution_witness_v0_1
   path: tools/independent_execution_witness_v0_1.py
   version: 0.1.0
-  category: unclassified
+  category: research_tool
   zone: 1
   status: draft
   interface: cli

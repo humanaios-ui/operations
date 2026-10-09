@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**205 registered tools** · 2 MCP servers · 4 excluded · 152 carrying Builder v1.7 markers
+**206 registered tools** · 2 MCP servers · 4 excluded · 153 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,11 +13,11 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 205 |
-| — status `draft` | 204 |
+| Registered tools | 206 |
+| — status `draft` | 205 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 152 |
-| Uncategorized | 0 |
+| Builder v1.7 markers present | 153 |
+| Uncategorized | 1 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -241,7 +241,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-107 | registry_site_generator | `tools/registry_site_generator_v1_0.py` | 1.0.0 | 1 | draft | — | Reads REGISTERED.md, parses F-class / IC-class / H-class entries, |
 | HAIOS-TOOL-196 | map-to-mitigation | `scripts/map-to-mitigation.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Topic-to-Mitigation Mapper |
 
-## Research — `research_tool` (11)
+## Research — `research_tool` (12)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -256,6 +256,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-125 | smc_census_copilot_v0_1 | `tools/smc_census_copilot_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Shared-Memory Census (SMC) v0.1. |
 | HAIOS-TOOL-195 | gap-detector | `scripts/gap-detector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Gap Detector |
 | HAIOS-TOOL-212 | gner_notification_e0 | `tools/gner_notification_e0.py` | 0.1.0 | 1 | draft | — | GNER-E0 offline GitHub notification lead interpreter (email unverified discovery only) |
+| HAIOS-TOOL-219 | independent_execution_witness_v0_1 | `tools/independent_execution_witness_v0_1.py` | 0.1.0 | 1 | draft | — | Independent Execution Witness (IEW) — Evidence Verification Control |
 
 ## Security gates — `security_gate_tool` (12)
 
@@ -353,7 +354,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 6 |
-| `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 11 |
+| `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 12 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 12 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. | 26 |
