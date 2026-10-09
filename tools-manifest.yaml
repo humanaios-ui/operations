@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 205
+  tools: 206
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 152
   missing_from_tree: 0
-  unclassified: 0
+  unclassified: 1
 categories:
 - analytics_tool
 - audit_tool
@@ -52,6 +52,7 @@ categories:
 - research_tool
 - security_gate_tool
 - template_tool
+- unclassified
 - validation_tool
 tools:
 - tool_id: HAIOS-TOOL-001
@@ -2609,6 +2610,18 @@ tools:
   smoke_test: true
   builder_markers: false
   purpose: 'ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact.'
+- tool_id: HAIOS-TOOL-219
+  name: independent_execution_witness_v0_1
+  path: tools/independent_execution_witness_v0_1.py
+  version: 0.1.0
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Independent Execution Witness (IEW) — Evidence Verification Control
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman

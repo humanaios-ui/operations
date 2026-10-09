@@ -179,3 +179,7 @@ baseline_tests:
   - path: tools/tests/test_gner_notification_e0.py
     requires: []
     description: GNER-E0 GitHub notification lead interpreter tests
+
+  - path: tools/tests/test_independent_execution_witness_v0_1.py
+    requires: []
+    description: EBEE-001 Independent Execution Witness verification tests
