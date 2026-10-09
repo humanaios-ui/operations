@@ -1,8 +1,8 @@
 # REGISTERED.md Failure-Mode Map
 ## Registry Failure Modes → Standing Orders → Industrial Failure Modes
 
-**Source:** `REGISTERED.md` @ HEAD (5,665 lines, 160 entries)
-**Mapping Date:** 2026-09-13 · **Counts re-measured:** 2026-09-28
+**Source:** `REGISTERED.md` @ HEAD (5,774 lines, 161 entries)
+**Mapping Date:** 2026-09-13 · **Counts re-measured:** 2026-10-09
 **Authority:** Z2 (Night) ratification pending
 **Status:** Z1 candidate for REGISTERED.md
 **Canonical URL:** `https://raw.githubusercontent.com/humanaios-ui/operations/main/REGISTERED_FAILURE_MODES.md`
@@ -39,16 +39,16 @@ This document does that, in three columns:
 
 Reproduce with `python3 tools/registered_failure_mode_scan_v0_1.py scan`.
 
-**Entry-level conformance** (160 entries × 4 checks = 640 opportunities):
+**Entry-level conformance** (161 entries × 4 checks = 644 opportunities):
 
 | Check | RFM | Defects | Conformance |
 |:---|:---|:---|:---|
-| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 45/160 | 71.9% |
-| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 70/160 | 56.2% |
-| Front-matter fence form | RFM-07 | 8/160 | 95.0% |
-| Quote hygiene | RFM-08 | 3/160 | 98.1% |
+| Ordering (`REGISTRY_SPEC.md:114`) | RFM-09 | 46/161 | 71.4% |
+| Required schema fields (`REGISTERED.md:16-32`) | RFM-06 | 70/161 | 56.5% |
+| Front-matter fence form | RFM-07 | 8/161 | 95.0% |
+| Quote hygiene | RFM-08 | 3/161 | 98.1% |
 
-**126 defects / 640 opportunities → 80.3% first-pass yield → 196,875 DPMO → ~2.4σ**
+**127 defects / 644 opportunities → 80.3% first-pass yield → 197,205 DPMO → ~2.4σ**
 
 `RFM-06` scores the **full** schema at `REGISTERED.md:16-32`, all ten declared fields. The registry says entries
 *"must open with"* that block, so the whole list is the contract; scoring a convenient subset would let the
@@ -65,10 +65,10 @@ Same methodology and 1.5-shift convention as `audits/T1_DEFECT_BASELINE_S070726.
 | Check | RFM | Result |
 |:---|:---|:---|
 | F quick-index desync | RFM-11 | 10 of 49 F-entries absent from index (79.6% coverage) |
-| Post-terminal append | RFM-10 | 49 entries after the `## Changelog` boundary (by line position, so a later terminal section cannot hide one) |
+| Post-terminal append | RFM-10 | 50 entries after the `## Changelog` boundary (by line position, so a later terminal section cannot hide one) |
 | Orphan roll-up row | RFM-12 | 0 — PASS (the IC-036 orphan recorded at the 2026-09-13 baseline has since been resolved) |
 | Ratified-class starvation | RFM-16 | 3 of 6 — D, R, GD defined, zero entries |
-| Header staleness | RFM-17 | 1 — declared 2026-09-20, newest content 2026-09-28 (drift introduced by new entries added after header frozen, most recently `Q-AUTHORIZATION-EVIDENCE-MAPPING-01` on 2026-09-28) |
+| Header staleness | RFM-17 | 0 — PASS (header updated to 2026-10-09 on 2026-10-09) |
 | Ratification-hash form | RFM-15 | 8 — git SHAs and unterminated `sha256(...)` expressions where 64 hex chars are specified |
 | Cross-artifact ratification | RFM-14 | 0 — PASS |
 
