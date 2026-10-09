@@ -33,7 +33,7 @@ counts:
   tools: 206
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 152
+  builder_markers_present: 153
   missing_from_tree: 0
   unclassified: 1
 categories:
@@ -2619,8 +2619,8 @@ tools:
   status: draft
   interface: cli
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: Independent Execution Witness (IEW) — Evidence Verification Control
 mcp_servers:
 - server_id: HAIOS-MCP-001
