@@ -99,6 +99,19 @@ jobs:
         continue-on-error: true
         run: python3 .z1-control/ratify.py --verify
 
+      - name: ECO-ratify binding self-test
+        # B1 (Substrate Map): an ECO-accept emits a signed, append-only RATIFY row
+        # reusing ratify.py's signer. Same reasoning as the step above — a signing
+        # binding whose self-test no workflow runs is decoration.
+        run: python3 .z1-control/ratify_eco.py --smoke-test
+
+      - name: Recorded ECO ratifications still match their candidates
+        # Content-pin + hash-chain over the ECO-ratify ledger. Advisory until the
+        # first real row lands (the ledger is empty on a fresh repo), ratcheting to
+        # blocking the same way ratify.py --verify does.
+        continue-on-error: true
+        run: python3 .z1-control/ratify_eco.py --verify
+
       - name: Z1 inbox index integrity (ERROR — blocks merge)
         # Coverage, falsifier discipline on candidates, derived decision
         # windows, and the no-self-grant rule on Z2 signatures.
