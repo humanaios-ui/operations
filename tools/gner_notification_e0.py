@@ -5,9 +5,15 @@ module. No Gmail/GitHub API calls, I/O, authority, or execution.
 
 Builder v1.7 compliant - research_tool
 HumanAIOS - Q-GNER-E0-OFFLINE-NOTIFICATION-RELAY-01
+
+TOOL_CATEGORY: research_tool
+TOOL_SESSION: 1
+TOOL_ZONE: 1
 """
 from __future__ import annotations
 import re
+import sys
+import argparse
 from collections import defaultdict
 from urllib.parse import urlsplit
 
@@ -77,7 +83,8 @@ def redact_github_url(url: str) -> str | None:
         return None
     try:
         p = urlsplit(url)
-        if p.scheme != "https" or p.netloc != "github.com" or p.username or p.password:
+        if (p.scheme != "https" or p.netloc != "github.com" or p.username or p.password
+                or p.query or p.fragment):
             return None
         path = p.path
         if re.fullmatch(r"/humanaios-ui/operations/(?:pull/\d{1,7}|actions/runs/\d{1,15})", path):
@@ -112,6 +119,47 @@ def run_smoke_test() -> dict:
     return {"tool": TOOL_NAME, "version": TOOL_VERSION, "tests": results}
 
 
-if __name__ == "__main__":
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="GNER-E0: offline GitHub notification lead interpreter",
+        prog=TOOL_NAME
+    )
+    parser.add_argument(
+        "--smoke-test",
+        action="store_true",
+        help="Run smoke tests and report results"
+    )
+    parser.add_argument(
+        "--help-tool",
+        action="store_true",
+        help="Print tool metadata"
+    )
+
+    args = parser.parse_args()
+
+    if args.help_tool:
+        print(f"Tool: {TOOL_NAME}")
+        print(f"Version: {TOOL_VERSION}")
+        print("Purpose: Offline GitHub notification lead interpreter (untrusted discovery only)")
+        return 0
+
+    if args.smoke_test:
+        test_result = run_smoke_test()
+        print("Smoke test result:", test_result)
+        # Fail if any test case failed
+        for test in test_result.get("tests", []):
+            if not test.get("passed", False):
+                return 1
+        return 0
+
+    # No arguments provided: run smoke test by default
     test_result = run_smoke_test()
     print("Smoke test result:", test_result)
+    for test in test_result.get("tests", []):
+        if not test.get("passed", False):
+            return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

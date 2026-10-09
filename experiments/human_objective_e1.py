@@ -5,6 +5,7 @@ This is a *consumer contract* test, not admission of PR #756.
 """
 from __future__ import annotations
 from hashlib import sha256
+from ipaddress import ip_address
 import json
 import re
 from urllib.parse import urlsplit
@@ -36,10 +37,20 @@ def _safe_public_url(value: object) -> bool:
     try:
         parsed = urlsplit(value)
         host = parsed.hostname
-        return (parsed.scheme == "https" and bool(host) and host not in {"localhost", "127.0.0.1"}
-                and not host.endswith(".local") and not parsed.username and not parsed.password
-                and parsed.port is None and not parsed.fragment)
-    except ValueError:
+        if not (parsed.scheme == "https" and bool(host) and not parsed.username and not parsed.password
+                and parsed.port is None and not parsed.fragment and not parsed.query):
+            return False
+        # Reject reserved names and patterns
+        if host in {"localhost", "127.0.0.1", "::1"} or host.endswith(".local"):
+            return False
+        # For IP addresses, verify they are global (not private, link-local, loopback, etc.)
+        try:
+            addr = ip_address(host)
+            return addr.is_global
+        except ValueError:
+            # Not an IP address; assume it's a valid domain name (hostnames cannot be private)
+            return True
+    except (AttributeError, TypeError):
         return False
 
 

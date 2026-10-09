@@ -1,6 +1,6 @@
 # E1 — Evidence-Bearing Human Objective Integration
 
-**Upstream:** E0 PR #762, issue #760. **External contract reference:** URA PR #756. This E1 branch builds on the E0 branch but **does not import, merge, edit, or admit** #756. Review as a stacked PR.
+**Upstream:** E0 merged at PR #762 (commit 9ce3fae9), issue #760. **External contract reference:** URA PR #756. This PR #772 proposes E1 directly against main as a restoration of merged baseline, and **does not import, merge, edit, or admit** #756. This is not a stacked PR; E0 is already merged.
 
 ## Run (repository root)
 
