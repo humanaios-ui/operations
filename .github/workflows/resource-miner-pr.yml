@@ -25,6 +25,336 @@ jobs:
           HACKERONE_API_TOKEN: ''
         run: python3 -m unittest discover -s tests -v
 
+      - name: Exercise subject-scoped registry query planning
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+
+          from resource_miner.mines import load_mines, stable_opportunity_id
+
+          mines = load_mines("data/mines.seed.json")
+          colorado = next(
+              mine for mine in mines
+              if mine.name == "Colorado Great Colorado Payback"
+          )
+          configured = colorado.config["opportunities"][0]
+          pathway_id = stable_opportunity_id(
+              colorado.mine_id,
+              configured.get("opportunity_identity") or configured["url"],
+              configured["opportunity_kind"],
+          )
+
+          cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "plan-registry-query",
+              "--mine-id",
+              colorado.mine_id,
+              "--pathway-opportunity-id",
+              pathway_id,
+              "--subject-ref",
+              "SUBJ-AAAAAAAAAAAAAAAA",
+              "--subject-kind",
+              "NATURAL_PERSON",
+              "--query-field",
+              "owner_name",
+              "--query-field",
+              "last_known_location",
+              "--explicit-subject-request",
+          ]
+          payload = json.loads(subprocess.check_output(cmd, text=True))
+          assert payload["query_id"].startswith("RQY-")
+          assert payload["query_token"].startswith("urn:humanaios:registry-query:RQY-")
+          assert payload["registry_mine_id"] == colorado.mine_id
+          assert payload["pathway_opportunity_id"] == pathway_id
+          assert payload["subject_ref"] == "SUBJ-AAAAAAAAAAAAAAAA"
+          assert payload["query_fields"] == ["last_known_location", "owner_name"]
+          assert payload["privacy_classification"] == "SENSITIVE_QUERY_INPUT"
+          assert payload["query_value_persistence"] == "PRIVATE_RUNTIME_ONLY"
+          assert payload["expected_response_class"] == "ZERO_OR_MORE_CANDIDATE_RECORDS"
+          assert payload["zero_result_semantics"] == "NO_MATCH_OBSERVED_NOT_NO_ENTITLEMENT"
+          assert payload["match_result_semantics"] == "CANDIDATE_RECORD_NOT_OWNERSHIP"
+          assert payload["explicit_subject_request"] is True
+          assert payload["external_state_change"] is False
+          assert payload["planning_state"] == "PLANNED"
+          assert payload["execution_state"] == "NOT_AUTHORIZED"
+          assert payload["authority_effect"] == "NONE"
+
+          forbidden = {
+              "query_values",
+              "raw_query_values",
+              "name",
+              "date_of_birth",
+              "ssn",
+              "tax_id",
+              "email",
+              "phone",
+          }
+          assert forbidden.isdisjoint(payload)
+          PY
+
+      - name: Exercise exact-RQY observation authorization
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          from resource_miner.mines import load_mines, stable_opportunity_id
+
+          mines = load_mines("data/mines.seed.json")
+          colorado = next(
+              mine for mine in mines
+              if mine.name == "Colorado Great Colorado Payback"
+          )
+          configured = colorado.config["opportunities"][0]
+          pathway_id = stable_opportunity_id(
+              colorado.mine_id,
+              configured.get("opportunity_identity") or configured["url"],
+              configured["opportunity_kind"],
+          )
+
+          rqy_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "plan-registry-query",
+              "--mine-id",
+              colorado.mine_id,
+              "--pathway-opportunity-id",
+              pathway_id,
+              "--subject-ref",
+              "SUBJ-AAAAAAAAAAAAAAAA",
+              "--subject-kind",
+              "NATURAL_PERSON",
+              "--query-field",
+              "owner_name",
+              "--query-field",
+              "last_known_location",
+              "--explicit-subject-request",
+          ]
+          rqy = json.loads(subprocess.check_output(rqy_cmd, text=True))
+          rqy_path = Path("/tmp/rqy.json")
+          rqy_path.write_text(json.dumps(rqy, sort_keys=True), encoding="utf-8")
+
+          allow_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "authorize-registry-observation",
+              "--query-plan",
+              str(rqy_path),
+          ]
+          allow = json.loads(subprocess.check_output(allow_cmd, text=True))
+          assert allow["authorization_id"].startswith("OAG-")
+          assert allow["query_id"] == rqy["query_id"]
+          assert allow["query_plan_sha256"]
+          assert allow["decision"] == "ALLOW_OBSERVATION"
+          assert allow["authority_effect"] == "OBSERVATION_ONLY"
+          assert allow["execution_state"] == "NOT_EXECUTED"
+          assert allow["consumption_state"] == "UNUSED"
+          assert allow["one_shot"] is True
+          assert allow["max_executions"] == 1
+          assert allow["consequence_ceiling"] == "EVIDENCE_ONLY"
+          assert allow["consequential_actions_permitted"] is False
+          assert allow["claim_submission_permitted"] is False
+          assert allow["private_subject_binding_required"] is True
+          assert allow["private_query_values_exposed"] is False
+          assert allow["external_state_change"] is False
+          assert allow["query_value_persistence"] == "PRIVATE_RUNTIME_ONLY"
+          assert "SUBMIT_CLAIM" in allow["prohibited_actions"]
+          assert "UPLOAD_DOCUMENT" in allow["prohibited_actions"]
+
+          deny_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "authorize-registry-observation",
+              "--query-plan",
+              str(rqy_path),
+              "--requested-operation",
+              "SUBMIT_CLAIM",
+          ]
+          deny = json.loads(subprocess.check_output(deny_cmd, text=True))
+          assert deny["decision"] == "DENY"
+          assert deny["authority_effect"] == "NONE"
+          assert deny["consumption_state"] == "NOT_APPLICABLE"
+          assert deny["execution_state"] == "NOT_EXECUTED"
+
+          forbidden = {
+              "query_values",
+              "raw_query_values",
+              "owner_name_value",
+              "business_name_value",
+              "last_known_location_value",
+              "date_of_birth",
+              "ssn",
+              "tax_id",
+              "email",
+              "phone",
+              "claim_id",
+          }
+          assert forbidden.isdisjoint(allow)
+          assert forbidden.isdisjoint(deny)
+          PY
+
+      - name: Exercise one-shot QRC receipt consumption
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          from resource_miner.mines import load_mines, stable_opportunity_id
+
+          mines = load_mines("data/mines.seed.json")
+          colorado = next(
+              mine for mine in mines
+              if mine.name == "Colorado Great Colorado Payback"
+          )
+          configured = colorado.config["opportunities"][0]
+          pathway_id = stable_opportunity_id(
+              colorado.mine_id,
+              configured.get("opportunity_identity") or configured["url"],
+              configured["opportunity_kind"],
+          )
+
+          rqy_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "plan-registry-query",
+              "--mine-id",
+              colorado.mine_id,
+              "--pathway-opportunity-id",
+              pathway_id,
+              "--subject-ref",
+              "SUBJ-AAAAAAAAAAAAAAAA",
+              "--subject-kind",
+              "NATURAL_PERSON",
+              "--query-field",
+              "owner_name",
+              "--query-field",
+              "last_known_location",
+              "--explicit-subject-request",
+          ]
+          rqy = json.loads(subprocess.check_output(rqy_cmd, text=True))
+          rqy_path = Path("/tmp/qrc-rqy.json")
+          rqy_path.write_text(json.dumps(rqy, sort_keys=True), encoding="utf-8")
+
+          oag_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "authorize-registry-observation",
+              "--query-plan",
+              str(rqy_path),
+          ]
+          oag = json.loads(subprocess.check_output(oag_cmd, text=True))
+          assert oag["decision"] == "ALLOW_OBSERVATION"
+          oag_path = Path("/tmp/qrc-oag.json")
+          oag_path.write_text(json.dumps(oag, sort_keys=True), encoding="utf-8")
+
+          ledger = Path("/tmp/qrc-ledger.jsonl")
+          if ledger.exists():
+              ledger.unlink()
+
+          receipt_cmd = [
+              sys.executable,
+              "-m",
+              "resource_miner.cli",
+              "record-registry-query-execution",
+              "--query-plan",
+              str(rqy_path),
+              "--authorization",
+              str(oag_path),
+              "--private-subject-binding-attestation-id",
+              "PSB-BBBBBBBBBBBBBBBB",
+              "--query-field",
+              "owner_name",
+              "--query-field",
+              "last_known_location",
+              "--observed-origin-key",
+              "unclaimedproperty.colorado.gov",
+              "--execution-nonce",
+              "EXE-CCCCCCCCCCCCCCCC",
+              "--started-at",
+              "2026-10-04T09:00:00Z",
+              "--finished-at",
+              "2026-10-04T09:00:01Z",
+              "--result-state",
+              "ZERO_MATCHES_OBSERVED",
+              "--observed-record-count",
+              "0",
+              "--ledger",
+              str(ledger),
+          ]
+          receipt = json.loads(subprocess.check_output(receipt_cmd, text=True))
+          assert receipt["receipt_id"].startswith("QRC-")
+          assert receipt["authorization_id"] == oag["authorization_id"]
+          assert receipt["query_id"] == rqy["query_id"]
+          assert receipt["private_subject_binding_attested"] is True
+          assert receipt["result_state"] == "ZERO_MATCHES_OBSERVED"
+          assert receipt["observed_record_count"] == 0
+          assert receipt["authorization_consumed"] is True
+          assert receipt["authorization_consumption_ordinal"] == 1
+          assert receipt["evidence_effect"] == "OBSERVATION_RECEIPT_ONLY"
+          assert receipt["authority_effect"] == "NONE"
+          assert receipt["private_query_values_exposed"] is False
+          assert receipt["raw_request_exposed"] is False
+          assert receipt["raw_response_exposed"] is False
+          assert receipt["external_state_change"] is False
+          assert receipt["claim_submission_permitted"] is False
+          assert receipt["prohibited_action_executed"] is False
+          assert len(receipt["receipt_sha256"]) == 64
+
+          lines = [
+              line for line in ledger.read_text(encoding="utf-8").splitlines()
+              if line.strip()
+          ]
+          assert len(lines) == 1
+
+          duplicate = list(receipt_cmd)
+          duplicate[duplicate.index("EXE-CCCCCCCCCCCCCCCC")] = (
+              "EXE-DDDDDDDDDDDDDDDD"
+          )
+          duplicate_run = subprocess.run(
+              duplicate,
+              text=True,
+              capture_output=True,
+          )
+          assert duplicate_run.returncode != 0
+          assert "already been consumed" in (
+              duplicate_run.stdout + duplicate_run.stderr
+          )
+
+          forbidden = {
+              "query_values",
+              "raw_query_values",
+              "owner_name_value",
+              "business_name_value",
+              "last_known_location_value",
+              "date_of_birth",
+              "ssn",
+              "tax_id",
+              "email",
+              "phone",
+              "address",
+              "claim_id",
+              "cookie",
+              "session_token",
+          }
+          assert forbidden.isdisjoint(receipt)
+          PY
+
       - name: Exercise persistent Mine resolver contract
         working-directory: humanaios-funding-pipeline/resource-miner
         env:
@@ -41,6 +371,7 @@ jobs:
           assert payload["mines"], "mine registry unexpectedly empty"
           assert any(m["name"] == "Microsoft for Startups" for m in payload["mines"])
           assert any(m["name"] == "HackerOne" for m in payload["mines"])
+          assert any(m["name"] == "Colorado Great Colorado Payback" for m in payload["mines"])
           states = {r["mine_name"]: r["state"] for r in payload["receipts"]}
           assert states["Microsoft for Startups"] == "RESOLVED"
           assert states["humanaios-ui/operations"] == "ROLE_ONLY"
@@ -48,13 +379,24 @@ jobs:
           assert states["humanaios-ui/lasting-light-ai"] == "ROLE_ONLY"
           assert states["HackerOne"] in {"DEPENDENCY_PENDING", "OBSERVATION_FAILED", "RESOLVED"}
           assert states["aioshuman@gmail.com — Private Gmail"] == "DEPENDENCY_PENDING"
+          assert states["Colorado Great Colorado Payback"] == "RESOLVED"
           opportunities = payload["opportunities"]
           propositions = payload["propositions"]
           resolutions = payload["resolutions"]
           adjudications = payload["adjudications"]
           verification_frontier = payload["verification_frontier"]
+          verification_work_queue = payload["verification_work_queue"]
+          verification_routes = payload["verification_routes"]
           claims = payload["claims"]
           assert any(row["mine_name"] == "Microsoft for Startups" for row in opportunities)
+          colorado = [
+              row for row in opportunities
+              if row["mine_name"] == "Colorado Great Colorado Payback"
+          ]
+          assert len(colorado) == 1
+          assert colorado[0]["opportunity_kind"] == "unclaimed_property_recovery_pathway"
+          assert colorado[0]["eligibility_assessed"] is False
+          assert colorado[0]["eligibility_status"] == "UNASSESSED"
           assert all(row["opportunity_id"].startswith("OPP-") for row in opportunities)
           assert all(row["opportunity_token"].startswith("urn:humanaios:resource-opportunity:") for row in opportunities)
           assert len(propositions) >= len(opportunities)
@@ -80,6 +422,16 @@ jobs:
           assert all(row["verification_id"].startswith("VFY-") for row in verification_frontier)
           assert all(row["state"] == "OPEN" for row in verification_frontier)
           assert all(row["authority_effect"] == "NONE" for row in verification_frontier)
+          assert len(verification_work_queue) == len(verification_frontier)
+          assert all(row["work_id"].startswith("VWK-") for row in verification_work_queue)
+          assert all(row["planning_state"] == "PLANNED" for row in verification_work_queue)
+          assert all(row["execution_state"] == "NOT_AUTHORIZED" for row in verification_work_queue)
+          assert all(row["authority_effect"] == "NONE" for row in verification_work_queue)
+          assert len(verification_routes) == len(verification_work_queue)
+          assert all(row["route_id"].startswith("VRT-") for row in verification_routes)
+          assert all(row["execution_state"] == "NOT_AUTHORIZED" for row in verification_routes)
+          assert all(row["authority_effect"] == "NONE" for row in verification_routes)
+          assert all(row["route_type"] in {"EXISTING_MINE_REOBSERVE", "KNOWN_ORIGIN_REVIEW", "DISCOVERY_REQUIRED", "RESOLVER_REQUIRED", "SOURCE_STANDING_REVIEW"} for row in verification_routes)
           assert all(row["claim_id"].startswith("CLM-") for row in claims)
           assert all(row["claim_token"].startswith("urn:humanaios:opportunity-claim:") for row in claims)
           assert all(row["authorization_state"] == "NOT_REQUESTED" for row in claims)

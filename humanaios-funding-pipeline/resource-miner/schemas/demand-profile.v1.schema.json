@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/demand-profile.v1.schema.json",
+  "title": "HumanAIOS Demand Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile_id",
+    "opportunity_id",
+    "source_kind",
+    "source_identity",
+    "source_url",
+    "objective",
+    "deadline",
+    "requirements",
+    "constraints",
+    "eligibility_predicates",
+    "prohibitions",
+    "deliverables",
+    "evaluation_criteria",
+    "value_signals",
+    "submission_surface",
+    "source_metadata",
+    "evidence",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.demand-profile.v1"
+    },
+    "profile_id": {
+      "type": "string",
+      "pattern": "^DMD-[A-F0-9]{16}$"
+    },
+    "opportunity_id": {
+      "type": "string",
+      "pattern": "^BOP-[A-F0-9]{16}$"
+    },
+    "source_kind": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_url": {
+      "type": "string",
+      "minLength": 1
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "deadline": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "demand_requirement_id",
+          "label",
+          "mode",
+          "semantic_class",
+          "statement",
+          "required_affordances",
+          "allowed_resource_types",
+          "condition",
+          "score_weight",
+          "brokerable",
+          "source_locator",
+          "evidence",
+          "authority_effect"
+        ],
+        "properties": {
+          "demand_requirement_id": {
+            "type": "string",
+            "pattern": "^DMR-[A-F0-9]{16}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "enum": [
+              "REQUIRED",
+              "OPTIONAL",
+              "PREFERRED",
+              "PROHIBITED",
+              "CONDITIONAL",
+              "SCORED"
+            ]
+          },
+          "semantic_class": {
+            "enum": [
+              "CAPABILITY",
+              "ELIGIBILITY",
+              "CONSTRAINT",
+              "PROHIBITION",
+              "DELIVERABLE",
+              "EVALUATION",
+              "COMPLIANCE_CONTROL"
+            ]
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required_affordances": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "allowed_resource_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "condition": {
+            "type": "string"
+          },
+          "score_weight": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "brokerable": {
+            "type": "boolean"
+          },
+          "source_locator": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object"
+            }
+          },
+          "authority_effect": {
+            "const": "NONE"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "semantic_class": {
+                  "const": "ELIGIBILITY"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "brokerable": {
+                  "const": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "mode": {
+                  "const": "PROHIBITED"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "brokerable": {
+                  "const": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "mode": {
+                  "const": "SCORED"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "score_weight": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "eligibility_predicates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prohibitions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "deliverables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evaluation_criteria": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "value_signals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "submission_surface": {
+      "type": "string"
+    },
+    "source_metadata": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  }
+}
