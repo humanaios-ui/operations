@@ -104,6 +104,21 @@ jobs:
         # windows, and the no-self-grant rule on Z2 signatures.
         run: python3 .z1-control/validate.py
 
+      - name: Substrate self-tests (B1/B3/B6 — reuse one signer, assert the invariants)
+        # B1 ratify_eco (ECO-accept → signed RATIFY row, reuses ratify.py's signer),
+        # B3 candidate_bundle (candidate ⇄ empirica bundle, valid node/relation types),
+        # B6 leak_guard (WIP stash never dropped). A self-test no workflow runs is decoration.
+        run: |
+          python3 .z1-control/ratify_eco.py --smoke-test
+          python3 .z1-control/candidate_bundle.py --smoke-test
+          python3 .z1-control/leak_guard.py --smoke-test
+
+      - name: Recorded ECO ratifications still match their candidates
+        # Content-pin + hash-chain over eco_ratify_ledger.jsonl. Advisory until the first
+        # real row lands, then ratchets to blocking like ratify.py --verify.
+        continue-on-error: true
+        run: python3 .z1-control/ratify_eco.py --verify
+
       - name: Z1_INBOX_INDEX.md is in sync (ERROR — blocks merge)
         run: python3 .z1-control/render.py --check
 

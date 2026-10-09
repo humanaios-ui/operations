@@ -1,0 +1,25 @@
+schema: candidate-bundle/v1
+candidate_id: Q-MOLT-PRACTICES-COLLAPSE-01
+type: MOLT
+title: Collapse 19 practice-seats to 6 role-practices (non-destructive fold)
+description: |
+  Fold 12 Empirica practice SEATS (ai_id + .empirica store + calibration trajectory) into
+  6 role-practices — Builder (humanaios), Evaluator (empirica-foundation-evaluator),
+  Gov/Mesh (empirica-mesh-support), Outreach (empirica-outreach), Research
+  (opportunity-aggregator), Autonomy (empirica-autonomy, stands) — per
+  .z1-control/B4_FOLD_MANIFEST.md. Seats and stores consolidate; repos are NOT merged or
+  deleted (all 20 preserved on remotes). acat-x and opportunity-aggregator serve as
+  Builder+Research bridges. Folded seats migrate their artifact stores into the survivor,
+  reassign their repo, and retire their ai_id as an archived alias — fully reversible.
+reversibility: committal
+impact: 9
+falsifier: >
+  FALSE if, within 30 days of execution, any folded practice's artifacts become unqueryable
+  under its role-survivor, OR a seventh non-bridge role proves necessary, OR any reassigned
+  repo loses history.
+evidence:
+  - .z1-control/B4_FOLD_MANIFEST.md
+  - ~/practices-snapshot-2026-10-09-sweep.tgz (1.1G floor)
+  - Practice Mesh Audit (systems map + capability audit)
+  - Empirica Substrate Map (D1-D4 ratified)
+visibility: shared
