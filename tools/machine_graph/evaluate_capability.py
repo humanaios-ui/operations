@@ -63,7 +63,7 @@ def python_env_evidence(graph: dict[str, Any]) -> dict[str, Any]:
                 "pyshacl_present": True,
             })
     return {
-        "state": SATISFIED if matches else UNSATISFIED,
+        "state": SATISFIED if matches else (UNSATISFIED if envs and all(n.get("state") == "OBSERVED_AVAILABLE" and n.get("observed", {}).get("pyshacl_present") is False for n in envs) else UNVERIFIED),
         "matches": matches,
     }
 
@@ -75,9 +75,8 @@ def repository_evidence(graph: dict[str, Any]) -> dict[str, Any]:
         obs = n.get("observed", {})
         path = str(obs.get("path", ""))
         if n.get("state") == "OBSERVED_AVAILABLE" and (
-            path.endswith("/operations-pr594")
-            or path.endswith("/operations")
-            or "operations" in Path(path).name.lower()
+            obs.get("repository_full_name") == "humanaios-ui/operations"
+            and obs.get("repository_identity_verified") is True
         ):
             matches.append({
                 "node_id": n.get("id"),
