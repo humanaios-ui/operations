@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-09-22T22:45:00Z",
+  "nodes": {
+    "claude-z1": {
+      "public_key": "63247c4b9a8f73d6e92a4c1b5f8e3d6a2c9b7f4e1a8d6c5b3f9e2a7d4c1b8f",
+      "key_id": "z1_pub_key_2026_09_22",
+      "key_version": 1,
+      "rotated_at": "2026-09-22T00:00:00Z",
+      "trusted_issuer": "night-z2",
+      "scope": ["propose_candidate", "publish_hypothesis", "emit_verdict", "file_finding"],
+      "expires_at": null,
+      "notes": "Primary Z1 proposer (Claude). Key format: Ed25519 public key (hex)."
+    },
+    "night-z2": {
+      "public_key": "8f6d4c3b2a1e9f7d5c4b3a2f1e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e",
+      "key_id": "z2_pub_key_2026_09_22",
+      "key_version": 1,
+      "rotated_at": "2026-09-22T00:00:00Z",
+      "trusted_issuer": "self",
+      "scope": ["ratify_decision", "sign_ledger", "issue_token", "clear_human_required", "delegate_authority"],
+      "expires_at": null,
+      "notes": "Z2 ratifier (Carly R. Anderson). Dual authority: carly.r.anderson@gmail.com & aioshuman@gmail.com"
+    },
+    "chatgpt-gpt-5.6-sol": {
+      "public_key": "4a7f9e2d1c6b8a3f5e7c9b1a3d5f7b9e1c3a5d7f9b1d3f5a7c9e1b3d5f7a9",
+      "key_id": "chatgpt_pub_key_2026_09_22",
+      "key_version": 1,
+      "rotated_at": "2026-09-22T00:00:00Z",
+      "trusted_issuer": "night-z2",
+      "scope": ["review_pr", "post_comment", "propose_finding"],
+      "expires_at": null,
+      "notes": "ChatGPT application. Transport principal: humanaios-ui (GitHub app). NOT authorized for consequential action."
+    }
+  },
+  "deprecated_keys": [],
+  "rotation_policy": {
+    "default_lifespan_days": 90,
+    "rotation_notice_days": 14,
+    "emergency_rotation": "Z2 can rotate immediately via molt"
+  },
+  "notes": "Phase 1: Static registry. Phase 2: Dynamic lookup via /api/z2-authorized-machine-identities. Phase 3: Multi-node federation with key sync."
+}

@@ -61,7 +61,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # The seed-constitution step diffs a commit RANGE. actions/checkout
           # defaults to depth 1, where even HEAD~1 does not exist, so that diff
@@ -70,7 +70,47 @@ jobs:
           # of them.
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - name: Verify Z2 merge authority (git commit authorship)
+        # Z2_RULING_MERGE_IS_RATIFICATION.md (2026-09-18): Board rulings and
+        # candidate blocks are ratified by Z2's merge action. The merge commit
+        # author is the signature; Z2's git identity serves as proof of intent.
+        # This step checks that the current HEAD was merged/committed by an
+        # authorized Z2 identity from CLAUDE.md (carly.r.anderson@gmail.com or
+        # aioshuman@gmail.com).
+        run: |
+          set -euo pipefail
+          AUTHORIZED_Z2=(
+            "carly.r.anderson@gmail.com"
+            "aioshuman@gmail.com"
+          )
+
+          # Get the commit author email of HEAD (or the merge commit on PR)
+          COMMIT_AUTHOR=$(git log -1 --format=%ae)
+
+          echo "Checking commit authorship for Z2 ratification..."
+          echo "  HEAD commit author: $COMMIT_AUTHOR"
+
+          # Check if this author is in the authorized list
+          FOUND=0
+          for auth in "${AUTHORIZED_Z2[@]}"; do
+            if [ "$COMMIT_AUTHOR" = "$auth" ]; then
+              FOUND=1
+              break
+            fi
+          done
+
+          if [ $FOUND -eq 1 ]; then
+            echo "✓ Commit authored by authorized Z2 identity ($COMMIT_AUTHOR)"
+            echo "  This commit serves as Z2 ratification signature via git authorship."
+            exit 0
+          else
+            echo "⚠ Commit author ($COMMIT_AUTHOR) is not an authorized Z2 identity."
+            echo "  Authorized Z2 identities: ${AUTHORIZED_Z2[*]}"
+            echo "  Ratification may require explicit Z2 signature in REGISTERED.md."
+            exit 0  # Advisory only — allows other ratification mechanisms to proceed
+          fi
+
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
@@ -202,11 +242,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # This job imports yaml too; the install in z2-gate does not carry over.
       # It only ever passed by relying on whatever the runner image preinstalls.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
       - name: Install deps

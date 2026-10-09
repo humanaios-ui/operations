@@ -1,0 +1,831 @@
+name: repository-admission-gate
+
+# Required check: Repository admission/backpressure gate.
+# Trusted control law comes from the default branch. Mutable working-set
+# admission state comes from an exact, receipted repository-coordinator-state
+# commit. Admission is routing only and never merge authority.
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+      - edited
+      - closed
+  pull_request_review:
+    types:
+      - submitted
+      - dismissed
+  issue_comment:
+    types:
+      - created
+  workflow_dispatch:
+    inputs:
+      decision:
+        description: Admission-state decision
+        required: true
+        type: choice
+        options: [ADMIT, REVOKE, TERMINATE_MERGED, TERMINATE_CLOSED]
+      subject_kind:
+        description: Subject type
+        required: true
+        type: choice
+        options: [ISSUE, PULL_REQUEST]
+      subject_number:
+        description: Issue or PR number
+        required: true
+        type: string
+      objective_issue_number:
+        description: Optional objective issue number
+        required: false
+        type: string
+      evidence:
+        description: Human-readable evidence for this state event
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  # Ordinary PR evaluations supersede stale evaluations for the same PR.
+  # Closed events get a unique run-bound group so lifecycle reconciliation is
+  # not cancelled by a later reopen/edit event. State writes are serialized
+  # separately by the shared mutation queue.
+  group: repository-admission-gate-${{ github.event.action == 'closed' && format('closed-{0}', github.run_id) || github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    if: >-
+      (github.event_name == 'pull_request_target' && github.event.action != 'closed') ||
+      github.event_name == 'pull_request_review'
+    name: Repository admission/backpressure gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+
+    steps:
+      - name: Checkout trusted default-branch control law
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Pin checked-out policy commit
+        run: |
+          set -euo pipefail
+          mkdir -p .repo-coordinator
+          git rev-parse HEAD > .repo-coordinator/policy.sha
+
+      - name: Collect exact state branch and live PR snapshot
+        id: collect
+        uses: actions/github-script@v9
+        env:
+          TARGET_PR: ${{ github.event.pull_request.number }}
+        with:
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+            const target = Number(process.env.TARGET_PR);
+            const defaultBranch = context.payload.repository.default_branch;
+            const policySha = fs.readFileSync(".repo-coordinator/policy.sha", "utf8").trim();
+
+            const policy = JSON.parse(
+              fs.readFileSync("REPOSITORY_COORDINATOR_POLICY.json", "utf8")
+            );
+            const stateCfg = policy.state || {};
+            const stateBranch = String(stateCfg.branch || "");
+            const ledgerPath = String(stateCfg.ledger_path || "");
+            const projectionPath = String(stateCfg.projection_path || "");
+
+            let stateMode = "v0.3";
+            let stateSha = null;
+            let ledgerText = "";
+            let projectionText = "";
+            let admittedIssueNumbers = [];
+
+            if (stateBranch && ledgerPath && projectionPath) {
+              const branch = await github.rest.repos.getBranch({
+                owner, repo, branch: stateBranch
+              });
+              stateSha = branch.data.commit.sha;
+
+              const fetchText = async path => {
+                const response = await github.rest.repos.getContent({
+                  owner, repo, path, ref: stateSha
+                });
+                if (Array.isArray(response.data) || response.data.type !== "file") {
+                  throw new Error(`state path ${path} is not a file`);
+                }
+                return Buffer.from(response.data.content, "base64").toString("utf8");
+              };
+
+              [ledgerText, projectionText] = await Promise.all([
+                fetchText(ledgerPath),
+                fetchText(projectionPath)
+              ]);
+              fs.writeFileSync(".repo-coordinator/ADMISSION_LEDGER.jsonl", ledgerText);
+              fs.writeFileSync(".repo-coordinator/COORDINATOR_STATE.json", projectionText);
+
+              const state = JSON.parse(projectionText);
+              if (state.merge_authority !== false) {
+                core.setFailed("coordinator state claims merge authority; failing closed");
+                return;
+              }
+              admittedIssueNumbers = [
+                ...new Set((state.admitted_issue_numbers || []).map(Number))
+              ];
+            } else {
+              // Bootstrap compatibility only: trusted main is still v0.2 while
+              // the migration PR is under review. Delegate enforcement to the
+              // trusted v0.2 policy/tool rather than trusting candidate code.
+              stateMode = "legacy-v0.2";
+              admittedIssueNumbers = [
+                ...new Set((((policy || {}).admission || {}).issue_numbers || []).map(Number))
+              ];
+              core.warning(
+                "Trusted main has no v0.3 state contract; using legacy v0.2 admission " +
+                "enforcement for this pre-merge run. No candidate policy/state is trusted."
+              );
+            }
+            core.setOutput("mode", stateMode);
+            const referencedIssueNumbers = new Set(admittedIssueNumbers);
+
+            const maintenanceAuthors = new Set(
+              (((policy || {}).maintenance || {}).authors || []).map(String)
+            );
+            const closingRefRe = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*(?:[\w.-]+\/[\w.-]+)?#(\d{1,6})\b/gi;
+
+            const open = await github.paginate(
+              github.rest.pulls.list,
+              { owner, repo, state: "open", per_page: 100 }
+            );
+
+            const payloadPr = context.payload.pull_request;
+            const byNumber = new Map(open.map(p => [p.number, p]));
+            if (payloadPr && payloadPr.state === "open") {
+              byNumber.set(payloadPr.number, payloadPr);
+            }
+            if (!byNumber.has(target)) {
+              core.setFailed(`PR #${target} is not open; refusing to evaluate admission.`);
+              return;
+            }
+
+            const listFiles = async number => github.paginate(
+              github.rest.pulls.listFiles,
+              { owner, repo, pull_number: number, per_page: 100 }
+            );
+            const chunk = (xs, size) => {
+              const out = [];
+              for (let i = 0; i < xs.length; i += size) out.push(xs.slice(i, i + size));
+              return out;
+            };
+
+            const pullRequests = [];
+            for (const batch of chunk([...byNumber.values()], 6)) {
+              const rows = await Promise.all(batch.map(async brief => {
+                const author = brief.user && brief.user.login ? brief.user.login : "unknown";
+                const isDraft = Boolean(brief.draft);
+                const isMaintenance = maintenanceAuthors.has(author);
+                const needFiles = brief.number === target || (!isDraft && !isMaintenance);
+                const needReviews = brief.number === target || (!isDraft && !isMaintenance);
+                let files = [];
+                let reviews = [];
+                let filesComplete = false;
+
+                if (needFiles) {
+                  files = await listFiles(brief.number);
+                  filesComplete = true;
+                }
+                if (needReviews) {
+                  reviews = await github.paginate(
+                    github.rest.pulls.listReviews,
+                    { owner, repo, pull_number: brief.number, per_page: 100 }
+                  );
+                }
+
+                const body = brief.body || "";
+                for (const match of body.matchAll(closingRefRe)) {
+                  referencedIssueNumbers.add(Number(match[1]));
+                }
+                return {
+                  number: brief.number,
+                  title: brief.title || "",
+                  body,
+                  author,
+                  labels: (brief.labels || []).map(x => (
+                    typeof x === "string" ? x : x.name
+                  )).filter(Boolean),
+                  html_url: brief.html_url,
+                  state: brief.state,
+                  draft: isDraft,
+                  head_sha: brief.head && brief.head.sha ? brief.head.sha : "",
+                  mergeable_state: "unknown",
+                  files_complete: filesComplete,
+                  files: files.map(f => f.filename),
+                  file_details: [],
+                  reviews: reviews.map(r => ({
+                    user: {
+                      login: r.user && r.user.login ? r.user.login : "unknown"
+                    },
+                    state: r.state,
+                    submitted_at: r.submitted_at,
+                    commit_id: r.commit_id || null
+                  }))
+                };
+              }));
+              pullRequests.push(...rows);
+            }
+
+            const referencedItems = {};
+            for (const batch of chunk([...referencedIssueNumbers], 6)) {
+              const rows = await Promise.all(batch.map(async number => {
+                try {
+                  const issue = (await github.rest.issues.get({
+                    owner, repo, issue_number: number
+                  })).data;
+                  return { number, issue };
+                } catch (err) {
+                  if (!err || err.status !== 404) throw err;
+                  return { number, issue: null };
+                }
+              }));
+              for (const { number, issue } of rows) {
+                if (!issue) continue;
+                referencedItems[String(number)] = {
+                  state: issue.state,
+                  html_url: issue.html_url,
+                  title: issue.title,
+                  body: issue.body || "",
+                  labels: (issue.labels || []).map(x =>
+                    typeof x === "string" ? x : x.name
+                  ).filter(Boolean),
+                  is_pull_request: Boolean(issue.pull_request)
+                };
+              }
+            }
+
+            const snapshot = {
+              schema_version: stateMode === "v0.3" ? "0.3" : "0.2",
+              purpose: "admission-gate",
+              state_mode: stateMode,
+              repository: `${owner}/${repo}`,
+              main_sha: policySha,
+              policy_ref: defaultBranch,
+              policy_sha: policySha,
+              state_branch: stateMode === "v0.3" ? stateBranch : null,
+              state_sha: stateMode === "v0.3" ? stateSha : null,
+              main_paths: [],
+              referenced_pull_requests: {},
+              referenced_items: referencedItems,
+              pull_requests: pullRequests
+            };
+            fs.writeFileSync(
+              ".repo-coordinator/gate-snapshot.json",
+              JSON.stringify(snapshot, null, 2)
+            );
+            core.info(
+              `Gate snapshot: ${pullRequests.length} open PR(s); target #${target}; ` +
+              `policy ${policySha.slice(0, 12)}; mode ${stateMode}; ` +
+              `state ${stateSha ? stateSha.slice(0, 12) : "n/a"}.`
+            );
+
+      - name: Verify state replay and bind content digests
+        if: steps.collect.outputs.mode == 'v0.3'
+        run: |
+          set -euo pipefail
+          # Bootstrap-safe canonical verifier: current main handles v1 state;
+          # after this change lands, the same path delegates to v1.1 for v2 ledgers.
+          python3 tools/repository_coordinator_state_v1.py verify \
+            --ledger .repo-coordinator/ADMISSION_LEDGER.jsonl \
+            --state .repo-coordinator/COORDINATOR_STATE.json
+
+          LEDGER_SHA="$(sha256sum .repo-coordinator/ADMISSION_LEDGER.jsonl | awk '{print $1}')"
+          PROJECTION_SHA="$(sha256sum .repo-coordinator/COORDINATOR_STATE.json | awk '{print $1}')"
+          python3 - "$LEDGER_SHA" "$PROJECTION_SHA" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          path = Path(".repo-coordinator/gate-snapshot.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          data["ledger_sha256"] = sys.argv[1]
+          data["projection_sha256"] = sys.argv[2]
+          path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+
+      - name: Enforce admission standing (fail closed)
+        env:
+          TARGET_PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          test -f .repo-coordinator/gate-snapshot.json || {
+            echo "::error::gate snapshot missing; failing closed"; exit 1; }
+          STATE_MODE="${{ steps.collect.outputs.mode }}"
+          if [ "$STATE_MODE" = "v0.3" ]; then
+            test -f .repo-coordinator/COORDINATOR_STATE.json || {
+              echo "::error::coordinator state missing; failing closed"; exit 1; }
+            python3 tools/repository_coordinator_v0_1.py \
+              --snapshot .repo-coordinator/gate-snapshot.json \
+              --policy REPOSITORY_COORDINATOR_POLICY.json \
+              --state .repo-coordinator/COORDINATOR_STATE.json \
+              --priority-queue PRIORITY_QUEUE.md \
+              --gate "$TARGET_PR" \
+              --output .repo-coordinator/gate.json | tee .repo-coordinator/gate.log
+          elif [ "$STATE_MODE" = "legacy-v0.2" ]; then
+            # The checked-out tool/policy are trusted main v0.2. This path
+            # disappears automatically after the v0.3 policy lands on main.
+            python3 tools/repository_coordinator_v0_1.py \
+              --snapshot .repo-coordinator/gate-snapshot.json \
+              --policy REPOSITORY_COORDINATOR_POLICY.json \
+              --priority-queue PRIORITY_QUEUE.md \
+              --gate "$TARGET_PR" \
+              --output .repo-coordinator/gate.json | tee .repo-coordinator/gate.log
+          else
+            echo "::error::unknown coordinator state mode: $STATE_MODE"
+            exit 1
+          fi
+
+          {
+            echo "## Repository admission/backpressure gate"
+            echo
+            echo "~~~json"
+            cat .repo-coordinator/gate.json
+            echo "~~~"
+            echo
+            echo "_Policy and state are independently pinned. Admission is not merge authority._"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish durable coordinator decision receipt
+        if: always()
+        uses: actions/github-script@v9
+        env:
+          TARGET_PR: ${{ github.event.pull_request.number }}
+          RUN_ID: ${{ github.run_id }}
+        with:
+          script: |
+            const fs = require("fs");
+            const crypto = require("crypto");
+            const gatePath = ".repo-coordinator/gate.json";
+            const snapPath = ".repo-coordinator/gate-snapshot.json";
+            if (!fs.existsSync(gatePath) || !fs.existsSync(snapPath)) {
+              core.warning("gate decision receipt unavailable because gate evidence files are missing");
+              return;
+            }
+            const gate = JSON.parse(fs.readFileSync(gatePath, "utf8"));
+            const snap = JSON.parse(fs.readFileSync(snapPath, "utf8"));
+            const receipt = {
+              schema: "humanaios.repository-coordinator-decision-receipt.v1",
+              target_pr: Number(process.env.TARGET_PR),
+              target_head_sha: gate.target_head_sha || null,
+              policy_ref: snap.policy_ref || "main",
+              policy_sha: snap.policy_sha || snap.main_sha || null,
+              state_branch: snap.state_branch || null,
+              state_sha: snap.state_sha || null,
+              ledger_sha256: snap.ledger_sha256 || null,
+              projection_sha256: snap.projection_sha256 || null,
+              decision: gate.gate || "FAIL",
+              lane: gate.lane || null,
+              reason: gate.reason || "UNKNOWN",
+              authority_effect: "ADMISSION_ROUTING_ONLY",
+              merge_authority: false,
+              source_run_id: String(process.env.RUN_ID),
+              created_at: new Date().toISOString()
+            };
+            const canonical = JSON.stringify(receipt, Object.keys(receipt).sort());
+            const digest = crypto.createHash("sha256").update(canonical).digest("hex");
+            receipt.receipt_id = "RCD-" + digest.slice(0, 16).toUpperCase();
+            receipt.receipt_sha256 = digest;
+            const body = [
+              "<!-- repository-coordinator:decision-receipt -->",
+              "## Repository Coordinator decision receipt",
+              "",
+              "~~~json",
+              JSON.stringify(receipt, null, 2),
+              "~~~",
+              "",
+              "_Admission routing only; this receipt does not authorize merge._"
+            ].join("\n");
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.TARGET_PR),
+              body
+            });
+
+      - name: Upload gate evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: repository-admission-gate-${{ github.event.pull_request.number }}
+          path: |
+            .repo-coordinator/gate-snapshot.json
+            .repo-coordinator/gate.json
+            .repo-coordinator/gate.log
+            .repo-coordinator/ADMISSION_LEDGER.jsonl
+            .repo-coordinator/COORDINATOR_STATE.json
+            .repo-coordinator/policy.sha
+          retention-days: 30
+          if-no-files-found: ignore
+
+
+  mutate:
+    name: Append coordinator state event
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: repository-coordinator-state-mutation
+      queue: max
+    steps:
+      - name: Checkout trusted control law from main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: trusted-main
+          persist-credentials: false
+
+      - name: Authorize state mutator
+        env:
+          ACTOR: ${{ github.actor }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          policy = json.loads(
+              Path("trusted-main/REPOSITORY_COORDINATOR_POLICY.json").read_text(encoding="utf-8")
+          )
+          allowed = set((policy.get("state") or {}).get("authorized_mutators") or [])
+          actor = os.environ["ACTOR"]
+          if actor not in allowed:
+              raise SystemExit(f"actor {actor!r} is not authorized to mutate coordinator state")
+          print(f"authorized_mutator={actor}")
+          PY
+
+      - name: Checkout coordinator state branch
+        uses: actions/checkout@v7
+        with:
+          ref: repository-coordinator-state
+          path: coordinator-state
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Verify current state before mutation
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Append one event and replay projection
+        id: manual_event
+        env:
+          DECISION: ${{ inputs.decision }}
+          SUBJECT_KIND: ${{ inputs.subject_kind }}
+          SUBJECT_NUMBER: ${{ inputs.subject_number }}
+          OBJECTIVE_ISSUE_NUMBER: ${{ inputs.objective_issue_number }}
+          EVIDENCE: ${{ inputs.evidence }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
+          RECORDED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          if [ -n "$OBJECTIVE_ISSUE_NUMBER" ]; then
+            ADMISSION_SCOPE="objective:ISSUE#$OBJECTIVE_ISSUE_NUMBER"
+          else
+            ADMISSION_SCOPE="subject:$SUBJECT_KIND#$SUBJECT_NUMBER"
+          fi
+          args=(
+            append
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl
+            --state coordinator-state/COORDINATOR_STATE.json
+            --decision "$DECISION"
+            --subject-kind "$SUBJECT_KIND"
+            --subject-number "$SUBJECT_NUMBER"
+            --admission-scope "$ADMISSION_SCOPE"
+            --command-ref "RCC-GITHUB-ACTIONS-${{ github.run_id }}"
+            --source-locator "github:${{ github.repository }}:actions-run:${{ github.run_id }}"
+            --actor "$ACTOR"
+            --evidence "$EVIDENCE"
+            --recorded-at "$RECORDED_AT"
+            --source-policy-sha "$POLICY_SHA"
+          )
+          if [ -n "$OBJECTIVE_ISSUE_NUMBER" ]; then
+            args+=(--objective-issue-number "$OBJECTIVE_ISSUE_NUMBER")
+          fi
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py "${args[@]}" \
+            | tee coordinator-state/.state-event-result.json
+
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          result = json.loads(Path("coordinator-state/.state-event-result.json").read_text())
+          print("should_mutate=" + ("true" if result.get("should_mutate", True) else "false"))
+          print("reason=" + str(result.get("reason") or "EVENT_APPENDED"))
+          PY
+
+      - name: Verify replay after mutation
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Commit ledger and projection together
+        if: steps.manual_event.outputs.should_mutate == 'true'
+        env:
+          DECISION: ${{ inputs.decision }}
+          SUBJECT_KIND: ${{ inputs.subject_kind }}
+          SUBJECT_NUMBER: ${{ inputs.subject_number }}
+        run: |
+          set -euo pipefail
+          PRIOR_STATE_SHA="$(git -C coordinator-state rev-parse HEAD)"
+          git -C coordinator-state fetch origin repository-coordinator-state
+          REMOTE_STATE_SHA="$(git -C coordinator-state rev-parse FETCH_HEAD)"
+          test "$REMOTE_STATE_SHA" = "$PRIOR_STATE_SHA" || {
+            echo "::error::coordinator state head changed during manual mutation; refusing stale write"
+            exit 1
+          }
+          cd coordinator-state
+          git config user.name "repository-coordinator-state[bot]"
+          git config user.email "repository-coordinator-state@users.noreply.github.com"
+          git add ADMISSION_LEDGER.jsonl COORDINATOR_STATE.json
+          git diff --cached --quiet && {
+            echo "::error::state mutation produced no ledger/projection change"
+            exit 1
+          }
+          git commit -m "coordinator-state: $DECISION $SUBJECT_KIND #$SUBJECT_NUMBER"
+          git push origin HEAD:repository-coordinator-state
+          {
+            echo "## Repository Coordinator state mutation"
+            echo
+            echo "- Decision: `$DECISION`"
+            echo "- Subject: `$SUBJECT_KIND#$SUBJECT_NUMBER`"
+            echo "- State commit: `$(git rev-parse HEAD)`"
+            echo
+            echo "Admission routing only; this event does not authorize merge."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+
+  issue_mutate:
+    name: Apply authorized issue coordinator command
+    if: >-
+      github.event_name == 'issue_comment' &&
+      !github.event.issue.pull_request &&
+      (github.event.comment.body == '/coordinator admit' ||
+       github.event.comment.body == '/coordinator revoke')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    concurrency:
+      group: repository-coordinator-state-mutation
+      queue: max
+    steps:
+      - name: Checkout trusted control law from main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: trusted-main
+          persist-credentials: false
+
+      - name: Checkout coordinator state branch
+        uses: actions/checkout@v7
+        with:
+          ref: repository-coordinator-state
+          path: coordinator-state
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Verify current state before issue command
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Apply policy-bound issue command locally
+        id: command
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_ACTOR: ${{ github.event.comment.user.login }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          COMMENT_CREATED_AT: ${{ github.event.comment.created_at }}
+        run: |
+          set -euo pipefail
+          POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
+          PRIOR_STATE_SHA="$(git -C coordinator-state rev-parse HEAD)"
+          printf '%s' "$ISSUE_BODY" > coordinator-state/.issue-body.md
+
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py issue-command \
+            --policy trusted-main/REPOSITORY_COORDINATOR_POLICY.json \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json \
+            --issue-number "$ISSUE_NUMBER" \
+            --issue-body-file coordinator-state/.issue-body.md \
+            --comment-body "$COMMENT_BODY" \
+            --actor "$COMMENT_ACTOR" \
+            --comment-id "$COMMENT_ID" \
+            --repository "${{ github.repository }}" \
+            --recorded-at "$COMMENT_CREATED_AT" \
+            --source-policy-sha "$POLICY_SHA" \
+            | tee coordinator-state/.issue-command-result.json
+
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          result = json.loads(
+              Path("coordinator-state/.issue-command-result.json").read_text(encoding="utf-8")
+          )
+          print("should_mutate=" + ("true" if result.get("should_mutate") else "false"))
+          print("reason=" + str(result.get("reason") or "UNKNOWN"))
+          print("decision=" + str(result.get("decision") or "NONE"))
+          PY
+          echo "prior_state_sha=$PRIOR_STATE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Verify post-command replay
+        if: steps.command.outputs.should_mutate == 'true'
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+      - name: Recheck state-head lease and commit mutation
+        id: commit
+        if: steps.command.outputs.should_mutate == 'true'
+        env:
+          PRIOR_STATE_SHA: ${{ steps.command.outputs.prior_state_sha }}
+          DECISION: ${{ steps.command.outputs.decision }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          git -C coordinator-state fetch origin repository-coordinator-state
+          REMOTE_STATE_SHA="$(git -C coordinator-state rev-parse FETCH_HEAD)"
+          test "$REMOTE_STATE_SHA" = "$PRIOR_STATE_SHA" || {
+            echo "::error::coordinator state head changed during mutation; refusing stale write"
+            exit 1
+          }
+
+          cd coordinator-state
+          rm -f .issue-body.md .issue-command-result.json
+          git config user.name "repository-coordinator-state[bot]"
+          git config user.email "repository-coordinator-state@users.noreply.github.com"
+          git add ADMISSION_LEDGER.jsonl COORDINATOR_STATE.json
+          git diff --cached --quiet && {
+            echo "::error::issue command reported mutation but produced no state diff"
+            exit 1
+          }
+          git commit -m "coordinator-state: $DECISION ISSUE #$ISSUE_NUMBER"
+          NEW_STATE_SHA="$(git rev-parse HEAD)"
+          git push origin HEAD:repository-coordinator-state
+          echo "new_state_sha=$NEW_STATE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Publish issue-route receipt
+        uses: actions/github-script@v9
+        env:
+          SHOULD_MUTATE: ${{ steps.command.outputs.should_mutate }}
+          REASON: ${{ steps.command.outputs.reason }}
+          DECISION: ${{ steps.command.outputs.decision }}
+          PRIOR_STATE_SHA: ${{ steps.command.outputs.prior_state_sha }}
+          NEW_STATE_SHA: ${{ steps.commit.outputs.new_state_sha }}
+        with:
+          script: |
+            const shouldMutate = process.env.SHOULD_MUTATE === "true";
+            const prior = process.env.PRIOR_STATE_SHA || "unknown";
+            const next = process.env.NEW_STATE_SHA || prior;
+            const decision = process.env.DECISION || "NONE";
+            const reason = process.env.REASON || "UNKNOWN";
+            const body = [
+              "<!-- repository-coordinator:issue-route -->",
+              "## Repository Coordinator issue route",
+              "",
+              "- Command decision: `" + decision + "`",
+              "- Result: `" + (shouldMutate ? "STATE_EVENT_COMMITTED" : "NO_OP") + "`",
+              "- Reason: `" + reason + "`",
+              "- Prior state: `" + prior + "`",
+              "- Resulting state: `" + next + "`",
+              "- Authority effect: `ADMISSION_ROUTING_ONLY`",
+              "- Merge authority: `false`",
+            ].join("\n");
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+
+  lifecycle_mutate:
+    name: Reconcile terminal PR admission lifecycle
+    if: github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: repository-coordinator-state-mutation
+      queue: max
+    steps:
+      - name: Checkout trusted control law from main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: trusted-main
+          persist-credentials: false
+
+      - name: Checkout coordinator state branch
+        uses: actions/checkout@v7
+        with:
+          ref: repository-coordinator-state
+          path: coordinator-state
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Reconcile closed PR against active coordinator state
+        id: lifecycle
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_CLOSED_AT: ${{ github.event.pull_request.closed_at }}
+        run: |
+          set -euo pipefail
+          POLICY_SHA="$(git -C trusted-main rev-parse HEAD)"
+          PRIOR_STATE_SHA="$(git -C coordinator-state rev-parse HEAD)"
+          TERMINAL_STATE="CLOSED"
+          [ "$PR_MERGED" = "true" ] && TERMINAL_STATE="MERGED"
+
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py reconcile-pr \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json \
+            --pr-number "$PR_NUMBER" \
+            --terminal-state "$TERMINAL_STATE" \
+            --command-ref "RCC-GITHUB-PR-LIFECYCLE-$PR_NUMBER-$PR_HEAD_SHA-$PR_CLOSED_AT-$TERMINAL_STATE" \
+            --source-locator "github:${{ github.repository }}:pull:$PR_NUMBER:closed" \
+            --actor "github-actions[bot]" \
+            --recorded-at "${{ github.event.pull_request.closed_at }}" \
+            --source-policy-sha "$POLICY_SHA" \
+            | tee coordinator-state/.lifecycle-result.json
+
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          result = json.loads(Path("coordinator-state/.lifecycle-result.json").read_text())
+          print("should_mutate=" + ("true" if result.get("should_mutate") else "false"))
+          print("reason=" + str(result.get("reason") or "UNKNOWN"))
+          PY
+          echo "prior_state_sha=$PRIOR_STATE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Verify and commit lifecycle transition
+        if: steps.lifecycle.outputs.should_mutate == 'true'
+        env:
+          PRIOR_STATE_SHA: ${{ steps.lifecycle.outputs.prior_state_sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          python3 trusted-main/tools/repository_coordinator_state_v1_1.py verify \
+            --ledger coordinator-state/ADMISSION_LEDGER.jsonl \
+            --state coordinator-state/COORDINATOR_STATE.json
+
+          git -C coordinator-state fetch origin repository-coordinator-state
+          REMOTE_STATE_SHA="$(git -C coordinator-state rev-parse FETCH_HEAD)"
+          test "$REMOTE_STATE_SHA" = "$PRIOR_STATE_SHA" || {
+            echo "::error::coordinator state head changed during lifecycle reconciliation"
+            exit 1
+          }
+
+          cd coordinator-state
+          rm -f .lifecycle-result.json
+          git config user.name "repository-coordinator-state[bot]"
+          git config user.email "repository-coordinator-state@users.noreply.github.com"
+          git add ADMISSION_LEDGER.jsonl COORDINATOR_STATE.json
+          git commit -m "coordinator-state: TERMINATE PULL_REQUEST #$PR_NUMBER"
+          git push origin HEAD:repository-coordinator-state

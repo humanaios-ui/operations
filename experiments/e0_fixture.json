@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "fixture_type": "SYNTHETIC_TEST_ONLY",
+  "candidates": [
+    {
+      "id": "SYN-TRAIN-01",
+      "name": "Illustrative free training directory",
+      "tags": [
+        "training",
+        "certification",
+        "learning",
+        "skills"
+      ],
+      "source": "SYNTHETIC_FIXTURE",
+      "evidence": "SYNTHETIC_EXAMPLE_NOT_VERIFIED"
+    },
+    {
+      "id": "SYN-GRANT-02",
+      "name": "Illustrative startup grants index",
+      "tags": [
+        "startup",
+        "grant",
+        "funding",
+        "credits"
+      ],
+      "source": "SYNTHETIC_FIXTURE",
+      "evidence": "SYNTHETIC_EXAMPLE_NOT_VERIFIED"
+    },
+    {
+      "id": "SYN-RECOVER-03",
+      "name": "Illustrative recovery support directory",
+      "tags": [
+        "recovery",
+        "support",
+        "community"
+      ],
+      "source": "SYNTHETIC_FIXTURE",
+      "evidence": "SYNTHETIC_EXAMPLE_NOT_VERIFIED"
+    }
+  ]
+}

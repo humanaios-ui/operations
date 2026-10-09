@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/humanaios-ui/operations/project_evidence_record.schema.json",
+  "title": "HumanAIOS Project Evidence Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project_id",
+    "title",
+    "source_role",
+    "time_window",
+    "mandate",
+    "objective",
+    "scope",
+    "execution",
+    "deliverables",
+    "evidence",
+    "unknowns",
+    "authority_effect"
+  ],
+  "properties": {
+    "project_id": {"type":"string","pattern":"^PER-[A-Z0-9-]+$"},
+    "title": {"type":"string"},
+    "organization": {"type":"string"},
+    "source_role": {"type":"string"},
+    "time_window": {"type":"string"},
+    "mandate": {"type":"string"},
+    "objective": {"type":"string"},
+    "scope": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "stakeholders": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "constraints": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "resources_controlled": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "risks_dependencies": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "execution": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "deliverables": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "validation": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "outcomes": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "metrics": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "capability_tags": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "evidence": {
+      "type":"array",
+      "items":{
+        "type":"object",
+        "additionalProperties":false,
+        "required":["claim","claim_state","source_type","locator"],
+        "properties":{
+          "claim":{"type":"string"},
+          "claim_state":{"enum":["SOURCE_SUPPORTED","HUMAN_ATTESTED","INFERRED","UNVERIFIED"]},
+          "source_type":{"enum":["RESUME","REPOSITORY","PUBLICATION","PRIMARY_SOURCE","HUMAN"]},
+          "locator":{"type":"string"}
+        }
+      }
+    },
+    "unknowns": {
+      "type":"array",
+      "items":{
+        "type":"object",
+        "additionalProperties":false,
+        "required":["field","reason","interrogation_prompt"],
+        "properties":{
+          "field":{"type":"string"},
+          "reason":{"type":"string"},
+          "interrogation_prompt":{"type":"string"},
+          "market_signal_ids":{"type":"array","items":{"type":"string"},"uniqueItems":true}
+        }
+      }
+    },
+    "authority_effect":{"const":"NONE"}
+  }
+}

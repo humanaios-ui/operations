@@ -1,0 +1,86 @@
+{
+  "schema_version": "0.2.0",
+  "subject": {
+    "id": "project-pilot",
+    "type": "project",
+    "profile_ref": "private/evidence-state/project-pilot.json"
+  },
+  "domain": "project",
+  "declared_goal_source": "project-owner",
+  "selected_target": "production-ready",
+  "source_refs": ["project evidence ledger"],
+  "omissions": ["customer acceptance evidence is not present in this static example"],
+  "uncertainty": ["external security review has not been completed"],
+  "targets": [
+    {
+      "id": "validated-pilot",
+      "title": "Validated pilot",
+      "domain": "project",
+      "target_type": "maturity_state",
+      "target_value": 0.65,
+      "value_axes": {
+        "evidence_gain": 0.55,
+        "operational_scope": 0.45,
+        "external_reliance": 0.35
+      },
+      "requirements": [
+        {
+          "id": "working-prototype",
+          "label": "Working prototype",
+          "weight": 1.0,
+          "mandatory": true,
+          "mapping_state": "DOCUMENTED",
+          "gap_type": "evidence"
+        },
+        {
+          "id": "repeatable-test",
+          "label": "Repeatable test evidence",
+          "weight": 1.0,
+          "mandatory": true,
+          "mapping_state": "DOCUMENTED",
+          "gap_type": "evidence"
+        }
+      ]
+    },
+    {
+      "id": "production-ready",
+      "title": "Production-ready deployment",
+      "domain": "project",
+      "target_type": "maturity_state",
+      "target_value": 0.95,
+      "value_axes": {
+        "evidence_gain": 0.95,
+        "operational_scope": 0.90,
+        "external_reliance": 0.85
+      },
+      "requirements": [
+        {
+          "id": "security-review",
+          "label": "Independent security review",
+          "weight": 1.0,
+          "mandatory": true,
+          "mapping_state": "UNKNOWN",
+          "gap_type": "authority",
+          "artifact_target": "independent security review receipt"
+        },
+        {
+          "id": "observability",
+          "label": "Production observability",
+          "weight": 1.0,
+          "mandatory": true,
+          "mapping_state": "PARTIAL",
+          "gap_type": "evidence",
+          "artifact_target": "runtime monitoring and incident evidence"
+        },
+        {
+          "id": "rollback",
+          "label": "Verified rollback path",
+          "weight": 1.0,
+          "mandatory": true,
+          "mapping_state": "DOCUMENTED",
+          "gap_type": "evidence"
+        }
+      ]
+    }
+  ]
+}

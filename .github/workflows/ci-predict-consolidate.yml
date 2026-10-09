@@ -49,10 +49,10 @@ jobs:
       # trusts a resolve comment's embedded outcome either, re-deriving it
       # from a fresh check-runs fetch, so the only PR-authored input reaching
       # it at all is the pin's declared prediction, read via the API.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 

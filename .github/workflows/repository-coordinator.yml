@@ -1,0 +1,472 @@
+name: repository-coordinator
+
+# Repository-level coordination, admission, and backpressure index.
+#
+# This workflow never merges, closes, labels, or mutates canonical queue state.
+# It separates repository work from operator-attention work and blocks a
+# ready non-maintenance PR from claiming active standing without admission.
+# Age is not a signal.
+#
+# Security split:
+#   index   — checks out PR-head code with read-only permissions. The policy
+#             it applies is fetched from the default branch via the API, so a
+#             PR cannot re-route the repository index by editing the policy.
+#   comment — has write permission but checks out/runs no PR code. The report
+#             body is produced by PR-head code, so the comment is advisory only
+#             and says so.
+#
+# Enforcement (the required check) lives in repository-admission-gate.yml,
+# which runs on pull_request_target from the default branch and never checks
+# out or executes PR-head code.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: repository-coordinator-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  index:
+    name: Build repository coordination index (ADVISORY)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    outputs:
+      report_b64: ${{ steps.report.outputs.report_b64 }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Collect live repository snapshot
+        id: snapshot
+        continue-on-error: true
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require("fs");
+            const crypto = require("crypto");
+            const { owner, repo } = context.repo;
+
+            const branch = await github.rest.repos.getBranch({
+              owner, repo, branch: "main"
+            });
+            const mainSha = branch.data.commit.sha;
+
+            const gitCommit = await github.rest.git.getCommit({
+              owner, repo, commit_sha: mainSha
+            });
+            const tree = await github.rest.git.getTree({
+              owner, repo, tree_sha: gitCommit.data.tree.sha, recursive: "true"
+            });
+            const mainPaths = (tree.data.tree || [])
+              .filter(x => x.type === "blob" && x.path)
+              .map(x => x.path);
+
+            const open = await github.paginate(
+              github.rest.pulls.list,
+              { owner, repo, state: "open", per_page: 100 }
+            );
+
+            // Trusted policy: default branch, not the candidate checkout.
+            // Bootstrap only: while the policy does not yet exist on main, the
+            // advisory index falls back to the checkout and records that it did.
+            let policyText;
+            let policySource = "main";
+            try {
+              const policyResp = await github.rest.repos.getContent({
+                owner, repo, path: "REPOSITORY_COORDINATOR_POLICY.json", ref: "main"
+              });
+              policyText = Buffer.from(policyResp.data.content, "base64").toString("utf8");
+            } catch (err) {
+              if (!err || err.status !== 404) throw err;
+              policyText = fs.readFileSync("REPOSITORY_COORDINATOR_POLICY.json", "utf8");
+              policySource = "checkout (policy absent on main; bootstrap)";
+              core.warning("REPOSITORY_COORDINATOR_POLICY.json is absent on main; advisory index is using the checkout copy.");
+            }
+            let policy = JSON.parse(policyText);
+            let policyRef = "main";
+            let policyReceiptSha = mainSha;
+
+            // Read-only bootstrap validation for the PR that introduces the
+            // state split. Production enforcement never uses this fallback:
+            // repository-admission-gate.yml executes from the default branch.
+            if (!(policy.state || {}).branch && context.eventName === "pull_request") {
+              const candidateText = fs.readFileSync(
+                "REPOSITORY_COORDINATOR_POLICY.json", "utf8"
+              );
+              const candidate = JSON.parse(candidateText);
+              if ((candidate.state || {}).branch) {
+                policyText = candidateText;
+                policy = candidate;
+                policySource = "PR checkout bootstrap validation; main lacks state contract";
+                policyRef = context.payload.pull_request.head.ref;
+                policyReceiptSha = context.payload.pull_request.head.sha;
+                core.notice(
+                  "Using PR policy only for read-only bootstrap validation. " +
+                  "Required admission enforcement remains default-branch-only."
+                );
+              }
+            }
+
+            fs.mkdirSync(".repo-coordinator", { recursive: true });
+            fs.writeFileSync(".repo-coordinator/policy.main.json", policyText);
+            fs.writeFileSync(".repo-coordinator/policy.source", policySource);
+
+            const stateCfg = policy.state || {};
+            const stateBranch = String(stateCfg.branch || "");
+            const ledgerPath = String(stateCfg.ledger_path || "");
+            const projectionPath = String(stateCfg.projection_path || "");
+            if (!stateBranch || !ledgerPath || !projectionPath) {
+              throw new Error("policy state-branch contract is incomplete");
+            }
+            const stateBranchResp = await github.rest.repos.getBranch({
+              owner, repo, branch: stateBranch
+            });
+            const stateSha = stateBranchResp.data.commit.sha;
+            const fetchStateText = async path => {
+              const response = await github.rest.repos.getContent({
+                owner, repo, path, ref: stateSha
+              });
+              if (Array.isArray(response.data) || response.data.type !== "file") {
+                throw new Error(`state path ${path} is not a file`);
+              }
+              return Buffer.from(response.data.content, "base64").toString("utf8");
+            };
+            const [ledgerText, projectionText] = await Promise.all([
+              fetchStateText(ledgerPath),
+              fetchStateText(projectionPath)
+            ]);
+            const state = JSON.parse(projectionText);
+            if (state.merge_authority !== false) {
+              throw new Error("coordinator state claims merge authority");
+            }
+            fs.writeFileSync(".repo-coordinator/ADMISSION_LEDGER.jsonl", ledgerText);
+            fs.writeFileSync(".repo-coordinator/COORDINATOR_STATE.json", projectionText);
+
+            const admittedIssueNumbers = new Set(
+              (state.admitted_issue_numbers || []).map(Number)
+            );
+            const maintenanceAuthors = new Set(
+              (((policy || {}).maintenance || {}).authors || []).map(String)
+            );
+            const maintenanceLabels = new Set(
+              (((policy || {}).maintenance || {}).labels || []).map(String)
+            );
+
+            const pullRequests = [];
+            const admissionNumbers = new Set(admittedIssueNumbers);
+            const referencedPullNumbers = new Set();
+            const closingRefRe = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*(?:[\w.-]+\/[\w.-]+)?#(\d{1,6})\b/gi;
+
+            // Progressive disclosure:
+            // - maintenance: summary only
+            // - drafts: changed files only
+            // - ready non-maintenance: full files + reviews + merge state
+            const chunk = (xs, size) => {
+              const out = [];
+              for (let i = 0; i < xs.length; i += size) out.push(xs.slice(i, i + size));
+              return out;
+            };
+
+            for (const batch of chunk(open, 6)) {
+              const rows = await Promise.all(batch.map(async brief => {
+                const briefLabels = (brief.labels || []).map(x => x.name);
+                const author = brief.user && brief.user.login ? brief.user.login : "unknown";
+                const isMaintenance =
+                  maintenanceAuthors.has(author) ||
+                  briefLabels.some(x => maintenanceLabels.has(x));
+                const isDraft = Boolean(brief.draft);
+
+                let pr = brief;
+                let files = [];
+                let reviews = [];
+                let filesComplete = false;
+
+                if (isMaintenance) {
+                  // No expensive detail calls needed for cohort routing.
+                } else if (isDraft) {
+                  files = await github.paginate(
+                    github.rest.pulls.listFiles,
+                    { owner, repo, pull_number: brief.number, per_page: 100 }
+                  );
+                  filesComplete = true;
+                } else {
+                  pr = (await github.rest.pulls.get({
+                    owner, repo, pull_number: brief.number
+                  })).data;
+                  [files, reviews] = await Promise.all([
+                    github.paginate(
+                      github.rest.pulls.listFiles,
+                      { owner, repo, pull_number: pr.number, per_page: 100 }
+                    ),
+                    github.paginate(
+                      github.rest.pulls.listReviews,
+                      { owner, repo, pull_number: pr.number, per_page: 100 }
+                    )
+                  ]);
+                  filesComplete = true;
+                }
+
+                const body = pr.body || brief.body || "";
+                const allRefs = [...body.matchAll(/(^|[^\w])#(\d{1,6})\b/g)]
+                  .map(match => Number(match[2]));
+
+                for (const number of allRefs) {
+                  if (admittedIssueNumbers.has(number)) admissionNumbers.add(number);
+                }
+                for (const match of body.matchAll(closingRefRe)) {
+                  admissionNumbers.add(Number(match[1]));
+                }
+                for (const match of body.matchAll(/\b(?:PR|pull request)\s*#(\d{1,6})\b/gi)) {
+                  referencedPullNumbers.add(Number(match[1]));
+                }
+
+                return {
+                  number: pr.number,
+                  title: pr.title,
+                  body,
+                  author,
+                  labels: briefLabels,
+                  html_url: pr.html_url,
+                  state: pr.state,
+                  draft: isDraft,
+                  mergeable: pr.mergeable ?? null,
+                  mergeable_state: pr.mergeable_state || "unknown",
+                  head_sha: pr.head.sha,
+                  base_sha: pr.base.sha,
+                  created_at: pr.created_at,
+                  updated_at: pr.updated_at,
+                  files_complete: filesComplete,
+                  files: files.map(f => f.filename),
+                  file_details: files.map(f => ({
+                    filename: f.filename,
+                    status: f.status,
+                    patch: f.patch || ""
+                  })),
+                  reviews: reviews.map(r => ({
+                    user: { login: r.user && r.user.login ? r.user.login : "unknown" },
+                    state: r.state,
+                    submitted_at: r.submitted_at,
+                    commit_id: r.commit_id || null
+                  }))
+                };
+              }));
+              pullRequests.push(...rows);
+            }
+
+            const referenced = {};
+            const referencedItems = {};
+
+            for (const batch of chunk([...admissionNumbers], 6)) {
+              const rows = await Promise.all(batch.map(async number => {
+                try {
+                  const issue = (await github.rest.issues.get({
+                    owner, repo, issue_number: number
+                  })).data;
+                  return { number, issue };
+                } catch (err) {
+                  if (!err || err.status !== 404) throw err;
+                  return { number, issue: null };
+                }
+              }));
+
+              for (const { number, issue } of rows) {
+                if (!issue) continue;
+                referencedItems[String(number)] = {
+                  state: issue.state,
+                  html_url: issue.html_url,
+                  title: issue.title,
+                  body: issue.body || "",
+                  labels: (issue.labels || []).map(x =>
+                    typeof x === "string" ? x : x.name
+                  ).filter(Boolean),
+                  is_pull_request: Boolean(issue.pull_request)
+                };
+              }
+            }
+
+            for (const batch of chunk([...referencedPullNumbers], 6)) {
+              const rows = await Promise.all(batch.map(async number => {
+                try {
+                  const pull = (await github.rest.pulls.get({
+                    owner, repo, pull_number: number
+                  })).data;
+                  return { number, pull };
+                } catch (err) {
+                  if (!err || err.status !== 404) throw err;
+                  return { number, pull: null };
+                }
+              }));
+
+              for (const { number, pull } of rows) {
+                if (!pull) continue;
+                referenced[String(number)] = {
+                  state: pull.state,
+                  merged: Boolean(pull.merged_at),
+                  html_url: pull.html_url,
+                  title: pull.title
+                };
+              }
+            }
+
+            const snapshot = {
+              schema_version: "0.3",
+              repository: `${owner}/${repo}`,
+              main_sha: mainSha,
+              policy_ref: policyRef,
+              policy_sha: policyReceiptSha,
+              policy_source: policySource,
+              state_branch: stateBranch,
+              state_sha: stateSha,
+              ledger_sha256: crypto.createHash("sha256").update(ledgerText, "utf8").digest("hex"),
+              projection_sha256: crypto.createHash("sha256").update(projectionText, "utf8").digest("hex"),
+              main_paths: mainPaths,
+              referenced_pull_requests: referenced,
+              referenced_items: referencedItems,
+              pull_requests: pullRequests
+            };
+
+            fs.writeFileSync(
+              ".repo-coordinator/snapshot.json",
+              JSON.stringify(snapshot, null, 2)
+            );
+
+      - name: Verify exact coordinator state
+        if: steps.snapshot.outcome == 'success'
+        run: |
+          python3 tools/repository_coordinator_state_v1.py verify \
+            --ledger .repo-coordinator/ADMISSION_LEDGER.jsonl \
+            --state .repo-coordinator/COORDINATOR_STATE.json
+
+      - name: Self-test coordinator
+        run: python3 tools/repository_coordinator_v0_1.py --smoke-test
+
+      - name: Run coordinator regression tests
+        run: |
+          python -m pip install --quiet pytest
+          python -m pytest tools/tests/test_repository_coordinator_v0_1.py -q
+
+      - name: Build advisory index
+        if: steps.snapshot.outcome == 'success'
+        run: |
+          python3 tools/repository_coordinator_v0_1.py \
+            --snapshot .repo-coordinator/snapshot.json \
+            --policy .repo-coordinator/policy.main.json \
+            --state .repo-coordinator/COORDINATOR_STATE.json \
+            --output .repo-coordinator/index.json \
+            --markdown .repo-coordinator/index.md
+          cat .repo-coordinator/index.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build degraded index when live snapshot is unavailable
+        if: steps.snapshot.outcome != 'success'
+        run: |
+          mkdir -p .repo-coordinator
+          cat > .repo-coordinator/index.json <<'JSON'
+          {
+            "schema_version": "0.2",
+            "degraded": true,
+            "reason": "LIVE_REPOSITORY_SNAPSHOT_UNAVAILABLE",
+            "authority_effect": "NONE"
+          }
+          JSON
+          cat > .repo-coordinator/index.md <<'MD'
+          <!-- repository-coordinator -->
+          ## Repository Coordinator — degraded index
+
+          Live repository projection is temporarily unavailable because the GitHub snapshot read failed.
+
+          **Integrity behavior:** the required admission/backpressure gate (`repository-admission-gate.yml`) evaluates independently from the default branch and fails closed. Global capacity/competition guidance is withheld here rather than guessed.
+
+          `GUIDANCE_REQUIRES_EVIDENCE · ADMISSION_IS_NOT_MERGE_AUTHORITY`
+          MD
+          cat .repo-coordinator/index.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Prepare safe comment payload
+        id: report
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          text = Path(".repo-coordinator/index.md").read_text(encoding="utf-8")
+          encoded = base64.b64encode(text.encode()).decode()
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"report_b64={encoded}\n")
+          PY
+
+      - name: Upload coordination index
+        uses: actions/upload-artifact@v7
+        with:
+          name: repository-coordinator-index
+          path: |
+            .repo-coordinator/snapshot.json
+            .repo-coordinator/index.json
+            .repo-coordinator/index.md
+            .repo-coordinator/ADMISSION_LEDGER.jsonl
+            .repo-coordinator/COORDINATOR_STATE.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+  comment:
+    name: Publish advisory index on triggering PR
+    if: github.event_name == 'pull_request'
+    needs: index
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      # Deliberately no checkout and no PR-head execution in this write-capable job.
+      - uses: actions/github-script@v9
+        env:
+          REPORT_B64: ${{ needs.index.outputs.report_b64 }}
+        with:
+          script: |
+            const marker = "<!-- repository-coordinator -->";
+            let body = Buffer.from(process.env.REPORT_B64 || "", "base64")
+              .toString("utf8");
+            if (!body.includes(marker)) {
+              body = marker + "\n## Repository Coordinator\n\nInvalid report marker; advisory output withheld.";
+            }
+            if (body.length > 60000) {
+              body = body.slice(0, 59500) + "\n\n_Report truncated; see workflow artifact._";
+            }
+            const headSha = (context.payload.pull_request || {}).head?.sha || "unknown";
+            body += "\n\n_Advisory index computed by the coordinator at PR head `"
+              + headSha.slice(0, 12)
+              + "` against the default-branch policy. Enforcement is the separate "
+              + "`Repository admission/backpressure gate` check, which runs from the default branch._";
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number, per_page: 100 }
+            );
+            const existing = comments.find(c =>
+              c.user && c.user.type === "Bot" &&
+              typeof c.body === "string" &&
+              c.body.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body
+              });
+            }

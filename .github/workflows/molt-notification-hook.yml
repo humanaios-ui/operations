@@ -10,7 +10,6 @@ on:
       - main
     paths:
       - 'MOLT_STATE.md'
-      - '.molt-control/**'
   pull_request:
     paths:
       - 'MOLT_STATE.md'
@@ -27,11 +26,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 

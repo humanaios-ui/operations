@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-09-22T22:45:00Z",
+  "description": "Principal identity mapping (transport, content author, human). Enforces three-plane separation.",
+  "mappings": [
+    {
+      "mapping_id": "claude-z1-transport",
+      "transport_principal": "humanaios-ui",
+      "transport_identity_verified": true,
+      "content_author": "claude-z1",
+      "content_author_verified": true,
+      "human_principal": null,
+      "human_signature": null,
+      "speaker_identity_chain": ["github_transport", "claude-z1"],
+      "authority_effect": "can_propose_hypothesis",
+      "authority_scope": "Z1_PROPOSER",
+      "trusted_issuer": "night-z2",
+      "updated_at": "2026-09-22T00:00:00Z",
+      "notes": "Claude Z1 proposer. Transport (humanaios-ui) ≠ Content (claude-z1)."
+    },
+    {
+      "mapping_id": "chatgpt-via-github",
+      "transport_principal": "humanaios-ui",
+      "transport_identity_verified": true,
+      "content_author": "chatgpt-gpt-5.6-sol",
+      "content_author_verified": true,
+      "human_principal": null,
+      "human_signature": null,
+      "speaker_identity_chain": ["github_transport", "chatgpt_app", null],
+      "authority_effect": "cannot_execute_consequential_action",
+      "authority_scope": "REVIEW_ONLY",
+      "trusted_issuer": "night-z2",
+      "updated_at": "2026-09-22T00:00:00Z",
+      "notes": "ChatGPT via GitHub API (Transport IC-063 risk). Chain incomplete: no human principal."
+    },
+    {
+      "mapping_id": "z2-direct-authority",
+      "transport_principal": "humanaios-ui",
+      "transport_identity_verified": true,
+      "content_author": "night-z2",
+      "content_author_verified": true,
+      "human_principal": "carly.r.anderson",
+      "human_signature": "z2_ed25519_sig",
+      "speaker_identity_chain": ["github_transport", "night-z2", "carly"],
+      "authority_effect": "can_ratify_decision",
+      "authority_scope": "Z2_RATIFIER_FULL",
+      "trusted_issuer": "self",
+      "updated_at": "2026-09-22T00:00:00Z",
+      "notes": "Z2 direct communication. All three planes consistent: transport + content + human."
+    }
+  ],
+  "validation_rules": {
+    "three_plane_separation": "System must not infer authority from transport layer alone. Requires cryptographic proof of content_author identity.",
+    "identity_confusion_test": "If transport_principal ≠ content_author and content_author ≠ human_principal, escalate to HUMAN_REQUIRED (T7 test)",
+    "speaker_identity_chain": "Must be contiguous. Null indicates chain break (no further actor). E.g., ['github', 'chatgpt', null] = incomplete (no human oversight)."
+  },
+  "rls_isolation": {
+    "database": "Supabase PostgreSQL",
+    "policy_mode": "row_level_security (Phase 2)",
+    "phase_1_implementation": "Principal mapping table check in code (authorization checks before query)",
+    "phase_2_goals": [
+      "Supabase RLS policies enforce (transport_principal, content_author) pair",
+      "Principal A cannot read principal B's authority decisions",
+      "Z2 can read all"
+    ]
+  },
+  "notes": "Phase 1: Static mapping + code checks. Phase 2: Supabase RLS policies + dynamic updates via molt."
+}
