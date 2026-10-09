@@ -30,10 +30,23 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 198
-  mcp_servers: 2
+  tools: 199
+  - tool_id: HAIOS-TOOL-212
+  name: machine_graph_evaluate_capability
+  path: tools/machine_graph/evaluate_capability.py
+  version: 0.1.0
+  category: diagnostic_tool
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Evaluate bounded local capabilities from a Machine Substrate Graph snapshot.
+  session: '#596'
+mcp_servers: 2
   excluded: 4
-  builder_markers_present: 151
+  builder_markers_present: 152
   missing_from_tree: 0
   unclassified: 0
 categories:
