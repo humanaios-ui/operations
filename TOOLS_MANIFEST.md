@@ -14,7 +14,7 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | metric | value |
 |---|---|
 | Registered tools | 198 |
-| — status `draft` | 197 |
+| — status `draft` | 198 |
 | — status `archived` | 1 |
 | Builder v1.7 markers present | 151 |
 | Uncategorized | 0 |
@@ -236,7 +236,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-107 | registry_site_generator | `tools/registry_site_generator_v1_0.py` | 1.0.0 | 1 | draft | — | Reads REGISTERED.md, parses F-class / IC-class / H-class entries, |
 | HAIOS-TOOL-196 | map-to-mitigation | `scripts/map-to-mitigation.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Topic-to-Mitigation Mapper |
 
-## Research — `research_tool` (10)
+## Research — `research_tool` (11)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -250,6 +250,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-103 | red_team_runner | `tools/red_team_runner_v1_0.py` | 1.0.0 | 1 | draft | — | Red Team Runner — v1.0 |
 | HAIOS-TOOL-125 | smc_census_copilot_v0_1 | `tools/smc_census_copilot_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Shared-Memory Census (SMC) v0.1. |
 | HAIOS-TOOL-195 | gap-detector | `scripts/gap-detector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Gap Detector |
+| HAIOS-TOOL-212 | gner_notification_e0 | `tools/gner_notification_e0.py` | 0.1.0 | 1 | draft | — | GNER-E0 offline GitHub notification lead interpreter (email unverified discovery only) |
 
 ## Security gates — `security_gate_tool` (11)
 
@@ -346,7 +347,7 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 6 |
-| `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
+| `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 11 |
 | `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. | 26 |

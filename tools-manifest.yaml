@@ -2524,6 +2524,19 @@ tools:
   builder_markers: true
   purpose: Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation, and durable RCD receipt primitives.
   session: REPOSITORY-COORDINATOR-STATE-02
+- tool_id: HAIOS-TOOL-212
+  name: gner_notification_e0
+  path: tools/gner_notification_e0.py
+  version: 0.1.0
+  category: research_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: GNER-E0 offline GitHub notification lead interpreter (email unverified discovery only)
+  session: Q-GNER-E0-OFFLINE-NOTIFICATION-RELAY-01
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
