@@ -1,0 +1,57 @@
+name: URA HMBM Daily Regression (read-only)
+
+on:
+  schedule:
+    # 13:17 UTC = 08:17 CDT / 07:17 CST; GitHub schedules use UTC.
+    - cron: '17 13 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/ura-hmbm-daily-regression.yml'
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/hmbm_compat.py'
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/universal_adapter.py'
+      - 'tests/test_hmbm_compat.py'
+      - 'tests/test_universal_resource_adapter.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ura-hmbm-regression-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  synthetic-compatibility:
+    name: Synthetic-only URA/HMBM checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONNOUSERSITE: '1'
+      PIP_NO_INDEX: '1'
+    steps:
+      - name: Checkout pinned event commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: ''
+      - name: Run bounded regression suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_universal_resource_adapter.py' -v 2>&1 | tee ura-test.log
+          python -m unittest discover -s tests -p 'test_hmbm_compat.py' -v 2>&1 | tee hmbm-test.log
+      - name: Publish passive test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ura-hmbm-test-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ura-test.log
+            hmbm-test.log
+          if-no-files-found: warn
+          retention-days: 14
