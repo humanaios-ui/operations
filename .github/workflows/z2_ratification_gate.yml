@@ -104,6 +104,12 @@ jobs:
         # windows, and the no-self-grant rule on Z2 signatures.
         run: python3 .z1-control/validate.py
 
+      - name: Leak-guard self-test
+        # B6 (Substrate Map): bounds the two session leaks (open transactions,
+        # pre-compact stashes). The self-test pins the load-bearing invariant —
+        # a WIP stash is never selected for dropping — so a refactor can't regress it.
+        run: python3 .z1-control/leak_guard.py --smoke-test
+
       - name: Z1_INBOX_INDEX.md is in sync (ERROR — blocks merge)
         run: python3 .z1-control/render.py --check
 
