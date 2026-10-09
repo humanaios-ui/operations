@@ -462,6 +462,44 @@ def run_acceptance_criteria_tests() -> Dict[str, Any]:
     return results
 
 
+def run_smoke_test() -> bool:
+    """Minimal self-test. Must pass before Builder v1.7 compliance is claimed."""
+    try:
+        # Positive: basic witness verification should succeed
+        test_input = {
+            "molt_id": "smoke_test_001",
+            "constant_name": "smoke_test",
+            "proposed_value": 0.5,
+            "priority_score": 75,
+            "prediction_window_hours": 24,
+            "falsifier": "test_condition",
+        }
+
+        evidence = perform_witness_verification(REFERENCE_FIXTURE, test_input)
+
+        # Verify evidence has required fields
+        assert evidence.witness_id, "Evidence must have witness_id"
+        assert evidence.source_sha256, "Evidence must have source_sha256"
+        assert evidence.return_code is not None, "Evidence must have return_code"
+        assert isinstance(evidence.discrepancies, list), "Discrepancies must be a list"
+        assert isinstance(evidence.is_fabricated, bool), "is_fabricated must be bool"
+
+        # Negative: fabrication test should detect fabrication
+        is_fabricated, reason = fabrication_test(REFERENCE_FIXTURE, test_input)
+        assert is_fabricated, "Fabrication test must detect fabrication"
+        assert reason, "Fabrication reason must be provided"
+
+        print("✓ Smoke test PASSED")
+        return True
+
+    except AssertionError as e:
+        print(f"✗ Smoke test FAILED: {e}")
+        return False
+    except Exception as e:
+        print(f"✗ Smoke test ERROR: {e}")
+        return False
+
+
 def main() -> int:
     """Run independent execution witness verification."""
     import argparse
@@ -481,12 +519,20 @@ def main() -> int:
         help="Run the four EBEE-001 acceptance criteria tests"
     )
     parser.add_argument(
+        "--smoke-test",
+        action="store_true",
+        help="Run minimal smoke test"
+    )
+    parser.add_argument(
         "--help-tool",
         action="store_true",
         help="Print tool metadata"
     )
 
     args = parser.parse_args()
+
+    if args.smoke_test:
+        return 0 if run_smoke_test() else 1
 
     if args.help_tool:
         print(f"Tool: {TOOL_NAME}")
