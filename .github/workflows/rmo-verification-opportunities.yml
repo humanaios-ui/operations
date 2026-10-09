@@ -1,0 +1,27 @@
+name: RMO Verification Opportunity Offline Tests
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/verification_opportunities.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_verification_opportunities.py'
+      - '.github/workflows/rmo-verification-opportunities.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-verification-screen:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: humanaios-funding-pipeline/resource-miner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile passive module and tests
+        run: python -m py_compile resource_miner/verification_opportunities.py tests/test_verification_opportunities.py
+      - name: Run bounded synthetic verification tests
+        run: python -m unittest discover -s tests -p 'test_verification_opportunities.py' -v
