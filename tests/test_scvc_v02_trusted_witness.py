@@ -133,6 +133,7 @@ class WitnessTests(unittest.TestCase):
     def test_positive_witness_and_non_authority_progression(self):
         evidence = self.facts()
         self.assertEqual(set(evidence["ci"]), set(witness.REQUIRED_CI))
+        self.assertEqual(set(evidence["predicates"]), set(witness.SOURCE_PATHS))
         self.assertTrue(evidence["trust_root_protected"])
         self.assertTrue(evidence["github_oidc_run_identity_verified"])
         result = witness.derive_progress(definition(), evidence)
@@ -145,6 +146,9 @@ class WitnessTests(unittest.TestCase):
         self.assertFalse(result["can_dispatch"])
         self.assertFalse(result["merge_authority"])
         self.assertFalse(result["cryptographic_attestation_verified"])
+        self.assertEqual(result["verified_ci_run_refs"]["quality-baseline"]["head_sha"], HEAD)
+        self.assertEqual(result["predecessor_merge_sha"], MERGE)
+        self.assertRegex(result["report_sha256"], r"^[a-f0-9]{64}$")
         self.assertFalse(any(r["governance_accepted"] for r in result["milestones"]))
 
     def test_no_branch_protection_halts_observational_achievement(self):
