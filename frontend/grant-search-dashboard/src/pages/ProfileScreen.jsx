@@ -60,10 +60,10 @@ function ProfileScreen({ profileId, initialProfile, onProfileCreated, isNew }) {
   };
 
   const handleAddKeyword = () => {
-    if (keywordInput.trim() && !profile.mission_keywords.includes(keywordInput.trim())) {
+    if (keywordInput.trim() && !(profile.mission_keywords || []).includes(keywordInput.trim())) {
       setProfile({
         ...profile,
-        mission_keywords: [...profile.mission_keywords, keywordInput.trim()]
+        mission_keywords: [...(profile.mission_keywords || []), keywordInput.trim()]
       });
       setKeywordInput('');
     }
@@ -72,7 +72,7 @@ function ProfileScreen({ profileId, initialProfile, onProfileCreated, isNew }) {
   const handleRemoveKeyword = (keyword) => {
     setProfile({
       ...profile,
-      mission_keywords: profile.mission_keywords.filter(k => k !== keyword)
+      mission_keywords: (profile.mission_keywords || []).filter(k => k !== keyword)
     });
   };
 
@@ -85,9 +85,10 @@ function ProfileScreen({ profileId, initialProfile, onProfileCreated, isNew }) {
   };
 
   const toggleFundingSource = (source) => {
-    const updated = profile.funding_sources.includes(source)
-      ? profile.funding_sources.filter(f => f !== source)
-      : [...profile.funding_sources, source];
+    const fundingSources = profile.funding_sources || [];
+    const updated = fundingSources.includes(source)
+      ? fundingSources.filter(f => f !== source)
+      : [...fundingSources, source];
     setProfile({ ...profile, funding_sources: updated });
   };
 
@@ -124,17 +125,15 @@ function ProfileScreen({ profileId, initialProfile, onProfileCreated, isNew }) {
     <div className="profile-screen">
       <div className="profile-container">
         <h1>{isNew ? 'Create Your Nonprofit Profile' : 'Edit Profile'}</h1>
-        {profile.profile_completion_pct !== undefined && (
-          <div className="profile-completion">
-            <span>Profile Completion: {(profile.profile_completion_pct * 100).toFixed(0)}%</span>
-            <div className="completion-bar">
-              <div
-                className="completion-fill"
-                style={{width: `${profile.profile_completion_pct * 100}%`}}
-              ></div>
-            </div>
+        <div className="profile-completion">
+          <span>Profile Completion: {((profile.profile_completion_pct || 0) * 100).toFixed(0)}%</span>
+          <div className="completion-bar">
+            <div
+              className="completion-fill"
+              style={{width: `${(profile.profile_completion_pct || 0) * 100}%`}}
+            ></div>
           </div>
-        )}
+        </div>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">Profile saved successfully!</div>}
@@ -239,7 +238,7 @@ function ProfileScreen({ profileId, initialProfile, onProfileCreated, isNew }) {
                 <button type="button" onClick={handleAddKeyword}>Add</button>
               </div>
               <div className="keywords-list">
-                {profile.mission_keywords.map(kw => (
+                {(profile.mission_keywords || []).map(kw => (
                   <span key={kw} className="keyword-tag">
                     {kw}
                     <button type="button" onClick={() => handleRemoveKeyword(kw)}>×</button>
@@ -321,7 +320,7 @@ function ProfileScreen({ profileId, initialProfile, onProfileCreated, isNew }) {
                   <label key={source} className="checkbox">
                     <input
                       type="checkbox"
-                      checked={profile.funding_sources.includes(source)}
+                      checked={(profile.funding_sources || []).includes(source)}
                       onChange={() => toggleFundingSource(source)}
                     />
                     {source.replace(/_/g, ' ')}
