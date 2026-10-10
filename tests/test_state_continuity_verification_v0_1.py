@@ -120,19 +120,19 @@ class FiniteTests(unittest.TestCase):
 
 class ContractShapeTests(unittest.TestCase):
     def test_source_vlr_fixture_conforms_to_canonical_schema(self):
-        path = TOOL.parents[0] / "schemas" / "validated_learning_record_v1.schema.json"
+        path = TOOL.parents[1] / "schemas" / "validated_learning_record_v1.schema.json"
         schema = json.loads(path.read_text())
         jsonschema.validate(vlr(), schema,
                             cls=jsonschema.Draft202012Validator,
                             format_checker=jsonschema.FormatChecker())
 
     def test_synthetic_session_graph_conforms_to_canonical_schema(self):
-        path = TOOL.parents[0] / "chat_graph" / "schema" / "longitudinal_graph.schema.json"
+        path = TOOL.parents[1] / "chat_graph" / "schema" / "longitudinal_graph.schema.json"
         schema = json.loads(path.read_text())
         jsonschema.validate(graph(), schema, cls=jsonschema.Draft202012Validator)
 
     def test_scvc_report_conforms_to_its_own_schema(self):
-        path = TOOL.parents[0] / "schemas" / "state_continuity_verification_v0_1.schema.json"
+        path = TOOL.parents[1] / "schemas" / "state_continuity_verification_v0_1.schema.json"
         schema = json.loads(path.read_text())
         report = scvc.assess_hlks_session(vlr(), graph(), "entity:55", request())
         jsonschema.validate(report, schema, cls=jsonschema.Draft202012Validator)
