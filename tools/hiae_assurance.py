@@ -7,22 +7,25 @@ HumanAIOS · Q-HIAE-001 · Z1 proposal, NOT ratified (awaiting Z2)
 Three pieces, stdlib only:
   1. select_reviewer(): neutral, rotation-based reviewer assignment with
      conflict-of-interest exclusion. The customer cannot name a reviewer.
-  2. check_assignment(): recomputes an assignment from its recorded seed and
-     reports any divergence (substituted reviewer, conflicted reviewer).
+  2. check_assignment(): recomputes an assignment from a rotation seed that
+     the caller supplies from a trusted record, and reports any divergence
+     (substituted reviewer, conflicted reviewer, substituted seed).
   3. issue_receipt() / verify_receipt(): versioned assessment receipt that
-     pins protocol, ACAT, model and commit versions, authenticates each
-     evidence item to its observer, and rejects overclaiming wording.
+     pins protocol, ACAT, model and commit versions; carries a signature from
+     the assigned reviewer; binds each observer-signed evidence item to its
+     request, subject, protocol and observation time; and rejects overclaiming
+     wording and unsupported receipt versions.
 
 Limitations (stated, not hidden):
   - Signatures are HMAC-SHA256 with shared keys. This is a stand-in for an
     asymmetric scheme (e.g. Ed25519 or a W3C VC proof). A verifier here must
-    hold the issuer's key, so this is not public verifiability.
+    hold each signer's key, so this is not public verifiability.
   - Hash chaining is not used as proof of authorship; authorship rests on the
-    observer/issuer signature only.
+    observer, reviewer and issuer signatures only.
   - Nothing here establishes that a receipt's measurements are true.
 
 Usage:
-  python3 tools/hiae_assurance.py --smoke-test
+  python3 tools/hiae_assurance.py --smoke-test [--report-dir DIR]
   python3 tools/hiae_assurance.py --help
 """
 
@@ -79,6 +82,9 @@ REQUIRED_RECEIPT_FIELDS = frozenset({
     "issuer_id",
 })
 
+# Fields the evidence context must agree with on the receipt.
+EVIDENCE_CONTEXT_FIELDS = ("request_id", "subject_id", "protocol_id", "protocol_version")
+
 
 class AssignmentError(ValueError):
     """Raised when no valid assignment exists or the request is malformed."""
@@ -103,6 +109,12 @@ def canonical_bytes(obj: Any) -> bytes:
 
 def sign_payload(key: bytes, payload: Any) -> str:
     return hmac.new(key, canonical_bytes(payload), hashlib.sha256).hexdigest()
+
+
+def _signature_ok(key: Optional[bytes], payload: Any, value: Any) -> bool:
+    if key is None:
+        return False
+    return hmac.compare_digest(sign_payload(key, payload), str(value or ""))
 
 
 def _strings(value: Any) -> Iterable[str]:
@@ -202,6 +214,7 @@ def select_reviewer(
     Rule: among eligible reviewers, take those with the fewest prior
     assignments (rotation), then break ties with sha256(seed | request_id).
     The result is reproducible from (request, reviewers, history, seed).
+    The seed must come from a trusted rotation record, not from the customer.
     """
     supplied = CUSTOMER_REVIEWER_KEYS.intersection(request.fields)
     if supplied:
@@ -240,16 +253,26 @@ def check_assignment(
     request: AssessmentRequest,
     reviewers: Iterable[Reviewer],
     history: Iterable[HistoryEntry],
+    trusted_seed: str,
 ) -> List[str]:
-    """Recompute the assignment and return every divergence. Empty list means valid."""
+    """
+    Recompute the assignment from trusted_seed and return every divergence.
+
+    trusted_seed is supplied by the caller from a trusted rotation record. The
+    seed recorded on the assignment is compared against it and is not used as
+    the basis for recomputation, so an assignment cannot vouch for its own seed.
+    Empty list means valid.
+    """
     if assignment.request_id != request.request_id or assignment.subject_id != request.subject_id:
         return ["assignment does not match request"]
-    try:
-        expected = select_reviewer(request, reviewers, history, assignment.rotation_seed)
-    except AssignmentError as exc:
-        return [f"recomputation failed: {exc}"]
-
     problems: List[str] = []
+    if assignment.rotation_seed != trusted_seed:
+        problems.append("recorded rotation seed does not match the trusted rotation record")
+    try:
+        expected = select_reviewer(request, reviewers, history, trusted_seed)
+    except AssignmentError as exc:
+        return problems + [f"recomputation failed: {exc}"]
+
     if assignment.reviewer_id != expected.reviewer_id:
         problems.append(
             f"reviewer {assignment.reviewer_id!r} is not the assigned reviewer {expected.reviewer_id!r}"
@@ -266,23 +289,47 @@ def check_assignment(
 # ---------------------------------------------------------------------------
 
 def make_evidence(
-    evidence_id: str, observer_id: str, observer_key: bytes, content: bytes
+    evidence_id: str,
+    observer_id: str,
+    observer_key: bytes,
+    content: bytes,
+    context: Mapping[str, Any],
 ) -> Dict[str, Any]:
-    """Create an observer-signed evidence item. The content is hashed, not embedded."""
+    """
+    Create an observer-signed evidence item.
+
+    The content is hashed, not embedded. The context (request, subject,
+    protocol and observation time) is inside the signed payload, so the item
+    cannot be replayed into a receipt for a different request or protocol.
+    """
+    missing = {"request_id", "subject_id", "protocol_id", "protocol_version", "observed_at"}.difference(context)
+    if missing:
+        raise ReceiptError(f"evidence context missing: {sorted(missing)}")
     item = {
         "evidence_id": evidence_id,
         "observer_id": observer_id,
         "content_sha256": hashlib.sha256(content).hexdigest(),
+        "context": dict(context),
     }
     item["observer_signature"] = sign_payload(observer_key, item)
     return item
 
 
 def issue_receipt(
-    body: Mapping[str, Any], issuer_id: str, issuer_key: bytes
+    body: Mapping[str, Any],
+    issuer_id: str,
+    issuer_key: bytes,
+    reviewer_key: bytes,
 ) -> Dict[str, Any]:
-    """Sign a receipt body. Refuses overclaiming wording and missing fields."""
-    receipt = {**body, "receipt_version": RECEIPT_VERSION}
+    """
+    Sign a receipt body.
+
+    The reviewer signs first, over the body. The issuer then signs the body
+    including the reviewer signature. Refuses overclaiming wording and missing
+    fields. Any signature fields already present in body are discarded.
+    """
+    clean = {k: v for k, v in body.items() if k not in ("signature", "reviewer_signature")}
+    receipt = {**clean, "receipt_version": RECEIPT_VERSION}
     missing = REQUIRED_RECEIPT_FIELDS.difference(receipt)
     if missing:
         raise ReceiptError(f"missing receipt fields: {sorted(missing)}")
@@ -292,6 +339,11 @@ def issue_receipt(
     if hits:
         raise ReceiptError(f"overclaiming wording rejected: {hits}")
 
+    receipt["reviewer_signature"] = {
+        "reviewer_id": receipt["reviewer_id"],
+        "alg": "HMAC-SHA256",
+        "value": sign_payload(reviewer_key, receipt),
+    }
     receipt["signature"] = {
         "issuer_id": issuer_id,
         "alg": "HMAC-SHA256",
@@ -305,20 +357,24 @@ def verify_receipt(
     assignment: Assignment,
     issuer_keys: Mapping[str, bytes],
     observer_keys: Mapping[str, bytes],
+    reviewer_keys: Mapping[str, bytes],
 ) -> List[str]:
     """Return every problem with a receipt. Empty list means it verifies."""
-    problems: List[str] = []
+    if receipt.get("receipt_version") != RECEIPT_VERSION:
+        return [f"unsupported receipt_version {receipt.get('receipt_version')!r}; this verifier implements {RECEIPT_VERSION}"]
 
     missing = REQUIRED_RECEIPT_FIELDS.difference(receipt)
     if missing:
         return [f"missing receipt fields: {sorted(missing)}"]
 
-    sig = receipt.get("signature", {})
-    body = {k: v for k, v in receipt.items() if k != "signature"}
-    key = issuer_keys.get(sig.get("issuer_id", ""))
-    if key is None:
+    problems: List[str] = []
+
+    # Issuer signature covers everything except the issuer signature itself.
+    sig = receipt.get("signature") or {}
+    issuer_body = {k: v for k, v in receipt.items() if k != "signature"}
+    if sig.get("issuer_id") not in issuer_keys:
         problems.append("unknown issuer")
-    elif not hmac.compare_digest(sign_payload(key, body), str(sig.get("value", ""))):
+    elif not _signature_ok(issuer_keys[sig["issuer_id"]], issuer_body, sig.get("value")):
         problems.append("issuer signature does not verify (receipt altered or wrong key)")
 
     if receipt["request_id"] != assignment.request_id:
@@ -330,17 +386,30 @@ def verify_receipt(
     if receipt["subject_id"] != assignment.subject_id:
         problems.append("receipt subject does not match assignment")
 
+    # The assigned reviewer must have signed this exact body.
+    rsig = receipt.get("reviewer_signature") or {}
+    reviewer_body = {k: v for k, v in receipt.items() if k not in ("signature", "reviewer_signature")}
+    if rsig.get("reviewer_id") != assignment.reviewer_id:
+        problems.append("reviewer signature is not from the assigned reviewer")
+    elif not _signature_ok(reviewer_keys.get(assignment.reviewer_id), reviewer_body, rsig.get("value")):
+        problems.append("reviewer signature does not verify for the assigned reviewer")
+
     hits = overclaim_hits({k: receipt[k] for k in ("measured", "not_measured", "findings")})
     if hits:
         problems.append(f"overclaiming wording: {hits}")
 
+    expected_context = {k: receipt[k] for k in EVIDENCE_CONTEXT_FIELDS}
     for item in receipt["evidence"]:
+        label = item.get("evidence_id")
         item_body = {k: v for k, v in item.items() if k != "observer_signature"}
         obs_key = observer_keys.get(item.get("observer_id", ""))
         if obs_key is None:
-            problems.append(f"evidence {item.get('evidence_id')!r}: unknown observer")
-        elif not hmac.compare_digest(sign_payload(obs_key, item_body), str(item.get("observer_signature", ""))):
-            problems.append(f"evidence {item.get('evidence_id')!r}: observer signature invalid")
+            problems.append(f"evidence {label!r}: unknown observer")
+        elif not _signature_ok(obs_key, item_body, item.get("observer_signature")):
+            problems.append(f"evidence {label!r}: observer signature invalid")
+        context = item.get("context") or {}
+        if any(context.get(k) != v for k, v in expected_context.items()):
+            problems.append(f"evidence {label!r} is bound to a different request, subject or protocol")
 
     return problems
 
@@ -357,6 +426,10 @@ DEMO_KEYS = {
         "issuer:humanaios-operations",
         "observer:rater-a",
         "observer:rater-b",
+        "reviewer:rev-1",
+        "reviewer:rev-2",
+        "reviewer:rev-3",
+        "reviewer:rev-4",
     )
 }
 
@@ -369,6 +442,10 @@ DEMO_PROTOCOL = {
     "commit_sha": "0" * 40,
 }
 
+DEMO_SEED = "seed-2026-10-10"
+DEMO_OBSERVED_AT = "2026-10-10T00:00:00Z"
+DEMO_ISSUER = "issuer:humanaios-operations"
+
 
 def demo_reviewers() -> List[Reviewer]:
     return [
@@ -379,27 +456,42 @@ def demo_reviewers() -> List[Reviewer]:
     ]
 
 
-def run_synthetic_transaction(
-    request: Optional[AssessmentRequest] = None,
-    rotation_seed: str = "seed-2026-10-10",
-    history: Iterable[HistoryEntry] = (),
-) -> Tuple[Assignment, Dict[str, Any], List[str]]:
-    """Run the lifecycle once: assign, evidence, receipt, verify. Returns (assignment, receipt, problems)."""
-    request = request or AssessmentRequest(
-        request_id="req-0001",
+def _observer_keys() -> Dict[str, bytes]:
+    """Observer keys keyed by full observer id, as evidence items reference them."""
+    return {k: v for k, v in DEMO_KEYS.items() if k.startswith("observer:")}
+
+
+def _reviewer_keys() -> Dict[str, bytes]:
+    """Reviewer keys keyed by reviewer id, as the assignment references them."""
+    return {k[len("reviewer:"):]: v for k, v in DEMO_KEYS.items() if k.startswith("reviewer:")}
+
+
+def _demo_request(request_id: str = "req-0001", subject_id: str = "subject-A") -> AssessmentRequest:
+    return AssessmentRequest(
+        request_id=request_id,
         customer_id="cust-1",
         customer_org="cust-org-1",
         risk_class="low",
-        subject_id="subject-A",
+        subject_id=subject_id,
     )
-    reviewers = demo_reviewers()
-    assignment = select_reviewer(request, reviewers, history, rotation_seed)
 
-    evidence = [
-        make_evidence("ev-1", "observer:rater-a", DEMO_KEYS["observer:rater-a"], b"transcript-1-bytes"),
-        make_evidence("ev-2", "observer:rater-b", DEMO_KEYS["observer:rater-b"], b"transcript-2-bytes"),
+
+def _demo_evidence(request: AssessmentRequest) -> List[Dict[str, Any]]:
+    context = {
+        "request_id": request.request_id,
+        "subject_id": request.subject_id,
+        "protocol_id": DEMO_PROTOCOL["protocol_id"],
+        "protocol_version": DEMO_PROTOCOL["protocol_version"],
+        "observed_at": DEMO_OBSERVED_AT,
+    }
+    return [
+        make_evidence("ev-1", "observer:rater-a", DEMO_KEYS["observer:rater-a"], b"transcript-1-bytes", context),
+        make_evidence("ev-2", "observer:rater-b", DEMO_KEYS["observer:rater-b"], b"transcript-2-bytes", context),
     ]
-    body = {
+
+
+def _receipt_body(request: AssessmentRequest, assignment: Assignment, evidence: List[Dict[str, Any]]) -> Dict[str, Any]:
+    return {
         **DEMO_PROTOCOL,
         "request_id": request.request_id,
         "reviewer_id": assignment.reviewer_id,
@@ -409,16 +501,35 @@ def run_synthetic_transaction(
         "findings": ["Two observer-signed evidence items were captured for this synthetic run"],
         "evidence": evidence,
         "issued_at": "2026-10-10T00:00:00Z",
-        "issuer_id": "issuer:humanaios-operations",
+        "issuer_id": DEMO_ISSUER,
     }
-    receipt = issue_receipt(body, "issuer:humanaios-operations", DEMO_KEYS["issuer:humanaios-operations"])
 
-    problems = check_assignment(assignment, request, reviewers, history)
+
+def run_synthetic_transaction(
+    request: Optional[AssessmentRequest] = None,
+    rotation_seed: str = DEMO_SEED,
+    history: Iterable[HistoryEntry] = (),
+) -> Tuple[Assignment, Dict[str, Any], List[str]]:
+    """Run the lifecycle once: assign, evidence, receipt, verify. Returns (assignment, receipt, problems)."""
+    request = request or _demo_request()
+    history = list(history)
+    reviewers = demo_reviewers()
+    assignment = select_reviewer(request, reviewers, history, rotation_seed)
+
+    receipt = issue_receipt(
+        _receipt_body(request, assignment, _demo_evidence(request)),
+        DEMO_ISSUER,
+        DEMO_KEYS[DEMO_ISSUER],
+        DEMO_KEYS[f"reviewer:{assignment.reviewer_id}"],
+    )
+
+    problems = check_assignment(assignment, request, reviewers, history, trusted_seed=rotation_seed)
     problems += verify_receipt(
         receipt,
         assignment,
-        issuer_keys={"issuer:humanaios-operations": DEMO_KEYS["issuer:humanaios-operations"]},
-        observer_keys={k: v for k, v in DEMO_KEYS.items() if k.startswith("observer:")},
+        issuer_keys={DEMO_ISSUER: DEMO_KEYS[DEMO_ISSUER]},
+        observer_keys=_observer_keys(),
+        reviewer_keys=_reviewer_keys(),
     )
     return assignment, receipt, problems
 
@@ -426,69 +537,115 @@ def run_synthetic_transaction(
 def negative_cases() -> Dict[str, bool]:
     """Each case must be rejected. Returns name -> True when rejected as required."""
     results: Dict[str, bool] = {}
-    issuer_keys = {"issuer:humanaios-operations": DEMO_KEYS["issuer:humanaios-operations"]}
-    observer_keys = {k: v for k, v in DEMO_KEYS.items() if k.startswith("observer:")}
-    request = AssessmentRequest("req-neg", "cust-1", "cust-org-1", "low", "subject-N")
+    issuer_keys = {DEMO_ISSUER: DEMO_KEYS[DEMO_ISSUER]}
+    observer_keys = _observer_keys()
+    reviewer_keys = _reviewer_keys()
     reviewers = demo_reviewers()
 
-    # (0) customer names a reviewer
+    def verify(receipt: Mapping[str, Any], assignment: Assignment) -> List[str]:
+        return verify_receipt(receipt, assignment, issuer_keys, observer_keys, reviewer_keys)
+
+    # customer names a reviewer
     try:
         select_reviewer(
             AssessmentRequest("req-neg", "cust-1", "cust-org-1", "low", "subject-N", {"preferred_reviewer": "rev-2"}),
-            reviewers, [], "seed",
+            reviewers, [], DEMO_SEED,
         )
         results["customer_selected_reviewer"] = False
     except AssignmentError:
         results["customer_selected_reviewer"] = True
 
-    # (a) falsified receipt
-    assignment, receipt, problems = run_synthetic_transaction()
+    request, assignment, receipt = _valid_transaction()
+
+    # falsified receipt: finding changed after signing
     tampered = dict(receipt)
     tampered["findings"] = ["Subject passed independent assessment"]
-    results["falsified_receipt"] = bool(verify_receipt(tampered, assignment, issuer_keys, observer_keys))
+    results["falsified_receipt"] = bool(verify(tampered, assignment))
 
-    # (a2) forged evidence (observer signature replaced)
+    # forged evidence: content hash changed after the observer signed
     forged = json.loads(json.dumps(receipt))
     forged["evidence"][0]["content_sha256"] = hashlib.sha256(b"fabricated").hexdigest()
-    results["forged_evidence"] = bool(verify_receipt(forged, assignment, issuer_keys, observer_keys))
+    results["forged_evidence"] = bool(verify(forged, assignment))
 
-    # (b) unauthorized reviewer: receipt signed by someone other than the assigned reviewer
-    other = dict(receipt)
-    other["reviewer_id"] = "rev-2" if assignment.reviewer_id != "rev-2" else "rev-1"
-    other.pop("signature")
-    other = issue_receipt(
-        {k: v for k, v in other.items() if k != "receipt_version"},
-        "issuer:humanaios-operations",
-        DEMO_KEYS["issuer:humanaios-operations"],
+    # evidence replayed from another request, re-issued so both signatures are valid
+    other_request = _demo_request("req-0002", "subject-A")
+    replayed = issue_receipt(
+        _receipt_body(request, assignment, _demo_evidence(other_request)),
+        DEMO_ISSUER,
+        DEMO_KEYS[DEMO_ISSUER],
+        DEMO_KEYS[f"reviewer:{assignment.reviewer_id}"],
     )
-    results["unauthorized_reviewer"] = bool(verify_receipt(other, assignment, issuer_keys, observer_keys))
+    results["evidence_replayed_to_other_request"] = bool(verify(replayed, assignment))
 
-    # (c) conflicted assignment: forced onto the declared-conflict reviewer
+    # unauthorized reviewer: receipt names the assigned reviewer but is signed with another key
+    forged_reviewer = issue_receipt(
+        _receipt_body(request, assignment, _demo_evidence(request)),
+        DEMO_ISSUER,
+        DEMO_KEYS[DEMO_ISSUER],
+        b"attacker-key-not-a-reviewer",
+    )
+    results["unauthorized_reviewer"] = bool(verify(forged_reviewer, assignment))
+
+    # wrong reviewer named: a valid receipt for a different reviewer than the one assigned
+    wrong_name_id = "rev-2" if assignment.reviewer_id != "rev-2" else "rev-1"
+    wrong_named = issue_receipt(
+        _receipt_body(request, assignment, _demo_evidence(request)) | {"reviewer_id": wrong_name_id},
+        DEMO_ISSUER,
+        DEMO_KEYS[DEMO_ISSUER],
+        DEMO_KEYS[f"reviewer:{wrong_name_id}"],
+    )
+    results["wrong_reviewer_named"] = bool(verify(wrong_named, assignment))
+
+    # conflicted assignment: forced onto the declared-conflict reviewer
     forced = Assignment(
         request_id=request.request_id,
         subject_id=request.subject_id,
         reviewer_id="rev-3",
-        rotation_seed="seed",
+        rotation_seed=DEMO_SEED,
         eligible_ids=(),
         pool_ids=(),
         selection_digest="",
     )
-    results["conflicted_assignment"] = bool(check_assignment(forced, request, reviewers, []))
+    results["conflicted_assignment"] = bool(
+        check_assignment(forced, _demo_request("req-neg", "subject-N"), reviewers, [], trusted_seed=DEMO_SEED)
+    )
 
-    # overclaim
+    # substituted rotation seed: assignment records a different seed than the trusted one
+    substituted = Assignment(**{**assignment.to_dict(), "rotation_seed": "seed-attacker"})
+    results["substituted_rotation_seed"] = bool(check_assignment(substituted, request, reviewers, [], trusted_seed=DEMO_SEED))
+
+    # unsupported receipt version
+    future = dict(receipt)
+    future["receipt_version"] = "9.0.0"
+    results["unsupported_receipt_version"] = bool(verify(future, assignment))
+
+    # overclaim at issue time
     try:
         issue_receipt(
             {**DEMO_PROTOCOL, "request_id": "r", "reviewer_id": "rev-1", "subject_id": "s",
              "measured": ["x"], "not_measured": ["y"], "findings": ["Subject is certified safe"],
-             "evidence": [], "issued_at": "t", "issuer_id": "issuer:humanaios-operations"},
-            "issuer:humanaios-operations",
-            DEMO_KEYS["issuer:humanaios-operations"],
+             "evidence": [], "issued_at": "t", "issuer_id": DEMO_ISSUER},
+            DEMO_ISSUER,
+            DEMO_KEYS[DEMO_ISSUER],
+            DEMO_KEYS["reviewer:rev-1"],
         )
         results["overclaim_rejected"] = False
     except ReceiptError:
         results["overclaim_rejected"] = True
 
     return results
+
+
+def _valid_transaction() -> Tuple[AssessmentRequest, Assignment, Dict[str, Any]]:
+    request = _demo_request()
+    assignment = select_reviewer(request, demo_reviewers(), [], DEMO_SEED)
+    receipt = issue_receipt(
+        _receipt_body(request, assignment, _demo_evidence(request)),
+        DEMO_ISSUER,
+        DEMO_KEYS[DEMO_ISSUER],
+        DEMO_KEYS[f"reviewer:{assignment.reviewer_id}"],
+    )
+    return request, assignment, receipt
 
 
 # ---------------------------------------------------------------------------

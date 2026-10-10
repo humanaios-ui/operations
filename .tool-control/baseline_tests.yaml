@@ -167,3 +167,7 @@ baseline_tests:
   - path: acat/tests/test_tool_trace_schema.py
     requires: []
     description: Tool trace schema validation (ACAT)
+
+  - path: tests/test_hiae_assurance.py
+    requires: []
+    description: HIAE-001 neutral assignment, signed receipts and negative suite
