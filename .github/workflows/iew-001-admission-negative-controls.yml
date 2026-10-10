@@ -3,6 +3,10 @@ name: iew-001-admission-negative-controls
 # Z1 control-plane research. This check cannot itself admit a PR or authorize merge.
 # Trusted default-branch execution is independently triggered, never by a PR-controlled workflow.
 on:
+  pull_request:
+    paths:
+      - 'tools/iew/**'
+      - '.github/workflows/iew-001-admission-negative-controls.yml'
   push:
     branches: [main]
     paths:
@@ -16,7 +20,7 @@ permissions:
 
 jobs:
   independent-negative-controls:
-    name: IEW-001 / trusted admission negative controls
+    name: IEW-001 / coordinator negative controls (PR = untrusted smoke)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -38,3 +42,4 @@ jobs:
           echo 'IEW-001 is a negative-control check only.' >> "$GITHUB_STEP_SUMMARY"
           echo 'A passing run does not attest the submitted calculator experiment.' >> "$GITHUB_STEP_SUMMARY"
           echo 'No evidence-bearing receipt can itself alter coordinator state.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'pull_request results are explicitly UNTRUSTED smoke tests; only protected-main runs are eligible for independent review.' >> "$GITHUB_STEP_SUMMARY"
