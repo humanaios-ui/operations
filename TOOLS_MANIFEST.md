@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**207 registered tools** · 2 MCP servers · 4 excluded · 153 carrying Builder v1.7 markers
+**207 registered tools** · 2 MCP servers · 4 excluded · 154 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -16,7 +16,7 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 | Registered tools | 207 |
 | — status `draft` | 206 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 153 |
+| Builder v1.7 markers present | 154 |
 | Uncategorized | 6 |
 | MCP servers | 2 |
 
@@ -136,7 +136,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-188 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.3.0 | 1 | draft | — | Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure. |
 | HAIOS-TOOL-206 | ai_context_generator | `tools/ai_context_generator_v0_1.py` | 0.1.0 | 1 | draft | — | Generates queryable, machine-readable context from canonical repository sources. |
 | HAIOS-TOOL-212 | gner_failure_signatures_e2 | `tools/gner_failure_signatures_e2.py` | 0.1.0 | 1 | draft | — | GNER-E2: conservative cross-run failure signature candidates (no authority). |
-| HAIOS-TOOL-213 | gner_notification_e0 | `tools/gner_notification_e0.py` | 0.1.0 | 1 | draft | no-builder-markers | GNER-E0: offline GitHub notification lead interpreter. |
+| HAIOS-TOOL-213 | gner_notification_e0 | `tools/gner_notification_e0.py` | 0.1.0 | 1 | draft | — | GNER-E0: offline GitHub notification lead interpreter. |
 
 ## Governance — `governance_tool` (20)
 

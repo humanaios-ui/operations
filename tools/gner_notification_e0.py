@@ -2,6 +2,8 @@
 
 Email is untrusted discovery only; GitHub receipts are verified *outside* this
 module. No Gmail/GitHub API calls, I/O, authority, or execution.
+
+Builder v1.7 compliant · diagnostic_tool
 """
 from __future__ import annotations
 import re

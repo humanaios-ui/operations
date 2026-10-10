@@ -33,7 +33,7 @@ counts:
   tools: 207
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 153
+  builder_markers_present: 154
   missing_from_tree: 0
   unclassified: 6
 categories:
@@ -2548,7 +2548,7 @@ tools:
   interface: module
   lang: python
   smoke_test: true
-  builder_markers: false
+  builder_markers: true
   purpose: 'GNER-E0: offline GitHub notification lead interpreter.'
 - tool_id: HAIOS-TOOL-214
   name: gner_verify_e1
