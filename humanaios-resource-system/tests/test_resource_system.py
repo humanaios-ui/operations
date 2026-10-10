@@ -261,26 +261,35 @@ class ResourceSystemTests(unittest.TestCase):
         claims = [dict(predicate='capability', value=True, evidence_id='e1')]
         branch = sweep([r], [positive], {'RM-002': rule()}, TODAY)['branches']['RM-002']
         # Builder path: branch snapshot silently drops the recorded contradiction.
-        with self.assertRaisesRegex(ValueError, 'applicable contradictory evidence'):
+        with self.assertRaisesRegex(ValueError, 'applicable evidence'):
             build_artifact('omit:builder', r, branch, [positive, contradictory], claims, [auth()], NOW)
         # Ledger path: a record that omits the contradiction is refused on direct append.
         omitted = build_artifact('omit:ledger', r, branch, [positive], claims, [auth()], NOW)
         for kind, record in [('resource', r), ('evidence', positive), ('evidence', contradictory), ('authorization', auth())]:
             store.append(kind, record)
-        with self.assertRaisesRegex(ValueError, 'applicable contradictory evidence'):
+        with self.assertRaisesRegex(ValueError, 'applicable evidence'):
             store.append('artifact', omitted, now=NOW)
         assert all(event['record']['id'] != 'omit:ledger' for event in store.events())
-        # Positive control: a snapshot that carries the contradiction is accepted on both paths.
+        # Snapshotting the contradiction is refused too: a blocked resource cannot yield an artifact.
         complete = {**branch, 'evidence_snapshot': ['e1', 'e2']}
-        accepted = build_artifact('omit:complete', r, complete, [positive, contradictory], claims, [auth()], NOW)
-        assert accepted['evidence_snapshot'] == ['e1', 'e2']
-        store.append('artifact', accepted, now=NOW)
-        assert store.events()[-1]['record']['id'] == 'omit:complete'
+        with self.assertRaisesRegex(ValueError, 'contradictory, disqualifying, or false'):
+            build_artifact('omit:complete', r, complete, [positive, contradictory], claims, [auth()], NOW)
+        # Positive control: a clean extra fact that is snapshotted is accepted on both paths.
+        clean_extra = evidence('e5', True, 'LOCAL')
+        clean = {**branch, 'evidence_snapshot': ['e1', 'e5']}
+        accepted = build_artifact('omit:clean', r, clean, [positive, clean_extra], claims, [auth()], NOW)
+        assert accepted['evidence_snapshot'] == ['e1', 'e5']
+        clean_store = StateStore(Path(self.directory.name) / 'clean.jsonl')
+        for kind, record in [('resource', r), ('evidence', positive), ('evidence', clean_extra), ('authorization', auth())]:
+            clean_store.append(kind, record)
+        clean_store.append('artifact', accepted, now=NOW)
+        assert clean_store.events()[-1]['record']['id'] == 'omit:clean'
 
     def test_artifact_rejects_prior_from_another_resource_on_builder_and_ledger(self):
         store = StateStore(Path(self.directory.name) / 'cross.jsonl')
-        r2, e1 = resource('RM-002'), evidence('e1')
-        r3, e3 = resource('RM-003'), {**evidence('e3'), 'resource_ids': ['RM-003']}
+        # LOCAL facts: GLOBAL facts apply to every resource, which would make each snapshot incomplete for the other.
+        r2, e1 = resource('RM-002'), evidence('e1', True, 'LOCAL')
+        r3, e3 = resource('RM-003'), {**evidence('e3', True, 'LOCAL'), 'resource_ids': ['RM-003']}
         auth3 = {**auth(), 'id': 'a3', 'resource_id': 'RM-003'}
         claims2 = [dict(predicate='capability', value=True, evidence_id='e1')]
         claims3 = [dict(predicate='capability', value=True, evidence_id='e3')]
@@ -309,19 +318,58 @@ class ResourceSystemTests(unittest.TestCase):
         global_false = {**evidence('e4', False, 'GLOBAL'), 'resource_ids': ['RM-999']}
         claims = [dict(predicate='capability', value=True, evidence_id='e1')]
         branch = sweep([r], [positive], {'RM-002': rule()}, TODAY)['branches']['RM-002']
-        with self.assertRaisesRegex(ValueError, 'applicable contradictory evidence'):
+        with self.assertRaisesRegex(ValueError, 'applicable evidence'):
             build_artifact('global:builder', r, branch, [positive, global_false], claims, [auth()], NOW)
         omitted = build_artifact('global:ledger', r, branch, [positive], claims, [auth()], NOW)
         for kind, record in [('resource', r), ('evidence', positive), ('evidence', global_false), ('authorization', auth())]:
             store.append(kind, record)
-        with self.assertRaisesRegex(ValueError, 'applicable contradictory evidence'):
+        with self.assertRaisesRegex(ValueError, 'applicable evidence'):
             store.append('artifact', omitted, now=NOW)
         assert all(event['record']['id'] != 'global:ledger' for event in store.events())
         complete = {**branch, 'evidence_snapshot': ['e1', 'e4']}
-        accepted = build_artifact('global:complete', r, complete, [positive, global_false], claims, [auth()], NOW)
-        assert accepted['evidence_snapshot'] == ['e1', 'e4']
-        store.append('artifact', accepted, now=NOW)
-        assert store.events()[-1]['record']['id'] == 'global:complete'
+        with self.assertRaisesRegex(ValueError, 'contradictory, disqualifying, or false'):
+            build_artifact('global:complete', r, complete, [positive, global_false], claims, [auth()], NOW)
+
+    def test_prior_artifact_reuse_is_scoped_to_one_resource(self):
+        first = resource('RM-002')
+        second = resource('SECOND')
+        first_evidence = {**evidence('e-first', True, 'LOCAL'), 'resource_ids': ['RM-002']}
+        second_evidence = {**evidence('e-second', True, 'LOCAL'), 'resource_ids': ['SECOND']}
+        first_branch = sweep([first], [first_evidence], {'RM-002': rule()}, TODAY)['branches']['RM-002']
+        second_branch = sweep([second], [second_evidence], {'SECOND': rule('SECOND')}, TODAY)['branches']['SECOND']
+        first_auth = auth()
+        second_auth = {**auth(), 'id': 'a-second', 'resource_id': 'SECOND'}
+        first_claims = [dict(predicate='capability', value=True, evidence_id='e-first')]
+        second_claims = [dict(predicate='capability', value=True, evidence_id='e-second')]
+        prior = build_artifact('second:v1', second, second_branch, [second_evidence], second_claims, [second_auth], NOW)
+
+        with self.assertRaises(ValueError):
+            build_artifact(
+                'first:v2', first, first_branch, [first_evidence], first_claims, [first_auth], NOW,
+                prior=prior, overlap=['capability'], delta=[]
+            )
+
+        store = StateStore(Path(self.directory.name) / 'cross-resource.jsonl')
+        for kind, record in [
+            ('resource', first), ('resource', second),
+            ('evidence', first_evidence), ('evidence', second_evidence),
+            ('authorization', first_auth), ('authorization', second_auth),
+        ]:
+            store.append(kind, record)
+        store.append('artifact', prior, now=NOW)
+        current = build_artifact('first:v1', first, first_branch, [first_evidence], first_claims, [first_auth], NOW)
+        cross_resource = {
+            **current, 'id': 'first:cross-resource', 'prior_artifact_id': prior['id'],
+            'overlap': ['capability'], 'delta': [],
+        }
+        with self.assertRaises(ValueError):
+            store.append('artifact', cross_resource, now=NOW)
+
+    def test_runtime_is_explicit_tick_prototype_not_persistent_monitor(self):
+        runtime = LocalRuntime(StateStore(Path(self.directory.name) / 'scope.jsonl'))
+        assert runtime.mode == 'EXPLICIT_TICK_LOCAL_ONLY'
+        assert runtime.persistent is False
+        assert runtime.external_execution_enabled is False
 
 if __name__ == "__main__":
     unittest.main()

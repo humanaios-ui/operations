@@ -4,6 +4,14 @@ This dedicated project **composes** Resource Miner and Entitlement Navigator thr
 their existing handoff functions. Neither dependency is moved or modified. Need
 alignment remains a discovery signal, never eligibility or a recommendation.
 
+## Milestone boundary
+
+This change is a bounded **prototype v0.1 milestone for issue #588**, not completion
+of that issue. The runtime is caller-driven and explicit-tick only: it does not run
+a background scanner, monitor sources, deploy a service, or perform external actions.
+Issue #588 must remain open for the persistent runtime, authenticated inputs,
+production storage, integration, and exact-head admission work.
+
 Run from the source checkout with Python 3.10 or later; no network or third-party
 runtime/test dependencies are needed:
 

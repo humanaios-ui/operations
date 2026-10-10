@@ -1,4 +1,4 @@
-"""Explicit local tick; no networking, disclosure, or external executor."""
+"""Prototype v0.1 explicit tick; not a persistent scanner or monitor."""
 from resource_system.controller.portfolio_sweep import sweep, affected_branches, routing_from_outcomes
 from uuid import uuid4
 
@@ -18,7 +18,11 @@ def execute_external(*args, **kwargs):
     raise PermissionError('external execution is disabled in this prototype')
 
 class LocalRuntime:
-    """Restartable explicit-tick runner over durable claim-only records."""
+    """Caller-driven local runner; issue #588's persistent service remains future work."""
+    mode = 'EXPLICIT_TICK_LOCAL_ONLY'
+    persistent = False
+    external_execution_enabled = False
+
     def __init__(self, store):
         self.store = store
 

@@ -1,3 +1,12 @@
+# HumanAIOS Resource System — prototype v0.1
+
+## Milestone status
+
+This document specifies a bounded local milestone toward issue #588. It does not
+claim issue completion. `LocalRuntime` is an explicit, caller-invoked replay tick;
+there is no daemon, background source monitoring, deployment, or external executor.
+Persistent scanning and monitoring remain tracked by the open parent issue.
+
 # Project specification and assumptions
 
 ## Composition boundary
