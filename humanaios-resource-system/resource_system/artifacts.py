@@ -21,6 +21,15 @@ def validate_artifact_traceability(record, resource, evidence, authorizations, n
     snapshot = {node['id']: node for node in evidence if node['id'] in record['evidence_snapshot']}
     if len(snapshot) != len(record['evidence_snapshot']):
         raise ValueError('artifact snapshot evidence must be recorded')
+    requirements = set(resource['requirements'])
+    for node in evidence:
+        applicable = (
+            resource['id'] in node['resource_ids']
+            and (node['classification'] in {'CONTRADICTORY', 'DISQUALIFYING'}
+                 or (node['predicate'] in requirements and not node['value']))
+        )
+        if applicable and node['id'] not in snapshot:
+            raise ValueError('artifact snapshot must include applicable contradictory evidence')
     for claim in record['claims']:
         node = snapshot.get(claim['evidence_id'])
         if (
@@ -34,6 +43,8 @@ def validate_artifact_traceability(record, resource, evidence, authorizations, n
     if set(resource['requirements']) != {claim['predicate'] for claim in record['claims']}:
         raise ValueError('artifact must cover exact external requirements')
     if prior:
+        if prior['resource_id'] != record['resource_id']:
+            raise ValueError('prior artifact must belong to the same resource')
         old_requirements = {claim['predicate'] for claim in prior['claims']}
         new_requirements = set(resource['requirements'])
         if set(record['overlap']) != old_requirements & new_requirements or set(record['delta']) != old_requirements ^ new_requirements:

@@ -254,5 +254,53 @@ class ResourceSystemTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 validate('evidence', bad)
 
+    def test_artifact_rejects_omitted_contradictory_evidence_on_builder_and_ledger(self):
+        store = StateStore(Path(self.directory.name) / 'omitted.jsonl')
+        r, positive = resource(), evidence('e1')
+        contradictory = evidence('e2', False, 'CONTRADICTORY')
+        claims = [dict(predicate='capability', value=True, evidence_id='e1')]
+        branch = sweep([r], [positive], {'RM-002': rule()}, TODAY)['branches']['RM-002']
+        # Builder path: branch snapshot silently drops the recorded contradiction.
+        with self.assertRaisesRegex(ValueError, 'applicable contradictory evidence'):
+            build_artifact('omit:builder', r, branch, [positive, contradictory], claims, [auth()], NOW)
+        # Ledger path: a record that omits the contradiction is refused on direct append.
+        omitted = build_artifact('omit:ledger', r, branch, [positive], claims, [auth()], NOW)
+        for kind, record in [('resource', r), ('evidence', positive), ('evidence', contradictory), ('authorization', auth())]:
+            store.append(kind, record)
+        with self.assertRaisesRegex(ValueError, 'applicable contradictory evidence'):
+            store.append('artifact', omitted, now=NOW)
+        assert all(event['record']['id'] != 'omit:ledger' for event in store.events())
+        # Positive control: a snapshot that carries the contradiction is accepted on both paths.
+        complete = {**branch, 'evidence_snapshot': ['e1', 'e2']}
+        accepted = build_artifact('omit:complete', r, complete, [positive, contradictory], claims, [auth()], NOW)
+        assert accepted['evidence_snapshot'] == ['e1', 'e2']
+        store.append('artifact', accepted, now=NOW)
+        assert store.events()[-1]['record']['id'] == 'omit:complete'
+
+    def test_artifact_rejects_prior_from_another_resource_on_builder_and_ledger(self):
+        store = StateStore(Path(self.directory.name) / 'cross.jsonl')
+        r2, e1 = resource('RM-002'), evidence('e1')
+        r3, e3 = resource('RM-003'), {**evidence('e3'), 'resource_ids': ['RM-003']}
+        auth3 = {**auth(), 'id': 'a3', 'resource_id': 'RM-003'}
+        claims2 = [dict(predicate='capability', value=True, evidence_id='e1')]
+        claims3 = [dict(predicate='capability', value=True, evidence_id='e3')]
+        branch2 = sweep([r2], [e1], {'RM-002': rule()}, TODAY)['branches']['RM-002']
+        branch3 = sweep([r3], [e3], {'RM-003': rule('RM-003')}, TODAY)['branches']['RM-003']
+        prior = build_artifact('rm2:v1', r2, branch2, [e1], claims2, [auth()], NOW)
+        # Builder path: RM-003 cannot reuse RM-002's history, even with matching predicates.
+        with self.assertRaisesRegex(ValueError, 'same resource'):
+            build_artifact('rm3:builder', r3, branch3, [e3], claims3, [auth3], NOW,
+                           prior=prior, overlap=['capability'], delta=[])
+        # Ledger path: the same forged predecessor link is refused on direct append.
+        standalone = build_artifact('rm3:ledger', r3, branch3, [e3], claims3, [auth3], NOW)
+        forged = {**standalone, 'prior_artifact_id': prior['id'], 'overlap': ['capability'], 'delta': []}
+        for kind, record in [('resource', r2), ('resource', r3), ('evidence', e1), ('evidence', e3),
+                             ('authorization', auth()), ('authorization', auth3)]:
+            store.append(kind, record)
+        store.append('artifact', prior, now=NOW)
+        with self.assertRaisesRegex(ValueError, 'same resource'):
+            store.append('artifact', forged, now=NOW)
+        assert [event['record']['id'] for event in store.events() if event['kind'] == 'artifact'] == ['rm2:v1']
+
 if __name__ == "__main__":
     unittest.main()
