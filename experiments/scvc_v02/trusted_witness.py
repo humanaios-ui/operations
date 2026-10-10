@@ -78,9 +78,19 @@ class GitHubReadOnly:
         # children. The initial prefix-only guard rejected repos/{REPO},
         # preventing every live witness run immediately after OIDC succeeded.
         root = f"repos/{REPO}"
+        # GitHub compare refs use an intentional three-dot delimiter. Match
+        # that endpoint by exact shape and SHA-only refs before permitting it.
+        # Other dot-dot sequences remain denied as traversal candidates.
+        sha_compare = (
+            isinstance(path, str) and re.fullmatch(
+                re.escape(root) + r"/compare/[0-9a-f]{40}\\.\\.\\.[0-9a-f]{40}",
+                path,
+            ) is not None
+        )
         if (not isinstance(path, str)
                 or not (path == root or path.startswith(root + "/"))
-                or ".." in path or "\\" in path or len(path) > 600):
+                or (".." in path and not sha_compare)
+                or "\\" in path or len(path) > 600):
             raise WitnessError("API_PATH_DENIED")
         req = urllib.request.Request(
             "https://api.github.com/" + path,
