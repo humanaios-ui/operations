@@ -7,6 +7,7 @@ import copy
 import hashlib
 import json
 import unittest
+from unittest.mock import patch
 import urllib.parse
 
 from experiments.scvc_v02 import trusted_witness as witness
@@ -120,6 +121,61 @@ def definition():
         (__import__("pathlib").Path(__file__).resolve().parents[1] /
          "experiments/scvc_v02/milestone_graph.json").read_text()
     )
+
+
+class RestTransportRegressionTests(unittest.TestCase):
+    """Regression for observed post-merge API_PATH_DENIED failure."""
+
+    def test_exact_repository_root_accepted(self):
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self, *_):
+                return b'{"full_name":"humanaios-ui/operations","default_branch":"main"}'
+
+        with patch.object(witness.urllib.request, "urlopen", return_value=Response()) as open_url:
+            info = witness.GitHubReadOnly("synthetic-test-token").get(PRE)
+        self.assertEqual(info["full_name"], REPO)
+        self.assertEqual(open_url.call_args.args[0].full_url,
+                         "https://api.github.com/" + PRE)
+
+    def test_cross_repository_root_is_denied_without_network(self):
+        with patch.object(witness.urllib.request, "urlopen") as open_url:
+            with self.assertRaises(witness.WitnessError):
+                witness.GitHubReadOnly("synthetic-test-token").get("repos/another-owner/repo")
+            open_url.assert_not_called()
+
+    def test_sibling_repo_prefix_is_denied_without_network(self):
+        with patch.object(witness.urllib.request, "urlopen") as open_url:
+            with self.assertRaises(witness.WitnessError):
+                witness.GitHubReadOnly("synthetic-test-token").get(PRE + "-malicious/actions")
+            open_url.assert_not_called()
+
+    def test_path_traversal_is_denied_without_network(self):
+        with patch.object(witness.urllib.request, "urlopen") as open_url:
+            with self.assertRaises(witness.WitnessError):
+                witness.GitHubReadOnly("synthetic-test-token").get(PRE + "/../private")
+            open_url.assert_not_called()
+
+    def test_child_endpoint_keeps_existing_access(self):
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self, *_):
+                return b'{"sha":"synthetic"}'
+
+        with patch.object(witness.urllib.request, "urlopen", return_value=Response()) as open_url:
+            result = witness.GitHubReadOnly("synthetic-test-token").get(PRE + "/branches/main")
+        self.assertEqual(result["sha"], "synthetic")
+        self.assertTrue(open_url.called)
 
 
 class WitnessTests(unittest.TestCase):
