@@ -1,0 +1,21 @@
+name: GPCS contract tests
+on:
+  pull_request:
+    paths:
+      - 'gpcs/**'
+      - 'tests/test_gpcs_translation.py'
+      - '.github/workflows/gpcs-contract.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python3 -m unittest discover -s tests -p 'test_gpcs_translation.py' -v

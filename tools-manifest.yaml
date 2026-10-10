@@ -30,10 +30,10 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 207
+  tools: 208
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 159
+  builder_markers_present: 160
   missing_from_tree: 0
   unclassified: 0
 categories:
@@ -2634,6 +2634,18 @@ tools:
   smoke_test: true
   builder_markers: true
   purpose: 'ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact.'
+- tool_id: HAIOS-TOOL-221
+  name: state_continuity_verification
+  path: tools/state_continuity_verification_v0_1.py
+  version: 0.1.0
+  category: validation_tool
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: true
+  builder_markers: true
+  purpose: Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
