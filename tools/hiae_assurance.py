@@ -343,10 +343,15 @@ def verify_receipt(
 # Synthetic end-to-end transaction (test fixture, not production keys)
 # ---------------------------------------------------------------------------
 
+# Fixture keys are derived from public labels, so no key material is stored in
+# source. They are NOT secrets and must never sign a real receipt.
 DEMO_KEYS = {
-    "issuer:humanaios-operations": b"demo-issuer-key-NOT-FOR-PRODUCTION",
-    "observer:rater-a": b"demo-observer-a-NOT-FOR-PRODUCTION",
-    "observer:rater-b": b"demo-observer-b-NOT-FOR-PRODUCTION",
+    name: hashlib.sha256(f"hiae-demo-fixture|{name}".encode("utf-8")).digest()
+    for name in (
+        "issuer:humanaios-operations",
+        "observer:rater-a",
+        "observer:rater-b",
+    )
 }
 
 DEMO_PROTOCOL = {
