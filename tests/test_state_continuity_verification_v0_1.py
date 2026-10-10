@@ -187,6 +187,14 @@ class InterfaceTests(unittest.TestCase):
         self.assertEqual(report["source_refs"], [])
         self.assertNotIn("synthetic://", str(report))
 
+    def test_empty_privacy_class_denied(self):
+        self.v["privacy_scope"]["data_classes"] = []
+        self.assertEqual(self.audit()["status"], "RECONSTRUCTION_DENIED")
+
+    def test_malformed_graph_fails_closed(self):
+        self.g["sources"] = [None]
+        self.assertIn("MALFORMED_OR_UNBOUNDED_GRAPH", self.audit()["reason_codes"])
+
     def test_revoked_and_expired_are_denied(self):
         self.v["revocation"]["state"] = "REVOKED"
         self.assertEqual(self.audit()["status"], "RECONSTRUCTION_DENIED")
