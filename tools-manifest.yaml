@@ -30,12 +30,12 @@ excluded_dirs:
 - skills
 - tests
 counts:
-  tools: 201
+  tools: 207
   mcp_servers: 2
   excluded: 4
   builder_markers_present: 152
   missing_from_tree: 0
-  unclassified: 2
+  unclassified: 8
 categories:
 - analysis_tool
 - analytics_tool
@@ -2563,6 +2563,78 @@ tools:
   smoke_test: false
   builder_markers: false
   purpose: GNER-E1 explicit, read-only authenticated GitHub workflow-run reconciliation.
+- tool_id: HAIOS-TOOL-215
+  name: b4_fold_execute
+  path: .z1-control/b4_fold_execute.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: 'b4_fold_execute.py — B4: execute the non-destructive practice fold, gated on ratification.'
+- tool_id: HAIOS-TOOL-216
+  name: b4_migrate
+  path: .z1-control/b4_migrate.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: b4_migrate.py (v2) — gated per-seat content migration into a survivor's OWN store.
+- tool_id: HAIOS-TOOL-217
+  name: board_monitor
+  path: .z1-control/board_monitor.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: module
+  lang: python
+  smoke_test: false
+  builder_markers: false
+  purpose: Mesh build-board monitor — surfaces board status changes at end of turn.
+- tool_id: HAIOS-TOOL-218
+  name: candidate_bundle
+  path: .z1-control/candidate_bundle.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: 'candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle.'
+- tool_id: HAIOS-TOOL-219
+  name: leak_guard
+  path: .z1-control/leak_guard.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: 'leak_guard.py — B6: bound the two Empirica session leaks.'
+- tool_id: HAIOS-TOOL-220
+  name: ratify_eco
+  path: .z1-control/ratify_eco.py
+  version: unversioned
+  category: unclassified
+  zone: 1
+  status: draft
+  interface: cli
+  lang: python
+  smoke_test: true
+  builder_markers: false
+  purpose: 'ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact.'
 mcp_servers:
 - server_id: HAIOS-MCP-001
   server: rentahuman
