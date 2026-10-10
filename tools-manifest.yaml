@@ -2603,7 +2603,7 @@ tools:
   name: gner_notification_e0
   path: tools/gner_notification_e0.py
   version: 0.1.0
-  category: analysis_tool
+  category: diagnostic_tool
   zone: 1
   status: draft
   interface: cli
