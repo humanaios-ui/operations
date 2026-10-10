@@ -20,19 +20,20 @@ describe('GrantCard Component', () => {
   };
 
   test('renders grant information correctly', () => {
-    render(
+    const { container } = render(
       <GrantCard grant={mockGrant} isSaved={false} onSaveToggle={() => {}} onClick={() => {}} />
     );
     expect(screen.getByText('Tech Foundation')).toBeInTheDocument();
     expect(screen.getByText('$50,000')).toBeInTheDocument();
-    expect(screen.getByText('85%')).toBeInTheDocument();
+    expect(container.querySelector('.grant-score .score-value')).toHaveTextContent('85%');
   });
 
   test('displays capacity assessment badge', () => {
-    render(
+    const { container } = render(
       <GrantCard grant={mockGrant} isSaved={false} onSaveToggle={() => {}} onClick={() => {}} />
     );
     expect(screen.getByText('Affordable')).toBeInTheDocument();
+    expect(container.querySelector('.capacity-badge.green')).toHaveTextContent('✓ Affordable');
   });
 
   test('calls onSaveToggle when save button is clicked', () => {
@@ -63,13 +64,16 @@ describe('GrantCard Component', () => {
     expect(saveButton).toBeInTheDocument();
   });
 
-  test('renders component scores with progress bars', () => {
-    render(
+  test('renders component scores with progress bars and percentage units', () => {
+    const { container } = render(
       <GrantCard grant={mockGrant} isSaved={false} onSaveToggle={() => {}} onClick={() => {}} />
     );
     expect(screen.getByText('Keywords:')).toBeInTheDocument();
     expect(screen.getByText('Geography:')).toBeInTheDocument();
     expect(screen.getByText('Budget:')).toBeInTheDocument();
     expect(screen.getByText('Timeline:')).toBeInTheDocument();
+    expect(
+      Array.from(container.querySelectorAll('.score-item .value'), node => node.textContent)
+    ).toEqual(['90%', '80%', '75%', '85%']);
   });
 });

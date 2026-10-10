@@ -6,7 +6,7 @@ function GrantCard({ grant, isSaved, onSaveToggle, onClick }) {
     if (verdict === 'GREEN_LIGHT') {
       return (
         <span className="capacity-badge green">
-          <span>✓</span>
+          <span>✓</span>{' '}
           <span>Affordable</span>
         </span>
       );
@@ -64,28 +64,28 @@ function GrantCard({ grant, isSaved, onSaveToggle, onClick }) {
             <span className="bar">
               <span className="bar-fill" style={{width: `${grant.keyword_fit * 100}%`}}></span>
             </span>
-            <span className="value">{Math.round(grant.keyword_fit * 100)}</span>
+            <span className="value">{Math.round(grant.keyword_fit * 100)}%</span>
           </div>
           <div className="score-item">
             <span className="label">Geography:</span>
             <span className="bar">
               <span className="bar-fill" style={{width: `${grant.geography_fit * 100}%`}}></span>
             </span>
-            <span className="value">{Math.round(grant.geography_fit * 100)}</span>
+            <span className="value">{Math.round(grant.geography_fit * 100)}%</span>
           </div>
           <div className="score-item">
             <span className="label">Budget:</span>
             <span className="bar">
               <span className="bar-fill" style={{width: `${grant.budget_fit * 100}%`}}></span>
             </span>
-            <span className="value">{Math.round(grant.budget_fit * 100)}</span>
+            <span className="value">{Math.round(grant.budget_fit * 100)}%</span>
           </div>
           <div className="score-item">
             <span className="label">Timeline:</span>
             <span className="bar">
               <span className="bar-fill" style={{width: `${grant.timeline_fit * 100}%`}}></span>
             </span>
-            <span className="value">{Math.round(grant.timeline_fit * 100)}</span>
+            <span className="value">{Math.round(grant.timeline_fit * 100)}%</span>
           </div>
         </div>
 

@@ -187,3 +187,6 @@ baseline_tests:
   - path: tests/test_state_continuity_verification_v0_1.py
     requires: []
     description: SCVC mathematical continuity and read-only HLKS/Session Graph boundary regressions
+  - path: humanaios-resource-system/tests/test_resource_system.py
+    requires: []
+    description: HumanAIOS Resource System artifact, authorization, PII, runtime, and inventory regressions

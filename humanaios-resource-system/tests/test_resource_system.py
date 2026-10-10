@@ -189,6 +189,71 @@ class ResourceSystemTests(unittest.TestCase):
             store.append('artifact', contradictory_artifact, now=NOW)
         assert len(store.events()) == 10
 
+    def test_artifact_rejects_omitted_blocking_evidence_in_builder_and_ledger(self):
+        r = resource()
+        positive = evidence()
+        stale_branch = sweep([r], [positive], {'RM-002': rule()}, TODAY)['branches']['RM-002']
+        claims = [dict(predicate='capability', value=True, evidence_id='e1')]
+        clean_artifact = build_artifact('resume:clean', r, stale_branch, [positive], claims, [auth()], NOW)
+
+        blocked_cases = [
+            evidence('e-false', False, 'GLOBAL'),
+            evidence('e-disqualifying', True, 'DISQUALIFYING'),
+            evidence('e-contradictory', True, 'CONTRADICTORY'),
+        ]
+        for blocked in blocked_cases:
+            with self.subTest(classification=blocked['classification'], value=blocked['value']):
+                with self.assertRaises(ValueError):
+                    build_artifact(
+                        'resume:blocked', r, stale_branch, [positive, blocked], claims, [auth()], NOW
+                    )
+                store = StateStore(Path(self.directory.name) / f"{blocked['id']}.jsonl")
+                for kind, record in [('resource', r), ('evidence', positive), ('evidence', blocked), ('authorization', auth())]:
+                    store.append(kind, record)
+                with self.assertRaises(ValueError):
+                    store.append('artifact', {**clean_artifact, 'id': 'resume:direct-bypass'}, now=NOW)
+
+    def test_prior_artifact_reuse_is_scoped_to_one_resource(self):
+        first = resource('RM-002')
+        second = resource('SECOND')
+        first_evidence = {**evidence('e-first', True, 'LOCAL'), 'resource_ids': ['RM-002']}
+        second_evidence = {**evidence('e-second', True, 'LOCAL'), 'resource_ids': ['SECOND']}
+        first_branch = sweep([first], [first_evidence], {'RM-002': rule()}, TODAY)['branches']['RM-002']
+        second_branch = sweep([second], [second_evidence], {'SECOND': rule('SECOND')}, TODAY)['branches']['SECOND']
+        first_auth = auth()
+        second_auth = {**auth(), 'id': 'a-second', 'resource_id': 'SECOND'}
+        first_claims = [dict(predicate='capability', value=True, evidence_id='e-first')]
+        second_claims = [dict(predicate='capability', value=True, evidence_id='e-second')]
+        prior = build_artifact('second:v1', second, second_branch, [second_evidence], second_claims, [second_auth], NOW)
+
+        with self.assertRaises(ValueError):
+            build_artifact(
+                'first:v2', first, first_branch, [first_evidence], first_claims, [first_auth], NOW,
+                prior=prior, overlap=['capability'], delta=[]
+            )
+
+        store = StateStore(Path(self.directory.name) / 'cross-resource.jsonl')
+        for kind, record in [
+            ('resource', first), ('resource', second),
+            ('evidence', first_evidence), ('evidence', second_evidence),
+            ('authorization', first_auth), ('authorization', second_auth),
+        ]:
+            store.append(kind, record)
+        store.append('artifact', prior, now=NOW)
+        current = build_artifact('first:v1', first, first_branch, [first_evidence], first_claims, [first_auth], NOW)
+        cross_resource = {
+            **current, 'id': 'first:cross-resource', 'prior_artifact_id': prior['id'],
+            'overlap': ['capability'], 'delta': [],
+        }
+        with self.assertRaises(ValueError):
+            store.append('artifact', cross_resource, now=NOW)
+
+    def test_runtime_is_explicit_tick_prototype_not_persistent_monitor(self):
+        runtime = LocalRuntime(StateStore(Path(self.directory.name) / 'scope.jsonl'))
+        assert runtime.mode == 'EXPLICIT_TICK_LOCAL_ONLY'
+        assert runtime.persistent is False
+        assert runtime.external_execution_enabled is False
+
     def test_azure_resource_conversion_and_expiration(self):
         r = {**resource('azure'), 'state': 'ACQUIRED', 'resource_types': ['INFRASTRUCTURE']}
         value = dict(schema_version='1.0', id='azure-value', resource_id='azure', value_type='RESTRICTED_INFRASTRUCTURE',
