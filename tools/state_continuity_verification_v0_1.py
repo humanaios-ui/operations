@@ -18,7 +18,7 @@ STATUS = frozenset({"EXACTLY_RECOVERABLE", "SEMANTICALLY_RECOVERABLE",
 COMMIT = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 DOMAINS = frozenset({"human", "operations", "lasting-light-ai"})
 PURPOSES = frozenset({"learning", "research", "operations"})
-OPAQUE_REF = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\\Z")
+OPAQUE_REF = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
 
 
 def _safe_ref(value: Any) -> bool:
