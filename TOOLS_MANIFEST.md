@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**198 registered tools** · 2 MCP servers · 4 excluded · 151 carrying Builder v1.7 markers
+**200 registered tools** · 2 MCP servers · 4 excluded · 152 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,11 +13,11 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 198 |
-| — status `draft` | 197 |
+| Registered tools | 200 |
+| — status `draft` | 199 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 151 |
-| Uncategorized | 0 |
+| Builder v1.7 markers present | 152 |
+| Uncategorized | 1 |
 | MCP servers | 2 |
 
 ## ⚠️ Open Z2 items — self-declared authority without ratification
@@ -27,6 +27,12 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | tool_id | path | zone | note |
 |---|---|---|---|
 | HAIOS-TOOL-088 | `tools/message_calibration_v1_0.py` | 2 | Self-declares TOOL_ZONE = 2 (ratify) with no Z2 ratification on record. Z1 cannot grant Zone 2; routed to Z2 as an open item. Resolve by either recording a `ratified_by` hash or correcting the declaration to zone 1. |
+
+## Analysis Tool — `analysis_tool` (1)
+
+| tool_id | tool | path | ver | zone | status | flags | purpose |
+|---|---|---|---|---|---|---|---|
+| HAIOS-TOOL-213 | gner_verify_e1 | `tools/gner_verify_e1.py` | 0.1.0 | 1 | draft | — | GNER-E1 explicit, read-only authenticated GitHub workflow-run reconciliation. |
 
 ## Analytics — `analytics_tool` (3)
 
@@ -305,6 +311,12 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-187 | verify_pr_readiness | `scripts/verify_pr_readiness.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | PR Readiness Verification — Run all validation checks in sequence |
 | HAIOS-TOOL-199 | workflow_path_validator | `tools/workflow_path_validator.py` | 1.0.0 | 1 | draft | — | Workflow Path Validator |
 | HAIOS-TOOL-209 | machine_graph_validate_snapshot | `tools/machine_graph/validate_snapshot.py` | 0.1.0 | 1 | draft | — | Validate a HumanAIOS Machine Substrate Graph snapshot without external dependencies. |
+
+## Unclassified — blocks the gate — `unclassified` (1)
+
+| tool_id | tool | path | ver | zone | status | flags | purpose |
+|---|---|---|---|---|---|---|---|
+| HAIOS-TOOL-212 | gner_notification_e0 | `tools/gner_notification_e0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | GNER-E0: offline GitHub notification lead interpreter. |
 
 ## MCP servers (2)
 

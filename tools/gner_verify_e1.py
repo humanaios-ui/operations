@@ -2,6 +2,8 @@
 
 Live query is opt-in CLI only, uses a narrowly scoped token from the environment.
 No Gmail API, GitHub mutations, comment posting, automatic scheduling or authority.
+
+Builder v1.7 compliant · analysis_tool
 """
 from __future__ import annotations
 
@@ -9,7 +11,13 @@ import argparse
 import json
 import os
 import re
+import sys
 import urllib.request
+
+TOOL_NAME = "gner_verify_e1"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "analysis_tool"
+TOOL_ZONE = 1
 
 from gner_notification_e0 import parse_notification
 
@@ -120,15 +128,57 @@ def verify_lead(lead: dict, *, github_token: str, timeout: int = 10) -> dict:
         raise VerificationDenied("invalid GitHub response") from exc
 
 
+def run_smoke_test() -> bool:
+    """Smoke test for Builder v1.7 compliance."""
+    tests = []
+
+    try:
+        result = reconcile(
+            {"state": "EMAIL_OBSERVED_UNVERIFIED", "repository": REPO, "run_id": 123, "sha_prefix": "a1b2c3", "workflow": "quality-baseline", "kind": "WORKFLOW_FAILURE_LEAD", "pr": None},
+            {"id": 123, "repository": {"full_name": REPO}, "head_sha": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0", "name": "quality-baseline", "event": "push", "status": "completed", "conclusion": "failure", "pull_requests": []}
+        )
+        tests.append(("reconcile_valid", result["state"] == "CANONICAL_VERIFIED"))
+    except Exception as e:
+        tests.append(("reconcile_valid", False))
+
+    try:
+        result = reconcile({"state": "EMAIL_OBSERVED_UNVERIFIED", "repository": REPO, "run_id": 999}, {})
+        tests.append(("reconcile_mismatch", result["state"] == "CONFLICT"))
+    except Exception as e:
+        tests.append(("reconcile_mismatch", False))
+
+    try:
+        result = reconcile({"state": "INVALID", "repository": REPO}, {})
+        tests.append(("reconcile_invalid_lead", result["state"] == "CONFLICT" and "invalid lead" in result.get("reason", "")))
+    except Exception as e:
+        tests.append(("reconcile_invalid_lead", False))
+
+    passed = sum(1 for _, p in tests if p)
+    print(f"{TOOL_NAME} smoke test: {passed}/{len(tests)} checks")
+    for name, passed_test in tests:
+        if not passed_test:
+            print(f"  ::error::{name}")
+    return passed == len(tests)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Explicit read-only GitHub run verification")
-    parser.add_argument("--subject", required=True, help="Only use sanitized notification subject")
-    parser.add_argument("--run-id", required=True, type=int, help="Run ID observed in notification")
+    parser.add_argument("--smoke-test", action="store_true", help="Run smoke test")
+    parser.add_argument("--subject", help="Only use sanitized notification subject")
+    parser.add_argument("--run-id", type=int, help="Run ID observed in notification")
     args = parser.parse_args()
-    lead = parse_notification(args.subject, f"https://github.com/{REPO}/actions/runs/{args.run_id}")
-    lead["run_id"] = args.run_id
-    verdict = verify_lead(lead, github_token=os.environ.get("GITHUB_TOKEN", ""))
-    print(json.dumps(verdict, indent=2))
+
+    if args.smoke_test:
+        sys.exit(0 if run_smoke_test() else 1)
+
+    if args.subject and args.run_id:
+        lead = parse_notification(args.subject, f"https://github.com/{REPO}/actions/runs/{args.run_id}")
+        lead["run_id"] = args.run_id
+        verdict = verify_lead(lead, github_token=os.environ.get("GITHUB_TOKEN", ""))
+        print(json.dumps(verdict, indent=2))
+    else:
+        parser.print_help()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
