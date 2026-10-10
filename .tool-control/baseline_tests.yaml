@@ -32,6 +32,10 @@ baseline_tests:
     requires: []
     description: Intake schema validation
 
+  - path: tools/tests/test_outlier_public_adapter_v0_1.py
+    requires: []
+    description: Public-only Outlier adapter synthetic regression tests
+
   - path: tools/tests/test_orchestrator_molt.py
     requires: []
     description: Orchestrator molt tests
@@ -167,3 +171,23 @@ baseline_tests:
   - path: acat/tests/test_tool_trace_schema.py
     requires: []
     description: Tool trace schema validation (ACAT)
+
+  - path: tests/test_gner_notification_e0.py
+    requires: []
+    description: GNER-E0 notification lead interpreter tests
+
+  - path: tests/test_gner_verify_e1.py
+    requires: [gh_cli]
+    description: GNER-E1 canonical run verification tests
+
+  - path: tests/test_gner_failure_signatures_e2.py
+    requires: []
+    description: GNER-E2 failure signature analyzer tests
+
+  - path: tests/test_state_continuity_verification_v0_1.py
+    requires: []
+    description: SCVC mathematical continuity and read-only HLKS/Session Graph boundary regressions
+
+  - path: humanaios-resource-system/tests/test_resource_system.py
+    requires: []
+    description: Resource system prototype regressions (artifact traceability, authorization, PII, ledger bypass fixtures)
