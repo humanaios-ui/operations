@@ -203,3 +203,7 @@ baseline_tests:
   - path: tests/test_scvc_v02_trusted_witness.py
     requires: []
     description: SCVC v0.2 GitHub REST exact-head witness and trust-root negative tests
+
+  - path: tests/test_scvc_v02_oidc_identity.py
+    requires: []
+    description: GitHub OIDC issuer identity and replay-resistant verification negative tests
