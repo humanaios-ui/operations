@@ -1,9 +1,9 @@
 # HumanAIOS Living Knowledge Substrate (HLKS) — bounded design v0.1
 
-**Status:** Z1 design candidate; not Z2-ratified; design only  
-**Authority effect:** `NONE`  
-**Baseline:** `humanaios-ui/operations@59f4199e22a7019e5a831a9ac38703a4b36d5ef3`  
-**Execution disposition:** **NOT AUTHORIZED FOR EXECUTION**
+- **Status:** Z1 design candidate; not Z2-ratified; design only
+- **Authority effect:** `NONE`
+- **Baseline:** `humanaios-ui/operations@59f4199e22a7019e5a831a9ac38703a4b36d5ef3`
+- **Execution disposition:** **NOT AUTHORIZED FOR EXECUTION**
 
 This contract proposes a replaceable, non-authoritative memory and retrieval
 capability. It does not approve implementation, deployment, third-party
