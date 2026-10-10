@@ -28,3 +28,24 @@ The workflow in this PR is **not independently trusted until merged into an adeq
 4. Add independent re-execution of pinned experimental commit in a later milestone, with exact versus tolerance-class comparisons and authenticated artifact provenance.
 
 A Z1 positive result is *research evidence only*. Z2 authorization is separate.
+
+
+## IEW-002 — explicit outcome-comparison boundary
+
+`witness_gate.py` introduces a deliberately non-authorizing comparison contract. It requires externally captured source/input hashes, stdout digest and exit code; it rejects read-only-open / import-then-print false claims if the witness observation disagrees, treats a locally forged SHA-256 chain as inert in the absence of external observation, and ignores receipt-supplied `trusted_context` or `VERIFIED_EXECUTED` labels. Even `OUTCOME_MATCH` retains `admission_effect: NONE` and `independently_attested: false`.
+
+**Security limitation:** In the tests, `observed` and `trusted_context` are controlled fixtures, not a trusted real GitHub runner. Therefore the tests establish fail-closed translation semantics, not independent execution or authenticated witness identity. `stdout` equality is exact; nondeterministic outcomes (e.g. TIMEOUT) need a separately specified comparator. No PR may call this contract an independent attestation until a protected workflow actually executes the pinned experiment and supplies observations outside candidate control.
+
+## CI follow-up observed on PR #777 (head 51860c25)
+
+Tool-manifest failed because `.z1-control/b4_fold_execute.py` exists but is absent from `tools-manifest.yaml`. Quality baseline failed because `tools/tests/test_outlier_public_adapter_v0_1.py` is missing from both the quality-baseline pytest enumeration and `tools/intent_os_test_harness_v1_0.py` baseline list. These failures are tracked as pre-existing cross-workstream integration issues; do not silently edit the protected tool manifest or unrelated test schedule within this research PR. Both require coordinated owner review.
+
+## IEW-002 next acceptance requirements
+
+- Pin experiment source/inputs to immutable git/object digests.
+- Execute them on an independently administered runner with no candidate ability to edit witness control or signing materials.
+- Capture program stdout/stderr/exit code at the runner boundary; never parse them from an author-written ledger.
+- Sign or attest those captured observations with a verified run identity and anchor them externally.
+- Validate branch protection/rulesets and required checks empirically.
+- Run the same attack fixtures through the *original vulnerable checker* as demonstrations, then prove independent witness mismatch blocks promotion through a production gate.
+- Preserve separate Z2 admission and merge authority; never treat an `OUTCOME_MATCH` as authorization.
