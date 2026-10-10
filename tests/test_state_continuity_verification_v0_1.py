@@ -63,14 +63,22 @@ def graph():
     return {
         "status": "DERIVED_NON_CANONICAL",
         "graph_id": "humanaios-cross-chat-longitudinal-evidence-graph",
+        "version": "0.2.0",
+        "predecessor": {"sha256": "a" * 64, "nodes": 1,
+                        "edges": 0, "status": "SYNTHETIC"},
+        "invariants": ["GRAPH_IS_NOT_AUTHORITY"],
         "sources": [{"id": SOURCE, "type": "github_work_item_observation",
+                     "evidence_class": "SOURCE_OBSERVED",
                      "authority_effect": "NONE"}],
-        "entities": [{"id": "entity:55", "hydration_state": "SOURCE_OBSERVED",
+        "entities": [{"id": "entity:55", "type": "semantic_entity",
+                      "semantic_type": "issue", "hydration_state": "SOURCE_OBSERVED",
                       "source_refs": [SOURCE]}],
         "assertions": [{"id": "assertion:55", "subject": "entity:55",
+                        "predicate": "HAS_OBSERVED_WORK_ITEM_METADATA",
                         "epistemic_state": "OBSERVED", "source_refs": [SOURCE],
                         "authority_effect": "NONE"}],
         "events": [{"id": OBS, "entity_ref": "entity:55",
+                    "observed_on": "2026-10-01",
                     "type": "hydration_observation", "source_ref": SOURCE,
                     "authority_effect": "NONE"}],
     }
@@ -117,6 +125,11 @@ class ContractShapeTests(unittest.TestCase):
         jsonschema.validate(vlr(), schema,
                             cls=jsonschema.Draft202012Validator,
                             format_checker=jsonschema.FormatChecker())
+
+    def test_synthetic_session_graph_conforms_to_canonical_schema(self):
+        path = TOOL.parents[0] / "chat_graph" / "schema" / "longitudinal_graph.schema.json"
+        schema = json.loads(path.read_text())
+        jsonschema.validate(graph(), schema, cls=jsonschema.Draft202012Validator)
 
     def test_scvc_report_conforms_to_its_own_schema(self):
         path = TOOL.parents[0] / "schemas" / "state_continuity_verification_v0_1.schema.json"
