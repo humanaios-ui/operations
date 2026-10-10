@@ -1,8 +1,8 @@
 version: 1
-generated: '2026-10-02'
+generated: '2026-10-09'
 decision_window_days: 2
 counts:
-  candidates: 104
+  candidates: 106
   records: 56
 ratifiers:
 - Night
@@ -1200,6 +1200,33 @@ candidates:
     path filters. Tier 2 (control surface): telemetry collection & Phase 2A monitoring.
     PR #626 ready for merge. All 59 workflows validated (0 errors, 1 warning on future-facing
     pattern). Three workflows remediated for invalid path filters.'
+- q_id: Q-SYSTEM-GRAPH-TEMPORAL-01
+  title: Temporal sequencing for system_graph.json schema
+  path: z1-inbox/2026-10-08/SYSTEM_GRAPH_TEMPORAL_SCHEMA_PROPOSAL.md
+  submitted: '2026-10-08'
+  status: awaiting_z2
+  tier: 0
+  note: 'Schema v0.2 contains 16 detected cycles (all intentional feedback loops per
+    CLAUDE.md molt design). Proposes v0.3 with temporal sequencing (generation fields
+    on nodes, generation_rules on edges, feedback_loops manifest) to distinguish safe
+    cycles from accidental ones. All 16 cycles classified against anti-cascade rules
+    (K=3 max concurrent, 2-revert freeze, priority ranking, no self-reference, one
+    per constant). Non-breaking Phase 1; annotation Phase 2; enforcement Phase 3.
+    Timeline: ~10 days pending Z2 ratification. Registered in REGISTERED.md with full
+    candidate entry Q-SYSTEM-GRAPH-TEMPORAL-01.'
+- q_id: Q-REGISTRY-STRUCTURAL-REPAIR-PLAN-01
+  title: Governance registry structural repair — 162 entries, 127 defects
+  path: z1-inbox/2026-10-09/REGISTRY_STRUCTURAL_REPAIR_PLAN.md
+  submitted: '2026-10-09'
+  status: awaiting_z2
+  tier: 1
+  note: 'Validator scan identified 127 defects across 162 entries (RFM-06/09/10/15/17).
+    Blockage: CI validate gate fails on all PRs (gates entire file, not just changes),
+    preventing PR #734 admission. Proposes tiered repair: Option A (minimal, unblock PR #734
+    only, 1-2 days); Option B (moderate, reorganize post-changelog entries, 2-3 days);
+    Option C (comprehensive audit + full repair, 5-7 days). Recommends A + governance
+    escalation for Z2 to choose B or C scope. All entries with missing required YAML
+    fields documented and quantified per failure mode.'
 records:
 - path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
   title: Phase 3 credential deployment guide

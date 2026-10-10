@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:humanaios:resource-system:resource:1.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "action_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "source_handoff_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "eligibility": {
+      "enum": [
+        "UNASSESSED",
+        "VERIFIED",
+        "BLOCKED"
+      ]
+    },
+    "state": {
+      "enum": [
+        "DISCOVERED",
+        "ACQUIRED"
+      ]
+    },
+    "resource_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_.:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_.:-]+$"
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "source_url",
+    "action_url",
+    "source_handoff_id",
+    "eligibility",
+    "state",
+    "resource_types",
+    "requirements"
+  ],
+  "additionalProperties": false
+}
