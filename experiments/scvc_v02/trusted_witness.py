@@ -142,7 +142,8 @@ def _protection(api):
         if type(rid) is not int or rid <= 0:
             continue
         detail = api.get(f"repos/{REPO}/rulesets/{rid}")
-        if not isinstance(detail, dict) or detail.get("enforcement") != "active":
+        if (not isinstance(detail, dict) or detail.get("enforcement") != "active"
+                or detail.get("bypass_actors")):
             continue
         conditions = detail.get("conditions", {}).get("ref_name", {})
         includes = conditions.get("include", [])
@@ -288,6 +289,7 @@ def collect(api, context, *, identity=None):
     return LiveObservation(_COLLECTOR_CAPABILITY, {
         "source": "GITHUB_REST_FROM_TRUSTED_DEFAULT_WORKFLOW",
         "github_oidc_run_identity_verified": True,
+        "oidc_key_id": identity.get("jwt_kid"),
         "trusted_checkout_sha": sha,
         "witness_run_id": run_id,
         "witness_run_attempt": run_attempt,
@@ -334,13 +336,17 @@ def derive_progress(definition, facts):
             "human_approval_required": node["human_approval_required"],
             "governance_accepted": False, "execution_authorized": False,
         })
-    return {
+    report = {
         "schema": "humanaios.scvc_live_witness_report.v0.2",
         "objective_issue": PILOT_ISSUE, "subject_pr": PILOT_PR,
         "subject_head_sha": facts["subject_head_sha"],
         "trusted_checkout_sha": facts["trusted_checkout_sha"],
         "witness_run_id": facts["witness_run_id"],
         "witness_run_attempt": facts["witness_run_attempt"],
+        "oidc_key_id": facts.get("oidc_key_id"),
+        "predecessor_merge_sha": facts["predecessor_merge_sha"],
+        "source_pins": facts["predicates"],
+        "verified_ci_run_refs": facts["ci"],
         "source_api_verified": True,
         "oidc_workflow_identity_verified": facts.get("github_oidc_run_identity_verified") is True,
         "trust_root_protected": trust,
@@ -350,6 +356,9 @@ def derive_progress(definition, facts):
         "merge_authority": False, "can_dispatch": False,
         "warning": "GitHub API corroboration is not independent cryptographic attestation or Z2 ratification.",
     }
+    report["report_sha256"] = hashlib.sha256(json.dumps(
+        report, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return report
 
 
 def main():
