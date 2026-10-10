@@ -74,7 +74,12 @@ class GitHubReadOnly:
         self.token = token
 
     def get(self, path: str):
-        if (not path.startswith("repos/humanaios-ui/operations/")
+        # Permit the exact repository identity endpoint as well as its
+        # children. The initial prefix-only guard rejected repos/{REPO},
+        # preventing every live witness run immediately after OIDC succeeded.
+        root = f"repos/{REPO}"
+        if (not isinstance(path, str)
+                or not (path == root or path.startswith(root + "/"))
                 or ".." in path or "\\" in path or len(path) > 600):
             raise WitnessError("API_PATH_DENIED")
         req = urllib.request.Request(
