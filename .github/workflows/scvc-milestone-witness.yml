@@ -6,6 +6,9 @@ on:
   workflow_run:
     workflows: [quality-baseline, security-gates]
     types: [completed]
+  # temporal_class: OBSERVATIONAL
+  # This cadence samples read-only GitHub API facts; it imposes no deadline,
+  # start-after constraint, ratification threshold, or time-based authority.
   schedule:
     - cron: "17 9 * * *"
   workflow_dispatch:
