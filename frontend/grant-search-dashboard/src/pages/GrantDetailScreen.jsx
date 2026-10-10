@@ -193,7 +193,7 @@ function GrantDetailScreen({ nonprofitId, apiBase }) {
               <li>Confirm your organization meets all eligibility requirements</li>
               <li>Prepare your proposal and supporting documents</li>
               {grant.capacity_verdict === 'RED_LIGHT' && (
-                <li>Address the capacity shortfall before applying</li>
+                <li>Address the shortfall before applying</li>
               )}
               <li>Submit your application before the deadline</li>
             </ol>
