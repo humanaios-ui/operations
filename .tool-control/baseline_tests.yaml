@@ -167,3 +167,11 @@ baseline_tests:
   - path: acat/tests/test_tool_trace_schema.py
     requires: []
     description: Tool trace schema validation (ACAT)
+
+  - path: tests/test_gner_notification_e0.py
+    requires: []
+    description: GNER-E0 notification lead interpreter tests
+
+  - path: tools/tests/test_outlier_public_adapter_v0_1.py
+    requires: []
+    description: Outlier public adapter tests
