@@ -32,6 +32,10 @@ baseline_tests:
     requires: []
     description: Intake schema validation
 
+  - path: tools/tests/test_outlier_public_adapter_v0_1.py
+    requires: []
+    description: Public-only Outlier adapter synthetic regression tests
+
   - path: tools/tests/test_orchestrator_molt.py
     requires: []
     description: Orchestrator molt tests
@@ -167,3 +171,7 @@ baseline_tests:
   - path: acat/tests/test_tool_trace_schema.py
     requires: []
     description: Tool trace schema validation (ACAT)
+
+  - path: tests/test_hiae_assurance.py
+    requires: []
+    description: HIAE-001 neutral assignment, signed receipts and negative suite
