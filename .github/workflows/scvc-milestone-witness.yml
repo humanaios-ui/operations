@@ -1,0 +1,88 @@
+# SCVC v0.2 candidate protected witness: installed ONLY when reviewed and merged
+# onto main. Untrusted PR code never executes with this job's GITHUB_TOKEN.
+name: scvc-milestone-witness
+
+on:
+  workflow_run:
+    workflows: [quality-baseline, security-gates]
+    types: [completed]
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/scvc_v02/**'
+      - '.github/workflows/scvc-milestone-witness.yml'
+      - 'schemas/validated_learning_record_v1.schema.json'
+      - 'chat_graph/schema/longitudinal_graph.schema.json'
+      - 'tools/state_continuity_verification_v0_1.py'
+      - 'REPOSITORY_COORDINATOR_POLICY.json'
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: scvc-witness-default-branch
+  cancel-in-progress: true
+
+jobs:
+  witness:
+    name: SCVC independent API witness (advisory only)
+    if: github.repository == 'humanaios-ui/operations'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout trusted default-branch code only
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Pin trusted checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = main
+          echo "SCVC_CHECKOUT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Fetch GitHub API witness evidence and evaluate observational milestones
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p scvc-evidence
+          python3 -m experiments.scvc_v02.trusted_witness \
+            --definition experiments/scvc_v02/milestone_graph.json \
+            --out scvc-evidence/milestone-witness.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("scvc-evidence/milestone-witness.json")
+          data = json.loads(p.read_text(encoding="utf-8"))
+          with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+              f.write("## SCVC v0.2 observation-only milestone witness\n\n")
+              f.write(f"Trusted checkout: `{data['trusted_checkout_sha']}`\n\n")
+              f.write(f"Subject head: `{data['subject_head_sha']}`\n\n")
+              f.write(f"Trust root protections verified: `{data['trust_root_protected']}`\n\n")
+              for row in data["milestones"]:
+                  f.write(f"- {row['milestone_id']}: {row['candidate_status']}\n")
+              f.write("\nNo merge, admission, dispatch, ratification, or execution authority.\n")
+          PY
+
+      - name: Upload ephemeral corroboration (not an authenticated signature)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: scvc-v02-witness-${{ github.run_id }}-${{ github.run_attempt }}
+          path: scvc-evidence/milestone-witness.json
+          retention-days: 30
+          if-no-files-found: ignore
