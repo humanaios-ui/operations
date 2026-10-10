@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:humanaios:resource-system:resource_value:1.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "resource_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "value_type": {
+      "enum": [
+        "CASH",
+        "RESTRICTED_INFRASTRUCTURE"
+      ]
+    },
+    "nominal_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cash_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "usable_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "acquisition_cost": {
+      "type": "number",
+      "minimum": 0
+    },
+    "friction_cost": {
+      "type": "number",
+      "minimum": 0
+    },
+    "conversion_potential": {
+      "type": "number",
+      "minimum": 0
+    },
+    "dependency_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "realized_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "restriction_level": {
+      "enum": [
+        "NONE",
+        "RESTRICTED"
+      ]
+    },
+    "expiration_risk": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "expires_on": {
+      "type": "string",
+      "format": "date"
+    },
+    "allowed_workloads": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_.:-]+$"
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "resource_id",
+    "value_type",
+    "nominal_value",
+    "cash_value",
+    "usable_value",
+    "acquisition_cost",
+    "friction_cost",
+    "conversion_potential",
+    "dependency_value",
+    "realized_value",
+    "restriction_level",
+    "expiration_risk",
+    "expires_on",
+    "allowed_workloads"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "value_type": {
+            "const": "RESTRICTED_INFRASTRUCTURE"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "cash_value": {
+            "const": 0
+          },
+          "restriction_level": {
+            "const": "RESTRICTED"
+          }
+        }
+      }
+    }
+  ]
+}

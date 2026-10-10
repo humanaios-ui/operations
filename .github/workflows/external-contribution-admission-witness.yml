@@ -1,0 +1,133 @@
+name: external-contribution-admission-witness
+
+# Read-only, trusted-base witness. NEVER execute or checkout PR head code.
+# This reports admissibility evidence; only the protected Repository Coordinator
+# and independently recorded Z2 decision can grant admission.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
+    paths:
+      - 'humanaios-resource-system/**'
+      - 'frontend/grant-search-dashboard/**'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR to inspect without executing candidate code
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+  actions: read
+
+jobs:
+  witness:
+    runs-on: ubuntu-latest
+    name: External contribution evidence (NO ADMISSION AUTHORITY)
+    steps:
+      - name: Inspect current exact-head evidence from GitHub REST
+        id: inspect
+        uses: actions/github-script@v9
+        env:
+          INPUT_PR: ${{ inputs.pr_number }}
+        with:
+          script: |
+            const fs = require("fs");
+            const {owner, repo} = context.repo;
+            const number = Number(process.env.INPUT_PR || context.payload.pull_request?.number);
+            if (!Number.isSafeInteger(number) || number < 1) throw Error("Invalid PR number");
+            const get = async () => (await github.rest.pulls.get({owner,repo,pull_number:number})).data;
+            const p = await get();
+            const head = p.head.sha;
+            const blockers = [];
+            if (p.state !== "open") blockers.push("PR_NOT_OPEN");
+            if (p.merged) blockers.push("ALREADY_MERGED");
+            if (p.draft) blockers.push("PR_DRAFT");
+            if (!p.head.repo || !p.head.repo.full_name) blockers.push("UNKNOWN_SOURCE");
+            if (p.head.repo?.full_name === `${owner}/${repo}`) {
+              blockers.push("NOT_EXTERNAL_FORK");
+            }
+            const allFiles = await github.paginate(github.rest.pulls.listFiles, {
+              owner,repo,pull_number:number,per_page:100
+            });
+            if (allFiles.length >= 3000) blockers.push("FILE_ENUMERATION_LIMIT");
+            const files = allFiles.map(x => x.filename);
+            if (number === 789 && !files.some(x => x.startsWith("humanaios-resource-system/"))) {
+              blockers.push("MILESTONE_SCOPE_MISSING");
+            }
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner,repo,pull_number:number,per_page:100
+            });
+            const unresolved = [];
+            let cursor = null;
+            do {
+              const q = await github.graphql(`query($owner:String!,$repo:String!,$number:Int!,$cursor:String){
+                repository(owner:$owner,name:$repo){pullRequest(number:$number){
+                  reviewThreads(first:100,after:$cursor){pageInfo{hasNextPage,endCursor}
+                    nodes{isResolved isOutdated}}}}}`,
+                {owner,repo,number,cursor});
+              const page = q.repository.pullRequest.reviewThreads;
+              if (!page) throw Error("Missing review-thread pagination response");
+              unresolved.push(...page.nodes.filter(x=>!x.isResolved));
+              cursor = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null;
+            } while(cursor);
+            if (unresolved.length) blockers.push("UNRESOLVED_REVIEW_THREADS:" + unresolved.length);
+            const workflows = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+              owner,repo,head_sha:head,per_page:100
+            });
+            const required = [
+              "security-gates", "temporal-dissolution-gate",
+              "repository-coordinator", "ci-predict-pin",
+              "quality-baseline", "tool-manifest"
+            ];
+            for (const name of required) {
+              const matching = workflows.filter(w => w.name === name &&
+                w.head_sha === head && w.event === "pull_request");
+              matching.sort((a,b) => b.id - a.id);
+              if (!matching.length) blockers.push("MISSING_REQUIRED_RUN:" + name);
+              else if (matching[0].status !== "completed" ||
+                       matching[0].conclusion !== "success")
+                blockers.push("REQUIRED_RUN_NOT_GREEN:" + name);
+            }
+            // A contributor-authored PR body, its tests, and its self-reported
+            // approvals are NEVER authoritative evidence for Z2 admission.
+            // The five ACs require independent assessment beyond this witness.
+            blockers.push("AC1_TO_AC4_INDEPENDENT_VERIFICATION_REQUIRED");
+            blockers.push("Z2_COORDINATOR_ADMISSION_REQUIRED");
+            const latest = await get();
+            if (latest.head.sha !== head) blockers.push("HEAD_CHANGED_DURING_WITNESS");
+            const report = {
+              schema_version: "1.0",
+              kind: "EXTERNAL_CONTRIBUTION_WITNESS",
+              repository: `${owner}/${repo}`, pr_number: number,
+              head_sha: head, source_repository: p.head.repo?.full_name ?? null,
+              evaluated_at: new Date().toISOString(),
+              workflow_run_id: context.runId, check_mode: "READ_ONLY",
+              candidate_code_executed: false,
+              authority: "NONE", can_admit: false, can_merge: false,
+              verdict: "HOLD", blockers: [...new Set(blockers)],
+              observed_workflow_count: workflows.length,
+              unresolved_review_threads: unresolved.length,
+              changed_file_count: files.length
+            };
+            fs.writeFileSync("external-contribution-witness.json",
+              JSON.stringify(report,null,2)+"\n");
+            await core.summary.addHeading("External contribution: NO ADMISSION AUTHORITY")
+              .addRaw("Exact head: " + head + "\n\n", true)
+              .addRaw("Verdict: HOLD. This witness cannot authorize admission or merge.\n\n",true)
+              .addCodeBlock(JSON.stringify(report,null,2),"json").write();
+            core.info(JSON.stringify(report));
+            if (blockers.some(x => x.startsWith("HEAD_CHANGED_DURING") ||
+                x.startsWith("UNKNOWN_SOURCE"))) {
+              core.setFailed("Witness evidence incomplete or racing; fail closed");
+            }
+      - name: Store read-only evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-contribution-witness-${{ github.run_id }}
+          path: external-contribution-witness.json
+          if-no-files-found: warn
+          retention-days: 30

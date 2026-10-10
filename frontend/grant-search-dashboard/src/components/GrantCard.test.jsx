@@ -20,19 +20,20 @@ describe('GrantCard Component', () => {
   };
 
   test('renders grant information correctly', () => {
-    render(
+    const { container } = render(
       <GrantCard grant={mockGrant} isSaved={false} onSaveToggle={() => {}} onClick={() => {}} />
     );
     expect(screen.getByText('Tech Foundation')).toBeInTheDocument();
     expect(screen.getByText('$50,000')).toBeInTheDocument();
-    expect(screen.getByText('85%')).toBeInTheDocument();
+    // Timeline sub-score also renders 85%; scope to the combined match score.
+    expect(container.querySelector('.grant-score .score-value')).toHaveTextContent('85%');
   });
 
   test('displays capacity assessment badge', () => {
-    render(
+    const { container } = render(
       <GrantCard grant={mockGrant} isSaved={false} onSaveToggle={() => {}} onClick={() => {}} />
     );
-    expect(screen.getByText('Affordable')).toBeInTheDocument();
+    expect(container.querySelector('.capacity-badge.green')).toHaveTextContent('✓ Affordable');
   });
 
   test('calls onSaveToggle when save button is clicked', () => {
