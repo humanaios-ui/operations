@@ -48,7 +48,7 @@ The collector corroborates, independently of candidate self-reports:
 - No candidate edits to the two CI-issuer workflow files.
 - **Positive** branch trust-root verification: an active ruleset applying to main must require both a PR approving review and a quality-related required status check. Missing permissions, unknown rules, non-fast-forward restrictions alone, or unavailable rulesets yield `BLOCKED_TRUST_ROOT`.
 
-The resulting evidence object stays ephemeral and is emitted to GitHub Actions step summary and a 30-day artifact. An artifact hash or copied JSON is **not** a cryptographic attestation, a durable issuer signature or a human acceptance receipt.
+The resulting report contains pinned source blob hashes, exact CI workflow paths, run IDs/attempts and predecessor merge SHA for independent rechecking. Its deterministic `report_sha256` detects accidental changes but does not sign the report or establish who authored a copy. The resulting evidence object stays ephemeral and is emitted to GitHub Actions step summary and a 30-day artifact. An artifact hash or copied JSON is **not** a cryptographic attestation, a durable issuer signature or a human acceptance receipt.
 
 When the positive trust-root condition and all M0 predicates and exact-head CI succeed, the derived observer reports `SCVC-M0=OBSERVATIONAL_MILESTONE_ACHIEVED` and unlocks `SCVC-M1=ELIGIBLE_FOR_AUTHORIZED_WORK`. These are **observation-only statuses**, not an authorized coordinator ledger mutation or final Z2 disposition. M1–M4 still require separately verified evidence and human review where indicated.
 
