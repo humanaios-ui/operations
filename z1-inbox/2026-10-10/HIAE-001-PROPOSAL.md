@@ -42,6 +42,18 @@ Run: `python3 tools/hiae_assurance.py --smoke-test` and `python3 -m unittest tes
 - [ ] Fee/escrow design review
 - [ ] Host gate enforcement (#730): **blocked** on repository-admin access
 
+## Falsifier
+
+The design fails if any of these occurs:
+
+1. `select_reviewer()` returns a reviewer who is declared in conflict with the customer, who is in the customer's org, or who has prior involvement with the same subject.
+2. A request that names a reviewer through any `CUSTOMER_REVIEWER_KEYS` field is accepted.
+3. `verify_receipt()` accepts a receipt whose `findings`, `measured` or `not_measured` text was altered after signing.
+4. `check_assignment()` accepts an assignment whose reviewer differs from the reviewer recomputed from the recorded seed.
+5. `issue_receipt()` issues a receipt containing a forbidden overclaim word (certified, certification, safe, compliant, accredited, accreditation) as a whole word.
+
+Each is covered by a test in `tests/test_hiae_assurance.py`. A failing test on any of these disproves the design as written.
+
 ## Z2 decisions requested
 
 1. Accept the least-loaded rotation rule, or specify a different one (e.g. round-robin by reviewer id).

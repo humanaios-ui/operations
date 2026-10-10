@@ -189,6 +189,25 @@ class ReceiptTests(unittest.TestCase):
         self.assertEqual(len(item["content_sha256"]), 64)
 
 
+class ReportTests(unittest.TestCase):
+    def test_report_written_when_directory_exists(self):
+        import json
+        import tempfile
+
+        from tools.hiae_assurance import write_report
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = write_report({"passed": True}, tmp)
+            with open(path, encoding="utf-8") as fh:
+                self.assertEqual(json.load(fh), {"passed": True})
+
+    def test_missing_report_directory_raises_spec_load_failed(self):
+        from tools.hiae_assurance import SpecLoadFailed, write_report
+
+        with self.assertRaises(SpecLoadFailed):
+            write_report({"passed": True}, "/nonexistent/hiae-report-dir")
+
+
 class NegativeSuiteTests(unittest.TestCase):
     def test_every_negative_case_is_rejected(self):
         results = negative_cases()

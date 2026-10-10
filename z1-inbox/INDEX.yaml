@@ -2,7 +2,7 @@ version: 1
 generated: '2026-10-09'
 decision_window_days: 2
 counts:
-  candidates: 106
+  candidates: 107
   records: 56
 ratifiers:
 - Night
@@ -1227,6 +1227,16 @@ candidates:
     Option C (comprehensive audit + full repair, 5-7 days). Recommends A + governance
     escalation for Z2 to choose B or C scope. All entries with missing required YAML
     fields documented and quantified per failure mode.'
+- q_id: Q-HIAE-001-ASSIGNMENT-RECEIPTS-01
+  title: HIAE-001 neutral reviewer assignment, versioned receipts, synthetic transaction
+  path: z1-inbox/2026-10-10/HIAE-001-PROPOSAL.md
+  submitted: '2026-10-10'
+  status: awaiting_z2
+  tier: 0
+  note: 'PR #785 (draft). Adds tools/hiae_assurance.py (stdlib only), tests/test_hiae_assurance.py
+    (25 cases), and docs/HIAE_EXTERNAL_CLAIMS_VERIFICATION.md. No governance file or constant
+    changed. Signatures are HMAC stand-ins; the overclaim filter is lexical. Z2 decides the
+    assignment rule, the signature scheme, and the overclaim vocabulary.'
 records:
 - path: z1-inbox/2026-09-30/PHASE3-CREDENTIAL-DEPLOYMENT-GUIDE.md
   title: Phase 3 credential deployment guide

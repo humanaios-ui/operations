@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 HIAE-001 assurance transaction core — v0.1 (proposal stage)
+Builder v1.7 compliant · validation_tool
 HumanAIOS · Q-HIAE-001 · Z1 proposal, NOT ratified (awaiting Z2)
 
 Three pieces, stdlib only:
@@ -29,6 +30,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 import argparse
 import hashlib
@@ -84,6 +86,10 @@ class AssignmentError(ValueError):
 
 class ReceiptError(ValueError):
     """Raised when a receipt body cannot be issued."""
+
+
+class SpecLoadFailed(RuntimeError):
+    """Raised when a report output location cannot be used."""
 
 
 # ---------------------------------------------------------------------------
@@ -489,14 +495,34 @@ def negative_cases() -> Dict[str, bool]:
 # CLI
 # ---------------------------------------------------------------------------
 
-def smoke_test() -> int:
+def write_report(results: Mapping[str, Any], out_dir: str) -> str:
+    """Write the smoke-test results as JSON evidence for CI. Returns the report path."""
+    directory = Path(out_dir)
+    if not directory.is_dir():
+        raise SpecLoadFailed(f"report directory does not exist: {out_dir}")
+    path = directory / f"{TOOL_NAME}_report.json"
+    path.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return str(path)
+
+
+def smoke_test(report_dir: Optional[str] = None) -> int:
     assignment, receipt, problems = run_synthetic_transaction()
+    negatives = negative_cases()
     failures = []
     if problems:
         failures.append(f"happy path produced problems: {problems}")
-    for name, rejected in negative_cases().items():
+    for name, rejected in negatives.items():
         if not rejected:
             failures.append(f"negative case not rejected: {name}")
+    results = {
+        "tool": TOOL_NAME,
+        "tool_version": TOOL_VERSION,
+        "happy_path_problems": problems,
+        "negative_cases": negatives,
+        "passed": not failures,
+    }
+    if report_dir:
+        print(f"report: {write_report(results, report_dir)}")
     if failures:
         for f in failures:
             print(f"FAIL: {f}", file=sys.stderr)
@@ -508,9 +534,14 @@ def smoke_test() -> int:
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="HIAE-001 assurance transaction core (proposal stage)")
     parser.add_argument("--smoke-test", action="store_true", help="run synthetic transaction and negative cases")
+    parser.add_argument("--report-dir", help="directory to write the smoke-test JSON report into")
     args = parser.parse_args(argv)
     if args.smoke_test:
-        return smoke_test()
+        try:
+            return smoke_test(args.report_dir)
+        except SpecLoadFailed as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
     parser.print_help()
     return 0
 
