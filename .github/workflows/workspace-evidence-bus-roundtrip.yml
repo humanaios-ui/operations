@@ -2,15 +2,42 @@ name: Workspace Evidence Bus Roundtrip
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "workspace_evidence_bus/**"
+      - ".github/workflows/workspace-evidence-bus-roundtrip.yml"
 
 permissions:
   contents: read
 
 jobs:
-  roundtrip:
+  lifecycle-tests:
+    name: Validate evidence-bus lifecycle projection
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
+      - name: Run Workspace Evidence Bus unit tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python3 -m unittest discover -s workspace_evidence_bus/tests -p 'test_*.py' -v
+
+      - name: Verify committed current-state projection
+        run: |
+          python3 workspace_evidence_bus/tools/workspace_lifecycle.py \
+            --receipt workspace_evidence_bus/receipts/roundtrip_gate_receipt.json \
+            --receipt-locator workspace_evidence_bus/receipts/roundtrip_gate_receipt.json \
+            --historical-drive-file-id 11EgHtelUYGFGA5uYHZPzn6wIf1q717tg \
+            --historical-recorded-at 2026-10-02T20:52:00Z \
+            --out workspace_evidence_bus/state/current_state.json \
+            --check
+
+  roundtrip:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
 
       - name: Build synthetic public-safe event
         env:
