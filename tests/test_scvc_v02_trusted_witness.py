@@ -97,6 +97,16 @@ class FakeAPI:
         return copy.deepcopy(self.records[path])
 
 
+def signed_identity():
+    return {
+        "identity_verified": True,
+        "issuer": witness.ISSUER,
+        "workflow_ref": witness.WORKFLOW_REF,
+        "run_id": 555, "run_attempt": 1,
+        "subject_head_sha": MAIN,
+    }
+
+
 def context():
     return {
         "repository": REPO, "ref": "refs/heads/main",
@@ -118,12 +128,13 @@ class WitnessTests(unittest.TestCase):
         self.ctx = context()
 
     def facts(self):
-        return witness.collect(self.api, self.ctx)
+        return witness.collect(self.api, self.ctx, identity=signed_identity())
 
     def test_positive_witness_and_non_authority_progression(self):
         evidence = self.facts()
         self.assertEqual(set(evidence["ci"]), set(witness.REQUIRED_CI))
         self.assertTrue(evidence["trust_root_protected"])
+        self.assertTrue(evidence["github_oidc_run_identity_verified"])
         result = witness.derive_progress(definition(), evidence)
         self.assertEqual(result["milestones"][0]["candidate_status"],
                          "OBSERVATIONAL_MILESTONE_ACHIEVED")
@@ -145,6 +156,29 @@ class WitnessTests(unittest.TestCase):
         self.assertEqual(result["milestones"][0]["candidate_status"], "BLOCKED_TRUST_ROOT")
         self.assertNotEqual(result["milestones"][1]["candidate_status"],
                             "ELIGIBLE_FOR_AUTHORIZED_WORK")
+
+    def test_no_oidc_identity_rejected(self):
+        with self.assertRaises(witness.WitnessError):
+            witness.collect(self.api, self.ctx)
+
+    def test_oidc_wrong_run_rejected(self):
+        fake = signed_identity()
+        fake["run_id"] = 100
+        with self.assertRaises(witness.WitnessError):
+            witness.collect(self.api, self.ctx, identity=fake)
+
+    def test_fabricated_source_string_cannot_advance(self):
+        forged = {
+            "source": "GITHUB_REST_FROM_TRUSTED_DEFAULT_WORKFLOW",
+            "trust_root_protected": True, "predicates": {
+                k: "forged" for k in witness.SOURCE_PATHS
+            }, "ci": {k: "forged" for k in witness.REQUIRED_CI},
+            "trusted_checkout_sha": MAIN, "subject_head_sha": HEAD,
+            "witness_run_id": 555, "witness_run_attempt": 1,
+        }
+        report = witness.derive_progress(definition(), forged)
+        self.assertNotEqual(report["milestones"][0]["candidate_status"],
+                            "OBSERVATIONAL_MILESTONE_ACHIEVED")
 
     def test_unsigned_external_claim_is_not_live_witness(self):
         with self.assertRaises(witness.WitnessError):
