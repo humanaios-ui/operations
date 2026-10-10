@@ -49,3 +49,11 @@ Tool-manifest failed because `.z1-control/b4_fold_execute.py` exists but is abse
 - Validate branch protection/rulesets and required checks empirically.
 - Run the same attack fixtures through the *original vulnerable checker* as demonstrations, then prove independent witness mismatch blocks promotion through a production gate.
 - Preserve separate Z2 admission and merge authority; never treat an `OUTCOME_MATCH` as authorization.
+
+## IEW-003 — Captured execution reference fixture
+
+`iew_runner.py` uses Python `subprocess.run` to execute a SHA-256-pinned, repository-controlled, non-networked fixture with fixed stdin and a three-second process timeout. The runner itself captures stdout, stderr and exit status; no submitted ledger contents are read. `test_iew_runner.py` includes negative controls for forged output, forged hash chain, source mutation, and non-promotion after matching observations. The workflow uploads `iew-observation.json` and retains it for 30 days.
+
+**Not a protected independent witness yet:** The source and runner are in the PR branch, so contributors can alter them until protected main review/merge. The artifact is not signed; `GITHUB_RUN_ID` and `GITHUB_SHA` are contextual labels, not authenticated witness identity. The fixture is predetermined and benign. This is not re-execution of the originally uploaded calculator/provenance experiment and cannot establish that the original provenance attacks execute in GitHub CI. A wall-clock timeout does not establish bounded resource use for arbitrary untrusted code. Use an isolated, non-privileged runner for candidate programs.
+
+For production independent attestation: inspect organization rulesets/branch protections, make this workflow a required check, protect workflow edits with Z2 review, pin third-party actions by full immutable SHA, obtain an external identity-bound attestation of artifact digests, verify against GitHub's API and workflow ref, and link it to the exact candidate commit. Do not grant admission or merge authority from this workflow alone.
