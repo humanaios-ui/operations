@@ -195,3 +195,15 @@ baseline_tests:
   - path: humanaios-resource-system/tests/test_resource_system.py
     requires: []
     description: Resource system prototype regressions (artifact traceability, authorization, PII, ledger bypass fixtures)
+
+  - path: tests/test_scvc_v02_milestone_pilot.py
+    requires: []
+    description: SCVC v0.2 bounded milestone pilot fail-closed regression tests
+
+  - path: tests/test_scvc_v02_trusted_witness.py
+    requires: []
+    description: SCVC v0.2 GitHub REST exact-head witness and trust-root negative tests
+
+  - path: tests/test_scvc_v02_oidc_identity.py
+    requires: []
+    description: GitHub OIDC issuer identity and replay-resistant verification negative tests
