@@ -20,6 +20,7 @@ import urllib.parse
 import urllib.request
 
 from experiments.scvc_v02.milestone_controller import validate
+from experiments.scvc_v02.oidc_identity import verify_current_workflow, ISSUER, WORKFLOW_REF
 
 REPO = "humanaios-ui/operations"
 OWNER, NAME = REPO.split("/")
@@ -198,12 +199,20 @@ def _runs(api, head, pr_number):
     return refs
 
 
-def collect(api, context):
+def collect(api, context, *, identity=None):
     """Corroborate facts through authenticated GitHub REST in the trusted job.
 
     The output is public metadata. It is not independently signed and must not
     be accepted as a trusted fact if copied to a candidate JSON file.
     """
+    _require(isinstance(identity, dict)
+             and identity.get("identity_verified") is True
+             and identity.get("issuer") == ISSUER
+             and identity.get("workflow_ref") == WORKFLOW_REF
+             and identity.get("run_id") == context.get("run_id")
+             and identity.get("run_attempt") == context.get("run_attempt")
+             and identity.get("subject_head_sha") == context.get("checkout_sha"),
+             "SIGNED_WORKFLOW_IDENTITY_REQUIRED")
     _require(isinstance(context, dict)
              and context.get("repository") == REPO
              and context.get("ref") == "refs/heads/main"
@@ -260,6 +269,7 @@ def collect(api, context):
     trust_root = _protection(api)
     return {
         "source": "GITHUB_REST_FROM_TRUSTED_DEFAULT_WORKFLOW",
+        "github_oidc_run_identity_verified": True,
         "trusted_checkout_sha": sha,
         "witness_run_id": run_id,
         "witness_run_attempt": run_attempt,
@@ -284,7 +294,7 @@ def derive_progress(definition, facts):
              "NO_INDEPENDENT_WITNESS_SOURCE")
     predicates = facts.get("predicates", {})
     ci = facts.get("ci", {})
-    trust = facts.get("trust_root_protected") is True
+    trust = facts.get("trust_root_protected") is True and facts.get("github_oidc_run_identity_verified") is True
     required = milestones[0]["acceptance"]
     all_predicates = all(k in predicates for k in required)
     all_ci = all(k in ci for k in REQUIRED_CI)
@@ -313,6 +323,7 @@ def derive_progress(definition, facts):
         "witness_run_id": facts["witness_run_id"],
         "witness_run_attempt": facts["witness_run_attempt"],
         "source_api_verified": True,
+        "oidc_workflow_identity_verified": facts.get("github_oidc_run_identity_verified") is True,
         "trust_root_protected": trust,
         "cryptographic_attestation_verified": False,
         "milestones": result,
@@ -338,7 +349,8 @@ def main():
     }
     api = GitHubReadOnly(env.get("GITHUB_TOKEN", ""))
     graph = json.loads(args.definition.read_text(encoding="utf-8"))
-    report = derive_progress(graph, collect(api, context))
+    signed_identity = verify_current_workflow(context)
+    report = derive_progress(graph, collect(api, context, identity=signed_identity))
     # Outputs contain only public hashes, run IDs, and coarse states.
     args.out.write_text(json.dumps(report, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     print("SCVC live witness assessment:", [m["candidate_status"] for m in report["milestones"]])
