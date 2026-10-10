@@ -187,3 +187,7 @@ baseline_tests:
   - path: tests/test_state_continuity_verification_v0_1.py
     requires: []
     description: SCVC mathematical continuity and read-only HLKS/Session Graph boundary regressions
+
+  - path: tests/test_scvc_v02_milestone_pilot.py
+    requires: []
+    description: SCVC v0.2 bounded milestone pilot fail-closed regression tests
