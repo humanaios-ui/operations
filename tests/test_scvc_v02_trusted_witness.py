@@ -275,6 +275,15 @@ class WitnessTests(unittest.TestCase):
         with self.assertRaises(witness.WitnessError):
             self.facts()
 
+    def test_ruleset_bypass_actor_cannot_establish_trust_root(self):
+        self.api.records[PRE + "/rulesets/1"]["bypass_actors"] = [
+            {"actor_id": 1, "actor_type": "OrganizationAdmin", "bypass_mode": "always"}
+        ]
+        facts = self.facts()
+        self.assertFalse(facts["trust_root_protected"])
+        report = witness.derive_progress(definition(), facts)
+        self.assertEqual(report["milestones"][0]["candidate_status"], "BLOCKED_TRUST_ROOT")
+
     def test_current_main_without_review_rules_not_protected(self):
         self.api.records[PRE + "/rulesets/1"]["rules"] = [
             {"type": "required_status_checks",
