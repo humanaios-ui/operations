@@ -21,7 +21,9 @@ BASE = {
 class TestGPCS(unittest.TestCase):
     def test_projection_is_advisory(self):
         out = translate(BASE)
-        for value in out.values():
+        for key, value in out.items():
+            if key == "translation_version":
+                continue
             self.assertFalse(value["can_authorize"])
             self.assertEqual(value["authority_effect"], "NONE")
         self.assertEqual(out["coordinator_candidate"]["admission_state"], "NOT_REQUESTED")
