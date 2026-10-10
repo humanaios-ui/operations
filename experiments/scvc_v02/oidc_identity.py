@@ -105,9 +105,9 @@ def verify_token(jwt, jwks, ctx, *, now=None):
 def _get_json(url, *, bearer=None):
     parsed = urlparse(url)
     if bearer:
-        require(parsed.scheme == "https" and parsed.hostname in (
-            "pipelines.actions.githubusercontent.com",
-            "token.actions.githubusercontent.com"), "OIDC_REQUEST_URL_UNTRUSTED")
+        require(parsed.scheme == "https" and isinstance(parsed.hostname, str)
+                and parsed.hostname.endswith(".actions.githubusercontent.com"),
+                "OIDC_REQUEST_URL_UNTRUSTED")
     else:
         require(url == JWKS_URL, "JWKS_URL_UNTRUSTED")
     headers = {"Accept": "application/json", "User-Agent": "humanaios-scvc-oidc"}
