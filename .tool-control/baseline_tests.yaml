@@ -167,3 +167,19 @@ baseline_tests:
   - path: acat/tests/test_tool_trace_schema.py
     requires: []
     description: Tool trace schema validation (ACAT)
+
+  - path: tests/test_human_objective_e0.py
+    requires: []
+    description: E0 offline synthetic recommendation tests
+
+  - path: tests/test_human_objective_e1.py
+    requires: []
+    description: E1 URA contract bridge tests
+
+  - path: tools/tests/test_gner_notification_e0.py
+    requires: []
+    description: GNER-E0 GitHub notification lead interpreter tests
+
+  - path: tools/tests/test_independent_execution_witness_v0_1.py
+    requires: []
+    description: EBEE-001 Independent Execution Witness verification tests

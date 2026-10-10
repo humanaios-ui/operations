@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**198 registered tools** · 2 MCP servers · 4 excluded · 151 carrying Builder v1.7 markers
+**206 registered tools** · 2 MCP servers · 4 excluded · 153 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 198 |
-| — status `draft` | 197 |
+| Registered tools | 206 |
+| — status `draft` | 205 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 151 |
+| Builder v1.7 markers present | 153 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -135,7 +135,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-188 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.3.0 | 1 | draft | — | Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure. |
 | HAIOS-TOOL-206 | ai_context_generator | `tools/ai_context_generator_v0_1.py` | 0.1.0 | 1 | draft | — | Generates queryable, machine-readable context from canonical repository sources. |
 
-## Governance — `governance_tool` (20)
+## Governance — `governance_tool` (24)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -159,6 +159,10 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-204 | pr_challenge_dialogue_router | `tools/pr_challenge_dialogue_router_v0_1.py` | 0.1.0 | 1 | draft | — | Finite idempotent routing of head-bound red-team challenge conversations without authority effects. |
 | HAIOS-TOOL-210 | repository_coordinator_state | `tools/repository_coordinator_state_v1.py` | 1.1.0 | 1 | draft | — | Repository Coordinator state ledger + deterministic projection. |
 | HAIOS-TOOL-211 | repository_coordinator_state_v1_1 | `tools/repository_coordinator_state_v1_1.py` | 1.1.0 | 1 | draft | — | Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation, and durable RCD receipt primitives. |
+| HAIOS-TOOL-213 | b4_fold_execute | `.z1-control/b4_fold_execute.py` | unversioned | 1 | draft | no-builder-markers | b4_fold_execute.py — B4: execute the non-destructive practice fold, gated on ratification. |
+| HAIOS-TOOL-214 | b4_migrate | `.z1-control/b4_migrate.py` | unversioned | 1 | draft | no-builder-markers | b4_migrate.py (v2) — gated per-seat content migration into a survivor's OWN store. |
+| HAIOS-TOOL-216 | candidate_bundle | `.z1-control/candidate_bundle.py` | unversioned | 1 | draft | no-builder-markers | candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle. |
+| HAIOS-TOOL-218 | ratify_eco | `.z1-control/ratify_eco.py` | unversioned | 1 | draft | no-builder-markers | ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
@@ -187,7 +191,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-177 | nonprofit_dashboard_api_v1_0 | `tools/nonprofit_dashboard_api_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Nonprofit Dashboard API v1.0 |
 | HAIOS-TOOL-186 | install_git_hooks | `scripts/install_git_hooks.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Install git hooks for this repository |
 
-## Monitoring — `monitoring_tool` (6)
+## Monitoring — `monitoring_tool` (7)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -197,6 +201,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-179 | industry_telemetry | `tools/industry_telemetry_v0_1.py` | 0.1.0 | 1 | draft | — | Bounded Q4 2026 industry telemetry and human triage pilot |
 | HAIOS-TOOL-197 | platform-monitor | `scripts/platform-monitor.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Public Discourse Signal Monitor |
 | HAIOS-TOOL-198 | signal-threshold-monitor | `scripts/signal-threshold-monitor.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Signal Threshold Monitor |
+| HAIOS-TOOL-215 | board_monitor | `.z1-control/board_monitor.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Mesh build-board monitor — surfaces board status changes at end of turn. |
 
 ## Orchestration — `orchestrator_tool` (8)
 
@@ -236,7 +241,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-107 | registry_site_generator | `tools/registry_site_generator_v1_0.py` | 1.0.0 | 1 | draft | — | Reads REGISTERED.md, parses F-class / IC-class / H-class entries, |
 | HAIOS-TOOL-196 | map-to-mitigation | `scripts/map-to-mitigation.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Topic-to-Mitigation Mapper |
 
-## Research — `research_tool` (10)
+## Research — `research_tool` (12)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -250,8 +255,10 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-103 | red_team_runner | `tools/red_team_runner_v1_0.py` | 1.0.0 | 1 | draft | — | Red Team Runner — v1.0 |
 | HAIOS-TOOL-125 | smc_census_copilot_v0_1 | `tools/smc_census_copilot_v0_1.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Shared-Memory Census (SMC) v0.1. |
 | HAIOS-TOOL-195 | gap-detector | `scripts/gap-detector.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Gap Detector |
+| HAIOS-TOOL-212 | gner_notification_e0 | `tools/gner_notification_e0.py` | 0.1.0 | 1 | draft | — | GNER-E0 offline GitHub notification lead interpreter (email unverified discovery only) |
+| HAIOS-TOOL-219 | independent_execution_witness_v0_1 | `tools/independent_execution_witness_v0_1.py` | 0.1.0 | 1 | draft | — | Independent Execution Witness (IEW) — Evidence Verification Control |
 
-## Security gates — `security_gate_tool` (11)
+## Security gates — `security_gate_tool` (12)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -266,6 +273,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-129 | system_audit | `tools/system_audit_v1_1.py` | 1.1.0 | 1 | draft | — | System Audit — v1.1 |
 | HAIOS-TOOL-134 | tier_b_activation_gate | `tools/tier_b_activation_gate.py` | 1.0.0 | 1 | draft | — | tier_b_activation_gate.py |
 | HAIOS-TOOL-185 | smag_gate_enforcer | `tools/smag_gate_enforcer_v1_0.py` | 1.0.0 | 1 | draft | — | smag_gate_enforcer_v1_0.py — SMAG Calibration Gate Enforcer (s1 CI gate wire-up) |
+| HAIOS-TOOL-217 | leak_guard | `.z1-control/leak_guard.py` | unversioned | 1 | draft | no-builder-markers | leak_guard.py — B6: bound the two Empirica session leaks. |
 
 ## Templates — `template_tool` (3)
 
@@ -340,14 +348,14 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
 | `diagnostic_tool` | Measures and surfaces signals without gating anything. | 17 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 20 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 24 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
-| `monitoring_tool` | Watches a surface over time and raises alerts. | 6 |
+| `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 6 |
-| `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 10 |
-| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 11 |
+| `research_tool` | A research instrument: adversarial suites, elicitation, experiments. | 12 |
+| `security_gate_tool` | Blocks an action (push, send, activation) on policy. | 12 |
 | `template_tool` | A scaffold or template for producing new tools. | 3 |
 | `validation_tool` | Validates the structure or content of an input; pass/fail. | 26 |
 
