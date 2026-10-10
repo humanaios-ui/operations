@@ -84,7 +84,7 @@ function GrantSearchScreen({ nonprofitId, profile, apiBase }) {
   return (
     <div className="grant-search-screen">
       <div className="search-container">
-        <h1>Find Grants for {profile?.name}</h1>
+        <h1>Find Grants for <span>{profile?.name}</span></h1>
         <p className="profile-summary">
           Organization: {profile?.name} | Annual Revenue: ${profile?.annual_revenue_usd?.toLocaleString() || 'N/A'}
           | Unrestricted Capital: ${profile?.unrestricted_capital_usd?.toLocaleString() || 'N/A'}
