@@ -61,9 +61,6 @@ ABSOLUTE_LANGUAGE = re.compile(r"\b(always|never|impossible)\b", re.IGNORECASE)
 # tests/test_temporal_dissolution_gate.py carries for the temporal scan.
 SELF_EXEMPT = (
     "tools/agents/principle_compliance_bot_v1.py",
-    "tools/gner_notification_e0.py",
-    "tools/gner_verify_e1.py",
-    "tools/gner_failure_signatures_e2.py",
 )
 
 

@@ -3,7 +3,7 @@
 Live query is opt-in CLI only, uses a narrowly scoped token from the environment.
 No Gmail API, GitHub mutations, comment posting, automatic scheduling or authority.
 
-Builder v1.7 compliant · analysis_tool
+Builder v1.7 compliant · connector_tool
 """
 from __future__ import annotations
 
@@ -16,7 +16,8 @@ import urllib.request
 
 TOOL_NAME = "gner_verify_e1"
 TOOL_VERSION = "0.1.0"
-TOOL_CATEGORY = "analysis_tool"
+TOOL_CATEGORY = "connector_tool"
+TOOL_SESSION = "read_only_github_api"
 TOOL_ZONE = 1
 
 from gner_notification_e0 import parse_notification
@@ -164,14 +165,23 @@ def run_smoke_test() -> bool:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Explicit read-only GitHub run verification")
     parser.add_argument("--smoke-test", action="store_true", help="Run smoke test")
-    parser.add_argument("--subject", help="Only use sanitized notification subject")
+    parser.add_argument("--subject", help="Sanitized notification subject")
     parser.add_argument("--run-id", type=int, help="Run ID observed in notification")
+    parser.add_argument("--input", help="Read JSON input (lead + canonical) from file or stdin")
     args = parser.parse_args()
 
     if args.smoke_test:
         sys.exit(0 if run_smoke_test() else 1)
 
-    if args.subject and args.run_id:
+    if args.input:
+        try:
+            data = json.load(open(args.input)) if args.input != "-" else json.load(sys.stdin)
+            verdict = reconcile(data.get("lead", {}), data.get("canonical", {}))
+            print(json.dumps(verdict, indent=2))
+        except Exception as e:
+            print(f"Error reading input: {e}", file=sys.stderr)
+            sys.exit(1)
+    elif args.subject and args.run_id:
         lead = parse_notification(args.subject, f"https://github.com/{REPO}/actions/runs/{args.run_id}")
         lead["run_id"] = args.run_id
         verdict = verify_lead(lead, github_token=os.environ.get("GITHUB_TOKEN", ""))

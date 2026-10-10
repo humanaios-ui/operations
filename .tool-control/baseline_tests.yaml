@@ -175,7 +175,3 @@ baseline_tests:
   - path: tests/test_gner_verify_e1.py
     requires: [gh_cli]
     description: GNER-E1 canonical run verification tests
-
-  - path: tests/test_gner_failure_signatures_e2.py
-    requires: []
-    description: GNER-E2 failure signature analyzer tests

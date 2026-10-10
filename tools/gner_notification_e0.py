@@ -5,8 +5,15 @@ module. No Gmail/GitHub API calls, I/O, authority, or execution.
 """
 from __future__ import annotations
 import re
+import sys
+import json
 from collections import defaultdict
 from urllib.parse import urlsplit
+
+TOOL_NAME = "gner_notification_e0"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "diagnostic_tool"
+TOOL_ZONE = 1
 
 REPO = "humanaios-ui/operations"
 SHA = re.compile(r"(?<![0-9a-f])[0-9a-f]{7,40}(?![0-9a-f])")
@@ -79,3 +86,43 @@ def redact_github_url(url: str) -> str | None:
     except ValueError:
         return None
     return None
+
+
+def run_smoke_test() -> bool:
+    """Smoke test for Builder v1.7 compliance."""
+    tests = []
+    try:
+        result = parse_notification(
+            "[humanaios-ui/operations] Workflow failed on operations#123",
+            "https://github.com/humanaios-ui/operations/actions/runs/456789"
+        )
+        tests.append(("parse_valid_notification", result["state"] == "EMAIL_OBSERVED_UNVERIFIED"))
+    except Exception:
+        tests.append(("parse_valid_notification", False))
+
+    try:
+        result = correlate(
+            [{"state": "EMAIL_OBSERVED_UNVERIFIED", "repository": REPO, "run_id": 123, "pr": 456, "workflow": "quality-baseline", "kind": "WORKFLOW_FAILURE_LEAD", "sha_prefix": "abc123", "authority": "NONE", "execution": "DISABLED"}],
+            []
+        )
+        tests.append(("correlate_valid_leads", "results" in result and len(result["results"]) == 1))
+    except Exception:
+        tests.append(("correlate_valid_leads", False))
+
+    try:
+        url = redact_github_url("https://github.com/humanaios-ui/operations/pull/123")
+        tests.append(("redact_valid_url", url is not None))
+    except Exception:
+        tests.append(("redact_valid_url", False))
+
+    passed = sum(1 for _, p in tests if p)
+    print(f"{TOOL_NAME} smoke test: {passed}/{len(tests)} checks")
+    return passed == len(tests)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--smoke-test":
+        sys.exit(0 if run_smoke_test() else 1)
+    else:
+        print("Usage: python3 gner_notification_e0.py [--smoke-test]")
+        sys.exit(0)
