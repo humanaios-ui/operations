@@ -1,5 +1,7 @@
 """SCVC v0.1 synthetic regression. No GitHub/HLKS runtime or issuer authentication."""
 import importlib.util
+import json
+import jsonschema
 import pathlib
 import unittest
 
@@ -19,6 +21,10 @@ def vlr():
     return {
         "schema_version": "humanaios.validated_learning_record.v1",
         "record_id": "VLR-SYN-55", "domain": "operations",
+        "created_at": "2026-10-01T00:00:00Z",
+        "confidence": {"score": 0.0, "method_ref": "synthetic-only"},
+        "uncertainty": {"level": "UNKNOWN", "reason_codes": ["LIMITED_SAMPLE"]},
+        "supersession": {"supersedes": [], "superseded_by": []},
         "source_commit": SHA, "authority_effect": "NONE",
         "source_refs": [{"source_id": SOURCE, "source_type": "pull_request",
                          "repository": "humanaios-ui/operations", "source_commit": SHA,
@@ -27,13 +33,24 @@ def vlr():
                               "observed_at": "2026-10-01T00:00:00Z",
                               "recorded_at": "2026-10-01T00:00:00Z", "kind": "FAILURE"}],
         "correction_refs": [],
-        "validation_receipts": [{"issuer_claimed_verification_status": "VERIFIED",
-                                 "receipt_id": "SYNTHETIC-FORGEABLE"}],
+        "validation_receipts": [{
+            "receipt_id": "SYNTHETIC-FORGEABLE",
+            "issuer_repository": "humanaios-ui/operations",
+            "workflow_path": ".github/workflows/quality-baseline.yml",
+            "run_id": "1", "run_attempt": 1,
+            "workflow_commit": SHA, "subject_commit": SHA,
+            "conclusion": "success",
+            "issuer_claimed_verification_status": "VERIFIED",
+            "verification_evidence_ref": "synthetic:unverified",
+            "verified_at": "2026-10-01T00:00:00Z"
+        }],
         "privacy_scope": {"owner_domain": "operations", "allowed_domains": ["operations"],
                           "purpose": "research", "data_classes": ["PUBLIC"],
-                          "consent_ref": None, "retention_until": "2026-12-31T00:00:00Z"},
-        "revocation": {"state": "ACTIVE", "event_ref": None},
-        "retrieval": {"state": "ELIGIBLE", "eligible_domains": ["operations"]},
+                          "consent_ref": None, "retention_until": "2026-12-31T00:00:00Z",
+                          "deletion_supported": True},
+        "revocation": {"state": "ACTIVE", "event_ref": None, "changed_at": None},
+        "retrieval": {"state": "ELIGIBLE", "eligible_domains": ["operations"],
+                      "eligibility_checked_at": "2026-10-01T00:00:00Z"},
         "validity_window": {"valid_from": "2026-10-01T00:00:00Z",
                             "expires_at": "2026-11-01T00:00:00Z"},
         "applicability": {"contract_refs": [{"repository": "humanaios-ui/operations",
@@ -91,6 +108,24 @@ class FiniteTests(unittest.TestCase):
     def test_empty_and_limit_fail_closed(self):
         self.assertEqual(scvc.assess_finite([], lambda x:x, lambda x:x)["status"], "NOT_ESTABLISHED")
         self.assertEqual(scvc.assess_finite(range(3), lambda x:x, lambda x:x, max_states=2)["status"], "NOT_ESTABLISHED")
+
+
+class ContractShapeTests(unittest.TestCase):
+    def test_source_vlr_fixture_conforms_to_canonical_schema(self):
+        path = TOOL.parents[0] / "schemas" / "validated_learning_record_v1.schema.json"
+        schema = json.loads(path.read_text())
+        jsonschema.validate(vlr(), schema,
+                            cls=jsonschema.Draft202012Validator,
+                            format_checker=jsonschema.FormatChecker())
+
+    def test_scvc_report_conforms_to_its_own_schema(self):
+        path = TOOL.parents[0] / "schemas" / "state_continuity_verification_v0_1.schema.json"
+        schema = json.loads(path.read_text())
+        report = scvc.assess_hlks_session(vlr(), graph(), "entity:55", request())
+        jsonschema.validate(report, schema, cls=jsonschema.Draft202012Validator)
+        altered = dict(report, can_authorize=True)
+        with self.assertRaises(jsonschema.ValidationError):
+            jsonschema.validate(altered, schema, cls=jsonschema.Draft202012Validator)
 
 
 class InterfaceTests(unittest.TestCase):
