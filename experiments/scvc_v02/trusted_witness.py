@@ -47,6 +47,24 @@ class WitnessError(Exception):
     """Blocked provenance, malformed response or unverifiable trust root."""
 
 
+_COLLECTOR_CAPABILITY = object()
+
+
+class LiveObservation:
+    """In-process evidence handle: cannot be constructed from a JSON report."""
+
+    def __init__(self, capability, facts):
+        if capability is not _COLLECTOR_CAPABILITY:
+            raise WitnessError("UNTRUSTED_EVIDENCE_CONSTRUCTION")
+        self._facts = facts
+
+    def get(self, name, default=None):
+        return self._facts.get(name, default)
+
+    def __getitem__(self, name):
+        return self._facts[name]
+
+
 class GitHubReadOnly:
     """Live REST read transport. Do not expose a CLI option to choose an API host."""
 
@@ -267,7 +285,7 @@ def collect(api, context, *, identity=None):
                   & set(REQUIRED_CI.values())), "ISSUER_WORKFLOW_MODIFIED_BY_CANDIDATE")
     ci_runs = _runs(api, head, PILOT_PR)
     trust_root = _protection(api)
-    return {
+    return LiveObservation(_COLLECTOR_CAPABILITY, {
         "source": "GITHUB_REST_FROM_TRUSTED_DEFAULT_WORKFLOW",
         "github_oidc_run_identity_verified": True,
         "trusted_checkout_sha": sha,
@@ -280,7 +298,7 @@ def collect(api, context, *, identity=None):
         "ci": ci_runs,
         "trust_root_protected": trust_root,
         "cryptographic_attestation_verified": False,
-    }
+    })
 
 
 def derive_progress(definition, facts):
@@ -290,6 +308,7 @@ def derive_progress(definition, facts):
     This makes the next milestone eligible; it does not authorize doing its work.
     """
     milestones = validate(definition)
+    _require(isinstance(facts, LiveObservation), "UNTRUSTED_SERIALIZED_EVIDENCE")
     _require(facts.get("source") == "GITHUB_REST_FROM_TRUSTED_DEFAULT_WORKFLOW",
              "NO_INDEPENDENT_WITNESS_SOURCE")
     predicates = facts.get("predicates", {})
