@@ -176,9 +176,8 @@ class WitnessTests(unittest.TestCase):
             "trusted_checkout_sha": MAIN, "subject_head_sha": HEAD,
             "witness_run_id": 555, "witness_run_attempt": 1,
         }
-        report = witness.derive_progress(definition(), forged)
-        self.assertNotEqual(report["milestones"][0]["candidate_status"],
-                            "OBSERVATIONAL_MILESTONE_ACHIEVED")
+        with self.assertRaises(witness.WitnessError):
+            witness.derive_progress(definition(), forged)
 
     def test_unsigned_external_claim_is_not_live_witness(self):
         with self.assertRaises(witness.WitnessError):
