@@ -53,7 +53,7 @@ def graph():
         "assertions": [{"id": "assertion:55", "subject": "entity:55",
                         "epistemic_state": "OBSERVED", "source_refs": [SOURCE],
                         "authority_effect": "NONE"}],
-        "events": [{"id": "event:55", "entity_ref": "entity:55",
+        "events": [{"id": OBS, "entity_ref": "entity:55",
                     "type": "hydration_observation", "source_ref": SOURCE,
                     "authority_effect": "NONE"}],
     }
@@ -181,6 +181,25 @@ class InterfaceTests(unittest.TestCase):
     def test_schema_version_drift_fails_closed(self):
         self.g["status"] = "CANONICAL"
         self.assertIn("INTERFACE_VERSION_MISMATCH", self.audit()["reason_codes"])
+
+    def test_event_id_must_match_observation_reference(self):
+        self.g["events"][0]["id"] = "another-event"
+        self.assertIn("OBSERVATION_EVENT_NOT_BOUND", self.audit()["reason_codes"])
+
+    def test_duplicate_graph_sources_fail_closed(self):
+        self.g["sources"].append(dict(self.g["sources"][0]))
+        self.assertIn("DUPLICATE_GRAPH_SOURCES", self.audit()["reason_codes"])
+
+    def test_private_text_in_source_id_cannot_be_echoed(self):
+        self.v["source_refs"][0]["source_id"] = "person@example.com"
+        r = self.audit()
+        self.assertIn("MALFORMED_OR_UNBOUND_RECORD", r["reason_codes"])
+        self.assertNotIn("person@", str(r))
+
+    def test_invalid_entity_identifier_abstains(self):
+        d = scvc.assess_hlks_session(self.v, self.g, "private / secret", self.r)
+        self.assertIn("INVALID_OPAQUE_ENTITY_REF", d["reason_codes"])
+        self.assertEqual(d["subject_ref"], "unknown")
 
     def test_report_never_contains_raw_claim_or_private_locator(self):
         self.v["source_refs"][0]["locator"] = "SECRET: synthetic-only"
