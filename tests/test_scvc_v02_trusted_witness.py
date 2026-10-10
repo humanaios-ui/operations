@@ -7,6 +7,7 @@ import copy
 import hashlib
 import json
 import unittest
+from unittest.mock import patch
 import urllib.parse
 
 from experiments.scvc_v02 import trusted_witness as witness
@@ -122,6 +123,61 @@ def definition():
     )
 
 
+class RestTransportRegressionTests(unittest.TestCase):
+    """Regression for observed post-merge API_PATH_DENIED failure."""
+
+    def test_exact_repository_root_accepted(self):
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self, *_):
+                return b'{"full_name":"humanaios-ui/operations","default_branch":"main"}'
+
+        with patch.object(witness.urllib.request, "urlopen", return_value=Response()) as open_url:
+            info = witness.GitHubReadOnly("synthetic-test-token").get(PRE)
+        self.assertEqual(info["full_name"], REPO)
+        self.assertEqual(open_url.call_args.args[0].full_url,
+                         "https://api.github.com/" + PRE)
+
+    def test_cross_repository_root_is_denied_without_network(self):
+        with patch.object(witness.urllib.request, "urlopen") as open_url:
+            with self.assertRaises(witness.WitnessError):
+                witness.GitHubReadOnly("synthetic-test-token").get("repos/another-owner/repo")
+            open_url.assert_not_called()
+
+    def test_sibling_repo_prefix_is_denied_without_network(self):
+        with patch.object(witness.urllib.request, "urlopen") as open_url:
+            with self.assertRaises(witness.WitnessError):
+                witness.GitHubReadOnly("synthetic-test-token").get(PRE + "-malicious/actions")
+            open_url.assert_not_called()
+
+    def test_path_traversal_is_denied_without_network(self):
+        with patch.object(witness.urllib.request, "urlopen") as open_url:
+            with self.assertRaises(witness.WitnessError):
+                witness.GitHubReadOnly("synthetic-test-token").get(PRE + "/../private")
+            open_url.assert_not_called()
+
+    def test_child_endpoint_keeps_existing_access(self):
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self, *_):
+                return b'{"sha":"synthetic"}'
+
+        with patch.object(witness.urllib.request, "urlopen", return_value=Response()) as open_url:
+            result = witness.GitHubReadOnly("synthetic-test-token").get(PRE + "/branches/main")
+        self.assertEqual(result["sha"], "synthetic")
+        self.assertTrue(open_url.called)
+
+
 class WitnessTests(unittest.TestCase):
     def setUp(self):
         self.api = FakeAPI()
@@ -150,6 +206,53 @@ class WitnessTests(unittest.TestCase):
         self.assertEqual(result["predecessor_merge_sha"], MERGE)
         self.assertRegex(result["report_sha256"], r"^[a-f0-9]{64}$")
         self.assertFalse(any(r["governance_accepted"] for r in result["milestones"]))
+
+    def _simulate_merged_pr(self):
+        pr = self.api.records[PRE + "/pulls/794"]
+        pr.update({
+            "merged": True, "merged_at": "2026-10-10T18:37:05Z",
+            "merge_commit_sha": "d" * 40
+        })
+        pr["head"]["ref"] = "experiment/scvc-v02-milestone-pilot-793"
+        self.api.records[PRE + "/compare/" + "d" * 40 + "..." + MAIN] = {
+            "status": "ahead"
+        }
+        for run in self.api.records[self.api.run_query]["workflow_runs"]:
+            run["pull_requests"] = []
+            run["head_branch"] = "experiment/scvc-v02-milestone-pilot-793"
+            run["created_at"] = "2026-10-10T17:37:17Z"
+
+    def test_closed_merged_pr_can_bind_exact_head_ci_without_backlinks(self):
+        self._simulate_merged_pr()
+        refs = self.facts()["ci"]
+        self.assertEqual(
+            {row["pr_binding"] for row in refs.values()},
+            {"MERGED_PR_BRANCH_HISTORY"}
+        )
+
+    def test_merged_pr_wrong_head_branch_is_rejected(self):
+        self._simulate_merged_pr()
+        self.api.records[self.api.run_query]["workflow_runs"][0]["head_branch"] = "attacker/branch"
+        with self.assertRaises(witness.WitnessError):
+            self.facts()
+
+    def test_ci_run_started_after_merge_cannot_prove_premerge_ci(self):
+        self._simulate_merged_pr()
+        self.api.records[self.api.run_query]["workflow_runs"][0]["created_at"] = "2026-10-10T19:37:17Z"
+        with self.assertRaises(witness.WitnessError):
+            self.facts()
+
+    def test_merged_pr_must_be_ancestor_of_trusted_main(self):
+        self._simulate_merged_pr()
+        self.api.records[PRE + "/compare/" + "d" * 40 + "..." + MAIN]["status"] = "diverged"
+        with self.assertRaises(witness.WitnessError):
+            self.facts()
+
+    def test_cleared_pr_backlinks_do_not_prove_open_pr(self):
+        for run in self.api.records[self.api.run_query]["workflow_runs"]:
+            run["pull_requests"] = []
+        with self.assertRaises(witness.WitnessError):
+            self.facts()
 
     def test_no_branch_protection_halts_observational_achievement(self):
         self.api.records[PRE + "/rulesets/1"]["rules"] = [
