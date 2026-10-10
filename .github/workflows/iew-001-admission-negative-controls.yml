@@ -36,6 +36,18 @@ jobs:
         run: |
           set -euo pipefail
           python -m unittest discover -s tools/iew -p 'test_*.py' -v
+      - name: Capture trusted-fixture subprocess observation (non-authorizing)
+        run: |
+          set -euo pipefail
+          python -m tools.iew.iew_runner
+      - name: Preserve witness observation (untrusted until independently verified)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iew-003-observation
+          path: iew-observation.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Report boundary
         if: always()
         run: |
