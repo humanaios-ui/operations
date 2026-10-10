@@ -32,6 +32,10 @@ baseline_tests:
     requires: []
     description: Intake schema validation
 
+  - path: tools/tests/test_outlier_public_adapter_v0_1.py
+    requires: []
+    description: Public-only Outlier adapter synthetic regression tests
+
   - path: tools/tests/test_orchestrator_molt.py
     requires: []
     description: Orchestrator molt tests
