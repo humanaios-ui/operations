@@ -36,6 +36,10 @@ The read-only `trusted_witness.py` binds the pilot to **GitHub's own REST record
 
 The workflow checks out **main only**; it does not execute PR #794 code or consume untrusted artifacts. GitHub events `workflow_run` (quality-baseline/security-gates), `push`, `workflow_dispatch`, and a daily schedule trigger **read-only** re-evaluation after the workflow is reviewed and installed on main. Before that merge, there is no active trusted scheduled witness.
 
+Before observing CI, the trusted job requests a short-lived GitHub Actions **OIDC ID token** with audience `humanaios:scvc-witness:v0.2`. `oidc_identity.py` validates its RS256 signature against the pinned GitHub issuer JWKS and checks the exact repository, `refs/heads/main`, workflow reference, checkout SHA, run ID, run attempt, audience and expiration. The workflow grants `id-token:write` strictly to request a signed identity token; repository content, actions and PR API privileges stay read-only. Raw JWTs and credentials are excluded from published results.
+
+OIDC **authenticates the witness job identity** but does not authenticate the report artifact itself or imply acceptance of any AI claims. Hence `oidc_workflow_identity_verified` can become true while `cryptographic_attestation_verified` remains false. A missing, expired, mismatched, or unverifiable OIDC token halts the live witness job without an achievement assertion.
+
 The collector corroborates, independently of candidate self-reports:
 
 - Witness run ID, run attempt, trusted-main checkout SHA and workflow path against GitHub REST.
