@@ -1,0 +1,20 @@
+name: b4-migration-admission
+on:
+  pull_request:
+    paths:
+      - 'tools/b4_admission.py'
+      - 'tools/tests/test_b4_admission.py'
+      - '.github/workflows/b4-migration-admission.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  b4-contract-tests:
+    name: B4 admission negative regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tools/tests -p test_b4_admission.py -v
