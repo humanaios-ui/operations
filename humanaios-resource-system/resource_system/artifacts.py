@@ -23,8 +23,9 @@ def validate_artifact_traceability(record, resource, evidence, authorizations, n
         raise ValueError('artifact snapshot evidence must be recorded')
     requirements = set(resource['requirements'])
     for node in evidence:
+        in_scope = node['classification'] == 'GLOBAL' or resource['id'] in node['resource_ids']
         applicable = (
-            resource['id'] in node['resource_ids']
+            in_scope
             and (node['classification'] in {'CONTRADICTORY', 'DISQUALIFYING'}
                  or (node['predicate'] in requirements and not node['value']))
         )

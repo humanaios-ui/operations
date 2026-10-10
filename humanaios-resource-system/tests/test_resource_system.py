@@ -302,5 +302,26 @@ class ResourceSystemTests(unittest.TestCase):
             store.append('artifact', forged, now=NOW)
         assert [event['record']['id'] for event in store.events() if event['kind'] == 'artifact'] == ['rm2:v1']
 
+    def test_artifact_rejects_omitted_global_false_evidence_on_builder_and_ledger(self):
+        store = StateStore(Path(self.directory.name) / 'global.jsonl')
+        r, positive = resource(), evidence('e1')
+        # GLOBAL scope applies to every resource with the predicate, even if resource_ids does not list RM-002.
+        global_false = {**evidence('e4', False, 'GLOBAL'), 'resource_ids': ['RM-999']}
+        claims = [dict(predicate='capability', value=True, evidence_id='e1')]
+        branch = sweep([r], [positive], {'RM-002': rule()}, TODAY)['branches']['RM-002']
+        with self.assertRaisesRegex(ValueError, 'applicable contradictory evidence'):
+            build_artifact('global:builder', r, branch, [positive, global_false], claims, [auth()], NOW)
+        omitted = build_artifact('global:ledger', r, branch, [positive], claims, [auth()], NOW)
+        for kind, record in [('resource', r), ('evidence', positive), ('evidence', global_false), ('authorization', auth())]:
+            store.append(kind, record)
+        with self.assertRaisesRegex(ValueError, 'applicable contradictory evidence'):
+            store.append('artifact', omitted, now=NOW)
+        assert all(event['record']['id'] != 'global:ledger' for event in store.events())
+        complete = {**branch, 'evidence_snapshot': ['e1', 'e4']}
+        accepted = build_artifact('global:complete', r, complete, [positive, global_false], claims, [auth()], NOW)
+        assert accepted['evidence_snapshot'] == ['e1', 'e4']
+        store.append('artifact', accepted, now=NOW)
+        assert store.events()[-1]['record']['id'] == 'global:complete'
+
 if __name__ == "__main__":
     unittest.main()
