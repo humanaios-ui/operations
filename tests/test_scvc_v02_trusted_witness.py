@@ -161,6 +161,40 @@ class RestTransportRegressionTests(unittest.TestCase):
                 witness.GitHubReadOnly("synthetic-test-token").get(PRE + "/../private")
             open_url.assert_not_called()
 
+    def test_sha_pinned_compare_delimiter_allowed(self):
+        left, right = "a" * 40, "b" * 40
+        compare = PRE + "/compare/" + left + "..." + right
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self, *_):
+                return b'{"status":"ahead"}'
+
+        with patch.object(witness.urllib.request, "urlopen", return_value=Response()) as requested:
+            result = witness.GitHubReadOnly("synthetic-test-token").get(compare)
+        self.assertEqual(result["status"], "ahead")
+        self.assertEqual(requested.call_args.args[0].full_url,
+                         "https://api.github.com/" + compare)
+
+    def test_compare_ref_traversal_and_unpinned_refs_denied(self):
+        invalid = [
+            PRE + "/compare/../../private",
+            PRE + "/compare/" + "a" * 40 + ".." + "b" * 40,
+            PRE + "/compare/main...evil",
+            PRE + "/compare/" + "a" * 40 + "...." + "b" * 40,
+            PRE + "/compare/" + "a" * 40 + "..." + "b" * 40 + "/../private",
+        ]
+        with patch.object(witness.urllib.request, "urlopen") as requested:
+            for path in invalid:
+                with self.subTest(path=path), self.assertRaises(witness.WitnessError):
+                    witness.GitHubReadOnly("synthetic-test-token").get(path)
+            requested.assert_not_called()
+
     def test_child_endpoint_keeps_existing_access(self):
         class Response:
             def __enter__(self):
