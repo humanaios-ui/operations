@@ -19,7 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from milestone_controller import validate
+from experiments.scvc_v02.milestone_controller import validate
 
 REPO = "humanaios-ui/operations"
 OWNER, NAME = REPO.split("/")
