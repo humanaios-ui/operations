@@ -3,7 +3,7 @@
 > Rendered from `tools-manifest.yaml` (SSOT) by `.tool-control/render.py`.
 > **Do not hand-edit — edit the manifest.** CI blocks when the two disagree.
 
-**198 registered tools** · 2 MCP servers · 4 excluded · 151 carrying Builder v1.7 markers
+**207 registered tools** · 2 MCP servers · 4 excluded · 159 carrying Builder v1.7 markers
 
 **Status:** `draft` = registered, not yet reviewed · `review` = under owner review · `approved` = owner-verified (human gate) · `deprecated`/`archived` = retained, not for new use.
 
@@ -13,10 +13,10 @@ Approval is the owner's act and is never set by a scan — the same no-self-gran
 
 | metric | value |
 |---|---|
-| Registered tools | 198 |
-| — status `draft` | 197 |
+| Registered tools | 207 |
+| — status `draft` | 206 |
 | — status `archived` | 1 |
-| Builder v1.7 markers present | 151 |
+| Builder v1.7 markers present | 159 |
 | Uncategorized | 0 |
 | MCP servers | 2 |
 
@@ -85,7 +85,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-123 | smag_resolve | `tools/smag_resolve_v1_0.py` | 1.0.0 | 1 | draft | — | smag_resolve — fix SMAG capture timing by recording CI outcome AFTER checks resolve. |
 | HAIOS-TOOL-144 | copilot_acat_scanner | `tools/copilot_acat_scanner_v1_0.py` | 1.0.0 | 1 | draft | — | copilot_acat_scanner_v1_0.py |
 
-## Connectors — `connector_tool` (12)
+## Connectors — `connector_tool` (13)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -101,6 +101,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-126 | supabase_corpus_connector | `tools/supabase_corpus_connector_v1_0.py` | 1.0.0 | 1 | draft | — | Supabase Corpus Connector — v1.0 |
 | HAIOS-TOOL-127 | supabase_logger | `tools/supabase_logger.py` | 1.1.0 | 1 | draft | — | Logs notifications to Supabase with idempotent upsert (claim-then-act pattern). |
 | HAIOS-TOOL-174 | grant_data_loader_v1_0 | `tools/grant_data_loader_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Grant Data Loader v1.0 |
+| HAIOS-TOOL-214 | gner_verify_e1 | `tools/gner_verify_e1.py` | 0.1.0 | 1 | draft | — | GNER-E1 explicit, read-only authenticated GitHub workflow-run reconciliation. |
 
 ## Dependencies (imported, not invoked) — `dependency` (6)
 
@@ -113,7 +114,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-133 | tier1_principles_stub | `tools/tier1_principles_stub.py` | 1.0.0 | 1 | draft | — | tier1_principles.py — stub for smoke test execution. |
 | HAIOS-TOOL-152 | strict_yaml | `.doc-control/strict_yaml.py` | unversioned | 1 | draft | no-builder-markers | A YAML loader that refuses duplicate mapping keys, for registry consumers. |
 
-## Diagnostics — `diagnostic_tool` (17)
+## Diagnostics — `diagnostic_tool` (19)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -134,8 +135,10 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-180 | workflow_dependency_analyzer | `tools/workflow_dependency_analyzer_v1_0.py` | 1.0.0 | 1 | draft | — | Analyzes GitHub Actions workflows to build a dependency graph; classifies gates by governance tier (Class A/B/C/D); identifies cascade risks and orchestration pipelines |
 | HAIOS-TOOL-188 | repository_coordinator | `tools/repository_coordinator_v0_1.py` | 0.3.0 | 1 | draft | — | Repository coordination index with admission lanes, maintenance cohorts, and operator-capacity backpressure. |
 | HAIOS-TOOL-206 | ai_context_generator | `tools/ai_context_generator_v0_1.py` | 0.1.0 | 1 | draft | — | Generates queryable, machine-readable context from canonical repository sources. |
+| HAIOS-TOOL-212 | gner_failure_signatures_e2 | `tools/gner_failure_signatures_e2.py` | 0.1.0 | 1 | draft | — | GNER-E2: conservative cross-run failure signature candidates (no authority). |
+| HAIOS-TOOL-213 | gner_notification_e0 | `tools/gner_notification_e0.py` | 0.1.0 | 1 | draft | — | GNER-E0: offline GitHub notification lead interpreter. |
 
-## Governance — `governance_tool` (20)
+## Governance — `governance_tool` (25)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -159,6 +162,11 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-204 | pr_challenge_dialogue_router | `tools/pr_challenge_dialogue_router_v0_1.py` | 0.1.0 | 1 | draft | — | Finite idempotent routing of head-bound red-team challenge conversations without authority effects. |
 | HAIOS-TOOL-210 | repository_coordinator_state | `tools/repository_coordinator_state_v1.py` | 1.1.0 | 1 | draft | — | Repository Coordinator state ledger + deterministic projection. |
 | HAIOS-TOOL-211 | repository_coordinator_state_v1_1 | `tools/repository_coordinator_state_v1_1.py` | 1.1.0 | 1 | draft | — | Backward-compatible chained coordinator state engine with RCC idempotency, lifecycle reconciliation, and durable RCD receipt primitives. |
+| HAIOS-TOOL-215 | b4_fold_execute | `.z1-control/b4_fold_execute.py` | 1.0.0 | 1 | draft | — | b4_fold_execute.py — B4: execute the non-destructive practice fold, gated on ratification. |
+| HAIOS-TOOL-216 | b4_migrate | `.z1-control/b4_migrate.py` | 2.0.0 | 1 | draft | — | b4_migrate.py (v2) — gated per-seat content migration into a survivor's OWN store. |
+| HAIOS-TOOL-218 | candidate_bundle | `.z1-control/candidate_bundle.py` | 1.0.0 | 1 | draft | — | candidate_bundle.py — B3: one schema for a Z1 candidate block AND an Empirica bundle. |
+| HAIOS-TOOL-219 | leak_guard | `.z1-control/leak_guard.py` | 1.0.0 | 1 | draft | — | leak_guard.py — B6: bound the two Empirica session leaks. |
+| HAIOS-TOOL-220 | ratify_eco | `.z1-control/ratify_eco.py` | 1.0.0 | 1 | draft | — | ratify_eco.py — B1: bind an ECO-accept to a signed, append-only RATIFY artifact. |
 
 ## Infrastructure — `infrastructure_tool` (22)
 
@@ -187,7 +195,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-177 | nonprofit_dashboard_api_v1_0 | `tools/nonprofit_dashboard_api_v1_0.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Nonprofit Dashboard API v1.0 |
 | HAIOS-TOOL-186 | install_git_hooks | `scripts/install_git_hooks.sh` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Install git hooks for this repository |
 
-## Monitoring — `monitoring_tool` (6)
+## Monitoring — `monitoring_tool` (7)
 
 | tool_id | tool | path | ver | zone | status | flags | purpose |
 |---|---|---|---|---|---|---|---|
@@ -197,6 +205,7 @@ These tools declare Zone 2/3 (ratify / Night-executes) authority with no Z2 hash
 | HAIOS-TOOL-179 | industry_telemetry | `tools/industry_telemetry_v0_1.py` | 0.1.0 | 1 | draft | — | Bounded Q4 2026 industry telemetry and human triage pilot |
 | HAIOS-TOOL-197 | platform-monitor | `scripts/platform-monitor.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Public Discourse Signal Monitor |
 | HAIOS-TOOL-198 | signal-threshold-monitor | `scripts/signal-threshold-monitor.py` | unversioned | 1 | draft | no-builder-markers, no-smoke-test | Signal Threshold Monitor |
+| HAIOS-TOOL-217 | board_monitor | `.z1-control/board_monitor.py` | 1.0.0 | 1 | draft | no-builder-markers, no-smoke-test | Mesh build-board monitor — surfaces board status changes at end of turn. |
 
 ## Orchestration — `orchestrator_tool` (8)
 
@@ -337,12 +346,12 @@ A category says what a tool **does to the system**, not what subject it concerns
 | `analytics_tool` | Statistical or psychometric computation over collected data. | 3 |
 | `audit_tool` | Audits artifacts or state against rules and reports findings. | 23 |
 | `calibration_tool` | Pins, resolves or scores predictions against outcomes. | 16 |
-| `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 12 |
+| `connector_tool` | Talks to an external service (Supabase, Slack, GitHub, LLM APIs). | 13 |
 | `dependency` | Imported by other tools; not invoked directly. | 6 |
-| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 17 |
-| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 20 |
+| `diagnostic_tool` | Measures and surfaces signals without gating anything. | 19 |
+| `governance_tool` | Operates the governance machinery: registries, molts, routing. | 25 |
 | `infrastructure_tool` | Internal plumbing: servers, routers, hooks, ingestion, scaffolding. | 22 |
-| `monitoring_tool` | Watches a surface over time and raises alerts. | 6 |
+| `monitoring_tool` | Watches a surface over time and raises alerts. | 7 |
 | `orchestrator_tool` | Runs other tools or agents in sequence. | 8 |
 | `pipeline_tool` | Multi-stage processing of a corpus or record set. | 9 |
 | `reporting_tool` | Produces human-facing output: reports, sites, drafts. | 6 |
