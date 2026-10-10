@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """b4_migrate.py (v2) — gated per-seat content migration into a survivor's OWN store.
 
+Builder v1.7 compliant · governance_tool
+
 v1 trusted `--project-id` to route and trusted the exit code — so all 12 seats' artifacts
 landed in ONE store (opportunity-aggregator) and the tool reported success. A probe
 established empirica's model: PER-FILE. The CLI reads/writes ONE sessions.db resolved from
@@ -25,6 +27,11 @@ Commands:
   --smoke-test
 """
 from __future__ import annotations
+
+TOOL_NAME = "b4_migrate"
+TOOL_VERSION = "2.0.0"
+TOOL_CATEGORY = "governance_tool"
+TOOL_ZONE = 1
 
 import argparse
 import datetime
