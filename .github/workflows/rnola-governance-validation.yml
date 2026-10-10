@@ -63,8 +63,8 @@ jobs:
       - name: Z2/Z3 boundary enforcement (ERROR — blocks merge)
         run: |
           python3 scripts/enforce_z2_z3_boundary.py \
-            --check-schemas schemas/intent_os_operator_check*.json \
-            --pr-event "${{ github.event.pull_request.number }}" \
+            --check-schemas \
+            --pr-event "$GITHUB_EVENT_PATH" \
             --strict
 
       - name: Canonical skill validation (ERROR — blocks merge)
@@ -78,5 +78,5 @@ jobs:
         run: |
           python3 scripts/scan_rnola_misuse.py \
             --check-dir outputs/rnola \
-            --pr-event "${{ github.event.pull_request.number }}" \
-            --falsifier-mode strict
+            --pr-event "$GITHUB_EVENT_PATH" \
+            --falsifier-mode
