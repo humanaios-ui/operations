@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:humanaios:resource-system:activity:1.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "resource_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "state": {
+      "enum": [
+        "QUEUED",
+        "OPENED",
+        "SCAN_EXECUTED",
+        "MATCH",
+        "PREPARED",
+        "CLICKED",
+        "SUBMITTED",
+        "ACQUIRED",
+        "OUTCOME",
+        "DISCLOSURE",
+        "CHECK_IN"
+      ]
+    },
+    "actor": {
+      "enum": [
+        "AI",
+        "HUMAN",
+        "OBSERVED"
+      ]
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "action_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "artifact_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_.:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "outcome": {
+      "enum": [
+        "UNKNOWN",
+        "SUCCESS",
+        "FAILURE"
+      ]
+    },
+    "material": {
+      "type": "boolean"
+    },
+    "purpose": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "authorization_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "next_operation": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "resource_id",
+    "state",
+    "actor",
+    "source_url",
+    "action_url",
+    "artifact_ids",
+    "outcome",
+    "material",
+    "purpose",
+    "authorization_id",
+    "next_operation"
+  ],
+  "additionalProperties": false
+}

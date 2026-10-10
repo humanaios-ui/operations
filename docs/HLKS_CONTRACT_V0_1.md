@@ -200,3 +200,9 @@ the current host rules. Issue #730 remains open; this document does not claim
 that its host-protection requirement has passed. Report test evidence with its
 exact scope and limitations, and publish a falsification report before
 requesting any later execution work.
+
+## State Continuity Verification extension (Z1 candidate, 2026-10-10)
+
+The separate [SCVC v0.1 contract](STATE_CONTINUITY_VERIFICATION_V0_1.md) implements a **read-only, non-authoritative** translation from the current HLKS VLR v1 metadata to Session Graph v0.2 source bindings. This appendix is documentation only; it does not revise the HLKS VLR canonical schema, enable a persistent backend, or supersede the execution prohibition in this contract.
+
+Call `assess_hlks_session(vlr, graph, entity_id, request)` with request-pinned `domain`, `purpose`, `at`, `source_commit`, and `contract_commit`. Returned reports always have `authority_effect=NONE`, `can_authorize=false`, and `authenticated=false`. Source binding returns `NOT_ESTABLISHED` rather than claiming recoverability without independent witness verification. Private, revoked, cross-domain, or retention-expired data is denied.
