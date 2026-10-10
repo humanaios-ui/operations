@@ -1,0 +1,27 @@
+name: RMO URA Cross Contract
+on:
+  pull_request:
+    paths:
+      - 'humanaios-funding-pipeline/resource-miner/resource_miner/verification_bridge_contract.py'
+      - 'humanaios-funding-pipeline/resource-miner/tests/test_verification_bridge_contract.py'
+      - '.github/workflows/rmo-verification-cross-contract.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cross-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: f51f391ebec8d7448ef647ded87487888b175507
+          path: ura-contract
+      - name: Install pinned URA implementation into test checkout
+        run: cp ura-contract/humanaios-funding-pipeline/resource-miner/resource_miner/universal_adapter.py humanaios-funding-pipeline/resource-miner/resource_miner/universal_adapter.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run cross-contract regression
+        working-directory: humanaios-funding-pipeline/resource-miner
+        run: python -m unittest discover -s tests -p 'test_verification_bridge_contract.py' -v
