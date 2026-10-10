@@ -18,6 +18,11 @@ STATUS = frozenset({"EXACTLY_RECOVERABLE", "SEMANTICALLY_RECOVERABLE",
 COMMIT = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 DOMAINS = frozenset({"human", "operations", "lasting-light-ai"})
 PURPOSES = frozenset({"learning", "research", "operations"})
+OPAQUE_REF = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\\Z")
+
+
+def _safe_ref(value: Any) -> bool:
+    return isinstance(value, str) and OPAQUE_REF.fullmatch(value) is not None
 
 
 def _json(value: Any) -> str:
@@ -99,7 +104,7 @@ def assess_hlks_session(vlr: dict[str, Any], graph: dict[str, Any],
     No raw payloads or private locators are returned.
     """
     scope = "HLKS_SESSION_BINDING"
-    subject = entity_id if isinstance(entity_id, str) and entity_id else "unknown"
+    subject = entity_id if _safe_ref(entity_id) else "unknown"
 
     def result(status: str, *reasons: str, sources=(), observations=()):
         return _report(scope, status, reasons, subject=subject,
@@ -107,6 +112,8 @@ def assess_hlks_session(vlr: dict[str, Any], graph: dict[str, Any],
 
     if not isinstance(vlr, dict) or not isinstance(graph, dict) or not isinstance(request, dict):
         return result("NOT_ESTABLISHED", "MALFORMED_INPUT")
+    if not _safe_ref(entity_id):
+        return result("NOT_ESTABLISHED", "INVALID_OPAQUE_ENTITY_REF")
     if (vlr.get("schema_version") != "humanaios.validated_learning_record.v1"
             or graph.get("status") != "DERIVED_NON_CANONICAL"
             or graph.get("graph_id") != "humanaios-cross-chat-longitudinal-evidence-graph"):
@@ -131,9 +138,10 @@ def assess_hlks_session(vlr: dict[str, Any], graph: dict[str, Any],
         if not isinstance(sources, list) or not sources or not isinstance(observations, list) or not observations:
             raise ValueError("missing references")
         source_ids = {s["source_id"] for s in sources}
-        if any(not isinstance(i, str) or not i for i in source_ids):
+        if any(not _safe_ref(i) for i in source_ids):
             raise ValueError("bad source refs")
-        if any(o["source_id"] not in source_ids for o in observations):
+        if any(not _safe_ref(o.get("observation_id")) or o["source_id"] not in source_ids
+               for o in observations):
             raise ValueError("observation/source mismatch")
         if any(c["source_id"] not in source_ids or
                c["corrects_observation_id"] not in {o["observation_id"] for o in observations}
@@ -175,6 +183,8 @@ def assess_hlks_session(vlr: dict[str, Any], graph: dict[str, Any],
         return result("NOT_ESTABLISHED", "ENTITY_MISSING_OR_DUPLICATED")
     entity = entities[0]
     graph_sources = {s.get("id"): s for s in graph.get("sources", [])}
+    if len(graph_sources) != len(graph.get("sources", [])):
+        return result("NOT_ESTABLISHED", "DUPLICATE_GRAPH_SOURCES")
     binding = sorted(set(entity.get("source_refs", [])) & source_ids & set(graph_sources))
     if not binding:
         return result("NOT_ESTABLISHED", "NO_SHARED_SOURCE_BINDING")
@@ -191,8 +201,10 @@ def assess_hlks_session(vlr: dict[str, Any], graph: dict[str, Any],
                       sources=binding)
     if any(e.get("type") == "correction" for e in linked_events):
         return result("NOT_ESTABLISHED", "CORRECTION_REPLAY_REQUIRED", sources=binding)
-    if not any(o.get("source_id") in binding for o in observations):
-        return result("NOT_ESTABLISHED", "OBSERVATION_NOT_BOUND_TO_ENTITY", sources=binding)
+    bound_events = {e.get("id") for e in linked_events if e.get("source_ref") in binding}
+    if not any(o.get("source_id") in binding and o.get("observation_id") in bound_events
+               for o in observations):
+        return result("NOT_ESTABLISHED", "OBSERVATION_EVENT_NOT_BOUND", sources=binding)
     return result("NOT_ESTABLISHED", "SOURCE_BINDING_NOT_PROOF",
                   "INDEPENDENT_RECONSTRUCTION_NOT_EXECUTED", sources=binding,
                   observations=[o["observation_id"] for o in observations if o["source_id"] in binding])
