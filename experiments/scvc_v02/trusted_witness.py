@@ -83,7 +83,7 @@ class GitHubReadOnly:
         # Other dot-dot sequences remain denied as traversal candidates.
         sha_compare = (
             isinstance(path, str) and re.fullmatch(
-                re.escape(root) + r"/compare/[0-9a-f]{40}\\.\\.\\.[0-9a-f]{40}",
+                re.escape(root) + r"/compare/[0-9a-f]{40}\.\.\.[0-9a-f]{40}",
                 path,
             ) is not None
         )
