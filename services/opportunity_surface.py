@@ -71,6 +71,14 @@ def _non_authoritative(row: dict) -> None:
              "observation cannot grant authorization")
     _require(row.get("execution", "NOT_AVAILABLE") == "NOT_AVAILABLE",
              "observation cannot grant execution")
+    _require(row.get("admission_effect", "NONE") == "NONE",
+             "observation cannot grant admission")
+    _require(row.get("merge_authority", False) is False,
+             "observation cannot claim merge authority")
+    _require(row.get("authenticated", False) is False,
+             "observation cannot self-authenticate")
+    _require(row.get("eligibility_established", False) is False,
+             "observation cannot establish eligibility")
 
 
 def _list(snapshot: dict, key: str) -> list:
@@ -142,13 +150,17 @@ def project(snapshot: dict[str, Any]) -> dict[str, Any]:
         _require(result.get("assessment_state") in
                  {"MAPPED", "BLOCKED", "INVESTIGATE", "UNMAPPED"},
                  "unsupported Guiding Light assessment state")
+        _require(isinstance(result.get("mandatory_unknowns"), list)
+                 and isinstance(result.get("mandatory_blockers"), list),
+                 "mandatory Guiding Light unknown/blocker lists required")
         results[tid] = result
 
     bound: dict[str, str] = {}
     for link in _list(snapshot, "bindings"):
         _non_authoritative(link)
         rid, tid = link.get("resource_id"), link.get("target_id")
-        _require(rid in source_bound and tid in results and rid not in bound,
+        _require(isinstance(rid, str) and isinstance(tid, str)
+                 and rid in source_bound and tid in results and rid not in bound,
                  "binding needs source-bound resource and existing unique target")
         _source_refs(link)
         bound[rid] = tid
@@ -161,8 +173,10 @@ def project(snapshot: dict[str, Any]) -> dict[str, Any]:
         _require(isinstance(eid, str) and bool(eid) and eid not in event_ids,
                  "invalid or duplicate activity event_id")
         event_ids.add(eid)
-        _require(rid in source_bound, "activity event requires source-bound resource")
-        _require(event.get("stage") in set(STAGES) | {"RETRACTED"},
+        _require(isinstance(rid, str) and rid in source_bound,
+                 "activity event requires source-bound resource")
+        _require(isinstance(event.get("stage"), str)
+                 and event["stage"] in set(STAGES) | {"RETRACTED"},
                  "invalid activity stage")
         _require(event.get("evidence_state") in EVIDENCE_STATES,
                  "unsupported activity evidence state")
@@ -174,10 +188,15 @@ def project(snapshot: dict[str, Any]) -> dict[str, Any]:
 
     progress: dict[str, int] = {rid: 0 for rid in source_bound}
     retracted: set[str] = set()
-    for _, _, event in sorted(timeline, key=lambda item: (item[0], item[1])):
+    previous_time: dict[str, datetime] = {}
+    for at, _, event in sorted(timeline, key=lambda item: (item[0], item[1])):
         rid, stage = event["resource_id"], event["stage"]
+        _require(rid not in previous_time or at > previous_time[rid],
+                 "activity timestamps must be strictly increasing per resource")
+        previous_time[rid] = at
         _require(rid not in retracted, "cannot advance after retraction")
         if stage == "RETRACTED":
+            _require(progress[rid] > 0, "retraction requires prior exposure")
             retracted.add(rid)
             progress[rid] = 0
             continue
@@ -207,7 +226,8 @@ def project(snapshot: dict[str, Any]) -> dict[str, Any]:
                  "invalid or duplicate behavior event_id")
         behavior_ids.add(eid)
         dim, rule, state = claim.get("dimension"), claim.get("rule_id"), claim.get("state")
-        _require(dim in DIMENSIONS and rule in DIMENSIONS[dim],
+        _require(isinstance(dim, str) and dim in DIMENSIONS
+                 and isinstance(rule, str) and rule in DIMENSIONS[dim],
                  "unregistered opportunity rule")
         _require(state in CLAIM_STATES, "unsupported behavior claim state")
         _source_refs(claim)
