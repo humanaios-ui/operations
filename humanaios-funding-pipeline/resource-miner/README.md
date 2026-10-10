@@ -1,4 +1,4 @@
-# HumanAIOS Resource Miner v0.1.7
+# HumanAIOS Resource Miner v0.1.9
 
 Resource Miner is the **broad-discovery layer upstream of Entitlement Navigator**.
 
@@ -462,6 +462,42 @@ One opportunity may emit many stable `PRP-*` Proposition Candidates. Proposition
 Direct observations may support observation propositions. Normalizer classifications and text extractions produce testable propositions but do **not** self-validate their external truth. A proposition-bound claim uses `claim_type=OPPORTUNITY_PROPOSITION`; parent opportunity existence/currentness cannot promote an unrelated proposition to `SUPPORTED`.
 
 The scheduled Mine workflow persists `data/propositions.snapshot.jsonl` between the OPP and CLM layers. See `docs/PROPOSITION_MINING.md` and `schemas/proposition-candidate.v1.schema.json`.
+
+### Cross-Mine proposition reconciliation
+
+Resource Miner now relates independent `PRP-*` observations through a separate non-authoritative `PRS-*` layer.
+
+```text
+Mine A -> OPP-A -> PRP-A --\
+                         -> PRS-*
+Mine B -> OPP-B -> PRP-B --/
+```
+
+Each proposition carries a `resolution_subject_key`, allowing independent Mines to refer to the same bounded real-world subject without merging their local `OPP-*` or `PRP-*` identities.
+
+Deterministic relations are `SAME_AS | SUPPORTS | CONTRADICTS | QUALIFIES | SUPERSEDES | CONTEXT_FOR | UNRESOLVED`. Resolution states are `SINGLE_SOURCE | CORROBORATED | CONTESTED | QUALIFIED | SUPERSEDED | UNRESOLVED`.
+
+`CORROBORATED` means independent evidence origins made the same normalized assertion. Multiple Mines from the same origin do not count as independent corroboration. It does **not** mean the assertion has been promoted to truth. Every resolution set retains `truth_state=NOT_DETERMINED`, `eligibility_state=NOT_EVALUATED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, and `authority_effect=NONE`.
+
+The scheduled Mine workflow persists `data/proposition-resolutions.snapshot.jsonl` between the PRP and CLM layers. See `docs/PROPOSITION_RECONCILIATION.md`.
+
+### Evidence adjudication and verification frontier
+
+After cross-Mine reconciliation, Resource Miner now evaluates the *standing of evidence* without converting source count or source prestige into truth.
+
+```text
+PRP-* -> PRS-* -> PAD-* -> VFY-*
+```
+
+`SourceStandingProfile` records are scoped by evidence origin and proposition type/predicate. A source can be primary for its own program status while still having no standing for a HumanAIOS machine classification derived from that page.
+
+`PAD-*` states include `PRIMARY_SOURCE_PRESENT`, `MULTI_ORIGIN_NO_PRIMARY`, `NONPRIMARY_SOURCE_ONLY`, `DERIVED_ONLY`, `CONTESTED`, `UNRESOLVED`, and `SOURCE_STANDING_UNKNOWN`.
+
+`VFY-*` frontier items identify missing evidence such as `PRIMARY_SOURCE_MISSING`, `DIRECT_EVIDENCE_MISSING`, `CONFLICT_REQUIRES_RESOLUTION`, `SOURCE_STANDING_UNKNOWN`, or `RELATION_UNRESOLVED`.
+
+Every PAD/VFY object remains non-authoritative: `truth_state=NOT_DETERMINED`, `eligibility_state=NOT_EVALUATED`, `warrant_state=NOT_EVALUATED`, `authorization_state=NOT_REQUESTED`, and `authority_effect=NONE`.
+
+See `docs/EVIDENCE_ADJUDICATION.md`.
 
 ### Reconstructable Claim state machine
 

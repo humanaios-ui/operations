@@ -60,6 +60,7 @@ class PropositionMiningTests(unittest.TestCase):
         self.assertEqual(schema["properties"]["authority_effect"]["const"], "NONE")
         self.assertIn("semantic_key", schema["required"])
         self.assertIn("epistemic_role", schema["required"])
+        self.assertIn("resolution_subject_key", schema["required"])
 
     def test_one_record_mines_many_propositions(self):
         props = propositions_from_candidate(specimen())
@@ -73,6 +74,46 @@ class PropositionMiningTests(unittest.TestCase):
         self.assertIn("APPLICANT_TYPE", kinds)
         self.assertGreater(len(props), 5)
         self.assertEqual(len({row.proposition_id for row in props}), len(props))
+
+    def test_resolution_subject_key_is_stable_across_mines_for_shared_identity(self):
+        first = specimen()
+        second = specimen()
+        mine_a = ResourceMine(
+            mine_id="MINE-A",
+            name="A",
+            mine_kind="PROGRAM_PLATFORM",
+            canonical_url="https://a.example.test",
+            resolver="fixture",
+            roles=["OPPORTUNITY_SOURCE"],
+        )
+        mine_b = ResourceMine(
+            mine_id="MINE-B",
+            name="B",
+            mine_kind="PROGRAM_PLATFORM",
+            canonical_url="https://b.example.test",
+            resolver="fixture",
+            roles=["OPPORTUNITY_SOURCE"],
+        )
+        first = bind_opportunity(
+            mine_a,
+            first,
+            opportunity_source_kind="configured_endpoint",
+        )
+        second = bind_opportunity(
+            mine_b,
+            second,
+            opportunity_source_kind="configured_endpoint",
+        )
+        first_props = propositions_from_candidate(first)
+        second_props = propositions_from_candidate(second)
+        self.assertEqual(
+            {p.semantic_key: p.resolution_subject_key for p in first_props},
+            {p.semantic_key: p.resolution_subject_key for p in second_props},
+        )
+        self.assertNotEqual(
+            {p.semantic_key: p.proposition_id for p in first_props},
+            {p.semantic_key: p.proposition_id for p in second_props},
+        )
 
     def test_proposition_identity_is_semantic_not_title_based(self):
         row = specimen()

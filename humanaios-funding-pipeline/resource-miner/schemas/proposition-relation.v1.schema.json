@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://humanaios.ai/schemas/proposition-relation.v1.schema.json",
+  "title": "HumanAIOS Proposition Relation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "relation_id",
+    "resolution_set_id",
+    "relation_type",
+    "source_proposition_id",
+    "target_proposition_id",
+    "basis",
+    "symmetric",
+    "authority_effect"
+  ],
+  "properties": {
+    "schema": {
+      "const": "humanaios.proposition-relation.v1"
+    },
+    "relation_id": {
+      "type": "string",
+      "pattern": "^REL-[A-F0-9]{16}$"
+    },
+    "resolution_set_id": {
+      "type": "string",
+      "pattern": "^PRS-[A-F0-9]{16}$"
+    },
+    "relation_type": {
+      "enum": [
+        "SAME_AS",
+        "SUPPORTS",
+        "CONTRADICTS",
+        "QUALIFIES",
+        "SUPERSEDES",
+        "CONTEXT_FOR",
+        "UNRESOLVED"
+      ]
+    },
+    "source_proposition_id": {
+      "type": "string",
+      "pattern": "^PRP-[A-F0-9]{16}$"
+    },
+    "target_proposition_id": {
+      "type": "string",
+      "pattern": "^PRP-[A-F0-9]{16}$"
+    },
+    "basis": {
+      "type": "string",
+      "minLength": 1
+    },
+    "symmetric": {
+      "type": "boolean"
+    },
+    "authority_effect": {
+      "const": "NONE"
+    }
+  }
+}

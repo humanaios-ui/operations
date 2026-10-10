@@ -1,0 +1,38 @@
+[
+  {
+    "schema": "humanaios.source-standing-profile.v1",
+    "origin_key": "learn.microsoft.com",
+    "source_class": "OFFICIAL_PRIMARY",
+    "standing_for_types": [
+      "OPPORTUNITY_EXISTS",
+      "CURRENTLY_AVAILABLE",
+      "DEADLINE",
+      "STATUS",
+      "APPLICANT_TYPE"
+    ],
+    "standing_for_predicates": [],
+    "independence_group": "microsoft",
+    "notes": [
+      "Official Microsoft documentation origin; standing is scoped to represented Microsoft program state/terms, not HumanAIOS classifications."
+    ],
+    "authority_effect": "NONE"
+  },
+  {
+    "schema": "humanaios.source-standing-profile.v1",
+    "origin_key": "hackerone.com",
+    "source_class": "OFFICIAL_PRIMARY",
+    "standing_for_types": [
+      "OPPORTUNITY_EXISTS",
+      "CURRENTLY_AVAILABLE",
+      "DEADLINE",
+      "STATUS",
+      "APPLICANT_TYPE"
+    ],
+    "standing_for_predicates": [],
+    "independence_group": "hackerone",
+    "notes": [
+      "Official HackerOne platform origin; scope records and program messages may evidence HackerOne program state but do not authorize testing."
+    ],
+    "authority_effect": "NONE"
+  }
+]
