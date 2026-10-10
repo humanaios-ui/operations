@@ -168,11 +168,28 @@ def _protection(api):
     return pr_review and ci
 
 
-def _runs(api, head, pr_number):
+def _time(value):
+    if not isinstance(value, str):
+        raise WitnessError("UNVERIFIABLE_RUN_TIME")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise WitnessError("UNVERIFIABLE_RUN_TIME") from exc
+    _require(parsed.tzinfo is not None, "UNVERIFIABLE_RUN_TIME")
+    return parsed.astimezone(timezone.utc)
+
+
+def _runs(api, head, pr):
     qs = urllib.parse.urlencode({"head_sha": head, "event": "pull_request", "per_page": 100})
     obj = api.get(f"repos/{REPO}/actions/runs?{qs}")
     _require(isinstance(obj, dict) and isinstance(obj.get("workflow_runs"), list)
              and obj.get("total_count", 0) <= 100, "RUN_LIST_INCOMPLETE")
+    pr_number = pr.get("number")
+    merged = pr.get("merged") is True
+    _require(type(pr_number) is int, "PILOT_PR_IDENTITY_MISMATCH")
+    merged_at = _time(pr.get("merged_at")) if merged else None
+    if merged:
+        _require(_sha(pr.get("merge_commit_sha")), "PILOT_MERGE_NOT_PINNED")
     found = {}
     for run in obj["workflow_runs"]:
         if not isinstance(run, dict):
@@ -181,6 +198,18 @@ def _runs(api, head, pr_number):
         if name not in REQUIRED_CI:
             continue
         prs = run.get("pull_requests") or []
+        linked = any(
+            p.get("number") == pr_number and p.get("head", {}).get("sha") == head
+            for p in prs if isinstance(p, dict)
+        )
+        # GitHub clears workflow_run.pull_requests[] after PR closure. Do not
+        # treat the absent backlink as a failure when the authoritative merged
+        # PR, exact SHA and original branch bind a pre-merge successful run.
+        archived = (
+            merged and not prs
+            and run.get("head_branch") == pr.get("head", {}).get("ref")
+            and _time(run.get("created_at")) <= merged_at
+        )
         valid = (
             run.get("path") == REQUIRED_CI[name]
             and run.get("head_sha") == head
@@ -188,8 +217,7 @@ def _runs(api, head, pr_number):
             and run.get("repository", {}).get("full_name") == REPO
             and run.get("head_repository", {}).get("full_name") == REPO
             and type(run.get("run_attempt")) is int and run["run_attempt"] > 0
-            and any(p.get("number") == pr_number and p.get("head", {}).get("sha") == head
-                    for p in prs if isinstance(p, dict))
+            and (linked or archived)
         )
         if not valid:
             continue
@@ -219,7 +247,10 @@ def _runs(api, head, pr_number):
                  and all(j.get("conclusion") in ("success", "skipped") for j in rows),
                  "CI_JOB_RESULTS_INCOMPLETE")
         refs[name] = {"run_id": run_id, "run_attempt": run["run_attempt"],
-                      "head_sha": head, "workflow_path": REQUIRED_CI[name]}
+                      "head_sha": head, "workflow_path": REQUIRED_CI[name],
+                      "pr_binding": ("LIVE_PR_ATTACHMENT" if any(
+                          p.get("number") == pr_number for p in (run.get("pull_requests") or [])
+                          if isinstance(p, dict)) else "MERGED_PR_BRANCH_HISTORY")}
     return refs
 
 
@@ -289,7 +320,14 @@ def collect(api, context, *, identity=None):
     _require(isinstance(edits, list) and len(edits) < 100, "CHANGED_FILES_INCOMPLETE")
     _require(not ({f.get("filename") for f in edits if isinstance(f, dict)}
                   & set(REQUIRED_CI.values())), "ISSUER_WORKFLOW_MODIFIED_BY_CANDIDATE")
-    ci_runs = _runs(api, head, PILOT_PR)
+    if target.get("merged") is True:
+        _require(_sha(target.get("merge_commit_sha")), "PILOT_MERGE_NOT_PINNED")
+        integration = api.get(
+            f"repos/{REPO}/compare/{target['merge_commit_sha']}...{sha}"
+        )
+        _require(integration.get("status") in ("ahead", "identical"),
+                 "PILOT_MERGE_NOT_ANCESTOR")
+    ci_runs = _runs(api, head, target)
     trust_root = _protection(api)
     return LiveObservation(_COLLECTOR_CAPABILITY, {
         "source": "GITHUB_REST_FROM_TRUSTED_DEFAULT_WORKFLOW",
