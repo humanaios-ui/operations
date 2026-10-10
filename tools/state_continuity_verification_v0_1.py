@@ -1,6 +1,8 @@
 """HumanAIOS SCVC v0.1: read-only, non-authoritative continuity assessment.
 
-Builder v1.7 compliant - validation_tool.\n\nFinite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
+Builder v1.7 compliant - validation_tool.
+
+Finite checks are exhaustive ONLY over caller-supplied synthetic sets. The HLKS /
 Session Graph adapter checks structural lineage and scope; it NEVER authenticates
 source/issuer claims, reconstructs private payloads, or grants execution rights.
 """
@@ -12,7 +14,12 @@ import json
 import re
 from typing import Any, Callable, Iterable
 
-TOOL_NAME = "state_continuity_verification"\nTOOL_VERSION = "0.1.0"\nTOOL_CATEGORY = "validation_tool"\nTOOL_ZONE = 1\n\nSCHEMA = "humanaios.state_continuity_verification.v0.1"
+TOOL_NAME = "state_continuity_verification"
+TOOL_VERSION = "0.1.0"
+TOOL_CATEGORY = "validation_tool"
+TOOL_ZONE = 1
+
+SCHEMA = "humanaios.state_continuity_verification.v0.1"
 STATUS = frozenset({"EXACTLY_RECOVERABLE", "SEMANTICALLY_RECOVERABLE",
                     "NOT_ESTABLISHED", "RECONSTRUCTION_DENIED"})
 COMMIT = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
