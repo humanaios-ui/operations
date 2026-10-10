@@ -3,7 +3,7 @@
 Input must be independently established from GitHub workflow/job logs. This
 offline pure function does not certify the authenticity of supplied evidence.
 
-Builder v1.7 compliant · analysis_tool
+Builder v1.7 compliant · diagnostic_tool
 """
 from __future__ import annotations
 import argparse
@@ -15,7 +15,7 @@ from collections import defaultdict
 
 TOOL_NAME = "gner_failure_signatures_e2"
 TOOL_VERSION = "0.1.0"
-TOOL_CATEGORY = "analysis_tool"
+TOOL_CATEGORY = "diagnostic_tool"
 TOOL_ZONE = 1
 
 ALLOWED_REPO = "humanaios-ui/operations"

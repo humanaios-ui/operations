@@ -33,11 +33,10 @@ counts:
   tools: 207
   mcp_servers: 2
   excluded: 4
-  builder_markers_present: 152
+  builder_markers_present: 153
   missing_from_tree: 0
-  unclassified: 8
+  unclassified: 6
 categories:
-- analysis_tool
 - analytics_tool
 - audit_tool
 - calibration_tool
@@ -2531,7 +2530,7 @@ tools:
   name: gner_failure_signatures_e2
   path: tools/gner_failure_signatures_e2.py
   version: 0.1.0
-  category: analysis_tool
+  category: diagnostic_tool
   zone: 1
   status: draft
   interface: cli
@@ -2542,27 +2541,28 @@ tools:
 - tool_id: HAIOS-TOOL-213
   name: gner_notification_e0
   path: tools/gner_notification_e0.py
-  version: unversioned
-  category: unclassified
+  version: 0.1.0
+  category: diagnostic_tool
   zone: 1
   status: draft
-  interface: script
+  interface: module
   lang: python
-  smoke_test: false
+  smoke_test: true
   builder_markers: false
   purpose: 'GNER-E0: offline GitHub notification lead interpreter.'
 - tool_id: HAIOS-TOOL-214
   name: gner_verify_e1
   path: tools/gner_verify_e1.py
-  version: unversioned
-  category: unclassified
+  version: 0.1.0
+  category: connector_tool
   zone: 1
   status: draft
   interface: cli
   lang: python
-  smoke_test: false
-  builder_markers: false
+  smoke_test: true
+  builder_markers: true
   purpose: GNER-E1 explicit, read-only authenticated GitHub workflow-run reconciliation.
+  session: read_only_github_api
 - tool_id: HAIOS-TOOL-215
   name: b4_fold_execute
   path: .z1-control/b4_fold_execute.py
