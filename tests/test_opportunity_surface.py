@@ -235,5 +235,54 @@ class OpportunitySurfaceTests(unittest.TestCase):
             project(data)
 
 
+    def test_self_authenticated_and_admission_inputs_fail_closed(self):
+        for key, value in (
+            ("authenticated", True),
+            ("merge_authority", True),
+            ("admission_effect", "ADMITTED"),
+            ("eligibility_established", True),
+        ):
+            with self.subTest(key=key):
+                data = specimen()
+                data["activity_events"] = [event(data, "EXPOSED", 0)]
+                data["activity_events"][0][key] = value
+                with self.assertRaises(ObservationError):
+                    project(data)
+
+    def test_guiding_light_requires_explicit_blocker_and_unknown_fields(self):
+        for missing in ("mandatory_unknowns", "mandatory_blockers"):
+            with self.subTest(field=missing):
+                data = specimen()
+                del data["guiding_light"]["results"][0][missing]
+                with self.assertRaises(ObservationError):
+                    project(data)
+
+    def test_equal_activity_timestamps_cannot_fake_causality(self):
+        data = specimen()
+        first = event(data, "EXPOSED", 0)
+        second = event(data, "QUALIFIED", 1)
+        second["observed_at"] = first["observed_at"]
+        data["activity_events"] = [first, second]
+        with self.assertRaises(ObservationError):
+            project(data)
+
+    def test_retraction_without_prior_exposure_fails_closed(self):
+        data = specimen()
+        data["activity_events"] = [event(data, "RETRACTED", 0)]
+        with self.assertRaises(ObservationError):
+            project(data)
+
+    def test_unhashable_ids_are_invalid_not_unhandled_type_errors(self):
+        data = specimen()
+        data["bindings"][0]["target_id"] = ["cannot hash"]
+        with self.assertRaises(ObservationError):
+            project(data)
+        data = specimen()
+        data["activity_events"] = [event(data, "EXPOSED", 0)]
+        data["activity_events"][0]["stage"] = ["cannot hash"]
+        with self.assertRaises(ObservationError):
+            project(data)
+
+
 if __name__ == "__main__":
     unittest.main()
