@@ -191,3 +191,7 @@ baseline_tests:
   - path: tests/test_scvc_v02_milestone_pilot.py
     requires: []
     description: SCVC v0.2 bounded milestone pilot fail-closed regression tests
+
+  - path: tests/test_scvc_v02_trusted_witness.py
+    requires: []
+    description: SCVC v0.2 GitHub REST exact-head witness and trust-root negative tests
