@@ -1,0 +1,60 @@
+{
+  "FAILURE_ID": "C003-DHP-F003",
+  "SYSTEM": "HMBM-CYCLE-003 / DHP-1.0",
+  "ACTOR": "COURIER",
+  "CAPABILITY": "COMMUNICATE_EXISTING_IMMUTABLE_QUEUED_ARTIFACT",
+  "AUTHORITY": "PAPER_ONLY_COURIER_COMMUNICATION_ONLY",
+  "STATE_BEFORE": "QUEUED",
+  "EXPECTED_TRANSITION": "QUEUED -> VERIFY_ARTIFACT -> GMAIL_COMMUNICATION -> COMMUNICATION_RECEIPT -> COMMUNICATED",
+  "OBSERVED_TRANSITION": "QUEUED -> VERIFY_ARTIFACT(PASS) -> TRANSPORT_MATERIALIZATION(BLOCKED)",
+  "FAILURE_SURFACE": "Exact repository candidate bytes were independently readable and Git blob identity matched, and Gmail send-with-attachment capability exists, but the connector boundary did not expose the GitHub file as an attachable file reference/local byte artifact. Reconstructing candidate.json from model-visible text/base64 would violate the no-regeneration/no-silent-modification custody constraint.",
+  "EVIDENCE": {
+    "generation_id": "C003-H01-GEN-003",
+    "candidate_id": "C003-H01-CANDIDATE",
+    "predecessor": "C003-H0-ACCEPTED",
+    "github_blob_sha": "57bd97fab97d8a39d984234d0b4e31f22a0d9209",
+    "persisted_file_bytes_sha256": "cc002071fa526b981ef3a864d15edca450d7a8addf7a2a6f718207da61095306",
+    "canonical_artifact_sha256": "031af00cdc9b60e6a30ad3d02f22c30ebdc291cdaa4d3ad8be174be41b513205",
+    "byte_length": 808046,
+    "record_count": 1200,
+    "due_epoch_count": 12,
+    "paper_allocations": 0,
+    "paper_fills": 0,
+    "portfolios_all_cash": 9,
+    "h0_acceptance_message_id": "1a0f203665ee3326",
+    "gmail_send_attachment_capability": true,
+    "gmail_send_attempted": false
+  },
+  "PROVENANCE": [
+    "PR #597 branch feat/hmbm-c003-durable-handoff-protocol candidate.json",
+    "PR #597 manifest.json",
+    "PR #597 queued-receipt.json",
+    "PR #597 evidence/C003-DHP-PERSISTENCE-TEST-001.json",
+    "Gmail H0 acceptance attachment HMBM-CYCLE-003_H0_ACCEPTANCE.json"
+  ],
+  "KNOWN_OMISSIONS": [
+    "No Gmail message was sent.",
+    "No communication receipt exists.",
+    "No Witness acceptance was attempted."
+  ],
+  "UNKNOWN_COVERAGE": [
+    "Cross-connector GitHub-file-to-Gmail-attachment handoff may be available through a runtime/file bridge not exposed to this Courier invocation."
+  ],
+  "BLAST_RADIUS": "Transport edge only. Producer artifact, queue evidence, H0 canonical state, portfolios, allocations, fills, and market analysis unchanged.",
+  "REVERSIBILITY": "FULL. Resume the same immutable GEN-003 at the Courier transport edge when exact bytes can be materialized without reconstruction.",
+  "CORRECTION_WARRANT": "Provide a byte-preserving GitHub->attachable-file bridge, or have DHP persist an attachment-addressable immutable artifact at QUEUED time. Verify SHA-256 before Gmail send and again after Gmail attachment read-back.",
+  "CORRECTION": "HOLD GEN-003 QUEUED. Do not create GEN-004. Do not mark COMMUNICATED.",
+  "STATE_AFTER": "QUEUED",
+  "VERIFICATION_RECEIPT": {
+    "pre_send_verification": "PASS",
+    "artifact_manifest_consistency": true,
+    "repository_read_back_evidence": true,
+    "predecessor_independently_verified_from_gmail": true,
+    "exact_attachment_materialized": false,
+    "gmail_communication": false,
+    "communication_receipt": false,
+    "canonical_state": "C003-H0-ACCEPTED"
+  },
+  "RESIDUAL_UNKNOWN": "Whether the next Courier runtime can directly materialize the existing GitHub blob as a Gmail attachment without changing bytes.",
+  "paper_only": true
+}

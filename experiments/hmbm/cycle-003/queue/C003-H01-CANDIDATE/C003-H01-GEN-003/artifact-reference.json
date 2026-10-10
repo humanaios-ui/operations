@@ -1,0 +1,32 @@
+{
+  "protocol": "DHP-1.0",
+  "reference_version": "DHP-ARTIFACT-REF-1",
+  "cycle": "HMBM-CYCLE-003",
+  "candidate_id": "C003-H01-CANDIDATE",
+  "generation_id": "C003-H01-GEN-003",
+  "predecessor_state_id": "C003-H0-ACCEPTED",
+  "artifact_sha256": "cc002071fa526b981ef3a864d15edca450d7a8addf7a2a6f718207da61095306",
+  "artifact_reference": {
+    "reference_version": "DHP-ARTIFACT-REF-1",
+    "locator_type": "GITHUB_COMMIT_PINNED_RAW",
+    "repository": "humanaios-ui/operations",
+    "commit_sha": "3fe388a911630b0f3f754fb363cf313e6c253550",
+    "path": "experiments/hmbm/cycle-003/queue/C003-H01-CANDIDATE/C003-H01-GEN-003/candidate.json",
+    "blob_sha": "57bd97fab97d8a39d984234d0b4e31f22a0d9209",
+    "sha256": "cc002071fa526b981ef3a864d15edca450d7a8addf7a2a6f718207da61095306",
+    "byte_length": 808046,
+    "media_type": "application/json",
+    "immutable": true,
+    "transport_url": "https://raw.githubusercontent.com/humanaios-ui/operations/3fe388a911630b0f3f754fb363cf313e6c253550/experiments/hmbm/cycle-003/queue/C003-H01-CANDIDATE/C003-H01-GEN-003/candidate.json"
+  },
+  "provenance": {
+    "original_queued_receipt_sha256": "e0e25fc4ee8f521cc8131f1c1900e74931d8c1f4f2beef95dd6f5a44b8e4f355",
+    "original_manifest_sha256": "9ff953cc6e3299f66311facf1b7039062397d5d7d718e9dbafe2db4860d0ca2d",
+    "remediation_failure_id": "C003-DHP-F003",
+    "candidate_bytes_modified": false,
+    "original_queue_evidence_modified": false,
+    "commit_pinned_blob_read_back_verified": true
+  },
+  "status": "IMMUTABLE_REFERENCE_AVAILABLE",
+  "paper_only": true
+}
