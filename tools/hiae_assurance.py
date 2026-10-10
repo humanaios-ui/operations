@@ -350,7 +350,7 @@ def verify_receipt(
 # ---------------------------------------------------------------------------
 
 # Fixture keys are derived from public labels, so no key material is stored in
-# source. They are NOT secrets and must never sign a real receipt.
+# source. They are not secrets and must not be used to sign a real receipt.
 DEMO_KEYS = {
     name: hashlib.sha256(f"hiae-demo-fixture|{name}".encode("utf-8")).digest()
     for name in (

@@ -25,7 +25,7 @@ Run: `python3 tools/hiae_assurance.py --smoke-test` and `python3 -m unittest tes
 ## Known limits (stated, not hidden)
 
 - **Signatures are HMAC-SHA256 with shared keys.** This stands in for an asymmetric scheme (Ed25519 or a W3C VC proof). The verifier must hold issuer keys, so receipts are not publicly verifiable. Replacing this is a Z2 decision.
-- **Demo keys are fixtures.** `DEMO_KEYS` are derived from public labels, not secrets, and must never sign a real receipt.
+- **Demo keys are fixtures.** `DEMO_KEYS` are derived from public labels, not secrets, and must not be used to sign a real receipt.
 - **Hash chaining is not used for authorship.** Authorship rests on observer and issuer signatures.
 - **Fee/escrow and reviewer-key-per-change are not implemented.** They are design items for later review.
 - **Principle 10 and credentialing** are in the humanaios child issue, not here.
